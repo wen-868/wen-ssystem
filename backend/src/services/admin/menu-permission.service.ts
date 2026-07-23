@@ -15,8 +15,18 @@ export interface MenuItem {
   children?: MenuItem[];
 }
 
+/** t_sys_role_menu JOIN t_sys_menu 仅 menuCode 查询行（带别名） */
+interface MenuCodeRow {
+  menuCode: string;
+}
+
+/** t_sys_user_role JOIN t_sys_role 仅 roleId 查询行（带别名） */
+interface UserRoleRow {
+  roleId: number | string;
+}
+
 export async function getMenuTree(tenantId: string): Promise<MenuItem[]> {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<MenuItem>(
     `SELECT id, parent_id AS parentId, menu_name AS menuName, menu_code AS menuCode,
             menu_type AS menuType, path, icon, sort_no AS sortNo, status
      FROM t_sys_menu
@@ -61,7 +71,7 @@ function buildTree(flatList: MenuItem[]): MenuItem[] {
 }
 
 export async function getRoleMenuCodes(roleId: number, tenantId: string): Promise<string[]> {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<MenuCodeRow>(
     `SELECT m.menu_code AS menuCode
      FROM t_sys_role_menu rm
      JOIN t_sys_menu m ON m.id = rm.menu_id
@@ -75,7 +85,7 @@ export async function getRoleMenuCodes(roleId: number, tenantId: string): Promis
 
 export async function getUserMenus(userId: number, tenantId: string): Promise<MenuItem[]> {
   // 获取用户的所有角色
-  const roles = await queryWithTenant<any>(
+  const roles = await queryWithTenant<UserRoleRow>(
     `SELECT r.id AS roleId
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
@@ -97,7 +107,7 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
   let records: any[];
   if (superAdmin) {
     // 超级管理员看到所有菜单
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<MenuItem>(
       `SELECT DISTINCT id, parent_id AS parentId, menu_name AS menuName, menu_code AS menuCode,
               menu_type AS menuType, path, icon, sort_no AS sortNo, status
        FROM t_sys_menu
@@ -108,7 +118,7 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
   } else {
     // 根据角色过滤菜单
     const placeholders = roleIds.map(() => "?").join(",");
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<MenuItem>(
       `SELECT DISTINCT m.id, m.parent_id AS parentId, m.menu_name AS menuName, m.menu_code AS menuCode,
               m.menu_type AS menuType, m.path, m.icon, m.sort_no AS sortNo, m.status
        FROM t_sys_role_menu rm

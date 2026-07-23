@@ -3,6 +3,68 @@ import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/d
 import { makeBizNo } from "../../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
 
+/** 购物车列表行（queryWithTenant 用，驼峰别名） */
+interface CartItemRow {
+  id: number | string;
+  skuId: number | string;
+  quantity: number | string;
+  skuName: string;
+  spuName: string;
+  image: string | null;
+  retailPrice: number | string | null;
+  wholesalePrice: number | string | null;
+  miniappPrice: number | string | null;
+  availableQty: number | string;
+}
+
+/** 购物车 SKU 校验行 */
+interface CartSkuRow {
+  id: number | string;
+  sku_name: string;
+}
+
+/** 购物车已存在项行 */
+interface CartExistingRow {
+  id: number | string;
+  quantity: number | string;
+}
+
+/** t_user_coupon 用户优惠券查询行 */
+interface UserCouponRow {
+  id: number | string;
+  coupon_template_id: number | string;
+  status: string;
+  expire_at: string | Date;
+}
+
+/** t_coupon_template 优惠券模板查询行 */
+interface CouponTemplateRow {
+  discount_value: number | string;
+  discount_type: string;
+}
+
+/** t_full_reduction 满减活动查询行 */
+interface FullReductionRow {
+  id: number | string;
+  rules: string | null;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** 结算预览/下单购物车行（queryWithTenant 用，驼峰别名，无 id 字段） */
+interface CartCheckoutRow {
+  skuId: number | string;
+  quantity: number | string;
+  skuName: string;
+  spuName: string;
+  image: string | null;
+  retailPrice: number | string | null;
+  wholesalePrice: number | string | null;
+  miniappPrice: number | string | null;
+  availableQty: number | string;
+}
+
 // ========== 私有辅助函数 ==========
 
 async function getBestPrice(
@@ -56,23 +118,23 @@ async function calcMarketingDiscount(
   let discountAmount = 0;
   let discountDesc = "";
 
-  const doQueryOne = async (sql: string, params: any[]) => {
+  const doQueryOne = async <T = Record<string, unknown>>(sql: string, params: (string | number | null | Date | boolean)[]): Promise<T | null> => {
     if (conn) {
       const [rows] = await conn.execute(sql, params);
-      return (rows as Record<string, unknown>[])[0] ?? null;
+      return ((rows as Record<string, unknown>[])[0] ?? null) as T | null;
     }
-    return queryOneWithTenant<any>(sql, params, tenantId);
+    return queryOneWithTenant<T>(sql, params, tenantId);
   };
 
   // 优惠券
   if (couponId) {
-    const userCoupon = await doQueryOne(
+    const userCoupon = await doQueryOne<UserCouponRow>(
       `SELECT uc.id, uc.coupon_template_id, uc.status, uc.expire_at
        FROM t_user_coupon uc WHERE uc.id = ? AND uc.customer_id = ? AND uc.status = 'AVAILABLE' AND uc.expire_at > NOW()`,
       [couponId, customerId]
     );
     if (userCoupon) {
-      const template = await doQueryOne(
+      const template = await doQueryOne<CouponTemplateRow>(
         `SELECT discount_value, discount_type FROM t_coupon_template WHERE id = ?`,
         [userCoupon.coupon_template_id]
       );
@@ -85,13 +147,13 @@ async function calcMarketingDiscount(
 
   // 满减活动
   if (fullReductionId) {
-    const fullReduction = await doQueryOne(
+    const fullReduction = await doQueryOne<FullReductionRow>(
       `SELECT id, rules, status, start_time, end_time FROM t_full_reduction WHERE id = ? AND status = 'ACTIVE' AND start_time <= NOW() AND end_time >= NOW()`,
       [fullReductionId]
     );
     if (fullReduction) {
       try {
-        const rules: Array<{ min_amount: number; discount_amount: number }> = JSON.parse(fullReduction.rules);
+        const rules: Array<{ min_amount: number; discount_amount: number }> = JSON.parse(fullReduction.rules ?? "[]");
         const matched = rules
           .filter(r => goodsAmount >= r.min_amount)
           .sort((a, b) => b.min_amount - a.min_amount)[0];
@@ -114,7 +176,7 @@ async function calcMarketingDiscount(
 // ========== 购物车 CRUD ==========
 
 export async function getCartList(tenantId: string, customerId: number, customerType: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<CartItemRow>(
     `SELECT c.id, c.sku_id AS skuId, c.quantity,
             s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -151,7 +213,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
 }
 
 export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
-  const sku = await queryOneWithTenant<any>(
+  const sku = await queryOneWithTenant<CartSkuRow>(
     `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
     [skuId],
     tenantId
@@ -160,7 +222,7 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
     return { success: false, message: "商品不存在或已下架" };
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CartExistingRow>(
     `SELECT id, quantity FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId
@@ -242,10 +304,10 @@ export async function checkoutPreview(params: {
 }) {
   const { tenantId, customerId, customerType, skuIds, storeId, couponId, fullReductionId } = params;
 
-  let cartItems: any[];
+  let cartItems: CartCheckoutRow[];
   if (skuIds && skuIds.length > 0) {
     const placeholders = skuIds.map(() => "?").join(",");
-    cartItems = await queryWithTenant<any>(
+    cartItems = await queryWithTenant<CartCheckoutRow>(
       `SELECT c.sku_id AS skuId, c.quantity,
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -260,7 +322,7 @@ export async function checkoutPreview(params: {
       tenantId
     );
   } else {
-    cartItems = await queryWithTenant<any>(
+    cartItems = await queryWithTenant<CartCheckoutRow>(
       `SELECT c.sku_id AS skuId, c.quantity,
               s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
               pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -283,8 +345,8 @@ export async function checkoutPreview(params: {
   let goodsAmount = 0;
   const previewItems: any[] = [];
   for (const row of cartItems) {
-    const unitPrice = await getBestPrice(null, tenantId, customerId, row.skuId, row.quantity);
-    const subtotal = Number((unitPrice * row.quantity).toFixed(2));
+    const unitPrice = await getBestPrice(null, tenantId, customerId, Number(row.skuId), Number(row.quantity));
+    const subtotal = Number((unitPrice * Number(row.quantity)).toFixed(2));
     goodsAmount += subtotal;
     previewItems.push({
       skuId: row.skuId,

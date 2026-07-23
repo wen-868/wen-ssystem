@@ -1,5 +1,36 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** t_miniapp_template 表行（部分字段带别名） */
+interface MiniappTemplateRow {
+  id: number | string;
+  name: string;
+  description: string | null;
+  thumbnail: string | null;
+  preview_urls: string | null;
+  style_config: string | null;
+  page_config: string | null;
+  version: string;
+  status: string;
+  sort_order: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** t_miniapp_config 配置查询行（带别名） */
+interface MiniappConfigRow {
+  appId: string | null;
+  appName: string | null;
+  templateId: number | string | null;
+  status: string;
+}
+
+/** t_miniapp_config JOIN t_miniapp_template 模板查询行（带别名） */
+interface MiniappConfigTemplateRow {
+  id: number | string;
+  name: string;
+  styleConfig: string | null;
+}
+
 function safeJsonParse(val: any, fallback: any) {
   if (!val) return fallback;
   if (typeof val === "object") return val;
@@ -7,7 +38,7 @@ function safeJsonParse(val: any, fallback: any) {
 }
 
 export async function listTemplates(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<MiniappTemplateRow>(
     `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
      FROM t_miniapp_template WHERE (tenant_id = ? OR tenant_id = 'DEFAULT') AND status = 'active'
      ORDER BY sort_order ASC, id ASC`,
@@ -31,7 +62,7 @@ export async function listTemplates(tenantId: string) {
 }
 
 export async function getTemplateDetail(tenantId: string, id: number) {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<MiniappTemplateRow>(
     `SELECT id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order, created_at AS createdAt, updated_at AS updatedAt
      FROM t_miniapp_template WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
     [id, tenantId],
@@ -119,12 +150,12 @@ export async function applyTemplate(tenantId: string, templateId: number, platfo
 
 export async function getPreviewConfig(tenantId: string, platform: string = "WECHAT") {
   const [config, template] = await Promise.all([
-    queryOneWithTenant<any>(
+    queryOneWithTenant<MiniappConfigRow>(
       "SELECT app_id AS appId, app_name AS appName, template_id AS templateId, status FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
       [tenantId, platform],
       tenantId
     ),
-    queryOneWithTenant<any>(
+    queryOneWithTenant<MiniappConfigTemplateRow>(
       "SELECT t.id, t.name, t.style_config AS styleConfig FROM t_miniapp_config c JOIN t_miniapp_template t ON c.template_id = t.id WHERE c.tenant_id = ? AND c.platform = ?",
       [tenantId, platform],
       tenantId

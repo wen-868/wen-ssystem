@@ -1,6 +1,29 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+// ===== 类型定义 =====
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 损溢列表查询行 */
+interface LossGainListRow {
+  lgNo: string;
+  storeId: number | string;
+  storeName: string | null;
+  type: string;
+  skuId: number | string;
+  skuName: string | null;
+  qty: number | string;
+  costPrice: number | string;
+  amount: number | string;
+  reason: string | null;
+  operatorId: number | string | null;
+  status: string;
+  createdAt: string | Date;
+}
+
 // 报损/报溢
 export async function reportLossGain(params: {
   storeId: number; type: string; skuId: number; qty: number;
@@ -43,7 +66,7 @@ export async function listLossGains(params: {
   if (storeId !== undefined) { conditions.push("lg.store_id = ?"); queryParams.push(storeId); }
   if (type) { conditions.push("lg.type = ?"); queryParams.push(type); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<LossGainListRow>(
     `SELECT lg.lg_no AS lgNo, lg.store_id AS storeId, st.name AS storeName,
             lg.type, lg.sku_id AS skuId, ps.sku_name AS skuName,
             lg.qty, lg.cost_price AS costPrice, lg.amount,
@@ -57,7 +80,7 @@ export async function listLossGains(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_inventory_loss_gain lg ${where}`,
     queryParams,
     tenantId

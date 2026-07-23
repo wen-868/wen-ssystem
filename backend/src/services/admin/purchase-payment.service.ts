@@ -1,6 +1,45 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** 采购付款单完整行（SELECT *，字段依据 INSERT 语句及常见列推断） */
+interface PurchasePaymentRow {
+  id: number | string;
+  payment_no: string;
+  supplier_id: number | string;
+  supplier_name: string;
+  payment_type: string;
+  source_type: string | null;
+  source_no: string | null;
+  amount: number | string;
+  payment_method: string;
+  bank_account: string | null;
+  bank_account_name: string | null;
+  bank_name: string | null;
+  voucher_no: string | null;
+  payment_date: string | Date;
+  operator_id: number | string | null;
+  status: string;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 付款单审核查询行（SELECT id, status, source_type, source_no, amount） */
+interface PurchasePaymentApproveRow {
+  id: number | string;
+  status: string;
+  source_type: string | null;
+  source_no: string | null;
+  amount: number | string;
+}
+
+/** 付款单状态查询行（SELECT id, status） */
+interface PurchasePaymentStatusRow {
+  id: number | string;
+  status: string;
+}
+
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
   supplierId?: number; paymentType?: string; status?: string; dateStart?: string; dateEnd?: string;
@@ -32,7 +71,7 @@ export async function list(params: {
 
   const whereClause = conditions.length > 0 ? " AND " + conditions.join(" AND ") : "";
   const offset = (page - 1) * pageSize;
-  const payments = await queryWithTenant<any>(
+  const payments = await queryWithTenant<PurchasePaymentRow>(
     `SELECT * FROM t_purchase_payment WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset],
     tenantId
@@ -41,7 +80,7 @@ export async function list(params: {
 }
 
 export async function getDetail(paymentNo: string, tenantId: string) {
-  const payment = await queryOneWithTenant<any>(
+  const payment = await queryOneWithTenant<PurchasePaymentRow>(
     "SELECT * FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId
@@ -80,7 +119,7 @@ export async function create(body: {
 }
 
 export async function approve(paymentNo: string, tenantId: string, userId: number, username: string) {
-  const payment = await queryOneWithTenant<any>(
+  const payment = await queryOneWithTenant<PurchasePaymentApproveRow>(
     "SELECT id, status, source_type, source_no, amount FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId
@@ -117,7 +156,7 @@ export async function approve(paymentNo: string, tenantId: string, userId: numbe
 }
 
 export async function voidPayment(paymentNo: string, tenantId: string, userId: number, username: string) {
-  const payment = await queryOneWithTenant<any>(
+  const payment = await queryOneWithTenant<PurchasePaymentStatusRow>(
     "SELECT id, status FROM t_purchase_payment WHERE payment_no = ?",
     [paymentNo],
     tenantId

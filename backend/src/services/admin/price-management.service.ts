@@ -1,7 +1,109 @@
 ﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
+/** SKU 阶梯价完整行（关联价格等级，列表/详情/更新返回） */
+interface SkuPriceFullRow {
+  id: number | string;
+  skuId: number | string;
+  priceLevelId: number | string;
+  levelCode: string;
+  levelName: string;
+  discountRate: number | string;
+  minQty: number | string;
+  price: number | string;
+  costPrice: number | string;
+  suggestedRetailPrice: number | string;
+  effectiveStart: string | Date | null;
+  effectiveEnd: string | Date | null;
+  status: number | string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+}
+
+/** SKU 阶梯价简单行（更新前校验，下划线字段名） */
+interface SkuPriceSimpleRow {
+  id: number | string;
+  sku_id: number | string;
+  price_level_id: number | string;
+  min_qty: number | string;
+  price: number | string;
+  status: number | string;
+}
+
+/** 最优价匹配行（getBestPrice 用） */
+interface BestPriceRow {
+  id: number | string;
+  minQty: number | string;
+  price: number | string;
+  costPrice: number | string;
+  suggestedRetailPrice: number | string;
+  levelCode: string;
+  levelName: string;
+  discountRate: number | string;
+}
+
+/** 客户价格绑定完整行（列表/创建返回，部分字段在创建返回中不出现设为可选） */
+interface CustomerBindingRow {
+  id: number | string;
+  customerId: number | string;
+  priceLevelId: number | string;
+  levelCode: string;
+  levelName: string;
+  applyReason: string | null;
+  status: string;
+  approvedBy?: number | string | null;
+  approvedAt?: string | Date | null;
+  expireAt?: string | Date | null;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+}
+
+/** 客户价格绑定状态行（SELECT id, status） */
+interface CustomerBindingStatusRow {
+  id: number | string;
+  status: string;
+}
+
+/** 客户价格绑定审批行（SELECT id, customer_id, status，下划线字段名） */
+interface CustomerBindingApproveRow {
+  id: number | string;
+  customer_id: number | string;
+  status: string;
+}
+
+/** 客户价格绑定信息行（getBestPrice 中查询绑定，下划线字段名） */
+interface CustomerPriceBindingRow {
+  price_level_id: number | string;
+  level_code: string;
+  level_name: string;
+  discount_rate: number | string;
+}
+
+/** 价格变更日志行 */
+interface PriceChangeLogRow {
+  id: number | string;
+  skuId: number | string;
+  priceLevelId: number | string;
+  levelCode: string;
+  levelName: string;
+  oldPrice: number | string;
+  newPrice: number | string;
+  changeReason: string | null;
+  changedBy: number | string | null;
+  createdAt: string | Date;
+}
+
+/** SELECT id 结果行 */
+interface IdRow {
+  id: number | string;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export async function listSkuPrices(skuId: number, tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SkuPriceFullRow>(
     `SELECT sp.id, sp.sku_id AS skuId, sp.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             pl.discount_rate AS discountRate,
@@ -34,7 +136,7 @@ export async function setSkuPrices(
   tenantId: string
 ) {
   const levelIds = [...new Set(prices.map(p => p.priceLevelId))];
-  const levels = await queryWithTenant<any>(
+  const levels = await queryWithTenant<IdRow>(
     "SELECT id FROM t_price_level WHERE id IN (?) AND status = 1 AND tenant_id = ?",
     [levelIds, tenantId],
     tenantId
@@ -58,7 +160,7 @@ export async function setSkuPrices(
                effective_start = ?, effective_end = ?, status = 1, updated_at = NOW()
            WHERE id = ? AND tenant_id = ?`,
           [item.price, item.costPrice, item.suggestedRetailPrice,
-           item.effectiveStart, item.effectiveEnd, oldRecord.id, tenantId]
+          item.effectiveStart, item.effectiveEnd, oldRecord.id, tenantId]
         );
         if (Number(oldRecord.price) !== item.price) {
           await (conn as any).execute(
@@ -72,13 +174,13 @@ export async function setSkuPrices(
           `INSERT INTO t_sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, effective_start, effective_end, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [skuId, item.priceLevelId, item.minQty, item.price, item.costPrice, item.suggestedRetailPrice,
-           item.effectiveStart, item.effectiveEnd, tenantId]
+            item.effectiveStart, item.effectiveEnd, tenantId]
         );
       }
     }
   });
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SkuPriceFullRow>(
     `SELECT sp.id, sp.sku_id AS skuId, sp.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             pl.discount_rate AS discountRate,
@@ -111,7 +213,7 @@ export async function updateSkuPrice(
   userId: number,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SkuPriceSimpleRow>(
     `SELECT sp.id, sp.sku_id, sp.price_level_id, sp.min_qty, sp.price, sp.status
      FROM t_sku_price sp WHERE sp.id = ? AND sp.tenant_id = ?`,
     [priceId, tenantId],
@@ -149,7 +251,7 @@ export async function updateSkuPrice(
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<SkuPriceFullRow>(
     `SELECT sp.id, sp.sku_id AS skuId, sp.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             pl.discount_rate AS discountRate,
@@ -168,7 +270,7 @@ export async function updateSkuPrice(
 }
 
 export async function deleteSkuPrice(priceId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_sku_price WHERE id = ? AND tenant_id = ?",
     [priceId, tenantId],
     tenantId
@@ -190,7 +292,7 @@ export async function getBestPrice(
 ) {
   const today = new Date().toISOString().slice(0, 10);
 
-  const binding = await queryOneWithTenant<any>(
+  const binding = await queryOneWithTenant<CustomerPriceBindingRow>(
     `SELECT cpb.price_level_id, pl.level_code, pl.level_name, pl.discount_rate
      FROM t_customer_price_binding cpb
      JOIN t_price_level pl ON pl.id = cpb.price_level_id AND pl.tenant_id = cpb.tenant_id
@@ -208,13 +310,13 @@ export async function getBestPrice(
   let discountRate = 1.0;
 
   if (binding) {
-    priceLevelId = binding.price_level_id;
+    priceLevelId = Number(binding.price_level_id);
     levelCode = binding.level_code;
     levelName = binding.level_name;
     discountRate = Number(binding.discount_rate);
   }
 
-  const retailLevel = await queryOneWithTenant<any>(
+  const retailLevel = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_price_level WHERE level_code = 'RETAIL' AND status = 1 AND tenant_id = ? LIMIT 1",
     [tenantId],
     tenantId
@@ -257,11 +359,11 @@ export async function getBestPrice(
 
   let bestPrice: any = null;
   if (matchSql) {
-    bestPrice = await queryOneWithTenant<any>(matchSql, matchParams, tenantId);
+    bestPrice = await queryOneWithTenant<BestPriceRow>(matchSql, matchParams, tenantId);
   }
 
   if (!bestPrice && priceLevelId && retailLevel && retailLevel.id !== priceLevelId) {
-    bestPrice = await queryOneWithTenant<any>(
+    bestPrice = await queryOneWithTenant<BestPriceRow>(
       `SELECT sp.id, sp.min_qty AS minQty, sp.price, sp.cost_price AS costPrice,
               sp.suggested_retail_price AS suggestedRetailPrice,
               pl.level_code AS levelCode, pl.level_name AS levelName,
@@ -325,7 +427,7 @@ export async function listCustomerBindings(
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<CustomerBindingRow>(
     `SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             cpb.apply_reason AS applyReason, cpb.status,
@@ -341,7 +443,7 @@ export async function listCustomerBindings(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_price_binding cpb ${where}`,
     params,
     tenantId
@@ -364,7 +466,7 @@ export async function createCustomerBinding(
   },
   tenantId: string
 ) {
-  const level = await queryOneWithTenant<any>(
+  const level = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_price_level WHERE id = ? AND status = 1 AND tenant_id = ?",
     [body.priceLevelId, tenantId],
     tenantId
@@ -373,7 +475,7 @@ export async function createCustomerBinding(
     return { error: { code: "400", message: "价格等级不存在或已停用" } };
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerBindingStatusRow>(
     "SELECT id, status FROM t_customer_price_binding WHERE customer_id = ? AND tenant_id = ?",
     [body.customerId, tenantId],
     tenantId
@@ -400,7 +502,7 @@ export async function createCustomerBinding(
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<CustomerBindingRow>(
     `SELECT cpb.id, cpb.customer_id AS customerId, cpb.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             cpb.apply_reason AS applyReason, cpb.status,
@@ -417,7 +519,7 @@ export async function createCustomerBinding(
 }
 
 export async function approveCustomerBinding(bindingId: number, userId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerBindingApproveRow>(
     "SELECT id, customer_id, status FROM t_customer_price_binding WHERE id = ? AND tenant_id = ?",
     [bindingId, tenantId],
     tenantId
@@ -448,7 +550,7 @@ export async function approveCustomerBinding(bindingId: number, userId: number, 
 }
 
 export async function rejectCustomerBinding(bindingId: number, userId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerBindingStatusRow>(
     "SELECT id, status FROM t_customer_price_binding WHERE id = ? AND tenant_id = ?",
     [bindingId, tenantId],
     tenantId
@@ -479,7 +581,7 @@ export async function rejectCustomerBinding(bindingId: number, userId: number, t
 }
 
 export async function cancelCustomerBinding(bindingId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerBindingStatusRow>(
     "SELECT id, status FROM t_customer_price_binding WHERE id = ? AND tenant_id = ?",
     [bindingId, tenantId],
     tenantId
@@ -519,7 +621,7 @@ export async function listChangeLogs(
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PriceChangeLogRow>(
     `SELECT pcl.id, pcl.sku_id AS skuId, pcl.price_level_id AS priceLevelId,
             pl.level_code AS levelCode, pl.level_name AS levelName,
             pcl.old_price AS oldPrice, pcl.new_price AS newPrice,
@@ -534,7 +636,7 @@ export async function listChangeLogs(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_price_change_log pcl ${where}`,
     params,
     tenantId

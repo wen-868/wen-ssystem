@@ -1,5 +1,10 @@
 ﻿import { queryWithTenant } from "../../shared/db";
 
+/** 报表导出行（动态 SQL，字段因报表类型而异，使用索引签名） */
+interface ReportExportRow {
+  [key: string]: unknown;
+}
+
 type ReportType = "sales" | "collection" | "product" | "customer" | "inventory" | "purchase" | "finance" | "staff" | "dashboard";
 type ExportFormat = "excel" | "csv";
 
@@ -155,7 +160,7 @@ export async function exportReport(req: ExportRequest, tenantId: string) {
   const queryFactory = reportQueries[report_type];
   if (!queryFactory) throw new Error(`不支持的报表类型: ${report_type}`);
   const { sql, params } = queryFactory(filters, tenantId);
-  const rows = await queryWithTenant<any>(sql, params, tenantId);
+  const rows = await queryWithTenant<ReportExportRow>(sql, params, tenantId);
   if (rows.length > 10000) {
     return { async: true, totalRows: rows.length, message: "数据量超过10000行，将异步生成下载链接", downloadUrl: null };
   }

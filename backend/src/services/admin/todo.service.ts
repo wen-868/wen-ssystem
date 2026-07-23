@@ -1,5 +1,38 @@
 ﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+/** 待办列表行 */
+interface TodoRow {
+  id: number;
+  title: string;
+  type: string;
+  source: string;
+  priority: string;
+  status: string;
+  dueDate: string | Date | null;
+  remark: string | null;
+  tenantId: string;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 按类型统计待办数量行 */
+interface TodoTypeCountRow {
+  type: string;
+  count: number | string;
+}
+
+/** INSERT 返回结果行 */
+interface InsertResultRow {
+  insertId: number;
+  affectedRows?: number;
+}
+
 export interface TodoData {
   title: string;
   type: string;
@@ -36,7 +69,7 @@ export async function listTodos(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TodoRow>(
     `SELECT id, title, type, source, priority, status, due_date AS dueDate,
             remark, tenant_id AS tenantId, created_at AS createdAt
      FROM t_todos
@@ -49,7 +82,7 @@ export async function listTodos(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_todos ${where}`,
     params,
     tenantId
@@ -64,7 +97,7 @@ export async function listTodos(
 }
 
 export async function getTodoStats(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<TodoTypeCountRow>(
     `SELECT type, COUNT(*) AS count
      FROM t_todos
      WHERE tenant_id = ? AND status = 'PENDING'
@@ -98,7 +131,7 @@ export async function getTodoStats(tenantId: string) {
 }
 
 export async function createTodo(tenantId: string, data: TodoData) {
-  const [result] = await queryWithTenant<any>(
+  const [result] = await queryWithTenant<InsertResultRow>(
     `INSERT INTO t_todos (title, type, source, priority, status, due_date, remark, tenant_id, created_at)
      VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?, NOW())`,
     [
@@ -113,7 +146,7 @@ export async function createTodo(tenantId: string, data: TodoData) {
     tenantId
   );
 
-  return { id: (result as unknown as Record<string, unknown>)?.insertId };
+  return { id: result?.insertId };
 }
 
 export async function completeTodo(tenantId: string, id: number) {

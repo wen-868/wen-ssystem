@@ -1,5 +1,60 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
+// ========== 数据库行类型定义 ==========
+/** 报表权限矩阵行（关联角色表） */
+interface ReportPermissionMatrixRow {
+  id: number | string;
+  roleId: number | string;
+  roleName: string | null;
+  reportCode: string;
+  storeScope: string;
+  canView: number | string;
+  canExport: number | string;
+  storeIds: string | null;
+}
+
+/** 数据权限配置行（DISTINCT 去重） */
+interface DataScopeConfigRow {
+  roleId: number | string;
+  roleName: string | null;
+  storeScope: string;
+  storeIds: string | null;
+}
+
+/** 用户角色关联行 */
+interface UserRoleRow {
+  roleId: number | string;
+}
+
+/** 用户报表权限合并行（MAX/GROUP_CONCAT 聚合） */
+interface UserReportPermissionRow {
+  reportCode: string;
+  canView: number | string;
+  canExport: number | string;
+  storeScopes: string | null;
+}
+
+/** 权限审计日志行 */
+interface AuditLogRow {
+  id: number | string;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  action: string;
+  targetType: string;
+  targetId: number | string | null;
+  targetName: string | null;
+  reportCode: string | null;
+  beforeValue: string | null;
+  afterValue: string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
 // ========== 类型定义 ==========
 export interface ReportPermissionItem {
   roleId: number;
@@ -23,7 +78,7 @@ export interface UserReportPermission {
 
 // 获取权限矩阵
 export async function getPermissionMatrix(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<ReportPermissionMatrixRow>(
     `SELECT rpm.id, rpm.role_id AS roleId, r.name AS roleName,
             rpm.report_code AS reportCode, rpm.store_scope AS storeScope,
             rpm.can_view AS canView, rpm.can_export AS canExport,
@@ -105,7 +160,7 @@ export async function savePermissionMatrix(
 // 获取数据权限配置
 export async function getDataScopeConfig(tenantId: string) {
   // 获取所有角色及其数据权限配置
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<DataScopeConfigRow>(
     `SELECT DISTINCT rpm.role_id AS roleId, r.name AS roleName,
             rpm.store_scope AS storeScope, rpm.store_ids AS storeIds
      FROM t_report_permission_matrix rpm
@@ -175,7 +230,7 @@ export async function updateDataScopeConfig(
 // 获取用户报表权限
 export async function getUserPermissions(userId: number, tenantId: string) {
   // 查询用户角色
-  const userRoles = await queryWithTenant<any>(
+  const userRoles = await queryWithTenant<UserRoleRow>(
     `SELECT ur.role_id AS roleId
      FROM t_sys_user_role ur
      INNER JOIN t_sys_role r ON r.id = ur.role_id
@@ -192,7 +247,7 @@ export async function getUserPermissions(userId: number, tenantId: string) {
   const placeholders = roleIds.map(() => "?").join(", ");
 
   // 查询角色的报表权限（合并）
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<UserReportPermissionRow>(
     `SELECT rpm.report_code AS reportCode,
             MAX(rpm.can_view) AS canView,
             MAX(rpm.can_export) AS canExport,
@@ -212,8 +267,8 @@ export async function getUserPermissions(userId: number, tenantId: string) {
     storeScope: row.storeScopes?.includes("ALL")
       ? "ALL"
       : row.storeScopes?.includes("CHILDREN")
-      ? "CHILDREN"
-      : "SELF",
+        ? "CHILDREN"
+        : "SELF",
   }));
 
   return { userId, reports };
@@ -330,7 +385,7 @@ export async function getAuditLogs(params: AuditLogQueryParams) {
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<AuditLogRow>(
     `SELECT id, operator_id AS operatorId, operator_name AS operatorName,
             action, target_type AS targetType, target_id AS targetId, target_name AS targetName,
             report_code AS reportCode, before_value AS beforeValue, after_value AS afterValue,
@@ -343,7 +398,7 @@ export async function getAuditLogs(params: AuditLogQueryParams) {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_report_permission_audit_log ${where}`,
     queryParams,
     tenantId

@@ -1,5 +1,21 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** SELECT id 通用返回 */
+interface IdRow {
+  id: number | string;
+}
+
+/** t_promo_stack_rule 表行（带别名） */
+interface PromoStackRuleRow {
+  id: number | string;
+  name: string;
+  typeCombination: string;
+  maxTotalDiscountRate: number | string;
+  priority: number | string;
+  enabled: number | string;
+  createdAt: string | Date;
+}
+
 export async function createStackRule(body: {
   name: string;
   typeCombination: string[][];
@@ -17,7 +33,7 @@ export async function createStackRule(body: {
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PromoStackRuleRow>(
     `SELECT id, name, type_combination AS typeCombination,
             max_total_discount_rate AS maxTotalDiscountRate,
             priority, enabled, created_at AS createdAt
@@ -30,7 +46,7 @@ export async function createStackRule(body: {
 }
 
 export async function listStackRules(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PromoStackRuleRow>(
     `SELECT id, name, type_combination AS typeCombination,
             max_total_discount_rate AS maxTotalDiscountRate,
             priority, enabled, created_at AS createdAt
@@ -50,7 +66,7 @@ export async function updateStackRule(id: number, body: {
   priority?: number;
   enabled?: boolean;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM t_promo_stack_rule WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<IdRow>("SELECT id FROM t_promo_stack_rule WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("叠加规则不存在"), { statusCode: 404 });
   }
@@ -69,7 +85,7 @@ export async function updateStackRule(id: number, body: {
     await queryWithTenant(`UPDATE t_promo_stack_rule SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PromoStackRuleRow>(
     `SELECT id, name, type_combination AS typeCombination,
             max_total_discount_rate AS maxTotalDiscountRate,
             priority, enabled, created_at AS createdAt
@@ -82,7 +98,7 @@ export async function updateStackRule(id: number, body: {
 }
 
 export async function deleteStackRule(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM t_promo_stack_rule WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<IdRow>("SELECT id FROM t_promo_stack_rule WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("叠加规则不存在"), { statusCode: 404 });
   }

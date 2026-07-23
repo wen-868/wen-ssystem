@@ -1,12 +1,91 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader } from "mysql2/promise";
 
 /** 报损单项行 */
 interface LossOrderItemRow extends RowDataPacket {
   skuId: number;
   qty: number;
   costPrice: number;
+}
+
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 报损单列表查询行 */
+interface LossOrderListRow {
+  id: number | string;
+  lossNo: string;
+  storeId: number | string;
+  storeName: string | null;
+  lossType: string;
+  totalQty: number | string;
+  totalAmount: number | string;
+  status: string;
+  reason: string | null;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  auditorId: number | string | null;
+  auditorName: string | null;
+  auditedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 报损单详情查询行 */
+interface LossOrderDetailRow {
+  id: number | string;
+  lossNo: string;
+  storeId: number | string;
+  storeName: string | null;
+  lossType: string;
+  totalQty: number | string;
+  totalAmount: number | string;
+  status: string;
+  reason: string | null;
+  rejectReason: string | null;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  auditorId: number | string | null;
+  auditorName: string | null;
+  auditedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 报损单明细查询行 */
+interface LossOrderItemDetailRow {
+  id: number | string;
+  lossOrderId: number | string;
+  lossNo: string;
+  skuId: number | string;
+  skuName: string;
+  barcode: string | null;
+  specification: string | null;
+  unitName: string | null;
+  qty: number | string;
+  costPrice: number | string;
+  subtotalAmount: number | string;
+  lossReason: string | null;
+}
+
+/** 报损单存在性检查行（含 loss_no/store_id） */
+interface LossOrderExistingRow {
+  id: number | string;
+  status: string;
+  lossNo: string;
+  storeId: number | string;
+}
+
+/** 报损单 id/status 查询行 */
+interface LossOrderIdStatusRow {
+  id: number | string;
+  status: string;
 }
 
 // ========== 报损单列表 ==========
@@ -52,7 +131,7 @@ export async function listLossOrders(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<LossOrderListRow>(
     `SELECT lo.id, lo.loss_no AS lossNo, lo.store_id AS storeId, lo.store_name AS storeName,
             lo.loss_type AS lossType, lo.total_qty AS totalQty, lo.total_amount AS totalAmount,
             lo.status, lo.reason, lo.operator_id AS operatorId, lo.operator_name AS operatorName,
@@ -66,7 +145,7 @@ export async function listLossOrders(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_inventory_loss_order lo ${where}`,
     queryParams,
     tenantId
@@ -76,7 +155,7 @@ export async function listLossOrders(params: {
 
 // ========== 报损单详情 ==========
 export async function getLossOrderDetail(id: number, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<LossOrderDetailRow>(
     `SELECT id, loss_no AS lossNo, store_id AS storeId, store_name AS storeName,
             loss_type AS lossType, total_qty AS totalQty, total_amount AS totalAmount,
             status, reason, reject_reason AS rejectReason,
@@ -90,7 +169,7 @@ export async function getLossOrderDetail(id: number, tenantId: string) {
   if (!order) {
     throw Object.assign(new Error("报损单不存在"), { statusCode: 404 });
   }
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<LossOrderItemDetailRow>(
     `SELECT id, loss_order_id AS lossOrderId, loss_no AS lossNo,
             sku_id AS skuId, sku_name AS skuName, barcode,
             specification, unit_name AS unitName, qty,
@@ -142,7 +221,7 @@ export async function createLossOrder(params: {
     }
     totalAmount = Math.round(totalAmount * 100) / 100;
 
-    const [insertResult] = await conn.execute<any>(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_inventory_loss_order (loss_no, store_id, store_name, loss_type,
         total_qty, total_amount, status, reason, operator_id, operator_name, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?)`,
@@ -180,7 +259,7 @@ export async function approveLossOrder(
 ) {
   const { auditorId, auditorName, tenantId } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<LossOrderExistingRow>(
     "SELECT id, status, loss_no AS lossNo, store_id AS storeId FROM t_inventory_loss_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -246,7 +325,7 @@ export async function rejectLossOrder(
 ) {
   const { auditorId, auditorName, rejectReason, tenantId } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<LossOrderIdStatusRow>(
     "SELECT id, status FROM t_inventory_loss_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId

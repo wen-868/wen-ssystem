@@ -1,7 +1,59 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** COUNT(*) AS total / COALESCE(SUM(...),0) AS total 通用返回 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** SELECT id 通用返回 */
+interface IdRow {
+  id: number | string;
+}
+
+/** t_points_rule 表行（带别名） */
+interface PointsRuleRow {
+  id: number | string;
+  earnRatio: number | string;
+  redeemRatio: number | string;
+  minRedeemAmount: number | string;
+  maxRedeemRatio: number | string;
+  expireDays: number | string;
+  enabled: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** t_points_record 列表行（带别名） */
+interface PointsRecordListRow {
+  id: number | string;
+  userId: number | string;
+  type: string;
+  amount: number | string;
+  balance: number | string;
+  sourceType: string;
+  sourceId: number | string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** t_points_record JOIN t_user_customer 查询行（带别名） */
+interface PointsRecordDetailRow extends PointsRecordListRow {
+  userName: string | null;
+  phone: string | null;
+}
+
+/** t_user_points 表行（带别名） */
+interface UserPointsRow {
+  id: number | string;
+  userId: number | string;
+  points: number | string;
+  totalEarned: number | string;
+  totalSpent: number | string;
+  updatedAt: string | Date;
+}
+
 export async function getPointsRule(tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PointsRuleRow>(
     `SELECT id, earn_ratio AS earnRatio, redeem_ratio AS redeemRatio,
             min_redeem_amount AS minRedeemAmount, max_redeem_ratio AS maxRedeemRatio,
             expire_days AS expireDays, enabled, created_at AS createdAt, updated_at AS updatedAt
@@ -20,7 +72,7 @@ export async function updatePointsRule(body: {
   expireDays?: number;
   enabled?: boolean;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id FROM t_points_rule", [], tenantId);
+  const existing = await queryOneWithTenant<IdRow>("SELECT id FROM t_points_rule", [], tenantId);
 
   if (existing) {
     const updates: string[] = [];
@@ -54,7 +106,7 @@ export async function updatePointsRule(body: {
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PointsRuleRow>(
     `SELECT id, earn_ratio AS earnRatio, redeem_ratio AS redeemRatio,
             min_redeem_amount AS minRedeemAmount, max_redeem_ratio AS maxRedeemRatio,
             expire_days AS expireDays, enabled, created_at AS createdAt, updated_at AS updatedAt
@@ -88,7 +140,7 @@ export async function listPointsRecords(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PointsRecordListRow>(
     `SELECT id, user_id AS userId, type, amount, balance,
             source_type AS sourceType, source_id AS sourceId,
             remark, created_at AS createdAt
@@ -100,7 +152,7 @@ export async function listPointsRecords(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_points_record ${where}`,
     params,
     tenantId
@@ -115,7 +167,7 @@ export async function listPointsRecords(
 }
 
 export async function getUserPoints(userId: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<UserPointsRow>(
     `SELECT id, user_id AS userId, points, total_earned AS totalEarned,
             total_spent AS totalSpent, updated_at AS updatedAt
      FROM t_user_points WHERE user_id = ?`,
@@ -143,7 +195,7 @@ export async function listMyPointsRecords(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PointsRecordListRow>(
     `SELECT id, user_id AS userId, type, amount, balance,
             source_type AS sourceType, source_id AS sourceId,
             remark, created_at AS createdAt
@@ -155,7 +207,7 @@ export async function listMyPointsRecords(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`,
     params,
     tenantId
@@ -191,7 +243,7 @@ export async function getPointsRecords(params: {
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PointsRecordDetailRow>(
     `SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance,
             pr.source_type AS sourceType, pr.source_id AS sourceId,
             pr.remark, pr.created_at AS createdAt,
@@ -205,7 +257,7 @@ export async function getPointsRecords(params: {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`, paramsList, tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_points_record WHERE ${where}`, paramsList, tenantId);
 
   return {
     total: Number(totalRow?.total ?? 0),
@@ -227,13 +279,13 @@ export async function createPointsRedeem(params: {
 
   // 获取用户当前积分
   const userPoints = await getUserPoints(userId, tenantId);
-  if (!userPoints || userPoints.points < points) {
+  if (!userPoints || Number(userPoints.points) < points) {
     throw new Error("积分不足");
   }
 
   // 获取积分规则
   const rule = await getPointsRule(tenantId);
-  const redeemAmount = Math.floor(points / (rule?.redeemRatio ?? 100));
+  const redeemAmount = Math.floor(points / Number(rule?.redeemRatio ?? 100));
 
   // 扣减积分
   const newBalance = Number(userPoints.points) - points;
@@ -263,22 +315,22 @@ export async function createPointsRedeem(params: {
 
 // ========== 积分统计 ==========
 export async function getPointsStats(tenantId: string) {
-  const totalPoints = await queryOneWithTenant<any>(
+  const totalPoints = await queryOneWithTenant<CountTotalRow>(
     `SELECT COALESCE(SUM(points), 0) AS total FROM t_user_points WHERE tenant_id = ?`,
     [tenantId], tenantId
   );
 
-  const todayEarned = await queryOneWithTenant<any>(
+  const todayEarned = await queryOneWithTenant<CountTotalRow>(
     `SELECT COALESCE(SUM(amount), 0) AS total FROM t_points_record WHERE tenant_id = ? AND type = 'EARN' AND DATE(created_at) = CURDATE()`,
     [tenantId], tenantId
   );
 
-  const todaySpent = await queryOneWithTenant<any>(
+  const todaySpent = await queryOneWithTenant<CountTotalRow>(
     `SELECT COALESCE(SUM(ABS(amount)), 0) AS total FROM t_points_record WHERE tenant_id = ? AND type = 'SPEND' AND DATE(created_at) = CURDATE()`,
     [tenantId], tenantId
   );
 
-  const userCount = await queryOneWithTenant<any>(
+  const userCount = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_user_points WHERE tenant_id = ? AND points > 0`,
     [tenantId], tenantId
   );

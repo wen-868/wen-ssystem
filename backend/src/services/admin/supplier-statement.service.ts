@@ -1,13 +1,106 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+// ========== 类型定义 ==========
+
+/** 采购金额汇总行 */
+interface PurchaseSummaryRow {
+  purchaseAmount: number | string;
+  orderCount: number | string;
+}
+
+/** 已付金额汇总行 */
+interface PaymentSummaryRow {
+  paidAmount: number | string;
+}
+
+/** 退货金额汇总行 */
+interface ReturnSummaryRow {
+  returnAmount: number | string;
+  returnCount: number | string;
+}
+
+/** 对账单明细-采购订单行 */
+interface StatementOrderRow {
+  orderNo: string;
+  goodsAmount: number | string;
+  orderStatus: string;
+  createdAt: string | Date;
+}
+
+/** 对账单明细-付款行 */
+interface StatementPaymentRow {
+  paymentNo: string;
+  amount: number | string;
+  createdAt: string | Date;
+}
+
+/** 对账单明细-退货行 */
+interface StatementReturnRow {
+  returnNo: string;
+  returnAmount: number | string;
+  status: string;
+  createdAt: string | Date;
+}
+
+/** 对账单列表行 */
+interface SupplierStatementListRow {
+  statementNo: string;
+  supplierId: number | string;
+  supplierName: string | null;
+  startDate: string | Date;
+  endDate: string | Date;
+  purchaseAmount: number | string;
+  paidAmount: number | string;
+  returnAmount: number | string;
+  balance: number | string;
+  statementStatus: string;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 对账单详情行 */
+interface SupplierStatementDetailRow {
+  statementNo: string;
+  supplierId: number | string;
+  supplierName: string | null;
+  supplierContact: string | null;
+  startDate: string | Date;
+  endDate: string | Date;
+  purchaseAmount: number | string;
+  paidAmount: number | string;
+  returnAmount: number | string;
+  balance: number | string;
+  statementStatus: string;
+  createdAt: string | Date;
+}
+
+/** 对账单明细项行 */
+interface SupplierStatementItemRow {
+  itemType: string;
+  itemNo: string;
+  amount: number | string;
+  status: string;
+  createdAt: string | Date;
+}
+
+/** 对账单状态检查行 */
+interface SupplierStatementStatusRow {
+  statement_no: string;
+  statement_status: string;
+}
+
 // 生成对账单
 export async function generateSupplierStatement(params: {
   supplierId: number; startDate: string; endDate: string; tenantId: string;
 }) {
   const { supplierId, startDate, endDate, tenantId } = params;
   // 汇总采购金额
-  const purchaseData = await queryOneWithTenant<any>(
+  const purchaseData = await queryOneWithTenant<PurchaseSummaryRow>(
     `SELECT COALESCE(SUM(po.goods_amount), 0) AS purchaseAmount, COUNT(*) AS orderCount
      FROM t_purchase_order po
      WHERE po.supplier_id = ? AND po.tenant_id = ?
@@ -17,7 +110,7 @@ export async function generateSupplierStatement(params: {
     tenantId
   );
   // 汇总已付金额
-  const paymentData = await queryOneWithTenant<any>(
+  const paymentData = await queryOneWithTenant<PaymentSummaryRow>(
     `SELECT COALESCE(SUM(pp.amount), 0) AS paidAmount
      FROM t_purchase_payment pp
      WHERE pp.supplier_id = ? AND pp.tenant_id = ?
@@ -27,7 +120,7 @@ export async function generateSupplierStatement(params: {
     tenantId
   );
   // 汇总退货金额
-  const returnData = await queryOneWithTenant<any>(
+  const returnData = await queryOneWithTenant<ReturnSummaryRow>(
     `SELECT COALESCE(SUM(pr.return_amount), 0) AS returnAmount, COUNT(*) AS returnCount
      FROM t_purchase_return pr
      WHERE pr.supplier_id = ? AND pr.tenant_id = ?
@@ -49,7 +142,7 @@ export async function generateSupplierStatement(params: {
     tenantId
   );
   // 写入明细
-  const orders = await queryWithTenant<any>(
+  const orders = await queryWithTenant<StatementOrderRow>(
     `SELECT order_no AS orderNo, goods_amount AS goodsAmount, order_status AS orderStatus, created_at AS createdAt
      FROM t_purchase_order WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ?
@@ -66,7 +159,7 @@ export async function generateSupplierStatement(params: {
       tenantId
     );
   }
-  const payments = await queryWithTenant<any>(
+  const payments = await queryWithTenant<StatementPaymentRow>(
     `SELECT payment_no AS paymentNo, amount, created_at AS createdAt
      FROM t_purchase_payment WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ? AND status = 'SUCCESS'
@@ -82,7 +175,7 @@ export async function generateSupplierStatement(params: {
       tenantId
     );
   }
-  const returns = await queryWithTenant<any>(
+  const returns = await queryWithTenant<StatementReturnRow>(
     `SELECT return_no AS returnNo, return_amount AS returnAmount, status, created_at AS createdAt
      FROM t_purchase_return WHERE supplier_id = ? AND tenant_id = ?
        AND created_at >= ? AND created_at <= ? AND status NOT IN ('VOIDED')
@@ -120,7 +213,7 @@ export async function listSupplierStatements(params: {
   if (startDate) { conditions.push("ss.created_at >= ?"); queryParams.push(startDate); }
   if (endDate) { conditions.push("ss.created_at <= ?"); queryParams.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SupplierStatementListRow>(
     `SELECT ss.statement_no AS statementNo, ss.supplier_id AS supplierId,
             s.name AS supplierName, ss.start_date AS startDate, ss.end_date AS endDate,
             ss.purchase_amount AS purchaseAmount, ss.paid_amount AS paidAmount,
@@ -134,7 +227,7 @@ export async function listSupplierStatements(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_supplier_statement ss ${where}`,
     queryParams,
     tenantId
@@ -144,7 +237,7 @@ export async function listSupplierStatements(params: {
 
 // 对账单详情
 export async function getSupplierStatementDetail(statementNo: string, tenantId: string) {
-  const statement = await queryOneWithTenant<any>(
+  const statement = await queryOneWithTenant<SupplierStatementDetailRow>(
     `SELECT ss.statement_no AS statementNo, ss.supplier_id AS supplierId,
             s.name AS supplierName, s.contact_name AS supplierContact,
             ss.start_date AS startDate, ss.end_date AS endDate,
@@ -158,7 +251,7 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
     tenantId
   );
   if (!statement) throw new Error("对账单不存在");
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<SupplierStatementItemRow>(
     `SELECT item_type AS itemType, item_no AS itemNo, amount, status, created_at AS createdAt
      FROM t_supplier_statement_item
      WHERE statement_no = ? AND tenant_id = ?
@@ -171,7 +264,7 @@ export async function getSupplierStatementDetail(statementNo: string, tenantId: 
 
 // 确认对账
 export async function confirmSupplierStatement(statementNo: string, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SupplierStatementStatusRow>(
     "SELECT statement_no, statement_status FROM t_supplier_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId
@@ -188,7 +281,7 @@ export async function confirmSupplierStatement(statementNo: string, tenantId: st
 
 // 标记争议
 export async function disputeSupplierStatement(statementNo: string, reason: string, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SupplierStatementStatusRow>(
     "SELECT statement_no, statement_status FROM t_supplier_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId

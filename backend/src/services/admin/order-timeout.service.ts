@@ -1,8 +1,35 @@
 import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 
+/** t_order_timeout_config 配置行（带别名） */
+interface OrderTimeoutConfigRow {
+  id: number | string;
+  orderType: string;
+  timeoutType: string;
+  timeoutMinutes: number | string;
+  action: string;
+  enabled: number | string;
+  description: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** t_order_timeout_log 日志行（带别名） */
+interface OrderTimeoutLogRow {
+  id: number | string;
+  orderId: number | string;
+  orderType: string;
+  timeoutType: string;
+  actionTaken: string;
+  triggeredAt: string | Date;
+  handledAt: string | Date | null;
+  result: string;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
 export async function getConfigs(tenantId: string) {
-  return queryWithTenant<any>(
+  return queryWithTenant<OrderTimeoutConfigRow>(
     "SELECT id, order_type AS orderType, timeout_type AS timeoutType, timeout_minutes AS timeoutMinutes, action, enabled, description, created_at AS createdAt, updated_at AS updatedAt FROM t_order_timeout_config ORDER BY id ASC",
     [],
     tenantId
@@ -88,7 +115,7 @@ export async function getLogs(tenantId: string, params: {
     tenantId
   );
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OrderTimeoutLogRow>(
     `SELECT otl.id, otl.order_id AS orderId, otl.order_type AS orderType, otl.timeout_type AS timeoutType,
             otl.action_taken AS actionTaken, otl.triggered_at AS triggeredAt, otl.handled_at AS handledAt,
             otl.result, otl.remark, otl.created_at AS createdAt

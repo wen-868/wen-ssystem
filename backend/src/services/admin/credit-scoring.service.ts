@@ -12,6 +12,74 @@ import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 import type { ServiceContext } from "../../types/index";
 
+/** t_member 客户基础信息行（queryOneWithTenant 用） */
+interface CustomerBasicRow {
+  id: number | string;
+  name: string;
+  mobile: string | null;
+}
+
+/** t_sale_bills 交易统计行（queryOneWithTenant 用） */
+interface TradeStatsRow {
+  totalOrders: number | string;
+  totalAmount: number | string;
+  paidAmount: number | string;
+  overdueCount: number | string;
+  lastTradeDate: string | Date | null;
+}
+
+/** t_customer_credit 授信状态行（queryOneWithTenant 用） */
+interface CreditStatusRow {
+  credit_limit: number | string;
+  credit_used: number | string;
+  credit_available: number | string;
+  payment_term: string;
+  status: string;
+}
+
+/** t_customer_credit ID 校验行 */
+interface CreditExistingRow {
+  id: number | string;
+  credit_limit?: number | string;
+  payment_term?: string;
+}
+
+/** 赊销拦截授信查询行（queryOneWithTenant 用，含 freeze_reason/warning_threshold） */
+interface CreditInterceptRow {
+  credit_limit: number | string;
+  credit_used: number | string;
+  credit_frozen: number | string;
+  credit_available: number | string;
+  status: string;
+  warning_threshold: number | string;
+  payment_term: string;
+  freeze_reason: string | null;
+}
+
+/** 赊销拦截返回的授信摘要 */
+interface CreditInterceptSummary {
+  creditLimit: number;
+  creditUsed: number;
+  creditAvailable: number;
+  status: string;
+}
+
+/** 逾期客户行（queryWithTenant 用，驼峰别名） */
+interface OverdueCustomerRow {
+  customerId: number | string;
+  customerName: string | null;
+  customerMobile: string | null;
+  creditUsed: number | string;
+  paymentTerm: string;
+  creditLimit: number | string;
+  lastTradeDate?: string | Date | null;
+}
+
+/** t_collection_record 当天记录校验行 */
+interface CollectionExistingRow {
+  id: number | string;
+}
+
 /** 评分维度权重 */
 const WEIGHTS = {
   paymentRate: 0.35,    // 回款率
@@ -23,11 +91,11 @@ const WEIGHTS = {
 /** 自动授信额度阶梯（基于评分） */
 const CREDIT_TIERS = [
   { minScore: 90, maxScore: 100, limit: 500000, term: "NET_90" as const },
-  { minScore: 80, maxScore: 89,  limit: 200000, term: "NET_60" as const },
-  { minScore: 70, maxScore: 79,  limit: 100000, term: "NET_30" as const },
-  { minScore: 60, maxScore: 69,  limit: 50000,  term: "NET_15" as const },
-  { minScore: 50, maxScore: 59,  limit: 20000,  term: "NET_7" as const },
-  { minScore: 0,  maxScore: 49,  limit: 0,      term: "COD" as const },
+  { minScore: 80, maxScore: 89, limit: 200000, term: "NET_60" as const },
+  { minScore: 70, maxScore: 79, limit: 100000, term: "NET_30" as const },
+  { minScore: 60, maxScore: 69, limit: 50000, term: "NET_15" as const },
+  { minScore: 50, maxScore: 59, limit: 20000, term: "NET_7" as const },
+  { minScore: 0, maxScore: 49, limit: 0, term: "COD" as const },
 ];
 
 /** 新客户默认额度 */
@@ -35,11 +103,11 @@ const DEFAULT_NEW_CUSTOMER_LIMIT = 5000;
 
 /** 催收策略分级 */
 const COLLECTION_STRATEGY = [
-  { minDays: 0,   maxDays: 7,   level: "REMIND", method: "SMS",   desc: "短信提醒" },
-  { minDays: 8,   maxDays: 15,  level: "LIGHT",  method: "PHONE",  desc: "电话轻催" },
-  { minDays: 16,  maxDays: 30,  level: "MEDIUM", method: "PHONE",  desc: "电话催收" },
-  { minDays: 31,  maxDays: 60,  level: "HEAVY",  method: "VISIT",  desc: "上门催收" },
-  { minDays: 61,  maxDays: 999, level: "SEVERE", method: "LEGAL",  desc: "法律途径" },
+  { minDays: 0, maxDays: 7, level: "REMIND", method: "SMS", desc: "短信提醒" },
+  { minDays: 8, maxDays: 15, level: "LIGHT", method: "PHONE", desc: "电话轻催" },
+  { minDays: 16, maxDays: 30, level: "MEDIUM", method: "PHONE", desc: "电话催收" },
+  { minDays: 31, maxDays: 60, level: "HEAVY", method: "VISIT", desc: "上门催收" },
+  { minDays: 61, maxDays: 999, level: "SEVERE", method: "LEGAL", desc: "法律途径" },
 ];
 
 /** 评分结果 */
@@ -61,7 +129,7 @@ export interface CreditScoreResult {
     overdueCount: number;
     paymentRate: number;
     avgOrderAmount: number;
-    lastTradeDate: string | null;
+    lastTradeDate: string | Date | null;
   };
   recommendation: {
     suggestedLimit: number;
@@ -103,19 +171,17 @@ export async function evaluateCreditScore(
   customerId: number,
   ctx: ServiceContext
 ): Promise<CreditScoreResult> {
-  const customer = await queryOneWithTenant<any>(
+  const customer = await queryOneWithTenant<CustomerBasicRow>(
     "SELECT id, name, mobile FROM t_member WHERE id = ?",
     [customerId],
     ctx.tenantId
   );
   if (!customer) {
-    const err: any = new Error("客户不存在");
-    err.statusCode = 404;
-    throw err;
+    throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
   }
 
   // 1. 交易统计
-  const tradeStats = await queryOneWithTenant<any>(
+  const tradeStats = await queryOneWithTenant<TradeStatsRow>(
     `SELECT
        COUNT(*) AS totalOrders,
        COALESCE(SUM(pay_amount), 0) AS totalAmount,
@@ -129,7 +195,7 @@ export async function evaluateCreditScore(
   );
 
   // 2. 当前授信状态
-  const credit = await queryOneWithTenant<any>(
+  const credit = await queryOneWithTenant<CreditStatusRow>(
     `SELECT credit_limit, credit_used, credit_available, payment_term, status
      FROM t_customer_credit
      WHERE customer_id = ? AND tenant_id = ?`,
@@ -183,27 +249,27 @@ export async function evaluateCreditScore(
   }
 
   // 5. 催收策略
-  const overdueDays = credit?.credit_used > 0 && credit?.payment_term !== "COD"
+  const overdueDays = Number(credit?.credit_used ?? 0) > 0 && credit?.payment_term !== "COD"
     ? Math.max(0, Math.floor(
-        (Date.now() - new Date(tradeStats?.lastTradeDate ?? Date.now()).getTime()) / 86400000
-      ))
+      (Date.now() - new Date(tradeStats?.lastTradeDate ?? Date.now()).getTime()) / 86400000
+    ))
     : 0;
 
   const strategy = COLLECTION_STRATEGY.find((s) => overdueDays >= s.minDays && overdueDays <= s.maxDays);
-  const collectionStrategy = credit?.credit_used > 0 && overdueDays > 0 && strategy
+  const collectionStrategy = Number(credit?.credit_used ?? 0) > 0 && overdueDays > 0 && strategy
     ? {
-        level: strategy.level,
-        method: strategy.method,
-        description: strategy.desc,
-        overdueDays,
-        overdueAmount: Number(credit?.credit_used ?? 0),
-      }
+      level: strategy.level,
+      method: strategy.method,
+      description: strategy.desc,
+      overdueDays,
+      overdueAmount: Number(credit?.credit_used ?? 0),
+    }
     : null;
 
   return {
     customerId,
     customerName: customer.name,
-    customerMobile: customer.mobile,
+    customerMobile: customer.mobile ?? "",
     scores: {
       paymentRate: paymentRateScore,
       overdueCount: overdueScore,
@@ -239,7 +305,7 @@ export async function autoInitCredit(
   customerId: number,
   ctx: ServiceContext
 ): Promise<{ creditLimit: number; paymentTerm: string }> {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CreditExistingRow>(
     "SELECT id FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
     [customerId, ctx.tenantId],
     ctx.tenantId
@@ -247,7 +313,7 @@ export async function autoInitCredit(
   if (existing) {
     return {
       creditLimit: Number(existing.credit_limit),
-      paymentTerm: existing.payment_term,
+      paymentTerm: existing.payment_term ?? "COD",
     };
   }
 
@@ -282,8 +348,8 @@ export async function interceptCredit(
   customerId: number,
   amount: number,
   ctx: ServiceContext
-): Promise<{ allowed: boolean; reason: string; credit?: any }> {
-  const credit = await queryOneWithTenant<any>(
+): Promise<{ allowed: boolean; reason: string; credit?: CreditInterceptSummary }> {
+  const credit = await queryOneWithTenant<CreditInterceptRow>(
     `SELECT credit_limit, credit_used, credit_frozen, credit_available, status, warning_threshold, payment_term
      FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, ctx.tenantId],
@@ -367,7 +433,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
   generated: number;
   details: { customerId: number; customerName: string; level: string; overdueDays: number; overdueAmount: number }[];
 }> {
-  const overdueCustomers = await queryWithTenant<any>(
+  const overdueCustomers = await queryWithTenant<OverdueCustomerRow>(
     `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_used AS creditUsed, cc.payment_term AS paymentTerm,
             cc.credit_limit AS creditLimit
@@ -392,7 +458,7 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
     const overdueAmount = Number(customer.creditUsed);
 
     // 检查是否已有当天的催收记录
-    const existing = await queryOneWithTenant<any>(
+    const existing = await queryOneWithTenant<CollectionExistingRow>(
       `SELECT id FROM t_collection_record
        WHERE customer_id = ? AND DATE(created_at) = CURDATE() AND collection_level = ?
        AND tenant_id = ?`,
@@ -408,15 +474,15 @@ export async function autoGenerateCollections(ctx: ServiceContext): Promise<{
          contact_person, operator_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [customer.customerId, overdueDays, overdueAmount,
-       strategy.level, strategy.method,
-       `系统自动生成：逾期${overdueDays}天，${strategy.desc}`,
-       customer.customerName, ctx.userId, ctx.tenantId],
+      strategy.level, strategy.method,
+      `系统自动生成：逾期${overdueDays}天，${strategy.desc}`,
+      customer.customerName, ctx.userId, ctx.tenantId],
       ctx.tenantId
     );
 
     details.push({
-      customerId: customer.customerId,
-      customerName: customer.customerName,
+      customerId: Number(customer.customerId),
+      customerName: customer.customerName ?? "",
       level: strategy.level,
       overdueDays,
       overdueAmount,

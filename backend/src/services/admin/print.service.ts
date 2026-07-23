@@ -8,6 +8,7 @@
  */
 
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 
 // ==================== 类型定义 ====================
 
@@ -114,7 +115,7 @@ export async function createPrintRecord(
         throw Object.assign(new Error("打印份数必须在 1-99 之间"), { statusCode: 400 });
     }
 
-    const result: any = await queryWithTenant<any>(
+    const result: any = await queryWithTenant<ResultSetHeader>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -281,7 +282,7 @@ export async function reprintRecord(
     }
 
     // 复制原记录数据，bill_type 改为 REPRINT，original_id 指向原记录
-    const result: any = await queryWithTenant<any>(
+    const result: any = await queryWithTenant<ResultSetHeader>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

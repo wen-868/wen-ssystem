@@ -7,6 +7,21 @@ interface TagGroupRow {
   is_multiple: number; status: number;
 }
 
+/** COUNT(*) AS cnt 行 */
+interface CountCntRow {
+  cnt: number | string;
+}
+
+/** 商品标签关联行 */
+interface ProductTagRow {
+  id: number;
+  name: string;
+  groupId: number;
+  groupName: string;
+  groupCode: string;
+  isMultiple: number | string;
+}
+
 export async function listGroups(tenantId: string) {
   return queryWithTenant<TagGroupRow>(
     "SELECT id, name, code, sort_no, is_multiple, status, created_at, updated_at FROM t_product_tag_group ORDER BY sort_no ASC, id ASC",
@@ -56,10 +71,10 @@ export async function deleteGroup(id: number, tenantId: string) {
   if (!existing) throw Object.assign(new Error("标签组不存在"), { statusCode: 404 });
 
   // 检查是否有标签引用
-  const tagRows = (await queryWithTenant<any>(
+  const tagRows = (await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_tag WHERE group_id = ?", [id], tenantId
-  ) as any[])[0];
-  if ((tagRows as any)?.[0]?.cnt > 0) {
+  ))[0];
+  if (Number(tagRows?.cnt ?? 0) > 0) {
     throw Object.assign(new Error("该标签组下有标签，无法删除"), { statusCode: 400 });
   }
 
@@ -127,10 +142,10 @@ export async function deleteTag(id: number, tenantId: string) {
   if (!existing) throw Object.assign(new Error("标签不存在"), { statusCode: 404 });
 
   // 检查是否有商品引用
-  const relRows = (await queryWithTenant<any>(
+  const relRows = (await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_tag_relation WHERE tag_id = ?", [id], tenantId
-  ) as any[])[0];
-  if ((relRows as any)?.[0]?.cnt > 0) {
+  ))[0];
+  if (Number(relRows?.cnt ?? 0) > 0) {
     throw Object.assign(new Error("该标签有商品引用，无法删除"), { statusCode: 400 });
   }
 
@@ -141,7 +156,7 @@ export async function deleteTag(id: number, tenantId: string) {
 // ==================== 商品标签关联 ====================
 
 export async function getProductTags(spuId: number, tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<ProductTagRow>(
     `SELECT t.id, t.name, t.group_id AS groupId, g.name AS groupName, g.code AS groupCode,
             g.is_multiple AS isMultiple
      FROM t_product_tag_relation r

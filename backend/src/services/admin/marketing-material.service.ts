@@ -1,6 +1,47 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** COUNT(*) AS cnt 通用返回 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** t_marketing_material 表行 */
+interface MarketingMaterialRow {
+  id: number | string;
+  material_code: string;
+  material_name: string;
+  material_desc: string | null;
+  material_type: string;
+  file_url: string;
+  file_size: number | string | null;
+  file_format: string | null;
+  image_width: number | string | null;
+  image_height: number | string | null;
+  category_id: number | string | null;
+  tags: string | null;
+  usage_scene: string | null;
+  related_activity_id: number | string | null;
+  related_activity_type: string | null;
+  tenant_id: string;
+  created_by: number | string;
+  view_count: number | string;
+  status: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** t_material_category 表行 */
+interface MaterialCategoryRow {
+  id: number | string;
+  name: string;
+  parent_id: number | string | null;
+  sort_order: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
 export async function createMaterial(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("SC");
   const result = await queryWithTenant(
@@ -19,8 +60,8 @@ export async function listMaterials(params: { tenantId: string; material_type?: 
   if (status) { conditions.push("status = ?"); values.push(status); }
   if (tags) { conditions.push("JSON_CONTAINS(tags, ?)"); values.push(JSON.stringify(tags)); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_marketing_material ${where}`, values, tenantId);
-  const rows = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_marketing_material ${where}`, values, tenantId);
+  const rows = await queryWithTenant<MarketingMaterialRow>(
     `SELECT * FROM t_marketing_material ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
@@ -28,7 +69,7 @@ export async function listMaterials(params: { tenantId: string; material_type?: 
 }
 
 export async function getMaterialDetail(id: number, tenantId: string) {
-  const material = await queryOneWithTenant<any>("SELECT * FROM t_marketing_material WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const material = await queryOneWithTenant<MarketingMaterialRow>("SELECT * FROM t_marketing_material WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (material) {
     await queryWithTenant("UPDATE t_marketing_material SET view_count = view_count + 1 WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   }
@@ -63,7 +104,7 @@ export async function archiveMaterial(id: number, tenantId: string) {
 
 // 素材分类
 export async function getMaterialCategories(tenantId: string) {
-  const categories = await queryWithTenant<any>("SELECT * FROM t_material_category WHERE tenant_id = ? ORDER BY sort_order", [tenantId], tenantId);
+  const categories = await queryWithTenant<MaterialCategoryRow>("SELECT * FROM t_material_category WHERE tenant_id = ? ORDER BY sort_order", [tenantId], tenantId);
   return buildCategoryTree(categories);
 }
 

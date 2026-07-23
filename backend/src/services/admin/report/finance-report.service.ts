@@ -2,6 +2,50 @@
 import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
 import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
+// ========== 类型定义 ==========
+
+/** 应收账款统计行 */
+interface ReceivableStatRow {
+  customerId: number | string;
+  customerName: string;
+  customerMobile: string;
+  billCount: number | string;
+  totalReceivable: number | string;
+  totalReceived: number | string;
+  totalUnreceived: number | string;
+}
+
+/** 应付账款统计行 */
+interface PayableStatRow {
+  supplierId: number | string;
+  supplierName: string;
+  orderCount: number | string;
+  totalPayable: number | string;
+  totalPaid: number | string;
+  totalUnpaid: number | string;
+}
+
+/** 收款分析统计行（按 date/customer/staff 分组） */
+interface PaymentStatRow {
+  period?: string;
+  customerId?: number | string;
+  customerName?: string;
+  staffId?: number | string;
+  staffName?: string;
+  paymentCount: number | string;
+  totalAmount: number | string;
+}
+
+/** SUM 金额汇总行 */
+interface TotalAmountRow {
+  totalAmount: number | string;
+}
+
+/** SUM 成本汇总行 */
+interface TotalCostRow {
+  totalCost: number | string;
+}
+
 export async function getReceivablePayable(
   tenantId: string,
   dateStart?: string,
@@ -33,7 +77,7 @@ export async function getReceivablePayable(
   }
   const payableWhere = payableConditions.join(" AND ");
 
-  const receivable = await queryWithTenant<any>(
+  const receivable = await queryWithTenant<ReceivableStatRow>(
     `SELECT sb.customer_id AS customerId, sb.customer_name AS customerName,
             sb.customer_mobile AS customerMobile,
             COUNT(DISTINCT sb.bill_no) AS billCount,
@@ -48,7 +92,7 @@ export async function getReceivablePayable(
     tenantId
   );
 
-  const payable = await queryWithTenant<any>(
+  const payable = await queryWithTenant<PayableStatRow>(
     `SELECT po.supplier_id AS supplierId, po.supplier_name AS supplierName,
             COUNT(DISTINCT po.order_no) AS orderCount,
             COALESCE(SUM(po.payable_amount), 0) AS totalPayable,
@@ -62,20 +106,20 @@ export async function getReceivablePayable(
     tenantId
   );
 
-  const totalReceivable = receivable.reduce((sum: number, r: any) => sum + Number(r.totalUnreceived), 0);
-  const totalPayable = payable.reduce((sum: number, r: any) => sum + Number(r.totalUnpaid), 0);
+  const totalReceivable = receivable.reduce((sum: number, r: ReceivableStatRow) => sum + Number(r.totalUnreceived), 0);
+  const totalPayable = payable.reduce((sum: number, r: PayableStatRow) => sum + Number(r.totalUnpaid), 0);
 
   return {
     totalReceivable,
     totalPayable,
-    receivableList: receivable.map((r: any) => ({
+    receivableList: receivable.map((r: ReceivableStatRow) => ({
       ...r,
       billCount: Number(r.billCount),
       totalReceivable: Number(r.totalReceivable),
       totalReceived: Number(r.totalReceived),
       totalUnreceived: Number(r.totalUnreceived)
     })),
-    payableList: payable.map((r: any) => ({
+    payableList: payable.map((r: PayableStatRow) => ({
       ...r,
       orderCount: Number(r.orderCount),
       totalPayable: Number(r.totalPayable),
@@ -95,10 +139,10 @@ export async function getPaymentAnalysis(
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
   const g = z.enum(["date", "customer", "staff"]).parse(groupBy);
 
-  let records: any[];
+  let records: PaymentStatRow[];
 
   if (g === "date") {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<PaymentStatRow>(
       `SELECT DATE(payment_date) AS period,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
@@ -111,7 +155,7 @@ export async function getPaymentAnalysis(
       tenantId
     );
   } else if (g === "customer") {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<PaymentStatRow>(
       `SELECT customer_id AS customerId, customer_name AS customerName,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(amount), 0) AS totalAmount
@@ -124,7 +168,7 @@ export async function getPaymentAnalysis(
       tenantId
     );
   } else {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<PaymentStatRow>(
       `SELECT cp.operator_id AS staffId, u.real_name AS staffName,
               COUNT(*) AS paymentCount,
               COALESCE(SUM(cp.amount), 0) AS totalAmount
@@ -139,7 +183,7 @@ export async function getPaymentAnalysis(
     );
   }
 
-  return records.map((r: any) => ({
+  return records.map((r: PaymentStatRow) => ({
     ...r,
     paymentCount: Number(r.paymentCount ?? 0),
     totalAmount: Number(r.totalAmount ?? 0)
@@ -154,7 +198,7 @@ export async function getProfit(
   const start = parseDateParam(dateStart, getDefaultDateStart(30));
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
 
-  const salesIncome = await queryOneWithTenant<any>(
+  const salesIncome = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
      FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
@@ -163,7 +207,7 @@ export async function getProfit(
     tenantId
   );
 
-  const salesCost = await queryOneWithTenant<any>(
+  const salesCost = await queryOneWithTenant<TotalCostRow>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
@@ -174,7 +218,7 @@ export async function getProfit(
     tenantId
   );
 
-  const returnAmount = await queryOneWithTenant<any>(
+  const returnAmount = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM t_sale_return
      WHERE return_status NOT IN ('VOIDED')
@@ -183,7 +227,7 @@ export async function getProfit(
     tenantId
   );
 
-  const purchaseReturnAmount = await queryOneWithTenant<any>(
+  const purchaseReturnAmount = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM t_purchase_return
      WHERE return_status NOT IN ('VOIDED')
@@ -208,7 +252,7 @@ export async function getProfit(
   const prevDateStart = prevStart.toISOString().slice(0, 10);
   const prevDateEnd = prevEnd.toISOString().slice(0, 10);
 
-  const prevSalesIncome = await queryOneWithTenant<any>(
+  const prevSalesIncome = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalAmount
      FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
@@ -217,7 +261,7 @@ export async function getProfit(
     tenantId
   );
 
-  const prevSalesCost = await queryOneWithTenant<any>(
+  const prevSalesCost = await queryOneWithTenant<TotalCostRow>(
     `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS totalCost
      FROM t_sale_bill_item sbi
      JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
@@ -228,7 +272,7 @@ export async function getProfit(
     tenantId
   );
 
-  const prevReturnAmount = await queryOneWithTenant<any>(
+  const prevReturnAmount = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM t_sale_return
      WHERE return_status NOT IN ('VOIDED')
@@ -237,7 +281,7 @@ export async function getProfit(
     tenantId
   );
 
-  const prevPurchaseReturnAmount = await queryOneWithTenant<any>(
+  const prevPurchaseReturnAmount = await queryOneWithTenant<TotalAmountRow>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalAmount
      FROM t_purchase_return
      WHERE return_status NOT IN ('VOIDED')

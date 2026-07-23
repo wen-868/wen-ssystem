@@ -1,5 +1,6 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import type { ServiceContext, PageResult } from "../../types/index";
+import type { ResultSetHeader } from "mysql2/promise";
 
 export interface AdjustLimitDTO {
   creditLimit: number;
@@ -11,9 +12,54 @@ export interface AdjustTermDTO {
   reason: string;
 }
 
+/** t_customer_credit 可用额度查询行 */
+interface CreditAvailableRow {
+  credit_available: number | string;
+}
+
+/** t_customer_credit 授信记录行（queryOneWithTenant 用，驼峰别名） */
+interface CreditRecordRow {
+  id: number | string;
+  customerId: number | string;
+  creditLimit: number | string;
+  creditUsed?: number | string;
+  creditFrozen?: number | string;
+  creditAvailable: number | string;
+  paymentTerm: string;
+  status: string;
+  version: number | string;
+  updatedAt: string | Date;
+}
+
+/** t_customer_credit 存在性/状态校验行 */
+interface CreditExistingRow {
+  id: number | string;
+  payment_term: string;
+  status: string;
+}
+
+/** t_credit_operation_log 操作日志行（queryWithTenant 用，驼峰别名） */
+interface CreditOperationLogRow {
+  id: number | string;
+  customerId: number | string;
+  operationType: string;
+  amount: number | string;
+  balanceBefore: number | string;
+  balanceAfter: number | string;
+  relatedOrderNo: string | null;
+  operatorId: number | string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export class CreditAdjustService {
-  async adjustLimit(customerId: number, dto: AdjustLimitDTO, ctx: ServiceContext): Promise<any> {
-    const result = await queryWithTenant<any>(
+  async adjustLimit(customerId: number, dto: AdjustLimitDTO, ctx: ServiceContext): Promise<CreditRecordRow | null> {
+    const result = await queryWithTenant<ResultSetHeader>(
       `UPDATE t_customer_credit
        SET credit_limit = ?, version = version + 1, updated_at = NOW()
        WHERE customer_id = ? AND tenant_id = ? AND status != 'CLOSED'`,
@@ -22,12 +68,10 @@ export class CreditAdjustService {
     );
 
     if ((result as unknown as { affectedRows: number }).affectedRows === 0) {
-      const err: any = new Error("授信记录不存在或已关闭");
-      err.statusCode = 404;
-      throw err;
+      throw Object.assign(new Error("授信记录不存在或已关闭"), { statusCode: 404 });
     }
 
-    const credit = await queryOneWithTenant<any>(
+    const credit = await queryOneWithTenant<CreditAvailableRow>(
       "SELECT credit_available FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId
@@ -39,7 +83,7 @@ export class CreditAdjustService {
       ctx.tenantId
     );
 
-    const record = await queryOneWithTenant<any>(
+    const record = await queryOneWithTenant<CreditRecordRow>(
       `SELECT cc.id, cc.customer_id AS customerId, cc.credit_limit AS creditLimit,
               cc.credit_used AS creditUsed, cc.credit_frozen AS creditFrozen,
               cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
@@ -52,21 +96,17 @@ export class CreditAdjustService {
     return record;
   }
 
-  async adjustTerm(customerId: number, dto: AdjustTermDTO, ctx: ServiceContext): Promise<any> {
-    const existing = await queryOneWithTenant<any>(
+  async adjustTerm(customerId: number, dto: AdjustTermDTO, ctx: ServiceContext): Promise<CreditRecordRow | null> {
+    const existing = await queryOneWithTenant<CreditExistingRow>(
       "SELECT id, payment_term, status FROM t_customer_credit WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId
     );
     if (!existing) {
-      const err: any = new Error("授信记录不存在");
-      err.statusCode = 404;
-      throw err;
+      throw Object.assign(new Error("授信记录不存在"), { statusCode: 404 });
     }
     if (existing.status === "CLOSED") {
-      const err: any = new Error("授信已关闭，无法调整账期");
-      err.statusCode = 400;
-      throw err;
+      throw Object.assign(new Error("授信已关闭，无法调整账期"), { statusCode: 400 });
     }
 
     await queryWithTenant(
@@ -83,7 +123,7 @@ export class CreditAdjustService {
       ctx.tenantId
     );
 
-    const record = await queryOneWithTenant<any>(
+    const record = await queryOneWithTenant<CreditRecordRow>(
       `SELECT cc.id, cc.customer_id AS customerId, cc.credit_limit AS creditLimit,
               cc.credit_available AS creditAvailable, cc.payment_term AS paymentTerm,
               cc.status, cc.version, cc.updated_at AS updatedAt
@@ -100,10 +140,10 @@ export class CreditAdjustService {
     page: number,
     pageSize: number,
     ctx: ServiceContext
-  ): Promise<PageResult<any>> {
+  ): Promise<PageResult<CreditOperationLogRow>> {
     const offset = (page - 1) * pageSize;
 
-    const records = await queryWithTenant<any>(
+    const records = await queryWithTenant<CreditOperationLogRow>(
       `SELECT col.id, col.customer_id AS customerId,
               col.operation_type AS operationType, col.amount,
               col.balance_before AS balanceBefore, col.balance_after AS balanceAfter,
@@ -118,7 +158,7 @@ export class CreditAdjustService {
       ctx.tenantId
     );
 
-    const totalRow = await queryOneWithTenant<any>(
+    const totalRow = await queryOneWithTenant<CountTotalRow>(
       "SELECT COUNT(*) AS total FROM t_credit_operation_log WHERE customer_id = ? AND tenant_id = ?",
       [customerId, ctx.tenantId],
       ctx.tenantId

@@ -2,6 +2,104 @@
 import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
 import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
+// ========== 类型定义 ==========
+
+/** 库存汇总统计行（按商品/门店分组的并集字段） */
+interface InventorySummaryRow {
+  skuId?: number | string;
+  skuName?: string;
+  skuCode?: string;
+  barcode?: string | null;
+  costPrice?: number | string;
+  storeId?: number | string;
+  storeName?: string;
+  skuCount?: number | string;
+  totalPhysicalQty: number | string;
+  totalLockedQty: number | string;
+  totalAvailableQty: number | string;
+  totalAmount?: number | string | null;
+}
+
+/** 库存周转-销售数据行 */
+interface InventoryTurnoverSalesRow {
+  skuId: number | string;
+  skuName: string;
+  totalSoldQty: number | string;
+  totalSalesAmount: number | string;
+}
+
+/** 库存周转-库存数据行 */
+interface InventoryTurnoverInventoryRow {
+  skuId: number | string;
+  totalQty: number | string;
+}
+
+/** 库存周转结果行 */
+interface InventoryTurnoverResultRow {
+  skuId: number | string;
+  skuName: string;
+  totalSoldQty: number;
+  totalSalesAmount: number;
+  avgInventory: number;
+  turnoverRate: number;
+  turnoverDays: number;
+}
+
+/** 库存库龄查询行 */
+interface InventoryAgeRow {
+  skuId: number | string;
+  skuName: string;
+  psiSkuId: number | string;
+  batchNo: string | null;
+  productionDate: string | null;
+  expiryDate: string | null;
+  qty: number | string;
+  inStockDate: string | Date;
+  ageDays: number | string;
+}
+
+/** 库存库龄明细输出项 */
+interface InventoryAgeDetailRow {
+  skuId: number | string;
+  skuName: string;
+  batchNo: string | null;
+  inStockDate: string | Date;
+  ageDays: number;
+  qty: number;
+}
+
+/** 采购汇总-订单统计行 */
+interface PurchaseOrderStatRow {
+  orderCount: number | string;
+  goodsAmount: number | string;
+  taxAmount: number | string;
+  payableAmount: number | string;
+  paidAmount: number | string;
+  unpaidAmount: number | string;
+}
+
+/** 采购汇总-入库统计行 */
+interface PurchaseStockStatRow {
+  stockCount: number | string;
+  stockAmount: number | string;
+}
+
+/** 采购汇总-退货统计行 */
+interface PurchaseReturnStatRow {
+  returnCount: number | string;
+  returnAmount: number | string;
+}
+
+/** 供应商排名行 */
+interface SupplierRankingRow {
+  supplierId: number | string;
+  supplierName: string;
+  orderCount: number | string;
+  totalAmount: number | string;
+  paidAmount: number | string;
+  unpaidAmount: number | string;
+}
+
 export async function getInventorySummary(
   tenantId: string,
   groupBy: "product" | "store" = "product",
@@ -18,10 +116,10 @@ export async function getInventorySummary(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  let records: any[];
+  let records: InventorySummaryRow[];
 
   if (g === "product") {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<InventorySummaryRow>(
       `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ps.sku_code AS skuCode,
               ps.barcode, pp.cost_price AS costPrice,
               SUM(ib.physical_qty) AS totalPhysicalQty,
@@ -38,7 +136,7 @@ export async function getInventorySummary(
       tenantId
     );
   } else {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<InventorySummaryRow>(
       `SELECT ib.store_id AS storeId, s.name AS storeName,
               COUNT(DISTINCT ib.sku_id) AS skuCount,
               SUM(ib.physical_qty) AS totalPhysicalQty,
@@ -54,7 +152,7 @@ export async function getInventorySummary(
     );
   }
 
-  return records.map((r: any) => ({
+  return records.map((r: InventorySummaryRow) => ({
     ...r,
     totalPhysicalQty: Number(r.totalPhysicalQty ?? 0),
     totalLockedQty: Number(r.totalLockedQty ?? 0),
@@ -72,7 +170,7 @@ export async function getInventoryTurnover(
   const dateStart = new Date();
   dateStart.setMonth(dateStart.getMonth() - m);
 
-  const salesData = await queryWithTenant<any>(
+  const salesData = await queryWithTenant<InventoryTurnoverSalesRow>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
             SUM(sbi.total_bottle_qty) AS totalSoldQty,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSalesAmount
@@ -85,7 +183,7 @@ export async function getInventoryTurnover(
     tenantId
   );
 
-  const inventoryData = await queryWithTenant<any>(
+  const inventoryData = await queryWithTenant<InventoryTurnoverInventoryRow>(
     `SELECT sku_id AS skuId, SUM(physical_qty) AS totalQty
      FROM t_inventory_balance
      GROUP BY sku_id`,
@@ -93,13 +191,13 @@ export async function getInventoryTurnover(
     tenantId
   );
 
-  const inventoryMap = new Map<number, number>();
+  const inventoryMap = new Map<number | string, number>();
   for (const inv of inventoryData) {
     inventoryMap.set(inv.skuId, Number(inv.totalQty));
   }
 
   const result = salesData
-    .map((s: any) => {
+    .map((s: InventoryTurnoverSalesRow): InventoryTurnoverResultRow => {
       const avgInventory = inventoryMap.get(s.skuId) ?? 0;
       const totalSoldQty = Number(s.totalSoldQty);
       const turnoverRate = avgInventory > 0 ? Math.round((totalSoldQty / avgInventory) * 100) / 100 : 0;
@@ -116,7 +214,7 @@ export async function getInventoryTurnover(
         turnoverDays
       };
     })
-    .sort((a: any, b: any) => b.turnoverRate - a.turnoverRate);
+    .sort((a: InventoryTurnoverResultRow, b: InventoryTurnoverResultRow) => b.turnoverRate - a.turnoverRate);
 
   return result;
 }
@@ -133,7 +231,7 @@ export async function getInventoryAge(
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<InventoryAgeRow>(
     `SELECT
         ps.sku_id AS skuId,
         ps.sku_name AS skuName,
@@ -160,12 +258,12 @@ export async function getInventoryAge(
     over180: { qty: 0, amount: 0, count: 0 }
   };
 
-  const details: any[] = [];
+  const details: InventoryAgeDetailRow[] = [];
 
   for (const r of records) {
     const ageDays = Number(r.ageDays ?? 0);
     const qty = Number(r.qty ?? 0);
-    const item = {
+    const item: InventoryAgeDetailRow = {
       skuId: r.skuId,
       skuName: r.skuName,
       batchNo: r.batchNo,
@@ -201,7 +299,7 @@ export async function getPurchaseSummary(
   const start = parseDateParam(dateStart, getDefaultDateStart(30));
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
 
-  const orderStats = await queryOneWithTenant<any>(
+  const orderStats = await queryOneWithTenant<PurchaseOrderStatRow>(
     `SELECT COUNT(*) AS orderCount,
             COALESCE(SUM(goods_amount), 0) AS goodsAmount,
             COALESCE(SUM(tax_amount), 0) AS taxAmount,
@@ -215,7 +313,7 @@ export async function getPurchaseSummary(
     tenantId
   );
 
-  const stockStats = await queryOneWithTenant<any>(
+  const stockStats = await queryOneWithTenant<PurchaseStockStatRow>(
     `SELECT COUNT(*) AS stockCount,
             COALESCE(SUM(total_amount), 0) AS stockAmount
      FROM t_purchase_in_stock
@@ -225,7 +323,7 @@ export async function getPurchaseSummary(
     tenantId
   );
 
-  const returnStats = await queryOneWithTenant<any>(
+  const returnStats = await queryOneWithTenant<PurchaseReturnStatRow>(
     `SELECT COUNT(*) AS returnCount,
             COALESCE(SUM(total_amount), 0) AS returnAmount
      FROM t_purchase_return
@@ -259,7 +357,7 @@ export async function getSupplierRanking(
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
   const lim = Math.min(Number(limit || 20), 100);
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SupplierRankingRow>(
     `SELECT po.supplier_id AS supplierId, po.supplier_name AS supplierName,
             COUNT(DISTINCT po.order_no) AS orderCount,
             COALESCE(SUM(po.payable_amount), 0) AS totalAmount,
@@ -275,7 +373,7 @@ export async function getSupplierRanking(
     tenantId
   );
 
-  return records.map((r: any) => ({
+  return records.map((r: SupplierRankingRow) => ({
     ...r,
     orderCount: Number(r.orderCount),
     totalAmount: Number(r.totalAmount),

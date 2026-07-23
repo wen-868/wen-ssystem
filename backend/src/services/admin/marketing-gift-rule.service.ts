@@ -1,6 +1,48 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** COUNT(*) AS cnt 通用返回 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** t_gift_rule 表行 */
+interface GiftRuleRow {
+  id: number | string;
+  rule_code: string;
+  rule_name: string;
+  rule_desc: string | null;
+  threshold_type: string;
+  threshold_amount: number | string | null;
+  threshold_quantity: number | string | null;
+  applicable_scope: string;
+  applicable_ids: string | null;
+  start_time: string | Date;
+  end_time: string | Date;
+  gift_stock_limit: number | string | null;
+  remain_gift_stock: number | string;
+  is_stock_synced: number | string;
+  tenant_id: string;
+  created_by: number | string;
+  status: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** t_gift_rule_level 表行 */
+interface GiftRuleLevelRow {
+  id: number | string;
+  rule_id: number | string;
+  threshold_amount: number | string | null;
+  gift_product_id: number | string;
+  gift_sku_id: number | string | null;
+  gift_quantity: number | string;
+  sort_order: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
 export async function createGiftRule(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("MZ");
   const result = await queryWithTenant(
@@ -16,8 +58,8 @@ export async function listGiftRules(params: { tenantId: string; status?: string;
   const values: unknown[] = [tenantId];
   if (status) { conditions.push("status = ?"); values.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_gift_rule ${where}`, values, tenantId);
-  const rows = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_gift_rule ${where}`, values, tenantId);
+  const rows = await queryWithTenant<GiftRuleRow>(
     `SELECT * FROM t_gift_rule ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
@@ -25,9 +67,9 @@ export async function listGiftRules(params: { tenantId: string; status?: string;
 }
 
 export async function getGiftRuleDetail(id: number, tenantId: string) {
-  const rule = await queryOneWithTenant<any>("SELECT * FROM t_gift_rule WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const rule = await queryOneWithTenant<GiftRuleRow>("SELECT * FROM t_gift_rule WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!rule) return null;
-  const levels = await queryWithTenant<any>("SELECT * FROM t_gift_rule_level WHERE rule_id = ? AND tenant_id = ? ORDER BY sort_order", [id, tenantId], tenantId);
+  const levels = await queryWithTenant<GiftRuleLevelRow>("SELECT * FROM t_gift_rule_level WHERE rule_id = ? AND tenant_id = ? ORDER BY sort_order", [id, tenantId], tenantId);
   return { ...rule, levels };
 }
 

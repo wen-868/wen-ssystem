@@ -2,6 +2,60 @@
 import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
 import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
+// ========== 类型定义 ==========
+
+/** 销售日统计行 */
+interface SalesDailyRow {
+  date: string;
+  orderCount: number | string;
+  customerCount: number | string;
+  salesAmount: number | string;
+  receivedAmount: number | string;
+  unreceivedAmount: number | string;
+}
+
+/** 销售退货日统计行 */
+interface SalesReturnDailyRow {
+  date: string;
+  returnCount: number | string;
+  returnAmount: number | string;
+}
+
+/** 销售趋势统计行 */
+interface SalesTrendRow {
+  period: string;
+  orderCount: number | string;
+  salesAmount: number | string;
+  receivedAmount: number | string;
+}
+
+/** 销售排名统计行（按商品/客户/员工的并集字段） */
+interface SalesRankingRow {
+  id: number | string;
+  name: string;
+  mobile?: string;
+  totalQty?: number | string;
+  orderCount?: number | string;
+  totalAmount: number | string;
+  receivedAmount?: number | string;
+}
+
+/** 金额+笔数统计行 */
+interface AmountCountRow {
+  amount: number | string;
+  count: number | string;
+}
+
+/** 仅金额统计行 */
+interface AmountRow {
+  amount: number | string;
+}
+
+/** 仅数量统计行 */
+interface CountRow {
+  count: number | string;
+}
+
 export async function getSalesDaily(
   tenantId: string,
   dateStart?: string,
@@ -19,7 +73,7 @@ export async function getSalesDaily(
   }
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SalesDailyRow>(
     `SELECT DATE(sb.created_at) AS date,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COUNT(DISTINCT sb.customer_id) AS customerCount,
@@ -41,7 +95,7 @@ export async function getSalesDaily(
     returnParams.push(storeId);
   }
   const returnWhere = returnConditions.join(" AND ");
-  const returnRecords = await queryWithTenant<any>(
+  const returnRecords = await queryWithTenant<SalesReturnDailyRow>(
     `SELECT DATE(sr.created_at) AS date,
             COUNT(DISTINCT sr.return_no) AS returnCount,
             COALESCE(SUM(sr.refund_amount), 0) AS returnAmount
@@ -57,7 +111,7 @@ export async function getSalesDaily(
     returnMap.set(r.date, { returnCount: Number(r.returnCount), returnAmount: Number(r.returnAmount) });
   }
 
-  return records.map((r: any) => {
+  return records.map((r: SalesDailyRow) => {
     const ret = returnMap.get(r.date) || { returnCount: 0, returnAmount: 0 };
     const orderCount = Number(r.orderCount);
     const salesAmount = Number(r.salesAmount);
@@ -88,7 +142,7 @@ export async function getSalesTrend(
   };
   const { dateFormat, intervalExpr } = formatMap[g];
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SalesTrendRow>(
     `SELECT DATE_FORMAT(sb.created_at, ?) AS period,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS salesAmount,
@@ -102,7 +156,7 @@ export async function getSalesTrend(
     tenantId
   );
 
-  return records.map((r: any) => ({
+  return records.map((r: SalesTrendRow) => ({
     period: r.period,
     orderCount: Number(r.orderCount),
     salesAmount: Number(r.salesAmount),
@@ -123,10 +177,10 @@ export async function getSalesRanking(
   // limit 有默认值 20，无需 || 20
   const lim = Math.min(limit, 100);
 
-  let records: any[];
+  let records: SalesRankingRow[];
 
   if (dim === "product") {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<SalesRankingRow>(
       `SELECT sbi.sku_id AS id, sbi.sku_name AS name,
               SUM(sbi.total_bottle_qty) AS totalQty,
               COALESCE(SUM(sbi.subtotal_amount), 0) AS totalAmount
@@ -141,7 +195,7 @@ export async function getSalesRanking(
       tenantId
     );
   } else if (dim === "customer") {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<SalesRankingRow>(
       `SELECT sb.customer_id AS id, sb.customer_name AS name, sb.customer_mobile AS mobile,
               COUNT(DISTINCT sb.bill_no) AS orderCount,
               COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
@@ -157,7 +211,7 @@ export async function getSalesRanking(
       tenantId
     );
   } else {
-    records = await queryWithTenant<any>(
+    records = await queryWithTenant<SalesRankingRow>(
       `SELECT sb.operator_id AS id, u.real_name AS name,
               COUNT(DISTINCT sb.bill_no) AS orderCount,
               COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
@@ -174,7 +228,7 @@ export async function getSalesRanking(
     );
   }
 
-  return records.map((r: any) => ({
+  return records.map((r: SalesRankingRow) => ({
     ...r,
     totalQty: Number(r.totalQty ?? 0),
     totalAmount: Number(r.totalAmount ?? 0),
@@ -184,7 +238,7 @@ export async function getSalesRanking(
 }
 
 export async function getBusinessOverview(tenantId: string) {
-  const todaySales = await queryOneWithTenant<any>(
+  const todaySales = await queryOneWithTenant<AmountCountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM t_sale_bill
@@ -194,7 +248,7 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const yesterdaySales = await queryOneWithTenant<any>(
+  const yesterdaySales = await queryOneWithTenant<AmountCountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM t_sale_bill
@@ -216,7 +270,7 @@ export async function getBusinessOverview(tenantId: string) {
     ? Math.round(((todayCount - yesterdayCount) / yesterdayCount) * 10000) / 100
     : (todayCount > 0 ? 100 : 0);
 
-  const monthSales = await queryOneWithTenant<any>(
+  const monthSales = await queryOneWithTenant<AmountCountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM t_sale_bill
@@ -226,7 +280,7 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const yearSales = await queryOneWithTenant<any>(
+  const yearSales = await queryOneWithTenant<AmountCountRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM t_sale_bill
@@ -236,7 +290,7 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const totalReceivable = await queryOneWithTenant<any>(
+  const totalReceivable = await queryOneWithTenant<AmountRow>(
     `SELECT COALESCE(SUM(unreceived_amount), 0) AS amount
      FROM t_sale_bill
      WHERE business_status NOT IN ('DRAFT', 'VOIDED')
@@ -245,7 +299,7 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const totalPayable = await queryOneWithTenant<any>(
+  const totalPayable = await queryOneWithTenant<AmountRow>(
     `SELECT COALESCE(SUM(unpaid_amount), 0) AS amount
      FROM t_purchase_order
      WHERE order_status NOT IN ('DRAFT', 'CANCELLED')
@@ -254,7 +308,7 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const inventoryValue = await queryOneWithTenant<any>(
+  const inventoryValue = await queryOneWithTenant<AmountRow>(
     `SELECT COALESCE(SUM(ib.physical_qty * pp.cost_price), 0) AS amount
      FROM t_inventory_balance ib
      JOIN t_product_price pp ON pp.sku_id = ib.sku_id AND pp.tenant_id = ib.tenant_id`,
@@ -262,19 +316,19 @@ export async function getBusinessOverview(tenantId: string) {
     tenantId
   );
 
-  const customerCount = await queryOneWithTenant<any>(
+  const customerCount = await queryOneWithTenant<CountRow>(
     "SELECT COUNT(*) AS count FROM t_member WHERE status = 1",
     [],
     tenantId
   );
 
-  const supplierCount = await queryOneWithTenant<any>(
+  const supplierCount = await queryOneWithTenant<CountRow>(
     "SELECT COUNT(*) AS count FROM t_supplier WHERE status = 1",
     [],
     tenantId
   );
 
-  const monthPurchase = await queryOneWithTenant<any>(
+  const monthPurchase = await queryOneWithTenant<AmountCountRow>(
     `SELECT COALESCE(SUM(payable_amount), 0) AS amount,
             COUNT(*) AS count
      FROM t_purchase_order

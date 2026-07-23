@@ -9,6 +9,11 @@ interface CategoryRow {
   allowOnlineSale: number; createdAt: Date; updatedAt: Date;
 }
 
+/** COUNT(*) AS cnt 通用行 */
+interface CountCntRow {
+  cnt: number;
+}
+
 export async function list(params: { pid?: number; tenantId: string; allowOnlineSale?: number; status?: number }) {
   const { pid, tenantId, allowOnlineSale, status } = params;
 
@@ -39,10 +44,10 @@ export async function list(params: { pid?: number; tenantId: string; allowOnline
   }
 
   // 使用缓存（按 pid 分别缓存）
-  const cacheKey = pid !== undefined 
-    ? `tenant:${tenantId}:categories:pid:${pid}` 
+  const cacheKey = pid !== undefined
+    ? `tenant:${tenantId}:categories:pid:${pid}`
     : `tenant:${tenantId}:categories:all`;
-  
+
   return cacheGet(cacheKey, async () => {
     let sql = `SELECT id, parent_id AS parentId, name, icon, code, sort_no AS sortNo,
                       status, allow_online_sale AS allowOnlineSale,
@@ -76,8 +81,8 @@ export async function create(body: {
     `INSERT INTO t_product_category (name, parent_id, sort_no, icon, code, allow_online_sale, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [body.name, body.parentId ?? null, body.sortNo ?? 0,
-     body.icon ?? null, body.code ?? null, body.allowOnlineSale ?? 1,
-     body.status ?? 1, tenantId],
+    body.icon ?? null, body.code ?? null, body.allowOnlineSale ?? 1,
+    body.status ?? 1, tenantId],
     tenantId
   );
   // 创建后清除分类缓存
@@ -133,7 +138,7 @@ export async function remove(id: number, tenantId: string) {
   if (!existing) throw Object.assign(new Error("分类不存在"), { statusCode: 404 });
 
   // 检查是否有子分类
-  const childRows = (await queryWithTenant<any>(
+  const childRows = (await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_category WHERE parent_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   ) as any[])[0];
@@ -142,7 +147,7 @@ export async function remove(id: number, tenantId: string) {
   }
 
   // 检查是否有商品引用
-  const productRows = (await queryWithTenant<any>(
+  const productRows = (await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_spu WHERE category_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   ) as any[])[0];

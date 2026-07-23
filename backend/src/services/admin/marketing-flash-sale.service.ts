@@ -1,4 +1,88 @@
 ﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { RowDataPacket } from "mysql2";
+
+// ===== 类型定义 =====
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 秒杀活动详情查询行 */
+interface FlashSaleRow {
+  id: number | string;
+  name: string;
+  productId: number | string;
+  skuId: number | string;
+  flashPrice: number | string;
+  originalPrice: number | string;
+  totalStock: number | string;
+  soldCount: number | string;
+  limitPerUser: number | string;
+  startTime: string | Date;
+  endTime: string | Date;
+  status: string;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 活跃秒杀列表查询行（不含 status/createdAt/updatedAt） */
+interface ActiveFlashSaleRow {
+  id: number | string;
+  name: string;
+  productId: number | string;
+  skuId: number | string;
+  flashPrice: number | string;
+  originalPrice: number | string;
+  totalStock: number | string;
+  soldCount: number | string;
+  limitPerUser: number | string;
+  startTime: string | Date;
+  endTime: string | Date;
+}
+
+/** 秒杀活动 id/status 查询行 */
+interface FlashSaleIdStatusRow {
+  id: number | string;
+  status: string;
+}
+
+/** 秒杀统计查询行 */
+interface FlashSaleStatRow {
+  id: number | string;
+  name: string;
+  flashPrice: number | string;
+  originalPrice: number | string;
+  totalStock: number | string;
+  soldCount: number | string;
+  status: string;
+  orderCount: number | string | null;
+  totalQuantity: number | string | null;
+  totalAmount: number | string | null;
+}
+
+/** 秒杀总体统计行 */
+interface FlashSaleOverallRow {
+  totalActivities: number | string;
+  totalStock: number | string | null;
+  totalSold: number | string | null;
+}
+
+/** 购买秒杀时查询的行（conn.execute，需继承 RowDataPacket） */
+interface BuyFlashSaleRow extends RowDataPacket {
+  id: number | string;
+  flash_price: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  limit_per_user: number | string;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** 购买秒杀时查询已购买数量行（conn.execute，需继承 RowDataPacket） */
+interface BuyPurchaseRow extends RowDataPacket {
+  totalQty: number | string;
+}
 
 export async function createFlashSale(body: {
   name: string;
@@ -22,7 +106,7 @@ export async function createFlashSale(body: {
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<FlashSaleRow>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             flash_price AS flashPrice, original_price AS originalPrice,
             total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
@@ -53,7 +137,7 @@ export async function listFlashSales(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<FlashSaleRow>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             flash_price AS flashPrice, original_price AS originalPrice,
             total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
@@ -67,7 +151,7 @@ export async function listFlashSales(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_flash_sale ${where}`,
     params,
     tenantId
@@ -82,7 +166,7 @@ export async function listFlashSales(
 }
 
 export async function getFlashSale(id: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<FlashSaleRow>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             flash_price AS flashPrice, original_price AS originalPrice,
             total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
@@ -109,7 +193,7 @@ export async function updateFlashSale(id: number, body: {
   startTime?: string;
   endTime?: string;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<FlashSaleIdStatusRow>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
   }
@@ -132,7 +216,7 @@ export async function updateFlashSale(id: number, body: {
     await queryWithTenant(`UPDATE t_flash_sale SET ${updates.join(", ")} WHERE id = ?`, params, tenantId);
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<FlashSaleRow>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             flash_price AS flashPrice, original_price AS originalPrice,
             total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
@@ -147,7 +231,7 @@ export async function updateFlashSale(id: number, body: {
 }
 
 export async function deleteFlashSale(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<FlashSaleIdStatusRow>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
   }
@@ -160,7 +244,7 @@ export async function deleteFlashSale(id: number, tenantId: string) {
 }
 
 export async function activateFlashSale(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<FlashSaleIdStatusRow>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
   }
@@ -173,7 +257,7 @@ export async function activateFlashSale(id: number, tenantId: string) {
 }
 
 export async function pauseFlashSale(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
+  const existing = await queryOneWithTenant<FlashSaleIdStatusRow>("SELECT id, status FROM t_flash_sale WHERE id = ?", [id], tenantId);
   if (!existing) {
     throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
   }
@@ -186,7 +270,7 @@ export async function pauseFlashSale(id: number, tenantId: string) {
 }
 
 export async function getFlashSaleStatistics(tenantId: string) {
-  const stats = await queryWithTenant<any>(
+  const stats = await queryWithTenant<FlashSaleStatRow>(
     `SELECT fs.id, fs.name, fs.flash_price AS flashPrice, fs.original_price AS originalPrice,
             fs.total_stock AS totalStock, fs.sold_count AS soldCount, fs.status,
             COUNT(fsr.id) AS orderCount, SUM(fsr.quantity) AS totalQuantity,
@@ -199,7 +283,7 @@ export async function getFlashSaleStatistics(tenantId: string) {
     tenantId
   );
 
-  const overall = await queryOneWithTenant<any>(
+  const overall = await queryOneWithTenant<FlashSaleOverallRow>(
     `SELECT COUNT(*) AS totalActivities, SUM(total_stock) AS totalStock,
             SUM(sold_count) AS totalSold
      FROM t_flash_sale`,
@@ -216,7 +300,7 @@ export async function getFlashSaleStatistics(tenantId: string) {
         ? (Number(overall?.totalSold) / Number(overall?.totalStock) * 100).toFixed(2) + "%"
         : "0%"
     },
-    details: stats.map((r: any) => ({
+    details: stats.map((r) => ({
       id: r.id,
       name: r.name,
       flashPrice: Number(r.flashPrice),
@@ -236,7 +320,7 @@ export async function getFlashSaleStatistics(tenantId: string) {
 
 export async function listActiveFlashSales(tenantId: string) {
   const now = new Date().toISOString();
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ActiveFlashSaleRow>(
     `SELECT id, name, product_id AS productId, sku_id AS skuId,
             flash_price AS flashPrice, original_price AS originalPrice,
             total_stock AS totalStock, sold_count AS soldCount, limit_per_user AS limitPerUser,
@@ -260,16 +344,16 @@ export async function buyFlashSale(
   const now = new Date().toISOString();
 
   await transaction(async (conn) => {
-    const [flashRows] = await (conn as any).execute(
+    const [flashRows] = await conn.execute<BuyFlashSaleRow[]>(
       `SELECT id, flash_price, total_stock, sold_count, limit_per_user, status,
               start_time, end_time
        FROM t_flash_sale
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [flashSaleId, tenantId, now, now]
-    ) as unknown as Record<string, unknown>[];
+    );
 
-    const flash = (flashRows as unknown as Record<string, unknown>[])[0];
+    const flash = flashRows[0];
     if (!flash) {
       throw Object.assign(new Error("秒杀活动不存在或已结束"), { statusCode: 404 });
     }
@@ -279,15 +363,15 @@ export async function buyFlashSale(
       throw Object.assign(new Error("秒杀库存不足"), { statusCode: 400 });
     }
 
-    const [purchaseRows] = await (conn as any).execute(
+    const [purchaseRows] = await conn.execute<BuyPurchaseRow[]>(
       `SELECT COALESCE(SUM(quantity), 0) AS totalQty
        FROM t_flash_sale_record fsr
        JOIN t_flash_sale fs ON fs.id = fsr.flash_sale_id AND fs.tenant_id = ?
        WHERE fsr.flash_sale_id = ? AND fsr.user_id = ?`,
       [tenantId, flashSaleId, userId]
-    ) as unknown as Record<string, unknown>[];
+    );
 
-    const purchased = Number((purchaseRows as unknown as Record<string, unknown>[])[0]?.totalQty || 0);
+    const purchased = Number(purchaseRows[0]?.totalQty || 0);
     if (purchased + quantity > Number(flash.limit_per_user)) {
       throw Object.assign(
         new Error(`每人限购${flash.limit_per_user}件，您已购买${purchased}件`),
@@ -295,12 +379,12 @@ export async function buyFlashSale(
       );
     }
 
-    await (conn as any).execute(
+    await conn.execute(
       `UPDATE t_flash_sale SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, flashSaleId, tenantId]
     );
 
-    await (conn as any).execute(
+    await conn.execute(
       `INSERT INTO t_flash_sale_record (flash_sale_id, user_id, quantity, price, tenant_id)
        VALUES (?, ?, ?, ?, ?)`,
       [flashSaleId, userId, quantity, flash.flash_price, tenantId]

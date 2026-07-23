@@ -24,6 +24,32 @@ interface PlanRow {
   module_access: string;
 }
 
+/** 即将到期订阅行 */
+interface ExpiringSubscriptionRow {
+  id: number;
+  subscriptionNo: string;
+  tenantId: string;
+  tenantName: string | null;
+  contactMobile: string | null;
+  planName: string;
+  endDate: string | Date;
+  autoRenew: number | string;
+  expireNotifySent: number | string;
+  daysRemaining: number | string;
+}
+
+/** 已过期订阅行 */
+interface ExpiredSubscriptionRow {
+  id: number;
+  subscriptionNo: string;
+  tenantId: string;
+  tenantName: string | null;
+  contactMobile: string | null;
+  planName: string;
+  endDate: string | Date;
+  overdueDays: number | string;
+}
+
 export async function renewSubscription(
   subscriptionId: number,
   body: {
@@ -35,7 +61,7 @@ export async function renewSubscription(
   username: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SubscriptionDetailRow>(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.price,
             p.duration_days, p.price AS plan_price
      FROM t_subscription s
@@ -116,7 +142,7 @@ export async function renewSubscription(
 }
 
 export async function listExpiring(days: number, tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ExpiringSubscriptionRow>(
     `SELECT s.id, s.subscription_no AS subscriptionNo,
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             t.contact_mobile AS contactMobile,
@@ -137,7 +163,7 @@ export async function listExpiring(days: number, tenantId: string) {
 }
 
 export async function listExpired(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ExpiredSubscriptionRow>(
     `SELECT s.id, s.subscription_no AS subscriptionNo,
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             t.contact_mobile AS contactMobile,

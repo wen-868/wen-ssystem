@@ -1,12 +1,91 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader } from "mysql2/promise";
 
 /** 报溢单项行 */
 interface ProfitOrderItemRow extends RowDataPacket {
   skuId: number;
   qty: number;
   costPrice: number;
+}
+
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 报溢单列表查询行 */
+interface ProfitOrderListRow {
+  id: number | string;
+  profitNo: string;
+  storeId: number | string;
+  storeName: string | null;
+  profitType: string;
+  totalQty: number | string;
+  totalAmount: number | string;
+  status: string;
+  reason: string | null;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  auditorId: number | string | null;
+  auditorName: string | null;
+  auditedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 报溢单详情查询行 */
+interface ProfitOrderDetailRow {
+  id: number | string;
+  profitNo: string;
+  storeId: number | string;
+  storeName: string | null;
+  profitType: string;
+  totalQty: number | string;
+  totalAmount: number | string;
+  status: string;
+  reason: string | null;
+  rejectReason: string | null;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  auditorId: number | string | null;
+  auditorName: string | null;
+  auditedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 报溢单明细查询行 */
+interface ProfitOrderItemDetailRow {
+  id: number | string;
+  profitOrderId: number | string;
+  profitNo: string;
+  skuId: number | string;
+  skuName: string;
+  barcode: string | null;
+  specification: string | null;
+  unitName: string | null;
+  qty: number | string;
+  costPrice: number | string;
+  subtotalAmount: number | string;
+  profitReason: string | null;
+}
+
+/** 报溢单存在性检查行（含 profit_no/store_id） */
+interface ProfitOrderExistingRow {
+  id: number | string;
+  status: string;
+  profitNo: string;
+  storeId: number | string;
+}
+
+/** 报溢单 id/status 查询行 */
+interface ProfitOrderIdStatusRow {
+  id: number | string;
+  status: string;
 }
 
 // ========== 报溢单列表 ==========
@@ -52,7 +131,7 @@ export async function listProfitOrders(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ProfitOrderListRow>(
     `SELECT po.id, po.profit_no AS profitNo, po.store_id AS storeId, po.store_name AS storeName,
             po.profit_type AS profitType, po.total_qty AS totalQty, po.total_amount AS totalAmount,
             po.status, po.reason, po.operator_id AS operatorId, po.operator_name AS operatorName,
@@ -66,7 +145,7 @@ export async function listProfitOrders(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_inventory_profit_order po ${where}`,
     queryParams,
     tenantId
@@ -76,7 +155,7 @@ export async function listProfitOrders(params: {
 
 // ========== 报溢单详情 ==========
 export async function getProfitOrderDetail(id: number, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<ProfitOrderDetailRow>(
     `SELECT id, profit_no AS profitNo, store_id AS storeId, store_name AS storeName,
             profit_type AS profitType, total_qty AS totalQty, total_amount AS totalAmount,
             status, reason, reject_reason AS rejectReason,
@@ -90,7 +169,7 @@ export async function getProfitOrderDetail(id: number, tenantId: string) {
   if (!order) {
     throw Object.assign(new Error("报溢单不存在"), { statusCode: 404 });
   }
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<ProfitOrderItemDetailRow>(
     `SELECT id, profit_order_id AS profitOrderId, profit_no AS profitNo,
             sku_id AS skuId, sku_name AS skuName, barcode,
             specification, unit_name AS unitName, qty,
@@ -142,7 +221,7 @@ export async function createProfitOrder(params: {
     }
     totalAmount = Math.round(totalAmount * 100) / 100;
 
-    const [insertResult] = await conn.execute<any>(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_inventory_profit_order (profit_no, store_id, store_name, profit_type,
         total_qty, total_amount, status, reason, operator_id, operator_name, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?)`,
@@ -180,7 +259,7 @@ export async function approveProfitOrder(
 ) {
   const { auditorId, auditorName, tenantId } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<ProfitOrderExistingRow>(
     "SELECT id, status, profit_no AS profitNo, store_id AS storeId FROM t_inventory_profit_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -246,7 +325,7 @@ export async function rejectProfitOrder(
 ) {
   const { auditorId, auditorName, rejectReason, tenantId } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<ProfitOrderIdStatusRow>(
     "SELECT id, status FROM t_inventory_profit_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId

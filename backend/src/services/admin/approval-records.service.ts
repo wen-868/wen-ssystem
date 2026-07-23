@@ -1,5 +1,141 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2/promise";
+
+/** t_approval_rule 原始字段行（conn.query 用，字段为下划线命名） */
+interface ApprovalRuleRawRow extends RowDataPacket {
+  id: number | string;
+  rule_name: string;
+  trigger_condition: string | null;
+  approval_chain: string | null;
+  sla_hours: number | string;
+  escalation_level: number | string;
+}
+
+/** t_approval_approver 原始字段行（conn.query 用） */
+interface ApprovalApproverRow extends RowDataPacket {
+  id: number | string;
+  approver_name: string;
+}
+
+/** conn.query 的 t_approval_instance 原始字段行（申请单简表） */
+interface ApprovalInstanceRawRow extends RowDataPacket {
+  applicant_id: number | string;
+  applicant_name: string;
+  business_title: string;
+}
+
+/** conn.query 的 t_approval_task JOIN t_approval_instance 行（审批任务 + 实例状态） */
+interface ApprovalTaskJoinRow extends RowDataPacket {
+  id: number | string;
+  instance_id: string;
+  approval_level: number | string;
+  approver_id: number | string;
+  task_status: string;
+  current_level: number | string;
+  instanceStatus: string;
+}
+
+/** conn.query 的 t_approval_task 简表行 */
+interface ApprovalTaskRawRow extends RowDataPacket {
+  id: number | string;
+  instance_id: string;
+  approver_id: number | string;
+  task_status: string;
+}
+
+/** conn.query 的 SELECT id 行 */
+interface IdRawRow extends RowDataPacket {
+  id: number | string;
+}
+
+/** t_approval_instance 列表行（queryWithTenant 用，字段为驼峰别名） */
+interface ApprovalInstanceRow {
+  id: number | string;
+  instanceNo: string;
+  ruleId: number | string;
+  businessType: string;
+  businessNo: string;
+  businessTitle: string;
+  applicantId: number | string;
+  applicantName: string;
+  currentLevel: number | string;
+  status: string;
+  submittedAt: string | Date | null;
+  completedAt: string | Date | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** t_approval_task 列表行（queryWithTenant 用，驼峰别名） */
+interface ApprovalTaskRow {
+  id: number | string;
+  approvalLevel: number | string;
+  approverId: number | string;
+  approverName: string;
+  taskStatus: string;
+  receivedAt: string | Date | null;
+  processedAt: string | Date | null;
+  slaDeadline: string | Date | null;
+  escalated: number | string | null;
+  approvalComment: string | null;
+}
+
+/** t_approval_log 列表行（queryWithTenant 用，驼峰别名） */
+interface ApprovalLogRow {
+  id: number | string;
+  taskId: number | string | null;
+  action: string;
+  operatorId: number | string | null;
+  operatorName: string;
+  fromStatus: string | null;
+  toStatus: string;
+  comment: string | null;
+  createdAt: string | Date;
+}
+
+/** t_approval_task JOIN t_approval_instance 详情行（queryWithTenant 用，驼峰别名） */
+interface ApprovalTaskDetailRow {
+  id: number | string;
+  instanceId: string;
+  approvalLevel: number | string;
+  approverId: number | string;
+  approverName: string;
+  taskStatus: string;
+  receivedAt: string | Date | null;
+  processedAt: string | Date | null;
+  slaDeadline: string | Date | null;
+  escalated: number | string | null;
+  approvalComment: string | null;
+  instanceNo: string;
+  businessType: string;
+  businessNo: string;
+  businessTitle: string;
+  applicantName: string;
+  submittedAt: string | Date | null;
+}
+
+/** t_approval_notification 列表行（queryWithTenant 用，驼峰别名） */
+interface ApprovalNotificationRow {
+  id: number | string;
+  instanceId: string;
+  taskId: number | string | null;
+  notificationType: string;
+  recipientId: number | string;
+  recipientName: string;
+  title: string;
+  content: string;
+  channel: string;
+  readStatus: number | string;
+  sentAt: string | Date;
+  readAt: string | Date | null;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
+}
 
 export async function listInstances(
   page: number,
@@ -28,7 +164,7 @@ export async function listInstances(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ApprovalInstanceRow>(
     `SELECT id, instance_no AS instanceNo, rule_id AS ruleId, business_type AS businessType,
             business_no AS businessNo, business_title AS businessTitle,
             applicant_id AS applicantId, applicant_name AS applicantName,
@@ -43,7 +179,7 @@ export async function listInstances(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_approval_instance ${where}`,
     params,
     tenantId
@@ -69,7 +205,7 @@ export async function submitApproval(
   tenantId: string
 ) {
   const result = await transaction(async (conn) => {
-    const [rules] = await conn.query<any[]>(
+    const [rules] = await conn.query<ApprovalRuleRawRow[]>(
       `SELECT id, rule_name, trigger_condition, approval_chain, sla_hours, escalation_level
        FROM t_approval_rule
        WHERE business_type = ? AND status = 1 AND tenant_id = ?
@@ -92,14 +228,14 @@ export async function submitApproval(
                                       applicant_id, applicant_name, current_level, status, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'PENDING', ?, ?)`,
       [instanceNo, rule.id, body.businessType, body.businessNo, body.businessTitle,
-       userId ?? 0, username, body.remark ?? null, tenantId]
+        userId ?? 0, username, body.remark ?? null, tenantId]
     );
 
     const slaDeadline = new Date();
-    slaDeadline.setHours(slaDeadline.getHours() + rule.sla_hours);
+    slaDeadline.setHours(slaDeadline.getHours() + Number(rule.sla_hours));
 
     for (const chainItem of approvalChain) {
-      const [approvers] = await conn.query<any[]>(
+      const [approvers] = await conn.query<ApprovalApproverRow[]>(
         `SELECT id, approver_name FROM t_approval_approver
          WHERE approver_type = ? AND approver_value = ? AND status = 1 AND tenant_id = ?
          LIMIT 1`,
@@ -124,8 +260,8 @@ export async function submitApproval(
                                             title, content, channel, tenant_id)
          VALUES (?, 'NEW_TASK', ?, ?, ?, ?, 'SYSTEM', ?)`,
         [instanceNo, approver.id, approver.approver_name,
-         `您有新的审批任务：${body.businessTitle}`,
-         `业务类型：${body.businessType}，单号：${body.businessNo}，请及时处理。`, tenantId]
+          `您有新的审批任务：${body.businessTitle}`,
+          `业务类型：${body.businessType}，单号：${body.businessNo}，请及时处理。`, tenantId]
       );
     }
 
@@ -142,7 +278,7 @@ export async function submitApproval(
 }
 
 export async function getInstanceDetail(instanceNo: string, tenantId: string) {
-  const instance = await queryOneWithTenant<any>(
+  const instance = await queryOneWithTenant<ApprovalInstanceRow>(
     `SELECT id, instance_no AS instanceNo, rule_id AS ruleId, business_type AS businessType,
             business_no AS businessNo, business_title AS businessTitle,
             applicant_id AS applicantId, applicant_name AS applicantName,
@@ -158,7 +294,7 @@ export async function getInstanceDetail(instanceNo: string, tenantId: string) {
     return null;
   }
 
-  const tasks = await queryWithTenant<any>(
+  const tasks = await queryWithTenant<ApprovalTaskRow>(
     `SELECT id, approval_level AS approvalLevel, approver_id AS approverId,
             approver_name AS approverName, task_status AS taskStatus,
             received_at AS receivedAt, processed_at AS processedAt,
@@ -169,7 +305,7 @@ export async function getInstanceDetail(instanceNo: string, tenantId: string) {
     tenantId
   );
 
-  const logs = await queryWithTenant<any>(
+  const logs = await queryWithTenant<ApprovalLogRow>(
     `SELECT id, task_id AS taskId, action, operator_id AS operatorId,
             operator_name AS operatorName, from_status AS fromStatus,
             to_status AS toStatus, comment, created_at AS createdAt
@@ -191,7 +327,7 @@ export async function listTasks(
 ) {
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ApprovalTaskDetailRow>(
     `SELECT t.id, t.instance_id AS instanceId, t.approval_level AS approvalLevel,
             t.approver_id AS approverId, t.approver_name AS approverName,
             t.task_status AS taskStatus, t.received_at AS receivedAt,
@@ -209,7 +345,7 @@ export async function listTasks(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total
      FROM t_approval_task t
      WHERE t.approver_id = ? AND t.task_status = ?`,
@@ -233,7 +369,7 @@ export async function approveTask(
   tenantId: string
 ) {
   const result = await transaction(async (conn) => {
-    const [taskRows] = await conn.query<any[]>(
+    const [taskRows] = await conn.query<ApprovalTaskJoinRow[]>(
       `SELECT t.id, t.instance_id, t.approval_level, t.approver_id, t.task_status,
               i.current_level, i.status AS instanceStatus
        FROM t_approval_task t
@@ -253,16 +389,16 @@ export async function approveTask(
       [comment ?? null, taskId, tenantId]
     );
 
-    const [nextTasks] = await conn.query<any[]>(
+    const [nextTasks] = await conn.query<IdRawRow[]>(
       `SELECT id FROM t_approval_task
        WHERE instance_id = ? AND approval_level = ? AND task_status = 'PENDING' AND tenant_id = ?`,
-      [task.instance_id, task.approval_level + 1, tenantId]
+      [task.instance_id, Number(task.approval_level) + 1, tenantId]
     );
 
     if (nextTasks.length > 0) {
       await conn.execute(
         `UPDATE t_approval_instance SET current_level = ? WHERE instance_no = ? AND tenant_id = ?`,
-        [task.approval_level + 1, task.instance_id, tenantId]
+        [Number(task.approval_level) + 1, task.instance_id, tenantId]
       );
     } else {
       await conn.execute(
@@ -279,7 +415,7 @@ export async function approveTask(
       [task.instance_id, taskId, userId ?? 0, username, comment ?? "审批通过", tenantId]
     );
 
-    const [instanceRows] = await conn.query<any[]>(
+    const [instanceRows] = await conn.query<ApprovalInstanceRawRow[]>(
       `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
@@ -290,8 +426,8 @@ export async function approveTask(
                                           title, content, channel, tenant_id)
        VALUES (?, ?, 'RESULT', ?, ?, ?, ?, 'SYSTEM', ?)`,
       [task.instance_id, taskId, instance.applicant_id, instance.applicant_name,
-       `您的审批已通过：${instance.business_title}`,
-       `审批意见：${comment ?? "审批通过"}`, tenantId]
+      `您的审批已通过：${instance.business_title}`,
+      `审批意见：${comment ?? "审批通过"}`, tenantId]
     );
 
     return { taskId, taskStatus: "APPROVED", instanceNo: task.instance_id };
@@ -308,7 +444,7 @@ export async function rejectTask(
   tenantId: string
 ) {
   const result = await transaction(async (conn) => {
-    const [taskRows] = await conn.query<any[]>(
+    const [taskRows] = await conn.query<ApprovalTaskRawRow[]>(
       `SELECT t.id, t.instance_id, t.approver_id, t.task_status
        FROM t_approval_task t
        WHERE t.id = ? AND t.tenant_id = ? FOR UPDATE`,
@@ -339,7 +475,7 @@ export async function rejectTask(
       [task.instance_id, taskId, userId ?? 0, username, comment, tenantId]
     );
 
-    const [instanceRows] = await conn.query<any[]>(
+    const [instanceRows] = await conn.query<ApprovalInstanceRawRow[]>(
       `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
@@ -350,8 +486,8 @@ export async function rejectTask(
                                           title, content, channel, tenant_id)
        VALUES (?, ?, 'RESULT', ?, ?, ?, ?, 'SYSTEM', ?)`,
       [task.instance_id, taskId, instance.applicant_id, instance.applicant_name,
-       `您的审批已驳回：${instance.business_title}`,
-       `驳回原因：${comment}`, tenantId]
+      `您的审批已驳回：${instance.business_title}`,
+      `驳回原因：${comment}`, tenantId]
     );
 
     return { taskId, taskStatus: "REJECTED", instanceNo: task.instance_id };
@@ -378,7 +514,7 @@ export async function listNotifications(
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ApprovalNotificationRow>(
     `SELECT id, instance_id AS instanceId, task_id AS taskId,
             notification_type AS notificationType, recipient_id AS recipientId,
             recipient_name AS recipientName, title, content, channel,
@@ -391,7 +527,7 @@ export async function listNotifications(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_approval_notification ${where}`,
     params,
     tenantId

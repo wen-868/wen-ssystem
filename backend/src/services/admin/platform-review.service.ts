@@ -1,5 +1,18 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** t_platform_review 评价行（带别名） */
+interface PlatformReviewRow {
+  id: number | string;
+  platformNo: string | null;
+  platformName: string;
+  reviewType: number | string;
+  status: number | string;
+  reviewResult: string | null;
+  reviewAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface ReviewListParams {
   page: number;
   pageSize: number;
@@ -24,7 +37,7 @@ export async function listReviews(tenantId: string, params: ReviewListParams) {
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PlatformReviewRow>(
     `SELECT id, platform_no AS platformNo, platform_name AS platformName,
             review_type AS reviewType, status, review_result AS reviewResult,
             review_at AS reviewAt, created_at AS createdAt, updated_at AS updatedAt
@@ -99,7 +112,7 @@ export async function batchReviewApproval(tenantId: string, ids: number[], statu
 }
 
 export async function getReviewById(tenantId: string, id: number) {
-  return queryOneWithTenant<any>(
+  return queryOneWithTenant<PlatformReviewRow>(
     `SELECT id, platform_no AS platformNo, platform_name AS platformName,
             review_type AS reviewType, status, review_result AS reviewResult,
             review_at AS reviewAt, created_at AS createdAt, updated_at AS updatedAt

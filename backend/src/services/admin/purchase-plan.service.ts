@@ -1,12 +1,66 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** 智能补货建议行 */
+interface PurchaseSuggestionRow {
+  skuId: number | string;
+  skuName: string;
+  currentStock: number | string;
+  safetyStock: number | string | null;
+  shortage: number | string;
+  inTransitQty: number | string;
+  monthlyAvgSales: number | string;
+}
+
+/** SKU 库存信息行（下划线字段名） */
+interface SkuInfoRow {
+  sku_name: string;
+  safety_stock: number | string | null;
+  physical_qty: number | string | null;
+}
+
+/** 采购计划列表行（关联供应商/门店） */
+interface PurchasePlanListRow {
+  planNo: string;
+  supplierId: number | string;
+  supplierName: string | null;
+  storeId: number | string;
+  storeName: string | null;
+  planStatus: string;
+  goodsAmount: number | string;
+  createdAt: string | Date;
+}
+
+/** 采购计划行（SELECT plan_no, supplier_id, store_id, plan_status，下划线字段名） */
+interface PurchasePlanRow {
+  plan_no: string;
+  supplier_id: number | string;
+  store_id: number | string;
+  plan_status: string;
+}
+
+/** 采购计划明细行（SELECT sku_id, suggest_qty，suggestQty 用于算术运算故用 number） */
+interface PurchasePlanItemRow {
+  skuId: number | string;
+  suggestQty: number;
+}
+
+/** 商品采购价行 */
+interface ProductPriceRow {
+  purchasePrice: number | string | null;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
 // 智能补货建议
 export async function suggestPurchasePlan(tenantId: string, storeId?: number) {
   const storeCondition = storeId ? "AND ib.store_id = ?" : "";
   const params: unknown[] = [tenantId];
   if (storeId) params.push(storeId);
-  const suggestions = await queryWithTenant<any>(
+  const suggestions = await queryWithTenant<PurchaseSuggestionRow>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.physical_qty AS currentStock, ps.safety_stock AS safetyStock,
             COALESCE(ps.safety_stock - ib.physical_qty, 0) AS shortage,
@@ -66,7 +120,7 @@ export async function createPurchasePlan(params: {
     tenantId
   );
   for (const item of items) {
-    const skuInfo = await queryOneWithTenant<any>(
+    const skuInfo = await queryOneWithTenant<SkuInfoRow>(
       `SELECT ps.sku_name, ps.safety_stock, ib.physical_qty
        FROM t_product_sku ps
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = ps.id AND ib.tenant_id = ?
@@ -104,7 +158,7 @@ export async function listPurchasePlans(params: {
   if (supplierId !== undefined) { conditions.push("pp.supplier_id = ?"); queryParams.push(supplierId); }
   if (status) { conditions.push("pp.plan_status = ?"); queryParams.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PurchasePlanListRow>(
     `SELECT pp.plan_no AS planNo, pp.supplier_id AS supplierId,
             s.name AS supplierName, pp.store_id AS storeId,
             st.name AS storeName, pp.plan_status AS planStatus,
@@ -118,7 +172,7 @@ export async function listPurchasePlans(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_purchase_plan pp ${where}`,
     queryParams,
     tenantId
@@ -128,14 +182,14 @@ export async function listPurchasePlans(params: {
 
 // 采购计划转采购订单
 export async function convertPurchasePlan(planNo: string, tenantId: string) {
-  const plan = await queryOneWithTenant<any>(
+  const plan = await queryOneWithTenant<PurchasePlanRow>(
     "SELECT plan_no, supplier_id, store_id, plan_status FROM t_purchase_plan WHERE plan_no = ? AND tenant_id = ?",
     [planNo, tenantId],
     tenantId
   );
   if (!plan) throw new Error("采购计划不存在");
   if (plan.plan_status !== "DRAFT" && plan.plan_status !== "CONFIRMED") throw new Error("计划已转换");
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<PurchasePlanItemRow>(
     "SELECT sku_id AS skuId, suggest_qty AS suggestQty FROM t_purchase_plan_item WHERE plan_no = ? AND tenant_id = ?",
     [planNo, tenantId],
     tenantId
@@ -149,7 +203,7 @@ export async function convertPurchasePlan(planNo: string, tenantId: string) {
   );
   let totalAmount = 0;
   for (const item of items) {
-    const price = await queryOneWithTenant<any>(
+    const price = await queryOneWithTenant<ProductPriceRow>(
       "SELECT purchase_price AS purchasePrice FROM t_product_price WHERE sku_id = ? AND tenant_id = ?",
       [item.skuId, tenantId],
       tenantId

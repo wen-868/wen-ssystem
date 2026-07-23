@@ -169,8 +169,8 @@ describe("admin customer-merge.service - getDuplicateGroups", () => {
       .mockResolvedValueOnce([{ mobile: "138", count: 2, customer_ids: "1,2", customer_names: "A,B" }])
       .mockResolvedValueOnce([{ name: "张三", count: 2, customer_ids: "3,4" }]);
     mocks.queryOneWithTenant
-      .mockResolvedValueOnce([{ total: 1 }])  // mobileTotal (有 length)
-      .mockResolvedValueOnce([{ total: 1 }]);  // nameTotal (有 length)
+      .mockResolvedValueOnce({ total: 1 })  // mobileTotal
+      .mockResolvedValueOnce({ total: 1 });  // nameTotal
     const res = await getDuplicateGroups("t1", 1, 10);
     expect(res.mobileGroups.total).toBe(1);
     expect(res.nameGroups.total).toBe(1);

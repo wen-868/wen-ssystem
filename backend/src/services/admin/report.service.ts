@@ -1,10 +1,216 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ========== 数据库行类型定义 ==========
+/** 仪表盘销售汇总行（amount + count） */
+interface DashboardSalesRow {
+  amount: number | string;
+  count: number | string;
+}
+
+/** COALESCE(SUM(...), 0) AS amount 结果行 */
+interface AmountRow {
+  amount: number | string;
+}
+
+/** COUNT(*) AS count 结果行 */
+interface CountAsCountRow {
+  count: number | string;
+}
+
+/** COUNT(*) AS cnt 结果行 */
+interface CntRow {
+  cnt: number | string;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 每日销售趋势行 */
+interface DailySalesTrendRow {
+  date: string | Date;
+  count: number | string;
+  amount: number | string;
+}
+
+/** 门店销售业绩行 */
+interface StoreSalesRow {
+  storeId: number | string;
+  storeName: string | null;
+  totalSales: number | string;
+  billCount: number | string;
+}
+
+/** 库存预警行 */
+interface InventoryAlertRow {
+  storeId: number | string;
+  storeName: string | null;
+  skuId: number | string;
+  skuName: string | null;
+  stockType: string;
+  availableQty: number | string;
+}
+
+/** 库存余额列表行 */
+interface InventoryBalanceRow {
+  storeId: number | string;
+  storeName: string | null;
+  skuId: number | string;
+  skuName: string | null;
+  barcode: string | null;
+  stockType: string;
+  physicalQty: number | string;
+  availableQty: number | string;
+  lockedQty: number | string;
+}
+
+/** 库存日志行 */
+interface InventoryLogRow {
+  logNo: string;
+  storeId: number | string;
+  skuId: number | string;
+  skuName: string | null;
+  changeQty: number | string;
+  beforeQty: number | string;
+  afterQty: number | string;
+  reason: string | null;
+  operatorId: number | string | null;
+  createdAt: string | Date;
+}
+
+/** 收款链接列表行 */
+interface CollectionLinkRow {
+  linkNo: string;
+  sourceType: string;
+  sourceNo: string;
+  amount: number | string;
+  paidAmount: number | string;
+  status: string;
+  shareChannel: string | null;
+  token: string | null;
+  expireAt: string | Date | null;
+  createdAt: string | Date;
+}
+
+/** 支付订单列表行 */
+interface PaymentOrderRow {
+  payNo: string;
+  sourceType: string;
+  sourceNo: string;
+  amount: number | string;
+  status: string;
+  paymentMethod: string | null;
+  paidAt: string | Date | null;
+  createdAt: string | Date;
+}
+
+/** 退款订单列表行 */
+interface RefundOrderRow {
+  refundNo: string;
+  payNo: string;
+  sourceType: string;
+  sourceNo: string;
+  amount: number | string;
+  reason: string | null;
+  status: string;
+  createdAt: string | Date;
+}
+
+/** 渠道统计行 */
+interface ChannelCountRow {
+  channel: string | null;
+  cnt: number | string;
+}
+
+/** 收款链接状态行（link_no + status） */
+interface CollectionLinkStatusRow {
+  link_no: string;
+  status: string;
+}
+
+/** 销售排行行 */
+interface SalesRankingRow {
+  staffId: number | string | null;
+  staffName: string;
+  orderCount: number | string;
+  totalSales: number | string;
+  totalReceived: number | string;
+}
+
+/** 产品排行行 */
+interface ProductRankingRow {
+  skuId: number | string;
+  skuName: string | null;
+  totalQty: number | string;
+  totalSales: number | string;
+}
+
+/** 销售趋势行 */
+interface SalesTrendRow {
+  period: string;
+  count: number | string;
+  amount: number | string;
+}
+
+/** 采购汇总行 */
+interface PurchaseSummaryRow {
+  totalPurchaseAmount: number | string;
+  orderCount: number | string;
+  supplierCount: number | string;
+}
+
+/** 供应商采购行（含排行，复用） */
+interface SupplierPurchaseRow {
+  supplierId: number | string;
+  supplierName: string | null;
+  totalAmount: number | string;
+  orderCount: number | string;
+}
+
+/** 采购趋势行 */
+interface PurchaseTrendRow {
+  period: string;
+  orderCount: number | string;
+  totalAmount: number | string;
+}
+
+/** 库存周转行 */
+interface InventoryTurnoverRow {
+  skuId: number | string;
+  skuName: string | null;
+  outQty: number | string;
+  avgStock: number | string;
+  turnoverRate: number | string;
+  turnoverDays: number | string;
+}
+
+/** 库存库龄行 */
+interface InventoryAgeRow {
+  skuId: number | string;
+  skuName: string | null;
+  totalQty: number | string;
+  storeId: number | string;
+  storeName: string | null;
+  batchNo: string | null;
+  productionDate: string | Date | null;
+  batchQty: number | string;
+  ageDays: number | string;
+  ageGroup: string;
+}
+
+/** 库存 ABC 分析行 */
+interface InventoryABCRow {
+  skuId: number | string;
+  skuName: string | null;
+  totalSales: number | string;
+}
+
 export async function getDashboard(tenantId: string) {
-  const sales = await queryOneWithTenant<any>("SELECT COALESCE(SUM(received_amount),0) AS amount, COUNT(*) AS count FROM t_sale_bill WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId], tenantId);
-  const pending = await queryOneWithTenant<any>("SELECT COALESCE(SUM(unreceived_amount),0) AS amount FROM t_sale_bill WHERE collection_status IN ('UNPAID','PENDING','SHARED','PARTIAL') AND tenant_id = ?", [tenantId], tenantId);
-  const orders = await queryOneWithTenant<any>("SELECT COUNT(*) AS count FROM t_miniapp_order WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId], tenantId);
-  const warnings = await queryOneWithTenant<any>(
+  const sales = await queryOneWithTenant<DashboardSalesRow>("SELECT COALESCE(SUM(received_amount),0) AS amount, COUNT(*) AS count FROM t_sale_bill WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId], tenantId);
+  const pending = await queryOneWithTenant<AmountRow>("SELECT COALESCE(SUM(unreceived_amount),0) AS amount FROM t_sale_bill WHERE collection_status IN ('UNPAID','PENDING','SHARED','PARTIAL') AND tenant_id = ?", [tenantId], tenantId);
+  const orders = await queryOneWithTenant<CountAsCountRow>("SELECT COUNT(*) AS count FROM t_miniapp_order WHERE DATE(created_at)=CURRENT_DATE AND tenant_id = ?", [tenantId], tenantId);
+  const warnings = await queryOneWithTenant<CountAsCountRow>(
     `SELECT COUNT(*) AS count
      FROM t_inventory_balance ib
      JOIN t_product_sku s ON s.id = ib.sku_id
@@ -12,7 +218,7 @@ export async function getDashboard(tenantId: string) {
     [tenantId],
     tenantId
   );
-  const pendingOrders = await queryOneWithTenant<any>(
+  const pendingOrders = await queryOneWithTenant<CntRow>(
     "SELECT COUNT(*) AS cnt FROM t_miniapp_order WHERE order_status = 'PENDING_PAYMENT' AND tenant_id = ?",
     [tenantId],
     tenantId
@@ -28,7 +234,7 @@ export async function getDashboard(tenantId: string) {
 }
 
 export async function getDailySalesTrend(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<DailySalesTrendRow>(
     `SELECT DATE(created_at) AS date,
             COUNT(DISTINCT bill_no) AS count,
             COALESCE(SUM(receivable_amount), 0) AS amount
@@ -43,7 +249,7 @@ export async function getDailySalesTrend(tenantId: string) {
 }
 
 export async function getStoreSalesPerformance(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<StoreSalesRow>(
     `SELECT s.id AS storeId, s.name AS storeName,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
             COUNT(DISTINCT sb.bill_no) AS billCount
@@ -58,7 +264,7 @@ export async function getStoreSalesPerformance(tenantId: string) {
 }
 
 export async function getInventoryAlerts(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<InventoryAlertRow>(
     `SELECT ib.store_id AS storeId, s.name AS storeName,
             ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.stock_type AS stockType, ib.available_qty AS availableQty
@@ -100,7 +306,7 @@ export async function listInventoryBalance(
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<InventoryBalanceRow>(
     `SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId,
             ps.sku_name AS skuName, ps.barcode, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
@@ -115,7 +321,7 @@ export async function listInventoryBalance(
     [...params, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total
      FROM t_inventory_balance ib
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id
@@ -129,7 +335,7 @@ export async function listInventoryBalance(
 
 export async function listInventoryLogs(tenantId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<InventoryLogRow>(
     `SELECT il.ledger_no AS logNo, il.store_id AS storeId, il.sku_id AS skuId,
             ps.sku_name AS skuName, il.change_qty AS changeQty,
             il.before_qty AS beforeQty, il.after_qty AS afterQty,
@@ -142,13 +348,13 @@ export async function listInventoryLogs(tenantId: string, page: number, pageSize
     [tenantId, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>("SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listCollectionLinks(tenantId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<CollectionLinkRow>(
     `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo,
             cl.amount, cl.paid_amount AS paidAmount, cl.status,
             cl.share_channel AS shareChannel, cl.token,
@@ -160,13 +366,13 @@ export async function listCollectionLinks(tenantId: string, page: number, pageSi
     [tenantId, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>("SELECT COUNT(*) AS total FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listPaymentOrders(tenantId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PaymentOrderRow>(
     `SELECT pay_no AS payNo, source_type AS sourceType, source_no AS sourceNo,
             amount, status, channel AS paymentMethod,
             paid_at AS paidAt, created_at AS createdAt
@@ -177,13 +383,13 @@ export async function listPaymentOrders(tenantId: string, page: number, pageSize
     [tenantId, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_payment_order WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>("SELECT COUNT(*) AS total FROM t_payment_order WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 export async function listRefundOrders(tenantId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<RefundOrderRow>(
     `SELECT refund_no AS refundNo, pay_no AS payNo, source_type AS sourceType,
             source_no AS sourceNo, amount, reason, status, created_at AS createdAt
      FROM t_refund_order
@@ -193,33 +399,33 @@ export async function listRefundOrders(tenantId: string, page: number, pageSize:
     [tenantId, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_refund_order WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<CountTotalRow>("SELECT COUNT(*) AS total FROM t_refund_order WHERE tenant_id = ?", [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
 // ============ 分享链接管理 ============
 
 export async function getCollectionLinkStats(tenantId: string) {
-  const total = await queryOneWithTenant<any>("SELECT COUNT(*) AS total FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
-  const paid = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId);
-  const revoked = await queryOneWithTenant<any>("SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId);
-  const channels = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountTotalRow>("SELECT COUNT(*) AS total FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
+  const paid = await queryOneWithTenant<CntRow>("SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'PAID'", [tenantId], tenantId);
+  const revoked = await queryOneWithTenant<CntRow>("SELECT COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? AND status = 'REVOKED'", [tenantId], tenantId);
+  const channels = await queryWithTenant<ChannelCountRow>(
     `SELECT share_channel AS channel, COUNT(*) AS cnt FROM t_collection_link WHERE tenant_id = ? GROUP BY share_channel`,
     [tenantId], tenantId
   );
-  const totalAmount = await queryOneWithTenant<any>("SELECT COALESCE(SUM(paid_amount),0) AS amount FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
+  const totalAmount = await queryOneWithTenant<AmountRow>("SELECT COALESCE(SUM(paid_amount),0) AS amount FROM t_collection_link WHERE tenant_id = ?", [tenantId], tenantId);
   return {
     total: total?.total ?? 0,
     paidCount: paid?.cnt ?? 0,
     revokedCount: revoked?.cnt ?? 0,
     totalPaidAmount: totalAmount?.amount ?? 0,
-    paymentRate: total?.total > 0 ? ((paid?.cnt ?? 0) / total.total * 100).toFixed(1) + "%" : "0%",
+    paymentRate: total && Number(total.total) > 0 ? (Number(paid?.cnt ?? 0) / Number(total.total) * 100).toFixed(1) + "%" : "0%",
     channels
   };
 }
 
 export async function revokeCollectionLink(linkNo: string, tenantId: string) {
-  const link = await queryOneWithTenant<any>("SELECT link_no, status FROM t_collection_link WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
+  const link = await queryOneWithTenant<CollectionLinkStatusRow>("SELECT link_no, status FROM t_collection_link WHERE link_no = ? AND tenant_id = ?", [linkNo, tenantId], tenantId);
   if (!link) throw new Error("分享链接不存在");
   if (link.status === "REVOKED") throw new Error("链接已撤销");
   if (link.status === "PAID") throw new Error("已支付的链接不可撤销");
@@ -234,7 +440,7 @@ export async function getSalesRanking(tenantId: string, startDate?: string, endD
   const params: unknown[] = [tenantId];
   if (startDate) { dateFilter += " AND sb.created_at >= ?"; params.push(startDate); }
   if (endDate) { dateFilter += " AND sb.created_at < DATE_ADD(?, INTERVAL 1 DAY)"; params.push(endDate); }
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SalesRankingRow>(
     `SELECT sb.operator_id AS staffId, COALESCE(e.name, '未知') AS staffName,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalSales,
@@ -254,7 +460,7 @@ export async function getProductRanking(tenantId: string, startDate?: string, en
   const params: unknown[] = [tenantId];
   if (startDate) { dateFilter += " AND sb.created_at >= ?"; params.push(startDate); }
   if (endDate) { dateFilter += " AND sb.created_at < DATE_ADD(?, INTERVAL 1 DAY)"; params.push(endDate); }
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ProductRankingRow>(
     `SELECT sbi.sku_id AS skuId, sbi.sku_name AS skuName,
             COALESCE(SUM(sbi.total_bottle_qty), 0) AS totalQty,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSales
@@ -277,7 +483,7 @@ export async function getSalesTrend(tenantId: string, groupBy: string = "day", s
   let format = "%Y-%m-%d";
   if (groupBy === "week") format = "%Y-%u";
   if (groupBy === "month") format = "%Y-%m";
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SalesTrendRow>(
     `SELECT DATE_FORMAT(sb.created_at, ?) AS period,
             COUNT(DISTINCT sb.bill_no) AS count,
             COALESCE(SUM(sb.receivable_amount), 0) AS amount
@@ -297,14 +503,14 @@ export async function getPurchaseSummary(tenantId: string, startDate?: string, e
   if (startDate) { conditions.push("po.created_at >= ?"); params.push(startDate); }
   if (endDate) { conditions.push("po.created_at <= ?"); params.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const summary = await queryOneWithTenant<any>(
+  const summary = await queryOneWithTenant<PurchaseSummaryRow>(
     `SELECT COALESCE(SUM(po.goods_amount), 0) AS totalPurchaseAmount,
             COUNT(DISTINCT po.order_no) AS orderCount,
             COUNT(DISTINCT po.supplier_id) AS supplierCount
      FROM t_purchase_order po ${where}`,
     params, tenantId
   );
-  const bySupplier = await queryWithTenant<any>(
+  const bySupplier = await queryWithTenant<SupplierPurchaseRow>(
     `SELECT po.supplier_id AS supplierId, s.name AS supplierName,
             COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
             COUNT(DISTINCT po.order_no) AS orderCount
@@ -332,7 +538,7 @@ export async function getPurchaseTrend(tenantId: string, groupBy: string = "day"
   } else {
     dateFormat = "DATE(created_at)";
   }
-  return queryWithTenant<any>(
+  return queryWithTenant<PurchaseTrendRow>(
     `SELECT ${dateFormat} AS period,
             COUNT(DISTINCT order_no) AS orderCount,
             COALESCE(SUM(goods_amount), 0) AS totalAmount
@@ -349,7 +555,7 @@ export async function getSupplierRanking(tenantId: string, startDate?: string, e
   if (startDate) { conditions.push("po.created_at >= ?"); params.push(startDate); }
   if (endDate) { conditions.push("po.created_at <= ?"); params.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<SupplierPurchaseRow>(
     `SELECT po.supplier_id AS supplierId, s.name AS supplierName,
             COALESCE(SUM(po.goods_amount), 0) AS totalAmount,
             COUNT(DISTINCT po.order_no) AS orderCount
@@ -369,7 +575,7 @@ export async function getInventoryTurnover(tenantId: string, startDate?: string,
   if (startDate) { conditions.push("il.created_at >= ?"); params.push(startDate); }
   if (endDate) { conditions.push("il.created_at <= ?"); params.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<InventoryTurnoverRow>(
     `SELECT il.sku_id AS skuId, ps.sku_name AS skuName,
             COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty,
             COALESCE(AVG(ib.physical_qty), 0) AS avgStock,
@@ -393,7 +599,7 @@ export async function getInventoryAge(tenantId: string, storeId?: number) {
   const storeCondition = storeId ? "AND ib.store_id = ?" : "";
   const params: unknown[] = [tenantId];
   if (storeId) params.push(storeId);
-  return queryWithTenant<any>(
+  return queryWithTenant<InventoryAgeRow>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.physical_qty AS totalQty, ib.store_id AS storeId,
             st.name AS storeName,
@@ -415,7 +621,7 @@ export async function getInventoryAge(tenantId: string, storeId?: number) {
 }
 
 export async function getInventoryABC(tenantId: string) {
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<InventoryABCRow>(
     `SELECT sbi.sku_id AS skuId, ps.sku_name AS skuName,
             COALESCE(SUM(sbi.subtotal_amount), 0) AS totalSales
      FROM t_sale_bill_item sbi

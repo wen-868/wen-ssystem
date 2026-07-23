@@ -1,5 +1,67 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ========== 数据库行类型定义 ==========
+/** COUNT(*) AS cnt 结果行 */
+interface CountRow {
+  cnt: number;
+}
+
+/** 复购率趋势行（按月分组） */
+interface RepurchaseTrendRow {
+  month: string;
+  totalCustomers: number | string;
+  repurchaseCustomers: number | string;
+}
+
+/** AVG(...) AS avgValue 结果行 */
+interface AvgValueRow {
+  avgValue: number | string | null;
+}
+
+/** 客单价区间分布行 */
+interface OrderDistributionRow {
+  orderCount: number | string;
+  customerCount: number | string;
+  totalAmount: number | string;
+}
+
+/** RFM 分析行（recencyDays/frequency/monetary 用于算术运算，设为 number） */
+interface RfmRow {
+  customerId: number | string;
+  customerName: string | null;
+  recencyDays: number;
+  frequency: number;
+  monetary: number;
+}
+
+/** 客户贡献排行行 */
+interface CustomerContributionRow {
+  customerId: number | string;
+  customerName: string | null;
+  mobile: string | null;
+  orderCount: number | string;
+  totalAmount: number | string;
+  paidAmount: number | string;
+  avgOrderValue: number | string | null;
+}
+
+/** 新增客户趋势行 */
+interface NewCustomerTrendRow {
+  period: string | Date;
+  newCustomerCount: number | string;
+}
+
+/** 流失客户分析行 */
+interface LostCustomerRow {
+  customerId: number | string;
+  customerName: string | null;
+  mobile: string | null;
+  lastOrderDate: string | Date;
+  daysSinceLastOrder: number | string;
+  totalOrders: number | string;
+  totalAmount: number | string;
+}
+
 // 复购率分析
 export async function getRepurchaseAnalysis(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {
   const { tenantId, startDate, endDate, storeId } = params;
@@ -9,13 +71,13 @@ export async function getRepurchaseAnalysis(params: { tenantId: string; startDat
   if (endDate) { conditions.push("sb.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("sb.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const totalCustomers = await queryOneWithTenant<any>(`SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
-  const repurchaseCustomers = await queryOneWithTenant<any>(
+  const totalCustomers = await queryOneWithTenant<CountRow>(`SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
+  const repurchaseCustomers = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS cnt FROM (SELECT customer_id FROM t_sale_bill ${where} GROUP BY customer_id HAVING COUNT(bill_no) > 1) t`,
     values, tenantId
   );
-  const totalOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
-  const repurchaseOrders = await queryOneWithTenant<any>(
+  const totalOrders = await queryOneWithTenant<CountRow>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
+  const repurchaseOrders = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS cnt FROM t_sale_bill sb WHERE sb.tenant_id = ? AND sb.business_status = 'CREATED' ${startDate ? "AND sb.created_at >= ?" : ""} ${endDate ? "AND sb.created_at <= ?" : ""} ${storeId ? "AND sb.store_id = ?" : ""} AND sb.customer_id IN (SELECT customer_id FROM t_sale_bill WHERE tenant_id = ? ${startDate ? "AND created_at >= ?" : ""} ${endDate ? "AND created_at <= ?" : ""} ${storeId ? "AND store_id = ?" : ""} GROUP BY customer_id HAVING COUNT(bill_no) > 1)`,
     values, tenantId
   );
@@ -24,7 +86,7 @@ export async function getRepurchaseAnalysis(params: { tenantId: string; startDat
   const totalO = Number(totalOrders?.cnt ?? 0);
   const repurchaseO = Number(repurchaseOrders?.cnt ?? 0);
   // 按月复购率趋势
-  const trend = await queryWithTenant<any>(
+  const trend = await queryWithTenant<RepurchaseTrendRow>(
     `SELECT DATE_FORMAT(sb.created_at, '%Y-%m') AS month,
             COUNT(DISTINCT sb.customer_id) AS totalCustomers,
             SUM(CASE WHEN t.customer_id IS NOT NULL THEN 1 ELSE 0 END) AS repurchaseCustomers
@@ -54,7 +116,7 @@ export async function getAvgOrderValueDistribution(params: { tenantId: string; s
   if (endDate) { conditions.push("sb.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("sb.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const avgOrderValue = await queryOneWithTenant<any>(`SELECT AVG(receivable_amount) AS avgValue FROM t_sale_bill ${where}`, values, tenantId);
+  const avgOrderValue = await queryOneWithTenant<AvgValueRow>(`SELECT AVG(receivable_amount) AS avgValue FROM t_sale_bill ${where}`, values, tenantId);
   const intervals = [
     { label: "<100", min: 0, max: 100 },
     { label: "100-300", min: 100, max: 300 },
@@ -64,14 +126,14 @@ export async function getAvgOrderValueDistribution(params: { tenantId: string; s
     { label: "3000+", min: 3000, max: 999999999 },
   ];
   const result = await Promise.all(intervals.map(async (iv) => {
-    const row = await queryOneWithTenant<any>(
+    const row = await queryOneWithTenant<OrderDistributionRow>(
       `SELECT COUNT(*) AS orderCount, COUNT(DISTINCT customer_id) AS customerCount, COALESCE(SUM(receivable_amount), 0) AS totalAmount
        FROM t_sale_bill ${where} AND receivable_amount >= ? AND receivable_amount < ?`,
       [...values, iv.min, iv.max], tenantId
     );
     return { label: iv.label, customerCount: Number(row?.customerCount ?? 0), orderCount: Number(row?.orderCount ?? 0), totalAmount: Number(row?.totalAmount ?? 0) };
   }));
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<CountRow>(`SELECT COUNT(*) AS cnt FROM t_sale_bill ${where}`, values, tenantId);
   const totalOrders = Number(total?.cnt ?? 0);
   return {
     avgOrderValue: Math.round(Number(avgOrderValue?.avgValue ?? 0) * 100) / 100,
@@ -85,7 +147,7 @@ export async function getRFMAnalysis(params: { tenantId: string; storeId?: numbe
   const { tenantId, storeId } = params;
   const storeCondition = storeId ? "AND store_id = ?" : "";
   const values: unknown[] = storeId ? [tenantId, storeId] : [tenantId];
-  const rfm = await queryWithTenant<any>(
+  const rfm = await queryWithTenant<RfmRow>(
     `SELECT customer_id AS customerId, m.name AS customerName,
             DATEDIFF(NOW(), MAX(created_at)) AS recencyDays,
             COUNT(DISTINCT bill_no) AS frequency,
@@ -143,7 +205,7 @@ export async function getCustomerContributionRanking(params: { tenantId: string;
   if (endDate) { conditions.push("sb.created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("sb.store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<CustomerContributionRow>(
     `SELECT sb.customer_id AS customerId, m.name AS customerName, m.mobile,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
@@ -168,7 +230,7 @@ export async function getNewCustomerTrend(params: { tenantId: string; groupBy?: 
   if (groupBy === "month") dateFormat = "DATE_FORMAT(created_at, '%Y-%m')";
   else if (groupBy === "week") dateFormat = "DATE_FORMAT(created_at, '%Y-%u')";
   else dateFormat = "DATE(created_at)";
-  return queryWithTenant<any>(
+  return queryWithTenant<NewCustomerTrendRow>(
     `SELECT ${dateFormat} AS period, COUNT(*) AS newCustomerCount
      FROM t_member
      WHERE tenant_id = ? ${storeCondition}
@@ -183,11 +245,11 @@ export async function getLostCustomerAnalysis(params: { tenantId: string; daysTh
   const storeCondition = storeId ? "AND sb.store_id = ?" : "";
   const values: unknown[] = [tenantId, daysThreshold];
   if (storeId) values.push(storeId);
-  const totalCustomers = await queryOneWithTenant<any>(
+  const totalCustomers = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(DISTINCT customer_id) AS cnt FROM t_sale_bill WHERE tenant_id = ? AND business_status = 'CREATED' ${storeCondition}`,
     storeId ? [tenantId, storeId] : [tenantId], tenantId
   );
-  const lostCustomers = await queryWithTenant<any>(
+  const lostCustomers = await queryWithTenant<LostCustomerRow>(
     `SELECT sb.customer_id AS customerId, m.name AS customerName, m.mobile,
             MAX(sb.created_at) AS lastOrderDate,
             DATEDIFF(NOW(), MAX(sb.created_at)) AS daysSinceLastOrder,

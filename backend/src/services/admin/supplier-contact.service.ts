@@ -16,6 +16,11 @@ export interface SupplierContactRow {
     updated_at: string;
 }
 
+/** 供应商 ID 行 */
+interface SupplierIdRow {
+    id: number;
+}
+
 /**
  * 按供应商ID查询联系人列表
  * @param supplierId 供应商ID
@@ -44,7 +49,7 @@ export async function getById(id: number, tenantId: string) {
 
 /** 检查供应商是否存在 */
 async function supplierExists(supplierId: number, tenantId: string): Promise<boolean> {
-    const row = await queryOneWithTenant<any>(
+    const row = await queryOneWithTenant<SupplierIdRow>(
         "SELECT id FROM t_supplier WHERE id = ? AND tenant_id = ?",
         [supplierId, tenantId],
         tenantId

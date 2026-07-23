@@ -1,5 +1,6 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
 // ========== 类型定义 ==========
 export interface TransferOrderItem {
@@ -41,6 +42,134 @@ export interface UpdateTransferOrderParams {
   items?: TransferOrderItem[];
 }
 
+// ========== 类型定义 ==========
+
+/** INSERT 返回结果行 */
+interface InsertResultRow {
+  insertId: number;
+  affectedRows?: number;
+}
+
+/** 调拨单列表行 */
+interface TransferOrderListRow {
+  id: number;
+  transferNo: string;
+  fromStoreId: number | string;
+  fromStoreName: string | null;
+  toStoreId: number | string;
+  toStoreName: string | null;
+  status: string;
+  expectedDate: string | Date | null;
+  totalAmount: number | string;
+  totalItems: number | string;
+  remark: string | null;
+  createdBy: number | string | null;
+  createdByName: string | null;
+  approvedBy: number | string | null;
+  approvedByName: string | null;
+  approvedAt: string | Date | null;
+  shippedBy: number | string | null;
+  shippedByName: string | null;
+  shippedAt: string | Date | null;
+  receivedBy: number | string | null;
+  receivedByName: string | null;
+  receivedAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 调拨单详情行（含取消原因） */
+interface TransferOrderDetailRow {
+  id: number;
+  transferNo: string;
+  fromStoreId: number | string;
+  fromStoreName: string | null;
+  toStoreId: number | string;
+  toStoreName: string | null;
+  status: string;
+  expectedDate: string | Date | null;
+  totalAmount: number | string;
+  totalItems: number | string;
+  remark: string | null;
+  cancelReason: string | null;
+  createdBy: number | string | null;
+  createdByName: string | null;
+  approvedBy: number | string | null;
+  approvedByName: string | null;
+  approvedAt: string | Date | null;
+  shippedBy: number | string | null;
+  shippedByName: string | null;
+  shippedAt: string | Date | null;
+  receivedBy: number | string | null;
+  receivedByName: string | null;
+  receivedAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 调拨单明细行 */
+interface TransferOrderItemRow {
+  id: number;
+  transferOrderId: number | string;
+  transferNo: string;
+  skuId: number | string;
+  skuName: string;
+  quantity: number | string;
+  unitPrice: number | string;
+  subtotal: number | string;
+}
+
+/** 调拨单状态检查行 */
+interface TransferOrderStatusRow {
+  id: number;
+  status: string;
+}
+
+/** 调拨单出库检查行 */
+interface TransferOrderOutCheckRow {
+  id: number;
+  status: string;
+  fromStoreId: number | string;
+  transferNo: string;
+}
+
+/** 调拨单出库明细简要行 */
+interface TransferOrderItemBriefRow extends RowDataPacket {
+  skuId: number | string;
+  quantity: number | string;
+}
+
+/** 调拨单入库检查行 */
+interface TransferOrderInCheckRow {
+  id: number;
+  status: string;
+  toStoreId: number | string;
+  transferNo: string;
+}
+
+/** 调拨单入库明细行（含单价） */
+interface TransferOrderItemInRow extends RowDataPacket {
+  skuId: number | string;
+  quantity: number | string;
+  unitPrice: number | string;
+}
+
+/** 调拨单状态统计行 */
+interface TransferOrderStatusCountRow {
+  status: string;
+  count: number | string;
+}
+
+/** COALESCE(SUM, 0) AS amount 行 */
+interface CountAmountRow {
+  amount: number | string;
+}
+
 // ========== 创建调拨单 ==========
 export async function createTransferOrder(params: CreateTransferOrderParams) {
   const { tenantId, userId, userName, fromStoreId, fromStoreName, toStoreId, toStoreName, expectedDate, remark, items } = params;
@@ -61,7 +190,7 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
     }
     totalAmount = Math.round(totalAmount * 100) / 100;
 
-    const [insertResult] = await conn.execute<any>(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_transfer_order (
         transfer_no, from_store_id, from_store_name, to_store_id, to_store_name,
         status, expected_date, total_amount, total_items, remark,
@@ -129,7 +258,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TransferOrderListRow>(
     `SELECT to.id, to.transfer_no AS transferNo, to.from_store_id AS fromStoreId, to.from_store_name AS fromStoreName,
             to.to_store_id AS toStoreId, to.to_store_name AS toStoreName, to.status, to.expected_date AS expectedDate,
             to.total_amount AS totalAmount, to.total_items AS totalItems, to.remark,
@@ -146,7 +275,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_transfer_order to ${where}`,
     queryParams,
     tenantId
@@ -157,7 +286,7 @@ export async function listTransferOrders(params: ListTransferOrdersParams) {
 
 // ========== 调拨单详情 ==========
 export async function getTransferOrderDetail(id: number, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<TransferOrderDetailRow>(
     `SELECT id, transfer_no AS transferNo, from_store_id AS fromStoreId, from_store_name AS fromStoreName,
             to_store_id AS toStoreId, to_store_name AS toStoreName, status, expected_date AS expectedDate,
             total_amount AS totalAmount, total_items AS totalItems, remark, cancel_reason AS cancelReason,
@@ -175,7 +304,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
     throw Object.assign(new Error("调拨单不存在"), { statusCode: 404 });
   }
 
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<TransferOrderItemRow>(
     `SELECT id, transfer_order_id AS transferOrderId, transfer_no AS transferNo,
             sku_id AS skuId, sku_name AS skuName, quantity, unit_price AS unitPrice, subtotal
      FROM t_transfer_order_item WHERE transfer_order_id = ?
@@ -191,7 +320,7 @@ export async function getTransferOrderDetail(id: number, tenantId: string) {
 export async function updateTransferOrder(id: number, tenantId: string, params: UpdateTransferOrderParams) {
   const { expectedDate, remark, items } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderStatusRow>(
     "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -205,7 +334,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 
   await transaction(async (conn) => {
     const sets: string[] = [];
-    const values: unknown[] = [];
+    const values: (string | number | null | Date | boolean)[] = [];
 
     if (expectedDate !== undefined) {
       sets.push("expected_date = ?");
@@ -220,7 +349,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
       values.push(id, tenantId);
       await conn.execute(
         `UPDATE t_transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
-        values as any[]
+        values
       );
     }
 
@@ -255,7 +384,7 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 
 // ========== 删除调拨单 ==========
 export async function deleteTransferOrder(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderStatusRow>(
     "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -283,7 +412,7 @@ export async function deleteTransferOrder(id: number, tenantId: string) {
 
 // ========== 提交审核 ==========
 export async function submitTransferOrder(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderStatusRow>(
     "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -312,7 +441,7 @@ export async function approveTransferOrder(
 ) {
   const { approverId, approverName } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderStatusRow>(
     "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -342,7 +471,7 @@ export async function rejectTransferOrder(
 ) {
   const { approverId, approverName, rejectReason } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderStatusRow>(
     "SELECT id, status FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -373,7 +502,7 @@ export async function confirmTransferOut(
 ) {
   const { operatorId, operatorName } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderOutCheckRow>(
     "SELECT id, status, from_store_id AS fromStoreId, transfer_no AS transferNo FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -394,11 +523,11 @@ export async function confirmTransferOut(
     );
 
     // 查询明细
-    const items = await conn.query<any>(
+    const items = await conn.query<RowDataPacket[]>(
       `SELECT sku_id AS skuId, quantity
        FROM t_transfer_order_item WHERE transfer_order_id = ?`,
       [id]
-    ) as any[];
+    ) as unknown as TransferOrderItemBriefRow[];
 
     // 扣减调出门店库存
     for (const item of items) {
@@ -430,7 +559,7 @@ export async function confirmTransferIn(
 ) {
   const { operatorId, operatorName } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TransferOrderInCheckRow>(
     "SELECT id, status, to_store_id AS toStoreId, transfer_no AS transferNo FROM t_transfer_order WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -451,11 +580,11 @@ export async function confirmTransferIn(
     );
 
     // 查询明细
-    const items = await conn.query<any>(
+    const items = await conn.query<RowDataPacket[]>(
       `SELECT sku_id AS skuId, quantity, unit_price AS unitPrice
        FROM t_transfer_order_item WHERE transfer_order_id = ?`,
       [id]
-    ) as any[];
+    ) as unknown as TransferOrderItemInRow[];
 
     // 增加调入门店库存
     for (const item of items) {
@@ -468,7 +597,7 @@ export async function confirmTransferIn(
       );
 
       // 写入库存台账（入库）
-      const amount = Math.round(item.quantity * item.unitPrice * 100) / 100;
+      const amount = Math.round(Number(item.quantity) * Number(item.unitPrice) * 100) / 100;
       await conn.execute(
         `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty, unit_price, amount, biz_no, biz_type, tenant_id)
          VALUES (?, ?, 'IN', ?, ?, ?, ?, 'TRANSFER_IN', ?)`,
@@ -488,14 +617,14 @@ export async function getTransferStats(tenantId: string) {
   monthStart.setHours(0, 0, 0, 0);
   const monthStartStr = monthStart.toISOString().slice(0, 10);
 
-  const monthTotalRow = await queryOneWithTenant<any>(
+  const monthTotalRow = await queryOneWithTenant<CountTotalRow>(
     "SELECT COUNT(*) AS total FROM t_transfer_order WHERE created_at >= ? AND tenant_id = ?",
     [monthStartStr, tenantId],
     tenantId
   );
 
   // 各状态统计
-  const statusStats = await queryWithTenant<any>(
+  const statusStats = await queryWithTenant<TransferOrderStatusCountRow>(
     "SELECT status, COUNT(*) AS count FROM t_transfer_order WHERE tenant_id = ? GROUP BY status",
     [tenantId],
     tenantId
@@ -503,11 +632,11 @@ export async function getTransferStats(tenantId: string) {
 
   const statusMap: Record<string, number> = {};
   for (const row of statusStats) {
-    statusMap[row.status] = row.count;
+    statusMap[row.status] = Number(row.count);
   }
 
   // 本月调拨金额
-  const monthAmountRow = await queryOneWithTenant<any>(
+  const monthAmountRow = await queryOneWithTenant<CountAmountRow>(
     "SELECT COALESCE(SUM(total_amount), 0) AS amount FROM t_transfer_order WHERE created_at >= ? AND status IN ('TRANSIT', 'RECEIVED') AND tenant_id = ?",
     [monthStartStr, tenantId],
     tenantId

@@ -1,5 +1,6 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
+import type { ResultSetHeader } from "mysql2/promise";
 
 const ALLOWED_TYPES: Record<string, string> = {
   sales: "sale_bill",
@@ -29,6 +30,49 @@ const ALLOWED_AGGREGATIONS = [
   "MAX",
   "MIN",
 ];
+
+/** t_custom_report_template 列表行（queryWithTenant 用，驼峰别名） */
+interface ReportTemplateListRow {
+  id: number | string;
+  name: string;
+  type: string;
+  config: string | null;
+  description: string | null;
+  status: string;
+  createdBy: number | string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** t_custom_report_template 配置查询行（queryOneWithTenant 用） */
+interface ReportTemplateConfigRow {
+  id: number | string;
+  name: string;
+  type: string;
+  config: string | null;
+}
+
+/** t_custom_report_schedule 列表行（queryWithTenant 用，驼峰别名，含 JOIN） */
+interface ReportScheduleListRow {
+  id: number | string;
+  name: string;
+  templateId: number | string;
+  templateName: string | null;
+  cronExpression: string;
+  exportFormat: string;
+  recipients: string | null;
+  status: string;
+  lastRunAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** t_custom_report_schedule 运行查询行（queryOneWithTenant 用，驼峰别名） */
+interface ReportScheduleRunRow {
+  id: number | string;
+  name: string;
+  templateId: number | string;
+}
 
 function validateFieldName(field: string): string {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/.test(field)) {
@@ -118,7 +162,7 @@ export async function listTemplates(tenantId: string, params: TemplateListParams
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ReportTemplateListRow>(
     `SELECT id, name, type, config, description, status, created_by AS createdBy,
             created_at AS createdAt, updated_at AS updatedAt
      FROM t_custom_report_template ${where}
@@ -132,7 +176,7 @@ export async function listTemplates(tenantId: string, params: TemplateListParams
 }
 
 export async function createTemplate(tenantId: string, data: TemplateCreateData) {
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_custom_report_template (tenant_id, name, type, config, description, status)
      VALUES (?, ?, ?, ?, ?, 'active')`,
     [tenantId, data.name, data.type, JSON.stringify(data.config || {}), data.description || null],
@@ -172,7 +216,7 @@ export async function deleteTemplate(tenantId: string, id: number) {
 }
 
 export async function executeTemplate(tenantId: string, id: number, params: Record<string, unknown>) {
-  const template = await queryOneWithTenant<any>(
+  const template = await queryOneWithTenant<ReportTemplateConfigRow>(
     "SELECT id, name, type, config FROM t_custom_report_template WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -233,7 +277,7 @@ export async function executeTemplate(tenantId: string, id: number, params: Reco
 
   sql += " ORDER BY created_at DESC LIMIT 1000";
 
-  const rows = await queryWithTenant<any>(sql, whereParams, tenantId);
+  const rows = await queryWithTenant<Record<string, unknown>>(sql, whereParams, tenantId);
   return { template: { id: template.id, name: template.name, type: template.type }, rows, total: rows.length };
 }
 
@@ -277,7 +321,7 @@ export async function listSchedules(tenantId: string, params: ScheduleListParams
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ReportScheduleListRow>(
     `SELECT cs.id, cs.name, cs.template_id AS templateId,
             ct.name AS templateName, cs.cron_expression AS cronExpression,
             cs.export_format AS exportFormat, cs.recipients,
@@ -296,7 +340,7 @@ export async function listSchedules(tenantId: string, params: ScheduleListParams
 }
 
 export async function createSchedule(tenantId: string, data: ScheduleCreateData) {
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_custom_report_schedule (tenant_id, name, template_id, cron_expression, export_format, recipients, status)
      VALUES (?, ?, ?, ?, ?, ?, 'active')`,
     [tenantId, data.name, data.templateId, data.cronExpression, data.exportFormat, data.recipients || null],
@@ -345,7 +389,7 @@ export async function toggleSchedule(tenantId: string, id: number, status: strin
 }
 
 export async function runSchedule(tenantId: string, id: number) {
-  const schedule = await queryOneWithTenant<any>(
+  const schedule = await queryOneWithTenant<ReportScheduleRunRow>(
     "SELECT id, name, template_id AS templateId FROM t_custom_report_schedule WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -359,6 +403,6 @@ export async function runSchedule(tenantId: string, id: number) {
   );
 
   // Execute the associated template
-  const result = await executeTemplate(tenantId, schedule.templateId, {});
+  const result = await executeTemplate(tenantId, Number(schedule.templateId), {});
   return { scheduleId: id, scheduleName: schedule.name, executedAt: new Date().toISOString(), result };
 }

@@ -1,6 +1,24 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../../shared/db";
 import { parseDateParam } from "../../../shared/date-utils";
 
+// ========== 数据库行类型定义 ==========
+/** 客户贡献统计行 */
+interface CustomerContributionRow {
+  customerId: number | string;
+  customerName: string | null;
+  customerMobile: string | null;
+  orderCount: number | string;
+  totalAmount: number | string;
+  receivedAmount: number | string;
+  unpaidAmount: number | string;
+  avgOrderAmount: number | string;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export async function getCustomerContribution(
   tenantId: string,
   page: number = 1,
@@ -28,7 +46,7 @@ export async function getCustomerContribution(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<CustomerContributionRow>(
     `SELECT sb.customer_id AS customerId,
             sb.customer_name AS customerName,
             sb.customer_mobile AS customerMobile,
@@ -49,7 +67,7 @@ export async function getCustomerContribution(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(DISTINCT sb.customer_id) AS total
      FROM t_sale_bill sb
      WHERE ${where}`,
@@ -61,7 +79,7 @@ export async function getCustomerContribution(
     total: Number(totalRow?.total ?? 0),
     page: p,
     pageSize: ps,
-    records: records.map((r: any) => ({
+    records: records.map((r) => ({
       ...r,
       orderCount: Number(r.orderCount),
       totalAmount: Number(r.totalAmount),

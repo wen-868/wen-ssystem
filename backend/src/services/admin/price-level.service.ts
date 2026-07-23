@@ -1,7 +1,32 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** 价格等级完整行（updatedAt 在部分查询中不返回，设为可选） */
+interface PriceLevelRow {
+  id: number | string;
+  levelCode: string;
+  levelName: string;
+  discountRate: number | string;
+  minOrderAmount: number | string;
+  description: string | null;
+  sortOrder: number | string;
+  status: number | string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+}
+
+/** SELECT id 结果行 */
+interface IdRow {
+  id: number | string;
+}
+
+/** SELECT id, level_code 结果行（停用校验用） */
+interface PriceLevelIdCodeRow {
+  id: number | string;
+  level_code: string;
+}
+
 export async function listPriceLevels(tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PriceLevelRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName,
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
@@ -23,7 +48,7 @@ export async function createPriceLevel(body: {
   description: string;
   sortOrder: number;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_price_level WHERE level_code = ? AND tenant_id = ?",
     [body.levelCode, tenantId],
     tenantId
@@ -39,7 +64,7 @@ export async function createPriceLevel(body: {
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PriceLevelRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName,
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
@@ -60,7 +85,7 @@ export async function updatePriceLevel(levelId: number, body: {
   sortOrder?: number;
   status?: number;
 }, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_price_level WHERE id = ? AND tenant_id = ?",
     [levelId, tenantId],
     tenantId
@@ -87,7 +112,7 @@ export async function updatePriceLevel(levelId: number, body: {
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<PriceLevelRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName,
             discount_rate AS discountRate, min_order_amount AS minOrderAmount,
             description, sort_order AS sortOrder, status,
@@ -101,7 +126,7 @@ export async function updatePriceLevel(levelId: number, body: {
 }
 
 export async function disablePriceLevel(levelId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<PriceLevelIdCodeRow>(
     "SELECT id, level_code FROM t_price_level WHERE id = ? AND tenant_id = ?",
     [levelId, tenantId],
     tenantId

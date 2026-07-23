@@ -1,4 +1,49 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+
+// ===== 类型定义 =====
+/** id 查询行 */
+interface IdRow {
+  id: number | string;
+}
+
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 库存共享设置表行 */
+interface InventoryShareSettingRow {
+  id: number | string;
+  share_enabled: number | string;
+  auto_transfer: number | string;
+  auto_transfer_threshold: number | string;
+  share_scope: string;
+  specified_store_ids: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date | null;
+}
+
+/** 共享商品列表查询行 */
+interface InventoryShareProductListRow {
+  id: number | string;
+  spuId: number | string;
+  spuName: string;
+  skuId: number | string | null;
+  skuName: string | null;
+  barcode: string | null;
+  shareQty: number | string;
+  minKeepQty: number | string;
+  status: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 共享商品 id 查询行（用于 conn.execute SELECT） */
+interface ShareProductIdRow extends RowDataPacket {
+  id: number | string;
+}
 
 // ========== 库存共享设置 ==========
 export interface InventoryShareSetting {
@@ -13,7 +58,7 @@ export interface InventoryShareSetting {
 
 // 获取库存共享设置
 export async function getShareSetting(tenantId: string) {
-  const setting = await queryOneWithTenant<any>(
+  const setting = await queryOneWithTenant<InventoryShareSettingRow>(
     "SELECT * FROM t_inventory_share_setting WHERE tenant_id = ?",
     [tenantId],
     tenantId
@@ -56,7 +101,7 @@ export async function updateShareSetting(
 ) {
   const { shareEnabled, autoTransfer, autoTransferThreshold, shareScope, specifiedStoreIds } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_inventory_share_setting WHERE tenant_id = ?",
     [tenantId],
     tenantId
@@ -64,7 +109,7 @@ export async function updateShareSetting(
 
   if (!existing) {
     // 插入新记录
-    const [result] = await queryWithTenant<any>(
+    const [result] = await queryWithTenant<ResultSetHeader>(
       `INSERT INTO t_inventory_share_setting (
         share_enabled, auto_transfer, auto_transfer_threshold,
         share_scope, specified_store_ids, tenant_id
@@ -148,7 +193,7 @@ export async function listShareProducts(params: {
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<InventoryShareProductListRow>(
     `SELECT isp.id, isp.spu_id AS spuId, isp.spu_name AS spuName,
             isp.sku_id AS skuId, isp.sku_name AS skuName, isp.barcode,
             isp.share_qty AS shareQty, isp.min_keep_qty AS minKeepQty, isp.status,
@@ -162,7 +207,7 @@ export async function listShareProducts(params: {
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_inventory_share_product isp
      LEFT JOIN t_product_spu p ON p.id = isp.spu_id
      ${where}`,
@@ -189,7 +234,7 @@ export async function addShareProduct(
   const { spuId, spuName, skuId, skuName, barcode, shareQty, minKeepQty } = params;
 
   // 检查是否已存在
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_inventory_share_product WHERE tenant_id = ? AND spu_id = ? AND sku_id <=> ?",
     [tenantId, spuId, skuId ?? null],
     tenantId
@@ -198,7 +243,7 @@ export async function addShareProduct(
     throw Object.assign(new Error("该商品已在共享列表中"), { statusCode: 400 });
   }
 
-  const [result] = await queryWithTenant<any>(
+  const [result] = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_inventory_share_product (
       spu_id, spu_name, sku_id, sku_name, barcode,
       share_qty, min_keep_qty, status, tenant_id
@@ -241,7 +286,7 @@ export async function batchAddShareProducts(
   await transaction(async (conn) => {
     for (const product of products) {
       // 检查是否已存在
-      const [rows] = await conn.execute<any>(
+      const [rows] = await conn.execute<ShareProductIdRow[]>(
         "SELECT id FROM t_inventory_share_product WHERE tenant_id = ? AND spu_id = ? AND sku_id <=> ?",
         [tenantId, product.spuId, product.skuId ?? null]
       );
@@ -280,7 +325,7 @@ export async function updateShareProduct(
     status?: number;
   }
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_inventory_share_product WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -319,7 +364,7 @@ export async function updateShareProduct(
 
 // ========== 移除共享商品 ==========
 export async function removeShareProduct(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_inventory_share_product WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -344,12 +389,12 @@ export async function batchRemoveShareProducts(ids: number[], tenantId: string) 
   }
 
   const placeholders = ids.map(() => "?").join(", ");
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     `DELETE FROM t_inventory_share_product WHERE id IN (${placeholders}) AND tenant_id = ?`,
     [...ids, tenantId],
     tenantId
   );
 
-  const affectedRows = (result as unknown as { affectedRows?: number }).affectedRows;
+  const affectedRows = (result as unknown as ResultSetHeader)?.affectedRows;
   return { deletedCount: affectedRows ?? ids.length };
 }

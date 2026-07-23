@@ -2,6 +2,66 @@
 import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
+import type { ResultSetHeader } from "mysql2/promise";
+
+/** SELECT id 通用返回 */
+interface IdRow {
+  id: number | string;
+}
+
+/** t_member_sms_code 验证码查询行（原始字段名） */
+interface MemberSmsCodeRow {
+  id: number | string;
+  used: number | string;
+  expires_at: string | Date;
+}
+
+/** t_member_sms_code 仅 created_at */
+interface MemberSmsCodeCreatedAtRow {
+  created_at: string | Date;
+}
+
+/** t_member 会员卡基础信息行（带别名） */
+interface MemberCardMemberRow {
+  id: number | string;
+  name: string;
+  mobile: string;
+  memberLevel: string | null;
+  createdAt: string | Date;
+}
+
+/** t_customer_points 积分行（带别名） */
+interface CustomerPointsRow {
+  totalPoints: number | string;
+  availablePoints: number | string;
+}
+
+/** t_customer_level 等级行（带别名） */
+interface CustomerLevelRow {
+  levelName: string;
+  levelPoints: number | string;
+  upgradedAt: string | Date | null;
+}
+
+/** t_store_value_card 储值卡行（带别名） */
+interface StoreValueCardRow {
+  cardNo: string;
+  balance: number | string;
+  status: string;
+}
+
+/** t_level_config 折扣配置行（带别名，按 level_name 查询） */
+interface LevelConfigDiscountRow {
+  discountRate: number | string;
+  benefits: string | null;
+}
+
+/** t_level_config 等级配置列表行（带别名） */
+interface LevelConfigListRow {
+  levelName: string;
+  discountRate: number | string;
+  benefits: string | null;
+}
 
 export async function selfRegisterMember(params: {
   mobile: string;
@@ -17,7 +77,7 @@ export async function selfRegisterMember(params: {
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?",
     [mobile, tenantId], tenantId
   );
@@ -25,7 +85,7 @@ export async function selfRegisterMember(params: {
     throw new AppError("该手机号已注册", 400);
   }
 
-  const codeRecord = await queryOneWithTenant<any>(
+  const codeRecord = await queryOneWithTenant<MemberSmsCodeRow>(
     "SELECT id, used, expires_at FROM t_member_sms_code WHERE mobile = ? AND code = ? AND purpose = 'REGISTER' ORDER BY created_at DESC LIMIT 1",
     [mobile, smsCode], tenantId
   );
@@ -44,7 +104,7 @@ export async function selfRegisterMember(params: {
 
   const passwordHash = await hashPassword(password);
 
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     "INSERT INTO t_member (name, mobile, password_hash, register_source, tenant_id) VALUES (?, ?, ?, 'SELF_REGISTER', ?)",
     [name || "", mobile, passwordHash, tenantId], tenantId
   );
@@ -75,7 +135,7 @@ export async function sendRegisterSmsCode(mobile: string, tenantId: string): Pro
     throw new AppError("手机号格式不正确", 400);
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?",
     [mobile, tenantId], tenantId
   );
@@ -83,7 +143,7 @@ export async function sendRegisterSmsCode(mobile: string, tenantId: string): Pro
     throw new AppError("该手机号已注册", 400);
   }
 
-  const recentCode = await queryOneWithTenant<any>(
+  const recentCode = await queryOneWithTenant<MemberSmsCodeCreatedAtRow>(
     "SELECT created_at FROM t_member_sms_code WHERE mobile = ? AND purpose = 'REGISTER' ORDER BY created_at DESC LIMIT 1",
     [mobile], tenantId
   );
@@ -112,9 +172,9 @@ export async function sendRegisterSmsCode(mobile: string, tenantId: string): Pro
 // 注册会员（管理员操作）
 export async function registerMember(params: { name: string; mobile: string; password?: string; referrerId?: number; tenantId: string }) {
   const { name, mobile, password, referrerId, tenantId } = params;
-  const existing = await queryOneWithTenant<any>("SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?", [mobile, tenantId], tenantId);
+  const existing = await queryOneWithTenant<IdRow>("SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?", [mobile, tenantId], tenantId);
   if (existing) throw new Error("该手机号已注册");
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     "INSERT INTO t_member (name, mobile, password_hash, referrer_id, level_code, tenant_id) VALUES (?, ?, ?, ?, 'VIP1', ?)",
     [name, mobile, password ?? null, referrerId ?? null, tenantId], tenantId
   );
@@ -130,15 +190,15 @@ export async function registerMember(params: { name: string; mobile: string; pas
 
 // 会员卡信息
 export async function getMemberCard(memberId: number, tenantId: string) {
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberCardMemberRow>(
     "SELECT id, name, mobile, member_level AS memberLevel, created_at AS createdAt FROM t_member WHERE id = ? AND tenant_id = ?",
     [memberId, tenantId], tenantId
   );
   if (!member) throw new Error("会员不存在");
-  const points = await queryOneWithTenant<any>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
-  const level = await queryOneWithTenant<any>("SELECT level_name AS levelName, level_points AS levelPoints, upgraded_at AS upgradedAt FROM t_customer_level WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
-  const card = await queryOneWithTenant<any>("SELECT card_no AS cardNo, balance, status FROM t_store_value_card WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
-  const levelConfig = await queryOneWithTenant<any>(
+  const points = await queryOneWithTenant<CustomerPointsRow>("SELECT total_points AS totalPoints, available_points AS availablePoints FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const level = await queryOneWithTenant<CustomerLevelRow>("SELECT level_name AS levelName, level_points AS levelPoints, upgraded_at AS upgradedAt FROM t_customer_level WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const card = await queryOneWithTenant<StoreValueCardRow>("SELECT card_no AS cardNo, balance, status FROM t_store_value_card WHERE customer_id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const levelConfig = await queryOneWithTenant<LevelConfigDiscountRow>(
     "SELECT discount_rate AS discountRate, benefits FROM t_level_config WHERE level_name = ? AND tenant_id = ?",
     [member.memberLevel ?? "VIP1", tenantId], tenantId
   );
@@ -157,7 +217,7 @@ export async function getMemberCard(memberId: number, tenantId: string) {
 
 // 手动调整等级
 export async function updateMemberLevel(memberId: number, levelName: string, tenantId: string) {
-  const member = await queryOneWithTenant<any>("SELECT id FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
+  const member = await queryOneWithTenant<IdRow>("SELECT id FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!member) throw new Error("会员不存在");
   await queryWithTenant("UPDATE t_member SET member_level = ? WHERE id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
   await queryWithTenant("UPDATE t_customer_level SET level_name = ?, upgraded_at = NOW() WHERE customer_id = ? AND tenant_id = ?", [levelName, memberId, tenantId], tenantId);
@@ -167,7 +227,7 @@ export async function updateMemberLevel(memberId: number, levelName: string, ten
 
 // 会员权益
 export async function getMemberBenefits(tenantId: string) {
-  return queryWithTenant<any>(
+  return queryWithTenant<LevelConfigListRow>(
     "SELECT level_name AS levelName, discount_rate AS discountRate, benefits FROM t_level_config WHERE tenant_id = ? ORDER BY min_points",
     [tenantId], tenantId
   );

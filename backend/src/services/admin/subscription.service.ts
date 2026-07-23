@@ -78,6 +78,22 @@ interface PlanBriefRow {
   price: number;
 }
 
+/** 订阅取消检查行 */
+interface SubscriptionCancelCheckRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: number;
+  status: string;
+}
+
+/** 订阅支付检查行 */
+interface SubscriptionPayCheckRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: number;
+  payment_status: string;
+}
+
 export async function listSubscriptions(
   tenantId: string,
   filters: {
@@ -89,7 +105,7 @@ export async function listSubscriptions(
   }
 ) {
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (filters.tenantIdQuery) {
     conditions.push("s.tenant_id = ?");
@@ -350,7 +366,7 @@ export async function cancelSubscription(
   username: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SubscriptionCancelCheckRow>(
     "SELECT id, subscription_no, tenant_id, status FROM t_subscription WHERE id = ?",
     [subscriptionId],
     tenantId
@@ -395,7 +411,7 @@ export async function paySubscription(
   username: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SubscriptionPayCheckRow>(
     "SELECT id, subscription_no, tenant_id, payment_status FROM t_subscription WHERE id = ?",
     [subscriptionId],
     tenantId

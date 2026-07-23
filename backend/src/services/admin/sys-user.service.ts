@@ -27,6 +27,75 @@ export interface UpdateUserInput {
   roleIds?: number[];
 }
 
+// ========== 类型定义 ==========
+
+/** 系统用户列表行 */
+interface SysUserListRow {
+  id: number;
+  username: string;
+  realName: string;
+  mobile: string | null;
+  email: string | null;
+  status: string;
+  lastLoginAt: string | Date | null;
+  createdAt: string | Date;
+  roles?: SysUserRoleRow[];
+}
+
+/** 系统用户角色行 */
+interface SysUserRoleRow {
+  id: number;
+  roleName: string;
+  roleCode: string;
+}
+
+/** 系统用户 ID 行 */
+interface SysUserIdRow {
+  id: number;
+}
+
+/** 系统用户名 ID 行（含用户名） */
+interface SysUserBriefRow {
+  id: number;
+  username: string;
+}
+
+/** 创建后返回的系统用户行 */
+interface SysUserCreatedRow {
+  id: number;
+  username: string;
+  realName: string;
+  mobile: string | null;
+  email: string | null;
+  status: string;
+  createdAt: string | Date;
+}
+
+/** 系统用户详情行 */
+interface SysUserDetailRow {
+  id: number;
+  username: string;
+  realName: string;
+  mobile: string | null;
+  email: string | null;
+  status: string;
+  lastLoginAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  roles?: SysUserRoleRow[];
+}
+
+/** 更新后返回的系统用户行 */
+interface SysUserUpdatedRow {
+  id: number;
+  username: string;
+  realName: string;
+  mobile: string | null;
+  email: string | null;
+  status: string;
+  updatedAt: string | Date;
+}
+
 export async function listUsers(tenantId: string, params: UserListParams) {
   const offset = (params.page - 1) * params.pageSize;
   const conditions: string[] = ["tenant_id = ?"];
@@ -46,7 +115,7 @@ export async function listUsers(tenantId: string, params: UserListParams) {
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SysUserListRow>(
     `SELECT id, username, real_name AS realName, mobile, email,
             status, last_login_at AS lastLoginAt, created_at AS createdAt
      FROM t_sys_user ${where}
@@ -57,7 +126,7 @@ export async function listUsers(tenantId: string, params: UserListParams) {
   );
 
   for (const r of records) {
-    const roles = await queryWithTenant<any>(
+    const roles = await queryWithTenant<SysUserRoleRow>(
       `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode
        FROM t_sys_user_role ur
        JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
@@ -72,7 +141,7 @@ export async function listUsers(tenantId: string, params: UserListParams) {
 }
 
 export async function createUser(tenantId: string, input: CreateUserInput, operatorId: number, operatorName: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SysUserIdRow>(
     "SELECT id FROM t_sys_user WHERE username = ? AND tenant_id = ?",
     [input.username, tenantId], tenantId
   );
@@ -107,7 +176,7 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
     );
   });
 
-  const user = await queryOneWithTenant<any>(
+  const user = await queryOneWithTenant<SysUserCreatedRow>(
     `SELECT id, username, real_name AS realName, mobile, email, status, created_at AS createdAt
      FROM t_sys_user WHERE username = ? AND tenant_id = ?`,
     [input.username, tenantId], tenantId
@@ -116,7 +185,7 @@ export async function createUser(tenantId: string, input: CreateUserInput, opera
 }
 
 export async function getUserDetail(tenantId: string, id: number) {
-  const user = await queryOneWithTenant<any>(
+  const user = await queryOneWithTenant<SysUserDetailRow>(
     `SELECT id, username, real_name AS realName, mobile, email, status,
             last_login_at AS lastLoginAt, created_at AS createdAt, updated_at AS updatedAt
      FROM t_sys_user WHERE id = ? AND tenant_id = ?`,
@@ -124,7 +193,7 @@ export async function getUserDetail(tenantId: string, id: number) {
   );
   if (!user) return null;
 
-  const roles = await queryWithTenant<any>(
+  const roles = await queryWithTenant<SysUserRoleRow>(
     `SELECT r.id, r.role_name AS roleName, r.role_code AS roleCode
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
@@ -136,13 +205,13 @@ export async function getUserDetail(tenantId: string, id: number) {
 }
 
 export async function updateUser(tenantId: string, id: number, input: UpdateUserInput, operatorId: number, operatorName: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SysUserIdRow>(
     "SELECT id FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId
   );
   if (!existing) throw new Error("用户不存在");
 
   const updates: string[] = [];
-  const sqlParams: any[] = [];
+  const sqlParams: (string | number | null | Date | boolean)[] = [];
 
   if (input.realName !== undefined) { updates.push("real_name = ?"); sqlParams.push(input.realName); }
   if (input.mobile !== undefined) { updates.push("mobile = ?"); sqlParams.push(input.mobile); }
@@ -172,7 +241,7 @@ export async function updateUser(tenantId: string, id: number, input: UpdateUser
     );
   });
 
-  const user = await queryOneWithTenant<any>(
+  const user = await queryOneWithTenant<SysUserUpdatedRow>(
     `SELECT id, username, real_name AS realName, mobile, email, status, updated_at AS updatedAt
      FROM t_sys_user WHERE id = ? AND tenant_id = ?`,
     [id, tenantId], tenantId
@@ -181,7 +250,7 @@ export async function updateUser(tenantId: string, id: number, input: UpdateUser
 }
 
 export async function resetPassword(tenantId: string, id: number, newPassword: string, operatorId: number, operatorName: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SysUserBriefRow>(
     "SELECT id, username FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId
   );
   if (!existing) throw new AppError("用户不存在", 400);
@@ -207,7 +276,7 @@ export async function resetPassword(tenantId: string, id: number, newPassword: s
 }
 
 export async function deleteUser(tenantId: string, id: number, operatorId: number, operatorName: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SysUserBriefRow>(
     "SELECT id, username FROM t_sys_user WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId
   );
   if (!existing) throw new Error("用户不存在");

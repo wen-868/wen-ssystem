@@ -78,6 +78,19 @@ interface PromotionActivity {
   stackable: number;
 }
 
+/** t_user_coupon 优惠券查询行（带别名） */
+interface UserCouponQueryRow {
+  id: number | string;
+  couponType: string;
+  couponValue: number | string;
+  minPurchase: number | string;
+  maxDiscount: number | string | null;
+  applicableScope: string;
+  applicableIds: string;
+  validStart: string | Date;
+  validEnd: string | Date;
+}
+
 function safeJsonParse<T = unknown>(str: string | null | undefined, defaultValue: T): T {
   if (!str) return defaultValue;
   try {
@@ -259,7 +272,7 @@ export async function updatePromotion(
       `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["promotion", "UPDATE", String(activityId), "promotion_activity", userId, username,
-       `更新促销活动: ${activityId}`, tenantId],
+        `更新促销活动: ${activityId}`, tenantId],
       tenantId
     );
   }
@@ -273,7 +286,7 @@ export async function calculateDiscount(
 ) {
   let userCoupon: UserCoupon | null = null;
   if (body.couponNo) {
-    const couponRecord = await queryOneWithTenant<any>(
+    const couponRecord = await queryOneWithTenant<UserCouponQueryRow>(
       `SELECT id, coupon_type AS couponType, coupon_value AS couponValue, min_purchase AS minPurchase, max_discount AS maxDiscount,
               applicable_scope AS applicableScope, applicable_ids AS applicableIds, valid_start AS validStart, valid_end AS validEnd
        FROM t_user_coupon

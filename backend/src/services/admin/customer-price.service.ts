@@ -1,4 +1,35 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
+
+/** t_customer_price 列表行（queryWithTenant 用，驼峰别名，含 JOIN） */
+interface CustomerPriceListRow {
+  id: number | string;
+  customerId: number | string;
+  skuId: number | string;
+  customPrice: number | string;
+  effectiveStart: string | Date | null;
+  effectiveEnd: string | Date | null;
+  status: number | string;
+  customerName: string | null;
+  skuName: string | null;
+  retailPrice: number | string | null;
+  wholesalePrice: number | string | null;
+}
+
+/** t_customer_price ID 校验行 */
+interface CustomerPriceIdRow {
+  id: number | string;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** t_customer_price 有效价格行（queryOneWithTenant 用，驼峰别名） */
+interface CustomerEffectivePriceRow {
+  customPrice: number | string;
+}
 
 export async function listCustomerPrices(params: {
   customerId?: number; skuId?: number; page: number; pageSize: number; tenantId: string;
@@ -18,7 +49,7 @@ export async function listCustomerPrices(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<CustomerPriceListRow>(
     `SELECT cp.id, cp.customer_id AS customerId, cp.sku_id AS skuId,
             cp.custom_price AS customPrice, cp.effective_start AS effectiveStart,
             cp.effective_end AS effectiveEnd, cp.status,
@@ -34,7 +65,7 @@ export async function listCustomerPrices(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_price cp ${where}`,
     queryParams,
     tenantId
@@ -48,13 +79,13 @@ export async function createCustomerPrice(params: {
 }) {
   const { customerId, skuId, customPrice, effectiveStart, effectiveEnd, tenantId } = params;
   // 检查是否已存在
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerPriceIdRow>(
     "SELECT id FROM t_customer_price WHERE customer_id = ? AND sku_id = ? AND tenant_id = ?",
     [customerId, skuId, tenantId],
     tenantId
   );
   if (existing) throw new Error("该客户已存在此SKU的价格记录");
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_customer_price (customer_id, sku_id, custom_price, effective_start, effective_end, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [customerId, skuId, customPrice, effectiveStart ?? null, effectiveEnd ?? null, tenantId],
@@ -67,7 +98,7 @@ export async function updateCustomerPrice(id: number, params: {
   customPrice?: number; effectiveStart?: string; effectiveEnd?: string; status?: number;
   tenantId: string;
 }) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerPriceIdRow>(
     "SELECT id FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, params.tenantId],
     params.tenantId
@@ -81,7 +112,7 @@ export async function updateCustomerPrice(id: number, params: {
   if (params.status !== undefined) { fields.push("status = ?"); values.push(params.status); }
   if (fields.length === 0) throw new Error("没有需要更新的字段");
   values.push(id, params.tenantId);
-  await queryWithTenant<any>(
+  await queryWithTenant<ResultSetHeader>(
     `UPDATE t_customer_price SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`,
     values,
     params.tenantId
@@ -90,13 +121,13 @@ export async function updateCustomerPrice(id: number, params: {
 }
 
 export async function deleteCustomerPrice(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CustomerPriceIdRow>(
     "SELECT id FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
   );
   if (!existing) throw new Error("价格记录不存在");
-  await queryWithTenant<any>(
+  await queryWithTenant<ResultSetHeader>(
     "DELETE FROM t_customer_price WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -107,7 +138,7 @@ export async function deleteCustomerPrice(id: number, tenantId: string) {
 // 获取客户对某SKU的有效价格（优先客户专属价格，否则返回null由调用方fallback）
 export async function getCustomerPrice(customerId: number, skuId: number, tenantId: string) {
   const now = new Date().toISOString().slice(0, 10);
-  const price = await queryOneWithTenant<any>(
+  const price = await queryOneWithTenant<CustomerEffectivePriceRow>(
     `SELECT custom_price AS customPrice
      FROM t_customer_price
      WHERE customer_id = ? AND sku_id = ? AND status = 1 AND tenant_id = ?

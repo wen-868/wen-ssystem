@@ -1,6 +1,18 @@
 ﻿import { queryWithTenant } from "../../../shared/db";
 import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
+// ========== 类型定义 ==========
+
+/** 员工业绩排名统计行 */
+interface StaffPerformanceRow {
+  id: number | string;
+  name: string | null;
+  orderCount: number | string;
+  totalAmount: number | string;
+  receivedAmount: number | string;
+  totalQty?: number | string;
+}
+
 export async function getStaffPerformanceRanking(
   tenantId: string,
   dateStart?: string,
@@ -11,7 +23,7 @@ export async function getStaffPerformanceRanking(
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
   const lim = Math.min(Number(limit || 20), 100);
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<StaffPerformanceRow>(
     `SELECT sb.operator_id AS id, u.real_name AS name,
             COUNT(DISTINCT sb.bill_no) AS orderCount,
             COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
@@ -27,7 +39,7 @@ export async function getStaffPerformanceRanking(
     tenantId
   );
 
-  return records.map((r: any) => ({
+  return records.map((r: StaffPerformanceRow) => ({
     ...r,
     totalQty: Number(r.totalQty ?? 0),
     totalAmount: Number(r.totalAmount ?? 0),

@@ -56,6 +56,36 @@ export const updateVisitPlanSchema = z.object({
 export type CreateVisitPlanInput = z.infer<typeof createVisitPlanSchema>;
 export type UpdateVisitPlanInput = z.infer<typeof updateVisitPlanSchema>;
 
+// ========== 类型定义 ==========
+
+/** 客户 ID 与名称行 */
+interface MemberIdNameRow {
+  id: number;
+  name: string;
+}
+
+/** 拜访记录状态检查行 */
+interface VisitPlanStatusRow {
+  id: number;
+  status: string;
+}
+
+/** 拜访记录更新后行 */
+interface VisitPlanUpdatedRow {
+  visitNo: string;
+  customerId: number | string;
+  customerName: string;
+  visitType: string;
+  visitPurpose: string;
+  visitDate: string;
+  status: string;
+  visitSummary: string | null;
+  followUpRequired: number | string;
+  followUpDate: string | null;
+  nextAction: string | null;
+  updatedAt: string | Date;
+}
+
 export async function createVisitPlan(
   tenantId: string,
   userId: number,
@@ -65,7 +95,7 @@ export async function createVisitPlan(
 ) {
   const visitNo = makeBizNo("BF");
 
-  const customer = await queryOneWithTenant<any>(
+  const customer = await queryOneWithTenant<MemberIdNameRow>(
     "SELECT id, name FROM t_member WHERE id = ?",
     [body.customer_id],
     tenantId
@@ -117,7 +147,7 @@ export async function updateVisitPlan(
   visitNo: string,
   body: UpdateVisitPlanInput
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<VisitPlanStatusRow>(
     "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
@@ -127,7 +157,7 @@ export async function updateVisitPlan(
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     visit_type: "visit_type",
@@ -181,7 +211,7 @@ export async function updateVisitPlan(
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<VisitPlanUpdatedRow>(
     `SELECT visit_no AS visitNo, customer_id AS customerId, customer_name AS customerName,
             visit_type AS visitType, visit_purpose AS visitPurpose, visit_date AS visitDate,
             status, visit_summary AS visitSummary, follow_up_required AS followUpRequired,
@@ -201,7 +231,7 @@ export async function cancelVisitPlan(
   username: string,
   visitNo: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<VisitPlanStatusRow>(
     "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId

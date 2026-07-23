@@ -1,5 +1,56 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ===== 类型定义 =====
+/** 秒杀活动查询行 */
+interface FlashSaleRow {
+  id: number | string;
+  sku_id: number | string;
+  flash_price: number | string;
+  status: number | string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** 拼团团队查询行（含拼团活动信息） */
+interface GroupBuyTeamRow {
+  id: number | string;
+  activity_id: number | string;
+  status: string;
+  target_size: number | string;
+  current_size: number | string;
+  group_price: number | string;
+  sku_id: number | string;
+  activityStatus: string;
+}
+
+/** 满减活动查询行 */
+interface FullReductionRow {
+  id: number | string;
+  rules: string;
+  applicable_scope: string;
+  applicable_ids: string | null;
+  stackable: number | string;
+}
+
+/** 优惠券模板查询行 */
+interface CouponTemplateRow {
+  id: number | string;
+  type: string;
+  value: number | string;
+  min_amount: number | string;
+  max_discount: number | string | null;
+  applicable_scope: string;
+  applicable_ids: string | null;
+}
+
+/** 优惠明细项 */
+interface BreakdownItem {
+  type: string;
+  id: number | string;
+  discount: number;
+  description: string;
+}
+
 interface CalculateItem {
   skuId: number;
   productId: number;
@@ -22,7 +73,7 @@ export async function calculatePromotion(
   const now = new Date().toISOString();
   let originalTotal = 0;
   let discountedTotal = 0;
-  const breakdown: any[] = [];
+  const breakdown: BreakdownItem[] = [];
 
   for (const item of body.items) {
     originalTotal += item.unitPrice * item.quantity;
@@ -30,7 +81,7 @@ export async function calculatePromotion(
   discountedTotal = originalTotal;
 
   if (body.flashSaleId) {
-    const flashSale = await queryOneWithTenant<any>(
+    const flashSale = await queryOneWithTenant<FlashSaleRow>(
       `SELECT id, sku_id, flash_price, status, start_time, end_time
        FROM t_flash_sale WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
       [body.flashSaleId, now, now],
@@ -56,7 +107,7 @@ export async function calculatePromotion(
   }
 
   if (body.groupBuyTeamId) {
-    const team = await queryOneWithTenant<any>(
+    const team = await queryOneWithTenant<GroupBuyTeamRow>(
       `SELECT gbt.id, gbt.activity_id, gbt.status, gbt.target_size, gbt.current_size,
               gb.group_price, gb.sku_id, gb.status AS activityStatus
        FROM t_group_buy_team gbt
@@ -86,7 +137,7 @@ export async function calculatePromotion(
 
   if (body.fullReductionIds && body.fullReductionIds.length > 0) {
     const placeholders = body.fullReductionIds.map(() => "?").join(", ");
-    const fullReductions = await queryWithTenant<any>(
+    const fullReductions = await queryWithTenant<FullReductionRow>(
       `SELECT id, rules, applicable_scope, applicable_ids, stackable
        FROM t_full_reduction
        WHERE id IN (${placeholders}) AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
@@ -113,7 +164,7 @@ export async function calculatePromotion(
   }
 
   if (body.couponTemplateId) {
-    const coupon = await queryOneWithTenant<any>(
+    const coupon = await queryOneWithTenant<CouponTemplateRow>(
       `SELECT id, type, value, min_amount, max_discount, applicable_scope, applicable_ids
        FROM t_coupon_template WHERE id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?`,
       [body.couponTemplateId, now, now],

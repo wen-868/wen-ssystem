@@ -1,5 +1,70 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { ResultSetHeader } from "mysql2/promise";
+
+/** 套装行（列表/详情，description 仅详情查询返回设为可选） */
+interface ProductBundleRow {
+  id: number | string;
+  bundleNo: string;
+  bundleName: string;
+  categoryId: number | string | null;
+  coverImage: string | null;
+  description?: string | null;
+  originalPrice: number | string;
+  bundlePrice: number | string;
+  costPrice: number | string;
+  status: number | string;
+  sortOrder: number | string;
+  salesCount: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 套装明细行 */
+interface ProductBundleItemRow {
+  id: number | string;
+  bundleId: number | string;
+  skuId: number | string;
+  skuName: string;
+  barcode: string | null;
+  qty: number | string;
+  unitPrice: number | string;
+  subtotalPrice: number | string;
+  costPrice: number | string;
+}
+
+/** 套装状态行（SELECT id, status，用于删除/上下架校验） */
+interface ProductBundleStatusRow {
+  id: number | string;
+  status: number | string;
+}
+
+/** 套装统计行（COUNT/SUM 聚合） */
+interface ProductBundleStatsRow {
+  totalBundles: number | string;
+  publishedCount: number | string | null;
+  unpublishedCount: number | string | null;
+  totalSales: number | string | null;
+}
+
+/** 套装销量TOP行 */
+interface ProductBundleTopRow {
+  id: number | string;
+  bundleNo: string;
+  bundleName: string;
+  salesCount: number | string;
+  bundlePrice: number | string;
+}
+
+/** SELECT id 结果行 */
+interface IdRow {
+  id: number | string;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
 
 // ========== 套装列表 ==========
 export async function listProductBundles(params: {
@@ -29,7 +94,7 @@ export async function listProductBundles(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ProductBundleRow>(
     `SELECT b.id, b.bundle_no AS bundleNo, b.bundle_name AS bundleName,
             b.category_id AS categoryId, b.cover_image AS coverImage,
             b.original_price AS originalPrice, b.bundle_price AS bundlePrice,
@@ -43,7 +108,7 @@ export async function listProductBundles(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_product_bundle b ${where}`,
     queryParams,
     tenantId
@@ -53,7 +118,7 @@ export async function listProductBundles(params: {
 
 // ========== 套装详情 ==========
 export async function getProductBundleDetail(id: number, tenantId: string) {
-  const bundle = await queryOneWithTenant<any>(
+  const bundle = await queryOneWithTenant<ProductBundleRow>(
     `SELECT id, bundle_no AS bundleNo, bundle_name AS bundleName,
             category_id AS categoryId, cover_image AS coverImage,
             description, original_price AS originalPrice,
@@ -67,7 +132,7 @@ export async function getProductBundleDetail(id: number, tenantId: string) {
   if (!bundle) {
     throw Object.assign(new Error("套装不存在"), { statusCode: 404 });
   }
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<ProductBundleItemRow>(
     `SELECT id, bundle_id AS bundleId, sku_id AS skuId, sku_name AS skuName,
             barcode, qty, unit_price AS unitPrice,
             subtotal_price AS subtotalPrice, cost_price AS costPrice
@@ -116,12 +181,12 @@ export async function createProductBundle(params: {
     }
 
     // 插入套装主表
-    const [insertResult] = await conn.execute<any>(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_product_bundle (bundle_no, bundle_name, category_id, cover_image, description,
         original_price, bundle_price, cost_price, status, sort_order, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [bundleNo, bundleName, categoryId ?? null, coverImage ?? null, description ?? null,
-       originalPrice, bundlePrice, costPrice, status ?? 0, sortOrder ?? 0, tenantId]
+        originalPrice, bundlePrice, costPrice, status ?? 0, sortOrder ?? 0, tenantId]
     );
     const bundleId = insertResult.insertId as number;
 
@@ -133,7 +198,7 @@ export async function createProductBundle(params: {
           unit_price, subtotal_price, cost_price, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [bundleId, item.skuId, item.skuName, item.barcode ?? null, item.qty,
-         item.unitPrice, subtotalPrice, item.costPrice, tenantId]
+          item.unitPrice, subtotalPrice, item.costPrice, tenantId]
       );
     }
 
@@ -167,7 +232,7 @@ export async function updateProductBundle(
 ) {
   const { bundleName, categoryId, coverImage, description, bundlePrice, status, sortOrder, tenantId, items } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -222,7 +287,7 @@ export async function updateProductBundle(
             unit_price, subtotal_price, cost_price, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [id, item.skuId, item.skuName, item.barcode ?? null, item.qty,
-           item.unitPrice, subtotalPrice, item.costPrice, tenantId]
+            item.unitPrice, subtotalPrice, item.costPrice, tenantId]
         );
       }
     }
@@ -235,7 +300,7 @@ export async function updateProductBundle(
 
 // ========== 删除套装 ==========
 export async function deleteProductBundle(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<ProductBundleStatusRow>(
     "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -257,7 +322,7 @@ export async function deleteProductBundle(id: number, tenantId: string) {
 
 // ========== 上架套装 ==========
 export async function publishProductBundle(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<ProductBundleStatusRow>(
     "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -280,7 +345,7 @@ export async function publishProductBundle(id: number, tenantId: string) {
 
 // ========== 下架套装 ==========
 export async function unpublishProductBundle(id: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<ProductBundleStatusRow>(
     "SELECT id, status FROM t_product_bundle WHERE id = ? AND tenant_id = ?",
     [id, tenantId],
     tenantId
@@ -323,7 +388,7 @@ export async function getProductBundleStats(params: {
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   // 总套装数、上架数、下架数
-  const totalStats = await queryOneWithTenant<any>(
+  const totalStats = await queryOneWithTenant<ProductBundleStatsRow>(
     `SELECT
        COUNT(*) AS totalBundles,
        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS publishedCount,
@@ -336,7 +401,7 @@ export async function getProductBundleStats(params: {
   );
 
   // 销量TOP5套装
-  const topBundles = await queryWithTenant<any>(
+  const topBundles = await queryWithTenant<ProductBundleTopRow>(
     `SELECT id, bundle_no AS bundleNo, bundle_name AS bundleName,
             sales_count AS salesCount, bundle_price AS bundlePrice
      FROM t_product_bundle b

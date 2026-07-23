@@ -1,6 +1,59 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+// ===== 类型定义 =====
+/** t_customer_statement 表行 */
+interface CustomerStatementRow {
+  id: number | string;
+  statement_no: string;
+  customer_id: number | string;
+  customer_name: string;
+  customer_mobile: string | null;
+  statement_type: string | null;
+  start_date: string | Date;
+  end_date: string | Date;
+  opening_balance: number | string;
+  total_sales: number | string;
+  total_returns: number | string;
+  total_payments: number | string;
+  closing_balance: number | string;
+  status: number | string;
+  operator_id: number | string | null;
+  remark: string | null;
+  tenant_id: string;
+  confirmed_at: string | Date | null;
+  created_at: string | Date;
+  updated_at: string | Date | null;
+}
+
+/** 对账单状态查询行 */
+interface CustomerStatementStatusRow {
+  id: number | string;
+  status: number | string;
+}
+
+/** 对账单销售明细行 */
+interface StatementSaleItemRow {
+  sale_bill_no: string;
+  customer_name: string;
+  receivable_amount: number | string;
+  created_at: string | Date;
+}
+
+/** 对账单退货明细行 */
+interface StatementReturnItemRow {
+  sale_return_no: string;
+  refund_amount: number | string;
+  created_at: string | Date;
+}
+
+/** 对账单收款明细行 */
+interface StatementPaymentItemRow {
+  receipt_no: string;
+  amount: number | string;
+  payment_date: string | Date;
+}
+
 export async function list(params: {
   page: number; pageSize: number; tenantId: string;
   customerId?: number; status?: string; dateStart?: string; dateEnd?: string;
@@ -28,7 +81,7 @@ export async function list(params: {
 
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
-  const statements = await queryWithTenant<any>(
+  const statements = await queryWithTenant<CustomerStatementRow>(
     `SELECT * FROM t_customer_statement WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset],
     tenantId
@@ -37,28 +90,28 @@ export async function list(params: {
 }
 
 export async function getDetail(statementNo: string, tenantId: string) {
-  const statement = await queryOneWithTenant<any>(
+  const statement = await queryOneWithTenant<CustomerStatementRow>(
     "SELECT * FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId
   );
   if (!statement) throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
 
-  const sales = await queryWithTenant<any>(
+  const sales = await queryWithTenant<StatementSaleItemRow>(
     `SELECT bill_no AS sale_bill_no, customer_name, receivable_amount, created_at
      FROM t_sale_bill WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND business_status = 'CREATED' AND tenant_id = ?
      ORDER BY created_at ASC`,
     [statement.customer_id, statement.start_date, statement.end_date, tenantId],
     tenantId
   );
-  const returns = await queryWithTenant<any>(
+  const returns = await queryWithTenant<StatementReturnItemRow>(
     `SELECT return_no AS sale_return_no, refund_amount, created_at
      FROM t_sale_return WHERE customer_id = ? AND created_at BETWEEN ? AND ? AND return_status = 'COMPLETED' AND tenant_id = ?
      ORDER BY created_at ASC`,
     [statement.customer_id, statement.start_date, statement.end_date, tenantId],
     tenantId
   );
-  const payments = await queryWithTenant<any>(
+  const payments = await queryWithTenant<StatementPaymentItemRow>(
     `SELECT receipt_no, amount, payment_date
      FROM t_customer_payment WHERE customer_id = ? AND payment_date BETWEEN ? AND ? AND status = 'COMPLETED' AND tenant_id = ?
      ORDER BY payment_date ASC`,
@@ -127,7 +180,7 @@ export async function create(body: {
 }
 
 export async function confirm(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOneWithTenant<any>(
+  const statement = await queryOneWithTenant<CustomerStatementStatusRow>(
     "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId
@@ -149,7 +202,7 @@ export async function confirm(statementNo: string, tenantId: string, userId: num
 }
 
 export async function markPaid(statementNo: string, tenantId: string, userId: number, username: string) {
-  const statement = await queryOneWithTenant<any>(
+  const statement = await queryOneWithTenant<CustomerStatementStatusRow>(
     "SELECT id, status FROM t_customer_statement WHERE statement_no = ? AND tenant_id = ?",
     [statementNo, tenantId],
     tenantId

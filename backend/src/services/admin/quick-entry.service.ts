@@ -1,4 +1,5 @@
 ﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 
 export interface QuickEntryData {
   name: string;
@@ -9,8 +10,26 @@ export interface QuickEntryData {
   visibleRoles?: string[];
 }
 
+/** 快捷入口行（visible_roles 可能是 JSON 字符串或已解析数组） */
+interface QuickEntryRow {
+  id: number | string;
+  name: string;
+  icon: string;
+  route: string;
+  group: string | null;
+  enabled: number | string;
+  visibleRoles: string | string[] | null;
+  sortOrder: number | string;
+  tenantId: string;
+}
+
+/** 下一排序值行（COALESCE(MAX(sort_order), 0) + 1） */
+interface NextOrderRow {
+  nextOrder: number | string;
+}
+
 export async function listQuickEntries(tenantId: string, role?: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<QuickEntryRow>(
     `SELECT id, name, icon, route, group_name AS \`group\`, enabled, 
             visible_roles AS visibleRoles, sort_order AS sortOrder, tenant_id AS tenantId
      FROM t_quick_entries
@@ -38,14 +57,14 @@ export async function listQuickEntries(tenantId: string, role?: string) {
 }
 
 export async function createQuickEntry(tenantId: string, data: QuickEntryData) {
-  const sortOrderRow = await queryOneWithTenant<any>(
+  const sortOrderRow = await queryOneWithTenant<NextOrderRow>(
     `SELECT COALESCE(MAX(sort_order), 0) + 1 AS nextOrder FROM t_quick_entries WHERE tenant_id = ?`,
     [tenantId],
     tenantId
   );
   const sortOrder = Number(sortOrderRow?.nextOrder ?? 1);
 
-  const [result] = await queryWithTenant<any>(
+  const [result] = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_quick_entries (name, icon, route, group_name, enabled, visible_roles, sort_order, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [

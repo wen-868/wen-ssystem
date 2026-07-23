@@ -1,12 +1,45 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+/** 库存预警行 */
+interface StockWarningRow {
+  skuId: number | string;
+  skuName: string;
+  storeId: number | string;
+  storeName: string | null;
+  currentStock: number | string;
+  minQty: number | string;
+  maxQty: number | string;
+  warningLevel: string;
+  safetyStock: number | string | null;
+}
+
+/** 库存预警配置 ID 行 */
+interface StockWarningConfigIdRow {
+  id: number;
+}
+
+/** 库存预警配置列表行 */
+interface StockWarningConfigRow {
+  id: number;
+  storeId: number | string;
+  storeName: string | null;
+  skuId: number | string;
+  skuName: string | null;
+  minQty: number | string;
+  maxQty: number | string;
+  enabled: number | string;
+  currentStock: number | string | null;
+}
+
 // 获取预警列表
 export async function getStockWarnings(tenantId: string, storeId?: number) {
   const storeCondition = storeId ? "AND ib.store_id = ?" : "";
   const params: unknown[] = [tenantId];
   if (storeId) params.push(storeId);
 
-  return queryWithTenant<any>(
+  return queryWithTenant<StockWarningRow>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName,
             ib.store_id AS storeId, st.name AS storeName,
             ib.physical_qty AS currentStock,
@@ -38,7 +71,7 @@ export async function batchConfigStockWarning(params: {
 }) {
   const { storeId, configs, tenantId } = params;
   for (const cfg of configs) {
-    const existing = await queryOneWithTenant<any>(
+    const existing = await queryOneWithTenant<StockWarningConfigIdRow>(
       "SELECT id FROM t_stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
       [storeId, cfg.skuId, tenantId],
       tenantId
@@ -67,7 +100,7 @@ export async function getStockWarningConfigs(tenantId: string, storeId?: number)
   const params: unknown[] = [tenantId];
   if (storeId) { conditions.push("swc.store_id = ?"); params.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<StockWarningConfigRow>(
     `SELECT swc.id, swc.store_id AS storeId, st.name AS storeName,
             swc.sku_id AS skuId, ps.sku_name AS skuName,
             swc.min_qty AS minQty, swc.max_qty AS maxQty,
@@ -89,7 +122,7 @@ export async function updateWarningThreshold(params: {
 }) {
   const { skuId, storeId, minQty, maxQty, tenantId } = params;
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<StockWarningConfigIdRow>(
     "SELECT id FROM t_stock_warning_config WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
     [storeId, skuId, tenantId],
     tenantId

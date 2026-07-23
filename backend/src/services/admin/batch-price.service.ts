@@ -10,6 +10,7 @@
  */
 
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -58,6 +59,52 @@ export interface BatchPriceExecuteResult {
   failedCount: number;
   changeLogs?: number;
   batchNo?: string;
+}
+
+/** 价格预览行（queryWithTenant 用，驼峰别名） */
+interface BatchPricePreviewRow {
+  skuId: number | string;
+  skuName: string;
+  skuCode: string;
+  price: number | string | null;
+}
+
+/** conn.query 的 t_product_price 行（FOR UPDATE 用，下划线命名） */
+interface ProductPriceRawRow extends RowDataPacket {
+  priceId: number | string;
+  skuId: number | string;
+  oldPrice: number | string;
+  priceLevelId: number | string | null;
+}
+
+/** 批量价格调整记录行（queryWithTenant 用，驼峰别名，含聚合） */
+interface BatchPriceLogRow {
+  batchNo: string;
+  priceType: string;
+  skuCount: number | string;
+  totalDecrease: number | string | null;
+  totalIncrease: number | string | null;
+  createdAt: string | Date;
+  reason: string | null;
+  operatorId: number | string | null;
+}
+
+/** 批量价格调整明细行（queryWithTenant 用，驼峰别名） */
+interface BatchPriceDetailRow {
+  id: number | string;
+  skuId: number | string;
+  skuName: string;
+  priceType: string;
+  oldPrice: number | string;
+  newPrice: number | string;
+  changeAmount: number | string;
+  reason: string | null;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
 }
 
 // ─── 价格计算工具 ─────────────────────────────────────────────
@@ -138,7 +185,7 @@ export async function previewBatchPriceAdjustment(
 
   const where = conditions.join(" AND ");
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total
      FROM t_product_price pp
      JOIN t_product_sku sku ON sku.id = pp.sku_id AND sku.tenant_id = pp.tenant_id
@@ -155,7 +202,7 @@ export async function previewBatchPriceAdjustment(
   let skippedCount = 0;
 
   if (totalCount > 0) {
-    const rows = await queryWithTenant<any>(
+    const rows = await queryWithTenant<BatchPricePreviewRow>(
       `SELECT sku.id AS skuId, sku.sku_name AS skuName, sku.sku_code AS skuCode,
               pp.${adjustment.field} AS price
        FROM t_product_price pp
@@ -178,7 +225,7 @@ export async function previewBatchPriceAdjustment(
       }
 
       items.push({
-        skuId: row.skuId,
+        skuId: Number(row.skuId),
         skuName: row.skuName,
         skuCode: row.skuCode,
         oldPrice,
@@ -255,7 +302,7 @@ export async function executeBatchPriceAdjustment(
   const where = conditions.join(" AND ");
 
   const result = await transaction(async (conn) => {
-    const [priceRows] = await conn.query<any[]>(
+    const [priceRows] = await conn.query<ProductPriceRawRow[]>(
       `SELECT pp.id AS priceId, pp.sku_id AS skuId, pp.${adjustment.field} AS oldPrice,
               pp.price_level_id AS priceLevelId
        FROM t_product_price pp
@@ -280,14 +327,14 @@ export async function executeBatchPriceAdjustment(
         continue;
       }
 
-      const [updateResult] = await conn.query<any>(
+      const [updateResult] = await conn.query<ResultSetHeader>(
         `UPDATE t_product_price
          SET ${adjustment.field} = ?, updated_at = NOW()
          WHERE id = ? AND tenant_id = ?`,
         [newPrice, row.priceId, tenantId]
       );
 
-      if ((updateResult as unknown as { affectedRows: number }).affectedRows > 0) {
+      if (updateResult.affectedRows > 0) {
         updatedCount++;
 
         // 记录价格变更日志
@@ -377,7 +424,7 @@ export async function listBatchPriceLogs(
 
   const where = conditions.join(" AND ");
 
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<BatchPriceLogRow>(
     `SELECT batch_no AS batchNo, price_type AS priceType,
             COUNT(*) AS skuCount,
             SUM(CASE WHEN old_price > new_price THEN old_price - new_price ELSE 0 END) AS totalDecrease,
@@ -394,7 +441,7 @@ export async function listBatchPriceLogs(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(DISTINCT batch_no) AS total
      FROM t_product_price_log
      WHERE ${where}`,
@@ -421,7 +468,7 @@ export async function getBatchPriceDetail(
 ) {
   const offset = (page - 1) * pageSize;
 
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<BatchPriceDetailRow>(
     `SELECT ppl.id, ppl.sku_id AS skuId, s.sku_name AS skuName,
             ppl.price_type AS priceType, ppl.old_price AS oldPrice,
             ppl.new_price AS newPrice,
@@ -436,7 +483,7 @@ export async function getBatchPriceDetail(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     "SELECT COUNT(*) AS total FROM t_product_price_log WHERE batch_no = ? AND tenant_id = ?",
     [batchNo, tenantId],
     tenantId

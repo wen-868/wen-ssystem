@@ -1,6 +1,49 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** COUNT(*) AS cnt 通用返回 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** t_limited_discount 表行 */
+interface LimitedDiscountRow {
+  id: number | string;
+  activity_code: string;
+  activity_name: string;
+  activity_desc: string | null;
+  discount_type: string;
+  discount_value: number | string;
+  min_purchase: number | string;
+  applicable_scope: string;
+  applicable_ids: string | null;
+  start_time: string | Date;
+  end_time: string | Date;
+  total_stock: number | string;
+  available_stock: number | string;
+  limit_per_user: number | string | null;
+  per_order_limit: number | string | null;
+  tenant_id: string;
+  created_by: number | string;
+  status: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** t_limited_discount_product 表行 */
+interface LimitedDiscountProductRow {
+  id: number | string;
+  discount_id: number | string;
+  product_id: number | string;
+  sku_id: number | string | null;
+  original_price: number | string;
+  discount_price: number | string;
+  stock: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
 export async function createLimitedDiscount(data: any, tenantId: string, userId: number) {
   const code = makeBizNo("XS");
   const result = await queryWithTenant(
@@ -16,8 +59,8 @@ export async function listLimitedDiscounts(params: { tenantId: string; status?: 
   const values: unknown[] = [tenantId];
   if (status) { conditions.push("status = ?"); values.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_limited_discount ${where}`, values, tenantId);
-  const rows = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_limited_discount ${where}`, values, tenantId);
+  const rows = await queryWithTenant<LimitedDiscountRow>(
     `SELECT * FROM t_limited_discount ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
@@ -25,9 +68,9 @@ export async function listLimitedDiscounts(params: { tenantId: string; status?: 
 }
 
 export async function getLimitedDiscountDetail(id: number, tenantId: string) {
-  const discount = await queryOneWithTenant<any>("SELECT * FROM t_limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const discount = await queryOneWithTenant<LimitedDiscountRow>("SELECT * FROM t_limited_discount WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!discount) return null;
-  const products = await queryWithTenant<any>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const products = await queryWithTenant<LimitedDiscountProductRow>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   return { ...discount, products };
 }
 
@@ -66,7 +109,7 @@ export async function pauseLimitedDiscount(id: number, tenantId: string) {
 }
 
 export async function getDiscountProducts(discountId: number, tenantId: string) {
-  return queryWithTenant<any>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [discountId, tenantId], tenantId);
+  return queryWithTenant<LimitedDiscountProductRow>("SELECT * FROM t_limited_discount_product WHERE discount_id = ? AND tenant_id = ?", [discountId, tenantId], tenantId);
 }
 
 export async function addDiscountProduct(discountId: number, data: any, tenantId: string) {

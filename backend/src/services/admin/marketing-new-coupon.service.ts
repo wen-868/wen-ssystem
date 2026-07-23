@@ -1,6 +1,87 @@
 ﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** COUNT(*) AS total 通用返回 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** t_coupon_template 列表行（带别名） */
+interface CouponTemplateRow {
+  id: number | string;
+  templateCode: string;
+  templateName: string;
+  couponType: string;
+  couponValue: number | string;
+  minPurchase: number | string;
+  maxDiscount: number | string | null;
+  applicableScope: string;
+  applicableIds: string | null;
+  totalQuantity: number | string;
+  issuedQuantity: number | string;
+  usedQuantity: number | string;
+  perLimit: number | string;
+  validType: string;
+  validStart: string | Date | null;
+  validEnd: string | Date | null;
+  validDays: number | string | null;
+  status: string;
+  description: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** t_coupon_template 仅 id+status */
+interface CouponTemplateIdStatusRow {
+  id: number | string;
+  status: string;
+}
+
+/** t_coupon_template 发放查询行（原始字段名） */
+interface CouponTemplateIssueRow {
+  id: number | string;
+  template_code: string;
+  template_name: string;
+  coupon_type: string;
+  coupon_value: number | string;
+  min_purchase: number | string;
+  max_discount: number | string | null;
+  applicable_scope: string;
+  applicable_ids: string | null;
+  total_quantity: number | string;
+  issued_quantity: number | string;
+  per_limit: number | string;
+  valid_type: string;
+  valid_start: string | Date | null;
+  valid_end: string | Date | null;
+  valid_days: number | string | null;
+  status: string;
+}
+
+/** t_user_coupon 列表行（带别名） */
+interface UserCouponListRow {
+  id: number | string;
+  couponNo: string;
+  templateId: number | string;
+  userId: number | string;
+  couponType: string;
+  couponName: string;
+  couponValue: number | string;
+  minPurchase: number | string;
+  maxDiscount: number | string | null;
+  applicableScope: string;
+  applicableIds: string | null;
+  source: string;
+  status: string;
+  validStart: string | Date | null;
+  validEnd: string | Date | null;
+  usedAt: string | Date | null;
+  usedOrderNo: string | null;
+  usedAmount: number | string | null;
+  discountAmount: number | string | null;
+  createdAt: string | Date;
+}
+
 export async function listCouponTemplates(
   page: number,
   pageSize: number,
@@ -22,7 +103,7 @@ export async function listCouponTemplates(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<CouponTemplateRow>(
     `SELECT id, template_code AS templateCode, template_name AS templateName,
             coupon_type AS couponType, coupon_value AS couponValue,
             min_purchase AS minPurchase, max_discount AS maxDiscount,
@@ -40,7 +121,7 @@ export async function listCouponTemplates(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_coupon_template ${where}`,
     params,
     tenantId
@@ -55,7 +136,7 @@ export async function listCouponTemplates(
 }
 
 export async function getCouponTemplate(templateId: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<CouponTemplateRow>(
     `SELECT id, template_code AS templateCode, template_name AS templateName,
             coupon_type AS couponType, coupon_value AS couponValue,
             min_purchase AS minPurchase, max_discount AS maxDiscount,
@@ -118,7 +199,7 @@ export async function createCouponTemplate(body: {
       `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "CREATE", templateCode, "coupon_template", userId, username,
-       `创建优惠券模板: ${templateCode}, 名称: ${body.templateName}`, tenantId]
+        `创建优惠券模板: ${templateCode}, 名称: ${body.templateName}`, tenantId]
     );
   });
 
@@ -147,7 +228,7 @@ export async function updateCouponTemplate(
   userId: number,
   username: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CouponTemplateIdStatusRow>(
     "SELECT id, status FROM t_coupon_template WHERE id = ?",
     [templateId],
     tenantId
@@ -201,7 +282,7 @@ export async function updateCouponTemplate(
       `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "UPDATE", String(templateId), "coupon_template", userId, username,
-       `更新优惠券模板: ${templateId}`, tenantId],
+        `更新优惠券模板: ${templateId}`, tenantId],
       tenantId
     );
   }
@@ -216,7 +297,7 @@ export async function issueCoupons(
   userId: number,
   username: string
 ) {
-  const template = await queryOneWithTenant<any>(
+  const template = await queryOneWithTenant<CouponTemplateIssueRow>(
     `SELECT id, template_code, template_name, coupon_type, coupon_value,
             min_purchase, max_discount, applicable_scope, applicable_ids,
             total_quantity, issued_quantity, per_limit, valid_type,
@@ -235,7 +316,7 @@ export async function issueCoupons(
     throw Object.assign(new Error("优惠券模板未激活"), { statusCode: 400 });
   }
 
-  if (template.total_quantity > 0 && template.issued_quantity >= template.total_quantity) {
+  if (Number(template.total_quantity) > 0 && Number(template.issued_quantity) >= Number(template.total_quantity)) {
     throw Object.assign(new Error("优惠券已发完"), { statusCode: 400 });
   }
 
@@ -260,12 +341,12 @@ export async function issueCoupons(
       let validEnd: Date;
 
       if (template.valid_type === "FIXED") {
-        validStart = new Date(template.valid_start);
-        validEnd = new Date(template.valid_end);
+        validStart = new Date(template.valid_start ?? Date.now());
+        validEnd = new Date(template.valid_end ?? Date.now());
       } else {
         validStart = new Date();
         validEnd = new Date();
-        validEnd.setDate(validEnd.getDate() + template.valid_days);
+        validEnd.setDate(validEnd.getDate() + Number(template.valid_days ?? 0));
       }
 
       await conn.execute(
@@ -296,7 +377,7 @@ export async function issueCoupons(
       `INSERT INTO t_marketing_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["coupon", "ISSUE", String(templateId), "coupon_template", userId, username,
-       `发放优惠券: ${template.template_name}, 数量: ${issuedCoupons.length}`, tenantId]
+        `发放优惠券: ${template.template_name}, 数量: ${issuedCoupons.length}`, tenantId]
     );
   });
 
@@ -324,7 +405,7 @@ export async function listUserCoupons(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<UserCouponListRow>(
     `SELECT uc.id, uc.coupon_no AS couponNo, uc.template_id AS templateId,
             uc.user_id AS userId, uc.coupon_type AS couponType,
             uc.coupon_name AS couponName, uc.coupon_value AS couponValue,
@@ -342,7 +423,7 @@ export async function listUserCoupons(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_user_coupon uc ${where}`,
     params,
     tenantId

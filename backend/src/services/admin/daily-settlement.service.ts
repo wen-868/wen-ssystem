@@ -1,5 +1,48 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ===== 类型定义 =====
+/** id 查询行 */
+interface IdRow {
+  id: number | string;
+}
+
+/** COUNT(*) AS total 查询行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 收款渠道金额聚合行 */
+interface PaymentChannelAmountRow {
+  channel: string;
+  amount: number | string;
+}
+
+/** 销售额汇总行 */
+interface SalesTotalRow {
+  totalSales: number | string;
+}
+
+/** 退款汇总行 */
+interface RefundTotalRow {
+  totalRefund: number | string;
+}
+
+/** 日结列表/详情查询行 */
+interface DailySettlementListRow {
+  id: number | string;
+  settleDate: string | Date;
+  totalSales: number | string;
+  totalReceived: number | string;
+  totalRefund: number | string;
+  cashAmount: number | string;
+  wechatAmount: number | string;
+  alipayAmount: number | string;
+  transferAmount: number | string;
+  otherAmount: number | string;
+  operatorId: number | string | null;
+  createdAt: string | Date;
+}
+
 export async function createDailySettlement(params: {
   settleDate: string;
   tenantId: string;
@@ -8,7 +51,7 @@ export async function createDailySettlement(params: {
   const { settleDate, tenantId, operatorId } = params;
 
   // 检查是否已有该日期的日结记录
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_daily_settlement WHERE settle_date = ? AND tenant_id = ?",
     [settleDate, tenantId],
     tenantId
@@ -18,7 +61,7 @@ export async function createDailySettlement(params: {
   }
 
   // 从 payment_order 表按 channel 聚合当日真实收款数据
-  const channelRows = await queryWithTenant<any>(
+  const channelRows = await queryWithTenant<PaymentChannelAmountRow>(
     `SELECT channel, COALESCE(SUM(amount), 0) AS amount
      FROM t_payment_order
      WHERE DATE(paid_at) = ? AND status = 'SUCCESS' AND tenant_id = ?
@@ -40,7 +83,7 @@ export async function createDailySettlement(params: {
   const totalReceived = cashAmount + wechatAmount + alipayAmount + transferAmount + otherAmount;
 
   // 从 sale_bill 聚合当日销售额和退款
-  const salesRow = await queryOneWithTenant<any>(
+  const salesRow = await queryOneWithTenant<SalesTotalRow>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS totalSales
      FROM t_sale_bill
      WHERE DATE(created_at) = ? AND business_status NOT IN ('DRAFT', 'VOIDED') AND tenant_id = ?`,
@@ -49,7 +92,7 @@ export async function createDailySettlement(params: {
   );
   const totalSales = Number(salesRow?.totalSales ?? 0);
 
-  const refundRow = await queryOneWithTenant<any>(
+  const refundRow = await queryOneWithTenant<RefundTotalRow>(
     `SELECT COALESCE(SUM(refund_amount), 0) AS totalRefund
      FROM t_sale_return
      WHERE DATE(created_at) = ? AND return_status NOT IN ('VOIDED') AND tenant_id = ?`,
@@ -63,8 +106,8 @@ export async function createDailySettlement(params: {
        cash_amount, wechat_amount, alipay_amount, transfer_amount, other_amount, operator_id, created_at, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
     [settleDate, totalSales, totalReceived, totalRefund,
-     cashAmount, wechatAmount, alipayAmount, transferAmount, otherAmount,
-     operatorId, tenantId],
+      cashAmount, wechatAmount, alipayAmount, transferAmount, otherAmount,
+      operatorId, tenantId],
     tenantId
   );
 
@@ -104,7 +147,7 @@ export async function listDailySettlements(params: {
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<DailySettlementListRow>(
     `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
             total_received AS totalReceived, total_refund AS totalRefund,
             cash_amount AS cashAmount, wechat_amount AS wechatAmount,
@@ -117,7 +160,7 @@ export async function listDailySettlements(params: {
     [...queryParams, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_daily_settlement ${where}`,
     queryParams,
     tenantId
@@ -126,7 +169,7 @@ export async function listDailySettlements(params: {
 }
 
 export async function getDailySettlementDetail(id: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<DailySettlementListRow>(
     `SELECT id, settle_date AS settleDate, total_sales AS totalSales,
             total_received AS totalReceived, total_refund AS totalRefund,
             cash_amount AS cashAmount, wechat_amount AS wechatAmount,

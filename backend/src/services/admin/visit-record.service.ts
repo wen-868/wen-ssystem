@@ -33,6 +33,106 @@ export interface VisitListQuery {
   pageSize: number;
 }
 
+// ========== 类型定义 ==========
+
+/** 拜访记录列表行 */
+interface VisitRecordListRow {
+  id: number;
+  visitNo: string;
+  customerId: number | string;
+  customerName: string;
+  customerMobile: string | null;
+  storeId: number | string | null;
+  visitorId: number | string | null;
+  visitorName: string | null;
+  visitType: string;
+  visitPurpose: string;
+  visitDate: string;
+  startTime: string | Date | null;
+  endTime: string | Date | null;
+  durationMinutes: number | string | null;
+  address: string | null;
+  contactPerson: string | null;
+  contactPosition: string | null;
+  contactMobile: string | null;
+  visitSummary: string | null;
+  followUpRequired: number | string;
+  followUpDate: string | null;
+  followUpContent: string | null;
+  nextAction: string | null;
+  status: string;
+  relatedOrderNo: string | null;
+  images: string | null;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 拜访记录详情行（含经纬度和租户ID） */
+interface VisitRecordDetailRow extends VisitRecordListRow {
+  latitude: number | string | null;
+  longitude: number | string | null;
+  tenantId: string;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 拜访记录状态检查行 */
+interface VisitRecordStatusRow {
+  id: number;
+  status: string;
+}
+
+/** 拜访记录签退检查行（含开始时间） */
+interface VisitRecordCheckoutRow {
+  id: number;
+  status: string;
+  start_time: string | Date | null;
+}
+
+/** 待跟进拜访记录行 */
+interface VisitPendingRow {
+  id: number;
+  visitNo: string;
+  customerId: number | string;
+  customerName: string;
+  customerMobile: string | null;
+  visitPurpose: string;
+  visitDate: string;
+  followUpDate: string | null;
+  followUpContent: string | null;
+  nextAction: string | null;
+  status: string;
+  visitorName: string | null;
+  overdueDays: number | string | null;
+}
+
+/** 按拜访类型统计行 */
+interface VisitTypeCountRow {
+  visitType: string;
+  count: number | string;
+}
+
+/** 按拜访目的统计行 */
+interface VisitPurposeCountRow {
+  visitPurpose: string;
+  count: number | string;
+}
+
+/** 按状态统计行 */
+interface VisitStatusCountRow {
+  status: string;
+  count: number | string;
+}
+
+/** 平均时长统计行 */
+interface AvgDurationRow {
+  avgMinutes: number | string | null;
+}
+
 export async function listVisitRecords(tenantId: string, query: VisitListQuery) {
   const {
     customer_id, visitor_id, visit_type, visit_purpose, status,
@@ -41,7 +141,7 @@ export async function listVisitRecords(tenantId: string, query: VisitListQuery) 
   } = query;
 
   const conditions: string[] = ["cv.tenant_id = ?"];
-  const params: any[] = [tenantId];
+  const params: unknown[] = [tenantId];
 
   if (customer_id) {
     conditions.push("cv.customer_id = ?");
@@ -78,7 +178,7 @@ export async function listVisitRecords(tenantId: string, query: VisitListQuery) 
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<VisitRecordListRow>(
     `SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId,
             cv.customer_name AS customerName, cv.customer_mobile AS customerMobile,
             cv.store_id AS storeId, cv.visitor_id AS visitorId, cv.visitor_name AS visitorName,
@@ -102,7 +202,7 @@ export async function listVisitRecords(tenantId: string, query: VisitListQuery) 
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_visit cv ${where}`,
     params,
     tenantId
@@ -117,7 +217,7 @@ export async function listVisitRecords(tenantId: string, query: VisitListQuery) 
 }
 
 export async function getVisitRecordDetail(tenantId: string, visitNo: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<VisitRecordDetailRow>(
     `SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId,
             cv.customer_name AS customerName, cv.customer_mobile AS customerMobile,
             cv.store_id AS storeId, cv.visitor_id AS visitorId, cv.visitor_name AS visitorName,
@@ -154,7 +254,7 @@ export async function checkin(
   visitNo: string,
   body: CheckinInput
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<VisitRecordStatusRow>(
     "SELECT id, status FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
@@ -169,7 +269,7 @@ export async function checkin(
   const now = new Date().toISOString().slice(0, 19).replace("T", " ");
 
   const updates: string[] = ["status = 'VISITED'", "start_time = ?"];
-  const params: any[] = [now];
+  const params: unknown[] = [now];
 
   if (body.latitude !== undefined) { updates.push("latitude = ?"); params.push(body.latitude); }
   if (body.longitude !== undefined) { updates.push("longitude = ?"); params.push(body.longitude); }
@@ -199,7 +299,7 @@ export async function checkout(
   visitNo: string,
   body: CheckoutInput
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<VisitRecordCheckoutRow>(
     "SELECT id, status, start_time FROM t_customer_visit WHERE visit_no = ?",
     [visitNo],
     tenantId
@@ -221,7 +321,7 @@ export async function checkout(
   }
 
   const updates: string[] = ["status = 'COMPLETED'", "end_time = ?"];
-  const params: any[] = [endTimeStr];
+  const params: unknown[] = [endTimeStr];
 
   if (durationMinutes !== null) { updates.push("duration_minutes = ?"); params.push(durationMinutes); }
   if (body.visit_summary !== undefined) { updates.push("visit_summary = ?"); params.push(body.visit_summary); }
@@ -257,7 +357,7 @@ export async function listPendingFollowUps(
 ) {
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<VisitPendingRow>(
     `SELECT cv.id, cv.visit_no AS visitNo, cv.customer_id AS customerId,
             cv.customer_name AS customerName, cv.customer_mobile AS customerMobile,
             cv.visit_purpose AS visitPurpose, cv.visit_date AS visitDate,
@@ -276,7 +376,7 @@ export async function listPendingFollowUps(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.follow_up_required = 1
        AND cv.follow_up_date <= CURDATE()
@@ -298,14 +398,14 @@ export async function getVisitStatistics(
   const visitorCondition = visitorId ? "AND cv.visitor_id = ?" : "";
   const visitorParams = visitorId ? [visitorId] : [];
 
-  const totalVisits = await queryOneWithTenant<any>(
+  const totalVisits = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}`,
     [startDate, endDate, ...visitorParams],
     tenantId
   );
 
-  const byType = await queryWithTenant<any>(
+  const byType = await queryWithTenant<VisitTypeCountRow>(
     `SELECT cv.visit_type AS visitType, COUNT(*) AS count
      FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
@@ -314,7 +414,7 @@ export async function getVisitStatistics(
     tenantId
   );
 
-  const byPurpose = await queryWithTenant<any>(
+  const byPurpose = await queryWithTenant<VisitPurposeCountRow>(
     `SELECT cv.visit_purpose AS visitPurpose, COUNT(*) AS count
      FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
@@ -323,7 +423,7 @@ export async function getVisitStatistics(
     tenantId
   );
 
-  const byStatus = await queryWithTenant<any>(
+  const byStatus = await queryWithTenant<VisitStatusCountRow>(
     `SELECT cv.status, COUNT(*) AS count
      FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ? ${visitorCondition}
@@ -332,7 +432,7 @@ export async function getVisitStatistics(
     tenantId
   );
 
-  const avgDuration = await queryOneWithTenant<any>(
+  const avgDuration = await queryOneWithTenant<AvgDurationRow>(
     `SELECT AVG(cv.duration_minutes) AS avgMinutes
      FROM t_customer_visit cv
      WHERE cv.visit_date BETWEEN ? AND ?
@@ -341,7 +441,7 @@ export async function getVisitStatistics(
     tenantId
   );
 
-  const pendingFollowUp = await queryOneWithTenant<any>(
+  const pendingFollowUp = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_visit cv
      WHERE cv.follow_up_required = 1
        AND cv.follow_up_date <= CURDATE()

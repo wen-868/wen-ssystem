@@ -1,17 +1,50 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ===== 类型定义 =====
+/** SKU 成本价查询行 */
+interface SkuCostPriceRow {
+  costPrice: number | string | null;
+  id: number | string;
+}
+
+/** 库存实物数量查询行 */
+interface InventoryPhysicalQtyRow {
+  physicalQty: number | string;
+}
+
+/** 成本明细查询行 */
+interface InventoryCostDetailRow {
+  skuId: number | string;
+  skuName: string;
+  movingAvgCost: number | string | null;
+  endingQty: number | string;
+  inQty: number | string;
+  inAmount: number | string;
+  outQty: number | string;
+  outAmount: number | string;
+}
+
+/** 成本趋势查询行 */
+interface InventoryCostTrendRow {
+  date: string | Date;
+  skuId: number | string;
+  unitPrice: number | string | null;
+  changeType: string;
+  changeQty: number | string;
+}
+
 // 移动加权平均成本核算（入库时调用）
 export async function updateMovingAverageCost(params: {
   skuId: number; inQty: number; inUnitPrice: number; tenantId: string;
 }) {
   const { skuId, inQty, inUnitPrice, tenantId } = params;
-  const sku = await queryOneWithTenant<any>(
+  const sku = await queryOneWithTenant<SkuCostPriceRow>(
     "SELECT cost_price AS costPrice, id FROM t_product_sku WHERE id = ? AND tenant_id = ?",
     [skuId, tenantId],
     tenantId
   );
   const existingCost = Number(sku?.costPrice ?? 0);
-  const inv = await queryOneWithTenant<any>(
+  const inv = await queryOneWithTenant<InventoryPhysicalQtyRow>(
     "SELECT physical_qty AS physicalQty FROM t_inventory_balance WHERE sku_id = ? AND tenant_id = ? LIMIT 1",
     [skuId, tenantId],
     tenantId
@@ -37,7 +70,7 @@ export async function getInventoryCostDetail(tenantId: string, startDate?: strin
   if (startDate) { conditions.push("il.created_at >= ?"); params.push(startDate); }
   if (endDate) { conditions.push("il.created_at <= ?"); params.push(endDate); }
   const where = conditions.length > 1 ? `AND ${conditions.slice(1).join(" AND ")}` : "";
-  return queryWithTenant<any>(
+  return queryWithTenant<InventoryCostDetailRow>(
     `SELECT ps.id AS skuId, ps.sku_name AS skuName, ps.cost_price AS movingAvgCost,
             COALESCE(ib.physical_qty, 0) AS endingQty,
             COALESCE(SUM(CASE WHEN il.change_type = 'IN' THEN il.change_qty ELSE 0 END), 0) AS inQty,
@@ -61,7 +94,7 @@ export async function getInventoryCostTrend(tenantId: string, skuId?: number) {
   const params: unknown[] = [tenantId];
   if (skuId) { conditions.push("sku_id = ?"); params.push(skuId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<InventoryCostTrendRow>(
     `SELECT DATE(created_at) AS date, sku_id AS skuId, unit_price AS unitPrice,
             change_type AS changeType, change_qty AS changeQty
      FROM t_inventory_ledger ${where}

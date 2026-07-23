@@ -1,8 +1,47 @@
-# 当前任务 — R52 + R47 + R48
+# 当前任务 — R55-04(进行中) + R52 + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-20
+> 最后更新：2026-07-24
+
+---
+
+## R55-04 — 后端类型安全改造：any 泛型清零 [进行中]
+
+### 背景
+
+后端 `backend/src/services/` 目录大量使用 `queryWithTenant<any>` / `queryOneWithTenant<any>` / `queryOne<any>` / `queryAll<any>` / `conn.query<any>` 等泛型，丧失类型安全。分批将所有 `<any>` 替换为明确的 TypeScript 接口（按表名映射 `Row` 后缀，COUNT 行用 `CountRow`/`CountTotalRow`，INSERT 用 `ResultSetHeader`）。
+
+### 进度
+
+| 批次 | 范围 | 文件数 | 替换处数 | 状态 |
+|------|------|--------|----------|------|
+| 第一批 | approval/sale/credit/customer 四模块 | 9 | 40+ | ✅ 已完成 (c4e76778) |
+| 第二批 | 库存/销售财务/营销/系统设置 15 模块 | 15 | 130+ | ✅ 已完成 (632a45dd) |
+| 第三批 | data-permission 收尾 | 1 | 1 | ✅ 已完成 (bffb6200) |
+| 第四批 | miniapp/store/instant-retail/sync/顶层 5 模块 | 24 | 111 | ✅ 已完成 (b651de1c) |
+| 第五批 | admin service 目录全量清理 | 91 | 625+ | ✅ 已完成 |
+
+### R55-04-05 — 第五批：admin service 目录全量 any 清理 [P1]
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/admin/` 下 90 个 service 文件 + 1 个测试文件
+- **工作内容**：
+  - 为每个 `queryOneWithTenant<any>` / `queryWithTenant<any>` / `queryOne<any>` / `conn.query<any>` 定义明确接口
+  - 接口命名规范：表名 PascalCase + `Row` 后缀（如 `t_customer_credit` → `CreditRecordRow`）；`COUNT(*) AS total` → `CountTotalRow`；复杂返回值按业务命名（如 `CreditScoreResult`）
+  - 数值字段统一标注 `number | string`（兼容 mysql2 默认返回字符串），使用处用 `Number()` 转换
+  - SELECT 行接口可 `extends RowDataPacket` 以满足 `conn.query<T[]>` 约束
+- **修复的测试问题**：
+  - `credit-adjust.service.ts`：误加 null 检查导致 `adjustLimit` mock 返回 null 用例失败 → 移除 null 检查，返回类型改 `Promise<CreditRecordRow | null>` 恢复原始 `return record` 语义
+  - `credit-collection.service.ts`：`createCollection`/`updateCollection` 同样误加 null 检查 → 一并移除，返回类型改 `Promise<... | null>`
+  - `customer-merge.test.ts`：mock `queryOneWithTenant` 返回值从数组改为对象以匹配 `queryOneWithTenant` 单行语义
+- **验证结果**：
+  - `npx tsc --noEmit`：✅ 0 错误
+  - `npx vitest run`：✅ 416 文件 4857 用例全部通过
+  - admin 目录 any 剩余：149 处 / 44 文件（从 774 处 / 92 文件降至，完整清零 48 个文件）
+- **遗留**：admin 目录剩余 149 处 any（44 文件）留待后续轮次；详见踩坑日志 [5]
 
 ---
 

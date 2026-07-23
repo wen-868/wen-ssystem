@@ -1,5 +1,33 @@
 ﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
+/** COUNT(*) AS total 通用返回 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** COUNT(*) AS count 通用返回 */
+interface CountCountRow {
+  count: number;
+}
+
+/** t_notifications 列表行（带别名） */
+interface NotificationRow {
+  id: number | string;
+  title: string;
+  content: string | null;
+  type: string;
+  isRead: number | string;
+  recipientId: number | string | null;
+  tenantId: string;
+  createdAt: string | Date;
+}
+
+/** t_notifications 按类型分组统计行 */
+interface NotificationTypeCountRow {
+  type: string;
+  count: number | string;
+}
+
 export async function listNotifications(
   tenantId: string,
   page: number,
@@ -22,7 +50,7 @@ export async function listNotifications(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<NotificationRow>(
     `SELECT id, title, content, type, is_read AS isRead,
             recipient_id AS recipientId, tenant_id AS tenantId, created_at AS createdAt
      FROM t_notifications
@@ -33,7 +61,7 @@ export async function listNotifications(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_notifications ${where}`,
     params,
     tenantId
@@ -48,7 +76,7 @@ export async function listNotifications(
 }
 
 export async function getUnreadCount(tenantId: string) {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<CountCountRow>(
     `SELECT COUNT(*) AS count FROM t_notifications WHERE tenant_id = ? AND is_read = 0`,
     [tenantId],
     tenantId
@@ -57,7 +85,7 @@ export async function getUnreadCount(tenantId: string) {
 }
 
 export async function getTypeStats(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<NotificationTypeCountRow>(
     `SELECT type, COUNT(*) AS count
      FROM t_notifications
      WHERE tenant_id = ? AND is_read = 0

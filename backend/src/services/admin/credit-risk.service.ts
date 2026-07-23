@@ -1,14 +1,37 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import type { ServiceContext, PageResult } from "../../types/index";
 
+/** t_customer_credit 风险客户查询行（queryWithTenant 用，驼峰别名，含 JOIN） */
+interface RiskCustomerRow {
+  customerId: number | string;
+  customerName: string | null;
+  customerMobile: string | null;
+  creditLimit: number | string;
+  creditUsed: number | string;
+  creditFrozen: number | string;
+  creditAvailable: number | string;
+  paymentTerm: string;
+  warningThreshold: number | string;
+  creditStatus: string;
+  freezeReason: string | null;
+  frozenAt: string | Date | null;
+  estimatedOverdueDays: number | string;
+  riskLevel: string;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export async function getRiskCustomers(
   page: number,
   pageSize: number,
   ctx: ServiceContext
-): Promise<PageResult<any>> {
+): Promise<PageResult<RiskCustomerRow>> {
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<RiskCustomerRow>(
     `SELECT cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
@@ -58,7 +81,7 @@ export async function getRiskCustomers(
     ctx.tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total
      FROM t_customer_credit cc
      WHERE cc.tenant_id = ?

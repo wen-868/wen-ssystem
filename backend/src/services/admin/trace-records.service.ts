@@ -33,6 +33,235 @@ interface TraceEventLogRow {
   createdAt: string;
 }
 
+/** 追溯配置简要行（前缀+保质期） */
+interface TraceConfigBriefRow {
+  codePrefix: string;
+  shelfLifeDays: number | string | null;
+}
+
+/** 追溯码验证结果中的码信息行（用于 verifyTraceCodeSimple 返回值的类型断言） */
+interface TraceVerifyCodeRow {
+  qualityCheckResult?: string | null;
+  scanCount?: number | string;
+  [key: string]: unknown;
+}
+
+/** 追溯码列表行 */
+interface TraceCodeListRow {
+  id: number;
+  traceCode: string;
+  skuId: number | string;
+  skuName: string;
+  batchNo: string;
+  productionDate: string | null;
+  expiryDate: string | null;
+  shelfLifeDays: number | string | null;
+  codeMode: string;
+  categoryId: number | string | null;
+  currentStatus: string;
+  currentLocation: string | null;
+  storeId: number | string | null;
+  warehouseId: number | string | null;
+  orderId: number | string | null;
+  supplierId: number | string | null;
+  qualityCheckResult: string | null;
+  firstScanAt: string | Date | null;
+  scanCount: number | string;
+  fraudAlert: number | string;
+  producedAt: string | Date | null;
+  version: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 追溯码详情行（含首次扫描IP） */
+interface TraceCodeDetailRow extends TraceCodeListRow {
+  firstScanIp: string | null;
+}
+
+/** 追溯事件日志完整行 */
+interface TraceEventLogFullRow {
+  id: number;
+  traceCode: string;
+  eventType: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  operatorType: string | null;
+  operatorId: number | string | null;
+  operatorName: string | null;
+  storeId: number | string | null;
+  orderId: number | string | null;
+  location: string | null;
+  remark: string | null;
+  extra: string | null;
+  ip: string | null;
+  createdAt: string | Date;
+}
+
+/** 追溯事件日志简要行 */
+interface TraceEventLogBriefRow {
+  id: number;
+  traceCode: string;
+  eventType: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  operatorType: string | null;
+  operatorName: string | null;
+  location: string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** 追溯码更新前检查行 */
+interface TraceCodeUpdateCheckRow {
+  id: number;
+  currentStatus: string;
+  currentLocation: string | null;
+  storeId: number | string | null;
+  warehouseId: number | string | null;
+  orderId: number | string | null;
+  qualityCheckResult: string | null;
+}
+
+/** 追溯码更新后行 */
+interface TraceCodeUpdatedRow {
+  id: number;
+  traceCode: string;
+  currentStatus: string;
+  currentLocation: string | null;
+  version: number | string;
+  updatedAt: string | Date;
+}
+
+/** 追溯码状态统计行 */
+interface TraceCodeStatusCountRow {
+  currentStatus: string;
+  count: number | string;
+}
+
+/** 追溯码链路查询行 */
+interface TraceCodeChainRow {
+  id: number;
+  traceCode: string;
+  skuId: number | string;
+  skuName: string;
+  batchNo: string;
+  productionDate: string | null;
+  expiryDate: string | null;
+  shelfLifeDays: number | string | null;
+  codeMode: string;
+  categoryId: number | string | null;
+  currentStatus: string;
+  currentLocation: string | null;
+  storeId: number | string | null;
+  warehouseId: number | string | null;
+  qualityCheckResult: string | null;
+  scanCount: number | string;
+  fraudAlert: number | string;
+  producedAt: string | Date | null;
+  createdAt: string | Date;
+}
+
+/** COUNT(*) AS count 行 */
+interface CountRow {
+  count: number | string;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number | string;
+}
+
+/** 追溯码仅含 traceCode 行 */
+interface TraceCodeOnlyRow {
+  traceCode: string;
+}
+
+/** 召回记录创建后行 */
+interface RecallRecordCreatedRow {
+  id: number;
+  recallNo: string;
+  recallType: string;
+  targetValue: string;
+  targetName: string;
+  reason: string;
+  totalAffected: number | string;
+  totalNotified: number | string | null;
+  totalReturned: number | string | null;
+  status: string;
+  notifyContent: string | null;
+  operatorId: number | string | null;
+  createdAt: string | Date;
+}
+
+/** 召回记录列表行 */
+interface RecallRecordListRow {
+  id: number;
+  recallNo: string;
+  recallType: string;
+  targetValue: string;
+  targetName: string;
+  reason: string;
+  totalAffected: number | string;
+  totalNotified: number | string | null;
+  totalReturned: number | string | null;
+  status: string;
+  notifyContent: string | null;
+  startedAt: string | Date | null;
+  completedAt: string | Date | null;
+  operatorId: number | string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date | null;
+}
+
+/** 召回记录检查行 */
+interface RecallRecordCheckRow {
+  id: number;
+  recallNo: string;
+  recallType: string;
+  targetValue: string;
+  status: string;
+  totalAffected: number | string;
+}
+
+/** 召回记录执行后行 */
+interface RecallRecordExecRow {
+  id: number;
+  recallNo: string;
+  recallType: string;
+  targetValue: string;
+  targetName: string;
+  reason: string;
+  totalAffected: number | string;
+  totalNotified: number | string | null;
+  totalReturned: number | string | null;
+  status: string;
+  startedAt: string | Date | null;
+  updatedAt: string | Date | null;
+}
+
+/** 召回记录状态行 */
+interface RecallRecordStatusRow {
+  id: number;
+  status: string;
+}
+
+/** 召回记录完成后行 */
+interface RecallRecordCompleteRow {
+  id: number;
+  recallNo: string;
+  recallType: string;
+  targetValue: string;
+  targetName: string;
+  reason: string;
+  totalAffected: number | string;
+  totalNotified: number | string;
+  totalReturned: number | string;
+  status: string;
+  completedAt: string | Date | null;
+  updatedAt: string | Date | null;
+}
+
 export async function generateTraceCodes(
   body: {
     skuId: number;
@@ -51,13 +280,13 @@ export async function generateTraceCodes(
   username: string,
   tenantId: string
 ) {
-  const skuConfig = await queryOneWithTenant<any>(
+  const skuConfig = await queryOneWithTenant<TraceConfigBriefRow>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
      FROM t_trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
     [body.skuId, tenantId],
     tenantId
   );
-  const globalConfig = !skuConfig ? await queryOneWithTenant<any>(
+  const globalConfig = !skuConfig ? await queryOneWithTenant<TraceConfigBriefRow>(
     `SELECT code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
      FROM t_trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,
     [tenantId],
@@ -69,7 +298,7 @@ export async function generateTraceCodes(
   const shelfLifeDays = body.shelfLifeDays ?? config?.shelfLifeDays ?? 365;
   const productionDate = body.productionDate ?? null;
   const expiryDate = productionDate
-    ? new Date(new Date(productionDate).getTime() + shelfLifeDays * 86400000).toISOString().slice(0, 10)
+    ? new Date(new Date(productionDate).getTime() + Number(shelfLifeDays) * 86400000).toISOString().slice(0, 10)
     : null;
 
   const generateCount = body.codeMode === "ONE_PER_BATCH" ? 1 : body.quantity;
@@ -143,7 +372,7 @@ export async function listTraceCodes(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TraceCodeListRow>(
     `SELECT tc.id, tc.trace_code AS traceCode, tc.sku_id AS skuId, tc.sku_name AS skuName,
             tc.batch_no AS batchNo, tc.production_date AS productionDate,
             tc.expiry_date AS expiryDate, tc.shelf_life_days AS shelfLifeDays,
@@ -163,7 +392,7 @@ export async function listTraceCodes(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_trace_code tc ${where}`,
     params,
     tenantId
@@ -178,7 +407,7 @@ export async function listTraceCodes(
 }
 
 export async function getTraceCodeDetail(traceCode: string, tenantId: string) {
-  const code = await queryOneWithTenant<any>(
+  const code = await queryOneWithTenant<TraceCodeDetailRow>(
     `SELECT tc.id, tc.trace_code AS traceCode, tc.sku_id AS skuId, tc.sku_name AS skuName,
             tc.batch_no AS batchNo, tc.production_date AS productionDate,
             tc.expiry_date AS expiryDate, tc.shelf_life_days AS shelfLifeDays,
@@ -201,7 +430,7 @@ export async function getTraceCodeDetail(traceCode: string, tenantId: string) {
     return null;
   }
 
-  const events = await queryWithTenant<any>(
+  const events = await queryWithTenant<TraceEventLogFullRow>(
     `SELECT id, trace_code AS traceCode, event_type AS eventType,
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, operator_id AS operatorId,
@@ -234,7 +463,7 @@ export async function updateTraceCodeStatus(
   ip: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TraceCodeUpdateCheckRow>(
     `SELECT id, current_status AS currentStatus, current_location AS currentLocation,
             store_id AS storeId, warehouse_id AS warehouseId, order_id AS orderId,
             quality_check_result AS qualityCheckResult
@@ -277,7 +506,7 @@ export async function updateTraceCodeStatus(
     tenantId
   );
 
-  const code = await queryOneWithTenant<any>(
+  const code = await queryOneWithTenant<TraceCodeUpdatedRow>(
     `SELECT id, trace_code AS traceCode, current_status AS currentStatus,
             current_location AS currentLocation, version, updated_at AS updatedAt
      FROM t_trace_code WHERE trace_code = ? AND tenant_id = ?`,
@@ -289,7 +518,7 @@ export async function updateTraceCodeStatus(
 }
 
 export async function getTraceCodeStatistics(tenantId: string) {
-  const statusStats = await queryWithTenant<any>(
+  const statusStats = await queryWithTenant<TraceCodeStatusCountRow>(
     `SELECT current_status AS currentStatus, COUNT(*) AS count
      FROM t_trace_code
      WHERE tenant_id = ?
@@ -298,32 +527,32 @@ export async function getTraceCodeStatistics(tenantId: string) {
     tenantId
   );
 
-  const totalCount = await queryOneWithTenant<any>(
+  const totalCount = await queryOneWithTenant<CountRow>(
     "SELECT COUNT(*) AS count FROM t_trace_code WHERE tenant_id = ?",
     [tenantId],
     tenantId
   );
 
-  const todayCount = await queryOneWithTenant<any>(
+  const todayCount = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS count FROM t_trace_code
      WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
     [tenantId],
     tenantId
   );
 
-  const fraudCount = await queryOneWithTenant<any>(
+  const fraudCount = await queryOneWithTenant<CountRow>(
     "SELECT COUNT(*) AS count FROM t_trace_code WHERE fraud_alert = 1 AND tenant_id = ?",
     [tenantId],
     tenantId
   );
 
-  const totalScans = await queryOneWithTenant<any>(
+  const totalScans = await queryOneWithTenant<CountRow>(
     "SELECT COALESCE(SUM(scan_count), 0) AS count FROM t_trace_code WHERE tenant_id = ?",
     [tenantId],
     tenantId
   );
 
-  const todayScans = await queryOneWithTenant<any>(
+  const todayScans = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS count FROM t_trace_scan_log
      WHERE tenant_id = ? AND DATE(created_at) = CURDATE()`,
     [tenantId],
@@ -346,7 +575,7 @@ export async function getTraceCodeStatistics(tenantId: string) {
 }
 
 export async function queryTraceChain(traceCode: string, tenantId: string) {
-  const code = await queryOneWithTenant<any>(
+  const code = await queryOneWithTenant<TraceCodeChainRow>(
     `SELECT id, trace_code AS traceCode, sku_id AS skuId, sku_name AS skuName,
             batch_no AS batchNo, production_date AS productionDate,
             expiry_date AS expiryDate, shelf_life_days AS shelfLifeDays,
@@ -365,7 +594,7 @@ export async function queryTraceChain(traceCode: string, tenantId: string) {
     return null;
   }
 
-  const events = await queryWithTenant<any>(
+  const events = await queryWithTenant<TraceEventLogBriefRow>(
     `SELECT id, trace_code AS traceCode, event_type AS eventType,
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, operator_name AS operatorName,
@@ -433,8 +662,8 @@ export async function verifyTraceCode(
     skuName: verifyResult.code?.skuName ?? null,
     batchNo: verifyResult.code?.batchNo ?? null,
     currentStatus: verifyResult.code?.currentStatus ?? null,
-    qualityCheckResult: (verifyResult.code as any)?.qualityCheckResult ?? null,
-    scanCount: verifyResult.code ? Number((verifyResult.code as any).scanCount ?? 0) + 1 : 0
+    qualityCheckResult: (verifyResult.code as unknown as TraceVerifyCodeRow)?.qualityCheckResult ?? null,
+    scanCount: verifyResult.code ? Number((verifyResult.code as unknown as TraceVerifyCodeRow).scanCount ?? 0) + 1 : 0
   };
 }
 
@@ -475,7 +704,7 @@ export async function createRecall(
       break;
   }
 
-  const totalAffected = await queryOneWithTenant<any>(
+  const totalAffected = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS count FROM t_trace_code WHERE ${affectedCondition}
      AND current_status NOT IN ('DESTROYED', 'EXPIRED')`,
     affectedParams,
@@ -492,7 +721,7 @@ export async function createRecall(
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<RecallRecordCreatedRow>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType,
             target_value AS targetValue, target_name AS targetName,
             reason, total_affected AS totalAffected,
@@ -529,7 +758,7 @@ export async function listRecalls(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<RecallRecordListRow>(
     `SELECT rr.id, rr.recall_no AS recallNo, rr.recall_type AS recallType,
             rr.target_value AS targetValue, rr.target_name AS targetName,
             rr.reason, rr.total_affected AS totalAffected,
@@ -545,7 +774,7 @@ export async function listRecalls(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_recall_record rr ${where}`,
     params,
     tenantId
@@ -560,7 +789,7 @@ export async function listRecalls(
 }
 
 export async function getRecallDetail(recallNo: string, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<RecallRecordListRow>(
     `SELECT rr.id, rr.recall_no AS recallNo, rr.recall_type AS recallType,
             rr.target_value AS targetValue, rr.target_name AS targetName,
             rr.reason, rr.total_affected AS totalAffected,
@@ -583,7 +812,7 @@ export async function executeRecall(
   username: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<RecallRecordCheckRow>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType, target_value AS targetValue,
             status, total_affected AS totalAffected
      FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
@@ -631,7 +860,7 @@ export async function executeRecall(
     tenantId
   );
 
-  const affectedCodes = await queryWithTenant<any>(
+  const affectedCodes = await queryWithTenant<TraceCodeOnlyRow>(
     `SELECT trace_code AS traceCode FROM t_trace_code
      WHERE ${affectedCondition} AND current_status = 'RECALLED'`,
     affectedParams,
@@ -657,7 +886,7 @@ export async function executeRecall(
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<RecallRecordExecRow>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType,
             target_value AS targetValue, target_name AS targetName,
             reason, total_affected AS totalAffected,
@@ -679,7 +908,7 @@ export async function completeRecall(
   },
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<RecallRecordStatusRow>(
     `SELECT id, status FROM t_recall_record WHERE recall_no = ? AND tenant_id = ?`,
     [recallNo, tenantId],
     tenantId
@@ -701,7 +930,7 @@ export async function completeRecall(
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<RecallRecordCompleteRow>(
     `SELECT id, recall_no AS recallNo, recall_type AS recallType,
             target_value AS targetValue, target_name AS targetName,
             reason, total_affected AS totalAffected,
@@ -821,6 +1050,6 @@ export async function consumerVerifyTraceCode(
     skuName: verifyResult.code?.skuName ?? null,
     batchNo: verifyResult.code?.batchNo ?? null,
     currentStatus: verifyResult.code?.currentStatus ?? null,
-    qualityCheckResult: (verifyResult.code as any)?.qualityCheckResult ?? null
+    qualityCheckResult: (verifyResult.code as unknown as TraceVerifyCodeRow)?.qualityCheckResult ?? null
   };
 }

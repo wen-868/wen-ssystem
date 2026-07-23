@@ -1,5 +1,29 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** t_approval_rule 规则列表行 */
+interface ApprovalRuleRow {
+  id: number | string;
+  ruleName: string;
+  businessType: string;
+  triggerCondition: string | null;
+  approvalChain: string | null;
+  slaHours: number | string;
+  escalationLevel: number | string;
+  status: number | string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** COUNT(*) AS total 通用行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** SELECT id 通用行 */
+interface IdRow {
+  id: number | string;
+}
+
 export async function listRules(
   page: number,
   pageSize: number,
@@ -22,7 +46,7 @@ export async function listRules(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ApprovalRuleRow>(
     `SELECT id, rule_name AS ruleName, business_type AS businessType,
             trigger_condition AS triggerCondition, approval_chain AS approvalChain,
             sla_hours AS slaHours, escalation_level AS escalationLevel,
@@ -35,7 +59,7 @@ export async function listRules(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_approval_rule ${where}`,
     params,
     tenantId
@@ -99,7 +123,7 @@ export async function updateRule(
   },
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_approval_rule WHERE id = ?",
     [id],
     tenantId

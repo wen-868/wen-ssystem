@@ -1,6 +1,84 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+// ========== 类型定义 ==========
+
+/** 追溯配置列表行 */
+interface TraceConfigListRow {
+  id: number;
+  configNo: string;
+  configLevel: string;
+  targetId: number | string;
+  targetName: string;
+  traceEnabled: number | string;
+  forceEnabled: number | string;
+  codeMode: string;
+  codePrefix: string;
+  autoGenerate: number | string;
+  shelfLifeDays: number | string;
+  remark: string | null;
+  status: number | string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+}
+
+/** 追溯配置创建后行 */
+interface TraceConfigCreatedRow {
+  id: number;
+  configNo: string;
+  configLevel: string;
+  targetId: number | string;
+  targetName: string;
+  traceEnabled: number | string;
+  forceEnabled: number | string;
+  codeMode: string;
+  codePrefix: string;
+  autoGenerate: number | string;
+  shelfLifeDays: number | string;
+  remark: string | null;
+  status: number | string;
+  createdAt: string | Date;
+}
+
+/** 追溯配置更新后行 */
+interface TraceConfigUpdatedRow {
+  id: number;
+  configNo: string;
+  configLevel: string;
+  targetId: number | string;
+  targetName: string;
+  traceEnabled: number | string;
+  forceEnabled: number | string;
+  codeMode: string;
+  codePrefix: string;
+  autoGenerate: number | string;
+  shelfLifeDays: number | string;
+  remark: string | null;
+  status: number | string;
+  updatedAt: string | Date;
+}
+
+/** 追溯配置 ID 行 */
+interface TraceConfigIdRow {
+  id: number;
+}
+
+/** 追溯配置检查行 */
+interface TraceConfigCheckRow {
+  id: number;
+  configNo: string;
+  traceEnabled: number | string;
+  forceEnabled: number | string;
+  codeMode: string;
+  codePrefix: string;
+  shelfLifeDays: number | string;
+}
+
+/** COUNT(*) AS total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export async function listConfigs(
   page: number,
   pageSize: number,
@@ -23,7 +101,7 @@ export async function listConfigs(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TraceConfigListRow>(
     `SELECT tc.id, tc.config_no AS configNo, tc.config_level AS configLevel,
             tc.target_id AS targetId, tc.target_name AS targetName,
             tc.trace_enabled AS traceEnabled, tc.force_enabled AS forceEnabled,
@@ -39,7 +117,7 @@ export async function listConfigs(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_trace_config tc ${where}`,
     params,
     tenantId
@@ -73,12 +151,12 @@ export async function createConfig(body: {
        shelf_life_days, remark, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [configNo, body.configLevel, body.targetId, body.targetName,
-     body.traceEnabled, body.forceEnabled, body.codeMode, body.codePrefix,
-     body.autoGenerate, body.shelfLifeDays, body.remark, tenantId],
+      body.traceEnabled, body.forceEnabled, body.codeMode, body.codePrefix,
+      body.autoGenerate, body.shelfLifeDays, body.remark, tenantId],
     tenantId
   );
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<TraceConfigCreatedRow>(
     `SELECT id, config_no AS configNo, config_level AS configLevel,
             target_id AS targetId, target_name AS targetName,
             trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
@@ -108,7 +186,7 @@ export async function updateConfig(
   },
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TraceConfigIdRow>(
     "SELECT id FROM t_trace_config WHERE id = ? AND tenant_id = ?",
     [configId, tenantId],
     tenantId
@@ -138,7 +216,7 @@ export async function updateConfig(
     );
   }
 
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<TraceConfigUpdatedRow>(
     `SELECT id, config_no AS configNo, config_level AS configLevel,
             target_id AS targetId, target_name AS targetName,
             trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
@@ -154,7 +232,7 @@ export async function updateConfig(
 }
 
 export async function deleteConfig(configId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<TraceConfigIdRow>(
     "SELECT id FROM t_trace_config WHERE id = ? AND tenant_id = ?",
     [configId, tenantId],
     tenantId
@@ -177,7 +255,7 @@ export async function checkSkuTrace(
   categoryId: number | undefined,
   tenantId: string
 ) {
-  const skuConfig = await queryOneWithTenant<any>(
+  const skuConfig = await queryOneWithTenant<TraceConfigCheckRow>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
      FROM t_trace_config WHERE config_level = 'SKU' AND target_id = ? AND status = 1 AND tenant_id = ?`,
@@ -193,7 +271,7 @@ export async function checkSkuTrace(
   }
 
   if (categoryId) {
-    const categoryConfig = await queryOneWithTenant<any>(
+    const categoryConfig = await queryOneWithTenant<TraceConfigCheckRow>(
       `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
               code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
        FROM t_trace_config WHERE config_level = 'CATEGORY' AND target_id = ? AND status = 1 AND tenant_id = ?`,
@@ -209,7 +287,7 @@ export async function checkSkuTrace(
     }
   }
 
-  const globalConfig = await queryOneWithTenant<any>(
+  const globalConfig = await queryOneWithTenant<TraceConfigCheckRow>(
     `SELECT id, config_no AS configNo, trace_enabled AS traceEnabled, force_enabled AS forceEnabled,
             code_mode AS codeMode, code_prefix AS codePrefix, shelf_life_days AS shelfLifeDays
      FROM t_trace_config WHERE config_level = 'GLOBAL' AND status = 1 AND tenant_id = ? LIMIT 1`,

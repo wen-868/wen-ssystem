@@ -1,4 +1,19 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
+
+/** t_platform_reconciliation 对账行（带别名） */
+interface ReconciliationRow {
+  id: number | string;
+  reconciliationNo: string;
+  platformNo: string;
+  platformName: string;
+  type: number | string;
+  amount: number | string;
+  status: number | string;
+  recordedAt: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
 
 export interface ReconciliationListParams {
   page: number;
@@ -43,7 +58,7 @@ export async function listReconciliations(tenantId: string, params: Reconciliati
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ReconciliationRow>(
     `SELECT id, reconciliation_no AS reconciliationNo, platform_no AS platformNo,
             platform_name AS platformName, type, amount, status,
             recorded_at AS recordedAt, created_at AS createdAt, updated_at AS updatedAt
@@ -58,7 +73,7 @@ export async function listReconciliations(tenantId: string, params: Reconciliati
 }
 
 export async function createReconciliation(tenantId: string, data: ReconciliationCreateData) {
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     `INSERT INTO t_platform_reconciliation (tenant_id, reconciliation_no, platform_no, platform_name, type, amount, status, recorded_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [tenantId, data.reconciliationNo, data.platformNo, data.platformName, data.type, data.amount, data.status, data.recordedAt || null],
@@ -86,7 +101,7 @@ export async function updateReconciliation(tenantId: string, id: number, data: R
 }
 
 export async function getDetail(tenantId: string, id: number) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<ReconciliationRow>(
     `SELECT id, reconciliation_no AS reconciliationNo, platform_no AS platformNo,
             platform_name AS platformName, type, amount, status,
             recorded_at AS recordedAt, created_at AS createdAt, updated_at AS updatedAt

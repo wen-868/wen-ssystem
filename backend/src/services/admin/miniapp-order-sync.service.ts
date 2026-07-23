@@ -1,5 +1,16 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+/** t_miniapp_order_sync_log 列表行（带别名） */
+interface SyncLogRow {
+  id: number | string;
+  orderNo: string;
+  platformOrderNo: string;
+  status: number | string;
+  response: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface SyncLogListParams {
   page: number;
   pageSize: number;
@@ -22,7 +33,7 @@ export async function listSyncLogs(tenantId: string, params: SyncLogListParams) 
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SyncLogRow>(
     `SELECT id, order_no AS orderNo, platform_order_no AS platformOrderNo,
             status, response, created_at AS createdAt, updated_at AS updatedAt
      FROM t_miniapp_order_sync_log ${where}

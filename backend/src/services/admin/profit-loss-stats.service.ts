@@ -1,5 +1,40 @@
 import { queryOneWithTenant, queryWithTenant } from "../../shared/db";
 
+/** 报损统计行（COUNT/SUM 聚合，用于算术运算故用 number） */
+interface LossStatsRow {
+  lossOrderCount: number;
+  lossTotalQty: number;
+  lossTotalAmount: number;
+}
+
+/** 报溢统计行（COUNT/SUM 聚合，用于算术运算故用 number） */
+interface ProfitStatsRow {
+  profitOrderCount: number;
+  profitTotalQty: number;
+  profitTotalAmount: number;
+}
+
+/** COUNT(*) AS count 结果行 */
+interface CountCntRow {
+  count: number;
+}
+
+/** 报损按类型统计行 */
+interface LossByTypeRow {
+  lossType: string;
+  orderCount: number;
+  totalQty: number;
+  totalAmount: number;
+}
+
+/** 报溢按类型统计行 */
+interface ProfitByTypeRow {
+  profitType: string;
+  orderCount: number;
+  totalQty: number;
+  totalAmount: number;
+}
+
 // ========== 损益统计 ==========
 export async function getProfitLossStats(params: {
   tenantId: string;
@@ -40,7 +75,7 @@ export async function getProfitLossStats(params: {
   const profitWhere = `WHERE ${profitConditions.join(" AND ")}`;
 
   // 报损统计
-  const lossStats = await queryOneWithTenant<any>(
+  const lossStats = await queryOneWithTenant<LossStatsRow>(
     `SELECT
        COUNT(*) AS lossOrderCount,
        COALESCE(SUM(total_qty), 0) AS lossTotalQty,
@@ -52,7 +87,7 @@ export async function getProfitLossStats(params: {
   );
 
   // 报溢统计
-  const profitStats = await queryOneWithTenant<any>(
+  const profitStats = await queryOneWithTenant<ProfitStatsRow>(
     `SELECT
        COUNT(*) AS profitOrderCount,
        COALESCE(SUM(total_qty), 0) AS profitTotalQty,
@@ -64,19 +99,19 @@ export async function getProfitLossStats(params: {
   );
 
   // 待审核数量
-  const pendingLoss = await queryOneWithTenant<any>(
+  const pendingLoss = await queryOneWithTenant<CountCntRow>(
     `SELECT COUNT(*) AS count FROM t_inventory_loss_order WHERE tenant_id = ? AND status = 'PENDING'`,
     [tenantId],
     tenantId
   );
-  const pendingProfit = await queryOneWithTenant<any>(
+  const pendingProfit = await queryOneWithTenant<CountCntRow>(
     `SELECT COUNT(*) AS count FROM t_inventory_profit_order WHERE tenant_id = ? AND status = 'PENDING'`,
     [tenantId],
     tenantId
   );
 
   // 按类型统计报损
-  const lossByType = await queryWithTenant<any>(
+  const lossByType = await queryWithTenant<LossByTypeRow>(
     `SELECT loss_type AS lossType, COUNT(*) AS orderCount,
             COALESCE(SUM(total_qty), 0) AS totalQty,
             COALESCE(SUM(total_amount), 0) AS totalAmount
@@ -89,7 +124,7 @@ export async function getProfitLossStats(params: {
   );
 
   // 按类型统计报溢
-  const profitByType = await queryWithTenant<any>(
+  const profitByType = await queryWithTenant<ProfitByTypeRow>(
     `SELECT profit_type AS profitType, COUNT(*) AS orderCount,
             COALESCE(SUM(total_qty), 0) AS totalQty,
             COALESCE(SUM(total_amount), 0) AS totalAmount

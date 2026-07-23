@@ -1,4 +1,35 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
+
+/** 岗位完整行（列表/详情查询） */
+interface PositionRow {
+  id: number | string;
+  positionName: string;
+  positionCode: string | null;
+  departmentId: number | string | null;
+  sortOrder: number | string;
+  status: number | string;
+  remark: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 岗位简单行（下拉列表） */
+interface PositionSimpleRow {
+  id: number | string;
+  positionName: string;
+  positionCode: string | null;
+}
+
+/** COUNT(*) AS total 结果行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** SELECT id 结果行 */
+interface IdRow {
+  id: number | string;
+}
 
 export async function listPositions(params: { departmentId?: number; status?: number; page: number; pageSize: number; tenantId: string }) {
   const { departmentId, status, page, pageSize, tenantId } = params;
@@ -8,17 +39,17 @@ export async function listPositions(params: { departmentId?: number; status?: nu
   if (departmentId !== undefined) { conditions.push("department_id = ?"); values.push(departmentId); }
   if (status !== undefined) { conditions.push("status = ?"); values.push(status); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PositionRow>(
     `SELECT id, position_name AS positionName, position_code AS positionCode, department_id AS departmentId, sort_order AS sortOrder, status, remark, created_at AS createdAt, updated_at AS updatedAt
      FROM t_sys_position ${where} ORDER BY sort_order ASC, id ASC LIMIT ? OFFSET ?`,
     [...values, pageSize, offset], tenantId
   );
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS total FROM t_sys_position ${where}`, values, tenantId);
+  const total = await queryOneWithTenant<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_sys_position ${where}`, values, tenantId);
   return { total: total?.total ?? 0, page, pageSize, records };
 }
 
 export async function getPosition(id: number, tenantId: string) {
-  const position = await queryOneWithTenant<any>(
+  const position = await queryOneWithTenant<PositionRow>(
     "SELECT id, position_name AS positionName, position_code AS positionCode, department_id AS departmentId, sort_order AS sortOrder, status, remark, created_at AS createdAt, updated_at AS updatedAt FROM t_sys_position WHERE id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
   );
@@ -28,7 +59,7 @@ export async function getPosition(id: number, tenantId: string) {
 
 export async function createPosition(params: { positionName: string; positionCode?: string; departmentId?: number; sortOrder?: number; status?: number; remark?: string; tenantId: string }) {
   const { positionName, positionCode, departmentId, sortOrder, status, remark, tenantId } = params;
-  const result = await queryWithTenant<any>(
+  const result = await queryWithTenant<ResultSetHeader>(
     "INSERT INTO t_sys_position (position_name, position_code, department_id, sort_order, status, remark, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [positionName, positionCode ?? null, departmentId ?? null, sortOrder ?? 0, status ?? 1, remark ?? null, tenantId], tenantId
   );
@@ -51,14 +82,14 @@ export async function updatePosition(id: number, params: { positionName?: string
 }
 
 export async function deletePosition(id: number, tenantId: string) {
-  const position = await queryOneWithTenant<any>("SELECT id FROM t_sys_position WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+  const position = await queryOneWithTenant<IdRow>("SELECT id FROM t_sys_position WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   if (!position) throw Object.assign(new Error("岗位不存在"), { statusCode: 404 });
   await queryWithTenant("DELETE FROM t_sys_position WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
   return { id };
 }
 
 export async function listAllPositions(tenantId: string) {
-  return queryWithTenant<any>(
+  return queryWithTenant<PositionSimpleRow>(
     "SELECT id, position_name AS positionName, position_code AS positionCode FROM t_sys_position WHERE tenant_id = ? AND status = 1 ORDER BY sort_order ASC",
     [tenantId], tenantId
   );
