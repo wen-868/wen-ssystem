@@ -105,7 +105,7 @@ export async function updateDataPermission(id: number, body: {
   status?: number;
   sortNo?: number;
 }, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_data_permission WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
@@ -128,7 +128,7 @@ export async function updateDataPermission(id: number, body: {
     );
   }
 
-  const record = await queryOne<any>(
+  const record = await queryOne<DataPermissionRow>(
     `SELECT id, permission_name AS permissionName, permission_code AS permissionCode,
             permission_type AS permissionType, description, status, sort_no AS sortNo,
             created_at AS createdAt, updated_at AS updatedAt
@@ -139,7 +139,7 @@ export async function updateDataPermission(id: number, body: {
 }
 
 export async function deleteDataPermission(id: number, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_data_permission WHERE id = ? AND tenant_id = ?",
     [id, tenantId]
   );
