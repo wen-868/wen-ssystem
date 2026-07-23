@@ -55,7 +55,7 @@
           <el-tag v-else-if="row.status === 'SOLD_OUT'" type="warning">已售罄</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button size="small" link type="primary" @click="openDialog(row)">编辑</el-button>
           <el-button

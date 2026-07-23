@@ -62,7 +62,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="description" label="说明" min-width="160" />
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="editConfig(row)">编辑</el-button>
                 <el-button size="small" link :type="row.enabled ? 'warning' : 'success'" @click="toggleConfig(row)">

@@ -69,7 +69,7 @@
         <el-table-column prop="receiverName" label="收货人" width="100" />
         <el-table-column prop="receiverPhone" label="联系电话" width="130" />
         <el-table-column prop="createTime" label="创建时间" width="160" />
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
           </template>

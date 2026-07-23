@@ -77,7 +77,7 @@ function handlePageChange(p: number) {
 </script>
 
 <style scoped>
-.pagination-wrapper {
+.pagination {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;

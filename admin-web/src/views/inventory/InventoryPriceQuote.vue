@@ -29,7 +29,7 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openDetail(row)">详情</el-button>
             <el-button v-if="row.status === 'DRAFT'" size="small" link type="success" @click="handleSend(row)">发送</el-button>

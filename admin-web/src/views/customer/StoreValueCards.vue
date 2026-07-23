@@ -28,7 +28,7 @@
           <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="320" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
           <el-button size="small" link @click="handleRecharge(row)">充值</el-button>
           <el-button size="small" link @click="handleConsume(row)">消费</el-button>

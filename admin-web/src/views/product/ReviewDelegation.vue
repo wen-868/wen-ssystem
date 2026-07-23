@@ -97,7 +97,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination-wrap">
+      <div class="pagination">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
@@ -518,7 +518,7 @@ onMounted(() => {
   color: #c0c4cc;
 }
 
-.pagination-wrap {
+.pagination {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;

@@ -87,7 +87,7 @@
         <el-table-column prop="status_code" label="状态码" width="90" />
         <el-table-column prop="user_id" label="用户ID" width="100" />
         <el-table-column prop="created_at" label="时间" width="170" />
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
           </template>

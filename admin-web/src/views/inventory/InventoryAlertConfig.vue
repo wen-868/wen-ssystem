@@ -58,7 +58,7 @@
             <el-tag v-else type="success" size="small">正常</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="quickConfig(row)">快速配置</el-button>
           </template>

@@ -53,7 +53,7 @@
         <el-table-column prop="created_at" label="提交时间" width="170">
           <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="130" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click="openDetail(row)">详情</el-button>
             <el-dropdown v-if="row.status === 'PENDING'" trigger="click" @command="(cmd: string) => handleStatus(row, cmd)">
@@ -69,7 +69,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination-wrap">
+      <div class="pagination">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"
@@ -244,5 +244,5 @@ onMounted(loadList);
 .feedback-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .feedback-header h2 { margin: 0; font-size: 20px; }
 .filter-card { margin-bottom: 16px; }
-.pagination-wrap { margin-top: 16px; display: flex; justify-content: flex-end; }
+.pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

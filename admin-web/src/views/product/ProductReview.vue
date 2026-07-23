@@ -143,7 +143,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination-wrap">
+      <div class="pagination">
         <el-pagination
           v-model:current-page="pagination.page"
           v-model:page-size="pagination.pageSize"
@@ -778,7 +778,7 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-.table-card .pagination-wrap {
+.table-card .pagination {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;

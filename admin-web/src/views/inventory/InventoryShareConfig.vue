@@ -99,11 +99,11 @@
                 <el-switch v-model="row.enabled" size="small" @change="toggleProductShare(row)" />
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="120" align="center" fixed="right">
-              <template #default="{ row }">
-                <el-button link type="primary" size="small" @click="editProductConfig(row)">配置</el-button>
-                <el-button link type="danger" size="small" @click="removeShareProduct(row)">移除</el-button>
-              </template>
+            <el-table-column label="操作" width="160" align="center" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" size="small" @click="editProductConfig(row)">配置</el-button>
+              <el-button link type="danger" size="small" @click="removeShareProduct(row)">移除</el-button>
+            </template>
             </el-table-column>
           </el-table>
 

@@ -169,7 +169,7 @@
                 <el-tag v-else>{{ row.status }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-popconfirm
                   v-if="row.status === 'PENDING'"

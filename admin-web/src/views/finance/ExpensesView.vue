@@ -57,7 +57,7 @@
             <el-tag v-else>{{ row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button v-if="row.status === 'PENDING'" size="small" link type="success" @click="openApprove(row)">审批</el-button>
             <el-button v-if="row.status === 'PENDING'" size="small" link type="danger" @click="handleVoid(row)">作废</el-button>

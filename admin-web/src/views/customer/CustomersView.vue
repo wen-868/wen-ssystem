@@ -57,7 +57,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
-        <el-table-column label="操作" width="360" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="handleViewDetail(row)">详情</el-button>
             <el-button size="small" link type="primary" @click="handleAssignMember(row)">分配管理员</el-button>

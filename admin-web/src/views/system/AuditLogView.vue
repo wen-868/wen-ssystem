@@ -104,7 +104,7 @@
         <el-table-column prop="ip" label="IP地址" width="140" />
         <el-table-column prop="userAgent" label="设备" min-width="160" show-overflow-tooltip />
         <el-table-column prop="createdAt" label="操作时间" width="170" />
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
           </template>

@@ -140,7 +140,7 @@
             <span>{{ row.reviewOpinion || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" link @click="viewDetail(row)">详情</el-button>
             <template v-if="activeTab === 'pending'">
@@ -154,7 +154,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination-wrap">
+      <div class="pagination">
         <el-pagination
           v-model:current-page="page"
           v-model:page-size="pageSize"

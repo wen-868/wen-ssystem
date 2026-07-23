@@ -44,7 +44,7 @@
                   <template #default="{ row: s }">{{ s.temperature === 'CHILLED' ? '冷藏' : '常温' }}</template>
                 </el-table-column>
                 <el-table-column prop="warningThreshold" label="库存预警" width="90" />
-                <el-table-column label="操作" width="140" fixed="right">
+                <el-table-column label="操作" width="160" fixed="right">
                   <template #default="{ row: s }">
                     <el-button size="small" link type="primary" @click="viewSkuPriceHistory(s)">价格历史</el-button>
                     <el-button size="small" link type="warning" @click="openSkuPriceDialog(s)">改价</el-button>

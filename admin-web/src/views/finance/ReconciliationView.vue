@@ -56,7 +56,7 @@
                 <el-tag v-else>{{ row.status }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openDetail(row)">查看详情</el-button>
                 <el-button v-if="row.status === 'PENDING'" size="small" link type="success" @click="handleConfirm(row)">确认对账</el-button>
@@ -119,7 +119,7 @@
                 <el-tag v-else>{{ row.status }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openDetail(row)">查看详情</el-button>
                 <el-button v-if="row.status === 'PENDING'" size="small" link type="success" @click="handleConfirm(row)">确认对账</el-button>

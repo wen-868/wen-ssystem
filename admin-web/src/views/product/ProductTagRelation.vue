@@ -17,7 +17,7 @@
             <span v-if="!row._tags || row._tags.length === 0" style="color: #ccc">未关联</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click.stop="openTagDialog(row)">设置标签</el-button>
           </template>

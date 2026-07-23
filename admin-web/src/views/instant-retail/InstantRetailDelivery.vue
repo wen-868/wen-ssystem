@@ -61,7 +61,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="estimatedTime" label="预计送达" width="160" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button v-if="row.deliveryStatus === 'PENDING'" size="small" link type="primary" @click="openAssignDialog(row)">分配骑手</el-button>
             <el-button v-if="row.deliveryStatus === 'ASSIGNED'" size="small" link type="success" @click="updateStatus(row, 'PICKING')">开始取货</el-button>

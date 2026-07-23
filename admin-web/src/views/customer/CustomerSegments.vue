@@ -27,7 +27,7 @@
         <el-table-column prop="updatedAt" label="更新时间" width="180">
           <template #default="{ row }">{{ formatDate(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openMembers(row)">查看成员</el-button>
             <el-button size="small" link type="success" @click="handleRefresh(row)">刷新</el-button>

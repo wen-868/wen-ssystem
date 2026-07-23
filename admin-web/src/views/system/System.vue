@@ -41,7 +41,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="editStore(row)">编辑</el-button>
                 <el-button size="small" link :type="row.status === 'ACTIVE' ? 'danger' : 'success'" @click="toggleStoreStatus(row)">
@@ -107,7 +107,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="入职时间" width="160" />
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="editStaff(row)">编辑</el-button>
                 <el-button size="small" link :type="row.status === 'ACTIVE' ? 'danger' : 'success'" @click="toggleStaffStatus(row)">

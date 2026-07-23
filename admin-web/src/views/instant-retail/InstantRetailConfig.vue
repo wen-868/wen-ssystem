@@ -153,7 +153,7 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openCategoryDialog(row)">编辑</el-button>
                 <el-button size="small" link type="success" @click="openCategoryDialog(null, row)">添加子分类</el-button>

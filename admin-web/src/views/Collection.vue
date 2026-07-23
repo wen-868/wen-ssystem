@@ -33,7 +33,7 @@
             </el-table-column>
             <el-table-column prop="payMethod" label="方式" width="100" />
             <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="viewLinkDetail(row)">详情</el-button>
               </template>
@@ -77,7 +77,7 @@
             <el-table-column prop="payMethod" label="方式" width="100" />
             <el-table-column prop="transactionId" label="交易流水号" width="200" />
             <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="140" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="viewOrderDetail(row)">详情</el-button>
               </template>

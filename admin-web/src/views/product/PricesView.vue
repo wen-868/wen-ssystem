@@ -27,7 +27,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="170" />
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openLevelEdit(row)">编辑</el-button>
                 <el-button size="small" link type="danger" @click="deleteLevel(row)">删除</el-button>
@@ -62,7 +62,7 @@
             <el-table-column label="小程序价" width="120">
               <template #default="{ row }">¥{{ Number(row.miniappPrice || 0).toFixed(2) }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openSkuPriceEdit(row)">编辑价格</el-button>
               </template>

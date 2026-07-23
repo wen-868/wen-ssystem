@@ -203,7 +203,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="createdAt" label="更新时间" width="110" />
-              <el-table-column label="操作" width="180" fixed="right">
+              <el-table-column label="操作" width="160" fixed="right">
                 <template #default="{ row }">
                   <el-button size="small" link @click.stop="openDetailDialog(row)">详情</el-button>
                   <el-button
