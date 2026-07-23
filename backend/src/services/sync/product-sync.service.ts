@@ -1,15 +1,40 @@
 ﻿import { queryWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 
+// ==================== 数据库行接口定义 ====================
+
+/** SPU 同步行 — t_product_spu JOIN t_product_category */
+interface ProductSpuSyncRow {
+  spuId: number;
+  name: string;
+  mainImage: string | null;
+  description: string | null;
+  categoryId: number;
+  status: number | string;
+  brand: string | null;
+  unit: string | null;
+  storeId: number;
+  allowOnlineSale: number;
+}
+
+/** SKU 同步行 — t_product_sku */
+interface ProductSkuSyncRow {
+  skuId: number;
+  price: number | string;
+  costPrice: number | string;
+  marketPrice: number | string;
+  stockQty: number;
+}
+
 /**
  * 商品同步服务：将商品信息同步到小程序端缓存
  * 注意：禁止线上销售的商品（按分类判断）不会同步到小程序
  */
 export async function syncProducts(tenantId: string, spuIds?: number[]) {
-  let spus: any[];
+  let spus: ProductSpuSyncRow[];
   if (spuIds && spuIds.length > 0) {
     const placeholders = spuIds.map(() => "?").join(",");
-    spus = await queryWithTenant<any>(
+    spus = await queryWithTenant<ProductSpuSyncRow>(
       `SELECT spu.id AS spuId, spu.name, spu.main_image AS mainImage, spu.description, spu.category_id AS categoryId, spu.status,
               spu.brand, spu.unit, spu.store_id AS storeId,
               cat.allow_online_sale AS allowOnlineSale
@@ -20,7 +45,7 @@ export async function syncProducts(tenantId: string, spuIds?: number[]) {
       tenantId
     );
   } else {
-    spus = await queryWithTenant<any>(
+    spus = await queryWithTenant<ProductSpuSyncRow>(
       `SELECT spu.id AS spuId, spu.name, spu.main_image AS mainImage, spu.description, spu.category_id AS categoryId, spu.status,
               spu.brand, spu.unit, spu.store_id AS storeId,
               cat.allow_online_sale AS allowOnlineSale
@@ -42,7 +67,7 @@ export async function syncProducts(tenantId: string, spuIds?: number[]) {
       continue;
     }
 
-    const skus = await queryWithTenant<any>(
+    const skus = await queryWithTenant<ProductSkuSyncRow>(
       "SELECT id AS skuId, price, cost_price AS costPrice, market_price AS marketPrice, stock_qty AS stockQty FROM t_product_sku WHERE spu_id = ? AND tenant_id = ?",
       [spu.spuId, tenantId],
       tenantId

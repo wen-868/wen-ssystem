@@ -12,6 +12,26 @@ interface PurchaseOrderItemInStockRow {
   in_stocked_qty: number;
 }
 
+/** 采购订单详情查询行 — 用于 getDetail，字段 alias 与 PurchaseOrder 略有差异（createdDate/updatedDate） */
+interface PurchaseOrderDetailRow {
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  storeId: number;
+  status: string;
+  goodsAmount: number | string;
+  taxAmount: number | string;
+  discountAmount: number | string;
+  payableAmount: number | string;
+  paidAmount: number | string;
+  unpaidAmount: number | string;
+  expectedDate: string | Date | null;
+  remark: string | null;
+  createdDate: string | Date;
+  updatedDate: string | Date;
+}
+
 export interface PurchaseOrder {
   id: number;
   orderNo: string;
@@ -134,7 +154,7 @@ export interface InStockDTO {
 // ---------------------------------------------------------------------------
 
 async function findByOrderNo(orderNo: string, tenantId: string): Promise<PurchaseOrder | null> {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PurchaseOrder>(
     `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
             store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
             tax_amount AS taxAmount, discount_amount AS discountAmount,
@@ -256,7 +276,7 @@ class PurchaseService {
   }
 
   async getDetail(orderNo: string, ctx: ServiceContext): Promise<PurchaseOrderDetailVO | null> {
-    const order = await queryOneWithTenant<any>(
+    const order = await queryOneWithTenant<PurchaseOrderDetailRow>(
       `SELECT id, order_no AS orderNo, supplier_id AS supplierId, supplier_name AS supplierName,
               store_id AS storeId, order_status AS status, goods_amount AS goodsAmount,
               tax_amount AS taxAmount, discount_amount AS discountAmount,
@@ -283,7 +303,7 @@ class PurchaseService {
       [orderNo, ctx.tenantId]
     );
 
-    return { ...order, items };
+    return { ...order, items } as PurchaseOrderDetailVO;
   }
 
   async createOrder(dto: CreatePurchaseOrderDTO, ctx: ServiceContext): Promise<{ purchaseNo: string }> {

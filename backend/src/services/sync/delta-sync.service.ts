@@ -19,6 +19,73 @@ import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/d
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
 
+// ==================== 数据库行接口定义 ====================
+
+/** 商品增量查询行 — 联合 t_product_sku / t_product_spu / t_product_price / t_inventory_balance */
+interface ProductDeltaRow {
+    skuId: number;
+    spuId: number;
+    skuCode: string;
+    barcode: string | null;
+    skuName: string;
+    volume: string | null;
+    packaging: string | null;
+    baseUnit: string;
+    boxUnit: string;
+    boxRatio: number;
+    temperature: string;
+    traceEnabled: number;
+    skuStatus: number;
+    warningThreshold: number;
+    skuUpdatedAt: string | Date;
+    spuName: string;
+    categoryId: number;
+    mainImage: string | null;
+    spuStatus: string;
+    categoryName: string | null;
+    brandName: string | null;
+    retailPrice: number | string;
+    wholesalePrice: number | string | null;
+    costPrice: number | string;
+    miniappPrice: number | string | null;
+    storePrice: number | string | null;
+    priceUpdatedAt: string | Date | null;
+    availableQty: number;
+    invUpdatedAt: string | Date | null;
+    deletedAt: string | null;
+    updatedAt: string | Date;
+}
+
+/** 库存增量查询行 — t_inventory_balance JOIN t_product_sku */
+interface InventoryDeltaRow {
+    storeId: number;
+    skuId: number;
+    stockType: string;
+    physicalQty: number;
+    lockedQty: number;
+    availableQty: number;
+    updatedAt: string | Date;
+    skuName: string | null;
+}
+
+/** 客户增量查询行 — t_member */
+interface MemberDeltaRow {
+    memberId: number;
+    name: string | null;
+    mobile: string;
+    customerType: string;
+    settlementType: string;
+    points: number;
+    levelCode: string | null;
+    status: number;
+    updatedAt: string | Date;
+}
+
+/** 销售单草稿查重行 — 用于离线订单幂等检查 */
+interface SaleBillDraftRow {
+    billNo: string;
+}
+
 // ==================== 类型定义 ====================
 
 /** 增量同步响应 */
@@ -231,7 +298,7 @@ export async function getProductDelta(
 
     // SQL 中已显式带 tenant_id 条件，queryWithTenant 不会重复注入
     // NULL AS deletedAt — 当前表结构无 deleted_at 字段，预留兼容位
-    const rows = await queryWithTenant<any>(
+    const rows = await queryWithTenant<ProductDeltaRow>(
         `SELECT
        s.id AS skuId, s.spu_id AS spuId, s.sku_code AS skuCode, s.barcode, s.sku_name AS skuName,
        s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit, s.box_ratio AS boxRatio,
@@ -314,7 +381,7 @@ export async function getInventoryDelta(
     const safePageSize = Math.max(1, Math.min(500, Number(pageSize) || 100));
     const offset = (safePage - 1) * safePageSize;
 
-    const rows = await queryWithTenant<any>(
+    const rows = await queryWithTenant<InventoryDeltaRow>(
         `SELECT
        ib.store_id AS storeId, ib.sku_id AS skuId, ib.stock_type AS stockType,
        ib.physical_qty AS physicalQty, ib.locked_qty AS lockedQty, ib.available_qty AS availableQty,
@@ -374,7 +441,7 @@ export async function getMemberDelta(
     const safePageSize = Math.max(1, Math.min(500, Number(pageSize) || 100));
     const offset = (safePage - 1) * safePageSize;
 
-    const rows = await queryWithTenant<any>(
+    const rows = await queryWithTenant<MemberDeltaRow>(
         `SELECT
        id AS memberId, name, mobile, customer_type AS customerType,
        settlement_type AS settlementType, points, level_code AS levelCode,
@@ -448,7 +515,7 @@ export async function submitOfflineOrders(
 
             // 幂等检查：基于 draftNo 查重（draftNo 作为 bill_no 的别名存储在 sale_bill 中）
             // 约定：离线订单的 draftNo 直接作为服务端 billNo 使用，便于幂等
-            const existing = await queryOneWithTenant<any>(
+            const existing = await queryOneWithTenant<SaleBillDraftRow>(
                 "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?",
                 [order.draftNo, tenantId],
                 tenantId

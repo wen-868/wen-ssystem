@@ -1,5 +1,33 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 对账统计汇总行 */
+interface ReconciliationSummaryRow {
+  orderCount: number | string;
+  totalSales: number | string;
+  completedAmount: number | string;
+  totalDeliveryFee: number | string;
+}
+
+/** 计数 cnt 行 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** 平台订单全字段行 */
+interface PlatformOrderRow {
+  id: number;
+  platform_order_id: string;
+  platform: string;
+  store_id: number | null;
+  status: string;
+  order_data_json: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
 export async function getReconciliationSummary(params: {
   tenantId: string; storeId?: number; platform?: string;
   startDate?: string; endDate?: string;
@@ -12,7 +40,7 @@ export async function getReconciliationSummary(params: {
   if (startDate) { conditions.push("ro.created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("ro.created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const stats = await queryOneWithTenant<any>(
+  const stats = await queryOneWithTenant<ReconciliationSummaryRow>(
     `SELECT
        COUNT(*) AS orderCount,
        COALESCE(SUM(ro.pay_amount), 0) AS totalSales,
@@ -45,8 +73,8 @@ export async function listReconciliationRecords(params: {
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_platform_order ${where}`, values, tenantId);
-  const rows = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_platform_order ${where}`, values, tenantId);
+  const rows = await queryWithTenant<PlatformOrderRow>(
     `SELECT * FROM t_platform_order ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );

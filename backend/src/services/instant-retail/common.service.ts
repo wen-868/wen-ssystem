@@ -75,7 +75,7 @@ export async function getPlatformConfigWithTenant(
   }
   const where = conditions.join(" AND ");
   const sql = `SELECT * FROM t_platform_config WHERE ${where} LIMIT 1`;
-  const row = await queryOneWithTenant<any>(sql, params, tenantId);
+  const row = await queryOneWithTenant<PlatformConfigRow>(sql, params, tenantId);
   if (!row) return null;
   return {
     platform: row.platform as PlatformType,

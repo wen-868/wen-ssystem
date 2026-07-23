@@ -1,5 +1,41 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 零售概览统计行 */
+interface AnalyticsSummaryRow {
+  orderCount: number | string;
+  salesAmount: number | string;
+  deliveryFeeTotal: number | string;
+  avgOrderAmount: number | string;
+  userCount: number | string;
+}
+
+/** 销售趋势行 */
+interface SalesTrendRow {
+  period: string;
+  orderCount: number | string;
+  salesAmount: number | string;
+  deliveryFee: number | string;
+}
+
+/** 平台对比行 */
+interface PlatformComparisonRow {
+  platform: string;
+  orderCount: number | string;
+  salesAmount: number | string;
+  avgOrderAmount: number | string;
+}
+
+/** 热销商品行 */
+interface TopProductRow {
+  productId: number;
+  productName: string;
+  totalQty: number | string;
+  totalAmount: number | string;
+  orderCount: number | string;
+}
+
 export async function getAnalyticsSummary(params: {
   tenantId: string; storeId?: number; startDate?: string; endDate?: string;
 }) {
@@ -10,7 +46,7 @@ export async function getAnalyticsSummary(params: {
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const stats = await queryOneWithTenant<any>(
+  const stats = await queryOneWithTenant<AnalyticsSummaryRow>(
     `SELECT
        COUNT(*) AS orderCount,
        COALESCE(SUM(pay_amount), 0) AS salesAmount,
@@ -45,7 +81,7 @@ export async function getSalesTrend(params: {
   if (period === "month") dateFormat = "DATE_FORMAT(created_at, '%Y-%m')";
   else if (period === "week") dateFormat = "DATE_FORMAT(created_at, '%Y-%u')";
   else dateFormat = "DATE(created_at)";
-  return queryWithTenant<any>(
+  return queryWithTenant<SalesTrendRow>(
     `SELECT ${dateFormat} AS period,
             COUNT(*) AS orderCount,
             COALESCE(SUM(pay_amount), 0) AS salesAmount,
@@ -66,7 +102,7 @@ export async function getPlatformComparison(params: {
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<PlatformComparisonRow>(
     `SELECT platform,
             COUNT(*) AS orderCount,
             COALESCE(SUM(pay_amount), 0) AS salesAmount,
@@ -87,7 +123,7 @@ export async function getTopProducts(params: {
   if (startDate) { conditions.push("ro.created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("ro.created_at <= ?"); values.push(endDate); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  return queryWithTenant<any>(
+  return queryWithTenant<TopProductRow>(
     `SELECT roi.product_id AS productId, roi.product_name AS productName,
             SUM(roi.quantity) AS totalQty,
             SUM(roi.subtotal) AS totalAmount,

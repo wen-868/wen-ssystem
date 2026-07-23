@@ -3,9 +3,158 @@ import { AppError } from "../../shared/app-error";
 import { makeBizNo } from "../../shared/id";
 import logger from "../../shared/logger";
 
+// ==================== 类型定义 ====================
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 会员信息行 */
+interface MemberProfileRow {
+  id: number;
+  name: string;
+  nickname: string | null;
+  avatar: string | null;
+  mobile: string | null;
+  gender: number | string;
+  birthday: string | null;
+  customerType: string;
+  points: number | string;
+  growthValue: number | string;
+  levelCode: string | null;
+  status: number | string;
+  createdAt: string | Date;
+}
+
+/** 会员等级行（基础） */
+interface MemberLevelRow {
+  id: number;
+  levelCode: string;
+  levelName: string;
+  levelIcon: string | null;
+  minPoints: number | string;
+  minGrowth: number | string;
+  discountRate: number | string;
+  pointRatio: number | string;
+  description: string | null;
+  sortNo: number;
+}
+
+/** 会员等级列表行（含赠品/包邮/状态） */
+interface MemberLevelListRow {
+  id: number;
+  levelCode: string;
+  levelName: string;
+  levelIcon: string | null;
+  minPoints: number | string;
+  minGrowth: number | string;
+  discountRate: number | string;
+  birthdayGift: number | string;
+  freeShippingAmount: number | string;
+  pointRatio: number | string;
+  description: string | null;
+  sortNo: number;
+  status: number | string;
+}
+
+/** 优惠券统计行 */
+interface CouponStatsRow {
+  availableCount: number | string;
+  usedCount: number | string;
+  expiredCount: number | string;
+}
+
+/** 积分明细行 */
+interface PointsRecordRow {
+  id: number;
+  type: string;
+  changePoints: number | string;
+  balancePoints: number | string;
+  sourceType: string | null;
+  sourceId: number | string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** 积分汇总行 */
+interface PointsSummaryRow {
+  totalEarn: number | string;
+  totalSpend: number | string;
+  totalExpire: number | string;
+}
+
+/** 会员积分行 */
+interface MemberPointsRow {
+  points: number | string;
+}
+
+/** 成长值明细行 */
+interface GrowthRecordRow {
+  id: number;
+  type: string;
+  changeGrowth: number | string;
+  balanceGrowth: number | string;
+  sourceType: string | null;
+  sourceId: number | string | null;
+  remark: string | null;
+  createdAt: string | Date;
+}
+
+/** 成长值汇总行 */
+interface GrowthSummaryRow {
+  totalEarn: number | string;
+  totalDeduct: number | string;
+}
+
+/** 会员成长值行 */
+interface MemberGrowthRow {
+  growthValue: number | string;
+}
+
+/** 用户优惠券行 */
+interface UserCouponRow {
+  id: number;
+  couponNo: string;
+  templateId: number;
+  couponType: string;
+  couponName: string;
+  couponValue: number | string;
+  minPurchase: number | string;
+  maxDiscount: number | string | null;
+  applicableScope: string;
+  applicableIds: string | null;
+  status: string;
+  validStart: string | Date;
+  validEnd: string | Date;
+  usedAt: string | Date | null;
+  usedOrderNo: string | null;
+  discountAmount: number | string | null;
+}
+
+/** 会员更新后信息行 */
+interface MemberUpdatedRow {
+  id: number;
+  name: string;
+  nickname: string | null;
+  avatar: string | null;
+  mobile: string | null;
+  gender: number | string;
+  birthday: string | null;
+  customerType: string;
+  points: number | string;
+  growthValue: number | string;
+}
+
+/** 会员密码行 */
+interface MemberPasswordRow {
+  id: number;
+  passwordHash: string | null;
+}
+
 // ========== 获取会员信息 ==========
 export async function getMemberProfile(memberId: number, tenantId: string) {
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberProfileRow>(
     `SELECT id, name, nickname, avatar, mobile, gender, birthday, 
             customer_type AS customerType, points, growth_value AS growthValue,
             level_code AS levelCode, status, created_at AS createdAt
@@ -20,7 +169,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
   }
 
   // 获取当前等级信息
-  const level = await queryOneWithTenant<any>(
+  const level = await queryOneWithTenant<MemberLevelRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName, level_icon AS levelIcon,
             min_points AS minPoints, min_growth AS minGrowth, discount_rate AS discountRate,
             point_ratio AS pointRatio, description, sort_no AS sortNo
@@ -33,7 +182,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
   );
 
   // 计算当前等级（基于成长值）
-  const allLevels = await queryWithTenant<any>(
+  const allLevels = await queryWithTenant<MemberLevelRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName, level_icon AS levelIcon,
             min_points AS minPoints, min_growth AS minGrowth, discount_rate AS discountRate,
             point_ratio AS pointRatio, description, sort_no AS sortNo
@@ -58,11 +207,11 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
   // 计算升级进度
   let upgradeProgress = 0;
   if (currentLevel && nextLevel) {
-    const currentMin = currentLevel.minGrowth || 0;
-    const nextMin = nextLevel.minGrowth || 0;
+    const currentMin = Number(currentLevel.minGrowth) || 0;
+    const nextMin = Number(nextLevel.minGrowth) || 0;
     const range = nextMin - currentMin;
     if (range > 0) {
-      upgradeProgress = Math.min(100, Math.round(((member.growthValue - currentMin) / range) * 100));
+      upgradeProgress = Math.min(100, Math.round(((Number(member.growthValue) - currentMin) / range) * 100));
     } else {
       upgradeProgress = 100;
     }
@@ -72,7 +221,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
   }
 
   // 优惠券统计
-  const couponStats = await queryOneWithTenant<any>(
+  const couponStats = await queryOneWithTenant<CouponStatsRow>(
     `SELECT 
        SUM(CASE WHEN status = 'UNUSED' AND valid_end > NOW() THEN 1 ELSE 0 END) AS availableCount,
        SUM(CASE WHEN status = 'USED' THEN 1 ELSE 0 END) AS usedCount,
@@ -96,21 +245,21 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
     growthValue: member.growthValue || 0,
     level: currentLevel
       ? {
-          levelCode: currentLevel.levelCode,
-          levelName: currentLevel.levelName,
-          levelIcon: currentLevel.levelIcon || "",
-          discountRate: Number(currentLevel.discountRate),
-          pointRatio: Number(currentLevel.pointRatio),
-          description: currentLevel.description || ""
-        }
+        levelCode: currentLevel.levelCode,
+        levelName: currentLevel.levelName,
+        levelIcon: currentLevel.levelIcon || "",
+        discountRate: Number(currentLevel.discountRate),
+        pointRatio: Number(currentLevel.pointRatio),
+        description: currentLevel.description || ""
+      }
       : null,
     nextLevel: nextLevel
       ? {
-          levelCode: nextLevel.levelCode,
-          levelName: nextLevel.levelName,
-          minGrowth: nextLevel.minGrowth,
-          levelIcon: nextLevel.levelIcon || ""
-        }
+        levelCode: nextLevel.levelCode,
+        levelName: nextLevel.levelName,
+        minGrowth: nextLevel.minGrowth,
+        levelIcon: nextLevel.levelIcon || ""
+      }
       : null,
     upgradeProgress,
     couponStats: {
@@ -124,7 +273,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
 
 // ========== 获取会员等级列表 ==========
 export async function getMemberLevels(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<MemberLevelListRow>(
     `SELECT id, level_code AS levelCode, level_name AS levelName, level_icon AS levelIcon,
             min_points AS minPoints, min_growth AS minGrowth, discount_rate AS discountRate,
             birthday_gift AS birthdayGift, free_shipping_amount AS freeShippingAmount,
@@ -171,7 +320,7 @@ export async function getPointsRecords(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PointsRecordRow>(
     `SELECT id, type, change_points AS changePoints, balance_points AS balancePoints,
             source_type AS sourceType, source_id AS sourceId, remark, created_at AS createdAt
      FROM t_points_record 
@@ -182,14 +331,14 @@ export async function getPointsRecords(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_points_record WHERE ${where} AND tenant_id = ?`,
     [...params, tenantId],
     tenantId
   );
 
   // 积分汇总
-  const summary = await queryOneWithTenant<any>(
+  const summary = await queryOneWithTenant<PointsSummaryRow>(
     `SELECT 
        COALESCE(SUM(CASE WHEN type = 'EARN' THEN change_points ELSE 0 END), 0) AS totalEarn,
        COALESCE(SUM(CASE WHEN type = 'SPEND' THEN ABS(change_points) ELSE 0 END), 0) AS totalSpend,
@@ -200,7 +349,7 @@ export async function getPointsRecords(
     tenantId
   );
 
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberPointsRow>(
     "SELECT points FROM t_member WHERE id = ? AND tenant_id = ?",
     [memberId, tenantId],
     tenantId
@@ -248,7 +397,7 @@ export async function getGrowthRecords(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<GrowthRecordRow>(
     `SELECT id, type, change_growth AS changeGrowth, balance_growth AS balanceGrowth,
             source_type AS sourceType, source_id AS sourceId, remark, created_at AS createdAt
      FROM t_growth_record 
@@ -259,14 +408,14 @@ export async function getGrowthRecords(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_growth_record WHERE ${where} AND tenant_id = ?`,
     [...params, tenantId],
     tenantId
   );
 
   // 成长值汇总
-  const summary = await queryOneWithTenant<any>(
+  const summary = await queryOneWithTenant<GrowthSummaryRow>(
     `SELECT 
        COALESCE(SUM(CASE WHEN type = 'EARN' THEN change_growth ELSE 0 END), 0) AS totalEarn,
        COALESCE(SUM(CASE WHEN type = 'DEDUCT' THEN ABS(change_growth) ELSE 0 END), 0) AS totalDeduct
@@ -276,7 +425,7 @@ export async function getGrowthRecords(
     tenantId
   );
 
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberGrowthRow>(
     "SELECT growth_value AS growthValue FROM t_member WHERE id = ? AND tenant_id = ?",
     [memberId, tenantId],
     tenantId
@@ -328,7 +477,7 @@ export async function getMyCoupons(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<UserCouponRow>(
     `SELECT uc.id, uc.coupon_no AS couponNo, uc.template_id AS templateId, 
             uc.coupon_type AS couponType, uc.coupon_name AS couponName,
             uc.coupon_value AS couponValue, uc.min_purchase AS minPurchase,
@@ -347,7 +496,7 @@ export async function getMyCoupons(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_user_coupon uc WHERE ${where} AND uc.tenant_id = ?`,
     [...params, tenantId],
     tenantId
@@ -531,13 +680,17 @@ export async function updateUserProfile(
   );
 
   // 返回更新后的信息
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberUpdatedRow>(
     `SELECT id, name, nickname, avatar, mobile, gender, birthday,
             customer_type AS customerType, points, growth_value AS growthValue
      FROM t_member WHERE id = ? AND tenant_id = ?`,
     [memberId, tenantId],
     tenantId
   );
+
+  if (!member) {
+    throw new Error("会员不存在");
+  }
 
   return {
     memberId: member.id,
@@ -564,7 +717,7 @@ export async function changePassword(
   }
 
   // 查询原密码
-  const member = await queryOneWithTenant<any>(
+  const member = await queryOneWithTenant<MemberPasswordRow>(
     "SELECT id, password_hash AS passwordHash FROM t_member WHERE id = ? AND tenant_id = ?",
     [memberId, tenantId],
     tenantId

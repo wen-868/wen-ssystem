@@ -1,8 +1,17 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ==================== 类型定义 ====================
+
+/** 零售商品库存行 */
+interface RetailProductStockRow {
+  id: number;
+  stock: number;
+  status?: string | number;
+}
+
 // 扣减库存 - 数据库行级锁版本
 export async function deductStock(productId: number, quantity: number, tenantId: string): Promise<boolean> {
-  const product = await queryOneWithTenant<any>(
+  const product = await queryOneWithTenant<RetailProductStockRow>(
     "SELECT id, stock FROM t_retail_product WHERE id = ? AND tenant_id = ? FOR UPDATE",
     [productId, tenantId], tenantId
   );
@@ -43,5 +52,5 @@ export async function batchRestoreStock(items: Array<{ productId: number; quanti
 
 // 获取库存状态
 export async function getStockStatus(productId: number, tenantId: string) {
-  return queryOneWithTenant<any>("SELECT id, stock, status FROM t_retail_product WHERE id = ? AND tenant_id = ?", [productId, tenantId], tenantId);
+  return queryOneWithTenant<RetailProductStockRow>("SELECT id, stock, status FROM t_retail_product WHERE id = ? AND tenant_id = ?", [productId, tenantId], tenantId);
 }

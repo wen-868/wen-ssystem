@@ -4,6 +4,31 @@ import { parsePlatformType } from "./adapters/index";
 import { getAdapter } from "./adapters/index";
 import { getPlatformConfigWithTenant } from "./common.service";
 
+// ==================== 类型定义 ====================
+
+/** 平台订单行（详情/列表） */
+interface PlatformOrderRow {
+  platformOrderId: string;
+  platform: string;
+  storeId: string;
+  status: string;
+  orderDataJson: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 平台订单简要行（接单/取消/配送前查询） */
+interface PlatformOrderBriefRow {
+  platform: string;
+  storeId: string;
+  status: string;
+}
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
 export async function listOrders(
   page: number,
   pageSize: number,
@@ -25,7 +50,7 @@ export async function listOrders(
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<PlatformOrderRow>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
      FROM t_platform_order
@@ -35,7 +60,7 @@ export async function listOrders(
     [...params, pageSize, offset],
     tenantId
   );
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_platform_order ${where}`,
     params,
     tenantId
@@ -44,7 +69,7 @@ export async function listOrders(
 }
 
 export async function getOrderDetail(platformOrderId: string, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<PlatformOrderRow>(
     `SELECT platform_order_id AS platformOrderId, platform, store_id AS storeId,
             status, order_data_json AS orderDataJson, created_at AS createdAt, updated_at AS updatedAt
      FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
@@ -55,7 +80,7 @@ export async function getOrderDetail(platformOrderId: string, tenantId: string) 
 }
 
 export async function confirmOrder(platformOrderId: string, tenantId: string) {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformOrderBriefRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
@@ -83,7 +108,7 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
 export async function cancelOrder(platformOrderId: string, reason: string | undefined, tenantId: string) {
   z.object({ reason: z.string().optional() }).parse({ reason });
 
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformOrderBriefRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId

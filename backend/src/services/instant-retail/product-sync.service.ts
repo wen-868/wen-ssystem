@@ -1,6 +1,34 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 
+// ==================== 类型定义 ====================
+
+/** 计数 cnt 行 */
+interface CountCntRow {
+  cnt: number;
+}
+
+/** 平台商品映射行 */
+interface ProductMapRow {
+  id: number;
+  platform: string;
+  store_id: number;
+  local_sku_id: number;
+  platform_sku_id: string | null;
+  platform_spu_id: string | null;
+  sync_status: string;
+  sync_msg: string | null;
+  synced_at: string | Date | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** SKU 是否允许线上销售行 */
+interface SkuAllowOnlineRow {
+  allow_online_sale: number;
+}
+
 export async function listProductMappings(params: {
   platform: string; storeId?: number; tenantId: string;
   syncStatus?: string; page?: number; pageSize?: number;
@@ -11,8 +39,8 @@ export async function listProductMappings(params: {
   if (storeId) { conditions.push("store_id = ?"); values.push(storeId); }
   if (syncStatus) { conditions.push("sync_status = ?"); values.push(syncStatus); }
   const where = `WHERE ${conditions.join(" AND ")}`;
-  const total = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_platform_product_map ${where}`, values, tenantId);
-  const rows = await queryWithTenant<any>(
+  const total = await queryOneWithTenant<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_platform_product_map ${where}`, values, tenantId);
+  const rows = await queryWithTenant<ProductMapRow>(
     `SELECT * FROM t_platform_product_map ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
     [...values, pageSize, (page - 1) * pageSize], tenantId
   );
@@ -73,7 +101,7 @@ export async function batchSyncProducts(platform: string, storeId: number, skuId
 }
 
 async function checkSkuAllowOnlineSale(skuId: number, tenantId: string): Promise<boolean> {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<SkuAllowOnlineRow>(
     `SELECT c.allow_online_sale
      FROM t_product_sku s
      INNER JOIN t_product_spu p ON s.spu_id = p.id

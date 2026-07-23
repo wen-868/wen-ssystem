@@ -1,5 +1,35 @@
 ﻿import { queryWithTenant, transaction } from "../shared/db";
 
+// ==================== 数据库行接口定义 ====================
+
+/** 调拨单 + 门店名称联表行 — t_transfer_order SELECT * + 关联门店名称 */
+interface TransferOrderWithStoreRow {
+  id: number;
+  transfer_no: string;
+  from_store_id: number;
+  to_store_id: number;
+  transfer_status: string;
+  status: string;
+  expected_date: string | Date | null;
+  total_amount: number | string;
+  total_items: number;
+  created_by: number | null;
+  approved_by: number | null;
+  approved_at: string | Date | null;
+  shipped_by: number | null;
+  shipped_at: string | Date | null;
+  received_by: number | null;
+  received_at: string | Date | null;
+  actual_date: string | Date | null;
+  goods_amount: number | string;
+  operator_id: number | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+  from_store_name: string | null;
+  to_store_name: string | null;
+}
+
 export async function cancelTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await (conn as any).execute(
@@ -174,7 +204,7 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 }
 
 export async function getInTransitOrders(storeId: number, tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TransferOrderWithStoreRow>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
      FROM t_transfer_order to
      LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
@@ -189,7 +219,7 @@ export async function getInTransitOrders(storeId: number, tenantId: string) {
 }
 
 export async function getMyShipments(storeId: number, tenantId: string) {
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<TransferOrderWithStoreRow>(
     `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
      FROM t_transfer_order to
      LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id

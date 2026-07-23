@@ -3,8 +3,17 @@ import { parsePlatformType } from "./adapters/index";
 import { getAdapter } from "./adapters/index";
 import { getPlatformConfigWithTenant } from "./common.service";
 
+// ==================== 类型定义 ====================
+
+/** 平台订单简要行（配送前查询） */
+interface PlatformOrderBriefRow {
+  platform: string;
+  storeId: string;
+  status: string;
+}
+
 export async function startDelivery(platformOrderId: string, body: any, tenantId: string) {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformOrderBriefRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId
@@ -30,7 +39,7 @@ export async function startDelivery(platformOrderId: string, body: any, tenantId
 }
 
 export async function completeDelivery(platformOrderId: string, tenantId: string) {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformOrderBriefRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
     tenantId

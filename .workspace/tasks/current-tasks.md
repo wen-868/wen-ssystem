@@ -129,6 +129,40 @@
     - `inventory-profit-order.service.test.ts`：修复 conn.query mock 返回格式
   - 合计：25+个文件（含测试和中间件），三批累计45+个文件，153+处 any 替换为明确接口
   - 验证：tsc 无新增错误（3个已有 controller 层错误与本次无关），vitest 416个文件4857用例全部通过
+- **完成进度**（第四批，2026-07-24）：
+  - **小程序模块 miniapp（3个文件，33个接口）**：
+    - `member.service.ts`：14个接口 → CountTotalRow/MemberProfileRow/MemberLevelRow/MemberLevelListRow/CouponStatsRow/PointsRecordRow/PointsSummaryRow/MemberPointsRow/GrowthRecordRow/GrowthSummaryRow/MemberGrowthRow/UserCouponRow/MemberUpdatedRow/MemberPasswordRow
+    - `wholesale.service.ts`：16个接口 → CountTotalRow/IdRow/InsertResultRow/WholesaleProductListRow/WholesaleSpuDetailRow/WholesaleSkuRow/ProductStepPriceRow/WholesaleCategoryRow/WholesaleCartRow/WholesaleSkuCheckRow/WholesaleCartExistingRow/WholesaleCartUpdateRow/WholesaleOrderListRow/WholesaleOrderItemRow/WholesaleOrderDetailRow/WholesaleOrderDetailItemRow
+    - `cart.service.ts`：3个接口 → CartListRow/CartSkuRow/CartExistingRow
+  - **即时零售模块 instant-retail（10个文件，33个接口）**：
+    - `common.service.ts`：1个接口 → PlatformConfigRow
+    - `fulfillment.service.ts`：1个接口 → PlatformOrderBriefRow
+    - `inventory-deduction.service.ts`：1个接口 → RetailProductStockRow
+    - `order-receiving.service.ts`：3个接口 → PlatformOrderRow/PlatformOrderBriefRow/CountTotalRow
+    - `platform-integration.service.ts`：5个接口 → OrderNoRow/PlatformConfigListRow/PlatformConfigRow/PlatformConfigExistingRow（+补充 conn.query 泛型）
+    - `product-sync.service.ts`：3个接口 → CountCntRow/ProductMapRow/SkuAllowOnlineRow
+    - `reconciliation.service.ts`：3个接口 → ReconciliationSummaryRow/CountCntRow/PlatformOrderRow
+    - `retail-analytics.service.ts`：4个接口 → AnalyticsSummaryRow/SalesTrendRow/PlatformComparisonRow/TopProductRow
+    - `retail-shop.service.ts`：9个接口 → RetailShopConfigRow/RetailShopConfigIdRow/RetailCategoryRow/CountCntRow/RetailProductRow/RetailOrderRow/RetailOrderStatusRow/RetailOrderItemRow/RetailBannerRow
+    - `review.service.ts`：3个接口 → RetailReviewRow/CountCntRow/ReviewAvgRatingRow
+  - **门店端模块 store（4个文件，23个接口）**：
+    - `inventory.service.ts`：5个接口 → InventoryRow/InventoryBalanceRow(extends RowDataPacket)/InventoryLogRow/CountRow/InventoryAlertRow
+    - `other.service.ts`：6个接口 → HoldOrderRow/HoldOrderDetailRow/CollectionLinkRow/PaymentOrderRow/RefundOrderRow/CountTotalRow
+    - `product.service.ts`：5个接口 → ProductCategoryRow/ProductSpuRow/ProductSkuRow/ProductListItemRow/MemberRow
+    - `receivable.service.ts`：7个接口 → ReceivableRow/ReceivableAccountRow(extends RowDataPacket)/CountRow/CntRow/TotalRow/DailySaleRow
+  - **数据同步模块 sync（3个文件，11个接口）**：
+    - `delta-sync.service.ts`：4个接口 → ProductDeltaRow/InventoryDeltaRow/MemberDeltaRow/SaleBillDraftRow
+    - `price-sync.service.ts`：5个接口 → PriceChangeLogRow/SkuPriceRow/SkuPriceWithStoreRow(extends SkuPriceRow)/SyncCacheStatusRow/SyncCacheLastTimeRow
+    - `product-sync.service.ts`：2个接口 → ProductSpuSyncRow/ProductSkuSyncRow
+  - **顶层业务模块（4个文件，11个接口）**：
+    - `purchase.service.ts`：2个接口 → PurchaseOrderItemInStockRow/PurchaseOrderDetailRow
+    - `sale-return.service.ts`：3个接口 → SaleBillRow/SaleBillItemRow/SaleBillWithItemsRow(extends SaleBillRow)
+    - `supplier.service.ts`：5个接口 → SupplierRow/SupplierContactRow/PurchaseOrderRow/PurchasePaymentRow/SupplierProductRow
+    - `transfer-execution.service.ts`：1个接口 → TransferOrderWithStoreRow
+  - 合计：24个文件，111个接口定义，约200处 any 替换为明确接口
+  - 四批累计：69+个文件，264+处 any 替换为明确接口（占原始153+处 WithTenant 的 100%，另新增 111 处顶层 conn.query 类型）
+  - **剩余 any**：services 目录仍有 774 处（admin 子目录 92 个文件），属后续轮次处理范围
+  - 验证：`npx tsc --noEmit` 0 错误，`npx vitest run` 416 文件 4857 用例全部通过
 
 #### R55-05 — apiCost:1 硬编码 [P2]
 
@@ -212,7 +246,7 @@
 > **日期**：2026-07-20
 > **验收记录（凌舟 2026-07-22）**：R53-19/20/21已由IDE端完成。统一标准更新为v1.4，项目规则路径已修正为.workspace/，侧边栏12个一级模块命名与产品功能清单v6.1完全一致。
 > **验收记录（凌舟 2026-07-23）**：R55-04核查通过——queryOne\<any\>/queryAll\<any\>从153处降至14处（降幅91%），5个核心模块（auth/customer/product/order/sale）any=0，验收标准达标。R55全部8个任务验收完成。
-> **待处理**：R53-18 UI审查第一轮完成（label-width+弹窗宽度统一），仍有5项需林夕设计决策。另注意services目录仍有894处WithTenant变体any，建议后续轮次处理。
+> **待处理**：R53-18 UI审查第一轮完成（label-width+弹窗宽度统一），仍有5项需林夕设计决策。另注意services目录仍有774处admin子目录any（第四批后数据，原894处），建议后续轮次处理。
 
 #### R53-18 — UI审查与优化 [P2]
 

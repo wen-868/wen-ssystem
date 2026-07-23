@@ -2,6 +2,53 @@ import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } fro
 import { makeBizNo } from "../shared/id";
 import type { ServiceContext, PageResult } from "../types/index";
 
+// ── 数据库行接口定义 ──
+
+/** 销售单原始行 — t_sale_bill SELECT *（用于退货关联销售单查询） */
+interface SaleBillRow {
+  id: number;
+  bill_no: string;
+  store_id: number;
+  customer_id: number | null;
+  customer_name: string | null;
+  customer_mobile: string | null;
+  customer_type: string | null;
+  business_status: string;
+  collection_status: string;
+  goods_amount: number | string;
+  discount_amount: number | string;
+  rounding_amount: number | string;
+  receivable_amount: number | string;
+  received_amount: number | string;
+  unreceived_amount: number | string;
+  operator_id: number;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 销售单明细行 — t_sale_bill_item SELECT * */
+interface SaleBillItemRow {
+  id: number;
+  bill_no: string;
+  sku_id: number;
+  sku_name: string;
+  box_qty: number;
+  bottle_qty: number;
+  total_bottle_qty: number;
+  unit_price: number | string;
+  price_type: string;
+  subtotal_amount: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+}
+
+/** 销售单 + 明细组合（getSaleBill 返回类型） */
+interface SaleBillWithItemsRow extends SaleBillRow {
+  items: SaleBillItemRow[];
+}
+
 // ── Type definitions (formerly in models/sale-return.model.ts) ──
 
 interface SaleReturnItem {
@@ -307,15 +354,15 @@ class SaleReturnService {
     return { returnNo };
   }
 
-  async getSaleBill(billNo: string, ctx: ServiceContext): Promise<any | null> {
-    const bill = await queryOneWithTenant<any>(
+  async getSaleBill(billNo: string, ctx: ServiceContext): Promise<SaleBillWithItemsRow | null> {
+    const bill = await queryOneWithTenant<SaleBillRow>(
       "SELECT * FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?",
       [billNo, ctx.tenantId],
       ctx.tenantId
     );
     if (!bill) return null;
 
-    const items = await queryWithTenant<any>(
+    const items = await queryWithTenant<SaleBillItemRow>(
       "SELECT * FROM t_sale_bill_item WHERE bill_no = ?",
       [billNo],
       ctx.tenantId

@@ -11,6 +11,39 @@ interface OrderNoRow {
   order_no: string;
 }
 
+/** 平台配置列表行（getPlatforms 简要字段） */
+interface PlatformConfigListRow {
+  platform: string;
+  storeId: string;
+  enabled: number;
+  merchantId: string;
+  updatedAt: string | Date;
+}
+
+/** 平台配置行（带别名，getConfigs/getConfigByPlatform/upsertConfig 返回） */
+interface PlatformConfigRow {
+  id: number;
+  platform: string;
+  storeId: string;
+  appKey: string;
+  appSecret: string;
+  merchantId: string;
+  enabled: number;
+  configJson: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 平台配置已存在行（upsertConfig 查询是否已存在，snake_case 字段） */
+interface PlatformConfigExistingRow {
+  id: number;
+  store_id: string;
+  app_key: string;
+  app_secret: string;
+  merchant_id: string;
+  config_json: string | null;
+}
+
 export function buildWebhookResponse(platform: PlatformType, success: boolean, message?: string) {
   if (platform === "JD") {
     return success ? { code: "0", message: message ?? "success" } : { code: "1", message: message ?? "error" };
@@ -105,7 +138,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
 }
 
 export async function getPlatforms(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<PlatformConfigListRow>(
     `SELECT platform, store_id AS storeId, enabled, merchant_id AS merchantId, updated_at AS updatedAt
      FROM t_platform_config
      ORDER BY platform`,
@@ -127,7 +160,7 @@ export async function getPlatforms(tenantId: string) {
 }
 
 export async function getConfigs(tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<PlatformConfigRow>(
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
@@ -142,7 +175,7 @@ export async function getConfigs(tenantId: string) {
 
 export async function getConfigByPlatform(platform: string, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformConfigRow>(
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt
@@ -165,7 +198,7 @@ export async function upsertConfig(body: any, tenantId: string) {
   }).parse(body);
 
   const platform = parsePlatformType(parsedBody.platform);
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<PlatformConfigExistingRow>(
     `SELECT id, store_id as store_id, app_key as app_key, app_secret as app_secret, merchant_id as merchant_id, config_json as config_json FROM t_platform_config WHERE platform = ? LIMIT 1`,
     [platform],
     tenantId
@@ -203,7 +236,7 @@ export async function upsertConfig(body: any, tenantId: string) {
     );
   }
 
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<PlatformConfigRow>(
     `SELECT id, platform, store_id AS storeId, app_key AS appKey, app_secret AS appSecret,
             merchant_id AS merchantId, enabled, config_json AS configJson,
             created_at AS createdAt, updated_at AS updatedAt

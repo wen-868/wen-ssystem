@@ -103,9 +103,9 @@ export async function listInventoryLogs(params: {
   if (storeId) { sql += " AND il.store_id = ?"; paramsArr.push(storeId); }
   sql += " ORDER BY il.created_at DESC LIMIT ? OFFSET ?";
   paramsArr.push(pageSize, offset);
-  const records = await queryWithTenant<any>(sql, paramsArr, tenantId);
+  const records = await queryWithTenant<InventoryLogRow>(sql, paramsArr, tenantId);
   const totalSql = storeId ? "SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ? AND store_id = ?" : "SELECT COUNT(*) AS total FROM t_inventory_ledger WHERE tenant_id = ?";
-  const totalRow = await queryOneWithTenant<any>(totalSql, storeId ? [tenantId, storeId] : [tenantId], tenantId);
+  const totalRow = await queryOneWithTenant<CountRow>(totalSql, storeId ? [tenantId, storeId] : [tenantId], tenantId);
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 

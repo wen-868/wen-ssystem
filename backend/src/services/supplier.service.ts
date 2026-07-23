@@ -1,6 +1,96 @@
 import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
 import { makeBizNo } from "../shared/id";
+import type { ResultSetHeader } from "mysql2/promise";
 import type { ServiceContext, PageResult, PageParams } from "../types/index";
+
+// ========== 数据库行接口定义 ==========
+
+/** 供应商原始行 — t_supplier SELECT * + 联系人别名 */
+interface SupplierRow {
+  id: number;
+  supplier_code: string;
+  name: string;
+  short_name: string | null;
+  category: string | null;
+  province: string | null;
+  city: string | null;
+  district: string | null;
+  address: string | null;
+  credit_level: string;
+  settlement_type: string;
+  settlement_day: number | null;
+  tax_rate: number | string;
+  bank_name: string | null;
+  bank_account: string | null;
+  bank_account_name: string | null;
+  status: number;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+  contact_person: string | null;
+  contact_mobile: string | null;
+}
+
+/** 供应商联系人原始行 — t_supplier_contact SELECT * */
+interface SupplierContactRow {
+  id: number;
+  supplier_id: number;
+  name: string;
+  mobile: string | null;
+  phone: string | null;
+  email: string | null;
+  wechat: string | null;
+  is_primary: number;
+  position: string | null;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+}
+
+/** 采购订单原始行 — t_purchase_order SELECT * */
+interface PurchaseOrderRow {
+  id: number;
+  order_no: string;
+  supplier_id: number;
+  supplier_name: string;
+  store_id: number;
+  order_status: string;
+  goods_amount: number | string;
+  tax_amount: number | string;
+  discount_amount: number | string;
+  payable_amount: number | string;
+  paid_amount: number | string;
+  unpaid_amount: number | string;
+  expected_date: string | Date | null;
+  operator_id: number;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 采购付款原始行 — t_purchase_payment SELECT * */
+interface PurchasePaymentRow {
+  id: number;
+  payment_no: string;
+  supplier_id: number;
+  supplier_name: string;
+  amount: number | string;
+  payment_method: string;
+  payment_date: string | Date;
+  remark: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 供应产品行 — t_purchase_order JOIN t_purchase_order_item DISTINCT */
+interface SupplierProductRow {
+  sku_id: number;
+  sku_name: string;
+  barcode: string | null;
+}
 
 // ========== Type Definitions (replacing deleted models/supplier.model.ts) ==========
 
@@ -263,7 +353,7 @@ class SupplierService {
         params,
         ctx.tenantId
       ),
-      queryWithTenant<any>(
+      queryWithTenant<SupplierRow>(
         `SELECT s.*, sc.name AS contact_person, sc.mobile AS contact_mobile
          FROM t_supplier s
          LEFT JOIN t_supplier_contact sc ON s.id = sc.supplier_id AND sc.is_primary = 1
@@ -284,14 +374,14 @@ class SupplierService {
   }
 
   async getDetail(id: number, ctx: ServiceContext): Promise<SupplierDetailVO | null> {
-    const supplier = await queryOneWithTenant<any>(
+    const supplier = await queryOneWithTenant<SupplierRow>(
       "SELECT * FROM t_supplier WHERE id = ? AND tenant_id = ?",
       [id, ctx.tenantId],
       ctx.tenantId
     );
     if (!supplier) return null;
 
-    const contacts = await query<any>(
+    const contacts = await query<SupplierContactRow>(
       "SELECT * FROM t_supplier_contact WHERE supplier_id = ? AND tenant_id = ? ORDER BY is_primary DESC, id ASC",
       [id, ctx.tenantId]
     );
@@ -367,7 +457,7 @@ class SupplierService {
     updates.push("updated_at = NOW()");
     params.push(id, ctx.tenantId);
 
-    const [result] = await queryWithTenant<any>(
+    const [result] = await queryWithTenant<ResultSetHeader>(
       `UPDATE t_supplier SET ${updates.join(", ")} WHERE id = ? AND tenant_id = ?`,
       params,
       ctx.tenantId
@@ -399,7 +489,7 @@ class SupplierService {
       );
     }
 
-    const [result] = await query<any>(
+    const [result] = await query<ResultSetHeader>(
       `INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -479,7 +569,7 @@ class SupplierService {
     page: number,
     pageSize: number,
     ctx: ServiceContext
-  ): Promise<PageResult<any> | null> {
+  ): Promise<PageResult<PurchaseOrderRow> | null> {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
@@ -500,7 +590,7 @@ class SupplierService {
         params,
         ctx.tenantId
       ),
-      queryWithTenant<any>(
+      queryWithTenant<PurchaseOrderRow>(
         `SELECT * FROM t_purchase_order WHERE ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
         [...params, pageSize, offset],
         ctx.tenantId
@@ -522,7 +612,7 @@ class SupplierService {
     page: number,
     pageSize: number,
     ctx: ServiceContext
-  ): Promise<PageResult<any> | null> {
+  ): Promise<PageResult<PurchasePaymentRow> | null> {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
@@ -534,7 +624,7 @@ class SupplierService {
         [supplierId, ctx.tenantId],
         ctx.tenantId
       ),
-      queryWithTenant<any>(
+      queryWithTenant<PurchasePaymentRow>(
         `SELECT * FROM t_purchase_payment WHERE supplier_id = ? AND tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
         [supplierId, ctx.tenantId, pageSize, offset],
         ctx.tenantId
@@ -557,7 +647,7 @@ class SupplierService {
     page: number,
     pageSize: number,
     ctx: ServiceContext
-  ): Promise<PageResult<any> | null> {
+  ): Promise<PageResult<SupplierProductRow> | null> {
     const supplier = await this.findById(supplierId, ctx.tenantId);
     if (!supplier) return null;
 
@@ -581,7 +671,7 @@ class SupplierService {
         params,
         ctx.tenantId
       ),
-      queryWithTenant<any>(
+      queryWithTenant<SupplierProductRow>(
         `SELECT DISTINCT poi.sku_id, poi.sku_name, poi.barcode
          FROM t_purchase_order po
          JOIN t_purchase_order_item poi ON po.order_no = poi.order_no

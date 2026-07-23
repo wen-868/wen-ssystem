@@ -103,10 +103,10 @@ export async function getDashboard(params: {
   const { storeId, tenantId } = params;
   const whereStore = storeId ? "WHERE tenant_id = ? AND store_id = ?" : "WHERE tenant_id = ?";
   const p = storeId ? [tenantId, storeId] : [tenantId];
-  const todayOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore}`, p, tenantId);
-  const pendingOrders = await queryOneWithTenant<any>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
-  const todaySales = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
-  const unreceived = await queryOneWithTenant<any>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
+  const todayOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore}`, p, tenantId);
+  const pendingOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
+  const todaySales = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
+  const unreceived = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
   return {
     todayOrderCount: todayOrders?.cnt ?? 0,
     pendingOrderCount: pendingOrders?.cnt ?? 0,

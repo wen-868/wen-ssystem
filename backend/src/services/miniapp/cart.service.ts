@@ -1,8 +1,36 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
 
+// ==================== 类型定义 ====================
+
+/** 购物车列表行 */
+interface CartListRow {
+  id: number;
+  skuId: number;
+  quantity: number;
+  skuName: string;
+  spuName: string;
+  image: string | null;
+  retailPrice: number | string;
+  wholesalePrice: number | string | null;
+  miniappPrice: number | string | null;
+  availableQty: number | string;
+}
+
+/** 购物车SKU校验行 */
+interface CartSkuRow {
+  id: number;
+  skuName: string;
+}
+
+/** 购物车现有项行 */
+interface CartExistingRow {
+  id: number;
+  quantity: number;
+}
+
 export async function getCartList(tenantId: string, customerId: number, customerType: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<CartListRow>(
     `SELECT c.id, c.sku_id AS skuId, c.quantity,
             s.sku_name AS skuName, p.name AS spuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
@@ -39,7 +67,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
 }
 
 export async function addToCart(tenantId: string, customerId: number, skuId: number, quantity: number) {
-  const sku = await queryOneWithTenant<any>(
+  const sku = await queryOneWithTenant<CartSkuRow>(
     `SELECT s.id, s.sku_name FROM t_product_sku s JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id WHERE s.id = ? AND p.status = 'ON_SALE'`,
     [skuId],
     tenantId
@@ -48,7 +76,7 @@ export async function addToCart(tenantId: string, customerId: number, skuId: num
     return { success: false, message: "商品不存在或已下架" };
   }
 
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<CartExistingRow>(
     `SELECT id, quantity FROM t_cart_item WHERE customer_id = ? AND sku_id = ?`,
     [customerId, skuId],
     tenantId

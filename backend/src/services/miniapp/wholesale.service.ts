@@ -3,6 +3,213 @@ import { AppError } from "../../shared/app-error";
 import { makeBizNo } from "../../shared/id";
 import logger from "../../shared/logger";
 
+// ==================== 类型定义 ====================
+
+/** 计数 total 行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** ID 行 */
+interface IdRow {
+  id: number;
+}
+
+/** INSERT 结果行 */
+interface InsertResultRow {
+  insertId: number;
+  affectedRows: number;
+}
+
+/** 批发商品列表行 */
+interface WholesaleProductListRow {
+  spuId: number;
+  spuCode: string;
+  name: string;
+  mainImage: string | null;
+  categoryId: number;
+  unit: string | null;
+  specs: string | null;
+  isNew: number;
+  skuId: number;
+  skuName: string;
+  skuCode: string;
+  wholesalePrice: number | string;
+  retailPrice: number | string;
+  minOrderQty: number;
+  stockQty: number | string;
+  stepPrice: number | string | null;
+  stepMinQty: number | null;
+}
+
+/** 批发SPU详情行 */
+interface WholesaleSpuDetailRow {
+  id: number;
+  spuCode: string;
+  name: string;
+  mainImage: string | null;
+  categoryId: number;
+  categoryName: string | null;
+  unit: string | null;
+  specs: string | null;
+  alcoholContent: number | string | null;
+  origin: string | null;
+  imageUrls: unknown;
+  detail: string | null;
+  description: string | null;
+  isNew: number;
+  isRecommend: number;
+  brandId: number | null;
+  brandName: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
+/** 批发SKU行 */
+interface WholesaleSkuRow {
+  skuId: number;
+  skuName: string;
+  skuCode: string;
+  barcode: string | null;
+  volume: string | null;
+  packaging: string | null;
+  baseUnit: string | null;
+  boxUnit: string | null;
+  boxRatio: number | string;
+  wholesalePrice: number | string;
+  retailPrice: number | string;
+  miniappPrice: number | string | null;
+  minOrderQty: number;
+  availableQty: number | string;
+}
+
+/** 商品阶梯价行 */
+interface ProductStepPriceRow {
+  skuId: number;
+  minQty: number;
+  price: number | string;
+}
+
+/** 批发分类行 */
+interface WholesaleCategoryRow {
+  id: number;
+  name: string;
+  parentId: number | null;
+  sortNo: number;
+  icon: string | null;
+  level: number;
+}
+
+/** 批发购物车行 */
+interface WholesaleCartRow {
+  id: number;
+  skuId: number;
+  quantity: number;
+  skuName: string;
+  skuCode: string;
+  spuId: number;
+  spuName: string;
+  mainImage: string | null;
+  wholesalePrice: number | string;
+  minOrderQty: number;
+  availableQty: number | string;
+  categoryId: number | null;
+  categoryName: string | null;
+}
+
+/** 批发SKU校验行 */
+interface WholesaleSkuCheckRow {
+  id: number;
+  skuName: string;
+  wholesalePrice: number | string;
+  minOrderQty: number;
+}
+
+/** 批发购物车现有项行 */
+interface WholesaleCartExistingRow {
+  id: number;
+  quantity: number;
+}
+
+/** 批发购物车更新查询行 */
+interface WholesaleCartUpdateRow {
+  id: number;
+  skuId: number;
+}
+
+/** 批发订单列表行 */
+interface WholesaleOrderListRow {
+  id: number;
+  orderNo: string;
+  orderStatus: string;
+  payStatus: string;
+  goodsAmount: number | string;
+  discountAmount: number | string;
+  shippingAmount: number | string;
+  payableAmount: number | string;
+  paidAmount: number | string;
+  receiverName: string | null;
+  receiverMobile: string | null;
+  createdAt: string | Date;
+  paidAt: string | Date | null;
+  shippedAt: string | Date | null;
+  completedAt: string | Date | null;
+}
+
+/** 批发订单项行（列表缩略） */
+interface WholesaleOrderItemRow {
+  orderNo: string;
+  skuId: number;
+  skuName: string;
+  skuImage: string | null;
+  quantity: number;
+  unitPrice: number | string;
+  subtotalAmount: number | string;
+}
+
+/** 批发订单详情行 */
+interface WholesaleOrderDetailRow {
+  id: number;
+  orderNo: string;
+  orderStatus: string;
+  payStatus: string;
+  goodsAmount: number | string;
+  discountAmount: number | string;
+  shippingAmount: number | string;
+  payableAmount: number | string;
+  paidAmount: number | string;
+  receiverName: string | null;
+  receiverMobile: string | null;
+  receiverProvince: string | null;
+  receiverCity: string | null;
+  receiverDistrict: string | null;
+  receiverAddress: string | null;
+  remark: string | null;
+  couponId: number | null;
+  couponAmount: number | string;
+  pointsUsed: number;
+  pointsAmount: number | string;
+  createdAt: string | Date;
+  paidAt: string | Date | null;
+  shippedAt: string | Date | null;
+  completedAt: string | Date | null;
+  cancelledAt: string | Date | null;
+  cancelReason: string | null;
+}
+
+/** 批发订单详情商品项行 */
+interface WholesaleOrderDetailItemRow {
+  id: number;
+  spuId: number;
+  skuId: number;
+  skuName: string;
+  skuImage: string | null;
+  quantity: number;
+  unitPrice: number | string;
+  subtotalAmount: number | string;
+  specInfo: string | null;
+}
+
 // ========== 批发商品列表 ==========
 export async function getWholesaleProducts(
   tenantId: string,
@@ -47,7 +254,7 @@ export async function getWholesaleProducts(
     orderBy = "p.sale_count DESC, p.id DESC";
   }
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<WholesaleProductListRow>(
     `SELECT 
        p.id AS spuId, p.spu_code AS spuCode, p.name, p.main_image AS mainImage,
        p.category_id AS categoryId, p.unit, p.specs, p.is_new AS isNew,
@@ -72,7 +279,7 @@ export async function getWholesaleProducts(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(DISTINCT s.id) AS total
      FROM t_product_spu p
      JOIN t_product_sku s ON s.spu_id = p.id
@@ -129,7 +336,7 @@ export async function getWholesaleProducts(
 // ========== 批发商品详情 ==========
 export async function getWholesaleProductDetail(spuId: number, tenantId: string) {
   // 获取SPU基本信息
-  const spu = await queryOneWithTenant<any>(
+  const spu = await queryOneWithTenant<WholesaleSpuDetailRow>(
     `SELECT p.id, p.spu_code AS spuCode, p.name, p.main_image AS mainImage,
             p.category_id AS categoryId, p.category_name AS categoryName,
             p.unit, p.specs, p.alcohol_content AS alcoholContent, p.origin,
@@ -148,7 +355,7 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
   }
 
   // 获取SKU列表（只返回有批发价的SKU）
-  const skus = await queryWithTenant<any>(
+  const skus = await queryWithTenant<WholesaleSkuRow>(
     `SELECT s.id AS skuId, s.sku_name AS skuName, s.sku_code AS skuCode,
             s.barcode, s.volume, s.packaging, s.base_unit AS baseUnit,
             s.box_unit AS boxUnit, s.box_ratio AS boxRatio,
@@ -170,7 +377,7 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
   let stepPrices: any[] = [];
   if (skuIds.length > 0) {
     const placeholders = skuIds.map(() => "?").join(",");
-    stepPrices = await queryWithTenant<any>(
+    stepPrices = await queryWithTenant<ProductStepPriceRow>(
       `SELECT sku_id AS skuId, min_qty AS minQty, price
        FROM t_product_step_price
        WHERE sku_id IN (${placeholders}) AND tenant_id = ?
@@ -241,7 +448,7 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
 // ========== 批发分类列表 ==========
 export async function getWholesaleCategories(tenantId: string) {
   // 获取有批发商品的分类
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<WholesaleCategoryRow>(
     `SELECT DISTINCT c.id, c.name, c.parent_id AS parentId, c.sort_no AS sortNo,
             c.icon, c.level
      FROM t_product_category c
@@ -269,7 +476,7 @@ export async function getWholesaleCategories(tenantId: string) {
 
 // ========== 获取批发购物车列表 ==========
 export async function getWholesaleCart(memberId: number, tenantId: string) {
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<WholesaleCartRow>(
     `SELECT wc.id, wc.sku_id AS skuId, wc.quantity,
             s.sku_name AS skuName, s.sku_code AS skuCode,
             p.id AS spuId, p.name AS spuName, p.main_image AS mainImage,
@@ -324,7 +531,7 @@ export async function addWholesaleCartItem(
   quantity: number
 ) {
   // 校验商品是否存在且有批发价
-  const sku = await queryOneWithTenant<any>(
+  const sku = await queryOneWithTenant<WholesaleSkuCheckRow>(
     `SELECT s.id, s.sku_name AS skuName, pp.wholesale_price AS wholesalePrice,
             pp.min_order_qty AS minOrderQty
      FROM t_product_sku s
@@ -345,7 +552,7 @@ export async function addWholesaleCartItem(
   }
 
   // 检查是否已在购物车中
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<WholesaleCartExistingRow>(
     "SELECT id, quantity FROM t_wholesale_cart WHERE member_id = ? AND sku_id = ? AND tenant_id = ?",
     [memberId, skuId, tenantId],
     tenantId
@@ -362,7 +569,7 @@ export async function addWholesaleCartItem(
     return { id: existing.id, quantity: newQuantity, message: "已添加到购物车" };
   } else {
     // 新增
-    const result = await queryWithTenant<any>(
+    const result = await queryWithTenant<InsertResultRow>(
       "INSERT INTO t_wholesale_cart (member_id, sku_id, quantity, tenant_id) VALUES (?, ?, ?, ?)",
       [memberId, skuId, quantity, tenantId],
       tenantId
@@ -379,7 +586,7 @@ export async function updateWholesaleCartItem(
   cartId: number,
   quantity: number
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<WholesaleCartUpdateRow>(
     "SELECT id, sku_id AS skuId FROM t_wholesale_cart WHERE id = ? AND member_id = ? AND tenant_id = ?",
     [cartId, memberId, tenantId],
     tenantId
@@ -414,7 +621,7 @@ export async function deleteWholesaleCartItem(
   tenantId: string,
   cartId: number
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<IdRow>(
     "SELECT id FROM t_wholesale_cart WHERE id = ? AND member_id = ? AND tenant_id = ?",
     [cartId, memberId, tenantId],
     tenantId
@@ -650,7 +857,7 @@ export async function getWholesaleOrders(
 
   const where = conditions.join(" AND ");
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<WholesaleOrderListRow>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus,
             pay_status AS payStatus, goods_amount AS goodsAmount,
             discount_amount AS discountAmount, shipping_amount AS shippingAmount,
@@ -666,7 +873,7 @@ export async function getWholesaleOrders(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_wholesale_order WHERE ${where} AND tenant_id = ?`,
     [...params, tenantId],
     tenantId
@@ -677,7 +884,7 @@ export async function getWholesaleOrders(
   let orderItems: any[] = [];
   if (orderNos.length > 0) {
     const placeholders = orderNos.map(() => "?").join(",");
-    orderItems = await queryWithTenant<any>(
+    orderItems = await queryWithTenant<WholesaleOrderItemRow>(
       `SELECT oi.order_no AS orderNo, oi.sku_id AS skuId, oi.sku_name AS skuName,
               oi.sku_image AS skuImage, oi.quantity, oi.unit_price AS unitPrice,
               oi.subtotal_amount AS subtotalAmount
@@ -743,7 +950,7 @@ export async function getWholesaleOrderDetail(
   tenantId: string,
   orderNo: string
 ) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<WholesaleOrderDetailRow>(
     `SELECT id, order_no AS orderNo, order_status AS orderStatus,
             pay_status AS payStatus, goods_amount AS goodsAmount,
             discount_amount AS discountAmount, shipping_amount AS shippingAmount,
@@ -766,7 +973,7 @@ export async function getWholesaleOrderDetail(
     throw new AppError("订单不存在", 404);
   }
 
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<WholesaleOrderDetailItemRow>(
     `SELECT id, spu_id AS spuId, sku_id AS skuId, sku_name AS skuName,
             sku_image AS skuImage, quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount, spec_info AS specInfo
