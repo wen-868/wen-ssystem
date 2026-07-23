@@ -46,7 +46,7 @@
     </PageCard>
 
     <!-- 新增/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑专属价格' : '新增专属价格'" width="500px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑专属价格' : '新增专属价格'" width="480px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="客户" prop="customerId">
           <el-select v-model="form.customerId" filterable placeholder="请选择客户" style="width: 100%" :disabled="isEdit" @change="onCustomerChange">

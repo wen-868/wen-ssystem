@@ -47,7 +47,7 @@
       />
     </el-card>
 
-    <el-dialog v-model="createVisible" title="新建退货单" width="600px">
+    <el-dialog v-model="createVisible" title="新建退货单" width="720px">
       <el-form label-width="100px">
         <el-form-item label="原销售单号" required>
           <el-input v-model="createForm.sourceBillNo" placeholder="请输入原销售单号" />

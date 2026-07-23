@@ -111,7 +111,7 @@
     </el-dialog>
 
     <!-- 完成交接班弹窗 -->
-    <el-dialog v-model="showCompleteDialogFlag" title="完成交接班" width="500px">
+    <el-dialog v-model="showCompleteDialogFlag" title="完成交接班" width="480px">
       <el-form :model="completeForm" label-width="120px">
         <el-form-item label="结束时间" required>
           <el-date-picker

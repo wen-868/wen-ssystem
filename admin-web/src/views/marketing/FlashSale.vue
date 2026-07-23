@@ -164,7 +164,7 @@
     </el-dialog>
 
     <!-- 商品选择器 -->
-    <el-dialog v-model="productPickerVisible" title="选择秒杀商品" width="600px">
+    <el-dialog v-model="productPickerVisible" title="选择秒杀商品" width="720px">
       <div class="picker-toolbar">
         <el-input v-model="productSearch" placeholder="搜索商品" clearable style="width: 200px" />
       </div>

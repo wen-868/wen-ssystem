@@ -229,7 +229,7 @@
     </el-dialog>
 
     <!-- 快速映射弹窗 -->
-    <el-dialog v-model="quickMapVisible" title="快速映射" width="500px">
+    <el-dialog v-model="quickMapVisible" title="快速映射" width="480px">
       <el-form ref="quickMapFormRef" :model="quickMapForm" :rules="quickMapFormRules" label-width="120px">
         <el-form-item label="渠道SKU">
           <el-input :model-value="quickMapForm.channelSkuId" disabled />

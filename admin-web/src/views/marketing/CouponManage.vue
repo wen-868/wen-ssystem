@@ -168,7 +168,7 @@
     </el-dialog>
 
     <!-- 发放记录对话框 -->
-    <el-dialog v-model="recordVisible" title="发放记录" width="800px">
+    <el-dialog v-model="recordVisible" title="发放记录" width="900px">
       <el-table :data="issueRecords" size="small" max-height="400">
         <el-table-column prop="userName" label="用户" width="100" />
         <el-table-column prop="userPhone" label="手机号" width="120" />

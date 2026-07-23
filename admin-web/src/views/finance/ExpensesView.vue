@@ -97,7 +97,7 @@
     </PageCard>
 
     <!-- 新增费用弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新增费用" width="550px">
+    <el-dialog v-model="dialogVisible" title="新增费用" width="480px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="费用类型" prop="expenseType">
           <el-select v-model="form.expenseType" style="width: 100%">

@@ -100,7 +100,7 @@
     </el-card>
 
     <!-- 新建/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑采购合同' : '新建采购合同'" width="800px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑采购合同' : '新建采购合同'" width="900px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-divider content-position="left">基础信息</el-divider>
         <el-row :gutter="20">

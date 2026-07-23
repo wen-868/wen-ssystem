@@ -121,7 +121,7 @@
     </el-dialog>
 
     <!-- 交易明细 -->
-    <el-dialog v-model="transactionsVisible" title="交易明细" width="850px">
+    <el-dialog v-model="transactionsVisible" title="交易明细" width="900px">
       <el-table :data="transactions" v-loading="transactionsLoading" stripe empty-text="暂无交易">
         <el-table-column prop="txnNo" label="交易号" width="180" />
         <el-table-column prop="type" label="类型" width="80">

@@ -89,7 +89,7 @@
     </el-card>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetailDialog" title="操作详情" width="500px">
+    <el-dialog v-model="showDetailDialog" title="操作详情" width="480px">
       <div v-if="selectedLog">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="操作类型">

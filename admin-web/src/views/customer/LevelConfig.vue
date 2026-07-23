@@ -59,7 +59,7 @@
     </el-dialog>
 
     <!-- 升级记录弹窗 -->
-    <el-dialog v-model="upgradeRecordsVisible" title="升级记录" width="750px">
+    <el-dialog v-model="upgradeRecordsVisible" title="升级记录" width="720px">
       <el-table :data="upgradeRecords" v-loading="upgradeRecordsLoading" stripe empty-text="暂无记录">
         <el-table-column prop="customerName" label="客户" min-width="120" />
         <el-table-column prop="fromLevelName" label="原等级" width="120" />
@@ -79,7 +79,7 @@
     </el-dialog>
 
     <!-- 手动升级弹窗 -->
-    <el-dialog v-model="manualUpgradeVisible" title="手动升级" width="500px">
+    <el-dialog v-model="manualUpgradeVisible" title="手动升级" width="480px">
       <el-form ref="manualUpgradeFormRef" :model="manualUpgradeForm" :rules="manualUpgradeRules" label-width="100px">
         <el-form-item label="选择客户" prop="customerId">
           <el-select v-model="manualUpgradeForm.customerId" filterable placeholder="搜索客户" style="width: 100%">

@@ -56,7 +56,7 @@
     </PageCard>
 
     <!-- 新建报价弹窗 -->
-    <el-dialog v-model="createDialogVisible" title="新建报价" width="800px">
+    <el-dialog v-model="createDialogVisible" title="新建报价" width="900px">
       <el-form ref="createFormRef" :model="createForm" :rules="createRules" label-width="100px">
         <el-form-item label="客户" prop="customerId">
           <el-select v-model="createForm.customerId" filterable placeholder="选择客户" style="width: 100%">

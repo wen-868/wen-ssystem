@@ -35,7 +35,7 @@
     </PageCard>
 
     <!-- 标签设置弹窗 -->
-    <el-dialog v-model="tagDialogVisible" title="设置商品标签" width="600px">
+    <el-dialog v-model="tagDialogVisible" title="设置商品标签" width="720px">
       <template v-if="tagProduct">
         <p style="margin-bottom: 12px; color: #666">商品: {{ tagProduct.name }} ({{ tagProduct.skuCode }})</p>
         <el-tabs v-model="tagTypeTab">

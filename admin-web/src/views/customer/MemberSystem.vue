@@ -40,7 +40,7 @@
     </el-tabs>
 
     <!-- 权益编辑弹窗 -->
-    <el-dialog v-model="benefitsDialogVisible" title="编辑会员权益" width="700px">
+    <el-dialog v-model="benefitsDialogVisible" title="编辑会员权益" width="720px">
       <el-table :data="benefitsEditList" stripe empty-text="暂无数据">
         <el-table-column prop="levelName" label="等级" width="120" />
         <el-table-column prop="benefitName" label="权益名称" min-width="140" />

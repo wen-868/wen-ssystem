@@ -112,7 +112,7 @@
     </PageCard>
 
     <!-- 新建委托弹窗 -->
-    <el-dialog v-model="dialogVisible" title="新建审核委托" width="600px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" title="新建审核委托" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="被委托人" prop="delegateId">
           <el-select v-model="form.delegateId" placeholder="请选择被委托人" filterable style="width: 100%">

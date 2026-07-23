@@ -115,7 +115,7 @@
     </el-dialog>
 
     <!-- 核销弹窗 -->
-    <el-dialog v-model="writeoffVisible" title="核销付款" width="650px">
+    <el-dialog v-model="writeoffVisible" title="核销付款" width="720px">
       <div class="writeoff-info">
         <p>付款单号：{{ writeoffTarget?.paymentNo }}</p>
         <p>付款金额：{{ formatYuan(writeoffTarget?.amount) }}</p>

@@ -203,7 +203,7 @@
       </template>
     </el-dialog>
 
-    <DetailDrawer v-model="detailVisible" title="付款详情" width="500px">
+    <DetailDrawer v-model="detailVisible" title="付款详情" width="480px">
       <template v-if="currentPayment">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="付款单号">{{ currentPayment.paymentNo }}</el-descriptions-item>

@@ -221,7 +221,7 @@
     </el-dialog>
 
     <!-- 商品选择器弹窗 -->
-    <el-dialog v-model="productPickerVisible" title="选择适用商品" width="700px">
+    <el-dialog v-model="productPickerVisible" title="选择适用商品" width="720px">
       <div class="picker-toolbar">
         <el-input v-model="productSearchKeyword" placeholder="搜索商品名称" clearable style="width: 200px" />
         <el-select v-model="productCategoryFilter" placeholder="分类筛选" clearable style="width: 140px">

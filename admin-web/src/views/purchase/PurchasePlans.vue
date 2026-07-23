@@ -45,7 +45,7 @@
     </PageCard>
 
     <!-- 新建计划弹窗 -->
-    <el-dialog v-model="createVisible" title="新建采购计划" width="700px" :close-on-click-modal="false">
+    <el-dialog v-model="createVisible" title="新建采购计划" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="createForm" :rules="rules" label-width="100px">
         <el-form-item label="计划名称" prop="planName">
           <el-input v-model="createForm.planName" placeholder="如：6月补货计划" />
@@ -90,7 +90,7 @@
     </el-dialog>
 
     <!-- 智能补货建议弹窗 -->
-    <el-dialog v-model="replenishVisible" title="智能补货建议" width="700px" :close-on-click-modal="false">
+    <el-dialog v-model="replenishVisible" title="智能补货建议" width="720px" :close-on-click-modal="false">
       <el-table :data="suggestions" size="small" border v-loading="suggestLoading">
         <el-table-column type="selection" width="45" />
         <el-table-column prop="skuName" label="商品" minWidth="140" />

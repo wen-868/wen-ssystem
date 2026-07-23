@@ -245,7 +245,7 @@
     <el-dialog
       v-model="detailDialogVisible"
       title="素材详情"
-      width="700px"
+      width="720px"
     >
       <div v-if="currentMaterial" class="detail-content">
         <div class="detail-preview">

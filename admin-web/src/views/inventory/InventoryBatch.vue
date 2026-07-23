@@ -141,7 +141,7 @@
     </PageCard>
 
     <!-- 效期预警弹窗 -->
-    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="500px">
+    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="480px">
       <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="100px">
         <el-form-item label="商品" prop="productId" required>
           <el-select v-model="configForm.productId" filterable placeholder="选择商品" style="width: 100%">

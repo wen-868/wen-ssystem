@@ -245,7 +245,7 @@
     </el-dialog>
 
     <!-- 驳回原因弹窗 -->
-    <el-dialog v-model="rejectVisible" title="审核驳回" width="500px">
+    <el-dialog v-model="rejectVisible" title="审核驳回" width="480px">
       <el-form :model="rejectForm" :rules="rejectRules" ref="rejectFormRef" label-width="100px">
         <el-form-item label="驳回原因" prop="reviewComment">
           <el-input
@@ -265,7 +265,7 @@
     </el-dialog>
 
     <!-- 审核通过意见弹窗 -->
-    <el-dialog v-model="approveVisible" title="审核通过" width="500px">
+    <el-dialog v-model="approveVisible" title="审核通过" width="480px">
       <el-form :model="approveForm" label-width="100px">
         <el-form-item label="审核意见">
           <el-input

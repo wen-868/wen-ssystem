@@ -33,7 +33,7 @@
       </el-table>
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="会员详情" width="600px">
+    <el-dialog v-model="detailVisible" title="会员详情" width="720px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="姓名">{{ currentMember.name }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ currentMember.mobile }}</el-descriptions-item>

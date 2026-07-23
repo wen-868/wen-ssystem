@@ -97,7 +97,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑活动' : '新建活动'"
-      width="750px"
+      width="720px"
       @close="resetForm"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">

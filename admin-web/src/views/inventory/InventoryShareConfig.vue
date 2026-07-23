@@ -207,7 +207,7 @@
     <el-dialog
       v-model="showAddDialog"
       title="添加共享商品"
-      width="700px"
+      width="720px"
       :close-on-click-modal="false"
     >
       <div class="product-search">

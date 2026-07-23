@@ -147,7 +147,7 @@
     </el-row>
 
     <!-- 挂单弹窗 -->
-    <el-dialog v-model="holdDialogVisible" title="挂单列表" width="600px">
+    <el-dialog v-model="holdDialogVisible" title="挂单列表" width="720px">
       <el-button type="primary" style="margin-bottom: 12px" @click="handleCreateHoldOrder">挂当前购物车</el-button>
       <el-table :data="holdOrders" size="small">
         <el-table-column prop="holdNo" label="挂单号" width="160" />

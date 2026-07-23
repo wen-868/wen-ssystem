@@ -429,7 +429,7 @@
     </el-dialog>
 
     <!-- ============ 商品选择 Dialog ============ -->
-    <el-dialog v-model="productSelectorVisible" title="选择商品" width="700px">
+    <el-dialog v-model="productSelectorVisible" title="选择商品" width="720px">
       <div class="search-bar" style="margin-bottom: 12px">
         <el-input
           v-model="productSearchKeyword" placeholder="搜索商品名称/SKU编码"
@@ -506,7 +506,7 @@
     <el-dialog
       v-model="groupDialogVisible"
       :title="groupEditing ? '编辑组合' : '新建组合'"
-      width="800px"
+      width="900px"
       :close-on-click-modal="false"
     >
       <el-form ref="groupFormRef" :model="groupForm" :rules="groupFormRules" label-width="110px">

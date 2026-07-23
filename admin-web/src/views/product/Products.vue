@@ -130,7 +130,7 @@
     </el-card>
 
     <!-- 新增/编辑 SPU -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑商品' : '新增商品'" width="800px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑商品' : '新增商品'" width="900px" :close-on-click-modal="false">
       <el-form :model="form" label-width="100px" ref="formRef" :rules="rules">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -439,7 +439,7 @@
     </el-drawer>
 
     <!-- SKU 价格历史 -->
-    <el-dialog v-model="priceHistoryVisible" title="价格历史" width="700px">
+    <el-dialog v-model="priceHistoryVisible" title="价格历史" width="720px">
       <el-table :data="priceHistory" size="small" stripe v-loading="priceHistoryLoading">
         <el-table-column prop="priceType" label="价格类型" width="100" />
         <el-table-column prop="oldPrice" label="旧价格" width="100">

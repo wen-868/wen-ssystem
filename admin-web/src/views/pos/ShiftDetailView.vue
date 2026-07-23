@@ -96,7 +96,7 @@
     </el-card>
 
     <!-- 库存盘点编辑弹窗 -->
-    <el-dialog v-model="showStockCheckDialog" title="库存盘点核对" width="600px">
+    <el-dialog v-model="showStockCheckDialog" title="库存盘点核对" width="720px">
       <el-table :data="stockCheckItems" size="small">
         <el-table-column prop="skuName" label="商品名称" />
         <el-table-column prop="skuCode" label="商品编码" width="120" />

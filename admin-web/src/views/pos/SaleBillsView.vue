@@ -52,7 +52,7 @@
       />
     </el-card>
 
-    <el-dialog v-model="detailVisible" title="销售单详情" width="700px">
+    <el-dialog v-model="detailVisible" title="销售单详情" width="720px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="单号">{{ detail.billNo }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ detail.customerName }}</el-descriptions-item>

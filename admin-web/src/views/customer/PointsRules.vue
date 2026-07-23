@@ -66,7 +66,7 @@
     </el-tabs>
 
     <!-- 规则弹窗 -->
-    <el-dialog v-model="ruleDialogVisible" :title="editingRule ? '编辑规则' : '新建规则'" width="500px">
+    <el-dialog v-model="ruleDialogVisible" :title="editingRule ? '编辑规则' : '新建规则'" width="480px">
       <el-form ref="ruleFormRef" :model="ruleForm" :rules="ruleRules" label-width="100px">
         <el-form-item label="规则名称" prop="name">
           <el-input v-model="ruleForm.name" />
@@ -94,7 +94,7 @@
     </el-dialog>
 
     <!-- 调整积分弹窗 -->
-    <el-dialog v-model="adjustDialogVisible" title="手动调整积分" width="500px">
+    <el-dialog v-model="adjustDialogVisible" title="手动调整积分" width="480px">
       <el-form ref="adjustFormRef" :model="adjustForm" :rules="adjustRules" label-width="100px">
         <el-form-item label="客户ID" prop="customerId">
           <el-input v-model="adjustForm.customerId" />
