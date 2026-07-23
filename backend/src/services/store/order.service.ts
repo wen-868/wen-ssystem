@@ -2,6 +2,76 @@ import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/d
 import { makeBizNo } from "../../shared/id";
 import { completeOrderDelivery } from "../../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../../shared/trace-code";
+import type { RowDataPacket } from "mysql2";
+
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 订单列表行 */
+interface OrderRow {
+  orderNo: string;
+  storeId: number;
+  fulfillmentType: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number;
+  receiverName: string;
+  receiverMobile: string;
+  receiverAddress: string;
+  createdAt: Date | string;
+}
+
+/** 订单详情行 */
+interface OrderDetailRow {
+  orderNo: string;
+  storeId: number;
+  customerType: string;
+  fulfillmentType: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number;
+  receiverName: string;
+  receiverMobile: string;
+  receiverAddress: string;
+  createdAt: Date | string;
+}
+
+/** 订单项行 */
+interface OrderItemRow {
+  skuId: number;
+  skuName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotalAmount: number;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** 订单行（事务查询用） */
+interface OrderConnRow extends RowDataPacket {
+  order_no: string;
+  store_id: number;
+  tenantId?: string;
+}
+
+/** 订单项行（事务查询用） */
+interface OrderItemConnRow extends RowDataPacket {
+  skuId: number;
+  sku_id?: number;
+  reservedQty: number;
+}
+
+/** 订单租户行 */
+interface OrderTenantRow extends RowDataPacket {
+  tenantId: string;
+}
+
+/** SKU ID 行 */
+interface SkuIdRow extends RowDataPacket {
+  sku_id: number;
+}
 
 export async function listOrders(params: {
   page: number;
@@ -12,7 +82,7 @@ export async function listOrders(params: {
 }) {
   const { page, pageSize, storeId, status, tenantId } = params;
   const offset = (page - 1) * pageSize;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OrderRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, fulfillment_type AS fulfillmentType,
             order_status AS orderStatus, pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
@@ -26,7 +96,7 @@ export async function listOrders(params: {
     [tenantId, storeId, storeId, status, status, pageSize, offset],
     tenantId
   );
-  const total = await queryOneWithTenant<any>(
+  const total = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS total FROM t_miniapp_order
      WHERE tenant_id = ?
        AND (? IS NULL OR store_id = ?)
@@ -38,7 +108,7 @@ export async function listOrders(params: {
 }
 
 export async function getOrderDetail(orderNo: string, tenantId: string) {
-  const order = await queryOneWithTenant<any>(
+  const order = await queryOneWithTenant<OrderDetailRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
             pay_status AS payStatus, payable_amount AS payableAmount,
@@ -49,7 +119,7 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
     tenantId
   );
   if (!order) return null;
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<OrderItemRow>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity, unit_price AS unitPrice,
             subtotal_amount AS subtotalAmount
      FROM t_miniapp_order_item WHERE order_no = ?`,
@@ -92,17 +162,17 @@ export async function completeDelivery(orderNo: string, userId: number | null) {
     const result = await completeOrderDelivery(conn, orderNo, userId ?? null, makeBizNo);
 
     // R9-2: 配送完成时消费追溯码
-    const [orderRows]: any[] = await conn.query(
+    const [orderRows] = await conn.query<OrderTenantRow[]>(
       `SELECT tenant_id AS tenantId FROM t_miniapp_order WHERE order_no = ?`,
       [orderNo]
     );
     const tenantId = orderRows[0]?.tenantId;
     if (tenantId) {
-      const [items]: any[] = await conn.query(
+      const [items] = await conn.query<SkuIdRow[]>(
         `SELECT sku_id FROM t_miniapp_order_item WHERE order_no = ?`,
         [orderNo]
       );
-      const skuIds = items.map((it: any) => it.sku_id);
+      const skuIds = items.map((it) => it.sku_id);
       if (skuIds.length > 0) {
         await updateTraceCodesBySkuList(conn, tenantId, orderNo, skuIds);
       }
@@ -114,7 +184,7 @@ export async function completeDelivery(orderNo: string, userId: number | null) {
 
 async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CANCELLED", operatorId: number | null, tenantId: string) {
   return transaction(async (conn) => {
-    const [orders] = await conn.query<any[]>(
+    const [orders] = await conn.query<OrderConnRow[]>(
       `SELECT order_no, store_id FROM t_miniapp_order
        WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING') AND tenant_id = ?
        FOR UPDATE`,
@@ -122,7 +192,7 @@ async function releaseOrderReservation(orderNo: string, status: "REJECTED" | "CA
     );
     const order = orders[0];
     if (!order) throw new Error("订单不存在或状态不可释放库存");
-    const [items] = await conn.query<any[]>(
+    const [items] = await conn.query<OrderItemConnRow[]>(
       `SELECT sku_id AS skuId, reserved_qty AS reservedQty FROM t_miniapp_order_item WHERE order_no = ?`,
       [orderNo]
     );

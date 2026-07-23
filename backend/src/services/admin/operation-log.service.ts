@@ -1,5 +1,21 @@
 ﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+interface OperationLogRow {
+  id: number;
+  operatorId: number;
+  operatorName: string;
+  module: string;
+  action: string;
+  bizNo: string;
+  targetId: string | null;
+  targetType: string | null;
+  afterData: string | null;
+  remark: string | null;
+  createdAt: string;
+}
+
 export interface LogListParams {
   page: number;
   pageSize: number;
@@ -30,7 +46,7 @@ export async function listLogs(tenantId: string, params: LogListParams) {
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<OperationLogRow>(
     `SELECT id, operator_id AS operatorId, operator_name AS operatorName,
             module, action, biz_no AS bizNo, target_id AS targetId,
             target_type AS targetType, after_data AS afterData,

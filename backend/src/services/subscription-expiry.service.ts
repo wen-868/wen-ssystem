@@ -1,7 +1,32 @@
 import { query } from "../shared/db";
 import logger from "../shared/logger";
 
-let schedulerInterval: any | null = null;
+let schedulerInterval: ReturnType<typeof setInterval> | null = null;
+
+/** 即将到期的订阅行 */
+interface ExpiringSubscriptionRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: string;
+  end_date: string;
+  expire_notify_sent: number;
+  auto_renew: number;
+  company_name: string;
+  contact_mobile: string;
+  contact_person: string;
+  days_remaining: number;
+}
+
+/** 已过期的订阅行 */
+interface ExpiredSubscriptionRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: string;
+  end_date: string;
+  company_name: string;
+  tenant_status: string;
+  overdue_days: number;
+}
 
 /**
  * 订阅到期检查服务
@@ -14,7 +39,7 @@ export async function checkSubscriptionExpiry() {
 
   try {
     // 1. 检查7天内即将到期的订阅
-    const expiringSoon = await query<any>(
+    const expiringSoon = await query<ExpiringSubscriptionRow>(
       `SELECT s.id, s.subscription_no, s.tenant_id, s.end_date,
               s.expire_notify_sent, s.auto_renew,
               t.company_name, t.contact_mobile, t.contact_person,
@@ -48,7 +73,7 @@ export async function checkSubscriptionExpiry() {
     }
 
     // 2. 检查已过期但未停用的订阅
-    const expired = await query<any>(
+    const expired = await query<ExpiredSubscriptionRow>(
       `SELECT s.id, s.subscription_no, s.tenant_id, s.end_date,
               t.company_name, t.status AS tenant_status,
               DATEDIFF(CURDATE(), s.end_date) AS overdue_days

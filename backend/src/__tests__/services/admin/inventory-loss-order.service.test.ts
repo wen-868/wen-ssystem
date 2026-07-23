@@ -150,7 +150,8 @@ describe("inventory-loss-order.service - approveLossOrder", () => {
     mocks.queryOneWithTenant.mockResolvedValue({ id: 1, status: "PENDING", lossNo: "BS001", storeId: 1 });
     mockConn.execute.mockResolvedValue({ affectedRows: 1 });
     mockConn.query.mockResolvedValue([
-      { skuId: 1, qty: 10, costPrice: 50 },
+      [{ skuId: 1, qty: 10, costPrice: 50 }],
+      []
     ]);
     const res = await approveLossOrder(1, { auditorId: 1, auditorName: "李四", tenantId: "t1" });
     expect(res).toEqual({ success: true });
@@ -162,7 +163,8 @@ describe("inventory-loss-order.service - approveLossOrder", () => {
     mocks.queryOneWithTenant.mockResolvedValue({ id: 1, status: "DRAFT", lossNo: "BS002", storeId: 2 });
     mockConn.execute.mockResolvedValue({ affectedRows: 1 });
     mockConn.query.mockResolvedValue([
-      { skuId: 2, qty: 5, costPrice: 20 },
+      [{ skuId: 2, qty: 5, costPrice: 20 }],
+      []
     ]);
     const res = await approveLossOrder(1, { auditorId: 2, tenantId: "t1" });
     expect(res).toEqual({ success: true });
@@ -171,7 +173,7 @@ describe("inventory-loss-order.service - approveLossOrder", () => {
   it("auditorName 为 undefined 时走 ?? null", async () => {
     mocks.queryOneWithTenant.mockResolvedValue({ id: 1, status: "PENDING", lossNo: "BS003", storeId: 1 });
     mockConn.execute.mockResolvedValue({ affectedRows: 1 });
-    mockConn.query.mockResolvedValue([]);
+    mockConn.query.mockResolvedValue([[], []]);
     await approveLossOrder(1, { auditorId: 1, tenantId: "t1" });
     // UPDATE 中 auditorName 应为 null
     const updateCall = mockConn.execute.mock.calls[0];

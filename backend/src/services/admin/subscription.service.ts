@@ -1,6 +1,83 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+// ========== 类型定义 ==========
+
+interface SubscriptionRow {
+  id: number;
+  subscriptionNo: string;
+  tenantId: number;
+  tenantName: string;
+  planId: number;
+  planName: string;
+  planType: string;
+  startDate: string;
+  endDate: string;
+  durationDays: number;
+  price: number;
+  paymentStatus: string;
+  paymentMethod: string | null;
+  paidAt: string | null;
+  transactionNo: string | null;
+  autoRenew: number;
+  renewPrice: number | null;
+  status: string;
+  cancelReason: string | null;
+  cancelledAt: string | null;
+  expireNotifySent: number;
+  remark: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CountTotalRow {
+  total: number;
+}
+
+interface SubscriptionOperationLogRow {
+  id: number;
+  operationType: string;
+  oldPlanId: number | null;
+  newPlanId: number | null;
+  oldEndDate: string | null;
+  newEndDate: string | null;
+  amount: number | null;
+  operatorName: string | null;
+  remark: string | null;
+  createdAt: string;
+}
+
+interface TenantExpireRow {
+  id: number;
+  company_name: string;
+  expire_at: string;
+}
+
+interface PlanModuleRow {
+  id: number;
+  plan_name: string;
+  plan_type: string;
+  price: number;
+  duration_days: number;
+  module_access: string | null;
+}
+
+interface SubscriptionBriefRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: number;
+  plan_id: number;
+  plan_name: string;
+  end_date: string;
+  status: string;
+}
+
+interface PlanBriefRow {
+  id: number;
+  plan_name: string;
+  price: number;
+}
+
 export async function listSubscriptions(
   tenantId: string,
   filters: {
@@ -29,7 +106,7 @@ export async function listSubscriptions(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<SubscriptionRow>(
     `SELECT s.id, s.subscription_no AS subscriptionNo,
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType,
@@ -50,7 +127,7 @@ export async function listSubscriptions(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_subscription s ${where}`,
     params,
     tenantId
@@ -65,7 +142,7 @@ export async function listSubscriptions(
 }
 
 export async function getSubscription(subscriptionId: number, tenantId: string) {
-  const record = await queryOneWithTenant<any>(
+  const record = await queryOneWithTenant<SubscriptionRow>(
     `SELECT s.id, s.subscription_no AS subscriptionNo,
             s.tenant_id AS tenantId, t.company_name AS tenantName,
             s.plan_id AS planId, s.plan_name AS planName, s.plan_type AS planType,
@@ -88,7 +165,7 @@ export async function getSubscription(subscriptionId: number, tenantId: string) 
     return null;
   }
 
-  const logs = await queryWithTenant<any>(
+  const logs = await queryWithTenant<SubscriptionOperationLogRow>(
     `SELECT id, operation_type AS operationType,
             old_plan_id AS oldPlanId, new_plan_id AS newPlanId,
             old_end_date AS oldEndDate, new_end_date AS newEndDate,
@@ -116,7 +193,7 @@ export async function createSubscription(
   username: string,
   tenantId: string
 ) {
-  const tenant = await queryOne<any>(
+  const tenant = await queryOne<TenantExpireRow>(
     "SELECT id, company_name, expire_at FROM t_tenant WHERE id = ?",
     [body.tenantId]
   );
@@ -124,7 +201,7 @@ export async function createSubscription(
     return { code: "404", message: "租户不存在" };
   }
 
-  const plan = await queryOne<any>(
+  const plan = await queryOne<PlanModuleRow>(
     "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [body.planId]
   );
@@ -157,7 +234,7 @@ export async function createSubscription(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, new_plan_id, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'CREATE', ?, ?, ?, ?, ?, ?)`,
       [subscriptionNo, body.planId, endDate.toISOString().slice(0, 10), plan.price,
-       userId, username, `创建订阅: ${subscriptionNo}`]
+        userId, username, `创建订阅: ${subscriptionNo}`]
     );
 
     await conn.execute(
@@ -181,7 +258,7 @@ export async function createSubscription(
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CREATE", subscriptionNo, "subscription", userId, username,
-       `创建订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, body.tenantId]
+        `创建订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, body.tenantId]
     );
   });
 
@@ -199,7 +276,7 @@ export async function changePlan(
   username: string,
   tenantId: string
 ) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<SubscriptionBriefRow>(
     `SELECT s.id, s.subscription_no, s.tenant_id, s.plan_id, s.plan_name, s.end_date, s.status
      FROM t_subscription s WHERE s.id = ?`,
     [subscriptionId],
@@ -212,7 +289,7 @@ export async function changePlan(
     return { code: "400", message: "只有活跃订阅可以变更套餐" };
   }
 
-  const newPlan = await queryOne<any>(
+  const newPlan = await queryOne<PlanModuleRow>(
     "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [body.newPlanId]
   );
@@ -220,7 +297,7 @@ export async function changePlan(
     return { code: "404", message: "目标套餐不存在或已下架" };
   }
 
-  const oldPlan = await queryOne<any>(
+  const oldPlan = await queryOne<PlanBriefRow>(
     "SELECT id, plan_name, price FROM t_subscription_plan WHERE id = ?",
     [existing.plan_id]
   );
@@ -237,9 +314,9 @@ export async function changePlan(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, amount, operator_id, operator_name, remark)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, priceDiff > 0 ? "UPGRADE" : "DOWNGRADE",
-       existing.plan_id, body.newPlanId, priceDiff,
-       userId, username,
-       `套餐变更: ${oldPlan?.plan_name} -> ${newPlan.plan_name}`]
+        existing.plan_id, body.newPlanId, priceDiff,
+        userId, username,
+        `套餐变更: ${oldPlan?.plan_name} -> ${newPlan.plan_name}`]
     );
 
     if (newPlan.module_access) {
@@ -258,8 +335,8 @@ export async function changePlan(
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CHANGE_PLAN", String(subscriptionId), "subscription",
-       userId, username,
-       `套餐变更: ${oldPlan?.plan_name} -> ${newPlan.plan_name}`, existing.tenant_id]
+        userId, username,
+        `套餐变更: ${oldPlan?.plan_name} -> ${newPlan.plan_name}`, existing.tenant_id]
     );
   });
 
@@ -301,7 +378,7 @@ export async function cancelSubscription(
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "CANCEL", String(subscriptionId), "subscription",
-       userId, username, `取消订阅: ${existing.subscription_no}`, existing.tenant_id]
+        userId, username, `取消订阅: ${existing.subscription_no}`, existing.tenant_id]
     );
   });
 
@@ -347,8 +424,8 @@ export async function paySubscription(
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "PAY", String(subscriptionId), "subscription",
-       userId, username,
-       `确认支付: ${existing.subscription_no}, 方式: ${body.paymentMethod}`, existing.tenant_id]
+        userId, username,
+        `确认支付: ${existing.subscription_no}, 方式: ${body.paymentMethod}`, existing.tenant_id]
     );
   });
 

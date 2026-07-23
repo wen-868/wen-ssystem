@@ -5,6 +5,43 @@
  */
 
 import { query, queryOne } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2";
+
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 平台配置行 */
+interface PlatformConfigRow {
+  configKey: string;
+  configValue: string;
+  category: string;
+  description: string;
+  updatedAt: Date | string;
+}
+
+/** 配置键存在性检查行 */
+interface ConfigKeyRow {
+  config_key: string;
+}
+
+/** 操作日志列表行 */
+interface PlatformAuditLogRow {
+  id: number;
+  adminId: number;
+  adminName: string;
+  module: string;
+  action: string;
+  detail: string;
+  ipAddress: string;
+  createdAt: Date | string;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** INSERT/UPDATE 返回结果 */
+interface AffectedResult extends ResultSetHeader { }
 
 // ─── 系统配置 ────────────────────────────────────────────────
 
@@ -24,7 +61,7 @@ export async function listPlatformConfigs(
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<PlatformConfigRow>(
     `SELECT config_key AS configKey, config_value AS configValue,
             category, description, updated_at AS updatedAt
      FROM t_platform_config
@@ -44,7 +81,7 @@ export async function updatePlatformConfig(
   configValue: string,
   operator: string
 ) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<ConfigKeyRow>(
     "SELECT config_key FROM t_platform_config WHERE config_key = ?",
     [configKey]
   );
@@ -110,7 +147,7 @@ export async function listPlatformAuditLogs(
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<PlatformAuditLogRow>(
     `SELECT l.id, l.admin_id AS adminId, a.real_name AS adminName,
             l.module, l.action, l.detail, l.ip_address AS ipAddress,
             l.created_at AS createdAt
@@ -122,7 +159,7 @@ export async function listPlatformAuditLogs(
     [...params, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountRow>(
     `SELECT COUNT(*) AS total
      FROM t_platform_audit_log l WHERE ${where}`,
     params

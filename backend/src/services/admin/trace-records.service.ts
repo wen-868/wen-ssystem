@@ -2,6 +2,37 @@ import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shar
 import { makeBizNo } from "../../shared/id";
 import { verifyTraceCodeSimple } from "../../shared/trace-code";
 
+// ========== 类型定义 ==========
+
+interface TraceCodeRow {
+  id: number;
+  traceCode: string;
+  skuName: string;
+  batchNo: string;
+  productionDate: string | null;
+  expiryDate: string | null;
+  shelfLifeDays: number | null;
+  currentStatus: string;
+  qualityCheckResult: string | null;
+  tenantId: string;
+}
+
+interface TraceCodeTenantRow {
+  tenantId: string;
+}
+
+interface TraceEventLogRow {
+  id: number;
+  traceCode: string;
+  eventType: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  operatorType: string | null;
+  location: string | null;
+  remark: string | null;
+  createdAt: string;
+}
+
 export async function generateTraceCodes(
   body: {
     skuId: number;
@@ -57,8 +88,8 @@ export async function generateTraceCodes(
          store_id, warehouse_id, supplier_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRODUCED', '生产入库', ?, ?, ?, ?)`,
       [traceCode, body.skuId, body.skuName, body.batchNo, productionDate, expiryDate,
-       shelfLifeDays, body.codeMode, body.categoryId ?? null,
-       body.storeId ?? null, body.warehouseId ?? null, body.supplierId ?? null, tenantId],
+        shelfLifeDays, body.codeMode, body.categoryId ?? null,
+        body.storeId ?? null, body.warehouseId ?? null, body.supplierId ?? null, tenantId],
       tenantId
     );
 
@@ -239,10 +270,10 @@ export async function updateTraceCodeStatus(
        operator_type, operator_id, operator_name, store_id, order_id, location, remark, ip, tenant_id)
      VALUES (?, 'STATUS_CHANGE', ?, ?, 'ADMIN', ?, ?, ?, ?, ?, ?, ?, ?)`,
     [traceCode, existing.currentStatus, body.status,
-     userId, username,
-     body.storeId ?? existing.storeId, body.orderId ?? existing.orderId,
-     body.location ?? existing.currentLocation, body.remark ?? "",
-     ip, tenantId],
+      userId, username,
+      body.storeId ?? existing.storeId, body.orderId ?? existing.orderId,
+      body.location ?? existing.currentLocation, body.remark ?? "",
+      ip, tenantId],
     tenantId
   );
 
@@ -456,8 +487,8 @@ export async function createRecall(
        reason, total_affected, status, notify_content, operator_id, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, 'CREATED', ?, ?, ?)`,
     [recallNo, body.recallType, body.targetValue, body.targetName,
-     body.reason, totalAffected?.count ?? 0,
-     body.notifyContent ?? null, operatorId, tenantId],
+      body.reason, totalAffected?.count ?? 0,
+      body.notifyContent ?? null, operatorId, tenantId],
     tenantId
   );
 
@@ -685,7 +716,7 @@ export async function completeRecall(
 }
 
 export async function consumerQueryTrace(traceCode: string) {
-  const code = await queryOne<any>(
+  const code = await queryOne<TraceCodeRow>(
     `SELECT id, trace_code AS traceCode, sku_name AS skuName,
             batch_no AS batchNo, production_date AS productionDate,
             expiry_date AS expiryDate, shelf_life_days AS shelfLifeDays,
@@ -699,7 +730,7 @@ export async function consumerQueryTrace(traceCode: string) {
     return null;
   }
 
-  const events = await query<any>(
+  const events = await query<TraceEventLogRow>(
     `SELECT id, trace_code AS traceCode, event_type AS eventType,
             from_status AS fromStatus, to_status AS toStatus,
             operator_type AS operatorType, location, remark,
@@ -728,7 +759,7 @@ export async function consumerVerifyTraceCode(
   userId: number | undefined,
   ip: string
 ) {
-  const codeInfo = await queryOne<any>(
+  const codeInfo = await queryOne<TraceCodeTenantRow>(
     `SELECT tenant_id AS tenantId FROM t_trace_code WHERE trace_code = ?`,
     [traceCode]
   );

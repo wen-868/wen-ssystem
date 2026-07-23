@@ -118,7 +118,7 @@ export async function getApiStats(): Promise<ApiStats> {
 }
 
 export async function getExpiringTenants(days: number = 7): Promise<ExpiringTenant[]> {
-  const result = await query<any>(
+  const result = await query<ExpiringTenant>(
     `SELECT 
        t.id, t.tenant_code AS tenantCode, t.company_name AS companyName,
        t.contact_person AS contactPerson, t.contact_mobile AS contactMobile,

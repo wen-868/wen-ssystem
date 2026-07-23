@@ -61,8 +61,8 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：3天
-- **状态**：🚧 进行中（第二批：15个模块完成）
-- **文件**：`backend/src/services/` 目录下42个文件（153处）
+- **状态**：✅ 已完成
+- **文件**：`backend/src/services/` 目录下45+个文件（153+处）
 - **问题**：整个后端services目录153处使用queryOne\<any\>或queryAll\<any\>，数据库层完全失去类型安全，字段名和类型无编译期检查
 - **修复方向**：为高频模块（auth、customer、product、order）定义TypeScript接口，逐步替换any泛型。可分批进行，优先处理核心业务模块
 - **验收标准**：核心模块（auth/customer/product/order/sale）无any泛型
@@ -96,6 +96,38 @@
     - `rbac.service.ts`：15处 → RoleRow/UserRoleRow等7个接口
   - 合计：15个模块，约130处 any 替换为明确接口
   - 验证：tsc 无新增错误（仅3个已有 controller 层错误与本次无关）
+- **完成进度**（第三批，2026-07-23）：
+  - **平台/租户模块（4个）**：
+    - `platform.service.ts`：4处 → CountRow/TenantBriefRow接口
+    - `platform-tenant.service.ts`：3处 → CountTotalRow/IdRow/TenantRecord接口
+    - `tenant-register.service.ts`：8处 → IdRow/InsertResult/CountTotalRow/TenantApplicationFullRow等接口
+    - `wechat.service.ts`：2处 → WxUserInfoRow/WxUserProfileRow/UserBindingRow接口
+  - **小程序/分享模块（2个）**：
+    - `miniapp.service.ts`：13处 → MiniappProductRow/SkuPriceRow/InventoryBalanceRow等13个接口
+    - `share.service.ts`：5处 → CollectionLinkRow/SaleBillItemRow/CollectionLinkPageRow等接口
+  - **订阅/使用统计模块（3个）**：
+    - `subscription-plan.service.ts`：7处 → SubscriptionPlanRow/PlanBriefRow/PlanFeaturesRow/IdRow接口
+    - `subscription.service.ts`：9处 → SubscriptionRow/CountTotalRow/SubscriptionOperationLogRow等7个接口
+    - `tenant-usage.service.ts`：4处 → UsageStatsRow/TrendRow/CountTotalRow/RankingRow接口
+  - **数据权限/门店管控模块（3个）**：
+    - `data-permission.service.ts`：10处 → DataPermissionRow/IdRow/RoleDataPermissionRow/UserDataPermissionRow接口
+    - `store-control.service.ts`：5处 → StoreControlConfigRow/StoreControlConfigWithStoreRow/CountTotalRow/StoreBriefRow接口
+    - `store-control-scheduler.service.ts`：补充 max_daily_orders/max_order_amount 等缺失字段
+  - **报价推送/追溯模块（2个）**：
+    - `quote-push.service.ts`：4处 → SysConfigRow/QuoteShareRow接口
+    - `trace-records.service.ts`：3处 → TraceCodeRow/TraceCodeTenantRow/TraceEventLogRow接口
+  - **修复前批遗留问题（4个）**：
+    - `operation-log.service.ts`：补充 OperationLogRow 接口定义
+    - `instant-retail.service.ts`：补充 OrderNoRow 接口，修复 conn.query 泛型
+    - `platform-integration.service.ts`：补充 OrderNoRow 接口，修复 conn.query 泛型
+    - `data-permission-auth.ts`：修复 permission_type -> permissionType 属性名不匹配
+  - **测试修复（4个文件）**：
+    - `data-permission.service.test.ts`：permission_type -> permissionType
+    - `data-permission-auth.test.ts`：permission_type -> permissionType
+    - `inventory-loss-order.service.test.ts`：修复 conn.query mock 返回格式（rows, fields 元组）
+    - `inventory-profit-order.service.test.ts`：修复 conn.query mock 返回格式
+  - 合计：25+个文件（含测试和中间件），三批累计45+个文件，153+处 any 替换为明确接口
+  - 验证：tsc 无新增错误（3个已有 controller 层错误与本次无关），vitest 416个文件4857用例全部通过
 
 #### R55-05 — apiCost:1 硬编码 [P2]
 
@@ -152,7 +184,7 @@
 | R55-01 retail-announcement跨租户泄露 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
 | R55-02 双重飞书告警 | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
 | R55-03 rate-limit MemoryStore | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
-| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | 🚧 进行中（第二批15模块完成） |
+| R55-04 queryOne\<any\>类型安全 | 阿坚 | P2 | 3天 | ✅ 已完成（三批共45+文件，153+处） |
 | R55-05 apiCost硬编码 | 阿坚 | P2 | 0.25天 | ✅ 已完成 |
 | R55-06 asyncHandler类型安全 | 阿坚 | P3 | 0.5天 | ✅ 已完成 |
 | R55-07 JWT_SECRET复用 | 阿坚 | P3 | 0.25天 | ✅ 已完成 |

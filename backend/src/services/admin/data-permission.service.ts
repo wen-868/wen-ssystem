@@ -1,7 +1,46 @@
 import { query, queryOne, transaction } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+interface DataPermissionRow {
+  id: number;
+  permissionName: string;
+  permissionCode: string;
+  permissionType: string;
+  description: string | null;
+  status: number;
+  sortNo: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface IdRow {
+  id: number;
+}
+
+interface RoleDataPermissionRow {
+  id: number;
+  roleId: number;
+  dataPermissionId: number;
+  scopeValues: string | null;
+  permissionName: string;
+  permissionCode: string;
+  permissionType: string;
+  description: string | null;
+  createdAt: string;
+}
+
+interface UserDataPermissionRow {
+  id: number;
+  permissionName: string;
+  permissionCode: string;
+  permissionType: string;
+  description: string | null;
+  scopeValues: string | null;
+}
+
 export async function listDataPermissions(tenantId: string) {
-  const records = await query<any>(
+  const records = await query<DataPermissionRow>(
     `SELECT id, permission_name AS permissionName, permission_code AS permissionCode,
             permission_type AS permissionType, description, status, sort_no AS sortNo,
             created_at AS createdAt, updated_at AS updatedAt
@@ -14,7 +53,7 @@ export async function listDataPermissions(tenantId: string) {
 }
 
 export async function getDataPermissionDetail(id: number, tenantId: string) {
-  const record = await queryOne<any>(
+  const record = await queryOne<DataPermissionRow>(
     `SELECT id, permission_name AS permissionName, permission_code AS permissionCode,
             permission_type AS permissionType, description, status, sort_no AS sortNo,
             created_at AS createdAt, updated_at AS updatedAt
@@ -36,7 +75,7 @@ export async function createDataPermission(body: {
   status?: number;
   sortNo?: number;
 }, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_data_permission WHERE permission_code = ? AND tenant_id = ?",
     [body.permissionCode, tenantId]
   );
@@ -50,7 +89,7 @@ export async function createDataPermission(body: {
     [body.permissionName, body.permissionCode, body.permissionType, body.description ?? null, body.status ?? 1, body.sortNo ?? 0, tenantId]
   );
 
-  const record = await queryOne<any>(
+  const record = await queryOne<DataPermissionRow>(
     `SELECT id, permission_name AS permissionName, permission_code AS permissionCode,
             permission_type AS permissionType, description, status, sort_no AS sortNo,
             created_at AS createdAt, updated_at AS updatedAt
@@ -123,7 +162,7 @@ export async function deleteDataPermission(id: number, tenantId: string) {
 }
 
 export async function getRoleDataPermissions(roleId: number, tenantId: string) {
-  const records = await query<any>(
+  const records = await query<RoleDataPermissionRow>(
     `SELECT rdp.id, rdp.role_id AS roleId, rdp.data_permission_id AS dataPermissionId,
             rdp.scope_values AS scopeValues,
             dp.permission_name AS permissionName, dp.permission_code AS permissionCode,
@@ -139,7 +178,7 @@ export async function getRoleDataPermissions(roleId: number, tenantId: string) {
 }
 
 export async function assignRoleDataPermission(roleId: number, dataPermissionId: number, scopeValues: number[] | null, tenantId: string) {
-  const role = await queryOne<any>(
+  const role = await queryOne<IdRow>(
     "SELECT id FROM t_sys_role WHERE id = ? AND tenant_id = ?",
     [roleId, tenantId]
   );
@@ -147,7 +186,7 @@ export async function assignRoleDataPermission(roleId: number, dataPermissionId:
     throw Object.assign(new Error("角色不存在"), { statusCode: 404 });
   }
 
-  const perm = await queryOne<any>(
+  const perm = await queryOne<IdRow>(
     "SELECT id FROM t_data_permission WHERE id = ? AND (tenant_id = ? OR tenant_id = '')",
     [dataPermissionId, tenantId]
   );
@@ -155,7 +194,7 @@ export async function assignRoleDataPermission(roleId: number, dataPermissionId:
     throw Object.assign(new Error("数据权限不存在"), { statusCode: 404 });
   }
 
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_role_data_permission WHERE role_id = ? AND data_permission_id = ? AND tenant_id = ?",
     [roleId, dataPermissionId, tenantId]
   );
@@ -177,7 +216,7 @@ export async function assignRoleDataPermission(roleId: number, dataPermissionId:
 }
 
 export async function removeRoleDataPermission(roleId: number, dataPermissionId: number, tenantId: string) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_role_data_permission WHERE role_id = ? AND data_permission_id = ? AND tenant_id = ?",
     [roleId, dataPermissionId, tenantId]
   );
@@ -195,7 +234,7 @@ export async function removeRoleDataPermission(roleId: number, dataPermissionId:
 }
 
 export async function getUserDataPermissions(userId: number, tenantId: string) {
-  const records = await query<any>(
+  const records = await query<UserDataPermissionRow>(
     `SELECT DISTINCT dp.id, dp.permission_name AS permissionName, dp.permission_code AS permissionCode,
             dp.permission_type AS permissionType, dp.description,
             rdp.scope_values AS scopeValues
@@ -213,11 +252,11 @@ export async function checkDataPermission(userId: number, tenantId: string, data
   const permissions = await getUserDataPermissions(userId, tenantId);
 
   for (const perm of permissions) {
-    if (perm.permission_type === "ALL") {
+    if (perm.permissionType === "ALL") {
       return true;
     }
 
-    if (perm.permission_type === dataType && targetId !== null) {
+    if (perm.permissionType === dataType && targetId !== null) {
       const scopeValues: number[] = perm.scopeValues ? JSON.parse(perm.scopeValues) : [];
       if (scopeValues.length === 0 || scopeValues.includes(targetId)) {
         return true;

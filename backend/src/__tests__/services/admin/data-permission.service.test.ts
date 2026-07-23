@@ -276,31 +276,31 @@ describe("data-permission.service", () => {
 
   describe("checkDataPermission", () => {
     it("有 ALL 类型权限时返回 true", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "ALL" }]);
+      mocks.query.mockResolvedValue([{ permissionType: "ALL" }]);
       const res = await checkDataPermission(1, "t1", "STORE", 1);
       expect(res).toBe(true);
     });
 
     it("有权限类型匹配且 scopeValues 包含 targetId", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "STORE", scopeValues: JSON.stringify([1, 2, 3]) }]);
+      mocks.query.mockResolvedValue([{ permissionType: "STORE", scopeValues: JSON.stringify([1, 2, 3]) }]);
       const res = await checkDataPermission(1, "t1", "STORE", 2);
       expect(res).toBe(true);
     });
 
     it("有权限类型匹配但 scopeValues 为空数组", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "STORE", scopeValues: JSON.stringify([]) }]);
+      mocks.query.mockResolvedValue([{ permissionType: "STORE", scopeValues: JSON.stringify([]) }]);
       const res = await checkDataPermission(1, "t1", "STORE", 1);
       expect(res).toBe(true);
     });
 
     it("有权限类型匹配但 scopeValues 不包含 targetId", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "STORE", scopeValues: JSON.stringify([1, 2]) }]);
+      mocks.query.mockResolvedValue([{ permissionType: "STORE", scopeValues: JSON.stringify([1, 2]) }]);
       const res = await checkDataPermission(1, "t1", "STORE", 3);
       expect(res).toBe(false);
     });
 
     it("权限类型不匹配", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "DEPARTMENT" }]);
+      mocks.query.mockResolvedValue([{ permissionType: "DEPARTMENT" }]);
       const res = await checkDataPermission(1, "t1", "STORE", 1);
       expect(res).toBe(false);
     });
@@ -312,13 +312,13 @@ describe("data-permission.service", () => {
     });
 
     it("targetId 为 null 时不匹配非 ALL 权限", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "STORE", scopeValues: JSON.stringify([1]) }]);
+      mocks.query.mockResolvedValue([{ permissionType: "STORE", scopeValues: JSON.stringify([1]) }]);
       const res = await checkDataPermission(1, "t1", "STORE", null);
       expect(res).toBe(false);
     });
 
     it("scopeValues 为 null", async () => {
-      mocks.query.mockResolvedValue([{ permission_type: "STORE", scopeValues: null }]);
+      mocks.query.mockResolvedValue([{ permissionType: "STORE", scopeValues: null }]);
       const res = await checkDataPermission(1, "t1", "STORE", 1);
       expect(res).toBe(true);
     });

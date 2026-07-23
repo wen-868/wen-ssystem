@@ -6,6 +6,32 @@
 
 import { query, queryOne } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { ResultSetHeader } from "mysql2";
+
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 订阅订单列表行 */
+interface SubscriptionListRow {
+  id: number;
+  orderNo: string;
+  tenantId: string;
+  tenantName: string;
+  planCode: string;
+  planName: string;
+  startDate: Date | string;
+  endDate: Date | string;
+  status: string;
+  amount: number;
+  createdAt: Date | string;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** INSERT 返回结果 */
+interface InsertResult extends ResultSetHeader { }
 
 // ─── 订阅管理 ────────────────────────────────────────────────
 
@@ -46,7 +72,7 @@ export async function listPlatformSubscriptions(
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<SubscriptionListRow>(
     `SELECT s.id, s.order_no AS orderNo, s.tenant_id AS tenantId,
             t.tenant_name AS tenantName,
             s.plan_code AS planCode, s.plan_name AS planName,
@@ -60,7 +86,7 @@ export async function listPlatformSubscriptions(
     [...params, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountRow>(
     `SELECT COUNT(*) AS total
      FROM t_subscription s
      LEFT JOIN t_tenant t ON t.tenant_id = s.tenant_id
@@ -92,7 +118,7 @@ export async function createPlatformSubscription(
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + durationDays);
 
-  const result = await query<any>(
+  const result = await query<InsertResult>(
     `INSERT INTO t_subscription
      (tenant_id, order_no, plan_code, plan_name, start_date, end_date, status, amount, created_by)
      VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)`,
@@ -106,7 +132,7 @@ export async function createPlatformSubscription(
   );
 
   return {
-    id: (result as unknown as { insertId: number }).insertId as number,
+    id: (result as unknown as ResultSetHeader).insertId,
     orderNo,
     tenantId,
     planCode,

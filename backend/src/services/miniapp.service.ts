@@ -4,6 +4,112 @@ import { makeBizNo } from "../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../shared/trace-code";
 
+// ========== 类型定义 ==========
+
+interface MiniappProductRow {
+  skuId: number;
+  name: string;
+  skuName: string;
+  image: string | null;
+  retailPrice: number | null;
+  wholesalePrice: number | null;
+  miniappPrice: number | null;
+  availableQty: number;
+}
+
+interface SkuPriceRow {
+  sku_name: string;
+  retail_price: number | null;
+  wholesale_price: number | null;
+  miniapp_price: number | null;
+}
+
+interface InventoryBalanceRow {
+  physicalQty: number;
+  lockedQty: number;
+  availableQty: number;
+}
+
+interface MiniappOrderRow {
+  orderNo: string;
+  storeId: number;
+  fulfillmentType: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number;
+  receiverName: string | null;
+  receiverMobile: string | null;
+  receiverAddress: string | null;
+  createdAt: string;
+}
+
+interface CountTotalRow {
+  total: number;
+}
+
+interface MiniappOrderDetailRow {
+  orderNo: string;
+  orderStatus: string;
+  payStatus: string;
+  payableAmount: number;
+  expireAt: string | null;
+  receiverName: string | null;
+  receiverMobile: string | null;
+  receiverAddress: string | null;
+  fulfillmentType: string;
+  createdAt: string;
+}
+
+interface MiniappOrderItemRow {
+  skuId: number;
+  skuName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotalAmount: number;
+}
+
+interface StatementOrderRow {
+  orderNo: string;
+  amount: number;
+  date: string;
+  orderStatus: string;
+  payStatus: string;
+}
+
+interface StatementPaymentRow {
+  paymentNo: string;
+  amount: number;
+  method: string;
+  date: string;
+  status: string;
+}
+
+interface TotalPurchaseRow {
+  totalPurchase: number;
+}
+
+interface TotalPaidRow {
+  totalPaid: number;
+}
+
+interface StatementDetailRow {
+  orderNo: string;
+  amount: number;
+  date: string;
+  orderStatus: string;
+  payStatus: string;
+  receiverName: string | null;
+  receiverMobile: string | null;
+  receiverAddress: string | null;
+}
+
+interface StatementItemRow {
+  skuName: string;
+  qty: number;
+  unitPrice: number;
+  subtotalAmount: number;
+}
+
 // ========== Dev Token Store ==========
 export const devTokenStore = new Map<string, { memberId: number; customerType: string; createdAt: number }>();
 
@@ -36,7 +142,7 @@ export function getProfile(customerType: string) {
 // ========== 搜索商品列表 ==========
 export async function getProducts(tenantId: string, storeId: number, keyword: string, customerType: string) {
   const kw = `%${keyword}%`;
-  const rows = await query<any>(
+  const rows = await query<MiniappProductRow>(
     `SELECT s.id AS skuId, p.name, s.sku_name AS skuName, p.main_image AS image,
             pp.retail_price AS retailPrice, pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
             COALESCE(ib.available_qty, 0) AS availableQty
@@ -51,7 +157,7 @@ export async function getProducts(tenantId: string, storeId: number, keyword: st
     [storeId, tenantId, kw, kw, kw, kw]
   );
 
-  const data = rows.map((row: any) => {
+  const data = rows.map((row) => {
     const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     const item: Record<string, unknown> = {
@@ -90,7 +196,7 @@ export async function createOrder(tenantId: string, body: {
     const items = [];
 
     for (const item of body.items) {
-      const price = await queryOne<any>(
+      const price = await queryOne<SkuPriceRow>(
         `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.miniapp_price
          FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id WHERE s.id = ? AND s.tenant_id = ?`,
         [item.skuId, tenantId]
@@ -102,7 +208,7 @@ export async function createOrder(tenantId: string, body: {
       const subtotal = unitPrice * item.qty;
       goodsAmount += subtotal;
 
-      const inventory = await queryOne<any>(
+      const inventory = await queryOne<InventoryBalanceRow>(
         `SELECT physical_qty AS physicalQty, locked_qty AS lockedQty, available_qty AS availableQty
          FROM t_inventory_balance
          WHERE tenant_id = ? AND store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
@@ -196,7 +302,7 @@ export async function createOrder(tenantId: string, body: {
 export async function getOrders(tenantId: string, anonymousMemberId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
 
-  const records = await query<any>(
+  const records = await query<MiniappOrderRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, fulfillment_type AS fulfillmentType,
             order_status AS orderStatus, pay_status AS payStatus, payable_amount AS payableAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
@@ -208,7 +314,7 @@ export async function getOrders(tenantId: string, anonymousMemberId: string, pag
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
-  const total = await queryOne<any>(
+  const total = await queryOne<CountTotalRow>(
     "SELECT COUNT(*) AS total FROM t_miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)",
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
@@ -218,7 +324,7 @@ export async function getOrders(tenantId: string, anonymousMemberId: string, pag
 
 // ========== 订单详情 ==========
 export async function getOrderDetail(tenantId: string, orderNo: string, anonymousMemberId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOne<MiniappOrderDetailRow>(
     `SELECT order_no AS orderNo, order_status AS orderStatus, pay_status AS payStatus,
             payable_amount AS payableAmount, expire_at AS expireAt,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
@@ -232,7 +338,7 @@ export async function getOrderDetail(tenantId: string, orderNo: string, anonymou
     throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
   }
 
-  const items = await query<any>(
+  const items = await query<MiniappOrderItemRow>(
     `SELECT sku_id AS skuId, sku_name AS skuName, qty AS quantity,
             unit_price AS unitPrice, subtotal_amount AS subtotalAmount
      FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
@@ -266,7 +372,7 @@ export async function confirmReceipt(orderNo: string, tenantId: string) {
 export async function getStatements(tenantId: string, anonymousMemberId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;
 
-  const orders = await query<any>(
+  const orders = await query<StatementOrderRow>(
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus
      FROM t_miniapp_order
@@ -276,7 +382,7 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
-  const payments = await query<any>(
+  const payments = await query<StatementPaymentRow>(
     `SELECT pay_no AS paymentNo, amount, payment_method AS method, created_at AS date, status
      FROM t_payment_order
      WHERE tenant_id = ? AND (? = '' OR source_no IN (SELECT order_no FROM t_miniapp_order WHERE tenant_id = ? AND remark LIKE ?))
@@ -285,13 +391,13 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
     [tenantId, anonymousMemberId, tenantId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
-  const summary = await queryOne<any>(
+  const summary = await queryOne<TotalPurchaseRow>(
     `SELECT COALESCE(SUM(goods_amount), 0) AS totalPurchase
      FROM t_miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)`,
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
-  const paidSummary = await queryOne<any>(
+  const paidSummary = await queryOne<TotalPaidRow>(
     `SELECT COALESCE(SUM(amount), 0) AS totalPaid
      FROM t_payment_order
      WHERE tenant_id = ? AND status = 'PAID' AND (? = '' OR source_no IN (SELECT order_no FROM t_miniapp_order WHERE tenant_id = ? AND remark LIKE ?))`,
@@ -302,7 +408,7 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
   const totalPaid = Number(paidSummary?.totalPaid || 0);
   const owingAmount = Math.max(0, totalPurchase - totalPaid);
 
-  const orderList = orders.map((o: any) => ({
+  const orderList = orders.map((o) => ({
     id: o.orderNo,
     orderNo: o.orderNo,
     items: "",
@@ -311,7 +417,7 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
     statusText: o.payStatus === "PAID" ? "已收款" : (o.orderStatus === "CANCELLED" ? "已取消" : "未收款")
   }));
 
-  const paymentList = payments.map((p: any) => ({
+  const paymentList = payments.map((p) => ({
     id: p.paymentNo,
     paymentNo: p.paymentNo,
     method: p.method === "CASH" ? "现金" : (p.method === "OTHER_WECHAT" ? "微信支付" : p.method),
@@ -331,7 +437,7 @@ export async function getStatements(tenantId: string, anonymousMemberId: string,
 
 // ========== 对账单详情 ==========
 export async function getStatementDetail(tenantId: string, id: string, anonymousMemberId: string) {
-  const order = await queryOne<any>(
+  const order = await queryOne<StatementDetailRow>(
     `SELECT order_no AS orderNo, goods_amount AS amount, created_at AS date,
             order_status AS orderStatus, pay_status AS payStatus,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress
@@ -344,7 +450,7 @@ export async function getStatementDetail(tenantId: string, id: string, anonymous
     throw Object.assign(new Error("对账单不存在"), { statusCode: 404 });
   }
 
-  const items = await query<any>(
+  const items = await query<StatementItemRow>(
     `SELECT sku_name AS skuName, qty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
      FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
     [id, tenantId]

@@ -6,13 +6,73 @@
 
 import { query, queryOne } from "../../shared/db";
 
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 平台总览统计行 */
+interface OverviewStatsRow {
+  totalTenants: number;
+  activeTenants: number;
+  newTenantsWeek: number;
+  activeSubscriptions: number;
+  monthlyRevenue: number;
+  totalAdmins: number;
+}
+
+/** 趋势行 */
+interface TrendRow {
+  date: string;
+  count: number;
+}
+
+/** 套餐分布行 */
+interface PlanDistributionRow {
+  planCode: string;
+  planName: string;
+  count: number;
+}
+
+/** 租户统计行 */
+interface TenantStatisticsRow {
+  totalTenants: number;
+  activeTenants: number;
+  disabledTenants: number;
+  expiredTenants: number;
+  newTenantsMonth: number;
+  newTenantsWeek: number;
+}
+
+/** 收入统计行 */
+interface RevenueStatsRow {
+  totalRevenue: number;
+  monthlyRevenue: number;
+  weeklyRevenue: number;
+  currentMonthRevenue: number;
+  paidCount: number;
+  totalOrders: number;
+}
+
+/** 月度收入趋势行 */
+interface MonthlyRevenueRow {
+  month: string;
+  revenue: number;
+  count: number;
+}
+
+/** 套餐收入行 */
+interface PlanRevenueRow {
+  planCode: string;
+  planName: string;
+  revenue: number;
+  count: number;
+}
+
 // ─── 数据统计 ────────────────────────────────────────────────
 
 /**
  * 平台总览统计
  */
 export async function getPlatformOverview() {
-  const stats = await queryOne<any>(
+  const stats = await queryOne<OverviewStatsRow>(
     `SELECT
        (SELECT COUNT(*) FROM t_tenant) AS totalTenants,
        (SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE') AS activeTenants,
@@ -24,7 +84,7 @@ export async function getPlatformOverview() {
   );
 
   // 近7天新增租户趋势
-  const trend = await query<any[]>(
+  const trend = await query<TrendRow>(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count
      FROM t_tenant
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
@@ -33,7 +93,7 @@ export async function getPlatformOverview() {
   );
 
   // 套餐分布
-  const planDistribution = await query<any[]>(
+  const planDistribution = await query<PlanDistributionRow>(
     `SELECT s.plan_code AS planCode, s.plan_name AS planName, COUNT(*) AS count
      FROM t_subscription s
      WHERE s.status = 'ACTIVE'
@@ -57,7 +117,7 @@ export async function getPlatformOverview() {
  * 租户统计（经营看板-租户维度）
  */
 export async function getTenantStatistics() {
-  const stats = await queryOne<any>(
+  const stats = await queryOne<TenantStatisticsRow>(
     `SELECT
        (SELECT COUNT(*) FROM t_tenant) AS totalTenants,
        (SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE') AS activeTenants,
@@ -69,7 +129,7 @@ export async function getTenantStatistics() {
   );
 
   // 近30天新增租户趋势
-  const trend = await query<any[]>(
+  const trend = await query<TrendRow>(
     `SELECT DATE(created_at) AS date, COUNT(*) AS count
      FROM t_tenant
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
@@ -92,7 +152,7 @@ export async function getTenantStatistics() {
  * 收入统计（经营看板-收入维度）
  */
 export async function getRevenueStatistics() {
-  const stats = await queryOne<any>(
+  const stats = await queryOne<RevenueStatsRow>(
     `SELECT
        (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE status = 'ACTIVE') AS totalRevenue,
        (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
@@ -104,7 +164,7 @@ export async function getRevenueStatistics() {
   );
 
   // 近6个月收入趋势
-  const trend = await query<any[]>(
+  const trend = await query<MonthlyRevenueRow>(
     `SELECT DATE_FORMAT(created_at, '%Y-%m') AS month, IFNULL(SUM(amount), 0) AS revenue, COUNT(*) AS count
      FROM t_subscription
      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
@@ -113,7 +173,7 @@ export async function getRevenueStatistics() {
   );
 
   // 各套餐收入分布
-  const planRevenue = await query<any[]>(
+  const planRevenue = await query<PlanRevenueRow>(
     `SELECT s.plan_code AS planCode, s.plan_name AS planName,
             IFNULL(SUM(s.amount), 0) AS revenue, COUNT(*) AS count
      FROM t_subscription s

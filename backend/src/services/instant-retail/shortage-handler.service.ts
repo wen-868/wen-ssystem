@@ -3,11 +3,17 @@ import { batchDeductStock, batchRestoreStock } from "./inventory-deduction.servi
 
 interface OrderItem { product_id: number; quantity: number; }
 
+/** 零售商品库存行 */
+interface RetailProductStockRow {
+  id: number;
+  stock: number;
+}
+
 // 检测缺货
 export async function checkStock(storeId: number, items: OrderItem[], tenantId: string): Promise<{ ok: boolean; shortages: Array<{ productId: number; stock: number }> }> {
   const shortages: Array<{ productId: number; stock: number }> = [];
   for (const item of items) {
-    const product = await queryOneWithTenant<any>(
+    const product = await queryOneWithTenant<RetailProductStockRow>(
       "SELECT id, stock FROM t_retail_product WHERE id = ? AND store_id = ? AND tenant_id = ?",
       [item.product_id, storeId, tenantId], tenantId
     );

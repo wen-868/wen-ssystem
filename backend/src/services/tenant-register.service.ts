@@ -34,6 +34,56 @@ export interface TenantApplication {
   createdAt: string;
 }
 
+interface IdRow {
+  id: number;
+}
+
+interface InsertResult {
+  insertId: number;
+}
+
+interface CountTotalRow {
+  total: number;
+}
+
+interface TenantApplicationFullRow {
+  id: number;
+  companyName: string;
+  companyShortName: string;
+  contactPerson: string;
+  contactMobile: string;
+  contactEmail: string;
+  province: string;
+  city: string;
+  district: string;
+  address: string;
+  businessLicense: string;
+  legalPerson: string;
+  industry: string;
+  companyScale: string;
+  adminUsername: string;
+  adminRealName: string;
+  status: string;
+  rejectReason: string | null;
+  reviewedAt: string | null;
+  reviewedBy: number | null;
+  createdAt: string;
+}
+
+interface TenantRegisterAppRawRow {
+  id: number;
+  company_name: string;
+  company_short_name: string;
+  contact_person: string;
+  contact_mobile: string;
+  contact_email: string;
+  admin_username: string;
+  admin_password_hash: string;
+  admin_real_name: string;
+  status: string;
+  [key: string]: unknown;
+}
+
 export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ applicationId: number }> {
   const { companyName, contactMobile, adminUsername, adminPassword } = body;
 
@@ -42,7 +92,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const existingCompany = await queryOne<any>(
+  const existingCompany = await queryOne<IdRow>(
     "SELECT id FROM t_tenant_register_application WHERE company_name = ?",
     [companyName]
   );
@@ -50,7 +100,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
     throw new AppError("该公司名称已提交过注册申请", 400);
   }
 
-  const existingMobile = await queryOne<any>(
+  const existingMobile = await queryOne<IdRow>(
     "SELECT id FROM t_tenant_register_application WHERE contact_mobile = ?",
     [contactMobile]
   );
@@ -58,7 +108,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
     throw new AppError("该手机号已提交过注册申请", 400);
   }
 
-  const existingUsername = await queryOne<any>(
+  const existingUsername = await queryOne<IdRow>(
     "SELECT id FROM t_tenant_register_application WHERE admin_username = ?",
     [adminUsername]
   );
@@ -66,7 +116,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
     throw new AppError("该管理员账号已被使用", 400);
   }
 
-  const userExists = await queryOne<any>(
+  const userExists = await queryOne<IdRow>(
     "SELECT id FROM t_sys_user WHERE username = ?",
     [adminUsername]
   );
@@ -76,7 +126,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
 
   const passwordHash = await hashPassword(adminPassword);
 
-  const result = await query<any>(
+  const result = await query<InsertResult>(
     `INSERT INTO t_tenant_register_application (
       company_name, company_short_name, contact_person, contact_mobile, contact_email,
       province, city, district, address, business_license, legal_person,
@@ -96,7 +146,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
 }
 
 export async function approveTenantApplication(applicationId: number, reviewerId: number): Promise<{ tenantId: string; applicationId: number }> {
-  const application = await queryOne<any>(
+  const application = await queryOne<TenantRegisterAppRawRow>(
     `SELECT * FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
     [applicationId]
   );
@@ -139,7 +189,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
 }
 
 export async function rejectTenantApplication(applicationId: number, reviewerId: number, rejectReason: string): Promise<{ applicationId: number }> {
-  const application = await queryOne<any>(
+  const application = await queryOne<IdRow>(
     `SELECT id FROM t_tenant_register_application WHERE id = ? AND status = 'PENDING'`,
     [applicationId]
   );
@@ -176,8 +226,8 @@ export async function listTenantApplications(params: {
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   const [totalResult, rows] = await Promise.all([
-    queryOne<any>(`SELECT COUNT(*) AS total FROM t_tenant_register_application ${where}`, values),
-    query<any>(
+    queryOne<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_tenant_register_application ${where}`, values),
+    query<TenantApplication>(
       `SELECT id, company_name AS companyName, contact_person AS contactPerson,
               contact_mobile AS contactMobile, admin_username AS adminUsername,
               status, reject_reason AS rejectReason, reviewed_at AS reviewedAt, created_at AS createdAt
@@ -196,7 +246,7 @@ export async function listTenantApplications(params: {
 }
 
 export async function getTenantApplication(applicationId: number): Promise<TenantApplication | null> {
-  const row = await queryOne<any>(
+  const row = await queryOne<TenantApplicationFullRow>(
     `SELECT id, company_name AS companyName, company_short_name AS companyShortName,
             contact_person AS contactPerson, contact_mobile AS contactMobile,
             contact_email AS contactEmail, province, city, district, address,
@@ -207,5 +257,5 @@ export async function getTenantApplication(applicationId: number): Promise<Tenan
      FROM t_tenant_register_application WHERE id = ?`,
     [applicationId]
   );
-  return row ? (row as TenantApplication) : null;
+  return row ? (row as unknown as TenantApplication) : null;
 }

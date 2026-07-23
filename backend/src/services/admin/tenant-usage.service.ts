@@ -1,5 +1,32 @@
 import { query, queryOne } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+interface UsageStatsRow {
+  activeTenants: number;
+  totalOrders: number;
+  totalSales: number;
+  totalLogins: number;
+}
+
+interface TrendRow {
+  date: string;
+  value: number | string;
+}
+
+interface CountTotalRow {
+  total: number;
+}
+
+interface RankingRow {
+  tenantId: string;
+  tenantName: string;
+  loginCount: number;
+  orderCount: number;
+  salesAmount: number;
+  lastActiveAt: string;
+}
+
 export interface UsageStats {
   activeTenants: number;
   totalOrders: number;
@@ -43,7 +70,7 @@ export interface RankingItem {
 }
 
 export async function getStats(): Promise<UsageStats> {
-  const row = await queryOne<any>(
+  const row = await queryOne<UsageStatsRow>(
     `SELECT
        (SELECT COUNT(DISTINCT tenant_id) FROM t_sys_user_login WHERE DATE(login_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS activeTenants,
        (SELECT COUNT(*) FROM t_sale_order) AS totalOrders,
@@ -102,7 +129,7 @@ export async function getTrend(params: TrendParams): Promise<TrendItem[]> {
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<TrendRow>(
     `SELECT DATE_FORMAT(${dateColumn}, ?) AS date, ${valueExpr} AS value
      FROM ${tableName}
      WHERE ${where}
@@ -111,7 +138,7 @@ export async function getTrend(params: TrendParams): Promise<TrendItem[]> {
     [dateFormat, ...sqlParams, dateFormat]
   );
 
-  return rows.map((row: any) => ({
+  return rows.map((row) => ({
     date: row.date,
     value: Number(row.value ?? 0),
   }));
@@ -150,13 +177,13 @@ export async function getRanking(params: RankingParams) {
 
   const where = conditions.join(" AND ");
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_tenant t WHERE ${where}`,
     sqlParams
   );
   const total = Number(totalRow?.total ?? 0);
 
-  const records = await query<any[]>(
+  const records = await query<RankingRow>(
     `SELECT t.tenant_id AS tenantId, t.tenant_name AS tenantName,
             (SELECT COUNT(*) FROM t_sys_user_login l WHERE l.tenant_id = t.tenant_id) AS loginCount,
             (SELECT COUNT(*) FROM t_sale_order o WHERE o.tenant_id = t.tenant_id) AS orderCount,
@@ -169,7 +196,7 @@ export async function getRanking(params: RankingParams) {
     [...sqlParams, params.pageSize, offset]
   );
 
-  const result = records.map((r: any) => ({
+  const result = records.map((r) => ({
     tenantId: r.tenantId,
     tenantName: r.tenantName,
     loginCount: Number(r.loginCount ?? 0),

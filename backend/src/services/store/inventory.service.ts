@@ -1,12 +1,58 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2";
+
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 库存列表行 */
+interface InventoryRow {
+  storeId: number;
+  skuId: number;
+  skuName: string;
+  stockType: string;
+  physicalQty: number;
+  lockedQty: number;
+  availableQty: number;
+}
+
+/** 库存余额行（事务查询用） */
+interface InventoryBalanceRow extends RowDataPacket {
+  physicalQty: number;
+}
+
+/** 库存日志行 */
+interface InventoryLogRow {
+  logNo: string;
+  storeId: number;
+  skuId: number;
+  skuName: string;
+  changeQty: number;
+  beforeQty: number;
+  afterQty: number;
+  reason: string;
+  operatorId: number;
+  createdAt: Date | string;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** 库存预警行 */
+interface InventoryAlertRow {
+  skuId: number;
+  skuName: string;
+  stockType: string;
+  availableQty: number;
+}
 
 export async function listInventory(params: {
   keyword: string; storeId: number | null | undefined; tenantId: string;
 }) {
   const { keyword, storeId, tenantId } = params;
   const kw = `%${keyword}%`;
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<InventoryRow>(
     `SELECT ib.store_id AS storeId, ib.sku_id AS skuId, s.sku_name AS skuName, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.locked_qty AS lockedQty, ib.available_qty AS availableQty
      FROM t_inventory_balance ib
@@ -29,7 +75,7 @@ export async function adjustInventory(params: {
 }) {
   const { storeId, skuId, stockType, change, remark, userId, tenantId } = params;
   return transaction(async (conn) => {
-    const [rows] = await conn.query<any[]>(
+    const [rows] = await conn.query<InventoryBalanceRow[]>(
       `SELECT physical_qty AS physicalQty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = ? AND tenant_id = ? FOR UPDATE`,
       [storeId, skuId, stockType, tenantId]
     );
@@ -66,7 +112,7 @@ export async function listInventoryLogs(params: {
 export async function listInventoryAlerts(storeId: number | null, tenantId: string) {
   const where = storeId ? "WHERE ib.tenant_id = ? AND ib.store_id = ?" : "WHERE ib.tenant_id = ?";
   const params = storeId ? [tenantId, storeId] : [tenantId];
-  return queryWithTenant<any>(
+  return queryWithTenant<InventoryAlertRow>(
     `SELECT ib.sku_id AS skuId, ps.sku_name AS skuName, ib.stock_type AS stockType, ib.available_qty AS availableQty FROM t_inventory_balance ib LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id ${where} AND ib.available_qty <= 5 ORDER BY ib.available_qty ASC LIMIT 20`,
     params,
     tenantId

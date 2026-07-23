@@ -1,6 +1,25 @@
 ﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
 import type { PlatformType, PlatformCredentials } from "./types";
 
+/** 平台配置行 */
+interface PlatformConfigRow {
+  id: number;
+  tenant_id: string;
+  store_id: number;
+  platform: string;
+  app_key: string;
+  app_secret: string;
+  merchant_id: string;
+  access_token: string;
+  refresh_token: string;
+  token_expire_at: string;
+  enabled: number;
+  config_json: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function maskConfig(config: any) {
   if (!config) return null;
   return {
@@ -27,7 +46,7 @@ export async function getPlatformConfig(
     params.push(tenantId);
   }
   const sql = `SELECT * FROM t_platform_config WHERE ${conditions.join(" AND ")} LIMIT 1`;
-  const row = await queryOne<any>(sql, params);
+  const row = await queryOne<PlatformConfigRow>(sql, params);
   if (!row) return null;
   return {
     platform: row.platform as PlatformType,

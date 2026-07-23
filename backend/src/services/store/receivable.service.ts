@@ -1,5 +1,53 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2";
+
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 应收列表行 */
+interface ReceivableRow {
+  receivableNo: string;
+  sourceType: string;
+  sourceNo: string;
+  customerName: string;
+  customerMobile: string;
+  receivableAmount: number;
+  receivedAmount: number;
+  unreceivedAmount: number;
+  status: string;
+  createdAt: Date | string;
+}
+
+/** 应收账户行（事务查询用） */
+interface ReceivableAccountRow extends RowDataPacket {
+  receivable_no: string;
+  source_no: string;
+  received_amount: number;
+  receivable_amount: number;
+  unreceived_amount: number;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** 计数行 */
+interface CntRow {
+  cnt: number;
+}
+
+/** 汇总行 */
+interface TotalRow {
+  total: number;
+}
+
+/** 日销售行 */
+interface DailySaleRow {
+  date: string;
+  count: number;
+  amount: number;
+}
 
 export async function listReceivables(params: {
   page: number; pageSize: number; storeId: number | null;
@@ -8,12 +56,12 @@ export async function listReceivables(params: {
   const { page, pageSize, storeId, status, keyword, tenantId } = params;
   const offset = (page - 1) * pageSize;
   const kw = `%${keyword}%`;
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<ReceivableRow>(
     `SELECT receivable_no AS receivableNo, source_type AS sourceType, source_no AS sourceNo, customer_name AS customerName, customer_mobile AS customerMobile, receivable_amount AS receivableAmount, received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount, status, created_at AS createdAt FROM t_receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?) ORDER BY id DESC LIMIT ? OFFSET ?`,
     [tenantId, storeId, storeId, status, status, kw, kw, kw, kw, pageSize, offset],
     tenantId
   );
-  const total = await queryOneWithTenant<any>(
+  const total = await queryOneWithTenant<CountRow>(
     `SELECT COUNT(*) AS total FROM t_receivable_account WHERE tenant_id = ? AND (? IS NULL OR store_id = ?) AND (? IS NULL OR status = ?) AND (receivable_no LIKE ? OR source_no LIKE ? OR customer_name LIKE ? OR customer_mobile LIKE ?)`,
     [tenantId, storeId, storeId, status, status, kw, kw, kw, kw],
     tenantId
@@ -27,7 +75,7 @@ export async function paymentOnReceivable(params: {
 }) {
   const { receivableNo, amount, paymentMethod, remark, tenantId } = params;
   return transaction(async (conn) => {
-    const [rows] = await conn.query<any[]>(
+    const [rows] = await conn.query<ReceivableAccountRow[]>(
       `SELECT receivable_no, source_no, received_amount, receivable_amount, unreceived_amount FROM t_receivable_account WHERE receivable_no = ? AND tenant_id = ? FOR UPDATE`,
       [receivableNo, tenantId]
     );
@@ -71,7 +119,7 @@ export async function getDashboard(params: {
 export async function getDailySales(storeId: number | null, tenantId: string) {
   const where = storeId ? "WHERE sb.tenant_id = ? AND sb.store_id = ?" : "WHERE sb.tenant_id = ?";
   const p = storeId ? [tenantId, storeId] : [tenantId];
-  const records = await queryWithTenant<any>(
+  const records = await queryWithTenant<DailySaleRow>(
     `SELECT DATE(sb.created_at) AS date, COUNT(*) AS count, COALESCE(SUM(sb.receivable_amount), 0) AS amount FROM t_sale_bill sb ${where} GROUP BY DATE(sb.created_at) ORDER BY date DESC LIMIT 7`,
     p,
     tenantId

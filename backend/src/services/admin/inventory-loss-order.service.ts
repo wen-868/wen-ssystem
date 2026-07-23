@@ -1,5 +1,13 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2";
+
+/** 报损单项行 */
+interface LossOrderItemRow extends RowDataPacket {
+  skuId: number;
+  qty: number;
+  costPrice: number;
+}
 
 // ========== 报损单列表 ==========
 export async function listLossOrders(params: {
@@ -139,7 +147,7 @@ export async function createLossOrder(params: {
         total_qty, total_amount, status, reason, operator_id, operator_name, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?)`,
       [lossNo, storeId, storeName ?? null, lossType, totalQty, totalAmount,
-       reason ?? null, operatorId, operatorName ?? null, remark ?? null, tenantId]
+        reason ?? null, operatorId, operatorName ?? null, remark ?? null, tenantId]
     );
     const lossOrderId = insertResult.insertId as number;
 
@@ -150,8 +158,8 @@ export async function createLossOrder(params: {
           barcode, specification, unit_name, qty, cost_price, subtotal_amount, loss_reason, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [lossOrderId, lossNo, item.skuId, item.skuName, item.barcode ?? null,
-         item.specification ?? null, item.unitName ?? null, item.qty,
-         item.costPrice, subtotalAmount, item.lossReason ?? null, tenantId]
+          item.specification ?? null, item.unitName ?? null, item.qty,
+          item.costPrice, subtotalAmount, item.lossReason ?? null, tenantId]
       );
     }
 
@@ -193,11 +201,11 @@ export async function approveLossOrder(
     );
 
     // 查询明细
-    const items = await conn.query<any>(
+    const [items] = await conn.query<LossOrderItemRow[]>(
       `SELECT sku_id AS skuId, qty, cost_price AS costPrice
        FROM t_inventory_loss_order_item WHERE loss_order_id = ?`,
       [id]
-    ) as any[];
+    );
 
     // 更新库存余额（扣减库存）
     for (const item of items) {
@@ -216,7 +224,7 @@ export async function approveLossOrder(
           unit_price, amount, biz_no, biz_type, tenant_id)
          VALUES (?, ?, 'OUT', ?, ?, ?, ?, 'LOSS', ?)`,
         [item.skuId, existing.storeId, item.qty, item.costPrice,
-         subtotalAmount, existing.lossNo, tenantId]
+          subtotalAmount, existing.lossNo, tenantId]
       );
     }
 

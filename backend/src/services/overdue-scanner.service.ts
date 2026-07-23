@@ -1,11 +1,16 @@
 ﻿import { query } from "../shared/db";
 import logger from "../shared/logger";
 
+/** 租户ID行 */
+interface TenantIdRow {
+  tenant_id: string;
+}
+
 async function getAllActiveTenants(): Promise<string[]> {
-  const rows = await query<any>(
+  const rows = await query<TenantIdRow>(
     "SELECT DISTINCT tenant_id FROM t_sys_user WHERE status = 1"
   );
-  return rows.map((r: any) => r.tenant_id).filter(Boolean);
+  return rows.map((r) => r.tenant_id).filter(Boolean);
 }
 
 export async function scanOverdueCreditBills(tenantId?: string): Promise<number> {

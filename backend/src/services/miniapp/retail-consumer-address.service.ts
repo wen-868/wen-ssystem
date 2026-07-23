@@ -1,4 +1,7 @@
 ﻿import { query, queryOne, transaction } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2";
+
+interface InsertResult extends ResultSetHeader { }
 
 export interface RetailConsumerAddress {
   id: number;
@@ -42,11 +45,11 @@ export async function listAddresses(userId: number): Promise<RetailConsumerAddre
 }
 
 export async function createAddress(userId: number, data: CreateAddressInput) {
-  const result = await query<any>(
+  const result = await query<InsertResult>(
     `INSERT INTO t_retail_consumer_address (user_id, name, mobile, province, city, district, detail, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [userId, data.name, data.mobile, data.province, data.city, data.district, data.detail, data.is_default ?? 0]
-  ) as unknown as unknown as { insertId: number };
-  return { id: result.insertId };
+  );
+  return { id: (result as unknown as ResultSetHeader).insertId };
 }
 
 export async function updateAddress(id: number, userId: number, data: UpdateAddressInput) {

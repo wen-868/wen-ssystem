@@ -1,5 +1,13 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2";
+
+/** 报溢单项行 */
+interface ProfitOrderItemRow extends RowDataPacket {
+  skuId: number;
+  qty: number;
+  costPrice: number;
+}
 
 // ========== 报溢单列表 ==========
 export async function listProfitOrders(params: {
@@ -139,7 +147,7 @@ export async function createProfitOrder(params: {
         total_qty, total_amount, status, reason, operator_id, operator_name, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?)`,
       [profitNo, storeId, storeName ?? null, profitType, totalQty, totalAmount,
-       reason ?? null, operatorId, operatorName ?? null, remark ?? null, tenantId]
+        reason ?? null, operatorId, operatorName ?? null, remark ?? null, tenantId]
     );
     const profitOrderId = insertResult.insertId as number;
 
@@ -150,8 +158,8 @@ export async function createProfitOrder(params: {
           barcode, specification, unit_name, qty, cost_price, subtotal_amount, profit_reason, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [profitOrderId, profitNo, item.skuId, item.skuName, item.barcode ?? null,
-         item.specification ?? null, item.unitName ?? null, item.qty,
-         item.costPrice, subtotalAmount, item.profitReason ?? null, tenantId]
+          item.specification ?? null, item.unitName ?? null, item.qty,
+          item.costPrice, subtotalAmount, item.profitReason ?? null, tenantId]
       );
     }
 
@@ -193,11 +201,11 @@ export async function approveProfitOrder(
     );
 
     // 查询明细
-    const items = await conn.query<any>(
+    const [items] = await conn.query<ProfitOrderItemRow[]>(
       `SELECT sku_id AS skuId, qty, cost_price AS costPrice
        FROM t_inventory_profit_order_item WHERE profit_order_id = ?`,
       [id]
-    ) as any[];
+    );
 
     // 更新库存余额（增加库存）
     for (const item of items) {
@@ -216,7 +224,7 @@ export async function approveProfitOrder(
           unit_price, amount, biz_no, biz_type, tenant_id)
          VALUES (?, ?, 'IN', ?, ?, ?, ?, 'PROFIT', ?)`,
         [item.skuId, existing.storeId, item.qty, item.costPrice,
-         subtotalAmount, existing.profitNo, tenantId]
+          subtotalAmount, existing.profitNo, tenantId]
       );
     }
 

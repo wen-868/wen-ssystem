@@ -11,6 +11,12 @@ import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-ret
 import type { PlatformType } from "../instant-retail/types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "../instant-retail/common.service";
 
+// ========== 类型定义 ==========
+
+interface OrderNoRow {
+  order_no: string;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Webhook 处理
 // ────────────────────────────────────────────────────────────────────────────
@@ -64,10 +70,10 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
     );
 
     if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
-      const [existingRows] = await conn.query<any[]>(
+      const [existingRows] = await conn.query(
         `SELECT order_no FROM t_miniapp_order WHERE order_no = ? LIMIT 1`,
         [unified.orderId]
-      );
+      ) as unknown as [OrderNoRow[], unknown];
       if (existingRows.length === 0) {
         await conn.execute(
           `INSERT INTO t_miniapp_order

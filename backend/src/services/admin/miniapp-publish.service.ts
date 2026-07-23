@@ -2,6 +2,47 @@ import fs from "node:fs";
 import path from "node:path";
 import { queryWithTenant, queryOneWithTenant, query } from "../../shared/db";
 
+/** 系统配置行 */
+interface SysConfigRow {
+  configKey: string;
+  configValue: string;
+}
+
+/** 小程序配置行 */
+interface MiniappConfigRow {
+  appId: string;
+  appName: string;
+  status: string;
+  templateId: string;
+}
+
+/** 发布日志行 */
+interface PublishLogRow {
+  id: number;
+  version: string;
+  remark: string;
+  status: string;
+  createdAt: string;
+}
+
+/** 发布日志总数 */
+interface PublishLogCountRow {
+  total: number;
+}
+
+/** 当前版本行 */
+interface CurrentVersionRow {
+  appVersion: string;
+  status: string;
+  auditStatus: string;
+  updatedAt: string;
+}
+
+/** 配置键行 */
+interface ConfigKeyRow {
+  configKey: string;
+}
+
 // ========== 占位符 → sys_config key 映射 ==========
 
 const PLACEHOLDER_CONFIG_MAP: Record<string, string> = {
@@ -67,7 +108,7 @@ export async function getPublishConfigs(tenantId: string): Promise<Record<string
   const placeholders = Object.keys(PLACEHOLDER_CONFIG_MAP);
   const result: Record<string, string> = {};
 
-  const records = await query<any>(
+  const records = await query<SysConfigRow>(
     `SELECT config_key AS configKey, config_value AS configValue
      FROM t_sys_config
      WHERE config_key IN (${configKeys.map(() => "?").join(",")})
@@ -118,7 +159,7 @@ export async function validatePlaceholders(tenantId: string): Promise<{
   }
 
   const configKeys = Object.values(PLACEHOLDER_CONFIG_MAP);
-  const records = await query<any>(
+  const records = await query<ConfigKeyRow>(
     `SELECT config_key AS configKey
      FROM t_sys_config
      WHERE config_key NOT IN (${configKeys.map(() => "?").join(",")})
@@ -126,7 +167,7 @@ export async function validatePlaceholders(tenantId: string): Promise<{
        AND tenant_id = ?`,
     [...configKeys, tenantId]
   );
-  extra.push(...records.map((r: any) => r.configKey));
+  extra.push(...records.map((r) => r.configKey));
 
   return { valid: missing.length === 0 && extra.length === 0, missing, extra };
 }
@@ -138,7 +179,7 @@ export function getTemplatePlaceholders(): string[] {
 // ========== 发布/回滚/审核 ==========
 
 export async function publish(tenantId: string, body: any, platform: string = "WECHAT") {
-  const config = await queryOneWithTenant<any>(
+  const config = await queryOneWithTenant<MiniappConfigRow>(
     "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
     [tenantId, platform],
     tenantId
@@ -207,12 +248,12 @@ export async function submitAudit(tenantId: string, body: any, platform: string 
 export async function getPublishHistory(tenantId: string, page: number, pageSize: number, platform: string = "WECHAT") {
   const offset = (page - 1) * pageSize;
   const [rows, total] = await Promise.all([
-    queryWithTenant<any>(
+    queryWithTenant<PublishLogRow>(
       "SELECT id, version, remark, status, created_at AS createdAt FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ? ORDER BY id DESC LIMIT ? OFFSET ?",
       [tenantId, platform, pageSize, offset],
       tenantId
     ),
-    queryOneWithTenant<any>(
+    queryOneWithTenant<PublishLogCountRow>(
       "SELECT COUNT(*) AS total FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ?",
       [tenantId, platform],
       tenantId
@@ -222,7 +263,7 @@ export async function getPublishHistory(tenantId: string, page: number, pageSize
 }
 
 export async function getCurrentVersion(tenantId: string, platform: string = "WECHAT") {
-  const row = await queryOneWithTenant<any>(
+  const row = await queryOneWithTenant<CurrentVersionRow>(
     "SELECT app_version AS appVersion, status, audit_status AS auditStatus, updated_at AS updatedAt FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
     [tenantId, platform],
     tenantId

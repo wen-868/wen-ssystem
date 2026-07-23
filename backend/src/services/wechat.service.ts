@@ -1,6 +1,40 @@
 import { query, queryOne } from "../shared/db";
 import { verifyPassword } from "../shared/password";
 
+interface WxUserInfoRow {
+  id: number;
+  nickname: string | null;
+  avatarUrl: string | null;
+  phone: string | null;
+  gender: string | null;
+  city: string | null;
+  province: string | null;
+  country: string | null;
+}
+
+interface WxUserProfileRow {
+  id: number;
+  openid: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  phone: string | null;
+  gender: string | null;
+  city: string | null;
+  province: string | null;
+  country: string | null;
+  lastLoginAt: string | null;
+  createdAt: string | null;
+}
+
+interface UserBindingRow {
+  id: number;
+  binding_type: string;
+  status: string;
+  bound_at: string | null;
+  username: string | null;
+  realName: string | null;
+}
+
 export async function login(wxData: { openid: string; session_key: string; unionid?: string }, signWxToken: (wxUserId: number, openid: string) => string) {
   const existing = await queryOne<{ id: number }>(
     "SELECT id FROM t_wx_user WHERE openid = ?",
@@ -22,7 +56,7 @@ export async function login(wxData: { openid: string; session_key: string; union
     wxUserId = result.insertId as unknown as number;
   }
 
-  const userInfo = await queryOne<any>(
+  const userInfo = await queryOne<WxUserInfoRow>(
     "SELECT id, nickname, avatar_url AS avatarUrl, phone, gender, city, province, country FROM t_wx_user WHERE id = ?",
     [wxUserId]
   );
@@ -69,7 +103,7 @@ export async function updateProfile(wxUserId: number, body: { nickname?: string;
 }
 
 export async function getProfile(wxUserId: number) {
-  const userInfo = await queryOne<any>(
+  const userInfo = await queryOne<WxUserProfileRow>(
     `SELECT id, openid, nickname, avatar_url AS avatarUrl, phone, gender, city, province, country,
             last_login_at AS lastLoginAt, created_at AS createdAt
      FROM t_wx_user WHERE id = ?`,
@@ -80,7 +114,7 @@ export async function getProfile(wxUserId: number) {
     return null;
   }
 
-  const bindings = await query<any>(
+  const bindings = await query<UserBindingRow>(
     `SELECT ub.id, ub.binding_type, ub.status, ub.bound_at,
             su.username, su.real_name AS realName
      FROM t_user_binding ub
@@ -138,7 +172,7 @@ export async function bindUser(
 }
 
 export async function unbindUser(wxUserId: number, systemUserId: number) {
-  const result = await query<any>(
+  const result = await query<{ affectedRows: number }>(
     "UPDATE t_user_binding SET status = 'UNBOUND', unbound_at = NOW() WHERE wx_user_id = ? AND system_user_id = ? AND status = 'ACTIVE'",
     [wxUserId, systemUserId]
   );

@@ -1,6 +1,29 @@
 ﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
+/** 订阅详情行 */
+interface SubscriptionDetailRow {
+  id: number;
+  subscription_no: string;
+  tenant_id: string;
+  plan_id: number;
+  plan_name: string;
+  end_date: Date | string;
+  price: number;
+  duration_days: number;
+  plan_price: number;
+}
+
+/** 套餐行 */
+interface PlanRow {
+  id: number;
+  plan_name: string;
+  plan_type: string;
+  price: number;
+  duration_days: number;
+  module_access: string;
+}
+
 export async function renewSubscription(
   subscriptionId: number,
   body: {
@@ -27,7 +50,7 @@ export async function renewSubscription(
   }
 
   const planId = body.planId || existing.plan_id;
-  const plan = await queryOne<any>(
+  const plan = await queryOne<PlanRow>(
     "SELECT id, plan_name, plan_type, price, duration_days, module_access FROM t_subscription_plan WHERE id = ? AND status = 'ACTIVE'",
     [planId]
   );
@@ -60,8 +83,8 @@ export async function renewSubscription(
       `INSERT INTO t_subscription_operation_log (subscription_id, operation_type, old_plan_id, new_plan_id, old_end_date, new_end_date, amount, operator_id, operator_name, remark)
        VALUES (?, 'RENEW', ?, ?, ?, ?, ?, ?, ?, ?)`,
       [subscriptionId, existing.plan_id, plan.id, existing.end_date,
-       renewEndDate.toISOString().slice(0, 10), plan.price,
-       userId, username, `续费订阅: ${subscriptionNo}`]
+        renewEndDate.toISOString().slice(0, 10), plan.price,
+        userId, username, `续费订阅: ${subscriptionNo}`]
     );
 
     await conn.execute(
@@ -85,7 +108,7 @@ export async function renewSubscription(
       `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ["subscription", "RENEW", subscriptionNo, "subscription", userId, username,
-       `续费订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, existing.tenant_id]
+        `续费订阅: ${subscriptionNo}, 套餐: ${plan.plan_name}`, existing.tenant_id]
     );
   });
 

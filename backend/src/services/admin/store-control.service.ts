@@ -1,5 +1,35 @@
 ﻿import { query, queryOne, transaction } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+interface StoreControlConfigRow {
+  id: number;
+  tenant_id: number;
+  store_id: number;
+  auto_open_time: string | null;
+  auto_close_time: string | null;
+  max_daily_orders: number | null;
+  max_order_amount: number | null;
+  suspended_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface StoreControlConfigWithStoreRow extends StoreControlConfigRow {
+  store_name: string;
+  store_status: string;
+}
+
+interface CountTotalRow {
+  total: number;
+}
+
+interface StoreBriefRow {
+  id: number;
+  name: string;
+  status: string;
+}
+
 // ==================== Admin 端 ====================
 
 export async function getConfigs(tenantId: string) {
@@ -15,7 +45,7 @@ export async function getConfigs(tenantId: string) {
 }
 
 export async function getConfig(storeId: number, tenantId: string) {
-  const config = await queryOne<any>(
+  const config = await queryOne<StoreControlConfigWithStoreRow>(
     `SELECT scc.*, s.name AS store_name, s.status AS store_status
      FROM t_store_control_config scc
      LEFT JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
@@ -214,7 +244,7 @@ export async function getLogs(params: {
     [...values, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(`SELECT COUNT(*) AS total FROM t_store_status_log ssl WHERE ${where}`, values);
+  const totalRow = await queryOne<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_store_status_log ssl WHERE ${where}`, values);
 
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
@@ -222,12 +252,12 @@ export async function getLogs(params: {
 // ==================== Store 端 ====================
 
 export async function getStoreStatus(storeId: number, tenantId: string) {
-  const store = await queryOne<any>(
+  const store = await queryOne<StoreBriefRow>(
     "SELECT id, name, status FROM t_store WHERE id = ? AND tenant_id = ?",
     [storeId, tenantId]
   );
 
-  const config = await queryOne<any>(
+  const config = await queryOne<StoreControlConfigRow>(
     "SELECT * FROM t_store_control_config WHERE store_id = ? AND tenant_id = ?",
     [storeId, tenantId]
   );
@@ -256,7 +286,7 @@ export async function getMyLogs(params: {
     [storeId, tenantId, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountTotalRow>(
     "SELECT COUNT(*) AS total FROM t_store_status_log WHERE store_id = ? AND tenant_id = ?",
     [storeId, tenantId]
   );

@@ -6,6 +6,7 @@
 
 import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -25,6 +26,84 @@ export interface PlatformTenantUpdate {
   contactPhone?: string;
   contactEmail?: string;
   status?: "ACTIVE" | "DISABLED" | "EXPIRED";
+}
+
+/** 租户列表行 */
+interface TenantListRow {
+  id: number;
+  tenantId: string;
+  tenantName: string;
+  tenantCode: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string | null;
+  status: string;
+  userCount: number;
+  storeCount: number;
+  createdAt: Date | string;
+  expireAt: Date | string | null;
+  planCode: string | null;
+  planName: string | null;
+  startDate: Date | string | null;
+  endDate: Date | string | null;
+  subscriptionStatus: string | null;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** 租户详情行 */
+interface TenantDetailRow {
+  id: number;
+  tenantId: string;
+  tenantName: string;
+  tenantCode: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string | null;
+  status: string;
+  userCount: number;
+  storeCount: number;
+  createdAt: Date | string;
+  expireAt: Date | string | null;
+  remark: string | null;
+}
+
+/** 订阅行 */
+interface SubscriptionRow {
+  id: number;
+  orderNo: string;
+  planCode: string;
+  planName: string;
+  startDate: Date | string;
+  endDate: Date | string;
+  status: string;
+  amount: number;
+  createdAt: Date | string;
+}
+
+/** 租户统计行 */
+interface TenantStatsRow {
+  totalUsers: number;
+  totalStores: number;
+  totalProducts: number;
+  totalMembers: number;
+  recentOrders: number;
+}
+
+/** ID存在性检查行 */
+interface IdRow {
+  id: number;
+}
+
+/** INSERT/UPDATE 返回结果 */
+interface AffectedResult extends ResultSetHeader { }
+
+/** 事务连接查询行 */
+interface TenantCodeRow extends RowDataPacket {
+  id: number;
 }
 
 // ─── 租户管理 ────────────────────────────────────────────────
@@ -61,7 +140,7 @@ export async function listPlatformTenants(
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<TenantListRow>(
     `SELECT t.id, t.tenant_id AS tenantId, t.tenant_name AS tenantName, t.tenant_code AS tenantCode,
             t.contact_name AS contactName, t.contact_phone AS contactPhone,
             t.contact_email AS contactEmail, t.status,
@@ -78,7 +157,7 @@ export async function listPlatformTenants(
     [...params, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountRow>(
     `SELECT COUNT(*) AS total FROM t_tenant t WHERE ${where}`,
     params
   );
@@ -95,7 +174,7 @@ export async function listPlatformTenants(
  * 租户详情
  */
 export async function getPlatformTenantDetail(tenantId: string) {
-  const tenant = await queryOne<any>(
+  const tenant = await queryOne<TenantDetailRow>(
     `SELECT t.id, t.tenant_id AS tenantId, t.tenant_name AS tenantName, t.tenant_code AS tenantCode,
             t.contact_name AS contactName, t.contact_phone AS contactPhone,
             t.contact_email AS contactEmail, t.status,
@@ -109,7 +188,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
   if (!tenant) return null;
 
   // 订阅信息
-  const subscriptions = await query<any[]>(
+  const subscriptions = await query<SubscriptionRow>(
     `SELECT id, order_no AS orderNo, plan_code AS planCode, plan_name AS planName,
             start_date AS startDate, end_date AS endDate, status,
             amount, created_at AS createdAt
@@ -120,7 +199,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
   );
 
   // 用户统计
-  const stats = await queryOne<any>(
+  const stats = await queryOne<TenantStatsRow>(
     `SELECT
        (SELECT COUNT(*) FROM t_sys_user WHERE tenant_id = ?) AS totalUsers,
        (SELECT COUNT(*) FROM t_store WHERE tenant_id = ?) AS totalStores,
@@ -147,7 +226,7 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
     const tenantCode = params.tenantCode;
 
     // 检查租户编码是否已存在
-    const [existing] = await conn.query<any[]>(
+    const [existing] = await conn.query<TenantCodeRow[]>(
       "SELECT id FROM t_tenant WHERE tenant_code = ?",
       [tenantCode]
     );
@@ -272,7 +351,7 @@ export async function updatePlatformTenant(
   tenantId: string,
   params: PlatformTenantUpdate
 ) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_tenant WHERE tenant_id = ?",
     [tenantId]
   );

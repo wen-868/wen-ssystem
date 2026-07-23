@@ -149,8 +149,16 @@ export async function updateSettlementStatus(id: number, status: string) {
   return { id, status };
 }
 
+/** 结算统计行 */
+interface SettlementStatsRow {
+  currentMonthRevenue: number;
+  pendingSettlement: number;
+  settledAmount: number;
+  settlementCount: number;
+}
+
 export async function getSettlementStats(): Promise<SettlementStats> {
-  const row = await queryOne<any>(
+  const row = await queryOne<SettlementStatsRow>(
     `SELECT
        (SELECT IFNULL(SUM(total_amount), 0) FROM t_platform_settlement
         WHERE DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')) AS currentMonthRevenue,

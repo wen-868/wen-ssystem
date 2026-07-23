@@ -1,6 +1,28 @@
 ﻿import { query, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 
+/** 租户ID行 */
+interface TenantIdRow {
+  tenant_id: string;
+}
+
+/** 门店管控配置行 */
+interface StoreControlConfigRow {
+  id: number;
+  tenant_id: string;
+  store_id: number;
+  auto_open_time: string | null;
+  auto_close_time: string | null;
+  max_daily_orders: number | null;
+  max_order_amount: number | null;
+  suspended_reason: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  current_status: string;
+  store_name: string;
+}
+
 let storeControlRunning = false;
 
 export function startStoreControlScheduler() {
@@ -21,15 +43,15 @@ export function startStoreControlScheduler() {
 }
 
 async function runStoreControlCheck() {
-  const tenantRows = await query<any>(
+  const tenantRows = await query<TenantIdRow>(
     "SELECT DISTINCT tenant_id FROM t_store_control_config"
   );
-  const tenantIds = tenantRows.map((r: any) => r.tenant_id).filter(Boolean);
+  const tenantIds = tenantRows.map((r) => r.tenant_id).filter(Boolean);
 
   if (tenantIds.length === 0) return;
 
   for (const tenantId of tenantIds) {
-    const configs = await query<any>(
+    const configs = await query<StoreControlConfigRow>(
       `SELECT scc.*, s.status AS current_status, s.name AS store_name
        FROM t_store_control_config scc
        JOIN t_store s ON s.id = scc.store_id AND s.tenant_id = scc.tenant_id
@@ -74,12 +96,12 @@ async function runStoreControlCheck() {
         }
 
         if (config.max_daily_orders && currentStatus === "OPEN") {
-          const [orderRows] = await conn.execute<any[]>(
+          const [orderRows] = await conn.execute(
             `SELECT COUNT(*) AS order_count FROM t_sale_bill
              WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
             [config.store_id, tenantId]
           );
-          const orderCount = (orderRows as unknown as Record<string, unknown>[])[0]?.order_count ?? 0;
+          const orderCount = Number((orderRows as unknown as Record<string, unknown>[])[0]?.order_count ?? 0);
           if (orderCount >= config.max_daily_orders) {
             await conn.execute(
               "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ? AND status = 'OPEN'",
@@ -95,7 +117,7 @@ async function runStoreControlCheck() {
         }
 
         if (config.max_order_amount && currentStatus === "OPEN") {
-          const [amountRows] = await conn.execute<any[]>(
+          const [amountRows] = await conn.execute(
             `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM t_sale_bill
              WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
             [config.store_id, tenantId]

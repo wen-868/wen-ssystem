@@ -39,7 +39,7 @@ describe("data-permission-auth", () => {
 
     it("应允许有ALL权限的用户访问", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "ALL", scopeValues: null },
+        { permissionType: "ALL", scopeValues: null },
       ]);
       const req = mockReq();
       const res = mockRes();
@@ -51,7 +51,7 @@ describe("data-permission-auth", () => {
 
     it("应允许有匹配范围的用户访问", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "STORE", scopeValues: "[1,2,3]" },
+        { permissionType: "STORE", scopeValues: "[1,2,3]" },
       ]);
       const req = mockReq();
       const res = mockRes();
@@ -62,7 +62,7 @@ describe("data-permission-auth", () => {
 
     it("应拒绝无权限的用户访问", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "STORE", scopeValues: "[1,2,3]" },
+        { permissionType: "STORE", scopeValues: "[1,2,3]" },
       ]);
       const req = mockReq();
       const res = mockRes();
@@ -83,7 +83,7 @@ describe("data-permission-auth", () => {
 
     it("空scopeValues时应允许访问", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "STORE", scopeValues: null },
+        { permissionType: "STORE", scopeValues: null },
       ]);
       const req = mockReq();
       const res = mockRes();
@@ -94,7 +94,7 @@ describe("data-permission-auth", () => {
 
     it("targetId为null时应允许访问", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "STORE", scopeValues: "[1,2,3]" },
+        { permissionType: "STORE", scopeValues: "[1,2,3]" },
       ]);
       const req = mockReq();
       const res = mockRes();
@@ -155,7 +155,7 @@ describe("data-permission-auth", () => {
   describe("getUserDataPermissionContext", () => {
     it("应返回权限上下文", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "STORE", scopeValues: "[1,2]" },
+        { permissionType: "STORE", scopeValues: "[1,2]" },
       ]);
       const ctx = await getUserDataPermissionContext(1, "t1");
       expect(ctx.hasAllPermission).toBe(false);
@@ -166,7 +166,7 @@ describe("data-permission-auth", () => {
 
     it("应识别ALL权限", async () => {
       (service.getUserDataPermissions as any).mockResolvedValue([
-        { permission_type: "ALL", scopeValues: null },
+        { permissionType: "ALL", scopeValues: null },
       ]);
       const ctx = await getUserDataPermissionContext(1, "t1");
       expect(ctx.hasAllPermission).toBe(true);

@@ -2,6 +2,24 @@
 import logger from "../../shared/logger";
 import type { Request } from "express";
 
+/** 审计日志行 */
+interface AuditLogRow {
+  id: number;
+  tenant_id: string;
+  user_id: number;
+  username: string;
+  action: string;
+  resource_type: string;
+  resource_id: string;
+  ip: string;
+  user_agent: string;
+  request_params: string;
+  response_data: string;
+  status: string;
+  error_message: string;
+  created_at: string;
+}
+
 export async function listAuditLogs(params: {
   page: number;
   pageSize: number;
@@ -46,7 +64,7 @@ export async function listAuditLogs(params: {
   );
   const total = totalRow?.total ?? 0;
 
-  const records = await query<any>(
+  const records = await query<AuditLogRow>(
     `SELECT id, user_id AS userId, user_name AS userName, role,
             action, resource_type AS resourceType, resource_id AS resourceId,
             detail, ip, user_agent AS userAgent, created_at AS createdAt

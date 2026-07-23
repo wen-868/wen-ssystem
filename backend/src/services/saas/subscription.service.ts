@@ -266,6 +266,15 @@ export async function cancelSubscription(id: number, body: {
   return getSubscriptionDetail(id);
 }
 
+interface SubscriptionStatsRow {
+  totalSubscriptions: number;
+  activeSubscriptions: number;
+  expiredSubscriptions: number;
+  cancelledSubscriptions: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+}
+
 export async function getSubscriptionStatistics(): Promise<{
   totalSubscriptions: number;
   activeSubscriptions: number;
@@ -274,7 +283,7 @@ export async function getSubscriptionStatistics(): Promise<{
   totalRevenue: number;
   monthlyRevenue: number;
 }> {
-  const stats = await queryOne<any>(
+  const stats = await queryOne<SubscriptionStatsRow>(
     `SELECT
        COALESCE((SELECT COUNT(*) FROM t_subscription), 0) AS totalSubscriptions,
        COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE'), 0) AS activeSubscriptions,

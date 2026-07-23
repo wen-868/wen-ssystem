@@ -6,6 +6,12 @@ import { makeBizNo } from "../shared/id";
 // Type Definitions (previously in purchase.model.ts)
 // ---------------------------------------------------------------------------
 
+/** 采购订单项入库行 */
+interface PurchaseOrderItemInStockRow {
+  sku_id: number;
+  in_stocked_qty: number;
+}
+
 export interface PurchaseOrder {
   id: number;
   orderNo: string;
@@ -566,13 +572,13 @@ class PurchaseService {
       throw Object.assign(new Error("只有已审核的订单可以入库"), { statusCode: 400 });
     }
 
-    const orderItems = await query<any>(
+    const orderItems = await query<PurchaseOrderItemInStockRow>(
       `SELECT sku_id, COALESCE(in_stocked_qty, 0) AS in_stocked_qty
        FROM t_purchase_order_item
        WHERE order_no = ?`,
       [orderNo]
     );
-    const itemMap = new Map<number, any>(orderItems.map((i: any) => [i.sku_id, i]));
+    const itemMap = new Map<number, PurchaseOrderItemInStockRow>(orderItems.map((i) => [i.sku_id, i]));
 
     await transaction(async (conn) => {
       for (const item of dto.items) {

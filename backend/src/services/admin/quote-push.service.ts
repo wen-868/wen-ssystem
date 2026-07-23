@@ -77,6 +77,25 @@ export interface QuotePushParams {
   notifyText?: string;
 }
 
+interface SysConfigRow {
+  configValue: string;
+}
+
+interface QuoteShareRow {
+  id: number;
+  quoteNo: string;
+  title: string;
+  customerName: string;
+  status: string;
+  validDays: number;
+  expireAt: string | null;
+  totalAmount: number;
+  totalSku: number;
+  remark: string | null;
+  viewCount: number;
+  tenantId: string;
+}
+
 // ─── 生成报价单（预览） ───────────────────────────────────────
 
 /**
@@ -480,7 +499,7 @@ export async function pushQuote(
     switch (channel) {
       case "sms":
         if (quote.customer_phone) {
-          const smsConfig = await queryOne<any>(
+          const smsConfig = await queryOne<SysConfigRow>(
             `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_sms_provider' AND tenant_id = ?`,
             [tenantId]
           );
@@ -492,7 +511,7 @@ export async function pushQuote(
         }
         break;
       case "miniapp":
-        const miniappConfig = await queryOne<any>(
+        const miniappConfig = await queryOne<SysConfigRow>(
           `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_miniapp_enabled' AND tenant_id = ?`,
           [tenantId]
         );
@@ -502,7 +521,7 @@ export async function pushQuote(
         }
         break;
       case "email":
-        const emailConfig = await queryOne<any>(
+        const emailConfig = await queryOne<SysConfigRow>(
           `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_email_provider' AND tenant_id = ?`,
           [tenantId]
         );
@@ -538,7 +557,7 @@ export async function pushQuote(
  * 通过分享令牌查看报价单（无需登录）
  */
 export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail | null> {
-  const rows = await query<any>(
+  const rows = await query<QuoteShareRow>(
     `SELECT q.id, q.quote_no AS quoteNo, q.title, q.customer_name AS customerName,
             q.status, q.valid_days AS validDays, q.expire_at AS expireAt,
             q.total_amount AS totalAmount, q.total_sku AS totalSku,
@@ -578,11 +597,11 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
     customerName: quote.customerName,
     status: quote.status,
     validDays: quote.validDays,
-    expireAt: quote.expireAt,
+    expireAt: quote.expireAt ? new Date(quote.expireAt) : undefined,
     totalAmount: Number(quote.totalAmount),
     totalSku: quote.totalSku,
-    remark: quote.remark,
-    items: items.map((item: any) => ({
+    remark: quote.remark ?? undefined,
+    items: items.map((item) => ({
       skuId: item.skuId,
       skuName: item.skuName,
       skuCode: "",

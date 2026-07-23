@@ -289,6 +289,14 @@ export async function toggleTenantStatus(id: number, status: string): Promise<Te
   return getTenantDetail(id);
 }
 
+interface TenantStatsRow {
+  totalTenants: number;
+  activeTenants: number;
+  suspendedTenants: number;
+  expiredTenants: number;
+  todayNewTenants: number;
+}
+
 export async function getTenantStatistics(): Promise<{
   totalTenants: number;
   activeTenants: number;
@@ -296,7 +304,7 @@ export async function getTenantStatistics(): Promise<{
   expiredTenants: number;
   todayNewTenants: number;
 }> {
-  const stats = await queryOne<any>(
+  const stats = await queryOne<TenantStatsRow>(
     `SELECT
        COALESCE((SELECT COUNT(*) FROM t_tenant), 0) AS totalTenants,
        COALESCE((SELECT COUNT(*) FROM t_tenant WHERE status = 'ACTIVE'), 0) AS activeTenants,

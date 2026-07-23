@@ -1,5 +1,51 @@
 import { query, queryOne } from "../../shared/db";
 
+// ========== 类型定义 ==========
+
+interface SubscriptionPlanRow {
+  id: number;
+  planCode: string;
+  planName: string;
+  planType: string;
+  price: number;
+  originalPrice: number;
+  durationDays: number;
+  maxUsers: number;
+  maxStores: number;
+  maxCustomers: number;
+  maxProducts: number;
+  maxStorageMb: number;
+  features: unknown;
+  moduleAccess: unknown;
+  description: string | null;
+  sortOrder: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PlanBriefRow {
+  id: number;
+  planCode: string;
+  planName: string;
+  price: number;
+  status: string;
+  updatedAt: string;
+}
+
+interface PlanFeaturesRow {
+  id: number;
+  planCode: string;
+  planName: string;
+  features: unknown;
+  moduleAccess: unknown;
+  updatedAt: string;
+}
+
+interface IdRow {
+  id: number;
+}
+
 export async function listPlans(status?: string) {
   const conditions: string[] = [];
   const params: any[] = [];
@@ -11,7 +57,7 @@ export async function listPlans(status?: string) {
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const records = await query<any>(
+  const records = await query<SubscriptionPlanRow>(
     `SELECT id, plan_code AS planCode, plan_name AS planName, plan_type AS planType,
             price, original_price AS originalPrice,
             duration_days AS durationDays,
@@ -31,7 +77,7 @@ export async function listPlans(status?: string) {
 }
 
 export async function getPlan(planId: number) {
-  const record = await queryOne<any>(
+  const record = await queryOne<SubscriptionPlanRow>(
     `SELECT id, plan_code AS planCode, plan_name AS planName, plan_type AS planType,
             price, original_price AS originalPrice,
             duration_days AS durationDays,
@@ -103,7 +149,7 @@ export async function updatePlan(planId: number, body: {
   sortOrder?: number;
   status?: string;
 }) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
@@ -155,7 +201,7 @@ export async function updatePlan(planId: number, body: {
     );
   }
 
-  const record = await queryOne<any>(
+  const record = await queryOne<PlanBriefRow>(
     `SELECT id, plan_code AS planCode, plan_name AS planName, price, status, updated_at AS updatedAt
      FROM t_subscription_plan WHERE id = ?`,
     [planId]
@@ -165,7 +211,7 @@ export async function updatePlan(planId: number, body: {
 }
 
 export async function deletePlan(planId: number) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
@@ -190,7 +236,7 @@ export async function updatePlanFeatures(planId: number, body: {
   features?: unknown;
   moduleAccess?: unknown;
 }) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_subscription_plan WHERE id = ?",
     [planId]
   );
@@ -218,7 +264,7 @@ export async function updatePlanFeatures(planId: number, body: {
     );
   }
 
-  const record = await queryOne<any>(
+  const record = await queryOne<PlanFeaturesRow>(
     `SELECT id, plan_code AS planCode, plan_name AS planName,
             features, module_access AS moduleAccess, updated_at AS updatedAt
      FROM t_subscription_plan WHERE id = ?`,

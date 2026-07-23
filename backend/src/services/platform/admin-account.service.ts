@@ -6,6 +6,7 @@
 
 import { query, queryOne } from "../../shared/db";
 import bcrypt from "bcryptjs";
+import type { ResultSetHeader } from "mysql2";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -17,6 +18,32 @@ export interface PlatformAdminCreate {
   email?: string;
   role: "SUPER_ADMIN" | "ADMIN" | "SUPPORT";
 }
+
+/** 平台管理员列表行 */
+interface PlatformAdminListRow {
+  id: number;
+  username: string;
+  realName: string;
+  phone: string;
+  email: string | null;
+  role: string;
+  status: string;
+  lastLoginAt: Date | string | null;
+  createdAt: Date | string;
+}
+
+/** 总数行 */
+interface CountRow {
+  total: number;
+}
+
+/** ID存在性检查行 */
+interface IdRow {
+  id: number;
+}
+
+/** INSERT 返回结果 */
+interface InsertResult extends ResultSetHeader { }
 
 // ─── 平台用户管理 ────────────────────────────────────────────
 
@@ -52,7 +79,7 @@ export async function listPlatformAdmins(
 
   const where = conditions.join(" AND ");
 
-  const rows = await query<any[]>(
+  const rows = await query<PlatformAdminListRow>(
     `SELECT id, username, real_name AS realName, phone, email,
             role, status, last_login_at AS lastLoginAt, created_at AS createdAt
      FROM t_platform_admin
@@ -62,7 +89,7 @@ export async function listPlatformAdmins(
     [...params, pageSize, offset]
   );
 
-  const totalRow = await queryOne<any>(
+  const totalRow = await queryOne<CountRow>(
     `SELECT COUNT(*) AS total FROM t_platform_admin WHERE ${where}`,
     params
   );
@@ -79,7 +106,7 @@ export async function listPlatformAdmins(
  * 创建平台管理员
  */
 export async function createPlatformAdmin(params: PlatformAdminCreate) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_platform_admin WHERE username = ?",
     [params.username]
   );
@@ -89,7 +116,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
 
   const passwordHash = await bcrypt.hash(params.password, 10);
 
-  const result = await query<any>(
+  const result = await query<InsertResult>(
     `INSERT INTO t_platform_admin
      (username, password_hash, real_name, phone, email, role, status, created_by)
      VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 'system')`,
@@ -104,7 +131,7 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
   );
 
   return {
-    id: (result as unknown as { insertId: number }).insertId as number,
+    id: (result as unknown as ResultSetHeader).insertId,
     username: params.username,
     realName: params.realName,
     role: params.role
@@ -118,7 +145,7 @@ export async function updatePlatformAdminStatus(
   adminId: number,
   status: "ACTIVE" | "DISABLED"
 ) {
-  const existing = await queryOne<any>(
+  const existing = await queryOne<IdRow>(
     "SELECT id FROM t_platform_admin WHERE id = ?",
     [adminId]
   );

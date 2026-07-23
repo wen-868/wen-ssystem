@@ -13,6 +13,19 @@
 
 import { query, queryWithTenant } from "../../shared/db";
 
+/** 零售公告行 */
+interface RetailAnnouncementRow {
+  id: number;
+  store_id: number;
+  title: string;
+  content: string;
+  status: number;
+  is_top: number;
+  start_time: Date | string | null;
+  end_time: Date | string | null;
+  created_at: Date | string;
+}
+
 /**
  * 查询门店公告列表（admin）
  *
@@ -20,7 +33,7 @@ import { query, queryWithTenant } from "../../shared/db";
  * @param tenantId 租户ID（来自 req.tenantId）
  */
 export async function listAnnouncements(storeId: number, tenantId: string) {
-  return queryWithTenant<any>(
+  return queryWithTenant<RetailAnnouncementRow>(
     "SELECT * FROM t_retail_announcement WHERE store_id = ? ORDER BY is_top DESC, created_at DESC",
     [storeId],
     tenantId
@@ -124,7 +137,7 @@ export async function deleteAnnouncement(id: number, storeId: number, tenantId: 
  * @param storeId 门店ID（来自 req.query，消费者无登录）
  */
 export async function getActiveAnnouncements(storeId: number) {
-  return query<any>(
+  return query<RetailAnnouncementRow>(
     "SELECT * FROM t_retail_announcement WHERE store_id = ? AND status = 1 AND (start_time IS NULL OR start_time <= NOW()) AND (end_time IS NULL OR end_time >= NOW()) ORDER BY is_top DESC, created_at DESC",
     [storeId]
   );

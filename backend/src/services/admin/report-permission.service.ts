@@ -1,7 +1,16 @@
 ﻿import { query, transaction } from "../../shared/db";
 
+/** 报表权限矩阵行 */
+interface ReportPermissionRow {
+  id: number;
+  role_id: number;
+  report_code: string;
+  store_scope: string;
+  role_name: string;
+}
+
 export async function getMatrix() {
-  const rows = await query<any>(
+  const rows = await query<ReportPermissionRow>(
     `SELECT rpm.*, r.name AS role_name
      FROM t_report_permission_matrix rpm
      LEFT JOIN t_sys_role r ON r.id = rpm.role_id

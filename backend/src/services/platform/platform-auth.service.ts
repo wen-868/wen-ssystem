@@ -3,6 +3,32 @@ import { hashPassword, verifyPassword, validatePassword } from "../../shared/pas
 import { signPlatformToken } from "../../middleware/auth";
 import { generateCsrfToken } from "../../middleware/csrf";
 import { AppError } from "../../shared/app-error";
+import type { ResultSetHeader } from "mysql2";
+
+// ==================== 类型定义 ====================
+
+/** 平台管理员登录行 */
+interface PlatformAdminLoginRow {
+  id: number;
+  username: string;
+  password: string;
+  real_name: string;
+}
+
+/** 平台管理员信息行 */
+interface PlatformAdminRow {
+  id: number;
+  username: string;
+  real_name: string;
+}
+
+/** 用户名存在性检查行 */
+interface PlatformAdminExistRow {
+  id: number;
+}
+
+/** INSERT 返回结果 */
+interface InsertResult extends ResultSetHeader { }
 
 function getStringOrDefault(value: unknown, defaultValue: string): string {
   return value ? String(value) : defaultValue;
@@ -19,7 +45,7 @@ export async function login(username: string, password: string) {
   const missing = checkRequired({ username, password }, ["username", "password"]);
   if (missing) throw new AppError(`缺少必填字段: ${missing}`, 400);
 
-  const admin = await queryOne<any>(
+  const admin = await queryOne<PlatformAdminLoginRow>(
     "SELECT id, username, password, real_name FROM t_platform_admin WHERE username = ? AND status = 1",
     [username]
   );
@@ -40,7 +66,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function getMe(adminId: number) {
-  const admin = await queryOne<any>(
+  const admin = await queryOne<PlatformAdminRow>(
     "SELECT id, username, real_name FROM t_platform_admin WHERE id = ?",
     [adminId]
   );
@@ -65,12 +91,12 @@ export async function createAdmin(data: {
     throw new AppError(`密码不符合要求：${validation.errors.join("；")}`, 400);
   }
 
-  const existing = await queryOne<any>("SELECT id FROM t_platform_admin WHERE username = ?", [data.username]);
+  const existing = await queryOne<PlatformAdminExistRow>("SELECT id FROM t_platform_admin WHERE username = ?", [data.username]);
   if (existing) throw new AppError("用户名已存在", 400);
 
   const passwordHash = await hashPassword(data.password);
 
-  const result = await query<any>(
+  const result = await query<InsertResult>(
     "INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)",
     [
       data.username,
@@ -82,6 +108,6 @@ export async function createAdmin(data: {
     ]
   );
 
-  const adminId = (result as unknown as { insertId: number }).insertId;
+  const adminId = (result as unknown as ResultSetHeader).insertId;
   return { id: adminId, username: data.username, realName: data.realName, message: "创建成功" };
 }

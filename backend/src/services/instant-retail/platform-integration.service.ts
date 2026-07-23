@@ -5,6 +5,12 @@ import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/ind
 import type { PlatformType } from "./types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "./common.service";
 
+// ========== 类型定义 ==========
+
+interface OrderNoRow {
+  order_no: string;
+}
+
 export function buildWebhookResponse(platform: PlatformType, success: boolean, message?: string) {
   if (platform === "JD") {
     return success ? { code: "0", message: message ?? "success" } : { code: "1", message: message ?? "error" };
@@ -54,10 +60,10 @@ export async function handleWebhook(platform: PlatformType, rawBody: any, signat
     );
 
     if (unified.status === "ACCEPTED" || unified.status === "PENDING") {
-      const [existingRows] = await conn.query<any[]>(
+      const [existingRows] = await conn.query(
         `SELECT order_no FROM t_miniapp_order WHERE order_no = ? LIMIT 1`,
         [unified.orderId]
-      );
+      ) as unknown as [OrderNoRow[], unknown];
       if (existingRows.length === 0) {
         await conn.execute(
           `INSERT INTO t_miniapp_order

@@ -1,19 +1,32 @@
 import { query } from "../../shared/db";
 
+/** 部门行 */
+interface SysDepartmentRow {
+  id: number;
+  parent_id: number | null;
+  name: string;
+  store_id: number;
+  sort_order: number;
+  status: number;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function getDepartments(tenantId: string, params?: { storeId?: number }) {
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.storeId) { where += " AND store_id = ?"; vals.push(params.storeId); }
-  const rows = await query<any>(`SELECT * FROM t_sys_department ${where} ORDER BY sort_order ASC, id ASC`, vals);
+  const rows = await query<SysDepartmentRow>(`SELECT * FROM t_sys_department ${where} ORDER BY sort_order ASC, id ASC`, vals);
   return { records: rows };
 }
 
 export async function getDepartmentTree(tenantId: string) {
-  const rows = await query<any>(`SELECT * FROM t_sys_department ORDER BY sort_order ASC, id ASC`);
+  const rows = await query<SysDepartmentRow>(`SELECT * FROM t_sys_department ORDER BY sort_order ASC, id ASC`);
   return buildTree(rows, null);
 }
 
-function buildTree(rows: any[], parentId: number | null): any[] {
+function buildTree(rows: SysDepartmentRow[], parentId: number | null): (SysDepartmentRow & { children: ReturnType<typeof buildTree> })[] {
   return rows
     .filter(r => r.parent_id === parentId)
     .map(r => ({ ...r, children: buildTree(rows, r.id) }));

@@ -7,8 +7,41 @@ import { AppError } from "../../shared/app-error";
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
 
+// ─── 类型定义 ─────────────────────────────────────────────────
+
+/** 登录账号行 */
+interface LoginAccountRow {
+  id: number;
+  username: string;
+  password_hash: string;
+  real_name: string;
+  store_id: number | null;
+  status: number;
+  tenant_id: string | null;
+  login_fail_count: number;
+  locked_until: Date | string | null;
+}
+
+/** 角色行 */
+interface RoleRow {
+  role_code: string;
+}
+
+/** 门店信息行 */
+interface StoreInfoRow {
+  name: string;
+  address: string;
+  phone: string;
+  contact: string;
+  miniappAppid: string;
+  wxMerchantName: string;
+  wxServicePhone: string;
+  wxHeadImg: string;
+  wxQrcodeUrl: string;
+}
+
 export async function login(username: string, password: string) {
-  const account = await queryOne<any>(
+  const account = await queryOne<LoginAccountRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
   );
@@ -52,14 +85,14 @@ export async function login(username: string, password: string) {
     [account.id]
   );
 
-  const roles = await query<any>(
+  const roles = await query<RoleRow>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
      WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
     [account.id]
   );
-  const roleCodes = roles.map((r: any) => r.role_code);
+  const roleCodes = roles.map((r) => r.role_code);
   const tenantId = account.tenant_id || 'default';
   const authUser = {
     id: account.id,
@@ -98,7 +131,7 @@ export function getCurrentUser(user: any) {
 }
 
 export async function getStoreInfo(storeId: number, tenantId: string) {
-  const store = await queryOneWithTenant<any>(
+  const store = await queryOneWithTenant<StoreInfoRow>(
     `SELECT name, address, phone, contact,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl

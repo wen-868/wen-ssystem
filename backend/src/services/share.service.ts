@@ -1,11 +1,79 @@
 import { query, queryOne } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 
+interface CollectionLinkRow {
+  linkNo: string;
+  tenantId: string;
+  sourceType: string;
+  sourceNo: string;
+  amount: number;
+  paidAmount: number;
+  status: string;
+  expireAt: string | null;
+  taxEnabled: number;
+  taxRate: number;
+  taxAmount: number;
+  customerName: string;
+  storeName: string;
+}
+
+interface SaleBillItemRow {
+  skuId: number;
+  skuName: string;
+  boxQty: number;
+  bottleQty: number;
+  totalBottleQty: number;
+  unitPrice: number;
+  subtotalAmount: number;
+}
+
+interface CollectionLinkPageRow {
+  linkNo: string;
+  tenantId: string;
+  sourceType: string;
+  sourceNo: string;
+  amount: number;
+  paidAmount: number;
+  status: string;
+  expireAt: string | null;
+  taxEnabled: number;
+  taxRate: number;
+  taxAmount: number;
+  shareChannel: string | null;
+  createdAt: string;
+}
+
+interface SaleBillRow {
+  billNo: string;
+  customerName: string;
+  customerMobile: string;
+  customerType: string;
+  receivableAmount: number;
+  receivedAmount: number;
+  unreceivedAmount: number;
+  storeId: number;
+  storeName: string;
+}
+
+interface CollectionLinkBriefRow {
+  link_no: string;
+  tenant_id: string;
+  source_no: string;
+  amount: number;
+  paid_amount: number;
+  status: string;
+}
+
+interface SaleBillReceivableRow {
+  received_amount: number;
+  receivable_amount: number;
+}
+
 export async function getCollectionLink(token: string) {
   // 公开收款链接接口：通过 token 定位唯一的 t_collection_link 记录
   // 从该记录中获取 tenant_id，并在后续 SQL 中显式注入 tenant_id 条件
   // （t_collection_link / t_sale_bill / t_sale_bill_item / t_collection_view_log 均含 tenant_id 字段）
-  const link = await queryOne<any>(
+  const link = await queryOne<CollectionLinkRow>(
     `SELECT cl.link_no AS linkNo, cl.tenant_id AS tenantId, cl.source_type AS sourceType, cl.source_no AS sourceNo, cl.amount, cl.paid_amount AS paidAmount,
             cl.status, cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled, cl.tax_rate AS taxRate, cl.tax_amount AS taxAmount,
             sb.customer_name AS customerName, st.name AS storeName
@@ -28,7 +96,7 @@ export async function getCollectionLink(token: string) {
     [link.tenantId, link.linkNo, null, null]
   );
 
-  const items = await query<any>(
+  const items = await query<SaleBillItemRow>(
     `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
      FROM t_sale_bill_item WHERE bill_no = ? AND tenant_id = ?`,
@@ -42,7 +110,7 @@ export async function getCollectionLink(token: string) {
 }
 
 export async function getCollectionPage(token: string) {
-  const link = await queryOne<any>(
+  const link = await queryOne<CollectionLinkPageRow>(
     `SELECT cl.link_no AS linkNo, cl.tenant_id AS tenantId, cl.source_type AS sourceType, cl.source_no AS sourceNo,
             cl.amount, cl.paid_amount AS paidAmount, cl.status,
             cl.expire_at AS expireAt, cl.tax_enabled AS taxEnabled,
@@ -70,7 +138,7 @@ export async function getCollectionPage(token: string) {
   if (link.status === "REVOKED") {
     return { error: "收款链接已撤销", status: 400 };
   }
-  const bill = await queryOne<any>(
+  const bill = await queryOne<SaleBillRow>(
     `SELECT sb.bill_no AS billNo, sb.customer_name AS customerName,
             sb.customer_mobile AS customerMobile, sb.customer_type AS customerType,
             sb.receivable_amount AS receivableAmount, sb.received_amount AS receivedAmount,
@@ -81,7 +149,7 @@ export async function getCollectionPage(token: string) {
      WHERE sb.bill_no = ? AND sb.tenant_id = ?`,
     [link.sourceNo, link.tenantId]
   );
-  const items = await query<any>(
+  const items = await query<SaleBillItemRow>(
     `SELECT sku_id AS skuId, sku_name AS skuName,
             box_qty AS boxQty, bottle_qty AS bottleQty,
             total_bottle_qty AS totalBottleQty,
@@ -114,7 +182,7 @@ export async function wxNotifyCollection(token: string, paymentData: {
   transactionId?: string;
   payAmount?: number;
 }) {
-  const link = await queryOne<any>("SELECT link_no, tenant_id, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [token]);
+  const link = await queryOne<CollectionLinkBriefRow>("SELECT link_no, tenant_id, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [token]);
   if (!link) {
     return { error: "收款链接不存在", status: 404 };
   }
@@ -137,7 +205,7 @@ export async function wxNotifyCollection(token: string, paymentData: {
     `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ? AND tenant_id = ?`,
     [newPaid, newStatus, link.link_no, link.tenant_id]
   );
-  const bill = await queryOne<any>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [link.source_no, link.tenant_id]);
+  const bill = await queryOne<SaleBillReceivableRow>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [link.source_no, link.tenant_id]);
   if (bill) {
     const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
     const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
