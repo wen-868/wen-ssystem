@@ -287,7 +287,7 @@ export async function listExpiryAlerts(tenantId: string, params: {
   return { total: totalRow?.total ?? 0, page: params.page, pageSize: params.pageSize, records };
 }
 
-export async function handleExpiryAlert(tenantId: string, id: number, userId: number) {
+export async function handleExpiryAlert(tenantId: string, id: number, userId: number | undefined) {
   await transaction(async (conn) => {
     await (conn as any).execute(
       `UPDATE t_expiry_alert_record SET status = 'HANDLED', handled_by = ?, handled_at = NOW() WHERE id = ? AND tenant_id = ?`,
