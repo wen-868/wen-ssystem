@@ -98,7 +98,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑秒杀活动' : '新建秒杀活动'"
-      width="700px"
+      width="720px"
       @close="resetForm"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">

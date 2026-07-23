@@ -114,7 +114,7 @@
     </el-dialog>
 
     <!-- 详情抽屉 -->
-    <DetailDrawer v-model="detailVisible" title="采购计划详情" width="650px">
+    <DetailDrawer v-model="detailVisible" title="采购计划详情" width="720px">
       <template v-if="currentDetail">
         <el-descriptions :column="2" border style="margin-bottom: 16px">
           <el-descriptions-item label="计划单号">{{ currentDetail.planNo }}</el-descriptions-item>

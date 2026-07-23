@@ -147,7 +147,7 @@
     </el-dialog>
 
     <!-- 查阅统计 -->
-    <el-dialog v-model="statsDialogVisible" title="查阅统计" width="500px">
+    <el-dialog v-model="statsDialogVisible" title="查阅统计" width="480px">
       <div v-if="statsData">
         <el-statistic title="发送次数" :value="statsData.sendCount || 0" />
         <el-statistic title="查阅人数" :value="statsData.readCount || 0" style="margin-top: 16px" />

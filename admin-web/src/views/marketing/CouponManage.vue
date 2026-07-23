@@ -104,7 +104,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑优惠券' : '新建优惠券'"
-      width="650px"
+      width="720px"
       @close="resetForm"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">

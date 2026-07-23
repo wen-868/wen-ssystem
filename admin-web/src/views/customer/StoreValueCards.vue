@@ -49,7 +49,7 @@
     </div>
 
     <!-- 新建储值卡 -->
-    <el-dialog v-model="createCardVisible" title="新建储值卡" width="500px">
+    <el-dialog v-model="createCardVisible" title="新建储值卡" width="480px">
       <el-form ref="createCardFormRef" :model="createCardForm" :rules="createCardRules" label-width="100px">
         <el-form-item label="选择客户" prop="customerId">
           <el-select v-model="createCardForm.customerId" filterable placeholder="搜索客户" style="width: 100%">
@@ -67,7 +67,7 @@
     </el-dialog>
 
     <!-- 充值 -->
-    <el-dialog v-model="rechargeVisible" title="充值" width="500px">
+    <el-dialog v-model="rechargeVisible" title="充值" width="480px">
       <el-form ref="rechargeFormRef" :model="rechargeForm" :rules="rechargeRules" label-width="100px">
         <el-form-item label="金额" prop="amount">
           <el-input-number v-model="rechargeForm.amount" :min="0.01" :precision="2" style="width: 100%" />
@@ -86,7 +86,7 @@
     </el-dialog>
 
     <!-- 消费 -->
-    <el-dialog v-model="consumeVisible" title="消费" width="500px">
+    <el-dialog v-model="consumeVisible" title="消费" width="480px">
       <el-form ref="consumeFormRef" :model="consumeForm" :rules="consumeRules" label-width="100px">
         <el-form-item label="金额" prop="amount">
           <el-input-number v-model="consumeForm.amount" :min="0.01" :precision="2" style="width: 100%" />
@@ -105,7 +105,7 @@
     </el-dialog>
 
     <!-- 退款 -->
-    <el-dialog v-model="refundVisible" title="退款" width="500px">
+    <el-dialog v-model="refundVisible" title="退款" width="480px">
       <el-form ref="refundFormRef" :model="refundForm" :rules="refundRules" label-width="100px">
         <el-form-item label="金额" prop="amount">
           <el-input-number v-model="refundForm.amount" :min="0.01" :precision="2" style="width: 100%" />
