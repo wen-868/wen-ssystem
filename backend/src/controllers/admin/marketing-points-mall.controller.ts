@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+﻿﻿﻿﻿import { z } from "zod";
 import { Request, Response } from "express";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
@@ -79,7 +79,15 @@ export const getExchangeRecordDetail = asyncHandler(async (req: Request, res: Re
 
 export const exchangeProduct = asyncHandler(async (req: Request, res: Response) => {
   const body = exchangeProductSchema.parse(req.body);
-  const result = await svc.exchangeProduct(body as any, req.tenantId!);
+  const result = await svc.exchangeProduct(
+    {
+      product_id: body.pointsProductId,
+      user_id: req.user!.id,
+      quantity: body.quantity,
+      delivery_type: body.addressId ? "DELIVERY" : "SELF_PICKUP",
+    },
+    req.tenantId!
+  );
   res.json(ok(result));
 });
 

@@ -188,7 +188,7 @@ describe("admin marketing-points-mall.controller", () => {
       const res = mockRes();
       await exchangeProduct(req, res);
       expect(mocks.exchangeProduct).toHaveBeenCalledWith(
-        expect.objectContaining({ pointsProductId: 1, quantity: 2 }),
+        expect.objectContaining({ product_id: 1, quantity: 2, user_id: 1, delivery_type: "SELF_PICKUP" }),
         "t1"
       );
       expect(res.json).toHaveBeenCalled();

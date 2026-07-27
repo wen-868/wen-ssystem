@@ -65,6 +65,66 @@ interface CartCheckoutRow {
   availableQty: number | string;
 }
 
+/** 协议价查询行（t_customer_price_binding） */
+interface PriceBindingRow {
+  price: number | string;
+}
+
+/** 阶梯价查询行（t_sku_price） */
+interface TierPriceRow {
+  price: number | string;
+}
+
+/** 零售价查询行（t_product_price） */
+interface RetailPriceRow {
+  retail_price: number | string;
+}
+
+/** 购物车列表展示项（getCartList 返回） */
+interface CartListDisplayItem {
+  id: number | string;
+  skuId: number | string;
+  skuName: string;
+  spuName: string;
+  image: string | null;
+  price: number;
+  quantity: number;
+  availableQty: number;
+  subtotal: number;
+  priceType: string;
+}
+
+/** 结算预览展示项（checkoutPreview 返回） */
+interface CheckoutPreviewItem {
+  skuId: number | string;
+  skuName: string;
+  spuName: string;
+  image: string | null;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+  availableQty: number;
+  priceType: string;
+}
+
+/** 购物车结算行（下单时从 t_cart_item 读取，仅 skuId+quantity） */
+interface CartCheckoutItemRow {
+  skuId: number | string;
+  quantity: number | string;
+}
+
+/** 订单项草稿（createCheckoutOrder 内部累积） */
+interface OrderItemDraft {
+  skuId: number | string;
+  skuName: string;
+  qty: number;
+  unitPrice: number;
+  subtotal: number;
+  priceType: string;
+  reservedQty: number;
+  unreservedQty: number;
+}
+
 // ========== 私有辅助函数 ==========
 
 async function getBestPrice(
@@ -79,31 +139,31 @@ async function getBestPrice(
     : (sql, params) => queryWithTenant(sql, params, tenantId);
 
   // 1. 协议价
-  const bindingRows = (await dbQuery(
+  const bindingRows = await dbQuery(
     `SELECT cpb.price FROM t_customer_price_binding cpb
      WHERE cpb.customer_id = ? AND cpb.sku_id = ? AND cpb.status = 'ACTIVE'
      ORDER BY cpb.updated_at DESC LIMIT 1`,
     [customerId, skuId]
-  ) as any[])[0];
+  ) as PriceBindingRow[];
   const binding = bindingRows[0];
   if (binding) return Number(binding.price);
 
   // 2. 阶梯价
-  const tierRows = (await dbQuery(
+  const tierRows = await dbQuery(
     `SELECT sp.price FROM t_sku_price sp
      WHERE sp.sku_id = ? AND sp.min_qty <= ? AND sp.status = 1
      ORDER BY sp.min_qty DESC LIMIT 1`,
     [skuId, quantity]
-  ) as any[])[0];
-  const tierPrice = (tierRows as any[])[0];
+  ) as TierPriceRow[];
+  const tierPrice = tierRows[0];
   if (tierPrice) return Number(tierPrice.price);
 
   // 3. 零售价
-  const retailRows = (await dbQuery(
+  const retailRows = await dbQuery(
     `SELECT pp.retail_price FROM t_product_price pp WHERE pp.sku_id = ? AND pp.tenant_id = ?`,
     [skuId, tenantId]
-  ) as any[])[0];
-  const retail = (retailRows as any[])[0];
+  ) as RetailPriceRow[];
+  const retail = retailRows[0];
   return retail ? Number(retail.retail_price) : 0;
 }
 
@@ -191,7 +251,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
     [customerId],
     tenantId
   );
-  const items = rows.map((row: any) => {
+  const items: CartListDisplayItem[] = rows.map((row) => {
     const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     return {
@@ -201,14 +261,14 @@ export async function getCartList(tenantId: string, customerId: number, customer
       spuName: row.spuName,
       image: row.image,
       price,
-      quantity: row.quantity,
+      quantity: Number(row.quantity),
       availableQty: Number(row.availableQty),
-      subtotal: Number((price * row.quantity).toFixed(2)),
+      subtotal: Number((price * Number(row.quantity)).toFixed(2)),
       priceType: wholesaleVisible ? "WHOLESALE" : "RETAIL"
     };
   });
-  const totalAmount = items.reduce((sum: number, item: any) => sum + item.subtotal, 0);
-  const totalQty = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0);
+  const totalQty = items.reduce((sum, item) => sum + item.quantity, 0);
   return { items, totalAmount: Number(totalAmount.toFixed(2)), totalQty };
 }
 
@@ -343,7 +403,7 @@ export async function checkoutPreview(params: {
   }
 
   let goodsAmount = 0;
-  const previewItems: any[] = [];
+  const previewItems: CheckoutPreviewItem[] = [];
   for (const row of cartItems) {
     const unitPrice = await getBestPrice(null, tenantId, customerId, Number(row.skuId), Number(row.quantity));
     const subtotal = Number((unitPrice * Number(row.quantity)).toFixed(2));
@@ -354,7 +414,7 @@ export async function checkoutPreview(params: {
       spuName: row.spuName,
       image: row.image,
       unitPrice,
-      quantity: row.quantity,
+      quantity: Number(row.quantity),
       subtotal,
       availableQty: Number(row.availableQty),
       priceType: "BEST"
@@ -404,18 +464,18 @@ export async function createCheckoutOrder(params: {
   } = params;
 
   const order = await transaction(async (conn) => {
-    let cartItems: any[];
+    let cartItems: CartCheckoutItemRow[];
     if (skuIds && skuIds.length > 0) {
       const placeholders = skuIds.map(() => "?").join(",");
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM t_cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,
         [customerId, tenantId, ...skuIds]
-      ))[0] as unknown as Record<string, unknown>[];
+      ))[0] as unknown as CartCheckoutItemRow[];
     } else {
       cartItems = (await conn.query(
         `SELECT sku_id AS skuId, quantity FROM t_cart_item WHERE customer_id = ? AND tenant_id = ?`,
         [customerId, tenantId]
-      ))[0] as unknown as Record<string, unknown>[];
+      ))[0] as unknown as CartCheckoutItemRow[];
     }
 
     if (cartItems.length === 0) throw new Error("购物车为空");
@@ -423,7 +483,7 @@ export async function createCheckoutOrder(params: {
     const orderNo = makeBizNo("DD");
     const initialState = getInitialMiniappOrderState(customerType as CustomerType);
     let goodsAmount = 0;
-    const orderItems: any[] = [];
+    const orderItems: OrderItemDraft[] = [];
 
     for (const cartItem of cartItems) {
       const [price] = await conn.query(
@@ -434,8 +494,8 @@ export async function createCheckoutOrder(params: {
       const priceRow = (price as unknown as Record<string, unknown>[])[0];
       if (!priceRow) throw new Error(`SKU不存在：${cartItem.skuId}`);
 
-      const unitPrice = await getBestPrice(conn, tenantId, customerId, cartItem.skuId, cartItem.quantity);
-      const qty = cartItem.quantity;
+      const qty = Number(cartItem.quantity);
+      const unitPrice = await getBestPrice(conn, tenantId, customerId, Number(cartItem.skuId), qty);
       const subtotal = Number((unitPrice * qty).toFixed(2));
       goodsAmount += subtotal;
 
@@ -456,7 +516,7 @@ export async function createCheckoutOrder(params: {
 
       orderItems.push({
         skuId: cartItem.skuId,
-        skuName: priceRow.sku_name,
+        skuName: String(priceRow.sku_name),
         qty,
         unitPrice,
         subtotal,
@@ -512,7 +572,7 @@ export async function createCheckoutOrder(params: {
       }
     }
 
-    const cartSkuIds = cartItems.map((c: any) => c.skuId);
+    const cartSkuIds = cartItems.map((c) => c.skuId);
     const placeholders = cartSkuIds.map(() => "?").join(",");
     await conn.execute(
       `DELETE FROM t_cart_item WHERE customer_id = ? AND tenant_id = ? AND sku_id IN (${placeholders})`,

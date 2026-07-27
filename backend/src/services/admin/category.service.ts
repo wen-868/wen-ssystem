@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { RowDataPacket } from "mysql2/promise";
 import logger from "../../shared/logger";
 import { syncChangedFields } from "../../shared/field-sync";
 import { cacheGet, cacheDelPattern } from "../../shared/redis-cache";
@@ -10,7 +11,7 @@ interface CategoryRow {
 }
 
 /** COUNT(*) AS cnt 通用行 */
-interface CountCntRow {
+interface CountCntRow extends RowDataPacket {
   cnt: number;
 }
 
@@ -138,20 +139,20 @@ export async function remove(id: number, tenantId: string) {
   if (!existing) throw Object.assign(new Error("分类不存在"), { statusCode: 404 });
 
   // 检查是否有子分类
-  const childRows = (await queryWithTenant<CountCntRow>(
+  const childRows = await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_category WHERE parent_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
-  ) as any[])[0];
-  if ((childRows as any)?.[0]?.cnt > 0) {
+  );
+  if (Number(childRows[0]?.cnt ?? 0) > 0) {
     throw Object.assign(new Error("请先删除子分类"), { statusCode: 400 });
   }
 
   // 检查是否有商品引用
-  const productRows = (await queryWithTenant<CountCntRow>(
+  const productRows = await queryWithTenant<CountCntRow>(
     "SELECT COUNT(*) AS cnt FROM t_product_spu WHERE category_id = ? AND tenant_id = ?",
     [id, tenantId], tenantId
-  ) as any[])[0];
-  if ((productRows as any)?.[0]?.cnt > 0) {
+  );
+  if (Number(productRows[0]?.cnt ?? 0) > 0) {
     throw Object.assign(new Error("该分类下有商品，无法删除"), { statusCode: 400 });
   }
 

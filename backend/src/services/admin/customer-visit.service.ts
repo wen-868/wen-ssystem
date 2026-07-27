@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+﻿﻿﻿﻿import { z } from "zod";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
@@ -148,7 +148,7 @@ export const createVisitSchema = z.object({
   follow_up_content: z.string().max(255).optional(),
   next_action: z.string().max(255).optional(),
   related_order_no: z.string().max(64).optional(),
-  images: z.any().optional(),
+  images: z.unknown().optional(),
   remark: z.string().max(255).optional(),
 });
 
@@ -172,7 +172,7 @@ export const updateVisitSchema = z.object({
   next_action: z.string().max(255).optional(),
   status: z.enum(["PLANNED", "VISITED", "COMPLETED", "CANCELLED"]).optional(),
   related_order_no: z.string().max(64).optional(),
-  images: z.any().optional(),
+  images: z.unknown().optional(),
   remark: z.string().max(255).optional(),
 });
 
@@ -188,7 +188,7 @@ export const checkoutSchema = z.object({
   follow_up_date: z.string().optional(),
   follow_up_content: z.string().max(255).optional(),
   next_action: z.string().max(255).optional(),
-  images: z.any().optional(),
+  images: z.unknown().optional(),
   remark: z.string().max(255).optional(),
 });
 
@@ -220,7 +220,7 @@ export async function listVisits(tenantId: string, query: VisitListQuery) {
   } = query;
 
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (customer_id) {
     conditions.push("cv.customer_id = ?");
@@ -403,7 +403,7 @@ export async function updateVisit(
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     visit_type: "visit_type",
@@ -495,7 +495,7 @@ export async function checkin(
   const now = new Date().toISOString().slice(0, 19).replace("T", " ");
 
   const updates: string[] = ["status = 'VISITED'", "start_time = ?"];
-  const params: any[] = [now];
+  const params: unknown[] = [now];
 
   if (body.latitude !== undefined) { updates.push("latitude = ?"); params.push(body.latitude); }
   if (body.longitude !== undefined) { updates.push("longitude = ?"); params.push(body.longitude); }
@@ -549,7 +549,7 @@ export async function checkout(
   }
 
   const updates: string[] = ["status = 'COMPLETED'", "end_time = ?"];
-  const params: any[] = [endTimeStr];
+  const params: unknown[] = [endTimeStr];
 
   if (durationMinutes !== null) { updates.push("duration_minutes = ?"); params.push(durationMinutes); }
   if (body.visit_summary !== undefined) { updates.push("visit_summary = ?"); params.push(body.visit_summary); }

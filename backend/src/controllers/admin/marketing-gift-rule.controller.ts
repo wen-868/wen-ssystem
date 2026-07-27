@@ -5,38 +5,40 @@ import { ok } from "../../shared/response";
 import * as svc from "../../services/admin/marketing-gift-rule.service";
 
 const createGiftRuleSchema = z.object({
-  name: z.string().min(1).max(200),
-  triggerType: z.enum(["AMOUNT", "QUANTITY"]),
-  triggerValue: z.number().positive(),
-  startTime: z.string().min(1),
-  endTime: z.string().min(1),
+  rule_name: z.string().min(1).max(200),
+  threshold_type: z.enum(["AMOUNT", "QUANTITY"]),
+  threshold_amount: z.number().positive(),
+  start_time: z.string().min(1),
+  end_time: z.string().min(1),
   status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).default("DRAFT"),
-  description: z.string().max(2000).optional(),
-  applicableScope: z.enum(["ALL", "SPECIFIC"]).default("ALL"),
+  rule_desc: z.string().max(2000).optional(),
+  applicable_scope: z.enum(["ALL", "SPECIFIC"]).default("ALL"),
+  gift_stock_limit: z.number().int().optional(),
   levels: z.array(z.object({
-    name: z.string().min(1).max(100),
-    giftSkuId: z.number().int().positive(),
-    giftQuantity: z.number().int().positive(),
-    sortNo: z.number().int().default(0),
+    gift_product_id: z.number().int().positive(),
+    gift_sku_id: z.number().int().positive(),
+    gift_quantity: z.number().int().positive(),
+    sort_order: z.number().int().default(0),
   })).min(1).optional(),
 });
 
 const updateGiftRuleSchema = z.object({
-  name: z.string().min(1).max(200).optional(),
-  triggerType: z.enum(["AMOUNT", "QUANTITY"]).optional(),
-  triggerValue: z.number().positive().optional(),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  rule_name: z.string().min(1).max(200).optional(),
+  threshold_type: z.enum(["AMOUNT", "QUANTITY"]).optional(),
+  threshold_amount: z.number().positive().optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
   status: z.enum(["DRAFT", "ACTIVE", "PAUSED"]).optional(),
-  description: z.string().max(2000).optional(),
-  applicableScope: z.enum(["ALL", "SPECIFIC"]).optional(),
+  rule_desc: z.string().max(2000).optional(),
+  applicable_scope: z.enum(["ALL", "SPECIFIC"]).optional(),
+  gift_stock_limit: z.number().int().optional(),
 });
 
 const giftRuleLevelSchema = z.object({
-  name: z.string().min(1).max(100),
-  giftSkuId: z.number().int().positive(),
-  giftQuantity: z.number().int().positive(),
-  sortNo: z.number().int().default(0),
+  gift_product_id: z.number().int().positive(),
+  gift_sku_id: z.number().int().positive(),
+  gift_quantity: z.number().int().positive(),
+  sort_order: z.number().int().default(0),
 });
 
 export const createGiftRule = asyncHandler(async (req: Request, res: Response) => {

@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** t_approval_rule 规则列表行 */
 interface ApprovalRuleRow {
@@ -77,7 +77,7 @@ export async function createRule(
   body: {
     ruleName: string;
     businessType: "PURCHASE_ORDER" | "SALE_RETURN" | "PRICE_CHANGE" | "CREDIT_LIMIT" | "EXPENSE";
-    triggerCondition?: any;
+    triggerCondition?: Record<string, unknown>;
     approvalChain: Array<{
       level: number;
       approverType: "ROLE" | "USER" | "DEPARTMENT";
@@ -111,7 +111,7 @@ export async function updateRule(
   id: number,
   body: {
     ruleName?: string;
-    triggerCondition?: any;
+    triggerCondition?: Record<string, unknown>;
     approvalChain?: Array<{
       level: number;
       approverType: "ROLE" | "USER" | "DEPARTMENT";

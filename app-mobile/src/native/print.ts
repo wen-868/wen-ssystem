@@ -135,7 +135,7 @@ export type PrintBillType = 'SALE_BILL' | 'SALE_RETURN' | 'SHIFT' | 'DAILY_SETTL
 
 /** 后端打印记录状态（对齐 print.service.ts STATUS_VALUES） */
 export type PrintRecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING'
-                                                          
+
 /**
  * 打印记录保存入参（对齐后端 POST /api/admin/print/records 入参）
  *
@@ -206,7 +206,7 @@ export type PrintErrorType =
  */
 export class PrintError extends Error {
     readonly errorType: PrintErrorType
-                                                            
+
     constructor(errorType: PrintErrorType, message: string) {
         super(message)
         this.name = 'PrintError'
@@ -229,10 +229,10 @@ const DEFAULT_FEED_LINES = 3
 
 /** 打印超时时间（毫秒），默认 30s */
 const DEFAULT_PRINT_TIMEOUT = 30000
-                                                            
+
 /** 后端打印记录 API 路径（request.ts BASE_URL 已含 /api，此处只需 /admin/print/...） */
 const PRINT_RECORD_API = '/admin/print/records'
-                                                            
+
 /** 已连接打印机的 MAC 地址缓存 key */
 const CONNECTED_PRINTER_MAC_KEY = 'merchant_connected_printer_mac'
 
@@ -255,7 +255,7 @@ const OUT_OF_PAPER_KEYWORDS = ['缺纸', '无纸', '请装纸', 'out of paper', 
  * App 重启后从 uni.getStorageSync 恢复（见 initConnectedState）。
  */
 let currentConnectedMac: string | null = null
-                                                            
+
 /**
  * 当前已连接打印机的名称
  */
@@ -343,7 +343,7 @@ interface PrintManagerNativeModule {
     /** 原始字节打印（ESC/POS 指令透传，data 为 number 数组） */
     printRawBytes(options: { data: Array<number> }, callback: (result: NativePrintResult) => void): void
 }
-                                                            
+
 /**
  * HMS Core Bluetooth Kit 原生插件接口（HarmonyOS）
  *
@@ -388,8 +388,8 @@ function getCurrentOperatorId(): number | null {
 function getCurrentStoreId(): number | null {
     const user = getUser()
     return user?.storeId ?? null
- 
-                                                            
+}
+
 /**
  * 缓存已连接打印机的 MAC 地址（同步更新模块级状态 + 持久化 storage）
  * @param mac MAC 地址
@@ -431,8 +431,9 @@ function clearConnectedPrinterCache(): void {
     } catch {
         // 清除失败忽略
     }
- 
-                                                            
+}
+
+
 /**
  * 规范化打印机设备字段（兼容原生层返回的 mac/address 双字段）
  * @param raw 原生返回的设备对象
@@ -464,22 +465,22 @@ function isOutOfPaperError(errMsg: string): boolean {
     if (!errMsg) return false
     const lower = errMsg.toLowerCase()
     return OUT_OF_PAPER_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
- 
-                                                            
+}
+
 /**
- * 将原生错误消息转换为 PrintError
- *
- * 错误识别优先级：
- *  1. 缺纸（outOfPaper 标志或错误消息匹配关键词）→ out_of_paper
- *  2. 蓝牙未开启（bluetoothEnabled === false 或消息匹配）→ bluetooth_disabled
- *  3. 其他 → fallbackType（由调用方指定，如 connect_failed / print_failed）
- *
- * @param errMsg 错误消息
- * @param outOfPaper 原生层返回的缺纸标志
- * @param bluetoothEnabled 原生层返回的蓝牙开启标志
- * @param fallbackType 默认错误类型（当无法识别具体类型时使用）
- * @returns PrintError 实例
- */
+     * 将原生错误消息转换为 PrintError
+     *
+     * 错误识别优先级：
+     *  1. 缺纸（outOfPaper 标志或错误消息匹配关键词）→ out_of_paper
+     *  2. 蓝牙未开启（bluetoothEnabled === false 或消息匹配）→ bluetooth_disabled
+     *  3. 其他 → fallbackType（由调用方指定，如 connect_failed / print_failed）
+     *
+     * @param errMsg 错误消息
+     * @param outOfPaper 原生层返回的缺纸标志
+     * @param bluetoothEnabled 原生层返回的蓝牙开启标志
+     * @param fallbackType 默认错误类型（当无法识别具体类型时使用）
+     * @returns PrintError 实例
+     */
 function toPrintError(
     errMsg: string,
     fallbackType: PrintErrorType,
@@ -517,20 +518,21 @@ function readHMSBluetoothKitRaw(): HMSBluetoothKitNativeModule | null {
     } catch {
         return null
     }
- 
-                                                            
+}
+
+
 /**
  * 获取 PrintManager 原生插件实例
- *
- * 平台分支：
- *  - APP-PLUS && !HARMONYOS：通过 uni.requireNativePlugin('PrintManager') 获取
- *  - HARMONYOS：使用 HMS Core Bluetooth Kit（globalThis.HMSɨBluetoothKit）
- *  - 其他环境（H5/小程序）：返回 null
- *
- * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到多个 return 语句造成问题（踩坑日志 [15]）
- *
- * @returns 原生插件实例，不可用时返回 null
- */
+     *
+     * 平台分支：
+     *  - APP-PLUS && !HARMONYOS：通过 uni.requireNativePlugin('PrintManager') 获取
+     *  - HARMONYOS：使用 HMS Core Bluetooth Kit（globalThis.HMSɨBluetoothKit）
+     *  - 其他环境（H5/小程序）：返回 null
+     *
+     * 使用 IIFE 包裹条件编译，避免 vue-tsc 看到多个 return 语句造成问题（踩坑日志 [15]）
+     *
+     * @returns 原生插件实例，不可用时返回 null
+     */
 function getPrintManager(): PrintManagerNativeModule | null {
     return (() => {
         // #ifdef APP-PLUS && !HARMONYOS
@@ -643,18 +645,19 @@ export async function savePrintRecord(record: PrintRecordData): Promise<void> {
         // 打印记录保存失败不影响主流程，静默处理
         // 后端 API 未就绪时（R51-03 开发中）会走这里，等 API ready 后自动对接
     }
- 
-                                                            
+}
+
+
 /**
  * 构造并保存打印记录（内部便捷方法）
- *
- * @param billType 单据类型
- * @param billNo 单据编号
- * @param printContent 打印内容摘要（PrintLine JSON 或文本）
- * @param status 打印状态
- * @param errorMsg 错误信息（失败时）
- * @returns 保存成功 resolve
- */
+     *
+     * @param billType 单据类型
+     * @param billNo 单据编号
+     * @param printContent 打印内容摘要（PrintLine JSON 或文本）
+     * @param status 打印状态
+     * @param errorMsg 错误信息（失败时）
+     * @returns 保存成功 resolve
+     */
 async function persistPrintRecord(
     billType: PrintBillType,
     billNo: string,
@@ -674,10 +677,10 @@ async function persistPrintRecord(
         operatorId: getCurrentOperatorId(),
     }
     await savePrintRecord(record)
- 
-                                                            
+}
+
 // ====================== 核心打印 API（严格对齐 R51-02 任务接口定义） ======================
-                                                            
+
 /**
  * 搜索蓝牙打印机
  *
@@ -713,7 +716,7 @@ export function search(): Promise<PrinterDevice[]> {
         uni.showToast({ title: '蓝牙打印功能仅在 App 端可用', icon: 'none' })
         return Promise.reject(new PrintError('device_not_supported', '蓝牙打印功能仅在 App 端可用'))
     }
-                                                            
+
     return new Promise<PrinterDevice[]>((resolve, reject) => {
         try {
             manager.searchPrinters((res: NativeSearchResult) => {
@@ -809,48 +812,50 @@ export function disconnect(): Promise<void> {
             resolve()
         }
     })
- 
-                                                            
+}
+
+
 /**
  * 检查当前打印机连接状态（同步，基于本地缓存）
- *
- * 返回模块级缓存的连接状态（connect 成功后为 true，disconnect 后为 false）。
- * 适用于打印流程中快速判断"是否曾连接打印机"。
- *
- * 注意：storage 中有 MAC 不代表物理连接仍然有效（打印机可能已关机）。
- * 如需确认物理连接是否仍然有效，请使用 checkConnected() 异步查询原生层。
- *
- * @returns 已连接返回 true，未连接返回 false
- *
- * @example
- * ```ts
- * if (isConnected()) {
- *   // 已连接，可以直接打印
- *   await printSaleBill(billData)
- * } else {
- *   // 引导用户连接打印机
- *   uni.showToast({ title: '请先连接打印机', icon: 'none' })
- * }
- * ```
- */
+     *
+     * 返回模块级缓存的连接状态（connect 成功后为 true，disconnect 后为 false）。
+     * 适用于打印流程中快速判断"是否曾连接打印机"。
+     *
+     * 注意：storage 中有 MAC 不代表物理连接仍然有效（打印机可能已关机）。
+     * 如需确认物理连接是否仍然有效，请使用 checkConnected() 异步查询原生层。
+     *
+     * @returns 已连接返回 true，未连接返回 false
+     *
+     * @example
+     * ```ts
+     * if (isConnected()) {
+     *   // 已连接，可以直接打印
+     *   await printSaleBill(billData)
+     * } else {
+     *   // 引导用户连接打印机
+     *   uni.showToast({ title: '请先连接打印机', icon: 'none' })
+     * }
+     * ```
+     */
 export function isConnected(): boolean {
     return currentConnectedMac !== null
- 
-                                                            
+}
+
+
 /**
  * 异步查询打印机物理连接状态（真实查询原生层）
- *
- * 与 isConnected()（同步、基于缓存）不同，checkConnected() 会真实查询原生层连接状态，
- * 适用于长时间未操作后确认物理连接是否仍然有效。
- *
- * @returns 已连接返回 true，未连接返回 false（查询失败也返回 false）
- */
+     *
+     * 与 isConnected()（同步、基于缓存）不同，checkConnected() 会真实查询原生层连接状态，
+     * 适用于长时间未操作后确认物理连接是否仍然有效。
+     *
+     * @returns 已连接返回 true，未连接返回 false（查询失败也返回 false）
+     */
 export function checkConnected(): Promise<boolean> {
     const manager = getPrintManager()
     if (!manager) {
         return Promise.resolve(false)
     }
-                                                            
+
     return new Promise<boolean>((resolve) => {
         try {
             manager.isConnected((res: NativeSimpleResult) => {
@@ -860,40 +865,41 @@ export function checkConnected(): Promise<boolean> {
             resolve(false)
         }
     })
- 
-                                                            
+}
+
+
 /**
  * 打印销售单（58mm 热敏）
- *
- * 内部流程：
- *  1. 调用 buildSaleBillLines(data) 构造 58mm 打印模板
- *  2. 调用原生 printSaleBill 发送打印指令（带 30s 超时）
- *  3. 无论成功/失败，调用后端 POST /api/admin/print/records 保存打印记录
- *  4. 返回 PrintResult（含 success/error/printTime）
- *
- * 错误处理：
- *  - 设备不支持：reject PrintError(device_not_supported)
- *  - 打印超时（30s）：reject PrintError(print_timeout)
- *  - 缺纸：reject PrintError(out_of_paper)
- *  - 其他打印失败：reject PrintError(print_failed)
- *
- * @param data 销售单打印数据
- * @returns 打印结果（成功含 printTime）
- *
- * @example
- * ```ts
- * try {
- *   const result = await printSaleBill(billData)
- *   if (result.success) {
- *     uni.showToast({ title: '打印成功', icon: 'success' })
- *   }
- * } catch (err) {
- *   if (err instanceof PrintError) {
- *     // 按 errorType 区分处理
- *   }
- * }
- * ```
- */
+     *
+     * 内部流程：
+     *  1. 调用 buildSaleBillLines(data) 构造 58mm 打印模板
+     *  2. 调用原生 printSaleBill 发送打印指令（带 30s 超时）
+     *  3. 无论成功/失败，调用后端 POST /api/admin/print/records 保存打印记录
+     *  4. 返回 PrintResult（含 success/error/printTime）
+     *
+     * 错误处理：
+     *  - 设备不支持：reject PrintError(device_not_supported)
+     *  - 打印超时（30s）：reject PrintError(print_timeout)
+     *  - 缺纸：reject PrintError(out_of_paper)
+     *  - 其他打印失败：reject PrintError(print_failed)
+     *
+     * @param data 销售单打印数据
+     * @returns 打印结果（成功含 printTime）
+     *
+     * @example
+     * ```ts
+     * try {
+     *   const result = await printSaleBill(billData)
+     *   if (result.success) {
+     *     uni.showToast({ title: '打印成功', icon: 'success' })
+     *   }
+     * } catch (err) {
+     *   if (err instanceof PrintError) {
+     *     // 按 errorType 区分处理
+     *   }
+     * }
+     * ```
+     */
 export async function printSaleBill(data: SaleBillPrintData): Promise<PrintResult> {
     const lines = buildSaleBillLines(data)
     return executePrint('printSaleBill', data.billNo, lines, async (manager, callback) => {
@@ -1075,7 +1081,7 @@ async function executeRawPrint(
         uni.showToast({ title: '蓝牙打印功能仅在 App 端可用', icon: 'none' })
         throw new PrintError('device_not_supported', '蓝牙打印功能仅在 App 端可用')
     }
-                                                            
+
     const startTime = Date.now()
 
     return new Promise<PrintResult>((resolve, reject) => {

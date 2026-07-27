@@ -1,5 +1,29 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { ServiceContext, PageResult } from "../../types/index";
+
+/** 客户授信列表行（t_customer_credit JOIN t_member） */
+interface CustomerCreditRow {
+  id: number;
+  customerId: number;
+  customerName: string | null;
+  customerMobile: string | null;
+  creditLimit: number | string;
+  creditUsed: number | string;
+  creditFrozen: number | string;
+  creditAvailable: number | string;
+  paymentTerm: string;
+  lateFeeRate: number | string;
+  maxLateFeeRate: number | string;
+  warningThreshold: number | string;
+  overdueFreezeDays: number | string;
+  status: string;
+  freezeReason: string | null;
+  frozenAt: string | Date | null;
+  unfrozenAt: string | Date | null;
+  version: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
 
 export interface CreditInitDTO {
   creditLimit: number;
@@ -37,7 +61,7 @@ export async function getCreditList(
   page: number,
   pageSize: number,
   ctx: ServiceContext
-): Promise<PageResult<any>> {
+): Promise<PageResult<CustomerCreditRow>> {
   const conditions: string[] = ["cc.tenant_id = ?"];
   const params: unknown[] = [ctx.tenantId];
 
@@ -54,7 +78,7 @@ export async function getCreditList(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const offset = (page - 1) * pageSize;
 
-  const records = await queryWithTenant<Record<string, unknown>>(
+  const records = await queryWithTenant<CustomerCreditRow>(
     `SELECT cc.id, cc.customer_id AS customerId, m.name AS customerName, m.mobile AS customerMobile,
             cc.credit_limit AS creditLimit, cc.credit_used AS creditUsed,
             cc.credit_frozen AS creditFrozen, cc.credit_available AS creditAvailable,
@@ -137,7 +161,7 @@ export async function initCredit(customerId: number, dto: CreditInitDTO, ctx: Se
        max_late_fee_rate, warning_threshold, overdue_freeze_days, status, tenant_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)`,
     [customerId, dto.creditLimit, dto.paymentTerm, dto.lateFeeRate,
-     dto.maxLateFeeRate, dto.warningThreshold, dto.overdueFreezeDays, ctx.tenantId],
+      dto.maxLateFeeRate, dto.warningThreshold, dto.overdueFreezeDays, ctx.tenantId],
     ctx.tenantId
   );
 

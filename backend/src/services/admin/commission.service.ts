@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type { ResultSetHeader } from "mysql2/promise";
 
@@ -62,6 +62,28 @@ interface CountTotalRow {
   total: number;
 }
 
+/** 提成配置层级 */
+interface CommissionTier {
+  min: number;
+  rate: number;
+}
+
+/** 提成配置 */
+interface CommissionConfig {
+  fixedAmount?: number;
+  rate?: number;
+  tiers?: CommissionTier[];
+}
+
+/** 提成计算记录 */
+interface CommissionCalcRecord {
+  recordNo: string;
+  billNo: string;
+  staffId: number | string;
+  ruleName: string | null;
+  commissionAmount: number;
+}
+
 // ===== 提成规则 CRUD =====
 
 export async function listCommissionRules(tenantId: string) {
@@ -78,7 +100,7 @@ export async function listCommissionRules(tenantId: string) {
 }
 
 export async function createCommissionRule(params: {
-  ruleName: string; ruleType: string; config: any;
+  ruleName: string; ruleType: string; config: CommissionConfig;
   effectiveStart?: string; effectiveEnd?: string; remark?: string; tenantId: string;
 }) {
   const { ruleName, ruleType, config, effectiveStart, effectiveEnd, remark, tenantId } = params;
@@ -92,7 +114,7 @@ export async function createCommissionRule(params: {
 }
 
 export async function updateCommissionRule(id: number, params: {
-  ruleName?: string; ruleType?: string; config?: any;
+  ruleName?: string; ruleType?: string; config?: CommissionConfig;
   effectiveStart?: string; effectiveEnd?: string; status?: number; remark?: string;
   tenantId: string;
 }) {
@@ -140,7 +162,7 @@ export async function deleteCommissionRule(id: number, tenantId: string) {
 
 // 计算单笔提成
 function calculateCommission(
-  ruleType: string, config: any, baseAmount: number
+  ruleType: string, config: CommissionConfig, baseAmount: number
 ): { amount: number; rate: number | null } {
   switch (ruleType) {
     case "FIXED_AMOUNT":
@@ -149,7 +171,7 @@ function calculateCommission(
       return { amount: Math.round(baseAmount * (config.rate ?? 0) * 100) / 100, rate: config.rate ?? 0 };
     case "TIERED": {
       const tiers = config.tiers ?? [];
-      for (const tier of tiers.sort((a: any, b: any) => b.min - a.min)) {
+      for (const tier of tiers.sort((a: CommissionTier, b: CommissionTier) => b.min - a.min)) {
         if (baseAmount >= tier.min) {
           return { amount: Math.round(baseAmount * tier.rate * 100) / 100, rate: tier.rate };
         }
@@ -186,7 +208,7 @@ export async function calculateCommissions(params: {
     tenantId
   );
   if (rules.length === 0) return { calculated: 0, records: [] };
-  const records: any[] = [];
+  const records: CommissionCalcRecord[] = [];
   for (const bill of bills) {
     const rule = rules[0]; // 使用第一条匹配规则
     const config = typeof rule.config === "string" ? JSON.parse(rule.config) : rule.config;

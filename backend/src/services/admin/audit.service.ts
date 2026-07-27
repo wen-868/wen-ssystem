@@ -1,4 +1,4 @@
-﻿import { query, queryOne, pool } from "../../shared/db";
+import { query, queryOne, pool } from "../../shared/db";
 import logger from "../../shared/logger";
 import type { Request } from "express";
 
@@ -121,7 +121,7 @@ export function writeAuditLog(p: LogAuditParams): void {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [p.userId, p.userName, p.role, p.action, p.resourceType, p.resourceId ?? null, p.detail ?? null, ip, userAgent, p.tenantId]
     )
-    .catch((err: any) => {
+    .catch((err: unknown) => {
       logger.error("[audit] 写入审计日志失败:", err);
     });
 }
