@@ -1,4 +1,4 @@
-﻿import { queryWithTenant } from "../../../shared/db";
+import { queryWithTenant } from "../../../shared/db";
 import { parseDateParam, getDefaultDateStart, getDefaultDateEnd } from "../../../shared/date-utils";
 
 // ========== 类型定义 ==========
