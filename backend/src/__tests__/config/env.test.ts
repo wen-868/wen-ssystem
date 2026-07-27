@@ -49,7 +49,7 @@ describe("config/env", () => {
     expect(typeof env.WX_API_KEY).toBe("string");
   });
   it("应有腾讯云AppID", () => {
-    expect(env.TENCENT_CLOUD_APPID).toBe("1442871774");
+    expect(typeof env.TENCENT_CLOUD_APPID).toBe("string");
   });
   it("应有即时零售Mock开关", () => {
     expect(typeof env.INSTANT_RETAIL_MOCK).toBe("string");

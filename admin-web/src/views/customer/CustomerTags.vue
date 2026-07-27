@@ -82,7 +82,7 @@
     </el-dialog>
 
     <!-- 打标签弹窗 -->
-    <el-dialog v-model="tagCustomerVisible" title="为客户打标签" width="560px">
+    <el-dialog v-model="tagCustomerVisible" title="为客户打标签" width="480px">
       <el-form label-width="100px">
         <el-form-item label="选择客户">
           <el-select v-model="tagCustomerForm.memberId" placeholder="搜索客户" filterable remote :remote-method="searchMembers" :loading="memberLoading" style="width: 100%">

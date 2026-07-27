@@ -28,7 +28,7 @@
     </el-table>
 
     <!-- 等级弹窗 -->
-    <el-dialog v-model="levelDialogVisible" :title="editingLevel ? '编辑等级' : '新建等级'" width="520px">
+    <el-dialog v-model="levelDialogVisible" :title="editingLevel ? '编辑等级' : '新建等级'" width="480px">
       <el-form ref="levelFormRef" :model="levelForm" :rules="levelRules" label-width="100px">
         <el-form-item label="等级名称" prop="name">
           <el-input v-model="levelForm.name" />

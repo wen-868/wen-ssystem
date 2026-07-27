@@ -159,7 +159,7 @@
     </el-dialog>
 
     <!-- 委托详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="委托详情" width="560px" :close-on-click-modal="false">
+    <el-dialog v-model="detailVisible" title="委托详情" width="480px" :close-on-click-modal="false">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="委托人">
           <div class="user-cell">

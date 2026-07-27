@@ -232,7 +232,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="editDialogVisible" title="编辑货架商品" width="520px">
+    <el-dialog v-model="editDialogVisible" title="编辑货架商品" width="480px">
       <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="100px">
         <el-form-item label="商品名称">
           <el-input v-model="editForm.productName" disabled />
@@ -277,7 +277,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchPriceVisible" title="批量改价" width="420px">
+    <el-dialog v-model="batchPriceVisible" title="批量改价" width="480px">
       <el-form :model="batchPriceForm" :rules="batchPriceRules" ref="batchPriceFormRef" label-width="100px">
         <el-form-item label="改价方式">
           <el-radio-group v-model="batchPriceForm.type">
@@ -325,7 +325,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchTagVisible" title="批量设置标签" width="420px">
+    <el-dialog v-model="batchTagVisible" title="批量设置标签" width="480px">
       <el-form label-width="100px">
         <el-form-item label="操作方式">
           <el-radio-group v-model="batchTagAction">

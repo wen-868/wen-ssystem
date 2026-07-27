@@ -656,7 +656,6 @@ async function confirmApprove() {
     approveVisible.value = false;
     detailVisible.value = false;
     fetchData();
-    console.warn("审核通过接口暂用 mock 模式:", error);
   }
 }
 
@@ -701,7 +700,6 @@ async function confirmReject() {
     rejectVisible.value = false;
     detailVisible.value = false;
     fetchData();
-    console.warn("审核驳回接口暂用 mock 模式:", error);
   }
 }
 

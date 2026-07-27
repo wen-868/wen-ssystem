@@ -54,7 +54,7 @@
     </PageCard>
 
     <!-- 新建/编辑弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑审核流程' : '新建审核流程'" width="820px" :close-on-click-modal="false">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑审核流程' : '新建审核流程'" width="900px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-form-item label="流程名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入流程名称" maxlength="64" show-word-limit />

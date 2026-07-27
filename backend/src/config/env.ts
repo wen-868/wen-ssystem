@@ -87,8 +87,8 @@ export const env = {
   /** 微信 AppID（小程序），默认空字符串 */
   WECHAT_APP_ID: process.env.WECHAT_APP_ID || "",
 
-  /** 腾讯云 AppID（用于短信/云服务），默认 1442871774 */
-  TENCENT_CLOUD_APPID: process.env.TENCENT_CLOUD_APPID || "1442871774",
+  /** 腾讯云 AppID（用于短信/云服务），默认空字符串 */
+  TENCENT_CLOUD_APPID: process.env.TENCENT_CLOUD_APPID || "",
 
   /** 微信 AppSecret（小程序密钥），默认空字符串 */
   WECHAT_APP_SECRET: process.env.WECHAT_APP_SECRET || "",
