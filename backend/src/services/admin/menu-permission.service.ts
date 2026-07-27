@@ -23,6 +23,7 @@ interface MenuCodeRow {
 /** t_sys_user_role JOIN t_sys_role 仅 roleId 查询行（带别名） */
 interface UserRoleRow {
   roleId: number | string;
+  roleCode?: string;
 }
 
 export async function getMenuTree(tenantId: string): Promise<MenuItem[]> {
@@ -80,13 +81,13 @@ export async function getRoleMenuCodes(roleId: number, tenantId: string): Promis
     tenantId
   );
 
-  return records.map((r: any) => r.menuCode);
+  return records.map((r: MenuCodeRow) => r.menuCode);
 }
 
 export async function getUserMenus(userId: number, tenantId: string): Promise<MenuItem[]> {
   // 获取用户的所有角色
   const roles = await queryWithTenant<UserRoleRow>(
-    `SELECT r.id AS roleId
+    `SELECT r.id AS roleId, r.role_code AS roleCode
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
      WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
@@ -94,17 +95,17 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
     tenantId
   );
 
-  const roleIds: number[] = roles.map((r: any) => r.roleId);
+  const roleIds: number[] = roles.map((r: UserRoleRow) => Number(r.roleId));
 
   if (roleIds.length === 0) {
     return [];
   }
 
   // 检查是否有超级管理员角色
-  const superAdmin = roles.some((r: any) => r.roleCode === "SUPER_ADMIN");
+  const superAdmin = roles.some((r: UserRoleRow) => r.roleCode === "SUPER_ADMIN");
 
   // 获取所有有权限的菜单（去重）
-  let records: any[];
+  let records: MenuItem[];
   if (superAdmin) {
     // 超级管理员看到所有菜单
     records = await queryWithTenant<MenuItem>(

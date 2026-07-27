@@ -1,13 +1,36 @@
-﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+
+/** t_miniapp_config 配置行 */
+interface MiniappConfigRow {
+  id: number | string;
+  platform: string;
+  app_id: string | null;
+  app_secret: string | null;
+  app_name: string | null;
+  app_version: string | null;
+  enabled: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date | null;
+}
+
+/** 小程序配置保存输入 */
+interface MiniappConfigInput {
+  appId?: string;
+  appSecret?: string;
+  appName?: string;
+  appVersion?: string;
+  enabled?: boolean;
+}
 
 export class MiniappConfigService {
   // 所有平台配置列表
   static async listConfigs(tenantId: string) {
-    const rows = await queryWithTenant(
+    const rows = await queryWithTenant<MiniappConfigRow>(
       `SELECT * FROM t_miniapp_config WHERE tenant_id = ? ORDER BY platform`, [tenantId], tenantId
     );
     // 脱敏 app_secret
-    return rows.map((r: any) => ({ ...r, app_secret: r.app_secret ? '***' : '' }));
+    return rows.map((r) => ({ ...r, app_secret: r.app_secret ? '***' : '' }));
   }
 
   // 获取指定平台配置
@@ -21,19 +44,19 @@ export class MiniappConfigService {
   }
 
   // 保存指定平台配置
-  static async saveConfig(tenantId: string, platform: string, data: any) {
+  static async saveConfig(tenantId: string, platform: string, data: MiniappConfigInput) {
     const existing = await queryOneWithTenant(
       `SELECT id FROM t_miniapp_config WHERE platform = ? AND tenant_id = ?`, [platform, tenantId], tenantId
     );
     if (existing) {
       await executeWithTenant(
         `UPDATE t_miniapp_config SET app_id=?, app_secret=?, app_name=?, app_version=?, enabled=?, updated_at=NOW() WHERE platform=? AND tenant_id=?`,
-        [data.appId||'', data.appSecret||'', data.appName||'', data.appVersion||'', data.enabled?1:0, platform, tenantId], tenantId
+        [data.appId || '', data.appSecret || '', data.appName || '', data.appVersion || '', data.enabled ? 1 : 0, platform, tenantId], tenantId
       );
     } else {
       await executeWithTenant(
         `INSERT INTO t_miniapp_config (platform, app_id, app_secret, app_name, app_version, enabled, tenant_id) VALUES (?,?,?,?,?,?,?)`,
-        [platform, data.appId||'', data.appSecret||'', data.appName||'', data.appVersion||'', data.enabled?1:0, tenantId], tenantId
+        [platform, data.appId || '', data.appSecret || '', data.appName || '', data.appVersion || '', data.enabled ? 1 : 0, tenantId], tenantId
       );
     }
     return { success: true };

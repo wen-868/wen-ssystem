@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** SELECT id 通用返回 */
 interface IdRow {

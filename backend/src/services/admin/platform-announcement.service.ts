@@ -1,4 +1,5 @@
 import { query, queryOne } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 
 export interface AnnouncementListParams {
   page: number;
@@ -86,7 +87,7 @@ export async function createAnnouncement(data: AnnouncementCreate) {
      VALUES (?, ?, ?, ?, ?, 'system')`,
     [data.title, data.type, data.content, data.isTop, data.status]
   );
-  const insertId = (result as any).insertId;
+  const insertId = (result as unknown as ResultSetHeader).insertId;
   return { id: insertId };
 }
 

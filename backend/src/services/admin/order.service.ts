@@ -440,8 +440,8 @@ export async function batchUpdateOrderStatus(orderNos: string[], targetStatus: s
     try {
       await updateOrderStatus(orderNo, targetStatus, operatorId, operatorName, null, tenantId);
       results.push({ orderNo, success: true });
-    } catch (err: any) {
-      results.push({ orderNo, success: false, error: err.message });
+    } catch (err: unknown) {
+      results.push({ orderNo, success: false, error: (err as Error).message });
     }
   }
   return { results, total: orderNos.length, successCount: results.filter(r => r.success).length };

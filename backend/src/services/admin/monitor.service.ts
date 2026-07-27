@@ -1,6 +1,17 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
+import type { RowDataPacket } from "mysql2/promise";
 import { getStats } from "../../middleware/response-tracker";
 import logger from "../../shared/logger";
+
+interface StatusCodeRow extends RowDataPacket {
+  status_code: number;
+  count: number;
+}
+
+interface DateCountRow extends RowDataPacket {
+  date: string;
+  count: number;
+}
 
 export interface DbStatus {
   connection: "connected" | "disconnected" | "error";
@@ -85,8 +96,8 @@ export async function getApiStats(): Promise<ApiStats> {
   const statusCodes: Record<number, number> = { ...trackerStats.statusCodes };
   if (Array.isArray(statusCodeResult)) {
     for (const row of statusCodeResult) {
-      const code = (row as Record<string, any>).status_code;
-      statusCodes[code] = (statusCodes[code] || 0) + (row as Record<string, any>).count;
+      const code = (row as StatusCodeRow).status_code;
+      statusCodes[code] = (statusCodes[code] || 0) + (row as DateCountRow).count;
     }
   }
 
@@ -100,8 +111,8 @@ export async function getApiStats(): Promise<ApiStats> {
   if (Array.isArray(weeklyData)) {
     for (const row of weeklyData) {
       weeklyErrorTrend.push({
-        date: (row as Record<string, any>).date,
-        count: (row as Record<string, any>).count || 0,
+        date: (row as DateCountRow).date,
+        count: (row as DateCountRow).count || 0,
       });
     }
   }

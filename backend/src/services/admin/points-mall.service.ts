@@ -37,12 +37,24 @@ interface CountCntRow {
   cnt: number;
 }
 
+interface PointsMallItemInput {
+  name: string;
+  image?: string;
+  points: number | string;
+  stock: number | string;
+  limitPerUser?: number;
+  validStart?: string | Date;
+  validEnd?: string | Date;
+  status?: string;
+  sortOrder?: number;
+}
+
 export async function getPointsMallItems(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 20;
   const offset = (page - 1) * pageSize;
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.status) { where += " AND status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
     query<PointsMallItemRow>(`SELECT * FROM t_points_mall_item ${where} ORDER BY sort_order ASC, id DESC LIMIT ${offset}, ${pageSize}`, vals),
@@ -51,7 +63,7 @@ export async function getPointsMallItems(tenantId: string, params?: { status?: s
   return { records: rows, total: total?.cnt || 0, page, pageSize };
 }
 
-export async function createPointsMallItem(data: any) {
+export async function createPointsMallItem(data: PointsMallItemInput) {
   const result = await query(
     `INSERT INTO t_points_mall_item (name, image, points, stock, limit_per_user, valid_start, valid_end, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [data.name, data.image, data.points, data.stock, data.limitPerUser || 1, data.validStart, data.validEnd, data.status || 'ACTIVE', data.sortOrder || 0]
@@ -59,7 +71,7 @@ export async function createPointsMallItem(data: any) {
   return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
-export async function updatePointsMallItem(id: number, data: any) {
+export async function updatePointsMallItem(id: number, data: PointsMallItemInput) {
   await query(
     `UPDATE t_points_mall_item SET name=?, image=?, points=?, stock=?, limit_per_user=?, valid_start=?, valid_end=?, status=?, sort_order=? WHERE id=?`,
     [data.name, data.image, data.points, data.stock, data.limitPerUser, data.validStart, data.validEnd, data.status, data.sortOrder, id]
@@ -85,7 +97,7 @@ export async function getPointsMallOrders(tenantId: string, params?: { status?: 
   const pageSize = params?.pageSize || 20;
   const offset = (page - 1) * pageSize;
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.status) { where += " AND status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
     query<PointsMallOrderRow>(`SELECT * FROM t_points_mall_order ${where} ORDER BY id DESC LIMIT ${offset}, ${pageSize}`, vals),

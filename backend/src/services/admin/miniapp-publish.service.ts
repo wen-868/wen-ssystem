@@ -43,6 +43,12 @@ interface ConfigKeyRow {
   configKey: string;
 }
 
+/** 发布/审核请求体 */
+interface PublishBody {
+  version?: string;
+  remark?: string;
+}
+
 // ========== 占位符 → sys_config key 映射 ==========
 
 const PLACEHOLDER_CONFIG_MAP: Record<string, string> = {
@@ -178,7 +184,7 @@ export function getTemplatePlaceholders(): string[] {
 
 // ========== 发布/回滚/审核 ==========
 
-export async function publish(tenantId: string, body: any, platform: string = "WECHAT") {
+export async function publish(tenantId: string, body: PublishBody, platform: string = "WECHAT") {
   const config = await queryOneWithTenant<MiniappConfigRow>(
     "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
     [tenantId, platform],
@@ -230,7 +236,7 @@ export async function rollback(tenantId: string, version: string, platform: stri
   return { success: true, version };
 }
 
-export async function submitAudit(tenantId: string, body: any, platform: string = "WECHAT") {
+export async function submitAudit(tenantId: string, body: PublishBody, platform: string = "WECHAT") {
   await queryWithTenant(
     "UPDATE t_miniapp_config SET audit_status = 'submitted', audit_reason = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
     [body.remark || "", tenantId, platform],

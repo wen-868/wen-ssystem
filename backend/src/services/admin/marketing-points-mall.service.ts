@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** COUNT(*) AS cnt 通用返回 */
@@ -57,13 +57,43 @@ interface MemberPointsRow {
   points: number | string;
 }
 
-export async function createPointsProduct(data: any, tenantId: string) {
+/** INSERT 返回结果 */
+interface InsertResult {
+  insertId: number | string;
+}
+
+/** 创建积分商品入参 */
+interface CreatePointsProductBody {
+  name: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  pointsRequired: number | string;
+  stock: number | string;
+  limitPerUser?: number | string | null;
+  status?: string;
+  sortNo?: number | string;
+}
+
+/** 更新积分商品入参 */
+interface UpdatePointsProductBody {
+  name?: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  pointsRequired?: number | string;
+  stock?: number | string;
+  limitPerUser?: number | string | null;
+  status?: string;
+  sortNo?: number | string;
+}
+
+export async function createPointsProduct(data: CreatePointsProductBody, tenantId: string) {
   const code = makeBizNo("JF");
-  const result = await queryWithTenant(
+  const result = await queryWithTenant<InsertResult>(
     `INSERT INTO t_points_product (product_code, product_name, product_image, product_desc, points_required, stock_total, stock_available, exchange_limit_per_user, exchange_limit_total, market_price, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [code, data.product_name, data.product_image ?? null, data.product_desc ?? null, data.points_required, data.stock_total ?? 0, data.stock_total ?? 0, data.exchange_limit_per_user ?? null, data.exchange_limit_total ?? null, data.market_price ?? null, data.sort_order ?? 0, tenantId], tenantId
+    [code, data.name, data.imageUrl ?? null, data.description ?? null, data.pointsRequired, data.stock ?? 0, data.stock ?? 0, data.limitPerUser ?? null, null, null, data.sortNo ?? 0, tenantId], tenantId
   );
-  return { id: (result as unknown as Record<string, unknown>).insertId, product_code: code };
+  const insertId = Array.isArray(result) ? (result[0] as InsertResult)?.insertId : (result as InsertResult)?.insertId;
+  return { id: insertId, product_code: code };
 }
 
 export async function listPointsProducts(params: { tenantId: string; status?: string; page?: number; pageSize?: number }) {
@@ -84,18 +114,17 @@ export async function getPointsProductDetail(id: number, tenantId: string) {
   return queryOneWithTenant<PointsProductRow>("SELECT * FROM t_points_product WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
-export async function updatePointsProduct(id: number, data: any, tenantId: string) {
+export async function updatePointsProduct(id: number, data: UpdatePointsProductBody, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
-  if (data.product_name !== undefined) { fields.push("product_name = ?"); values.push(data.product_name); }
-  if (data.product_image !== undefined) { fields.push("product_image = ?"); values.push(data.product_image); }
-  if (data.product_desc !== undefined) { fields.push("product_desc = ?"); values.push(data.product_desc); }
-  if (data.points_required !== undefined) { fields.push("points_required = ?"); values.push(data.points_required); }
-  if (data.stock_total !== undefined) { fields.push("stock_total = ?"); values.push(data.stock_total); }
-  if (data.exchange_limit_per_user !== undefined) { fields.push("exchange_limit_per_user = ?"); values.push(data.exchange_limit_per_user); }
-  if (data.exchange_limit_total !== undefined) { fields.push("exchange_limit_total = ?"); values.push(data.exchange_limit_total); }
-  if (data.market_price !== undefined) { fields.push("market_price = ?"); values.push(data.market_price); }
-  if (data.sort_order !== undefined) { fields.push("sort_order = ?"); values.push(data.sort_order); }
+  if (data.name !== undefined) { fields.push("product_name = ?"); values.push(data.name); }
+  if (data.imageUrl !== undefined) { fields.push("product_image = ?"); values.push(data.imageUrl); }
+  if (data.description !== undefined) { fields.push("product_desc = ?"); values.push(data.description); }
+  if (data.pointsRequired !== undefined) { fields.push("points_required = ?"); values.push(data.pointsRequired); }
+  if (data.stock !== undefined) { fields.push("stock_total = ?"); fields.push("stock_available = ?"); values.push(data.stock); values.push(data.stock); }
+  if (data.limitPerUser !== undefined) { fields.push("exchange_limit_per_user = ?"); values.push(data.limitPerUser); }
+  if (data.status !== undefined) { fields.push("status = ?"); values.push(data.status); }
+  if (data.sortNo !== undefined) { fields.push("sort_order = ?"); values.push(data.sortNo); }
   if (fields.length === 0) return null;
   values.push(id, tenantId);
   await queryWithTenant(`UPDATE t_points_product SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
@@ -148,11 +177,12 @@ export async function exchangeProduct(data: { product_id: number; user_id: numbe
   const recordNo = makeBizNo("DH");
   await queryWithTenant("UPDATE t_member SET points = points - ? WHERE id = ? AND tenant_id = ?", [totalPoints, data.user_id, tenantId], tenantId);
   await queryWithTenant("UPDATE t_points_product SET stock_available = stock_available - ? WHERE id = ? AND tenant_id = ?", [qty, data.product_id, tenantId], tenantId);
-  const result = await queryWithTenant(
+  const result = await queryWithTenant<InsertResult>(
     "INSERT INTO t_points_exchange_record (record_no, product_id, user_id, points_used, quantity, delivery_type, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [recordNo, data.product_id, data.user_id, totalPoints, qty, data.delivery_type ?? "SELF_PICKUP", tenantId], tenantId
   );
-  return { id: (result as unknown as Record<string, unknown>).insertId, record_no: recordNo, points_used: totalPoints };
+  const insertId = Array.isArray(result) ? (result[0] as InsertResult)?.insertId : (result as InsertResult)?.insertId;
+  return { id: insertId, record_no: recordNo, points_used: totalPoints };
 }
 
 export async function cancelExchange(id: number, tenantId: string) {

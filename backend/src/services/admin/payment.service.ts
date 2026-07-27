@@ -1,5 +1,5 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
-import type { ResultSetHeader } from "mysql2/promise";
+﻿﻿﻿﻿import { query, queryOne, transaction } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 import { env } from "../../shared/env";
 import type { WechatPay } from "../../shared/wechat-pay";
@@ -28,6 +28,32 @@ interface PaymentOrderBriefRow {
   amount: number | string;
   status: string;
   transaction_id: string | null;
+}
+
+/** 微信回调资源（加密数据） */
+interface WxCallbackResource {
+  associated_data: string;
+  nonce: string;
+  ciphertext: string;
+}
+
+/** 微信回调请求体 */
+interface WxCallbackBody {
+  resource: WxCallbackResource;
+}
+
+/** 微信回调解密后的通知数据 */
+interface WxNotifyData {
+  out_trade_no: string;
+  transaction_id: string;
+  trade_state: string;
+  amount: { total: number; payer?: { openid?: string } };
+}
+
+/** 支付订单来源行（conn.execute SELECT 用） */
+interface OrderSourceRow extends RowDataPacket {
+  source_type: string;
+  source_no: string;
 }
 
 export async function createPaymentOrder(
@@ -82,7 +108,7 @@ export async function createPaymentOrder(
 
 export async function handleWxCallback(
   headers: Record<string, string>,
-  body: any,
+  body: WxCallbackBody,
   wechatPay: WechatPay
 ) {
   if (!wechatPay.verifyNotifySignature(headers, JSON.stringify(body))) {
@@ -90,7 +116,7 @@ export async function handleWxCallback(
   }
 
   const resource = body.resource;
-  let notifyData: any;
+  let notifyData: WxNotifyData;
 
   try {
     notifyData = JSON.parse(wechatPay.decryptNotifyData(
@@ -111,13 +137,13 @@ export async function handleWxCallback(
         [transaction_id, amount.total / 100, out_trade_no]
       );
 
-      const order = await conn.execute(
+      const [orderRows] = await conn.execute<OrderSourceRow[]>(
         "SELECT source_type, source_no FROM t_payment_order WHERE pay_no = ?",
         [out_trade_no]
       );
 
-      if ((order[0] as any) && (order[0] as any).length > 0) {
-        const { source_type, source_no } = (order[0] as any)[0];
+      if (orderRows && orderRows.length > 0) {
+        const { source_type, source_no } = orderRows[0];
 
         if (source_type === 'SALE_BILL') {
           await conn.execute(
@@ -194,7 +220,7 @@ export async function getPaymentOrder(payNo: string, tenantId: string) {
 
 export async function listPaymentOrders(tenantId: string, page: number, pageSize: number, status?: string) {
   let sql = "SELECT * FROM t_payment_order WHERE tenant_id = ?";
-  const params: any[] = [tenantId];
+  const params: unknown[] = [tenantId];
 
   if (status) {
     sql += " AND status = ?";

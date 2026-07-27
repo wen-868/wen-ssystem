@@ -1,3 +1,4 @@
+import mysql from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
@@ -101,7 +102,7 @@ function safeJsonParse<T = unknown>(str: string | null | undefined, defaultValue
 }
 
 async function logOperation(
-  conn: any,
+  conn: mysql.PoolConnection,
   module: string,
   action: string,
   targetId: string,

@@ -1,4 +1,5 @@
 import { query, queryOne } from "../../shared/db";
+import type { ResultSetHeader } from "mysql2/promise";
 
 export interface SettlementListParams {
   page: number;
@@ -126,7 +127,7 @@ export async function createSettlement(data: SettlementCreate) {
       data.remark || null,
     ]
   );
-  const insertId = (result as any).insertId;
+  const insertId = (result as unknown as ResultSetHeader).insertId;
   return { id: insertId, settlementNo };
 }
 

@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** t_miniapp_template 表行（部分字段带别名） */
 interface MiniappTemplateRow {
@@ -31,10 +31,24 @@ interface MiniappConfigTemplateRow {
   styleConfig: string | null;
 }
 
-function safeJsonParse(val: any, fallback: any) {
+/** 模板创建/更新请求体 */
+interface TemplateBody {
+  name?: string;
+  description?: string;
+  thumbnail?: string;
+  previewUrls?: unknown;
+  styleConfig?: unknown;
+  pageConfig?: unknown;
+  version?: string;
+  status?: string;
+  sortOrder?: number;
+  [key: string]: unknown;
+}
+
+function safeJsonParse<T>(val: unknown, fallback: T): T {
   if (!val) return fallback;
-  if (typeof val === "object") return val;
-  try { return JSON.parse(val); } catch { return fallback; }
+  if (typeof val === "object") return val as T;
+  try { return JSON.parse(val as string) as T; } catch { return fallback; }
 }
 
 export async function listTemplates(tenantId: string) {
@@ -45,7 +59,7 @@ export async function listTemplates(tenantId: string) {
     [tenantId],
     tenantId
   );
-  return rows.map((row: any) => ({
+  return rows.map((row) => ({
     id: row.id,
     name: row.name,
     description: row.description,
@@ -85,7 +99,7 @@ export async function getTemplateDetail(tenantId: string, id: number) {
   };
 }
 
-export async function createTemplate(tenantId: string, body: any) {
+export async function createTemplate(tenantId: string, body: TemplateBody) {
   const result = await queryWithTenant(
     `INSERT INTO t_miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -99,9 +113,9 @@ export async function createTemplate(tenantId: string, body: any) {
   return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
-export async function updateTemplate(tenantId: string, id: number, body: any) {
+export async function updateTemplate(tenantId: string, id: number, body: TemplateBody) {
   const sets: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
   const map: Record<string, string> = {
     name: "name", description: "description", thumbnail: "thumbnail",
     previewUrls: "preview_urls", styleConfig: "style_config", pageConfig: "page_config",

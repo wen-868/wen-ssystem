@@ -1,4 +1,28 @@
-﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+
+/** 支付渠道配置数据（保存渠道配置用） */
+interface ChannelConfigData {
+  appId?: string;
+  appSecret?: string;
+  mchId?: string;
+  apiKey?: string;
+  apiV3Key?: string;
+  privateKey?: string;
+  certPath?: string;
+  serialNo?: string;
+  notifyUrl?: string;
+  alipayPublicKey?: string;
+  enabled?: number | boolean;
+}
+
+/** 银行账号数据（创建/编辑银行账号用，与 controller Zod schema 对齐） */
+interface BankAccountData {
+  bankName?: string;
+  accountName?: string;
+  accountNumber?: string;
+  remark?: string;
+  isDefault?: number | boolean;
+}
 
 export async function isProviderReady(tenantId: string, provider: string): Promise<boolean> {
   return PaymentConfigService.isProviderReady(tenantId, provider);
@@ -21,20 +45,20 @@ export class PaymentConfigService {
   }
 
   // 保存渠道配置
-  static async saveChannelConfig(tenantId: string, provider: string, data: any) {
+  static async saveChannelConfig(tenantId: string, provider: string, data: ChannelConfigData) {
     const existing = await queryOneWithTenant(
       `SELECT id FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     if (existing) {
       await executeWithTenant(
         `UPDATE t_payment_config SET app_id=?, mch_id=?, api_v3_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, enabled=?, updated_at=NOW() WHERE provider=?`,
-        [data.appId||'', data.mchId||'', data.apiV3Key||'', data.privateKey||'', data.serialNo||'', data.notifyUrl||'', data.alipayPublicKey||'', data.enabled?1:0, provider],
+        [data.appId || '', data.mchId || '', data.apiV3Key || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.enabled ? 1 : 0, provider],
         tenantId
       );
     } else {
       await executeWithTenant(
         `INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, private_key, serial_no, notify_url, alipay_public_key, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-        [provider, data.appId||'', data.mchId||'', data.apiV3Key||'', data.privateKey||'', data.serialNo||'', data.notifyUrl||'', data.alipayPublicKey||'', data.enabled?1:0, tenantId],
+        [provider, data.appId || '', data.mchId || '', data.apiV3Key || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.enabled ? 1 : 0, tenantId],
         tenantId
       );
     }
@@ -77,20 +101,20 @@ export class PaymentConfigService {
   }
 
   // 添加银行账号
-  static async createBankAccount(tenantId: string, data: any) {
+  static async createBankAccount(tenantId: string, data: BankAccountData) {
     const result = await executeWithTenant(
       `INSERT INTO t_bank_account (bank_name, account_no, account_name, bank_branch, is_default, tenant_id) VALUES (?,?,?,?,?,?)`,
-      [data.bankName, data.accountNo, data.accountName, data.bankBranch||'', data.isDefault?1:0, tenantId],
+      [data.bankName, data.accountNumber, data.accountName, data.remark || '', data.isDefault ? 1 : 0, tenantId],
       tenantId
     );
     return { id: (result as unknown as Record<string, unknown>).insertId };
   }
 
   // 编辑银行账号
-  static async updateBankAccount(tenantId: string, id: number, data: any) {
+  static async updateBankAccount(tenantId: string, id: number, data: Partial<BankAccountData>) {
     await executeWithTenant(
       `UPDATE t_bank_account SET bank_name=?, account_no=?, account_name=?, bank_branch=?, is_default=?, updated_at=NOW() WHERE id=? AND tenant_id=?`,
-      [data.bankName, data.accountNo, data.accountName, data.bankBranch||'', data.isDefault?1:0, id, tenantId],
+      [data.bankName, data.accountNumber, data.accountName, data.remark || '', data.isDefault ? 1 : 0, id, tenantId],
       tenantId
     );
     return { success: true };

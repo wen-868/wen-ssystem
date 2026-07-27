@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** COUNT(*) AS total 通用返回 */
@@ -82,6 +82,11 @@ interface UserCouponListRow {
   createdAt: string | Date;
 }
 
+/** 用户优惠券计数行 */
+interface UserCouponCountRow {
+  count: number;
+}
+
 export async function listCouponTemplates(
   page: number,
   pageSize: number,
@@ -90,7 +95,7 @@ export async function listCouponTemplates(
   type?: string
 ) {
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (status) {
     conditions.push("status = ?");
@@ -166,7 +171,7 @@ export async function createCouponTemplate(body: {
   minPurchase: number;
   maxDiscount?: number | null;
   applicableScope: string;
-  applicableIds?: any;
+  applicableIds?: unknown;
   totalQuantity: number;
   perLimit: number;
   validType: string;
@@ -214,7 +219,7 @@ export async function updateCouponTemplate(
     minPurchase?: number;
     maxDiscount?: number | null;
     applicableScope?: string;
-    applicableIds?: any;
+    applicableIds?: unknown;
     totalQuantity?: number;
     perLimit?: number;
     validType?: string;
@@ -239,7 +244,7 @@ export async function updateCouponTemplate(
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     templateName: "template_name",
@@ -328,11 +333,11 @@ export async function issueCoupons(
         `SELECT COUNT(*) AS count FROM t_user_coupon
          WHERE template_id = ? AND user_id = ? AND tenant_id = ?`,
         [templateId, uid, tenantId]
-      ) as unknown as Record<string, unknown>[];
+      ) as unknown as [UserCouponCountRow[], unknown];
 
-      const userCouponCount = (userCouponCountRows as unknown as Record<string, unknown>[])[0];
+      const userCouponCount = userCouponCountRows[0];
 
-      if (userCouponCount && (userCouponCount as any).count >= template.per_limit) {
+      if (userCouponCount && Number(userCouponCount.count) >= Number(template.per_limit)) {
         continue;
       }
 
@@ -392,7 +397,7 @@ export async function listUserCoupons(
   status?: string
 ) {
   const conditions: string[] = ["uc.tenant_id = ?"];
-  const params: any[] = [tenantId];
+  const params: unknown[] = [tenantId];
 
   if (userId) {
     conditions.push("uc.user_id = ?");
