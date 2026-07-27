@@ -1,4 +1,6 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
+import type { RowDataPacket } from "mysql2";
+import type { PoolConnection, ResultSetHeader } from "mysql2/promise";
 
 // ========== 类型定义 ==========
 
@@ -28,6 +30,26 @@ interface StoreBriefRow {
   id: number;
   name: string;
   status: string;
+}
+
+/** 门店管控配置 ID 行（用于存在性检查） */
+interface StoreControlConfigIdRow extends RowDataPacket {
+  id: number | string;
+}
+
+/** 门店状态行（SELECT status FROM t_store） */
+interface StoreStatusRow extends RowDataPacket {
+  status: string;
+}
+
+/** 订单数行（COUNT 聚合） */
+interface OrderCountRow extends RowDataPacket {
+  order_count: number | string;
+}
+
+/** 订单金额行（SUM 聚合） */
+interface OrderAmountRow extends RowDataPacket {
+  total_amount: number | string;
 }
 
 // ==================== Admin 端 ====================
@@ -63,24 +85,24 @@ export async function upsertConfig(params: {
   const { storeId, tenantId, autoOpenTime, autoCloseTime, maxDailyOrders, maxOrderAmount } = params;
 
   await transaction(async (conn) => {
-    const [existing] = await (conn as any).execute(
+    const [existing] = await conn.execute<StoreControlConfigIdRow[]>(
       "SELECT id FROM t_store_control_config WHERE store_id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
 
-    if ((existing as unknown as Record<string, unknown>[]).length > 0) {
+    if (existing.length > 0) {
       const sets: string[] = [];
-      const values: unknown[] = [];
+      const values: (string | number | null)[] = [];
       if (autoOpenTime !== undefined) { sets.push("auto_open_time = ?"); values.push(autoOpenTime); }
       if (autoCloseTime !== undefined) { sets.push("auto_close_time = ?"); values.push(autoCloseTime); }
       if (maxDailyOrders !== undefined) { sets.push("max_daily_orders = ?"); values.push(maxDailyOrders); }
       if (maxOrderAmount !== undefined) { sets.push("max_order_amount = ?"); values.push(maxOrderAmount); }
       if (sets.length > 0) {
         values.push(storeId, tenantId);
-        await (conn as any).execute(`UPDATE t_store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values as any[]);
+        await conn.execute<ResultSetHeader>(`UPDATE t_store_control_config SET ${sets.join(", ")} WHERE store_id = ? AND tenant_id = ?`, values);
       }
     } else {
-      await (conn as any).execute(
+      await conn.execute<ResultSetHeader>(
         `INSERT INTO t_store_control_config (store_id, auto_open_time, auto_close_time, max_daily_orders, max_order_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [storeId, autoOpenTime ?? null, autoCloseTime ?? null, maxDailyOrders ?? null, maxOrderAmount ?? null, tenantId]
@@ -97,19 +119,19 @@ export async function openStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StoreStatusRow[]>(
       "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as unknown as Record<string, unknown>[])[0];
+    const store = rows[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "CLOSED";
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '手动开门', ?)`,
       [storeId, fromStatus, userId, tenantId]
@@ -125,19 +147,19 @@ export async function closeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StoreStatusRow[]>(
       "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as unknown as Record<string, unknown>[])[0];
+    const store = rows[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_store SET status = 'CLOSED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'CLOSED', 'MANUAL', ?, '手动关门', ?)`,
       [storeId, fromStatus, userId, tenantId]
@@ -153,25 +175,25 @@ export async function suspendStore(params: {
   const { storeId, tenantId, userId, reason } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StoreStatusRow[]>(
       "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as unknown as Record<string, unknown>[])[0];
+    const store = rows[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "OPEN";
     const remark = reason || "手动暂停营业";
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_store SET status = 'SUSPENDED' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'SUSPENDED', 'MANUAL', ?, ?, ?)`,
       [storeId, fromStatus, userId, remark, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_store_control_config (store_id, suspended_reason, tenant_id)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE suspended_reason = ?`,
@@ -188,24 +210,24 @@ export async function resumeStore(params: {
   const { storeId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StoreStatusRow[]>(
       "SELECT status FROM t_store WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [storeId, tenantId]
     );
-    const store = (rows as unknown as Record<string, unknown>[])[0];
+    const store = rows[0];
     if (!store) throw new Error("门店不存在");
 
     const fromStatus = store.status || "SUSPENDED";
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_store SET status = 'OPEN' WHERE id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_store_status_log (store_id, from_status, to_status, change_type, operator_id, remark, tenant_id)
        VALUES (?, ?, 'OPEN', 'MANUAL', ?, '恢复营业', ?)`,
       [storeId, fromStatus, userId, tenantId]
     );
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_store_control_config SET suspended_reason = NULL WHERE store_id = ? AND tenant_id = ?",
       [storeId, tenantId]
     );
@@ -314,20 +336,20 @@ export async function getConfigsForCheck(tenantId: string) {
   );
 }
 
-export async function getOrderCount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
-  const [orderRows] = await (conn as any).execute(
+export async function getOrderCount(storeId: number, tenantId: string, conn: PoolConnection) {
+  const [orderRows] = await conn.execute<OrderCountRow[]>(
     `SELECT COUNT(*) AS order_count FROM t_sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]
   );
-  return (orderRows as unknown as Record<string, unknown>[])[0]?.order_count ?? 0;
+  return orderRows[0]?.order_count ?? 0;
 }
 
-export async function getOrderAmount(storeId: number, tenantId: string, conn: { execute: (sql: string, params: unknown[]) => Promise<unknown[]> }) {
-  const [amountRows] = await (conn as any).execute(
+export async function getOrderAmount(storeId: number, tenantId: string, conn: PoolConnection) {
+  const [amountRows] = await conn.execute<OrderAmountRow[]>(
     `SELECT COALESCE(SUM(receivable_amount), 0) AS total_amount FROM t_sale_bill
      WHERE store_id = ? AND tenant_id = ? AND DATE(created_at) = CURDATE() AND business_status NOT IN ('DRAFT', 'VOIDED')`,
     [storeId, tenantId]
   );
-  return Number((amountRows as unknown as Record<string, unknown>[])[0]?.total_amount ?? 0);
+  return Number(amountRows[0]?.total_amount ?? 0);
 }

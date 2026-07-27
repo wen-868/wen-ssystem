@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export const checkinSchema = z.object({

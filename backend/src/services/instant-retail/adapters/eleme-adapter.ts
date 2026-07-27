@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 饿了么即时零售平台适配器
  * Eleme Instant Retail Platform Adapter
  *
@@ -86,16 +86,16 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const token = useMock()
       ? this.credentials!
       : {
-          platform: "ELEME" as const,
-          storeId,
-          appKey,
-          appSecret,
-          merchantId,
-          accessToken: result.body.access_token,
-          refreshToken: result.body.refresh_token,
-          tokenExpireAt: new Date(Date.now() + result.body.expires_in * 1000),
-          enabled: true,
-        };
+        platform: "ELEME" as const,
+        storeId,
+        appKey,
+        appSecret,
+        merchantId,
+        accessToken: result.body.access_token,
+        refreshToken: result.body.refresh_token,
+        tokenExpireAt: new Date(Date.now() + result.body.expires_in * 1000),
+        enabled: true,
+      };
 
     this.credentials = token;
     return token;
@@ -175,8 +175,8 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
   }
 
   async syncOrders(params?: {
-    startTime?: Date;
-    endTime?: Date;
+    startTime?: string | Date;
+    endTime?: string | Date;
     status?: PlatformOrderStatus;
     cursor?: string;
     limit?: number;
@@ -203,8 +203,8 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         method: "POST",
         body: {
           shopId: storeId,
-          startTime: params?.startTime?.toISOString(),
-          endTime: params?.endTime?.toISOString(),
+          startTime: params?.startTime ? new Date(params.startTime).toISOString() : undefined,
+          endTime: params?.endTime ? new Date(params.endTime).toISOString() : undefined,
           orderStatus: params?.status ? statusMap[params.status] : undefined,
           pageNo: params?.cursor ? Number(params.cursor) : 1,
           pageSize: limit,
@@ -257,7 +257,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     ).then((r: any) => r.body?.success ?? true);
   }
 
-  async startDelivery(platformOrderId: string, courierInfo?: { name?: string; phone?: string; courierId?: string }): Promise<boolean> {
+  async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
     await this.ensureAuthenticated();
 
     return platformCall<{ body: { success: boolean } }>(
@@ -268,8 +268,8 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         body: {
           shopId: this.credentials?.storeId,
           orderId: platformOrderId,
-          courierName: courierInfo?.name,
-          courierPhone: courierInfo?.phone,
+          courierName: courierInfo?.deliveryMan,
+          courierPhone: courierInfo?.deliveryPhone,
         },
       },
       () => this.authenticate(),

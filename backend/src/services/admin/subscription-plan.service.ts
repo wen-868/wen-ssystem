@@ -48,7 +48,7 @@ interface IdRow {
 
 export async function listPlans(status?: string) {
   const conditions: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (status) {
     conditions.push("status = ?");
@@ -106,8 +106,8 @@ export async function createPlan(body: {
   maxCustomers: number;
   maxProducts: number;
   maxStorageMb: number;
-  features?: any;
-  moduleAccess?: any;
+  features?: unknown;
+  moduleAccess?: unknown;
   description?: string;
   sortOrder: number;
   status: string;
@@ -143,8 +143,8 @@ export async function updatePlan(planId: number, body: {
   maxCustomers?: number;
   maxProducts?: number;
   maxStorageMb?: number;
-  features?: any;
-  moduleAccess?: any;
+  features?: unknown;
+  moduleAccess?: unknown;
   description?: string;
   sortOrder?: number;
   status?: string;
@@ -158,7 +158,7 @@ export async function updatePlan(planId: number, body: {
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     planName: "plan_name",

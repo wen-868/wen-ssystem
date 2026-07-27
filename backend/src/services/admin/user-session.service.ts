@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 
 // ==================== 类型定义 ====================
 
@@ -31,7 +31,7 @@ export async function getUserSessions(tenantId: string, params?: { userId?: numb
   const pageSize = params?.pageSize || 20;
   const offset = (page - 1) * pageSize;
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.userId) { where += " AND user_id = ?"; vals.push(params.userId); }
   const [rows, total] = await Promise.all([
     query<UserSessionRow>(`SELECT us.*, su.username, su.real_name AS realName FROM t_user_session us LEFT JOIN t_sys_user su ON us.user_id = su.id ${where} ORDER BY us.last_activity_at DESC LIMIT ${offset}, ${pageSize}`, vals),

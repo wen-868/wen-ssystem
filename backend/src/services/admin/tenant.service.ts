@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+﻿﻿﻿﻿import { query, queryOne, transaction } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 
@@ -85,7 +85,7 @@ export async function listTenants(params: {
 }) {
   const { keyword, status, page, pageSize } = params;
   const conditions: string[] = [];
-  const queryParams: any[] = [];
+  const queryParams: unknown[] = [];
 
   if (keyword) {
     conditions.push("(t.company_name LIKE ? OR t.contact_person LIKE ? OR t.contact_mobile LIKE ?)");
@@ -224,7 +224,7 @@ export async function updateTenant(tenantId: number, body: {
   }
 
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   const fieldMap: Record<string, string> = {
     companyName: "company_name",
@@ -290,7 +290,7 @@ export async function changeTenantStatus(tenantId: number, body: {
   }
 
   const updates: string[] = ["status = ?", "updated_at = NOW()"];
-  const params: any[] = [body.status];
+  const params: unknown[] = [body.status];
 
   if (body.status === "SUSPENDED") {
     updates.push("suspend_reason = ?", "suspended_at = NOW()");

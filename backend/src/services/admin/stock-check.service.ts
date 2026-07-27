@@ -1,5 +1,66 @@
 import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader } from "mysql2/promise";
+
+// ==================== 类型定义 ====================
+
+/** 盘点单行（SELECT * FROM t_stock_check） */
+interface StockCheckRow extends RowDataPacket {
+  id: number | string;
+  check_no: string;
+  store_id: number | string;
+  status: string;
+  remark: string | null;
+  total_sku: number | string | null;
+  diff_sku: number | string | null;
+  diff_amount: number | string | null;
+  completed_at: string | Date | null;
+  created_at: string | Date;
+  tenant_id: string;
+  store_name?: string;
+}
+
+/** 盘点单明细行（SELECT * FROM t_stock_check_item） */
+interface StockCheckItemRow extends RowDataPacket {
+  id: number | string;
+  check_id: number | string;
+  sku_id: number | string;
+  sku_name: string;
+  batch_no: string;
+  system_qty: number | string;
+  actual_qty: number | string;
+  diff_qty: number | string;
+  diff_amount: number | string;
+  handled: number | boolean;
+  tenant_id: string;
+}
+
+/** 盘点批次来源行（库存批次 JOIN 商品 SKU） */
+interface StockCheckBatchRow extends RowDataPacket {
+  sku_id: number | string;
+  sku_name: string | null;
+  batch_no: string | null;
+  quantity: number | string;
+}
+
+/** 盘点单汇总行（COUNT/SUM 聚合） */
+interface StockCheckSummaryRow extends RowDataPacket {
+  total_sku: number | string | null;
+  diff_sku: number | string | null;
+  diff_amount: number | string | null;
+}
+
+/** 库存余额行（用于差异处理时锁行） */
+interface InventoryBalanceRow extends RowDataPacket {
+  id: number | string;
+  available_qty: number | string;
+}
+
+/** SKU 成本价行 */
+interface SkuCostPriceRow extends RowDataPacket {
+  cost_price: number | string | null;
+}
 
 // ==================== Admin 端 ====================
 
@@ -10,12 +71,12 @@ export async function createCheck(params: {
   const checkNo = makeBizNo("PD");
 
   const result = await transaction(async (conn) => {
-    const [insertResult] = await (conn as any).execute(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_stock_check (check_no, store_id, status, remark, tenant_id)
        VALUES (?, ?, 'DRAFT', ?, ?)`,
       [checkNo, storeId, remark, tenantId]
     );
-    return (insertResult as unknown as Record<string, unknown>).insertId;
+    return insertResult.insertId;
   });
 
   return { checkId: result, checkNo };
@@ -108,16 +169,16 @@ export async function getCheckDetail(id: number, tenantId: string) {
 
 export async function updateCheck(id: number, tenantId: string, body: { remark?: string }) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
     if (body.remark !== undefined) {
-      await (conn as any).execute("UPDATE t_stock_check SET remark = ? WHERE id = ? AND tenant_id = ?", [body.remark, id, tenantId]);
+      await conn.execute<ResultSetHeader>("UPDATE t_stock_check SET remark = ? WHERE id = ? AND tenant_id = ?", [body.remark, id, tenantId]);
     }
   });
 
@@ -126,15 +187,15 @@ export async function updateCheck(id: number, tenantId: string, body: { remark?:
 
 export async function startCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT") throw new Error("仅草稿状态可开始盘点");
 
-    const [skuRows] = await (conn as any).execute(
+    const [skuRows] = await conn.execute<StockCheckBatchRow[]>(
       `SELECT ib.sku_id, ps.sku_name, ib.batch_no, ib.quantity
        FROM t_inventory_batch ib
        LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
@@ -143,11 +204,11 @@ export async function startCheck(id: number, tenantId: string) {
       [check.store_id, tenantId]
     );
 
-    await (conn as any).execute("DELETE FROM t_stock_check_item WHERE check_id = ? AND tenant_id = ?", [id, tenantId]);
+    await conn.execute<ResultSetHeader>("DELETE FROM t_stock_check_item WHERE check_id = ? AND tenant_id = ?", [id, tenantId]);
 
     let totalSku = 0;
-    for (const row of skuRows as unknown as Record<string, unknown>[]) {
-      await (conn as any).execute(
+    for (const row of skuRows) {
+      await conn.execute<ResultSetHeader>(
         `INSERT INTO t_stock_check_item (check_id, sku_id, sku_name, batch_no, system_qty, actual_qty, diff_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, 0, 0, ?)`,
         [id, row.sku_id, row.sku_name || "", row.batch_no || "", row.quantity, tenantId]
@@ -155,7 +216,7 @@ export async function startCheck(id: number, tenantId: string) {
       totalSku++;
     }
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check SET status = 'CHECKING', total_sku = ? WHERE id = ? AND tenant_id = ?",
       [totalSku, id, tenantId]
     );
@@ -166,15 +227,15 @@ export async function startCheck(id: number, tenantId: string) {
 
 export async function completeCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可完成");
 
-    const [summaryRows] = await (conn as any).execute(
+    const [summaryRows] = await conn.execute<StockCheckSummaryRow[]>(
       `SELECT
          COUNT(*) AS total_sku,
          SUM(CASE WHEN diff_qty != 0 THEN 1 ELSE 0 END) AS diff_sku,
@@ -182,9 +243,9 @@ export async function completeCheck(id: number, tenantId: string) {
        FROM t_stock_check_item WHERE check_id = ? AND tenant_id = ?`,
       [id, tenantId]
     );
-    const summary = (summaryRows as unknown as Record<string, unknown>[])[0];
+    const summary = summaryRows[0];
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
       [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId]
     );
@@ -195,17 +256,17 @@ export async function completeCheck(id: number, tenantId: string) {
 
 export async function cancelCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "DRAFT" && check.status !== "CHECKING") {
       throw new Error("仅草稿或盘点中状态可取消");
     }
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
@@ -220,39 +281,39 @@ export async function handleDiff(params: {
   const { checkId, itemId, tenantId, userId } = params;
 
   await transaction(async (conn) => {
-    const [checkRows] = await (conn as any).execute(
+    const [checkRows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [checkId, tenantId]
     );
-    const check = (checkRows as unknown as Record<string, unknown>[])[0];
+    const check = checkRows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "COMPLETED") throw new Error("仅已完成状态可处理差异");
 
-    const [itemRows] = await (conn as any).execute(
+    const [itemRows] = await conn.execute<StockCheckItemRow[]>(
       "SELECT * FROM t_stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
       [itemId, checkId, tenantId]
     );
-    const item = (itemRows as unknown as Record<string, unknown>[])[0];
+    const item = itemRows[0];
     if (!item) throw new Error("明细不存在");
     if (item.handled) throw new Error("该差异已处理");
     if (item.diff_qty === 0) throw new Error("无差异需要处理");
 
     const diffQty = Number(item.diff_qty);
 
-    const [invRows] = await (conn as any).execute(
+    const [invRows] = await conn.execute<InventoryBalanceRow[]>(
       "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
       [check.store_id, item.sku_id, tenantId]
     );
-    const inv = (invRows as unknown as Record<string, unknown>[])[0];
+    const inv = invRows[0];
 
     if (inv) {
-      await (conn as any).execute(
+      await conn.execute<ResultSetHeader>(
         "UPDATE t_inventory_balance SET available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
         [diffQty, check.store_id, item.sku_id, tenantId]
       );
     } else {
       if (diffQty > 0) {
-        await (conn as any).execute(
+        await conn.execute<ResultSetHeader>(
           `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
           [check.store_id, item.sku_id, item.sku_name, diffQty, tenantId]
@@ -261,13 +322,13 @@ export async function handleDiff(params: {
     }
 
     const changeType = diffQty > 0 ? "STOCK_CHECK_IN" : "STOCK_CHECK_OUT";
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, ref_no, operator_id, created_at, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
       [check.store_id, item.sku_id, item.sku_name, changeType, Math.abs(diffQty), check.check_no, userId ?? null, tenantId]
     );
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check_item SET handled = 1 WHERE id = ? AND tenant_id = ?",
       [itemId, tenantId]
     );
@@ -316,30 +377,30 @@ export async function updateItemQty(params: {
   const { checkId, itemId, actualQty, tenantId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [checkId, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可录入");
 
-    const [itemRows] = await (conn as any).execute(
+    const [itemRows] = await conn.execute<StockCheckItemRow[]>(
       "SELECT * FROM t_stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
       [itemId, checkId, tenantId]
     );
-    const item = (itemRows as unknown as Record<string, unknown>[])[0];
+    const item = itemRows[0];
     if (!item) throw new Error("明细不存在");
 
-    const [skuRows] = await (conn as any).execute(
+    const [skuRows] = await conn.execute<SkuCostPriceRow[]>(
       "SELECT cost_price FROM t_product_sku WHERE id = ? AND tenant_id = ?",
       [item.sku_id, tenantId]
     );
-    const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;
+    const unitPrice = skuRows[0]?.cost_price ?? 0;
     const diffQty = actualQty - Number(item.system_qty);
     const diffAmount = Math.abs(diffQty) * Number(unitPrice);
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check_item SET actual_qty = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
       [actualQty, diffAmount, itemId, tenantId]
     );
@@ -355,31 +416,31 @@ export async function recordItems(params: {
   const { checkId, items, tenantId } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [checkId, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可录入");
 
     for (const item of items) {
-      const [itemRows] = await (conn as any).execute(
+      const [itemRows] = await conn.execute<StockCheckItemRow[]>(
         "SELECT * FROM t_stock_check_item WHERE id = ? AND check_id = ? AND tenant_id = ? FOR UPDATE",
         [item.itemId, checkId, tenantId]
       );
-      const checkItem = (itemRows as unknown as Record<string, unknown>[])[0];
+      const checkItem = itemRows[0];
       if (!checkItem) throw new Error(`明细${item.itemId}不存在`);
 
-      const [skuRows] = await (conn as any).execute(
+      const [skuRows] = await conn.execute<SkuCostPriceRow[]>(
         "SELECT cost_price FROM t_product_sku WHERE id = ? AND tenant_id = ?",
         [checkItem.sku_id, tenantId]
       );
-      const unitPrice = (skuRows as unknown as Record<string, unknown>[])[0]?.cost_price ?? 0;
+      const unitPrice = skuRows[0]?.cost_price ?? 0;
       const diffQty = item.actualQty - Number(checkItem.system_qty);
       const diffAmount = Math.abs(diffQty) * Number(unitPrice);
 
-      await (conn as any).execute(
+      await conn.execute<ResultSetHeader>(
         "UPDATE t_stock_check_item SET actual_qty = ?, diff_qty = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
         [item.actualQty, diffQty, diffAmount, item.itemId, tenantId]
       );
@@ -391,15 +452,15 @@ export async function recordItems(params: {
 
 export async function submitCheck(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<StockCheckRow[]>(
       "SELECT * FROM t_stock_check WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const check = (rows as unknown as Record<string, unknown>[])[0];
+    const check = rows[0];
     if (!check) throw new Error("盘点单不存在");
     if (check.status !== "CHECKING") throw new Error("仅盘点中状态可提交");
 
-    const [summaryRows] = await (conn as any).execute(
+    const [summaryRows] = await conn.execute<StockCheckSummaryRow[]>(
       `SELECT
          COUNT(*) AS total_sku,
          SUM(CASE WHEN diff_qty != 0 THEN 1 ELSE 0 END) AS diff_sku,
@@ -407,9 +468,9 @@ export async function submitCheck(id: number, tenantId: string) {
        FROM t_stock_check_item WHERE check_id = ? AND tenant_id = ?`,
       [id, tenantId]
     );
-    const summary = (summaryRows as unknown as Record<string, unknown>[])[0];
+    const summary = summaryRows[0];
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_stock_check SET status = 'COMPLETED', completed_at = NOW(), total_sku = ?, diff_sku = ?, diff_amount = ? WHERE id = ? AND tenant_id = ?",
       [summary.total_sku, summary.diff_sku, summary.diff_amount, id, tenantId]
     );
