@@ -1,5 +1,5 @@
-﻿﻿﻿﻿﻿﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
-import type { PlatformType, PlatformCredentials } from "./types";
+﻿﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
+import type { PlatformType, PlatformCredentials, MaskConfigInput } from "./types";
 
 /** 平台配置行 */
 interface PlatformConfigRow {
@@ -20,7 +20,7 @@ interface PlatformConfigRow {
   updated_at: string;
 }
 
-export function maskConfig(config: any) {
+export function maskConfig<T extends MaskConfigInput>(config: T | null | undefined) {
   if (!config) return null;
   return {
     ...config,

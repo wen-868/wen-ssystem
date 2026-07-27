@@ -1,8 +1,8 @@
-﻿﻿﻿﻿﻿﻿import { z } from "zod";
+﻿﻿import { z } from "zod";
 import logger from "../../shared/logger";
 import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/index";
-import type { PlatformType } from "./types";
+import type { PlatformType, SyncOrdersParams, SyncProductsParams } from "./types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "./common.service";
 
 // ========== 类型定义 ==========
@@ -57,7 +57,7 @@ export function buildWebhookResponse(platform: PlatformType, success: boolean, m
   return { code: success ? "0" : "1", message: message ?? (success ? "success" : "error") };
 }
 
-export async function handleWebhook(platform: PlatformType, rawBody: any, signature: string, timestamp: string) {
+export async function handleWebhook(platform: PlatformType, rawBody: Record<string, unknown>, signature: string, timestamp: string) {
   const config = await getPlatformConfig(platform);
   if (!config) {
     logger.warn(`[Webhook] ${platform} 无配置，跳过处理`);
@@ -147,7 +147,7 @@ export async function getPlatforms(tenantId: string) {
   );
   const allPlatforms = ["JD", "MEITUAN", "ELEME"];
   const records = allPlatforms.map((p) => {
-    const found = rows.find((r: any) => r.platform === p);
+    const found = rows.find((r) => r.platform === p);
     return {
       platform: p,
       enabled: !!found?.enabled,
@@ -169,7 +169,7 @@ export async function getConfigs(tenantId: string) {
     [],
     tenantId
   );
-  const records = rows.map((r: any) => maskConfig(r));
+  const records = rows.map((r) => maskConfig(r));
   return { records };
 }
 
@@ -187,7 +187,7 @@ export async function getConfigByPlatform(platform: string, tenantId: string) {
   return maskConfig(row);
 }
 
-export async function upsertConfig(body: any, tenantId: string) {
+export async function upsertConfig(body: unknown, tenantId: string) {
   const parsedBody = z.object({
     platform: z.string(),
     storeId: z.string().optional(),
@@ -257,12 +257,12 @@ export async function testConnection(platform: string, tenantId: string) {
   try {
     const result = await adapter.authenticate();
     return { found: true, platform: parsedPlatform, connected: true, tokenUpdated: !!result.accessToken };
-  } catch (err: any) {
-    return { found: true, platform: parsedPlatform, connected: false, error: err.message };
+  } catch (err: unknown) {
+    return { found: true, platform: parsedPlatform, connected: false, error: (err as Error)?.message ?? String(err) };
   }
 }
 
-export async function syncOrders(platform: string, body: any, tenantId: string) {
+export async function syncOrders(platform: string, body: SyncOrdersParams, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   const config = await getPlatformConfigWithTenant(parsedPlatform, undefined, tenantId);
   if (!config) {
@@ -294,14 +294,14 @@ export async function syncOrders(platform: string, body: any, tenantId: string) 
   return { found: true, platform: parsedPlatform, synced: result.orders.length, hasMore: result.hasMore };
 }
 
-export async function syncProducts(platform: string, body: any, tenantId: string) {
+export async function syncProducts(platform: string, body: unknown, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   const config = await getPlatformConfigWithTenant(parsedPlatform, undefined, tenantId);
   if (!config) {
     return { found: false };
   }
   const adapter = getAdapter(parsedPlatform, config);
-  const result = await adapter.syncProducts(body);
+  const result = await adapter.syncProducts(body as SyncProductsParams);
   return { found: true, platform: parsedPlatform, synced: result.products.length, hasMore: result.hasMore };
 }
 

@@ -1,10 +1,10 @@
-﻿﻿﻿﻿/**
- * 饿了么即时零售平台适配器
- * Eleme Instant Retail Platform Adapter
- *
- * 真实 API 文档地址：https://open.shop.ele.me/openapi/documents
- * 支持 OAuth 2.0 认证、订单同步、商品同步、库存更新、配送状态管理等。
- */
+﻿﻿/**
+* 饿了么即时零售平台适配器
+* Eleme Instant Retail Platform Adapter
+*
+* 真实 API 文档地址：https://open.shop.ele.me/openapi/documents
+* 支持 OAuth 2.0 认证、订单同步、商品同步、库存更新、配送状态管理等。
+*/
 
 import { AbstractPlatformAdapter } from "../base-adapter";
 import { platformCall, useMock } from "../http-client";
@@ -21,6 +21,7 @@ import type {
   UpdateInventoryResult,
   WebhookVerificationResult,
   SyncOrdersResult,
+  ElemeResponse,
 } from "../types";
 
 /** 饿了么开放平台 API 基础地址 */
@@ -47,9 +48,10 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const timestamp = Math.floor(Date.now() / 1000);
     const signStr = this.sign({ app_key: appKey, timestamp, app_secret: appSecret });
 
-    const result = await platformCall<{
-      body: { access_token: string; refresh_token: string; expires_in: number };
-    }>(
+    type ElemeAuthData = { access_token: string; refresh_token: string; expires_in: number };
+    type ElemeAuthResponse = ElemeResponse<ElemeAuthData>;
+
+    const result = await platformCall<ElemeAuthResponse>(
       "ELEME",
       `${API_BASE}/oauth/token`,
       {
@@ -64,7 +66,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       async () => {
         throw new Error("[ELEME] Cannot refresh token: no credentials");
       },
-      (async () => {
+      (async (): Promise<ElemeAuthResponse> => {
         logger.info("[ELEME] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
@@ -79,8 +81,8 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
           enabled: true,
         };
         this.credentials = creds;
-        return creds;
-      }) as any
+        return creds as unknown as ElemeAuthResponse;
+      })
     );
 
     const token = useMock()
@@ -194,9 +196,10 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
       CANCELLED: "cancelled",
     };
 
-    const result = await platformCall<{
-      body: { dataList: Record<string, unknown>[]; pageSize: number; currentPage: number; totalCount: number };
-    }>(
+    type ElemeOrderListData = { dataList: Record<string, unknown>[]; pageSize: number; currentPage: number; totalCount: number };
+    type ElemeOrderListResponse = ElemeResponse<ElemeOrderListData>;
+
+    const result = await platformCall<ElemeOrderListResponse>(
       "ELEME",
       `${API_BASE}/order/query`,
       {
@@ -211,13 +214,13 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<ElemeOrderListResponse> => {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`ELM${Date.now()}${i}`, params?.status ?? "PENDING")
         );
         logger.info(`[ELEME] Mock synced ${mockOrders.length} orders`);
-        return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { orders: mockOrders, hasMore: false, nextCursor: undefined } as unknown as ElemeOrderListResponse;
+      })
     );
 
     if (useMock()) {
@@ -239,7 +242,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
   async confirmOrder(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ body: { success: boolean } }>(
+    return platformCall<ElemeResponse<{ success: boolean }>>(
       "ELEME",
       `${API_BASE}/order/confirm`,
       {
@@ -254,13 +257,13 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         logger.info(`[ELEME] Mock confirm order: ${platformOrderId}`);
         return { body: { success: true } };
       }
-    ).then((r: any) => r.body?.success ?? true);
+    ).then((r) => r.body?.success ?? true);
   }
 
   async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ body: { success: boolean } }>(
+    return platformCall<ElemeResponse<{ success: boolean }>>(
       "ELEME",
       `${API_BASE}/order/deliveryStart`,
       {
@@ -277,13 +280,13 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         logger.info(`[ELEME] Mock start delivery: ${platformOrderId}`);
         return { body: { success: true } };
       }
-    ).then((r: any) => r.body?.success ?? true);
+    ).then((r) => r.body?.success ?? true);
   }
 
   async completeDelivery(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ body: { success: boolean } }>(
+    return platformCall<ElemeResponse<{ success: boolean }>>(
       "ELEME",
       `${API_BASE}/order/complete`,
       {
@@ -298,13 +301,13 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         logger.info(`[ELEME] Mock complete delivery: ${platformOrderId}`);
         return { body: { success: true } };
       }
-    ).then((r: any) => r.body?.success ?? true);
+    ).then((r) => r.body?.success ?? true);
   }
 
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ body: { success: boolean } }>(
+    return platformCall<ElemeResponse<{ success: boolean }>>(
       "ELEME",
       `${API_BASE}/order/cancel`,
       {
@@ -320,7 +323,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         logger.info(`[ELEME] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { body: { success: true } };
       }
-    ).then((r: any) => r.body?.success ?? true);
+    ).then((r) => r.body?.success ?? true);
   }
 
   async syncProducts(params?: { cursor?: string; limit?: number }): Promise<{
@@ -333,9 +336,10 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
     const storeId = this.credentials?.storeId ?? "mock_store";
     const limit = params?.limit ?? 20;
 
-    const result = await platformCall<{
-      body: { dataList: Record<string, unknown>[]; pageSize: number; currentPage: number; totalCount: number };
-    }>(
+    type ElemeProductListData = { dataList: Record<string, unknown>[]; pageSize: number; currentPage: number; totalCount: number };
+    type ElemeProductListResponse = ElemeResponse<ElemeProductListData>;
+
+    const result = await platformCall<ElemeProductListResponse>(
       "ELEME",
       `${API_BASE}/item/query`,
       {
@@ -347,7 +351,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<ElemeProductListResponse> => {
         const mockProducts: UnifiedProduct[] = Array.from({ length: Math.min(limit, 2) }).map((_, i) => ({
           localSkuId: `local_sku_${i}`,
           platformSkuId: `eleme_sku_${i}`,
@@ -367,8 +371,8 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
           storeId,
         }));
         logger.info(`[ELEME] Mock synced ${mockProducts.length} products`);
-        return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { products: mockProducts, hasMore: false, nextCursor: undefined } as unknown as ElemeProductListResponse;
+      })
     );
 
     if (useMock()) {
@@ -392,9 +396,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
 
     const storeId = this.credentials?.storeId ?? "mock_store";
 
-    return platformCall<{
-      body: { results: UpdateInventoryResult[] };
-    }>(
+    return platformCall<ElemeResponse<{ results: UpdateInventoryResult[] }>>(
       "ELEME",
       `${API_BASE}/item/updateStock`,
       {
@@ -422,7 +424,7 @@ export class ElemeAdapter extends AbstractPlatformAdapter {
           },
         };
       }
-    ).then((r: any) => r.body?.results ?? params.map((p: any) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
+    ).then((r) => r.body?.results ?? params.map((p) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
   }
 
   async verifyWebhook(payload: unknown, signature: string, timestamp?: string): Promise<WebhookVerificationResult> {

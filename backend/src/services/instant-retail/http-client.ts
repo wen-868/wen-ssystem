@@ -105,7 +105,7 @@ export async function platformCall<T>(
   platform: string,
   url: string,
   options: { method: string; body?: unknown; headers?: Record<string, string> },
-  onTokenRefresh: () => Promise<any>,
+  onTokenRefresh: () => Promise<unknown>,
   mockFallback: () => Promise<T>
 ): Promise<T> {
   if (useMock()) {
@@ -119,8 +119,9 @@ export async function platformCall<T>(
       body: options.body,
     });
     return res as T;
-  } catch (err: any) {
-    if (err.message?.includes("401") || err.message?.includes("403")) {
+  } catch (err: unknown) {
+    const message = (err as Error)?.message ?? "";
+    if (message.includes("401") || message.includes("403")) {
       await onTokenRefresh();
       const client = new HttpClient({ baseURL: "", timeout: 15000 });
       const res = await (client as unknown as { fetch: (method: string, url: string, opts: unknown) => Promise<unknown> }).fetch(options.method, url, {

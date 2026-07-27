@@ -1,10 +1,10 @@
-﻿﻿﻿﻿/**
- * 美团即时零售平台适配器
- * Meituan Instant Retail Platform Adapter
- *
- * 真实 API 文档地址：https://developer.meituan.com/home/doc?docType=retail
- * 支持 OAuth 2.0 认证、订单同步、商品同步、库存更新、配送状态管理等。
- */
+﻿﻿/**
+* 美团即时零售平台适配器
+* Meituan Instant Retail Platform Adapter
+*
+* 真实 API 文档地址：https://developer.meituan.com/home/doc?docType=retail
+* 支持 OAuth 2.0 认证、订单同步、商品同步、库存更新、配送状态管理等。
+*/
 
 import { AbstractPlatformAdapter } from "../base-adapter";
 import { platformCall, useMock } from "../http-client";
@@ -21,6 +21,7 @@ import type {
   UpdateInventoryResult,
   WebhookVerificationResult,
   SyncOrdersResult,
+  MeituanResponse,
 } from "../types";
 
 /** 美团开放平台 API 基础地址 */
@@ -47,9 +48,10 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     const timestamp = Math.floor(Date.now() / 1000);
     const signStr = this.sign({ app_key: appKey, timestamp, app_secret: appSecret });
 
-    const result = await platformCall<{
-      data: { access_token: string; refresh_token: string; expires_in: number };
-    }>(
+    type MeituanAuthData = { access_token: string; refresh_token: string; expires_in: number };
+    type MeituanAuthResponse = MeituanResponse<MeituanAuthData>;
+
+    const result = await platformCall<MeituanAuthResponse>(
       "MEITUAN",
       `${API_BASE}/oauth/token`,
       {
@@ -64,7 +66,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       async () => {
         throw new Error("[MEITUAN] Cannot refresh token: no credentials");
       },
-      (async () => {
+      (async (): Promise<MeituanAuthResponse> => {
         logger.info("[MEITUAN] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
@@ -79,8 +81,8 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
           enabled: true,
         };
         this.credentials = creds;
-        return creds;
-      }) as any
+        return creds as unknown as MeituanAuthResponse;
+      })
     );
 
     const token = useMock()
@@ -197,9 +199,10 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
       CANCELLED: 5,
     };
 
-    const result = await platformCall<{
-      data: { order_list: Record<string, unknown>[]; has_more: boolean; next_cursor: string };
-    }>(
+    type MeituanOrderListData = { order_list: Record<string, unknown>[]; has_more: boolean; next_cursor: string };
+    type MeituanOrderListResponse = MeituanResponse<MeituanOrderListData>;
+
+    const result = await platformCall<MeituanOrderListResponse>(
       "MEITUAN",
       `${API_BASE}/order/queryByPage`,
       {
@@ -214,13 +217,13 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<MeituanOrderListResponse> => {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`MT${Date.now()}${i}`, params?.status ?? "PENDING")
         );
         logger.info(`[MEITUAN] Mock synced ${mockOrders.length} orders`);
-        return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { orders: mockOrders, hasMore: false, nextCursor: undefined } as unknown as MeituanOrderListResponse;
+      })
     );
 
     if (useMock()) {
@@ -240,7 +243,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
   async confirmOrder(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ data: { success: boolean } }>(
+    return platformCall<MeituanResponse<{ success: boolean }>>(
       "MEITUAN",
       `${API_BASE}/order/confirm`,
       {
@@ -255,13 +258,13 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         logger.info(`[MEITUAN] Mock confirm order: ${platformOrderId}`);
         return { data: { success: true } };
       }
-    ).then((r: any) => r.data?.success ?? true);
+    ).then((r) => r.data?.success ?? true);
   }
 
   async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ data: { success: boolean } }>(
+    return platformCall<MeituanResponse<{ success: boolean }>>(
       "MEITUAN",
       `${API_BASE}/order/delivering`,
       {
@@ -278,13 +281,13 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         logger.info(`[MEITUAN] Mock start delivery: ${platformOrderId}`);
         return { data: { success: true } };
       }
-    ).then((r: any) => r.data?.success ?? true);
+    ).then((r) => r.data?.success ?? true);
   }
 
   async completeDelivery(platformOrderId: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ data: { success: boolean } }>(
+    return platformCall<MeituanResponse<{ success: boolean }>>(
       "MEITUAN",
       `${API_BASE}/order/complete`,
       {
@@ -299,13 +302,13 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         logger.info(`[MEITUAN] Mock complete delivery: ${platformOrderId}`);
         return { data: { success: true } };
       }
-    ).then((r: any) => r.data?.success ?? true);
+    ).then((r) => r.data?.success ?? true);
   }
 
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    return platformCall<{ data: { success: boolean } }>(
+    return platformCall<MeituanResponse<{ success: boolean }>>(
       "MEITUAN",
       `${API_BASE}/order/cancel`,
       {
@@ -321,7 +324,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         logger.info(`[MEITUAN] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { data: { success: true } };
       }
-    ).then((r: any) => r.data?.success ?? true);
+    ).then((r) => r.data?.success ?? true);
   }
 
   async syncProducts(params?: { cursor?: string; limit?: number }): Promise<{
@@ -334,9 +337,10 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     const storeId = this.credentials?.storeId ?? "mock_store";
     const limit = params?.limit ?? 20;
 
-    const result = await platformCall<{
-      data: { product_list: Record<string, unknown>[]; has_more: boolean; next_cursor: string };
-    }>(
+    type MeituanProductListData = { product_list: Record<string, unknown>[]; has_more: boolean; next_cursor: string };
+    type MeituanProductListResponse = MeituanResponse<MeituanProductListData>;
+
+    const result = await platformCall<MeituanProductListResponse>(
       "MEITUAN",
       `${API_BASE}/food/queryList`,
       {
@@ -348,7 +352,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<MeituanProductListResponse> => {
         const mockProducts: UnifiedProduct[] = Array.from({ length: Math.min(limit, 2) }).map((_, i) => ({
           localSkuId: `local_sku_${i}`,
           platformSkuId: `meituan_sku_${i}`,
@@ -368,8 +372,8 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
           storeId,
         }));
         logger.info(`[MEITUAN] Mock synced ${mockProducts.length} products`);
-        return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { products: mockProducts, hasMore: false, nextCursor: undefined } as unknown as MeituanProductListResponse;
+      })
     );
 
     if (useMock()) {
@@ -391,9 +395,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
 
     const storeId = this.credentials?.storeId ?? "mock_store";
 
-    return platformCall<{
-      data: { results: UpdateInventoryResult[] };
-    }>(
+    return platformCall<MeituanResponse<{ results: UpdateInventoryResult[] }>>(
       "MEITUAN",
       `${API_BASE}/food/updateStock`,
       {
@@ -421,7 +423,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
           },
         };
       }
-    ).then((r: any) => r.data?.results ?? params.map((p: any) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
+    ).then((r) => r.data?.results ?? params.map((p) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
   }
 
   async verifyWebhook(payload: unknown, signature: string, timestamp?: string): Promise<WebhookVerificationResult> {

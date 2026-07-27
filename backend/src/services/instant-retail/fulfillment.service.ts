@@ -1,7 +1,8 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { parsePlatformType } from "./adapters/index";
 import { getAdapter } from "./adapters/index";
 import { getPlatformConfigWithTenant } from "./common.service";
+import type { DeliveryBodyInput } from "./types";
 
 // ==================== 类型定义 ====================
 
@@ -12,7 +13,7 @@ interface PlatformOrderBriefRow {
   status: string;
 }
 
-export async function startDelivery(platformOrderId: string, body: any, tenantId: string) {
+export async function startDelivery(platformOrderId: string, body: DeliveryBodyInput, tenantId: string) {
   const row = await queryOneWithTenant<PlatformOrderBriefRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],

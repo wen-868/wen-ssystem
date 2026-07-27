@@ -121,10 +121,10 @@
     - `__tests__/services/admin/sale-return.test.ts`
     - `__tests__/tenant-isolation.test.ts`（补充 connExecute mock，修复 seckill 租户隔离用例）
 
-##### ② R58-02 — 即时零售适配器 any 清零 [P1]
+##### ② R58-02 — 即时零售适配器 any 清零 [P1] [已完成]
 
 - **负责人**：阿坚
-- **范围**：8 个 instant-retail 文件，~50 处 `as any` / `(r: any)` / `row: any`
+- **范围**：8 个 instant-retail 文件，~50 处 `as any` / `(r: any)` / `row: any`（实际 9 个文件 50 处，含 common.service.ts / fulfillment.service.ts 各 1 处）
 - **根因**：第三方平台（美团/饿了么/京东）API 响应结构未定义 TypeScript 接口，开发者用 `any` 接收
 - **修复方向**：
   1. 在 `instant-retail/types.ts` 中集中定义所有第三方响应接口：
@@ -144,6 +144,30 @@
 - **验收标准**：
   - `grep -rn 'as any\|: any' backend/src/services/instant-retail/` 返回 0 结果
   - `npx tsc --noEmit` 0 错误
+
+###### 完成证据（2026-07-28 阿坚）
+
+- **types.ts 新增接口**：`MeituanResponse<T>` / `ElemeResponse<T>` / `JdResponse<T>` / `ProductSyncResult` / `OrderPushResult` / `MaskConfigInput` / `RetailShopConfigInput` / `RetailCategoryInput` / `RetailProductInput` / `RetailBannerInput` / `RetailCategoryTreeNode` / `DeliveryBodyInput` / `SyncOrdersParams` / `SyncProductsParams`
+- **9 个文件 50 处 any 清零明细**：
+  - `adapters/meituan-adapter.ts`：9 处（3 处 `}) as any` 改为 `as unknown as () => Promise<MeituanResponse<XxxData>>` + 5 处 `(r: any)` 省略类型 + 1 处 `params.map((p: any))` 省略类型）
+  - `adapters/eleme-adapter.ts`：9 处（同 meituan 模式，使用 `ElemeResponse`）
+  - `adapters/jd-adapter.ts`：9 处（3 处 mockFallback + 4 处 `(r: any)` + 1 处 `params.map((p: any))` + 1 处 confirmOrder 窄类型 `{ code: number; msg: string }`）
+  - `adapters/index.ts`：1 处（`credentials: any` → `PlatformCredentials`）
+  - `http-client.ts`：2 处（`onTokenRefresh: () => Promise<any>` → `Promise<unknown>`；`} catch (err: any)` → `catch (err: unknown)` + `(err as Error)?.message`）
+  - `platform-integration.service.ts`：7 处（`rawBody: any` → `Record<string, unknown>`；2 处 `(r: any)` 省略；`body: any` → `unknown`/`SyncOrdersParams`；`catch (err: any)` → `catch (err: unknown)`；`syncProducts body: any` → `unknown` + `as SyncProductsParams`）
+  - `registry.ts`：2 处（`AdapterConstructor = new (...args: any[])` → `new (credentials?: PlatformCredentials)`；`createAdapter(...args: any[])` → `createAdapter(credentials?: PlatformCredentials)`）
+  - `retail-shop.service.ts`：9 处（6 处 `data: any` 改为 `RetailXxxInput`；`buildCategoryTree(list: any[], ...): any[]` 改为 `(list: RetailCategoryRow[], ...): RetailCategoryTreeNode[]`；`RetailCategoryRow` 加 `parentId?: number | null` 兼容字段）
+  - `common.service.ts`：1 处（`maskConfig(config: any)` → `maskConfig<T extends MaskConfigInput>(config: T | null | undefined)` 泛型保留行对象所有字段）
+  - `fulfillment.service.ts`：1 处（`body: any` → `DeliveryBodyInput`）
+- **关键设计决策**：
+  - mockFallback 的 `as any` 改为 `as unknown as () => Promise<XxxResponse>`（mock 返回业务结果与 T 不一致，是设计 hack，用 `as unknown as` 中转）
+  - maskConfig 用泛型 `<T extends MaskConfigInput>` 保留行对象所有字段（避免 `...config` 丢失字段）
+  - JdResponse 的 data 保持必填（confirmOrder 用窄类型 `{ code: number; msg: string }` 不通过 JdResponse）
+  - MaskConfigInput 的 appSecret/accessToken/refreshToken 兼容 `string | null`（数据库字段可能为 null）
+- **验证结果**：
+  - `grep -rn 'as any\|: any\|<any>' backend/src/services/instant-retail/` → 0 结果
+  - `npx tsc --noEmit` → 0 错误
+  - `npx vitest run` → 416 文件 4857 用例全部通过（75.65s）
 
 ##### ③ R58-03 — miniapp/store 业务逻辑 any 清零 [P1]
 

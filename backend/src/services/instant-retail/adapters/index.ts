@@ -9,7 +9,7 @@
  */
 
 import { register, createAdapter } from "../registry";
-import type { PlatformType, UnifiedOrder, PlatformOrderStatus, UnifiedOrderItem, UnifiedAddress } from "../types";
+import type { PlatformType, UnifiedOrder, PlatformOrderStatus, UnifiedOrderItem, UnifiedAddress, PlatformCredentials } from "../types";
 
 // 导入各平台适配器
 import { JdAdapter } from "./jd-adapter";
@@ -142,6 +142,6 @@ export function parseUnifiedOrder(platform: PlatformType, payload: Record<string
  * @param credentials 平台凭证
  * @returns 适配器实例
  */
-export function getAdapter(platform: PlatformType, credentials: any) {
+export function getAdapter(platform: PlatformType, credentials: PlatformCredentials) {
   return createAdapter(platform, credentials);
 }

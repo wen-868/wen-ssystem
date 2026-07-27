@@ -1,4 +1,11 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import type {
+  RetailShopConfigInput,
+  RetailCategoryInput,
+  RetailProductInput,
+  RetailBannerInput,
+  RetailCategoryTreeNode,
+} from "./types";
 
 /** t_retail_shop_config 全字段行 */
 interface RetailShopConfigRow {
@@ -22,6 +29,8 @@ interface RetailCategoryRow {
   parent_id: number | null; sort_order: number; status: string;
   tenant_id: string; store_id: number | null;
   created_at: string | Date; updated_at: string | Date;
+  /** 兼容字段（部分查询可能返回 camelCase 命名） */
+  parentId?: number | null;
 }
 
 /** COUNT(*) AS cnt 聚合行 */
@@ -82,7 +91,7 @@ export async function getShopConfig(storeId: number | undefined, tenantId: strin
   return queryOneWithTenant<RetailShopConfigRow>("SELECT * FROM t_retail_shop_config WHERE store_id = ? AND tenant_id = ?", [storeId, tenantId], tenantId);
 }
 
-export async function saveShopConfig(storeId: number | undefined, data: any, tenantId: string) {
+export async function saveShopConfig(storeId: number | undefined, data: RetailShopConfigInput, tenantId: string) {
   if (!storeId) throw new Error("门店ID不能为空");
   const existing = await queryOneWithTenant<RetailShopConfigIdRow>("SELECT id FROM t_retail_shop_config WHERE store_id = ? AND tenant_id = ?", [storeId, tenantId], tenantId);
   if (existing) {
@@ -126,7 +135,7 @@ export async function listCategories(storeId: number | undefined, tenantId: stri
   return buildCategoryTree(rows);
 }
 
-function buildCategoryTree(list: any[], parentId: number | null = null): any[] {
+function buildCategoryTree(list: RetailCategoryRow[], parentId: number | null = null): RetailCategoryTreeNode[] {
   return list.filter((item) => item.parent_id === parentId || item.parentId === parentId).map((item) => ({
     id: item.id, name: item.category_name, icon: item.category_icon,
     parentId: item.parent_id, sortOrder: item.sort_order, status: item.status,
@@ -134,7 +143,7 @@ function buildCategoryTree(list: any[], parentId: number | null = null): any[] {
   }));
 }
 
-export async function createCategory(storeId: number | undefined, data: any, tenantId: string) {
+export async function createCategory(storeId: number | undefined, data: RetailCategoryInput, tenantId: string) {
   const result = await queryWithTenant(
     "INSERT INTO t_retail_category (category_name, category_icon, parent_id, sort_order, status, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [data.category_name, data.category_icon ?? null, data.parent_id ?? null, data.sort_order ?? 0, data.status ?? "ON", storeId ?? null, tenantId], tenantId
@@ -142,7 +151,7 @@ export async function createCategory(storeId: number | undefined, data: any, ten
   return { id: (result as unknown as { insertId: number }).insertId };
 }
 
-export async function updateCategory(id: number, data: any, tenantId: string) {
+export async function updateCategory(id: number, data: RetailCategoryInput, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.category_name !== undefined) { fields.push("category_name = ?"); values.push(data.category_name); }
@@ -180,7 +189,7 @@ export async function listRetailProducts(params: {
   return { list: rows, total: Number(total?.cnt ?? 0), page, pageSize };
 }
 
-export async function addRetailProduct(storeId: number | undefined, data: any, tenantId: string) {
+export async function addRetailProduct(storeId: number | undefined, data: RetailProductInput, tenantId: string) {
   const result = await queryWithTenant(
     `INSERT INTO t_retail_product (product_id, sku_id, category_id, retail_price, original_price, stock, sales_count, is_recommended, is_hot, is_new, sort_order, status, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [data.product_id, data.sku_id ?? null, data.category_id ?? null, data.retail_price, data.original_price ?? null,
@@ -190,7 +199,7 @@ export async function addRetailProduct(storeId: number | undefined, data: any, t
   return { id: (result as unknown as { insertId: number }).insertId };
 }
 
-export async function updateRetailProduct(id: number, data: any, tenantId: string) {
+export async function updateRetailProduct(id: number, data: RetailProductInput, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.category_id !== undefined) { fields.push("category_id = ?"); values.push(data.category_id); }
@@ -264,7 +273,7 @@ export async function listBanners(storeId: number | undefined, tenantId: string)
   );
 }
 
-export async function createBanner(storeId: number | undefined, data: any, tenantId: string) {
+export async function createBanner(storeId: number | undefined, data: RetailBannerInput, tenantId: string) {
   const result = await queryWithTenant(
     "INSERT INTO t_retail_banner (banner_title, banner_image, link_type, link_value, sort_order, status, start_time, end_time, store_id, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     [data.banner_title ?? null, data.banner_image, data.link_type ?? "NONE", data.link_value ?? null,
@@ -274,7 +283,7 @@ export async function createBanner(storeId: number | undefined, data: any, tenan
   return { id: (result as unknown as { insertId: number }).insertId };
 }
 
-export async function updateBanner(id: number, data: any, tenantId: string) {
+export async function updateBanner(id: number, data: RetailBannerInput, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.banner_title !== undefined) { fields.push("banner_title = ?"); values.push(data.banner_title); }

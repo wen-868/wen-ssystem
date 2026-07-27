@@ -7,10 +7,10 @@
  */
 
 import type { AbstractPlatformAdapter } from "./base-adapter";
-import type { PlatformType } from "./types";
+import type { PlatformType, PlatformCredentials } from "./types";
 
 /** 适配器类构造函数类型 */
-type AdapterConstructor = new (...args: any[]) => AbstractPlatformAdapter;
+type AdapterConstructor = new (credentials?: PlatformCredentials) => AbstractPlatformAdapter;
 
 /** 内部注册表映射 */
 const registry = new Map<PlatformType, AdapterConstructor>();
@@ -56,10 +56,10 @@ export function getRegisteredPlatforms(): PlatformType[] {
  * @param args 传递给适配器构造函数的参数
  * @returns 适配器实例，若未注册则抛出错误
  */
-export function createAdapter(platform: PlatformType, ...args: any[]): AbstractPlatformAdapter {
+export function createAdapter(platform: PlatformType, credentials?: PlatformCredentials): AbstractPlatformAdapter {
   const AdapterClass = registry.get(platform);
   if (!AdapterClass) {
     throw new Error(`Adapter not registered for platform: ${platform}`);
   }
-  return new AdapterClass(...args);
+  return new AdapterClass(credentials);
 }

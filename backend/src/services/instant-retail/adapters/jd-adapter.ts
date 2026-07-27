@@ -1,10 +1,10 @@
-﻿﻿﻿﻿/**
- * 京东秒送平台适配器
- * JD Instant Delivery (京东秒送) Platform Adapter
- *
- * 真实 API 文档地址：https://openapi.jddj.com/djapi/
- * 京东秒送开放平台提供订单管理、商品同步、库存更新、配送状态等接口。
- */
+﻿﻿/**
+* 京东秒送平台适配器
+* JD Instant Delivery (京东秒送) Platform Adapter
+*
+* 真实 API 文档地址：https://openapi.jddj.com/djapi/
+* 京东秒送开放平台提供订单管理、商品同步、库存更新、配送状态等接口。
+*/
 
 import { AbstractPlatformAdapter } from "../base-adapter";
 import { platformCall, useMock } from "../http-client";
@@ -21,6 +21,7 @@ import type {
   UpdateInventoryResult,
   WebhookVerificationResult,
   SyncOrdersResult,
+  JdResponse,
 } from "../types";
 
 /** 京东秒送开放平台 API 基础地址 */
@@ -47,11 +48,10 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const timestamp = Date.now().toString();
     const signStr = this.sign({ app_key: appKey, timestamp, app_secret: appSecret });
 
-    const result = await platformCall<{
-      code: number;
-      msg: string;
-      data: { accessToken: string; refreshToken: string; expiresIn: number };
-    }>(
+    type JdAuthData = { accessToken: string; refreshToken: string; expiresIn: number };
+    type JdAuthResponse = JdResponse<JdAuthData>;
+
+    const result = await platformCall<JdAuthResponse>(
       "JD",
       `${API_BASE}/oauth/token`,
       {
@@ -66,7 +66,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
       async () => {
         throw new Error("[JD] Cannot refresh token: no credentials");
       },
-      (async () => {
+      (async (): Promise<JdAuthResponse> => {
         logger.info("[JD] Mock authenticate");
         const expireAt = new Date(Date.now() + 7200 * 1000);
         const creds: PlatformCredentials = {
@@ -81,8 +81,8 @@ export class JdAdapter extends AbstractPlatformAdapter {
           enabled: true,
         };
         this.credentials = creds;
-        return creds;
-      }) as any
+        return creds as unknown as JdAuthResponse;
+      })
     );
 
     const token = useMock()
@@ -195,11 +195,10 @@ export class JdAdapter extends AbstractPlatformAdapter {
       CANCELLED: "CANCELLED",
     };
 
-    const result = await platformCall<{
-      code: number;
-      msg: string;
-      data: { orderList: Record<string, unknown>[]; totalCount: number; pageNo: number; pageSize: number };
-    }>(
+    type JdOrderListData = { orderList: Record<string, unknown>[]; totalCount: number; pageNo: number; pageSize: number };
+    type JdOrderListResponse = JdResponse<JdOrderListData>;
+
+    const result = await platformCall<JdOrderListResponse>(
       "JD",
       `${API_BASE}/order/queryList`,
       {
@@ -214,13 +213,13 @@ export class JdAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<JdOrderListResponse> => {
         const mockOrders: UnifiedOrder[] = Array.from({ length: Math.min(limit, 3) }).map((_, i) =>
           this.createMockOrder(`JD${Date.now()}${i}`, params?.status ?? "PENDING")
         );
         logger.info(`[JD] Mock synced ${mockOrders.length} orders`);
-        return { orders: mockOrders, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { orders: mockOrders, hasMore: false, nextCursor: undefined } as unknown as JdOrderListResponse;
+      })
     );
 
     if (useMock()) {
@@ -257,7 +256,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         logger.info(`[JD] Mock confirm order: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
-    ).then((r: any) => r.code === 0);
+    ).then((r) => r.code === 0);
   }
 
   async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
@@ -280,7 +279,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         logger.info(`[JD] Mock start delivery: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
-    ).then((r: any) => r.code === 0);
+    ).then((r) => r.code === 0);
   }
 
   async completeDelivery(platformOrderId: string): Promise<boolean> {
@@ -301,7 +300,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         logger.info(`[JD] Mock complete delivery: ${platformOrderId}`);
         return { code: 0, msg: "success" };
       }
-    ).then((r: any) => r.code === 0);
+    ).then((r) => r.code === 0);
   }
 
   async cancelOrder(platformOrderId: string, reason?: string): Promise<boolean> {
@@ -323,7 +322,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         logger.info(`[JD] Mock cancel order: ${platformOrderId}, reason: ${reason ?? "N/A"}`);
         return { code: 0, msg: "success" };
       }
-    ).then((r: any) => r.code === 0);
+    ).then((r) => r.code === 0);
   }
 
   async syncProducts(params?: { cursor?: string; limit?: number }): Promise<{
@@ -336,11 +335,10 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const storeId = this.credentials?.storeId ?? "mock_store";
     const limit = params?.limit ?? 20;
 
-    const result = await platformCall<{
-      code: number;
-      msg: string;
-      data: { skuList: Record<string, unknown>[]; totalCount: number; pageNo: number; pageSize: number };
-    }>(
+    type JdProductListData = { skuList: Record<string, unknown>[]; totalCount: number; pageNo: number; pageSize: number };
+    type JdProductListResponse = JdResponse<JdProductListData>;
+
+    const result = await platformCall<JdProductListResponse>(
       "JD",
       `${API_BASE}/product/queryList`,
       {
@@ -352,7 +350,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
         },
       },
       () => this.authenticate(),
-      (async () => {
+      (async (): Promise<JdProductListResponse> => {
         const mockProducts: UnifiedProduct[] = Array.from({ length: Math.min(limit, 2) }).map((_, i) => ({
           localSkuId: `local_sku_${i}`,
           platformSkuId: `jd_sku_${i}`,
@@ -372,8 +370,8 @@ export class JdAdapter extends AbstractPlatformAdapter {
           storeId,
         }));
         logger.info(`[JD] Mock synced ${mockProducts.length} products`);
-        return { products: mockProducts, hasMore: false, nextCursor: undefined };
-      }) as any
+        return { products: mockProducts, hasMore: false, nextCursor: undefined } as unknown as JdProductListResponse;
+      })
     );
 
     if (useMock()) {
@@ -397,11 +395,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
 
     const storeId = this.credentials?.storeId ?? "mock_store";
 
-    return platformCall<{
-      code: number;
-      msg: string;
-      data: { results: UpdateInventoryResult[] };
-    }>(
+    return platformCall<JdResponse<{ results: UpdateInventoryResult[] }>>(
       "JD",
       `${API_BASE}/product/updateStock`,
       {
@@ -431,7 +425,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
           },
         };
       }
-    ).then((r: any) => r.data?.results ?? params.map((p: any) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
+    ).then((r) => r.data?.results ?? params.map((p) => ({ success: false, localSkuId: p.localSkuId, platformSkuId: p.platformSkuId, message: "更新失败" })));
   }
 
   async verifyWebhook(payload: unknown, signature: string, timestamp?: string): Promise<WebhookVerificationResult> {
