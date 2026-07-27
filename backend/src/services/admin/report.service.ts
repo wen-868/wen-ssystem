@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // ========== 数据库行类型定义 ==========
 /** 仪表盘销售汇总行（amount + count） */
@@ -631,9 +631,9 @@ export async function getInventoryABC(tenantId: string) {
      ORDER BY totalSales DESC`,
     [tenantId], tenantId
   );
-  const grandTotal = items.reduce((s: number, i: any) => s + Number(i.totalSales), 0);
+  const grandTotal = items.reduce((s: number, i: InventoryABCRow) => s + Number(i.totalSales), 0);
   let cumulative = 0;
-  return items.map((item: any) => {
+  return items.map((item: InventoryABCRow) => {
     cumulative += Number(item.totalSales);
     const pct = grandTotal > 0 ? cumulative / grandTotal : 0;
     let category = "C";

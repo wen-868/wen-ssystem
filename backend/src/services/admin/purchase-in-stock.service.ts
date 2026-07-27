@@ -1,5 +1,5 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
-import type { ResultSetHeader } from "mysql2/promise";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 import { bindTraceCodeOnInStock } from "../../shared/trace-code";
 
@@ -95,6 +95,20 @@ interface CountCntRow {
   cnt: number;
 }
 
+/** 审核时读取的入库明细行 */
+interface ApproveItemRow {
+  sku_id: number;
+  total_bottle_qty: number;
+  batch_no: string | null;
+  production_date: string | Date | null;
+  expiry_date: string | Date | null;
+}
+
+/** 库存数量行 */
+interface InventoryQtyRow {
+  physical_qty: number | string | null;
+}
+
 /** 采购订单简要行 */
 interface PurchaseOrderBriefRow {
   id: number;
@@ -116,6 +130,11 @@ interface InStockStatusRow {
 interface InStockStatusOnlyRow {
   id: number;
   stock_status: string;
+}
+
+/** 采购订单剩余未入库数量行 */
+interface RemainingQtyRow extends RowDataPacket {
+  remainingQty: number | string | null;
 }
 
 export async function list(params: {
@@ -229,7 +248,7 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
     await conn.query("UPDATE t_purchase_in_stock SET stock_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE stock_no = ? AND tenant_id = ?", [userId, stockNo, tenantId]);
     const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty, batch_no, production_date, expiry_date FROM t_purchase_in_stock_item WHERE stock_no = ?", [stockNo]);
 
-    for (const item of (itemRows as Record<string, unknown>[])) {
+    for (const item of (itemRows as ApproveItemRow[])) {
       await conn.query(
         `INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
          VALUES (?, ?, 'OFFLINE', ?, 0, ?, ?)
@@ -242,8 +261,8 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
         "SELECT physical_qty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [stock.store_id, item.sku_id]
       );
-      const afterQty = Number((balanceRows as Record<string, unknown>[])?.[0]?.physical_qty) || 0;
-      const beforeQty = afterQty - (item as any).total_bottle_qty;
+      const afterQty = Number((balanceRows as InventoryQtyRow[])?.[0]?.physical_qty) || 0;
+      const beforeQty = afterQty - item.total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");
       await conn.query(
@@ -336,7 +355,7 @@ export async function purchaseInStock(id: number, params: {
     }
     const totalAmount = goodsAmount + taxAmount;
 
-    const [stockResult] = await conn.execute<any>(
+    const [stockResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_purchase_in_stock (stock_no, order_no, supplier_id, supplier_name, store_id,
         stock_status, goods_amount, tax_amount, total_amount, operator_id, remark, tenant_id)
        VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, ?, ?)`,
@@ -391,12 +410,12 @@ export async function purchaseInStock(id: number, params: {
     }
 
     // 检查采购订单是否全部入库
-    const remaining = await conn.execute<any>(
+    const remaining = await conn.execute<RemainingQtyRow[]>(
       `SELECT SUM(total_bottle_qty - in_stocked_qty) AS remainingQty
        FROM t_purchase_order_item WHERE order_no = ?`,
       [order.orderNo]
     );
-    const remainingQty = Number(((remaining as any)[0])?.[0]?.remainingQty ?? 0);
+    const remainingQty = Number(remaining[0]?.[0]?.remainingQty ?? 0);
     const newStatus = remainingQty <= 0 ? "COMPLETED" : "PARTIAL";
     await conn.execute(
       `UPDATE t_purchase_order SET order_status = ?, actual_date = CURDATE(), updated_at = NOW() WHERE id = ? AND tenant_id = ?`,

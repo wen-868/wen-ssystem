@@ -1,4 +1,4 @@
-﻿import { queryWithTenant } from "../../shared/db";
+import { queryWithTenant } from "../../shared/db";
 
 /** 报表导出行（动态 SQL，字段因报表类型而异，使用索引签名） */
 interface ReportExportRow {
@@ -170,7 +170,7 @@ export async function exportReport(req: ExportRequest, tenantId: string) {
   return generateExcel(rows, columns);
 }
 
-function generateCsv(rows: any[], columns?: string[]) {
+function generateCsv(rows: Record<string, unknown>[], columns?: string[]) {
   if (rows.length === 0) return { format: "csv", data: "", columns: [] };
   const keys = columns || Object.keys(rows[0]);
   const header = keys.join(",");
@@ -183,7 +183,7 @@ function generateCsv(rows: any[], columns?: string[]) {
   return { format: "csv", data: bom + [header, ...body].join("\n"), columns: keys, rowCount: rows.length };
 }
 
-function generateExcel(rows: any[], columns?: string[]) {
+function generateExcel(rows: Record<string, unknown>[], columns?: string[]) {
   const keys = columns || (rows.length > 0 ? Object.keys(rows[0]) : []);
   return { format: "excel", data: rows, columns: keys, rowCount: rows.length, message: "Excel导出需由前端处理，后端返回JSON数据" };
 }

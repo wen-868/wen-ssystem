@@ -115,7 +115,7 @@ export async function createPrintRecord(
         throw Object.assign(new Error("打印份数必须在 1-99 之间"), { statusCode: 400 });
     }
 
-    const result: any = await queryWithTenant<ResultSetHeader>(
+    const result = await queryWithTenant<ResultSetHeader>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -132,7 +132,7 @@ export async function createPrintRecord(
             data.originalId ?? null,
         ],
         tenantId
-    );
+    ) as unknown as ResultSetHeader | ResultSetHeader[];
 
     // queryWithTenant 对 INSERT 的返回形态：
     //  - 真实 DB：ResultSetHeader 对象（含 insertId，见 database.ts queryWithTenant 的 pool.query 分支）
@@ -282,7 +282,7 @@ export async function reprintRecord(
     }
 
     // 复制原记录数据，bill_type 改为 REPRINT，original_id 指向原记录
-    const result: any = await queryWithTenant<ResultSetHeader>(
+    const result = await queryWithTenant<ResultSetHeader>(
         `INSERT INTO t_print_record
       (store_id, bill_type, bill_no, printer_mac, print_content, copies, operator_id, status, error_msg, original_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -299,7 +299,7 @@ export async function reprintRecord(
             original.id,
         ],
         tenantId
-    );
+    ) as unknown as ResultSetHeader | ResultSetHeader[];
 
     // 兼容 mock（数组）与真实 DB（对象）两种 INSERT 返回形态，详见踩坑日志 [23]
     const insertId =

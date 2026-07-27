@@ -1,4 +1,11 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+
+/** SKU 阶梯价存在性检查行（conn.execute SELECT 用） */
+interface SkuPriceExistingRow extends RowDataPacket {
+  id: number;
+  price: number | string;
+}
 
 /** SKU 阶梯价完整行（关联价格等级，列表/详情/更新返回） */
 interface SkuPriceFullRow {
@@ -34,7 +41,7 @@ interface BestPriceRow {
   id: number | string;
   minQty: number | string;
   price: number | string;
-  costPrice: number | string;
+  costPrice?: number | string;
   suggestedRetailPrice: number | string;
   levelCode: string;
   levelName: string;
@@ -147,14 +154,14 @@ export async function setSkuPrices(
 
   await transaction(async (conn) => {
     for (const item of prices) {
-      const existing = await (conn as any).execute(
+      const [existingRows] = await conn.execute<SkuPriceExistingRow[]>(
         "SELECT id, price FROM t_sku_price WHERE sku_id = ? AND price_level_id = ? AND min_qty = ? AND tenant_id = ?",
         [skuId, item.priceLevelId, item.minQty, tenantId]
-      ) as [Record<string, unknown>[], unknown];
+      );
 
-      if ((existing[0]).length > 0) {
-        const oldRecord = (existing[0])[0];
-        await (conn as any).execute(
+      if (existingRows.length > 0) {
+        const oldRecord = existingRows[0];
+        await conn.execute<ResultSetHeader>(
           `UPDATE t_sku_price
            SET price = ?, cost_price = ?, suggested_retail_price = ?,
                effective_start = ?, effective_end = ?, status = 1, updated_at = NOW()
@@ -163,14 +170,14 @@ export async function setSkuPrices(
           item.effectiveStart, item.effectiveEnd, oldRecord.id, tenantId]
         );
         if (Number(oldRecord.price) !== item.price) {
-          await (conn as any).execute(
+          await conn.execute<ResultSetHeader>(
             `INSERT INTO t_price_change_log (sku_id, price_level_id, old_price, new_price, change_reason, changed_by, tenant_id)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [skuId, item.priceLevelId, oldRecord.price, item.price, "批量更新阶梯价", userId, tenantId]
           );
         }
       } else {
-        await (conn as any).execute(
+        await conn.execute<ResultSetHeader>(
           `INSERT INTO t_sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, effective_start, effective_end, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [skuId, item.priceLevelId, item.minQty, item.price, item.costPrice, item.suggestedRetailPrice,
@@ -357,7 +364,7 @@ export async function getBestPrice(
     matchParams.push(skuId, retailLevel.id, quantity, tenantId, today, today);
   }
 
-  let bestPrice: any = null;
+  let bestPrice: BestPriceRow | null = null;
   if (matchSql) {
     bestPrice = await queryOneWithTenant<BestPriceRow>(matchSql, matchParams, tenantId);
   }

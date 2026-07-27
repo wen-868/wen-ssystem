@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2/promise";
 
 export interface QuickEntryData {
@@ -41,7 +41,7 @@ export async function listQuickEntries(tenantId: string, role?: string) {
 
   // 按角色过滤：如果指定了角色，只返回该角色可见的入口
   if (role) {
-    return records.filter((entry: any) => {
+    return records.filter((entry: QuickEntryRow) => {
       if (!entry.visibleRoles) return true;
       let roles: string[] = [];
       if (typeof entry.visibleRoles === "string") {

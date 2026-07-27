@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import logger from "../../shared/logger";
 import { makeBizNo } from "../../shared/id";
@@ -589,8 +589,8 @@ export async function importProducts(
         );
       });
       successCount++;
-    } catch (err: any) {
-      errors.push({ row: rowNum, message: err.message || "导入失败" });
+    } catch (err: unknown) {
+      errors.push({ row: rowNum, message: (err as Error).message || "导入失败" });
     }
   }
   return { successCount, failCount: errors.length, errors };

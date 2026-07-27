@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** 智能补货建议行 */
@@ -88,7 +88,7 @@ export async function suggestPurchasePlan(tenantId: string, storeId?: number) {
     [tenantId, tenantId, ...params],
     tenantId
   );
-  return suggestions.map((s: any) => {
+  return suggestions.map((s: PurchaseSuggestionRow) => {
     const currentStock = Number(s.currentStock ?? 0);
     const safetyStock = Number(s.safetyStock ?? 0);
     const monthlyAvgSales = Number(s.monthlyAvgSales ?? 0);

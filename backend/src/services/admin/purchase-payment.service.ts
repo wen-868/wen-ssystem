@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+﻿﻿﻿﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** 采购付款单完整行（SELECT *，字段依据 INSERT 语句及常见列推断） */

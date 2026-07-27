@@ -1,4 +1,4 @@
-﻿import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 
@@ -63,6 +63,16 @@ interface PurchaseReturnItemRawRow {
   tax_amount: number | string;
   total_amount: number | string;
   reason: string | null;
+}
+
+interface ReturnItemQtyRow {
+  sku_id: number;
+  total_bottle_qty: number;
+}
+
+/** 库存数量行 */
+interface InventoryQtyRow {
+  physical_qty: number | string | null;
 }
 
 /** 计数 total 行 */
@@ -198,14 +208,14 @@ export async function approve(returnNo: string, tenantId: string, userId: number
     await conn.query("UPDATE t_purchase_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ? AND tenant_id = ?", [userId, returnNo, tenantId]);
     const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty FROM t_purchase_return_item WHERE return_no = ?", [returnNo]);
 
-    for (const item of (itemRows as Record<string, unknown>[])) {
+    for (const item of (itemRows as ReturnItemQtyRow[])) {
       const [balanceRows] = await conn.query(
         "SELECT physical_qty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [returnOrder.store_id, item.sku_id]
       );
-      const currentQty = (balanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
-      if (currentQty < (item as any).total_bottle_qty) {
-        throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${(item as any).total_bottle_qty}`);
+      const currentQty = Number((balanceRows as InventoryQtyRow[])?.[0]?.physical_qty) || 0;
+      if (currentQty < item.total_bottle_qty) {
+        throw new Error(`库存不足: SKU ${item.sku_id} 当前库存 ${currentQty}, 退货数量 ${item.total_bottle_qty}`);
       }
 
       await conn.query(
@@ -218,15 +228,15 @@ export async function approve(returnNo: string, tenantId: string, userId: number
         "SELECT physical_qty FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND stock_type = 'OFFLINE'",
         [returnOrder.store_id, item.sku_id]
       );
-      const afterQty = (newBalanceRows as Record<string, unknown>[])?.[0]?.physical_qty || 0;
-      const beforeQty = afterQty + (item as any).total_bottle_qty;
+      const afterQty = Number((newBalanceRows as InventoryQtyRow[])?.[0]?.physical_qty) || 0;
+      const beforeQty = afterQty + item.total_bottle_qty;
 
       const ledgerNo = makeBizNo("LL");
       await conn.query(
         `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
           change_qty, before_qty, after_qty, operator_id, idempotency_key, remark, tenant_id)
          VALUES (?, ?, ?, 'OFFLINE', 'PURCHASE_RETURN', ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [ledgerNo, returnOrder.store_id, item.sku_id, returnNo, -(item as any).total_bottle_qty, beforeQty, afterQty,
+        [ledgerNo, returnOrder.store_id, item.sku_id, returnNo, -item.total_bottle_qty, beforeQty, afterQty,
           userId, `${returnNo}_${item.sku_id}`, `采购退货出库: ${returnNo}`, tenantId]
       );
     }
@@ -300,7 +310,7 @@ export async function purchaseReturn(params: {
     }
     const totalAmount = goodsAmount + taxAmount;
 
-    const [returnResult] = await conn.execute<any>(
+    const [returnResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_purchase_return (return_no, order_no, stock_no, supplier_id, supplier_name, store_id,
         return_status, goods_amount, tax_amount, total_amount, refund_amount, refunded_amount,
         operator_id, remark, tenant_id)

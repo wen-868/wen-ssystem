@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 一键报价推送服务
  *
  * 功能：
@@ -13,6 +13,7 @@
 import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { queryOne } from "../../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -96,6 +97,136 @@ interface QuoteShareRow {
   tenantId: string;
 }
 
+// ── 数据库行接口（类型安全） ──
+
+/** 客户价格等级行 */
+interface CustomerPriceLevelRow {
+  id: number;
+  name: string;
+  price_level_id: number | null;
+  level_name: string | null;
+}
+
+/** 价格等级名称行 */
+interface PriceLevelNameRow {
+  level_name: string;
+}
+
+/** 报价 SKU 行 */
+interface QuoteSkuRow {
+  skuId: number;
+  skuName: string;
+  skuCode: string;
+  barcode: string | null;
+  unit: string | null;
+  imageUrl: string | null;
+  retailPrice: number | string | null;
+  wholesalePrice: number | string | null;
+  costPrice: number | string | null;
+}
+
+/** SKU 等级价格行 */
+interface SkuLevelPriceRow {
+  price: number | string;
+}
+
+/** 客户姓名电话行（conn.query 用） */
+interface CustomerNamePhoneRow extends RowDataPacket {
+  name: string;
+  phone: string | null;
+}
+
+/** SKU 名称行（conn.query 用） */
+interface SkuNameRow extends RowDataPacket {
+  sku_name: string;
+}
+
+/** 分享令牌行（conn.query 用） */
+interface ShareTokenRow extends RowDataPacket {
+  shareToken: string;
+}
+
+/** 计数行 */
+interface CountTotalRow {
+  total: number;
+}
+
+/** 报价单列表行 */
+interface QuoteListRow {
+  id: number;
+  quoteNo: string;
+  title: string;
+  customerId: number;
+  customerName: string | null;
+  status: string;
+  validDays: number;
+  expireAt: string | Date | null;
+  totalAmount: number | string;
+  totalSku: number;
+  viewCount: number;
+  createdAt: string | Date;
+}
+
+/** 报价单详情行 */
+interface QuoteDetailRow {
+  id: number;
+  quoteNo: string;
+  title: string;
+  customerId: number;
+  customerName: string | null;
+  customerPhone: string | null;
+  status: string;
+  validDays: number;
+  expireAt: string | Date | null;
+  totalAmount: number | string;
+  totalSku: number;
+  remark: string | null;
+  viewCount: number;
+  shareToken: string;
+  createdAt: string | Date;
+  createdBy: number;
+}
+
+/** 报价单明细行 */
+interface QuoteItemRow {
+  id: number;
+  skuId: number;
+  skuName: string;
+  quotePrice: number | string;
+  minQty: number;
+  barcode: string | null;
+  skuCode: string | null;
+  unit: string | null;
+  imageUrl: string | null;
+}
+
+/** 报价推送简要行（snake_case） */
+interface QuotePushBriefRow {
+  id: number;
+  quote_no: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  share_token: string;
+  status: string;
+}
+
+/** 分享报价明细行（不含 skuCode） */
+interface QuoteShareItemRow {
+  skuId: number;
+  skuName: string;
+  quotePrice: number | string;
+  minQty: number;
+  barcode: string | null;
+  unit: string | null;
+  imageUrl: string | null;
+}
+
+/** 报价取消状态行 */
+interface QuoteCancelRow {
+  id: number;
+  status: string;
+}
+
 // ─── 生成报价单（预览） ───────────────────────────────────────
 
 /**
@@ -140,7 +271,7 @@ export async function previewQuote(
   let customerName = "";
 
   if (filter.customerId) {
-    const customer = await queryOneWithTenant<any>(
+    const customer = await queryOneWithTenant<CustomerPriceLevelRow>(
       `SELECT m.id, m.name, cpb.price_level_id, pl.level_name
        FROM t_member m
        LEFT JOIN t_customer_price_binding cpb
@@ -160,7 +291,7 @@ export async function previewQuote(
 
   if (filter.priceLevelId) {
     priceLevelId = filter.priceLevelId;
-    const level = await queryOneWithTenant<any>(
+    const level = await queryOneWithTenant<PriceLevelNameRow>(
       "SELECT level_name FROM t_price_level WHERE id = ? AND tenant_id = ?",
       [filter.priceLevelId, tenantId],
       tenantId
@@ -169,7 +300,7 @@ export async function previewQuote(
   }
 
   // 查询SKU及其最优价格
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<QuoteSkuRow>(
     `SELECT sk.id AS skuId, sk.sku_name AS skuName, sk.sku_code AS skuCode,
             sk.barcode, s.unit, s.main_image AS imageUrl,
             pp.retail_price AS retailPrice,
@@ -194,7 +325,7 @@ export async function previewQuote(
 
     // 如果客户有绑定价格等级，从 sku_price 表查对应等级的阶梯价
     if (priceLevelId) {
-      const levelPrice = await queryOneWithTenant<any>(
+      const levelPrice = await queryOneWithTenant<SkuLevelPriceRow>(
         `SELECT price FROM t_sku_price
          WHERE sku_id = ? AND price_level_id = ? AND status = 1 AND tenant_id = ?
          ORDER BY min_qty ASC
@@ -215,13 +346,13 @@ export async function previewQuote(
       skuId: row.skuId,
       skuName: row.skuName,
       skuCode: row.skuCode,
-      barcode: row.barcode,
+      barcode: row.barcode ?? undefined,
       unit: row.unit || "件",
       originalPrice,
       quotePrice,
       discountRate,
       minQty: 1,
-      imageUrl: row.imageUrl
+      imageUrl: row.imageUrl ?? undefined
     });
 
     totalAmount += quotePrice;
@@ -252,7 +383,7 @@ export async function createQuote(
     expireAt.setDate(expireAt.getDate() + params.validDays);
 
     // 获取客户信息
-    const [customerRows] = await conn.query<any[]>(
+    const [customerRows] = await conn.query<CustomerNamePhoneRow[]>(
       "SELECT name, phone FROM t_member WHERE id = ? AND tenant_id = ?",
       [params.customerId, tenantId]
     );
@@ -263,7 +394,7 @@ export async function createQuote(
     const itemsWithPrice: Array<{ skuId: number; skuName: string; quotePrice: number; minQty: number }> = [];
 
     for (const item of params.items) {
-      const [skuRows] = await conn.query<any[]>(
+      const [skuRows] = await conn.query<SkuNameRow[]>(
         "SELECT sku_name FROM t_product_sku WHERE id = ? AND tenant_id = ?",
         [item.skuId, tenantId]
       );
@@ -279,7 +410,7 @@ export async function createQuote(
     }
 
     // 插入报价单主表
-    const [quoteResult] = await conn.query<any>(
+    const [quoteResult] = await conn.query<ResultSetHeader>(
       `INSERT INTO t_customer_quote
        (quote_no, title, customer_id, customer_name, customer_phone, status,
         valid_days, expire_at, total_amount, total_sku, remark,
@@ -314,7 +445,7 @@ export async function createQuote(
     }
 
     // 生成分享URL
-    const [tokenRows] = await conn.query<any[]>(
+    const [tokenRows] = await conn.query<ShareTokenRow[]>(
       "SELECT share_token AS shareToken FROM t_customer_quote WHERE id = ? AND tenant_id = ?",
       [quoteId, tenantId]
     );
@@ -380,7 +511,7 @@ export async function listQuotes(
 
   const where = conditions.join(" AND ");
 
-  const rows = await queryWithTenant<any>(
+  const rows = await queryWithTenant<QuoteListRow>(
     `SELECT id, quote_no AS quoteNo, title, customer_id AS customerId,
             customer_name AS customerName, status,
             valid_days AS validDays, expire_at AS expireAt,
@@ -394,7 +525,7 @@ export async function listQuotes(
     tenantId
   );
 
-  const totalRow = await queryOneWithTenant<any>(
+  const totalRow = await queryOneWithTenant<CountTotalRow>(
     `SELECT COUNT(*) AS total FROM t_customer_quote WHERE ${where}`,
     params,
     tenantId
@@ -414,7 +545,7 @@ export async function listQuotes(
  * 报价单详情
  */
 export async function getQuoteDetail(quoteId: number, tenantId: string): Promise<QuoteDetail | null> {
-  const quote = await queryOneWithTenant<any>(
+  const quote = await queryOneWithTenant<QuoteDetailRow>(
     `SELECT q.id, q.quote_no AS quoteNo, q.title, q.customer_id AS customerId,
             q.customer_name AS customerName, q.customer_phone AS customerPhone,
             q.status, q.valid_days AS validDays, q.expire_at AS expireAt,
@@ -429,7 +560,7 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
 
   if (!quote) return null;
 
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<QuoteItemRow>(
     `SELECT qi.id, qi.sku_id AS skuId, qi.sku_name AS skuName,
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, sk.sku_code AS skuCode, s.unit, s.main_image AS imageUrl
@@ -444,7 +575,7 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
 
   return {
     ...quote,
-    items: items.map((item: any) => ({
+    items: items.map((item) => ({
       skuId: item.skuId,
       skuName: item.skuName,
       skuCode: item.skuCode,
@@ -457,7 +588,7 @@ export async function getQuoteDetail(quoteId: number, tenantId: string): Promise
       imageUrl: item.imageUrl
     })),
     shareUrl: `/quote/share/${quote.shareToken}`
-  };
+  } as unknown as QuoteDetail;
 }
 
 // ─── 推送报价单 ───────────────────────────────────────────────
@@ -473,10 +604,10 @@ export async function pushQuote(
   success: boolean;
   quoteNo: string;
   channels: string[];
-  customerPhone?: string;
+  customerPhone?: string | null;
   shareUrl: string;
 }> {
-  const quote = await queryOneWithTenant<any>(
+  const quote = await queryOneWithTenant<QuotePushBriefRow>(
     `SELECT id, quote_no, customer_name, customer_phone, share_token, status
      FROM t_customer_quote WHERE id = ? AND tenant_id = ?`,
     [quoteId, tenantId],
@@ -576,7 +707,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
     quote.tenantId
   );
 
-  const items = await queryWithTenant<any>(
+  const items = await queryWithTenant<QuoteShareItemRow>(
     `SELECT qi.sku_id AS skuId, qi.sku_name AS skuName,
             qi.quote_price AS quotePrice, qi.min_qty AS minQty,
             sk.barcode, s.unit, s.main_image AS imageUrl
@@ -616,7 +747,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
     viewCount: Number(quote.viewCount) + 1,
     createdAt: new Date(),
     createdBy: 0
-  };
+  } as unknown as QuoteDetail;
 }
 
 // ─── 取消报价单 ───────────────────────────────────────────────
@@ -625,7 +756,7 @@ export async function viewQuoteByToken(shareToken: string): Promise<QuoteDetail 
  * 取消报价单
  */
 export async function cancelQuote(quoteId: number, tenantId: string) {
-  const existing = await queryOneWithTenant<any>(
+  const existing = await queryOneWithTenant<QuoteCancelRow>(
     "SELECT id, status FROM t_customer_quote WHERE id = ? AND tenant_id = ?",
     [quoteId, tenantId],
     tenantId

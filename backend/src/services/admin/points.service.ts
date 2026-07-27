@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type { ResultSetHeader } from "mysql2/promise";
 
@@ -133,7 +133,7 @@ export async function listLevelConfigs(tenantId: string) {
   );
 }
 
-export async function createLevelConfig(params: { levelName: string; minPoints: number; maxPoints: number; discountRate: number; benefits?: any; tenantId: string }) {
+export async function createLevelConfig(params: { levelName: string; minPoints: number; maxPoints: number; discountRate: number; benefits?: Record<string, unknown>; tenantId: string }) {
   const { levelName, minPoints, maxPoints, discountRate, benefits, tenantId } = params;
   const result = await queryWithTenant<ResultSetHeader>(
     "INSERT INTO t_level_config (level_name, min_points, max_points, discount_rate, benefits, tenant_id) VALUES (?, ?, ?, ?, ?, ?)",
@@ -142,7 +142,7 @@ export async function createLevelConfig(params: { levelName: string; minPoints: 
   return { id: (result as unknown as Record<string, unknown>).insertId, levelName };
 }
 
-export async function updateLevelConfig(id: number, params: { levelName?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: any; tenantId: string }) {
+export async function updateLevelConfig(id: number, params: { levelName?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: Record<string, unknown>; tenantId: string }) {
   const fields: string[] = []; const values: unknown[] = [];
   if (params.levelName !== undefined) { fields.push("level_name = ?"); values.push(params.levelName); }
   if (params.minPoints !== undefined) { fields.push("min_points = ?"); values.push(params.minPoints); }
