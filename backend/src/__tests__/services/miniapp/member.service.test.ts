@@ -8,12 +8,14 @@ const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
   transaction: vi.fn(),
+  connExecute: vi.fn(),
 }));
 
 vi.mock("../../../shared/db", () => ({
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
   transaction: mocks.transaction,
+  connExecute: mocks.connExecute,
 }));
 
 vi.mock("../../../shared/logger", () => ({
@@ -37,7 +39,10 @@ import {
 } from "../../../services/miniapp/member.service";
 
 describe("miniapp/member.service", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.connExecute.mockImplementation(async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params));
+  });
 
   // ===== 测试用 mock 数据 =====
   const mockMember = {

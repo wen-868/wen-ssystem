@@ -1,4 +1,5 @@
-import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
+import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant, connExecute } from "../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import type { ServiceContext, PageResult } from "../types/index";
 import { makeBizNo } from "../shared/id";
 
@@ -10,6 +11,12 @@ import { makeBizNo } from "../shared/id";
 interface PurchaseOrderItemInStockRow {
   sku_id: number;
   in_stocked_qty: number;
+}
+
+/** 采购订单项数量统计行 — inStock 函数 SELECT total_bottle_qty, in_stocked_qty */
+interface PurchaseOrderItemStockRow extends RowDataPacket {
+  total_bottle_qty: number | string;
+  in_stocked_qty: number | string | null;
 }
 
 /** 采购订单详情查询行 — 用于 getDetail，字段 alias 与 PurchaseOrder 略有差异（createdDate/updatedDate） */
@@ -334,7 +341,8 @@ class PurchaseService {
     const totalAmount = goodsAmount + taxAmount - discountAmount;
 
     await transaction(async (conn) => {
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_purchase_order (
           order_no, supplier_id, supplier_name, store_id, order_status,
           goods_amount, tax_amount, discount_amount, payable_amount,
@@ -358,7 +366,8 @@ class PurchaseService {
       );
 
       for (const item of itemsWithAmount) {
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           `INSERT INTO t_purchase_order_item (
             order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
             unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
@@ -381,7 +390,8 @@ class PurchaseService {
         );
       }
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "CREATE", orderNo, "purchase_order", ctx.userId, ctx.username, `创建采购订单: ${orderNo}`, ctx.tenantId]
@@ -448,9 +458,14 @@ class PurchaseService {
         updates.push("goods_amount = ?", "tax_amount = ?", "payable_amount = ?", "unpaid_amount = ?");
         params.push(goodsAmount, taxAmount, totalAmount, totalAmount);
 
-        await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
+        await connExecute<ResultSetHeader>(
+          conn,
+          "DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?",
+          [orderNo, ctx.tenantId]
+        );
         for (const item of itemsWithAmount) {
-          await (conn as any).execute(
+          await connExecute<ResultSetHeader>(
+            conn,
             `INSERT INTO t_purchase_order_item (
               order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
               unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark, tenant_id
@@ -478,13 +493,15 @@ class PurchaseService {
       if (updates.length > 0) {
         updates.push("updated_at = NOW()");
         params.push(orderNo, ctx.tenantId);
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           `UPDATE t_purchase_order SET ${updates.join(", ")} WHERE order_no = ? AND tenant_id = ?`,
-          params as any[]
+          params
         );
       }
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "UPDATE", orderNo, "purchase_order", ctx.userId, ctx.username, `修改采购订单: ${orderNo}`, ctx.tenantId]
@@ -503,9 +520,18 @@ class PurchaseService {
     }
 
     await transaction(async (conn) => {
-      await (conn as any).execute("DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
-      await (conn as any).execute("DELETE FROM t_purchase_order WHERE order_no = ? AND tenant_id = ?", [orderNo, ctx.tenantId]);
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
+        "DELETE FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?",
+        [orderNo, ctx.tenantId]
+      );
+      await connExecute<ResultSetHeader>(
+        conn,
+        "DELETE FROM t_purchase_order WHERE order_no = ? AND tenant_id = ?",
+        [orderNo, ctx.tenantId]
+      );
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "DELETE", orderNo, "purchase_order", ctx.userId, ctx.username, `删除采购订单: ${orderNo}`, ctx.tenantId]
@@ -608,12 +634,14 @@ class PurchaseService {
         const inStockBottleQty = item.boxQty * 12 + item.bottleQty;
         const newInStockedQty = Number(orderItem.in_stocked_qty || 0) + inStockBottleQty;
 
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           "UPDATE t_purchase_order_item SET in_stocked_qty = ? WHERE order_no = ? AND sku_id = ?",
           [newInStockedQty, orderNo, item.skuId]
         );
 
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           `INSERT INTO t_inventory_balance (store_id, sku_id, physical_qty, available_qty, tenant_id)
            VALUES (?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE physical_qty = physical_qty + ?, available_qty = available_qty + ?`,
@@ -621,25 +649,27 @@ class PurchaseService {
         );
       }
 
-      const [rows] = (await (conn as any).execute(
+      const [rows] = await connExecute<PurchaseOrderItemStockRow[]>(
+        conn,
         "SELECT total_bottle_qty, in_stocked_qty FROM t_purchase_order_item WHERE order_no = ? AND tenant_id = ?",
         [orderNo, ctx.tenantId]
-      )) as [Record<string, unknown>[], unknown];
-      const totalOrdered = rows.reduce((sum: number, i: any) => sum + Number(i.total_bottle_qty), 0);
-      const totalInStocked = rows.reduce((sum: number, i: any) => sum + Number(i.in_stocked_qty || 0), 0);
+      );
+      const totalOrdered = rows.reduce((sum, i) => sum + Number(i.total_bottle_qty), 0);
+      const totalInStocked = rows.reduce((sum, i) => sum + Number(i.in_stocked_qty || 0), 0);
 
       let warehouseStatus = "PARTIAL";
       if (totalInStocked >= totalOrdered) {
         warehouseStatus = "FULL";
       }
 
-      await (conn as any).execute("UPDATE t_purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?", [
-        warehouseStatus,
-        orderNo,
-        ctx.tenantId,
-      ]);
+      await connExecute<ResultSetHeader>(
+        conn,
+        "UPDATE t_purchase_order SET warehouse_status = ?, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+        [warehouseStatus, orderNo, ctx.tenantId]
+      );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_operation_log (module, action, target_id, target_type, user_id, user_name, detail, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         ["purchase", "IN_STOCK", orderNo, "purchase_order", ctx.userId, ctx.username, `采购入库: ${orderNo}`, ctx.tenantId]

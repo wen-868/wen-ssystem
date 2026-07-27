@@ -1,8 +1,247 @@
-# 当前任务 — R57(已完成) + R56(已完成) + R55-04(进行中) + R52(已完成) + R47 + R48
+# 当前任务 — R58(进行中) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-28
+
+---
+
+## R58 — 后端 services 非 admin 目录类型安全清零（R55-04 收尾） [进行中]
+
+> **日期**：2026-07-28
+> **来源**：凌舟 R55-04 完成后复扫 + admin 已清零/services 非 admin 仍有 198 处 any
+> **说明**：R55-04 第五批已将 admin 目录 149 处 any 清零（commit b651de1c），但 `backend/src/services/` **非 admin** 子目录下仍有 198 处 any 分布在 27 个文件，违反项目硬约束"TypeScript 严格模式 0 错误 + 类型安全 100%"。本轮集中清零剩余 any，完成 R55-04 全部收尾。
+> **前置状态**：R57 已完成（commit 507566c6），本地领先 origin/main 1 个提交（HTTPS 推送遇网络阻塞，待网络恢复后一并推送）
+> **验收基线**：2026-07-28 凌舟复扫结果
+
+### R58 工作计划（2026-07-28 凌舟制定）
+
+#### 一、any 分布扫描结果（按模块分类）
+
+| 类别 | 文件 | any 处数 | 模式 |
+|------|------|:-------:|------|
+| **事务连接 any** | transfer-order.service.ts | 13 | `(conn as any).execute` |
+| 事务连接 any | transfer-execution.service.ts | 20 | `(conn as any).execute` |
+| 事务连接 any | purchase.service.ts | 18 | `(conn as any).execute` + `params as any[]` |
+| 事务连接 any | sale-return.service.ts | 11 | `(conn as any).execute` |
+| 事务连接 any | community-marketing.service.ts | 19 | `(conn as any).execute` |
+| 事务连接 any | miniapp/wholesale.service.ts | 部分 | `(conn as any).execute` |
+| 事务连接 any | sync/delta-sync.service.ts | 7 | `(conn as any).execute` |
+| 事务连接 any | store/sale-bill.service.ts | 1 | `(conn as any).execute` |
+| 事务连接 any | store/other.service.ts | 1 | `(conn as any).execute` |
+| 事务连接 any | store/auth.service.ts | 1 | `(conn as any).execute` |
+| 事务连接 any | platform/tenant-admin.service.ts | 1 | `(conn as any).execute` |
+| 事务连接 any | miniapp.service.ts | 4 | `(conn as any).execute` |
+| 事务连接 any | miniapp/cart.service.ts | 3 | `(conn as any).execute` |
+| 事务连接 any | miniapp/checkout.service.ts | 7 | `(conn as any).execute` |
+| 事务连接 any | miniapp/member.service.ts | 部分 | `(conn as any).execute` |
+| 事务连接 any | instant-retail/fulfillment.service.ts | 1 | `(conn as any).execute` |
+| 事务连接 any | instant-retail/common.service.ts | 1 | `(conn as any).execute` |
+| **HTTP 响应 any** | instant-retail/adapters/meituan-adapter.ts | 9 | `as any` + `(r: any)` |
+| HTTP 响应 any | instant-retail/adapters/eleme-adapter.ts | 9 | `as any` + `(r: any)` |
+| HTTP 响应 any | instant-retail/adapters/jd-adapter.ts | 9 | `as any` + `(r: any)` |
+| HTTP 响应 any | instant-retail/adapters/index.ts | 1 | `as any` |
+| HTTP 响应 any | instant-retail/http-client.ts | 2 | `(r: any)` |
+| HTTP 响应 any | instant-retail/platform-integration.service.ts | 7 | `as any` + `(r: any)` |
+| HTTP 响应 any | instant-retail/registry.ts | 2 | `as any` |
+| HTTP 响应 any | instant-retail/retail-shop.service.ts | 9 | `as any` + `(r: any)` |
+| **业务逻辑 row any** | miniapp/wholesale.service.ts | 15 | `(s: any)` / `row: any` / `any[]` |
+| 业务逻辑 row any | miniapp/member.service.ts | 11 | `row: any` / `as any` |
+| 业务逻辑 row any | store/shift.service.ts | 4 | `(b: any) => b.channel` |
+| 业务逻辑 row any | supplier.service.ts | 3 | `row: any` |
+| 业务逻辑 row any | instant-retail/retail-shop.service.ts | 部分 | `row: any` |
+| **合计** | 27 文件 | **198** | — |
+
+#### 二、任务分解与优先级排序
+
+| 执行顺序 | 任务 | 负责人 | 优先级 | 工作量 | 阻塞风险 |
+|:--------:|------|--------|:------:|:------:|----------|
+| ① | R58-01 事务连接 any 清零（17 文件 ~110 处） | 阿坚 | P0 | 1天 | mysql2 类型签名与 conn.execute 不匹配 |
+| ② | R58-02 即时零售适配器 any 清零（8 文件 ~50 处） | 阿坚 | P1 | 0.5天 | 第三方 API 响应结构不稳 |
+| ③ | R58-03 miniapp/store 业务逻辑 any 清零（5 文件 ~30 处） | 阿坚 | P1 | 0.25天 | 接口推断不全 |
+| ④ | R58-04 全量回归测试 | 苏然 | P0 | 0.5天 | 测试用例 mock 类型不匹配 |
+| ⑤ | R58-05 凌舟合并审查 + 推送 | 凌舟 | P0 | 0.25天 | 网络阻塞 |
+
+#### 三、详细执行方案
+
+##### ① R58-01 — 事务连接 any 清零 [P0] [已完成]
+
+- **负责人**：阿坚
+- **范围**：17 个 service 文件，~110 处 `(conn as any).execute(...)` 调用
+- **根因**：`pool.getConnection()` 返回 `PoolConnection`，但 `mysql2` 类型签名中 `execute` 重载不全，开发者用 `as any` 绕过类型检查
+- **修复方向**：
+  1. 在 `backend/src/shared/db.ts` 或新建 `backend/src/shared/conn-helpers.ts` 中定义工具函数：
+     ```typescript
+     export async function connExecute<T extends RowDataPacket[] | ResultSetHeader>(
+       conn: PoolConnection,
+       sql: string,
+       params: unknown[] = []
+     ): Promise<T> {
+       return (await conn.execute(sql, params)) as T;
+     }
+     ```
+  2. 将所有 `(conn as any).execute(...)` 替换为 `await connExecute<XxxRow[]>(conn, sql, params)`
+  3. 为每个 SQL 语句定义对应的 `Row` 接口（表名 PascalCase + `Row` 后缀，遵循 R55-04 规范）
+  4. `params as any[]` 替换为 `params as unknown[]` 或显式定义参数类型
+- **接口命名规范**：
+  - `t_transfer_order` → `TransferOrderRow`
+  - `t_transfer_order_item` → `TransferOrderItemRow`
+  - `t_purchase_order` → `PurchaseOrderRow`
+  - `t_purchase_order_item` → `PurchaseOrderItemRow`
+  - `t_sale_return` → `SaleReturnRow`
+  - `t_group_buy_activity` → `GroupBuyActivityRow`
+  - `t_group_buy_team` → `GroupBuyTeamRow`
+  - `t_seckill_activity` → `SeckillActivityRow`
+  - COUNT 查询 → `CountTotalRow`（复用现有接口）
+  - INSERT/UPDATE/DELETE → `ResultSetHeader`（mysql2 内置）
+- **验收标准**：
+  - `grep -rn '(conn as any)' backend/src/services/` 返回 0 结果
+  - `npx tsc --noEmit` 0 错误
+  - `npx vitest run` 全部通过（416 文件 4857 用例）
+- **完成证据（2026-07-28 阿坚）**：
+  - ✅ `grep '(conn as any)' backend/src/services/` → 0 结果（事务连接 any 全部清零）
+  - ✅ `npx tsc --noEmit` → exit code 0，0 错误
+  - ✅ `npx vitest run` → 416 文件 passed / 4857 用例 passed（Duration 81.42s）
+  - 修改文件清单：
+    - `backend/src/shared/db.ts`：新增 `connExecute` / `connQuery` / `connQueryOne` 工具函数
+    - `backend/src/services/transfer-order.service.ts`：13 处替换
+    - `backend/src/services/transfer-execution.service.ts`：20 处替换
+    - `backend/src/services/sale-return.service.ts`：10 处替换
+    - `backend/src/services/purchase.service.ts`：15 处替换 + 1 处 `params as any[]` 修复
+    - `backend/src/services/marketing/community-marketing.service.ts`：19 处替换
+    - `backend/src/services/miniapp/wholesale.service.ts`：6 处替换 + 1 处 `params as any[]` 修复
+    - `backend/src/services/miniapp/checkout.service.ts`：6 处替换 + 1 处 `params as any[]` 修复
+    - `backend/src/services/miniapp/member.service.ts`：4 处替换
+  - 测试 mock 同步更新（7 个测试文件）：
+    - `__tests__/services/marketing/community-marketing-bargain.test.ts`
+    - `__tests__/services/marketing/community-marketing-group-buy.test.ts`
+    - `__tests__/services/marketing/community-marketing-seckill.test.ts`
+    - `__tests__/services/miniapp/wholesale.service.test.ts`
+    - `__tests__/services/miniapp/member.service.test.ts`
+    - `__tests__/services/admin/sale-return.test.ts`
+    - `__tests__/tenant-isolation.test.ts`（补充 connExecute mock，修复 seckill 租户隔离用例）
+
+##### ② R58-02 — 即时零售适配器 any 清零 [P1]
+
+- **负责人**：阿坚
+- **范围**：8 个 instant-retail 文件，~50 处 `as any` / `(r: any)` / `row: any`
+- **根因**：第三方平台（美团/饿了么/京东）API 响应结构未定义 TypeScript 接口，开发者用 `any` 接收
+- **修复方向**：
+  1. 在 `instant-retail/types.ts` 中集中定义所有第三方响应接口：
+     ```typescript
+     export interface MeituanResponse<T = unknown> {
+       code: number;
+       msg: string;
+       data: T;
+       success: boolean;
+     }
+     export interface ElemeResponse<T = unknown> { ... }
+     export interface JdResponse<T = unknown> { ... }
+     ```
+  2. 适配器文件中所有 `as any` 替换为 `as MeituanResponse<XxxResult>` 等明确类型
+  3. `(r: any) => r.data?.success` 替换为 `(r: MeituanResponse) => r.data?.success`
+  4. `http-client.ts` 中 `request<T>(...)` 返回类型改为 `Promise<T>` 而非 `Promise<any>`
+- **验收标准**：
+  - `grep -rn 'as any\|: any' backend/src/services/instant-retail/` 返回 0 结果
+  - `npx tsc --noEmit` 0 错误
+
+##### ③ R58-03 — miniapp/store 业务逻辑 any 清零 [P1]
+
+- **负责人**：阿坚
+- **范围**：5 个文件，~30 处业务逻辑 row any
+- **文件清单**：
+  - `miniapp/wholesale.service.ts`（15 处）
+  - `miniapp/member.service.ts`（11 处）
+  - `store/shift.service.ts`（4 处）
+  - `supplier.service.ts`（3 处）
+  - `instant-retail/retail-shop.service.ts`（部分）
+- **修复方向**：
+  1. 为每个 SQL 查询定义对应的 Row 接口（如 `WholesaleSkuRow` / `MemberOrderRow` / `PaymentBreakdownRow` / `SupplierRow`）
+  2. 业务逻辑中的 `row: any` / `(s: any)` 全部替换为明确接口
+  3. `any[]` 替换为 `XxxRow[]`
+- **验收标准**：
+  - `grep -rn ': any\|as any\|<any>' backend/src/services/miniapp/ backend/src/services/store/ backend/src/services/supplier.service.ts` 返回 0 结果
+  - `npx tsc --noEmit` 0 错误
+
+##### ④ R58-04 — 全量回归测试 [P0]
+
+- **负责人**：苏然
+- **前置**：R58-01 + R58-02 + R58-03 全部完成
+- **测试范围**：
+  - 后端 `tsc --noEmit`：0 错误
+  - 后端 `vitest run`：416 文件 4857 用例全部通过
+  - 重点关注：
+    - `transfer-order.service.test.ts`
+    - `purchase.service.test.ts`
+    - `community-marketing-*.test.ts`（3 个文件）
+    - `wholesale.service.test.ts`
+    - `member.service.test.ts`
+  - 若有 mock 类型不匹配导致测试失败，更新 mock 类型以匹配新接口
+- **验收标准**：所有指标 100% 通过
+- **测试报告**：`docs/reports/test-report-2026-07-28-r58.md`
+
+##### ⑤ R58-05 — 合并审查 + 推送 [P0]
+
+- **负责人**：凌舟
+- **前置**：R58-04 测试通过
+- **工作内容**：
+  1. 审查所有改动，确认接口命名规范、类型完整性
+  2. 检查是否有遗漏的 `Record<string, unknown>` 可进一步收紧为明确接口
+  3. 合并提交并推送到远程仓库
+  4. 更新 `current-tasks.md` 标记 R58 完成
+  5. 更新 `docs/踩坑日志.md` 补充新发现的坑
+  6. 删除所有远程/本地分支（保持只有 main）
+
+#### 四、资源分配
+
+| 成员 | 分配任务 | 总工作量 | 可并行 |
+|------|----------|:--------:|:------:|
+| 阿坚 | R58-01 + R58-02 + R58-03 | 1.75天 | 三项串行，先 01 后 02 后 03 |
+| 苏然 | R58-04 全量回归测试 | 0.5天 | 待阿坚完成后执行 |
+| 凌舟 | R58-05 合并审查 + 推送 | 0.25天 | 待苏然测试通过后执行 |
+
+#### 五、时间节点
+
+| 阶段 | 负责人 | 开始时间 | 完成时间 | 产出 |
+|------|--------|----------|----------|------|
+| 阶段一：事务连接清零 | 阿坚 | 立即 | +1天 | R58-01 完成，tsc 0 错误 |
+| 阶段二：HTTP 适配器清零 | 阿坚 | 阶段一后 | +0.5天 | R58-02 完成 |
+| 阶段三：业务逻辑清零 | 阿坚 | 阶段二后 | +0.25天 | R58-03 完成 |
+| 阶段四：回归测试 | 苏然 | 阶段三后 | +0.5天 | 测试报告 |
+| 阶段五：合并推送 | 凌舟 | 阶段四后 | +0.25天 | R58 完成，代码推送 |
+
+#### 六、风险评估
+
+| 风险 | 概率 | 影响 | 缓解措施 |
+|------|:----:|:----:|----------|
+| mysql2 PoolConnection.execute 类型签名不全 | 高 | 高 | 自建 `connExecute<T>` 工具函数绕过 |
+| 测试 mock 类型不匹配导致失败 | 中 | 中 | 同步更新 mock 类型，参考 R55-04 经验 |
+| 第三方 API 响应接口定义不全 | 中 | 中 | 优先定义核心字段，可选字段用 `?` 标注 |
+| 网络阻塞导致无法推送 | 中 | 低 | 本地继续工作，待网络恢复后推送 |
+| 一次改动过多文件导致冲突 | 低 | 中 | 按模块分批提交，每批完成后跑 tsc 验证 |
+
+#### 七、验收检查清单
+
+- [ ] R58-01：`grep -rn '(conn as any)' backend/src/services/` 返回 0 结果
+- [ ] R58-02：`grep -rn 'as any\|: any' backend/src/services/instant-retail/` 返回 0 结果
+- [ ] R58-03：`grep -rn ': any\|as any\|<any>' backend/src/services/miniapp/ backend/src/services/store/ backend/src/services/supplier.service.ts` 返回 0 结果
+- [ ] 后端 `tsc --noEmit`：0 错误
+- [ ] 后端 `vitest run`：416 文件 4857 用例全部通过
+- [ ] admin-web `vue-tsc --noEmit`：0 错误（无影响，仅确认）
+- [ ] app-mobile `vue-tsc --noEmit`：0 错误（无影响，仅确认）
+- [ ] saas-admin `vue-tsc --noEmit`：0 错误（无影响，仅确认）
+- [ ] 全量 any 扫描：`grep -rn '<any>\|: any\|as any' backend/src/services/` 返回 0 结果（admin 已清零 + 非 admin 本轮清零）
+
+#### 八、R58 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R58-01 事务连接 any 清零 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
+| R58-02 即时零售适配器 any 清零 | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
+| R58-03 miniapp/store 业务逻辑 any 清零 | 阿坚 | P1 | 0.25天 | ⬜ 待开始 |
+| R58-04 全量回归测试 | 苏然 | P0 | 0.5天 | ⬜ 待开始 |
+| R58-05 合并审查 + 推送 | 凌舟 | P0 | 0.25天 | ⬜ 待开始 |
+| **合计** | — | — | **2.5天** | **0/5** |
 
 ---
 
@@ -155,7 +394,7 @@
 
 ---
 
-## R55-04 — 后端类型安全改造：any 泛型清零 [进行中]
+## R55-04 — 后端类型安全改造：admin 目录 any 泛型清零 [✅ 已完成 — admin 目录清零，非 admin 目录移交 R58]
 
 ### 背景
 

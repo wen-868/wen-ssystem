@@ -1,4 +1,5 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { AppError } from "../../shared/app-error";
 import { makeBizNo } from "../../shared/id";
 import logger from "../../shared/logger";
@@ -130,6 +131,32 @@ interface UserCouponRow {
   usedAt: string | Date | null;
   usedOrderNo: string | null;
   discountAmount: number | string | null;
+}
+
+/** 优惠券模板行 — receiveCoupon 事务内 SELECT t_coupon_template */
+interface CouponTemplateRow extends RowDataPacket {
+  id: number;
+  templateCode: string;
+  templateName: string;
+  couponType: string;
+  couponValue: number | string;
+  minPurchase: number | string;
+  maxDiscount: number | string | null;
+  applicableScope: string;
+  applicableIds: string | null;
+  totalQuantity: number;
+  issuedQuantity: number;
+  perLimit: number;
+  validType: string;
+  validStart: string | Date;
+  validEnd: string | Date;
+  validDays: number | null;
+  status: string;
+}
+
+/** 优惠券领取数量行 — receiveCoupon 事务内 COUNT 查询 */
+interface CouponCountRow extends RowDataPacket {
+  count: number;
 }
 
 /** 会员更新后信息行 */
@@ -538,7 +565,8 @@ export async function getMyCoupons(
 export async function receiveCoupon(memberId: number, templateId: number, tenantId: string) {
   return await transaction(async (conn) => {
     // 查询优惠券模板
-    const [templateRows] = await (conn as any).execute(
+    const [templateRows] = await connExecute<CouponTemplateRow[]>(
+      conn,
       `SELECT id, template_code AS templateCode, template_name AS templateName,
               coupon_type AS couponType, coupon_value AS couponValue,
               min_purchase AS minPurchase, max_discount AS maxDiscount,
@@ -547,12 +575,12 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
               per_limit AS perLimit, valid_type AS validType,
               valid_start AS validStart, valid_end AS validEnd,
               valid_days AS validDays, status
-       FROM t_coupon_template 
+       FROM t_coupon_template
        WHERE id = ? AND tenant_id = ?
        LIMIT 1`,
       [templateId, tenantId]
     );
-    const template = (templateRows as any[])[0];
+    const template = templateRows[0];
 
     if (!template) {
       throw new AppError("优惠券不存在", 404);
@@ -568,11 +596,12 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
     }
 
     // 检查每人限领数量
-    const [countRows] = await (conn as any).execute(
+    const [countRows] = await connExecute<CouponCountRow[]>(
+      conn,
       "SELECT COUNT(*) AS count FROM t_user_coupon WHERE user_id = ? AND template_id = ? AND tenant_id = ?",
       [memberId, templateId, tenantId]
     );
-    const receivedCount = (countRows as any[])[0];
+    const receivedCount = countRows[0];
 
     if (template.perLimit > 0 && Number(receivedCount?.count || 0) >= template.perLimit) {
       throw new AppError(`每人限领${template.perLimit}张`, 400);
@@ -592,8 +621,9 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
     const couponNo = makeBizNo("CP");
 
     // 创建用户优惠券
-    await (conn as any).execute(
-      `INSERT INTO t_user_coupon 
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_user_coupon
        (coupon_no, template_id, user_id, coupon_type, coupon_name, coupon_value,
         min_purchase, max_discount, applicable_scope, applicable_ids,
         source, status, valid_start, valid_end, tenant_id)
@@ -616,7 +646,8 @@ export async function receiveCoupon(memberId: number, templateId: number, tenant
     );
 
     // 更新发行数量
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_coupon_template SET issued_quantity = issued_quantity + 1 WHERE id = ? AND tenant_id = ?",
       [templateId, tenantId]
     );

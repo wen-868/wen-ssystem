@@ -16,6 +16,7 @@ vi.mock("../../../shared/db", () => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
   transaction: vi.fn(),
+  connExecute: vi.fn(),
 }));
 
 vi.mock("../../../shared/id", () => ({
@@ -26,16 +27,19 @@ import {
   queryWithTenant,
   queryOneWithTenant,
   transaction,
+  connExecute,
 } from "../../../shared/db";
 
 const mocks = {
   queryWithTenant: queryWithTenant as any,
   queryOneWithTenant: queryOneWithTenant as any,
   transaction: transaction as any,
+  connExecute: connExecute as any,
 };
 
 beforeEach(() => {
   vi.resetAllMocks();
+  mocks.connExecute.mockImplementation(async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params));
 });
 
 describe("miniapp/wholesale.service", () => {

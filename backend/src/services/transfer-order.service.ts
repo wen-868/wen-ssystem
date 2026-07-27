@@ -1,5 +1,28 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../shared/db";
+﻿import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { makeBizNo } from "../shared/id";
+
+// ==================== 数据库行接口定义 ====================
+
+/** 调拨单行 — t_transfer_order SELECT * */
+interface TransferOrderRow extends RowDataPacket {
+  id: number;
+  transfer_no: string;
+  from_store_id: number;
+  to_store_id: number;
+  status: string;
+  expected_date: string | Date | null;
+  total_amount: number | string;
+  total_items: number;
+  remark: string | null;
+  created_by: number | null;
+  approved_by: number | null;
+  approved_at: string | Date | null;
+  actual_date: string | Date | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
 
 export interface TransferOrderItem {
   skuId: number;
@@ -34,16 +57,18 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
       totalAmount += item.quantity * item.unitPrice;
     }
 
-    const [insertResult] = await (conn as any).execute(
+    const [insertResult] = await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_transfer_order (transfer_no, from_store_id, to_store_id, status, expected_date, total_amount, total_items, remark, created_by, tenant_id)
        VALUES (?, ?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?)`,
       [transferNo, fromStoreId, toStoreId, expectedDate ?? null, totalAmount, totalItems, remark, userId ?? null, tenantId]
     );
-    const orderId = (insertResult as unknown as Record<string, unknown>).insertId;
+    const orderId = insertResult.insertId;
 
     for (const item of items) {
       const subtotal = item.quantity * item.unitPrice;
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_transfer_order_item (transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [orderId, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
@@ -177,11 +202,12 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
   const { expectedDate, remark, items } = params;
 
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT") throw new Error("仅草稿状态可编辑");
 
@@ -191,22 +217,23 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
     if (remark !== undefined) { sets.push("remark = ?"); values.push(remark); }
     if (sets.length > 0) {
       values.push(id, tenantId);
-      await (conn as any).execute(`UPDATE t_transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as any[]);
+      await connExecute<ResultSetHeader>(conn, `UPDATE t_transfer_order SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values);
     }
 
     if (items && items.length > 0) {
-      await (conn as any).execute("DELETE FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?", [id, tenantId]);
+      await connExecute<ResultSetHeader>(conn, "DELETE FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?", [id, tenantId]);
       let totalAmount = 0;
       for (const item of items) {
         const subtotal = item.quantity * item.unitPrice;
         totalAmount += subtotal;
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           `INSERT INTO t_transfer_order_item (transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [id, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
         );
       }
-      await (conn as any).execute("UPDATE t_transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?", [totalAmount, items.length, id, tenantId]);
+      await connExecute<ResultSetHeader>(conn, "UPDATE t_transfer_order SET total_amount = ?, total_items = ? WHERE id = ? AND tenant_id = ?", [totalAmount, items.length, id, tenantId]);
     }
   });
 
@@ -215,15 +242,17 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
 
 export async function submitTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT") throw new Error("仅草稿状态可提交");
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_transfer_order SET status = 'PENDING' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
@@ -234,15 +263,17 @@ export async function submitTransferOrder(id: number, tenantId: string) {
 
 export async function approveTransferOrder(id: number, tenantId: string, userId: number | null) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "PENDING") throw new Error("仅待审核状态可审批");
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_transfer_order SET status = 'APPROVED', approved_by = ?, approved_at = NOW() WHERE id = ? AND tenant_id = ?",
       [userId ?? null, id, tenantId]
     );
@@ -253,15 +284,17 @@ export async function approveTransferOrder(id: number, tenantId: string, userId:
 
 export async function rejectTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "PENDING") throw new Error("仅待审核状态可拒绝");
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_transfer_order SET status = 'DRAFT', approved_by = NULL, approved_at = NULL WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );

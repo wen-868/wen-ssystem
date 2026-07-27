@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   queryOneWithTenant: vi.fn(),
   transaction: vi.fn(),
   makeBizNo: vi.fn(),
+  connExecute: vi.fn(),
 }));
 
 vi.mock("../../../shared/db", () => ({
@@ -19,6 +20,7 @@ vi.mock("../../../shared/db", () => ({
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
   transaction: mocks.transaction,
+  connExecute: mocks.connExecute,
 }));
 
 vi.mock("../../../shared/id", () => ({
@@ -35,6 +37,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.makeBizNo.mockReturnValue("TH20260709000001");
   mocks.transaction.mockImplementation(async (cb: any) => cb(mockConn));
+  mocks.connExecute.mockImplementation(async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params));
 });
 
 describe("sale-return.service - getPageList", () => {

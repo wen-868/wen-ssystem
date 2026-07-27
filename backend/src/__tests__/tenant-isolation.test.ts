@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   queryOne: vi.fn(),
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
+  connExecute: vi.fn(),
 }));
 
 vi.mock("../shared/db", () => ({
@@ -12,6 +13,7 @@ vi.mock("../shared/db", () => ({
   queryOne: mocks.queryOne,
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
+  connExecute: mocks.connExecute,
 }));
 
 import { listErrorLogs } from "../services/admin/error-log.service";
@@ -22,7 +24,10 @@ import { saleReturnService } from "../services/sale-return.service";
 import { buySeckill } from "../services/marketing/community-marketing.service";
 
 describe("租户隔离专项测试", () => {
-  beforeEach(() => vi.resetAllMocks());
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.connExecute.mockImplementation(async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params));
+  });
 
   describe("error-log 租户隔离", () => {
     it("只返回当前租户的错误日志", async () => {
@@ -97,6 +102,7 @@ describe("租户隔离专项测试", () => {
         transaction: mockTransaction,
         query: vi.fn(),
         queryOne: vi.fn(),
+        connExecute: async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params),
       }));
 
       const { buySeckill: testBuySeckill } = await import("../services/marketing/community-marketing.service");

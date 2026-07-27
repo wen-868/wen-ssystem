@@ -1,4 +1,128 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
+
+// ── 数据库行接口定义 ──
+
+/** 拼团活动行 — t_group_buy SELECT 字段（startGroupBuy FOR UPDATE 查询） */
+interface GroupBuyRow extends RowDataPacket {
+  id: number;
+  name: string;
+  group_price: number | string;
+  min_group_size: number | string;
+  max_group_size: number | string;
+  time_limit_hours: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** 拼团组行 — t_group_buy_team SELECT 字段（startGroupBuy 末尾查询） */
+interface GroupBuyTeamRow extends RowDataPacket {
+  id: number;
+  activity_id: number;
+  leader_id: number;
+  current_size: number | string;
+  target_size: number | string;
+  status: string;
+  expires_at: string | Date;
+  created_at: string | Date;
+}
+
+/** 拼团组 VO 行 — startGroupBuy 末尾 SELECT 带 AS alias，返回 camelCase 字段 */
+interface GroupBuyTeamVORow extends RowDataPacket {
+  id: number;
+  activityId: number;
+  leaderId: number;
+  currentSize: number | string;
+  targetSize: number | string;
+  status: string;
+  expiresAt: string | Date;
+  createdAt: string | Date;
+}
+
+/** 拼团组 + 活动组合行 — joinGroupBuy FOR UPDATE 查询（JOIN t_group_buy） */
+interface GroupBuyTeamWithActivityRow extends RowDataPacket {
+  id: number;
+  activity_id: number;
+  current_size: number | string;
+  target_size: number | string;
+  status: string;
+  expires_at: string | Date;
+  max_group_size: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  activityStatus: string;
+}
+
+/** 拼团成员存在性检查行 — t_group_buy_member SELECT id */
+interface GroupBuyMemberIdRow extends RowDataPacket {
+  id: number;
+}
+
+/** 砍价活动行 — t_bargain_activity SELECT 字段（startBargain FOR UPDATE 查询） */
+interface BargainActivityRow extends RowDataPacket {
+  id: number;
+  activity_name: string;
+  original_price: number | string;
+  min_price: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  bargain_times: number | string;
+  time_limit_hours: number | string;
+  help_min_amount: number | string;
+  help_max_amount: number | string;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** 砍价记录 VO 行 — startBargain 末尾 SELECT 带 AS alias，返回 camelCase 字段 */
+interface BargainRecordVORow extends RowDataPacket {
+  id: number;
+  activityId: number;
+  initiatorId: number;
+  currentPrice: number | string;
+  bargainCount: number | string;
+  status: string;
+  expiresAt: string | Date;
+  createdAt: string | Date;
+}
+
+/** 砍价记录 + 活动组合行 — helpBargain FOR UPDATE 查询（JOIN t_bargain_activity） */
+interface BargainRecordWithActivityRow extends RowDataPacket {
+  id: number;
+  activity_id: number;
+  initiator_id: number;
+  current_price: number | string;
+  bargain_count: number | string;
+  status: string;
+  expires_at: string | Date;
+  min_price: number | string;
+  bargain_times: number | string;
+  help_min_amount: number | string;
+  help_max_amount: number | string;
+  activityStatus: string;
+}
+
+/** 砍价帮助存在性检查行 — t_bargain_help SELECT id */
+interface BargainHelpIdRow extends RowDataPacket {
+  id: number;
+}
+
+/** 秒杀活动行 — t_seckill_product SELECT 字段（buySeckill FOR UPDATE 查询） */
+interface SeckillProductRow extends RowDataPacket {
+  id: number;
+  product_id: number;
+  seckill_price: number | string;
+  seckill_stock: number | string;
+  available_stock: number | string;
+  limit_per_user: number | string;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
 
 // ==================== 拼团活动 ====================
 
@@ -81,7 +205,8 @@ export async function startGroupBuy(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [activityRows] = await (conn as any).execute(
+    const [activityRows] = await connExecute<GroupBuyRow[]>(
+      conn,
       `SELECT id, name, group_price, min_group_size, max_group_size, time_limit_hours,
               total_stock, sold_count, status, start_time, end_time
        FROM t_group_buy
@@ -90,7 +215,7 @@ export async function startGroupBuy(
       [activityId, tenantId, now, now]
     );
 
-    const activity = (activityRows as Record<string, unknown>[])[0];
+    const activity = activityRows[0];
     if (!activity) {
       throw Object.assign(new Error("拼团活动不存在或已结束"), { statusCode: 404 });
     }
@@ -102,26 +227,30 @@ export async function startGroupBuy(
 
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
-    const [teamResult] = await (conn as any).execute(
+    const [teamResult] = await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
       [activityId, userId, activity.min_group_size, expiresAt, tenantId]
     );
 
-    const teamId = (teamResult as Record<string, unknown>).insertId as number;
+    const teamId = teamResult.insertId;
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
        VALUES (?, ?, 1, ?, ?)`,
       [teamId, userId, tenantId, quantity]
     );
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 
-    const [teamRows] = await (conn as any).execute(
+    const [teamRows] = await connExecute<GroupBuyTeamVORow[]>(
+      conn,
       `SELECT id, activity_id AS activityId, leader_id AS leaderId,
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
@@ -129,7 +258,7 @@ export async function startGroupBuy(
       [teamId, tenantId]
     );
 
-    return (teamRows as Record<string, unknown>[])[0];
+    return teamRows[0];
   });
 
   return result;
@@ -145,7 +274,8 @@ export async function joinGroupBuy(
   const now = new Date().toISOString();
 
   await transaction(async (conn) => {
-    const [teamRows] = await (conn as any).execute(
+    const [teamRows] = await connExecute<GroupBuyTeamWithActivityRow[]>(
+      conn,
       `SELECT gbt.id, gbt.activity_id, gbt.current_size, gbt.target_size, gbt.status, gbt.expires_at,
               gb.max_group_size, gb.total_stock, gb.sold_count, gb.status AS activityStatus
        FROM t_group_buy_team gbt
@@ -155,17 +285,18 @@ export async function joinGroupBuy(
       [tenantId, teamId, tenantId, now]
     );
 
-    const team = (teamRows as Record<string, unknown>[])[0];
+    const team = teamRows[0];
     if (!team) {
       throw Object.assign(new Error("拼团组不存在或已结束"), { statusCode: 404 });
     }
 
-    const [memberRows] = await (conn as any).execute(
+    const [memberRows] = await connExecute<GroupBuyMemberIdRow[]>(
+      conn,
       `SELECT id FROM t_group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
     );
 
-    if ((memberRows as Record<string, unknown>[]).length > 0) {
+    if (memberRows.length > 0) {
       throw Object.assign(new Error("您已参与该团"), { statusCode: 400 });
     }
 
@@ -178,7 +309,8 @@ export async function joinGroupBuy(
       throw Object.assign(new Error("拼团库存不足"), { statusCode: 400 });
     }
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id, quantity)
        VALUES (?, ?, 0, ?, ?)`,
       [teamId, userId, tenantId, quantity]
@@ -187,7 +319,8 @@ export async function joinGroupBuy(
     const newSize = Number(team.current_size) + 1;
     const isCompleted = newSize >= Number(team.target_size);
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_group_buy_team
        SET current_size = ?, status = ?, completed_at = ?
        WHERE id = ? AND tenant_id = ?`,
@@ -200,7 +333,8 @@ export async function joinGroupBuy(
       ]
     );
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, team.activity_id, tenantId]
     );
@@ -306,7 +440,8 @@ export async function startBargain(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [activityRows] = await (conn as any).execute(
+    const [activityRows] = await connExecute<BargainActivityRow[]>(
+      conn,
       `SELECT id, activity_name, original_price, min_price, total_stock, sold_count,
               bargain_times, time_limit_hours, help_min_amount, help_max_amount,
               status, start_time, end_time
@@ -316,7 +451,7 @@ export async function startBargain(
       [activityId, tenantId, now, now]
     );
 
-    const activity = (activityRows as Record<string, unknown>[])[0];
+    const activity = activityRows[0];
     if (!activity) {
       throw Object.assign(new Error("砍价活动不存在或已结束"), { statusCode: 404 });
     }
@@ -328,15 +463,17 @@ export async function startBargain(
 
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
-    const [recordResult] = await (conn as any).execute(
+    const [recordResult] = await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_bargain_record (activity_id, initiator_id, current_price, bargain_count, status, expires_at, tenant_id)
        VALUES (?, ?, ?, 0, 'ONGOING', ?, ?)`,
       [activityId, userId, activity.original_price, expiresAt, tenantId]
     );
 
-    const recordId = (recordResult as Record<string, unknown>).insertId as number;
+    const recordId = recordResult.insertId;
 
-    const [recordRows] = await (conn as any).execute(
+    const [recordRows] = await connExecute<BargainRecordVORow[]>(
+      conn,
       `SELECT id, activity_id AS activityId, initiator_id AS initiatorId,
               current_price AS currentPrice, bargain_count AS bargainCount,
               status, expires_at AS expiresAt, created_at AS createdAt
@@ -344,7 +481,7 @@ export async function startBargain(
       [recordId, tenantId]
     );
 
-    return (recordRows as Record<string, unknown>[])[0];
+    return recordRows[0];
   });
 
   return result;
@@ -360,7 +497,8 @@ export async function helpBargain(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [recordRows] = await (conn as any).execute(
+    const [recordRows] = await connExecute<BargainRecordWithActivityRow[]>(
+      conn,
       `SELECT br.id, br.activity_id, br.initiator_id, br.current_price, br.bargain_count, br.status, br.expires_at,
               ba.min_price, ba.bargain_times, ba.help_min_amount, ba.help_max_amount, ba.status AS activityStatus
        FROM t_bargain_record br
@@ -370,7 +508,7 @@ export async function helpBargain(
       [tenantId, recordId, tenantId, now]
     );
 
-    const record = (recordRows as Record<string, unknown>[])[0];
+    const record = recordRows[0];
     if (!record) {
       throw Object.assign(new Error("砍价记录不存在或已结束"), { statusCode: 404 });
     }
@@ -379,11 +517,12 @@ export async function helpBargain(
       throw Object.assign(new Error("不能给自己砍价"), { statusCode: 400 });
     }
 
-    const [helpRows] = await (conn as any).execute(
+    const [helpRows] = await connExecute<BargainHelpIdRow[]>(
+      conn,
       `SELECT id FROM t_bargain_help WHERE record_id = ? AND helper_id = ? AND tenant_id = ?`,
       [recordId, helperId, tenantId]
     );
-    if ((helpRows as Record<string, unknown>[]).length > 0) {
+    if (helpRows.length > 0) {
       throw Object.assign(new Error("您已帮砍过"), { statusCode: 400 });
     }
 
@@ -402,13 +541,15 @@ export async function helpBargain(
     const newCount = Number(record.bargain_count) + 1;
     const isSuccess = newPrice <= minPrice || newCount >= Number(record.bargain_times);
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `INSERT INTO t_bargain_help (record_id, helper_id, helper_name, bargain_amount, tenant_id)
        VALUES (?, ?, ?, ?, ?)`,
       [recordId, helperId, helperName || null, actualAmount, tenantId]
     );
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_bargain_record
        SET current_price = ?, bargain_count = ?, status = ?, success_at = ?, updated_at = NOW()
        WHERE id = ? AND tenant_id = ?`,
@@ -514,7 +655,8 @@ export async function buySeckill(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [activityRows] = await (conn as any).execute(
+    const [activityRows] = await connExecute<SeckillProductRow[]>(
+      conn,
       `SELECT id, product_id, seckill_price, seckill_stock, available_stock, limit_per_user,
               status, start_time, end_time
        FROM t_seckill_product
@@ -523,7 +665,7 @@ export async function buySeckill(
       [activityId, tenantId, now, now]
     );
 
-    const activity = (activityRows as Record<string, unknown>[])[0];
+    const activity = activityRows[0];
     if (!activity) {
       throw Object.assign(new Error("秒杀活动不存在或已结束"), { statusCode: 404 });
     }
@@ -538,7 +680,8 @@ export async function buySeckill(
       throw Object.assign(new Error(`每人限购${limitPerUser}件`), { statusCode: 400 });
     }
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_seckill_product SET available_stock = available_stock - ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );

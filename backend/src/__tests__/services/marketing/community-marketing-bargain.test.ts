@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
   transaction: vi.fn(),
+  connExecute: vi.fn(),
 }));
 
 vi.mock("../../../shared/db", () => ({
@@ -12,6 +13,7 @@ vi.mock("../../../shared/db", () => ({
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
   transaction: mocks.transaction,
+  connExecute: mocks.connExecute,
 }));
 
 import {
@@ -27,6 +29,7 @@ const mockConn = { execute: vi.fn() };
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.transaction.mockImplementation(async (cb: (c: typeof mockConn) => Promise<unknown>) => cb(mockConn));
+  mocks.connExecute.mockImplementation(async (conn: typeof mockConn, sql: string, params: unknown[]) => conn.execute(sql, params));
 });
 
 describe("community-marketing.service - 砍价列表", () => {

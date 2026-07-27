@@ -1,4 +1,5 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant, transaction } from "../shared/db";
+﻿﻿import { queryWithTenant, transaction, connExecute } from "../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 // ==================== 数据库行接口定义 ====================
 
@@ -30,19 +31,82 @@ interface TransferOrderWithStoreRow {
   to_store_name: string | null;
 }
 
+/** 调拨单行（事务内 SELECT *） — t_transfer_order */
+interface TransferOrderRow extends RowDataPacket {
+  id: number;
+  transfer_no: string;
+  from_store_id: number;
+  to_store_id: number;
+  status: string;
+  expected_date: string | Date | null;
+  total_amount: number | string;
+  total_items: number;
+  remark: string | null;
+  created_by: number | null;
+  approved_by: number | null;
+  approved_at: string | Date | null;
+  shipped_by: number | null;
+  shipped_at: string | Date | null;
+  received_by: number | null;
+  received_at: string | Date | null;
+  actual_date: string | Date | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 调拨单明细行 — t_transfer_order_item SELECT * */
+interface TransferOrderItemRow extends RowDataPacket {
+  id: number;
+  transfer_order_id: number;
+  sku_id: number;
+  sku_name: string;
+  quantity: number | string;
+  unit_price: number | string;
+  subtotal: number | string;
+  transferred_qty: number | string;
+  received_qty: number | string;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 库存余额行 — t_inventory_balance SELECT * */
+interface InventoryBalanceRow extends RowDataPacket {
+  id: number;
+  store_id: number;
+  sku_id: number;
+  sku_name: string | null;
+  physical_qty: number | string;
+  locked_qty: number | string;
+  available_qty: number | string;
+  stock_type: string | null;
+  tenant_id: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 调拨单明细收货检查行 — SELECT received_qty, quantity */
+interface TransferOrderItemCheckRow extends RowDataPacket {
+  received_qty: number | string;
+  quantity: number | string;
+}
+
 export async function cancelTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "DRAFT" && order.status !== "PENDING") {
       throw new Error("仅草稿或待审核状态可取消");
     }
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_transfer_order SET status = 'CANCELLED' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
@@ -53,58 +117,66 @@ export async function cancelTransferOrder(id: number, tenantId: string) {
 
 export async function shipTransferOrder(id: number, tenantId: string, userId: number | null) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "APPROVED") throw new Error("仅已审核状态可发货");
 
-    const [itemRows] = await (conn as any).execute(
+    const [itemRows] = await connExecute<TransferOrderItemRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
       [id, tenantId]
     );
-    const items = itemRows as unknown as Record<string, unknown>[];
+    const items = itemRows;
 
     for (const item of items) {
       const shipQty = Number(item.quantity) - Number(item.transferred_qty);
       if (shipQty <= 0) continue;
 
-      const [invRows] = await (conn as any).execute(
+      const [invRows] = await connExecute<InventoryBalanceRow[]>(
+        conn,
         "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
         [order.from_store_id, item.sku_id, tenantId]
       );
-      const inv = (invRows as unknown as Record<string, unknown>[])[0];
+      const inv = invRows[0];
       if (!inv || Number(inv.available_qty) < shipQty) {
         throw new Error(`SKU ${item.sku_name} 库存不足，可用 ${inv?.available_qty ?? 0}，需要 ${shipQty}`);
       }
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         "UPDATE t_inventory_balance SET available_qty = available_qty - ?, locked_qty = locked_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
         [shipQty, shipQty, order.from_store_id, item.sku_id, tenantId]
       );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_OUT', ?, available_qty, available_qty - ?, ?, ?, NOW(), ?
          FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
         [order.from_store_id, item.sku_id, item.sku_name, shipQty, shipQty, order.transfer_no, userId ?? null, tenantId, order.from_store_id, item.sku_id, tenantId]
       );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         "UPDATE t_transfer_order_item SET transferred_qty = transferred_qty + ? WHERE id = ? AND tenant_id = ?",
         [shipQty, item.id, tenantId]
       );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'OUT', ?, ?, ?)`,
         [id, item.id, order.from_store_id, item.sku_id, shipQty, userId ?? null, tenantId]
       );
     }
 
-    await (conn as any).execute(
+    await connExecute<ResultSetHeader>(
+      conn,
       "UPDATE t_transfer_order SET status = 'TRANSIT' WHERE id = ? AND tenant_id = ?",
       [id, tenantId]
     );
@@ -120,22 +192,24 @@ export interface ReceiveItem {
 
 export async function receiveTransferOrder(id: number, tenantId: string, userId: number | null, items: ReceiveItem[]) {
   await transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await connExecute<TransferOrderRow[]>(
+      conn,
       "SELECT * FROM t_transfer_order WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const order = (rows as unknown as Record<string, unknown>[])[0];
+    const order = rows[0];
     if (!order) throw new Error("调拨单不存在");
     if (order.status !== "TRANSIT") throw new Error("仅在途状态可收货");
 
     let allReceived = true;
 
     for (const item of items) {
-      const [itemRows] = await (conn as any).execute(
+      const [itemRows] = await connExecute<TransferOrderItemRow[]>(
+        conn,
         "SELECT * FROM t_transfer_order_item WHERE id = ? AND transfer_order_id = ? AND tenant_id = ? FOR UPDATE",
         [item.itemId, id, tenantId]
       );
-      const detail = (itemRows as unknown as Record<string, unknown>[])[0];
+      const detail = itemRows[0];
       if (!detail) throw new Error("明细不存在");
 
       const remaining = Number(detail.quantity) - Number(detail.received_qty);
@@ -143,48 +217,55 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
         throw new Error(`SKU ${detail.sku_name} 收货数量超出待收数量(剩余 ${remaining})`);
       }
 
-      const [invRows] = await (conn as any).execute(
+      const [invRows] = await connExecute<InventoryBalanceRow[]>(
+        conn,
         "SELECT * FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ? FOR UPDATE",
         [order.to_store_id, detail.sku_id, tenantId]
       );
-      const inv = (invRows as unknown as Record<string, unknown>[])[0];
+      const inv = invRows[0];
 
       if (inv) {
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           "UPDATE t_inventory_balance SET available_qty = available_qty + ?, locked_qty = GREATEST(locked_qty - ?, 0) WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
           [item.receivedQty, item.receivedQty, order.to_store_id, detail.sku_id, tenantId]
         );
       } else {
-        await (conn as any).execute(
+        await connExecute<ResultSetHeader>(
+          conn,
           `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
            VALUES (?, ?, ?, ?, 0, ?)`,
           [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, tenantId]
         );
       }
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
          SELECT ?, ?, ?, 'TRANSFER_IN', ?, available_qty - ?, available_qty, ?, ?, NOW(), ?
          FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
         [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, item.receivedQty, order.transfer_no, userId ?? null, tenantId, order.to_store_id, detail.sku_id, tenantId]
       );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         "UPDATE t_transfer_order_item SET received_qty = received_qty + ? WHERE id = ? AND tenant_id = ?",
         [item.receivedQty, item.itemId, tenantId]
       );
 
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `INSERT INTO t_transfer_stock_log (transfer_order_id, item_id, store_id, sku_id, direction, quantity, operator_id, tenant_id)
          VALUES (?, ?, ?, ?, 'IN', ?, ?, ?)`,
         [id, item.itemId, order.to_store_id, detail.sku_id, item.receivedQty, userId ?? null, tenantId]
       );
 
-      const [checkRows] = await (conn as any).execute(
+      const [checkRows] = await connExecute<TransferOrderItemCheckRow[]>(
+        conn,
         "SELECT received_qty, quantity FROM t_transfer_order_item WHERE transfer_order_id = ? AND tenant_id = ?",
         [id, tenantId]
       );
-      for (const row of checkRows as unknown as Record<string, unknown>[]) {
+      for (const row of checkRows) {
         if (Number(row.received_qty) < Number(row.quantity)) {
           allReceived = false;
           break;
@@ -193,7 +274,8 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
     }
 
     if (allReceived) {
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         "UPDATE t_transfer_order SET status = 'RECEIVED', actual_date = CURDATE(), received_by = ?, received_at = NOW() WHERE id = ? AND tenant_id = ?",
         [userId ?? null, id, tenantId]
       );

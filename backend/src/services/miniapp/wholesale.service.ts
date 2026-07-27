@@ -1,4 +1,5 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { AppError } from "../../shared/app-error";
 import { makeBizNo } from "../../shared/id";
 import logger from "../../shared/logger";
@@ -123,6 +124,28 @@ interface WholesaleSkuCheckRow {
   skuName: string;
   wholesalePrice: number | string;
   minOrderQty: number;
+}
+
+/** 批发订单创建 — SKU 校验行（createWholesaleOrder 事务内 SELECT t_product_sku JOIN） */
+interface WholesaleOrderSkuRow extends RowDataPacket {
+  id: number;
+  skuName: string;
+  spuId: number;
+  spuName: string;
+  mainImage: string | null;
+  wholesalePrice: number | string;
+  minOrderQty: number;
+  availableQty: number | string;
+}
+
+/** 批发订单创建 — 收货地址行（createWholesaleOrder 事务内 SELECT t_retail_consumer_address） */
+interface WholesaleAddressRow extends RowDataPacket {
+  name: string;
+  mobile: string;
+  province: string;
+  city: string;
+  district: string;
+  address: string;
 }
 
 /** 批发购物车现有项行 */
@@ -664,11 +687,20 @@ export async function createWholesaleOrder(
   return await transaction(async (conn) => {
     const orderNo = makeBizNo("PF");
     let goodsAmount = 0;
-    const orderItems: any[] = [];
+    const orderItems: Array<{
+      spuId: number;
+      skuId: number;
+      skuName: string;
+      skuImage: string | null;
+      quantity: number;
+      unitPrice: number;
+      subtotal: number;
+    }> = [];
 
     // 校验商品并计算金额
     for (const item of body.items) {
-      const [skuRows] = await (conn as any).execute(
+      const [skuRows] = await connExecute<WholesaleOrderSkuRow[]>(
+        conn,
         `SELECT s.id, s.sku_name AS skuName, p.id AS spuId, p.name AS spuName,
                 p.main_image AS mainImage, pp.wholesale_price AS wholesalePrice,
                 pp.min_order_qty AS minOrderQty,
@@ -682,7 +714,7 @@ export async function createWholesaleOrder(
          LIMIT 1`,
         [item.skuId, tenantId]
       );
-      const sku = (skuRows as any[])[0];
+      const sku = skuRows[0];
 
       if (!sku) {
         throw new AppError(`商品SKU不存在或无批发价: ${item.skuId}`, 400);
@@ -693,7 +725,7 @@ export async function createWholesaleOrder(
         throw new AppError(`${sku.skuName} 起订量为${minOrderQty}件`, 400);
       }
 
-      if (item.quantity > sku.availableQty) {
+      if (item.quantity > Number(sku.availableQty)) {
         throw new AppError(`${sku.skuName} 库存不足，当前库存${sku.availableQty}件`, 400);
       }
 
@@ -728,14 +760,15 @@ export async function createWholesaleOrder(
     };
 
     if (body.addressId) {
-      const [addrRows] = await (conn as any).execute(
+      const [addrRows] = await connExecute<WholesaleAddressRow[]>(
+        conn,
         `SELECT name, mobile, province, city, district, detail AS address
          FROM t_retail_consumer_address
          WHERE id = ? AND user_id = ? AND tenant_id = ?
          LIMIT 1`,
         [body.addressId, memberId, tenantId]
       );
-      const addr = (addrRows as any[])[0];
+      const addr = addrRows[0];
       if (addr) {
         receiver = {
           name: addr.name,
@@ -749,8 +782,9 @@ export async function createWholesaleOrder(
     }
 
     // 创建批发订单
-    await (conn as any).execute(
-      `INSERT INTO t_wholesale_order 
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_wholesale_order
        (order_no, member_id, order_status, pay_status, goods_amount, discount_amount,
         shipping_amount, payable_amount, paid_amount,
         receiver_name, receiver_mobile, receiver_province, receiver_city, receiver_district,
@@ -777,8 +811,9 @@ export async function createWholesaleOrder(
 
     // 创建订单项
     for (const item of orderItems) {
-      await (conn as any).execute(
-        `INSERT INTO t_wholesale_order_item 
+      await connExecute<ResultSetHeader>(
+        conn,
+        `INSERT INTO t_wholesale_order_item
          (order_no, spu_id, sku_id, sku_name, sku_image, quantity,
           unit_price, subtotal_amount, tenant_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -796,7 +831,8 @@ export async function createWholesaleOrder(
       );
 
       // 扣减批发库存
-      await (conn as any).execute(
+      await connExecute<ResultSetHeader>(
+        conn,
         `UPDATE t_inventory_balance
          SET available_qty = available_qty - ?,
              locked_qty = locked_qty + ?,
@@ -810,8 +846,9 @@ export async function createWholesaleOrder(
     const skuIds = body.items.map((item) => item.skuId);
     if (skuIds.length > 0) {
       const placeholders = skuIds.map(() => "?").join(",");
-      await (conn as any).execute(
-        `DELETE FROM t_wholesale_cart 
+      await connExecute<ResultSetHeader>(
+        conn,
+        `DELETE FROM t_wholesale_cart
          WHERE member_id = ? AND sku_id IN (${placeholders}) AND tenant_id = ?`,
         [memberId, ...skuIds, tenantId]
       );
