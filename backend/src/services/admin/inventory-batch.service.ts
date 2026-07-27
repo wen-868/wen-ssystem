@@ -1,4 +1,71 @@
 import { query, queryOne, transaction } from "../../shared/db";
+import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader } from "mysql2/promise";
+
+// ==================== 类型定义 ====================
+
+/** 库存批次行（SELECT * FROM t_inventory_batch） */
+interface InventoryBatchRow extends RowDataPacket {
+  id: number | string;
+  tenant_id: string;
+  store_id: number | string;
+  sku_id: number | string;
+  batch_no: string;
+  quantity: number | string;
+  locked_quantity: number | string;
+  production_date: string | Date | null;
+  expiry_date: string | Date | null;
+  cost_price: number | string | null;
+  supplier_id: number | string | null;
+  inbound_order_id: number | string | null;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/** 库存批次 ID 行（用于存在性检查） */
+interface InventoryBatchIdRow extends RowDataPacket {
+  id: number | string;
+}
+
+/** 天数差值行（SELECT DATEDIFF(...)） */
+interface DaysRemainingRow extends RowDataPacket {
+  days_remaining: number | string | null;
+}
+
+/** 效期预警记录 ID 行（用于存在性检查） */
+interface ExpiryAlertIdRow extends RowDataPacket {
+  id: number | string;
+}
+
+/** 租户 ID 行（SELECT DISTINCT tenant_id） */
+interface TenantIdRow {
+  tenant_id: string;
+}
+
+/** 效期扫描批次行（含 JOIN 商品 SKU 名） */
+interface ExpiryScanBatchRow {
+  id: number | string;
+  store_id: number | string;
+  sku_id: number | string;
+  sku_name: string | null;
+  batch_no: string;
+  production_date: string | Date | null;
+  expiry_date: string | Date | null;
+  quantity: number | string;
+  tenant_id: string;
+}
+
+/** 效期预警配置行（SELECT * FROM t_expiry_alert_config） */
+interface ExpiryAlertConfigRow {
+  alert_level: number | string;
+  days_before_expiry: number | string;
+  action: string;
+  level_name: string;
+  color: string;
+  enabled: number | boolean;
+  description: string;
+  tenant_id: string;
+}
 
 // ==================== 批次管理 ====================
 
@@ -69,20 +136,20 @@ export async function createBatch(tenantId: string, body: {
   supplierId?: number; inboundOrderId?: number;
 }) {
   return transaction(async (conn) => {
-    const existing = await (conn as any).execute(
+    const [existing] = await conn.execute<InventoryBatchIdRow[]>(
       "SELECT id FROM t_inventory_batch WHERE batch_no = ? AND store_id = ? AND tenant_id = ?",
       [body.batchNo, body.storeId, tenantId]
     );
-    if ((existing[0] as unknown as Record<string, unknown>[]).length > 0) {
+    if (existing.length > 0) {
       throw new Error("批次号已存在");
     }
 
-    const [insertResult] = await (conn as any).execute(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_inventory_batch (store_id, sku_id, batch_no, quantity, production_date, expiry_date, cost_price, supplier_id, inbound_order_id, tenant_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [body.storeId, body.skuId, body.batchNo, body.quantity, body.productionDate ?? null, body.expiryDate ?? null, body.costPrice ?? null, body.supplierId ?? null, body.inboundOrderId ?? null, tenantId]
     );
-    return (insertResult as unknown as Record<string, unknown>).insertId;
+    return insertResult.insertId;
   });
 }
 
@@ -91,7 +158,7 @@ export async function updateBatch(tenantId: string, id: number, body: {
 }) {
   await transaction(async (conn) => {
     const sets: string[] = [];
-    const values: unknown[] = [];
+    const values: (string | number)[] = [];
     if (body.quantity !== undefined) { sets.push("quantity = ?"); values.push(body.quantity); }
     if (body.productionDate !== undefined) { sets.push("production_date = ?"); values.push(body.productionDate); }
     if (body.expiryDate !== undefined) { sets.push("expiry_date = ?"); values.push(body.expiryDate); }
@@ -99,31 +166,31 @@ export async function updateBatch(tenantId: string, id: number, body: {
 
     if (sets.length === 0) return;
     values.push(id, tenantId);
-    await (conn as any).execute(`UPDATE t_inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values as any[]);
+    await conn.execute<ResultSetHeader>(`UPDATE t_inventory_batch SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, values);
   });
 }
 
 export async function splitBatch(tenantId: string, id: number, body: { splitQuantity: number; newBatchNo: string }) {
   return transaction(async (conn) => {
-    const [rows] = await (conn as any).execute(
+    const [rows] = await conn.execute<InventoryBatchRow[]>(
       "SELECT * FROM t_inventory_batch WHERE id = ? AND tenant_id = ? FOR UPDATE",
       [id, tenantId]
     );
-    const batch = (rows as unknown as Record<string, unknown>[])[0];
+    const batch = rows[0];
     if (!batch) throw new Error("批次不存在");
     if (Number(batch.quantity) < body.splitQuantity) throw new Error("拆分数量不能大于批次数量");
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       "UPDATE t_inventory_batch SET quantity = quantity - ? WHERE id = ? AND tenant_id = ?",
       [body.splitQuantity, id, tenantId]
     );
 
-    const [insertResult] = await (conn as any).execute(
+    const [insertResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_inventory_batch (store_id, sku_id, batch_no, quantity, locked_quantity, production_date, expiry_date, cost_price, supplier_id, inbound_order_id, tenant_id)
        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
       [batch.store_id, batch.sku_id, body.newBatchNo, body.splitQuantity, batch.production_date, batch.expiry_date, batch.cost_price, batch.supplier_id, batch.inbound_order_id, tenantId]
     );
-    return (insertResult as unknown as Record<string, unknown>).insertId;
+    return insertResult.insertId;
   });
 }
 
@@ -161,7 +228,7 @@ export async function getBatchTrace(tenantId: string, id: number) {
       `SELECT stock_no, created_at FROM t_purchase_in_stock WHERE id = ? AND tenant_id = ?`,
       [batch.inbound_order_id, tenantId]
     );
-    const inStock = (inStockRows as unknown as Record<string, unknown>[])?.[0];
+    const inStock = inStockRows?.[0];
     if (inStock) {
       trace.push({
         type: "purchase",
@@ -182,7 +249,7 @@ export async function getBatchTrace(tenantId: string, id: number) {
      ORDER BY sb.created_at ASC`,
     [id, tenantId]
   );
-  for (const item of saleItems as unknown as Record<string, unknown>[]) {
+  for (const item of saleItems) {
     trace.push({
       type: "sale",
       date: String(item.created_at ?? "").substring(0, 10) || "",
@@ -289,7 +356,7 @@ export async function listExpiryAlerts(tenantId: string, params: {
 
 export async function handleExpiryAlert(tenantId: string, id: number, userId: number | undefined) {
   await transaction(async (conn) => {
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `UPDATE t_expiry_alert_record SET status = 'HANDLED', handled_by = ?, handled_at = NOW() WHERE id = ? AND tenant_id = ?`,
       [userId ?? null, id, tenantId]
     );
@@ -326,21 +393,21 @@ export async function getExpiryAlertStatistics(tenantId: string) {
 // ==================== 效期扫描器 ====================
 
 export async function runExpiryScan() {
-  const tenantRows = await query<Record<string, unknown>>(
+  const tenantRows = await query<TenantIdRow>(
     "SELECT DISTINCT tenant_id FROM t_inventory_batch WHERE expiry_date IS NOT NULL"
   );
-  const tenantIds = tenantRows.map((r: Record<string, unknown>) => r.tenant_id).filter(Boolean);
+  const tenantIds = tenantRows.map((r) => r.tenant_id).filter(Boolean);
 
   if (tenantIds.length === 0) return;
 
   for (const tenantId of tenantIds) {
-    const configs = await query<Record<string, unknown>>(
+    const configs = await query<ExpiryAlertConfigRow>(
       "SELECT * FROM t_expiry_alert_config WHERE tenant_id = ? AND enabled = 1 ORDER BY days_before_expiry DESC",
       [tenantId]
     );
     if (configs.length === 0) continue;
 
-    const batches = await query<Record<string, unknown>>(
+    const batches = await query<ExpiryScanBatchRow>(
       `SELECT ib.*, ps.sku_name
        FROM t_inventory_batch ib
        LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id AND ps.tenant_id = ib.tenant_id
@@ -354,13 +421,13 @@ export async function runExpiryScan() {
 
     await transaction(async (conn) => {
       for (const batch of batches) {
-        const [rows] = await (conn as any).execute(
+        const [rows] = await conn.execute<DaysRemainingRow[]>(
           "SELECT DATEDIFF(?, CURDATE()) AS days_remaining",
           [batch.expiry_date]
         );
-        const daysRemaining = Number((rows as Record<string, unknown>[])[0]?.days_remaining ?? 0);
+        const daysRemaining = Number(rows[0]?.days_remaining ?? 0);
 
-        let matchedConfig: Record<string, unknown> | null = null;
+        let matchedConfig: ExpiryAlertConfigRow | null = null;
         for (const config of configs) {
           if (daysRemaining <= Number(config.days_before_expiry) && daysRemaining >= 0) {
             matchedConfig = config;
@@ -369,7 +436,7 @@ export async function runExpiryScan() {
         }
 
         if (daysRemaining < 0) {
-          await (conn as any).execute(
+          await conn.execute<ResultSetHeader>(
             "UPDATE t_expiry_alert_record SET status = 'EXPIRED' WHERE batch_id = ? AND tenant_id = ? AND status = 'PENDING'",
             [batch.id, tenantId]
           );
@@ -378,27 +445,27 @@ export async function runExpiryScan() {
 
         if (!matchedConfig) continue;
 
-        const [existing] = await (conn as any).execute(
+        const [existing] = await conn.execute<ExpiryAlertIdRow[]>(
           "SELECT id FROM t_expiry_alert_record WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
           [batch.id, tenantId, matchedConfig.alert_level]
         );
 
-        if ((existing as Record<string, unknown>[]).length > 0) {
-          await (conn as any).execute(
+        if (existing.length > 0) {
+          await conn.execute<ResultSetHeader>(
             "UPDATE t_expiry_alert_record SET days_remaining = ? WHERE batch_id = ? AND tenant_id = ? AND alert_level = ? AND status = 'PENDING'",
             [daysRemaining, batch.id, tenantId, matchedConfig.alert_level]
           );
           continue;
         }
 
-        await (conn as any).execute(
+        await conn.execute<ResultSetHeader>(
           `INSERT INTO t_expiry_alert_record (tenant_id, batch_id, store_id, sku_id, sku_name, batch_no, production_date, expiry_date, days_remaining, alert_level, action_taken, status)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')`,
           [tenantId, batch.id, batch.store_id, batch.sku_id, batch.sku_name || "", batch.batch_no, batch.production_date, batch.expiry_date, daysRemaining, matchedConfig.alert_level, matchedConfig.action]
         );
 
         if (matchedConfig.action === "BLOCK") {
-          await (conn as any).execute(
+          await conn.execute<ResultSetHeader>(
             "UPDATE t_inventory_batch SET locked_quantity = quantity WHERE id = ? AND tenant_id = ? AND locked_quantity < quantity",
             [batch.id, tenantId]
           );

@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** COUNT(*) AS cnt 通用返回 */
@@ -43,7 +43,55 @@ interface GiftRuleLevelRow {
   updated_at: string | Date;
 }
 
-export async function createGiftRule(data: any, tenantId: string, userId: number) {
+/** 创建赠品规则入参 */
+interface CreateGiftRuleBody {
+  rule_name: string;
+  rule_desc?: string | null;
+  threshold_type?: string;
+  threshold_amount?: number | string | null;
+  threshold_quantity?: number | string | null;
+  applicable_scope?: string;
+  applicable_ids?: unknown;
+  start_time: string;
+  end_time: string;
+  gift_stock_limit?: number | string | null;
+  is_stock_synced?: number | string | boolean;
+}
+
+/** 更新赠品规则入参 */
+interface UpdateGiftRuleBody {
+  rule_name?: string;
+  rule_desc?: string | null;
+  threshold_type?: string;
+  threshold_amount?: number | string | null;
+  threshold_quantity?: number | string | null;
+  applicable_scope?: string;
+  applicable_ids?: unknown;
+  start_time?: string;
+  end_time?: string;
+  gift_stock_limit?: number | string | null;
+  is_stock_synced?: number | string | boolean;
+}
+
+/** 添加赠品规则层级入参 */
+interface AddGiftRuleLevelBody {
+  threshold_amount?: number | string | null;
+  gift_product_id: number | string;
+  gift_sku_id?: number | string | null;
+  gift_quantity?: number | string;
+  sort_order?: number | string;
+}
+
+/** 更新赠品规则层级入参 */
+interface UpdateGiftRuleLevelBody {
+  threshold_amount?: number | string | null;
+  gift_product_id?: number | string;
+  gift_sku_id?: number | string | null;
+  gift_quantity?: number | string;
+  sort_order?: number | string;
+}
+
+export async function createGiftRule(data: CreateGiftRuleBody, tenantId: string, userId: number) {
   const code = makeBizNo("MZ");
   const result = await queryWithTenant(
     `INSERT INTO t_gift_rule (rule_code, rule_name, rule_desc, threshold_type, threshold_amount, threshold_quantity, applicable_scope, applicable_ids, start_time, end_time, gift_stock_limit, remain_gift_stock, is_stock_synced, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -73,7 +121,7 @@ export async function getGiftRuleDetail(id: number, tenantId: string) {
   return { ...rule, levels };
 }
 
-export async function updateGiftRule(id: number, data: any, tenantId: string) {
+export async function updateGiftRule(id: number, data: UpdateGiftRuleBody, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.rule_name !== undefined) { fields.push("rule_name = ?"); values.push(data.rule_name); }
@@ -106,14 +154,14 @@ export async function pauseGiftRule(id: number, tenantId: string) {
   await queryWithTenant("UPDATE t_gift_rule SET status = 'PAUSED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
 
-export async function addGiftRuleLevel(ruleId: number, data: any, tenantId: string) {
+export async function addGiftRuleLevel(ruleId: number, data: AddGiftRuleLevelBody, tenantId: string) {
   await queryWithTenant(
     "INSERT INTO t_gift_rule_level (rule_id, threshold_amount, gift_product_id, gift_sku_id, gift_quantity, sort_order, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [ruleId, data.threshold_amount ?? null, data.gift_product_id, data.gift_sku_id ?? null, data.gift_quantity ?? 1, data.sort_order ?? 0, tenantId], tenantId
   );
 }
 
-export async function updateGiftRuleLevel(ruleId: number, levelId: number, data: any, tenantId: string) {
+export async function updateGiftRuleLevel(ruleId: number, levelId: number, data: UpdateGiftRuleLevelBody, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.threshold_amount !== undefined) { fields.push("threshold_amount = ?"); values.push(data.threshold_amount); }

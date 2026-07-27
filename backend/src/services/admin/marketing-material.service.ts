@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 /** COUNT(*) AS cnt 通用返回 */
@@ -42,13 +42,45 @@ interface MaterialCategoryRow {
   updated_at: string | Date;
 }
 
-export async function createMaterial(data: any, tenantId: string, userId: number) {
+/** 创建素材入参 */
+interface CreateMaterialBody {
+  name: string;
+  materialType: string;
+  url?: string;
+  content?: string;
+  categoryId?: number | string | null;
+  tags?: unknown;
+  remark?: string | null;
+}
+
+/** 更新素材入参 */
+interface UpdateMaterialBody {
+  name?: string;
+  url?: string;
+  content?: string;
+  categoryId?: number | string | null;
+  tags?: unknown;
+  remark?: string | null;
+  status?: string;
+}
+
+/** 素材分类树节点 */
+interface MaterialCategoryTreeNode {
+  id: number | string;
+  name: string;
+  parentId: number | string | null;
+  sortOrder: number | string;
+  children: MaterialCategoryTreeNode[];
+}
+
+export async function createMaterial(data: CreateMaterialBody, tenantId: string, userId: number) {
   const code = makeBizNo("SC");
-  const result = await queryWithTenant(
+  const result = await queryWithTenant<InsertResult>(
     `INSERT INTO t_marketing_material (material_code, material_name, material_desc, material_type, file_url, file_size, file_format, image_width, image_height, category_id, tags, usage_scene, related_activity_id, related_activity_type, tenant_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [code, data.material_name, data.material_desc ?? null, data.material_type, data.file_url, data.file_size ?? null, data.file_format ?? null, data.image_width ?? null, data.image_height ?? null, data.category_id ?? null, data.tags ? JSON.stringify(data.tags) : null, data.usage_scene ?? null, data.related_activity_id ?? null, data.related_activity_type ?? null, tenantId, userId], tenantId
+    [code, data.name, data.remark ?? null, data.materialType, data.url ?? null, null, null, null, null, data.categoryId ?? null, data.tags ? JSON.stringify(data.tags) : null, data.content ?? null, null, null, tenantId, userId], tenantId
   );
-  return { id: (result as unknown as Record<string, unknown>).insertId, material_code: code };
+  const insertId = Array.isArray(result) ? (result[0] as InsertResult)?.insertId : (result as InsertResult)?.insertId;
+  return { id: insertId, material_code: code };
 }
 
 export async function listMaterials(params: { tenantId: string; material_type?: string; category_id?: number; tags?: string; status?: string; page?: number; pageSize?: number }) {
@@ -76,14 +108,16 @@ export async function getMaterialDetail(id: number, tenantId: string) {
   return material;
 }
 
-export async function updateMaterial(id: number, data: any, tenantId: string) {
+export async function updateMaterial(id: number, data: UpdateMaterialBody, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
-  if (data.material_name !== undefined) { fields.push("material_name = ?"); values.push(data.material_name); }
-  if (data.material_desc !== undefined) { fields.push("material_desc = ?"); values.push(data.material_desc); }
+  if (data.name !== undefined) { fields.push("material_name = ?"); values.push(data.name); }
+  if (data.remark !== undefined) { fields.push("material_desc = ?"); values.push(data.remark); }
   if (data.tags !== undefined) { fields.push("tags = ?"); values.push(JSON.stringify(data.tags)); }
-  if (data.usage_scene !== undefined) { fields.push("usage_scene = ?"); values.push(data.usage_scene); }
-  if (data.category_id !== undefined) { fields.push("category_id = ?"); values.push(data.category_id); }
+  if (data.url !== undefined) { fields.push("file_url = ?"); values.push(data.url); }
+  if (data.content !== undefined) { fields.push("usage_scene = ?"); values.push(data.content); }
+  if (data.categoryId !== undefined) { fields.push("category_id = ?"); values.push(data.categoryId); }
+  if (data.status !== undefined) { fields.push("status = ?"); values.push(data.status); }
   if (fields.length === 0) return null;
   values.push(id, tenantId);
   await queryWithTenant(`UPDATE t_marketing_material SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);
@@ -108,27 +142,33 @@ export async function getMaterialCategories(tenantId: string) {
   return buildCategoryTree(categories);
 }
 
-function buildCategoryTree(list: any[], parentId: number | null = null): any[] {
+function buildCategoryTree(list: MaterialCategoryRow[], parentId: number | string | null = null): MaterialCategoryTreeNode[] {
   return list.filter((item) => item.parent_id === parentId).map((item) => ({
     id: item.id, name: item.name, parentId: item.parent_id, sortOrder: item.sort_order,
     children: buildCategoryTree(list, item.id),
   }));
 }
 
-export async function createMaterialCategory(data: { name: string; parent_id?: number; sort_order?: number }, tenantId: string) {
-  const result = await queryWithTenant(
-    "INSERT INTO t_material_category (name, parent_id, sort_order, tenant_id) VALUES (?, ?, ?, ?)",
-    [data.name, data.parent_id ?? null, data.sort_order ?? 0, tenantId], tenantId
-  );
-  return { id: (result as unknown as Record<string, unknown>).insertId };
+/** INSERT 返回结果 */
+interface InsertResult {
+  insertId: number | string;
 }
 
-export async function updateMaterialCategory(id: number, data: { name?: string; parent_id?: number; sort_order?: number }, tenantId: string) {
+export async function createMaterialCategory(data: { name: string; parentId?: number; sortNo?: number }, tenantId: string) {
+  const result = await queryWithTenant<InsertResult>(
+    "INSERT INTO t_material_category (name, parent_id, sort_order, tenant_id) VALUES (?, ?, ?, ?)",
+    [data.name, data.parentId ?? null, data.sortNo ?? 0, tenantId], tenantId
+  );
+  const insertId = Array.isArray(result) ? (result[0] as InsertResult)?.insertId : (result as InsertResult)?.insertId;
+  return { id: insertId };
+}
+
+export async function updateMaterialCategory(id: number, data: { name?: string; parentId?: number; sortNo?: number }, tenantId: string) {
   const fields: string[] = [];
   const values: unknown[] = [];
   if (data.name !== undefined) { fields.push("name = ?"); values.push(data.name); }
-  if (data.parent_id !== undefined) { fields.push("parent_id = ?"); values.push(data.parent_id); }
-  if (data.sort_order !== undefined) { fields.push("sort_order = ?"); values.push(data.sort_order); }
+  if (data.parentId !== undefined) { fields.push("parent_id = ?"); values.push(data.parentId); }
+  if (data.sortNo !== undefined) { fields.push("sort_order = ?"); values.push(data.sortNo); }
   if (fields.length === 0) return;
   values.push(id, tenantId);
   await queryWithTenant(`UPDATE t_material_category SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, tenantId);

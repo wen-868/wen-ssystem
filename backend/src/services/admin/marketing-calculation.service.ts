@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // ===== 类型定义 =====
 /** 秒杀活动查询行 */

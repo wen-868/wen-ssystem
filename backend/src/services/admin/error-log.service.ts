@@ -46,9 +46,9 @@ export async function listErrorLogs(params: {
   page: number;
   pageSize: number;
   tenantId?: string;
-}): Promise<{ items: any[]; total: number }> {
+}): Promise<{ items: Record<string, unknown>[]; total: number }> {
   const conditions: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   if (params.tenantId) {
     conditions.push("tenant_id = ?");

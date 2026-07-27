@@ -1,4 +1,52 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+﻿﻿﻿﻿import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+
+// ==================== 类型定义 ====================
+
+/** t_group_buy 活动查询行（FOR UPDATE） */
+interface GroupBuyActivityRow extends RowDataPacket {
+  id: number | string;
+  group_price: number | string;
+  min_group_size: number | string;
+  max_group_size: number | string;
+  time_limit_hours: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  status: string;
+  start_time: string | Date;
+  end_time: string | Date;
+}
+
+/** t_group_buy_team 查询行（带别名） */
+interface GroupBuyTeamRow extends RowDataPacket {
+  id: number | string;
+  activityId: number | string;
+  leaderId: number | string;
+  currentSize: number | string;
+  targetSize: number | string;
+  status: string;
+  expiresAt: string | Date;
+  createdAt: string | Date;
+}
+
+/** t_group_buy_team JOIN t_group_buy 查询行 */
+interface GroupBuyTeamJoinRow extends RowDataPacket {
+  id: number | string;
+  activity_id: number | string;
+  current_size: number | string;
+  target_size: number | string;
+  status: string;
+  expires_at: string | Date;
+  max_group_size: number | string;
+  total_stock: number | string;
+  sold_count: number | string;
+  activityStatus: string;
+}
+
+/** t_group_buy_member 查询行 */
+interface GroupBuyMemberRow extends RowDataPacket {
+  id: number | string;
+}
 
 export async function createGroupBuy(body: {
   name: string;
@@ -268,16 +316,16 @@ export async function createGroupBuyTeam(
   const now = new Date().toISOString();
 
   const result = await transaction(async (conn) => {
-    const [activityRows] = await (conn as any).execute(
+    const [activityRows] = await conn.execute<GroupBuyActivityRow[]>(
       `SELECT id, group_price, min_group_size, max_group_size, time_limit_hours,
               total_stock, sold_count, status, start_time, end_time
        FROM t_group_buy
        WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
        FOR UPDATE`,
       [activityId, tenantId, now, now]
-    ) as unknown as Record<string, unknown>[][];
+    );
 
-    const activity = (activityRows as unknown as Record<string, unknown>[])[0];
+    const activity = activityRows[0];
     if (!activity) {
       throw Object.assign(new Error("拼团活动不存在或已结束"), { statusCode: 404 });
     }
@@ -289,34 +337,34 @@ export async function createGroupBuyTeam(
 
     const expiresAt = new Date(Date.now() + Number(activity.time_limit_hours) * 3600 * 1000).toISOString();
 
-    const [teamResult] = await (conn as any).execute(
+    const [teamResult] = await conn.execute<ResultSetHeader>(
       `INSERT INTO t_group_buy_team (activity_id, leader_id, current_size, target_size, status, expires_at, tenant_id)
        VALUES (?, ?, 1, ?, 'PENDING', ?, ?)`,
       [activityId, userId, activity.min_group_size, expiresAt, tenantId]
-    ) as unknown as Record<string, unknown>[][];
+    );
 
-    const teamId = (teamResult as unknown as Record<string, unknown>).insertId;
+    const teamId = teamResult.insertId;
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id)
        VALUES (?, ?, 1, ?)`,
       [teamId, userId, tenantId]
     );
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 
-    const [teamRows] = await (conn as any).execute(
+    const [teamRows] = await conn.execute<GroupBuyTeamRow[]>(
       `SELECT id, activity_id AS activityId, leader_id AS leaderId,
               current_size AS currentSize, target_size AS targetSize,
               status, expires_at AS expiresAt, created_at AS createdAt
        FROM t_group_buy_team WHERE id = ? AND tenant_id = ?`,
       [teamId, tenantId]
-    ) as unknown as Record<string, unknown>[][];
+    );
 
-    return (teamRows as unknown as Record<string, unknown>[])[0];
+    return teamRows[0];
   });
 
   return result;
@@ -359,7 +407,7 @@ export async function joinGroupBuyTeam(
   const now = new Date().toISOString();
 
   await transaction(async (conn) => {
-    const [teamRows] = await (conn as any).execute(
+    const [teamRows] = await conn.execute<GroupBuyTeamJoinRow[]>(
       `SELECT gbt.id, gbt.activity_id, gbt.current_size, gbt.target_size, gbt.status, gbt.expires_at,
               gb.max_group_size, gb.total_stock, gb.sold_count, gb.status AS activityStatus
        FROM t_group_buy_team gbt
@@ -367,19 +415,19 @@ export async function joinGroupBuyTeam(
        WHERE gbt.id = ? AND gbt.tenant_id = ? AND gbt.status = 'PENDING' AND gbt.expires_at > ?
        FOR UPDATE`,
       [tenantId, teamId, tenantId, now]
-    ) as unknown as Record<string, unknown>[][];
+    );
 
-    const team = (teamRows as unknown as Record<string, unknown>[])[0];
+    const team = teamRows[0];
     if (!team) {
       throw Object.assign(new Error("拼团组不存在或已结束"), { statusCode: 404 });
     }
 
-    const [memberRows] = await (conn as any).execute(
+    const [memberRows] = await conn.execute<GroupBuyMemberRow[]>(
       `SELECT id FROM t_group_buy_member WHERE team_id = ? AND user_id = ? AND tenant_id = ?`,
       [teamId, userId, tenantId]
-    ) as unknown as Record<string, unknown>[][];
+    );
 
-    if ((memberRows as unknown as Record<string, unknown>[]).length > 0) {
+    if (memberRows.length > 0) {
       throw Object.assign(new Error("您已参与该团"), { statusCode: 400 });
     }
 
@@ -392,7 +440,7 @@ export async function joinGroupBuyTeam(
       throw Object.assign(new Error("拼团库存不足"), { statusCode: 400 });
     }
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `INSERT INTO t_group_buy_member (team_id, user_id, is_leader, tenant_id) VALUES (?, ?, 0, ?)`,
       [teamId, userId, tenantId]
     );
@@ -400,7 +448,7 @@ export async function joinGroupBuyTeam(
     const newSize = Number(team.current_size) + 1;
     const isCompleted = newSize >= Number(team.target_size);
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `UPDATE t_group_buy_team
        SET current_size = ?, status = ?, completed_at = ?
        WHERE id = ? AND tenant_id = ?`,
@@ -413,7 +461,7 @@ export async function joinGroupBuyTeam(
       ]
     );
 
-    await (conn as any).execute(
+    await conn.execute<ResultSetHeader>(
       `UPDATE t_group_buy SET sold_count = sold_count + ? WHERE id = ? AND tenant_id = ?`,
       [quantity, team.activity_id, tenantId]
     );

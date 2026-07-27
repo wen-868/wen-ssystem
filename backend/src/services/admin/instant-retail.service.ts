@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 即时零售统一 Service 层
  * 整合 webhook 处理、平台配置管理、订单接单、履约操作
  * 底层委托给 services/instant-retail/ 下的子服务模块
@@ -221,6 +221,27 @@ interface RetailBannerRow {
   createdAt: string | Date;
 }
 
+/** 订单同步请求参数 */
+interface SyncOrdersBody {
+  startTime?: string;
+  endTime?: string;
+  pageSize?: number;
+}
+
+/** 商品同步请求参数 */
+interface SyncProductsBody {
+  cursor?: string;
+  limit?: number;
+}
+
+/** 配送信息 */
+interface DeliveryBody {
+  deliveryCompany?: string;
+  deliveryNo?: string;
+  deliveryMan?: string;
+  deliveryPhone?: string;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Webhook 处理
 // ────────────────────────────────────────────────────────────────────────────
@@ -238,7 +259,7 @@ function buildWebhookResponse(platform: PlatformType, success: boolean, message?
   return { code: success ? "0" : "1", message: message ?? (success ? "success" : "error") };
 }
 
-export async function handleWebhook(platform: PlatformType, rawBody: any, signature: string, timestamp: string) {
+export async function handleWebhook(platform: PlatformType, rawBody: Record<string, unknown>, signature: string, timestamp: string) {
   const config = await getPlatformConfig(platform);
   if (!config) {
     logger.warn(`[Webhook] ${platform} 无配置，跳过处理`);
@@ -372,7 +393,7 @@ export async function getConfigByPlatform(platform: string, tenantId: string) {
   return maskConfig(row);
 }
 
-export async function upsertConfig(body: any, tenantId: string) {
+export async function upsertConfig(body: unknown, tenantId: string) {
   const parsedBody = z.object({
     platform: z.string(),
     storeId: z.string().optional(),
@@ -442,19 +463,22 @@ export async function testConnection(platform: string, tenantId: string) {
   try {
     const result = await adapter.authenticate();
     return { found: true, platform: parsedPlatform, connected: true, tokenUpdated: !!result.accessToken };
-  } catch (err: any) {
-    return { found: true, platform: parsedPlatform, connected: false, error: err.message };
+  } catch (err: unknown) {
+    return { found: true, platform: parsedPlatform, connected: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-export async function syncOrders(platform: string, body: any, tenantId: string) {
+export async function syncOrders(platform: string, body: SyncOrdersBody, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   const config = await getPlatformConfigWithTenant(parsedPlatform, undefined, tenantId);
   if (!config) {
     return { found: false };
   }
   const adapter = getAdapter(parsedPlatform, config);
-  const result = await adapter.syncOrders(body);
+  const result = await adapter.syncOrders({
+    startTime: body.startTime ? new Date(body.startTime) : undefined,
+    endTime: body.endTime ? new Date(body.endTime) : undefined,
+  });
   await transaction(async (conn) => {
     for (const order of result.orders) {
       await conn.execute(
@@ -479,7 +503,7 @@ export async function syncOrders(platform: string, body: any, tenantId: string) 
   return { found: true, platform: parsedPlatform, synced: result.orders.length, hasMore: result.hasMore };
 }
 
-export async function syncProducts(platform: string, body: any, tenantId: string) {
+export async function syncProducts(platform: string, body: Record<string, unknown>, tenantId: string) {
   const parsedPlatform = parsePlatformType(platform);
   const config = await getPlatformConfigWithTenant(parsedPlatform, undefined, tenantId);
   if (!config) {
@@ -584,7 +608,7 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
   return { found: true, configFound: true, platformOrderId, success, status: "ACCEPTED" };
 }
 
-export async function startDelivery(platformOrderId: string, body: any, tenantId: string) {
+export async function startDelivery(platformOrderId: string, body: DeliveryBody, tenantId: string) {
   const row = await queryOneWithTenant<PlatformOrderStatusRow>(
     `SELECT platform, store_id AS storeId, status FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
     [platformOrderId],
@@ -806,7 +830,7 @@ export async function listRetailProducts(params: {
   const { tenantId, categoryId, status, isRecommended, isHot, isNew, page, pageSize } = params;
 
   const conditions: string[] = ["rp.tenant_id = ?"];
-  const queryParams: any[] = [tenantId];
+  const queryParams: unknown[] = [tenantId];
 
   if (categoryId) {
     conditions.push("rp.category_id = ?");
@@ -910,7 +934,7 @@ export async function listRetailOrders(params: {
   const { tenantId, orderStatus, paymentStatus, startDate, endDate, page, pageSize } = params;
 
   const conditions: string[] = ["tenant_id = ?"];
-  const queryParams: any[] = [tenantId];
+  const queryParams: unknown[] = [tenantId];
 
   if (orderStatus) {
     conditions.push("order_status = ?");
@@ -1012,7 +1036,7 @@ export async function updateRetailOrderStatus(params: {
   if (!order) throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
 
   const updates: string[] = ["order_status = ?", "updated_at = NOW()"];
-  const updateParams: any[] = [orderStatus];
+  const updateParams: unknown[] = [orderStatus];
 
   if (orderStatus === "CANCELLED") {
     updates.push("cancel_reason = ?", "cancelled_at = NOW()");

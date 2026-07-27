@@ -47,7 +47,7 @@ export async function insertFeedback(entry: FeedbackEntry): Promise<number> {
 
 export async function listFeedbacks(params: FeedbackQuery) {
   const conditions: string[] = ["f.tenant_id = ?"];
-  const values: any[] = [params.tenant_id];
+  const values: unknown[] = [params.tenant_id];
 
   if (params.type) {
     conditions.push("f.type = ?");

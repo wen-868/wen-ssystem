@@ -13,6 +13,14 @@ interface SysDepartmentRow {
   updated_at: string;
 }
 
+interface DepartmentInput {
+  parentId?: number | null;
+  name: string;
+  storeId?: number | string;
+  sortOrder?: number;
+  status?: number;
+}
+
 export async function getDepartments(tenantId: string, params?: { storeId?: number }) {
   let where = "WHERE 1=1";
   const vals: unknown[] = [];
@@ -32,7 +40,7 @@ function buildTree(rows: SysDepartmentRow[], parentId: number | null): (SysDepar
     .map(r => ({ ...r, children: buildTree(rows, r.id) }));
 }
 
-export async function createDepartment(data: any) {
+export async function createDepartment(data: DepartmentInput) {
   const result = await query(
     `INSERT INTO t_sys_department (parent_id, name, store_id, sort_order, status) VALUES (?, ?, ?, ?, ?)`,
     [data.parentId || null, data.name, data.storeId, data.sortOrder || 0, data.status ?? 1]
@@ -40,7 +48,7 @@ export async function createDepartment(data: any) {
   return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
-export async function updateDepartment(id: number, data: any) {
+export async function updateDepartment(id: number, data: DepartmentInput) {
   await query(
     `UPDATE t_sys_department SET parent_id=?, name=?, store_id=?, sort_order=?, status=? WHERE id=?`,
     [data.parentId, data.name, data.storeId, data.sortOrder, data.status, id]

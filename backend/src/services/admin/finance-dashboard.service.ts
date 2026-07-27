@@ -64,6 +64,23 @@ interface CategoryStatRow {
   count: number | string;
 }
 
+/** 现金流行 */
+interface CashFlowRow {
+  month: string;
+  income: number | string;
+  expense: number | string;
+  payment: number | string;
+  netCashFlow: number;
+}
+
+/** 利润趋势行 */
+interface ProfitTrendRow {
+  month: string;
+  income: number | string;
+  expense: number | string;
+  profit: number;
+}
+
 export async function getFinanceDashboard(tenantId: string) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
@@ -122,7 +139,7 @@ export async function getMonthlyReport(tenantId: string, year?: number) {
 }
 
 export async function getCashFlow(tenantId: string, months: number = 12) {
-  const results: any[] = [];
+  const results: CashFlowRow[] = [];
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     const monthStr = d.toISOString().slice(0, 7);
@@ -150,7 +167,7 @@ export async function getCashFlow(tenantId: string, months: number = 12) {
 }
 
 export async function getProfitTrend(tenantId: string, months: number = 12) {
-  const results: any[] = [];
+  const results: ProfitTrendRow[] = [];
   for (let i = months - 1; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     const monthStr = d.toISOString().slice(0, 7);

@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 
 // ==================== 类型定义 ====================
 
@@ -50,12 +50,22 @@ interface CountCntRow {
   cnt: number;
 }
 
+interface GroupBuyInput {
+  productId: number | string;
+  groupPrice: number | string;
+  minGroupSize: number;
+  maxGroupSize?: number;
+  startTime: string | Date;
+  endTime: string | Date;
+  status?: string;
+}
+
 export async function getGroupBuyActivities(tenantId: string, params?: { status?: string; page?: number; pageSize?: number }) {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 20;
   const offset = (page - 1) * pageSize;
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.status) { where += " AND gba.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
     query<GroupBuyActivityRow>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
@@ -91,7 +101,7 @@ export async function cancelGroupBuyRecord(groupNo: string) {
   return { success: true };
 }
 
-export async function createGroupBuyActivity(data: any) {
+export async function createGroupBuyActivity(data: GroupBuyInput) {
   const result = await query(
     `INSERT INTO t_group_buy_activity (product_id, group_price, min_group_size, max_group_size, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [data.productId, data.groupPrice, data.minGroupSize, data.maxGroupSize || 10, data.startTime, data.endTime, data.status || 'PENDING']
@@ -99,7 +109,7 @@ export async function createGroupBuyActivity(data: any) {
   return { id: (result as unknown as Record<string, unknown>).insertId };
 }
 
-export async function updateGroupBuyActivity(id: number, data: any) {
+export async function updateGroupBuyActivity(id: number, data: GroupBuyInput) {
   await query(
     `UPDATE t_group_buy_activity SET product_id=?, group_price=?, min_group_size=?, max_group_size=?, start_time=?, end_time=?, status=? WHERE id=?`,
     [data.productId, data.groupPrice, data.minGroupSize, data.maxGroupSize, data.startTime, data.endTime, data.status, id]
@@ -117,7 +127,7 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
   const pageSize = params?.pageSize || 20;
   const offset = (page - 1) * pageSize;
   let where = "WHERE 1=1";
-  const vals: any[] = [];
+  const vals: unknown[] = [];
   if (params?.activityId) { where += " AND gbr.activity_id = ?"; vals.push(params.activityId); }
   if (params?.status) { where += " AND gbr.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
