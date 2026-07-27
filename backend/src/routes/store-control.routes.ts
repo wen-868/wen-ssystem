@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/store-control.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 import { startStoreControlScheduler } from "../shared/store-control-scheduler";
@@ -7,8 +6,6 @@ import { startStoreControlScheduler } from "../shared/store-control-scheduler";
 startStoreControlScheduler();
 
 export const adminStoreControlRouter = Router();
-
-adminStoreControlRouter.use(requireAuthWithTenant);
 
 adminStoreControlRouter.get("/configs", ctrl.listConfigs);
 adminStoreControlRouter.get("/configs/:storeId", ctrl.getConfig);

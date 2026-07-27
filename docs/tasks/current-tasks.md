@@ -2061,14 +2061,48 @@ admin 目录（`backend/src/services/admin/`）中存在大量 `queryWithTenant<
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **实际**：0.5天
+- **状态**：✅ 已完成
 - **前置**：无（可立即开始）
-- **详细说明**：
-  - `store.routes.ts` 已清理（只保留商品/标签/批次）
-  - 检查其他路由文件是否有重复注册
-  - 确认 auto-routes.ts 注册顺序正确
-- **验收标准**：无同一端点注册两次
-- **记忆更新**：完成后更新 `阿澈-记忆.md`
+- **文件**（共 17 个文件）：
+  - `backend/src/routes/approval.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/inventory-batch.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/product-marketing-tag.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/push.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/print.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/stock-check.routes.ts`（移除 adminStockCheckRouter 内部 requireAuthWithTenant）
+  - `backend/src/routes/store-control.routes.ts`（移除 adminStoreControlRouter 内部 requireAuthWithTenant）
+  - `backend/src/routes/store-inventory.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store-dashboard.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store-order.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store-receivable.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store-sale-bill.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store-shift.routes.ts`（移除内部 requireAuthWithTenant）
+  - `backend/src/routes/store.routes.ts`（移除内部 requireAuthWithTenant，保留 priceResponseFilter 业务中间件）
+  - `backend/src/routes/admin-auth.routes.ts`（删除 login 路由避免与 server.ts 重复，auth 从 none 改为 requireAuthWithTenant）
+  - `backend/src/server.ts`（删除与 admin-auth.routes.ts 重复的 5 个端点：/me、/settings GET/PUT、/change-password，保留 /api/admin/auth/login 和 /api/store/auth/login 带限流）
+  - `backend/src/shared/auto-routes.ts`（新增重复前缀检测功能）
+- **问题**：
+  1. 14 个路由文件内部使用 `router.use(requireAuthWithTenant)`，同时 routeConfig.auth 设置为 "requireAuthWithTenant"，auto-routes 外层又添加一次，导致每个请求经过双重认证
+  2. server.ts 手动注册了 5 个 `/api/admin/auth/*` 端点（/me、/settings GET/PUT、/change-password），与 admin-auth.routes.ts 通过 auto-routes 注册的路由完全重复
+  3. admin-auth.routes.ts 的 auth 设置为 "none" 但内部又手动添加 requireAuthWithTenant，且 login 路由与 server.ts 重复
+  4. auto-routes.ts 缺少重复前缀检测功能（R56-04 声称已添加但实际未执行）
+- **修复**：
+  1. 14 个路由文件移除内部的 `router.use(requireAuthWithTenant)` 和对应的 `import { requireAuthWithTenant }`，认证由 auto-routes 根据 routeConfig.auth 统一添加
+  2. server.ts 删除 5 个重复端点（/me、/settings GET/PUT、/change-password），保留 /api/admin/auth/login 和 /api/store/auth/login（带限流，由 server.ts 独占处理）
+  3. admin-auth.routes.ts 删除 login 路由（由 server.ts 处理），auth 从 "none" 改为 "requireAuthWithTenant"，移除内部手动添加的 requireAuthWithTenant
+  4. auto-routes.ts 新增重复前缀检测：注册前统计所有 prefix，发现重复时输出警告日志并汇总报告
+- **验收标准**：无同一端点注册两次，tsc 0 错误，路由测试全通过
+- **验证结果**：
+  - grep `Router.use(requireAuth`：✅ 0 结果（14 个文件全部清理）
+  - tsc --noEmit：✅ 0 错误
+  - vitest 全量测试：✅ 416 文件 4857 用例全部通过
+  - 重复端点：✅ 0 个（server.ts 与 admin-auth.routes.ts 重复已消除）
+  - 重复前缀检测：✅ 已添加（启动时自动检测并警告）
+- **备注**：
+  1. 发现 R56-04 任务报告虚假：声称"14 个路由文件移除内部 requireAuthWithTenant"和"auto-routes.ts 新增重复前缀检测"但实际未执行，本次 R47-05 补齐
+  2. store.routes.ts 的 /members 路由保留（使用 productController.listMembers，移除可能破坏功能），只移除重复认证中间件
+  3. 详见踩坑日志 [12]
 
 ---
 

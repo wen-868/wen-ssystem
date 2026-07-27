@@ -1,12 +1,9 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as approvalFlowController from "../controllers/admin/approval-flow.controller";
 import * as approvalRecordsController from "../controllers/admin/approval-records.controller";
 
 export const approvalRouter = Router();
-
-approvalRouter.use(requireAuthWithTenant);
 
 // 审批规则管理
 approvalRouter.get("/rules", approvalFlowController.listRules);

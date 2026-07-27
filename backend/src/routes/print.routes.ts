@@ -3,7 +3,7 @@
  *
  * 用途：App 端蓝牙打印小票留痕审计 API
  * 路由前缀：/api/admin/print
- * 认证：requireAuthWithTenant（认证 + 租户隔离 + CSRF 防护）
+ * 认证：requireAuthWithTenant（认证 + 租户隔离 + CSRF 防护，由 auto-routes 统一添加）
  *
  * 路由列表：
  *   POST /records          保存打印记录
@@ -16,12 +16,9 @@
 
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as printController from "../controllers/admin/print.controller";
 
 export const printRouter = Router();
-
-printRouter.use(requireAuthWithTenant);
 
 // ==================== 打印记录路由 ====================
 

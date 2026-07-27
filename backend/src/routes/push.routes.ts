@@ -3,7 +3,7 @@
  *
  * 用途：App 端推送 Token 注册/查询/注销 + 测试推送
  * 路由前缀：/api/admin/push
- * 认证：requireAuthWithTenant（认证 + 租户隔离 + CSRF 防护）
+ * 认证：requireAuthWithTenant（认证 + 租户隔离 + CSRF 防护，由 auto-routes 统一添加）
  *
  * 路由列表：
  *   POST /register     注册/更新推送Token
@@ -16,12 +16,9 @@
 
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as pushController from "../controllers/admin/push.controller";
 
 export const pushRouter = Router();
-
-pushRouter.use(requireAuthWithTenant);
 
 // ==================== 推送 Token 路由 ====================
 

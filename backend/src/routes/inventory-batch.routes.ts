@@ -1,14 +1,11 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as controller from "../controllers/admin/inventory-batch.controller";
 import { startExpiryScanner } from "../shared/expiry-scanner";
 
 startExpiryScanner();
 
 export const inventoryBatchRouter = Router();
-
-inventoryBatchRouter.use(requireAuthWithTenant);
 
 // ==================== 批次管理 ====================
 

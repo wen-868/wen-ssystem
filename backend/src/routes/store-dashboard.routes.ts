@@ -1,16 +1,12 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as authController from "../controllers/store/auth.controller";
 import * as receivableController from "../controllers/store/receivable.controller";
 
 export const storeDashboardRouter = Router();
 
-// Auth (无需认证)
+// Auth（认证由 auto-routes 统一添加）
 storeDashboardRouter.get("/me", authController.getMe);
-
-// 需要认证
-storeDashboardRouter.use(requireAuthWithTenant);
 
 // 门店信息
 storeDashboardRouter.get("/info", authController.getStoreInfo);

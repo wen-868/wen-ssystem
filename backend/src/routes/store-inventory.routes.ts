@@ -1,11 +1,8 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as inventoryController from "../controllers/store/inventory.controller";
 
 export const storeInventoryRouter = Router();
-
-storeInventoryRouter.use(requireAuthWithTenant);
 
 // 库存
 storeInventoryRouter.get("/inventory", inventoryController.listInventory);

@@ -11,8 +11,6 @@ import { ok } from "./shared/response";
 import { errorHandler } from "./middleware/error-handler";
 import { errorResponseInterceptor } from "./shared/error-response-interceptor";
 import { responseTimeTracker } from "./middleware/response-tracker";
-import { requireAuthWithTenant } from "./middleware/auth";
-import { csrfMiddleware } from "./middleware/csrf";
 import { runMigrations } from "./shared/migration";
 import { setupRoutes } from "./shared/auto-routes";
 import * as authController from "./controllers/admin/auth.controller";
@@ -154,19 +152,13 @@ app.get("/health", (_req: any, res: any) => {
 });
 
 // 登录接口（无需认证，但受 Rate Limiting 保护）
+// admin/store 登录由 server.ts 手动注册（带限流），其他 /api/admin/auth/* 路由（me/settings/change-password）由 admin-auth.routes.ts 自动注册
 app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
 app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
-// 认证后的用户接口
-// 注意：手动注册的写操作接口需单独挂载 csrfMiddleware（auto-routes 已对自动注册的路由按 auth 配置附加 CSRF）
-app.get("/api/admin/auth/me", requireAuthWithTenant, authController.getMe);
-app.get("/api/admin/auth/settings", requireAuthWithTenant, authController.getSettings);
-app.put("/api/admin/auth/settings", requireAuthWithTenant, csrfMiddleware, authController.updateSettings);
-app.post("/api/admin/auth/change-password", requireAuthWithTenant, csrfMiddleware, authController.changePassword);
 
 // CSRF 防护：不再全局注册，避免与 auto-routes 中的按路由注册形成双重注册。
 // - 自动注册的路由：auto-routes.ts 的 getAuthMiddlewares 已对 requireAuth/requireAuthWithTenant/requirePlatformAuth 三种模式附加 csrfMiddleware
-// - 手动注册的写操作接口：在上方各自挂载 csrfMiddleware
-// - auth: "none" 路由：req.user 不存在，csrfMiddleware 会自动放行，无需全局注册
+// - 登录接口：auth:none 路由，req.user 不存在，csrfMiddleware 会自动放行
 
 // 自动发现并注册 routes/ 目录下所有路由
 await setupRoutes(app);
