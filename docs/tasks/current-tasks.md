@@ -198,7 +198,7 @@
   - `Number()` 转换 1 处：`Number(row.wholesalePrice) * row.quantity`（原来 any 掩盖了 `number | string` 算术运算）
   - 验证结果：`grep ': any\|as any\|<any>'` 三个区域 0 结果；`grep '\bany\b'` 三个区域 0 结果；`tsc --noEmit` 0 错误；`vitest run` 416 文件 4857 用例全部通过（73.83s）
 
-##### ④ R58-04 — 全量回归测试 [P0]
+##### ④ R58-04 — 全量回归测试 [P0] [已完成]
 
 - **负责人**：苏然
 - **前置**：R58-01 + R58-02 + R58-03 全部完成
@@ -271,12 +271,56 @@
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
-| R58-01 事务连接 any 清零 | 阿坚 | P0 | 1天 | ⬜ 待开始 |
-| R58-02 即时零售适配器 any 清零 | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
-| R58-03 miniapp/store 业务逻辑 any 清零 | 阿坚 | P1 | 0.25天 | ⬜ 待开始 |
-| R58-04 全量回归测试 | 苏然 | P0 | 0.5天 | ⬜ 待开始 |
+| R58-01 事务连接 any 清零 | 阿坚 + 凌舟 | P0 | 1天 | ✅ 已完成 |
+| R58-02 即时零售适配器 any 清零 | 阿坚 | P1 | 0.5天 | ✅ 已完成 |
+| R58-03 miniapp/store 业务逻辑 any 清零 | 阿坚 | P1 | 0.25天 | ✅ 已完成 |
+| R58-04 全量回归测试 | 苏然 | P0 | 0.5天 | ✅ 已完成 |
 | R58-05 合并审查 + 推送 | 凌舟 | P0 | 0.25天 | ⬜ 待开始 |
-| **合计** | — | — | **2.5天** | **0/5** |
+| **合计** | — | — | **2.5天** | **4/5** |
+
+#### 九、R58 实际完成情况
+
+**R58-01 事务连接 any 清零** ✅
+- commit `e661bc63` — 阿坚完成 9 个 service 文件 110 处替换
+  - 新增 `backend/src/shared/db.ts` 中 `connExecute<T>` / `connQuery<T>` / `connQueryOne<T>` 三个泛型工具函数
+  - 涉及文件：transfer-order/transfer-execution/purchase/sale-return/community-marketing/wholesale/checkout/member 等
+  - 同步更新 7 个测试文件 mock（含 `vi.doMock` 动态 mock，新增踩坑日志 [7]）
+- commit `289f93c3` — 凌舟补齐 3 个文件 12 处 any（阿坚漏掉的文件）
+  - `miniapp.service.ts` — 4 处（新增 `MiniappOrderItemInternal` + `OrderItemSkuIdRow` 接口）
+  - `platform/tenant-admin.service.ts` — 1 处（`conn: any` → `mysql.PoolConnection`，使用 `mysql2/promise` 导入避免类型冲突）
+  - `sync/delta-sync.service.ts` — 7 处（`row: any` → `ProductDeltaRow`/`MemberSyncRow`，`conn: any` 由 transaction 推断，`err: any` → `unknown`）
+
+**R58-02 即时零售适配器 any 清零** ✅
+- commit `33a86388` — 阿坚完成 9 个 instant-retail 文件 50 处替换
+  - 新增 `instant-retail/types.ts` 集中定义 `MeituanResponse` / `ElemeResponse` / `JdResponse` 等第三方响应接口
+  - 适配器中 `as any` / `(r: any)` 全部替换为明确类型
+
+**R58-03 miniapp/store 业务逻辑 any 清零** ✅
+- commit `e07e6c29` — 阿坚完成 8 个文件 32 处替换
+  - 新增 `WholesaleListSpuVO` / `WholesaleListSkuVO` / `WholesaleOrderListItemVO` / `CollectionLinkResult` 等接口
+  - 处理 2 处隐蔽 `Map<..., any>`，新增踩坑日志 [10]
+
+**验收结果**（凌舟 2026-07-28 复核）：
+- ✅ `grep -rn '<any>\|: any\|as any' backend/src/services/` 返回 0 结果（admin + 非 admin 全部清零）
+- ✅ `npx tsc --noEmit`：0 错误
+- ✅ `npx vitest run`：416 文件 4857 用例全部通过（75.20s）
+- ✅ R58-04 苏然回归测试前置条件已满足
+
+**R58-04 全量回归测试** ✅
+- 测试人：苏然（2026-07-28）
+- 无代码改动（0 fix commit），仅产出测试报告 `docs/reports/test-report-2026-07-28-r58.md`
+- 实测结果（全部 9 项验收 100% 通过）：
+  - ✅ 后端 `tsc --noEmit`：0 错误（exit 0）
+  - ✅ 后端 `vitest run`：416 文件 4857 用例全部通过（83.35s，0 失败）
+  - ✅ services 全量 any 扫描：`grep '<any>|: any|as any'` 返回 0 结果
+  - ✅ `(conn as any)` 扫描：返回 0 结果
+  - ✅ admin-web `vue-tsc --noEmit`：0 错误
+  - ✅ admin-web `npm run build`：成功（37.46s），最大 chunk `echarts` 457.68 KB ≤500KB
+  - ✅ app-mobile `vue-tsc --noEmit`：0 错误
+  - ✅ saas-admin `vue-tsc --noEmit`：0 错误
+  - ✅ 21 个重点测试文件（含 tenant-isolation.test.ts 的 vi.doMock 动态 mock）全部存在且通过
+- 历史已知问题（踩坑日志 [5]/[7]/[10]）回归确认修复生效，本轮无新增 bug
+- 移交 R58-05：凌舟合并审查 + 推送
 
 ---
 
