@@ -160,7 +160,7 @@ export function startAntiDebug(onDetect?: () => void): void {
         const detected = detectDebugger()
         if (detected) {
             // 仅记录日志（不上报服务端，避免泄露）
-            console.warn('[security] 检测到调试器附加')
+            console.error('[security] 检测到调试器附加')
             if (typeof onDetect === 'function') {
                 try {
                     onDetect()
@@ -383,7 +383,7 @@ export function securityCheck(options: { force?: boolean; startMonitor?: boolean
 
     // 4. 记录日志（不上报服务端，避免泄露检测机制）
     if (risks.length > 0) {
-        console.warn('[security] 安全检查发现风险:', risks.join('; '))
+        console.error('[security] 安全检查发现风险:', risks.join('; '))
     }
 
     // 5. 启动防调试监控（可选）
