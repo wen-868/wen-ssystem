@@ -6,6 +6,7 @@
 
 import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import type mysql from "mysql2/promise";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
@@ -284,7 +285,7 @@ export async function createPlatformTenant(params: PlatformTenantCreate) {
  * 初始化租户默认数据
  */
 async function initializeTenantDefaults(
-  conn: any,
+  conn: mysql.PoolConnection,
   tenantId: string,
   adminName: string,
   adminPhone: string

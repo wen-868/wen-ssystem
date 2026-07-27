@@ -3,6 +3,7 @@ import { query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../shared/trace-code";
+import type { RowDataPacket } from "mysql2";
 
 // ========== 类型定义 ==========
 
@@ -66,6 +67,23 @@ interface MiniappOrderItemRow {
   quantity: number;
   unitPrice: number;
   subtotalAmount: number;
+}
+
+/** 创建订单时构造的内部订单项（含库存预留信息） */
+interface MiniappOrderItemInternal {
+  skuId: number;
+  qty: number;
+  skuName: string;
+  unitPrice: number;
+  subtotal: number;
+  priceType: string;
+  reservedQty: number;
+  unreservedQty: number;
+}
+
+/** 确认收货时查询的 SKU ID 行 */
+interface OrderItemSkuIdRow extends RowDataPacket {
+  sku_id: number;
 }
 
 interface StatementOrderRow {
@@ -193,7 +211,7 @@ export async function createOrder(tenantId: string, body: {
   const order = await transaction(async (conn) => {
     const orderNo = makeBizNo("DD");
     let goodsAmount = 0;
-    const items = [];
+    const items: MiniappOrderItemInternal[] = [];
 
     for (const item of body.items) {
       const price = await queryOne<SkuPriceRow>(
@@ -286,7 +304,7 @@ export async function createOrder(tenantId: string, body: {
       orderStatus: initialState.orderStatus,
       payStatus: initialState.payStatus,
       payableAmount: goodsAmount,
-      items: items.map((item: any) => ({
+      items: items.map((item) => ({
         skuId: item.skuId,
         quantity: item.qty,
         reservedQty: item.reservedQty,
@@ -354,13 +372,13 @@ export async function confirmReceipt(orderNo: string, tenantId: string) {
     const deliveryResult = await completeOrderDelivery(conn, orderNo, null, makeBizNo);
 
     // R9-2: 订单完成时消费追溯码
-    const [items]: any[] = await conn.query(
+    const [items] = await conn.query<OrderItemSkuIdRow[]>(
       `SELECT sku_id FROM t_miniapp_order_item WHERE order_no = ? AND tenant_id = ?`,
       [orderNo, tenantId]
     );
-    const skuIds = items.map((it: any) => it.sku_id);
+    const skuIds = items.map((it) => it.sku_id);
     if (skuIds.length > 0) {
-      await updateTraceCodesBySkuList(conn, (deliveryResult as any)?.tenantId || tenantId, orderNo, skuIds);
+      await updateTraceCodesBySkuList(conn, (deliveryResult as { tenantId?: string })?.tenantId || tenantId, orderNo, skuIds);
     }
 
     return deliveryResult;

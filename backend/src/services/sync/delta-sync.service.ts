@@ -18,6 +18,7 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
+import type { RowDataPacket } from "mysql2";
 
 // ==================== 数据库行接口定义 ====================
 
@@ -84,6 +85,14 @@ interface MemberDeltaRow {
 /** 销售单草稿查重行 — 用于离线订单幂等检查 */
 interface SaleBillDraftRow {
     billNo: string;
+}
+
+/** 离线订单客户信息查询行 */
+interface MemberSyncRow extends RowDataPacket {
+    id: number;
+    name: string | null;
+    mobile: string;
+    customer_type: string;
 }
 
 // ==================== 类型定义 ====================
@@ -236,7 +245,7 @@ function determineProductAction(row: {
 /**
  * 构造 ProductDeltaData 对象
  */
-function buildProductDeltaData(row: any): ProductDeltaData {
+function buildProductDeltaData(row: ProductDeltaRow): ProductDeltaData {
     return {
         skuId: Number(row.skuId),
         spuId: Number(row.spuId),
@@ -336,7 +345,7 @@ export async function getProductDelta(
         tenantId
     );
 
-    const changes: SyncDeltaResponse<ProductDeltaData>["changes"] = rows.map((row: any) => {
+    const changes: SyncDeltaResponse<ProductDeltaData>["changes"] = rows.map((row) => {
         const action = determineProductAction({
             deletedAt: row.deletedAt,
             skuStatus: Number(row.skuStatus),
@@ -396,7 +405,7 @@ export async function getInventoryDelta(
         tenantId
     );
 
-    const changes: SyncDeltaResponse<InventoryDeltaData>["changes"] = rows.map((row: any) => ({
+    const changes: SyncDeltaResponse<InventoryDeltaData>["changes"] = rows.map((row) => ({
         action: "UPSERT" as const,
         skuId: Number(row.skuId),
         spuId: 0,
@@ -454,7 +463,7 @@ export async function getMemberDelta(
         tenantId
     );
 
-    const changes: SyncDeltaResponse<MemberDeltaData>["changes"] = rows.map((row: any) => {
+    const changes: SyncDeltaResponse<MemberDeltaData>["changes"] = rows.map((row) => {
         const action = Number(row.status) === 0 ? "STATUS_CHANGE" : "UPSERT";
         return {
             action: action as "UPSERT" | "STATUS_CHANGE",
@@ -525,18 +534,18 @@ export async function submitOfflineOrders(
             }
 
             // 事务保证 sale_bill + sale_bill_item 原子性
-            const billNo = await transaction(async (conn: any) => {
+            const billNo = await transaction(async (conn) => {
                 // 查询客户信息（如提供 customerId）
                 let customerName = order.customerName ?? null;
                 let customerMobile = order.customerMobile ?? null;
                 let customerType = "RETAIL";
                 let customerId: number | null = null;
                 if (order.customerId) {
-                    const [memberRows] = await conn.query(
+                    const [memberRows] = await conn.query<MemberSyncRow[]>(
                         "SELECT id, name, mobile, customer_type FROM t_member WHERE id = ? AND tenant_id = ?",
                         [order.customerId, tenantId]
                     );
-                    const member = (memberRows as any[])?.[0];
+                    const member = memberRows?.[0];
                     if (member) {
                         customerId = Number(member.id);
                         customerName = member.name ?? customerName;
@@ -598,9 +607,9 @@ export async function submitOfflineOrders(
 
             results.push({ draftNo: order.draftNo, success: true, billNo });
             successCount++;
-        } catch (err: any) {
+        } catch (err: unknown) {
             // 错误隔离：单条失败不影响其他订单
-            const errorMsg = err?.message || String(err);
+            const errorMsg = err instanceof Error ? err.message : String(err);
             logger.warn(`[离线订单提交] 失败 draftNo=${order.draftNo}: ${errorMsg}`);
             results.push({ draftNo: order.draftNo, success: false, errorMsg });
             failureCount++;
