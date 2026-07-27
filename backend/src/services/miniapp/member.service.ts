@@ -221,7 +221,7 @@ export async function getMemberProfile(memberId: number, tenantId: string) {
   );
 
   let currentLevel = allLevels[allLevels.length - 1] || null;
-  let nextLevel: any = null;
+  let nextLevel: MemberLevelRow | null = null;
 
   for (let i = 0; i < allLevels.length; i++) {
     if (member.growthValue >= allLevels[i].minGrowth) {
@@ -312,7 +312,7 @@ export async function getMemberLevels(tenantId: string) {
     tenantId
   );
 
-  return rows.map((row: any) => ({
+  return rows.map((row: MemberLevelListRow) => ({
     id: row.id,
     levelCode: row.levelCode,
     levelName: row.levelName,
@@ -386,7 +386,7 @@ export async function getPointsRecords(
     total: Number(totalRow?.total || 0),
     page,
     pageSize,
-    records: records.map((r: any) => ({
+    records: records.map((r: PointsRecordRow) => ({
       id: r.id,
       type: r.type,
       changePoints: r.changePoints,
@@ -462,7 +462,7 @@ export async function getGrowthRecords(
     total: Number(totalRow?.total || 0),
     page,
     pageSize,
-    records: records.map((r: any) => ({
+    records: records.map((r: GrowthRecordRow) => ({
       id: r.id,
       type: r.type,
       changeGrowth: r.changeGrowth,
@@ -533,7 +533,7 @@ export async function getMyCoupons(
     total: Number(totalRow?.total || 0),
     page,
     pageSize,
-    records: records.map((r: any) => {
+    records: records.map((r: UserCouponRow) => {
       // 计算实际状态（考虑过期）
       let actualStatus = r.status;
       if (r.status === "UNUSED" && new Date(r.validEnd) < new Date()) {

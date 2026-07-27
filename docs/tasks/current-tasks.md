@@ -169,23 +169,34 @@
   - `npx tsc --noEmit` → 0 错误
   - `npx vitest run` → 416 文件 4857 用例全部通过（75.65s）
 
-##### ③ R58-03 — miniapp/store 业务逻辑 any 清零 [P1]
+##### ③ R58-03 — miniapp/store 业务逻辑 any 清零 [P1] [已完成]
 
 - **负责人**：阿坚
-- **范围**：5 个文件，~30 处业务逻辑 row any
+- **范围**：5 个文件，~30 处业务逻辑 row any（实际 8 个文件 32 处，含计划未列的 cart/auth/sale-bill/other）
 - **文件清单**：
-  - `miniapp/wholesale.service.ts`（15 处）
-  - `miniapp/member.service.ts`（11 处）
+  - `miniapp/wholesale.service.ts`（15 处，含 2 处 `Map<..., any>` 隐蔽 any）
+  - `miniapp/member.service.ts`（5 处）
+  - `miniapp/cart.service.ts`（3 处，计划未列）
   - `store/shift.service.ts`（4 处）
+  - `store/auth.service.ts`（1 处，计划未列）
+  - `store/sale-bill.service.ts`（1 处，计划未列）
+  - `store/other.service.ts`（1 处，计划未列）
   - `supplier.service.ts`（3 处）
-  - `instant-retail/retail-shop.service.ts`（部分）
+  - `instant-retail/retail-shop.service.ts`（0 处，R58-02 已清零）
 - **修复方向**：
-  1. 为每个 SQL 查询定义对应的 Row 接口（如 `WholesaleSkuRow` / `MemberOrderRow` / `PaymentBreakdownRow` / `SupplierRow`）
+  1. 为每个 SQL 查询定义对应的 Row 接口（如 `WholesaleSkuRow` / `MemberLevelListRow` / `PaymentChannelRow` / `SupplierRow`）
   2. 业务逻辑中的 `row: any` / `(s: any)` 全部替换为明确接口
   3. `any[]` 替换为 `XxxRow[]`
+  4. `Map<..., any>` 替换为 `Map<..., XxxVO[]>` 并定义 VO 接口
 - **验收标准**：
   - `grep -rn ': any\|as any\|<any>' backend/src/services/miniapp/ backend/src/services/store/ backend/src/services/supplier.service.ts` 返回 0 结果
   - `npx tsc --noEmit` 0 错误
+- **完成证据**：
+  - 新增接口 5 个：`StoreAuthUserInput`、`CollectionLinkResult`、`WholesaleOrderListItemVO`、`WholesaleListSkuVO`、`WholesaleListSpuVO`
+  - 放宽 VO 字段类型 5 处：`SupplierListVO/DetailVO.createdAt` → `string | Date`、`updatedAt` → `string | Date`、`taxRate` → `number | string`、`SupplierContact.created_at` → `string | Date`（兼容 mysql2 返回）
+  - 非空断言 2 处：`spuMap.get()!` / `orderMap.get()!`（前面 has 检查保证存在，不改变业务逻辑）
+  - `Number()` 转换 1 处：`Number(row.wholesalePrice) * row.quantity`（原来 any 掩盖了 `number | string` 算术运算）
+  - 验证结果：`grep ': any\|as any\|<any>'` 三个区域 0 结果；`grep '\bany\b'` 三个区域 0 结果；`tsc --noEmit` 0 错误；`vitest run` 416 文件 4857 用例全部通过（73.83s）
 
 ##### ④ R58-04 — 全量回归测试 [P0]
 

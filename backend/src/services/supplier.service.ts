@@ -114,7 +114,7 @@ export interface Supplier {
   status: number;
   remark: string | null;
   tenant_id: string;
-  created_at: string;
+  created_at: string | Date;
   updated_at: string;
 }
 
@@ -130,7 +130,7 @@ export interface SupplierContact {
   isPrimary?: boolean;
   position: string | null;
   remark: string | null;
-  created_at: string;
+  created_at: string | Date;
 }
 
 export interface SupplierListVO {
@@ -146,7 +146,7 @@ export interface SupplierListVO {
   province: string | null;
   city: string | null;
   district: string | null;
-  createdAt: string;
+  createdAt: string | Date;
 }
 
 export interface SupplierDetailVO {
@@ -162,14 +162,14 @@ export interface SupplierDetailVO {
   creditLevel: string;
   settlementType: string;
   settlementDay: number | null;
-  taxRate: number;
+  taxRate: number | string;
   bankName: string | null;
   bankAccount: string | null;
   bankAccountName: string | null;
   status: number;
   remark: string | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   contacts: SupplierContact[];
 }
 
@@ -254,7 +254,7 @@ const SUPPLIER_FIELD_MAP: FieldMapping = {
   remark: "remark",
 };
 
-function mapSupplierRow(row: any): SupplierListVO {
+function mapSupplierRow(row: SupplierRow): SupplierListVO {
   return {
     id: row.id,
     supplierCode: row.supplier_code,
@@ -272,7 +272,7 @@ function mapSupplierRow(row: any): SupplierListVO {
   };
 }
 
-function mapSupplierDetailRow(row: any): SupplierDetailVO {
+function mapSupplierDetailRow(row: SupplierRow): SupplierDetailVO {
   return {
     id: row.id,
     supplierCode: row.supplier_code,
@@ -298,7 +298,7 @@ function mapSupplierDetailRow(row: any): SupplierDetailVO {
   };
 }
 
-function mapContactRow(row: any): SupplierContact {
+function mapContactRow(row: SupplierContactRow): SupplierContact {
   return {
     id: row.id,
     supplier_id: row.supplier_id,

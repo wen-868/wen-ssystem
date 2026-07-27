@@ -438,6 +438,16 @@ export async function checkOverdueBills(storeId: number | null, tenantId: string
   return { count: overdueBills.length, overdueBills };
 }
 
+/** 批量分享链接结果项 */
+interface CollectionLinkResult {
+  billNo: string;
+  linkNo: string;
+  token: string;
+  amount: number;
+  status: string;
+  shareUrl: string;
+}
+
 // 批量生成分享链接
 export async function batchCreateCollectionLinks(params: {
   billNos: string[]; shareChannel: string; amount?: number;
@@ -445,7 +455,7 @@ export async function batchCreateCollectionLinks(params: {
   userId: number; tenantId: string;
 }) {
   const { billNos, shareChannel, amount, taxEnabled, taxRate, expireHours, userId, tenantId } = params;
-  const results: any[] = [];
+  const results: CollectionLinkResult[] = [];
   for (const billNo of billNos) {
     const bill = await queryOneWithTenant<UnreceivedRow>("SELECT bill_no, unreceived_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [billNo, tenantId], tenantId);
     if (!bill) continue;

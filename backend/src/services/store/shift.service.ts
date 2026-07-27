@@ -134,10 +134,10 @@ export async function settleShift(tenantId: string, storeId: number, operatorId:
     [
       today, settleNo, storeId, operatorId, tenantId,
       shiftData.totalSales, shiftData.totalReceived,
-      shiftData.paymentBreakdown.find((b: any) => b.channel === "CASH")?.amount ?? 0,
-      shiftData.paymentBreakdown.find((b: any) => b.channel === "WECHAT")?.amount ?? 0,
-      shiftData.paymentBreakdown.find((b: any) => b.channel === "ALIPAY")?.amount ?? 0,
-      shiftData.paymentBreakdown.find((b: any) => b.channel === "TRANSFER")?.amount ?? 0,
+      shiftData.paymentBreakdown.find((b) => b.channel === "CASH")?.amount ?? 0,
+      shiftData.paymentBreakdown.find((b) => b.channel === "WECHAT")?.amount ?? 0,
+      shiftData.paymentBreakdown.find((b) => b.channel === "ALIPAY")?.amount ?? 0,
+      shiftData.paymentBreakdown.find((b) => b.channel === "TRANSFER")?.amount ?? 0,
       0
     ]
   );

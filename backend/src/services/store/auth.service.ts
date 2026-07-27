@@ -116,7 +116,15 @@ export async function login(username: string, password: string) {
   return { token, user };
 }
 
-export function getCurrentUser(user: any) {
+/** getCurrentUser 入参 — 登录账号/用户信息 */
+interface StoreAuthUserInput {
+  id: number;
+  username?: string | null;
+  storeId?: number | null;
+  roles?: string[];
+}
+
+export function getCurrentUser(user: StoreAuthUserInput) {
   return {
     userId: user.id,
     realName: user.username ?? "商家用户",

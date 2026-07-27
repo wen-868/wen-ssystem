@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { shouldReserveStock, type CustomerType } from "../../shared/fulfillment";
 
 // ==================== 类型定义 ====================
@@ -45,7 +45,7 @@ export async function getCartList(tenantId: string, customerId: number, customer
     [customerId],
     tenantId
   );
-  const items = rows.map((row: any) => {
+  const items = rows.map((row: CartListRow) => {
     const wholesaleVisible = shouldReserveStock(customerType as CustomerType) && row.wholesalePrice != null;
     const price = wholesaleVisible ? Number(row.wholesalePrice) : Number(row.miniappPrice ?? row.retailPrice);
     return {
@@ -61,8 +61,8 @@ export async function getCartList(tenantId: string, customerId: number, customer
       priceType: wholesaleVisible ? "WHOLESALE" : "RETAIL"
     };
   });
-  const totalAmount = items.reduce((sum: number, item: any) => sum + item.subtotal, 0);
-  const totalQty = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  const totalAmount = items.reduce((sum: number, item) => sum + item.subtotal, 0);
+  const totalQty = items.reduce((sum: number, item) => sum + item.quantity, 0);
   return { items, totalAmount: Number(totalAmount.toFixed(2)), totalQty };
 }
 

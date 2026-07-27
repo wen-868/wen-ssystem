@@ -233,6 +233,32 @@ interface WholesaleOrderDetailItemRow {
   specInfo: string | null;
 }
 
+/** 批发商品列表 SKU 项 VO（spuMap.skus 元素） */
+interface WholesaleListSkuVO {
+  skuId: number;
+  skuName: string;
+  skuCode: string;
+  wholesalePrice: number;
+  retailPrice: number;
+  minOrderQty: number;
+  stockQty: number;
+  stepPrices: Array<{ minQty: number; price: number }>;
+}
+
+/** 批发商品列表 SPU 项 VO（spuMap value） */
+interface WholesaleListSpuVO {
+  spuId: number;
+  spuCode: string;
+  name: string;
+  mainImage: string | null;
+  categoryId: number;
+  unit: string | null;
+  specs: string | null;
+  isNew: number;
+  minPrice: number;
+  skus: WholesaleListSkuVO[];
+}
+
 // ========== 批发商品列表 ==========
 export async function getWholesaleProducts(
   tenantId: string,
@@ -313,7 +339,7 @@ export async function getWholesaleProducts(
   );
 
   // 整理数据，按SPU分组
-  const spuMap = new Map<number, any>();
+  const spuMap = new Map<number, WholesaleListSpuVO>();
 
   for (const row of records) {
     if (!spuMap.has(row.spuId)) {
@@ -331,7 +357,7 @@ export async function getWholesaleProducts(
       });
     }
 
-    const spu = spuMap.get(row.spuId);
+    const spu = spuMap.get(row.spuId)!;
     spu.skus.push({
       skuId: row.skuId,
       skuName: row.skuName,
@@ -396,8 +422,8 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
   );
 
   // 获取阶梯价
-  const skuIds = skus.map((s: any) => s.skuId);
-  let stepPrices: any[] = [];
+  const skuIds = skus.map((s: WholesaleSkuRow) => s.skuId);
+  let stepPrices: ProductStepPriceRow[] = [];
   if (skuIds.length > 0) {
     const placeholders = skuIds.map(() => "?").join(",");
     stepPrices = await queryWithTenant<ProductStepPriceRow>(
@@ -411,10 +437,10 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
   }
 
   // 组装SKU数据
-  const skuList = skus.map((sku: any) => {
+  const skuList = skus.map((sku: WholesaleSkuRow) => {
     const skuStepPrices = stepPrices
-      .filter((sp: any) => sp.skuId === sku.skuId)
-      .map((sp: any) => ({
+      .filter((sp: ProductStepPriceRow) => sp.skuId === sku.skuId)
+      .map((sp: ProductStepPriceRow) => ({
         minQty: sp.minQty,
         price: Number(sp.price)
       }));
@@ -440,7 +466,7 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
 
   // 计算最低批发价
   const minWholesalePrice = skuList.length > 0
-    ? Math.min(...skuList.map((s: any) => s.wholesalePrice))
+    ? Math.min(...skuList.map((s) => s.wholesalePrice))
     : 0;
 
   return {
@@ -487,7 +513,7 @@ export async function getWholesaleCategories(tenantId: string) {
     tenantId
   );
 
-  return rows.map((row: any) => ({
+  return rows.map((row: WholesaleCategoryRow) => ({
     id: row.id,
     name: row.name,
     parentId: row.parentId,
@@ -518,7 +544,7 @@ export async function getWholesaleCart(memberId: number, tenantId: string) {
     tenantId
   );
 
-  const items = rows.map((row: any) => ({
+  const items = rows.map((row: WholesaleCartRow) => ({
     id: row.id,
     skuId: row.skuId,
     spuId: row.spuId,
@@ -532,12 +558,12 @@ export async function getWholesaleCart(memberId: number, tenantId: string) {
     availableQty: Number(row.availableQty || 0),
     categoryId: row.categoryId,
     categoryName: row.categoryName,
-    subtotal: Number((row.wholesalePrice * row.quantity).toFixed(2))
+    subtotal: Number((Number(row.wholesalePrice) * row.quantity).toFixed(2))
   }));
 
   // 计算合计
-  const totalAmount = items.reduce((sum: number, item: any) => sum + item.subtotal, 0);
-  const totalCount = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  const totalAmount = items.reduce((sum: number, item) => sum + item.subtotal, 0);
+  const totalCount = items.reduce((sum: number, item) => sum + item.quantity, 0);
 
   return {
     items,
@@ -875,6 +901,16 @@ export async function createWholesaleOrder(
   });
 }
 
+/** 批发订单列表商品项 VO（orderMap value） */
+interface WholesaleOrderListItemVO {
+  skuId: number;
+  skuName: string;
+  skuImage: string | null;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
 // ========== 获取批发订单列表 ==========
 export async function getWholesaleOrders(
   memberId: number,
@@ -917,8 +953,8 @@ export async function getWholesaleOrders(
   );
 
   // 获取每个订单的商品（取第一个商品作为缩略图）
-  const orderNos = records.map((r: any) => r.orderNo);
-  let orderItems: any[] = [];
+  const orderNos = records.map((r: WholesaleOrderListRow) => r.orderNo);
+  let orderItems: WholesaleOrderItemRow[] = [];
   if (orderNos.length > 0) {
     const placeholders = orderNos.map(() => "?").join(",");
     orderItems = await queryWithTenant<WholesaleOrderItemRow>(
@@ -934,12 +970,12 @@ export async function getWholesaleOrders(
   }
 
   // 组装订单数据
-  const orderMap = new Map<string, any>();
+  const orderMap = new Map<string, WholesaleOrderListItemVO[]>();
   for (const item of orderItems) {
     if (!orderMap.has(item.orderNo)) {
       orderMap.set(item.orderNo, []);
     }
-    orderMap.get(item.orderNo).push({
+    orderMap.get(item.orderNo)!.push({
       skuId: item.skuId,
       skuName: item.skuName,
       skuImage: item.skuImage,
@@ -949,7 +985,7 @@ export async function getWholesaleOrders(
     });
   }
 
-  const result = records.map((order: any) => {
+  const result = records.map((order: WholesaleOrderListRow) => {
     const items = orderMap.get(order.orderNo) || [];
     return {
       id: order.id,
@@ -1050,7 +1086,7 @@ export async function getWholesaleOrderDetail(
     completedAt: order.completedAt,
     cancelledAt: order.cancelledAt,
     cancelReason: order.cancelReason,
-    items: items.map((item: any) => ({
+    items: items.map((item: WholesaleOrderDetailItemRow) => ({
       id: item.id,
       spuId: item.spuId,
       skuId: item.skuId,

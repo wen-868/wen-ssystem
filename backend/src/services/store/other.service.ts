@@ -72,7 +72,7 @@ interface CountTotalRow {
 
 export async function createHoldOrder(params: {
   customerName: string; customerMobile: string; amount: number;
-  remark: string; items: any[]; storeId: number; tenantId: string;
+  remark: string; items: Record<string, unknown>[]; storeId: number; tenantId: string;
 }) {
   const { customerName, customerMobile, amount, remark, items, storeId, tenantId } = params;
   const holdNo = makeBizNo("GD");
