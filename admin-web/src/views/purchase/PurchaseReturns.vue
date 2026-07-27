@@ -139,7 +139,7 @@
     <el-dialog
       v-model="dialogVisible"
       title="新建退货单"
-      width="920px"
+      width="900px"
       :close-on-click-modal="false"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="110px">
@@ -288,7 +288,7 @@
       </template>
     </el-dialog>
 
-    <DetailDrawer v-model="detailVisible" title="退货单详情" width="560px">
+    <DetailDrawer v-model="detailVisible" title="退货单详情" width="480px">
       <template v-if="currentReturn">
         <el-descriptions :column="2" border>
           <el-descriptions-item label="退货单号">{{ currentReturn.returnNo }}</el-descriptions-item>

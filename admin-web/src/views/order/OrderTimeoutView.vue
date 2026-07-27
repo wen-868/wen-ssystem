@@ -152,7 +152,7 @@
       </el-tabs>
     </el-card>
 
-    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑配置' : '新增配置'" width="520px">
+    <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑配置' : '新增配置'" width="480px">
       <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="120px">
         <el-form-item label="订单类型" prop="orderType">
           <el-select v-model="configForm.orderType" style="width: 100%">

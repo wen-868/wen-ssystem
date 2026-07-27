@@ -1,8 +1,157 @@
-# 当前任务 — R56(已完成) + R55-04(进行中) + R52(已完成) + R47 + R48
+# 当前任务 — R57(已完成) + R56(已完成) + R55-04(进行中) + R52(已完成) + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
 > 最后更新：2026-07-28
+
+---
+
+## R57 — 全局验收遗留问题收尾（第三轮） [✅ 已完成 — 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：凌舟全局验收 + 代码质量扫描（R56 完成后复扫）
+> **说明**：R56 全部 4 项修复已合并推送，回归测试通过；本轮处理 R56 后复扫发现的遗留问题
+> **完成状态**：3 项全部通过（R57-01/02/03）
+> **完成证据**：commit 待提交 — 弹窗宽度5处统一/echarts按需导入/chunk≤500KB/console.log清理10处
+> **回归测试**：tsc 0 错误 / vitest 416文件4857用例通过 / vue-tsc 0 错误 / build 成功（echarts 468KB）
+> **验收基线**：2026-07-28 凌舟复扫结果
+
+### R57 工作计划（2026-07-28 凌舟制定）
+
+#### 一、任务分解与优先级排序
+
+| 执行顺序 | 任务 | 负责人 | 优先级 | 工作量 | 阻塞风险 |
+|:--------:|------|--------|:------:|:------:|----------|
+| ① | R57-01 admin-web 弹窗宽度残留 4 处 | 墨 | P2 | 0.25天 | UI 规范不统一 |
+| ② | R57-02 admin-web echarts chunk 拆分至 ≤500KB | 墨 | P1 | 0.5天 | 违反项目硬约束（chunk ≤500KB） |
+| ③ | R57-03 app-mobile 开发遗留 console.log 清理 | 阿澈 | P3 | 0.25天 | 生产环境日志可读性 |
+
+#### 二、详细执行方案
+
+##### ① R57-01 — admin-web 弹窗宽度残留 4 处 [P2]
+
+- **负责人**：墨
+- **文件与修改明细**：
+
+  | 文件 | 行号 | 当前值 | 目标值 |
+  |------|:----:|:------:|:------:|
+  | `admin-web/src/views/purchase/PurchaseReturns.vue` | 142 | 920px | 900px |
+  | `admin-web/src/views/purchase/PurchaseReturns.vue` | 291 | 560px | 480px |
+  | `admin-web/src/views/purchase/PurchasePayments.vue` | 147 | 560px | 480px |
+  | `admin-web/src/views/order/OrderTimeoutView.vue` | 155 | 520px | 480px |
+
+- **弹窗宽度三档标准**：480px（小）/ 720px（中）/ 900px（大）
+- **踩坑警告**：[踩坑日志 #4] 同一文件多处修改时严禁并行 Edit，必须串行处理。`PurchaseReturns.vue` 有 2 处需修改，必须逐个串行 Edit
+- **验收标准**：`grep -rn 'width="[0-9]*px"' admin-web/src/views/ | grep -vE 'width="(480|720|900)px"'` 返回 0 结果
+
+##### ② R57-02 — admin-web echarts chunk 拆分至 ≤500KB [P1]
+
+- **负责人**：墨
+- **文件**：`admin-web/vite.config.ts`
+- **当前状态**：构建产物中 `echarts-Ey12kX2J.js` 为 915.23 kB（gzip 305.84 kB），违反项目硬约束"admin-web chunk size ≤500KB"
+- **修复方向**：
+  1. 在 `vite.config.ts` 的 `build.rollupOptions.output.manualChunks` 中将 echarts 单独拆分为独立 chunk
+  2. 可选：将 zrender（224.09 kB）也拆分以进一步优化
+  3. 调整 `chunkSizeWarningLimit` 不应作为最终方案（仅抑制警告）
+- **验收标准**：`npm run build` 后无 chunk 超过 500KB（不含 gzip）
+
+##### ③ R57-03 — app-mobile 开发遗留 console.log 清理 [P3]
+
+- **负责人**：阿澈
+- **文件与修改明细**：
+
+  | 文件 | 行号 | 内容 | 处理方式 |
+  |------|:----:|------|----------|
+  | `app-mobile/src/App.vue` | 5 | `console.log('智享全链 App 启动')` | 删除 |
+  | `app-mobile/src/App.vue` | 15 | `console.log('App 显示')` | 删除 |
+  | `app-mobile/src/App.vue` | 19 | `console.log('App 隐藏')` | 删除 |
+  | `app-mobile/src/utils/sync-manager.ts` | 526 | `console.log('[sync-manager] 无网络，跳过启动同步')` | 改为 `console.warn`（属于业务降级提示，保留可观测性） |
+  | `app-mobile/src/utils/sync-manager.ts` | 551 | `console.log('[sync-manager] 网络恢复，触发同步')` | 改为 `console.warn`（属于业务事件提示，保留可观测性） |
+
+- **保留说明**：以下 `console.warn` 属于 catch 块错误降级或注释示例，符合规范，保留不动：
+  - `storage.ts` 迁移失败 warn（3 处）
+  - `native/scan.ts`、`native/push.ts` 中的 catch 错误 warn
+  - `sync-manager.ts` 中的 catch 错误 warn
+  - 所有注释中的 `console.log` 示例代码
+- **验收标准**：`grep -rn 'console\.log' app-mobile/src/ | grep -vE '^\s*\*|//|/\*'` 仅保留注释行，无实际执行代码
+
+#### 三、资源分配
+
+| 成员 | 分配任务 | 总工作量 | 可并行 |
+|------|----------|:--------:|:------:|
+| 墨 | R57-01 + R57-02 | 0.75天 | 两项串行，先 R57-01 后 R57-02 |
+| 阿澈 | R57-03 | 0.25天 | 与墨并行 |
+| 苏然 | 全量回归测试 | 0.5天 | 待墨+阿澈完成后执行 |
+| 凌舟 | 合并审查 + 验收 | 0.25天 | 待苏然测试通过后执行 |
+
+#### 四、时间节点
+
+| 阶段 | 负责人 | 开始时间 | 完成时间 | 产出 |
+|------|--------|----------|----------|------|
+| 阶段一：代码修复 | 墨 + 阿澈 | 立即 | +0.75天 | 3 项代码修复完成，tsc/vue-tsc 0 错误 |
+| 阶段二：回归测试 | 苏然 | 阶段一完成后 | +0.5天 | 测试报告 `docs/reports/test-report-2026-07-28-r57.md` |
+| 阶段三：合并验收 | 凌舟 | 阶段二完成后 | +0.25天 | 任务状态更新，R57 标记为已完成 |
+
+#### 五、风险评估
+
+| 风险 | 概率 | 影响 | 缓解措施 |
+|------|:----:|:----:|----------|
+| PurchaseReturns.vue 2 处并行 Edit 导致覆盖 | 中 | 高 | 严格串行 Edit，每处修改后确认结果（踩坑日志 #4） |
+| manualChunks 配置不当导致运行时加载顺序错误 | 中 | 中 | 拆分后必须 `npm run build` + 本地启动验证页面正常加载 |
+| echarts 拆分后仍超 500KB（含 zrender） | 中 | 中 | 拆分 echarts 和 zrender 为两个独立 chunk |
+| console.log 改为 warn 后影响调试 | 低 | 低 | 仅改业务事件提示，错误降级保留 warn |
+
+#### 六、验收检查清单
+
+- [x] R57-01：`grep -rn 'width="[0-9]*px"' admin-web/src/views/ | grep -vE 'width="(480|720|900)px"'` 返回 0 结果（实际修复 5 处，含计划外 ProductCategories.vue）
+- [x] R57-02：`npm run build` 后无 chunk 超过 500KB（echarts 从 915KB 降至 468KB）
+- [x] R57-03：`app-mobile/src/` 中无非注释 console.log（实际清理 10 处，含计划外 5 处）
+- [x] 后端 `tsc --noEmit`：0 错误
+- [x] 后端 `vitest run`：416 文件 4857 用例全部通过
+- [x] admin-web `vue-tsc --noEmit`：0 错误
+- [x] admin-web `npm run build`：成功（所有 chunk ≤500KB）
+- [x] app-mobile `vue-tsc --noEmit`：0 错误
+- [x] saas-admin `vue-tsc --noEmit`：0 错误
+
+#### R57 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R57-01 弹窗宽度残留 5 处 | 墨 | P2 | 0.25天 | ✅ 已完成 |
+| R57-02 echarts chunk 拆分 | 墨 | P1 | 0.5天 | ✅ 已完成 |
+| R57-03 console.log 清理 10 处 | 阿澈 | P3 | 0.25天 | ✅ 已完成 |
+| **合计** | — | — | **1.0天** | **3/3通过** |
+
+#### R57 实际修复明细
+
+**R57-01 弹窗宽度（5 处）**：
+- `admin-web/src/views/purchase/PurchaseReturns.vue:142` — 920px → 900px
+- `admin-web/src/views/purchase/PurchaseReturns.vue:291` — 560px → 480px
+- `admin-web/src/views/purchase/PurchasePayments.vue:147` — 560px → 480px
+- `admin-web/src/views/order/OrderTimeoutView.vue:155` — 520px → 480px
+- `admin-web/src/views/product/ProductCategories.vue:91` — 520px → 480px（计划外发现）
+
+**R57-02 echarts 按需导入（2 文件）**：
+- `admin-web/src/views/report/OnlinePaymentAnalysis.vue:141` — `import * as echarts from "echarts"` → `import echarts from "../../utils/echarts"`
+- `admin-web/src/views/product/ProductCombo.vue:639` — 同上
+- 构建产物：echarts chunk 从 915.23 kB 降至 468.66 kB（gzip 159.80 kB）
+
+**R57-03 console.log 清理（10 处）**：
+- `app-mobile/src/App.vue` — 删除 3 处启动/显示/隐藏日志
+- `app-mobile/src/utils/sync-manager.ts` — 5 处改为 console.warn（保留业务可观测性）
+- `app-mobile/src/pages-sub/marketing/marketing/seckill-detail.vue:268` — 删除秒杀订单调试日志（同时修复未使用 result 变量）
+- `app-mobile/src/pages-sub/marketing/marketing/group-buy-detail.vue:203` — 删除拼团结果调试日志（同时修复未使用 result 变量）
+
+---
+
+## R56 — 全局验收待修正问题 [✅ 已完成 — 2026-07-28]
+
+> **日期**：2026-07-27
+> **来源**：凌舟全局验收 + 代码质量扫描
+> **说明**：R53-18/R55-04/R55全部验收后，发现遗留问题和新问题，统一归入本轮
+> **完成状态**：5 项全部通过（R56-01/02/03/04/05）
+> **完成证据**：commit da5017a6 — 弹窗宽度7处统一/env补缺失变量/AppID硬编码清空/console.warn清理
+> **回归测试**：tsc 0 错误 / vitest 416文件4857用例通过 / vue-tsc 0 错误 / build 成功
 
 ---
 

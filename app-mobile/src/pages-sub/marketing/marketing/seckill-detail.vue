@@ -263,9 +263,8 @@ function handleSeckill() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          const result = await communityMarketingApi.buySeckill(activity.value!.id, quantity.value)
+          await communityMarketingApi.buySeckill(activity.value!.id, quantity.value)
           uni.showToast({ title: '秒杀成功', icon: 'success' })
-          console.log('秒杀订单:', result)
         } catch (err) {
           console.error('秒杀失败:', err)
         }

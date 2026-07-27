@@ -2,7 +2,6 @@
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
 
 onLaunch(() => {
-  console.log('智享全链 App 启动')
   // 检查登录状态
   const token = uni.getStorageSync('merchant_token')
   if (!token) {
@@ -12,11 +11,11 @@ onLaunch(() => {
 })
 
 onShow(() => {
-  console.log('App 显示')
+  // 应用切回前台
 })
 
 onHide(() => {
-  console.log('App 隐藏')
+  // 应用切到后台
 })
 </script>
 

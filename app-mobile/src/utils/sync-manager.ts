@@ -523,7 +523,7 @@ export async function onAppLaunch(): Promise<void> {
     // 检测网络状态
     const hasNetwork = await checkNetworkAvailable()
     if (!hasNetwork) {
-        console.log('[sync-manager] 无网络，跳过启动同步')
+        console.warn('[sync-manager] 无网络，跳过启动同步')
         return
     }
 
@@ -548,7 +548,7 @@ export async function onAppLaunch(): Promise<void> {
  * ```
  */
 export async function onNetworkResume(): Promise<void> {
-    console.log('[sync-manager] 网络恢复，触发同步')
+    console.warn('[sync-manager] 网络恢复，触发同步')
     try {
         await syncAll()
     } catch (err) {
@@ -593,7 +593,7 @@ export function startBackgroundSync(config?: BackgroundSyncConfig): void {
     if (config?.syncOnResume !== false) {
         try {
             uni.onAppShow(() => {
-                console.log('[sync-manager] App 前台恢复，触发同步')
+                console.warn('[sync-manager] App 前台恢复，触发同步')
                 syncAll().catch((err) => {
                     console.warn('[sync-manager] 前台恢复同步失败:', err)
                 })
@@ -603,7 +603,7 @@ export function startBackgroundSync(config?: BackgroundSyncConfig): void {
         }
     }
 
-    console.log(`[sync-manager] 后台同步已启动，间隔 ${interval}ms`)
+    console.warn(`[sync-manager] 后台同步已启动，间隔 ${interval}ms`)
 }
 
 /**
@@ -615,7 +615,7 @@ export function stopBackgroundSync(): void {
     if (backgroundTimer) {
         clearInterval(backgroundTimer)
         backgroundTimer = null
-        console.log('[sync-manager] 后台同步已停止')
+        console.warn('[sync-manager] 后台同步已停止')
     }
 }
 

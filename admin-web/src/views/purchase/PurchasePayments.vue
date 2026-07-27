@@ -144,7 +144,7 @@
     <el-dialog
       v-model="dialogVisible"
       title="新增付款"
-      width="560px"
+      width="480px"
       :close-on-click-modal="false"
     >
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">

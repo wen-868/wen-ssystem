@@ -636,7 +636,7 @@
 import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage, type FormRules, type ElForm } from "element-plus";
 import { Plus, Search } from "@element-plus/icons-vue";
-import * as echarts from "echarts";
+import echarts from "../../utils/echarts";
 import { api } from "../../api";
 import { formatDate } from "../../utils/format";
 

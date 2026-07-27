@@ -138,7 +138,7 @@ import { Money, Tickets, Coin, DataLine } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { formatYuan } from "../../utils/format";
 import { fetchReportPaymentAnalysis } from "../../api";
-import * as echarts from "echarts";
+import echarts from "../../utils/echarts";
 
 const loading = ref(false);
 const records = ref<any[]>([]);

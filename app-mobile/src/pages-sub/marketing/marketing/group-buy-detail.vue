@@ -198,9 +198,8 @@ function startGroupBuy() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          const result = await communityMarketingApi.startGroupBuy(activity.value!.id)
+          await communityMarketingApi.startGroupBuy(activity.value!.id)
           uni.showToast({ title: '拼团发起成功', icon: 'success' })
-          console.log('拼团结果:', result)
         } catch (err) {
           console.error('发起拼团失败:', err)
         }
