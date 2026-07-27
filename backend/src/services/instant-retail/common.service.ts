@@ -1,4 +1,4 @@
-﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
+﻿﻿﻿﻿﻿﻿import { queryOne, queryOneWithTenant } from "../../shared/db";
 import type { PlatformType, PlatformCredentials } from "./types";
 
 /** 平台配置行 */

@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 即时零售平台适配器抽象基类
  * Abstract Base Adapter for Instant Retail Platforms
  *
@@ -68,8 +68,8 @@ export abstract class AbstractPlatformAdapter implements AdapterInterface {
    * @returns 统一订单列表及分页信息
    */
   abstract syncOrders(params?: {
-    startTime?: Date;
-    endTime?: Date;
+    startTime?: string | Date;
+    endTime?: string | Date;
     status?: PlatformOrderStatus;
     cursor?: string;
     limit?: number;
@@ -126,7 +126,7 @@ export abstract class AbstractPlatformAdapter implements AdapterInterface {
    */
   abstract startDelivery(
     platformOrderId: string,
-    courierInfo?: { name?: string; phone?: string; courierId?: string }
+    courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }
   ): Promise<boolean>;
 
   /**

@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 京东秒送平台适配器
  * JD Instant Delivery (京东秒送) Platform Adapter
  *
@@ -88,16 +88,16 @@ export class JdAdapter extends AbstractPlatformAdapter {
     const token = useMock()
       ? this.credentials!
       : {
-          platform: "JD" as const,
-          storeId,
-          appKey,
-          appSecret,
-          merchantId,
-          accessToken: result.data.accessToken,
-          refreshToken: result.data.refreshToken,
-          tokenExpireAt: new Date(Date.now() + result.data.expiresIn * 1000),
-          enabled: true,
-        };
+        platform: "JD" as const,
+        storeId,
+        appKey,
+        appSecret,
+        merchantId,
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+        tokenExpireAt: new Date(Date.now() + result.data.expiresIn * 1000),
+        enabled: true,
+      };
 
     this.credentials = token;
     return token;
@@ -176,8 +176,8 @@ export class JdAdapter extends AbstractPlatformAdapter {
   }
 
   async syncOrders(params?: {
-    startTime?: Date;
-    endTime?: Date;
+    startTime?: string | Date;
+    endTime?: string | Date;
     status?: PlatformOrderStatus;
     cursor?: string;
     limit?: number;
@@ -206,8 +206,8 @@ export class JdAdapter extends AbstractPlatformAdapter {
         method: "POST",
         body: {
           storeId,
-          startTime: params?.startTime?.toISOString(),
-          endTime: params?.endTime?.toISOString(),
+          startTime: params?.startTime ? new Date(params.startTime).toISOString() : undefined,
+          endTime: params?.endTime ? new Date(params.endTime).toISOString() : undefined,
           orderStatus: params?.status ? statusMap[params.status] : undefined,
           pageNo: params?.cursor ? Number(params.cursor) : 1,
           pageSize: limit,
@@ -260,7 +260,7 @@ export class JdAdapter extends AbstractPlatformAdapter {
     ).then((r: any) => r.code === 0);
   }
 
-  async startDelivery(platformOrderId: string, courierInfo?: { name?: string; phone?: string; courierId?: string }): Promise<boolean> {
+  async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
     await this.ensureAuthenticated();
 
     return platformCall<{ code: number; msg: string }>(
@@ -271,8 +271,8 @@ export class JdAdapter extends AbstractPlatformAdapter {
         body: {
           storeId: this.credentials?.storeId,
           orderId: platformOrderId,
-          courierName: courierInfo?.name,
-          courierPhone: courierInfo?.phone,
+          courierName: courierInfo?.deliveryMan,
+          courierPhone: courierInfo?.deliveryPhone,
         },
       },
       () => this.authenticate(),

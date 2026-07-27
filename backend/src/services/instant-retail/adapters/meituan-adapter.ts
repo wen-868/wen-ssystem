@@ -1,4 +1,4 @@
-﻿/**
+﻿﻿﻿﻿/**
  * 美团即时零售平台适配器
  * Meituan Instant Retail Platform Adapter
  *
@@ -86,16 +86,16 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     const token = useMock()
       ? this.credentials!
       : {
-          platform: "MEITUAN" as const,
-          storeId,
-          appKey,
-          appSecret,
-          merchantId,
-          accessToken: result.data.access_token,
-          refreshToken: result.data.refresh_token,
-          tokenExpireAt: new Date(Date.now() + result.data.expires_in * 1000),
-          enabled: true,
-        };
+        platform: "MEITUAN" as const,
+        storeId,
+        appKey,
+        appSecret,
+        merchantId,
+        accessToken: result.data.access_token,
+        refreshToken: result.data.refresh_token,
+        tokenExpireAt: new Date(Date.now() + result.data.expires_in * 1000),
+        enabled: true,
+      };
 
     this.credentials = token;
     return token;
@@ -176,8 +176,8 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
   }
 
   async syncOrders(params?: {
-    startTime?: Date;
-    endTime?: Date;
+    startTime?: string | Date;
+    endTime?: string | Date;
     status?: PlatformOrderStatus;
     cursor?: string;
     limit?: number;
@@ -186,8 +186,8 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
 
     const storeId = this.credentials?.storeId ?? "mock_store";
     const limit = params?.limit ?? 20;
-    const startTime = params?.startTime?.getTime();
-    const endTime = params?.endTime?.getTime();
+    const startTime = params?.startTime ? new Date(params.startTime).getTime() : undefined;
+    const endTime = params?.endTime ? new Date(params.endTime).getTime() : undefined;
 
     const statusMap: Record<string, number> = {
       PENDING: 1,
@@ -258,7 +258,7 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
     ).then((r: any) => r.data?.success ?? true);
   }
 
-  async startDelivery(platformOrderId: string, courierInfo?: { name?: string; phone?: string; courierId?: string }): Promise<boolean> {
+  async startDelivery(platformOrderId: string, courierInfo?: { deliveryCompany?: string; deliveryNo?: string; deliveryMan?: string; deliveryPhone?: string }): Promise<boolean> {
     await this.ensureAuthenticated();
 
     return platformCall<{ data: { success: boolean } }>(
@@ -269,8 +269,8 @@ export class MeituanAdapter extends AbstractPlatformAdapter {
         body: {
           app_poi_code: this.credentials?.storeId,
           order_id: platformOrderId,
-          courier_name: courierInfo?.name,
-          courier_phone: courierInfo?.phone,
+          courier_name: courierInfo?.deliveryMan,
+          courier_phone: courierInfo?.deliveryPhone,
         },
       },
       () => this.authenticate(),

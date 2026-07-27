@@ -151,8 +151,8 @@ export interface AdapterInterface {
 
   /** 同步订单列表 */
   syncOrders(params?: {
-    startTime?: Date;
-    endTime?: Date;
+    startTime?: string | Date;
+    endTime?: string | Date;
     status?: PlatformOrderStatus;
     cursor?: string;
     limit?: number;
@@ -169,9 +169,10 @@ export interface AdapterInterface {
 
   /** 开始配送 */
   startDelivery(platformOrderId: string, courierInfo?: {
-    name?: string;
-    phone?: string;
-    courierId?: string;
+    deliveryCompany?: string;
+    deliveryNo?: string;
+    deliveryMan?: string;
+    deliveryPhone?: string;
   }): Promise<boolean>;
 
   /** 完成配送 */
