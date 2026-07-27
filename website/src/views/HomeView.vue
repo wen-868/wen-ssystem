@@ -143,6 +143,7 @@
         </div>
         <div class="footer-bottom">
           <p>&copy; {{ year }} 智享全链管理系统 onepan.cn. All rights reserved.</p>
+          <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">粤ICP备2026103101号</a></p>
         </div>
       </div>
     </footer>
