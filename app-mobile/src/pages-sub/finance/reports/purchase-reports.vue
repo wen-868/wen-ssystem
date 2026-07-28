@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="purchase-reports-page">
     <view class="page-header">
       <text class="header-title">采购报表</text>
@@ -130,8 +130,8 @@ function goDetail() {
 async function loadReportData() {
   try {
     const res = await reportsApi.getPurchaseReport({
-      startDate: filterForm.startDate,
-      endDate: filterForm.endDate,
+      dateStart: filterForm.startDate,
+      dateEnd: filterForm.endDate,
     })
     summary.value = res?.summary || { totalAmount: '0.00', orderCount: 0, supplierCount: 0 }
     supplierList.value = res?.supplierList || []

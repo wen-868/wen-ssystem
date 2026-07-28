@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <view class="sales-reports-page">
     <view class="page-header">
       <text class="header-title">销售报表</text>
@@ -183,9 +183,7 @@ async function loadReportData() {
         salesmanId: filterForm.salesmanId || undefined
       }),
       reportsApi.getSalesTrend({
-        startDate: filterForm.startDate || undefined,
-        endDate: filterForm.endDate || undefined,
-        period: 'day'
+        granularity: 'day'
       }),
       reportsApi.getSalesRank({
         startDate: filterForm.startDate || undefined,

@@ -1,4 +1,4 @@
-import { get } from '../request'
+﻿import { get, post } from '../request'
 
 export interface ProductInfo {
   id: number
@@ -36,6 +36,67 @@ export interface CategoryInfo {
   parentId?: number
   children?: CategoryInfo[]
   allowOnlineSale?: number
+}
+
+/**
+ * 平台商品库查询结果（新建商品流程扫码命中时返回）
+ * category 字段故意留空（不填充），由商户在创建页手动选择
+ */
+export interface LibraryLookupResult {
+  /** 是否命中平台商品库 */
+  matched: boolean
+  /** SPU 信息（命中时返回） */
+  spu?: {
+    id: number
+    spuCode: string
+    /** 商品名称（自动填充） */
+    name: string
+    brandId: number
+    /** 品牌名称（自动填充） */
+    brandName: string
+    /** 规格（自动填充） */
+    specs: string
+    /** 单位（自动填充） */
+    unit: string
+    /** 主图 URL（自动填充） */
+    mainImage: string
+    /** 多图 JSON */
+    imageUrls: string | object
+    /** 扩展属性 JSON，含酒精度/产地/香型等（自动填充） */
+    properties: string | object
+    /** 商品简介（自动填充） */
+    description: string
+    /** 建议零售价 */
+    suggestedRetailPrice: string
+  }
+  /** SKU 信息（命中时返回） */
+  sku?: {
+    id: number
+    spuId: number
+    skuCode: string
+    /** 条码（自动填充） */
+    barcode: string
+    /** SKU 名称（自动填充） */
+    skuName: string
+    /** 容量/酒规格（自动填充） */
+    volume: string
+    /** 包装（自动填充） */
+    packaging: string
+    /** 基础单位（自动填充） */
+    baseUnit: string
+    /** 箱单位（自动填充） */
+    boxUnit: string
+    /** 箱规比例（自动填充） */
+    boxRatio: number
+    /** SKU 主图（自动填充） */
+    skuImage: string
+  }
+  /** 品牌信息（命中时返回） */
+  brand?: {
+    id: number
+    name: string
+    logo: string
+  }
 }
 
 const productsApi = {
@@ -88,7 +149,32 @@ const productsApi = {
 
   async batchTrace(batchNo: string): Promise<any> {
     return get(`/admin/products/batch/${batchNo}`)
-  }
+  },
+
+  /**
+   * 按条码查询平台商品库（仅用于"新建商品流程"扫码命中自动填充）
+   *
+   * POST /api/admin/library/lookup
+   * Body: { barcode: string }
+   * 返回：{ matched: boolean, spu?, sku?, brand? }
+   * 注意：返回结果不含 category 字段，命中后分类留空不填充，由商户在创建页手动选择
+   *
+   * @param barcode 扫码得到的条码
+   * @returns 商品库查询结果
+   */
+  async libraryLookup(barcode: string): Promise<LibraryLookupResult> {
+    const res = (await post('/admin/library/lookup', { barcode })) as any
+    // request.ts 的 post() 已解包 res.data，这里再兼容一层
+    const raw = res?.data ?? res
+    const matched: boolean = !!(raw?.matched)
+    const result: LibraryLookupResult = { matched }
+    if (matched) {
+      result.spu = raw.spu
+      result.sku = raw.sku
+      result.brand = raw.brand
+    }
+    return result
+  },
 }
 
 export { productsApi }
