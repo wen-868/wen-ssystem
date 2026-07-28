@@ -9,6 +9,66 @@
 
 ## 一、活跃轮次
 
+### R61 — 全域名 HTTPS 部署 + saas.onepan.cn 新增 [✅ 已完成 — 凌舟 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：用户要求全部域名对齐端口、备案号对接、HTTPS 正常访问
+> **说明**：新增 saas.onepan.cn 超级后台域名，修正 SSL 证书文件名，部署全部前端构建产物到服务器
+
+#### R61-01 — Nginx 配置更新 + SSL 证书路径修正 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已完成（2026-07-28）
+- **文件**：`deploy/nginx-production.conf`
+- **问题**：SSL 证书文件名多写了 `_nginx`（如 `api.onepan.cn_nginx_bundle.pem`），导致 Nginx 找不到证书文件；saas.onepan.cn 无 server 块
+- **修复**：修正所有证书路径为 `{域名}_bundle.pem` + `{域名}.key`；新增 saas.onepan.cn server 块指向 `/var/www/saas-admin`
+- **验收**：`nginx -t` 通过，`nginx -s reload` 成功
+
+#### R61-02 — saas-admin 前端构建与部署 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已完成（2026-07-28）
+- **文件**：`saas-admin/dist/` → 服务器 `/var/www/saas-admin/`
+- **问题**：saas-admin 前端从未部署到服务器，saas.onepan.cn 返回 403
+- **修复**：在工作区执行 `npm run build` 构建产物，打包为 `saas-admin-dist.tar.gz`（798KB），用户下载后上传到服务器 `/tmp/`，解压到 `/var/www/saas-admin/`
+- **验收**：`curl -s -o /dev/null -w "%{http_code}" https://saas.onepan.cn/` 返回 200
+
+#### R61-03 — app-mobile（商户端 H5）构建与部署 [P0]
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已完成（2026-07-28）
+- **文件**：`app-mobile/dist/build/h5/` → 服务器 `/var/www/app-mobile/`
+- **问题**：app-mobile 前端从未部署到服务器，m.onepan.cn 返回 500（目录不存在导致 try_files 重写循环）
+- **修复**：在工作区执行 `npm run build:h5` 构建产物，打包为 `app-mobile-dist.tar.gz`（321KB），用户下载后上传到服务器 `/tmp/`，解压到 `/var/www/app-mobile/`
+- **验收**：`curl -s -o /dev/null -w "%{http_code}" https://m.onepan.cn/` 返回 200
+
+#### R61 验收结果
+
+| 域名 | 用途 | HTTP 状态 | 结果 |
+|------|------|:---------:|:----:|
+| `api.onepan.cn` | 后端 API | 200 | ✅ |
+| `admin.onepan.cn` | 管理后台 | 200 | ✅ |
+| `m.onepan.cn` | 商户端 H5 | 200 | ✅ |
+| `www.onepan.cn` | 官网 | 200 | ✅ |
+| `saas.onepan.cn` | SaaS 超级后台 | 200 | ✅ |
+
+#### R61 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R61-01 Nginx 配置 + SSL 路径修正 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R61-02 saas-admin 构建部署 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R61-03 app-mobile 构建部署 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| **合计** | — | — | **1.5天** | — |
+
+---
+
 ### R60 — 废弃域名 store.onepan.cn 全量清理 [✅ 已完成 — 凌舟 2026-07-28]
 
 > **日期**：2026-07-28
