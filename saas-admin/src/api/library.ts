@@ -2,6 +2,13 @@ import request from '../utils/request'
 
 // ==================== 类型定义 ====================
 
+export interface SpuProperties {
+  alcoholContent?: string
+  origin?: string
+  aromaType?: string
+  [key: string]: string | undefined
+}
+
 export interface SpuListItem {
   id: number
   spuCode: string
@@ -16,6 +23,7 @@ export interface SpuListItem {
   hitCount: number
   createdAt: string
   updatedAt: string
+  skuCount?: number
 }
 
 export interface SpuDetail {
@@ -29,6 +37,9 @@ export interface SpuDetail {
   mainImage: string
   imageUrls: string
   properties: string
+  alcoholContent?: string
+  origin?: string
+  aromaType?: string
   description: string
   detail: string
   suggestedRetailPrice: string
@@ -41,19 +52,20 @@ export interface SpuDetail {
 }
 
 export interface SkuItem {
-  id: number
-  spuId: number
-  skuCode: string
+  id?: number
+  spuId?: number
+  skuCode?: string
   barcode: string
   skuName: string
-  volume: string
+  volume: string | number
   packaging: string
   baseUnit: string
   boxUnit: string
-  boxRatio: string
-  skuImage: string
-  status: string
-  createdAt: string
+  boxRatio: string | number
+  skuImage?: string
+  status?: string
+  suggestedRetailPrice: string | number
+  createdAt?: string
 }
 
 export interface BrandItem {
@@ -68,17 +80,38 @@ export interface BrandItem {
   createdAt: string
 }
 
+export interface BrandOption {
+  id: number
+  name: string
+}
+
 export interface ApiKeyItem {
   id: number
-  appName: string
+  name: string
   apiKey: string
   allowedIps: string
   dailyLimit: number
-  todayCount: number
+  usedToday: number
   status: number
   remark: string
   createdAt: string
   lastUsedAt: string
+}
+
+export interface ApiKeyCreatedResult {
+  apiKey: string
+  apiSecret: string
+}
+
+export interface ApiKeyStats {
+  id: number
+  name: string
+  apiKey: string
+  usedToday: number
+  dailyLimit: number
+  totalCount: number
+  lastUsedAt: string
+  last7Days: { date: string; count: number }[]
 }
 
 // ==================== SPU 接口 ====================
@@ -89,6 +122,7 @@ export function listSpusApi(params: {
   keyword?: string
   status?: string
   brandId?: number
+  barcode?: string
 }) {
   return request.get('/platform/library/spus', { params })
 }
@@ -97,24 +131,54 @@ export function getSpuApi(id: number) {
   return request.get(`/platform/library/spus/${id}`)
 }
 
-export function createSpuApi(data: any) {
+export function createSpuApi(data: {
+  name: string
+  brandId?: number | null
+  specs: string
+  unit?: string
+  mainImage?: string
+  imageUrls?: string
+  properties?: string
+  alcoholContent?: string
+  origin?: string
+  aromaType?: string
+  description?: string
+  detail?: string
+  suggestedRetailPrice?: string | number
+  skus: Partial<SkuItem>[]
+}) {
   return request.post('/platform/library/spus', data)
 }
 
-export function updateSpuApi(id: number, data: any) {
+export function updateSpuApi(id: number, data: {
+  name: string
+  brandId?: number | null
+  specs: string
+  unit?: string
+  mainImage?: string
+  imageUrls?: string
+  properties?: string
+  alcoholContent?: string
+  origin?: string
+  aromaType?: string
+  description?: string
+  detail?: string
+  suggestedRetailPrice?: string | number
+  skus?: Partial<SkuItem>[]
+}) {
   return request.put(`/platform/library/spus/${id}`, data)
 }
 
-export function updateSpuStatusApi(id: number, status: string) {
-  return request.put(`/platform/library/spus/${id}/status`, { status })
+export function approveSpuApi(id: number) {
+  return request.post(`/platform/library/spus/${id}/approve`)
+}
+
+export function rejectSpuApi(id: number, data: { reason?: string }) {
+  return request.post(`/platform/library/spus/${id}/reject`, data)
 }
 
 export function deleteSpuApi(id: number) {
   return request.delete(`/platform/library/spus/${id}`)
-}
-
-export function importSpusApi(data: any[]) {
-  return request.post('/platform/library/spus/import', data)
 }
 
 // ==================== SKU 接口 ====================
@@ -123,11 +187,15 @@ export function listSkusApi(spuId: number) {
   return request.get(`/platform/library/spus/${spuId}/skus`)
 }
 
-export function createSkuApi(spuId: number, data: any) {
+export function createSkuApi(spuId: number, data: Partial<SkuItem>) {
   return request.post(`/platform/library/spus/${spuId}/skus`, data)
 }
 
-export function updateSkuApi(id: number, data: any) {
+export function batchCreateSkusApi(spuId: number, data: Partial<SkuItem>[]) {
+  return request.post(`/platform/library/spus/${spuId}/skus`, data)
+}
+
+export function updateSkuApi(id: number, data: Partial<SkuItem>) {
   return request.put(`/platform/library/skus/${id}`, data)
 }
 
@@ -137,6 +205,10 @@ export function deleteSkuApi(id: number) {
 
 // ==================== 品牌接口 ====================
 
+export function listBrandOptionsApi() {
+  return request.get('/platform/library/brands', { params: { page: 1, pageSize: 9999 } })
+}
+
 export function listBrandsApi(params: {
   page: number
   pageSize: number
@@ -145,12 +217,34 @@ export function listBrandsApi(params: {
   return request.get('/platform/library/brands', { params })
 }
 
-export function createBrandApi(data: any) {
+export function getBrandApi(id: number) {
+  return request.get(`/platform/library/brands/${id}`)
+}
+
+export function createBrandApi(data: {
+  name: string
+  logo?: string
+  originCountry?: string
+  sortNo?: number
+  description?: string
+  status?: number
+}) {
   return request.post('/platform/library/brands', data)
 }
 
-export function updateBrandApi(id: number, data: any) {
+export function updateBrandApi(id: number, data: {
+  name: string
+  logo?: string
+  originCountry?: string
+  sortNo?: number
+  description?: string
+  status?: number
+}) {
   return request.put(`/platform/library/brands/${id}`, data)
+}
+
+export function toggleBrandStatusApi(id: number, status: number) {
+  return request.put(`/platform/library/brands/${id}`, { status })
 }
 
 export function deleteBrandApi(id: number) {
@@ -163,8 +257,12 @@ export function listApiKeysApi() {
   return request.get('/platform/library/api-keys')
 }
 
+export function getApiKeyApi(id: number) {
+  return request.get(`/platform/library/api-keys/${id}`)
+}
+
 export function createApiKeyApi(data: {
-  appName: string
+  name: string
   allowedIps?: string
   dailyLimit?: number
   remark?: string
@@ -172,7 +270,13 @@ export function createApiKeyApi(data: {
   return request.post('/platform/library/api-keys', data)
 }
 
-export function updateApiKeyApi(id: number, data: any) {
+export function updateApiKeyApi(id: number, data: {
+  name?: string
+  allowedIps?: string
+  dailyLimit?: number
+  status?: number
+  remark?: string
+}) {
   return request.put(`/platform/library/api-keys/${id}`, data)
 }
 
@@ -182,4 +286,8 @@ export function deleteApiKeyApi(id: number) {
 
 export function getApiKeyStatsApi(id: number) {
   return request.get(`/platform/library/api-keys/${id}/stats`)
+}
+
+export function getLibraryStatsApi() {
+  return request.get('/platform/library/api-keys/stats/summary')
 }

@@ -227,9 +227,9 @@
 | R64-L03 | 后端：platform-library 路由+服务+控制器（SPU/SKU/品牌 CRUD+审核+API Key 管理） | 凌舟 | P0 | 2天 | ✅ 已完成 |
 | R64-L04 | 后端：admin-library 路由+服务（仅扫码 lookup） | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
 | R64-L05 | 后端：open-library 路由+控制器+api-key-auth 中间件（Open API 对外接口） | 凌舟 | P0 | 1天 | ✅ 已完成 |
-| R64-L06 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理（独立板块） | 墨 | P0 | 1.5天 | ⬜ 待开始 |
-| R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 墨 | P0 | 1天 | ⬜ 待开始 |
-| R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L06 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理（独立板块） | 墨 | P0 | 1.5天 | ✅ 已完成（vue-tsc 0错误 / build 14.55s 成功） |
+| R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 墨 | P0 | 1天 | ✅ 已完成（vue-tsc 0错误 / build 14.55s 成功） |
+| R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 墨 | P0 | 0.5天 | ✅ 已完成（vue-tsc 0错误 / build 14.55s 成功） |
 | R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ✅ 已完成（vue-tsc 0 错误 / build 成功） |
 | R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ✅ 已完成 |
 | R64-L11 | 预置数据：酒水行业常见品牌+热门商品50条 | 凌舟 | P1 | 0.5天 | ✅ 已完成（2026-07-29 用户确认） |
@@ -240,33 +240,49 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：1.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（vue-tsc 0错误 / vite build 14.55s 成功）
 - **文件**：`saas-admin/src/views/library/LibrarySpus.vue`、`saas-admin/src/api/library.ts`、`saas-admin/src/router/index.ts`
 - **问题**：saas-admin 无商品库管理页面
 - **修复**：新建商品库列表页（搜索/筛选/分页/展开SKU行）+ 新增/编辑对话框（必填：名称/品牌/规格；建议填：单位/主图/酒精度/产地/香型/简介；SKU动态表格；**分类不做必填**）+ 路由注册为顶级独立板块。参考 admin-web Products.vue 的组件模式
 - **验收标准**：可创建SPU+SKU，列表正确展示，编辑回显正确
+- **完成证据**（墨 2026-07-29）：
+  1. `LibrarySpus.vue`：列表页含名称/条码双搜索框、审核状态+品牌筛选、分页表格、展开行内SKU子表（含建议零售价列+独立SKU管理对话框入口）
+  2. 新增/编辑对话框：name + brandId下拉 + specs 三必填；unit/mainImage/alcoholContent/origin/aromaType/description 六选填；SKU动态表格含 skuName/barcode/volume/packaging/baseUnit/boxUnit/boxRatio/**suggestedRetailPrice** 八列
+  3. 审核操作改用专用接口 `approveSpuApi()` / `rejectSpuApi()`，拒绝时弹出原因对话框（6条快捷原因标签）
+  4. 分类字段完全移除，符合"商品库平台级不含分类"要求
 
 ### R64-L07 — saas-admin：品牌管理+审核+批量导入
 
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（vue-tsc 0错误 / vite build 14.55s 成功）
 - **文件**：`saas-admin/src/views/library/LibraryBrands.vue`、`saas-admin/src/views/library/LibraryReviews.vue`、`saas-admin/src/views/library/LibraryImport.vue`
 - **问题**：商品库需要品牌管理、审核队列和批量导入功能
 - **修复**：品牌页用表格 + 对话框 CRUD；审核页展示 PENDING 状态 SPU 列表 + 通过/拒绝按钮；导入页4步向导（上传→映射→预览→结果）
 - **验收标准**：品牌可增删改，可审核PENDING商品，Excel导入后正确创建SPU+SKU
+- **完成证据**（墨 2026-07-29）：
+  1. `LibraryBrands.vue`：品牌表格 name/logo/originCountry/spuCount/sortNo + 状态列用 `el-switch` 直接切换启用/禁用（失败自动回滚），新增/编辑对话框含全部字段
+  2. `LibraryReviews.vue`：仅展示 status=PENDING SPU（自动加 status 过滤参数），逐行通过+拒绝按钮，顶部支持批量通过当前页，拒绝对话框6条快捷原因
+  3. `LibraryImport.vue`：4步向导完整实现——①上传CSV/TSV（含模板下载按钮，BOM+UTF8支持）→②字段映射（自动匹配中英文表头，SPU/SKU分组下拉，校验必填映射）→③预览校验（红底标错错误列+错误行跳过，下载错误清单）→④结果统计（3张统计卡片+成功/失败，支持错误清单下载和跳转SPU列表）
 
 ### R64-L08 — saas-admin：API Key 管理
 
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（vue-tsc 0错误 / vite build 14.55s 成功）
 - **文件**：`saas-admin/src/views/library/LibraryApiKeys.vue`、`saas-admin/src/api/library.ts`
 - **问题**：需要管理对外 API 的密钥
 - **修复**：新建 API Key 管理页（列表/创建/编辑/吊销/调用统计），创建时返回明文 Key（仅一次），可设置日限额和IP白名单
 - **验收标准**：可创建/吊销 API Key，可查看调用统计
+- **完成证据**（墨 2026-07-29）：
+  1. 4张渐变卡片统计：Key总数/今日调用/累计调用/活跃Key数（计算汇总自列表数据）
+  2. 顶部近7天调用趋势 echarts 柱状图（紫色渐变，label在顶）
+  3. Key列表：脱敏显示（前4+********+后4），IP白名单、日限额用`el-progress`显示占用率，状态列`el-switch`直接切换启用/吊销
+  4. 创建对话框：name + allowedIps + dailyLimit；提交后弹出明文 Key + Secret（`el-alert`红色警告仅显示一次，提供复制按钮）
+  5. 编辑对话框：修改 allowedIps/dailyLimit/status/remark（应用名和Key只读）
+  6. 统计对话框：单Key详情+近7天柱图（绿色渐变），复用 echarts 实例并在 unmount 时正确 dispose 释放内存
 
 ### R64-L09 — admin-web：条码查询联动（不填充分类）
 
