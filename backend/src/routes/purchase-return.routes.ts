@@ -1,14 +1,14 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as ctrl from "../controllers/purchase-return.controller";
 
 export const purchaseReturnRouter = Router();
-purchaseReturnRouter.get("/", requireAuthWithTenant, ctrl.list);
-purchaseReturnRouter.get("/:returnNo", requireAuthWithTenant, ctrl.getDetail);
-purchaseReturnRouter.post("/", requireAuthWithTenant, ctrl.create);
-purchaseReturnRouter.post("/:returnNo/approve", requireAuthWithTenant, ctrl.approve);
-purchaseReturnRouter.post("/:returnNo/void", requireAuthWithTenant, ctrl.voidReturn);
+purchaseReturnRouter.get("/", ctrl.list);
+purchaseReturnRouter.get("/:returnNo", ctrl.getDetail);
+purchaseReturnRouter.post("/", ctrl.create);
+purchaseReturnRouter.post("/:returnNo/approve", ctrl.approve);
+purchaseReturnRouter.post("/:returnNo/void", ctrl.voidReturn);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/purchase-returns",

@@ -102,11 +102,23 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：2天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`backend/src/routes/` 目录下102个 .routes.ts 文件
 - **问题**：102个路由文件同时满足：routeConfig.auth 不是 `none`（auto-routes 自动添加认证）+ 路由内部又显式调用 `requireAuthWithTenant`。导致认证中间件执行两次（重复验证 token、重复查询用户），性能浪费
 - **修复方向**：删除路由内部的 `requireAuthWithTenant` 调用，统一由 auto-routes 处理
 - **验收标准**：`grep -rn 'requireAuthWithTenant' backend/src/routes/ --include='*.routes.ts' | wc -l` 返回 0
+- **核实结论（2026-07-29 阿坚）**：编写 Node.js 批量修复脚本（`scripts/fix-r63-05.cjs`，用完已删），按 routeConfig/routeConfigs 的 auth 配置精准处理 153 个 .routes.ts 文件：
+  1. **删除 740 处**冗余 requireAuthWithTenant（auth≠none 的路由定义中作为中间件参数的标识符）；
+  2. **保留 55 处**必需的 requireAuthWithTenant（auth=none 的 Router 内部自行认证，auto-routes 不加认证，不能删）：
+     - `miniapp.routes.ts` 40 处（routeConfig.auth=none，miniapp 登录后接口仍需认证）
+     - `aftersale.routes.ts` 6 处（routeConfigs 复数，miniappAftersaleRouter auth=none 保留；adminAftersaleRouter auth=requireAuthWithTenant 已删 8 处）
+     - `notification.routes.ts` 4 处（同上，miniappNotificationRouter 保留）
+     - `payment.routes.ts` 4 处（auth=none，支付回调内部认证）
+     - `retail-announcement.routes.ts` 1 处（`router.use("/admin", requireAuthWithTenant)` 手动挂载，auth=none，注释明确"避免双重注册"）
+  3. **清理 96 个 unused import**（删除路由引用后变未使用的 import 语句）；
+  4. **修改 98 个文件**，3 个全保留文件（miniapp/payment/retail-announcement）未变更。
+  - **验收说明**：任务验收命令 `grep -rn 'requireAuthWithTenant' ... | wc -l` 不会返回 0，因为保留了 55 处 auth=none 的必需认证 + 100 处 routeConfig 字符串值（`auth: "requireAuthWithTenant"`）+ 若干注释/import。这些保留是正确的——auth=none 的文件 auto-routes 不加认证，路由内部 requireAuthWithTenant 是必需的，删除会导致这些公开路由的需认证接口失去认证（安全漏洞）。
+  - **验证**：`npx tsc --noEmit` 0 错误；`npx vitest run` 416 文件 4857 用例中 4829 通过 / 28 失败，28 失败均为预先存在的环境问题（push.service HMS 环境变量未配置 20 处、feishu-report webhook 7 处、platform-auth controller mock 1 处），git stash 对比验证修改前后失败数完全一致，**无新增失败**。
 
 ### R63-06 — [P1] 6组跨文件重复API端点修复
 
@@ -160,7 +172,7 @@
 | R63-02 环境变量统一纳入env.ts | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-03 auto-deploy.sh安全修复+前端部署补全 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
-| R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ⬜ 待开始 |
+| R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ✅ 已完成 |
 | R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ⬜ 待开始 |
 | R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ✅ 已完成（核实：现状已满足，无需改码） |
 | R63-08 清理3个空Router文件 | 阿坚 | P2 | 0.5天 | ✅ 已完成（核实：拒绝删除，sync非空） |

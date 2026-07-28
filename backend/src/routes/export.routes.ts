@@ -1,6 +1,6 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as ctrl from "../controllers/admin/export.controller";
 
@@ -8,15 +8,15 @@ export const exportRouter = Router();
 
 exportRouter.use(priceResponseFilter());
 
-exportRouter.get("/customers", requireAuthWithTenant, ctrl.exportCustomers);
-exportRouter.get("/suppliers", requireAuthWithTenant, ctrl.exportSuppliers);
-exportRouter.get("/products", requireAuthWithTenant, ctrl.exportProducts);
-exportRouter.get("/inventory", requireAuthWithTenant, ctrl.exportInventory);
-exportRouter.get("/purchase-orders", requireAuthWithTenant, ctrl.exportPurchaseOrders);
-exportRouter.get("/payments", requireAuthWithTenant, ctrl.exportPayments);
-exportRouter.get("/sales-orders", requireAuthWithTenant, ctrl.exportSalesOrders);
-exportRouter.get("/audit-logs", requireAuthWithTenant, ctrl.exportAuditLogs);
-// ========== Â·ÓÉ×Ô¶¯·¢ÏÖÅäÖÃ ==========
+exportRouter.get("/customers", ctrl.exportCustomers);
+exportRouter.get("/suppliers", ctrl.exportSuppliers);
+exportRouter.get("/products", ctrl.exportProducts);
+exportRouter.get("/inventory", ctrl.exportInventory);
+exportRouter.get("/purchase-orders", ctrl.exportPurchaseOrders);
+exportRouter.get("/payments", ctrl.exportPayments);
+exportRouter.get("/sales-orders", ctrl.exportSalesOrders);
+exportRouter.get("/audit-logs", ctrl.exportAuditLogs);
+// ========== Â·ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/export",
   router: exportRouter,

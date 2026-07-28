@@ -7,11 +7,11 @@ export { sendNotification, type SendNotificationParams } from "../shared/notific
 
 export const adminNotificationRouter = Router();
 
-adminNotificationRouter.get("/", requireAuthWithTenant, ctrl.listNotifications);
-adminNotificationRouter.get("/unread-count", requireAuthWithTenant, ctrl.getUnreadCount);
-adminNotificationRouter.put("/:id/read", requireAuthWithTenant, ctrl.markAsRead);
-adminNotificationRouter.post("/read-all", requireAuthWithTenant, ctrl.markAllAsRead);
-adminNotificationRouter.post("/send", requireAuthWithTenant, ctrl.send);
+adminNotificationRouter.get("/", ctrl.listNotifications);
+adminNotificationRouter.get("/unread-count", ctrl.getUnreadCount);
+adminNotificationRouter.put("/:id/read", ctrl.markAsRead);
+adminNotificationRouter.post("/read-all", ctrl.markAllAsRead);
+adminNotificationRouter.post("/send", ctrl.send);
 
 export const miniappNotificationRouter = Router();
 

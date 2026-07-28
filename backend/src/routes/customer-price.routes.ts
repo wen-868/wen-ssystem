@@ -1,14 +1,14 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as customerPriceController from "../controllers/admin/customer-price.controller";
 
 export const customerPriceRouter = Router();
 
-customerPriceRouter.get("/", requireAuthWithTenant, customerPriceController.listCustomerPrices);
-customerPriceRouter.post("/", requireAuthWithTenant, customerPriceController.createCustomerPrice);
-customerPriceRouter.put("/:id", requireAuthWithTenant, customerPriceController.updateCustomerPrice);
-customerPriceRouter.delete("/:id", requireAuthWithTenant, customerPriceController.deleteCustomerPrice);
+customerPriceRouter.get("/", customerPriceController.listCustomerPrices);
+customerPriceRouter.post("/", customerPriceController.createCustomerPrice);
+customerPriceRouter.put("/:id", customerPriceController.updateCustomerPrice);
+customerPriceRouter.delete("/:id", customerPriceController.deleteCustomerPrice);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/customer-prices",

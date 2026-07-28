@@ -1,22 +1,22 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as materialController from "../controllers/admin/marketing-material.controller";
 
 export const marketingMaterialRouter = Router();
 
 // ==================== 营销素材库 (Admin) ====================
-marketingMaterialRouter.post("/", requireAuthWithTenant, materialController.createMaterial);
-marketingMaterialRouter.get("/", requireAuthWithTenant, materialController.listMaterials);
-marketingMaterialRouter.get("/:id", requireAuthWithTenant, materialController.getMaterialDetail);
-marketingMaterialRouter.put("/:id", requireAuthWithTenant, materialController.updateMaterial);
-marketingMaterialRouter.delete("/:id", requireAuthWithTenant, materialController.deleteMaterial);
-marketingMaterialRouter.post("/:id/publish", requireAuthWithTenant, materialController.publishMaterial);
-marketingMaterialRouter.post("/:id/archive", requireAuthWithTenant, materialController.archiveMaterial);
-marketingMaterialRouter.get("/categories", requireAuthWithTenant, materialController.getMaterialCategories);
-marketingMaterialRouter.post("/categories", requireAuthWithTenant, materialController.createMaterialCategory);
-marketingMaterialRouter.put("/categories/:id", requireAuthWithTenant, materialController.updateMaterialCategory);
-marketingMaterialRouter.delete("/categories/:id", requireAuthWithTenant, materialController.deleteMaterialCategory);
+marketingMaterialRouter.post("/", materialController.createMaterial);
+marketingMaterialRouter.get("/", materialController.listMaterials);
+marketingMaterialRouter.get("/:id", materialController.getMaterialDetail);
+marketingMaterialRouter.put("/:id", materialController.updateMaterial);
+marketingMaterialRouter.delete("/:id", materialController.deleteMaterial);
+marketingMaterialRouter.post("/:id/publish", materialController.publishMaterial);
+marketingMaterialRouter.post("/:id/archive", materialController.archiveMaterial);
+marketingMaterialRouter.get("/categories", materialController.getMaterialCategories);
+marketingMaterialRouter.post("/categories", materialController.createMaterialCategory);
+marketingMaterialRouter.put("/categories/:id", materialController.updateMaterialCategory);
+marketingMaterialRouter.delete("/categories/:id", materialController.deleteMaterialCategory);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing/materials",

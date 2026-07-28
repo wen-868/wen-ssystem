@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as traceConfigController from "../controllers/admin/trace-config.controller";
 import * as traceRecordsController from "../controllers/admin/trace-records.controller";
 import type { RouteConfig } from "../shared/auto-routes";
@@ -8,29 +8,29 @@ import type { RouteConfig } from "../shared/auto-routes";
 export const adminTraceRouter = Router();
 
 // 追溯配置
-adminTraceRouter.get("/configs", requireAuthWithTenant, traceConfigController.listConfigs);
-adminTraceRouter.post("/configs", requireAuthWithTenant, traceConfigController.createConfig);
-adminTraceRouter.put("/configs/:id", requireAuthWithTenant, traceConfigController.updateConfig);
-adminTraceRouter.delete("/configs/:id", requireAuthWithTenant, traceConfigController.deleteConfig);
-adminTraceRouter.post("/configs/check", requireAuthWithTenant, traceConfigController.checkSkuTrace);
+adminTraceRouter.get("/configs", traceConfigController.listConfigs);
+adminTraceRouter.post("/configs", traceConfigController.createConfig);
+adminTraceRouter.put("/configs/:id", traceConfigController.updateConfig);
+adminTraceRouter.delete("/configs/:id", traceConfigController.deleteConfig);
+adminTraceRouter.post("/configs/check", traceConfigController.checkSkuTrace);
 
 // 追溯码管理
-adminTraceRouter.post("/codes/generate", requireAuthWithTenant, traceRecordsController.generateTraceCodes);
-adminTraceRouter.get("/codes", requireAuthWithTenant, traceRecordsController.listTraceCodes);
-adminTraceRouter.get("/codes/:traceCode", requireAuthWithTenant, traceRecordsController.getTraceCodeDetail);
-adminTraceRouter.post("/codes/:traceCode/status", requireAuthWithTenant, traceRecordsController.updateTraceCodeStatus);
-adminTraceRouter.get("/codes/statistics", requireAuthWithTenant, traceRecordsController.getTraceCodeStatistics);
+adminTraceRouter.post("/codes/generate", traceRecordsController.generateTraceCodes);
+adminTraceRouter.get("/codes", traceRecordsController.listTraceCodes);
+adminTraceRouter.get("/codes/:traceCode", traceRecordsController.getTraceCodeDetail);
+adminTraceRouter.post("/codes/:traceCode/status", traceRecordsController.updateTraceCodeStatus);
+adminTraceRouter.get("/codes/statistics", traceRecordsController.getTraceCodeStatistics);
 
 // 追溯查询
-adminTraceRouter.get("/query/:traceCode", requireAuthWithTenant, traceRecordsController.queryTraceChain);
-adminTraceRouter.post("/verify", requireAuthWithTenant, traceRecordsController.verifyTraceCode);
+adminTraceRouter.get("/query/:traceCode", traceRecordsController.queryTraceChain);
+adminTraceRouter.post("/verify", traceRecordsController.verifyTraceCode);
 
 // 召回管理
-adminTraceRouter.post("/recalls", requireAuthWithTenant, traceRecordsController.createRecall);
-adminTraceRouter.get("/recalls", requireAuthWithTenant, traceRecordsController.listRecalls);
-adminTraceRouter.get("/recalls/:recallNo", requireAuthWithTenant, traceRecordsController.getRecallDetail);
-adminTraceRouter.post("/recalls/:recallNo/execute", requireAuthWithTenant, traceRecordsController.executeRecall);
-adminTraceRouter.put("/recalls/:recallNo/complete", requireAuthWithTenant, traceRecordsController.completeRecall);
+adminTraceRouter.post("/recalls", traceRecordsController.createRecall);
+adminTraceRouter.get("/recalls", traceRecordsController.listRecalls);
+adminTraceRouter.get("/recalls/:recallNo", traceRecordsController.getRecallDetail);
+adminTraceRouter.post("/recalls/:recallNo/execute", traceRecordsController.executeRecall);
+adminTraceRouter.put("/recalls/:recallNo/complete", traceRecordsController.completeRecall);
 
 // ========== 小程序端追溯路由 ==========
 export const miniappTraceRouter = Router();

@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as transferOrderController from "../controllers/admin/transfer-order.controller";
 import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller";
 import * as storeTransferExecutionController from "../controllers/store/transfer-execution.controller";
@@ -9,18 +9,18 @@ import type { RouteConfig } from "../shared/auto-routes";
 export const adminTransferRouter = Router();
 
 // 调拨单
-adminTransferRouter.post("/", requireAuthWithTenant, transferOrderController.createTransferOrder);
-adminTransferRouter.get("/", requireAuthWithTenant, transferOrderController.listTransferOrders);
-adminTransferRouter.get("/statistics", requireAuthWithTenant, transferOrderController.getTransferStatistics);
-adminTransferRouter.get("/:id", requireAuthWithTenant, transferOrderController.getTransferOrderDetail);
-adminTransferRouter.put("/:id", requireAuthWithTenant, transferOrderController.updateTransferOrder);
-adminTransferRouter.post("/:id/submit", requireAuthWithTenant, transferOrderController.submitTransferOrder);
-adminTransferRouter.post("/:id/approve", requireAuthWithTenant, transferOrderController.approveTransferOrder);
-adminTransferRouter.post("/:id/reject", requireAuthWithTenant, transferOrderController.rejectTransferOrder);
+adminTransferRouter.post("/", transferOrderController.createTransferOrder);
+adminTransferRouter.get("/", transferOrderController.listTransferOrders);
+adminTransferRouter.get("/statistics", transferOrderController.getTransferStatistics);
+adminTransferRouter.get("/:id", transferOrderController.getTransferOrderDetail);
+adminTransferRouter.put("/:id", transferOrderController.updateTransferOrder);
+adminTransferRouter.post("/:id/submit", transferOrderController.submitTransferOrder);
+adminTransferRouter.post("/:id/approve", transferOrderController.approveTransferOrder);
+adminTransferRouter.post("/:id/reject", transferOrderController.rejectTransferOrder);
 
 // 调拨执行
-adminTransferRouter.post("/:id/cancel", requireAuthWithTenant, adminTransferExecutionController.cancelTransferOrder);
-adminTransferRouter.post("/:id/ship", requireAuthWithTenant, adminTransferExecutionController.shipTransferOrder);
+adminTransferRouter.post("/:id/cancel", adminTransferExecutionController.cancelTransferOrder);
+adminTransferRouter.post("/:id/ship", adminTransferExecutionController.shipTransferOrder);
 
 // ==================== Store 调拨路由 ====================
 export const storeTransferRouter = Router();
