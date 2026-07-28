@@ -88,7 +88,8 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
  * 关联任务：R55-03 rate-limit 使用 MemoryStore
  */
 function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>) {
-  const baseOptions = { standardHeaders: true, legacyHeaders: false, ...options };
+  // express-rate-limit v8 默认验证 X-Forwarded-For 头，Nginx 反代下需禁用验证
+  const baseOptions = { standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false, xForwardedForHeader: false }, ...options };
   // 测试环境使用 MemoryStore，避免依赖真实 Redis 影响测试
   if (process.env.NODE_ENV === "test") {
     return rateLimit(baseOptions);
