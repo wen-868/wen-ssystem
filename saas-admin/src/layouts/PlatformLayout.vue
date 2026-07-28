@@ -64,6 +64,10 @@
           <el-menu-item index="/library/brands">品牌管理</el-menu-item>
           <el-menu-item index="/library/api-keys">API密钥</el-menu-item>
         </el-sub-menu>
+        <el-menu-item index="/mobile-preview">
+          <el-icon><Cellphone /></el-icon>
+          <span>移动端预览</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -83,7 +87,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

@@ -165,6 +165,12 @@ const router = createRouter({
           component: () => import('../views/library/ApiKeyList.vue'),
           meta: { title: 'API密钥' },
         },
+        {
+          path: 'mobile-preview',
+          name: 'MobilePreview',
+          component: () => import('../views/MobilePreview.vue'),
+          meta: { title: '移动端预览' },
+        },
       ],
     },
   ],
