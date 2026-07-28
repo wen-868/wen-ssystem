@@ -81,9 +81,6 @@ export const env = {
   /** 商户端子域名，默认 m.onepan.cn */
   MERCHANT_DOMAIN: process.env.MERCHANT_DOMAIN || "m.onepan.cn",
 
-  /** 门店端子域名，默认 store.onepan.cn */
-  STORE_DOMAIN: process.env.STORE_DOMAIN || "store.onepan.cn",
-
   /** 微信 AppID（小程序），默认空字符串 */
   WECHAT_APP_ID: process.env.WECHAT_APP_ID || "",
 

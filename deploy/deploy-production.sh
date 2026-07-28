@@ -132,7 +132,7 @@ echo "  ✓ 官网部署完成"
 # ===== 6. DNS 解析提示 =====
 echo ""
 echo "[6/10] 检查 DNS 解析..."
-SUBDOMAINS=("www" "api" "admin" "m" "store")
+SUBDOMAINS=("www" "api" "admin" "m")
 ALL_OK=true
 for sub in "${SUBDOMAINS[@]}"; do
   FULL="${sub}.${DOMAIN}"
@@ -234,31 +234,6 @@ server {
     }
 }
 
-# 门店终端 PWA
-server {
-    listen 80;
-    server_name store.onepan.cn;
-
-    root /var/www/store-terminal;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /sw.js {
-        add_header Cache-Control "no-cache";
-    }
-}
-
 # 官网
 server {
     listen 80;
@@ -310,12 +285,11 @@ echo "  官网:        https://www.onepan.cn"
 echo "  后端 API:    https://api.onepan.cn"
 echo "  管理后台:    https://admin.onepan.cn"
 echo "  商家端 H5:   https://m.onepan.cn"
-echo "  门店终端:    https://store.onepan.cn"
 echo ""
 echo "待办事项:"
 echo "  1. 修改 /root/liquor-inventory-system/backend/.env 中的数据库密码"
 echo "  2. 修改 /root/liquor-inventory-system/backend/.env 中的 JWT_SECRET"
 echo "  3. 配置 DNS 解析（如未完成）"
-echo "  4. 申请 SSL 证书（如未完成）: certbot --nginx -d www.onepan.cn -d onepan.cn -d api.onepan.cn -d admin.onepan.cn -d m.onepan.cn -d store.onepan.cn"
+echo "  4. 申请 SSL 证书（如未完成）: certbot --nginx -d www.onepan.cn -d onepan.cn -d api.onepan.cn -d admin.onepan.cn -d m.onepan.cn"
 echo "  5. 填写微信小程序 AppID 和支付配置"
 echo ""

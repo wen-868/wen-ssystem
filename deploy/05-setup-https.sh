@@ -20,7 +20,6 @@ set +a
 
 API_DOMAIN="api.${DOMAIN}"
 ADMIN_DOMAIN="admin.${DOMAIN}"
-STORE_DOMAIN="store.${DOMAIN}"
 
 echo "安装 nginx 和 certbot"
 sudo apt-get update
@@ -34,7 +33,7 @@ echo "写入临时 HTTP 配置"
 sudo tee "${NGINX_SITE}" >/dev/null <<CONF
 server {
   listen 80;
-  server_name ${API_DOMAIN} ${ADMIN_DOMAIN} ${STORE_DOMAIN};
+  server_name ${API_DOMAIN} ${ADMIN_DOMAIN};
 
   location /.well-known/acme-challenge/ {
     root /var/www/certbot;
@@ -57,8 +56,7 @@ sudo certbot --nginx \
   --agree-tos \
   --email "${ADMIN_EMAIL}" \
   -d "${API_DOMAIN}" \
-  -d "${ADMIN_DOMAIN}" \
-  -d "${STORE_DOMAIN}"
+  -d "${ADMIN_DOMAIN}"
 
 echo "写入正式 Nginx 配置"
 TMP_CONF="$(mktemp)"
@@ -78,4 +76,3 @@ sudo certbot renew --dry-run
 echo "HTTPS 部署完成"
 echo "API:   https://${API_DOMAIN}"
 echo "后台:  https://${ADMIN_DOMAIN}"
-echo "门店:  https://${STORE_DOMAIN}"

@@ -9,6 +9,42 @@
 
 ## 一、活跃轮次
 
+### R60 — 废弃域名 store.onepan.cn 全量清理 [✅ 已完成 — 凌舟 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：用户确认 store.onepan.cn 已删除，需全量清理残留引用
+> **说明**：store.onepan.cn 域名已从服务器删除，Nginx配置及项目代码中仍有残留，需一次性清理避免误导和部署错误
+
+#### R60-01 — 全量清理 store.onepan.cn 引用 [P1]
+
+- **优先级**：P1
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已完成（2026-07-28）
+- **清理文件清单**：
+  1. `backend/src/config/env.ts` — 删除 `STORE_DOMAIN` 配置项
+  2. `backend/.env.example` — 删除 `STORE_DOMAIN` 和 CORS_ORIGINS 中的 store 域名
+  3. `backend/src/__tests__/config/env.test.ts` — 删除 `STORE_DOMAIN` 断言
+  4. `deploy/nginx-production.conf` — 已从 HTTP 重定向和 server_name 中移除
+  5. `deploy/deploy-production.sh` — 删除门店终端 server 块、DNS检查、SSL申请、访问地址
+  6. `deploy/05-setup-https.sh` — 删除 `STORE_DOMAIN` 变量及相关 certbot/nginx 配置
+  7. `scripts/acceptance-production.mjs` — 删除门店端验收逻辑
+  8. `onepan-source.html` — 删除门店终端下载卡片
+  9. `www/index.html` — 删除门店终端下载卡片
+  10. `tests/docs/test-plan.md` — 删除门店端测试环境地址
+  11. `docs/DEPLOY.md` — 删除子域名和构建产物说明
+- **验收标准**：`grep -rn 'store\.onepan\.cn\|STORE_DOMAIN' . --exclude-dir=node_modules --exclude-dir=.git` 返回 0 条
+- **验证结果**：全局 grep 0 残留，env.STORE_DOMAIN 无代码引用
+
+#### R60 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R60-01 store.onepan.cn 全量清理 | 凌舟 | P1 | 0.5天 | ✅ 已完成 |
+| **合计** | — | — | **0.5天** | — |
+
+---
+
 ### R59 — app-mobile console.log/warn 清理 [待开始 — 当前轮次]
 
 > **日期**：2026-07-28

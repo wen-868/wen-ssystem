@@ -35,7 +35,6 @@ describe("config/env", () => {
     expect(env.API_DOMAIN).toBe("api.onepan.cn");
     expect(env.ADMIN_DOMAIN).toBe("admin.onepan.cn");
     expect(env.MERCHANT_DOMAIN).toBe("m.onepan.cn");
-    expect(env.STORE_DOMAIN).toBe("store.onepan.cn");
   });
   it("应有微信相关配置字段", () => {
     expect(typeof env.WECHAT_APP_ID).toBe("string");

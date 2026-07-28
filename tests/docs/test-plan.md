@@ -18,7 +18,6 @@
 | 后端 | Node.js 20 + Express + MySQL 8.4 + Redis 7 |
 | API 基础地址 | https://api.onepan.cn |
 | 管理后台 | https://admin.onepan.cn |
-| 门店端 | https://store.onepan.cn |
 | 小程序 | 微信小程序原生 |
 
 ## 2. 测试目标
@@ -150,7 +149,6 @@
 - 数据：测试专用数据
 - API地址：https://api.onepan.cn
 - 管理后台：https://admin.onepan.cn
-- 门店终端：https://store.onepan.cn
 ```
 
 ### 4.2 测试方法

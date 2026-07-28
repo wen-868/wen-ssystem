@@ -12,7 +12,6 @@
   - api.onepan.cn (后端 API)
   - admin.onepan.cn (管理后台)
   - m.onepan.cn (商家端 H5)
-  - store.onepan.cn (门店终端 PWA)
 
 ## 构建产物验证
 
@@ -21,7 +20,6 @@
 | backend | 通过 | backend/dist/ | ~50 个 JS 文件 |
 | admin-web | 通过 | admin-web/dist/ | vite 构建产物 |
 | merchant-mobile | 通过 | merchant-mobile/dist/ | vite 构建产物 |
-| store-terminal | 通过 | store-terminal/dist/ | vite 构建产物 |
 
 ## 测试验证
 
