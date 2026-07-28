@@ -20,20 +20,20 @@
 | 域名 | 页面加载 | 功能验收 | 问题 |
 |------|:--------:|:--------:|------|
 | `api.onepan.cn` | ✅ 200 | ✅ /health 正常 | 无 |
-| `admin.onepan.cn` | ✅ 200 | ❌ 登录失败 | P0: 密码哈希格式不匹配 |
-| `saas.onepan.cn` | ✅ 200 | ❌ 登录失败 | P0: 同上（平台管理员表同样问题） |
+| `admin.onepan.cn` | ✅ 200 | ❌ 登录失败 | P0: 密码哈希格式不匹配（已修复，待服务器执行） |
+| `saas.onepan.cn` | ✅ 200 | ❌ 登录失败 | P0: 字段名错误+表无数据+status类型不匹配（已修复，待服务器执行） |
 | `m.onepan.cn` | ✅ 200 | ⚠️ 未测登录 | 同一密码问题，预计也无法登录 |
-| `www.onepan.cn` | ✅ 200 | ⚠️ 旧版页面 | P1: 服务器官网文件未更新，备案号显示占位符 |
+| `www.onepan.cn` | ✅ 200 | ⚠️ 旧版页面 | P1: 服务器官网备案号已用 sed 修复（待验证） |
 
 #### R62-01 — [P0] 密码哈希格式不匹配导致全部端无法登录
 
 - **优先级**：P0
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：✅ 已修复（迁移脚本已创建）
+- **状态**：✅ 已修复（服务器已执行 UPDATE）
 - **文件**：`docs/migrations/075_reset_admin_password_bcrypt.sql`
 - **问题**：种子数据 `002_phase1_seed.sql` 中密码使用 SHA256 哈希存储（`240be518...`），但后端 `verifyPassword` 使用 bcrypt.compare 验证。SHA256 哈希不是 bcrypt 格式，导致所有用户永远无法登录
-- **修复**：创建迁移脚本 `075_reset_admin_password_bcrypt.sql`，将 admin/store_manager/store_operator 三个用户的 password_hash 更新为 bcrypt 格式（`v2$$2b$12$...`）
+- **修复**：创建迁移脚本 `075_reset_admin_password_bcrypt.sql`，将 admin/store_manager/store_operator 三个用户的 password_hash 更新为 bcrypt 格式（`v2$$2b$12$...`）。服务器已通过 MySQL 直接执行 UPDATE 语句完成修复
 - **验收标准**：在服务器执行迁移脚本后，admin/admin123 可成功登录 admin.onepan.cn 和 saas.onepan.cn
 
 #### R62-02 — [P1] 服务器官网文件未更新
@@ -41,29 +41,42 @@
 - **优先级**：P1
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待执行
-- **问题**：服务器 `/var/www/website/index.html` 是旧版本，备案号显示"京ICP备XXXXXXXX号"（占位符），但源码中已正确改为"粤ICP备2026103101号"
-- **修复**：已打包最新 `website-dist.tar.gz`（7.6KB），需上传到服务器解压到 `/var/www/website/`
+- **状态**：✅ 已修复（服务器 sed 替换完成）
+- **问题**：服务器 `/var/www/www-onepan/index.html` 是旧版本，备案号显示"京ICP备XXXXXXXX号"（占位符），但源码中已正确改为"粤ICP备2026103101号"
+- **修复**：因 website-dist.tar.gz 上传失败（服务器无法访问 GitHub），改用服务器端 sed 命令直接替换备案号：`sed -i 's/京ICP备XXXXXXXX号/粤ICP备2026103101号/g' /var/www/www-onepan/index.html`
 - **验收标准**：访问 `https://www.onepan.cn/` 页面底部显示"粤ICP备2026103101号"
 
-#### R62-03 — [P1] 平台管理员表密码同样需要重置
+#### R62-03 — [P0] 平台管理员登录 P0 bug（字段名错误+表无数据+status类型不匹配）
 
-- **优先级**：P1
+- **优先级**：P0
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待执行
-- **问题**：`t_platform_admin` 表的密码也可能使用 SHA256 格式，需确认并重置
-- **修复**：在迁移脚本 `075` 中同时重置平台管理员密码（如果 t_platform_admin 表中有初始数据）
+- **状态**：✅ 已修复（代码+迁移脚本已推送）
+- **文件**：`backend/src/services/platform/platform-auth.service.ts`、`backend/src/services/platform/admin-account.service.ts`、`docs/migrations/081_platform_admin_seed_and_fix.sql`
+- **问题**：平台管理员登录存在 3 个 bug：
+  1. `platform-auth.service.ts` SQL 查询字段名 `password` 与表结构 `password_hash` 不匹配，导致查询结果为 undefined，密码验证永远失败
+  2. `t_platform_admin` 表为空，无初始管理员数据
+  3. `admin-account.service.ts` 中 INSERT 引用不存在的 `created_by` 字段，UPDATE status 用字符串 `'ACTIVE'` 但表是 TINYINT(1/0)
+- **修复**：
+  1. SQL 查询字段 `password` → `password_hash`，接口字段同步修改
+  2. 新增迁移脚本 `081_platform_admin_seed_and_fix.sql`：补充 `last_login_at`、`created_by` 缺失字段，插入默认平台超级管理员 admin/admin123
+  3. INSERT 移除 `created_by`，status 改为数字 `1`；UPDATE status 从字符串改为数字映射 `1/0`
 - **验收标准**：saas.onepan.cn 可用 admin/admin123 成功登录
 
 #### R62 任务总览
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
-| R62-01 密码哈希格式修复 | 凌舟 | P0 | 0.5天 | ✅ 脚本已创建 |
-| R62-02 官网文件更新 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
-| R62-03 平台管理员密码重置 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
+| R62-01 密码哈希格式修复 | 凌舟 | P0 | 0.5天 | ✅ 服务器已执行 |
+| R62-02 官网文件更新 | 凌舟 | P1 | 0.5天 | ✅ sed 替换完成 |
+| R62-03 平台管理员登录P0 bug | 凌舟 | P0 | 0.5天 | ✅ 代码已修复+脚本已推送 |
 | **合计** | — | — | **1.5天** | — |
+
+#### R62 待执行操作（需用户在服务器执行）
+
+1. **执行 081 迁移脚本**：在服务器 MySQL 中执行 `docs/migrations/081_platform_admin_seed_and_fix.sql`（因服务器无法下载 GitHub 文件，需手动复制 SQL 到服务器执行）
+2. **重新部署后端**：代码已推送，需在服务器 `git pull` 后重启 Node.js 服务
+3. **验证登录**：admin.onepan.cn、saas.onepan.cn、m.onepan.cn 分别测试 admin/admin123 登录
 
 ---
 
