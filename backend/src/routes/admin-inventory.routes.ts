@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as reportController from "../controllers/admin/report.controller";
@@ -11,8 +11,7 @@ adminInventoryRouter.get("/inventory-balance", reportController.listInventoryBal
 adminInventoryRouter.get("/inventory-logs", reportController.listInventoryLogs);
 
 // ============ 库存报表 ============
-adminInventoryRouter.get("/reports/inventory-turnover", reportController.getInventoryTurnover);
-adminInventoryRouter.get("/reports/inventory-age", reportController.getInventoryAge);
+// 注：inventory-turnover / inventory-age 已合并到 report.routes.ts（新实现按 SKU 维度计算周转天数/库龄，参数更丰富）
 adminInventoryRouter.get("/reports/inventory-abc", reportController.getInventoryABC);
 
 // ========== 路由自动发现配置 ==========
