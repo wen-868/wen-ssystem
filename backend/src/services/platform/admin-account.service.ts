@@ -27,7 +27,7 @@ interface PlatformAdminListRow {
   phone: string;
   email: string | null;
   role: string;
-  status: string;
+  status: number;
   lastLoginAt: Date | string | null;
   createdAt: Date | string;
 }
@@ -118,8 +118,8 @@ export async function createPlatformAdmin(params: PlatformAdminCreate) {
 
   const result = await query<InsertResult>(
     `INSERT INTO t_platform_admin
-     (username, password_hash, real_name, phone, email, role, status, created_by)
-     VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', 'system')`,
+     (username, password_hash, real_name, phone, email, role, status)
+     VALUES (?, ?, ?, ?, ?, ?, 1)`,
     [
       params.username,
       passwordHash,
@@ -153,9 +153,11 @@ export async function updatePlatformAdminStatus(
     throw Object.assign(new Error("管理员不存在"), { statusCode: 404 });
   }
 
+  // 表结构 status 是 TINYINT(1=启用 0=禁用)，将字符串映射为数字
+  const statusValue = status === "ACTIVE" ? 1 : 0;
   await query(
     "UPDATE t_platform_admin SET status = ? WHERE id = ?",
-    [status, adminId]
+    [statusValue, adminId]
   );
 
   return { id: adminId, status };

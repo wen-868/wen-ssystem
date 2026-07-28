@@ -11,7 +11,7 @@ import type { ResultSetHeader } from "mysql2";
 interface PlatformAdminLoginRow {
   id: number;
   username: string;
-  password: string;
+  password_hash: string;
   real_name: string;
 }
 
@@ -46,11 +46,11 @@ export async function login(username: string, password: string) {
   if (missing) throw new AppError(`缺少必填字段: ${missing}`, 400);
 
   const admin = await queryOne<PlatformAdminLoginRow>(
-    "SELECT id, username, password, real_name FROM t_platform_admin WHERE username = ? AND status = 1",
+    "SELECT id, username, password_hash, real_name FROM t_platform_admin WHERE username = ? AND status = 1",
     [username]
   );
 
-  if (!admin || !(await verifyPassword(password, admin.password))) {
+  if (!admin || !(await verifyPassword(password, admin.password_hash))) {
     throw new AppError("用户名或密码错误", 401);
   }
 
