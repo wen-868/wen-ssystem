@@ -102,18 +102,30 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：2天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`backend/src/routes/` 目录下102个 .routes.ts 文件
 - **问题**：102个路由文件同时满足：routeConfig.auth 不是 `none`（auto-routes 自动添加认证）+ 路由内部又显式调用 `requireAuthWithTenant`。导致认证中间件执行两次（重复验证 token、重复查询用户），性能浪费
 - **修复方向**：删除路由内部的 `requireAuthWithTenant` 调用，统一由 auto-routes 处理
 - **验收标准**：`grep -rn 'requireAuthWithTenant' backend/src/routes/ --include='*.routes.ts' | wc -l` 返回 0
+- **核实结论（2026-07-29 阿坚）**：编写 Node.js 批量修复脚本（`scripts/fix-r63-05.cjs`，用完已删），按 routeConfig/routeConfigs 的 auth 配置精准处理 153 个 .routes.ts 文件：
+  1. **删除 740 处**冗余 requireAuthWithTenant（auth≠none 的路由定义中作为中间件参数的标识符）；
+  2. **保留 55 处**必需的 requireAuthWithTenant（auth=none 的 Router 内部自行认证，auto-routes 不加认证，不能删）：
+     - `miniapp.routes.ts` 40 处（routeConfig.auth=none，miniapp 登录后接口仍需认证）
+     - `aftersale.routes.ts` 6 处（routeConfigs 复数，miniappAftersaleRouter auth=none 保留；adminAftersaleRouter auth=requireAuthWithTenant 已删 8 处）
+     - `notification.routes.ts` 4 处（同上，miniappNotificationRouter 保留）
+     - `payment.routes.ts` 4 处（auth=none，支付回调内部认证）
+     - `retail-announcement.routes.ts` 1 处（`router.use("/admin", requireAuthWithTenant)` 手动挂载，auth=none，注释明确"避免双重注册"）
+  3. **清理 96 个 unused import**（删除路由引用后变未使用的 import 语句）；
+  4. **修改 98 个文件**，3 个全保留文件（miniapp/payment/retail-announcement）未变更。
+  - **验收说明**：任务验收命令 `grep -rn 'requireAuthWithTenant' ... | wc -l` 不会返回 0，因为保留了 55 处 auth=none 的必需认证 + 100 处 routeConfig 字符串值（`auth: "requireAuthWithTenant"`）+ 若干注释/import。这些保留是正确的——auth=none 的文件 auto-routes 不加认证，路由内部 requireAuthWithTenant 是必需的，删除会导致这些公开路由的需认证接口失去认证（安全漏洞）。
+  - **验证**：`npx tsc --noEmit` 0 错误；`npx vitest run` 416 文件 4857 用例中 4829 通过 / 28 失败，28 失败均为预先存在的环境问题（push.service HMS 环境变量未配置 20 处、feishu-report webhook 7 处、platform-auth controller mock 1 处），git stash 对比验证修改前后失败数完全一致，**无新增失败**。
 
 ### R63-06 — [P1] 6组跨文件重复API端点修复
 
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **问题**：6组端点在多个路由文件中重复注册，Express 只执行第一个匹配的处理器，后续重复注册不生效
   1. `GET /api/admin/reports/inventory-turnover`（admin-inventory + report）
   2. `GET /api/admin/reports/inventory-age`（admin-inventory + report）
@@ -123,6 +135,29 @@
   6. `GET /api/admin/reports/supplier-ranking`（admin-report + report）
 - **修复方向**：合并到单个路由文件中，删除重复定义
 - **验收标准**：`grep -rn 'inventory-turnover\|inventory-age\|sales-ranking\|sales-trend\|purchase-summary\|supplier-ranking' backend/src/routes/` 每个端点只出现1次
+- **完成证据**：
+  - **修改文件**：
+    1. `backend/src/routes/admin-inventory.routes.ts`：删除 `/reports/inventory-turnover` 和 `/reports/inventory-age` 两个重复端点（保留 `/reports/inventory-abc`，因 report.routes.ts 未实现该端点）
+    2. `backend/src/routes/admin-report.routes.ts`：删除 `/reports/sales-ranking`、`/reports/sales-trend`、`/reports/purchase-summary`、`/reports/supplier-ranking` 四个重复端点（保留 `/reports/product-ranking` 和 `/reports/purchase-trend`，因 report.routes.ts 未实现这两个端点）
+    3. `backend/src/routes/report.routes.ts`：保留不动（新实现更完整）
+  - **实现差异分析**（两套实现完全不同，非简单复制）：
+    | 端点 | 老实现（已删除） | 新实现（保留） |
+    | --- | --- | --- |
+    | inventory-turnover | `reportService.getInventoryTurnover(tenantId, startDate, endDate)` 简单聚合 | `productReportService.getInventoryTurnover(tenantId, months)` 按 SKU 维度计算周转率/周转天数，按周转率排序 |
+    | inventory-age | `reportService.getInventoryAge(tenantId, storeId)` | `productReportService.getInventoryAge(tenantId, storeId)` 按批次计算库龄（含生产日期/过期日期/入库日期） |
+    | sales-ranking | `reportService.getSalesRanking(tenantId, startDate, endDate)` 写死按 operator_id 分组（仅 staff 维度） | `salesReportService.getSalesRanking(tenantId, dimension, dateStart, dateEnd, limit)` 支持 product/customer/staff 三维度 + limit |
+    | sales-trend | `reportService.getSalesTrend(tenantId, groupBy, startDate, endDate)` 需手动传日期 | `salesReportService.getSalesTrend(tenantId, granularity)` 自动按 12 月/12 周/30 天时间窗口过滤 |
+    | purchase-summary | `reportService.getPurchaseSummary(tenantId, startDate, endDate)` | `productReportService.getPurchaseSummary(tenantId, dateStart, dateEnd)` 参数命名统一为 dateStart/dateEnd |
+    | supplier-ranking | `reportService.getSupplierRanking(tenantId, startDate, endDate)` | `productReportService.getSupplierRanking(tenantId, dateStart, dateEnd, limit)` 多 limit 参数 |
+  - **当前生效情况说明**：auto-routes.ts:89 按文件名排序加载路由，`admin-inventory` < `admin-report` < `dashboard` < `report`，所以修改前 6 个端点实际生效的都是老实现（admin-inventory/admin-report），report.routes.ts 的新实现被 Express 第一个匹配规则覆盖（不生效）。修改后 6 个端点全部由 report.routes.ts 的新实现接管。
+  - **前端兼容性影响**（已在任务报告中说明，不在本任务修复范围）：
+    - `admin-web/src/api/report.ts` 新接口参数（dimension/dateStart/dateEnd/limit）修改前被老实现忽略，修改后正式生效（功能升级，正向兼容）
+    - `app-mobile/src/api/modules/reports.ts` 老接口参数（startDate/endDate/period）修改后失效（参数命名不匹配新实现），需要 app-mobile 端同步迁移参数命名（建议后续单独建任务处理）
+    - `admin-web/src/api/inventory.ts` 调用 `/reports/inventory-turnover`（不带 /admin 前缀）是历史死链 404，与本次任务无关
+  - **验证**：
+    - `grep -rn '...' backend/src/routes/` 6 个端点实际路由定义各只出现 1 次（其他命中为注释文字、`/daily-sales-trend` 子串匹配、`dashboard.routes.ts` 不同前缀的 `/sales-trend` 和 `/inventory-turnover`，URL 路径不冲突）
+    - `npx tsc --noEmit` 0 错误
+    - `npx vitest run` 4829 通过 / 28 失败，28 失败均为 R63-05 已记录的预先存在的环境问题（push.service HMS 环境变量未配置 20 处、feishu-report webhook 7 处、platform-auth controller mock 1 处），**无新增失败**
 
 ### R63-07 — [P1] 8个路由文件缺少 routeConfig 导出
 
@@ -160,8 +195,8 @@
 | R63-02 环境变量统一纳入env.ts | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-03 auto-deploy.sh安全修复+前端部署补全 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
-| R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ⬜ 待开始 |
-| R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ⬜ 待开始 |
+| R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ✅ 已完成 |
+| R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ✅ 已完成（核实：现状已满足，无需改码） |
 | R63-08 清理3个空Router文件 | 阿坚 | P2 | 0.5天 | ✅ 已完成（核实：拒绝删除，sync非空） |
 | **合计** | — | — | **6天** | — |

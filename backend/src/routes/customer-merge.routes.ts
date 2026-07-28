@@ -1,14 +1,14 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as ctrl from "../controllers/admin/customer-merge.controller";
 
 export const customerMergeRouter = Router();
-customerMergeRouter.get("/duplicates", requireAuthWithTenant, ctrl.detectDuplicates);
-customerMergeRouter.get("/duplicate-groups", requireAuthWithTenant, ctrl.getDuplicateGroups);
-customerMergeRouter.get("/:customerId/relations", requireAuthWithTenant, ctrl.getCustomerRelations);
-customerMergeRouter.post("/merge", requireAuthWithTenant, ctrl.mergeCustomers);
-// ========== Â·ÓÉ×Ô¶¯·¢ÏÖÅäÖÃ ==========
+customerMergeRouter.get("/duplicates", ctrl.detectDuplicates);
+customerMergeRouter.get("/duplicate-groups", ctrl.getDuplicateGroups);
+customerMergeRouter.get("/:customerId/relations", ctrl.getCustomerRelations);
+customerMergeRouter.post("/merge", ctrl.mergeCustomers);
+// ========== Â·ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/customer-merge",
   router: customerMergeRouter,

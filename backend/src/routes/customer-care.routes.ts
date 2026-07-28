@@ -1,15 +1,15 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as careController from "../controllers/admin/customer-care.controller";
 
 export const customerCareRouter = Router();
-customerCareRouter.get("/rules", requireAuthWithTenant, careController.listCareRules);
-customerCareRouter.post("/rules", requireAuthWithTenant, careController.createCareRule);
-customerCareRouter.put("/rules/:id", requireAuthWithTenant, careController.updateCareRule);
-customerCareRouter.delete("/rules/:id", requireAuthWithTenant, careController.deleteCareRule);
-customerCareRouter.get("/logs", requireAuthWithTenant, careController.listCareLogs);
-customerCareRouter.post("/rules/:id/execute", requireAuthWithTenant, careController.executeCareRule);
+customerCareRouter.get("/rules", careController.listCareRules);
+customerCareRouter.post("/rules", careController.createCareRule);
+customerCareRouter.put("/rules/:id", careController.updateCareRule);
+customerCareRouter.delete("/rules/:id", careController.deleteCareRule);
+customerCareRouter.get("/logs", careController.listCareLogs);
+customerCareRouter.post("/rules/:id/execute", careController.executeCareRule);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/members/care",

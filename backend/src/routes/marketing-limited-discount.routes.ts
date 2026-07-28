@@ -1,21 +1,21 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as limitedDiscountController from "../controllers/admin/marketing-limited-discount.controller";
 
 export const marketingLimitedDiscountRouter = Router();
 
 // ==================== 限时折扣 (Admin) ====================
-marketingLimitedDiscountRouter.post("/", requireAuthWithTenant, limitedDiscountController.createLimitedDiscount);
-marketingLimitedDiscountRouter.get("/", requireAuthWithTenant, limitedDiscountController.listLimitedDiscounts);
-marketingLimitedDiscountRouter.get("/:id", requireAuthWithTenant, limitedDiscountController.getLimitedDiscountDetail);
-marketingLimitedDiscountRouter.put("/:id", requireAuthWithTenant, limitedDiscountController.updateLimitedDiscount);
-marketingLimitedDiscountRouter.delete("/:id", requireAuthWithTenant, limitedDiscountController.deleteLimitedDiscount);
-marketingLimitedDiscountRouter.post("/:id/activate", requireAuthWithTenant, limitedDiscountController.activateLimitedDiscount);
-marketingLimitedDiscountRouter.post("/:id/pause", requireAuthWithTenant, limitedDiscountController.pauseLimitedDiscount);
-marketingLimitedDiscountRouter.get("/:id/products", requireAuthWithTenant, limitedDiscountController.getDiscountProducts);
-marketingLimitedDiscountRouter.post("/:id/products", requireAuthWithTenant, limitedDiscountController.addDiscountProduct);
-marketingLimitedDiscountRouter.delete("/:id/products/:productId", requireAuthWithTenant, limitedDiscountController.removeDiscountProduct);
+marketingLimitedDiscountRouter.post("/", limitedDiscountController.createLimitedDiscount);
+marketingLimitedDiscountRouter.get("/", limitedDiscountController.listLimitedDiscounts);
+marketingLimitedDiscountRouter.get("/:id", limitedDiscountController.getLimitedDiscountDetail);
+marketingLimitedDiscountRouter.put("/:id", limitedDiscountController.updateLimitedDiscount);
+marketingLimitedDiscountRouter.delete("/:id", limitedDiscountController.deleteLimitedDiscount);
+marketingLimitedDiscountRouter.post("/:id/activate", limitedDiscountController.activateLimitedDiscount);
+marketingLimitedDiscountRouter.post("/:id/pause", limitedDiscountController.pauseLimitedDiscount);
+marketingLimitedDiscountRouter.get("/:id/products", limitedDiscountController.getDiscountProducts);
+marketingLimitedDiscountRouter.post("/:id/products", limitedDiscountController.addDiscountProduct);
+marketingLimitedDiscountRouter.delete("/:id/products/:productId", limitedDiscountController.removeDiscountProduct);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing/limited-discounts",

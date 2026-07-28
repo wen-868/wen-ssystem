@@ -1,17 +1,17 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as ctrl from "../controllers/admin/alert.controller";
 
 export const alertRouter = Router();
 
-alertRouter.get("/list", requireAuthWithTenant, ctrl.listAlerts);
-alertRouter.get("/count", requireAuthWithTenant, ctrl.getAlertCounts);
-alertRouter.put("/:id/handle", requireAuthWithTenant, ctrl.handleAlert);
-alertRouter.get("/rules", requireAuthWithTenant, ctrl.listAlertRules);
-alertRouter.put("/rules/:id", requireAuthWithTenant, ctrl.updateAlertRule);
-alertRouter.post("/check", requireAuthWithTenant, ctrl.runCheck);
-// ========== Â·ÓÉ×Ô¶¯·¢ÏÖÅäÖÃ ==========
+alertRouter.get("/list", ctrl.listAlerts);
+alertRouter.get("/count", ctrl.getAlertCounts);
+alertRouter.put("/:id/handle", ctrl.handleAlert);
+alertRouter.get("/rules", ctrl.listAlertRules);
+alertRouter.put("/rules/:id", ctrl.updateAlertRule);
+alertRouter.post("/check", ctrl.runCheck);
+// ========== Â·ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/alerts",
   router: alertRouter,

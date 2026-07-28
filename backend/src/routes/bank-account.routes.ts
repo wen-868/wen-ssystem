@@ -1,17 +1,17 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
+
 import * as bankAccountController from "../controllers/admin/bank-account.controller";
 
 export const bankAccountRouter = Router();
-bankAccountRouter.get("/", requireAuthWithTenant, bankAccountController.listBankAccounts);
-bankAccountRouter.get("/:id", requireAuthWithTenant, bankAccountController.getBankAccount);
-bankAccountRouter.post("/", requireAuthWithTenant, bankAccountController.createBankAccount);
-bankAccountRouter.put("/:id", requireAuthWithTenant, bankAccountController.updateBankAccount);
-bankAccountRouter.post("/:id/freeze", requireAuthWithTenant, bankAccountController.freezeBankAccount);
-bankAccountRouter.post("/:id/unfreeze", requireAuthWithTenant, bankAccountController.unfreezeBankAccount);
-bankAccountRouter.post("/:id/close", requireAuthWithTenant, bankAccountController.closeBankAccount);
-bankAccountRouter.get("/total/balance", requireAuthWithTenant, bankAccountController.getTotalBalance);
+bankAccountRouter.get("/", bankAccountController.listBankAccounts);
+bankAccountRouter.get("/:id", bankAccountController.getBankAccount);
+bankAccountRouter.post("/", bankAccountController.createBankAccount);
+bankAccountRouter.put("/:id", bankAccountController.updateBankAccount);
+bankAccountRouter.post("/:id/freeze", bankAccountController.freezeBankAccount);
+bankAccountRouter.post("/:id/unfreeze", bankAccountController.unfreezeBankAccount);
+bankAccountRouter.post("/:id/close", bankAccountController.closeBankAccount);
+bankAccountRouter.get("/total/balance", bankAccountController.getTotalBalance);
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/bank-accounts",

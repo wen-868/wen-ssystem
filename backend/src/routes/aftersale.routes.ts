@@ -34,28 +34,28 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", requireAuthWithTena
   await ctrl.miniappRateAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.get("/aftersales", requireAuthWithTenant, ctrl.adminListAftersales);
-adminAftersaleRouter.get("/aftersales/:id", requireAuthWithTenant, ctrl.adminGetAftersaleDetail);
-adminAftersaleRouter.post("/aftersales/:id/approve", requireAuthWithTenant, ctrl.adminApproveAftersale);
+adminAftersaleRouter.get("/aftersales", ctrl.adminListAftersales);
+adminAftersaleRouter.get("/aftersales/:id", ctrl.adminGetAftersaleDetail);
+adminAftersaleRouter.post("/aftersales/:id/approve", ctrl.adminApproveAftersale);
 
-adminAftersaleRouter.post("/aftersales/:id/reject", requireAuthWithTenant, asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/reject", asyncHandler(async (req, res, _next) => {
   req.body = rejectAftersaleSchema.parse(req.body);
   await ctrl.adminRejectAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", requireAuthWithTenant, ctrl.adminConfirmReceipt);
+adminAftersaleRouter.post("/aftersales/:id/confirm-receipt", ctrl.adminConfirmReceipt);
 
-adminAftersaleRouter.post("/aftersales/:id/inspect", requireAuthWithTenant, asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/inspect", asyncHandler(async (req, res, _next) => {
   req.body = inspectAftersaleSchema.parse(req.body);
   await ctrl.adminInspectAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.post("/aftersales/:id/complete", requireAuthWithTenant, asyncHandler(async (req, res, _next) => {
+adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, res, _next) => {
   req.body = completeAftersaleSchema.parse(req.body);
   await ctrl.adminCompleteAftersale(req, res, _next);
 }));
 
-adminAftersaleRouter.get("/aftersales/statistics", requireAuthWithTenant, ctrl.adminGetStatistics);
+adminAftersaleRouter.get("/aftersales/statistics", ctrl.adminGetStatistics);
 
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/miniapp/aftersales", router: miniappAftersaleRouter, auth: "none" },
