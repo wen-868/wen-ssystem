@@ -115,7 +115,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: { code: 0 } });
       const req = mockReq({ body: { test: true }, headers: { "x-signature": "sig", "x-timestamp": "123" } });
       const res = mockRes();
-      await handleJdWebhook(req as any, res as any);
+      await handleJdWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("JD", expect.any(Object), "sig", "123");
       expect(res.status).toHaveBeenCalledWith(200);
     });
@@ -124,7 +124,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: { code: 0 } });
       const req = mockReq({ body: { test: true }, headers: { "x-signature": "sig", "x-timestamp": "123" } });
       const res = mockRes();
-      await handleMeituanWebhook(req as any, res as any);
+      await handleMeituanWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("MEITUAN", expect.any(Object), "sig", "123");
     });
 
@@ -132,7 +132,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: { code: 0 } });
       const req = mockReq({ body: { test: true }, headers: { "x-signature": "sig", "x-timestamp": "123" } });
       const res = mockRes();
-      await handleElemeWebhook(req as any, res as any);
+      await handleElemeWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("ELEME", expect.any(Object), "sig", "123");
     });
   });
@@ -142,7 +142,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getPlatforms as any).mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await getPlatforms(req as any, res as any);
+      await getPlatforms(req as any, res as any, vi.fn());
       expect(instantRetailService.getPlatforms).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -151,7 +151,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getConfigs as any).mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await getConfigs(req as any, res as any);
+      await getConfigs(req as any, res as any, vi.fn());
       expect(instantRetailService.getConfigs).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -160,7 +160,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getConfigByPlatform as any).mockResolvedValue({ platform: "JD" });
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await getConfigByPlatform(req as any, res as any);
+      await getConfigByPlatform(req as any, res as any, vi.fn());
       expect(instantRetailService.getConfigByPlatform).toHaveBeenCalledWith("JD", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -169,7 +169,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getConfigByPlatform as any).mockResolvedValue(null);
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await getConfigByPlatform(req as any, res as any);
+      await getConfigByPlatform(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -177,7 +177,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.upsertConfig as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ body: { platform: "JD", appKey: "key", appSecret: "secret" } });
       const res = mockRes();
-      await upsertConfig(req as any, res as any);
+      await upsertConfig(req as any, res as any, vi.fn());
       expect(instantRetailService.upsertConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -186,7 +186,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.testConnection as any).mockResolvedValue({ found: true, connected: true, platform: "JD", tokenUpdated: true });
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await testConnection(req as any, res as any);
+      await testConnection(req as any, res as any, vi.fn());
       expect(instantRetailService.testConnection).toHaveBeenCalledWith("JD", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -195,7 +195,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.testConnection as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await testConnection(req as any, res as any);
+      await testConnection(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -203,7 +203,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.testConnection as any).mockResolvedValue({ found: true, connected: false, error: "timeout" });
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await testConnection(req as any, res as any);
+      await testConnection(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(502);
     });
 
@@ -211,7 +211,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.syncOrders as any).mockResolvedValue({ found: true, platform: "JD", synced: 10, hasMore: false });
       const req = mockReq({ params: { platform: "JD" }, body: {} });
       const res = mockRes();
-      await syncOrders(req as any, res as any);
+      await syncOrders(req as any, res as any, vi.fn());
       expect(instantRetailService.syncOrders).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -220,7 +220,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.syncOrders as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platform: "JD" }, body: {} });
       const res = mockRes();
-      await syncOrders(req as any, res as any);
+      await syncOrders(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -228,7 +228,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.syncProducts as any).mockResolvedValue({ found: true, platform: "JD", synced: 10, hasMore: false });
       const req = mockReq({ params: { platform: "JD" }, body: {} });
       const res = mockRes();
-      await syncProducts(req as any, res as any);
+      await syncProducts(req as any, res as any, vi.fn());
       expect(instantRetailService.syncProducts).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -237,7 +237,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.syncProducts as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platform: "JD" }, body: {} });
       const res = mockRes();
-      await syncProducts(req as any, res as any);
+      await syncProducts(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -245,7 +245,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.deleteConfig as any).mockResolvedValue({ deleted: true });
       const req = mockReq({ params: { platform: "JD" } });
       const res = mockRes();
-      await deleteConfig(req as any, res as any);
+      await deleteConfig(req as any, res as any, vi.fn());
       expect(instantRetailService.deleteConfig).toHaveBeenCalledWith("JD", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -256,7 +256,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await listOrders(req as any, res as any);
+      await listOrders(req as any, res as any, vi.fn());
       expect(instantRetailService.listOrders).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -265,7 +265,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getOrderDetail as any).mockResolvedValue({ platformOrderId: "123" });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await getOrderDetail(req as any, res as any);
+      await getOrderDetail(req as any, res as any, vi.fn());
       expect(instantRetailService.getOrderDetail).toHaveBeenCalledWith("123", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -274,7 +274,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.getOrderDetail as any).mockResolvedValue(null);
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await getOrderDetail(req as any, res as any);
+      await getOrderDetail(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
   });
@@ -284,7 +284,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.confirmOrder as any).mockResolvedValue({ found: true, configFound: true, platformOrderId: "123", success: true, status: "CONFIRMED" });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await confirmOrder(req as any, res as any);
+      await confirmOrder(req as any, res as any, vi.fn());
       expect(instantRetailService.confirmOrder).toHaveBeenCalledWith("123", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -293,7 +293,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.confirmOrder as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await confirmOrder(req as any, res as any);
+      await confirmOrder(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -301,7 +301,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.confirmOrder as any).mockResolvedValue({ found: true, configFound: false });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await confirmOrder(req as any, res as any);
+      await confirmOrder(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -309,7 +309,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.startDelivery as any).mockResolvedValue({ found: true, configFound: true, platformOrderId: "123", success: true, status: "DELIVERING" });
       const req = mockReq({ params: { platformOrderId: "123" }, body: {} });
       const res = mockRes();
-      await startDelivery(req as any, res as any);
+      await startDelivery(req as any, res as any, vi.fn());
       expect(instantRetailService.startDelivery).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -318,7 +318,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.startDelivery as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platformOrderId: "123" }, body: {} });
       const res = mockRes();
-      await startDelivery(req as any, res as any);
+      await startDelivery(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -326,7 +326,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.completeDelivery as any).mockResolvedValue({ found: true, configFound: true, platformOrderId: "123", success: true, status: "COMPLETED" });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await completeDelivery(req as any, res as any);
+      await completeDelivery(req as any, res as any, vi.fn());
       expect(instantRetailService.completeDelivery).toHaveBeenCalledWith("123", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -335,7 +335,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.completeDelivery as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await completeDelivery(req as any, res as any);
+      await completeDelivery(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -343,7 +343,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.cancelOrder as any).mockResolvedValue({ found: true, configFound: true, platformOrderId: "123", success: true, status: "CANCELLED" });
       const req = mockReq({ params: { platformOrderId: "123" }, body: { reason: "用户取消" } });
       const res = mockRes();
-      await cancelOrder(req as any, res as any);
+      await cancelOrder(req as any, res as any, vi.fn());
       expect(instantRetailService.cancelOrder).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -352,7 +352,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.cancelOrder as any).mockResolvedValue({ found: false });
       const req = mockReq({ params: { platformOrderId: "123" }, body: { reason: "用户取消" } });
       const res = mockRes();
-      await cancelOrder(req as any, res as any);
+      await cancelOrder(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
   });
@@ -362,7 +362,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.getShopConfig as any).mockResolvedValue({});
       const req = mockReq({ query: { storeId: "1" } });
       const res = mockRes();
-      await getShopConfig(req as any, res as any);
+      await getShopConfig(req as any, res as any, vi.fn());
       expect(retailShopSvc.getShopConfig).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -371,7 +371,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.saveShopConfig as any).mockResolvedValue({});
       const req = mockReq({ query: { storeId: "1" }, body: { shopName: "测试店" } });
       const res = mockRes();
-      await saveShopConfig(req as any, res as any);
+      await saveShopConfig(req as any, res as any, vi.fn());
       expect(retailShopSvc.saveShopConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -380,7 +380,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listCategories as any).mockResolvedValue([]);
       const req = mockReq({ query: { storeId: "1" } });
       const res = mockRes();
-      await listCategories(req as any, res as any);
+      await listCategories(req as any, res as any, vi.fn());
       expect(retailShopSvc.listCategories).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -389,7 +389,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.createCategory as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: { storeId: "1" }, body: { name: "分类1" } });
       const res = mockRes();
-      await createCategory(req as any, res as any);
+      await createCategory(req as any, res as any, vi.fn());
       expect(retailShopSvc.createCategory).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -398,7 +398,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.updateCategory as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body: { name: "新名称" } });
       const res = mockRes();
-      await updateCategory(req as any, res as any);
+      await updateCategory(req as any, res as any, vi.fn());
       expect(retailShopSvc.updateCategory).toHaveBeenCalledWith(1, expect.any(Object), "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -407,7 +407,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.deleteCategory as any).mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteCategory(req as any, res as any);
+      await deleteCategory(req as any, res as any, vi.fn());
       expect(retailShopSvc.deleteCategory).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -416,7 +416,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listRetailProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20, storeId: "1" } });
       const res = mockRes();
-      await listRetailProducts(req as any, res as any);
+      await listRetailProducts(req as any, res as any, vi.fn());
       expect(retailShopSvc.listRetailProducts).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -425,7 +425,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.addRetailProduct as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: { storeId: "1" }, body: { skuId: 1, retailPrice: 100, stock: 10 } });
       const res = mockRes();
-      await addRetailProduct(req as any, res as any);
+      await addRetailProduct(req as any, res as any, vi.fn());
       expect(retailShopSvc.addRetailProduct).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -434,7 +434,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.updateRetailProduct as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body: { retailPrice: 200 } });
       const res = mockRes();
-      await updateRetailProduct(req as any, res as any);
+      await updateRetailProduct(req as any, res as any, vi.fn());
       expect(retailShopSvc.updateRetailProduct).toHaveBeenCalledWith(1, expect.any(Object), "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -443,7 +443,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.deleteRetailProduct as any).mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteRetailProduct(req as any, res as any);
+      await deleteRetailProduct(req as any, res as any, vi.fn());
       expect(retailShopSvc.deleteRetailProduct).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -452,7 +452,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listRetailOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20, storeId: "1" } });
       const res = mockRes();
-      await listRetailOrders(req as any, res as any);
+      await listRetailOrders(req as any, res as any, vi.fn());
       expect(retailShopSvc.listRetailOrders).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -461,7 +461,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.getRetailOrderDetail as any).mockResolvedValue({ orderNo: "123" });
       const req = mockReq({ params: { orderNo: "123" } });
       const res = mockRes();
-      await getRetailOrderDetail(req as any, res as any);
+      await getRetailOrderDetail(req as any, res as any, vi.fn());
       expect(retailShopSvc.getRetailOrderDetail).toHaveBeenCalledWith("123", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -470,7 +470,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.getRetailOrderDetail as any).mockResolvedValue(null);
       const req = mockReq({ params: { orderNo: "123" } });
       const res = mockRes();
-      await getRetailOrderDetail(req as any, res as any);
+      await getRetailOrderDetail(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -478,7 +478,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.updateRetailOrderStatus as any).mockResolvedValue({ orderNo: "123" });
       const req = mockReq({ params: { orderNo: "123" }, body: { status: "COMPLETED" } });
       const res = mockRes();
-      await updateRetailOrderStatus(req as any, res as any);
+      await updateRetailOrderStatus(req as any, res as any, vi.fn());
       expect(retailShopSvc.updateRetailOrderStatus).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -487,7 +487,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listBanners as any).mockResolvedValue([]);
       const req = mockReq({ query: { storeId: "1" } });
       const res = mockRes();
-      await listBanners(req as any, res as any);
+      await listBanners(req as any, res as any, vi.fn());
       expect(retailShopSvc.listBanners).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -496,7 +496,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.createBanner as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: { storeId: "1" }, body: { title: "banner1", imageUrl: "https://example.com/img.jpg" } });
       const res = mockRes();
-      await createBanner(req as any, res as any);
+      await createBanner(req as any, res as any, vi.fn());
       expect(retailShopSvc.createBanner).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -505,7 +505,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.updateBanner as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body: { title: "新标题" } });
       const res = mockRes();
-      await updateBanner(req as any, res as any);
+      await updateBanner(req as any, res as any, vi.fn());
       expect(retailShopSvc.updateBanner).toHaveBeenCalledWith(1, expect.any(Object), "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -514,7 +514,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.deleteBanner as any).mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteBanner(req as any, res as any);
+      await deleteBanner(req as any, res as any, vi.fn());
       expect(retailShopSvc.deleteBanner).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -527,7 +527,7 @@ describe("instant-retail.controller", () => {
       const req = mockReq({ headers: { "signature": "sig2" }, query: { timestamp: "999" } });
       delete (req as any).body;
       const res = mockRes();
-      await handleJdWebhook(req as any, res as any);
+      await handleJdWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("JD", {}, "sig2", "999");
     });
 
@@ -535,7 +535,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
       const req = mockReq({ query: { sign: "qsign", timestamp: "111" } });
       const res = mockRes();
-      await handleMeituanWebhook(req as any, res as any);
+      await handleMeituanWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("MEITUAN", expect.any(Object), "qsign", "111");
     });
 
@@ -543,7 +543,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
       const req = mockReq({});
       const res = mockRes();
-      await handleElemeWebhook(req as any, res as any);
+      await handleElemeWebhook(req as any, res as any, vi.fn());
       expect(instantRetailService.handleWebhook).toHaveBeenCalledWith("ELEME", expect.any(Object), "", "");
     });
 
@@ -551,7 +551,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ user: { id: 1, username: "admin" }, query: { platform: "MEITUAN" } });
       const res = mockRes();
-      await listOrders(req as any, res as any);
+      await listOrders(req as any, res as any, vi.fn());
       expect(instantRetailService.listOrders).toHaveBeenCalledWith(1, 20, null, "MEITUAN", "t1");
     });
 
@@ -559,7 +559,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listOrders(req as any, res as any);
+      await listOrders(req as any, res as any, vi.fn());
       expect(instantRetailService.listOrders).toHaveBeenCalledWith(1, 20, "1", null, "t1");
     });
 
@@ -567,7 +567,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.startDelivery as any).mockResolvedValue({ found: true, configFound: false });
       const req = mockReq({ params: { platformOrderId: "123" }, body: {} });
       const res = mockRes();
-      await startDelivery(req as any, res as any);
+      await startDelivery(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -575,7 +575,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.completeDelivery as any).mockResolvedValue({ found: true, configFound: false });
       const req = mockReq({ params: { platformOrderId: "123" } });
       const res = mockRes();
-      await completeDelivery(req as any, res as any);
+      await completeDelivery(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -583,7 +583,7 @@ describe("instant-retail.controller", () => {
       (instantRetailService.cancelOrder as any).mockResolvedValue({ found: true, configFound: false });
       const req = mockReq({ params: { platformOrderId: "123" }, body: { reason: "用户取消" } });
       const res = mockRes();
-      await cancelOrder(req as any, res as any);
+      await cancelOrder(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
     });
 
@@ -591,7 +591,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.getShopConfig as any).mockResolvedValue({});
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getShopConfig(req as any, res as any);
+      await getShopConfig(req as any, res as any, vi.fn());
       expect(retailShopSvc.getShopConfig).toHaveBeenCalledWith(undefined, "t1");
     });
 
@@ -599,7 +599,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listCategories as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listCategories(req as any, res as any);
+      await listCategories(req as any, res as any, vi.fn());
       expect(retailShopSvc.listCategories).toHaveBeenCalledWith(undefined, "t1");
     });
 
@@ -607,7 +607,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listRetailProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listRetailProducts(req as any, res as any);
+      await listRetailProducts(req as any, res as any, vi.fn());
       expect(retailShopSvc.listRetailProducts).toHaveBeenCalledWith({ storeId: undefined, tenantId: "t1", page: 1, pageSize: 20 });
     });
 
@@ -615,7 +615,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listRetailOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listRetailOrders(req as any, res as any);
+      await listRetailOrders(req as any, res as any, vi.fn());
       expect(retailShopSvc.listRetailOrders).toHaveBeenCalledWith({ storeId: undefined, tenantId: "t1", page: 1, pageSize: 20 });
     });
 
@@ -623,7 +623,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.addRetailProduct as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: {}, body: { skuId: 1, retailPrice: 100, stock: 10 } });
       const res = mockRes();
-      await addRetailProduct(req as any, res as any);
+      await addRetailProduct(req as any, res as any, vi.fn());
       expect(retailShopSvc.addRetailProduct).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
     });
 
@@ -631,7 +631,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.createBanner as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: {}, body: { title: "banner1", imageUrl: "https://example.com/img.jpg" } });
       const res = mockRes();
-      await createBanner(req as any, res as any);
+      await createBanner(req as any, res as any, vi.fn());
       expect(retailShopSvc.createBanner).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
     });
 
@@ -639,7 +639,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.listBanners as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listBanners(req as any, res as any);
+      await listBanners(req as any, res as any, vi.fn());
       expect(retailShopSvc.listBanners).toHaveBeenCalledWith(undefined, "t1");
     });
 
@@ -647,7 +647,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.saveShopConfig as any).mockResolvedValue({});
       const req = mockReq({ query: {}, body: { shopName: "测试店" } });
       const res = mockRes();
-      await saveShopConfig(req as any, res as any);
+      await saveShopConfig(req as any, res as any, vi.fn());
       expect(retailShopSvc.saveShopConfig).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
     });
 
@@ -655,7 +655,7 @@ describe("instant-retail.controller", () => {
       (retailShopSvc.createCategory as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ query: {}, body: { name: "分类1" } });
       const res = mockRes();
-      await createCategory(req as any, res as any);
+      await createCategory(req as any, res as any, vi.fn());
       expect(retailShopSvc.createCategory).toHaveBeenCalledWith(undefined, expect.any(Object), "t1");
     });
   });

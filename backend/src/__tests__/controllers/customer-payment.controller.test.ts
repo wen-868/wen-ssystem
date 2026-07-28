@@ -46,7 +46,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerPaymentService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -55,7 +55,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerPaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, customerId: undefined,
     }));
@@ -65,7 +65,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { customer_id: "5" } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerPaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
       customerId: 5,
     }));
@@ -75,7 +75,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.getDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { receiptNo: "RCP001" } });
     const res = mockRes();
-    await getDetail(req as any, res as any);
+    await getDetail(req as any, res as any, vi.fn());
     expect(customerPaymentService.getDetail).toHaveBeenCalledWith("RCP001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -84,7 +84,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.create as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { customerId: 1, amount: 100 } });
     const res = mockRes();
-    await create(req as any, res as any);
+    await create(req as any, res as any, vi.fn());
     expect(customerPaymentService.create).toHaveBeenCalledWith(req.body, "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -93,7 +93,7 @@ describe("customer-payment.controller", () => {
     (customerPaymentService.voidPayment as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receiptNo: "RCP001" } });
     const res = mockRes();
-    await voidPayment(req as any, res as any);
+    await voidPayment(req as any, res as any, vi.fn());
     expect(customerPaymentService.voidPayment).toHaveBeenCalledWith("RCP001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });

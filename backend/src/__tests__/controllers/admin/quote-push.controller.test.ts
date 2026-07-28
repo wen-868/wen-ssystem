@@ -67,7 +67,7 @@ describe("quote-push.controller", () => {
       },
     });
     const res = mockRes();
-    await previewQuote(req as any, res as any);
+    await previewQuote(req as any, res as any, vi.fn());
     expect(quotePushService.previewQuote).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -76,7 +76,7 @@ describe("quote-push.controller", () => {
     (quotePushService.previewQuote as any).mockResolvedValue({ items: [] });
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await previewQuote(req as any, res as any);
+    await previewQuote(req as any, res as any, vi.fn());
     expect(quotePushService.previewQuote).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("quote-push.controller", () => {
       },
     });
     const res = mockRes();
-    await createQuote(req as any, res as any);
+    await createQuote(req as any, res as any, vi.fn());
     expect(quotePushService.createQuote).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -104,7 +104,7 @@ describe("quote-push.controller", () => {
   it("createQuote - 参数校验失败应抛错", async () => {
     const req = mockReq({ body: { customerId: 1, items: [] } });
     const res = mockRes();
-    await expect(createQuote(req as any, res as any)).rejects.toThrow();
+    await expect(createQuote(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(quotePushService.createQuote).not.toHaveBeenCalled();
   });
 
@@ -112,7 +112,7 @@ describe("quote-push.controller", () => {
     (quotePushService.listQuotes as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listQuotes(req as any, res as any);
+    await listQuotes(req as any, res as any, vi.fn());
     expect(quotePushService.listQuotes).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -131,7 +131,7 @@ describe("quote-push.controller", () => {
       },
     });
     const res = mockRes();
-    await listQuotes(req as any, res as any);
+    await listQuotes(req as any, res as any, vi.fn());
     expect(quotePushService.listQuotes).toHaveBeenCalledWith(
       2,
       10,
@@ -151,7 +151,7 @@ describe("quote-push.controller", () => {
     (quotePushService.getQuoteDetail as any).mockResolvedValue({ id: 1, quoteNo: "Q001" });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getQuoteDetail(req as any, res as any);
+    await getQuoteDetail(req as any, res as any, vi.fn());
     expect(quotePushService.getQuoteDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -160,7 +160,7 @@ describe("quote-push.controller", () => {
     (quotePushService.getQuoteDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await getQuoteDetail(req as any, res as any);
+    await getQuoteDetail(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("报价单不存在", "404");
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -175,7 +175,7 @@ describe("quote-push.controller", () => {
       },
     });
     const res = mockRes();
-    await pushQuote(req as any, res as any);
+    await pushQuote(req as any, res as any, vi.fn());
     expect(quotePushService.pushQuote).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -183,7 +183,7 @@ describe("quote-push.controller", () => {
   it("pushQuote - 参数校验失败应抛错", async () => {
     const req = mockReq({ params: { id: "1" }, body: { channels: [] } });
     const res = mockRes();
-    await expect(pushQuote(req as any, res as any)).rejects.toThrow();
+    await expect(pushQuote(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(quotePushService.pushQuote).not.toHaveBeenCalled();
   });
 
@@ -191,7 +191,7 @@ describe("quote-push.controller", () => {
     (quotePushService.cancelQuote as any).mockResolvedValue({ id: 1, status: "CANCELLED" });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await cancelQuote(req as any, res as any);
+    await cancelQuote(req as any, res as any, vi.fn());
     expect(quotePushService.cancelQuote).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -200,7 +200,7 @@ describe("quote-push.controller", () => {
     (quotePushService.viewQuoteByToken as any).mockResolvedValue({ id: 1, quoteNo: "Q001" });
     const req = mockReq({ params: { token: "abc123" } });
     const res = mockRes();
-    await viewQuoteByToken(req as any, res as any);
+    await viewQuoteByToken(req as any, res as any, vi.fn());
     expect(quotePushService.viewQuoteByToken).toHaveBeenCalledWith("abc123");
     expect(ok).toHaveBeenCalled();
   });
@@ -209,7 +209,7 @@ describe("quote-push.controller", () => {
     (quotePushService.viewQuoteByToken as any).mockResolvedValue(null);
     const req = mockReq({ params: { token: "invalid" } });
     const res = mockRes();
-    await viewQuoteByToken(req as any, res as any);
+    await viewQuoteByToken(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("报价单不存在或已过期", "404");
     expect(res.status).toHaveBeenCalledWith(404);
   });

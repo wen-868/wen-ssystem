@@ -52,7 +52,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.listConfigs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listConfigs(req as any, res as any);
+    await listConfigs(req as any, res as any, vi.fn());
     expect(traceConfigService.listConfigs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -61,7 +61,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.listConfigs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20, configLevel: "SKU", traceEnabled: "1" } });
     const res = mockRes();
-    await listConfigs(req as any, res as any);
+    await listConfigs(req as any, res as any, vi.fn());
     expect(traceConfigService.listConfigs).toHaveBeenCalledWith(1, 20, "SKU", 1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.createConfig as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { configLevel: "SKU", targetId: 1 } });
     const res = mockRes();
-    await createConfig(req as any, res as any);
+    await createConfig(req as any, res as any, vi.fn());
     expect(traceConfigService.createConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -79,7 +79,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.updateConfig as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { traceEnabled: 1 } });
     const res = mockRes();
-    await updateConfig(req as any, res as any);
+    await updateConfig(req as any, res as any, vi.fn());
     expect(traceConfigService.updateConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.updateConfig as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" }, body: { traceEnabled: 1 } });
     const res = mockRes();
-    await updateConfig(req as any, res as any);
+    await updateConfig(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("配置不存在", "404");
   });
@@ -97,7 +97,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.deleteConfig as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteConfig(req as any, res as any);
+    await deleteConfig(req as any, res as any, vi.fn());
     expect(traceConfigService.deleteConfig).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalledWith({ deleted: true });
   });
@@ -106,7 +106,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.deleteConfig as any).mockResolvedValue(false);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await deleteConfig(req as any, res as any);
+    await deleteConfig(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("配置不存在", "404");
   });
@@ -115,7 +115,7 @@ describe("trace-config.controller", () => {
     (traceConfigService.checkSkuTrace as any).mockResolvedValue({ enabled: true });
     const req = mockReq({ body: { skuId: 1, categoryId: 10 } });
     const res = mockRes();
-    await checkSkuTrace(req as any, res as any);
+    await checkSkuTrace(req as any, res as any, vi.fn());
     expect(traceConfigService.checkSkuTrace).toHaveBeenCalledWith(1, 10, "t1");
     expect(ok).toHaveBeenCalled();
   });

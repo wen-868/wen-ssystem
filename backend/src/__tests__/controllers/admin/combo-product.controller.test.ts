@@ -67,7 +67,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -83,7 +83,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { page: "3", pageSize: "30" } });
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith(expect.objectContaining({
         page: 3,
         pageSize: 30,
@@ -94,7 +94,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { keyword: "套餐" } });
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith(expect.objectContaining({
         keyword: "套餐",
       }));
@@ -104,7 +104,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { status: "1" } });
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith(expect.objectContaining({
         status: 1,
       }));
@@ -114,7 +114,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith(expect.objectContaining({
         status: undefined,
       }));
@@ -124,7 +124,7 @@ describe("admin combo-product.controller", () => {
       mocks.listComboProducts.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { comboType: "OPTIONAL" } });
       const res = mockRes();
-      await listComboProducts(req, res);
+      await listComboProducts(req, res, vi.fn());
       expect(mocks.listComboProducts).toHaveBeenCalledWith(expect.objectContaining({
         comboType: "OPTIONAL",
       }));
@@ -136,7 +136,7 @@ describe("admin combo-product.controller", () => {
       mocks.getComboProductDetail.mockResolvedValue({ id: 1, comboName: "双人套餐" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getComboProductDetail(req, res);
+      await getComboProductDetail(req, res, vi.fn());
       expect(mocks.getComboProductDetail).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 1, comboName: "双人套餐" });
     });
@@ -159,7 +159,7 @@ describe("admin combo-product.controller", () => {
         },
       });
       const res = mockRes();
-      await createComboProduct(req, res);
+      await createComboProduct(req, res, vi.fn());
       expect(mocks.createComboProduct).toHaveBeenCalledWith({
         comboName: "双人套餐",
         comboType: "FIXED",
@@ -181,7 +181,7 @@ describe("admin combo-product.controller", () => {
         body: { comboName: "测试套餐", basePrice: "100" },
       });
       const res = mockRes();
-      await createComboProduct(req, res);
+      await createComboProduct(req, res, vi.fn());
       expect(mocks.createComboProduct).toHaveBeenCalledWith(expect.objectContaining({
         comboType: "FIXED",
       }));
@@ -193,7 +193,7 @@ describe("admin combo-product.controller", () => {
         body: { comboName: "测试套餐", basePrice: "100" },
       });
       const res = mockRes();
-      await createComboProduct(req, res);
+      await createComboProduct(req, res, vi.fn());
       expect(mocks.createComboProduct).toHaveBeenCalledWith(expect.objectContaining({
         options: [],
       }));
@@ -205,7 +205,7 @@ describe("admin combo-product.controller", () => {
         body: { comboName: "测试套餐" },
       });
       const res = mockRes();
-      await createComboProduct(req, res);
+      await createComboProduct(req, res, vi.fn());
       expect(mocks.createComboProduct).toHaveBeenCalledWith(expect.objectContaining({
         basePrice: 0,
       }));
@@ -227,7 +227,7 @@ describe("admin combo-product.controller", () => {
         },
       });
       const res = mockRes();
-      await updateComboProduct(req, res);
+      await updateComboProduct(req, res, vi.fn());
       expect(mocks.updateComboProduct).toHaveBeenCalledWith(1, expect.objectContaining({
         comboName: "新名称",
         basePrice: 299,
@@ -242,7 +242,7 @@ describe("admin combo-product.controller", () => {
         body: { comboName: "测试" },
       });
       const res = mockRes();
-      await updateComboProduct(req, res);
+      await updateComboProduct(req, res, vi.fn());
       expect(mocks.updateComboProduct).toHaveBeenCalledWith(1, expect.objectContaining({
         basePrice: undefined,
       }));
@@ -254,7 +254,7 @@ describe("admin combo-product.controller", () => {
       mocks.deleteComboProduct.mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteComboProduct(req, res);
+      await deleteComboProduct(req, res, vi.fn());
       expect(mocks.deleteComboProduct).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ success: true });
     });

@@ -43,7 +43,7 @@ describe("instant-retail/reconciliation.controller", () => {
     (svc.getReconciliationSummary as any).mockResolvedValue({ totalAmount: 1000 });
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31", platform: "MEITUAN", storeId: "1" } });
     const res = mockRes();
-    await getReconciliationSummary(req as any, res as any);
+    await getReconciliationSummary(req as any, res as any, vi.fn());
     expect(svc.getReconciliationSummary).toHaveBeenCalledWith({
       tenantId: "t1",
       startDate: "2026-01-01",
@@ -58,7 +58,7 @@ describe("instant-retail/reconciliation.controller", () => {
     (svc.getReconciliationSummary as any).mockResolvedValue({});
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getReconciliationSummary(req as any, res as any);
+    await getReconciliationSummary(req as any, res as any, vi.fn());
     expect(svc.getReconciliationSummary).toHaveBeenCalledWith(expect.objectContaining({
       storeId: undefined,
     }));
@@ -69,7 +69,7 @@ describe("instant-retail/reconciliation.controller", () => {
     (svc.listReconciliationRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: "2", pageSize: "10", platform: "JD", startDate: "2026-01-01", endDate: "2026-01-31", storeId: "1" } });
     const res = mockRes();
-    await listReconciliationRecords(req as any, res as any);
+    await listReconciliationRecords(req as any, res as any, vi.fn());
     expect(svc.listReconciliationRecords).toHaveBeenCalledWith({
       tenantId: "t1",
       page: 2,
@@ -86,7 +86,7 @@ describe("instant-retail/reconciliation.controller", () => {
     (svc.listReconciliationRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listReconciliationRecords(req as any, res as any);
+    await listReconciliationRecords(req as any, res as any, vi.fn());
     expect(svc.listReconciliationRecords).toHaveBeenCalledWith(expect.objectContaining({
       page: 1,
       pageSize: 20,

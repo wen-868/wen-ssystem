@@ -84,7 +84,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.createLimitedDiscount.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createLimitedDiscount(req, res);
+    await createLimitedDiscount(req, res, vi.fn());
     expect(mocks.createLimitedDiscount).toHaveBeenCalledWith(
       expect.objectContaining({ name: "夏日特惠8折" }),
       "t1",
@@ -96,7 +96,7 @@ describe("admin marketing-limited-discount.controller", () => {
   it("createLimitedDiscount - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: { name: "测试" } });
     const res = mockRes();
-    await expect(createLimitedDiscount(req, res)).rejects.toThrow();
+    await expect(createLimitedDiscount(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createLimitedDiscount).not.toHaveBeenCalled();
   });
 
@@ -104,7 +104,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.listLimitedDiscounts.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { status: "ACTIVE", page: "1", pageSize: "10" } });
     const res = mockRes();
-    await listLimitedDiscounts(req, res);
+    await listLimitedDiscounts(req, res, vi.fn());
     expect(mocks.listLimitedDiscounts).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", status: "ACTIVE", page: 1, pageSize: 10 })
     );
@@ -115,7 +115,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.listLimitedDiscounts.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listLimitedDiscounts(req, res);
+    await listLimitedDiscounts(req, res, vi.fn());
     expect(mocks.listLimitedDiscounts).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, pageSize: 20 })
     );
@@ -125,7 +125,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.getLimitedDiscountDetail.mockResolvedValue({ id: 1, name: "活动1" });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getLimitedDiscountDetail(req, res);
+    await getLimitedDiscountDetail(req, res, vi.fn());
     expect(mocks.getLimitedDiscountDetail).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -135,7 +135,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.updateLimitedDiscount.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateLimitedDiscount(req, res);
+    await updateLimitedDiscount(req, res, vi.fn());
     expect(mocks.updateLimitedDiscount).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ name: "新名称" }),
@@ -148,7 +148,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.deleteLimitedDiscount.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteLimitedDiscount(req, res);
+    await deleteLimitedDiscount(req, res, vi.fn());
     expect(mocks.deleteLimitedDiscount).toHaveBeenCalledWith(1, "t1");
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });
@@ -157,7 +157,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.activateLimitedDiscount.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await activateLimitedDiscount(req, res);
+    await activateLimitedDiscount(req, res, vi.fn());
     expect(mocks.activateLimitedDiscount).toHaveBeenCalledWith(1, "t1");
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });
@@ -166,7 +166,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.pauseLimitedDiscount.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await pauseLimitedDiscount(req, res);
+    await pauseLimitedDiscount(req, res, vi.fn());
     expect(mocks.pauseLimitedDiscount).toHaveBeenCalledWith(1, "t1");
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });
@@ -175,7 +175,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.getDiscountProducts.mockResolvedValue([]);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getDiscountProducts(req, res);
+    await getDiscountProducts(req, res, vi.fn());
     expect(mocks.getDiscountProducts).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -185,7 +185,7 @@ describe("admin marketing-limited-discount.controller", () => {
     mocks.addDiscountProduct.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await addDiscountProduct(req, res);
+    await addDiscountProduct(req, res, vi.fn());
     expect(mocks.addDiscountProduct).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ skuIds: [1, 2, 3] }),
@@ -197,14 +197,14 @@ describe("admin marketing-limited-discount.controller", () => {
   it("addDiscountProduct - 空 skuIds 时 zod 校验抛错", async () => {
     const req = mockReq({ params: { id: "1" }, body: { skuIds: [] } });
     const res = mockRes();
-    await expect(addDiscountProduct(req, res)).rejects.toThrow();
+    await expect(addDiscountProduct(req, res, vi.fn())).rejects.toThrow();
   });
 
   it("removeDiscountProduct - 应移除折扣商品", async () => {
     mocks.removeDiscountProduct.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1", productId: "10" } });
     const res = mockRes();
-    await removeDiscountProduct(req, res);
+    await removeDiscountProduct(req, res, vi.fn());
     expect(mocks.removeDiscountProduct).toHaveBeenCalledWith(1, 10, "t1");
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });

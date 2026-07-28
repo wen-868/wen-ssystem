@@ -18,7 +18,7 @@ describe("dashboard.controller", () => {
       const mockResult = { tenants: 10, orders: 100 };
       (overviewService.getPlatformOverview as vi.Mock).mockResolvedValue(mockResult);
 
-      await getDashboard({} as any, mockRes);
+      await getDashboard({} as any, mockRes, vi.fn());
 
       expect(overviewService.getPlatformOverview).toHaveBeenCalled();
       expect(mockRes.json).toHaveBeenCalled();
@@ -34,7 +34,7 @@ describe("dashboard.controller", () => {
       const mockResult = { active: 5, inactive: 3 };
       (overviewService.getTenantStatistics as vi.Mock).mockResolvedValue(mockResult);
 
-      await getTenantStats({} as any, mockRes);
+      await getTenantStats({} as any, mockRes, vi.fn());
 
       expect(overviewService.getTenantStatistics).toHaveBeenCalled();
       expect(mockRes.json).toHaveBeenCalled();
@@ -50,7 +50,7 @@ describe("dashboard.controller", () => {
       const mockResult = { total: 10000, monthly: 5000 };
       (overviewService.getRevenueStatistics as vi.Mock).mockResolvedValue(mockResult);
 
-      await getRevenueStats({} as any, mockRes);
+      await getRevenueStats({} as any, mockRes, vi.fn());
 
       expect(overviewService.getRevenueStatistics).toHaveBeenCalled();
       expect(mockRes.json).toHaveBeenCalled();

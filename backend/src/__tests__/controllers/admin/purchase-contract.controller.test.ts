@@ -52,7 +52,7 @@ describe("purchase-contract.controller", () => {
     (purchaseContractService.listPurchaseContracts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPurchaseContracts(req as any, res as any);
+    await listPurchaseContracts(req as any, res as any, vi.fn());
     expect(purchaseContractService.listPurchaseContracts).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 1,
@@ -67,7 +67,7 @@ describe("purchase-contract.controller", () => {
     (purchaseContractService.listPurchaseContracts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: "2", pageSize: "10", supplierId: "3", status: "ACTIVE" } });
     const res = mockRes();
-    await listPurchaseContracts(req as any, res as any);
+    await listPurchaseContracts(req as any, res as any, vi.fn());
     expect(purchaseContractService.listPurchaseContracts).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 2,
@@ -95,7 +95,7 @@ describe("purchase-contract.controller", () => {
       },
     });
     const res = mockRes();
-    await createPurchaseContract(req as any, res as any);
+    await createPurchaseContract(req as any, res as any, vi.fn());
     expect(purchaseContractService.createPurchaseContract).toHaveBeenCalledWith(
       expect.objectContaining({
         supplierId: 1,
@@ -111,7 +111,7 @@ describe("purchase-contract.controller", () => {
   it("createPurchaseContract - 参数校验失败应抛错", async () => {
     const req = mockReq({ body: { contractName: "测试" } });
     const res = mockRes();
-    await expect(createPurchaseContract(req as any, res as any)).rejects.toThrow();
+    await expect(createPurchaseContract(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(purchaseContractService.createPurchaseContract).not.toHaveBeenCalled();
   });
 
@@ -126,7 +126,7 @@ describe("purchase-contract.controller", () => {
       },
     });
     const res = mockRes();
-    await updatePurchaseContract(req as any, res as any);
+    await updatePurchaseContract(req as any, res as any, vi.fn());
     expect(purchaseContractService.updatePurchaseContract).toHaveBeenCalledWith(
       "PC001",
       expect.objectContaining({
@@ -142,7 +142,7 @@ describe("purchase-contract.controller", () => {
   it("updatePurchaseContract - 参数校验失败应抛错", async () => {
     const req = mockReq({ params: { contractNo: "PC001" }, body: { totalAmount: -1 } });
     const res = mockRes();
-    await expect(updatePurchaseContract(req as any, res as any)).rejects.toThrow();
+    await expect(updatePurchaseContract(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(purchaseContractService.updatePurchaseContract).not.toHaveBeenCalled();
   });
 
@@ -150,7 +150,7 @@ describe("purchase-contract.controller", () => {
     (purchaseContractService.deletePurchaseContract as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { contractNo: "PC001" } });
     const res = mockRes();
-    await deletePurchaseContract(req as any, res as any);
+    await deletePurchaseContract(req as any, res as any, vi.fn());
     expect(purchaseContractService.deletePurchaseContract).toHaveBeenCalledWith("PC001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -162,7 +162,7 @@ describe("purchase-contract.controller", () => {
       body: { fileUrl: "http://example.com/file.pdf" },
     });
     const res = mockRes();
-    await uploadContractFile(req as any, res as any);
+    await uploadContractFile(req as any, res as any, vi.fn());
     expect(purchaseContractService.uploadContractFile).toHaveBeenCalledWith(
       "PC001",
       "http://example.com/file.pdf",
@@ -174,7 +174,7 @@ describe("purchase-contract.controller", () => {
   it("uploadContractFile - 参数校验失败应抛错", async () => {
     const req = mockReq({ params: { contractNo: "PC001" }, body: {} });
     const res = mockRes();
-    await expect(uploadContractFile(req as any, res as any)).rejects.toThrow();
+    await expect(uploadContractFile(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(purchaseContractService.uploadContractFile).not.toHaveBeenCalled();
   });
 
@@ -183,7 +183,7 @@ describe("purchase-contract.controller", () => {
     (purchaseContractService.listPurchaseContracts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listPurchaseContracts(req as any, res as any);
+    await listPurchaseContracts(req as any, res as any, vi.fn());
     expect(purchaseContractService.listPurchaseContracts).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, supplierId: undefined, tenantId: "t1"
     }));

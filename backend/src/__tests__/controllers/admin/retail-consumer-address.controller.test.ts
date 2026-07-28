@@ -62,7 +62,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.listAddresses.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listAddresses(req, res);
+    await listAddresses(req, res, vi.fn());
     expect(mocks.listAddresses).toHaveBeenCalledWith(1);
     expect(res.json).toHaveBeenCalled();
   });
@@ -80,7 +80,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.createAddress.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createAddress(req, res);
+    await createAddress(req, res, vi.fn());
     expect(mocks.createAddress).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ name: "张三", mobile: "13800138000" })
@@ -91,7 +91,7 @@ describe("admin retail-consumer-address.controller", () => {
   it("createAddress - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createAddress(req, res)).rejects.toThrow();
+    await expect(createAddress(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createAddress).not.toHaveBeenCalled();
   });
 
@@ -100,7 +100,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.updateAddress.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateAddress(req, res);
+    await updateAddress(req, res, vi.fn());
     expect(mocks.updateAddress).toHaveBeenCalledWith(
       1,
       1,
@@ -113,7 +113,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.updateAddress.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await updateAddress(req, res);
+    await updateAddress(req, res, vi.fn());
     expect(mocks.updateAddress).toHaveBeenCalled();
   });
 
@@ -121,7 +121,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.deleteAddress.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteAddress(req, res);
+    await deleteAddress(req, res, vi.fn());
     expect(mocks.deleteAddress).toHaveBeenCalledWith(1, 1);
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });
@@ -130,7 +130,7 @@ describe("admin retail-consumer-address.controller", () => {
     mocks.setDefault.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await setDefault(req, res);
+    await setDefault(req, res, vi.fn());
     expect(mocks.setDefault).toHaveBeenCalledWith(1, 1);
     expect(mocks.ok).toHaveBeenCalledWith(null);
   });

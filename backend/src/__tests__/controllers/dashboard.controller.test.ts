@@ -61,7 +61,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getOverview as any).mockResolvedValue({ sales: 0, orders: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getOverview(req as any, res as any);
+    await getOverview(req as any, res as any, vi.fn());
     expect(dashboardService.getOverview).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(dashboardService.getSalesTrend).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -79,7 +79,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getCategoryPie as any).mockResolvedValue([]);
     const req = mockReq({ query: { dateStart: "2024-01-01", dateEnd: "2024-01-31" } });
     const res = mockRes();
-    await getCategoryPie(req as any, res as any);
+    await getCategoryPie(req as any, res as any, vi.fn());
     expect(dashboardService.getCategoryPie).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getTopProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: { dateStart: "2024-01-01", dateEnd: "2024-01-31" } });
     const res = mockRes();
-    await getTopProducts(req as any, res as any);
+    await getTopProducts(req as any, res as any, vi.fn());
     expect(dashboardService.getTopProducts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -97,7 +97,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getTopCustomers as any).mockResolvedValue([]);
     const req = mockReq({ query: { dateStart: "2024-01-01", dateEnd: "2024-01-31" } });
     const res = mockRes();
-    await getTopCustomers(req as any, res as any);
+    await getTopCustomers(req as any, res as any, vi.fn());
     expect(dashboardService.getTopCustomers).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -106,7 +106,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getRecentAlerts as any).mockResolvedValue([]);
     const req = mockReq({ query: { limit: 10 } });
     const res = mockRes();
-    await getRecentAlerts(req as any, res as any);
+    await getRecentAlerts(req as any, res as any, vi.fn());
     expect(dashboardService.getRecentAlerts).toHaveBeenCalledWith("t1", 10);
     expect(ok).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getTodos as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getTodos(req as any, res as any);
+    await getTodos(req as any, res as any, vi.fn());
     expect(dashboardService.getTodos).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -124,7 +124,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getRecentOrders as any).mockResolvedValue([]);
     const req = mockReq({ query: { limit: 5 } });
     const res = mockRes();
-    await getRecentOrders(req as any, res as any);
+    await getRecentOrders(req as any, res as any, vi.fn());
     expect(dashboardService.getRecentOrders).toHaveBeenCalledWith("t1", 5);
     expect(ok).toHaveBeenCalled();
   });
@@ -133,7 +133,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getSalesTrendByDay as any).mockResolvedValue([]);
     const req = mockReq({ query: { days: 7 } });
     const res = mockRes();
-    await getSalesTrendByDay(req as any, res as any);
+    await getSalesTrendByDay(req as any, res as any, vi.fn());
     expect(dashboardService.getSalesTrendByDay).toHaveBeenCalledWith("t1", 7);
     expect(ok).toHaveBeenCalled();
   });
@@ -142,7 +142,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getCategoryPie as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getCategoryPie(req as any, res as any);
+    await getCategoryPie(req as any, res as any, vi.fn());
     expect(dashboardService.getCategoryPie).toHaveBeenCalled();
   });
 
@@ -150,7 +150,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getTopProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getTopProducts(req as any, res as any);
+    await getTopProducts(req as any, res as any, vi.fn());
     expect(dashboardService.getTopProducts).toHaveBeenCalled();
   });
 
@@ -158,7 +158,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getTopCustomers as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getTopCustomers(req as any, res as any);
+    await getTopCustomers(req as any, res as any, vi.fn());
     expect(dashboardService.getTopCustomers).toHaveBeenCalled();
   });
 
@@ -166,7 +166,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getRecentAlerts as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getRecentAlerts(req as any, res as any);
+    await getRecentAlerts(req as any, res as any, vi.fn());
     expect(dashboardService.getRecentAlerts).toHaveBeenCalledWith("t1", 10);
   });
 
@@ -174,7 +174,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getRecentOrders as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getRecentOrders(req as any, res as any);
+    await getRecentOrders(req as any, res as any, vi.fn());
     expect(dashboardService.getRecentOrders).toHaveBeenCalledWith("t1", 5);
   });
 
@@ -182,7 +182,7 @@ describe("dashboard.controller", () => {
     (dashboardService.getSalesTrendByDay as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getSalesTrendByDay(req as any, res as any);
+    await getSalesTrendByDay(req as any, res as any, vi.fn());
     expect(dashboardService.getSalesTrendByDay).toHaveBeenCalledWith("t1", 7);
   });
 });

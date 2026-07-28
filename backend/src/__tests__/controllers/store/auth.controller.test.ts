@@ -44,7 +44,7 @@ describe("store/auth.controller", () => {
     (authService.login as any).mockResolvedValue({ token: "token123", user: { id: 1 } });
     const req = mockReq({ body: { username: "storeuser", password: "123456" } });
     const res = mockRes();
-    await login(req as any, res as any);
+    await login(req as any, res as any, vi.fn());
     expect(authService.login).toHaveBeenCalledWith("storeuser", "123456");
     expect(ok).toHaveBeenCalled();
   });
@@ -53,7 +53,7 @@ describe("store/auth.controller", () => {
     (authService.getCurrentUser as any).mockReturnValue({ id: 1, username: "storeuser" });
     const req = mockReq();
     const res = mockRes();
-    await getMe(req as any, res as any);
+    await getMe(req as any, res as any, vi.fn());
     expect(authService.getCurrentUser).toHaveBeenCalledWith(req.user);
     expect(ok).toHaveBeenCalled();
   });
@@ -62,7 +62,7 @@ describe("store/auth.controller", () => {
     (authService.getStoreInfo as any).mockResolvedValue(null);
     const req = mockReq();
     const res = mockRes();
-    await getStoreInfo(req as any, res as any);
+    await getStoreInfo(req as any, res as any, vi.fn());
     expect(authService.getStoreInfo).toHaveBeenCalledWith(1, "t1");
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("门店不存在", "1");
@@ -72,7 +72,7 @@ describe("store/auth.controller", () => {
     (authService.getStoreInfo as any).mockResolvedValue({ id: 1, name: "门店A" });
     const req = mockReq();
     const res = mockRes();
-    await getStoreInfo(req as any, res as any);
+    await getStoreInfo(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 });

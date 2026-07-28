@@ -79,7 +79,7 @@ describe("admin inventory-share.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getShareSetting(req, res);
+      await getShareSetting(req, res, vi.fn());
       expect(mocks.getShareSetting).toHaveBeenCalledWith("t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -97,7 +97,7 @@ describe("admin inventory-share.controller", () => {
         },
       });
       const res = mockRes();
-      await updateShareSetting(req, res);
+      await updateShareSetting(req, res, vi.fn());
       expect(mocks.updateShareSetting).toHaveBeenCalledWith("t1", {
         shareEnabled: true,
         autoTransfer: true,
@@ -110,7 +110,7 @@ describe("admin inventory-share.controller", () => {
     it("不传字段时为 undefined", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await updateShareSetting(req, res);
+      await updateShareSetting(req, res, vi.fn());
       const arg = mocks.updateShareSetting.mock.calls[0][1];
       expect(arg.shareEnabled).toBeUndefined();
       expect(arg.autoTransfer).toBeUndefined();
@@ -121,7 +121,7 @@ describe("admin inventory-share.controller", () => {
     it("默认分页参数", async () => {
       const req = mockReq();
       const res = mockRes();
-      await listShareProducts(req, res);
+      await listShareProducts(req, res, vi.fn());
       expect(mocks.listShareProducts).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -137,7 +137,7 @@ describe("admin inventory-share.controller", () => {
         query: { page: "2", pageSize: "10", status: "1", categoryId: "5", keyword: "测试" },
       });
       const res = mockRes();
-      await listShareProducts(req, res);
+      await listShareProducts(req, res, vi.fn());
       const arg = mocks.listShareProducts.mock.calls[0][0];
       expect(arg.page).toBe(2);
       expect(arg.pageSize).toBe(10);
@@ -161,7 +161,7 @@ describe("admin inventory-share.controller", () => {
         },
       });
       const res = mockRes();
-      await addShareProduct(req, res);
+      await addShareProduct(req, res, vi.fn());
       expect(mocks.addShareProduct).toHaveBeenCalledWith("t1", {
         spuId: 1,
         spuName: "商品A",
@@ -179,14 +179,14 @@ describe("admin inventory-share.controller", () => {
       const products = [{ spuId: 1, spuName: "商品A" }, { spuId: 2, spuName: "商品B" }];
       const req = mockReq({ body: { products } });
       const res = mockRes();
-      await batchAddShareProducts(req, res);
+      await batchAddShareProducts(req, res, vi.fn());
       expect(mocks.batchAddShareProducts).toHaveBeenCalledWith("t1", products);
     });
 
     it("products 为 undefined 时传空数组", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await batchAddShareProducts(req, res);
+      await batchAddShareProducts(req, res, vi.fn());
       expect(mocks.batchAddShareProducts).toHaveBeenCalledWith("t1", []);
     });
   });
@@ -198,7 +198,7 @@ describe("admin inventory-share.controller", () => {
         body: { shareQty: 50, minKeepQty: 5, status: 0 },
       });
       const res = mockRes();
-      await updateShareProduct(req, res);
+      await updateShareProduct(req, res, vi.fn());
       expect(mocks.updateShareProduct).toHaveBeenCalledWith(1, "t1", {
         shareQty: 50,
         minKeepQty: 5,
@@ -211,7 +211,7 @@ describe("admin inventory-share.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await removeShareProduct(req, res);
+      await removeShareProduct(req, res, vi.fn());
       expect(mocks.removeShareProduct).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -221,14 +221,14 @@ describe("admin inventory-share.controller", () => {
       const ids = [1, 2, 3];
       const req = mockReq({ body: { ids } });
       const res = mockRes();
-      await batchRemoveShareProducts(req, res);
+      await batchRemoveShareProducts(req, res, vi.fn());
       expect(mocks.batchRemoveShareProducts).toHaveBeenCalledWith(ids, "t1");
     });
 
     it("ids 为 undefined 时传空数组", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await batchRemoveShareProducts(req, res);
+      await batchRemoveShareProducts(req, res, vi.fn());
       expect(mocks.batchRemoveShareProducts).toHaveBeenCalledWith([], "t1");
     });
   });

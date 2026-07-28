@@ -68,7 +68,7 @@ describe("admin customer-tag.controller", () => {
     mocks.listTags.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listTags(req, res);
+    await listTags(req, res, vi.fn());
     expect(mocks.listTags).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe("admin customer-tag.controller", () => {
     mocks.createTag.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createTag(req, res);
+    await createTag(req, res, vi.fn());
     expect(mocks.createTag).toHaveBeenCalledWith(
       expect.objectContaining({ tagName: "VIP客户", tagType: "customer", tagGroup: "客户分层", tenantId: "t1" })
     );
@@ -88,7 +88,7 @@ describe("admin customer-tag.controller", () => {
   it("createTag - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createTag(req, res)).rejects.toThrow();
+    await expect(createTag(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createTag).not.toHaveBeenCalled();
   });
 
@@ -97,7 +97,7 @@ describe("admin customer-tag.controller", () => {
     mocks.createTag.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createTag(req, res);
+    await createTag(req, res, vi.fn());
     expect(mocks.createTag).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalled();
   });
@@ -107,7 +107,7 @@ describe("admin customer-tag.controller", () => {
     mocks.updateTag.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateTag(req, res);
+    await updateTag(req, res, vi.fn());
     expect(mocks.updateTag).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ tagName: "新名称", tenantId: "t1" })
@@ -119,7 +119,7 @@ describe("admin customer-tag.controller", () => {
     mocks.updateTag.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await updateTag(req, res);
+    await updateTag(req, res, vi.fn());
     expect(mocks.updateTag).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalled();
   });
@@ -128,7 +128,7 @@ describe("admin customer-tag.controller", () => {
     mocks.deleteTag.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteTag(req, res);
+    await deleteTag(req, res, vi.fn());
     expect(mocks.deleteTag).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -138,7 +138,7 @@ describe("admin customer-tag.controller", () => {
     mocks.addCustomerTag.mockResolvedValue({ customerId: 1, tagId: 5 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await addCustomerTag(req, res);
+    await addCustomerTag(req, res, vi.fn());
     expect(mocks.addCustomerTag).toHaveBeenCalledWith(1, 5, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -146,7 +146,7 @@ describe("admin customer-tag.controller", () => {
   it("addCustomerTag - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await expect(addCustomerTag(req, res)).rejects.toThrow();
+    await expect(addCustomerTag(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.addCustomerTag).not.toHaveBeenCalled();
   });
 
@@ -154,7 +154,7 @@ describe("admin customer-tag.controller", () => {
     mocks.removeCustomerTag.mockResolvedValue({ customerId: 1, tagId: 5 });
     const req = mockReq({ params: { id: "1", tagId: "5" } });
     const res = mockRes();
-    await removeCustomerTag(req, res);
+    await removeCustomerTag(req, res, vi.fn());
     expect(mocks.removeCustomerTag).toHaveBeenCalledWith(1, 5, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -163,7 +163,7 @@ describe("admin customer-tag.controller", () => {
     mocks.getCustomerProfile.mockResolvedValue({ id: 1, tags: [] });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getCustomerProfile(req, res);
+    await getCustomerProfile(req, res, vi.fn());
     expect(mocks.getCustomerProfile).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });

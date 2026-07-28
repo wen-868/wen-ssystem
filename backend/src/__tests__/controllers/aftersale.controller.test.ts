@@ -74,7 +74,7 @@ describe("aftersale.controller", () => {
         body: { orderNo: "ORD001", aftersaleType: "REFUND_ONLY" },
       });
       const res = mockRes();
-      await miniappCreateAftersale(req as any, res as any);
+      await miniappCreateAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.createAftersale).toHaveBeenCalledWith(expect.objectContaining({
         tenantId: "t1",
         customerId: 1,
@@ -88,7 +88,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.listMyAftersales as any).mockResolvedValue({ total: 1, records: [{ aftersaleType: "REFUND_ONLY", status: "PENDING" }] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await miniappListMyAftersales(req as any, res as any);
+      await miniappListMyAftersales(req as any, res as any, vi.fn());
       expect(aftersaleService.listMyAftersales).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -97,7 +97,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.getAftersaleDetail as any).mockResolvedValue({ items: "[]", images: "[]", inspect_images: "[]", aftersale_type: "REFUND_ONLY", status: "PENDING" });
       const req = mockReq({ params: { aftersaleNo: "AF001" } });
       const res = mockRes();
-      await miniappGetAftersaleDetail(req as any, res as any);
+      await miniappGetAftersaleDetail(req as any, res as any, vi.fn());
       expect(aftersaleService.getAftersaleDetail).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -106,7 +106,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.cancelAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { aftersaleNo: "AF001" } });
       const res = mockRes();
-      await miniappCancelAftersale(req as any, res as any);
+      await miniappCancelAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.cancelAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -115,7 +115,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.submitReturnLogistics as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { aftersaleNo: "AF001" }, body: { logisticsNo: "SF123" } });
       const res = mockRes();
-      await miniappSubmitReturnLogistics(req as any, res as any);
+      await miniappSubmitReturnLogistics(req as any, res as any, vi.fn());
       expect(aftersaleService.submitReturnLogistics).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -124,7 +124,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.rateAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { aftersaleNo: "AF001" }, body: { rating: 5 } });
       const res = mockRes();
-      await miniappRateAftersale(req as any, res as any);
+      await miniappRateAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.rateAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -135,7 +135,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.listAftersales as any).mockResolvedValue({ total: 1, records: [{ aftersaleType: "REFUND_ONLY", status: "PENDING" }] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await adminListAftersales(req as any, res as any);
+      await adminListAftersales(req as any, res as any, vi.fn());
       expect(aftersaleService.listAftersales).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -144,7 +144,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.getAftersaleDetailById as any).mockResolvedValue({ items: "[]", images: "[]", inspect_images: "[]" });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await adminGetAftersaleDetail(req as any, res as any);
+      await adminGetAftersaleDetail(req as any, res as any, vi.fn());
       expect(aftersaleService.getAftersaleDetailById).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -153,7 +153,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.approveAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { processRemark: "同意" } });
       const res = mockRes();
-      await adminApproveAftersale(req as any, res as any);
+      await adminApproveAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.approveAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -162,7 +162,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.rejectAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { processRemark: "拒绝原因" } });
       const res = mockRes();
-      await adminRejectAftersale(req as any, res as any);
+      await adminRejectAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.rejectAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -171,7 +171,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.confirmReceipt as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await adminConfirmReceipt(req as any, res as any);
+      await adminConfirmReceipt(req as any, res as any, vi.fn());
       expect(aftersaleService.confirmReceipt).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -180,7 +180,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.inspectAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { result: "PASS" } });
       const res = mockRes();
-      await adminInspectAftersale(req as any, res as any);
+      await adminInspectAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.inspectAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -189,7 +189,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.completeAftersale as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { refundAmount: 100 } });
       const res = mockRes();
-      await adminCompleteAftersale(req as any, res as any);
+      await adminCompleteAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.completeAftersale).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -198,7 +198,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.getAftersaleStatistics as any).mockResolvedValue({ typeStats: [], statusStats: [], avgProcessingHours: 0, avgSatisfaction: 0, overdueRate: 0 });
       const req = mockReq();
       const res = mockRes();
-      await adminGetStatistics(req as any, res as any);
+      await adminGetStatistics(req as any, res as any, vi.fn());
       expect(aftersaleService.getAftersaleStatistics).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -210,7 +210,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.createAftersale as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ user: {}, headers: { "x-customer-id": "99" }, body: { orderNo: "ORD001" } });
       const res = mockRes();
-      await miniappCreateAftersale(req as any, res as any);
+      await miniappCreateAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.createAftersale).toHaveBeenCalledWith(expect.objectContaining({ customerId: 99 }));
     });
 
@@ -218,7 +218,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.createAftersale as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ user: {}, headers: {}, body: { orderNo: "ORD001" } });
       const res = mockRes();
-      await miniappCreateAftersale(req as any, res as any);
+      await miniappCreateAftersale(req as any, res as any, vi.fn());
       expect(aftersaleService.createAftersale).toHaveBeenCalledWith(expect.objectContaining({ customerId: 1 }));
     });
 
@@ -226,7 +226,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.listMyAftersales as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await miniappListMyAftersales(req as any, res as any);
+      await miniappListMyAftersales(req as any, res as any, vi.fn());
       expect(aftersaleService.listMyAftersales).toHaveBeenCalledWith(expect.objectContaining({ page: 1, pageSize: 20, status: "" }));
     });
 
@@ -236,7 +236,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ query: { status: "PENDING" } });
       const res = mockRes();
-      await miniappListMyAftersales(req as any, res as any);
+      await miniappListMyAftersales(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -247,7 +247,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ params: { aftersaleNo: "AF001" } });
       const res = mockRes();
-      await miniappGetAftersaleDetail(req as any, res as any);
+      await miniappGetAftersaleDetail(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -258,7 +258,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ params: { aftersaleNo: "AF001" } });
       const res = mockRes();
-      await miniappGetAftersaleDetail(req as any, res as any);
+      await miniappGetAftersaleDetail(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -266,7 +266,7 @@ describe("aftersale.controller", () => {
       (aftersaleService.listAftersales as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { storeId: "5", status: "PENDING", keyword: "test", startDate: "2026-01-01", endDate: "2026-12-31" } });
       const res = mockRes();
-      await adminListAftersales(req as any, res as any);
+      await adminListAftersales(req as any, res as any, vi.fn());
       expect(aftersaleService.listAftersales).toHaveBeenCalledWith(expect.objectContaining({
         page: 1, pageSize: 20, storeId: 5, status: "PENDING", keyword: "test"
       }));
@@ -278,7 +278,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await adminListAftersales(req as any, res as any);
+      await adminListAftersales(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -289,7 +289,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await adminGetAftersaleDetail(req as any, res as any);
+      await adminGetAftersaleDetail(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -301,7 +301,7 @@ describe("aftersale.controller", () => {
       });
       const req = mockReq({ query: { storeId: "3" } });
       const res = mockRes();
-      await adminGetStatistics(req as any, res as any);
+      await adminGetStatistics(req as any, res as any, vi.fn());
       expect(aftersaleService.getAftersaleStatistics).toHaveBeenCalledWith("t1", 3);
       expect(ok).toHaveBeenCalled();
     });

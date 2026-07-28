@@ -74,7 +74,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.listPurchaseOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPurchaseOrders(req as any, res as any);
+    await listPurchaseOrders(req as any, res as any, vi.fn());
     expect(purchaseOrderService.listPurchaseOrders).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -83,7 +83,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.getPurchaseOrderDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getPurchaseOrderDetail(req as any, res as any);
+    await getPurchaseOrderDetail(req as any, res as any, vi.fn());
     expect(purchaseOrderService.getPurchaseOrderDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await createPurchaseOrder(req as any, res as any);
+    await createPurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.createPurchaseOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -112,7 +112,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await expect(createPurchaseOrder(req as any, res as any)).rejects.toThrow();
+    await expect(createPurchaseOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(purchaseOrderService.createPurchaseOrder).not.toHaveBeenCalled();
   });
 
@@ -123,7 +123,7 @@ describe("purchase-admin.controller", () => {
       body: { remark: "更新备注" },
     });
     const res = mockRes();
-    await updatePurchaseOrder(req as any, res as any);
+    await updatePurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.updatePurchaseOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.cancelPurchaseOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await cancelPurchaseOrder(req as any, res as any);
+    await cancelPurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.cancelPurchaseOrder).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -141,7 +141,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.confirmPurchaseOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await confirmPurchaseOrder(req as any, res as any);
+    await confirmPurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.confirmPurchaseOrder).toHaveBeenCalledWith(1, "t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -154,7 +154,7 @@ describe("purchase-admin.controller", () => {
       body: { items: [{ skuId: 1, quantity: 10 }] },
     });
     const res = mockRes();
-    await purchaseInStock(req as any, res as any);
+    await purchaseInStock(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -164,7 +164,7 @@ describe("purchase-admin.controller", () => {
       body: { items: [{ skuId: "invalid", quantity: "invalid" }] },
     });
     const res = mockRes();
-    await expect(purchaseInStock(req as any, res as any)).rejects.toThrow();
+    await expect(purchaseInStock(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listPurchaseInStocks - 应返回采购入库列表", async () => {
@@ -172,7 +172,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseInStocks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPurchaseInStocks(req as any, res as any);
+    await listPurchaseInStocks(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -181,7 +181,7 @@ describe("purchase-admin.controller", () => {
     (service.getPurchaseInStockDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getPurchaseInStockDetail(req as any, res as any);
+    await getPurchaseInStockDetail(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -196,7 +196,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await purchaseReturn(req as any, res as any);
+    await purchaseReturn(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -209,7 +209,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await expect(purchaseReturn(req as any, res as any)).rejects.toThrow();
+    await expect(purchaseReturn(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listPurchaseReturns - 应返回采购退货列表", async () => {
@@ -217,7 +217,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPurchaseReturns(req as any, res as any);
+    await listPurchaseReturns(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -225,7 +225,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.listPurchaseOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listPurchaseOrders(req as any, res as any);
+    await listPurchaseOrders(req as any, res as any, vi.fn());
     expect(purchaseOrderService.listPurchaseOrders).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, supplierId: undefined, operatorId: undefined,
     }));
@@ -235,7 +235,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.listPurchaseOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { supplierId: "5", operatorId: "3" } });
     const res = mockRes();
-    await listPurchaseOrders(req as any, res as any);
+    await listPurchaseOrders(req as any, res as any, vi.fn());
     expect(purchaseOrderService.listPurchaseOrders).toHaveBeenCalledWith(expect.objectContaining({
       supplierId: 5, operatorId: 3,
     }));
@@ -252,7 +252,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await createPurchaseOrder(req as any, res as any);
+    await createPurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.createPurchaseOrder).toHaveBeenCalledWith(expect.objectContaining({
       operatorId: 0,
     }));
@@ -262,7 +262,7 @@ describe("purchase-admin.controller", () => {
     (purchaseOrderService.confirmPurchaseOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 }, user: { username: "admin" } });
     const res = mockRes();
-    await confirmPurchaseOrder(req as any, res as any);
+    await confirmPurchaseOrder(req as any, res as any, vi.fn());
     expect(purchaseOrderService.confirmPurchaseOrder).toHaveBeenCalledWith(1, "t1", 0);
   });
 
@@ -275,7 +275,7 @@ describe("purchase-admin.controller", () => {
       body: { items: [{ skuId: 1, quantity: 10 }] },
     });
     const res = mockRes();
-    await purchaseInStock(req as any, res as any);
+    await purchaseInStock(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -291,7 +291,7 @@ describe("purchase-admin.controller", () => {
       },
     });
     const res = mockRes();
-    await purchaseReturn(req as any, res as any);
+    await purchaseReturn(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -300,7 +300,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseInStocks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listPurchaseInStocks(req as any, res as any);
+    await listPurchaseInStocks(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -309,7 +309,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseInStocks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { supplierId: "5" } });
     const res = mockRes();
-    await listPurchaseInStocks(req as any, res as any);
+    await listPurchaseInStocks(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -318,7 +318,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listPurchaseReturns(req as any, res as any);
+    await listPurchaseReturns(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -327,7 +327,7 @@ describe("purchase-admin.controller", () => {
     (service.listPurchaseReturns as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { supplierId: "5" } });
     const res = mockRes();
-    await listPurchaseReturns(req as any, res as any);
+    await listPurchaseReturns(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 });

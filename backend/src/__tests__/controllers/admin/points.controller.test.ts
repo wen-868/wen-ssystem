@@ -58,7 +58,7 @@ describe("points.controller", () => {
     (pointsService.listPointsRules as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listPointsRules(req as any, res as any);
+    await listPointsRules(req as any, res as any, vi.fn());
     expect(pointsService.listPointsRules).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -67,7 +67,7 @@ describe("points.controller", () => {
     (pointsService.createPointsRule as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { ruleName: "消费积分", earnType: "SPEND", earnRate: 10, dailyLimit: 100 } });
     const res = mockRes();
-    await createPointsRule(req as any, res as any);
+    await createPointsRule(req as any, res as any, vi.fn());
     expect(pointsService.createPointsRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -76,7 +76,7 @@ describe("points.controller", () => {
     (pointsService.updatePointsRule as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { ruleName: "新规则名", earnRate: 20, dailyLimit: 200, enabled: 1 } });
     const res = mockRes();
-    await updatePointsRule(req as any, res as any);
+    await updatePointsRule(req as any, res as any, vi.fn());
     expect(pointsService.updatePointsRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("points.controller", () => {
     (pointsService.adjustCustomerPoints as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "1" }, body: { points: 100, type: "ADD", remark: "测试调整" } });
     const res = mockRes();
-    await adjustCustomerPoints(req as any, res as any);
+    await adjustCustomerPoints(req as any, res as any, vi.fn());
     expect(pointsService.adjustCustomerPoints).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("points.controller", () => {
     (pointsService.getCustomerPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ params: { id: "1" }, query: { page: 1, pageSize: 10, type: "ADD" } });
     const res = mockRes();
-    await getCustomerPointsRecords(req as any, res as any);
+    await getCustomerPointsRecords(req as any, res as any, vi.fn());
     expect(pointsService.getCustomerPointsRecords).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("points.controller", () => {
     (pointsService.listLevelConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listLevelConfigs(req as any, res as any);
+    await listLevelConfigs(req as any, res as any, vi.fn());
     expect(pointsService.listLevelConfigs).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -112,7 +112,7 @@ describe("points.controller", () => {
     (pointsService.createLevelConfig as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { levelName: "黄金会员", minPoints: 0, maxPoints: 1000, discountRate: 0.95, benefits: {} } });
     const res = mockRes();
-    await createLevelConfig(req as any, res as any);
+    await createLevelConfig(req as any, res as any, vi.fn());
     expect(pointsService.createLevelConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -121,7 +121,7 @@ describe("points.controller", () => {
     (pointsService.updateLevelConfig as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { levelName: "新名称", minPoints: 100, maxPoints: 2000, discountRate: 0.9, benefits: {} } });
     const res = mockRes();
-    await updateLevelConfig(req as any, res as any);
+    await updateLevelConfig(req as any, res as any, vi.fn());
     expect(pointsService.updateLevelConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe("points.controller", () => {
     (pointsService.getCustomerPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ params: { id: "1" }, query: {} });
     const res = mockRes();
-    await getCustomerPointsRecords(req as any, res as any);
+    await getCustomerPointsRecords(req as any, res as any, vi.fn());
     expect(pointsService.getCustomerPointsRecords).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20,
     }));
@@ -140,7 +140,7 @@ describe("points.controller", () => {
     (pointsService.getCustomerPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ params: { id: "1" }, query: { page: "1", pageSize: "10" } });
     const res = mockRes();
-    await getCustomerPointsRecords(req as any, res as any);
+    await getCustomerPointsRecords(req as any, res as any, vi.fn());
     expect(pointsService.getCustomerPointsRecords).toHaveBeenCalledWith(expect.objectContaining({
       type: undefined,
     }));

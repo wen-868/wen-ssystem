@@ -55,7 +55,7 @@ describe("error-log.controller", () => {
       },
     });
     const res = mockRes();
-    await reportFrontendError(req as any, res as any);
+    await reportFrontendError(req as any, res as any, vi.fn());
     expect(errorLogService.insertErrorLog).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith(null);
   });
@@ -64,7 +64,7 @@ describe("error-log.controller", () => {
     (errorLogService.insertErrorLog as any).mockResolvedValue(undefined);
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await reportFrontendError(req as any, res as any);
+    await reportFrontendError(req as any, res as any, vi.fn());
     expect(errorLogService.insertErrorLog).toHaveBeenCalledWith(
       expect.objectContaining({
         error_type: "frontend",
@@ -80,7 +80,7 @@ describe("error-log.controller", () => {
     (errorLogService.listErrorLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listErrorLogs(req as any, res as any);
+    await listErrorLogs(req as any, res as any, vi.fn());
     expect(errorLogService.listErrorLogs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("error-log.controller", () => {
       },
     });
     const res = mockRes();
-    await listErrorLogs(req as any, res as any);
+    await listErrorLogs(req as any, res as any, vi.fn());
     expect(errorLogService.listErrorLogs).toHaveBeenCalledWith(
       expect.objectContaining({
         error_type: "frontend",

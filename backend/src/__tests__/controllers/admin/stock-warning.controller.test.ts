@@ -48,7 +48,7 @@ describe("stock-warning.controller", () => {
     (stockWarningService.getStockWarnings as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getStockWarnings(req as any, res as any);
+    await getStockWarnings(req as any, res as any, vi.fn());
     expect(stockWarningService.getStockWarnings).toHaveBeenCalledWith("t1", undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -57,7 +57,7 @@ describe("stock-warning.controller", () => {
     (stockWarningService.getStockWarnings as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "1" } });
     const res = mockRes();
-    await getStockWarnings(req as any, res as any);
+    await getStockWarnings(req as any, res as any, vi.fn());
     expect(stockWarningService.getStockWarnings).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe("stock-warning.controller", () => {
     (stockWarningService.batchConfigStockWarning as any).mockResolvedValue({ success: true });
     const req = mockReq({ body: { storeId: 1, configs: [{ skuId: 1, minStock: 10, maxStock: 100 }] } });
     const res = mockRes();
-    await batchConfigStockWarning(req as any, res as any);
+    await batchConfigStockWarning(req as any, res as any, vi.fn());
     expect(stockWarningService.batchConfigStockWarning).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("stock-warning.controller", () => {
     (stockWarningService.getStockWarningConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getStockWarningConfigs(req as any, res as any);
+    await getStockWarningConfigs(req as any, res as any, vi.fn());
     expect(stockWarningService.getStockWarningConfigs).toHaveBeenCalledWith("t1", undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -84,7 +84,7 @@ describe("stock-warning.controller", () => {
     (stockWarningService.getStockWarningConfigs as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "2" } });
     const res = mockRes();
-    await getStockWarningConfigs(req as any, res as any);
+    await getStockWarningConfigs(req as any, res as any, vi.fn());
     expect(stockWarningService.getStockWarningConfigs).toHaveBeenCalledWith("t1", 2);
     expect(ok).toHaveBeenCalled();
   });

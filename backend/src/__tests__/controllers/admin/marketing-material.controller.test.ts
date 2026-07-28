@@ -82,7 +82,7 @@ describe("admin marketing-material.controller", () => {
       mocks.createMaterial.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createMaterial(req, res);
+      await createMaterial(req, res, vi.fn());
       expect(mocks.createMaterial).toHaveBeenCalledWith(
         expect.objectContaining({ name: "banner图", materialType: "IMAGE" }),
         "t1",
@@ -94,7 +94,7 @@ describe("admin marketing-material.controller", () => {
     it("createMaterial - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { name: "测试" } });
       const res = mockRes();
-      await expect(createMaterial(req, res)).rejects.toThrow();
+      await expect(createMaterial(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createMaterial).not.toHaveBeenCalled();
     });
 
@@ -102,7 +102,7 @@ describe("admin marketing-material.controller", () => {
       mocks.listMaterials.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { material_type: "IMAGE", category_id: "1", status: "PUBLISHED", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listMaterials(req, res);
+      await listMaterials(req, res, vi.fn());
       expect(mocks.listMaterials).toHaveBeenCalledWith(
         expect.objectContaining({ tenantId: "t1", material_type: "IMAGE", category_id: 1, status: "PUBLISHED", page: 1, pageSize: 10 })
       );
@@ -113,7 +113,7 @@ describe("admin marketing-material.controller", () => {
       mocks.listMaterials.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listMaterials(req, res);
+      await listMaterials(req, res, vi.fn());
       expect(mocks.listMaterials).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 20 })
       );
@@ -123,7 +123,7 @@ describe("admin marketing-material.controller", () => {
       mocks.getMaterialDetail.mockResolvedValue({ id: 1, name: "素材1" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getMaterialDetail(req, res);
+      await getMaterialDetail(req, res, vi.fn());
       expect(mocks.getMaterialDetail).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -133,7 +133,7 @@ describe("admin marketing-material.controller", () => {
       mocks.updateMaterial.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updateMaterial(req, res);
+      await updateMaterial(req, res, vi.fn());
       expect(mocks.updateMaterial).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ name: "新名称" }),
@@ -146,7 +146,7 @@ describe("admin marketing-material.controller", () => {
       mocks.deleteMaterial.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteMaterial(req, res);
+      await deleteMaterial(req, res, vi.fn());
       expect(mocks.deleteMaterial).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -155,7 +155,7 @@ describe("admin marketing-material.controller", () => {
       mocks.publishMaterial.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await publishMaterial(req, res);
+      await publishMaterial(req, res, vi.fn());
       expect(mocks.publishMaterial).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -164,7 +164,7 @@ describe("admin marketing-material.controller", () => {
       mocks.archiveMaterial.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await archiveMaterial(req, res);
+      await archiveMaterial(req, res, vi.fn());
       expect(mocks.archiveMaterial).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -175,7 +175,7 @@ describe("admin marketing-material.controller", () => {
       mocks.getMaterialCategories.mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await getMaterialCategories(req, res);
+      await getMaterialCategories(req, res, vi.fn());
       expect(mocks.getMaterialCategories).toHaveBeenCalledWith("t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -185,7 +185,7 @@ describe("admin marketing-material.controller", () => {
       mocks.createMaterialCategory.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createMaterialCategory(req, res);
+      await createMaterialCategory(req, res, vi.fn());
       expect(mocks.createMaterialCategory).toHaveBeenCalledWith(
         expect.objectContaining({ name: "海报素材" }),
         "t1"
@@ -196,7 +196,7 @@ describe("admin marketing-material.controller", () => {
     it("createMaterialCategory - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(createMaterialCategory(req, res)).rejects.toThrow();
+      await expect(createMaterialCategory(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createMaterialCategory).not.toHaveBeenCalled();
     });
 
@@ -205,7 +205,7 @@ describe("admin marketing-material.controller", () => {
       mocks.updateMaterialCategory.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updateMaterialCategory(req, res);
+      await updateMaterialCategory(req, res, vi.fn());
       expect(mocks.updateMaterialCategory).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ name: "新分类名" }),
@@ -218,7 +218,7 @@ describe("admin marketing-material.controller", () => {
       mocks.deleteMaterialCategory.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteMaterialCategory(req, res);
+      await deleteMaterialCategory(req, res, vi.fn());
       expect(mocks.deleteMaterialCategory).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });

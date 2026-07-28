@@ -80,7 +80,7 @@ describe("admin tag.controller", () => {
     mocks.listGroups.mockResolvedValue([{ id: 1, name: "组A" }]);
     const req = mockReq();
     const res = mockRes();
-    await listGroups(req, res);
+    await listGroups(req, res, vi.fn());
     expect(mocks.listGroups).toHaveBeenCalledWith("t1");
     expect(mocks.ok).toHaveBeenCalledWith([{ id: 1, name: "组A" }]);
   });
@@ -89,7 +89,7 @@ describe("admin tag.controller", () => {
     mocks.createGroup.mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { name: "组A", code: "GROUP_A" } });
     const res = mockRes();
-    await createGroup(req, res);
+    await createGroup(req, res, vi.fn());
     expect(mocks.createGroup).toHaveBeenCalledWith(expect.objectContaining({
       name: "组A", code: "GROUP_A", sortNo: 0, isMultiple: true,
     }), "t1");
@@ -99,7 +99,7 @@ describe("admin tag.controller", () => {
     mocks.createGroup.mockResolvedValue({ id: 2 });
     const req = mockReq({ body: { name: "组B", code: "GROUP_B", sortNo: 5, isMultiple: false } });
     const res = mockRes();
-    await createGroup(req, res);
+    await createGroup(req, res, vi.fn());
     expect(mocks.createGroup).toHaveBeenCalledWith(expect.objectContaining({
       sortNo: 5, isMultiple: false,
     }), "t1");
@@ -109,7 +109,7 @@ describe("admin tag.controller", () => {
     mocks.updateGroup.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "3" }, body: { name: "新名" } });
     const res = mockRes();
-    await updateGroup(req, res);
+    await updateGroup(req, res, vi.fn());
     expect(mocks.updateGroup).toHaveBeenCalledWith(3, expect.objectContaining({ name: "新名" }), "t1");
   });
 
@@ -117,7 +117,7 @@ describe("admin tag.controller", () => {
     mocks.deleteGroup.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "4" } });
     const res = mockRes();
-    await deleteGroup(req, res);
+    await deleteGroup(req, res, vi.fn());
     expect(mocks.deleteGroup).toHaveBeenCalledWith(4, "t1");
   });
 
@@ -125,7 +125,7 @@ describe("admin tag.controller", () => {
     mocks.listTags.mockResolvedValue([{ id: 1, name: "标签1" }]);
     const req = mockReq({ query: { groupId: "2" } });
     const res = mockRes();
-    await listTags(req, res);
+    await listTags(req, res, vi.fn());
     expect(mocks.listTags).toHaveBeenCalledWith(2, "t1");
   });
 
@@ -133,7 +133,7 @@ describe("admin tag.controller", () => {
     mocks.listTags.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listTags(req, res);
+    await listTags(req, res, vi.fn());
     expect(mocks.listTags).toHaveBeenCalledWith(undefined, "t1");
   });
 
@@ -141,7 +141,7 @@ describe("admin tag.controller", () => {
     mocks.createTag.mockResolvedValue({ id: 10 });
     const req = mockReq({ body: { groupId: 1, name: "标签A" } });
     const res = mockRes();
-    await createTag(req, res);
+    await createTag(req, res, vi.fn());
     expect(mocks.createTag).toHaveBeenCalledWith(expect.objectContaining({
       groupId: 1, name: "标签A", sortNo: 0,
     }), "t1");
@@ -151,7 +151,7 @@ describe("admin tag.controller", () => {
     mocks.deleteTag.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "7" } });
     const res = mockRes();
-    await deleteTag(req, res);
+    await deleteTag(req, res, vi.fn());
     expect(mocks.deleteTag).toHaveBeenCalledWith(7, "t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { success: true } });
   });
@@ -160,7 +160,7 @@ describe("admin tag.controller", () => {
     mocks.getProductTags.mockResolvedValue([{ id: 1, name: "标签" }]);
     const req = mockReq({ params: { spuId: "100" } });
     const res = mockRes();
-    await getProductTags(req, res);
+    await getProductTags(req, res, vi.fn());
     expect(mocks.getProductTags).toHaveBeenCalledWith(100, "t1");
     expect(mocks.ok).toHaveBeenCalledWith([{ id: 1, name: "标签" }]);
   });
@@ -169,7 +169,7 @@ describe("admin tag.controller", () => {
     mocks.setProductTags.mockResolvedValue({ success: true });
     const req = mockReq({ params: { spuId: "100" }, body: { tagIds: [1, 2, 3] } });
     const res = mockRes();
-    await setProductTags(req, res);
+    await setProductTags(req, res, vi.fn());
     expect(mocks.setProductTags).toHaveBeenCalledWith(100, [1, 2, 3], "t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { success: true } });
   });

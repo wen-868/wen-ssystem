@@ -51,7 +51,7 @@ describe("inventory.controller", () => {
     (inventoryService.listInventory as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listInventory(req as any, res as any);
+    await listInventory(req as any, res as any, vi.fn());
     expect(inventoryService.listInventory).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -63,7 +63,7 @@ describe("inventory.controller", () => {
       user: { id: 1, username: "admin", storeId: 1 },
     });
     const res = mockRes();
-    await listInventory(req as any, res as any);
+    await listInventory(req as any, res as any, vi.fn());
     expect(inventoryService.listInventory).toHaveBeenCalledWith(
       expect.objectContaining({
         keyword: "test",
@@ -80,7 +80,7 @@ describe("inventory.controller", () => {
       body: { skuId: 1, change: 10 },
     });
     const res = mockRes();
-    await adjustInventory(req as any, res as any);
+    await adjustInventory(req as any, res as any, vi.fn());
     expect(inventoryService.adjustInventory).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("inventory.controller", () => {
   it("adjustInventory - Zod验证失败应抛出错误", async () => {
     const req = mockReq({ body: { skuId: "invalid", change: "invalid" } });
     const res = mockRes();
-    await expect(adjustInventory(req as any, res as any)).rejects.toThrow();
+    await expect(adjustInventory(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(inventoryService.adjustInventory).not.toHaveBeenCalled();
   });
 
@@ -98,7 +98,7 @@ describe("inventory.controller", () => {
       body: { skuId: 1, change: 10 },
     });
     const res = mockRes();
-    await adjustInventory(req as any, res as any);
+    await adjustInventory(req as any, res as any, vi.fn());
     expect(inventoryService.adjustInventory).toHaveBeenCalledWith(
       expect.objectContaining({
         stockType: "OFFLINE",
@@ -110,7 +110,7 @@ describe("inventory.controller", () => {
     (inventoryService.listInventoryLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listInventoryLogs(req as any, res as any);
+    await listInventoryLogs(req as any, res as any, vi.fn());
     expect(inventoryService.listInventoryLogs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe("inventory.controller", () => {
     (inventoryService.listInventoryAlerts as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listInventoryAlerts(req as any, res as any);
+    await listInventoryAlerts(req as any, res as any, vi.fn());
     expect(inventoryService.listInventoryAlerts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -128,7 +128,7 @@ describe("inventory.controller", () => {
     (inventoryService.listInventoryAlerts as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: 2 } });
     const res = mockRes();
-    await listInventoryAlerts(req as any, res as any);
+    await listInventoryAlerts(req as any, res as any, vi.fn());
     expect(inventoryService.listInventoryAlerts).toHaveBeenCalledWith(2, "t1");
   });
 });

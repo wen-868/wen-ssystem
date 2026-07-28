@@ -49,7 +49,7 @@ describe("transfer-execution.controller", () => {
     (transferExecutionService.cancelTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await cancelTransferOrder(req as any, res as any);
+    await cancelTransferOrder(req as any, res as any, vi.fn());
     expect(transferExecutionService.cancelTransferOrder).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -58,7 +58,7 @@ describe("transfer-execution.controller", () => {
     (transferExecutionService.shipTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await shipTransferOrder(req as any, res as any);
+    await shipTransferOrder(req as any, res as any, vi.fn());
     expect(transferExecutionService.shipTransferOrder).toHaveBeenCalledWith(1, "t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -67,7 +67,7 @@ describe("transfer-execution.controller", () => {
     (transferExecutionService.shipTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, user: { username: "admin" } });
     const res = mockRes();
-    await shipTransferOrder(req as any, res as any);
+    await shipTransferOrder(req as any, res as any, vi.fn());
     expect(transferExecutionService.shipTransferOrder).toHaveBeenCalledWith(1, "t1", null);
   });
 });

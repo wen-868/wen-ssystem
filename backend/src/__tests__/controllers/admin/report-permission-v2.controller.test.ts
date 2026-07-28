@@ -79,7 +79,7 @@ describe("admin report-permission-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getPermissionMatrix(req, res);
+      await getPermissionMatrix(req, res, vi.fn());
       expect(mocks.getPermissionMatrix).toHaveBeenCalledWith("t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -92,7 +92,7 @@ describe("admin report-permission-v2.controller", () => {
       ];
       const req = mockReq({ body: { permissions, operatorName: "管理员" } });
       const res = mockRes();
-      await updatePermissionMatrix(req, res);
+      await updatePermissionMatrix(req, res, vi.fn());
       expect(mocks.savePermissionMatrix).toHaveBeenCalledWith("t1", permissions, {
         operatorId: 1,
         operatorName: "管理员",
@@ -102,7 +102,7 @@ describe("admin report-permission-v2.controller", () => {
     it("permissions 为 undefined 时传空数组", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await updatePermissionMatrix(req, res);
+      await updatePermissionMatrix(req, res, vi.fn());
       expect(mocks.savePermissionMatrix).toHaveBeenCalledWith("t1", [], {
         operatorId: 1,
         operatorName: undefined,
@@ -114,7 +114,7 @@ describe("admin report-permission-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getDataScopeConfig(req, res);
+      await getDataScopeConfig(req, res, vi.fn());
       expect(mocks.getDataScopeConfig).toHaveBeenCalledWith("t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -125,7 +125,7 @@ describe("admin report-permission-v2.controller", () => {
       const configs = [{ roleId: 1, storeScope: "ALL", storeIds: [1, 2] }];
       const req = mockReq({ body: { configs, operatorName: "管理员" } });
       const res = mockRes();
-      await updateDataScopeConfig(req, res);
+      await updateDataScopeConfig(req, res, vi.fn());
       expect(mocks.updateDataScopeConfig).toHaveBeenCalledWith("t1", configs, {
         operatorId: 1,
         operatorName: "管理员",
@@ -135,7 +135,7 @@ describe("admin report-permission-v2.controller", () => {
     it("configs 为 undefined 时传空数组", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await updateDataScopeConfig(req, res);
+      await updateDataScopeConfig(req, res, vi.fn());
       expect(mocks.updateDataScopeConfig).toHaveBeenCalledWith("t1", [], {
         operatorId: 1,
         operatorName: undefined,
@@ -147,7 +147,7 @@ describe("admin report-permission-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq({ params: { userId: "2" } });
       const res = mockRes();
-      await getUserPermissions(req, res);
+      await getUserPermissions(req, res, vi.fn());
       expect(mocks.getUserPermissions).toHaveBeenCalledWith(2, "t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -161,7 +161,7 @@ describe("admin report-permission-v2.controller", () => {
         body: { permissions, operatorName: "管理员" },
       });
       const res = mockRes();
-      await assignUserPermissions(req, res);
+      await assignUserPermissions(req, res, vi.fn());
       expect(mocks.assignUserPermissions).toHaveBeenCalledWith(2, "t1", permissions, {
         operatorId: 1,
         operatorName: "管理员",
@@ -171,7 +171,7 @@ describe("admin report-permission-v2.controller", () => {
     it("permissions 为 undefined 时传空数组", async () => {
       const req = mockReq({ params: { userId: "2" }, body: {} });
       const res = mockRes();
-      await assignUserPermissions(req, res);
+      await assignUserPermissions(req, res, vi.fn());
       expect(mocks.assignUserPermissions).toHaveBeenCalledWith(2, "t1", [], {
         operatorId: 1,
         operatorName: undefined,
@@ -183,7 +183,7 @@ describe("admin report-permission-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getMyPermissions(req, res);
+      await getMyPermissions(req, res, vi.fn());
       expect(mocks.getMyPermissions).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -193,7 +193,7 @@ describe("admin report-permission-v2.controller", () => {
     it("默认分页参数", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getAuditLogs(req, res);
+      await getAuditLogs(req, res, vi.fn());
       expect(mocks.getAuditLogs).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -219,7 +219,7 @@ describe("admin report-permission-v2.controller", () => {
         },
       });
       const res = mockRes();
-      await getAuditLogs(req, res);
+      await getAuditLogs(req, res, vi.fn());
       const arg = mocks.getAuditLogs.mock.calls[0][0];
       expect(arg.page).toBe(2);
       expect(arg.pageSize).toBe(10);

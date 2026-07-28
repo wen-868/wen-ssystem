@@ -47,7 +47,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerStatementService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -56,7 +56,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerStatementService.list).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, customerId: undefined,
     }));
@@ -66,7 +66,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { customer_id: "5" } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(customerStatementService.list).toHaveBeenCalledWith(expect.objectContaining({
       customerId: 5,
     }));
@@ -76,7 +76,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.getDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { statementNo: "STMT001" } });
     const res = mockRes();
-    await getDetail(req as any, res as any);
+    await getDetail(req as any, res as any, vi.fn());
     expect(customerStatementService.getDetail).toHaveBeenCalledWith("STMT001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.create as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { customerId: 1, startDate: "2024-01-01" } });
     const res = mockRes();
-    await create(req as any, res as any);
+    await create(req as any, res as any, vi.fn());
     expect(customerStatementService.create).toHaveBeenCalledWith(req.body, "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.confirm as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { statementNo: "STMT001" } });
     const res = mockRes();
-    await confirm(req as any, res as any);
+    await confirm(req as any, res as any, vi.fn());
     expect(customerStatementService.confirm).toHaveBeenCalledWith("STMT001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("customer-statement.controller", () => {
     (customerStatementService.markPaid as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { statementNo: "STMT001" } });
     const res = mockRes();
-    await markPaid(req as any, res as any);
+    await markPaid(req as any, res as any, vi.fn());
     expect(customerStatementService.markPaid).toHaveBeenCalledWith("STMT001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });

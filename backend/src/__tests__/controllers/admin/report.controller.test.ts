@@ -88,7 +88,7 @@ describe("report.controller", () => {
     (reportService.getDashboard as any).mockResolvedValue({});
     const req = mockReq({});
     const res = mockRes();
-    await getDashboard(req as any, res as any);
+    await getDashboard(req as any, res as any, vi.fn());
     expect(reportService.getDashboard).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -97,7 +97,7 @@ describe("report.controller", () => {
     (reportService.getDailySalesTrend as any).mockResolvedValue([]);
     const req = mockReq({});
     const res = mockRes();
-    await getDailySalesTrend(req as any, res as any);
+    await getDailySalesTrend(req as any, res as any, vi.fn());
     expect(reportService.getDailySalesTrend).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -106,7 +106,7 @@ describe("report.controller", () => {
     (reportService.getStoreSalesPerformance as any).mockResolvedValue([]);
     const req = mockReq({});
     const res = mockRes();
-    await getStoreSalesPerformance(req as any, res as any);
+    await getStoreSalesPerformance(req as any, res as any, vi.fn());
     expect(reportService.getStoreSalesPerformance).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("report.controller", () => {
     (reportService.getInventoryAlerts as any).mockResolvedValue([]);
     const req = mockReq({});
     const res = mockRes();
-    await getInventoryAlerts(req as any, res as any);
+    await getInventoryAlerts(req as any, res as any, vi.fn());
     expect(reportService.getInventoryAlerts).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -124,7 +124,7 @@ describe("report.controller", () => {
     (reportService.listInventoryBalance as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listInventoryBalance(req as any, res as any);
+    await listInventoryBalance(req as any, res as any, vi.fn());
     expect(reportService.listInventoryBalance).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -133,7 +133,7 @@ describe("report.controller", () => {
     (reportService.listInventoryLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listInventoryLogs(req as any, res as any);
+    await listInventoryLogs(req as any, res as any, vi.fn());
     expect(reportService.listInventoryLogs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -142,7 +142,7 @@ describe("report.controller", () => {
     (reportService.listCollectionLinks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listCollectionLinks(req as any, res as any);
+    await listCollectionLinks(req as any, res as any, vi.fn());
     expect(reportService.listCollectionLinks).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -151,7 +151,7 @@ describe("report.controller", () => {
     (reportService.listPaymentOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPaymentOrders(req as any, res as any);
+    await listPaymentOrders(req as any, res as any, vi.fn());
     expect(reportService.listPaymentOrders).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -160,7 +160,7 @@ describe("report.controller", () => {
     (reportService.listRefundOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listRefundOrders(req as any, res as any);
+    await listRefundOrders(req as any, res as any, vi.fn());
     expect(reportService.listRefundOrders).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -169,7 +169,7 @@ describe("report.controller", () => {
     (reportService.getCollectionLinkStats as any).mockResolvedValue({});
     const req = mockReq({});
     const res = mockRes();
-    await getCollectionLinkStats(req as any, res as any);
+    await getCollectionLinkStats(req as any, res as any, vi.fn());
     expect(reportService.getCollectionLinkStats).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -178,7 +178,7 @@ describe("report.controller", () => {
     (reportService.revokeCollectionLink as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { linkNo: "CL20240101001" } });
     const res = mockRes();
-    await revokeCollectionLink(req as any, res as any);
+    await revokeCollectionLink(req as any, res as any, vi.fn());
     expect(reportService.revokeCollectionLink).toHaveBeenCalledWith("CL20240101001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -190,14 +190,14 @@ describe("report.controller", () => {
       body: { billNos: ["SB001", "SB002"] },
     });
     const res = mockRes();
-    await batchCreateCollectionLinks(req as any, res as any);
+    await batchCreateCollectionLinks(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
   it("batchCreateCollectionLinks - Zod验证失败应抛出错误", async () => {
     const req = mockReq({ body: { billNos: [] } });
     const res = mockRes();
-    await expect(batchCreateCollectionLinks(req as any, res as any)).rejects.toThrow();
+    await expect(batchCreateCollectionLinks(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("batchCreateCollectionLinks - 应使用默认expireHours", async () => {
@@ -207,7 +207,7 @@ describe("report.controller", () => {
       body: { billNos: ["SB001"] },
     });
     const res = mockRes();
-    await batchCreateCollectionLinks(req as any, res as any);
+    await batchCreateCollectionLinks(req as any, res as any, vi.fn());
     expect(saleBillService.batchCreateCollectionLinks).toHaveBeenCalledWith(
       expect.objectContaining({ expireHours: 72 })
     );
@@ -217,7 +217,7 @@ describe("report.controller", () => {
     (reportService.getSalesRanking as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getSalesRanking(req as any, res as any);
+    await getSalesRanking(req as any, res as any, vi.fn());
     expect(reportService.getSalesRanking).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -226,7 +226,7 @@ describe("report.controller", () => {
     (reportService.getProductRanking as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getProductRanking(req as any, res as any);
+    await getProductRanking(req as any, res as any, vi.fn());
     expect(reportService.getProductRanking).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -235,7 +235,7 @@ describe("report.controller", () => {
     (reportService.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { groupBy: "week", startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(reportService.getSalesTrend).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -244,7 +244,7 @@ describe("report.controller", () => {
     (reportService.getPurchaseSummary as any).mockResolvedValue({});
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getPurchaseSummary(req as any, res as any);
+    await getPurchaseSummary(req as any, res as any, vi.fn());
     expect(reportService.getPurchaseSummary).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -253,7 +253,7 @@ describe("report.controller", () => {
     (reportService.getPurchaseTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { groupBy: "day", startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getPurchaseTrend(req as any, res as any);
+    await getPurchaseTrend(req as any, res as any, vi.fn());
     expect(reportService.getPurchaseTrend).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -262,7 +262,7 @@ describe("report.controller", () => {
     (reportService.getSupplierRanking as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getSupplierRanking(req as any, res as any);
+    await getSupplierRanking(req as any, res as any, vi.fn());
     expect(reportService.getSupplierRanking).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -271,7 +271,7 @@ describe("report.controller", () => {
     (reportService.getInventoryTurnover as any).mockResolvedValue({});
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getInventoryTurnover(req as any, res as any);
+    await getInventoryTurnover(req as any, res as any, vi.fn());
     expect(reportService.getInventoryTurnover).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -280,7 +280,7 @@ describe("report.controller", () => {
     (reportService.getInventoryAge as any).mockResolvedValue({});
     const req = mockReq({ query: { storeId: 1 } });
     const res = mockRes();
-    await getInventoryAge(req as any, res as any);
+    await getInventoryAge(req as any, res as any, vi.fn());
     expect(reportService.getInventoryAge).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -289,7 +289,7 @@ describe("report.controller", () => {
     (reportService.getInventoryABC as any).mockResolvedValue({});
     const req = mockReq({});
     const res = mockRes();
-    await getInventoryABC(req as any, res as any);
+    await getInventoryABC(req as any, res as any, vi.fn());
     expect(reportService.getInventoryABC).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -298,7 +298,7 @@ describe("report.controller", () => {
     (reportService.listInventoryBalance as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listInventoryBalance(req as any, res as any);
+    await listInventoryBalance(req as any, res as any, vi.fn());
     expect(reportService.listInventoryBalance).toHaveBeenCalledWith("t1", 1, 20, "", undefined, undefined);
   });
 
@@ -306,7 +306,7 @@ describe("report.controller", () => {
     (reportService.listInventoryBalance as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { storeId: "5", category: "3" } });
     const res = mockRes();
-    await listInventoryBalance(req as any, res as any);
+    await listInventoryBalance(req as any, res as any, vi.fn());
     expect(reportService.listInventoryBalance).toHaveBeenCalledWith("t1", 1, 20, "", 5, 3);
   });
 
@@ -314,7 +314,7 @@ describe("report.controller", () => {
     (reportService.listInventoryLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listInventoryLogs(req as any, res as any);
+    await listInventoryLogs(req as any, res as any, vi.fn());
     expect(reportService.listInventoryLogs).toHaveBeenCalledWith("t1", 1, 20);
   });
 
@@ -322,7 +322,7 @@ describe("report.controller", () => {
     (reportService.listCollectionLinks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listCollectionLinks(req as any, res as any);
+    await listCollectionLinks(req as any, res as any, vi.fn());
     expect(reportService.listCollectionLinks).toHaveBeenCalledWith("t1", 1, 20);
   });
 
@@ -330,7 +330,7 @@ describe("report.controller", () => {
     (reportService.listPaymentOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listPaymentOrders(req as any, res as any);
+    await listPaymentOrders(req as any, res as any, vi.fn());
     expect(reportService.listPaymentOrders).toHaveBeenCalledWith("t1", 1, 20);
   });
 
@@ -338,7 +338,7 @@ describe("report.controller", () => {
     (reportService.listRefundOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listRefundOrders(req as any, res as any);
+    await listRefundOrders(req as any, res as any, vi.fn());
     expect(reportService.listRefundOrders).toHaveBeenCalledWith("t1", 1, 20);
   });
 
@@ -346,7 +346,7 @@ describe("report.controller", () => {
     (reportService.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(reportService.getSalesTrend).toHaveBeenCalledWith("t1", "day", undefined, undefined);
   });
 
@@ -354,7 +354,7 @@ describe("report.controller", () => {
     (reportService.getInventoryAge as any).mockResolvedValue({});
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getInventoryAge(req as any, res as any);
+    await getInventoryAge(req as any, res as any, vi.fn());
     expect(reportService.getInventoryAge).toHaveBeenCalledWith("t1", undefined);
   });
 
@@ -365,7 +365,7 @@ describe("report.controller", () => {
       body: { billNos: ["SB001"] },
     });
     const res = mockRes();
-    await batchCreateCollectionLinks(req as any, res as any);
+    await batchCreateCollectionLinks(req as any, res as any, vi.fn());
     expect(saleBillService.batchCreateCollectionLinks).toHaveBeenCalledWith(
       expect.objectContaining({ shareChannel: "", taxEnabled: false, taxRate: 0 })
     );

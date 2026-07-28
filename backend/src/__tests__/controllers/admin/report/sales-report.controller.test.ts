@@ -50,7 +50,7 @@ describe("report/sales-report.controller", () => {
     (salesReportService.getSalesDaily as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getSalesDaily(req as any, res as any);
+    await getSalesDaily(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesDaily).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -66,7 +66,7 @@ describe("report/sales-report.controller", () => {
       query: { dateStart: "2026-01-01", dateEnd: "2026-12-31", storeId: "2" },
     });
     const res = mockRes();
-    await getSalesDaily(req as any, res as any);
+    await getSalesDaily(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesDaily).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",
@@ -80,7 +80,7 @@ describe("report/sales-report.controller", () => {
     (salesReportService.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesTrend).toHaveBeenCalledWith("t1", "month");
     expect(ok).toHaveBeenCalled();
   });
@@ -89,7 +89,7 @@ describe("report/sales-report.controller", () => {
     (salesReportService.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { granularity: "day" } });
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesTrend).toHaveBeenCalledWith("t1", "day");
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("report/sales-report.controller", () => {
     (salesReportService.getSalesRanking as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getSalesRanking(req as any, res as any);
+    await getSalesRanking(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesRanking).toHaveBeenCalledWith(
       "t1",
       "product",
@@ -120,7 +120,7 @@ describe("report/sales-report.controller", () => {
       },
     });
     const res = mockRes();
-    await getSalesRanking(req as any, res as any);
+    await getSalesRanking(req as any, res as any, vi.fn());
     expect(salesReportService.getSalesRanking).toHaveBeenCalledWith(
       "t1",
       "customer",
@@ -135,7 +135,7 @@ describe("report/sales-report.controller", () => {
     (salesReportService.getBusinessOverview as any).mockResolvedValue({ salesAmount: 10000 });
     const req = mockReq();
     const res = mockRes();
-    await getBusinessOverview(req as any, res as any);
+    await getBusinessOverview(req as any, res as any, vi.fn());
     expect(salesReportService.getBusinessOverview).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });

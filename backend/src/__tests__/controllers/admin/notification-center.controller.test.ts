@@ -69,7 +69,7 @@ describe("admin notification-center.controller", () => {
     mocks.listNotifications.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listNotifications(req, res);
+    await listNotifications(req, res, vi.fn());
     expect(mocks.listNotifications).toHaveBeenCalledWith("t1", 1, 20, undefined, undefined);
   });
 
@@ -77,7 +77,7 @@ describe("admin notification-center.controller", () => {
     mocks.listNotifications.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { type: "ORDER", isRead: "0", page: "2", pageSize: "10" } });
     const res = mockRes();
-    await listNotifications(req, res);
+    await listNotifications(req, res, vi.fn());
     expect(mocks.listNotifications).toHaveBeenCalledWith("t1", 2, 10, "ORDER", 0);
   });
 
@@ -85,7 +85,7 @@ describe("admin notification-center.controller", () => {
     mocks.listNotifications.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { isRead: "" } });
     const res = mockRes();
-    await listNotifications(req, res);
+    await listNotifications(req, res, vi.fn());
     expect(mocks.listNotifications).toHaveBeenCalledWith("t1", 1, 20, undefined, undefined);
   });
 
@@ -93,7 +93,7 @@ describe("admin notification-center.controller", () => {
     mocks.getUnreadCount.mockResolvedValue({ count: 5 });
     const req = mockReq();
     const res = mockRes();
-    await getUnreadCount(req, res);
+    await getUnreadCount(req, res, vi.fn());
     expect(mocks.getUnreadCount).toHaveBeenCalledWith("t1");
     expect(mocks.ok).toHaveBeenCalledWith({ count: 5 });
   });
@@ -102,7 +102,7 @@ describe("admin notification-center.controller", () => {
     mocks.getTypeStats.mockResolvedValue([{ type: "ORDER", count: 3 }]);
     const req = mockReq();
     const res = mockRes();
-    await getTypeStats(req, res);
+    await getTypeStats(req, res, vi.fn());
     expect(mocks.getTypeStats).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [{ type: "ORDER", count: 3 }] });
   });
@@ -111,7 +111,7 @@ describe("admin notification-center.controller", () => {
     mocks.markAsRead.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "5" } });
     const res = mockRes();
-    await markAsRead(req, res);
+    await markAsRead(req, res, vi.fn());
     expect(mocks.markAsRead).toHaveBeenCalledWith("t1", 5);
     expect(mocks.ok).toHaveBeenCalledWith({ success: true });
   });
@@ -120,7 +120,7 @@ describe("admin notification-center.controller", () => {
     mocks.markAllRead.mockResolvedValue({ updated: 10 });
     const req = mockReq();
     const res = mockRes();
-    await markAllRead(req, res);
+    await markAllRead(req, res, vi.fn());
     expect(mocks.markAllRead).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { updated: 10 } });
   });
@@ -129,7 +129,7 @@ describe("admin notification-center.controller", () => {
     mocks.deleteNotification.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "8" } });
     const res = mockRes();
-    await deleteNotification(req, res);
+    await deleteNotification(req, res, vi.fn());
     expect(mocks.deleteNotification).toHaveBeenCalledWith("t1", 8);
   });
 
@@ -137,7 +137,7 @@ describe("admin notification-center.controller", () => {
     mocks.listNotifications.mockResolvedValue({ list: [{ id: 1 }], total: 1 });
     const req = mockReq();
     const res = mockRes();
-    await listNotifications(req, res);
+    await listNotifications(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { list: [{ id: 1 }], total: 1 } });
   });
 });

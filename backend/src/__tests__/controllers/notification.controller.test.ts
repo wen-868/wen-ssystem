@@ -70,7 +70,7 @@ describe("notification.controller", () => {
       (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await list(req as any, res as any);
+      await list(req as any, res as any, vi.fn());
       expect(notificationService.listNotifications).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -79,7 +79,7 @@ describe("notification.controller", () => {
       (notificationService.getUnreadCount as any).mockResolvedValue({ count: 0 });
       const req = mockReq();
       const res = mockRes();
-      await unreadCount(req as any, res as any);
+      await unreadCount(req as any, res as any, vi.fn());
       expect(notificationService.getUnreadCount).toHaveBeenCalledWith("t1", 1);
       expect(ok).toHaveBeenCalled();
     });
@@ -88,7 +88,7 @@ describe("notification.controller", () => {
       (notificationService.markAsRead as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await markRead(req as any, res as any);
+      await markRead(req as any, res as any, vi.fn());
       expect(notificationService.markAsRead).toHaveBeenCalledWith("t1", 1);
       expect(ok).toHaveBeenCalled();
     });
@@ -97,7 +97,7 @@ describe("notification.controller", () => {
       (notificationService.markAllRead as any).mockResolvedValue({ success: true });
       const req = mockReq();
       const res = mockRes();
-      await markAllRead(req as any, res as any);
+      await markAllRead(req as any, res as any, vi.fn());
       expect(notificationService.markAllRead).toHaveBeenCalledWith("t1", 1);
       expect(ok).toHaveBeenCalled();
     });
@@ -112,7 +112,7 @@ describe("notification.controller", () => {
         },
       });
       const res = mockRes();
-      await send(req as any, res as any);
+      await send(req as any, res as any, vi.fn());
       expect(notificationService.sendNotification).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -120,7 +120,7 @@ describe("notification.controller", () => {
     it("send - zod验证失败", async () => {
       const req = mockReq({ body: { recipientId: "invalid", title: "" } });
       const res = mockRes();
-      await expect(send(req as any, res as any)).rejects.toThrow();
+      await expect(send(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -129,7 +129,7 @@ describe("notification.controller", () => {
       (notificationService.listMyNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq();
       const res = mockRes();
-      await myList(req as any, res as any);
+      await myList(req as any, res as any, vi.fn());
       expect(notificationService.listMyNotifications).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -137,7 +137,7 @@ describe("notification.controller", () => {
     it("myList - 未登录应返回401", async () => {
       const req = mockReq({ user: {} });
       const res = mockRes();
-      await myList(req as any, res as any);
+      await myList(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(401);
       expect(fail).toHaveBeenCalled();
     });
@@ -146,7 +146,7 @@ describe("notification.controller", () => {
       (notificationService.getMyUnreadCount as any).mockResolvedValue({ count: 0 });
       const req = mockReq();
       const res = mockRes();
-      await myUnreadCount(req as any, res as any);
+      await myUnreadCount(req as any, res as any, vi.fn());
       expect(notificationService.getMyUnreadCount).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -155,7 +155,7 @@ describe("notification.controller", () => {
       (notificationService.markMyRead as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await myMarkRead(req as any, res as any);
+      await myMarkRead(req as any, res as any, vi.fn());
       expect(notificationService.markMyRead).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -164,7 +164,7 @@ describe("notification.controller", () => {
       (notificationService.markMyAllRead as any).mockResolvedValue({ success: true });
       const req = mockReq();
       const res = mockRes();
-      await myMarkAllRead(req as any, res as any);
+      await myMarkAllRead(req as any, res as any, vi.fn());
       expect(notificationService.markMyAllRead).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -187,7 +187,7 @@ describe("notification.controller", () => {
       (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await list(req as any, res as any);
+      await list(req as any, res as any, vi.fn());
       expect(notificationService.listNotifications).toHaveBeenCalled();
     });
 
@@ -195,7 +195,7 @@ describe("notification.controller", () => {
       (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { isRead: "1" } });
       const res = mockRes();
-      await list(req as any, res as any);
+      await list(req as any, res as any, vi.fn());
       expect(notificationService.listNotifications).toHaveBeenCalledWith("t1", expect.objectContaining({ isRead: 1 }), 1, 20);
     });
 
@@ -203,7 +203,7 @@ describe("notification.controller", () => {
       (notificationService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { isRead: "" } });
       const res = mockRes();
-      await list(req as any, res as any);
+      await list(req as any, res as any, vi.fn());
       expect(notificationService.listNotifications).toHaveBeenCalledWith("t1", expect.objectContaining({ isRead: undefined }), 1, 20);
     });
 
@@ -213,7 +213,7 @@ describe("notification.controller", () => {
         body: { recipientId: 1, title: "测试", content: "内容", relatedId: 10, relatedType: "ORDER" },
       });
       const res = mockRes();
-      await send(req as any, res as any);
+      await send(req as any, res as any, vi.fn());
       expect(notificationService.sendNotification).toHaveBeenCalledWith(expect.objectContaining({
         relatedId: 10, relatedType: "ORDER"
       }));
@@ -222,7 +222,7 @@ describe("notification.controller", () => {
     it("myUnreadCount - 未登录应返回401", async () => {
       const req = mockReq({ user: {} });
       const res = mockRes();
-      await myUnreadCount(req as any, res as any);
+      await myUnreadCount(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(401);
       expect(fail).toHaveBeenCalled();
     });
@@ -230,7 +230,7 @@ describe("notification.controller", () => {
     it("myMarkAllRead - 未登录应返回401", async () => {
       const req = mockReq({ user: {} });
       const res = mockRes();
-      await myMarkAllRead(req as any, res as any);
+      await myMarkAllRead(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(401);
       expect(fail).toHaveBeenCalled();
     });
@@ -239,7 +239,7 @@ describe("notification.controller", () => {
       (notificationService.listMyNotifications as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await myList(req as any, res as any);
+      await myList(req as any, res as any, vi.fn());
       expect(notificationService.listMyNotifications).toHaveBeenCalledWith("t1", 1, 1, 20);
     });
   });

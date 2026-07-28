@@ -63,7 +63,7 @@ describe("data-permission.controller", () => {
     (service.listDataPermissions as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listDataPermissions(req as any, res as any);
+    await listDataPermissions(req as any, res as any, vi.fn());
     expect(service.listDataPermissions).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -72,7 +72,7 @@ describe("data-permission.controller", () => {
     (service.getDataPermissionDetail as any).mockResolvedValue({ id: 1, permissionName: "全部数据" });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getDataPermissionDetail(req as any, res as any);
+    await getDataPermissionDetail(req as any, res as any, vi.fn());
     expect(service.getDataPermissionDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -87,7 +87,7 @@ describe("data-permission.controller", () => {
       },
     });
     const res = mockRes();
-    await createDataPermission(req as any, res as any);
+    await createDataPermission(req as any, res as any, vi.fn());
     expect(service.createDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -95,14 +95,14 @@ describe("data-permission.controller", () => {
   it("createDataPermission - zod验证失败", async () => {
     const req = mockReq({ body: { permissionName: "", permissionCode: "" } });
     const res = mockRes();
-    await expect(createDataPermission(req as any, res as any)).rejects.toThrow();
+    await expect(createDataPermission(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("updateDataPermission - 应更新数据权限", async () => {
     (service.updateDataPermission as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 }, body: { permissionName: "新名称" } });
     const res = mockRes();
-    await updateDataPermission(req as any, res as any);
+    await updateDataPermission(req as any, res as any, vi.fn());
     expect(service.updateDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -111,7 +111,7 @@ describe("data-permission.controller", () => {
     (service.deleteDataPermission as any).mockResolvedValue({ deleted: true });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteDataPermission(req as any, res as any);
+    await deleteDataPermission(req as any, res as any, vi.fn());
     expect(service.deleteDataPermission).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("data-permission.controller", () => {
     (service.getRoleDataPermissions as any).mockResolvedValue([]);
     const req = mockReq({ params: { roleId: 1 } });
     const res = mockRes();
-    await getRoleDataPermissions(req as any, res as any);
+    await getRoleDataPermissions(req as any, res as any, vi.fn());
     expect(service.getRoleDataPermissions).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -129,7 +129,7 @@ describe("data-permission.controller", () => {
     (service.assignRoleDataPermission as any).mockResolvedValue([]);
     const req = mockReq({ params: { roleId: 1 }, body: { dataPermissionId: 1, scopeValues: [1, 2, 3] } });
     const res = mockRes();
-    await assignRoleDataPermission(req as any, res as any);
+    await assignRoleDataPermission(req as any, res as any, vi.fn());
     expect(service.assignRoleDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -138,7 +138,7 @@ describe("data-permission.controller", () => {
     (service.assignRoleDataPermission as any).mockResolvedValue([]);
     const req = mockReq({ params: { roleId: 1 }, body: { dataPermissionId: 1 } });
     const res = mockRes();
-    await assignRoleDataPermission(req as any, res as any);
+    await assignRoleDataPermission(req as any, res as any, vi.fn());
     expect(service.assignRoleDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -147,7 +147,7 @@ describe("data-permission.controller", () => {
     (service.removeRoleDataPermission as any).mockResolvedValue([]);
     const req = mockReq({ params: { roleId: 1, dataPermissionId: 1 } });
     const res = mockRes();
-    await removeRoleDataPermission(req as any, res as any);
+    await removeRoleDataPermission(req as any, res as any, vi.fn());
     expect(service.removeRoleDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -156,7 +156,7 @@ describe("data-permission.controller", () => {
     (service.getUserDataPermissions as any).mockResolvedValue([]);
     const req = mockReq({ params: { userId: 1 } });
     const res = mockRes();
-    await getUserDataPermissions(req as any, res as any);
+    await getUserDataPermissions(req as any, res as any, vi.fn());
     expect(service.getUserDataPermissions).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -165,7 +165,7 @@ describe("data-permission.controller", () => {
     (service.checkDataPermission as any).mockResolvedValue(true);
     const req = mockReq({ params: { userId: 1 }, body: { dataType: "STORE", targetId: 1 } });
     const res = mockRes();
-    await checkDataPermission(req as any, res as any);
+    await checkDataPermission(req as any, res as any, vi.fn());
     expect(service.checkDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe("data-permission.controller", () => {
     (service.checkDataPermission as any).mockResolvedValue(false);
     const req = mockReq({ params: { userId: 1 }, body: { dataType: "STORE" } });
     const res = mockRes();
-    await checkDataPermission(req as any, res as any);
+    await checkDataPermission(req as any, res as any, vi.fn());
     expect(service.checkDataPermission).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

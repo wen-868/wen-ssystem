@@ -56,7 +56,7 @@ describe("miniapp/checkout.controller", () => {
       body: { storeId: 1, skuIds: [1, 2] },
     });
     const res = mockRes();
-    await checkoutPreview(req as any, res as any);
+    await checkoutPreview(req as any, res as any, vi.fn());
     expect(checkoutService.checkoutPreview).toHaveBeenCalledWith(expect.objectContaining({
       tenantId: "t1",
       customerId: 1,
@@ -71,7 +71,7 @@ describe("miniapp/checkout.controller", () => {
     (checkoutService.checkoutPreview as any).mockResolvedValue({ success: false, message: "商品已下架" });
     const req = mockReq({ body: { storeId: 1, skuIds: [1] } });
     const res = mockRes();
-    await checkoutPreview(req as any, res as any);
+    await checkoutPreview(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("商品已下架");
   });
@@ -80,7 +80,7 @@ describe("miniapp/checkout.controller", () => {
     (checkoutService.checkoutPreview as any).mockResolvedValue({ success: false });
     const req = mockReq({ body: { storeId: 1 } });
     const res = mockRes();
-    await checkoutPreview(req as any, res as any);
+    await checkoutPreview(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("结算失败");
   });
@@ -89,7 +89,7 @@ describe("miniapp/checkout.controller", () => {
     (checkoutService.checkoutPreview as any).mockResolvedValue({ success: true, data: {} });
     const req = mockReq({ headers: {}, body: { storeId: 1 } });
     const res = mockRes();
-    await checkoutPreview(req as any, res as any);
+    await checkoutPreview(req as any, res as any, vi.fn());
     expect(checkoutService.checkoutPreview).toHaveBeenCalledWith(expect.objectContaining({
       customerType: "RETAIL",
     }));
@@ -110,7 +110,7 @@ describe("miniapp/checkout.controller", () => {
       },
     });
     const res = mockRes();
-    await createCheckoutOrder(req as any, res as any);
+    await createCheckoutOrder(req as any, res as any, vi.fn());
     expect(checkoutService.createCheckoutOrder).toHaveBeenCalledWith(expect.objectContaining({
       tenantId: "t1",
       customerId: 1,
@@ -133,7 +133,7 @@ describe("miniapp/checkout.controller", () => {
       body: { storeId: 1 },
     });
     const res = mockRes();
-    await createCheckoutOrder(req as any, res as any);
+    await createCheckoutOrder(req as any, res as any, vi.fn());
     expect(checkoutService.createCheckoutOrder).toHaveBeenCalledWith(expect.objectContaining({
       customerType: "WHOLESALE",
       settlementType: "ACCOUNT",
@@ -145,7 +145,7 @@ describe("miniapp/checkout.controller", () => {
     (checkoutService.createCheckoutOrder as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ body: { storeId: 1 } });
     const res = mockRes();
-    await createCheckoutOrder(req as any, res as any);
+    await createCheckoutOrder(req as any, res as any, vi.fn());
     expect(checkoutService.createCheckoutOrder).toHaveBeenCalledWith(expect.objectContaining({
       fulfillmentType: "DELIVERY",
     }));

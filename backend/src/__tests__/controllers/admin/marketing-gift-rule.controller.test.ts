@@ -88,7 +88,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.createGiftRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createGiftRule(req, res);
+      await createGiftRule(req, res, vi.fn());
       expect(mocks.createGiftRule).toHaveBeenCalledWith(
         expect.objectContaining({ rule_name: "满100送礼品" }),
         "t1",
@@ -100,7 +100,7 @@ describe("admin marketing-gift-rule.controller", () => {
     it("createGiftRule - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { rule_name: "测试" } });
       const res = mockRes();
-      await expect(createGiftRule(req, res)).rejects.toThrow();
+      await expect(createGiftRule(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createGiftRule).not.toHaveBeenCalled();
     });
 
@@ -108,7 +108,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.listGiftRules.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { status: "ACTIVE", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listGiftRules(req, res);
+      await listGiftRules(req, res, vi.fn());
       expect(mocks.listGiftRules).toHaveBeenCalledWith(
         expect.objectContaining({ tenantId: "t1", status: "ACTIVE", page: 1, pageSize: 10 })
       );
@@ -119,7 +119,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.listGiftRules.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listGiftRules(req, res);
+      await listGiftRules(req, res, vi.fn());
       expect(mocks.listGiftRules).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 20 })
       );
@@ -129,7 +129,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.getGiftRuleDetail.mockResolvedValue({ id: 1, name: "规则1" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getGiftRuleDetail(req, res);
+      await getGiftRuleDetail(req, res, vi.fn());
       expect(mocks.getGiftRuleDetail).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -139,7 +139,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.updateGiftRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updateGiftRule(req, res);
+      await updateGiftRule(req, res, vi.fn());
       expect(mocks.updateGiftRule).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ rule_name: "新规则名" }),
@@ -152,7 +152,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.deleteGiftRule.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteGiftRule(req, res);
+      await deleteGiftRule(req, res, vi.fn());
       expect(mocks.deleteGiftRule).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -161,7 +161,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.activateGiftRule.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await activateGiftRule(req, res);
+      await activateGiftRule(req, res, vi.fn());
       expect(mocks.activateGiftRule).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -170,7 +170,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.pauseGiftRule.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await pauseGiftRule(req, res);
+      await pauseGiftRule(req, res, vi.fn());
       expect(mocks.pauseGiftRule).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -182,7 +182,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.addGiftRuleLevel.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await addGiftRuleLevel(req, res);
+      await addGiftRuleLevel(req, res, vi.fn());
       expect(mocks.addGiftRuleLevel).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ gift_product_id: 1 }),
@@ -194,7 +194,7 @@ describe("admin marketing-gift-rule.controller", () => {
     it("addGiftRuleLevel - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ params: { id: "1" }, body: { name: "测试" } });
       const res = mockRes();
-      await expect(addGiftRuleLevel(req, res)).rejects.toThrow();
+      await expect(addGiftRuleLevel(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.addGiftRuleLevel).not.toHaveBeenCalled();
     });
 
@@ -203,7 +203,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.updateGiftRuleLevel.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1", levelId: "10" }, body });
       const res = mockRes();
-      await updateGiftRuleLevel(req, res);
+      await updateGiftRuleLevel(req, res, vi.fn());
       expect(mocks.updateGiftRuleLevel).toHaveBeenCalledWith(
         1,
         10,
@@ -217,7 +217,7 @@ describe("admin marketing-gift-rule.controller", () => {
       mocks.deleteGiftRuleLevel.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1", levelId: "10" } });
       const res = mockRes();
-      await deleteGiftRuleLevel(req, res);
+      await deleteGiftRuleLevel(req, res, vi.fn());
       expect(mocks.deleteGiftRuleLevel).toHaveBeenCalledWith(1, 10, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });

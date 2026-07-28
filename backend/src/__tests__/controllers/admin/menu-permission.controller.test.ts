@@ -75,7 +75,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getMenuTree.mockResolvedValue([{ id: 1, name: "菜单" }]);
     const req = mockReq();
     const res = mockRes();
-    await getMenuTree(req, res);
+    await getMenuTree(req, res, vi.fn());
     expect(mocks.getMenuTree).toHaveBeenCalledWith("t1");
     expect(mocks.ok).toHaveBeenCalledWith([{ id: 1, name: "菜单" }]);
   });
@@ -84,7 +84,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getUserMenus.mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ user: { id: 7, username: "user1" } });
     const res = mockRes();
-    await getUserMenus(req, res);
+    await getUserMenus(req, res, vi.fn());
     expect(mocks.getUserMenus).toHaveBeenCalledWith(7, "t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [{ id: 1 }] });
   });
@@ -93,7 +93,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getRolePermissions.mockResolvedValue([{ menuId: 1 }]);
     const req = mockReq({ params: { roleId: "5" } });
     const res = mockRes();
-    await getRolePermissions(req, res);
+    await getRolePermissions(req, res, vi.fn());
     expect(mocks.getRolePermissions).toHaveBeenCalledWith(5, "t1");
   });
 
@@ -101,7 +101,7 @@ describe("admin menu-permission.controller", () => {
     mocks.setRoleMenuPermissions.mockResolvedValue(undefined);
     const req = mockReq({ params: { roleId: "3" }, body: { menuIds: [1, 2, 3] } });
     const res = mockRes();
-    await setRoleMenuPermissions(req, res);
+    await setRoleMenuPermissions(req, res, vi.fn());
     expect(mocks.setRoleMenuPermissions).toHaveBeenCalledWith(3, [1, 2, 3], "t1");
     expect(mocks.ok).toHaveBeenCalledWith({ roleId: 3, menuCount: 3 });
   });
@@ -110,7 +110,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getDataPermissions.mockResolvedValue([{ tableName: "orders" }]);
     const req = mockReq({ params: { roleId: "2" } });
     const res = mockRes();
-    await getDataPermissions(req, res);
+    await getDataPermissions(req, res, vi.fn());
     expect(mocks.getDataPermissions).toHaveBeenCalledWith(2, "t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [{ tableName: "orders" }] });
   });
@@ -122,7 +122,7 @@ describe("admin menu-permission.controller", () => {
       body: { dataPermissions: [{ tableName: "orders", fieldName: "amount", filterType: "DEPT", filterValue: "1" }] },
     });
     const res = mockRes();
-    await setRoleDataPermissions(req, res);
+    await setRoleDataPermissions(req, res, vi.fn());
     expect(mocks.setRoleDataPermissions).toHaveBeenCalledWith(
       4,
       [expect.objectContaining({ roleId: 4, tableName: "orders" })],
@@ -135,7 +135,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getFieldPermissions.mockResolvedValue([{ tableName: "orders", fieldName: "amount" }]);
     const req = mockReq({ params: { roleId: "6" } });
     const res = mockRes();
-    await getFieldPermissions(req, res);
+    await getFieldPermissions(req, res, vi.fn());
     expect(mocks.getFieldPermissions).toHaveBeenCalledWith(6, "t1");
   });
 
@@ -149,7 +149,7 @@ describe("admin menu-permission.controller", () => {
       ] },
     });
     const res = mockRes();
-    await setRoleFieldPermissions(req, res);
+    await setRoleFieldPermissions(req, res, vi.fn());
     expect(mocks.setRoleFieldPermissions).toHaveBeenCalledWith(
       7,
       [expect.objectContaining({ roleId: 7 }), expect.objectContaining({ roleId: 7 })],
@@ -162,7 +162,7 @@ describe("admin menu-permission.controller", () => {
     mocks.getMenuTree.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getMenuTree(req, res);
+    await getMenuTree(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [] });
   });

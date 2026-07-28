@@ -66,7 +66,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getMarketingOverview as any).mockResolvedValue({ totalCoupons: 100 });
       const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
       const res = mockRes();
-      await getMarketingOverview(req as any, res as any);
+      await getMarketingOverview(req as any, res as any, vi.fn());
       expect(svc.getMarketingOverview).toHaveBeenCalledWith(expect.objectContaining({
         startDate: "2026-01-01",
         endDate: "2026-01-31",
@@ -81,7 +81,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityStats as any).mockResolvedValue({ total: 10 });
       const req = mockReq({ query: { activityType: "coupon" } });
       const res = mockRes();
-      await getActivityStats(req as any, res as any);
+      await getActivityStats(req as any, res as any, vi.fn());
       expect(svc.getActivityStats).toHaveBeenCalledWith(expect.objectContaining({
         activityType: "coupon",
       }));
@@ -94,7 +94,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getSingleActivityStats as any).mockResolvedValue({ name: "活动1" });
       const req = mockReq({ params: { activityId: "1" }, query: { activityType: "full_reduction" } });
       const res = mockRes();
-      await getSingleActivityStats(req as any, res as any);
+      await getSingleActivityStats(req as any, res as any, vi.fn());
       expect(svc.getSingleActivityStats).toHaveBeenCalledWith(1, "full_reduction", "t1");
     });
 
@@ -102,7 +102,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getSingleActivityStats as any).mockResolvedValue({ name: "活动1" });
       const req = mockReq({ params: { activityId: "1" }, query: {} });
       const res = mockRes();
-      await getSingleActivityStats(req as any, res as any);
+      await getSingleActivityStats(req as any, res as any, vi.fn());
       expect(svc.getSingleActivityStats).toHaveBeenCalledWith(1, "coupon", "t1");
     });
   });
@@ -112,7 +112,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getCouponStats as any).mockResolvedValue({ issued: 100 });
       const req = mockReq({});
       const res = mockRes();
-      await getCouponStats(req as any, res as any);
+      await getCouponStats(req as any, res as any, vi.fn());
       expect(svc.getCouponStats).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -123,7 +123,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getMarketingTrend as any).mockResolvedValue({ trend: [] });
       const req = mockReq({ query: { period: "day" } });
       const res = mockRes();
-      await getMarketingTrend(req as any, res as any);
+      await getMarketingTrend(req as any, res as any, vi.fn());
       expect(svc.getMarketingTrend).toHaveBeenCalledWith(expect.objectContaining({ period: "day" }));
       expect(ok).toHaveBeenCalled();
     });
@@ -134,7 +134,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityRanking as any).mockResolvedValue({ ranking: [] });
       const req = mockReq({ query: { rankBy: "usedCount" } });
       const res = mockRes();
-      await getActivityRanking(req as any, res as any);
+      await getActivityRanking(req as any, res as any, vi.fn());
       expect(svc.getActivityRanking).toHaveBeenCalledWith(expect.objectContaining({ rankBy: "usedCount" }));
       expect(ok).toHaveBeenCalled();
     });
@@ -145,7 +145,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
       const req = mockReq({ query: { activityIds: ["1", "2", "3"] } });
       const res = mockRes();
-      await getActivityComparison(req as any, res as any);
+      await getActivityComparison(req as any, res as any, vi.fn());
       expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
         activityIds: [1, 2, 3],
       }));
@@ -156,7 +156,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
       const req = mockReq({ query: { activityIds: "5" } });
       const res = mockRes();
-      await getActivityComparison(req as any, res as any);
+      await getActivityComparison(req as any, res as any, vi.fn());
       expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
         activityIds: [5],
       }));
@@ -166,7 +166,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityComparison as any).mockResolvedValue({ comparison: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getActivityComparison(req as any, res as any);
+      await getActivityComparison(req as any, res as any, vi.fn());
       expect(svc.getActivityComparison).toHaveBeenCalledWith(expect.objectContaining({
         activityIds: [],
       }));
@@ -178,7 +178,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityEffectAnalysis as any).mockResolvedValue({ effect: "good" });
       const req = mockReq({ params: { activityId: "1" }, query: { activityType: "full_reduction" } });
       const res = mockRes();
-      await getActivityEffectAnalysis(req as any, res as any);
+      await getActivityEffectAnalysis(req as any, res as any, vi.fn());
       expect(svc.getActivityEffectAnalysis).toHaveBeenCalledWith(expect.objectContaining({
         activityId: 1,
         activityType: "full_reduction",
@@ -190,7 +190,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityEffectAnalysis as any).mockResolvedValue({ effect: "good" });
       const req = mockReq({ params: { activityId: "1" }, query: {} });
       const res = mockRes();
-      await getActivityEffectAnalysis(req as any, res as any);
+      await getActivityEffectAnalysis(req as any, res as any, vi.fn());
       expect(svc.getActivityEffectAnalysis).toHaveBeenCalledWith(expect.objectContaining({
         activityType: "coupon",
       }));
@@ -202,7 +202,7 @@ describe("admin/marketing-dashboard.controller", () => {
       (svc.getActivityConversionTrend as any).mockResolvedValue({ trend: [] });
       const req = mockReq({ params: { activityId: "1" }, query: { period: "day" } });
       const res = mockRes();
-      await getActivityConversionTrend(req as any, res as any);
+      await getActivityConversionTrend(req as any, res as any, vi.fn());
       expect(svc.getActivityConversionTrend).toHaveBeenCalledWith(expect.objectContaining({
         activityId: 1,
         period: "day",

@@ -42,7 +42,7 @@ describe("archive.controller", () => {
     (archiveService.archiveBillings as any).mockResolvedValue({ archived: 10 });
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await executeArchive(req as any, res as any);
+    await executeArchive(req as any, res as any, vi.fn());
     expect(archiveService.archiveBillings).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -64,7 +64,7 @@ describe("archive.controller", () => {
       },
     });
     const res = mockRes();
-    await executeArchive(req as any, res as any);
+    await executeArchive(req as any, res as any, vi.fn());
     expect(archiveService.archiveBillings).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -79,7 +79,7 @@ describe("archive.controller", () => {
   it("executeArchive - 参数校验失败应返回400", async () => {
     const req = mockReq({ body: { archiveDays: 0 } });
     const res = mockRes();
-    await executeArchive(req as any, res as any);
+    await executeArchive(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("参数校验失败", "400");
     expect(res.status).toHaveBeenCalledWith(400);
     expect(archiveService.archiveBillings).not.toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe("archive.controller", () => {
   it("executeArchive - archiveType 无效应返回400", async () => {
     const req = mockReq({ body: { archiveType: "INVALID" } });
     const res = mockRes();
-    await executeArchive(req as any, res as any);
+    await executeArchive(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("参数校验失败", "400");
     expect(res.status).toHaveBeenCalledWith(400);
     expect(archiveService.archiveBillings).not.toHaveBeenCalled();

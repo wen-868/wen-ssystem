@@ -63,7 +63,7 @@ describe("admin monitor.controller", () => {
     mocks.getDbStatus.mockResolvedValue({ connected: true });
     const req = mockReq();
     const res = mockRes();
-    await getDbStatusCtrl(req, res);
+    await getDbStatusCtrl(req, res, vi.fn());
     expect(mocks.getDbStatus).toHaveBeenCalledTimes(1);
     expect(mocks.ok).toHaveBeenCalledWith({ connected: true });
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { connected: true } });
@@ -73,7 +73,7 @@ describe("admin monitor.controller", () => {
     mocks.getDbStatus.mockResolvedValue({ connected: false });
     const req = mockReq();
     const res = mockRes();
-    await getDbStatusCtrl(req, res);
+    await getDbStatusCtrl(req, res, vi.fn());
     expect(mocks.getDbStatus).toHaveBeenCalledWith();
   });
 
@@ -81,7 +81,7 @@ describe("admin monitor.controller", () => {
     mocks.getApiStats.mockResolvedValue({ totalRequests: 100 });
     const req = mockReq();
     const res = mockRes();
-    await getApiStatsCtrl(req, res);
+    await getApiStatsCtrl(req, res, vi.fn());
     expect(mocks.getApiStats).toHaveBeenCalledTimes(1);
     expect(mocks.ok).toHaveBeenCalledWith({ totalRequests: 100 });
   });
@@ -90,7 +90,7 @@ describe("admin monitor.controller", () => {
     mocks.getExpiringTenants.mockResolvedValue([{ id: 1, name: "租户A" }]);
     const req = mockReq();
     const res = mockRes();
-    await getExpiringTenantsCtrl(req, res);
+    await getExpiringTenantsCtrl(req, res, vi.fn());
     expect(mocks.getExpiringTenants).toHaveBeenCalledWith(7);
   });
 
@@ -98,7 +98,7 @@ describe("admin monitor.controller", () => {
     mocks.getExpiringTenants.mockResolvedValue([]);
     const req = mockReq({ query: { days: "30" } });
     const res = mockRes();
-    await getExpiringTenantsCtrl(req, res);
+    await getExpiringTenantsCtrl(req, res, vi.fn());
     expect(mocks.getExpiringTenants).toHaveBeenCalledWith(30);
   });
 
@@ -106,7 +106,7 @@ describe("admin monitor.controller", () => {
     mocks.notifyExpiringTenants.mockResolvedValue(3);
     const req = mockReq({ body: { tenantIds: [1, 2, 3] } });
     const res = mockRes();
-    await notifyExpiringTenantsCtrl(req, res);
+    await notifyExpiringTenantsCtrl(req, res, vi.fn());
     expect(mocks.notifyExpiringTenants).toHaveBeenCalledWith([1, 2, 3]);
     expect(mocks.ok).toHaveBeenCalledWith({ notifiedCount: 3 });
   });
@@ -115,7 +115,7 @@ describe("admin monitor.controller", () => {
     mocks.notifyExpiringTenants.mockResolvedValue(0);
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await notifyExpiringTenantsCtrl(req, res);
+    await notifyExpiringTenantsCtrl(req, res, vi.fn());
     expect(mocks.notifyExpiringTenants).toHaveBeenCalledWith([]);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { notifiedCount: 0 } });
   });
@@ -124,7 +124,7 @@ describe("admin monitor.controller", () => {
     mocks.getExpiringTenants.mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { days: "14" } });
     const res = mockRes();
-    await getExpiringTenantsCtrl(req, res);
+    await getExpiringTenantsCtrl(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [{ id: 1 }] });
   });
 
@@ -132,7 +132,7 @@ describe("admin monitor.controller", () => {
     mocks.getApiStats.mockResolvedValue({ avgResponseTime: 50 });
     const req = mockReq();
     const res = mockRes();
-    await getApiStatsCtrl(req, res);
+    await getApiStatsCtrl(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { avgResponseTime: 50 } });
   });
 });

@@ -59,7 +59,7 @@ describe("admin customer-price.controller", () => {
     mocks.listCustomerPrices.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { customerId: "1", skuId: "10", page: "1", pageSize: "10" } });
     const res = mockRes();
-    await listCustomerPrices(req, res);
+    await listCustomerPrices(req, res, vi.fn());
     expect(mocks.listCustomerPrices).toHaveBeenCalledWith(
       expect.objectContaining({ customerId: 1, skuId: 10, page: 1, pageSize: 10, tenantId: "t1" })
     );
@@ -70,7 +70,7 @@ describe("admin customer-price.controller", () => {
     mocks.listCustomerPrices.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listCustomerPrices(req, res);
+    await listCustomerPrices(req, res, vi.fn());
     expect(mocks.listCustomerPrices).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, pageSize: 20 })
     );
@@ -82,7 +82,7 @@ describe("admin customer-price.controller", () => {
     mocks.createCustomerPrice.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createCustomerPrice(req, res);
+    await createCustomerPrice(req, res, vi.fn());
     expect(mocks.createCustomerPrice).toHaveBeenCalledWith(
       expect.objectContaining({ customerId: 1, skuId: 10, customPrice: 99.9, tenantId: "t1" })
     );
@@ -92,7 +92,7 @@ describe("admin customer-price.controller", () => {
   it("createCustomerPrice - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createCustomerPrice(req, res)).rejects.toThrow();
+    await expect(createCustomerPrice(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createCustomerPrice).not.toHaveBeenCalled();
   });
 
@@ -101,7 +101,7 @@ describe("admin customer-price.controller", () => {
     mocks.updateCustomerPrice.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateCustomerPrice(req, res);
+    await updateCustomerPrice(req, res, vi.fn());
     expect(mocks.updateCustomerPrice).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ customPrice: 88.8, status: 1, tenantId: "t1" })
@@ -113,7 +113,7 @@ describe("admin customer-price.controller", () => {
     mocks.updateCustomerPrice.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await updateCustomerPrice(req, res);
+    await updateCustomerPrice(req, res, vi.fn());
     expect(mocks.updateCustomerPrice).toHaveBeenCalled();
   });
 
@@ -121,7 +121,7 @@ describe("admin customer-price.controller", () => {
     mocks.deleteCustomerPrice.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteCustomerPrice(req, res);
+    await deleteCustomerPrice(req, res, vi.fn());
     expect(mocks.deleteCustomerPrice).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });

@@ -81,7 +81,7 @@ describe("admin marketing-new.controller", () => {
       mocks.listCouponTemplates.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { page: "1", pageSize: "10", status: "ACTIVE", type: "AMOUNT" } });
       const res = mockRes();
-      await listCouponTemplates(req, res);
+      await listCouponTemplates(req, res, vi.fn());
       expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 10, "t1", "ACTIVE", "AMOUNT");
       expect(res.json).toHaveBeenCalled();
     });
@@ -90,7 +90,7 @@ describe("admin marketing-new.controller", () => {
       mocks.listCouponTemplates.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listCouponTemplates(req, res);
+      await listCouponTemplates(req, res, vi.fn());
       expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
     });
 
@@ -98,7 +98,7 @@ describe("admin marketing-new.controller", () => {
       mocks.getCouponTemplate.mockResolvedValue({ id: 1, templateName: "满减券" });
       const req = mockReq({ params: { templateId: "1" } });
       const res = mockRes();
-      await getCouponTemplate(req, res);
+      await getCouponTemplate(req, res, vi.fn());
       expect(mocks.getCouponTemplate).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -115,7 +115,7 @@ describe("admin marketing-new.controller", () => {
       mocks.createCouponTemplate.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createCouponTemplate(req, res);
+      await createCouponTemplate(req, res, vi.fn());
       expect(mocks.createCouponTemplate).toHaveBeenCalledWith(
         expect.objectContaining({ templateName: "满100减20" }),
         "t1",
@@ -128,7 +128,7 @@ describe("admin marketing-new.controller", () => {
     it("createCouponTemplate - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { couponType: "AMOUNT" } });
       const res = mockRes();
-      await expect(createCouponTemplate(req, res)).rejects.toThrow();
+      await expect(createCouponTemplate(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createCouponTemplate).not.toHaveBeenCalled();
     });
 
@@ -137,7 +137,7 @@ describe("admin marketing-new.controller", () => {
       mocks.updateCouponTemplate.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { templateId: "1" }, body });
       const res = mockRes();
-      await updateCouponTemplate(req, res);
+      await updateCouponTemplate(req, res, vi.fn());
       expect(mocks.updateCouponTemplate).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ templateName: "新名称" }),
@@ -153,7 +153,7 @@ describe("admin marketing-new.controller", () => {
       mocks.issueCoupons.mockResolvedValue({ success: 3 });
       const req = mockReq({ params: { templateId: "1" }, body });
       const res = mockRes();
-      await issueCoupons(req, res);
+      await issueCoupons(req, res, vi.fn());
       expect(mocks.issueCoupons).toHaveBeenCalledWith(1, [1, 2, 3], "t1", 1, "admin");
       expect(res.json).toHaveBeenCalled();
     });
@@ -161,14 +161,14 @@ describe("admin marketing-new.controller", () => {
     it("issueCoupons - 空 userIds 时 zod 校验抛错", async () => {
       const req = mockReq({ params: { templateId: "1" }, body: { userIds: [] } });
       const res = mockRes();
-      await expect(issueCoupons(req, res)).rejects.toThrow();
+      await expect(issueCoupons(req, res, vi.fn())).rejects.toThrow();
     });
 
     it("listUserCoupons - 应返回用户优惠券列表", async () => {
       mocks.listUserCoupons.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { userId: "1", status: "UNUSED", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listUserCoupons(req, res);
+      await listUserCoupons(req, res, vi.fn());
       expect(mocks.listUserCoupons).toHaveBeenCalledWith(1, 10, "t1", 1, "UNUSED");
       expect(res.json).toHaveBeenCalled();
     });
@@ -177,7 +177,7 @@ describe("admin marketing-new.controller", () => {
       mocks.listUserCoupons.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listUserCoupons(req, res);
+      await listUserCoupons(req, res, vi.fn());
       expect(mocks.listUserCoupons).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
     });
   });
@@ -187,7 +187,7 @@ describe("admin marketing-new.controller", () => {
       mocks.listPromotions.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { type: "FULL_REDUCTION", status: "ACTIVE", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listPromotions(req, res);
+      await listPromotions(req, res, vi.fn());
       expect(mocks.listPromotions).toHaveBeenCalledWith(1, 10, "t1", "FULL_REDUCTION", "ACTIVE");
       expect(res.json).toHaveBeenCalled();
     });
@@ -196,7 +196,7 @@ describe("admin marketing-new.controller", () => {
       mocks.listPromotions.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listPromotions(req, res);
+      await listPromotions(req, res, vi.fn());
       expect(mocks.listPromotions).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
     });
 
@@ -211,7 +211,7 @@ describe("admin marketing-new.controller", () => {
       mocks.createPromotion.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createPromotion(req, res);
+      await createPromotion(req, res, vi.fn());
       expect(mocks.createPromotion).toHaveBeenCalledWith(
         expect.objectContaining({ activityName: "夏日特惠" }),
         "t1",
@@ -224,7 +224,7 @@ describe("admin marketing-new.controller", () => {
     it("createPromotion - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { activityName: "测试" } });
       const res = mockRes();
-      await expect(createPromotion(req, res)).rejects.toThrow();
+      await expect(createPromotion(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createPromotion).not.toHaveBeenCalled();
     });
 
@@ -233,7 +233,7 @@ describe("admin marketing-new.controller", () => {
       mocks.updatePromotion.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { activityId: "1" }, body });
       const res = mockRes();
-      await updatePromotion(req, res);
+      await updatePromotion(req, res, vi.fn());
       expect(mocks.updatePromotion).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ activityName: "新名称" }),
@@ -254,7 +254,7 @@ describe("admin marketing-new.controller", () => {
       mocks.calculateDiscount.mockResolvedValue({ finalAmount: 180 });
       const req = mockReq({ body });
       const res = mockRes();
-      await calculateDiscount(req, res);
+      await calculateDiscount(req, res, vi.fn());
       expect(mocks.calculateDiscount).toHaveBeenCalledWith(
         expect.objectContaining({ userId: 1, orderAmount: 200 }),
         "t1"
@@ -265,7 +265,7 @@ describe("admin marketing-new.controller", () => {
     it("calculateDiscount - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { userId: 1 } });
       const res = mockRes();
-      await expect(calculateDiscount(req, res)).rejects.toThrow();
+      await expect(calculateDiscount(req, res, vi.fn())).rejects.toThrow();
     });
   });
 });

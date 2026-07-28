@@ -54,7 +54,7 @@ describe("report-customer.controller", () => {
     (svc.getRepurchaseAnalysis as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getRepurchaseAnalysis(req as any, res as any);
+    await getRepurchaseAnalysis(req as any, res as any, vi.fn());
     expect(svc.getRepurchaseAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -65,7 +65,7 @@ describe("report-customer.controller", () => {
     (svc.getRepurchaseAnalysis as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "2" } });
     const res = mockRes();
-    await getRepurchaseAnalysis(req as any, res as any);
+    await getRepurchaseAnalysis(req as any, res as any, vi.fn());
     expect(svc.getRepurchaseAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -81,7 +81,7 @@ describe("report-customer.controller", () => {
     (svc.getAvgOrderValueDistribution as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getAvgOrderValueDistribution(req as any, res as any);
+    await getAvgOrderValueDistribution(req as any, res as any, vi.fn());
     expect(svc.getAvgOrderValueDistribution).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -92,7 +92,7 @@ describe("report-customer.controller", () => {
     (svc.getAvgOrderValueDistribution as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "3" } });
     const res = mockRes();
-    await getAvgOrderValueDistribution(req as any, res as any);
+    await getAvgOrderValueDistribution(req as any, res as any, vi.fn());
     expect(svc.getAvgOrderValueDistribution).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -108,7 +108,7 @@ describe("report-customer.controller", () => {
     (svc.getRFMAnalysis as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getRFMAnalysis(req as any, res as any);
+    await getRFMAnalysis(req as any, res as any, vi.fn());
     expect(svc.getRFMAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -119,7 +119,7 @@ describe("report-customer.controller", () => {
     (svc.getRFMAnalysis as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "1" } });
     const res = mockRes();
-    await getRFMAnalysis(req as any, res as any);
+    await getRFMAnalysis(req as any, res as any, vi.fn());
     expect(svc.getRFMAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", storeId: 1 })
     );
@@ -130,7 +130,7 @@ describe("report-customer.controller", () => {
     (svc.getCustomerContributionRanking as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCustomerContributionRanking(req as any, res as any);
+    await getCustomerContributionRanking(req as any, res as any, vi.fn());
     expect(svc.getCustomerContributionRanking).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", limit: 20 })
     );
@@ -143,7 +143,7 @@ describe("report-customer.controller", () => {
       query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "2", limit: "10" },
     });
     const res = mockRes();
-    await getCustomerContributionRanking(req as any, res as any);
+    await getCustomerContributionRanking(req as any, res as any, vi.fn());
     expect(svc.getCustomerContributionRanking).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -160,7 +160,7 @@ describe("report-customer.controller", () => {
     (svc.getNewCustomerTrend as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getNewCustomerTrend(req as any, res as any);
+    await getNewCustomerTrend(req as any, res as any, vi.fn());
     expect(svc.getNewCustomerTrend).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -171,7 +171,7 @@ describe("report-customer.controller", () => {
     (svc.getNewCustomerTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { groupBy: "month", storeId: "1" } });
     const res = mockRes();
-    await getNewCustomerTrend(req as any, res as any);
+    await getNewCustomerTrend(req as any, res as any, vi.fn());
     expect(svc.getNewCustomerTrend).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", groupBy: "month", storeId: 1 })
     );
@@ -182,7 +182,7 @@ describe("report-customer.controller", () => {
     (svc.getLostCustomerAnalysis as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getLostCustomerAnalysis(req as any, res as any);
+    await getLostCustomerAnalysis(req as any, res as any, vi.fn());
     expect(svc.getLostCustomerAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", daysThreshold: 90 })
     );
@@ -193,7 +193,7 @@ describe("report-customer.controller", () => {
     (svc.getLostCustomerAnalysis as any).mockResolvedValue([]);
     const req = mockReq({ query: { daysThreshold: "180", storeId: "2" } });
     const res = mockRes();
-    await getLostCustomerAnalysis(req as any, res as any);
+    await getLostCustomerAnalysis(req as any, res as any, vi.fn());
     expect(svc.getLostCustomerAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", daysThreshold: 180, storeId: 2 })
     );

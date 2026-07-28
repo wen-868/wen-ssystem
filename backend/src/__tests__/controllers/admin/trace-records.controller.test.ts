@@ -75,7 +75,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.generateTraceCodes as any).mockResolvedValue({ count: 10 });
     const req = mockReq({ body: { skuId: 1, quantity: 10 } });
     const res = mockRes();
-    await generateTraceCodes(req as any, res as any);
+    await generateTraceCodes(req as any, res as any, vi.fn());
     expect(traceRecordsService.generateTraceCodes).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -84,7 +84,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.listTraceCodes as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listTraceCodes(req as any, res as any);
+    await listTraceCodes(req as any, res as any, vi.fn());
     expect(traceRecordsService.listTraceCodes).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -93,7 +93,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.getTraceCodeDetail as any).mockResolvedValue({ traceCode: "TC123" });
     const req = mockReq({ params: { traceCode: "TC123" } });
     const res = mockRes();
-    await getTraceCodeDetail(req as any, res as any);
+    await getTraceCodeDetail(req as any, res as any, vi.fn());
     expect(traceRecordsService.getTraceCodeDetail).toHaveBeenCalledWith("TC123", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.getTraceCodeDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { traceCode: "NOT_EXIST" } });
     const res = mockRes();
-    await getTraceCodeDetail(req as any, res as any);
+    await getTraceCodeDetail(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("追溯码不存在", "404");
   });
@@ -111,7 +111,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.updateTraceCodeStatus as any).mockResolvedValue({ traceCode: "TC123" });
     const req = mockReq({ params: { traceCode: "TC123" }, body: { status: "SOLD" } });
     const res = mockRes();
-    await updateTraceCodeStatus(req as any, res as any);
+    await updateTraceCodeStatus(req as any, res as any, vi.fn());
     expect(traceRecordsService.updateTraceCodeStatus).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.updateTraceCodeStatus as any).mockResolvedValue(null);
     const req = mockReq({ params: { traceCode: "NOT_EXIST" }, body: { status: "SOLD" } });
     const res = mockRes();
-    await updateTraceCodeStatus(req as any, res as any);
+    await updateTraceCodeStatus(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("追溯码不存在", "404");
   });
@@ -129,7 +129,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.getTraceCodeStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getTraceCodeStatistics(req as any, res as any);
+    await getTraceCodeStatistics(req as any, res as any, vi.fn());
     expect(traceRecordsService.getTraceCodeStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -138,7 +138,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.queryTraceChain as any).mockResolvedValue({ traceCode: "TC123", chain: [] });
     const req = mockReq({ params: { traceCode: "TC123" } });
     const res = mockRes();
-    await queryTraceChain(req as any, res as any);
+    await queryTraceChain(req as any, res as any, vi.fn());
     expect(traceRecordsService.queryTraceChain).toHaveBeenCalledWith("TC123", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -147,7 +147,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.queryTraceChain as any).mockResolvedValue(null);
     const req = mockReq({ params: { traceCode: "NOT_EXIST" } });
     const res = mockRes();
-    await queryTraceChain(req as any, res as any);
+    await queryTraceChain(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("追溯码不存在", "404");
   });
@@ -156,7 +156,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.verifyTraceCode as any).mockResolvedValue({ valid: true });
     const req = mockReq({ body: { traceCode: "TC123", scanType: "CONSUMER" } });
     const res = mockRes();
-    await verifyTraceCode(req as any, res as any);
+    await verifyTraceCode(req as any, res as any, vi.fn());
     expect(traceRecordsService.verifyTraceCode).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -165,7 +165,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.createRecall as any).mockResolvedValue({ recallNo: "RC123" });
     const req = mockReq({ body: { recallType: "BATCH", targetValue: "B001", reason: "质量问题" } });
     const res = mockRes();
-    await createRecall(req as any, res as any);
+    await createRecall(req as any, res as any, vi.fn());
     expect(traceRecordsService.createRecall).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.listRecalls as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listRecalls(req as any, res as any);
+    await listRecalls(req as any, res as any, vi.fn());
     expect(traceRecordsService.listRecalls).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -183,7 +183,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.getRecallDetail as any).mockResolvedValue({ recallNo: "RC123" });
     const req = mockReq({ params: { recallNo: "RC123" } });
     const res = mockRes();
-    await getRecallDetail(req as any, res as any);
+    await getRecallDetail(req as any, res as any, vi.fn());
     expect(traceRecordsService.getRecallDetail).toHaveBeenCalledWith("RC123", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -192,7 +192,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.getRecallDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { recallNo: "NOT_EXIST" } });
     const res = mockRes();
-    await getRecallDetail(req as any, res as any);
+    await getRecallDetail(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("召回记录不存在", "404");
   });
@@ -201,7 +201,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.executeRecall as any).mockResolvedValue({ recallNo: "RC123" });
     const req = mockReq({ params: { recallNo: "RC123" } });
     const res = mockRes();
-    await executeRecall(req as any, res as any);
+    await executeRecall(req as any, res as any, vi.fn());
     expect(traceRecordsService.executeRecall).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -210,7 +210,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.executeRecall as any).mockResolvedValue({ notFound: true });
     const req = mockReq({ params: { recallNo: "NOT_EXIST" } });
     const res = mockRes();
-    await executeRecall(req as any, res as any);
+    await executeRecall(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
@@ -218,7 +218,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.executeRecall as any).mockResolvedValue({ alreadyEnded: true });
     const req = mockReq({ params: { recallNo: "RC123" } });
     const res = mockRes();
-    await executeRecall(req as any, res as any);
+    await executeRecall(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("该召回已结束，无法执行", "400");
   });
@@ -227,7 +227,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.completeRecall as any).mockResolvedValue({ recallNo: "RC123" });
     const req = mockReq({ params: { recallNo: "RC123" }, body: { totalNotified: 10, totalReturned: 5 } });
     const res = mockRes();
-    await completeRecall(req as any, res as any);
+    await completeRecall(req as any, res as any, vi.fn());
     expect(traceRecordsService.completeRecall).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -236,7 +236,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.completeRecall as any).mockResolvedValue({ notFound: true });
     const req = mockReq({ params: { recallNo: "NOT_EXIST" }, body: {} });
     const res = mockRes();
-    await completeRecall(req as any, res as any);
+    await completeRecall(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
@@ -244,7 +244,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.completeRecall as any).mockResolvedValue({ alreadyEnded: true });
     const req = mockReq({ params: { recallNo: "RC123" }, body: {} });
     const res = mockRes();
-    await completeRecall(req as any, res as any);
+    await completeRecall(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("该召回已结束", "400");
   });
@@ -253,7 +253,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.consumerQueryTrace as any).mockResolvedValue({ traceCode: "TC123" });
     const req = mockReq({ params: { traceCode: "TC123" } });
     const res = mockRes();
-    await consumerQueryTrace(req as any, res as any);
+    await consumerQueryTrace(req as any, res as any, vi.fn());
     expect(traceRecordsService.consumerQueryTrace).toHaveBeenCalledWith("TC123");
     expect(ok).toHaveBeenCalled();
   });
@@ -262,7 +262,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.consumerQueryTrace as any).mockResolvedValue(null);
     const req = mockReq({ params: { traceCode: "NOT_EXIST" } });
     const res = mockRes();
-    await consumerQueryTrace(req as any, res as any);
+    await consumerQueryTrace(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("追溯码不存在", "404");
   });
@@ -271,7 +271,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.consumerVerifyTraceCode as any).mockResolvedValue({ valid: true });
     const req = mockReq({ body: { traceCode: "TC123" } });
     const res = mockRes();
-    await consumerVerifyTraceCode(req as any, res as any);
+    await consumerVerifyTraceCode(req as any, res as any, vi.fn());
     expect(traceRecordsService.consumerVerifyTraceCode).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -280,7 +280,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.listTraceCodes as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listTraceCodes(req as any, res as any);
+    await listTraceCodes(req as any, res as any, vi.fn());
     expect(traceRecordsService.listTraceCodes).toHaveBeenCalledWith(1, 20, undefined, undefined, undefined, undefined, "t1");
   });
 
@@ -288,7 +288,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.listTraceCodes as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { skuId: "5", storeId: "3" } });
     const res = mockRes();
-    await listTraceCodes(req as any, res as any);
+    await listTraceCodes(req as any, res as any, vi.fn());
     expect(traceRecordsService.listTraceCodes).toHaveBeenCalledWith(1, 20, 5, undefined, undefined, 3, "t1");
   });
 
@@ -296,7 +296,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.listRecalls as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listRecalls(req as any, res as any);
+    await listRecalls(req as any, res as any, vi.fn());
     expect(traceRecordsService.listRecalls).toHaveBeenCalledWith(1, 20, undefined, undefined, "t1");
   });
 
@@ -304,7 +304,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.generateTraceCodes as any).mockResolvedValue({ count: 10 });
     const req = mockReq({ body: { skuId: 1, quantity: 10 }, user: {} });
     const res = mockRes();
-    await generateTraceCodes(req as any, res as any);
+    await generateTraceCodes(req as any, res as any, vi.fn());
     expect(traceRecordsService.generateTraceCodes).toHaveBeenCalledWith(
       expect.any(Object), 0, "system", "t1"
     );
@@ -314,7 +314,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.updateTraceCodeStatus as any).mockResolvedValue({ traceCode: "TC123" });
     const req = mockReq({ params: { traceCode: "TC123" }, body: { status: "SOLD" }, user: {} });
     const res = mockRes();
-    await updateTraceCodeStatus(req as any, res as any);
+    await updateTraceCodeStatus(req as any, res as any, vi.fn());
     expect(traceRecordsService.updateTraceCodeStatus).toHaveBeenCalledWith(
       "TC123", expect.any(Object), 0, "system", "127.0.0.1", "t1"
     );
@@ -324,7 +324,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.executeRecall as any).mockResolvedValue({ recallNo: "RC123" });
     const req = mockReq({ params: { recallNo: "RC123" }, user: {} });
     const res = mockRes();
-    await executeRecall(req as any, res as any);
+    await executeRecall(req as any, res as any, vi.fn());
     expect(traceRecordsService.executeRecall).toHaveBeenCalledWith("RC123", 0, "system", "t1");
   });
 
@@ -332,7 +332,7 @@ describe("trace-records.controller", () => {
     (traceRecordsService.verifyTraceCode as any).mockResolvedValue({ valid: true });
     const req = mockReq({ body: { traceCode: "TC123" } });
     const res = mockRes();
-    await verifyTraceCode(req as any, res as any);
+    await verifyTraceCode(req as any, res as any, vi.fn());
     expect(traceRecordsService.verifyTraceCode).toHaveBeenCalledWith(
       "TC123", "CONSUMER", undefined, "127.0.0.1", "t1"
     );

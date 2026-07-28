@@ -50,7 +50,7 @@ describe("price-level.controller", () => {
     (priceLevelService.listPriceLevels as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listPriceLevels(req as any, res as any);
+    await listPriceLevels(req as any, res as any, vi.fn());
     expect(priceLevelService.listPriceLevels).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe("price-level.controller", () => {
     (priceLevelService.createPriceLevel as any).mockResolvedValue({ data: { id: 1 } });
     const req = mockReq({ body: { levelCode: "VIP", levelName: "VIP等级", discountRate: 0.9 } });
     const res = mockRes();
-    await createPriceLevel(req as any, res as any);
+    await createPriceLevel(req as any, res as any, vi.fn());
     expect(priceLevelService.createPriceLevel).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -68,7 +68,7 @@ describe("price-level.controller", () => {
     (priceLevelService.createPriceLevel as any).mockResolvedValue({ error: { code: "400", message: "等级编码已存在" } });
     const req = mockReq({ body: { levelCode: "VIP", levelName: "VIP等级", discountRate: 0.9 } });
     const res = mockRes();
-    await createPriceLevel(req as any, res as any);
+    await createPriceLevel(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
@@ -76,7 +76,7 @@ describe("price-level.controller", () => {
     (priceLevelService.updatePriceLevel as any).mockResolvedValue({ data: { id: 1 } });
     const req = mockReq({ params: { id: "1" }, body: { levelName: "新名称" } });
     const res = mockRes();
-    await updatePriceLevel(req as any, res as any);
+    await updatePriceLevel(req as any, res as any, vi.fn());
     expect(priceLevelService.updatePriceLevel).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("price-level.controller", () => {
     (priceLevelService.updatePriceLevel as any).mockResolvedValue({ error: { code: "404", message: "价格等级不存在" } });
     const req = mockReq({ params: { id: "999" }, body: { levelName: "新名称" } });
     const res = mockRes();
-    await updatePriceLevel(req as any, res as any);
+    await updatePriceLevel(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
   });
 
@@ -93,7 +93,7 @@ describe("price-level.controller", () => {
     (priceLevelService.disablePriceLevel as any).mockResolvedValue({ data: { id: 1 } });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await disablePriceLevel(req as any, res as any);
+    await disablePriceLevel(req as any, res as any, vi.fn());
     expect(priceLevelService.disablePriceLevel).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe("price-level.controller", () => {
     (priceLevelService.disablePriceLevel as any).mockResolvedValue({ error: { code: "404", message: "价格等级不存在" } });
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await disablePriceLevel(req as any, res as any);
+    await disablePriceLevel(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
   });
 });

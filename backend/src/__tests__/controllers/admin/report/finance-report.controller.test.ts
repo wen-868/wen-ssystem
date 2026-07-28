@@ -48,7 +48,7 @@ describe("report/finance-report.controller", () => {
     (financeReportService.getReceivablePayable as any).mockResolvedValue({ receivable: 1000, payable: 500 });
     const req = mockReq();
     const res = mockRes();
-    await getReceivablePayable(req as any, res as any);
+    await getReceivablePayable(req as any, res as any, vi.fn());
     expect(financeReportService.getReceivablePayable).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -61,7 +61,7 @@ describe("report/finance-report.controller", () => {
     (financeReportService.getReceivablePayable as any).mockResolvedValue({ receivable: 1000, payable: 500 });
     const req = mockReq({ query: { dateStart: "2026-01-01", dateEnd: "2026-12-31" } });
     const res = mockRes();
-    await getReceivablePayable(req as any, res as any);
+    await getReceivablePayable(req as any, res as any, vi.fn());
     expect(financeReportService.getReceivablePayable).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",
@@ -74,7 +74,7 @@ describe("report/finance-report.controller", () => {
     (financeReportService.getPaymentAnalysis as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getPaymentAnalysis(req as any, res as any);
+    await getPaymentAnalysis(req as any, res as any, vi.fn());
     expect(financeReportService.getPaymentAnalysis).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -90,7 +90,7 @@ describe("report/finance-report.controller", () => {
       query: { dateStart: "2026-01-01", dateEnd: "2026-12-31", groupBy: "customer" },
     });
     const res = mockRes();
-    await getPaymentAnalysis(req as any, res as any);
+    await getPaymentAnalysis(req as any, res as any, vi.fn());
     expect(financeReportService.getPaymentAnalysis).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",
@@ -104,7 +104,7 @@ describe("report/finance-report.controller", () => {
     (financeReportService.getProfit as any).mockResolvedValue({ profit: 5000 });
     const req = mockReq();
     const res = mockRes();
-    await getProfit(req as any, res as any);
+    await getProfit(req as any, res as any, vi.fn());
     expect(financeReportService.getProfit).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -117,7 +117,7 @@ describe("report/finance-report.controller", () => {
     (financeReportService.getProfit as any).mockResolvedValue({ profit: 5000 });
     const req = mockReq({ query: { dateStart: "2026-01-01", dateEnd: "2026-12-31" } });
     const res = mockRes();
-    await getProfit(req as any, res as any);
+    await getProfit(req as any, res as any, vi.fn());
     expect(financeReportService.getProfit).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",

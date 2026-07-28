@@ -55,7 +55,7 @@ describe("product.controller", () => {
     (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 10 } });
     const res = mockRes();
-    await listProducts(req as any, res as any);
+    await listProducts(req as any, res as any, vi.fn());
     expect(productService.listProducts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe("product.controller", () => {
     (productService.getProductDetail as any).mockResolvedValue({ id: 1, name: "商品A" });
     const req = mockReq({ params: { spuId: "1" } });
     const res = mockRes();
-    await getProductDetail(req as any, res as any);
+    await getProductDetail(req as any, res as any, vi.fn());
     expect(productService.getProductDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe("product.controller", () => {
     (productService.createProduct as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { name: "新商品", categoryId: 1, skus: [{ skuName: "SKU1", retailPrice: 100 }] } });
     const res = mockRes();
-    await createProduct(req as any, res as any);
+    await createProduct(req as any, res as any, vi.fn());
     expect(productService.createProduct).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -82,7 +82,7 @@ describe("product.controller", () => {
     (productService.updateProductStatus as any).mockResolvedValue(null);
     const req = mockReq({ params: { spuId: "999" }, body: { status: "ON_SALE" } });
     const res = mockRes();
-    await updateProductStatus(req as any, res as any);
+    await updateProductStatus(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("商品不存在", "404");
   });
 
@@ -90,7 +90,7 @@ describe("product.controller", () => {
     (productService.updateProductStatus as any).mockResolvedValue({ id: 1, status: "ON_SALE" });
     const req = mockReq({ params: { spuId: "1" }, body: { status: "ON_SALE" } });
     const res = mockRes();
-    await updateProductStatus(req as any, res as any);
+    await updateProductStatus(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -98,7 +98,7 @@ describe("product.controller", () => {
     (productService.disableProduct as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { spuId: "1" } });
     const res = mockRes();
-    await disableProduct(req as any, res as any);
+    await disableProduct(req as any, res as any, vi.fn());
     expect(productService.disableProduct).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -107,7 +107,7 @@ describe("product.controller", () => {
     (productService.importProducts as any).mockResolvedValue({ success: 10 });
     const req = mockReq({ body: { rows: [{ name: "商品1" }] } });
     const res = mockRes();
-    await importProducts(req as any, res as any);
+    await importProducts(req as any, res as any, vi.fn());
     expect(productService.importProducts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("product.controller", () => {
   it("importProducts - 空数据应返回400", async () => {
     const req = mockReq({ body: { rows: [] } });
     const res = mockRes();
-    await importProducts(req as any, res as any);
+    await importProducts(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("请提供有效的导入数据", "400");
   });
 
@@ -123,7 +123,7 @@ describe("product.controller", () => {
     (productService.getProductPriceHistory as any).mockResolvedValue([]);
     const req = mockReq({ params: { skuId: "1" } });
     const res = mockRes();
-    await getProductPriceHistory(req as any, res as any);
+    await getProductPriceHistory(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -131,7 +131,7 @@ describe("product.controller", () => {
     (productService.setMarketingTags as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { spuId: "1" }, body: { tags: ["热销"] } });
     const res = mockRes();
-    await setMarketingTags(req as any, res as any);
+    await setMarketingTags(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -140,7 +140,7 @@ describe("product.controller", () => {
     (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listProducts(req as any, res as any);
+    await listProducts(req as any, res as any, vi.fn());
     expect(productService.listProducts).toHaveBeenCalledWith("", 1, 20, "t1");
   });
 
@@ -148,7 +148,7 @@ describe("product.controller", () => {
     (productService.updateProduct as any).mockResolvedValue(null);
     const req = mockReq({ params: { spuId: "999" }, body: { name: "新名称" } });
     const res = mockRes();
-    await updateProduct(req as any, res as any);
+    await updateProduct(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("商品不存在", "404");
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -157,7 +157,7 @@ describe("product.controller", () => {
     (productService.updateProduct as any).mockResolvedValue({ id: 1, name: "新名称" });
     const req = mockReq({ params: { spuId: "1" }, body: { name: "新名称" } });
     const res = mockRes();
-    await updateProduct(req as any, res as any);
+    await updateProduct(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -165,14 +165,14 @@ describe("product.controller", () => {
     (productService.updateProductPrice as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { skuId: "1" }, body: { retailPrice: 200 }, user: {} });
     const res = mockRes();
-    await updateProductPrice(req as any, res as any);
+    await updateProductPrice(req as any, res as any, vi.fn());
     expect(productService.updateProductPrice).toHaveBeenCalledWith(1, expect.any(Object), "t1", 0);
   });
 
   it("importProducts - rows非数组时应返回400", async () => {
     const req = mockReq({ body: { rows: "not-an-array" } });
     const res = mockRes();
-    await importProducts(req as any, res as any);
+    await importProducts(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("请提供有效的导入数据", "400");
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -180,7 +180,7 @@ describe("product.controller", () => {
   it("importProducts - rows缺失时应返回400", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await importProducts(req as any, res as any);
+    await importProducts(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("请提供有效的导入数据", "400");
   });
 
@@ -188,7 +188,7 @@ describe("product.controller", () => {
     (productService.createProduct as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { name: "新商品", categoryId: 1, skuName: "默认SKU", retailPrice: 100 } });
     const res = mockRes();
-    await createProduct(req as any, res as any);
+    await createProduct(req as any, res as any, vi.fn());
     expect(productService.createProduct).toHaveBeenCalled();
     const calledArgs = (productService.createProduct as any).mock.calls[0];
     expect(calledArgs[0].skus).toHaveLength(1);

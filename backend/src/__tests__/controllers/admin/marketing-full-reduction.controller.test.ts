@@ -64,7 +64,7 @@ describe("marketing-full-reduction.controller", () => {
       },
     });
     const res = mockRes();
-    await createFullReduction(req as any, res as any);
+    await createFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.createFullReduction).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
@@ -72,7 +72,7 @@ describe("marketing-full-reduction.controller", () => {
   it("createFullReduction - 缺少必填字段应抛出错误", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createFullReduction(req as any, res as any)).rejects.toThrow();
+    await expect(createFullReduction(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("createFullReduction - rules数组为空应抛出错误", async () => {
@@ -85,14 +85,14 @@ describe("marketing-full-reduction.controller", () => {
       },
     });
     const res = mockRes();
-    await expect(createFullReduction(req as any, res as any)).rejects.toThrow();
+    await expect(createFullReduction(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listFullReductions - 应返回满减活动列表", async () => {
     (fullReductionService.listFullReductions as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listFullReductions(req as any, res as any);
+    await listFullReductions(req as any, res as any, vi.fn());
     expect(fullReductionService.listFullReductions).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe("marketing-full-reduction.controller", () => {
     (fullReductionService.listFullReductions as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listFullReductions(req as any, res as any);
+    await listFullReductions(req as any, res as any, vi.fn());
     expect(fullReductionService.listFullReductions).toHaveBeenCalledWith(1, 20, "t1", undefined);
   });
 
@@ -109,7 +109,7 @@ describe("marketing-full-reduction.controller", () => {
     (fullReductionService.getFullReduction as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getFullReduction(req as any, res as any);
+    await getFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.getFullReduction).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -121,7 +121,7 @@ describe("marketing-full-reduction.controller", () => {
       body: { name: "更新名称" },
     });
     const res = mockRes();
-    await updateFullReduction(req as any, res as any);
+    await updateFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.updateFullReduction).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe("marketing-full-reduction.controller", () => {
     (fullReductionService.deleteFullReduction as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteFullReduction(req as any, res as any);
+    await deleteFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.deleteFullReduction).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -139,7 +139,7 @@ describe("marketing-full-reduction.controller", () => {
     (fullReductionService.activateFullReduction as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await activateFullReduction(req as any, res as any);
+    await activateFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.activateFullReduction).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -148,7 +148,7 @@ describe("marketing-full-reduction.controller", () => {
     (fullReductionService.pauseFullReduction as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await pauseFullReduction(req as any, res as any);
+    await pauseFullReduction(req as any, res as any, vi.fn());
     expect(fullReductionService.pauseFullReduction).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

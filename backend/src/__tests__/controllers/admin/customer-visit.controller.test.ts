@@ -101,7 +101,7 @@ describe("admin customer-visit.controller", () => {
     mocks.listVisits.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { page: "1", pageSize: "10" } });
     const res = mockRes();
-    await listVisits(req, res);
+    await listVisits(req, res, vi.fn());
     expect(mocks.listVisits).toHaveBeenCalledWith("t1", expect.any(Object));
     expect(res.json).toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe("admin customer-visit.controller", () => {
     mocks.getVisitDetail.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ params: { visitNo: "V001" } });
     const res = mockRes();
-    await getVisitDetail(req, res);
+    await getVisitDetail(req, res, vi.fn());
     expect(mocks.getVisitDetail).toHaveBeenCalledWith("t1", "V001");
     expect(res.json).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("admin customer-visit.controller", () => {
     mocks.createVisit.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ body });
     const res = mockRes();
-    await createVisit(req, res);
+    await createVisit(req, res, vi.fn());
     expect(mocks.createVisit).toHaveBeenCalledWith(
       "t1",
       1,
@@ -134,7 +134,7 @@ describe("admin customer-visit.controller", () => {
   it("createVisit - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createVisit(req, res)).rejects.toThrow();
+    await expect(createVisit(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createVisit).not.toHaveBeenCalled();
   });
 
@@ -143,7 +143,7 @@ describe("admin customer-visit.controller", () => {
     mocks.updateVisit.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ params: { visitNo: "V001" }, body });
     const res = mockRes();
-    await updateVisit(req, res);
+    await updateVisit(req, res, vi.fn());
     expect(mocks.updateVisit).toHaveBeenCalledWith(
       "t1",
       1,
@@ -159,7 +159,7 @@ describe("admin customer-visit.controller", () => {
     mocks.checkin.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ params: { visitNo: "V001" }, body });
     const res = mockRes();
-    await checkin(req, res);
+    await checkin(req, res, vi.fn());
     expect(mocks.checkin).toHaveBeenCalledWith(
       "t1",
       1,
@@ -173,7 +173,7 @@ describe("admin customer-visit.controller", () => {
   it("checkin - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ params: { visitNo: "V001" }, body: {} });
     const res = mockRes();
-    await expect(checkin(req, res)).rejects.toThrow();
+    await expect(checkin(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.checkin).not.toHaveBeenCalled();
   });
 
@@ -182,7 +182,7 @@ describe("admin customer-visit.controller", () => {
     mocks.checkout.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ params: { visitNo: "V001" }, body });
     const res = mockRes();
-    await checkout(req, res);
+    await checkout(req, res, vi.fn());
     expect(mocks.checkout).toHaveBeenCalledWith(
       "t1",
       1,
@@ -196,7 +196,7 @@ describe("admin customer-visit.controller", () => {
   it("checkout - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ params: { visitNo: "V001" }, body: {} });
     const res = mockRes();
-    await expect(checkout(req, res)).rejects.toThrow();
+    await expect(checkout(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.checkout).not.toHaveBeenCalled();
   });
 
@@ -204,7 +204,7 @@ describe("admin customer-visit.controller", () => {
     mocks.cancelVisit.mockResolvedValue({ visitNo: "V001" });
     const req = mockReq({ params: { visitNo: "V001" } });
     const res = mockRes();
-    await cancelVisit(req, res);
+    await cancelVisit(req, res, vi.fn());
     expect(mocks.cancelVisit).toHaveBeenCalledWith("t1", 1, "admin", "V001");
     expect(res.json).toHaveBeenCalled();
   });
@@ -213,7 +213,7 @@ describe("admin customer-visit.controller", () => {
     mocks.listPendingFollowUps.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { page: "1", pageSize: "10" } });
     const res = mockRes();
-    await listPendingFollowUps(req, res);
+    await listPendingFollowUps(req, res, vi.fn());
     expect(mocks.listPendingFollowUps).toHaveBeenCalledWith("t1", 1, 1, 10);
     expect(res.json).toHaveBeenCalled();
   });
@@ -222,7 +222,7 @@ describe("admin customer-visit.controller", () => {
     mocks.listPendingFollowUps.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { visitor_id: "5" } });
     const res = mockRes();
-    await listPendingFollowUps(req, res);
+    await listPendingFollowUps(req, res, vi.fn());
     expect(mocks.listPendingFollowUps).toHaveBeenCalledWith("t1", 5, 1, 20);
   });
 
@@ -230,7 +230,7 @@ describe("admin customer-visit.controller", () => {
     mocks.getVisitStatistics.mockResolvedValue({ totalVisits: 10 });
     const req = mockReq({ query: { visitor_id: "1", start_date: "2026-07-01", end_date: "2026-07-31" } });
     const res = mockRes();
-    await getVisitStatistics(req, res);
+    await getVisitStatistics(req, res, vi.fn());
     expect(mocks.getVisitStatistics).toHaveBeenCalledWith("t1", 1, "2026-07-01", "2026-07-31");
     expect(res.json).toHaveBeenCalled();
   });
@@ -239,7 +239,7 @@ describe("admin customer-visit.controller", () => {
     mocks.getVisitStatistics.mockResolvedValue({ totalVisits: 10 });
     const req = mockReq();
     const res = mockRes();
-    await getVisitStatistics(req, res);
+    await getVisitStatistics(req, res, vi.fn());
     expect(mocks.getVisitStatistics).toHaveBeenCalledWith(
       "t1",
       null,

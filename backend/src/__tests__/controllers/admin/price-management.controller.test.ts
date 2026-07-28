@@ -84,7 +84,7 @@ describe("admin price-management.controller", () => {
       mocks.listSkuPrices.mockResolvedValue([{ priceId: 1, price: 10 }]);
       const req = mockReq({ params: { skuId: "10" } });
       const res = mockRes();
-      await listSkuPrices(req as any, res as any);
+      await listSkuPrices(req as any, res as any, vi.fn());
       expect(mocks.listSkuPrices).toHaveBeenCalledWith(10, "t1");
       expect(mocks.ok).toHaveBeenCalledWith([{ priceId: 1, price: 10 }]);
     });
@@ -93,7 +93,7 @@ describe("admin price-management.controller", () => {
       mocks.listSkuPrices.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { skuId: "10" } });
       const res = mockRes();
-      await expect(listSkuPrices(req as any, res as any)).rejects.toThrow("db error");
+      await expect(listSkuPrices(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -105,7 +105,7 @@ describe("admin price-management.controller", () => {
         body: { prices: [{ priceLevelId: 1, price: 9.9 }] },
       });
       const res = mockRes();
-      await setSkuPrices(req as any, res as any);
+      await setSkuPrices(req as any, res as any, vi.fn());
       expect(mocks.setSkuPrices).toHaveBeenCalledWith(10, expect.any(Array), 1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ updated: 2 });
     });
@@ -117,7 +117,7 @@ describe("admin price-management.controller", () => {
         body: { prices: [{ priceLevelId: 999, price: 1 }] },
       });
       const res = mockRes();
-      await setSkuPrices(req as any, res as any);
+      await setSkuPrices(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "价格级别不存在" });
     });
@@ -128,7 +128,7 @@ describe("admin price-management.controller", () => {
         body: { prices: [] },
       });
       const res = mockRes();
-      await expect(setSkuPrices(req as any, res as any)).rejects.toThrow();
+      await expect(setSkuPrices(req as any, res as any, vi.fn())).rejects.toThrow();
       expect(mocks.setSkuPrices).not.toHaveBeenCalled();
     });
 
@@ -139,7 +139,7 @@ describe("admin price-management.controller", () => {
         body: { prices: [{ priceLevelId: 1, price: 9.9 }] },
       });
       const res = mockRes();
-      await expect(setSkuPrices(req as any, res as any)).rejects.toThrow("db error");
+      await expect(setSkuPrices(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -148,7 +148,7 @@ describe("admin price-management.controller", () => {
       mocks.updateSkuPrice.mockResolvedValue({ data: { id: 5 }, error: undefined });
       const req = mockReq({ params: { id: "5" }, body: { price: 19.9 } });
       const res = mockRes();
-      await updateSkuPrice(req as any, res as any);
+      await updateSkuPrice(req as any, res as any, vi.fn());
       expect(mocks.updateSkuPrice).toHaveBeenCalledWith(5, expect.objectContaining({ price: 19.9 }), 1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 5 });
     });
@@ -157,7 +157,7 @@ describe("admin price-management.controller", () => {
       mocks.updateSkuPrice.mockResolvedValue({ data: null, error: { code: 404, message: "价格不存在" } });
       const req = mockReq({ params: { id: "5" }, body: { price: 19.9 } });
       const res = mockRes();
-      await updateSkuPrice(req as any, res as any);
+      await updateSkuPrice(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ code: 404, message: "价格不存在" });
     });
@@ -168,7 +168,7 @@ describe("admin price-management.controller", () => {
         body: { price: -1 },
       });
       const res = mockRes();
-      await expect(updateSkuPrice(req as any, res as any)).rejects.toThrow();
+      await expect(updateSkuPrice(req as any, res as any, vi.fn())).rejects.toThrow();
       expect(mocks.updateSkuPrice).not.toHaveBeenCalled();
     });
 
@@ -176,7 +176,7 @@ describe("admin price-management.controller", () => {
       mocks.updateSkuPrice.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { id: "5" }, body: { price: 19.9 } });
       const res = mockRes();
-      await expect(updateSkuPrice(req as any, res as any)).rejects.toThrow("db error");
+      await expect(updateSkuPrice(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -185,7 +185,7 @@ describe("admin price-management.controller", () => {
       mocks.deleteSkuPrice.mockResolvedValue({ data: { id: 3 }, error: undefined });
       const req = mockReq({ params: { id: "3" } });
       const res = mockRes();
-      await deleteSkuPrice(req as any, res as any);
+      await deleteSkuPrice(req as any, res as any, vi.fn());
       expect(mocks.deleteSkuPrice).toHaveBeenCalledWith(3, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 3 });
     });
@@ -194,7 +194,7 @@ describe("admin price-management.controller", () => {
       mocks.deleteSkuPrice.mockResolvedValue({ data: null, error: { code: 404, message: "价格不存在" } });
       const req = mockReq({ params: { id: "999" } });
       const res = mockRes();
-      await deleteSkuPrice(req as any, res as any);
+      await deleteSkuPrice(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ code: 404, message: "价格不存在" });
     });
@@ -203,7 +203,7 @@ describe("admin price-management.controller", () => {
       mocks.deleteSkuPrice.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { id: "3" } });
       const res = mockRes();
-      await expect(deleteSkuPrice(req as any, res as any)).rejects.toThrow("db error");
+      await expect(deleteSkuPrice(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -212,7 +212,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockResolvedValue({ data: { price: 8.8 }, error: undefined });
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 } });
       const res = mockRes();
-      await getBestPrice(req as any, res as any);
+      await getBestPrice(req as any, res as any, vi.fn());
       expect(mocks.getBestPrice).toHaveBeenCalledWith(1, 10, 5, true, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ price: 8.8 });
     });
@@ -221,7 +221,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockResolvedValue({ data: { price: 8.8 }, error: undefined });
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 }, user: { id: 1, roles: ["SUPER_ADMIN"] } });
       const res = mockRes();
-      await getBestPrice(req as any, res as any);
+      await getBestPrice(req as any, res as any, vi.fn());
       expect(mocks.getBestPrice).toHaveBeenCalledWith(1, 10, 5, true, "t1");
     });
 
@@ -229,7 +229,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockResolvedValue({ data: { price: 9.9 }, error: undefined });
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 }, user: { id: 2, roles: [] } });
       const res = mockRes();
-      await getBestPrice(req as any, res as any);
+      await getBestPrice(req as any, res as any, vi.fn());
       expect(mocks.getBestPrice).toHaveBeenCalledWith(1, 10, 5, false, "t1");
     });
 
@@ -237,7 +237,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockResolvedValue({ data: { price: 9.9 }, error: undefined });
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 }, user: undefined });
       const res = mockRes();
-      await getBestPrice(req as any, res as any);
+      await getBestPrice(req as any, res as any, vi.fn());
       expect(mocks.getBestPrice).toHaveBeenCalledWith(1, 10, 5, false, "t1");
     });
 
@@ -245,7 +245,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockResolvedValue({ data: null, error: { code: 400, message: "客户不存在" } });
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 } });
       const res = mockRes();
-      await getBestPrice(req as any, res as any);
+      await getBestPrice(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "客户不存在" });
     });
@@ -253,7 +253,7 @@ describe("admin price-management.controller", () => {
     it("zod 校验失败时抛出异常", async () => {
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 0 } });
       const res = mockRes();
-      await expect(getBestPrice(req as any, res as any)).rejects.toThrow();
+      await expect(getBestPrice(req as any, res as any, vi.fn())).rejects.toThrow();
       expect(mocks.getBestPrice).not.toHaveBeenCalled();
     });
 
@@ -261,7 +261,7 @@ describe("admin price-management.controller", () => {
       mocks.getBestPrice.mockRejectedValue(new Error("db error"));
       const req = mockReq({ body: { customerId: 1, skuId: 10, quantity: 5 } });
       const res = mockRes();
-      await expect(getBestPrice(req as any, res as any)).rejects.toThrow("db error");
+      await expect(getBestPrice(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -270,7 +270,7 @@ describe("admin price-management.controller", () => {
       mocks.listCustomerBindings.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { page: "2", pageSize: "15", status: "APPROVED", customerId: "3" } });
       const res = mockRes();
-      await listCustomerBindings(req as any, res as any);
+      await listCustomerBindings(req as any, res as any, vi.fn());
       expect(mocks.listCustomerBindings).toHaveBeenCalledWith(2, 15, "APPROVED", 3, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ records: [], total: 0 });
     });
@@ -279,7 +279,7 @@ describe("admin price-management.controller", () => {
       mocks.listCustomerBindings.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listCustomerBindings(req as any, res as any);
+      await listCustomerBindings(req as any, res as any, vi.fn());
       expect(mocks.listCustomerBindings).toHaveBeenCalledWith(1, 20, undefined, undefined, "t1");
     });
 
@@ -287,7 +287,7 @@ describe("admin price-management.controller", () => {
       mocks.listCustomerBindings.mockRejectedValue(new Error("db error"));
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await expect(listCustomerBindings(req as any, res as any)).rejects.toThrow("db error");
+      await expect(listCustomerBindings(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -296,7 +296,7 @@ describe("admin price-management.controller", () => {
       mocks.createCustomerBinding.mockResolvedValue({ data: { id: 1 }, error: undefined });
       const req = mockReq({ body: { customerId: 1, priceLevelId: 2 } });
       const res = mockRes();
-      await createCustomerBinding(req as any, res as any);
+      await createCustomerBinding(req as any, res as any, vi.fn());
       expect(mocks.createCustomerBinding).toHaveBeenCalledWith(
         expect.objectContaining({ customerId: 1, priceLevelId: 2 }),
         "t1"
@@ -308,7 +308,7 @@ describe("admin price-management.controller", () => {
       mocks.createCustomerBinding.mockResolvedValue({ data: null, error: { code: 400, message: "客户已绑定" } });
       const req = mockReq({ body: { customerId: 1, priceLevelId: 2 } });
       const res = mockRes();
-      await createCustomerBinding(req as any, res as any);
+      await createCustomerBinding(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "客户已绑定" });
     });
@@ -316,7 +316,7 @@ describe("admin price-management.controller", () => {
     it("zod 校验失败时抛出异常", async () => {
       const req = mockReq({ body: { customerId: 1 } });
       const res = mockRes();
-      await expect(createCustomerBinding(req as any, res as any)).rejects.toThrow();
+      await expect(createCustomerBinding(req as any, res as any, vi.fn())).rejects.toThrow();
       expect(mocks.createCustomerBinding).not.toHaveBeenCalled();
     });
 
@@ -324,7 +324,7 @@ describe("admin price-management.controller", () => {
       mocks.createCustomerBinding.mockRejectedValue(new Error("db error"));
       const req = mockReq({ body: { customerId: 1, priceLevelId: 2 } });
       const res = mockRes();
-      await expect(createCustomerBinding(req as any, res as any)).rejects.toThrow("db error");
+      await expect(createCustomerBinding(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -333,7 +333,7 @@ describe("admin price-management.controller", () => {
       mocks.approveCustomerBinding.mockResolvedValue({ data: { id: 7 }, error: undefined });
       const req = mockReq({ params: { id: "7" } });
       const res = mockRes();
-      await approveCustomerBinding(req as any, res as any);
+      await approveCustomerBinding(req as any, res as any, vi.fn());
       expect(mocks.approveCustomerBinding).toHaveBeenCalledWith(7, 1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 7 });
     });
@@ -342,7 +342,7 @@ describe("admin price-management.controller", () => {
       mocks.approveCustomerBinding.mockResolvedValue({ data: null, error: { code: 400, message: "绑定不存在" } });
       const req = mockReq({ params: { id: "7" } });
       const res = mockRes();
-      await approveCustomerBinding(req as any, res as any);
+      await approveCustomerBinding(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "绑定不存在" });
     });
@@ -351,7 +351,7 @@ describe("admin price-management.controller", () => {
       mocks.approveCustomerBinding.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { id: "7" } });
       const res = mockRes();
-      await expect(approveCustomerBinding(req as any, res as any)).rejects.toThrow("db error");
+      await expect(approveCustomerBinding(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -360,7 +360,7 @@ describe("admin price-management.controller", () => {
       mocks.rejectCustomerBinding.mockResolvedValue({ data: { id: 8 }, error: undefined });
       const req = mockReq({ params: { id: "8" } });
       const res = mockRes();
-      await rejectCustomerBinding(req as any, res as any);
+      await rejectCustomerBinding(req as any, res as any, vi.fn());
       expect(mocks.rejectCustomerBinding).toHaveBeenCalledWith(8, 1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 8 });
     });
@@ -369,7 +369,7 @@ describe("admin price-management.controller", () => {
       mocks.rejectCustomerBinding.mockResolvedValue({ data: null, error: { code: 400, message: "绑定不存在" } });
       const req = mockReq({ params: { id: "8" } });
       const res = mockRes();
-      await rejectCustomerBinding(req as any, res as any);
+      await rejectCustomerBinding(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "绑定不存在" });
     });
@@ -378,7 +378,7 @@ describe("admin price-management.controller", () => {
       mocks.rejectCustomerBinding.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { id: "8" } });
       const res = mockRes();
-      await expect(rejectCustomerBinding(req as any, res as any)).rejects.toThrow("db error");
+      await expect(rejectCustomerBinding(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -387,7 +387,7 @@ describe("admin price-management.controller", () => {
       mocks.cancelCustomerBinding.mockResolvedValue({ data: { id: 9 }, error: undefined });
       const req = mockReq({ params: { id: "9" } });
       const res = mockRes();
-      await cancelCustomerBinding(req as any, res as any);
+      await cancelCustomerBinding(req as any, res as any, vi.fn());
       expect(mocks.cancelCustomerBinding).toHaveBeenCalledWith(9, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 9 });
     });
@@ -396,7 +396,7 @@ describe("admin price-management.controller", () => {
       mocks.cancelCustomerBinding.mockResolvedValue({ data: null, error: { code: 400, message: "绑定不存在" } });
       const req = mockReq({ params: { id: "9" } });
       const res = mockRes();
-      await cancelCustomerBinding(req as any, res as any);
+      await cancelCustomerBinding(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ code: 400, message: "绑定不存在" });
     });
@@ -405,7 +405,7 @@ describe("admin price-management.controller", () => {
       mocks.cancelCustomerBinding.mockRejectedValue(new Error("db error"));
       const req = mockReq({ params: { id: "9" } });
       const res = mockRes();
-      await expect(cancelCustomerBinding(req as any, res as any)).rejects.toThrow("db error");
+      await expect(cancelCustomerBinding(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 
@@ -414,7 +414,7 @@ describe("admin price-management.controller", () => {
       mocks.listChangeLogs.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { page: "2", pageSize: "15", skuId: "10", priceLevelId: "3" } });
       const res = mockRes();
-      await listChangeLogs(req as any, res as any);
+      await listChangeLogs(req as any, res as any, vi.fn());
       expect(mocks.listChangeLogs).toHaveBeenCalledWith(2, 15, 10, 3, "t1");
     });
 
@@ -422,7 +422,7 @@ describe("admin price-management.controller", () => {
       mocks.listChangeLogs.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listChangeLogs(req as any, res as any);
+      await listChangeLogs(req as any, res as any, vi.fn());
       expect(mocks.listChangeLogs).toHaveBeenCalledWith(1, 20, undefined, undefined, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ records: [], total: 0 });
     });
@@ -431,7 +431,7 @@ describe("admin price-management.controller", () => {
       mocks.listChangeLogs.mockRejectedValue(new Error("db error"));
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await expect(listChangeLogs(req as any, res as any)).rejects.toThrow("db error");
+      await expect(listChangeLogs(req as any, res as any, vi.fn())).rejects.toThrow("db error");
     });
   });
 });

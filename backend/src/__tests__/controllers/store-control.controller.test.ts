@@ -66,7 +66,7 @@ describe("store-control.controller", () => {
       (storeControlService.getConfigs as any).mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await adminStoreControl.getConfigs(req as any, res as any);
+      await adminStoreControl.getConfigs(req as any, res as any, vi.fn());
       expect(storeControlService.getConfigs).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -75,7 +75,7 @@ describe("store-control.controller", () => {
       (storeControlService.getConfig as any).mockResolvedValue({ storeId: 1 });
       const req = mockReq({ params: { storeId: 1 } });
       const res = mockRes();
-      await adminStoreControl.getConfig(req as any, res as any);
+      await adminStoreControl.getConfig(req as any, res as any, vi.fn());
       expect(storeControlService.getConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -84,7 +84,7 @@ describe("store-control.controller", () => {
       (storeControlService.upsertConfig as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { storeId: 1 }, body: { maxDailyOrders: 100 } });
       const res = mockRes();
-      await adminStoreControl.upsertConfig(req as any, res as any);
+      await adminStoreControl.upsertConfig(req as any, res as any, vi.fn());
       expect(storeControlService.upsertConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -93,7 +93,7 @@ describe("store-control.controller", () => {
       (storeControlService.openStore as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { storeId: 1 } });
       const res = mockRes();
-      await adminStoreControl.open(req as any, res as any);
+      await adminStoreControl.open(req as any, res as any, vi.fn());
       expect(storeControlService.openStore).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -102,7 +102,7 @@ describe("store-control.controller", () => {
       (storeControlService.closeStore as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { storeId: 1 } });
       const res = mockRes();
-      await adminStoreControl.close(req as any, res as any);
+      await adminStoreControl.close(req as any, res as any, vi.fn());
       expect(storeControlService.closeStore).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -111,7 +111,7 @@ describe("store-control.controller", () => {
       (storeControlService.suspendStore as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { storeId: 1 }, body: { reason: "维修" } });
       const res = mockRes();
-      await adminStoreControl.suspend(req as any, res as any);
+      await adminStoreControl.suspend(req as any, res as any, vi.fn());
       expect(storeControlService.suspendStore).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -120,7 +120,7 @@ describe("store-control.controller", () => {
       (storeControlService.resumeStore as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { storeId: 1 } });
       const res = mockRes();
-      await adminStoreControl.resume(req as any, res as any);
+      await adminStoreControl.resume(req as any, res as any, vi.fn());
       expect(storeControlService.resumeStore).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -129,7 +129,7 @@ describe("store-control.controller", () => {
       (storeControlService.getLogs as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await adminStoreControl.getLogs(req as any, res as any);
+      await adminStoreControl.getLogs(req as any, res as any, vi.fn());
       expect(storeControlService.getLogs).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -140,7 +140,7 @@ describe("store-control.controller", () => {
       (storeControlService.getStoreStatus as any).mockResolvedValue({ status: "OPEN" });
       const req = mockReq();
       const res = mockRes();
-      await storeStoreControl.status(req as any, res as any);
+      await storeStoreControl.status(req as any, res as any, vi.fn());
       expect(storeControlService.getStoreStatus).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe("store-control.controller", () => {
       (storeControlService.getMyLogs as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await storeStoreControl.myLogs(req as any, res as any);
+      await storeStoreControl.myLogs(req as any, res as any, vi.fn());
       expect(storeControlService.getMyLogs).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -158,7 +158,7 @@ describe("store-control.controller", () => {
       (storeControlService.getStoreStatus as any).mockResolvedValue({ status: "OPEN" });
       const req = mockReq({ user: { id: 1, username: "admin" } });
       const res = mockRes();
-      await storeStoreControl.status(req as any, res as any);
+      await storeStoreControl.status(req as any, res as any, vi.fn());
       expect(storeControlService.getStoreStatus).toHaveBeenCalledWith(1, "t1");
     });
 
@@ -166,7 +166,7 @@ describe("store-control.controller", () => {
       (storeControlService.getMyLogs as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ user: { id: 1, username: "admin" } });
       const res = mockRes();
-      await storeStoreControl.myLogs(req as any, res as any);
+      await storeStoreControl.myLogs(req as any, res as any, vi.fn());
       expect(storeControlService.getMyLogs).toHaveBeenCalledWith(expect.objectContaining({ storeId: 1 }));
     });
   });

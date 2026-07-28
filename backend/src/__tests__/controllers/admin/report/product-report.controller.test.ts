@@ -52,7 +52,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventorySummary as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getInventorySummary(req as any, res as any);
+    await getInventorySummary(req as any, res as any, vi.fn());
     expect(productReportService.getInventorySummary).toHaveBeenCalledWith(
       "t1",
       "product",
@@ -65,7 +65,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventorySummary as any).mockResolvedValue([]);
     const req = mockReq({ query: { groupBy: "store", storeId: "2" } });
     const res = mockRes();
-    await getInventorySummary(req as any, res as any);
+    await getInventorySummary(req as any, res as any, vi.fn());
     expect(productReportService.getInventorySummary).toHaveBeenCalledWith(
       "t1",
       "store",
@@ -78,7 +78,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventoryTurnover as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getInventoryTurnover(req as any, res as any);
+    await getInventoryTurnover(req as any, res as any, vi.fn());
     expect(productReportService.getInventoryTurnover).toHaveBeenCalledWith("t1", 3);
     expect(ok).toHaveBeenCalled();
   });
@@ -87,7 +87,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventoryTurnover as any).mockResolvedValue([]);
     const req = mockReq({ query: { months: "6" } });
     const res = mockRes();
-    await getInventoryTurnover(req as any, res as any);
+    await getInventoryTurnover(req as any, res as any, vi.fn());
     expect(productReportService.getInventoryTurnover).toHaveBeenCalledWith("t1", 6);
     expect(ok).toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventoryAge as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getInventoryAge(req as any, res as any);
+    await getInventoryAge(req as any, res as any, vi.fn());
     expect(productReportService.getInventoryAge).toHaveBeenCalledWith("t1", undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getInventoryAge as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "3" } });
     const res = mockRes();
-    await getInventoryAge(req as any, res as any);
+    await getInventoryAge(req as any, res as any, vi.fn());
     expect(productReportService.getInventoryAge).toHaveBeenCalledWith("t1", 3);
     expect(ok).toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getPurchaseSummary as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getPurchaseSummary(req as any, res as any);
+    await getPurchaseSummary(req as any, res as any, vi.fn());
     expect(productReportService.getPurchaseSummary).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -127,7 +127,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getPurchaseSummary as any).mockResolvedValue([]);
     const req = mockReq({ query: { dateStart: "2026-01-01", dateEnd: "2026-12-31" } });
     const res = mockRes();
-    await getPurchaseSummary(req as any, res as any);
+    await getPurchaseSummary(req as any, res as any, vi.fn());
     expect(productReportService.getPurchaseSummary).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",
@@ -140,7 +140,7 @@ describe("report/product-report.controller", () => {
     (productReportService.getSupplierRanking as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getSupplierRanking(req as any, res as any);
+    await getSupplierRanking(req as any, res as any, vi.fn());
     expect(productReportService.getSupplierRanking).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -156,7 +156,7 @@ describe("report/product-report.controller", () => {
       query: { dateStart: "2026-01-01", dateEnd: "2026-12-31", limit: "10" },
     });
     const res = mockRes();
-    await getSupplierRanking(req as any, res as any);
+    await getSupplierRanking(req as any, res as any, vi.fn());
     expect(productReportService.getSupplierRanking).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",

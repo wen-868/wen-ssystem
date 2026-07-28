@@ -81,7 +81,7 @@ describe("admin cart.controller", () => {
     mocks.getCartList.mockResolvedValue({ items: [] });
     const req = mockReq({ headers: { "x-customer-type": "WHOLESALE" } });
     const res = mockRes();
-    await getCartList(req, res);
+    await getCartList(req, res, vi.fn());
     expect(mocks.getCartList).toHaveBeenCalledWith("t1", 1, "WHOLESALE");
     expect(res.json).toHaveBeenCalled();
   });
@@ -90,7 +90,7 @@ describe("admin cart.controller", () => {
     mocks.getCartList.mockResolvedValue({ items: [] });
     const req = mockReq();
     const res = mockRes();
-    await getCartList(req, res);
+    await getCartList(req, res, vi.fn());
     expect(mocks.getCartList).toHaveBeenCalledWith("t1", 1, "RETAIL");
   });
 
@@ -98,7 +98,7 @@ describe("admin cart.controller", () => {
     mocks.addToCart.mockResolvedValue({ success: true, message: "已加入购物车" });
     const req = mockReq({ body: { skuId: 10, quantity: 2 } });
     const res = mockRes();
-    await addToCart(req, res);
+    await addToCart(req, res, vi.fn());
     expect(mocks.addToCart).toHaveBeenCalledWith("t1", 1, 10, 2);
     expect(res.json).toHaveBeenCalled();
   });
@@ -107,7 +107,7 @@ describe("admin cart.controller", () => {
     mocks.addToCart.mockResolvedValue({ success: false, message: "库存不足" });
     const req = mockReq({ body: { skuId: 10, quantity: 2 } });
     const res = mockRes();
-    await addToCart(req, res);
+    await addToCart(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mocks.fail).toHaveBeenCalledWith("库存不足");
   });
@@ -116,7 +116,7 @@ describe("admin cart.controller", () => {
     mocks.updateCartItemQuantity.mockResolvedValue({ success: true, message: "更新成功" });
     const req = mockReq({ params: { skuId: "10" }, body: { quantity: 5 } });
     const res = mockRes();
-    await updateCartItemQuantity(req, res);
+    await updateCartItemQuantity(req, res, vi.fn());
     expect(mocks.updateCartItemQuantity).toHaveBeenCalledWith("t1", 1, 10, 5);
     expect(res.json).toHaveBeenCalled();
   });
@@ -125,7 +125,7 @@ describe("admin cart.controller", () => {
     mocks.updateCartItemQuantity.mockResolvedValue({ success: false, message: "商品不存在" });
     const req = mockReq({ params: { skuId: "10" }, body: { quantity: 0 } });
     const res = mockRes();
-    await updateCartItemQuantity(req, res);
+    await updateCartItemQuantity(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(mocks.fail).toHaveBeenCalledWith("商品不存在");
   });
@@ -134,7 +134,7 @@ describe("admin cart.controller", () => {
     mocks.deleteCartItem.mockResolvedValue({ success: true });
     const req = mockReq({ params: { skuId: "8" } });
     const res = mockRes();
-    await deleteCartItem(req, res);
+    await deleteCartItem(req, res, vi.fn());
     expect(mocks.deleteCartItem).toHaveBeenCalledWith("t1", 1, 8);
   });
 
@@ -142,7 +142,7 @@ describe("admin cart.controller", () => {
     mocks.getCartCount.mockResolvedValue({ count: 5 });
     const req = mockReq();
     const res = mockRes();
-    await getCartCount(req, res);
+    await getCartCount(req, res, vi.fn());
     expect(mocks.getCartCount).toHaveBeenCalledWith("t1", 1);
   });
 
@@ -150,7 +150,7 @@ describe("admin cart.controller", () => {
     mocks.checkoutPreview.mockResolvedValue({ success: true, data: { total: 100 } });
     const req = mockReq({ body: { storeId: 1 } });
     const res = mockRes();
-    await checkoutPreview(req, res);
+    await checkoutPreview(req, res, vi.fn());
     expect(mocks.ok).toHaveBeenCalledWith({ total: 100 });
   });
 
@@ -158,7 +158,7 @@ describe("admin cart.controller", () => {
     mocks.checkoutPreview.mockResolvedValue({ success: false, message: "商品已下架" });
     const req = mockReq({ body: { storeId: 1 } });
     const res = mockRes();
-    await checkoutPreview(req, res);
+    await checkoutPreview(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mocks.fail).toHaveBeenCalledWith("商品已下架");
   });
@@ -171,7 +171,7 @@ describe("admin cart.controller", () => {
       body: { storeId: 1, fulfillmentType: "DELIVERY" },
     });
     const res = mockRes();
-    await createCheckoutOrder(req, res);
+    await createCheckoutOrder(req, res, vi.fn());
     expect(mocks.getSettlementType).toHaveBeenCalledWith("WHOLESALE", "ACCOUNT");
     expect(mocks.createCheckoutOrder).toHaveBeenCalledWith(expect.objectContaining({
       tenantId: "t1",

@@ -62,7 +62,7 @@ describe("admin/subscription-plan.controller", () => {
       ]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listPlans(req as any, res as any);
+      await listPlans(req as any, res as any, vi.fn());
       expect(subscriptionPlanService.listPlans).toHaveBeenCalledWith(undefined);
       expect(ok).toHaveBeenCalled();
     });
@@ -71,7 +71,7 @@ describe("admin/subscription-plan.controller", () => {
       (subscriptionPlanService.listPlans as any).mockResolvedValue([]);
       const req = mockReq({ query: { status: "ACTIVE" } });
       const res = mockRes();
-      await listPlans(req as any, res as any);
+      await listPlans(req as any, res as any, vi.fn());
       expect(subscriptionPlanService.listPlans).toHaveBeenCalledWith("ACTIVE");
     });
   });
@@ -83,7 +83,7 @@ describe("admin/subscription-plan.controller", () => {
       });
       const req = mockReq({ params: { planId: "1" } });
       const res = mockRes();
-      await getPlan(req as any, res as any);
+      await getPlan(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -91,7 +91,7 @@ describe("admin/subscription-plan.controller", () => {
       (subscriptionPlanService.getPlan as any).mockResolvedValue(null);
       const req = mockReq({ params: { planId: "999" } });
       const res = mockRes();
-      await getPlan(req as any, res as any);
+      await getPlan(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -110,7 +110,7 @@ describe("admin/subscription-plan.controller", () => {
         },
       });
       const res = mockRes();
-      await createPlan(req as any, res as any);
+      await createPlan(req as any, res as any, vi.fn());
       expect(subscriptionPlanService.createPlan).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -127,7 +127,7 @@ describe("admin/subscription-plan.controller", () => {
         },
       });
       const res = mockRes();
-      await createPlan(req as any, res as any);
+      await createPlan(req as any, res as any, vi.fn());
       const callArg = (subscriptionPlanService.createPlan as any).mock.calls[0][0];
       expect(callArg.maxUsers).toBe(5);
       expect(callArg.maxStores).toBe(1);
@@ -143,7 +143,7 @@ describe("admin/subscription-plan.controller", () => {
         body: { planName: "新名称", price: 299 },
       });
       const res = mockRes();
-      await updatePlan(req as any, res as any);
+      await updatePlan(req as any, res as any, vi.fn());
       expect(subscriptionPlanService.updatePlan).toHaveBeenCalledWith(1, { planName: "新名称", price: 299 });
       expect(ok).toHaveBeenCalled();
     });
@@ -155,7 +155,7 @@ describe("admin/subscription-plan.controller", () => {
         body: { planName: "不存在" },
       });
       const res = mockRes();
-      await updatePlan(req as any, res as any);
+      await updatePlan(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -166,7 +166,7 @@ describe("admin/subscription-plan.controller", () => {
       (subscriptionPlanService.deletePlan as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deletePlan(req as any, res as any);
+      await deletePlan(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -174,7 +174,7 @@ describe("admin/subscription-plan.controller", () => {
       (subscriptionPlanService.deletePlan as any).mockResolvedValue(null);
       const req = mockReq({ params: { id: "999" } });
       const res = mockRes();
-      await deletePlan(req as any, res as any);
+      await deletePlan(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -188,7 +188,7 @@ describe("admin/subscription-plan.controller", () => {
         body: { features: ["feature1"], moduleAccess: { inventory: true } },
       });
       const res = mockRes();
-      await updatePlanFeatures(req as any, res as any);
+      await updatePlanFeatures(req as any, res as any, vi.fn());
       expect(subscriptionPlanService.updatePlanFeatures).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -200,7 +200,7 @@ describe("admin/subscription-plan.controller", () => {
         body: { features: [] },
       });
       const res = mockRes();
-      await updatePlanFeatures(req as any, res as any);
+      await updatePlanFeatures(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("套餐不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });

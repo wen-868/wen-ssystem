@@ -67,7 +67,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -86,7 +86,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { page: "2", pageSize: "50" } });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         page: 2,
         pageSize: 50,
@@ -97,7 +97,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { storeId: "5" } });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         storeId: 5,
       }));
@@ -107,7 +107,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         storeId: undefined,
       }));
@@ -117,7 +117,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { status: "PENDING" } });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         status: "PENDING",
       }));
@@ -127,7 +127,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.listLossOrders.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { lossType: "DAMAGE" } });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         lossType: "DAMAGE",
       }));
@@ -143,7 +143,7 @@ describe("admin inventory-loss-order.controller", () => {
         },
       });
       const res = mockRes();
-      await listLossOrders(req, res);
+      await listLossOrders(req, res, vi.fn());
       expect(mocks.listLossOrders).toHaveBeenCalledWith(expect.objectContaining({
         dateStart: "2026-01-01",
         dateEnd: "2026-01-31",
@@ -157,7 +157,7 @@ describe("admin inventory-loss-order.controller", () => {
       mocks.getLossOrderDetail.mockResolvedValue({ id: 1, lossNo: "BS20260101001" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getLossOrderDetail(req, res);
+      await getLossOrderDetail(req, res, vi.fn());
       expect(mocks.getLossOrderDetail).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 1, lossNo: "BS20260101001" });
     });
@@ -178,7 +178,7 @@ describe("admin inventory-loss-order.controller", () => {
         },
       });
       const res = mockRes();
-      await createLossOrder(req, res);
+      await createLossOrder(req, res, vi.fn());
       expect(mocks.createLossOrder).toHaveBeenCalledWith({
         storeId: 1,
         storeName: "旗舰店",
@@ -199,7 +199,7 @@ describe("admin inventory-loss-order.controller", () => {
         body: { storeId: "1", storeName: "旗舰店", items: [] },
       });
       const res = mockRes();
-      await createLossOrder(req, res);
+      await createLossOrder(req, res, vi.fn());
       expect(mocks.createLossOrder).toHaveBeenCalledWith(expect.objectContaining({
         lossType: "NORMAL",
       }));
@@ -211,7 +211,7 @@ describe("admin inventory-loss-order.controller", () => {
         body: { storeId: "1", storeName: "旗舰店" },
       });
       const res = mockRes();
-      await createLossOrder(req, res);
+      await createLossOrder(req, res, vi.fn());
       expect(mocks.createLossOrder).toHaveBeenCalledWith(expect.objectContaining({
         items: [],
       }));
@@ -224,7 +224,7 @@ describe("admin inventory-loss-order.controller", () => {
         body: { storeId: "1", storeName: "旗舰店", items: [] },
       });
       const res = mockRes();
-      await createLossOrder(req, res);
+      await createLossOrder(req, res, vi.fn());
       expect(mocks.createLossOrder).toHaveBeenCalledWith(expect.objectContaining({
         operatorId: 99,
       }));
@@ -239,7 +239,7 @@ describe("admin inventory-loss-order.controller", () => {
         body: { auditorName: "李经理" },
       });
       const res = mockRes();
-      await approveLossOrder(req, res);
+      await approveLossOrder(req, res, vi.fn());
       expect(mocks.approveLossOrder).toHaveBeenCalledWith(1, {
         auditorId: 1,
         auditorName: "李经理",
@@ -257,7 +257,7 @@ describe("admin inventory-loss-order.controller", () => {
         body: { auditorName: "李经理", rejectReason: "数量不符" },
       });
       const res = mockRes();
-      await rejectLossOrder(req, res);
+      await rejectLossOrder(req, res, vi.fn());
       expect(mocks.rejectLossOrder).toHaveBeenCalledWith(1, {
         auditorId: 1,
         auditorName: "李经理",

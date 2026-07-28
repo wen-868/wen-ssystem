@@ -49,7 +49,7 @@ describe("tenant.controller", () => {
     (tenantService.listTenants as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listTenants(req as any, res as any);
+    await listTenants(req as any, res as any, vi.fn());
     expect(tenantService.listTenants).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -58,7 +58,7 @@ describe("tenant.controller", () => {
     (tenantService.listTenants as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listTenants(req as any, res as any);
+    await listTenants(req as any, res as any, vi.fn());
     expect(tenantService.listTenants).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20,
     }));
@@ -68,7 +68,7 @@ describe("tenant.controller", () => {
     (tenantService.getTenantDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { tenantId: 1 } });
     const res = mockRes();
-    await getTenantDetail(req as any, res as any);
+    await getTenantDetail(req as any, res as any, vi.fn());
     expect(tenantService.getTenantDetail).toHaveBeenCalledWith(1);
     expect(ok).toHaveBeenCalled();
   });
@@ -83,7 +83,7 @@ describe("tenant.controller", () => {
       },
     });
     const res = mockRes();
-    await createTenant(req as any, res as any);
+    await createTenant(req as any, res as any, vi.fn());
     expect(tenantService.createTenant).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -91,14 +91,14 @@ describe("tenant.controller", () => {
   it("createTenant - zod验证失败", async () => {
     const req = mockReq({ body: { companyName: "", contactPerson: "", contactMobile: "" } });
     const res = mockRes();
-    await expect(createTenant(req as any, res as any)).rejects.toThrow();
+    await expect(createTenant(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("updateTenant - 应更新租户", async () => {
     (tenantService.updateTenant as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { tenantId: 1 }, body: { companyName: "新名称" } });
     const res = mockRes();
-    await updateTenant(req as any, res as any);
+    await updateTenant(req as any, res as any, vi.fn());
     expect(tenantService.updateTenant).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -107,7 +107,7 @@ describe("tenant.controller", () => {
     (tenantService.changeTenantStatus as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { tenantId: 1 }, body: { status: "ACTIVE" } });
     const res = mockRes();
-    await changeTenantStatus(req as any, res as any);
+    await changeTenantStatus(req as any, res as any, vi.fn());
     expect(tenantService.changeTenantStatus).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe("tenant.controller", () => {
     (tenantService.getTenantModules as any).mockResolvedValue([]);
     const req = mockReq({ params: { tenantId: 1 } });
     const res = mockRes();
-    await getTenantModules(req as any, res as any);
+    await getTenantModules(req as any, res as any, vi.fn());
     expect(tenantService.getTenantModules).toHaveBeenCalledWith(1);
     expect(ok).toHaveBeenCalled();
   });
@@ -128,7 +128,7 @@ describe("tenant.controller", () => {
       body: { modules: [{ moduleCode: "ORDER", moduleName: "订单", enabled: 1 }] },
     });
     const res = mockRes();
-    await setTenantModules(req as any, res as any);
+    await setTenantModules(req as any, res as any, vi.fn());
     expect(tenantService.setTenantModules).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -136,6 +136,6 @@ describe("tenant.controller", () => {
   it("setTenantModules - zod验证失败", async () => {
     const req = mockReq({ params: { tenantId: 1 }, body: { modules: [{ moduleCode: "", enabled: 2 }] } });
     const res = mockRes();
-    await expect(setTenantModules(req as any, res as any)).rejects.toThrow();
+    await expect(setTenantModules(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 });

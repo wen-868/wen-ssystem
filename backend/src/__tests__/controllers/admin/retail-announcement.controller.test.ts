@@ -88,7 +88,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.listAnnouncements.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listAnnouncements(req, res);
+    await listAnnouncements(req, res, vi.fn());
     expect(mocks.listAnnouncements).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -101,14 +101,14 @@ describe("admin retail-announcement.controller", () => {
       query: { storeId: "5" },
     });
     const res = mockRes();
-    await listAnnouncements(req, res);
+    await listAnnouncements(req, res, vi.fn());
     expect(mocks.listAnnouncements).toHaveBeenCalledWith(5, "t1");
   });
 
   it("listAnnouncements - 普通用户无 storeId 时返回 403", async () => {
     const req = mockReq({ user: { id: 1, username: "u", storeId: null, roles: ["CASHIER"] } });
     const res = mockRes();
-    await listAnnouncements(req, res);
+    await listAnnouncements(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mocks.fail).toHaveBeenCalledWith("缺少门店权限", "403");
     expect(mocks.listAnnouncements).not.toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe("admin retail-announcement.controller", () => {
       user: { id: 1, username: "boss", storeId: null, roles: ["SUPER_ADMIN"] },
     });
     const res = mockRes();
-    await listAnnouncements(req, res);
+    await listAnnouncements(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mocks.listAnnouncements).not.toHaveBeenCalled();
   });
@@ -138,7 +138,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.createAnnouncement.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createAnnouncement(req, res);
+    await createAnnouncement(req, res, vi.fn());
     expect(mocks.createAnnouncement).toHaveBeenCalledWith(
       expect.objectContaining({
         store_id: 1,
@@ -154,7 +154,7 @@ describe("admin retail-announcement.controller", () => {
   it("createAnnouncement - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createAnnouncement(req, res)).rejects.toThrow();
+    await expect(createAnnouncement(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createAnnouncement).not.toHaveBeenCalled();
   });
 
@@ -162,7 +162,7 @@ describe("admin retail-announcement.controller", () => {
     const body = { title: "x", content: "y" };
     const req = mockReq({ user: { id: 1, username: "u", storeId: null, roles: ["CASHIER"] }, body });
     const res = mockRes();
-    await createAnnouncement(req, res);
+    await createAnnouncement(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mocks.createAnnouncement).not.toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.updateAnnouncement.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateAnnouncement(req, res);
+    await updateAnnouncement(req, res, vi.fn());
     expect(mocks.updateAnnouncement).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ title: "新标题", content: "新内容" }),
@@ -188,7 +188,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.updateAnnouncement.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await updateAnnouncement(req, res);
+    await updateAnnouncement(req, res, vi.fn());
     expect(mocks.updateAnnouncement).toHaveBeenCalledWith(
       1,
       expect.objectContaining({}),
@@ -205,7 +205,7 @@ describe("admin retail-announcement.controller", () => {
       body,
     });
     const res = mockRes();
-    await updateAnnouncement(req, res);
+    await updateAnnouncement(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mocks.updateAnnouncement).not.toHaveBeenCalled();
   });
@@ -216,7 +216,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.deleteAnnouncement.mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteAnnouncement(req, res);
+    await deleteAnnouncement(req, res, vi.fn());
     expect(mocks.deleteAnnouncement).toHaveBeenCalledWith(1, 1, "t1");
     expect(mocks.ok).toHaveBeenCalledWith({ deleted: true });
   });
@@ -227,7 +227,7 @@ describe("admin retail-announcement.controller", () => {
       params: { id: "1" },
     });
     const res = mockRes();
-    await deleteAnnouncement(req, res);
+    await deleteAnnouncement(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(403);
     expect(mocks.deleteAnnouncement).not.toHaveBeenCalled();
   });
@@ -238,7 +238,7 @@ describe("admin retail-announcement.controller", () => {
     mocks.getActiveAnnouncements.mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "1" } });
     const res = mockRes();
-    await getActiveAnnouncements(req, res);
+    await getActiveAnnouncements(req, res, vi.fn());
     expect(mocks.getActiveAnnouncements).toHaveBeenCalledWith(1);
     expect(res.json).toHaveBeenCalled();
   });
@@ -246,7 +246,7 @@ describe("admin retail-announcement.controller", () => {
   it("getActiveAnnouncements - 缺少 storeId 时返回 400", async () => {
     const req = mockReq();
     const res = mockRes();
-    await getActiveAnnouncements(req, res);
+    await getActiveAnnouncements(req, res, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(mocks.fail).toHaveBeenCalledWith("storeId is required");
     expect(mocks.getActiveAnnouncements).not.toHaveBeenCalled();

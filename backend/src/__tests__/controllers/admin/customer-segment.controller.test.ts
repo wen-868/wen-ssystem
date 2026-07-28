@@ -66,7 +66,7 @@ describe("admin customer-segment.controller", () => {
     mocks.createSegment.mockResolvedValue({ id: 1 });
     const req = mockReq({ body });
     const res = mockRes();
-    await createSegment(req, res);
+    await createSegment(req, res, vi.fn());
     expect(mocks.createSegment).toHaveBeenCalledWith(
       expect.objectContaining({ segmentName: "高价值客户", tenantId: "t1" })
     );
@@ -76,7 +76,7 @@ describe("admin customer-segment.controller", () => {
   it("createSegment - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createSegment(req, res)).rejects.toThrow();
+    await expect(createSegment(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.createSegment).not.toHaveBeenCalled();
   });
 
@@ -84,7 +84,7 @@ describe("admin customer-segment.controller", () => {
     mocks.listSegments.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listSegments(req, res);
+    await listSegments(req, res, vi.fn());
     expect(mocks.listSegments).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("admin customer-segment.controller", () => {
     mocks.updateSegment.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body });
     const res = mockRes();
-    await updateSegment(req, res);
+    await updateSegment(req, res, vi.fn());
     expect(mocks.updateSegment).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ segmentName: "新名称", tenantId: "t1" })
@@ -106,7 +106,7 @@ describe("admin customer-segment.controller", () => {
     mocks.updateSegment.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await updateSegment(req, res);
+    await updateSegment(req, res, vi.fn());
     expect(mocks.updateSegment).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("admin customer-segment.controller", () => {
     mocks.deleteSegment.mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteSegment(req, res);
+    await deleteSegment(req, res, vi.fn());
     expect(mocks.deleteSegment).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -124,7 +124,7 @@ describe("admin customer-segment.controller", () => {
     mocks.refreshSegmentMembers.mockResolvedValue({ refreshed: 100 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await refreshSegmentMembers(req, res);
+    await refreshSegmentMembers(req, res, vi.fn());
     expect(mocks.refreshSegmentMembers).toHaveBeenCalledWith(1, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -133,7 +133,7 @@ describe("admin customer-segment.controller", () => {
     mocks.listSegmentMembers.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ params: { id: "1" }, query: { page: "1", pageSize: "10" } });
     const res = mockRes();
-    await listSegmentMembers(req, res);
+    await listSegmentMembers(req, res, vi.fn());
     expect(mocks.listSegmentMembers).toHaveBeenCalledWith(
       expect.objectContaining({ segmentId: 1, page: 1, pageSize: 10, tenantId: "t1" })
     );
@@ -144,7 +144,7 @@ describe("admin customer-segment.controller", () => {
     mocks.listSegmentMembers.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await listSegmentMembers(req, res);
+    await listSegmentMembers(req, res, vi.fn());
     expect(mocks.listSegmentMembers).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, pageSize: 20 })
     );

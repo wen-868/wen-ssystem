@@ -48,7 +48,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.getCartList as any).mockResolvedValue({ items: [], total: 0 });
     const req = mockReq({ headers: { "x-customer-type": "RETAIL" } });
     const res = mockRes();
-    await getCartList(req as any, res as any);
+    await getCartList(req as any, res as any, vi.fn());
     expect(cartService.getCartList).toHaveBeenCalledWith("t1", 1, "RETAIL");
     expect(ok).toHaveBeenCalled();
   });
@@ -57,7 +57,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.getCartList as any).mockResolvedValue({ items: [] });
     const req = mockReq({ headers: {} });
     const res = mockRes();
-    await getCartList(req as any, res as any);
+    await getCartList(req as any, res as any, vi.fn());
     expect(cartService.getCartList).toHaveBeenCalledWith("t1", 1, "RETAIL");
     expect(ok).toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.addToCart as any).mockResolvedValue({ success: true, message: "添加成功" });
     const req = mockReq({ body: { skuId: 1, quantity: 2 } });
     const res = mockRes();
-    await addToCart(req as any, res as any);
+    await addToCart(req as any, res as any, vi.fn());
     expect(cartService.addToCart).toHaveBeenCalledWith("t1", 1, 1, 2);
     expect(ok).toHaveBeenCalledWith({ message: "添加成功" });
   });
@@ -75,7 +75,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.addToCart as any).mockResolvedValue({ success: false, message: "库存不足" });
     const req = mockReq({ body: { skuId: 1, quantity: 100 } });
     const res = mockRes();
-    await addToCart(req as any, res as any);
+    await addToCart(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("库存不足");
   });
@@ -84,7 +84,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.addToCart as any).mockResolvedValue({ success: true });
     const req = mockReq({ body: { skuId: 1 } });
     const res = mockRes();
-    await addToCart(req as any, res as any);
+    await addToCart(req as any, res as any, vi.fn());
     expect(cartService.addToCart).toHaveBeenCalledWith("t1", 1, 1, 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -93,7 +93,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.updateCartItemQuantity as any).mockResolvedValue({ success: true, message: "更新成功" });
     const req = mockReq({ params: { skuId: "1" }, body: { quantity: 5 } });
     const res = mockRes();
-    await updateCartItemQuantity(req as any, res as any);
+    await updateCartItemQuantity(req as any, res as any, vi.fn());
     expect(cartService.updateCartItemQuantity).toHaveBeenCalledWith("t1", 1, 1, 5);
     expect(ok).toHaveBeenCalledWith({ message: "更新成功" });
   });
@@ -102,7 +102,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.updateCartItemQuantity as any).mockResolvedValue({ success: false, message: "商品不在购物车中" });
     const req = mockReq({ params: { skuId: "999" }, body: { quantity: 5 } });
     const res = mockRes();
-    await updateCartItemQuantity(req as any, res as any);
+    await updateCartItemQuantity(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("商品不在购物车中");
   });
@@ -111,7 +111,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.deleteCartItem as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { skuId: "1" } });
     const res = mockRes();
-    await deleteCartItem(req as any, res as any);
+    await deleteCartItem(req as any, res as any, vi.fn());
     expect(cartService.deleteCartItem).toHaveBeenCalledWith("t1", 1, 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.clearCart as any).mockResolvedValue({ success: true });
     const req = mockReq();
     const res = mockRes();
-    await clearCart(req as any, res as any);
+    await clearCart(req as any, res as any, vi.fn());
     expect(cartService.clearCart).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -129,7 +129,7 @@ describe("miniapp/cart.controller", () => {
     (cartService.getCartCount as any).mockResolvedValue(5);
     const req = mockReq();
     const res = mockRes();
-    await getCartCount(req as any, res as any);
+    await getCartCount(req as any, res as any, vi.fn());
     expect(cartService.getCartCount).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalledWith(5);
   });

@@ -72,7 +72,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await listBatches(req as any, res as any);
+      await listBatches(req as any, res as any, vi.fn());
       expect(inventoryBatchService.listBatches).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -81,7 +81,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.getBatchDetail as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await getBatchDetail(req as any, res as any);
+      await getBatchDetail(req as any, res as any, vi.fn());
       expect(inventoryBatchService.getBatchDetail).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -90,7 +90,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.getBatchDetail as any).mockResolvedValue(null);
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await getBatchDetail(req as any, res as any);
+      await getBatchDetail(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
       expect(fail).toHaveBeenCalled();
     });
@@ -99,7 +99,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.createBatch as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ body: { skuId: 1, batchNo: "B001", quantity: 100, storeId: 1 } });
       const res = mockRes();
-      await createBatch(req as any, res as any);
+      await createBatch(req as any, res as any, vi.fn());
       expect(inventoryBatchService.createBatch).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -107,14 +107,14 @@ describe("inventory-batch.controller", () => {
     it("createBatch - zod验证失败", async () => {
       const req = mockReq({ body: { skuId: 0, batchNo: "", quantity: -1 } });
       const res = mockRes();
-      await expect(createBatch(req as any, res as any)).rejects.toThrow();
+      await expect(createBatch(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("updateBatch - 应更新批次", async () => {
       (inventoryBatchService.updateBatch as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { quantity: 50 } });
       const res = mockRes();
-      await updateBatch(req as any, res as any);
+      await updateBatch(req as any, res as any, vi.fn());
       expect(inventoryBatchService.updateBatch).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -123,7 +123,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.splitBatch as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { quantity: 50 } });
       const res = mockRes();
-      await splitBatch(req as any, res as any);
+      await splitBatch(req as any, res as any, vi.fn());
       expect(inventoryBatchService.splitBatch).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -132,7 +132,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.getFifoSuggestion as any).mockResolvedValue([]);
       const req = mockReq({ params: { storeId: 1, skuId: 1 } });
       const res = mockRes();
-      await getFifoSuggestion(req as any, res as any);
+      await getFifoSuggestion(req as any, res as any, vi.fn());
       expect(inventoryBatchService.getFifoSuggestion).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -143,7 +143,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.listExpiryConfigs as any).mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await listExpiryConfigs(req as any, res as any);
+      await listExpiryConfigs(req as any, res as any, vi.fn());
       expect(inventoryBatchService.listExpiryConfigs).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -152,7 +152,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.createExpiryConfig as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ body: { skuId: 1, warningDays: 7, dangerDays: 3 } });
       const res = mockRes();
-      await createExpiryConfig(req as any, res as any);
+      await createExpiryConfig(req as any, res as any, vi.fn());
       expect(inventoryBatchService.createExpiryConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -161,7 +161,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.updateExpiryConfig as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 }, body: { warningDays: 10 } });
       const res = mockRes();
-      await updateExpiryConfig(req as any, res as any);
+      await updateExpiryConfig(req as any, res as any, vi.fn());
       expect(inventoryBatchService.updateExpiryConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -170,7 +170,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.deleteExpiryConfig as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await deleteExpiryConfig(req as any, res as any);
+      await deleteExpiryConfig(req as any, res as any, vi.fn());
       expect(inventoryBatchService.deleteExpiryConfig).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -181,7 +181,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: 1, pageSize: 20 } });
       const res = mockRes();
-      await listExpiryAlerts(req as any, res as any);
+      await listExpiryAlerts(req as any, res as any, vi.fn());
       expect(inventoryBatchService.listExpiryAlerts).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -190,7 +190,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.handleExpiryAlert as any).mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await handleExpiryAlert(req as any, res as any);
+      await handleExpiryAlert(req as any, res as any, vi.fn());
       expect(inventoryBatchService.handleExpiryAlert).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -199,7 +199,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.getExpiryAlertStatistics as any).mockResolvedValue({ total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await getExpiryAlertStatistics(req as any, res as any);
+      await getExpiryAlertStatistics(req as any, res as any, vi.fn());
       expect(inventoryBatchService.getExpiryAlertStatistics).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -214,7 +214,7 @@ describe("inventory-batch.controller", () => {
       (inventoryBatchService.getBatchDetail as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: 1 } });
       const res = mockRes();
-      await getTraceChain(req as any, res as any);
+      await getTraceChain(req as any, res as any, vi.fn());
       expect(inventoryBatchService.getBatchDetail).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });

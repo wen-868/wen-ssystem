@@ -48,7 +48,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ itemId: 1, receivedQty: 10 }] },
     });
     const res = mockRes();
-    await receiveTransferOrder(req as any, res as any);
+    await receiveTransferOrder(req as any, res as any, vi.fn());
     expect(transferExecutionService.receiveTransferOrder).toHaveBeenCalledWith(
       1,
       "t1",
@@ -61,7 +61,7 @@ describe("store/transfer-execution.controller", () => {
   it("getInTransitOrders - 未关联门店应返回400", async () => {
     const req = mockReq({ user: { id: 1, username: "storeuser", storeId: undefined } });
     const res = mockRes();
-    await getInTransitOrders(req as any, res as any);
+    await getInTransitOrders(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("未关联门店");
   });
@@ -70,7 +70,7 @@ describe("store/transfer-execution.controller", () => {
     (transferExecutionService.getInTransitOrders as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getInTransitOrders(req as any, res as any);
+    await getInTransitOrders(req as any, res as any, vi.fn());
     expect(transferExecutionService.getInTransitOrders).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe("store/transfer-execution.controller", () => {
   it("getMyShipments - 未关联门店应返回400", async () => {
     const req = mockReq({ user: { id: 1, username: "storeuser", storeId: undefined } });
     const res = mockRes();
-    await getMyShipments(req as any, res as any);
+    await getMyShipments(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("未关联门店");
   });
@@ -87,7 +87,7 @@ describe("store/transfer-execution.controller", () => {
     (transferExecutionService.getMyShipments as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getMyShipments(req as any, res as any);
+    await getMyShipments(req as any, res as any, vi.fn());
     expect(transferExecutionService.getMyShipments).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ itemId: 1, receivedQty: 10 }] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -108,7 +108,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -118,7 +118,7 @@ describe("store/transfer-execution.controller", () => {
       body: {},
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -128,7 +128,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ itemId: -1, receivedQty: 10 }] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -138,7 +138,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ itemId: 1, receivedQty: -1 }] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -148,7 +148,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ receivedQty: 10 }] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 
@@ -158,7 +158,7 @@ describe("store/transfer-execution.controller", () => {
       body: { items: [{ itemId: 1 }] },
     });
     const res = mockRes();
-    await expect(receiveTransferOrder(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(receiveTransferOrder(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(transferExecutionService.receiveTransferOrder).not.toHaveBeenCalled();
   });
 });

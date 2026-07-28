@@ -50,7 +50,7 @@ describe("position.controller", () => {
   describe("listPositions", () => {
     it("默认参数", async () => {
       mocks.listPositions.mockResolvedValue({ total: 0, records: [] });
-      await listPositions(mockReq(), mockRes());
+      listPositions(mockReq(), mockRes(), vi.fn());
       expect(mocks.listPositions).toHaveBeenCalledWith({
         departmentId: undefined,
         status: undefined,
@@ -62,7 +62,7 @@ describe("position.controller", () => {
 
     it("带 departmentId 参数", async () => {
       mocks.listPositions.mockResolvedValue({ total: 1, records: [] });
-      await listPositions(mockReq({ query: { departmentId: "1", page: 2, pageSize: 10 } }), mockRes());
+      listPositions(mockReq({ query: { departmentId: "1", page: 2, pageSize: 10 } }), mockRes(), vi.fn());
       expect(mocks.listPositions).toHaveBeenCalledWith({
         departmentId: 1,
         status: undefined,
@@ -74,7 +74,7 @@ describe("position.controller", () => {
 
     it("带 status 参数", async () => {
       mocks.listPositions.mockResolvedValue({ total: 1, records: [] });
-      await listPositions(mockReq({ query: { status: "0" } }), mockRes());
+      listPositions(mockReq({ query: { status: "0" } }), mockRes(), vi.fn());
       expect(mocks.listPositions).toHaveBeenCalledWith({
         departmentId: undefined,
         status: 0,
@@ -86,7 +86,7 @@ describe("position.controller", () => {
 
     it("同时带 departmentId 和 status", async () => {
       mocks.listPositions.mockResolvedValue({ total: 1, records: [] });
-      await listPositions(mockReq({ query: { departmentId: "2", status: "1" } }), mockRes());
+      listPositions(mockReq({ query: { departmentId: "2", status: "1" } }), mockRes(), vi.fn());
       expect(mocks.listPositions).toHaveBeenCalledWith({
         departmentId: 2,
         status: 1,
@@ -100,7 +100,7 @@ describe("position.controller", () => {
   describe("getPosition", () => {
     it("获取岗位详情", async () => {
       mocks.getPosition.mockResolvedValue({ id: 1, positionName: "岗位1" });
-      await getPosition(mockReq({ params: { id: "1" } }), mockRes());
+      getPosition(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.getPosition).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -108,7 +108,7 @@ describe("position.controller", () => {
   describe("createPosition", () => {
     it("创建岗位", async () => {
       mocks.createPosition.mockResolvedValue({ id: 1, positionName: "岗位1" });
-      await createPosition(mockReq({ body: { positionName: "岗位1", positionCode: "P001" } }), mockRes());
+      createPosition(mockReq({ body: { positionName: "岗位1", positionCode: "P001" } }), mockRes(), vi.fn());
       expect(mocks.createPosition).toHaveBeenCalled();
     });
   });
@@ -116,7 +116,7 @@ describe("position.controller", () => {
   describe("updatePosition", () => {
     it("更新岗位", async () => {
       mocks.updatePosition.mockResolvedValue({ id: 1 });
-      await updatePosition(mockReq({ params: { id: "1" }, body: { positionName: "新名称" } }), mockRes());
+      updatePosition(mockReq({ params: { id: "1" }, body: { positionName: "新名称" } }), mockRes(), vi.fn());
       expect(mocks.updatePosition).toHaveBeenCalled();
     });
   });
@@ -124,7 +124,7 @@ describe("position.controller", () => {
   describe("deletePosition", () => {
     it("删除岗位", async () => {
       mocks.deletePosition.mockResolvedValue({ id: 1 });
-      await deletePosition(mockReq({ params: { id: "1" } }), mockRes());
+      deletePosition(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.deletePosition).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -132,7 +132,7 @@ describe("position.controller", () => {
   describe("listAllPositions", () => {
     it("获取所有启用岗位", async () => {
       mocks.listAllPositions.mockResolvedValue([{ id: 1 }, { id: 2 }]);
-      await listAllPositions(mockReq(), mockRes());
+      listAllPositions(mockReq(), mockRes(), vi.fn());
       expect(mocks.listAllPositions).toHaveBeenCalledWith("t1");
     });
   });

@@ -48,7 +48,7 @@ describe("store/order.controller", () => {
     (orderService.listOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 10, status: "PENDING" } });
     const res = mockRes();
-    await listOrders(req as any, res as any);
+    await listOrders(req as any, res as any, vi.fn());
     expect(orderService.listOrders).toHaveBeenCalledWith({
       page: 1,
       pageSize: 10,
@@ -63,7 +63,7 @@ describe("store/order.controller", () => {
     (orderService.getOrderDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { orderNo: "ORD999" } });
     const res = mockRes();
-    await getOrderDetail(req as any, res as any);
+    await getOrderDetail(req as any, res as any, vi.fn());
     expect(orderService.getOrderDetail).toHaveBeenCalledWith("ORD999", "t1");
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("订单不存在", "404");
@@ -73,7 +73,7 @@ describe("store/order.controller", () => {
     (orderService.getOrderDetail as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await getOrderDetail(req as any, res as any);
+    await getOrderDetail(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -81,7 +81,7 @@ describe("store/order.controller", () => {
     (orderService.acceptOrder as any).mockResolvedValue(null);
     const req = mockReq({ params: { orderNo: "ORD999" } });
     const res = mockRes();
-    await acceptOrder(req as any, res as any);
+    await acceptOrder(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("订单不存在", "404");
   });
@@ -90,7 +90,7 @@ describe("store/order.controller", () => {
     (orderService.acceptOrder as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await acceptOrder(req as any, res as any);
+    await acceptOrder(req as any, res as any, vi.fn());
     expect(orderService.acceptOrder).toHaveBeenCalledWith("ORD001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -99,7 +99,7 @@ describe("store/order.controller", () => {
     (orderService.startDelivery as any).mockResolvedValue(null);
     const req = mockReq({ params: { orderNo: "ORD999" } });
     const res = mockRes();
-    await startDelivery(req as any, res as any);
+    await startDelivery(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("订单不存在或状态不允许开始配送", "400");
   });
@@ -108,7 +108,7 @@ describe("store/order.controller", () => {
     (orderService.startDelivery as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await startDelivery(req as any, res as any);
+    await startDelivery(req as any, res as any, vi.fn());
     expect(orderService.startDelivery).toHaveBeenCalledWith("ORD001", "t1", 1, "storeuser");
     expect(ok).toHaveBeenCalled();
   });
@@ -117,7 +117,7 @@ describe("store/order.controller", () => {
     (orderService.completeDelivery as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await completeDelivery(req as any, res as any);
+    await completeDelivery(req as any, res as any, vi.fn());
     expect(orderService.completeDelivery).toHaveBeenCalledWith("ORD001", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("store/order.controller", () => {
     (orderService.rejectOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await rejectOrder(req as any, res as any);
+    await rejectOrder(req as any, res as any, vi.fn());
     expect(orderService.rejectOrder).toHaveBeenCalledWith("ORD001", 1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -135,7 +135,7 @@ describe("store/order.controller", () => {
     (orderService.cancelOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { orderNo: "ORD001" } });
     const res = mockRes();
-    await cancelOrder(req as any, res as any);
+    await cancelOrder(req as any, res as any, vi.fn());
     expect(orderService.cancelOrder).toHaveBeenCalledWith("ORD001", 1, "t1");
     expect(ok).toHaveBeenCalled();
   });

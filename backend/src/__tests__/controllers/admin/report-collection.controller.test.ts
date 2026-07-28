@@ -52,7 +52,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionFunnel as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCollectionFunnel(req as any, res as any);
+    await getCollectionFunnel(req as any, res as any, vi.fn());
     expect(svc.getCollectionFunnel).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -63,7 +63,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionFunnel as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "2" } });
     const res = mockRes();
-    await getCollectionFunnel(req as any, res as any);
+    await getCollectionFunnel(req as any, res as any, vi.fn());
     expect(svc.getCollectionFunnel).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -79,7 +79,7 @@ describe("report-collection.controller", () => {
     (svc.getChannelConversion as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getChannelConversion(req as any, res as any);
+    await getChannelConversion(req as any, res as any, vi.fn());
     expect(svc.getChannelConversion).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -90,7 +90,7 @@ describe("report-collection.controller", () => {
     (svc.getChannelConversion as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "3" } });
     const res = mockRes();
-    await getChannelConversion(req as any, res as any);
+    await getChannelConversion(req as any, res as any, vi.fn());
     expect(svc.getChannelConversion).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -106,7 +106,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionTimeout as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCollectionTimeout(req as any, res as any);
+    await getCollectionTimeout(req as any, res as any, vi.fn());
     expect(svc.getCollectionTimeout).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -117,7 +117,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionTimeout as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "1" } });
     const res = mockRes();
-    await getCollectionTimeout(req as any, res as any);
+    await getCollectionTimeout(req as any, res as any, vi.fn());
     expect(svc.getCollectionTimeout).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -133,7 +133,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionDailyTrend as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCollectionDailyTrend(req as any, res as any);
+    await getCollectionDailyTrend(req as any, res as any, vi.fn());
     expect(svc.getCollectionDailyTrend).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -144,7 +144,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionDailyTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-12-31", storeId: "2" } });
     const res = mockRes();
-    await getCollectionDailyTrend(req as any, res as any);
+    await getCollectionDailyTrend(req as any, res as any, vi.fn());
     expect(svc.getCollectionDailyTrend).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
@@ -160,7 +160,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionSummary as any).mockResolvedValue({ totalAmount: 10000 });
     const req = mockReq();
     const res = mockRes();
-    await getCollectionSummary(req as any, res as any);
+    await getCollectionSummary(req as any, res as any, vi.fn());
     expect(svc.getCollectionSummary).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1" })
     );
@@ -171,7 +171,7 @@ describe("report-collection.controller", () => {
     (svc.getCollectionSummary as any).mockResolvedValue({ totalAmount: 10000 });
     const req = mockReq({ query: { storeId: "3" } });
     const res = mockRes();
-    await getCollectionSummary(req as any, res as any);
+    await getCollectionSummary(req as any, res as any, vi.fn());
     expect(svc.getCollectionSummary).toHaveBeenCalledWith(
       expect.objectContaining({ tenantId: "t1", storeId: 3 })
     );

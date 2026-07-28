@@ -45,7 +45,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getAnalyticsSummary as any).mockResolvedValue({ totalOrders: 100 });
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31", storeId: "1" } });
     const res = mockRes();
-    await getAnalyticsSummary(req as any, res as any);
+    await getAnalyticsSummary(req as any, res as any, vi.fn());
     expect(svc.getAnalyticsSummary).toHaveBeenCalledWith({
       tenantId: "t1",
       startDate: "2026-01-01",
@@ -59,7 +59,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getAnalyticsSummary as any).mockResolvedValue({});
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getAnalyticsSummary(req as any, res as any);
+    await getAnalyticsSummary(req as any, res as any, vi.fn());
     expect(svc.getAnalyticsSummary).toHaveBeenCalledWith(expect.objectContaining({
       storeId: undefined,
     }));
@@ -70,7 +70,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getSalesTrend as any).mockResolvedValue([]);
     const req = mockReq({ query: { period: "day", startDate: "2026-01-01", endDate: "2026-01-31", storeId: "1" } });
     const res = mockRes();
-    await getSalesTrend(req as any, res as any);
+    await getSalesTrend(req as any, res as any, vi.fn());
     expect(svc.getSalesTrend).toHaveBeenCalledWith({
       tenantId: "t1",
       period: "day",
@@ -85,7 +85,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getPlatformComparison as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
     const res = mockRes();
-    await getPlatformComparison(req as any, res as any);
+    await getPlatformComparison(req as any, res as any, vi.fn());
     expect(svc.getPlatformComparison).toHaveBeenCalledWith(expect.objectContaining({
       tenantId: "t1",
       startDate: "2026-01-01",
@@ -98,7 +98,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getTopProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31", limit: "20" } });
     const res = mockRes();
-    await getTopProducts(req as any, res as any);
+    await getTopProducts(req as any, res as any, vi.fn());
     expect(svc.getTopProducts).toHaveBeenCalledWith(expect.objectContaining({
       limit: 20,
     }));
@@ -109,7 +109,7 @@ describe("instant-retail/analytics.controller", () => {
     (svc.getTopProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getTopProducts(req as any, res as any);
+    await getTopProducts(req as any, res as any, vi.fn());
     expect(svc.getTopProducts).toHaveBeenCalledWith(expect.objectContaining({
       limit: 10,
     }));

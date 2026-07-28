@@ -55,7 +55,7 @@ describe("order-timeout.controller", () => {
     (orderTimeoutService.getConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listConfigs(req as any, res as any);
+    await listConfigs(req as any, res as any, vi.fn());
     expect(orderTimeoutService.getConfigs).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -72,7 +72,7 @@ describe("order-timeout.controller", () => {
       },
     });
     const res = mockRes();
-    await createConfig(req as any, res as any);
+    await createConfig(req as any, res as any, vi.fn());
     expect(orderTimeoutService.createConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -87,7 +87,7 @@ describe("order-timeout.controller", () => {
       },
     });
     const res = mockRes();
-    await updateConfig(req as any, res as any);
+    await updateConfig(req as any, res as any, vi.fn());
     expect(orderTimeoutService.updateConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("order-timeout.controller", () => {
     (orderTimeoutService.deleteConfig as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteConfig(req as any, res as any);
+    await deleteConfig(req as any, res as any, vi.fn());
     expect(orderTimeoutService.deleteConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe("order-timeout.controller", () => {
     (orderTimeoutService.getLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listLogs(req as any, res as any);
+    await listLogs(req as any, res as any, vi.fn());
     expect(orderTimeoutService.getLogs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe("order-timeout.controller", () => {
     (orderTimeoutService.getStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getStatistics(req as any, res as any);
+    await getStatistics(req as any, res as any, vi.fn());
     expect(orderTimeoutService.getStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });

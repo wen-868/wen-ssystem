@@ -78,7 +78,7 @@ describe("platform/platform.controller", () => {
       (tenantAdminService.listPlatformTenants as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "20", status: "ACTIVE", keyword: "测试", planCode: "basic" } });
       const res = mockRes();
-      await listTenants(req as any, res as any);
+      await listTenants(req as any, res as any, vi.fn());
       expect(tenantAdminService.listPlatformTenants).toHaveBeenCalledWith(1, 20, { status: "ACTIVE", keyword: "测试", planCode: "basic" });
       expect(ok).toHaveBeenCalled();
     });
@@ -87,7 +87,7 @@ describe("platform/platform.controller", () => {
       (tenantAdminService.getPlatformTenantDetail as any).mockResolvedValue(null);
       const req = mockReq({ params: { tenantId: "t999" } });
       const res = mockRes();
-      await getTenantDetail(req as any, res as any);
+      await getTenantDetail(req as any, res as any, vi.fn());
       expect(tenantAdminService.getPlatformTenantDetail).toHaveBeenCalledWith("t999");
       expect(res.status).toHaveBeenCalledWith(404);
       expect(fail).toHaveBeenCalledWith("租户不存在", "404");
@@ -97,7 +97,7 @@ describe("platform/platform.controller", () => {
       (tenantAdminService.getPlatformTenantDetail as any).mockResolvedValue({ tenantId: "t1" });
       const req = mockReq({ params: { tenantId: "t1" } });
       const res = mockRes();
-      await getTenantDetail(req as any, res as any);
+      await getTenantDetail(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
@@ -105,7 +105,7 @@ describe("platform/platform.controller", () => {
       (tenantAdminService.createPlatformTenant as any).mockResolvedValue({ tenantId: "t1" });
       const req = mockReq({ body: { tenantName: "新租户", tenantCode: "new_tenant", contactName: "张三", contactPhone: "13800138000", durationDays: 30 } });
       const res = mockRes();
-      await createTenant(req as any, res as any);
+      await createTenant(req as any, res as any, vi.fn());
       expect(tenantAdminService.createPlatformTenant).toHaveBeenCalledWith(expect.objectContaining({
         tenantName: "新租户",
         tenantCode: "new_tenant",
@@ -120,7 +120,7 @@ describe("platform/platform.controller", () => {
       (tenantAdminService.updatePlatformTenant as any).mockResolvedValue({ tenantId: "t1" });
       const req = mockReq({ params: { tenantId: "t1" }, body: { tenantName: "更新租户" } });
       const res = mockRes();
-      await updateTenant(req as any, res as any);
+      await updateTenant(req as any, res as any, vi.fn());
       expect(tenantAdminService.updatePlatformTenant).toHaveBeenCalledWith("t1", expect.objectContaining({
         tenantName: "更新租户",
       }));
@@ -133,7 +133,7 @@ describe("platform/platform.controller", () => {
       (adminAccountService.listPlatformAdmins as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "20", role: "ADMIN", status: "ACTIVE", keyword: "测试" } });
       const res = mockRes();
-      await listAdmins(req as any, res as any);
+      await listAdmins(req as any, res as any, vi.fn());
       expect(adminAccountService.listPlatformAdmins).toHaveBeenCalledWith(1, 20, { role: "ADMIN", status: "ACTIVE", keyword: "测试" });
       expect(ok).toHaveBeenCalled();
     });
@@ -142,7 +142,7 @@ describe("platform/platform.controller", () => {
       (adminAccountService.createPlatformAdmin as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ body: { username: "admin", password: "123456", realName: "管理员", phone: "13800138000", role: "ADMIN" } });
       const res = mockRes();
-      await createAdmin(req as any, res as any);
+      await createAdmin(req as any, res as any, vi.fn());
       expect(adminAccountService.createPlatformAdmin).toHaveBeenCalledWith(expect.objectContaining({
         username: "admin",
         password: "123456",
@@ -157,7 +157,7 @@ describe("platform/platform.controller", () => {
       (adminAccountService.updatePlatformAdminStatus as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body: { status: "DISABLED" } });
       const res = mockRes();
-      await updateAdminStatus(req as any, res as any);
+      await updateAdminStatus(req as any, res as any, vi.fn());
       expect(adminAccountService.updatePlatformAdminStatus).toHaveBeenCalledWith(1, "DISABLED");
       expect(ok).toHaveBeenCalled();
     });
@@ -168,7 +168,7 @@ describe("platform/platform.controller", () => {
       (overviewService.getPlatformOverview as any).mockResolvedValue({ totalTenants: 100 });
       const req = mockReq();
       const res = mockRes();
-      await getOverview(req as any, res as any);
+      await getOverview(req as any, res as any, vi.fn());
       expect(overviewService.getPlatformOverview).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -179,7 +179,7 @@ describe("platform/platform.controller", () => {
       (subscriptionAdminService.listPlatformSubscriptions as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "20", tenantId: "t1", status: "ACTIVE", planCode: "basic", keyword: "测试" } });
       const res = mockRes();
-      await listSubscriptions(req as any, res as any);
+      await listSubscriptions(req as any, res as any, vi.fn());
       expect(subscriptionAdminService.listPlatformSubscriptions).toHaveBeenCalledWith(1, 20, { tenantId: "t1", status: "ACTIVE", planCode: "basic", keyword: "测试" });
       expect(ok).toHaveBeenCalled();
     });
@@ -188,7 +188,7 @@ describe("platform/platform.controller", () => {
       (subscriptionAdminService.createPlatformSubscription as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ body: { tenantId: "t1", planCode: "basic", planName: "基础版", durationDays: 30, amount: 99, operator: "platform" } });
       const res = mockRes();
-      await createSubscription(req as any, res as any);
+      await createSubscription(req as any, res as any, vi.fn());
       expect(subscriptionAdminService.createPlatformSubscription).toHaveBeenCalledWith("t1", "basic", "基础版", 30, 99, "platform");
       expect(ok).toHaveBeenCalled();
     });
@@ -199,7 +199,7 @@ describe("platform/platform.controller", () => {
       (configService.listPlatformConfigs as any).mockResolvedValue([]);
       const req = mockReq({ query: { category: "system" } });
       const res = mockRes();
-      await listConfigs(req as any, res as any);
+      await listConfigs(req as any, res as any, vi.fn());
       expect(configService.listPlatformConfigs).toHaveBeenCalledWith("system");
       expect(ok).toHaveBeenCalled();
     });
@@ -208,7 +208,7 @@ describe("platform/platform.controller", () => {
       (configService.listPlatformConfigs as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listConfigs(req as any, res as any);
+      await listConfigs(req as any, res as any, vi.fn());
       expect(configService.listPlatformConfigs).toHaveBeenCalledWith(undefined);
       expect(ok).toHaveBeenCalled();
     });
@@ -217,7 +217,7 @@ describe("platform/platform.controller", () => {
       (configService.updatePlatformConfig as any).mockResolvedValue({ configKey: "key1" });
       const req = mockReq({ params: { key: "key1" }, body: { configValue: "value1", operator: "admin" } });
       const res = mockRes();
-      await updateConfig(req as any, res as any);
+      await updateConfig(req as any, res as any, vi.fn());
       expect(configService.updatePlatformConfig).toHaveBeenCalledWith("key1", "value1", "admin");
       expect(ok).toHaveBeenCalled();
     });
@@ -228,7 +228,7 @@ describe("platform/platform.controller", () => {
       (configService.listPlatformAuditLogs as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "20", adminId: "1", action: "create", module: "tenant", keyword: "测试", startDate: "2026-01-01", endDate: "2026-01-31" } });
       const res = mockRes();
-      await listAuditLogs(req as any, res as any);
+      await listAuditLogs(req as any, res as any, vi.fn());
       expect(configService.listPlatformAuditLogs).toHaveBeenCalledWith(1, 20, {
         adminId: 1,
         action: "create",
@@ -244,7 +244,7 @@ describe("platform/platform.controller", () => {
       (configService.listPlatformAuditLogs as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listAuditLogs(req as any, res as any);
+      await listAuditLogs(req as any, res as any, vi.fn());
       expect(configService.listPlatformAuditLogs).toHaveBeenCalledWith(1, 20, {
         adminId: undefined,
         action: undefined,

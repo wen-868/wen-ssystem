@@ -74,7 +74,7 @@ describe("marketing-flash-sale.controller", () => {
       },
     });
     const res = mockRes();
-    await createFlashSale(req as any, res as any);
+    await createFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.createFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
@@ -82,14 +82,14 @@ describe("marketing-flash-sale.controller", () => {
   it("createFlashSale - 缺少必填字段应抛出错误", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createFlashSale(req as any, res as any)).rejects.toThrow();
+    await expect(createFlashSale(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listFlashSales - 应返回限时抢购列表", async () => {
     (flashSaleService.listFlashSales as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listFlashSales(req as any, res as any);
+    await listFlashSales(req as any, res as any, vi.fn());
     expect(flashSaleService.listFlashSales).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.listFlashSales as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listFlashSales(req as any, res as any);
+    await listFlashSales(req as any, res as any, vi.fn());
     expect(flashSaleService.listFlashSales).toHaveBeenCalledWith(1, 20, "t1", undefined);
   });
 
@@ -106,7 +106,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.getFlashSale as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getFlashSale(req as any, res as any);
+    await getFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.getFlashSale).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -118,7 +118,7 @@ describe("marketing-flash-sale.controller", () => {
       body: { name: "更新名称" },
     });
     const res = mockRes();
-    await updateFlashSale(req as any, res as any);
+    await updateFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.updateFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -127,7 +127,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.deleteFlashSale as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteFlashSale(req as any, res as any);
+    await deleteFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.deleteFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -136,7 +136,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.activateFlashSale as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await activateFlashSale(req as any, res as any);
+    await activateFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.activateFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.pauseFlashSale as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await pauseFlashSale(req as any, res as any);
+    await pauseFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.pauseFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -154,7 +154,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.getFlashSaleStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getFlashSaleStatistics(req as any, res as any);
+    await getFlashSaleStatistics(req as any, res as any, vi.fn());
     expect(flashSaleService.getFlashSaleStatistics).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -163,7 +163,7 @@ describe("marketing-flash-sale.controller", () => {
     (flashSaleService.listActiveFlashSales as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listActiveFlashSales(req as any, res as any);
+    await listActiveFlashSales(req as any, res as any, vi.fn());
     expect(flashSaleService.listActiveFlashSales).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -175,7 +175,7 @@ describe("marketing-flash-sale.controller", () => {
       body: { userId: 1, quantity: 1 },
     });
     const res = mockRes();
-    await buyFlashSale(req as any, res as any);
+    await buyFlashSale(req as any, res as any, vi.fn());
     expect(flashSaleService.buyFlashSale).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -186,6 +186,6 @@ describe("marketing-flash-sale.controller", () => {
       body: {},
     });
     const res = mockRes();
-    await expect(buyFlashSale(req as any, res as any)).rejects.toThrow();
+    await expect(buyFlashSale(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 });

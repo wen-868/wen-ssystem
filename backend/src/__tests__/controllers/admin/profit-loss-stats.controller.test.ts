@@ -59,7 +59,7 @@ describe("admin profit-loss-stats.controller", () => {
       });
       const req = mockReq();
       const res = mockRes();
-      await getProfitLossStats(req, res);
+      await getProfitLossStats(req, res, vi.fn());
       expect(mocks.getProfitLossStats).toHaveBeenCalledWith({
         tenantId: "t1",
         dateStart: undefined,
@@ -83,7 +83,7 @@ describe("admin profit-loss-stats.controller", () => {
         query: { dateStart: "2026-01-01", dateEnd: "2026-01-31" },
       });
       const res = mockRes();
-      await getProfitLossStats(req, res);
+      await getProfitLossStats(req, res, vi.fn());
       expect(mocks.getProfitLossStats).toHaveBeenCalledWith(expect.objectContaining({
         dateStart: "2026-01-01",
         dateEnd: "2026-01-31",
@@ -98,7 +98,7 @@ describe("admin profit-loss-stats.controller", () => {
       });
       const req = mockReq({ query: { storeId: "5" } });
       const res = mockRes();
-      await getProfitLossStats(req, res);
+      await getProfitLossStats(req, res, vi.fn());
       expect(mocks.getProfitLossStats).toHaveBeenCalledWith(expect.objectContaining({
         storeId: 5,
       }));
@@ -108,7 +108,7 @@ describe("admin profit-loss-stats.controller", () => {
       mocks.getProfitLossStats.mockResolvedValue({});
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getProfitLossStats(req, res);
+      await getProfitLossStats(req, res, vi.fn());
       expect(mocks.getProfitLossStats).toHaveBeenCalledWith(expect.objectContaining({
         storeId: undefined,
       }));

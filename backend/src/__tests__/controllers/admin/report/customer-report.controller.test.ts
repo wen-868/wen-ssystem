@@ -42,7 +42,7 @@ describe("report/customer-report.controller", () => {
     (customerReportService.getCustomerContribution as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq();
     const res = mockRes();
-    await getCustomerContribution(req as any, res as any);
+    await getCustomerContribution(req as any, res as any, vi.fn());
     expect(customerReportService.getCustomerContribution).toHaveBeenCalledWith(
       "t1",
       1,
@@ -59,7 +59,7 @@ describe("report/customer-report.controller", () => {
       query: { page: "2", pageSize: "10", dateStart: "2026-01-01", dateEnd: "2026-12-31" },
     });
     const res = mockRes();
-    await getCustomerContribution(req as any, res as any);
+    await getCustomerContribution(req as any, res as any, vi.fn());
     expect(customerReportService.getCustomerContribution).toHaveBeenCalledWith(
       "t1",
       2,

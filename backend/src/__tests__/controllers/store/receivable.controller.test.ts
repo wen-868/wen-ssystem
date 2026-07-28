@@ -46,7 +46,7 @@ describe("store/receivable.controller", () => {
     (svc.listReceivables as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20, status: "UNPAID", keyword: "客户" } });
     const res = mockRes();
-    await listReceivables(req as any, res as any);
+    await listReceivables(req as any, res as any, vi.fn());
     expect(svc.listReceivables).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
@@ -62,7 +62,7 @@ describe("store/receivable.controller", () => {
     (svc.paymentOnReceivable as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { amount: 100, paymentMethod: "CASH" } });
     const res = mockRes();
-    await paymentOnReceivable(req as any, res as any);
+    await paymentOnReceivable(req as any, res as any, vi.fn());
     expect(svc.paymentOnReceivable).toHaveBeenCalledWith({
       receivableNo: "REC001",
       amount: 100,
@@ -77,7 +77,7 @@ describe("store/receivable.controller", () => {
     (svc.paymentOnReceivable as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { amount: 200, paymentMethod: "ALIPAY", remark: "测试备注" } });
     const res = mockRes();
-    await paymentOnReceivable(req as any, res as any);
+    await paymentOnReceivable(req as any, res as any, vi.fn());
     expect(svc.paymentOnReceivable).toHaveBeenCalledWith(expect.objectContaining({
       remark: "测试备注",
     }));
@@ -88,7 +88,7 @@ describe("store/receivable.controller", () => {
     (svc.getDashboard as any).mockResolvedValue({ totalReceivable: 1000 });
     const req = mockReq();
     const res = mockRes();
-    await getDashboard(req as any, res as any);
+    await getDashboard(req as any, res as any, vi.fn());
     expect(svc.getDashboard).toHaveBeenCalledWith({
       storeId: 1,
       tenantId: "t1",
@@ -100,7 +100,7 @@ describe("store/receivable.controller", () => {
     (svc.getDashboard as any).mockResolvedValue({});
     const req = mockReq({ query: { storeId: "3" } });
     const res = mockRes();
-    await getDashboard(req as any, res as any);
+    await getDashboard(req as any, res as any, vi.fn());
     expect(svc.getDashboard).toHaveBeenCalledWith(expect.objectContaining({
       storeId: 3,
     }));
@@ -111,7 +111,7 @@ describe("store/receivable.controller", () => {
     (svc.getDailySales as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getDailySales(req as any, res as any);
+    await getDailySales(req as any, res as any, vi.fn());
     expect(svc.getDailySales).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("store/receivable.controller", () => {
     (svc.getDailySales as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: "5" } });
     const res = mockRes();
-    await getDailySales(req as any, res as any);
+    await getDailySales(req as any, res as any, vi.fn());
     expect(svc.getDailySales).toHaveBeenCalledWith(5, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -128,28 +128,28 @@ describe("store/receivable.controller", () => {
   it("paymentOnReceivable - amount 缺失应抛出 ZodError", async () => {
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { paymentMethod: "CASH" } });
     const res = mockRes();
-    await expect(paymentOnReceivable(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(paymentOnReceivable(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(svc.paymentOnReceivable).not.toHaveBeenCalled();
   });
 
   it("paymentOnReceivable - paymentMethod 缺失应抛出 ZodError", async () => {
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { amount: 100 } });
     const res = mockRes();
-    await expect(paymentOnReceivable(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(paymentOnReceivable(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(svc.paymentOnReceivable).not.toHaveBeenCalled();
   });
 
   it("paymentOnReceivable - amount 非正数应抛出 ZodError", async () => {
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { amount: -100, paymentMethod: "CASH" } });
     const res = mockRes();
-    await expect(paymentOnReceivable(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(paymentOnReceivable(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(svc.paymentOnReceivable).not.toHaveBeenCalled();
   });
 
   it("paymentOnReceivable - paymentMethod 无效值应抛出 ZodError", async () => {
     const req = mockReq({ params: { receivableNo: "REC001" }, body: { amount: 100, paymentMethod: "INVALID" } });
     const res = mockRes();
-    await expect(paymentOnReceivable(req as any, res as any)).rejects.toThrow(ZodError);
+    await expect(paymentOnReceivable(req as any, res as any, vi.fn())).rejects.toThrow(ZodError);
     expect(svc.paymentOnReceivable).not.toHaveBeenCalled();
   });
 });

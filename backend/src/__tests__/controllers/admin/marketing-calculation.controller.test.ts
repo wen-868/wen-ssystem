@@ -58,7 +58,7 @@ describe("admin marketing-calculation.controller", () => {
     mocks.calculatePromotion.mockResolvedValue({ finalAmount: 180, discountAmount: 20 });
     const req = mockReq({ body });
     const res = mockRes();
-    await calculatePromotion(req, res);
+    await calculatePromotion(req, res, vi.fn());
     expect(mocks.calculatePromotion).toHaveBeenCalledWith(
       expect.objectContaining({ items: expect.any(Array) }),
       "t1"
@@ -69,20 +69,20 @@ describe("admin marketing-calculation.controller", () => {
   it("calculatePromotion - 缺少 items 时 zod 校验抛错", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(calculatePromotion(req, res)).rejects.toThrow();
+    await expect(calculatePromotion(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.calculatePromotion).not.toHaveBeenCalled();
   });
 
   it("calculatePromotion - items 为空数组时 zod 校验抛错", async () => {
     const req = mockReq({ body: { items: [] } });
     const res = mockRes();
-    await expect(calculatePromotion(req, res)).rejects.toThrow();
+    await expect(calculatePromotion(req, res, vi.fn())).rejects.toThrow();
   });
 
   it("calculatePromotion - items 中缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ body: { items: [{ skuId: 1 }] } });
     const res = mockRes();
-    await expect(calculatePromotion(req, res)).rejects.toThrow();
+    await expect(calculatePromotion(req, res, vi.fn())).rejects.toThrow();
   });
 
   it("calculatePromotion - 可选参数不传也能正常计算", async () => {
@@ -94,7 +94,7 @@ describe("admin marketing-calculation.controller", () => {
     mocks.calculatePromotion.mockResolvedValue({ finalAmount: 100 });
     const req = mockReq({ body });
     const res = mockRes();
-    await calculatePromotion(req, res);
+    await calculatePromotion(req, res, vi.fn());
     expect(mocks.calculatePromotion).toHaveBeenCalled();
     expect(res.json).toHaveBeenCalled();
   });

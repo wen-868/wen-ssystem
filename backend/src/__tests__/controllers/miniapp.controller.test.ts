@@ -94,7 +94,7 @@ describe("miniapp.controller", () => {
     (miniappService.getProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: { storeId: 1, keyword: "test" } });
     const res = mockRes();
-    await getProducts(req as any, res as any);
+    await getProducts(req as any, res as any, vi.fn());
     expect(miniappService.getProducts).toHaveBeenCalledWith("t1", 1, "test", "RETAIL");
     expect(ok).toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe("miniapp.controller", () => {
       headers: { "x-customer-type": "RETAIL", "x-settlement-type": "ACCOUNT" },
     });
     const res = mockRes();
-    await createOrder(req as any, res as any);
+    await createOrder(req as any, res as any, vi.fn());
     expect(miniappService.createOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -118,14 +118,14 @@ describe("miniapp.controller", () => {
   it("createOrder - zod验证失败", async () => {
     const req = mockReq({ body: { items: [] } });
     const res = mockRes();
-    await expect(createOrder(req as any, res as any)).rejects.toThrow();
+    await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("getOrders - 应获取订单列表", async () => {
     (miniappService.getOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 }, headers: { "x-anonymous-member-id": "test" } });
     const res = mockRes();
-    await getOrders(req as any, res as any);
+    await getOrders(req as any, res as any, vi.fn());
     expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "test", 1, 20);
     expect(ok).toHaveBeenCalled();
   });
@@ -134,7 +134,7 @@ describe("miniapp.controller", () => {
     (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ params: { orderNo: "ORD001" }, headers: { "x-anonymous-member-id": "test" } });
     const res = mockRes();
-    await getOrderDetail(req as any, res as any);
+    await getOrderDetail(req as any, res as any, vi.fn());
     expect(miniappService.getOrderDetail).toHaveBeenCalledWith("t1", "ORD001", "test");
     expect(ok).toHaveBeenCalled();
   });
@@ -143,7 +143,7 @@ describe("miniapp.controller", () => {
     (miniappService.confirmReceipt as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { orderNo: "ORD001" }, tenantId: "t1" });
     const res = mockRes();
-    await confirmReceipt(req as any, res as any);
+    await confirmReceipt(req as any, res as any, vi.fn());
     expect(miniappService.confirmReceipt).toHaveBeenCalledWith("ORD001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -152,7 +152,7 @@ describe("miniapp.controller", () => {
     (miniappService.getStatements as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 }, headers: { "x-anonymous-member-id": "test" } });
     const res = mockRes();
-    await getStatements(req as any, res as any);
+    await getStatements(req as any, res as any, vi.fn());
     expect(miniappService.getStatements).toHaveBeenCalledWith("t1", "test", 1, 20);
     expect(ok).toHaveBeenCalled();
   });
@@ -161,7 +161,7 @@ describe("miniapp.controller", () => {
     (miniappService.getStatementDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 }, headers: { "x-anonymous-member-id": "test" } });
     const res = mockRes();
-    await getStatementDetail(req as any, res as any);
+    await getStatementDetail(req as any, res as any, vi.fn());
     expect(miniappService.getStatementDetail).toHaveBeenCalledWith("t1", 1, "test");
     expect(ok).toHaveBeenCalled();
   });
@@ -178,7 +178,7 @@ describe("miniapp.controller", () => {
     (miniappService.getProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: {}, headers: {} });
     const res = mockRes();
-    await getProducts(req as any, res as any);
+    await getProducts(req as any, res as any, vi.fn());
     expect(miniappService.getProducts).toHaveBeenCalledWith("t1", 1, "", "RETAIL");
   });
 
@@ -193,7 +193,7 @@ describe("miniapp.controller", () => {
       headers: {},
     });
     const res = mockRes();
-    await createOrder(req as any, res as any);
+    await createOrder(req as any, res as any, vi.fn());
     expect(miniappService.createOrder).toHaveBeenCalledWith("t1", expect.any(Object), "RETAIL", "", "ACCOUNT");
   });
 
@@ -208,7 +208,7 @@ describe("miniapp.controller", () => {
       headers: { "x-customer-type": "WHOLESALE" },
     });
     const res = mockRes();
-    await createOrder(req as any, res as any);
+    await createOrder(req as any, res as any, vi.fn());
     expect(miniappService.createOrder).toHaveBeenCalled();
   });
 
@@ -216,7 +216,7 @@ describe("miniapp.controller", () => {
     (miniappService.getOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {}, headers: {} });
     const res = mockRes();
-    await getOrders(req as any, res as any);
+    await getOrders(req as any, res as any, vi.fn());
     expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "", 1, 20);
   });
 
@@ -224,7 +224,7 @@ describe("miniapp.controller", () => {
     (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "ORD001" });
     const req = mockReq({ params: { orderNo: "ORD001" }, headers: {} });
     const res = mockRes();
-    await getOrderDetail(req as any, res as any);
+    await getOrderDetail(req as any, res as any, vi.fn());
     expect(miniappService.getOrderDetail).toHaveBeenCalledWith("t1", "ORD001", "");
   });
 
@@ -232,7 +232,7 @@ describe("miniapp.controller", () => {
     (miniappService.getStatements as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {}, headers: {} });
     const res = mockRes();
-    await getStatements(req as any, res as any);
+    await getStatements(req as any, res as any, vi.fn());
     expect(miniappService.getStatements).toHaveBeenCalledWith("t1", "", 1, 20);
   });
 
@@ -240,7 +240,7 @@ describe("miniapp.controller", () => {
     (miniappService.getStatementDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 }, headers: {} });
     const res = mockRes();
-    await getStatementDetail(req as any, res as any);
+    await getStatementDetail(req as any, res as any, vi.fn());
     expect(miniappService.getStatementDetail).toHaveBeenCalledWith("t1", 1, "");
   });
 });

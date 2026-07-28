@@ -63,7 +63,7 @@ describe("admin member.controller", () => {
       body: { name: "张三", mobile: "13800000000", password: "123456", referrerId: 2 },
     });
     const res = mockRes();
-    await registerMember(req, res);
+    await registerMember(req, res, vi.fn());
     expect(mocks.registerMember).toHaveBeenCalledWith({
       name: "张三",
       mobile: "13800000000",
@@ -78,7 +78,7 @@ describe("admin member.controller", () => {
     mocks.registerMember.mockResolvedValue({ id: 2 });
     const req = mockReq({ body: { name: "李四", mobile: "13900000000", password: "abc" } });
     const res = mockRes();
-    await registerMember(req, res);
+    await registerMember(req, res, vi.fn());
     expect(mocks.registerMember).toHaveBeenCalledWith(expect.objectContaining({
       name: "李四",
       referrerId: undefined,
@@ -90,7 +90,7 @@ describe("admin member.controller", () => {
     mocks.getMemberCard.mockResolvedValue({ id: 5, level: "GOLD" });
     const req = mockReq({ params: { id: "5" } });
     const res = mockRes();
-    await getMemberCard(req, res);
+    await getMemberCard(req, res, vi.fn());
     expect(mocks.getMemberCard).toHaveBeenCalledWith(5, "t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -99,7 +99,7 @@ describe("admin member.controller", () => {
     mocks.updateMemberLevel.mockResolvedValue({ id: 3, levelName: "PLATINUM" });
     const req = mockReq({ params: { id: "3" }, body: { levelName: "PLATINUM" } });
     const res = mockRes();
-    await updateMemberLevel(req, res);
+    await updateMemberLevel(req, res, vi.fn());
     expect(mocks.updateMemberLevel).toHaveBeenCalledWith(3, "PLATINUM", "t1");
     expect(mocks.ok).toHaveBeenCalledWith({ id: 3, levelName: "PLATINUM" });
   });
@@ -108,7 +108,7 @@ describe("admin member.controller", () => {
     mocks.getMemberBenefits.mockResolvedValue({ benefits: ["折扣", "积分"] });
     const req = mockReq();
     const res = mockRes();
-    await getMemberBenefits(req, res);
+    await getMemberBenefits(req, res, vi.fn());
     expect(mocks.getMemberBenefits).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -117,6 +117,6 @@ describe("admin member.controller", () => {
     mocks.registerMember.mockRejectedValue(new Error("手机号已注册"));
     const req = mockReq({ body: { name: "王五", mobile: "13800000000", password: "123" } });
     const res = mockRes();
-    await expect(registerMember(req, res)).rejects.toThrow("手机号已注册");
+    await expect(registerMember(req, res, vi.fn())).rejects.toThrow("手机号已注册");
   });
 });

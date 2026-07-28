@@ -57,7 +57,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.createCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { storeId: 1, remark: "测试盘点" } });
     const res = mockRes();
-    await create(req as any, res as any);
+    await create(req as any, res as any, vi.fn());
     expect(stockCheckService.createCheck).toHaveBeenCalledWith({ storeId: 1, remark: "测试盘点", tenantId: "t1" });
     expect(ok).toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.listChecks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(stockCheckService.listChecks).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.getStatistics as any).mockResolvedValue({ total: 10 });
     const req = mockReq();
     const res = mockRes();
-    await getStatistics(req as any, res as any);
+    await getStatistics(req as any, res as any, vi.fn());
     expect(stockCheckService.getStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -84,7 +84,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.getCheckDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getDetail(req as any, res as any);
+    await getDetail(req as any, res as any, vi.fn());
     expect(stockCheckService.getCheckDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -93,7 +93,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.updateCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { remark: "更新备注" } });
     const res = mockRes();
-    await update(req as any, res as any);
+    await update(req as any, res as any, vi.fn());
     expect(stockCheckService.updateCheck).toHaveBeenCalledWith(1, "t1", { remark: "更新备注" });
     expect(ok).toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.startCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await start(req as any, res as any);
+    await start(req as any, res as any, vi.fn());
     expect(stockCheckService.startCheck).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -111,7 +111,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.completeCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await complete(req as any, res as any);
+    await complete(req as any, res as any, vi.fn());
     expect(stockCheckService.completeCheck).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.cancelCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await cancel(req as any, res as any);
+    await cancel(req as any, res as any, vi.fn());
     expect(stockCheckService.cancelCheck).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -129,7 +129,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.handleDiff as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { itemId: 2 } });
     const res = mockRes();
-    await handleDiff(req as any, res as any);
+    await handleDiff(req as any, res as any, vi.fn());
     expect(stockCheckService.handleDiff).toHaveBeenCalledWith({
       checkId: 1, itemId: 2, tenantId: "t1", userId: 1
     });
@@ -139,7 +139,7 @@ describe("stock-check.controller", () => {
   it("getMyList - 未关联门店应返回400", async () => {
     const req = mockReq({ user: { id: 1, username: "admin" } });
     const res = mockRes();
-    await getMyList(req as any, res as any);
+    await getMyList(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("未关联门店");
   });
 
@@ -147,7 +147,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.listMyChecks as any).mockResolvedValue([]);
     const req = mockReq({ user: { id: 1, username: "admin", storeId: 10 } });
     const res = mockRes();
-    await getMyList(req as any, res as any);
+    await getMyList(req as any, res as any, vi.fn());
     expect(stockCheckService.listMyChecks).toHaveBeenCalledWith(10, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -156,7 +156,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.updateItemQty as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1", itemId: "2" }, body: { actualQty: 50 } });
     const res = mockRes();
-    await updateItem(req as any, res as any);
+    await updateItem(req as any, res as any, vi.fn());
     expect(stockCheckService.updateItemQty).toHaveBeenCalledWith({
       checkId: 1, itemId: 2, actualQty: 50, tenantId: "t1"
     });
@@ -167,7 +167,7 @@ describe("stock-check.controller", () => {
     (stockCheckService.submitCheck as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await submit(req as any, res as any);
+    await submit(req as any, res as any, vi.fn());
     expect(stockCheckService.submitCheck).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });

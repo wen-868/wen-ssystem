@@ -78,7 +78,7 @@ describe("marketing-group-buy.controller", () => {
       },
     });
     const res = mockRes();
-    await createGroupBuy(req as any, res as any);
+    await createGroupBuy(req as any, res as any, vi.fn());
     expect(groupBuyService.createGroupBuy).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
@@ -86,14 +86,14 @@ describe("marketing-group-buy.controller", () => {
   it("createGroupBuy - 缺少必填字段应抛出错误", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createGroupBuy(req as any, res as any)).rejects.toThrow();
+    await expect(createGroupBuy(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listGroupBuys - 应返回拼团活动列表", async () => {
     (groupBuyService.listGroupBuys as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listGroupBuys(req as any, res as any);
+    await listGroupBuys(req as any, res as any, vi.fn());
     expect(groupBuyService.listGroupBuys).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.getGroupBuy as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getGroupBuy(req as any, res as any);
+    await getGroupBuy(req as any, res as any, vi.fn());
     expect(groupBuyService.getGroupBuy).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe("marketing-group-buy.controller", () => {
       body: { name: "更新名称" },
     });
     const res = mockRes();
-    await updateGroupBuy(req as any, res as any);
+    await updateGroupBuy(req as any, res as any, vi.fn());
     expect(groupBuyService.updateGroupBuy).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -123,7 +123,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.deleteGroupBuy as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteGroupBuy(req as any, res as any);
+    await deleteGroupBuy(req as any, res as any, vi.fn());
     expect(groupBuyService.deleteGroupBuy).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.activateGroupBuy as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await activateGroupBuy(req as any, res as any);
+    await activateGroupBuy(req as any, res as any, vi.fn());
     expect(groupBuyService.activateGroupBuy).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -141,7 +141,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.listGroupBuyTeams as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listGroupBuyTeams(req as any, res as any);
+    await listGroupBuyTeams(req as any, res as any, vi.fn());
     expect(groupBuyService.listGroupBuyTeams).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -150,7 +150,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.listActiveGroupBuys as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listActiveGroupBuys(req as any, res as any);
+    await listActiveGroupBuys(req as any, res as any, vi.fn());
     expect(groupBuyService.listActiveGroupBuys).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -162,7 +162,7 @@ describe("marketing-group-buy.controller", () => {
       body: { userId: 1, quantity: 1 },
     });
     const res = mockRes();
-    await createGroupBuyTeam(req as any, res as any);
+    await createGroupBuyTeam(req as any, res as any, vi.fn());
     expect(groupBuyService.createGroupBuyTeam).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -173,14 +173,14 @@ describe("marketing-group-buy.controller", () => {
       body: {},
     });
     const res = mockRes();
-    await expect(createGroupBuyTeam(req as any, res as any)).rejects.toThrow();
+    await expect(createGroupBuyTeam(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("getGroupBuyTeam - 应返回拼团队伍详情", async () => {
     (groupBuyService.getGroupBuyTeam as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { teamId: 1 } });
     const res = mockRes();
-    await getGroupBuyTeam(req as any, res as any);
+    await getGroupBuyTeam(req as any, res as any, vi.fn());
     expect(groupBuyService.getGroupBuyTeam).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -192,7 +192,7 @@ describe("marketing-group-buy.controller", () => {
       body: { userId: 2, quantity: 1 },
     });
     const res = mockRes();
-    await joinGroupBuyTeam(req as any, res as any);
+    await joinGroupBuyTeam(req as any, res as any, vi.fn());
     expect(groupBuyService.joinGroupBuyTeam).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -203,14 +203,14 @@ describe("marketing-group-buy.controller", () => {
       body: {},
     });
     const res = mockRes();
-    await expect(joinGroupBuyTeam(req as any, res as any)).rejects.toThrow();
+    await expect(joinGroupBuyTeam(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listGroupBuys - 不传page/pageSize时使用默认值", async () => {
     (groupBuyService.listGroupBuys as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listGroupBuys(req as any, res as any);
+    await listGroupBuys(req as any, res as any, vi.fn());
     expect(groupBuyService.listGroupBuys).toHaveBeenCalledWith(1, 20, "t1", undefined);
   });
 
@@ -218,7 +218,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.listGroupBuyTeams as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listGroupBuyTeams(req as any, res as any);
+    await listGroupBuyTeams(req as any, res as any, vi.fn());
     expect(groupBuyService.listGroupBuyTeams).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
   });
 
@@ -226,7 +226,7 @@ describe("marketing-group-buy.controller", () => {
     (groupBuyService.listGroupBuyTeams as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { activityId: "5" } });
     const res = mockRes();
-    await listGroupBuyTeams(req as any, res as any);
+    await listGroupBuyTeams(req as any, res as any, vi.fn());
     expect(groupBuyService.listGroupBuyTeams).toHaveBeenCalledWith(1, 20, "t1", 5, undefined);
   });
 });

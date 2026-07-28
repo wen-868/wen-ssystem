@@ -66,7 +66,7 @@ describe("admin customer-care.controller", () => {
       mocks.listCareRules.mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await listCareRules(req, res);
+      await listCareRules(req, res, vi.fn());
       expect(mocks.listCareRules).toHaveBeenCalledWith("t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -76,7 +76,7 @@ describe("admin customer-care.controller", () => {
       mocks.createCareRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createCareRule(req, res);
+      await createCareRule(req, res, vi.fn());
       expect(mocks.createCareRule).toHaveBeenCalledWith(
         expect.objectContaining({ ruleName: "生日关怀", triggerType: "BIRTHDAY", tenantId: "t1" })
       );
@@ -86,7 +86,7 @@ describe("admin customer-care.controller", () => {
     it("createCareRule - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(createCareRule(req, res)).rejects.toThrow();
+      await expect(createCareRule(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createCareRule).not.toHaveBeenCalled();
     });
 
@@ -95,7 +95,7 @@ describe("admin customer-care.controller", () => {
       mocks.updateCareRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updateCareRule(req, res);
+      await updateCareRule(req, res, vi.fn());
       expect(mocks.updateCareRule).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ ruleName: "新名称", enabled: 1, tenantId: "t1" })
@@ -107,7 +107,7 @@ describe("admin customer-care.controller", () => {
       mocks.updateCareRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body: {} });
       const res = mockRes();
-      await updateCareRule(req, res);
+      await updateCareRule(req, res, vi.fn());
       expect(mocks.updateCareRule).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalled();
     });
@@ -116,7 +116,7 @@ describe("admin customer-care.controller", () => {
       mocks.deleteCareRule.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteCareRule(req, res);
+      await deleteCareRule(req, res, vi.fn());
       expect(mocks.deleteCareRule).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -125,7 +125,7 @@ describe("admin customer-care.controller", () => {
       mocks.executeCareRule.mockResolvedValue({ affected: 10 });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await executeCareRule(req, res);
+      await executeCareRule(req, res, vi.fn());
       expect(mocks.executeCareRule).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -136,7 +136,7 @@ describe("admin customer-care.controller", () => {
       mocks.listCareLogs.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { customerId: "1", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listCareLogs(req, res);
+      await listCareLogs(req, res, vi.fn());
       expect(mocks.listCareLogs).toHaveBeenCalledWith(
         expect.objectContaining({ customerId: 1, page: 1, pageSize: 10, tenantId: "t1" })
       );
@@ -147,7 +147,7 @@ describe("admin customer-care.controller", () => {
       mocks.listCareLogs.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listCareLogs(req, res);
+      await listCareLogs(req, res, vi.fn());
       expect(mocks.listCareLogs).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 20 })
       );

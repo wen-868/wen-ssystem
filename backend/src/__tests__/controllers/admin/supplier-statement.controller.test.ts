@@ -60,7 +60,7 @@ describe("admin/supplier-statement.controller", () => {
         body: { supplierId: 1, startDate: "2026-01-01", endDate: "2026-01-31" },
       });
       const res = mockRes();
-      await generateSupplierStatement(req as any, res as any);
+      await generateSupplierStatement(req as any, res as any, vi.fn());
       expect(supplierStatementService.generateSupplierStatement).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: 1,
         startDate: "2026-01-01",
@@ -78,7 +78,7 @@ describe("admin/supplier-statement.controller", () => {
         query: { supplierId: "1", status: "PENDING" },
       });
       const res = mockRes();
-      await listSupplierStatements(req as any, res as any);
+      await listSupplierStatements(req as any, res as any, vi.fn());
       expect(supplierStatementService.listSupplierStatements).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: 1,
         status: "PENDING",
@@ -90,7 +90,7 @@ describe("admin/supplier-statement.controller", () => {
       (supplierStatementService.listSupplierStatements as any).mockResolvedValue({ total: 5, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listSupplierStatements(req as any, res as any);
+      await listSupplierStatements(req as any, res as any, vi.fn());
       expect(supplierStatementService.listSupplierStatements).toHaveBeenCalledWith(expect.objectContaining({
         supplierId: undefined,
         page: 1,
@@ -104,7 +104,7 @@ describe("admin/supplier-statement.controller", () => {
       (supplierStatementService.getSupplierStatementDetail as any).mockResolvedValue({ statementNo: "DZD001" });
       const req = mockReq({ params: { statementNo: "DZD001" } });
       const res = mockRes();
-      await getSupplierStatementDetail(req as any, res as any);
+      await getSupplierStatementDetail(req as any, res as any, vi.fn());
       expect(supplierStatementService.getSupplierStatementDetail).toHaveBeenCalledWith("DZD001", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -115,7 +115,7 @@ describe("admin/supplier-statement.controller", () => {
       (supplierStatementService.confirmSupplierStatement as any).mockResolvedValue({ statementNo: "DZD001", status: "CONFIRMED" });
       const req = mockReq({ params: { statementNo: "DZD001" } });
       const res = mockRes();
-      await confirmSupplierStatement(req as any, res as any);
+      await confirmSupplierStatement(req as any, res as any, vi.fn());
       expect(supplierStatementService.confirmSupplierStatement).toHaveBeenCalledWith("DZD001", "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -129,7 +129,7 @@ describe("admin/supplier-statement.controller", () => {
         body: { reason: "数量不对" },
       });
       const res = mockRes();
-      await disputeSupplierStatement(req as any, res as any);
+      await disputeSupplierStatement(req as any, res as any, vi.fn());
       expect(supplierStatementService.disputeSupplierStatement).toHaveBeenCalledWith("DZD001", "数量不对", "t1");
       expect(ok).toHaveBeenCalled();
     });

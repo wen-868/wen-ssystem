@@ -48,7 +48,7 @@ describe("subscription-renewal.controller", () => {
     (subscriptionRenewalService.renewSubscription as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { subscriptionId: "1" }, body: { planId: 1, paymentMethod: "WECHAT" } });
     const res = mockRes();
-    await renewSubscription(req as any, res as any);
+    await renewSubscription(req as any, res as any, vi.fn());
     expect(subscriptionRenewalService.renewSubscription).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -57,7 +57,7 @@ describe("subscription-renewal.controller", () => {
     (subscriptionRenewalService.renewSubscription as any).mockResolvedValue({ code: 400, message: "参数错误" });
     const req = mockReq({ params: { subscriptionId: "1" }, body: {} });
     const res = mockRes();
-    await renewSubscription(req as any, res as any);
+    await renewSubscription(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ code: 400, message: "参数错误" });
   });
@@ -66,7 +66,7 @@ describe("subscription-renewal.controller", () => {
     (subscriptionRenewalService.listExpiring as any).mockResolvedValue([]);
     const req = mockReq({ query: { days: 7 } });
     const res = mockRes();
-    await listExpiring(req as any, res as any);
+    await listExpiring(req as any, res as any, vi.fn());
     expect(subscriptionRenewalService.listExpiring).toHaveBeenCalledWith(7, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("subscription-renewal.controller", () => {
     (subscriptionRenewalService.listExpiring as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listExpiring(req as any, res as any);
+    await listExpiring(req as any, res as any, vi.fn());
     expect(subscriptionRenewalService.listExpiring).toHaveBeenCalledWith(7, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -84,7 +84,7 @@ describe("subscription-renewal.controller", () => {
     (subscriptionRenewalService.listExpired as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listExpired(req as any, res as any);
+    await listExpired(req as any, res as any, vi.fn());
     expect(subscriptionRenewalService.listExpired).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });

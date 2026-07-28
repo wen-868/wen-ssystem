@@ -82,7 +82,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.createPointsProduct.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createPointsProduct(req, res);
+      await createPointsProduct(req, res, vi.fn());
       expect(mocks.createPointsProduct).toHaveBeenCalledWith(
         expect.objectContaining({ name: "精美礼品", pointsRequired: 1000 }),
         "t1"
@@ -93,7 +93,7 @@ describe("admin marketing-points-mall.controller", () => {
     it("createPointsProduct - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: { name: "测试" } });
       const res = mockRes();
-      await expect(createPointsProduct(req, res)).rejects.toThrow();
+      await expect(createPointsProduct(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.createPointsProduct).not.toHaveBeenCalled();
     });
 
@@ -101,7 +101,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.listPointsProducts.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { status: "ON", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listPointsProducts(req, res);
+      await listPointsProducts(req, res, vi.fn());
       expect(mocks.listPointsProducts).toHaveBeenCalledWith(
         expect.objectContaining({ tenantId: "t1", status: "ON", page: 1, pageSize: 10 })
       );
@@ -112,7 +112,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.listPointsProducts.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listPointsProducts(req, res);
+      await listPointsProducts(req, res, vi.fn());
       expect(mocks.listPointsProducts).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 20 })
       );
@@ -122,7 +122,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.getPointsProductDetail.mockResolvedValue({ id: 1, name: "礼品1" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getPointsProductDetail(req, res);
+      await getPointsProductDetail(req, res, vi.fn());
       expect(mocks.getPointsProductDetail).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -132,7 +132,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.updatePointsProduct.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updatePointsProduct(req, res);
+      await updatePointsProduct(req, res, vi.fn());
       expect(mocks.updatePointsProduct).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ name: "新名称", stock: 200 }),
@@ -145,7 +145,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.deletePointsProduct.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deletePointsProduct(req, res);
+      await deletePointsProduct(req, res, vi.fn());
       expect(mocks.deletePointsProduct).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -154,7 +154,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.togglePointsProduct.mockResolvedValue({ id: 1, status: "OFF" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await togglePointsProduct(req, res);
+      await togglePointsProduct(req, res, vi.fn());
       expect(mocks.togglePointsProduct).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -165,7 +165,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.listExchangeRecords.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { userId: "1", status: "PENDING", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await listExchangeRecords(req, res);
+      await listExchangeRecords(req, res, vi.fn());
       expect(mocks.listExchangeRecords).toHaveBeenCalledWith(
         expect.objectContaining({ tenantId: "t1", userId: 1, status: "PENDING", page: 1, pageSize: 10 })
       );
@@ -176,7 +176,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.getExchangeRecordDetail.mockResolvedValue({ id: 1, status: "PENDING" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getExchangeRecordDetail(req, res);
+      await getExchangeRecordDetail(req, res, vi.fn());
       expect(mocks.getExchangeRecordDetail).toHaveBeenCalledWith(1, "t1");
       expect(res.json).toHaveBeenCalled();
     });
@@ -186,7 +186,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.exchangeProduct.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await exchangeProduct(req, res);
+      await exchangeProduct(req, res, vi.fn());
       expect(mocks.exchangeProduct).toHaveBeenCalledWith(
         expect.objectContaining({ product_id: 1, quantity: 2, user_id: 1, delivery_type: "SELF_PICKUP" }),
         "t1"
@@ -197,7 +197,7 @@ describe("admin marketing-points-mall.controller", () => {
     it("exchangeProduct - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(exchangeProduct(req, res)).rejects.toThrow();
+      await expect(exchangeProduct(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.exchangeProduct).not.toHaveBeenCalled();
     });
 
@@ -205,7 +205,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.cancelExchange.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await cancelExchange(req, res);
+      await cancelExchange(req, res, vi.fn());
       expect(mocks.cancelExchange).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });
@@ -214,7 +214,7 @@ describe("admin marketing-points-mall.controller", () => {
       mocks.confirmExchange.mockResolvedValue(undefined);
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await confirmExchange(req, res);
+      await confirmExchange(req, res, vi.fn());
       expect(mocks.confirmExchange).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith(null);
     });

@@ -56,7 +56,7 @@ describe("payment.controller", () => {
       },
     });
     const res = mockRes();
-    await createPaymentOrder(req as any, res as any);
+    await createPaymentOrder(req as any, res as any, vi.fn());
     expect(paymentService.createPaymentOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -64,14 +64,14 @@ describe("payment.controller", () => {
   it("createPaymentOrder - zod验证失败", async () => {
     const req = mockReq({ body: { sourceType: "INVALID", amount: -1 } });
     const res = mockRes();
-    await expect(createPaymentOrder(req as any, res as any)).rejects.toThrow();
+    await expect(createPaymentOrder(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("handleWxCallback - 应处理微信回调", async () => {
     (paymentService.handleWxCallback as any).mockResolvedValue({ success: true });
     const req = mockReq({ body: {}, headers: { "wechatpay-signature": "test" } });
     const res = mockRes();
-    await handleWxCallback(req as any, res as any);
+    await handleWxCallback(req as any, res as any, vi.fn());
     expect(paymentService.handleWxCallback).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -80,7 +80,7 @@ describe("payment.controller", () => {
     (paymentService.handleWxCallback as any).mockResolvedValue({ success: false, message: "签名验证失败", code: "400" });
     const req = mockReq({ body: {}, headers: {} });
     const res = mockRes();
-    await handleWxCallback(req as any, res as any);
+    await handleWxCallback(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalled();
   });
@@ -89,7 +89,7 @@ describe("payment.controller", () => {
     (paymentService.createRefund as any).mockResolvedValue({ success: true, data: { refundNo: "RFD001" } });
     const req = mockReq({ body: { payNo: "PAY001", amount: 100, reason: "退货退款" } });
     const res = mockRes();
-    await createRefund(req as any, res as any);
+    await createRefund(req as any, res as any, vi.fn());
     expect(paymentService.createRefund).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -98,7 +98,7 @@ describe("payment.controller", () => {
     (paymentService.createRefund as any).mockResolvedValue({ success: false, message: "退款失败", code: "500" });
     const req = mockReq({ body: { payNo: "PAY001", amount: 100, reason: "测试" } });
     const res = mockRes();
-    await createRefund(req as any, res as any);
+    await createRefund(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalled();
     expect(fail).toHaveBeenCalled();
   });
@@ -107,7 +107,7 @@ describe("payment.controller", () => {
     (paymentService.getPaymentOrder as any).mockResolvedValue({ payNo: "PAY001" });
     const req = mockReq({ params: { payNo: "PAY001" } });
     const res = mockRes();
-    await getPaymentOrder(req as any, res as any);
+    await getPaymentOrder(req as any, res as any, vi.fn());
     expect(paymentService.getPaymentOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe("payment.controller", () => {
     (paymentService.getPaymentOrder as any).mockResolvedValue(null);
     const req = mockReq({ params: { payNo: "PAY001" } });
     const res = mockRes();
-    await getPaymentOrder(req as any, res as any);
+    await getPaymentOrder(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalled();
   });
@@ -125,7 +125,7 @@ describe("payment.controller", () => {
     (paymentService.listPaymentOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPaymentOrders(req as any, res as any);
+    await listPaymentOrders(req as any, res as any, vi.fn());
     expect(paymentService.listPaymentOrders).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

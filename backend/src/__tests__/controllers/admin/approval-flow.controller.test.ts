@@ -48,7 +48,7 @@ describe("approval-flow.controller", () => {
     (approvalFlowService.listRules as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listRules(req as any, res as any);
+    await listRules(req as any, res as any, vi.fn());
     expect(approvalFlowService.listRules).toHaveBeenCalledWith(1, 20, null, null, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe("approval-flow.controller", () => {
       query: { page: "2", pageSize: "10", businessType: "PURCHASE_ORDER", status: "1" },
     });
     const res = mockRes();
-    await listRules(req as any, res as any);
+    await listRules(req as any, res as any, vi.fn());
     expect(approvalFlowService.listRules).toHaveBeenCalledWith(2, 10, "PURCHASE_ORDER", 1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -80,7 +80,7 @@ describe("approval-flow.controller", () => {
       },
     });
     const res = mockRes();
-    await createRule(req as any, res as any);
+    await createRule(req as any, res as any, vi.fn());
     expect(approvalFlowService.createRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("approval-flow.controller", () => {
   it("createRule - 参数校验失败应抛错", async () => {
     const req = mockReq({ body: { ruleName: "", businessType: "INVALID" } });
     const res = mockRes();
-    await expect(createRule(req as any, res as any)).rejects.toThrow();
+    await expect(createRule(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(approvalFlowService.createRule).not.toHaveBeenCalled();
   });
 
@@ -103,7 +103,7 @@ describe("approval-flow.controller", () => {
       },
     });
     const res = mockRes();
-    await updateRule(req as any, res as any);
+    await updateRule(req as any, res as any, vi.fn());
     expect(approvalFlowService.updateRule).toHaveBeenCalledWith(1, expect.any(Object), "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("approval-flow.controller", () => {
       body: { ruleName: "测试" },
     });
     const res = mockRes();
-    await updateRule(req as any, res as any);
+    await updateRule(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("规则不存在", "404");
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -123,7 +123,7 @@ describe("approval-flow.controller", () => {
   it("updateRule - 参数校验失败应抛错", async () => {
     const req = mockReq({ params: { id: "1" }, body: { slaHours: 0 } });
     const res = mockRes();
-    await expect(updateRule(req as any, res as any)).rejects.toThrow();
+    await expect(updateRule(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(approvalFlowService.updateRule).not.toHaveBeenCalled();
   });
 });

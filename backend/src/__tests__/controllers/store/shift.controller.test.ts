@@ -44,7 +44,7 @@ describe("store/shift.controller", () => {
     (shiftService.getCurrentShift as any).mockResolvedValue({ id: 1, status: "OPEN" });
     const req = mockReq();
     const res = mockRes();
-    await getCurrentShift(req as any, res as any);
+    await getCurrentShift(req as any, res as any, vi.fn());
     expect(shiftService.getCurrentShift).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -53,7 +53,7 @@ describe("store/shift.controller", () => {
     (shiftService.settleShift as any).mockResolvedValue({ id: 1, status: "CLOSED" });
     const req = mockReq({ body: { actualAmount: 1000 } });
     const res = mockRes();
-    await settleShift(req as any, res as any);
+    await settleShift(req as any, res as any, vi.fn());
     expect(shiftService.settleShift).toHaveBeenCalledWith("t1", 1, 1, 1000);
     expect(ok).toHaveBeenCalled();
   });
@@ -62,7 +62,7 @@ describe("store/shift.controller", () => {
     (shiftService.settleShift as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await settleShift(req as any, res as any);
+    await settleShift(req as any, res as any, vi.fn());
     expect(shiftService.settleShift).toHaveBeenCalledWith("t1", 1, 1, 0);
     expect(ok).toHaveBeenCalled();
   });
@@ -71,7 +71,7 @@ describe("store/shift.controller", () => {
     (shiftService.getShiftHistory as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: "2", pageSize: "10" } });
     const res = mockRes();
-    await getShiftHistory(req as any, res as any);
+    await getShiftHistory(req as any, res as any, vi.fn());
     expect(shiftService.getShiftHistory).toHaveBeenCalledWith("t1", 1, 2, 10);
     expect(ok).toHaveBeenCalled();
   });
@@ -80,7 +80,7 @@ describe("store/shift.controller", () => {
     (shiftService.getShiftHistory as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getShiftHistory(req as any, res as any);
+    await getShiftHistory(req as any, res as any, vi.fn());
     expect(shiftService.getShiftHistory).toHaveBeenCalledWith("t1", 1, 1, 20);
     expect(ok).toHaveBeenCalled();
   });

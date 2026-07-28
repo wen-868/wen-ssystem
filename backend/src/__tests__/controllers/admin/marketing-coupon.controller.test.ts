@@ -76,7 +76,7 @@ describe("marketing-coupon.controller", () => {
       },
     });
     const res = mockRes();
-    await createCouponTemplate(req as any, res as any);
+    await createCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.createCouponTemplate).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
@@ -84,14 +84,14 @@ describe("marketing-coupon.controller", () => {
   it("createCouponTemplate - 缺少必填字段应抛出错误", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createCouponTemplate(req as any, res as any)).rejects.toThrow();
+    await expect(createCouponTemplate(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listCouponTemplates - 应返回优惠券模板列表", async () => {
     (couponService.listCouponTemplates as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listCouponTemplates(req as any, res as any);
+    await listCouponTemplates(req as any, res as any, vi.fn());
     expect(couponService.listCouponTemplates).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -100,7 +100,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.getCouponTemplate as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await getCouponTemplate(req as any, res as any);
+    await getCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.getCouponTemplate).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -112,7 +112,7 @@ describe("marketing-coupon.controller", () => {
       body: { name: "更新名称" },
     });
     const res = mockRes();
-    await updateCouponTemplate(req as any, res as any);
+    await updateCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.updateCouponTemplate).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -121,7 +121,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.deleteCouponTemplate as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteCouponTemplate(req as any, res as any);
+    await deleteCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.deleteCouponTemplate).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.activateCouponTemplate as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await activateCouponTemplate(req as any, res as any);
+    await activateCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.activateCouponTemplate).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -139,7 +139,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.pauseCouponTemplate as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await pauseCouponTemplate(req as any, res as any);
+    await pauseCouponTemplate(req as any, res as any, vi.fn());
     expect(couponService.pauseCouponTemplate).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -148,7 +148,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.listUserCoupons as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listUserCoupons(req as any, res as any);
+    await listUserCoupons(req as any, res as any, vi.fn());
     expect(couponService.listUserCoupons).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -157,7 +157,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.getCouponStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getCouponStatistics(req as any, res as any);
+    await getCouponStatistics(req as any, res as any, vi.fn());
     expect(couponService.getCouponStatistics).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -166,7 +166,7 @@ describe("marketing-coupon.controller", () => {
     (couponService.listAvailableCoupons as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listAvailableCoupons(req as any, res as any);
+    await listAvailableCoupons(req as any, res as any, vi.fn());
     expect(couponService.listAvailableCoupons).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -178,7 +178,7 @@ describe("marketing-coupon.controller", () => {
       user: { id: 1 },
     });
     const res = mockRes();
-    await claimCoupon(req as any, res as any);
+    await claimCoupon(req as any, res as any, vi.fn());
     expect(couponService.claimCoupon).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -189,7 +189,7 @@ describe("marketing-coupon.controller", () => {
       user: undefined,
     });
     const res = mockRes();
-    await claimCoupon(req as any, res as any);
+    await claimCoupon(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("缺少用户ID", "400");
   });
@@ -201,7 +201,7 @@ describe("marketing-coupon.controller", () => {
       query: { page: 1, pageSize: 20 },
     });
     const res = mockRes();
-    await listMyCoupons(req as any, res as any);
+    await listMyCoupons(req as any, res as any, vi.fn());
     expect(couponService.listMyCoupons).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -209,7 +209,7 @@ describe("marketing-coupon.controller", () => {
   it("listMyCoupons - 缺少用户ID应返回错误", async () => {
     const req = mockReq({ user: undefined });
     const res = mockRes();
-    await listMyCoupons(req as any, res as any);
+    await listMyCoupons(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("缺少用户ID", "400");
   });

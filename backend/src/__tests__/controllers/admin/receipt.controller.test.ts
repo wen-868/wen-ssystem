@@ -54,7 +54,7 @@ describe("receipt.controller", () => {
       }
     });
     const res = mockRes();
-    await createReceipt(req as any, res as any);
+    await createReceipt(req as any, res as any, vi.fn());
     expect(receiptService.createReceipt).toHaveBeenCalledWith({
       customerId: 1, customerName: "客户A", receiptType: "RECEIPT",
       amount: 1000, paymentMethod: "BANK_TRANSFER", bankAccountId: 1,
@@ -69,14 +69,14 @@ describe("receipt.controller", () => {
     (receiptService.createReceipt as any).mockRejectedValue(error);
     const req = mockReq({ body: { customerName: "客户A", amount: 1000 } });
     const res = mockRes();
-    await expect(createReceipt(req as any, res as any)).rejects.toThrow(error);
+    await expect(createReceipt(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("listReceipts - 应返回收款单列表", async () => {
     (receiptService.listReceipts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listReceipts(req as any, res as any);
+    await listReceipts(req as any, res as any, vi.fn());
     expect(receiptService.listReceipts).toHaveBeenCalledWith({
       customerId: undefined, status: undefined, page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -87,7 +87,7 @@ describe("receipt.controller", () => {
     (receiptService.listReceipts as any).mockResolvedValue({ total: 1, records: [] });
     const req = mockReq({ query: { customerId: "5", status: "CONFIRMED" } });
     const res = mockRes();
-    await listReceipts(req as any, res as any);
+    await listReceipts(req as any, res as any, vi.fn());
     expect(receiptService.listReceipts).toHaveBeenCalledWith({
       customerId: 5, status: "CONFIRMED", page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -98,7 +98,7 @@ describe("receipt.controller", () => {
     (receiptService.getReceiptDetail as any).mockResolvedValue({ receiptNo: "R001" });
     const req = mockReq({ params: { receiptNo: "R001" } });
     const res = mockRes();
-    await getReceiptDetail(req as any, res as any);
+    await getReceiptDetail(req as any, res as any, vi.fn());
     expect(receiptService.getReceiptDetail).toHaveBeenCalledWith("R001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -108,14 +108,14 @@ describe("receipt.controller", () => {
     (receiptService.getReceiptDetail as any).mockRejectedValue(error);
     const req = mockReq({ params: { receiptNo: "R999" } });
     const res = mockRes();
-    await expect(getReceiptDetail(req as any, res as any)).rejects.toThrow(error);
+    await expect(getReceiptDetail(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("writeoffReceipt - 应核销收款单", async () => {
     (receiptService.writeoffReceipt as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receiptNo: "R001" }, body: { receivableId: 2, writeoffAmount: 500 } });
     const res = mockRes();
-    await writeoffReceipt(req as any, res as any);
+    await writeoffReceipt(req as any, res as any, vi.fn());
     expect(receiptService.writeoffReceipt).toHaveBeenCalledWith("R001", 2, 500, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -125,14 +125,14 @@ describe("receipt.controller", () => {
     (receiptService.writeoffReceipt as any).mockRejectedValue(error);
     const req = mockReq({ params: { receiptNo: "R001" }, body: { receivableId: 2, writeoffAmount: 500 } });
     const res = mockRes();
-    await expect(writeoffReceipt(req as any, res as any)).rejects.toThrow(error);
+    await expect(writeoffReceipt(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("voidReceipt - 应作废收款单", async () => {
     (receiptService.voidReceipt as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { receiptNo: "R001" } });
     const res = mockRes();
-    await voidReceipt(req as any, res as any);
+    await voidReceipt(req as any, res as any, vi.fn());
     expect(receiptService.voidReceipt).toHaveBeenCalledWith("R001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -142,6 +142,6 @@ describe("receipt.controller", () => {
     (receiptService.voidReceipt as any).mockRejectedValue(error);
     const req = mockReq({ params: { receiptNo: "R001" } });
     const res = mockRes();
-    await expect(voidReceipt(req as any, res as any)).rejects.toThrow(error);
+    await expect(voidReceipt(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 });

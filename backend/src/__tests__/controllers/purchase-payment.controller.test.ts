@@ -47,7 +47,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchasePaymentService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -56,7 +56,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchasePaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, supplierId: undefined,
     }));
@@ -66,7 +66,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { supplier_id: "5" } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchasePaymentService.list).toHaveBeenCalledWith(expect.objectContaining({
       supplierId: 5,
     }));
@@ -76,7 +76,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.getDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { paymentNo: "PAY001" } });
     const res = mockRes();
-    await getDetail(req as any, res as any);
+    await getDetail(req as any, res as any, vi.fn());
     expect(purchasePaymentService.getDetail).toHaveBeenCalledWith("PAY001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.create as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { purchaseNo: "PO001", amount: 100 } });
     const res = mockRes();
-    await create(req as any, res as any);
+    await create(req as any, res as any, vi.fn());
     expect(purchasePaymentService.create).toHaveBeenCalledWith(req.body, "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.approve as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { paymentNo: "PAY001" } });
     const res = mockRes();
-    await approve(req as any, res as any);
+    await approve(req as any, res as any, vi.fn());
     expect(purchasePaymentService.approve).toHaveBeenCalledWith("PAY001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("purchase-payment.controller", () => {
     (purchasePaymentService.voidPayment as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { paymentNo: "PAY001" } });
     const res = mockRes();
-    await voidPayment(req as any, res as any);
+    await voidPayment(req as any, res as any, vi.fn());
     expect(purchasePaymentService.voidPayment).toHaveBeenCalledWith("PAY001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });

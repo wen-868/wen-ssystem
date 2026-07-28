@@ -60,7 +60,7 @@ describe("store-value-card.controller", () => {
     (svcService.listStoreValueCards as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listStoreValueCards(req as any, res as any);
+    await listStoreValueCards(req as any, res as any, vi.fn());
     expect(svcService.listStoreValueCards).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 1,
@@ -77,7 +77,7 @@ describe("store-value-card.controller", () => {
       query: { page: "2", pageSize: "10", customerId: "3", status: "ACTIVE" },
     });
     const res = mockRes();
-    await listStoreValueCards(req as any, res as any);
+    await listStoreValueCards(req as any, res as any, vi.fn());
     expect(svcService.listStoreValueCards).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 2,
@@ -96,7 +96,7 @@ describe("store-value-card.controller", () => {
       body: { customerId: 1, customerName: "张三", initialAmount: 1000 },
     });
     const res = mockRes();
-    await createStoreValueCard(req as any, res as any);
+    await createStoreValueCard(req as any, res as any, vi.fn());
     expect(svcService.createStoreValueCard).toHaveBeenCalledWith(
       expect.objectContaining({
         customerId: 1,
@@ -113,14 +113,14 @@ describe("store-value-card.controller", () => {
     (svcService.createStoreValueCard as any).mockRejectedValue(error);
     const req = mockReq({ body: { customerName: "张三", initialAmount: 1000 } });
     const res = mockRes();
-    await expect(createStoreValueCard(req as any, res as any)).rejects.toThrow(error);
+    await expect(createStoreValueCard(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("getStoreValueCard - 应返回储值卡详情", async () => {
     (svcService.getStoreValueCard as any).mockResolvedValue({ cardNo: "SVC001", balance: 1000 });
     const req = mockReq({ params: { cardNo: "SVC001" } });
     const res = mockRes();
-    await getStoreValueCard(req as any, res as any);
+    await getStoreValueCard(req as any, res as any, vi.fn());
     expect(svcService.getStoreValueCard).toHaveBeenCalledWith("SVC001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe("store-value-card.controller", () => {
     (svcService.getStoreValueCard as any).mockRejectedValue(error);
     const req = mockReq({ params: { cardNo: "SVC999" } });
     const res = mockRes();
-    await expect(getStoreValueCard(req as any, res as any)).rejects.toThrow(error);
+    await expect(getStoreValueCard(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("rechargeCard - 应充值储值卡", async () => {
@@ -140,7 +140,7 @@ describe("store-value-card.controller", () => {
       body: { amount: 1000, payMethod: "WECHAT" },
     });
     const res = mockRes();
-    await rechargeCard(req as any, res as any);
+    await rechargeCard(req as any, res as any, vi.fn());
     expect(svcService.rechargeCard).toHaveBeenCalledWith(
       expect.objectContaining({
         cardNo: "SVC001",
@@ -158,7 +158,7 @@ describe("store-value-card.controller", () => {
     (svcService.rechargeCard as any).mockRejectedValue(error);
     const req = mockReq({ params: { cardNo: "SVC001" }, body: { amount: 1000, payMethod: "WECHAT" } });
     const res = mockRes();
-    await expect(rechargeCard(req as any, res as any)).rejects.toThrow(error);
+    await expect(rechargeCard(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("consumeCard - 应消费储值卡", async () => {
@@ -168,7 +168,7 @@ describe("store-value-card.controller", () => {
       body: { amount: 100, sourceNo: "SB001", remark: "消费" },
     });
     const res = mockRes();
-    await consumeCard(req as any, res as any);
+    await consumeCard(req as any, res as any, vi.fn());
     expect(svcService.consumeCard).toHaveBeenCalledWith(
       expect.objectContaining({
         cardNo: "SVC001",
@@ -187,7 +187,7 @@ describe("store-value-card.controller", () => {
     (svcService.consumeCard as any).mockRejectedValue(error);
     const req = mockReq({ params: { cardNo: "SVC001" }, body: { amount: 10000, sourceNo: "SB001" } });
     const res = mockRes();
-    await expect(consumeCard(req as any, res as any)).rejects.toThrow(error);
+    await expect(consumeCard(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("refundCard - 应退回收储值卡", async () => {
@@ -197,7 +197,7 @@ describe("store-value-card.controller", () => {
       body: { amount: 1000, remark: "退回收" },
     });
     const res = mockRes();
-    await refundCard(req as any, res as any);
+    await refundCard(req as any, res as any, vi.fn());
     expect(svcService.refundCard).toHaveBeenCalledWith(
       expect.objectContaining({
         cardNo: "SVC001",
@@ -214,7 +214,7 @@ describe("store-value-card.controller", () => {
     (svcService.freezeCard as any).mockResolvedValue({ cardNo: "SVC001", status: "FROZEN" });
     const req = mockReq({ params: { cardNo: "SVC001" } });
     const res = mockRes();
-    await freezeCard(req as any, res as any);
+    await freezeCard(req as any, res as any, vi.fn());
     expect(svcService.freezeCard).toHaveBeenCalledWith("SVC001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -223,7 +223,7 @@ describe("store-value-card.controller", () => {
     (svcService.unfreezeCard as any).mockResolvedValue({ cardNo: "SVC001", status: "ACTIVE" });
     const req = mockReq({ params: { cardNo: "SVC001" } });
     const res = mockRes();
-    await unfreezeCard(req as any, res as any);
+    await unfreezeCard(req as any, res as any, vi.fn());
     expect(svcService.unfreezeCard).toHaveBeenCalledWith("SVC001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -232,7 +232,7 @@ describe("store-value-card.controller", () => {
     (svcService.listStoreValueTransactions as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ params: { cardNo: "SVC001" }, query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listStoreValueTransactions(req as any, res as any);
+    await listStoreValueTransactions(req as any, res as any, vi.fn());
     expect(svcService.listStoreValueTransactions).toHaveBeenCalledWith(
       expect.objectContaining({
         cardNo: "SVC001",
@@ -249,7 +249,7 @@ describe("store-value-card.controller", () => {
     (svcService.freezeCard as any).mockRejectedValue(error);
     const req = mockReq({ params: { cardNo: "SVC001" } });
     const res = mockRes();
-    await expect(freezeCard(req as any, res as any)).rejects.toThrow(error);
+    await expect(freezeCard(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   // ==================== 分支覆盖率补充测试 ====================
@@ -257,7 +257,7 @@ describe("store-value-card.controller", () => {
     (svcService.listStoreValueCards as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listStoreValueCards(req as any, res as any);
+    await listStoreValueCards(req as any, res as any, vi.fn());
     expect(svcService.listStoreValueCards).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, customerId: undefined, tenantId: "t1"
     }));
@@ -267,7 +267,7 @@ describe("store-value-card.controller", () => {
     (svcService.listStoreValueTransactions as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ params: { cardNo: "SVC001" }, query: {} });
     const res = mockRes();
-    await listStoreValueTransactions(req as any, res as any);
+    await listStoreValueTransactions(req as any, res as any, vi.fn());
     expect(svcService.listStoreValueTransactions).toHaveBeenCalledWith(expect.objectContaining({
       cardNo: "SVC001", page: 1, pageSize: 20, tenantId: "t1"
     }));

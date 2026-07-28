@@ -59,7 +59,7 @@ describe("admin credit-adjust.controller", () => {
     mocks.adjustLimit.mockResolvedValue({ success: true });
     const req = mockReq({ params: { customerId: "1" }, body });
     const res = mockRes();
-    await adjustLimit(req, res);
+    await adjustLimit(req, res, vi.fn());
     expect(mocks.adjustLimit).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ creditLimit: 20000, reason: "资质提升" }),
@@ -71,7 +71,7 @@ describe("admin credit-adjust.controller", () => {
   it("adjustLimit - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ params: { customerId: "1" }, body: {} });
     const res = mockRes();
-    await expect(adjustLimit(req, res)).rejects.toThrow();
+    await expect(adjustLimit(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.adjustLimit).not.toHaveBeenCalled();
   });
 
@@ -80,7 +80,7 @@ describe("admin credit-adjust.controller", () => {
     mocks.adjustTerm.mockResolvedValue({ success: true });
     const req = mockReq({ params: { customerId: "1" }, body });
     const res = mockRes();
-    await adjustTerm(req, res);
+    await adjustTerm(req, res, vi.fn());
     expect(mocks.adjustTerm).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ paymentTerm: "NET_60", reason: "账期调整" }),
@@ -92,7 +92,7 @@ describe("admin credit-adjust.controller", () => {
   it("adjustTerm - 缺少必填字段时 zod 校验抛错", async () => {
     const req = mockReq({ params: { customerId: "1" }, body: {} });
     const res = mockRes();
-    await expect(adjustTerm(req, res)).rejects.toThrow();
+    await expect(adjustTerm(req, res, vi.fn())).rejects.toThrow();
     expect(mocks.adjustTerm).not.toHaveBeenCalled();
   });
 
@@ -100,7 +100,7 @@ describe("admin credit-adjust.controller", () => {
     mocks.getOperationLogs.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ params: { customerId: "1" }, query: { page: "1", pageSize: "10" } });
     const res = mockRes();
-    await getOperationLogs(req, res);
+    await getOperationLogs(req, res, vi.fn());
     expect(mocks.getOperationLogs).toHaveBeenCalledWith(1, 1, 10, expect.any(Object));
     expect(res.json).toHaveBeenCalled();
   });
@@ -109,7 +109,7 @@ describe("admin credit-adjust.controller", () => {
     mocks.getOperationLogs.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ params: { customerId: "1" } });
     const res = mockRes();
-    await getOperationLogs(req, res);
+    await getOperationLogs(req, res, vi.fn());
     expect(mocks.getOperationLogs).toHaveBeenCalledWith(1, 1, 20, expect.any(Object));
   });
 });

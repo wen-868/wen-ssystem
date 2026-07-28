@@ -64,7 +64,7 @@ describe("transfer-order.controller", () => {
       },
     });
     const res = mockRes();
-    await createTransferOrder(req as any, res as any);
+    await createTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.createTransferOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.listTransferOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listTransferOrders(req as any, res as any);
+    await listTransferOrders(req as any, res as any, vi.fn());
     expect(transferOrderService.listTransferOrders).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -82,7 +82,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.getTransferStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getTransferStatistics(req as any, res as any);
+    await getTransferStatistics(req as any, res as any, vi.fn());
     expect(transferOrderService.getTransferStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -91,7 +91,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.getTransferOrderDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getTransferOrderDetail(req as any, res as any);
+    await getTransferOrderDetail(req as any, res as any, vi.fn());
     expect(transferOrderService.getTransferOrderDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -100,7 +100,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.updateTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { remark: "更新备注" } });
     const res = mockRes();
-    await updateTransferOrder(req as any, res as any);
+    await updateTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.updateTransferOrder).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -109,7 +109,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.submitTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await submitTransferOrder(req as any, res as any);
+    await submitTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.submitTransferOrder).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -118,7 +118,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.approveTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await approveTransferOrder(req as any, res as any);
+    await approveTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.approveTransferOrder).toHaveBeenCalledWith(1, "t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -127,7 +127,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.rejectTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await rejectTransferOrder(req as any, res as any);
+    await rejectTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.rejectTransferOrder).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -142,7 +142,7 @@ describe("transfer-order.controller", () => {
       user: { username: "admin" },
     });
     const res = mockRes();
-    await createTransferOrder(req as any, res as any);
+    await createTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.createTransferOrder).toHaveBeenCalledWith(expect.objectContaining({
       userId: null,
     }));
@@ -152,7 +152,7 @@ describe("transfer-order.controller", () => {
     (transferOrderService.approveTransferOrder as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, user: { username: "admin" } });
     const res = mockRes();
-    await approveTransferOrder(req as any, res as any);
+    await approveTransferOrder(req as any, res as any, vi.fn());
     expect(transferOrderService.approveTransferOrder).toHaveBeenCalledWith(1, "t1", null);
   });
 });

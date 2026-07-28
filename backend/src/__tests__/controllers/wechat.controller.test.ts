@@ -71,7 +71,7 @@ describe("wechat.controller", () => {
     (wechatService.login as any).mockResolvedValue({ token: "test-token" });
     const req = mockReq({ body: { code: "test-code" } });
     const res = mockRes();
-    await login(req as any, res as any);
+    await login(req as any, res as any, vi.fn());
     expect(mockCode2Session).toHaveBeenCalledWith("test-code");
     expect(wechatService.login).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe("wechat.controller", () => {
   it("login - zod验证失败", async () => {
     const req = mockReq({ body: { code: "" } });
     const res = mockRes();
-    await expect(login(req as any, res as any)).rejects.toThrow();
+    await expect(login(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("decryptPhone - 应解密手机号", async () => {
@@ -91,7 +91,7 @@ describe("wechat.controller", () => {
       headers: { authorization: "Bearer test-token" },
     });
     const res = mockRes();
-    await decryptPhone(req as any, res as any);
+    await decryptPhone(req as any, res as any, vi.fn());
     expect(mockAesDecrypt).toHaveBeenCalled();
     expect(wechatService.decryptPhone).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
@@ -100,7 +100,7 @@ describe("wechat.controller", () => {
   it("decryptPhone - 未登录应返回401", async () => {
     const req = mockReq({ body: { encryptedData: "test-data", iv: "test-iv" }, headers: {} });
     const res = mockRes();
-    await decryptPhone(req as any, res as any);
+    await decryptPhone(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(401);
     expect(fail).toHaveBeenCalled();
   });
@@ -109,7 +109,7 @@ describe("wechat.controller", () => {
     (wechatService.updateProfile as any).mockResolvedValue(undefined);
     const req = mockReq({ body: { nickname: "新昵称" } });
     const res = mockRes();
-    await updateProfile(req as any, res as any);
+    await updateProfile(req as any, res as any, vi.fn());
     expect(wechatService.updateProfile).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -117,7 +117,7 @@ describe("wechat.controller", () => {
   it("updateProfile - 未登录应返回401", async () => {
     const req = mockReq({ wxUser: undefined });
     const res = mockRes();
-    await updateProfile(req as any, res as any);
+    await updateProfile(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(401);
     expect(fail).toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("wechat.controller", () => {
     (wechatService.getProfile as any).mockResolvedValue({ id: 1, nickname: "测试" });
     const req = mockReq();
     const res = mockRes();
-    await getProfile(req as any, res as any);
+    await getProfile(req as any, res as any, vi.fn());
     expect(wechatService.getProfile).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -135,7 +135,7 @@ describe("wechat.controller", () => {
     (wechatService.getProfile as any).mockResolvedValue(null);
     const req = mockReq();
     const res = mockRes();
-    await getProfile(req as any, res as any);
+    await getProfile(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalled();
   });
@@ -144,7 +144,7 @@ describe("wechat.controller", () => {
     (wechatService.bindUser as any).mockResolvedValue({ success: true, data: { id: 1 } });
     const req = mockReq({ body: { username: "admin", password: "123456", bindingType: "ADMIN" } });
     const res = mockRes();
-    await bind(req as any, res as any);
+    await bind(req as any, res as any, vi.fn());
     expect(wechatService.bindUser).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -153,7 +153,7 @@ describe("wechat.controller", () => {
     (wechatService.bindUser as any).mockResolvedValue({ success: false, message: "绑定失败", code: "400" });
     const req = mockReq({ body: { username: "admin", password: "123456", bindingType: "ADMIN" } });
     const res = mockRes();
-    await bind(req as any, res as any);
+    await bind(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalled();
   });
@@ -162,7 +162,7 @@ describe("wechat.controller", () => {
     (wechatService.unbindUser as any).mockResolvedValue({ success: true, message: "解绑成功" });
     const req = mockReq({ body: { systemUserId: 1 } });
     const res = mockRes();
-    await unbind(req as any, res as any);
+    await unbind(req as any, res as any, vi.fn());
     expect(wechatService.unbindUser).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -171,7 +171,7 @@ describe("wechat.controller", () => {
     (wechatService.unbindUser as any).mockResolvedValue({ success: false, message: "解绑失败", code: "400" });
     const req = mockReq({ body: { systemUserId: 1 } });
     const res = mockRes();
-    await unbind(req as any, res as any);
+    await unbind(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalled();
   });

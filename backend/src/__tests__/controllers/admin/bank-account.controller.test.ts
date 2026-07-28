@@ -56,7 +56,7 @@ describe("bank-account.controller", () => {
   describe("listBankAccounts", () => {
     it("默认参数", async () => {
       mocks.listBankAccounts.mockResolvedValue({ total: 0, records: [] });
-      await listBankAccounts(mockReq(), mockRes());
+      listBankAccounts(mockReq(), mockRes(), vi.fn());
       expect(mocks.listBankAccounts).toHaveBeenCalledWith({
         status: undefined,
         page: 1,
@@ -67,7 +67,7 @@ describe("bank-account.controller", () => {
 
     it("带 status 参数", async () => {
       mocks.listBankAccounts.mockResolvedValue({ total: 1, records: [] });
-      await listBankAccounts(mockReq({ query: { status: "ACTIVE", page: 2, pageSize: 10 } }), mockRes());
+      listBankAccounts(mockReq({ query: { status: "ACTIVE", page: 2, pageSize: 10 } }), mockRes(), vi.fn());
       expect(mocks.listBankAccounts).toHaveBeenCalledWith({
         status: "ACTIVE",
         page: 2,
@@ -80,7 +80,7 @@ describe("bank-account.controller", () => {
   describe("getBankAccount", () => {
     it("获取账户详情", async () => {
       mocks.getBankAccount.mockResolvedValue({ id: 1, accountName: "账户1" });
-      await getBankAccount(mockReq({ params: { id: "1" } }), mockRes());
+      getBankAccount(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.getBankAccount).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -88,7 +88,7 @@ describe("bank-account.controller", () => {
   describe("createBankAccount", () => {
     it("创建账户", async () => {
       mocks.createBankAccount.mockResolvedValue({ id: 1 });
-      await createBankAccount(mockReq({ body: { accountName: "账户1", bankName: "中国银行", accountNo: "123456" } }), mockRes());
+      createBankAccount(mockReq({ body: { accountName: "账户1", bankName: "中国银行", accountNo: "123456" } }), mockRes(), vi.fn());
       expect(mocks.createBankAccount).toHaveBeenCalled();
     });
   });
@@ -96,7 +96,7 @@ describe("bank-account.controller", () => {
   describe("updateBankAccount", () => {
     it("更新账户", async () => {
       mocks.updateBankAccount.mockResolvedValue({ id: 1 });
-      await updateBankAccount(mockReq({ params: { id: "1" }, body: { accountName: "新名称" } }), mockRes());
+      updateBankAccount(mockReq({ params: { id: "1" }, body: { accountName: "新名称" } }), mockRes(), vi.fn());
       expect(mocks.updateBankAccount).toHaveBeenCalledWith(1, { accountName: "新名称", bankName: undefined, accountType: undefined, tenantId: "t1" });
     });
   });
@@ -104,7 +104,7 @@ describe("bank-account.controller", () => {
   describe("freezeBankAccount", () => {
     it("冻结账户", async () => {
       mocks.freezeBankAccount.mockResolvedValue({ id: 1, status: "FROZEN" });
-      await freezeBankAccount(mockReq({ params: { id: "1" } }), mockRes());
+      freezeBankAccount(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.freezeBankAccount).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -112,7 +112,7 @@ describe("bank-account.controller", () => {
   describe("unfreezeBankAccount", () => {
     it("解冻账户", async () => {
       mocks.unfreezeBankAccount.mockResolvedValue({ id: 1, status: "ACTIVE" });
-      await unfreezeBankAccount(mockReq({ params: { id: "1" } }), mockRes());
+      unfreezeBankAccount(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.unfreezeBankAccount).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -120,7 +120,7 @@ describe("bank-account.controller", () => {
   describe("closeBankAccount", () => {
     it("销户", async () => {
       mocks.closeBankAccount.mockResolvedValue({ id: 1, status: "CLOSED" });
-      await closeBankAccount(mockReq({ params: { id: "1" } }), mockRes());
+      closeBankAccount(mockReq({ params: { id: "1" } }), mockRes(), vi.fn());
       expect(mocks.closeBankAccount).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -128,7 +128,7 @@ describe("bank-account.controller", () => {
   describe("getTotalBalance", () => {
     it("获取总余额", async () => {
       mocks.getTotalBalance.mockResolvedValue({ totalBalance: 5000 });
-      await getTotalBalance(mockReq(), mockRes());
+      getTotalBalance(mockReq(), mockRes(), vi.fn());
       expect(mocks.getTotalBalance).toHaveBeenCalledWith("t1");
     });
   });

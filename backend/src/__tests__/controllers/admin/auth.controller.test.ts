@@ -53,7 +53,7 @@ describe("auth.controller", () => {
     (authService.login as any).mockResolvedValue({ token: "token123", user: { id: 1 } });
     const req = mockReq({ body: { username: "admin", password: "Admin@123" } });
     const res = mockRes();
-    await login(req as any, res as any);
+    await login(req as any, res as any, vi.fn());
     expect(authService.login).toHaveBeenCalledWith("admin", "Admin@123");
     expect(ok).toHaveBeenCalled();
   });
@@ -62,7 +62,7 @@ describe("auth.controller", () => {
     (authService.changePassword as any).mockResolvedValue({ success: true });
     const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NewPass@123" } });
     const res = mockRes();
-    await changePassword(req as any, res as any);
+    await changePassword(req as any, res as any, vi.fn());
     expect(authService.changePassword).toHaveBeenCalledWith(1, "oldPass", "NewPass@123", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -74,7 +74,7 @@ describe("auth.controller", () => {
     (authService.changePassword as any).mockRejectedValue(error);
     const req = mockReq({ body: { oldPassword: "oldPass", newPassword: "NoSpecialChar1" } });
     const res = mockRes();
-    await expect(changePassword(req as any, res as any)).rejects.toMatchObject({
+    await expect(changePassword(req as any, res as any, vi.fn())).rejects.toMatchObject({
       message: "密码不符合要求：密码必须包含特殊字符",
       statusCode: 400,
     });
@@ -85,7 +85,7 @@ describe("auth.controller", () => {
     (authService.getMe as any).mockResolvedValue({ id: 1, username: "admin" });
     const req = mockReq();
     const res = mockRes();
-    await getMe(req as any, res as any);
+    await getMe(req as any, res as any, vi.fn());
     expect(authService.getMe).toHaveBeenCalledWith({ id: 1, username: "admin" });
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("auth.controller", () => {
     (authService.getSettings as any).mockResolvedValue({ defaultHomepage: "/admin" });
     const req = mockReq();
     const res = mockRes();
-    await getSettings(req as any, res as any);
+    await getSettings(req as any, res as any, vi.fn());
     expect(authService.getSettings).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("auth.controller", () => {
     (authService.updateSettings as any).mockResolvedValue({ success: true });
     const req = mockReq({ body: { defaultHomepage: "/cashier" } });
     const res = mockRes();
-    await updateSettings(req as any, res as any);
+    await updateSettings(req as any, res as any, vi.fn());
     expect(authService.updateSettings).toHaveBeenCalledWith(1, "/cashier", "t1");
     expect(ok).toHaveBeenCalled();
   });

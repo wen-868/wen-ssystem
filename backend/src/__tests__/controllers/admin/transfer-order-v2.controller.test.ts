@@ -89,7 +89,7 @@ describe("admin transfer-order-v2.controller", () => {
     it("默认分页参数", async () => {
       const req = mockReq();
       const res = mockRes();
-      await listTransferOrders(req, res);
+      await listTransferOrders(req, res, vi.fn());
       expect(mocks.listTransferOrders).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -120,7 +120,7 @@ describe("admin transfer-order-v2.controller", () => {
         },
       });
       const res = mockRes();
-      await listTransferOrders(req, res);
+      await listTransferOrders(req, res, vi.fn());
       expect(mocks.listTransferOrders).toHaveBeenCalled();
       const arg = mocks.listTransferOrders.mock.calls[0][0];
       expect(arg.page).toBe(2);
@@ -136,7 +136,7 @@ describe("admin transfer-order-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getTransferOrderDetail(req, res);
+      await getTransferOrderDetail(req, res, vi.fn());
       expect(mocks.getTransferOrderDetail).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalled();
     });
@@ -157,7 +157,7 @@ describe("admin transfer-order-v2.controller", () => {
         },
       });
       const res = mockRes();
-      await createTransferOrder(req, res);
+      await createTransferOrder(req, res, vi.fn());
       expect(mocks.createTransferOrder).toHaveBeenCalled();
       const arg = mocks.createTransferOrder.mock.calls[0][0];
       expect(arg.fromStoreId).toBe(1);
@@ -174,7 +174,7 @@ describe("admin transfer-order-v2.controller", () => {
         body: { expectedDate: "2026-07-20", remark: "更新备注", items: [] },
       });
       const res = mockRes();
-      await updateTransferOrder(req, res);
+      await updateTransferOrder(req, res, vi.fn());
       expect(mocks.updateTransferOrder).toHaveBeenCalledWith(1, "t1", {
         expectedDate: "2026-07-20",
         remark: "更新备注",
@@ -187,7 +187,7 @@ describe("admin transfer-order-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteTransferOrder(req, res);
+      await deleteTransferOrder(req, res, vi.fn());
       expect(mocks.deleteTransferOrder).toHaveBeenCalledWith(1, "t1");
     });
   });
@@ -199,7 +199,7 @@ describe("admin transfer-order-v2.controller", () => {
         body: { approverName: "审核员" },
       });
       const res = mockRes();
-      await approveTransferOrder(req, res);
+      await approveTransferOrder(req, res, vi.fn());
       expect(mocks.approveTransferOrder).toHaveBeenCalledWith(1, "t1", {
         approverId: 1,
         approverName: "审核员",
@@ -214,7 +214,7 @@ describe("admin transfer-order-v2.controller", () => {
         body: { approverName: "审核员", rejectReason: "不对" },
       });
       const res = mockRes();
-      await rejectTransferOrder(req, res);
+      await rejectTransferOrder(req, res, vi.fn());
       expect(mocks.rejectTransferOrder).toHaveBeenCalledWith(1, "t1", {
         approverId: 1,
         approverName: "审核员",
@@ -230,7 +230,7 @@ describe("admin transfer-order-v2.controller", () => {
         body: { operatorName: "库管员" },
       });
       const res = mockRes();
-      await confirmTransferOut(req, res);
+      await confirmTransferOut(req, res, vi.fn());
       expect(mocks.confirmTransferOut).toHaveBeenCalledWith(1, "t1", {
         operatorId: 1,
         operatorName: "库管员",
@@ -245,7 +245,7 @@ describe("admin transfer-order-v2.controller", () => {
         body: { operatorName: "库管员" },
       });
       const res = mockRes();
-      await confirmTransferIn(req, res);
+      await confirmTransferIn(req, res, vi.fn());
       expect(mocks.confirmTransferIn).toHaveBeenCalledWith(1, "t1", {
         operatorId: 1,
         operatorName: "库管员",
@@ -257,7 +257,7 @@ describe("admin transfer-order-v2.controller", () => {
     it("正确调用 service", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getTransferStats(req, res);
+      await getTransferStats(req, res, vi.fn());
       expect(mocks.getTransferStats).toHaveBeenCalledWith("t1");
       expect(mocks.ok).toHaveBeenCalled();
     });

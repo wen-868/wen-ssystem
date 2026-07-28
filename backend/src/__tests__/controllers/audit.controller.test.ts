@@ -44,7 +44,7 @@ describe("audit.controller", () => {
     (auditService.listAuditLogs as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listAuditLogs(req as any, res as any);
+    await listAuditLogs(req as any, res as any, vi.fn());
     expect(auditService.listAuditLogs).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -63,7 +63,7 @@ describe("audit.controller", () => {
       },
     });
     const res = mockRes();
-    await listAuditLogs(req as any, res as any);
+    await listAuditLogs(req as any, res as any, vi.fn());
     expect(auditService.listAuditLogs).toHaveBeenCalledWith(expect.objectContaining({
       page: 2,
       pageSize: 10,
@@ -80,14 +80,14 @@ describe("audit.controller", () => {
   it("listAuditLogs - zod验证失败", async () => {
     const req = mockReq({ query: { page: "invalid", pageSize: 200 } });
     const res = mockRes();
-    await expect(listAuditLogs(req as any, res as any)).rejects.toThrow();
+    await expect(listAuditLogs(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("getAuditStatistics - 应返回审计统计", async () => {
     (auditService.getAuditStatistics as any).mockResolvedValue({ totalActions: 0, topUsers: [] });
     const req = mockReq();
     const res = mockRes();
-    await getAuditStatistics(req as any, res as any);
+    await getAuditStatistics(req as any, res as any, vi.fn());
     expect(auditService.getAuditStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });

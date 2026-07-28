@@ -60,7 +60,7 @@ describe("employee.controller", () => {
     (employeeService.listStaff as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listStaff(req as any, res as any);
+    await listStaff(req as any, res as any, vi.fn());
     expect(employeeService.listStaff).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -69,7 +69,7 @@ describe("employee.controller", () => {
     (employeeService.createStaff as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { username: "testuser", realName: "测试用户" } });
     const res = mockRes();
-    await createStaff(req as any, res as any);
+    await createStaff(req as any, res as any, vi.fn());
     expect(employeeService.createStaff).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe("employee.controller", () => {
     (employeeService.updateStaff as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { staffId: "1" }, body: { realName: "新名称" } });
     const res = mockRes();
-    await updateStaff(req as any, res as any);
+    await updateStaff(req as any, res as any, vi.fn());
     expect(employeeService.updateStaff).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -87,7 +87,7 @@ describe("employee.controller", () => {
     (employeeService.disableStaff as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await disableStaff(req as any, res as any);
+    await disableStaff(req as any, res as any, vi.fn());
     expect(employeeService.disableStaff).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("employee.controller", () => {
     (employeeService.listStores as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20, keyword: "" } });
     const res = mockRes();
-    await listStores(req as any, res as any);
+    await listStores(req as any, res as any, vi.fn());
     expect(employeeService.listStores).toHaveBeenCalledWith(1, 20, "t1", "");
     expect(ok).toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe("employee.controller", () => {
     (employeeService.createStore as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { name: "测试店", address: "测试地址" } });
     const res = mockRes();
-    await createStore(req as any, res as any);
+    await createStore(req as any, res as any, vi.fn());
     expect(employeeService.createStore).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -114,7 +114,7 @@ describe("employee.controller", () => {
     (employeeService.getStore as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getStore(req as any, res as any);
+    await getStore(req as any, res as any, vi.fn());
     expect(employeeService.getStore).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -123,7 +123,7 @@ describe("employee.controller", () => {
     (employeeService.updateStore as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { name: "新店名" } });
     const res = mockRes();
-    await updateStore(req as any, res as any);
+    await updateStore(req as any, res as any, vi.fn());
     expect(employeeService.updateStore).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("employee.controller", () => {
     (employeeService.getStoreWechatInfo as any).mockResolvedValue({});
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getStoreWechatInfo(req as any, res as any);
+    await getStoreWechatInfo(req as any, res as any, vi.fn());
     expect(employeeService.getStoreWechatInfo).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -142,7 +142,7 @@ describe("employee.controller", () => {
     (employeeService.listStores as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listStores(req as any, res as any);
+    await listStores(req as any, res as any, vi.fn());
     expect(employeeService.listStores).toHaveBeenCalledWith(1, 20, "t1", "");
   });
 });

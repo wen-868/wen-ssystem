@@ -69,7 +69,7 @@ describe("admin todo.controller", () => {
     mocks.listTodos.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listTodos(req, res);
+    await listTodos(req, res, vi.fn());
     expect(mocks.listTodos).toHaveBeenCalledWith("t1", 1, 20, undefined, undefined, undefined);
   });
 
@@ -77,7 +77,7 @@ describe("admin todo.controller", () => {
     mocks.listTodos.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { type: "ORDER", priority: "HIGH", status: "PENDING", page: "2", pageSize: "10" } });
     const res = mockRes();
-    await listTodos(req, res);
+    await listTodos(req, res, vi.fn());
     expect(mocks.listTodos).toHaveBeenCalledWith("t1", 2, 10, "ORDER", "HIGH", "PENDING");
   });
 
@@ -85,7 +85,7 @@ describe("admin todo.controller", () => {
     mocks.getTodoStats.mockResolvedValue({ total: 10, pending: 5 });
     const req = mockReq();
     const res = mockRes();
-    await getTodoStats(req, res);
+    await getTodoStats(req, res, vi.fn());
     expect(mocks.getTodoStats).toHaveBeenCalledWith("t1");
     expect(mocks.ok).toHaveBeenCalledWith({ total: 10, pending: 5 });
   });
@@ -94,7 +94,7 @@ describe("admin todo.controller", () => {
     mocks.createTodo.mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { title: "处理订单", type: "ORDER", priority: "HIGH" } });
     const res = mockRes();
-    await createTodo(req, res);
+    await createTodo(req, res, vi.fn());
     expect(mocks.createTodo).toHaveBeenCalledWith("t1", expect.objectContaining({
       title: "处理订单", type: "ORDER", priority: "HIGH",
     }));
@@ -105,7 +105,7 @@ describe("admin todo.controller", () => {
     mocks.createTodo.mockResolvedValue({ id: 2 });
     const req = mockReq({ body: { title: "盘点", type: "STOCK", priority: "LOW", dueDate: "2026-01-31", remark: "备注", source: "系统" } });
     const res = mockRes();
-    await createTodo(req, res);
+    await createTodo(req, res, vi.fn());
     expect(mocks.createTodo).toHaveBeenCalledWith("t1", expect.objectContaining({
       dueDate: "2026-01-31", remark: "备注", source: "系统",
     }));
@@ -115,7 +115,7 @@ describe("admin todo.controller", () => {
     mocks.completeTodo.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "5" } });
     const res = mockRes();
-    await completeTodo(req, res);
+    await completeTodo(req, res, vi.fn());
     expect(mocks.completeTodo).toHaveBeenCalledWith("t1", 5);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { success: true } });
   });
@@ -124,7 +124,7 @@ describe("admin todo.controller", () => {
     mocks.dismissTodo.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "6" } });
     const res = mockRes();
-    await dismissTodo(req, res);
+    await dismissTodo(req, res, vi.fn());
     expect(mocks.dismissTodo).toHaveBeenCalledWith("t1", 6);
   });
 
@@ -132,7 +132,7 @@ describe("admin todo.controller", () => {
     mocks.deleteTodo.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "7" } });
     const res = mockRes();
-    await deleteTodo(req, res);
+    await deleteTodo(req, res, vi.fn());
     expect(mocks.deleteTodo).toHaveBeenCalledWith("t1", 7);
     expect(mocks.ok).toHaveBeenCalledWith({ success: true });
   });
@@ -141,7 +141,7 @@ describe("admin todo.controller", () => {
     mocks.listTodos.mockResolvedValue({ list: [{ id: 1 }], total: 1 });
     const req = mockReq();
     const res = mockRes();
-    await listTodos(req, res);
+    await listTodos(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { list: [{ id: 1 }], total: 1 } });
   });
 });

@@ -48,7 +48,7 @@ describe("store/other.controller", () => {
     (svc.createHoldOrder as any).mockResolvedValue({ holdNo: "HOLD001" });
     const req = mockReq({ body: { items: [{ skuId: 1, skuName: "商品A", quantity: 2, unitPrice: 100, subtotalAmount: 200 }] } });
     const res = mockRes();
-    await createHoldOrder(req as any, res as any);
+    await createHoldOrder(req as any, res as any, vi.fn());
     expect(svc.createHoldOrder).toHaveBeenCalledWith(expect.objectContaining({
       storeId: 1,
       tenantId: "t1",
@@ -60,7 +60,7 @@ describe("store/other.controller", () => {
     (svc.listHoldOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listHoldOrders(req as any, res as any);
+    await listHoldOrders(req as any, res as any, vi.fn());
     expect(svc.listHoldOrders).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
@@ -73,7 +73,7 @@ describe("store/other.controller", () => {
     (svc.restoreHoldOrder as any).mockResolvedValue(null);
     const req = mockReq({ params: { holdNo: "HOLD999" } });
     const res = mockRes();
-    await restoreHoldOrder(req as any, res as any);
+    await restoreHoldOrder(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("挂单不存在", "404");
   });
@@ -82,7 +82,7 @@ describe("store/other.controller", () => {
     (svc.restoreHoldOrder as any).mockResolvedValue({ holdNo: "HOLD001" });
     const req = mockReq({ params: { holdNo: "HOLD001" } });
     const res = mockRes();
-    await restoreHoldOrder(req as any, res as any);
+    await restoreHoldOrder(req as any, res as any, vi.fn());
     expect(svc.restoreHoldOrder).toHaveBeenCalledWith("HOLD001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -91,7 +91,7 @@ describe("store/other.controller", () => {
     (svc.deleteHoldOrder as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { holdNo: "HOLD001" } });
     const res = mockRes();
-    await deleteHoldOrder(req as any, res as any);
+    await deleteHoldOrder(req as any, res as any, vi.fn());
     expect(svc.deleteHoldOrder).toHaveBeenCalledWith("HOLD001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -100,7 +100,7 @@ describe("store/other.controller", () => {
     (svc.listCollectionLinks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listCollectionLinks(req as any, res as any);
+    await listCollectionLinks(req as any, res as any, vi.fn());
     expect(svc.listCollectionLinks).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
@@ -113,7 +113,7 @@ describe("store/other.controller", () => {
     (svc.listPaymentOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPaymentOrders(req as any, res as any);
+    await listPaymentOrders(req as any, res as any, vi.fn());
     expect(svc.listPaymentOrders).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
@@ -126,7 +126,7 @@ describe("store/other.controller", () => {
     (svc.listRefundOrders as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listRefundOrders(req as any, res as any);
+    await listRefundOrders(req as any, res as any, vi.fn());
     expect(svc.listRefundOrders).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,

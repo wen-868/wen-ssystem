@@ -26,7 +26,7 @@ describe("platform-manage.controller", () => {
       const mockResult = [{ key: "test", value: "value" }];
       (configService.listPlatformConfigs as vi.Mock).mockResolvedValue(mockResult);
 
-      await listConfigs({ query: {} } as any, mockRes);
+      await listConfigs({ query: {} } as any, mockRes, vi.fn());
 
       expect(configService.listPlatformConfigs).toHaveBeenCalledWith(undefined);
       expect(mockRes.json).toHaveBeenCalled();
@@ -40,7 +40,7 @@ describe("platform-manage.controller", () => {
       const mockResult = [{ key: "test", value: "value" }];
       (configService.listPlatformConfigs as vi.Mock).mockResolvedValue(mockResult);
 
-      await listConfigs({ query: { category: "system" } } as any, mockRes);
+      await listConfigs({ query: { category: "system" } } as any, mockRes, vi.fn());
 
       expect(configService.listPlatformConfigs).toHaveBeenCalledWith("system");
       expect(mockRes.json).toHaveBeenCalled();
@@ -56,7 +56,7 @@ describe("platform-manage.controller", () => {
       const mockResult = { key: "test", value: "new_value" };
       (configService.updatePlatformConfig as vi.Mock).mockResolvedValue(mockResult);
 
-      await updateConfig({ body: { key: "test", value: "new_value" } } as any, mockRes);
+      await updateConfig({ body: { key: "test", value: "new_value" } } as any, mockRes, vi.fn());
 
       expect(configService.updatePlatformConfig).toHaveBeenCalledWith("test", "new_value", "platform");
       expect(mockRes.json).toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe("platform-manage.controller", () => {
       const mockResult = { list: [], total: 0 };
       (announcementService.listAnnouncements as vi.Mock).mockResolvedValue(mockResult);
 
-      await listAnnouncements({ query: {} } as any, mockRes);
+      await listAnnouncements({ query: {} } as any, mockRes, vi.fn());
 
       expect(announcementService.listAnnouncements).toHaveBeenCalledWith({
         status: undefined,
@@ -97,7 +97,7 @@ describe("platform-manage.controller", () => {
       const mockResult = { list: [], total: 0 };
       (announcementService.listAnnouncements as vi.Mock).mockResolvedValue(mockResult);
 
-      await listAnnouncements({ query: { page: 2, pageSize: 10, status: "ACTIVE", type: "NOTICE" } } as any, mockRes);
+      await listAnnouncements({ query: { page: 2, pageSize: 10, status: "ACTIVE", type: "NOTICE" } } as any, mockRes, vi.fn());
 
       expect(announcementService.listAnnouncements).toHaveBeenCalledWith({
         status: "ACTIVE",
@@ -116,7 +116,7 @@ describe("platform-manage.controller", () => {
       await createAnnouncement({
         body: { title: "Test", content: "Content", type: "NOTICE", topFlag: 0 },
         user: { id: 1 },
-      } as any, mockRes);
+      } as any, mockRes, vi.fn());
 
       expect(announcementService.createAnnouncement).toHaveBeenCalledWith({
         title: "Test",
@@ -139,7 +139,7 @@ describe("platform-manage.controller", () => {
       await createAnnouncement({
         body: { title: "Test", content: "Content" },
         user: { id: 1 },
-      } as any, mockRes);
+      } as any, mockRes, vi.fn());
 
       expect(announcementService.createAnnouncement).toHaveBeenCalledWith({
         title: "Test",

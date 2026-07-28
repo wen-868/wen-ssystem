@@ -45,7 +45,7 @@ describe("store/product.controller", () => {
     (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { keyword: "测试", barcode: "123", categoryId: "1", tagIds: "1,2,3" } });
     const res = mockRes();
-    await listProducts(req as any, res as any);
+    await listProducts(req as any, res as any, vi.fn());
     expect(productService.listProducts).toHaveBeenCalledWith({
       keyword: "测试",
       barcode: "123",
@@ -61,7 +61,7 @@ describe("store/product.controller", () => {
     (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq();
     const res = mockRes();
-    await listProducts(req as any, res as any);
+    await listProducts(req as any, res as any, vi.fn());
     expect(productService.listProducts).toHaveBeenCalledWith(expect.objectContaining({
       keyword: "",
       barcode: "",
@@ -75,7 +75,7 @@ describe("store/product.controller", () => {
     (productService.listMembers as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { keyword: "会员" } });
     const res = mockRes();
-    await listMembers(req as any, res as any);
+    await listMembers(req as any, res as any, vi.fn());
     expect(productService.listMembers).toHaveBeenCalledWith({
       keyword: "会员",
       tenantId: "t1",
@@ -87,7 +87,7 @@ describe("store/product.controller", () => {
     (productService.getCategories as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getCategories(req as any, res as any);
+    await getCategories(req as any, res as any, vi.fn());
     expect(productService.getCategories).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -96,7 +96,7 @@ describe("store/product.controller", () => {
     (productService.getProductDetail as any).mockResolvedValue({ id: 1, name: "商品A" });
     const req = mockReq({ params: { spuId: "1" } });
     const res = mockRes();
-    await getProductDetail(req as any, res as any);
+    await getProductDetail(req as any, res as any, vi.fn());
     expect(productService.getProductDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });

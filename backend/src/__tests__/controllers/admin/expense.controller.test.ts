@@ -61,7 +61,7 @@ describe("expense.controller", () => {
       },
     });
     const res = mockRes();
-    await createExpense(req as any, res as any);
+    await createExpense(req as any, res as any, vi.fn());
     expect(expenseService.createExpense).toHaveBeenCalledWith(expect.objectContaining({
       expenseType: "OFFICE", amount: 100, operatorId: 1, tenantId: "t1",
     }));
@@ -73,14 +73,14 @@ describe("expense.controller", () => {
     (expenseService.createExpense as any).mockRejectedValue(error);
     const req = mockReq({ body: { expenseType: "OFFICE", amount: 100 } });
     const res = mockRes();
-    await expect(createExpense(req as any, res as any)).rejects.toThrow(error);
+    await expect(createExpense(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("listExpenses - 应返回费用单列表", async () => {
     (expenseService.listExpenses as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listExpenses(req as any, res as any);
+    await listExpenses(req as any, res as any, vi.fn());
     expect(expenseService.listExpenses).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, tenantId: "t1",
     }));
@@ -90,7 +90,7 @@ describe("expense.controller", () => {
     (expenseService.listExpenses as any).mockResolvedValue({ total: 1, records: [] });
     const req = mockReq({ query: { expenseType: "OFFICE", status: "PENDING", page: "2", pageSize: "10" } });
     const res = mockRes();
-    await listExpenses(req as any, res as any);
+    await listExpenses(req as any, res as any, vi.fn());
     expect(expenseService.listExpenses).toHaveBeenCalledWith(expect.objectContaining({
       expenseType: "OFFICE", status: "PENDING", page: 2, pageSize: 10,
     }));
@@ -100,7 +100,7 @@ describe("expense.controller", () => {
     (expenseService.getExpenseDetail as any).mockResolvedValue({ expenseNo: "E001" });
     const req = mockReq({ params: { expenseNo: "E001" } });
     const res = mockRes();
-    await getExpenseDetail(req as any, res as any);
+    await getExpenseDetail(req as any, res as any, vi.fn());
     expect(expenseService.getExpenseDetail).toHaveBeenCalledWith("E001", "t1");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { expenseNo: "E001" } });
   });
@@ -110,7 +110,7 @@ describe("expense.controller", () => {
     (expenseService.getExpenseDetail as any).mockRejectedValue(error);
     const req = mockReq({ params: { expenseNo: "E999" } });
     const res = mockRes();
-    await expect(getExpenseDetail(req as any, res as any)).rejects.toThrow(error);
+    await expect(getExpenseDetail(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("updateExpense - 应更新费用单", async () => {
@@ -120,7 +120,7 @@ describe("expense.controller", () => {
       body: { expenseType: "OFFICE", category: "办公", amount: 200, payee: "供应商B", paymentMethod: "CASH", expenseDate: "2026-02-01", remark: "改" },
     });
     const res = mockRes();
-    await updateExpense(req as any, res as any);
+    await updateExpense(req as any, res as any, vi.fn());
     expect(expenseService.updateExpense).toHaveBeenCalledWith("E001", expect.objectContaining({
       amount: 200, tenantId: "t1",
     }));
@@ -130,7 +130,7 @@ describe("expense.controller", () => {
     (expenseService.approveExpense as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { expenseNo: "E001" } });
     const res = mockRes();
-    await approveExpense(req as any, res as any);
+    await approveExpense(req as any, res as any, vi.fn());
     expect(expenseService.approveExpense).toHaveBeenCalledWith("E001", "t1");
     expect(ok).toHaveBeenCalledWith({ success: true });
   });
@@ -139,7 +139,7 @@ describe("expense.controller", () => {
     (expenseService.voidExpense as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { expenseNo: "E002" } });
     const res = mockRes();
-    await voidExpense(req as any, res as any);
+    await voidExpense(req as any, res as any, vi.fn());
     expect(expenseService.voidExpense).toHaveBeenCalledWith("E002", "t1");
   });
 
@@ -147,7 +147,7 @@ describe("expense.controller", () => {
     (expenseService.getExpenseSummary as any).mockResolvedValue({ total: 500 });
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
     const res = mockRes();
-    await getExpenseSummary(req as any, res as any);
+    await getExpenseSummary(req as any, res as any, vi.fn());
     expect(expenseService.getExpenseSummary).toHaveBeenCalledWith("t1", "2026-01-01", "2026-01-31");
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { total: 500 } });
   });
@@ -156,7 +156,7 @@ describe("expense.controller", () => {
     (expenseService.getExpenseSummary as any).mockResolvedValue({});
     const req = mockReq();
     const res = mockRes();
-    await getExpenseSummary(req as any, res as any);
+    await getExpenseSummary(req as any, res as any, vi.fn());
     expect(expenseService.getExpenseSummary).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
@@ -165,14 +165,14 @@ describe("expense.controller", () => {
     (expenseService.approveExpense as any).mockRejectedValue(error);
     const req = mockReq({ params: { expenseNo: "E001" } });
     const res = mockRes();
-    await expect(approveExpense(req as any, res as any)).rejects.toThrow(error);
+    await expect(approveExpense(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("listExpenses - 不传page和pageSize时使用默认值1和20", async () => {
     (expenseService.listExpenses as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listExpenses(req as any, res as any);
+    await listExpenses(req as any, res as any, vi.fn());
     expect(expenseService.listExpenses).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, tenantId: "t1",
     }));
@@ -185,7 +185,7 @@ describe("expense.controller", () => {
       body: { expenseType: "OFFICE", category: "办公", amount: 200, payee: "B", paymentMethod: "CASH", expenseDate: "2026-02-01" },
     });
     const res = mockRes();
-    await updateExpense(req as any, res as any);
+    await updateExpense(req as any, res as any, vi.fn());
     expect(expenseService.updateExpense).toHaveBeenCalledWith("E001", expect.objectContaining({
       remark: undefined, tenantId: "t1",
     }));

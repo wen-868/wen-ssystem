@@ -60,7 +60,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.createDailySettlement.mockResolvedValue({ id: 1, settleDate: "2026-01-01" });
     const req = mockReq({ body: { settleDate: "2026-01-01" } });
     const res = mockRes();
-    await createDailySettlement(req, res);
+    await createDailySettlement(req, res, vi.fn());
     expect(mocks.createDailySettlement).toHaveBeenCalledWith({
       settleDate: "2026-01-01", tenantId: "t1", operatorId: 1,
     });
@@ -71,7 +71,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.createDailySettlement.mockResolvedValue({ id: 2 });
     const req = mockReq({ user: {}, body: { settleDate: "2026-01-02" } });
     const res = mockRes();
-    await createDailySettlement(req, res);
+    await createDailySettlement(req, res, vi.fn());
     expect(mocks.createDailySettlement).toHaveBeenCalledWith(expect.objectContaining({
       operatorId: 0,
       tenantId: "t1",
@@ -82,7 +82,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.createDailySettlement.mockResolvedValue({ id: 3 });
     const req = mockReq({ body: { settleDate: "2026-01-03" } });
     const res = mockRes();
-    await createDailySettlement(req, res);
+    await createDailySettlement(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { id: 3 } });
   });
 
@@ -90,7 +90,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.listDailySettlements.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listDailySettlements(req, res);
+    await listDailySettlements(req, res, vi.fn());
     expect(mocks.listDailySettlements).toHaveBeenCalledWith({
       page: 1, pageSize: 20, tenantId: "t1", dateStart: undefined, dateEnd: undefined,
     });
@@ -100,7 +100,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.listDailySettlements.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { dateStart: "2026-01-01", dateEnd: "2026-01-31", page: "2", pageSize: "10" } });
     const res = mockRes();
-    await listDailySettlements(req, res);
+    await listDailySettlements(req, res, vi.fn());
     expect(mocks.listDailySettlements).toHaveBeenCalledWith(expect.objectContaining({
       dateStart: "2026-01-01", dateEnd: "2026-01-31", page: 2, pageSize: 10,
     }));
@@ -110,7 +110,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.getDailySettlementDetail.mockResolvedValue({ id: 5 });
     const req = mockReq({ params: { id: "5" } });
     const res = mockRes();
-    await getDailySettlementDetail(req, res);
+    await getDailySettlementDetail(req, res, vi.fn());
     expect(mocks.getDailySettlementDetail).toHaveBeenCalledWith(5, "t1");
     expect(mocks.ok).toHaveBeenCalledWith({ id: 5 });
   });
@@ -119,7 +119,7 @@ describe("admin daily-settlement.controller", () => {
     mocks.getDailySettlementDetail.mockResolvedValue({ id: 6, total: 1000 });
     const req = mockReq({ params: { id: "6" } });
     const res = mockRes();
-    await getDailySettlementDetail(req, res);
+    await getDailySettlementDetail(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { id: 6, total: 1000 } });
   });
 });

@@ -55,7 +55,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.getCustomerReconciliation as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getCustomerReconciliation(req as any, res as any);
+    await getCustomerReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.getCustomerReconciliation).toHaveBeenCalledWith("t1", "2024-01-01", "2024-01-31");
     expect(ok).toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.getCustomerReconciliation as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getCustomerReconciliation(req as any, res as any);
+    await getCustomerReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.getCustomerReconciliation).toHaveBeenCalledWith("t1", undefined, undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -76,7 +76,7 @@ describe("reconciliation.controller", () => {
       query: { startDate: "2024-01-01", endDate: "2024-01-31" },
     });
     const res = mockRes();
-    await getCustomerReconciliationDetail(req as any, res as any);
+    await getCustomerReconciliationDetail(req as any, res as any, vi.fn());
     expect(reconciliationService.getCustomerReconciliationDetail).toHaveBeenCalledWith(1, "t1", "2024-01-01", "2024-01-31");
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.confirmCustomerReconciliation as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { customerId: 1 } });
     const res = mockRes();
-    await confirmCustomerReconciliation(req as any, res as any);
+    await confirmCustomerReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.confirmCustomerReconciliation).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.getSupplierReconciliation as any).mockResolvedValue([]);
     const req = mockReq({ query: { startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await getSupplierReconciliation(req as any, res as any);
+    await getSupplierReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.getSupplierReconciliation).toHaveBeenCalledWith("t1", "2024-01-01", "2024-01-31");
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.getSupplierReconciliation as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getSupplierReconciliation(req as any, res as any);
+    await getSupplierReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.getSupplierReconciliation).toHaveBeenCalledWith("t1", undefined, undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -115,7 +115,7 @@ describe("reconciliation.controller", () => {
       query: { startDate: "2024-01-01", endDate: "2024-01-31" },
     });
     const res = mockRes();
-    await getSupplierReconciliationDetail(req as any, res as any);
+    await getSupplierReconciliationDetail(req as any, res as any, vi.fn());
     expect(reconciliationService.getSupplierReconciliationDetail).toHaveBeenCalledWith(1, "t1", "2024-01-01", "2024-01-31");
     expect(ok).toHaveBeenCalled();
   });
@@ -124,7 +124,7 @@ describe("reconciliation.controller", () => {
     (reconciliationService.confirmSupplierReconciliation as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { supplierId: 1 } });
     const res = mockRes();
-    await confirmSupplierReconciliation(req as any, res as any);
+    await confirmSupplierReconciliation(req as any, res as any, vi.fn());
     expect(reconciliationService.confirmSupplierReconciliation).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });

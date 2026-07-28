@@ -57,7 +57,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostDetail.mockResolvedValue({ totalCost: 1000 });
     const req = mockReq();
     const res = mockRes();
-    await getInventoryCostDetail(req, res);
+    await getInventoryCostDetail(req, res, vi.fn());
     expect(mocks.getInventoryCostDetail).toHaveBeenCalledWith("t1", undefined, undefined);
     expect(mocks.ok).toHaveBeenCalledWith({ totalCost: 1000 });
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { totalCost: 1000 } });
@@ -67,7 +67,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostDetail.mockResolvedValue({ totalCost: 500 });
     const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
     const res = mockRes();
-    await getInventoryCostDetail(req, res);
+    await getInventoryCostDetail(req, res, vi.fn());
     expect(mocks.getInventoryCostDetail).toHaveBeenCalledWith("t1", "2026-01-01", "2026-01-31");
   });
 
@@ -75,7 +75,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostDetail.mockResolvedValue({});
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getInventoryCostDetail(req, res);
+    await getInventoryCostDetail(req, res, vi.fn());
     expect(mocks.getInventoryCostDetail).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
@@ -83,7 +83,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostTrend.mockResolvedValue([{ month: "2026-01", cost: 100 }]);
     const req = mockReq();
     const res = mockRes();
-    await getInventoryCostTrend(req, res);
+    await getInventoryCostTrend(req, res, vi.fn());
     expect(mocks.getInventoryCostTrend).toHaveBeenCalledWith("t1", undefined);
     expect(mocks.ok).toHaveBeenCalledWith([{ month: "2026-01", cost: 100 }]);
   });
@@ -92,7 +92,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostTrend.mockResolvedValue([]);
     const req = mockReq({ query: { skuId: "42" } });
     const res = mockRes();
-    await getInventoryCostTrend(req, res);
+    await getInventoryCostTrend(req, res, vi.fn());
     expect(mocks.getInventoryCostTrend).toHaveBeenCalledWith("t1", 42);
   });
 
@@ -100,7 +100,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostTrend.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getInventoryCostTrend(req, res);
+    await getInventoryCostTrend(req, res, vi.fn());
     expect(mocks.getInventoryCostTrend).toHaveBeenCalledWith("t1", undefined);
   });
 
@@ -108,7 +108,7 @@ describe("admin inventory-cost.controller", () => {
     mocks.getInventoryCostDetail.mockResolvedValue({ detail: true });
     const req = mockReq();
     const res = mockRes();
-    await getInventoryCostDetail(req, res);
+    await getInventoryCostDetail(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledTimes(1);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { detail: true } });
   });

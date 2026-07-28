@@ -50,7 +50,7 @@ describe("visit-plan.controller", () => {
     (visitPlanService.createVisitPlan as any).mockResolvedValue({ visitNo: "VP123" });
     const req = mockReq({ body: { customerId: 1, planDate: "2026-01-01" } });
     const res = mockRes();
-    await createVisitPlan(req as any, res as any);
+    await createVisitPlan(req as any, res as any, vi.fn());
     expect(visitPlanService.createVisitPlan).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe("visit-plan.controller", () => {
     (visitPlanService.updateVisitPlan as any).mockResolvedValue({ visitNo: "VP123" });
     const req = mockReq({ params: { visitNo: "VP123" }, body: { planDate: "2026-01-02" } });
     const res = mockRes();
-    await updateVisitPlan(req as any, res as any);
+    await updateVisitPlan(req as any, res as any, vi.fn());
     expect(visitPlanService.updateVisitPlan).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -68,7 +68,7 @@ describe("visit-plan.controller", () => {
     (visitPlanService.cancelVisitPlan as any).mockResolvedValue({ visitNo: "VP123" });
     const req = mockReq({ params: { visitNo: "VP123" } });
     const res = mockRes();
-    await cancelVisitPlan(req as any, res as any);
+    await cancelVisitPlan(req as any, res as any, vi.fn());
     expect(visitPlanService.cancelVisitPlan).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

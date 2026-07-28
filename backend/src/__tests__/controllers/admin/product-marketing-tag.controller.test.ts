@@ -56,7 +56,7 @@ describe("admin/product-marketing-tag.controller", () => {
       (tagService.listTags as any).mockResolvedValue([{ id: 1, tagName: "热销", tagCode: "hot" }]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listTags(req as any, res as any);
+      await listTags(req as any, res as any, vi.fn());
       expect(tagService.listTags).toHaveBeenCalledWith("t1", undefined);
       expect(ok).toHaveBeenCalled();
     });
@@ -65,7 +65,7 @@ describe("admin/product-marketing-tag.controller", () => {
       (tagService.listTags as any).mockResolvedValue([]);
       const req = mockReq({ query: { status: "1" } });
       const res = mockRes();
-      await listTags(req as any, res as any);
+      await listTags(req as any, res as any, vi.fn());
       expect(tagService.listTags).toHaveBeenCalledWith("t1", 1);
     });
   });
@@ -77,7 +77,7 @@ describe("admin/product-marketing-tag.controller", () => {
         body: { tagCode: "new", tagName: "新品", color: "#ff0000", sortNo: 1 },
       });
       const res = mockRes();
-      await createTag(req as any, res as any);
+      await createTag(req as any, res as any, vi.fn());
       expect(tagService.createTag).toHaveBeenCalledWith(expect.objectContaining({
         tagCode: "new",
         tagName: "新品",
@@ -94,7 +94,7 @@ describe("admin/product-marketing-tag.controller", () => {
         body: { tagCode: "recommend", tagName: "推荐" },
       });
       const res = mockRes();
-      await createTag(req as any, res as any);
+      await createTag(req as any, res as any, vi.fn());
       expect(tagService.createTag).toHaveBeenCalledWith(expect.objectContaining({
         sortNo: 0,
       }));
@@ -109,7 +109,7 @@ describe("admin/product-marketing-tag.controller", () => {
         body: { tagName: "新名称", status: 1 },
       });
       const res = mockRes();
-      await updateTag(req as any, res as any);
+      await updateTag(req as any, res as any, vi.fn());
       expect(tagService.updateTag).toHaveBeenCalledWith(1, { tagName: "新名称", status: 1 }, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -121,7 +121,7 @@ describe("admin/product-marketing-tag.controller", () => {
         body: { tagName: "不存在" },
       });
       const res = mockRes();
-      await updateTag(req as any, res as any);
+      await updateTag(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("标签不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -132,7 +132,7 @@ describe("admin/product-marketing-tag.controller", () => {
       (tagService.deleteTag as any).mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteTag(req as any, res as any);
+      await deleteTag(req as any, res as any, vi.fn());
       expect(tagService.deleteTag).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -141,7 +141,7 @@ describe("admin/product-marketing-tag.controller", () => {
       (tagService.deleteTag as any).mockResolvedValue(null);
       const req = mockReq({ params: { id: "999" } });
       const res = mockRes();
-      await deleteTag(req as any, res as any);
+      await deleteTag(req as any, res as any, vi.fn());
       expect(fail).toHaveBeenCalledWith("标签不存在", "404");
       expect(res.status).toHaveBeenCalledWith(404);
     });

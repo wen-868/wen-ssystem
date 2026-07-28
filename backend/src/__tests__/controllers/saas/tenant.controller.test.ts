@@ -48,7 +48,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.listTenants as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { keyword: "测试", status: "ACTIVE", page: "1", pageSize: "20" } });
     const res = mockRes();
-    await listTenants(req as any, res as any);
+    await listTenants(req as any, res as any, vi.fn());
     expect(tenantService.listTenants).toHaveBeenCalledWith({
       keyword: "测试",
       status: "ACTIVE",
@@ -62,7 +62,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.listTenants as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listTenants(req as any, res as any);
+    await listTenants(req as any, res as any, vi.fn());
     expect(tenantService.listTenants).toHaveBeenCalledWith({
       keyword: undefined,
       status: undefined,
@@ -76,7 +76,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.getTenantDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await getTenantDetail(req as any, res as any);
+    await getTenantDetail(req as any, res as any, vi.fn());
     expect(tenantService.getTenantDetail).toHaveBeenCalledWith(999);
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("租户不存在", "404");
@@ -86,7 +86,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.getTenantDetail as any).mockResolvedValue({ id: 1, companyName: "测试公司" });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getTenantDetail(req as any, res as any);
+    await getTenantDetail(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalled();
   });
 
@@ -94,7 +94,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.createTenant as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { companyName: "新公司", contactPerson: "张三", contactMobile: "13800138000" } });
     const res = mockRes();
-    await createTenant(req as any, res as any);
+    await createTenant(req as any, res as any, vi.fn());
     expect(tenantService.createTenant).toHaveBeenCalledWith(expect.objectContaining({
       companyName: "新公司",
       contactPerson: "张三",
@@ -107,7 +107,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.updateTenant as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" }, body: { companyName: "更新公司" } });
     const res = mockRes();
-    await updateTenant(req as any, res as any);
+    await updateTenant(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("租户不存在", "404");
   });
@@ -116,7 +116,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.updateTenant as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { companyName: "更新公司" } });
     const res = mockRes();
-    await updateTenant(req as any, res as any);
+    await updateTenant(req as any, res as any, vi.fn());
     expect(tenantService.updateTenant).toHaveBeenCalledWith(1, expect.objectContaining({
       companyName: "更新公司",
     }));
@@ -127,7 +127,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.auditTenant as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" }, body: { status: "ACTIVE" } });
     const res = mockRes();
-    await auditTenant(req as any, res as any);
+    await auditTenant(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("租户不存在", "404");
   });
@@ -136,7 +136,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.auditTenant as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { status: "ACTIVE", remark: "通过" } });
     const res = mockRes();
-    await auditTenant(req as any, res as any);
+    await auditTenant(req as any, res as any, vi.fn());
     expect(tenantService.auditTenant).toHaveBeenCalledWith(1, { status: "ACTIVE", remark: "通过" });
     expect(ok).toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.toggleTenantStatus as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" }, body: { status: "SUSPENDED" } });
     const res = mockRes();
-    await toggleTenantStatus(req as any, res as any);
+    await toggleTenantStatus(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("租户不存在", "404");
   });
@@ -154,7 +154,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.toggleTenantStatus as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { status: "SUSPENDED" } });
     const res = mockRes();
-    await toggleTenantStatus(req as any, res as any);
+    await toggleTenantStatus(req as any, res as any, vi.fn());
     expect(tenantService.toggleTenantStatus).toHaveBeenCalledWith(1, "SUSPENDED");
     expect(ok).toHaveBeenCalled();
   });
@@ -163,7 +163,7 @@ describe("saas/tenant.controller", () => {
     (tenantService.getTenantStatistics as any).mockResolvedValue({ total: 100 });
     const req = mockReq();
     const res = mockRes();
-    await getTenantStatistics(req as any, res as any);
+    await getTenantStatistics(req as any, res as any, vi.fn());
     expect(tenantService.getTenantStatistics).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

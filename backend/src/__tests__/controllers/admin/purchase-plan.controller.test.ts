@@ -50,7 +50,7 @@ describe("purchase-plan.controller", () => {
     (purchasePlanService.suggestPurchasePlan as any).mockResolvedValue({ items: [] });
     const req = mockReq();
     const res = mockRes();
-    await suggestPurchasePlan(req as any, res as any);
+    await suggestPurchasePlan(req as any, res as any, vi.fn());
     expect(purchasePlanService.suggestPurchasePlan).toHaveBeenCalledWith("t1", undefined);
     expect(ok).toHaveBeenCalled();
   });
@@ -59,7 +59,7 @@ describe("purchase-plan.controller", () => {
     (purchasePlanService.suggestPurchasePlan as any).mockResolvedValue({ items: [] });
     const req = mockReq({ query: { storeId: "2" } });
     const res = mockRes();
-    await suggestPurchasePlan(req as any, res as any);
+    await suggestPurchasePlan(req as any, res as any, vi.fn());
     expect(purchasePlanService.suggestPurchasePlan).toHaveBeenCalledWith("t1", 2);
     expect(ok).toHaveBeenCalled();
   });
@@ -74,7 +74,7 @@ describe("purchase-plan.controller", () => {
       },
     });
     const res = mockRes();
-    await createPurchasePlan(req as any, res as any);
+    await createPurchasePlan(req as any, res as any, vi.fn());
     expect(purchasePlanService.createPurchasePlan).toHaveBeenCalledWith(
       expect.objectContaining({
         supplierId: 1,
@@ -89,7 +89,7 @@ describe("purchase-plan.controller", () => {
     (purchasePlanService.listPurchasePlans as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPurchasePlans(req as any, res as any);
+    await listPurchasePlans(req as any, res as any, vi.fn());
     expect(purchasePlanService.listPurchasePlans).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 1,
@@ -104,7 +104,7 @@ describe("purchase-plan.controller", () => {
     (purchasePlanService.listPurchasePlans as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: "2", pageSize: "10", supplierId: "3", status: "PENDING" } });
     const res = mockRes();
-    await listPurchasePlans(req as any, res as any);
+    await listPurchasePlans(req as any, res as any, vi.fn());
     expect(purchasePlanService.listPurchasePlans).toHaveBeenCalledWith(
       expect.objectContaining({
         page: 2,
@@ -121,7 +121,7 @@ describe("purchase-plan.controller", () => {
     (purchasePlanService.convertPurchasePlan as any).mockResolvedValue({ orderNo: "PO001" });
     const req = mockReq({ params: { planNo: "PL001" } });
     const res = mockRes();
-    await convertPurchasePlan(req as any, res as any);
+    await convertPurchasePlan(req as any, res as any, vi.fn());
     expect(purchasePlanService.convertPurchasePlan).toHaveBeenCalledWith("PL001", "t1");
     expect(ok).toHaveBeenCalled();
   });

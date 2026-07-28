@@ -56,7 +56,7 @@ describe("admin customer-lifecycle.controller", () => {
     mocks.getLifecycleStages.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getLifecycleStages(req, res);
+    await getLifecycleStages(req, res, vi.fn());
     expect(mocks.getLifecycleStages).toHaveBeenCalledWith("t1");
     expect(res.json).toHaveBeenCalled();
   });
@@ -65,7 +65,7 @@ describe("admin customer-lifecycle.controller", () => {
     mocks.getLifecycleTrend.mockResolvedValue([]);
     const req = mockReq({ query: { months: "12" } });
     const res = mockRes();
-    await getLifecycleTrend(req, res);
+    await getLifecycleTrend(req, res, vi.fn());
     expect(mocks.getLifecycleTrend).toHaveBeenCalledWith("t1", 12);
     expect(res.json).toHaveBeenCalled();
   });
@@ -74,7 +74,7 @@ describe("admin customer-lifecycle.controller", () => {
     mocks.getLifecycleTrend.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getLifecycleTrend(req, res);
+    await getLifecycleTrend(req, res, vi.fn());
     expect(mocks.getLifecycleTrend).toHaveBeenCalledWith("t1", 6);
   });
 
@@ -82,7 +82,7 @@ describe("admin customer-lifecycle.controller", () => {
     mocks.getLifecycleDetail.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq({ query: { stage: "ACTIVE", page: "1", pageSize: "10" } });
     const res = mockRes();
-    await getLifecycleDetail(req, res);
+    await getLifecycleDetail(req, res, vi.fn());
     expect(mocks.getLifecycleDetail).toHaveBeenCalledWith(
       expect.objectContaining({ stage: "ACTIVE", page: 1, pageSize: 10, tenantId: "t1" })
     );
@@ -93,7 +93,7 @@ describe("admin customer-lifecycle.controller", () => {
     mocks.getLifecycleDetail.mockResolvedValue({ records: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await getLifecycleDetail(req, res);
+    await getLifecycleDetail(req, res, vi.fn());
     expect(mocks.getLifecycleDetail).toHaveBeenCalledWith(
       expect.objectContaining({ page: 1, pageSize: 20 })
     );

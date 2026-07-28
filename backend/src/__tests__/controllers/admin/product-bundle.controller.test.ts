@@ -76,7 +76,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith({
         page: 1,
         pageSize: 20,
@@ -92,7 +92,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { page: "2", pageSize: "50" } });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         page: 2,
         pageSize: 50,
@@ -103,7 +103,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { keyword: "礼盒" } });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         keyword: "礼盒",
       }));
@@ -113,7 +113,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { status: "1" } });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         status: 1,
       }));
@@ -123,7 +123,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         status: undefined,
       }));
@@ -133,7 +133,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: { categoryId: "10" } });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         categoryId: 10,
       }));
@@ -143,7 +143,7 @@ describe("admin product-bundle.controller", () => {
       mocks.listProductBundles.mockResolvedValue({ list: [], total: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await listProductBundles(req, res);
+      await listProductBundles(req, res, vi.fn());
       expect(mocks.listProductBundles).toHaveBeenCalledWith(expect.objectContaining({
         categoryId: undefined,
       }));
@@ -155,7 +155,7 @@ describe("admin product-bundle.controller", () => {
       mocks.getProductBundleDetail.mockResolvedValue({ id: 1, bundleName: "中秋礼盒" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getProductBundleDetail(req, res);
+      await getProductBundleDetail(req, res, vi.fn());
       expect(mocks.getProductBundleDetail).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ id: 1, bundleName: "中秋礼盒" });
     });
@@ -177,7 +177,7 @@ describe("admin product-bundle.controller", () => {
         },
       });
       const res = mockRes();
-      await createProductBundle(req, res);
+      await createProductBundle(req, res, vi.fn());
       expect(mocks.createProductBundle).toHaveBeenCalledWith({
         bundleName: "中秋礼盒",
         categoryId: 5,
@@ -198,7 +198,7 @@ describe("admin product-bundle.controller", () => {
         body: { bundleName: "测试套装", bundlePrice: "100" },
       });
       const res = mockRes();
-      await createProductBundle(req, res);
+      await createProductBundle(req, res, vi.fn());
       expect(mocks.createProductBundle).toHaveBeenCalledWith(expect.objectContaining({
         items: [],
       }));
@@ -219,7 +219,7 @@ describe("admin product-bundle.controller", () => {
         },
       });
       const res = mockRes();
-      await updateProductBundle(req, res);
+      await updateProductBundle(req, res, vi.fn());
       expect(mocks.updateProductBundle).toHaveBeenCalledWith(1, expect.objectContaining({
         bundleName: "新名称",
         bundlePrice: 399,
@@ -234,7 +234,7 @@ describe("admin product-bundle.controller", () => {
         body: { bundleName: "测试" },
       });
       const res = mockRes();
-      await updateProductBundle(req, res);
+      await updateProductBundle(req, res, vi.fn());
       expect(mocks.updateProductBundle).toHaveBeenCalledWith(1, expect.objectContaining({
         bundlePrice: undefined,
       }));
@@ -246,7 +246,7 @@ describe("admin product-bundle.controller", () => {
       mocks.deleteProductBundle.mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteProductBundle(req, res);
+      await deleteProductBundle(req, res, vi.fn());
       expect(mocks.deleteProductBundle).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ success: true });
     });
@@ -257,7 +257,7 @@ describe("admin product-bundle.controller", () => {
       mocks.publishProductBundle.mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await publishProductBundle(req, res);
+      await publishProductBundle(req, res, vi.fn());
       expect(mocks.publishProductBundle).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ success: true });
     });
@@ -268,7 +268,7 @@ describe("admin product-bundle.controller", () => {
       mocks.unpublishProductBundle.mockResolvedValue({ success: true });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await unpublishProductBundle(req, res);
+      await unpublishProductBundle(req, res, vi.fn());
       expect(mocks.unpublishProductBundle).toHaveBeenCalledWith(1, "t1");
       expect(mocks.ok).toHaveBeenCalledWith({ success: true });
     });
@@ -279,7 +279,7 @@ describe("admin product-bundle.controller", () => {
       mocks.getProductBundleStats.mockResolvedValue({ totalSales: 1000 });
       const req = mockReq();
       const res = mockRes();
-      await getProductBundleStats(req, res);
+      await getProductBundleStats(req, res, vi.fn());
       expect(mocks.getProductBundleStats).toHaveBeenCalledWith({
         tenantId: "t1",
         dateStart: undefined,
@@ -292,7 +292,7 @@ describe("admin product-bundle.controller", () => {
       mocks.getProductBundleStats.mockResolvedValue({ totalSales: 500 });
       const req = mockReq({ query: { dateStart: "2026-01-01", dateEnd: "2026-01-31" } });
       const res = mockRes();
-      await getProductBundleStats(req, res);
+      await getProductBundleStats(req, res, vi.fn());
       expect(mocks.getProductBundleStats).toHaveBeenCalledWith(expect.objectContaining({
         dateStart: "2026-01-01",
         dateEnd: "2026-01-31",

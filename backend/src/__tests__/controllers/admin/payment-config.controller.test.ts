@@ -59,7 +59,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.getChannelConfig as any).mockResolvedValue({});
     const req = mockReq({ params: { provider: "wechat" } });
     const res = mockRes();
-    await getChannelConfig(req as any, res as any);
+    await getChannelConfig(req as any, res as any, vi.fn());
     expect(PaymentConfigService.getChannelConfig).toHaveBeenCalledWith("t1", "wechat");
     expect(ok).toHaveBeenCalled();
   });
@@ -68,7 +68,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.saveChannelConfig as any).mockResolvedValue({});
     const req = mockReq({ params: { provider: "wechat" }, body: { appId: "app123", appSecret: "secret" } });
     const res = mockRes();
-    await saveChannelConfig(req as any, res as any);
+    await saveChannelConfig(req as any, res as any, vi.fn());
     expect(PaymentConfigService.saveChannelConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -77,7 +77,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.testConnection as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { provider: "wechat" } });
     const res = mockRes();
-    await testConnection(req as any, res as any);
+    await testConnection(req as any, res as any, vi.fn());
     expect(PaymentConfigService.testConnection).toHaveBeenCalledWith("t1", "wechat");
     expect(ok).toHaveBeenCalled();
   });
@@ -86,7 +86,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.getStatus as any).mockResolvedValue({ wechat: true });
     const req = mockReq();
     const res = mockRes();
-    await getStatus(req as any, res as any);
+    await getStatus(req as any, res as any, vi.fn());
     expect(PaymentConfigService.getStatus).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -95,7 +95,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.listBankAccounts as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listBankAccounts(req as any, res as any);
+    await listBankAccounts(req as any, res as any, vi.fn());
     expect(PaymentConfigService.listBankAccounts).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -104,7 +104,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.createBankAccount as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { bankName: "工商银行", accountName: "测试公司", accountNumber: "123456" } });
     const res = mockRes();
-    await createBankAccount(req as any, res as any);
+    await createBankAccount(req as any, res as any, vi.fn());
     expect(PaymentConfigService.createBankAccount).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -113,7 +113,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.updateBankAccount as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" }, body: { bankName: "新银行" } });
     const res = mockRes();
-    await updateBankAccount(req as any, res as any);
+    await updateBankAccount(req as any, res as any, vi.fn());
     expect(PaymentConfigService.updateBankAccount).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -122,7 +122,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.deleteBankAccount as any).mockResolvedValue({});
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteBankAccount(req as any, res as any);
+    await deleteBankAccount(req as any, res as any, vi.fn());
     expect(PaymentConfigService.deleteBankAccount).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -131,7 +131,7 @@ describe("payment-config.controller", () => {
     (PaymentConfigService.setDefaultBankAccount as any).mockResolvedValue({});
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await setDefaultBankAccount(req as any, res as any);
+    await setDefaultBankAccount(req as any, res as any, vi.fn());
     expect(PaymentConfigService.setDefaultBankAccount).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });

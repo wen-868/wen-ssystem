@@ -59,7 +59,7 @@ describe("admin inventory-loss-gain.controller", () => {
       body: { storeId: 1, type: "LOSS", skuId: 10, qty: 2, costPrice: 50, reason: "破损" },
     });
     const res = mockRes();
-    await reportLossGain(req, res);
+    await reportLossGain(req, res, vi.fn());
     expect(mocks.reportLossGain).toHaveBeenCalledWith({
       storeId: 1, type: "LOSS", skuId: 10, qty: 2, costPrice: 50, reason: "破损",
       operatorId: 1, tenantId: "t1",
@@ -74,7 +74,7 @@ describe("admin inventory-loss-gain.controller", () => {
       body: { storeId: 2, type: "GAIN", skuId: 5, qty: 1, costPrice: 20, reason: "盘盈" },
     });
     const res = mockRes();
-    await reportLossGain(req, res);
+    await reportLossGain(req, res, vi.fn());
     expect(mocks.reportLossGain).toHaveBeenCalledWith(expect.objectContaining({
       operatorId: 99,
       tenantId: "t1",
@@ -85,7 +85,7 @@ describe("admin inventory-loss-gain.controller", () => {
     mocks.reportLossGain.mockResolvedValue({ id: 3 });
     const req = mockReq({ body: { storeId: 1, type: "LOSS", skuId: 1, qty: 1 } });
     const res = mockRes();
-    await reportLossGain(req, res);
+    await reportLossGain(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { id: 3 } });
   });
 
@@ -93,7 +93,7 @@ describe("admin inventory-loss-gain.controller", () => {
     mocks.listLossGains.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listLossGains(req, res);
+    await listLossGains(req, res, vi.fn());
     expect(mocks.listLossGains).toHaveBeenCalledWith({
       storeId: undefined, type: undefined, page: 1, pageSize: 20, tenantId: "t1",
     });
@@ -103,7 +103,7 @@ describe("admin inventory-loss-gain.controller", () => {
     mocks.listLossGains.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { storeId: "5", type: "GAIN" } });
     const res = mockRes();
-    await listLossGains(req, res);
+    await listLossGains(req, res, vi.fn());
     expect(mocks.listLossGains).toHaveBeenCalledWith(expect.objectContaining({
       storeId: 5,
       type: "GAIN",
@@ -114,7 +114,7 @@ describe("admin inventory-loss-gain.controller", () => {
     mocks.listLossGains.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { page: "3", pageSize: "50" } });
     const res = mockRes();
-    await listLossGains(req, res);
+    await listLossGains(req, res, vi.fn());
     expect(mocks.listLossGains).toHaveBeenCalledWith(expect.objectContaining({
       page: 3,
       pageSize: 50,
@@ -125,7 +125,7 @@ describe("admin inventory-loss-gain.controller", () => {
     mocks.listLossGains.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ query: { type: "LOSS" } });
     const res = mockRes();
-    await listLossGains(req, res);
+    await listLossGains(req, res, vi.fn());
     expect(mocks.listLossGains).toHaveBeenCalledWith(expect.objectContaining({
       storeId: undefined,
       type: "LOSS",

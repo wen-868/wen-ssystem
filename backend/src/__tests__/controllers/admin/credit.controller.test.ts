@@ -120,7 +120,7 @@ describe("admin credit.controller", () => {
       mocks.getCreditList.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { status: "NORMAL", keyword: "测试", page: "1", pageSize: "10" } });
       const res = mockRes();
-      await getCreditList(req, res);
+      await getCreditList(req, res, vi.fn());
       expect(mocks.getCreditList).toHaveBeenCalledWith(
         "NORMAL",
         "测试",
@@ -135,7 +135,7 @@ describe("admin credit.controller", () => {
       mocks.getCreditList.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await getCreditList(req, res);
+      await getCreditList(req, res, vi.fn());
       expect(mocks.getCreditList).toHaveBeenCalledWith(
         undefined,
         undefined,
@@ -149,7 +149,7 @@ describe("admin credit.controller", () => {
       mocks.getCreditDetail.mockResolvedValue({ customerId: 1, creditLimit: 10000 });
       const req = mockReq({ params: { customerId: "1" } });
       const res = mockRes();
-      await getCreditDetail(req, res);
+      await getCreditDetail(req, res, vi.fn());
       expect(mocks.getCreditDetail).toHaveBeenCalledWith(1, expect.any(Object));
       expect(mocks.ok).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalledWith(404);
@@ -159,7 +159,7 @@ describe("admin credit.controller", () => {
       mocks.getCreditDetail.mockResolvedValue(null);
       const req = mockReq({ params: { customerId: "999" } });
       const res = mockRes();
-      await getCreditDetail(req, res);
+      await getCreditDetail(req, res, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
       expect(mocks.fail).toHaveBeenCalledWith("该客户尚未开通授信", "404");
     });
@@ -169,7 +169,7 @@ describe("admin credit.controller", () => {
       mocks.initCredit.mockResolvedValue({ customerId: 1 });
       const req = mockReq({ params: { customerId: "1" }, body });
       const res = mockRes();
-      await initCredit(req, res);
+      await initCredit(req, res, vi.fn());
       expect(mocks.initCredit).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ creditLimit: 10000, paymentTerm: "NET_30" }),
@@ -181,7 +181,7 @@ describe("admin credit.controller", () => {
     it("initCredit - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ params: { customerId: "1" }, body: {} });
       const res = mockRes();
-      await expect(initCredit(req, res)).rejects.toThrow();
+      await expect(initCredit(req, res, vi.fn())).rejects.toThrow();
       expect(mocks.initCredit).not.toHaveBeenCalled();
     });
 
@@ -189,7 +189,7 @@ describe("admin credit.controller", () => {
       mocks.checkCredit.mockResolvedValue({ available: true });
       const req = mockReq({ params: { customerId: "1" }, query: { amount: "5000" } });
       const res = mockRes();
-      await checkCredit(req, res);
+      await checkCredit(req, res, vi.fn());
       expect(mocks.checkCredit).toHaveBeenCalledWith(1, 5000, expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -198,7 +198,7 @@ describe("admin credit.controller", () => {
       mocks.checkCredit.mockResolvedValue({ available: true });
       const req = mockReq({ params: { customerId: "1" } });
       const res = mockRes();
-      await checkCredit(req, res);
+      await checkCredit(req, res, vi.fn());
       expect(mocks.checkCredit).toHaveBeenCalledWith(1, 0, expect.any(Object));
     });
 
@@ -207,7 +207,7 @@ describe("admin credit.controller", () => {
       mocks.occupyCredit.mockResolvedValue({ success: true });
       const req = mockReq({ params: { customerId: "1" }, body });
       const res = mockRes();
-      await occupyCredit(req, res);
+      await occupyCredit(req, res, vi.fn());
       expect(mocks.occupyCredit).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ amount: 1000, orderNo: "ORD001" }),
@@ -219,7 +219,7 @@ describe("admin credit.controller", () => {
     it("occupyCredit - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ params: { customerId: "1" }, body: {} });
       const res = mockRes();
-      await expect(occupyCredit(req, res)).rejects.toThrow();
+      await expect(occupyCredit(req, res, vi.fn())).rejects.toThrow();
     });
 
     it("releaseCredit - 应释放授信", async () => {
@@ -227,7 +227,7 @@ describe("admin credit.controller", () => {
       mocks.releaseCredit.mockResolvedValue({ success: true });
       const req = mockReq({ params: { customerId: "1" }, body });
       const res = mockRes();
-      await releaseCredit(req, res);
+      await releaseCredit(req, res, vi.fn());
       expect(mocks.releaseCredit).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ amount: 1000, orderNo: "ORD001" }),
@@ -239,7 +239,7 @@ describe("admin credit.controller", () => {
     it("releaseCredit - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ params: { customerId: "1" }, body: {} });
       const res = mockRes();
-      await expect(releaseCredit(req, res)).rejects.toThrow();
+      await expect(releaseCredit(req, res, vi.fn())).rejects.toThrow();
     });
 
     it("freezeCredit - 应冻结授信", async () => {
@@ -247,7 +247,7 @@ describe("admin credit.controller", () => {
       mocks.freezeCredit.mockResolvedValue({ success: true });
       const req = mockReq({ params: { customerId: "1" }, body });
       const res = mockRes();
-      await freezeCredit(req, res);
+      await freezeCredit(req, res, vi.fn());
       expect(mocks.freezeCredit).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ freezeAmount: 5000, reason: "风险冻结" }),
@@ -261,7 +261,7 @@ describe("admin credit.controller", () => {
       mocks.unfreezeCredit.mockResolvedValue({ success: true });
       const req = mockReq({ params: { customerId: "1" }, body });
       const res = mockRes();
-      await unfreezeCredit(req, res);
+      await unfreezeCredit(req, res, vi.fn());
       expect(mocks.unfreezeCredit).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ unfreezeAmount: 5000, reason: "风险解除" }),
@@ -286,7 +286,7 @@ describe("admin credit.controller", () => {
         },
       });
       const res = mockRes();
-      await getCollectionList(req, res);
+      await getCollectionList(req, res, vi.fn());
       expect(mocks.getCollectionList).toHaveBeenCalledWith(
         "LIGHT",
         "1",
@@ -309,7 +309,7 @@ describe("admin credit.controller", () => {
       mocks.createCollection.mockResolvedValue({ id: 1 });
       const req = mockReq({ body });
       const res = mockRes();
-      await createCollection(req, res);
+      await createCollection(req, res, vi.fn());
       expect(mocks.createCollection).toHaveBeenCalledWith(
         expect.objectContaining({ customerId: 1, collectionLevel: "REMIND" }),
         expect.any(Object)
@@ -320,7 +320,7 @@ describe("admin credit.controller", () => {
     it("createCollection - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(createCollection(req, res)).rejects.toThrow();
+      await expect(createCollection(req, res, vi.fn())).rejects.toThrow();
     });
 
     it("updateCollection - 应更新催收记录", async () => {
@@ -328,7 +328,7 @@ describe("admin credit.controller", () => {
       mocks.updateCollection.mockResolvedValue({ id: 1 });
       const req = mockReq({ params: { id: "1" }, body });
       const res = mockRes();
-      await updateCollection(req, res);
+      await updateCollection(req, res, vi.fn());
       expect(mocks.updateCollection).toHaveBeenCalledWith(
         1,
         expect.objectContaining({ contactResult: "PROMISED" }),
@@ -341,7 +341,7 @@ describe("admin credit.controller", () => {
       mocks.getOverdueCustomers.mockResolvedValue([]);
       const req = mockReq();
       const res = mockRes();
-      await getOverdueCustomers(req, res);
+      await getOverdueCustomers(req, res, vi.fn());
       expect(mocks.getOverdueCustomers).toHaveBeenCalledWith(expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -351,7 +351,7 @@ describe("admin credit.controller", () => {
       mocks.batchRemind.mockResolvedValue({ success: 3 });
       const req = mockReq({ body });
       const res = mockRes();
-      await batchRemind(req, res);
+      await batchRemind(req, res, vi.fn());
       expect(mocks.batchRemind).toHaveBeenCalledWith(
         expect.objectContaining({ customerIds: [1, 2, 3] }),
         expect.any(Object)
@@ -362,14 +362,14 @@ describe("admin credit.controller", () => {
     it("batchRemind - 缺少必填字段时 zod 校验抛错", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(batchRemind(req, res)).rejects.toThrow();
+      await expect(batchRemind(req, res, vi.fn())).rejects.toThrow();
     });
 
     it("getCollectionStatistics - 应返回催收统计", async () => {
       mocks.getCollectionStatistics.mockResolvedValue({ total: 100 });
       const req = mockReq();
       const res = mockRes();
-      await getCollectionStatistics(req, res);
+      await getCollectionStatistics(req, res, vi.fn());
       expect(mocks.getCollectionStatistics).toHaveBeenCalledWith(expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -380,7 +380,7 @@ describe("admin credit.controller", () => {
       mocks.getRiskCustomers.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq({ query: { page: "1", pageSize: "10" } });
       const res = mockRes();
-      await getRiskCustomers(req, res);
+      await getRiskCustomers(req, res, vi.fn());
       expect(mocks.getRiskCustomers).toHaveBeenCalledWith(1, 10, expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -389,7 +389,7 @@ describe("admin credit.controller", () => {
       mocks.getRiskCustomers.mockResolvedValue({ records: [], total: 0 });
       const req = mockReq();
       const res = mockRes();
-      await getRiskCustomers(req, res);
+      await getRiskCustomers(req, res, vi.fn());
       expect(mocks.getRiskCustomers).toHaveBeenCalledWith(1, 20, expect.any(Object));
     });
   });
@@ -399,7 +399,7 @@ describe("admin credit.controller", () => {
       mocks.evaluateCreditScore.mockResolvedValue({ score: 750 });
       const req = mockReq({ params: { customerId: "1" } });
       const res = mockRes();
-      await evaluateCredit(req, res);
+      await evaluateCredit(req, res, vi.fn());
       expect(mocks.evaluateCreditScore).toHaveBeenCalledWith(1, expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -408,7 +408,7 @@ describe("admin credit.controller", () => {
       mocks.interceptCredit.mockResolvedValue({ intercepted: false });
       const req = mockReq({ params: { customerId: "1" }, query: { amount: "5000" } });
       const res = mockRes();
-      await checkCreditIntercept(req, res);
+      await checkCreditIntercept(req, res, vi.fn());
       expect(mocks.interceptCredit).toHaveBeenCalledWith(1, 5000, expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -417,7 +417,7 @@ describe("admin credit.controller", () => {
       mocks.interceptCredit.mockResolvedValue({ intercepted: false });
       const req = mockReq({ params: { customerId: "1" } });
       const res = mockRes();
-      await checkCreditIntercept(req, res);
+      await checkCreditIntercept(req, res, vi.fn());
       expect(mocks.interceptCredit).toHaveBeenCalledWith(1, 0, expect.any(Object));
     });
 
@@ -425,7 +425,7 @@ describe("admin credit.controller", () => {
       mocks.autoInitCredit.mockResolvedValue({ success: true });
       const req = mockReq({ params: { customerId: "1" } });
       const res = mockRes();
-      await autoInitCredit(req, res);
+      await autoInitCredit(req, res, vi.fn());
       expect(mocks.autoInitCredit).toHaveBeenCalledWith(1, expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -434,7 +434,7 @@ describe("admin credit.controller", () => {
       mocks.autoGenerateCollections.mockResolvedValue({ generated: 10 });
       const req = mockReq();
       const res = mockRes();
-      await autoGenerateCollections(req, res);
+      await autoGenerateCollections(req, res, vi.fn());
       expect(mocks.autoGenerateCollections).toHaveBeenCalledWith(expect.any(Object));
       expect(res.json).toHaveBeenCalled();
     });
@@ -443,7 +443,7 @@ describe("admin credit.controller", () => {
       mocks.getCollectionStrategyConfig.mockReturnValue({ levels: [] });
       const req = mockReq();
       const res = mockRes();
-      await getCollectionStrategyConfig(req, res);
+      await getCollectionStrategyConfig(req, res, vi.fn());
       expect(mocks.getCollectionStrategyConfig).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalled();
     });
@@ -452,7 +452,7 @@ describe("admin credit.controller", () => {
       mocks.getCreditTiers.mockReturnValue([]);
       const req = mockReq();
       const res = mockRes();
-      await getCreditTiers(req, res);
+      await getCreditTiers(req, res, vi.fn());
       expect(mocks.getCreditTiers).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalled();
     });

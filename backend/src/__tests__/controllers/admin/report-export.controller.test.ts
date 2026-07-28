@@ -48,7 +48,7 @@ describe("report-export.controller", () => {
       },
     });
     const res = mockRes();
-    await exportReport(req as any, res as any);
+    await exportReport(req as any, res as any, vi.fn());
     expect(svc.exportReport).toHaveBeenCalledWith(
       expect.objectContaining({
         report_type: "sales_report",
@@ -72,7 +72,7 @@ describe("report-export.controller", () => {
       },
     });
     const res = mockRes();
-    await exportReport(req as any, res as any);
+    await exportReport(req as any, res as any, vi.fn());
     expect(svc.exportReport).toHaveBeenCalledWith(
       expect.objectContaining({
         report_type: "inventory_report",

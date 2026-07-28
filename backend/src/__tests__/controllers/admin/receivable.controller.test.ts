@@ -50,7 +50,7 @@ describe("receivable.controller", () => {
     (receivableService.listReceivables as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listReceivables(req as any, res as any);
+    await listReceivables(req as any, res as any, vi.fn());
     expect(receivableService.listReceivables).toHaveBeenCalledWith({
       customerId: undefined, status: undefined, page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -61,7 +61,7 @@ describe("receivable.controller", () => {
     (receivableService.listReceivables as any).mockResolvedValue({ total: 1, records: [] });
     const req = mockReq({ query: { customerId: 5, status: "PENDING" } });
     const res = mockRes();
-    await listReceivables(req as any, res as any);
+    await listReceivables(req as any, res as any, vi.fn());
     expect(receivableService.listReceivables).toHaveBeenCalledWith({
       customerId: 5, status: "PENDING", page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -73,14 +73,14 @@ describe("receivable.controller", () => {
     (receivableService.listReceivables as any).mockRejectedValue(error);
     const req = mockReq();
     const res = mockRes();
-    await expect(listReceivables(req as any, res as any)).rejects.toThrow(error);
+    await expect(listReceivables(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("listPayables - 应返回应付列表", async () => {
     (receivableService.listPayables as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPayables(req as any, res as any);
+    await listPayables(req as any, res as any, vi.fn());
     expect(receivableService.listPayables).toHaveBeenCalledWith({
       supplierId: undefined, status: undefined, page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -91,7 +91,7 @@ describe("receivable.controller", () => {
     (receivableService.listPayables as any).mockResolvedValue({ total: 1, records: [] });
     const req = mockReq({ query: { supplierId: "3", status: "PENDING" } });
     const res = mockRes();
-    await listPayables(req as any, res as any);
+    await listPayables(req as any, res as any, vi.fn());
     expect(receivableService.listPayables).toHaveBeenCalledWith({
       supplierId: 3, status: "PENDING", page: 1, pageSize: 20, tenantId: "t1"
     });
@@ -102,7 +102,7 @@ describe("receivable.controller", () => {
     (receivableService.getReceivablesAging as any).mockResolvedValue({ total: 1000 });
     const req = mockReq();
     const res = mockRes();
-    await getReceivablesAging(req as any, res as any);
+    await getReceivablesAging(req as any, res as any, vi.fn());
     expect(receivableService.getReceivablesAging).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -111,7 +111,7 @@ describe("receivable.controller", () => {
     (receivableService.getPayablesAging as any).mockResolvedValue({ total: 500 });
     const req = mockReq();
     const res = mockRes();
-    await getPayablesAging(req as any, res as any);
+    await getPayablesAging(req as any, res as any, vi.fn());
     expect(receivableService.getPayablesAging).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -120,7 +120,7 @@ describe("receivable.controller", () => {
     (receivableService.getReceivableDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getReceivableDetail(req as any, res as any);
+    await getReceivableDetail(req as any, res as any, vi.fn());
     expect(receivableService.getReceivableDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -130,14 +130,14 @@ describe("receivable.controller", () => {
     (receivableService.getReceivableDetail as any).mockRejectedValue(error);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await expect(getReceivableDetail(req as any, res as any)).rejects.toThrow(error);
+    await expect(getReceivableDetail(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 
   it("getPayableDetail - 应返回应付详情", async () => {
     (receivableService.getPayableDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getPayableDetail(req as any, res as any);
+    await getPayableDetail(req as any, res as any, vi.fn());
     expect(receivableService.getPayableDetail).toHaveBeenCalledWith(1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -147,6 +147,6 @@ describe("receivable.controller", () => {
     (receivableService.getPayableDetail as any).mockRejectedValue(error);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await expect(getPayableDetail(req as any, res as any)).rejects.toThrow(error);
+    await expect(getPayableDetail(req as any, res as any, vi.fn())).rejects.toThrow(error);
   });
 });

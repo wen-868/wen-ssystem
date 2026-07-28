@@ -61,7 +61,7 @@ describe("alert.controller", () => {
     (alertService.listAlerts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(alertService.listAlerts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe("alert.controller", () => {
     (alertService.getAlertCounts as any).mockResolvedValue({ total: 0, unhandled: 0 });
     const req = mockReq();
     const res = mockRes();
-    await count(req as any, res as any);
+    await count(req as any, res as any, vi.fn());
     expect(alertService.getAlertCounts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -79,7 +79,7 @@ describe("alert.controller", () => {
     (alertService.handleAlert as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 }, body: { action: "HANDLE", remark: "处理备注" } });
     const res = mockRes();
-    await handle(req as any, res as any);
+    await handle(req as any, res as any, vi.fn());
     expect(alertService.handleAlert).toHaveBeenCalledWith(1, "t1", "HANDLE", "处理备注", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -87,14 +87,14 @@ describe("alert.controller", () => {
   it("handle - zod验证失败", async () => {
     const req = mockReq({ params: { id: 1 }, body: { action: "INVALID" } });
     const res = mockRes();
-    await expect(handle(req as any, res as any)).rejects.toThrow();
+    await expect(handle(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("rules - 应返回预警规则列表", async () => {
     (alertService.listAlertRules as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await rules(req as any, res as any);
+    await rules(req as any, res as any, vi.fn());
     expect(alertService.listAlertRules).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("alert.controller", () => {
     (alertService.updateAlertRule as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 }, body: { enabled: true, thresholdValue: 100 } });
     const res = mockRes();
-    await updateRule(req as any, res as any);
+    await updateRule(req as any, res as any, vi.fn());
     expect(alertService.updateAlertRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -112,7 +112,7 @@ describe("alert.controller", () => {
     (alertService.runAllAlertChecks as any).mockResolvedValue({ total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await check(req as any, res as any);
+    await check(req as any, res as any, vi.fn());
     expect(alertService.runAllAlertChecks).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -121,7 +121,7 @@ describe("alert.controller", () => {
     (alertService.listAlerts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(alertService.listAlerts).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20,
     }));
@@ -131,7 +131,7 @@ describe("alert.controller", () => {
     (alertService.handleAlert as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: 1 }, body: { action: "HANDLE" }, user: undefined });
     const res = mockRes();
-    await handle(req as any, res as any);
+    await handle(req as any, res as any, vi.fn());
     expect(alertService.handleAlert).toHaveBeenCalledWith(1, "t1", "HANDLE", undefined, 0, "system");
   });
 

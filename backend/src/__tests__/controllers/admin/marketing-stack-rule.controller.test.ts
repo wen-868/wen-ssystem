@@ -56,7 +56,7 @@ describe("marketing-stack-rule.controller", () => {
       },
     });
     const res = mockRes();
-    await createStackRule(req as any, res as any);
+    await createStackRule(req as any, res as any, vi.fn());
     expect(stackRuleService.createStackRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ id: 1 });
   });
@@ -64,7 +64,7 @@ describe("marketing-stack-rule.controller", () => {
   it("createStackRule - 缺少必填字段应抛出错误", async () => {
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await expect(createStackRule(req as any, res as any)).rejects.toThrow();
+    await expect(createStackRule(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("createStackRule - typeCombination为空应抛出错误", async () => {
@@ -75,14 +75,14 @@ describe("marketing-stack-rule.controller", () => {
       },
     });
     const res = mockRes();
-    await expect(createStackRule(req as any, res as any)).rejects.toThrow();
+    await expect(createStackRule(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("listStackRules - 应返回叠加规则列表", async () => {
     (stackRuleService.listStackRules as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listStackRules(req as any, res as any);
+    await listStackRules(req as any, res as any, vi.fn());
     expect(stackRuleService.listStackRules).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("marketing-stack-rule.controller", () => {
       body: { name: "更新名称" },
     });
     const res = mockRes();
-    await updateStackRule(req as any, res as any);
+    await updateStackRule(req as any, res as any, vi.fn());
     expect(stackRuleService.updateStackRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("marketing-stack-rule.controller", () => {
     (stackRuleService.deleteStackRule as any).mockResolvedValue(true);
     const req = mockReq({ params: { id: 1 } });
     const res = mockRes();
-    await deleteStackRule(req as any, res as any);
+    await deleteStackRule(req as any, res as any, vi.fn());
     expect(stackRuleService.deleteStackRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });

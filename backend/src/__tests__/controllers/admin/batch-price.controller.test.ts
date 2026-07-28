@@ -66,7 +66,7 @@ describe("admin batch-price.controller", () => {
     mocks.previewBatchPriceAdjustment.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ body: { filter: validFilter, adjustment: validAdjustment } });
     const res = mockRes();
-    await previewBatchAdjustment(req, res);
+    await previewBatchAdjustment(req, res, vi.fn());
     expect(mocks.previewBatchPriceAdjustment).toHaveBeenCalledWith(
       validFilter, validAdjustment, "t1", 1, 50
     );
@@ -77,7 +77,7 @@ describe("admin batch-price.controller", () => {
     mocks.previewBatchPriceAdjustment.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq({ body: { filter: validFilter, adjustment: validAdjustment, page: 2, pageSize: 20 } });
     const res = mockRes();
-    await previewBatchAdjustment(req, res);
+    await previewBatchAdjustment(req, res, vi.fn());
     expect(mocks.previewBatchPriceAdjustment).toHaveBeenCalledWith(
       validFilter, validAdjustment, "t1", 2, 20
     );
@@ -87,7 +87,7 @@ describe("admin batch-price.controller", () => {
     mocks.executeBatchPriceAdjustment.mockResolvedValue({ batchNo: "B001", affected: 5 });
     const req = mockReq({ body: { filter: validFilter, adjustment: validAdjustment } });
     const res = mockRes();
-    await executeBatchAdjustment(req, res);
+    await executeBatchAdjustment(req, res, vi.fn());
     expect(mocks.executeBatchPriceAdjustment).toHaveBeenCalledWith(
       validFilter, validAdjustment, "批量价格调整", 1, "t1"
     );
@@ -98,7 +98,7 @@ describe("admin batch-price.controller", () => {
     mocks.executeBatchPriceAdjustment.mockResolvedValue({ batchNo: "B002" });
     const req = mockReq({ body: { filter: validFilter, adjustment: validAdjustment, reason: "促销调价" } });
     const res = mockRes();
-    await executeBatchAdjustment(req, res);
+    await executeBatchAdjustment(req, res, vi.fn());
     expect(mocks.executeBatchPriceAdjustment).toHaveBeenCalledWith(
       validFilter, validAdjustment, "促销调价", 1, "t1"
     );
@@ -108,7 +108,7 @@ describe("admin batch-price.controller", () => {
     mocks.listBatchPriceLogs.mockResolvedValue({ list: [], total: 0 });
     const req = mockReq();
     const res = mockRes();
-    await listBatchLogs(req, res);
+    await listBatchLogs(req, res, vi.fn());
     expect(mocks.listBatchPriceLogs).toHaveBeenCalledWith(1, 20, "t1", {
       batchNo: undefined, priceType: undefined, operatorId: undefined, startDate: undefined, endDate: undefined,
     });
@@ -123,7 +123,7 @@ describe("admin batch-price.controller", () => {
       },
     });
     const res = mockRes();
-    await listBatchLogs(req, res);
+    await listBatchLogs(req, res, vi.fn());
     expect(mocks.listBatchPriceLogs).toHaveBeenCalledWith(2, 10, "t1", {
       batchNo: "B001", priceType: "retail_price", operatorId: 5, startDate: "2026-01-01", endDate: "2026-01-31",
     });
@@ -133,7 +133,7 @@ describe("admin batch-price.controller", () => {
     mocks.getBatchPriceDetail.mockResolvedValue({ batchNo: "B001", items: [] });
     const req = mockReq({ params: { batchNo: "B001" } });
     const res = mockRes();
-    await getBatchDetail(req, res);
+    await getBatchDetail(req, res, vi.fn());
     expect(mocks.getBatchPriceDetail).toHaveBeenCalledWith("B001", "t1", 1, 50);
     expect(mocks.ok).toHaveBeenCalledWith({ batchNo: "B001", items: [] });
   });
@@ -142,7 +142,7 @@ describe("admin batch-price.controller", () => {
     mocks.getBatchPriceDetail.mockResolvedValue({ batchNo: "B002" });
     const req = mockReq({ params: { batchNo: "B002" }, query: { page: "3", pageSize: "30" } });
     const res = mockRes();
-    await getBatchDetail(req, res);
+    await getBatchDetail(req, res, vi.fn());
     expect(mocks.getBatchPriceDetail).toHaveBeenCalledWith("B002", "t1", 3, 30);
   });
 
@@ -150,7 +150,7 @@ describe("admin batch-price.controller", () => {
     mocks.previewBatchPriceAdjustment.mockResolvedValue({ preview: true });
     const req = mockReq({ body: { filter: validFilter, adjustment: validAdjustment } });
     const res = mockRes();
-    await previewBatchAdjustment(req, res);
+    await previewBatchAdjustment(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { preview: true } });
   });
 });

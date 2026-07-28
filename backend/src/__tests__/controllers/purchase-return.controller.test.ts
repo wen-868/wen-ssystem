@@ -47,7 +47,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchaseReturnService.list).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -56,7 +56,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchaseReturnService.list).toHaveBeenCalledWith(expect.objectContaining({
       page: 1, pageSize: 20, supplierId: undefined,
     }));
@@ -66,7 +66,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.list as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { supplier_id: "5" } });
     const res = mockRes();
-    await list(req as any, res as any);
+    await list(req as any, res as any, vi.fn());
     expect(purchaseReturnService.list).toHaveBeenCalledWith(expect.objectContaining({
       supplierId: 5,
     }));
@@ -76,7 +76,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.getDetail as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
-    await getDetail(req as any, res as any);
+    await getDetail(req as any, res as any, vi.fn());
     expect(purchaseReturnService.getDetail).toHaveBeenCalledWith("RTN001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -85,7 +85,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.create as any).mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { purchaseNo: "PO001" } });
     const res = mockRes();
-    await create(req as any, res as any);
+    await create(req as any, res as any, vi.fn());
     expect(purchaseReturnService.create).toHaveBeenCalledWith(req.body, "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -94,7 +94,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.approve as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
-    await approve(req as any, res as any);
+    await approve(req as any, res as any, vi.fn());
     expect(purchaseReturnService.approve).toHaveBeenCalledWith("RTN001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("purchase-return.controller", () => {
     (purchaseReturnService.voidReturn as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { returnNo: "RTN001" } });
     const res = mockRes();
-    await voidReturn(req as any, res as any);
+    await voidReturn(req as any, res as any, vi.fn());
     expect(purchaseReturnService.voidReturn).toHaveBeenCalledWith("RTN001", "t1", 1, "admin");
     expect(ok).toHaveBeenCalled();
   });

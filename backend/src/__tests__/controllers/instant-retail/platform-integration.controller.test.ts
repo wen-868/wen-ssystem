@@ -55,7 +55,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.handleWebhook as any).mockResolvedValue({ status: 200, response: { code: 0 } });
     const req = mockReq({ body: { event: "order" }, headers: { "x-signature": "sig1", "x-timestamp": "123" } });
     const res = mockRes();
-    await handleJdWebhook(req as any, res as any);
+    await handleJdWebhook(req as any, res as any, vi.fn());
     expect(platformIntegrationService.handleWebhook).toHaveBeenCalledWith("JD", { event: "order" }, "sig1", "123");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ code: 0 });
@@ -65,7 +65,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
     const req = mockReq({ body: {}, query: { sign: "sig2", timestamp: "456" } });
     const res = mockRes();
-    await handleMeituanWebhook(req as any, res as any);
+    await handleMeituanWebhook(req as any, res as any, vi.fn());
     expect(platformIntegrationService.handleWebhook).toHaveBeenCalledWith("MEITUAN", {}, "sig2", "456");
     expect(res.status).toHaveBeenCalledWith(200);
   });
@@ -74,7 +74,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.handleWebhook as any).mockResolvedValue({ status: 200, response: {} });
     const req = mockReq({ body: {}, headers: { signature: "sig3" }, query: { timestamp: "789" } });
     const res = mockRes();
-    await handleElemeWebhook(req as any, res as any);
+    await handleElemeWebhook(req as any, res as any, vi.fn());
     expect(platformIntegrationService.handleWebhook).toHaveBeenCalledWith("ELEME", {}, "sig3", "789");
     expect(res.status).toHaveBeenCalledWith(200);
   });
@@ -83,7 +83,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.getPlatforms as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getPlatforms(req as any, res as any);
+    await getPlatforms(req as any, res as any, vi.fn());
     expect(platformIntegrationService.getPlatforms).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -92,7 +92,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.getConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getConfigs(req as any, res as any);
+    await getConfigs(req as any, res as any, vi.fn());
     expect(platformIntegrationService.getConfigs).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.getConfigByPlatform as any).mockResolvedValue(null);
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await getConfigByPlatform(req as any, res as any);
+    await getConfigByPlatform(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("平台配置不存在", "404");
   });
@@ -110,7 +110,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.getConfigByPlatform as any).mockResolvedValue({ platform: "JD" });
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await getConfigByPlatform(req as any, res as any);
+    await getConfigByPlatform(req as any, res as any, vi.fn());
     expect(platformIntegrationService.getConfigByPlatform).toHaveBeenCalledWith("JD", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.upsertConfig as any).mockResolvedValue({ platform: "JD" });
     const req = mockReq({ body: { platform: "JD", appKey: "key", appSecret: "secret" } });
     const res = mockRes();
-    await upsertConfig(req as any, res as any);
+    await upsertConfig(req as any, res as any, vi.fn());
     expect(platformIntegrationService.upsertConfig).toHaveBeenCalledWith(expect.objectContaining({
       platform: "JD",
       appKey: "key",
@@ -132,7 +132,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.testConnection as any).mockResolvedValue({ found: false });
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await testConnection(req as any, res as any);
+    await testConnection(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("平台配置不存在", "404");
   });
@@ -141,7 +141,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.testConnection as any).mockResolvedValue({ found: true, connected: false, error: "超时" });
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await testConnection(req as any, res as any);
+    await testConnection(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(502);
     expect(fail).toHaveBeenCalledWith("连接失败: 超时", "502");
   });
@@ -150,7 +150,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.testConnection as any).mockResolvedValue({ found: true, connected: true, platform: "JD", tokenUpdated: true });
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await testConnection(req as any, res as any);
+    await testConnection(req as any, res as any, vi.fn());
     expect(platformIntegrationService.testConnection).toHaveBeenCalledWith("JD", "t1");
     expect(ok).toHaveBeenCalledWith({ platform: "JD", connected: true, tokenUpdated: true });
   });
@@ -159,7 +159,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.syncOrders as any).mockResolvedValue({ found: false });
     const req = mockReq({ params: { platform: "JD" }, body: {} });
     const res = mockRes();
-    await syncOrders(req as any, res as any);
+    await syncOrders(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("平台配置不存在", "404");
   });
@@ -168,7 +168,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.syncOrders as any).mockResolvedValue({ found: true, platform: "JD", synced: 10, hasMore: false });
     const req = mockReq({ params: { platform: "JD" }, body: { startTime: "2026-01-01" } });
     const res = mockRes();
-    await syncOrders(req as any, res as any);
+    await syncOrders(req as any, res as any, vi.fn());
     expect(platformIntegrationService.syncOrders).toHaveBeenCalledWith("JD", { startTime: "2026-01-01" }, "t1");
     expect(ok).toHaveBeenCalledWith({ platform: "JD", synced: 10, hasMore: false });
   });
@@ -177,7 +177,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.syncProducts as any).mockResolvedValue({ found: false });
     const req = mockReq({ params: { platform: "JD" }, body: {} });
     const res = mockRes();
-    await syncProducts(req as any, res as any);
+    await syncProducts(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(404);
     expect(fail).toHaveBeenCalledWith("平台配置不存在", "404");
   });
@@ -186,7 +186,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.syncProducts as any).mockResolvedValue({ found: true, platform: "JD", synced: 5, hasMore: true });
     const req = mockReq({ params: { platform: "JD" }, body: {} });
     const res = mockRes();
-    await syncProducts(req as any, res as any);
+    await syncProducts(req as any, res as any, vi.fn());
     expect(ok).toHaveBeenCalledWith({ platform: "JD", synced: 5, hasMore: true });
   });
 
@@ -194,7 +194,7 @@ describe("instant-retail/platform-integration.controller", () => {
     (platformIntegrationService.deleteConfig as any).mockResolvedValue({ success: true });
     const req = mockReq({ params: { platform: "JD" } });
     const res = mockRes();
-    await deleteConfig(req as any, res as any);
+    await deleteConfig(req as any, res as any, vi.fn());
     expect(platformIntegrationService.deleteConfig).toHaveBeenCalledWith("JD", "t1");
     expect(ok).toHaveBeenCalled();
   });

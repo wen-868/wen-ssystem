@@ -70,7 +70,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getFinanceDashboard as any).mockResolvedValue({ totalRevenue: 10000 });
       const req = mockReq({});
       const res = mockRes();
-      await getFinanceDashboard(req as any, res as any);
+      await getFinanceDashboard(req as any, res as any, vi.fn());
       expect(svc.getFinanceDashboard).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -81,7 +81,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getDailyReport as any).mockResolvedValue({ revenue: 1000 });
       const req = mockReq({ query: { startDate: "2026-01-01", endDate: "2026-01-31" } });
       const res = mockRes();
-      await getDailyReport(req as any, res as any);
+      await getDailyReport(req as any, res as any, vi.fn());
       expect(svc.getDailyReport).toHaveBeenCalledWith("t1", "2026-01-01", "2026-01-31");
       expect(ok).toHaveBeenCalled();
     });
@@ -90,7 +90,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getDailyReport as any).mockResolvedValue({ revenue: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getDailyReport(req as any, res as any);
+      await getDailyReport(req as any, res as any, vi.fn());
       expect(svc.getDailyReport).toHaveBeenCalledWith("t1", undefined, undefined);
     });
   });
@@ -100,7 +100,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getMonthlyReport as any).mockResolvedValue({ revenue: 30000 });
       const req = mockReq({ query: { year: "2026" } });
       const res = mockRes();
-      await getMonthlyReport(req as any, res as any);
+      await getMonthlyReport(req as any, res as any, vi.fn());
       expect(svc.getMonthlyReport).toHaveBeenCalledWith("t1", 2026);
       expect(ok).toHaveBeenCalled();
     });
@@ -109,7 +109,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getMonthlyReport as any).mockResolvedValue({ revenue: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getMonthlyReport(req as any, res as any);
+      await getMonthlyReport(req as any, res as any, vi.fn());
       expect(svc.getMonthlyReport).toHaveBeenCalledWith("t1", undefined);
     });
   });
@@ -119,7 +119,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getCashFlow as any).mockResolvedValue({ inflow: 10000 });
       const req = mockReq({ query: { months: "6" } });
       const res = mockRes();
-      await getCashFlow(req as any, res as any);
+      await getCashFlow(req as any, res as any, vi.fn());
       expect(svc.getCashFlow).toHaveBeenCalledWith("t1", 6);
       expect(ok).toHaveBeenCalled();
     });
@@ -128,7 +128,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getCashFlow as any).mockResolvedValue({ inflow: 0 });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getCashFlow(req as any, res as any);
+      await getCashFlow(req as any, res as any, vi.fn());
       expect(svc.getCashFlow).toHaveBeenCalledWith("t1", 12);
     });
   });
@@ -138,7 +138,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getProfitTrend as any).mockResolvedValue({ trend: [] });
       const req = mockReq({ query: { months: "3" } });
       const res = mockRes();
-      await getProfitTrend(req as any, res as any);
+      await getProfitTrend(req as any, res as any, vi.fn());
       expect(svc.getProfitTrend).toHaveBeenCalledWith("t1", 3);
       expect(ok).toHaveBeenCalled();
     });
@@ -147,7 +147,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getProfitTrend as any).mockResolvedValue({ trend: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getProfitTrend(req as any, res as any);
+      await getProfitTrend(req as any, res as any, vi.fn());
       expect(svc.getProfitTrend).toHaveBeenCalledWith("t1", 12);
     });
   });
@@ -157,7 +157,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getTopCustomersAR as any).mockResolvedValue([]);
       const req = mockReq({ query: { limit: "5" } });
       const res = mockRes();
-      await getTopCustomersAR(req as any, res as any);
+      await getTopCustomersAR(req as any, res as any, vi.fn());
       expect(svc.getTopCustomersAR).toHaveBeenCalledWith("t1", 5);
       expect(ok).toHaveBeenCalled();
     });
@@ -166,7 +166,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getTopCustomersAR as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getTopCustomersAR(req as any, res as any);
+      await getTopCustomersAR(req as any, res as any, vi.fn());
       expect(svc.getTopCustomersAR).toHaveBeenCalledWith("t1", 10);
     });
   });
@@ -176,7 +176,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getTopSuppliersAP as any).mockResolvedValue([]);
       const req = mockReq({ query: { limit: "5" } });
       const res = mockRes();
-      await getTopSuppliersAP(req as any, res as any);
+      await getTopSuppliersAP(req as any, res as any, vi.fn());
       expect(svc.getTopSuppliersAP).toHaveBeenCalledWith("t1", 5);
       expect(ok).toHaveBeenCalled();
     });
@@ -185,7 +185,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getTopSuppliersAP as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getTopSuppliersAP(req as any, res as any);
+      await getTopSuppliersAP(req as any, res as any, vi.fn());
       expect(svc.getTopSuppliersAP).toHaveBeenCalledWith("t1", 10);
     });
   });
@@ -195,7 +195,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getCashFlowDetail as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { type: "INCOME", page: "1", pageSize: "20" } });
       const res = mockRes();
-      await getCashFlowDetail(req as any, res as any);
+      await getCashFlowDetail(req as any, res as any, vi.fn());
       expect(svc.getCashFlowDetail).toHaveBeenCalledWith(expect.objectContaining({
         type: "INCOME",
         page: 1,
@@ -210,7 +210,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getIncomeExpenseStats as any).mockResolvedValue({ income: 10000, expense: 5000 });
       const req = mockReq({ query: { startDate: "2026-01-01" } });
       const res = mockRes();
-      await getIncomeExpenseStats(req as any, res as any);
+      await getIncomeExpenseStats(req as any, res as any, vi.fn());
       expect(svc.getIncomeExpenseStats).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -221,7 +221,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getIncomeByCategory as any).mockResolvedValue({ categories: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getIncomeByCategory(req as any, res as any);
+      await getIncomeByCategory(req as any, res as any, vi.fn());
       expect(svc.getIncomeByCategory).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -232,7 +232,7 @@ describe("admin/finance-dashboard.controller", () => {
       (svc.getExpenseByCategory as any).mockResolvedValue({ categories: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getExpenseByCategory(req as any, res as any);
+      await getExpenseByCategory(req as any, res as any, vi.fn());
       expect(svc.getExpenseByCategory).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });

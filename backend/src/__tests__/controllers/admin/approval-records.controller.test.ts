@@ -58,7 +58,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listInstances as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listInstances(req as any, res as any);
+    await listInstances(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listInstances).toHaveBeenCalledWith(1, 20, null, null, null, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("approval-records.controller", () => {
       },
     });
     const res = mockRes();
-    await listInstances(req as any, res as any);
+    await listInstances(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listInstances).toHaveBeenCalledWith(
       2,
       10,
@@ -98,7 +98,7 @@ describe("approval-records.controller", () => {
       },
     });
     const res = mockRes();
-    await submitApproval(req as any, res as any);
+    await submitApproval(req as any, res as any, vi.fn());
     expect(approvalRecordsService.submitApproval).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -106,7 +106,7 @@ describe("approval-records.controller", () => {
   it("submitApproval - 参数校验失败应抛错", async () => {
     const req = mockReq({ body: { businessType: "INVALID" } });
     const res = mockRes();
-    await expect(submitApproval(req as any, res as any)).rejects.toThrow();
+    await expect(submitApproval(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(approvalRecordsService.submitApproval).not.toHaveBeenCalled();
   });
 
@@ -117,7 +117,7 @@ describe("approval-records.controller", () => {
     });
     const req = mockReq({ params: { instanceNo: "AP001" } });
     const res = mockRes();
-    await getInstanceDetail(req as any, res as any);
+    await getInstanceDetail(req as any, res as any, vi.fn());
     expect(approvalRecordsService.getInstanceDetail).toHaveBeenCalledWith("AP001", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.getInstanceDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { instanceNo: "INVALID" } });
     const res = mockRes();
-    await getInstanceDetail(req as any, res as any);
+    await getInstanceDetail(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("审批实例不存在", "404");
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -135,7 +135,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listTasks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listTasks(req as any, res as any);
+    await listTasks(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listTasks).toHaveBeenCalledWith(1, 20, 1, "PENDING", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -146,7 +146,7 @@ describe("approval-records.controller", () => {
       query: { page: "2", pageSize: "10", approverId: "3", taskStatus: "APPROVED" },
     });
     const res = mockRes();
-    await listTasks(req as any, res as any);
+    await listTasks(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listTasks).toHaveBeenCalledWith(2, 10, 3, "APPROVED", "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -158,7 +158,7 @@ describe("approval-records.controller", () => {
       body: { comment: "同意" },
     });
     const res = mockRes();
-    await approveTask(req as any, res as any);
+    await approveTask(req as any, res as any, vi.fn());
     expect(approvalRecordsService.approveTask).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -167,7 +167,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.approveTask as any).mockResolvedValue({ taskId: 1, status: "APPROVED" });
     const req = mockReq({ params: { id: "1" }, body: {} });
     const res = mockRes();
-    await approveTask(req as any, res as any);
+    await approveTask(req as any, res as any, vi.fn());
     expect(approvalRecordsService.approveTask).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -179,7 +179,7 @@ describe("approval-records.controller", () => {
       body: { comment: "金额过大，请重新申请" },
     });
     const res = mockRes();
-    await rejectTask(req as any, res as any);
+    await rejectTask(req as any, res as any, vi.fn());
     expect(approvalRecordsService.rejectTask).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -187,7 +187,7 @@ describe("approval-records.controller", () => {
   it("rejectTask - 无驳回原因应抛错", async () => {
     const req = mockReq({ params: { id: "1" }, body: { comment: "" } });
     const res = mockRes();
-    await expect(rejectTask(req as any, res as any)).rejects.toThrow();
+    await expect(rejectTask(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(approvalRecordsService.rejectTask).not.toHaveBeenCalled();
   });
 
@@ -195,7 +195,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listNotifications(req as any, res as any);
+    await listNotifications(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listNotifications).toHaveBeenCalledWith(1, 20, 1, null, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -206,7 +206,7 @@ describe("approval-records.controller", () => {
       query: { page: "2", pageSize: "10", recipientId: "5", readStatus: "0" },
     });
     const res = mockRes();
-    await listNotifications(req as any, res as any);
+    await listNotifications(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listNotifications).toHaveBeenCalledWith(2, 10, 5, 0, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -215,7 +215,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.markNotificationRead as any).mockResolvedValue({ id: 1, readStatus: 1 });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await markNotificationRead(req as any, res as any);
+    await markNotificationRead(req as any, res as any, vi.fn());
     expect(approvalRecordsService.markNotificationRead).toHaveBeenCalledWith(1, 1, "t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -225,7 +225,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listInstances as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listInstances(req as any, res as any);
+    await listInstances(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listInstances).toHaveBeenCalledWith(1, 20, null, null, null, "t1");
   });
 
@@ -233,7 +233,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.submitApproval as any).mockResolvedValue({ instanceNo: "AP001" });
     const req = mockReq({ body: { businessType: "PURCHASE_ORDER", businessNo: "PO001", businessTitle: "审批" }, user: {} });
     const res = mockRes();
-    await submitApproval(req as any, res as any);
+    await submitApproval(req as any, res as any, vi.fn());
     expect(approvalRecordsService.submitApproval).toHaveBeenCalledWith(expect.any(Object), 0, "系统用户", "t1");
   });
 
@@ -241,7 +241,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listTasks as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listTasks(req as any, res as any);
+    await listTasks(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listTasks).toHaveBeenCalledWith(1, 20, 1, "PENDING", "t1");
   });
 
@@ -249,7 +249,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.approveTask as any).mockResolvedValue({ taskId: 1, status: "APPROVED" });
     const req = mockReq({ params: { id: "1" }, body: {}, user: { id: 5 } });
     const res = mockRes();
-    await approveTask(req as any, res as any);
+    await approveTask(req as any, res as any, vi.fn());
     expect(approvalRecordsService.approveTask).toHaveBeenCalledWith(1, undefined, 5, "系统用户", "t1");
   });
 
@@ -257,7 +257,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.rejectTask as any).mockResolvedValue({ taskId: 1, status: "REJECTED" });
     const req = mockReq({ params: { id: "1" }, body: { comment: "驳回" }, user: { id: 5 } });
     const res = mockRes();
-    await rejectTask(req as any, res as any);
+    await rejectTask(req as any, res as any, vi.fn());
     expect(approvalRecordsService.rejectTask).toHaveBeenCalledWith(1, "驳回", 5, "系统用户", "t1");
   });
 
@@ -265,7 +265,7 @@ describe("approval-records.controller", () => {
     (approvalRecordsService.listNotifications as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listNotifications(req as any, res as any);
+    await listNotifications(req as any, res as any, vi.fn());
     expect(approvalRecordsService.listNotifications).toHaveBeenCalledWith(1, 20, 1, null, "t1");
   });
 });

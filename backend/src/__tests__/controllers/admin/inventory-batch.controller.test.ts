@@ -61,7 +61,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listBatches(req as any, res as any);
+    await listBatches(req as any, res as any, vi.fn());
     expect(batchService.listBatches).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getBatchDetail as any).mockResolvedValue(null);
     const req = mockReq({ params: { id: "999" } });
     const res = mockRes();
-    await getBatchDetail(req as any, res as any);
+    await getBatchDetail(req as any, res as any, vi.fn());
     expect(fail).toHaveBeenCalledWith("批次不存在", "1");
   });
 
@@ -78,7 +78,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getBatchDetail as any).mockResolvedValue({ id: 1, batchNo: "B001" });
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getBatchDetail(req as any, res as any);
+    await getBatchDetail(req as any, res as any, vi.fn());
     expect(batchService.getBatchDetail).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -87,7 +87,7 @@ describe("inventory-batch.controller", () => {
     (batchService.createBatch as any).mockResolvedValue(1);
     const req = mockReq({ body: { storeId: 1, skuId: 2, batchNo: "B001", quantity: 100 } });
     const res = mockRes();
-    await createBatch(req as any, res as any);
+    await createBatch(req as any, res as any, vi.fn());
     expect(batchService.createBatch).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ batchId: 1 });
   });
@@ -96,7 +96,7 @@ describe("inventory-batch.controller", () => {
     (batchService.updateBatch as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, body: { quantity: 50 } });
     const res = mockRes();
-    await updateBatch(req as any, res as any);
+    await updateBatch(req as any, res as any, vi.fn());
     expect(batchService.updateBatch).toHaveBeenCalledWith("t1", 1, { quantity: 50 });
     expect(ok).toHaveBeenCalledWith({ batchId: 1 });
   });
@@ -105,7 +105,7 @@ describe("inventory-batch.controller", () => {
     (batchService.splitBatch as any).mockResolvedValue(2);
     const req = mockReq({ params: { id: "1" }, body: { splitQuantity: 30, newBatchNo: "B002" } });
     const res = mockRes();
-    await splitBatch(req as any, res as any);
+    await splitBatch(req as any, res as any, vi.fn());
     expect(batchService.splitBatch).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ newBatchId: 2 });
   });
@@ -114,7 +114,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getFifoSuggestion as any).mockResolvedValue([]);
     const req = mockReq({ params: { storeId: "1", skuId: "2" } });
     const res = mockRes();
-    await getFifoSuggestion(req as any, res as any);
+    await getFifoSuggestion(req as any, res as any, vi.fn());
     expect(batchService.getFifoSuggestion).toHaveBeenCalledWith("t1", 1, 2);
     expect(ok).toHaveBeenCalled();
   });
@@ -123,7 +123,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getBatchTrace as any).mockResolvedValue([]);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await getBatchTrace(req as any, res as any);
+    await getBatchTrace(req as any, res as any, vi.fn());
     expect(batchService.getBatchTrace).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getProductBatches as any).mockResolvedValue([]);
     const req = mockReq({ params: { spuId: "1" } });
     const res = mockRes();
-    await getProductBatches(req as any, res as any);
+    await getProductBatches(req as any, res as any, vi.fn());
     expect(batchService.getProductBatches).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -141,7 +141,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listExpiryConfigs as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listExpiryConfigs(req as any, res as any);
+    await listExpiryConfigs(req as any, res as any, vi.fn());
     expect(batchService.listExpiryConfigs).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -150,7 +150,7 @@ describe("inventory-batch.controller", () => {
     (batchService.createExpiryConfig as any).mockResolvedValue(1);
     const req = mockReq({ body: { alertLevel: 1, levelName: "预警", daysBeforeExpiry: 30, action: "REMIND", color: "#ff0000" } });
     const res = mockRes();
-    await createExpiryConfig(req as any, res as any);
+    await createExpiryConfig(req as any, res as any, vi.fn());
     expect(batchService.createExpiryConfig).toHaveBeenCalled();
     expect(ok).toHaveBeenCalledWith({ configId: 1 });
   });
@@ -159,7 +159,7 @@ describe("inventory-batch.controller", () => {
     (batchService.updateExpiryConfig as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, body: { levelName: "更新预警" } });
     const res = mockRes();
-    await updateExpiryConfig(req as any, res as any);
+    await updateExpiryConfig(req as any, res as any, vi.fn());
     expect(batchService.updateExpiryConfig).toHaveBeenCalledWith("t1", 1, { levelName: "更新预警" });
     expect(ok).toHaveBeenCalledWith({ configId: 1 });
   });
@@ -168,7 +168,7 @@ describe("inventory-batch.controller", () => {
     (batchService.deleteExpiryConfig as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await deleteExpiryConfig(req as any, res as any);
+    await deleteExpiryConfig(req as any, res as any, vi.fn());
     expect(batchService.deleteExpiryConfig).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalledWith({ configId: 1 });
   });
@@ -177,7 +177,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listExpiryAlerts(req as any, res as any);
+    await listExpiryAlerts(req as any, res as any, vi.fn());
     expect(batchService.listExpiryAlerts).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -186,7 +186,7 @@ describe("inventory-batch.controller", () => {
     (batchService.handleExpiryAlert as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
-    await handleExpiryAlert(req as any, res as any);
+    await handleExpiryAlert(req as any, res as any, vi.fn());
     expect(batchService.handleExpiryAlert).toHaveBeenCalledWith("t1", 1, 1);
     expect(ok).toHaveBeenCalledWith({ alertId: 1 });
   });
@@ -195,7 +195,7 @@ describe("inventory-batch.controller", () => {
     (batchService.getExpiryAlertStatistics as any).mockResolvedValue({ total: 10 });
     const req = mockReq();
     const res = mockRes();
-    await getExpiryAlertStatistics(req as any, res as any);
+    await getExpiryAlertStatistics(req as any, res as any, vi.fn());
     expect(batchService.getExpiryAlertStatistics).toHaveBeenCalledWith("t1");
     expect(ok).toHaveBeenCalled();
   });
@@ -205,7 +205,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listBatches(req as any, res as any);
+    await listBatches(req as any, res as any, vi.fn());
     expect(batchService.listBatches).toHaveBeenCalledWith("t1", expect.objectContaining({ page: 1, pageSize: 20 }));
   });
 
@@ -213,7 +213,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listBatches as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { storeId: "5", skuId: "3", expiryStatus: "warning" } });
     const res = mockRes();
-    await listBatches(req as any, res as any);
+    await listBatches(req as any, res as any, vi.fn());
     expect(batchService.listBatches).toHaveBeenCalledWith("t1", expect.objectContaining({ storeId: 5, skuId: 3, expiryStatus: "warning" }));
   });
 
@@ -221,7 +221,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await listExpiryAlerts(req as any, res as any);
+    await listExpiryAlerts(req as any, res as any, vi.fn());
     expect(batchService.listExpiryAlerts).toHaveBeenCalledWith("t1", expect.objectContaining({ page: 1, pageSize: 20 }));
   });
 
@@ -229,7 +229,7 @@ describe("inventory-batch.controller", () => {
     (batchService.listExpiryAlerts as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { alertLevel: "1", storeId: "2", status: "PENDING" } });
     const res = mockRes();
-    await listExpiryAlerts(req as any, res as any);
+    await listExpiryAlerts(req as any, res as any, vi.fn());
     expect(batchService.listExpiryAlerts).toHaveBeenCalledWith("t1", expect.objectContaining({ alertLevel: 1, storeId: 2, status: "PENDING" }));
   });
 
@@ -237,7 +237,7 @@ describe("inventory-batch.controller", () => {
     (batchService.handleExpiryAlert as any).mockResolvedValue(undefined);
     const req = mockReq({ params: { id: "1" }, user: {} });
     const res = mockRes();
-    await handleExpiryAlert(req as any, res as any);
+    await handleExpiryAlert(req as any, res as any, vi.fn());
     expect(batchService.handleExpiryAlert).toHaveBeenCalledWith("t1", 1, undefined);
     expect(ok).toHaveBeenCalled();
   });

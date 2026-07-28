@@ -46,7 +46,7 @@ describe("customer-merge.controller", () => {
     (customerMergeService.detectDuplicates as any).mockResolvedValue([]);
     const req = mockReq({ query: { type: "mobile" } });
     const res = mockRes();
-    await detectDuplicates(req as any, res as any);
+    await detectDuplicates(req as any, res as any, vi.fn());
     expect(customerMergeService.detectDuplicates).toHaveBeenCalledWith("t1", "mobile");
     expect(ok).toHaveBeenCalled();
   });
@@ -55,7 +55,7 @@ describe("customer-merge.controller", () => {
     (customerMergeService.getCustomerRelations as any).mockResolvedValue([]);
     const req = mockReq({ params: { customerId: 1 } });
     const res = mockRes();
-    await getCustomerRelations(req as any, res as any);
+    await getCustomerRelations(req as any, res as any, vi.fn());
     expect(customerMergeService.getCustomerRelations).toHaveBeenCalledWith("t1", 1);
     expect(ok).toHaveBeenCalled();
   });
@@ -71,7 +71,7 @@ describe("customer-merge.controller", () => {
       },
     });
     const res = mockRes();
-    await mergeCustomers(req as any, res as any);
+    await mergeCustomers(req as any, res as any, vi.fn());
     expect(customerMergeService.mergeCustomers).toHaveBeenCalledWith("t1", expect.objectContaining({
       primaryCustomerId: 1,
       duplicateCustomerIds: [2, 3],
@@ -87,14 +87,14 @@ describe("customer-merge.controller", () => {
       },
     });
     const res = mockRes();
-    await expect(mergeCustomers(req as any, res as any)).rejects.toThrow();
+    await expect(mergeCustomers(req as any, res as any, vi.fn())).rejects.toThrow();
   });
 
   it("getDuplicateGroups - 应返回重复客户组", async () => {
     (customerMergeService.getDuplicateGroups as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await getDuplicateGroups(req as any, res as any);
+    await getDuplicateGroups(req as any, res as any, vi.fn());
     expect(customerMergeService.getDuplicateGroups).toHaveBeenCalledWith("t1", 1, 20);
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("customer-merge.controller", () => {
     (customerMergeService.detectDuplicates as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await detectDuplicates(req as any, res as any);
+    await detectDuplicates(req as any, res as any, vi.fn());
     expect(customerMergeService.detectDuplicates).toHaveBeenCalledWith("t1", "mobile");
   });
 
@@ -111,7 +111,7 @@ describe("customer-merge.controller", () => {
     (customerMergeService.getDuplicateGroups as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await getDuplicateGroups(req as any, res as any);
+    await getDuplicateGroups(req as any, res as any, vi.fn());
     expect(customerMergeService.getDuplicateGroups).toHaveBeenCalledWith("t1", 1, 20);
   });
 });

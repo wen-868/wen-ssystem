@@ -56,7 +56,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.listVisitRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listVisitRecords(req as any, res as any);
+    await listVisitRecords(req as any, res as any, vi.fn());
     expect(visitRecordService.listVisitRecords).toHaveBeenCalledWith("t1", expect.any(Object));
     expect(ok).toHaveBeenCalled();
   });
@@ -65,7 +65,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.getVisitRecordDetail as any).mockResolvedValue({ visitNo: "VR123" });
     const req = mockReq({ params: { visitNo: "VR123" } });
     const res = mockRes();
-    await getVisitRecordDetail(req as any, res as any);
+    await getVisitRecordDetail(req as any, res as any, vi.fn());
     expect(visitRecordService.getVisitRecordDetail).toHaveBeenCalledWith("t1", "VR123");
     expect(ok).toHaveBeenCalled();
   });
@@ -74,7 +74,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.checkin as any).mockResolvedValue({ visitNo: "VR123" });
     const req = mockReq({ params: { visitNo: "VR123" }, body: { latitude: 0, longitude: 0 } });
     const res = mockRes();
-    await checkin(req as any, res as any);
+    await checkin(req as any, res as any, vi.fn());
     expect(visitRecordService.checkin).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -83,7 +83,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.checkout as any).mockResolvedValue({ visitNo: "VR123" });
     const req = mockReq({ params: { visitNo: "VR123" }, body: { remark: "拜访完成" } });
     const res = mockRes();
-    await checkout(req as any, res as any);
+    await checkout(req as any, res as any, vi.fn());
     expect(visitRecordService.checkout).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -92,7 +92,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.listPendingFollowUps as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPendingFollowUps(req as any, res as any);
+    await listPendingFollowUps(req as any, res as any, vi.fn());
     expect(visitRecordService.listPendingFollowUps).toHaveBeenCalledWith("t1", 1, 1, 20);
     expect(ok).toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.listPendingFollowUps as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { visitor_id: "2", page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPendingFollowUps(req as any, res as any);
+    await listPendingFollowUps(req as any, res as any, vi.fn());
     expect(visitRecordService.listPendingFollowUps).toHaveBeenCalledWith("t1", 2, 1, 20);
     expect(ok).toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.getVisitStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq({ query: { start_date: "2026-01-01", end_date: "2026-01-31" } });
     const res = mockRes();
-    await getVisitStatistics(req as any, res as any);
+    await getVisitStatistics(req as any, res as any, vi.fn());
     expect(visitRecordService.getVisitStatistics).toHaveBeenCalledWith("t1", null, "2026-01-01", "2026-01-31");
     expect(ok).toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe("visit-record.controller", () => {
     (visitRecordService.getVisitStatistics as any).mockResolvedValue({ total: 0 });
     const req = mockReq({ query: { visitor_id: "2" } });
     const res = mockRes();
-    await getVisitStatistics(req as any, res as any);
+    await getVisitStatistics(req as any, res as any, vi.fn());
     expect(visitRecordService.getVisitStatistics).toHaveBeenCalledWith("t1", 2, expect.any(String), expect.any(String));
     expect(ok).toHaveBeenCalled();
   });

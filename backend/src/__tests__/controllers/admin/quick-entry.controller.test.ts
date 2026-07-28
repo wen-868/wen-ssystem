@@ -66,7 +66,7 @@ describe("admin quick-entry.controller", () => {
     mocks.listQuickEntries.mockResolvedValue([{ id: 1, name: "入口A" }]);
     const req = mockReq();
     const res = mockRes();
-    await listQuickEntries(req, res);
+    await listQuickEntries(req, res, vi.fn());
     expect(mocks.listQuickEntries).toHaveBeenCalledWith("t1", undefined);
     expect(mocks.ok).toHaveBeenCalledWith([{ id: 1, name: "入口A" }]);
   });
@@ -75,7 +75,7 @@ describe("admin quick-entry.controller", () => {
     mocks.listQuickEntries.mockResolvedValue([]);
     const req = mockReq({ query: { role: "admin" } });
     const res = mockRes();
-    await listQuickEntries(req, res);
+    await listQuickEntries(req, res, vi.fn());
     expect(mocks.listQuickEntries).toHaveBeenCalledWith("t1", "admin");
   });
 
@@ -83,7 +83,7 @@ describe("admin quick-entry.controller", () => {
     mocks.createQuickEntry.mockResolvedValue({ id: 1 });
     const req = mockReq({ body: { name: "入口", icon: "icon-home", route: "/home" } });
     const res = mockRes();
-    await createQuickEntry(req, res);
+    await createQuickEntry(req, res, vi.fn());
     expect(mocks.createQuickEntry).toHaveBeenCalledWith("t1", expect.objectContaining({
       name: "入口", icon: "icon-home", route: "/home", enabled: true,
     }));
@@ -94,7 +94,7 @@ describe("admin quick-entry.controller", () => {
     mocks.createQuickEntry.mockResolvedValue({ id: 2 });
     const req = mockReq({ body: { name: "入口B", icon: "icon-2", route: "/b", group: "常用", enabled: false, visibleRoles: ["admin", "staff"] } });
     const res = mockRes();
-    await createQuickEntry(req, res);
+    await createQuickEntry(req, res, vi.fn());
     expect(mocks.createQuickEntry).toHaveBeenCalledWith("t1", expect.objectContaining({
       group: "常用", enabled: false, visibleRoles: ["admin", "staff"],
     }));
@@ -104,7 +104,7 @@ describe("admin quick-entry.controller", () => {
     mocks.updateQuickEntry.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "5" }, body: { name: "新名称", enabled: false } });
     const res = mockRes();
-    await updateQuickEntry(req, res);
+    await updateQuickEntry(req, res, vi.fn());
     expect(mocks.updateQuickEntry).toHaveBeenCalledWith("t1", 5, expect.objectContaining({
       name: "新名称", enabled: false,
     }));
@@ -114,7 +114,7 @@ describe("admin quick-entry.controller", () => {
     mocks.deleteQuickEntry.mockResolvedValue({ success: true });
     const req = mockReq({ params: { id: "8" } });
     const res = mockRes();
-    await deleteQuickEntry(req, res);
+    await deleteQuickEntry(req, res, vi.fn());
     expect(mocks.deleteQuickEntry).toHaveBeenCalledWith("t1", 8);
     expect(mocks.ok).toHaveBeenCalledWith({ success: true });
   });
@@ -123,7 +123,7 @@ describe("admin quick-entry.controller", () => {
     mocks.sortQuickEntries.mockResolvedValue({ success: true });
     const req = mockReq({ body: { ids: [3, 1, 2] } });
     const res = mockRes();
-    await sortQuickEntries(req, res);
+    await sortQuickEntries(req, res, vi.fn());
     expect(mocks.sortQuickEntries).toHaveBeenCalledWith("t1", [3, 1, 2]);
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { success: true } });
   });
@@ -132,7 +132,7 @@ describe("admin quick-entry.controller", () => {
     mocks.createQuickEntry.mockResolvedValue({ id: 10 });
     const req = mockReq({ body: { name: "入口", icon: "i", route: "/r" } });
     const res = mockRes();
-    await createQuickEntry(req, res);
+    await createQuickEntry(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: { id: 10 } });
   });
 
@@ -140,7 +140,7 @@ describe("admin quick-entry.controller", () => {
     mocks.listQuickEntries.mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await listQuickEntries(req, res);
+    await listQuickEntries(req, res, vi.fn());
     expect(res.json).toHaveBeenCalledWith({ success: true, data: [] });
   });
 });

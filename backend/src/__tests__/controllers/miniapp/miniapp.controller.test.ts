@@ -161,7 +161,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ query: { page: "1", pageSize: "10" } });
       const res = mockRes();
-      await getProducts(req as any, res as any);
+      await getProducts(req as any, res as any, vi.fn());
       expect(productService.listProducts).toHaveBeenCalledWith("", 1, 10, "t1");
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
@@ -176,7 +176,7 @@ describe("miniapp/miniapp.controller", () => {
       (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: { keyword: "酒", categoryId: "3", storeId: "2" } });
       const res = mockRes();
-      await getProducts(req as any, res as any);
+      await getProducts(req as any, res as any, vi.fn());
       expect(productService.listProducts).toHaveBeenCalledWith("酒", 1, 20, "t1");
     });
 
@@ -184,7 +184,7 @@ describe("miniapp/miniapp.controller", () => {
       (productService.listProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getProducts(req as any, res as any);
+      await getProducts(req as any, res as any, vi.fn());
       expect(productService.listProducts).toHaveBeenCalledWith("", 1, 20, "t1");
     });
 
@@ -197,7 +197,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ headers: { "x-customer-type": "WHOLESALE" } });
       const res = mockRes();
-      await getProducts(req as any, res as any);
+      await getProducts(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.records[0].priceType).toBe("WHOLESALE");
       expect(okArg.records[0].price).toBe(80);
@@ -212,7 +212,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ headers: { "x-customer-type": "WHOLESALE" } });
       const res = mockRes();
-      await getProducts(req as any, res as any);
+      await getProducts(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.records[0].priceType).toBe("RETAIL");
       expect(okArg.records[0].price).toBe(100);
@@ -251,7 +251,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getProductDetail(req as any, res as any);
+      await getProductDetail(req as any, res as any, vi.fn());
       expect(productService.getProductDetail).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
@@ -269,7 +269,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ params: { id: "1" }, headers: { "x-customer-type": "WHOLESALE" } });
       const res = mockRes();
-      await getProductDetail(req as any, res as any);
+      await getProductDetail(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.skus[0].priceType).toBe("WHOLESALE");
       expect(okArg.skus[0].wholesalePrice).toBe(80);
@@ -284,7 +284,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getProductDetail(req as any, res as any);
+      await getProductDetail(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.skus[0].wholesalePrice).toBeUndefined();
     });
@@ -295,7 +295,7 @@ describe("miniapp/miniapp.controller", () => {
       (categoryService.list as any).mockResolvedValue([{ id: 1, name: "分类1" }]);
       const req = mockReq();
       const res = mockRes();
-      await getCategories(req as any, res as any);
+      await getCategories(req as any, res as any, vi.fn());
       expect(categoryService.list).toHaveBeenCalledWith(expect.objectContaining({ tenantId: "t1", allowOnlineSale: 1, status: 1 }));
       expect(ok).toHaveBeenCalled();
     });
@@ -304,7 +304,7 @@ describe("miniapp/miniapp.controller", () => {
       (categoryService.list as any).mockResolvedValue([]);
       const req = mockReq({ query: { pid: "1" } });
       const res = mockRes();
-      await getCategories(req as any, res as any);
+      await getCategories(req as any, res as any, vi.fn());
       expect(categoryService.list).toHaveBeenCalledWith(expect.objectContaining({ pid: 1 }));
     });
 
@@ -312,7 +312,7 @@ describe("miniapp/miniapp.controller", () => {
       (categoryService.list as any).mockResolvedValue([]);
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getCategories(req as any, res as any);
+      await getCategories(req as any, res as any, vi.fn());
       expect(categoryService.list).toHaveBeenCalledWith(expect.objectContaining({ pid: undefined }));
     });
   });
@@ -324,7 +324,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.getCartList as any).mockResolvedValue({ items: [], totalAmount: 0, totalQty: 0 });
       const req = mockReq();
       const res = mockRes();
-      await getCart(req as any, res as any);
+      await getCart(req as any, res as any, vi.fn());
       expect(cartService.getCartList).toHaveBeenCalledWith("t1", 1, "RETAIL");
       expect(ok).toHaveBeenCalled();
     });
@@ -333,7 +333,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.getCartList as any).mockResolvedValue({ items: [] });
       const req = mockReq({ user: null, headers: {} });
       const res = mockRes();
-      await getCart(req as any, res as any);
+      await getCart(req as any, res as any, vi.fn());
       expect(cartService.getCartList).toHaveBeenCalledWith("t1", 1, "RETAIL");
     });
 
@@ -341,7 +341,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.getCartList as any).mockResolvedValue({ items: [] });
       const req = mockReq({ user: null, headers: { "x-anonymous-member-id": "123" } });
       const res = mockRes();
-      await getCart(req as any, res as any);
+      await getCart(req as any, res as any, vi.fn());
       expect(cartService.getCartList).toHaveBeenCalledWith("t1", 123, "RETAIL");
     });
   });
@@ -351,7 +351,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.addToCart as any).mockResolvedValue({ success: true, message: "已加入购物车" });
       const req = mockReq({ body: { skuId: 1, quantity: 2 } });
       const res = mockRes();
-      await addToCart(req as any, res as any);
+      await addToCart(req as any, res as any, vi.fn());
       expect(cartService.addToCart).toHaveBeenCalledWith("t1", 1, 1, 2);
       expect(ok).toHaveBeenCalledWith({ message: "已加入购物车" });
     });
@@ -360,7 +360,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.addToCart as any).mockResolvedValue({ success: false, message: "商品不存在" });
       const req = mockReq({ body: { skuId: 999, quantity: 1 } });
       const res = mockRes();
-      await addToCart(req as any, res as any);
+      await addToCart(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(fail).toHaveBeenCalledWith("商品不存在");
     });
@@ -369,7 +369,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.addToCart as any).mockResolvedValue({ success: true });
       const req = mockReq({ body: { skuId: 1 } });
       const res = mockRes();
-      await addToCart(req as any, res as any);
+      await addToCart(req as any, res as any, vi.fn());
       expect(cartService.addToCart).toHaveBeenCalledWith("t1", 1, 1, 1);
     });
   });
@@ -379,7 +379,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.updateCartItemQuantity as any).mockResolvedValue({ success: true, message: "已更新" });
       const req = mockReq({ params: { id: "1" }, body: { quantity: 5 } });
       const res = mockRes();
-      await updateCartItem(req as any, res as any);
+      await updateCartItem(req as any, res as any, vi.fn());
       expect(cartService.updateCartItemQuantity).toHaveBeenCalledWith("t1", 1, 1, 5);
       expect(ok).toHaveBeenCalledWith({ message: "已更新" });
     });
@@ -388,7 +388,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.updateCartItemQuantity as any).mockResolvedValue({ success: false, message: "购物车中无此商品" });
       const req = mockReq({ params: { id: "999" }, body: { quantity: 5 } });
       const res = mockRes();
-      await updateCartItem(req as any, res as any);
+      await updateCartItem(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(404);
       expect(fail).toHaveBeenCalledWith("购物车中无此商品");
     });
@@ -399,7 +399,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.deleteCartItem as any).mockResolvedValue({ message: "已删除" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteCartItem(req as any, res as any);
+      await deleteCartItem(req as any, res as any, vi.fn());
       expect(cartService.deleteCartItem).toHaveBeenCalledWith("t1", 1, 1);
       expect(ok).toHaveBeenCalledWith({ message: "已删除" });
     });
@@ -410,7 +410,7 @@ describe("miniapp/miniapp.controller", () => {
       (cartService.clearCart as any).mockResolvedValue({ message: "购物车已清空" });
       const req = mockReq();
       const res = mockRes();
-      await clearCart(req as any, res as any);
+      await clearCart(req as any, res as any, vi.fn());
       expect(cartService.clearCart).toHaveBeenCalledWith("t1", 1);
       expect(ok).toHaveBeenCalledWith({ message: "购物车已清空" });
     });
@@ -433,7 +433,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createOrder(req as any, res as any);
+      await createOrder(req as any, res as any, vi.fn());
       expect(miniappService.createOrder).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
     });
@@ -448,7 +448,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createOrder(req as any, res as any);
+      await createOrder(req as any, res as any, vi.fn());
       const callArg = (miniappService.createOrder as any).mock.calls[0][1];
       expect(callArg.items[0].qty).toBe(3);
     });
@@ -464,7 +464,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createOrder(req as any, res as any);
+      await createOrder(req as any, res as any, vi.fn());
       const callArgs = (miniappService.createOrder as any).mock.calls[0];
       expect(callArgs[2]).toBe("WHOLESALE");
       expect(callArgs[4]).toBe("ACCOUNT");
@@ -480,7 +480,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createOrder(req as any, res as any);
+      await createOrder(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
   });
@@ -490,7 +490,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrders as any).mockResolvedValue({ total: 1, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "10" } });
       const res = mockRes();
-      await getOrders(req as any, res as any);
+      await getOrders(req as any, res as any, vi.fn());
       expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "", 1, 10);
       expect(ok).toHaveBeenCalled();
     });
@@ -499,7 +499,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getOrders(req as any, res as any);
+      await getOrders(req as any, res as any, vi.fn());
       expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "", 1, 20);
     });
 
@@ -507,7 +507,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ headers: { "x-anonymous-member-id": "anon123" } });
       const res = mockRes();
-      await getOrders(req as any, res as any);
+      await getOrders(req as any, res as any, vi.fn());
       expect(miniappService.getOrders).toHaveBeenCalledWith("t1", "anon123", 1, 20);
     });
   });
@@ -517,7 +517,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", items: [] });
       const req = mockReq({ params: { id: "DD001" } });
       const res = mockRes();
-      await getOrderDetail(req as any, res as any);
+      await getOrderDetail(req as any, res as any, vi.fn());
       expect(miniappService.getOrderDetail).toHaveBeenCalledWith("t1", "DD001", "");
       expect(ok).toHaveBeenCalled();
     });
@@ -528,7 +528,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID", payableAmount: 100 });
       const req = mockReq({ params: { id: "DD001" }, body: { paymentMethod: "WECHAT_PAY" } });
       const res = mockRes();
-      await payOrder(req as any, res as any);
+      await payOrder(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.orderNo).toBe("DD001");
@@ -539,7 +539,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "PAID", payableAmount: 100 });
       const req = mockReq({ params: { id: "DD001" }, body: { paymentMethod: "WECHAT_PAY" } });
       const res = mockRes();
-      await payOrder(req as any, res as any);
+      await payOrder(req as any, res as any, vi.fn());
       expect(res.status).toHaveBeenCalledWith(400);
       expect(fail).toHaveBeenCalledWith("订单已支付");
     });
@@ -548,7 +548,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD002", payStatus: "UNPAID", payableAmount: 200 });
       const req = mockReq({ params: { id: "DD002" }, body: { paymentMethod: "BALANCE" } });
       const res = mockRes();
-      await payOrder(req as any, res as any);
+      await payOrder(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.paymentMethod).toBe("BALANCE");
       expect(okArg.amount).toBe(200);
@@ -562,7 +562,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getProfile as any).mockReturnValue({ memberId: 1, nickname: "测试用户" });
       const req = mockReq();
       const res = mockRes();
-      await getProfile(req as any, res as any);
+      await getProfile(req as any, res as any, vi.fn());
       expect(miniappService.getProfile).toHaveBeenCalledWith("RETAIL");
       expect(ok).toHaveBeenCalled();
     });
@@ -571,7 +571,7 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getProfile as any).mockReturnValue({ memberId: 1, customerType: "WHOLESALE" });
       const req = mockReq({ headers: { "x-customer-type": "WHOLESALE" } });
       const res = mockRes();
-      await getProfile(req as any, res as any);
+      await getProfile(req as any, res as any, vi.fn());
       expect(miniappService.getProfile).toHaveBeenCalledWith("WHOLESALE");
     });
   });
@@ -580,7 +580,7 @@ describe("miniapp/miniapp.controller", () => {
     it("应更新用户信息", async () => {
       const req = mockReq({ body: { nickname: "新昵称", mobile: "13900139000" } });
       const res = mockRes();
-      await updateProfile(req as any, res as any);
+      await updateProfile(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.data.nickname).toBe("新昵称");
@@ -589,7 +589,7 @@ describe("miniapp/miniapp.controller", () => {
     it("只传 nickname 也应更新成功", async () => {
       const req = mockReq({ body: { nickname: "新昵称" } });
       const res = mockRes();
-      await updateProfile(req as any, res as any);
+      await updateProfile(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.data.nickname).toBe("新昵称");
       expect(okArg.data.mobile).toBeUndefined();
@@ -598,7 +598,7 @@ describe("miniapp/miniapp.controller", () => {
     it("只传 mobile 也应更新成功", async () => {
       const req = mockReq({ body: { mobile: "13800138000" } });
       const res = mockRes();
-      await updateProfile(req as any, res as any);
+      await updateProfile(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.data.mobile).toBe("13800138000");
     });
@@ -609,7 +609,7 @@ describe("miniapp/miniapp.controller", () => {
       (addressService.listAddresses as any).mockResolvedValue([{ id: 1, name: "张三" }]);
       const req = mockReq();
       const res = mockRes();
-      await getAddresses(req as any, res as any);
+      await getAddresses(req as any, res as any, vi.fn());
       expect(addressService.listAddresses).toHaveBeenCalledWith(1);
       expect(ok).toHaveBeenCalled();
     });
@@ -630,7 +630,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createAddress(req as any, res as any);
+      await createAddress(req as any, res as any, vi.fn());
       expect(addressService.createAddress).toHaveBeenCalledWith(1, expect.any(Object));
       expect(ok).toHaveBeenCalled();
     });
@@ -648,7 +648,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createAddress(req as any, res as any);
+      await createAddress(req as any, res as any, vi.fn());
       const callArg = (addressService.createAddress as any).mock.calls[0][1];
       expect(callArg.is_default).toBeUndefined();
       expect(ok).toHaveBeenCalled();
@@ -670,7 +670,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await updateAddress(req as any, res as any);
+      await updateAddress(req as any, res as any, vi.fn());
       expect(addressService.updateAddress).toHaveBeenCalledWith(1, 1, expect.any(Object));
       expect(ok).toHaveBeenCalledWith({ message: "更新成功" });
     });
@@ -681,7 +681,7 @@ describe("miniapp/miniapp.controller", () => {
       (addressService.deleteAddress as any).mockResolvedValue({});
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteAddress(req as any, res as any);
+      await deleteAddress(req as any, res as any, vi.fn());
       expect(addressService.deleteAddress).toHaveBeenCalledWith(1, 1);
       expect(ok).toHaveBeenCalledWith({ message: "删除成功" });
     });
@@ -692,7 +692,7 @@ describe("miniapp/miniapp.controller", () => {
       (addressService.setDefault as any).mockResolvedValue({});
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await setDefaultAddress(req as any, res as any);
+      await setDefaultAddress(req as any, res as any, vi.fn());
       expect(addressService.setDefault).toHaveBeenCalledWith(1, 1);
       expect(ok).toHaveBeenCalledWith({ message: "设置成功" });
     });
@@ -704,7 +704,7 @@ describe("miniapp/miniapp.controller", () => {
     it("应返回营销活动列表", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getPromotions(req as any, res as any);
+      await getPromotions(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.total).toBe(5);
@@ -716,7 +716,7 @@ describe("miniapp/miniapp.controller", () => {
     it("应返回优惠券列表", async () => {
       const req = mockReq();
       const res = mockRes();
-      await getCoupons(req as any, res as any);
+      await getCoupons(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.total).toBe(3);
@@ -728,7 +728,7 @@ describe("miniapp/miniapp.controller", () => {
     it("应使用优惠券", async () => {
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await useCoupon(req as any, res as any);
+      await useCoupon(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
       expect(okArg.couponId).toBe(1);
@@ -750,7 +750,7 @@ describe("miniapp/miniapp.controller", () => {
       });
       const req = mockReq();
       const res = mockRes();
-      await getMemberProfile(req as any, res as any);
+      await getMemberProfile(req as any, res as any, vi.fn());
       expect(memberService.getMemberProfile).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -764,7 +764,7 @@ describe("miniapp/miniapp.controller", () => {
       ]);
       const req = mockReq();
       const res = mockRes();
-      await getMemberLevels(req as any, res as any);
+      await getMemberLevels(req as any, res as any, vi.fn());
       expect(memberService.getMemberLevels).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -775,7 +775,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getPointsRecords as any).mockResolvedValue({ total: 10, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "10", type: "EARN" } });
       const res = mockRes();
-      await getMemberPoints(req as any, res as any);
+      await getMemberPoints(req as any, res as any, vi.fn());
       expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 10, "EARN");
       expect(ok).toHaveBeenCalled();
     });
@@ -784,7 +784,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getMemberPoints(req as any, res as any);
+      await getMemberPoints(req as any, res as any, vi.fn());
       expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
 
@@ -792,7 +792,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getMemberPoints(req as any, res as any);
+      await getMemberPoints(req as any, res as any, vi.fn());
       expect(memberService.getPointsRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
   });
@@ -802,7 +802,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getGrowthRecords as any).mockResolvedValue({ total: 5, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "20", type: "EARN" } });
       const res = mockRes();
-      await getMemberGrowth(req as any, res as any);
+      await getMemberGrowth(req as any, res as any, vi.fn());
       expect(memberService.getGrowthRecords).toHaveBeenCalledWith(1, "t1", 1, 20, "EARN");
       expect(ok).toHaveBeenCalled();
     });
@@ -811,7 +811,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getGrowthRecords as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getMemberGrowth(req as any, res as any);
+      await getMemberGrowth(req as any, res as any, vi.fn());
       expect(memberService.getGrowthRecords).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
   });
@@ -821,7 +821,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getMyCoupons as any).mockResolvedValue({ total: 3, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "10", status: "AVAILABLE" } });
       const res = mockRes();
-      await getMemberCoupons(req as any, res as any);
+      await getMemberCoupons(req as any, res as any, vi.fn());
       expect(memberService.getMyCoupons).toHaveBeenCalledWith(1, "t1", 1, 10, "AVAILABLE");
       expect(ok).toHaveBeenCalled();
     });
@@ -830,7 +830,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.getMyCoupons as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getMemberCoupons(req as any, res as any);
+      await getMemberCoupons(req as any, res as any, vi.fn());
       expect(memberService.getMyCoupons).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
   });
@@ -840,7 +840,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.receiveCoupon as any).mockResolvedValue({ message: "领取成功", couponId: 1 });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await receiveCoupon(req as any, res as any);
+      await receiveCoupon(req as any, res as any, vi.fn());
       expect(memberService.receiveCoupon).toHaveBeenCalledWith(1, 1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -853,7 +853,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.updateUserProfile as any).mockResolvedValue({ message: "更新成功" });
       const req = mockReq({ body: { nickname: "新昵称", avatar: "avatar.jpg", gender: 1, birthday: "1990-01-01" } });
       const res = mockRes();
-      await updateUserProfile(req as any, res as any);
+      await updateUserProfile(req as any, res as any, vi.fn());
       expect(memberService.updateUserProfile).toHaveBeenCalledWith(1, "t1", expect.any(Object));
       expect(ok).toHaveBeenCalled();
     });
@@ -862,20 +862,20 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.updateUserProfile as any).mockResolvedValue({ message: "更新成功" });
       const req = mockReq({ body: { nickname: "新昵称" } });
       const res = mockRes();
-      await updateUserProfile(req as any, res as any);
+      await updateUserProfile(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
     it("参数校验失败 - gender 超出范围", async () => {
       const req = mockReq({ body: { gender: 3 } });
       const res = mockRes();
-      await expect(updateUserProfile(req as any, res as any)).rejects.toThrow();
+      await expect(updateUserProfile(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - nickname 过长", async () => {
       const req = mockReq({ body: { nickname: "a".repeat(65) } });
       const res = mockRes();
-      await expect(updateUserProfile(req as any, res as any)).rejects.toThrow();
+      await expect(updateUserProfile(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -884,7 +884,7 @@ describe("miniapp/miniapp.controller", () => {
       (memberService.changePassword as any).mockResolvedValue({ message: "修改成功" });
       const req = mockReq({ body: { oldPassword: "123456", newPassword: "654321" } });
       const res = mockRes();
-      await changePassword(req as any, res as any);
+      await changePassword(req as any, res as any, vi.fn());
       expect(memberService.changePassword).toHaveBeenCalledWith(1, "t1", "123456", "654321");
       expect(ok).toHaveBeenCalled();
     });
@@ -892,19 +892,19 @@ describe("miniapp/miniapp.controller", () => {
     it("参数校验失败 - 缺少 oldPassword", async () => {
       const req = mockReq({ body: { newPassword: "654321" } });
       const res = mockRes();
-      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+      await expect(changePassword(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - 缺少 newPassword", async () => {
       const req = mockReq({ body: { oldPassword: "123456" } });
       const res = mockRes();
-      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+      await expect(changePassword(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - oldPassword 为空字符串", async () => {
       const req = mockReq({ body: { oldPassword: "", newPassword: "654321" } });
       const res = mockRes();
-      await expect(changePassword(req as any, res as any)).rejects.toThrow();
+      await expect(changePassword(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -915,7 +915,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 10, records: [] });
       const req = mockReq({ query: { keyword: "酒", categoryId: "1", page: "1", pageSize: "20", sortBy: "price", sortOrder: "asc" } });
       const res = mockRes();
-      await getWholesaleProducts(req as any, res as any);
+      await getWholesaleProducts(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
         keyword: "酒", categoryId: 1, page: 1, pageSize: 20, sortBy: "price", sortOrder: "asc"
       }));
@@ -926,7 +926,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getWholesaleProducts(req as any, res as any);
+      await getWholesaleProducts(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
         keyword: undefined, categoryId: undefined, sortBy: undefined, sortOrder: undefined
       }));
@@ -936,7 +936,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleProducts as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getWholesaleProducts(req as any, res as any);
+      await getWholesaleProducts(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleProducts).toHaveBeenCalledWith("t1", expect.objectContaining({
         page: 1, pageSize: 20
       }));
@@ -948,7 +948,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleProductDetail as any).mockResolvedValue({ spuId: 1, name: "商品1" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await getWholesaleProductDetail(req as any, res as any);
+      await getWholesaleProductDetail(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleProductDetail).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -959,7 +959,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleCategories as any).mockResolvedValue([{ id: 1, name: "分类1" }]);
       const req = mockReq();
       const res = mockRes();
-      await getWholesaleCategories(req as any, res as any);
+      await getWholesaleCategories(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleCategories).toHaveBeenCalledWith("t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -970,7 +970,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleCart as any).mockResolvedValue({ items: [], totalAmount: 0 });
       const req = mockReq();
       const res = mockRes();
-      await getWholesaleCart(req as any, res as any);
+      await getWholesaleCart(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleCart).toHaveBeenCalledWith(1, "t1");
       expect(ok).toHaveBeenCalled();
     });
@@ -981,7 +981,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.addWholesaleCartItem as any).mockResolvedValue({ message: "已添加" });
       const req = mockReq({ body: { skuId: 1, quantity: 10 } });
       const res = mockRes();
-      await addWholesaleCartItem(req as any, res as any);
+      await addWholesaleCartItem(req as any, res as any, vi.fn());
       expect(wholesaleService.addWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 10);
       expect(ok).toHaveBeenCalled();
     });
@@ -990,26 +990,26 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.addWholesaleCartItem as any).mockResolvedValue({ message: "已添加" });
       const req = mockReq({ body: { skuId: 1 } });
       const res = mockRes();
-      await addWholesaleCartItem(req as any, res as any);
+      await addWholesaleCartItem(req as any, res as any, vi.fn());
       expect(wholesaleService.addWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 1);
     });
 
     it("参数校验失败 - 缺少 skuId", async () => {
       const req = mockReq({ body: { quantity: 10 } });
       const res = mockRes();
-      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(addWholesaleCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - skuId 为负数", async () => {
       const req = mockReq({ body: { skuId: -1, quantity: 1 } });
       const res = mockRes();
-      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(addWholesaleCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - quantity 为 0", async () => {
       const req = mockReq({ body: { skuId: 1, quantity: 0 } });
       const res = mockRes();
-      await expect(addWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(addWholesaleCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1018,7 +1018,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.updateWholesaleCartItem as any).mockResolvedValue({ message: "已更新" });
       const req = mockReq({ params: { id: "1" }, body: { quantity: 20 } });
       const res = mockRes();
-      await updateWholesaleCartItem(req as any, res as any);
+      await updateWholesaleCartItem(req as any, res as any, vi.fn());
       expect(wholesaleService.updateWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 20);
       expect(ok).toHaveBeenCalled();
     });
@@ -1027,7 +1027,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.updateWholesaleCartItem as any).mockResolvedValue({ message: "已更新" });
       const req = mockReq({ params: { id: "1" }, body: { quantity: 0 } });
       const res = mockRes();
-      await updateWholesaleCartItem(req as any, res as any);
+      await updateWholesaleCartItem(req as any, res as any, vi.fn());
       expect(wholesaleService.updateWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1, 0);
       expect(ok).toHaveBeenCalled();
     });
@@ -1035,13 +1035,13 @@ describe("miniapp/miniapp.controller", () => {
     it("参数校验失败 - 缺少 quantity", async () => {
       const req = mockReq({ params: { id: "1" }, body: {} });
       const res = mockRes();
-      await expect(updateWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(updateWholesaleCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - quantity 为负数", async () => {
       const req = mockReq({ params: { id: "1" }, body: { quantity: -1 } });
       const res = mockRes();
-      await expect(updateWholesaleCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(updateWholesaleCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1050,7 +1050,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.deleteWholesaleCartItem as any).mockResolvedValue({ message: "已删除" });
       const req = mockReq({ params: { id: "1" } });
       const res = mockRes();
-      await deleteWholesaleCartItem(req as any, res as any);
+      await deleteWholesaleCartItem(req as any, res as any, vi.fn());
       expect(wholesaleService.deleteWholesaleCartItem).toHaveBeenCalledWith(1, "t1", 1);
       expect(ok).toHaveBeenCalled();
     });
@@ -1074,7 +1074,7 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createWholesaleOrder(req as any, res as any);
+      await createWholesaleOrder(req as any, res as any, vi.fn());
       expect(wholesaleService.createWholesaleOrder).toHaveBeenCalledWith(1, "t1", expect.any(Object));
       expect(ok).toHaveBeenCalled();
     });
@@ -1087,38 +1087,38 @@ describe("miniapp/miniapp.controller", () => {
         },
       });
       const res = mockRes();
-      await createWholesaleOrder(req as any, res as any);
+      await createWholesaleOrder(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
     });
 
     it("参数校验失败 - items 为空数组", async () => {
       const req = mockReq({ body: { items: [] } });
       const res = mockRes();
-      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createWholesaleOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - 缺少 items", async () => {
       const req = mockReq({ body: {} });
       const res = mockRes();
-      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createWholesaleOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - item 缺少 skuId", async () => {
       const req = mockReq({ body: { items: [{ quantity: 1 }] } });
       const res = mockRes();
-      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createWholesaleOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - item quantity 为 0", async () => {
       const req = mockReq({ body: { items: [{ skuId: 1, quantity: 0 }] } });
       const res = mockRes();
-      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createWholesaleOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("参数校验失败 - remark 过长", async () => {
       const req = mockReq({ body: { items: [{ skuId: 1, quantity: 1 }], remark: "a".repeat(501) } });
       const res = mockRes();
-      await expect(createWholesaleOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createWholesaleOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1127,7 +1127,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 5, records: [] });
       const req = mockReq({ query: { page: "1", pageSize: "10", status: "PENDING" } });
       const res = mockRes();
-      await getWholesaleOrders(req as any, res as any);
+      await getWholesaleOrders(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 10, "PENDING");
       expect(ok).toHaveBeenCalled();
     });
@@ -1136,7 +1136,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getWholesaleOrders(req as any, res as any);
+      await getWholesaleOrders(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
 
@@ -1144,7 +1144,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleOrders as any).mockResolvedValue({ total: 0, records: [] });
       const req = mockReq({ query: {} });
       const res = mockRes();
-      await getWholesaleOrders(req as any, res as any);
+      await getWholesaleOrders(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleOrders).toHaveBeenCalledWith(1, "t1", 1, 20, undefined);
     });
   });
@@ -1154,7 +1154,7 @@ describe("miniapp/miniapp.controller", () => {
       (wholesaleService.getWholesaleOrderDetail as any).mockResolvedValue({ orderNo: "PF001", items: [] });
       const req = mockReq({ params: { id: "PF001" } });
       const res = mockRes();
-      await getWholesaleOrderDetail(req as any, res as any);
+      await getWholesaleOrderDetail(req as any, res as any, vi.fn());
       expect(wholesaleService.getWholesaleOrderDetail).toHaveBeenCalledWith(1, "t1", "PF001");
       expect(ok).toHaveBeenCalled();
     });
@@ -1166,25 +1166,25 @@ describe("miniapp/miniapp.controller", () => {
     it("缺少 skuId 应抛出错误", async () => {
       const req = mockReq({ body: { quantity: 1 } });
       const res = mockRes();
-      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+      await expect(addToCart(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("skuId 为 0 应抛出错误", async () => {
       const req = mockReq({ body: { skuId: 0, quantity: 1 } });
       const res = mockRes();
-      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+      await expect(addToCart(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("skuId 为负数应抛出错误", async () => {
       const req = mockReq({ body: { skuId: -1, quantity: 1 } });
       const res = mockRes();
-      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+      await expect(addToCart(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("quantity 为 0 应抛出错误", async () => {
       const req = mockReq({ body: { skuId: 1, quantity: 0 } });
       const res = mockRes();
-      await expect(addToCart(req as any, res as any)).rejects.toThrow();
+      await expect(addToCart(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1192,13 +1192,13 @@ describe("miniapp/miniapp.controller", () => {
     it("缺少 quantity 应抛出错误", async () => {
       const req = mockReq({ params: { id: "1" }, body: {} });
       const res = mockRes();
-      await expect(updateCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(updateCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("quantity 为负数应抛出错误", async () => {
       const req = mockReq({ params: { id: "1" }, body: { quantity: -1 } });
       const res = mockRes();
-      await expect(updateCartItem(req as any, res as any)).rejects.toThrow();
+      await expect(updateCartItem(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1206,43 +1206,43 @@ describe("miniapp/miniapp.controller", () => {
     it("缺少 storeId 应抛出错误", async () => {
       const req = mockReq({ body: { fulfillmentType: "DELIVERY", items: [{ skuId: 1, quantity: 1 }] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("缺少 fulfillmentType 应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, items: [{ skuId: 1, quantity: 1 }] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("fulfillmentType 非法值应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, fulfillmentType: "INVALID", items: [{ skuId: 1, quantity: 1 }] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("缺少 items 应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY" } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("items 为空数组应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("item 缺少 skuId 和 qty 应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [{}] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("item qty 为 0 应抛出错误", async () => {
       const req = mockReq({ body: { storeId: 1, fulfillmentType: "DELIVERY", items: [{ skuId: 1, qty: 0 }] } });
       const res = mockRes();
-      await expect(createOrder(req as any, res as any)).rejects.toThrow();
+      await expect(createOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1251,14 +1251,14 @@ describe("miniapp/miniapp.controller", () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID" });
       const req = mockReq({ params: { id: "DD001" }, body: {} });
       const res = mockRes();
-      await expect(payOrder(req as any, res as any)).rejects.toThrow();
+      await expect(payOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("paymentMethod 非法值应抛出错误", async () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID" });
       const req = mockReq({ params: { id: "DD001" }, body: { paymentMethod: "INVALID" } });
       const res = mockRes();
-      await expect(payOrder(req as any, res as any)).rejects.toThrow();
+      await expect(payOrder(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1266,7 +1266,7 @@ describe("miniapp/miniapp.controller", () => {
     it("nickname 过长应抛出错误", async () => {
       const req = mockReq({ body: { nickname: "a".repeat(65) } });
       const res = mockRes();
-      await expect(updateProfile(req as any, res as any)).rejects.toThrow();
+      await expect(updateProfile(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1274,37 +1274,37 @@ describe("miniapp/miniapp.controller", () => {
     it("缺少 name 应抛出错误", async () => {
       const req = mockReq({ body: { mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("name 为空字符串应抛出错误", async () => {
       const req = mockReq({ body: { name: "", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("mobile 长度不对应抛出错误", async () => {
       const req = mockReq({ body: { name: "张三", mobile: "12345", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("缺少 province 应抛出错误", async () => {
       const req = mockReq({ body: { name: "张三", mobile: "13800138000", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("缺少 detail 应抛出错误", async () => {
       const req = mockReq({ body: { name: "张三", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区" } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("is_default 超出范围应抛出错误", async () => {
       const req = mockReq({ body: { name: "张三", mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号", is_default: 2 } });
       const res = mockRes();
-      await expect(createAddress(req as any, res as any)).rejects.toThrow();
+      await expect(createAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 
@@ -1312,13 +1312,13 @@ describe("miniapp/miniapp.controller", () => {
     it("缺少 name 应抛出错误", async () => {
       const req = mockReq({ params: { id: "1" }, body: { mobile: "13800138000", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(updateAddress(req as any, res as any)).rejects.toThrow();
+      await expect(updateAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
 
     it("mobile 长度不对应抛出错误", async () => {
       const req = mockReq({ params: { id: "1" }, body: { name: "张三", mobile: "123", province: "广东省", city: "深圳市", district: "南山区", detail: "科技园路1号" } });
       const res = mockRes();
-      await expect(updateAddress(req as any, res as any)).rejects.toThrow();
+      await expect(updateAddress(req as any, res as any, vi.fn())).rejects.toThrow();
     });
   });
 });

@@ -42,7 +42,7 @@ describe("report/staff-report.controller", () => {
     (staffReportService.getStaffPerformanceRanking as any).mockResolvedValue([]);
     const req = mockReq();
     const res = mockRes();
-    await getStaffPerformanceRanking(req as any, res as any);
+    await getStaffPerformanceRanking(req as any, res as any, vi.fn());
     expect(staffReportService.getStaffPerformanceRanking).toHaveBeenCalledWith(
       "t1",
       undefined,
@@ -58,7 +58,7 @@ describe("report/staff-report.controller", () => {
       query: { dateStart: "2026-01-01", dateEnd: "2026-12-31", limit: "10" },
     });
     const res = mockRes();
-    await getStaffPerformanceRanking(req as any, res as any);
+    await getStaffPerformanceRanking(req as any, res as any, vi.fn());
     expect(staffReportService.getStaffPerformanceRanking).toHaveBeenCalledWith(
       "t1",
       "2026-01-01",

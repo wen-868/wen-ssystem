@@ -53,7 +53,7 @@ describe("export.controller", () => {
     (exportService.exportCustomers as any).mockResolvedValue([{ id: 1, name: "test" }]);
     const req = mockReq();
     const res = mockRes();
-    await exportCustomers(req as any, res as any);
+    await exportCustomers(req as any, res as any, vi.fn());
     expect(exportService.exportCustomers).toHaveBeenCalledWith("t1", undefined);
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -63,7 +63,7 @@ describe("export.controller", () => {
     (exportService.exportSuppliers as any).mockResolvedValue([{ id: 1, name: "test" }]);
     const req = mockReq({ query: { keyword: "test", supplyType: "MAIN" } });
     const res = mockRes();
-    await exportSuppliers(req as any, res as any);
+    await exportSuppliers(req as any, res as any, vi.fn());
     expect(exportService.exportSuppliers).toHaveBeenCalledWith("t1", "test", "MAIN");
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -73,7 +73,7 @@ describe("export.controller", () => {
     (exportService.exportProducts as any).mockResolvedValue([{ id: 1, name: "test" }]);
     const req = mockReq({ query: { keyword: "test" } });
     const res = mockRes();
-    await exportProducts(req as any, res as any);
+    await exportProducts(req as any, res as any, vi.fn());
     expect(exportService.exportProducts).toHaveBeenCalledWith("t1", "test");
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -83,7 +83,7 @@ describe("export.controller", () => {
     (exportService.exportInventory as any).mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { storeId: "1", keyword: "test" } });
     const res = mockRes();
-    await exportInventory(req as any, res as any);
+    await exportInventory(req as any, res as any, vi.fn());
     expect(exportService.exportInventory).toHaveBeenCalledWith("t1", "1", "test");
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -93,7 +93,7 @@ describe("export.controller", () => {
     (exportService.exportPurchaseOrders as any).mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { keyword: "test", status: "PENDING" } });
     const res = mockRes();
-    await exportPurchaseOrders(req as any, res as any);
+    await exportPurchaseOrders(req as any, res as any, vi.fn());
     expect(exportService.exportPurchaseOrders).toHaveBeenCalledWith("t1", "test", "PENDING");
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -103,7 +103,7 @@ describe("export.controller", () => {
     (exportService.exportPayments as any).mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { status: "PAID" } });
     const res = mockRes();
-    await exportPayments(req as any, res as any);
+    await exportPayments(req as any, res as any, vi.fn());
     expect(exportService.exportPayments).toHaveBeenCalledWith("t1", "PAID");
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -113,7 +113,7 @@ describe("export.controller", () => {
     (exportService.exportSalesOrders as any).mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { keyword: "test", status: "COMPLETED", startDate: "2024-01-01", endDate: "2024-01-31" } });
     const res = mockRes();
-    await exportSalesOrders(req as any, res as any);
+    await exportSalesOrders(req as any, res as any, vi.fn());
     expect(exportService.exportSalesOrders).toHaveBeenCalled();
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -123,7 +123,7 @@ describe("export.controller", () => {
     (exportService.exportAuditLogs as any).mockResolvedValue([{ id: 1 }]);
     const req = mockReq({ query: { action: "CREATE", resourceType: "ORDER", dateStart: "2024-01-01", dateEnd: "2024-01-31" } });
     const res = mockRes();
-    await exportAuditLogs(req as any, res as any);
+    await exportAuditLogs(req as any, res as any, vi.fn());
     expect(exportService.exportAuditLogs).toHaveBeenCalled();
     expect(res.setHeader).toHaveBeenCalled();
     expect(res.send).toHaveBeenCalled();
@@ -133,7 +133,7 @@ describe("export.controller", () => {
     (exportService.exportCustomers as any).mockResolvedValue([]);
     const req = mockReq({ query: { keyword: "test" } });
     const res = mockRes();
-    await exportCustomers(req as any, res as any);
+    await exportCustomers(req as any, res as any, vi.fn());
     expect(exportService.exportCustomers).toHaveBeenCalledWith("t1", "test");
   });
 
@@ -141,7 +141,7 @@ describe("export.controller", () => {
     (exportService.exportSuppliers as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportSuppliers(req as any, res as any);
+    await exportSuppliers(req as any, res as any, vi.fn());
     expect(exportService.exportSuppliers).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
@@ -149,7 +149,7 @@ describe("export.controller", () => {
     (exportService.exportProducts as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportProducts(req as any, res as any);
+    await exportProducts(req as any, res as any, vi.fn());
     expect(exportService.exportProducts).toHaveBeenCalledWith("t1", undefined);
   });
 
@@ -157,7 +157,7 @@ describe("export.controller", () => {
     (exportService.exportInventory as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportInventory(req as any, res as any);
+    await exportInventory(req as any, res as any, vi.fn());
     expect(exportService.exportInventory).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
@@ -165,7 +165,7 @@ describe("export.controller", () => {
     (exportService.exportPurchaseOrders as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportPurchaseOrders(req as any, res as any);
+    await exportPurchaseOrders(req as any, res as any, vi.fn());
     expect(exportService.exportPurchaseOrders).toHaveBeenCalledWith("t1", undefined, undefined);
   });
 
@@ -173,7 +173,7 @@ describe("export.controller", () => {
     (exportService.exportPayments as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportPayments(req as any, res as any);
+    await exportPayments(req as any, res as any, vi.fn());
     expect(exportService.exportPayments).toHaveBeenCalledWith("t1", undefined);
   });
 
@@ -181,7 +181,7 @@ describe("export.controller", () => {
     (exportService.exportSalesOrders as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportSalesOrders(req as any, res as any);
+    await exportSalesOrders(req as any, res as any, vi.fn());
     expect(exportService.exportSalesOrders).toHaveBeenCalledWith("t1", undefined, undefined, undefined, undefined);
   });
 
@@ -189,7 +189,7 @@ describe("export.controller", () => {
     (exportService.exportAuditLogs as any).mockResolvedValue([]);
     const req = mockReq({ query: {} });
     const res = mockRes();
-    await exportAuditLogs(req as any, res as any);
+    await exportAuditLogs(req as any, res as any, vi.fn());
     expect(exportService.exportAuditLogs).toHaveBeenCalledWith("t1", undefined, undefined, undefined, undefined);
   });
 });

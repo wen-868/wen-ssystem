@@ -53,7 +53,7 @@ describe("marketing-points.controller", () => {
     (pointsService.getPointsRule as any).mockResolvedValue({ earnRatio: 1 });
     const req = mockReq();
     const res = mockRes();
-    await getPointsRule(req as any, res as any);
+    await getPointsRule(req as any, res as any, vi.fn());
     expect(pointsService.getPointsRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe("marketing-points.controller", () => {
       body: { earnRatio: 2 },
     });
     const res = mockRes();
-    await updatePointsRule(req as any, res as any);
+    await updatePointsRule(req as any, res as any, vi.fn());
     expect(pointsService.updatePointsRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe("marketing-points.controller", () => {
     (pointsService.updatePointsRule as any).mockResolvedValue({ earnRatio: 1 });
     const req = mockReq({ body: {} });
     const res = mockRes();
-    await updatePointsRule(req as any, res as any);
+    await updatePointsRule(req as any, res as any, vi.fn());
     expect(pointsService.updatePointsRule).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -82,7 +82,7 @@ describe("marketing-points.controller", () => {
     (pointsService.listPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });
     const res = mockRes();
-    await listPointsRecords(req as any, res as any);
+    await listPointsRecords(req as any, res as any, vi.fn());
     expect(pointsService.listPointsRecords).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -91,7 +91,7 @@ describe("marketing-points.controller", () => {
     (pointsService.getUserPoints as any).mockResolvedValue({ userId: 1, points: 100 });
     const req = mockReq({ params: { userId: 1 } });
     const res = mockRes();
-    await getUserPoints(req as any, res as any);
+    await getUserPoints(req as any, res as any, vi.fn());
     expect(pointsService.getUserPoints).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("marketing-points.controller", () => {
       query: { page: 1, pageSize: 20 },
     });
     const res = mockRes();
-    await listMyPointsRecords(req as any, res as any);
+    await listMyPointsRecords(req as any, res as any, vi.fn());
     expect(pointsService.listMyPointsRecords).toHaveBeenCalled();
     expect(ok).toHaveBeenCalled();
   });
@@ -111,7 +111,7 @@ describe("marketing-points.controller", () => {
   it("listMyPointsRecords - 缺少用户ID应返回错误", async () => {
     const req = mockReq({ user: undefined });
     const res = mockRes();
-    await listMyPointsRecords(req as any, res as any);
+    await listMyPointsRecords(req as any, res as any, vi.fn());
     expect(res.status).toHaveBeenCalledWith(400);
     expect(fail).toHaveBeenCalledWith("缺少用户ID", "400");
   });
