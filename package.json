@@ -28,7 +28,7 @@
   "devDependencies": {
     "esbuild": "^0.25.0",
     "js-yaml": "^4.2.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.5.3",
     "wait-on": "^9.0.10"
   }
 }

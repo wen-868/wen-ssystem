@@ -268,7 +268,11 @@
             </el-col>
             <el-col :span="8">
               <el-form-item label="条码">
-                <el-input v-model="sku.barcode" placeholder="商品条码" />
+                <el-input v-model="sku.barcode" placeholder="商品条码">
+                  <template #append>
+                    <el-button :icon="Search" :disabled="!sku.barcode || !!skuLookupLoading[idx]" :loading="!!skuLookupLoading[idx]" @click="lookupFromLibrary(idx)" />
+                  </template>
+                </el-input>
               </el-form-item>
             </el-col>
             <el-col :span="8">
@@ -482,10 +486,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import { Plus } from "@element-plus/icons-vue";
+import { Plus, Search } from "@element-plus/icons-vue";
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../../api";
+import { lookupLibraryByBarcode } from "../../api/library";
 import { formatDate } from "../../utils/format";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 
@@ -495,6 +500,7 @@ const submitLoading = ref(false);
 const tagSubmitLoading = ref(false);
 const priceHistoryLoading = ref(false);
 const skuPriceLoading = ref(false);
+const skuLookupLoading = reactive<Record<number, boolean>>({});
 const spuList = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
@@ -700,6 +706,87 @@ function addSku() {
   form.skus.push({ skuName: "", barcode: "", boxRatio: 1, temperature: "NORMAL", traceEnabled: false, warningThreshold: 0, retailPrice: 0, wholesalePrice: null, miniappPrice: null, costPrice: 0, storePrice: 0, volume: "", packaging: "", baseUnit: "", boxUnit: "" });
 }
 function removeSku(idx: number) { form.skus.splice(idx, 1); }
+
+/**
+ * 按条码查询平台商品库并自动填充表单（不含分类，保留商户已填内容）
+ */
+async function lookupFromLibrary(idx: number) {
+  const sku = form.skus[idx];
+  const barcode = (sku.barcode || "").trim();
+  if (!barcode) {
+    ElMessage.warning("请先输入条码");
+    return;
+  }
+  skuLookupLoading[idx] = true;
+  try {
+    const res = await lookupLibraryByBarcode(barcode);
+    if (!res?.matched) {
+      ElMessage.info("未在商品库中匹配到该条码，请手动录入");
+      return;
+    }
+    const { spu, sku: libSku, brand } = res;
+
+    // ---------- 填充 SPU 字段（仅空字段，保留商户已填内容）----------
+    if (spu) {
+      if (!form.name) form.name = spu.name || "";
+      if (!form.specs) form.specs = spu.specs || "";
+      if (!form.unit) form.unit = spu.unit || "";
+      if (!form.mainImage) form.mainImage = spu.mainImage || "";
+      if (!form.imageUrls && spu.imageUrls) {
+        form.imageUrls = typeof spu.imageUrls === "string" ? spu.imageUrls : JSON.stringify(spu.imageUrls);
+      }
+      if (!form.description) form.description = spu.description || "";
+
+      // properties 解析：酒精度/产地/香型等
+      if (spu.properties) {
+        const props: Record<string, any> = typeof spu.properties === "string"
+          ? (() => { try { return JSON.parse(spu.properties as string); } catch { return {}; } })()
+          : (spu.properties as Record<string, any>);
+        if (form.alcoholContent == null && props.alcoholContent != null) form.alcoholContent = Number(props.alcoholContent);
+        if (!form.origin && props.origin) form.origin = String(props.origin);
+        // 其他 property 可后续扩展标签映射
+      }
+    }
+
+    // ---------- 匹配品牌（根据 brandName 在本地 brandList 中查找，找不到留空让商户选）----------
+    if (form.brandId == null && brandList.value?.length) {
+      const targetName = brand?.name || spu?.brandName;
+      if (targetName) {
+        const matched = brandList.value.find((b: any) =>
+          String(b.name || b.brandName || "").trim() === String(targetName).trim()
+        );
+        if (matched?.brandId != null) form.brandId = matched.brandId;
+        else if (matched?.id != null) form.brandId = matched.id;
+      }
+    }
+    // brand 可能返回独立 brandId（商品库中的 brand.id），但这里不用强制覆盖 — 商户自行确认
+
+    // ---------- 填充当前 SKU 字段（仅空字段）----------
+    if (libSku) {
+      // 条码已填且匹配，不覆盖
+      if (!sku.skuName) sku.skuName = libSku.skuName || spu?.specs || "";
+      if (!sku.volume) sku.volume = libSku.volume || "";
+      if (!sku.packaging) sku.packaging = libSku.packaging || "";
+      if (!sku.baseUnit) sku.baseUnit = libSku.baseUnit || "";
+      if (!sku.boxUnit) sku.boxUnit = libSku.boxUnit || "";
+      if (sku.boxRatio == null || sku.boxRatio === 1) {
+        const br = Number(libSku.boxRatio);
+        if (!Number.isNaN(br) && br > 0) sku.boxRatio = br;
+      }
+      // 价格类：如果 SPU 返回了 suggestedRetailPrice 且 sku 的零售/批发/小程序价都为 0，则覆盖
+      if (sku.retailPrice === 0 && spu?.suggestedRetailPrice != null) {
+        const p = Number(spu.suggestedRetailPrice);
+        if (!Number.isNaN(p) && p > 0) sku.retailPrice = p;
+      }
+    }
+
+    ElMessage.success("已从商品库自动填充信息，请补充分类等剩余字段");
+  } catch (e: any) {
+    ElMessage.error("查询商品库失败：" + (e?.message || String(e)));
+  } finally {
+    skuLookupLoading[idx] = false;
+  }
+}
 
 async function handleSubmit() {
   if (!formRef.value) return;
