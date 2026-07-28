@@ -9,23 +9,26 @@
 USE liquor_inventory;
 
 -- ============================================================
--- 修复1：t_sys_role 表补充 permissions 列
+-- 修复1：t_sys_role 表补充 data_scope + permissions 列
 -- ============================================================
--- 原因：服务器建表时使用的是 Phase 1 旧版结构（无 permissions 列），
---       但 079_权限矩阵.sql 迁移脚本中 INSERT 引用了 permissions 列。
---       init_database.sql 中已有 permissions JSON DEFAULT NULL，但服务器未执行。
-SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
-  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_sys_role' AND COLUMN_NAME = 'permissions');
-SET @sql = IF(@col_exists = 0,
-  'ALTER TABLE t_sys_role ADD COLUMN permissions JSON DEFAULT NULL COMMENT ''权限列表（JSON格式）'' AFTER data_scope',
-  'SELECT 1');
-PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+-- 原因：服务器建表时使用的是 Phase 1 旧版结构（无 permissions / data_scope 列），
+--       但 079_权限矩阵.sql 迁移脚本中 INSERT 引用了这些列。
+--       init_database.sql 中已有定义，但服务器未执行。
+-- 注意：必须先加 data_scope，再加 permissions（permissions 指定 AFTER data_scope）
 
--- 补充 data_scope 列（如果也缺失）
+-- 步骤1：先补充 data_scope 列
 SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_sys_role' AND COLUMN_NAME = 'data_scope');
 SET @sql = IF(@col_exists = 0,
   'ALTER TABLE t_sys_role ADD COLUMN data_scope VARCHAR(32) NOT NULL DEFAULT ''SELF'' COMMENT ''数据范围：ALL/DEPARTMENT/STORE/SELF'' AFTER description',
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+-- 步骤2：再补充 permissions 列（依赖 data_scope 已存在）
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_sys_role' AND COLUMN_NAME = 'permissions');
+SET @sql = IF(@col_exists = 0,
+  'ALTER TABLE t_sys_role ADD COLUMN permissions JSON DEFAULT NULL COMMENT ''权限列表（JSON格式）'' AFTER data_scope',
   'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
