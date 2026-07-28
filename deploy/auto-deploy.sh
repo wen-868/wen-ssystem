@@ -22,10 +22,31 @@ echo "==> 构建前端（相对路径 /api）"
 VITE_API_BASE=/api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace saas-admin run build
 
+echo "==> 构建商户端 H5"
+VITE_API_BASE=/api npm --workspace app-mobile run build:h5 2>/dev/null || echo "app-mobile 构建跳过"
+
 echo "==> 构建官网"
 npm --workspace website run build
 
-echo "==> 部署官网到 /var/www/website"
+echo "==> 部署前端到 Nginx"
+# admin-web → admin.onepan.cn
+rm -rf /var/www/admin-web
+mkdir -p /var/www/admin-web
+cp -r "${PROJECT_DIR}/admin-web/dist/"* /var/www/admin-web/
+
+# saas-admin → saas.onepan.cn
+rm -rf /var/www/saas-admin
+mkdir -p /var/www/saas-admin
+cp -r "${PROJECT_DIR}/saas-admin/dist/"* /var/www/saas-admin/
+
+# app-mobile → m.onepan.cn
+if [ -d "${PROJECT_DIR}/app-mobile/dist/build/h5" ]; then
+  rm -rf /var/www/app-mobile
+  mkdir -p /var/www/app-mobile
+  cp -r "${PROJECT_DIR}/app-mobile/dist/build/h5/"* /var/www/app-mobile/
+fi
+
+# 官网 → www.onepan.cn
 rm -rf /var/www/website
 mkdir -p /var/www/website
 cp -r "${PROJECT_DIR}/website/dist/"* /var/www/website/
@@ -38,9 +59,17 @@ fi
 # 强制覆盖为生产环境配置（不管git拉下来的是什么）
 sed -i 's/^USE_MOCK_DB=.*/USE_MOCK_DB=false/' "${ENV_FILE}" || true
 sed -i 's/^NODE_ENV=.*/NODE_ENV=production/' "${ENV_FILE}" || true
-# 确保 JWT_SECRET 不为占位符
+# 确保 JWT_SECRET 不为占位符（使用动态随机密钥，R63 安全修复）
 if grep -q 'CHANGE_ME_TO_RANDOM_JWT_SECRET' "${ENV_FILE}"; then
-  sed -i "s|JWT_SECRET=.*|JWT_SECRET=zhixiang_liquor_jwt_secret_2026_secure|" "${ENV_FILE}" || true
+  JWT_RANDOM=$(openssl rand -base64 32)
+  sed -i "s|JWT_SECRET=.*|JWT_SECRET=${JWT_RANDOM}|" "${ENV_FILE}" || true
+  echo "  JWT_SECRET 已动态生成（安全）"
+fi
+# 确保 CSRF_SECRET 不为占位符
+if grep -q 'CHANGE_ME_TO_RANDOM_CSRF_SECRET' "${ENV_FILE}"; then
+  CSRF_RANDOM=$(openssl rand -base64 32)
+  sed -i "s|CSRF_SECRET=.*|CSRF_SECRET=${CSRF_RANDOM}|" "${ENV_FILE}" || true
+  echo "  CSRF_SECRET 已动态生成（安全）"
 fi
 echo "  USE_MOCK_DB=$(grep '^USE_MOCK_DB=' "${ENV_FILE}" | cut -d= -f2)"
 echo "  NODE_ENV=$(grep '^NODE_ENV=' "${ENV_FILE}" | cut -d= -f2)"

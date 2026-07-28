@@ -49,7 +49,7 @@ process.on("uncaughtException", (err: Error) => {
       { label: "堆栈", value: (err.stack || "").split("\n").slice(0, 5).join("\n") },
     ],
     reporter: "系统自动告警",
-    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+    webhookUrl: env.FEISHU_ALERT_WEBHOOK_URL || undefined,
   }).catch(() => { });
 });
 
@@ -73,7 +73,7 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
       { label: "堆栈", value: (stack || "").split("\n").slice(0, 5).join("\n") || "N/A" },
     ],
     reporter: "系统自动告警",
-    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+    webhookUrl: env.FEISHU_ALERT_WEBHOOK_URL || undefined,
   }).catch(() => { });
 });
 
@@ -137,9 +137,9 @@ const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, me
 const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试" });
 
 app.use(helmet());
-const corsOriginsEnv = (globalThis as typeof globalThis & { process: NodeJS.Process }).process?.env?.CORS_ORIGINS;
-const allowedOrigins = corsOriginsEnv
-  ? corsOriginsEnv.split(",").map((s: string) => s.trim())
+// CORS 允许域名：从 env.ts 集中管理（R63 修复 — 原先直接读取 process.env）
+const allowedOrigins = env.CORS_ORIGINS
+  ? env.CORS_ORIGINS.split(",").map((s: string) => s.trim())
   : true; // 生产环境配置CORS_ORIGINS环境变量；默认允许所有来源
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));

@@ -9,6 +9,168 @@
 
 ## 一、活跃轮次
 
+### R63 — 全系统梳理与系统性修复 [进行中 — 凌舟 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：用户要求"做一个全部的系统化的梳理，把所有问题列出来，进行规范化系统性修复"
+> **说明**：对数据库表名、迁移脚本、后端代码、环境变量、Nginx配置、SSL证书、API路由六大维度全量扫描，发现40个问题，分P0/P1/P2三级系统性修复
+
+#### 全系统梳理问题汇总（40个）
+
+| 级别 | 数量 | 说明 |
+|:----:|:----:|------|
+| P0 | 12 | 阻断核心功能（缺失表、密码哈希、环境变量散落、部署脚本缺失等） |
+| P1 | 16 | 功能隐患（双重认证、重复路由、配置不一致等） |
+| P2 | 12 | 代码质量（命名规范、冗余代码、文档缺失等） |
+
+---
+
+#### R63-01 — [P0] 补建3张缺失表（t_quick_entries/t_tenant_config/t_upload_file）
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已修复
+- **文件**：`docs/migrations/115_missing_tables.sql`
+- **问题**：`t_quick_entries`、`t_tenant_config`、`t_upload_file` 三张表在后端代码中被引用，但 init_database.sql 和所有迁移脚本中均无 CREATE TABLE 语句。新环境部署后快捷入口、存储配额检测、文件上传功能会运行时报错
+- **修复**：创建迁移脚本 `115_missing_tables.sql`，补建3张表，字段结构根据代码中的 SQL 查询反推
+- **验收标准**：服务器执行后 `SHOW TABLES LIKE 't_quick_entries'` 返回1行
+
+#### R63-02 — [P0] 环境变量统一纳入 env.ts（10个散落变量）
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已修复
+- **文件**：`backend/src/config/env.ts`、`backend/.env.example`、`backend/src/server.ts`、`backend/src/shared/logger.ts`、`backend/src/shared/feishu-report.ts`、`backend/src/middleware/error-handler.ts`、`backend/src/services/admin/push.service.ts`
+- **问题**：10个环境变量散落在代码中直接 `process.env.XXX` 读取，未纳入 env.ts 集中管理：
+  1. `LOG_LEVEL`（logger.ts）
+  2. `CORS_ORIGINS`（server.ts）
+  3. `FEISHU_WEBHOOK_URL`（feishu-report.ts）
+  4. `FEISHU_ALERT_WEBHOOK_URL`（error-handler.ts、server.ts）
+  5. `JPUSH_APP_KEY`/`JPUSH_MASTER_SECRET`（push.service.ts）
+  6. `FCM_PROJECT_ID`/`FCM_ACCESS_TOKEN`（push.service.ts）
+  7. `HMS_APP_ID`/`HMS_APP_SECRET`（push.service.ts）
+- **修复**：
+  1. env.ts 新增10个环境变量定义，带注释和默认值
+  2. .env.example 补充推送服务变量区块
+  3. 所有文件中的 `process.env.XXX` 替换为 `env.XXX`
+  4. server.ts CORS 配置改用 `env.CORS_ORIGINS`
+  5. logger.ts 日志级别改用 `env.LOG_LEVEL`
+  6. error-handler.ts、feishu-report.ts、server.ts 飞书 webhook 改用 `env.FEISHU_ALERT_WEBHOOK_URL`
+  7. push.service.ts 6个推送变量改用 `env.JPUSH_APP_KEY` 等
+- **验收标准**：`grep -rn 'process\.env\.' backend/src/ --include='*.ts' | grep -v 'env.ts' | grep -v '__tests__' | grep -v 'NODE_ENV'` 不应出现已纳入 env.ts 的10个变量
+
+#### R63-03 — [P0] auto-deploy.sh 安全修复 + 前端部署补全
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：✅ 已修复
+- **文件**：`deploy/auto-deploy.sh`
+- **问题**：
+  1. JWT_SECRET 硬编码为固定字符串 `zhixiang_liquor_jwt_secret_2026_secure`，所有环境共享同一密钥
+  2. CSRF_SECRET 未检测占位符
+  3. 缺少 saas-admin 前端部署步骤
+  4. 缺少 app-mobile 商户端 H5 部署步骤
+  5. 缺少 admin-web 前端部署步骤
+- **修复**：
+  1. JWT_SECRET 改为 `openssl rand -base64 32` 动态生成
+  2. 新增 CSRF_SECRET 占位符检测和动态生成
+  3. 新增 admin-web → `/var/www/admin-web` 部署
+  4. 新增 saas-admin → `/var/www/saas-admin` 部署
+  5. 新增 app-mobile → `/var/www/app-mobile` 部署
+- **验收标准**：服务器执行 auto-deploy.sh 后，5个域名全部返回200且内容正确
+
+#### R63-04 — [P1] 需服务器执行的迁移脚本清单
+
+- **优先级**：P1
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：⬜ 待执行（需用户在服务器操作）
+- **问题**：以下迁移脚本在代码中已创建，但服务器数据库尚未执行
+- **待执行清单**：
+
+| 序号 | 文件 | 说明 | 状态 |
+|:----:|------|------|:----:|
+| 1 | `075_reset_admin_password_bcrypt.sql` | 重置admin密码为bcrypt格式 | ✅ 已通过MySQL直接执行 |
+| 2 | `081_platform_admin_seed_and_fix.sql` | 平台管理员建表+种子数据 | ⬜ 待执行 |
+| 3 | `115_missing_tables.sql` | 补建3张缺失表 | ⬜ 待执行 |
+| 4 | 全量迁移脚本（001-114） | 新环境部署时需按顺序执行 | ⬜ 视情况 |
+
+- **验收标准**：服务器执行后，`SHOW TABLES` 包含 `t_platform_admin`、`t_quick_entries`、`t_tenant_config`、`t_upload_file`
+
+#### R63-05 — [P1] 路由双重认证修复（102个文件）
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：2天
+- **状态**：⬜ 待开始
+- **文件**：`backend/src/routes/` 目录下102个 .routes.ts 文件
+- **问题**：102个路由文件同时满足：routeConfig.auth 不是 `none`（auto-routes 自动添加认证）+ 路由内部又显式调用 `requireAuthWithTenant`。导致认证中间件执行两次（重复验证 token、重复查询用户），性能浪费
+- **修复方向**：删除路由内部的 `requireAuthWithTenant` 调用，统一由 auto-routes 处理
+- **验收标准**：`grep -rn 'requireAuthWithTenant' backend/src/routes/ --include='*.routes.ts' | wc -l` 返回 0
+
+#### R63-06 — [P1] 6组跨文件重复API端点修复
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **问题**：6组端点在多个路由文件中重复注册，Express 只执行第一个匹配的处理器，后续重复注册不生效
+  1. `GET /api/admin/reports/inventory-turnover`（admin-inventory + report）
+  2. `GET /api/admin/reports/inventory-age`（admin-inventory + report）
+  3. `GET /api/admin/reports/sales-ranking`（admin-report + report）
+  4. `GET /api/admin/reports/sales-trend`（admin-report + report）
+  5. `GET /api/admin/reports/purchase-summary`（admin-report + report）
+  6. `GET /api/admin/reports/supplier-ranking`（admin-report + report）
+- **修复方向**：合并到单个路由文件中，删除重复定义
+- **验收标准**：`grep -rn 'inventory-turnover\|inventory-age\|sales-ranking\|sales-trend\|purchase-summary\|supplier-ranking' backend/src/routes/` 每个端点只出现1次
+
+#### R63-07 — [P1] 8个路由文件缺少 routeConfig 导出
+
+- **优先级**：P1
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`aftersale.routes.ts`、`community-marketing.routes.ts`、`notification.routes.ts`、`sale-return.routes.ts`、`stock-check.routes.ts`、`store-control.routes.ts`、`trace.routes.ts`、`transfer.routes.ts`
+- **问题**：这8个文件缺少 routeConfig 导出，依赖文件名推断前缀，auto-routes 会打印警告
+- **修复方向**：为每个文件添加 `export const routeConfig = { prefix: "...", auth: "..." }`
+- **验收标准**：auto-routes 启动时无警告
+
+#### R63-08 — [P2] 清理3个空Router文件
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`admin-credit.routes.ts`、`admin-system.routes.ts`、`sync.routes.ts`
+- **问题**：这3个文件导出了空 Router，无任何端点，冗余代码
+- **修复方向**：删除文件或在文件中添加注释说明保留原因
+- **验收标准**：`grep -rn 'router\.' admin-credit.routes.ts admin-system.routes.ts sync.routes.ts` 返回0或文件已删除
+
+#### R63 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R63-01 补建3张缺失表 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
+| R63-02 环境变量统一纳入env.ts | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
+| R63-03 auto-deploy.sh安全修复+前端部署补全 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
+| R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
+| R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ⬜ 待开始 |
+| R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ⬜ 待开始 |
+| R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
+| R63-08 清理3个空Router文件 | 阿坚 | P2 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | **6天** | — |
+
+#### R63 服务器待执行操作
+
+1. **执行迁移脚本**：在服务器 MySQL 中依次执行 `081_platform_admin_seed_and_fix.sql` 和 `115_missing_tables.sql`
+2. **重新部署后端**：`git pull` 后重启 Node.js 服务（auto-deploy.sh 已修复，可直接执行）
+3. **验证**：5个域名分别测试登录功能
+
+---
+
 ### R62 — 全站点实际功能验收 [进行中 — 凌舟 2026-07-28]
 
 > **日期**：2026-07-28

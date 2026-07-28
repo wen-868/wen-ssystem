@@ -18,6 +18,7 @@
 
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
+import { env } from "../../shared/env";
 
 // ==================== 类型定义 ====================
 
@@ -107,12 +108,12 @@ class JPushProvider implements PushProvider {
 
     /** 从环境变量读取 appKey（每次调用时动态读取，便于测试时 mock） */
     private getAppKey(): string {
-        return process.env.JPUSH_APP_KEY || "";
+        return env.JPUSH_APP_KEY;
     }
 
     /** 从环境变量读取 masterSecret */
     private getMasterSecret(): string {
-        return process.env.JPUSH_MASTER_SECRET || "";
+        return env.JPUSH_MASTER_SECRET;
     }
 
     private buildAuthHeader(appKey: string, masterSecret: string): string {
@@ -174,11 +175,11 @@ class FCMProvider implements PushProvider {
     name: PushProviderName = "fcm";
 
     private getProjectId(): string {
-        return process.env.FCM_PROJECT_ID || "";
+        return env.FCM_PROJECT_ID;
     }
 
     private getAccessToken(): string {
-        return process.env.FCM_ACCESS_TOKEN || "";
+        return env.FCM_ACCESS_TOKEN;
     }
 
     async send(payload: PushPayload): Promise<PushResult> {
@@ -226,11 +227,11 @@ class HMSProvider implements PushProvider {
     name: PushProviderName = "hms";
 
     private getAppId(): string {
-        return process.env.HMS_APP_ID || "";
+        return env.HMS_APP_ID;
     }
 
     private getAppSecret(): string {
-        return process.env.HMS_APP_SECRET || "";
+        return env.HMS_APP_SECRET;
     }
 
     /** 获取 HMS OAuth access_token */

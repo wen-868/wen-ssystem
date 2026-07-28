@@ -122,4 +122,38 @@ export const env = {
 
   /** 即时零售 Mock 开关（开发调试用），默认空字符串表示关闭 */
   INSTANT_RETAIL_MOCK: process.env.INSTANT_RETAIL_MOCK || "",
+
+  // ─── 以下变量原先散落在代码中直接 process.env 读取，R63 统一纳入 env.ts ───
+
+  /** 日志级别（pino），默认 info */
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+
+  /** CORS 允许的域名列表（逗号分隔），未配置时默认允许所有来源 */
+  CORS_ORIGINS: process.env.CORS_ORIGINS || "",
+
+  /** 飞书群机器人 webhook URL（通用通知），默认空 */
+  FEISHU_WEBHOOK_URL: process.env.FEISHU_WEBHOOK_URL || "",
+
+  /** 飞书告警 webhook URL（5xx错误告警），未配置时回退到 FEISHU_WEBHOOK_URL */
+  FEISHU_ALERT_WEBHOOK_URL: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL || "",
+
+  // ─── 推送服务配置（R63 统一纳入，原先仅在 push.service.ts 中直接读取） ───
+
+  /** 极光推送 AppKey */
+  JPUSH_APP_KEY: process.env.JPUSH_APP_KEY || "",
+
+  /** 极光推送 MasterSecret */
+  JPUSH_MASTER_SECRET: process.env.JPUSH_MASTER_SECRET || "",
+
+  /** Firebase Cloud Messaging 项目 ID */
+  FCM_PROJECT_ID: process.env.FCM_PROJECT_ID || "",
+
+  /** Firebase Cloud Messaging 访问令牌 */
+  FCM_ACCESS_TOKEN: process.env.FCM_ACCESS_TOKEN || "",
+
+  /** 华为推送 AppID */
+  HMS_APP_ID: process.env.HMS_APP_ID || "",
+
+  /** 华为推送 AppSecret */
+  HMS_APP_SECRET: process.env.HMS_APP_SECRET || "",
 };

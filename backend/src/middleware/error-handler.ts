@@ -4,6 +4,7 @@ import logger from "../shared/logger";
 import { fail } from "../shared/response";
 import { insertErrorLog } from "../services/admin/error-log.service";
 import { reportToLingZhou } from "../shared/feishu-report";
+import { env } from "../shared/env";
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   logger.error(err);
@@ -70,7 +71,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
           { label: "错误消息", value: message },
         ],
         reporter: "系统自动告警",
-        webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+        webhookUrl: env.FEISHU_ALERT_WEBHOOK_URL || undefined,
       }).catch((e) => logger.error("reportToLingZhou failed", e));
     }
     return;
@@ -106,7 +107,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       { label: "错误堆栈", value: (errorStack || "").split("\n").slice(0, 3).join("\n") },
     ],
     reporter: "系统自动告警",
-    webhookUrl: process.env.FEISHU_ALERT_WEBHOOK_URL || process.env.FEISHU_WEBHOOK_URL,
+    webhookUrl: env.FEISHU_ALERT_WEBHOOK_URL || undefined,
   }).catch((e) => logger.error("reportToLingZhou failed", e));
 
   res.status(500).json(fail("服务器内部错误", "500"));

@@ -1,6 +1,7 @@
 ﻿import https from "node:https";
 import { URL } from "node:url";
 import logger from "./logger";
+import { env } from "./env";
 
 /**
  * 飞书工作汇报 — 通过群机器人 webhook 发送消息
@@ -210,7 +211,7 @@ async function postHttpsJson(url: string, body: object): Promise<{ ok: boolean; 
 }
 
 export async function reportToLingZhou(opts: ReportOptions): Promise<{ ok: boolean; status: number; data: any }> {
-  const webhook = opts.webhookUrl || process.env.FEISHU_WEBHOOK_URL;
+  const webhook = opts.webhookUrl || env.FEISHU_WEBHOOK_URL || undefined;
   if (!webhook) {
     logger.warn("⚠ [feishu-report] 未配置 FEISHU_WEBHOOK_URL，跳过飞书消息发送。");
     logger.info("— 汇报摘要 —\n" + buildTextContent(opts) + "\n— — —");
