@@ -173,73 +173,86 @@
 
 ---
 
-### R64 — 商品库建设（平台共享商品库 + 扫码同步） [进行中 — 凌舟 2026-07-28]
+### R64 — 商品库建设（平台共享商品库 + 扫码同步 + Open API） [进行中 — 凌舟 2026-07-28]
 
 > **日期**：2026-07-28
 > **来源**：用户要求"建立商品库，让客户扫条形码同步商品基础信息，快速录入商品。总后台要有商品库维护功能"
-> **说明**：新建平台级共享商品库（t_library_spu/t_library_sku），实现扫码查询自动填充、总后台 CRUD + 审核。详细方案见 `/workspace/product-library-plan/product-library-plan.html`
+> **用户反馈 v1.1**：①租户只在新建商品时扫码查询商品库 ②商品分类不做基础必填信息 ③商品库在总后台是独立板块，需外接API对接
+> **说明**：新建平台级共享商品库（t_library_spu/t_library_sku/t_library_brand/t_library_api_key），实现扫码查询自动填充（仅新建商品时）、总后台独立板块 CRUD + 审核、Open API 对外输出。详细方案见 `/workspace/product-library-plan/product-library-plan.html`（v1.1）
 
 #### 任务清单
 
 | 编号 | 任务 | 负责人 | 优先级 | 预计 | 状态 |
 |------|------|:------:|:----:|:----:|:----:|
-| R64-L01 | 迁移脚本117：t_library_spu + t_library_sku 建表+索引 | 阿坚 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L02 | 迁移脚本118：t_library_category + t_library_brand 建表+预置数据 | 阿坚 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L03 | 后端：platform-library 路由+服务+控制器（SPU/SKU/分类/品牌 CRUD+审核） | 阿坚 | P0 | 1.5天 | ⬜ 待开始 |
-| R64-L04 | 后端：admin-library 路由+服务（扫码查询+搜索） | 阿坚 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L05 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理 | 墨 | P0 | 1.5天 | ⬜ 待开始 |
-| R64-L06 | saas-admin：分类管理页+品牌管理页 | 墨 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L07 | saas-admin：审核列表页+批量导入页 | 墨 | P1 | 0.5天 | ⬜ 待开始 |
-| R64-L08 | admin-web：商品新增页条码查询联动 | 墨 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L09 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L10 | 预置数据：酒水行业常见品牌+分类+热门商品50条 | 凌舟 | P1 | 0.5天 | ⬜ 待开始 |
-| **合计** | — | — | — | **6.5天** | — |
+| R64-L01 | 迁移脚本117：t_library_spu + t_library_sku + t_library_api_key 建表+索引 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L02 | 迁移脚本118：t_library_brand 表+预置数据 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L03 | 后端：platform-library 路由+服务+控制器（SPU/SKU/品牌 CRUD+审核+API Key 管理） | 凌舟 | P0 | 2天 | ✅ 已完成 |
+| R64-L04 | 后端：admin-library 路由+服务（仅扫码 lookup） | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L05 | 后端：open-library 路由+控制器+api-key-auth 中间件（Open API 对外接口） | 凌舟 | P0 | 1天 | ✅ 已完成 |
+| R64-L06 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理（独立板块） | 墨 | P0 | 1.5天 | ⬜ 待开始 |
+| R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 墨 | P0 | 1天 | ⬜ 待开始 |
+| R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L11 | 预置数据：酒水行业常见品牌+热门商品50条 | 凌舟 | P1 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | — | **8.5天** | — |
 
-#### R64-L01 — 迁移脚本117：商品库 SPU+SKU 建表
+#### R64-L01 — 迁移脚本117：商品库 SPU+SKU+API Key 建表
 
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成
 - **文件**：`docs/migrations/117_library_spu_sku.sql`
 - **问题**：系统无平台级共享商品库，商户无法通过扫码自动获取商品基础信息
-- **修复**：创建 `t_library_spu`（商品库SPU表，含name/category_id/brand_id/specs/properties等16+字段）和 `t_library_sku`（商品库SKU表，含barcode唯一索引/sku_name/volume/packaging等14字段）。表不带tenant_id（平台级数据）
-- **验收标准**：`SHOW TABLES LIKE 't_library_%'` 返回2行；`barcode` 字段有 UNIQUE 索引
+- **修复**：创建 `t_library_spu`（商品库SPU表，含name/brand_id/specs/properties等16+字段，**不含category_id**）和 `t_library_sku`（商品库SKU表，含barcode唯一索引/sku_name/volume/packaging等14字段）和 `t_library_api_key`（Open API密钥表，含api_key/api_secret/allowed_ips/daily_limit等12字段）。表不带tenant_id（平台级数据）
+- **验收标准**：`SHOW TABLES LIKE 't_library_%'` 返回3行；`barcode` 字段有 UNIQUE 索引
 
-#### R64-L02 — 迁移脚本118：商品库分类+品牌建表
+#### R64-L02 — 迁移脚本118：商品库品牌表+预置数据
 
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`docs/migrations/118_library_category_brand.sql`
-- **问题**：商品库需要独立的平台级分类（三级树形）和品牌表，与租户级 t_product_category/t_brand 隔离
-- **修复**：创建 `t_library_category`（三级树形，含parent_id/level/path字段）和 `t_library_brand`（扁平结构，含name/logo/origin_country）。预置7个一级分类（白酒/啤酒/葡萄酒/黄酒/洋酒/预调酒/无酒精）+ 6个白酒二级分类（酱香/浓香/清香/凤香/兼香/米香）+ 10个常见品牌
-- **验收标准**：`SELECT COUNT(*) FROM t_library_category` 返回 ≥13；`SELECT COUNT(*) FROM t_library_brand` 返回 ≥10
+- **状态**：✅ 已完成
+- **文件**：`docs/migrations/118_library_brand.sql`
+- **问题**：商品库需要独立的平台级品牌表，与租户级 t_brand 隔离
+- **修复**：创建 `t_library_brand`（扁平结构，含name/logo/origin_country/sort_no/status）。预置10个常见品牌（茅台/五粮液/洋河/泸州老窖/汾酒/剑南春/郎酒/古井贡/青岛啤酒/雪花啤酒）。**不建 t_library_category 表**（分类不做必填，商户用自己的租户级分类）
+- **验收标准**：`SELECT COUNT(*) FROM t_library_brand` 返回 ≥10
 
-#### R64-L03 — 后端：平台商品库管理 API
+#### R64-L03 — 后端：平台商品库管理 API（独立板块）
 
 - **优先级**：P0
-- **负责人**：阿坚
-- **预计**：1.5天
-- **状态**：⬜ 待开始
+- **负责人**：凌舟
+- **预计**：2天
+- **状态**：✅ 已完成（tsc --noEmit 零错误）
 - **文件**：`backend/src/routes/platform-library.routes.ts`、`backend/src/controllers/platform/library.controller.ts`、`backend/src/services/platform/library.service.ts`
 - **问题**：saas-admin 总后台无商品库管理功能
-- **修复**：新建平台管理 API（`/api/platform/library/*`，使用 requirePlatformAuth），实现 SPU CRUD + SKU 管理 + 分类 CRUD + 品牌 CRUD + 审核（PENDING→APPROVED/REJECTED）+ 批量导入。参考 `supplier.service.ts` 的 class 单例模式
+- **修复**：新建平台管理 API（`/api/platform/library/*`，使用 requirePlatformAuth），实现 SPU CRUD + SKU 管理 + 品牌管理 + 审核（PENDING→APPROVED/REJECTED）+ 批量导入 + API Key 管理（CRUD + 统计）。参考 `supplier.service.ts` 的 class 单例模式。**不含分类管理**（分类不做必填）
 - **验收标准**：curl 测试 SPU 创建/查询/更新/审核接口全部返回 code=0
 
-#### R64-L04 — 后端：商户扫码查询 API
+#### R64-L04 — 后端：商户扫码查询 API（仅新建商品时）
 
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（tsc --noEmit 零错误）
 - **文件**：`backend/src/routes/admin-library.routes.ts`、`backend/src/controllers/admin/library.controller.ts`、`backend/src/services/admin/library-lookup.service.ts`
 - **问题**：商户扫码只能查本地租户商品，无法查平台商品库
-- **修复**：新建商户查询 API（`/api/admin/library/*`，使用 requireAuthWithTenant），实现 `POST /lookup`（按条码查询，命中返回SPU+SKU基础信息）+ `GET /search`（按名称/品牌/分类搜索）+ `GET /categories` + `GET /brands`。使用 query()（非 queryWithTenant）查询平台表
-- **验收标准**：POST /api/admin/library/lookup { barcode: "6901234567890" } 命中时返回 matched:true + 完整 SPU+SKU 数据
+- **修复**：新建商户查询 API（`/api/admin/library/lookup`，使用 requireAuthWithTenant），**仅一个接口**：`POST /lookup`（按条码查询，命中返回SPU+SKU基础信息，**不返回分类信息**）。使用 query()（非 queryWithTenant）查询平台表。**不提供通用搜索/分类/品牌查询接口**
+- **验收标准**：POST /api/admin/library/lookup { barcode: "6901234567890" } 命中时返回 matched:true + 完整 SPU+SKU 数据（无 category 字段）
 
-#### R64-L05 — saas-admin：商品库列表+编辑
+#### R64-L05 — 后端：Open API 对外接口 + API Key 认证中间件
+
+- **优先级**：P0
+- **负责人**：凌舟
+- **预计**：1天
+- **状态**：✅ 已完成（tsc --noEmit 零错误）
+- **文件**：`backend/src/routes/open-library.routes.ts`、`backend/src/controllers/open/library.controller.ts`、`backend/src/middleware/api-key-auth.ts`
+- **问题**：外部平台需要通过 API 获取商品库数据
+- **修复**：新建 Open API（`/api/open/library/*`，使用 api-key-auth 中间件），实现 `GET /spus/:id`（SPU详情）、`GET /spus/:id/skus`（SKU列表）、`GET /sku/barcode/:barcode`（按条码查询）、`GET /brands`（品牌列表）。中间件验证 x-api-key 头，检查IP白名单和日限额
+- **验收标准**：带 API Key 的 curl 请求可获取商品数据，无 Key 返回 401
+
+#### R64-L06 — saas-admin：商品库列表+编辑（独立板块）
 
 - **优先级**：P0
 - **负责人**：墨
@@ -247,32 +260,32 @@
 - **状态**：⬜ 待开始
 - **文件**：`saas-admin/src/views/library/LibrarySpus.vue`、`saas-admin/src/api/library.ts`、`saas-admin/src/router/index.ts`
 - **问题**：saas-admin 无商品库管理页面
-- **修复**：新建商品库列表页（搜索/筛选/分页/展开SKU行）+ 新增/编辑对话框（必填：名称/分类/品牌/规格；建议填：单位/主图/酒精度/产地/香型/简介；SKU动态表格）+ 路由注册。参考 admin-web Products.vue 的组件模式
+- **修复**：新建商品库列表页（搜索/筛选/分页/展开SKU行）+ 新增/编辑对话框（必填：名称/品牌/规格；建议填：单位/主图/酒精度/产地/香型/简介；SKU动态表格；**分类不做必填**）+ 路由注册为顶级独立板块。参考 admin-web Products.vue 的组件模式
 - **验收标准**：可创建SPU+SKU，列表正确展示，编辑回显正确
 
-#### R64-L06 — saas-admin：分类+品牌管理
+#### R64-L07 — saas-admin：品牌管理+审核+批量导入
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：`saas-admin/src/views/library/LibraryBrands.vue`、`saas-admin/src/views/library/LibraryReviews.vue`、`saas-admin/src/views/library/LibraryImport.vue`
+- **问题**：商品库需要品牌管理、审核队列和批量导入功能
+- **修复**：品牌页用表格 + 对话框 CRUD；审核页展示 PENDING 状态 SPU 列表 + 通过/拒绝按钮；导入页4步向导（上传→映射→预览→结果）
+- **验收标准**：品牌可增删改，可审核PENDING商品，Excel导入后正确创建SPU+SKU
+
+#### R64-L08 — saas-admin：API Key 管理
 
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
 - **状态**：⬜ 待开始
-- **文件**：`saas-admin/src/views/library/LibraryCategories.vue`、`saas-admin/src/views/library/LibraryBrands.vue`
-- **问题**：商品库需要独立的分类和品牌管理页面
-- **修复**：分类页用 el-tree 组件展示三级树 + 增删改；品牌页用表格 + 对话框 CRUD
-- **验收标准**：分类树正确展示三级结构，品牌可增删改
+- **文件**：`saas-admin/src/views/library/LibraryApiKeys.vue`、`saas-admin/src/api/library.ts`
+- **问题**：需要管理对外 API 的密钥
+- **修复**：新建 API Key 管理页（列表/创建/编辑/吊销/调用统计），创建时返回明文 Key（仅一次），可设置日限额和IP白名单
+- **验收标准**：可创建/吊销 API Key，可查看调用统计
 
-#### R64-L07 — saas-admin：审核+批量导入
-
-- **优先级**：P1
-- **负责人**：墨
-- **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`saas-admin/src/views/library/LibraryReviews.vue`、`saas-admin/src/views/library/LibraryImport.vue`
-- **问题**：商品库需要审核队列和批量导入功能
-- **修复**：审核页展示 PENDING 状态 SPU 列表 + 通过/拒绝按钮；导入页4步向导（上传→映射→预览→结果），参考 admin-web ProductImport.vue
-- **验收标准**：可审核PENDING商品，Excel导入后正确创建SPU+SKU
-
-#### R64-L08 — admin-web：条码查询联动
+#### R64-L09 — admin-web：条码查询联动（不填充分类）
 
 - **优先级**：P0
 - **负责人**：墨
@@ -280,10 +293,10 @@
 - **状态**：⬜ 待开始
 - **文件**：`admin-web/src/views/product/Products.vue`、`admin-web/src/api/library.ts`
 - **问题**：商户在 admin-web 新增商品时无法从商品库自动获取信息
-- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/分类/品牌/规格/单位/主图/酒精度/产地/香型/简介/SKU信息）
-- **验收标准**：输入已知条码后点击查询，表单自动填充，字段可编辑
+- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/酒精度/产地/香型/简介/SKU信息），**不填充分类** — 商户自行选择
+- **验收标准**：输入已知条码后点击查询，表单自动填充（分类为空），字段可编辑
 
-#### R64-L09 — app-mobile：扫码商品库查询
+#### R64-L10 — app-mobile：扫码商品库查询
 
 - **优先级**：P0
 - **负责人**：阿澈
@@ -291,16 +304,16 @@
 - **状态**：⬜ 待开始
 - **文件**：`app-mobile/src/native/scan.ts`（或扫码结果处理逻辑）
 - **问题**：移动端扫码后只查本地SKU，未查询平台商品库
-- **修复**：在扫码结果分发逻辑中，商品条码类型先调用 `/api/admin/library/lookup` 查询商品库。命中则跳转商品创建页并自动填充；未命中则走现有手动录入流程
-- **验收标准**：扫已知商品库条码后，自动跳转商品创建页且表单已填充
+- **修复**：在扫码结果分发逻辑中，**仅新建商品流程**的条码类型先调用 `/api/admin/library/lookup` 查询商品库。命中则跳转商品创建页并自动填充（不含分类）；未命中则走现有手动录入流程
+- **验收标准**：扫已知商品库条码后，自动跳转商品创建页且表单已填充（分类为空）
 
-#### R64-L10 — 预置数据
+#### R64-L11 — 预置数据
 
 - **优先级**：P1
 - **负责人**：凌舟
 - **预计**：0.5天
 - **状态**：⬜ 待开始
-- **文件**：`docs/migrations/118_library_category_brand.sql`（追加）
+- **文件**：`docs/migrations/119_library_seed_data.sql`
 - **问题**：商品库初期数据为空，商户扫码命中率低
 - **修复**：预置50条热门酒水商品（茅台/五粮液/洋河/啤酒/葡萄酒等），含正确条码和完整属性
 - **验收标准**：预置商品条码可通过 /lookup 接口正确命中
