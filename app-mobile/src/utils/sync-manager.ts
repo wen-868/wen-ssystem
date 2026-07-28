@@ -178,7 +178,7 @@ function checkNetworkAvailable(): Promise<boolean> {
  * ```ts
  * const result = await syncAll()
  * if (!result.success) {
- *   logger.warn('同步失败：', result.errors)
+ *   // 同步失败：处理 result.errors（记录日志或上报监控）
  * }
  * ```
  */

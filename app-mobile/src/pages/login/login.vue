@@ -76,6 +76,9 @@
 
     <!-- 底部版本 -->
     <view class="footer-section">
+      <view class="footer-link" style="text-align:center;margin-bottom:16rpx;">
+        <text class="footer-text"><a href="https://beian.miit.gov.cn/" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:24rpx;">粤ICP备2026103101号</a></text>
+      </view>
       <text class="footer-text">v1.0.0</text>
     </view>
   </view>

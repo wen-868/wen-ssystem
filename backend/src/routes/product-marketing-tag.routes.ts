@@ -1,11 +1,8 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as productTagController from "../controllers/admin/product-marketing-tag.controller";
 
 export const productMarketingTagRouter = Router();
-
-productMarketingTagRouter.use(requireAuthWithTenant);
 
 // ========== 商品营销标签管理 ==========
 // GET /api/admin/product-tags - 标签列表

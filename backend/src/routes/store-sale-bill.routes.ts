@@ -1,12 +1,9 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as saleBillController from "../controllers/store/sale-bill.controller";
 export { storeSaleBillItemSchema, normalizeStoreSaleBillItem } from "../schemas/store-sale-bill";
 
 export const storeSaleBillRouter = Router();
-
-storeSaleBillRouter.use(requireAuthWithTenant);
 
 storeSaleBillRouter.get("/sale-bills", saleBillController.listSaleBills);
 storeSaleBillRouter.post("/sale-bills", saleBillController.createSaleBill);

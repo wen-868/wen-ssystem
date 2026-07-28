@@ -514,7 +514,7 @@ async function doRegisterHMSPush(deviceId: string): Promise<string> {
  * ```ts
  * import { registerPush } from '@/native/push'
  * const token = await registerPush(`merchant_${user.id}_${tenant.id}`)
- * logger.info('推送注册成功，token:', token)
+ * // 注册成功，拿到 token 可用于后续业务
  * ```
  */
 export function registerPush(alias: string): Promise<string> {
@@ -543,7 +543,7 @@ export function registerPush(alias: string): Promise<string> {
  * @example
  * ```ts
  * onPushReceived((payload) => {
- *   logger.info('收到推送:', payload.title, payload.content)
+ *   // 收到推送：根据 payload.title / payload.content 处理业务
  *   if (payload.type === 'order') {
  *     // 处理订单推送
  *   }
@@ -567,7 +567,7 @@ export function onPushReceived(callback: (payload: PushPayload) => void): void {
  * @example
  * ```ts
  * onPushClick((result) => {
- *   logger.info('推送被点击:', result.type, result.url)
+ *   // 推送被点击：根据 result.type / result.url 跳转或刷新数据
  *   // 刷新对应页面数据
  * })
  * ```

@@ -109,7 +109,7 @@
 - **负责人**：阿澈（凌舟代执行）
 - **预计**：0.5天
 - **状态**：✅ 已完成
-- **文件**：`app-mobile/src/` 目录下 8 个文件（38 处）
+- **文件**：`app-mobile/src/` 目录下 11 个文件（43 处，含任务外发现 3 个文件 5 处）
 - **问题**：admin-web 已清零，app-mobile 仍有 38 处 console.log/warn 残留
 - **修复方向**：删除开发遗留 console.log/warn，保留 catch 块中的 console.error
 - **修复明细**：
@@ -121,6 +121,9 @@
   - `sync.ts`（1处）：注释改写
   - `storage.ts`（3处）：catch 改为 console.error
   - `profile.ts`（1处）：改为 console.error
+  - `App.vue`（3处）：信息日志 console.log 删除（任务外发现）
+  - `group-buy-detail.vue`（1处）：console.log 删除 + 未使用变量清理（任务外发现）
+  - `seckill-detail.vue`（1处）：console.log 删除 + 未使用变量清理（任务外发现）
 - **验收标准**：`grep -rn 'console\.\(log\|warn\)' app-mobile/src/ --include='*.vue' --include='*.ts'` 返回 0 ✅
 
 ---

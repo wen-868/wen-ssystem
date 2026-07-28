@@ -9,199 +9,71 @@
 
 ## 一、活跃轮次
 
-### R56 — 全局验收待修正问题 [部分完成 — 当前轮次]
+### R59 — app-mobile console.log/warn 清理 [待开始 — 当前轮次]
 
-> **日期**：2026-07-27
-> **来源**：凌舟全局验收 + 代码质量扫描
-> **说明**：R53-18/R55-04/R55全部验收后，发现遗留问题和新问题，统一归入本轮
-> **验收**：2026-07-27 凌舟验收 — 5项中1项通过，4项未通过
-> **工作计划**：2026-07-28 凌舟制定 — 详见下方
+> **日期**：2026-07-28
+> **来源**：凌舟全局验收（R56/R57/R58全部完成后，全局检测发现）
+> **说明**：admin-web 已清零，app-mobile 仍有38处残留
 
----
-
-#### R56 工作计划（2026-07-28 凌舟制定）
-
-##### 一、任务分解与优先级排序
-
-按优先级从高到低排序，P1 优先于 P2，P2 优先于 P3。同优先级内按阻塞风险排序。
-
-| 执行顺序 | 任务 | 负责人 | 优先级 | 工作量 | 阻塞风险 |
-|:--------:|------|--------|:------:|:------:|----------|
-| ① | R56-03 .env.example 补缺失变量 | 阿坚 | P1 | 0.25天 | 部署时环境变量缺失导致 CSRF/Redis 初始化失败 |
-| ② | R56-04 TENCENT_CLOUD_APPID 硬编码 | 阿坚 | P2 | 0.25天 | 安全风险：真实 AppID 泄露到代码仓库 |
-| ③ | R56-01 弹窗宽度7处残留 | 墨 | P2 | 0.25天 | UI 规范不统一，影响用户体验一致性 |
-| ④ | R56-05 console.log 遗留清理 | 墨 | P3 | 0.25天 | 开发遗留代码影响生产环境日志可读性 |
-
-##### 二、详细执行方案
-
-###### ① R56-03 — .env.example 补缺失变量 [P1]
-
-- **负责人**：阿坚
-- **文件**：`backend/.env.example`
-- **当前状态**：仅含 `REDIS_HOST=127.0.0.1` 和 `REDIS_PORT=6379`，缺 `REDIS_URL` 和 `CSRF_SECRET`
-- **修复内容**：
-  1. Redis 部分补充 `REDIS_URL=redis://127.0.0.1:6379`（完整 URL 格式，位于 REDIS_PORT 下方）
-  2. JWT 部分后新增安全区块：`# Security` + `CSRF_SECRET=CHANGE_ME_TO_RANDOM_CSRF_SECRET`
-- **验收标准**：`env.ts` 中所有 `process.env.*` 变量在 `.env.example` 中均有对应条目
-- **验证方法**：`grep -oP 'process\.env\.\K\w+' backend/src/config/env.ts | sort -u` 与 `.env.example` 条目逐一比对
-
-###### ② R56-04 — TENCENT_CLOUD_APPID 硬编码 [P2]
-
-- **负责人**：阿坚
-- **文件**：`backend/src/config/env.ts`（第91行）
-- **当前状态**：`TENCENT_CLOUD_APPID: process.env.TENCENT_CLOUD_APPID || "1442871774"` — 默认值为真实腾讯云 AppID
-- **修复内容**：将默认值改为空字符串 `""`
-- **验收标准**：`env.ts` 中无硬编码的真实密钥/AppID/Token
-- **验证方法**：`grep -n '|| "[0-9]' backend/src/config/env.ts` 返回 0 结果
-
-###### ③ R56-01 — 弹窗宽度7处残留 [P2]
-
-- **负责人**：墨
-- **文件与修改明细**：
-
-  | 文件 | 行号 | 当前值 | 目标值 |
-  |------|:----:|:------:|:------:|
-  | `admin-web/src/views/customer/LevelConfig.vue` | 31 | 520px | 480px |
-  | `admin-web/src/views/customer/CustomerTags.vue` | 85 | 560px | 480px |
-  | `admin-web/src/views/product/ProductReviewWorkflow.vue` | 57 | 820px | 900px |
-  | `admin-web/src/views/product/ReviewDelegation.vue` | 162 | 560px | 480px |
-  | `admin-web/src/views/instant-retail/InstantRetailShelf.vue` | 235 | 520px | 480px |
-  | `admin-web/src/views/instant-retail/InstantRetailShelf.vue` | 280 | 420px | 480px |
-  | `admin-web/src/views/instant-retail/InstantRetailShelf.vue` | 328 | 420px | 480px |
-
-- **弹窗宽度三档标准**：480px（小）/ 720px（中）/ 900px（大）
-- **踩坑警告**：[踩坑日志 #4] 同一文件多处修改时严禁并行 Edit，必须串行处理。`InstantRetailShelf.vue` 有 3 处需修改，必须逐个串行 Edit
-- **验收标准**：`grep -rn 'width="[0-9]*px"' admin-web/src/views/` 返回结果中无非三档宽度（480/720/900）
-- **验证方法**：`grep -rn 'width="[0-9]*px"' admin-web/src/views/ | grep -vE 'width="(480|720|900)px"'` 返回 0 结果
-
-###### ④ R56-05 — console.log 遗留清理 [P3]
-
-- **负责人**：墨
-- **文件**：`admin-web/src/views/product/ProductReview.vue`
-- **当前状态**：第 659 行和第 704 行保留 mock 模式 `console.warn`
-- **修复内容**：删除这两行 `console.warn`，保留 catch 块中的 `console.error`
-- **验收标准**：`grep -n 'console\.\(log\|warn\)' admin-web/src/views/product/ProductReview.vue` 返回 0 结果
-- **验证方法**：`grep -rn 'console\.\(log\|warn\)' admin-web/src/views/ | grep -v node_modules` 返回 0 结果
-
-##### 三、资源分配
-
-| 成员 | 分配任务 | 总工作量 | 可并行 |
-|------|----------|:--------:|:------:|
-| 阿坚 | R56-03 + R56-04 | 0.5天 | 两项串行，先 R56-03 后 R56-04 |
-| 墨 | R56-01 + R56-05 | 0.5天 | 两项串行，先 R56-01 后 R56-05 |
-| 苏然 | 全量回归测试 | 0.5天 | 待阿坚+墨完成后执行 |
-| 凌舟 | 合并审查 + 验收 | 0.25天 | 待苏然测试通过后执行 |
-
-**并行策略**：阿坚和墨的任务完全独立，可同时开始。苏然和凌舟为后续依赖节点。
-
-##### 四、时间节点
-
-| 阶段 | 负责人 | 开始时间 | 完成时间 | 产出 |
-|------|--------|----------|----------|------|
-| 阶段一：代码修复 | 阿坚 + 墨 | 立即 | +0.5天 | 4项代码修复完成，tsc/vue-tsc 0 错误 |
-| 阶段二：回归测试 | 苏然 | 阶段一完成后 | +0.5天 | 测试报告 `docs/reports/test-report-2026-07-28-r56.md` |
-| 阶段三：合并验收 | 凌舟 | 阶段二完成后 | +0.25天 | 任务状态更新，R56 标记为已完成 |
-
-**总工期**：1.25天（从代码修复到验收完成）
-
-##### 五、风险评估
-
-| 风险 | 概率 | 影响 | 缓解措施 |
-|------|:----:|:----:|----------|
-| InstantRetailShelf.vue 3 处并行 Edit 导致覆盖 | 中 | 高 | 严格串行 Edit，每处修改后确认结果（踩坑日志 #4） |
-| .env.example 补充变量名与 env.ts 不一致 | 低 | 中 | 修复后用 grep 逐一比对 env.ts 中所有 process.env 变量 |
-| TENCENT_CLOUD_APPID 改空后影响已有功能 | 低 | 中 | 检查所有引用 TENCENT_CLOUD_APPID 的代码路径，确认空值有 fallback |
-| console.warn 删除后 catch 块逻辑断裂 | 低 | 低 | 确认 console.warn 仅是日志输出，不影响业务流程 |
-| vue-tsc/build 因弹窗宽度修改报错 | 极低 | 低 | 宽度值是字符串字面量，不影响类型检查 |
-| 远程推送网络问题 | 高 | 低 | 优先 git push，失败时用 GitHub MCP API 推送 |
-
-##### 六、验收检查清单
-
-- [ ] R56-01：`grep -rn 'width="[0-9]*px"' admin-web/src/views/ | grep -vE 'width="(480|720|900)px"'` 返回 0 结果
-- [ ] R56-03：`.env.example` 含 `REDIS_URL` 和 `CSRF_SECRET` 条目
-- [ ] R56-04：`env.ts` 第 91 行默认值为 `""`
-- [ ] R56-05：`ProductReview.vue` 无 `console.warn` / `console.log`
-- [ ] 后端 `tsc --noEmit`：0 错误
-- [ ] 前端 `vue-tsc --noEmit`：0 错误
-- [ ] 前端 `npm run build`：成功
-- [ ] 后端 `vitest run`：全部通过
-
-#### R56-01 — 弹窗宽度第三轮仍有7处残留 [P2] ❌ 未通过
-
-- **优先级**：P2
-- **负责人**：墨
-- **预计**：0.25天
-- **状态**：❌ 未通过（2026-07-27 凌舟验收：7处残留未修改）
-- **文件**：
-  - `admin-web/src/views/customer/LevelConfig.vue`（第31行，仍为520px，需改为480px）
-  - `admin-web/src/views/customer/CustomerTags.vue`（第85行，仍为560px，需改为480px）
-  - `admin-web/src/views/product/ProductReviewWorkflow.vue`（第57行，仍为820px，需改为900px）
-  - `admin-web/src/views/product/ReviewDelegation.vue`（第162行，仍为560px，需改为480px）
-  - `admin-web/src/views/instant-retail/InstantRetailShelf.vue`（第235行仍为520px，第280行仍为420px，第328行仍为420px，均需改为480px）
-- **问题**：7处弹窗宽度完全未修改，420px/520px/560px/820px均不在标准三档内
-- **修复方向**：全部统一为三档（480/720/900px）
-- **验收标准**：views目录无非标准弹窗宽度
-
-#### R56-02 — admin目录6文件33处any残留 [P2] ✅ 已完成
-
-- **优先级**：P2
-- **负责人**：阿坚
-- **预计**：0.5天
-- **状态**：✅ 已完成（2026-07-27 凌舟验收通过）
-- **文件**：
-  - `backend/src/services/admin/quote-push.service.ts`
-  - `backend/src/services/admin/receipt.service.ts`
-  - `backend/src/services/admin/export.service.ts`
-  - `backend/src/services/admin/purchase-in-stock.service.ts`
-  - `backend/src/services/admin/credit-limit.service.ts`
-  - `backend/src/services/admin/purchase-return.service.ts`
-- **验收结果**：6文件中 queryOne\<any\>/queryAll\<any\> 搜索结果为空，33处any全部替换完成
-
-#### R56-03 — .env.example 缺失 CSRF_SECRET/REDIS_URL 说明 [P1] ❌ 未通过
-
-- **优先级**：P1
-- **负责人**：阿坚
-- **预计**：0.25天
-- **状态**：❌ 未通过（2026-07-27 凌舟验收：.env.example仍缺失这两项）
-- **文件**：`backend/.env.example`
-- **问题**：env.ts中第21行使用CSRF_SECRET、第70行使用REDIS_URL，但.env.example中既无CSRF_SECRET也无REDIS_URL条目。.env.example中Redis部分仅有REDIS_HOST和REDIS_PORT，缺少REDIS_URL
-- **修复方向**：
-  1. 在Redis部分补充 `REDIS_URL=redis://127.0.0.1:6379`（完整URL格式）
-  2. 在JWT部分后面新增安全部分补充 `CSRF_SECRET=CHANGE_ME_TO_RANDOM_CSRF_SECRET`
-- **验收标准**：env.ts中所有变量在.env.example中均有说明
-
-#### R56-04 — TENCENT_CLOUD_APPID 硬编码疑似真实值 [P2] ❌ 未通过
-
-- **优先级**：P2
-- **负责人**：阿坚
-- **预计**：0.25天
-- **状态**：❌ 未通过（2026-07-27 凌舟验收：硬编码仍在）
-- **文件**：`backend/src/config/env.ts`（第91行）
-- **问题**：TENCENT_CLOUD_APPID默认值仍为"1442871774"，疑似真实腾讯云AppID未移除
-- **修复方向**：改为空字符串 `""` 或在未配置时抛出明确错误
-- **验收标准**：env.ts中无硬编码的真实密钥/AppID
-
-#### R56-05 — console.log 遗留清理 [P3] ❌ 未通过
+#### R59-01 — app-mobile 38处 console.log/warn 清理 [P3]
 
 - **优先级**：P3
-- **负责人**：墨
+- **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：❌ 未通过（2026-07-27 凌舟验收：mock warn仍在）
-- **文件**：`admin-web/src/views/product/ProductReview.vue`
-- **问题**：第659行和第704行仍保留 mock 模式 console.warn，属于开发遗留
-- **修复方向**：删除这两行 console.warn 或替换为统一日志
-- **验收标准**：无开发遗留console，catch块中的console.error可保留
+- **状态**：⬜ 待开始
+- **文件**：`app-mobile/src/` 目录下 .vue/.ts 文件（38处）
+- **问题**：商户端移动端仍有38处 console.log/warn 残留，admin-web 已清零
+- **修复方向**：删除开发遗留 console.log/warn，保留 catch 块中的 console.error
+- **验收标准**：`grep -rn 'console\.\(log\|warn\)' app-mobile/src/ --include='*.vue' --include='*.ts' | wc -l` 返回 0
 
-#### R56 任务总览
+#### R59 任务总览
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
-| R56-01 弹窗宽度7处残留 | 墨 | P2 | 0.25天 | ❌ 未通过 |
-| R56-02 admin目录33处any残留 | 阿坚 | P2 | 0.5天 | ✅ 已完成 |
-| R56-03 .env.example缺失变量说明 | 阿坚 | P1 | 0.25天 | ❌ 未通过 |
-| R56-04 TENCENT_APPID硬编码 | 阿坚 | P2 | 0.25天 | ❌ 未通过 |
-| R56-05 console.log遗留清理 | 墨 | P3 | 0.5天 | ❌ 未通过 |
-| **合计** | — | — | **1.75天** | **1/5通过** |
+| R59-01 app-mobile 38处console清理 | 阿澈 | P3 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | **0.5天** | — |
+
+---
+
+### R56 — 全局验收待修正问题 [✅ 全部完成 — 凌舟验收 2026-07-28]
+
+> **日期**：2026-07-27
+> **来源**：凌舟全局验收 + 代码质量扫描
+> **验收记录**：2026-07-27 首轮验收 1/5通过 → 2026-07-28 修复后验收 5/5全部通过
+
+| 任务 | 负责人 | 优先级 | 状态 |
+|------|--------|:------:|:----:|
+| R56-01 弹窗宽度7处残留 | 墨 | P2 | ✅ 已完成 |
+| R56-02 admin目录33处any残留 | 阿坚 | P2 | ✅ 已完成 |
+| R56-03 .env.example缺失变量说明 | 阿坚 | P1 | ✅ 已完成 |
+| R56-04 TENCENT_APPID硬编码 | 阿坚 | P2 | ✅ 已完成 |
+| R56-05 console.log遗留清理 | 墨 | P3 | ✅ 已完成 |
+
+### R57 — 弹窗宽度收尾 + echarts优化 + console清理 [✅ 全部完成 — 凌舟验收 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：R56验收后的补充修复
+> **说明**：R56-01修复后又发现5处弹窗宽度遗漏，echarts全量导入导致chunk>500KB，admin-web额外console遗留
+
+| 任务 | 负责人 | 优先级 | 状态 |
+|------|--------|:------:|:----:|
+| R57-01 弹窗宽度5处统一 | 墨 | P2 | ✅ 已完成 |
+| R57-02 echarts按需导入（chunk≤500KB） | 墨 | P2 | ✅ 已完成 |
+| R57-03 console.log清理10处 | 墨 | P3 | ✅ 已完成 |
+
+### R58 — 后端services any清零（R55-04收尾） [✅ 全部完成 — 凌舟验收 2026-07-28]
+
+> **日期**：2026-07-28
+> **来源**：R55-04延续，后端services全量any清零
+> **说明**：R58-01事务连接any（17文件110处）、R58-02即时零售适配器any（9文件50处）、R58-03 miniapp/store业务逻辑any（8文件32处）、R58-04全量回归测试
+> **测试报告**：`docs/reports/test-report-2026-07-28-r58.md`
+
+| 任务 | 负责人 | 优先级 | 状态 |
+|------|--------|:------:|:----:|
+| R58-01 事务连接any清零 | 阿坚 | P2 | ✅ 已完成 |
+| R58-02 即时零售适配器any清零 | 阿坚 | P2 | ✅ 已完成 |
+| R58-03 miniapp/store业务逻辑any清零 | 阿坚 | P2 | ✅ 已完成 |
+| R58-04 全量回归测试 | 苏然 | P1 | ✅ 已完成 |
 
 ---
 
@@ -669,4 +541,6 @@
 | R50 | 2026-07-21 | 1 | ✅ | 全系统完成度审计工作流 |
 | R54 | 2026-07-22 | 19 | ✅ 18/19 | 产品功能细节优化（R54-13内部备注缺失） |
 | R55 | 2026-07-22 | 8 | ✅ 7/8 | 后端安全与质量遗留问题（R55-04基本完成，6文件33处any残留入R56-02） |
-| R56 | 2026-07-27 | 5 | ⬜ 待开始 | 全局验收待修正问题（弹窗宽度7处+any残留33处+env文档+硬编码+console清理） |
+| R56 | 2026-07-27 | 5 | ✅ | 全局验收待修正问题（弹窗宽度+any+env文档+硬编码+console清理） |
+| R57 | 2026-07-28 | 3 | ✅ | 弹窗宽度收尾 + echarts按需导入 + console清理 |
+| R58 | 2026-07-28 | 4 | ✅ | 后端services any全量清零（R55-04收尾） |

@@ -1,12 +1,9 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as otherController from "../controllers/store/other.controller";
 import * as receivableController from "../controllers/store/receivable.controller";
 
 export const storeReceivableRouter = Router();
-
-storeReceivableRouter.use(requireAuthWithTenant);
 
 // 收款链接 / 支付 / 退款
 storeReceivableRouter.get("/collection-links", otherController.listCollectionLinks);

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as productController from "../controllers/store/product.controller";
 import * as tagController from "../controllers/admin/tag.controller";
@@ -8,8 +7,8 @@ import * as batchController from "../controllers/inventory-batch.controller";
 
 export const storeRouter = Router();
 
+// 价格响应过滤（业务中间件，非认证中间件）
 storeRouter.use(priceResponseFilter());
-storeRouter.use(requireAuthWithTenant);
 
 // 商品（独立文件未覆盖）
 storeRouter.get("/products", productController.listProducts);

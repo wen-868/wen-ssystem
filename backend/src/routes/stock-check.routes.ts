@@ -1,12 +1,9 @@
 import { Router } from "express";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as ctrl from "../controllers/admin/stock-check.controller";
 import type { RouteConfig } from "../shared/auto-routes";
 
-// ==================== Admin �̵�·�� ====================
+// ==================== Admin 盘点路由 ====================
 export const adminStockCheckRouter = Router();
-
-adminStockCheckRouter.use(requireAuthWithTenant);
 
 adminStockCheckRouter.post("/", ctrl.create);
 adminStockCheckRouter.get("/statistics", ctrl.getStatistics);

@@ -127,7 +127,7 @@ export async function setupRoutes(
       const prefix = inferPrefix(file);
       logger.warn(
         `[auto-routes] ${file}: 未找到 routeConfig，从文件名推断 prefix="${prefix}"（导出: ${name}）。` +
-          ` 建议添加 routeConfig 导出以明确配置。`
+        ` 建议添加 routeConfig 导出以明确配置。`
       );
       configs.push({
         prefix,
@@ -137,13 +137,28 @@ export async function setupRoutes(
     } else if (routerEntries.length > 1) {
       logger.warn(
         `[auto-routes] ${file}: 检测到 ${routerEntries.length} 个 Router 导出但无 routeConfigs。` +
-          ` 请添加 routeConfigs 导出以启用自动注册。导出列表: ${routerEntries.map(([k]) => k).join(", ")}`
+        ` 请添加 routeConfigs 导出以启用自动注册。导出列表: ${routerEntries.map(([k]) => k).join(", ")}`
       );
     } else {
       const keys = Object.keys(mod).slice(0, 5);
       logger.warn(`[auto-routes] ${file}: 无 Router 导出，keys=${keys.join(",")}`);
     }
     // routerEntries.length === 0 → 无 Router 导出，跳过（可能只导出工具函数）
+  }
+
+  // ---------- 重复前缀检测 ----------
+  // 多个路由文件使用相同 prefix 是合法的（如多个 store-*.routes.ts 都用 /api/store），
+  // 但需要警告提示开发者检查端点是否重复注册。
+  const prefixCount = new Map<string, number>();
+  for (const config of configs) {
+    prefixCount.set(config.prefix, (prefixCount.get(config.prefix) ?? 0) + 1);
+  }
+  const duplicates = Array.from(prefixCount.entries()).filter(([, count]) => count > 1);
+  if (duplicates.length > 0) {
+    const summary = duplicates.map(([prefix, count]) => `${prefix} (${count}次)`).join(", ");
+    logger.warn(
+      `[auto-routes] 检测到 ${duplicates.length} 个重复前缀：${summary}。请确认端点无重复注册。`
+    );
   }
 
   // ---------- 注册所有路由 ----------

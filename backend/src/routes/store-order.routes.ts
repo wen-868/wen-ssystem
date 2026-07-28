@@ -1,12 +1,9 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
-import { requireAuthWithTenant } from "../middleware/auth";
 import * as orderController from "../controllers/store/order.controller";
 import * as otherController from "../controllers/store/other.controller";
 
 export const storeOrderRouter = Router();
-
-storeOrderRouter.use(requireAuthWithTenant);
 
 // 订单
 storeOrderRouter.get("/orders", orderController.listOrders);
