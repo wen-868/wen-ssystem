@@ -356,7 +356,7 @@ found 5 vulnerabilities (0 low, 0 moderate, 5 high)
 
 ## 📧 联系人
 
-**测试负责人**：AI Assistant  
+**测试负责人**：苏然  
 **报告日期**：2026-07-05  
 **下次测试**：2026-07-06 (或提交后)  
 
