@@ -1,16 +1,17 @@
-# 当前任务 — R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
+# 当前任务 — R65(进行中) + R64(进行中) + R63(已完成) + R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
-> 最后更新：2026-07-28
+> 最后更新：2026-07-29
 
 ---
 
-## R63 — 全系统梳理与系统性修复 [进行中 — 凌舟 2026-07-29]
+## R63 — 全系统梳理与系统性修复 [✅ 已完成 — 凌舟 2026-07-29]
 
 > **日期**：2026-07-28
 > **来源**：用户要求"做一个全部的系统化的梳理，把所有问题列出来，进行规范化系统性修复"
 > **说明**：对数据库表名、迁移脚本、后端代码、环境变量、Nginx配置、SSL证书、API路由六大维度全量扫描，发现40个问题，分P0/P1/P2三级系统性修复
+> **完成核实（2026-07-29 凌舟）**：以 `git log` + `grep` 双重验证阿坚提交（commit `76bb6593` R63-05 删除740处冗余 requireAuthWithTenant，commit `3ccc7765` R63-06 合并6组重复API端点）。核实结论：R63-05 保留55处必需调用（auth=none 路由内部认证），R63-06 6个端点在 report.routes.ts 中各只出现1次，R63-07 8个文件均导出 routeConfigs（复数），R63-08 sync.routes.ts 含12个端点（非空，阿坚拒绝删除正确）。所有任务已达到验收标准。
 
 ### 全系统梳理问题汇总（40个）
 
@@ -206,6 +207,135 @@
 1. **执行迁移脚本**：在服务器 MySQL 中依次执行 `081_platform_admin_seed_and_fix.sql` 和 `115_missing_tables.sql`
 2. **重新部署后端**：`git pull` 后重启 Node.js 服务（auto-deploy.sh 已修复，可直接执行）
 3. **验证**：5个域名分别测试登录功能
+
+---
+
+## R64 — 商品库建设（平台共享商品库 + 扫码同步 + Open API） [进行中 — 凌舟 2026-07-29]
+
+> **日期**：2026-07-28
+> **来源**：用户要求"建立商品库，让客户扫条形码同步商品基础信息，快速录入商品。总后台要有商品库维护功能"
+> **用户反馈 v1.1**：①租户只在新建商品时扫码查询商品库 ②商品分类不做基础必填信息 ③商品库在总后台是独立板块，需外接API对接
+> **说明**：新建平台级共享商品库（t_library_spu/t_library_sku/t_library_brand/t_library_api_key），实现扫码查询自动填充（仅新建商品时）、总后台独立板块 CRUD + 审核、Open API 对外输出。
+> **后端进度**：R64-L01~L05 已全部完成（commit `fd47184a`），tsc --noEmit 零错误。前端任务待开始。
+
+### 任务清单
+
+| 编号 | 任务 | 负责人 | 优先级 | 预计 | 状态 |
+|------|------|:------:|:----:|:----:|:----:|
+| R64-L01 | 迁移脚本117：t_library_spu + t_library_sku + t_library_api_key 建表+索引 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L02 | 迁移脚本118：t_library_brand 表+预置数据 | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L03 | 后端：platform-library 路由+服务+控制器（SPU/SKU/品牌 CRUD+审核+API Key 管理） | 凌舟 | P0 | 2天 | ✅ 已完成 |
+| R64-L04 | 后端：admin-library 路由+服务（仅扫码 lookup） | 凌舟 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L05 | 后端：open-library 路由+控制器+api-key-auth 中间件（Open API 对外接口） | 凌舟 | P0 | 1天 | ✅ 已完成 |
+| R64-L06 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理（独立板块） | 墨 | P0 | 1.5天 | ⬜ 待开始 |
+| R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 墨 | P0 | 1天 | ⬜ 待开始 |
+| R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L11 | 预置数据：酒水行业常见品牌+热门商品50条 | 凌舟 | P1 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | — | **8.5天** | — |
+
+### R64-L06 — saas-admin：商品库列表+编辑（独立板块）
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1.5天
+- **状态**：⬜ 待开始
+- **文件**：`saas-admin/src/views/library/LibrarySpus.vue`、`saas-admin/src/api/library.ts`、`saas-admin/src/router/index.ts`
+- **问题**：saas-admin 无商品库管理页面
+- **修复**：新建商品库列表页（搜索/筛选/分页/展开SKU行）+ 新增/编辑对话框（必填：名称/品牌/规格；建议填：单位/主图/酒精度/产地/香型/简介；SKU动态表格；**分类不做必填**）+ 路由注册为顶级独立板块。参考 admin-web Products.vue 的组件模式
+- **验收标准**：可创建SPU+SKU，列表正确展示，编辑回显正确
+
+### R64-L07 — saas-admin：品牌管理+审核+批量导入
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：1天
+- **状态**：⬜ 待开始
+- **文件**：`saas-admin/src/views/library/LibraryBrands.vue`、`saas-admin/src/views/library/LibraryReviews.vue`、`saas-admin/src/views/library/LibraryImport.vue`
+- **问题**：商品库需要品牌管理、审核队列和批量导入功能
+- **修复**：品牌页用表格 + 对话框 CRUD；审核页展示 PENDING 状态 SPU 列表 + 通过/拒绝按钮；导入页4步向导（上传→映射→预览→结果）
+- **验收标准**：品牌可增删改，可审核PENDING商品，Excel导入后正确创建SPU+SKU
+
+### R64-L08 — saas-admin：API Key 管理
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`saas-admin/src/views/library/LibraryApiKeys.vue`、`saas-admin/src/api/library.ts`
+- **问题**：需要管理对外 API 的密钥
+- **修复**：新建 API Key 管理页（列表/创建/编辑/吊销/调用统计），创建时返回明文 Key（仅一次），可设置日限额和IP白名单
+- **验收标准**：可创建/吊销 API Key，可查看调用统计
+
+### R64-L09 — admin-web：条码查询联动（不填充分类）
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`admin-web/src/views/product/Products.vue`、`admin-web/src/api/library.ts`
+- **问题**：商户在 admin-web 新增商品时无法从商品库自动获取信息
+- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/酒精度/产地/香型/简介/SKU信息），**不填充分类** — 商户自行选择
+- **验收标准**：输入已知条码后点击查询，表单自动填充（分类为空），字段可编辑
+
+### R64-L10 — app-mobile：扫码商品库查询
+
+- **优先级**：P0
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`app-mobile/src/native/scan.ts`（或扫码结果处理逻辑）
+- **问题**：移动端扫码后只查本地SKU，未查询平台商品库
+- **修复**：在扫码结果分发逻辑中，**仅新建商品流程**的条码类型先调用 `/api/admin/library/lookup` 查询商品库。命中则跳转商品创建页并自动填充（不含分类）；未命中则走现有手动录入流程
+- **验收标准**：扫已知商品库条码后，自动跳转商品创建页且表单已填充（分类为空）
+
+### R64-L11 — 预置数据
+
+- **优先级**：P1
+- **负责人**：凌舟
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`docs/migrations/119_library_seed_data.sql`
+- **问题**：商品库初期数据为空，商户扫码命中率低
+- **修复**：预置50条热门酒水商品（茅台/五粮液/洋河/啤酒/葡萄酒等），含正确条码和完整属性
+- **验收标准**：预置商品条码可通过 /lookup 接口正确命中
+
+---
+
+## R65 — app-mobile 报表 API 参数命名迁移（R63-06 遗留） [进行中 — 凌舟 2026-07-29]
+
+> **日期**：2026-07-29
+> **来源**：R63-06 合并6组重复API端点后，新实现（report.routes.ts）参数命名与 app-mobile 调用不一致
+> **说明**：R63-06 将6组重复端点合并到 report.routes.ts 后，新实现使用了更规范的参数命名（`dateStart/dateEnd` 替代 `startDate/endDate`，`granularity` 替代 `period`）。app-mobile 仍使用老参数命名，导致参数失效。
+
+### R65-01 — [P1] app-mobile 报表 API 参数命名迁移
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：⬜ 待开始
+- **文件**：`app-mobile/src/api/modules/reports.ts`
+- **问题**：R63-06 后端报表端点参数命名变更，app-mobile 调用参数失效：
+
+| 端点 | app-mobile 老参数 | 后端新参数 | 影响 |
+|------|------------------|------------|------|
+| `GET /api/admin/reports/sales-trend` | `startDate/endDate/period` | `granularity` (month/week/day) | 参数全部失效，使用默认 granularity=month |
+| `GET /api/admin/reports/purchase-summary` | `startDate/endDate` | `dateStart/dateEnd` | 参数全部失效，返回全部数据无日期过滤 |
+
+- **修复方向**：
+  1. `getSalesTrend`：将 `startDate/endDate/period` 参数改为 `granularity`（`'month' | 'week' | 'day'`）
+  2. `getPurchaseReport`：将 `startDate/endDate` 参数改为 `dateStart/dateEnd`
+- **验收标准**：
+  1. `grep -n 'startDate\|endDate\|period' app-mobile/src/api/modules/reports.ts` 在 sales-trend 和 purchase-summary 接口中不再出现
+  2. app-mobile 报表页面实际调用后，日期过滤和粒度参数生效
+
+### R65 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R65-01 app-mobile 报表API参数迁移 | 阿澈 | P1 | 0.5天 | ⬜ 待开始 |
+| **合计** | — | — | **0.5天** | — |
 
 ---
 
