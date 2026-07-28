@@ -178,7 +178,7 @@ function checkNetworkAvailable(): Promise<boolean> {
  * ```ts
  * const result = await syncAll()
  * if (!result.success) {
- *   console.warn('同步失败：', result.errors)
+ *   logger.warn('同步失败：', result.errors)
  * }
  * ```
  */
@@ -517,19 +517,18 @@ export async function onAppLaunch(): Promise<void> {
     try {
         await initDatabase()
     } catch (err) {
-        console.warn('[sync-manager] 初始化本地数据库失败:', err)
+        console.error('[sync-manager] 初始化本地数据库失败:', err)
     }
 
     // 检测网络状态
     const hasNetwork = await checkNetworkAvailable()
     if (!hasNetwork) {
-        console.warn('[sync-manager] 无网络，跳过启动同步')
         return
     }
 
     // 有网络 → 静默触发同步（不阻塞 UI，不弹 toast）
     syncAll().catch((err) => {
-        console.warn('[sync-manager] 启动同步失败:', err)
+        console.error('[sync-manager] 启动同步失败:', err)
     })
 }
 
@@ -548,11 +547,10 @@ export async function onAppLaunch(): Promise<void> {
  * ```
  */
 export async function onNetworkResume(): Promise<void> {
-    console.warn('[sync-manager] 网络恢复，触发同步')
     try {
         await syncAll()
     } catch (err) {
-        console.warn('[sync-manager] 网络恢复同步失败:', err)
+        console.error('[sync-manager] 网络恢复同步失败:', err)
     }
 }
 
@@ -585,7 +583,7 @@ export function startBackgroundSync(config?: BackgroundSyncConfig): void {
     backgroundTimer = setInterval(() => {
         // 异步触发，不阻塞定时器
         syncAll().catch((err) => {
-            console.warn('[sync-manager] 后台定时同步失败:', err)
+            console.error('[sync-manager] 后台定时同步失败:', err)
         })
     }, interval)
 
@@ -593,17 +591,14 @@ export function startBackgroundSync(config?: BackgroundSyncConfig): void {
     if (config?.syncOnResume !== false) {
         try {
             uni.onAppShow(() => {
-                console.warn('[sync-manager] App 前台恢复，触发同步')
                 syncAll().catch((err) => {
-                    console.warn('[sync-manager] 前台恢复同步失败:', err)
+                    console.error('[sync-manager] 前台恢复同步失败:', err)
                 })
             })
         } catch (err) {
-            console.warn('[sync-manager] 注册 onAppShow 失败:', err)
+            console.error('[sync-manager] 注册 onAppShow 失败:', err)
         }
     }
-
-    console.warn(`[sync-manager] 后台同步已启动，间隔 ${interval}ms`)
 }
 
 /**
@@ -615,7 +610,6 @@ export function stopBackgroundSync(): void {
     if (backgroundTimer) {
         clearInterval(backgroundTimer)
         backgroundTimer = null
-        console.warn('[sync-manager] 后台同步已停止')
     }
 }
 

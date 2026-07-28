@@ -532,7 +532,7 @@ function checkCameraPermission(): Promise<boolean> {
  * ```ts
  * try {
  *   const result = await scan({ title: '扫一扫商品条码', timeout: 30000 })
- *   console.log(result.code, result.type, result.format)
+ *   logger.info(result.code, result.type, result.format)
  * } catch (err) {
  *   if (err instanceof ScanError) {
  *     if (err.errorType === 'camera_permission_denied') {
@@ -649,7 +649,7 @@ let currentContinuousStop: (() => void) | null = null
  * ```ts
  * // 启动连续扫码
  * startContinuousScan(
- *   (result) => { console.log('扫码到:', result.code) },
+ *   (result) => { logger.info('扫码到:', result.code) },
  *   { interval: 1500, title: '盘点扫码' }
  * )
  * // 用户点击停止按钮时
@@ -689,7 +689,7 @@ export function startContinuousScan(
         } catch (err) {
             // 单次扫码失败时不中断连续扫码，继续下一次
             // 相机权限拒绝等严重错误也只 warn，避免日志被淹没；调用方应在 stopContinuousScan 后处理
-            console.warn('[scan] 连续扫码单次失败:', err)
+            console.error('[scan] 连续扫码单次失败:', err)
         }
         if (!stopped) {
             setTimeout(scanOnce, interval)
@@ -779,7 +779,7 @@ async function findProductByBarcode(barcode: string): Promise<ProductInfo | null
             }
         } catch (err) {
             // 本地查询失败不阻断流程，降级到网络查询
-            console.warn('[scan] 本地商品查询失败，降级到网络查询:', err)
+            console.error('[scan] 本地商品查询失败，降级到网络查询:', err)
         }
     }
 

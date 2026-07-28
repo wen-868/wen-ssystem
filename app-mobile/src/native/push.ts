@@ -246,7 +246,7 @@ async function registerTokenToBackend(payload: PushRegisterPayload): Promise<voi
     } catch (err) {
         // 后端注册失败不阻断主流程，仅警告
         const msg = err instanceof Error ? err.message : '推送 Token 后端注册失败'
-        console.warn('[push] 后端注册失败:', msg)
+        console.error('[push] 后端注册失败:', msg)
     }
 }
 
@@ -292,7 +292,7 @@ function onJPushReceived(callback: (payload: PushPayload) => void): void {
     try {
         jpush.addPushListener({ event: 'messageReceive' }, callback)
     } catch (err) {
-        console.warn('[push] JPush 监听接收失败:', err)
+        console.error('[push] JPush 监听接收失败:', err)
     }
 }
 
@@ -306,7 +306,7 @@ function onJPushClick(callback: (result: PushClickResult) => void): void {
     try {
         jpush.addPushListener({ event: 'notificationOpen' }, callback)
     } catch (err) {
-        console.warn('[push] JPush 监听点击失败:', err)
+        console.error('[push] JPush 监听点击失败:', err)
     }
 }
 
@@ -372,7 +372,7 @@ function onHMSPushReceived(callback: (payload: PushPayload) => void): void {
     try {
         kit.onMessageReceived(callback)
     } catch (err) {
-        console.warn('[push] HMS Push Kit 监听接收失败:', err)
+        console.error('[push] HMS Push Kit 监听接收失败:', err)
     }
 }
 
@@ -386,7 +386,7 @@ function onHMSPushClick(callback: (result: PushClickResult) => void): void {
     try {
         kit.onNotificationOpened(callback)
     } catch (err) {
-        console.warn('[push] HMS Push Kit 监听点击失败:', err)
+        console.error('[push] HMS Push Kit 监听点击失败:', err)
     }
 }
 
@@ -435,7 +435,7 @@ async function doRegisterJPush(alias: string, deviceId: string): Promise<string>
     // 注册成功后自动绑定监听器（将原生事件转发到回调列表）
     onJPushReceived((payload) => {
         for (const cb of pushReceivedCallbacks) {
-            try { cb(payload) } catch (e) { console.warn('[push] 接收回调异常:', e) }
+            try { cb(payload) } catch (e) { console.error('[push] 接收回调异常:', e) }
         }
     })
     onJPushClick((result) => {
@@ -445,11 +445,11 @@ async function doRegisterJPush(alias: string, deviceId: string): Promise<string>
             try {
                 uni.navigateTo({ url })
             } catch (e) {
-                console.warn('[push] 路由跳转失败:', e)
+                console.error('[push] 路由跳转失败:', e)
             }
         }
         for (const cb of pushClickCallbacks) {
-            try { cb(result) } catch (e) { console.warn('[push] 点击回调异常:', e) }
+            try { cb(result) } catch (e) { console.error('[push] 点击回调异常:', e) }
         }
     })
     return token
@@ -476,7 +476,7 @@ async function doRegisterHMSPush(deviceId: string): Promise<string> {
     // 注册成功后自动绑定监听器
     onHMSPushReceived((payload) => {
         for (const cb of pushReceivedCallbacks) {
-            try { cb(payload) } catch (e) { console.warn('[push] 接收回调异常:', e) }
+            try { cb(payload) } catch (e) { console.error('[push] 接收回调异常:', e) }
         }
     })
     onHMSPushClick((result) => {
@@ -485,11 +485,11 @@ async function doRegisterHMSPush(deviceId: string): Promise<string> {
             try {
                 uni.navigateTo({ url })
             } catch (e) {
-                console.warn('[push] 路由跳转失败:', e)
+                console.error('[push] 路由跳转失败:', e)
             }
         }
         for (const cb of pushClickCallbacks) {
-            try { cb(result) } catch (e) { console.warn('[push] 点击回调异常:', e) }
+            try { cb(result) } catch (e) { console.error('[push] 点击回调异常:', e) }
         }
     })
     return token
@@ -514,7 +514,7 @@ async function doRegisterHMSPush(deviceId: string): Promise<string> {
  * ```ts
  * import { registerPush } from '@/native/push'
  * const token = await registerPush(`merchant_${user.id}_${tenant.id}`)
- * console.log('推送注册成功，token:', token)
+ * logger.info('推送注册成功，token:', token)
  * ```
  */
 export function registerPush(alias: string): Promise<string> {
@@ -543,7 +543,7 @@ export function registerPush(alias: string): Promise<string> {
  * @example
  * ```ts
  * onPushReceived((payload) => {
- *   console.log('收到推送:', payload.title, payload.content)
+ *   logger.info('收到推送:', payload.title, payload.content)
  *   if (payload.type === 'order') {
  *     // 处理订单推送
  *   }
@@ -567,7 +567,7 @@ export function onPushReceived(callback: (payload: PushPayload) => void): void {
  * @example
  * ```ts
  * onPushClick((result) => {
- *   console.log('推送被点击:', result.type, result.url)
+ *   logger.info('推送被点击:', result.type, result.url)
  *   // 刷新对应页面数据
  * })
  * ```

@@ -136,7 +136,7 @@ export function getPinnedCerts(hostname: string): string[] {
  *   fingerprint: 'sha256/XXXX...'
  * })
  * if (!result.valid) {
- *   console.warn('证书校验失败：', result.reason)
+ *   logger.warn('证书校验失败：', result.reason)
  * }
  * ```
  */

@@ -127,7 +127,7 @@ export function migrateFromPlainStorage(): void {
       _originalRemoveStorageSync(key)
     } catch (e) {
       // 单个 Key 迁移失败不影响其他 Key
-      console.warn(`[storage] 迁移 ${key} 失败:`, e)
+      console.error(`[storage] 迁移 ${key} 失败:`, e)
     }
   }
 }
@@ -198,12 +198,12 @@ function installUniInterceptor(): void {
   try {
     migrateFromPlainStorage()
   } catch (e) {
-    console.warn('[storage] 旧明文数据迁移失败:', e)
+    console.error('[storage] 旧明文数据迁移失败:', e)
   }
   try {
     installUniInterceptor()
   } catch (e) {
-    console.warn('[storage] uni API 拦截器安装失败:', e)
+    console.error('[storage] uni API 拦截器安装失败:', e)
   }
 })()
 

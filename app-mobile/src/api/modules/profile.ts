@@ -31,7 +31,7 @@ export const profileApi = {
 
   async uploadAvatar(file: File): Promise<{ avatar: string }> {
     // 后端没有头像上传接口，暂时返回模拟数据
-    console.warn('头像上传接口未实现')
+    console.error('头像上传接口未实现')
     return { avatar: '' }
   }
 }
