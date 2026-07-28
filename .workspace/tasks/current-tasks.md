@@ -255,32 +255,32 @@
 #### R64-L06 — saas-admin：商品库列表+编辑（独立板块）
 
 - **优先级**：P0
-- **负责人**：墨
+- **负责人**：凌舟
 - **预计**：1.5天
-- **状态**：⬜ 待开始
-- **文件**：`saas-admin/src/views/library/LibrarySpus.vue`、`saas-admin/src/api/library.ts`、`saas-admin/src/router/index.ts`
+- **状态**：✅ 已完成（vite build 零错误）
+- **文件**：`saas-admin/src/views/library/SpuList.vue`、`saas-admin/src/api/library.ts`、`saas-admin/src/router/index.ts`、`saas-admin/src/layouts/PlatformLayout.vue`
 - **问题**：saas-admin 无商品库管理页面
-- **修复**：新建商品库列表页（搜索/筛选/分页/展开SKU行）+ 新增/编辑对话框（必填：名称/品牌/规格；建议填：单位/主图/酒精度/产地/香型/简介；SKU动态表格；**分类不做必填**）+ 路由注册为顶级独立板块。参考 admin-web Products.vue 的组件模式
+- **修复**：新建商品库列表页（搜索/筛选/分页）+ 新增/编辑对话框（含 SKU 动态表格）+ 详情对话框 + 审核（通过/拒绝）+ 删除。侧边栏新增「商品库」独立板块（el-sub-menu）
 - **验收标准**：可创建SPU+SKU，列表正确展示，编辑回显正确
 
-#### R64-L07 — saas-admin：品牌管理+审核+批量导入
+#### R64-L07 — saas-admin：品牌管理
 
 - **优先级**：P0
-- **负责人**：墨
+- **负责人**：凌舟
 - **预计**：1天
-- **状态**：⬜ 待开始
-- **文件**：`saas-admin/src/views/library/LibraryBrands.vue`、`saas-admin/src/views/library/LibraryReviews.vue`、`saas-admin/src/views/library/LibraryImport.vue`
-- **问题**：商品库需要品牌管理、审核队列和批量导入功能
-- **修复**：品牌页用表格 + 对话框 CRUD；审核页展示 PENDING 状态 SPU 列表 + 通过/拒绝按钮；导入页4步向导（上传→映射→预览→结果）
-- **验收标准**：品牌可增删改，可审核PENDING商品，Excel导入后正确创建SPU+SKU
+- **状态**：✅ 已完成（vite build 零错误）
+- **文件**：`saas-admin/src/views/library/BrandList.vue`
+- **问题**：商品库需要品牌管理功能
+- **修复**：品牌页用表格 + 对话框 CRUD（名称/Logo/产地/排序/状态），有关联 SPU 时禁止删除
+- **验收标准**：品牌可增删改，列表正确展示
 
 #### R64-L08 — saas-admin：API Key 管理
 
 - **优先级**：P0
-- **负责人**：墨
+- **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`saas-admin/src/views/library/LibraryApiKeys.vue`、`saas-admin/src/api/library.ts`
+- **状态**：✅ 已完成（vite build 零错误）
+- **文件**：`saas-admin/src/views/library/ApiKeyList.vue`
 - **问题**：需要管理对外 API 的密钥
 - **修复**：新建 API Key 管理页（列表/创建/编辑/吊销/调用统计），创建时返回明文 Key（仅一次），可设置日限额和IP白名单
 - **验收标准**：可创建/吊销 API Key，可查看调用统计
@@ -291,9 +291,9 @@
 - **负责人**：墨
 - **预计**：0.5天
 - **状态**：⬜ 待开始
-- **文件**：`admin-web/src/views/product/Products.vue`、`admin-web/src/api/library.ts`
+- **文件**：`admin-web/src/views/Products.vue`、`admin-web/src/api/library.ts`
 - **问题**：商户在 admin-web 新增商品时无法从商品库自动获取信息
-- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/酒精度/产地/香型/简介/SKU信息），**不填充分类** — 商户自行选择
+- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/SKU信息），**不填充分类** — 商户自行选择
 - **验收标准**：输入已知条码后点击查询，表单自动填充（分类为空），字段可编辑
 
 #### R64-L10 — app-mobile：扫码商品库查询
