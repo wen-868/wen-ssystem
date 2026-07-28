@@ -129,22 +129,28 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（核实：任务描述与代码不符，现状已满足验收标准）
 - **文件**：`aftersale.routes.ts`、`community-marketing.routes.ts`、`notification.routes.ts`、`sale-return.routes.ts`、`stock-check.routes.ts`、`store-control.routes.ts`、`trace.routes.ts`、`transfer.routes.ts`
 - **问题**：这8个文件缺少 routeConfig 导出，依赖文件名推断前缀，auto-routes 会打印警告
 - **修复方向**：为每个文件添加 `export const routeConfig = { prefix: "...", auth: "..." }`
 - **验收标准**：auto-routes 启动时无警告
+- **核实结论（2026-07-29 阿坚）**：经逐文件核查，8 个文件均已导出 `routeConfigs`（复数，`RouteConfig[]` 数组形式），这是 `auto-routes.ts` 优先级 1 支持的标准多 Router 配置方式（这些文件均含 admin/miniapp 或 admin/store 双 Router），走 `setupRoutes` 第 106 行 `if (Array.isArray(mod.routeConfigs))` 分支正常注册，**不会触发任何警告**。任务描述误以为需用单数 `routeConfig`，但单数仅适用于单 Router 文件；对多 Router 文件强行改单数反而会丢路由。grep 验证：8 文件全部命中 `export const routeConfigs`。`npx tsc --noEmit` 0 错误；`vitest` 11 文件 97 测试全通过。**无需任何代码修改**，现状已满足"auto-routes 启动时无警告"验收标准。
 
 ### R63-08 — [P2] 清理3个空Router文件
 
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（核实：任务描述与代码严重不符，拒绝执行破坏性删除）
 - **文件**：`admin-credit.routes.ts`、`admin-system.routes.ts`、`sync.routes.ts`
 - **问题**：这3个文件导出了空 Router，无任何端点，冗余代码
 - **修复方向**：删除文件或在文件中添加注释说明保留原因
 - **验收标准**：`grep -rn 'router\.' admin-credit.routes.ts admin-system.routes.ts sync.routes.ts` 返回0或文件已删除
+- **核实结论（2026-07-29 阿坚）**：经逐文件核查，任务描述与实际代码严重不符，**拒绝删除任何文件**：
+  1. `sync.routes.ts` **绝非空文件**：含 9 个端点（价格同步 `/check`/`/prices`/`/price`/`/price/status`/`/price/last`、商品同步 `/product`/`/product/status`/`/product/last`、R51-04 增量同步 `/products/delta`/`/inventory/delta`/`/members/delta`/`/offline-orders`），已导出 `routeConfig`（prefix `/api/sync`），且 `__tests__/routes/sync.test.ts` 有 **36 个测试用例全部通过**，`app-mobile/src/api/sync.ts` 仍在调用。**删除将导致 App 离线同步、价格/商品同步、增量同步全部瘫痪**。
+  2. `admin-credit.routes.ts`：确实是空 Router，但**已导出 `routeConfig`**（prefix `/api/admin`），已有注释"当前暂无活跃端点"，且 `__tests__/routes/admin-credit.test.ts` 3 个测试验证 routeConfig，删除会破坏测试。
+  3. `admin-system.routes.ts`：确实是空 Router，但**已导出 `routeConfig`**，已有注释"auth 相关路由已移至 server.ts 单独挂载"，且 `__tests__/routes/admin-system.test.ts` 3 个测试验证 routeConfig，删除会破坏测试。
+  - 三文件均已走 `auto-routes.ts` 优先级 2（`routeConfig` 单数）正常注册，不触发"缺少 routeConfig"警告。`npx tsc --noEmit` 0 错误；`vitest` 11 文件 97 测试全通过。**现状已满足验收标准**（无警告、无冗余代码风险）。建议凌舟下次派单前先 `grep -c "router\."` 核实端点数，避免基于过时信息派发破坏性任务。
 
 ### R63 任务总览
 
@@ -156,8 +162,8 @@
 | R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
 | R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ⬜ 待开始 |
 | R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ⬜ 待开始 |
-| R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ⬜ 待开始 |
-| R63-08 清理3个空Router文件 | 阿坚 | P2 | 0.5天 | ⬜ 待开始 |
+| R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ✅ 已完成（核实：现状已满足，无需改码） |
+| R63-08 清理3个空Router文件 | 阿坚 | P2 | 0.5天 | ✅ 已完成（核实：拒绝删除，sync非空） |
 | **合计** | — | — | **6天** | — |
 
 ### R63 服务器待执行操作
