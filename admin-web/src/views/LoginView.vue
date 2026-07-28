@@ -24,6 +24,9 @@
         </el-form-item>
       </el-form>
     </el-card>
+    <div style="text-align:center;color:#999;font-size:12px;padding:20px 0;">
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener" style="color:#999;text-decoration:none;">粤ICP备2026103101号</a>
+    </div>
   </div>
 </template>
 
