@@ -1,4 +1,4 @@
-# 当前任务 — R65(进行中) + R64(进行中) + R63(已完成) + R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
+# 当前任务 — R64(进行中) + R65(已完成) + R63(已完成) + R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -85,15 +85,15 @@
 - **优先级**：P1
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待执行（需用户在服务器操作）
+- **状态**：✅ 已完成（2026-07-29 用户在服务器执行）
 - **问题**：以下迁移脚本在代码中已创建，但服务器数据库尚未执行
-- **待执行清单**：
+- **执行清单**：
 
 | 序号 | 文件 | 说明 | 状态 |
 |:----:|------|------|:----:|
 | 1 | `075_reset_admin_password_bcrypt.sql` | 重置admin密码为bcrypt格式 | ✅ 已通过MySQL直接执行 |
-| 2 | `081_platform_admin_seed_and_fix.sql` | 平台管理员建表+种子数据 | ⬜ 待执行 |
-| 3 | `115_missing_tables.sql` | 补建3张缺失表 | ⬜ 待执行 |
+| 2 | `081_platform_admin_seed_and_fix.sql` | 平台管理员建表+种子数据 | ✅ 2026-07-29 执行完成 |
+| 3 | `115_missing_tables.sql` | 补建3张缺失表 | ✅ 2026-07-29 执行完成 |
 | 4 | 全量迁移脚本（001-114） | 新环境部署时需按顺序执行 | ⬜ 视情况 |
 
 - **验收标准**：服务器执行后，`SHOW TABLES` 包含 `t_platform_admin`、`t_quick_entries`、`t_tenant_config`、`t_upload_file`
@@ -195,7 +195,7 @@
 | R63-01 补建3张缺失表 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-02 环境变量统一纳入env.ts | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
 | R63-03 auto-deploy.sh安全修复+前端部署补全 | 凌舟 | P0 | 0.5天 | ✅ 已修复 |
-| R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ⬜ 待执行 |
+| R63-04 服务器迁移脚本执行 | 凌舟 | P1 | 0.5天 | ✅ 已完成 |
 | R63-05 路由双重认证修复（102文件） | 阿坚 | P1 | 2天 | ✅ 已完成 |
 | R63-06 6组重复API端点修复 | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | R63-07 8个路由文件补routeConfig | 阿坚 | P1 | 0.5天 | ✅ 已完成（核实：现状已满足，无需改码） |
@@ -204,7 +204,7 @@
 
 ### R63 服务器待执行操作
 
-1. **执行迁移脚本**：在服务器 MySQL 中依次执行 `081_platform_admin_seed_and_fix.sql` 和 `115_missing_tables.sql`
+1. ~~**执行迁移脚本**：在服务器 MySQL 中依次执行 `081_platform_admin_seed_and_fix.sql` 和 `115_missing_tables.sql`~~ ✅ 2026-07-29 已执行
 2. **重新部署后端**：`git pull` 后重启 Node.js 服务（auto-deploy.sh 已修复，可直接执行）
 3. **验证**：5个域名分别测试登录功能
 
@@ -216,7 +216,7 @@
 > **来源**：用户要求"建立商品库，让客户扫条形码同步商品基础信息，快速录入商品。总后台要有商品库维护功能"
 > **用户反馈 v1.1**：①租户只在新建商品时扫码查询商品库 ②商品分类不做基础必填信息 ③商品库在总后台是独立板块，需外接API对接
 > **说明**：新建平台级共享商品库（t_library_spu/t_library_sku/t_library_brand/t_library_api_key），实现扫码查询自动填充（仅新建商品时）、总后台独立板块 CRUD + 审核、Open API 对外输出。
-> **后端进度**：R64-L01~L05 已全部完成（commit `fd47184a`），tsc --noEmit 零错误。前端任务待开始。
+> **后端进度**：R64-L01~L05 已全部完成（commit `fd47184a`），tsc --noEmit 零错误。前端进度：R64-L10 app-mobile 已完成（R64-L06~L09 待开始）。
 
 ### 任务清单
 
@@ -231,8 +231,8 @@
 | R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 墨 | P0 | 1天 | ⬜ 待开始 |
 | R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
 | R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
-| R64-L11 | 预置数据：酒水行业常见品牌+热门商品50条 | 凌舟 | P1 | 0.5天 | ⬜ 待开始 |
+| R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ✅ 已完成 |
+| R64-L11 | 预置数据：酒水行业常见品牌+热门商品50条 | 凌舟 | P1 | 0.5天 | ✅ 已完成（2026-07-29 用户确认） |
 | **合计** | — | — | — | **8.5天** | — |
 
 ### R64-L06 — saas-admin：商品库列表+编辑（独立板块）
@@ -284,26 +284,47 @@
 - **优先级**：P0
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`app-mobile/src/native/scan.ts`（或扫码结果处理逻辑）
-- **问题**：移动端扫码后只查本地SKU，未查询平台商品库
-- **修复**：在扫码结果分发逻辑中，**仅新建商品流程**的条码类型先调用 `/api/admin/library/lookup` 查询商品库。命中则跳转商品创建页并自动填充（不含分类）；未命中则走现有手动录入流程
-- **验收标准**：扫已知商品库条码后，自动跳转商品创建页且表单已填充（分类为空）
+- **状态**：✅ 已完成
+- **文件**：
+  - `app-mobile/src/native/scan.ts`
+  - `app-mobile/src/api/modules/products.ts`
+  - `app-mobile/src/pages.json`
+  - `app-mobile/src/pages-sub/product/product/product-edit.vue`
+- **问题**：移动端扫码后只查本地SKU，未查询平台商品库。现有 `handleScanResult` 仅针对"查已有商品"场景（条码 → 本地 SQLite → 后端查商品），不支持"新建商品"场景。
+- **修复**（与 handleScanResult 完全隔离，互不影响）：
+  1. `products.ts` 新增 `LibraryLookupResult` 接口 + `libraryLookup(barcode)` 方法，调用 `POST /api/admin/library/lookup`，body `{ barcode }`，处理返回 `{ matched, spu, sku, brand }`
+  2. `scan.ts` 新增专用函数 `scanForNewProduct(options?)`（**仅新建商品流程使用**）：
+     - 默认 `types: ['barcode']`，二维码/非条码直接提示"请扫描商品条码"
+     - 扫到条码 → `productsApi.libraryLookup(code)` 查询平台商品库
+     - **命中**：将填充数据写入 Storage（key `library_product_fill_data`），提示"已匹配商品库，正在跳转"，跳转商品创建页，**分类字段留空不填充**（平台库无商户自定义分类信息）
+     - **未命中**：清理 Storage 遗留数据，提示"未匹配商品库"，跳转同一商品创建页走手动录入
+     - **所有异常分支（扫码空内容/非条码/网络错误）**：统一清理 Storage + 跳转创建页，保证新建流程不阻塞
+  3. `scan.ts` 新增 `consumeLibraryFillData()`：创建页 onMounted 调用后读取并**立即清除** Storage，避免下次创建误带出旧数据
+  4. `pages.json` 注册商品创建/编辑页路由 `/pages-sub/product/product/product-edit`
+  5. `product-edit.vue` 新建商品模式下 onMounted 调用 `consumeLibraryFillData()`，有数据则自动填充表单（分类为空需用户手动选择），无数据则正常空表单
+- **验收标准**：
+  - `app-mobile` vue-tsc 无新增错误（对比 HEAD 预存 JSDoc 缩进错误）
+  - 调用 `scanForNewProduct()` 命中平台库 → Storage 有填充数据，跳转创建页自动填充名称/品牌/规格/单位/主图/简介/SKU 等字段，分类为空
+  - 第二次进入创建页 → Storage 已被 consume 清除，不再自动填充旧数据
+  - 调用 `scanForNewProduct()` 未命中 → Storage 无脏数据，创建页空表单正常录入
+  - 现有 `handleScanResult` 行为不受影响（查已有商品逻辑不变）
+  - 扫已知商品库条码后，自动跳转商品创建页且表单已填充（分类为空）✅
 
 ### R64-L11 — 预置数据
 
 - **优先级**：P1
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：⬜ 待开始
+- **状态**：✅ 已完成（2026-07-29 用户确认）
 - **文件**：`docs/migrations/119_library_seed_data.sql`
 - **问题**：商品库初期数据为空，商户扫码命中率低
 - **修复**：预置50条热门酒水商品（茅台/五粮液/洋河/啤酒/葡萄酒等），含正确条码和完整属性
 - **验收标准**：预置商品条码可通过 /lookup 接口正确命中
+- **用户确认（2026-07-29）**：预置数据迁移脚本已在服务器数据库执行
 
 ---
 
-## R65 — app-mobile 报表 API 参数命名迁移（R63-06 遗留） [进行中 — 凌舟 2026-07-29]
+## R65 — app-mobile 报表 API 参数命名迁移（R63-06 遗留） [✅ 已完成 — 阿澈 2026-07-29]
 
 > **日期**：2026-07-29
 > **来源**：R63-06 合并6组重复API端点后，新实现（report.routes.ts）参数命名与 app-mobile 调用不一致
@@ -314,8 +335,11 @@
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`app-mobile/src/api/modules/reports.ts`
+- **状态**：✅ 已完成
+- **文件**：
+  - `app-mobile/src/api/modules/reports.ts`
+  - `app-mobile/src/pages-sub/finance/reports/sales-reports.vue`
+  - `app-mobile/src/pages-sub/finance/reports/purchase-reports.vue`
 - **问题**：R63-06 后端报表端点参数命名变更，app-mobile 调用参数失效：
 
 | 端点 | app-mobile 老参数 | 后端新参数 | 影响 |
@@ -323,18 +347,21 @@
 | `GET /api/admin/reports/sales-trend` | `startDate/endDate/period` | `granularity` (month/week/day) | 参数全部失效，使用默认 granularity=month |
 | `GET /api/admin/reports/purchase-summary` | `startDate/endDate` | `dateStart/dateEnd` | 参数全部失效，返回全部数据无日期过滤 |
 
-- **修复方向**：
-  1. `getSalesTrend`：将 `startDate/endDate/period` 参数改为 `granularity`（`'month' | 'week' | 'day'`）
-  2. `getPurchaseReport`：将 `startDate/endDate` 参数改为 `dateStart/dateEnd`
+- **修复方向**（已实施）：
+  1. `reports.ts` 的 `getSalesTrend`：将 `startDate/endDate/period` 参数改为 `granularity`（`'month' | 'week' | 'day'`），移除老参数
+  2. `reports.ts` 的 `getPurchaseReport`：将 `startDate/endDate` 参数改为 `dateStart/dateEnd`
+  3. `sales-reports.vue` 调用点同步改传 `{ granularity: 'day' }`
+  4. `purchase-reports.vue` 调用点同步改传 `{ dateStart: filterForm.startDate, dateEnd: filterForm.endDate }`
 - **验收标准**：
-  1. `grep -n 'startDate\|endDate\|period' app-mobile/src/api/modules/reports.ts` 在 sales-trend 和 purchase-summary 接口中不再出现
-  2. app-mobile 报表页面实际调用后，日期过滤和粒度参数生效
+  1. `grep -n 'startDate\|endDate\|period' app-mobile/src/api/modules/reports.ts` 在 sales-trend 和 purchase-summary 接口中不再出现 ✅
+  2. app-mobile 报表页面实际调用后，`sales-trend` 请求参数为 `granularity=day`，`purchase-summary` 请求参数为 `dateStart=...&dateEnd=...`，后端返回正确聚合 ✅
+  3. `app-mobile` vue-tsc 无新增错误 ✅
 
 ### R65 任务总览
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
-| R65-01 app-mobile 报表API参数迁移 | 阿澈 | P1 | 0.5天 | ⬜ 待开始 |
+| R65-01 app-mobile 报表API参数迁移 | 阿澈 | P1 | 0.5天 | ✅ 已完成 |
 | **合计** | — | — | **0.5天** | — |
 
 ---

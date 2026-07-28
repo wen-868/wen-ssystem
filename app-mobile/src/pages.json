@@ -1,4 +1,4 @@
-{
+﻿{
     "easycom": {
         "autoscan": true,
         "custom": {
@@ -128,6 +128,12 @@
         {
             "root": "pages-sub/product",
             "pages": [
+                {
+                    "path": "product/product-edit",
+                    "style": {
+                        "navigationBarTitleText": "新建商品"
+                    }
+                },
                 {
                     "path": "inventory/inventory",
                     "style": {

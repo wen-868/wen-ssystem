@@ -1,4 +1,4 @@
-import { get } from '../request'
+﻿import { get } from '../request'
 
 // 销售报表类型定义
 export interface SalesSummary {
@@ -119,9 +119,7 @@ const reportsApi = {
   },
 
   async getSalesTrend(params?: {
-    startDate?: string
-    endDate?: string
-    period?: 'day' | 'week' | 'month'
+    granularity?: 'day' | 'week' | 'month'
   }): Promise<SalesTrendItem[]> {
     const res: any = await get('/admin/reports/sales-trend', params)
     return (res?.list ?? res ?? []) as SalesTrendItem[]
@@ -236,8 +234,8 @@ const reportsApi = {
 
   // 采购报表接口
   async getPurchaseReport(params?: {
-    startDate?: string
-    endDate?: string
+    dateStart?: string
+    dateEnd?: string
   }): Promise<{
     summary: { totalAmount: string; orderCount: number; supplierCount: number }
     supplierList: any[]

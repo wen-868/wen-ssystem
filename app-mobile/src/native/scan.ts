@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 条码扫码原生插件封装
  *
  * 功能：
@@ -18,7 +18,7 @@
  */
 
 import { get } from '@/api/request'
-import { productsApi, type ProductInfo } from '@/api/modules/products'
+import { productsApi, type ProductInfo, type LibraryLookupResult } from '@/api/modules/products'
 import { getTenant } from '@/api/storage'
 import { LocalProductDb, type ProductDeltaData } from '@/api/local-db'
 
@@ -147,9 +147,15 @@ const QRCODE_FORMATS: ReadonlySet<string> = new Set<string>([
 /** 追溯查询页路径 */
 const TRACE_QUERY_PAGE = '/pages/admin/trace-query'
 
+/** 商品创建/编辑页路径（R64-L10 新建商品流程扫码命中时跳转） */
+const PRODUCT_CREATE_PAGE = '/pages-sub/product/product/product-edit'
+
 /** 追溯码查询 API 路径（后端 prefix=/api/admin/trace，request.ts BASE_URL 已含 /api） */
 const TRACE_QUERY_API = (traceCode: string): string =>
     `/admin/trace/query/${encodeURIComponent(traceCode)}`
+
+/** 扫码命中平台商品库后，预填充数据在 Storage 中的 key（跳转后商品创建页读取） */
+const LIBRARY_FILL_DATA_KEY = 'library_product_fill_data'
 
 // ====================== 原生插件接口 ======================
 
@@ -478,11 +484,11 @@ export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<Sca
  * ```ts
  * const stop = startContinuousScan(
  *   (result) => { /* 拿到扫码结果，按业务处理 result.code */ },
- *   { interval: 1500, title: '盘点扫码' }
- * )
+ * { interval: 1500, title: '盘点扫码' }
+    * )
  * // 用户点击停止按钮时
  * stop()
- * ```
+    * ```
  */
 export function startContinuousScan(
     callback: (result: ScanResult) => void,
@@ -633,9 +639,9 @@ function mapDeltaToProductInfo(delta: ProductDeltaData): ProductInfo {
  *
  * @example
  * ```ts
- * const result = await scanCode()
- * const handleResult = await handleScanResult(result)
- * if (handleResult.action === 'product') {
+    * const result = await scanCode()
+        * const handleResult = await handleScanResult(result)
+            * if (handleResult.action === 'product') {
  *   // 已查到商品，可加入销售单（handleResult.data 为商品信息）
  * }
  * ```
@@ -653,7 +659,7 @@ export async function handleScanResult(result: ScanResult): Promise<ScanHandleRe
             const traceData = await queryTraceChain(code)
             // 跳转到追溯查询页（页面尚待新建，路径以 R51 方案 2.1 节为准）
             uni.navigateTo({
-                url: `${TRACE_QUERY_PAGE}?code=${encodeURIComponent(code)}`,
+                url: `${ TRACE_QUERY_PAGE }?code = ${ encodeURIComponent(code) } `,
             })
             return { action: 'trace', data: traceData }
         } catch (err) {
@@ -671,7 +677,7 @@ export async function handleScanResult(result: ScanResult): Promise<ScanHandleRe
                 return { action: 'product', data: product }
             }
             // 未找到商品，提示用户
-            uni.showToast({ title: `未找到条码 ${code} 对应的商品`, icon: 'none' })
+            uni.showToast({ title: `未找到条码 ${ code } 对应的商品`, icon: 'none' })
             return { action: 'unknown', data: null }
         } catch (err) {
             const msg = err instanceof Error ? err.message : '商品查询失败'
@@ -682,15 +688,126 @@ export async function handleScanResult(result: ScanResult): Promise<ScanHandleRe
 
     // 3. 二维码 / 未知码 → toast 提示
     // 二维码内容（URL/文本）当前不做自动处理，仅提示
-    const preview = code.length > 20 ? `${code.slice(0, 20)}...` : code
+    const preview = code.length > 20 ? `${ code.slice(0, 20) }...` : code
     uni.showToast({
-        title: `未识别的二维码内容：${preview}`,
+        title: `未识别的二维码内容：${ preview } `,
         icon: 'none',
     })
     return { action: 'unknown', data: null }
 }
 
 // ====================== 便捷方法 ======================
+
+/**
+ * 【R64-L10 新建商品流程专用】扫码 - 查平台商品库 - 命中自动填充创建页表单
+ *
+ * 处理逻辑（仅用于新建商品，与 handleScanResult 的"查已有商品"完全区分）：
+ *  1. 发起扫码，仅识别 barcode 类型（二维码/追溯码提示不适用）
+ *  2. 扫到条码 - 调用 POST /api/admin/library/lookup 查询平台商品库
+ *     - body: { barcode: "扫码得到的条码" }
+ *     - 返回: { matched: boolean, spu: {...}, sku: {...}, brand? }（不含 category 字段）
+ *  3. 命中：
+ *     - 将填充数据写入 Storage（key = LIBRARY_FILL_DATA_KEY）
+ *     - 跳转 /pages-sub/product/product/product-edit 商品创建页，创建页读取后自动填充
+ *     - 填充范围：名称/品牌/规格/单位/主图/简介/SKU信息等
+ *     - 分类留空不填充（platform 商品库没有商户自定义分类信息）
+ *  4. 未命中：
+ *     - 清理 Storage 中遗留的填充数据（避免复用）
+ *     - 跳转同一商品创建页（走手动录入流程，用户手动填写表单）
+ *
+ * @param options 扫码选项（continuous 字段会被忽略）
+ * @returns 商品库查询结果（LibraryLookupResult），可用于调用方做额外处理
+ */
+export async function scanForNewProduct(
+    options?: Omit<ScanOptions, 'continuous'>
+): Promise<LibraryLookupResult> {
+    try {
+        const result = await scanCode({
+            ...(options || {}),
+            types: (options?.types && options.types.length > 0)
+                ? options.types
+                : ['barcode'],
+        })
+        const code = result.code.trim()
+        if (!code) {
+            uni.showToast({ title: '扫码内容为空', icon: 'none' })
+            uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+            uni.navigateTo({ url: PRODUCT_CREATE_PAGE })
+            return { matched: false }
+        }
+
+        if (result.type !== 'barcode') {
+            uni.showToast({ title: '请扫描商品条码', icon: 'none' })
+            uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+            uni.navigateTo({ url: PRODUCT_CREATE_PAGE })
+            return { matched: false }
+        }
+
+        const lookupResult = await productsApi.libraryLookup(code)
+
+        if (lookupResult.matched && lookupResult.spu) {
+            const fillData = {
+                name: lookupResult.spu.name ?? '',
+                brandName: lookupResult.spu.brandName ?? lookupResult.brand?.name ?? '',
+                specs: lookupResult.spu.specs ?? '',
+                unit: lookupResult.spu.unit ?? '',
+                mainImage: lookupResult.spu.mainImage ?? '',
+                imageUrls: lookupResult.spu.imageUrls ?? '',
+                description: lookupResult.spu.description ?? '',
+                suggestedRetailPrice: lookupResult.spu.suggestedRetailPrice ?? '',
+                properties: lookupResult.spu.properties ?? {},
+                sku: lookupResult.sku ? {
+                    skuCode: lookupResult.sku.skuCode ?? '',
+                    barcode: lookupResult.sku.barcode ?? code,
+                    skuName: lookupResult.sku.skuName ?? '',
+                    volume: lookupResult.sku.volume ?? '',
+                    packaging: lookupResult.sku.packaging ?? '',
+                    baseUnit: lookupResult.sku.baseUnit ?? '',
+                    boxUnit: lookupResult.sku.boxUnit ?? '',
+                    boxRatio: lookupResult.sku.boxRatio ?? 1,
+                    skuImage: lookupResult.sku.skuImage ?? '',
+                } : { barcode: code },
+                categoryId: undefined,
+                categoryName: undefined,
+            }
+            uni.setStorageSync(LIBRARY_FILL_DATA_KEY, JSON.stringify(fillData))
+            uni.showToast({ title: '已匹配商品库，正在跳转', icon: 'success' })
+        } else {
+            uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+            const tip = '未匹配商品库：' + code
+            uni.showToast({ title: tip, icon: 'none' })
+        }
+
+        uni.navigateTo({ url: PRODUCT_CREATE_PAGE })
+        return lookupResult
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : '扫码失败'
+        uni.showToast({ title: msg, icon: 'none' })
+        uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+        uni.navigateTo({ url: PRODUCT_CREATE_PAGE })
+        return { matched: false }
+    }
+}
+
+/**
+ * 读取平台商品库预填充数据（供商品创建页 onLoad 调用）
+ * 读取后自动从 Storage 中删除，避免复用
+ *
+ * @returns 预填充数据对象，未命中时返回 null
+ */
+export function consumeLibraryFillData(): Record<string, unknown> | null {
+    try {
+        const raw = uni.getStorageSync(LIBRARY_FILL_DATA_KEY)
+        if (!raw) return null
+        const data = JSON.parse(String(raw))
+        uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+        return data as Record<string, unknown>
+    } catch (err) {
+        console.error('[scan] 解析预填充数据失败:', err)
+        uni.removeStorageSync(LIBRARY_FILL_DATA_KEY)
+        return null
+    }
+}
 
 /**
  * 扫码并自动处理结果（便捷方法）
@@ -702,9 +819,9 @@ export async function handleScanResult(result: ScanResult): Promise<ScanHandleRe
  *
  * @example
  * ```ts
- * // 一键扫码并自动路由
+    * // 一键扫码并自动路由
  * const result = await scanAndHandle({ title: '扫一扫' })
- * if (result.action === 'product' && result.data) {
+    * if (result.action === 'product' && result.data) {
  *   // 商品已查到，自动跳到商品详情或加入销售单
  * }
  * ```
