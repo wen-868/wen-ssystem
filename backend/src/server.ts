@@ -27,6 +27,9 @@ import cron from "node-cron";
 
 const app = express();
 
+// 生产环境 Nginx 反向代理需要信任 X-Forwarded-For 头，否则 express-rate-limit 会抛出 ValidationError
+app.set("trust proxy", 1);
+
 // 全局未捕获异常
 process.on("uncaughtException", (err: Error) => {
   logger.error("💥 [uncaughtException] 未捕获的异常:", err);
