@@ -18,8 +18,8 @@
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width:100%">登录进入后台</el-button>
         </el-form-item>
         <el-form-item>
-          <div class="register-link">
-            还没有账号？<router-link to="/register">立即注册</router-link>
+          <div class="register-link" style="text-align:center;color:#999;font-size:13px;">
+            联系平台管理员开通账号
           </div>
         </el-form-item>
       </el-form>
