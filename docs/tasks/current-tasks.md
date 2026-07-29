@@ -652,14 +652,18 @@
 - **优先级**：P1
 - **负责人**：阿澈
 - **预计**：0.5天
-- **状态**：待开始
-- **文件**：`app-mobile/src/api/modules/dashboard.ts`
+- **状态**：✅ 已完成
+- **文件**：`app-mobile/src/api/modules/dashboard.ts`、`app-mobile/src/api/modules/store.ts`
 - **问题**：移动端 m.onepan.cn 登录成功（POST `/api/admin/auth/login` 返回200），但首页数据加载失败。**根因是移动端API调用路径错误**：`dashboard.ts` 第43行调用 `GET /admin/dashboard`，第58行调用 `GET /admin/dashboard/sales-trend`，这些是管理后台API路径，需要admin权限。移动端使用的是store登录token，调用admin端点返回401（Unauthorized），导致首页无法加载数据
-- **修复方向**：
-  1. 将 `app-mobile/src/api/modules/dashboard.ts` 中所有 `/admin/dashboard` 路径改为 `/store/dashboard`（对应的store端点）
-  2. 确认后端存在 `GET /api/store/dashboard` 等store端点，若不存在则需阿坚新增
-  3. 同时检查 `app-mobile/src/api/modules/store.ts` 第604行也调用了 `/admin/dashboard/overview`，同样需要改为 `/store/dashboard/overview`
+- **修复方向（已落地）**：
+  1. 将 `app-mobile/src/api/modules/dashboard.ts` 中所有 `/admin/dashboard` 路径改为 `/store/dashboard`（对应的store端点），共 6 处接口（getStats/getTodos/getSalesTrend/getTopProducts/getTopCustomers/getCategoryDistribution）
+  2. 已确认后端存在 `GET /api/store/dashboard` 等 store 端点（`store-dashboard.routes.ts` prefix /api/store）
+  3. 同步将 `app-mobile/src/api/modules/store.ts` 第604行的 `/admin/dashboard/overview` 改为 `/store/dashboard/overview`
 - **验收标准**：移动端登录后首页数据看板正常显示（无数据时显示0，不报401错误）
+- **完成证据**：
+  - commit: `2e3dd454 fix: R66-05 移动端dashboard API路径从/admin改为/store`
+  - grep: `grep -c "/store/dashboard" app-mobile/src/api/modules/dashboard.ts` = 6（0→6）
+  - build: `app-mobile npm run build:h5` DONE Build complete
 
 ### R66-06 — [P1] admin-web 侧边栏品牌名与登录页不一致
 
@@ -677,11 +681,15 @@
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：0.25天
-- **状态**：待开始
-- **文件**：`app-mobile/src/pages/login/login.vue` 或 uni-app 全局样式
-- **问题**：移动端加载时请求 `https://cdn.dcloud.net.cn/img/shadow-grey.png` 失败（status 0），这是 uni-app 框架内置的外部CDN资源
-- **修复方向**：将 uni-app 框架引用的CDN资源本地化，或在 manifest.json 中配置关闭不需要的CDN资源加载
-- **验收标准**：控制台无CDN资源加载失败错误
+- **状态**：✅ 已完成
+- **文件**：`app-mobile/vite.config.ts`
+- **问题**：移动端加载时请求 `https://cdn.dcloud.net.cn/img/shadow-grey.png` 失败（status 0），这是 `@dcloudio/uni-h5` 运行时 textarea/scroll-view 组件内硬编码的外部CDN资源
+- **修复方向（已落地）**：在 `app-mobile/vite.config.ts` 新增 `ache:replace-shadow-grey-cdn` vite 插件（enforce: pre），在 transform 阶段将所有 `https://cdn.dcloud.net.cn/img/shadow-grey.png` 替换为 1x1 透明 GIF 内联 base64 data-URL，从源头消除 CDN 请求
+- **验收标准**：控制台无CDN资源加载失败错误；构建产物中不再出现 shadow-grey.png
+- **完成证据**：
+  - commit: `dce98cbe fix: R66-07 替换uni-h5 CDN shadow-grey.png为本地透明像素`
+  - grep: `grep -r "shadow-grey.png" app-mobile/dist` 无任何匹配（仅 vite.config.ts 本身含该字符串）
+  - build: `app-mobile npm run build:h5` DONE Build complete
 
 ### R66-08 — [P2] admin-web 登录页"立即注册"链接功能未验证
 
@@ -699,11 +707,41 @@
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：0.25天
-- **状态**：待开始
-- **文件**：`app-mobile/src/pages/login/login.vue`
+- **状态**：✅ 已完成（完整可用，无需改动）
+- **文件**：`app-mobile/src/pages/login/login.vue`、`app-mobile/src/pages/register/register.vue`
 - **问题**：移动端登录页底部有"还没有账号？立即注册"链接，需确认注册流程是否完整可用
-- **修复方向**：确认注册流程是否已实现，如未实现则移除注册链接或改为"联系客服开通账号"
+- **核查结论**：注册流程完整可用，无需移除，直接保留。
+  - 路由：`/pages/register/register` 已在 `pages.json` 注册，点击后成功跳转
+  - 验证码接口：`POST /api/store/members/sms-code` 已存在（`member-register.routes.ts` prefix /api/store/members）
+  - 注册申请接口：`POST /api/tenant/register` 已存在（`tenant-register.routes.ts`）
+  - 页面 UI：手机号/验证码/密码/确认密码/姓名/协议勾选 + 密码强度提示 + 60s 倒计时，注册成功 2s 后 `uni.reLaunch` 跳回 `/pages/login/login`
+- **修复方向**：无改动，核查后判定功能完整可用，保留注册链接
 - **验收标准**：注册链接功能可用或已合理移除
+- **完成证据**：
+  - `app-mobile/src/pages/register/register.vue` 文件存在且代码完整（handleRegister 已联通 authApi.register + 路由跳回登录）
+  - `authApi.sendSmsCode` → `/store/members/sms-code` 与后端 `member-register.routes.ts` 对应
+  - `authApi.register` → `/tenant/register` 与后端 `tenant-register.routes.ts` 对应
+
+### R66-16 — [P1] m.onepan.cn 移动端登录成功后不跳转首页
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：✅ 已完成
+- **文件**：`app-mobile/src/api/modules/auth.ts`、`app-mobile/src/pages/login/login.vue`
+- **问题**：移动端登录显示"登录成功"且接口返回200，但仍停留在登录页。**两条根因**：
+  1. `authApi.login` 与 `authApi.getProfile` 调用的是 `/admin/auth/login` 与 `/admin/auth/me`（admin端点），但移动端用的是 store 角色 token，后续 store/dashboard 等 API 与该套 token/角色错位，导致路由守卫判定无效而回跳
+  2. 跳转使用 `uni.reLaunch` 对 tabBar 页不稳定，缺乏失败回调与降级方案
+- **修复方向（已落地）**：
+  1. `auth.ts login()`：改为 `POST /store/auth/login`（后端 `server.ts` 第161行已手动注册该端点）
+  2. `auth.ts getProfile()`：改为 `GET /store/me`（后端 `store-dashboard.routes.ts` prefix /api/store）
+  3. `login.vue handleLogin`：从 `uni.reLaunch` 改为 `uni.switchTab`（/pages/home/home 是 tabBar 页），并加 fail 回调降级到 reLaunch，再失败则 toast 提示
+- **验收标准**：登录成功后自动跳转到首页并停留，不被踢回登录页
+- **完成证据**：
+  - commit: `e8c25da2 fix: R66-16 移动端登录端点从admin改为store，并修复跳转逻辑`
+  - grep: `app-mobile/src/api/modules/auth.ts` 中 login→ `/store/auth/login`、getProfile → `/store/me`
+  - build: `app-mobile npm run build:h5` DONE Build complete
+  - 联动修复：R66-05 修复 dashboard API 路径后，首页 API 不再 401，路由守卫判定稳定
 
 ### R66-10 — [P2] 官网"Windows桌面版"下载链接未验证
 
@@ -799,20 +837,20 @@
 | R66-02 后端API 500错误（根因已定位） | 阿坚 | P0 | 1天 | ✅ 已完成 |
 | R66-03 saas-admin 页面空白 | 墨 | P0 | 0.5天 | 待开始 |
 | R66-04 页面标题为空 | 墨 | P1 | 0.25天 | 待开始 |
-| R66-05 移动端API路径错误 | 阿澈 | P1 | 0.5天 | 待开始 |
+| R66-05 移动端API路径错误 | 阿澈 | P1 | 0.5天 | ✅ 已完成 |
 | R66-06 品牌名不一致 | 墨 | P1 | 0.25天 | 待开始 |
-| R66-07 外部资源加载失败 | 阿澈 | P2 | 0.25天 | 待开始 |
+| R66-07 外部资源加载失败 | 阿澈 | P2 | 0.25天 | ✅ 已完成 |
 | R66-08 登录页注册链接 | 墨 | P2 | 0.25天 | 待开始 |
-| R66-09 移动端注册链接 | 阿澈 | P2 | 0.25天 | 待开始 |
+| R66-09 移动端注册链接 | 阿澈 | P2 | 0.25天 | ✅ 已完成 |
 | R66-10 官网Windows桌面版下载链接 | 墨 | P2 | 0.25天 | 待开始 |
 | R66-11 小程序码占位 | 墨 | P2 | 0.25天 | 待开始 |
 | R66-12 密码明文显示 | 墨 | P2 | 0.25天 | 待开始 |
 | R66-13 侧边栏菜单不跳转 | 墨 | P1 | 0.5天 | ✅ 已完成 |
 | R66-14 数据库表未完整创建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R66-15 官网门店终端死链 | 墨 | P1 | 0.25天 | 待开始 |
-| R66-16 移动端登录不跳转 | 阿澈 | P1 | 0.5天 | 待开始 |
+| R66-16 移动端登录不跳转 | 阿澈 | P1 | 0.5天 | ✅ 已完成 |
 | R66-17 商品列表报服务器错误 | 阿坚 | P2 | 0.25天 | ✅ 已完成 |
-| **合计** | — | — | **6.25天** | **4/17已完成** |
+| **合计** | — | — | **6.25天** | **8/17已完成** |
 
 > **注意事项**：
 > - **P0任务（4个）需优先处理**：R66-01登录阻断、R66-02 API 500根因修复、R66-03超级后台空白、R66-14数据库表确认
