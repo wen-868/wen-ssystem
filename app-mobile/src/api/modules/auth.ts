@@ -54,17 +54,17 @@ export interface SendSmsCodeParams {
 }
 
 const authApi = {
-  /** 登录 */
+  /** 登录（商户端store端点） */
   login(params: LoginParams): Promise<LoginResult> {
-    return post('/admin/auth/login', params)
+    return post('/store/auth/login', params)
   },
 
-  /** 获取当前用户信息 */
+  /** 获取当前用户信息（商户端store端点） */
   getProfile(): Promise<ProfileResult> {
-    return get('/admin/auth/me')
+    return get('/store/me')
   },
 
-  /** 修改密码 */
+  /** 修改密码（暂用admin端点，若后端补齐store端点后替换） */
   changePassword(oldPassword: string, newPassword: string): Promise<void> {
     return post('/admin/auth/change-password', { oldPassword, newPassword })
   },

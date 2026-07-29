@@ -125,8 +125,21 @@ async function handleLogin() {
     await userStore.login(loginForm.username.trim(), loginForm.password)
     uni.showToast({ title: '登录成功', icon: 'success' })
     setTimeout(() => {
-      uni.reLaunch({ url: '/pages/home/home' })
-    }, 1500)
+      uni.switchTab({
+        url: '/pages/home/home',
+        fail(err) {
+          // tab 切换失败时降级使用 reLaunch
+          console.warn('[login] switchTab fail, fallback to reLaunch:', err)
+          uni.reLaunch({
+            url: '/pages/home/home',
+            fail(e) {
+              console.error('[login] reLaunch also fail:', e)
+              uni.showToast({ title: '跳转失败，请手动进入首页', icon: 'none' })
+            }
+          })
+        }
+      })
+    }, 1000)
   } catch (err: any) {
     errorMsg.value = err?.message || '登录失败，请重试'
   } finally {
