@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 启动时自动数据库迁移
  *
  * 不依赖外部 SQL 文件，全部程序化执行
@@ -365,14 +365,16 @@ export async function runMigrations(): Promise<void> {
     await safeExec(conn, `
       CREATE TABLE IF NOT EXISTS t_stock_warning (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警ID',
-        sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        sku_id BIGINT UNSIGNED DEFAULT NULL COMMENT 'SKU ID',
         sku_name VARCHAR(128) DEFAULT NULL COMMENT 'SKU名称',
         current_stock INT NOT NULL DEFAULT 0 COMMENT '当前库存',
+        warning_threshold INT NOT NULL DEFAULT 0 COMMENT '预警阈值',
         warning_level VARCHAR(32) NOT NULL DEFAULT 'WARNING' COMMENT '预警级别: URGENT/WARNING/INFO',
+        store_name VARCHAR(100) DEFAULT NULL COMMENT '门店名称',
         status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/RESOLVED',
-        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
         PRIMARY KEY (id),
         KEY idx_stock_warning_sku (sku_id),
         KEY idx_stock_warning_level (warning_level),
