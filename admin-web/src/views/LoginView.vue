@@ -51,7 +51,8 @@ const loginRules: FormRules = {
   username: [{ required: true, message: "请输入账号", trigger: "blur" }],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, message: "密码至少6个字符", trigger: "blur" }
+    { min: 8, message: "密码至少8个字符", trigger: "blur" },
+    { max: 32, message: "密码不能超过32个字符", trigger: "blur" }
   ]
 };
 
