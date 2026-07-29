@@ -12,7 +12,7 @@
           <el-input v-model="loginForm.username" placeholder="请输入账号" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password />
+          <el-input v-model="loginForm.password" :type="'password'" placeholder="请输入密码" show-password autocomplete="current-password" />
         </el-form-item>
         <el-form-item prop="rememberMe">
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width:100%">登录进入后台</el-button>
