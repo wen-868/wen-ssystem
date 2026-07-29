@@ -239,4 +239,4 @@ npx vitest run
 ---
 
 > **测试人：** 苏然
-> **报告路径：** `.workspace/reports/test-report-r16-2026-07-09.md`
+> **报告路径：** `docs/reports/test-report-r16-2026-07-09.md`

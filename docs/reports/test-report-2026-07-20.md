@@ -5,7 +5,7 @@
 > **测试日期**：2026-07-20
 > **测试范围**：R51 App 原生层封装方案 9 个子任务全量验收
 > **项目根目录**：`d:\Users\Documents\TREA\wen-ssystem-main`
-> **任务索引**：`.workspace/tasks/current-tasks.md` 第 2013-2359 行
+> **任务索引**：`docs/tasks/current-tasks.md` 第 2013-2359 行
 
 ---
 

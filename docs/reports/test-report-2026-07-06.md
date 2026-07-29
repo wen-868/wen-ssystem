@@ -2,8 +2,8 @@
 
 **检测时间**：2026-07-06  
 **检测人**：苏然  
-**任务来源**：`.workspace/tasks/current-tasks.md`  
-**前置必读**：已读 `.workspace/standards/踩坑日志.md`（14条）、`.workspace/standards/项目规则.md`
+**任务来源**：`docs/tasks/current-tasks.md`  
+**前置必读**：已读 `docs/踩坑日志.md`（14条）、`docs/项目规则.md`
 
 ---
 

@@ -15,7 +15,7 @@
 
 | 序号 | 文件 | 原因 |
 |:----:|------|------|
-| 1 | `.workspace/standards/项目统一标准.md` | 项目统一执行标准（v1.5），涵盖文档开发到测试验收各环节闭环，包括代码使用标准 |
+| 1 | `docs/项目统一标准.md` | 项目统一执行标准（v1.5），涵盖文档开发到测试验收各环节闭环，包括代码使用标准 |
 | 2 | `docs/项目规则.md` | 项目全部规则（含五道防线第十二章 + 必读文件管理第十三章 + 记忆文件管理第十四章 + 任务格式含验收标准和核实字段） |
 | 3 | `docs/tasks/current-tasks.md` | 本文件（含必读清单 + 当前轮次任务） |
 | 4 | `docs/踩坑日志.md` | 避免重复踩坑，每次任务前必读（当前 15 条记录） |
@@ -2364,7 +2364,7 @@
 
 ## R40 任务列表 — 系统全局统一性审查与问题修复
 
-> 审查报告：[system-consistency-review-2026-07-16.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/.workspace/reports/system-consistency-review-2026-07-16.md)
+> 审查报告：[system-consistency-review-2026-07-16.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/system-consistency-review-2026-07-16.md)
 
 ### R40-01 — 修复 alert.service.ts 租户隔离漏洞 [P0]
 
@@ -2719,7 +2719,7 @@
 - **文件**：`backend/src/services/**/*.ts`
 - **问题**：可能存在其他缺少 tenant_id 过滤的 SQL 查询
 - **修复**：使用 grep 扫描所有 service 文件中的 SQL 查询
-- **输出**：生成租户过滤缺失报告 [tenant-filter-scan-report-2026-07-15.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/.workspace/reports/tenant-filter-scan-report-2026-07-15.md)
+- **输出**：生成租户过滤缺失报告 [tenant-filter-scan-report-2026-07-15.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/tenant-filter-scan-report-2026-07-15.md)
 - **扫描结果**：发现 25+ 个缺少 tenant_id 过滤的查询，涉及 12+ 个服务文件
 
 ### R37-01 — 修复 error-log 租户过滤漏洞 [P0]
@@ -2855,7 +2855,7 @@
 - **验收标准**：检查报告输出，样式统一
 - **完成情况**：
   - 发现并修复 8 个样式不一致问题
-  - 输出一致性检查报告：`.workspace/reports/ui-consistency-report-2026-07-15.md`
+  - 输出一致性检查报告：`docs/reports/ui-consistency-report-2026-07-15.md`
   - 修复文件：
     - `app-mobile/src/pages/login/login.vue` — 硬编码颜色替换为设计令牌
     - `app-mobile/src/uni.scss` — 补充文字按钮、主按钮 hover 和阴影
@@ -3104,7 +3104,7 @@
 - **预计**：1 天
 - **实际耗时**：1 天
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
-- **测试报告**：`.workspace/reports/test-report-r34-2026-07-15.md`
+- **测试报告**：`docs/reports/test-report-r34-2026-07-15.md`
 - **测试结果**：
   - 后端 TSC：✅ 0 错误
   - 后端 Vitest：✅ 398 个文件，4543 个用例全部通过
@@ -3166,7 +3166,7 @@
 - 负责人：苏然
 - 预计：1天
 - 状态：✅ 已完成
-- 文件：`.workspace/reports/test-report-r33-2026-07-15.md`
+- 文件：`docs/reports/test-report-r33-2026-07-15.md`
 - 问题：见测试报告，发现 P0 问题 2 个、P1 问题 4 个、P2 问题 4 个
 - 修复：见测试报告问题汇总和建议
 
@@ -3272,7 +3272,7 @@
 - 行覆盖率：50.94%（目标 ≥80%）
 
 **测试报告：**
-- `.workspace/reports/test-report-2026-07-11.md`
+- `docs/reports/test-report-2026-07-11.md`
 
 ---
 
@@ -3292,7 +3292,7 @@
 
 ## R47 — 数据库表命名统一 [进行中]
 
-> 详细方案：`.workspace/tasks/R47-数据库表命名统一修复方案.md`
+> 详细方案：`docs/tasks/R47-数据库表命名统一修复方案.md`
 
 **核心问题**：项目中两套表命名规范并存（`t_` 前缀 vs 无前缀），代码中混用，导致大量 API 返回 500。
 
@@ -3329,7 +3329,7 @@
   - 按映射表批量替换（约 20 个表名，涉及 ~30 个 service 文件）
   - 只替换 SQL 中的表名，不替换变量名/注释
   - **重点表**：`store` → `t_store`、`tenant` → `t_tenant`、`subscription` → `t_subscription` 等
-  - 完整映射表见 `.workspace/tasks/R47-数据库表命名统一修复方案.md` 任务 2
+  - 完整映射表见 `docs/tasks/R47-数据库表命名统一修复方案.md` 任务 2
 - **验收标准**：`tsc --noEmit` 0 错误，无 SQL 引用无前缀表名
 - **记忆更新**：完成后更新 `凌舟-记忆.md`
 
@@ -3384,7 +3384,7 @@
 
 ## R48 — SaaS总平台独立化修复 [进行中]
 
-> 详细方案：`.workspace/tasks/R48-SaaS总平台独立化修复.md`
+> 详细方案：`docs/tasks/R48-SaaS总平台独立化修复.md`
 >
 > **核心概念**：SaaS总平台管理租户，在商家工作台之上。总平台不隶属于任何租户，不需要 `tenant_id`。
 > 总平台和商家是**完全独立的两套认证系统**，绝对不能混用。
