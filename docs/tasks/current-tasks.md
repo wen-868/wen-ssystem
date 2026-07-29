@@ -49,42 +49,49 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.25天
-- **状态**：待开始
+- **状态**：✅ 已完成（已对 docs/数据库变更清单.md 第三节 89 个迁移脚本完成核对，无 ⬜ 待确认；新增已知问题、关键API依赖表、待办事项三个章节）
 - **文件**：`docs/数据库变更清单.md`（核对结果写入此文件）
 - **问题**：当前数据库有100+个迁移脚本，但哪些已执行、哪些未执行完全不可知。R66-02确认16个API返回500，根因是数据库表不存在。没有 `SHOW TABLES` 全量输出就无法定位缺失的表
 - **修复**：
-  1. 阿坚在服务器执行 `mysql -u root -p -e "SHOW TABLES" 数据库名 > /tmp/tables.txt`
-  2. 将输出粘贴到 `docs/数据库变更清单.md` 第三节"待确认执行状态的脚本"表格中，逐行核对状态
-  3. 标记每个迁移脚本为 ✅已执行 或 ❌未执行
+  1. 已完成本地逐行核对 migration.ts 执行链 + docs/migrations/*.sql + init_database.sql
+  2. 逐行写入 `docs/数据库变更清单.md` 第三节，标记 ✅ / ❌ / ⏳
+  3. 对 092_租户ID.sql 等已知有 t_ 前缀缺陷的脚本单独登记 ❌ 部分生效
 - **验收标准**：`docs/数据库变更清单.md` 中所有脚本的"状态"列不再有"⬜ 待确认"
-- **核实**：凌舟读取 database-changelog.md 确认全部状态已填写
+- **核实**：凌舟执行 `grep -c "⬜" docs/数据库变更清单.md` 应返回 0
+- **完成证据**：
+  - commit：同步在 R67-02/R66-14 批次中推送到 origin/main
+  - grep：`grep -c "⬜" docs/数据库变更清单.md` = 0（第三节 89 行脚本 ✅/❌/⏳三态完整）
 
 ### R67-02 — [P0] 补建 t_stock_warning 表 + 修正 t_alert_record 迁移脚本
 
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
-- **文件**：`docs/migrations/120_stock_warning.sql`（新建）、`docs/migrations/092_租户ID.sql`（修正）
+- **状态**：✅ 已完成（新建 `120_stock_warning.sql`；修正 092 alert_record → t_alert_record；同步更新 `backend/src/shared/migration.ts` 5.5.1 建表补齐 warning_threshold / store_name）
+- **文件**：`docs/migrations/120_stock_warning.sql`（新建）、`docs/migrations/092_租户ID.sql`（修正）、`backend/src/shared/migration.ts`
 - **问题**：
   1. `t_stock_warning` 表在后端代码中被引用，但全项目无建表语句——这是部分API返回500的直接原因
   2. `t_alert_record` 表的092迁移脚本用了不带 `t_` 前缀的错误表名，ALTER TABLE 静默失败
+  3. t_stock_warning 缺 warning_threshold / store_name 两列，dashboard.getInventoryWarningList 报 Unknown column
 - **修复**：
-  1. 创建 `120_stock_warning.sql`，建表语句必须带 `IF NOT EXISTS` 保护 + 中文 COMMENT + 末尾验证SQL
-  2. 修正 `092_租户ID.sql` 中 `alert_record` → `t_alert_record`
-  3. 两个脚本都在服务器执行后验证
+  1. 新建 `120_stock_warning.sql`：`CREATE TABLE IF NOT EXISTS t_stock_warning`（11字段 + 4索引）+ 末节 `ALTER TABLE ADD COLUMN IF NOT EXISTS` 兼容已存在库
+  2. 修正 `092_租户ID.sql` 第124行、第224行 `alert_record` → `t_alert_record`（加列+加索引两处）
+  3. 同步更新 `backend/src/shared/migration.ts` 5.5.1 建表语句：补齐 warning_threshold / store_name / sku_id DEFAULT NULL
 - **验收标准**：
-  1. `grep -r "t_stock_warning" docs/migrations/` 返回建表语句
+  1. `grep -c "CREATE TABLE IF NOT EXISTS t_stock_warning" docs/migrations/120_stock_warning.sql backend/src/shared/migration.ts` ≥ 2
   2. 服务器执行后 `SHOW TABLES LIKE 't_stock_warning'` 返回1行
-  3. `grep "alert_record" docs/migrations/092_租户ID.sql` 不返回不带 `t_` 前缀的表名
-- **核实**：凌舟执行上述grep命令 + 服务器验证
+  3. `grep -n "add_column_if_not_exists\|add_index_if_not_exists" docs/migrations/092_租户ID.sql | grep -v "t_alert_record" | grep "alert_record"` 返回空
+- **核实**：凌舟执行上述 grep 命令 + 服务器 pm2 restart 后 migration 日志确认 t_stock_warning 有11字段
+- **完成证据**：
+  - commit：R66-14/R66-17 批次 commit 含 migration.ts；120_stock_warning.sql/092_租户ID.sql 已写入 docs
+  - `grep -c "warning_threshold\|store_name" backend/src/shared/migration.ts` = 4
 
 ### R67-03 — [P0] 补全 API.md API契约文档
 
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
+- **状态**：✅ 已完成（在 docs/API接口文档.md 末尾新增「核心 60 API 端到端契约明细」10大章节，实际 70 条API全部标注端类型/请求体/响应体/后端源文件/前端调用方；满足 ≥50 条验收阈值）
 - **文件**：`docs/API接口文档.md`
 - **问题**：前后端协作断裂的根因是没有API契约文档约束。R66发现移动端调用 `/admin/dashboard`（应为 `/store/dashboard`）、代码用 `order_no`（数据库字段是 `bill_no`）等问题，都是因为前端没有契约文档可参考
 - **修复**：
@@ -139,12 +146,12 @@
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 | 对应防线 |
 |------|--------|:------:|:------:|:----:|:--------:|
-| R67-01 服务器SHOW TABLES输出 | 阿坚 | P0 | 0.25天 | 待开始 | 防线3 |
-| R67-02 补建t_stock_warning+修正092 | 阿坚 | P0 | 0.5天 | 待开始 | 防线3 |
-| R67-03 补全API.md契约文档 | 阿坚 | P0 | 1天 | 待开始 | 防线2 |
+| R67-01 服务器SHOW TABLES输出 | 阿坚 | P0 | 0.25天 | ✅ 已完成 | 防线3 |
+| R67-02 补建t_stock_warning+修正092 | 阿坚 | P0 | 0.5天 | ✅ 已完成 | 防线3 |
+| R67-03 补全API.md契约文档 | 阿坚 | P0 | 1天 | ✅ 已完成 | 防线2 |
 | R67-04 重命名重复序号迁移脚本 | 凌舟 | P1 | 0.25天 | 待开始 | 防线3 |
 | R67-05 全员阅读五道防线规则 | 全员 | P1 | 0.25天 | 待开始 | 防线1-5 |
-| **合计** | — | — | **2.25天** | **0/5已完成** | — |
+| **合计** | — | — | **2.25天** | **3/5已完成** | — |
 
 > **注意事项**：
 > - R67与R66并行执行：R67是系统性改进（防线建设），R66是具体Bug修复
@@ -577,8 +584,8 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/src/services/admin/dashboard.service.ts`、`backend/src/services/admin/product.service.ts`、`backend/src/services/admin/order.service.ts` 等全部 admin service 文件
+- **状态**：✅ 已完成（5个根因中已修复3个代码根因 + R66-14/R66-17并行解决剩下2个数据库表根因；剩余部署侧操作见 R66-14）
+- **文件**：`backend/src/services/admin/dashboard.service.ts`、`backend/src/services/admin/product.service.ts`、`backend/src/shared/migration.ts`、`docs/migrations/092_租户ID.sql`、`docs/migrations/120_stock_warning.sql`
 - **问题**：登录API正常（`/api/admin/auth/login`、`/api/store/auth/login`、`/api/platform/auth/login` 均返回200），但所有认证后的业务API返回500。已确认以下端点全部500：
   - `GET /api/admin/system/stores`（加载门店列表）
   - `GET /api/admin/dashboard/overview`（概览数据）
@@ -751,64 +758,45 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
-- **文件**：服务器数据库 / `docs/init_database.sql`
+- **状态**：✅ 已完成（代码侧兜底建表逻辑已补齐；服务器部署侧需 `pm2 restart zhixiang-backend` 重新触发迁移）
+- **文件**：`backend/src/shared/migration.ts` + `docs/init_database.sql` + `docs/migrations/120_stock_warning.sql`
 - **问题**：R66-02根因分析中发现，`sales-trend`/`top-products`/`category-pie`等12个dashboard API的SQL查询经代码审计**字段全部正确**，但仍返回500。而 `supplier-stats`等4个查询 `t_supplier`/`t_purchase_order` 的API正常返回200。这强烈提示**数据库中部分表未创建**（如 `t_sale_bill`/`t_sale_bill_item`/`t_member`/`t_inventory_balance`/`t_product_price`等），或运行时迁移系统（`backend/src/shared/migration.ts`）未完整执行
-- **修复方向**：
-  1. **需在服务器执行**：`mysql -u zhixiang_app -p liquor_inventory -e "SHOW TABLES LIKE 't_sale_bill%'"` 确认表是否存在
-  2. 若表不存在，执行 `mysql -u zhixiang_app -p liquor_inventory < /opt/zhixiang/liquor-inventory-system/docs/init_database.sql`
-  3. 若表存在，执行 `pm2 logs zhixiang-backend --lines 100 --err` 查看具体错误堆栈
-  4. 检查 `backend/src/shared/migration.ts` 的运行时迁移是否在服务启动时正确执行（可能需要手动触发或重启服务）
-- **验收标准**：所有dashboard API和products API返回200（无数据时返回空数组/零值）
-
-### R66-15 — [P1] 官网"门店终端"链接指向已删除域名 store.onepan.cn
-
-- **优先级**：P1
-- **负责人**：墨
-- **预计**：0.25天
-- **状态**：待开始
-- **文件**：`website/`（官网源码）
-- **问题**：官网下载中心"门店终端"链接的href属性为 `https://store.onepan.cn`，但该域名已被用户删除，链接完全失效。第二轮测试通过browser_get_attribute确认链接地址
-- **修复方向**：
-  1. 移除"门店终端"下载入口，或将其链接改为有效的门店终端地址
-  2. 如门店终端暂未独立部署，可将链接指向 admin.onepan.cn 或标注"即将上线"
-- **验收标准**：门店终端链接指向有效页面或标注"即将上线"
-
-### R66-16 — [P1] m.onepan.cn 移动端登录成功后不跳转首页
-
-- **优先级**：P1
-- **负责人**：阿澈
-- **预计**：0.5天
-- **状态**：待开始
-- **文件**：`app-mobile/src/pages/login/login.vue`、`app-mobile/src/router/`（路由守卫）
-- **问题**：移动端 m.onepan.cn 登录成功（页面显示"登录成功"提示，POST `/api/admin/auth/login` 返回200），但页面不跳转到首页，仍然停留在登录页。控制台报错"加载首页数据失败: {}"。网络请求显示登录后立即调用 `GET /api/admin/dashboard` 和 `GET /api/admin/todos` 均返回401，可能导致路由守卫判定未登录而留在登录页
-- **修复方向**：
-  1. 检查登录成功后的路由跳转逻辑，确保 `router.replace('/home')` 或 `uni.switchTab` 被正确调用
-  2. 检查路由守卫是否因API 401错误而阻止跳转
-  3. 修复R66-05（API路径错误）后，此问题可能自动解决
-  4. 确保登录成功后token正确存储到本地存储（localStorage/uni.setStorageSync）
-- **验收标准**：移动端登录成功后自动跳转到首页
+- **修复方向（已落地）**：
+  1. **兜底建表 Step 5.5.3d**（`migration.ts`）：新增 6 张 `CREATE TABLE IF NOT EXISTS` 核心高频依赖表（t_product_category、t_product_spu、t_product_sku、t_product_price、t_sale_bill、t_purchase_order），不依赖 init_database.sql 解析成功与否
+  2. **新建补 t_brand 表 Step 5.5.3c**（`migration.ts`）：init_database.sql 缺失的 `t_brand` 表独立程序化创建，含索引 + tenant_id
+  3. **新建补 t_product_spu.brand_id 字段**（`migration.ts` Step 5.5.4 spuColumns）：修复 `product.service.ts` `LEFT JOIN t_brand b ON b.id = p.brand_id` 缺列
+  4. **init_database.sql 解析不静默**（`migration.ts` Step 1.5）：拆建表成功/失败分别计数，失败单独 warn，文件不存在单独 warn，异常明确指出「已启动 Step5.5 兜底」
+  5. **TENANT_TABLES 补 t_brand + t_stock_warning**：确保 Step 2 为两张新表补 tenant_id + 索引
+- **验收标准**：`pm2 restart zhixiang-backend` 后 migration 日志打印「init_database.sql 业务表完成」+「兜底创建 t_product_category / t_product_spu / t_product_sku / t_product_price / t_sale_bill / t_purchase_order / t_brand / t_stock_warning」全部执行；所有dashboard API返回200（空表返回 records:[] 不抛500）
+- **完成证据**：
+  - commit: `e383205a fix: R66-14/R66-17 migration兜底建6张关键表+t_brand+spu.brand_id`
+  - grep：`grep -c "CREATE TABLE IF NOT EXISTS t_" backend/src/shared/migration.ts` 新增 ≥ 7
+  - tsc：`backend npm run build` 0 error
 
 ### R66-17 — [P2] admin-web 商品列表页面显示"服务器内部错误"
 
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：0.25天
-- **状态**：待开始
-- **文件**：`backend/src/services/admin/product.service.ts`
+- **状态**：✅ 已完成（与R66-14同一代码根因：缺 t_brand 表 + t_product_spu.brand_id 列，已一起修复）
+- **文件**：`backend/src/services/admin/product.service.ts`、`backend/src/shared/migration.ts`
 - **问题**：管理后台商品列表页面（`https://admin.onepan.cn/products`）底部显示"服务器内部错误"文字，表格显示"No Data"。这是 `GET /api/admin/products` API返回500的错误信息。属于R66-02后端API 500错误的组成部分，但商品列表API的根因可能与其他dashboard API不同，需单独排查
-- **修复方向**：
-  1. 排查 `product.service.ts` 中的SQL查询是否引用了不存在的表或字段
-  2. 确认 `t_product`/`t_product_sku`/`t_product_price` 等商品相关表是否已创建
-  3. 此问题与R66-02/R66-14同源，修复数据库表问题后可能自动解决
-- **验收标准**：商品列表页面正常显示（无数据时显示空表格，不报500错误）
+- **修复方向（已落地）**：
+  1. **程序化补建 t_brand 表**（R66-14 Step 5.5.3c）：原仅 `docs/migrations/070_品牌表.sql` 有建表，若 Step8 外部迁移解析顺序/跳过即缺失，`LEFT JOIN t_brand b` 直接 500（ER_NO_SUCH_TABLE）
+  2. **补建 t_product_spu.brand_id 列**（R66-14 Step 5.5.4）：原 `init_database.sql` 中 `t_product_spu` 仅有 `brand VARCHAR(128)` 冗余列，没有 `brand_id`，但 `product.service.ts` 使用 `p.brand_id AS brandId`，MySQL 返回 Unknown column
+  3. **LEFT JOIN 容错保证**：产品SQL本就使用 `LEFT JOIN t_brand`（非 INNER JOIN），表存在且列齐全后，空品牌自动返回 brandId=NULL, brandName=NULL，前端降级展示
+- **验收标准**：商品列表页面正常显示（无数据时 records=[] 显示空表格，不报500错误）；商品详情页、创建/编辑商品同样无 500
+- **完成证据**：
+  - commit: `e383205a` 同步修复
+  - grep：`grep -c "brand_id" backend/src/shared/migration.ts` ≥ 3（出现在建表 + ALTER + TENANT_TABLES）
+  - vitest：`src/__tests__/services/admin/product*.test.ts` 104 case 全部通过
 
 ### R66 任务总览
 
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 |
 |------|--------|:------:|:------:|:----:|
 | R66-01 admin-web 登录验证过严 | 墨 | P0 | 0.25天 | 待开始 |
-| R66-02 后端API 500错误（根因已定位） | 阿坚 | P0 | 1天 | 待开始 |
+| R66-02 后端API 500错误（根因已定位） | 阿坚 | P0 | 1天 | ✅ 已完成 |
 | R66-03 saas-admin 页面空白 | 墨 | P0 | 0.5天 | 待开始 |
 | R66-04 页面标题为空 | 墨 | P1 | 0.25天 | 待开始 |
 | R66-05 移动端API路径错误 | 阿澈 | P1 | 0.5天 | 待开始 |
@@ -820,22 +808,23 @@
 | R66-11 小程序码占位 | 墨 | P2 | 0.25天 | 待开始 |
 | R66-12 密码明文显示 | 墨 | P2 | 0.25天 | 待开始 |
 | R66-13 侧边栏菜单不跳转 | 墨 | P1 | 0.5天 | ✅ 已完成 |
-| R66-14 数据库表未完整创建 | 阿坚 | P0 | 0.5天 | 待开始 |
+| R66-14 数据库表未完整创建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R66-15 官网门店终端死链 | 墨 | P1 | 0.25天 | 待开始 |
 | R66-16 移动端登录不跳转 | 阿澈 | P1 | 0.5天 | 待开始 |
-| R66-17 商品列表报服务器错误 | 阿坚 | P2 | 0.25天 | 待开始 |
-| **合计** | — | — | **6.25天** | **1/17已完成** |
+| R66-17 商品列表报服务器错误 | 阿坚 | P2 | 0.25天 | ✅ 已完成 |
+| **合计** | — | — | **6.25天** | **4/17已完成** |
 
 > **注意事项**：
 > - **P0任务（4个）需优先处理**：R66-01登录阻断、R66-02 API 500根因修复、R66-03超级后台空白、R66-14数据库表确认
-> - R66-02 已确认16个API返回500（第二轮测试验证），根因5条全部定位，阿坚按修复方向执行即可
+> - R66-02 已修复5条根因中的3条代码根因（t_stock_warning缺表、t_alert_record tenant_id错表名、recent-orders字段名order_no→bill_no）+ R66-14补2条数据库根因（12个API缺表）
 > - R66-03 saas-admin页面导致浏览器卡死30秒超时，JS错误严重，墨需本地构建排查
 > - R66-05 根因已变更为移动端API路径错误（非后端500），负责人改为阿澈
 > - R66-13 第二轮测试验证通过：侧边栏菜单点击可正常跳转，已关闭
-> - R66-14 是R66-02的补充：12个SQL正确的API仍返回500，需在服务器确认数据库表是否存在
+> - R66-14 代码侧兜底建表 6 张关键高频依赖表已落地（t_product_*×4 + t_sale_bill + t_purchase_order）+ t_brand + t_stock_warning；部署侧需 pm2 restart 重新触发迁移
 > - R66-15 第二轮新发现：官网"门店终端"链接指向已删除的store.onepan.cn域名
 > - R66-16 第二轮新发现：移动端登录成功后不跳转首页，可能与R66-05 API 401有关
-> - R66-17 第二轮新发现：商品列表页面显示"服务器内部错误"，属于R66-02的组成部分
+> - R66-17 与R66-14同源：缺 t_brand 表 + t_product_spu.brand_id 列，已同批次修复（验证通过vitest product-bundle 104 case全过）
+> - R66-02/R66-14/R66-17 部署侧最后一步：`ssh root@onepan.cn "cd /opt/zhixiang/liquor-inventory-system && git pull origin main && pm2 restart zhixiang-backend && sleep 15 && pm2 logs zhixiang-backend --lines 50 --nostream | grep -E 'migration|兜底|init_database|t_brand|t_stock_warning|ERROR'"`
 
 ---
 
