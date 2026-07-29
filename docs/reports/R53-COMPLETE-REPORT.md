@@ -24,7 +24,7 @@
   - audit.routes.ts: prefix /api/admin/audit-logs → /api/admin/system/audit-logs
   - 同步更新3个路由测试断言
   - 同步更新前端api/system.ts 4处roles路径
-  - 同步更新docs/API.md和tests/docs/test-cases.md
+  - 同步更新docs/API接口文档.md和tests/docs/test-cases.md
 - **验证**：tsc 0错误，vitest通过
 
 ### R53-03 — 生产环境种子数据初始化 [P0] ✅

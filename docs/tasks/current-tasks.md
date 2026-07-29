@@ -19,8 +19,8 @@
 | 2 | `docs/项目规则.md` | 项目全部规则（含五道防线第十二章 + 必读文件管理第十三章 + 记忆文件管理第十四章 + 任务格式含验收标准和核实字段） |
 | 3 | `docs/tasks/current-tasks.md` | 本文件（含必读清单 + 当前轮次任务） |
 | 4 | `docs/踩坑日志.md` | 避免重复踩坑，每次任务前必读（当前 15 条记录） |
-| 5 | `docs/API.md` | API 契约文档，前后端对齐的唯一真相源 |
-| 6 | `docs/database-changelog.md` | 数据库变更清单，确认表是否存在（当前多数脚本待确认） |
+| 5 | `docs/API接口文档.md` | API 契约文档，前后端对齐的唯一真相源 |
+| 6 | `docs/数据库变更清单.md` | 数据库变更清单，确认表是否存在（当前多数脚本待确认） |
 | 7 | `docs/memories/姓名-记忆.md` | 你的个人记忆文件，恢复上下文 |
 
 ### 临时必读（问题解决后移出）
@@ -41,7 +41,7 @@
 > **核心文档**：
 > - `docs/项目规则.md` 第十二章——五道防线规则（已写入）
 > - `docs/问题循环根因分析与改进方案.md`——完整根因分析与改进方案（已创建）
-> - `docs/database-changelog.md`——数据库变更清单（已创建）
+> - `docs/数据库变更清单.md`——数据库变更清单（已创建）
 > - `docs/踩坑日志.md` [15]——问题循环根因记录（已写入）
 
 ### R67-01 — [P0] 阿坚提供服务器 SHOW TABLES 全量输出
@@ -50,13 +50,13 @@
 - **负责人**：阿坚
 - **预计**：0.25天
 - **状态**：待开始
-- **文件**：`docs/database-changelog.md`（核对结果写入此文件）
+- **文件**：`docs/数据库变更清单.md`（核对结果写入此文件）
 - **问题**：当前数据库有100+个迁移脚本，但哪些已执行、哪些未执行完全不可知。R66-02确认16个API返回500，根因是数据库表不存在。没有 `SHOW TABLES` 全量输出就无法定位缺失的表
 - **修复**：
   1. 阿坚在服务器执行 `mysql -u root -p -e "SHOW TABLES" 数据库名 > /tmp/tables.txt`
-  2. 将输出粘贴到 `docs/database-changelog.md` 第三节"待确认执行状态的脚本"表格中，逐行核对状态
+  2. 将输出粘贴到 `docs/数据库变更清单.md` 第三节"待确认执行状态的脚本"表格中，逐行核对状态
   3. 标记每个迁移脚本为 ✅已执行 或 ❌未执行
-- **验收标准**：`docs/database-changelog.md` 中所有脚本的"状态"列不再有"⬜ 待确认"
+- **验收标准**：`docs/数据库变更清单.md` 中所有脚本的"状态"列不再有"⬜ 待确认"
 - **核实**：凌舟读取 database-changelog.md 确认全部状态已填写
 
 ### R67-02 — [P0] 补建 t_stock_warning 表 + 修正 t_alert_record 迁移脚本
@@ -85,7 +85,7 @@
 - **负责人**：阿坚
 - **预计**：1天
 - **状态**：待开始
-- **文件**：`docs/API.md`
+- **文件**：`docs/API接口文档.md`
 - **问题**：前后端协作断裂的根因是没有API契约文档约束。R66发现移动端调用 `/admin/dashboard`（应为 `/store/dashboard`）、代码用 `order_no`（数据库字段是 `bill_no`）等问题，都是因为前端没有契约文档可参考
 - **修复**：
   1. 在 API.md 中为所有前后端交互API补充契约定义
@@ -96,10 +96,10 @@
      - 超级后台（`/api/platform/*`）所有端点
   4. 标注哪些API的数据库表依赖尚未确认（与R67-01联动）
 - **验收标准**：
-  1. `grep -c "^### " docs/API.md` 返回值 ≥ 50（至少50个API契约定义）
-  2. `grep "/api/store/" docs/API.md` 有移动端端点定义
-  3. `grep "/api/admin/" docs/API.md` 有管理后台端点定义
-  4. `grep "/api/platform/" docs/API.md` 有超级后台端点定义
+  1. `grep -c "^### " docs/API接口文档.md` 返回值 ≥ 50（至少50个API契约定义）
+  2. `grep "/api/store/" docs/API接口文档.md` 有移动端端点定义
+  3. `grep "/api/admin/" docs/API接口文档.md` 有管理后台端点定义
+  4. `grep "/api/platform/" docs/API接口文档.md` 有超级后台端点定义
 - **核实**：凌舟执行上述grep命令确认数量和覆盖范围
 
 ### R67-04 — [P1] 重命名重复序号的迁移脚本
@@ -116,7 +116,7 @@
   3. `115_performance_indexes.sql` → `120c_performance_indexes.sql`
   4. `116_fix_server_3bugs.sql` → `120d_fix_server_3bugs.sql`
   5. `116_transfer_stock_log.sql` → `120e_transfer_stock_log.sql`
-  6. 更新 `docs/database-changelog.md` 中的序号记录
+  6. 更新 `docs/数据库变更清单.md` 中的序号记录
 - **验收标准**：`ls docs/migrations/ | grep -E "^(075|081|115|116)" | wc -l` 每个序号只返回1个文件
 - **核实**：凌舟执行ls命令确认无重复序号
 
