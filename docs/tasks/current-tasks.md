@@ -1,4 +1,4 @@
-# 当前任务 — R64(进行中) + R65(已完成) + R63(已完成) + R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
+# 当前任务 — R66(进行中) + R64(进行中) + R65(已完成) + R63(已完成) + R59(已完成) + R58(已完成) + R57(已完成) + R56(已完成) + R55-04(已完成) + R52(已完成) + R47 + R48
 
 > 仓库：https://github.com/wen-868/wen-ssystem  
 > 唯一分支：main  
@@ -384,6 +384,310 @@
 |------|--------|:------:|:------:|:----:|
 | R65-01 app-mobile 报表API参数迁移 | 阿澈 | P1 | 0.5天 | ✅ 已完成 |
 | **合计** | — | — | **0.5天** | — |
+
+---
+
+## R66 — 全域名实际体验验收与问题修复 [进行中 — 凌舟 2026-07-29]
+
+> **日期**：2026-07-29
+> **来源**：用户要求"检测各个域名，进去实际页面进行体验，每个功能都要实际体验，有问题全部列出并分配修复"
+> **说明**：凌舟对全部5个域名（www.onepan.cn、admin.onepan.cn、saas.onepan.cn、m.onepan.cn、api.onepan.cn）进行实际浏览器体验检测，逐个功能点验证。第二轮测试发现17个问题，分P0/P1/P2三级分配修复。R66-02已确认16个API返回500，R66-13侧边栏菜单跳转已验证正常（关闭），新增R66-15/R66-16/R66-17三个问题
+
+### 域名体验检测结果（第二轮 — 2026-07-29）
+
+| 域名 | 状态 | 问题数 |
+|------|------|:------:|
+| www.onepan.cn（官网） | 🟡 页面正常但门店终端链接指向已删除域名 | 2 |
+| admin.onepan.cn（管理后台） | 🔴 仪表盘可加载但16个API返回500 + 商品列表报错 | 5 |
+| saas.onepan.cn（超级后台） | 🔴 页面空白+浏览器卡死30秒超时 | 2 |
+| m.onepan.cn（移动端） | 🔴 登录成功但不跳转首页 + API 401 | 4 |
+| api.onepan.cn（API后端） | 🟡 登录正常但业务API 500 | 1 |
+
+### 问题汇总（17个）
+
+| 级别 | 数量 | 说明 |
+|:----:|:----:|------|
+| P0 | 4 | 登录阻断、API 500根因修复、超级后台空白、数据库表未创建 |
+| P1 | 5 | 页面标题缺失、移动端API路径错误、品牌名不一致、官网门店终端死链、移动端登录不跳转 |
+| P2 | 8 | 登录页注册链接、密码明文显示、CDN资源、官网下载链接、小程序码、商品列表报错等 |
+
+---
+
+### R66-01 — [P0] admin-web 登录表单密码验证过严导致无法登录
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`admin-web/src/views/LoginView.vue`
+- **问题**：登录表单密码验证规则（R54-14添加）要求密码"必须包含字母+数字+特殊字符"，但默认密码`admin123`不含特殊字符，前端验证直接拦截导致完全无法登录。后端API `/api/admin/auth/login` 实际可以正常验证`admin123`，问题仅在前端验证过严
+- **修复方向**：登录表单的密码验证只应检查"必填+最小长度"，不应强制密码复杂度。密码复杂度规则（字母+数字+特殊字符）只应应用于密码创建/修改表单（如 EmployeesView.vue 的密码重置），不应用于登录表单。删除 LoginView.vue 中第58-67行的密码复杂度验证（含字母/含数字/含特殊字符三个validator），只保留 required + min:8 + max:32
+- **验收标准**：使用 admin/admin123 可以在 admin.onepan.cn 正常登录
+
+### R66-02 — [P0] 后端所有认证后业务API返回500错误
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/dashboard.service.ts`、`backend/src/services/admin/product.service.ts`、`backend/src/services/admin/order.service.ts` 等全部 admin service 文件
+- **问题**：登录API正常（`/api/admin/auth/login`、`/api/store/auth/login`、`/api/platform/auth/login` 均返回200），但所有认证后的业务API返回500。已确认以下端点全部500：
+  - `GET /api/admin/system/stores`（加载门店列表）
+  - `GET /api/admin/dashboard/overview`（概览数据）
+  - `GET /api/admin/dashboard/sales-trend`（销售趋势）
+  - `GET /api/admin/dashboard/category-pie`（品类占比）
+  - `GET /api/admin/dashboard/top-customers`（客户排行）
+  - `GET /api/admin/dashboard/top-employees`（员工排行）
+  - `GET /api/admin/dashboard/top-products`（商品排行）
+  - `GET /api/admin/dashboard/recent-alerts`（预警数据）
+  - `GET /api/admin/dashboard/inventory-stats`（库存分析）
+  - `GET /api/admin/dashboard/customer-activity`（客户分析）
+  - `GET /api/admin/products`（商品列表）
+  - `GET /api/admin/orders`（订单列表）
+- **根因分析**（凌舟实际体验+代码审计后确认）：
+  - **根因1**：`t_stock_warning` 表从未创建（全项目无建表语句，仅存在 `t_stock_warning_config`，字段不兼容）。影响3个API：`overview`、`todos`、`inventory-warning`。代码位置：`dashboard.service.ts` 第330-337行、第604-611行、第783-793行
+  - **根因2**：`t_alert_record` 表缺少 `tenant_id` 字段。该表定义在 `004_phase3_schema.sql`，无 `tenant_id`；`092_租户ID.sql` 尝试补字段但用了不带 `t_` 前缀的表名（`alert_record` 而非 `t_alert_record`），导致 ALTER TABLE 未生效。影响1个API：`recent-alerts`。代码位置：第515-521行
+  - **根因3**：`t_sale_bill` 表字段名用错。代码使用 `order_no`/`order_status`，实际字段是 `bill_no`/`business_status`。影响1个API：`recent-orders`。代码位置：第653-661行
+  - **根因4**：`t_store` 表缺少5个微信字段（`miniapp_appid`/`wx_merchant_name`/`wx_service_phone`/`wx_head_img`/`wx_qrcode_url`）。这些字段由 `backend/src/shared/migration.ts` 第403-416行运行时动态添加，若迁移未执行则必500。影响1个API：`system/stores`
+  - **根因5**：`sales-trend`/`top-products`/`category-pie`/`top-employees`/`inventory-stats`/`top-customers`/`inventory-value-analysis`/`customer-stats`/`inventory-turnover`/`customer-growth-trend`/`customer-activity`/`customer-category-stats` 共12个API的SQL查询经审计**字段全部正确**，但仍返回500。可能原因：数据库中相关表（`t_sale_bill`/`t_sale_bill_item`/`t_member`/`t_inventory_balance`/`t_product_price`等）未创建，或运行时迁移系统未完整执行。**需登录服务器执行 `SHOW TABLES` 确认**
+  - **正常API参考**：`supplier-stats`/`supplier-purchase-ranking`/`supplier-on-time-rate`/`supplier-trend` 4个API返回200，查询 `t_supplier`/`t_purchase_order` 表正常
+- **修复方向**：
+  1. **新建迁移脚本 `120_fix_dashboard_500.sql`**：
+     - 创建 `t_stock_warning` 表（字段：`id/tenant_id/sku_name/current_stock/warning_threshold/warning_level/store_name/status/created_at/updated_at`）
+     - `ALTER TABLE t_alert_record ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default'`
+     - 修复 `092_租户ID.sql` 中不带 `t_` 前缀的表名问题
+  2. **修改 `dashboard.service.ts`**：
+     - 第653-661行：`order_no` → `bill_no`，`order_status` → `business_status`，同步修正 `getStatusLabel` 状态枚举
+     - 或将 `t_stock_warning` 查询改为基于 `t_inventory_balance` + `t_stock_warning_config` 实时计算
+  3. **确认 `t_store` 表的5个微信字段已添加**：在服务器执行 `DESCRIBE t_store` 检查，若缺失则手动执行 `migration.ts` 中的 ALTER TABLE 语句
+  4. **登录服务器执行 `SHOW TABLES LIKE 't_sale_bill%'`** 确认表是否存在，若不存在则需执行 `init_database.sql`
+  5. **查看PM2日志**：`pm2 logs zhixiang-backend --lines 100 --err` 获取具体错误堆栈
+- **验收标准**：`GET /api/admin/dashboard/overview` 和 `GET /api/admin/products` 返回200且数据格式正确
+
+### R66-03 — [P0] saas-admin 超级后台页面空白无法加载
+
+- **优先级**：P0
+- **负责人**：墨
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`saas-admin/`（需重新构建部署）
+- **问题**：访问 saas.onepan.cn 页面完全空白，控制台报JS错误（vendor-BGUSFuhi.js 第25行），Vue应用无法挂载。所有静态资源（JS/CSS）返回200但JS执行报错。`<div id="app">` 内只有一个 `<!---->` 注释节点，说明Vue渲染失败
+- **修复方向**：
+  1. 在本地 `cd saas-admin && npm run build` 检查是否有构建错误
+  2. 检查 `saas-admin/src/main.ts` 和 `saas-admin/src/router/index.ts` 是否有运行时错误
+  3. 重点检查 `saas-admin/src/stores/auth.ts` 中 pinia-persist 初始化是否导致循环依赖或初始化失败
+  4. 修复后重新构建并部署到服务器 `/var/www/saas-admin`
+- **验收标准**：访问 saas.onepan.cn 能正常显示登录页面
+
+### R66-04 — [P1] admin-web 和 saas-admin 页面标题为空
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`admin-web/index.html`、`saas-admin/index.html`
+- **问题**：admin.onepan.cn 和 saas.onepan.cn 的浏览器标签页标题显示"Untitled"，因为 index.html 中 `<title>` 标签为空。对比 www.onepan.cn 的标题"智享全链管理系统 - 酒水行业数字化管理专家 | onepan.cn"正常
+- **修复方向**：
+  - `admin-web/index.html` 设置 `<title>智享全链管理系统 - 管理后台</title>`
+  - `saas-admin/index.html` 设置 `<title>智享全链管理系统 - 平台总后台</title>`
+- **验收标准**：浏览器标签页显示正确标题
+
+### R66-05 — [P1] m.onepan.cn 移动端登录后首页数据加载失败
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`app-mobile/src/api/modules/dashboard.ts`
+- **问题**：移动端 m.onepan.cn 登录成功（POST `/api/admin/auth/login` 返回200），但首页数据加载失败。**根因是移动端API调用路径错误**：`dashboard.ts` 第43行调用 `GET /admin/dashboard`，第58行调用 `GET /admin/dashboard/sales-trend`，这些是管理后台API路径，需要admin权限。移动端使用的是store登录token，调用admin端点返回401（Unauthorized），导致首页无法加载数据
+- **修复方向**：
+  1. 将 `app-mobile/src/api/modules/dashboard.ts` 中所有 `/admin/dashboard` 路径改为 `/store/dashboard`（对应的store端点）
+  2. 确认后端存在 `GET /api/store/dashboard` 等store端点，若不存在则需阿坚新增
+  3. 同时检查 `app-mobile/src/api/modules/store.ts` 第604行也调用了 `/admin/dashboard/overview`，同样需要改为 `/store/dashboard/overview`
+- **验收标准**：移动端登录后首页数据看板正常显示（无数据时显示0，不报401错误）
+
+### R66-06 — [P1] admin-web 侧边栏品牌名与登录页不一致
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`admin-web/src/layouts/`（侧边栏组件）
+- **问题**：管理后台登录页显示"智享全链管理系统"，但登录后侧边栏Logo旁显示"智享酒仓"，品牌名称不一致
+- **修复方向**：统一品牌名称为"智享全链"，侧边栏Logo文字改为"智享全链"或"智享全链管理系统"
+- **验收标准**：全站品牌名称统一
+
+### R66-07 — [P2] m.onepan.cn 外部资源加载失败
+
+- **优先级**：P2
+- **负责人**：阿澈
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`app-mobile/src/pages/login/login.vue` 或 uni-app 全局样式
+- **问题**：移动端加载时请求 `https://cdn.dcloud.net.cn/img/shadow-grey.png` 失败（status 0），这是 uni-app 框架内置的外部CDN资源
+- **修复方向**：将 uni-app 框架引用的CDN资源本地化，或在 manifest.json 中配置关闭不需要的CDN资源加载
+- **验收标准**：控制台无CDN资源加载失败错误
+
+### R66-08 — [P2] admin-web 登录页"立即注册"链接功能未验证
+
+- **优先级**：P2
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`admin-web/src/views/LoginView.vue`
+- **问题**：管理后台登录页底部有"还没有账号？立即注册"链接，但当前系统是B2B SaaS模式，租户通过平台总后台创建，不应在管理后台登录页提供注册入口
+- **修复方向**：移除登录页的"立即注册"链接，或改为"联系管理员开通账号"提示文字
+- **验收标准**：登录页不再显示不合理的注册入口
+
+### R66-09 — [P2] m.onepan.cn 登录页"立即注册"链接功能未验证
+
+- **优先级**：P2
+- **负责人**：阿澈
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`app-mobile/src/pages/login/login.vue`
+- **问题**：移动端登录页底部有"还没有账号？立即注册"链接，需确认注册流程是否完整可用
+- **修复方向**：确认注册流程是否已实现，如未实现则移除注册链接或改为"联系客服开通账号"
+- **验收标准**：注册链接功能可用或已合理移除
+
+### R66-10 — [P2] 官网"Windows桌面版"下载链接未验证
+
+- **优先级**：P2
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`website/`（官网源码）
+- **问题**：官网下载中心"Windows桌面版"链接指向 `https://github.com/wen-868/wen-ssystem/releases`，需确认是否有实际发布版本。门店终端链接已拆分为R66-15单独处理
+- **修复方向**：确认GitHub Releases是否有发布版本，如暂无则标注"即将上线"
+- **验收标准**：Windows桌面版下载链接指向有效页面或标注"即将上线"
+
+### R66-11 — [P2] 官网"微信小程序"二维码占位图
+
+- **优先级**：P2
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`website/`（官网源码）
+- **问题**：官网下载中心"微信小程序"区域显示"小程序码"文字占位，无实际二维码图片
+- **修复方向**：替换为实际小程序码图片，或标注"小程序开发中"
+- **验收标准**：小程序区域显示二维码图片或合理的提示文字
+
+### R66-12 — [P2] admin-web 登录页密码输入框明文显示问题
+
+- **优先级**：P2
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`admin-web/src/views/LoginView.vue`
+- **问题**：在某些浏览器交互场景下，密码输入框的值从掩码（••••••••）变为明文显示。可能是密码显示/隐藏切换功能的交互问题
+- **修复方向**：检查密码输入框的 type 属性绑定，确保默认为 password 类型
+- **验收标准**：密码输入框始终显示掩码
+
+### R66-13 — [P1] admin-web 侧边栏菜单点击不跳转
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：0.5天
+- **状态**：已完成（第二轮测试验证通过）
+- **文件**：`admin-web/src/layouts/`（侧边栏组件，可能涉及 `SidebarMenu.vue` 或 `MainLayout.vue`）
+- **问题**：在管理后台仪表盘页面，展开"商品中心"子菜单后，点击"商品列表"菜单项，URL不变化，页面不跳转。但直接在地址栏输入 `https://admin.onepan.cn/products` 可以正常访问商品列表页。说明侧边栏菜单项的点击事件未正确触发路由跳转
+- **修复方向**：
+  1. 检查侧边栏菜单组件的 `@click` 或 `router-link` 绑定是否正确
+  2. 检查 `el-menu` 的 `router` 属性是否启用（Element Plus 的 `el-menu` 需设置 `router` 属性才能自动路由跳转）
+  3. 检查菜单项的 `index` 属性是否与路由路径匹配
+- **验收标准**：点击侧边栏任意菜单项可正常跳转到对应页面
+- **第二轮测试结果**：✅ 点击"商品中心"展开子菜单后，点击"商品列表"，URL成功跳转到 `https://admin.onepan.cn/products`，商品列表页面正常加载（但商品数据API返回500，见R66-17）
+
+### R66-14 — [P0] 后端数据库表可能未完整创建导致12个API返回500
+
+- **优先级**：P0
+- **负责人**：阿坚
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：服务器数据库 / `docs/init_database.sql`
+- **问题**：R66-02根因分析中发现，`sales-trend`/`top-products`/`category-pie`等12个dashboard API的SQL查询经代码审计**字段全部正确**，但仍返回500。而 `supplier-stats`等4个查询 `t_supplier`/`t_purchase_order` 的API正常返回200。这强烈提示**数据库中部分表未创建**（如 `t_sale_bill`/`t_sale_bill_item`/`t_member`/`t_inventory_balance`/`t_product_price`等），或运行时迁移系统（`backend/src/shared/migration.ts`）未完整执行
+- **修复方向**：
+  1. **需在服务器执行**：`mysql -u zhixiang_app -p liquor_inventory -e "SHOW TABLES LIKE 't_sale_bill%'"` 确认表是否存在
+  2. 若表不存在，执行 `mysql -u zhixiang_app -p liquor_inventory < /opt/zhixiang/liquor-inventory-system/docs/init_database.sql`
+  3. 若表存在，执行 `pm2 logs zhixiang-backend --lines 100 --err` 查看具体错误堆栈
+  4. 检查 `backend/src/shared/migration.ts` 的运行时迁移是否在服务启动时正确执行（可能需要手动触发或重启服务）
+- **验收标准**：所有dashboard API和products API返回200（无数据时返回空数组/零值）
+
+### R66-15 — [P1] 官网"门店终端"链接指向已删除域名 store.onepan.cn
+
+- **优先级**：P1
+- **负责人**：墨
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`website/`（官网源码）
+- **问题**：官网下载中心"门店终端"链接的href属性为 `https://store.onepan.cn`，但该域名已被用户删除，链接完全失效。第二轮测试通过browser_get_attribute确认链接地址
+- **修复方向**：
+  1. 移除"门店终端"下载入口，或将其链接改为有效的门店终端地址
+  2. 如门店终端暂未独立部署，可将链接指向 admin.onepan.cn 或标注"即将上线"
+- **验收标准**：门店终端链接指向有效页面或标注"即将上线"
+
+### R66-16 — [P1] m.onepan.cn 移动端登录成功后不跳转首页
+
+- **优先级**：P1
+- **负责人**：阿澈
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`app-mobile/src/pages/login/login.vue`、`app-mobile/src/router/`（路由守卫）
+- **问题**：移动端 m.onepan.cn 登录成功（页面显示"登录成功"提示，POST `/api/admin/auth/login` 返回200），但页面不跳转到首页，仍然停留在登录页。控制台报错"加载首页数据失败: {}"。网络请求显示登录后立即调用 `GET /api/admin/dashboard` 和 `GET /api/admin/todos` 均返回401，可能导致路由守卫判定未登录而留在登录页
+- **修复方向**：
+  1. 检查登录成功后的路由跳转逻辑，确保 `router.replace('/home')` 或 `uni.switchTab` 被正确调用
+  2. 检查路由守卫是否因API 401错误而阻止跳转
+  3. 修复R66-05（API路径错误）后，此问题可能自动解决
+  4. 确保登录成功后token正确存储到本地存储（localStorage/uni.setStorageSync）
+- **验收标准**：移动端登录成功后自动跳转到首页
+
+### R66-17 — [P2] admin-web 商品列表页面显示"服务器内部错误"
+
+- **优先级**：P2
+- **负责人**：阿坚
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/product.service.ts`
+- **问题**：管理后台商品列表页面（`https://admin.onepan.cn/products`）底部显示"服务器内部错误"文字，表格显示"No Data"。这是 `GET /api/admin/products` API返回500的错误信息。属于R66-02后端API 500错误的组成部分，但商品列表API的根因可能与其他dashboard API不同，需单独排查
+- **修复方向**：
+  1. 排查 `product.service.ts` 中的SQL查询是否引用了不存在的表或字段
+  2. 确认 `t_product`/`t_product_sku`/`t_product_price` 等商品相关表是否已创建
+  3. 此问题与R66-02/R66-14同源，修复数据库表问题后可能自动解决
+- **验收标准**：商品列表页面正常显示（无数据时显示空表格，不报500错误）
+
+### R66 任务总览
+
+| 任务 | 负责人 | 优先级 | 工作量 | 状态 |
+|------|--------|:------:|:------:|:----:|
+| R66-01 admin-web 登录验证过严 | 墨 | P0 | 0.25天 | 待开始 |
+| R66-02 后端API 500错误（根因已定位） | 阿坚 | P0 | 1天 | 待开始 |
+| R66-03 saas-admin 页面空白 | 墨 | P0 | 0.5天 | 待开始 |
+| R66-04 页面标题为空 | 墨 | P1 | 0.25天 | 待开始 |
+| R66-05 移动端API路径错误 | 阿澈 | P1 | 0.5天 | 待开始 |
+| R66-06 品牌名不一致 | 墨 | P1 | 0.25天 | 待开始 |
+| R66-07 外部资源加载失败 | 阿澈 | P2 | 0.25天 | 待开始 |
+| R66-08 登录页注册链接 | 墨 | P2 | 0.25天 | 待开始 |
+| R66-09 移动端注册链接 | 阿澈 | P2 | 0.25天 | 待开始 |
+| R66-10 官网Windows桌面版下载链接 | 墨 | P2 | 0.25天 | 待开始 |
+| R66-11 小程序码占位 | 墨 | P2 | 0.25天 | 待开始 |
+| R66-12 密码明文显示 | 墨 | P2 | 0.25天 | 待开始 |
+| R66-13 侧边栏菜单不跳转 | 墨 | P1 | 0.5天 | ✅ 已完成 |
+| R66-14 数据库表未完整创建 | 阿坚 | P0 | 0.5天 | 待开始 |
+| R66-15 官网门店终端死链 | 墨 | P1 | 0.25天 | 待开始 |
+| R66-16 移动端登录不跳转 | 阿澈 | P1 | 0.5天 | 待开始 |
+| R66-17 商品列表报服务器错误 | 阿坚 | P2 | 0.25天 | 待开始 |
+| **合计** | — | — | **6.25天** | **1/17已完成** |
+
+> **注意事项**：
+> - **P0任务（4个）需优先处理**：R66-01登录阻断、R66-02 API 500根因修复、R66-03超级后台空白、R66-14数据库表确认
+> - R66-02 已确认16个API返回500（第二轮测试验证），根因5条全部定位，阿坚按修复方向执行即可
+> - R66-03 saas-admin页面导致浏览器卡死30秒超时，JS错误严重，墨需本地构建排查
+> - R66-05 根因已变更为移动端API路径错误（非后端500），负责人改为阿澈
+> - R66-13 第二轮测试验证通过：侧边栏菜单点击可正常跳转，已关闭
+> - R66-14 是R66-02的补充：12个SQL正确的API仍返回500，需在服务器确认数据库表是否存在
+> - R66-15 第二轮新发现：官网"门店终端"链接指向已删除的store.onepan.cn域名
+> - R66-16 第二轮新发现：移动端登录成功后不跳转首页，可能与R66-05 API 401有关
+> - R66-17 第二轮新发现：商品列表页面显示"服务器内部错误"，属于R66-02的组成部分
 
 ---
 
