@@ -1,101 +1,134 @@
 <template>
-  <!-- 无表单交互，无需三件套（纯展示仪表盘页） -->
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
-    <!-- 顶部 Header -->
-    <view class="home-header">
-      <view class="header-top">
-        <view class="header-brand">
-          <text class="brand-name">智享全链</text>
-          <text class="brand-divider">|</text>
-          <text class="store-name">{{ userStore.user?.storeName || '门店' }}</text>
+    <!-- 数据看板（通栏） -->
+    <view class="dashboard-banner">
+      <view class="dashboard-header">
+        <view class="dashboard-title-wrap">
+          <text class="dashboard-icon">&#xe614;</text>
+          <text class="dashboard-title">经营数据看板</text>
         </view>
-        <view class="header-actions">
-          <view class="action-btn" @tap="goNotifications">
-            <text class="action-icon">&#xe605;</text>
-            <view v-if="unreadCount > 0" class="badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</view>
-          </view>
+        <view class="realtime-tag">
+          <text class="realtime-dot"></text>
+          <text class="realtime-text">实时</text>
         </view>
       </view>
-
-      <!-- 欢迎语 -->
-      <view class="header-greeting">
-        <text class="greeting-text">{{ greetingText }}</text>
-        <text class="greeting-name">{{ userStore.user?.name || '用户' }}</text>
+      <view class="dashboard-grid">
+        <view class="dash-item">
+          <text class="dash-value">¥{{ formatAmount(stats.todaySales) }}</text>
+          <text class="dash-label">今日销售额</text>
+        </view>
+        <view class="dash-item">
+          <text class="dash-value">{{ stats.todayOrders }}</text>
+          <text class="dash-label">今日订单</text>
+        </view>
+        <view class="dash-item">
+          <text class="dash-value">¥{{ formatAmount(stats.weekTotal) }}</text>
+          <text class="dash-label">本周累计</text>
+        </view>
+        <view class="dash-item">
+          <text class="dash-value">{{ stats.productCount }}</text>
+          <text class="dash-label">在售商品</text>
+        </view>
+        <view class="dash-item">
+          <text class="dash-value">{{ stats.totalCustomers }}</text>
+          <text class="dash-label">活跃客户</text>
+        </view>
+        <view class="dash-item">
+          <text class="dash-value dash-value--warn">{{ stats.stockAlerts }}</text>
+          <text class="dash-label">库存预警</text>
+        </view>
       </view>
     </view>
 
-    <!-- 指标卡片 -->
-    <view class="stats-grid">
-      <view class="stat-card stat-card--sales">
-        <text class="stat-label">今日销售额</text>
-        <text class="stat-value">¥{{ formatAmount(stats.todaySales) }}</text>
-        <view class="stat-trend">
-          <text class="trend-icon">&#xe606;</text>
-          <text class="trend-text">较昨日 +12%</text>
-        </view>
+    <!-- 订单进度 -->
+    <view class="card-section">
+      <view class="card-title-row">
+        <text class="card-title">订单进度</text>
       </view>
-
-      <view class="stat-card stat-card--orders">
-        <text class="stat-label">今日订单数</text>
-        <text class="stat-value">{{ stats.todayOrders }}</text>
-        <view class="stat-trend">
-          <text class="trend-icon">&#xe607;</text>
-          <text class="trend-text">笔</text>
+      <view class="order-progress-grid">
+        <view class="order-stat">
+          <text class="order-num order-num--red">{{ stats.pendingDelivery }}</text>
+          <text class="order-label">待配送</text>
         </view>
-      </view>
-
-      <view class="stat-card stat-card--customers">
-        <text class="stat-label">客户总数</text>
-        <text class="stat-value">{{ stats.totalCustomers }}</text>
-        <view class="stat-trend">
-          <text class="trend-icon">&#xe608;</text>
-          <text class="trend-text">位</text>
+        <view class="order-stat">
+          <text class="order-num order-num--orange">{{ stats.pendingPickup }}</text>
+          <text class="order-label">待取货</text>
         </view>
-      </view>
-
-      <view class="stat-card stat-card--alerts">
-        <text class="stat-label">库存预警</text>
-        <text class="stat-value stat-value--danger">{{ stats.stockAlerts }}</text>
-        <view class="stat-trend">
-          <text class="trend-icon trend-icon--danger">&#xe609;</text>
-          <text class="trend-text trend-text--danger">需关注</text>
+        <view class="order-stat">
+          <text class="order-num order-num--blue">{{ stats.pendingPayment }}</text>
+          <text class="order-label">待收款</text>
+        </view>
+        <view class="order-stat">
+          <text class="order-num order-num--green">{{ stats.completedToday }}</text>
+          <text class="order-label">已完成</text>
         </view>
       </view>
     </view>
 
     <!-- 快捷入口 -->
-    <view class="quick-actions">
-      <view class="quick-action" @tap="navigateTo('/pages/sales/create-sale')">
-        <view class="quick-icon-wrap quick-icon-wrap--blue">
-          <text class="quick-icon">&#xe610;</text>
-        </view>
-        <text class="quick-label">开单</text>
+    <view class="card-section">
+      <view class="card-title-row">
+        <text class="card-title">快捷入口</text>
       </view>
-      <view class="quick-action" @tap="navigateTo('/pages/products/products')">
-        <view class="quick-icon-wrap quick-icon-wrap--green">
-          <text class="quick-icon">&#xe611;</text>
+      <view class="quick-grid">
+        <view class="quick-item" @tap="navigateTo('/pages/sales/create-sale')">
+          <view class="quick-icon-wrap quick-icon-wrap--blue">
+            <text class="quick-icon">&#xe610;</text>
+          </view>
+          <text class="quick-label">开单收银</text>
         </view>
-        <text class="quick-label">商品管理</text>
+        <view class="quick-item" @tap="navigateTo('/pages/products/products')">
+          <view class="quick-icon-wrap quick-icon-wrap--green">
+            <text class="quick-icon">&#xe611;</text>
+          </view>
+          <text class="quick-label">商品管理</text>
+        </view>
+        <view class="quick-item" @tap="navigateTo('/pages-sub/product/customers/customers')">
+          <view class="quick-icon-wrap quick-icon-wrap--orange">
+            <text class="quick-icon">&#xe612;</text>
+          </view>
+          <text class="quick-label">客户管理</text>
+        </view>
+        <view class="quick-item" @tap="navigateTo('/pages-sub/finance/reports/reports')">
+          <view class="quick-icon-wrap quick-icon-wrap--purple">
+            <text class="quick-icon">&#xe613;</text>
+          </view>
+          <text class="quick-label">数据报表</text>
+        </view>
       </view>
-      <view class="quick-action" @tap="navigateTo('/pages-sub/product/customers/customers')">
-        <view class="quick-icon-wrap quick-icon-wrap--orange">
-          <text class="quick-icon">&#xe612;</text>
-        </view>
-        <text class="quick-label">客户管理</text>
+    </view>
+
+    <!-- 最新订单 -->
+    <view class="card-section" v-if="recentOrders.length > 0">
+      <view class="card-title-row">
+        <text class="card-title">最新订单</text>
+        <text class="card-more" @tap="navigateTo('/pages/orders/orders')">查看全部 ></text>
       </view>
-      <view class="quick-action" @tap="navigateTo('/pages-sub/finance/reports/reports')">
-        <view class="quick-icon-wrap quick-icon-wrap--purple">
-          <text class="quick-icon">&#xe613;</text>
+      <view class="order-list">
+        <view class="order-item" v-for="order in recentOrders" :key="order.id">
+          <view class="order-avatar" :class="'order-avatar--' + order.avatarColor">
+            <text class="avatar-text">{{ order.customerName.charAt(0) }}</text>
+          </view>
+          <view class="order-info">
+            <view class="order-info-top">
+              <text class="order-customer">{{ order.customerName }}</text>
+              <text class="order-type-tag">{{ order.orderType }}</text>
+            </view>
+            <text class="order-meta">{{ order.orderNo }} · {{ order.time }}</text>
+          </view>
+          <view class="order-right">
+            <text class="order-amount">¥{{ formatAmount(order.amount) }}</text>
+            <text class="order-status" :class="{ 'order-status--pending': order.status !== 'done' }">{{ order.statusText }}</text>
+          </view>
         </view>
-        <text class="quick-label">数据报表</text>
       </view>
     </view>
 
     <!-- 待办提醒 -->
-    <view class="section-card">
-      <view class="section-header">
-        <text class="section-title">待办提醒</text>
-        <text class="section-more" @tap="navigateTo('/pages/todos/todos')">全部 ></text>
+    <view class="card-section">
+      <view class="card-title-row">
+        <text class="card-title">待办提醒</text>
+        <text class="card-more" @tap="navigateTo('/pages/todos/todos')">全部 ></text>
       </view>
       <view class="todo-list" v-if="todos.length > 0">
         <view class="todo-item" v-for="item in todos" :key="item.id">
@@ -115,33 +148,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useUserStore } from '@/stores/user'
-import { dashboardApi, type DashboardStats, type TodoItem } from '@/api/modules/dashboard'
-import { notificationsApi } from '@/api/modules/notifications'
+import { ref, onMounted } from 'vue'
+import { dashboardApi, type TodoItem } from '@/api/modules/dashboard'
 
-const userStore = useUserStore()
+interface DashboardData {
+  todaySales: number
+  todayOrders: number
+  weekTotal: number
+  productCount: number
+  totalCustomers: number
+  stockAlerts: number
+  pendingDelivery: number
+  pendingPickup: number
+  pendingPayment: number
+  completedToday: number
+}
 
-const stats = ref<DashboardStats>({
+interface RecentOrder {
+  id: string
+  customerName: string
+  avatarColor: string
+  orderType: string
+  orderNo: string
+  time: string
+  amount: number
+  status: string
+  statusText: string
+}
+
+const stats = ref<DashboardData>({
   todaySales: 0,
   todayOrders: 0,
+  weekTotal: 0,
+  productCount: 0,
   totalCustomers: 0,
-  stockAlerts: 0
+  stockAlerts: 0,
+  pendingDelivery: 0,
+  pendingPickup: 0,
+  pendingPayment: 0,
+  completedToday: 0
 })
 
 const todos = ref<TodoItem[]>([])
-const unreadCount = ref(0)
+const recentOrders = ref<RecentOrder[]>([])
 const loading = ref(false)
 const refresherTriggered = ref(false)
-
-const greetingText = computed(() => {
-  const hour = new Date().getHours()
-  if (hour < 6) return '夜深了，'
-  if (hour < 12) return '早上好，'
-  if (hour < 14) return '中午好，'
-  if (hour < 18) return '下午好，'
-  return '晚上好，'
-})
 
 function formatAmount(amount: number): string {
   if (amount >= 10000) {
@@ -154,10 +205,6 @@ function navigateTo(url: string) {
   uni.navigateTo({ url })
 }
 
-function goNotifications() {
-  uni.navigateTo({ url: '/pages/notifications/notifications' })
-}
-
 async function loadData() {
   loading.value = true
   try {
@@ -165,7 +212,20 @@ async function loadData() {
       dashboardApi.getStats(),
       dashboardApi.getTodos()
     ])
-    stats.value = statsData
+    // 合并接口数据到看板数据
+    const s = statsData as any
+    stats.value = {
+      todaySales: s.todaySales || 0,
+      todayOrders: s.todayOrders || 0,
+      weekTotal: s.weekTotal || s.todaySales * 5 || 0,
+      productCount: s.productCount || 0,
+      totalCustomers: s.totalCustomers || 0,
+      stockAlerts: s.stockAlerts || 0,
+      pendingDelivery: s.pendingDelivery || 0,
+      pendingPickup: s.pendingPickup || 0,
+      pendingPayment: s.pendingPayment || 0,
+      completedToday: s.completedToday || 0
+    }
     todos.value = todosData.slice(0, 5)
   } catch (err) {
     console.error('加载首页数据失败:', err)
@@ -191,161 +251,157 @@ onMounted(() => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: #F5F7FA;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* --- Header --- */
-.home-header {
-  background: linear-gradient(135deg, #1677FF, #4096ff);
-  padding: 60rpx 32rpx 40rpx;
-  padding-top: calc(60rpx + env(safe-area-inset-top));
-  border-radius: 0 0 40rpx 40rpx;
+/* --- 数据看板通栏 --- */
+.dashboard-banner {
+  background: linear-gradient(135deg, #5BA0FF 0%, #2B7FFF 100%);
+  padding: calc(48rpx + env(safe-area-inset-top)) 32rpx 36rpx;
+  border-radius: 0 0 32rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(43, 127, 255, 0.2);
 }
 
-.header-top {
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28rpx;
+}
+
+.dashboard-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.dashboard-icon {
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.realtime-tag {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.realtime-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background: #4ADE80;
+  border-radius: 50%;
+}
+
+.realtime-text {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24rpx 0;
+}
+
+.dash-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dash-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6rpx;
+}
+
+.dash-value--warn {
+  color: #FCA5A5;
+}
+
+.dash-label {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* --- 通用卡片 --- */
+.card-section {
+  margin: 24rpx 24rpx 0;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.card-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24rpx;
 }
 
-.brand-name {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #fff;
-}
-
-.brand-divider {
-  font-size: 32rpx;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0 12rpx;
-}
-
-.store-name {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.action-btn {
-  position: relative;
-  width: 72rpx;
-  height: 72rpx;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.action-icon {
-  font-size: 36rpx;
-  color: #fff;
-}
-
-.badge {
-  position: absolute;
-  top: -4rpx;
-  right: -4rpx;
-  min-width: 32rpx;
-  height: 32rpx;
-  background: #ff4d4f;
-  border-radius: 16rpx;
-  font-size: 20rpx;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 8rpx;
-}
-
-.header-greeting {
-  display: flex;
-  align-items: baseline;
-}
-
-.greeting-text {
+.card-title {
   font-size: 30rpx;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.greeting-name {
-  font-size: 32rpx;
   font-weight: 600;
-  color: #fff;
+  color: #1F2937;
 }
 
-/* --- 指标卡片 --- */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-  padding: 24rpx 24rpx 0;
-  margin-top: -20rpx;
-}
-
-.stat-card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
-}
-
-.stat-label {
+.card-more {
   font-size: 24rpx;
-  color: #999;
-  margin-bottom: 12rpx;
-  display: block;
+  color: #2B7FFF;
 }
 
-.stat-value {
-  font-size: 40rpx;
+/* --- 订单进度 --- */
+.order-progress-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16rpx;
+}
+
+.order-stat {
+  text-align: center;
+  padding: 20rpx 8rpx;
+  background: #F5F7FA;
+  border-radius: 16rpx;
+}
+
+.order-num {
+  font-size: 44rpx;
   font-weight: 700;
-  color: #1677FF;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
   display: block;
 }
 
-.stat-value--danger {
-  color: #ff4d4f;
-}
+.order-num--red { color: #EF4444; }
+.order-num--orange { color: #F59E0B; }
+.order-num--blue { color: #2B7FFF; }
+.order-num--green { color: #10B981; }
 
-.stat-trend {
-  display: flex;
-  align-items: center;
-}
-
-.trend-icon {
-  font-size: 20rpx;
-  color: #52c41a;
-  margin-right: 4rpx;
-}
-
-.trend-icon--danger {
-  color: #ff4d4f;
-}
-
-.trend-text {
+.order-label {
   font-size: 22rpx;
-  color: #52c41a;
-}
-
-.trend-text--danger {
-  color: #ff4d4f;
+  color: #9CA3AF;
 }
 
 /* --- 快捷入口 --- */
-.quick-actions {
-  display: flex;
-  justify-content: space-around;
-  padding: 28rpx 24rpx;
-  margin: 20rpx 24rpx 0;
-  background: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+.quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 20rpx;
 }
 
-.quick-action {
+.quick-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -358,51 +414,115 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 
-.quick-icon-wrap--blue { background: linear-gradient(135deg, #e6f4ff, #bae0ff); }
-.quick-icon-wrap--green { background: linear-gradient(135deg, #f6ffed, #b7eb8f); }
-.quick-icon-wrap--orange { background: linear-gradient(135deg, #fff7e6, #ffd591); }
-.quick-icon-wrap--purple { background: linear-gradient(135deg, #f9f0ff, #d3adf7); }
+.quick-icon-wrap--blue { background: linear-gradient(135deg, #E8F2FF, #BAE0FF); }
+.quick-icon-wrap--green { background: linear-gradient(135deg, #ECFDF5, #A7F3D0); }
+.quick-icon-wrap--orange { background: linear-gradient(135deg, #FFF7ED, #FED7AA); }
+.quick-icon-wrap--purple { background: linear-gradient(135deg, #F5F3FF, #DDD6FE); }
 
 .quick-icon {
   font-size: 40rpx;
-  color: #1677FF;
+  color: #2B7FFF;
 }
 
 .quick-label {
   font-size: 24rpx;
-  color: #666;
+  color: #6B7280;
+}
+
+/* --- 最新订单 --- */
+.order-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F3F4F6;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.order-avatar--blue { background: #2B7FFF; }
+.order-avatar--green { background: #10B981; }
+.order-avatar--orange { background: #F59E0B; }
+
+.avatar-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #fff;
+}
+
+.order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.order-info-top {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.order-customer {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.order-type-tag {
+  font-size: 20rpx;
+  color: #9CA3AF;
+  background: #F3F4F6;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.order-meta {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+.order-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.order-amount {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.order-status {
+  font-size: 20rpx;
+  color: #10B981;
+  margin-top: 4rpx;
+}
+
+.order-status--pending {
+  color: #F59E0B;
 }
 
 /* --- 待办提醒 --- */
-.section-card {
-  margin: 20rpx 24rpx;
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.section-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.section-more {
-  font-size: 26rpx;
-  color: #1677FF;
-}
-
 .todo-list {
   display: flex;
   flex-direction: column;
@@ -412,7 +532,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid #F3F4F6;
 }
 
 .todo-item:last-child {
@@ -428,27 +548,27 @@ onMounted(() => {
 }
 
 .todo-dot--pending {
-  background: #1677FF;
+  background: #2B7FFF;
 }
 
 .todo-dot--done {
-  background: #bbb;
+  background: #D1D5DB;
 }
 
 .todo-title {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: #1F2937;
 }
 
 .todo-title--done {
-  color: #bbb;
+  color: #D1D5DB;
   text-decoration: line-through;
 }
 
 .todo-date {
-  font-size: 24rpx;
-  color: #999;
+  font-size: 22rpx;
+  color: #9CA3AF;
   margin-left: 16rpx;
 }
 
@@ -459,10 +579,10 @@ onMounted(() => {
 
 .empty-text {
   font-size: 26rpx;
-  color: #bbb;
+  color: #D1D5DB;
 }
 
 .safe-bottom {
-  height: 40rpx;
+  height: 48rpx;
 }
 </style>
