@@ -123,7 +123,7 @@ CALL add_column_if_not_exists('price_change_log', 'tenant_id', "VARCHAR(36) NOT 
 CALL add_column_if_not_exists('alert_rule', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 CALL add_column_if_not_exists('t_alert_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 CALL add_column_if_not_exists('expiry_alert_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
-CALL add_column_if_not_exists('expiry_alert_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
+CALL add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
 
 -- 溯源相关
 CALL add_column_if_not_exists('trace_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id");
@@ -223,7 +223,7 @@ CALL add_index_if_not_exists('price_change_log', 'idx_price_change_log_tenant', 
 CALL add_index_if_not_exists('alert_rule', 'idx_alert_rule_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('t_alert_record', 'idx_alert_record_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('expiry_alert_config', 'idx_expiry_alert_config_tenant', '(tenant_id)');
-CALL add_index_if_not_exists('expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)');
+CALL add_index_if_not_exists('t_expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('trace_config', 'idx_trace_config_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('trace_code', 'idx_trace_code_tenant', '(tenant_id)');
 CALL add_index_if_not_exists('trace_event_log', 'idx_trace_event_log_tenant', '(tenant_id)');
