@@ -192,7 +192,7 @@
 | R64-L06 | saas-admin：商品库列表页+新增/编辑对话框+SKU管理（独立板块） | 凌舟 | P0 | 1.5天 | ✅ 已完成（vite build 零错误） |
 | R64-L07 | saas-admin：品牌管理页+审核列表页+批量导入页 | 凌舟 | P0 | 1天 | ✅ 已完成（vite build 零错误） |
 | R64-L08 | saas-admin：API Key 管理页（创建/管理/统计） | 凌舟 | P0 | 0.5天 | ✅ 已完成（vite build 零错误） |
-| R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ⬜ 待开始 |
+| R64-L09 | admin-web：商品新增页条码查询联动（不填充分类） | 墨 | P0 | 0.5天 | ✅ 已完成（vue-tsc 0 错误 / build 成功） |
 | R64-L10 | app-mobile：扫码结果分发增加商品库查询 | 阿澈 | P0 | 0.5天 | ⬜ 待开始 |
 | R64-L11 | 预置数据：酒水行业常见品牌+热门商品113条 | 凌舟 | P1 | 0.5天 | ✅ 已完成（18品牌+113SPU+113SKU） |
 | **合计** | — | — | — | **8.5天** | — |
@@ -290,11 +290,16 @@
 - **优先级**：P0
 - **负责人**：墨
 - **预计**：0.5天
-- **状态**：⬜ 待开始
-- **文件**：`admin-web/src/views/Products.vue`、`admin-web/src/api/library.ts`
+- **状态**：✅ 已完成（vue-tsc 0 错误 / build 成功）
+- **文件**：`admin-web/src/views/product/Products.vue`、`admin-web/src/api/library.ts`
 - **问题**：商户在 admin-web 新增商品时无法从商品库自动获取信息
-- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮，输入条码后调用 `/api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/SKU信息），**不填充分类** — 商户自行选择
+- **修复**：在商品新增对话框的条码输入框旁增加"查询商品库"按钮（el-input append 插槽，Search 图标），输入条码后调用 `POST /api/admin/library/lookup`，命中则自动填充表单字段（名称/品牌/规格/单位/主图/酒精度/产地/简介/SKU信息），**不填充分类** — 商户自行选择。代码组成：
+  1. 新建 `admin-web/src/api/library.ts`：导出 `LibraryLookupResult` 接口和 `lookupLibraryByBarcode()` 函数
+  2. `Products.vue`：添加 Search 图标 + library.ts import
+  3. SKU 表格的条码输入框改为带 append 查库按钮（空条码禁用 + 查询中 loading 状态显示）
+  4. 添加 `skuLookupLoading` 响应式对象 + `lookupFromLibrary(idx)` 异步函数（命中后逐项填充 SPU/SKU 字段，分类不填，空字段才覆盖保留商户已填内容）
 - **验收标准**：输入已知条码后点击查询，表单自动填充（分类为空），字段可编辑
+- **验证证据**：admin-web `npm run build:check` → vue-tsc -b + vite build 0 错误（built in 46.41s，echarts chunk 468KB ≤ 500KB 合规）；saas-admin `npm run build` → 0 错误（42.10s）
 
 #### R64-L10 — app-mobile：扫码商品库查询
 

@@ -150,20 +150,32 @@ const router = createRouter({
         {
           path: 'library/spus',
           name: 'LibrarySpus',
-          component: () => import('../views/library/SpuList.vue'),
-          meta: { title: '商品库' },
+          component: () => import('../views/library/LibrarySpus.vue'),
+          meta: { title: '商品库 · SPU管理' },
         },
         {
           path: 'library/brands',
           name: 'LibraryBrands',
-          component: () => import('../views/library/BrandList.vue'),
-          meta: { title: '品牌管理' },
+          component: () => import('../views/library/LibraryBrands.vue'),
+          meta: { title: '商品库 · 品牌管理' },
+        },
+        {
+          path: 'library/reviews',
+          name: 'LibraryReviews',
+          component: () => import('../views/library/LibraryReviews.vue'),
+          meta: { title: '商品库 · 审核列表' },
+        },
+        {
+          path: 'library/import',
+          name: 'LibraryImport',
+          component: () => import('../views/library/LibraryImport.vue'),
+          meta: { title: '商品库 · 批量导入' },
         },
         {
           path: 'library/api-keys',
           name: 'LibraryApiKeys',
-          component: () => import('../views/library/ApiKeyList.vue'),
-          meta: { title: 'API密钥' },
+          component: () => import('../views/library/LibraryApiKeys.vue'),
+          meta: { title: '商品库 · API密钥' },
         },
         {
           path: 'mobile-preview',

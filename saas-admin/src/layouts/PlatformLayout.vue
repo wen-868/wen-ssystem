@@ -60,9 +60,11 @@
             <el-icon><Goods /></el-icon>
             <span>商品库</span>
           </template>
-          <el-menu-item index="/library/spus">商品管理</el-menu-item>
+          <el-menu-item index="/library/spus">SPU 管理</el-menu-item>
           <el-menu-item index="/library/brands">品牌管理</el-menu-item>
-          <el-menu-item index="/library/api-keys">API密钥</el-menu-item>
+          <el-menu-item index="/library/reviews">审核列表</el-menu-item>
+          <el-menu-item index="/library/import">批量导入</el-menu-item>
+          <el-menu-item index="/library/api-keys">API Key 管理</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/mobile-preview">
           <el-icon><Cellphone /></el-icon>
