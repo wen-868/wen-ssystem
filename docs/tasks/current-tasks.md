@@ -68,7 +68,7 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（61张表×122处CALL参数，逐表对比TENANT_TABLES，commit c4adc93f）
 - **文件**：
   - `docs/migrations/092_租户ID.sql`（L87-L231，共约100个CALL语句，包含add_column 50个+add_index 50个）
   - 参考真相源：`backend/src/shared/migration.ts` TENANT_TABLES 数组定义（L50~L60附近）
@@ -87,6 +87,12 @@
   1. 关键grep验证：`grep -E "CALL add_column_if_not_exists|CALL add_index_if_not_exists" docs/migrations/092_租户ID.sql | grep -v "'t_" | awk -F"'" '{print $2}'` → 执行后逐行与 TENANT_TABLES 数组对比，输出中**所有行在 TENANT_TABLES 中都有对应不带t_的版本**（即不存在"TENANT_TABLES带t_但092输出不带t_"的表名）
   2. 简化版验收：对已知8张高危表（alert_rule, expiry_alert_config, trace_config, trace_code, trace_event_log, trace_scan_log, recall_record, alert_record），`grep -n "add_column_if_not_exists\|add_index_if_not_exists" docs/migrations/092_租户ID.sql | grep -E "(alert_rule|expiry_alert_config|trace_config|trace_code|trace_event_log|trace_scan_log|recall_record)"` 返回的所有行中表名参数**全部带 t_ 前缀**
   3. 无反向回归：`grep -n "t_sys_config\|t_sys_user" docs/migrations/092_租户ID.sql` 返回 0（sys_* 表本来就不带t_，不得误加）
+
+- **完成证据**：
+  - commit：\`c4adc93f\` fix: R69-01 092_租户ID.sql 61张表全面t_前缀对齐
+  - 验收1（剩余不带t_ CALL参数集合）：仅 sys_config/sys_permission/sys_role/sys_role_permission/sys_user/sys_user_role（6张豁免×2处）=12处 ✅
+  - 验收2（8张高危表）：alert_rule/expiry_alert_config/trace_config/trace_code/trace_event_log/trace_scan_log/recall_record/alert_record 全部18处CALL带t_前缀 ✅
+  - 验收3（反向回归 sys_* 未误加）：CALL参数 t_sys_ 命中数 0 ✅
 - **核实**：凌舟执行上述 grep 三条命令；同时抽查 TENANT_TABLES 中前20张带t_前缀的表在092中对应列名全部带t_
 
 ### R69-02 — [P2] env.ts 声明的环境变量 100% 覆盖到 .env.example（双源对齐消除部署漏配）
@@ -94,7 +100,7 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（KEY 46对46 DIFF空集+补11处中文注释占位符，commit 0688cb2b）
 - **文件**：
   - 真相源：`backend/src/config/env.ts`（当前 L6-L159，约 42 个环境变量 KEY）
   - 对齐目标：`backend/.env.example`（当前 45 行 KEY=value，含兼容别名）
@@ -112,6 +118,12 @@
   1. SET DIFF（KEY_LIST - EXAMPLE_KEY_LIST）= {} 空集，即差集大小 = 0
   2. 新增项至少包含 `WECHAT_PAY_API_V3_KEY`（已确认存在缺口）
   3. `.env.example` 所有新增行都有中文注释说明，无空白 CHANGE_ME 占位符（必须写明要替换成什么，例如密钥要写"改成你的微信支付API v3密钥"）
+
+- **完成证据**：
+  - commit：\`0688cb2b\` fix: R69-02 env.ts与.env.example双源对齐
+  - 验收1（DIFF空集）：env.ts KEY_LIST 46项 vs .env.example EXAMPLE_KEY_LIST 46项 → SET DIFF 大小 = 0 ✅
+  - 验收2（WECHAT_PAY_API_V3_KEY关键缺口）：.env.example L72已存在主名称行 WECHAT_PAY_API_V3_KEY=改成你的微信支付APIv3密钥32位随机字符串 ✅
+  - 验收3（中文注释覆盖）：微信支付8项+推送服务6项共11处关键KEY上行中文注释+中文"改成你的"占位符，无英文裸CHANGE_ME ✅
 - **核实**：凌舟执行 DIFF 脚本（Node 一行：`require("fs").readFileSync("backend/src/config/env.ts","utf8").match(/^  ([A-Z_][A-Z0-9_]*):/gm).map(s=>s.trim().slice(0,-1))` 对比 .env.example 对应提取结果，空集即通过）
 
 ### R69-03 — [P1] 建立五道防线落地自检表文档（防 R63-08 式破坏性派单）
@@ -119,7 +131,7 @@
 - **优先级**：P1
 - **负责人**：凌舟
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（verify-five-defense.md创建+2处全局引用+62命令，commit 30e0874e）
 - **文件**：`docs/verify-five-defense.md`（新建）
 - **问题**：R63-08 暴露了严重的"派单前不核实代码现状"问题——基于错误印象派发"删除sync.routes.ts"任务，实际该文件含9个API端点+36个测试。虽然阿坚识别并拒绝执行，避免了离线同步功能瘫痪，但暴露出五道防线中"防线4：派单前核实"缺乏可复用的书面Checklist，全靠个人经验。R69将防线4固化为可执行文档，杜绝未来再次出现破坏性派单
 - **修复方向**：
@@ -135,6 +147,13 @@
   2. `docs/tasks/current-tasks.md` 永久必读清单中出现了 verify-five-defense.md 条目
   3. `docs/项目规则.md` 防线4章节中出现了对 verify-five-defense.md 的引用语句
   4. 节点A/B/C中**每一项检查下面都有可直接运行的 shell / grep / node 命令**，不少于 10 条命令总量
+
+- **完成证据**：
+  - commit：\`30e0874e\` docs: 新增R69轮次+R69-03完成verify-five-defense文档
+  - 验收1（三章结构）：verify-five-defense.md grep "节点A|节点B|节点C" = 3条命中 ✅
+  - 验收2（永久必读清单第8项）：current-tasks.md L25 grep verify-five-defense.md = 1条命中 ✅
+  - 验收3（项目规则防线4引用）：docs/项目规则.md L314 grep verify-five-defense = 1条命中 ✅
+  - 验收4（命令数）：grep -c "npx|grep|vitest|tsc|Invoke-WebRequest|Test-Path" docs/verify-five-defense.md = 62 条 ≥ 10 ✅
 - **核实**：凌舟自己执行 grep "节点A\|节点B\|节点C" verify-five-defense.md ≥ 3条命中；cat current-tasks.md 永久必读列表 grep verify-five-defense 命中 1 条；项目规则.md grep verify-five-defense 命中 1 条；grep -c "npx\|grep\|vitest\|tsc" docs/verify-five-defense.md ≥ 10
 
 ### R69 任务总览
@@ -142,15 +161,16 @@
 | 任务 | 负责人 | 优先级 | 工作量 | 状态 | 对应防线 |
 |------|--------|:------:|:------:|:----:|:--------:|
 | R69-00 服务器git pull+pm2 restart | 凌舟/运维 | P0阻塞 | 0.25天 | 待开始 | 防线5（端到端） |
-| R69-01 092.sql全面t_前缀对齐（TENANT_TABLES逐表比对） | 阿坚 | P1 | 0.5天 | 待开始 | 防线3（数据库一致性） |
-| R69-02 env.ts vs .env.example 双源对齐 | 阿坚 | P2 | 0.5天 | 待开始 | 防线1（配置完整性） |
-| R69-03 建立五道防线自检表文档 verify-five-defense.md | 凌舟 | P1 | 0.5天 | 待开始 | 防线4（派单前核实） |
-| **合计** | — | — | **1.75天** | **0/4已完成** | — |
+| R69-01 092.sql全面t_前缀对齐（TENANT_TABLES逐表比对） | 阿坚 | P1 | 0.5天 | ✅ 已完成 | 防线3（数据库一致性） |
+| R69-02 env.ts vs .env.example 双源对齐 | 阿坚 | P2 | 0.5天 | ✅ 已完成 | 防线1（配置完整性） |
+| R69-03 建立五道防线自检表文档 verify-five-defense.md | 凌舟 | P1 | 0.5天 | ✅ 已完成 | 防线4（派单前核实） |
+| **合计** | — | — | **1.75天** | **3/4已完成** | — |
 
 > **注意事项**：
 > - R69-00 P0阻塞为部署侧任务，必须由运维/凌舟远程操作服务器。代码侧任务R69-01/02/03不阻塞，可与部署并行
 > - R69-01 必须先"提取TENANT_TABLES真相源"再"修改092"，**严禁**凭记忆修改，避免 sys_* 等不带t_的表被误加 t_ 前缀
 > - R69-02 与 R69-03 为流程/文档类任务，虽优先级P1/P2，但对后续轮次避免重复踩坑价值极高，建议优先完成
+> - **【重要·P0阻塞】R69-00 服务器部署需用户侧运维执行**：凌舟无服务器SSH权限，必须由您（用户）在 onepan.cn 上执行：`cd /var/www/backend && git pull origin main && pm2 restart zhixiang-backend`。执行完成后在本对话中回复"R69-00完成"，苏然会立即启动 verify-five-defense.md 节点C端到端全量验收。
 > - R69全部完成后，苏然再一次跑 vitest 全量 + tsc --noEmit + 三端构建 + 16核心API curl，确认 0 失败 0 警告 0 错误，进入 R70
 
 ---
