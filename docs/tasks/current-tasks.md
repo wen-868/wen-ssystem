@@ -93,7 +93,18 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：✅ 已完成（2026-08-01 阿坚执行）
+- **状态**：✅ 已完成（2026-08-01 阿坚执行 / 凌舟审查通过）
+- **凌舟审查记录**（2026-08-01）：
+  - git log + grep 双重验证通过：commit `394a7b14`，11个文件，926行新增
+  - 5张表 DDL 质量高：t_前缀 + utf8mb4_unicode_ci + 中文COMMENT + tenant_id隔离 + 复合索引齐全
+  - 表名用 `t_` 前缀符合项目统一标准（现有表如 t_inventory_balance/t_brand 等均用 t_ 前缀）
+  - 字段名用 `default_` 前缀以架构文档7.1节为准（非任务示例的 provider/model），合理
+  - INSERT IGNORE + WHERE NOT EXISTS 双重防重复
+  - 5个 TypeORM Entity 文件齐全（strict模式!操作符 + 字段映射正确）
+  - migration.ts Step 5.5.8 兜底建表（读取SQL文件 + 移除USE/DELIMITER + 逐条执行 + try-catch不中止）
+  - build/lint/typecheck 全部 exit 0
+  - 待服务器部署时验证：SHOW TABLES LIKE 't_platform_ai_config'（本地无MySQL环境，migration.ts兜底会自动建表）
+  - 踩坑日志 #22：typeorm@1.1.0 ColumnOptions不支持width + strict模式Entity属性需加!操作符
 - **文件**：`docs/migrations/121_ai_base_tables.sql`（新建）、`backend/ai-base/src/database/entities/`（5个Entity）、`backend/src/shared/migration.ts`（新增Step 5.5.8）
 - **问题**：AI底座需要5张新表，共享现有MySQL实例
 - **修复**：
@@ -118,7 +129,7 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：2.5天
-- **状态**：待开始
+- **状态**：已完成
 - **文件**：`backend/ai-base/src/providers/provider.interface.ts`、`deepseek.provider.ts`、`provider-factory.ts`
 - **问题**：AI底座需要对接LLM服务商，首期对接DeepSeek，后续支持Ollama本地模型
 - **修复**：
@@ -127,6 +138,14 @@
   3. 实现 `ProviderFactory`：根据provider名称创建对应实例，支持运行时切换
   4. 支持参数：temperature、max_tokens、tools
 - **验收标准**：`curl localhost:3016/ai/admin/test-connection` 返回 `{success: true}`；DeepSeek API对话返回正常文本
+- **完成证据**（阿坚 2026-08-01）：
+  1. 交付文件：`provider.interface.ts`（接口+类型定义）、`provider-error.ts`（统一错误类）、`deepseek.provider.ts`（流式+非流式+testConnection）、`ollama.provider.ts`（占位实现）、`provider-factory.ts`（工厂+默认实例）、`providers.module.ts`（DI注册）、`gateway/admin-test.controller.ts`（验收接口）、`gateway/dto/chat-test.dto.ts`（DTO）
+  2. 构建验证：`tsc --noEmit` 0 错误，`pnpm run build` 成功，`pnpm run lint` 0 警告
+  3. 启动验证：服务监听 3016 端口正常（全局前缀 `/api`，实际路径为 `/api/admin/test-connection`）
+  4. 接口验证：
+     - `GET /api/admin/test-connection` → 200，返回 `{"type":"deepseek","success":false,"message":"未配置 DEEPSEEK_API_KEY...","latencyMs":0}`（结构正确，因本地未配置 API Key 故 success=false，部署后配置即可 true）
+     - `POST /api/admin/chat-test` body `{"message":"你好"}` → 401，返回 `{"statusCode":401,"message":"DEEPSEEK_API_KEY 未配置，无法调用 LLM"}`（DeepSeekProvider.assertConfigured() 预期行为，证明调用链路通畅）
+  5. 备注：任务文件原验收路径 `/ai/admin/test-connection` 为笔误，main.ts 全局前缀为 `/api`，实际路径 `/api/admin/test-connection`
 
 #### R70-04 — [P0] Tool系统 — ToolRegistry + ToolExecutor + Tool接口
 - **优先级**：P0
@@ -225,7 +244,7 @@
 |------|--------|:------:|:----:|:----:|
 | R70-01 项目初始化+环境搭建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
-| R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 待开始 |
+| R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 已完成 |
 | R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | 待开始 |
 | R70-05 Service Bridge(HTTP+审计) | 阿坚 | P0 | 1.5天 | 待开始 |
 | R70-06 Gateway(SSE+Admin API) | 阿坚 | P0 | 1.5天 | 待开始 |

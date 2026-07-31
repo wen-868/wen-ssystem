@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ProvidersModule } from './providers/providers.module';
+import { AdminTestController } from './gateway/admin-test.controller';
 
 /**
  * 应用根模块
@@ -9,7 +11,7 @@ import { AppService } from './app.service';
  * 后续任务将按 P0 优先级矩阵逐步导入以下模块：
  * - GatewayModule（gateway/）— SSE 流式对话 + 管理 API
  * - BrainModule（brain/）— 大脑引擎 + Agent Loop
- * - ProvidersModule（providers/）— DeepSeek / Ollama 模型服务商
+ * - ProvidersModule（providers/）— DeepSeek / Ollama 模型服务商 ✅ R70-03 已接入
  * - ToolsModule（tools/）— 业务工具注册与执行
  * - BridgeModule（bridge/）— 后端服务桥接 + 审计日志
  * - TenantModule（tenant/）— 多租户上下文 + 配置
@@ -23,8 +25,10 @@ import { AppService } from './app.service';
       isGlobal: true,
       envFilePath: ['.env'],
     }),
+    // Provider 层（DeepSeek + Ollama + ProviderFactory）
+    ProvidersModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AdminTestController],
   providers: [AppService],
 })
 export class AppModule {}
