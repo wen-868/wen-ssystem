@@ -11,7 +11,7 @@ adminProductRouter.use(priceResponseFilter());
 
 // ============ 商品管理 ============
 adminProductRouter.get("/products", productController.listProducts);
-adminProductRouter.get("/products/:spuId", productController.getProductDetail);
+adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDetail);
 adminProductRouter.post("/products", productController.createProduct);
 adminProductRouter.put("/products/:id/status", productController.updateProductStatus);
 adminProductRouter.put("/products/:id", productController.updateProduct);
