@@ -2,7 +2,7 @@
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-01（阿坚完成 R70-01 项目初始化+环境搭建+目录结构，待凌舟审查）
+> 最后更新：2026-08-01（阿坚完成 R70-04 Tool系统 ToolRegistry+ToolExecutor+ITool接口，待凌舟审查）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -151,15 +151,28 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/tool.interface.ts`、`tool-registry.ts`、`tool-executor.ts`
+- **状态**：✅ 已完成（2026-08-01 阿坚执行）
+- **文件**：`backend/ai-base/src/tools/tool.interface.ts`、`tool-registry.ts`、`tool-executor.ts`、`tools.module.ts`、`tool-bootstrap.ts`、`definitions/echo.tool.ts`、`gateway/dto/execute-tool.dto.ts`、`gateway/admin-test.controller.ts`（扩展）、`app.module.ts`（接入 ToolsModule）+ 3 个单元测试文件
 - **问题**：AI底座通过Tool系统调用现有14个微服务，需要标准化的工具注册和执行机制
 - **修复**：
-  1. 定义 `ITool` 接口：`name`、`description`、`parameters`(JSON Schema)、`execute(args, context) → result`
-  2. 实现 `ToolRegistry`：工具注册、按名称查找、列出全部工具、生成OpenAI function calling格式
-  3. 实现 `ToolExecutor`：接收LLM的function call，解析参数，调用对应Tool，返回结果
-  4. 支持工具权限：按租户配置哪些工具可用
-- **验收标准**：`curl localhost:3016/ai/admin/tools` 返回工具列表JSON
+  1. 定义 `ITool` 接口：`name`、`description`、`parameters`(JSON Schema)、`category`、`isWriteOperation`、`requiredTools`、`execute(args, context) → result`
+  2. 实现 `ToolRegistry`：工具注册、按名称查找、列出全部工具、生成OpenAI function calling格式、按租户过滤（setTenantDisabledTools/listForTenant/toToolDefinitionsForTenant）
+  3. 实现 `ToolExecutor`：接收LLM的function call，解析参数JSON，调用对应Tool，返回结果；批量执行 executeToolCalls 返回 tool 角色 ChatMessage[] 供 LLM 下一轮调用；永不抛异常，所有错误通过 ToolResult.success=false 传递
+  4. 支持工具权限：按租户配置哪些工具可用（内存 Map 兜底，R70-07 接入 AiConfigService 后改为读 t_tenant_ai_config）
+  5. EchoTool 示例工具验证框架；ToolBootstrap 集中注册（OnModuleInit）；ToolsModule 导出 ToolRegistry+ToolExecutor
+- **验收标准**：`curl localhost:3016/api/admin/tools` 返回工具列表JSON
+- **完成证据**（2026-08-01 阿坚验证）：
+  1. 交付文件：`tool.interface.ts`（ITool+ToolContext+ToolResult+ToolMeta+ToolExecutionRecord+ToolCategory）、`tool-registry.ts`（注册/查找/列出/生成定义/按租户过滤）、`tool-executor.ts`（单次执行/批量执行/错误兜底/审计记录）、`tools.module.ts`（NestJS 模块）、`tool-bootstrap.ts`（OnModuleInit 集中注册）、`definitions/echo.tool.ts`（示例工具）、`gateway/dto/execute-tool.dto.ts`（class-validator 校验）、`admin-test.controller.ts`（新增 GET /tools + POST /tools/execute）+ 3 个测试文件（40 个用例）
+  2. 复用 provider.interface.ts 的 ToolDefinition/ToolCall/ChatMessage 类型，禁止重复定义（ToolRegistry.toToolDefinitions() 直接喂给 Provider.chatSync）
+  3. 构建验证：`tsc --noEmit` 0 错误，`pnpm run build` 成功，`pnpm run lint` 0 警告，`pnpm test` 4 套件 40 用例全通过
+  4. 启动验证：服务监听 3016 端口正常，日志显示 `ToolsModule dependencies initialized` + `{/api/admin/tools, GET}` + `{/api/admin/tools/execute, POST}` 路由映射 + `注册工具：echo（category=utility, isWriteOperation=false）`
+  5. 接口验证：
+     - `GET /api/admin/tools` → 200，返回 `{"total":1,"tools":[{"name":"echo","description":"回显工具（用于测试）...","category":"utility","isWriteOperation":false,"parameters":{...}}]}` ✅
+     - `POST /api/admin/tools/execute` body `{"name":"echo","args":{"message":"你好"},"context":{"tenantId":"test-tenant"}}` → 200，返回 `{"success":true,"data":{"echo":"你好","receivedAt":"2026-07-31T22:39:10.458Z"}}` ✅
+     - 错误兜底1（工具不存在）：`{"name":"notExist",...}` → `{"success":false,"error":"工具 notExist 未注册","suggestion":"可用工具列表：echo"}` ✅
+     - 错误兜底2（参数缺失）：`{"name":"echo","args":{},...}` → `{"success":false,"error":"参数 message 必须为字符串","suggestion":"请传入..."}` ✅
+  6. 设计要点：①ToolResult.data 用 unknown 避免踩坑日志#10；②按租户过滤采用内存 Map 兜底（R70-07 接入后改读 t_tenant_ai_config）；③ToolExecutor 永不抛异常，错误全转 ToolResult 让 LLM 自我纠正；④批量执行用 Promise.all 并发，保持顺序一致
+  7. 备注：任务文件原验收路径 `/ai/admin/tools` 为笔误，main.ts 全局前缀为 `/api`，实际路径 `/api/admin/tools`（与 R70-03 同类笔误）
 
 #### R70-05 — [P0] Service Bridge — ServiceClient(HTTP调用微服务) + AuditLogger
 - **优先级**：P0
@@ -245,7 +258,7 @@
 | R70-01 项目初始化+环境搭建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 已完成 |
-| R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | 待开始 |
+| R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | ✅ 已完成 |
 | R70-05 Service Bridge(HTTP+审计) | 阿坚 | P0 | 1.5天 | 待开始 |
 | R70-06 Gateway(SSE+Admin API) | 阿坚 | P0 | 1.5天 | 待开始 |
 | R70-07 多租户(Context+Guard+Config) | 阿坚 | P0 | 1.5天 | 待开始 |

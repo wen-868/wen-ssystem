@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProvidersModule } from './providers/providers.module';
+import { ToolsModule } from './tools/tools.module';
 import { AdminTestController } from './gateway/admin-test.controller';
 
 /**
@@ -12,7 +13,7 @@ import { AdminTestController } from './gateway/admin-test.controller';
  * - GatewayModule（gateway/）— SSE 流式对话 + 管理 API
  * - BrainModule（brain/）— 大脑引擎 + Agent Loop
  * - ProvidersModule（providers/）— DeepSeek / Ollama 模型服务商 ✅ R70-03 已接入
- * - ToolsModule（tools/）— 业务工具注册与执行
+ * - ToolsModule（tools/）— 业务工具注册与执行 ✅ R70-04 已接入
  * - BridgeModule（bridge/）— 后端服务桥接 + 审计日志
  * - TenantModule（tenant/）— 多租户上下文 + 配置
  * - DatabaseModule（database/）— TypeORM Entity
@@ -27,6 +28,8 @@ import { AdminTestController } from './gateway/admin-test.controller';
     }),
     // Provider 层（DeepSeek + Ollama + ProviderFactory）
     ProvidersModule,
+    // Tool 系统（ToolRegistry + ToolExecutor + EchoTool 示例工具）
+    ToolsModule,
   ],
   controllers: [AppController, AdminTestController],
   providers: [AppService],
