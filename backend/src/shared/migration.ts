@@ -729,6 +729,42 @@ export async function runMigrations(): Promise<void> {
     }
 
     // ============================================================
+    // 5.5.8 创建AI底座5张表（兜底，防止部署时遗漏 121_ai_base_tables.sql）
+    //       5张表: t_platform_ai_config / t_tenant_ai_config / t_ai_audit_log
+    //              t_ai_usage_daily / t_tenant_ai_billing
+    //       第8步外部迁移也会执行本文件，此处提前兜底确保种子数据阶段表已就位
+    //       SQL 使用 CREATE TABLE IF NOT EXISTS + INSERT IGNORE，重复执行无副作用
+    //       依据: R70-02 任务 + 《智享AI底座-架构设计文档》v3.2 第7.1节
+    // ============================================================
+    try {
+      const aiSqlPath = findSqlFile("121_ai_base_tables.sql");
+      const aiSqlRaw = readFileSync(aiSqlPath, "utf8");
+      // 预处理：移除 USE 语句、DELIMITER 行（与第8步外部迁移保持一致）
+      const aiCleaned = aiSqlRaw
+        .split("\n")
+        .filter((line: string) => {
+          const t = line.trim().toUpperCase();
+          return !t.startsWith("USE ") && !t.startsWith("DELIMITER ");
+        })
+        .join("\n");
+      // 拆分语句块并逐条执行（addTablePrefix 对已带 t_ 前缀的表名跳过，安全）
+      const aiStatements = aiCleaned
+        .split(";")
+        .map((s: string) => s.trim())
+        .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+      for (const stmt of aiStatements) {
+        if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
+          continue;
+        }
+        await safeExec(conn, addTablePrefix(stmt), "5.5.8 AI底座建表");
+      }
+      logger.info("[migration] 5.5.8 AI底座5张表兜底建表完成");
+    } catch (e: unknown) {
+      // 文件未找到或执行异常不中止迁移，第8步外部迁移仍有兜底
+      logger.warn("[migration] 5.5.8 AI底座兜底建表跳过:", (e as any).message);
+    }
+
+    // ============================================================
     // 第6步：初始化种子数据（仅在表为空时插入，不覆盖已有数据）
     // ============================================================
     logger.info("[migration] 检查/初始化种子数据...");

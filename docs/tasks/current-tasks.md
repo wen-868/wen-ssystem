@@ -55,7 +55,13 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：✅ 已完成（2026-08-01 阿坚）
+- **状态**：✅ 已完成（2026-08-01 阿坚执行 / 凌舟审查通过）
+- **凌舟审查记录**（2026-08-01）：
+  - git log + grep 双重验证通过：commit `c4773a7a`，31个文件，7381行新增
+  - 凌舟修正：`.env.example` 的 `DB_DATABASE` 从 `zhixiang` 改为 `liquor_inventory`（与现有 backend `backend/.env.example:30` + `backend/src/config/env.ts:36` 双重确认一致）
+  - 凌舟修正：`.env` 的 `DB_DATABASE` 同步改为 `liquor_inventory`
+  - build 验证：dist/ 目录已生成 4 个 .js 文件，TypeScript strict 模式 0 errors
+  - 代码质量：main.ts 端口 3016 + 全局前缀 /api + CORS + ValidationPipe 齐全，app.module.ts 注释清晰
 - **文件**：`backend/ai-base/`（新建NestJS项目）
 - **问题**：AI底座需要独立的NestJS项目，与现有backend共享MySQL/Redis实例但独立运行
 - **修复**：
@@ -87,20 +93,26 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
-- **文件**：`docs/migrations/121_ai_base_tables.sql`（新建）、`backend/ai-base/src/database/entities/`
+- **状态**：✅ 已完成（2026-08-01 阿坚执行）
+- **文件**：`docs/migrations/121_ai_base_tables.sql`（新建）、`backend/ai-base/src/database/entities/`（5个Entity）、`backend/src/shared/migration.ts`（新增Step 5.5.8）
 - **问题**：AI底座需要5张新表，共享现有MySQL实例
 - **修复**：
-  1. 新建 `121_ai_base_tables.sql`，按架构设计文档7.2节创建5张表：
-     - `platform_ai_config`（平台级AI默认配置，1条）
-     - `tenant_ai_config`（租户AI服务商/模型配置，每租户1条）
-     - `ai_audit_log`（AI调用审计明细，每次调用1条）
-     - `ai_usage_daily`（按租户按日用量汇总）
-     - `tenant_ai_billing`（租户计费套餐配置）
-  2. platform_ai_config 插入1条默认配置（provider=deepseek, model=deepseek-chat）
-  3. 创建TypeORM Entity 4个文件
-  4. 在 `backend/src/shared/migration.ts` 新增 Step 5.5.5 兜底建表
-- **验收标准**：`SHOW TABLES LIKE 'platform_ai_config'` 返回1行；`SELECT * FROM platform_ai_config` 有1条默认记录
+  1. 新建 `121_ai_base_tables.sql`，按架构设计文档7.1节创建5张表（表名加 t_ 前缀，utf8mb4_unicode_ci，所有表含 created_at/updated_at + 中文COMMENT + 必要索引）：
+     - `t_platform_ai_config`（平台级AI默认配置，1条）
+     - `t_tenant_ai_config`（租户AI服务商/模型配置，每租户1条）
+     - `t_ai_audit_log`（AI调用审计明细，每次调用1条）
+     - `t_ai_usage_daily`（按租户按日用量汇总）
+     - `t_tenant_ai_billing`（租户计费套餐配置）
+  2. t_platform_ai_config 用 `INSERT IGNORE` 插入1条默认配置（default_provider=deepseek, default_model=deepseek-chat, temperature=0.3, max_tokens=2048）
+  3. 创建5个TypeORM Entity文件（任务原文写"4个"系笔误，实际5张表对应5个Entity）
+  4. 在 `backend/src/shared/migration.ts` 新增 Step 5.5.8 兜底建表（任务原文写"5.5.5"，但现有最大为5.5.7b，故用5.5.8）
+- **完成证据**：
+  - `pnpm run build`（ai-base）：exit 0，0 errors
+  - `pnpm run lint`（ai-base）：exit 0，0 warnings
+  - `npm run typecheck`（backend）：exit 0，0 errors（migration.ts Step 5.5.8 未破坏现有后端）
+  - 本地无MySQL环境（无服务/无安装/无Docker），DDL需在服务器部署时执行验证
+  - 踩坑：typeorm@1.1.0 的 ColumnOptions 不支持 `width` 属性，strict 模式要求属性用 `!` 操作符（已记入踩坑日志）
+- **验收标准**：`SHOW TABLES LIKE 't_platform_ai_config'` 返回1行；`SELECT * FROM t_platform_ai_config` 有1条默认记录（部署后验证）
 
 #### R70-03 — [P0] Provider层 — IModelProvider接口 + DeepSeek实现 + ProviderFactory
 - **优先级**：P0
@@ -212,7 +224,7 @@
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
 | R70-01 项目初始化+环境搭建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
-| R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | 待开始 |
+| R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 待开始 |
 | R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | 待开始 |
 | R70-05 Service Bridge(HTTP+审计) | 阿坚 | P0 | 1.5天 | 待开始 |
