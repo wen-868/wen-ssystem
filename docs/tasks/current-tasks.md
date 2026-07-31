@@ -1,8 +1,8 @@
-# 当前任务 — R70(AI底座开发·待启动) + R69-00(部署完成·✅)
+# 当前任务 — R70(AI底座开发·进行中) + R69-00(部署完成·✅)
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-07-31  
+> 最后更新：2026-08-01（阿坚完成 R70-01 项目初始化+环境搭建+目录结构，待凌舟审查）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -33,11 +33,12 @@
 
 ---
 
-## R70 — AI底座开发（大脑引擎+工具系统+记忆系统） [待启动 — 凌舟 2026-07-31]
+## R70 — AI底座开发（大脑引擎+工具系统+记忆系统） [进行中 — 凌舟 2026-08-01]
 
-> **日期**：2026-07-31
+> **日期**：2026-07-31（规划）/ 2026-08-01（启动）
 > **来源**：用户要求"等系统全部修复完成就可以进行AI底座开发了"，基于4份AI底座文档编写开发任务
-> **前置条件**：R69-00 服务器 git pull + pm2 restart 完成 → 16个业务API全部返回200 → 系统修复验收通过
+> **前置条件**：R69-00 服务器 git pull + pm2 restart 完成 → 16个业务API全部返回200 → 系统修复验收通过 ✅ 已满足（2026-08-01 凌舟核实15/15 API 200）
+> **启动记录**：2026-08-01 凌舟派单阿坚执行 R70-01（P0阶段首个任务，项目初始化+环境搭建）
 > **说明**：AI底座是面向酒饮行业SaaS平台的AI能力中枢，采用"大脑-工具-记忆"三层架构，通过标准化接口与现有14个微服务无缝集成。按P0（核心骨架）→P1（核心业务）→P2（前端+完善）三个阶段推进，P0完成后即可实现"创建销售单"端到端对话。
 > **核心文档**：
 > - `docs/ai-base/智享AI底座-架构设计文档.md`（v1.1，三层架构+5张新表+多租户+安全设计）
@@ -54,7 +55,7 @@
 - **优先级**：P0
 - **负责人**：阿坚
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-01 阿坚）
 - **文件**：`backend/ai-base/`（新建NestJS项目）
 - **问题**：AI底座需要独立的NestJS项目，与现有backend共享MySQL/Redis实例但独立运行
 - **修复**：
@@ -64,6 +65,23 @@
   4. 创建 `.env.example`（PORT=3016, REDIS_DB=1, DEFAULT_MODEL_PROVIDER=deepseek, RATE_LIMIT_PER_MINUTE=60等）
   5. 生成ENCRYPTION_KEY：`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 - **验收标准**：`pnpm run start:dev` 输出"AI底座已启动: http://localhost:3016"，无报错
+- **完成证据**（2026-08-01 阿坚验证）：
+  - 环境：Node v24.18.0 + pnpm v11.18.0 + NestJS CLI 11.0.24
+  - 项目路径：`backend/ai-base/`（NestJS 11 + TypeScript 5.7 + ESLint 9 + Jest 30）
+  - 核心依赖：@nestjs/config 4.0.4、@nestjs/axios 4.0.1、axios 1.19.0、ioredis 5.11.1、zod 4.4.3、class-validator 0.15.1、class-transformer 0.5.1、@nestjs/typeorm 11.0.3、typeorm 1.1.0、mysql2 3.23.2、@nestjs/schedule 6.1.3
+  - 目录结构：11 个目录（gateway/dto、brain/prompts、providers、tools/definitions、tools/handlers、bridge、tenant、database/entities、rag、common、knowledge）+ .gitkeep 占位
+  - 配置文件：`.env.example`（含 PORT=3016/DB/Redis/Provider/安全/限流等全部配置 + 生成的 ENCRYPTION_KEY）、`.env`（本地）、`.gitignore`
+  - 入口改造：`main.ts` 端口 3016 + 全局前缀 `/api` + CORS + ValidationPipe + 启动日志输出 "AI底座已启动: http://localhost:3016（环境：development）"
+  - tsconfig.json 启用完整 `strict: true` + noUnusedLocals + noUnusedParameters + noImplicitReturns
+  - 验证结果：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | TypeScript 编译 | `pnpm run build` | exit 0，0 errors |
+    | 启动验证 | `pnpm run start:dev` | 输出 "AI底座已启动: http://localhost:3016（环境：development）" |
+    | 健康检查 | `curl http://localhost:3016/api/health` | `{"status":"ok","service":"zhixiang-ai-base",...}` HTTP 200 |
+    | ESLint | `pnpm run lint` | exit 0，0 errors，0 warnings |
+    | 单元测试 | `pnpm test` | 1 passed（AppController health） |
+  - 踩坑记录：pnpm 9+ 的 ERR_PNPM_IGNORED_BUILDS 警告（unrs-resolver build scripts 被忽略），通过 `pnpm-workspace.yaml` 配置 `allowBuilds: unrs-resolver: true` 解决（详见踩坑日志 #21）
 
 #### R70-02 — [P0] 数据库迁移 — 5张AI表建表脚本
 - **优先级**：P0
@@ -193,7 +211,7 @@
 
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
-| R70-01 项目初始化+环境搭建 | 阿坚 | P0 | 0.5天 | 待开始 |
+| R70-01 项目初始化+环境搭建 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | 待开始 |
 | R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 待开始 |
 | R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | 待开始 |
