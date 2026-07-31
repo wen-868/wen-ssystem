@@ -1,6 +1,8 @@
 # 智享AI助手 — 能力详细说明书
 
-> 版本：v1.2 | 日期：2026-07-30
+> 版本：v1.3 | 日期：2026-07-31
+
+> **v1.3 修改说明（2026-07-31）**：本版对齐项目统一标准——① "微服务"相关描述统一改为"后端服务/后端API"（项目为单体后端 Express.js 架构，非微服务）；② API 路径示例对齐 `/api/admin/*` 前缀；③ 数据库表名统一加 `t_` 前缀；④ 价格字段名补充"以实际数据库表结构为准"的说明；⑤ 事件监听机制由 RabbitMQ 调整为单体后端内部事件总线。
 
 ---
 
@@ -152,6 +154,8 @@
 | VIP客户 | vip_price | 金钻会员 → VIP价¥1,050 |
 | 有合同价 | contract_price（最高优先级） | 大客户 → 合同价¥950 |
 | 未分类/新客户 | retail_price（默认） | 新客户 → 零售价 |
+
+> **注意**：以上价格字段名以实际数据库表结构为准。现有系统中 `t_product_price` 表实际字段为 `cost_price`（成本价/采购价）、`retail_price`（零售价）、`wholesale_price`（批发价）、`miniapp_price`（小程序渠道价）、`store_price`（门店售价），暂无 `vip_price`、`min_price`、`contract_price` 字段；`t_product_sku` 表单位字段为 `base_unit`（基础单位）、`box_unit`（组合单位）、`box_ratio`（换算比），暂无 `min_unit` 字段。AI 开发时需对照 `docs/数据库变更清单.md` 和 `docs/init_database.sql` 确认字段名，按客户价格等级（`t_customer_price_binding` + `t_sku_price`）实现 VIP 价/合同价/最低限价等逻辑。
 
 **异常处理**：
 
@@ -849,7 +853,7 @@ export class SchedulerService {
 ### 5.3 事件监听机制
 
 ```typescript
-// 监听 RabbitMQ 消息队列中的业务事件
+// 监听单体后端内部事件总线（EventEmitter）中的业务事件
 // 事件类型 → 主动检测 → 推送
 
 事件源:
@@ -938,15 +942,15 @@ AI 从以下来源自动学习新能力：
 
 ### 6.3 学习场景
 
-#### 场景一：新增微服务接口
+#### 场景一：新增后端API接口
 
 ```
-开发者在 order-service 新增了 "批量导入销售单" 接口:
-  POST /order/batch-import
+开发者在后端服务新增了 "批量导入销售单" 接口:
+  POST /api/admin/sale-bills/batch-import
 
 AI自动学习流程:
   │
-  ├─ 1. 发现: 定时扫描微服务 Swagger 文档，检测到新接口
+  ├─ 1. 发现: 定时扫描后端服务 Swagger 文档，检测到新接口
   ├─ 2. 理解: 读取接口的 path、method、parameters、description
   │     → 接口名: batchImportSalesOrders
   │     → 功能: 批量导入销售单
@@ -964,15 +968,15 @@ AI自动学习流程:
 #### 场景二：新增数据库表/字段
 
 ```
-开发者在MySQL新增了 "促销活动表 promotion":
-  CREATE TABLE promotion (
+开发者在MySQL新增了 "促销活动表 t_promotion":
+  CREATE TABLE t_promotion (
     id, name, type, discount_rate, start_date, end_date, products...
 
 AI自动学习流程:
   │
   ├─ 1. 发现: 监听数据库 schema 变更（或定时扫描）
   ├─ 2. 理解: 读取表结构 + 字段注释
-  │     → 表名: promotion（促销活动）
+  │     → 表名: t_promotion（促销活动）
   │     → 字段: discount_rate（折扣率）, applicable_products（适用商品）
   ├─ 3. 生成Tool定义:
   │     {
@@ -1007,33 +1011,29 @@ AI自动学习流程:
 export class AutoLearnerService {
   
   /**
-   * 定时扫描微服务 Swagger 文档，发现新接口
+   * 定时扫描后端服务 Swagger 文档，发现新接口
    */
   @Cron('*/5 * * * *')  // 每5分钟
   async scanSwaggerDocs() {
-    const services = ['order', 'inventory', 'product', 'customer', 'purchase', 'delivery', 'finance'];
-    
-    for (const svc of services) {
-      // 获取 Swagger JSON
-      const swagger = await this.client.get(`http://${svc}:${port}/api-json`);
-      
-      // 对比已注册的 Tool，找出新增接口
-      const newEndpoints = this.diffEndpoints(swagger.paths, this.knownEndpoints);
-      
-      for (const endpoint of newEndpoints) {
-        // 自动生成 Tool 定义
-        const toolDef = this.generateToolDefinition(endpoint);
-        
-        // 注册到 ToolRegistry
-        this.toolRegistry.registerDynamic({
-          name: toolDef.function.name,
-          category: svc,
-          definition: toolDef,
-          handler: this.createDynamicHandler(svc, endpoint),
-        });
-        
-        this.logger.log(`自动学习: 新Tool "${toolDef.function.name}" 已注册 (来源: ${svc} Swagger)`);
-      }
+    // 单体后端（Express.js）：扫描后端服务的 Swagger 文档
+    const swagger = await this.client.get(`http://backend-service:${port}/api-json`);
+
+    // 对比已注册的 Tool，找出新增接口
+    const newEndpoints = this.diffEndpoints(swagger.paths, this.knownEndpoints);
+
+    for (const endpoint of newEndpoints) {
+      // 自动生成 Tool 定义
+      const toolDef = this.generateToolDefinition(endpoint);
+
+      // 注册到 ToolRegistry
+      this.toolRegistry.registerDynamic({
+        name: toolDef.function.name,
+        category: endpoint.tags?.[0] ?? 'default',  // 按路由模块（tags）归类
+        definition: toolDef,
+        handler: this.createDynamicHandler(endpoint),
+      });
+
+      this.logger.log(`自动学习: 新Tool "${toolDef.function.name}" 已注册 (来源: 后端服务 Swagger)`);
     }
   }
 
@@ -1094,11 +1094,11 @@ export class AutoLearnerService {
 │                                             │
 │ ┌─────────────────────────────────────────┐ │
 │ │ 🆕 批量导入销售单                        │ │
-│ │    来源: order-service 新增接口          │ │
+│ │    来源: 后端API新增接口                │ │
 │ │    用法: "帮我批量导入销售单"            │ │
 │ ├─────────────────────────────────────────┤ │
 │ │ 🆕 促销活动管理                          │ │
-│ │    来源: 数据库新增 promotion 表         │ │
+│ │    来源: 数据库新增 t_promotion 表        │ │
 │ │    用法: "创建一个8折促销活动"           │ │
 │ ├─────────────────────────────────────────┤ │
 │ │ 📄 促销活动操作手册                      │ │
@@ -1171,4 +1171,4 @@ export class AutoLearnerService {
 
 ---
 
-> **文档版本**: v1.2 | **最后更新**: 2026-07-30
+> **文档版本**: v1.3 | **最后更新**: 2026-07-31

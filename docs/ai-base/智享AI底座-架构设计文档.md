@@ -1,6 +1,6 @@
 # 智享全链 AI 底座 — 架构设计文档
 
-> 版本：v3.1 | 日期：2026-07-30 | 作者：智享全链架构组
+> 版本：v3.2 | 日期：2026-07-31 | 作者：智享全链架构组
 
 ---
 
@@ -13,7 +13,7 @@
 5. [Model Provider 抽象层](#五model-provider-抽象层)
 6. [AI 配置中心](#六ai-配置中心)
 7. [数据库设计](#七数据库设计)
-8. [与现有14个微服务的关系](#八与现有14个微服务的关系)
+8. [与现有后端服务的关系](#八与现有后端服务的关系)
 9. [核心数据流](#九核心数据流)
 10. [多租户隔离方案](#十多租户隔离方案)
 11. [API 接口文档](#十一api-接口文档)
@@ -34,7 +34,7 @@
 
 ### 1.1 核心理念
 
-> **AI底座不替换现有系统，而是在现有14个NestJS微服务之上加一层AI驱动层。现有微服务一个不改，AI层通过内部HTTP API调用它们。**
+> **AI底座不替换现有系统，而是在现有后端服务（Express.js单体）之上加一层AI驱动层。现有后端服务一个不改，AI层通过内部HTTP API调用它们。**
 
 ### 1.2 分层架构
 
@@ -50,13 +50,15 @@
               │                                      │
 ┌─────────────▼──────────────────────────────────────▼──────────────┐
 │                      网关层 (Nginx)                                │
-│   /api/*      → 现有微服务                                        │
-│   /ai/*       → AI底座 (3016)                                     │
-│   /admin/ai/* → AI配置管理API                                     │
+│   /api/admin/*   → 现有后端服务（管理后台）                       │
+│   /api/store/*   → 现有后端服务（门店端）                         │
+│   /api/platform/* → 现有后端服务（平台总后台）                    │
+│   /api/admin/ai/*  → AI底座对话接口                                │
+│   /api/platform/ai/* → AI配置管理API                               │
 └────────────────────────────┬──────────────────────────────────────┘
                              │
 ┌────────────────────────────▼──────────────────────────────────────┐
-│                    AI 底座 (zhixiang-ai-base :3016)               │
+│                    AI 底座 (zhixiang-ai-base 共享实例)            │
 │                                                                    │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐    │
 │  │ AI Gateway   │  │ Brain Engine │  │ Model Provider 层    │    │
@@ -65,22 +67,25 @@
 │                                                                    │
 │  ┌──────────────────────────────────────────────────────────────┐ │
 │  │              Tool Runtime + Service Bridge                   │ │
-│  │   每个业务操作封装为Tool → 通过HTTP调用现有微服务              │ │
+│  │   每个业务操作封装为Tool → 通过HTTP调用现有后端API             │ │
 │  └──────────────────────────────────────────────────────────────┘ │
 └────────────────────────────┬──────────────────────────────────────┘
                              │ HTTP (localhost 内部调用)
 ┌────────────────────────────▼──────────────────────────────────────┐
-│              现有智享微服务层（14个，不改动）                       │
+│              现有智享后端服务层（Express.js单体，不改动）          │
 │                                                                    │
-│  auth :3001  │  user :3002  │  product :3003  │  order :3004     │
-│  inventory :3005 │ purchase :3006 │ delivery :3007 │ finance :3008│
-│  report :3009 │ customer :3010 │ marketing :3011 │ settings :3012│
-│  notification :3013 │ log :3014 │ ai-assistant :3015             │
+│  auth → /api/admin/auth    │  user → /api/admin/users              │
+│  product → /api/admin/products │  order → /api/admin/sale-bills    │
+│  inventory → /api/admin/inventory │  purchase → /api/admin/purchases│
+│  delivery → /api/admin/deliveries │  finance → /api/admin/finance   │
+│  report → /api/admin/reports │  customer → /api/admin/customers    │
+│  marketing → /api/admin/marketing │  settings → /api/admin/settings │
+│  notification → /api/admin/notifications │  log → /api/admin/logs   │
 └────────────────────────────┬──────────────────────────────────────┘
                              │
 ┌────────────────────────────▼──────────────────────────────────────┐
 │            基础设施层（共享，不改动）                               │
-│  MySQL (37表)  │  Redis  │  RabbitMQ  │  ES  │  MinIO            │
+│  MySQL (60+表)  │  Redis  │  RabbitMQ  │  ES  │  MinIO            │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -88,7 +93,7 @@
 
 | 原则 | 说明 |
 |------|------|
-| **零侵入** | 现有14个微服务不改一行代码 |
+| **零侵入** | 现有后端服务不改一行代码 |
 | **可降级** | AI底座挂了，现有Web/移动端照常使用 |
 | **渐进式** | 先云AI后本地，Provider层支持热切换 |
 | **多租户** | 每个租户独立选择AI服务商和模型 |
@@ -224,8 +229,8 @@ P2 (增强，Phase 4):
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  Nginx (:80/:443)                                    │  │
 │  │  MySQL + Redis + RabbitMQ + ES + MinIO              │  │
-│  │  14个 NestJS 微服务 (3001-3015)                      │  │
-│  │  zhixiang-ai-base (3016)  ← 新增                     │  │
+│  │  现有后端服务（Express.js单体，共享实例）             │  │
+│  │  zhixiang-ai-base (共享实例)  ← 新增                │  │
 │  └──────────────────────────────────────────────────────┘  │
 │                                                            │
 │  内存占用: 业务~6G + AI底座~500MB = ~6.5G / 8G ✅          │
@@ -248,7 +253,7 @@ P2 (增强，Phase 4):
 │ 腾讯轻量 4核8G        │     │ 新增服务器（本地AI推理）       │
 │                      │     │                              │
 │ 所有业务服务          │     │ Ollama + qwen2.5:7b          │
-│ AI底座 (3016)        │────▶│ GPU可选                      │
+│ AI底座 (共享实例)    │────▶│ GPU可选                      │
 │                      │     │                              │
 └──────────────────────┘     └──────────────────────────────┘
 ```
@@ -261,13 +266,13 @@ P2 (增强，Phase 4):
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                    zhixiang-ai-base (3016)                        │
+│                    zhixiang-ai-base (共享实例)                    │
 │                                                                  │
 │  ════════════════════ Gateway Layer ═══════════════════════════  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
 │  │ ChatController│  │ ChatGateway  │  │ AdminController     │   │
-│  │ POST /chat    │  │ WebSocket    │  │ GET /admin/config   │   │
-│  │ (SSE 流式)    │  │ 实时推送      │  │ PUT /admin/config   │   │
+│  │ POST /chat   │  │ WebSocket    │  │ GET /platform/ai/cfg │   │
+│  │ (SSE 流式)   │  │ 实时推送      │  │ PUT /platform/ai/cfg │   │
 │  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
 │         │                 │                      │               │
 │  ════════════════════ Brain Engine ════════════════════════════  │
@@ -399,7 +404,7 @@ interface IModelProvider {
 请求到达
   │
   ├─ 1. 从JWT提取 tenantId
-  ├─ 2. 查 tenant_ai_config 表 → { provider: "deepseek", apiKey: "sk-xxx", model: "deepseek-chat" }
+  ├─ 2. 查 t_tenant_ai_config 表 → { provider: "deepseek", apiKey: "sk-xxx", model: "deepseek-chat" }
   ├─ 3. ProviderFactory.create("deepseek", config)
   ├─ 4. provider.chat(messages, { tools })
   └─ 5. 返回结果
@@ -419,10 +424,10 @@ interface IModelProvider {
 │ MODEL_PROVIDER=deepseek                                 │
 │ DEFAULT_MODEL=deepseek-chat                             │
 ├─────────────────────────────────────────────────────────┤
-│ 全局配置 (platform_ai_config 表)                         │
+│ 全局配置 (t_platform_ai_config 表)                       │
 │ 所有租户的默认AI设置                                     │
 ├─────────────────────────────────────────────────────────┤
-│ 租户配置 (tenant_ai_config 表) ← 最高优先级              │
+│ 租户配置 (t_tenant_ai_config 表) ← 最高优先级            │
 │ 每个租户独立选择服务商、模型、API Key                     │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -503,149 +508,149 @@ interface IModelProvider {
 
 ```sql
 -- 平台级AI全局配置
-CREATE TABLE platform_ai_config (
-  id              INT PRIMARY KEY AUTO_INCREMENT,
-  default_provider VARCHAR(32) NOT NULL DEFAULT 'deepseek',
-  default_model    VARCHAR(64) NOT NULL DEFAULT 'deepseek-chat',
-  default_api_key  VARCHAR(512),                          -- 加密存储
-  default_endpoint VARCHAR(255),
-  default_temperature DECIMAL(2,1) DEFAULT 0.3,
-  default_max_tokens  INT DEFAULT 2048,
-  default_system_prompt TEXT,
-  updated_at       DATETIME DEFAULT NOW() ON UPDATE NOW()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE t_platform_ai_config (
+  id              BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  default_provider VARCHAR(32) NOT NULL DEFAULT 'deepseek' COMMENT '默认AI服务商',
+  default_model    VARCHAR(64) NOT NULL DEFAULT 'deepseek-chat' COMMENT '默认模型',
+  default_api_key  VARCHAR(512) COMMENT '默认API Key（加密存储）',
+  default_endpoint VARCHAR(255) COMMENT '默认自定义Endpoint',
+  default_temperature DECIMAL(2,1) DEFAULT 0.3 COMMENT '默认温度',
+  default_max_tokens  INT DEFAULT 2048 COMMENT '默认最大Token',
+  default_system_prompt TEXT COMMENT '默认系统提示词',
+  updated_at       DATETIME DEFAULT NOW() ON UPDATE NOW() COMMENT '更新时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台级AI全局配置';
 
 -- 租户级AI配置
-CREATE TABLE tenant_ai_config (
-  id              INT PRIMARY KEY AUTO_INCREMENT,
-  tenant_id       VARCHAR(32) NOT NULL UNIQUE,
-  enabled         TINYINT(1) DEFAULT 1,
-  provider        VARCHAR(32) DEFAULT 'deepseek',
-  api_key         VARCHAR(512),                            -- 加密存储
-  api_endpoint    VARCHAR(255),
-  model           VARCHAR(64) DEFAULT 'deepseek-chat',
-  temperature     DECIMAL(2,1) DEFAULT 0.3,
-  max_tokens      INT DEFAULT 2048,
-  system_prompt   TEXT,
-  created_at      DATETIME DEFAULT NOW(),
-  updated_at      DATETIME DEFAULT NOW() ON UPDATE NOW(),
+CREATE TABLE t_tenant_ai_config (
+  id              BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  tenant_id       VARCHAR(36) NOT NULL UNIQUE COMMENT '租户ID',
+  enabled         TINYINT(1) DEFAULT 1 COMMENT '是否启用AI功能',
+  provider        VARCHAR(32) DEFAULT 'deepseek' COMMENT 'AI服务商',
+  api_key         VARCHAR(512) COMMENT 'API Key（加密存储）',
+  api_endpoint    VARCHAR(255) COMMENT '自定义Endpoint',
+  model           VARCHAR(64) DEFAULT 'deepseek-chat' COMMENT '模型名称',
+  temperature     DECIMAL(2,1) DEFAULT 0.3 COMMENT '温度参数',
+  max_tokens      INT DEFAULT 2048 COMMENT '最大Token',
+  system_prompt   TEXT COMMENT '自定义系统提示词',
+  created_at      DATETIME DEFAULT NOW() COMMENT '创建时间',
+  updated_at      DATETIME DEFAULT NOW() ON UPDATE NOW() COMMENT '更新时间',
   INDEX idx_tenant (tenant_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户级AI配置';
 
 -- AI调用审计日志
-CREATE TABLE ai_audit_log (
-  id              BIGINT PRIMARY KEY AUTO_INCREMENT,
-  tenant_id       VARCHAR(32) NOT NULL,
-  user_id         VARCHAR(32),
-  session_id      VARCHAR(64),
-  provider        VARCHAR(32),
-  model           VARCHAR(64),
-  intent          VARCHAR(64),
-  user_message    TEXT,
-  tool_calls      JSON,
-  prompt_tokens   INT DEFAULT 0,
-  completion_tokens INT DEFAULT 0,
-  latency_ms      INT,
-  success         TINYINT(1) DEFAULT 1,
-  error_message   TEXT,
-  created_at      DATETIME DEFAULT NOW(),
+CREATE TABLE t_ai_audit_log (
+  id              BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  tenant_id       VARCHAR(36) NOT NULL COMMENT '租户ID',
+  user_id         VARCHAR(36) COMMENT '用户ID',
+  session_id      VARCHAR(64) COMMENT '会话ID',
+  provider        VARCHAR(32) COMMENT 'AI服务商',
+  model           VARCHAR(64) COMMENT '模型名称',
+  intent          VARCHAR(64) COMMENT '意图',
+  user_message    TEXT COMMENT '用户消息',
+  tool_calls      JSON COMMENT '工具调用记录',
+  prompt_tokens   INT DEFAULT 0 COMMENT '提示Token数',
+  completion_tokens INT DEFAULT 0 COMMENT '完成Token数',
+  latency_ms      INT COMMENT '延迟毫秒',
+  success         TINYINT(1) DEFAULT 1 COMMENT '是否成功',
+  error_message   TEXT COMMENT '错误信息',
+  created_at      DATETIME DEFAULT NOW() COMMENT '创建时间',
   INDEX idx_tenant_time (tenant_id, created_at),
   INDEX idx_session (session_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI调用审计日志';
 
 -- AI用量日统计表（按租户+日期+服务商汇总）
-CREATE TABLE ai_usage_daily (
-  id            BIGINT PRIMARY KEY AUTO_INCREMENT,
-  tenant_id     VARCHAR(32) NOT NULL,
-  stat_date     DATE NOT NULL,
-  chat_count        INT DEFAULT 0,
-  tool_call_count   INT DEFAULT 0,
-  prompt_tokens     BIGINT DEFAULT 0,
-  completion_tokens BIGINT DEFAULT 0,
-  total_tokens      BIGINT DEFAULT 0,
-  prompt_cost       DECIMAL(12,4) DEFAULT 0.0000,
-  completion_cost   DECIMAL(12,4) DEFAULT 0.0000,
-  total_cost        DECIMAL(12,4) DEFAULT 0.0000,
-  provider          VARCHAR(32),
-  model             VARCHAR(64),
-  created_at  DATETIME DEFAULT NOW(),
+CREATE TABLE t_ai_usage_daily (
+  id            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  tenant_id     VARCHAR(36) NOT NULL COMMENT '租户ID',
+  stat_date     DATE NOT NULL COMMENT '统计日期',
+  chat_count        INT DEFAULT 0 COMMENT '对话次数',
+  tool_call_count   INT DEFAULT 0 COMMENT '工具调用次数',
+  prompt_tokens     BIGINT DEFAULT 0 COMMENT '提示Token数',
+  completion_tokens BIGINT DEFAULT 0 COMMENT '完成Token数',
+  total_tokens      BIGINT DEFAULT 0 COMMENT '总Token数',
+  prompt_cost       DECIMAL(12,4) DEFAULT 0.0000 COMMENT '提示费用',
+  completion_cost   DECIMAL(12,4) DEFAULT 0.0000 COMMENT '完成费用',
+  total_cost        DECIMAL(12,4) DEFAULT 0.0000 COMMENT '总费用',
+  provider          VARCHAR(32) COMMENT 'AI服务商',
+  model             VARCHAR(64) COMMENT '模型名称',
+  created_at  DATETIME DEFAULT NOW() COMMENT '创建时间',
   UNIQUE KEY uk_tenant_date_provider (tenant_id, stat_date, provider),
   INDEX idx_tenant_date (tenant_id, stat_date),
   INDEX idx_date (stat_date)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI用量日统计表';
 
 -- 租户AI计费套餐配置
-CREATE TABLE tenant_ai_billing (
-  id            INT PRIMARY KEY AUTO_INCREMENT,
-  tenant_id     VARCHAR(32) NOT NULL UNIQUE,
-  plan_type     VARCHAR(32) DEFAULT 'pay_as_you_go',
-  free_chat_count     INT DEFAULT 100,
-  free_token_limit    BIGINT DEFAULT 100000,
-  overage_price       DECIMAL(10,6) DEFAULT 0.001000,
-  monthly_chat_limit  INT DEFAULT 0,
-  monthly_token_limit BIGINT DEFAULT 0,
-  monthly_price       DECIMAL(10,2) DEFAULT 0.00,
-  enabled       TINYINT(1) DEFAULT 1,
-  created_at    DATETIME DEFAULT NOW(),
-  updated_at    DATETIME DEFAULT NOW() ON UPDATE NOW(),
+CREATE TABLE t_tenant_ai_billing (
+  id            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  tenant_id     VARCHAR(36) NOT NULL UNIQUE COMMENT '租户ID',
+  plan_type     VARCHAR(32) DEFAULT 'pay_as_you_go' COMMENT '套餐类型',
+  free_chat_count     INT DEFAULT 100 COMMENT '免费对话次数',
+  free_token_limit    BIGINT DEFAULT 100000 COMMENT '免费Token额度',
+  overage_price       DECIMAL(10,6) DEFAULT 0.001000 COMMENT '超额单价',
+  monthly_chat_limit  INT DEFAULT 0 COMMENT '月对话上限',
+  monthly_token_limit BIGINT DEFAULT 0 COMMENT '月Token上限',
+  monthly_price       DECIMAL(10,2) DEFAULT 0.00 COMMENT '月费',
+  enabled       TINYINT(1) DEFAULT 1 COMMENT '是否启用',
+  created_at    DATETIME DEFAULT NOW() COMMENT '创建时间',
+  updated_at    DATETIME DEFAULT NOW() ON UPDATE NOW() COMMENT '更新时间',
   INDEX idx_tenant (tenant_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户AI计费套餐配置';
 ```
 
 ### 7.2 ER 关系
 
 ```
-platform_ai_config (1条，全局兜底)
+t_platform_ai_config (1条，全局兜底)
        │
        ▼
-tenant_ai_config (N条，每租户1条) ──── tenant_ai_billing (N条，每租户1条)
+t_tenant_ai_config (N条，每租户1条) ──── t_tenant_ai_billing (N条，每租户1条)
        │                                      │
        ▼                                      │ 计费套餐
 AI底座运行时读取 → 选择Provider → 调用LLM     │
        │                                      │
        ▼                                      ▼
-ai_audit_log (每次AI调用1条，明细) ──汇总──▶ ai_usage_daily (按租户按日汇总)
+t_ai_audit_log (每次AI调用1条，明细) ──汇总──▶ t_ai_usage_daily (按租户按日汇总)
 ```
 
 ### 7.3 新增表清单
 
 | 表名 | 用途 | 记录数 |
 |------|------|--------|
-| `platform_ai_config` | 平台级AI默认配置 | 1条 |
-| `tenant_ai_config` | 租户AI服务商/模型配置 | 每租户1条 |
-| `ai_audit_log` | AI调用审计明细 | 每次调用1条 |
-| `ai_usage_daily` | 按租户按日用量汇总 | 每租户每天1条 |
-| `tenant_ai_billing` | 租户计费套餐配置 | 每租户1条 |
+| `t_platform_ai_config` | 平台级AI默认配置 | 1条 |
+| `t_tenant_ai_config` | 租户AI服务商/模型配置 | 每租户1条 |
+| `t_ai_audit_log` | AI调用审计明细 | 每次调用1条 |
+| `t_ai_usage_daily` | 按租户按日用量汇总 | 每租户每天1条 |
+| `t_tenant_ai_billing` | 租户计费套餐配置 | 每租户1条 |
 
-### 7.4 对现有37张表的影响
+### 7.4 对现有数据库的影响
 
-> **零影响。** 5张新表完全独立，不修改任何现有表结构。
+> **零影响。** 5张新表完全独立，不修改任何现有表结构。现有数据库已有60+张业务表，新增表与现有表通过 `tenant_id` 逻辑关联，不做物理外键约束。
 
 ---
 
-## 八、与现有14个微服务的关系
+## 八、与现有后端服务的关系
 
-| 现有服务 | 端口 | 职责 | AI底座对应Tool | 调用方式 |
-|----------|------|------|---------------|----------|
-| auth | 3001 | 认证授权 | TenantContext（JWT校验） | HTTP |
-| user | 3002 | 用户管理 | 权限校验 | HTTP |
-| product | 3003 | 商品管理 | product.tool | HTTP |
-| order | 3004 | 订单管理 | order.tool | HTTP |
-| inventory | 3005 | 库存管理 | inventory.tool | HTTP |
-| purchase | 3006 | 采购管理 | purchase.tool | HTTP |
-| delivery | 3007 | 配送管理 | delivery.tool | HTTP |
-| finance | 3008 | 财务管理 | finance.tool | HTTP |
-| report | 3009 | 报表分析 | report.tool | HTTP |
-| customer | 3010 | 客户管理 | customer.tool | HTTP |
-| marketing | 3011 | 营销管理 | marketing.tool | HTTP |
-| settings | 3012 | 系统设置 | system.tool | HTTP |
-| notification | 3013 | 消息通知 | system.tool | HTTP |
-| log | 3014 | 日志服务 | 审计日志写入 | HTTP |
-| ai-assistant | 3015 | 旧AI助手 | **（保留不动）** | - |
+| 现有服务 | API前缀 | 职责 | AI底座对应Tool | 调用方式 |
+|----------|---------|------|---------------|----------|
+| auth | /api/admin/auth | 认证授权 | TenantContext（JWT校验） | HTTP |
+| user | /api/admin/users | 用户管理 | 权限校验 | HTTP |
+| product | /api/admin/products | 商品管理 | product.tool | HTTP |
+| order | /api/admin/sale-bills | 订单管理 | order.tool | HTTP |
+| inventory | /api/admin/inventory | 库存管理 | inventory.tool | HTTP |
+| purchase | /api/admin/purchases | 采购管理 | purchase.tool | HTTP |
+| delivery | /api/admin/deliveries | 配送管理 | delivery.tool | HTTP |
+| finance | /api/admin/finance | 财务管理 | finance.tool | HTTP |
+| report | /api/admin/reports | 报表分析 | report.tool | HTTP |
+| customer | /api/admin/customers | 客户管理 | customer.tool | HTTP |
+| marketing | /api/admin/marketing | 营销管理 | marketing.tool | HTTP |
+| settings | /api/admin/settings | 系统设置 | system.tool | HTTP |
+| notification | /api/admin/notifications | 消息通知 | system.tool | HTTP |
+| log | /api/admin/logs | 日志服务 | 审计日志写入 | HTTP |
+| ai-assistant | /api/admin/ai-assistant | 旧AI助手 | **（保留不动）** | - |
 
 ### 调用原则
 
-1. AI底座只通过HTTP调用微服务，不直连数据库
+1. AI底座只通过HTTP调用现有后端API，不直连数据库
 2. 所有调用携带租户上下文（`x-tenant-id` header）
 3. 读操作：直接调用，Redis缓存可选
 4. 写操作：AI先向用户确认关键信息，再执行
@@ -667,16 +672,16 @@ ai_audit_log (每次AI调用1条，明细) ──汇总──▶ ai_usage_daily 
   │     [{ name: "searchCustomer", args: { name: "红星商行" }},
   │      { name: "searchProduct",  args: { keyword: "五粮液" }}]
   ├─ Step 4: Tool Runtime 并行执行读操作
-  │     searchCustomer → GET :3010/customer/search?name=红星商行 → { id:"c_001" }
-  │     searchProduct   → GET :3003/product/search?keyword=五粮液 → { id:"p_052" }
+  │     searchCustomer → GET /api/admin/customers?keyword=红星商行 → { id:"c_001" }
+  │     searchProduct   → GET /api/admin/products?keyword=五粮液 → { id:"p_052" }
   ├─ Step 5: LLM 二次调用 → 返回 tool_calls:
   │     [{ name: "checkInventory", args: { productId:"p_052", quantity:20 }}]
-  ├─ Step 6: Tool Runtime 校验库存 → GET :3005/stock/check → { available:150 }
+  ├─ Step 6: Tool Runtime 校验库存 → GET /api/admin/inventory/balance → { available:150 }
   ├─ Step 7: LLM 三次调用 → 生成确认信息
   │     SSE推送: "确认创建：红星商行 五粮液52度500ml × 20件 ¥980/件 合计¥19,600"
   ├─ Step 8: 用户确认 "确认"
   ├─ Step 9: Tool Runtime 创建销售单
-  │     POST :3004/order → { orderNo:"SO20260730001", status:"confirmed" }
+  │     POST /api/admin/sale-bills → { orderNo:"SO20260730001", status:"confirmed" }
   └─ Step 10: SSE 返回最终结果 + 写入审计日志
 ```
 
@@ -689,7 +694,7 @@ ai_audit_log (每次AI调用1条，明细) ──汇总──▶ ai_usage_daily 
   ├─ ContextBuilder → 组装上下文
   ├─ LLM → 识别意图: querySalesOrders
   ├─ Tool: querySalesOrders({ customerName:"红星商行", pageSize:5 })
-  │   → GET :3004/order?customerName=红星商行&pageSize=5
+  │   → GET /api/admin/sale-bills?keyword=红星商行&pageSize=5
   │   → [{ orderNo, date, amount, status }, ...]
   ├─ LLM → 格式化结果
   └─ SSE → 表格展示
@@ -708,8 +713,8 @@ ai_audit_log (每次AI调用1条，明细) ──汇总──▶ ai_usage_daily 
 2. TenantContext 注入 → AsyncLocalStorage 存储当前请求上下文
 3. 所有 Tool 调用自动携带 → headers: { "x-tenant-id": "t_001" }
 4. 对话记忆隔离 → Redis Key: ai:memory:{tenantId}:{sessionId}
-5. 审计日志隔离 → ai_audit_log.tenant_id = "t_001"
-6. AI配置隔离 → tenant_ai_config WHERE tenant_id = "t_001"
+5. 审计日志隔离 → t_ai_audit_log.tenant_id = "t_001"
+6. AI配置隔离 → t_tenant_ai_config WHERE tenant_id = "t_001"
 ```
 
 ### 10.2 租户上下文实现
@@ -743,21 +748,21 @@ function getTenantContext(): TenantContext {
 
 | 方法 | 路径 | 说明 | 认证 | 返回类型 |
 |------|------|------|------|----------|
-| POST | `/ai/chat` | AI对话（SSE流式） | JWT | `text/event-stream` |
-| GET | `/ai/admin/tools` | 已注册工具列表 | 管理员 | JSON |
-| GET | `/ai/admin/providers` | 可用Provider列表 | 管理员 | JSON |
-| POST | `/ai/admin/test-connection` | 测试AI连接 | 管理员 | JSON |
-| GET | `/ai/admin/config` | 获取全局AI配置 | 管理员 | JSON |
-| PUT | `/ai/admin/config` | 更新全局AI配置 | 管理员 | JSON |
-| GET | `/ai/admin/tenant-config/:tenantId` | 获取租户AI配置 | 管理员 | JSON |
-| PUT | `/ai/admin/tenant-config/:tenantId` | 更新租户AI配置 | 管理员 | JSON |
-| DELETE | `/ai/admin/memory/:tenantId/:sessionId` | 清除对话记忆 | 管理员 | JSON |
-| GET | `/ai/admin/health` | 健康检查 | 无 | JSON |
-| GET | `/ai/admin/usage` | 用量统计 | 管理员 | JSON |
+| POST | `/api/admin/ai/chat` | AI对话（SSE流式） | JWT | `text/event-stream` |
+| GET | `/api/platform/ai/tools` | 已注册工具列表 | 管理员 | JSON |
+| GET | `/api/platform/ai/providers` | 可用Provider列表 | 管理员 | JSON |
+| POST | `/api/platform/ai/test-connection` | 测试AI连接 | 管理员 | JSON |
+| GET | `/api/platform/ai/config` | 获取全局AI配置 | 管理员 | JSON |
+| PUT | `/api/platform/ai/config` | 更新全局AI配置 | 管理员 | JSON |
+| GET | `/api/platform/ai/tenant-config/:tenantId` | 获取租户AI配置 | 管理员 | JSON |
+| PUT | `/api/platform/ai/tenant-config/:tenantId` | 更新租户AI配置 | 管理员 | JSON |
+| DELETE | `/api/platform/ai/memory/:tenantId/:sessionId` | 清除对话记忆 | 管理员 | JSON |
+| GET | `/api/platform/ai/health` | 健康检查 | 无 | JSON |
+| GET | `/api/platform/ai/usage` | 用量统计 | 管理员 | JSON |
 
 ### 11.2 对话接口
 
-#### POST /ai/chat
+#### POST /api/admin/ai/chat
 
 **请求头：**
 
@@ -805,30 +810,42 @@ data: {"type":"done","latencyMs":3520,"tokens":{"prompt":1234,"completion":156}}
 
 ### 11.3 管理接口
 
-#### GET /ai/admin/tools
+#### GET /api/platform/ai/tools
 
 ```json
 {
-  "count": 24,
-  "tools": [
-    {
-      "name": "createSalesOrder",
-      "category": "order",
-      "description": "创建销售单..."
-    }
-  ]
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "count": 24,
+    "tools": [
+      {
+        "name": "createSalesOrder",
+        "category": "order",
+        "description": "创建销售单..."
+      }
+    ]
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
 
-#### GET /ai/admin/providers
+#### GET /api/platform/ai/providers
 
 ```json
 {
-  "providers": ["deepseek", "qwen", "zhipu", "ollama"]
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "providers": ["deepseek", "qwen", "zhipu", "ollama"]
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
 
-#### POST /ai/admin/test-connection
+#### POST /api/platform/ai/test-connection
 
 ```json
 // 请求
@@ -839,16 +856,30 @@ data: {"type":"done","latencyMs":3520,"tokens":{"prompt":1234,"completion":156}}
 }
 
 // 响应
-{ "success": true, "provider": "deepseek" }
+{
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "provider": "deepseek"
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
+}
 ```
 
-#### GET /ai/admin/health
+#### GET /api/platform/ai/health
 
 ```json
 {
-  "status": "ok",
-  "uptime": 86400,
-  "timestamp": "2026-07-30T12:00:00.000Z"
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "status": "ok",
+    "uptime": 86400,
+    "timestamp": "2026-07-31T12:00:00.000Z"
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
 
@@ -856,28 +887,29 @@ data: {"type":"done","latencyMs":3520,"tokens":{"prompt":1234,"completion":156}}
 
 | 错误码 | HTTP状态 | 含义 | 处理建议 |
 |--------|----------|------|----------|
-| `AI_001` | 401 | JWT Token无效或过期 | 重新登录获取Token |
-| `AI_002` | 403 | 租户未启用AI功能 | 联系总台开通 |
-| `AI_003` | 429 | 请求频率超限（>60次/分钟） | 稍后重试 |
-| `AI_004` | 503 | AI服务商不可用 | 自动切换备用Provider |
-| `AI_005` | 500 | LLM调用失败 | 检查API Key/网络 |
-| `AI_006` | 500 | Tool执行失败 | 检查微服务是否正常 |
-| `AI_007` | 400 | 消息内容为空 | 补充消息内容 |
-| `AI_008` | 503 | Redis不可用（降级模式） | 检查Redis连接 |
-| `AI_009` | 500 | Agent循环超限（>10轮） | 简化请求或检查Tool定义 |
-| `AI_010` | 403 | 无权限执行此操作 | 检查用户角色权限 |
+| `401` | 401 | JWT Token无效或过期 | 重新登录获取Token |
+| `403` | 403 | 租户未启用AI功能 | 联系总台开通 |
+| `1004` | 429 | 请求频率超限（>60次/分钟） | 稍后重试 |
+| `500` | 503 | AI服务商不可用 | 自动切换备用Provider |
+| `500` | 500 | LLM调用失败 | 检查API Key/网络 |
+| `500` | 500 | Tool执行失败 | 检查后端服务是否正常 |
+| `400` | 400 | 消息内容为空 | 补充消息内容 |
+| `500` | 503 | Redis不可用（降级模式） | 检查Redis连接 |
+| `500` | 500 | Agent循环超限（>10轮） | 简化请求或检查Tool定义 |
+| `403` | 403 | 无权限执行此操作 | 检查用户角色权限 |
 
-**错误响应格式：**
+**错误响应格式（统一标准）：**
 
 ```json
 {
-  "code": "AI_004",
-  "message": "AI服务商暂时不可用",
-  "detail": "DeepSeek API timeout after 30s",
-  "suggestion": "正在尝试切换到备用服务商...",
-  "timestamp": "2026-07-30T12:00:00.000Z"
+  "code": "500",
+  "msg": "AI服务商暂时不可用",
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
+
+> 说明：系统统一返回体格式为 `{ code, msg, data, traceId, apiCost }`，成功时 `code` 为 `"0"`，失败时为对应数字错误码字符串。错误时无 `data` 字段，`msg` 为错误描述，`traceId` 用于链路追踪，`apiCost` 为接口耗时。
 
 ---
 
@@ -940,7 +972,7 @@ data: {"type":"done","latencyMs":3200,"tokens":{"prompt":500,"completion":80}}\n
 | SessionId 生成 | 首次请求无sessionId时自动生成 `sess_{timestamp}_{random}` |
 | SessionId 维持 | 前端保存sessionId，后续请求携带同一ID |
 | 对话历史 | Redis存储最近10轮（20条消息），TTL 1小时 |
-| 会话清除 | 用户主动"新对话" / DELETE /ai/admin/memory 接口 / TTL过期 |
+| 会话清除 | 用户主动"新对话" / DELETE /api/platform/ai/memory 接口 / TTL过期 |
 | 跨设备 | 同一用户不同设备使用不同sessionId，互不干扰 |
 
 ### 12.5 Session 持久化策略
@@ -950,7 +982,7 @@ data: {"type":"done","latencyMs":3200,"tokens":{"prompt":500,"completion":80}}\n
 | 层级 | 存储 | 内容 | TTL/Lifecycle | 用途 |
 |------|------|------|---------------|------|
 | L1 热存储 | Redis Hash | 最近10轮对话消息 + 会话元数据 | 1小时自动过期 | 实时对话上下文 |
-| L2 冷存储 | MySQL `ai_session_archive` | 超过L1窗口的完整对话历史 | 保留90天后归档 | 审计回溯、用户查看历史 |
+| L2 冷存储 | MySQL `t_ai_session_archive` | 超过L1窗口的完整对话历史 | 保留90天后归档 | 审计回溯、用户查看历史 |
 
 **L1 → L2 迁移机制**：
 
@@ -966,7 +998,7 @@ data: {"type":"done","latencyMs":3200,"tokens":{"prompt":500,"completion":80}}\n
        ├─ 序列化为JSON
        │
        ▼
-  INSERT INTO ai_session_archive
+  INSERT INTO t_ai_session_archive
     (session_id, tenant_id, user_id, messages_json,
      message_count, started_at, ended_at)
        │
@@ -997,24 +1029,24 @@ interface SessionData {
 **冷备归档表**：
 
 ```sql
-CREATE TABLE ai_session_archive (
-  id            BIGINT PRIMARY KEY AUTO_INCREMENT,
-  session_id    VARCHAR(64) NOT NULL,
-  tenant_id     VARCHAR(32) NOT NULL,
-  user_id       VARCHAR(32) NOT NULL,
+CREATE TABLE t_ai_session_archive (
+  id            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  session_id    VARCHAR(64) NOT NULL COMMENT '会话ID',
+  tenant_id     VARCHAR(36) NOT NULL COMMENT '租户ID',
+  user_id       VARCHAR(36) NOT NULL COMMENT '用户ID',
 
-  messages_json JSON,                    -- 完整对话消息
-  message_count INT,
+  messages_json JSON COMMENT '完整对话消息',
+  message_count INT COMMENT '消息数量',
 
-  started_at    DATETIME NOT NULL,
-  ended_at      DATETIME,                -- 最后活跃时间
+  started_at    DATETIME NOT NULL COMMENT '会话开始时间',
+  ended_at      DATETIME COMMENT '最后活跃时间',
 
-  created_at    DATETIME DEFAULT NOW(),
+  created_at    DATETIME DEFAULT NOW() COMMENT '创建时间',
 
   INDEX idx_tenant_user (tenant_id, user_id),
   INDEX idx_session (session_id),
   INDEX idx_created (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI会话归档表';
 ```
 
 **会话恢复场景**：
@@ -1023,7 +1055,7 @@ CREATE TABLE ai_session_archive (
 |------|----------|
 | 用户1小时内返回 | Redis TTL未过期，直接续接对话 |
 | 用户1小时后返回 | Redis已过期，启动新会话；旧会话已归档可查看 |
-| 用户查看历史 | 从 `ai_session_archive` 查询，按时间倒序展示 |
+| 用户查看历史 | 从 `t_ai_session_archive` 查询，按时间倒序展示 |
 | Redis宕机 | L1丢失，降级为无记忆模式；恢复后从L2重建最近会话（如存在） |
 | 审计需求 | 从L2按tenant_id+时间范围检索 |
 
@@ -1052,7 +1084,7 @@ class AIChatWidget {
   private token: string;
 
   async sendMessage(text: string): Promise<void> {
-    const response = await fetch('/ai/chat', {
+    const response = await fetch('/api/admin/ai/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1115,8 +1147,8 @@ class AIChatWidget {
 #### 13.1.3 Nginx 配置
 
 ```nginx
-location /ai/ {
-    proxy_pass http://127.0.0.1:3016/ai/;
+location /api/admin/ai/ {
+    proxy_pass http://127.0.0.1:3016/api/admin/ai/;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection 'upgrade';
@@ -1126,6 +1158,13 @@ location /ai/ {
     proxy_buffering off;           # 关闭缓冲，实时推送
     proxy_read_timeout 300s;       # 长连接超时5分钟
     chunked_transfer_encoding on;  # 支持分块传输
+}
+
+location /api/platform/ai/ {
+    proxy_pass http://127.0.0.1:3016/api/platform/ai/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_read_timeout 60s;
 }
 ```
 
@@ -1178,7 +1217,7 @@ class MobileAIChat {
   async sendMessage(text: string) {
     this.abortController = new AbortController();
 
-    const response = await fetch('/ai/chat', {
+    const response = await fetch('/api/admin/ai/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1238,19 +1277,19 @@ class MobileAIChat {
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/ai/admin/config` | GET | 获取全局AI配置 |
-| `/ai/admin/config` | PUT | 更新全局AI配置 |
-| `/ai/admin/tenant-config/:tenantId` | GET | 获取租户AI配置 |
-| `/ai/admin/tenant-config/:tenantId` | PUT | 更新租户AI配置 |
-| `/ai/admin/test-connection` | POST | 测试AI连接 |
-| `/ai/admin/usage` | GET | 用量统计 |
-| `/ai/admin/tools` | GET | 已注册工具列表 |
+| `/api/platform/ai/config` | GET | 获取全局AI配置 |
+| `/api/platform/ai/config` | PUT | 更新全局AI配置 |
+| `/api/platform/ai/tenant-config/:tenantId` | GET | 获取租户AI配置 |
+| `/api/platform/ai/tenant-config/:tenantId` | PUT | 更新租户AI配置 |
+| `/api/platform/ai/test-connection` | POST | 测试AI连接 |
+| `/api/platform/ai/usage` | GET | 用量统计 |
+| `/api/platform/ai/tools` | GET | 已注册工具列表 |
 
 #### 13.3.2 配置更新示例
 
 ```bash
 # 更新租户AI配置
-curl -X PUT http://localhost:3016/ai/admin/tenant-config/t_001 \
+curl -X PUT http://localhost:3016/api/platform/ai/tenant-config/t_001 \
   -H "Authorization: Bearer <admin-token>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -1264,8 +1303,14 @@ curl -X PUT http://localhost:3016/ai/admin/tenant-config/t_001 \
 
 # 响应
 {
-  "success": true,
-  "message": "租户AI配置已更新"
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "tenantId": "t_001",
+    "message": "租户AI配置已更新"
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
 
@@ -1279,11 +1324,11 @@ curl -X PUT http://localhost:3016/ai/admin/tenant-config/t_001 \
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│              智享AI底座 (3016)                        │
+│              智享AI底座 (共享实例)                    │
 │                                                     │
 │  ┌──────────────┐         ┌──────────────────────┐  │
 │  │ 自有前端      │         │ MCP Server           │  │
-│  │ Web/移动端    │         │ /ai/mcp              │  │
+│  │ Web/移动端    │         │ /api/platform/ai/mcp │  │
 │  │ SSE /chat     │         │                      │  │
 │  └──────────────┘         │ 暴露所有Tool为        │  │
 │                           │ MCP Resources/Tools   │  │
@@ -1311,7 +1356,7 @@ curl -X PUT http://localhost:3016/ai/admin/tenant-config/t_001 \
 智享AI底座作为 **MCP Server**，将所有业务 Tool 暴露为标准 MCP 工具：
 
 ```
-MCP Endpoint: /ai/mcp
+MCP Endpoint: /api/platform/ai/mcp
 协议: MCP over HTTP (SSE)
 
 暴露的 MCP Tools = ToolRegistry 中注册的所有工具
@@ -1346,17 +1391,17 @@ MCP Endpoint: /ai/mcp
 
 ```sql
 -- MCP对接Token表（简洁，一张表搞定）
-CREATE TABLE mcp_token (
-  id          INT PRIMARY KEY AUTO_INCREMENT,
-  tenant_id   VARCHAR(32) NOT NULL,          -- 绑定的租户
-  token       VARCHAR(128) NOT NULL UNIQUE,  -- MCP Token
-  name        VARCHAR(64),                    -- 标识名称（如"WorkBuddy对接"）
-  enabled     TINYINT(1) DEFAULT 1,
-  expires_at  DATETIME,                       -- 过期时间（NULL=永不过期）
-  created_at  DATETIME DEFAULT NOW(),
+CREATE TABLE t_mcp_token (
+  id          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+  tenant_id   VARCHAR(36) NOT NULL COMMENT '绑定的租户ID',
+  token       VARCHAR(128) NOT NULL UNIQUE COMMENT 'MCP Token',
+  name        VARCHAR(64) COMMENT '标识名称（如"WorkBuddy对接"）',
+  enabled     TINYINT(1) DEFAULT 1 COMMENT '是否启用',
+  expires_at  DATETIME COMMENT '过期时间（NULL=永不过期）',
+  created_at  DATETIME DEFAULT NOW() COMMENT '创建时间',
   
   INDEX idx_tenant (tenant_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP对接Token表';
 ```
 
 ### 14.5 WorkBuddy 对接示例
@@ -1368,7 +1413,7 @@ CREATE TABLE mcp_token (
    交付给WorkBuddy
 
 2. WorkBuddy配置MCP Server:
-   URL: https://api.zhixiang.com/ai/mcp
+   URL: https://api.zhixiang.com/api/platform/ai/mcp
    Token: mcp_a1b2c3d4
 
 3. 用户在WorkBuddy中说:
@@ -1391,7 +1436,7 @@ CREATE TABLE mcp_token (
 | **Token认证** | 每个MCP Token绑定一个租户，Token加密存储 |
 | **Token过期** | 支持设置过期时间，可随时禁用 |
 | **权限范围** | Token继承绑定租户的权限，只能操作该租户数据 |
-| **操作审计** | MCP发起的调用记录到 ai_audit_log，标记来源为"mcp" |
+| **操作审计** | MCP发起的调用记录到 t_ai_audit_log，标记来源为"mcp" |
 | **频率限制** | MCP Token共享租户级限流（60次/分钟） |
 | **写操作确认** | MCP调用写操作时返回预览信息，由第三方AI客户端负责与用户确认 |
 
@@ -1399,7 +1444,7 @@ CREATE TABLE mcp_token (
 
 | 对比项 | 之前的HTTP API方案 | MCP方案 |
 |--------|-------------------|---------|
-| 接口数量 | 3个（chat/confirm/query） | **1个**（/ai/mcp） |
+| 接口数量 | 3个（chat/confirm/query） | **1个**（/api/platform/ai/mcp） |
 | 数据库表 | 2张 | **1张** |
 | 认证复杂度 | 平台Token+用户映射表 | **Token绑定租户** |
 | 新工具上线 | 需手动告知第三方 | **自动暴露**（ToolRegistry注册即可见） |
@@ -1417,9 +1462,9 @@ CREATE TABLE mcp_token (
 | **传输** | HTTPS | 所有API调用强制HTTPS，Nginx 终止 TLS |
 | **认证** | JWT Token | 每次请求校验，过期自动刷新 |
 | **授权** | 角色权限 | 检查用户是否有权限执行对应Tool操作 |
-| **数据隔离** | tenantId注入 | 所有Tool调用自动携带，微服务端校验 |
+| **数据隔离** | tenantId注入 | 所有Tool调用自动携带，后端服务端校验 |
 | **API Key** | AES-256-GCM加密 | 数据库中API Key密文存储 |
-| **审计** | 全量日志 | 每次AI调用写入 ai_audit_log |
+| **审计** | 全量日志 | 每次AI调用写入 t_ai_audit_log |
 | **限流** | Redis滑动窗口 | 每租户每分钟最多60次AI调用 |
 | **输入校验** | Zod Schema | 所有用户输入和Tool参数校验 |
 | **敏感信息** | 脱敏处理 | 日志中不记录完整API Key和敏感数据 |
@@ -1429,7 +1474,7 @@ CREATE TABLE mcp_token (
 ```
 用户登录
   │
-  ├─ auth-service(3001) 校验账号密码
+  ├─ 现有后端认证服务 校验账号密码
   ├─ 生成 JWT Token:
   │    {
   │      sub: "u_123",          // userId
@@ -1538,18 +1583,24 @@ async function checkRateLimit(tenantId: string): Promise<boolean> {
 ### 15.1 健康检查端点
 
 ```
-GET /ai/admin/health
+GET /api/platform/ai/health
 ```
 
 ```json
 {
-  "status": "ok",
-  "uptime": 86400,
-  "timestamp": "2026-07-30T12:00:00.000Z",
-  "checks": {
-    "redis": "ok",
-    "defaultProvider": "ok"
-  }
+  "code": "0",
+  "msg": "成功",
+  "data": {
+    "status": "ok",
+    "uptime": 86400,
+    "timestamp": "2026-07-31T12:00:00.000Z",
+    "checks": {
+      "redis": "ok",
+      "defaultProvider": "ok"
+    }
+  },
+  "traceId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "apiCost": 1
 }
 ```
 
@@ -1558,8 +1609,8 @@ GET /ai/admin/health
 | 指标 | 采集方式 | 告警阈值 | 说明 |
 |------|----------|----------|------|
 | **AI响应延迟** | Orchestrator记录latencyMs | P95 > 10s | AI响应变慢 |
-| **Tool执行失败率** | ToolRegistry统计 | > 10% | 微服务异常 |
-| **Token消耗** | ai_audit_log汇总 | 日消耗 > 100万 | 费用异常 |
+| **Tool执行失败率** | ToolRegistry统计 | > 10% | 后端服务异常 |
+| **Token消耗** | t_ai_audit_log汇总 | 日消耗 > 100万 | 费用异常 |
 | **Provider健康** | 定时healthCheck | 失败 | API不可用 |
 | **Redis连接** | 连接状态 | 断开 | 对话记忆不可用 |
 | **Agent循环次数** | Orchestrator统计 | 平均 > 5轮 | 工具定义需优化 |
@@ -1567,7 +1618,7 @@ GET /ai/admin/health
 
 ### 15.4 Prometheus + Grafana 监控指标
 
-**暴露端点**：`GET /ai/admin/metrics`（Prometheus text format）
+**暴露端点**：`GET /api/platform/ai/metrics`（Prometheus text format）
 
 | 指标名 | 类型 | 标签 | 说明 |
 |--------|------|------|------|
@@ -1637,7 +1688,7 @@ GET /ai/admin/health
 
 ```json
 {
-  "timestamp": "2026-07-30T12:00:00.000Z",
+  "timestamp": "2026-07-31T12:00:00.000Z",
   "level": "info",
   "event": "tool_executed",
   "tool": "createSalesOrder",
@@ -1681,12 +1732,12 @@ GET /ai/admin/health
   │  Redis不可用 → 降级为内存存储（当前请求有效，不跨进程）    │
   │  对话历史不保留，但当前对话可正常进行                      │
   ├─────────────────────────────────────────────────────────┤
-  │  Level 3: 微服务降级                                     │
-  │  某微服务不可用 → Tool返回错误信息 → AI告知用户           │
+  │  Level 3: 后端服务降级                                  │
+  │  某后端API不可用 → Tool返回错误信息 → AI告知用户        │
   │  "库存服务暂时不可用，请稍后重试"                          │
   ├─────────────────────────────────────────────────────────┤
   │  Level 4: AI底座完全不可用                                │
-  │  Nginx检测到3016不可用 → 返回503 → 前端隐藏AI入口         │
+  │  Nginx检测到AI底座不可用 → 返回503 → 前端隐藏AI入口    │
   │  现有Web/移动端功能不受影响（小程序除外）                │
   └─────────────────────────────────────────────────────────┘
 ```
@@ -1726,7 +1777,7 @@ async function callWithFallback(
 
 ### 16.3 Tool 超时与熔断机制
 
-**设计原则**：Tool调用微服务时，必须有超时控制和熔断保护，避免微服务故障拖垮AI底座。
+**设计原则**：Tool调用后端API时，必须有超时控制和熔断保护，避免后端服务故障拖垮AI底座。
 
 ```
 Tool执行保护链路:
@@ -1743,7 +1794,7 @@ Tool执行保护链路:
        │     │
        │     ├─ Closed（正常）：请求通过，统计失败率
        │     │
-       │     ├─ Open（熔断）：失败率 > 50%（30秒窗口内）→ 直接拒绝，不调用微服务
+       │     ├─ Open（熔断）：失败率 > 50%（30秒窗口内）→ 直接拒绝，不调用后端API
        │     │           持续 30 秒 → Half-Open
        │     │
        │     └─ Half-Open（半开）：放行1个探测请求
@@ -1803,10 +1854,10 @@ breaker.fallback(() => ({
 
 | 场景 | 风险 | 保障措施 |
 |------|------|----------|
-| **创建销售单+扣减库存** | AI调用order成功但inventory超时 | 微服务间通过RabbitMQ保证最终一致性（现有机制） |
+| **创建销售单+扣减库存** | AI调用order成功但inventory超时 | 后端服务内部通过RabbitMQ保证最终一致性（现有机制） |
 | **Agent多步骤执行中途失败** | Step3成功但Step4失败 | 每个Tool调用独立，AI在下一轮可感知失败并告知用户 |
 | **对话记忆丢失** | Redis宕机 | 降级为无记忆模式，不影响业务操作正确性 |
-| **审计日志丢失** | log-service不可用 | AuditLogger降级为本地日志，不阻塞主流程 |
+| **审计日志丢失** | 后端日志服务不可用 | AuditLogger降级为本地日志，不阻塞主流程 |
 | **API Key泄露** | 数据库被入侵 | AES-256-GCM加密存储，即使脱库也无法解密 |
 
 ### 16.5 容灾恢复
@@ -1834,13 +1885,13 @@ breaker.fallback(() => ({
 ```
 zhixiang-ai-base/
 ├── src/
-│   ├── main.ts                         # 应用入口，端口3016
+│   ├── main.ts                         # 应用入口，共享实例
 │   ├── app.module.ts                   # 根模块
 │   │
 │   ├── gateway/                        # 对外网关层
-│   │   ├── chat.controller.ts          # POST /ai/chat (SSE流式)
+│   │   ├── chat.controller.ts          # POST /api/admin/ai/chat (SSE流式)
 │   │   ├── chat.gateway.ts             # WebSocket 实时推送
-│   │   ├── admin.controller.ts         # AI配置管理API
+│   │   ├── admin.controller.ts         # AI配置管理API（/api/platform/ai/*）
 │   │   └── dto/
 │   │
 │   ├── brain/                          # 大脑引擎
@@ -1903,8 +1954,8 @@ zhixiang-ai-base/
 │   ├── product-catalog.md
 │   └── faq.md
 │
-├── migrations/                         # 数据库迁移
-│   └── 001_ai_tables.sql
+├── migrations/                         # 数据库迁移（实际路径：项目根目录 docs/migrations/121_ai_base_tables.sql）
+│   └── 121_ai_base_tables.sql
 │
 ├── package.json
 ├── tsconfig.json
@@ -1970,18 +2021,18 @@ zhixiang-ai-base/
 | 3 | 默认服务商 | DeepSeek / 通义 / 智谱 | **DeepSeek** | 最便宜、FunctionCalling好、中文强 |
 | 4 | 模型切换 | 硬编码 / 配置驱动 | **配置驱动** | ProviderFactory + DB配置 |
 | 5 | 工具定义 | 自动生成 / 手工编写 | **手工编写** | 精确控制、业务语义明确 |
-| 6 | 服务调用 | 直连DB / HTTP调微服务 | **HTTP调微服务** | 复用现有业务逻辑 |
+| 6 | 服务调用 | 直连DB / HTTP调后端API | **HTTP调后端API** | 复用现有业务逻辑 |
 | 7 | RAG存储 | 内存 / FAISS / ES | **内存向量** | 知识库不大，内存足够 |
 | 8 | 对话记忆 | 内存 / Redis | **Redis** | 跨进程共享，支持重启恢复 |
 | 9 | 多租户 | 独立DB / tenantId隔离 | **tenantId隔离** | 与现有系统一致 |
 | 10 | API Key存储 | 明文 / 加密 | **AES-256-GCM** | 安全合规 |
 | 11 | 前端改造 | 激进 / 渐进 | **渐进式** | 先加悬浮窗，不破坏现有体验 |
-| 12 | 降级策略 | 快速失败 / 多级降级 | **多级降级** | Provider切换+记忆降级+微服务降级 |
+| 12 | 降级策略 | 快速失败 / 多级降级 | **多级降级** | Provider切换+记忆降级+后端服务降级 |
 | 13 | 通信协议 | HTTP / SSE / WebSocket | **SSE为主，WS备用** | SSE适合单向流式，WS适合双向 |
 | 14 | 能力扩展 | 人工配置 / 自主学习 | **自主学习** | 系统新增功能自动发现→学习→注册，零人工 |
 | 15 | 第三方对接 | 封闭 / HTTP API / MCP | **MCP接口** | 标准协议，一个接口暴露所有Tool，零定制对接 |
 | 16 | 价格校验 | 禁止亏损 / 提示警告 | **提示不拦截** | 实际业务存在亏钱出货场景，AI只提醒不阻止 |
-| 17 | Tool调用保护 | 无保护 / 超时+熔断 | **超时+熔断** | 每个Tool独立熔断器，防止微服务故障拖垮AI底座 |
+| 17 | Tool调用保护 | 无保护 / 超时+熔断 | **超时+熔断** | 每个Tool独立熔断器，防止后端服务故障拖垮AI底座 |
 | 18 | Session持久化 | 纯Redis / Redis+MySQL冷备 | **Redis+MySQL冷备** | 热数据Redis(1h TTL)，冷数据归档MySQL(90天) |
 | 19 | 监控体系 | 日志 / 日志+Prometheus | **日志+Prometheus+Grafana** | 指标可视化+Alertmanager自动告警 |
 | 20 | 计费模式 | 按量后付 / 预付费 / 混合 | **预付费为主+混合** | 预付费实时扣减防坏账，免费额度OR逻辑判定 |
@@ -1994,12 +2045,12 @@ zhixiang-ai-base/
 
 | 任务 | 产出 | 优先级 |
 |------|------|--------|
-| 初始化 NestJS 项目 | 可编译的空项目 | P0 |
+| 初始化 Express.js 项目 | 可编译的空项目 | P0 |
 | 实现 Provider 接口 + DeepSeekProvider | 可调用DeepSeek对话 | P0 |
 | 实现 ChatController (SSE流式) | 前端可对话 | P0 |
 | 实现 Tool Registry + Tool Executor | 工具注册/执行框架 | P0 |
-| 实现 Service Bridge（HTTP客户端） | 可调用现有微服务 | P0 |
-| 数据库表创建 | 3张新表 | P0 |
+| 实现 Service Bridge（HTTP客户端） | 可调用现有后端API | P0 |
+| 数据库表创建 | 5张新表 | P0 |
 
 ### Phase 2: 核心功能（第3-4周）
 
@@ -2019,7 +2070,7 @@ zhixiang-ai-base/
 | 实现剩余业务Tool（采购/配送/财务/报表） | 全部Tool就绪 | P1 |
 | 实现 AI 配置中心 API | 总台可管理AI配置 | P1 |
 | 实现降级与容灾 | Provider故障切换 | P1 |
-| 实现审计日志 | ai_audit_log 写入 | P1 |
+| 实现审计日志 | t_ai_audit_log 写入 | P1 |
 | 实现限流 | 租户级限流 | P1 |
 | 前端对话窗口组件 | 右下角悬浮窗 | P1 |
 | 端到端集成测试 | 所有场景通过 | P1 |
@@ -2036,4 +2087,8 @@ zhixiang-ai-base/
 
 ---
 
-> **文档版本**: v3.1 | **最后更新**: 2026-07-30
+> **文档版本**: v3.2 | **最后更新**: 2026-07-31
+
+---
+
+> **v3.2 更新（2026-07-31）**：按项目统一标准对齐——数据库表名加 t_ 前缀、API路径改为 /api/ 标准前缀、微服务描述改为单体后端(Express.js)、返回体格式统一为 ok()/fail()、错误码改为数字体系、tenant_id 统一 VARCHAR(36)、主键统一 BIGINT UNSIGNED、字段补中文COMMENT、迁移脚本路径规范对齐

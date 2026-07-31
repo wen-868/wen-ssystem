@@ -1,6 +1,8 @@
 # 智享全链 AI 底座 — 开发文档
 
-> 版本：v2.0 | 日期：2026-07-30
+> 版本：v2.1 | 日期：2026-07-31
+
+> **修改说明（v2.1）**：与项目统一标准对齐。主要变更：①数据库表名统一加 `t_` 前缀；②API路径改为系统标准前缀（`/api/admin/`、`/api/platform/`）；③微服务描述改为单体后端（Express.js），第九章端口表格改为API前缀表格并对齐现有系统路由；④迁移脚本路径规范为 `docs/migrations/`，文件命名 `NNN_描述.sql`；⑤前端代码示例 API 路径对齐；⑥返回体改为统一格式（code/msg/data/traceId/apiCost）；⑦新增 12.5「与项目统一标准的关系」。
 
 ---
 
@@ -14,7 +16,7 @@
 6. [Provider 开发指南](#六provider-开发指南)
 7. [Tool 开发指南](#七tool-开发指南)
 8. [Brain Engine 开发指南](#八brain-engine-开发指南)
-9. [微服务对接指南](#九微服务对接指南)
+9. [后端服务对接指南](#九后端服务对接指南)
 10. [前端组件开发指南](#十前端组件开发指南)
 11. [数据库迁移指南](#十一数据库迁移指南)
 12. [编码规范](#十二编码规范)
@@ -58,7 +60,7 @@
 | **AI Provider** | DEFAULT_MODEL_PROVIDER, DEEPSEEK_API_KEY | 默认服务商和API Key |
 | **加密** | ENCRYPTION_KEY | API Key加密密钥（32字节hex） |
 | **Redis** | REDIS_HOST, REDIS_PORT, REDIS_DB=1 | 对话记忆存储，使用DB1避免冲突 |
-| **微服务** | SERVICE_ORDER等14个地址 | 现有微服务的内部地址 |
+| **后端服务** | BACKEND_API_BASE | 现有后端服务（Express.js单体，默认端口8080）的API基础地址 |
 | **AI参数** | DEFAULT_TEMPERATURE=0.3, DEFAULT_MAX_TOKENS=2048 | LLM调用参数 |
 | **限流** | RATE_LIMIT_PER_MINUTE=60 | 每租户限流 |
 
@@ -121,7 +123,7 @@ src/
     └── crypto.ts
 
 knowledge/                      # 知识库文件
-migrations/                     # 数据库迁移
+docs/migrations/                # 数据库迁移（遵循项目统一标准，命名 NNN_描述.sql）
 ```
 
 ### 2.3 验证启动
@@ -146,7 +148,7 @@ pnpm run start:dev
 | **Gateway** | Admin管理API | ToolRegistry | 0.5天 | 查工具/测试连接 |
 | **Tool** | ToolRegistry + ToolExecutor | 无 | 1天 | 工具注册/执行成功 |
 | **Tool** | order.tool（7个工具定义+handler） | ToolRegistry + ServiceBridge | 2天 | "创建销售单"端到端 |
-| **Bridge** | ServiceClient（HTTP调用微服务） | 无 | 1天 | 可调用localhost:3004 |
+| **Bridge** | ServiceClient（HTTP调用后端API） | 无 | 1天 | 可调用后端 /api/admin/sale-bills |
 | **Bridge** | AuditLogger | ServiceClient | 0.5天 | 日志写入 |
 | **Tenant** | TenantContext + TenantGuard | 无 | 1天 | JWT解析+tenantId注入 |
 | **Brain** | ContextBuilder | 无 | 0.5天 | System Prompt正确组装 |
@@ -181,7 +183,7 @@ pnpm run start:dev
 | **前端** | 总台AI配置页面 | Admin API | 2天 | 可管理租户AI配置 |
 | **安全** | 限流（令牌桶） | Redis | 0.5天 | 60次/分钟限制生效 |
 | **安全** | API Key加密存储 | crypto | 0.5天 | AES-256加密/解密 |
-| **运维** | 健康检查 + 监控指标 | 全部模块 | 1天 | /admin/health正常 |
+| **运维** | 健康检查 + 监控指标 | 全部模块 | 1天 | /api/platform/ai/health正常 |
 | **运维** | 日志聚合 + 告警 | AuditLogger | 1天 | 异常自动告警 |
 | **CI/CD** | Dockerfile + 部署脚本 | 全部模块 | 1天 | 一键部署 |
 
@@ -220,7 +222,7 @@ Service Bridge  Brain Engine   order Tool     TenantGuard     数据库迁移
                 + Orchestrator
 
 验收:           验收:          验收:          验收:            验收:
-调用微服务成功   Agent Loop     "创建销售单"    tenantId自动     配置读写
+调用后端成功     Agent Loop     "创建销售单"    tenantId自动     配置读写
                 正常           端到端成功      注入到Tool
 
 Step 11 ──────▶ Step 12 ──────▶ Step 13 ──────▶ Step 14
@@ -240,12 +242,12 @@ Step 11 ──────▶ Step 12 ──────▶ Step 13 ────
 | 1 | `mysql -u root -p -e "SELECT 1"` | MySQL连接成功 |
 | 1 | `redis-cli ping` | PONG |
 | 2 | `pnpm run start:dev` | AI底座已启动: http://localhost:3016 |
-| 3 | `curl localhost:3016/ai/admin/test-connection` | `{success: true}` |
-| 4 | `curl -X POST localhost:3016/ai/chat -d '{"message":"你好"}'` | SSE流式文本 |
-| 5 | `curl localhost:3016/ai/admin/tools` | 工具列表JSON |
-| 6 | `curl localhost:3004/order`（测试微服务可达） | 订单列表 |
+| 3 | `curl localhost:3016/api/platform/ai/test-connection` | `{"code":"0","msg":"成功","data":{"success":true}}` |
+| 4 | `curl -X POST localhost:3016/api/admin/ai/chat -d '{"message":"你好"}'` | SSE流式文本 |
+| 5 | `curl localhost:3016/api/platform/ai/tools` | 工具列表JSON |
+| 6 | `curl localhost:8080/api/admin/sale-bills`（测试后端可达） | 订单列表 |
 | 8 | 对话："红星商行20件五粮液价格980" | 销售单创建成功 |
-| 10 | `mysql -e "SHOW TABLES LIKE 'ai_%'"` | 3张新表 |
+| 10 | `mysql -e "SHOW TABLES LIKE 't_%ai%'"` | 3张新表 |
 
 ---
 
@@ -400,7 +402,7 @@ export class ProviderFactory {
 2. 实现 IModelProvider 接口的所有方法
 3. 在 ProviderModule 中注册为 Provider
 4. 在 ProviderFactory 的 providers Map 中添加
-5. 在 tenant_ai_config 的 provider 字段值域中新增选项
+5. 在 t_tenant_ai_config 的 provider 字段值域中新增选项
 6. 测试 healthCheck 和 chat 方法
 ```
 
@@ -483,7 +485,7 @@ export class OrderToolHandler {
 @Injectable()
 export class BusinessToolHandler {
   constructor(private registry: ToolRegistry, private client: ServiceClient) {
-    // 通用注册，转发到微服务
+    // 通用注册，转发到后端API
     for (const tool of FINANCE_TOOLS) {
       this.registry.register({
         name: tool.function.name,
@@ -510,7 +512,7 @@ export class BusinessToolHandler {
 1. src/tools/definitions/xxx.tool.ts → ToolDefinition[]
 2. src/tools/handlers/xxx.handler.ts → 实现逻辑 + 注册到Registry
 3. src/app.module.ts → providers 中添加 Handler
-4. 测试: curl /ai/admin/tools 查看新工具
+4. 测试: curl /api/platform/ai/tools 查看新工具
 5. 测试: 对话中使用自然语言触发该工具
 ```
 
@@ -568,11 +570,11 @@ System Prompt模板：
 
 ---
 
-## 九、微服务对接指南
+## 九、后端服务对接指南
 
 ### 9.1 对接方式
 
-AI底座通过 HTTP 调用现有14个微服务，不直连数据库。
+AI底座通过 HTTP 调用现有后端API，不直连数据库。
 
 ```
 AI底座 (3016)
@@ -580,52 +582,65 @@ AI底座 (3016)
     │ HTTP + x-tenant-id header
     │
     ▼
-现有微服务 (3001-3014)
+现有后端服务（Express.js单体，端口8080）
 ```
 
-### 9.2 每个微服务需要的API清单
+### 9.2 每个业务域需要的API清单
 
-| 微服务 | 端口 | AI需要的API | 方法 |
-|--------|------|-------------|------|
-| **customer (3010)** | 搜索客户 `/search?name=` | GET | 
-| | | 客户详情 `/detail/{id}` | GET |
-| | | 创建客户 `/create` | POST |
-| **product (3003)** | 搜索商品 `/search?keyword=` | GET |
-| | | 商品详情 `/detail/{id}` | GET |
-| | | 更新价格 `/update-price` | PUT |
-| **order (3004)** | 创建销售单 `/create` | POST |
-| | | 查询订单 `/list?customerName=&status=` | GET |
-| | | 订单详情 `/detail/{orderNo}` | GET |
-| | | 取消订单 `/cancel/{orderNo}` | POST |
-| **inventory (3005)** | 查询库存 `/list?productName=` | GET |
-| | | 库存检查 `/check/{productId}?quantity=` | GET |
+> 以下「AI需要的API」为相对各业务域「API前缀」的子路径；`BACKEND_API_BASE` 默认 `http://localhost:8080`。
+
+| 业务域 | API前缀 | AI需要的API | 方法 |
+|--------|---------|-------------|------|
+| **客户** | `/api/admin/customers` | 搜索客户 `?keyword=` | GET |
+| | | 客户详情 `/:id` | GET |
+| | | 创建客户（根路径，POST body） | POST |
+| **商品** | `/api/admin/products` | 搜索商品 `?keyword=` | GET |
+| | | 商品详情 `/:id` | GET |
+| | | 更新价格 `/:id`（body含价格字段） | PUT |
+| **销售单** | `/api/admin/sale-bills` | 创建销售单（根路径，POST body） | POST |
+| | | 查询订单 `?keyword=&status=` | GET |
+| | | 订单详情 `/:billNo` | GET |
+| | | 取消订单 `/:billNo/status`（body: {action:"cancel"}） | PUT |
+| **库存** | `/api/admin/inventory` | 查询库存 `/balance?keyword=` | GET |
+| | | 库存检查 `/check/:productId?quantity=` | GET |
 | | | 库存调拨 `/transfer` | POST |
-| | | 盘点记录 `/check` | POST |
-| **purchase (3006)** | 创建采购单 `/create` | POST |
-| | | 查询采购单 `/list?supplierName=&status=` | GET |
-| **delivery (3007)** | 配送状态 `/status/{orderNo}` | GET |
-| | | 创建配送 `/create` | POST |
-| **finance (3008)** | 应收账款 `/receivables?customerName=` | GET |
-| | | 应付账款 `/payables?supplierName=` | GET |
-| **report (3009)** | 销售报表 `/sales?period=&start=&end=` | GET |
+| | | 盘点记录 `/stocktaking` | POST |
+| **采购** | `/api/admin/purchase-orders` | 创建采购单（根路径，POST body） | POST |
+| | | 查询采购单 `?keyword=&status=` | GET |
+| **配送** | `/api/admin/delivery` | 配送状态 `/:billNo/status` | GET |
+| | | 创建配送（根路径，POST body） | POST |
+| **财务** | `/api/admin/finance` | 应收账款 `/receivables?keyword=` | GET |
+| | | 应付账款 `/payables?keyword=` | GET |
+| **报表** | `/api/admin/reports` | 销售报表 `/sales?start=&end=` | GET |
 | | | 库存报表 `/inventory?warehouseId=` | GET |
 | | | 利润报表 `/profit?start=&end=` | GET |
-| **settings (3012)** | 系统状态 `/status` | GET |
-| **log (3014)** | AI审计日志 `/ai-audit` | POST |
+| **系统** | `/api/admin/system` | 系统状态 `/status` | GET |
+| **审计** | `/api/admin/audit-logs` | AI审计日志（根路径，POST body） | POST |
 
-> **注意**: 以上API路径需与现有微服务的实际路由匹配。如果现有微服务使用不同路径规范，需要调整 ServiceClient 的调用路径。
+> **注意**: 以上API路径需与现有后端服务的实际路由匹配。如果现有后端服务使用不同路径规范，需要调整 ServiceClient 的调用路径。
 
 ### 9.3 对接验证方法
 
 ```bash
-# 逐个验证微服务可达性
-for port in 3001 3002 3003 3004 3005 3006 3007 3008 3009 3010 3011 3012 3013 3014; do
-  echo "Testing port $port..."
-  curl -s -o /dev/null -w "%{http_code}" http://localhost:$port/ || echo "FAIL"
+# 逐个验证后端API前缀可达性
+BASE_URL="${BACKEND_API_BASE:-http://localhost:8080}"
+for path in \
+  /api/admin/customers \
+  /api/admin/products \
+  /api/admin/sale-bills \
+  /api/admin/inventory/balance \
+  /api/admin/purchase-orders \
+  /api/admin/delivery \
+  /api/admin/finance/receivables \
+  /api/admin/reports/sales \
+  /api/admin/system/status \
+  /api/admin/audit-logs; do
+  echo "Testing $path..."
+  curl -s -o /dev/null -w "%{http_code}" "$BASE_URL$path" || echo "FAIL"
 done
 ```
 
-对于每个微服务，确认：
+对于每个业务域API，确认：
 1. **可达性**: HTTP状态码200或401（需认证）
 2. **认证方式**: 是否需要JWT Token
 3. **租户隔离**: 是否通过 `x-tenant-id` header过滤数据
@@ -670,7 +685,7 @@ done
 // AI对话窗口Props
 interface AIChatWidgetProps {
   /** API基础地址 */
-  baseUrl: string;           // 'https://your-domain.com/ai'
+  baseUrl: string;           // 'https://your-domain.com/api/admin/ai'
   /** JWT Token（从现有登录系统获取） */
   token: string;
   /** 租户ID */
@@ -805,32 +820,32 @@ interface SSEEvent {
    mysqldump -u root -p zhixiang > zhixiang_backup_$(date +%Y%m%d).sql
 
 2. 执行迁移脚本
-   mysql -u root -p zhixiang < migrations/001_ai_tables.sql
+   mysql -u root -p zhixiang < docs/migrations/121_ai_base_tables.sql
 
 3. 验证
-   mysql -u root -p zhixiang -e "SHOW TABLES LIKE '%ai%';"
-   预期输出: platform_ai_config, tenant_ai_config, ai_audit_log
+   mysql -u root -p zhixiang -e "SHOW TABLES LIKE 't_%ai%';"
+   预期输出: t_platform_ai_config, t_tenant_ai_config, t_ai_audit_log
 
 4. 初始化全局配置
-   # 001_ai_tables.sql 中已包含 INSERT 语句
+   # 121_ai_base_tables.sql 中已包含 INSERT 语句
    # 验证:
-   mysql -u root -p zhixiang -e "SELECT * FROM platform_ai_config;"
+   mysql -u root -p zhixiang -e "SELECT * FROM t_platform_ai_config;"
 ```
 
 ### 11.2 回滚方案
 
 ```sql
 -- 回滚脚本（慎用！会删除所有AI相关数据和表）
--- migrations/001_ai_tables_rollback.sql
+-- docs/migrations/121_ai_base_tables_rollback.sql
 
-DROP TABLE IF EXISTS ai_audit_log;
-DROP TABLE IF EXISTS tenant_ai_config;
-DROP TABLE IF EXISTS platform_ai_config;
+DROP TABLE IF EXISTS t_ai_audit_log;
+DROP TABLE IF EXISTS t_tenant_ai_config;
+DROP TABLE IF EXISTS t_platform_ai_config;
 ```
 
 ```bash
 # 回滚执行
-mysql -u root -p zhixiang < migrations/001_ai_tables_rollback.sql
+mysql -u root -p zhixiang < docs/migrations/121_ai_base_tables_rollback.sql
 ```
 
 > **注意**: 回滚会丢失所有AI审计日志和租户AI配置。建议仅在开发环境使用。
@@ -839,11 +854,11 @@ mysql -u root -p zhixiang < migrations/001_ai_tables_rollback.sql
 
 ```sql
 -- 初始化全局默认配置
-INSERT INTO platform_ai_config (default_provider, default_model, default_api_key, default_temperature, default_max_tokens)
+INSERT INTO t_platform_ai_config (default_provider, default_model, default_api_key, default_temperature, default_max_tokens)
 VALUES ('deepseek', 'deepseek-chat', '', 0.3, 2048);
 
 -- 为测试租户初始化AI配置（开发环境用）
-INSERT INTO tenant_ai_config (tenant_id, enabled, provider, model)
+INSERT INTO t_tenant_ai_config (tenant_id, enabled, provider, model)
 VALUES ('test_tenant', 1, 'deepseek', 'deepseek-chat');
 ```
 
@@ -887,6 +902,43 @@ this.logger.log({ event: 'tool_executed', tool: 'createSalesOrder', tenantId, du
 // ❌ 避免：无结构
 console.log('order created');
 ```
+
+### 12.5 与项目统一标准的关系
+
+> AI底座作为独立项目使用 NestJS 框架，但必须遵循 `docs/项目统一标准.md` 中的以下规范：
+> - 数据库表名必须带 `t_` 前缀
+> - tenant_id 字段统一 VARCHAR(36)
+> - 主键统一 BIGINT UNSIGNED AUTO_INCREMENT
+> - 字段必须有中文 COMMENT
+> - API路径使用系统标准前缀（/api/admin/、/api/platform/ 等）
+> - 返回体使用统一格式（code/msg/data/traceId/apiCost）
+> - 迁移脚本放在 docs/migrations/ 目录，命名 NNN_描述.sql
+
+### 12.6 统一返回体格式
+
+所有 HTTP 接口返回体必须采用项目统一格式（与现有后端服务一致）：
+
+```json
+{
+  "code": "0",
+  "msg": "成功",
+  "data": { },
+  "traceId": "uuid-v4",
+  "apiCost": 1
+}
+```
+
+字段说明：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| code | string | `"0"` 表示成功，其余为错误码（如 `"400"`、`"500"`） |
+| msg | string | 提示信息，成功为「成功」 |
+| data | object/null | 业务数据 |
+| traceId | string | 链路追踪ID（uuid v4） |
+| apiCost | number | 接口耗时（毫秒），AI接口可表示Token成本 |
+
+> SSE 流式接口（`/api/admin/ai/chat`）不适用此格式，按 SSE 事件流输出。
 
 ---
 
@@ -942,18 +994,18 @@ LOG_LEVEL=info     # 生产：只显示关键事件
 
 ```bash
 # 测试Provider连接
-curl -X POST localhost:3016/ai/admin/test-connection \
+curl -X POST localhost:3016/api/platform/ai/test-connection \
   -H "Content-Type: application/json" \
   -d '{"provider":"deepseek","apiKey":"sk-xxx"}'
 
 # 查看已注册工具
-curl localhost:3016/ai/admin/tools
+curl localhost:3016/api/platform/ai/tools
 
 # 健康检查
-curl localhost:3016/ai/admin/health
+curl localhost:3016/api/platform/ai/health
 
 # 清除对话记忆
-curl -X DELETE localhost:3016/ai/admin/memory/{tenantId}/{sessionId}
+curl -X DELETE localhost:3016/api/platform/ai/memory/{tenantId}/{sessionId}
 ```
 
 ---
@@ -975,8 +1027,7 @@ services:
       - NODE_ENV=production
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - SERVICE_ORDER=http://order:3004
-      # ... 其余微服务
+      - BACKEND_API_BASE=http://backend:8080
     depends_on: [mysql, redis]
     restart: unless-stopped
 ```
@@ -984,8 +1035,9 @@ services:
 ### 15.3 Nginx配置
 
 ```nginx
-location /ai/ {
-    proxy_pass http://127.0.0.1:3016/ai/;
+# AI底座路由：对话 /api/admin/ai/*、管理 /api/platform/ai/* 转发至AI底座(3016)
+location ~ ^/api/(admin|platform)/ai/ {
+    proxy_pass http://127.0.0.1:3016;
     proxy_buffering off;              # SSE必须关闭buffering
     proxy_read_timeout 300s;          # SSE长连接
     chunked_transfer_encoding on;
@@ -995,7 +1047,7 @@ location /ai/ {
 ### 15.4 数据库迁移
 
 ```bash
-mysql -u root -p zhixiang < migrations/001_ai_tables.sql
+mysql -u root -p zhixiang < docs/migrations/121_ai_base_tables.sql
 ```
 
 ---
@@ -1020,7 +1072,7 @@ pm2 stop zhixiang-ai-base || true
 pm2 start dist/main.js --name zhixiang-ai-base
 
 # 5. 验证
-curl localhost:3016/ai/admin/health
+curl localhost:3016/api/platform/ai/health
 ```
 
 ### 16.2 Docker部署
@@ -1039,7 +1091,7 @@ docker run -d \
 
 # 验证
 docker logs zhixiang-ai-base
-curl localhost:3016/ai/admin/health
+curl localhost:3016/api/platform/ai/health
 ```
 
 ### 16.3 GitHub Actions（可选，后期启用）
@@ -1102,7 +1154,7 @@ ToolExecutor统一返回 `{success: false, error: ...}`，LLM会理解并重试�
 
 1. 创建 `xxx.provider.ts` 实现 IModelProvider
 2. 在 ProviderModule + ProviderFactory 注册
-3. tenant_ai_config 表的 provider 字段新增选项
+3. t_tenant_ai_config 表的 provider 字段新增选项
 
 ### Q4: 对话记忆何时清除？
 
@@ -1118,10 +1170,10 @@ ToolExecutor中添加权限校验，根据 context.role 判断是否允许执行
 
 Nginx需设置 `proxy_buffering off` 和 `proxy_read_timeout 300s`。检查是否被中间代理中断。
 
-### Q7: 微服务API路径与AI底座不匹配？
+### Q7: 后端API路径与AI底座不匹配？
 
-调整 ServiceClient 的调用路径，或修改 ToolHandler 中的 URL 映射。建议在现有微服务中新增AI专用API端点。
+调整 ServiceClient 的调用路径，或修改 ToolHandler 中的 URL 映射。建议在现有后端服务中新增AI专用API端点。
 
 ---
 
-> **文档版本**: v2.0 | **最后更新**: 2026-07-30
+> **文档版本**: v2.1 | **最后更新**: 2026-07-31

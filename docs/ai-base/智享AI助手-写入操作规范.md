@@ -1,6 +1,13 @@
 # 智享AI助手 — 写入操作规范
 
-> 版本：v1.3 | 日期：2026-07-30
+> 版本：v1.4 | 日期：2026-07-31
+
+> **修改说明（v1.4）**：
+> - 数据库表名对齐：`product` → `t_product_spu`、`order_item` → `t_sale_bill_item`，统一加 `t_` 前缀
+> - API 路径对齐：统一使用 `/api/admin/...` 风格，订单相关接口对齐 `sale-bills`
+> - 微服务描述改为后端服务（项目为单体后端 Express.js 架构，非微服务）
+> - API 返回体统一为 `{ code, msg, data, traceId, apiCost }` 格式，字段名对齐（`orderNo` → `billNo`、`status` → `businessStatus`）
+> - 字段名以实际数据库表结构为准，AI 开发时需对照 `docs/数据库变更清单.md` 和 `init_database.sql` 确认
 
 ---
 
@@ -90,7 +97,7 @@ Step 5: 预览展示
   │
   ▼
 Step 6: 用户确认 → 执行
-  │ 用户确认 → 调用微服务写入 → 返回结果
+  │ 用户确认 → 调用后端API写入 → 返回结果
   │ 用户拒绝 → 取消操作
   │ 用户修改 → 回到Step 4重新补全
 ```
@@ -99,13 +106,13 @@ Step 6: 用户确认 → 执行
 
 | 字段 | 来源 | 补全规则 |
 |------|------|----------|
-| 客户ID | customer-service | 根据客户名称模糊匹配 |
-| 客户类型 | customer-service | 零售/批发/VIP，决定价格等级 |
-| 客户地址 | customer-service | 自动填充配送地址 |
-| 商品ID | product-service | 根据商品名称模糊匹配 |
-| 商品规格 | product-service | 自动填充（52度500ml） |
-| **销售单价** | product-service + customer-service | **根据客户类型自动匹配**（见第三章） |
-| 库存可用量 | inventory-service | 校验是否满足订单数量 |
+| 客户ID | 后端客户服务 | 根据客户名称模糊匹配 |
+| 客户类型 | 后端客户服务 | 零售/批发/VIP，决定价格等级 |
+| 客户地址 | 后端客户服务 | 自动填充配送地址 |
+| 商品ID | 后端商品服务 | 根据商品名称模糊匹配 |
+| 商品规格 | 后端商品服务 | 自动填充（52度500ml） |
+| **销售单价** | 后端商品服务 + 后端客户服务 | **根据客户类型自动匹配**（见第三章） |
+| 库存可用量 | 后端库存服务 | 校验是否满足订单数量 |
 
 ---
 
@@ -305,7 +312,7 @@ Step 5: 预览
 
 ```sql
 -- 商品表中与单位相关的字段（现有表，不新增）
--- product 表:
+-- t_product_spu 表:
 --   min_unit        VARCHAR(16)  -- 最小单位: 瓶
 --   box_unit        VARCHAR(16)  -- 包装单位: 箱
 --   box_ratio       INT          -- 换算比: 6（1箱=6瓶）
@@ -315,7 +322,7 @@ Step 5: 预览
 --   min_price       DECIMAL      -- 最低限价（每瓶）
 
 -- 单据明细表中的存储（现有表，不新增）:
--- order_item 表:
+-- t_sale_bill_item 表:
 --   product_id      -- 商品ID
 --   quantity        -- 数量（用户输入的原始值，如100）
 --   unit            -- 单位（用户说的单位，如"箱"）
@@ -323,6 +330,8 @@ Step 5: 预览
 --   unit_price      -- 单价（瓶单价，如850.00）
 --   total_amount    -- 合计金额（min_quantity × unit_price = 600 × 850 = 510000）
 ```
+
+> **注意**：以上字段名以实际数据库表结构为准，AI开发时需对照 `docs/数据库变更清单.md` 和 `init_database.sql` 确认字段名。
 
 ### 4.6 换算校验规则
 
@@ -365,13 +374,13 @@ Step 5: 预览
 │ Step 2: 查询系统补全信息                                     │
 │                                                             │
 │ 查客户:                                                     │
-│   GET /customer/search?name=红星商行                         │
+│   GET /api/admin/customers?keyword=红星商行                 │
 │   → { id:"c_001", name:"红星商行", type:"wholesale",         │
 │       contact:"张经理", phone:"138xxxx",                     │
 │       address:"XX路1号", credit_limit:50000 }                │
 │                                                             │
 │ 查商品:                                                     │
-│   GET /product/search?keyword=五粮液                         │
+│   GET /api/admin/products?keyword=五粮液                    │
 │   → { id:"p_052", name:"五粮液", spec:"52度500ml",           │
 │       retail_price:1200, wholesale_price:980,                │
 │       vip_price:1050, min_price:850, unit:"件" }             │
@@ -380,7 +389,7 @@ Step 5: 预览
 │   红星商行 type=wholesale → 自动选用 wholesale_price=¥980    │
 │                                                             │
 │ 库存检查:                                                   │
-│   GET /inventory/check/p_052?quantity=10                     │
+│   GET /api/admin/inventory/balance?skuId=p_052&quantity=10  │
 │   → { available:150, sufficient:true }                      │
 │                                                             │
 │ AI自动补全结果:                                              │
@@ -421,8 +430,11 @@ Step 5: 预览
 │ Step 4: 用户确认 "确认"                                      │
 │                                                             │
 │ Step 5: 执行写入                                             │
-│   POST /order/create                                        │
-│   → { orderNo:"SO20260730001", status:"confirmed" }         │
+│   POST /api/admin/sale-bills                                │
+│   → { code:"0", msg:"成功",                                 │
+│       data:{ billNo:"SO20260730001",                        │
+│             businessStatus:"confirmed" },                   │
+│       traceId:"xxx", apiCost:1 }                            │
 │                                                             │
 │ Step 6: 返回结果                                             │
 │   ✅ 销售单创建成功                                          │
@@ -460,7 +472,7 @@ Step 5: 预览
 用户: "取消SO20260730001，客户不要了"
 
 Step 1: 查订单状态
-  GET /order/detail/SO20260730001
+  GET /api/admin/sale-bills/SO20260730001
   → { status:"confirmed", amount:9800, customer:"红星商行", items:[...] }
 
 Step 2: 校验可取消
@@ -479,7 +491,7 @@ Step 3: 预览
   [确认取消] [保留]
 
 Step 4: 用户确认 → 执行
-  POST /order/cancel/SO20260730001
+  POST /api/admin/sale-bills/SO20260730001/cancel
   → 库存回增10箱
   → 返回: ✅ 已取消
 ```
@@ -826,7 +838,7 @@ Step 3: 用户确认 → 执行
 写入失败时：
 
 ❌ 创建销售单失败
-原因：order-service 响应超时
+原因：后端服务响应超时
 建议：请稍后重试，或联系管理员
 
 [重试] [取消]
@@ -1345,5 +1357,5 @@ function calculateCost(usage: {
 
 ---
 
-> **文档版本**: v1.2 | **最后更新**: 2026-07-30
+> **文档版本**: v1.4 | **最后更新**: 2026-07-31
 
