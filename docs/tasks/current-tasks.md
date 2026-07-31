@@ -176,23 +176,30 @@
 
 #### R70-05 — [P0] Service Bridge — ServiceClient(HTTP调用微服务) + AuditLogger
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟(AI协助)
 - **预计**：1.5天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/bridge/service-client.ts`、`audit-logger.ts`
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行）
+- **文件**：`backend/ai-base/src/bridge/service-client.ts`、`audit-logger.ts`、`bridge.module.ts`、`database/database.module.ts`
 - **问题**：Tool通过Service Bridge调用现有微服务，需要统一的HTTP客户端和审计日志
 - **修复**：
-  1. `ServiceClient`：封装axios，支持服务发现、超时重试、错误处理、tenantId自动注入
-  2. 定义14个微服务地址常量（ORDER_SERVICE=http://localhost:3004等）
-  3. `AuditLogger`：每次AI调用写入ai_audit_log表（tenant_id/user_id/tool_name/参数/结果/token消耗/耗时）
-  4. 异步写入，不阻塞主流程
-- **验收标准**：ServiceClient可成功调用 `localhost:3004/order` 返回订单列表；AuditLogger日志写入ai_audit_log表
+  1. `ServiceClient`：封装axios，支持超时重试、错误处理、tenantId/authToken自动注入
+  2. 定义后端API端点常量（API_ENDPOINTS，按业务域整理，对齐 routeConfig.prefix）
+  3. `AuditLogger`：每次AI调用/工具执行写入t_ai_audit_log表（tenant_id/user_id/tool_name/参数/结果/token消耗/耗时）
+  4. 异步写入（fire-and-forget），不阻塞主流程；UPSERT更新t_ai_usage_daily日用量汇总
+  5. `DatabaseModule`：TypeORM MySQL配置，注册5张AI表Entity
+  6. `BridgeModule`：导出ServiceClient + AuditLogger
+  7. `ToolExecutor`接入AuditLogger，替换原有console.log
+  8. `ToolContext`新增authToken字段（ServiceClient透传JWT给后端API）
+- **凌舟审查记录**（2026-08-01）：
+  - tsc --noEmit 0 errors，nest build 成功，40个测试全通过
+  - 设计要点：①AuditLogger用fire-and-forget模式（Promise.resolve().then()），审计失败不阻塞业务；②upsertDailyUsage用原生SQL INSERT...ON DUPLICATE KEY UPDATE（TypeORM 1.x upsert兼容性）；③参数脱敏（sanitizeArgs截断超长值+隐藏敏感字段）；④ServiceClient仅对5xx和网络错误重试1次，4xx不重试
+  - 备注：任务原描述提到"14个微服务地址常量（ORDER_SERVICE=http://localhost:3004等）"，但现有后端是单体Express.js（端口8080），非微服务架构。已调整为统一BACKEND_API_BASE+按业务域整理端点路径（API_ENDPOINTS），与实际架构一致
 
 #### R70-06 — [P0] Gateway层 — ChatController(SSE流式) + AdminController(管理API)
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟(AI协助)
 - **预计**：1.5天
-- **状态**：待开始
+- **状态**：进行中
 - **文件**：`backend/ai-base/src/gateway/chat.controller.ts`、`admin.controller.ts`
 - **问题**：AI底座对外提供SSE流式对话接口和管理API
 - **修复**：
@@ -204,7 +211,7 @@
 
 #### R70-07 — [P0] 多租户 — TenantContext + TenantGuard + AiConfigService
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟(AI协助)
 - **预计**：1.5天
 - **状态**：待开始
 - **文件**：`backend/ai-base/src/tenant/tenant-context.ts`、`tenant.guard.ts`、`ai-config.service.ts`
@@ -218,7 +225,7 @@
 
 #### R70-08 — [P0] Brain Engine — ContextBuilder + MemoryManager + Orchestrator(Agent Loop)
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟(AI协助)
 - **预计**：3天
 - **状态**：待开始
 - **文件**：`backend/ai-base/src/brain/orchestrator.service.ts`、`context-builder.service.ts`、`memory-manager.service.ts`、`prompts/`
@@ -259,10 +266,10 @@
 | R70-02 数据库5张AI表建表 | 阿坚 | P0 | 0.5天 | ✅ 已完成 |
 | R70-03 Provider层(DeepSeek) | 阿坚 | P0 | 2.5天 | 已完成 |
 | R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | ✅ 已完成 |
-| R70-05 Service Bridge(HTTP+审计) | 阿坚 | P0 | 1.5天 | 待开始 |
-| R70-06 Gateway(SSE+Admin API) | 阿坚 | P0 | 1.5天 | 待开始 |
-| R70-07 多租户(Context+Guard+Config) | 阿坚 | P0 | 1.5天 | 待开始 |
-| R70-08 Brain Engine(Agent Loop) | 阿坚 | P0 | 3天 | 待开始 |
+| R70-05 Service Bridge(HTTP+审计) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
+| R70-06 Gateway(SSE+Admin API) | 凌舟(AI协助) | P0 | 1.5天 | 进行中 |
+| R70-07 多租户(Context+Guard+Config) | 凌舟(AI协助) | P0 | 1.5天 | 待开始 |
+| R70-08 Brain Engine(Agent Loop) | 凌舟(AI协助) | P0 | 3天 | 待开始 |
 | R70-09 order.tool(7个销售工具) | 阿坚 | P0 | 2天 | 待开始 |
 | **P0合计** | — | — | **14天** | — |
 

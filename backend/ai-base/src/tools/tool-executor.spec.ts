@@ -1,8 +1,9 @@
 import { ToolExecutor } from './tool-executor';
 import { ToolRegistry } from './tool-registry';
 import { EchoTool } from './definitions/echo.tool';
-import type { ITool, ToolContext, ToolResult } from './tool.interface';
+import type { ITool, ToolContext, ToolResult, ToolExecutionRecord } from './tool.interface';
 import type { ToolCall } from '../providers/provider.interface';
+import type { AuditLogger } from '../bridge/audit-logger';
 
 /**
  * ToolExecutor 单元测试
@@ -26,13 +27,28 @@ function makeToolCall(name: string, args: unknown): ToolCall {
   };
 }
 
+/**
+ * Mock AuditLogger — 不实际写库，仅记录调用
+ */
+function createMockAuditLogger(): AuditLogger {
+  const mock: Partial<AuditLogger> = {
+    logToolExecution: jest.fn((_record: ToolExecutionRecord) => {
+      // Mock: 不实际写库
+    }),
+    logAiCall: jest.fn(),
+  };
+  return mock as AuditLogger;
+}
+
 describe('ToolExecutor', () => {
   let registry: ToolRegistry;
   let executor: ToolExecutor;
+  let mockAuditLogger: AuditLogger;
 
   beforeEach(() => {
     registry = new ToolRegistry();
-    executor = new ToolExecutor(registry);
+    mockAuditLogger = createMockAuditLogger();
+    executor = new ToolExecutor(registry, mockAuditLogger);
   });
 
   describe('executeToolCall - 执行成功', () => {

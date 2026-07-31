@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ChatMessage, ToolCall } from '../providers/provider.interface';
 import { ToolContext, ToolExecutionRecord, ToolResult } from './tool.interface';
 import { ToolRegistry } from './tool-registry';
+import { AuditLogger } from '../bridge/audit-logger';
 
 /**
  * Tool 执行器
@@ -11,14 +12,13 @@ import { ToolRegistry } from './tool-registry';
  * 2. 按名称从 ToolRegistry 查找工具并执行
  * 3. 统一错误处理：工具不存在 / 参数解析失败 / 执行异常 均不抛错，返回 ToolResult.success=false
  * 4. 批量执行多个 tool_calls，返回 tool 角色 ChatMessage[] 供 LLM 下一轮调用
- * 5. 记录执行耗时和审计信息（供 R70-05 AuditLogger 写入 t_ai_audit_log）
+ * 5. 记录执行耗时和审计信息（通过 AuditLogger 异步写入 t_ai_audit_log 表）
  *
  * 设计原则：
  * - 永不抛异常：所有错误转化为 ToolResult，让 LLM 能理解失败原因并自我纠正
  * - 错误信息友好：不泄露内部栈，面向 LLM 描述问题 + 给出 suggestion
  * - 并发执行：LLM 一次可能返回多个 tool_calls，用 Promise.all 并发执行提升吞吐
- * - 审计可观测：每次执行生成 ToolExecutionRecord，当前用 logger.debug 打印，
- *   R70-05 接入 AuditLogger 后改为异步写入数据库
+ * - 审计可观测：每次执行生成 ToolExecutionRecord，通过 AuditLogger 异步写入数据库（不阻塞主流程）
  *
  * 用法（Brain Engine Agent Loop 内）：
  *   const toolCalls = llmResult.tool_calls;
@@ -31,7 +31,10 @@ import { ToolRegistry } from './tool-registry';
 export class ToolExecutor {
   private readonly logger = new Logger(ToolExecutor.name);
 
-  constructor(private readonly registry: ToolRegistry) {}
+  constructor(
+    private readonly registry: ToolRegistry,
+    private readonly auditLogger: AuditLogger,
+  ) {}
 
   /**
    * 执行单个工具调用
@@ -182,17 +185,16 @@ export class ToolExecutor {
   /**
    * 记录工具执行审计信息
    *
-   * 当前阶段（R70-04）用 logger.debug 打印，
-   * R70-05 接入 AuditLogger 后改为异步写入 t_ai_audit_log 表（不阻塞主流程）。
+   * 通过 AuditLogger 异步写入 t_ai_audit_log 表（fire-and-forget，不阻塞主流程）。
+   * 审计字段含：tenant_id / user_id / tool_name / args / success / duration_ms / is_write_operation。
+   * 写入失败仅记 warn 日志，不影响业务流程。
    */
   private logExecution(record: ToolExecutionRecord): void {
     this.logger.debug(
       `工具审计：${record.toolName} success=${record.success} ${record.durationMs}ms` +
         (record.error ? ` error=${record.error}` : ''),
     );
-    // TODO: R70-05 接入 AuditLogger 后，改为：
-    //   this.auditLogger.logToolExecution(record);
-    // AuditLogger 异步写入 t_ai_audit_log，字段含：
-    //   tenant_id / user_id / tool_name / args / result / token消耗 / 耗时 / is_write_operation
+    // 异步写入审计日志（不 await，不阻塞 Agent Loop）
+    this.auditLogger.logToolExecution(record);
   }
 }
