@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 启动时自动数据库迁移
  *
  * 不依赖外部 SQL 文件，全部程序化执行
@@ -44,6 +44,7 @@ export const TENANT_TABLES = [
   "t_sys_config", "t_sys_user", "t_sys_role", "t_sys_permission", "t_sys_user_role", "t_sys_role_permission",
   "t_store",
   "t_product_category", "t_product_spu", "t_product_sku", "t_product_price", "t_sku_price",
+  "t_brand", // 070_品牌表.sql 迁移，商品JOIN依赖
   "t_supplier", "t_supplier_contact",
   "t_member", "t_customer_type", "t_customer_price_binding", "t_customer_credit",
   "t_inventory_balance", "t_inventory_batch", "t_inventory_ledger",
@@ -65,6 +66,7 @@ export const TENANT_TABLES = [
   "t_approval_rule", "t_approval_instance", "t_approval_task", "t_approval_log",
   "t_approval_approver", "t_approval_notification",
   "t_daily_settlement",
+  "t_stock_warning", // 5.5.1 新建看板预警表
 ];
 
 /** 跳过错误消息模式集合 */
@@ -286,19 +288,28 @@ export async function runMigrations(): Promise<void> {
           .map(s => s.trim())
           .filter(s => s.length > 0 && s.toUpperCase().startsWith("CREATE TABLE"));
 
+        let created = 0;
+        let skipped = 0;
         for (const stmt of statements) {
           try {
             await conn.query(stmt);
+            created++;
           } catch (e: any) {
-            if (!SKIP_ERRORS.has(e.code)) {
-              logger.info(`[migration] 跳过表创建: ${e.code}`);
+            // ER_TABLE_EXISTS_ERROR = 已存在，正常跳过
+            if (SKIP_ERRORS.has(e.code)) {
+              skipped++;
+            } else {
+              logger.warn(`[migration] init_database 建表失败(${e.code}): ${String(e.message || "").slice(0, 120)}`);
             }
           }
         }
-        logger.info(`[migration] 业务表检查/创建完成（共 ${statements.length} 张表）`);
+        logger.info(`[migration] init_database.sql 业务表完成（总${statements.length}张，实际建${created}，已存在跳过${skipped}）`);
+      } else {
+        logger.warn("[migration] init_database.sql 未找到，将仅依赖 Step5.5 兜底建表");
       }
     } catch (e: unknown) {
-      logger.error("[migration] 业务表创建失败:", (e as any).message);
+      // 错误不中止，后续 Step5.5 仍有兜底建表逻辑（6 张高频依赖表）
+      logger.error("[migration] init_database.sql 解析失败（已启动 Step5.5 兜底建表）:", (e as any).message);
     }
 
     // ============================================================
@@ -365,14 +376,16 @@ export async function runMigrations(): Promise<void> {
     await safeExec(conn, `
       CREATE TABLE IF NOT EXISTS t_stock_warning (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警ID',
-        sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        sku_id BIGINT UNSIGNED DEFAULT NULL COMMENT 'SKU ID',
         sku_name VARCHAR(128) DEFAULT NULL COMMENT 'SKU名称',
         current_stock INT NOT NULL DEFAULT 0 COMMENT '当前库存',
+        warning_threshold INT NOT NULL DEFAULT 0 COMMENT '预警阈值',
         warning_level VARCHAR(32) NOT NULL DEFAULT 'WARNING' COMMENT '预警级别: URGENT/WARNING/INFO',
+        store_name VARCHAR(100) DEFAULT NULL COMMENT '门店名称',
         status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/RESOLVED',
-        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
         PRIMARY KEY (id),
         KEY idx_stock_warning_sku (sku_id),
         KEY idx_stock_warning_level (warning_level),
@@ -421,16 +434,209 @@ export async function runMigrations(): Promise<void> {
       "sys_user.email"
     );
 
-    // 5.5.4 为 product_spu 表添加缺失字段（商品列表需要）
+    // 5.5.3c 创建 t_brand 表（商品品牌），init_database.sql 中缺失，仅在 070_品牌表.sql 有建表
+    await safeExec(conn, `
+      CREATE TABLE IF NOT EXISTS t_brand (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '品牌ID',
+        name VARCHAR(64) NOT NULL COMMENT '品牌名称',
+        logo VARCHAR(512) DEFAULT NULL COMMENT '品牌Logo',
+        description VARCHAR(255) DEFAULT NULL COMMENT '品牌描述',
+        sort_no INT NOT NULL DEFAULT 0 COMMENT '排序号',
+        status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 1=启用 0=停用',
+        tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+        PRIMARY KEY (id),
+        KEY idx_brand_tenant (tenant_id),
+        KEY idx_brand_sort (sort_no)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='品牌表'
+    `, "创建 t_brand 表");
+
+    // 5.5.3d 兜底创建 6 张核心API高频依赖表（与 init_database.sql 重复但不冲突）
+    //     原因：R66-14 排查发现若 init_database.sql 解析失败或路径异常，Step1.5 会静默跳过，
+    //     导致 dashboard/sales/products 等 12 个高频 API 因缺表抛 500
+    const coreTablesSql: Array<[string, string]> = [
+      // 商品三表（/api/admin/products 依赖）
+      ["t_product_category", `
+        CREATE TABLE IF NOT EXISTS t_product_category (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父分类ID',
+          name VARCHAR(64) NOT NULL COMMENT '分类名称',
+          icon VARCHAR(256) DEFAULT NULL COMMENT '分类图标',
+          code VARCHAR(64) DEFAULT NULL COMMENT '分类编码',
+          sort_no INT NOT NULL DEFAULT 0 COMMENT '排序号',
+          status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 1=启用 0=停用',
+          allow_online_sale TINYINT NOT NULL DEFAULT 1 COMMENT '是否允许线上销售 1=允许 0=禁止',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          KEY idx_product_category_parent (parent_id),
+          KEY idx_product_category_status (status, sort_no),
+          KEY idx_product_category_tenant (tenant_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表'
+      `],
+      ["t_product_spu", `
+        CREATE TABLE IF NOT EXISTS t_product_spu (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '商品ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          spu_code VARCHAR(64) NOT NULL COMMENT '商品编码',
+          name VARCHAR(128) NOT NULL COMMENT '商品名称',
+          category_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '分类ID',
+          brand_id BIGINT UNSIGNED DEFAULT NULL COMMENT '品牌ID',
+          brand VARCHAR(128) DEFAULT NULL COMMENT '品牌（冗余名称，迁移兼容）',
+          unit VARCHAR(32) DEFAULT NULL COMMENT '单位',
+          specs VARCHAR(256) DEFAULT NULL COMMENT '规格',
+          alcohol_content VARCHAR(32) DEFAULT NULL COMMENT '酒精度数',
+          origin VARCHAR(128) DEFAULT NULL COMMENT '产地',
+          main_image VARCHAR(512) DEFAULT NULL COMMENT '主图URL',
+          image_urls JSON DEFAULT NULL COMMENT '轮播图URL(JSON)',
+          detail TEXT DEFAULT NULL COMMENT '商品详情HTML',
+          sale_channels JSON DEFAULT NULL COMMENT '可售渠道(MINIAPP/STORE等JSON)',
+          sort_no INT NOT NULL DEFAULT 0 COMMENT '排序号',
+          is_new TINYINT NOT NULL DEFAULT 0 COMMENT '新品标记 1=是 0=否',
+          is_recommend TINYINT NOT NULL DEFAULT 0 COMMENT '推荐标记 1=是 0=否',
+          description VARCHAR(512) DEFAULT NULL COMMENT '商品简介',
+          marketing_tags JSON DEFAULT NULL COMMENT '营销标签(JSON)',
+          status VARCHAR(32) NOT NULL DEFAULT 'DRAFT' COMMENT '状态 DRAFT/ON_SALE/OFF_SALE/DELETED',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          UNIQUE KEY uk_product_spu_code (spu_code),
+          KEY idx_product_spu_category_status (category_id, status),
+          KEY idx_product_spu_brand (brand_id),
+          KEY idx_product_spu_tenant (tenant_id),
+          FULLTEXT KEY ft_product_spu_name (name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SPU表'
+      `],
+      ["t_product_sku", `
+        CREATE TABLE IF NOT EXISTS t_product_sku (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'SKU ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          spu_id BIGINT UNSIGNED NOT NULL COMMENT '关联SPU ID',
+          sku_code VARCHAR(64) NOT NULL COMMENT 'SKU编码',
+          barcode VARCHAR(128) DEFAULT NULL COMMENT '商品条码',
+          sku_name VARCHAR(128) NOT NULL COMMENT 'SKU名称',
+          volume VARCHAR(32) DEFAULT NULL COMMENT '净含量(500ml/1L)',
+          packaging VARCHAR(32) DEFAULT NULL COMMENT '包装类型(瓶装/罐装/桶装)',
+          base_unit VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '基础单位',
+          box_unit VARCHAR(16) NOT NULL DEFAULT '箱' COMMENT '组合单位',
+          box_ratio INT NOT NULL DEFAULT 1 COMMENT '箱瓶换算比例',
+          temperature VARCHAR(32) NOT NULL DEFAULT 'NORMAL' COMMENT '温度属性 NORMAL/CHILLED',
+          trace_enabled TINYINT NOT NULL DEFAULT 0 COMMENT '是否启用追溯 1=是 0=否',
+          warning_threshold INT NOT NULL DEFAULT 0 COMMENT '库存预警阈值(瓶)',
+          status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 1=启用 0=停用',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          UNIQUE KEY uk_product_sku_code (sku_code),
+          UNIQUE KEY uk_product_sku_barcode (barcode),
+          KEY idx_product_sku_spu (spu_id),
+          KEY idx_product_sku_trace (trace_enabled),
+          KEY idx_product_sku_tenant (tenant_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品SKU表'
+      `],
+      ["t_product_price", `
+        CREATE TABLE IF NOT EXISTS t_product_price (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '价格ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU ID',
+          cost_price DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '成本价',
+          retail_price DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '统一零售价',
+          wholesale_price DECIMAL(12,2) DEFAULT NULL COMMENT '批发价',
+          miniapp_price DECIMAL(12,2) DEFAULT NULL COMMENT '小程序渠道价',
+          store_price DECIMAL(12,2) DEFAULT NULL COMMENT '线下门店售价',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          UNIQUE KEY uk_product_price_sku (sku_id),
+          KEY idx_product_price_tenant (tenant_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品价格表'
+      `],
+      // 销售单（Dashboard 12 个接口依赖 bill_no/business_status）
+      ["t_sale_bill", `
+        CREATE TABLE IF NOT EXISTS t_sale_bill (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售单ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',
+          store_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '门店ID',
+          customer_id BIGINT UNSIGNED DEFAULT NULL COMMENT '客户ID',
+          customer_name VARCHAR(64) DEFAULT NULL COMMENT '客户名称快照',
+          customer_mobile VARCHAR(20) DEFAULT NULL COMMENT '客户手机号快照',
+          customer_type VARCHAR(32) NOT NULL DEFAULT 'RETAIL' COMMENT '客户类型 RETAIL/WHOLESALE',
+          sale_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '销售类型 CASH/CREDIT',
+          business_status VARCHAR(32) NOT NULL DEFAULT 'CREATED' COMMENT '业务状态 DRAFT/CREATED/COMPLETED/VOIDED/RETURNED',
+          collection_status VARCHAR(32) NOT NULL DEFAULT 'UNPAID' COMMENT '收款状态 UNPAID/PARTIAL/PAID/OVERDUE',
+          due_date DATE DEFAULT NULL COMMENT '应收截止日期',
+          statement_id BIGINT UNSIGNED DEFAULT NULL COMMENT '对账单ID',
+          goods_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '商品金额',
+          discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '优惠金额',
+          rounding_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '抹零金额',
+          receivable_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '应收金额',
+          received_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '已收金额',
+          unreceived_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '未收金额',
+          operator_id BIGINT UNSIGNED DEFAULT NULL COMMENT '开单人ID',
+          remark VARCHAR(255) DEFAULT NULL COMMENT '客户可见备注',
+          internal_remark VARCHAR(255) DEFAULT NULL COMMENT '内部备注',
+          void_reason VARCHAR(255) DEFAULT NULL COMMENT '作废原因',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          UNIQUE KEY uk_sale_bill_no (bill_no),
+          KEY idx_sale_bill_store (store_id),
+          KEY idx_sale_bill_status (business_status),
+          KEY idx_sale_bill_created (created_at),
+          KEY idx_sale_bill_tenant (tenant_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='销售单表'
+      `],
+      // 采购单（采购看板依赖）
+      ["t_purchase_order", `
+        CREATE TABLE IF NOT EXISTS t_purchase_order (
+          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购单ID',
+          tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+          order_no VARCHAR(64) NOT NULL COMMENT '采购单号',
+          supplier_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '供应商ID',
+          supplier_name VARCHAR(128) DEFAULT NULL COMMENT '供应商名称快照',
+          store_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '入库门店ID',
+          order_status VARCHAR(32) NOT NULL DEFAULT 'DRAFT' COMMENT '订单状态 DRAFT/PENDING/APPROVED/PARTIAL/COMPLETED/CANCELLED',
+          goods_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '商品金额',
+          tax_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '税额',
+          discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '优惠金额',
+          payable_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '应付金额',
+          paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '已付金额',
+          unpaid_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '未付金额',
+          expected_date DATE DEFAULT NULL COMMENT '预计到货日期',
+          actual_date DATE DEFAULT NULL COMMENT '实际到货日期',
+          operator_id BIGINT UNSIGNED DEFAULT NULL COMMENT '制单人ID',
+          auditor_id BIGINT UNSIGNED DEFAULT NULL COMMENT '审核人ID',
+          audited_at DATETIME DEFAULT NULL COMMENT '审核时间',
+          remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+          created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+          updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+          PRIMARY KEY (id),
+          UNIQUE KEY uk_purchase_order_no (order_no),
+          KEY idx_purchase_order_supplier (supplier_id),
+          KEY idx_purchase_order_status (order_status),
+          KEY idx_purchase_order_created (created_at),
+          KEY idx_purchase_order_tenant (tenant_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='采购订单表'
+      `],
+    ];
+    for (const [tbl, sql] of coreTablesSql) {
+      await safeExec(conn, sql, `兜底创建 ${tbl}`);
+    }
+
+    // 5.5.4 为 product_spu 表添加缺失字段（商品列表需要，含 brand_id 外键列）
     const spuColumns = [
-      { name: "brand", def: "VARCHAR(128) DEFAULT NULL COMMENT '品牌'" },
+      { name: "brand_id", def: "BIGINT UNSIGNED DEFAULT NULL COMMENT '品牌ID（商品JOIN t_brand）'" },
+      { name: "brand", def: "VARCHAR(128) DEFAULT NULL COMMENT '品牌（冗余名称）'" },
       { name: "unit", def: "VARCHAR(32) DEFAULT NULL COMMENT '单位'" },
       { name: "specs", def: "VARCHAR(256) DEFAULT NULL COMMENT '规格'" },
       { name: "alcohol_content", def: "VARCHAR(32) DEFAULT NULL COMMENT '酒精度数'" },
       { name: "origin", def: "VARCHAR(128) DEFAULT NULL COMMENT '产地'" },
-      { name: "sale_channels", def: "JSON DEFAULT NULL COMMENT '销售渠道'" },
+      { name: "sale_channels", def: "JSON DEFAULT NULL COMMENT '销售渠道(JSON)'" },
       { name: "description", def: "VARCHAR(512) DEFAULT NULL COMMENT '商品简介'" },
-      { name: "marketing_tags", def: "JSON DEFAULT NULL COMMENT '营销标签'" },
+      { name: "marketing_tags", def: "JSON DEFAULT NULL COMMENT '营销标签(JSON)'" },
     ];
     for (const col of spuColumns) {
       await safeExec(conn,

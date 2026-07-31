@@ -26,12 +26,13 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: () => import('../views/login/PlatformLogin.vue'),
-      meta: { title: '平台登录' },
+      meta: { title: '平台登录', requiresAuth: false },
     },
     {
       path: '/',
       component: () => import('../layouts/PlatformLayout.vue'),
       redirect: '/dashboard',
+      meta: { requiresAuth: true },
       children: [
         {
           path: 'dashboard',

@@ -35,6 +35,56 @@ vi.mock("../../../shared/db", () => ({
     pool: { query: vi.fn() },
 }));
 
+// R68-04：env.ts 中 env 对象在模块导入时静态求值 process.env.XXX || ""，
+// 此 vi.mock 让 env 属性动态读取当前 process.env，让 describe 级 beforeEach 的 vi.stubEnv 生效
+vi.mock("../../../shared/env", () => {
+    const env = new Proxy(
+        {},
+        {
+            get(_t, prop) {
+                switch (prop) {
+                    case "JWT_SECRET":
+                        return (process.env.JWT_SECRET as string) ?? "test-jwt-secret";
+                    case "CSRF_SECRET":
+                        return (
+                            (process.env.CSRF_SECRET as string) ??
+                            (process.env.JWT_SECRET as string) ??
+                            "test-jwt-secret"
+                        );
+                    case "PORT":
+                        return Number(process.env.PORT ?? 8080);
+                    case "NODE_ENV":
+                        return (process.env.NODE_ENV as string) ?? "test";
+                    case "DB_PORT":
+                        return Number(process.env.DB_PORT ?? 3306);
+                    case "REDIS_PORT":
+                        return Number(process.env.REDIS_PORT ?? 6379);
+                    case "USE_MOCK_DB":
+                        return process.env.USE_MOCK_DB === "true";
+                    case "LOG_LEVEL":
+                        return (process.env.LOG_LEVEL as string) ?? "info";
+                    case "DOMAIN":
+                        return (process.env.DOMAIN as string) ?? "test.local";
+                    case "FEISHU_ALERT_WEBHOOK_URL":
+                        return (
+                            (process.env.FEISHU_ALERT_WEBHOOK_URL as string) ??
+                            (process.env.FEISHU_WEBHOOK_URL as string) ??
+                            ""
+                        );
+                    case Symbol.toStringTag:
+                        return "Object";
+                    default:
+                        return (process.env[prop as string] as string) ?? "";
+                }
+            },
+            has() {
+                return true;
+            },
+        }
+    );
+    return { env };
+});
+
 // ==================== 导入被测模块 ====================
 
 import {
@@ -640,6 +690,14 @@ describe("push.service - sendToTenant", () => {
 // JPushProvider 专项
 // ================================================================
 describe("push.service - JPushProvider", () => {
+    // R68-04：stub JPush 密钥 env，让环境变量检查通过进入 fetch 分支
+    beforeEach(() => {
+        vi.stubEnv("JPUSH_APP_KEY", "jpush-test-key");
+        vi.stubEnv("JPUSH_MASTER_SECRET", "jpush-test-secret");
+    });
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
     it("send 成功（含 extras 透传）", async () => {
         process.env.JPUSH_APP_KEY = "jpush-key";
         process.env.JPUSH_MASTER_SECRET = "jpush-secret";
@@ -750,6 +808,14 @@ describe("push.service - JPushProvider", () => {
 // FCMProvider 专项
 // ================================================================
 describe("push.service - FCMProvider", () => {
+    // R68-04：stub FCM 环境变量，让密钥检查通过进入 fetch 分支
+    beforeEach(() => {
+        vi.stubEnv("FCM_PROJECT_ID", "fcm-test-project");
+        vi.stubEnv("FCM_ACCESS_TOKEN", "fcm-test-access-token");
+    });
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
     it("send 成功（projectId + accessToken）", async () => {
         process.env.FCM_PROJECT_ID = "fcm-project-id";
         process.env.FCM_ACCESS_TOKEN = "fcm-access-token";
@@ -857,6 +923,14 @@ describe("push.service - FCMProvider", () => {
 // HMSProvider 专项（华为 Push Kit：OAuth2 + 推送两段式）
 // ================================================================
 describe("push.service - HMSProvider", () => {
+    // R68-04：stub HMS 环境变量，让密钥检查通过进入 access_token / push fetch 分支
+    beforeEach(() => {
+        vi.stubEnv("HMS_APP_ID", "hms-test-app-id-123");
+        vi.stubEnv("HMS_APP_SECRET", "hms-test-secret-456");
+    });
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
     it("send 成功（先获取 access_token，再调推送，code=0 表示成功）", async () => {
         process.env.HMS_APP_ID = "hms-app-id";
         process.env.HMS_APP_SECRET = "hms-secret";

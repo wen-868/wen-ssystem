@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 条码扫码原生插件封装
  *
  * 功能：
@@ -483,8 +483,10 @@ export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<Sca
  * @example
  * ```ts
  * const stop = startContinuousScan(
- *   (result) => { /* 拿到扫码结果，按业务处理 result.code */ },
- * { interval: 1500, title: '盘点扫码' }
+ *   (result) => {
+ *     // 拿到扫码结果，按业务处理 result.code
+ *   },
+ *   { interval: 1500, title: '盘点扫码' }
     * )
  * // 用户点击停止按钮时
  * stop()

@@ -12,14 +12,14 @@
           <el-input v-model="loginForm.username" placeholder="请输入账号" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password />
+          <el-input v-model="loginForm.password" :type="'password'" placeholder="请输入密码" show-password autocomplete="current-password" />
         </el-form-item>
         <el-form-item prop="rememberMe">
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width:100%">登录进入后台</el-button>
         </el-form-item>
         <el-form-item>
-          <div class="register-link">
-            还没有账号？<router-link to="/register">立即注册</router-link>
+          <div class="register-link" style="text-align:center;color:#999;font-size:13px;">
+            联系平台管理员开通账号
           </div>
         </el-form-item>
       </el-form>
@@ -51,7 +51,8 @@ const loginRules: FormRules = {
   username: [{ required: true, message: "请输入账号", trigger: "blur" }],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, message: "密码至少6个字符", trigger: "blur" }
+    { min: 8, message: "密码至少8个字符", trigger: "blur" },
+    { max: 32, message: "密码不能超过32个字符", trigger: "blur" }
   ]
 };
 

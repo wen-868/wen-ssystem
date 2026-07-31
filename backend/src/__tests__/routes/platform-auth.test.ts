@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../fixtures/create-test-app";
 
@@ -69,9 +69,12 @@ describe("routes/platform-auth 集成测试", () => {
     });
 
     it("密码错误时返回401", async () => {
-      (queryOne as any).mockResolvedValue({ id: 1, username: "admin", password: "hash", real_name: "管理员" });
+      // R68-04：修复1：mock字段对齐service读取的password_hash（原误写为password）
+      (queryOne as any).mockResolvedValue({ id: 1, username: "admin", password_hash: "hash", real_name: "管理员" });
+      // R68-04：修复2：共享/crypto.ts 默认导入 bcrypt，调用的是 bcrypt.default.compare，
+      // 原代码 mock 了命名 export compare，与controller handler实际调用路径不匹配
       const bcrypt = await import("bcryptjs");
-      (bcrypt.compare as any).mockResolvedValue(false);
+      (bcrypt.default.compare as any).mockResolvedValue(false);
       const res = await request(app)
         .post("/api/platform-auth/login")
         .send({ username: "admin", password: "wrong" });

@@ -5,7 +5,7 @@
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">智</div>
-          <h1 v-show="!isMenuCollapsed">智享酒仓</h1>
+          <h1 v-show="!isMenuCollapsed">智享全链</h1>
           <h1 v-show="isMenuCollapsed" class="logo-text-collapsed">智</h1>
         </div>
         <el-button

@@ -86,6 +86,101 @@
 6. [支付接口](#支付接口)
 7. [公开接口](#公开接口)
 8. [即时零售接口](#即时零售接口)
+9. [平台总后台接口](#平台总后台接口)
+10. [核心 70 API 端到端契约明细](#核心-70-api-端到端契约明细)
+
+---
+
+## 核心 70 API 端到端契约明细
+
+> **说明（防线2）**：本章为前后端唯一真相源。前端禁止自行编造端点路径，后端禁止自行改字段名。所有端点按 ADMIN（管理后台，`/api/admin/*`）、STORE（门店终端，`/api/store/*`）、PLATFORM（超级后台，`/api/platform/*`）三类端点隔离。✅=必填；其余=选填。
+
+### 一、ADMIN 端点（30 个，/api/admin/*）
+
+| # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
+|:-:|:---|:---|:---|:---|:---|:---|
+| A1 | `POST /api/admin/auth/login` | 管理后台登录 | username:string✅, password:string✅ | token:string, user:{id,username,realName,role} | auth.routes.ts + auth.service.ts | admin-web/src/api/auth.ts + LoginView.vue |
+| A2 | `GET /api/admin/auth/me` | 当前登录用户 | — | {id,username,realName,tenantId,roles[]} | auth.routes.ts | admin-web/src/api/auth.ts |
+| A3 | `GET /api/admin/dashboard/summary` | 看板汇总 | —（含 ?days=30） | {sales,receivable,profit,customerCount,top5Products[]} | dashboard.service.ts + dashboard.routes.ts | admin-web/src/views/dashboard/DashboardView.vue |
+| A4 | `GET /api/admin/dashboard/sales-trend` | 销售趋势 | ?days=30 | [{date,amount,count}] | dashboard.service.ts getSalesTrend() | DashboardView.vue |
+| A5 | `GET /api/admin/dashboard/top-products` | 热销TOP商品 | ?limit=10 | [{spuName,skuName,qty,amount}] | dashboard.service.ts getTopProducts() | DashboardView.vue |
+| A6 | `GET /api/admin/dashboard/category-pie` | 品类占比 | ?days=30 | [{categoryName,amount,ratio}] | dashboard.service.ts getCategoryPie() | DashboardView.vue |
+| A7 | `GET /api/admin/dashboard/top-customers` | 大客户TOP | ?limit=10 | [{customerName,amount,receivable}] | dashboard.service.ts getTopCustomers() | DashboardView.vue |
+| A8 | `GET /api/admin/dashboard/top-employees` | 店员业绩TOP | ?limit=10 | [{employeeName,amount,count}] | dashboard.service.ts getTopEmployees() | DashboardView.vue |
+| A9 | `GET /api/admin/dashboard/inventory-stats` | 库存概览 | — | {totalSku,totalStock,inventoryAmount,belowThreshold} | dashboard.service.ts getInventoryStats() | DashboardView.vue |
+| A10 | `GET /api/admin/dashboard/recent-orders` | 最近销售单 | ?limit=5 | [{orderNo,customerName,amount,orderStatus,createdAt}] | dashboard.service.ts getRecentOrders() | DashboardView.vue |
+| A11 | `GET /api/admin/dashboard/recent-alerts` | 最近预警 | ?limit=5 | [{type,title,content,level,createdAt}] | dashboard.service.ts getRecentAlerts() | DashboardView.vue |
+| A12 | `GET /api/admin/dashboard/supplier-stats` | 供应商汇总 | — | {totalSuppliers,totalPurchaseOrders,totalPurchaseAmount} | dashboard.service.ts getSupplierStats() | DashboardView.vue |
+| A13 | `GET /api/admin/dashboard/supplier-trend` | 采购趋势 | ?days=30 | [{date,amount,count}] | dashboard.service.ts getSupplierTrend() | DashboardView.vue |
+| A14 | `GET /api/admin/dashboard/inventory-warning-list` | 库存预警清单 | ?page=1&pageSize=20 | {total,records:[{skuName,currentStock,warningThreshold,warningLevel,storeName,status}]} | dashboard.service.ts getInventoryWarningList() | DashboardView.vue |
+| A15 | `GET /api/admin/products` | 商品列表（含组合） | ?keyword&categoryId&page=1&pageSize=20&includeCombo=true | {total,records:[{id,spuCode,name,category,brand,spec,unit,salePrice,stock,comboFlag:{isCombo,comboItems[]}}]} | product.service.ts listProducts() + product-bundle.service.ts | admin-web/src/views/product/ProductListView.vue |
+| A16 | `POST /api/admin/products` | 新增SPU | spuCode,name,categoryId,brand_id,spec,unit,salePrice,costPrice,images[],status | id,spuCode,name | product.service.ts createProduct() | ProductListView.vue AddDialog |
+| A17 | `PUT /api/admin/products/:id` | 更新SPU | 同A16 | id,spuCode,name | product.service.ts updateProduct() | ProductListView.vue EditDialog |
+| A18 | `DELETE /api/admin/products/:id` | 删除SPU | — | {success:true} | product.service.ts deleteProduct() | ProductListView.vue |
+| A19 | `POST /api/admin/products/:id/skus` | 为SPU加SKU | skuCode,spec,barcode,salePrice,costPrice,stock | id,skuCode | product.service.ts addSku() | SKU管理弹窗 |
+| A20 | `GET /api/admin/product-categories` | 商品分类 | ?parentId | [{id,name,parentId,sort,children[]}] | category.service.ts list() | ProductListView.vue 左侧树 |
+| A21 | `GET /api/admin/brands` | 商品品牌 | — | [{id,name,logo,status}] | brand.service.ts list() + brand.routes.ts | ProductListView.vue + 品牌管理页 |
+| A22 | `GET /api/admin/sale-bills` | 销售单列表 | ?customerId&status&startDate&endDate&page&pageSize | {total,records:[{billNo,customerName,receivableAmount,paidAmount,unpaidAmount,businessStatus,createdAt}]} | sale-bill.service.ts list() + sale-bill.routes.ts | SaleBillListView.vue |
+| A23 | `POST /api/admin/sale-bills` | 新建销售单 | customerId,customerName,items:[{skuId,qty,price,discount}],remark,warehouseId | billNo,receivableAmount | sale-bill.service.ts create() | SaleBillCreateView.vue |
+| A24 | `GET /api/admin/employees` | 员工列表 | ?page&pageSize&keyword&storeId | {total,records:[{id,empNo,realName,mobile,storeId,role,status}]} | employee.service.ts list() + employee.routes.ts | EmployeeListView.vue |
+| A25 | `GET /api/admin/customers` | 客户列表 | ?page&pageSize&keyword&level&creditLevel | {total,records:[{id,customerName,contact,mobile,address,level,creditLimit,usedCredit,receivable}]} | customer.service.ts list() + customer.routes.ts | CustomerListView.vue |
+| A26 | `GET /api/admin/stores` | 门店列表 | ?page&pageSize&keyword&status | {total,records:[{id,storeCode,name,address,contact,mobile,manager,status}]} | store.service.ts list() + store.routes.ts | StoreManageView.vue |
+| A27 | `GET /api/admin/suppliers` | 供应商列表 | ?page&pageSize&keyword&status | {total,records:[{id,supplierCode,name,contact,mobile,address,status}]} | supplier.service.ts list() + supplier.routes.ts | SupplierListView.vue |
+| A28 | `GET /api/admin/purchase-orders` | 采购单列表 | ?supplierId&status&page&pageSize | {total,records:[{orderNo,supplierName,totalAmount,orderStatus,createdAt,receivedQty,totalQty}]} | purchase-order.service.ts list() + purchase-order.routes.ts | PurchaseOrderListView.vue |
+| A29 | `POST /api/admin/purchase-orders` | 新建采购单 | supplierId,items:[{skuId,qty,price}],remark,expectedDate | orderNo,totalAmount | purchase-order.service.ts create() | PurchaseOrderCreateView.vue |
+| A30 | `GET /api/admin/stock-batches` | 库存批次 | ?skuId&page&pageSize&warehouseId | {total,records:[{batchNo,skuId,skuName,qty,inPrice,inboundDate,expireDate,warehouseId}]} | stock-batch.service.ts list() + stock-batch.routes.ts | StockBatchListView.vue |
+
+### 二、PLATFORM 端点（24 个，/api/platform/*）
+
+| # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
+|:-:|:---|:---|:---|:---|:---|:---|
+| P1 | `POST /api/platform/auth/login` | 平台超级后台登录 | username:string✅, password:string✅ | token:string, user:{id,username,role} | platform-auth.routes.ts + auth.service.ts | saas-admin/src/api/auth.ts + PlatformLogin.vue |
+| P2 | `GET /api/platform/dashboard` | 平台概览 | — | {totalTenants,activeTenants,totalGMV,totalRevenue,newTenants7d} | platform-dashboard.routes.ts + service | saas-admin/src/views/Dashboard.vue |
+| P3 | `GET /api/platform/dashboard/tenants` | 租户统计 | ?granularity=day&days=30 | [{date,newCount,activeCount}] | platform-dashboard.routes.ts | saas-admin Dashboard |
+| P4 | `GET /api/platform/dashboard/revenue` | 收入统计 | ?granularity=month&months=12 | [{month,amount}] | platform-dashboard.routes.ts | saas-admin Dashboard |
+| P5 | `GET /api/platform/tenants` | 租户列表 | ?page&pageSize&keyword&status&planId | {total,records:[{id,tenantCode,name,plan,status,expireAt,createdAt,userCount}]} | platform-tenant.routes.ts + service | saas-admin/src/views/TenantListView.vue |
+| P6 | `GET /api/platform/tenants-management` | 租户管理（分页v2） | ?page&pageSize&keyword&status | {total,records:[...]} + metadata limits | tenant.routes.ts + tenant.service.ts | saas-admin Tenant 管理 v2 |
+| P7 | `GET /api/platform/tenants/:id` | 租户详情 | — | {id,tenantCode,name,contact,mobile,email,planId,expireAt,features[],dbInfo} | platform-tenant.routes.ts | TenantDetailDialog.vue |
+| P8 | `POST /api/platform/tenants` | 创建租户（开租户） | tenantCode✅,name✅,contact,mobile,email,planId,expireAt,initUser✅,initPassword✅ | tenantId,tenantCode,status,defaultUser | platform-tenant.routes.ts + createTenant() | TenantCreateDialog.vue |
+| P9 | `PUT /api/platform/tenants/:id` | 更新租户 | name,contact,mobile,email,planId,expireAt,features[] | {success:true} | platform-tenant.routes.ts | TenantEditDialog.vue |
+| P10 | `PUT /api/platform/tenants/:id/toggle` | 启用/禁用租户 | enable:boolean✅ | {success:true,status} | platform-tenant.routes.ts | TenantListView.vue switch |
+| P11 | `GET /api/platform/subscriptions-management` | 订阅管理列表 | ?tenantId&status&page&pageSize | {total,records:[{id,planId,tenantId,startAt,endAt,status,autoRenew}]} | subscription.routes.ts + subscription.service.ts | saas-admin SubscriptionView.vue |
+| P12 | `GET /api/platform/plans` | 套餐列表 | ?status | [{id,planCode,name,price,period,features[],maxUsers,status}] | platform-plans.routes.ts + plan.service.ts | PlanManageView.vue |
+| P13 | `POST /api/platform/plans` | 新建套餐 | planCode✅,name✅,price✅,period✅,maxUsers,features[],sort,status | id,planCode,name | platform-plans.routes.ts | PlanCreateDialog.vue |
+| P14 | `PUT /api/platform/plans/:planId` | 更新套餐 | 同 P13 | {success:true} | platform-plans.routes.ts | PlanEditDialog.vue |
+| P15 | `DELETE /api/platform/plans/:planId` | 删除套餐 | — | {success:true} | platform-plans.routes.ts | PlanManageView.vue |
+| P16 | `GET /api/platform/applications` | 入驻申请列表 | ?page&pageSize&status&keyword | {total,records:[{id,company,contact,mobile,email,planPreferred,status,createdAt,reviewedBy,reviewedAt}]} | platform-applications.routes.ts + service | ApplicationListView.vue |
+| P17 | `GET /api/platform/applications/:id` | 入驻申请详情 | — | {id,company,licenseImg,... + contactInfo[]} | platform-applications.routes.ts | ApplicationDetail.vue |
+| P18 | `PUT /api/platform/applications/:id/approve` | 审核通过（开租户） | tenantCode✅,planId✅,expireAt,userName✅,password✅ | tenantId,status:"APPROVED" | platform-applications.routes.ts + createTenant() | ApplicationApproveDialog.vue |
+| P19 | `PUT /api/platform/applications/:id/reject` | 审核驳回 | reason✅ | status:"REJECTED",reason | platform-applications.routes.ts | ApplicationRejectDialog.vue |
+| P20 | `GET /api/platform/announcements` | 公告列表 | ?page&pageSize&status | {total,records:[{id,title,content,type,priority,status,publishRange,publishedAt,author}]} | admin-platform-announcement.routes.ts + platform.routes.ts | saas-admin AnnouncementManage.vue |
+| P21 | `POST /api/platform/announcements` | 发布公告 | title✅,content,type,priority✅,status,publishRange[] | id,title | admin-platform-announcement.routes.ts | AnnouncementPublishDialog.vue |
+| P22 | `GET /api/platform/reconciliation` | 平台对账汇总 | ?startDate&endDate&tenantId&status | {totalGMV,totalCommission,totalSettled,totalPending,records[]} | platform-reconciliation.routes.ts + service | ReconciliationView.vue |
+| P23 | `GET /api/platform/settlements` | 结算单列表 | ?tenantId&status&page&pageSize | {total,records:[{settlementNo,tenantId,period,amount,commission,settleAmount,status,createdAt}]} | admin-platform-settlement.routes.ts + service | SettlementListView.vue |
+| P24 | `GET /api/platform/monitor` | 系统监控（健康+租户配额） | — | {health:{cpu,memory,dbPool},quotas:[{tenantId,storageMB,userCount,apiCalls}]} | platform-monitor.routes.ts + service | SystemMonitorView.vue |
+
+### 三、STORE 端点（16 个，/api/store/*）
+
+| # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
+|:-:|:---|:---|:---|:---|:---|:---|
+| S1 | `POST /api/store/auth/login` | 门店终端登录 | username✅,password✅ | token:string, user:{id,username,realName,storeId,storeName} | store.routes.ts / auth-store.service.ts | merchant-mobile / store-terminal Login.vue |
+| S2 | `GET /api/store/auth/me` | 当前门店用户 | — | {id,username,realName,storeId,storeName,role} | store.routes.ts | store-layout AppBar |
+| S3 | `GET /api/store/info` | 门店信息 | — | {id,storeCode,name,address,contact,mobile,manager,businessHours} | store.routes.ts + store.service.ts getById() | store-terminal HomePage.vue |
+| S4 | `GET /api/store/products` | 门店商品（含库存） | ?page&pageSize&keyword&categoryId | {total,records:[{spuId,spuName,skuId,skuCode,spec,salePrice,stock,images[]}]} | store-products.routes.ts | store-terminal ProductList.vue |
+| S5 | `GET /api/store/members` | 会员/客户列表 | ?page&pageSize&keyword | {total,records:[{id,customerName,contact,mobile,level,points,receivable}]} | customer.service.ts listWithTenant | store-terminal MemberList.vue |
+| S6 | `GET /api/store/stock` | 门店库存汇总 | ?skuId&keyword&page&pageSize | {total,records:[{skuId,skuCode,skuName,availableStock,lockedStock,warnThreshold}]} | store.routes.ts / inventory service | store-terminal StockCheck.vue |
+| S7 | `GET /api/store/orders` | 门店订单列表 | ?page&pageSize&status&keyword | {total,records:[{orderNo,customer,amount,payStatus,businessStatus,createdAt,items[]}]} | store-order.routes.ts | store-terminal OrderListView.vue |
+| S8 | `GET /api/store/sale-bills` | 销售单列表（门店） | ?page&pageSize&startDate&endDate | {total,records:[{billNo,customerName,totalAmount,status,createdAt,clerk}]} | sale-bill.service.ts list(storeId+page) | store-terminal BillHistory.vue |
+| S9 | `POST /api/store/sale-bills` | 门店开单（收银） | customerInfo, items:[{skuId,qty,price,discount}], payMethod, remark, warehouseId✅ | billNo, receivableAmount, payUrl(若在线付) | sale-bill.service.ts create() | store-terminal CashierDesk.vue |
+| S10 | `POST /api/store/stock-in` | 门店入库（调拨+采购入库） | type:PURCHASE_RECEIVE|TRANSFER_IN, refNo, items:[{skuId,qty,batchNo,inPrice}] | stockInNo, totalQty | stock-ops.routes.ts + service | store-terminal StockIn.vue |
+| S11 | `POST /api/store/stock-out` | 门店出库（销售+调拨出） | type:SALE|TRANSFER_OUT, refNo, items:[{skuId,qty,batchNo}] | stockOutNo, totalQty | stock-ops.routes.ts + service | store-terminal StockOut.vue |
+| S12 | `POST /api/store/pay` | 门店收款（微信/支付宝/现金/扫码） | billNo✅, payMethod:"CASH"|"WECHAT_QR"|"ALIPAY"|"BALANCE", amount✅ | payId,payUrl(if QR),status,payTime | payment.routes.ts + wxpay.v3.service.ts | store-terminal PayDialog.vue |
+| S13 | `POST /api/store/refund` | 退款（销售退货/撤单） | billNo✅, reason, amount, refundMethod✅ | refundId,status,refundTime | refund.routes.ts + wxpay.v3 refunds | store-terminal RefundDialog.vue |
+| S14 | `GET /api/store/pending-bills` | 挂单列表（门店） | — | [{billNo, tempSaveData, clerkId, createdAt}] | hold-bill.routes.ts + service | store-terminal CashierDesk.vue hold tray |
+| S15 | `POST /api/store/pending-bills` | 挂单保存 | billNo, tempSaveData✅ | billNo | hold-bill.routes.ts | CashierDesk.vue hold |
+| S16 | `GET /api/store/dashboard` | 门店看板 | ?granularity=day&days=7 | {todaySales,todayOrders,currentCustomers,weekTrend[],top5[],inventoryWarning} | store-dashboard.routes.ts + dashboard for store | store-terminal Dashboard.vue |
+
+> **契约对齐约定**：后端改字段/加路径 → 先在上方表新增行，再改代码；前端加请求 → 先查表，表中不存在的端点必须提 Issue 让凌舟派单补契约，不允许自行开发。
 
 ---
 
@@ -1934,6 +2029,164 @@
 #### POST /api/store/stock-checks/:id/submit
 - **描述**: 提交盘点（门店端完成录入）
 - **认证**: 需要认证
+
+---
+
+## 平台总后台接口
+
+> **路由前缀**: `/api/platform`
+> **说明**：仅供超级管理员角色（platform-admin）调用，所有接口均需要 Bearer Token 认证。前端项目为 saas-admin。本章节为详细章节；快速契约请参见上方「核心 70 API 端到端契约明细 · 二、PLATFORM 端点（24 个）」。
+
+### 平台认证
+
+#### POST /api/platform/auth/login
+- **描述**：平台超级后台登录
+- **认证**：无需认证
+- **请求体**：`{ username: string, password: string }`
+- **响应**：`{ token: string, user: { id, username, realName, role: "platform-admin" } }`
+- **后端**：`platform-auth.routes.ts` + `auth.service.ts`
+- **前端**：`saas-admin/src/api/auth.ts` + `PlatformLogin.vue`
+
+### 平台概览（看板）
+
+#### GET /api/platform/dashboard
+- **描述**：平台总览（今日 GMV、收入、活跃租户、新增注册）
+- **认证**：需要认证（platform-admin）
+- **Query参数**：?granularity=day&days=30
+- **响应**：`{ totalTenants, activeTenants, totalGMV, totalRevenue, newTenants7d, trend: [{date,new,active}] }`
+- **后端**：`platform-dashboard.routes.ts`
+
+#### GET /api/platform/dashboard/tenants
+- **描述**：租户统计趋势（日/周/月新增、活跃）
+- **认证**：需要认证
+- **Query参数**：granularity (day|week|month), days / months
+- **响应**：`[{date,newCount,activeCount}]`
+
+#### GET /api/platform/dashboard/revenue
+- **描述**：平台收入统计（套餐费 + 抽成佣金）
+- **认证**：需要认证
+- **Query参数**：granularity=month, months=12
+- **响应**：`[{month,subscription,commission,total}]`
+
+### 租户管理
+
+#### GET /api/platform/tenants
+- **描述**：租户列表（基础分页）
+- **认证**：需要认证
+- **Query参数**：page, pageSize, keyword, status, planId
+- **响应**：`{ total, records: [{id,tenantCode,name,plan,status,expireAt,createdAt,userCount,gmv}] }`
+- **后端**：`platform-tenant.routes.ts` + `tenant.service.ts`
+
+#### GET /api/platform/tenants-management
+- **描述**：租户管理 v2（更丰富的元数据、配额信息）
+- **认证**：需要认证
+- **Query参数**：page, pageSize, keyword, status
+- **响应**：`{ total, records: [...], meta:{limits:{maxUsers,maxStorageMB,apiCalls}} }`
+- **后端**：`tenant.routes.ts`
+
+#### GET /api/platform/tenants/:id
+- **描述**：租户详情
+- **认证**：需要认证
+
+#### POST /api/platform/tenants
+- **描述**：创建租户（开租户）——一键完成：创建租户schema+初始化数据库+创建默认管理员+分配套餐
+- **认证**：需要认证
+- **请求体**：`{ tenantCode, name, contact, mobile, email, planId, expireAt, initUser, initPassword }`
+- **响应**：`{ tenantId, tenantCode, status, defaultUser:{ username, password } }`
+- **后端**：`platform-tenant.routes.ts` createTenant()
+
+#### PUT /api/platform/tenants/:id
+- **描述**：更新租户信息+套餐+到期日
+- **认证**：需要认证
+
+#### PUT /api/platform/tenants/:id/toggle
+- **描述**：启用/禁用租户（封禁/解封）
+- **认证**：需要认证
+- **请求体**：`{ enable: boolean }`
+
+### 套餐与订阅
+
+#### GET /api/platform/plans
+- **描述**：套餐列表
+- **认证**：需要认证
+- **Query参数**：status
+- **后端**：`platform-plans.routes.ts`
+
+#### POST /api/platform/plans
+- **描述**：创建套餐
+- **认证**：需要认证
+- **请求体**：`{ planCode, name, price, period, maxUsers, features, sort, status }`
+
+#### PUT /api/platform/plans/:planId
+- **描述**：更新套餐
+- **认证**：需要认证
+
+#### DELETE /api/platform/plans/:planId
+- **描述**：删除套餐（未被引用时允许）
+- **认证**：需要认证
+
+#### GET /api/platform/subscriptions-management
+- **描述**：订阅管理（租户-套餐关联）
+- **认证**：需要认证
+- **Query参数**：tenantId, status, page, pageSize
+- **响应**：`{ total, records:[{id,tenantId,planId,startAt,endAt,status,autoRenew}] }`
+- **后端**：`subscription.routes.ts`
+
+### 入驻申请
+
+#### GET /api/platform/applications
+- **描述**：入驻申请列表
+- **认证**：需要认证
+- **Query参数**：page, pageSize, status, keyword
+- **后端**：`platform-applications.routes.ts`
+
+#### GET /api/platform/applications/:id
+- **描述**：入驻申请详情（含上传的营业执照等附件）
+- **认证**：需要认证
+
+#### PUT /api/platform/applications/:id/approve
+- **描述**：审核通过 → 自动创建租户
+- **认证**：需要认证
+- **请求体**：`{ tenantCode, planId, expireAt, userName, password }`
+- **响应**：`{ tenantId, status: "APPROVED" }`
+
+#### PUT /api/platform/applications/:id/reject
+- **描述**：审核驳回
+- **认证**：需要认证
+- **请求体**：`{ reason }`
+
+### 平台公告
+
+#### GET /api/platform/announcements
+- **描述**：公告列表（管理+发布端）
+- **认证**：需要认证
+- **后端**：`admin-platform-announcement.routes.ts` + `platform.routes.ts`
+
+#### POST /api/platform/announcements
+- **描述**：发布公告（所有租户 / 指定租户 / 门店端三端区分）
+- **认证**：需要认证
+- **请求体**：`{ title, content, type, priority, status, publishRange: Array<"admin"|"store"|"miniapp"> }`
+
+### 财务与对账
+
+#### GET /api/platform/reconciliation
+- **描述**：平台对账（按租户、期间汇总 GMV × 佣金比例 = 平台应得）
+- **认证**：需要认证
+- **Query参数**：startDate, endDate, tenantId, status
+- **后端**：`platform-reconciliation.routes.ts`
+
+#### GET /api/platform/settlements
+- **描述**：结算单列表（对账确认后给租户的结算）
+- **认证**：需要认证
+- **Query参数**：tenantId, status, page, pageSize
+- **后端**：`admin-platform-settlement.routes.ts`
+
+### 系统监控
+
+#### GET /api/platform/monitor
+- **描述**：系统监控（CPU/内存/DB连接池/接口QPS/各租户配额使用率）
+- **认证**：需要认证
+- **后端**：`platform-monitor.routes.ts`
 
 ---
 

@@ -601,7 +601,7 @@ const storeApi = {
 
   /** 管理端总览（兼容） */
   async fetchDashboardOverview(): Promise<any> {
-    const res: any = await get('/admin/dashboard/overview')
+    const res: any = await get('/store/dashboard/overview')
     return (res?.result ?? res)
   },
 

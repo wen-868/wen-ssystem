@@ -40,7 +40,7 @@ export interface CategoryDistribution {
 
 const dashboardApi = {
   async getStats(): Promise<DashboardStats> {
-    const res: any = await get('/admin/dashboard')
+    const res: any = await get('/store/dashboard')
     return {
       todaySales: res?.todaySales ?? 0,
       todayOrders: res?.todayOrders ?? 0,
@@ -50,27 +50,27 @@ const dashboardApi = {
   },
 
   async getTodos(): Promise<TodoItem[]> {
-    const res: any = await get('/admin/todos')
+    const res: any = await get('/store/todos')
     return (res?.list ?? res ?? []) as TodoItem[]
   },
 
   async getSalesTrend(days?: number): Promise<SalesTrend[]> {
-    const res: any = await get('/admin/dashboard/sales-trend', { days: days ?? 7 })
+    const res: any = await get('/store/dashboard/sales-trend', { days: days ?? 7 })
     return (res?.list ?? res ?? []) as SalesTrend[]
   },
 
   async getTopProducts(limit?: number): Promise<TopProduct[]> {
-    const res: any = await get('/admin/dashboard/top-products', { limit: limit ?? 5 })
+    const res: any = await get('/store/dashboard/top-products', { limit: limit ?? 5 })
     return (res?.list ?? res ?? []) as TopProduct[]
   },
 
   async getTopCustomers(limit?: number): Promise<TopCustomer[]> {
-    const res: any = await get('/admin/dashboard/top-customers', { limit: limit ?? 5 })
+    const res: any = await get('/store/dashboard/top-customers', { limit: limit ?? 5 })
     return (res?.list ?? res ?? []) as TopCustomer[]
   },
 
   async getCategoryDistribution(): Promise<CategoryDistribution[]> {
-    const res: any = await get('/admin/dashboard/category-distribution')
+    const res: any = await get('/store/dashboard/category-distribution')
     return (res?.list ?? res ?? []) as CategoryDistribution[]
   }
 }

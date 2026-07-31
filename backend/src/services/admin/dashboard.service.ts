@@ -651,8 +651,8 @@ export async function getTodos(tenantId: string) {
 
 export async function getRecentOrders(tenantId: string, limit: number = 5) {
   const records = await query<RecentOrderRow>(
-    `SELECT order_no AS orderNo, customer_name AS customerName,
-            receivable_amount AS amount, order_status AS orderStatus,
+    `SELECT bill_no AS orderNo, customer_name AS customerName,
+            receivable_amount AS amount, business_status AS orderStatus,
             created_at AS createdAt
      FROM t_sale_bill
      WHERE tenant_id = ? AND business_status NOT IN ('DRAFT', 'VOIDED')

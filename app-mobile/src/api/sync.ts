@@ -222,8 +222,11 @@ export async function getMemberDelta(
  *   }
  * ])
  * result.results.forEach(r => {
- *   if (r.success) { /* 单号 r.draftNo 提交成功，服务端单号 r.billNo */ }
- *   else console.error(`单号 ${r.draftNo} 提交失败：${r.errorMsg}`)
+ *   if (r.success) {
+ *     // 单号 r.draftNo 提交成功，服务端单号 r.billNo
+ *   } else {
+ *     console.error(`单号 ${r.draftNo} 提交失败：${r.errorMsg}`)
+ *   }
  * })
  * ```
  */

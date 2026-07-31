@@ -1,4 +1,55 @@
-﻿import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// R68-04：env.ts 中 env 对象在模块导入时静态求值 process.env.XXX || ""，
+// 测试中 beforeEach 晚于模块导入执行，导致 env.XXX 永远是 "" 提前短路。
+// 此处 vi.mock 让 env 属性动态读取当前 process.env，使 vi.stubEnv / process.env 赋值生效。
+vi.mock("../../shared/env", () => {
+  const env = new Proxy(
+    {},
+    {
+      get(_t, prop) {
+        switch (prop) {
+          case "JWT_SECRET":
+            return (process.env.JWT_SECRET as string) ?? "test-jwt-secret";
+          case "CSRF_SECRET":
+            return (
+              (process.env.CSRF_SECRET as string) ??
+              (process.env.JWT_SECRET as string) ??
+              "test-jwt-secret"
+            );
+          case "PORT":
+            return Number(process.env.PORT ?? 8080);
+          case "NODE_ENV":
+            return (process.env.NODE_ENV as string) ?? "test";
+          case "DB_PORT":
+            return Number(process.env.DB_PORT ?? 3306);
+          case "REDIS_PORT":
+            return Number(process.env.REDIS_PORT ?? 6379);
+          case "USE_MOCK_DB":
+            return process.env.USE_MOCK_DB === "true";
+          case "LOG_LEVEL":
+            return (process.env.LOG_LEVEL as string) ?? "info";
+          case "DOMAIN":
+            return (process.env.DOMAIN as string) ?? "test.local";
+          case "FEISHU_ALERT_WEBHOOK_URL":
+            return (
+              (process.env.FEISHU_ALERT_WEBHOOK_URL as string) ??
+              (process.env.FEISHU_WEBHOOK_URL as string) ??
+              ""
+            );
+          case Symbol.toStringTag:
+            return "Object";
+          default:
+            return (process.env[prop as string] as string) ?? "";
+        }
+      },
+      has() {
+        return true;
+      },
+    }
+  );
+  return { env };
+});
 
 // 在 vi.hoisted 中创建可共享的 mock request 函数
 const { mockRequest } = vi.hoisted(() => {
@@ -33,13 +84,20 @@ import { reportToLingZhou, buildTextReport } from "../../shared/feishu-report";
 describe("feishu-report", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.FEISHU_WEBHOOK_URL;
-    delete process.env.FEISHU_ALERT_WEBHOOK_URL;
+    // R68-04：stub 飞书 webhook env，让"需要 webhook"的用例跳过未配置检查
+    vi.stubEnv(
+      "FEISHU_WEBHOOK_URL",
+      "https://open.feishu.cn/open-apis/bot/v2/hook/test-webhook-123",
+    );
+    vi.stubEnv(
+      "FEISHU_ALERT_WEBHOOK_URL",
+      "https://open.feishu.cn/open-apis/bot/v2/hook/test-alert-webhook-456",
+    );
   });
 
   afterEach(() => {
-    delete process.env.FEISHU_WEBHOOK_URL;
-    delete process.env.FEISHU_ALERT_WEBHOOK_URL;
+    // R68-04：清除所有 stub 的 env 防污染
+    vi.unstubAllEnvs();
   });
 
   describe("buildTextReport", () => {
@@ -104,6 +162,11 @@ describe("feishu-report", () => {
   });
 
   describe("reportToLingZhou - 无 webhook", () => {
+    beforeEach(() => {
+      // R68-04：覆盖外层 stub，强制清空 webhook 以测试"未配置"分支
+      vi.stubEnv("FEISHU_WEBHOOK_URL", "");
+      vi.stubEnv("FEISHU_ALERT_WEBHOOK_URL", "");
+    });
     it("无 webhookUrl 时返回 ok=false", async () => {
       const result = await reportToLingZhou({
         phase: "测试",
