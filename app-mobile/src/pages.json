@@ -661,12 +661,6 @@
                 "text": "我的",
                 "iconPath": "static/tabbar/user.svg",
                 "selectedIconPath": "static/tabbar/user-active.svg"
-            },
-            {
-                "pagePath": "pages/ai-chat/ai-chat",
-                "text": "AI助手",
-                "iconPath": "static/tabbar/ai.svg",
-                "selectedIconPath": "static/tabbar/ai-active.svg"
             }
         ]
     }

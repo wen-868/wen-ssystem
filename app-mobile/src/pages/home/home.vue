@@ -95,6 +95,12 @@
           </view>
           <text class="quick-label">数据报表</text>
         </view>
+        <view class="quick-item" @tap="navigateTo('/pages/ai-chat/ai-chat')">
+          <view class="quick-icon-wrap quick-icon-wrap--cyan">
+            <text class="quick-icon quick-icon--ai">AI</text>
+          </view>
+          <text class="quick-label">AI助手</text>
+        </view>
       </view>
     </view>
 
@@ -421,10 +427,17 @@ onMounted(() => {
 .quick-icon-wrap--green { background: linear-gradient(135deg, #ECFDF5, #A7F3D0); }
 .quick-icon-wrap--orange { background: linear-gradient(135deg, #FFF7ED, #FED7AA); }
 .quick-icon-wrap--purple { background: linear-gradient(135deg, #F5F3FF, #DDD6FE); }
+.quick-icon-wrap--cyan { background: linear-gradient(135deg, #ECFEFF, #A5F3FC); }
 
 .quick-icon {
   font-size: 40rpx;
   color: #2B7FFF;
+}
+
+.quick-icon--ai {
+  font-size: 30rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
 }
 
 .quick-label {
