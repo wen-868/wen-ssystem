@@ -312,13 +312,24 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/definitions/inventory.tool.ts`、`handlers/inventory.handler.ts`
+- **状态**：已完成
+- **文件**：
+  - `backend/ai-base/src/tools/definitions/inventory-transfer.tool.ts`（inventoryTransfer 调拨，写操作+预览确认）
+  - `backend/ai-base/src/tools/definitions/stock-check.tool.ts`（stockCheck 盘点，写操作+预览确认）
+  - `backend/ai-base/src/tools/definitions/query-inventory.tool.ts`（queryInventory 库存汇总查询，只读，keyword/storeId/category 过滤）
+  - `backend/ai-base/src/tools/definitions/inventory-tools.spec.ts`（16 个单元测试）
+  - `backend/ai-base/src/tools/definitions/check-inventory.tool.ts`（修复 R70-09 遗留：真实后端返回 records 非 list）
+  - `backend/ai-base/src/tools/tools.module.ts`、`backend/ai-base/src/tools/tool-bootstrap.ts`（注册 3 个新工具）
 - **问题**：库存管理是AI助手高频能力，需实现3个工具
 - **修复**：
-  1. queryInventory：按商品/仓库查库存，返回库存量+状态
-  2. inventoryTransfer：调出+调入仓库+商品+数量，生成调拨单（写操作需确认）
-  3. inventoryCheck：按仓库生成盘点单
+  1. queryInventory：按商品/仓库查库存，返回库存量+状态（后端字段对齐：inventory-balance 支持 keyword/storeId/category，返回 records）
+  2. inventoryTransfer：调出+调入仓库+商品+数量，生成调拨单（写操作需确认，confirm=false 预览 / confirm=true 执行）
+  3. stockCheck：按仓库生成盘点单（写操作需确认；后端创建时不接收 items，明细由系统在 start 时按批次生成）
+- **完成证据**（commit hash 见 git log）：
+  - build：0 errors（exit 0）
+  - lint：0 errors 0 warnings（exit 0）
+  - jest：9 suites / 120 tests 全通过（≥97 达标），其中 inventory-tools.spec.ts 16 个测试全通过
+  - 说明：R70-07/R70-09 遗留的 9 个文件 lint 违规（纯格式化）由本任务 lint --fix 自动修正，一并提交以保障 HEAD 达标
 - **验收标准**：对话"五粮液还有多少库存"返回库存；"从1号仓调50件五粮液到2号仓"生成调拨单预览
 
 #### R70-11 — [P1] product.tool + customer.tool — 查商品/改价格/查客户/建客户
