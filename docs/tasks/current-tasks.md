@@ -343,7 +343,14 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：已完成
+- **状态**：✅ 已完成（2026-08-01 阿坚执行 / 凌舟审查通过）
+- **凌舟审查记录**（2026-08-01）：
+  - git log + grep 双重验证通过：commit `43823fe1`，11文件+1959/-16
+  - 独立验证：build 0 errors / lint 0 errors 0 warnings / jest 10 suites 152 tests 全通过（新增32用例）
+  - CUSTOMERS bug 修复核实：`/api/admin/customers` → `/api/admin/members`，回归测试断言路径 + records/list 双字段兼容
+  - updateProductPrice.tool.ts（350行）：价格类型映射表完整（retail/wholesale/store/cost/miniapp），body 平铺对齐后端，confirm 预览/执行
+  - searchCustomer 同族 bug：后端返回 records 非 list，双字段兼容修复
+  - push 状态：本地 commit 已就绪，GitHub 网络超时待重试
 - **文件**：
   - `backend/ai-base/src/bridge/service-client.ts`（R70-09 遗留 bug 修复）
   - `backend/ai-base/src/tools/definitions/search-customer.tool.ts`（同族 bug 修复）
@@ -424,7 +431,7 @@
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
 | R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
-| R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
+| R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | ✅ 已完成 |✅ 已完成 |
 | R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-14 智能价格填充引擎 | 阿坚 | P1 | 1.5天 | 待开始 |
