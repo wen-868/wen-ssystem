@@ -13,6 +13,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import { ServiceClient } from '../../bridge/service-client';
 import { ToolContext } from '../tool.interface';
+import { PriceEngineService } from '../price-engine.service';
+import { UnitConverterService } from '../unit-converter.service';
 import { CreatePurchaseOrderTool } from './create-purchase-order.tool';
 import { QueryPurchaseOrdersTool } from './query-purchase-orders.tool';
 import { QueryDeliveryStatusTool } from './query-delivery-status.tool';
@@ -61,6 +63,9 @@ describe('R70-12 采购+配送工具', () => {
       imports: [ConfigModule.forRoot({ isGlobal: true })],
       providers: [
         { provide: ServiceClient, useValue: mockServiceClient.instance },
+        // R70-14: 智能价格填充引擎
+        PriceEngineService,
+        UnitConverterService,
         CreatePurchaseOrderTool,
         QueryPurchaseOrdersTool,
         QueryDeliveryStatusTool,
@@ -269,7 +274,7 @@ describe('R70-12 采购+配送工具', () => {
       expect(result.success).toBe(true);
       const details = result.preview!.details;
       expect(details.warnings).toBeDefined();
-      expect((details.warnings as string[])[0]).toContain('低于系统进价');
+      expect((details.warnings as string[])[0]).toContain('低于进价');
     });
 
     it('supplierId 与 supplierName 都缺失时应返回参数错误', async () => {

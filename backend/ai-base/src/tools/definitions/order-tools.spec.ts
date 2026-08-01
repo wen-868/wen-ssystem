@@ -16,6 +16,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import { ServiceClient } from '../../bridge/service-client';
 import { ToolContext } from '../tool.interface';
+import { PriceEngineService } from '../price-engine.service';
+import { UnitConverterService } from '../unit-converter.service';
 import { SearchCustomerTool } from './search-customer.tool';
 import { SearchProductTool } from './search-product.tool';
 import { CheckInventoryTool } from './check-inventory.tool';
@@ -70,6 +72,9 @@ describe('R70-09 销售工具', () => {
       imports: [ConfigModule.forRoot({ isGlobal: true })],
       providers: [
         { provide: ServiceClient, useValue: mockServiceClient.instance },
+        // R70-14: 智能价格填充引擎
+        PriceEngineService,
+        UnitConverterService,
         SearchCustomerTool,
         SearchProductTool,
         CheckInventoryTool,
@@ -357,7 +362,7 @@ describe('R70-09 销售工具', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('无价格信息');
+      expect(result.error).toContain('无可用价格');
     });
 
     it('执行模式（confirm=true）应调用后端 POST', async () => {

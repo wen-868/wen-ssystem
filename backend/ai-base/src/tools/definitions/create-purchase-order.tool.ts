@@ -38,6 +38,8 @@ import {
   API_ENDPOINTS,
   BridgeError,
 } from '../../bridge/service-client';
+import { PriceEngineService, ProductPriceInfo } from '../price-engine.service';
+import { UnitConverterService } from '../unit-converter.service';
 
 /** 采购商品项输入 */
 interface PurchaseItemInput {
@@ -55,11 +57,8 @@ interface PurchaseItemInput {
   productInfo?: PurchaseProductInfo;
 }
 
-/** 商品定价信息（来自 searchProduct 工具返回） */
-interface PurchaseProductInfo {
-  boxRatio: number;
-  costPrice: number;
-}
+/** 商品定价信息（来自 searchProduct 工具返回，R70-14 统一使用引擎类型） */
+type PurchaseProductInfo = ProductPriceInfo;
 
 /** 后端创建采购单返回 */
 interface CreatePurchaseResult {
@@ -187,7 +186,11 @@ export class CreatePurchaseOrderTool implements ITool {
     required: ['storeId', 'items'],
   };
 
-  constructor(private readonly serviceClient: ServiceClient) {}
+  constructor(
+    private readonly serviceClient: ServiceClient,
+    private readonly priceEngine: PriceEngineService,
+    private readonly unitConverter: UnitConverterService,
+  ) {}
 
   async execute(
     args: Record<string, unknown>,
@@ -508,17 +511,21 @@ export class CreatePurchaseOrderTool implements ITool {
     }
   }
 
-  /** 处理单个商品项：单位换算 + 智能进价填充 + 小计 */
+  /** 处理单个商品项：单位换算 + 智能进价填充 + 小计（R70-14 复用引擎） */
   private processItem(item: PurchaseItemInput): ProcessedPurchaseItem {
     const productInfo = item.productInfo;
     const boxRatio = productInfo?.boxRatio ?? 1;
 
-    // ── 单位换算：箱+瓶 → 总瓶数 ──
+    // ── 单位换算：箱+瓶 → 总瓶数（UnitConverterService） ──
     const boxQty = item.boxQty ?? 0;
     const bottleQty = item.bottleQty ?? 0;
-    const totalBottleQty = boxQty * boxRatio + bottleQty;
+    const conversion = this.unitConverter.toBottleQty({
+      boxQty,
+      bottleQty,
+      boxRatio,
+    });
 
-    if (totalBottleQty <= 0) {
+    if (!conversion.valid) {
       return {
         skuId: item.skuId,
         skuName: item.skuName ?? `SKU-${item.skuId}`,
@@ -531,24 +538,20 @@ export class CreatePurchaseOrderTool implements ITool {
         subtotal: 0,
         priceSource: '未知',
         blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 总瓶数为0，无法创建采购单`,
+        error: `商品 ${item.skuName ?? item.skuId} ${conversion.error}`,
       };
     }
 
-    // ── 智能进价填充 ──
-    let unitPrice: number;
-    let priceSource: string;
+    const totalBottleQty = conversion.totalBottleQty;
 
-    if (typeof item.unitPrice === 'number' && item.unitPrice > 0) {
-      // 用户指定价优先
-      unitPrice = item.unitPrice;
-      priceSource = '用户指定价';
-    } else if (productInfo && productInfo.costPrice > 0) {
-      // 使用系统默认进价
-      unitPrice = productInfo.costPrice;
-      priceSource = '系统默认进价';
-    } else {
-      // 无价格信息
+    // ── 智能进价填充（PriceEngineService：用户指定价 > 系统默认进价） ──
+    const resolution = this.priceEngine.resolvePurchasePrice({
+      userUnitPrice: item.unitPrice,
+      productInfo,
+      skuName: item.skuName ?? `SKU-${item.skuId}`,
+    });
+
+    if (resolution.blocked) {
       return {
         skuId: item.skuId,
         skuName: item.skuName ?? `SKU-${item.skuId}`,
@@ -559,38 +562,14 @@ export class CreatePurchaseOrderTool implements ITool {
         unitPrice: 0,
         taxRate: 0,
         subtotal: 0,
-        priceSource: '无价格',
+        priceSource: resolution.priceSource,
         blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 无进价信息，请通过 searchProduct 获取或手动指定 unitPrice`,
+        error: resolution.error,
       };
     }
 
+    const unitPrice = resolution.unitPrice;
     const subtotal = unitPrice * totalBottleQty;
-
-    // ── 价格安全校验（采购价低于系统进价属正常议价，仅提示） ──
-    let warning: string | undefined;
-    if (productInfo && productInfo.costPrice > 0) {
-      if (unitPrice < productInfo.costPrice) {
-        warning = `提示：商品 ${item.skuName ?? item.skuId} 的采购单价 ${unitPrice} 低于系统进价 ${productInfo.costPrice}`;
-      }
-    }
-
-    if (unitPrice === 0) {
-      return {
-        skuId: item.skuId,
-        skuName: item.skuName ?? `SKU-${item.skuId}`,
-        barcode: null,
-        boxQty,
-        bottleQty,
-        totalBottleQty,
-        unitPrice: 0,
-        taxRate: 0,
-        subtotal: 0,
-        priceSource: '零价格',
-        blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 单价为0，无法创建采购单`,
-      };
-    }
 
     return {
       skuId: item.skuId,
@@ -602,8 +581,8 @@ export class CreatePurchaseOrderTool implements ITool {
       unitPrice,
       taxRate: 0,
       subtotal,
-      priceSource,
-      warning,
+      priceSource: resolution.priceSource,
+      warning: resolution.warning,
       blocked: false,
     };
   }

@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ToolRegistry } from './tool-registry';
 import { ToolExecutor } from './tool-executor';
 import { ToolBootstrap } from './tool-bootstrap';
+// R70-14: 智能价格填充引擎（可复用服务）
+import { PriceEngineService } from './price-engine.service';
+import { UnitConverterService } from './unit-converter.service';
 import { EchoTool } from './definitions/echo.tool';
 import { SearchCustomerTool } from './definitions/search-customer.tool';
 import { SearchProductTool } from './definitions/search-product.tool';
@@ -67,6 +70,9 @@ import { BridgeModule } from '../bridge/bridge.module';
     ToolRegistry,
     ToolExecutor,
     ToolBootstrap,
+    // R70-14: 智能价格填充引擎（可复用服务）
+    PriceEngineService,
+    UnitConverterService,
     EchoTool,
     // R70-09: 销售管理 7 个工具
     SearchCustomerTool,

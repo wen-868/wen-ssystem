@@ -29,6 +29,8 @@ import {
   API_ENDPOINTS,
   BridgeError,
 } from '../../bridge/service-client';
+import { PriceEngineService, ProductPriceInfo } from '../price-engine.service';
+import { UnitConverterService } from '../unit-converter.service';
 
 /** 创建销售单的参数 */
 interface CreateSalesOrderArgs {
@@ -55,14 +57,8 @@ interface OrderItemInput {
   productInfo?: ProductInfoForPricing;
 }
 
-/** 商品定价信息（来自 searchProduct 工具返回） */
-interface ProductInfoForPricing {
-  boxRatio: number;
-  retailPrice: number;
-  wholesalePrice: number;
-  storePrice: number;
-  costPrice: number;
-}
+/** 商品定价信息（来自 searchProduct 工具返回，R70-14 统一使用引擎类型） */
+type ProductInfoForPricing = ProductPriceInfo;
 
 /** 后端创建销售单返回 */
 interface CreateSaleBillResult {
@@ -163,7 +159,11 @@ export class CreateSalesOrderTool implements ITool {
     required: ['customerId', 'items'],
   };
 
-  constructor(private readonly serviceClient: ServiceClient) {}
+  constructor(
+    private readonly serviceClient: ServiceClient,
+    private readonly priceEngine: PriceEngineService,
+    private readonly unitConverter: UnitConverterService,
+  ) {}
 
   async execute(
     args: Record<string, unknown>,
@@ -368,7 +368,7 @@ export class CreateSalesOrderTool implements ITool {
   }
 
   /**
-   * 处理单个商品项：智能价格填充 + 单位换算
+   * 处理单个商品项：智能价格填充 + 单位换算（R70-14 复用 PriceEngineService + UnitConverterService）
    */
   private processItem(
     item: OrderItemInput,
@@ -377,12 +377,16 @@ export class CreateSalesOrderTool implements ITool {
     const productInfo = item.productInfo;
     const boxRatio = productInfo?.boxRatio ?? 1;
 
-    // ── 单位换算：箱+瓶 → 总瓶数 ──
+    // ── 单位换算：箱+瓶 → 总瓶数（UnitConverterService） ──
     const boxQty = item.boxQty ?? 0;
     const bottleQty = item.bottleQty ?? 0;
-    const totalBottleQty = boxQty * boxRatio + bottleQty;
+    const conversion = this.unitConverter.toBottleQty({
+      boxQty,
+      bottleQty,
+      boxRatio,
+    });
 
-    if (totalBottleQty <= 0) {
+    if (!conversion.valid) {
       return {
         skuId: item.skuId,
         skuName: item.skuName ?? `SKU-${item.skuId}`,
@@ -393,25 +397,21 @@ export class CreateSalesOrderTool implements ITool {
         totalPrice: 0,
         priceSource: '未知',
         blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 总瓶数为0，无法创建销售单`,
+        error: `商品 ${item.skuName ?? item.skuId} ${conversion.error}`,
       };
     }
 
-    // ── 智能价格填充 ──
-    let unitPrice: number;
-    let priceSource: string;
+    const totalBottleQty = conversion.totalBottleQty;
 
-    if (typeof item.unitPrice === 'number' && item.unitPrice > 0) {
-      // 用户指定价优先
-      unitPrice = item.unitPrice;
-      priceSource = '用户指定价';
-    } else if (productInfo) {
-      // 按客户类型自动匹配
-      const matched = this.matchPriceByCustomerType(productInfo, customerType);
-      unitPrice = matched.price;
-      priceSource = matched.source;
-    } else {
-      // 无价格信息
+    // ── 智能价格填充（PriceEngineService：用户指定价 > 合同价 > 客户类型对应价） ──
+    const resolution = this.priceEngine.resolveSalesPrice({
+      userUnitPrice: item.unitPrice,
+      customerType,
+      productInfo,
+      skuName: item.skuName ?? `SKU-${item.skuId}`,
+    });
+
+    if (resolution.blocked) {
       return {
         skuId: item.skuId,
         skuName: item.skuName ?? `SKU-${item.skuId}`,
@@ -420,36 +420,14 @@ export class CreateSalesOrderTool implements ITool {
         totalBottleQty,
         unitPrice: 0,
         totalPrice: 0,
-        priceSource: '无价格',
+        priceSource: resolution.priceSource,
         blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 无价格信息，请通过 searchProduct 获取或手动指定 unitPrice`,
+        error: resolution.error,
       };
     }
 
+    const unitPrice = resolution.unitPrice;
     const totalPrice = unitPrice * totalBottleQty;
-
-    // ── 价格安全校验 ──
-    let warning: string | undefined;
-    if (productInfo && productInfo.costPrice > 0) {
-      if (unitPrice < productInfo.costPrice) {
-        warning = `警告：商品 ${item.skuName ?? item.skuId} 的单价 ${unitPrice} 低于进价 ${productInfo.costPrice}，可能造成亏损`;
-      }
-    }
-
-    if (unitPrice === 0) {
-      return {
-        skuId: item.skuId,
-        skuName: item.skuName ?? `SKU-${item.skuId}`,
-        boxQty,
-        bottleQty,
-        totalBottleQty,
-        unitPrice: 0,
-        totalPrice: 0,
-        priceSource: '零价格',
-        blocked: true,
-        error: `商品 ${item.skuName ?? item.skuId} 单价为0，无法创建销售单`,
-      };
-    }
 
     return {
       skuId: item.skuId,
@@ -459,65 +437,10 @@ export class CreateSalesOrderTool implements ITool {
       totalBottleQty,
       unitPrice,
       totalPrice,
-      priceSource,
-      warning,
+      priceSource: resolution.priceSource,
+      warning: resolution.warning,
       blocked: false,
     };
-  }
-
-  /**
-   * 按客户类型匹配价格
-   *
-   * 优先级：用户指定价 > 客户类型对应价
-   * 客户类型映射：
-   * - WHOLESALE → wholesalePrice（批发价）
-   * - CASH → retailPrice（零售价）
-   * - VIP → retailPrice * 0.9（VIP九折，暂用零售价，后续可扩展）
-   */
-  private matchPriceByCustomerType(
-    productInfo: ProductInfoForPricing,
-    customerType: string,
-  ): { price: number; source: string } {
-    switch (customerType) {
-      case 'WHOLESALE':
-        if (productInfo.wholesalePrice > 0) {
-          return {
-            price: productInfo.wholesalePrice,
-            source: '已自动应用批发客户价格',
-          };
-        }
-        // 批发价为0时降级到零售价
-        return {
-          price: productInfo.retailPrice,
-          source: '批发价未设置，已降级为零售价',
-        };
-
-      case 'VIP':
-        if (productInfo.retailPrice > 0) {
-          // VIP 九折（暂定，后续可根据 t_customer_level 表的折扣率计算）
-          const vipPrice =
-            Math.round(productInfo.retailPrice * 0.9 * 100) / 100;
-          return {
-            price: vipPrice,
-            source: '已自动应用VIP客户价格（零售价九折）',
-          };
-        }
-        return { price: productInfo.storePrice, source: '已自动应用门店价' };
-
-      case 'CASH':
-      default:
-        if (productInfo.retailPrice > 0) {
-          return {
-            price: productInfo.retailPrice,
-            source: '已自动应用零售价格',
-          };
-        }
-        // 零售价为0时降级到门店价
-        return {
-          price: productInfo.storePrice,
-          source: '零售价未设置，已降级为门店价',
-        };
-    }
   }
 
   /** 将客户类型映射为后端的 priceType 枚举 */
