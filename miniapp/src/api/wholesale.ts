@@ -231,7 +231,7 @@ export const wholesaleApi = {
 
   // 加入批发购物车
   addToCart: (data: AddWholesaleCartRequest): Promise<{ cartItemId: number; totalCount: number }> => {
-    return post('/miniapp/wholesale/cart', data as Record<string, unknown>)
+    return post('/miniapp/wholesale/cart', data as unknown as Record<string, unknown>)
   },
 
   // 更新购物车商品数量
@@ -267,7 +267,7 @@ export const wholesaleApi = {
 
   // 创建批发订单（批量下单）
   createOrder: (data: CreateWholesaleOrderRequest): Promise<CreateWholesaleOrderResponse> => {
-    return post('/miniapp/wholesale/orders', data as Record<string, unknown>)
+    return post('/miniapp/wholesale/orders', data as unknown as Record<string, unknown>)
   },
 
   // 取消批发订单

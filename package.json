@@ -7,8 +7,13 @@
     "backend",
     "admin-web",
     "saas-admin",
-    "website"
+    "website",
+    "app-mobile",
+    "miniapp"
   ],
+  "overrides": {
+    "webpack": "5.87.0"
+  },
   "scripts": {
     "dev:backend": "npm --workspace backend run dev",
     "dev:mock": "node scripts/dev-mock.mjs",
@@ -26,9 +31,11 @@
     "test:acceptance:production": "node scripts/acceptance-production.mjs"
   },
   "devDependencies": {
+    "@vue/babel-plugin-jsx": "^3.0.0",
     "esbuild": "^0.25.0",
     "js-yaml": "^4.2.0",
     "typescript": "^5.5.3",
-    "wait-on": "^9.0.10"
+    "wait-on": "^9.0.10",
+    "webpack": "5.87.0"
   }
 }

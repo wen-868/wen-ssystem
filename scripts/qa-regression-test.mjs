@@ -28,16 +28,18 @@ const login = await request("/admin/auth/login", {
   method: "POST",
   body: JSON.stringify({ username: "admin", password: "admin123" })
 });
-const auth = { Authorization: `Bearer ${login.token}` };
+// 写操作需携带 x-csrf-token（auto-routes csrfMiddleware 契约）
+const auth = { Authorization: `Bearer ${login.token}`, "X-CSRF-Token": login.csrfToken };
 
-const miniProducts = await request("/miniapp/products?storeId=1");
-if (typeof miniProducts[0]?.availableQty !== "number" || Number.isNaN(miniProducts[0].availableQty)) {
-  throw new Error(`小程序 availableQty 应为数字，实际为 ${miniProducts[0]?.availableQty}`);
+const miniProducts = await request("/miniapp/products?storeId=1", { headers: auth });
+const miniProductList = miniProducts.records ?? miniProducts;
+if (typeof miniProductList[0]?.availableQty !== "number" || Number.isNaN(miniProductList[0].availableQty)) {
+  throw new Error(`小程序 availableQty 应为数字，实际为 ${miniProductList[0]?.availableQty}`);
 }
 
 const miniOrder = await request("/miniapp/orders", {
   method: "POST",
-  headers: { "x-customer-type": "RETAIL" },
+  headers: { ...auth, "x-customer-type": "RETAIL" },
   body: JSON.stringify({
     storeId: 1,
     fulfillmentType: "PICKUP",
@@ -102,6 +104,7 @@ async function testWholesaleOrderReservation() {
   const res = await request("/miniapp/orders", {
     method: "POST",
     headers: {
+      ...auth,
       "x-customer-type": "WHOLESALE"
     },
     body: JSON.stringify({
@@ -125,6 +128,7 @@ async function testWholesaleDeliveryLifecycle() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
+      ...auth,
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },
@@ -160,6 +164,7 @@ async function testReceivableCollection() {
   const order = await request("/miniapp/orders", {
     method: "POST",
     headers: {
+      ...auth,
       "x-customer-type": "WHOLESALE",
       "x-settlement-type": "ACCOUNT"
     },

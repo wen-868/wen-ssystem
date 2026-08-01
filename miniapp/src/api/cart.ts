@@ -89,6 +89,6 @@ export const cartApi = {
   },
 
   createOrder: (data: CreateOrderRequest): Promise<CreateOrderResponse> => {
-    return post('/miniapp/cart/checkout/create', data)
+    return post('/miniapp/cart/checkout/create', data as unknown as Record<string, unknown>)
   }
 }

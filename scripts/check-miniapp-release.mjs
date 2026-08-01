@@ -8,7 +8,13 @@ function walk(dir) {
   });
 }
 
-const files = walk("miniapp").filter((file) => /\.(js|json|wxml|wxss)$/.test(file));
+// 只扫描源码（排除 node_modules/dist 等构建产物与依赖目录），
+// 构建产物中的 API 地址由构建时环境变量注入，不应作为 localhost 泄漏的检查对象
+const files = walk("miniapp").filter(
+  (file) => /\.(js|json|wxml|wxss)$/.test(file)
+    && !file.replace(/\\/g, "/").includes("/node_modules/")
+    && !file.replace(/\\/g, "/").includes("/dist/")
+);
 const text = files.map((file) => readFileSync(file, "utf8")).join("\n");
 
 if (text.includes("localhost")) throw new Error("小程序正式包不能包含 localhost");

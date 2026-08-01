@@ -1,7 +1,8 @@
 import Taro from '@tarojs/taro'
 import { useUserStore } from '@/stores/user'
 
-const BASE_URL = 'http://localhost:3000/api'
+// API 地址由构建期环境变量注入（TARO_APP_API_BASE），源码不写死域名
+const BASE_URL = process.env.TARO_APP_API_BASE || ''
 
 interface RequestOptions {
   url: string

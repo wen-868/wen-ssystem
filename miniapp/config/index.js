@@ -13,7 +13,8 @@ const config = {
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-framework-vue3', '@tarojs/plugin-html'],
   defineConstants: {
-    BASE_URL: JSON.stringify('http://localhost:3000/api')
+    // API 地址通过环境变量注入（Taro 构建期替换），源码不写死域名，避免正式包泄漏本地地址
+    BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE || '')
   },
   copy: {
     patterns: [],

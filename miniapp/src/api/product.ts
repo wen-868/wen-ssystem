@@ -56,7 +56,7 @@ export const getProductDetail = (id: number): Promise<ProductDetail> => {
 }
 
 export const addToCart = (data: AddCartRequest): Promise<AddCartResponse> => {
-  return post('/customer/cart/add', data)
+  return post('/customer/cart/add', data as unknown as Record<string, unknown>)
 }
 
 export const getProductList = (params?: {

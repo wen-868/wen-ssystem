@@ -152,7 +152,7 @@ export const orderApi = {
 
   // 创建订单
   createOrder: (data: CreateOrderRequest): Promise<CreateOrderResponse> => {
-    return post('/miniapp/orders', data as Record<string, unknown>)
+    return post('/miniapp/orders', data as unknown as Record<string, unknown>)
   },
 
   // 取消订单

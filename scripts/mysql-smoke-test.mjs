@@ -111,7 +111,11 @@ async function apiChecks() {
   });
   const token = login.body?.data?.token;
   check("管理后台登录", login.status === 200 && login.body?.code === "0" && Boolean(token));
-  const auth = token ? { Authorization: `Bearer ${token}` } : {};
+  // 写操作需携带 x-csrf-token（auto-routes csrfMiddleware 契约）
+  const csrfToken = login.body?.data?.csrfToken;
+  const auth = token
+    ? { Authorization: `Bearer ${token}`, ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}) }
+    : {};
 
   const products = await request("/api/admin/products", { headers: auth });
   check("管理后台商品列表", products.body?.code === "0" && Array.isArray(products.body?.data?.records));
@@ -119,12 +123,12 @@ async function apiChecks() {
   const dashboard = await request("/api/admin/dashboard", { headers: auth });
   check("管理后台看板", dashboard.body?.code === "0" && dashboard.body?.data);
 
-  const miniProducts = await request("/api/miniapp/products?storeId=1");
+  const miniProducts = await request("/api/miniapp/products?storeId=1", { headers: auth });
   check("小程序商品列表", miniProducts.body?.code === "0" && Array.isArray(miniProducts.body?.data));
 
   const miniOrder = await request("/api/miniapp/orders", {
     method: "POST",
-    headers: { "x-customer-type": "RETAIL" },
+    headers: { ...auth, "x-customer-type": "RETAIL" },
     body: {
       storeId: 1,
       fulfillmentType: "PICKUP",
