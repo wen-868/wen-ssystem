@@ -2,7 +2,7 @@
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-01（凌舟AI协助完成 R70-09 order.tool 7个销售工具，tsc/lint/test 全通过）
+> 最后更新：2026-08-02（凌舟AI协助完成 R70-15 确认机制，P0+P1 全部完成，进入 P2 前端+完善阶段）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -375,56 +375,80 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：2天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/definitions/purchase.tool.ts`、`delivery.tool.ts`、对应handler
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行 / 2026-08-02 凌舟审查通过）
+- **凌舟审查记录**（2026-08-02）：
+  - git log 双重验证：commit `9ff36525`，已推送 origin/main
+  - 独立验证：build 0 errors / lint 0 errors / jest 11 suites 178 tests 全通过（purchase-delivery-tools.spec.ts 21 用例）
+  - 工具端点与后端逐一比对通过：createPurchaseOrder→/api/admin/purchase-orders、queryPurchaseOrders→/api/admin/purchase-orders(records分页)、queryDeliveryStatus→/api/delivery/orders/:orderNo、createDelivery→/api/delivery/delivery-tasks
+  - 写操作（createPurchaseOrder/createDelivery）均实现 confirm=false 预览 / confirm=true 执行
+- **文件**：`backend/ai-base/src/tools/definitions/create-purchase-order.tool.ts`、`query-purchase-orders.tool.ts`、`query-delivery-status.tool.ts`、`create-delivery.tool.ts`、`purchase-delivery-tools.spec.ts`、`tools.module.ts`、`tool-bootstrap.ts`
 - **问题**：采购和配送是供应链核心环节，需实现4个工具
 - **修复**：
   1. createPurchaseOrder：供应商+商品+数量+进价，单位换算，生成预览需确认
   2. queryPurchaseOrders：按时间/供应商/状态查询
   3. queryDeliveryStatus：按订单号查询配送状态
   4. createDelivery：为销售单创建配送任务
-- **验收标准**：对话"从XX酒业进货100箱五粮液，进价850"生成采购单预览
+- **验收标准**：对话"从XX酒业进货100箱五粮液，进价850"生成采购单预览 ✅
 
 #### R70-13 — [P1] finance.tool + report.tool — 财务+报表
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：2天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/definitions/finance.tool.ts`、`report.tool.ts`、对应handler
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行 / 2026-08-02 凌舟审查通过）
+- **凌舟审查记录**（2026-08-02）：
+  - git log 双重验证：commit `a9b9fe83`，已推送 origin/main
+  - 独立验证：build 0 errors / lint 0 errors / jest 13 suites 199 tests 全通过（finance-report-tools.spec.ts 26 用例）
+  - 8 个工具端点与后端逐一比对通过：queryReceivables→/api/finance/receivables、queryPayables→/api/finance/payables、createSalesReturn→/api/finance/sales-return、createRefund→/api/finance/refunds、createPaymentReconciliation→/api/finance/reconciliation、salesReport/inventoryReport/profitReport→/api/finance/reports/*
+  - 所有写操作均实现 confirm 预览/执行机制
+- **文件**：`backend/ai-base/src/tools/definitions/query-receivables.tool.ts`、`query-payables.tool.ts`、`create-sales-return.tool.ts`、`create-refund.tool.ts`、`create-payment-reconciliation.tool.ts`、`sales-report.tool.ts`、`inventory-report.tool.ts`、`profit-report.tool.ts`、`finance-report-tools.spec.ts`
 - **问题**：财务和报表是经营决策核心，需实现8个工具
 - **修复**：
   1. finance.tool：queryReceivables、queryPayables、createSalesReturn、createRefund、createPaymentReconciliation
   2. report.tool：salesReport、inventoryReport、profitReport
   3. 所有写操作均需确认机制
-- **验收标准**：对话"红星商行还欠多少"返回应收信息；"本月销售报表"返回销售汇总
+- **验收标准**：对话"红星商行还欠多少"返回应收信息；"本月销售报表"返回销售汇总 ✅
 
 #### R70-14 — [P1] 智能价格填充引擎 — 价格匹配 + 单位换算 + 安全校验
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1.5天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/price-engine.service.ts`、`unit-converter.service.ts`
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行 / 2026-08-02 凌舟审查通过）
+- **凌舟审查记录**（2026-08-02）：
+  - git log 双重验证：commit `5c697fa1`，已推送 origin/main
+  - 独立验证：build 0 errors / lint 0 errors / jest 13 suites 224 tests 全通过（price-engine-tools.spec.ts 21 用例）
+  - 引擎职责单一：PriceEngineService（resolveSalesPrice 优先级：用户指定价>合同价>客户类型对应价；resolvePurchasePrice） + UnitConverterService（toBottleQty 箱→瓶）
+  - 关键修正：用户明确指定 0 价/非法价格 → 立即阻止执行（不回落客户类型价），符合写入操作规范
+  - create-sales-order/create-purchase-order 已统一改用引擎，移除重复逻辑
+- **文件**：`backend/ai-base/src/tools/price-engine.service.ts`、`unit-converter.service.ts`、`price-engine-tools.spec.ts`、`create-sales-order.tool.ts`（改造）、`create-purchase-order.tool.ts`（改造）、`tools.module.ts`
 - **问题**：价格填充和单位换算是写操作核心规则，需独立为可复用引擎
 - **修复**：
   1. PriceEngineService：客户类型→价格等级匹配，优先级：用户指定价 > 合同价 > 客户类型对应价
   2. UnitConverterService：箱→瓶换算（box_ratio），单价始终以瓶为基准
   3. 安全校验：低于进货价/最低限价生成警告（不拦截），零价格阻止执行
   4. 价格来源标注：预览中标注"已自动应用批发客户价格"
-- **验收标准**：批发客户自动匹配批发价；"100箱"自动换算为600瓶；低于进货价时生成警告
+- **验收标准**：批发客户自动匹配批发价；"100箱"自动换算为600瓶；低于进货价时生成警告 ✅
 
 #### R70-15 — [P1] 确认机制 — 预览展示 + 用户确认/修改/取消 + 可撤销
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/brain/confirmation.service.ts`、`gateway/dto/confirmation.dto.ts`
+- **状态**：✅ 已完成（2026-08-02 凌舟AI协助执行 / 凌舟审查通过）
+- **凌舟审查记录**（2026-08-02）：
+  - git log 双重验证：commit `88bb6fdf`，已推送 origin/main，6 文件 +1191 行
+  - 独立验证：build 0 errors / lint 0 errors / jest 14 suites 250 tests 全通过（confirmation.service.spec.ts 26 用例）
+  - ConfirmationService：待确认记录管理（TTL 5分钟）+ 已执行操作撤销窗口（3分钟）+ 确认词/拒绝词识别，内存 Map + 多租户隔离 + 惰性过期清理
+  - 关键健壮性修正：单字确认词（'行'/'对'）误判风险——"行李箱/对比一下"不再被识别为确认，需确认后缀（创建/执行/开单/标点/语气词）
+  - Orchestrator：工具返回 preview 时自动注册待确认记录，tool_result 事件携带 confirmationId + preview 供前端渲染确认卡片
+  - ChatController 新增 5 个端点：GET /confirmations（待确认列表）、POST /confirmations/:id/confirm（确认执行+注册撤销窗口）、POST /confirmations/:id/cancel、POST /operations/:id/revoke（撤销登记）、GET /operations/:id（查询）
+  - 撤销端点职责：校验 3 分钟窗口 + 登记撤销状态，最终回退由业务侧单据取消/退货流程完成
+- **文件**：`backend/ai-base/src/brain/confirmation.service.ts`、`confirmation.service.spec.ts`、`orchestrator.service.ts`、`gateway/chat.controller.ts`、`gateway/dto/confirmation.dto.ts`、`brain.module.ts`
 - **问题**：所有写操作必须"先预览后执行"
 - **修复**：
   1. ConfirmationService：管理待确认操作（TTL 5分钟），生成confirmation_id
   2. 预览格式：结构化卡片（客户/商品/数量/单价/合计/价格来源/库存状态）
   3. 确认逻辑："确认/可以/没问题"→执行；其他回复视为拒绝或修改
   4. 可撤销：执行后3分钟内可撤销（仅限未发货状态）
-- **验收标准**：写操作生成预览→用户确认→执行成功→3分钟内可撤销
+- **验收标准**：写操作生成预览→用户确认→执行成功→3分钟内可撤销 ✅
 
 ### P1 任务总览
 
@@ -432,11 +456,20 @@
 |------|--------|:------:|:----:|:----:|
 | R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
-| R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | 待开始 |
-| R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | 待开始 |
-| R70-14 智能价格填充引擎 | 阿坚 | P1 | 1.5天 | 待开始 |
-| R70-15 确认机制(预览+确认+撤销) | 阿坚 | P1 | 1天 | 待开始 |
+| R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | ✅ 已完成 |
+| R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | ✅ 已完成 |
+| R70-14 智能价格填充引擎 | 阿坚 | P1 | 1.5天 | ✅ 已完成 |
+| R70-15 确认机制(预览+确认+撤销) | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | **P1合计** | — | — | **8.5天** | — |
+
+> **P1里程碑**：全部 24 个业务 Tool 就绪（销售7+库存3+商品客户5+采购配送4+财务报表8 + echo 工具），多租户配置生效。
+
+> **凌舟 P1 独立复查记录**（2026-08-02，git log + build/lint/test 双重验证）：
+> - 本地 main 同步至 origin/main HEAD `88bb6fdf`（R70-15），R70-10~R70-15 六个提交均已推送（6a1f82ed/43823fe1/9ff36525/a9b9fe83/5c697fa1/88bb6fdf）
+> - 独立验证：`pnpm run build` 0 errors / `npx eslint "src/**/*.ts"` 0 errors / `npx jest` 14 suites 250 tests 全通过
+> - 工具注册数核实：`tool-bootstrap.ts` 注册 27 个工具（echo + 7销售 + 3库存 + 4商品客户 + 4采购配送 + 8财务报表），R70-16 前端可调用 `/api/admin/tools` 获取
+> - 确认机制闭环核实：Orchestrator preview→ConfirmationService.create()→ChatController confirm/cancel/revoke 端点齐全，5 分钟 TTL + 3 分钟撤销窗口，写操作规范第六章落地
+> - 遗留说明：R70-15 撤销端点为"撤销登记"模式（校验窗口+登记状态），业务侧最终回退依赖对应单据取消/退货流程，已在任务记录中注明
 
 ---
 
@@ -560,11 +593,17 @@
 
 | 阶段 | 工时 | 累计 | 里程碑 |
 |------|------|------|--------|
-| P0 核心骨架 | 14天 | 14天 | 骨架可运行，"创建销售单"端到端 |
-| P1 核心业务 | 8.5天 | 22.5天 | 全部24个业务Tool就绪，多租户配置 |
-| P2 前端+完善 | 12.5天 | 35天 | 前端上线，主动能力，RAG，运维完善 |
+| P0 核心骨架 | 14天 | 14天 | ✅ 完成 — 骨架可运行，"创建销售单"端到端 |
+| P1 核心业务 | 8.5天 | 22.5天 | ✅ 完成 — 27个业务Tool就绪，确认机制落地 |
+| P2 前端+完善 | 12.5天 | 35天 | 🔄 进行中 — 2026-08-02 凌舟派单（墨/阿澈/阿坚并行） |
 
 > **人员分工**：阿坚负责全部后端（P0+P1+部分P2），墨负责admin-web+saas-admin前端，阿澈负责移动端。P0+P1串行推进，P2阶段前后端可并行。
+>
+> **P2 派单记录**（2026-08-02 凌舟）：
+> - R70-16 admin-web AI对话窗口 → 墨（P2-1，先做，依赖最少）
+> - R70-18 saas-admin AI配置页面 → 墨（P2-2，紧随其后）
+> - R70-17 app-mobile AI对话页面 → 阿澈（P2-1，可并行）
+> - R70-19 安全(限流+加密) / R70-20 主动能力 / R70-21 RAG / R70-22 部署 → 阿坚（P2-1~P2-4，后端串行推进）
 
 ### R70 关键规则
 
