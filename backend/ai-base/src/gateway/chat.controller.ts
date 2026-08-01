@@ -17,13 +17,7 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import {
-  Body,
-  Controller,
-  Logger,
-  Post,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Logger, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { Orchestrator } from '../brain/orchestrator.service';
 import { TenantContext } from '../tenant/tenant-context';
@@ -60,7 +54,8 @@ export class ChatController {
       this.logger.warn('对话请求缺少 tenantId（无 JWT 且请求体未传入）');
       res.status(401).json({
         statusCode: 401,
-        message: '未认证：请在 Authorization Header 中携带 JWT，或在请求体中传入 tenantId',
+        message:
+          '未认证：请在 Authorization Header 中携带 JWT，或在请求体中传入 tenantId',
       });
       return;
     }
@@ -91,7 +86,10 @@ export class ChatController {
     } catch (err) {
       // Orchestrator 内部已有 try-catch，此处兜底防止未捕获异常导致连接挂起
       const errMsg = err instanceof Error ? err.message : String(err);
-      this.logger.error(`SSE 传输异常：${errMsg}`, err instanceof Error ? err.stack : undefined);
+      this.logger.error(
+        `SSE 传输异常：${errMsg}`,
+        err instanceof Error ? err.stack : undefined,
+      );
       this.sendSse(res, { type: 'error', message: `SSE 传输异常：${errMsg}` });
     } finally {
       res.end();

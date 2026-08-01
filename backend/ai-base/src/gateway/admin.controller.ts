@@ -20,14 +20,7 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import {
-  Body,
-  Controller,
-  Get,
-  Logger,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query } from '@nestjs/common';
 import { ProviderFactory } from '../providers/provider-factory';
 import { ToolRegistry } from '../tools/tool-registry';
 import { ToolExecutor } from '../tools/tool-executor';
@@ -127,7 +120,10 @@ export class AdminController {
    * GET /api/admin/providers
    */
   @Get('providers')
-  listProviders(): { total: number; providers: Array<{ type: string; name: string }> } {
+  listProviders(): {
+    total: number;
+    providers: Array<{ type: string; name: string }>;
+  } {
     const providers = this.factory.listWithDetails();
     return { total: providers.length, providers };
   }
@@ -232,7 +228,12 @@ export class AdminController {
     @Query('sessionId') sessionId?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
-  ): Promise<{ list: unknown[]; total: number; page: number; pageSize: number }> {
+  ): Promise<{
+    list: unknown[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
     if (!tenantId) {
       return { list: [], total: 0, page: 1, pageSize: 20 };
     }

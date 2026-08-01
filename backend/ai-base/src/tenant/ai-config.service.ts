@@ -93,7 +93,10 @@ export class AiConfigService {
   /**
    * 便捷方法：直接获取 ProviderConfig（供 ProviderFactory.create() 使用）
    */
-  async getProviderConfig(): Promise<{ provider: string; config: ProviderConfig }> {
+  async getProviderConfig(): Promise<{
+    provider: string;
+    config: ProviderConfig;
+  }> {
     const resolved = await this.getResolvedConfig();
     return {
       provider: resolved.provider,
@@ -119,9 +122,10 @@ export class AiConfigService {
     const platformConfig = await this.getPlatformConfig();
 
     // 解密 API Key（租户未配置则用平台默认）
-    const apiKey = this.crypto.decryptSafe(tenantConfig.apiKey)
-      ?? this.crypto.decryptSafe(platformConfig.defaultApiKey)
-      ?? '';
+    const apiKey =
+      this.crypto.decryptSafe(tenantConfig.apiKey) ??
+      this.crypto.decryptSafe(platformConfig.defaultApiKey) ??
+      '';
 
     if (!apiKey) {
       this.logger.warn(
@@ -141,7 +145,8 @@ export class AiConfigService {
       model: tenantConfig.model,
       temperature: Number(tenantConfig.temperature),
       maxTokens: tenantConfig.maxTokens,
-      systemPrompt: tenantConfig.systemPrompt ?? platformConfig.defaultSystemPrompt,
+      systemPrompt:
+        tenantConfig.systemPrompt ?? platformConfig.defaultSystemPrompt,
       source: 'tenant',
     };
   }
@@ -149,7 +154,9 @@ export class AiConfigService {
   /**
    * 从平台默认配置解析
    */
-  private async resolveFromPlatform(tenantId: string): Promise<ResolvedAiConfig> {
+  private async resolveFromPlatform(
+    tenantId: string,
+  ): Promise<ResolvedAiConfig> {
     const platformConfig = await this.getPlatformConfig();
 
     // 解密 API Key

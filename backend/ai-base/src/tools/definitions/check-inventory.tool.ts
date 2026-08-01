@@ -29,9 +29,15 @@ interface InventoryBalanceItem {
   storeName: string | null;
 }
 
-/** 后端返回的分页结构 */
+/**
+ * 后端返回的分页结构
+ *
+ * 注意：report.service.ts listInventoryBalance 实际返回 records 字段，
+ * 兼容 list 字段（部分测试 mock 用 list），取记录时 records 优先、list 兜底。
+ */
 interface PaginatedResult<T> {
-  list: T[];
+  records?: T[];
+  list?: T[];
   total: number;
   page: number;
   pageSize: number;
@@ -96,7 +102,10 @@ export class CheckInventoryTool implements ITool {
         context,
       );
 
-      if (!result || !result.list || result.list.length === 0) {
+      // 取记录：records（后端真实字段）优先，list 兜底
+      const records = result?.records ?? result?.list ?? [];
+
+      if (records.length === 0) {
         return {
           success: true,
           data: {
@@ -108,7 +117,7 @@ export class CheckInventoryTool implements ITool {
       }
 
       // 精简返回
-      const simplified = result.list.map((item) => ({
+      const simplified = records.map((item) => ({
         skuId: item.skuId,
         skuName: item.skuName,
         barcode: item.barcode,

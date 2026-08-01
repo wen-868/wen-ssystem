@@ -10,6 +10,10 @@ import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
 import { GetSaleBillDetailTool } from './definitions/get-sale-bill-detail.tool';
 import { CancelOrderTool } from './definitions/cancel-order.tool';
+// R70-10: 库存管理 3 个工具
+import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
+import { StockCheckTool } from './definitions/stock-check.tool';
+import { QueryInventoryTool } from './definitions/query-inventory.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -54,6 +58,10 @@ import { BridgeModule } from '../bridge/bridge.module';
     QuerySaleBillsTool,
     GetSaleBillDetailTool,
     CancelOrderTool,
+    // R70-10: 库存管理 3 个工具
+    InventoryTransferTool,
+    StockCheckTool,
+    QueryInventoryTool,
   ],
   exports: [ToolRegistry, ToolExecutor],
 })

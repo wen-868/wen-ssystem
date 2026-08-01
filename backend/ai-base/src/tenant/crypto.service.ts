@@ -18,11 +18,7 @@
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-} from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 
 /** IV 长度（GCM 推荐 12 字节） */
 const IV_LENGTH = 12;
@@ -37,7 +33,7 @@ export class CryptoService {
     const hexKey = this.configService.get<string>('ENCRYPTION_KEY');
     if (!hexKey) {
       throw new Error(
-        'ENCRYPTION_KEY 未配置，请在 .env 中设置 32 字节 hex 密钥（生成命令：node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"）',
+        "ENCRYPTION_KEY 未配置，请在 .env 中设置 32 字节 hex 密钥（生成命令：node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"）",
       );
     }
     this.key = Buffer.from(hexKey, 'hex');
@@ -77,7 +73,9 @@ export class CryptoService {
   decrypt(encrypted: string): string {
     const parts = encrypted.split(':');
     if (parts.length !== 3) {
-      throw new Error('加密数据格式错误，应为 `<iv_hex>:<authTag_hex>:<ciphertext_hex>`');
+      throw new Error(
+        '加密数据格式错误，应为 `<iv_hex>:<authTag_hex>:<ciphertext_hex>`',
+      );
     }
 
     const [ivHex, authTagHex, ciphertextHex] = parts;

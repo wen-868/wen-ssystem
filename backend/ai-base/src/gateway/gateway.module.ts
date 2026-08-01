@@ -41,7 +41,13 @@ import { BrainModule } from '../brain/brain.module';
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
 @Module({
-  imports: [BrainModule, TenantModule, ProvidersModule, ToolsModule, BridgeModule],
+  imports: [
+    BrainModule,
+    TenantModule,
+    ProvidersModule,
+    ToolsModule,
+    BridgeModule,
+  ],
   controllers: [ChatController, AdminController],
 })
 export class GatewayModule {}

@@ -8,6 +8,9 @@ import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
 import { GetSaleBillDetailTool } from './definitions/get-sale-bill-detail.tool';
 import { CancelOrderTool } from './definitions/cancel-order.tool';
+import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
+import { StockCheckTool } from './definitions/stock-check.tool';
+import { QueryInventoryTool } from './definitions/query-inventory.tool';
 
 /**
  * Tool 注册引导器
@@ -29,6 +32,11 @@ import { CancelOrderTool } from './definitions/cancel-order.tool';
  * - getSaleBillDetail：查询销售单详情（order）
  * - cancelOrder：取消订单（order，写操作）
  *
+ * R70-10 新增（库存管理）：
+ * - inventoryTransfer：库存调拨（inventory，写操作+预览）
+ * - stockCheck：库存盘点（inventory，写操作+预览）
+ * - queryInventory：查询库存汇总（inventory，按仓库/分类维度）
+ *
  * 注意：本 provider 不被任何模块 export，仅用于触发注册副作用，
  * 必须在 ToolsModule.providers 中声明才能生效。
  */
@@ -44,6 +52,9 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly querySaleBillsTool: QuerySaleBillsTool,
     private readonly getSaleBillDetailTool: GetSaleBillDetailTool,
     private readonly cancelOrderTool: CancelOrderTool,
+    private readonly inventoryTransferTool: InventoryTransferTool,
+    private readonly stockCheckTool: StockCheckTool,
+    private readonly queryInventoryTool: QueryInventoryTool,
   ) {}
 
   onModuleInit(): void {
@@ -58,6 +69,10 @@ export class ToolBootstrap implements OnModuleInit {
       this.querySaleBillsTool,
       this.getSaleBillDetailTool,
       this.cancelOrderTool,
+      // R70-10: 库存管理 3 个工具
+      this.inventoryTransferTool,
+      this.stockCheckTool,
+      this.queryInventoryTool,
     ]);
   }
 }

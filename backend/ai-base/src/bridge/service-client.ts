@@ -206,7 +206,11 @@ export class ServiceClient {
    *
    * 供 AdminController GET /health 调用，验证后端可达性。
    */
-  async healthCheck(): Promise<{ reachable: boolean; latencyMs: number; error?: string }> {
+  async healthCheck(): Promise<{
+    reachable: boolean;
+    latencyMs: number;
+    error?: string;
+  }> {
     const start = Date.now();
     try {
       await this.httpClient.get('/api/admin/dashboard/summary', {
@@ -240,9 +244,7 @@ export class ServiceClient {
   ): Promise<T> {
     const requestConfig = this.buildRequestConfig(context, config);
 
-    this.logger.debug(
-      `${method} ${path}（tenant=${context.tenantId}）`,
-    );
+    this.logger.debug(`${method} ${path}（tenant=${context.tenantId}）`);
 
     let lastError: unknown;
 
@@ -395,9 +397,9 @@ export class ServiceClient {
       // 网络错误（后端不可达）
       return new BridgeError(
         `后端不可达：${err.message}（path=${path}）`,
-          503,
-          'NETWORK_ERROR',
-        );
+        503,
+        'NETWORK_ERROR',
+      );
     }
 
     // 未知错误

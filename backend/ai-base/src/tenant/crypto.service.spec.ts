@@ -17,7 +17,8 @@ function createConfigService(encryptionKey: string): ConfigService {
 }
 
 describe('CryptoService', () => {
-  const validKey = '14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359';
+  const validKey =
+    '14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359';
 
   describe('构造校验', () => {
     it('ENCRYPTION_KEY 未配置时应抛异常', () => {

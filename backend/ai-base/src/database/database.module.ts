@@ -47,7 +47,10 @@ export const AI_ENTITIES = [
         database: configService.get<string>('DB_DATABASE', 'liquor_inventory'),
         entities: AI_ENTITIES,
         synchronize: false, // 生产环境禁止自动同步，使用 migration 脚本建表
-        logging: configService.get<string>('NODE_ENV') === 'development' ? ['error', 'warn'] : ['error'],
+        logging:
+          configService.get<string>('NODE_ENV') === 'development'
+            ? ['error', 'warn']
+            : ['error'],
         timezone: '+08:00', // 东八区，与现有 backend 保持一致
         charset: 'utf8mb4',
         poolSize: 10,

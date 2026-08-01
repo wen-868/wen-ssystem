@@ -215,7 +215,9 @@ export class AuditLogger {
       .take(pageSize);
 
     if (options?.startDate) {
-      qb.andWhere('log.created_at >= :startDate', { startDate: options.startDate });
+      qb.andWhere('log.created_at >= :startDate', {
+        startDate: options.startDate,
+      });
     }
     if (options?.endDate) {
       qb.andWhere('log.created_at <= :endDate', { endDate: options.endDate });
@@ -224,7 +226,9 @@ export class AuditLogger {
       qb.andWhere('log.intent = :intent', { intent: options.intent });
     }
     if (options?.sessionId) {
-      qb.andWhere('log.session_id = :sessionId', { sessionId: options.sessionId });
+      qb.andWhere('log.session_id = :sessionId', {
+        sessionId: options.sessionId,
+      });
     }
 
     const [list, total] = await qb.getManyAndCount();
