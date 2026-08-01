@@ -11,6 +11,10 @@ import { CancelOrderTool } from './definitions/cancel-order.tool';
 import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
 import { StockCheckTool } from './definitions/stock-check.tool';
 import { QueryInventoryTool } from './definitions/query-inventory.tool';
+import { UpdateProductPriceTool } from './definitions/update-product-price.tool';
+import { QueryProductDetailTool } from './definitions/query-product-detail.tool';
+import { CreateCustomerTool } from './definitions/create-customer.tool';
+import { QueryCustomerDetailTool } from './definitions/query-customer-detail.tool';
 
 /**
  * Tool 注册引导器
@@ -37,6 +41,12 @@ import { QueryInventoryTool } from './definitions/query-inventory.tool';
  * - stockCheck：库存盘点（inventory，写操作+预览）
  * - queryInventory：查询库存汇总（inventory，按仓库/分类维度）
  *
+ * R70-11 新增（商品管理 + 客户管理）：
+ * - updateProductPrice：更新商品SKU价格（product，写操作+预览）
+ * - queryProductDetail：查询商品详情（product，含SKU明细与价格）
+ * - createCustomer：创建客户（customer，写操作+预览）
+ * - queryCustomerDetail：查询客户详情（customer，含类型/等级/欠款）
+ *
  * 注意：本 provider 不被任何模块 export，仅用于触发注册副作用，
  * 必须在 ToolsModule.providers 中声明才能生效。
  */
@@ -55,6 +65,11 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly inventoryTransferTool: InventoryTransferTool,
     private readonly stockCheckTool: StockCheckTool,
     private readonly queryInventoryTool: QueryInventoryTool,
+    // R70-11: 商品管理 + 客户管理 4 个工具
+    private readonly updateProductPriceTool: UpdateProductPriceTool,
+    private readonly queryProductDetailTool: QueryProductDetailTool,
+    private readonly createCustomerTool: CreateCustomerTool,
+    private readonly queryCustomerDetailTool: QueryCustomerDetailTool,
   ) {}
 
   onModuleInit(): void {
@@ -73,6 +88,11 @@ export class ToolBootstrap implements OnModuleInit {
       this.inventoryTransferTool,
       this.stockCheckTool,
       this.queryInventoryTool,
+      // R70-11: 商品管理 + 客户管理 4 个工具
+      this.updateProductPriceTool,
+      this.queryProductDetailTool,
+      this.createCustomerTool,
+      this.queryCustomerDetailTool,
     ]);
   }
 }

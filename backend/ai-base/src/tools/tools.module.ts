@@ -14,6 +14,11 @@ import { CancelOrderTool } from './definitions/cancel-order.tool';
 import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
 import { StockCheckTool } from './definitions/stock-check.tool';
 import { QueryInventoryTool } from './definitions/query-inventory.tool';
+// R70-11: 商品管理 + 客户管理 4 个工具
+import { UpdateProductPriceTool } from './definitions/update-product-price.tool';
+import { QueryProductDetailTool } from './definitions/query-product-detail.tool';
+import { CreateCustomerTool } from './definitions/create-customer.tool';
+import { QueryCustomerDetailTool } from './definitions/query-customer-detail.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -62,6 +67,11 @@ import { BridgeModule } from '../bridge/bridge.module';
     InventoryTransferTool,
     StockCheckTool,
     QueryInventoryTool,
+    // R70-11: 商品管理 + 客户管理 4 个工具
+    UpdateProductPriceTool,
+    QueryProductDetailTool,
+    CreateCustomerTool,
+    QueryCustomerDetailTool,
   ],
   exports: [ToolRegistry, ToolExecutor],
 })

@@ -60,8 +60,9 @@ export const API_ENDPOINTS = {
   PRODUCTS: '/api/admin/products',
   CATEGORIES: '/api/admin/products/categories',
   PRODUCT_TAGS: '/api/admin/product-tags',
-  // 客户管理（admin-customer.routes.ts prefix: /api/admin）
-  CUSTOMERS: '/api/admin/customers',
+  // 客户管理（admin-customer.routes.ts prefix: /api/admin，实际路由为 /members）
+  // R70-11 修复：原为 '/api/admin/customers'（404），真实端点列表/创建/详情均为 /api/admin/members
+  CUSTOMERS: '/api/admin/members',
   CUSTOMER_TYPES: '/api/admin/customer-types',
   // 采购管理（purchase.routes.ts prefix: /api/admin/purchase-orders）
   PURCHASE_ORDERS: '/api/admin/purchase-orders',

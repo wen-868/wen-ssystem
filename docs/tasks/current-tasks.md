@@ -343,14 +343,25 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/definitions/product.tool.ts`、`customer.tool.ts`、对应handler
-- **问题**：商品和客户管理是基础查询能力，需实现5个工具
+- **状态**：已完成
+- **文件**：
+  - `backend/ai-base/src/bridge/service-client.ts`（R70-09 遗留 bug 修复）
+  - `backend/ai-base/src/tools/definitions/search-customer.tool.ts`（同族 bug 修复）
+  - `backend/ai-base/src/tools/definitions/update-product-price.tool.ts`（新增）
+  - `backend/ai-base/src/tools/definitions/query-product-detail.tool.ts`（新增）
+  - `backend/ai-base/src/tools/definitions/create-customer.tool.ts`（新增）
+  - `backend/ai-base/src/tools/definitions/query-customer-detail.tool.ts`（新增）
+  - `backend/ai-base/src/tools/tools.module.ts`、`tool-bootstrap.ts`（注册）
+  - `backend/ai-base/src/tools/definitions/product-customer-tools.spec.ts`（新增测试）
+- **问题**：商品和客户管理是基础查询能力，需实现5个工具；R70-09 遗留 CUSTOMERS 端点 bug（/api/admin/customers 404，实际为 /api/admin/members）
 - **修复**：
-  1. queryProduct/searchProduct：按名称/条码搜索，返回商品信息+多级价格
-  2. updateProductPrice：修改价格（写操作需确认），校验不低于最低限价
-  3. queryCustomer：按名称/电话搜索，返回客户信息+类型+信用额度
-  4. createCustomer：创建新客户（写操作需确认）
+  1. CUSTOMERS 端点修复：`/api/admin/customers` → `/api/admin/members`（对齐 admin-customer.routes.ts）
+  2. searchCustomer 同族 bug 修复：后端 listMembers 返回 `records` 字段（原用 `list` 导致永远空列表），双字段兼容
+  3. queryProductDetail：按 spuId 精确查询商品详情（SPU + SKU 多级价格/库存），只读
+  4. updateProductPrice：按 skuId 修改价格等级（写操作，confirm 预览/执行），body 对齐后端价格字段平铺
+  5. createCustomer：创建客户（写操作，confirm 预览/执行），body 对齐后端 createCustomer（creditLimit 后端不支持自动写入，仅预览提示）
+  6. queryCustomerDetail：按 customerId 精确查询客户详情（含类型/结算方式标签），只读
+- **验证结果**：build 0 errors / lint 0 errors 0 warnings / jest 10 suites 152 tests 全部通过（含 searchCustomer 回归测试：调用 /api/admin/members + records 字段解析）
 - **验收标准**：对话"五粮液多少钱"返回商品价格；"新建客户：兴旺超市"创建客户成功
 
 #### R70-12 — [P1] purchase.tool + delivery.tool — 采购单+配送管理
@@ -413,7 +424,7 @@
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
 | R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
-| R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | 待开始 |
+| R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-14 智能价格填充引擎 | 阿坚 | P1 | 1.5天 | 待开始 |

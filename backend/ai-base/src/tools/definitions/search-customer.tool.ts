@@ -35,9 +35,10 @@ interface CustomerListItem {
   arrears: number;
 }
 
-/** 后端返回的分页结构 */
+/** 后端返回的分页结构（listMembers 返回 records 字段，list 为兼容旧形态） */
 interface PaginatedResult<T> {
-  list: T[];
+  list?: T[];
+  records?: T[];
   total: number;
   page: number;
   pageSize: number;
@@ -102,7 +103,11 @@ export class SearchCustomerTool implements ITool {
         context,
       );
 
-      if (!result || !result.list || result.list.length === 0) {
+      // R70-11 修复：真实后端 listMembers 返回 records 字段（非 list），双字段兼容
+      const customers = result?.records ?? result?.list ?? [];
+      const total = result?.total ?? 0;
+
+      if (customers.length === 0) {
         return {
           success: true,
           data: { list: [], total: 0, message: `未找到匹配"${keyword}"的客户` },
@@ -110,7 +115,7 @@ export class SearchCustomerTool implements ITool {
       }
 
       // 精简返回字段，避免 LLM 上下文过长
-      const simplified = result.list.map((c) => ({
+      const simplified = customers.map((c) => ({
         memberId: c.memberId,
         name: c.name,
         mobile: c.mobile,
@@ -122,14 +127,14 @@ export class SearchCustomerTool implements ITool {
       }));
 
       this.logger.debug(
-        `搜索客户"${keyword}"：找到 ${result.total} 条，返回 ${simplified.length} 条`,
+        `搜索客户"${keyword}"：找到 ${total} 条，返回 ${simplified.length} 条`,
       );
 
       return {
         success: true,
         data: {
           list: simplified,
-          total: result.total,
+          total,
           page,
           pageSize,
         },
