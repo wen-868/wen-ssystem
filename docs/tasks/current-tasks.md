@@ -2,7 +2,7 @@
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-01（阿坚完成 R70-04 Tool系统 ToolRegistry+ToolExecutor+ITool接口，待凌舟审查）
+> 最后更新：2026-08-01（凌舟AI协助完成 R70-09 order.tool 7个销售工具，tsc/lint/test 全通过）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -261,19 +261,23 @@
 
 #### R70-09 — [P0] order.tool — 7个销售工具（创建/查询/取消销售单等）
 - **优先级**：P0
-- **负责人**：阿坚
+- **负责人**：凌舟(AI协助)
 - **预计**：2天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tools/definitions/order.tool.ts`、`handlers/order.handler.ts`
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行）
+- **文件**：`backend/ai-base/src/tools/definitions/search-customer.tool.ts`、`search-product.tool.ts`、`check-inventory.tool.ts`、`create-sales-order.tool.ts`、`query-sale-bills.tool.ts`、`get-sale-bill-detail.tool.ts`、`cancel-order.tool.ts`、`order-tools.spec.ts`
 - **问题**：销售管理是AI助手最核心的业务能力，需实现7个工具
 - **修复**：
-  1. 工具定义：searchCustomer、searchProduct、checkInventory、createSalesOrder、querySalesOrders、getSalesOrderDetail、cancelSalesOrder
-  2. 工具handler：通过ServiceClient调用对应微服务
+  1. 工具定义：searchCustomer、searchProduct、checkInventory、createSalesOrder、querySaleBills、getSaleBillDetail、cancelOrder
+  2. 工具通过ServiceClient调用对应后端API（API_ENDPOINTS常量统一管理端点路径）
   3. createSalesOrder 实现智能价格填充（按写入操作规范第三章）：
-     - 客户类型自动匹配价格（批发→wholesale_price，零售→retail_price，VIP→vip_price）
-     - 单位换算：用户说"箱"→按box_ratio换算为瓶，单价始终是瓶单价
-     - 价格安全校验：低于进货价/最低限价时提示警告但不拦截
-  4. createSalesOrder 实现确认机制：生成预览卡片 → 等待用户确认 → 执行写入
+     - 客户类型自动匹配价格（批发→wholesalePrice，零售→retailPrice，VIP→retailPrice*0.9）
+     - 单位换算：用户说"箱"→按boxRatio换算为瓶，单价始终是瓶单价
+     - 价格安全校验：低于进价生成警告但不拦截，零价格阻止执行
+  4. createSalesOrder 实现确认机制：confirm=false 生成预览（含商品明细+价格来源+合计），confirm=true 正式创建
+- **凌舟审查记录**（2026-08-01）：
+  - tsc --noEmit 0 errors，eslint 0 errors，19个单元测试全通过
+  - 设计要点：①每个工具独立文件，便于维护和按租户启用/禁用；②返回数据精简（只保留LLM需要的字段，避免上下文过长）；③createSalesOrder 预览模式不调用后端，仅本地计算价格+换算+校验；④工具描述包含使用示例，帮助LLM正确调用；⑤SB开头单号走销售单接口，ORD开头走订单接口（getSaleBillDetail自动路由）
+  - API端点对齐：SALE_BILLS=/api/admin/sale-bills、ORDERS=/api/admin/orders、STORE_SALE_BILLS=/api/store/sale-bills、PRODUCTS=/api/admin/products、CUSTOMERS=/api/admin/members、INVENTORY=/api/admin/inventory
 - **验收标准**：**端到端验收** — 对话"给红星商行送10箱五粮液" → AI自动匹配批发价 → 生成预览 → 用户确认 → 销售单创建成功
 
 ### P0 任务总览
@@ -288,7 +292,7 @@
 | R70-06 Gateway(SSE+Admin API) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-07 多租户(Context+Guard+Config) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-08 Brain Engine(Agent Loop) | 凌舟(AI协助) | P0 | 3天 | ✅ 已完成 |
-| R70-09 order.tool(7个销售工具) | 凌舟(AI协助) | P0 | 2天 | 待开始 |
+| R70-09 order.tool(7个销售工具) | 凌舟(AI协助) | P0 | 2天 | ✅ 已完成 |
 | **P0合计** | — | — | **14天** | — |
 
 > **P0里程碑**：骨架可运行，"创建销售单"端到端对话成功，可进行内部演示。

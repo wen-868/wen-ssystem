@@ -54,6 +54,8 @@ export const API_ENDPOINTS = {
   SALE_BILLS: '/api/admin/sale-bills',
   ORDERS: '/api/admin/orders',
   SALE_RETURNS: '/api/admin/sale-returns',
+  // 门店销售单（store-sale-bill.routes.ts prefix: /api/store）— 创建/详情/付款
+  STORE_SALE_BILLS: '/api/store/sale-bills',
   // 商品管理（category.routes.ts / product 相关）
   PRODUCTS: '/api/admin/products',
   CATEGORIES: '/api/admin/products/categories',

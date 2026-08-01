@@ -1,0 +1,190 @@
+/**
+ * searchProduct 工具 — 搜索商品
+ *
+ * 用途：按名称搜索商品，返回商品列表（含SKU、多级价格、库存）。
+ * LLM 在创建销售单前用此工具查找商品 spuId/skuId 和价格信息。
+ *
+ * 对应后端 API：GET /api/admin/products?keyword=xxx&page=1&pageSize=20
+ * 后端路由：admin-product.routes.ts（prefix: /api/admin）
+ *
+ * 返回的价格字段（来自 t_product_price 表）：
+ * - retailPrice：零售价
+ * - wholesalePrice：批发价
+ * - storePrice：门店价
+ * - costPrice：进价（用于价格安全校验）
+ * - boxRatio：箱瓶比（1箱=N瓶）
+ * - availableQty：可用库存
+ *
+ * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
+ */
+import { Injectable, Logger } from '@nestjs/common';
+import { ITool, ToolContext, ToolResult } from '../tool.interface';
+import {
+  ServiceClient,
+  API_ENDPOINTS,
+  BridgeError,
+} from '../../bridge/service-client';
+
+/** 后端返回的商品列表项 */
+interface ProductListItem {
+  id: number;
+  spuCode: string;
+  name: string;
+  categoryId: number;
+  categoryName: string;
+  brandId: number;
+  brandName: string;
+  unit: string;
+  specs: string;
+  status: string;
+  skus?: ProductSkuItem[];
+}
+
+/** 后端返回的 SKU 信息 */
+interface ProductSkuItem {
+  id: number;
+  skuCode: string;
+  skuName: string;
+  barcode: string;
+  volume: number;
+  packaging: string;
+  baseUnit: string;
+  boxUnit: string;
+  boxRatio: number;
+  costPrice: number;
+  retailPrice: number;
+  wholesalePrice: number;
+  miniappPrice: number;
+  storePrice: number;
+  availableQty: number;
+}
+
+/** 后端返回的分页结构 */
+interface PaginatedResult<T> {
+  list: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+@Injectable()
+export class SearchProductTool implements ITool {
+  private readonly logger = new Logger(SearchProductTool.name);
+
+  readonly name = 'searchProduct';
+  readonly description =
+    '搜索商品（按名称模糊匹配）。' +
+    '返回商品列表，包含商品ID(spuId)、名称、品牌、规格，以及每个SKU的价格信息（零售价/批发价/门店价/进价）和库存。' +
+    '在创建销售单前，用此工具查找商品的 skuId 和价格。' +
+    '示例：用户说"五粮液"→ 调用此工具 → 获取 skuId + boxRatio + 价格 → 传给 createSalesOrder。';
+  readonly category = 'product' as const;
+  readonly isWriteOperation = false;
+
+  readonly parameters = {
+    type: 'object' as const,
+    properties: {
+      keyword: {
+        type: 'string',
+        description: '搜索关键词（商品名称，模糊匹配）',
+      },
+      page: {
+        type: 'number',
+        description: '页码（默认1）',
+      },
+      pageSize: {
+        type: 'number',
+        description: '每页条数（默认20，最大50）',
+      },
+    },
+    required: ['keyword'],
+  };
+
+  constructor(private readonly serviceClient: ServiceClient) {}
+
+  async execute(
+    args: Record<string, unknown>,
+    context: ToolContext,
+  ): Promise<ToolResult> {
+    const keyword = args.keyword;
+    if (typeof keyword !== 'string' || keyword.length === 0) {
+      return {
+        success: false,
+        error: '参数 keyword 必须为非空字符串',
+        suggestion: '请传入商品名称作为搜索关键词',
+      };
+    }
+
+    const page = typeof args.page === 'number' ? args.page : 1;
+    const pageSize =
+      typeof args.pageSize === 'number' ? Math.min(args.pageSize, 50) : 20;
+
+    try {
+      const result = await this.serviceClient.get<
+        PaginatedResult<ProductListItem>
+      >(
+        `${API_ENDPOINTS.PRODUCTS}?keyword=${encodeURIComponent(keyword)}&page=${page}&pageSize=${pageSize}`,
+        context,
+      );
+
+      if (!result || !result.list || result.list.length === 0) {
+        return {
+          success: true,
+          data: { list: [], total: 0, message: `未找到匹配"${keyword}"的商品` },
+        };
+      }
+
+      // 精简返回，突出关键字段
+      const simplified = result.list.map((p) => ({
+        spuId: p.id,
+        name: p.name,
+        brandName: p.brandName,
+        specs: p.specs,
+        unit: p.unit,
+        categoryName: p.categoryName,
+        skus: (p.skus ?? []).map((s) => ({
+          skuId: s.id,
+          skuName: s.skuName,
+          barcode: s.barcode,
+          boxRatio: s.boxRatio,
+          baseUnit: s.baseUnit,
+          boxUnit: s.boxUnit,
+          prices: {
+            retailPrice: s.retailPrice,
+            wholesalePrice: s.wholesalePrice,
+            storePrice: s.storePrice,
+            costPrice: s.costPrice,
+          },
+          availableQty: s.availableQty,
+        })),
+      }));
+
+      this.logger.debug(
+        `搜索商品"${keyword}"：找到 ${result.total} 条，返回 ${simplified.length} 条`,
+      );
+
+      return {
+        success: true,
+        data: {
+          list: simplified,
+          total: result.total,
+          page,
+          pageSize,
+        },
+      };
+    } catch (err) {
+      const errorMsg =
+        err instanceof BridgeError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : String(err);
+
+      this.logger.warn(`搜索商品失败：${errorMsg}`);
+      return {
+        success: false,
+        error: `搜索商品失败：${errorMsg}`,
+        suggestion: '请确认后端服务是否正常运行，或稍后重试',
+      };
+    }
+  }
+}

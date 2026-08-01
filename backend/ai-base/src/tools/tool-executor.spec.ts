@@ -1,7 +1,12 @@
 import { ToolExecutor } from './tool-executor';
 import { ToolRegistry } from './tool-registry';
 import { EchoTool } from './definitions/echo.tool';
-import type { ITool, ToolContext, ToolResult, ToolExecutionRecord } from './tool.interface';
+import type {
+  ITool,
+  ToolContext,
+  ToolResult,
+  ToolExecutionRecord,
+} from './tool.interface';
 import type { ToolCall } from '../providers/provider.interface';
 import type { AuditLogger } from '../bridge/audit-logger';
 
