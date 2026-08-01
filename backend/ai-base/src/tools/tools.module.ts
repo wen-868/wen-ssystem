@@ -23,6 +23,15 @@ import { CreatePurchaseOrderTool } from './definitions/create-purchase-order.too
 import { QueryPurchaseOrdersTool } from './definitions/query-purchase-orders.tool';
 import { QueryDeliveryStatusTool } from './definitions/query-delivery-status.tool';
 import { CreateDeliveryTool } from './definitions/create-delivery.tool';
+// R70-13: 财务管理 + 报表分析 8 个工具
+import { QueryReceivablesTool } from './definitions/query-receivables.tool';
+import { QueryPayablesTool } from './definitions/query-payables.tool';
+import { CreateSalesReturnTool } from './definitions/create-sales-return.tool';
+import { CreateRefundTool } from './definitions/create-refund.tool';
+import { CreatePaymentReconciliationTool } from './definitions/create-payment-reconciliation.tool';
+import { SalesReportTool } from './definitions/sales-report.tool';
+import { InventoryReportTool } from './definitions/inventory-report.tool';
+import { ProfitReportTool } from './definitions/profit-report.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -81,6 +90,15 @@ import { BridgeModule } from '../bridge/bridge.module';
     QueryPurchaseOrdersTool,
     QueryDeliveryStatusTool,
     CreateDeliveryTool,
+    // R70-13: 财务管理 + 报表分析 8 个工具
+    QueryReceivablesTool,
+    QueryPayablesTool,
+    CreateSalesReturnTool,
+    CreateRefundTool,
+    CreatePaymentReconciliationTool,
+    SalesReportTool,
+    InventoryReportTool,
+    ProfitReportTool,
   ],
   exports: [ToolRegistry, ToolExecutor],
 })

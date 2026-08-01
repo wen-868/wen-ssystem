@@ -78,6 +78,7 @@ export const API_ENDPOINTS = {
   STORE_ORDERS: '/api/store/orders',
   DELIVERIES: '/api/admin/deliveries',
   // 财务管理
+  RECEIVABLES: '/api/admin/receivables',
   RECONCILIATION: '/api/admin/reconciliation',
   EXPENSES: '/api/admin/expenses',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）

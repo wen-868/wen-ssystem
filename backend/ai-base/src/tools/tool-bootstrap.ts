@@ -19,6 +19,15 @@ import { CreatePurchaseOrderTool } from './definitions/create-purchase-order.too
 import { QueryPurchaseOrdersTool } from './definitions/query-purchase-orders.tool';
 import { QueryDeliveryStatusTool } from './definitions/query-delivery-status.tool';
 import { CreateDeliveryTool } from './definitions/create-delivery.tool';
+// R70-13: 财务管理 + 报表分析 8 个工具
+import { QueryReceivablesTool } from './definitions/query-receivables.tool';
+import { QueryPayablesTool } from './definitions/query-payables.tool';
+import { CreateSalesReturnTool } from './definitions/create-sales-return.tool';
+import { CreateRefundTool } from './definitions/create-refund.tool';
+import { CreatePaymentReconciliationTool } from './definitions/create-payment-reconciliation.tool';
+import { SalesReportTool } from './definitions/sales-report.tool';
+import { InventoryReportTool } from './definitions/inventory-report.tool';
+import { ProfitReportTool } from './definitions/profit-report.tool';
 
 /**
  * Tool 注册引导器
@@ -79,6 +88,15 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly queryPurchaseOrdersTool: QueryPurchaseOrdersTool,
     private readonly queryDeliveryStatusTool: QueryDeliveryStatusTool,
     private readonly createDeliveryTool: CreateDeliveryTool,
+    // R70-13: 财务管理 + 报表分析 8 个工具
+    private readonly queryReceivablesTool: QueryReceivablesTool,
+    private readonly queryPayablesTool: QueryPayablesTool,
+    private readonly createSalesReturnTool: CreateSalesReturnTool,
+    private readonly createRefundTool: CreateRefundTool,
+    private readonly createPaymentReconciliationTool: CreatePaymentReconciliationTool,
+    private readonly salesReportTool: SalesReportTool,
+    private readonly inventoryReportTool: InventoryReportTool,
+    private readonly profitReportTool: ProfitReportTool,
   ) {}
 
   onModuleInit(): void {
@@ -107,6 +125,15 @@ export class ToolBootstrap implements OnModuleInit {
       this.queryPurchaseOrdersTool,
       this.queryDeliveryStatusTool,
       this.createDeliveryTool,
+      // R70-13: 财务管理 + 报表分析 8 个工具
+      this.queryReceivablesTool,
+      this.queryPayablesTool,
+      this.createSalesReturnTool,
+      this.createRefundTool,
+      this.createPaymentReconciliationTool,
+      this.salesReportTool,
+      this.inventoryReportTool,
+      this.profitReportTool,
     ]);
   }
 }
