@@ -297,6 +297,13 @@
 
 > **P0里程碑**：骨架可运行，"创建销售单"端到端对话成功，可进行内部演示。
 
+> **凌舟独立复查记录**（2026-08-01，git log + grep + build/lint/test 双重验证）：
+> - 本地 main 同步到远程 6e090850（fast-forward），确认 R70-05~R70-09 五个提交均已推送（7c1707a0/7a14fb76/b2c08ac4/cd71cf73/6e090850）
+> - **发现并修复**：`ai-config.service.spec.ts` 存在 4 个 ESLint 错误（no-unsafe-return + 3处 unbound-method），与 R70-07 记录"eslint 0 errors"不符。已修复并推送 commit `0126b8da`
+> - 验证结果：`pnpm run lint` 0 errors / `pnpm run build` 0 errors / `npx jest` 8 suites 97 tests 全通过
+> - 代码抽查通过：ServiceClient（API_ENDPOINTS对齐routeConfig.prefix+BridgeError+5xx重试1次）、Orchestrator（Agent Loop 10轮防死循环+事件类型齐全）、CreateSalesOrderTool（智能价格填充+单位换算+确认机制+低于进价警告）
+> - 遗留：本地 stash 存有并行会话的 bridge 半成品（`stash@{0}`: R70-05本地残留-待审查），已确认与远程完整版本冲突，**丢弃不恢复**
+
 ---
 
 ### P1 — 核心业务功能（约8.5天）
@@ -387,7 +394,7 @@
 
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
-| R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | 待开始 |
+| R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | 进行中 |
 | R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | 待开始 |
 | R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | 待开始 |
