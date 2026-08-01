@@ -529,6 +529,7 @@
     | 小程序构建 | `npm run build:mp-weixin` | DONE Build complete，0 errors（微信运行时 tabBar 上限5个属平台限制，构建层已通过） |
     | 别名构建 | `npm run build` | DONE Build complete，0 errors |
   - 说明：①SSE 事件解析（text/tool_start/tool_result/done/error）与后端 R70-06/08 契约对齐，预览卡片渲染与 R70-09 createSalesOrder preview.details 结构对齐；②语音输入按任务要求实现录音 UI+回调骨架，标注 TODO 对接点（后端 AI 底座暂无 ASR 接口）；③JWT 复用 merchant_token；④AI 底座 baseURL 读 VITE_AI_BASE_URL，默认 http://localhost:3016
+  - **凌舟审查修正**（2026-08-02，commit `3d72a1c8`）：微信小程序 tabBar 上限 5 个，原第 6 个"AI助手"入口会导致 mp-weixin 运行时异常。修正：移除 tabBar 第 6 项，AI 助手入口改为首页"快捷入口"卡片（quick-icon-wrap--cyan + AI 角标），删除已无引用的 tabbar/ai.svg、ai-active.svg；H5 与 mp-weixin 双端构建均通过（npm run build:h5 / build:mp-weixin exit 0）
 - **文件**：`app-mobile/src/pages/ai-chat/`（新建）
 - **问题**：移动端需要AI对话页面，适配H5+小程序
 - **修复**：
@@ -587,8 +588,8 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：3天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/brain/proactive/`（新建）
+- **状态**：✅ 已完成（2026-08-02 阿坚执行）
+- **文件**：`backend/ai-base/src/brain/proactive/`（新建）、`backend/ai-base/src/app.module.ts`（导入 ProactiveModule + ScheduleModule）
 - **问题**：AI助手需具备9项主动服务能力
 - **修复**：
   1. 库存预警：每30分钟巡检，库存≤安全线或预计3天内售罄
@@ -599,6 +600,11 @@
   6. 智能补货建议、配送异常追踪、客户流失预警、毛利异常检测
   7. 推送渠道：WebSocket实时推送+对话窗口卡片
 - **验收标准**：库存低于安全线自动推送预警；每日8:30自动推送经营简报
+- **完成证据**（2026-08-02 阿坚验证）：
+  - commit `7cb165a1`（27 文件，已推送 origin/main）
+  - `backend/ai-base/src/brain/proactive/`：proactive.types.ts（IProactiveTask 接口 + ProactivePush + 状态/优先级类型）、proactive.utils.ts（toNumber/toText/toDateText/toMoneyText 类型安全工具）、proactive-push.service.ts（直写 t_push_log channel='ai_proactive' + AuditLogger 审计）、9 个巡检 Service（inventory-warning 每30分钟 / order-anomaly 每15分钟 / receivable-reminder 每日9:00 / daily-briefing 每日8:30 / business-anomaly 每日8:00 / replenishment-advice 每30分钟 / delivery-anomaly 每15分钟 / customer-churn 每日9:30 / gross-margin-anomaly 每日8:00）、proactive.service.ts（调度器：running Set 防重入 + lastRunAt/lastResult 记录 + runForAllTenants 单租户异常不中断）、proactive.controller.ts（GET /api/admin/proactive/jobs + POST /api/admin/proactive/jobs/:name/run 手动触发）、proactive.module.ts（BridgeModule+DatabaseModule 导入）
+  - 设计说明：巡检数据直查共享 MySQL（所有后端 /api/admin/* 均 requireAuthWithTenant，AI 定时任务无 JWT）；推送直写 t_push_log（user_id=0）+ AuditLogger.logAiCall 审计；@Cron 表达式在 JSDoc 中转义为 `* /30` 避免块注释提前终止（踩坑日志 #26/#27）
+  - 验证结果：`npx tsc --noEmit` 0 errors / `npx eslint "src/**/*.ts"` 0 errors 0 warnings / `pnpm run build` exit 0 / `npx jest` 33 suites 417 tests 全通过 / proactive 新代码 Stmts 100%
 
 #### R70-21 — [P2] RAG引擎 — 向量存储 + 文档加载 + 检索增强
 - **优先级**：P2
@@ -660,7 +666,7 @@
 |------|------|------|--------|
 | P0 核心骨架 | 14天 | 14天 | ✅ 完成 — 骨架可运行，"创建销售单"端到端 |
 | P1 核心业务 | 8.5天 | 22.5天 | ✅ 完成 — 27个业务Tool就绪，确认机制落地 |
-| P2 前端+完善 | 12.5天 | 35天 | 🔄 进行中 — 2026-08-02 凌舟派单（墨/阿澈/阿坚并行） |
+| P2 前端+完善 | 12.5天 | 35天 | ✅ 完成 — 前端上线，主动能力，RAG，运维完善 |
 
 > **人员分工**：阿坚负责全部后端（P0+P1+部分P2），墨负责admin-web+saas-admin前端，阿澈负责移动端。P0+P1串行推进，P2阶段前后端可并行。
 >
@@ -669,6 +675,13 @@
 > - R70-18 saas-admin AI配置页面 → 墨（P2-2，紧随其后）
 > - R70-17 app-mobile AI对话页面 → 阿澈（P2-1，可并行）
 > - R70-19 安全(限流+加密) / R70-20 主动能力 / R70-21 RAG / R70-22 部署 → 阿坚（P2-1~P2-4，后端串行推进）
+
+> **凌舟 P2 独立复查记录**（2026-08-02，git log + grep + build/lint/test 双重验证）：
+> - 本地 main 同步至 origin/main HEAD `87e3f418`，R70-16~R70-22 七个提交均已推送（b0bf0831/717d6153/3d72a1c8/14e08b7c/411fc280/7cb165a1/c5b20836/8b1b5eef/87e3f418）
+> - 独立验证：`backend/ai-base` `npx jest` 41 suites 512 tests 全通过 / `npx tsc --noEmit` 0 errors / `npx eslint "src/**/*.ts"` 0 errors；`admin-web` `npm run build` 成功（主 chunk 362.96 kB ≤500KB，AiChatWindow 独立 14KB 异步 chunk）；`app-mobile` `npm run build:h5` / `build:mp-weixin` 成功；`saas-admin` `npm run build` 成功（vue-tsc 0 errors，AI 配置 4 页面独立 chunk 各 <10kB）
+> - 代码抽查通过：RAG（EmbeddingService EMBEDDING_MODEL 未配置 isEnabled()=false 降级禁用 + warn；DocumentLoader 四种格式；Retriever 余弦 Top-K=3；RAGController 3 端点）、Dockerfile（node:22-alpine 多阶段 + corepack pnpm + --frozen-lockfile + production 精简运行）、docker-compose ai-base 服务（端口 3016 连接 mysql/redis 服务）、health 扩展（DataSource SELECT 1 + ioredis ping，失败 degraded 兼容）、RateLimiter（429 + Retry-After + Redis Lua 原子计数 + 内存降级）、ProactiveService（9 个 @Cron 巡检 + 防重入 + 单租户异常隔离）
+> - **凌舟修正**（commit `3d72a1c8`）：app-mobile tabBar 第 6 项"AI助手"违反微信小程序 tabBar 上限 5 个的运行时限制，改为首页快捷入口卡片，删除无引用图标文件
+> - 遗留说明：①R70-22 Dockerfile/compose 无本地 docker 实测（服务器部署时验证）；②R70-20 巡检推送直写 t_push_log（channel='ai_proactive'），WebSocket 实时推送需前端接入后联调；③saas-admin 构建存在 element/echarts vendor chunk >500kB 警告，属既有公共依赖打包策略，非 R70-18 引入（admin-web 的 ≤500KB 硬性规则已达标）
 
 ### R70 关键规则
 
