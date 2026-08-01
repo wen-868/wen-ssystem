@@ -68,11 +68,14 @@ export const API_ENDPOINTS = {
   PURCHASE_ORDERS: '/api/admin/purchase-orders',
   PURCHASE_RETURNS: '/api/admin/purchase-returns',
   PURCHASE_PLANS: '/api/admin/purchase-plans',
+  // 供应商管理（supplier.routes.ts prefix: /api/admin/suppliers）
+  SUPPLIERS: '/api/admin/suppliers',
   // 库存管理
   INVENTORY: '/api/admin/inventory',
   TRANSFER_ORDERS: '/api/admin/transfer-orders',
   STOCK_CHECKS: '/api/admin/stock-checks',
-  // 配送管理
+  // 配送管理（store-order.routes.ts prefix: /api/store，订单列表/详情/开始配送/完成配送）
+  STORE_ORDERS: '/api/store/orders',
   DELIVERIES: '/api/admin/deliveries',
   // 财务管理
   RECONCILIATION: '/api/admin/reconciliation',

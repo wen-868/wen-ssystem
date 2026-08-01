@@ -15,6 +15,10 @@ import { UpdateProductPriceTool } from './definitions/update-product-price.tool'
 import { QueryProductDetailTool } from './definitions/query-product-detail.tool';
 import { CreateCustomerTool } from './definitions/create-customer.tool';
 import { QueryCustomerDetailTool } from './definitions/query-customer-detail.tool';
+import { CreatePurchaseOrderTool } from './definitions/create-purchase-order.tool';
+import { QueryPurchaseOrdersTool } from './definitions/query-purchase-orders.tool';
+import { QueryDeliveryStatusTool } from './definitions/query-delivery-status.tool';
+import { CreateDeliveryTool } from './definitions/create-delivery.tool';
 
 /**
  * Tool 注册引导器
@@ -70,6 +74,11 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly queryProductDetailTool: QueryProductDetailTool,
     private readonly createCustomerTool: CreateCustomerTool,
     private readonly queryCustomerDetailTool: QueryCustomerDetailTool,
+    // R70-12: 采购管理 + 配送管理 4 个工具
+    private readonly createPurchaseOrderTool: CreatePurchaseOrderTool,
+    private readonly queryPurchaseOrdersTool: QueryPurchaseOrdersTool,
+    private readonly queryDeliveryStatusTool: QueryDeliveryStatusTool,
+    private readonly createDeliveryTool: CreateDeliveryTool,
   ) {}
 
   onModuleInit(): void {
@@ -93,6 +102,11 @@ export class ToolBootstrap implements OnModuleInit {
       this.queryProductDetailTool,
       this.createCustomerTool,
       this.queryCustomerDetailTool,
+      // R70-12: 采购管理 + 配送管理 4 个工具
+      this.createPurchaseOrderTool,
+      this.queryPurchaseOrdersTool,
+      this.queryDeliveryStatusTool,
+      this.createDeliveryTool,
     ]);
   }
 }

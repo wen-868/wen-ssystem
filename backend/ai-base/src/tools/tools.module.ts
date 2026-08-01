@@ -19,6 +19,10 @@ import { UpdateProductPriceTool } from './definitions/update-product-price.tool'
 import { QueryProductDetailTool } from './definitions/query-product-detail.tool';
 import { CreateCustomerTool } from './definitions/create-customer.tool';
 import { QueryCustomerDetailTool } from './definitions/query-customer-detail.tool';
+import { CreatePurchaseOrderTool } from './definitions/create-purchase-order.tool';
+import { QueryPurchaseOrdersTool } from './definitions/query-purchase-orders.tool';
+import { QueryDeliveryStatusTool } from './definitions/query-delivery-status.tool';
+import { CreateDeliveryTool } from './definitions/create-delivery.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -72,6 +76,11 @@ import { BridgeModule } from '../bridge/bridge.module';
     QueryProductDetailTool,
     CreateCustomerTool,
     QueryCustomerDetailTool,
+    // R70-12: 采购管理 + 配送管理 4 个工具
+    CreatePurchaseOrderTool,
+    QueryPurchaseOrdersTool,
+    QueryDeliveryStatusTool,
+    CreateDeliveryTool,
   ],
   exports: [ToolRegistry, ToolExecutor],
 })
