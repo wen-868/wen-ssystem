@@ -694,7 +694,7 @@
 
 ---
 
-## R71 — 全局测试问题修复 [进行中 — 凌舟 2026-08-02]
+## R71 — 全局测试问题修复 [已完成 — 凌舟 2026-08-02]
 
 > **日期**：2026-08-02
 > **来源**：凌舟对 `wen-ssystem`（HEAD `ee1431f2`）执行全局测试（后端 vitest 全量 + 类型检查 + 全端构建 + 脚本测试）发现的问题。
@@ -704,12 +704,24 @@
 > - miniapp type-check / build：失败（依赖缺失）
 > - 脚本测试（self-test / qa / mysql-smoke / acceptance-admin / 发布检查）：全部失败，根因各异
 > **说明**：本轮任务全部由凌舟(AI协助)执行，执行方式遵循强制闭环流程（读任务→执行→验证→总结→提交→推送）。
+>
+> **✅ R71 完成总结**（2026-08-02）：
+> - 后端全量 vitest：**416 文件 / 4857 用例全部通过**（0 failed，5 个既有失败已修复，无回归）
+> - 脚本测试：`self-test.mjs` → **SELF_TEST_PASS**（全流程），`qa-regression-test.mjs` → **QA_REGRESSION_PASS**
+> - miniapp：依赖安装 + type-check 0 errors + `build:weapp` 成功 + `test:miniapp-release` 通过
+> - 全端构建：backend / admin-web / saas-admin / website / app-mobile H5 / miniapp weapp 全部通过
+> - **执行中发现并修复的补充问题**（详见各任务完成证据）：
+>   1. 脚本与后端契约漂移 12 处（CSRF token、complete-delivery、miniapp/user/profile、admin/system/stores、inventory-logs、export-csv、assign-staff、报表路径、availableQty 分页等）
+>   2. mock 数据层 5 处缺陷（finance handler 写操作错放 queryHandlers、collection_link/payment_order 字段错位缺 tenant_id、customer 别名匹配、sale_bill 参数错位、缺 store_manager 用户）
+>   3. 真实业务 bug 2 处：customer.controller 9 处 `req.params.memberId` 应为 `req.params.id`（生产环境客户详情/禁用/归属全坏）；custom-report-v2 的 `/:id` 通配路由拦截全部单段报表路径（改为 `:id(\\d+)`）
+>   4. 支付链路 3 处：createRefund 状态检查仅认 PAID 不认 SUCCESS；mock 模式跳过真实微信退款 API 与回调签名验证；dev 环境放宽限流阈值（生产不变）
+>   5. miniapp 环境 4 处：@tarojs/plugin-doctor arm64 平台包缺失、webpack 版本被 workspace hoist 覆盖（根锁 5.87）、babel.config.js 缺 Taro preset、BASE_URL 硬编码 localhost 改环境变量注入
 
 ### R71-01 — [P0] 修复 credit-scoring 时间敏感测试（固定日期导致等级断言漂移）
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，25 tests 通过，时间敏感测试已消除）
 - **文件**：`backend/src/__tests__/services/admin/credit-scoring.test.ts`
 - **问题**：测试用固定日期 `lastTradeDate: "2026-06-01"`（注释"~38天前"）计算逾期天数，未 mock 当前时间。2026-08-02 实际已过 62 天，催收等级从 HEAVY（31-60天）落入 SEVERE（61+天），2 个用例断言 `level === "HEAVY"` 失败（实际收到 "SEVERE"）。属时间敏感的 flaky 测试，7/30 通过、8/2 失败。
 - **修复**：测试改用相对当前时间的日期构造 `lastTradeDate`（如 `new Date(Date.now() - 38 * 24 * 3600 * 1000)`），或 mock 当前时间（`vi.setSystemTime`），使逾期天数始终落在目标等级区间，与运行日期无关。
@@ -720,7 +732,7 @@
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，14 tests 通过，与本地 .env 解耦）
 - **文件**：`backend/src/__tests__/config/env.test.ts`
 - **问题**：`env.ts` 通过 `dotenv/config` 加载 `backend/.env`，本地 `.env` 配置了 `DB_USER=test_user`、`DB_NAME=liquor_inventory_test`、`DOMAIN=localhost`，覆盖代码默认值，3 个用例断言默认值失败（期望 `zhixiang_app`/`liquor_inventory`/`onepan.cn`，实际收到本地 .env 值）。测试结果依赖本机是否存在 .env，CI 与本地结果不一致。
 - **修复**：在 `env.test.ts` 中断言前显式隔离环境变量——`beforeEach` 中删除或 stub 相关 `process.env` 键（`vi.stubEnv`/`delete`），确保断言的是代码默认值；注意踩坑日志 #18 的 env.ts"导入即固化"陷阱（env 对象在 import 时已求值，需确认测试读取的是默认值路径）。
@@ -731,7 +743,7 @@
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：0.25天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，dev:mock 2 秒内健康检查 200）
 - **文件**：`scripts/dev-mock.mjs`
 - **问题**：本地 `backend/.env` 配置 `NODE_ENV=test`（用于 vitest），而 `server.ts` 在 `process.env.NODE_ENV !== "test"` 时才执行 `start()` 监听端口。`npm run dev:mock` 仅设置 `USE_MOCK_DB=true`，导致后端进程存活但不监听 8080、无启动日志，本地 mock 联调与脚本测试全部无法进行。
 - **修复**：`dev-mock.mjs` 的 `spawn` env 中显式设置 `NODE_ENV="development"`，确保开发 mock 模式走 `start()` 分支。
@@ -742,7 +754,7 @@
 - **优先级**：P1
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，self-test/qa 全流程通过）
 - **文件**：`scripts/self-test.mjs`、`scripts/qa-regression-test.mjs`、`scripts/mysql-smoke-test.mjs`
 - **问题**：miniapp 路由已全部加 `requireAuthWithTenant`（JWT 鉴权），但三个脚本调用 `/miniapp/products`、`/miniapp/orders` 时未携带 `Authorization` 头（仅带 `x-customer-type`），全部返回 401 未登录。脚本与接口契约漂移，回归防线失效。
 - **修复**：三个脚本中 miniapp 相关请求复用已登录的 admin token（`headers: { ...auth, "x-customer-type": "RETAIL" }`）；注意 mysql-smoke 面向生产库的密码 `Admin@2026` 保持不变。
@@ -753,7 +765,7 @@
 - **优先级**：P1
 - **负责人**：凌舟(AI协助)
 - **预计**：1天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，依赖安装 + 构建 + 发布检查通过）
 - **文件**：`miniapp/package.json`（依赖安装）、`miniapp/config/index.js`、`miniapp/src/api/request.ts`
 - **问题**：`miniapp/node_modules` 不存在，`@tarojs/taro`、`@tarojs/plugin-platform-weapp` 缺失 → `type-check` 报 TS2688、`build:weapp` 报找不到插件依赖；同时 `config/index.js:16` 与 `src/api/request.ts:4` 硬编码 `http://localhost:3000/api`，`test:miniapp-release` 报"小程序正式包不能包含 localhost"。
 - **修复**：① `cd miniapp && npm install` 安装依赖；② API 地址改为构建期环境变量注入（`TARO_APP_API_BASE`），源码不再含 `localhost` 字面量；③ 验证 type-check / build:weapp / 发布检查。若 npm install 因网络受限失败，如实记录并在任务状态标注阻塞原因。
@@ -764,7 +776,7 @@
 - **优先级**：P2
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，workspaces 补全，全端构建无回归）
 - **文件**：`package.json`
 - **问题**：根 `package.json` 的 workspaces 仅包含 backend/admin-web/saas-admin/website，app-mobile、miniapp 不在 workspace 列表，`npm --workspace app-mobile` 直接报 "No workspaces found"，依赖管理分散、无法统一安装。
 - **修复**：根 workspaces 追加 `app-mobile`、`miniapp` 后执行 `npm install` 验证。若 npm hoist 与 uni-app/Taro 工具链冲突（参考踩坑日志 #14 typescript 版本 hoist 教训），则记录到踩坑日志并回退，保留现状。
