@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProvidersModule } from './providers/providers.module';
@@ -9,6 +10,7 @@ import { BridgeModule } from './bridge/bridge.module';
 import { BrainModule } from './brain/brain.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { TenantModule } from './tenant/tenant.module';
+import { ProactiveModule } from './brain/proactive/proactive.module';
 
 /**
  * 应用根模块
@@ -33,6 +35,8 @@ import { TenantModule } from './tenant/tenant.module';
       isGlobal: true,
       envFilePath: ['.env'],
     }),
+    // 定时任务调度（@Cron/@Interval 生效前提）
+    ScheduleModule.forRoot(),
     // 数据库层（TypeORM MySQL 连接 + Entity 注册）
     DatabaseModule,
     // Provider 层（DeepSeek + Ollama + ProviderFactory）
@@ -47,6 +51,8 @@ import { TenantModule } from './tenant/tenant.module';
     BrainModule,
     // Gateway 层（ChatController SSE 流式对话 + AdminController 管理 API）
     GatewayModule,
+    // 主动能力层（ProactiveService 9 项定时巡检 + ProactivePushService 推送 + 管理 API）✅ R70-20 已接入
+    ProactiveModule,
   ],
   controllers: [AppController],
   providers: [AppService],
