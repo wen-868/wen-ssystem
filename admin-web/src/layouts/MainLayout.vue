@@ -381,11 +381,14 @@
         <router-view />
       </div>
     </main>
+
+    <!-- AI 助手悬浮窗口（非收银台模式显示） -->
+    <AiChatWindow v-if="!isCashierMode" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, defineAsyncComponent, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
@@ -399,6 +402,11 @@ import { useAuthStore } from "../stores/auth";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+
+// AI 对话窗口：组件级懒加载（defineAsyncComponent），避免打进主 chunk（chunk ≤ 500KB 规则）
+const AiChatWindow = defineAsyncComponent(
+  () => import("../components/AiChat/AiChatWindow.vue"),
+);
 
 const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);

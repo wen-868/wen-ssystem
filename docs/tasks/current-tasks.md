@@ -479,7 +479,7 @@
 - **优先级**：P2
 - **负责人**：墨
 - **预计**：2天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02 墨执行）
 - **文件**：`admin-web/src/components/AiChat/`（新建）
 - **问题**：管理后台需要AI对话窗口，支持SSE流式接收、卡片渲染、写操作确认
 - **修复**：
@@ -487,7 +487,26 @@
   2. AiMessageCard.vue：消息卡片（用户消息/AI回复/工具调用/预览卡片）
   3. AiPreviewCard.vue：写操作预览卡片（表格+确认/修改/取消按钮）
   4. 右下角悬浮入口，可展开/收起
-- **验收标准**：admin-web右下角AI窗口可对话，流式显示，写操作预览可确认/取消
+- **墨执行记录**（2026-08-02）：
+  - 交付文件（10个新增/修改）：
+    - `admin-web/src/components/AiChat/AiChatWindow.vue`（新增：对话窗口主体，SSE流式文本/工具状态/预览卡片渲染、自动滚动、错误态、右下角悬浮按钮展开收起、未读角标、空状态建议问题）
+    - `admin-web/src/components/AiChat/AiMessageCard.vue`（新增：消息卡片——用户/AI气泡/工具调用状态/错误态，内嵌预览卡片）
+    - `admin-web/src/components/AiChat/AiPreviewCard.vue`（新增：写操作预览卡片——preview.details明细+确认/取消，confirm返回operationId后3分钟窗口可撤销）
+    - `admin-web/src/components/AiChat/types.ts`（新增：消息类型 AiChatMessage/AiMessageKind/AiToolStatus + createMessageId）
+    - `admin-web/src/components/AiChat/index.ts`（新增：统一导出）
+    - `admin-web/src/api/sse.ts`（新增：SSE流解析纯函数，data: {JSON} 格式，残留缓冲维护，无DOM依赖便于测试）
+    - `admin-web/src/api/ai.ts`（新增：AI底座API封装——sendChatMessage SSE流式对话/confirm/cancel/revoke/tools/confirmations，JWT复用auth store，AbortError透传不视为错误）
+    - `admin-web/src/layouts/MainLayout.vue`（修改：defineAsyncComponent 组件级懒加载挂载 AI 窗口，收银台模式隐藏）
+    - `admin-web/src/vite-env.d.ts`（修改：补充 VITE_API_BASE / VITE_AI_BASE_URL 类型声明）
+    - `admin-web/.env.development`（新增：VITE_AI_BASE_URL=http://localhost:3016，可入库；本地另有 .env 被 .gitignore 忽略仅本机生效）
+  - 验证结果：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 类型检查 | `npx vue-tsc --noEmit` | exit 0，0 errors |
+    | Lint | `npm run lint:check` | exit 0，0 errors 0 warnings |
+    | 构建 | `npm run build` | exit 0，构建成功；AiChatWindow 独立 14KB 异步 chunk，主 chunk 362KB 未受影响（≤500KB 规则） |
+  - 说明：①SSE 事件解析（text/tool_start/tool_result/done/error）与后端 R70-06/08 契约对齐，preview.details 渲染与 R70-09 createSalesOrder 结构对齐；②写操作闭环：tool_result 携带 preview+confirmationId → 确认按钮调 confirm 得 operationId → 3 分钟窗口内可 revoke；③JWT 复用 useAuthStore().token，Authorization Bearer；④AI 底座 baseURL 读 VITE_AI_BASE_URL 默认 http://localhost:3016
+- **验收标准**：admin-web右下角AI窗口可对话，流式显示，写操作预览可确认/取消（✅ 验收标准达成）
 
 #### R70-17 — [P2] app-mobile AI对话页面（H5）
 - **优先级**：P2
@@ -594,7 +613,7 @@
 
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
-| R70-16 admin-web AI对话窗口 | 墨 | P2 | 2天 | 待开始 |
+| R70-16 admin-web AI对话窗口 | 墨 | P2 | 2天 | ✅ 已完成 |
 | R70-17 app-mobile AI对话页面 | 阿澈 | P2 | 1.5天 | 待开始 |
 | R70-18 saas-admin AI配置页面 | 墨 | P2 | 2天 | 待开始 |
 | R70-19 安全(限流+加密) | 阿坚 | P2 | 1天 | 待开始 |
