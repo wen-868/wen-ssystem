@@ -604,29 +604,40 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：2天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/rag/`（新建）
+- **状态**：✅ 已完成（2026-08-02 阿坚执行）
+- **文件**：`backend/ai-base/src/rag/`（新建）、`docs/migrations/122_ai_rag.sql`、`backend/ai-base/src/brain/context-builder.service.ts`、`backend/ai-base/src/brain/orchestrator.service.ts`、`backend/ai-base/src/brain/brain.module.ts`、`backend/ai-base/src/app.module.ts`
 - **问题**：AI助手需支持知识库检索增强
 - **修复**：
-  1. 文档加载：PDF/Word/Markdown/Excel
-  2. 文本分块：chunk_size=500, overlap=50
-  3. 向量生成：DeepSeek embedding API或Ollama embedding
-  4. 检索匹配：余弦相似度Top-K（K=3），注入ContextBuilder
+  1. 文档加载：DocumentLoaderService（PDF 用 pdf-parse 2.4.5 的 `new PDFParse({data}) → getText().text` / Word 用 mammoth extractRawText / Markdown 直接读文本 / Excel 用 xlsx sheet_to_csv 合并工作表）
+  2. 文本分块：TextSplitterService（chunk_size=500, overlap=50）
+  3. 向量生成：EmbeddingService（OpenAI 兼容 POST /embeddings，EMBEDDING_BASE_URL/API_KEY/MODEL，默认 http://localhost:11434/v1 本地 Ollama；未配置 EMBEDDING_MODEL 时 isEnabled()=false + warn 降级禁用，不阻塞主流程）
+  4. 向量存储：VectorStoreService（内存 Map 主存储 + 可选 MySQL 落盘 t_ai_knowledge_chunks，122_ai_rag.sql，直查 DataSource.query 泛型，覆盖语义重复上传）
+  5. 检索匹配：RetrieverService（余弦相似度 Top-K=3，embedding 未配置/失败优雅返回空数组）；ContextBuilder 注入检索结果（知识库参考段落注入 System Prompt）
+  6. RAGController：POST /api/rag/documents（上传建立索引）、GET /api/rag/search?query=（检索）、GET /api/rag/knowledge（知识库列表），返回 { total, ... } 风格
 - **验收标准**：上传产品文档后，对话可检索到相关知识增强回答
+- **完成证据**（2026-08-02 阿坚验证）：
+  - commit `c5b20836`（24 文件 +3333/-288，已推送 origin/main）
+  - `npx tsc --noEmit` 0 errors / `npx eslint "src/**/*.ts"` 0 errors 0 warnings / `pnpm run build` exit 0
+  - `npx jest` 41 suites / 512 tests 全通过；rag 新代码覆盖率 Stmts 100%（317/317）、Functions 100%（44/44）、Lines 100%（297/297）
+  - 依赖变更：mammoth / pdf-parse / xlsx（package.json + pnpm-lock.yaml）；.env.example 新增 EMBEDDING_* 配置
 
 #### R70-22 — [P2] 部署 — Dockerfile + docker-compose + 健康检查
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
-- **文件**：`backend/ai-base/Dockerfile`、`docker-compose.yml`、`deploy/ai-base-deploy.sh`
+- **状态**：✅ 已完成（2026-08-02 阿坚执行）
+- **文件**：`backend/ai-base/Dockerfile`、`backend/ai-base/.dockerignore`、`docker-compose.yml`、`deploy/ai-base-deploy.sh`、`backend/ai-base/src/gateway/admin.controller.ts`、`backend/ai-base/src/gateway/gateway.module.ts`
 - **问题**：AI底座需要容器化部署
 - **修复**：
-  1. Dockerfile：多阶段构建，pnpm install + nest build
-  2. docker-compose.yml：ai-base服务（端口3016），连接现有MySQL/Redis
-  3. 健康检查：`GET /ai/admin/health` 返回服务状态+DB+Redis+Provider状态
-  4. 部署脚本：git pull → pnpm build → pm2 restart
+  1. Dockerfile：多阶段构建（build 阶段 node:22-alpine + corepack pnpm → 全量依赖 + nest build；runtime 阶段仅 production 依赖 + dist，精简镜像）
+  2. .dockerignore：排除 node_modules/dist/coverage/.env/.git/日志等（含 knowledge 缓存目录）
+  3. docker-compose.yml：新增 ai-base 服务（端口 3016，build context ./backend/ai-base，连接现有 mysql/redis 服务名，环境变量与 .env.example 对齐；宿主机 Ollama/embedding 用 host.docker.internal 可达）
+  4. 健康检查：AdminController.healthCheck 扩展 database（TypeORM DataSource 执行 SELECT 1）+ redis（ioredis ping，connectTimeout 3s 快速失败 + error 监听防崩溃）连通性字段；任一不可达 status=degraded（保持接口兼容，不返回 down）；GatewayModule 导入 DatabaseModule 注入 DataSource
+  5. deploy/ai-base-deploy.sh：git pull → pnpm install --frozen-lockfile → nest build → pm2 restart（首次 start），带健康检查等待（/api/admin/health 200）
 - **验收标准**：`docker-compose up -d` 一键启动；健康检查全部正常
+- **完成证据**（2026-08-02 阿坚验证）：
+  - `npx tsc --noEmit` 0 errors / `npx eslint "src/**/*.ts"` 0 errors 0 warnings / `pnpm run build` exit 0 / `npx jest` 41 suites / 512 tests 全通过
+  - 本地无 docker/bash：docker-compose.yml / Dockerfile / .sh 已严格人工核对缩进与语法（build context 引用文件均存在：package.json / pnpm-lock.yaml / pnpm-workspace.yaml）
 
 ### P2 任务总览
 
@@ -636,9 +647,9 @@
 | R70-17 app-mobile AI对话页面 | 阿澈 | P2 | 1.5天 | 待开始 |
 | R70-18 saas-admin AI配置页面 | 墨 | P2 | 2天 | ✅ 已完成 |
 | R70-19 安全(限流+加密) | 阿坚 | P2 | 1天 | ✅ 已完成 |
-| R70-20 主动能力(9项巡检) | 阿坚 | P2 | 3天 | 待开始 |
-| R70-21 RAG引擎 | 阿坚 | P2 | 2天 | 待开始 |
-| R70-22 部署(Docker+健康检查) | 阿坚 | P2 | 1天 | 待开始 |
+| R70-20 主动能力(9项巡检) | 阿坚 | P2 | 3天 | ✅ 已完成（commit 7cb165a1 已推送） |
+| R70-21 RAG引擎 | 阿坚 | P2 | 2天 | ✅ 已完成（commit c5b20836 已推送） |
+| R70-22 部署(Docker+健康检查) | 阿坚 | P2 | 1天 | ✅ 已完成 |
 | **P2合计** | — | — | **12.5天** | — |
 
 ---

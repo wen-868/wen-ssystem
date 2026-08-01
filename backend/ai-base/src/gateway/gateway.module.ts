@@ -23,6 +23,7 @@ import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
 import { TenantModule } from '../tenant/tenant.module';
 import { BrainModule } from '../brain/brain.module';
+import { DatabaseModule } from '../database/database.module';
 
 /**
  * Gateway 模块 — 对外接口层
@@ -34,6 +35,7 @@ import { BrainModule } from '../brain/brain.module';
  * 依赖：
  * - BrainModule（Orchestrator：Agent Loop 编排 + MemoryManager：对话记忆）✅ R70-08
  * - TenantModule（AiConfigService：租户 AI 配置 + TenantContext：租户上下文）✅ R70-07
+ * - DatabaseModule（TypeORM DataSource，AdminController 健康检查注入）✅ R70-22
  * - ProvidersModule / ToolsModule / BridgeModule（通过 BrainModule 间接依赖）
  *
  * 被 AppModule 直接导入，Controller 自动注册到 NestJS 路由系统。
@@ -45,6 +47,7 @@ import { BrainModule } from '../brain/brain.module';
   imports: [
     BrainModule,
     TenantModule,
+    DatabaseModule,
     ProvidersModule,
     ToolsModule,
     BridgeModule,

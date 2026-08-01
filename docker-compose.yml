@@ -66,6 +66,64 @@ services:
     volumes:
       - redis_data:/data
 
+  # 智享AI底座（NestJS，独立服务，端口 3016）
+  # 连接现有 mysql / redis 服务，环境变量与 backend/ai-base/.env.example 对齐（R70-22）
+  ai-base:
+    build:
+      context: ./backend/ai-base
+      dockerfile: Dockerfile
+    container_name: liquor-ai-base
+    restart: unless-stopped
+    environment:
+      # 服务配置
+      PORT: 3016
+      NODE_ENV: production
+      TZ: Asia/Shanghai
+      # 数据库（共享现有 MySQL 实例）
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: ${DB_USER:-zhixiang_app}
+      DB_PASSWORD: ${DB_PASSWORD:?请在 .env 中设置 DB_PASSWORD}
+      DB_DATABASE: ${DB_NAME:-liquor_inventory}
+      # Redis（共享现有实例，DB1 存对话记忆）
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: 1
+      # 后端服务对接（compose 网络内服务名 backend）
+      BACKEND_API_BASE: http://backend:8080
+      BACKEND_API_TIMEOUT: 15000
+      # AI 服务商（DeepSeek）
+      DEFAULT_MODEL_PROVIDER: ${DEFAULT_MODEL_PROVIDER:-deepseek}
+      DEEPSEEK_BASE_URL: https://api.deepseek.com
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_MODEL: deepseek-chat
+      # Ollama（宿主本地模型，容器内用 host.docker.internal 访问宿主机）
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+      # AI 调用参数
+      DEFAULT_TEMPERATURE: 0.3
+      DEFAULT_MAX_TOKENS: 2048
+      # 安全（API Key 加密 + JWT）
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      JWT_SECRET: ${JWT_SECRET:?请在 .env 中设置 JWT_SECRET}
+      # 限流与记忆
+      RATE_LIMIT_PER_MINUTE: 60
+      MEMORY_MAX_ROUNDS: 20
+      CONFIRMATION_TTL: 300
+      # RAG embedding（可选，未配置自动降级禁用；默认指向宿主 Ollama 兼容端点）
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-http://host.docker.internal:11434/v1}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_TIMEOUT_MS: 30000
+    ports:
+      - "3016:3016"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
 volumes:
   mysql_data:
   redis_data:
