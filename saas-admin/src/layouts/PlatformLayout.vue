@@ -66,6 +66,16 @@
           <el-menu-item index="/library/import">批量导入</el-menu-item>
           <el-menu-item index="/library/api-keys">API Key 管理</el-menu-item>
         </el-sub-menu>
+        <el-sub-menu index="ai-config">
+          <template #title>
+            <el-icon><Cpu /></el-icon>
+            <span>AI 配置</span>
+          </template>
+          <el-menu-item index="/ai-config/platform">平台默认</el-menu-item>
+          <el-menu-item index="/ai-config/tenants">租户配置</el-menu-item>
+          <el-menu-item index="/ai-config/usage">用量统计</el-menu-item>
+          <el-menu-item index="/ai-config/billing">计费套餐</el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/mobile-preview">
           <el-icon><Cellphone /></el-icon>
           <span>移动端预览</span>
@@ -89,7 +99,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

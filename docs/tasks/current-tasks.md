@@ -541,7 +541,7 @@
 - **优先级**：P2
 - **负责人**：墨
 - **预计**：2天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02 墨执行 / 构建验证通过）
 - **文件**：`saas-admin/src/views/ai-config/`（新建）
 - **问题**：超级后台需要AI配置管理
 - **修复**：
@@ -550,6 +550,12 @@
   3. AiUsageStats.vue：用量统计面板（token消耗/费用/调用次数）
   4. AiBillingConfig.vue：租户计费套餐配置
 - **验收标准**：saas-admin可管理平台/租户AI配置，查看用量统计
+- **完成证据**（2026-08-02 墨验证）：
+  - 新增 `saas-admin/src/api/ai-config.ts`：AI 底座 8 个端点封装（platform / tenants / tenants/:tenantId / usage / billing / billing/:tenantId），baseURL 走 `VITE_AI_BASE_URL`（默认 http://localhost:3016），仅注入 JWT；API Key 安全约定：响应仅返回 `apiKeySet` + `apiKeyMasked`，写入时留空表示不改动（不提交该字段）
+  - 新增 4 个页面：`views/ai-config/PlatformAiConfig.vue`（平台默认配置表单）、`TenantAiConfig.vue`（租户配置列表 + 行内启用开关 + 编辑弹窗）、`AiUsageStats.vue`（按日用量统计 + echarts 双 Y 轴趋势图 + 汇总卡片）、`AiBillingConfig.vue`（计费套餐列表 + 编辑弹窗，套餐类型 pay_as_you_go/monthly/prepaid 标签映射）
+  - 注册路由 `router/index.ts` 4 个子路由 + `PlatformLayout.vue` 新增"AI 配置"el-sub-menu 分组（平台默认/租户配置/用量统计/计费套餐）+ `vite-env.d.ts` 声明 `VITE_AI_BASE_URL` + `.env.development`
+  - 端点/字段与后端 `backend/ai-base/src/gateway/ai-config.controller.ts` + `tenant/ai-config-admin.service.ts` + `gateway/dto/ai-config.dto.ts` 完全对齐；分页结构为 `{ list, total, page, pageSize }`（非主后端 records 格式）
+  - 验收对照：①`cd saas-admin && npm run build` = `vue-tsc -b` 0 errors + `vite build` 成功（41s，4 个独立 chunk 各 < 10kB）✅；②TS strict 0 errors ✅；③页面字段与后端 controller/dto 对齐，API Key 加密写入（留空不改动）/读取脱敏展示 ✅；④UI 风格与现有页面一致（el-card/el-table/el-form，token 变量色板）✅
 
 #### R70-19 — [P2] 安全 — 限流(令牌桶) + API Key加密存储
 - **优先级**：P2
@@ -628,7 +634,7 @@
 |------|--------|:------:|:----:|:----:|
 | R70-16 admin-web AI对话窗口 | 墨 | P2 | 2天 | ✅ 已完成 |
 | R70-17 app-mobile AI对话页面 | 阿澈 | P2 | 1.5天 | 待开始 |
-| R70-18 saas-admin AI配置页面 | 墨 | P2 | 2天 | 待开始 |
+| R70-18 saas-admin AI配置页面 | 墨 | P2 | 2天 | ✅ 已完成 |
 | R70-19 安全(限流+加密) | 阿坚 | P2 | 1天 | ✅ 已完成 |
 | R70-20 主动能力(9项巡检) | 阿坚 | P2 | 3天 | 待开始 |
 | R70-21 RAG引擎 | 阿坚 | P2 | 2天 | 待开始 |
