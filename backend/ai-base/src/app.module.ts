@@ -11,6 +11,7 @@ import { BrainModule } from './brain/brain.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { TenantModule } from './tenant/tenant.module';
 import { ProactiveModule } from './brain/proactive/proactive.module';
+import { RagModule } from './rag/rag.module';
 
 /**
  * 应用根模块
@@ -24,9 +25,7 @@ import { ProactiveModule } from './brain/proactive/proactive.module';
  * 6. TenantModule — TenantContext + CryptoService + AiConfigService + TenantMiddleware ✅ R70-07 已接入
  * 7. BrainModule — ContextBuilder + MemoryManager(Redis) + Orchestrator(Agent Loop) ✅ R70-08 已接入
  * 8. GatewayModule — ChatController(SSE) + AdminController(管理API) ✅ R70-06 已接入（R70-08 接入 Orchestrator）
- *
- * 后续任务将逐步导入以下模块：
- * - RagModule（rag/）— 知识库检索增强
+ * 9. RagModule — RAG 知识库引擎（文档加载/分块/向量化/检索，注入 ContextBuilder）✅ R70-21 已接入
  */
 @Module({
   imports: [
@@ -53,6 +52,8 @@ import { ProactiveModule } from './brain/proactive/proactive.module';
     GatewayModule,
     // 主动能力层（ProactiveService 9 项定时巡检 + ProactivePushService 推送 + 管理 API）✅ R70-20 已接入
     ProactiveModule,
+    // RAG 知识库引擎（文档加载/分块/向量化/检索 + ContextBuilder 增强）✅ R70-21 已接入
+    RagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -18,9 +18,10 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { ChatMessage } from '../providers/provider.interface';
 import type { ToolRegistry } from '../tools/tool-registry';
+import { RetrieverService } from '../rag/retriever.service';
 
 /** ContextBuilder 构建参数 */
 export interface BuildContextParams {
@@ -36,6 +37,8 @@ export interface BuildContextParams {
   history: ChatMessage[];
   /** 系统提示词（租户自定义 > 平台默认，由 AiConfigService 提供） */
   systemPrompt?: string;
+  /** RAG 知识库参考内容（由 build() 内部检索注入；embedding 未配置时跳过） */
+  ragContext?: string;
 }
 
 /**
@@ -67,17 +70,32 @@ export const DEFAULT_SYSTEM_PROMPT = `你是"智享AI助手"，一个为酒水�
 
 @Injectable()
 export class ContextBuilder {
+  private readonly logger = new Logger(ContextBuilder.name);
+
+  constructor(private readonly retriever: RetrieverService) {}
+
   /**
    * 构建完整的对话上下文
    *
-   * 合并顺序：System Prompt → 对话历史 → 用户消息
+   * 合并顺序：System Prompt（含 RAG 知识库参考）→ 对话历史 → 用户消息
+   *
+   * R70-21 RAG 增强：build 内部调用 RetrieverService 检索与用户消息相关的
+   * 知识库分块，注入 System Prompt 的"知识库参考"段落。embedding 未配置时
+   * 检索返回空，跳过注入（对话正常进行，不受影响）。
    *
    * @param params 构建参数
    * @param registry 工具注册中心（用于生成工具描述注入 System Prompt）
    * @returns 完整的 ChatMessage[] 供 LLM 调用
    */
-  build(params: BuildContextParams, registry: ToolRegistry): ChatMessage[] {
-    const systemPrompt = this.buildSystemPrompt(params, registry);
+  async build(
+    params: BuildContextParams,
+    registry: ToolRegistry,
+  ): Promise<ChatMessage[]> {
+    const ragContext = await this.buildRagContext(params);
+    const systemPrompt = this.buildSystemPrompt(
+      { ...params, ragContext },
+      registry,
+    );
     const messages: ChatMessage[] = [{ role: 'system', content: systemPrompt }];
 
     // 加入对话历史（过滤掉 system 消息，避免重复）
@@ -91,6 +109,39 @@ export class ContextBuilder {
     messages.push({ role: 'user', content: params.userMessage });
 
     return messages;
+  }
+
+  /**
+   * RAG 知识库检索（降级安全）
+   *
+   * - embedding 未配置 → retriever 返回空数组 → 返回 undefined（跳过注入）
+   * - 检索异常 → warn + 返回 undefined（对话主流程不受影响）
+   *
+   * @returns 拼接后的知识库参考文本；无可用知识时返回 undefined
+   */
+  private async buildRagContext(
+    params: BuildContextParams,
+  ): Promise<string | undefined> {
+    try {
+      const results = await this.retriever.search(
+        params.userMessage,
+        params.tenantId,
+      );
+      if (!results || results.length === 0) {
+        return undefined;
+      }
+      return results
+        .map(
+          (r) =>
+            `【${r.docName} 第${r.chunkIndex + 1}段】(相关度 ${(r.score * 100).toFixed(0)}%) ${r.text}`,
+        )
+        .join('\n');
+    } catch (err) {
+      this.logger.warn(
+        `RAG 检索失败（跳过知识库增强）：${err instanceof Error ? err.message : String(err)}`,
+      );
+      return undefined;
+    }
   }
 
   /**
@@ -123,6 +174,11 @@ export class ContextBuilder {
         .map((t) => `- ${t.name}（${t.category}）：${t.description}`)
         .join('\n');
       prompt += `\n\n## 当前可用工具\n${toolList}`;
+    }
+
+    // R70-21：追加 RAG 知识库参考（检索到相关知识时注入，优先采信）
+    if (params.ragContext && params.ragContext.trim().length > 0) {
+      prompt += `\n\n## 知识库参考（以下为检索到的内部知识，回答相关问题时优先采信）\n${params.ragContext}`;
     }
 
     return prompt;

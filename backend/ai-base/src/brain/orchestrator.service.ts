@@ -177,7 +177,8 @@ export class Orchestrator {
       }
 
       // ── 4. 构建上下文 ──
-      const messages = this.contextBuilder.build(
+      // R70-21：build 已升级为异步（内部做 RAG 知识库检索注入，embedding 未配置时自动跳过）
+      const messages = await this.contextBuilder.build(
         {
           tenantId,
           userId,

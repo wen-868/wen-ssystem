@@ -19,13 +19,20 @@ import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
 import { TenantModule } from '../tenant/tenant.module';
+import { RagModule } from '../rag/rag.module';
 import { ContextBuilder } from './context-builder.service';
 import { MemoryManager } from './memory-manager.service';
 import { Orchestrator } from './orchestrator.service';
 import { ConfirmationService } from './confirmation.service';
 
 @Module({
-  imports: [ProvidersModule, ToolsModule, BridgeModule, TenantModule],
+  imports: [
+    ProvidersModule,
+    ToolsModule,
+    BridgeModule,
+    TenantModule,
+    RagModule,
+  ],
   providers: [ContextBuilder, MemoryManager, Orchestrator, ConfirmationService],
   exports: [Orchestrator, MemoryManager, ConfirmationService],
 })
