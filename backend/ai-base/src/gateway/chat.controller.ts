@@ -6,6 +6,7 @@
  * 2. 以 SSE（Server-Sent Events）流式返回增量文本
  * 3. 支持工具调用（Function Calling）：LLM 返回 tool_calls → 执行工具 → 结果回传 LLM → 继续生成
  * 4. 审计日志：每次对话完成记录 token 消耗、工具调用、延迟
+ * 5. 多租户：从 TenantContext 获取租户信息，按租户配置选择 Provider/模型（R70-07）
  *
  * SSE 事件格式（每行 `data: {JSON}\n\n`）：
  * - {"type":"text","content":"增量文本"}      — LLM 生成的文本片段
@@ -14,7 +15,7 @@
  * - {"type":"done","conversationId":"xxx","usage":{...}} — 对话结束
  * - {"type":"error","message":"错误描述"}       — 错误事件
  *
- * 当前阶段（R70-06）实现简化版 Agent Loop：
+ * 当前阶段（R70-07）实现简化版 Agent Loop：
  * - 直接在 Controller 内编排 LLM 调用 + 工具执行循环
  * - R70-08 Brain Engine 接入后，Agent Loop 逻辑迁移到 Orchestrator，Controller 仅负责 SSE 传输
  *
@@ -32,6 +33,8 @@ import { ProviderFactory } from '../providers/provider-factory';
 import { ToolExecutor } from '../tools/tool-executor';
 import { ToolRegistry } from '../tools/tool-registry';
 import { AuditLogger } from '../bridge/audit-logger';
+import { AiConfigService } from '../tenant/ai-config.service';
+import { TenantContext } from '../tenant/tenant-context';
 import type {
   ChatMessage,
   ChatResult,
@@ -42,8 +45,8 @@ import { ChatDto } from './dto/chat.dto';
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
 
-/** 系统提示词（定义 AI 助手角色和能力边界） */
-const SYSTEM_PROMPT = `你是"智享AI助手"，一个为酒水行业进销存管理系统设计的智能助手。
+/** 默认系统提示词（租户未配置自定义提示词时使用） */
+const DEFAULT_SYSTEM_PROMPT = `你是"智享AI助手"，一个为酒水行业进销存管理系统设计的智能助手。
 
 你的能力：
 1. 销售管理：查询/创建销售单、查询客户信息、查询商品信息
@@ -68,6 +71,8 @@ export class ChatController {
     private readonly executor: ToolExecutor,
     private readonly registry: ToolRegistry,
     private readonly auditLogger: AuditLogger,
+    private readonly aiConfigService: AiConfigService,
+    private readonly tenantContext: TenantContext,
   ) {}
 
   /**
@@ -77,13 +82,32 @@ export class ChatController {
    * Content-Type: application/json
    * Accept: text/event-stream
    *
-   * 请求体：{ "message": "你好", "tenantId": "xxx" }
+   * 请求体：{ "message": "你好" }
+   * Headers: Authorization: Bearer <JWT>（TenantMiddleware 自动解析 tenantId）
+   *
    * 响应：SSE 流式事件
    */
   @Post()
   async chat(@Body() dto: ChatDto, @Res() res: Response): Promise<void> {
+    // ── 多租户：从 TenantContext 获取租户信息（R70-07）──
+    const ctxData = this.tenantContext.getData();
+    const tenantId = ctxData?.tenantId ?? dto.tenantId;
+
+    if (!tenantId) {
+      this.logger.warn('对话请求缺少 tenantId（无 JWT 且请求体未传入）');
+      res.status(401).json({
+        statusCode: 401,
+        message: '未认证：请在 Authorization Header 中携带 JWT，或在请求体中传入 tenantId',
+      });
+      return;
+    }
+
+    const userId = ctxData?.userId ?? dto.userId;
+    const role = ctxData?.role ?? dto.role;
+    const authToken = ctxData?.authToken;
+
     this.logger.log(
-      `收到对话请求：tenant=${dto.tenantId} msg="${dto.message.slice(0, 50)}..."`,
+      `收到对话请求：tenant=${tenantId} user=${userId ?? 'anonymous'} msg="${dto.message.slice(0, 50)}..."`,
     );
 
     // 设置 SSE 响应头
@@ -93,28 +117,17 @@ export class ChatController {
     res.setHeader('X-Accel-Buffering', 'no'); // Nginx 关闭缓冲
     res.flushHeaders();
 
-    // 构造执行上下文
+    // 构造执行上下文（含 authToken，ServiceClient 透传给后端 API）
     const context: ToolContext = {
-      tenantId: dto.tenantId,
-      userId: dto.userId,
+      tenantId,
+      userId,
       sessionId: dto.conversationId,
-      role: dto.role,
+      role,
+      authToken,
     };
 
     // 生成会话 ID（如果未传入）
     const conversationId = dto.conversationId ?? `conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-    // 对话消息历史
-    const messages: ChatMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: dto.message },
-    ];
-
-    // 获取工具定义列表（供 LLM function calling 使用）
-    const toolDefinitions = this.registry.toToolDefinitions();
-
-    // 获取 Provider
-    const provider = this.factory.getDefault();
 
     // 累计统计
     let totalPromptTokens = 0;
@@ -122,8 +135,37 @@ export class ChatController {
     const allToolCalls: Record<string, unknown>[] = [];
     const startTime = Date.now();
     let lastError: string | undefined;
+    let providerName = 'unknown';
+    let modelName: string | undefined;
 
     try {
+      // ── 获取租户 AI 配置（R70-07 多租户）──
+      const resolvedConfig = await this.aiConfigService.getResolvedConfig();
+      providerName = resolvedConfig.provider;
+      modelName = resolvedConfig.model;
+
+      this.logger.log(
+        `租户 ${tenantId} AI 配置：provider=${resolvedConfig.provider} model=${resolvedConfig.model} source=${resolvedConfig.source}`,
+      );
+
+      // 获取 Provider（按租户配置创建）
+      const provider = this.factory.create(
+        resolvedConfig.provider,
+        resolvedConfig.providerConfig,
+      );
+
+      // 系统提示词（租户自定义 > 默认）
+      const systemPrompt = resolvedConfig.systemPrompt ?? DEFAULT_SYSTEM_PROMPT;
+
+      // 对话消息历史
+      const messages: ChatMessage[] = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: dto.message },
+      ];
+
+      // 获取工具定义列表（供 LLM function calling 使用）
+      const toolDefinitions = this.registry.toToolDefinitions();
+
       // ─── Agent Loop（简化版，R70-08 将迁移到 Orchestrator）───
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         this.logger.debug(`Agent Loop 第 ${iteration + 1} 轮`);
@@ -131,8 +173,8 @@ export class ChatController {
         // 调用 LLM（流式）
         const generator = provider.chat(messages, {
           tools: toolDefinitions.length > 0 ? toolDefinitions : undefined,
-          temperature: 0.3,
-          max_tokens: 2048,
+          temperature: resolvedConfig.temperature,
+          max_tokens: resolvedConfig.maxTokens,
         });
 
         // 消费流式生成器，逐 chunk 发送 SSE
@@ -224,11 +266,11 @@ export class ChatController {
 
       // 审计日志：记录本次 AI 调用
       this.auditLogger.logAiCall({
-        tenantId: dto.tenantId,
-        userId: dto.userId,
+        tenantId,
+        userId,
         sessionId: conversationId,
-        provider: provider.name,
-        model: undefined,
+        provider: providerName,
+        model: modelName,
         intent: 'chat',
         userMessage: dto.message,
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,
@@ -249,10 +291,11 @@ export class ChatController {
 
       // 审计日志：记录失败的 AI 调用
       this.auditLogger.logAiCall({
-        tenantId: dto.tenantId,
-        userId: dto.userId,
+        tenantId,
+        userId,
         sessionId: conversationId,
-        provider: provider.name,
+        provider: providerName,
+        model: modelName,
         intent: 'chat',
         userMessage: dto.message,
         toolCalls: allToolCalls.length > 0 ? allToolCalls : undefined,

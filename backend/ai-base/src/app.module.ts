@@ -7,6 +7,7 @@ import { ToolsModule } from './tools/tools.module';
 import { DatabaseModule } from './database/database.module';
 import { BridgeModule } from './bridge/bridge.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { TenantModule } from './tenant/tenant.module';
 
 /**
  * 应用根模块
@@ -17,10 +18,10 @@ import { GatewayModule } from './gateway/gateway.module';
  * 3. ProvidersModule — DeepSeek / Ollama 模型服务商 ✅ R70-03 已接入
  * 4. BridgeModule — ServiceClient(HTTP 调用后端) + AuditLogger(审计日志) ✅ R70-05 已接入
  * 5. ToolsModule — ToolRegistry + ToolExecutor + EchoTool ✅ R70-04 已接入（R70-05 接入 AuditLogger）
- * 6. GatewayModule — ChatController(SSE) + AdminController(管理API) ✅ R70-06 已接入
+ * 6. TenantModule — TenantContext + CryptoService + AiConfigService + TenantMiddleware ✅ R70-07 已接入
+ * 7. GatewayModule — ChatController(SSE) + AdminController(管理API) ✅ R70-06 已接入（R70-07 接入多租户）
  *
  * 后续任务将逐步导入以下模块：
- * - TenantModule（tenant/）— 多租户上下文 + 配置（R70-07）
  * - BrainModule（brain/）— 大脑引擎 + Agent Loop（R70-08）
  * - RagModule（rag/）— 知识库检索增强
  */
@@ -39,6 +40,8 @@ import { GatewayModule } from './gateway/gateway.module';
     BridgeModule,
     // Tool 系统（ToolRegistry + ToolExecutor + EchoTool 示例工具）
     ToolsModule,
+    // 多租户层（TenantContext + CryptoService + AiConfigService + TenantMiddleware）
+    TenantModule,
     // Gateway 层（ChatController SSE 流式对话 + AdminController 管理 API）
     GatewayModule,
   ],

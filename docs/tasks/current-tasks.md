@@ -214,19 +214,27 @@
   - 设计要点：①SSE用Express Response直接写`data: {JSON}\n\n`，比@Sse()更灵活；②Agent Loop在Controller内实现简化版，R70-08迁移到Orchestrator后Controller仅负责SSE传输；③系统提示词定义AI助手角色+能力+规则；④审计日志记录每次AI调用的token消耗+工具调用+延迟
   - 备注：ChatController当前用ProviderFactory.getDefault()获取Provider，R70-07多租户接入后改用AiConfigService按租户获取配置
 
-#### R70-07 — [P0] 多租户 — TenantContext + TenantGuard + AiConfigService
+#### R70-07 — [P0] 多租户 — TenantContext + TenantMiddleware + AiConfigService + CryptoService
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：1.5天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/tenant/tenant-context.ts`、`tenant.guard.ts`、`ai-config.service.ts`
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行）
+- **文件**：`backend/ai-base/src/tenant/crypto.service.ts`、`tenant-context.ts`、`ai-config.service.ts`、`tenant.middleware.ts`、`tenant.module.ts`、3个单元测试文件
 - **问题**：AI底座需要多租户隔离，每个租户可独立配置AI服务商、模型、API Key
 - **修复**：
-  1. `TenantGuard`：从JWT解析tenant_id，注入请求上下文
-  2. `TenantContext`：AsyncLocalStorage存储tenant_id，所有Tool自动获取
-  3. `AiConfigService`：读取tenant_ai_config表，未配置则降级到platform_ai_config
-  4. API Key加密存储：AES-256-CBC加密，运行时解密传给Provider
-- **验收标准**：tenantId自动注入到Tool调用；不同租户可使用不同Provider/模型
+  1. `CryptoService`：AES-256-GCM加密/解密API Key（IV+AuthTag+密文格式），decryptSafe安全解密不抛异常
+  2. `TenantContext`：AsyncLocalStorage存储租户上下文（tenantId/userId/role/authToken），run/getData/require方法
+  3. `AiConfigService`：读取t_tenant_ai_config表，未配置或未启用则降级到t_platform_ai_config；null字段降级到平台默认；平台配置缓存
+  4. `TenantMiddleware`：从Authorization Header解析JWT（issuer=zhixiang-system/audience=zhixiang-client），注入TenantContext；无JWT时兼容body.tenantId模式
+  5. `TenantModule`：注册TypeORM Entity + 中间件（forRoutes('chat')）
+  6. `ChatController`改用AiConfigService替代ProviderFactory.getDefault()
+  7. `ChatDto.tenantId`改为可选（JWT自动解析，body.tenantId仅过渡兼容）
+  8. `AppModule`+`GatewayModule`导入TenantModule
+- **凌舟审查记录**（2026-08-01）：
+  - tsc --noEmit 0 errors，nest build 成功，78个测试全通过（含3个新测试套件：CryptoService/TenantContext/AiConfigService）
+  - 设计要点：①AES-256-GCM比原计划CBC更安全（带认证标签防篡改）；②JWT issuer/audience与现有backend auth.ts一致（zhixiang-system/zhixiang-client）；③AsyncLocalStorage实现请求级隔离，不污染全局状态；④平台配置缓存（单例，clearCache手动刷新）；⑤配置降级链：租户apiKey为null→平台默认apiKey→空字符串+warn日志
+  - 备注：原任务描述提到"TenantGuard"，实际用NestMiddleware实现（TenantMiddleware），功能等价但更灵活（可forRoutes精确匹配）
+- **验收标准**：tenantId自动注入到Tool调用；不同租户可使用不同Provider/模型 ✅
 
 #### R70-08 — [P0] Brain Engine — ContextBuilder + MemoryManager + Orchestrator(Agent Loop)
 - **优先级**：P0
@@ -273,7 +281,7 @@
 | R70-04 Tool系统(Registry+Executor) | 阿坚 | P0 | 1天 | ✅ 已完成 |
 | R70-05 Service Bridge(HTTP+审计) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-06 Gateway(SSE+Admin API) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
-| R70-07 多租户(Context+Guard+Config) | 凌舟(AI协助) | P0 | 1.5天 | 待开始 |
+| R70-07 多租户(Context+Guard+Config) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-08 Brain Engine(Agent Loop) | 凌舟(AI协助) | P0 | 3天 | 待开始 |
 | R70-09 order.tool(7个销售工具) | 阿坚 | P0 | 2天 | 待开始 |
 | **P0合计** | — | — | **14天** | — |

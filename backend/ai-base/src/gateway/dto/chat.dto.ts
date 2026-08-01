@@ -26,13 +26,14 @@ export class ChatDto {
   @IsString()
   conversationId?: string;
 
-  /** 租户 ID（当前阶段由请求体传入，R70-07 后由 JWT 解析）
+  /** 租户 ID（可选，R70-07 后由 JWT 自动解析）
    *
-   * 必填：多租户隔离要求所有 Tool 调用必须携带 tenantId
+   * R70-07 多租户接入后：tenantId 从 JWT 解析（TenantMiddleware 注入 TenantContext），
+   * 请求体不再需要传入。保留为可选字段仅用于过渡兼容（无 JWT 时从 body 读取）。
    */
-  @IsString({ message: 'tenantId 必须是字符串' })
-  @IsNotEmpty({ message: 'tenantId 不能为空' })
-  tenantId!: string;
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
 
   /** 用户 ID（可选，用于审计日志） */
   @IsOptional()
