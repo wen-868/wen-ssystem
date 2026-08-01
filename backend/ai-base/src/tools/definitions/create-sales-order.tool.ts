@@ -149,7 +149,7 @@ export class CreateSalesOrderTool implements ITool {
       saleType: {
         type: 'string',
         enum: ['CASH', 'CREDIT'],
-        description: '销售类型（CASH=现结/CREGREDIT=赊销，默认CASH）',
+        description: '销售类型（CASH=现结/CREDIT=赊销，默认CASH）',
       },
       remark: {
         type: 'string',
