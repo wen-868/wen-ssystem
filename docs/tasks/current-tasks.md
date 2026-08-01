@@ -1,8 +1,8 @@
-# 当前任务 — R70(AI底座开发·进行中) + R69-00(部署完成·✅)
+# 当前任务 — R71(全局测试问题修复·进行中) + R70(已完成)
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-02（凌舟AI协助完成 R70-15 确认机制，P0+P1 全部完成，进入 P2 前端+完善阶段）
+> 最后更新：2026-08-02（凌舟全局测试发现 5 个单测失败 + 4 个脚本测试全挂 + miniapp 依赖缺失，开 R71 轮次修复）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -691,6 +691,85 @@
 4. **智能价格填充严格遵循**：客户类型→价格等级匹配，单位换算以瓶为基准
 5. **Tool通过Service Bridge调用微服务**，不直接访问数据库，保持解耦
 6. **AI创建的单据与手动创建完全一致**：同一张表、同样字段、同样校验规则
+
+---
+
+## R71 — 全局测试问题修复 [进行中 — 凌舟 2026-08-02]
+
+> **日期**：2026-08-02
+> **来源**：凌舟对 `wen-ssystem`（HEAD `ee1431f2`）执行全局测试（后端 vitest 全量 + 类型检查 + 全端构建 + 脚本测试）发现的问题。
+> **测试结果摘要**：
+> - 后端 vitest：416 文件 414 过 / 2 失败，4857 用例 4852 过 / 5 失败
+> - 后端 typecheck / build、admin-web / saas-admin / website / app-mobile H5 构建：通过
+> - miniapp type-check / build：失败（依赖缺失）
+> - 脚本测试（self-test / qa / mysql-smoke / acceptance-admin / 发布检查）：全部失败，根因各异
+> **说明**：本轮任务全部由凌舟(AI协助)执行，执行方式遵循强制闭环流程（读任务→执行→验证→总结→提交→推送）。
+
+### R71-01 — [P0] 修复 credit-scoring 时间敏感测试（固定日期导致等级断言漂移）
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/__tests__/services/admin/credit-scoring.test.ts`
+- **问题**：测试用固定日期 `lastTradeDate: "2026-06-01"`（注释"~38天前"）计算逾期天数，未 mock 当前时间。2026-08-02 实际已过 62 天，催收等级从 HEAVY（31-60天）落入 SEVERE（61+天），2 个用例断言 `level === "HEAVY"` 失败（实际收到 "SEVERE"）。属时间敏感的 flaky 测试，7/30 通过、8/2 失败。
+- **修复**：测试改用相对当前时间的日期构造 `lastTradeDate`（如 `new Date(Date.now() - 38 * 24 * 3600 * 1000)`），或 mock 当前时间（`vi.setSystemTime`），使逾期天数始终落在目标等级区间，与运行日期无关。
+- **验收标准**：`npx vitest run src/__tests__/services/admin/credit-scoring.test.ts` → 25 tests 0 failed；全量 `npx vitest run` 0 failed。
+- **核实**：2026-08-02 `npm run test --workspace backend` → `expect(res.collectionStrategy!.level).toBe("HEAVY")` Received "SEVERE"（credit-scoring.test.ts:99 与 :273，2 failed）
+
+### R71-02 — [P0] 修复 env.test.ts 与本地 .env 耦合（测试断言默认值被覆盖）
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/__tests__/config/env.test.ts`
+- **问题**：`env.ts` 通过 `dotenv/config` 加载 `backend/.env`，本地 `.env` 配置了 `DB_USER=test_user`、`DB_NAME=liquor_inventory_test`、`DOMAIN=localhost`，覆盖代码默认值，3 个用例断言默认值失败（期望 `zhixiang_app`/`liquor_inventory`/`onepan.cn`，实际收到本地 .env 值）。测试结果依赖本机是否存在 .env，CI 与本地结果不一致。
+- **修复**：在 `env.test.ts` 中断言前显式隔离环境变量——`beforeEach` 中删除或 stub 相关 `process.env` 键（`vi.stubEnv`/`delete`），确保断言的是代码默认值；注意踩坑日志 #18 的 env.ts"导入即固化"陷阱（env 对象在 import 时已求值，需确认测试读取的是默认值路径）。
+- **验收标准**：本机存在 `backend/.env` 的情况下 `npx vitest run src/__tests__/config/env.test.ts` → 14 tests 0 failed；删除 `.env` 场景同样通过。
+- **核实**：2026-08-02 vitest 实测 `expected 'test_user' to be 'zhixiang_app'`（env.test.ts:21/24/34，3 failed）
+
+### R71-03 — [P0] 修复 dev:mock 因 NODE_ENV=test 不启动服务
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`scripts/dev-mock.mjs`
+- **问题**：本地 `backend/.env` 配置 `NODE_ENV=test`（用于 vitest），而 `server.ts` 在 `process.env.NODE_ENV !== "test"` 时才执行 `start()` 监听端口。`npm run dev:mock` 仅设置 `USE_MOCK_DB=true`，导致后端进程存活但不监听 8080、无启动日志，本地 mock 联调与脚本测试全部无法进行。
+- **修复**：`dev-mock.mjs` 的 `spawn` env 中显式设置 `NODE_ENV="development"`，确保开发 mock 模式走 `start()` 分支。
+- **验收标准**：`npm run dev:mock` 启动后（无需手动覆盖 NODE_ENV）`curl http://localhost:8080/health` 返回 `{"code":"0",...}`，日志出现 `zhixiang-backend listening on http://localhost:8080`。
+- **核实**：2026-08-02 实测 `npm run dev:mock` 启动 120s 后 8080 无监听、日志仅 npm banner；手动 `$env:NODE_ENV='development'` 后 20s 内 `/health` 200
+
+### R71-04 — [P1] 修复 3 个脚本 miniapp 接口 401（缺认证头）
+- **优先级**：P1
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`scripts/self-test.mjs`、`scripts/qa-regression-test.mjs`、`scripts/mysql-smoke-test.mjs`
+- **问题**：miniapp 路由已全部加 `requireAuthWithTenant`（JWT 鉴权），但三个脚本调用 `/miniapp/products`、`/miniapp/orders` 时未携带 `Authorization` 头（仅带 `x-customer-type`），全部返回 401 未登录。脚本与接口契约漂移，回归防线失效。
+- **修复**：三个脚本中 miniapp 相关请求复用已登录的 admin token（`headers: { ...auth, "x-customer-type": "RETAIL" }`）；注意 mysql-smoke 面向生产库的密码 `Admin@2026` 保持不变。
+- **验收标准**：mock 后端（`NODE_ENV=development` + `USE_MOCK_DB=true`）下 `node scripts/self-test.mjs` 通过小程序下单步骤、`node scripts/qa-regression-test.mjs` 通过 `/miniapp/products`（均不再 401）。
+- **核实**：2026-08-02 mock 后端实测 self-test 报 `/miniapp/orders failed: 401 未登录`（self-test.mjs:42）；qa 报 `/miniapp/products?storeId=1 failed: 401`（qa-regression-test.mjs:33）；mysql-smoke 同样 401（mysql-smoke-test.mjs:122）
+
+### R71-05 — [P1] miniapp 依赖未安装 + API 地址硬编码 localhost
+- **优先级**：P1
+- **负责人**：凌舟(AI协助)
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`miniapp/package.json`（依赖安装）、`miniapp/config/index.js`、`miniapp/src/api/request.ts`
+- **问题**：`miniapp/node_modules` 不存在，`@tarojs/taro`、`@tarojs/plugin-platform-weapp` 缺失 → `type-check` 报 TS2688、`build:weapp` 报找不到插件依赖；同时 `config/index.js:16` 与 `src/api/request.ts:4` 硬编码 `http://localhost:3000/api`，`test:miniapp-release` 报"小程序正式包不能包含 localhost"。
+- **修复**：① `cd miniapp && npm install` 安装依赖；② API 地址改为构建期环境变量注入（`TARO_APP_API_BASE`），源码不再含 `localhost` 字面量；③ 验证 type-check / build:weapp / 发布检查。若 npm install 因网络受限失败，如实记录并在任务状态标注阻塞原因。
+- **验收标准**：`cd miniapp && npm run type-check` 0 errors；`npm run build:weapp` 成功；`npm run test:miniapp-release` 通过。
+- **核实**：2026-08-02 实测 `type-check` 报 `TS2688 Cannot find type definition file for '@tarojs/taro'`；`build:weapp` 报 `找不到插件依赖 "@tarojs/plugin-platform-weapp"`；`test:miniapp-release` 报 `小程序正式包不能包含 localhost`
+
+### R71-06 — [P2] 根 workspaces 未包含 app-mobile / miniapp
+- **优先级**：P2
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`package.json`
+- **问题**：根 `package.json` 的 workspaces 仅包含 backend/admin-web/saas-admin/website，app-mobile、miniapp 不在 workspace 列表，`npm --workspace app-mobile` 直接报 "No workspaces found"，依赖管理分散、无法统一安装。
+- **修复**：根 workspaces 追加 `app-mobile`、`miniapp` 后执行 `npm install` 验证。若 npm hoist 与 uni-app/Taro 工具链冲突（参考踩坑日志 #14 typescript 版本 hoist 教训），则记录到踩坑日志并回退，保留现状。
+- **验收标准**：`npm --workspace app-mobile run build:h5` 与 `npm --workspace miniapp run type-check` 可正常执行；backend / admin-web / saas-admin / website 构建不回归。
+- **核实**：2026-08-02 实测 `npm --workspace app-mobile run build:h5` → `npm error No workspaces found`
 
 ---
 
