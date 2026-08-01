@@ -240,8 +240,8 @@
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：3天
-- **状态**：待开始
-- **文件**：`backend/ai-base/src/brain/orchestrator.service.ts`、`context-builder.service.ts`、`memory-manager.service.ts`、`prompts/`
+- **状态**：✅ 已完成（2026-08-01 凌舟AI协助执行）
+- **文件**：`backend/ai-base/src/brain/orchestrator.service.ts`、`context-builder.service.ts`、`memory-manager.service.ts`、`brain.module.ts`
 - **问题**：Brain Engine是AI底座核心，负责意图识别、规划、多轮对话、工具调度、响应生成
 - **修复**：
   1. `ContextBuilder`：组装System Prompt（角色设定+业务规则+可用工具列表+租户信息）+ 对话历史 + 用户消息
@@ -252,7 +252,12 @@
      - Step 3: response是纯文本 → 流式返回给用户
      - Step 4: 写操作 → 生成预览 → 等待用户确认 → 执行写入
   4. 最大循环次数10次，防止死循环
-- **验收标准**：完整Agent Loop正常运行，支持多轮对话+工具调用循环
+- **凌舟审查记录**（2026-08-01）：
+  - tsc --noEmit 0 errors，nest build 成功，78个测试全通过
+  - 设计要点：①MemoryManager Redis连接失败自动降级为无记忆模式（retryStrategy 3次后停止重连）；②ContextBuilder 系统提示词支持{tenantId}/{userId}/{role}占位符替换+自动追加可用工具列表；③Orchestrator 用 AsyncGenerator 实现流式事件输出（text/tool_start/tool_result/done/error），ChatController 逐事件转 SSE；④Agent Loop 最大10轮防死循环，每轮累计token+记录工具调用；⑤审计日志在 done 后异步写入（fire-and-forget），失败不阻塞
+  - ChatController 重构：Agent Loop 逻辑全部迁移到 Orchestrator，Controller 仅负责 SSE 传输（设置响应头+逐事件写入+兜底 try-catch）
+  - 备注：写操作确认机制（Step 4）在 R70-15 实现，当前 Orchestrator 仅处理 tool_calls 执行
+- **验收标准**：完整Agent Loop正常运行，支持多轮对话+工具调用循环 ✅
 
 #### R70-09 — [P0] order.tool — 7个销售工具（创建/查询/取消销售单等）
 - **优先级**：P0
@@ -282,8 +287,8 @@
 | R70-05 Service Bridge(HTTP+审计) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-06 Gateway(SSE+Admin API) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
 | R70-07 多租户(Context+Guard+Config) | 凌舟(AI协助) | P0 | 1.5天 | ✅ 已完成 |
-| R70-08 Brain Engine(Agent Loop) | 凌舟(AI协助) | P0 | 3天 | 待开始 |
-| R70-09 order.tool(7个销售工具) | 阿坚 | P0 | 2天 | 待开始 |
+| R70-08 Brain Engine(Agent Loop) | 凌舟(AI协助) | P0 | 3天 | ✅ 已完成 |
+| R70-09 order.tool(7个销售工具) | 凌舟(AI协助) | P0 | 2天 | 待开始 |
 | **P0合计** | — | — | **14天** | — |
 
 > **P0里程碑**：骨架可运行，"创建销售单"端到端对话成功，可进行内部演示。

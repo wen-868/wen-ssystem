@@ -21,6 +21,7 @@ import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
 import { TenantModule } from '../tenant/tenant.module';
+import { BrainModule } from '../brain/brain.module';
 
 /**
  * Gateway 模块 — 对外接口层
@@ -30,10 +31,9 @@ import { TenantModule } from '../tenant/tenant.module';
  * 2. 注册 AdminController（管理 API：工具/Provider/健康检查/审计日志）
  *
  * 依赖：
- * - ProvidersModule（ProviderFactory：创建/管理 LLM Provider 实例）
- * - ToolsModule（ToolRegistry + ToolExecutor：工具注册与执行）
- * - BridgeModule（ServiceClient：后端 API 调用 + AuditLogger：审计日志）
+ * - BrainModule（Orchestrator：Agent Loop 编排 + MemoryManager：对话记忆）✅ R70-08
  * - TenantModule（AiConfigService：租户 AI 配置 + TenantContext：租户上下文）✅ R70-07
+ * - ProvidersModule / ToolsModule / BridgeModule（通过 BrainModule 间接依赖）
  *
  * 被 AppModule 直接导入，Controller 自动注册到 NestJS 路由系统。
  * TenantMiddleware 在 TenantModule 中注册，应用于 /chat 路由。
@@ -41,7 +41,7 @@ import { TenantModule } from '../tenant/tenant.module';
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
 @Module({
-  imports: [ProvidersModule, ToolsModule, BridgeModule, TenantModule],
+  imports: [BrainModule, TenantModule, ProvidersModule, ToolsModule, BridgeModule],
   controllers: [ChatController, AdminController],
 })
 export class GatewayModule {}

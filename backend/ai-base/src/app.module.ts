@@ -6,6 +6,7 @@ import { ProvidersModule } from './providers/providers.module';
 import { ToolsModule } from './tools/tools.module';
 import { DatabaseModule } from './database/database.module';
 import { BridgeModule } from './bridge/bridge.module';
+import { BrainModule } from './brain/brain.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { TenantModule } from './tenant/tenant.module';
 
@@ -19,10 +20,10 @@ import { TenantModule } from './tenant/tenant.module';
  * 4. BridgeModule — ServiceClient(HTTP 调用后端) + AuditLogger(审计日志) ✅ R70-05 已接入
  * 5. ToolsModule — ToolRegistry + ToolExecutor + EchoTool ✅ R70-04 已接入（R70-05 接入 AuditLogger）
  * 6. TenantModule — TenantContext + CryptoService + AiConfigService + TenantMiddleware ✅ R70-07 已接入
- * 7. GatewayModule — ChatController(SSE) + AdminController(管理API) ✅ R70-06 已接入（R70-07 接入多租户）
+ * 7. BrainModule — ContextBuilder + MemoryManager(Redis) + Orchestrator(Agent Loop) ✅ R70-08 已接入
+ * 8. GatewayModule — ChatController(SSE) + AdminController(管理API) ✅ R70-06 已接入（R70-08 接入 Orchestrator）
  *
  * 后续任务将逐步导入以下模块：
- * - BrainModule（brain/）— 大脑引擎 + Agent Loop（R70-08）
  * - RagModule（rag/）— 知识库检索增强
  */
 @Module({
@@ -42,6 +43,8 @@ import { TenantModule } from './tenant/tenant.module';
     ToolsModule,
     // 多租户层（TenantContext + CryptoService + AiConfigService + TenantMiddleware）
     TenantModule,
+    // 大脑引擎（ContextBuilder + MemoryManager + Orchestrator Agent Loop）
+    BrainModule,
     // Gateway 层（ChatController SSE 流式对话 + AdminController 管理 API）
     GatewayModule,
   ],
