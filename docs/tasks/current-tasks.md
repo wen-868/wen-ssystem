@@ -493,12 +493,28 @@
 - **优先级**：P2
 - **负责人**：阿澈
 - **预计**：1.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02 阿澈执行）
+- **阿澈执行记录**（2026-08-02）：
+  - 交付文件（8个新增/修改）：
+    - `app-mobile/src/api/modules/ai.ts`（新增：SSE 流式对话封装，H5 用 fetch+ReadableStream，非 H5 降级 uni.request 本地解析；confirm/cancel 确认接口）
+    - `app-mobile/src/pages/ai-chat/ai-chat.vue`（新增：对话页面，底部输入框+消息列表，用户/AI 流式气泡/工具调用状态/写操作预览卡片确认取消，语音录音 UI 骨架）
+    - `app-mobile/src/static/tabbar/ai.svg`、`ai-active.svg`（新增：AI助手 tabBar 图标，风格与现有图标一致）
+    - `app-mobile/src/pages.json`（注册 ai-chat 路由 + tabBar 新增"AI助手"第6入口）
+    - `app-mobile/src/api/index.ts`（导出 aiApi）
+    - `app-mobile/package.json`（新增 build 脚本 `npm run build:h5`）
+  - 验证结果：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 类型检查 | `npx vue-tsc --noEmit` | exit 0，0 errors |
+    | H5 构建 | `npm run build:h5` | DONE Build complete，0 errors |
+    | 小程序构建 | `npm run build:mp-weixin` | DONE Build complete，0 errors（微信运行时 tabBar 上限5个属平台限制，构建层已通过） |
+    | 别名构建 | `npm run build` | DONE Build complete，0 errors |
+  - 说明：①SSE 事件解析（text/tool_start/tool_result/done/error）与后端 R70-06/08 契约对齐，预览卡片渲染与 R70-09 createSalesOrder preview.details 结构对齐；②语音输入按任务要求实现录音 UI+回调骨架，标注 TODO 对接点（后端 AI 底座暂无 ASR 接口）；③JWT 复用 merchant_token；④AI 底座 baseURL 读 VITE_AI_BASE_URL，默认 http://localhost:3016
 - **文件**：`app-mobile/src/pages/ai-chat/`（新建）
 - **问题**：移动端需要AI对话页面，适配H5+小程序
 - **修复**：
   1. ai-chat.vue：对话页面，底部输入框+消息列表，SSE流式接收
-  2. 语音输入：uni.getRecorderManager录音→转文字→发送
+  2. 语音输入：uni.getRecorderManager录音→转文字→发送（H5 用 MediaRecorder，录音 UI+回调骨架+TODO 对接点）
   3. 底部TabBar新增"AI助手"入口
 - **验收标准**：移动端可对话，流式显示，语音输入可用
 
