@@ -312,7 +312,14 @@
 - **优先级**：P1
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：已完成
+- **状态**：✅ 已完成（2026-08-01 阿坚执行 / 凌舟审查通过）
+- **凌舟审查记录**（2026-08-01）：
+  - git log + grep 双重验证通过：commit `6a1f82ed`（主体，16文件+1628/-48）+ `d20f5b24`（文档）
+  - 独立验证：build 0 errors / lint 0 errors 0 warnings / jest 9 suites 120 tests 全通过
+  - 额外9个文件 diff 逐一核查：均为纯格式化（行宽/引号/import合并），无逻辑变更 ✅
+  - inventoryTransfer.tool.ts（434行）：字段对齐 transfer-order-v2.controller.ts（fromStoreId/toStoreId/items），confirm=false预览/confirm=true执行，校验调出调入不同
+  - 修复 R70-09 遗留 bug：checkInventory 解析 list 但真实后端返回 records，改为双字段兼容
+  - 备注：任务描述 warehouseId 与真实后端不符（实际支持 keyword/storeId/category），已按真实字段实现
 - **文件**：
   - `backend/ai-base/src/tools/definitions/inventory-transfer.tool.ts`（inventoryTransfer 调拨，写操作+预览确认）
   - `backend/ai-base/src/tools/definitions/stock-check.tool.ts`（stockCheck 盘点，写操作+预览确认）
@@ -405,7 +412,7 @@
 
 | 任务 | 负责人 | 优先级 | 工时 | 状态 |
 |------|--------|:------:|:----:|:----:|
-| R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | 进行中 |
+| R70-10 inventory.tool(3个) | 阿坚 | P1 | 1天 | ✅ 已完成 |
 | R70-11 product+customer.tool(5个) | 阿坚 | P1 | 1天 | 待开始 |
 | R70-12 purchase+delivery.tool(4个) | 阿坚 | P1 | 2天 | 待开始 |
 | R70-13 finance+report.tool(8个) | 阿坚 | P1 | 2天 | 待开始 |
