@@ -1,5 +1,31 @@
 ﻿import { describe, it, expect } from "vitest";
-import { env } from "../../config/env";
+import { beforeEach } from "vitest";
+
+/**
+ * env.ts 在模块加载时执行 dotenv/config 读取 backend/.env，
+ * 且 env 对象的属性在 import 时一次性求值固化（踩坑日志 #18）。
+ * 修复：动态 import + 加载前显式设置默认值，使测试与本地 .env 解耦。
+ */
+let env: typeof import("../../config/env")["env"];
+
+beforeEach(async () => {
+  process.env.JWT_SECRET = "test-secret-key-for-vitest";
+  process.env.USE_MOCK_DB = "true";
+  process.env.NODE_ENV = "test";
+  process.env.PORT = "8080";
+  process.env.DB_HOST = "127.0.0.1";
+  process.env.DB_PORT = "3306";
+  process.env.DB_USER = "zhixiang_app";
+  process.env.DB_NAME = "liquor_inventory";
+  process.env.REDIS_HOST = "127.0.0.1";
+  process.env.REDIS_PORT = "6379";
+  process.env.DOMAIN = "onepan.cn";
+  process.env.API_DOMAIN = "api.onepan.cn";
+  process.env.ADMIN_DOMAIN = "admin.onepan.cn";
+  process.env.MERCHANT_DOMAIN = "m.onepan.cn";
+  const mod = await import("../../config/env");
+  env = mod.env;
+});
 
 describe("config/env", () => {
   it("应读取端口号", () => {

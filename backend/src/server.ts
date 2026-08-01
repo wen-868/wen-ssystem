@@ -126,15 +126,16 @@ function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>
   }
 }
 
-// 测试环境不禁用限流，避免影响测试
+// 全局限流：生产环境 100 次/分钟/IP；非生产（开发/本地）放宽到 1000，避免脚本测试频繁触发 429
 if (process.env.NODE_ENV !== "test") {
   // 全局 Rate Limiting：每IP每分钟100请求
-  app.use(createRateLimiter({ windowMs: 60_000, max: 100 }));
+  app.use(createRateLimiter({ windowMs: 60_000, max: process.env.NODE_ENV === "production" ? 100 : 1000 }));
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
 // admin 和 store 登录使用独立实例，避免互相影响计数
-const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试" });
-const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: 20, message: "登录请求过于频繁，请15分钟后再试" });
+const loginLimitMax = process.env.NODE_ENV === "production" ? 20 : 1000;
+const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
+const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
 
 app.use(helmet());
 // CORS 允许域名：从 env.ts 集中管理（R63 修复 — 原先直接读取 process.env）

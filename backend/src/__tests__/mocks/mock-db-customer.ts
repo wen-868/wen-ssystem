@@ -3,7 +3,9 @@ import { state, Row } from "./mock-db-state";
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {
     if (s.includes("count(*) as total from t_member")) return [{ total: state.members.length }];
-    if (s.includes("from t_member") && s.includes("where id = ?")) {
+    // 兼容无别名（WHERE id = ?）与带别名（WHERE m.id = ?）两种查询形态，
+    // 避免详情类查询回落到"from t_member"分支返回全表第一行（R71 脚本测试暴露）
+    if (s.includes("from t_member") && (s.includes("where id = ?") || s.includes("where m.id = ?"))) {
       const member = state.members.find((m) => Number(m.id) === Number(params[0]));
       if (!member) return [];
       const staff = state.users.find((u) => u.id === member.staff_id);

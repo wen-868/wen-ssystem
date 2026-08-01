@@ -74,7 +74,7 @@ describe("customer.controller", () => {
 
   it("getCustomerDetail - 应返回客户详情", async () => {
     (customerService.getCustomerDetail as any).mockResolvedValue({ id: 1, name: "客户A" });
-    const req = mockReq({ params: { memberId: "1" } });
+    const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
     await getCustomerDetail(req as any, res as any, vi.fn());
     expect(customerService.getCustomerDetail).toHaveBeenCalledWith("t1", 1);
@@ -83,7 +83,7 @@ describe("customer.controller", () => {
 
   it("updateCustomer - 应更新客户", async () => {
     (customerService.updateCustomer as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ params: { memberId: "1" }, body: { name: "更新客户" } });
+    const req = mockReq({ params: { id: "1" }, body: { name: "更新客户" } });
     const res = mockRes();
     await updateCustomer(req as any, res as any, vi.fn());
     expect(customerService.updateCustomer).toHaveBeenCalledWith("t1", 1, { name: "更新客户" });
@@ -92,7 +92,7 @@ describe("customer.controller", () => {
 
   it("disableCustomer - 应禁用客户", async () => {
     (customerService.disableCustomer as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ params: { memberId: "1" } });
+    const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
     await disableCustomer(req as any, res as any, vi.fn());
     expect(customerService.disableCustomer).toHaveBeenCalledWith("t1", 1);
@@ -101,7 +101,7 @@ describe("customer.controller", () => {
 
   it("assignStaffToCustomer - 应分配员工", async () => {
     (customerService.assignStaffToCustomer as any).mockResolvedValue({ id: 1 });
-    const req = mockReq({ params: { memberId: "1" }, body: { staffId: 5 } });
+    const req = mockReq({ params: { id: "1" }, body: { staffId: 5 } });
     const res = mockRes();
     await assignStaffToCustomer(req as any, res as any, vi.fn());
     expect(customerService.assignStaffToCustomer).toHaveBeenCalledWith("t1", 1, 5);
@@ -110,7 +110,7 @@ describe("customer.controller", () => {
 
   it("getCustomerPriceHistory - 应返回价格历史", async () => {
     (customerService.getCustomerPriceHistory as any).mockResolvedValue([]);
-    const req = mockReq({ params: { memberId: "1" }, query: { skuId: 2 } });
+    const req = mockReq({ params: { id: "1" }, query: { skuId: 2 } });
     const res = mockRes();
     await getCustomerPriceHistory(req as any, res as any, vi.fn());
     expect(customerService.getCustomerPriceHistory).toHaveBeenCalledWith("t1", 1, 2);
@@ -119,7 +119,7 @@ describe("customer.controller", () => {
 
   it("listCustomerSaleBills - 应返回销售单列表", async () => {
     (customerService.listCustomerSaleBills as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: { page: 1, pageSize: 20 } });
+    const req = mockReq({ params: { id: "1" }, query: { page: 1, pageSize: 20 } });
     const res = mockRes();
     await listCustomerSaleBills(req as any, res as any, vi.fn());
     expect(customerService.listCustomerSaleBills).toHaveBeenCalledWith("t1", 1, 1, 20);
@@ -128,7 +128,7 @@ describe("customer.controller", () => {
 
   it("listCustomerPayments - 应返回回款列表", async () => {
     (customerService.listCustomerPayments as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: { page: 1, pageSize: 20 } });
+    const req = mockReq({ params: { id: "1" }, query: { page: 1, pageSize: 20 } });
     const res = mockRes();
     await listCustomerPayments(req as any, res as any, vi.fn());
     expect(customerService.listCustomerPayments).toHaveBeenCalledWith("t1", 1, 1, 20);
@@ -137,7 +137,7 @@ describe("customer.controller", () => {
 
   it("listCustomerStatements - 应返回对账单列表", async () => {
     (customerService.listCustomerStatements as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: { page: 1, pageSize: 20 } });
+    const req = mockReq({ params: { id: "1" }, query: { page: 1, pageSize: 20 } });
     const res = mockRes();
     await listCustomerStatements(req as any, res as any, vi.fn());
     expect(customerService.listCustomerStatements).toHaveBeenCalledWith("t1", 1, 1, 20);
@@ -146,7 +146,7 @@ describe("customer.controller", () => {
 
   it("getCustomerPurchaseStats - 应返回购买统计", async () => {
     (customerService.getCustomerPurchaseStats as any).mockResolvedValue({ total: 100 });
-    const req = mockReq({ params: { memberId: "1" } });
+    const req = mockReq({ params: { id: "1" } });
     const res = mockRes();
     await getCustomerPurchaseStats(req as any, res as any, vi.fn());
     expect(customerService.getCustomerPurchaseStats).toHaveBeenCalledWith("t1", 1);
@@ -172,7 +172,7 @@ describe("customer.controller", () => {
 
   it("listCustomerSaleBills - 不传page/pageSize时使用默认值", async () => {
     (customerService.listCustomerSaleBills as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const req = mockReq({ params: { id: "1" }, query: {} });
     const res = mockRes();
     await listCustomerSaleBills(req as any, res as any, vi.fn());
     expect(customerService.listCustomerSaleBills).toHaveBeenCalledWith("t1", 1, 1, 20);
@@ -180,7 +180,7 @@ describe("customer.controller", () => {
 
   it("listCustomerPayments - 不传page/pageSize时使用默认值", async () => {
     (customerService.listCustomerPayments as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const req = mockReq({ params: { id: "1" }, query: {} });
     const res = mockRes();
     await listCustomerPayments(req as any, res as any, vi.fn());
     expect(customerService.listCustomerPayments).toHaveBeenCalledWith("t1", 1, 1, 20);
@@ -188,7 +188,7 @@ describe("customer.controller", () => {
 
   it("listCustomerStatements - 不传page/pageSize时使用默认值", async () => {
     (customerService.listCustomerStatements as any).mockResolvedValue({ total: 0, records: [] });
-    const req = mockReq({ params: { memberId: "1" }, query: {} });
+    const req = mockReq({ params: { id: "1" }, query: {} });
     const res = mockRes();
     await listCustomerStatements(req as any, res as any, vi.fn());
     expect(customerService.listCustomerStatements).toHaveBeenCalledWith("t1", 1, 1, 20);

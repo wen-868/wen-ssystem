@@ -34,6 +34,14 @@ import {
 
 const ctx = { tenantId: "t1", userId: 1, username: "admin" };
 
+/**
+ * 生成 N 天前的日期字符串（YYYY-MM-DD）。
+ * 用于构造 lastTradeDate，避免测试依赖真实运行日期导致催收等级断言漂移
+ * （例如固定日期随日期推移从 HEAVY 落入 SEVERE）。
+ */
+const daysAgo = (days: number): string =>
+  new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -90,7 +98,7 @@ describe("admin credit-scoring.service - evaluateCreditScore", () => {
       .mockResolvedValueOnce({ id: 4, name: "赵六", mobile: "13800000004" })
       .mockResolvedValueOnce({  // tradeStats: score=35 → DOWNGRADE
         totalOrders: 0, totalAmount: 0, paidAmount: 0, overdueCount: 10,
-        lastTradeDate: "2026-06-01",  // ~38天前 → overdueDays=38 → strategy HEAVY
+        lastTradeDate: daysAgo(38),  // 38天前 → overdueDays=38 → strategy HEAVY
       })
       .mockResolvedValueOnce({ credit_limit: 200000, credit_used: 100000, credit_available: 100000, payment_term: "NET_60", status: "ACTIVE" });
     const res = await evaluateCreditScore(4, ctx);
@@ -140,7 +148,7 @@ describe("admin credit-scoring.service - evaluateCreditScore", () => {
       .mockResolvedValueOnce({ id: 8, name: "郑十", mobile: "13800000008" })
       .mockResolvedValueOnce({
         totalOrders: 0, totalAmount: 0, paidAmount: 0, overdueCount: 0,
-        lastTradeDate: "2020-01-01",  // ~2372天前 → overdueDays > 999 → strategy undefined
+        lastTradeDate: daysAgo(1500),  // 1500天前 → overdueDays > 999 → strategy undefined
       })
       .mockResolvedValueOnce({ credit_limit: 100000, credit_used: 50000, credit_available: 50000, payment_term: "NET_30", status: "ACTIVE" });
     const res = await evaluateCreditScore(8, ctx);
@@ -264,7 +272,7 @@ describe("admin credit-scoring.service - autoGenerateCollections", () => {
       .mockResolvedValueOnce([{  // overdue customers
         customerId: 1, customerName: "张三", customerMobile: "13800000001",
         creditUsed: 50000, paymentTerm: "NET_30", creditLimit: 100000,
-        lastTradeDate: "2026-06-01",  // ~38天前
+        lastTradeDate: daysAgo(38),  // 38天前 → overdueDays=38 → strategy HEAVY
       }])
       .mockResolvedValueOnce({});  // INSERT collection record
     mocks.queryOneWithTenant.mockResolvedValue(null);  // no existing record

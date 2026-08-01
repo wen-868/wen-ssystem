@@ -18,24 +18,24 @@ export const createCustomer = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerDetail = asyncHandler(async (req, res) => {
-  const result = await customerService.getCustomerDetail(req.tenantId!, Number(req.params.memberId));
+  const result = await customerService.getCustomerDetail(req.tenantId!, Number(req.params.id));
   res.json(ok(result));
 });
 
 export const updateCustomer = asyncHandler(async (req, res) => {
-  const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.memberId), req.body);
+  const result = await customerService.updateCustomer(req.tenantId!, Number(req.params.id), req.body);
   res.json(ok(result));
 });
 
 export const disableCustomer = asyncHandler(async (req, res) => {
-  const result = await customerService.disableCustomer(req.tenantId!, Number(req.params.memberId));
+  const result = await customerService.disableCustomer(req.tenantId!, Number(req.params.id));
   res.json(ok(result));
 });
 
 export const assignStaffToCustomer = asyncHandler(async (req, res) => {
   const result = await customerService.assignStaffToCustomer(
     req.tenantId!,
-    Number(req.params.memberId),
+    Number(req.params.id),
     Number(req.body.staffId)
   );
   res.json(ok(result));
@@ -44,7 +44,7 @@ export const assignStaffToCustomer = asyncHandler(async (req, res) => {
 export const getCustomerPriceHistory = asyncHandler(async (req, res) => {
   const result = await customerService.getCustomerPriceHistory(
     req.tenantId!,
-    Number(req.params.memberId),
+    Number(req.params.id),
     Number(req.query.skuId)
   );
   res.json(ok(result));
@@ -53,7 +53,7 @@ export const getCustomerPriceHistory = asyncHandler(async (req, res) => {
 export const listCustomerSaleBills = asyncHandler(async (req, res) => {
   const result = await customerService.listCustomerSaleBills(
     req.tenantId!,
-    Number(req.params.memberId),
+    Number(req.params.id),
     Number(req.query.page || 1),
     Number(req.query.pageSize || 20)
   );
@@ -63,7 +63,7 @@ export const listCustomerSaleBills = asyncHandler(async (req, res) => {
 export const listCustomerPayments = asyncHandler(async (req, res) => {
   const result = await customerService.listCustomerPayments(
     req.tenantId!,
-    Number(req.params.memberId),
+    Number(req.params.id),
     Number(req.query.page || 1),
     Number(req.query.pageSize || 20)
   );
@@ -73,7 +73,7 @@ export const listCustomerPayments = asyncHandler(async (req, res) => {
 export const listCustomerStatements = asyncHandler(async (req, res) => {
   const result = await customerService.listCustomerStatements(
     req.tenantId!,
-    Number(req.params.memberId),
+    Number(req.params.id),
     Number(req.query.page || 1),
     Number(req.query.pageSize || 20)
   );
@@ -81,7 +81,7 @@ export const listCustomerStatements = asyncHandler(async (req, res) => {
 });
 
 export const getCustomerPurchaseStats = asyncHandler(async (req, res) => {
-  const result = await customerService.getCustomerPurchaseStats(req.tenantId!, Number(req.params.memberId));
+  const result = await customerService.getCustomerPurchaseStats(req.tenantId!, Number(req.params.id));
   res.json(ok(result));
 });
 

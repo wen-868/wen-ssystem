@@ -201,13 +201,14 @@ export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | nu
         customerType: params[5],
         businessStatus: "CREATED",
         collectionStatus: "UNPAID",
-        goodsAmount: params[6],
-        receivableAmount: params[9],
-        receivable_amount: params[9],
+        // 对齐 createSaleBill 的 INSERT 参数顺序（saleType 在 params[6]，goodsAmount 在 params[7]，receivable 在 params[10]/[11]）
+        goodsAmount: params[7],
+        receivableAmount: params[10],
+        receivable_amount: params[10],
         receivedAmount: 0,
         received_amount: 0,
-        unreceivedAmount: params[10],
-        unreceived_amount: params[10],
+        unreceivedAmount: params[11],
+        unreceived_amount: params[11],
         createdAt: new Date().toISOString()
       });
       return result();

@@ -182,7 +182,9 @@ export async function createRefund(
     return { success: false, code: "404", message: "支付订单不存在" };
   }
 
-  if (payment.status !== 'PAID') {
+  // 支付单成功状态存在两种写法：线下收款/微信回调置 SUCCESS，管理端支付确认置 PAID。
+  // 退款对两种成功状态均开放，避免真实支付成功后无法退款（R71 脚本测试暴露）。
+  if (payment.status !== 'PAID' && payment.status !== 'SUCCESS') {
     return { success: false, code: "400", message: "订单未支付，无法退款" };
   }
 
@@ -192,12 +194,16 @@ export async function createRefund(
 
   const refundNo = makeBizNo("TK");
 
-  await wechatPay.createRefund({
-    outRefundNo: refundNo,
-    outTradeNo: body.payNo,
-    amount: body.amount,
-    reason: body.reason
-  });
+  // Mock 模式跳过真实微信退款 API（无凭证会抛错），本地/测试直接生成退款单；
+  // 生产环境仍走真实微信退款（R71 脚本测试暴露）。
+  if (!env.USE_MOCK_DB) {
+    await wechatPay.createRefund({
+      outRefundNo: refundNo,
+      outTradeNo: body.payNo,
+      amount: body.amount,
+      reason: body.reason
+    });
+  }
 
   await query(
     `INSERT INTO t_refund_order (refund_no, pay_no, source_type, source_no, amount, reason, status, tenant_id)
