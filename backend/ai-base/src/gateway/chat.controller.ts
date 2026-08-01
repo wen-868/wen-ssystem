@@ -17,11 +17,29 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import { Body, Controller, Logger, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Param,
+  Post,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { Orchestrator } from '../brain/orchestrator.service';
+import { ConfirmationService } from '../brain/confirmation.service';
 import { TenantContext } from '../tenant/tenant-context';
+import { ToolExecutor } from '../tools/tool-executor';
+import type { ToolCall } from '../providers/provider.interface';
+import type { ToolContext } from '../tools/tool.interface';
 import { ChatDto } from './dto/chat.dto';
+import {
+  ConfirmConfirmationDto,
+  ExecutedOperationResponse,
+  PendingConfirmationResponse,
+  RevokeOperationDto,
+} from './dto/confirmation.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -30,6 +48,8 @@ export class ChatController {
   constructor(
     private readonly orchestrator: Orchestrator,
     private readonly tenantContext: TenantContext,
+    private readonly confirmationService: ConfirmationService,
+    private readonly executor: ToolExecutor,
   ) {}
 
   /**
@@ -104,5 +124,251 @@ export class ChatController {
    */
   private sendSse(res: Response, data: Record<string, unknown>): void {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 写操作确认机制（R70-15）
+  // ──────────────────────────────────────────────────────────────
+
+  /**
+   * 获取当前租户的待确认操作列表
+   *
+   * GET /api/chat/confirmations
+   * Headers: Authorization: Bearer <JWT>（TenantMiddleware 注入 tenantId）
+   */
+  @Get('confirmations')
+  listConfirmations(): { total: number; items: PendingConfirmationResponse[] } {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      return { total: 0, items: [] };
+    }
+
+    const items: PendingConfirmationResponse[] = this.confirmationService
+      .listPending(tenantId)
+      .map((record) => ({
+        confirmationId: record.confirmationId,
+        operationLabel: record.operationLabel,
+        toolName: record.toolName,
+        preview: record.preview,
+        createdAt: record.createdAt,
+        expiresAt: record.expiresAt,
+        status: record.status === 'confirmed' ? 'confirmed' : 'pending',
+      }));
+
+    return { total: items.length, items };
+  }
+
+  /**
+   * 确认执行待确认操作
+   *
+   * POST /api/chat/confirmations/:confirmationId/confirm
+   * 流程：校验待确认记录 → 构造 confirm=true 参数 → 调用对应工具真正执行
+   *       → 执行成功后注册 3 分钟撤销窗口
+   */
+  @Post('confirmations/:confirmationId/confirm')
+  async confirmOperation(
+    @Param('confirmationId') confirmationId: string,
+    @Body() dto: ConfirmConfirmationDto,
+  ): Promise<{
+    success: boolean;
+    data?: unknown;
+    operationId?: string;
+    message?: string;
+    error?: string;
+    suggestion?: string;
+  }> {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      return { success: false, error: '未认证：无法确定租户身份' };
+    }
+
+    // 1. 校验并确认待确认记录
+    const confirmed = this.confirmationService.confirm(
+      confirmationId,
+      tenantId,
+    );
+    if (!confirmed.success) {
+      return { success: false, error: confirmed.error };
+    }
+
+    const record = confirmed.confirmation;
+
+    // 2. 构造最终执行参数（confirm=true）
+    const execArgs: Record<string, unknown> = {
+      ...record.args,
+      confirm: true,
+    };
+    if (dto.remark && record.args.remark === undefined) {
+      execArgs.remark = dto.remark;
+    }
+
+    // 3. 调用对应工具真正执行
+    const toolCall: ToolCall = {
+      id: `confirm-${confirmationId}`,
+      type: 'function',
+      function: {
+        name: record.toolName,
+        arguments: JSON.stringify(execArgs),
+      },
+    };
+    const toolContext: ToolContext = this.buildToolContext(tenantId);
+    const result = await this.executor.executeToolCall(toolCall, toolContext);
+
+    if (!result.success) {
+      this.logger.warn(
+        `确认执行失败：id=${confirmationId} tool=${record.toolName} error=${result.error ?? '未知'}`,
+      );
+      return {
+        success: false,
+        error: result.error ?? '工具执行失败',
+        suggestion: result.suggestion,
+      };
+    }
+
+    // 4. 执行成功 → 注册 3 分钟撤销窗口
+    const operation = this.confirmationService.registerExecuted({
+      tenantId,
+      conversationId: record.conversationId,
+      confirmationId: record.confirmationId,
+      toolName: record.toolName,
+      args: execArgs,
+      result: result.data,
+      operationLabel: record.operationLabel,
+    });
+
+    this.logger.log(
+      `确认执行成功：id=${confirmationId} tool=${record.toolName} operationId=${operation.operationId}`,
+    );
+
+    return {
+      success: true,
+      data: result.data,
+      operationId: operation.operationId,
+      message: `${record.operationLabel}执行成功，3 分钟内可撤销`,
+    };
+  }
+
+  /**
+   * 取消待确认操作
+   *
+   * POST /api/chat/confirmations/:confirmationId/cancel
+   */
+  @Post('confirmations/:confirmationId/cancel')
+  cancelOperation(@Param('confirmationId') confirmationId: string): {
+    success: boolean;
+    message?: string;
+    error?: string;
+  } {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      return { success: false, error: '未认证：无法确定租户身份' };
+    }
+
+    const cancelled = this.confirmationService.cancel(confirmationId, tenantId);
+    if (!cancelled) {
+      return { success: false, error: '待确认操作不存在或已过期' };
+    }
+
+    return { success: true, message: '操作已取消' };
+  }
+
+  /**
+   * 撤销已执行操作（3 分钟内，仅限未发货状态）
+   *
+   * POST /api/chat/operations/:operationId/revoke
+   * 注意：撤销的最终落地（如取消销售单/回退库存）由业务侧工具完成，
+   *       本端点负责校验撤销窗口并登记撤销状态，返回操作指引。
+   */
+  @Post('operations/:operationId/revoke')
+  revokeOperation(
+    @Param('operationId') operationId: string,
+    @Body() dto: RevokeOperationDto,
+  ): {
+    success: boolean;
+    message?: string;
+    error?: string;
+    revocable?: boolean;
+  } {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      return { success: false, error: '未认证：无法确定租户身份' };
+    }
+
+    const check = this.confirmationService.canRevoke(operationId, tenantId);
+    if (!check.ok) {
+      return { success: false, error: check.reason ?? '无法撤销' };
+    }
+
+    this.confirmationService.markRevoked(operationId, tenantId);
+    this.logger.log(
+      `操作已登记撤销：id=${operationId} tenant=${tenantId} reason=${dto.reason ?? '用户主动撤销'}`,
+    );
+
+    return {
+      success: true,
+      revocable: true,
+      message: '撤销登记成功，请通过对应单据的取消/退货流程完成最终回退',
+    };
+  }
+
+  /**
+   * 查询已执行操作（含撤销窗口状态）
+   *
+   * GET /api/chat/operations/:operationId
+   */
+  @Get('operations/:operationId')
+  getOperation(@Param('operationId') operationId: string): {
+    success: boolean;
+    operation?: ExecutedOperationResponse;
+    error?: string;
+  } {
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      return { success: false, error: '未认证：无法确定租户身份' };
+    }
+
+    const operation = this.confirmationService.getExecuted(operationId);
+    if (!operation || operation.tenantId !== tenantId) {
+      return { success: false, error: '操作记录不存在或已过期' };
+    }
+
+    const revocable = this.confirmationService.canRevoke(
+      operationId,
+      tenantId,
+    ).ok;
+
+    return {
+      success: true,
+      operation: {
+        operationId: operation.operationId,
+        operationLabel: operation.operationLabel,
+        toolName: operation.toolName,
+        result: operation.result,
+        executedAt: operation.executedAt,
+        revokeExpiresAt: operation.revokeExpiresAt,
+        revocable,
+      },
+    };
+  }
+
+  /**
+   * 从 TenantContext 获取租户 ID
+   */
+  private getTenantId(): string | undefined {
+    return this.tenantContext.getData()?.tenantId;
+  }
+
+  /**
+   * 构建工具执行上下文
+   */
+  private buildToolContext(tenantId: string): ToolContext {
+    const ctxData = this.tenantContext.getData();
+    return {
+      tenantId,
+      userId: ctxData?.userId,
+      sessionId: ctxData?.sessionId,
+      role: ctxData?.role,
+      authToken: ctxData?.authToken,
+    };
   }
 }

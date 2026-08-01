@@ -22,10 +22,11 @@ import { TenantModule } from '../tenant/tenant.module';
 import { ContextBuilder } from './context-builder.service';
 import { MemoryManager } from './memory-manager.service';
 import { Orchestrator } from './orchestrator.service';
+import { ConfirmationService } from './confirmation.service';
 
 @Module({
   imports: [ProvidersModule, ToolsModule, BridgeModule, TenantModule],
-  providers: [ContextBuilder, MemoryManager, Orchestrator],
-  exports: [Orchestrator, MemoryManager],
+  providers: [ContextBuilder, MemoryManager, Orchestrator, ConfirmationService],
+  exports: [Orchestrator, MemoryManager, ConfirmationService],
 })
 export class BrainModule {}

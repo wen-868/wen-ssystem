@@ -39,8 +39,9 @@ import { AiConfigService } from '../tenant/ai-config.service';
 import { TenantContext } from '../tenant/tenant-context';
 import { ContextBuilder } from './context-builder.service';
 import { MemoryManager } from './memory-manager.service';
+import { ConfirmationService } from './confirmation.service';
 import type { ChatMessage, ChatResult } from '../providers/provider.interface';
-import type { ToolContext } from '../tools/tool.interface';
+import type { ToolContext, ToolResult } from '../tools/tool.interface';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -59,6 +60,10 @@ export type OrchestratorEvent =
       success: boolean;
       data?: unknown;
       error?: string;
+      /** R70-15：写操作预览（工具返回 preview 时携带，供前端渲染确认卡片） */
+      preview?: ToolResult['preview'];
+      /** R70-15：待确认操作 ID（写操作预览时由 ConfirmationService 生成） */
+      confirmationId?: string;
     }
   | {
       type: 'done';
@@ -104,6 +109,7 @@ export class Orchestrator {
     private readonly tenantContext: TenantContext,
     private readonly contextBuilder: ContextBuilder,
     private readonly memoryManager: MemoryManager,
+    private readonly confirmationService: ConfirmationService,
   ) {}
 
   /**
@@ -277,12 +283,40 @@ export class Orchestrator {
             toolContext,
           );
 
+          // ── R70-15：写操作预览 → 注册待确认操作 ──
+          // 工具返回 preview（写操作未确认）时，由 ConfirmationService 生成
+          // confirmationId，并在 tool_result 事件中携带，供前端渲染确认卡片。
+          let confirmationId: string | undefined;
+          if (toolResult.preview) {
+            try {
+              const confirmation = this.confirmationService.create({
+                tenantId,
+                conversationId,
+                toolName: tc.function.name,
+                args: JSON.parse(tc.function.arguments) as Record<
+                  string,
+                  unknown
+                >,
+                preview: toolResult.preview,
+                operationLabel:
+                  toolResult.preview.operation ?? tc.function.name,
+              });
+              confirmationId = confirmation.confirmationId;
+            } catch (err) {
+              this.logger.warn(
+                `注册待确认操作失败：${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          }
+
           yield {
             type: 'tool_result',
             tool: tc.function.name,
             success: toolResult.success,
             data: toolResult.data,
             error: toolResult.error,
+            preview: toolResult.preview,
+            confirmationId,
           };
 
           allToolCalls.push({
