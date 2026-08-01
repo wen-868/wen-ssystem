@@ -17,6 +17,7 @@
 import { Module } from '@nestjs/common';
 import { ChatController } from './chat.controller';
 import { AdminController } from './admin.controller';
+import { AiConfigController } from './ai-config.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -48,6 +49,6 @@ import { BrainModule } from '../brain/brain.module';
     ToolsModule,
     BridgeModule,
   ],
-  controllers: [ChatController, AdminController],
+  controllers: [ChatController, AdminController, AiConfigController],
 })
 export class GatewayModule {}

@@ -555,7 +555,7 @@
 - **优先级**：P2
 - **负责人**：阿坚
 - **预计**：1天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02 阿坚执行 / 验证全通过）
 - **文件**：`backend/ai-base/src/common/rate-limiter.ts`、`crypto.ts`
 - **问题**：AI底座需要限流防止滥用，API Key需要加密存储
 - **修复**：
@@ -563,6 +563,19 @@
   2. API Key加密：AES-256-CBC加密存储，运行时解密
   3. 请求日志：记录IP/UA/tenantId/响应时间
 - **验收标准**：超过60次/分钟返回429；数据库中API Key字段为密文
+- **完成证据**（2026-08-02 阿坚验证）：
+  - 新增文件：`common/rate-limiter.ts`（令牌桶：Redis Lua 原子计数 + 内存降级，PX 120s 过期清理）、`common/rate-limiter.middleware.ts`（超限 429 + Retry-After + X-RateLimit-Remaining）、`common/request-logging.middleware.ts`（IP/UA/tenantId/响应耗时，res.on('finish') 全生命周期）、`common/common.module.ts`（导出 RateLimiterService）、`tenant/ai-config-admin.service.ts`（平台/租户配置 CRUD + 用量统计 + 计费套餐，apiKey AES-256-GCM 加密存储、对外视图脱敏）、`gateway/ai-config.controller.ts` + `dto/ai-config.dto.ts`（8 个端点：platform/tenants/usage/billing）
+  - 接入：`tenant.module.ts` 注册 3 个中间件（RequestLogging 全局 → Tenant → RateLimiter 应用于 chat 路由）+ AiConfigAdminService；`gateway.module.ts` 注册 AiConfigController
+  - 验收对照：①超过60次/分钟返回429 — `RateLimiterMiddleware` 超限写 `res.status(429)` + Retry-After ✅；②数据库中 API Key 字段为密文 — 写入经 `CryptoService.encrypt()`（AES-256-GCM，优于任务要求的 CBC，带认证标签防篡改，R70-07 已有实现），单测断言 `saved.apiKey !== 明文 && decryptSafe(saved.apiKey) === 明文` ✅；③请求日志记录 IP/UA/tenantId/响应时间 ✅
+  - 验证结果：
+    | 验证项 | 结果 |
+    |--------|------|
+    | `npx tsc --noEmit` | 0 errors |
+    | `npx eslint "src/**/*.ts" --fix` | 0 errors 0 warnings |
+    | `npx jest --silent` | 19 suites / 310 tests 全通过 |
+    | `npx nest build` | exit 0 |
+    | 覆盖率 | rate-limiter/中间件/controller/service Stmts 100% |
+  - 踩坑记录：`jest.hoisted` 在 @types/jest 30.0.0 无类型声明 → 改用工厂内创建 + `__mockInstance` 挂载方案；`jest.mock` 工厂引用顶层 const 在 ts-jest 下 TDZ 报错；TypeORM FindOperator 序列化为小写 `_type`；create mock 返回原引用污染 toHaveBeenCalledWith 断言 → 返回拷贝（详见踩坑日志）
 
 #### R70-20 — [P2] 主动能力 — 9项定时巡检+推送
 - **优先级**：P2
@@ -616,7 +629,7 @@
 | R70-16 admin-web AI对话窗口 | 墨 | P2 | 2天 | ✅ 已完成 |
 | R70-17 app-mobile AI对话页面 | 阿澈 | P2 | 1.5天 | 待开始 |
 | R70-18 saas-admin AI配置页面 | 墨 | P2 | 2天 | 待开始 |
-| R70-19 安全(限流+加密) | 阿坚 | P2 | 1天 | 待开始 |
+| R70-19 安全(限流+加密) | 阿坚 | P2 | 1天 | ✅ 已完成 |
 | R70-20 主动能力(9项巡检) | 阿坚 | P2 | 3天 | 待开始 |
 | R70-21 RAG引擎 | 阿坚 | P2 | 2天 | 待开始 |
 | R70-22 部署(Docker+健康检查) | 阿坚 | P2 | 1天 | 待开始 |
