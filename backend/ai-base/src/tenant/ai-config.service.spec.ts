@@ -11,16 +11,21 @@ import { CryptoService } from './crypto.service';
 import { TenantAiConfigEntity } from '../database/entities/tenant-ai-config.entity';
 import { PlatformAiConfigEntity } from '../database/entities/platform-ai-config.entity';
 
-const ENCRYPTION_KEY = '14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359';
+const ENCRYPTION_KEY =
+  '14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359';
 
 function createConfigService(): ConfigService {
-  return { get: jest.fn((key: string) => key === 'ENCRYPTION_KEY' ? ENCRYPTION_KEY : undefined) } as unknown as ConfigService;
+  return {
+    get: jest.fn((key: string) =>
+      key === 'ENCRYPTION_KEY' ? ENCRYPTION_KEY : undefined,
+    ),
+  } as unknown as ConfigService;
 }
 
 function createMockRepo<T extends ObjectLiteral>(): jest.Mocked<Repository<T>> {
   return {
     findOne: jest.fn(),
-    create: jest.fn((entity) => entity),
+    create: jest.fn((entity: T): T => entity),
     save: jest.fn(),
   } as unknown as jest.Mocked<Repository<T>>;
 }
@@ -37,13 +42,20 @@ describe('AiConfigService', () => {
     platformRepo = createMockRepo<PlatformAiConfigEntity>();
     tenantContext = new TenantContext();
     crypto = new CryptoService(createConfigService());
-    service = new AiConfigService(tenantRepo, platformRepo, tenantContext, crypto);
+    service = new AiConfigService(
+      tenantRepo,
+      platformRepo,
+      tenantContext,
+      crypto,
+    );
   });
 
   /**
    * 构造平台默认配置
    */
-  function makePlatformConfig(overrides: Partial<PlatformAiConfigEntity> = {}): PlatformAiConfigEntity {
+  function makePlatformConfig(
+    overrides: Partial<PlatformAiConfigEntity> = {},
+  ): PlatformAiConfigEntity {
     const encryptedKey = crypto.encrypt('sk-platform-default');
     return {
       id: 1,
@@ -63,7 +75,9 @@ describe('AiConfigService', () => {
   /**
    * 构造租户配置
    */
-  function makeTenantConfig(overrides: Partial<TenantAiConfigEntity> = {}): TenantAiConfigEntity {
+  function makeTenantConfig(
+    overrides: Partial<TenantAiConfigEntity> = {},
+  ): TenantAiConfigEntity {
     const encryptedKey = crypto.encrypt('sk-tenant-custom');
     return {
       id: 1,
@@ -84,7 +98,9 @@ describe('AiConfigService', () => {
 
   describe('不在租户上下文中', () => {
     it('应抛异常', async () => {
-      await expect(service.getResolvedConfig()).rejects.toThrow('当前不在租户上下文中');
+      await expect(service.getResolvedConfig()).rejects.toThrow(
+        '当前不在租户上下文中',
+      );
     });
   });
 
@@ -95,9 +111,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(tenantConfig);
       platformRepo.findOne.mockResolvedValue(platformConfig);
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
       expect(result.provider).toBe('ollama');
@@ -116,9 +131,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(tenantConfig);
       platformRepo.findOne.mockResolvedValue(platformConfig);
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
       expect(result.providerConfig.apiKey).toBe('sk-platform-default');
@@ -130,9 +144,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(tenantConfig);
       platformRepo.findOne.mockResolvedValue(platformConfig);
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
       expect(result.systemPrompt).toBe('你是智享AI助手');
@@ -146,9 +159,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(tenantConfig);
       platformRepo.findOne.mockResolvedValue(platformConfig);
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
       expect(result.provider).toBe('deepseek');
@@ -163,9 +175,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(null);
       platformRepo.findOne.mockResolvedValue(makePlatformConfig());
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-002' },
-        () => service.getResolvedConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-002' }, () =>
+        service.getResolvedConfig(),
       );
 
       expect(result.provider).toBe('deepseek');
@@ -179,9 +190,8 @@ describe('AiConfigService', () => {
       platformRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        tenantContext.run(
-          { tenantId: 'tenant-001' },
-          () => service.getResolvedConfig(),
+        tenantContext.run({ tenantId: 'tenant-001' }, () =>
+          service.getResolvedConfig(),
         ),
       ).rejects.toThrow('平台默认 AI 配置不存在');
     });
@@ -192,9 +202,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(null);
       platformRepo.findOne.mockResolvedValue(makePlatformConfig());
 
-      const result = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getProviderConfig(),
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getProviderConfig(),
       );
 
       expect(result.provider).toBe('deepseek');
@@ -206,9 +215,8 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(null);
       platformRepo.findOne.mockResolvedValue(makePlatformConfig());
 
-      const prompt = await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getSystemPrompt(),
+      const prompt = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getSystemPrompt(),
       );
 
       expect(prompt).toBe('你是智享AI助手');
@@ -220,33 +228,33 @@ describe('AiConfigService', () => {
       tenantRepo.findOne.mockResolvedValue(null);
       platformRepo.findOne.mockResolvedValue(makePlatformConfig());
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- 测试断言需引用 mock 方法
+      const findOneMock = platformRepo.findOne;
+
       // 第一次读取
-      await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
       // 平台配置应只查一次（缓存）
-      expect(platformRepo.findOne).toHaveBeenCalledTimes(1);
+      expect(findOneMock).toHaveBeenCalledTimes(1);
 
       // 再次读取（命中缓存）
-      await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
-      expect(platformRepo.findOne).toHaveBeenCalledTimes(1);
+      expect(findOneMock).toHaveBeenCalledTimes(1);
 
       // 清除缓存
       service.clearCache();
 
       // 再次读取（重新查库）
-      await tenantContext.run(
-        { tenantId: 'tenant-001' },
-        () => service.getResolvedConfig(),
+      await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getResolvedConfig(),
       );
 
-      expect(platformRepo.findOne).toHaveBeenCalledTimes(2);
+      expect(findOneMock).toHaveBeenCalledTimes(2);
     });
   });
 });
