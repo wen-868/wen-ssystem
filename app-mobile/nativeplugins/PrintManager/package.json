@@ -1,0 +1,30 @@
+{
+  "name": "PrintManager",
+  "version": "1.0.0",
+  "description": "智享全链 App 蓝牙热敏打印原生插件，支持 58mm/80mm 热敏打印机与针式三联打印，含销售单/销售退货/班结/日结等打印模板，支持文本/分隔线/表格/一维码/二维码/走纸等多种打印行类型",
+  "keywords": [
+    "bluetooth",
+    "printer",
+    "thermal-printer",
+    "esc-pos",
+    "receipt",
+    "uni-app",
+    "native-plugin"
+  ],
+  "provider": "阿澈",
+  "license": "MIT",
+  "platforms": {
+    "android": {
+      "package": "io.zhixiang.print.PrintManagerModule",
+      "minSdkVersion": 21,
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    }
+  },
+  "dependencies": {}
+}

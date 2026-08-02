@@ -1,118 +1,122 @@
 {
-  "name": "智享全链",
-  "appid": "__UNI__ZHIXIANG",
-  "description": "智享全链管理系统",
-  "versionName": "1.0.0",
-  "versionCode": "100",
-  "transformPx": false,
-  "app-plus": {
-    "usingComponents": true,
-    "nvueStyleCompiler": "uni-app",
-    "compilerVersion": 3,
-    "splashscreen": {
-      "alwaysShowBeforeRender": true,
-      "waiting": true,
-      "autoclose": true,
-      "delay": 0
-    },
-    "modules": {
-      "Payment": {},
-      "Push": {},
-      "OAuth": {}
-    },
-    "distribute": {
-      "android": {
-        "permissions": [
-          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
-          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
-          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
-          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
-          "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
-          "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
-          "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>",
-          "<uses-permission android:name=\"android.permission.BLUETOOTH_SCAN\"/>",
-          "<uses-permission android:name=\"android.permission.BLUETOOTH_CONNECT\"/>",
-          "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>"
-        ],
-        "packagename": "com.zhixiang.app",
-        "minSdkVersion": 21,
-        "targetSdkVersion": 33
-      },
-      "ios": {
-        "appid": "com.zhixiang.app",
-        "UIBackgroundModes": [],
-        "dSYMs": false,
-        "privacyDescription": {
-          "NSBluetoothPeripheralUsageDescription": "需要使用蓝牙连接打印机进行小票打印",
-          "NSBluetoothAlwaysUsageDescription": "需要使用蓝牙连接打印机进行小票打印"
-        }
-      },
-      "sdkConfigs": {
-        "payment": {
-          "weixin": {
-            "appid": "wx_appid_placeholder",
-            "UniversalLinks": ""
-          }
-        }
-      },
-      "plugins": {
-        "ZXing-Scanner": {
-          "provider": "nativeplugins/ZXing-Scanner",
-          "description": "条码扫码原生插件（基于 ZXing），支持商品条码/二维码/追溯码识别"
+    "name" : "智享全链",
+    "appid" : "__UNI__195A571",
+    "description" : "智享全链管理系统",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : true,
+            "delay" : 0
         },
-        "PrintManager": {
-          "provider": "nativeplugins/PrintManager",
-          "description": "蓝牙热敏打印原生插件，支持 58mm/80mm 热敏打印机与针式三联打印，含销售单打印模板"
+        "modules" : {
+            "Payment" : {},
+            "Push" : {},
+            "OAuth" : {},
+            "Barcode" : {}
+        },
+        "distribute" : {
+            "android" : {
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_SCAN\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_CONNECT\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>"
+                ],
+                "packagename" : "com.zhixiang.app",
+                "minSdkVersion" : 21,
+                "targetSdkVersion" : 33
+            },
+            "ios" : {
+                "appid" : "com.zhixiang.app",
+                "UIBackgroundModes" : [],
+                "dSYMs" : false,
+                "privacyDescription" : {
+                    "NSBluetoothPeripheralUsageDescription" : "需要使用蓝牙连接打印机进行小票打印",
+                    "NSBluetoothAlwaysUsageDescription" : "需要使用蓝牙连接打印机进行小票打印"
+                }
+            },
+            "sdkConfigs" : {
+                "payment" : {
+                    "weixin" : {
+                        "appid" : "wx_appid_placeholder",
+                        "UniversalLinks" : ""
+                    }
+                }
+            },
+            "plugins" : {
+                "ZXing-Scanner" : {
+                    "provider" : "nativeplugins/ZXing-Scanner",
+                    "description" : "条码扫码原生插件（基于 ZXing），支持商品条码/二维码/追溯码识别"
+                },
+                "PrintManager" : {
+                    "provider" : "nativeplugins/PrintManager",
+                    "description" : "蓝牙热敏打印原生插件，支持 58mm/80mm 热敏打印机与针式三联打印，含销售单打印模板"
+                }
+            },
+            "safeguard" : true,
+            "splashscreen" : {
+                "useOriginalMsgbox" : true
+            }
+        },
+        "networkTimeout" : {
+            "request" : 30000,
+            "connectSocket" : 30000,
+            "uploadFile" : 60000,
+            "downloadFile" : 60000
         }
-      },
-      "safeguard": true
     },
-    "networkTimeout": {
-      "request": 30000,
-      "connectSocket": 30000,
-      "uploadFile": 60000,
-      "downloadFile": 60000
-    }
-  },
-  "h5": {
-    "title": "智享全链",
-    "router": {
-      "mode": "hash",
-      "base": "/"
+    "h5" : {
+        "title" : "智享全链",
+        "router" : {
+            "mode" : "hash",
+            "base" : "/"
+        },
+        "async" : {
+            "loading" : "加载中",
+            "error" : "加载失败",
+            "delay" : 200,
+            "timeout" : 30000
+        }
     },
-    "async": {
-      "loading": "加载中",
-      "error": "加载失败",
-      "delay": 200,
-      "timeout": 30000
-    }
-  },
-  "mp-weixin": {
-    "appid": "wx_appid_placeholder",
-    "setting": {
-      "urlCheck": false,
-      "es6": true,
-      "postcss": true,
-      "minified": true
+    "mp-weixin" : {
+        "appid" : "wx_appid_placeholder",
+        "setting" : {
+            "urlCheck" : false,
+            "es6" : true,
+            "postcss" : true,
+            "minified" : true
+        },
+        "usingComponents" : true,
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "获取位置信息用于门店管理"
+            }
+        }
     },
-    "usingComponents": true,
-    "permission": {
-      "scope.userLocation": {
-        "desc": "获取位置信息用于门店管理"
-      }
+    "harmony" : {
+        "appid" : "__HARMONYOS_APPID__",
+        "bundleName" : "com.zhixiang.app",
+        "permissions" : [
+            "<uses-permission ohos:name=\"ohos.permission.INTERNET\"/>",
+            "<uses-permission ohos:name=\"ohos.permission.CAMERA\"/>",
+            "<uses-permission ohos:name=\"ohos.permission.GET_NETWORK_INFO\"/>",
+            "<uses-permission ohos:name=\"ohos.permission.ACCESS_BLUETOOTH\"/>"
+        ],
+        "distribute" : {
+            "safeguard" : true
+        }
     }
-  },
-  "harmony": {
-    "appid": "__HARMONYOS_APPID__",
-    "bundleName": "com.zhixiang.app",
-    "permissions": [
-      "<uses-permission ohos:name=\"ohos.permission.INTERNET\"/>",
-      "<uses-permission ohos:name=\"ohos.permission.CAMERA\"/>",
-      "<uses-permission ohos:name=\"ohos.permission.GET_NETWORK_INFO\"/>",
-      "<uses-permission ohos:name=\"ohos.permission.ACCESS_BLUETOOTH\"/>"
-    ],
-    "distribute": {
-      "safeguard": true
-    }
-  }
 }

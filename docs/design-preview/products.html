@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>商品页 — 打磨预览</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+  body { background:#F3F4F6; }
+  .phone { width:375px; height:812px; margin:24px auto; background:#fff; border-radius:32px; overflow:hidden;
+           box-shadow:0 8px 32px rgba(0,0,0,0.15); position:relative; display:flex; flex-direction:column; }
+  .statusbar { height:44px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 24px 8px; font-size:12px; color:#1F2937; }
+  .store-bar { display:flex; align-items:center; gap:6px; padding:0 16px 6px; font-size:13px; color:#1F2937; }
+  .store-bar .dot { width:6px; height:6px; border-radius:50%; background:#10B981; }
+  .store-bar .count { color:#9CA3AF; font-size:12px; margin-left:auto; }
+  .search { display:flex; align-items:center; gap:10px; padding:8px 16px; }
+  .search input { flex:1; height:36px; border:none; background:#F3F4F6; border-radius:18px; padding:0 16px; font-size:14px; outline:none; }
+  .scan { width:36px; height:36px; border-radius:50%; background:#EEF2FF; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .alert-bar { margin:0 16px 8px; background:#FFF7ED; border-radius:8px; padding:8px 12px; font-size:12px; color:#F59E0B; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .body { flex:1; display:flex; overflow:hidden; }
+  .cats { width:92px; background:#F3F4F6; overflow-y:auto; padding:10px 6px; }
+  .cat { padding:12px 8px; font-size:13px; color:#6B7280; text-align:center; border-radius:8px; margin-bottom:4px; }
+  .cat .num { display:block; font-size:10px; color:#9CA3AF; margin-top:2px; }
+  .cat.active { background:#fff; color:#6366F1; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .list { flex:1; overflow-y:auto; padding:10px 12px; }
+  .action-row { display:flex; gap:8px; margin-bottom:10px; }
+  .action { flex:1; background:#F3F4F6; border-radius:8px; padding:8px 4px; text-align:center; font-size:11px; color:#1F2937; }
+  .action b { display:block; font-size:12px; }
+  .action .s { color:#9CA3AF; font-size:10px; }
+  .pcard { background:#fff; border-radius:12px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .pname { font-size:16px; font-weight:600; color:#1F2937; }
+  .pinfo { font-size:11px; color:#9CA3AF; margin-top:4px; }
+  .pinfo b { color:#6B7280; font-weight:500; }
+  .pmeta { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  .pprice { font-size:16px; font-weight:600; color:#000; }
+  .pprice .old { font-size:12px; color:#9CA3AF; font-weight:400; margin-left:6px; }
+  .pstock { font-size:12px; color:#10B981; }
+  .pstock.warn { color:#F59E0B; }
+  .tab { font-size:11px; border-radius:4px; padding:2px 8px; margin-left:6px; }
+  .tab-on { background:#ECFDF5; color:#10B981; }
+  .tab-err { background:#FEE2E2; color:#EF4444; }
+  .err-card { border-left:3px solid #EF4444; background:#fff; border-radius:12px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .err-title { font-size:14px; font-weight:600; color:#1F2937; }
+  .err-detail { font-size:12px; color:#6B7280; margin:6px 0 8px; }
+  .err-loss { color:#EF4444; font-weight:600; }
+  .mini-btn { font-size:11px; border-radius:6px; padding:4px 10px; }
+  .mini-btn.primary { background:#2563EB; color:#fff; }
+  .mini-btn.ghost { border:1px solid #E5E7EB; color:#1F2937; }
+  .nav { height:76px; border-top:1px solid #F3F4F6; display:flex; align-items:flex-start; justify-content:space-around; position:relative; padding-top:8px; }
+  .nav-item { width:64px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; color:#C5C7CB; }
+  .nav-item.active { color:#6366F1; font-weight:600; }
+  .nav-item .ic { width:24px; height:24px; }
+  .ai-btn { position:absolute; left:50%; transform:translateX(-50%); top:-8px; width:56px; height:56px; border-radius:50%;
+            background:linear-gradient(135deg,#6366F1,#2563EB); color:#fff; font-size:17px; font-weight:700;
+            display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(99,102,241,0.4); }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="statusbar"><span>9:41</span><span>●●●● 5G</span></div>
+  <div class="store-bar"><span class="dot"></span> 红星商行 · 营业中 <span class="count">共 386 款商品</span></div>
+  <div class="search"><input placeholder="搜索商品名 / 条码 / 品牌"><div class="scan">📷</div></div>
+  <div class="alert-bar">⚠️ 飞天茅台 53° 进货价已涨 ¥80 · 五粮液八代 售价高于周边 8%</div>
+  <div class="body">
+    <div class="cats">
+      <div class="cat active">白酒<span class="num">128 款</span></div>
+      <div class="cat">红酒<span class="num">86 款</span></div>
+      <div class="cat">洋酒<span class="num">54 款</span></div>
+      <div class="cat">啤酒<span class="num">62 款</span></div>
+      <div class="cat">饮料<span class="num">38 款</span></div>
+      <div class="cat">全部<span class="num">386 款</span></div>
+    </div>
+    <div class="list">
+      <div class="action-row">
+        <div class="action"><b>12 款建议核价</b><span class="s">市场价格变动</span></div>
+        <div class="action"><b>批量调价</b><span class="s">按分类调整</span></div>
+        <div class="action" style="background:#FEE2E2;color:#EF4444"><b>价格异常</b><span class="s">3 款</span></div>
+      </div>
+      <div class="pcard">
+        <div class="pname">五粮液八代 52° <span class="tab tab-on">在售</span></div>
+        <div class="pinfo">规格 500ml · 单瓶 <b>库存 24瓶 · 月销 328</b></div>
+        <div class="pmeta"><span class="pprice">¥850<span class="old">¥850</span></span><span class="pstock">充足</span></div>
+        <div style="font-size:11px;color:#9CA3AF;margin-top:6px">← 左滑调价 · 右滑详情</div>
+      </div>
+      <div class="err-card">
+        <div class="err-title">茅台飞天 500ml <span class="tab tab-err">价格异常</span></div>
+        <div class="err-detail">当前售价 ¥1,800 · 进货价 ¥2,100 <span class="err-loss">↓ 亏¥300</span></div>
+        <span class="mini-btn primary">调整价格</span> <span class="mini-btn ghost">忽略</span>
+      </div>
+      <div class="pcard">
+        <div class="pname">拉菲传奇 2019 <span class="tab tab-on">在售</span></div>
+        <div class="pinfo">规格 750ml · 单瓶 <b>库存 86瓶 · 月销 124</b></div>
+        <div class="pmeta"><span class="pprice">¥388<span class="old">¥428</span></span><span class="pstock">充足</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-item"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C5C7CB" stroke-width="1.6"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>首页</div>
+    <div class="nav-item active"><svg class="ic" viewBox="0 0 24 24" fill="#6366F1"><path d="M6 3h12l2 4v14H4V7z"/><path d="M4 7h16M9 11v3M15 11v3"/></svg>商品</div>
+    <div style="width:64px"></div>
+    <div class="nav-item"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C5C7CB" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>功能</div>
+    <div class="nav-item"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C5C7CB" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>我的</div>
+    <div class="ai-btn">AI</div>
+  </div>
+</div>
+</body>
+</html>
