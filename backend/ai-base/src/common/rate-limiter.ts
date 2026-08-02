@@ -100,23 +100,19 @@ export class RateLimiterService implements OnModuleInit {
   readonly refillPerMs: number;
   /** 限流窗口（毫秒） */
   readonly windowMs: number = WINDOW_MS;
-  /** 内存桶清理阈值（测试可注入小值触发清理分支） */
-  private readonly cleanupThreshold: number;
+  /** 内存桶清理阈值（公开可变：测试可注入小值触发清理分支） */
+  cleanupThreshold: number = DEFAULT_CLEANUP_THRESHOLD;
 
   /** 内存令牌桶（Redis 不可用时的降级实现） */
   private readonly memoryBuckets = new Map<string, MemoryBucket>();
 
-  constructor(
-    private readonly configService: ConfigService,
-    cleanupThreshold: number = DEFAULT_CLEANUP_THRESHOLD,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     const ratePerMinute = this.configService.get<number>(
       'RATE_LIMIT_PER_MINUTE',
       60,
     );
     this.capacity = Math.max(1, ratePerMinute);
     this.refillPerMs = this.capacity / WINDOW_MS;
-    this.cleanupThreshold = cleanupThreshold;
   }
 
   /**

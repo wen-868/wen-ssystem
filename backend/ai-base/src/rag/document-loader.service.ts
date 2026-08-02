@@ -24,7 +24,6 @@ import { readFile } from 'fs/promises';
 import { basename } from 'path';
 import * as XLSX from 'xlsx';
 import * as mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
 
 /** 支持的文档类型 */
 export type SupportedDocType = 'pdf' | 'docx' | 'markdown' | 'excel' | 'text';
@@ -123,9 +122,29 @@ export class DocumentLoaderService {
 
   /**
    * PDF 文本抽取（pdf-parse 2.4.5：纯 TS 重写版）
+   *
+   * 懒加载说明：pdf-parse 依赖 pdfjs-dist，而 pdfjs-dist 在 Node 20 环境
+   * 需要全局 DOMMatrix（Node 20 无此全局对象）。若在模块顶层 import，
+   * 服务启动即抛 `ReferenceError: DOMMatrix is not defined`。
+   * 因此改为仅在真正解析 PDF 时动态加载，并优先从 @napi-rs/canvas 注入
+   * DOMMatrix（服务器 pnpm install 编译成功后可用）；注入失败仅导致
+   * PDF 解析报错，不影响服务整体启动。
    */
   private async extractPdf(buffer: Buffer): Promise<string> {
     try {
+      if (typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'undefined') {
+        try {
+          const canvas = await import('@napi-rs/canvas');
+          if (canvas && (canvas as { DOMMatrix?: unknown }).DOMMatrix) {
+            (globalThis as { DOMMatrix?: unknown }).DOMMatrix = (
+              canvas as { DOMMatrix: unknown }
+            ).DOMMatrix;
+          }
+        } catch {
+          // 无 canvas 原生绑定：PDF 解析将失败，但不阻塞服务启动
+        }
+      }
+      const { PDFParse } = await import('pdf-parse');
       const parser = new PDFParse({ data: buffer });
       const result = await parser.getText();
       const text = result.text ?? '';
