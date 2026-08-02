@@ -785,19 +785,25 @@
 
 ---
 
-## R72 — 代码审查报告真实问题修复 [进行中 — 凌舟 2026-08-02]
+## R72 — 代码审查报告真实问题修复 [已完成 — 凌舟 2026-08-02]
 
 > **日期**：2026-08-02
 > **来源**：凌舟核查 `D:\Users\Downloads\prod_19fc1a6d7f5_9da3ff95e373_wen-ssystem_代码审查报告_补充检测_20260802.md`。
 > **核查结论**：报告 14 项问题中，引用的 `miniprogram/admin/` 路径全部不存在（真实路径为 `backend/src/services/admin/`），行号大面积失实；
 > 经 git/grep/建表 SQL 独立验证，**5 项属实**（P0-2/P0-3/P0-4/P0-6/P1-4）、1 项部分属实（P1-1 仅 UPDATE 缺 tenant_id 成立）、其余不属实。
 > 本轮仅修复**经核实属实的问题**，修复方式遵循强制闭环流程。
+>
+> **✅ R72 完成总结**（2026-08-02）：
+> - 后端全量 vitest：**416 文件 / 4857 用例全部通过**（0 failed，无回归）
+> - typecheck 0 errors；受影响模块 8+6 个测试文件全部通过
+> - 台账写入统一为表结构真实字段（ledger_no/biz_type/biz_no/change_qty 带符号/idempotency_key），读侧改用 change_qty 正负判断
+> - 采购入库/退货箱瓶比改为读取 t_product_sku.box_ratio；盘点差异同步 physical_qty；sale-return UPDATE 补 tenant_id；采购入库审核接入移动加权平均成本
 
 ### R72-01 — [P0] 修复 t_inventory_ledger 台账字段分裂（change_type 等不存在的列）
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：2天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，9 个文件改写完成，无 change_type 残留，typecheck/vitest 通过）
 - **文件**：
   - 写侧（7 处）：`backend/src/services/admin/inventory-loss-gain.service.ts`、`inventory-loss-order.service.ts`、`inventory-profit-order.service.ts`、`stock-check.service.ts`、`transfer-order.service.ts`（2 处）、`transfer-execution.service.ts`（2 处）、`backend/src/services/sale-return.service.ts`
   - 读侧（3 处）：`backend/src/services/admin/inventory-cost.service.ts`、`backend/src/services/admin/report.service.ts`
@@ -810,7 +816,7 @@
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，批量读取 box_ratio，*12 硬编码清零，相关 6 个测试文件通过）
 - **文件**：`backend/src/services/admin/purchase-in-stock.service.ts`、`backend/src/services/admin/purchase-return.service.ts`
 - **问题**：`(item.box_qty || 0) * 12` 硬编码箱瓶比（purchase-in-stock:201、purchase-return:162），忽略 `t_product_sku.box_ratio`（表结构存在该字段，默认 1）。箱瓶比非 12 的商品入库/退货数量与金额计算错误。
 - **修复**：在事务内按 sku_id 查询 `box_ratio`（未查到按 1），`totalBottleQty = boxQty * boxRatio + bottleQty`；并同步修正 subtotal 计算。
@@ -821,7 +827,7 @@
 - **优先级**：P0
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，handleDiff UPDATE/INSERT 同步 physical_qty，stock-check 测试通过）
 - **文件**：`backend/src/services/admin/stock-check.service.ts`
 - **问题**：`handleDiff` 差异修正只 `UPDATE t_inventory_balance SET available_qty = available_qty + ?`（:311），新增库存也只写 `available_qty`（:317），未同步 `physical_qty`，盘点后实物/账面不一致，下次盘点仍报差异。
 - **修复**：UPDATE 同时 `available_qty = available_qty + ?, physical_qty = physical_qty + ?`；INSERT 同时写入两字段。
@@ -832,7 +838,7 @@
 - **优先级**：P1
 - **负责人**：凌舟(AI协助)
 - **预计**：0.25天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，approve UPDATE 补 tenant_id，sale-return 测试通过）
 - **文件**：`backend/src/services/sale-return.service.ts`
 - **问题**：`approve` 更新退货单状态 `UPDATE t_sale_return SET return_status='COMPLETED' ... WHERE return_no = ?`（:288）缺 `tenant_id` 条件，多租户下可能误更新其他租户数据。
 - **修复**：补 `AND tenant_id = ?` 并追加参数。
@@ -843,7 +849,7 @@
 - **优先级**：P1
 - **负责人**：凌舟(AI协助)
 - **预计**：0.5天
-- **状态**：待开始
+- **状态**：✅ 已完成（2026-08-02，approve 事务内联移动加权平均成本更新，purchase-in-stock 测试通过）
 - **文件**：`backend/src/services/admin/purchase-in-stock.service.ts`、`backend/src/services/admin/inventory-cost.service.ts`
 - **问题**：采购入库未更新 `t_product_sku.cost_price`；`updateMovingAverageCost` 已实现但无任何业务调用方，后续出库成本计算缺少数据基础。
 - **修复**：采购入库审核通过后在事务内按 SKU 更新成本价（读取采购价计算移动加权平均），或事务完成后调用 `updateMovingAverageCost`。
