@@ -968,7 +968,7 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端回归）/ 阿坚（AI 底座与验收清单复核）
 - **预计**：0.5天
-- **状态**：🔄 进行中（阿澈部分 ✅ 已完成 2026-08-03；阿坚部分待完成。凌舟经文件信箱协议派发：任务卡 inbox/ache_r73_06.md、inbox/ajian_r73_06.md）
+- **状态**：🔄 进行中（阿澈部分 ✅ 已完成 2026-08-03；阿坚部分 ✅ 已完成 2026-08-03（ajian_r73_06e），待凌舟收口复核。凌舟经文件信箱协议派发：任务卡 inbox/ache_r73_06.md、inbox/ajian_r73_06.md、inbox/ajian_r73_06e.md）
 - **背景**：用户已重启 Codex 桌面端；重启后受控实验确认 `spawn_agent` 消息正文仍无法送达（e2e_verify_after_restart 未收到令牌），但文件信箱协议已生效（子代理启动后主动读取 current-tasks.md/inbox/记忆并如实报告"未收到任务正文"）。R73-06 用于验证文件信箱协议端到端运转，并完成两项回归。
 - **修复**：
   1. 阿澈：`npm run build:h5` + `npm run build:app` exit 0；代码走查自定义 tabBar（5 页引入/AI 凸起/呼吸动画）与商品页操作卡；产出走查记录
@@ -983,6 +983,12 @@
   - 底部占位：5 页均含 `calc(108rpx + env(safe-area-inset-bottom))` 高度占位（home.vue:605/products.vue:580/ai-chat.vue:901/functions.vue:90/profile.vue:311）
   - H5 产物抽查：`dist/build/h5/assets/custom-tab-bar.Bs2GW9TM.js` 存在；`pages-products-products.Cbp7S2cY.js` 含"建议核价"关键字
   - 结论：走查全部通过，未发现问题；任务卡已归档 inbox/archive/
+- **阿坚完成记录**（2026-08-03，ajian_r73_06e）：
+  - AI 底座构建：`pnpm run build`（nest build）exit 0，`dist/main.js` 已产出（1093 字节，2026-08-03 04:25 生成）
+  - AI 底座本地启动（如实记录受阻）：`node dist/main` exit 1——`pdf-parse@2.4.5` 加载时报 `ReferenceError: DOMMatrix is not defined`（@napi-rs/canvas 原生绑定缺失），进程在监听前崩溃，无法本地提供 `/api/health`；与 R73-02 清单 4.4 记录一致，未编造 200。本地 3306/6379 亦无监听（MySQL/Redis 未运行）
+  - 后端验证：`npm run typecheck` 0 errors；`npm test`（vitest）416 文件 / 4857 用例全通过（108s）
+  - R73-02 验收清单复核：17 项 API 路径、backend build/typecheck/test 脚本、端口 8080/3016、/health 与 /api/platform/health、dashboard 前缀 /api/admin/dashboard 及 10 个子路径、products/brands/categories、ai-base pnpm 脚本（build=nest build、start:prod=node dist/main）、数据库表/字段（t_inventory_balance/t_stock_warning/t_brand + warning_threshold/store_name，见 migrations/120_stock_warning.sql）逐条对照仓库代码全部一致；4.3（/api/health）、4.4（DOMMatrix 启动阻塞）、6.1 第 1 项关键字段三处修正经本地实测属实；复核记录已写入清单第 8 节
+  - 任务文件状态已更新（本节）；commit `522e6263`（docs: R73-06 AI底座本地验证与验收清单复核，未 push，凌舟统一收口）；任务卡 inbox/ajian_r73_06e.md 已归档 inbox/archive/
 
 ---
 
