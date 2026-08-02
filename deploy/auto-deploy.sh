@@ -11,7 +11,7 @@ git fetch origin main
 git reset --hard origin/main
 
 echo "==> 安装依赖（跳过 electron 等大型二进制 postinstall）"
-npm install --ignore-scripts
+npm install --ignore-scripts --legacy-peer-deps
 echo "==> 重建后端原生模块"
 npm --workspace backend rebuild 2>/dev/null || true
 
