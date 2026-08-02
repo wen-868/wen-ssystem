@@ -988,7 +988,7 @@
   - AI 底座本地启动（如实记录受阻）：`node dist/main` exit 1——`pdf-parse@2.4.5` 加载时报 `ReferenceError: DOMMatrix is not defined`（@napi-rs/canvas 原生绑定缺失），进程在监听前崩溃，无法本地提供 `/api/health`；与 R73-02 清单 4.4 记录一致，未编造 200。本地 3306/6379 亦无监听（MySQL/Redis 未运行）
   - 后端验证：`npm run typecheck` 0 errors；`npm test`（vitest）416 文件 / 4857 用例全通过（108s）
   - R73-02 验收清单复核：17 项 API 路径、backend build/typecheck/test 脚本、端口 8080/3016、/health 与 /api/platform/health、dashboard 前缀 /api/admin/dashboard 及 10 个子路径、products/brands/categories、ai-base pnpm 脚本（build=nest build、start:prod=node dist/main）、数据库表/字段（t_inventory_balance/t_stock_warning/t_brand + warning_threshold/store_name，见 migrations/120_stock_warning.sql）逐条对照仓库代码全部一致；4.3（/api/health）、4.4（DOMMatrix 启动阻塞）、6.1 第 1 项关键字段三处修正经本地实测属实；复核记录已写入清单第 8 节
-  - 任务文件状态已更新（本节）；commit `522e6263`（docs: R73-06 AI底座本地验证与验收清单复核，未 push，凌舟统一收口）；任务卡 inbox/ajian_r73_06e.md 已归档 inbox/archive/
+  - 任务文件状态已更新（本节）；commit `0f2cb390`（docs: R73-06 AI底座本地验证与验收清单复核，未 push，凌舟统一收口）；任务卡 inbox/ajian_r73_06e.md 已归档 inbox/archive/
 
 ---
 
