@@ -77,12 +77,14 @@
     </view>
 
     <view class="safe-bottom"></view>
+    <custom-tab-bar :current="'profile'" />
   </scroll-view>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
+import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 const userStore = useUserStore()
 const unreadCount = ref(0)
@@ -306,7 +308,7 @@ function openAiSettings() {
 }
 
 .safe-bottom {
-  height: env(safe-area-inset-bottom);
+  height: calc(108rpx + env(safe-area-inset-bottom));
 }
 
 /* AI 设置入口（移动端打磨 v1.3） */

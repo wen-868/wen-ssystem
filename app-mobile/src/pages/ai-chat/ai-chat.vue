@@ -140,11 +140,15 @@
         <text class="recording-hint-text">录音中 {{ recordingTime }}s，再点一次结束</text>
       </view>
     </view>
+    <!-- 自定义 tabBar 占位 + AI 凸起按钮 -->
+    <view class="tabbar-placeholder"></view>
+    <custom-tab-bar :current="'ai'" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
+import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   aiApi,
   type AiToolPreview,
@@ -890,6 +894,12 @@ onUnmounted(() => {
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
+.tabbar-placeholder {
+  height: calc(108rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
 }
 
 .input-bar {

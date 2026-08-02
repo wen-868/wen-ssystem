@@ -42,6 +42,22 @@
       </view>
     </scroll-view>
 
+    <!-- 操作卡：建议核价 / 批量调价 / 价格异常（入口，功能开发中不编造数字） -->
+    <view class="action-row">
+      <view class="action-card" @tap="onAction('suggest')">
+        <text class="action-card-title">建议核价</text>
+        <text class="action-card-sub">市场价格变动</text>
+      </view>
+      <view class="action-card" @tap="onAction('batch')">
+        <text class="action-card-title">批量调价</text>
+        <text class="action-card-sub">按分类调整</text>
+      </view>
+      <view class="action-card action-card--danger" @tap="onAction('anomaly')">
+        <text class="action-card-title action-card-title--danger">价格异常</text>
+        <text class="action-card-sub action-card-sub--danger">待处理</text>
+      </view>
+    </view>
+
     <!-- 虚拟滚动商品列表 -->
     <virtual-list
       v-if="productList.length > 0"
@@ -97,6 +113,7 @@
     </view>
 
     <view class="safe-bottom"></view>
+    <custom-tab-bar :current="'products'" />
   </view>
 </template>
 
@@ -104,6 +121,7 @@
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
 import VirtualList from '@/components/virtual-list.vue'
+import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 const keyword = ref('')
 const activeCategory = ref(0)
@@ -240,6 +258,19 @@ function goDetail(id: number) {
   uni.navigateTo({ url: `/pages/products/product-detail?id=${id}` })
 }
 
+/** 操作卡入口：对应功能尚未开发，提示占位（不编造数据） */
+function onAction(type: 'suggest' | 'batch' | 'anomaly') {
+  if (type === 'batch') {
+    uni.navigateTo({ url: '/pages-sub/product/batch-price/batch-price' })
+    return
+  }
+  const titles: Record<string, string> = {
+    suggest: '建议核价',
+    anomaly: '价格异常'
+  }
+  uni.showToast({ title: `${titles[type]}功能开发中`, icon: 'none' })
+}
+
 onMounted(() => {
   // 200rpx 转 px（依赖屏幕宽度）
   try {
@@ -255,7 +286,7 @@ onMounted(() => {
 <style scoped>
 .products-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: #f5f5f5;
   display: flex;
   flex-direction: column;
 }
@@ -299,10 +330,9 @@ onMounted(() => {
 }
 
 .category-bar {
-  background: #fff;
+  background: #f5f5f5;
   white-space: nowrap;
-  padding: 12rpx 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  padding: 8rpx 24rpx 16rpx;
 }
 
 .category-item {
@@ -311,11 +341,12 @@ onMounted(() => {
   padding: 12rpx 28rpx;
   margin: 0 8rpx;
   border-radius: 32rpx;
-  background: #f5f7fa;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .category-item--active {
-  background: #1677FF;
+  background: #5b6abf;
 }
 
 .category-item--active .category-text {
@@ -326,6 +357,49 @@ onMounted(() => {
 .category-text {
   font-size: 26rpx;
   color: #666;
+}
+
+/* ─── 操作卡：建议核价 / 批量调价 / 价格异常 ─── */
+.action-row {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 24rpx 16rpx;
+  background: #f5f5f5;
+}
+
+.action-card {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 18rpx 8rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.action-card-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.action-card-sub {
+  display: block;
+  font-size: 20rpx;
+  color: #9ca3af;
+  margin-top: 6rpx;
+}
+
+.action-card--danger {
+  background: #fef2f2;
+}
+
+.action-card-title--danger {
+  color: #ef4444;
+}
+
+.action-card-sub--danger {
+  color: #f59e0b;
 }
 
 .product-scroll {
@@ -503,6 +577,6 @@ onMounted(() => {
 }
 
 .safe-bottom {
-  height: env(safe-area-inset-bottom);
+  height: calc(108rpx + env(safe-area-inset-bottom));
 }
 </style>

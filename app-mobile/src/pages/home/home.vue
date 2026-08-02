@@ -154,12 +154,14 @@
 
     <!-- 安全区域底部间距 -->
     <view class="safe-bottom"></view>
+    <custom-tab-bar :current="'home'" />
   </scroll-view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { dashboardApi, type TodoItem } from '@/api/modules/dashboard'
+import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 interface DashboardData {
   todaySales: number
@@ -600,7 +602,7 @@ onMounted(() => {
 }
 
 .safe-bottom {
-  height: 48rpx;
+  height: calc(108rpx + env(safe-area-inset-bottom));
 }
 
 /* ─── 移动端打磨 v1.3：数据看板卡片化 ─── */

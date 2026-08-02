@@ -637,6 +637,7 @@
         "selectedColor": "#6366F1",
         "backgroundColor": "#FFFFFF",
         "borderStyle": "white",
+        "custom": true,
         "list": [
             {
                 "pagePath": "pages/home/home",

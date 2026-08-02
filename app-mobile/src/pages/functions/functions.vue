@@ -43,10 +43,12 @@
       </view>
     </view>
   </view>
+  <custom-tab-bar :current="'functions'" />
 </template>
 
 <script setup lang="ts">
 import { reactive } from 'vue'
+import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 const navigate = (path: string) => {
   if (path) {
@@ -85,7 +87,7 @@ const dataTools = reactive([
 .func-page {
   min-height: 100vh;
   background: $ai-bg-gap;
-  padding: 16rpx 0 40rpx;
+  padding: 16rpx 0 calc(108rpx + 40rpx + env(safe-area-inset-bottom));
 }
 
 .func-search {
