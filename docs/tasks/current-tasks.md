@@ -893,7 +893,7 @@
 - **优先级**：P0
 - **负责人**：阿坚（执行）/ 苏然（验收）
 - **预计**：1.5天
-- **状态**：✅ 验收清单已产出（2026-08-03 凌舟代阿坚执行；待用户/运维按清单在服务器执行后填写结果）
+- **状态**：🔄 服务器端到端验收执行中（2026-08-03 凌舟外网验收：**主后端 16/16 API 200，AI 底座未部署为唯一阻塞项**）
 - **文件**：服务器 `/opt/zhixiang/liquor-inventory-system`、`backend/ai-base/`
 - **问题**：R70 AI 底座（22 任务）与 R71/R72 修复均已推送 main，但服务器未执行 git pull + 构建 + 端到端验证；AI 底座（NestJS :3016）尚未部署验证。
 - **修复**：
@@ -904,6 +904,11 @@
 - **验收标准**：15 个核心 API 200；AI 底座 health 200 且 database/redis 状态正常；无 ERORR 日志
 - **核实**：R69-00 曾验证 15 API 200（2026-08-01）；R70~R72 新代码需重新验证
 - **产出**：`docs/reports/R73-02-服务器验收清单.md`（含 git 同步/构建/PM2/17 项 API 验收/数据库核对/结论表，命令均经源码核实：主后端 :8080、AI 底座 :3016、dashboard 前缀 /api/admin/dashboard、products/brands/categories 路径）
+- **外网验收结果（2026-08-03 凌舟，详见清单 6.1/7 节）**：
+  - 主后端 16/16 API 全部 200（经 `https://api.onepan.cn` + tenant_admin token）
+  - 数据库间接验证通过：inventory-warning 查询正常、products 返回 10 条完整记录
+  - **AI 底座未部署**：`159.75.153.59:3016` 外部不可达（HTTP 000）、域名未代理（404）
+  - 待办：服务器部署 AI 底座（pnpm install 需确保 @napi-rs/canvas 原生绑定）+ 开放 3016/nginx 代理；SSH 补 `pm2 logs` 与 `SHOW TABLES` 直查
 
 ### R73-03 — [P1] 云打包阻塞跟进（DCloud 服务端 503）
 - **优先级**：P1
