@@ -1,8 +1,8 @@
-# 当前任务 — R72(审查报告真实问题修复·进行中) + R71/R70(已完成)
+# 当前任务 — R73(验证与验收轮次·进行中) + R72/R71/R70(已完成)
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-02（凌舟核查 prod_..._代码审查报告_补充检测_20260802.md，确认 14 项中 5 项属实，开 R72 轮次修复）
+> 最后更新：2026-08-03（凌舟以 Agent 身份接管，创建 R73 验证与验收轮次：移动端打磨验证 + AI底座/服务器端到端验收 + 云打包阻塞跟进）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -855,6 +855,72 @@
 - **修复**：采购入库审核通过后在事务内按 SKU 更新成本价（读取采购价计算移动加权平均），或事务完成后调用 `updateMovingAverageCost`。
 - **验收标准**：`rg -n "updateMovingAverageCost"` 有业务调用方；全量 vitest 通过。
 - **核实**：`rg "updateMovingAverageCost"` 仅命中 inventory-cost.service.ts 定义与测试，无业务调用；purchase-in-stock 无 cost_price 逻辑
+
+---
+
+## R73 — 验证与验收轮次 [进行中 — 凌舟 2026-08-03]
+
+> **日期**：2026-08-03
+> **来源**：凌舟以 Agent 身份（lingzhou）接管项目，基于当前状态（R70~R72 完成 + 移动端打磨 v1.3 已落地 + 云打包被 DCloud 服务端阻塞）规划验证与验收任务。
+> **角色体系**：`.trae/agents/` 定义 lingzhou（项目管理/审计）、mo（前端 admin-web/saas-admin）、suran（测试）；结合项目规则中的阿坚（后端）、阿澈（移动端）、林夕（设计）。
+
+### R73-01 — [P0] 移动端打磨验证（构建 + 页面走查）
+- **优先级**：P0
+- **负责人**：苏然（验证）/ 阿澈（修复）
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`app-mobile/`（已打磨页面：导航/首页/功能中心/商品/我的/AI助手）
+- **问题**：移动端打磨 v1.3 已完成并提交（H5/App 构建通过），但未经真实运行环境走查，需验证视觉/交互/导航是否符合设计文档。
+- **修复**：
+  1. 构建验证：`npm run build:h5`、`npm run build:app` exit 0
+  2. H5 浏览器走查 6 个页面：底部导航（AI 入口）、首页（看板/AI洞察/订单进度）、商品（分类/价格异常/库存色标）、功能中心、我的（AI设置）、AI助手对话
+  3. 走查清单：Tab 切换正确、AI 按钮跳转、页面无错位/截断、空数据优雅降级
+  4. 发现的问题记录并指派阿澈修复
+- **验收标准**：`npm run build:h5` exit 0；H5 走查清单全部通过；发现问题全部闭环
+- **核实**：2026-08-02 已确认 H5/App 构建 exit 0；页面代码已提交（67a72900）
+
+### R73-02 — [P0] AI 底座 + 后端服务器端到端验收
+- **优先级**：P0
+- **负责人**：阿坚（执行）/ 苏然（验收）
+- **预计**：1.5天
+- **状态**：待开始
+- **文件**：服务器 `/opt/zhixiang/liquor-inventory-system`、`backend/ai-base/`
+- **问题**：R70 AI 底座（22 任务）与 R71/R72 修复均已推送 main，但服务器未执行 git pull + 构建 + 端到端验证；AI 底座（NestJS :3016）尚未部署验证。
+- **修复**：
+  1. 服务器 `git pull origin main` + `npm --workspace backend run build` + `pm2 restart zhixiang-api`
+  2. 后端 15 个核心 API 全部返回 200（含 R72 修复的客户详情/归属、报表路由、支付退款链路）
+  3. AI 底座部署：`backend/ai-base` pnpm build + pm2 启动，`/api/admin/health` 返回 200（DB/Redis 连通性）
+  4. 数据库迁移：migration.ts 自动执行 121/122 AI 表 + R72 相关；验证 `SHOW TABLES LIKE 't_platform_ai_config'`
+- **验收标准**：15 个核心 API 200；AI 底座 health 200 且 database/redis 状态正常；无 ERORR 日志
+- **核实**：R69-00 曾验证 15 API 200（2026-08-01）；R70~R72 新代码需重新验证
+
+### R73-03 — [P1] 云打包阻塞跟进（DCloud 服务端 503）
+- **优先级**：P1
+- **负责人**：凌舟 / 运维
+- **预计**：0.5天
+- **状态**：进行中
+- **文件**：`app-mobile/src/manifest.json`（appid `__UNI__195A571`）
+- **问题**：Android 云打包在 HBuilderX `generatepackageresource manifest false` 失败，已排除代码/插件/证书/代理因素；`service.dcloud.net.cn` 返回 HTTP 503，判断为 DCloud 云打包服务端不可用或当前网络受限。
+- **修复**：
+  1. 更换网络（WiFi/其他运营商）后重试 HBuilderX 云打包
+  2. 关注 DCloud 服务状态；服务恢复后重试 `cli pack`
+  3. 若持续失败，联系 DCloud 技术支持并附 appid
+- **验收标准**：Android APK 生成（`app-mobile/unpackage/release/apk/`）
+- **核实**：2026-08-02~03 多次实测 `service.dcloud.net.cn` 503；本地编译成功、云打包提交失败
+
+### R73-04 — [P1] 移动端打磨增强（商品页操作卡 + 自定义 tabBar AI 凸起按钮）
+- **优先级**：P1
+- **负责人**：阿澈（移动端）/ 林夕（设计确认）
+- **预计**：1天
+- **状态**：待开始
+- **文件**：`app-mobile/src/pages/products/products.vue`、`app-mobile/src/components/custom-tab-bar/`（新建）
+- **问题**：设计文档 v1.3 要求商品页操作卡（建议核价/批量调价/价格异常入口）与底部导航中间 AI 按钮凸起+呼吸光效；当前商品页仅有状态条与库存色标，tabBar 为原生平铺（无凸起）。
+- **修复**：
+  1. 商品页：顶部增加操作卡行（建议核价/批量调价/价格异常，入口跳转或提示开发中，不编造数字）
+  2. 自定义 tabBar：`custom:true` + 自绘组件，中间 AI 按钮凸起 + 渐变 + 呼吸光效，其余 4 Tab 保持原生样式
+  3. H5/App 双端验证自定义 tabBar 行为（切换/角标/点击反馈）
+- **验收标准**：`npm run build:h5`、`npm run build:app` exit 0；H5 走查 AI 按钮凸起/光效/跳转正常
+- **核实**：设计预览 docs/design-preview/ 已确认操作卡与 AI 按钮样式；原生 tabBar 无法实现凸起
 
 ---
 
