@@ -34,10 +34,11 @@ jobs:
         run: npm --workspace saas-admin run build
 
       - name: Start mock backend
-        run: USE_MOCK_DB=true npm --workspace backend run dev > /tmp/zhixiang-backend.log 2>&1 &
+        # 使用已构建的 dist 启动（node dist/server.js），避免 tsx watch 在 CI 后台不稳定
+        run: USE_MOCK_DB=true NODE_ENV=development npm --workspace backend run start > /tmp/zhixiang-backend.log 2>&1 &
 
       - name: Wait for backend
-        run: npx wait-on http://127.0.0.1:8080/health
+        run: npx wait-on -t 90000 http://127.0.0.1:8080/health || (echo "=== backend log ==="; cat /tmp/zhixiang-backend.log; exit 1)
 
       - name: Flow self test
         run: npm run test:flow
