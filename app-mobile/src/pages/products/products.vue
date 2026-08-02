@@ -1,5 +1,12 @@
 <template>
   <view class="products-page">
+    <!-- 门店状态条 -->
+    <view class="store-bar">
+      <view class="store-dot"></view>
+      <text class="store-text">营业中</text>
+      <text class="store-tip">左滑商品可快速调价 · 右滑查看详情</text>
+    </view>
+
     <view class="search-bar">
       <view class="search-input-wrap">
         <text class="search-icon">&#xe614;</text>
@@ -70,7 +77,7 @@
             <text class="product-name">{{ item.name }}</text>
             <view class="product-meta">
               <text class="product-price">¥{{ item.price.toFixed(2) }}</text>
-              <text class="product-stock" :class="{ 'stock-low': item.stock <= 10 }">
+              <text class="product-stock" :class="stockClass(item.stock)">
                 库存 {{ item.stock }}
               </text>
             </view>
@@ -130,6 +137,13 @@ function onSearch() {
 function clearSearch() {
   keyword.value = ''
   onSearch()
+}
+
+/** 库存状态：0=缺货红 / ≤10=偏低橙 / 其余=充足绿 */
+function stockClass(stock: number): string {
+  if (stock <= 0) return 'stock-out'
+  if (stock <= 10) return 'stock-low'
+  return 'stock-ok'
 }
 
 async function loadProducts() {
@@ -416,16 +430,48 @@ onMounted(() => {
 .product-price {
   font-size: 32rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: #000000;
 }
 
 .product-stock {
   font-size: 22rpx;
-  color: #999;
+  color: #10B981;
 }
 
 .stock-low {
-  color: #ff4d4f;
+  color: #F59E0B;
+}
+
+.stock-out {
+  color: #EF4444;
+}
+
+.stock-ok {
+  color: #10B981;
+}
+
+/* 门店状态条 */
+.store-bar {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 16rpx 32rpx 0;
+}
+.store-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #10B981;
+}
+.store-text {
+  font-size: 26rpx;
+  color: #1F2937;
+  font-weight: 500;
+}
+.store-tip {
+  margin-left: auto;
+  font-size: 20rpx;
+  color: #9CA3AF;
 }
 
 .empty-state {

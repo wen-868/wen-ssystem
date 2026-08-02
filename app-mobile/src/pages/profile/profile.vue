@@ -45,6 +45,14 @@
         <text class="menu-label">待办事项</text>
         <text class="menu-arrow">&#xe616;</text>
       </view>
+
+      <view class="menu-item" @tap="openAiSettings">
+        <view class="menu-icon-wrap menu-icon-wrap--ai">
+          <text class="menu-icon menu-icon--ai">AI</text>
+        </view>
+        <text class="menu-label menu-label--ai">AI设置</text>
+        <text class="menu-arrow">&#xe616;</text>
+      </view>
     </view>
 
     <!-- 管理入口（仅管理员可见） -->
@@ -110,6 +118,10 @@ function handleLogout() {
     }
   })
 }
+
+function openAiSettings() {
+  uni.showToast({ title: 'AI 设置即将上线', icon: 'none' })
+}
 </script>
 
 <style scoped>
@@ -120,7 +132,7 @@ function handleLogout() {
 
 /* 用户卡片 */
 .user-card {
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, #6366F1, #2563EB);
   padding: 48rpx 32rpx;
   padding-top: calc(48rpx + env(safe-area-inset-top));
   display: flex;
@@ -295,5 +307,18 @@ function handleLogout() {
 
 .safe-bottom {
   height: env(safe-area-inset-bottom);
+}
+
+/* AI 设置入口（移动端打磨 v1.3） */
+.menu-icon-wrap--ai {
+  background: linear-gradient(135deg, #6366F1, #2563EB);
+}
+.menu-icon--ai {
+  color: #FFFFFF;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+.menu-label--ai {
+  color: #6366F1;
 }
 </style>

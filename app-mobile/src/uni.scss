@@ -236,3 +236,93 @@ $uni-transition-slow: 250ms ease-out;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   移动端打磨设计 v1.3 — AI 设计 Token（追加，不覆盖 Atlas 体系）
+   来源：docs/design 打磨设计文档（AI 入口替代快速开单）
+   ═══════════════════════════════════════════════════════════════ */
+
+/* AI / Tab 专属色 */
+$ai-gradient-start: #6366F1;   /* AI 渐变起点（紫） */
+$ai-gradient-end:   #2563EB;   /* AI 渐变终点（蓝） */
+$ai-tab-active:     #6366F1;   /* Tab 激活色 */
+$ai-tab-inactive:   #C5C7CB;   /* Tab 未激活描边 */
+$ai-primary:        #2563EB;   /* 主按钮/链接 */
+
+/* 页面色彩 */
+$ai-bg-page:    #FFFFFF;
+$ai-bg-gap:     #F3F4F6;
+$ai-bg-soft:    #EEF2FF;       /* 浅蓝底（选中态/标签） */
+$ai-border:     #E5E7EB;
+$ai-text-main:  #000000;       /* 核心数据 */
+$ai-text-body:  #1F2937;       /* 正文 */
+$ai-text-sub:   #9CA3AF;       /* 辅助 */
+$ai-text-mid:   #6B7280;       /* 中灰 */
+
+/* 状态色（保持原语义） */
+$ai-success: #10B981;
+$ai-warning: #F59E0B;
+$ai-danger:  #EF4444;
+$ai-info:    #6B7280;
+
+/* 字号（px → rpx，750 设计稿近似） */
+$ai-fs-h1:      56rpx;  /* 28px — 核心数字 */
+$ai-fs-h2:      40rpx;  /* 20px — 模块标题 */
+$ai-fs-h3:      32rpx;  /* 16px — 卡片标题 */
+$ai-fs-body:    28rpx;  /* 14px — 正文 */
+$ai-fs-caption: 24rpx;  /* 12px — 辅助 */
+$ai-fs-micro:   20rpx;  /* 10px — 角标 */
+
+/* 间距与圆角 */
+$ai-space-page:   32rpx;
+$ai-space-module: 24rpx;
+$ai-space-card:   32rpx;
+$ai-radius-lg:    24rpx;
+$ai-radius-sm:    16rpx;
+
+/* ─── 通用类 ─── */
+
+/* AI 渐变按钮 */
+.ai-btn {
+  background: linear-gradient(135deg, $ai-gradient-start, $ai-gradient-end);
+  color: #FFFFFF;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.ai-btn:active { opacity: .9; }
+
+/* 白卡片 */
+.ai-card {
+  background: $ai-bg-page;
+  border-radius: $ai-radius-lg;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+/* AI 洞察条 */
+.ai-insight {
+  background: $ai-bg-gap;
+  border-radius: $ai-radius-sm;
+  padding: 12rpx 20rpx;
+  font-size: $ai-fs-caption;
+  color: $ai-text-body;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 状态标签（浅底彩字） */
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: $ai-fs-micro;
+}
+.ai-tag.success { background: #ECFDF5; color: $ai-success; }
+.ai-tag.warning { background: #FFF7ED; color: $ai-warning; }
+.ai-tag.danger  { background: #FEE2E2; color: $ai-danger; }
+.ai-tag.info    { background: $ai-bg-soft; color: $ai-primary; }
+.ai-tag.default { background: $ai-bg-gap; color: $ai-text-mid; }

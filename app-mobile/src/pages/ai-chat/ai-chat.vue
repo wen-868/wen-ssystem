@@ -611,7 +611,7 @@ onUnmounted(() => {
 }
 
 .avatar--ai {
-  background: linear-gradient(135deg, #5ba0ff, #1677ff);
+  background: linear-gradient(135deg, #6366F1, #2563EB);
   color: #fff;
   margin-right: 16rpx;
 }
@@ -631,15 +631,16 @@ onUnmounted(() => {
 }
 
 .bubble--ai {
-  background: #fff;
+  background: #F3F4F6;
   color: #1f2937;
   border-top-left-radius: 8rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 .bubble--user {
-  background: linear-gradient(135deg, #5ba0ff, #1677ff);
-  color: #fff;
+  background: #FFFFFF;
+  color: #1f2937;
+  border: 2rpx solid #E5E7EB;
   border-top-right-radius: 8rpx;
 }
 
@@ -648,7 +649,7 @@ onUnmounted(() => {
 }
 
 .bubble-text--user {
-  color: #fff;
+  color: #1f2937;
 }
 
 /* 打字动画 */
@@ -940,7 +941,7 @@ onUnmounted(() => {
   height: 72rpx;
   padding: 0 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #5ba0ff, #1677ff);
+  background: linear-gradient(135deg, #6366F1, #2563EB);
   display: flex;
   align-items: center;
   justify-content: center;

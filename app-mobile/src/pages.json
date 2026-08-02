@@ -59,6 +59,12 @@
             }
         },
         {
+            "path": "pages/functions/functions",
+            "style": {
+                "navigationBarTitleText": "功能中心"
+            }
+        },
+        {
             "path": "pages/profile/profile",
             "style": {
                 "navigationBarTitleText": "我的"
@@ -628,9 +634,9 @@
     },
     "tabBar": {
         "color": "#999999",
-        "selectedColor": "#1677FF",
+        "selectedColor": "#6366F1",
         "backgroundColor": "#FFFFFF",
-        "borderStyle": "black",
+        "borderStyle": "white",
         "list": [
             {
                 "pagePath": "pages/home/home",
@@ -639,22 +645,22 @@
                 "selectedIconPath": "static/tabbar/home-active.svg"
             },
             {
-                "pagePath": "pages/orders/orders",
-                "text": "订单",
-                "iconPath": "static/tabbar/order.svg",
-                "selectedIconPath": "static/tabbar/order-active.svg"
-            },
-            {
-                "pagePath": "pages/sales/create-sale",
-                "text": "开单",
-                "iconPath": "static/tabbar/add.svg",
-                "selectedIconPath": "static/tabbar/add-active.svg"
-            },
-            {
                 "pagePath": "pages/products/products",
                 "text": "商品",
                 "iconPath": "static/tabbar/product.svg",
                 "selectedIconPath": "static/tabbar/product-active.svg"
+            },
+            {
+                "pagePath": "pages/ai-chat/ai-chat",
+                "text": "AI",
+                "iconPath": "static/tabbar/ai.svg",
+                "selectedIconPath": "static/tabbar/ai-active.svg"
+            },
+            {
+                "pagePath": "pages/functions/functions",
+                "text": "功能",
+                "iconPath": "static/tabbar/functions.svg",
+                "selectedIconPath": "static/tabbar/functions-active.svg"
             },
             {
                 "pagePath": "pages/profile/profile",

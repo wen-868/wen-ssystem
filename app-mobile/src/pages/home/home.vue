@@ -1,7 +1,7 @@
 <template>
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
-    <!-- 数据看板（通栏） -->
-    <view class="dashboard-banner">
+    <!-- 数据看板（卡片） -->
+    <view class="dashboard-card">
       <view class="dashboard-header">
         <view class="dashboard-title-wrap">
           <text class="dashboard-icon">&#xe614;</text>
@@ -12,31 +12,37 @@
           <text class="realtime-text">实时</text>
         </view>
       </view>
-      <view class="dashboard-grid">
-        <view class="dash-item">
-          <text class="dash-value">¥{{ formatAmount(stats.todaySales) }}</text>
-          <text class="dash-label">今日销售额</text>
+      <view class="dash-today">
+        <view class="dash-today-item">
+          <text class="dash-value-today">¥{{ formatAmount(stats.todaySales) }}</text>
+          <text class="dash-label">今日营业额</text>
         </view>
-        <view class="dash-item">
-          <text class="dash-value">{{ stats.todayOrders }}</text>
+        <view class="dash-today-item">
+          <text class="dash-value-today">{{ stats.todayOrders }}</text>
           <text class="dash-label">今日订单</text>
         </view>
-        <view class="dash-item">
-          <text class="dash-value">¥{{ formatAmount(stats.weekTotal) }}</text>
+      </view>
+      <view class="dash-month">
+        <view class="dash-month-item">
+          <text class="dash-value-month">¥{{ formatAmount(stats.weekTotal) }}</text>
           <text class="dash-label">本周累计</text>
         </view>
-        <view class="dash-item">
-          <text class="dash-value">{{ stats.productCount }}</text>
+        <view class="dash-month-item">
+          <text class="dash-value-month">{{ stats.productCount }}</text>
           <text class="dash-label">在售商品</text>
         </view>
-        <view class="dash-item">
-          <text class="dash-value">{{ stats.totalCustomers }}</text>
+        <view class="dash-month-item">
+          <text class="dash-value-month">{{ stats.totalCustomers }}</text>
           <text class="dash-label">活跃客户</text>
         </view>
-        <view class="dash-item">
-          <text class="dash-value dash-value--warn">{{ stats.stockAlerts }}</text>
-          <text class="dash-label">库存预警</text>
-        </view>
+      </view>
+      <view class="dash-warn" v-if="stats.stockAlerts > 0">
+        <text class="dash-warn-dot"></text>
+        <text class="dash-warn-text">库存预警 {{ stats.stockAlerts }} 项</text>
+      </view>
+      <view class="ai-insight">
+        <text class="ai-insight-icon">💡</text>
+        <text class="ai-insight-text">AI 洞察：点击底部 AI 助手，一句话完成开单、查库存、对账</text>
       </view>
     </view>
 
@@ -47,18 +53,22 @@
       </view>
       <view class="order-progress-grid">
         <view class="order-stat">
+          <view class="order-dot order-dot--red"></view>
           <text class="order-num order-num--red">{{ stats.pendingDelivery }}</text>
           <text class="order-label">待配送</text>
         </view>
         <view class="order-stat">
+          <view class="order-dot order-dot--orange"></view>
           <text class="order-num order-num--orange">{{ stats.pendingPickup }}</text>
           <text class="order-label">待取货</text>
         </view>
         <view class="order-stat">
+          <view class="order-dot order-dot--blue"></view>
           <text class="order-num order-num--blue">{{ stats.pendingPayment }}</text>
           <text class="order-label">待收款</text>
         </view>
         <view class="order-stat">
+          <view class="order-dot order-dot--green"></view>
           <text class="order-num order-num--green">{{ stats.completedToday }}</text>
           <text class="order-label">已完成</text>
         </view>
@@ -94,12 +104,6 @@
             <text class="quick-icon">&#xe613;</text>
           </view>
           <text class="quick-label">数据报表</text>
-        </view>
-        <view class="quick-item" @tap="navigateTo('/pages/ai-chat/ai-chat')">
-          <view class="quick-icon-wrap quick-icon-wrap--cyan">
-            <text class="quick-icon quick-icon--ai">AI</text>
-          </view>
-          <text class="quick-label">AI助手</text>
         </view>
       </view>
     </view>
@@ -598,4 +602,100 @@ onMounted(() => {
 .safe-bottom {
   height: 48rpx;
 }
+
+/* ─── 移动端打磨 v1.3：数据看板卡片化 ─── */
+.dashboard-card {
+  margin: 16rpx 32rpx 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+.dash-today {
+  display: flex;
+  margin-top: 20rpx;
+}
+.dash-today-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+.dash-value-today {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #000000;
+  font-variant-numeric: tabular-nums;
+}
+.dash-month {
+  display: flex;
+  margin-top: 24rpx;
+  border-top: 2rpx solid #F3F4F6;
+  padding-top: 20rpx;
+}
+.dash-month-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+.dash-value-month {
+  font-size: 28rpx;
+  color: #6B7280;
+  font-variant-numeric: tabular-nums;
+}
+.dash-label {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+.dash-warn {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  background: #FEF2F2;
+  border-radius: 12rpx;
+  padding: 10rpx 16rpx;
+}
+.dash-warn-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #EF4444;
+}
+.dash-warn-text {
+  font-size: 22rpx;
+  color: #EF4444;
+}
+.ai-insight {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  background: #F3F4F6;
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+}
+.ai-insight-icon {
+  font-size: 24rpx;
+}
+.ai-insight-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #1F2937;
+}
+
+/* 订单进度色点 */
+.order-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  margin-bottom: 4rpx;
+}
+.order-dot--red { background: #EF4444; }
+.order-dot--orange { background: #F59E0B; }
+.order-dot--blue { background: #2563EB; }
+.order-dot--green { background: #10B981; }
 </style>
