@@ -893,7 +893,7 @@
 - **优先级**：P0
 - **负责人**：阿坚（执行）/ 苏然（验收）
 - **预计**：1.5天
-- **状态**：🔄 服务器端到端验收执行中（2026-08-03 凌舟外网验收：**主后端 16/16 API 200，AI 底座未部署为唯一阻塞项**）
+- **状态**：✅ **验收通过（17/17）**（2026-08-03：主后端 16/16 API 200 + AI 底座已部署并通过外网健康检查）
 - **文件**：服务器 `/opt/zhixiang/liquor-inventory-system`、`backend/ai-base/`
 - **问题**：R70 AI 底座（22 任务）与 R71/R72 修复均已推送 main，但服务器未执行 git pull + 构建 + 端到端验证；AI 底座（NestJS :3016）尚未部署验证。
 - **修复**：
@@ -907,8 +907,9 @@
 - **外网验收结果（2026-08-03 凌舟，详见清单 6.1/7 节）**：
   - 主后端 16/16 API 全部 200（经 `https://api.onepan.cn` + tenant_admin token）
   - 数据库间接验证通过：inventory-warning 查询正常、products 返回 10 条完整记录
-  - **AI 底座未部署**：`159.75.153.59:3016` 外部不可达（HTTP 000）、域名未代理（404）
-  - 待办：服务器部署 AI 底座（pnpm install 需确保 @napi-rs/canvas 原生绑定）+ 开放 3016/nginx 代理；SSH 补 `pm2 logs` 与 `SHOW TABLES` 直查
+  - **AI 底座已部署**：`http://159.75.153.59:3016/api/health` 返回 200（status=ok, service=zhixiang-ai-base），pm2 进程 zhixiang-ai-base online
+  - 部署排障记录（4 个问题已解决）：pnpm 必须 9.x（corepack 默认 11 需 Node 22）；pnpm-workspace.yaml 缺 packages；RateLimiterService DI 基本类型参数；ai-base .env 变量名映射（DB_USER→DB_USERNAME）
+  - 后续可选：nginx 代理 AI 底座域名访问；配置 DEEPSEEK_API_KEY 启用对话；SSH 补 `pm2 logs` 直查
 - **AI 底座自动部署方案（2026-08-03 凌舟）**：
   - 新增 `deploy/ai-base-deploy.sh`：pnpm 检查 → 生成 .env（从 backend/.env 同步 DB/Redis/JWT）→ pnpm install（执行原生脚本编译 canvas）→ pnpm build → pm2 启动 zhixiang-ai-base（:3016）→ 健康检查
   - `deploy/auto-deploy.sh` 在"等待后端就绪"后容错调用（AI 底座失败不阻断主部署）

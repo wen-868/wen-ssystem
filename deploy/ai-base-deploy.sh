@@ -19,14 +19,17 @@ if [ ! -d "${AI_DIR}" ]; then
   exit 0
 fi
 
-# ---- 1. pnpm 检查（AI 底座为 pnpm 工程） ----
+# ---- 1. pnpm 检查（AI 底座为 pnpm 工程；服务器 Node 为 v20，必须用 pnpm@9，
+#          corepack 默认拉取 pnpm 11 需 Node 22，会报 ERR_UNKNOWN_BUILTIN_MODULE） ----
 if ! command -v pnpm >/dev/null 2>&1; then
-  if command -v corepack >/dev/null 2>&1; then
-    echo "==> [AI底座] 启用 corepack pnpm"
-    corepack enable
-  else
-    echo "==> [AI底座] 全局安装 pnpm"
-    npm install -g pnpm@9 >/dev/null 2>&1 || { echo "==> [AI底座] pnpm 安装失败，跳过"; exit 0; }
+  echo "==> [AI底座] 全局安装 pnpm@9（兼容 Node 20）"
+  npm install -g pnpm@9 >/dev/null 2>&1 || { echo "==> [AI底座] pnpm 安装失败，跳过"; exit 0; }
+else
+  PNPM_VERSION=$(pnpm --version 2>/dev/null || echo "unknown")
+  echo "==> [AI底座] 已有 pnpm ${PNPM_VERSION}"
+  if [ "${PNPM_VERSION%%.*}" -ge 10 ] 2>/dev/null; then
+    echo "==> [AI底座] pnpm 主版本 ≥10 可能需 Node 22，降级为 pnpm@9"
+    npm install -g pnpm@9 >/dev/null 2>&1 || true
   fi
 fi
 
@@ -39,17 +42,30 @@ if [ ! -f ".env" ]; then
     echo "==> [AI底座] 从 .env.example 生成 .env"
   fi
   if [ -f "${BACKEND_ENV}" ]; then
-    for KEY in DB_HOST DB_PORT DB_USERNAME DB_PASSWORD DB_DATABASE REDIS_HOST REDIS_PORT REDIS_PASSWORD JWT_SECRET; do
-      VAL=$(grep "^${KEY}=" "${BACKEND_ENV}" | head -1 | cut -d= -f2- || true)
+    # 注意变量名映射：backend 用 DB_USER/DB_NAME，ai-base 用 DB_USERNAME/DB_DATABASE
+    declare -A KEY_MAP=(
+      [DB_HOST]=DB_HOST
+      [DB_PORT]=DB_PORT
+      [DB_USER]=DB_USERNAME
+      [DB_NAME]=DB_DATABASE
+      [DB_PASSWORD]=DB_PASSWORD
+      [REDIS_HOST]=REDIS_HOST
+      [REDIS_PORT]=REDIS_PORT
+      [REDIS_PASSWORD]=REDIS_PASSWORD
+      [JWT_SECRET]=JWT_SECRET
+    )
+    for SRC in "${!KEY_MAP[@]}"; do
+      DST="${KEY_MAP[$SRC]}"
+      VAL=$(grep "^${SRC}=" "${BACKEND_ENV}" | head -1 | cut -d= -f2- || true)
       if [ -n "${VAL}" ] && [ -f ".env" ]; then
-        if grep -q "^${KEY}=" ".env"; then
-          sed -i "s|^${KEY}=.*|${KEY}=${VAL}|" ".env"
+        if grep -q "^${DST}=" ".env"; then
+          sed -i "s|^${DST}=.*|${DST}=${VAL}|" ".env"
         else
-          echo "${KEY}=${VAL}" >> ".env"
+          echo "${DST}=${VAL}" >> ".env"
         fi
       fi
     done
-    echo "==> [AI底座] 已同步 backend/.env 的 DB/Redis/JWT 配置"
+    echo "==> [AI底座] 已同步 backend/.env 的 DB/Redis/JWT 配置（含 DB_USER→DB_USERNAME 映射）"
   fi
 else
   echo "==> [AI底座] .env 已存在，保留现有配置"
