@@ -1,8 +1,8 @@
-# 当前任务 — R71(全局测试问题修复·进行中) + R70(已完成)
+# 当前任务 — R72(审查报告真实问题修复·进行中) + R71/R70(已完成)
 
 > 仓库：https://github.com/wen-868/wen-ssystem.git  
 > 唯一分支：main  
-> 最后更新：2026-08-02（凌舟全局测试发现 5 个单测失败 + 4 个脚本测试全挂 + miniapp 依赖缺失，开 R71 轮次修复）
+> 最后更新：2026-08-02（凌舟核查 prod_..._代码审查报告_补充检测_20260802.md，确认 14 项中 5 项属实，开 R72 轮次修复）
 > 历史轮次归档：`docs/archive/current-tasks-R1-R69-归档.md`
 
 ---
@@ -782,6 +782,73 @@
 - **修复**：根 workspaces 追加 `app-mobile`、`miniapp` 后执行 `npm install` 验证。若 npm hoist 与 uni-app/Taro 工具链冲突（参考踩坑日志 #14 typescript 版本 hoist 教训），则记录到踩坑日志并回退，保留现状。
 - **验收标准**：`npm --workspace app-mobile run build:h5` 与 `npm --workspace miniapp run type-check` 可正常执行；backend / admin-web / saas-admin / website 构建不回归。
 - **核实**：2026-08-02 实测 `npm --workspace app-mobile run build:h5` → `npm error No workspaces found`
+
+---
+
+## R72 — 代码审查报告真实问题修复 [进行中 — 凌舟 2026-08-02]
+
+> **日期**：2026-08-02
+> **来源**：凌舟核查 `D:\Users\Downloads\prod_19fc1a6d7f5_9da3ff95e373_wen-ssystem_代码审查报告_补充检测_20260802.md`。
+> **核查结论**：报告 14 项问题中，引用的 `miniprogram/admin/` 路径全部不存在（真实路径为 `backend/src/services/admin/`），行号大面积失实；
+> 经 git/grep/建表 SQL 独立验证，**5 项属实**（P0-2/P0-3/P0-4/P0-6/P1-4）、1 项部分属实（P1-1 仅 UPDATE 缺 tenant_id 成立）、其余不属实。
+> 本轮仅修复**经核实属实的问题**，修复方式遵循强制闭环流程。
+
+### R72-01 — [P0] 修复 t_inventory_ledger 台账字段分裂（change_type 等不存在的列）
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：2天
+- **状态**：待开始
+- **文件**：
+  - 写侧（7 处）：`backend/src/services/admin/inventory-loss-gain.service.ts`、`inventory-loss-order.service.ts`、`inventory-profit-order.service.ts`、`stock-check.service.ts`、`transfer-order.service.ts`（2 处）、`transfer-execution.service.ts`（2 处）、`backend/src/services/sale-return.service.ts`
+  - 读侧（3 处）：`backend/src/services/admin/inventory-cost.service.ts`、`backend/src/services/admin/report.service.ts`
+- **问题**：`t_inventory_ledger` 表结构（init_database.sql / 001_phase1_schema.sql）仅含 `ledger_no/store_id/sku_id/stock_type/biz_type/biz_no/change_qty/before_qty/after_qty/before_locked_qty/after_locked_qty/operator_id/idempotency_key/remark/tenant_id`；但上述 7 处 INSERT 使用 `change_type/source_no/source_type/sku_name/ref_no` 列，3 处 SELECT 引用 `change_type/unit_price` 列，真实数据库运行必报 Unknown column，库存台账写入/成本核算/报表不可用。
+- **修复**：统一改写为表结构真实字段：`ledger_no`（生成唯一流水号）、`biz_type`（业务类型常量，如 RETURN_IN/STOCK_CHECK_IN/TRANSFER_OUT/LOSS/PROFIT）、`biz_no`（关联单号）、`stock_type`、`change_qty/before_qty/after_qty`、`idempotency_key`（唯一，如 `biz_type+biz_no+sku_id`）、`remark`；读侧改用 `biz_type/change_qty/remark` 等真实列。
+- **验收标准**：`rg -n "change_type|source_no|ref_no" backend/src --glob "*.ts"` 不再命中 t_inventory_ledger 相关 SQL；`npm run typecheck` 0 errors；`npm run test --workspace backend` 全量通过。
+- **核实**：`rg "INSERT INTO t_inventory_ledger"` 命中 15 处，其中 7 处使用 change_type；inventory-cost.service.ts:76-99、report.service.ts:580-583 读侧引用 change_type；建表 SQL 无 change_type/source_no/source_type/unit_price 列
+
+### R72-02 — [P0] 采购入库/退货箱瓶比硬编码 *12（应读 box_ratio）
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/purchase-in-stock.service.ts`、`backend/src/services/admin/purchase-return.service.ts`
+- **问题**：`(item.box_qty || 0) * 12` 硬编码箱瓶比（purchase-in-stock:201、purchase-return:162），忽略 `t_product_sku.box_ratio`（表结构存在该字段，默认 1）。箱瓶比非 12 的商品入库/退货数量与金额计算错误。
+- **修复**：在事务内按 sku_id 查询 `box_ratio`（未查到按 1），`totalBottleQty = boxQty * boxRatio + bottleQty`；并同步修正 subtotal 计算。
+- **验收标准**：`rg -n "\* 12"` 在 purchase-in-stock/purchase-return 无命中；相关单测通过；全量 vitest 通过。
+- **核实**：purchase-in-stock.service.ts:201 `(item.box_qty || 0) * 12`、purchase-return.service.ts:162 同款；init_database.sql:438 `box_ratio INT NOT NULL DEFAULT 1`
+
+### R72-03 — [P0] 盘点差异处理同步更新 physical_qty
+- **优先级**：P0
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/stock-check.service.ts`
+- **问题**：`handleDiff` 差异修正只 `UPDATE t_inventory_balance SET available_qty = available_qty + ?`（:311），新增库存也只写 `available_qty`（:317），未同步 `physical_qty`，盘点后实物/账面不一致，下次盘点仍报差异。
+- **修复**：UPDATE 同时 `available_qty = available_qty + ?, physical_qty = physical_qty + ?`；INSERT 同时写入两字段。
+- **验收标准**：`rg -n "physical_qty" stock-check.service.ts` 确认 handleDiff 两字段同步；相关测试通过；全量 vitest 通过。
+- **核实**：stock-check.service.ts:311 UPDATE 仅 available_qty；:317 INSERT 仅 available_qty
+
+### R72-04 — [P1] sale-return approve UPDATE 补 tenant_id 条件
+- **优先级**：P1
+- **负责人**：凌舟(AI协助)
+- **预计**：0.25天
+- **状态**：待开始
+- **文件**：`backend/src/services/sale-return.service.ts`
+- **问题**：`approve` 更新退货单状态 `UPDATE t_sale_return SET return_status='COMPLETED' ... WHERE return_no = ?`（:288）缺 `tenant_id` 条件，多租户下可能误更新其他租户数据。
+- **修复**：补 `AND tenant_id = ?` 并追加参数。
+- **验收标准**：`rg -n "UPDATE t_sale_return" sale-return.service.ts` 全部 UPDATE 均含 tenant_id；全量 vitest 通过。
+- **核实**：sale-return.service.ts:288 UPDATE 无 tenant_id（:361 refund 已含）
+
+### R72-05 — [P1] 采购入库接入 cost_price 更新（移动平均成本）
+- **优先级**：P1
+- **负责人**：凌舟(AI协助)
+- **预计**：0.5天
+- **状态**：待开始
+- **文件**：`backend/src/services/admin/purchase-in-stock.service.ts`、`backend/src/services/admin/inventory-cost.service.ts`
+- **问题**：采购入库未更新 `t_product_sku.cost_price`；`updateMovingAverageCost` 已实现但无任何业务调用方，后续出库成本计算缺少数据基础。
+- **修复**：采购入库审核通过后在事务内按 SKU 更新成本价（读取采购价计算移动加权平均），或事务完成后调用 `updateMovingAverageCost`。
+- **验收标准**：`rg -n "updateMovingAverageCost"` 有业务调用方；全量 vitest 通过。
+- **核实**：`rg "updateMovingAverageCost"` 仅命中 inventory-cost.service.ts 定义与测试，无业务调用；purchase-in-stock 无 cost_price 逻辑
 
 ---
 
