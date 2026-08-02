@@ -99,6 +99,7 @@ interface CountCntRow {
 interface ApproveItemRow {
   sku_id: number;
   total_bottle_qty: number;
+  unit_price: number | string | null;
   batch_no: string | null;
   production_date: string | Date | null;
   expiry_date: string | Date | null;
@@ -107,6 +108,16 @@ interface ApproveItemRow {
 /** 库存数量行 */
 interface InventoryQtyRow {
   physical_qty: number | string | null;
+}
+
+/** SKU 成本价行 */
+interface CostPriceRow {
+  cost_price: number | string | null;
+}
+
+/** SKU 总库存行 */
+interface TotalQtyRow {
+  total: number | string;
 }
 
 /** 采购订单简要行 */
@@ -197,8 +208,20 @@ export async function create(body: {
   let goodsAmount = 0;
   let taxAmount = 0;
 
+  // 读取各 SKU 箱瓶比（box_ratio），避免硬编码 12 导致数量计算错误
+  const skuIds = body.items.map((i) => i.sku_id);
+  const skuRows = skuIds.length > 0
+    ? await queryWithTenant<{ id: number | string; box_ratio: number | string | null }>(
+        `SELECT id, box_ratio FROM t_product_sku WHERE id IN (${skuIds.map(() => "?").join(",")}) AND tenant_id = ?`,
+        [...skuIds, tenantId],
+        tenantId
+      )
+    : [];
+  const boxRatioMap = new Map((skuRows ?? []).map((r) => [Number(r.id), Number(r.box_ratio) || 1]));
+
   const itemsWithAmount = body.items.map(item => {
-    const totalBottleQty = (item.box_qty || 0) * 12 + (item.bottle_qty || 0);
+    const boxRatio = boxRatioMap.get(Number(item.sku_id)) || 1;
+    const totalBottleQty = (item.box_qty || 0) * boxRatio + (item.bottle_qty || 0);
     const subtotalAmount = totalBottleQty * item.unit_price;
     const itemTaxAmount = subtotalAmount * (item.tax_rate || 0);
     const totalAmount = subtotalAmount + itemTaxAmount;
@@ -246,9 +269,31 @@ export async function approve(stockNo: string, tenantId: string, userId: number,
 
   await transaction(async (conn) => {
     await conn.query("UPDATE t_purchase_in_stock SET stock_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE stock_no = ? AND tenant_id = ?", [userId, stockNo, tenantId]);
-    const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty, batch_no, production_date, expiry_date FROM t_purchase_in_stock_item WHERE stock_no = ?", [stockNo]);
+    const [itemRows] = await conn.query("SELECT sku_id, total_bottle_qty, unit_price, batch_no, production_date, expiry_date FROM t_purchase_in_stock_item WHERE stock_no = ?", [stockNo]);
 
     for (const item of (itemRows as ApproveItemRow[])) {
+      // 更新移动加权平均成本（R72-05：采购入库接入 cost_price）
+      const costRows = (await conn.query(
+        "SELECT cost_price FROM t_product_sku WHERE id = ? AND tenant_id = ?",
+        [item.sku_id, tenantId]
+      ))[0] as CostPriceRow[];
+      const totalInvRows = (await conn.query(
+        "SELECT COALESCE(SUM(physical_qty), 0) AS total FROM t_inventory_balance WHERE sku_id = ? AND tenant_id = ?",
+        [item.sku_id, tenantId]
+      ))[0] as TotalQtyRow[];
+      const existingCost = Number(costRows?.[0]?.cost_price ?? 0);
+      const existingQty = Math.max(Number(totalInvRows?.[0]?.total ?? 0) - Number(item.total_bottle_qty), 0);
+      const inQty = Number(item.total_bottle_qty);
+      const inUnitPrice = Number(item.unit_price ?? 0);
+      const totalQty = existingQty + inQty;
+      const newCost = totalQty > 0
+        ? Math.round((existingQty * existingCost + inQty * inUnitPrice) / totalQty * 100) / 100
+        : existingCost;
+      await conn.query(
+        "UPDATE t_product_sku SET cost_price = ? WHERE id = ? AND tenant_id = ?",
+        [newCost, item.sku_id, tenantId]
+      );
+
       await conn.query(
         `INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty, tenant_id)
          VALUES (?, ?, 'OFFLINE', ?, 0, ?, ?)

@@ -285,8 +285,8 @@ class SaleReturnService {
     await transaction(async (conn) => {
       await connExecute<ResultSetHeader>(
         conn,
-        "UPDATE t_sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ?",
-        [ctx.userId, returnNo]
+        "UPDATE t_sale_return SET return_status = 'COMPLETED', auditor_id = ?, audited_at = NOW() WHERE return_no = ? AND tenant_id = ?",
+        [ctx.userId, returnNo, ctx.tenantId]
       );
 
       const [items] = await connExecute<SaleReturnItemQtyRow[]>(
@@ -312,17 +312,18 @@ class SaleReturnService {
         await connExecute<ResultSetHeader>(
           conn,
           `INSERT INTO t_inventory_ledger (
-            store_id, sku_id, change_type, change_qty, before_qty, after_qty,
-            source_no, source_type, operator_id, remark, tenant_id
-          ) VALUES (?, ?, 'RETURN_IN', ?, ?, ?, ?, 'sale_return', ?, ?, ?)`,
+            ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+            before_qty, after_qty, before_locked_qty, after_locked_qty,
+            operator_id, idempotency_key, remark, tenant_id
+          ) VALUES (?, ?, ?, 'OFFLINE', 'RETURN_IN', ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)`,
           [
+            makeBizNo("LZ"),
             returnOrder.store_id,
             itemRows[0].sku_id,
             totalQty,
-            0,
-            totalQty,
             returnNo,
             ctx.userId,
+            `RETURN_IN:${returnNo}:${itemRows[0].sku_id}`,
             `退货入库: ${returnNo}`,
             ctx.tenantId
           ]

@@ -46,10 +46,16 @@ export async function reportLossGain(params: {
     tenantId
   );
   // 写入 inventory_ledger
+  // 对齐表结构真实字段：ledger_no/biz_type/biz_no/change_qty（带符号）/idempotency_key
+  const ledgerNo = makeBizNo("LZ");
+  const bizType = type === "LOSS" ? "LOSS" : "PROFIT";
   await queryWithTenant(
-    `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty, unit_price, amount, biz_no, biz_type, tenant_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [skuId, storeId, type === "LOSS" ? "OUT" : "IN", qty, costPrice, amount, lgNo, "LOSS_GAIN", tenantId],
+    `INSERT INTO t_inventory_ledger (
+       ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+       before_qty, after_qty, before_locked_qty, after_locked_qty,
+       operator_id, idempotency_key, remark, tenant_id
+     ) VALUES (?, ?, ?, 'OFFLINE', ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)`,
+    [ledgerNo, storeId, skuId, bizType, lgNo, changeQty, operatorId, `LG:${lgNo}:${skuId}`, `报损报溢: ${reason ?? ""}`, tenantId],
     tenantId
   );
   return { lgNo, storeId, type, skuId, qty, amount };

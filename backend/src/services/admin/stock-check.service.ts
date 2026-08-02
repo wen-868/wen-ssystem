@@ -308,24 +308,28 @@ export async function handleDiff(params: {
 
     if (inv) {
       await conn.execute<ResultSetHeader>(
-        "UPDATE t_inventory_balance SET available_qty = available_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
-        [diffQty, check.store_id, item.sku_id, tenantId]
+        "UPDATE t_inventory_balance SET available_qty = available_qty + ?, physical_qty = physical_qty + ? WHERE store_id = ? AND sku_id = ? AND tenant_id = ?",
+        [diffQty, diffQty, check.store_id, item.sku_id, tenantId]
       );
     } else {
       if (diffQty > 0) {
         await conn.execute<ResultSetHeader>(
-          `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, locked_qty, tenant_id)
-           VALUES (?, ?, ?, ?, 0, ?)`,
-          [check.store_id, item.sku_id, item.sku_name, diffQty, tenantId]
+          `INSERT INTO t_inventory_balance (store_id, sku_id, sku_name, available_qty, physical_qty, locked_qty, tenant_id)
+           VALUES (?, ?, ?, ?, ?, 0, ?)`,
+          [check.store_id, item.sku_id, item.sku_name, diffQty, diffQty, tenantId]
         );
       }
     }
 
     const changeType = diffQty > 0 ? "STOCK_CHECK_IN" : "STOCK_CHECK_OUT";
     await conn.execute<ResultSetHeader>(
-      `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, ref_no, operator_id, created_at, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
-      [check.store_id, item.sku_id, item.sku_name, changeType, Math.abs(diffQty), check.check_no, userId ?? null, tenantId]
+      `INSERT INTO t_inventory_ledger (
+         ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+         before_qty, after_qty, before_locked_qty, after_locked_qty,
+         operator_id, idempotency_key, remark, tenant_id
+       ) VALUES (?, ?, ?, 'OFFLINE', ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)`,
+      [makeBizNo("LZ"), check.store_id, item.sku_id, changeType, check.check_no, diffQty,
+        userId ?? null, `SC:${check.check_no}:${item.sku_id}`, `盘点差异: ${check.check_no}`, tenantId]
     );
 
     await conn.execute<ResultSetHeader>(

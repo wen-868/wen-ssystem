@@ -1,5 +1,6 @@
 ﻿﻿import { queryWithTenant, transaction, connExecute } from "../shared/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import { makeBizNo } from "../shared/id";
 
 // ==================== 数据库行接口定义 ====================
 
@@ -155,10 +156,12 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
 
       await connExecute<ResultSetHeader>(
         conn,
-        `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
-         SELECT ?, ?, ?, 'TRANSFER_OUT', ?, available_qty, available_qty - ?, ?, ?, NOW(), ?
+        `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id)
+         SELECT ?, ?, ?, 'OFFLINE', 'TRANSFER_OUT', ?, ?, available_qty, available_qty - ?, 0, 0, ?, ?, NULL, ?
          FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
-        [order.from_store_id, item.sku_id, item.sku_name, shipQty, shipQty, order.transfer_no, userId ?? null, tenantId, order.from_store_id, item.sku_id, tenantId]
+        [makeBizNo("LZ"), order.from_store_id, item.sku_id, order.transfer_no, -shipQty, shipQty,
+          userId ?? null, `TO:${order.transfer_no}:${item.sku_id}`, tenantId,
+          order.from_store_id, item.sku_id, tenantId]
       );
 
       await connExecute<ResultSetHeader>(
@@ -241,10 +244,12 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 
       await connExecute<ResultSetHeader>(
         conn,
-        `INSERT INTO t_inventory_ledger (store_id, sku_id, sku_name, change_type, change_qty, before_qty, after_qty, ref_no, operator_id, created_at, tenant_id)
-         SELECT ?, ?, ?, 'TRANSFER_IN', ?, available_qty - ?, available_qty, ?, ?, NOW(), ?
+        `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty, operator_id, idempotency_key, remark, tenant_id)
+         SELECT ?, ?, ?, 'OFFLINE', 'TRANSFER_IN', ?, ?, available_qty - ?, available_qty, 0, 0, ?, ?, NULL, ?
          FROM t_inventory_balance WHERE store_id = ? AND sku_id = ? AND tenant_id = ?`,
-        [order.to_store_id, detail.sku_id, detail.sku_name, item.receivedQty, item.receivedQty, order.transfer_no, userId ?? null, tenantId, order.to_store_id, detail.sku_id, tenantId]
+        [makeBizNo("LZ"), order.to_store_id, detail.sku_id, order.transfer_no, item.receivedQty, item.receivedQty,
+          userId ?? null, `TI:${order.transfer_no}:${detail.sku_id}`, tenantId,
+          order.to_store_id, detail.sku_id, tenantId]
       );
 
       await connExecute<ResultSetHeader>(

@@ -577,13 +577,13 @@ export async function getInventoryTurnover(tenantId: string, startDate?: string,
   const where = `WHERE ${conditions.join(" AND ")}`;
   return queryWithTenant<InventoryTurnoverRow>(
     `SELECT il.sku_id AS skuId, ps.sku_name AS skuName,
-            COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty,
+            COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty,
             COALESCE(AVG(ib.physical_qty), 0) AS avgStock,
             CASE WHEN COALESCE(AVG(ib.physical_qty), 0) > 0
-                 THEN ROUND(COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) / AVG(ib.physical_qty), 2)
+                 THEN ROUND(COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) / AVG(ib.physical_qty), 2)
                  ELSE 0 END AS turnoverRate,
-            CASE WHEN COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) > 0
-                 THEN ROUND(30 / (COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN ABS(il.change_qty) ELSE 0 END), 0) / GREATEST(AVG(ib.physical_qty), 1)), 1)
+            CASE WHEN COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) > 0
+                 THEN ROUND(30 / (COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) / GREATEST(AVG(ib.physical_qty), 1)), 1)
                  ELSE 0 END AS turnoverDays
      FROM t_inventory_ledger il
      JOIN t_product_sku ps ON ps.id = il.sku_id AND ps.tenant_id = il.tenant_id

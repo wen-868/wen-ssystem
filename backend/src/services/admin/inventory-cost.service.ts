@@ -73,10 +73,10 @@ export async function getInventoryCostDetail(tenantId: string, startDate?: strin
   return queryWithTenant<InventoryCostDetailRow>(
     `SELECT ps.id AS skuId, ps.sku_name AS skuName, ps.cost_price AS movingAvgCost,
             COALESCE(ib.physical_qty, 0) AS endingQty,
-            COALESCE(SUM(CASE WHEN il.change_type = 'IN' THEN il.change_qty ELSE 0 END), 0) AS inQty,
-            COALESCE(SUM(CASE WHEN il.change_type = 'IN' THEN il.change_qty * il.unit_price ELSE 0 END), 0) AS inAmount,
-            COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN il.change_qty ELSE 0 END), 0) AS outQty,
-            COALESCE(SUM(CASE WHEN il.change_type = 'OUT' THEN il.change_qty * il.unit_price ELSE 0 END), 0) AS outAmount
+            COALESCE(SUM(CASE WHEN il.change_qty > 0 THEN il.change_qty ELSE 0 END), 0) AS inQty,
+            COALESCE(SUM(CASE WHEN il.change_qty > 0 THEN il.change_qty * ps.cost_price ELSE 0 END), 0) AS inAmount,
+            COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) ELSE 0 END), 0) AS outQty,
+            COALESCE(SUM(CASE WHEN il.change_qty < 0 THEN ABS(il.change_qty) * ps.cost_price ELSE 0 END), 0) AS outAmount
      FROM t_product_sku ps
      LEFT JOIN t_inventory_balance ib ON ib.sku_id = ps.id AND ib.tenant_id = ps.tenant_id
      LEFT JOIN t_inventory_ledger il ON il.sku_id = ps.id AND il.tenant_id = ps.tenant_id ${where}
@@ -95,8 +95,8 @@ export async function getInventoryCostTrend(tenantId: string, skuId?: number) {
   if (skuId) { conditions.push("sku_id = ?"); params.push(skuId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
   return queryWithTenant<InventoryCostTrendRow>(
-    `SELECT DATE(created_at) AS date, sku_id AS skuId, unit_price AS unitPrice,
-            change_type AS changeType, change_qty AS changeQty
+    `SELECT DATE(created_at) AS date, sku_id AS skuId, NULL AS unitPrice,
+            biz_type AS changeType, change_qty AS changeQty
      FROM t_inventory_ledger ${where}
      ORDER BY created_at ASC
      LIMIT 500`,

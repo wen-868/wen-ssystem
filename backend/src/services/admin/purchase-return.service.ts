@@ -158,8 +158,20 @@ export async function create(body: {
   let goodsAmount = 0;
   let taxAmount = 0;
 
+  // 读取各 SKU 箱瓶比（box_ratio），避免硬编码 12 导致数量计算错误
+  const skuIds = body.items.map((i) => i.sku_id);
+  const skuRows = skuIds.length > 0
+    ? await queryWithTenant<{ id: number | string; box_ratio: number | string | null }>(
+        `SELECT id, box_ratio FROM t_product_sku WHERE id IN (${skuIds.map(() => "?").join(",")}) AND tenant_id = ?`,
+        [...skuIds, tenantId],
+        tenantId
+      )
+    : [];
+  const boxRatioMap = new Map((skuRows ?? []).map((r) => [Number(r.id), Number(r.box_ratio) || 1]));
+
   const itemsWithAmount = body.items.map(item => {
-    const totalBottleQty = (item.box_qty || 0) * 12 + (item.bottle_qty || 0);
+    const boxRatio = boxRatioMap.get(Number(item.sku_id)) || 1;
+    const totalBottleQty = (item.box_qty || 0) * boxRatio + (item.bottle_qty || 0);
     const subtotalAmount = totalBottleQty * item.unit_price;
     const itemTaxAmount = subtotalAmount * (item.tax_rate || 0);
     const totalAmount = subtotalAmount + itemTaxAmount;

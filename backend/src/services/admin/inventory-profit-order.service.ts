@@ -296,14 +296,15 @@ export async function approveProfitOrder(
         [item.qty, item.qty, existing.storeId, item.skuId, tenantId]
       );
 
-      // 写入库存台账
-      const subtotalAmount = Math.round(item.qty * item.costPrice * 100) / 100;
+      // 写入库存台账（对齐表结构真实字段，change_qty 带符号）
       await conn.execute(
-        `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty,
-          unit_price, amount, biz_no, biz_type, tenant_id)
-         VALUES (?, ?, 'IN', ?, ?, ?, ?, 'PROFIT', ?)`,
-        [item.skuId, existing.storeId, item.qty, item.costPrice,
-          subtotalAmount, existing.profitNo, tenantId]
+        `INSERT INTO t_inventory_ledger (
+           ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+           before_qty, after_qty, before_locked_qty, after_locked_qty,
+           operator_id, idempotency_key, remark, tenant_id
+         ) VALUES (?, ?, ?, 'OFFLINE', 'PROFIT', ?, ?, 0, 0, 0, 0, NULL, ?, ?, ?)`,
+        [makeBizNo("LZ"), existing.storeId, item.skuId, existing.profitNo, item.qty,
+          `PROFIT:${existing.profitNo}:${item.skuId}`, `报溢入库: ${existing.profitNo}`, tenantId]
       );
     }
 

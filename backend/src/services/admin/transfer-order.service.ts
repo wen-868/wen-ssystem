@@ -539,11 +539,15 @@ export async function confirmTransferOut(
         [item.quantity, item.quantity, existing.fromStoreId, item.skuId, tenantId]
       );
 
-      // 写入库存台账（出库）
+      // 写入库存台账（出库，对齐表结构真实字段）
       await conn.execute(
-        `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty, biz_no, biz_type, tenant_id)
-         VALUES (?, ?, 'OUT', ?, ?, 'TRANSFER_OUT', ?)`,
-        [item.skuId, existing.fromStoreId, item.quantity, existing.transferNo, tenantId]
+        `INSERT INTO t_inventory_ledger (
+           ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+           before_qty, after_qty, before_locked_qty, after_locked_qty,
+           operator_id, idempotency_key, remark, tenant_id
+         ) VALUES (?, ?, ?, 'OFFLINE', 'TRANSFER_OUT', ?, ?, 0, 0, 0, 0, NULL, ?, ?, ?)`,
+        [makeBizNo("LZ"), existing.fromStoreId, item.skuId, existing.transferNo, -item.quantity,
+          `TO:${existing.transferNo}:${item.skuId}`, `调拨出库: ${existing.transferNo}`, tenantId]
       );
     }
   });
@@ -596,12 +600,15 @@ export async function confirmTransferIn(
         [item.quantity, item.quantity, existing.toStoreId, item.skuId, tenantId]
       );
 
-      // 写入库存台账（入库）
-      const amount = Math.round(Number(item.quantity) * Number(item.unitPrice) * 100) / 100;
+      // 写入库存台账（入库，对齐表结构真实字段）
       await conn.execute(
-        `INSERT INTO t_inventory_ledger (sku_id, store_id, change_type, change_qty, unit_price, amount, biz_no, biz_type, tenant_id)
-         VALUES (?, ?, 'IN', ?, ?, ?, ?, 'TRANSFER_IN', ?)`,
-        [item.skuId, existing.toStoreId, item.quantity, item.unitPrice, amount, existing.transferNo, tenantId]
+        `INSERT INTO t_inventory_ledger (
+           ledger_no, store_id, sku_id, stock_type, biz_type, biz_no, change_qty,
+           before_qty, after_qty, before_locked_qty, after_locked_qty,
+           operator_id, idempotency_key, remark, tenant_id
+         ) VALUES (?, ?, ?, 'OFFLINE', 'TRANSFER_IN', ?, ?, 0, 0, 0, 0, NULL, ?, ?, ?)`,
+        [makeBizNo("LZ"), existing.toStoreId, item.skuId, existing.transferNo, item.quantity,
+          `TI:${existing.transferNo}:${item.skuId}`, `调拨入库: ${existing.transferNo}`, tenantId]
       );
     }
   });
