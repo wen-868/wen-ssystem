@@ -909,6 +909,11 @@
   - 数据库间接验证通过：inventory-warning 查询正常、products 返回 10 条完整记录
   - **AI 底座未部署**：`159.75.153.59:3016` 外部不可达（HTTP 000）、域名未代理（404）
   - 待办：服务器部署 AI 底座（pnpm install 需确保 @napi-rs/canvas 原生绑定）+ 开放 3016/nginx 代理；SSH 补 `pm2 logs` 与 `SHOW TABLES` 直查
+- **AI 底座自动部署方案（2026-08-03 凌舟）**：
+  - 新增 `deploy/ai-base-deploy.sh`：pnpm 检查 → 生成 .env（从 backend/.env 同步 DB/Redis/JWT）→ pnpm install（执行原生脚本编译 canvas）→ pnpm build → pm2 启动 zhixiang-ai-base（:3016）→ 健康检查
+  - `deploy/auto-deploy.sh` 在"等待后端就绪"后容错调用（AI 底座失败不阻断主部署）
+  - push 到 main 即触发 GitHub Actions 自动部署；DEEPSEEK_API_KEY 未配置时服务可启动、对话功能待配置 key 后可用
+  - 外网访问需开放 3016 或配置 nginx 代理（部署成功后由凌舟外网验证 /api/health）
 
 ### R73-03 — [P1] 云打包阻塞跟进（DCloud 服务端 503）
 - **优先级**：P1

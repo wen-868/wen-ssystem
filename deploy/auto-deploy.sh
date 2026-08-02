@@ -104,6 +104,9 @@ for i in {1..30}; do
   sleep 2
 done
 
+echo "==> 部署 AI 底座（容错：失败不阻断主部署）"
+bash "${PROJECT_DIR}/deploy/ai-base-deploy.sh" || echo "AI 底座部署跳过（见上方日志）"
+
 echo "==> 运行冒烟测试"
 set -a && source "${PROJECT_DIR}/backend/.env" && set +a
 npm run test:mysql 2>/dev/null || echo "冒烟测试跳过"
