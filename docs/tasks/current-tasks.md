@@ -964,6 +964,28 @@
 
 ---
 
+### R73-06 — [P1] 重启后回归验证（文件信箱协议 + 双端构建 + AI 底座本地验证）
+- **优先级**：P1
+- **负责人**：阿澈（移动端回归）/ 阿坚（AI 底座与验收清单复核）
+- **预计**：0.5天
+- **状态**：🔄 进行中（阿澈部分 ✅ 已完成 2026-08-03；阿坚部分待完成。凌舟经文件信箱协议派发：任务卡 inbox/ache_r73_06.md、inbox/ajian_r73_06.md）
+- **背景**：用户已重启 Codex 桌面端；重启后受控实验确认 `spawn_agent` 消息正文仍无法送达（e2e_verify_after_restart 未收到令牌），但文件信箱协议已生效（子代理启动后主动读取 current-tasks.md/inbox/记忆并如实报告"未收到任务正文"）。R73-06 用于验证文件信箱协议端到端运转，并完成两项回归。
+- **修复**：
+  1. 阿澈：`npm run build:h5` + `npm run build:app` exit 0；代码走查自定义 tabBar（5 页引入/AI 凸起/呼吸动画）与商品页操作卡；产出走查记录
+  2. 阿坚：backend/ai-base 本地 `pnpm build`（或 npm 对应脚本）成功 + 启动后 `/health` 返回 200；复核 R73-02 验收清单命令与后端实际脚本/路由一致
+  3. 均走强制闭环：读任务卡 → 执行 → 验证 → 更新 current-tasks.md → commit（不 push，凌舟收口）
+- **验收标准**：两份任务卡归档至 inbox/archive/；任务文件状态更新；构建/验证结果真实可复核
+- **核实**：2026-08-03 重启后消息正文仍丢失（探针 e2e_verify_after_restart 复述失败），文件信箱为唯一可用投递通道
+- **阿澈完成记录**（2026-08-03）：
+  - 构建验证：`npm run build:h5` exit 0、`npm run build:app` exit 0（仅 Sass @import 弃用警告，非错误）
+  - 自定义 tabBar 走查：`custom-tab-bar.vue` 存在；pages.json `tabBar.custom: true`；5 个 tab 页面（home/products/ai-chat/functions/profile）均正确引入 `<custom-tab-bar :current="..."/>`；AI 按钮 `translateY(-30rpx)` 凸起 + `linear-gradient(135deg,#6366f1,#2563eb)` 渐变 + `ai-breathe 2.6s infinite` 呼吸动画 + `border-radius:50%` 圆形
+  - 商品页操作卡：products.vue 含建议核价/批量调价/价格异常三入口；批量调价跳转 `/pages-sub/product/batch-price/batch-price`（页面存在）；其余入口 `uni.showToast('...开发中')`，无编造数字
+  - 底部占位：5 页均含 `calc(108rpx + env(safe-area-inset-bottom))` 高度占位（home.vue:605/products.vue:580/ai-chat.vue:901/functions.vue:90/profile.vue:311）
+  - H5 产物抽查：`dist/build/h5/assets/custom-tab-bar.Bs2GW9TM.js` 存在；`pages-products-products.Cbp7S2cY.js` 含"建议核价"关键字
+  - 结论：走查全部通过，未发现问题；任务卡已归档 inbox/archive/
+
+---
+
 ## R69-00 — [P0 阻塞] 运维侧执行服务器 git pull + pm2 restart（R70前置条件）
 - **优先级**：P0 阻塞
 - **负责人**：凌舟 / 运维
