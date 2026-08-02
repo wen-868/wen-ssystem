@@ -31,7 +31,7 @@
     "@types/node": "^20.14.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "@vue/babel-plugin-jsx": "^3.0.0",
+    "@vue/babel-plugin-jsx": "1.5.0",
     "@vue/compiler-sfc": "^3.5.39",
     "babel-plugin-transform-taroapi": "3.6.20",
     "babel-preset-taro": "^3.6.20",
