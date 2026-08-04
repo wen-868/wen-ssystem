@@ -21,8 +21,31 @@
     </div>
 
     <el-row :gutter="16" class="cashier-body">
+      <!-- 分类栏（对标设计稿：全部/白酒/红酒/洋酒/啤酒/饮料/礼盒） -->
+      <el-col :span="4">
+        <div class="category-panel">
+          <div
+            class="category-item"
+            :class="{ active: activeCategory === 0 }"
+            @click="selectCategory(0)"
+          >
+            <span>全部</span>
+            <span class="category-count">{{ productOptions.length }}</span>
+          </div>
+          <div
+            v-for="cat in categories"
+            :key="cat.id"
+            class="category-item"
+            :class="{ active: activeCategory === cat.id }"
+            @click="selectCategory(cat.id)"
+          >
+            <span>{{ cat.name }}</span>
+          </div>
+        </div>
+      </el-col>
+
       <!-- 左侧：商品搜索与列表 -->
-      <el-col :span="14">
+      <el-col :span="10">
         <el-card shadow="never">
           <template #header>
             <div class="card-header">
@@ -43,7 +66,7 @@
           </div>
           <div v-else class="product-grid">
             <el-card
-              v-for="product in productOptions"
+              v-for="product in filteredProducts"
               :key="product.skuId || product.id"
               shadow="hover"
               class="product-card"
@@ -195,6 +218,7 @@ import { Search, User } from "@element-plus/icons-vue";
 import {
   searchStoreProducts,
   searchStoreMembers,
+  fetchProductCategories,
   createStoreSaleBill,
   createStoreOfflinePayment,
   createStoreHoldOrder,
@@ -206,6 +230,8 @@ import {
 const loading = ref(false);
 const productKeyword = ref("");
 const productOptions = ref<any[]>([]);
+const categories = ref<any[]>([]);
+const activeCategory = ref(0);
 const memberKeyword = ref("");
 const memberOptions = ref<any[]>([]);
 const cartItems = ref<any[]>([]);
@@ -226,6 +252,14 @@ const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
   return sum + Number(item.quantity || 0) * Number(item.unitPrice || 0);
 }, 0));
 
+/** 按分类过滤后的商品列表 */
+const filteredProducts = computed(() => {
+  if (activeCategory.value === 0) return productOptions.value;
+  return productOptions.value.filter(
+    (p) => Number(p.categoryId) === activeCategory.value
+  );
+});
+
 /** 库存状态：0 缺货红 / ≤10 告急橙 / 其余正常灰 */
 function stockClass(stock: number): string {
   if (stock <= 0) return 'stock-out'
@@ -235,7 +269,23 @@ function stockClass(stock: number): string {
 
 onMounted(() => {
   loadHoldOrders();
+  loadCategories();
 });
+
+/** 加载商品分类 */
+async function loadCategories() {
+  try {
+    const list = await fetchProductCategories();
+    categories.value = Array.isArray(list) ? list : (list?.records || list?.list || []);
+  } catch (e) {
+    console.error("加载商品分类失败", e);
+  }
+}
+
+/** 选择分类 */
+function selectCategory(id: number) {
+  activeCategory.value = id;
+}
 
 function getErrorMessage(error: unknown, fallback: string) {
   const anyError = error as { response?: { data?: { message?: string } }; message?: string };
@@ -525,9 +575,41 @@ async function handleDeleteHoldOrder(holdNo: string) {
   justify-content: space-between;
   align-items: center;
 }
+/* 分类栏 */
+.category-panel {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 8px;
+  height: 100%;
+}
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-bottom: 2px;
+  transition: all 150ms;
+}
+.category-item:hover {
+  background: var(--bg-soft);
+}
+.category-item.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.category-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 .product-card {

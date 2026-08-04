@@ -71,7 +71,7 @@
       <!-- 指标卡片行 -->
       <el-row :gutter="16" style="margin-top: 16px">
         <el-col
-          v-for="card in metricCards"
+          v-for="card in metricCards.slice(0, 4)"
           :key="card.label"
           :xs="24"
           :sm="12"
@@ -201,6 +201,91 @@
                   <span class="assistant-chip" @click="handleAssistant">让 AI 帮我处理</span>
                 </div>
                 <div class="assistant-footnote">本地推理 · 数据不出店</div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
+      <!-- ========== 订单与对账（对标设计稿：最新订单 / 订单进度 / 云对账） ========== -->
+      <div class="module-section order-section">
+        <el-row :gutter="16">
+          <!-- 左：最新订单 + 订单进度 -->
+          <el-col :xs="24" :md="16" style="margin-bottom: 16px">
+            <el-card class="focus-card">
+              <template #header>
+                <div class="focus-card-header">
+                  <span class="focus-title">最新订单</span>
+                  <span class="order-live">
+                    <span class="assistant-dot"></span>
+                    实时 · 共 {{ alertData.pendingOrders.length || 0 }} 单
+                  </span>
+                </div>
+              </template>
+              <div v-if="alertData.pendingOrders.length === 0" class="focus-empty">
+                暂无最新订单
+              </div>
+              <el-table
+                v-else
+                :data="alertData.pendingOrders.slice(0, 6)"
+                size="small"
+                class="compact-table"
+              >
+                <el-table-column prop="orderNo" label="订单号" width="110" />
+                <el-table-column prop="customerName" label="客户" min-width="100" />
+                <el-table-column label="金额" width="110" align="right">
+                  <template #default="{ row }">¥{{ Number(row.totalAmount ?? 0).toFixed(2) }}</template>
+                </el-table-column>
+                <el-table-column label="状态" width="110">
+                  <template #default="{ row }">
+                    <el-tag size="small" :type="orderStatusType(row.orderStatus)">
+                      {{ orderStatusText(row.orderStatus) }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 订单进度 -->
+              <div class="order-progress">
+                <div class="progress-item">
+                  <span class="progress-label">待配送</span>
+                  <span class="progress-value">{{ pendingCount('PENDING_DELIVERY') }}</span>
+                </div>
+                <div class="progress-item">
+                  <span class="progress-label">待取货</span>
+                  <span class="progress-value">{{ pendingCount('PENDING_PICKUP') }}</span>
+                </div>
+                <div class="progress-item">
+                  <span class="progress-label">待收款</span>
+                  <span class="progress-value">{{ pendingCount('PENDING_PAYMENT') }}</span>
+                </div>
+                <div class="progress-item">
+                  <span class="progress-label">已完成</span>
+                  <span class="progress-value">{{ pendingCount('COMPLETED') }}</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 右：云对账 -->
+          <el-col :xs="24" :md="8" style="margin-bottom: 16px">
+            <el-card class="focus-card">
+              <template #header>
+                <div class="focus-card-header">
+                  <span class="focus-title">云对账</span>
+                  <span class="focus-badge">本周</span>
+                </div>
+              </template>
+              <div class="recon-body">
+                <div class="recon-item" @click="navTo('/finance/reconciliation')">
+                  <span class="recon-label">待对账</span>
+                  <span class="recon-value">¥{{ formatNum(overview.pendingReconAmount) }}</span>
+                </div>
+                <div class="recon-item" @click="navTo('/credit')">
+                  <span class="recon-label">应收款待核销</span>
+                  <span class="recon-value">{{ alertData.overdueReceivables.length }} 笔</span>
+                </div>
+                <div class="recon-tip">对账周期：本周 · 自动核对平台流水</div>
               </div>
             </el-card>
           </el-col>
@@ -1046,6 +1131,39 @@ function navTo(path: string) {
 /** 经营助手入口（AI 对话窗口由布局层悬浮组件承载） */
 function handleAssistant() {
   ElMessage.info("经营助手已就绪，可点击右下角 AI 悬浮窗发起对话");
+}
+
+/** 订单状态文案映射 */
+function orderStatusText(status: string): string {
+  const map: Record<string, string> = {
+    PENDING: "待处理",
+    PENDING_DELIVERY: "待配送",
+    PENDING_PICKUP: "待取货",
+    PENDING_PAYMENT: "待收款",
+    COMPLETED: "已完成",
+    CANCELLED: "已取消",
+  };
+  return map[status] || status || "待处理";
+}
+
+/** 订单状态标签类型映射 */
+function orderStatusType(status: string): "primary" | "success" | "warning" | "danger" | "info" {
+  const map: Record<string, "primary" | "success" | "warning" | "danger" | "info"> = {
+    PENDING: "warning",
+    PENDING_DELIVERY: "primary",
+    PENDING_PICKUP: "warning",
+    PENDING_PAYMENT: "danger",
+    COMPLETED: "success",
+    CANCELLED: "info",
+  };
+  return map[status] || "info";
+}
+
+/** 按状态统计待处理订单数 */
+function pendingCount(status: string): number {
+  return alertData.value.pendingOrders.filter(
+    (o: any) => String(o.orderStatus || o.status || "").toUpperCase() === status
+  ).length;
 }
 
 // ==================== 工具函数 ====================
@@ -2190,6 +2308,74 @@ onUnmounted(() => {
 }
 .assistant-footnote {
   margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ─── 订单与对账区 ─── */
+.order-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.compact-table :deep(.el-table__header th) {
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
+  font-weight: 600;
+  height: 38px;
+}
+.compact-table :deep(.el-table__row td) {
+  height: 38px;
+}
+.order-progress {
+  display: flex;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-light);
+}
+.progress-item {
+  flex: 1;
+  text-align: center;
+}
+.progress-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.progress-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.recon-body {
+  display: flex;
+  flex-direction: column;
+}
+.recon-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+.recon-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.recon-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.recon-tip {
+  margin-top: 10px;
   font-size: 12px;
   color: var(--text-muted);
 }
