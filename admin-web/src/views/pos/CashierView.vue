@@ -209,7 +209,12 @@
           <el-radio-button label="CASH">现金</el-radio-button>
           <el-radio-button label="WECHAT">微信支付</el-radio-button>
           <el-radio-button label="ALIPAY">支付宝</el-radio-button>
+          <el-radio-button label="BALANCE">会员余额</el-radio-button>
         </el-radio-group>
+        <div v-if="paymentMethod === 'BALANCE'" class="pay-balance-row">
+          <span class="pay-balance-label">可用余额</span>
+          <span class="pay-balance-value">¥{{ memberBalance.toFixed(2) }}</span>
+        </div>
 
         <div class="pay-received-row">
           <span class="pay-received-label">实收金额</span>
@@ -291,6 +296,8 @@ const holdDialogVisible = ref(false);
 const holdOrders = ref<any[]>([]);
 const payDialogVisible = ref(false);
 const receivedAmount = ref(0);
+/** 会员可用余额（选中会员且有数据时展示，无则 0） */
+const memberBalance = ref(0);
 
 const totalQty = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
 
@@ -478,6 +485,7 @@ function openPayDialog() {
     return;
   }
   receivedAmount.value = cartAmount.value;
+  memberBalance.value = 0;
   payDialogVisible.value = true;
 }
 
@@ -873,6 +881,25 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .pay-method-group :deep(.el-radio-button__inner) {
   width: 100%;
+}
+.pay-balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--color-primary-bg);
+  border-radius: 6px;
+}
+.pay-balance-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pay-balance-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
 }
 .pay-received-row {
   display: flex;
