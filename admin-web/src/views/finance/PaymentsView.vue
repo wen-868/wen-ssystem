@@ -10,6 +10,7 @@
         </div>
       </template>
 
+      <StatBar :stats="paymentStats" />
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="分享收款" name="collection">
           <el-table :data="collectionLinks" v-loading="loading" stripe empty-text="暂无记录">
@@ -105,8 +106,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import StatBar from "../../components/StatBar.vue";
 import { fetchCollectionLinks, fetchPaymentOrders, fetchRefundOrders } from "../../api";
 
 const loading = ref(false);
@@ -115,6 +117,15 @@ const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
 const refundOrders = ref<any[]>([]);
 const total = ref(0);
+
+/** 财务统计条（对标设计稿 p08） */
+const paymentStats = computed(() => {
+  return [
+    { label: "收款关联", value: collectionLinks.value.length, primary: true },
+    { label: "付款单", value: paymentOrders.value.length },
+    { label: "退款单", value: refundOrders.value.length },
+  ];
+});
 const page = ref(1);
 const pageSize = ref(20);
 

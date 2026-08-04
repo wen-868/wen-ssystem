@@ -17,6 +17,7 @@
         </div>
       </template>
 
+      <StatBar :stats="productStats" />
       <TableSkeleton v-if="loading" />
       <el-table v-else
         :data="spuList" stripe row-key="spuId"
@@ -493,6 +494,7 @@ import { api } from "../../api";
 import { lookupLibraryByBarcode } from "../../api/library";
 import { formatDate } from "../../utils/format";
 import TableSkeleton from "../../components/TableSkeleton.vue";
+import StatBar from "../../components/StatBar.vue";
 
 // ---------- State ----------
 const loading = ref(false);
@@ -502,6 +504,20 @@ const priceHistoryLoading = ref(false);
 const skuPriceLoading = ref(false);
 const skuLookupLoading = reactive<Record<number, boolean>>({});
 const spuList = ref<any[]>([]);
+
+/** 商品统计条（对标设计稿 p05） */
+const productStats = computed(() => {
+  const list = spuList.value;
+  const onSale = list.filter((p) => p.status === "ON_SALE").length;
+  const draft = list.filter((p) => p.status === "DRAFT").length;
+  const lowStock = list.filter((p) => Number(p.availableQty ?? 0) <= 10).length;
+  return [
+    { label: "全部商品", value: list.length, primary: true },
+    { label: "在售", value: onSale },
+    { label: "草稿", value: draft },
+    { label: "低库存", value: lowStock },
+  ];
+});
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);

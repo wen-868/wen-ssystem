@@ -21,6 +21,7 @@
         </div>
       </template>
 
+      <StatBar :stats="memberStats" />
       <TableSkeleton v-if="loading" />
       <el-table v-else :data="members" stripe empty-text="暂无客户">
         <el-table-column prop="memberId" label="客户ID" width="100" />
@@ -128,10 +129,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { useRouter } from "vue-router";
 import TableSkeleton from "../../components/TableSkeleton.vue";
+import StatBar from "../../components/StatBar.vue";
 import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../../api";
 import { fetchCustomerTypes } from "../../api/customer";
 
@@ -139,6 +141,18 @@ const router = useRouter();
 const loading = ref(false);
 const submitLoading = ref(false);
 const members = ref<any[]>([]);
+
+/** 客户统计条（对标设计稿 p07） */
+const memberStats = computed(() => {
+  const list = members.value;
+  const vip = list.filter((m) => m.levelCode === "VIP").length;
+  const active = list.filter((m) => m.status === "ACTIVE").length;
+  return [
+    { label: "全部客户", value: list.length, primary: true },
+    { label: "VIP", value: vip },
+    { label: "启用", value: active },
+  ];
+});
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);

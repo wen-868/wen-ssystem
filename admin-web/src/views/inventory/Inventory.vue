@@ -30,6 +30,7 @@
             <el-button type="primary" @click="loadBalances">查询</el-button>
           </div>
 
+          <StatBar :stats="inventoryStats" />
           <TableSkeleton v-if="loading" />
           <el-table v-else :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
@@ -140,10 +141,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import TableSkeleton from "../../components/TableSkeleton.vue";
+import StatBar from "../../components/StatBar.vue";
 import { fetchInventoryBalances, fetchInventoryLogs, fetchStores } from "../../api";
 
 const loading = ref(false);
@@ -151,6 +153,20 @@ const activeTab = ref("balances");
 const stores = ref<any[]>([]);
 
 const balances = ref<any[]>([]);
+
+/** 库存统计条（对标设计稿 p06） */
+const inventoryStats = computed(() => {
+  const list = balances.value;
+  const low = list.filter(
+    (b) => Number(b.availableQty || 0) > 0 && Number(b.availableQty) < Number(b.warningQty || 0)
+  ).length;
+  const out = list.filter((b) => Number(b.availableQty || 0) <= 0).length;
+  return [
+    { label: "库存条目", value: list.length, primary: true },
+    { label: "低库存", value: low },
+    { label: "缺货", value: out },
+  ];
+});
 const balanceTotal = ref(0);
 const balancePage = ref(1);
 const balancePageSize = ref(20);

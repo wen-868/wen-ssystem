@@ -32,6 +32,7 @@
         </div>
       </template>
 
+      <StatBar :stats="orderStats" />
       <TableSkeleton v-if="loading" />
       <el-table v-else :data="orders" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200" />
@@ -149,13 +150,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
 import TableSkeleton from "../../components/TableSkeleton.vue";
+import StatBar from "../../components/StatBar.vue";
 import { fetchOrderDetail, fetchOrders } from "../../api";
 
 const loading = ref(false);
 const orders = ref<any[]>([]);
+
+/** 订单统计条（按状态计数，对标设计稿 p04） */
+const orderStats = computed(() => {
+  const list = orders.value;
+  const count = (status: string) => list.filter((o) => o.orderStatus === status).length;
+  return [
+    { label: "全部订单", value: list.length, primary: true },
+    { label: "待付款", value: count("PENDING_PAY") },
+    { label: "待发货", value: count("PENDING_SHIP") },
+    { label: "待收货", value: count("PENDING_RECEIVE") },
+    { label: "已完成", value: count("COMPLETED") },
+  ];
+});
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
