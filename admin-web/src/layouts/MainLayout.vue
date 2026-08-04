@@ -278,19 +278,6 @@
     <main v-loading="pageLoading" class="main">
       <!-- 收银台模式 -->
       <div v-if="isCashierMode" class="cashier-container">
-        <div class="cashier-header">
-          <el-button
-            v-if="!isCashierUser"
-            type="default"
-            size="small"
-            @click="toggleCashierMode"
-          >
-            <el-icon><ArrowLeft /></el-icon>
-            返回工作台
-          </el-button>
-          <h2 class="cashier-title">快速收银台</h2>
-          <div class="cashier-date">{{ formatDate(new Date()) }}</div>
-        </div>
         <div class="cashier-main">
           <router-view v-if="isCashierMode" />
         </div>
