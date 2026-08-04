@@ -20,147 +20,36 @@
 
       <!-- 自定义胶囊导航（按产品规划v6.1的12个一级模块顺序） -->
       <nav class="sidebar-nav">
-        <!-- 1. 工作总台 -->
+        <!-- 1. 工作台 -->
         <div class="nav-group">
-          <div
-            class="nav-item"
-            :class="{ active: isActive('/dashboard') }"
-            @click="navTo('/dashboard')"
-          >
+          <div class="nav-item" :class="{ active: isActive('/dashboard') }" @click="navTo('/dashboard')">
             <el-icon class="nav-icon"><HomeFilled /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">工作总台</span>
-          </div>
-          <div
-            class="nav-item"
-            :class="{ active: isActive('/todo-list') }"
-            @click="navTo('/todo-list')"
-          >
-            <el-icon class="nav-icon"><Bell /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">待办提醒</span>
-          </div>
-          <div
-            class="nav-item"
-            :class="{ active: isActive('/quick-entries') }"
-            @click="navTo('/quick-entries')"
-          >
-            <el-icon class="nav-icon"><Grid /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">快捷入口</span>
-          </div>
-          <div
-            class="nav-item"
-            :class="{ active: isActive('/messages') }"
-            @click="navTo('/messages')"
-          >
-            <el-icon class="nav-icon"><ChatDotRound /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">消息中心</span>
+            <span v-show="!isMenuCollapsed" class="nav-label">工作台</span>
           </div>
         </div>
 
-        <!-- 2. 销售管理 -->
+        <!-- 业务 -->
+        <div v-show="!isMenuCollapsed" class="nav-section-label">业务</div>
+
+        <!-- 2. 订单中心 -->
         <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.sales }" @click="toggleGroup('sales')">
+          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
             <el-icon class="nav-icon"><ShoppingCart /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">销售管理</span>
+            <span v-show="!isMenuCollapsed" class="nav-label">订单中心</span>
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
-          <div v-show="openGroups.sales && !isMenuCollapsed" class="nav-sub">
+          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
             <div class="nav-sub-item" :class="{ active: isActive('/sales/create') }" @click="navTo('/sales/create')">销售开单</div>
             <div class="nav-sub-item" :class="{ active: isActive('/sale-bills') }" @click="navTo('/sale-bills')">销售单据</div>
             <div class="nav-sub-item" :class="{ active: isActive('/sale-returns') }" @click="navTo('/sale-returns')">销售退货</div>
             <div class="nav-sub-item" :class="{ active: isActive('/collection') }" @click="navTo('/collection')">收款管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/sales/collection-links') }" @click="navTo('/sales/collection-links')">收款关联</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/sales/customer-prices') }" @click="navTo('/sales/customer-prices')">客户价格</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/sales/commission/rules') }" @click="navTo('/sales/commission/rules')">提成规则</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/sales/commission/records') }" @click="navTo('/sales/commission/records')">提成记录</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/sales/reports') }" @click="navTo('/sales/reports')">销售报表</div>
-          </div>
-        </div>
-
-        <!-- 3. 订单管理 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
-            <el-icon class="nav-icon"><Document /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">订单管理</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
             <div class="nav-sub-item" :class="{ active: isActive('/orders') }" @click="navTo('/orders')">订单列表</div>
             <div class="nav-sub-item" :class="{ active: isActive('/order-board') }" @click="navTo('/order-board')">订单看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-timeout') }" @click="navTo('/order-timeout')">订单超时</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-center') }" @click="navTo('/order-center')">订单中心</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-routing') }" @click="navTo('/order-routing')">订单路由</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-sync') }" @click="navTo('/order-sync')">订单同步</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-exception') }" @click="navTo('/order-exception')">订单异常</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-product-map') }" @click="navTo('/order-product-map')">订单商品映射</div>
             <div class="nav-sub-item" :class="{ active: isActive('/order-aftersale') }" @click="navTo('/order-aftersale')">订单售后</div>
           </div>
         </div>
 
-        <!-- 4. 采购管理（新增） -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.purchase }" @click="toggleGroup('purchase')">
-            <el-icon class="nav-icon"><Van /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">采购管理</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.purchase && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase-orders') }" @click="navTo('/purchase-orders')">采购订单</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase-in-stocks') }" @click="navTo('/purchase-in-stocks')">采购入库</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase-returns') }" @click="navTo('/purchase-returns')">采购退货</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase-contracts') }" @click="navTo('/purchase-contracts')">采购合同</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/suppliers') }" @click="navTo('/suppliers')">供应商管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase/supplier-statements') }" @click="navTo('/purchase/supplier-statements')">供应商对账</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase/plans') }" @click="navTo('/purchase/plans')">采购计划</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/purchase-payments') }" @click="navTo('/purchase-payments')">采购付款</div>
-          </div>
-        </div>
-
-        <!-- 5. 库存管理 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.inventory }" @click="toggleGroup('inventory')">
-            <el-icon class="nav-icon"><Files /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">库存管理</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.inventory && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory') }" @click="navTo('/inventory')">库存查询</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-check') }" @click="navTo('/inventory-check')">库存盘点</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-transfer') }" @click="navTo('/inventory-transfer')">库存调拨</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-batch') }" @click="navTo('/inventory-batch')">库存批次</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-share-config') }" @click="navTo('/inventory-share-config')">库存共享设置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-batch-price') }" @click="navTo('/inventory-batch-price')">批量调价</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-price-quote') }" @click="navTo('/inventory-price-quote')">报价管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-cost') }" @click="navTo('/inventory-cost')">库存成本</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-alerts') }" @click="navTo('/inventory-alerts')">库存预警</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-alert-config') }" @click="navTo('/inventory-alert-config')">预警配置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/inventory-reports') }" @click="navTo('/inventory-reports')">库存报表</div>
-          </div>
-        </div>
-
-        <!-- 6. 客户管理 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.customers }" @click="toggleGroup('customers')">
-            <el-icon class="nav-icon"><User /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">客户管理</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.customers && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/customers') }" @click="navTo('/customers')">客户列表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/member-system') }" @click="navTo('/member-system')">会员体系</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/store-value-cards') }" @click="navTo('/store-value-cards')">储值卡</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-tags') }" @click="navTo('/customer-tags')">客户标签</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-profile') }" @click="navTo('/customer-profile')">客户画像</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-care') }" @click="navTo('/customer-care')">客户关怀</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-visits') }" @click="navTo('/customer-visits')">拜访记录</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-lifecycle') }" @click="navTo('/customer-lifecycle')">客户生命周期</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-segments') }" @click="navTo('/customer-segments')">客户分群</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/credit') }" @click="navTo('/credit')">信用管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/points-rules') }" @click="navTo('/points-rules')">积分规则</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/level-config') }" @click="navTo('/level-config')">等级配置</div>
-          </div>
-        </div>
-
-        <!-- 7. 商品中心 -->
+        <!-- 3. 商品中心 -->
         <div class="nav-group">
           <div class="nav-item has-sub" :class="{ open: openGroups.products }" @click="toggleGroup('products')">
             <el-icon class="nav-icon"><Goods /></el-icon>
@@ -171,17 +60,78 @@
             <div class="nav-sub-item" :class="{ active: isActive('/products') }" @click="navTo('/products')">商品列表</div>
             <div class="nav-sub-item" :class="{ active: isActive('/products/categories') }" @click="navTo('/products/categories')">商品分类</div>
             <div class="nav-sub-item" :class="{ active: isActive('/products/brands') }" @click="navTo('/products/brands')">品牌管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/units') }" @click="navTo('/products/units')">单位管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/import') }" @click="navTo('/products/import')">商品导入</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/tags') }" @click="navTo('/products/tags')">商品标签</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/tag-groups') }" @click="navTo('/products/tag-groups')">标签分组</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/tag-relation') }" @click="navTo('/products/tag-relation')">标签关联</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/reviews') }" @click="navTo('/products/reviews')">商品审核</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/review-workflow') }" @click="navTo('/products/review-workflow')">审核流程配置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/review-tasks') }" @click="navTo('/products/review-tasks')">审核任务</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/review-delegation') }" @click="navTo('/products/review-delegation')">审核委托</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/products/combo') }" @click="navTo('/products/combo')">套装与组合品</div>
             <div class="nav-sub-item" :class="{ active: isActive('/prices') }" @click="navTo('/prices')">价格管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/products/import') }" @click="navTo('/products/import')">商品导入</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/products/combo') }" @click="navTo('/products/combo')">套装与组合品</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/products/reviews') }" @click="navTo('/products/reviews')">商品审核</div>
+          </div>
+        </div>
+
+        <!-- 4. 库存中心 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.inventory }" @click="toggleGroup('inventory')">
+            <el-icon class="nav-icon"><Files /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">库存中心</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.inventory && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory') }" @click="navTo('/inventory')">库存查询</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-check') }" @click="navTo('/inventory-check')">库存盘点</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-transfer') }" @click="navTo('/inventory-transfer')">库存调拨</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-alerts') }" @click="navTo('/inventory-alerts')">库存预警</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/inventory-batch-price') }" @click="navTo('/inventory-batch-price')">批量调价</div>
+          </div>
+        </div>
+
+        <!-- 5. 客户会员 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.customers }" @click="toggleGroup('customers')">
+            <el-icon class="nav-icon"><User /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">客户会员</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.customers && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/customers') }" @click="navTo('/customers')">客户列表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/member-system') }" @click="navTo('/member-system')">会员体系</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/store-value-cards') }" @click="navTo('/store-value-cards')">储值卡</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/credit') }" @click="navTo('/credit')">信用管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/points-rules') }" @click="navTo('/points-rules')">积分规则</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/level-config') }" @click="navTo('/level-config')">等级配置</div>
+          </div>
+        </div>
+
+        <!-- 6. 财务中心 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.finance }" @click="toggleGroup('finance')">
+            <el-icon class="nav-icon"><Money /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">财务中心</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.finance && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/payments') }" @click="navTo('/payments')">收付款管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/finance/receivables-payables') }" @click="navTo('/finance/receivables-payables')">应收应付</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/customer-statements') }" @click="navTo('/customer-statements')">客户对账</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/finance/reconciliation') }" @click="navTo('/finance/reconciliation')">财务对账</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/finance/profit') }" @click="navTo('/finance/profit')">利润核算</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/fund-report') }" @click="navTo('/fund-report')">资金报表</div>
+          </div>
+        </div>
+
+        <!-- 功能 -->
+        <div v-show="!isMenuCollapsed" class="nav-section-label">功能</div>
+
+        <!-- 7. 采购管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.purchase }" @click="toggleGroup('purchase')">
+            <el-icon class="nav-icon"><Van /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">采购管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.purchase && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/purchase-orders') }" @click="navTo('/purchase-orders')">采购订单</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/purchase-in-stocks') }" @click="navTo('/purchase-in-stocks')">采购入库</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/suppliers') }" @click="navTo('/suppliers')">供应商管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/purchase-payments') }" @click="navTo('/purchase-payments')">采购付款</div>
           </div>
         </div>
 
@@ -196,39 +146,24 @@
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/config') }" @click="navTo('/instant-retail/config')">平台配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/pickup') }" @click="navTo('/instant-retail/pickup')">接单工作台</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/orders') }" @click="navTo('/instant-retail/orders')">小程序订单</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/order-board') }" @click="navTo('/instant-retail/order-board')">订单看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/shelf') }" @click="navTo('/instant-retail/shelf')">商品货架</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/sync') }" @click="navTo('/instant-retail/sync')">库存同步</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/delivery') }" @click="navTo('/instant-retail/delivery')">配送管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/platform') }" @click="navTo('/instant-retail/platform')">平台管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/payment') }" @click="navTo('/instant-retail/payment')">平台对账</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/announcements') }" @click="navTo('/instant-retail/announcements')">平台公告</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/dashboard') }" @click="navTo('/instant-retail/dashboard')">零售看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/report') }" @click="navTo('/instant-retail/report')">零售报表</div>
           </div>
         </div>
 
-        <!-- 9. 财务往来 -->
+        <!-- 9. 营销中心 -->
         <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.finance }" @click="toggleGroup('finance')">
-            <el-icon class="nav-icon"><Money /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">财务往来</span>
+          <div class="nav-item has-sub" :class="{ open: openGroups.marketing }" @click="toggleGroup('marketing')">
+            <el-icon class="nav-icon"><Discount /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">营销中心</span>
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
-          <div v-show="openGroups.finance && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/payments') }" @click="navTo('/payments')">收付款管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/receipts') }" @click="navTo('/finance/receipts')">收款单</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/payments') }" @click="navTo('/finance/payments')">付款单</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/collection') }" @click="navTo('/finance/collection')">回款管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/customer-statements') }" @click="navTo('/customer-statements')">客户对账</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/receivables-payables') }" @click="navTo('/finance/receivables-payables')">应收应付</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/profit') }" @click="navTo('/finance/profit')">利润核算</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/expenses') }" @click="navTo('/finance/expenses')">费用管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/reconciliation') }" @click="navTo('/finance/reconciliation')">财务对账</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/finance/dashboard') }" @click="navTo('/finance/dashboard')">财务看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/bank-accounts') }" @click="navTo('/bank-accounts')">银行账户</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/fund-report') }" @click="navTo('/fund-report')">资金报表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/bill-management') }" @click="navTo('/bill-management')">票据管理</div>
+          <div v-show="openGroups.marketing && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing') }" @click="navTo('/marketing')">营销活动</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing/coupon') }" @click="navTo('/marketing/coupon')">优惠券管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing/limited-discount') }" @click="navTo('/marketing/limited-discount')">限时折扣</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing/flash-sale') }" @click="navTo('/marketing/flash-sale')">秒杀活动</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/marketing/full-reduction') }" @click="navTo('/marketing/full-reduction')">满减满赠</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/aftersale') }" @click="navTo('/aftersale')">售后管理</div>
           </div>
         </div>
 
@@ -242,42 +177,15 @@
           <div v-show="openGroups.reports && !isMenuCollapsed" class="nav-sub">
             <div class="nav-sub-item" :class="{ active: isActive('/reports') }" @click="navTo('/reports')">销售统计</div>
             <div class="nav-sub-item" :class="{ active: isActive('/reports/sales-analysis') }" @click="navTo('/reports/sales-analysis')">销售分析</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/collection-analysis') }" @click="navTo('/reports/collection-analysis')">回款分析</div>
             <div class="nav-sub-item" :class="{ active: isActive('/reports/products') }" @click="navTo('/reports/products')">商品排行</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/purchase') }" @click="navTo('/reports/purchase')">采购报表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/stores') }" @click="navTo('/reports/stores')">门店报表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/customers') }" @click="navTo('/reports/customers')">客户分析</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/inventory') }" @click="navTo('/reports/inventory')">库存报表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/transfer') }" @click="navTo('/reports/transfer')">调拨统计</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/custom-report') }" @click="navTo('/reports/custom-report')">自定义报表</div>
             <div class="nav-sub-item" :class="{ active: isActive('/reports/employees') }" @click="navTo('/reports/employees')">员工业绩</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/reports/online-payment') }" @click="navTo('/reports/online-payment')">在线收款分析</div>
           </div>
         </div>
 
-        <!-- 11. 营销中心 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.marketing }" @click="toggleGroup('marketing')">
-            <el-icon class="nav-icon"><Discount /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">营销中心</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.marketing && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing') }" @click="navTo('/marketing')">营销活动</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/tags') }" @click="navTo('/marketing/tags')">营销标签</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/coupon') }" @click="navTo('/marketing/coupon')">优惠券管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/limited-discount') }" @click="navTo('/marketing/limited-discount')">限时折扣</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/flash-sale') }" @click="navTo('/marketing/flash-sale')">秒杀活动</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/full-reduction') }" @click="navTo('/marketing/full-reduction')">满减满赠</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/gift-rule') }" @click="navTo('/marketing/gift-rule')">赠品规则</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/points-mall') }" @click="navTo('/marketing/points-mall')">积分商城</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/dashboard') }" @click="navTo('/marketing/dashboard')">营销看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/marketing/materials') }" @click="navTo('/marketing/materials')">营销素材</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/aftersale') }" @click="navTo('/aftersale')">售后管理</div>
-          </div>
-        </div>
+        <!-- 系统 -->
+        <div v-show="!isMenuCollapsed" class="nav-section-label">系统</div>
 
-        <!-- 12. 系统设置 -->
+        <!-- 11. 系统设置 -->
         <div class="nav-group">
           <div class="nav-item has-sub" :class="{ open: openGroups.system }" @click="toggleGroup('system')">
             <el-icon class="nav-icon"><Setting /></el-icon>
@@ -285,21 +193,13 @@
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
           <div v-show="openGroups.system && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/department-manage') }" @click="navTo('/department-manage')">部门管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/position-manage') }" @click="navTo('/position-manage')">岗位管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/employees') }" @click="navTo('/employees')">员工管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/config') }" @click="navTo('/system/config')">系统配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/rules') }" @click="navTo('/system/approval/rules')">审批规则</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/my') }" @click="navTo('/system/approval/my')">我的审批</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/report-permissions') }" @click="navTo('/report-permissions')">报表权限</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/payment') }" @click="navTo('/system/payment')">支付配置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/miniapp') }" @click="navTo('/system/miniapp')">小程序配置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/monitor') }" @click="navTo('/monitor')">系统监控</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/feedback') }" @click="navTo('/system/feedback')">反馈管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/audit-log') }" @click="navTo('/audit-log')">操作日志</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/error-log') }" @click="navTo('/error-log')">错误日志</div>
           </div>
         </div>
       </nav>
@@ -430,17 +330,16 @@ const storeDisplayName = computed(() => {
 });
 
 const openGroups = reactive({
-  sales: false,
   orders: false,
-  purchase: false,
   inventory: false,
   products: false,
   customers: false,
-  instant: false,
-  reports: false,
   finance: false,
-  system: false,
+  purchase: false,
+  instant: false,
   marketing: false,
+  reports: false,
+  system: false,
 });
 
 const isCashierUser = computed(() => {
@@ -453,28 +352,26 @@ onMounted(() => {
     isMenuCollapsed.value = true;
   }
   const path = route.path;
-  // 2. 销售管理
-  if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection')) openGroups.sales = true;
-  // 3. 订单管理
-  if (path.startsWith('/order')) openGroups.orders = true;
-  // 4. 采购管理
-  if (path.startsWith('/purchase') || path.startsWith('/suppliers')) openGroups.purchase = true;
-  // 5. 库存管理
-  if (path.startsWith('/inventory')) openGroups.inventory = true;
-  // 6. 客户管理
-  if (path.startsWith('/customers') || path.startsWith('/member') || path.startsWith('/store-value') || path.startsWith('/credit') || path.startsWith('/points') || path.startsWith('/level') || path.startsWith('/customer-')) openGroups.customers = true;
-  // 7. 商品中心
+  // 2. 订单中心
+  if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection') || path.startsWith('/order')) openGroups.orders = true;
+  // 3. 商品中心
   if (path.startsWith('/products') || path.startsWith('/prices')) openGroups.products = true;
+  // 4. 库存中心
+  if (path.startsWith('/inventory')) openGroups.inventory = true;
+  // 5. 客户会员
+  if (path.startsWith('/customers') || path.startsWith('/member') || path.startsWith('/store-value') || path.startsWith('/credit') || path.startsWith('/points') || path.startsWith('/level') || path.startsWith('/customer-')) openGroups.customers = true;
+  // 6. 财务中心
+  if (path.startsWith('/finance') || path.startsWith('/payments') || path.startsWith('/customer-statements') || path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management')) openGroups.finance = true;
+  // 7. 采购管理
+  if (path.startsWith('/purchase') || path.startsWith('/suppliers')) openGroups.purchase = true;
   // 8. 即时零售
   if (path.startsWith('/instant-retail')) openGroups.instant = true;
-  // 9. 财务往来
-  if (path.startsWith('/finance') || path.startsWith('/payments') || path.startsWith('/customer-statements') || path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management')) openGroups.finance = true;
+  // 9. 营销中心
+  if (path.startsWith('/marketing') || path.startsWith('/aftersale')) openGroups.marketing = true;
   // 10. 数据报表
   if (path.startsWith('/reports')) openGroups.reports = true;
-  // 11. 营销中心
-  if (path.startsWith('/marketing') || path.startsWith('/aftersale')) openGroups.marketing = true;
-  // 12. 系统设置
-  if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/department-manage') || path.startsWith('/position-manage') || path.startsWith('/stores') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor') || path.startsWith('/report-permissions')) openGroups.system = true;
+  // 11. 系统设置
+  if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/stores') || path.startsWith('/department-manage') || path.startsWith('/position-manage') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor') || path.startsWith('/report-permissions')) openGroups.system = true;
 });
 
 function isActive(path: string): boolean {
@@ -737,6 +634,14 @@ function handleLogout() {
   padding: 8px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* 导航分组标签（业务/功能/系统） */
+.nav-section-label {
+  font-size: 11px;
+  color: var(--text-placeholder);
+  padding: 10px 12px 4px;
+  letter-spacing: 1px;
 }
 
 .sidebar-nav::-webkit-scrollbar {

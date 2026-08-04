@@ -177,6 +177,14 @@
                   </div>
                   <span class="todo-arrow">›</span>
                 </div>
+                <div class="help-item" @click="navTo('/messages')">
+                  <span class="help-icon help-icon--blue">讯</span>
+                  <div class="help-content">
+                    <div class="help-label">查看消息中心</div>
+                    <div class="help-desc">系统通知与业务提醒</div>
+                  </div>
+                  <span class="todo-arrow">›</span>
+                </div>
               </div>
             </el-card>
           </el-col>
