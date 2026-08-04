@@ -106,11 +106,11 @@
         </el-col>
       </el-row>
 
-      <!-- ========== 今日焦点（对标设计稿：待办 / 本页可帮你 / 经营助手） ========== -->
+      <!-- ========== 今日焦点（对标设计稿：待办 / 本页可帮你） ========== -->
       <div class="module-section focus-section">
         <el-row :gutter="16">
           <!-- 待办事项 -->
-          <el-col :xs="24" :sm="12" :md="8" style="margin-bottom: 16px">
+          <el-col :xs="24" :sm="12" :md="12" style="margin-bottom: 16px">
             <el-card class="focus-card">
               <template #header>
                 <div class="focus-card-header">
@@ -145,7 +145,7 @@
           </el-col>
 
           <!-- 本页可帮你 -->
-          <el-col :xs="24" :sm="12" :md="8" style="margin-bottom: 16px">
+          <el-col :xs="24" :sm="12" :md="12" style="margin-bottom: 16px">
             <el-card class="focus-card">
               <template #header>
                 <div class="focus-card-header">
@@ -189,29 +189,6 @@
             </el-card>
           </el-col>
 
-          <!-- 经营助手 -->
-          <el-col :xs="24" :sm="24" :md="8" style="margin-bottom: 16px">
-            <el-card class="focus-card assistant-card">
-              <template #header>
-                <div class="focus-card-header">
-                  <span class="focus-title">经营助手</span>
-                  <span class="assistant-status">
-                    <span class="assistant-dot"></span>
-                    本地模型
-                  </span>
-                </div>
-              </template>
-              <div class="assistant-body">
-                <div class="assistant-hello">下午好，管理员</div>
-                <div class="assistant-tip">今天有 {{ todoCount }} 件待办：核价异常、临期商品、应收核销。</div>
-                <div class="assistant-actions">
-                  <span class="assistant-chip" @click="navTo('/todo-list')">查看待办</span>
-                  <span class="assistant-chip" @click="handleAssistant">让 AI 帮我处理</span>
-                </div>
-                <div class="assistant-footnote">本地推理 · 数据不出店</div>
-              </div>
-            </el-card>
-          </el-col>
         </el-row>
       </div>
 

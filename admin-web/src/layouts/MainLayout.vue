@@ -1,5 +1,59 @@
 <template>
   <div class="layout">
+    <!-- 通栏顶栏（横跨全宽：门店 · 面包屑 | 搜索 · 后台/收银切换 · 通知 · 用户） -->
+    <header class="global-header">
+      <div class="header-left">
+        <!-- 门店信息（对标设计稿：门店名 · 营业状态） -->
+        <div class="store-status">
+          <span class="store-status-dot"></span>
+          <span class="store-name">{{ storeDisplayName }}</span>
+          <span class="store-state">营业中</span>
+        </div>
+        <span class="breadcrumb">{{ isCashierMode ? "快速收银台" : pageTitle }}</span>
+      </div>
+      <div class="header-right">
+        <div v-if="!isCashierMode" class="header-search">
+          <el-icon><Search /></el-icon>
+          <span>搜索商品、订单...</span>
+          <kbd>⌘K</kbd>
+        </div>
+
+        <!-- 管理后台 / 收银台 模式切换（对标设计稿） -->
+        <div class="mode-switch">
+          <span
+            class="mode-switch-item"
+            :class="{ active: !isCashierMode }"
+            @click="isCashierMode = false"
+          >管理后台</span>
+          <span
+            class="mode-switch-item"
+            :class="{ active: isCashierMode }"
+            @click="toggleCashierMode"
+          >收银台</span>
+        </div>
+
+        <el-badge :value="3" :max="99" class="header-badge">
+          <el-button circle size="small">
+            <el-icon><Bell /></el-icon>
+          </el-button>
+        </el-badge>
+        <el-dropdown trigger="click">
+          <span class="user-info">
+            <el-avatar :size="28" class="user-avatar-icon" style="background: var(--color-primary)">
+              <el-icon><User /></el-icon>
+            </el-avatar>
+            <span class="user-name">{{ currentUser?.realName || "管理员" }}</span>
+            <el-icon><CaretBottom /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </header>
+
     <!-- 侧边栏：深色磨砂 + 胶囊导航 -->
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
@@ -222,61 +276,6 @@
 
     <!-- 主内容区 -->
     <main v-loading="pageLoading" class="main">
-      <!-- 顶栏：磨砂半透明 -->
-      <header v-if="!isCashierMode" class="main-header">
-        <div class="header-left">
-          <el-button
-            v-if="isMenuCollapsed"
-            class="menu-toggle-btn"
-            :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
-            size="small"
-            text
-            @click="isMenuCollapsed = !isMenuCollapsed"
-          />
-          <!-- 门店信息（对标设计稿：门店名 · 营业状态） -->
-          <div class="store-status">
-            <span class="store-status-dot"></span>
-            <span class="store-name">{{ storeDisplayName }}</span>
-            <span class="store-state">营业中</span>
-          </div>
-          <span class="breadcrumb">{{ pageTitle }}</span>
-        </div>
-        <div class="header-right">
-          <div class="header-search">
-            <el-icon><Search /></el-icon>
-            <span>搜索商品、订单...</span>
-            <kbd>⌘K</kbd>
-          </div>
-          <el-button
-            type="primary"
-            size="small"
-            @click="toggleCashierMode"
-          >
-            <el-icon><ShoppingCart /></el-icon>
-            切换收银台
-          </el-button>
-          <el-badge :value="3" :max="99" class="header-badge">
-            <el-button circle size="small">
-              <el-icon><Bell /></el-icon>
-            </el-button>
-          </el-badge>
-          <el-dropdown trigger="click">
-            <span class="user-info">
-              <el-avatar :size="28" class="user-avatar-icon" style="background: var(--color-primary)">
-                <el-icon><User /></el-icon>
-              </el-avatar>
-              <span class="user-name">{{ currentUser?.realName || '管理员' }}</span>
-              <el-icon><CaretBottom /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
-      </header>
-
       <!-- 收银台模式 -->
       <div v-if="isCashierMode" class="cashier-container">
         <div class="cashier-header">
@@ -343,11 +342,7 @@ const currentUser = computed(() => auth.user);
 /** 门店显示名：优先当前用户门店，无则默认 */
 const storeDisplayName = computed(() => {
   const u: any = currentUser.value;
-  return (
-    u?.storeName ||
-    u?.store?.name ||
-    (u?.realName ? `${u.realName}的门店` : "鑫达批发 · 朝阳门店")
-  );
+  return u?.storeName || u?.store?.name || "智享全链";
 });
 
 const openGroups = reactive({
@@ -574,13 +569,32 @@ function handleLogout() {
 
 <style scoped>
 .layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--topbar-height) 1fr;
   min-height: 100vh;
   background: var(--bg-page);
 }
 
+/* 通栏顶栏：横跨全宽 */
+.global-header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  height: var(--topbar-height);
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
 /* ========== 侧边栏：深色磨砂 ========== */
 .side {
+  grid-row: 2;
   width: var(--sidebar-width);
   background: var(--frost-sidebar);
   backdrop-filter: var(--frost-sidebar-blur);
@@ -786,6 +800,7 @@ function handleLogout() {
 
 /* ========== 主内容区 ========== */
 .main {
+  grid-row: 2;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -859,6 +874,28 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 管理后台 / 收银台 模式切换 */
+.mode-switch {
+  display: flex;
+  background: var(--bg-soft);
+  border-radius: 6px;
+  padding: 2px;
+}
+.mode-switch-item {
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.mode-switch-item.active {
+  background: #ffffff;
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
 }
 
 .header-search {
