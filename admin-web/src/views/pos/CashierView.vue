@@ -172,9 +172,9 @@
               size="large"
               type="primary"
               :loading="loading"
-              @click="handleQuickPay"
+              @click="openPayDialog"
             >
-              快捷收款 ¥{{ cartAmount.toFixed(2) }}
+              结算 ¥{{ cartAmount.toFixed(2) }}
             </el-button>
             <el-button :loading="loading" @click="handleCreateSaleBill">生成订单</el-button>
           </div>
@@ -190,6 +190,54 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 结算确认弹窗（对标设计稿 p12：应收/支付方式/找零/确认收款） -->
+    <el-dialog
+      v-model="payDialogVisible"
+      title="结算"
+      width="460px"
+      :close-on-click-modal="false"
+      align-center
+    >
+      <div class="pay-dialog-body">
+        <div class="pay-amount-row">
+          <span class="pay-amount-label">应收金额</span>
+          <span class="pay-amount-value">¥{{ cartAmount.toFixed(2) }}</span>
+        </div>
+        <div class="pay-items-info">
+          商品 {{ totalQty }} 件 · 会员 {{ saleForm.customerName || '散客' }}
+        </div>
+
+        <div class="pay-method-title">选择支付方式</div>
+        <el-radio-group v-model="paymentMethod" class="pay-method-group">
+          <el-radio-button label="CASH">现金</el-radio-button>
+          <el-radio-button label="WECHAT">微信支付</el-radio-button>
+          <el-radio-button label="ALIPAY">支付宝</el-radio-button>
+        </el-radio-group>
+
+        <div class="pay-received-row">
+          <span class="pay-received-label">实收金额</span>
+          <el-input-number
+            v-model="receivedAmount"
+            :min="0"
+            :precision="2"
+            :step="1"
+            controls-position="right"
+            style="width: 180px"
+          />
+        </div>
+        <div v-if="changeAmount > 0" class="pay-change-row">
+          <span>应找零</span>
+          <span class="pay-change-value">¥{{ changeAmount.toFixed(2) }}</span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="payDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="confirmPayment">
+          确认收款 ¥{{ cartAmount.toFixed(2) }}
+        </el-button>
+      </template>
+    </el-dialog>
 
     <!-- 挂单弹窗 -->
     <el-dialog v-model="holdDialogVisible" title="挂单列表" width="720px">
@@ -245,12 +293,19 @@ const currentBillNo = ref("");
 const currentAmount = ref(0);
 const holdDialogVisible = ref(false);
 const holdOrders = ref<any[]>([]);
+const payDialogVisible = ref(false);
+const receivedAmount = ref(0);
 
 const totalQty = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.quantity || 0), 0));
 
 const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
   return sum + Number(item.quantity || 0) * Number(item.unitPrice || 0);
 }, 0));
+
+/** 应找零 = 实收 - 应收 */
+const changeAmount = computed(() => {
+  return Math.max(0, receivedAmount.value - cartAmount.value);
+});
 
 /** 按分类过滤后的商品列表 */
 const filteredProducts = computed(() => {
@@ -410,7 +465,17 @@ async function handleCreateSaleBill() {
   }
 }
 
-async function handleQuickPay() {
+/** 打开结算弹窗：默认实收 = 应收 */
+function openPayDialog() {
+  if (cartItems.value.length === 0) {
+    ElMessage.warning("请先加入商品到购物车");
+    return;
+  }
+  receivedAmount.value = cartAmount.value;
+  payDialogVisible.value = true;
+}
+
+async function confirmPayment() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("请先加入商品到购物车");
     return;
@@ -440,6 +505,7 @@ async function handleQuickPay() {
     currentAmount.value = 0;
     currentBillNo.value = "";
     cartItems.value = [];
+    payDialogVisible.value = false;
   } catch (error) {
     ElMessage.error(getErrorMessage(error, "收款失败"));
   } finally {
@@ -734,5 +800,74 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .empty-state {
   padding: 40px 0;
+}
+
+/* ─── 结算弹窗（对标设计稿 p12） ─── */
+.pay-dialog-body {
+  padding: 4px 8px;
+}
+.pay-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+.pay-amount-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.pay-amount-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.pay-items-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+.pay-method-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 18px 0 10px;
+}
+.pay-method-group {
+  display: flex;
+  width: 100%;
+}
+.pay-method-group :deep(.el-radio-button) {
+  flex: 1;
+}
+.pay-method-group :deep(.el-radio-button__inner) {
+  width: 100%;
+}
+.pay-received-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-light);
+}
+.pay-received-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pay-change-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pay-change-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-success);
+  font-variant-numeric: tabular-nums;
 }
 </style>

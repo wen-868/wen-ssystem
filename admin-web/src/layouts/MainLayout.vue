@@ -31,7 +31,22 @@
         <!-- 业务 -->
         <div v-show="!isMenuCollapsed" class="nav-section-label">业务</div>
 
-        <!-- 2. 销售管理 -->
+        <!-- 2. 订单管理（设计稿业务分组第一位） -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
+            <el-icon class="nav-icon"><Document /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">订单管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/orders') }" @click="navTo('/orders')">订单列表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-board') }" @click="navTo('/order-board')">订单看板</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-aftersale') }" @click="navTo('/order-aftersale')">订单售后</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-exception') }" @click="navTo('/order-exception')">订单异常</div>
+          </div>
+        </div>
+
+        <!-- 3. 销售管理 -->
         <div class="nav-group">
           <div class="nav-item has-sub" :class="{ open: openGroups.sales }" @click="toggleGroup('sales')">
             <el-icon class="nav-icon"><ShoppingCart /></el-icon>
@@ -49,22 +64,7 @@
           </div>
         </div>
 
-        <!-- 3. 订单管理 -->
-        <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
-            <el-icon class="nav-icon"><Document /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">订单管理</span>
-            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
-          </div>
-          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/orders') }" @click="navTo('/orders')">订单列表</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-board') }" @click="navTo('/order-board')">订单看板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-aftersale') }" @click="navTo('/order-aftersale')">订单售后</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/order-exception') }" @click="navTo('/order-exception')">订单异常</div>
-          </div>
-        </div>
-
-        <!-- 3. 商品中心 -->
+        <!-- 4. 商品中心 -->
         <div class="nav-group">
           <div class="nav-item has-sub" :class="{ open: openGroups.products }" @click="toggleGroup('products')">
             <el-icon class="nav-icon"><Goods /></el-icon>
