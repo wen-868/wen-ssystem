@@ -265,6 +265,8 @@ onBeforeUnmount(() => {
 <style scoped>
 /* ─── 左侧固定整栏 AI 面板（Swiss 风格：白底 + hairline + 克制） ─── */
 .ai-side-panel {
+  grid-column: 3;
+  grid-row: 2;
   width: 320px;
   flex-shrink: 0;
   display: flex;
