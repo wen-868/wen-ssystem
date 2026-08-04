@@ -48,10 +48,6 @@
     <div class="login-panel">
       <div class="login-box">
         <h2 class="login-title">登录工作台</h2>
-        <div class="store-hint">
-          <span class="store-dot"></span>
-          鑫达批发 · 朝阳门店
-        </div>
 
         <el-form
           ref="loginFormRef"
@@ -285,26 +281,10 @@ async function handleLogin() {
 }
 
 .login-title {
-  margin: 0 0 6px;
+  margin: 0 0 28px;
   font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
-}
-
-.store-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-}
-
-.store-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-success);
 }
 
 .login-form :deep(.el-form-item) {
