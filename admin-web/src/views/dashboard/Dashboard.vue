@@ -1824,10 +1824,11 @@ onUnmounted(() => {
 /* 指标卡片 */
 .metric-card {
   cursor: pointer;
-  transition: transform 0.2s;
+  border: 1px solid var(--border-light);
+  transition: box-shadow 0.2s;
 }
 .metric-card:hover {
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 .metric-card :deep(.el-card__body) {
   padding: 16px 20px 12px;
@@ -1843,12 +1844,12 @@ onUnmounted(() => {
 }
 .metric-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-muted);
 }
 .metric-value {
   font-size: 26px;
   font-weight: 700;
-  color: #303133;
+  color: var(--text-primary);
   margin: 6px 0 4px;
   line-height: 1.2;
 }
@@ -1868,13 +1869,13 @@ onUnmounted(() => {
   gap: 2px;
 }
 .compare-item.up {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .compare-item.down {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .compare-item.yoy {
-  color: #909399;
+  color: var(--text-muted);
 }
 .compare-arrow {
   font-size: 12px;
@@ -1895,12 +1896,15 @@ onUnmounted(() => {
 }
 .module-header {
   margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--color-primary);
+  line-height: 1.2;
 }
 .module-title {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--text-primary);
 }
 
 /* 统计卡片 */

@@ -6,13 +6,13 @@
 
 :root {
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Primary / Brand Color — Atlas Blue
+     Primary / Brand Color — Atlas Blue（R74 收敛为纯蓝，去紫调）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --color-primary: #5B6ABF;
-  --color-primary-hover: #6B7BCF;
-  --color-primary-active: #4A5AA8;
-  --color-primary-soft: rgba(91, 106, 191, 0.12);
-  --color-primary-bg: rgba(91, 106, 191, 0.06);
+  --color-primary: #3F6FEF;
+  --color-primary-hover: #5A83F2;
+  --color-primary-active: #2F5BD6;
+  --color-primary-soft: rgba(63, 111, 239, 0.12);
+  --color-primary-bg: rgba(63, 111, 239, 0.06);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
@@ -38,13 +38,13 @@
   --color-warning-soft: rgba(212, 139, 58, 0.12);
   --color-danger: #C0392B;
   --color-danger-soft: rgba(192, 57, 43, 0.12);
-  --color-info: #5B6ABF;
-  --color-info-soft: rgba(91, 106, 191, 0.12);
+  --color-info: #3F6FEF;
+  --color-info-soft: rgba(63, 111, 239, 0.12);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart Colors — 图表色（可全彩）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --chart-1: #5B6ABF;
+  --chart-1: #3F6FEF;
   --chart-2: #0EA879;
   --chart-3: #D48B3A;
   --chart-4: #C0392B;
@@ -52,16 +52,16 @@
   --chart-6: #06B6D4;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Frosted Glass — 磨砂半透明
+     Surface — R74 去磨砂：侧边栏浅色、顶栏纯白（商业后台风格）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --frost-sidebar: rgba(17, 17, 17, 0.85);
-  --frost-sidebar-blur: blur(16px);
-  --frost-topbar: rgba(255, 255, 255, 0.80);
-  --frost-topbar-blur: blur(16px);
+  --frost-sidebar: #F7F8FA;
+  --frost-sidebar-blur: none;
+  --frost-topbar: #FFFFFF;
+  --frost-topbar-blur: none;
   --frost-modal: rgba(0, 0, 0, 0.35);
-  --frost-modal-blur: blur(8px);
-  --frost-bottom: rgba(255, 255, 255, 0.85);
-  --frost-bottom-blur: blur(16px);
+  --frost-modal-blur: none;
+  --frost-bottom: #FFFFFF;
+  --frost-bottom-blur: none;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Text — 唯一可以用纯黑的地方
@@ -71,13 +71,13 @@
   --text-muted: #999999;
   --text-placeholder: #CCCCCC;
   --text-inverse: #FFFFFF;
-  --text-link: #5B6ABF;
+  --text-link: #3F6FEF;
 
-  /* 侧边栏深色文字 */
-  --sidebar-text-primary: rgba(255, 255, 255, 0.92);
-  --sidebar-text-secondary: rgba(255, 255, 255, 0.60);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.38);
-  --sidebar-text-active: #FFFFFF;
+  /* 侧边栏文字（R74 浅色侧栏：深色文字） */
+  --sidebar-text-primary: #222222;
+  --sidebar-text-secondary: #555555;
+  --sidebar-text-muted: #999999;
+  --sidebar-text-active: #3F6FEF;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Background — 灰+白搭配
@@ -95,7 +95,7 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --border-normal: #E2E2E2;
   --border-light: #F0F0F0;
-  --border-focus: #5B6ABF;
+  --border-focus: #3F6FEF;
   --border-error: #C0392B;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -164,7 +164,7 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(91, 106, 191, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(63, 111, 239, 0.18);
   --shadow-error: 0 0 0 3px rgba(192, 57, 43, 0.14);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -179,7 +179,7 @@
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Nav — 胶囊导航
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --nav-item-radius: 20px;
+  --nav-item-radius: 8px;
   --nav-item-gap: 2px;
   --nav-item-padding: 8px 12px;
 
@@ -213,8 +213,8 @@
   --input-radius: 6px;
   --input-border: #CCCCCC;
   --input-bg: #FFFFFF;
-  --input-focus-border: #5B6ABF;
-  --input-focus-shadow: 0 0 0 3px rgba(91, 106, 191, 0.12);
+  --input-focus-border: #3F6FEF;
+  --input-focus-shadow: 0 0 0 3px rgba(63, 111, 239, 0.12);
 
   --btn-height: 36px;
   --btn-height-sm: 28px;

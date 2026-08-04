@@ -5,13 +5,13 @@
    原则：只有字体用黑色，背景灰+白，按钮保留彩色
    ═══════════════════════════════════════════ */
 :root {
-  --el-color-primary: #5B6ABF;
-  --el-color-primary-light-3: #6B7BCF;
-  --el-color-primary-light-5: rgba(91, 106, 191, 0.12);
-  --el-color-primary-light-7: rgba(91, 106, 191, 0.20);
-  --el-color-primary-light-8: rgba(91, 106, 191, 0.30);
-  --el-color-primary-light-9: rgba(91, 106, 191, 0.06);
-  --el-color-primary-dark-2: #4A5AA8;
+  --el-color-primary: #3F6FEF;
+  --el-color-primary-light-3: #5A83F2;
+  --el-color-primary-light-5: rgba(63, 111, 239, 0.12);
+  --el-color-primary-light-7: rgba(63, 111, 239, 0.20);
+  --el-color-primary-light-8: rgba(63, 111, 239, 0.30);
+  --el-color-primary-light-9: rgba(63, 111, 239, 0.06);
+  --el-color-primary-dark-2: #2F5BD6;
   --el-color-success: #0EA879;
   --el-color-warning: #D48B3A;
   --el-color-danger: #C0392B;

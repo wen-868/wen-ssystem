@@ -670,7 +670,7 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .sidebar-logo {
@@ -727,7 +727,7 @@ function handleLogout() {
   width: 4px;
 }
 .sidebar-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
 }
 
@@ -752,12 +752,12 @@ function handleLogout() {
 
 .nav-item:hover {
   color: var(--sidebar-text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .nav-item.active {
-  background: rgba(91, 106, 191, 0.20);
-  color: #FFFFFF;
+  background: var(--color-primary-soft);
+  color: var(--sidebar-text-active);
   font-weight: 500;
 }
 
@@ -805,12 +805,12 @@ function handleLogout() {
 
 .nav-sub-item:hover {
   color: var(--sidebar-text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .nav-sub-item.active {
-  color: #FFFFFF;
-  background: rgba(91, 106, 191, 0.20);
+  color: var(--sidebar-text-active);
+  background: var(--color-primary-soft);
   font-weight: 500;
 }
 

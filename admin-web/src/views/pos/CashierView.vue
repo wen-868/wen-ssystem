@@ -30,7 +30,9 @@
               @click="addCartItem(product)"
             >
               <div class="product-name">{{ product.productName || product.skuName }}</div>
-              <div class="product-spec">库存：{{ product.availableQty || 0 }}</div>
+              <div class="product-spec">
+                <span :class="stockClass(product.availableQty ?? 0)">库存 {{ product.availableQty ?? 0 }}</span>
+              </div>
               <div class="product-price">¥{{ Number(product.storePrice || product.retailPrice || 0).toFixed(2) }}</div>
             </el-card>
           </div>
@@ -203,6 +205,13 @@ const totalQty = computed(() => cartItems.value.reduce((sum, item) => sum + Numb
 const cartAmount = computed(() => cartItems.value.reduce((sum, item) => {
   return sum + Number(item.quantity || 0) * Number(item.unitPrice || 0);
 }, 0));
+
+/** 库存状态：0 缺货红 / ≤10 告急橙 / 其余正常灰 */
+function stockClass(stock: number): string {
+  if (stock <= 0) return 'stock-out'
+  if (stock <= 10) return 'stock-low'
+  return 'stock-ok'
+}
 
 onMounted(() => {
   loadHoldOrders();
@@ -451,32 +460,46 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .product-card {
   cursor: pointer;
-  transition: all 150ms ease;
+  border: 1px solid var(--border-light);
+  transition: box-shadow 150ms ease, border-color 150ms ease;
 }
 .product-card:hover {
-  transform: translateY(-2px);
+  border-color: var(--color-primary-soft);
+  box-shadow: var(--shadow-md);
+}
+.product-card :deep(.el-card__body) {
+  padding: 14px 16px;
 }
 .product-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .product-spec {
   font-size: 12px;
-  color: #999;
-  margin-top: 4px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.product-spec .stock-out {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+.product-spec .stock-low {
+  color: var(--color-warning);
+  font-weight: 600;
 }
 .product-price {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--el-color-primary);
-  margin-top: 6px;
+  color: var(--text-primary);
+  margin-top: 8px;
 }
 .member-section {
   padding: 8px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border-light);
   margin-bottom: 12px;
 }
 .member-selected {
@@ -485,7 +508,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
   gap: 8px;
 }
 .member-phone {
-  color: #999;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .member-search {
@@ -518,13 +541,13 @@ async function handleDeleteHoldOrder(holdNo: string) {
   background: #f5f7fa;
 }
 .muted {
-  color: #999;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .cart-summary {
   margin-top: 16px;
   padding: 12px 0;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-light);
 }
 .summary-row {
   display: flex;
@@ -536,12 +559,12 @@ async function handleDeleteHoldOrder(holdNo: string) {
   font-size: 15px;
   font-weight: 600;
   padding-top: 8px;
-  border-top: 1px dashed #dcdfe6;
+  border-top: 1px dashed var(--border-normal);
 }
 .total-amount {
   font-size: 20px;
   font-weight: 700;
-  color: var(--el-color-primary);
+  color: var(--color-primary);
 }
 .pay-methods {
   margin-top: 12px;
@@ -550,6 +573,10 @@ async function handleDeleteHoldOrder(holdNo: string) {
   margin-top: 16px;
   display: flex;
   gap: 8px;
+}
+.checkout-section .el-button--large {
+  height: 44px;
+  flex: 1;
 }
 .empty-state {
   padding: 40px 0;
