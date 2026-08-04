@@ -568,9 +568,11 @@ function handleLogout() {
 /* 收银台模式：侧栏与 AI 面板隐藏，内容占满 */
 .layout.is-cashier {
   grid-template-columns: 1fr;
+  grid-template-rows: var(--topbar-height) 1fr;
 }
 .layout.is-cashier .main {
   grid-column: 1;
+  grid-row: 2;
 }
 
 /* 通栏顶栏：横跨全宽 */

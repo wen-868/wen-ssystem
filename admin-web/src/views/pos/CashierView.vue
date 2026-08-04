@@ -1,25 +1,5 @@
 <template>
   <div class="pos-cashier">
-    <!-- 顶部状态条（对标设计稿：今日概况 + 快捷键） -->
-    <div class="cashier-topbar">
-      <div class="topbar-stats">
-        <div class="topbar-stat">
-          <span class="topbar-label">购物车</span>
-          <span class="topbar-value">{{ totalQty }} 件</span>
-        </div>
-        <div class="topbar-stat">
-          <span class="topbar-label">应收</span>
-          <span class="topbar-value topbar-value--primary">¥{{ cartAmount.toFixed(2) }}</span>
-        </div>
-      </div>
-      <div class="topbar-shortcuts">
-        <span class="shortcut-item"><kbd>F2</kbd> 挂单</span>
-        <span class="shortcut-item"><kbd>F3</kbd> 扫码</span>
-        <span class="shortcut-item"><kbd>F8</kbd> 结算</span>
-        <span class="shortcut-item"><kbd>F9</kbd> 打印</span>
-      </div>
-    </div>
-
     <el-row :gutter="16" class="cashier-body">
       <!-- 分类栏（对标设计稿：全部/白酒/红酒/洋酒/啤酒/饮料/礼盒） -->
       <el-col :span="4">
@@ -164,6 +144,22 @@
               <el-radio-button label="WECHAT">微信</el-radio-button>
               <el-radio-button label="ALIPAY">支付宝</el-radio-button>
             </el-radio-group>
+          </div>
+
+          <!-- 功能导航栏（对标设计稿：挂单/扫码/结算/打印 快捷键） -->
+          <div class="cart-actions">
+            <el-button size="small" @click="handleCreateHoldOrder">
+              <kbd>F2</kbd> 挂单
+            </el-button>
+            <el-button size="small" @click="handleScan">
+              <kbd>F3</kbd> 扫码
+            </el-button>
+            <el-button size="small" type="primary" plain @click="openPayDialog">
+              <kbd>F8</kbd> 结算
+            </el-button>
+            <el-button size="small" @click="handlePrint">
+              <kbd>F9</kbd> 打印
+            </el-button>
           </div>
 
           <!-- 结算按钮 -->
@@ -435,6 +431,16 @@ function removeCartItem(index: number) {
   cartItems.value.splice(index, 1);
 }
 
+/** 扫码：聚焦商品搜索框（配合扫码枪输入） */
+function handleScan() {
+  ElMessage.info("请使用扫码枪扫描商品条码");
+}
+
+/** 打印：小票打印需打印机就绪 */
+function handlePrint() {
+  ElMessage.info("请确认打印机已就绪");
+}
+
 async function handleCreateSaleBill() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("请先加入商品到购物车");
@@ -619,6 +625,13 @@ async function handleDeleteHoldOrder(holdNo: string) {
   display: flex;
   gap: 16px;
 }
+.topbar-exit {
+  margin-left: 8px;
+  color: var(--text-muted);
+}
+.topbar-exit:hover {
+  color: var(--color-primary);
+}
 .shortcut-item {
   font-size: 12px;
   color: var(--text-muted);
@@ -788,6 +801,23 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .pay-methods {
   margin-top: 12px;
+}
+.cart-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+.cart-actions kbd {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-normal);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  margin-right: 2px;
 }
 .checkout-section {
   margin-top: 16px;
