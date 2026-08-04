@@ -48,6 +48,15 @@
           <span class="date-text">{{ formattedDate }}</span>
         </div>
         <div class="header-right">
+          <el-button
+            type="primary"
+            size="large"
+            class="quick-cashier-btn"
+            @click="navTo('/sales/create')"
+          >
+            <el-icon class="quick-cashier-icon"><ShoppingCart /></el-icon>
+            开单收银
+          </el-button>
           <el-select
             v-model="selectedStoreIds"
             multiple
@@ -695,6 +704,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { ShoppingCart } from '@element-plus/icons-vue';
 import echarts from '@/utils/echarts';
 import {
   fetchDashboardOverview,
@@ -2093,6 +2103,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.quick-cashier-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quick-cashier-icon {
+  font-size: 16px;
 }
 
 /* 指标卡片 */
