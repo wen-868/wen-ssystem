@@ -205,6 +205,9 @@
       </nav>
     </aside>
 
+    <!-- 左侧固定整栏 AI 经营助手（非收银台模式显示） -->
+    <AiSidePanel v-if="!isCashierMode" />
+
     <!-- 主内容区 -->
     <main v-loading="pageLoading" class="main">
       <!-- 顶栏：磨砂半透明 -->
@@ -288,8 +291,8 @@
       </div>
     </main>
 
-    <!-- AI 助手悬浮窗口（非收银台模式显示） -->
-    <AiChatWindow v-if="!isCashierMode" />
+    <!-- AI 助手悬浮窗口（仅收银台模式显示，工作区用左侧固定面板） -->
+    <AiChatWindow v-if="isCashierMode" />
   </div>
 </template>
 
@@ -312,6 +315,9 @@ const auth = useAuthStore();
 // AI 对话窗口：组件级懒加载（defineAsyncComponent），避免打进主 chunk（chunk ≤ 500KB 规则）
 const AiChatWindow = defineAsyncComponent(
   () => import("../components/AiChat/AiChatWindow.vue"),
+);
+const AiSidePanel = defineAsyncComponent(
+  () => import("../components/AiChat/AiSidePanel.vue"),
 );
 
 const isMenuCollapsed = ref(false);
