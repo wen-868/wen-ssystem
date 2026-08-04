@@ -106,6 +106,107 @@
         </el-col>
       </el-row>
 
+      <!-- ========== 今日焦点（对标设计稿：待办 / 本页可帮你 / 经营助手） ========== -->
+      <div class="module-section focus-section">
+        <el-row :gutter="16">
+          <!-- 待办事项 -->
+          <el-col :xs="24" :sm="12" :md="8" style="margin-bottom: 16px">
+            <el-card class="focus-card">
+              <template #header>
+                <div class="focus-card-header">
+                  <span class="focus-title">待办事项</span>
+                  <span v-if="todoCount > 0" class="focus-badge">{{ todoCount }} 件待处理</span>
+                </div>
+              </template>
+              <div v-if="todoCount === 0" class="focus-empty">今日无待办事项</div>
+              <div v-else class="todo-list">
+                <div v-if="alertData.inventoryAlerts.length" class="todo-item" @click="navTo('/inventory')">
+                  <span class="todo-dot todo-dot--warning"></span>
+                  <span class="todo-text">{{ alertData.inventoryAlerts.length }} 项库存预警</span>
+                  <span class="todo-arrow">›</span>
+                </div>
+                <div v-if="alertData.expiryAlerts.length" class="todo-item" @click="navTo('/inventory')">
+                  <span class="todo-dot todo-dot--warning"></span>
+                  <span class="todo-text">{{ alertData.expiryAlerts.length }} 款商品临期</span>
+                  <span class="todo-arrow">›</span>
+                </div>
+                <div v-if="alertData.overdueReceivables.length" class="todo-item" @click="navTo('/credit')">
+                  <span class="todo-dot todo-dot--danger"></span>
+                  <span class="todo-text">{{ alertData.overdueReceivables.length }} 笔应收待核销</span>
+                  <span class="todo-arrow">›</span>
+                </div>
+                <div v-if="alertData.pendingOrders.length" class="todo-item" @click="navTo('/orders')">
+                  <span class="todo-dot todo-dot--primary"></span>
+                  <span class="todo-text">{{ alertData.pendingOrders.length }} 个待处理订单</span>
+                  <span class="todo-arrow">›</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 本页可帮你 -->
+          <el-col :xs="24" :sm="12" :md="8" style="margin-bottom: 16px">
+            <el-card class="focus-card">
+              <template #header>
+                <div class="focus-card-header">
+                  <span class="focus-title">本页可帮你</span>
+                </div>
+              </template>
+              <div class="help-list">
+                <div class="help-item" @click="navTo('/finance/reconciliation')">
+                  <span class="help-icon help-icon--blue">表</span>
+                  <div class="help-content">
+                    <div class="help-label">导出今日对账单</div>
+                    <div class="help-desc">核对当日收支明细</div>
+                  </div>
+                  <span class="todo-arrow">›</span>
+                </div>
+                <div class="help-item" @click="navTo('/marketing/coupon')">
+                  <span class="help-icon help-icon--orange">券</span>
+                  <div class="help-content">
+                    <div class="help-label">给沉睡会员发券</div>
+                    <div class="help-desc">唤醒 30 天未消费会员</div>
+                  </div>
+                  <span class="todo-arrow">›</span>
+                </div>
+                <div class="help-item" @click="navTo('/credit')">
+                  <span class="help-icon help-icon--red">欠</span>
+                  <div class="help-content">
+                    <div class="help-label">查客户欠款</div>
+                    <div class="help-desc">应收账款与信用额度</div>
+                  </div>
+                  <span class="todo-arrow">›</span>
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+
+          <!-- 经营助手 -->
+          <el-col :xs="24" :sm="24" :md="8" style="margin-bottom: 16px">
+            <el-card class="focus-card assistant-card">
+              <template #header>
+                <div class="focus-card-header">
+                  <span class="focus-title">经营助手</span>
+                  <span class="assistant-status">
+                    <span class="assistant-dot"></span>
+                    本地模型
+                  </span>
+                </div>
+              </template>
+              <div class="assistant-body">
+                <div class="assistant-hello">下午好，管理员</div>
+                <div class="assistant-tip">今天有 {{ todoCount }} 件待办：核价异常、临期商品、应收核销。</div>
+                <div class="assistant-actions">
+                  <span class="assistant-chip" @click="navTo('/todo-list')">查看待办</span>
+                  <span class="assistant-chip" @click="handleAssistant">让 AI 帮我处理</span>
+                </div>
+                <div class="assistant-footnote">本地推理 · 数据不出店</div>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+
       <!-- ========== 销售统计模块 ========== -->
       <div class="module-section">
         <div class="module-header">
@@ -522,6 +623,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 import echarts from '@/utils/echarts';
 import {
   fetchDashboardOverview,
@@ -917,6 +1020,33 @@ const metricCards = computed<MetricCard[]>(() => {
     },
   ];
 });
+
+/** 待办总数（库存预警 + 临期 + 应收逾期 + 待处理订单） */
+const todoCount = computed(() => {
+  return (
+    alertData.value.inventoryAlerts.length +
+    alertData.value.expiryAlerts.length +
+    alertData.value.overdueReceivables.length +
+    alertData.value.pendingOrders.length
+  );
+});
+
+/** 工作台快捷跳转（目标页面不存在时提示） */
+const router = useRouter();
+function navTo(path: string) {
+  const routes = router.getRoutes();
+  const exists = routes.some((r) => r.path === path);
+  if (exists) {
+    router.push(path);
+  } else {
+    ElMessage.info("该功能开发中");
+  }
+}
+
+/** 经营助手入口（AI 对话窗口由布局层悬浮组件承载） */
+function handleAssistant() {
+  ElMessage.info("经营助手已就绪，可点击右下角 AI 悬浮窗发起对话");
+}
 
 // ==================== 工具函数 ====================
 function formatNum(num: number): string {
@@ -1888,6 +2018,180 @@ onUnmounted(() => {
 .spark-placeholder {
   height: 40px;
   margin-top: 6px;
+}
+
+/* ─── 今日焦点（待办 / 本页可帮你 / 经营助手） ─── */
+.focus-card {
+  border: 1px solid var(--border-light);
+}
+.focus-card :deep(.el-card__body) {
+  padding: 4px 16px 12px;
+}
+.focus-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.focus-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.focus-badge {
+  font-size: 12px;
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.focus-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 24px 0;
+}
+.todo-list {
+  display: flex;
+  flex-direction: column;
+}
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+.todo-item:last-child {
+  border-bottom: none;
+}
+.todo-item:hover .todo-text {
+  color: var(--color-primary);
+}
+.todo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.todo-dot--warning {
+  background: var(--color-warning);
+}
+.todo-dot--danger {
+  background: var(--color-danger);
+}
+.todo-dot--primary {
+  background: var(--color-primary);
+}
+.todo-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 150ms;
+}
+.todo-arrow {
+  color: var(--text-placeholder);
+  font-size: 15px;
+}
+.help-list {
+  display: flex;
+  flex-direction: column;
+}
+.help-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+.help-item:last-child {
+  border-bottom: none;
+}
+.help-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+.help-icon--blue {
+  background: var(--color-primary);
+}
+.help-icon--orange {
+  background: var(--color-warning);
+}
+.help-icon--red {
+  background: var(--color-danger);
+}
+.help-content {
+  flex: 1;
+  min-width: 0;
+}
+.help-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.help-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.assistant-card {
+  background: linear-gradient(180deg, #F8FAFF 0%, #FFFFFF 100%);
+}
+.assistant-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-success);
+}
+.assistant-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+.assistant-body {
+  padding: 8px 0;
+}
+.assistant-hello {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.assistant-tip {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 8px 0 14px;
+  line-height: 1.6;
+}
+.assistant-actions {
+  display: flex;
+  gap: 10px;
+}
+.assistant-chip {
+  font-size: 13px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.assistant-chip:hover {
+  background: var(--color-primary-bg);
+}
+.assistant-footnote {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* 模块区域 */

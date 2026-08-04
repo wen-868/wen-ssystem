@@ -318,6 +318,12 @@
             text
             @click="isMenuCollapsed = !isMenuCollapsed"
           />
+          <!-- 门店信息（对标设计稿：门店名 · 营业状态） -->
+          <div class="store-status">
+            <span class="store-status-dot"></span>
+            <span class="store-name">{{ storeDisplayName }}</span>
+            <span class="store-state">营业中</span>
+          </div>
           <span class="breadcrumb">{{ pageTitle }}</span>
         </div>
         <div class="header-right">
@@ -412,6 +418,16 @@ const isMenuCollapsed = ref(false);
 const isCashierMode = ref(false);
 const pageLoading = ref(false);
 const currentUser = computed(() => auth.user);
+
+/** 门店显示名：优先当前用户门店，无则默认 */
+const storeDisplayName = computed(() => {
+  const u: any = currentUser.value;
+  return (
+    u?.storeName ||
+    u?.store?.name ||
+    (u?.realName ? `${u.realName}的门店` : "鑫达批发 · 朝阳门店")
+  );
+});
 
 const openGroups = reactive({
   sales: false,
@@ -836,6 +852,37 @@ function handleLogout() {
   position: sticky;
   top: 0;
   z-index: 50;
+}
+
+/* 门店信息（R74 对标设计稿） */
+.store-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 16px;
+  margin-right: 16px;
+  border-right: 1px solid var(--border-light);
+}
+
+.store-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.store-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.store-state {
+  font-size: 12px;
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .header-left {

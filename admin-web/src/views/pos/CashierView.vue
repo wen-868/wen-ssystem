@@ -1,5 +1,25 @@
 <template>
   <div class="pos-cashier">
+    <!-- 顶部状态条（对标设计稿：今日概况 + 快捷键） -->
+    <div class="cashier-topbar">
+      <div class="topbar-stats">
+        <div class="topbar-stat">
+          <span class="topbar-label">购物车</span>
+          <span class="topbar-value">{{ totalQty }} 件</span>
+        </div>
+        <div class="topbar-stat">
+          <span class="topbar-label">应收</span>
+          <span class="topbar-value topbar-value--primary">¥{{ cartAmount.toFixed(2) }}</span>
+        </div>
+      </div>
+      <div class="topbar-shortcuts">
+        <span class="shortcut-item"><kbd>F2</kbd> 挂单</span>
+        <span class="shortcut-item"><kbd>F3</kbd> 扫码</span>
+        <span class="shortcut-item"><kbd>F8</kbd> 结算</span>
+        <span class="shortcut-item"><kbd>F9</kbd> 打印</span>
+      </div>
+    </div>
+
     <el-row :gutter="16" class="cashier-body">
       <!-- 左侧：商品搜索与列表 -->
       <el-col :span="14">
@@ -447,6 +467,58 @@ async function handleDeleteHoldOrder(holdNo: string) {
 <style scoped>
 .pos-cashier {
   padding: 16px;
+}
+.cashier-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 12px 20px;
+  margin-bottom: 16px;
+}
+.topbar-stats {
+  display: flex;
+  gap: 32px;
+}
+.topbar-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.topbar-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.topbar-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.topbar-value--primary {
+  color: var(--color-primary);
+}
+.topbar-shortcuts {
+  display: flex;
+  gap: 16px;
+}
+.shortcut-item {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shortcut-item kbd {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-normal);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
 }
 .card-header {
   display: flex;
