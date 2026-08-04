@@ -286,7 +286,10 @@
         </el-row>
       </div>
 
-      <!-- ========== 销售统计模块 ========== -->
+      <!-- ========== 数据分析（折叠展示，工作台保持精简，对标设计稿） ========== -->
+      <el-collapse v-model="analysisCollapse" class="analysis-collapse">
+        <el-collapse-item name="analysis">
+          <!-- 销售统计模块 -->
       <div class="module-section">
         <div class="module-header">
           <h3 class="module-title">销售统计</h3>
@@ -623,6 +626,8 @@
           </el-col>
         </el-row>
       </div>
+        </el-collapse-item>
+      </el-collapse>
 
       <!-- 预警区 -->
       <div class="module-section">
@@ -945,6 +950,8 @@ const supplierTrendData = ref<SupplierTrendItem[]>([]);
 const trendRange = ref('7');
 const rankingType = ref('product');
 const activeAlerts = ref<string[]>([]);
+/** 数据分析折叠区（工作台精简，默认收起） */
+const analysisCollapse = ref<string[]>([]);
 
 // 当前排行数据（根据 rankingType 动态切换）
 const topData = computed(() => {
