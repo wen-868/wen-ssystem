@@ -31,21 +31,36 @@
         <!-- 业务 -->
         <div v-show="!isMenuCollapsed" class="nav-section-label">业务</div>
 
-        <!-- 2. 订单中心 -->
+        <!-- 2. 销售管理 -->
         <div class="nav-group">
-          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
+          <div class="nav-item has-sub" :class="{ open: openGroups.sales }" @click="toggleGroup('sales')">
             <el-icon class="nav-icon"><ShoppingCart /></el-icon>
-            <span v-show="!isMenuCollapsed" class="nav-label">订单中心</span>
+            <span v-show="!isMenuCollapsed" class="nav-label">销售管理</span>
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
-          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
+          <div v-show="openGroups.sales && !isMenuCollapsed" class="nav-sub">
             <div class="nav-sub-item" :class="{ active: isActive('/sales/create') }" @click="navTo('/sales/create')">销售开单</div>
             <div class="nav-sub-item" :class="{ active: isActive('/sale-bills') }" @click="navTo('/sale-bills')">销售单据</div>
             <div class="nav-sub-item" :class="{ active: isActive('/sale-returns') }" @click="navTo('/sale-returns')">销售退货</div>
             <div class="nav-sub-item" :class="{ active: isActive('/collection') }" @click="navTo('/collection')">收款管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sales/customer-prices') }" @click="navTo('/sales/customer-prices')">客户价格</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sales/commission/rules') }" @click="navTo('/sales/commission/rules')">提成规则</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/sales/reports') }" @click="navTo('/sales/reports')">销售报表</div>
+          </div>
+        </div>
+
+        <!-- 3. 订单管理 -->
+        <div class="nav-group">
+          <div class="nav-item has-sub" :class="{ open: openGroups.orders }" @click="toggleGroup('orders')">
+            <el-icon class="nav-icon"><Document /></el-icon>
+            <span v-show="!isMenuCollapsed" class="nav-label">订单管理</span>
+            <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
+          </div>
+          <div v-show="openGroups.orders && !isMenuCollapsed" class="nav-sub">
             <div class="nav-sub-item" :class="{ active: isActive('/orders') }" @click="navTo('/orders')">订单列表</div>
             <div class="nav-sub-item" :class="{ active: isActive('/order-board') }" @click="navTo('/order-board')">订单看板</div>
             <div class="nav-sub-item" :class="{ active: isActive('/order-aftersale') }" @click="navTo('/order-aftersale')">订单售后</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/order-exception') }" @click="navTo('/order-exception')">订单异常</div>
           </div>
         </div>
 
@@ -336,6 +351,7 @@ const storeDisplayName = computed(() => {
 });
 
 const openGroups = reactive({
+  sales: false,
   orders: false,
   inventory: false,
   products: false,
@@ -358,9 +374,11 @@ onMounted(() => {
     isMenuCollapsed.value = true;
   }
   const path = route.path;
-  // 2. 订单中心
-  if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection') || path.startsWith('/order')) openGroups.orders = true;
-  // 3. 商品中心
+  // 2. 销售管理
+  if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection')) openGroups.sales = true;
+  // 3. 订单管理
+  if (path.startsWith('/order')) openGroups.orders = true;
+  // 4. 商品中心
   if (path.startsWith('/products') || path.startsWith('/prices')) openGroups.products = true;
   // 4. 库存中心
   if (path.startsWith('/inventory')) openGroups.inventory = true;
