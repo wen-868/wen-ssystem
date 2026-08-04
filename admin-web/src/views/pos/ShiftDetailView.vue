@@ -1,60 +1,109 @@
 <template>
   <div class="pos-shift-detail">
-    <el-button @click="goBack" style="margin-bottom: 16px">← 返回列表</el-button>
+    <!-- 头部：返回 + 标题 + 班次 + 状态 + 提交交班（对标设计稿 p13） -->
+    <div class="recon-header">
+      <div class="recon-header-left">
+        <el-button @click="goBack" size="small">← 返回列表</el-button>
+        <h2 class="recon-heading">交接班对账</h2>
+        <span v-if="shift" class="recon-shift-badge">
+          {{ getShiftTypeName(shift.shiftType) }} {{ shiftTimeRange }}
+        </span>
+        <el-tag v-if="shift" :type="getStatusTagType(shift.status)" size="small">
+          {{ getStatusName(shift.status) }}
+        </el-tag>
+      </div>
+      <el-button
+        v-if="shift && shift.status === 'IN_PROGRESS'"
+        type="primary"
+        size="small"
+        @click="handleSubmitShift"
+      >
+        提交交班
+      </el-button>
+    </div>
 
-    <el-card v-if="shift" shadow="never" style="margin-bottom: 16px">
-      <template #header>
-        <div class="card-header">
-          <span>交接班详情</span>
-          <el-tag :type="getStatusTagType(shift.status)" size="small">
-            {{ getStatusName(shift.status) }}
-          </el-tag>
+    <!-- 本班概况 -->
+    <el-card shadow="never" class="recon-card">
+      <template #header><span class="recon-card-title">本班概况</span></template>
+      <div class="recon-stat-grid">
+        <div class="recon-stat">
+          <div class="recon-stat-value">{{ shift?.totalOrders || 0 }}</div>
+          <div class="recon-stat-label">订单数（笔）</div>
         </div>
-      </template>
-      <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="交接班编号">{{ shift.shiftNo }}</el-descriptions-item>
-        <el-descriptions-item label="班次类型">
-          <el-tag :type="getShiftTypeTagType(shift.shiftType)" size="small">
-            {{ getShiftTypeName(shift.shiftType) }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="操作员">{{ shift.operatorName || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ shift.startTime || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ shift.endTime || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="备注">{{ shift.remark || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="销售额">¥{{ Number(shift.totalSalesAmount || 0).toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="订单数">{{ shift.totalOrders || 0 }}</el-descriptions-item>
-      </el-descriptions>
-    </el-card>
-
-    <!-- 销售统计 -->
-    <el-card shadow="never" style="margin-bottom: 16px">
-      <template #header>
-        <div class="card-header">
-          <span>班次销售统计</span>
-          <el-button size="small" @click="loadSalesStats">刷新</el-button>
+        <div class="recon-stat">
+          <div class="recon-stat-value">¥{{ Number(salesStats?.totalAmount || 0).toFixed(2) }}</div>
+          <div class="recon-stat-label">订单总额</div>
         </div>
-      </template>
-      <div v-if="salesStats" class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-value">¥{{ Number(salesStats.totalAmount || 0).toFixed(2) }}</div>
-          <div class="stat-label">销售总额</div>
+        <div class="recon-stat">
+          <div class="recon-stat-value">{{ refundCount }}</div>
+          <div class="recon-stat-label">退款（笔）</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">¥{{ Number(salesStats.cashAmount || 0).toFixed(2) }}</div>
-          <div class="stat-label">现金收款</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">¥{{ Number(salesStats.wechatAmount || 0).toFixed(2) }}</div>
-          <div class="stat-label">微信收款</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">¥{{ Number(salesStats.alipayAmount || 0).toFixed(2) }}</div>
-          <div class="stat-label">支付宝收款</div>
+        <div class="recon-stat">
+          <div class="recon-stat-value">-</div>
+          <div class="recon-stat-label">会员消费（笔）</div>
         </div>
       </div>
-      <div v-else class="empty-tip">暂无销售统计数据</div>
     </el-card>
+
+    <!-- 现金对账 -->
+    <el-card shadow="never" class="recon-card">
+      <template #header><span class="recon-card-title">现金对账</span></template>
+      <div class="recon-stat-grid">
+        <div class="recon-stat">
+          <div class="recon-stat-value">¥{{ Number(shift?.openingCash || 0).toFixed(2) }}</div>
+          <div class="recon-stat-label">初备现金</div>
+        </div>
+        <div class="recon-stat">
+          <div class="recon-stat-value">¥{{ Number(salesStats?.cashAmount || 0).toFixed(2) }}</div>
+          <div class="recon-stat-label">现金收入</div>
+        </div>
+        <div class="recon-stat">
+          <div class="recon-stat-value">¥{{ expectedCash.toFixed(2) }}</div>
+          <div class="recon-stat-label">应交现金</div>
+        </div>
+        <div class="recon-stat">
+          <div
+            class="recon-stat-value"
+            :class="cashDiff === 0 ? 'recon-value-ok' : 'recon-value-warn'"
+          >
+            ¥{{ cashDiff.toFixed(2) }}
+          </div>
+          <div class="recon-stat-label">差异</div>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 支付方式分布 + 热销 TOP3 -->
+    <el-row :gutter="16">
+      <el-col :xs="24" :md="12">
+        <el-card shadow="never" class="recon-card">
+          <template #header><span class="recon-card-title">支付方式分布</span></template>
+          <div v-if="payDist.length" class="pay-dist">
+            <div v-for="p in payDist" :key="p.label" class="pay-dist-row">
+              <span class="pay-dist-label">{{ p.label }}</span>
+              <div class="pay-dist-bar">
+                <div class="pay-dist-fill" :style="{ width: p.percent + '%' }"></div>
+              </div>
+              <span class="pay-dist-value">{{ p.percent.toFixed(1) }}%</span>
+            </div>
+          </div>
+          <div v-else class="empty-tip">暂无支付数据</div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :md="12">
+        <el-card shadow="never" class="recon-card">
+          <template #header><span class="recon-card-title">热销 TOP3</span></template>
+          <div v-if="hotProducts.length" class="hot-list">
+            <div v-for="(item, idx) in hotProducts" :key="idx" class="hot-item">
+              <span class="hot-rank" :class="'hot-rank--' + (idx + 1)">{{ idx + 1 }}</span>
+              <span class="hot-name">{{ item.skuName }}</span>
+              <span class="hot-qty">{{ item.quantity }} 件</span>
+            </div>
+          </div>
+          <div v-else class="empty-tip">暂无热销数据</div>
+        </el-card>
+      </el-col>
+    </el-row>
 
     <!-- 库存盘点核对 -->
     <el-card shadow="never">
@@ -121,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
@@ -140,6 +189,49 @@ const stockCheckItems = ref<any[]>([]);
 const stockCheckLoading = ref(false);
 const stockCheckSubmitted = ref(false);
 const showStockCheckDialog = ref(false);
+
+/** 班次时间范围（如 "09:00-18:00"） */
+const shiftTimeRange = computed(() => {
+  const s = shift.value?.startTime;
+  const e = shift.value?.endTime;
+  const fmt = (t: string) => (t ? String(t).slice(11, 16) : "--:--");
+  return `${fmt(s)}-${fmt(e)}`;
+});
+
+/** 退款笔数（当前无独立字段，先按 0 展示，避免编造） */
+const refundCount = computed(() => 0);
+
+/** 应交现金 = 初备现金 + 现金收入 */
+const expectedCash = computed(() => {
+  return Number(shift.value?.openingCash || 0) + Number(salesStats.value?.cashAmount || 0);
+});
+
+/** 现金差异（应交 - 实收；无实收字段时为 0） */
+const cashDiff = computed(() => 0);
+
+/** 支付方式占比分布 */
+const payDist = computed(() => {
+  const stats = salesStats.value;
+  if (!stats) return [];
+  const items = [
+    { label: "现金", value: Number(stats.cashAmount || 0) },
+    { label: "微信支付", value: Number(stats.wechatAmount || 0) },
+    { label: "支付宝", value: Number(stats.alipayAmount || 0) },
+  ];
+  const total = items.reduce((sum, i) => sum + i.value, 0);
+  if (total <= 0) return [];
+  return items
+    .filter((i) => i.value > 0)
+    .map((i) => ({ label: i.label, percent: (i.value / total) * 100 }));
+});
+
+/** 热销 TOP3（当前无接口字段，空态展示） */
+const hotProducts = computed(() => []);
+
+/** 提交交班 */
+function handleSubmitShift() {
+  ElMessage.info("交班提交功能待班次接口完善");
+}
 
 function goBack() {
   router.push("/pos/shifts");
@@ -250,6 +342,152 @@ onMounted(() => {
 <style scoped>
 .pos-shift-detail {
   padding: 16px;
+}
+
+/* ─── 交接班对账（对标设计稿 p13） ─── */
+.recon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.recon-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.recon-heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.recon-shift-badge {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-soft);
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.recon-card {
+  border: 1px solid var(--border-light);
+  margin-bottom: 16px;
+}
+.recon-card :deep(.el-card__header) {
+  padding: 12px 16px;
+}
+.recon-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.recon-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.recon-stat {
+  text-align: center;
+  padding: 10px 0;
+}
+.recon-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.recon-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.recon-value-ok {
+  color: var(--color-success);
+}
+.recon-value-warn {
+  color: var(--color-warning);
+}
+.pay-dist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+.pay-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pay-dist-label {
+  width: 64px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pay-dist-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pay-dist-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 4px;
+  transition: width 400ms ease;
+}
+.pay-dist-value {
+  width: 56px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.hot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hot-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+.hot-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.hot-rank--1 {
+  background: var(--color-warning);
+  color: #fff;
+}
+.hot-rank--2 {
+  background: var(--gray-400);
+  color: #fff;
+}
+.hot-rank--3 {
+  background: #c68642;
+  color: #fff;
+}
+.hot-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.hot-qty {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 .card-header {
   display: flex;
