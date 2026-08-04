@@ -205,9 +205,6 @@
       </nav>
     </aside>
 
-    <!-- 左侧固定整栏 AI 经营助手（非收银台模式显示） -->
-    <AiSidePanel v-if="!isCashierMode" />
-
     <!-- 主内容区 -->
     <main v-loading="pageLoading" class="main">
       <!-- 顶栏：磨砂半透明 -->
@@ -290,6 +287,9 @@
         <router-view />
       </div>
     </main>
+
+    <!-- 最右侧固定整栏 AI 经营助手（非收银台模式显示） -->
+    <AiSidePanel v-if="!isCashierMode" />
 
     <!-- AI 助手悬浮窗口（仅收银台模式显示，工作区用左侧固定面板） -->
     <AiChatWindow v-if="isCashierMode" />

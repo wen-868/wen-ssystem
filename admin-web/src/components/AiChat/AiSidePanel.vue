@@ -271,7 +271,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   background: #ffffff;
   border-left: 1px solid var(--border-light);
-  border-right: 1px solid var(--border-light);
   min-height: 100vh;
 }
 
