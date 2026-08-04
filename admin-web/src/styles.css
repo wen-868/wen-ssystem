@@ -449,3 +449,110 @@ body {
   color: var(--color-primary);
   margin: 0 0 4px;
 }
+
+/* ═══════════════════════════════════════════
+   交互打磨（R74：不动布局，只做交互反馈与视觉精致度）
+   原则：过渡 150-200ms ease；数字 tabular-nums；焦点环统一
+   ═══════════════════════════════════════════ */
+
+/* ── 数字等宽对齐（金额/数量） ── */
+.metric-value,
+.topbar-value,
+.pay-amount-value,
+.el-statistic__number,
+.el-table .cell .amount,
+td.is-numeric,
+.el-table .cell .el-tag + .amount {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 按钮：按压反馈（克制 0.97） ── */
+.el-button {
+  transition: all 160ms ease;
+}
+.el-button:not(.is-disabled):active {
+  transform: scale(0.97);
+}
+.el-button--primary:not(.is-disabled):hover {
+  box-shadow: 0 2px 10px rgba(63, 111, 239, 0.22);
+}
+
+/* ── 输入框：聚焦柔和环 ── */
+.el-input__wrapper,
+.el-textarea__inner {
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+.el-input__wrapper.is-focus {
+  box-shadow: var(--shadow-focus);
+}
+
+/* ── 表格：行 hover 与表头 ── */
+.el-table {
+  --el-table-header-bg-color: var(--table-header-bg);
+  --el-table-row-hover-bg-color: var(--table-row-hover);
+  --el-table-border-color: var(--table-border);
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+  color: var(--table-header-text);
+}
+.el-table .el-table__row {
+  transition: background-color 120ms ease;
+}
+
+/* ── 标签：状态色克制 ── */
+.el-tag {
+  font-variant-numeric: tabular-nums;
+}
+.el-tag--primary {
+  --el-tag-bg-color: var(--color-primary-soft);
+  --el-tag-border-color: transparent;
+  --el-tag-text-color: var(--color-primary);
+}
+.el-tag--success {
+  --el-tag-bg-color: var(--color-success-soft);
+  --el-tag-border-color: transparent;
+  --el-tag-text-color: var(--color-success);
+}
+.el-tag--warning {
+  --el-tag-bg-color: var(--color-warning-soft);
+  --el-tag-border-color: transparent;
+  --el-tag-text-color: var(--color-warning);
+}
+.el-tag--danger {
+  --el-tag-bg-color: var(--color-danger-soft);
+  --el-tag-border-color: transparent;
+  --el-tag-text-color: var(--color-danger);
+}
+
+/* ── 滚动条（Webkit 端，细而克制） ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── 弹窗：入场过渡微调 ── */
+.el-dialog {
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+/* ── 表格行可点击态 ── */
+tr.clickable-row {
+  cursor: pointer;
+}
+
+/* ── 链接 hover ── */
+a,
+.el-link {
+  transition: color 150ms ease;
+}

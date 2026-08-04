@@ -706,6 +706,18 @@ function handleLogout() {
   font-weight: 500;
 }
 
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--color-primary);
+}
+
 .nav-icon {
   font-size: 16px;
   width: 20px;
@@ -745,6 +757,7 @@ function handleLogout() {
   cursor: pointer;
   border-radius: var(--nav-item-radius);
   margin-bottom: 2px;
+  position: relative;
   transition: all 200ms ease;
 }
 
@@ -757,6 +770,18 @@ function handleLogout() {
   color: var(--sidebar-text-active);
   background: var(--color-primary-soft);
   font-weight: 500;
+}
+
+.nav-sub-item.active::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--color-primary);
 }
 
 /* ========== 主内容区 ========== */

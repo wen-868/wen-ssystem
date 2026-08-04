@@ -83,7 +83,7 @@
               <div class="metric-header">
                 <span class="metric-label">{{ card.label }}</span>
               </div>
-              <div class="metric-value">{{ card.value }}</div>
+              <div class="metric-value">{{ displayValues[card.key] || card.value }}</div>
               <div class="metric-footer">
                 <div class="metric-compare">
                   <span class="compare-item" :class="card.momUp ? 'up' : 'down'">
@@ -1113,6 +1113,47 @@ const metricCards = computed<MetricCard[]>(() => {
     },
   ];
 });
+
+/** 指标数字滚动显示值（交互打磨：数值从 0 平滑滚动到目标） */
+const displayValues = ref<Record<string, string>>({});
+
+/** 解析 "¥8,624.00" / "12单" / "¥0" 并做数字滚动动画 */
+function animateMetricValue(key: string, value: string): void {
+  const match = value.match(/^([¥￥]?)([\d,]+(?:\.\d+)?)(.*)$/);
+  if (!match) {
+    displayValues.value[key] = value;
+    return;
+  }
+  const prefix = match[1] || "";
+  const suffix = match[3] || "";
+  const target = parseFloat(match[2].replace(/,/g, ""));
+  if (Number.isNaN(target)) {
+    displayValues.value[key] = value;
+    return;
+  }
+  const duration = 700;
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = target * eased;
+    displayValues.value[key] =
+      prefix +
+      val.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+      suffix;
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+// 概览数据变化时，对前 4 个核心指标做数字滚动
+watch(
+  () => metricCards.value.slice(0, 4),
+  (cards) => {
+    cards.forEach((card) => animateMetricValue(card.key, card.value));
+  },
+  { deep: true }
+);
 
 /** 待办总数（库存预警 + 临期 + 应收逾期 + 待处理订单） */
 const todoCount = computed(() => {
