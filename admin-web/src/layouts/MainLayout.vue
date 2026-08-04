@@ -1,5 +1,5 @@
 <template>
-  <div class="layout">
+  <div class="layout" :class="{ 'is-cashier': isCashierMode }">
     <!-- 通栏顶栏（横跨全宽：门店 · 面包屑 | 搜索 · 后台/收银切换 · 通知 · 用户） -->
     <header class="global-header">
       <div class="header-left">
@@ -23,7 +23,7 @@
           <span
             class="mode-switch-item"
             :class="{ active: !isCashierMode }"
-            @click="isCashierMode = false"
+            @click="exitCashierMode"
           >管理后台</span>
           <span
             class="mode-switch-item"
@@ -335,9 +335,10 @@ const AiSidePanel = defineAsyncComponent(
 );
 
 const isMenuCollapsed = ref(false);
-const isCashierMode = ref(false);
 const pageLoading = ref(false);
 const currentUser = computed(() => auth.user);
+/** 收银台模式：由路由驱动（/pos/*），刷新后状态不丢失 */
+const isCashierMode = computed(() => route.path.startsWith("/pos/"));
 
 /** 门店显示名：优先当前用户门店，无则默认 */
 const storeDisplayName = computed(() => {
@@ -364,10 +365,6 @@ const isCashierUser = computed(() => {
 });
 
 onMounted(() => {
-  if (currentUser.value?.roles?.includes("CASHIER")) {
-    isCashierMode.value = true;
-    isMenuCollapsed.value = true;
-  }
   const path = route.path;
   // 2. 销售管理
   if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection')) openGroups.sales = true;
@@ -554,10 +551,15 @@ const pageTitle = computed(() => {
 });
 
 function toggleCashierMode() {
-  isCashierMode.value = !isCashierMode.value;
-  if (isCashierMode.value) {
-    isMenuCollapsed.value = true;
-  }
+  // 管理后台 → 收银台
+  isMenuCollapsed.value = true;
+  router.push("/pos/cashier");
+}
+
+function exitCashierMode() {
+  // 收银台 → 管理后台
+  isMenuCollapsed.value = false;
+  router.push("/dashboard");
 }
 
 function handleLogout() {
@@ -574,6 +576,14 @@ function handleLogout() {
   grid-template-rows: var(--topbar-height) 1fr;
   min-height: 100vh;
   background: var(--bg-page);
+}
+
+/* 收银台模式：侧栏与 AI 面板隐藏，内容占满 */
+.layout.is-cashier {
+  grid-template-columns: 1fr;
+}
+.layout.is-cashier .main {
+  grid-column: 1;
 }
 
 /* 通栏顶栏：横跨全宽 */
