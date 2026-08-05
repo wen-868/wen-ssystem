@@ -1390,11 +1390,25 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r79_01.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `4b917947`，待凌舟复核后收口推送）
 - **文件**：`admin-web/src/api/pos.ts`、`admin-web/src/views/pos/SaleReturnView.vue`
 - **问题**：退货列表"详情"按钮为占位提示，后端详情接口已存在
 - **修复**：① pos.ts 新增 `fetchSaleReturnDetail(returnNo)` 调 `GET /store/sale-returns/:returnNo`；② SaleReturnView 详情弹窗展示（退货单号/客户/商品明细/金额/状态/备注）；**最小改动，不碰无关代码**
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；详情弹窗可从列表打开并展示真实数据；`rg "详情功能开发中" admin-web/src/views/pos` → 0
+- **墨完成记录**（2026-08-06）：
+  - **pos.ts**：新增 `fetchSaleReturnDetail(returnNo)`，调 `GET /store/sale-returns/:returnNo`，返回 `data.data`，风格对齐 `fetchStoreSaleBillDetail`
+  - **SaleReturnView.vue**：新增"退货单详情"弹窗（720px，对齐 SaleBillsView 风格）——el-descriptions 展示退货单号/原销售单号/客户/客户手机/商品金额/优惠金额/应退金额/已退金额/状态/退款方式/创建时间/备注，商品明细 el-table 展示商品/箱数/瓶数/合计数量/单价/小计/退货原因，无数据时显示"暂无商品明细"空态
+  - **字段按后端返回（蛇形，不编造）**：后端 `getDetail` 返回 `SELECT *` 蛇形字段（return_no/source_bill_no/customer_name/goods_amount/refund_amount/refunded_amount/refund_method/return_status/created_at + items 蛇形），弹窗以蛇形字段为主、驼峰兜底（mock 库同时返回两套键名）
+  - **详情按钮取参修正**：`viewDetail(row.returnNo)` → `viewDetail(row.return_no || row.returnNo)`——生产环境列表仅返回蛇形字段，原取参在真实库下拿不到单号，属详情链路必需修正（未改列表其他列）
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 占位残留 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（32.88s，仅预存 @vueuse PURE 注释警告）✅ |
+    | ESLint | `npx eslint src/api/pos.ts src/views/pos/SaleReturnView.vue` | 0 error 0 warning ✅ |
+  - **顺带修正**：SaleReturnView 列表表格 `v-loading` 属性顺序警告（改动前已存在，一行重排，无逻辑变更）
+  - **发现并上报（未擅改，超出本轮最小改动范围）**：后端 `sale-return.service.ts` 列表/详情均用 `SELECT *` 返回**蛇形字段**，而 SaleReturnView 列表表格列（prop="returnNo"/"sourceBillNo"/"totalAmount"/"status"）绑定的是驼峰键——mock 库（mock-db-supplier.ts 对 sale_return 同时补了驼峰键）下显示正常，但**真实 MySQL 下列表列会显示为空**；详情弹窗已按蛇形字段适配不受影响，建议凌舟后续规划修复列表列绑定或后端补 `AS` 驼峰别名（对齐 store-sale-bill.service.ts 做法）
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
