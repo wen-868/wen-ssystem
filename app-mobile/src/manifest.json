@@ -16,10 +16,10 @@
             "delay" : 0
         },
         "modules" : {
-            "Payment" : {},
             "Push" : {},
             "OAuth" : {},
-            "Barcode" : {}
+            "Barcode" : {},
+            "SecureNetwork" : {}
         },
         "distribute" : {
             "android" : {
@@ -46,7 +46,8 @@
                 "privacyDescription" : {
                     "NSBluetoothPeripheralUsageDescription" : "需要使用蓝牙连接打印机进行小票打印",
                     "NSBluetoothAlwaysUsageDescription" : "需要使用蓝牙连接打印机进行小票打印"
-                }
+                },
+                "idfa" : false
             },
             "sdkConfigs" : {
                 "payment" : {
@@ -54,7 +55,8 @@
                         "appid" : "wx_appid_placeholder",
                         "UniversalLinks" : ""
                     }
-                }
+                },
+                "push" : {}
             },
             "plugins" : {
                 "ZXing-Scanner" : {

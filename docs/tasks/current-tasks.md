@@ -1340,13 +1340,24 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）/ 阿澈（移动端配置）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单；阿坚部分 ✅ 已完成：ENCRYPTION_KEY 强校验，commit 待凌舟复核后记录；阿澈部分进行中：urlCheck 环境化+appid 阻塞记录）
+- **状态**：🔄 进行中（2026-08-06 已派单；阿坚部分 ✅ 已完成：ENCRYPTION_KEY 强校验，commit 待凌舟复核后记录；阿澈部分 ✅ 已完成：urlCheck 环境化+appid 阻塞记录，commit 待凌舟复核后记录）
 - **文件**：`docker-compose.yml`、`deploy/auto-deploy.sh`、`app-mobile/src/manifest.json`
 - **问题**：AUDIT-REPORT R3（ENCRYPTION_KEY 留空降级明文落库）、R18（小程序 urlCheck:false 生产必须 true）、R2/R41（appid 占位符，上架阻塞）
 - **修复**：① ENCRYPTION_KEY 启动强校验（为空或占位则拒绝启动）+ 部署脚本自动生成；② urlCheck 改为多环境（dev false/prod true）；③ appid 占位属上架配置，记录为阻塞项待用户提供真实 appid。**最小改动**
 - **验收标准**：ai-base 启动校验生效；urlCheck 环境化；appid 阻塞项已记录
 - **阿坚部分完成证据**（2026-08-06）：① `docker-compose.yml:108` 改为 `${ENCRYPTION_KEY:?请在 .env 中设置 ENCRYPTION_KEY（32 字节 hex，生成命令：openssl rand -hex 32）}` fail-fast（与 JWT_SECRET 同模式）；② `backend/ai-base/src/tenant/crypto.service.ts` 构造器新增占位符检测（CHANGE_ME / your-encryption-key / REPLACE_ME / 请替换 / xxx 等，空值与 32 字节长度校验为原有保留）；③ `deploy/ai-base-deploy.sh` 新增 2.5 节：ENCRYPTION_KEY 为空/占位符/历史示例密钥（`14804bc7...`，R70-01 曾提交于 .env.example）时用 `openssl rand -hex 32` 自动生成并写入 .env；④ 同步检查 backend：JWT_SECRET 已 fail-fast（env.ts:14）、CSRF_SECRET 回退 JWT_SECRET 不降级为空（env.ts:21）+ auto-deploy.sh 已有占位自动生成，无同类空降级风险，未改动；⑤ `backend/ai-base/.env.example` 移除已提交的真实示例密钥改为占位符，根目录与 `deploy/.env.example` 补 ENCRYPTION_KEY 说明
 - **验证**：`pnpm exec jest src/tenant/crypto.service.spec.ts` 15/15 通过（新增占位符拒绝用例）；ai-base `pnpm run build` exit 0；backend `npm run typecheck` 0 errors；ai-base 全量 jest 512 通过 + 1 预存环境失败（document-loader PDF 用例缺 `--experimental-vm-modules`，R77-02 已记录，与本次改动无关）；`docker-compose.yml` YAML 解析通过
+- **阿澈部分完成证据**（2026-08-06，commit 待凌舟复核）：
+  - **urlCheck 环境化实现**：`app-mobile/vite.config.ts` 新增 `ache:mp-weixin-prod-urlcheck` 插件（`apply: 'build'` + `generateBundle`，仅当 `UNI_PLATFORM=mp-weixin` 且 `NODE_ENV=production` 时把构建产物 `project.config.json` 的 `setting.urlCheck` 强制置 true）；`app-mobile/src/manifest.json` 的 mp-weixin 段保持默认 `urlCheck: false`（dev 构建原样输出，便于本地调试非 https 域名）
+  - **验证证据（实测）**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 生产分支 urlCheck | `npm run build:mp-weixin` exit 0 + 读 `dist/build/mp-weixin/project.config.json` | `setting.urlCheck = true` ✅ |
+    | 开发分支 urlCheck | `npm run dev:mp-weixin`（watch 短时运行）+ 读 `dist/dev/mp-weixin/project.config.json` | `setting.urlCheck = false` ✅ |
+    | H5 构建 | `npm run build:h5` | exit 0（仅预存 Sass 弃用警告）✅ |
+    | App 构建 | `npm run build:app` | exit 0（仅预存 Sass 弃用警告）✅ |
+  - **appid 阻塞项记录（上架前需用户提供，未编造假值）**：① `app-mobile/src/manifest.json` mp-weixin 段 `appid` 与微信支付 `sdkConfigs.payment.weixin.appid` 均为 `wx_appid_placeholder` → 需提供商户端小程序真实 appid（支付 appid 一并替换）；② `miniapp/project.config.json:2` 为 `wx0000000000000000` → 需提供 C 端消费者小程序真实 appid。manifest.json 为纯 JSON 不支持注释，阻塞说明统一记录于本任务文件与 `docs/reports/R77-04-小程序核对.md` 第八节
+  - **说明**：① manifest.json 的 R73 打包准备遗留未提交改动（app-plus 段：移除 Payment 模块、新增 SecureNetwork / idfa:false / push，R77-04 已标注）与本轮改动同文件，随本轮一并收口提交；② 踩坑日志新增 [32]「子代理身份识别错误」（R78-02 派单过程记录，由凌舟补充，本轮修正其重复编号 [30]→[32]）
 
 ### R78-03 — [P2] 小程序核对遗留（图标/登录页）
 - **优先级**：P2

@@ -22,6 +22,22 @@ export default defineConfig({
       },
     },
     uni(),
+    // urlCheck 环境化（R78-02）：微信小程序 dev 构建保持 false（manifest.json 默认值，
+    // 便于本地调试非 https 域名）；生产构建强制 true（避免 urlCheck:false 上架审核被拒）
+    {
+      name: 'ache:mp-weixin-prod-urlcheck',
+      apply: 'build',
+      generateBundle(_options, bundle) {
+        if (process.env.UNI_PLATFORM !== 'mp-weixin') return
+        if (process.env.NODE_ENV !== 'production') return
+        const asset = bundle['project.config.json']
+        if (!asset || asset.type !== 'asset') return
+        const cfg = JSON.parse(asset.source.toString())
+        cfg.setting = cfg.setting || {}
+        cfg.setting.urlCheck = true
+        asset.source = JSON.stringify(cfg, null, 2)
+      },
+    },
   ],
   resolve: {
     alias: {
