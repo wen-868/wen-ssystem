@@ -1,7 +1,8 @@
 import { api } from "./request";
 
 // ==================== After-sales APIs ====================
-export async function fetchAfterSales(params?: { keyword?: string; status?: string; type?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+// 后端 adminListAftersales 读取 startDate/endDate（见 backend/src/controllers/admin/aftersale.controller.ts）
+export async function fetchAfterSales(params?: { keyword?: string; status?: string; type?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/aftersales", { params });
   return data.data;
 }
