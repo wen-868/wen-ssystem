@@ -1415,10 +1415,22 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r79_03.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `9ac28764`，待凌舟复核）
 - **问题**（凌舟核实）：后端 `sale-return.service.ts` 列表 `SELECT sr.*` 返回蛇形字段（return_no/source_bill_no/return_status/refund_amount/created_at），前端 SaleReturnView 列表绑定驼峰键（returnNo/sourceBillNo/totalAmount/status/createdAt），真实 MySQL 下列表 5 列显示为空（表无 total_amount 字段，金额为 refund_amount）；mock saleReturns 为空数组掩盖了问题；详情弹窗已有蛇形兜底不受影响
 - **修复（凌舟决策：方案 B，不动后端）**：前端列 prop 改绑真实蛇形字段：returnNo→return_no、sourceBillNo→source_bill_no、totalAmount→refund_amount、status→return_status、createdAt→created_at；状态标签取值 `row.return_status || row.status`；**最小改动，不碰详情弹窗与其他逻辑**
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "prop=\"returnNo\"|prop=\"totalAmount\"|row.status" admin-web/src/views/pos/SaleReturnView.vue` → 0（或已改）；列表绑定与 t_sale_return 表字段一致
+- **墨完成记录**（2026-08-06）：
+  - **改动文件**：`admin-web/src/views/pos/SaleReturnView.vue`（仅列表列绑定，7 行改 7 行；详情弹窗/新建退货/script 逻辑零改动）
+  - **列绑定修正**：`returnNo→return_no`、`sourceBillNo→source_bill_no`、`totalAmount→refund_amount`（模板值同步改 `row.refund_amount ?? 0`）、`status→return_status`（状态标签取值 `row.return_status || row.status` 兼容兜底）、`createdAt→created_at`；详情按钮原有 `row.return_no || row.returnNo` 取参不动
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 残留驼峰 prop | `rg 'prop="returnNo"\|prop="sourceBillNo"\|prop="totalAmount"\|prop="status"\|prop="createdAt"'` | 0 命中 ✅ |
+    | 占位不回归 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（32.92s，仅预存 @vueuse PURE 注释警告）✅ |
+    | ESLint | `npx eslint src/views/pos/SaleReturnView.vue` | 0 error 0 warning ✅ |
+  - **说明**：任务卡 inbox/mo_r79_03.md 已归档 inbox/archive/；git commit 后未推送，由凌舟统一收口
     |--------|------|------|
     | 占位残留 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
     | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
