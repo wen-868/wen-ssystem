@@ -1370,7 +1370,7 @@
 
 ---
 
-## R79 — 阶段1-1 收银台版块 100% 核查与修复 [进行中 — 凌舟 2026-08-06]
+## R79 — 阶段1-1 收银台版块 100% 核查与修复 [✅ 已完成 — 凌舟 2026-08-06]
 
 > **日期**：2026-08-06
 > **来源**：按《版块有序推进规划》启动阶段 1-1 收银台版块
@@ -1415,13 +1415,51 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：✅ 已完成（2026-08-06 墨执行 commit `9ac28764`，待凌舟复核）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `9ac28764`，凌舟复核通过：5 列 prop 蛇形、无驼峰残留、vue-tsc/build/eslint 全过）
 - **问题**（凌舟核实）：后端 `sale-return.service.ts` 列表 `SELECT sr.*` 返回蛇形字段（return_no/source_bill_no/return_status/refund_amount/created_at），前端 SaleReturnView 列表绑定驼峰键（returnNo/sourceBillNo/totalAmount/status/createdAt），真实 MySQL 下列表 5 列显示为空（表无 total_amount 字段，金额为 refund_amount）；mock saleReturns 为空数组掩盖了问题；详情弹窗已有蛇形兜底不受影响
 - **修复（凌舟决策：方案 B，不动后端）**：前端列 prop 改绑真实蛇形字段：returnNo→return_no、sourceBillNo→source_bill_no、totalAmount→refund_amount、status→return_status、createdAt→created_at；状态标签取值 `row.return_status || row.status`；**最小改动，不碰详情弹窗与其他逻辑**
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "prop=\"returnNo\"|prop=\"totalAmount\"|row.status" admin-web/src/views/pos/SaleReturnView.vue` → 0（或已改）；列表绑定与 t_sale_return 表字段一致
 - **墨完成记录**（2026-08-06）：
   - **改动文件**：`admin-web/src/views/pos/SaleReturnView.vue`（仅列表列绑定，7 行改 7 行；详情弹窗/新建退货/script 逻辑零改动）
   - **列绑定修正**：`returnNo→return_no`、`sourceBillNo→source_bill_no`、`totalAmount→refund_amount`（模板值同步改 `row.refund_amount ?? 0`）、`status→return_status`（状态标签取值 `row.return_status || row.status` 兼容兜底）、`createdAt→created_at`；详情按钮原有 `row.return_no || row.returnNo` 取参不动
+
+---
+
+## R80 — 阶段1-2 订单版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：收银台版块（R79）完成后按《版块有序推进规划》进入阶段 1-2
+> **版块范围**：订单列表/详情/履约/售后（admin-web views/order/ + views/pos/OrderFulfillView + 后端 store-order/order 服务）
+
+### R80-00 — 订单版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 订单页 9 个 + 履约页 1 个，无"敬请期待/开发中"占位；后端 order 测试齐全（order/order-timeout/order-receiving/admin-order/transfer-order 等）
+  - Orders.vue（fetchOrders/fetchOrderDetail）、OrderFulfillView（fetchStoreOrders/fetchStoreOrderDetail）已接真实 API
+  - **差距 G1（P0）**：`OrderAftersaleView.vue` 售后页整体使用 **mock 假数据**（mockStats 编造 86 单/12 待审/5 今日/3.2% + mockAftersales 编造 20 条），违反「禁止编造数据」铁律；后端 `/api/admin/aftersales`（列表/详情/统计）已存在，前端未接入
+  - **差距 G2（P1）**：订单页硬编码色残留 7 个页面约 39 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，含非品牌色 #1677FF）
+
+### R80-01 — [P0] 售后页接入真实 API（消除 mock 假数据）
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r80_01.md）
+- **文件**：`admin-web/src/views/order/OrderAftersaleView.vue`、`admin-web/src/api/`
+- **问题**：售后页统计卡与列表为 mock 编造数据（mockStats/mockAftersales），后端 `/api/admin/aftersales`（含 GET /statistics 统计）已存在
+- **修复**：① 新增售后 API 封装（列表/统计/详情，按后端字段蛇形）；② 统计卡/列表/筛选接真实数据；③ 后端无数据时显示空态/零值，**禁止保留编造数字**；④ 硬编码色顺带 token 化（该页 #1677FF/#D48B3A 等）
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "mockStats|mockAftersales" admin-web/src/views/order/OrderAftersaleView.vue` → 0；`rg "#1677FF" admin-web/src/views/order/` → 0
+
+### R80-02 — [P1] 订单页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R80-01 后派单）
+- **文件**：`admin-web/src/views/order/` 其余 6 页
+- **问题**：订单页硬编码色残留约 28 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，R77-01 后新增或遗漏）
+- **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/order/` 显著下降（目标 ≤ 原 30%）
   - **验证证据**：
     | 验证项 | 命令 | 结果 |
     |--------|------|------|
