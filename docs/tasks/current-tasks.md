@@ -1340,11 +1340,13 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）/ 阿澈（移动端配置）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单：阿坚=ENCRYPTION_KEY 强校验，阿澈=urlCheck 环境化+appid 阻塞记录）
+- **状态**：🔄 进行中（2026-08-06 已派单；阿坚部分 ✅ 已完成：ENCRYPTION_KEY 强校验，commit 待凌舟复核后记录；阿澈部分进行中：urlCheck 环境化+appid 阻塞记录）
 - **文件**：`docker-compose.yml`、`deploy/auto-deploy.sh`、`app-mobile/src/manifest.json`
 - **问题**：AUDIT-REPORT R3（ENCRYPTION_KEY 留空降级明文落库）、R18（小程序 urlCheck:false 生产必须 true）、R2/R41（appid 占位符，上架阻塞）
 - **修复**：① ENCRYPTION_KEY 启动强校验（为空或占位则拒绝启动）+ 部署脚本自动生成；② urlCheck 改为多环境（dev false/prod true）；③ appid 占位属上架配置，记录为阻塞项待用户提供真实 appid。**最小改动**
 - **验收标准**：ai-base 启动校验生效；urlCheck 环境化；appid 阻塞项已记录
+- **阿坚部分完成证据**（2026-08-06）：① `docker-compose.yml:108` 改为 `${ENCRYPTION_KEY:?请在 .env 中设置 ENCRYPTION_KEY（32 字节 hex，生成命令：openssl rand -hex 32）}` fail-fast（与 JWT_SECRET 同模式）；② `backend/ai-base/src/tenant/crypto.service.ts` 构造器新增占位符检测（CHANGE_ME / your-encryption-key / REPLACE_ME / 请替换 / xxx 等，空值与 32 字节长度校验为原有保留）；③ `deploy/ai-base-deploy.sh` 新增 2.5 节：ENCRYPTION_KEY 为空/占位符/历史示例密钥（`14804bc7...`，R70-01 曾提交于 .env.example）时用 `openssl rand -hex 32` 自动生成并写入 .env；④ 同步检查 backend：JWT_SECRET 已 fail-fast（env.ts:14）、CSRF_SECRET 回退 JWT_SECRET 不降级为空（env.ts:21）+ auto-deploy.sh 已有占位自动生成，无同类空降级风险，未改动；⑤ `backend/ai-base/.env.example` 移除已提交的真实示例密钥改为占位符，根目录与 `deploy/.env.example` 补 ENCRYPTION_KEY 说明
+- **验证**：`pnpm exec jest src/tenant/crypto.service.spec.ts` 15/15 通过（新增占位符拒绝用例）；ai-base `pnpm run build` exit 0；backend `npm run typecheck` 0 errors；ai-base 全量 jest 512 通过 + 1 预存环境失败（document-loader PDF 用例缺 `--experimental-vm-modules`，R77-02 已记录，与本次改动无关）；`docker-compose.yml` YAML 解析通过
 
 ### R78-03 — [P2] 小程序核对遗留（图标/登录页）
 - **优先级**：P2

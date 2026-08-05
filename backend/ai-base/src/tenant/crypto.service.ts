@@ -23,6 +23,18 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 /** IV 长度（GCM 推荐 12 字节） */
 const IV_LENGTH = 12;
 
+/** 常见占位密钥标记（命中任一即视为未配置真实密钥，拒绝启动，AUDIT-REPORT R3） */
+const PLACEHOLDER_MARKERS = [
+  'change_me',
+  'changeme',
+  'your-encryption-key',
+  'your_encryption_key',
+  'replace_me',
+  'placeholder',
+  '请替换',
+  'xxx',
+];
+
 @Injectable()
 export class CryptoService {
   private readonly logger = new Logger(CryptoService.name);
@@ -34,6 +46,12 @@ export class CryptoService {
     if (!hexKey) {
       throw new Error(
         "ENCRYPTION_KEY 未配置，请在 .env 中设置 32 字节 hex 密钥（生成命令：node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"）",
+      );
+    }
+    const normalizedKey = hexKey.trim().toLowerCase();
+    if (PLACEHOLDER_MARKERS.some((marker) => normalizedKey.includes(marker))) {
+      throw new Error(
+        'ENCRYPTION_KEY 仍为占位符（如 CHANGE_ME / your-encryption-key），禁止使用占位密钥启动，请生成真实 32 字节 hex 密钥（生成命令：openssl rand -hex 32）',
       );
     }
     this.key = Buffer.from(hexKey, 'hex');

@@ -71,6 +71,25 @@ else
   echo "==> [AI底座] .env 已存在，保留现有配置"
 fi
 
+# ---- 2.5 确保 ENCRYPTION_KEY 为真实随机密钥（AUDIT-REPORT R3：禁止占位符/示例密钥启动） ----
+if [ -f ".env" ]; then
+  CUR_KEY=$(grep '^ENCRYPTION_KEY=' ".env" | head -1 | cut -d= -f2- || true)
+  # 历史示例密钥（R70-01 曾提交于 .env.example，属公开值，禁止用于生产，检测到即轮换）
+  EXAMPLE_KEY="14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359"
+  if [ -z "${CUR_KEY}" ] || [ "${CUR_KEY}" = "${EXAMPLE_KEY}" ] || \
+     echo "${CUR_KEY}" | grep -qiE 'change_me|changeme|your-encryption-key|your_encryption_key|replace_me|placeholder|请替换|xxx'; then
+    NEW_KEY=$(openssl rand -hex 32)
+    if grep -q '^ENCRYPTION_KEY=' ".env"; then
+      sed -i "s|^ENCRYPTION_KEY=.*|ENCRYPTION_KEY=${NEW_KEY}|" ".env"
+    else
+      echo "ENCRYPTION_KEY=${NEW_KEY}" >> ".env"
+    fi
+    echo "==> [AI底座] ENCRYPTION_KEY 为空/占位符/示例密钥，已用 openssl rand 自动生成并写入 .env（安全）"
+  else
+    echo "==> [AI底座] ENCRYPTION_KEY 已配置为真实密钥，保留现有值"
+  fi
+fi
+
 # ---- 3. 安装依赖（需执行原生脚本以编译 @napi-rs/canvas） ----
 echo "==> [AI底座] pnpm install"
 pnpm install --no-frozen-lockfile 2>&1 | tail -8 || { echo "==> [AI底座] pnpm install 失败，跳过 AI 底座部署"; exit 0; }

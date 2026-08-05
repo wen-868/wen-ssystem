@@ -33,6 +33,22 @@ describe('CryptoService', () => {
         '长度必须为 32 字节',
       );
     });
+
+    it('ENCRYPTION_KEY 为占位符时应抛异常（AUDIT-REPORT R3）', () => {
+      const placeholderKeys = [
+        'CHANGE_ME_GENERATE_32_BYTE_HEX_KEY',
+        'your-encryption-key',
+        'your_encryption_key',
+        'REPLACE_ME',
+        '<请替换为真实值>',
+        'xxx_placeholder_xxx',
+      ];
+      for (const key of placeholderKeys) {
+        expect(() => new CryptoService(createConfigService(key))).toThrow(
+          'ENCRYPTION_KEY 仍为占位符',
+        );
+      }
+    });
   });
 
   describe('encrypt / decrypt', () => {
