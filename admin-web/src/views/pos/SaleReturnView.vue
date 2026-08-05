@@ -18,17 +18,17 @@
       </template>
 
       <el-table v-loading="loading" :data="records" size="small" style="width: 100%">
-        <el-table-column prop="returnNo" label="退货单号" width="160" />
-        <el-table-column prop="sourceBillNo" label="原销售单号" width="160" />
-        <el-table-column prop="totalAmount" label="退货金额" width="100">
-          <template #default="{ row }">¥{{ Number(row.totalAmount || 0).toFixed(2) }}</template>
+        <el-table-column prop="return_no" label="退货单号" width="160" />
+        <el-table-column prop="source_bill_no" label="原销售单号" width="160" />
+        <el-table-column prop="refund_amount" label="退货金额" width="100">
+          <template #default="{ row }">¥{{ Number(row.refund_amount ?? 0).toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="return_status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
+            <el-tag :type="getStatusType(row.return_status || row.status)" size="small">{{ getStatusText(row.return_status || row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="160" />
+        <el-table-column prop="created_at" label="创建时间" width="160" />
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="viewDetail(row.return_no || row.returnNo)">详情</el-button>
