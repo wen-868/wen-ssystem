@@ -67,7 +67,7 @@
         <el-card shadow="never">
           <template #header>
             <div class="card-header">
-              <span>购物车（{{ cartItems.length }}件）</span>
+              <span>购物车（{{ totalQty }}件）</span>
               <el-button v-if="cartItems.length > 0" link type="danger" @click="cartItems = []">清空</el-button>
             </div>
           </template>

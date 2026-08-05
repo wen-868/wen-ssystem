@@ -872,7 +872,7 @@ function handleLogout() {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 /* 管理后台 / 收银台 模式切换 */
@@ -884,7 +884,7 @@ function handleLogout() {
 }
 .mode-switch-item {
   font-size: 13px;
-  padding: 5px 14px;
+  padding: 5px 16px;
   border-radius: 5px;
   color: var(--text-secondary);
   cursor: pointer;
