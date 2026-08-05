@@ -265,6 +265,11 @@ export async function createStoreSaleReturn(payload: {
   return data.data;
 }
 
+export async function fetchSaleReturnDetail(returnNo: string) {
+  const { data } = await api.get(`/store/sale-returns/${returnNo}`);
+  return data.data;
+}
+
 // ---------- 优惠券核销 ----------
 export async function verifyStoreCoupon(code: string) {
   const { data } = await api.post("/store/coupons/verify", { code });

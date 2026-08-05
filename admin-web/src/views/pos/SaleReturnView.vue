@@ -17,7 +17,7 @@
         </div>
       </template>
 
-      <el-table :data="records" v-loading="loading" size="small" style="width: 100%">
+      <el-table v-loading="loading" :data="records" size="small" style="width: 100%">
         <el-table-column prop="returnNo" label="退货单号" width="160" />
         <el-table-column prop="sourceBillNo" label="原销售单号" width="160" />
         <el-table-column prop="totalAmount" label="退货金额" width="100">
@@ -31,7 +31,7 @@
         <el-table-column prop="createdAt" label="创建时间" width="160" />
         <el-table-column label="操作">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="viewDetail(row.returnNo)">详情</el-button>
+            <el-button size="small" link type="primary" @click="viewDetail(row.return_no || row.returnNo)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -46,6 +46,41 @@
         @current-change="loadList"
       />
     </el-card>
+
+    <el-dialog v-model="detailVisible" title="退货单详情" width="720px">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="退货单号">{{ detail.return_no || detail.returnNo || "—" }}</el-descriptions-item>
+        <el-descriptions-item label="原销售单号">{{ detail.source_bill_no || detail.sourceBillNo || "—" }}</el-descriptions-item>
+        <el-descriptions-item label="客户">{{ detail.customer_name || detail.customerName || "—" }}</el-descriptions-item>
+        <el-descriptions-item label="客户手机">{{ detail.customer_mobile || detail.customerMobile || "—" }}</el-descriptions-item>
+        <el-descriptions-item label="商品金额">¥{{ Number(detail.goods_amount ?? detail.goodsAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="优惠金额">¥{{ Number(detail.discount_amount ?? detail.discountAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="应退金额">¥{{ Number(detail.refund_amount ?? detail.refundAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="已退金额">¥{{ Number(detail.refunded_amount ?? detail.refundedAmount ?? 0).toFixed(2) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(detail.return_status || detail.returnStatus || detail.status)" size="small">
+            {{ getStatusText(detail.return_status || detail.returnStatus || detail.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="退款方式">{{ getRefundMethodText(detail.refund_method || detail.refundMethod) }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ detail.created_at || detail.createdAt || "—" }}</el-descriptions-item>
+        <el-descriptions-item label="备注">{{ detail.remark || "—" }}</el-descriptions-item>
+      </el-descriptions>
+      <div class="detail-items-title">商品明细</div>
+      <el-table :data="detail.items || []" size="small" empty-text="暂无商品明细">
+        <el-table-column prop="sku_name" label="商品" min-width="140" />
+        <el-table-column prop="box_qty" label="箱数" width="70" />
+        <el-table-column prop="bottle_qty" label="瓶数" width="70" />
+        <el-table-column prop="total_bottle_qty" label="合计数量" width="90" />
+        <el-table-column label="单价" width="100">
+          <template #default="{ row }">¥{{ Number(row.unit_price || 0).toFixed(2) }}</template>
+        </el-table-column>
+        <el-table-column label="小计" width="110">
+          <template #default="{ row }">¥{{ Number(row.subtotal_amount || 0).toFixed(2) }}</template>
+        </el-table-column>
+        <el-table-column prop="reason" label="退货原因" min-width="120" />
+      </el-table>
+    </el-dialog>
 
     <el-dialog v-model="createVisible" title="新建退货单" width="720px">
       <el-form label-width="100px">
@@ -76,7 +111,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { fetchStoreSaleReturns, createStoreSaleReturn } from "../../api";
+import { fetchStoreSaleReturns, fetchSaleReturnDetail, createStoreSaleReturn } from "../../api";
 
 const loading = ref(false);
 const submitting = ref(false);
@@ -86,6 +121,8 @@ const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const createVisible = ref(false);
+const detailVisible = ref(false);
+const detail = ref<any>({});
 const createForm = reactive<{ sourceBillNo: string; items: any[]; remark: string }>({
   sourceBillNo: "",
   items: [],
@@ -112,6 +149,11 @@ function getStatusText(status: string) {
   return map[status] || status || "未知";
 }
 
+function getRefundMethodText(method?: string) {
+  const map: Record<string, string> = { CASH: "现金", WECHAT: "微信", BANK: "银行卡" };
+  return (method && map[method]) || method || "—";
+}
+
 async function loadList() {
   loading.value = true;
   try {
@@ -129,8 +171,18 @@ async function loadList() {
   }
 }
 
-async function viewDetail(_returnNo: string) {
-  ElMessage.info("详情功能开发中");
+async function viewDetail(returnNo: string) {
+  if (!returnNo) {
+    ElMessage.warning("退货单号为空，无法查看详情");
+    return;
+  }
+  try {
+    const data = await fetchSaleReturnDetail(returnNo);
+    detail.value = data || {};
+    detailVisible.value = true;
+  } catch {
+    ElMessage.error("加载详情失败");
+  }
 }
 
 async function submitCreate() {
@@ -190,5 +242,9 @@ onMounted(() => {
   gap: 8px;
   margin-bottom: 8px;
   align-items: center;
+}
+.detail-items-title {
+  margin: 16px 0 8px;
+  font-weight: 600;
 }
 </style>
