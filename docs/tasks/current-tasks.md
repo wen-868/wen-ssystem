@@ -1410,6 +1410,15 @@
 - **问题**：app-shell 为旧版 merchant-mobile 的 HBuilder 5+App 壳（含 www 构建产物），当前移动端已由 app-mobile(uni-app) 取代，无任何代码/部署引用
 - **修复**：整个 app-shell 目录移入 `D:\Users\Documents\TREA\_cleanup_20260806\app-shell` 暂存（可恢复，未直接删除），git 记录删除
 - **验收标准**：`Test-Path app-shell` → False；`git log --oneline -1` 有清理提交
+
+### R79-03 — [P1] 销售退货列表列绑定蛇形字段修复（真实库显示为空）
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r79_03.md）
+- **问题**（凌舟核实）：后端 `sale-return.service.ts` 列表 `SELECT sr.*` 返回蛇形字段（return_no/source_bill_no/return_status/refund_amount/created_at），前端 SaleReturnView 列表绑定驼峰键（returnNo/sourceBillNo/totalAmount/status/createdAt），真实 MySQL 下列表 5 列显示为空（表无 total_amount 字段，金额为 refund_amount）；mock saleReturns 为空数组掩盖了问题；详情弹窗已有蛇形兜底不受影响
+- **修复（凌舟决策：方案 B，不动后端）**：前端列 prop 改绑真实蛇形字段：returnNo→return_no、sourceBillNo→source_bill_no、totalAmount→refund_amount、status→return_status、createdAt→created_at；状态标签取值 `row.return_status || row.status`；**最小改动，不碰详情弹窗与其他逻辑**
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "prop=\"returnNo\"|prop=\"totalAmount\"|row.status" admin-web/src/views/pos/SaleReturnView.vue` → 0（或已改）；列表绑定与 t_sale_return 表字段一致
     |--------|------|------|
     | 占位残留 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
     | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
