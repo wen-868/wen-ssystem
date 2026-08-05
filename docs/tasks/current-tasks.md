@@ -1425,7 +1425,7 @@
 
 ---
 
-## R80 — 阶段1-2 订单版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+## R80 — 阶段1-2 订单版块 100% 核查 [✅ 已完成 — 凌舟 2026-08-06]
 
 > **日期**：2026-08-06
 > **来源**：收银台版块（R79）完成后按《版块有序推进规划》进入阶段 1-2
@@ -1499,11 +1499,49 @@
 - **优先级**：P1
 - **负责人**：阿坚（后端）
 - **预计**：0.25 天
-- **状态**：✅ 已完成（2026-08-06 阿坚执行 commit `待凌舟复核后回填`；已归档任务卡 inbox/archive/ajian_r80_03.md）
+- **状态**：✅ 已完成（2026-08-06 阿坚执行 commit `6348cd82`，凌舟复核通过：statistics 路由已在 :id 之前、typecheck 0、routes 131 文件/777 用例全过）
 - **文件**：`backend/src/routes/aftersale.routes.ts`
 - **问题**（墨上报，凌舟核实）：`adminAftersaleRouter.get("/aftersales/statistics")` 注册在 `get("/aftersales/:id")`（38 行）之后，Express 按注册顺序匹配，`GET /api/admin/aftersales/statistics` 会命中 `:id` 路由导致 404；前端已做防御（统计失败置空态）
 - **修复**：将 statistics 路由移到 `:id` 路由之前（Express 静态路由优先惯例）；**最小改动，仅调整路由顺序**
 - **验收标准**：`GET /api/admin/aftersales/statistics` 不再被 :id 拦截；`npm run typecheck` 0 errors；相关路由测试通过
+
+---
+
+## R81 — 阶段1-3 商品版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：订单版块（R80）完成后按《版块有序推进规划》进入阶段 1-3
+> **版块范围**：商品管理/分类/品牌/标签/价格/组合/审核（admin-web views/product/ 14 页 + 后端 product 服务）
+
+### R81-00 — 商品版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 商品页 14 个；后端 product 测试 13 个；Products.vue 等核心页已接真实 API（R77-03 已补图片懒加载）
+  - **差距 G1（P0）**：`ReviewDelegation.vue` 审核委托页**纯 mock 假数据**（mockMyDelegations/mockDelegatedToMe/mockHistory），后端无委派接口（rg delegat 0 命中），违反禁止编造数据
+  - **差距 G2（P0）**：`ProductReviewWorkflow.vue` 审核流程页**纯 mock 假数据**（mockRecords），无 API import
+  - **差距 G3（P1）**：商品页硬编码色残留 27 处（ProductCombo 14/ProductReviewTasks 6/ProductReview 4/ProductReviewWorkflow 1/ProductCategories 1/Units 1）
+
+### R81-01 — [P0] 商品审核 mock 页消除假数据（委托/流程）
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r81_01.md）
+- **文件**：`admin-web/src/views/product/ReviewDelegation.vue`、`ProductReviewWorkflow.vue`
+- **问题**：两个页面使用 mock 编造数据（审核委托 3 组假列表、审核流程 mockRecords），后端无对应接口
+- **修复**：移除全部 mock 假数据；页面改真实空态 + 明确提示"该功能待后端支持（审核委托/流程配置）"；保留页面结构与入口（不删菜单）；**不编造数据**
+- **验收标准**：`rg "mock" admin-web/src/views/product/ReviewDelegation.vue admin-web/src/views/product/ProductReviewWorkflow.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R81-02 — [P1] 商品页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R81-01 后派单）
+- **文件**：`admin-web/src/views/product/`（ProductCombo 14/ProductReviewTasks 6/ProductReview 4 等）
+- **问题**：商品页硬编码色残留 27 处（含 #C0392B/#0EA879/#444444/#83bff6 等）
+- **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/product/` 显著下降（目标 ≤ 原 30%）
 - **阿坚完成记录**（2026-08-06）：
   - **改动**：`aftersale.routes.ts` 将 `GET /aftersales/statistics` 从文件末尾上移到 `GET /aftersales/:id` 之前（紧邻列表路由之后），仅调整注册顺序，controller/其他逻辑未动；既有路由测试 `aftersale.test.ts` 新增 1 条回归断言（GET statistics 注册序先于 GET :id）
   - **验证证据**：
