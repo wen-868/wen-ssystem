@@ -1248,11 +1248,20 @@
 ### R77-01 — [P0] UI 颜色 token 化（1116 处硬编码颜色）
 - **优先级**：P0
 - **负责人**：墨（admin-web）
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r77_01.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `e0b433cc`，待凌舟复核）
 - **文件**：`admin-web/src/views/`、`admin-web/src/components/`
 - **问题**：1116 处硬编码颜色（Dashboard 用 Element 默认色 #409eff 等），未走 tokens.css 品牌 token，违反 R74 设计标准
 - **修复**：分批替换为 --color-*/--chart-* token；图表色用 token；只改颜色不改布局
 - **验收标准**：`rg "#409eff|#67c23a|#e6a23c" admin-web/src/views` 显著下降；build exit 0
+- **墨完成记录**（2026-08-06）：
+  - **基线**：views+components 总 hex 1292 处、三色（#409eff/#67c23a/#e6a23c）334 处；**转换后**：总 hex 742 处、三色 **0 处**（验收目标 ≤67，实际 0，降幅 100%）
+  - **改动范围**：115 个文件（114 个 .vue + `styles.css`），仅改颜色值，未碰布局/结构/逻辑/文字，未新增依赖
+  - **替换规则**：`<style>` 块内硬编码色 → tokens.css 变量（`var(--color-primary)`/`var(--color-success)`/`var(--color-warning)`/`var(--color-danger)`/`var(--gray-*)`/`var(--bg-*)`/`var(--border-*)` 等）；脚本/图表内（ECharts canvas 不支持 CSS 变量，遵守「只改颜色值」铁律未引入 getComputedStyle 逻辑）→ 品牌/语义等价 hex（#3F6FEF/#0EA879/#D48B3A/#C0392B/#999999/#CCCCCC 等，与 token 定义值一致）；Element 默认色 rgba（64,158,255 / 103,194,58 / 245,108,108）→ 品牌 RGB rgba（63,111,239 / 14,168,121 / 192,57,43）
+  - **Dashboard 重点收尾**：样式块全量 token 化；图表主色全部映射品牌色、渐变副色映射品牌色 rgba、紫色系映射 --chart-5 #8B5CF6，仅保留图表标记白色描边 #fff
+  - **列表页**：订单/库存/客户/财务 4 页已在 R76-01 清零（0 hex），本轮补齐 Products.vue 10 处（模板内联 #dcdfe6 → var(--gray-200) + 样式块灰阶 token 化）
+  - **附带修复（浏览器实测发现）**：`styles.css` Element 主题覆盖块选择器 `:root` → `:root:root`——Element Plus base.css 在 styles.css 之后注入，同特异性下后者胜出导致 `--el-color-*` 仍为默认值（按钮实测 #409eff）；修复后 `--el-color-primary=#3F6FEF` 生效，全站 Element 组件随品牌主题渲染
+  - **验证证据**：`npx vue-tsc -b` 0 errors；`npm run build` exit 0（59.36s，仅 @vueuse/core 既有 PURE 注释警告）；`rg "#409eff|#67c23a|#e6a23c" admin-web/src/views` 0 命中；浏览器抽查（playwright+Edge，mock 登录 admin/admin123）：Dashboard/订单/商品三页 `--el-color-primary=#3F6FEF`、Element 默认色 0 处渲染、开单收银按钮背景 rgb(63,111,239)；视觉模型确认 Dashboard 品牌蓝+灰阶一致（截图存档于 TEMP/R77-01-browser-check/，未入库）
+  - **遗留说明**：其余页面的图表装饰色（如部分渐变副色、axisLabel 灰阶）仍为字面值，属可接受范围，未在验收三色清单内；ECharts 图表色采用 token 等值 hex 而非 var()（canvas 不支持），如需彻底变量化可在后续轮次引入 getComputedStyle 统一读取方案
 
 ### R77-02 — [P1] 依赖漏洞审计 + API 契约补录
 - **优先级**：P1
