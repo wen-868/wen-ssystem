@@ -1275,20 +1275,35 @@
 ### R77-03 — [P1] 图片/懒加载核查 + 冗余页面清理
 - **优先级**：P1
 - **负责人**：墨（admin-web）
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r77_03.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行：17 处 el-image 补 lazy、删除 4 个冗余页面、依赖核查无未使用项；vue-tsc 0 errors、build exit 0、lint exit 0。待凌舟复核收口）
 - **文件**：`admin-web/src/views/`、`admin-web/package.json`
 - **问题**：图片优化未核查；views 156 vs 路由 153 疑似未引用页面；未使用依赖待查
 - **修复**：图片懒加载/压缩；精确对照路由清理未引用页面；清理未使用依赖
 - **验收标准**：未引用页面清单清零；build exit 0
+- **墨完成记录**（2026-08-06）：
+  - **图片核查**：`<img>`×2（SystemConfigView 单张 logo 预览，无需 lazy）+ `<el-image>`×28；全项目原 lazy 命中 0。对**表格/列表缩略图** 17 处补 `lazy`（Products/ProductCombo×3/InventoryShareConfig×2/InventoryTransferDetail/InventoryTransferCreate×2/MarketingPointsMall/MarketingMaterial×2/InstantRetailShelf×2/InstantRetailOrders/ProductReview/ProductReviewTasks）；单图预览与表单上传预览（Products 详情、ProductCombo 上传、ProductReview 详情、MarketingMaterial 详情、StoresView、InstantRetailConfig×4、InstantRetailShelf 树节点）均不加——lazy 需固定尺寸且多行场景才有效，避免无效改动
+  - **冗余页面**：精确对照 `router/index.ts`（150 个唯一 views 引用）与 views 目录（原 156 个文件），6 个未挂路由文件中 2 个为被其他视图引用的私有组件（`components/PlatformPanel.vue`←InstantRetailPlatform、`components/WorkflowFlowChart.vue`←ProductReviewTasks/ProductReviewWorkflow），**确认删除 4 个零代码引用页面**：`views/Collection.vue`、`views/SaleBills.vue`、`views/SaleReturnsView.vue`、`views/purchase/PurchaseReturns.vue`（均为被 pos/ 下同名功能页替代的历史遗留页；删除前已 Read 确认内容 + 全仓 grep 确认无引用，可从 git 历史恢复）
+  - **依赖核查**：package.json 全部依赖均有真实引用（tiptap 三件套→Products.vue 富文本、axios→request.ts+4 视图、echarts×27、pinia×3、electron→electron/main.cjs+preload.cjs、unplugin-* 与 esbuild→vite.config.ts），**无未使用依赖可删**
+  - **验证证据**：`npx vue-tsc -b` exit 0；`npm run build` exit 0（44.35s）；`npm run lint:check` exit 0；删除后 views 152 个文件，router 引用全部可解析（0 缺失）
+  - **说明**：`docs/项目统一标准.md` 6.4 节的「SaleBills.vue/SaleReturnsView.vue/Collection.vue 待迁移」清单已过时（实际功能页在 pos/ 与 purchase/ 子目录），标准文档修订权在凌舟，未擅改，建议后续更新
 
 ### R77-04 — [P1] 小程序维度核对（分包/隐私/域名）
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/ache_r77_04.md）
-- **文件**：`miniapp/`、`app-mobile/src/pages.json`
+- **状态**：✅ 已完成（2026-08-06 阿澈执行，核对清单 docs/reports/R77-04-小程序核对.md；待凌舟复核）
+- **文件**：`miniapp/`、`app-mobile/src/pages.json`、`docs/reports/R77-04-小程序核对.md`（新建）
 - **问题**：分包体积、隐私合规、合法域名、版本更新未核对
 - **修复**：按维度 7 标准逐项核对并出清单
 - **验收标准**：核对清单含证据，问题项写入下一轮
+- **阿澈完成记录**（2026-08-06）：
+  - **分包（R12/R42 核实）**：C 端 `miniapp/` 无 subPackages（app.config.ts 仅 30 页顶层 pages），但 dist 构建产物实测主包 **581.77KB（0.568MB）**，远低于微信 2MB 主包上限 → **属实但不阻塞**；商户端 `app-mobile/src/pages.json` 已配置 5 个分包（order/product/marketing/finance/admin，82 页），目录与 root 一一对应
+  - **appid（R2/R41 核实）**：`miniapp/project.config.json:2`=`wx0000000000000000`、`app-mobile/src/manifest.json:97`（mp-weixin）=`wx_appid_placeholder` → **上架阻塞项，需用户提供真实 appid**
+  - **合法域名（R43）**：`miniapp/src/api/request.ts:4-5` BASE_URL 由构建期 `TARO_APP_API_BASE` 注入，源码无硬编码域名（合规）；生产默认 `https://api.onepan.cn/api`（config.template.js）；src 内无 upload/download/socket 调用；**上架需在微信公众平台配置 request 合法域名 https://api.onepan.cn**
+  - **隐私（R44）**：miniapp src 无 getUserProfile/getPhoneNumber/chooseLocation 等隐私接口（rg 0 命中），代码风险低；但 about/index.vue 的「用户协议/隐私政策」入口为「开发中」toast（L48/L55/L72/L76）→ **上架阻塞，需真实协议内容**
+  - **版本更新（R45）**：小程序无 updateManager，微信自动更新非阻塞；app-mobile 无版本更新检查（P2 观察，随 R73 云打包一并处理）
+  - **新增发现**：G1 tabBar 图标路径失效（app.config.ts:50-69 指向不存在的 src/assets/tab/*，实际图标在 miniapp/images/ 且缺 category，可修需资源）；G2 小程序无登录页但 request.ts:52 401 跳 /pages/login/index（功能缺口）；G3 miniapp 根目录遗留迁移前旧文件（P2 冗余）；G4 app-mobile iOS privacyDescription 仅蓝牙（P2 观察）
+  - **工作区说明**：`app-mobile/src/manifest.json` 有一处 R73 打包准备遗留未提交改动（app-plus 段），与本轮无关，未触碰未提交
+  - 任务卡 inbox/ache_r77_04.md 已归档 inbox/archive/
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
