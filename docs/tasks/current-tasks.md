@@ -1445,11 +1445,40 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r80_01.md）
+- **状态**：✅ 已完成（2026-08-06，墨完成，commit 见下方完成记录，未推送，凌舟统一收口）
 - **文件**：`admin-web/src/views/order/OrderAftersaleView.vue`、`admin-web/src/api/`
 - **问题**：售后页统计卡与列表为 mock 编造数据（mockStats/mockAftersales），后端 `/api/admin/aftersales`（含 GET /statistics 统计）已存在
 - **修复**：① 新增售后 API 封装（列表/统计/详情，按后端字段蛇形）；② 统计卡/列表/筛选接真实数据；③ 后端无数据时显示空态/零值，**禁止保留编造数字**；④ 硬编码色顺带 token 化（该页 #1677FF/#D48B3A 等）
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "mockStats|mockAftersales" admin-web/src/views/order/OrderAftersaleView.vue` → 0；`rg "#1677FF" admin-web/src/views/order/` → 0
+
+**完成记录（墨，2026-08-06）：**
+
+**完成内容：**
+- `admin-web/src/api/aftersale.ts`：`fetchAfterSales` 查询参数 `dateStart/dateEnd` → `startDate/endDate`（对齐后端 controller 实际读取的参数）
+- `admin-web/src/views/order/OrderAftersaleView.vue` 整体接入真实数据：
+  - 统计卡：售后总数（statusStats 求和）/待审核（PENDING 计数）/平均处理时长/超时率，全部来自 `GET /aftersales/statistics`
+  - 列表/筛选：状态/日期范围/关键词 + 服务端分页（total/records），后端无数据时 el-empty 空态
+  - 详情弹窗：调 `GET /aftersales/:id`，商品明细（items）、物流（return_logistics_*/orderReceiver*）、处理信息（process_remark/updated_at）、退款金额全为真实字段
+  - 审核操作：通过/拒绝/完成售后真实调后端（携带 version），成功后刷新列表与统计
+  - 图表：售后类型分布（typeStats 饼图）+ 售后状态分布（statusStats 柱图），无数据时显示空态
+  - 删除全部 mock：mockStats/mockAftersales/mockAftersaleTypes/mockChannelAftersale/mockRefundTrend/mockAftersaleLogs/currentAftersaleItems
+- 硬编码色 token 化：#1677FF/#D48B3A/#C0392B/#9CA3AF/#E5E7EB 等替换为 `var(--color-*)`/`var(--text-muted)`/`var(--border-normal)`；图表色按项目惯例使用 token 对应十六进制（画布不支持 CSS 变量，对齐 Dashboard.vue 做法）
+- 因后端无数据源移除的 UI（数据归真，非功能删减）：渠道列/渠道筛选（t_aftersale 无渠道字段）、售后类型筛选（后端 list 未实现 type 参数）、处理记录 mock 时间线（后端无日志接口，改为处理信息块）
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| mock 残留 | `rg "mockStats\|mockAftersales" admin-web/src/views/order/OrderAftersaleView.vue` | 0 命中 ✅ |
+| mock 全量 | `rg "mock" admin-web/src/views/order/OrderAftersaleView.vue` | 0 命中 ✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（32.61s）✅ |
+| ESLint | `npx eslint src/api/aftersale.ts src/views/order/OrderAftersaleView.vue` | 0 error 0 warning ✅ |
+| 页面硬编码色 | `rg "#1677FF" admin-web/src/views/order/OrderAftersaleView.vue` | 0 命中 ✅ |
+
+**上报（未擅改，超出本轮最小改动范围，需凌舟决策）：**
+1. **后端统计路由被遮蔽**：`backend/src/routes/aftersale.routes.ts` 中 `GET /aftersales/statistics`（第 58 行）注册在 `GET /aftersales/:id`（第 38 行）之后，Express 按注册顺序匹配，`/statistics` 会先命中 `:id`（id="statistics"）→ 详情处理 `Number("statistics")=NaN` → 404。前端已做防御（统计失败置空态/零值），建议阿坚将 statistics 路由移到 :id 之前
+2. **API 文档与实现不一致**：`docs/API接口文档.md` 售后列表 Query 参数写有 `type`，但后端 controller/service 未实现 type 筛选（仅 status/storeId/startDate/endDate/keyword）
+3. **目录级 `rg "#1677FF" admin-web/src/views/order/` 验收依赖 R80-02**：本页已清零，但 OrderProductMapView 3 处 + OrderExceptionView 3 处仍残留（属 R80-02 范围）
 
 ### R80-02 — [P1] 订单页硬编码色 token 化
 - **优先级**：P1
