@@ -58,7 +58,7 @@
         <el-table-column label="主图" width="70">
           <template #default="{ row }">
             <el-image
-              v-if="row.mainImage" :src="row.mainImage" :preview-src-list="[row.mainImage]"
+              v-if="row.mainImage" lazy :src="row.mainImage" :preview-src-list="[row.mainImage]"
               style="width: 40px; height: 40px; border-radius: 4px" fit="cover"
             />
             <span v-else style="color: var(--gray-300)">-</span>

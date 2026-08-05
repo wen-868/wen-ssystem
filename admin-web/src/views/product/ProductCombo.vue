@@ -44,7 +44,7 @@
             <el-table-column label="套装图片" width="80" align="center">
               <template #default="{ row }">
                 <el-image
-                  v-if="row.image" :src="row.image" :preview-src-list="[row.image]"
+                  v-if="row.image" lazy :src="row.image" :preview-src-list="[row.image]"
                   style="width: 50px; height: 50px; border-radius: 4px" fit="cover"
                 />
                 <span v-else style="color: #ccc">-</span>
@@ -336,7 +336,7 @@
           <el-table-column label="图片" width="60" align="center">
             <template #default="{ row }">
               <el-image
-                v-if="row.image" :src="row.image"
+                v-if="row.image" lazy :src="row.image"
                 style="width: 40px; height: 40px; border-radius: 4px" fit="cover"
               />
               <span v-else style="color: #ccc">-</span>
@@ -445,7 +445,7 @@
         <el-table-column label="图片" width="60" align="center">
           <template #default="{ row }">
             <el-image
-              v-if="row.image" :src="row.image"
+              v-if="row.image" lazy :src="row.image"
               style="width: 36px; height: 36px; border-radius: 4px" fit="cover"
             />
             <span v-else style="color: #ccc">-</span>

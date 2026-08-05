@@ -85,7 +85,7 @@
             <el-table-column label="商品图片" width="90">
               <template #default="{ row }">
                 <el-image
-                  v-if="row.productImage"
+                  v-if="row.productImage" lazy
                   :src="row.productImage"
                   fit="cover"
                   style="width: 60px; height: 60px; border-radius: 6px"
@@ -182,7 +182,7 @@
         <el-table-column label="商品图片" width="70">
           <template #default="{ row }">
             <el-image
-              v-if="row.productImage"
+              v-if="row.productImage" lazy
               :src="row.productImage"
               fit="cover"
               style="width: 48px; height: 48px; border-radius: 4px"

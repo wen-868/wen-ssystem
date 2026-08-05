@@ -51,7 +51,7 @@
             <el-table-column label="商品图片" width="80" align="center">
               <template #default="{ row }">
                 <el-image
-                  :src="row.imageUrl || placeholderImg"
+                  lazy :src="row.imageUrl || placeholderImg"
                   :preview-src-list="[row.imageUrl || placeholderImg]"
                   fit="cover"
                   style="width: 48px; height: 48px; border-radius: 4px"

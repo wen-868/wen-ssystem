@@ -59,7 +59,7 @@
             <el-table-column label="商品图片" width="70" align="center">
               <template #default="{ row }">
                 <el-image
-                  :src="row.imageUrl || placeholderImg"
+                  lazy :src="row.imageUrl || placeholderImg"
                   fit="cover"
                   style="width: 40px; height: 40px; border-radius: 4px"
                 />
@@ -233,7 +233,7 @@
       <el-table-column label="商品图片" width="60" align="center">
         <template #default="{ row }">
           <el-image
-            :src="row.imageUrl || placeholderImg"
+            lazy :src="row.imageUrl || placeholderImg"
             fit="cover"
             style="width: 36px; height: 36px; border-radius: 4px"
           />

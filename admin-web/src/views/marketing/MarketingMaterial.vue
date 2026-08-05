@@ -121,6 +121,7 @@
                 <div class="material-card" @click="openDetailDialog(item)">
                   <div class="material-card-image">
                     <el-image
+                      lazy
                       :src="getMaterialThumbnail(item)"
                       fit="cover"
                       style="width: 100%; height: 150px"
@@ -168,6 +169,7 @@
               <el-table-column label="缩略图" width="80">
                 <template #default="{ row }">
                   <el-image
+                    lazy
                     :src="getMaterialThumbnail(row)"
                     fit="cover"
                     style="width: 50px; height: 50px; border-radius: 4px"

@@ -78,7 +78,7 @@
         <el-table-column label="商品信息" min-width="220">
           <template #default="{ row }">
             <div class="product-info">
-              <el-image :src="row.productImage || placeholderImg" class="product-img" fit="cover" />
+              <el-image lazy :src="row.productImage || placeholderImg" class="product-img" fit="cover" />
               <div class="product-meta">
                 <div class="product-name">{{ row.productName }}</div>
                 <div class="product-sub">审核单号：{{ row.reviewNo }}</div>

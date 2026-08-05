@@ -204,7 +204,7 @@
             <el-table-column label="商品图片" width="70" align="center">
               <template #default="{ row }">
                 <el-image
-                  v-if="row.productImage"
+                  v-if="row.productImage" lazy
                   :src="row.productImage"
                   fit="cover"
                   style="width: 48px; height: 48px; border-radius: 4px"

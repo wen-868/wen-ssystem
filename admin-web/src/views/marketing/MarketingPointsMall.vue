@@ -59,6 +59,7 @@
               <div class="product-card" :class="{ 'product-sold-out': product.remainingStock === 0 }">
                 <div class="product-image-wrap">
                   <el-image
+                    lazy
                     :src="product.productImage || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y1ZjdmYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0iI2MwYzRjYyIgZm9udC1zaXplPSIxNiI+5ZWG5ZOB5Zu+54mHPC90ZXh0Pjwvc3ZnPg=='"
                     fit="cover"
                     style="width: 100%; height: 140px"
