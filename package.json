@@ -12,7 +12,13 @@
     "miniapp"
   ],
   "overrides": {
-    "webpack": "5.87.0"
+    "webpack": "5.87.0",
+    "ip-address": "^10.4.0",
+    "ws": "^8.21.2",
+    "brace-expansion": "^1.1.18",
+    "vite": {
+      "postcss": "8.5.25"
+    }
   },
   "scripts": {
     "dev:backend": "npm --workspace backend run dev",

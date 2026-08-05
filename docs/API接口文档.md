@@ -1478,6 +1478,55 @@
 - **认证**: 需要认证
 - **Query参数**: dateStart, dateEnd
 
+##### GET /api/admin/reports/staff-performance
+- **端类型**: 管理后台（admin-web 报表中心）
+- **描述**: 员工绩效排行（按销售额/收款额排序）
+- **认证**: 需要认证
+- **Query参数**: dateStart, dateEnd, limit（默认 20）
+- **响应**（成功）: `{ "code": "0", "msg": "成功", "data": [{ "staffId": "1", "staffName": "张三", "orderCount": 12, "totalSales": 10000, "totalReceived": 9500 }], "traceId": "...", "apiCost": 1 }`
+- **后端文件**: `backend/src/routes/report.routes.ts`、`backend/src/controllers/admin/report/staff-report.controller.ts`、`backend/src/services/admin/report/staff-report.service.ts`
+- **前端文件**: `admin-web/src/api/report.ts`（`fetchReportStaffPerformance`）
+
+##### POST /api/admin/reports/export
+- **端类型**: 移动端（app-mobile 销售报表导出）
+- **描述**: 报表导出（支持 9 种报表类型，CSV/Excel 两种格式）
+- **认证**: 需要认证（requireAuthWithTenant + CSRF）
+- **请求体**:
+  ```json
+  {
+    "report_type": "sales",
+    "format": "csv",
+    "filters": {
+      "startDate": "2026-08-01",
+      "endDate": "2026-08-06",
+      "storeId": "store-001"
+    },
+    "columns": ["billNo", "customerName", "goodsAmount"]
+  }
+  ```
+- **report_type 枚举**: `sales`（销售）/ `collection`（收款）/ `product`（商品）/ `customer`（客户）/ `inventory`（库存）/ `purchase`（采购）/ `finance`（财务）/ `staff`（员工）/ `dashboard`（看板）
+- **format 枚举**: `csv` / `excel`（默认 excel）
+- **filters 说明**: 各报表类型支持 startDate/endDate/storeId 等筛选，与对应查询接口的 Query 参数对齐；columns 可选，缺省时返回全部列
+- **响应**（成功）:
+  ```json
+  {
+    "code": "0",
+    "msg": "成功",
+    "data": {
+      "format": "csv",
+      "data": "\uFEFFbillNo,customerName\nSB20260806001,张三",
+      "columns": ["billNo", "customerName"],
+      "rowCount": 2
+    },
+    "traceId": "uuid",
+    "apiCost": 1
+  }
+  ```
+- **大数据量分支**: 行数超过 10000 时返回 `{ "async": true, "totalRows": 12000, "message": "数据量超过10000行，将异步生成下载链接", "downloadUrl": null }`
+- **响应**（失败，不支持的报表类型）: `{ "code": "400", "msg": "不支持的报表类型: xxx", "traceId": "...", "apiCost": 1 }`
+- **后端文件**: `backend/src/routes/report.routes.ts`、`backend/src/controllers/admin/report-export.controller.ts`、`backend/src/services/admin/report-export.service.ts`
+- **前端文件**: `app-mobile/src/api/modules/reports.ts`（`exportSalesReport`）、`app-mobile/src/pages-sub/finance/reports/sales-reports.vue`
+
 ---
 
 ### 预警管理

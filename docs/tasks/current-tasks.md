@@ -1266,11 +1266,17 @@
 ### R77-02 — [P1] 依赖漏洞审计 + API 契约补录
 - **优先级**：P1
 - **负责人**：阿坚（后端）
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/ajian_r77_02.md）
+- **状态**：✅ 已完成（2026-08-06 阿坚执行，待凌舟复核收口；commit 待凌舟统一推送）
 - **文件**：`backend/package.json`、`docs/API接口文档.md`
 - **问题**：未跑 npm audit；`POST /api/admin/reports/export` 已实现未录入契约
 - **修复**：`npm audit` 出报告并修复高危；补录 reports/export 契约；核对其余已实现未收录接口
 - **验收标准**：audit 报告无高危遗留；API 文档含 export 契约
+- **阿坚完成记录**（2026-08-06）：
+  - **依赖审计（backend，npm workspace）**：基线 4 个漏洞（3 high 1 moderate）——brace-expansion（high，stylus→glob→minimatch dev 链）、ip-address（high，express-rate-limit 生产链）、postcss（moderate，vite dev 链）、ws（high，jsdom dev 链）。修复方式：根 `package.json` overrides 精准锁定 `ip-address@^10.4.0`、`ws@^8.21.2`、`brace-expansion@^1.1.18`、`vite.postcss@8.5.25`（项目已有 webpack override 先例；`npm audit fix --force` 会动前端 workspace 依赖故不用）。修复后 `npm audit --workspace backend` → **found 0 vulnerabilities**；`npm ls` 验证 ip-address 10.4.0 / ws 8.21.2 / brace-expansion 1.1.18 / postcss 8.5.25 全部物化
+  - **依赖审计（ai-base，pnpm）**：基线 3 个漏洞（全 high）——xlsx@0.18.5（Prototype Pollution + ReDoS，**生产依赖**，npm 上最新即 0.18.5 无修复版，官方修复版 0.20.3 仅发布在 cdn.sheetjs.com）、fast-uri@3.1.4（@nestjs/cli→ajv dev 链）。修复：xlsx 改用 SheetJS CDN tarball `https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`（官方推荐安装方式，0.20.3 已下载验证 2409319 字节）；pnpm-workspace.yaml 新增 `overrides.fast-uri: ^3.1.5`（pnpm v11 不再读 package.json 的 pnpm 字段，需放 workspace yaml）。修复后 `pnpm audit` → **No known vulnerabilities found**
+  - **契约补录**：`docs/API接口文档.md` 补录 `POST /api/admin/reports/export`（9 种 report_type + csv/excel 格式 + 请求体/响应/大数据量分支/失败响应 + 后端文件 + 前端文件）与同源 `GET /api/admin/reports/staff-performance`（admin-web 实际调用但文档缺失）
+  - **其余接口核对结论**：自动化对比后端全部 1122 个端点 vs API 文档 vs 三端前端调用，发现「前端在调+后端存在+文档缺失」100 个（历史欠账，非本轮引入）与「前端在调但后端不存在」283 个（多为前端引用问题，如 /api/admin/inventory/balances 即 BUG-R76-05-01）。本轮聚焦审计报告维度 10 点名的 reports/export 及同源接口补录，**其余 100 个历史缺口不属本轮最小改动范围，建议后续轮次由凌舟规划统一补录**
+  - **回归验证**：backend `npm run typecheck` 0 errors；`npx vitest run` 435 文件 / 5056 用例全通过（0 失败）；ai-base `pnpm run build` exit 0；ai-base jest 512 用例中 1 个 PDF 解析用例失败为**预存问题**（git stash 验证与本次改动无关，根因 Jest 缺 `--experimental-vm-modules`，记录待后续处理）
 
 ### R77-03 — [P1] 图片/懒加载核查 + 冗余页面清理
 - **优先级**：P1
