@@ -36,7 +36,7 @@
           <el-statistic title="可用额度" :value="stats.availableCredit || 0" :precision="2" prefix="¥" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="逾期金额" :value="stats.overdueAmount || 0" :precision="2" prefix="¥" value-style="color: #f56c6c" />
+          <el-statistic title="逾期金额" :value="stats.overdueAmount || 0" :precision="2" prefix="¥" value-style="color: #C0392B" />
         </el-col>
       </el-row>
 
@@ -334,11 +334,11 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .used-text {
-  color: #e6a23c;
+  color: var(--color-warning);
   font-weight: 600;
 }
 .available-text {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 </style>

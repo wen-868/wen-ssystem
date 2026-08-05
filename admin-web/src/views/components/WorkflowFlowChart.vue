@@ -54,15 +54,15 @@
             </div>
             <div v-if="approvedLevels?.includes(index)" class="tooltip-row">
               <span class="tooltip-label">审核状态：</span>
-              <span class="tooltip-value" style="color: #67c23a">已通过</span>
+              <span class="tooltip-value" style="color: #0EA879">已通过</span>
             </div>
             <div v-else-if="rejectedLevel === index" class="tooltip-row">
               <span class="tooltip-label">审核状态：</span>
-              <span class="tooltip-value" style="color: #f56c6c">已驳回</span>
+              <span class="tooltip-value" style="color: #C0392B">已驳回</span>
             </div>
             <div v-else-if="currentLevel === index" class="tooltip-row">
               <span class="tooltip-label">审核状态：</span>
-              <span class="tooltip-value" style="color: #e6a23c">待审核</span>
+              <span class="tooltip-value" style="color: #D48B3A">待审核</span>
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@ function getNodeIconClass(index: number) {
 <style scoped>
 .workflow-flow-chart {
   padding: 24px 16px;
-  background: #fafafa;
+  background: var(--gray-50);
   border-radius: 8px;
 }
 
@@ -201,7 +201,7 @@ function getNodeIconClass(index: number) {
   position: relative;
   padding: 12px 16px;
   background: #fff;
-  border: 2px solid #dcdfe6;
+  border: 2px solid var(--gray-200);
   border-radius: 12px;
   min-width: 100px;
   cursor: pointer;
@@ -226,32 +226,32 @@ function getNodeIconClass(index: number) {
 }
 
 .start-icon {
-  background: linear-gradient(135deg, #67c23a, #85ce61);
+  background: linear-gradient(135deg, var(--color-success), #85ce61);
 }
 
 .end-icon {
-  background: linear-gradient(135deg, #909399, #a6a9ad);
+  background: linear-gradient(135deg, var(--gray-400), #a6a9ad);
 }
 
 .end-node.is-approved .end-icon {
-  background: linear-gradient(135deg, #67c23a, #85ce61);
+  background: linear-gradient(135deg, var(--color-success), #85ce61);
 }
 
 .pending-icon {
-  background: linear-gradient(135deg, #909399, #a6a9ad);
+  background: linear-gradient(135deg, var(--gray-400), #a6a9ad);
 }
 
 .current-icon {
-  background: linear-gradient(135deg, #e6a23c, #f0c36d);
+  background: linear-gradient(135deg, var(--color-warning), #f0c36d);
   animation: pulse 2s infinite;
 }
 
 .approved-icon {
-  background: linear-gradient(135deg, #67c23a, #85ce61);
+  background: linear-gradient(135deg, var(--color-success), #85ce61);
 }
 
 .rejected-icon {
-  background: linear-gradient(135deg, #f56c6c, #f78989);
+  background: linear-gradient(135deg, var(--color-danger), #f78989);
 }
 
 @keyframes pulse {
@@ -266,43 +266,43 @@ function getNodeIconClass(index: number) {
 .node-label {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 2px;
 }
 
 .node-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .approval-node.is-current {
-  border-color: #e6a23c;
-  background: #fdf6ec;
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
 }
 
 .approval-node.is-approved {
-  border-color: #67c23a;
-  background: #f0f9eb;
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
 }
 
 .approval-node.is-rejected {
-  border-color: #f56c6c;
+  border-color: var(--color-danger);
   background: #fef0f0;
 }
 
 .start-node {
-  border-color: #67c23a;
-  background: #f0f9eb;
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
 }
 
 .end-node {
-  border-color: #909399;
+  border-color: var(--gray-400);
   background: #f4f4f5;
 }
 
 .end-node.is-approved {
-  border-color: #67c23a;
-  background: #f0f9eb;
+  border-color: var(--color-success);
+  background: var(--color-success-soft);
 }
 
 .flow-arrow {
@@ -310,11 +310,11 @@ function getNodeIconClass(index: number) {
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 
 .arrow-icon {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 
 .node-tooltip {
@@ -322,7 +322,7 @@ function getNodeIconClass(index: number) {
   bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
-  background: #303133;
+  background: var(--gray-700);
   color: #fff;
   padding: 10px 14px;
   border-radius: 6px;
@@ -339,7 +339,7 @@ function getNodeIconClass(index: number) {
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: #303133;
+  border-top-color: var(--gray-700);
 }
 
 .tooltip-title {
@@ -356,7 +356,7 @@ function getNodeIconClass(index: number) {
 }
 
 .tooltip-label {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 
 .tooltip-value {
@@ -369,7 +369,7 @@ function getNodeIconClass(index: number) {
   gap: 24px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-light);
 }
 
 .legend-item {
@@ -377,7 +377,7 @@ function getNodeIconClass(index: number) {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #606266;
+  color: var(--gray-600);
 }
 
 .legend-dot {
@@ -387,18 +387,18 @@ function getNodeIconClass(index: number) {
 }
 
 .legend-dot.current {
-  background: #e6a23c;
+  background: var(--color-warning);
 }
 
 .legend-dot.approved {
-  background: #67c23a;
+  background: var(--color-success);
 }
 
 .legend-dot.pending {
-  background: #909399;
+  background: var(--gray-400);
 }
 
 .legend-dot.rejected {
-  background: #f56c6c;
+  background: var(--color-danger);
 }
 </style>

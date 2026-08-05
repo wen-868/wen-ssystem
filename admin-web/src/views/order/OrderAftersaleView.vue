@@ -11,7 +11,7 @@
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="待审核" :value="mockStats.pendingCount" value-style="color: #F59E0B">
+          <el-statistic title="待审核" :value="mockStats.pendingCount" value-style="color: #D48B3A">
             <template #prefix><el-icon><Clock /></el-icon></template>
           </el-statistic>
         </el-card>
@@ -25,7 +25,7 @@
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="售后率" :value="mockStats.aftersaleRate" value-style="color: #EF4444">
+          <el-statistic title="售后率" :value="mockStats.aftersaleRate" value-style="color: #C0392B">
             <template #suffix>%</template>
           </el-statistic>
         </el-card>
@@ -121,7 +121,7 @@
         <el-table-column prop="reason" label="原因摘要" min-width="140" />
         <el-table-column label="退款金额" width="110">
           <template #default="{ row }">
-            <span v-if="row.aftersaleType !== 'EXCHANGE'" style="color: #EF4444">¥{{ Number(row.refundAmount || 0).toFixed(2) }}</span>
+            <span v-if="row.aftersaleType !== 'EXCHANGE'" style="color: #C0392B">¥{{ Number(row.refundAmount || 0).toFixed(2) }}</span>
             <span v-else style="color: #9CA3AF">-</span>
           </template>
         </el-table-column>
@@ -201,7 +201,7 @@
               </el-table-column>
             </el-table>
             <div style="text-align: right; margin-top: 8px; font-size: 14px; font-weight: 600">
-              退款金额：<span style="color: #EF4444; font-size: 16px">¥{{ Number(currentAftersale.refundAmount || 0).toFixed(2) }}</span>
+              退款金额：<span style="color: #C0392B; font-size: 16px">¥{{ Number(currentAftersale.refundAmount || 0).toFixed(2) }}</span>
             </div>
           </el-col>
           <el-col :span="12">
@@ -405,7 +405,7 @@ function renderChannelAftersaleChart() {
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#F59E0B" },
+            { offset: 0, color: "#D48B3A" },
             { offset: 1, color: "#FDE68A" },
           ]),
         },
@@ -431,8 +431,8 @@ function renderRefundTrendChart() {
         type: "line",
         data: mockRefundTrend.map((d) => d.amount),
         smooth: true,
-        lineStyle: { color: "#10B981", width: 2 },
-        itemStyle: { color: "#10B981" },
+        lineStyle: { color: "#0EA879", width: 2 },
+        itemStyle: { color: "#0EA879" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(16,185,129,0.25)" },

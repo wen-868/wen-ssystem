@@ -457,7 +457,7 @@ onMounted(() => {
 }
 
 .template-card.selected {
-  border-color: #409eff;
+  border-color: var(--color-primary);
   box-shadow: 0 4px 16px rgba(64, 158, 255, 0.25);
 }
 
@@ -487,7 +487,7 @@ onMounted(() => {
 }
 
 .check-icon {
-  color: #409eff;
+  color: var(--color-primary);
   font-size: 18px;
 }
 
@@ -561,11 +561,11 @@ onMounted(() => {
 }
 
 .result-icon.success {
-  color: #67c23a;
+  color: var(--color-success);
 }
 
 .result-icon.failed {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .result-version {
@@ -584,7 +584,7 @@ onMounted(() => {
 .result-error {
   font-size: 14px;
   margin: 0;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 /* 发布历史 */

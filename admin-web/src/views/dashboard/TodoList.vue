@@ -153,12 +153,12 @@ const filter = reactive({
 });
 
 const statCards = ref([
-  { type: "INVENTORY_ALERT", label: "库存预警", count: 0, color: "#F56C6C" },
-  { type: "ORDER_PENDING", label: "订单待处理", count: 0, color: "#409EFF" },
-  { type: "PAYMENT_OVERDUE", label: "支付逾期", count: 0, color: "#E6A23C" },
+  { type: "INVENTORY_ALERT", label: "库存预警", count: 0, color: "#C0392B" },
+  { type: "ORDER_PENDING", label: "订单待处理", count: 0, color: "#3F6FEF" },
+  { type: "PAYMENT_OVERDUE", label: "支付逾期", count: 0, color: "#D48B3A" },
   { type: "PURCHASE_APPROVAL", label: "采购审批", count: 0, color: "#722ED1" },
   { type: "RETURN_PENDING", label: "退货待处理", count: 0, color: "#13C2C2" },
-  { type: "CUSTOMER_FOLLOWUP", label: "客户跟进", count: 0, color: "#67C23A" }
+  { type: "CUSTOMER_FOLLOWUP", label: "客户跟进", count: 0, color: "#0EA879" }
 ]);
 
 const typeMap: Record<string, string> = {
@@ -171,16 +171,16 @@ const typeMap: Record<string, string> = {
 };
 
 const typeColorMap: Record<string, string> = {
-  INVENTORY_ALERT: "#F56C6C",
-  ORDER_PENDING: "#409EFF",
-  PAYMENT_OVERDUE: "#E6A23C",
+  INVENTORY_ALERT: "#C0392B",
+  ORDER_PENDING: "#3F6FEF",
+  PAYMENT_OVERDUE: "#D48B3A",
   PURCHASE_APPROVAL: "#722ED1",
   RETURN_PENDING: "#13C2C2",
-  CUSTOMER_FOLLOWUP: "#67C23A"
+  CUSTOMER_FOLLOWUP: "#0EA879"
 };
 
 function getTypeLabel(type: string) { return typeMap[type] || type; }
-function getTypeColor(type: string) { return typeColorMap[type] || "#909399"; }
+function getTypeColor(type: string) { return typeColorMap[type] || "#999999"; }
 
 function getPriorityLabel(p: string) {
   if (p === "HIGH") return "高";
@@ -384,7 +384,7 @@ onMounted(() => { loadData(); });
 }
 
 .overdue {
-  color: #EF4444;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

@@ -302,11 +302,11 @@ onMounted(() => loadData());
 .stat-row { margin-bottom: 16px; }
 .stat-card { border-radius: 8px; }
 .stat-item { text-align: center; padding: 8px 0; }
-.stat-label { color: #909399; font-size: 13px; margin-bottom: 8px; }
-.stat-value { font-size: 26px; font-weight: 600; color: #303133; }
-.stat-danger .stat-value { color: #F56C6C; }
-.stat-warning .stat-value { color: #E6A23C; }
-.stat-primary .stat-value { color: #409EFF; }
+.stat-label { color: var(--gray-400); font-size: 13px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--gray-700); }
+.stat-danger .stat-value { color: var(--color-danger); }
+.stat-warning .stat-value { color: var(--color-warning); }
+.stat-primary .stat-value { color: var(--color-primary); }
 .search-bar { display: flex; align-items: center; margin-bottom: 16px; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

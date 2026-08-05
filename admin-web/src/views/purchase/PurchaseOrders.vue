@@ -368,6 +368,6 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
 }
-.amount-text { color: #f56c6c; font-weight: 600; }
-.total-amount { color: #f56c6c; font-size: 18px; font-weight: 600; }
+.amount-text { color: var(--color-danger); font-weight: 600; }
+.total-amount { color: var(--color-danger); font-size: 18px; font-weight: 600; }
 </style>

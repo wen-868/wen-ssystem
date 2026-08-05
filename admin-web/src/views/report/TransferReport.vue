@@ -250,8 +250,8 @@ function renderTrendChart() {
       type: "category",
       boundaryGap: false,
       data: categories,
-      axisLine: { lineStyle: { color: "#dcdfe6" } },
-      axisLabel: { color: "#606266" }
+      axisLine: { lineStyle: { color: "#E2E2E2" } },
+      axisLabel: { color: "#444444" }
     },
     yAxis: [
       {
@@ -259,8 +259,8 @@ function renderTrendChart() {
         name: "单数",
         position: "left",
         axisLine: { show: false },
-        splitLine: { lineStyle: { type: "dashed", color: "#ebeef5" } },
-        axisLabel: { color: "#606266" }
+        splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
+        axisLabel: { color: "#444444" }
       },
       {
         type: "value",
@@ -268,7 +268,7 @@ function renderTrendChart() {
         position: "right",
         axisLine: { show: false },
         splitLine: { show: false },
-        axisLabel: { color: "#606266" }
+        axisLabel: { color: "#444444" }
       }
     ],
     series: [
@@ -278,7 +278,7 @@ function renderTrendChart() {
         smooth: true,
         data: series1,
         yAxisIndex: 0,
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(64, 158, 255, 0.3)" },
@@ -292,7 +292,7 @@ function renderTrendChart() {
         smooth: true,
         data: series2,
         yAxisIndex: 1,
-        itemStyle: { color: "#67c23a" },
+        itemStyle: { color: "#0EA879" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(103, 194, 58, 0.3)" },
@@ -331,14 +331,14 @@ function renderStoreRankChart() {
     xAxis: {
       type: "value",
       axisLine: { show: false },
-      splitLine: { lineStyle: { type: "dashed", color: "#ebeef5" } },
-      axisLabel: { color: "#606266" }
+      splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
+      axisLabel: { color: "#444444" }
     },
     yAxis: {
       type: "category",
       data: data.map((d) => d.name),
-      axisLine: { lineStyle: { color: "#dcdfe6" } },
-      axisLabel: { color: "#606266" }
+      axisLine: { lineStyle: { color: "#E2E2E2" } },
+      axisLabel: { color: "#444444" }
     },
     series: [
       {
@@ -355,7 +355,7 @@ function renderStoreRankChart() {
         label: {
           show: true,
           position: "right",
-          color: "#606266"
+          color: "#444444"
         }
       }
     ]
@@ -395,14 +395,14 @@ function renderProductRankChart() {
     xAxis: {
       type: "value",
       axisLine: { show: false },
-      splitLine: { lineStyle: { type: "dashed", color: "#ebeef5" } },
-      axisLabel: { color: "#606266" }
+      splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
+      axisLabel: { color: "#444444" }
     },
     yAxis: {
       type: "category",
       data: data.map((d) => d.name),
-      axisLine: { lineStyle: { color: "#dcdfe6" } },
-      axisLabel: { color: "#606266", fontSize: 12 }
+      axisLine: { lineStyle: { color: "#E2E2E2" } },
+      axisLabel: { color: "#444444", fontSize: 12 }
     },
     series: [
       {
@@ -411,7 +411,7 @@ function renderProductRankChart() {
         barWidth: 18,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#67c23a" },
+            { offset: 0, color: "#0EA879" },
             { offset: 1, color: "#95d475" }
           ]),
           borderRadius: [0, 3, 3, 0]
@@ -419,7 +419,7 @@ function renderProductRankChart() {
         label: {
           show: true,
           position: "right",
-          color: "#606266",
+          color: "#444444",
           fontSize: 12
         }
       }
@@ -433,11 +433,11 @@ function renderStatusPieChart() {
   if (!statusPieChartRef.value || !statusPieChart) return;
 
   const data = [
-    { name: "已完成", value: 106, color: "#67c23a" },
-    { name: "调拨中", value: 12, color: "#409eff" },
-    { name: "待审核", value: 6, color: "#e6a23c" },
-    { name: "已驳回", value: 3, color: "#f56c6c" },
-    { name: "已取消", value: 1, color: "#909399" }
+    { name: "已完成", value: 106, color: "#0EA879" },
+    { name: "调拨中", value: 12, color: "#3F6FEF" },
+    { name: "待审核", value: 6, color: "#D48B3A" },
+    { name: "已驳回", value: 3, color: "#C0392B" },
+    { name: "已取消", value: 1, color: "#999999" }
   ];
 
   const option = {
@@ -449,7 +449,7 @@ function renderStatusPieChart() {
       orient: "vertical",
       right: 10,
       top: "center",
-      textStyle: { color: "#606266", fontSize: 12 }
+      textStyle: { color: "#444444", fontSize: 12 }
     },
     series: [
       {
@@ -484,11 +484,11 @@ function renderReasonPieChart() {
   if (!reasonPieChartRef.value || !reasonPieChart) return;
 
   const data = [
-    { name: "补货调拨", value: 68, color: "#409eff" },
-    { name: "库存平衡", value: 32, color: "#67c23a" },
-    { name: "紧急调货", value: 18, color: "#e6a23c" },
-    { name: "临期调拨", value: 7, color: "#f56c6c" },
-    { name: "其他", value: 3, color: "#909399" }
+    { name: "补货调拨", value: 68, color: "#3F6FEF" },
+    { name: "库存平衡", value: 32, color: "#0EA879" },
+    { name: "紧急调货", value: 18, color: "#D48B3A" },
+    { name: "临期调拨", value: 7, color: "#C0392B" },
+    { name: "其他", value: 3, color: "#999999" }
   ];
 
   const option = {
@@ -500,7 +500,7 @@ function renderReasonPieChart() {
       orient: "vertical",
       right: 10,
       top: "center",
-      textStyle: { color: "#606266", fontSize: 12 }
+      textStyle: { color: "#444444", fontSize: 12 }
     },
     series: [
       {
@@ -613,7 +613,7 @@ onBeforeUnmount(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
@@ -630,7 +630,7 @@ onBeforeUnmount(() => {
 }
 
 .filter-label {
-  color: #606266;
+  color: var(--gray-600);
   font-size: 14px;
   margin-right: 8px;
 }
@@ -665,19 +665,19 @@ onBeforeUnmount(() => {
 }
 
 .icon-blue {
-  background: linear-gradient(135deg, #66b1ff, #409eff);
+  background: linear-gradient(135deg, #66b1ff, var(--color-primary));
 }
 
 .icon-green {
-  background: linear-gradient(135deg, #95d475, #67c23a);
+  background: linear-gradient(135deg, #95d475, var(--color-success));
 }
 
 .icon-orange {
-  background: linear-gradient(135deg, #f0c78a, #e6a23c);
+  background: linear-gradient(135deg, #f0c78a, var(--color-warning));
 }
 
 .icon-red {
-  background: linear-gradient(135deg, #f78989, #f56c6c);
+  background: linear-gradient(135deg, #f78989, var(--color-danger));
 }
 
 .stat-info {
@@ -688,19 +688,19 @@ onBeforeUnmount(() => {
 .stat-value {
   font-size: 26px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
   line-height: 1.2;
 }
 
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 4px;
 }
 
 .stat-label-sub {
   font-size: 12px;
-  color: #67c23a;
+  color: var(--color-success);
   margin-top: 2px;
 }
 
@@ -713,11 +713,11 @@ onBeforeUnmount(() => {
 }
 
 .stat-trend.up {
-  color: #67c23a;
+  color: var(--color-success);
 }
 
 .stat-trend.down {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .chart-grid {

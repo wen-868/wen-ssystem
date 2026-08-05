@@ -67,7 +67,7 @@
             </el-table-column>
             <el-table-column label="余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.balance || 0) > 0 ? '#f56c6c' : '#67c23a' }">
+                <span :style="{ color: (row.balance || 0) > 0 ? '#C0392B' : '#0EA879' }">
                   {{ formatYuan(row.balance) }}
                 </span>
               </template>
@@ -136,7 +136,7 @@
             </el-table-column>
             <el-table-column label="余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.balance || 0) > 0 ? '#f56c6c' : '#67c23a' }">
+                <span :style="{ color: (row.balance || 0) > 0 ? '#C0392B' : '#0EA879' }">
                   {{ formatYuan(row.balance) }}
                 </span>
               </template>
@@ -265,8 +265,8 @@ function renderBarChart(el: HTMLDivElement | undefined, instance: echarts.EChart
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-          { offset: 0, color: "#409eff" },
-          { offset: 1, color: "#67c23a" }
+          { offset: 0, color: "#3F6FEF" },
+          { offset: 1, color: "#0EA879" }
         ])
       }
     }]
@@ -319,25 +319,25 @@ onMounted(() => {
   flex: 1;
   padding: 20px;
   border-radius: 8px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   text-align: center;
 }
 
-.stat-card.stat-primary { border-left: 4px solid #409eff; }
-.stat-card.stat-success { border-left: 4px solid #67c23a; }
-.stat-card.stat-danger { border-left: 4px solid #f56c6c; }
-.stat-card.stat-warning { border-left: 4px solid #e6a23c; }
+.stat-card.stat-primary { border-left: 4px solid var(--color-primary); }
+.stat-card.stat-success { border-left: 4px solid var(--color-success); }
+.stat-card.stat-danger { border-left: 4px solid var(--color-danger); }
+.stat-card.stat-warning { border-left: 4px solid var(--color-warning); }
 
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .chart-row {
@@ -349,7 +349,7 @@ onMounted(() => {
 .chart-card {
   flex: 1;
   background: #fff;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 16px;
 }
@@ -369,7 +369,7 @@ onMounted(() => {
 .chart-title {
   font-weight: 600;
   font-size: 14px;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .chart-body {

@@ -272,7 +272,7 @@ function initTrendChart() {
       type: 'line' as const,
       smooth: true,
       data: trendData.value.map(() => Math.floor(Math.random() * 15000 + 3000)),
-      itemStyle: { color: ['#667eea', '#11998e', '#f5576c', '#e6a23c'][idx] }
+      itemStyle: { color: ['#667eea', '#11998e', '#f5576c', '#D48B3A'][idx] }
     }))
     collectionTrendChart.setOption({
       tooltip: { trigger: 'axis' },
@@ -426,7 +426,7 @@ function initRefundTrendChart() {
     ],
     series: [
       { name: '退款金额', type: 'line', smooth: true, data: days.map(() => Math.floor(Math.random() * 5000 + 1000)), itemStyle: { color: '#f5576c' } },
-      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: days.map(() => Number((Math.random() * 5 + 2).toFixed(1))), itemStyle: { color: '#e6a23c' } }
+      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: days.map(() => Number((Math.random() * 5 + 2).toFixed(1))), itemStyle: { color: '#D48B3A' } }
     ]
   })
 }

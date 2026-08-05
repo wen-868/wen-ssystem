@@ -344,5 +344,5 @@ onMounted(() => { loadList(); });
 
 <style scoped>
 .page { padding: 0; }
-.suggest-qty { color: #e6a23c; font-weight: 700; }
+.suggest-qty { color: var(--color-warning); font-weight: 700; }
 </style>

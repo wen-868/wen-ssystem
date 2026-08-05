@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
+  background: var(--gray-0);
   border-left: 1px solid var(--border-light);
   min-height: 100vh;
 }
@@ -369,7 +369,7 @@ onBeforeUnmount(() => {
 .suggestion-chip {
   text-align: left;
   border: 1px solid var(--border-normal);
-  background: #ffffff;
+  background: var(--gray-0);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 13px;
@@ -386,7 +386,7 @@ onBeforeUnmount(() => {
 .ai-input-area {
   border-top: 1px solid var(--border-light);
   padding: 12px 16px 10px;
-  background: #ffffff;
+  background: var(--gray-0);
 }
 
 .ai-input-box :deep(.el-textarea__inner) {
@@ -400,7 +400,7 @@ onBeforeUnmount(() => {
   box-shadow: none;
 }
 .ai-input-box :deep(.el-textarea__inner:focus) {
-  background: #ffffff;
+  background: var(--gray-0);
   border-color: var(--color-primary);
   box-shadow: var(--shadow-focus);
 }

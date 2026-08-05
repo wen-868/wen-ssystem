@@ -9,16 +9,16 @@
 
       <el-row :gutter="16" style="margin-bottom: 16px">
         <el-col :span="6">
-          <el-statistic title="今日超时订单" :value="statistics.todayTimeout || 0" value-style="color: #f56c6c" />
+          <el-statistic title="今日超时订单" :value="statistics.todayTimeout || 0" value-style="color: #C0392B" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="超时规则数" :value="statistics.configCount || 0" value-style="color: #409eff" />
+          <el-statistic title="超时规则数" :value="statistics.configCount || 0" value-style="color: #3F6FEF" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="本周处理数" :value="statistics.weekHandled || 0" value-style="color: #67c23a" />
+          <el-statistic title="本周处理数" :value="statistics.weekHandled || 0" value-style="color: #0EA879" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="自动取消数" :value="statistics.autoCancel || 0" value-style="color: #e6a23c" />
+          <el-statistic title="自动取消数" :value="statistics.autoCancel || 0" value-style="color: #D48B3A" />
         </el-col>
       </el-row>
 

@@ -116,7 +116,7 @@ async function loadTrend() {
         type: "bar",
         data: values,
         itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: "#409eff" }, { offset: 1, color: "#79bbff" }
+          { offset: 0, color: "#3F6FEF" }, { offset: 1, color: "#79bbff" }
         ])},
         barMaxWidth: 40
       }]
@@ -140,7 +140,7 @@ async function loadRanking() {
       yAxis: { type: "category", data: names.reverse(), inverse: true, axisLabel: { width: 80, overflow: "truncate" } },
       series: [{
         type: "bar",
-        data: values.reverse().map((v: number) => ({ value: v, itemStyle: { color: "#67c23a" } })),
+        data: values.reverse().map((v: number) => ({ value: v, itemStyle: { color: "#0EA879" } })),
         barMaxWidth: 20
       }]
     });
@@ -188,7 +188,7 @@ async function loadStaffPerformance() {
         type: "bar",
         data: values,
         itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: "#e6a23c" }, { offset: 1, color: "#f5dab1" }
+          { offset: 0, color: "#D48B3A" }, { offset: 1, color: "#f5dab1" }
         ])},
         barMaxWidth: 40
       }]
@@ -220,13 +220,13 @@ onMounted(async () => {
   padding: 16px 20px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--color-primary);
 }
-.stat-card.green { border-left-color: #67c23a; }
-.stat-card.blue { border-left-color: #409eff; }
-.stat-card.orange { border-left-color: #e6a23c; }
-.stat-value { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.stat-card.green { border-left-color: var(--color-success); }
+.stat-card.blue { border-left-color: var(--color-primary); }
+.stat-card.orange { border-left-color: var(--color-warning); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--gray-700); }
+.stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
 
 .chart-row {
   display: flex;
@@ -247,6 +247,6 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 12px;
 }
-.chart-title { font-size: 15px; font-weight: 600; color: #303133; }
+.chart-title { font-size: 15px; font-weight: 600; color: var(--gray-700); }
 .chart-body { width: 100%; height: 350px; }
 </style>

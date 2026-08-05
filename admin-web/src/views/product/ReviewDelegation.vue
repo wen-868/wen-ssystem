@@ -501,7 +501,7 @@ onMounted(() => {
 }
 
 .user-avatar {
-  background: #409eff;
+  background: var(--color-primary);
   color: #fff;
   font-size: 14px;
 }
@@ -511,11 +511,11 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
 }
 
 .time-range .arrow {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 
 .pagination {

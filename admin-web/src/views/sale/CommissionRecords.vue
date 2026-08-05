@@ -80,7 +80,7 @@
             style="width: 100%"
           />
         </el-form-item>
-        <p style="color: #909399; font-size: 13px">系统将根据当前生效中的提成规则，自动计算所选日期范围内已结清销售单的提成金额。</p>
+        <p style="color: #999999; font-size: 13px">系统将根据当前生效中的提成规则，自动计算所选日期范围内已结清销售单的提成金额。</p>
       </el-form>
       <template #footer>
         <el-button @click="calcVisible = false">取消</el-button>
@@ -220,11 +220,11 @@ onMounted(() => {
   padding: 16px 20px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--color-primary);
 }
-.stat-card.settled { border-left-color: #67c23a; }
-.stat-card.pending { border-left-color: #e6a23c; }
-.stat-value { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
-.commission-amount { color: #e6a23c; font-weight: 600; }
+.stat-card.settled { border-left-color: var(--color-success); }
+.stat-card.pending { border-left-color: var(--color-warning); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--gray-700); }
+.stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+.commission-amount { color: var(--color-warning); font-weight: 600; }
 </style>

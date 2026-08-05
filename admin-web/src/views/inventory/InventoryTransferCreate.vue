@@ -536,37 +536,37 @@ onMounted(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
 .product-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .product-name-sm {
   font-size: 13px;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .product-spec,
 .product-spec-sm {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 4px;
 }
 
 .stock-num {
   font-weight: 500;
-  color: #606266;
+  color: var(--gray-600);
 }
 
 .subtotal {
   font-weight: 600;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .table-footer {
@@ -574,28 +574,28 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-light);
   margin-top: 0;
 }
 
 .item-count {
-  color: #606266;
+  color: var(--gray-600);
   font-size: 14px;
 }
 
 .item-count .num {
-  color: #409eff;
+  color: var(--color-primary);
   font-weight: 600;
   margin: 0 4px;
 }
 
 .total-amount {
   font-size: 14px;
-  color: #606266;
+  color: var(--gray-600);
 }
 
 .total-amount .amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 20px;
   font-weight: 700;
   margin-left: 8px;
@@ -608,7 +608,7 @@ onMounted(() => {
   right: 0;
   padding: 12px 20px;
   background: #fff;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-light);
   text-align: right;
   z-index: 100;
 }

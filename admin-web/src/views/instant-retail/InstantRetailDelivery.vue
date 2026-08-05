@@ -246,7 +246,7 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .muted {
-  color: #909399;
+  color: var(--gray-400);
   font-size: 13px;
 }
 </style>

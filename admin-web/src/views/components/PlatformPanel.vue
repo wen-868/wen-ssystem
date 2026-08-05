@@ -298,7 +298,7 @@ function handleSyncProducts() {
 }
 .status-card {
   margin-bottom: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 .status-bar {
   display: flex;
@@ -324,7 +324,7 @@ function handleSyncProducts() {
 .platform-name {
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .status-dot {
   width: 10px;
@@ -333,26 +333,26 @@ function handleSyncProducts() {
   display: inline-block;
 }
 .status-dot.status-green {
-  background: #67c23a;
-  box-shadow: 0 0 6px #67c23a;
+  background: var(--color-success);
+  box-shadow: 0 0 6px var(--color-success);
 }
 .status-dot.status-red {
-  background: #f56c6c;
+  background: var(--color-danger);
 }
 .status-dot.status-gray {
-  background: #c0c4cc;
+  background: var(--gray-300);
 }
 .status-text {
   font-size: 13px;
 }
 .status-text.status-green {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .status-text.status-red {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .status-text.status-gray {
-  color: #909399;
+  color: var(--gray-400);
 }
 .status-right {
   display: flex;
@@ -366,19 +366,19 @@ function handleSyncProducts() {
   font-size: 13px;
 }
 .info-label {
-  color: #909399;
+  color: var(--gray-400);
 }
 .info-value {
-  color: #606266;
+  color: var(--gray-600);
   margin-left: 4px;
 }
 .info-value.expire-warning {
-  color: #e6a23c;
+  color: var(--color-warning);
   font-weight: 500;
 }
 .section-card {
   margin-bottom: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 .section-header {
   display: flex;
@@ -388,7 +388,7 @@ function handleSyncProducts() {
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .section-actions {
   display: flex;
@@ -416,9 +416,9 @@ function handleSyncProducts() {
 }
 .sign-desc {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   line-height: 1.8;
-  background: #f5f7fa;
+  background: var(--bg-page);
   padding: 12px 16px;
   border-radius: 4px;
 }

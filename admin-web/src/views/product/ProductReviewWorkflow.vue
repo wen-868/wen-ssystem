@@ -105,7 +105,7 @@
               </el-form-item>
               <el-form-item label="审核时限">
                 <el-input-number v-model="level.timeLimitHours" :min="1" :max="720" style="width: 120px" />
-                <span style="margin-left: 6px; color: #909399">小时</span>
+                <span style="margin-left: 6px; color: #999999">小时</span>
               </el-form-item>
             </div>
           </div>
@@ -456,7 +456,7 @@ onMounted(() => {
 }
 
 .level-item {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--gray-200);
   border-radius: 8px;
   margin-bottom: 16px;
   overflow: hidden;
@@ -466,14 +466,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 10px 16px;
-  background: #f5f7fa;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .level-badge {
   display: inline-block;
   padding: 2px 10px;
-  background: #409eff;
+  background: var(--color-primary);
   color: #fff;
   border-radius: 12px;
   font-size: 12px;
@@ -483,7 +483,7 @@ onMounted(() => {
 .level-title {
   flex: 1;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .level-actions {

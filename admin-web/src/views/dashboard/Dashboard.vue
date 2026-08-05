@@ -1464,12 +1464,12 @@ function renderSalesTrendChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#409eff' },
-          itemStyle: { color: '#409eff' },
+          lineStyle: { width: 2, color: '#3F6FEF' },
+          itemStyle: { color: '#3F6FEF' },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(64,158,255,0.3)' },
-              { offset: 1, color: 'rgba(64,158,255,0.05)' },
+              { offset: 0, color: 'rgba(63,111,239,0.3)' },
+              { offset: 1, color: 'rgba(63,111,239,0.05)' },
             ]),
           },
         },
@@ -1481,8 +1481,8 @@ function renderSalesTrendChart() {
           smooth: true,
           symbol: 'diamond',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#67c23a' },
-          itemStyle: { color: '#67c23a' },
+          lineStyle: { width: 2, color: '#0EA879' },
+          itemStyle: { color: '#0EA879' },
         },
       ],
     },
@@ -1541,7 +1541,7 @@ function renderTopChart() {
         type: 'bar',
         data: amounts,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#409eff' }, { offset: 1, color: '#79bbff' }]),
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#3F6FEF' }, { offset: 1, color: 'rgba(63,111,239,0.4)' }]),
           borderRadius: [0, 4, 4, 0],
         },
       },
@@ -1551,7 +1551,7 @@ function renderTopChart() {
         xAxisIndex: 1,
         data: qtys,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#67c23a' }, { offset: 1, color: '#95d475' }]),
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#0EA879' }, { offset: 1, color: 'rgba(14,168,121,0.4)' }]),
           borderRadius: [0, 4, 4, 0],
         },
       },
@@ -1566,7 +1566,7 @@ function renderTopChart() {
         type: 'bar',
         data: amounts,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#e6a23c' }, { offset: 1, color: '#f3d19e' }]),
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#D48B3A' }, { offset: 1, color: 'rgba(212,139,58,0.4)' }]),
           borderRadius: [0, 4, 4, 0],
         },
       },
@@ -1582,7 +1582,7 @@ function renderTopChart() {
         type: 'bar',
         data: amounts,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#909399' }, { offset: 1, color: '#c0c4cc' }]),
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#999999' }, { offset: 1, color: '#CCCCCC' }]),
           borderRadius: [0, 4, 4, 0],
         },
       },
@@ -1592,7 +1592,7 @@ function renderTopChart() {
         xAxisIndex: 1,
         data: qtys,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#b37feb' }, { offset: 1, color: '#d3adf7' }]),
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#8B5CF6' }, { offset: 1, color: 'rgba(139,92,246,0.4)' }]),
           borderRadius: [0, 4, 4, 0],
         },
       },
@@ -1660,7 +1660,7 @@ function renderCustomerCategoryChart() {
           type: 'bar',
           data: amounts,
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#f56c6c' }, { offset: 1, color: '#f89898' }]),
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#C0392B' }, { offset: 1, color: 'rgba(192,57,43,0.4)' }]),
             borderRadius: [0, 4, 4, 0],
           },
         },
@@ -1670,7 +1670,7 @@ function renderCustomerCategoryChart() {
           xAxisIndex: 1,
           data: counts,
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#8bc34a' }, { offset: 1, color: '#aed581' }]),
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#0EA879' }, { offset: 1, color: 'rgba(14,168,121,0.4)' }]),
             borderRadius: [0, 4, 4, 0],
           },
         },
@@ -1711,7 +1711,7 @@ function renderInventoryTurnoverChart() {
           type: 'bar',
           data: soldAmounts,
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#34d399' }]),
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#0EA879' }, { offset: 1, color: 'rgba(14,168,121,0.4)' }]),
             borderRadius: [4, 4, 0, 0],
           },
         },
@@ -1723,8 +1723,8 @@ function renderInventoryTurnoverChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#f59e0b' },
-          itemStyle: { color: '#f59e0b' },
+          lineStyle: { width: 2, color: '#D48B3A' },
+          itemStyle: { color: '#D48B3A' },
         },
       ],
     },
@@ -1792,12 +1792,12 @@ function renderCustomerGrowthChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#409eff' },
-          itemStyle: { color: '#409eff' },
+          lineStyle: { width: 2, color: '#3F6FEF' },
+          itemStyle: { color: '#3F6FEF' },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(64,158,255,0.3)' },
-              { offset: 1, color: 'rgba(64,158,255,0.05)' },
+              { offset: 0, color: 'rgba(63,111,239,0.3)' },
+              { offset: 1, color: 'rgba(63,111,239,0.05)' },
             ]),
           },
         },
@@ -1808,12 +1808,12 @@ function renderCustomerGrowthChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#67c23a' },
-          itemStyle: { color: '#67c23a' },
+          lineStyle: { width: 2, color: '#0EA879' },
+          itemStyle: { color: '#0EA879' },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(103,194,58,0.3)' },
-              { offset: 1, color: 'rgba(103,194,58,0.05)' },
+              { offset: 0, color: 'rgba(14,168,121,0.3)' },
+              { offset: 1, color: 'rgba(14,168,121,0.05)' },
             ]),
           },
         },
@@ -1881,7 +1881,7 @@ function renderSupplierPurchaseChart() {
           type: 'bar',
           data: amounts,
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#f56c6c' }, { offset: 1, color: '#f89898' }]),
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#C0392B' }, { offset: 1, color: 'rgba(192,57,43,0.4)' }]),
             borderRadius: [0, 4, 4, 0],
           },
         },
@@ -1920,9 +1920,9 @@ function renderSupplierOnTimeRateChart() {
           itemStyle: {
             color: (params: any) => {
               const rate = params.value;
-              if (rate >= 95) return '#67c23a';
-              if (rate >= 80) return '#e6a23c';
-              return '#f56c6c';
+              if (rate >= 95) return '#0EA879';
+              if (rate >= 80) return '#D48B3A';
+              return '#C0392B';
             },
             borderRadius: [0, 4, 4, 0],
           },
@@ -1965,7 +1965,7 @@ function renderSupplierTrendChart() {
           type: 'bar',
           data: amounts,
           itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#409eff' }, { offset: 1, color: '#79bbff' }]),
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#3F6FEF' }, { offset: 1, color: 'rgba(63,111,239,0.4)' }]),
             borderRadius: [4, 4, 0, 0],
           },
         },
@@ -1977,8 +1977,8 @@ function renderSupplierTrendChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#67c23a' },
-          itemStyle: { color: '#67c23a' },
+          lineStyle: { width: 2, color: '#0EA879' },
+          itemStyle: { color: '#0EA879' },
         },
         {
           name: '活跃供应商',
@@ -1988,8 +1988,8 @@ function renderSupplierTrendChart() {
           smooth: true,
           symbol: 'circle',
           symbolSize: 6,
-          lineStyle: { width: 2, color: '#f59e0b' },
-          itemStyle: { color: '#f59e0b' },
+          lineStyle: { width: 2, color: '#D48B3A' },
+          itemStyle: { color: '#D48B3A' },
         },
       ],
     },
@@ -2019,10 +2019,10 @@ function renderSparkCharts() {
             data: card.sparkData,
             smooth: true,
             showSymbol: false,
-            lineStyle: { width: 1.5, color: card.momUp ? '#f56c6c' : '#67c23a' },
+            lineStyle: { width: 1.5, color: card.momUp ? '#C0392B' : '#0EA879' },
             areaStyle: {
               color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: card.momUp ? 'rgba(245,108,108,0.2)' : 'rgba(103,194,58,0.2)' },
+                { offset: 0, color: card.momUp ? 'rgba(192,57,43,0.2)' : 'rgba(14,168,121,0.2)' },
                 { offset: 1, color: 'rgba(255,255,255,0)' },
               ]),
             },
@@ -2100,11 +2100,11 @@ onUnmounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .date-text {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
 }
 .header-right {
   display: flex;
@@ -2287,7 +2287,7 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
-  color: #ffffff;
+  color: var(--gray-0);
 }
 .help-icon--blue {
   background: var(--color-primary);
@@ -2313,7 +2313,7 @@ onUnmounted(() => {
   margin-top: 2px;
 }
 .assistant-card {
-  background: linear-gradient(180deg, #F8FAFF 0%, #FFFFFF 100%);
+  background: linear-gradient(180deg, var(--gray-50) 0%, var(--gray-0) 100%);
 }
 .assistant-status {
   display: flex;
@@ -2458,13 +2458,13 @@ onUnmounted(() => {
 }
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 /* 图表卡片 */
@@ -2480,7 +2480,7 @@ onUnmounted(() => {
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .chart-container {
   width: 100%;
@@ -2499,7 +2499,7 @@ onUnmounted(() => {
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 /* 响应式 */

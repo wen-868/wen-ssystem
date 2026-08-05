@@ -708,16 +708,16 @@ function getFileExtension(filename: string): string {
 function getMaterialThumbnail(item: any): string {
   if (item.materialType === "IMAGE") {
     return `data:image/svg+xml;base64,${btoa(
-      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#e8f4fd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#409eff" font-size="14">图片</text></svg>`
+      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#e8f4fd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#3F6FEF" font-size="14">图片</text></svg>`
     )}`;
   }
   if (item.materialType === "VIDEO") {
     return `data:image/svg+xml;base64,${btoa(
-      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#fef0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#f56c6c" font-size="14">视频</text></svg>`
+      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#fef0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#C0392B" font-size="14">视频</text></svg>`
     )}`;
   }
   return `data:image/svg+xml;base64,${btoa(
-    `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#f5f7fa"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#909399" font-size="14">文档</text></svg>`
+    `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#F5F5F5"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999999" font-size="14">文档</text></svg>`
   )}`;
 }
 
@@ -784,7 +784,7 @@ function formatFileSize(bytes: number): string {
   position: fixed;
   z-index: 9999;
   background: #fff;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--gray-200);
   border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
   padding: 4px 0;
@@ -794,13 +794,13 @@ function formatFileSize(bytes: number): string {
 .context-menu-item {
   padding: 8px 16px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   cursor: pointer;
 }
 
 .context-menu-item:hover {
-  background: #f5f7fa;
-  color: #409eff;
+  background: var(--bg-page);
+  color: var(--color-primary);
 }
 
 /* 右侧素材管理 */
@@ -834,7 +834,7 @@ function formatFileSize(bytes: number): string {
 /* 素材卡片 */
 .material-card {
   background: #fff;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
   transition: box-shadow 0.3s, transform 0.3s;
@@ -868,7 +868,7 @@ function formatFileSize(bytes: number): string {
 .material-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -896,7 +896,7 @@ function formatFileSize(bytes: number): string {
 
 /* 详情 */
 .detail-preview {
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -906,7 +906,7 @@ function formatFileSize(bytes: number): string {
 .section-label {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 8px;
 }
 
@@ -917,23 +917,23 @@ function formatFileSize(bytes: number): string {
 
 .upload-icon {
   font-size: 48px;
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 
 .upload-text {
   font-size: 14px;
-  color: #606266;
+  color: var(--gray-600);
   margin-top: 8px;
 }
 
 .upload-text em {
-  color: #409eff;
+  color: var(--color-primary);
   font-style: normal;
 }
 
 .upload-tip {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 8px;
 }
 

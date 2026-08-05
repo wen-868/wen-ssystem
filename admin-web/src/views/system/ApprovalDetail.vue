@@ -105,9 +105,9 @@ function statusTagType(v: string) {
 
 function timelineColor(result: string) {
   const map: Record<string, string> = {
-    APPROVED: "#67c23a", REJECTED: "#f56c6c", PENDING: "#e6a23c", CANCELLED: "#909399"
+    APPROVED: "#0EA879", REJECTED: "#C0392B", PENDING: "#D48B3A", CANCELLED: "#999999"
   };
-  return map[result] || "#909399";
+  return map[result] || "#999999";
 }
 
 function nodeResultLabel(result: string) {
@@ -193,7 +193,7 @@ onMounted(() => { loadDetail(); });
   font-size: 15px;
 }
 .content-json {
-  background: #f5f7fa;
+  background: var(--bg-page);
   padding: 16px;
   border-radius: 4px;
   font-size: 13px;
@@ -215,7 +215,7 @@ onMounted(() => { loadDetail(); });
 }
 .node-opinion {
   margin-top: 6px;
-  color: #606266;
+  color: var(--gray-600);
   font-size: 13px;
 }
 .action-bar {

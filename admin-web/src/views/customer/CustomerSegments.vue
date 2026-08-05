@@ -234,6 +234,6 @@ onMounted(() => { loadData(); });
 <style scoped>
 .search-bar { display: flex; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
-.condition-text { color: #606266; font-size: 13px; }
+.condition-text { color: var(--gray-600); font-size: 13px; }
 .condition-edit { width: 100%; }
 </style>

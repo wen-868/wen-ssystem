@@ -184,7 +184,7 @@
                 <el-table-column prop="itemCount" label="商品数" width="80" align="center" />
                 <el-table-column label="金额" width="120" align="right">
                   <template #default="{ row }">
-                    <span style="color: #f56c6c; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
+                    <span style="color: #C0392B; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="statusText" label="状态" width="120">
@@ -220,7 +220,7 @@
                 <el-table-column prop="itemCount" label="商品数" width="80" align="center" />
                 <el-table-column label="金额" width="120" align="right">
                   <template #default="{ row }">
-                    <span style="color: #f56c6c; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
+                    <span style="color: #C0392B; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="responseTime" label="响应时间" width="120" align="center">
@@ -268,13 +268,13 @@
           <div class="sidebar-title">今日接单统计</div>
           <div class="stat-ring">
             <svg viewBox="0 0 100 100" class="ring-svg">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#ebeef5" stroke-width="8" />
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#F0F0F0" stroke-width="8" />
               <circle
                 cx="50"
                 cy="50"
                 r="42"
                 fill="none"
-                stroke="#67c23a"
+                stroke="#0EA879"
                 stroke-width="8"
                 stroke-linecap="round"
                 :stroke-dasharray="2 * Math.PI * 42"
@@ -646,11 +646,11 @@ function getPlatformTagType(platform: string) {
 
 function getPlatformColor(platform: string) {
   const map: Record<string, string> = {
-    jd: "#f56c6c",
-    meituan: "#e6a23c",
-    eleme: "#409eff"
+    jd: "#C0392B",
+    meituan: "#D48B3A",
+    eleme: "#3F6FEF"
   };
-  return map[platform] || "#909399";
+  return map[platform] || "#999999";
 }
 
 function getDeliveryName(type: string) {
@@ -675,9 +675,9 @@ function getCountdownClass(order: Order) {
 
 function getCountdownColor(order: Order) {
   const remaining = getRemainingSeconds(order);
-  if (remaining > 40) return "#67c23a";
-  if (remaining > 20) return "#e6a23c";
-  return "#f56c6c";
+  if (remaining > 40) return "#0EA879";
+  if (remaining > 20) return "#D48B3A";
+  return "#C0392B";
 }
 
 function togglePlatform(platform: string) {
@@ -788,7 +788,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .pickup-page {
   padding: 20px;
-  background: #f0f2f5;
+  background: var(--bg-soft);
   min-height: calc(100vh - 60px);
 }
 
@@ -819,16 +819,16 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 .pending-stat .stat-icon {
-  background: linear-gradient(135deg, #f56c6c 0%, #f78989 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, #f78989 100%);
 }
 .accepted-stat .stat-icon {
-  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
 }
 .today-stat .stat-icon {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
 }
 .avg-stat .stat-icon {
-  background: linear-gradient(135deg, #e6a23c 0%, #f0c78a 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, #f0c78a 100%);
 }
 .stat-info {
   display: flex;
@@ -837,12 +837,12 @@ onBeforeUnmount(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
   line-height: 1.2;
 }
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 4px;
 }
 .stats-actions {
@@ -869,7 +869,7 @@ onBeforeUnmount(() => {
 .filter-title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 12px;
 }
 .filter-options {
@@ -909,7 +909,7 @@ onBeforeUnmount(() => {
   padding: 60px 0;
 }
 .empty-tip {
-  color: #909399;
+  color: var(--gray-400);
   font-size: 13px;
   margin-top: 8px;
 }
@@ -930,7 +930,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
   position: relative;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 .order-card-new:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
@@ -951,7 +951,7 @@ onBeforeUnmount(() => {
 /* 顶部倒计时进度条 */
 .countdown-bar-top {
   height: 6px;
-  background: #ebeef5;
+  background: var(--border-light);
   overflow: hidden;
 }
 .countdown-progress-top {
@@ -964,7 +964,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--bg-soft);
 }
 .countdown-display {
   display: flex;
@@ -975,13 +975,13 @@ onBeforeUnmount(() => {
   font-size: 15px;
 }
 .countdown-green {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .countdown-yellow {
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 .countdown-red {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .card-body {
@@ -996,16 +996,16 @@ onBeforeUnmount(() => {
 .order-no-text {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .order-amount {
   font-size: 20px;
   font-weight: 700;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .goods-list {
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 12px;
@@ -1014,7 +1014,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   padding: 3px 0;
 }
 .goods-name {
@@ -1024,15 +1024,15 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .goods-qty {
-  color: #909399;
+  color: var(--gray-400);
   margin-left: 8px;
 }
 .goods-more {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   text-align: center;
   padding-top: 4px;
-  border-top: 1px dashed #e4e7ed;
+  border-top: 1px dashed var(--gray-200);
   margin-top: 4px;
 }
 
@@ -1044,16 +1044,16 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   gap: 6px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 6px;
 }
 .info-line .el-icon {
   flex-shrink: 0;
   margin-top: 2px;
-  color: #909399;
+  color: var(--gray-400);
 }
 .receiver-phone {
-  color: #909399;
+  color: var(--gray-400);
   margin-left: 8px;
 }
 .address-text {
@@ -1061,7 +1061,7 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 .distance {
-  color: #409eff;
+  color: var(--color-primary);
   margin-left: auto;
 }
 
@@ -1069,11 +1069,11 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  background: #fdf6ec;
+  background: var(--color-warning-soft);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 12px;
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 .order-remark-box .el-icon {
   flex-shrink: 0;
@@ -1087,7 +1087,7 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 10px;
   padding: 12px 16px;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid var(--bg-soft);
 }
 .card-actions .el-button {
   flex: 1;
@@ -1112,10 +1112,10 @@ onBeforeUnmount(() => {
 .more-orders-tip {
   text-align: center;
   padding: 16px;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 13px;
   margin-top: 8px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
 }
 
@@ -1137,7 +1137,7 @@ onBeforeUnmount(() => {
 .sidebar-title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 16px;
 }
 .setting-item {
@@ -1151,10 +1151,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
 }
 .setting-label .el-icon {
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 /* 环形图 */
@@ -1181,11 +1181,11 @@ onBeforeUnmount(() => {
 .ring-value {
   font-size: 24px;
   font-weight: 700;
-  color: #67c23a;
+  color: var(--color-success);
 }
 .ring-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 2px;
 }
 
@@ -1201,17 +1201,17 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 .detail-label {
-  color: #909399;
+  color: var(--gray-400);
 }
 .detail-value {
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .detail-value.success {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .detail-value.danger {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 /* 平台分布条 */
@@ -1232,12 +1232,12 @@ onBeforeUnmount(() => {
   font-size: 12px;
 }
 .platform-count {
-  color: #606266;
+  color: var(--gray-600);
   font-weight: 500;
 }
 .platform-bar-bg {
   height: 6px;
-  background: #ebeef5;
+  background: var(--border-light);
   border-radius: 3px;
   overflow: hidden;
 }

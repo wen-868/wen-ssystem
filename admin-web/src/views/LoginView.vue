@@ -165,7 +165,7 @@ async function handleLogin() {
 .login-page {
   min-height: 100vh;
   display: flex;
-  background: #ffffff;
+  background: var(--gray-0);
 }
 
 /* ─── 左侧品牌区 ─── */
@@ -181,7 +181,7 @@ async function handleLogin() {
 
 .brand-inner {
   max-width: 460px;
-  color: #ffffff;
+  color: var(--gray-0);
 }
 
 .brand-logo {
@@ -273,7 +273,7 @@ async function handleLogin() {
 .login-box {
   width: 100%;
   max-width: 400px;
-  background: #ffffff;
+  background: var(--gray-0);
   border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 40px 36px 28px;

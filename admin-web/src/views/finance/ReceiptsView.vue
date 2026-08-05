@@ -402,7 +402,7 @@ onMounted(() => {
 .writeoff-info {
   margin-bottom: 16px;
   padding: 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 4px;
 }
 

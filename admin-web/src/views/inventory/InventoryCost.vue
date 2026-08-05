@@ -78,7 +78,7 @@
         </el-table-column>
         <el-table-column label="毛利空间" width="100" align="right">
           <template #default="{ row }">
-            <span v-if="row.retailPrice && row.costPrice" :style="{ color: row.retailPrice > row.costPrice ? '#67C23A' : '#F56C6C' }">
+            <span v-if="row.retailPrice && row.costPrice" :style="{ color: row.retailPrice > row.costPrice ? '#0EA879' : '#C0392B' }">
               {{ getMargin(row) }}%
             </span>
             <span v-else>-</span>
@@ -89,7 +89,7 @@
         </el-table-column>
         <el-table-column prop="expiryDate" label="到期日期" width="110">
           <template #default="{ row }">
-            <span :style="{ color: isNearExpiry(row.expiryDate) ? '#F56C6C' : '' }">
+            <span :style="{ color: isNearExpiry(row.expiryDate) ? '#C0392B' : '' }">
               {{ formatDate(row.expiryDate) }}
             </span>
           </template>
@@ -214,11 +214,11 @@ onMounted(() => loadData());
 .stat-row { margin-bottom: 16px; }
 .stat-card { border-radius: 8px; }
 .stat-item { text-align: center; padding: 8px 0; }
-.stat-label { color: #909399; font-size: 13px; margin-bottom: 8px; }
-.stat-value { font-size: 26px; font-weight: 600; color: #303133; }
-.stat-primary .stat-value { color: #409EFF; }
-.stat-warning .stat-value { color: #E6A23C; }
-.stat-success .stat-value { color: #67C23A; }
+.stat-label { color: var(--gray-400); font-size: 13px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--gray-700); }
+.stat-primary .stat-value { color: var(--color-primary); }
+.stat-warning .stat-value { color: var(--color-warning); }
+.stat-success .stat-value { color: var(--color-success); }
 .search-bar { display: flex; align-items: center; margin-bottom: 16px; }
 .chart-bar { display: flex; align-items: center; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }

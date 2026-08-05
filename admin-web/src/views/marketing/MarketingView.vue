@@ -322,10 +322,10 @@ function getStatusTag(status: string) {
 }
 
 function getProgressColor(rate: number) {
-  if (rate >= 80) return "#67c23a";
-  if (rate >= 50) return "#409eff";
-  if (rate >= 30) return "#e6a23c";
-  return "#f56c6c";
+  if (rate >= 80) return "#0EA879";
+  if (rate >= 50) return "#3F6FEF";
+  if (rate >= 30) return "#D48B3A";
+  return "#C0392B";
 }
 
 async function loadActivities() {
@@ -585,14 +585,14 @@ function renderEffectChart() {
         name: "参与人数",
         type: "bar",
         data: mockData.map((d) => d.participants),
-        itemStyle: { color: "#409eff" }
+        itemStyle: { color: "#3F6FEF" }
       },
       {
         name: "订单数",
         type: "line",
         data: mockData.map((d) => d.orders),
         smooth: true,
-        itemStyle: { color: "#67c23a" }
+        itemStyle: { color: "#0EA879" }
       },
       {
         name: "销售额",
@@ -600,7 +600,7 @@ function renderEffectChart() {
         yAxisIndex: 1,
         data: mockData.map((d) => d.revenue),
         smooth: true,
-        itemStyle: { color: "#e6a23c" }
+        itemStyle: { color: "#D48B3A" }
       }
     ]
   });
@@ -643,10 +643,10 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 .text-green {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .text-red {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .effect-analysis {
   padding: 10px;

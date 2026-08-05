@@ -280,12 +280,12 @@ onMounted(() => { loadList(); });
 <style scoped>
 .page { padding: 0; }
 .summary-row { display: flex; gap: 12px; margin-bottom: 16px; }
-.summary-card { flex: 1; background: #f5f7fa; border-radius: 8px; padding: 12px; text-align: center; }
-.summary-label { font-size: 12px; color: #909399; }
-.summary-value { font-size: 20px; font-weight: 700; color: #303133; margin-top: 4px; }
-.summary-value.green { color: #67c23a; }
-.summary-value.orange { color: #e6a23c; }
-.summary-value.red { color: #f56c6c; }
-.balance-positive { color: #e6a23c; font-weight: 600; }
-.balance-negative { color: #67c23a; font-weight: 600; }
+.summary-card { flex: 1; background: var(--bg-page); border-radius: 8px; padding: 12px; text-align: center; }
+.summary-label { font-size: 12px; color: var(--gray-400); }
+.summary-value { font-size: 20px; font-weight: 700; color: var(--gray-700); margin-top: 4px; }
+.summary-value.green { color: var(--color-success); }
+.summary-value.orange { color: var(--color-warning); }
+.summary-value.red { color: var(--color-danger); }
+.balance-positive { color: var(--color-warning); font-weight: 600; }
+.balance-negative { color: var(--color-success); font-weight: 600; }
 </style>

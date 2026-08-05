@@ -97,7 +97,7 @@
         </el-form-item>
         <el-form-item v-if="!isEdit" label="初始密码" prop="password">
           <el-input v-model="form.password" type="password" show-password placeholder="请设置初始密码" />
-          <div style="font-size: 12px; color: #909399; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
+          <div style="font-size: 12px; color: #999999; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -117,7 +117,7 @@
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
           <el-input v-model="resetPasswordForm.newPassword" type="password" show-password placeholder="请输入新密码" />
-          <div style="font-size: 12px; color: #909399; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
+          <div style="font-size: 12px; color: #999999; margin-top: 4px">至少8位，包含字母、数字和特殊字符</div>
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input v-model="resetPasswordForm.confirmPassword" type="password" show-password placeholder="请再次输入新密码" />

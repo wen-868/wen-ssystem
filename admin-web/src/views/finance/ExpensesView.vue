@@ -263,7 +263,7 @@ function renderBarChart(data: any[]) {
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: "#409eff" },
+          { offset: 0, color: "#3F6FEF" },
           { offset: 1, color: "#a0cfff" }
         ])
       }
@@ -413,7 +413,7 @@ onMounted(() => {
 .chart-card {
   flex: 1;
   background: #fff;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 16px;
 }
@@ -433,7 +433,7 @@ onMounted(() => {
 .chart-title {
   font-weight: 600;
   font-size: 14px;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .chart-body {

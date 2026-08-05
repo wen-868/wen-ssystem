@@ -310,7 +310,7 @@ onMounted(() => {
 .tree-panel {
   width: 320px;
   flex-shrink: 0;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--border-light);
   padding-right: 20px;
 }
 
@@ -339,7 +339,7 @@ onMounted(() => {
 
 .tree-node-icon {
   margin-right: 4px;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .tree-node-label {

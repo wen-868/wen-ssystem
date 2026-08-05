@@ -157,7 +157,7 @@ function renderTrendChart() {
     grid: { left: 50, right: 20, top: 20, bottom: 30 },
     xAxis: { type: "category", data: months },
     yAxis: { type: "value", name: "消费金额" },
-    series: [{ type: "line", data: amounts, smooth: true, areaStyle: { opacity: 0.15 }, itemStyle: { color: "#409EFF" } }]
+    series: [{ type: "line", data: amounts, smooth: true, areaStyle: { opacity: 0.15 }, itemStyle: { color: "#3F6FEF" } }]
   });
 }
 

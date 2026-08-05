@@ -254,7 +254,7 @@ onMounted(() => {
 <style scoped>
 .page { padding: 0; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.title { font-size: 16px; font-weight: 600; color: #303133; }
+.title { font-size: 16px; font-weight: 600; color: var(--gray-700); }
 .actions { display: flex; gap: 12px; align-items: center; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

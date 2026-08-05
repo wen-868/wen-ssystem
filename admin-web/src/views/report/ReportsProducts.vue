@@ -137,20 +137,20 @@ function renderChart() {
     const y = padding.top + i * (barH + gap);
     const barW = (values[i] / maxVal) * chartW;
 
-    const colors = ["#409eff", "#67c23a", "#e6a23c", "#f56c6c", "#909399"];
+    const colors = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999"];
     ctx.fillStyle = colors[i % colors.length];
 
     ctx.fillRect(padding.left, y, Math.max(barW, 2), barH);
 
     // Label
-    ctx.fillStyle = "#606266";
+    ctx.fillStyle = "#444444";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     const label = labels[i].length > 12 ? labels[i].substring(0, 12) + "..." : labels[i];
     ctx.fillText(label, padding.left - 10, y + barH / 2 + 4);
 
     // Value
-    ctx.fillStyle = "#303133";
+    ctx.fillStyle = "#333333";
     ctx.textAlign = "left";
     const valText = dimension.value === "qty" ? String(values[i]) : formatYuan(values[i]);
     ctx.fillText(valText, padding.left + barW + 8, y + barH / 2 + 4);

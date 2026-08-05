@@ -910,7 +910,7 @@ onMounted(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
@@ -935,7 +935,7 @@ onMounted(() => {
 }
 
 .subtotal-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -945,23 +945,23 @@ onMounted(() => {
   align-items: center;
   width: 100%;
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 4px;
 }
 
 .dialog-total-label {
-  color: #606266;
+  color: var(--gray-600);
   font-size: 14px;
 }
 
 .dialog-total-label b {
-  color: #409eff;
+  color: var(--color-primary);
   margin: 0 4px;
   font-weight: 600;
 }
 
 .dialog-total-amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 20px;
   font-weight: 700;
 }

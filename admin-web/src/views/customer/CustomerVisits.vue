@@ -501,14 +501,14 @@ onMounted(() => {
 .detail-section h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #303133;
+  color: var(--gray-700);
 }
 .content-box {
   padding: 12px 16px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 4px;
   line-height: 1.6;
-  color: #606266;
+  color: var(--gray-600);
   white-space: pre-wrap;
   min-height: 40px;
 }
@@ -522,9 +522,9 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 4px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
 }
 </style>

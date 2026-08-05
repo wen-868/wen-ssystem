@@ -147,7 +147,7 @@ function approveReturn(row: any) {
   gap: 8px;
 }
 .return-amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 500;
 }
 </style>

@@ -855,7 +855,7 @@ onMounted(() => {
 }
 
 .logo-uploader:hover {
-  border-color: #1677FF;
+  border-color: var(--color-primary);
 }
 
 .logo-uploader-icon {

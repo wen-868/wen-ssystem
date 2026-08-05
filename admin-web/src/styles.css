@@ -4,7 +4,7 @@
    Element Plus theme overrides — V4.0 Atlas 灰阶
    原则：只有字体用黑色，背景灰+白，按钮保留彩色
    ═══════════════════════════════════════════ */
-:root {
+:root:root {
   --el-color-primary: #3F6FEF;
   --el-color-primary-light-3: #5A83F2;
   --el-color-primary-light-5: rgba(63, 111, 239, 0.12);

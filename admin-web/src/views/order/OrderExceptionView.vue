@@ -4,21 +4,21 @@
     <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="待处理异常" :value="mockStats.pendingCount" value-style="color: #EF4444">
+          <el-statistic title="待处理异常" :value="mockStats.pendingCount" value-style="color: #C0392B">
             <template #prefix><el-icon><WarningFilled /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="今日新增异常" :value="mockStats.todayNewCount" value-style="color: #F59E0B">
+          <el-statistic title="今日新增异常" :value="mockStats.todayNewCount" value-style="color: #D48B3A">
             <template #prefix><el-icon><Plus /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="本周解决异常" :value="mockStats.weekResolvedCount" value-style="color: #10B981">
+          <el-statistic title="本周解决异常" :value="mockStats.weekResolvedCount" value-style="color: #0EA879">
             <template #prefix><el-icon><CircleCheckFilled /></el-icon></template>
           </el-statistic>
         </el-card>
@@ -200,7 +200,7 @@
               <el-descriptions-item label="创建时间">{{ currentException.createdAt }}</el-descriptions-item>
             </el-descriptions>
             <h4 style="margin: 16px 0 8px">异常详情</h4>
-            <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap">
+            <div style="background: #F5F5F5; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap">
               {{ currentException.exceptionDetail }}
             </div>
             <h4 style="margin: 16px 0 8px">关联订单信息</h4>
@@ -394,7 +394,7 @@ function renderChannelExceptionChart() {
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#EF4444" },
+            { offset: 0, color: "#C0392B" },
             { offset: 1, color: "#FCA5A5" },
           ]),
         },
@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 1;
   overflow: hidden;
   cursor: pointer;
-  color: #1677FF;
+  color: var(--color-primary);
 }
 .card-header {
   display: flex;

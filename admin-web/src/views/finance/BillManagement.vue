@@ -321,7 +321,7 @@ onMounted(() => {
 
 .amount-text {
   font-weight: 600;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .pagination {
@@ -331,7 +331,7 @@ onMounted(() => {
 }
 
 .overdue {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

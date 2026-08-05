@@ -191,7 +191,7 @@
           <div class="color-picker-row">
             <el-color-picker v-model="form.color" />
             <span class="color-preview" :style="{ background: form.color }" />
-            <el-input v-model="form.color" placeholder="#409EFF" style="width: 120px; margin-left: 8px" />
+            <el-input v-model="form.color" placeholder="#3F6FEF" style="width: 120px; margin-left: 8px" />
           </div>
         </el-form-item>
         <el-form-item label="排序">
@@ -240,7 +240,7 @@ const submitLoading = ref(false);
 const editingItem = ref<any>(null);
 
 const searchForm = reactive({ keyword: "", tagType: "", status: "" });
-const form = reactive({ name: "", tagType: "", color: "#409EFF", sortNo: 0, remark: "" });
+const form = reactive({ name: "", tagType: "", color: "#3F6FEF", sortNo: 0, remark: "" });
 
 const formRules: FormRules = {
   name: [{ required: true, message: '请输入标签名称' }],
@@ -275,13 +275,13 @@ function openDialog(row?: any) {
   if (row) {
     form.name = row.name;
     form.tagType = row.tagType;
-    form.color = row.color || "#409EFF";
+    form.color = row.color || "#3F6FEF";
     form.sortNo = row.sortNo || 0;
     form.remark = row.remark || "";
   } else {
     form.name = "";
     form.tagType = "";
-    form.color = "#409EFF";
+    form.color = "#3F6FEF";
     form.sortNo = 0;
     form.remark = "";
   }
@@ -443,7 +443,7 @@ onMounted(() => {
 .color-picker-row { display: flex; align-items: center; }
 .color-preview { width: 28px; height: 28px; border-radius: 4px; border: 1px solid #ddd; margin-left: 8px; }
 .tag-group-section { margin-bottom: 20px; }
-.tag-group-title { font-size: 14px; font-weight: 600; color: #606266; margin-bottom: 10px; padding-left: 8px; border-left: 3px solid #409EFF; }
+.tag-group-title { font-size: 14px; font-weight: 600; color: var(--gray-600); margin-bottom: 10px; padding-left: 8px; border-left: 3px solid var(--color-primary); }
 .tag-checkbox-group { display: flex; flex-wrap: wrap; align-items: center; padding-left: 4px; }
-.empty-hint { font-size: 13px; color: #c0c4cc; }
+.empty-hint { font-size: 13px; color: var(--gray-300); }
 </style>

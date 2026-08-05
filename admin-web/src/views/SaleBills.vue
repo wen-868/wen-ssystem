@@ -61,10 +61,10 @@
         </template>
 
         <template #shareInfo="{ row }">
-          <span v-if="row.shareCollectionCount > 0" style="font-size:12px; color:#409eff">
+          <span v-if="row.shareCollectionCount > 0" style="font-size:12px; color:#3F6FEF">
             已分享 {{ row.shareCollectionCount }} 次
           </span>
-          <span v-else style="color:#c0c4cc">-</span>
+          <span v-else style="color:#CCCCCC">-</span>
         </template>
 
         <template #fulfillStatus="{ row }">
@@ -121,7 +121,7 @@
             {{ item.label }}
           </el-timeline-item>
         </el-timeline>
-        <div v-else style="color: #c0c4cc; font-size: 13px; padding-left: 10px">暂无状态流转记录</div>
+        <div v-else style="color: #CCCCCC; font-size: 13px; padding-left: 10px">暂无状态流转记录</div>
 
         <!-- 分享记录 -->
         <h4 style="margin: 20px 0 10px">分享记录</h4>
@@ -146,7 +146,7 @@
           <el-table-column prop="viewCount" label="浏览次数" width="80" />
           <el-table-column prop="createdAt" label="创建时间" width="150" />
         </el-table>
-        <div v-else style="color: #c0c4cc; font-size: 13px; padding-left: 10px">暂无分享记录</div>
+        <div v-else style="color: #CCCCCC; font-size: 13px; padding-left: 10px">暂无分享记录</div>
 
         <h4 style="margin: 20px 0 10px">商品明细</h4>
         <el-table :data="currentBill.items || []" size="small" border>
@@ -206,19 +206,19 @@ const statusTimeline = computed(() => {
   const timeline: { time: string; label: string; color: string; type: string }[] = [];
   // 创建
   if (bill.createTime) {
-    timeline.push({ time: bill.createTime, label: "创建销售单", color: "#409eff", type: "primary" });
+    timeline.push({ time: bill.createTime, label: "创建销售单", color: "#3F6FEF", type: "primary" });
   }
   // 分享
   if (bill.lastShareTime) {
-    timeline.push({ time: bill.lastShareTime, label: `分享链接（共${bill.shareCollectionCount || 0}次）`, color: "#409eff", type: "primary" });
+    timeline.push({ time: bill.lastShareTime, label: `分享链接（共${bill.shareCollectionCount || 0}次）`, color: "#3F6FEF", type: "primary" });
   }
   // 支付
   if (bill.payStatus === 'PAID' || bill.payStatus === 'PARTIAL') {
-    timeline.push({ time: bill.createTime, label: bill.payStatus === 'PAID' ? "全部支付完成" : "部分支付", color: "#67c23a", type: "success" });
+    timeline.push({ time: bill.createTime, label: bill.payStatus === 'PAID' ? "全部支付完成" : "部分支付", color: "#0EA879", type: "success" });
   }
   // 逾期
   if (bill.payStatus === 'OVERDUE') {
-    timeline.push({ time: "", label: "已逾期", color: "#f56c6c", type: "danger" });
+    timeline.push({ time: "", label: "已逾期", color: "#C0392B", type: "danger" });
   }
   return timeline;
 });
@@ -282,7 +282,7 @@ onMounted(() => {
   padding: 0;
 }
 .unpaid-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

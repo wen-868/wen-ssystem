@@ -153,6 +153,6 @@ onMounted(() => {
 }
 
 :deep(.el-select .el-input__inner::placeholder) {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 </style>

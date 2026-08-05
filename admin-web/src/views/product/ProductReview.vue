@@ -726,7 +726,7 @@ onMounted(() => {
   padding: 20px;
   border-radius: 8px;
   background: #fff;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 
 .stat-card .stat-icon {
@@ -741,31 +741,31 @@ onMounted(() => {
 }
 
 .stat-primary .stat-icon {
-  background: linear-gradient(135deg, #409eff, #66b1ff);
+  background: linear-gradient(135deg, var(--color-primary), #66b1ff);
 }
 
 .stat-warning .stat-icon {
-  background: linear-gradient(135deg, #e6a23c, #f5dab1);
+  background: linear-gradient(135deg, var(--color-warning), #f5dab1);
 }
 
 .stat-success .stat-icon {
-  background: linear-gradient(135deg, #67c23a, #95d475);
+  background: linear-gradient(135deg, var(--color-success), #95d475);
 }
 
 .stat-danger .stat-icon {
-  background: linear-gradient(135deg, #f56c6c, #f89898);
+  background: linear-gradient(135deg, var(--color-danger), #f89898);
 }
 
 .stat-card .stat-info .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 
 .stat-card .stat-info .stat-value {
   font-size: 24px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .tab-card {
@@ -798,13 +798,13 @@ onMounted(() => {
 .product-info .product-meta .product-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 4px;
 }
 
 .product-info .product-meta .product-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .detail-content .detail-section {
@@ -818,10 +818,10 @@ onMounted(() => {
 .detail-content .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 12px;
   padding-left: 8px;
-  border-left: 3px solid #409eff;
+  border-left: 3px solid var(--color-primary);
 }
 
 .product-detail {
@@ -851,14 +851,14 @@ onMounted(() => {
 }
 
 .product-detail .detail-info .label {
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
   width: 90px;
   flex-shrink: 0;
 }
 
 .product-detail .detail-info .value {
-  color: #303133;
+  color: var(--gray-700);
   font-size: 14px;
 }
 
@@ -876,14 +876,14 @@ onMounted(() => {
 
 .review-record .record-reviewer {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .review-record .record-comment {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 4px;
 }
 </style>

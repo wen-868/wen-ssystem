@@ -338,11 +338,11 @@ function goToLogin() {
 }
 
 .strength-segment.weak {
-  background: #EF4444;
+  background: var(--color-danger);
 }
 
 .strength-segment.medium {
-  background: #F59E0B;
+  background: var(--color-warning);
 }
 
 .strength-segment.strong {
@@ -350,7 +350,7 @@ function goToLogin() {
 }
 
 .strength-segment.very-strong {
-  background: #10B981;
+  background: var(--color-success);
 }
 
 .strength-text {
@@ -404,7 +404,7 @@ function goToLogin() {
 }
 
 .success-icon {
-  color: #10B981;
+  color: var(--color-success);
   margin-bottom: 16px;
 }
 

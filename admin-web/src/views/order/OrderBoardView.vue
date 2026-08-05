@@ -202,7 +202,7 @@ onMounted(() => {
 .board-column {
   flex: 1;
   min-width: 260px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -216,24 +216,24 @@ onMounted(() => {
   font-weight: 600;
 }
 .col-pending-pay {
-  background: #fdf6ec;
-  color: #e6a23c;
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
 }
 .col-pending-ship {
-  background: #ecf5ff;
-  color: #409eff;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
 }
 .col-pending-receive {
   background: #f4f4f5;
-  color: #909399;
+  color: var(--gray-400);
 }
 .col-completed {
-  background: #f0f9eb;
-  color: #67c23a;
+  background: var(--color-success-soft);
+  color: var(--color-success);
 }
 .col-cancelled {
   background: #f4f4f5;
-  color: #909399;
+  color: var(--gray-400);
 }
 .column-title {
   font-size: 14px;
@@ -266,19 +266,19 @@ onMounted(() => {
 .order-no {
   font-size: 13px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   font-family: monospace;
 }
 .card-customer {
   font-size: 12px;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
 }
 .card-items {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 8px;
   line-height: 1.6;
 }
@@ -289,7 +289,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .item-more {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 .card-footer {
   display: flex;
@@ -300,15 +300,15 @@ onMounted(() => {
   border-top: 1px solid #f0f0f0;
 }
 .order-amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
   font-size: 14px;
 }
 .order-time {
-  color: #c0c4cc;
+  color: var(--gray-300);
 }
 .amount-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
   font-size: 16px;
 }

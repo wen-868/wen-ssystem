@@ -499,7 +499,7 @@ loadData()
 }
 
 .stock-warning {
-  color: #ef4444;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -534,7 +534,7 @@ loadData()
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: #10b981;
+  background: var(--color-success);
   color: #fff;
   border-radius: 50%;
   font-size: 11px;
@@ -543,7 +543,7 @@ loadData()
 }
 
 .preview-product {
-  color: #1677ff;
+  color: var(--color-primary);
   font-weight: 500;
 }
 </style>

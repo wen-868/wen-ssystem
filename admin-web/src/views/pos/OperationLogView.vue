@@ -246,7 +246,7 @@ onMounted(() => {
   align-items: flex-end;
 }
 .link-text {
-  color: #409eff;
+  color: var(--color-primary);
   cursor: pointer;
 }
 .link-text:hover {
@@ -264,7 +264,7 @@ onMounted(() => {
 .json-block {
   max-height: 200px;
   overflow-y: auto;
-  background: #f5f7fa;
+  background: var(--bg-page);
   padding: 8px;
   border-radius: 4px;
   font-size: 12px;

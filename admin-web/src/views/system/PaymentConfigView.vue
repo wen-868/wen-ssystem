@@ -643,7 +643,7 @@ onMounted(() => {
 .switch-label {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .config-form {

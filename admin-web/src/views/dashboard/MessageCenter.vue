@@ -164,17 +164,17 @@ const typeIconMap: Record<string, any> = {
 };
 
 const typeIconColorMap: Record<string, string> = {
-  SYSTEM: "#409EFF",
-  ORDER: "#67C23A",
-  PAYMENT: "#E6A23C",
-  ALERT: "#F56C6C",
+  SYSTEM: "#3F6FEF",
+  ORDER: "#0EA879",
+  PAYMENT: "#D48B3A",
+  ALERT: "#C0392B",
   CREDIT: "#722ED1",
-  RECALL: "#909399"
+  RECALL: "#999999"
 };
 
 function getMsgTypeLabel(type: string) { return typeLabelMap[type] || type; }
 function getMsgIcon(type: string) { return typeIconMap[type] || Bell; }
-function getMsgIconColor(type: string) { return typeIconColorMap[type] || "#909399"; }
+function getMsgIconColor(type: string) { return typeIconColorMap[type] || "#999999"; }
 function getMsgTagType(type: string) {
   if (type === "ALERT") return "danger";
   if (type === "PAYMENT") return "warning";
@@ -344,7 +344,7 @@ onMounted(() => { loadData(); });
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #409EFF;
+  background: var(--color-primary);
   flex-shrink: 0;
 }
 

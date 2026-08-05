@@ -25,7 +25,7 @@
                   <strong>{{ store.capacity }}</strong>
                 </div>
               </div>
-              <el-progress :percentage="store.loadRate" :stroke-width="12" :color="store.loadRate > 60 ? '#f56c6c' : store.loadRate > 40 ? '#e6a23c' : '#67c23a'" />
+              <el-progress :percentage="store.loadRate" :stroke-width="12" :color="store.loadRate > 60 ? '#C0392B' : store.loadRate > 40 ? '#D48B3A' : '#0EA879'" />
             </el-card>
           </el-col>
         </el-row>
@@ -41,7 +41,7 @@
           <el-table-column prop="ruleName" label="规则名称" width="140" />
           <el-table-column label="适用渠道" width="120">
             <template #default="{ row }">
-              <el-tag :color="channelColors[row.channelType] || '#409eff'" style="color: #fff; border: none" size="small">
+              <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
                 {{ channelNames[row.channelType] || row.channelType }}
               </el-tag>
             </template>
@@ -100,7 +100,7 @@
           <el-table-column prop="channelOrderNo" label="订单号" width="150" />
           <el-table-column label="渠道" width="80">
             <template #default="{ row }">
-              <el-tag :color="channelColors[row.channelType] || '#409eff'" style="color: #fff; border: none" size="small">
+              <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
                 {{ channelNames[row.channelType] || row.channelType }}
               </el-tag>
             </template>
@@ -499,13 +499,13 @@ function handleLogFilter() {
 .load-item span {
   display: block;
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 
 .load-item strong {
   font-size: 20px;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .toolbar {
@@ -517,12 +517,12 @@ function handleLogFilter() {
 }
 
 .condition-card {
-  background: #fafafa;
+  background: var(--gray-50);
 }
 
 .condition-label {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 6px;
   font-weight: 500;
 }

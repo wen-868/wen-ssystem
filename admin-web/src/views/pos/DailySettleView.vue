@@ -63,7 +63,7 @@
             <el-input-number v-model="dailySettleActualCash" :min="0" :precision="2" style="width: 200px" />
           </el-form-item>
           <el-form-item label="差异">
-            <span :style="{ fontWeight: 600, color: cashDifference === 0 ? '#67c23a' : '#f56c6c' }">
+            <span :style="{ fontWeight: 600, color: cashDifference === 0 ? '#0EA879' : '#C0392B' }">
               ¥{{ Number(cashDifference).toFixed(2) }}
             </span>
           </el-form-item>
@@ -258,7 +258,7 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 .metric-card {
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -266,20 +266,20 @@ onMounted(() => {
 .metric-value {
   font-size: 22px;
   font-weight: bold;
-  color: #303133;
+  color: var(--gray-700);
 }
 .metric-value.success {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .metric-value.primary {
   color: #9b1c31;
 }
 .metric-value.danger {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .metric-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 4px;
 }
 .section-title {

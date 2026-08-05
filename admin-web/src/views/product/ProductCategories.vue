@@ -123,7 +123,7 @@
         </el-form-item>
         <el-form-item label="允许线上销售">
           <el-switch v-model="form.allowOnlineSale" :active-value="1" :inactive-value="0" />
-          <span style="margin-left: 8px; color: #909399; font-size: 12px">关闭后该分类商品仅限线下销售</span>
+          <span style="margin-left: 8px; color: #999999; font-size: 12px">关闭后该分类商品仅限线下销售</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -421,7 +421,7 @@ onMounted(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
@@ -434,7 +434,7 @@ onMounted(() => {
 .tree-panel {
   width: 320px;
   flex-shrink: 0;
-  border-right: 1px solid #ebeef5;
+  border-right: 1px solid var(--border-light);
   padding-right: 20px;
 }
 

@@ -15,19 +15,19 @@
           <el-statistic title="今日操作" :value="statistics.todayCount || 0" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="新增操作" :value="statistics.createCount || 0" value-style="color: #67c23a" />
+          <el-statistic title="新增操作" :value="statistics.createCount || 0" value-style="color: #0EA879" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="修改操作" :value="statistics.updateCount || 0" value-style="color: #409eff" />
+          <el-statistic title="修改操作" :value="statistics.updateCount || 0" value-style="color: #3F6FEF" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="删除操作" :value="statistics.deleteCount || 0" value-style="color: #f56c6c" />
+          <el-statistic title="删除操作" :value="statistics.deleteCount || 0" value-style="color: #C0392B" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="查询操作" :value="statistics.queryCount || 0" value-style="color: #909399" />
+          <el-statistic title="查询操作" :value="statistics.queryCount || 0" value-style="color: #999999" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="操作用户" :value="statistics.userCount || 0" value-style="color: #e6a23c" />
+          <el-statistic title="操作用户" :value="statistics.userCount || 0" value-style="color: #D48B3A" />
         </el-col>
       </el-row>
 

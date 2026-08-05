@@ -128,7 +128,7 @@
           <el-descriptions-item label="提交时间">{{ formatTime(detail.created_at) }}</el-descriptions-item>
           <el-descriptions-item v-if="detail.page_url" label="页面URL" :span="2">{{ detail.page_url }}</el-descriptions-item>
           <el-descriptions-item v-if="detail.reply" label="管理员回复" :span="2">
-            <div style="white-space: pre-wrap; background: #f0f9eb; padding: 8px; border-radius: 4px">{{ detail.reply }}</div>
+            <div style="white-space: pre-wrap; background: rgba(14,168,121,0.12); padding: 8px; border-radius: 4px">{{ detail.reply }}</div>
           </el-descriptions-item>
         </el-descriptions>
       </template>

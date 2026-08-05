@@ -666,7 +666,7 @@ onMounted(() => {
 
 <style scoped>
 .permission-tree {
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--gray-200);
   border-radius: 4px;
   padding: 12px 16px;
   max-height: 400px;
@@ -676,7 +676,7 @@ onMounted(() => {
 .permission-module {
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px dashed #ebeef5;
+  border-bottom: 1px dashed var(--border-light);
 }
 
 .permission-module:last-child {

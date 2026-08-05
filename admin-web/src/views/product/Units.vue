@@ -232,7 +232,7 @@ onMounted(() => { loadGroups(); });
 
 <style scoped>
 .unit-group-card {
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--gray-200);
   border-radius: 8px;
   padding: 16px 20px;
   margin-bottom: 16px;
@@ -252,14 +252,14 @@ onMounted(() => { loadGroups(); });
 .group-name {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .group-actions {
   display: flex;
   gap: 4px;
 }
 .unit-chain {
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 6px;
   padding: 12px 16px;
 }
@@ -276,7 +276,7 @@ onMounted(() => { loadGroups(); });
   gap: 4px;
   padding: 8px 14px;
   background: #fff;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--gray-200);
   border-radius: 8px;
   min-width: 72px;
 }
@@ -286,13 +286,13 @@ onMounted(() => { loadGroups(); });
 }
 .unit-level-label {
   font-size: 11px;
-  color: #909399;
+  color: var(--gray-400);
   font-weight: 500;
 }
 .unit-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .unit-arrow {
   display: flex;
@@ -303,12 +303,12 @@ onMounted(() => { loadGroups(); });
 }
 .arrow-rate {
   font-size: 12px;
-  color: #409eff;
+  color: var(--color-primary);
   font-weight: 600;
 }
 .arrow-icon {
   font-size: 18px;
-  color: #c0c4cc;
+  color: var(--gray-300);
   line-height: 1;
 }
 .unit-chain-empty {
@@ -330,13 +330,13 @@ onMounted(() => { loadGroups(); });
 }
 .item-level {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   font-weight: 600;
   min-width: 28px;
 }
 .sep {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   white-space: nowrap;
 }
 </style>

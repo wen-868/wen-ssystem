@@ -232,10 +232,10 @@ async function loadTrend() {
         data: amounts,
         smooth: true,
         areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: "rgba(64,158,255,0.3)" }, { offset: 1, color: "rgba(64,158,255,0.05)" }
+          { offset: 0, color: "rgba(63,111,239,0.3)" }, { offset: 1, color: "rgba(63,111,239,0.05)" }
         ])},
-        lineStyle: { color: "#409eff", width: 2 },
-        itemStyle: { color: "#409eff" }
+        lineStyle: { color: "#3F6FEF", width: 2 },
+        itemStyle: { color: "#3F6FEF" }
       }]
     });
   } catch { /* ignore */ }
@@ -259,7 +259,7 @@ async function loadSupplierRanking() {
       yAxis: { type: "category", data: names.reverse(), inverse: true, axisLabel: { width: 100, overflow: "truncate" } },
       series: [{
         type: "bar",
-        data: values.reverse().map((v: number) => ({ value: v, itemStyle: { color: "#409eff" } })),
+        data: values.reverse().map((v: number) => ({ value: v, itemStyle: { color: "#3F6FEF" } })),
         barMaxWidth: 24
       }]
     });
@@ -374,12 +374,12 @@ onMounted(async () => {
 }
 
 .stats-row { display: flex; gap: 16px; margin-bottom: 16px; }
-.stat-card { flex: 1; background: #fff; border-radius: 8px; padding: 16px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #409eff; }
-.stat-card.green { border-left-color: #67c23a; }
-.stat-card.blue { border-left-color: #409eff; }
-.stat-card.orange { border-left-color: #e6a23c; }
-.stat-value { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.stat-card { flex: 1; background: #fff; border-radius: 8px; padding: 16px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid var(--color-primary); }
+.stat-card.green { border-left-color: var(--color-success); }
+.stat-card.blue { border-left-color: var(--color-primary); }
+.stat-card.orange { border-left-color: var(--color-warning); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--gray-700); }
+.stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
 
 .chart-box {
   width: 100%;

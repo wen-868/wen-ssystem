@@ -344,7 +344,7 @@ onMounted(() => {
 
 .balance-text {
   font-weight: 600;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .pagination {
@@ -359,7 +359,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .balance-info {
@@ -370,16 +370,16 @@ onMounted(() => {
 .balance-amount {
   font-size: 16px;
   font-weight: 700;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .income {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .expense {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

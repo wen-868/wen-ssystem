@@ -44,7 +44,7 @@
             </el-table-column>
             <el-table-column label="期末余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.closingBalance || 0) > 0 ? '#f56c6c' : '#67c23a' }">
+                <span :style="{ color: (row.closingBalance || 0) > 0 ? '#C0392B' : '#0EA879' }">
                   {{ formatYuan(row.closingBalance) }}
                 </span>
               </template>
@@ -107,7 +107,7 @@
             </el-table-column>
             <el-table-column label="期末余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.closingBalance || 0) > 0 ? '#f56c6c' : '#67c23a' }">
+                <span :style="{ color: (row.closingBalance || 0) > 0 ? '#C0392B' : '#0EA879' }">
                   {{ formatYuan(row.closingBalance) }}
                 </span>
               </template>

@@ -176,8 +176,8 @@ onMounted(() => { loadData(); });
 .stat-row { margin-bottom: 0; }
 .stat-card { text-align: center; }
 .stat-label { font-size: 13px; color: #999; margin-bottom: 8px; }
-.stat-count { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-pct { font-size: 12px; color: #67C23A; margin-top: 4px; }
+.stat-count { font-size: 28px; font-weight: 700; color: var(--gray-700); }
+.stat-pct { font-size: 12px; color: var(--color-success); margin-top: 4px; }
 .chart-box { width: 100%; height: 320px; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

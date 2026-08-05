@@ -223,16 +223,16 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .balance-positive {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 .balance-negative {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 .balance-text {
   font-size: 16px;
   font-weight: 600;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 </style>

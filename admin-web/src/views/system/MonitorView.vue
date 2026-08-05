@@ -184,7 +184,7 @@ const statusCodeData = () => {
     name: `HTTP ${code}`,
     value: count,
     itemStyle: {
-      color: code.startsWith("2") ? "#67c23a" : code.startsWith("3") ? "#e6a23c" : code.startsWith("4") ? "#f56c6c" : "#909399",
+      color: code.startsWith("2") ? "#0EA879" : code.startsWith("3") ? "#D48B3A" : code.startsWith("4") ? "#C0392B" : "#999999",
     },
   }));
 };
@@ -274,12 +274,12 @@ function renderErrorTrendChart() {
           smooth: true,
           symbol: "circle",
           symbolSize: 6,
-          lineStyle: { width: 2, color: "#f56c6c" },
-          itemStyle: { color: "#f56c6c" },
+          lineStyle: { width: 2, color: "#C0392B" },
+          itemStyle: { color: "#C0392B" },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(245,108,108,0.3)" },
-              { offset: 1, color: "rgba(245,108,108,0.05)" },
+              { offset: 0, color: "rgba(192,57,43,0.3)" },
+              { offset: 1, color: "rgba(192,57,43,0.05)" },
             ]),
           },
         },
@@ -367,22 +367,22 @@ onUnmounted(() => {
 }
 
 .db-icon {
-  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
   color: #fff;
 }
 
 .request-icon {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
   color: #fff;
 }
 
 .error-icon {
-  background: linear-gradient(135deg, #f56c6c 0%, #f89898 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, #f89898 100%);
   color: #fff;
 }
 
 .response-icon {
-  background: linear-gradient(135deg, #e6a23c 0%, #ebb563 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, #ebb563 100%);
   color: #fff;
 }
 
@@ -392,35 +392,35 @@ onUnmounted(() => {
 
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .stat-value.warning {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .stat-value.connected {
-  color: #67c23a;
+  color: var(--color-success);
 }
 
 .stat-value.error {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .stat-value.disconnected {
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 
 .stat-detail {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--gray-300);
   margin-top: 4px;
 }
 
@@ -445,16 +445,16 @@ onUnmounted(() => {
 }
 
 .tenant-card :deep(.el-table__row:hover) {
-  background: #f5f7fa;
+  background: var(--bg-page);
 }
 
 .danger {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
 .warning {
-  color: #e6a23c;
+  color: var(--color-warning);
   font-weight: 600;
 }
 </style>

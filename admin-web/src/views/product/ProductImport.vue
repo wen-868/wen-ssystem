@@ -200,7 +200,7 @@ function resetAll() {
 <style scoped>
 .step-content { min-height: 300px; }
 .upload-area { width: 100%; }
-.upload-text { margin-top: 12px; color: #909399; font-size: 14px; }
-.upload-tip { margin-top: 8px; color: #c0c4cc; font-size: 12px; }
+.upload-text { margin-top: 12px; color: var(--gray-400); font-size: 14px; }
+.upload-tip { margin-top: 8px; color: var(--gray-300); font-size: 12px; }
 .step-actions { margin-top: 24px; display: flex; justify-content: center; gap: 12px; }
 </style>

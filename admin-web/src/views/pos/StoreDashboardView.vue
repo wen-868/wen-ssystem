@@ -10,10 +10,10 @@
       </el-col>
     </el-row>
 
-    <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 16px; border-left: 4px solid #e6a23c">
+    <el-card v-if="inventoryAlerts.length > 0" style="margin-top: 16px; border-left: 4px solid #D48B3A">
       <template #header>
         <div class="card-header">
-          <span style="color: #e6a23c; font-weight: bold">库存预警（可用库存 ≤ 5）</span>
+          <span style="color: #D48B3A; font-weight: bold">库存预警（可用库存 ≤ 5）</span>
           <el-button size="small" @click="loadInventoryAlerts">刷新</el-button>
         </div>
       </template>
@@ -22,7 +22,7 @@
         <el-table-column prop="stockType" label="库存类型" width="120" />
         <el-table-column prop="availableQty" label="可用库存" width="100">
           <template #default="{ row }">
-            <span style="color: #e6a23c; font-weight: bold">{{ row.availableQty }}</span>
+            <span style="color: #D48B3A; font-weight: bold">{{ row.availableQty }}</span>
           </template>
         </el-table-column>
       </el-table>

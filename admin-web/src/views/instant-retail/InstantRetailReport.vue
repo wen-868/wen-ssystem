@@ -151,7 +151,7 @@
         </el-table-column>
         <el-table-column prop="netIncome" label="净收入">
           <template #default="{ row }" class="net-income">
-            <span style="color: #67c23a; font-weight: 600">¥{{ formatNumber(row.netIncome) }}</span>
+            <span style="color: #0EA879; font-weight: 600">¥{{ formatNumber(row.netIncome) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -199,7 +199,7 @@
             <el-table-column prop="category" label="分类" width="120" />
             <el-table-column prop="profit" label="毛利额" width="140" sortable>
               <template #default="{ row }">
-                <span style="color: #67c23a; font-weight: 500">¥{{ formatNumber(row.profit) }}</span>
+                <span style="color: #0EA879; font-weight: 500">¥{{ formatNumber(row.profit) }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="profitRate" label="毛利率" width="140" sortable>
@@ -426,10 +426,10 @@ function updateTrendChart() {
         },
         lineStyle: {
           width: 3,
-          color: "#409EFF"
+          color: "#3F6FEF"
         },
         itemStyle: {
-          color: "#409EFF"
+          color: "#3F6FEF"
         },
         data: trendData.sales
       },
@@ -440,7 +440,7 @@ function updateTrendChart() {
         barWidth: "40%",
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#E6A23C" },
+            { offset: 0, color: "#D48B3A" },
             { offset: 1, color: "rgba(230, 162, 60, 0.6)" }
           ]),
           borderRadius: [4, 4, 0, 0]
@@ -665,7 +665,7 @@ watch(trendGranularity, () => {
 }
 .section-card {
   margin-bottom: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 .section-header {
   display: flex;
@@ -680,7 +680,7 @@ watch(trendGranularity, () => {
 .section-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .filter-bar {
   display: flex;
@@ -725,8 +725,8 @@ watch(trendGranularity, () => {
   border-radius: 50%;
   font-size: 12px;
   font-weight: 600;
-  background: #f0f2f5;
-  color: #909399;
+  background: var(--bg-soft);
+  color: var(--gray-400);
 }
 .rank-badge.rank-1 {
   background: linear-gradient(135deg, #ffd700, #ffb800);
@@ -744,7 +744,7 @@ watch(trendGranularity, () => {
   display: block;
   text-align: center;
   font-size: 12px;
-  color: #606266;
+  color: var(--gray-600);
   margin-top: 2px;
 }
 .net-income {

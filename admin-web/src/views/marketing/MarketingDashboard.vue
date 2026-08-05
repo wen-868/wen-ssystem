@@ -323,11 +323,11 @@ async function renderActivityTrend() {
         data: data.map((d) => d.participants || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(64,158,255,0.25)" },
-            { offset: 1, color: "rgba(64,158,255,0)" },
+            { offset: 0, color: "rgba(63,111,239,0.25)" },
+            { offset: 1, color: "rgba(63,111,239,0)" },
           ]),
         },
       },
@@ -382,7 +382,7 @@ async function renderConversionTrend() {
         name: "参与人数",
         type: "bar",
         data: data.map((d) => d.participants || 0),
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         barWidth: "60%",
       },
       {
@@ -391,7 +391,7 @@ async function renderConversionTrend() {
         yAxisIndex: 1,
         data: data.map((d) => Number(d.conversionRate || 0)),
         smooth: true,
-        itemStyle: { color: "#67c23a" },
+        itemStyle: { color: "#0EA879" },
         symbol: "circle",
         symbolSize: 6,
       },
@@ -434,8 +434,8 @@ async function renderROIChart() {
         data: sortedData.map((d) => Number(d.roi || 0)),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#409eff" },
-            { offset: 1, color: "#67c23a" },
+            { offset: 0, color: "#3F6FEF" },
+            { offset: 1, color: "#0EA879" },
           ]),
           borderRadius: [0, 4, 4, 0],
         },
@@ -498,7 +498,7 @@ async function renderTypePie() {
           name: d.type || d.name || "",
           value: d.count || d.value || 0,
         })),
-        color: ["#409eff", "#67c23a", "#e6a23c", "#f56c6c", "#909399"],
+        color: ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999"],
       },
     ],
   });
@@ -552,11 +552,11 @@ async function renderCouponUsage() {
         data: data.map((d) => d.issued || d.count || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(64,158,255,0.2)" },
-            { offset: 1, color: "rgba(64,158,255,0)" },
+            { offset: 0, color: "rgba(63,111,239,0.2)" },
+            { offset: 1, color: "rgba(63,111,239,0)" },
           ]),
         },
       },
@@ -566,11 +566,11 @@ async function renderCouponUsage() {
         data: data.map((d) => d.used || d.redeemed || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#67c23a" },
+        itemStyle: { color: "#0EA879" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(103,194,58,0.2)" },
-            { offset: 1, color: "rgba(103,194,58,0)" },
+            { offset: 0, color: "rgba(14,168,121,0.2)" },
+            { offset: 1, color: "rgba(14,168,121,0)" },
           ]),
         },
       },
@@ -580,7 +580,7 @@ async function renderCouponUsage() {
         yAxisIndex: 1,
         data: data.map((d) => Number(d.rate || d.redeemRate || 0)),
         smooth: true,
-        itemStyle: { color: "#e6a23c" },
+        itemStyle: { color: "#D48B3A" },
         symbol: "circle",
         symbolSize: 6,
       },
@@ -725,22 +725,22 @@ onBeforeUnmount(() => {
 }
 
 .stat-card.stat-primary {
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  background: linear-gradient(135deg, var(--color-primary), #337ecc);
 }
 .stat-card.stat-success {
-  background: linear-gradient(135deg, #67c23a, #529b2e);
+  background: linear-gradient(135deg, var(--color-success), #529b2e);
 }
 .stat-card.stat-info-card {
-  background: linear-gradient(135deg, #909399, #73767a);
+  background: linear-gradient(135deg, var(--gray-400), #73767a);
 }
 .stat-card.stat-purple {
   background: linear-gradient(135deg, #9b59b6, #7d3c98);
 }
 .stat-card.stat-warning {
-  background: linear-gradient(135deg, #e6a23c, #c98a2e);
+  background: linear-gradient(135deg, var(--color-warning), #c98a2e);
 }
 .stat-card.stat-danger {
-  background: linear-gradient(135deg, #f56c6c, #d94f4f);
+  background: linear-gradient(135deg, var(--color-danger), #d94f4f);
 }
 
 .stat-icon {
@@ -794,6 +794,6 @@ onBeforeUnmount(() => {
 }
 
 .best-value {
-  color: #67c23a;
+  color: var(--color-success);
 }
 </style>

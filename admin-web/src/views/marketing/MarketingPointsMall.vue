@@ -111,7 +111,7 @@
             </el-col>
           </el-row>
 
-          <div v-if="products.length === 0" style="text-align: center; padding: 40px; color: #909399">
+          <div v-if="products.length === 0" style="text-align: center; padding: 40px; color: #999999">
             <el-empty description="暂无商品" />
           </div>
 
@@ -189,7 +189,7 @@
                     <el-button size="small" link type="danger">取消兑换</el-button>
                   </template>
                 </el-popconfirm>
-                <span v-if="row.status !== 'PENDING'" style="color: #909399">-</span>
+                <span v-if="row.status !== 'PENDING'" style="color: #999999">-</span>
               </template>
             </el-table-column>
           </el-table>
@@ -521,16 +521,16 @@ function exportRecords() {
 }
 
 .stat-card.stat-primary {
-  background: linear-gradient(135deg, #409eff, #337ecc);
+  background: linear-gradient(135deg, var(--color-primary), #337ecc);
 }
 .stat-card.stat-success {
-  background: linear-gradient(135deg, #67c23a, #529b2e);
+  background: linear-gradient(135deg, var(--color-success), #529b2e);
 }
 .stat-card.stat-warning {
-  background: linear-gradient(135deg, #e6a23c, #c98a2e);
+  background: linear-gradient(135deg, var(--color-warning), #c98a2e);
 }
 .stat-card.stat-danger {
-  background: linear-gradient(135deg, #f56c6c, #d94f4f);
+  background: linear-gradient(135deg, var(--color-danger), #d94f4f);
 }
 
 .stat-icon {
@@ -565,7 +565,7 @@ function exportRecords() {
 /* 商品卡片 */
 .product-card {
   background: #fff;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
   transition: box-shadow 0.3s, transform 0.3s;
@@ -613,7 +613,7 @@ function exportRecords() {
 .product-name {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -627,12 +627,12 @@ function exportRecords() {
 .points-value {
   font-size: 22px;
   font-weight: 700;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .points-unit {
   font-size: 13px;
-  color: #f56c6c;
+  color: var(--color-danger);
   margin-left: 2px;
 }
 
@@ -642,24 +642,24 @@ function exportRecords() {
 }
 
 .market-price-label {
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .market-price-value {
-  color: #909399;
+  color: var(--gray-400);
   text-decoration: line-through;
   margin-left: 4px;
 }
 
 .product-stock {
   font-size: 12px;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 4px;
 }
 
 .product-exchange-count {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .product-card-actions {

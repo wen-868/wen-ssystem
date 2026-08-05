@@ -269,14 +269,14 @@ onMounted(() => {
   width: 240px;
   height: 240px;
   margin: 0 auto;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border: 2px dashed #d9d9d9;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #909399;
+  color: var(--gray-400);
 }
 .scan-icon {
   font-size: 48px;
@@ -284,22 +284,22 @@ onMounted(() => {
 }
 .scan-tip {
   margin-top: 16px;
-  color: #909399;
+  color: var(--gray-400);
 }
 .verified-success {
-  border-color: #67c23a;
+  border-color: var(--color-success);
 }
 .verified-success :deep(.el-card__header) {
-  border-bottom-color: #67c23a;
+  border-bottom-color: var(--color-success);
 }
 .verified-fail {
-  border-color: #f56c6c;
+  border-color: var(--color-danger);
 }
 .verified-fail :deep(.el-card__header) {
-  border-bottom-color: #f56c6c;
+  border-bottom-color: var(--color-danger);
 }
 .fail-message {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 16px;
   text-align: center;
   padding: 20px;

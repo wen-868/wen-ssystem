@@ -24,7 +24,7 @@ defineProps<{
 <style scoped>
 .stat-bar {
   display: flex;
-  background: #ffffff;
+  background: var(--gray-0);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 12px 8px;

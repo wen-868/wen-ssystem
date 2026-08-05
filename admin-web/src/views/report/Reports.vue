@@ -147,7 +147,7 @@
               <template #default="{ row }">
                 <el-progress
                   :percentage="Number(row.completionRate || 0)"
-                  :color="row.completionRate >= 100 ? '#67c23a' : '#e6a23c'"
+                  :color="row.completionRate >= 100 ? '#0EA879' : '#D48B3A'"
                 />
               </template>
             </el-table-column>
@@ -218,7 +218,7 @@ function getPercentage(value: number, total: number) {
 }
 
 function getProgressColor(index: number) {
-  const colors = ['#67c23a', '#e6a23c', '#409eff', '#f56c6c', '#909399'];
+  const colors = ['#0EA879', '#D48B3A', '#3F6FEF', '#C0392B', '#999999'];
   return colors[index % colors.length];
 }
 
@@ -362,13 +362,13 @@ onMounted(() => {
   position: absolute;
   bottom: 20px;
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 .bar-value {
   position: absolute;
   bottom: 0;
   font-size: 11px;
-  color: #606266;
+  color: var(--gray-600);
 }
 .pie-chart-container {
   padding: 10px 0;
@@ -390,17 +390,17 @@ onMounted(() => {
   height: 10px;
   border-radius: 50%;
 }
-.dot-0 { background: #67c23a; }
-.dot-1 { background: #e6a23c; }
-.dot-2 { background: #409eff; }
-.dot-3 { background: #f56c6c; }
-.dot-4 { background: #909399; }
+.dot-0 { background: var(--color-success); }
+.dot-1 { background: var(--color-warning); }
+.dot-2 { background: var(--color-primary); }
+.dot-3 { background: var(--color-danger); }
+.dot-4 { background: var(--gray-400); }
 .legend-label {
-  color: #606266;
+  color: var(--gray-600);
 }
 .legend-value {
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .pie-progress {
   display: flex;
@@ -415,16 +415,16 @@ onMounted(() => {
 .progress-label {
   width: 80px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
 }
 .progress-count {
   width: 50px;
   text-align: right;
   font-size: 13px;
-  color: #303133;
+  color: var(--gray-700);
 }
 .amount-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

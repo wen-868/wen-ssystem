@@ -61,12 +61,12 @@
             </el-table-column>
             <el-table-column label="套装价" width="110" align="right">
               <template #default="{ row }">
-                <span style="color: #f56c6c; font-weight: 600">¥{{ Number(row.comboPrice || 0).toFixed(2) }}</span>
+                <span style="color: #C0392B; font-weight: 600">¥{{ Number(row.comboPrice || 0).toFixed(2) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="优惠金额" width="110" align="right">
               <template #default="{ row }">
-                <span style="color: #67c23a">¥{{ Number(row.discountAmount || 0).toFixed(2) }}</span>
+                <span style="color: #0EA879">¥{{ Number(row.discountAmount || 0).toFixed(2) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="状态" width="90" align="center">
@@ -479,10 +479,10 @@
           <el-descriptions-item label="包含商品数">{{ currentCombo.productCount }} 件</el-descriptions-item>
           <el-descriptions-item label="原价">¥{{ Number(currentCombo.originalPrice || 0).toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="套装价">
-            <span style="color: #f56c6c; font-weight: 600">¥{{ Number(currentCombo.comboPrice || 0).toFixed(2) }}</span>
+            <span style="color: #C0392B; font-weight: 600">¥{{ Number(currentCombo.comboPrice || 0).toFixed(2) }}</span>
           </el-descriptions-item>
           <el-descriptions-item label="优惠金额">
-            <span style="color: #67c23a">¥{{ Number(currentCombo.discountAmount || 0).toFixed(2) }}</span>
+            <span style="color: #0EA879">¥{{ Number(currentCombo.discountAmount || 0).toFixed(2) }}</span>
           </el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(currentCombo.createdAt) }}</el-descriptions-item>
         </el-descriptions>
@@ -626,7 +626,7 @@
           </el-table-column>
         </el-table>
         <h4 style="margin-top: 20px">组合规则</h4>
-        <p style="color: #606266; line-height: 1.6">{{ currentGroup.ruleDescription || '暂无规则说明' }}</p>
+        <p style="color: #444444; line-height: 1.6">{{ currentGroup.ruleDescription || '暂无规则说明' }}</p>
       </template>
     </el-drawer>
   </div>
@@ -1323,15 +1323,15 @@ function initSalesTrendChart() {
             { offset: 1, color: "rgba(245, 108, 108, 0.05)" }
           ])
         },
-        lineStyle: { color: "#f56c6c", width: 2 },
-        itemStyle: { color: "#f56c6c" }
+        lineStyle: { color: "#C0392B", width: 2 },
+        itemStyle: { color: "#C0392B" }
       },
       {
         name: "销量",
         type: "bar",
         yAxisIndex: 1,
         data: sales,
-        itemStyle: { color: "#67c23a" },
+        itemStyle: { color: "#0EA879" },
         barWidth: "30%"
       }
     ]
@@ -1358,14 +1358,14 @@ function initDiscountChart() {
         name: "原价总额",
         type: "bar",
         data: originalAmounts,
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         barWidth: "30%"
       },
       {
         name: "优惠金额",
         type: "bar",
         data: discountAmounts,
-        itemStyle: { color: "#e6a23c" },
+        itemStyle: { color: "#D48B3A" },
         barWidth: "30%"
       }
     ]
@@ -1425,14 +1425,14 @@ onMounted(() => {
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 8px;
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 8px;
 }
 
@@ -1441,11 +1441,11 @@ onMounted(() => {
 }
 
 .stat-trend.up {
-  color: #67c23a;
+  color: var(--color-success);
 }
 
 .stat-trend.down {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .chart-header {
@@ -1463,7 +1463,7 @@ onMounted(() => {
 }
 
 .avatar-uploader {
-  border: 1px dashed #dcdfe6;
+  border: 1px dashed var(--gray-200);
   border-radius: 6px;
   cursor: pointer;
   width: 120px;
@@ -1475,7 +1475,7 @@ onMounted(() => {
 }
 
 .avatar-uploader:hover {
-  border-color: #409eff;
+  border-color: var(--color-primary);
 }
 
 .avatar-uploader-icon {

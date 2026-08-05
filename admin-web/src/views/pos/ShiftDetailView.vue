@@ -126,17 +126,17 @@
         <el-table-column prop="bookQty" label="账面数量" width="100" />
         <el-table-column prop="actualQty" label="实际数量" width="100">
           <template #default="{ row }">
-            <span :style="{ color: row.diffQty !== 0 ? '#e6a23c' : '#67c23a' }">
+            <span :style="{ color: row.diffQty !== 0 ? '#D48B3A' : '#0EA879' }">
               {{ row.actualQty ?? "-" }}
             </span>
           </template>
         </el-table-column>
         <el-table-column prop="diffQty" label="差异数量" width="100">
           <template #default="{ row }">
-            <span v-if="row.diffQty !== 0" :style="{ color: row.diffQty > 0 ? '#67c23a' : '#f56c6c' }">
+            <span v-if="row.diffQty !== 0" :style="{ color: row.diffQty > 0 ? '#0EA879' : '#C0392B' }">
               {{ row.diffQty > 0 ? "+" : "" }}{{ row.diffQty }}
             </span>
-            <span v-else style="color: #67c23a">无差异</span>
+            <span v-else style="color: #0EA879">无差异</span>
           </template>
         </el-table-column>
         <el-table-column prop="diffReason" label="差异原因" />
@@ -501,7 +501,7 @@ onMounted(() => {
   gap: 16px;
 }
 .stat-card {
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -513,7 +513,7 @@ onMounted(() => {
 }
 .stat-label {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-top: 4px;
 }
 .empty-tip {

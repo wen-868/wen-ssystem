@@ -84,7 +84,7 @@ onMounted(() => {
   padding: 0;
 }
 .low-stock {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

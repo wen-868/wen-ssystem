@@ -377,9 +377,9 @@ const countdownClass = computed(() => {
 });
 
 const countdownGradient = computed(() => {
-  if (countdown.value > 40) return "#67c23a";
-  if (countdown.value > 20) return "#e6a23c";
-  return "#f56c6c";
+  if (countdown.value > 40) return "#0EA879";
+  if (countdown.value > 20) return "#D48B3A";
+  return "#C0392B";
 });
 
 function getPlatformName(platform?: string) {
@@ -602,7 +602,7 @@ onBeforeUnmount(() => {
 }
 .toolbar-card {
   margin-bottom: 16px;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--border-light);
 }
 .toolbar {
   display: flex;
@@ -619,7 +619,7 @@ onBeforeUnmount(() => {
 .toolbar-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .toolbar-right {
   display: flex;
@@ -636,7 +636,7 @@ onBeforeUnmount(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -649,13 +649,13 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 .pending-column .column-header {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
 }
 .processing-column .column-header {
-  background: linear-gradient(135deg, #e6a23c 0%, #f0c78a 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, #f0c78a 100%);
 }
 .completed-column .column-header {
-  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
 }
 .column-title {
   font-size: 15px;
@@ -684,7 +684,7 @@ onBeforeUnmount(() => {
   cursor: grabbing;
 }
 .card-selected {
-  border: 2px solid #409eff;
+  border: 2px solid var(--color-primary);
 }
 .card-checkbox {
   position: absolute;
@@ -693,13 +693,13 @@ onBeforeUnmount(() => {
   z-index: 1;
 }
 .pending-card {
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--color-primary);
 }
 .processing-card {
-  border-left: 4px solid #e6a23c;
+  border-left: 4px solid var(--color-warning);
 }
 .completed-card {
-  border-left: 4px solid #67c23a;
+  border-left: 4px solid var(--color-success);
 }
 .card-top {
   display: flex;
@@ -710,7 +710,7 @@ onBeforeUnmount(() => {
 .order-no {
   font-size: 13px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .card-body {
   margin-bottom: 8px;
@@ -720,11 +720,11 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 4px;
 }
 .rider-line {
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 .card-bottom {
   display: flex;
@@ -735,7 +735,7 @@ onBeforeUnmount(() => {
 .card-amount {
   font-size: 16px;
   font-weight: 600;
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .card-countdown {
   font-size: 14px;
@@ -743,20 +743,20 @@ onBeforeUnmount(() => {
   font-family: "Courier New", monospace;
 }
 .card-countdown.countdown-green {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .card-countdown.countdown-yellow {
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 .card-countdown.countdown-red {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 .card-time {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 10px;
 }
 .card-actions {
@@ -780,10 +780,10 @@ onBeforeUnmount(() => {
 }
 .new-order-dialog :deep(.el-dialog__footer) {
   padding: 12px 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid var(--border-light);
 }
 .popup-header {
-  background: linear-gradient(135deg, #f56c6c 0%, #f78989 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, #f78989 100%);
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;
@@ -821,15 +821,15 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 .order-label {
-  color: #909399;
+  color: var(--gray-400);
   min-width: 70px;
 }
 .order-value {
-  color: #303133;
+  color: var(--gray-700);
   font-weight: 500;
 }
 .order-amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 18px;
   font-weight: 600;
 }
@@ -839,7 +839,7 @@ onBeforeUnmount(() => {
 }
 .order-items-list {
   margin-top: 8px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   padding: 8px 12px;
   border-radius: 4px;
 }
@@ -847,22 +847,22 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   padding: 4px 0;
 }
 .item-name {
   flex: 1;
 }
 .item-qty {
-  color: #909399;
+  color: var(--gray-400);
 }
 .order-remark {
   margin-top: 10px;
   font-size: 13px;
 }
 .remark-text {
-  color: #e6a23c;
-  background: #fdf6ec;
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
   padding: 4px 8px;
   border-radius: 4px;
 }

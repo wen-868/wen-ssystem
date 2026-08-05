@@ -992,9 +992,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 6px;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 11px;
 }
 .add-product-search {

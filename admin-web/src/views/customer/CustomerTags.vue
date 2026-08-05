@@ -68,7 +68,7 @@
         <el-form-item label="颜色">
           <div class="color-picker-row">
             <el-color-picker v-model="form.color" :predefine="colorPresets" />
-            <el-input v-model="form.color" placeholder="#409EFF" style="width: 120px; margin-left: 8px" />
+            <el-input v-model="form.color" placeholder="#3F6FEF" style="width: 120px; margin-left: 8px" />
           </div>
         </el-form-item>
         <el-form-item label="排序">
@@ -114,7 +114,7 @@ import { ElMessage, type FormRules } from "element-plus";
 import PageCard from "../../components/PageCard.vue";
 import { fetchCustomerTags, createCustomerTag, updateCustomerTag, deleteCustomerTag, addCustomerTag, fetchMembers } from "../../api";
 
-const colorPresets = ["#409EFF", "#67C23A", "#E6A23C", "#F56C6C", "#909399", "#1890FF", "#13C2C2", "#722ED1"];
+const colorPresets = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999", "#1890FF", "#13C2C2", "#722ED1"];
 
 const list = ref<any[]>([]);
 const allTags = ref<any[]>([]);
@@ -125,7 +125,7 @@ const pageSize = ref(20);
 const tagGroups = ref<string[]>([]);
 
 const searchForm = reactive({ keyword: "", tagGroup: "", tagType: "" });
-const form = reactive({ name: "", tagGroup: "", tagType: "", color: "#409EFF", sortNo: 0 });
+const form = reactive({ name: "", tagGroup: "", tagType: "", color: "#3F6FEF", sortNo: 0 });
 
 const formRules: FormRules = {
   name: [{ required: true, message: '请输入标签名称' }],
@@ -174,9 +174,9 @@ function openDialog(row?: any) {
   editing.value = !!row;
   if (row) {
     form.name = row.name; form.tagGroup = row.tagGroup; form.tagType = row.tagType;
-    form.color = row.color || "#409EFF"; form.sortNo = row.sortNo || 0;
+    form.color = row.color || "#3F6FEF"; form.sortNo = row.sortNo || 0;
   } else {
-    form.name = ""; form.tagGroup = ""; form.tagType = ""; form.color = "#409EFF"; form.sortNo = 0;
+    form.name = ""; form.tagGroup = ""; form.tagType = ""; form.color = "#3F6FEF"; form.sortNo = 0;
   }
   dialogVisible.value = true;
 }

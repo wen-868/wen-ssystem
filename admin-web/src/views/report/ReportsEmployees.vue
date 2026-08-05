@@ -110,7 +110,7 @@ function renderChart() {
   const gap = chartW / data.length;
 
   // Grid lines
-  ctx.strokeStyle = "#ebeef5";
+  ctx.strokeStyle = "#F0F0F0";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + (chartH / 5) * i;
@@ -118,7 +118,7 @@ function renderChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#909399";
+    ctx.fillStyle = "#999999";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText(formatYuan((maxVal / 5) * (5 - i)), padding.left - 10, y + 4);
@@ -130,14 +130,14 @@ function renderChart() {
     const h = (revenues[i] / maxVal) * chartH;
 
     const gradient = ctx.createLinearGradient(x, padding.top + chartH - h, x, padding.top + chartH);
-    gradient.addColorStop(0, "#409eff");
+    gradient.addColorStop(0, "#3F6FEF");
     gradient.addColorStop(1, "#79bbff");
     ctx.fillStyle = gradient;
 
     ctx.fillRect(x, padding.top + chartH - h, barW, h);
 
     // X labels
-    ctx.fillStyle = "#606266";
+    ctx.fillStyle = "#444444";
     ctx.font = "11px sans-serif";
     ctx.textAlign = "center";
     const label = names[i].length > 6 ? names[i].substring(0, 6) + "..." : names[i];

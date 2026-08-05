@@ -593,7 +593,7 @@ loadData()
   gap: 8px;
   margin-top: 10px;
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 6px;
   flex-wrap: wrap;
 }

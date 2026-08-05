@@ -318,10 +318,10 @@ onMounted(() => { loadAll(); });
   align-items: center;
   margin-bottom: 12px;
   padding: 8px 12px;
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 6px;
 }
-.meta-desc { color: #909399; font-size: 13px; }
+.meta-desc { color: var(--gray-400); font-size: 13px; }
 .meta-actions { display: flex; gap: 8px; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

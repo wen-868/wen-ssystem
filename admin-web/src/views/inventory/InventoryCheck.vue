@@ -462,17 +462,17 @@ onMounted(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
 .diff-positive {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .diff-negative {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

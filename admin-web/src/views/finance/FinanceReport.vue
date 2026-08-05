@@ -341,9 +341,9 @@ function renderTrendChart() {
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderColor: "#ebeef5",
+      borderColor: "#F0F0F0",
       borderWidth: 1,
-      textStyle: { color: "#606266" },
+      textStyle: { color: "#444444" },
       axisPointer: { type: "cross" }
     },
     legend: {
@@ -390,7 +390,7 @@ function renderTrendChart() {
         smooth: true,
         data: balances,
         yAxisIndex: 0,
-        itemStyle: { color: "#409eff" },
+        itemStyle: { color: "#3F6FEF" },
         areaStyle: {
           color: {
             type: "linear",
@@ -410,14 +410,14 @@ function renderTrendChart() {
         type: "bar",
         data: income,
         yAxisIndex: 1,
-        itemStyle: { color: "#67c23a" }
+        itemStyle: { color: "#0EA879" }
       },
       {
         name: "支出",
         type: "bar",
         data: expense,
         yAxisIndex: 1,
-        itemStyle: { color: "#f56c6c" }
+        itemStyle: { color: "#C0392B" }
       }
     ]
   });
@@ -451,12 +451,12 @@ onMounted(() => {
 }
 
 .income {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .expense {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -468,7 +468,7 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: #fafafa;
+  background: var(--gray-50);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -476,7 +476,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 8px;
   display: block;
 }
@@ -484,7 +484,7 @@ onMounted(() => {
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .chart-container {
@@ -502,7 +502,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  background: #fafafa;
+  background: var(--gray-50);
   padding: 20px;
   border-radius: 8px;
 }
@@ -515,12 +515,12 @@ onMounted(() => {
 
 .trend-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .trend-value {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 </style>

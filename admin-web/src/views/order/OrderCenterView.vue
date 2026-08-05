@@ -120,7 +120,7 @@
         <el-table-column label="客户" width="150">
           <template #default="{ row }">
             <div>{{ row.customerName }}</div>
-            <div style="font-size: 12px; color: #909399">{{ row.customerPhone }}</div>
+            <div style="font-size: 12px; color: #999999">{{ row.customerPhone }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="productSummary" label="商品摘要" min-width="180" show-overflow-tooltip />
@@ -433,8 +433,8 @@ function initOrderTrendChart() {
     yAxis: { type: 'value', axisLabel: { fontSize: 9 } },
     series: [{
       type: 'line', data: mockOrderTrend.map(d => d.count),
-      smooth: true, symbol: 'none', lineStyle: { color: '#409eff', width: 2 },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(64,158,255,0.3)' }, { offset: 1, color: 'rgba(64,158,255,0.05)' }]) }
+      smooth: true, symbol: 'none', lineStyle: { color: '#3F6FEF', width: 2 },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(63,111,239,0.3)' }, { offset: 1, color: 'rgba(63,111,239,0.05)' }]) }
     }]
   })
 }
@@ -499,7 +499,7 @@ onBeforeUnmount(() => {
 }
 
 .amount-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -508,7 +508,7 @@ onBeforeUnmount(() => {
 }
 
 .json-block {
-  background: #f5f7fa;
+  background: var(--bg-page);
   padding: 12px;
   border-radius: 4px;
   font-size: 12px;

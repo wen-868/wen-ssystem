@@ -593,17 +593,17 @@ onMounted(() => {
 
 .page-desc {
   margin: 0;
-  color: #909399;
+  color: var(--gray-400);
   font-size: 14px;
 }
 
 .amount-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
 .total-amount {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 18px;
   font-weight: 600;
 }

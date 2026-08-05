@@ -1030,7 +1030,7 @@ const renderChart = () => {
         label: { show: reportForm.showValue, position: "top" },
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#409eff" },
+            { offset: 0, color: "#3F6FEF" },
             { offset: 1, color: "#79bbff" },
           ]),
         },
@@ -1056,8 +1056,8 @@ const renderChart = () => {
         symbol: "circle",
         symbolSize: 8,
         label: { show: reportForm.showValue, position: "top" },
-        lineStyle: { width: 3, color: "#67c23a" },
-        itemStyle: { color: "#67c23a" },
+        lineStyle: { width: 3, color: "#0EA879" },
+        itemStyle: { color: "#0EA879" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(103, 194, 58, 0.3)" },
@@ -1114,7 +1114,7 @@ const renderChart = () => {
           data: yData,
           barMaxWidth: 30,
           label: { show: reportForm.showValue, position: "top" },
-          itemStyle: { color: "#409eff" },
+          itemStyle: { color: "#3F6FEF" },
         },
         {
           name: y2Label,
@@ -1124,8 +1124,8 @@ const renderChart = () => {
           smooth: true,
           symbol: "circle",
           symbolSize: 8,
-          lineStyle: { width: 2, color: "#e6a23c" },
-          itemStyle: { color: "#e6a23c" },
+          lineStyle: { width: 2, color: "#D48B3A" },
+          itemStyle: { color: "#D48B3A" },
         },
       ],
     };
@@ -1217,7 +1217,7 @@ onUnmounted(() => {
   margin-top: 16px;
 }
 .text-muted {
-  color: #909399;
+  color: var(--gray-400);
   font-size: 12px;
 }
 
@@ -1226,7 +1226,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 100px);
-  background: #f5f7fa;
+  background: var(--bg-page);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1236,7 +1236,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 12px 20px;
   background: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--gray-200);
 }
 .designer-title {
   display: flex;
@@ -1254,7 +1254,7 @@ onUnmounted(() => {
 .designer-left {
   width: 340px;
   background: #fff;
-  border-right: 1px solid #e4e7ed;
+  border-right: 1px solid var(--gray-200);
   overflow-y: auto;
   padding: 10px;
 }
@@ -1274,7 +1274,7 @@ onUnmounted(() => {
 .preview-title {
   font-size: 15px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 .preview-actions {
   display: flex;
@@ -1323,19 +1323,19 @@ onUnmounted(() => {
   justify-content: center;
   gap: 6px;
   padding: 12px 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--gray-200);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   font-size: 12px;
 }
 .datasource-item:hover {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
 }
 .datasource-item.active {
-  border-color: #409eff;
-  background: #409eff;
+  border-color: var(--color-primary);
+  background: var(--color-primary);
   color: #fff;
 }
 .datasource-item.active .ds-icon {
@@ -1343,7 +1343,7 @@ onUnmounted(() => {
 }
 .ds-icon {
   font-size: 24px;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 /* 字段选择 */
@@ -1353,7 +1353,7 @@ onUnmounted(() => {
 .field-section-title {
   font-size: 12px;
   font-weight: 600;
-  color: #606266;
+  color: var(--gray-600);
   margin-bottom: 8px;
   padding-left: 4px;
 }
@@ -1367,8 +1367,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  background: #f5f7fa;
-  border: 1px solid #e4e7ed;
+  background: var(--bg-page);
+  border: 1px solid var(--gray-200);
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
@@ -1377,11 +1377,11 @@ onUnmounted(() => {
 }
 .field-item:hover {
   border-color: #c6e2ff;
-  background: #ecf5ff;
+  background: var(--color-primary-bg);
 }
 .field-item.selected {
-  background: #409eff;
-  border-color: #409eff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 .field-item.selected .field-icon {
@@ -1389,10 +1389,10 @@ onUnmounted(() => {
 }
 .field-icon {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 .field-icon.metric {
-  color: #67c23a;
+  color: var(--color-success);
 }
 .field-check {
   font-size: 12px;

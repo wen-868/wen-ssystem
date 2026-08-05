@@ -94,7 +94,7 @@
         </el-table-column>
         <el-table-column label="余额" width="160" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.balance || 0) >= 0 ? '#67c23a' : '#f56c6c' }">
+            <span :style="{ color: (row.balance || 0) >= 0 ? '#0EA879' : '#C0392B' }">
               {{ formatYuan(row.balance) }}
             </span>
           </template>
@@ -196,16 +196,16 @@ function renderCashFlowChart(data: any[]) {
         type: "line",
         data: incomes,
         smooth: true,
-        itemStyle: { color: "#67c23a" },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(103,194,58,0.3)" }, { offset: 1, color: "rgba(103,194,58,0)" }]) }
+        itemStyle: { color: "#0EA879" },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(14,168,121,0.3)" }, { offset: 1, color: "rgba(14,168,121,0)" }]) }
       },
       {
         name: "支出",
         type: "line",
         data: expenses,
         smooth: true,
-        itemStyle: { color: "#f56c6c" },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(245,108,108,0.3)" }, { offset: 1, color: "rgba(245,108,108,0)" }]) }
+        itemStyle: { color: "#C0392B" },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(192,57,43,0.3)" }, { offset: 1, color: "rgba(192,57,43,0)" }]) }
       }
     ]
   });
@@ -228,9 +228,9 @@ function renderProfitChart(data: any[]) {
     xAxis: { type: "category", data: months },
     yAxis: { type: "value", axisLabel: { formatter: (v: number) => formatYuan(v) } },
     series: [
-      { name: "收入", type: "bar", data: incomes, itemStyle: { color: "#409eff" }, barGap: "10%" },
-      { name: "支出", type: "bar", data: expenses, itemStyle: { color: "#f56c6c" } },
-      { name: "利润", type: "line", data: profits, smooth: true, itemStyle: { color: "#67c23a" }, symbol: "circle", symbolSize: 8 }
+      { name: "收入", type: "bar", data: incomes, itemStyle: { color: "#3F6FEF" }, barGap: "10%" },
+      { name: "支出", type: "bar", data: expenses, itemStyle: { color: "#C0392B" } },
+      { name: "利润", type: "line", data: profits, smooth: true, itemStyle: { color: "#0EA879" }, symbol: "circle", symbolSize: 8 }
     ]
   });
 }
@@ -259,8 +259,8 @@ function renderTopBarChart(
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-          { offset: 0, color: "#409eff" },
-          { offset: 1, color: "#67c23a" }
+          { offset: 0, color: "#3F6FEF" },
+          { offset: 1, color: "#0EA879" }
         ])
       }
     }]
@@ -293,14 +293,14 @@ onMounted(() => {
   flex: 1;
   padding: 20px;
   border-radius: 8px;
-  background: #f5f7fa;
-  border-left: 4px solid #409eff;
+  background: var(--bg-page);
+  border-left: 4px solid var(--color-primary);
 }
 
-.stat-card.stat-primary { border-left-color: #409eff; }
-.stat-card.stat-danger { border-left-color: #f56c6c; }
-.stat-card.stat-warning { border-left-color: #e6a23c; }
-.stat-card.stat-success { border-left-color: #67c23a; }
+.stat-card.stat-primary { border-left-color: var(--color-primary); }
+.stat-card.stat-danger { border-left-color: var(--color-danger); }
+.stat-card.stat-warning { border-left-color: var(--color-warning); }
+.stat-card.stat-success { border-left-color: var(--color-success); }
 
 .stat-item {
   text-align: center;
@@ -308,14 +308,14 @@ onMounted(() => {
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 8px;
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 4px;
 }
 
@@ -325,11 +325,11 @@ onMounted(() => {
 }
 
 .stat-up {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 .stat-down {
-  color: #67c23a;
+  color: var(--color-success);
 }
 
 .chart-body {

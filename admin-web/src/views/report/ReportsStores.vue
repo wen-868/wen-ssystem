@@ -43,7 +43,7 @@
         </el-table-column>
         <el-table-column label="环比增长" width="120" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.growthRate || 0) >= 0 ? '#67c23a' : '#f56c6c' }">
+            <span :style="{ color: (row.growthRate || 0) >= 0 ? '#0EA879' : '#C0392B' }">
               {{ row.growthRate != null ? (row.growthRate >= 0 ? '+' : '') + (row.growthRate * 1).toFixed(1) + '%' : '-' }}
             </span>
           </template>
@@ -123,7 +123,7 @@ function renderChart() {
   const gap = chartW / data.length;
 
   // Grid lines
-  ctx.strokeStyle = "#ebeef5";
+  ctx.strokeStyle = "#F0F0F0";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + (chartH / 5) * i;
@@ -131,7 +131,7 @@ function renderChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#909399";
+    ctx.fillStyle = "#999999";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     const label = metric.value === "orders"
@@ -145,13 +145,13 @@ function renderChart() {
     const x = padding.left + gap * i + (gap - barW) / 2;
     const h = (values[i] / maxVal) * chartH;
 
-    const colors = ["#409eff", "#67c23a", "#e6a23c", "#f56c6c", "#909399", "#00d4ff", "#ff6b6b", "#a29bfe"];
+    const colors = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999", "#00d4ff", "#ff6b6b", "#a29bfe"];
     ctx.fillStyle = colors[i % colors.length];
 
     ctx.fillRect(x, padding.top + chartH - h, barW, h);
 
     // Value on top
-    ctx.fillStyle = "#303133";
+    ctx.fillStyle = "#333333";
     ctx.font = "11px sans-serif";
     ctx.textAlign = "center";
     const valText = metric.value === "orders"
@@ -160,7 +160,7 @@ function renderChart() {
     ctx.fillText(valText, x + barW / 2, padding.top + chartH - h - 6);
 
     // X labels
-    ctx.fillStyle = "#606266";
+    ctx.fillStyle = "#444444";
     ctx.font = "11px sans-serif";
     const label = names[i].length > 6 ? names[i].substring(0, 6) + "..." : names[i];
     ctx.fillText(label, x + barW / 2, height - padding.bottom + 20);

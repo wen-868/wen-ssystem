@@ -111,7 +111,7 @@
         </el-form-item>
         <el-form-item label="折扣率(%)">
           <el-input-number v-model="batchForm.discountRate" :min="1" :max="100" :precision="1" style="width: 100%" />
-          <span style="color: #909399; font-size: 12px; margin-left: 8px">如 90 表示按标准价 9 折</span>
+          <span style="color: #999999; font-size: 12px; margin-left: 8px">如 90 表示按标准价 9 折</span>
         </el-form-item>
         <el-form-item label="有效期">
           <el-date-picker

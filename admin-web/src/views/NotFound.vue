@@ -29,6 +29,6 @@ function goBack() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-page, #f5f7fa);
+  background: var(--bg-page, var(--bg-page));
 }
 </style>

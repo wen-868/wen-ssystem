@@ -108,7 +108,7 @@
               <div class="stat-item">
                 <div class="stat-label">A类（70%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.A_count || 0 }}种</div>
-                <div style="color:#909399;font-size:12px">¥{{ formatNum(abcData?.summary?.A_amount) }}</div>
+                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.A_amount) }}</div>
               </div>
             </el-card>
           </el-col>
@@ -117,7 +117,7 @@
               <div class="stat-item">
                 <div class="stat-label">B类（20%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.B_count || 0 }}种</div>
-                <div style="color:#909399;font-size:12px">¥{{ formatNum(abcData?.summary?.B_amount) }}</div>
+                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.B_amount) }}</div>
               </div>
             </el-card>
           </el-col>
@@ -126,7 +126,7 @@
               <div class="stat-item">
                 <div class="stat-label">C类（10%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.C_count || 0 }}种</div>
-                <div style="color:#909399;font-size:12px">¥{{ formatNum(abcData?.summary?.C_amount) }}</div>
+                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.C_amount) }}</div>
               </div>
             </el-card>
           </el-col>
@@ -221,10 +221,10 @@ function renderAgeChart() {
     series: [{
       type: "pie", radius: ["40%", "70%"],
       data: [
-        { value: Number(d.age0_30 || 0), name: "30天内", itemStyle: { color: "#67C23A" } },
-        { value: Number(d.age30_60 || 0), name: "30-60天", itemStyle: { color: "#E6A23C" } },
-        { value: Number(d.age60_90 || 0), name: "60-90天", itemStyle: { color: "#F56C6C" } },
-        { value: Number(d.age90plus || 0), name: "90天以上", itemStyle: { color: "#909399" } },
+        { value: Number(d.age0_30 || 0), name: "30天内", itemStyle: { color: "#0EA879" } },
+        { value: Number(d.age30_60 || 0), name: "30-60天", itemStyle: { color: "#D48B3A" } },
+        { value: Number(d.age60_90 || 0), name: "60-90天", itemStyle: { color: "#C0392B" } },
+        { value: Number(d.age90plus || 0), name: "90天以上", itemStyle: { color: "#999999" } },
       ]
     }]
   };
@@ -259,10 +259,10 @@ onMounted(() => loadData());
 .stat-row { margin-bottom: 16px; }
 .stat-card { border-radius: 8px; }
 .stat-item { text-align: center; padding: 8px 0; }
-.stat-label { color: #909399; font-size: 13px; margin-bottom: 8px; }
-.stat-value { font-size: 26px; font-weight: 600; color: #303133; }
-.stat-warning .stat-value { color: #E6A23C; }
-.stat-danger .stat-value { color: #F56C6C; }
-.stat-success .stat-value { color: #67C23A; }
+.stat-label { color: var(--gray-400); font-size: 13px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 600; color: var(--gray-700); }
+.stat-warning .stat-value { color: var(--color-warning); }
+.stat-danger .stat-value { color: var(--color-danger); }
+.stat-success .stat-value { color: var(--color-success); }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
 </style>

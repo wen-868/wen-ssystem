@@ -395,8 +395,8 @@
             <el-divider content-position="left">主图</el-divider>
             <el-input v-model="detailSpu.mainImage" placeholder="主图URL，修改后自动保存" @change="saveDetailField('mainImage', detailSpu.mainImage)" />
             <el-divider content-position="left">商品详情 (富文本)</el-divider>
-            <div style="border: 1px solid #dcdfe6; border-radius: 4px">
-              <div style="border-bottom: 1px solid #dcdfe6; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
+            <div style="border: 1px solid var(--gray-200); border-radius: 4px">
+              <div style="border-bottom: 1px solid var(--gray-200); padding: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
                 <el-button size="small" :type="richEditor?.isActive('bold') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBold().run()" style="font-weight: bold;">B</el-button>
                 <el-button size="small" :type="richEditor?.isActive('italic') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleItalic().run()" style="font-style: italic;">I</el-button>
                 <el-button size="small" :type="richEditor?.isActive('strike') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleStrike().run()" style="text-decoration: line-through;">S</el-button>
@@ -973,11 +973,11 @@ onMounted(() => { search(); loadRefData(); });
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .header-actions { display: flex; align-items: center; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
-.expand-content { padding: 8px 20px; background: #fafafa; }
-.expand-content h4 { margin: 0 0 8px; font-size: 14px; color: #303133; }
-.detail-main-image { text-align: center; background: #f5f7fa; border-radius: 8px; padding: 12px; }
+.expand-content { padding: 8px 20px; background: var(--gray-50); }
+.expand-content h4 { margin: 0 0 8px; font-size: 14px; color: var(--gray-700); }
+.detail-main-image { text-align: center; background: var(--bg-page); border-radius: 8px; padding: 12px; }
 .tag-cb-group { display: flex; flex-direction: column; gap: 8px; }
-.sku-row { background: #fafafa; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.sku-row { background: var(--gray-50); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
 .sku-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 500; }
 
 /* tiptap 富文本编辑器样式 */
@@ -990,7 +990,7 @@ onMounted(() => { search(); loadRefData(); });
 :deep(.ProseMirror h2) { font-size: 1.3em; margin: 0.5em 0; }
 :deep(.ProseMirror ul) { padding-left: 20px; list-style: disc; }
 :deep(.ProseMirror ol) { padding-left: 20px; list-style: decimal; }
-:deep(.ProseMirror blockquote) { border-left: 3px solid #dcdfe6; padding-left: 12px; color: #909399; margin: 0.5em 0; }
-:deep(.ProseMirror pre) { background: #f5f7fa; border-radius: 4px; padding: 8px 12px; font-family: monospace; overflow-x: auto; }
-:deep(.ProseMirror code) { background: #f5f7fa; border-radius: 3px; padding: 1px 4px; font-family: monospace; }
+:deep(.ProseMirror blockquote) { border-left: 3px solid var(--gray-200); padding-left: 12px; color: var(--gray-400); margin: 0.5em 0; }
+:deep(.ProseMirror pre) { background: var(--bg-page); border-radius: 4px; padding: 8px 12px; font-family: monospace; overflow-x: auto; }
+:deep(.ProseMirror code) { background: var(--bg-page); border-radius: 3px; padding: 1px 4px; font-family: monospace; }
 </style>

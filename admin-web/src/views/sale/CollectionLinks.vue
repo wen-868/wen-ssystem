@@ -109,7 +109,7 @@
         </el-form-item>
         <el-form-item label="收款金额">
           <el-input-number v-model="batchForm.amount" :min="0" :precision="2" style="width: 100%" placeholder="0=全额收款" />
-          <span style="color: #909399; font-size: 12px; margin-left: 8px">0表示收全部未收金额</span>
+          <span style="color: #999999; font-size: 12px; margin-left: 8px">0表示收全部未收金额</span>
         </el-form-item>
         <el-form-item label="有效期(小时)">
           <el-input-number v-model="batchForm.expireHours" :min="1" :max="720" style="width: 100%" />
@@ -269,12 +269,12 @@ onMounted(() => {
   padding: 16px 20px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  border-left: 4px solid #409eff;
+  border-left: 4px solid var(--color-primary);
 }
-.stat-card.paid { border-left-color: #67c23a; }
-.stat-card.pending { border-left-color: #e6a23c; }
-.stat-card.expired { border-left-color: #f56c6c; }
-.stat-card.revoked { border-left-color: #909399; }
-.stat-value { font-size: 28px; font-weight: 700; color: #303133; }
-.stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+.stat-card.paid { border-left-color: var(--color-success); }
+.stat-card.pending { border-left-color: var(--color-warning); }
+.stat-card.expired { border-left-color: var(--color-danger); }
+.stat-card.revoked { border-left-color: var(--gray-400); }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--gray-700); }
+.stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
 </style>

@@ -104,7 +104,7 @@
         <el-table-column prop="channelOrderNo" label="订单号" width="150" />
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
-            <el-tag :color="channelColors[row.channelType] || '#409eff'" style="color: #fff; border: none" size="small">
+            <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
               {{ channelNames[row.channelType] || row.channelType }}
             </el-tag>
           </template>
@@ -142,11 +142,11 @@
                 </template>
                 <div>
                   <p><strong>错误详情</strong></p>
-                  <p style="color: #909399; font-size: 13px">{{ row.errorMessage }} - 接口返回超时，请检查网络连接或稍后重试</p>
+                  <p style="color: #999999; font-size: 13px">{{ row.errorMessage }} - 接口返回超时，请检查网络连接或稍后重试</p>
                 </div>
               </el-popover>
             </template>
-            <span v-else style="color: #909399">-</span>
+            <span v-else style="color: #999999">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="syncedAt" label="同步时间" width="160" />
@@ -202,7 +202,7 @@
           </el-select>
         </el-descriptions-item>
         <el-descriptions-item label="下次执行时间">
-          <span style="color: #409eff">{{ nextExecutionTime }}</span>
+          <span style="color: #3F6FEF">{{ nextExecutionTime }}</span>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -350,7 +350,7 @@ function initChannelSuccessChart() {
       itemStyle: {
         borderRadius: [4, 4, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#67c23a' },
+          { offset: 0, color: '#0EA879' },
           { offset: 1, color: '#b3e19d' }
         ])
       },
@@ -410,7 +410,7 @@ onBeforeUnmount(() => {
 
 .progress-label {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
   white-space: nowrap;
 }
 
@@ -423,23 +423,23 @@ onBeforeUnmount(() => {
 }
 
 .status-from {
-  color: #e6a23c;
+  color: var(--color-warning);
   font-weight: 500;
 }
 
 .status-arrow {
   margin: 0 8px;
-  color: #909399;
+  color: var(--gray-400);
   font-weight: bold;
 }
 
 .status-to {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 500;
 }
 
 .error-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-size: 13px;
   cursor: pointer;
 }

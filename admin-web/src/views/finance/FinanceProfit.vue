@@ -76,14 +76,14 @@
         </el-table-column>
         <el-table-column label="利润" width="140" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.profit || 0) >= 0 ? '#67c23a' : '#f56c6c' }">
+            <span :style="{ color: (row.profit || 0) >= 0 ? '#0EA879' : '#C0392B' }">
               {{ formatYuan(row.profit) }}
             </span>
           </template>
         </el-table-column>
         <el-table-column label="利润率" width="120" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.margin || 0) >= 0 ? '#67c23a' : '#f56c6c' }">
+            <span :style="{ color: (row.margin || 0) >= 0 ? '#0EA879' : '#C0392B' }">
               {{ row.margin != null ? (row.margin * 1).toFixed(1) + '%' : '-' }}
             </span>
           </template>
@@ -201,7 +201,7 @@ function renderBarChart() {
   const barWidth = barGroupWidth * 0.35;
 
   // Grid lines
-  ctx.strokeStyle = "#ebeef5";
+  ctx.strokeStyle = "#F0F0F0";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + chartH - (chartH / 5) * i;
@@ -209,7 +209,7 @@ function renderBarChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#909399";
+    ctx.fillStyle = "#999999";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText(formatYuan((maxVal / 5) * i), padding.left - 10, y + 4);
@@ -221,15 +221,15 @@ function renderBarChart() {
     const revH = revenues[i] * yScale;
     const costH = costs[i] * yScale;
 
-    ctx.fillStyle = "#409eff";
+    ctx.fillStyle = "#3F6FEF";
     ctx.fillRect(x, padding.top + chartH - revH, barWidth, revH);
 
-    ctx.fillStyle = "#f56c6c";
+    ctx.fillStyle = "#C0392B";
     ctx.fillRect(x + barWidth + 4, padding.top + chartH - costH, barWidth, costH);
   });
 
   // X labels
-  ctx.fillStyle = "#606266";
+  ctx.fillStyle = "#444444";
   ctx.font = "11px sans-serif";
   ctx.textAlign = "center";
   data.forEach((_: any, i: number) => {
@@ -238,15 +238,15 @@ function renderBarChart() {
   });
 
   // Legend
-  ctx.fillStyle = "#409eff";
+  ctx.fillStyle = "#3F6FEF";
   ctx.fillRect(padding.left, 8, 12, 12);
-  ctx.fillStyle = "#606266";
+  ctx.fillStyle = "#444444";
   ctx.textAlign = "left";
   ctx.fillText("收入", padding.left + 18, 18);
 
-  ctx.fillStyle = "#f56c6c";
+  ctx.fillStyle = "#C0392B";
   ctx.fillRect(padding.left + 60, 8, 12, 12);
-  ctx.fillStyle = "#606266";
+  ctx.fillStyle = "#444444";
   ctx.fillText("成本", padding.left + 78, 18);
 }
 
@@ -280,7 +280,7 @@ function renderLineChart() {
   const yScale = chartH / range;
 
   // Grid lines
-  ctx.strokeStyle = "#ebeef5";
+  ctx.strokeStyle = "#F0F0F0";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + (chartH / 5) * i;
@@ -288,7 +288,7 @@ function renderLineChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#909399";
+    ctx.fillStyle = "#999999";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     const val = maxVal - (range / 5) * i;
@@ -296,7 +296,7 @@ function renderLineChart() {
   }
 
   // Line
-  ctx.strokeStyle = "#67c23a";
+  ctx.strokeStyle = "#0EA879";
   ctx.lineWidth = 2;
   ctx.beginPath();
   profits.forEach((val: number, i: number) => {
@@ -311,14 +311,14 @@ function renderLineChart() {
   profits.forEach((val: number, i: number) => {
     const x = padding.left + (chartW / (periods.length - 1 || 1)) * i;
     const y = padding.top + (maxVal - val) * yScale;
-    ctx.fillStyle = "#67c23a";
+    ctx.fillStyle = "#0EA879";
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI * 2);
     ctx.fill();
   });
 
   // X labels
-  ctx.fillStyle = "#606266";
+  ctx.fillStyle = "#444444";
   ctx.font = "11px sans-serif";
   ctx.textAlign = "center";
   data.forEach((_: any, i: number) => {

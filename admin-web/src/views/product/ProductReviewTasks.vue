@@ -207,7 +207,7 @@
           v-for="(log, idx) in detail.reviewLogs"
           :key="idx"
           :timestamp="log.reviewedAt"
-          :color="log.result === 'APPROVED' ? '#67c23a' : log.result === 'REJECTED' ? '#f56c6c' : '#e6a23c'"
+          :color="log.result === 'APPROVED' ? '#0EA879' : log.result === 'REJECTED' ? '#C0392B' : '#D48B3A'"
           placement="top"
         >
           <div class="timeline-node">
@@ -668,35 +668,35 @@ onMounted(() => {
 }
 
 .stat-primary .stat-icon {
-  background: linear-gradient(135deg, #409eff, #66b1ff);
+  background: linear-gradient(135deg, var(--color-primary), #66b1ff);
 }
 
 .stat-warning .stat-icon {
-  background: linear-gradient(135deg, #e6a23c, #f0c36d);
+  background: linear-gradient(135deg, var(--color-warning), #f0c36d);
 }
 
 .stat-success .stat-icon {
-  background: linear-gradient(135deg, #67c23a, #85ce61);
+  background: linear-gradient(135deg, var(--color-success), #85ce61);
 }
 
 .stat-danger .stat-icon {
-  background: linear-gradient(135deg, #f56c6c, #f78989);
+  background: linear-gradient(135deg, var(--color-danger), #f78989);
 }
 
 .stat-info .stat-icon {
-  background: linear-gradient(135deg, #909399, #a6a9ad);
+  background: linear-gradient(135deg, var(--gray-400), #a6a9ad);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: 600;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .filter-bar {
@@ -727,7 +727,7 @@ onMounted(() => {
 
 .product-name {
   font-size: 14px;
-  color: #303133;
+  color: var(--gray-700);
   margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -736,11 +736,11 @@ onMounted(() => {
 
 .product-sub {
   font-size: 12px;
-  color: #909399;
+  color: var(--gray-400);
 }
 
 .text-danger {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 500;
 }
 
@@ -759,11 +759,11 @@ onMounted(() => {
 
 .node-approver {
   font-weight: 500;
-  color: #303133;
+  color: var(--gray-700);
 }
 
 .node-opinion {
   font-size: 13px;
-  color: #606266;
+  color: var(--gray-600);
 }
 </style>

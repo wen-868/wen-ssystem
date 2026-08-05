@@ -30,8 +30,8 @@
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: #ecf5ff">
-              <el-icon :size="28" color="#409EFF"><Money /></el-icon>
+            <div class="stat-icon" style="background: rgba(63,111,239,0.06)">
+              <el-icon :size="28" color="#3F6FEF"><Money /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">收款总金额</div>
@@ -43,8 +43,8 @@
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: #f0f9eb">
-              <el-icon :size="28" color="#67C23A"><Tickets /></el-icon>
+            <div class="stat-icon" style="background: rgba(14,168,121,0.12)">
+              <el-icon :size="28" color="#0EA879"><Tickets /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">收款总笔数</div>
@@ -56,8 +56,8 @@
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: #fdf6ec">
-              <el-icon :size="28" color="#E6A23C"><Coin /></el-icon>
+            <div class="stat-icon" style="background: rgba(212,139,58,0.12)">
+              <el-icon :size="28" color="#D48B3A"><Coin /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">日均收款额</div>
@@ -70,7 +70,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: #fef0f0">
-              <el-icon :size="28" color="#F56C6C"><DataLine /></el-icon>
+              <el-icon :size="28" color="#C0392B"><DataLine /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">单笔均值</div>
@@ -212,10 +212,10 @@ function getPercentage(amount: number): number {
 
 function getProgressColor(amount: number): string {
   const pct = getPercentage(amount);
-  if (pct > 30) return "#F56C6C";
-  if (pct > 15) return "#E6A23C";
-  if (pct > 5) return "#409EFF";
-  return "#67C23A";
+  if (pct > 30) return "#C0392B";
+  if (pct > 15) return "#D48B3A";
+  if (pct > 5) return "#3F6FEF";
+  return "#0EA879";
 }
 
 function getAvgAmount(row: any): number {
@@ -303,7 +303,7 @@ function renderChart() {
         data: chartData.value.map(d => d.amount),
         smooth: true,
         areaStyle: isDateMode ? { opacity: 0.15 } : undefined,
-        itemStyle: { color: "#409EFF" },
+        itemStyle: { color: "#3F6FEF" },
         lineStyle: { width: 3 }
       },
       {
@@ -311,7 +311,7 @@ function renderChart() {
         type: "bar",
         yAxisIndex: 1,
         data: chartData.value.map(d => d.count),
-        itemStyle: { color: "#67C23A", opacity: 0.7 }
+        itemStyle: { color: "#0EA879", opacity: 0.7 }
       }
     ]
   });
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 }
 .filter-label {
   font-size: 14px;
-  color: #606266;
+  color: var(--gray-600);
   white-space: nowrap;
 }
 .stat-card {
@@ -374,13 +374,13 @@ onBeforeUnmount(() => {
 }
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--gray-400);
   margin-bottom: 4px;
 }
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--gray-700);
   line-height: 1.2;
 }
 .chart-container {
@@ -389,6 +389,6 @@ onBeforeUnmount(() => {
 }
 .amount-text {
   font-weight: 600;
-  color: #e6a23c;
+  color: var(--color-warning);
 }
 </style>
