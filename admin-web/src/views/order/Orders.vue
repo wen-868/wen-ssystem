@@ -34,7 +34,7 @@
 
       <StatBar :stats="orderStats" />
       <TableSkeleton v-if="loading" />
-      <el-table v-else :data="orders" stripe>
+      <el-table v-else class="list-table" :data="orders" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200" />
         <el-table-column prop="customerType" label="客户类型" width="100">
           <template #default="{ row }">
@@ -242,7 +242,7 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .amount-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

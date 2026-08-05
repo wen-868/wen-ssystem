@@ -7,7 +7,7 @@
           <div class="header-actions">
             <el-input
               v-model="keyword" placeholder="搜索商品名称/SKU编码/条码" size="default"
-              style="width: 260px; margin-right: 10px" clearable @clear="search" @keyup.enter="search"
+              style="width: 220px; margin-right: 10px" clearable @clear="search" @keyup.enter="search"
             />
             <el-button type="primary" @click="openCreateDialog">
               <el-icon><Plus /></el-icon> 新增商品
@@ -19,7 +19,7 @@
 
       <StatBar :stats="productStats" />
       <TableSkeleton v-if="loading" />
-      <el-table v-else
+      <el-table v-else class="list-table"
         :data="spuList" stripe row-key="spuId"
         @expand-change="onExpandChange" :expand-row-keys="expandKeys"
       >
@@ -61,7 +61,7 @@
               v-if="row.mainImage" :src="row.mainImage" :preview-src-list="[row.mainImage]"
               style="width: 40px; height: 40px; border-radius: 4px" fit="cover"
             />
-            <span v-else style="color: #ccc">-</span>
+            <span v-else style="color: var(--gray-300)">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="spuCode" label="SPU编码" width="130" />

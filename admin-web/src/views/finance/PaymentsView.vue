@@ -11,9 +11,24 @@
       </template>
 
       <StatBar :stats="paymentStats" />
+      <div class="list-filter-bar">
+        <el-input
+          v-model="filterKeyword"
+          placeholder="搜索单号/关联单号"
+          size="default"
+          clearable
+          @clear="refreshCurrent"
+          @keyup.enter="refreshCurrent"
+        />
+        <el-select v-model="filterStatus" placeholder="全部状态" size="default" clearable @change="refreshCurrent">
+          <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+        </el-select>
+        <el-button type="primary" @click="refreshCurrent">查询</el-button>
+        <el-button @click="resetFilters">重置</el-button>
+      </div>
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="分享收款" name="collection">
-          <el-table :data="collectionLinks" v-loading="loading" stripe empty-text="暂无记录">
+          <el-table class="list-table" :data="collectionLinks" v-loading="loading" stripe empty-text="暂无记录">
             <el-table-column prop="linkNo" label="收款单号" width="200" />
             <el-table-column prop="sourceNo" label="关联销售单" width="200" />
             <el-table-column label="收款金额" width="120">
@@ -39,7 +54,7 @@
         </el-tab-pane>
 
         <el-tab-pane label="支付记录" name="payment">
-          <el-table :data="paymentOrders" v-loading="loading" stripe empty-text="暂无记录">
+          <el-table class="list-table" :data="paymentOrders" v-loading="loading" stripe empty-text="暂无记录">
             <el-table-column prop="payNo" label="支付单号" width="200" />
             <el-table-column prop="sourceNo" label="关联来源" width="200" />
             <el-table-column label="金额" width="120">
@@ -64,7 +79,7 @@
         </el-tab-pane>
 
         <el-tab-pane label="退款记录" name="refund">
-          <el-table :data="refundOrders" v-loading="loading" stripe empty-text="暂无退款">
+          <el-table class="list-table" :data="refundOrders" v-loading="loading" stripe empty-text="暂无退款">
             <el-table-column prop="refundNo" label="退款单号" width="200" />
             <el-table-column prop="payNo" label="支付单号" width="200" />
             <el-table-column prop="sourceNo" label="关联来源" width="180" />
@@ -117,6 +132,8 @@ const collectionLinks = ref<any[]>([]);
 const paymentOrders = ref<any[]>([]);
 const refundOrders = ref<any[]>([]);
 const total = ref(0);
+const filterKeyword = ref("");
+const filterStatus = ref("");
 
 /** 财务统计条（对标设计稿 p08） */
 const paymentStats = computed(() => {
@@ -124,6 +141,22 @@ const paymentStats = computed(() => {
     { label: "收款关联", value: collectionLinks.value.length, primary: true },
     { label: "付款单", value: paymentOrders.value.length },
     { label: "退款单", value: refundOrders.value.length },
+  ];
+});
+
+/** 状态筛选选项（按当前 tab 动态切换，与各 tab 状态枚举一致） */
+const statusOptions = computed(() => {
+  if (activeTab.value === "collection") {
+    return [
+      { label: "待支付", value: "PENDING" },
+      { label: "已支付", value: "PAID" },
+      { label: "已过期", value: "EXPIRED" },
+    ];
+  }
+  return [
+    { label: "成功", value: "SUCCESS" },
+    { label: "处理中", value: "PENDING" },
+    { label: "失败", value: "FAILED" },
   ];
 });
 const page = ref(1);
@@ -134,12 +167,33 @@ function getErrorMessage(error: unknown, fallback: string) {
   return anyError?.response?.data?.msg || anyError?.message || fallback;
 }
 
+/** 前端过滤：关键词（单号/来源）+ 状态，模式与 Inventory 列表页一致 */
+function applyFilters(list: any[], fields: string[]) {
+  if (filterKeyword.value) {
+    const kw = filterKeyword.value.toLowerCase();
+    list = list.filter((item: any) =>
+      fields.some((f) => item[f] != null && String(item[f]).toLowerCase().includes(kw))
+    );
+  }
+  if (filterStatus.value) {
+    list = list.filter((item: any) => item.status === filterStatus.value);
+  }
+  return list;
+}
+
+function resetFilters() {
+  filterKeyword.value = "";
+  filterStatus.value = "";
+  page.value = 1;
+  refreshCurrent();
+}
+
 async function loadCollectionLinks() {
   loading.value = true;
   try {
     const data = await fetchCollectionLinks();
-    const list = data.records || [];
-    total.value = data.total || list.length;
+    const list = applyFilters(data.records || [], ["linkNo", "sourceNo"]);
+    total.value = list.length;
     const start = (page.value - 1) * pageSize.value;
     const end = start + pageSize.value;
     collectionLinks.value = list.slice(start, end);
@@ -154,8 +208,8 @@ async function loadPaymentOrders() {
   loading.value = true;
   try {
     const data = await fetchPaymentOrders();
-    const list = data.records || [];
-    total.value = data.total || list.length;
+    const list = applyFilters(data.records || [], ["payNo", "sourceNo"]);
+    total.value = list.length;
     const start = (page.value - 1) * pageSize.value;
     const end = start + pageSize.value;
     paymentOrders.value = list.slice(start, end);
@@ -170,8 +224,8 @@ async function loadRefundOrders() {
   loading.value = true;
   try {
     const data = await fetchRefundOrders();
-    const list = data.records || [];
-    total.value = data.total || list.length;
+    const list = applyFilters(data.records || [], ["refundNo", "payNo", "sourceNo"]);
+    total.value = list.length;
     const start = (page.value - 1) * pageSize.value;
     const end = start + pageSize.value;
     refundOrders.value = list.slice(start, end);
@@ -184,6 +238,7 @@ async function loadRefundOrders() {
 
 function handleTabChange(tab: string) {
   page.value = 1;
+  filterStatus.value = "";
   refreshCurrent();
 }
 
@@ -232,11 +287,11 @@ onMounted(() => {
   justify-content: flex-end;
 }
 .amount-text {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 .refund-text {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

@@ -14,7 +14,8 @@
 
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="库存总览" name="balances">
-          <div class="filter-bar">
+          <StatBar :stats="inventoryStats" />
+          <div class="list-filter-bar">
             <el-input
               v-model="balanceKeyword"
               placeholder="搜索商品/SKU"
@@ -30,9 +31,8 @@
             <el-button type="primary" @click="loadBalances">查询</el-button>
           </div>
 
-          <StatBar :stats="inventoryStats" />
           <TableSkeleton v-if="loading" />
-          <el-table v-else :data="balances" stripe>
+          <el-table v-else class="list-table" :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
             <el-table-column prop="skuCode" label="SKU编码" width="160" />
             <el-table-column prop="productName" label="商品名称" min-width="180" />
@@ -69,7 +69,7 @@
         </el-tab-pane>
 
         <el-tab-pane label="库存流水" name="logs">
-          <div class="filter-bar">
+          <div class="list-filter-bar">
             <el-input
               v-model="logKeyword"
               placeholder="搜索商品/SKU"
@@ -91,7 +91,7 @@
           </div>
 
           <TableSkeleton v-if="loading" />
-          <el-table v-else :data="logs" stripe>
+          <el-table v-else class="list-table" :data="logs" stripe>
             <el-table-column prop="logNo" label="流水单号" width="200" />
             <el-table-column prop="storeName" label="门店" width="120" />
             <el-table-column prop="skuCode" label="SKU编码" width="160" />
@@ -298,30 +298,25 @@ onMounted(() => {
   display: flex;
   align-items: center;
 }
-.filter-bar {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-}
 .pagination {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
 }
 .low-stock {
-  color: #e6a23c;
+  color: var(--color-warning);
   font-weight: 600;
 }
 .out-stock {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 .qty-in {
-  color: #67c23a;
+  color: var(--color-success);
   font-weight: 600;
 }
 .qty-out {
-  color: #f56c6c;
+  color: var(--color-danger);
   font-weight: 600;
 }
 </style>

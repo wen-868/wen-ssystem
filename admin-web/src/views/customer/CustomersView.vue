@@ -9,7 +9,7 @@
               v-model="keyword"
               placeholder="客户名/手机号"
               size="default"
-              style="width: 200px; margin-right: 10px"
+              style="width: 220px; margin-right: 10px"
               clearable
               @clear="loadMembers"
               @keyup.enter="loadMembers"
@@ -23,7 +23,7 @@
 
       <StatBar :stats="memberStats" />
       <TableSkeleton v-if="loading" />
-      <el-table v-else :data="members" stripe empty-text="暂无客户">
+      <el-table v-else class="list-table" :data="members" stripe empty-text="暂无客户">
         <el-table-column prop="memberId" label="客户ID" width="100" />
         <el-table-column prop="name" label="客户名称" min-width="140" />
         <el-table-column prop="mobile" label="手机号" width="140" />

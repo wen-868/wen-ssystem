@@ -248,6 +248,48 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   列表页统一（R76-01）— 筛选栏 + 紧凑表格
+   结构：统计条 → 筛选栏 → 紧凑表格 → 状态标签
+   仅品牌蓝/灰阶/语义色，白底黑字中间灰
+   ═══════════════════════════════════════════ */
+.list-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.list-filter-bar .el-input,
+.list-filter-bar .el-select {
+  width: 220px;
+}
+.list-filter-bar .el-select--small,
+.list-filter-bar .el-input--small {
+  width: 140px;
+}
+
+/* 紧凑表格：表头浅灰 + 行高收紧，对标设计稿高密度表格 */
+.list-table {
+  --el-table-border-color: var(--border-normal);
+  --el-table-header-bg-color: var(--table-header-bg);
+  --el-table-header-text-color: var(--table-header-text);
+  --el-table-row-hover-bg-color: var(--table-row-hover);
+  --el-table-text-color: var(--text-primary);
+}
+.list-table th.el-table__cell {
+  font-weight: 600;
+  color: var(--table-header-text);
+  background: var(--table-header-bg);
+}
+.list-table td.el-table__cell {
+  height: 44px;
+  font-size: 13px;
+}
+.list-table .el-table__cell .cell {
+  padding: 0 12px;
+}
+
+/* ═══════════════════════════════════════════
    Detail page layout
    ═══════════════════════════════════════════ */
 .detail-header {

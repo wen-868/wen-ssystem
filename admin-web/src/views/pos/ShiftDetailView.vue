@@ -226,7 +226,8 @@ const payDist = computed(() => {
 });
 
 /** 热销 TOP3（当前无接口字段，空态展示） */
-const hotProducts = computed(() => []);
+/** 热销 TOP3（当前为预留空数据，类型显式声明避免 never[] 推断） */
+const hotProducts = computed<{ skuName: string; quantity: number }[]>(() => []);
 
 /** 提交交班 */
 function handleSubmitShift() {

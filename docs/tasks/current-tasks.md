@@ -1150,11 +1150,15 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web 前端）
 - **预计**：2 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r76_01.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行，待凌舟复核；任务卡已归档 inbox/archive/）
 - **文件**：`admin-web/src/views/order/`、`product/`、`inventory/`、`customer/`、`finance/` 主要列表页
 - **问题**：列表页结构不统一（统计条/筛选栏/状态标签样式各异），未对标 R74 设计稿 p04-p08
 - **修复**：统一"顶部统计条 + 筛选栏 + 紧凑表格 + 状态标签"结构；颜色仅品牌蓝/灰阶/语义色；只改样式不重构业务逻辑
 - **验收标准**：`npm run build` exit 0；抽查 5 个列表页均含统计条/筛选栏/状态标签结构
+- **墨完成记录**（2026-08-06）：
+  - 现状核实：统计条（StatBar）已在 commit `f3c7b7f9`（08-05）接入 5 页；实际缺口为财务 PaymentsView 无筛选栏 + 各页筛选/表格样式不统一
+  - 改动文件：`admin-web/src/styles.css`（新增 `.list-filter-bar` 统一筛选栏 + `.list-table` 紧凑表格样式）、`finance/PaymentsView.vue`（补齐筛选栏：关键词+状态，前端过滤模式同 Inventory，切换 tab 重置状态筛选）、`inventory/Inventory.vue`（统计条置顶、筛选栏改统一 class、语义色 token 化）、`order/Orders.vue`（紧凑表格 + 金额色 token 化）、`product/Products.vue`（搜索框宽度统一 220px + 紧凑表格）、`customer/CustomersView.vue`（搜索框宽度统一 220px + 紧凑表格）
+  - 验证：`npx vue-tsc -b` 0 errors；`npm run build` exit 0（39.92s）；`npm run lint:check` exit 0；5 页结构抽查（订单/商品/库存/客户/财务）均含统计条/筛选栏/状态标签
 
 ### R76-02 — [P1] 后端 services 层测试覆盖补齐
 - **优先级**：P1
@@ -1170,11 +1174,12 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web 前端）
 - **预计**：0.5 天
-- **状态**：待开始（墨完成 R76-01 后派单）
+- **状态**：✅ 已完成（2026-08-06 墨随 R76-01 一并修复，待凌舟复核）
 - **文件**：`admin-web/src/views/pos/ShiftDetailView.vue`
 - **问题**：`npx vue-tsc -b` 报 2 处 TS2339（skuName/quantity 不存在于 never）
 - **修复**：修正 ShiftDetailView 数据类型（最小改动，不碰无关代码）
 - **验收标准**：`npx vue-tsc -b` 0 errors；`npm run build` exit 0
+- **墨完成记录**（2026-08-06）：`hotProducts = computed(() => [])` 推断为 `never[]`，改为显式 `computed<{ skuName: string; quantity: number }[]>(() => [])`；`npx vue-tsc -b` 0 errors、`npm run build` exit 0（与 R76-01 同一提交）
 
 ### R76-04 — [P1] app-mobile 3 处「敬请期待」子功能补齐
 - **优先级**：P1
