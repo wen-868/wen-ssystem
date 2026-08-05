@@ -1484,7 +1484,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：✅ 已完成（2026-08-06 墨执行，待凌舟复核；commit 后未推送，由凌舟统一收口）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `c372e1c9`，凌舟复核通过：hex 残留 7 行均为 ECharts canvas 品牌色、#1677FF 清零、vue-tsc/build 通过）
 - **文件**：`admin-web/src/views/order/` 7 个页面（OrderExceptionView/OrderSyncView/OrderProductMapView/OrderRoutingView/OrderTimeoutView/OrderBoardView/OrderCenterView；任务描述写"6 页"系笔误，R80-00 核查为 7 页 39 处）
 - **问题**：订单页硬编码色残留约 28 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，其中 #1677FF 6 处：OrderExceptionView 3 + OrderProductMapView 3，R77-01 后新增或遗漏）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
@@ -1494,6 +1494,16 @@
   - **替换规则**：模板内联 style/绑定色 → tokens.css 变量（`--color-primary/success/warning/danger`、`--text-muted/--text-secondary`、`--bg-page/--bg-soft`、`--border-normal/--border-light`、`--gray-500`）；渠道品牌 hex 按 OrderExceptionView 既有 channelTagMap 语义映射为 token（微信=success/抖音=text-primary/美团=warning/饿了么=primary/京东=danger/线下=gray-500，色相一致）；ECharts canvas 不支持 var → 保留 token 等值 hex，#1677FF 全部改品牌 #3F6FEF，渐变副色 #FCA5A5/#b3e19d 按 R77-01「渐变副色映射品牌色 rgba」规则改 rgba(192,57,43,0.4)/rgba(14,168,121,0.4)（对齐 Dashboard.vue 同款渐变）
   - **验证证据**：
     | 验证项 | 命令 | 结果 |
+
+### R80-03 — [P1] 售后统计路由被 :id 遮蔽（Express 路由顺序）
+- **优先级**：P1
+- **负责人**：阿坚（后端）
+- **预计**：0.25 天
+- **状态**：🔄 进行中（任务卡 inbox/ajian_r80_03.md）
+- **文件**：`backend/src/routes/aftersale.routes.ts`
+- **问题**（墨上报，凌舟核实）：`adminAftersaleRouter.get("/aftersales/statistics")` 注册在 `get("/aftersales/:id")`（38 行）之后，Express 按注册顺序匹配，`GET /api/admin/aftersales/statistics` 会命中 `:id` 路由导致 404；前端已做防御（统计失败置空态）
+- **修复**：将 statistics 路由移到 `:id` 路由之前（Express 静态路由优先惯例）；**最小改动，仅调整路由顺序**
+- **验收标准**：`GET /api/admin/aftersales/statistics` 不再被 :id 拦截；`npm run typecheck` 0 errors；相关路由测试通过
     |--------|------|------|
     | 残留 hex 行数 | `rg -c "#[0-9a-fA-F]{6}" admin-web/src/views/order/` | 7 行（基线 41 → 7，目标 ≤8）✅ |
     | 非品牌色清零 | `rg "#1677FF" admin-web/src/views/order/` | 0 命中 ✅ |
