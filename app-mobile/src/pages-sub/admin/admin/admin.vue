@@ -115,8 +115,15 @@ function clearSearch() { searchForm.keyword = ''; loadEmployees() }
 function goTo(page: string) {
   if (page === 'employees') {
     uni.navigateTo({ url: '/pages-sub/admin/admin/employees' })
+  } else if (page === 'roles') {
+    uni.navigateTo({ url: '/pages-sub/admin/roles/roles' })
+  } else if (page === 'stores') {
+    uni.navigateTo({ url: '/pages-sub/admin/stores/stores' })
+  } else if (page === 'logs') {
+    uni.navigateTo({ url: '/pages-sub/admin/system/operation-logs' })
   } else {
-    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+    // 系统设置/基本设置/通知设置/关于系统暂无独立页面，按项目标准提示开发中
+    uni.showToast({ title: '该功能开发中', icon: 'none' })
   }
 }
 function goAddEmployee() {

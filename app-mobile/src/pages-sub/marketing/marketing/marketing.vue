@@ -131,8 +131,14 @@ function switchTab(val: string) { activeTab.value = val; loadActivities() }
 function goCreate(type: string) {
   if (type === 'coupon') {
     uni.navigateTo({ url: '/pages-sub/marketing/marketing/coupons' })
+  } else if (type === 'flashsale') {
+    // 秒杀活动列表页（社群营销模块）
+    uni.navigateTo({ url: '/pages-sub/marketing/marketing/seckill-list' })
+  } else if (type === 'fullreduction' || type === 'discount') {
+    // 满减/折扣活动统一走营销活动管理页
+    uni.navigateTo({ url: '/pages-sub/marketing/marketing/activities' })
   } else {
-    uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+    uni.showToast({ title: '该功能开发中', icon: 'none' })
   }
 }
 

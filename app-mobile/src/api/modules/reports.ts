@@ -1,4 +1,4 @@
-﻿import { get } from '../request'
+﻿import { get, post } from '../request'
 
 // 销售报表类型定义
 export interface SalesSummary {
@@ -96,6 +96,15 @@ export interface CashFlowItem {
   type: 'income' | 'expense'
   amount: number
   description: string
+}
+
+// 报表导出结果（后端生成 CSV 文本或 Excel 数据，由前端触发下载/保存）
+export interface ReportExportResult {
+  format: 'csv' | 'excel'
+  data: string | any[]
+  columns: string[]
+  rowCount: number
+  message?: string
 }
 
 const reportsApi = {
@@ -251,6 +260,24 @@ const reportsApi = {
       supplierList: res?.supplierList ?? [],
       detailList: res?.detailList ?? [],
     }
+  },
+
+  // 导出销售报表（CSV，filters 与后端 report-export.service 的 sales 查询对齐）
+  async exportSalesReport(params?: {
+    startDate?: string
+    endDate?: string
+    storeId?: string
+  }): Promise<ReportExportResult> {
+    const res: any = await post('/admin/reports/export', {
+      report_type: 'sales',
+      format: 'csv',
+      filters: {
+        startDate: params?.startDate,
+        endDate: params?.endDate,
+        storeId: params?.storeId,
+      },
+    })
+    return res as ReportExportResult
   }
 }
 

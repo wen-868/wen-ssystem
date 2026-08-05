@@ -161,16 +161,79 @@ async function onQuery() {
   await validate()
   loadReportData()
 }
-function onExport() {
+async function onExport() {
   uni.showModal({
     title: '导出报表',
     content: '确认导出当前筛选条件的销售报表？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '敬请期待，即将上线', icon: 'none' })
+    success: async (res) => {
+      if (!res.confirm) return
+      uni.showLoading({ title: '导出中...' })
+      try {
+        const result = await reportsApi.exportSalesReport({
+          startDate: filterForm.startDate || undefined,
+          endDate: filterForm.endDate || undefined,
+          storeId: filterForm.storeId || undefined,
+        })
+        if (result.format === 'csv' && typeof result.data === 'string' && result.data) {
+          saveCsv(result.data, `销售报表_${formatDate(new Date())}.csv`)
+        } else {
+          uni.showToast({ title: '暂无可导出的数据', icon: 'none' })
+        }
+      } catch (err) {
+        console.error('导出销售报表失败:', err)
+        uni.showToast({ title: '导出失败，请稍后重试', icon: 'none' })
+      } finally {
+        uni.hideLoading()
       }
     }
   })
+}
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = `${date.getMonth() + 1}`.padStart(2, '0')
+  const d = `${date.getDate()}`.padStart(2, '0')
+  return `${y}${m}${d}`
+}
+
+function saveCsv(csv: string, fileName: string) {
+  // H5 端：通过 Blob 触发浏览器下载
+  // #ifdef H5
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+  uni.showToast({ title: '导出成功', icon: 'none' })
+  // #endif
+  // APP 原生端：写入应用文档目录并提示
+  // #ifdef APP-PLUS
+  const plusObj: any = (globalThis as any).plus
+  if (plusObj?.io) {
+    plusObj.io.requestFileSystem(plusObj.io.PRIVATE_DOC, (fs: any) => {
+      fs.root.getFile(fileName, { create: true }, (entry: any) => {
+        entry.createWriter(
+          (writer: any) => {
+            writer.onwrite = () => {
+              uni.showToast({ title: '导出成功，已保存至应用文档目录', icon: 'none' })
+            }
+            writer.onerror = () => {
+              uni.showToast({ title: '导出文件保存失败', icon: 'none' })
+            }
+            writer.write(csv)
+          },
+          () => uni.showToast({ title: '导出文件保存失败', icon: 'none' })
+        )
+      }, () => uni.showToast({ title: '导出文件保存失败', icon: 'none' }))
+    }, () => uni.showToast({ title: '导出文件保存失败', icon: 'none' }))
+  } else {
+    uni.showToast({ title: '当前环境暂不支持导出', icon: 'none' })
+  }
+  // #endif
 }
 
 async function loadReportData() {

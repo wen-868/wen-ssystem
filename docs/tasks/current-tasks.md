@@ -1185,11 +1185,18 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/ache_r76_04.md）
+- **状态**：✅ 已完成（2026-08-06 阿澈执行，待凌舟收口复核）
 - **文件**：`app-mobile/src/pages-sub/admin/admin/admin.vue`、`pages-sub/finance/reports/sales-reports.vue`、`pages-sub/marketing/marketing/marketing.vue`
 - **问题**：3 处按钮点击仅提示"敬请期待，即将上线"，子功能未实现（记忆文件记录 8 处，现已剩 3 处）
 - **修复**：逐个补齐子功能或跳转真实页面；无法实现的按项目标准提示"开发中"（不编造数据）
 - **验收标准**：`rg "敬请期待" app-mobile/src` → 0；`npm run build:h5` + `npm run build:app` exit 0
+- **阿澈完成记录**（2026-08-06）：
+  - 管理后台 admin.vue：角色权限 → `/pages-sub/admin/roles/roles`、门店管理 → `/pages-sub/admin/stores/stores`、操作日志 → `/pages-sub/admin/system/operation-logs`（均已在 pages.json 注册的真实页面）；系统设置/基本设置/通知设置/关于系统无独立页面，按项目标准提示「该功能开发中」
+  - 营销中心 marketing.vue：限时秒杀 → `/pages-sub/marketing/marketing/seckill-list`（R32 已实现页）、满减/折扣活动 → `/pages-sub/marketing/marketing/activities`（营销活动管理页，activityApi 支持 full_reduction/discount 类型）
+  - 销售报表 sales-reports.vue：导出按钮接入后端真实能力 `POST /api/admin/reports/export`（report_type=sales&format=csv，后端 report-export.service.ts 已实现），新增 reportsApi.exportSalesReport()；H5 端 Blob 触发浏览器下载，APP 端 plus.io 写入应用文档目录；空数据提示「暂无可导出的数据」，失败提示真实错误
+  - 未新增任何后端接口，未改动后端代码；未编造数据
+  - 验证证据：`rg "敬请期待" app-mobile/src` → 0；`npx vue-tsc --noEmit` exit 0；`npm run build:h5` exit 0（仅 Sass @import 弃用警告）；`npm run build:app` exit 0
+  - 任务卡 inbox/ache_r76_04.md 已归档 inbox/archive/
 
 ### R76-05 — [P0] 全量回归 + 端到端验收报告
 - **优先级**：P0
