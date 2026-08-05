@@ -1,19 +1,26 @@
 <template>
-  <aside class="ai-side-panel">
+  <aside class="ai-side-panel" :class="{ 'is-collapsed': collapsed }">
     <!-- 头部 -->
     <div class="ai-header">
       <div class="ai-header-title">
         <el-icon class="header-logo"><MagicStick /></el-icon>
-        <span>经营助手</span>
+        <span v-show="!collapsed">经营助手</span>
       </div>
-      <div class="ai-header-status">
+      <div v-show="!collapsed" class="ai-header-status">
         <span class="status-dot"></span>
         <span>本地模型</span>
       </div>
+      <el-button
+        class="ai-collapse-btn"
+        :icon="collapsed ? 'Expand' : 'Fold'"
+        size="small"
+        text
+        @click="collapsed = !collapsed"
+      />
     </div>
 
     <!-- 消息区 -->
-    <div ref="listEl" class="ai-messages">
+    <div v-show="!collapsed" ref="listEl" class="ai-messages">
       <div v-if="messages.length === 0" class="ai-empty">
         <p class="empty-title">你好，我是智享经营助手</p>
         <p class="empty-sub">本地推理、数据不出店。可以这样问我：</p>
@@ -41,7 +48,7 @@
     </div>
 
     <!-- 输入区 -->
-    <div class="ai-input-area">
+    <div v-show="!collapsed" class="ai-input-area">
       <el-input
         v-model="input"
         type="textarea"
@@ -86,6 +93,8 @@ const conversationId = ref<string | undefined>(undefined);
 const messages = ref<AiChatMessage[]>([]);
 const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
+/** 折叠状态：列表页可收起 AI 面板，给数据区腾空间 */
+const collapsed = ref(false);
 
 const suggestions = [
   "创建销售单：给红星商行送10箱五粮液",
@@ -274,6 +283,17 @@ onBeforeUnmount(() => {
   background: #ffffff;
   border-left: 1px solid var(--border-light);
   min-height: 100vh;
+}
+
+.ai-side-panel.is-collapsed {
+  width: 48px;
+}
+.ai-side-panel.is-collapsed .ai-header {
+  justify-content: center;
+  padding: 14px 0;
+}
+.ai-side-panel.is-collapsed .ai-collapse-btn {
+  margin: 0;
 }
 
 .ai-header {

@@ -559,7 +559,7 @@ function handleLogout() {
 <style scoped>
 .layout {
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr 320px;
+  grid-template-columns: var(--sidebar-width) 1fr auto;
   grid-template-rows: var(--topbar-height) 1fr;
   min-height: 100vh;
   background: var(--bg-page);

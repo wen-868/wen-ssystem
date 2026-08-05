@@ -184,6 +184,44 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     if (s.includes("select 1 as ok")) return [{ ok: 1 }];
     return null;
   },
+
+  // 收款（offlinePayment）：销售单详情查询
+  (s, params) => {
+    if (s.includes("from t_sale_bill where bill_no")) {
+      const billNo = params[0];
+      const bill = state.saleBills.find(
+        (b: Row) => (b.billNo || b.bill_no) === billNo
+      );
+      return bill
+        ? [
+            {
+              bill_no: bill.bill_no || bill.billNo,
+              store_id: (bill.store_id ?? bill.storeId) ?? 1,
+              received_amount: Number(bill.received_amount || bill.receivedAmount || 0),
+              receivable_amount: Number(bill.receivable_amount || bill.receivableAmount || 0),
+              collection_status: bill.collection_status || bill.collectionStatus || "UNPAID",
+            },
+          ]
+        : [];
+    }
+    return null;
+  },
+
+  // 收款：库存流水查询（未扣减过则返回空）
+  (s) => {
+    if (s.includes("from t_inventory_ledger") && s.includes("biz_type") && s.includes("SALE_OUT")) {
+      return [];
+    }
+    return null;
+  },
+
+  // 收款：库存余额查询（mock 返回充足库存，保证出库流程可走通）
+  (s) => {
+    if (s.includes("from t_inventory_balance") && s.includes("sku_id")) {
+      return [{ physical_qty: 9999, available_qty: 9999 }];
+    }
+    return null;
+  },
 ];
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
