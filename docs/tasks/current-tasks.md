@@ -1368,6 +1368,34 @@
 - **修复**：修复图标路径（用 miniapp/images/ 现有资源）或修正跳转；无资源则记录
 - **验收标准**：图标路径可解析或已记录；build 通过
 
+---
+
+## R79 — 阶段1-1 收银台版块 100% 核查与修复 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：按《版块有序推进规划》启动阶段 1-1 收银台版块
+> **版块范围**：快速收银/销售单据/销售退货/挂单管理/交接班/会员识别/优惠券核销/分享收款/日结管理/门店管控/操作记录/门店工作台/接单履约（admin-web pos/ 14 页 + 后端 store-*/share 路由）
+
+### R79-00 — 收银台版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 页面 14 个全部存在；核心页 API 已接入（CollectionView/ShiftView/HoldOrderView/CashierView 均调用真实接口）
+  - 后端测试覆盖良好（store-sale-bill/store-shift/store-value-card/share/sale-bill 等测试齐全）
+  - UI 已 token 化（R77-01），build/vue-tsc 通过
+  - **唯一差距**：`SaleReturnView.vue:133` 详情功能为占位"详情功能开发中"，但后端 `GET /api/store/sale-returns/:returnNo`（getSaleReturnDetail）已存在，前端 pos.ts 缺 fetchSaleReturnDetail，属"前端未接已有接口"
+
+### R79-01 — [P1] 销售退货详情接入（消除占位）
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r79_01.md）
+- **文件**：`admin-web/src/api/pos.ts`、`admin-web/src/views/pos/SaleReturnView.vue`
+- **问题**：退货列表"详情"按钮为占位提示，后端详情接口已存在
+- **修复**：① pos.ts 新增 `fetchSaleReturnDetail(returnNo)` 调 `GET /store/sale-returns/:returnNo`；② SaleReturnView 详情弹窗展示（退货单号/客户/商品明细/金额/状态/备注）；**最小改动，不碰无关代码**
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；详情弹窗可从列表打开并展示真实数据；`rg "详情功能开发中" admin-web/src/views/pos` → 0
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
