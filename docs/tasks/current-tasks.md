@@ -1266,7 +1266,7 @@
 ### R77-02 — [P1] 依赖漏洞审计 + API 契约补录
 - **优先级**：P1
 - **负责人**：阿坚（后端）
-- **状态**：✅ 已完成（2026-08-06 阿坚执行，待凌舟复核收口；commit 待凌舟统一推送）
+- **状态**：✅ 已完成（2026-08-06 阿坚执行 commit `7f2704bb`，凌舟复核通过：npm audit backend 0 漏洞、typecheck 0 errors；已推送）
 - **文件**：`backend/package.json`、`docs/API接口文档.md`
 - **问题**：未跑 npm audit；`POST /api/admin/reports/export` 已实现未录入契约
 - **修复**：`npm audit` 出报告并修复高危；补录 reports/export 契约；核对其余已实现未收录接口
@@ -1281,7 +1281,7 @@
 ### R77-03 — [P1] 图片/懒加载核查 + 冗余页面清理
 - **优先级**：P1
 - **负责人**：墨（admin-web）
-- **状态**：✅ 已完成（2026-08-06 墨执行：17 处 el-image 补 lazy、删除 4 个冗余页面、依赖核查无未使用项；vue-tsc 0 errors、build exit 0、lint exit 0。待凌舟复核收口）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `00220d26`，凌舟复核通过：删除的 4 个页面 router 无引用、build/vue-tsc/lint 通过；已推送）
 - **文件**：`admin-web/src/views/`、`admin-web/package.json`
 - **问题**：图片优化未核查；views 156 vs 路由 153 疑似未引用页面；未使用依赖待查
 - **修复**：图片懒加载/压缩；精确对照路由清理未引用页面；清理未使用依赖
@@ -1296,7 +1296,7 @@
 ### R77-04 — [P1] 小程序维度核对（分包/隐私/域名）
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
-- **状态**：✅ 已完成（2026-08-06 阿澈执行，核对清单 docs/reports/R77-04-小程序核对.md；待凌舟复核）
+- **状态**：✅ 已完成（2026-08-06 阿澈执行 commit `f006e177`，凌舟复核通过：核对清单含证据，阻塞项已标注）
 - **文件**：`miniapp/`、`app-mobile/src/pages.json`、`docs/reports/R77-04-小程序核对.md`（新建）
 - **问题**：分包体积、隐私合规、合法域名、版本更新未核对
 - **修复**：按维度 7 标准逐项核对并出清单
@@ -1310,6 +1310,43 @@
   - **新增发现**：G1 tabBar 图标路径失效（app.config.ts:50-69 指向不存在的 src/assets/tab/*，实际图标在 miniapp/images/ 且缺 category，可修需资源）；G2 小程序无登录页但 request.ts:52 401 跳 /pages/login/index（功能缺口）；G3 miniapp 根目录遗留迁移前旧文件（P2 冗余）；G4 app-mobile iOS privacyDescription 仅蓝牙（P2 观察）
   - **工作区说明**：`app-mobile/src/manifest.json` 有一处 R73 打包准备遗留未提交改动（app-plus 段），与本轮无关，未触碰未提交
   - 任务卡 inbox/ache_r77_04.md 已归档 inbox/archive/
+
+---
+
+## R78 — AUDIT-REPORT P0 修复：支付幂等 + 密钥强校验 + 上架配置 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：用户确认严格按规则执行；依据《审计报告核对结论-2026-08-06》验证属实的 P0 风险项
+> **派单前核实（防线4）**：R6/R22/R58（share.service.ts:202-205 paid_amount 累加、:230-232 pay_no 无 source_no+channel 幂等键）、R20（share.service.ts:143,169 customerMobile 明文返回）、R3（docker-compose.yml:108 ENCRYPTION_KEY 留空降级）、R2/R41（manifest.json:55,97 wx_appid_placeholder）
+
+### R78-01 — [P0] 支付幂等与敏感信息脱敏
+- **优先级**：P0
+- **负责人**：阿坚（后端）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/ajian_r78_01.md）
+- **文件**：`backend/src/services/share.service.ts`、`backend/src/services/admin/payment.service.ts`
+- **问题**：AUDIT-REPORT R6（微信回调 paid_amount 累加无幂等锁）、R22/R58（支付单无 source_no+channel 幂等键）、R20（分享页明文返回 customerMobile）
+- **修复**：① wxNotifyCollection 用事务 + SELECT FOR UPDATE（或唯一约束）防并发重复入账；② 支付创建前检查 source_no+channel 已存在则复用，或加唯一索引幂等；③ customerMobile 返回脱敏（138****1234）。**最小改动，不碰无关逻辑**
+- **验收标准**：`npm run typecheck` 0 errors；`npx vitest run` 全通过；新增幂等/脱敏用例覆盖；`rg "customerMobile" backend/src/services/share.service.ts` 仅脱敏后返回
+
+### R78-02 — [P0] 密钥强校验与上架配置
+- **优先级**：P0
+- **负责人**：阿坚（后端）/ 阿澈（移动端配置）
+- **预计**：0.5 天
+- **状态**：待派单（阿坚完成 R78-01 后派单）
+- **文件**：`docker-compose.yml`、`deploy/auto-deploy.sh`、`app-mobile/src/manifest.json`
+- **问题**：AUDIT-REPORT R3（ENCRYPTION_KEY 留空降级明文落库）、R18（小程序 urlCheck:false 生产必须 true）、R2/R41（appid 占位符，上架阻塞）
+- **修复**：① ENCRYPTION_KEY 启动强校验（为空或占位则拒绝启动）+ 部署脚本自动生成；② urlCheck 改为多环境（dev false/prod true）；③ appid 占位属上架配置，记录为阻塞项待用户提供真实 appid。**最小改动**
+- **验收标准**：ai-base 启动校验生效；urlCheck 环境化；appid 阻塞项已记录
+
+### R78-03 — [P2] 小程序核对遗留（图标/登录页）
+- **优先级**：P2
+- **负责人**：阿澈（移动端）
+- **状态**：待派单
+- **文件**：`miniapp/src/app.config.ts`、`miniapp/src/api/request.ts`
+- **问题**：G1 tabBar 图标路径失效、G2 无登录页但 401 跳登录
+- **修复**：修复图标路径（用 miniapp/images/ 现有资源）或修正跳转；无资源则记录
+- **验收标准**：图标路径可解析或已记录；build 通过
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
