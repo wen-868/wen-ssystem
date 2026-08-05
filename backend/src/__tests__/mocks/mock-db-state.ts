@@ -21,12 +21,43 @@ export const state = {
   stores: [
     { id: 1, store_code: "STORE0001", name: "默认门店", address: "演示地址", contact: "管理员", phone: "13800000000", delivery_radius: 3, business_status: "OPEN", status: 1, miniapp_appid: 'wx0000000000000000', wx_merchant_name: null, wx_service_phone: null, wx_head_img: null, wx_qrcode_url: null }
   ] as Row[],
+  productCategories: [
+    { id: 1, name: "白酒", parentId: null, sortNo: 1, status: 1 },
+    { id: 2, name: "啤酒", parentId: null, sortNo: 2, status: 1 },
+    { id: 3, name: "葡萄酒", parentId: null, sortNo: 3, status: 1 },
+    { id: 4, name: "洋酒", parentId: null, sortNo: 4, status: 1 },
+    { id: 5, name: "其他", parentId: null, sortNo: 5, status: 1 }
+  ] as Row[],
   products: [
-    { spuId: 1, skuId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" }
+    { spuId: 1, skuId: 1, categoryId: 1, name: "示例白酒 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=Wine", skuName: "示例白酒 53度 500ml 常温", skuCode: "SKU-DEMO-001", barcode: "690000000001", retailPrice: 129, wholesalePrice: 99, miniappPrice: 119, costPrice: 0, storePrice: null as number | null, status: "ON_SALE" },
+    { spuId: 2, skuId: 2, categoryId: 1, name: "茅台飞天 53度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=MT", skuName: "茅台飞天 53度 500ml 单瓶", skuCode: "SKU-MT-53", barcode: "6901234567001", retailPrice: 1499, wholesalePrice: 1399, miniappPrice: 1450, costPrice: 1100, storePrice: 1499, status: "ON_SALE" },
+    { spuId: 3, skuId: 3, categoryId: 1, name: "五粮液 52度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=WLY", skuName: "五粮液 52度 500ml 单瓶", skuCode: "SKU-WLY-52", barcode: "6901234567002", retailPrice: 1099, wholesalePrice: 999, miniappPrice: 1060, costPrice: 800, storePrice: 1099, status: "ON_SALE" },
+    { spuId: 4, skuId: 4, categoryId: 2, name: "青岛啤酒 经典10度 330ml", mainImage: "https://dummyimage.com/120x120/0b6e4f/ffffff&text=QD", skuName: "青岛啤酒 经典10度 330ml 罐装", skuCode: "SKU-QD-TS", barcode: "6901234567003", retailPrice: 6, wholesalePrice: 4.5, miniappPrice: 5.5, costPrice: 3, storePrice: 6, status: "ON_SALE" },
+    { spuId: 5, skuId: 5, categoryId: 2, name: "雪花啤酒 勇闯天涯 500ml", mainImage: "https://dummyimage.com/120x120/0b6e4f/ffffff&text=XH", skuName: "雪花啤酒 勇闯天涯 500ml 瓶装", skuCode: "SKU-SN-TS", barcode: "6901234567004", retailPrice: 5, wholesalePrice: 3.8, miniappPrice: 4.6, costPrice: 2.5, storePrice: 5, status: "ON_SALE" },
+    { spuId: 6, skuId: 6, categoryId: 3, name: "张裕干红葡萄酒 750ml", mainImage: "https://dummyimage.com/120x120/5b2d8e/ffffff&text=ZY", skuName: "张裕干红葡萄酒 750ml 单瓶", skuCode: "SKU-ZY-DR", barcode: "6901234567005", retailPrice: 88, wholesalePrice: 72, miniappPrice: 82, costPrice: 55, storePrice: 88, status: "ON_SALE" },
+    { spuId: 7, skuId: 7, categoryId: 4, name: "轩尼诗VSOP 干邑白兰地 700ml", mainImage: "https://dummyimage.com/120x120/7a4a1a/ffffff&text=HNS", skuName: "轩尼诗VSOP 干邑白兰地 700ml 单瓶", skuCode: "SKU-HX-VS", barcode: "6901234567007", retailPrice: 980, wholesalePrice: 880, miniappPrice: 950, costPrice: 700, storePrice: 980, status: "ON_SALE" },
+    { spuId: 8, skuId: 8, categoryId: 5, name: "茅台王子酒 酱香经典 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=MTWZ", skuName: "茅台王子酒 酱香经典 500ml 单瓶", skuCode: "SKU-MT-JC", barcode: "6901234567009", retailPrice: 428, wholesalePrice: 388, miniappPrice: 410, costPrice: 300, storePrice: 428, status: "ON_SALE" },
+    { spuId: 9, skuId: 9, categoryId: 5, name: "剑南春 水晶剑 52度 500ml", mainImage: "https://dummyimage.com/120x120/9b1c31/ffffff&text=JNC", skuName: "剑南春 水晶剑 52度 500ml 单瓶", skuCode: "SKU-JNC-52", barcode: "6901234567010", retailPrice: 468, wholesalePrice: 428, miniappPrice: 450, costPrice: 320, storePrice: 468, status: "ON_SALE" }
   ] as Row[],
   inventory: [
     { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "ONLINE", physicalQty: 120, lockedQty: 0, availableQty: 120 },
-    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 9999, lockedQty: 0, availableQty: 9999 }
+    { storeId: 1, skuId: 1, skuName: "示例白酒 53度 500ml 常温", stockType: "OFFLINE", physicalQty: 9999, lockedQty: 0, availableQty: 9999 },
+    { storeId: 1, skuId: 2, skuName: "茅台飞天 53度 500ml 单瓶", stockType: "OFFLINE", physicalQty: 20, lockedQty: 0, availableQty: 20 },
+    { storeId: 1, skuId: 3, skuName: "五粮液 52度 500ml 单瓶", stockType: "OFFLINE", physicalQty: 35, lockedQty: 0, availableQty: 35 },
+    { storeId: 1, skuId: 4, skuName: "青岛啤酒 经典10度 330ml 罐装", stockType: "OFFLINE", physicalQty: 480, lockedQty: 0, availableQty: 480 },
+    { storeId: 1, skuId: 5, skuName: "雪花啤酒 勇闯天涯 500ml 瓶装", stockType: "OFFLINE", physicalQty: 360, lockedQty: 0, availableQty: 360 },
+    { storeId: 1, skuId: 6, skuName: "张裕干红葡萄酒 750ml 单瓶", stockType: "OFFLINE", physicalQty: 58, lockedQty: 0, availableQty: 58 },
+    { storeId: 1, skuId: 7, skuName: "轩尼诗VSOP 干邑白兰地 700ml 单瓶", stockType: "OFFLINE", physicalQty: 12, lockedQty: 0, availableQty: 12 },
+    { storeId: 1, skuId: 8, skuName: "茅台王子酒 酱香经典 500ml 单瓶", stockType: "OFFLINE", physicalQty: 45, lockedQty: 0, availableQty: 45 },
+    { storeId: 1, skuId: 9, skuName: "剑南春 水晶剑 52度 500ml 单瓶", stockType: "OFFLINE", physicalQty: 52, lockedQty: 0, availableQty: 52 },
+    { storeId: 1, skuId: 2, skuName: "茅台飞天 53度 500ml 单瓶", stockType: "ONLINE", physicalQty: 18, lockedQty: 0, availableQty: 18 },
+    { storeId: 1, skuId: 3, skuName: "五粮液 52度 500ml 单瓶", stockType: "ONLINE", physicalQty: 30, lockedQty: 0, availableQty: 30 },
+    { storeId: 1, skuId: 4, skuName: "青岛啤酒 经典10度 330ml 罐装", stockType: "ONLINE", physicalQty: 400, lockedQty: 0, availableQty: 400 },
+    { storeId: 1, skuId: 5, skuName: "雪花啤酒 勇闯天涯 500ml 瓶装", stockType: "ONLINE", physicalQty: 300, lockedQty: 0, availableQty: 300 },
+    { storeId: 1, skuId: 6, skuName: "张裕干红葡萄酒 750ml 单瓶", stockType: "ONLINE", physicalQty: 50, lockedQty: 0, availableQty: 50 },
+    { storeId: 1, skuId: 7, skuName: "轩尼诗VSOP 干邑白兰地 700ml 单瓶", stockType: "ONLINE", physicalQty: 10, lockedQty: 0, availableQty: 10 },
+    { storeId: 1, skuId: 8, skuName: "茅台王子酒 酱香经典 500ml 单瓶", stockType: "ONLINE", physicalQty: 40, lockedQty: 0, availableQty: 40 },
+    { storeId: 1, skuId: 9, skuName: "剑南春 水晶剑 52度 500ml 单瓶", stockType: "ONLINE", physicalQty: 48, lockedQty: 0, availableQty: 48 }
   ],
   saleBills: [] as Row[],
   saleBillItems: [] as Row[],

@@ -43,8 +43,19 @@ export async function fetchDailySettlementDetail(id: number) {
 // 后端路由使用 requireAuthWithTenant，复用 admin-web 的 admin_token 即可
 
 // ---------- 商品/会员搜索 ----------
-export async function searchStoreProducts(keyword: string) {
-  const { data } = await api.get("/store/products", { params: { keyword } });
+/** 搜索商品：keyword 为空时返回全部在售商品；可同时按分类 / 条码过滤 */
+export async function searchStoreProducts(params?: {
+  keyword?: string;
+  categoryId?: number;
+  barcode?: string;
+}) {
+  const { data } = await api.get("/store/products", {
+    params: {
+      keyword: params?.keyword || "",
+      categoryId: params?.categoryId,
+      barcode: params?.barcode || ""
+    }
+  });
   return data.data as { records: any[] };
 }
 

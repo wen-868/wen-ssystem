@@ -4,6 +4,22 @@
 import { state, pendingProduct, result, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
+  // product_category 列表（供收银台分类栏使用）
+  (s, _params) => {
+    if (s.includes("from t_product_category") || s.includes("from product_category")) {
+      return state.productCategories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        parent_id: c.parentId,
+        parentId: c.parentId,
+        sort_no: c.sortNo,
+        sortNo: c.sortNo,
+        status: c.status
+      }));
+    }
+    return null;
+  },
+
   // product_sku count
   (s, _params) => {
     if ((s.includes("from t_product_sku") || s.includes("from t_product_sku")) && s.includes("count(*)")) return [{ total: state.products.length }];
@@ -52,12 +68,28 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   // product_sku join t_product_spu join t_product_price (product listing)
   (s, _params) => {
     if ((s.includes("from t_product_sku") || s.includes("from t_product_sku")) && (s.includes("join t_product_spu") || s.includes("join t_product_spu")) && (s.includes("join t_product_price") || s.includes("join t_product_price"))) {
-      return state.products.map((product) => {
+      // SQL 参数顺序：[storeId, tenantId, keyword, %kw%, %kw%, %kw%, barcode, barcode, (categoryId)]
+      const keyword = String(_params[2] ?? "");
+      const barcode = String(_params[6] ?? "");
+      const categoryId = Number(_params[8] ?? 0);
+      return state.products
+        .filter((product) => {
+          if (categoryId && Number(product.categoryId) !== categoryId) return false;
+          if (barcode) {
+            if (String(product.barcode) !== barcode) return false;
+          } else if (keyword) {
+            const haystack = `${product.name} ${product.skuName} ${product.skuCode} ${product.barcode}`.toLowerCase();
+            if (!haystack.includes(keyword.toLowerCase())) return false;
+          }
+          return true;
+        })
+        .map((product) => {
         const offline = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "OFFLINE");
         const online = state.inventory.find((inv) => inv.skuId === product.skuId && inv.stockType === "ONLINE");
         return {
           ...product,
           productName: product.name,
+          categoryId: product.categoryId,
           storePrice: product.storePrice ?? product.retailPrice,
           availableQty: online?.availableQty ?? 0,
           available_qty: online?.availableQty ?? 0,

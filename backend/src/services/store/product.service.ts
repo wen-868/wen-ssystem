@@ -100,6 +100,7 @@ export async function listProducts(params: {
 }) {
   const { keyword = "", barcode = "", categoryId, tagIds, storeId, tenantId } = params;
   let sql = `SELECT s.id AS skuId, s.sku_code AS skuCode, p.name AS productName, p.id AS spuId,
+            p.category_id AS categoryId,
             s.sku_name AS skuName, s.barcode, pp.retail_price AS retailPrice,
             pp.wholesale_price AS wholesalePrice, pp.store_price AS storePrice,
             ib.available_qty AS availableQty
