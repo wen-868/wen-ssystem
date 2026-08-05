@@ -1499,15 +1499,21 @@
 - **优先级**：P1
 - **负责人**：阿坚（后端）
 - **预计**：0.25 天
-- **状态**：🔄 进行中（任务卡 inbox/ajian_r80_03.md）
+- **状态**：✅ 已完成（2026-08-06 阿坚执行 commit `待凌舟复核后回填`；已归档任务卡 inbox/archive/ajian_r80_03.md）
 - **文件**：`backend/src/routes/aftersale.routes.ts`
 - **问题**（墨上报，凌舟核实）：`adminAftersaleRouter.get("/aftersales/statistics")` 注册在 `get("/aftersales/:id")`（38 行）之后，Express 按注册顺序匹配，`GET /api/admin/aftersales/statistics` 会命中 `:id` 路由导致 404；前端已做防御（统计失败置空态）
 - **修复**：将 statistics 路由移到 `:id` 路由之前（Express 静态路由优先惯例）；**最小改动，仅调整路由顺序**
 - **验收标准**：`GET /api/admin/aftersales/statistics` 不再被 :id 拦截；`npm run typecheck` 0 errors；相关路由测试通过
+- **阿坚完成记录**（2026-08-06）：
+  - **改动**：`aftersale.routes.ts` 将 `GET /aftersales/statistics` 从文件末尾上移到 `GET /aftersales/:id` 之前（紧邻列表路由之后），仅调整注册顺序，controller/其他逻辑未动；既有路由测试 `aftersale.test.ts` 新增 1 条回归断言（GET statistics 注册序先于 GET :id）
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
     |--------|------|------|
-    | 残留 hex 行数 | `rg -c "#[0-9a-fA-F]{6}" admin-web/src/views/order/` | 7 行（基线 41 → 7，目标 ≤8）✅ |
-    | 非品牌色清零 | `rg "#1677FF" admin-web/src/views/order/` | 0 命中 ✅ |
-    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 路由顺序 | 读文件核对 statistics 与 :id 行序 | statistics 位于 :id 之前 ✅ |
+    | 类型检查 | `npm run typecheck` | exit 0，0 errors ✅ |
+    | 路由测试 | `npx vitest run src/__tests__/routes/aftersale.test.ts` | 5/5 通过（含新增回归用例）✅ |
+    | routes 全量 | `npx vitest run src/__tests__/routes` | 131 文件 / 777 用例全部通过 ✅ |
+  - **备注**：本条目原有一行误粘贴的 R80-02 验证表（残留 hex 行数等，属前端订单页内容），更新时顺带清除，避免误导
     | 生产构建 | `npm run build` | exit 0（32.13s）✅ |
     | ESLint | `npx eslint`（7 个改动文件） | 0 error（19 个 warning 均为改动行之外预存问题）✅ |
     | diff 核查 | `git diff` 逐行审阅 | 43+/43-，全部为颜色值，无逻辑/结构/文字改动 ✅ |

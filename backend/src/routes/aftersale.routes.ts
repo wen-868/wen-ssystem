@@ -35,6 +35,7 @@ miniappAftersaleRouter.post("/aftersales/:aftersaleNo/rate", requireAuthWithTena
 }));
 
 adminAftersaleRouter.get("/aftersales", ctrl.adminListAftersales);
+adminAftersaleRouter.get("/aftersales/statistics", ctrl.adminGetStatistics);
 adminAftersaleRouter.get("/aftersales/:id", ctrl.adminGetAftersaleDetail);
 adminAftersaleRouter.post("/aftersales/:id/approve", ctrl.adminApproveAftersale);
 
@@ -54,8 +55,6 @@ adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, r
   req.body = completeAftersaleSchema.parse(req.body);
   await ctrl.adminCompleteAftersale(req, res, _next);
 }));
-
-adminAftersaleRouter.get("/aftersales/statistics", ctrl.adminGetStatistics);
 
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/miniapp/aftersales", router: miniappAftersaleRouter, auth: "none" },

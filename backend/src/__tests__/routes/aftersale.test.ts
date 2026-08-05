@@ -31,4 +31,16 @@ describe("routes/aftersale", () => {
       expect(typeof cfg.router.delete).toBe("function");
     });
   });
+
+  it("GET /aftersales/statistics 应注册在 /aftersales/:id 之前（防止被 :id 遮蔽）", () => {
+    const adminRouter = routeConfigs[1].router;
+    const getPaths = adminRouter.stack
+      .filter((s: any) => s.route?.methods?.get)
+      .map((s: any) => s.route.path);
+    const statisticsIndex = getPaths.indexOf("/aftersales/statistics");
+    const idIndex = getPaths.indexOf("/aftersales/:id");
+    expect(statisticsIndex).toBeGreaterThanOrEqual(0);
+    expect(idIndex).toBeGreaterThanOrEqual(0);
+    expect(statisticsIndex).toBeLessThan(idIndex);
+  });
 });
