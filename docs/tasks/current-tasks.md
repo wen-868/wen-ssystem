@@ -1133,6 +1133,69 @@
 - **修复**：新增 R75 轮次记录；修正 R74-06 收银台完成状态；记忆文件补充 R75 记录与核心决策
 - **验收标准**：`grep -c "R75" docs/tasks/current-tasks.md` → ≥2；`grep -c "任务分配" docs/memories/凌舟-记忆.md` → ≥1
 
+---
+
+## R76 — 项目完美推进轮次：列表页统一 + 技术债清理 + 全量回归 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：用户确认按凌舟规划执行；本轮按职责分派：墨（admin-web）、阿坚（后端）、阿澈（移动端）、苏然（QA）。
+> **派单方式**：子代理消息通道故障，统一走文件信箱协议——任务卡写入 `docs/tasks/inbox/<系统标识>.md`，子代理启动后读取。
+> **派单前核实（防线4，2026-08-06 凌舟执行）**：
+> - R76-01：`admin-web/src/views/order|product|inventory|customer|finance` 列表页无统一"统计条+筛选栏+状态标签"结构（R74 仅完成 token 收敛与收银台，列表页未统一）
+> - R76-02：`backend/vitest.config.ts:33-37` 阈值仅 90%（违反 100% 标准），services 层为最大技术债
+> - R76-03：`npx vue-tsc -b` → ShiftDetailView.vue(99/100) 2 处 TS2339 错误
+> - R76-04：`rg "敬请期待" app-mobile/src` → 3 处（admin.vue:119、sales-reports.vue:170、marketing.vue:135）
+
+### R76-01 — [P1] 核心列表页样式统一（订单/商品/库存/客户/财务）
+- **优先级**：P1
+- **负责人**：墨（admin-web 前端）
+- **预计**：2 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r76_01.md）
+- **文件**：`admin-web/src/views/order/`、`product/`、`inventory/`、`customer/`、`finance/` 主要列表页
+- **问题**：列表页结构不统一（统计条/筛选栏/状态标签样式各异），未对标 R74 设计稿 p04-p08
+- **修复**：统一"顶部统计条 + 筛选栏 + 紧凑表格 + 状态标签"结构；颜色仅品牌蓝/灰阶/语义色；只改样式不重构业务逻辑
+- **验收标准**：`npm run build` exit 0；抽查 5 个列表页均含统计条/筛选栏/状态标签结构
+
+### R76-02 — [P1] 后端 services 层测试覆盖补齐
+- **优先级**：P1
+- **负责人**：阿坚（后端）
+- **预计**：3 天
+- **状态**：🔄 进行中（任务卡 inbox/ajian_r76_02.md）
+- **文件**：`backend/src/services/` 未覆盖核心 service + 对应测试
+- **问题**：services 层 179 个文件为最大技术债，覆盖率不足；vitest 阈值仅 90%（应为 100%）
+- **修复**：优先补齐核心业务 service 测试（采购/销售/库存/客户/财务/营销）；修复后逐步提升阈值至 100%
+- **验收标准**：`npm run typecheck` 0 errors；`npx vitest run` 全通过；核心 services 覆盖率提升有真实报告
+
+### R76-03 — [P0] admin-web vue-tsc 零错误清理
+- **优先级**：P0
+- **负责人**：墨（admin-web 前端）
+- **预计**：0.5 天
+- **状态**：待开始（墨完成 R76-01 后派单）
+- **文件**：`admin-web/src/views/pos/ShiftDetailView.vue`
+- **问题**：`npx vue-tsc -b` 报 2 处 TS2339（skuName/quantity 不存在于 never）
+- **修复**：修正 ShiftDetailView 数据类型（最小改动，不碰无关代码）
+- **验收标准**：`npx vue-tsc -b` 0 errors；`npm run build` exit 0
+
+### R76-04 — [P1] app-mobile 3 处「敬请期待」子功能补齐
+- **优先级**：P1
+- **负责人**：阿澈（移动端）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/ache_r76_04.md）
+- **文件**：`app-mobile/src/pages-sub/admin/admin/admin.vue`、`pages-sub/finance/reports/sales-reports.vue`、`pages-sub/marketing/marketing/marketing.vue`
+- **问题**：3 处按钮点击仅提示"敬请期待，即将上线"，子功能未实现（记忆文件记录 8 处，现已剩 3 处）
+- **修复**：逐个补齐子功能或跳转真实页面；无法实现的按项目标准提示"开发中"（不编造数据）
+- **验收标准**：`rg "敬请期待" app-mobile/src` → 0；`npm run build:h5` + `npm run build:app` exit 0
+
+### R76-05 — [P0] 全量回归 + 端到端验收报告
+- **优先级**：P0
+- **负责人**：苏然（QA）
+- **预计**：1 天
+- **状态**：待开始（依赖 R76-01/02/03/04 完成后派单）
+- **文件**：`docs/reports/test-report-2026-08-06.md`
+- **问题**：R74/R75/R76 多轮改动后需全量回归，确认无功能回归
+- **修复**：后端全量测试 + 前端构建 + 核心页面走查 + 浏览器控制台检查；产出验收报告
+- **验收标准**：报告含真实命令输出；0 skip、0 失败；发现的问题写入任务文件下一轮
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
@@ -1151,8 +1214,8 @@
 
 ### R74-05 — 核心列表页样式统一（订单/商品/库存/客户/财务）
 - **优先级**：P2
-- **负责人**：凌舟
-- **状态**：待开始（范围大，列为下一批；已完成的全局 token 收敛会同步改善列表页观感）
+- **负责人**：墨（已并入 R76-01 派单）
+- **状态**：🔄 进行中（2026-08-06 凌舟并入 R76-01 按职责派单墨，不再由凌舟直接执行）
 - **文件**：`admin-web/src/views/order/`、`product/`、`inventory/`、`customer/`、`finance/` 主要列表页
 - **修复**：统一"顶部统计条 + 筛选栏 + 紧凑表格 + 状态标签"结构，颜色仅品牌蓝/灰阶/语义色
 - **验收**：`npm run build` exit 0
