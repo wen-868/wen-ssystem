@@ -1340,7 +1340,7 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）/ 阿澈（移动端配置）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单；阿坚部分 ✅ 已完成：ENCRYPTION_KEY 强校验，commit 待凌舟复核后记录；阿澈部分 ✅ 已完成：urlCheck 环境化+appid 阻塞记录，commit 待凌舟复核后记录）
+- **状态**：✅ 已完成（2026-08-06 阿坚 commit `538a0779` + 阿澈 commit `48bc1289`，凌舟复核通过：ENCRYPTION_KEY fail-fast+占位检测+部署自动生成；urlCheck 生产 true/dev false；已推送 `3878e67a`）
 - **文件**：`docker-compose.yml`、`deploy/auto-deploy.sh`、`app-mobile/src/manifest.json`
 - **问题**：AUDIT-REPORT R3（ENCRYPTION_KEY 留空降级明文落库）、R18（小程序 urlCheck:false 生产必须 true）、R2/R41（appid 占位符，上架阻塞）
 - **修复**：① ENCRYPTION_KEY 启动强校验（为空或占位则拒绝启动）+ 部署脚本自动生成；② urlCheck 改为多环境（dev false/prod true）；③ appid 占位属上架配置，记录为阻塞项待用户提供真实 appid。**最小改动**
