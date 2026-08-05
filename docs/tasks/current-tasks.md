@@ -1215,11 +1215,18 @@
 - **优先级**：P0
 - **负责人**：苏然（QA）
 - **预计**：1 天
-- **状态**：🔄 进行中（2026-08-06 前四项复核通过后派单苏然，任务卡 inbox/suran_r76_05.md）
+- **状态**：✅ 已完成（2026-08-06 苏然执行，凌舟复核）
 - **文件**：`docs/reports/test-report-2026-08-06.md`
 - **问题**：R74/R75/R76 多轮改动后需全量回归，确认无功能回归
 - **修复**：后端全量测试 + 前端构建 + 核心页面走查 + 浏览器控制台检查；产出验收报告
 - **验收标准**：报告含真实命令输出；0 skip、0 失败；发现的问题写入任务文件下一轮
+- **苏然完成记录**（2026-08-06）：
+  - 后端：`npm run typecheck` exit 0；`npx vitest run` 435 文件 / 5056 用例全部通过（0 失败 0 跳过）
+  - admin-web：`npx vue-tsc -b` 0 errors；`npm run build` exit 0（39.26s）
+  - app-mobile：`npm run build:h5` + `npm run build:app` 均 exit 0（仅 Sass @import 弃用警告）；「敬请期待」0 命中
+  - 浏览器端到端走查（playwright + Edge）：登录 → 工作台 → 收银台（加购/结算弹窗）→ 订单/商品/库存/客户/财务 5 个列表页全部渲染正常；控制台无本轮引入错误
+  - 发现问题：**BUG-R76-05-01 [P2]**（历史遗留，非本轮引入）——前端 `fetchInventoryBalances()` 请求 `/api/admin/inventory/balances`，后端无该路由（404），页面空态降级不阻断；建议下一轮确认接口去留（前端墨 / 后端阿坚）
+  - 报告：`docs/reports/test-report-2026-08-06.md`；任务卡 inbox/suran_r76_05.md 已归档 inbox/archive/
 
 ---
 
