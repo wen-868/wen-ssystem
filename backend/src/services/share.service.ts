@@ -1,4 +1,5 @@
-import { query, queryOne } from "../shared/db";
+import { query, queryOne, transaction, connQueryOne, connExecute } from "../shared/db";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { makeBizNo } from "../shared/id";
 
 interface CollectionLinkRow {
@@ -55,7 +56,7 @@ interface SaleBillRow {
   storeName: string;
 }
 
-interface CollectionLinkBriefRow {
+interface CollectionLinkBriefRow extends RowDataPacket {
   link_no: string;
   tenant_id: string;
   source_no: string;
@@ -64,9 +65,39 @@ interface CollectionLinkBriefRow {
   status: string;
 }
 
-interface SaleBillReceivableRow {
+interface SaleBillReceivableRow extends RowDataPacket {
   received_amount: number;
   receivable_amount: number;
+}
+
+/** 支付单状态行（幂等检查用） */
+interface PaymentOrderStatusRow extends RowDataPacket {
+  status: string;
+}
+
+/** 支付单号行（幂等复用查询用） */
+interface PaymentOrderPayNoRow extends RowDataPacket {
+  pay_no: string;
+}
+
+/** 收款链接行（事务锁行读取用） */
+interface CollectionLinkPayRow extends RowDataPacket {
+  link_no: string;
+  tenant_id: string;
+  amount: number;
+  status: string;
+}
+
+/**
+ * 手机号脱敏：11 位手机号返回 138****1234；非 11 位保持原样。
+ * 仅用于对外展示字段，不影响数据库原值读取。
+ */
+function maskMobile(mobile: string): string {
+  const digits = mobile.trim();
+  if (/^\d{11}$/.test(digits)) {
+    return `${digits.slice(0, 3)}****${digits.slice(7)}`;
+  }
+  return digits;
 }
 
 export async function getCollectionLink(token: string) {
@@ -166,7 +197,7 @@ export async function getCollectionPage(token: string) {
       token,
       expired,
       customerName: bill?.customerName ?? "",
-      customerMobile: bill?.customerMobile ?? "",
+      customerMobile: maskMobile(bill?.customerMobile ?? ""),
       customerType: bill?.customerType ?? "",
       storeName: bill?.storeName ?? "",
       receivableAmount: bill?.receivableAmount ?? 0,
@@ -182,65 +213,110 @@ export async function wxNotifyCollection(token: string, paymentData: {
   transactionId?: string;
   payAmount?: number;
 }) {
-  const link = await queryOne<CollectionLinkBriefRow>("SELECT link_no, tenant_id, source_no, amount, paid_amount, status FROM t_collection_link WHERE token = ?", [token]);
-  if (!link) {
-    return { error: "收款链接不存在", status: 404 };
-  }
-  if (link.status === "PAID") {
-    return { data: { message: "已支付，无需重复处理" } };
-  }
-  if (link.status === "REVOKED" || link.status === "EXPIRED") {
-    return { error: "收款链接已失效", status: 400 };
-  }
-  const { payNo, transactionId, payAmount } = paymentData;
-  const wxPayAmount = payAmount ?? link.amount;
-  await query(
-    `UPDATE t_payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
-     WHERE pay_no = ? AND source_no = ? AND tenant_id = ?`,
-    [transactionId ?? null, payNo, link.link_no, link.tenant_id]
-  );
-  const newPaid = Number(link.paid_amount) + Number(wxPayAmount);
-  const newStatus = newPaid >= Number(link.amount) ? "PAID" : "PARTIAL";
-  await query(
-    `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ? AND tenant_id = ?`,
-    [newPaid, newStatus, link.link_no, link.tenant_id]
-  );
-  const bill = await queryOne<SaleBillReceivableRow>("SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?", [link.source_no, link.tenant_id]);
-  if (bill) {
-    const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
-    const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
-    await query(
-      `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
-       collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
-      [newReceived, newReceived, billStatus, link.source_no, link.tenant_id]
+  // 事务 + 行锁（FOR UPDATE）：并发微信回调串行化，防止重复入账
+  return transaction(async (conn) => {
+    const link = await connQueryOne<CollectionLinkBriefRow>(
+      conn,
+      `SELECT link_no, tenant_id, source_no, amount, paid_amount, status
+       FROM t_collection_link WHERE token = ? FOR UPDATE`,
+      [token]
     );
-  }
-  return { data: { payNo, linkNo: link.link_no, status: newStatus, paidAmount: newPaid } };
+    if (!link) {
+      return { error: "收款链接不存在", status: 404 };
+    }
+    if (link.status === "PAID") {
+      return { data: { message: "已支付，无需重复处理" } };
+    }
+    if (link.status === "REVOKED" || link.status === "EXPIRED") {
+      return { error: "收款链接已失效", status: 400 };
+    }
+    const { payNo, transactionId, payAmount } = paymentData;
+    const wxPayAmount = payAmount ?? link.amount;
+
+    // 幂等：同一支付单已成功入账则直接返回，防止微信重复通知/并发重试导致 paid_amount 重复累加
+    if (payNo) {
+      const paidOrder = await connQueryOne<PaymentOrderStatusRow>(
+        conn,
+        `SELECT status FROM t_payment_order
+         WHERE pay_no = ? AND source_no = ? AND tenant_id = ?`,
+        [payNo, link.link_no, link.tenant_id]
+      );
+      if (paidOrder && paidOrder.status === "SUCCESS") {
+        return { data: { message: "已支付，无需重复处理" } };
+      }
+    }
+
+    await connExecute<ResultSetHeader>(
+      conn,
+      `UPDATE t_payment_order SET status = 'SUCCESS', transaction_id = ?, paid_at = NOW()
+       WHERE pay_no = ? AND source_no = ? AND tenant_id = ?`,
+      [transactionId ?? null, payNo, link.link_no, link.tenant_id]
+    );
+    const newPaid = Number(link.paid_amount) + Number(wxPayAmount);
+    const newStatus = newPaid >= Number(link.amount) ? "PAID" : "PARTIAL";
+    await connExecute<ResultSetHeader>(
+      conn,
+      `UPDATE t_collection_link SET paid_amount = ?, status = ?, last_pay_time = NOW() WHERE link_no = ? AND tenant_id = ?`,
+      [newPaid, newStatus, link.link_no, link.tenant_id]
+    );
+    const bill = await connQueryOne<SaleBillReceivableRow>(
+      conn,
+      "SELECT received_amount, receivable_amount FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?",
+      [link.source_no, link.tenant_id]
+    );
+    if (bill) {
+      const newReceived = Number(bill.received_amount) + Number(wxPayAmount);
+      const billStatus = newReceived >= Number(bill.receivable_amount) ? "PAID" : "PARTIAL";
+      await connExecute<ResultSetHeader>(
+        conn,
+        `UPDATE t_sale_bill SET received_amount = ?, unreceived_amount = GREATEST(receivable_amount - ?, 0),
+         collection_status = ?, last_payment_time = NOW() WHERE bill_no = ? AND tenant_id = ?`,
+        [newReceived, newReceived, billStatus, link.source_no, link.tenant_id]
+      );
+    }
+    return { data: { payNo, linkNo: link.link_no, status: newStatus, paidAmount: newPaid } };
+  });
 }
 
 export async function payCollection(token: string) {
-  const link = await queryOne<{ link_no: string; tenant_id: string; amount: number; status: string }>(
-    "SELECT link_no, tenant_id, amount, status FROM t_collection_link WHERE token = ?",
-    [token]
-  );
-  if (!link || !["PENDING", "PARTIAL"].includes(link.status)) {
-    throw Object.assign(new Error("收款单不可支付"), { statusCode: 400 });
-  }
+  // 事务 + 行锁（FOR UPDATE）：并发重复点击串行化，防止创建多张支付单
+  return transaction(async (conn) => {
+    const link = await connQueryOne<CollectionLinkPayRow>(
+      conn,
+      "SELECT link_no, tenant_id, amount, status FROM t_collection_link WHERE token = ? FOR UPDATE",
+      [token]
+    );
+    if (!link || !["PENDING", "PARTIAL"].includes(link.status)) {
+      throw Object.assign(new Error("收款单不可支付"), { statusCode: 400 });
+    }
 
-  const payNo = makeBizNo("ZF");
-  await query(
-    `INSERT INTO t_payment_order (tenant_id, pay_no, source_type, source_no, channel, amount, status)
-     VALUES (?, ?, 'COLLECTION_LINK', ?, 'WECHAT', ?, 'PENDING')`,
-    [link.tenant_id, payNo, link.link_no, link.amount]
-  );
+    // 幂等：同一来源+渠道已有未支付支付单则复用，不重复建单
+    const existing = await connQueryOne<PaymentOrderPayNoRow>(
+      conn,
+      `SELECT pay_no FROM t_payment_order
+       WHERE source_type = 'COLLECTION_LINK' AND source_no = ? AND channel = 'WECHAT' AND status = 'PENDING'
+       LIMIT 1`,
+      [link.link_no]
+    );
 
-  return {
-    payNo,
-    token,
-    timeStamp: String(Math.floor(Date.now() / 1000)),
-    nonceStr: "dev-nonce",
-    package: "prepay_id=dev",
-    signType: "RSA",
-    paySign: "dev-sign"
-  };
+    const payNo = existing?.pay_no ?? makeBizNo("ZF");
+    if (!existing) {
+      await connExecute<ResultSetHeader>(
+        conn,
+        `INSERT INTO t_payment_order (tenant_id, pay_no, source_type, source_no, channel, amount, status)
+         VALUES (?, ?, 'COLLECTION_LINK', ?, 'WECHAT', ?, 'PENDING')`,
+        [link.tenant_id, payNo, link.link_no, link.amount]
+      );
+    }
+
+    return {
+      payNo,
+      token,
+      timeStamp: String(Math.floor(Date.now() / 1000)),
+      nonceStr: "dev-nonce",
+      package: "prepay_id=dev",
+      signType: "RSA",
+      paySign: "dev-sign"
+    };
+  });
 }

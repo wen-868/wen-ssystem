@@ -148,13 +148,14 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF001", transaction_id: "tx001", trade_state: "SUCCESS", amount: { total: 100000 }
     }));
     mockConn.execute
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
       .mockResolvedValueOnce({})  // UPDATE t_payment_order
-      .mockResolvedValueOnce([[{ source_type: "SALE_BILL", source_no: "XS001" }], {}])  // SELECT
+      .mockResolvedValueOnce([[{ source_type: "SALE_BILL", source_no: "XS001" }], {}])  // SELECT source
       .mockResolvedValueOnce({});  // UPDATE t_sale_bill
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
     expect(mocks.transaction).toHaveBeenCalledOnce();
-    expect(mockConn.execute).toHaveBeenCalledTimes(3);
+    expect(mockConn.execute).toHaveBeenCalledTimes(4);
   });
 
   it("trade_state = SUCCESS + MINIAPP_ORDER → 执行事务更新小程序订单", async () => {
@@ -163,9 +164,10 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF002", transaction_id: "tx002", trade_state: "SUCCESS", amount: { total: 50000 }
     }));
     mockConn.execute
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce([[{ source_type: "MINIAPP_ORDER", source_no: "MO001" }], {}])
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
+      .mockResolvedValueOnce({})  // UPDATE t_payment_order
+      .mockResolvedValueOnce([[{ source_type: "MINIAPP_ORDER", source_no: "MO001" }], {}])  // SELECT source
+      .mockResolvedValueOnce({});  // UPDATE t_miniapp_order
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
   });
@@ -176,9 +178,10 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF003", transaction_id: "tx003", trade_state: "SUCCESS", amount: { total: 20000 }
     }));
     mockConn.execute
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce([[{ source_type: "COLLECTION_LINK", source_no: "CL001" }], {}])
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
+      .mockResolvedValueOnce({})  // UPDATE t_payment_order
+      .mockResolvedValueOnce([[{ source_type: "COLLECTION_LINK", source_no: "CL001" }], {}])  // SELECT source
+      .mockResolvedValueOnce({});  // UPDATE t_collection_link
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
   });
@@ -189,11 +192,12 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF004", transaction_id: "tx004", trade_state: "SUCCESS", amount: { total: 10000 }
     }));
     mockConn.execute
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
       .mockResolvedValueOnce({})  // UPDATE t_payment_order
       .mockResolvedValueOnce([[], {}]);  // SELECT → 空数组（order[0] truthy 但 length=0）
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
-    expect(mockConn.execute).toHaveBeenCalledTimes(2);
+    expect(mockConn.execute).toHaveBeenCalledTimes(3);
   });
 
   it("trade_state = SUCCESS + order[0] 为 undefined → 不执行 source 更新", async () => {
@@ -202,11 +206,12 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF005", transaction_id: "tx005", trade_state: "SUCCESS", amount: { total: 8000 }
     }));
     mockConn.execute
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
       .mockResolvedValueOnce({})  // UPDATE t_payment_order
       .mockResolvedValueOnce([undefined, {}]);  // SELECT → order[0] = undefined（falsy 短路）
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
-    expect(mockConn.execute).toHaveBeenCalledTimes(2);
+    expect(mockConn.execute).toHaveBeenCalledTimes(3);
   });
 
   it("trade_state = SUCCESS + 其他 source_type → 所有 else if false 分支", async () => {
@@ -215,11 +220,34 @@ describe("admin payment.service - handleWxCallback", () => {
       out_trade_no: "ZF006", transaction_id: "tx006", trade_state: "SUCCESS", amount: { total: 5000 }
     }));
     mockConn.execute
+      .mockResolvedValueOnce([[{ status: "PENDING" }], {}])  // 幂等检查：未处理过
       .mockResolvedValueOnce({})  // UPDATE t_payment_order
       .mockResolvedValueOnce([[{ source_type: "OTHER", source_no: "OT001" }], {}]);  // SELECT
     const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
     expect(res.success).toBe(true);
-    expect(mockConn.execute).toHaveBeenCalledTimes(2);  // 只 UPDATE + SELECT，无第三个 execute
+    expect(mockConn.execute).toHaveBeenCalledTimes(3);  // 幂等检查 + UPDATE + SELECT，无业务表更新
+  });
+
+  it("trade_state = SUCCESS + 支付单已 PAID → 幂等跳过，不重复累加", async () => {
+    wechatPay.verifyNotifySignature.mockReturnValue(true);
+    wechatPay.decryptNotifyData.mockReturnValue(JSON.stringify({
+      out_trade_no: "ZF007", transaction_id: "tx007", trade_state: "SUCCESS", amount: { total: 20000 }
+    }));
+    mockConn.execute.mockResolvedValueOnce([[{ status: "PAID" }], {}]);  // 幂等检查：已处理过
+    const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
+    expect(res.success).toBe(true);
+    expect(mockConn.execute).toHaveBeenCalledTimes(1);  // 只做幂等检查，不再执行任何更新
+  });
+
+  it("trade_state = SUCCESS + 支付单已 SUCCESS → 幂等跳过，不重复累加", async () => {
+    wechatPay.verifyNotifySignature.mockReturnValue(true);
+    wechatPay.decryptNotifyData.mockReturnValue(JSON.stringify({
+      out_trade_no: "ZF008", transaction_id: "tx008", trade_state: "SUCCESS", amount: { total: 20000 }
+    }));
+    mockConn.execute.mockResolvedValueOnce([[{ status: "SUCCESS" }], {}]);  // 幂等检查：已处理过
+    const res = await handleWxCallback({}, { resource: { associated_data: "a", nonce: "n", ciphertext: "c" } }, wechatPay);
+    expect(res.success).toBe(true);
+    expect(mockConn.execute).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -1323,11 +1323,18 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/ajian_r78_01.md）
+- **状态**：✅ 已完成（2026-08-06 阿坚执行，commit 待凌舟复核后记录）
 - **文件**：`backend/src/services/share.service.ts`、`backend/src/services/admin/payment.service.ts`
 - **问题**：AUDIT-REPORT R6（微信回调 paid_amount 累加无幂等锁）、R22/R58（支付单无 source_no+channel 幂等键）、R20（分享页明文返回 customerMobile）
 - **修复**：① wxNotifyCollection 用事务 + SELECT FOR UPDATE（或唯一约束）防并发重复入账；② 支付创建前检查 source_no+channel 已存在则复用，或加唯一索引幂等；③ customerMobile 返回脱敏（138****1234）。**最小改动，不碰无关逻辑**
 - **验收标准**：`npm run typecheck` 0 errors；`npx vitest run` 全通过；新增幂等/脱敏用例覆盖；`rg "customerMobile" backend/src/services/share.service.ts` 仅脱敏后返回
+- **阿坚完成记录**（2026-08-06）：
+  - **R6 修复（share.service.ts wxNotifyCollection）**：改为 `transaction` 事务包裹 + `SELECT ... FOR UPDATE` 行锁读取收款链接（并发回调串行化）；新增支付单级幂等——同一 `pay_no` 已 `SUCCESS` 则直接返回「已支付，无需重复处理」，不重复累加 `paid_amount`；原有 payment_order/collection_link/sale_bill 三条更新语句移入事务内用 `connExecute/connQueryOne` 执行（表名均带 t_ 前缀，与 conn.execute 不自动补前缀兼容）
+  - **R22/R58 修复（share.service.ts payCollection）**：改为事务 + `FOR UPDATE` 锁行；先查 `source_type='COLLECTION_LINK' AND source_no=? AND channel='WECHAT' AND status='PENDING'` 已存在则复用 `pay_no`，否则才新建支付单（并发重复点击不会建多张单；不改动返回结构）
+  - **R20 修复（share.service.ts getCollectionPage）**：新增私有 `maskMobile()`（11 位手机号 → 138****1234，非 11 位原样），`customerMobile` 仅脱敏后返回；SQL 原字段读取与接口类型定义保留
+  - **同族修复（admin payment.service.ts handleWxCallback）**：文件在任务范围内且 COLLECTION_LINK 分支存在同样的无幂等累加，事务开头新增 `SELECT status ... FOR UPDATE` 幂等检查，支付单已 PAID/SUCCESS 则整段跳过
+  - **测试**：新增 `backend/src/__tests__/services/share.service.test.ts`（18 用例：脱敏 2 + wxNotifyCollection 幂等 8 + payCollection 复用 6 + 状态分支）；更新 `payment.test.ts` 全部 SUCCESS 用例 mock 序列并新增 2 个幂等跳过用例（总计 +20）
+  - **验证证据**：`npm run typecheck` 0 errors；`npx vitest run` 436 文件 / 5075 用例 0 失败（基线 435/5056，净增 1 文件 19 用例）；`rg "customerMobile" backend/src/services/share.service.ts` 仅 3 处命中（接口定义 50 行、SQL 原字段读取 174 行、脱敏后返回 200 行）
 
 ### R78-02 — [P0] 密钥强校验与上架配置
 - **优先级**：P0

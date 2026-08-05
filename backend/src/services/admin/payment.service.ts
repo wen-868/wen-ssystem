@@ -56,6 +56,11 @@ interface OrderSourceRow extends RowDataPacket {
   source_no: string;
 }
 
+/** 支付单状态行（幂等检查用） */
+interface PaymentStatusRow extends RowDataPacket {
+  status: string;
+}
+
 export async function createPaymentOrder(
   body: { sourceType: string; sourceNo: string; amount: number; openid?: string; description?: string },
   tenantId: string,
@@ -132,6 +137,16 @@ export async function handleWxCallback(
 
   if (trade_state === 'SUCCESS') {
     await transaction(async (conn) => {
+      // 幂等：支付单已成功处理过则直接跳过，防止微信重复通知/并发重试导致业务数据重复累加
+      const [paidRows] = await conn.execute<PaymentStatusRow[]>(
+        "SELECT status FROM t_payment_order WHERE pay_no = ? FOR UPDATE",
+        [out_trade_no]
+      );
+      const paidStatus = paidRows?.[0]?.status;
+      if (paidStatus === 'PAID' || paidStatus === 'SUCCESS') {
+        return;
+      }
+
       await conn.execute(
         "UPDATE t_payment_order SET status = 'PAID', transaction_id = ?, paid_amount = ?, paid_at = NOW() WHERE pay_no = ?",
         [transaction_id, amount.total / 100, out_trade_no]
