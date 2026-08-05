@@ -49,27 +49,31 @@
 
     <!-- 输入区 -->
     <div v-show="!collapsed" class="ai-input-area">
-      <el-input
-        v-model="input"
-        type="textarea"
-        :rows="2"
-        resize="none"
-        placeholder="输入问题，Enter 发送 / Shift+Enter 换行"
-        :disabled="streaming"
-        @keydown.enter.exact.prevent="sendMessage"
-      />
+      <div class="ai-input-box">
+        <el-input
+          v-model="input"
+          type="textarea"
+          :rows="2"
+          resize="none"
+          placeholder="输入问题，Enter 发送"
+          :disabled="streaming"
+          @keydown.enter.exact.prevent="sendMessage"
+        />
+      </div>
       <div class="ai-input-footer">
         <span class="ai-status">{{ statusText }}</span>
         <el-button
           type="primary"
-          size="small"
+          class="ai-send-btn"
           :loading="streaming"
           :disabled="!canSend"
           @click="sendMessage"
         >
-          {{ streaming ? "生成中" : "发送" }}
+          <el-icon v-if="!streaming" class="ai-send-icon"><Promotion /></el-icon>
+          <span>{{ streaming ? "生成中" : "发送" }}</span>
         </el-button>
       </div>
+      <div class="ai-input-hint">Enter 发送 · Shift+Enter 换行 · 数据不出店</div>
     </div>
   </aside>
 </template>
@@ -77,7 +81,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { MagicStick } from "@element-plus/icons-vue";
+import { MagicStick, Promotion } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
@@ -381,8 +385,24 @@ onBeforeUnmount(() => {
 
 .ai-input-area {
   border-top: 1px solid var(--border-light);
-  padding: 12px 16px;
-  background: var(--surface-neutral, #F7F7F8);
+  padding: 12px 16px 10px;
+  background: #ffffff;
+}
+
+.ai-input-box :deep(.el-textarea__inner) {
+  border-radius: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border-light);
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  transition: all 160ms ease;
+  box-shadow: none;
+}
+.ai-input-box :deep(.el-textarea__inner:focus) {
+  background: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
 }
 
 .ai-input-footer {
@@ -395,5 +415,25 @@ onBeforeUnmount(() => {
 .ai-status {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.ai-send-btn {
+  border-radius: 8px;
+  padding: 8px 16px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-send-icon {
+  font-size: 14px;
+}
+
+.ai-input-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-placeholder);
+  text-align: right;
 }
 </style>

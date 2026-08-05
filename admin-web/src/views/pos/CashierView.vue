@@ -30,6 +30,7 @@
           <template #header>
             <div class="card-header">
               <el-input
+                ref="productSearchRef"
                 v-model="productKeyword"
                 placeholder="搜索商品名称 / 条码 / 拼音首字母"
                 clearable
@@ -148,18 +149,26 @@
 
           <!-- 功能导航栏（对标设计稿：挂单/扫码/结算/打印 快捷键） -->
           <div class="cart-actions">
-            <el-button size="small" @click="handleCreateHoldOrder">
-              <kbd>F2</kbd> 挂单
-            </el-button>
-            <el-button size="small" @click="handleScan">
-              <kbd>F3</kbd> 扫码
-            </el-button>
-            <el-button size="small" type="primary" plain @click="openPayDialog">
-              <kbd>F8</kbd> 结算
-            </el-button>
-            <el-button size="small" @click="handlePrint">
-              <kbd>F9</kbd> 打印
-            </el-button>
+            <div class="action-nav" @click="handleCreateHoldOrder">
+              <kbd>F2</kbd>
+              <el-icon class="action-nav-icon"><Files /></el-icon>
+              <span>挂单</span>
+            </div>
+            <div class="action-nav" @click="handleScan">
+              <kbd>F3</kbd>
+              <el-icon class="action-nav-icon"><FullScreen /></el-icon>
+              <span>扫码</span>
+            </div>
+            <div class="action-nav action-nav--primary" @click="openPayDialog">
+              <kbd>F8</kbd>
+              <el-icon class="action-nav-icon"><Money /></el-icon>
+              <span>结算</span>
+            </div>
+            <div class="action-nav" @click="handlePrint">
+              <kbd>F9</kbd>
+              <el-icon class="action-nav-icon"><Printer /></el-icon>
+              <span>打印</span>
+            </div>
           </div>
 
           <!-- 结算按钮 -->
@@ -261,9 +270,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, onMounted } from "vue";
+import { computed, reactive, ref, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
-import { Search, User } from "@element-plus/icons-vue";
+import { Search, User, Files, FullScreen, Money, Printer } from "@element-plus/icons-vue";
 import {
   searchStoreProducts,
   searchStoreMembers,
@@ -278,6 +287,7 @@ import {
 
 const loading = ref(false);
 const productKeyword = ref("");
+const productSearchRef = ref();
 const productOptions = ref<any[]>([]);
 const categories = ref<any[]>([]);
 const activeCategory = ref(0);
@@ -328,7 +338,29 @@ function stockClass(stock: number): string {
 onMounted(() => {
   loadHoldOrders();
   loadCategories();
+  window.addEventListener("keydown", handleHotkey);
 });
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleHotkey);
+});
+
+/** 键盘快捷键：F2 挂单 / F3 扫码 / F8 结算 / F9 打印 */
+function handleHotkey(e: KeyboardEvent) {
+  if (e.key === "F2") {
+    e.preventDefault();
+    handleCreateHoldOrder();
+  } else if (e.key === "F3") {
+    e.preventDefault();
+    handleScan();
+  } else if (e.key === "F8") {
+    e.preventDefault();
+    openPayDialog();
+  } else if (e.key === "F9") {
+    e.preventDefault();
+    handlePrint();
+  }
+}
 
 /** 加载商品分类 */
 async function loadCategories() {
@@ -438,14 +470,47 @@ function removeCartItem(index: number) {
   cartItems.value.splice(index, 1);
 }
 
-/** 扫码：聚焦商品搜索框（配合扫码枪输入） */
+/** 扫码：聚焦商品搜索框（扫码枪输入条码后回车即搜） */
 function handleScan() {
-  ElMessage.info("请使用扫码枪扫描商品条码");
+  productSearchRef.value?.focus?.();
+  ElMessage.info("请扫码或输入条码后回车");
 }
 
-/** 打印：小票打印需打印机就绪 */
+/** 打印：生成小票并调用浏览器打印 */
 function handlePrint() {
-  ElMessage.info("请确认打印机已就绪");
+  if (cartItems.value.length === 0) {
+    ElMessage.warning("购物车为空，无可打印内容");
+    return;
+  }
+  const lines = cartItems.value
+    .map(
+      (item) =>
+        `<tr><td>${item.skuName || item.productName || ""}</td><td>x${item.quantity}</td><td style="text-align:right">¥${(Number(item.unitPrice || 0) * Number(item.quantity || 1)).toFixed(2)}</td></tr>`
+    )
+    .join("");
+  const win = window.open("", "_blank", "width=300,height=500");
+  if (!win) {
+    ElMessage.error("请允许弹出窗口以打印小票");
+    return;
+  }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>销售小票</title><style>
+    body{font-family:monospace;font-size:12px;width:280px;margin:0 auto;padding:12px}
+    h2{text-align:center;margin:0 0 8px}hr{border:none;border-top:1px dashed #000;margin:8px 0}
+    table{width:100%;border-collapse:collapse}td{padding:2px 0}
+    .total{font-weight:700;font-size:14px} .foot{text-align:center;margin-top:8px}
+  </style></head><body>
+    <h2>智享全链 · 销售小票</h2>
+    <div>会员：${saleForm.customerName || "散客"}</div>
+    <div>时间：${new Date().toLocaleString()}</div>
+    <hr>
+    <table>${lines}</table>
+    <hr>
+    <div class="total">应收：¥${cartAmount.value.toFixed(2)}</div>
+    <div class="foot">谢谢惠顾</div>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  win.print();
 }
 
 async function handleCreateSaleBill() {
@@ -817,15 +882,48 @@ async function handleDeleteHoldOrder(holdNo: string) {
   padding-top: 12px;
   border-top: 1px solid var(--border-light);
 }
-.cart-actions kbd {
+.action-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+  position: relative;
+}
+.action-nav:hover {
+  border-color: var(--color-primary-soft);
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+.action-nav--primary {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.action-nav kbd {
+  position: absolute;
+  top: 4px;
+  right: 6px;
   background: var(--bg-soft);
   border: 1px solid var(--border-normal);
-  border-bottom-width: 2px;
   border-radius: 4px;
-  padding: 0 5px;
-  font-size: 11px;
+  padding: 0 4px;
+  font-size: 10px;
   font-family: var(--font-mono);
-  margin-right: 2px;
+  color: var(--text-muted);
+}
+.action-nav-icon {
+  font-size: 18px;
+}
+.action-nav span {
+  font-size: 12px;
+  font-weight: 500;
 }
 .checkout-section {
   margin-top: 16px;
