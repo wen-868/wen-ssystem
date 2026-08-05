@@ -25,7 +25,7 @@
                   <strong>{{ store.capacity }}</strong>
                 </div>
               </div>
-              <el-progress :percentage="store.loadRate" :stroke-width="12" :color="store.loadRate > 60 ? '#C0392B' : store.loadRate > 40 ? '#D48B3A' : '#0EA879'" />
+              <el-progress :percentage="store.loadRate" :stroke-width="12" :color="store.loadRate > 60 ? 'var(--color-danger)' : store.loadRate > 40 ? 'var(--color-warning)' : 'var(--color-success)'" />
             </el-card>
           </el-col>
         </el-row>
@@ -41,7 +41,7 @@
           <el-table-column prop="ruleName" label="规则名称" width="140" />
           <el-table-column label="适用渠道" width="120">
             <template #default="{ row }">
-              <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
+              <el-tag :color="channelColors[row.channelType] || 'var(--color-primary)'" style="color: #fff; border: none" size="small">
                 {{ channelNames[row.channelType] || row.channelType }}
               </el-tag>
             </template>
@@ -100,7 +100,7 @@
           <el-table-column prop="channelOrderNo" label="订单号" width="150" />
           <el-table-column label="渠道" width="80">
             <template #default="{ row }">
-              <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
+              <el-tag :color="channelColors[row.channelType] || 'var(--color-primary)'" style="color: #fff; border: none" size="small">
                 {{ channelNames[row.channelType] || row.channelType }}
               </el-tag>
             </template>
@@ -257,7 +257,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
-const channelColors: Record<string, string> = { WECHAT: '#07C160', DOUYIN: '#000000', MEITUAN: '#FFD100', ELEME: '#0085FF', JD: '#E4393C', OFFLINE: '#666666' }
+const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
 const mockRules = ref(Array.from({ length: 8 }, (_, i) => ({
   id: i + 1,

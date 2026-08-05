@@ -104,7 +104,7 @@
         <el-table-column prop="channelOrderNo" label="订单号" width="150" />
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
-            <el-tag :color="channelColors[row.channelType] || '#3F6FEF'" style="color: #fff; border: none" size="small">
+            <el-tag :color="channelColors[row.channelType] || 'var(--color-primary)'" style="color: #fff; border: none" size="small">
               {{ channelNames[row.channelType] || row.channelType }}
             </el-tag>
           </template>
@@ -142,11 +142,11 @@
                 </template>
                 <div>
                   <p><strong>错误详情</strong></p>
-                  <p style="color: #999999; font-size: 13px">{{ row.errorMessage }} - 接口返回超时，请检查网络连接或稍后重试</p>
+                  <p style="color: var(--text-muted); font-size: 13px">{{ row.errorMessage }} - 接口返回超时，请检查网络连接或稍后重试</p>
                 </div>
               </el-popover>
             </template>
-            <span v-else style="color: #999999">-</span>
+            <span v-else style="color: var(--text-muted)">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="syncedAt" label="同步时间" width="160" />
@@ -202,7 +202,7 @@
           </el-select>
         </el-descriptions-item>
         <el-descriptions-item label="下次执行时间">
-          <span style="color: #3F6FEF">{{ nextExecutionTime }}</span>
+          <span style="color: var(--color-primary)">{{ nextExecutionTime }}</span>
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
@@ -216,7 +216,7 @@ import { ElMessage } from 'element-plus'
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
-const channelColors: Record<string, string> = { WECHAT: '#07C160', DOUYIN: '#000000', MEITUAN: '#FFD100', ELEME: '#0085FF', JD: '#E4393C', OFFLINE: '#666666' }
+const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
 const mockStats = { totalSync: 256, successCount: 238, failCount: 12, pendingCount: 6 }
 
@@ -351,7 +351,7 @@ function initChannelSuccessChart() {
         borderRadius: [4, 4, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
           { offset: 0, color: '#0EA879' },
-          { offset: 1, color: '#b3e19d' }
+          { offset: 1, color: 'rgba(14,168,121,0.4)' }
         ])
       },
       label: { show: true, position: 'top', formatter: '{c}%', fontSize: 10 }

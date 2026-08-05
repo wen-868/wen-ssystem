@@ -1484,27 +1484,25 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r80_02.md）
-- **文件**：`admin-web/src/views/order/` 其余 6 页
-- **问题**：订单页硬编码色残留约 28 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，R77-01 后新增或遗漏）
+- **状态**：✅ 已完成（2026-08-06 墨执行，待凌舟复核；commit 后未推送，由凌舟统一收口）
+- **文件**：`admin-web/src/views/order/` 7 个页面（OrderExceptionView/OrderSyncView/OrderProductMapView/OrderRoutingView/OrderTimeoutView/OrderBoardView/OrderCenterView；任务描述写"6 页"系笔误，R80-00 核查为 7 页 39 处）
+- **问题**：订单页硬编码色残留约 28 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，其中 #1677FF 6 处：OrderExceptionView 3 + OrderProductMapView 3，R77-01 后新增或遗漏）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
-- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/order/` 显著下降（目标 ≤ 原 30%）
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/order/` 显著下降（目标 ≤ 原 28 处的 30%，即 ≤8）；`rg "#1677FF" admin-web/src/views/order/` → 0
+- **墨完成记录**（2026-08-06）：
+  - **改动文件**：上述 7 个页面，43+/43- 全部为颜色值，未碰布局/结构/逻辑/文字
+  - **替换规则**：模板内联 style/绑定色 → tokens.css 变量（`--color-primary/success/warning/danger`、`--text-muted/--text-secondary`、`--bg-page/--bg-soft`、`--border-normal/--border-light`、`--gray-500`）；渠道品牌 hex 按 OrderExceptionView 既有 channelTagMap 语义映射为 token（微信=success/抖音=text-primary/美团=warning/饿了么=primary/京东=danger/线下=gray-500，色相一致）；ECharts canvas 不支持 var → 保留 token 等值 hex，#1677FF 全部改品牌 #3F6FEF，渐变副色 #FCA5A5/#b3e19d 按 R77-01「渐变副色映射品牌色 rgba」规则改 rgba(192,57,43,0.4)/rgba(14,168,121,0.4)（对齐 Dashboard.vue 同款渐变）
   - **验证证据**：
     | 验证项 | 命令 | 结果 |
     |--------|------|------|
-    | 残留驼峰 prop | `rg 'prop="returnNo"\|prop="sourceBillNo"\|prop="totalAmount"\|prop="status"\|prop="createdAt"'` | 0 命中 ✅ |
-    | 占位不回归 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
+    | 残留 hex 行数 | `rg -c "#[0-9a-fA-F]{6}" admin-web/src/views/order/` | 7 行（基线 41 → 7，目标 ≤8）✅ |
+    | 非品牌色清零 | `rg "#1677FF" admin-web/src/views/order/` | 0 命中 ✅ |
     | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
-    | 生产构建 | `npm run build` | exit 0（32.92s，仅预存 @vueuse PURE 注释警告）✅ |
-    | ESLint | `npx eslint src/views/pos/SaleReturnView.vue` | 0 error 0 warning ✅ |
-  - **说明**：任务卡 inbox/mo_r79_03.md 已归档 inbox/archive/；git commit 后未推送，由凌舟统一收口
-    |--------|------|------|
-    | 占位残留 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
-    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
-    | 生产构建 | `npm run build` | exit 0（32.88s，仅预存 @vueuse PURE 注释警告）✅ |
-    | ESLint | `npx eslint src/api/pos.ts src/views/pos/SaleReturnView.vue` | 0 error 0 warning ✅ |
-  - **顺带修正**：SaleReturnView 列表表格 `v-loading` 属性顺序警告（改动前已存在，一行重排，无逻辑变更）
-  - **发现并上报（未擅改，超出本轮最小改动范围）**：后端 `sale-return.service.ts` 列表/详情均用 `SELECT *` 返回**蛇形字段**，而 SaleReturnView 列表表格列（prop="returnNo"/"sourceBillNo"/"totalAmount"/"status"）绑定的是驼峰键——mock 库（mock-db-supplier.ts 对 sale_return 同时补了驼峰键）下显示正常，但**真实 MySQL 下列表列会显示为空**；详情弹窗已按蛇形字段适配不受影响，建议凌舟后续规划修复列表列绑定或后端补 `AS` 驼峰别名（对齐 store-sale-bill.service.ts 做法）
+    | 生产构建 | `npm run build` | exit 0（32.13s）✅ |
+    | ESLint | `npx eslint`（7 个改动文件） | 0 error（19 个 warning 均为改动行之外预存问题）✅ |
+    | diff 核查 | `git diff` 逐行审阅 | 43+/43-，全部为颜色值，无逻辑/结构/文字改动 ✅ |
+  - **残留 7 行说明（全部为 ECharts canvas 色，R77-01 规则允许）**：OrderCenterView L436、OrderExceptionView L397/429/430、OrderSyncView L353 为 token 等值 hex（#3F6FEF/#C0392B/#0EA879）；OrderAftersaleView L275/L552 为 R80-01 已留图表色（不在本轮改动范围）
+  - **说明**：① 6 个文件 EOF 由 apply_patch 补了结尾换行（原文件无结尾换行），仅文件末尾空白差异、无内容变化；② 渠道品牌色映射为语义 token 与本页既有 channelTagMap 先例一致，如需保留外部平台原色可告知回退；③ 任务卡 inbox/mo_r80_02.md 已归档 inbox/archive/
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1

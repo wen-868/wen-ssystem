@@ -224,7 +224,7 @@ onMounted(() => {
   color: var(--color-primary);
 }
 .col-pending-receive {
-  background: #f4f4f5;
+  background: var(--bg-soft);
   color: var(--gray-400);
 }
 .col-completed {
@@ -232,7 +232,7 @@ onMounted(() => {
   color: var(--color-success);
 }
 .col-cancelled {
-  background: #f4f4f5;
+  background: var(--bg-soft);
   color: var(--gray-400);
 }
 .column-title {
@@ -297,7 +297,7 @@ onMounted(() => {
   align-items: center;
   font-size: 12px;
   padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-light);
 }
 .order-amount {
   color: var(--color-danger);

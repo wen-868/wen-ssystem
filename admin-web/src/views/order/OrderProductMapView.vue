@@ -12,7 +12,7 @@
               class="channel-badge"
               type="primary"
             >
-              <span style="margin-left: 8px; font-size: 12px; color: #9CA3AF">
+              <span style="margin-left: 8px; font-size: 12px; color: var(--text-muted)">
                 / {{ mockChannelStats[ch] ? mockChannelStats[ch].unmapped : 0 }}未映射
               </span>
             </el-badge>
@@ -180,10 +180,10 @@
           accept=".xlsx,.xls,.csv"
           :on-change="handleFileChange"
         >
-          <el-icon style="font-size: 48px; color: #1677FF"><UploadFilled /></el-icon>
-          <div style="margin-top: 12px; color: #4B5563">将文件拖到此处，或<em style="color: #1677FF">点击上传</em></div>
+          <el-icon style="font-size: 48px; color: var(--color-primary)"><UploadFilled /></el-icon>
+          <div style="margin-top: 12px; color: var(--text-secondary)">将文件拖到此处，或<em style="color: var(--color-primary)">点击上传</em></div>
           <template #tip>
-            <div style="margin-top: 8px; font-size: 12px; color: #9CA3AF">支持 .xlsx .xls .csv 格式文件</div>
+            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted)">支持 .xlsx .xls .csv 格式文件</div>
           </template>
         </el-upload>
         <div style="text-align: right; margin-top: 16px">
@@ -208,9 +208,9 @@
       <!-- 步骤3：确认导入 -->
       <div v-if="importStep === 2">
         <div style="text-align: center; padding: 40px 0">
-          <el-icon style="font-size: 56px; color: #1677FF"><WarningFilled /></el-icon>
-          <p style="margin-top: 16px; font-size: 16px; color: #4B5563">确认导入 {{ importPreviewData.length }} 条映射数据？</p>
-          <p style="color: #9CA3AF; font-size: 13px">导入后将覆盖已存在的映射关系</p>
+          <el-icon style="font-size: 56px; color: var(--color-primary)"><WarningFilled /></el-icon>
+          <p style="margin-top: 16px; font-size: 16px; color: var(--text-secondary)">确认导入 {{ importPreviewData.length }} 条映射数据？</p>
+          <p style="color: var(--text-muted); font-size: 13px">导入后将覆盖已存在的映射关系</p>
         </div>
         <div style="text-align: right; margin-top: 16px; display: flex; justify-content: space-between">
           <el-button @click="importStep = 1">上一步</el-button>

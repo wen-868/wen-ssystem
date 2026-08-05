@@ -4,28 +4,28 @@
     <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="待处理异常" :value="mockStats.pendingCount" value-style="color: #C0392B">
+          <el-statistic title="待处理异常" :value="mockStats.pendingCount" value-style="color: var(--color-danger)">
             <template #prefix><el-icon><WarningFilled /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="今日新增异常" :value="mockStats.todayNewCount" value-style="color: #D48B3A">
+          <el-statistic title="今日新增异常" :value="mockStats.todayNewCount" value-style="color: var(--color-warning)">
             <template #prefix><el-icon><Plus /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="本周解决异常" :value="mockStats.weekResolvedCount" value-style="color: #0EA879">
+          <el-statistic title="本周解决异常" :value="mockStats.weekResolvedCount" value-style="color: var(--color-success)">
             <template #prefix><el-icon><CircleCheckFilled /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="平均处理时长" :value="mockStats.avgHandleHours" value-style="color: #1677FF">
+          <el-statistic title="平均处理时长" :value="mockStats.avgHandleHours" value-style="color: var(--color-primary)">
             <template #suffix>小时</template>
           </el-statistic>
         </el-card>
@@ -200,7 +200,7 @@
               <el-descriptions-item label="创建时间">{{ currentException.createdAt }}</el-descriptions-item>
             </el-descriptions>
             <h4 style="margin: 16px 0 8px">异常详情</h4>
-            <div style="background: #F5F5F5; padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap">
+            <div style="background: var(--bg-page); padding: 12px; border-radius: 6px; font-size: 13px; line-height: 1.6; white-space: pre-wrap">
               {{ currentException.exceptionDetail }}
             </div>
             <h4 style="margin: 16px 0 8px">关联订单信息</h4>
@@ -221,12 +221,12 @@
                 :type="idx === mockResolutionLogs.length - 1 ? 'success' : 'primary'"
               >
                 <div><strong>{{ log.handlerName }}</strong> - {{ log.action }}</div>
-                <div v-if="log.result" style="color: #9CA3AF; font-size: 13px; margin-top: 4px">{{ log.result }}</div>
+                <div v-if="log.result" style="color: var(--text-muted); font-size: 13px; margin-top: 4px">{{ log.result }}</div>
               </el-timeline-item>
             </el-timeline>
           </el-col>
         </el-row>
-        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #E5E7EB; display: flex; gap: 12px; align-items: center">
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-normal); display: flex; gap: 12px; align-items: center">
           <el-select v-model="assignHandler" placeholder="分配处理人" clearable style="width: 160px">
             <el-option label="张三" value="张三" />
             <el-option label="李四" value="李四" />
@@ -395,7 +395,7 @@ function renderChannelExceptionChart() {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "#C0392B" },
-            { offset: 1, color: "#FCA5A5" },
+            { offset: 1, color: "rgba(192,57,43,0.4)" },
           ]),
         },
         barWidth: 32,
@@ -426,12 +426,12 @@ function renderExceptionTrendChart() {
         type: "line",
         data: data.map((d) => d.count),
         smooth: true,
-        lineStyle: { color: "#1677FF", width: 2 },
-        itemStyle: { color: "#1677FF" },
+        lineStyle: { color: "#3F6FEF", width: 2 },
+        itemStyle: { color: "#3F6FEF" },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "rgba(22,119,255,0.25)" },
-            { offset: 1, color: "rgba(22,119,255,0.02)" },
+            { offset: 0, color: "rgba(63,111,239,0.25)" },
+            { offset: 1, color: "rgba(63,111,239,0.02)" },
           ]),
         },
       },

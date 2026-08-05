@@ -120,7 +120,7 @@
         <el-table-column label="客户" width="150">
           <template #default="{ row }">
             <div>{{ row.customerName }}</div>
-            <div style="font-size: 12px; color: #999999">{{ row.customerPhone }}</div>
+            <div style="font-size: 12px; color: var(--text-muted)">{{ row.customerPhone }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="productSummary" label="商品摘要" min-width="180" show-overflow-tooltip />
@@ -271,7 +271,7 @@ import { ElMessage } from 'element-plus'
 // ─── Mock 数据 ───
 const channelTypes = ['ALL', 'WECHAT', 'DOUYIN', 'MEITUAN', 'ELEME', 'JD', 'OFFLINE']
 const channelNames: Record<string, string> = { ALL: '全部', WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
-const channelColors: Record<string, string> = { WECHAT: '#07C160', DOUYIN: '#000000', MEITUAN: '#FFD100', ELEME: '#0085FF', JD: '#E4393C', OFFLINE: '#666666' }
+const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
 const mockStats = { todayOrders: 128, todayAmount: 35680, pendingCount: 23, exceptionCount: 5 }
 
