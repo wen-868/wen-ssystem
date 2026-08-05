@@ -773,7 +773,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .cashier-workspace {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr) 340px;
+  grid-template-columns: clamp(130px, 10vw, 160px) minmax(0, 1fr) clamp(300px, 25vw, 350px);
   gap: 14px;
   height: 100%;
 }
@@ -1467,5 +1467,69 @@ async function handleDeleteHoldOrder(holdNo: string) {
   font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* ═══ 屏幕适配（置于基础样式之后，保证覆盖生效） ═══ */
+
+/* 中屏：收窄侧栏与购物车，商品区保持可用 */
+@media (max-width: 1280px) {
+  .cashier-workspace {
+    grid-template-columns: 120px minmax(0, 1fr) 300px;
+    gap: 10px;
+  }
+  .pos-cashier {
+    padding: 10px;
+  }
+}
+
+/* 小屏：分类栏改为顶部横向滚动标签，商品+购物车两栏布局 */
+@media (max-width: 1100px) {
+  .cashier-workspace {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-areas:
+      "cats cats"
+      "products cart";
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .category-panel {
+    grid-area: cats;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 10px;
+    min-height: 44px;
+  }
+  .category-panel-title {
+    padding: 0 10px 0 0;
+    flex-shrink: 0;
+  }
+  .category-item {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    margin-bottom: 0;
+  }
+  .product-panel {
+    grid-area: products;
+  }
+  .cart-panel {
+    grid-area: cart;
+  }
+}
+
+@media (max-width: 900px) {
+  .cashier-workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}
+
+/* 极窄屏：保证右侧购物车完整可见，工作区整体可横向滚动 */
+@media (max-width: 760px) {
+  .pos-cashier {
+    overflow-x: auto;
+  }
+  .cashier-workspace {
+    min-width: 700px;
+  }
 }
 </style>

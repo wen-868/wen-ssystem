@@ -278,6 +278,19 @@
     <main v-loading="pageLoading" class="main">
       <!-- 收银台模式 -->
       <div v-if="isCashierMode" class="cashier-container">
+        <!-- 功能导航栏（对标移动端功能中心：收银/单据/挂单/交班/退货/会员等一级入口） -->
+        <nav class="cashier-nav">
+          <div
+            v-for="item in cashierNavItems"
+            :key="item.path"
+            class="cashier-nav-item"
+            :class="{ active: isCashierNavActive(item.path) }"
+            @click="navTo(item.path)"
+          >
+            <el-icon class="cashier-nav-icon"><component :is="item.icon" /></el-icon>
+            <span class="cashier-nav-label">{{ item.label }}</span>
+          </div>
+        </nav>
         <div class="cashier-main">
           <router-view v-if="isCashierMode" />
         </div>
@@ -304,7 +317,8 @@ import { ElMessage } from "element-plus";
 import {
   HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
   DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
-  ArrowDown, CaretBottom, ArrowLeft, Money, Discount, Van
+  ArrowDown, CaretBottom, ArrowLeft, Money, Discount, Van,
+  Edit, FolderOpened, Clock, RefreshRight, Share, Checked
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
@@ -312,6 +326,23 @@ import { useAuthStore } from "../stores/auth";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+
+/** 收银台模式功能导航（一级入口，对应 /pos/* 版块） */
+const cashierNavItems = [
+  { path: "/pos/cashier", label: "快速收银", icon: Edit },
+  { path: "/pos/sale-bills", label: "销售单据", icon: Document },
+  { path: "/pos/hold-order", label: "挂单管理", icon: FolderOpened },
+  { path: "/pos/shift", label: "交接班", icon: Clock },
+  { path: "/pos/sale-return", label: "销售退货", icon: RefreshRight },
+  { path: "/pos/member", label: "会员识别", icon: User },
+  { path: "/pos/collection", label: "分享收款", icon: Share },
+  { path: "/pos/daily-settle", label: "日结管理", icon: Checked }
+];
+
+/** 判断功能导航高亮：路由前缀匹配（含详情页如 /pos/shift/:id） */
+function isCashierNavActive(path: string): boolean {
+  return route.path === path || route.path.startsWith(`${path}/`);
+}
 
 // AI 对话窗口：组件级懒加载（defineAsyncComponent），避免打进主 chunk（chunk ≤ 500KB 规则）
 const AiChatWindow = defineAsyncComponent(
@@ -980,28 +1011,46 @@ function handleLogout() {
   background: var(--bg-page);
 }
 
-.cashier-header {
-  height: 48px;
-  background: #fff;
-  border-bottom: 1px solid var(--border-normal);
+/* 收银台功能导航栏（对标移动端功能中心一级入口） */
+.cashier-nav {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 16px;
+  gap: 4px;
+  height: 46px;
+  padding: 0 14px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
 }
-
-.cashier-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  flex: 1;
-  text-align: center;
+.cashier-nav::-webkit-scrollbar {
+  display: none;
 }
-
-.cashier-date {
+.cashier-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
   font-size: 13px;
   color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms ease;
+  user-select: none;
+}
+.cashier-nav-item:hover {
+  background: var(--gray-50);
+  color: var(--text-primary);
+}
+.cashier-nav-item.active {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+.cashier-nav-icon {
+  font-size: 16px;
 }
 
 .cashier-main {
