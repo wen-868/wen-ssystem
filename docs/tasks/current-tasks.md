@@ -1390,7 +1390,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：✅ 已完成（2026-08-06 墨执行 commit `4b917947`，待凌舟复核后收口推送）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `4b917947`，凌舟复核通过：占位清零、详情弹窗按后端蛇形字段、vue-tsc 0 errors）
 - **文件**：`admin-web/src/api/pos.ts`、`admin-web/src/views/pos/SaleReturnView.vue`
 - **问题**：退货列表"详情"按钮为占位提示，后端详情接口已存在
 - **修复**：① pos.ts 新增 `fetchSaleReturnDetail(returnNo)` 调 `GET /store/sale-returns/:returnNo`；② SaleReturnView 详情弹窗展示（退货单号/客户/商品明细/金额/状态/备注）；**最小改动，不碰无关代码**
@@ -1402,6 +1402,14 @@
   - **详情按钮取参修正**：`viewDetail(row.returnNo)` → `viewDetail(row.return_no || row.returnNo)`——生产环境列表仅返回蛇形字段，原取参在真实库下拿不到单号，属详情链路必需修正（未改列表其他列）
   - **验证证据**：
     | 验证项 | 命令 | 结果 |
+
+### R79-02 — [P2] 废弃目录清理：app-shell 归档
+- **优先级**：P2
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06，commit `1800cd30`）
+- **问题**：app-shell 为旧版 merchant-mobile 的 HBuilder 5+App 壳（含 www 构建产物），当前移动端已由 app-mobile(uni-app) 取代，无任何代码/部署引用
+- **修复**：整个 app-shell 目录移入 `D:\Users\Documents\TREA\_cleanup_20260806\app-shell` 暂存（可恢复，未直接删除），git 记录删除
+- **验收标准**：`Test-Path app-shell` → False；`git log --oneline -1` 有清理提交
     |--------|------|------|
     | 占位残留 | `rg "详情功能开发中" admin-web/src/views/pos` | 0 命中 ✅ |
     | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
