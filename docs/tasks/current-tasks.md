@@ -1527,11 +1527,24 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r81_01.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行，凌舟复核中）
 - **文件**：`admin-web/src/views/product/ReviewDelegation.vue`、`ProductReviewWorkflow.vue`
 - **问题**：两个页面使用 mock 编造数据（审核委托 3 组假列表、审核流程 mockRecords），后端无对应接口
 - **修复**：移除全部 mock 假数据；页面改真实空态 + 明确提示"该功能待后端支持（审核委托/流程配置）"；保留页面结构与入口（不删菜单）；**不编造数据**
 - **验收标准**：`rg "mock" admin-web/src/views/product/ReviewDelegation.vue admin-web/src/views/product/ProductReviewWorkflow.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+- **墨完成记录**（2026-08-06）：
+  - **ReviewDelegation.vue**：删除全部 mock（mockMyDelegations/mockDelegatedToMe/mockHistory/userOptions）及基于 mock 的列表/筛选/分页/新建弹窗/详情弹窗/操作逻辑，页面改为 PageCard + el-empty 空态「审核委托功能待后端支持」+ 说明文案；菜单与路由（products/review-delegation）保留
+  - **ProductReviewWorkflow.vue**：删除全部 mock（mockRecords/categoryOptions/userOptions）及基于 mock 的列表/筛选/新建编辑弹窗/详情弹窗/启停删除逻辑，页面改为 PageCard + el-empty 空态「审核流程配置功能待后端支持」+ 说明文案；菜单与路由（products/review-workflow）保留；WorkflowFlowChart 仍被 ProductReviewTasks.vue 使用，不受影响
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | mock 残留 | `rg "mock" admin-web/src/views/product/ReviewDelegation.vue admin-web/src/views/product/ProductReviewWorkflow.vue` | 0 命中 ✅ |
+    | 硬编码色 | `rg "#[0-9a-fA-F]{6}"` 两文件 | 0 命中 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（33.22s）✅ |
+    | ESLint | `npx eslint`（2 个改动文件） | 0 error 0 warning ✅ |
+    | 路由/菜单 | `rg "review-delegation|review-workflow"` router/index.ts + MainLayout.vue | 入口完好 ✅ |
+    | diff 核查 | `git diff --stat` | 2 文件 18+/1000-，全部为 mock 删除与空态替换 ✅ |
 
 ### R81-02 — [P1] 商品页硬编码色 token 化
 - **优先级**：P1
