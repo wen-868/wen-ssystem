@@ -1445,7 +1445,7 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：✅ 已完成（2026-08-06，墨完成，commit 见下方完成记录，未推送，凌舟统一收口）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `22b3ed70`，凌舟复核通过：mock 清零、aftersale.ts API 接入、vue-tsc 0；本页 #1677FF 已清零，其余 6 处属 R80-02）
 - **文件**：`admin-web/src/views/order/OrderAftersaleView.vue`、`admin-web/src/api/`
 - **问题**：售后页统计卡与列表为 mock 编造数据（mockStats/mockAftersales），后端 `/api/admin/aftersales`（含 GET /statistics 统计）已存在
 - **修复**：① 新增售后 API 封装（列表/统计/详情，按后端字段蛇形）；② 统计卡/列表/筛选接真实数据；③ 后端无数据时显示空态/零值，**禁止保留编造数字**；④ 硬编码色顺带 token 化（该页 #1677FF/#D48B3A 等）
@@ -1484,7 +1484,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单（墨完成 R80-01 后派单）
+- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r80_02.md）
 - **文件**：`admin-web/src/views/order/` 其余 6 页
 - **问题**：订单页硬编码色残留约 28 处（OrderExceptionView 11/OrderSyncView 7/OrderProductMapView 7/OrderRoutingView 4/OrderTimeoutView 4/OrderBoardView 3/OrderCenterView 3，R77-01 后新增或遗漏）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
