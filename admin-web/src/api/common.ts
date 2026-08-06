@@ -167,7 +167,7 @@ export async function fetchSaleBills() {
 }
 
 export async function fetchInventoryLogs() {
-  const { data } = await api.get("/admin/inventory/logs", { params: { page: 1, pageSize: 30 } });
+  const { data } = await api.get("/admin/inventory-logs", { params: { page: 1, pageSize: 30 } });
   return data.data;
 }
 

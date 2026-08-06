@@ -1596,11 +1596,24 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r82_01.md）
-- **文件**：`admin-web/src/api/customer.ts`、`admin-web/src/views/inventory/Inventory.vue`、`InventoryTransfer.vue`、`InventoryTransferCreate.vue`
+- **状态**：✅ 已完成（2026-08-06 墨执行，commit 见 git log（未推送），由凌舟统一收口）
+- **文件**：`admin-web/src/api/customer.ts`、`admin-web/src/api/common.ts`、`admin-web/src/views/inventory/Inventory.vue`、`InventoryTransfer.vue`、`InventoryTransferCreate.vue`
 - **问题**：① 库存余额接口 404（前端 /inventory/balances 复数 vs 后端 /inventory-balance 单数）；② 调拨商品选择器 mock 假数据
-- **修复**：① fetchInventoryBalances 路径改 `/admin/inventory-balance`（对齐后端）；② 调拨商品选择器接真实商品搜索接口（复用现有商品 API，按后端返回字段适配）；**最小改动，不碰无关逻辑**
-- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "mockProducts" admin-web/src/views/inventory/` → 0；`rg "inventory/balances" admin-web/src` → 0
+- **修复**：
+  1. `fetchInventoryBalances` 路径改 `/admin/inventory-balance`（对齐后端单数路由）
+  2. 核查发现同页同类 404：`fetchInventoryLogs` 路径 `/admin/inventory/logs` 改 `/admin/inventory-logs`（后端单数路由）
+  3. `Inventory.vue` 库存总览/库存流水两个 Tab 按后端 `listInventoryBalance`/`listInventoryLogs` 实际返回字段适配列（总览：storeName/barcode/skuName/stockType/physicalQty/availableQty/lockedQty；流水：logNo/skuName/reason/changeQty/afterQty/createdAt），仅改列字段映射与过滤字段，不重构页面布局
+  4. `InventoryTransfer.vue` + `InventoryTransferCreate.vue` 调拨商品选择器删除 mockProducts 兜底（失败改错误提示），商品字段按 `/admin/products` 返回适配（库存 availableQty、单价 retailPrice、图片 mainImage）
+  5. `InventoryTransfer.vue` 新建调拨弹窗提交补 `quantity` 字段（后端 createTransferOrder zod 必填，取箱数+瓶数合计），保证真实可提交
+- **完成证据**（2026-08-06 墨验证）：
+  | 验证项 | 结果 |
+  |--------|------|
+  | `npm run build` | exit 0（44.19s，仅预存 @vueuse PURE 警告） |
+  | `npx vue-tsc -b` | exit 0，0 errors |
+  | `rg "mockProducts" admin-web/src/views/inventory/` | 0 命中 |
+  | `rg "inventory/balances" admin-web/src` | 0 命中 |
+  | ESLint（5 个改动文件） | 0 errors（4 个预存 warning，非本次引入） |
+  | git diff --stat | 5 文件 46+/73-，无行尾噪声 |
 
 ### R82-02 — [P1] 库存页硬编码色 token 化
 - **优先级**：P1

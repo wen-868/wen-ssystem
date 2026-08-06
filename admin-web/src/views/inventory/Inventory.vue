@@ -34,12 +34,10 @@
           <TableSkeleton v-if="loading" />
           <el-table v-else class="list-table" :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
-            <el-table-column prop="skuCode" label="SKU编码" width="160" />
-            <el-table-column prop="productName" label="商品名称" min-width="180" />
-            <el-table-column prop="spec" label="规格" width="100" />
-            <el-table-column prop="openingQty" label="期初库存" width="100" />
-            <el-table-column prop="inQty" label="入库数量" width="100" />
-            <el-table-column prop="outQty" label="出库数量" width="100" />
+            <el-table-column prop="barcode" label="条码" width="160" />
+            <el-table-column prop="skuName" label="商品名称" min-width="180" />
+            <el-table-column prop="stockType" label="库存类型" width="100" />
+            <el-table-column prop="physicalQty" label="实物库存" width="100" />
             <el-table-column prop="availableQty" label="可用库存" width="110">
               <template #default="{ row }">
                 <span :class="{ 'low-stock': row.availableQty < row.warningQty && row.availableQty > 0, 'out-stock': row.availableQty <= 0 }">
@@ -47,9 +45,7 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="warningQty" label="预警阈值" width="100" />
-            <el-table-column prop="unit" label="单位" width="80" />
-            <el-table-column prop="updateTime" label="更新时间" width="160" />
+            <el-table-column prop="lockedQty" label="锁定库存" width="100" />
             <template #empty>
               <el-empty description="暂无数据" :image-size="80" />
             </template>
@@ -93,20 +89,8 @@
           <TableSkeleton v-if="loading" />
           <el-table v-else class="list-table" :data="logs" stripe>
             <el-table-column prop="logNo" label="流水单号" width="200" />
-            <el-table-column prop="storeName" label="门店" width="120" />
-            <el-table-column prop="skuCode" label="SKU编码" width="160" />
-            <el-table-column prop="productName" label="商品名称" min-width="160" />
-            <el-table-column prop="logType" label="类型" width="110">
-              <template #default="{ row }">
-                <el-tag v-if="row.logType === 'PURCHASE_IN'" type="success">采购入库</el-tag>
-                <el-tag v-else-if="row.logType === 'SALE_OUT'" type="danger">销售出库</el-tag>
-                <el-tag v-else-if="row.logType === 'SALE_RETURN'" type="warning">销售退货</el-tag>
-                <el-tag v-else-if="row.logType === 'TRANSFER_IN'" type="primary">调拨入库</el-tag>
-                <el-tag v-else-if="row.logType === 'TRANSFER_OUT'" type="info">调拨出库</el-tag>
-                <el-tag v-else-if="row.logType === 'INVENTORY_ADJUST'" type="primary">盘点调整</el-tag>
-                <el-tag v-else>{{ row.logType }}</el-tag>
-              </template>
-            </el-table-column>
+            <el-table-column prop="skuName" label="商品名称" min-width="160" />
+            <el-table-column prop="reason" label="原因" min-width="120" />
             <el-table-column prop="changeQty" label="变动数量" width="100">
               <template #default="{ row }">
                 <span :class="{ 'qty-in': row.changeQty > 0, 'qty-out': row.changeQty < 0 }">
@@ -114,10 +98,8 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="balanceAfter" label="变动后库存" width="110" />
-            <el-table-column prop="relatedNo" label="关联单号" width="180" />
-            <el-table-column prop="operatorName" label="操作人" width="100" />
-            <el-table-column prop="createTime" label="操作时间" width="160" />
+            <el-table-column prop="afterQty" label="变动后库存" width="110" />
+            <el-table-column prop="createdAt" label="操作时间" width="170" />
             <template #empty>
               <el-empty description="暂无数据" :image-size="80" />
             </template>
@@ -197,8 +179,8 @@ async function loadBalances() {
     if (balanceKeyword.value) {
       const kw = balanceKeyword.value.toLowerCase();
       list = list.filter((item: any) =>
-        (item.productName && item.productName.toLowerCase().includes(kw)) ||
-        (item.skuCode && item.skuCode.toLowerCase().includes(kw))
+        (item.skuName && item.skuName.toLowerCase().includes(kw)) ||
+        (item.barcode && item.barcode.toLowerCase().includes(kw))
       );
     }
     if (storeId.value) {

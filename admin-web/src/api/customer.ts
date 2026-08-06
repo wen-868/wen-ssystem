@@ -45,7 +45,7 @@ export async function fetchRefundOrders() {
 }
 
 export async function fetchInventoryBalances() {
-  const { data } = await api.get("/admin/inventory/balances");
+  const { data } = await api.get("/admin/inventory-balance");
   return data.data;
 }
 

@@ -217,7 +217,7 @@
         <el-table-column prop="barcode" label="条码" width="140" />
         <el-table-column label="调出店库存" width="110" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.stock > 0" type="success" size="small">{{ row.stock }}</el-tag>
+            <el-tag v-if="row.availableQty > 0" type="success" size="small">{{ row.availableQty }}</el-tag>
             <el-tag v-else type="danger" size="small">无货</el-tag>
           </template>
         </el-table-column>
@@ -390,20 +390,8 @@ async function loadProducts() {
     });
     productList.value = data.records || data.list || [];
     productTotal.value = data.total || 0;
-  } catch {
-    // mock 商品数据
-    const mockProducts = [
-      { id: 1, skuId: 1, name: "飞天茅台53度500ml", specs: "53度/500ml", barcode: "6902952880011", stock: 120, price: 2899, imageUrl: "" },
-      { id: 2, skuId: 2, name: "五粮液普五52度500ml", specs: "52度/500ml", barcode: "6901382100015", stock: 200, price: 1099, imageUrl: "" },
-      { id: 3, skuId: 3, name: "剑南春水晶剑52度500ml", specs: "52度/500ml", barcode: "6901434888886", stock: 150, price: 458, imageUrl: "" },
-      { id: 4, skuId: 4, name: "泸州老窖特曲52度500ml", specs: "52度/500ml", barcode: "6901798111220", stock: 80, price: 328, imageUrl: "" },
-      { id: 5, skuId: 5, name: "青岛啤酒经典500ml", specs: "500ml/罐", barcode: "6903252710017", stock: 500, price: 6.5, imageUrl: "" },
-      { id: 6, skuId: 6, name: "百威啤酒500ml", specs: "500ml/罐", barcode: "6901236341005", stock: 400, price: 8.9, imageUrl: "" },
-      { id: 7, skuId: 7, name: "拉菲传奇波尔多干红", specs: "750ml/瓶", barcode: "3201720000013", stock: 60, price: 168, imageUrl: "" },
-      { id: 8, skuId: 8, name: "人头马VSOP700ml", specs: "700ml/瓶", barcode: "3024489000010", stock: 40, price: 528, imageUrl: "" }
-    ];
-    productList.value = mockProducts;
-    productTotal.value = mockProducts.length;
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "加载商品失败");
   }
 }
 
@@ -421,11 +409,10 @@ function confirmAddProducts() {
       skuName: p.name || p.skuName,
       specs: p.specs || p.spec || "",
       barcode: p.barcode || "",
-      fromStock: p.stock || 0,
-      toStock: Math.floor(Math.random() * 50),
+      fromStock: p.availableQty || p.stock || 0,
       quantity: 1,
       unitPrice: p.price || p.retailPrice || 0,
-      imageUrl: p.imageUrl || ""
+      imageUrl: p.mainImage || p.imageUrl || ""
     });
     added++;
   }
