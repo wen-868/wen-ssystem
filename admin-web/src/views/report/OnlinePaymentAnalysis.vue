@@ -31,7 +31,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: rgba(63,111,239,0.06)">
-              <el-icon :size="28" color="#3F6FEF"><Money /></el-icon>
+              <el-icon :size="28" color="var(--color-primary)"><Money /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">收款总金额</div>
@@ -44,7 +44,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: rgba(14,168,121,0.12)">
-              <el-icon :size="28" color="#0EA879"><Tickets /></el-icon>
+              <el-icon :size="28" color="var(--color-success)"><Tickets /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">收款总笔数</div>
@@ -57,7 +57,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
             <div class="stat-icon" style="background: rgba(212,139,58,0.12)">
-              <el-icon :size="28" color="#D48B3A"><Coin /></el-icon>
+              <el-icon :size="28" color="var(--color-warning)"><Coin /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">日均收款额</div>
@@ -69,8 +69,8 @@
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-content">
-            <div class="stat-icon" style="background: #fef0f0">
-              <el-icon :size="28" color="#C0392B"><DataLine /></el-icon>
+            <div class="stat-icon" style="background: var(--color-danger-soft)">
+              <el-icon :size="28" color="var(--color-danger)"><DataLine /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-label">单笔均值</div>
@@ -133,6 +133,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Money, Tickets, Coin, DataLine } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
@@ -212,10 +213,10 @@ function getPercentage(amount: number): number {
 
 function getProgressColor(amount: number): string {
   const pct = getPercentage(amount);
-  if (pct > 30) return "#C0392B";
-  if (pct > 15) return "#D48B3A";
-  if (pct > 5) return "#3F6FEF";
-  return "#0EA879";
+  if (pct > 30) return CHART_COLORS.danger;
+  if (pct > 15) return CHART_COLORS.warning;
+  if (pct > 5) return CHART_COLORS.primary;
+  return CHART_COLORS.success;
 }
 
 function getAvgAmount(row: any): number {
@@ -303,7 +304,7 @@ function renderChart() {
         data: chartData.value.map(d => d.amount),
         smooth: true,
         areaStyle: isDateMode ? { opacity: 0.15 } : undefined,
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         lineStyle: { width: 3 }
       },
       {
@@ -311,7 +312,7 @@ function renderChart() {
         type: "bar",
         yAxisIndex: 1,
         data: chartData.value.map(d => d.count),
-        itemStyle: { color: "#0EA879", opacity: 0.7 }
+        itemStyle: { color: CHART_COLORS.success, opacity: 0.7 }
       }
     ]
   });

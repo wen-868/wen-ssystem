@@ -207,6 +207,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { CHART_COLORS } from "@/styles/theme";
 import { Download, Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
@@ -278,9 +279,9 @@ function initTrendChart() {
       { type: 'value', name: '单/元' }
     ],
     series: [
-      { name: '销售额', type: 'line', smooth: true, data: data.map(d => d.salesAmount), itemStyle: { color: '#667eea' } },
-      { name: '订单数', type: 'line', smooth: true, yAxisIndex: 1, data: data.map(d => d.orderCount), itemStyle: { color: '#11998e' } },
-      { name: '客单价', type: 'line', smooth: true, yAxisIndex: 1, data: data.map(d => d.avgOrderValue), itemStyle: { color: '#f5576c' } }
+      { name: '销售额', type: 'line', smooth: true, data: data.map(d => d.salesAmount), itemStyle: { color: CHART_COLORS.primary } },
+      { name: '订单数', type: 'line', smooth: true, yAxisIndex: 1, data: data.map(d => d.orderCount), itemStyle: { color: CHART_COLORS.success } },
+      { name: '客单价', type: 'line', smooth: true, yAxisIndex: 1, data: data.map(d => d.avgOrderValue), itemStyle: { color: CHART_COLORS.danger } }
     ]
   })
 }
@@ -326,7 +327,7 @@ function initHeatmapChart() {
       right: 0,
       bottom: '15%',
       textStyle: { color: '#333' },
-      inRange: { color: ['#f0f5ff', '#667eea', '#764ba2'] }
+      inRange: { color: ['rgba(63,111,239,0.05)', CHART_COLORS.primary, CHART_COLORS.purple] }
     },
     series: [{
       type: 'heatmap', data: hd.data,
@@ -389,7 +390,7 @@ function initStoreRankChart() {
     yAxis: { type: 'category', data: names, inverse: true },
     series: [{
       type: 'bar', data: amounts,
-      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#4facfe' }, { offset: 1, color: '#00f2fe' }]) },
+      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: CHART_COLORS.primary }, { offset: 1, color: CHART_COLORS.cyan }]) },
       label: { show: true, position: 'right', formatter: (p: any) => '¥' + (p.value / 10000).toFixed(1) + '万' }
     }]
   })
@@ -421,7 +422,7 @@ function initSalesmanChart() {
     yAxis: { type: 'category', data: names, inverse: true },
     series: [{
       type: 'bar', data: amounts,
-      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#f093fb' }, { offset: 1, color: '#f5576c' }]) },
+      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: CHART_COLORS.purple }, { offset: 1, color: CHART_COLORS.danger }]) },
       label: { show: true, position: 'right', formatter: (p: any) => '¥' + (p.value / 10000).toFixed(1) + '万' }
     }]
   })

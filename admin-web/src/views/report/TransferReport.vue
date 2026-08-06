@@ -143,6 +143,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Refresh, Download, Document, CircleCheck, Goods, Money, ArrowUp } from "@element-plus/icons-vue";
 import echarts from "../../utils/echarts";
@@ -250,8 +251,8 @@ function renderTrendChart() {
       type: "category",
       boundaryGap: false,
       data: categories,
-      axisLine: { lineStyle: { color: "#E2E2E2" } },
-      axisLabel: { color: "#444444" }
+      axisLine: { lineStyle: { color: CHART_COLORS.gray100 } },
+      axisLabel: { color: CHART_COLORS.textSecondary }
     },
     yAxis: [
       {
@@ -259,8 +260,8 @@ function renderTrendChart() {
         name: "单数",
         position: "left",
         axisLine: { show: false },
-        splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
-        axisLabel: { color: "#444444" }
+        splitLine: { lineStyle: { type: "dashed", color: CHART_COLORS.gray100 } },
+        axisLabel: { color: CHART_COLORS.textSecondary }
       },
       {
         type: "value",
@@ -268,7 +269,7 @@ function renderTrendChart() {
         position: "right",
         axisLine: { show: false },
         splitLine: { show: false },
-        axisLabel: { color: "#444444" }
+        axisLabel: { color: CHART_COLORS.textSecondary }
       }
     ],
     series: [
@@ -278,7 +279,7 @@ function renderTrendChart() {
         smooth: true,
         data: series1,
         yAxisIndex: 0,
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(64, 158, 255, 0.3)" },
@@ -292,7 +293,7 @@ function renderTrendChart() {
         smooth: true,
         data: series2,
         yAxisIndex: 1,
-        itemStyle: { color: "#0EA879" },
+        itemStyle: { color: CHART_COLORS.success },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(103, 194, 58, 0.3)" },
@@ -331,14 +332,14 @@ function renderStoreRankChart() {
     xAxis: {
       type: "value",
       axisLine: { show: false },
-      splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
-      axisLabel: { color: "#444444" }
+      splitLine: { lineStyle: { type: "dashed", color: CHART_COLORS.gray100 } },
+      axisLabel: { color: CHART_COLORS.textSecondary }
     },
     yAxis: {
       type: "category",
       data: data.map((d) => d.name),
-      axisLine: { lineStyle: { color: "#E2E2E2" } },
-      axisLabel: { color: "#444444" }
+      axisLine: { lineStyle: { color: CHART_COLORS.gray100 } },
+      axisLabel: { color: CHART_COLORS.textSecondary }
     },
     series: [
       {
@@ -347,15 +348,15 @@ function renderStoreRankChart() {
         barWidth: 24,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#83bff6" },
-            { offset: 1, color: "#188df0" }
+            { offset: 0, color: "rgba(63,111,239,0.4)" },
+            { offset: 1, color: CHART_COLORS.primary }
           ]),
           borderRadius: [0, 4, 4, 0]
         },
         label: {
           show: true,
           position: "right",
-          color: "#444444"
+          color: CHART_COLORS.textSecondary
         }
       }
     ]
@@ -395,14 +396,14 @@ function renderProductRankChart() {
     xAxis: {
       type: "value",
       axisLine: { show: false },
-      splitLine: { lineStyle: { type: "dashed", color: "#F0F0F0" } },
-      axisLabel: { color: "#444444" }
+      splitLine: { lineStyle: { type: "dashed", color: CHART_COLORS.gray100 } },
+      axisLabel: { color: CHART_COLORS.textSecondary }
     },
     yAxis: {
       type: "category",
       data: data.map((d) => d.name),
-      axisLine: { lineStyle: { color: "#E2E2E2" } },
-      axisLabel: { color: "#444444", fontSize: 12 }
+      axisLine: { lineStyle: { color: CHART_COLORS.gray100 } },
+      axisLabel: { color: CHART_COLORS.textSecondary, fontSize: 12 }
     },
     series: [
       {
@@ -411,15 +412,15 @@ function renderProductRankChart() {
         barWidth: 18,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#0EA879" },
-            { offset: 1, color: "#95d475" }
+            { offset: 0, color: CHART_COLORS.success },
+            { offset: 1, color: "rgba(14,168,121,0.4)" }
           ]),
           borderRadius: [0, 3, 3, 0]
         },
         label: {
           show: true,
           position: "right",
-          color: "#444444",
+          color: CHART_COLORS.textSecondary,
           fontSize: 12
         }
       }
@@ -433,11 +434,11 @@ function renderStatusPieChart() {
   if (!statusPieChartRef.value || !statusPieChart) return;
 
   const data = [
-    { name: "已完成", value: 106, color: "#0EA879" },
-    { name: "调拨中", value: 12, color: "#3F6FEF" },
-    { name: "待审核", value: 6, color: "#D48B3A" },
-    { name: "已驳回", value: 3, color: "#C0392B" },
-    { name: "已取消", value: 1, color: "#999999" }
+    { name: "已完成", value: 106, color: CHART_COLORS.success },
+    { name: "调拨中", value: 12, color: CHART_COLORS.primary },
+    { name: "待审核", value: 6, color: CHART_COLORS.warning },
+    { name: "已驳回", value: 3, color: CHART_COLORS.danger },
+    { name: "已取消", value: 1, color: CHART_COLORS.textMuted }
   ];
 
   const option = {
@@ -449,7 +450,7 @@ function renderStatusPieChart() {
       orient: "vertical",
       right: 10,
       top: "center",
-      textStyle: { color: "#444444", fontSize: 12 }
+      textStyle: { color: CHART_COLORS.textSecondary, fontSize: 12 }
     },
     series: [
       {
@@ -484,11 +485,11 @@ function renderReasonPieChart() {
   if (!reasonPieChartRef.value || !reasonPieChart) return;
 
   const data = [
-    { name: "补货调拨", value: 68, color: "#3F6FEF" },
-    { name: "库存平衡", value: 32, color: "#0EA879" },
-    { name: "紧急调货", value: 18, color: "#D48B3A" },
-    { name: "临期调拨", value: 7, color: "#C0392B" },
-    { name: "其他", value: 3, color: "#999999" }
+    { name: "补货调拨", value: 68, color: CHART_COLORS.primary },
+    { name: "库存平衡", value: 32, color: CHART_COLORS.success },
+    { name: "紧急调货", value: 18, color: CHART_COLORS.warning },
+    { name: "临期调拨", value: 7, color: CHART_COLORS.danger },
+    { name: "其他", value: 3, color: CHART_COLORS.textMuted }
   ];
 
   const option = {
@@ -500,7 +501,7 @@ function renderReasonPieChart() {
       orient: "vertical",
       right: 10,
       top: "center",
-      textStyle: { color: "#444444", fontSize: 12 }
+      textStyle: { color: CHART_COLORS.textSecondary, fontSize: 12 }
     },
     series: [
       {
@@ -660,24 +661,24 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  color: #fff;
+  color: var(--text-inverse);
   flex-shrink: 0;
 }
 
 .icon-blue {
-  background: linear-gradient(135deg, #66b1ff, var(--color-primary));
+  background: linear-gradient(135deg, rgba(63,111,239,0.4), var(--color-primary));
 }
 
 .icon-green {
-  background: linear-gradient(135deg, #95d475, var(--color-success));
+  background: linear-gradient(135deg, rgba(14,168,121,0.4), var(--color-success));
 }
 
 .icon-orange {
-  background: linear-gradient(135deg, #f0c78a, var(--color-warning));
+  background: linear-gradient(135deg, rgba(212,139,58,0.4), var(--color-warning));
 }
 
 .icon-red {
-  background: linear-gradient(135deg, #f78989, var(--color-danger));
+  background: linear-gradient(135deg, rgba(192,57,43,0.4), var(--color-danger));
 }
 
 .stat-info {

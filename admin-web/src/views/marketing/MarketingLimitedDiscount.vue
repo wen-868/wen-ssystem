@@ -597,7 +597,7 @@ loadData()
 .form-hint {
   margin-left: 8px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--gray-400);
 }
 
 .product-section {
@@ -613,7 +613,7 @@ loadData()
 
 .product-count {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--gray-500);
 }
 
 .batch-discount {

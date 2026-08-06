@@ -220,6 +220,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, onBeforeUnmount } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox, ElStatistic } from "element-plus";
 import echarts from '@/utils/echarts';
 import {
@@ -324,10 +325,10 @@ function getStatusTag(status: string) {
 }
 
 function getProgressColor(rate: number) {
-  if (rate >= 80) return "#0EA879";
-  if (rate >= 50) return "#3F6FEF";
-  if (rate >= 30) return "#D48B3A";
-  return "#C0392B";
+  if (rate >= 80) return CHART_COLORS.success;
+  if (rate >= 50) return CHART_COLORS.primary;
+  if (rate >= 30) return CHART_COLORS.warning;
+  return CHART_COLORS.danger;
 }
 
 /** 解析后端满减规则 JSON（minAmount/reduceAmount）为展示结构 */
@@ -591,14 +592,14 @@ function renderEffectChart() {
         name: "发放量",
         type: "bar",
         data: trend.map((d) => d.issuedCount || 0),
-        itemStyle: { color: "#3F6FEF" }
+        itemStyle: { color: CHART_COLORS.primary }
       },
       {
         name: "使用量",
         type: "line",
         data: trend.map((d) => d.usedCount || 0),
         smooth: true,
-        itemStyle: { color: "#0EA879" }
+        itemStyle: { color: CHART_COLORS.success }
       }
     ]
   });

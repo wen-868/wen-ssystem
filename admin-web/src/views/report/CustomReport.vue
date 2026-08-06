@@ -398,6 +398,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Plus, ArrowLeft, Delete, Refresh, ArrowDown, Check,
@@ -941,8 +942,8 @@ const renderChart = () => {
         label: { show: reportForm.showValue, position: "top" },
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#3F6FEF" },
-            { offset: 1, color: "#79bbff" },
+            { offset: 0, color: CHART_COLORS.primary },
+            { offset: 1, color: "rgba(63,111,239,0.4)" },
           ]),
         },
       }],
@@ -967,8 +968,8 @@ const renderChart = () => {
         symbol: "circle",
         symbolSize: 8,
         label: { show: reportForm.showValue, position: "top" },
-        lineStyle: { width: 3, color: "#0EA879" },
-        itemStyle: { color: "#0EA879" },
+        lineStyle: { width: 3, color: CHART_COLORS.success },
+        itemStyle: { color: CHART_COLORS.success },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(103, 194, 58, 0.3)" },
@@ -1025,7 +1026,7 @@ const renderChart = () => {
           data: yData,
           barMaxWidth: 30,
           label: { show: reportForm.showValue, position: "top" },
-          itemStyle: { color: "#3F6FEF" },
+          itemStyle: { color: CHART_COLORS.primary },
         },
         {
           name: y2Label,
@@ -1035,8 +1036,8 @@ const renderChart = () => {
           smooth: true,
           symbol: "circle",
           symbolSize: 8,
-          lineStyle: { width: 2, color: "#D48B3A" },
-          itemStyle: { color: "#D48B3A" },
+          lineStyle: { width: 2, color: CHART_COLORS.warning },
+          itemStyle: { color: CHART_COLORS.warning },
         },
       ],
     };
@@ -1133,7 +1134,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: #fff;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--gray-200);
 }
 .designer-title {
@@ -1151,7 +1152,7 @@ onUnmounted(() => {
 }
 .designer-left {
   width: 340px;
-  background: #fff;
+  background: var(--bg-card);
   border-right: 1px solid var(--gray-200);
   overflow-y: auto;
   padding: 10px;
@@ -1181,7 +1182,7 @@ onUnmounted(() => {
 }
 .preview-body {
   flex: 1;
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 8px;
   padding: 16px;
   overflow: auto;
@@ -1234,10 +1235,10 @@ onUnmounted(() => {
 .datasource-item.active {
   border-color: var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--text-inverse);
 }
 .datasource-item.active .ds-icon {
-  color: #fff;
+  color: var(--text-inverse);
 }
 .ds-icon {
   font-size: 24px;
@@ -1274,16 +1275,16 @@ onUnmounted(() => {
   position: relative;
 }
 .field-item:hover {
-  border-color: #c6e2ff;
+  border-color: rgba(63,111,239,0.26);
   background: var(--color-primary-bg);
 }
 .field-item.selected {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--text-inverse);
 }
 .field-item.selected .field-icon {
-  color: #fff;
+  color: var(--text-inverse);
 }
 .field-icon {
   font-size: 12px;

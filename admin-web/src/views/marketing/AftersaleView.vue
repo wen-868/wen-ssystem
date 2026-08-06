@@ -39,13 +39,13 @@
           <el-statistic title="售后总数" :value="statistics.total || 0" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="待处理" :value="statistics.pending || 0" value-style="color: #D48B3A" />
+          <el-statistic title="待处理" :value="statistics.pending || 0" value-style="color: var(--color-warning)" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="处理中" :value="statistics.processing || 0" value-style="color: #3F6FEF" />
+          <el-statistic title="处理中" :value="statistics.processing || 0" value-style="color: var(--color-primary)" />
         </el-col>
         <el-col :span="6">
-          <el-statistic title="已完成" :value="statistics.completed || 0" value-style="color: #0EA879" />
+          <el-statistic title="已完成" :value="statistics.completed || 0" value-style="color: var(--color-success)" />
         </el-col>
       </el-row>
 

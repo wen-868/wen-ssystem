@@ -1977,7 +1977,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：待派单
+- **状态**：✅ 已完成（2026-08-07 并入 R88-01 一并完成，见 R88-01 记录）
 - **文件**：`admin-web/src/views/report/`（TransferReport 37/CustomerAnalysis 14 等）
 - **问题**：报表页硬编码色残留 112 处
 - **修复**：硬编码色替换为 tokens.css 变量（模板/样式部分）；图表色已常量化（R84-03 theme.ts）的直接用 CHART_COLORS
@@ -2006,6 +2006,45 @@
 - **文件**：`admin-web/src/views/order/`、`product/`、`inventory/`、`customer/`、`finance/` 主要列表页
 - **修复**：统一"顶部统计条 + 筛选栏 + 紧凑表格 + 状态标签"结构，颜色仅品牌蓝/灰阶/语义色
 - **验收**：`npm run build` exit 0
+
+---
+
+## R88 — 三版块硬编码色 token 化收尾 [进行中 — 凌舟派单 2026-08-07]
+
+### R88-01 — [P1] 三版块硬编码色 token 化收尾（采购/营销/报表）
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
+- **文件**：`admin-web/src/views/purchase/`、`admin-web/src/views/marketing/`、`admin-web/src/views/report/`
+- **问题**：三版块硬编码色残留（派单基线 purchase 4 / marketing 49 / report 103，合计约 156；实测基线 204 处，差异来自 R86/R87 轮新增页面）
+- **修复**：模板内联 style/绑定色 → tokens.css 变量；样式块 → `var(--color-*)`/`var(--gray-*)`/`var(--text-*)`/`var(--bg-*)`/`var(--border-*)`；ECharts/canvas 图表色 → theme.ts `CHART_COLORS` 常量；渐变副色按品牌 rgba 惯例；SVG data-URI 占位图填充改 `CHART_COLORS` 模板插值；仅改颜色值，不碰布局/结构/逻辑/文字
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；三版块 hex 残留 ≤ 原 156 处的 20%（即 ≤31）
+
+**墨完成记录**（2026-08-07）：
+
+**完成内容：**
+- 改动 22 个 .vue 文件（purchase 2 / marketing 9 / report 11），全部为颜色值替换 + 13 个文件新增 `import { CHART_COLORS } from "@/styles/theme"`；行尾保持 HEAD 纯 CRLF（MarketingMaterial/PointsMall 预存 LF 未变）
+- **模板内联 style/绑定色**：`#999999→var(--gray-400)`、`#3F6FEF→var(--color-primary)`、`#0EA879→var(--color-success)`、`#D48B3A→var(--color-warning)`、`#C0392B→var(--color-danger)`、`#fef0f0→var(--color-danger-soft)`、`#e1f3d8→var(--color-success-soft)`、`#f0fdf4→var(--color-success-soft)` 等
+- **样式块灰阶/语义色**：Tailwind 灰阶映射 `#9ca3af→var(--gray-400)`、`#6b7280→var(--gray-500)`、`#4b5563→var(--gray-500)`、`#374151→var(--gray-600)`、`#d1d5db→var(--gray-300)`；`background:#fff→var(--bg-card)`、`color:#fff→var(--text-inverse)`
+- **渐变副色按品牌 rgba 惯例**：`#337ecc→rgba(63,111,239,0.4)`、`#529b2e→rgba(14,168,121,0.4)`、`#c98a2e→rgba(212,139,58,0.4)`、`#d94f4f→rgba(192,57,43,0.4)`、`#73767a→var(--gray-500)`；紫色系→`var(--chart-5)`；装饰多色渐变映射品牌 token 组合（color-primary/chart-5/chart-6/color-danger/color-warning）
+- **ECharts/canvas 图表色** → `CHART_COLORS` 常量：TransferReport 37、CollectionAnalysis 21、MarketingDashboard 13、ReportsStores 8、CustomReport 6、MarketingView 6 等；ECharts/canvas 渐变 stop 副色用品牌 rgba（如 `rgba(63,111,239,0.4)`）
+- **MarketingMaterial SVG data-URI 占位图**：`fill="#e8f4fd"→rgba(63,111,239,0.12)`、`#fef0f0→rgba(192,57,43,0.12)`，文字色改 `${CHART_COLORS.primary}` 等模板插值（data URI 内 CSS 变量不生效，用常量插值保证主题同步）
+- **MarketingTags.vue 4 处 `#3F6FEF` 保留**：为标签颜色业务数据默认值（表单默认/placeholder/行数据回填），非 UI 颜色，不做 token 化
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| hex 残留计数 | `rg -o "#[0-9a-fA-F]{6}\b" admin-web/src/views/purchase admin-web/src/views/marketing admin-web/src/views/report` | 204 → **4**（全部为 MarketingTags 业务数据默认值），≤31 达标 ✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（38.79s）✅ |
+| ESLint（22 个改动文件） | `npx eslint <files>` | 19 errors 均为 HEAD 预存（`git show HEAD` 对比确认：AftersaleView 2 / MarketingMaterial 1 / Reports 13 / ReportsStores 3），本轮 **0 新增** ✅ |
+| diff 核查 | `git diff` 逐行审阅 | 22 文件全部为颜色值替换 + CHART_COLORS 导入，无布局/结构/逻辑/文字改动，无行尾噪声 ✅ |
+
+**上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：
+1. **R87-02（报表页硬编码色 token 化，112 处）已并入本轮一并完成**：report 版块 hex 143→0，R87-02 无需再单独派单（状态已同步标注）
+2. **CollectionAnalysis.vue 仍含 `Math.random()` 编造数据**（趋势/退款序列，L272/L426-429），属 mock 数据技术债，不在本轮"只改颜色"范围内，建议按 R87-01 口径后续轮次接真实接口
+3. **装饰性多色渐变视觉有调整**：stat-card-a~f / gradient-* 原为第三方渐变配色，已按 R77-01 惯例映射品牌 token/图表色（色相收敛到品牌蓝/绿/紫/红/黄体系，属 token 化预期）
 
 ---
 

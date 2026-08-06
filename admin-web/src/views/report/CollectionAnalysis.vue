@@ -168,6 +168,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { CHART_COLORS } from "@/styles/theme";
 import { Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
 
@@ -272,7 +273,7 @@ function initTrendChart() {
       type: 'line' as const,
       smooth: true,
       data: trendData.value.map(() => Math.floor(Math.random() * 15000 + 3000)),
-      itemStyle: { color: ['#667eea', '#11998e', '#f5576c', '#D48B3A'][idx] }
+      itemStyle: { color: [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.danger, CHART_COLORS.warning][idx] }
     }))
     collectionTrendChart.setOption({
       tooltip: { trigger: 'axis' },
@@ -293,8 +294,8 @@ function initTrendChart() {
         { type: 'value', name: '笔' }
       ],
       series: [
-        { name: '收款金额', type: 'line', smooth: true, data: trendData.value.map(d => d.amount), itemStyle: { color: '#667eea' } },
-        { name: '收款笔数', type: 'line', smooth: true, yAxisIndex: 1, data: trendData.value.map(d => d.count), itemStyle: { color: '#11998e' } }
+        { name: '收款金额', type: 'line', smooth: true, data: trendData.value.map(d => d.amount), itemStyle: { color: CHART_COLORS.primary } },
+        { name: '收款笔数', type: 'line', smooth: true, yAxisIndex: 1, data: trendData.value.map(d => d.count), itemStyle: { color: CHART_COLORS.success } }
       ]
     })
   }
@@ -389,7 +390,7 @@ function initTimeoutTrendChart() {
     yAxis: { type: 'value', name: '%' },
     series: [{
       type: 'line', smooth: true, data,
-      itemStyle: { color: '#f5576c' },
+      itemStyle: { color: CHART_COLORS.danger },
       areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(245,87,108,0.3)' }, { offset: 1, color: 'rgba(245,87,108,0.05)' }]) }
     }]
   })
@@ -425,8 +426,8 @@ function initRefundTrendChart() {
       { type: 'value', name: '%', max: 10 }
     ],
     series: [
-      { name: '退款金额', type: 'line', smooth: true, data: days.map(() => Math.floor(Math.random() * 5000 + 1000)), itemStyle: { color: '#f5576c' } },
-      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: days.map(() => Number((Math.random() * 5 + 2).toFixed(1))), itemStyle: { color: '#D48B3A' } }
+      { name: '退款金额', type: 'line', smooth: true, data: days.map(() => Math.floor(Math.random() * 5000 + 1000)), itemStyle: { color: CHART_COLORS.danger } },
+      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: days.map(() => Number((Math.random() * 5 + 2).toFixed(1))), itemStyle: { color: CHART_COLORS.warning } }
     ]
   })
 }
@@ -517,16 +518,16 @@ onBeforeUnmount(() => {
 .stat-card {
   padding: 16px;
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-inverse);
   margin-bottom: 16px;
 }
 
-.stat-card-a { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.stat-card-b { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-.stat-card-c { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.stat-card-d { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-.stat-card-e { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.stat-card-f { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.stat-card-a { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%); }
+.stat-card-b { background: linear-gradient(135deg, var(--color-success) 0%, rgba(14,168,121,0.4) 100%); }
+.stat-card-c { background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%); }
+.stat-card-d { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%); }
+.stat-card-e { background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-warning) 100%); }
+.stat-card-f { background: linear-gradient(135deg, var(--chart-5) 0%, rgba(139,92,246,0.35) 100%); }
 
 .stat-label {
   font-size: 13px;

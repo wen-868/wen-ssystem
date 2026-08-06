@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";
 import { formatYuan } from "../../utils/format";
 import { fetchReportCustomerContribution } from "../../api";
@@ -110,7 +111,7 @@ function renderChart() {
   const gap = chartW / data.length;
 
   // Grid lines
-  ctx.strokeStyle = "#F0F0F0";
+  ctx.strokeStyle = CHART_COLORS.gray100;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + (chartH / 5) * i;
@@ -118,7 +119,7 @@ function renderChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#999999";
+    ctx.fillStyle = CHART_COLORS.textMuted;
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText(formatYuan((maxVal / 5) * (5 - i)), padding.left - 10, y + 4);
@@ -130,14 +131,14 @@ function renderChart() {
     const h = (revenues[i] / maxVal) * chartH;
 
     const gradient = ctx.createLinearGradient(x, padding.top + chartH - h, x, padding.top + chartH);
-    gradient.addColorStop(0, "#3F6FEF");
-    gradient.addColorStop(1, "#79bbff");
+    gradient.addColorStop(0, CHART_COLORS.primary);
+    gradient.addColorStop(1, "rgba(63,111,239,0.4)");
     ctx.fillStyle = gradient;
 
     ctx.fillRect(x, padding.top + chartH - h, barW, h);
 
     // X labels
-    ctx.fillStyle = "#444444";
+    ctx.fillStyle = CHART_COLORS.textSecondary;
     ctx.font = "11px sans-serif";
     ctx.textAlign = "center";
     const label = names[i].length > 6 ? names[i].substring(0, 6) + "..." : names[i];

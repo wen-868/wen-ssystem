@@ -552,14 +552,14 @@ onBeforeUnmount(() => {
 .overview-row { margin-bottom: 16px; }
 
 .overview-card { border-radius: 8px; text-align: center; padding: 4px 0; }
-.overview-card .overview-label { font-size: 13px; color: #fff; opacity: 0.9; margin-bottom: 8px; }
-.overview-card .overview-value { font-size: 24px; font-weight: 700; color: #fff; }
+.overview-card .overview-label { font-size: 13px; color: var(--text-inverse); opacity: 0.9; margin-bottom: 8px; }
+.overview-card .overview-value { font-size: 24px; font-weight: 700; color: var(--text-inverse); }
 
-.gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.gradient-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-.gradient-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.gradient-danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.gradient-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.gradient-primary { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%); }
+.gradient-success { background: linear-gradient(135deg, var(--color-success) 0%, rgba(14,168,121,0.4) 100%); }
+.gradient-warning { background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%); }
+.gradient-danger { background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-warning) 100%); }
+.gradient-info { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%); }
 
 .chart-box { width: 100%; }
 .chart-medium { height: 350px; }

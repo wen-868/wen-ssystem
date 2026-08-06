@@ -147,7 +147,7 @@
               <template #default="{ row }">
                 <el-progress
                   :percentage="Number(row.completionRate || 0)"
-                  :color="row.completionRate >= 100 ? '#0EA879' : '#D48B3A'"
+                  :color="row.completionRate >= 100 ? 'var(--color-success)' : 'var(--color-warning)'"
                 />
               </template>
             </el-table-column>
@@ -163,6 +163,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Refresh, Search } from "@element-plus/icons-vue";
 import { fetchDailySales, fetchOrderStats, fetchStorePerformance } from "../../api";
@@ -218,7 +219,7 @@ function getPercentage(value: number, total: number) {
 }
 
 function getProgressColor(index: number) {
-  const colors = ['#0EA879', '#D48B3A', '#3F6FEF', '#C0392B', '#999999'];
+  const colors = [CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.primary, CHART_COLORS.danger, CHART_COLORS.textMuted];
   return colors[index % colors.length];
 }
 
@@ -288,19 +289,19 @@ onMounted(() => {
 .stat-card {
   padding: 20px;
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-inverse);
 }
 .stat-card-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%);
 }
 .stat-card-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14,168,121,0.4) 100%);
 }
 .stat-card-warning {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%);
 }
 .stat-card-info {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%);
 }
 .stat-label {
   font-size: 14px;
@@ -350,7 +351,7 @@ onMounted(() => {
 }
 .bar {
   width: 60%;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--chart-5) 100%);
   border-radius: 4px 4px 0 0;
   min-height: 4px;
   transition: height 0.3s ease;

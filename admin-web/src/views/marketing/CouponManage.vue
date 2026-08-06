@@ -369,5 +369,5 @@ onMounted(() => { loadData(); });
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .toolbar-left, .toolbar-right { display: flex; align-items: center; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
-.form-hint { margin-left: 8px; font-size: 12px; color: #9ca3af; }
+.form-hint { margin-left: 8px; font-size: 12px; color: var(--gray-400); }
 </style>

@@ -486,15 +486,15 @@ loadData()
 .tier-title {
   font-size: 13px;
   font-weight: 500;
-  color: #4b5563;
+  color: var(--gray-500);
 }
 
 .tier-empty {
   text-align: center;
   padding: 24px;
-  color: #9ca3af;
+  color: var(--gray-400);
   font-size: 13px;
-  border: 1px dashed #d1d5db;
+  border: 1px dashed var(--gray-300);
   border-radius: 6px;
 }
 
@@ -507,21 +507,21 @@ loadData()
 .tier-preview {
   margin-top: 12px;
   padding: 12px 16px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--color-success-soft);
+  border: 1px solid rgba(14,168,121,0.35);
   border-radius: 8px;
 }
 
 .preview-title {
   font-size: 13px;
   font-weight: 600;
-  color: #166534;
+  color: var(--color-success);
   margin-bottom: 8px;
 }
 
 .preview-item {
   font-size: 13px;
-  color: #374151;
+  color: var(--gray-600);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
@@ -535,7 +535,7 @@ loadData()
   width: 20px;
   height: 20px;
   background: var(--color-success);
-  color: #fff;
+  color: var(--text-inverse);
   border-radius: 50%;
   font-size: 11px;
   font-weight: 600;

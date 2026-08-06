@@ -65,6 +65,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";
 import { formatYuan } from "../../utils/format";
 import { fetchReportSalesRanking } from "../../api";
@@ -137,20 +138,20 @@ function renderChart() {
     const y = padding.top + i * (barH + gap);
     const barW = (values[i] / maxVal) * chartW;
 
-    const colors = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999"];
+    const colors = [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.textMuted];
     ctx.fillStyle = colors[i % colors.length];
 
     ctx.fillRect(padding.left, y, Math.max(barW, 2), barH);
 
     // Label
-    ctx.fillStyle = "#444444";
+    ctx.fillStyle = CHART_COLORS.textSecondary;
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     const label = labels[i].length > 12 ? labels[i].substring(0, 12) + "..." : labels[i];
     ctx.fillText(label, padding.left - 10, y + barH / 2 + 4);
 
     // Value
-    ctx.fillStyle = "#333333";
+    ctx.fillStyle = CHART_COLORS.textSecondary;
     ctx.textAlign = "left";
     const valText = dimension.value === "qty" ? String(values[i]) : formatYuan(values[i]);
     ctx.fillText(valText, padding.left + barW + 8, y + barH / 2 + 4);

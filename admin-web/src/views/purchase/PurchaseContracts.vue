@@ -256,7 +256,7 @@
             :type="log.status === 'APPROVED' ? 'success' : log.status === 'REJECTED' ? 'danger' : 'primary'"
           >
             {{ log.action }} - {{ log.operator }}
-            <p v-if="log.remark" style="margin: 4px 0 0; color: #999999; font-size: 12px">{{ log.remark }}</p>
+            <p v-if="log.remark" style="margin: 4px 0 0; color: var(--gray-400); font-size: 12px">{{ log.remark }}</p>
           </el-timeline-item>
           <el-timeline-item v-if="!currentContract.approvalLogs?.length" type="primary">
             暂无审批记录

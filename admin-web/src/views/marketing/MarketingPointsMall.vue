@@ -112,7 +112,7 @@
             </el-col>
           </el-row>
 
-          <div v-if="products.length === 0" style="text-align: center; padding: 40px; color: #999999">
+          <div v-if="products.length === 0" style="text-align: center; padding: 40px; color: var(--gray-400)">
             <el-empty description="暂无商品" />
           </div>
 
@@ -190,7 +190,7 @@
                     <el-button size="small" link type="danger">取消兑换</el-button>
                   </template>
                 </el-popconfirm>
-                <span v-if="row.status !== 'PENDING'" style="color: #999999">-</span>
+                <span v-if="row.status !== 'PENDING'" style="color: var(--gray-400)">-</span>
               </template>
             </el-table-column>
           </el-table>
@@ -518,20 +518,20 @@ function exportRecords() {
   gap: 16px;
   padding: 20px;
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .stat-card.stat-primary {
-  background: linear-gradient(135deg, var(--color-primary), #337ecc);
+  background: linear-gradient(135deg, var(--color-primary), rgba(63,111,239,0.4));
 }
 .stat-card.stat-success {
-  background: linear-gradient(135deg, var(--color-success), #529b2e);
+  background: linear-gradient(135deg, var(--color-success), rgba(14,168,121,0.4));
 }
 .stat-card.stat-warning {
-  background: linear-gradient(135deg, var(--color-warning), #c98a2e);
+  background: linear-gradient(135deg, var(--color-warning), rgba(212,139,58,0.4));
 }
 .stat-card.stat-danger {
-  background: linear-gradient(135deg, var(--color-danger), #d94f4f);
+  background: linear-gradient(135deg, var(--color-danger), rgba(192,57,43,0.4));
 }
 
 .stat-icon {
@@ -565,7 +565,7 @@ function exportRecords() {
 
 /* 商品卡片 */
 .product-card {
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
@@ -596,7 +596,7 @@ function exportRecords() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 18px;
   font-weight: 600;
 }

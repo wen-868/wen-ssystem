@@ -187,7 +187,7 @@
           <template #default="{ row }">
             <span
               :class="{ 'best-value': isBestValue(row, col.name) }"
-              :style="isBestValue(row, col.name) ? { background: '#e1f3d8', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 } : {}"
+              :style="isBestValue(row, col.name) ? { background: 'var(--color-success-soft)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 } : {}"
             >
               {{ row[col.name] }}
             </span>
@@ -201,6 +201,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import echarts from '@/utils/echarts'
 import { TrendCharts, VideoPlay, VideoPause, User, Present, CircleCheck } from "@element-plus/icons-vue";
 import {
@@ -323,7 +324,7 @@ async function renderActivityTrend() {
         data: data.map((d) => d.participants || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(63,111,239,0.25)" },
@@ -382,7 +383,7 @@ async function renderConversionTrend() {
         name: "参与人数",
         type: "bar",
         data: data.map((d) => d.participants || 0),
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         barWidth: "60%",
       },
       {
@@ -391,7 +392,7 @@ async function renderConversionTrend() {
         yAxisIndex: 1,
         data: data.map((d) => Number(d.conversionRate || 0)),
         smooth: true,
-        itemStyle: { color: "#0EA879" },
+        itemStyle: { color: CHART_COLORS.success },
         symbol: "circle",
         symbolSize: 6,
       },
@@ -434,8 +435,8 @@ async function renderROIChart() {
         data: sortedData.map((d) => Number(d.roi || 0)),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-            { offset: 0, color: "#3F6FEF" },
-            { offset: 1, color: "#0EA879" },
+            { offset: 0, color: CHART_COLORS.primary },
+            { offset: 1, color: CHART_COLORS.success },
           ]),
           borderRadius: [0, 4, 4, 0],
         },
@@ -498,7 +499,7 @@ async function renderTypePie() {
           name: d.type || d.name || "",
           value: d.count || d.value || 0,
         })),
-        color: ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999"],
+        color: [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.textMuted],
       },
     ],
   });
@@ -552,7 +553,7 @@ async function renderCouponUsage() {
         data: data.map((d) => d.issued || d.count || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(63,111,239,0.2)" },
@@ -566,7 +567,7 @@ async function renderCouponUsage() {
         data: data.map((d) => d.used || d.redeemed || 0),
         smooth: true,
         symbol: "none",
-        itemStyle: { color: "#0EA879" },
+        itemStyle: { color: CHART_COLORS.success },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(14,168,121,0.2)" },
@@ -580,7 +581,7 @@ async function renderCouponUsage() {
         yAxisIndex: 1,
         data: data.map((d) => Number(d.rate || d.redeemRate || 0)),
         smooth: true,
-        itemStyle: { color: "#D48B3A" },
+        itemStyle: { color: CHART_COLORS.warning },
         symbol: "circle",
         symbolSize: 6,
       },
@@ -721,26 +722,26 @@ onBeforeUnmount(() => {
   gap: 12px;
   padding: 16px;
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .stat-card.stat-primary {
-  background: linear-gradient(135deg, var(--color-primary), #337ecc);
+  background: linear-gradient(135deg, var(--color-primary), rgba(63,111,239,0.4));
 }
 .stat-card.stat-success {
-  background: linear-gradient(135deg, var(--color-success), #529b2e);
+  background: linear-gradient(135deg, var(--color-success), rgba(14,168,121,0.4));
 }
 .stat-card.stat-info-card {
-  background: linear-gradient(135deg, var(--gray-400), #73767a);
+  background: linear-gradient(135deg, var(--gray-400), var(--gray-500));
 }
 .stat-card.stat-purple {
-  background: linear-gradient(135deg, #9b59b6, #7d3c98);
+  background: linear-gradient(135deg, var(--chart-5), rgba(139,92,246,0.6));
 }
 .stat-card.stat-warning {
-  background: linear-gradient(135deg, var(--color-warning), #c98a2e);
+  background: linear-gradient(135deg, var(--color-warning), rgba(212,139,58,0.4));
 }
 .stat-card.stat-danger {
-  background: linear-gradient(135deg, var(--color-danger), #d94f4f);
+  background: linear-gradient(135deg, var(--color-danger), rgba(192,57,43,0.4));
 }
 
 .stat-icon {

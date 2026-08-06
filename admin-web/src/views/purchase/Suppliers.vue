@@ -241,7 +241,7 @@
 
         <!-- 联系人 -->
         <el-tab-pane label="联系人" name="contacts">
-          <div v-if="!isEdit" style="text-align: center; padding: 40px 0; color: #999999">
+          <div v-if="!isEdit" style="text-align: center; padding: 40px 0; color: var(--gray-400)">
             请先保存供应商基础信息后再管理联系人
           </div>
           <div v-else>
@@ -261,7 +261,7 @@
               <el-table-column prop="isPrimary" label="主联系人" width="90" align="center">
                 <template #default="{ row }">
                   <el-tag v-if="row.isPrimary === 1 || row.isPrimary === true" type="primary" size="small">是</el-tag>
-                  <span v-else style="color: #999999">否</span>
+                  <span v-else style="color: var(--gray-400)">否</span>
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="200" fixed="right">
@@ -330,7 +330,7 @@
         </el-row>
         <el-form-item label="主联系人">
           <el-switch v-model="contactForm.isPrimary" />
-          <span style="margin-left: 8px; color: #999999; font-size: 12px">设置为主要联系人</span>
+          <span style="margin-left: 8px; color: var(--gray-400); font-size: 12px">设置为主要联系人</span>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="contactForm.remark" type="textarea" :rows="2" placeholder="请输入备注" />

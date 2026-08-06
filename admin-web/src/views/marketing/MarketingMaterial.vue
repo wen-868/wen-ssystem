@@ -381,6 +381,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Grid, List, Upload, UploadFilled } from "@element-plus/icons-vue";
 
@@ -710,16 +711,16 @@ function getFileExtension(filename: string): string {
 function getMaterialThumbnail(item: any): string {
   if (item.materialType === "IMAGE") {
     return `data:image/svg+xml;base64,${btoa(
-      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#e8f4fd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#3F6FEF" font-size="14">图片</text></svg>`
+      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="rgba(63,111,239,0.12)"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="${CHART_COLORS.primary}" font-size="14">图片</text></svg>`
     )}`;
   }
   if (item.materialType === "VIDEO") {
     return `data:image/svg+xml;base64,${btoa(
-      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#fef0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#C0392B" font-size="14">视频</text></svg>`
+      `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="rgba(192,57,43,0.12)"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="${CHART_COLORS.danger}" font-size="14">视频</text></svg>`
     )}`;
   }
   return `data:image/svg+xml;base64,${btoa(
-    `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#F5F5F5"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999999" font-size="14">文档</text></svg>`
+    `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="${CHART_COLORS.gray100}"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="${CHART_COLORS.textMuted}" font-size="14">文档</text></svg>`
   )}`;
 }
 
@@ -785,7 +786,7 @@ function formatFileSize(bytes: number): string {
 .context-menu {
   position: fixed;
   z-index: 9999;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--gray-200);
   border-radius: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
@@ -835,7 +836,7 @@ function formatFileSize(bytes: number): string {
 
 /* 素材卡片 */
 .material-card {
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   overflow: hidden;
