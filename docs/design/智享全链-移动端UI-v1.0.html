@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>智享全链 - 全链管理平台</title>
+<style>
+/* ========== Design Tokens ========== */
+:root {
+  --c-black:#0a0a0a;--c-900:#171717;--c-800:#262626;--c-700:#404040;
+  --c-600:#525252;--c-500:#737373;--c-400:#a3a3a3;--c-300:#d4d4d4;
+  --c-200:#e5e5e5;--c-100:#f0f0f0;--c-50:#f7f7f7;--c-white:#ffffff;
+  --c-blue:#2563eb;--c-blue-dark:#1e40af;--c-blue-light:#eff6ff;--c-blue-50:#dbeafe;
+  --c-blue-grad:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+  --c-blue-purple:var(--c-blue);
+  --c-success:#3a9d5c;--c-warning:#c8803a;--c-danger:#c45050;
+  --bg:#f5f5f7;--bg-card:#fff;--bg-side:#f0f0f0;
+  --t1:#171717;--t2:#737373;--t3:#a3a3a3;--t4:#c4c4c4;
+  --bd:#e5e5e5;--bd-l:#f0f0f0;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;
+  --r1:8px;--r2:12px;--r3:16px;--r4:20px;--r5:24px;--r-full:999px;
+  --sh1:0 1px 3px rgba(0,0,0,.03),0 1px 2px rgba(0,0,0,.02);
+  --sh2:0 4px 12px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.03);
+  --sh3:0 8px 30px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.03);
+  --sh4:0 12px 40px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.04);
+  --sh-glass:0 8px 32px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.02);
+  --font:"PingFang SC",-apple-system,"Noto Sans SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:"SF Mono","Fira Code","Source Code Pro",monospace;
+}
+/* ========== Reset ========== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-family:var(--font);font-size:14px;color:var(--t1);background:#e8e8e8;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;display:flex;justify-content:center;align-items:center}
+a{color:inherit;text-decoration:none}
+button{font:inherit;border:none;background:none;cursor:pointer;color:inherit}
+input{font:inherit;border:none;outline:none;background:none}
+ul,ol{list-style:none}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{display:none}
+
+/* ========== Phone Frame ========== */
+.phone{width:100%;max-width:430px;height:100vh;max-height:932px;background:var(--bg);
+  display:flex;flex-direction:column;position:relative;overflow:hidden}
+@media(min-width:500px){
+  body{padding:20px}
+  .phone{border-radius:44px;border:6px solid #1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.12);
+    max-height:880px}
+}
+@media(max-width:499px){
+  .phone{max-height:none}
+}
+
+/* ========== Status Bar ========== */
+.status-bar{height:44px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;font-size:12px;font-weight:600;background:var(--bg-card);
+  border-bottom:1px solid rgba(0,0,0,.03)}
+.status-bar .time{font-size:15px;font-weight:700;letter-spacing:-.2px}
+.status-icons{display:flex;align-items:center;gap:5px}
+.status-icons svg{width:16px;height:16px}
+
+/* ========== Page System ========== */
+.page-area{flex:1;overflow:hidden;position:relative}
+.pg{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);
+  -webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;
+  transition:opacity .3s cubic-bezier(.4,0,.2,1),transform .3s cubic-bezier(.4,0,.2,1);transform:translateX(16px)}
+.pg.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.pg.sub{transform:translateX(100%);z-index:10}
+.pg.sub.active{transform:translateX(0)}
+.pg-inner{padding-bottom:20px}
+
+/* ========== Bottom Nav ========== */
+.bnav{flex-shrink:0;height:68px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(0,0,0,.04);
+  display:flex;align-items:flex-end;padding-bottom:6px;position:relative;z-index:20}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 0 4px;transition:all .25s ease;position:relative}
+.bnav-item svg{width:22px;height:22px;color:var(--c-400);transition:all .25s ease}
+.bnav-item span{font-size:10px;color:var(--c-400);transition:all .25s ease;font-weight:400;letter-spacing:.2px}
+.bnav-item.active svg{color:var(--c-blue)}
+.bnav-item.active span{color:var(--c-blue);font-weight:600}
+.bnav-item.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:20px;height:2px;background:var(--c-blue);border-radius:0 0 2px 2px}
+.bnav-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0;position:relative}
+.bnav-btn{width:52px;height:52px;border-radius:50%;
+  background:var(--c-blue);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(37,99,235,.25);
+  margin-top:-20px;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s ease;
+  position:relative;overflow:hidden}
+.bnav-btn::before{display:none}
+.bnav-btn:active{transform:scale(.92);box-shadow:0 2px 12px rgba(37,99,235,.2)}
+.bnav-btn svg{width:22px;height:22px;color:#fff}
+.bnav-center.active .bnav-btn{box-shadow:0 4px 20px rgba(37,99,235,.35),0 0 0 2px rgba(37,99,235,.15);transform:scale(1.05)}
+.bnav-center.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:20px;height:2px;background:var(--c-blue);border-radius:0 0 2px 2px}
+
+/* ========== Common Components ========== */
+.pg-hd{padding:18px 20px 0;display:flex;align-items:center;gap:12px;background:var(--bg-card)}
+.pg-hd h1{font-size:20px;font-weight:700;flex:1;letter-spacing:-.3px}
+.pg-hd .ico{width:22px;height:22px;color:var(--c-700);cursor:pointer}
+.back-btn{width:22px;height:22px;color:var(--c-700);cursor:pointer;flex-shrink:0}
+
+.search-bar{margin:10px 14px 0;height:42px;background:var(--bg-card);border:1px solid rgba(0,0,0,.06);
+  border-radius:var(--r-full);display:flex;align-items:center;padding:0 16px;gap:10px;
+  transition:all .25s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.search-bar:focus-within{border-color:rgba(37,99,235,.3);box-shadow:0 2px 12px rgba(37,99,235,.08),0 0 0 3px rgba(37,99,235,.05)}
+.search-bar svg{width:16px;height:16px;color:var(--c-400);flex-shrink:0;transition:color .2s ease}
+.search-bar:focus-within>svg:first-child{color:var(--c-blue)}
+.search-bar input{flex:1;font-size:13px;color:var(--t1);letter-spacing:-.1px}
+.search-bar input::placeholder{color:var(--c-400);font-weight:400}
+.search-bar .s-actions{display:flex;gap:8px;align-items:center}
+.search-bar .s-actions svg{width:18px;height:18px;color:var(--c-500);transition:color .2s ease;cursor:pointer}
+.search-bar .s-actions svg:active{color:var(--c-blue)}
+
+.card{background:var(--bg-card);border-radius:var(--r4);padding:18px;margin:0 14px 14px;
+  box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;
+  justify-content:space-between;letter-spacing:-.2px}
+.card-title .more{font-size:12px;color:var(--c-400);font-weight:400}
+
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--r-full);
+  font-size:11px;font-weight:600;letter-spacing:.2px}
+.badge-green{background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,.1)}
+.badge-orange{background:#fffbeb;color:#d97706;border:1px solid rgba(217,119,6,.1)}
+.badge-red{background:#fef2f2;color:#dc2626;border:1px solid rgba(220,38,38,.1)}
+.badge-gray{background:var(--c-100);color:var(--c-600)}
+
+.btn-primary{height:48px;background:var(--c-blue);color:#fff;border-radius:var(--r3);
+  font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;
+  margin:0 12px;transition:all .2s ease;box-shadow:0 2px 8px rgba(37,99,235,.2)}
+.btn-primary:active{opacity:.85;transform:scale(.98)}
+
+.section-title{font-size:12px;font-weight:600;color:var(--t3);padding:18px 14px 10px;
+  text-transform:uppercase;letter-spacing:.8px}
+
+.list-item{display:flex;align-items:center;padding:15px 18px;background:var(--bg-card);gap:14px;
+  border-bottom:1px solid rgba(0,0,0,.03);cursor:pointer;transition:background .15s}
+.list-item:active{background:var(--c-50)}
+.list-item:last-child{border-bottom:none}
+.list-item .li-ico{width:38px;height:38px;border-radius:var(--r2);background:var(--c-blue-light);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:transform .2s ease}
+.list-item .li-ico svg{width:18px;height:18px;color:var(--c-blue)}
+.list-item .li-body{flex:1;min-width:0}
+.list-item .li-title{font-size:14px;font-weight:600;letter-spacing:-.1px}
+.list-item .li-desc{font-size:12px;color:var(--t3);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-item .li-right{font-size:13px;color:var(--t2);flex-shrink:0;display:flex;align-items:center;gap:4px}
+.list-item .li-right svg{width:14px;height:14px;color:var(--c-300)}
+
+.tab-bar{display:flex;padding:0 18px;gap:0;border-bottom:1px solid rgba(0,0,0,.05);background:var(--bg-card)}
+.tab-bar .tab{padding:14px 0;margin-right:28px;font-size:14px;color:var(--c-400);
+  position:relative;cursor:pointer;white-space:nowrap;transition:color .2s;font-weight:400}
+.tab-bar .tab.active{color:var(--c-900);font-weight:600}
+.tab-bar .tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;
+  height:2.5px;background:var(--c-blue);border-radius:2px}
+
+/* ========== Page 1: Home ========== */
+.home-hd{padding:18px 20px 14px;display:flex;align-items:center;gap:14px;background:var(--bg-card);
+  border-bottom:1px solid rgba(0,0,0,.03);position:relative}
+.home-hd::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,.03),transparent)}
+.home-logo{width:42px;height:42px;border-radius:var(--r2);
+  background:var(--c-blue);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;
+  box-shadow:0 4px 12px rgba(37,99,235,.2);position:relative;overflow:hidden}
+.home-logo::before{display:none}
+.home-info{flex:1}
+.home-info h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.home-info p{font-size:12px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px}
+.home-info p::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--c-success);
+  animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+.home-bell{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.03);
+  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;
+  transition:all .2s ease}
+.home-bell:active{background:rgba(0,0,0,.06);transform:scale(.92)}
+.home-bell svg{width:18px;height:18px}
+.home-bell .dot{position:absolute;top:4px;right:4px;width:7px;height:7px;
+  background:var(--c-danger);border-radius:50%;border:2px solid var(--bg-card)}
+
+/* Glass data dashboard */
+.home-data{margin:16px 14px 0;
+  background:#f0f5ff;
+  border-radius:20px;padding:24px 22px;position:relative;overflow:hidden;
+  box-shadow:0 4px 16px rgba(37,99,235,.06),0 1px 3px rgba(0,0,0,.04);
+  border:1px solid rgba(37,99,235,.08)}
+.home-data::before{display:none}
+.home-data::after{display:none}
+
+.home-data .glass-overlay{display:none}
+.home-data .grid-pattern{display:none}
+.home-data-top{display:flex;gap:24px;position:relative;z-index:1}
+.home-data-item{flex:1}
+.home-data-item .label{font-size:11px;color:var(--c-500);font-weight:500;letter-spacing:.6px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px}
+.home-data-item .label::before{content:'';width:14px;height:1px;background:rgba(37,99,235,.2);border-radius:1px}
+.home-data-item .val{font-size:32px;font-weight:800;margin-top:8px;font-family:var(--mono);
+  letter-spacing:-1.5px;color:var(--c-blue);line-height:1}
+.home-data-item .trend{font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px;
+  color:var(--c-400);font-weight:500}
+.home-data-item .trend.up{color:#059669}
+.home-data-item .trend.down{color:var(--c-danger)}
+.home-data-div{height:1px;margin:18px 0;position:relative;z-index:1;
+  background:linear-gradient(90deg,transparent,rgba(37,99,235,.08) 20%,rgba(37,99,235,.08) 80%,transparent)}
+.home-data-bot{display:flex;position:relative;z-index:1}
+.home-data-bot .db-item{flex:1;text-align:center;position:relative}
+.home-data-bot .db-item:not(:last-child)::after{content:'';position:absolute;right:0;top:6px;bottom:6px;
+  width:1px;background:linear-gradient(180deg,transparent,rgba(37,99,235,.08),transparent)}
+.home-data-bot .db-label{font-size:10px;color:var(--c-400);letter-spacing:.4px;font-weight:500}
+.home-data-bot .db-val{font-size:18px;font-weight:800;margin-top:5px;font-family:var(--mono);color:var(--c-blue);letter-spacing:-.5px}
+
+.home-progress{margin:16px 14px 0;background:var(--bg-card);border-radius:var(--r4);
+  padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.home-progress h3{font-size:14px;font-weight:700;margin-bottom:16px;letter-spacing:-.2px;
+  display:flex;align-items:center;gap:8px}
+.home-progress h3::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--c-blue)}
+.hp-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hp-item{text-align:center;cursor:pointer;padding:14px 8px;border-radius:var(--r3);
+  transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;background:rgba(0,0,0,.015);
+  border:1px solid rgba(0,0,0,.03)}
+.hp-item:active{transform:scale(.95);background:rgba(0,0,0,.03)}
+.hp-item .hp-ico{width:28px;height:28px;border-radius:50%;margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center}
+.hp-item .hp-ico svg{width:14px;height:14px}
+.hp-item .hp-num{font-size:22px;font-weight:800;font-family:var(--mono);
+  letter-spacing:-.5px;line-height:1}
+.hp-item .hp-label{font-size:10px;color:var(--t3);margin-top:6px;font-weight:500;letter-spacing:.2px}
+.hp-item:nth-child(1){background:rgba(200,128,58,.04);border-color:rgba(200,128,58,.08)}
+.hp-item:nth-child(1) .hp-num{color:var(--c-warning)}
+.hp-item:nth-child(1) .hp-ico{background:rgba(200,128,58,.1)}
+.hp-item:nth-child(1) .hp-ico svg{color:var(--c-warning)}
+.hp-item:nth-child(2){background:rgba(37,99,235,.03);border-color:rgba(37,99,235,.06)}
+.hp-item:nth-child(2) .hp-num{color:var(--c-blue)}
+.hp-item:nth-child(2) .hp-ico{background:rgba(37,99,235,.08)}
+.hp-item:nth-child(2) .hp-ico svg{color:var(--c-blue)}
+.hp-item:nth-child(3){background:rgba(124,58,237,.03);border-color:rgba(124,58,237,.06)}
+.hp-item:nth-child(3) .hp-num{color:#7c3aed}
+.hp-item:nth-child(3) .hp-ico{background:rgba(124,58,237,.08)}
+.hp-item:nth-child(3) .hp-ico svg{color:#7c3aed}
+.hp-item:nth-child(4){background:rgba(58,157,92,.03);border-color:rgba(58,157,92,.06)}
+.hp-item:nth-child(4) .hp-num{color:var(--c-success)}
+.hp-item:nth-child(4) .hp-ico{background:rgba(58,157,92,.08)}
+.hp-item:nth-child(4) .hp-ico svg{color:var(--c-success)}
+
+.home-orders{margin:14px 14px 0;background:var(--bg-card);border-radius:var(--r4);
+  padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.home-orders h3{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;
+  align-items:center;justify-content:space-between;letter-spacing:-.2px}
+.home-orders h3::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--c-blue);margin-right:8px}
+.home-orders h3 .more{font-size:12px;color:var(--c-400);font-weight:400;cursor:pointer}
+.ho-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.03)}
+.ho-item:last-child{border:none}
+.ho-info{flex:1}
+.ho-name{font-size:13px;font-weight:600;letter-spacing:-.1px}
+.ho-meta{font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--mono);opacity:.8}
+.ho-amount{font-size:15px;font-weight:800;font-family:var(--mono);margin-right:10px;letter-spacing:-.3px}
+.ho-status{font-size:11px}
+
+.home-chart{margin:16px 14px 0;background:var(--bg-card);border-radius:var(--r4);
+  padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.home-chart h3{font-size:14px;font-weight:700;margin-bottom:6px;letter-spacing:-.2px;
+  display:flex;align-items:center;justify-content:space-between}
+.home-chart h3::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--c-blue);margin-right:8px}
+.home-chart .chart-subtitle{font-size:11px;color:var(--t3);font-weight:400;margin-bottom:14px;
+  padding-left:12px;display:flex;align-items:center;gap:6px}
+.home-chart .chart-subtitle::before{content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--c-blue);opacity:.5}
+.chart-wrap{width:100%;height:150px;position:relative}
+.chart-wrap svg{width:100%;height:100%}
+.chart-labels{display:flex;justify-content:space-between;margin-top:10px;padding:0 2px}
+.chart-labels span{font-size:10px;color:var(--t3);font-weight:500}
+.chart-avg-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(37,99,235,.15);pointer-events:none}
+.chart-avg-label{position:absolute;right:2px;font-size:9px;color:rgba(37,99,235,.5);font-weight:600;
+  font-family:var(--mono);transform:translateY(-100%);padding-top:2px}
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="status-icons">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l4-4 4 4 4-8 4 6 4-4"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="5" y="10" width="10" height="5" rx="1"/><rect x="21" y="10" width="2" height="5" rx="1"/></svg>
+  </div>
+</div>
+
+<!-- Page Container -->
+<div class="page-area">
+
+<!-- ============ PAGE: HOME ============ -->
+<div class="pg active" id="pg-home">
+<div class="pg-inner">
+
+
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+    <input placeholder="搜索商品、订单、客户名称" readonly>
+    <div class="s-actions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3M14 12h3M7 17h3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;cursor:pointer" onclick="goSub('pg-messages')"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg>
+    </div>
+  </div>
+
+  <div class="home-data fade-up">
+    <div class="glass-overlay"></div>
+    <div class="grid-pattern"></div>
+    <div class="home-data-top">
+      <div class="home-data-item">
+        <div class="label">今日营业额</div>
+        <div class="val" data-count="12680">¥12,680</div>
+        <div class="trend up">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 2L8 6H2z" fill="currentColor"/></svg>
+          12.5%
+        </div>
+      </div>
+      <div class="home-data-item">
+        <div class="label">今日订单</div>
+        <div class="val" data-count="28">28</div>
+        <div class="trend up">
+          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 2L8 6H2z" fill="currentColor"/></svg>
+          5单
+        </div>
+      </div>
+    </div>
+    <div class="home-data-div"></div>
+    <div class="home-data-bot">
+      <div class="db-item"><div class="db-label">本月营业额</div><div class="db-val">¥186,400</div></div>
+      <div class="db-item"><div class="db-label">本月订单</div><div class="db-val">386</div></div>
+      <div class="db-item"><div class="db-label">本月毛利</div><div class="db-val">¥42,800</div></div>
+    </div>
+  </div>
+
+  <div class="home-progress fade-up" style="animation-delay:.1s">
+    <h3>订单进度</h3>
+    <div class="hp-row">
+      <div class="hp-item" onclick="goSub('pg-orders')">
+        <div class="hp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+        <div class="hp-num">8</div><div class="hp-label">待配送</div>
+      </div>
+      <div class="hp-item" onclick="goSub('pg-orders')">
+        <div class="hp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
+        <div class="hp-num">5</div><div class="hp-label">待取货</div>
+      </div>
+      <div class="hp-item" onclick="goSub('pg-orders')">
+        <div class="hp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        <div class="hp-num">3</div><div class="hp-label">待收款</div>
+      </div>
+      <div class="hp-item" onclick="goSub('pg-orders')">
+        <div class="hp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="hp-num">128</div><div class="hp-label">已完成</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-orders fade-up" style="animation-delay:.2s">
+    <h3><span style="display:flex;align-items:center;gap:8px"><span style="width:4px;height:16px;border-radius:2px;background:var(--c-blue)"></span>最新订单</span> <span class="more" onclick="goSub('pg-orders')">查看全部 ›</span></h3>
+    <div class="ho-item" onclick="goSub('pg-orders')">
+      <div class="ho-info"><div class="ho-name">张建国 <span class="ho-channel">小程序</span></div><div class="ho-meta">DD20250116001 · 10:32</div></div>
+      <div class="ho-right"><div class="ho-amount">¥286</div><div class="ho-status badge badge-orange">待配送</div></div>
+    </div>
+    <div class="ho-item" onclick="goSub('pg-orders')">
+      <div class="ho-info"><div class="ho-name">李美华 <span class="ho-channel">门店</span></div><div class="ho-meta">DD20250116002 · 09:45</div></div>
+      <div class="ho-right"><div class="ho-amount">¥1,280</div><div class="ho-status badge badge-red">待付款</div></div>
+    </div>
+    <div class="ho-item" onclick="goSub('pg-orders')">
+      <div class="ho-info"><div class="ho-name">王大明 <span class="ho-channel">即时零售</span></div><div class="ho-meta">DD20250116003 · 09:18</div></div>
+      <div class="ho-right"><div class="ho-amount">¥56</div><div class="ho-status badge badge-green">已完成</div></div>
+    </div>
+    <div class="ho-item" onclick="goSub('pg-orders')">
+      <div class="ho-info"><div class="ho-name">赵晓红 <span class="ho-channel">小程序</span></div><div class="ho-meta">DD20250115018 · 昨日</div></div>
+      <div class="ho-right"><div class="ho-amount">¥432</div><div class="ho-status badge badge-green">已完成</div></div>
+    </div>
+  </div>
+
+  <div class="home-chart fade-up" style="animation-delay:.3s">
+    <h3><span style="display:flex;align-items:center;gap:8px"><span style="width:4px;height:16px;border-radius:2px;background:var(--c-blue)"></span>7日趋势</span><span style="font-size:12px;color:var(--c-400);font-weight:400">日均 ¥11,126</span></h3>
+    <div class="chart-subtitle">营业额走势</div>
+    <div class="chart-wrap" id="homeChart"></div>
+    <div class="chart-labels"><span>1/10</span><span>1/11</span><span>1/12</span><span>1/13</span><span>1/14</span><span>1/15</span><span>1/16</span></div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: PRODUCTS ============ -->
+<div class="pg" id="pg-products">
+<div class="pg-inner" style="display:flex;flex-direction:column;height:100%">
+
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+    <input placeholder="搜索商品名/条码/品牌" readonly>
+    <div class="s-actions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;cursor:pointer" onclick="goSub('pg-messages')"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg>
+    </div>
+  </div>
+  <div class="prod-body">
+    <div class="prod-side" id="prodSide"></div>
+    <div class="prod-main" id="prodMain"></div>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: AI ASSISTANT ============ -->
+<div class="pg" id="pg-ai-assistant">
+<div class="pg-inner" style="display:flex;flex-direction:column;height:100%">
+
+  <!-- Clean Minimal Header -->
+  <div class="ai-top-bar">
+    <div class="ai-top-left">
+      <div class="ai-top-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg>
+      </div>
+      <div>
+        <div class="ai-top-title">AI 助手</div>
+        <div class="ai-top-sub">有什么可以帮你的？</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Area - fills main space -->
+  <div class="ai-chat-area">
+    <div class="ai-chat-messages">
+      <div class="ai-msg assistant">
+        <div class="ai-msg-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg></div>
+        <div class="ai-msg-bubble">你好！我是你的 AI 经营助手 ✨<br>你可以问我任何经营相关的问题，比如库存分析、销售预测、利润优化等。</div>
+      </div>
+      <div class="ai-msg user">
+        <div class="ai-msg-avatar">陈</div>
+        <div class="ai-msg-bubble">帮我分析一下今天的销售情况</div>
+      </div>
+      <div class="ai-msg assistant">
+        <div class="ai-msg-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg></div>
+        <div class="ai-msg-bubble">📊 今日经营概况：<br><br>• 营业额 ¥12,680，较昨日 ↑12.5%<br>• 订单 28 单，新增客户 3 位<br>• 毛利 ¥3,420，毛利率 27%<br><br>白酒类销售表现突出，建议适当增加库存。</div>
+      </div>
+      <div class="ai-msg user">
+        <div class="ai-msg-avatar">陈</div>
+        <div class="ai-msg-bubble">哪些商品需要补货？</div>
+      </div>
+      <div class="ai-msg assistant">
+        <div class="ai-msg-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg></div>
+        <div class="ai-msg-bubble">⚠️ 3件商品低于安全库存：<br><br>📦 金龙鱼食用油 — 剩余5件<br>📦 蓝月亮洗衣液 — 剩余8件<br>📦 旺旺雪饼 — 剩余12件<br><br>要帮你生成采购单吗？</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Tags + Input -->
+  <div class="ai-bottom-bar">
+    <div class="ai-quick-tags">
+      <span class="ai-tag" onclick="this.closest('.ai-bottom-bar').querySelector('.ai-input').value='帮我分析今日经营情况'">今日经营分析</span>
+      <span class="ai-tag" onclick="this.closest('.ai-bottom-bar').querySelector('.ai-input').value='帮我诊断库存异常'">库存异常诊断</span>
+      <span class="ai-tag" onclick="this.closest('.ai-bottom-bar').querySelector('.ai-input').value='给我利润优化建议'">利润优化建议</span>
+      <span class="ai-tag" onclick="this.closest('.ai-bottom-bar').querySelector('.ai-input').value='帮我快速开单'">快速开单</span>
+    </div>
+    <div class="ai-input-bar">
+      <input class="ai-input" placeholder="输入你的问题..." readonly>
+      <div class="ai-send-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ============ PAGE: QUICK ORDER (sub) ============ -->
+<div class="pg sub" id="pg-quick-order">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>快速开单</h1>
+  </div>
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+    <input placeholder="扫码或搜索商品" readonly>
+    <div class="s-actions">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </div>
+  </div>
+  <div class="qo-customer">
+    <div><div class="qc-label">客户</div><div class="qc-name">散客</div></div>
+    <svg class="qc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </div>
+  <div style="padding:0 16px 8px;font-size:13px;font-weight:600;color:var(--t2)">已选商品 (3)</div>
+  <div class="qo-items">
+    <div class="qo-item">
+      <div class="prod-thumb"><span class="t-letter">可</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">可口可乐 330ml</div><div style="font-size:11px;color:var(--t3)">¥3.00/罐</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">20</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-price">¥60</div>
+    </div>
+    <div class="qo-item">
+      <div class="prod-thumb"><span class="t-letter">乐</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">乐事薯片 原味</div><div style="font-size:11px;color:var(--t3)">¥7.50/袋</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">10</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-price">¥75</div>
+    </div>
+    <div class="qo-item">
+      <div class="prod-thumb"><span class="t-letter">海</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">海天酱油 500ml</div><div style="font-size:11px;color:var(--t3)">¥9.90/瓶</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">15</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-price">¥148.5</div>
+    </div>
+  </div>
+  <div class="qo-summary">
+    <div class="qo-row"><span>商品数</span><span>3 种 / 45 件</span></div>
+    <div class="qo-row"><span>优惠</span><span>-¥0.00</span></div>
+    <div class="qo-total"><span class="label">应收金额</span><span class="amount">¥283.50</span></div>
+  </div>
+  <div class="qo-actions">
+    <button class="qo-btn-sec">暂存</button>
+    <button class="qo-btn-pri">结算收款</button>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: FUNCTIONS ============ -->
+<div class="pg" id="pg-functions">
+<div class="pg-inner">
+  <div class="func-hd">
+    <div class="func-logo">智</div>
+    <h2>功能中心</h2>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+  </div>
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+    <input placeholder="搜索功能、订单、客户" readonly>
+  </div>
+
+  <div class="func-grid">
+    <div class="func-grid-item" onclick="goSub('pg-quick-order')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div><span>开单收银</span></div>
+    <div class="func-grid-item" onclick="goSub('pg-members')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><span>会员管理</span></div>
+    <div class="func-grid-item" onclick="goSub('pg-inventory')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><span>进货入库</span></div>
+    <div class="func-grid-item" onclick="goSub('pg-inventory')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span>盘点调拨</span></div>
+    <div class="func-grid-item" onclick="goSub('pg-reports')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span>收银对账</span></div>
+    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span>门店管理</span></div>
+    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
+    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg></div><span>更多</span></div>
+  </div>
+
+  <div class="func-section">
+    <h3>数据 · 工具</h3>
+    <div class="func-list">
+      <div class="list-item" onclick="goSub('pg-reports')">
+        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="li-body"><div class="li-title">经营报表</div><div class="li-desc">营业额、利润、趋势分析</div></div>
+        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="list-item" onclick="goSub('pg-reports')">
+        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></div>
+        <div class="li-body"><div class="li-title">销售排行</div><div class="li-desc">商品销量TOP排行</div></div>
+        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="list-item">
+        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="li-body"><div class="li-title">溯源查询</div><div class="li-desc">商品来源与批次追踪</div></div>
+        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="list-item">
+        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
+        <div class="li-body"><div class="li-title">供应商管理</div><div class="li-desc">12家合作供应商</div></div>
+        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="list-item">
+        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+        <div class="li-body"><div class="li-title">系统设置</div><div class="li-desc">打印、权限、通知设置</div></div>
+        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: PROFILE ============ -->
+<div class="pg" id="pg-profile">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <h1>我的</h1>
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  </div>
+
+  <div class="prof-card">
+    <div class="prof-avatar">陈</div>
+    <div class="prof-info">
+      <div class="prof-name">陈晓明</div>
+      <div class="prof-role">店长</div>
+      <div class="prof-store">鑫达批发（总店）</div>
+      <div class="prof-id">ID: A1001</div>
+    </div>
+    <div class="prof-status">营业中</div>
+  </div>
+
+  <div class="prof-shortcuts">
+    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span>工作记录</span></div>
+    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><span>员工管理</span></div>
+    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span>对账</span></div>
+    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
+  </div>
+
+  <div class="prof-section">
+    <h3>门店管理</h3>
+    <div class="prof-list">
+      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/></svg></div><div class="li-body"><div class="li-title">门店信息</div><div class="li-desc">鑫达批发 · 旗舰店</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="li-body"><div class="li-title">员工管理</div><div class="li-desc">8名在职员工</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="li-body"><div class="li-title">营业时间</div><div class="li-desc">08:00 - 22:00</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+  </div>
+
+  <div class="prof-section">
+    <h3>系统</h3>
+    <div class="prof-list">
+      <div class="list-item" onclick="goSub('pg-messages')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div class="li-body"><div class="li-title">消息推送</div><div class="li-desc">已开启</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="li-body"><div class="li-title">客服帮助</div><div class="li-desc">在线客服 · 帮助中心</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div class="li-body"><div class="li-title">关于</div><div class="li-desc">智享全链 v3.2.1</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+    </div>
+  </div>
+
+  <div style="margin:16px 12px;padding:16px;text-align:center;background:var(--bg-card);border-radius:var(--r3);font-size:14px;font-weight:500;color:var(--c-danger);box-shadow:var(--sh2);cursor:pointer;border:1px solid rgba(0,0,0,.03)">退出登录</div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: ORDERS (sub) ============ -->
+<div class="pg sub" id="pg-orders">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>订单管理</h1>
+  </div>
+  <div class="tab-bar" id="ordTabs">
+    <div class="tab active" data-tab="all">全部 <span style="font-size:11px;color:var(--t3)">156</span></div>
+    <div class="tab" data-tab="pending">待付款 <span style="font-size:11px;color:var(--t3)">12</span></div>
+    <div class="tab" data-tab="ship">待发货 <span style="font-size:11px;color:var(--t3)">8</span></div>
+    <div class="tab" data-tab="done">已完成 <span style="font-size:11px;color:var(--t3)">128</span></div>
+    <div class="tab" data-tab="refund">退款 <span style="font-size:11px;color:var(--t3)">8</span></div>
+  </div>
+  <div id="ordList">
+    <div class="ord-card">
+      <div class="ord-hd"><span class="ord-no">DD20250116001</span><span class="ord-status badge badge-orange">待配送</span></div>
+      <div class="ord-items">可口可乐×20 乐事薯片×10 海天酱油×5</div>
+      <div class="ord-ft"><span class="ord-time">张建国 · 小程序 · 10:32</span><span class="ord-amount">¥286.00</span></div>
+      <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action primary">配送</button></div>
+    </div>
+    <div class="ord-card">
+      <div class="ord-hd"><span class="ord-no">DD20250116002</span><span class="ord-status badge badge-red">待付款</span></div>
+      <div class="ord-items">金龙鱼食用油×40</div>
+      <div class="ord-ft"><span class="ord-time">李美华 · 门店 · 09:45</span><span class="ord-amount">¥1,280.00</span></div>
+      <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action primary">确认收款</button></div>
+    </div>
+    <div class="ord-card">
+      <div class="ord-hd"><span class="ord-no">DD20250116003</span><span class="ord-status badge badge-green">已完成</span></div>
+      <div class="ord-items">维达抽纸×3 蓝月亮洗衣液×1</div>
+      <div class="ord-ft"><span class="ord-time">王大明 · 即时零售 · 09:18</span><span class="ord-amount">¥56.00</span></div>
+      <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action">再来一单</button></div>
+    </div>
+    <div class="ord-card">
+      <div class="ord-hd"><span class="ord-no">DD20250115018</span><span class="ord-status badge badge-green">已完成</span></div>
+      <div class="ord-items">农夫山泉×50 可口可乐×30 旺旺雪饼×20</div>
+      <div class="ord-ft"><span class="ord-time">赵晓红 · 小程序 · 昨日 16:40</span><span class="ord-amount">¥432.00</span></div>
+      <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action">再来一单</button></div>
+    </div>
+    <div class="ord-card">
+      <div class="ord-hd"><span class="ord-no">DD20250115016</span><span class="ord-status badge badge-orange">待取货</span></div>
+      <div class="ord-items">海天酱油×10 金龙鱼×5</div>
+      <div class="ord-ft"><span class="ord-time">刘大伟 · 门店 · 昨日 14:22</span><span class="ord-amount">¥258.50</span></div>
+      <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action primary">核销取货</button></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: INVENTORY (sub) ============ -->
+<div class="pg sub" id="pg-inventory">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>库存管理</h1>
+  </div>
+  <div class="inv-stats">
+    <div class="inv-stat"><div class="is-val">1,286</div><div class="is-label">总SKU数</div></div>
+    <div class="inv-stat"><div class="is-val">¥85.6w</div><div class="is-label">库存价值</div></div>
+    <div class="inv-stat warn"><div class="is-val">12</div><div class="is-label">预警商品</div></div>
+  </div>
+  <div class="inv-actions">
+    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>入库</span></div>
+    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg><span>出库</span></div>
+    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>盘点</span></div>
+  </div>
+  <div class="section-title">库存预警</div>
+  <div style="background:var(--bg-card);border-radius:var(--r4);margin:0 12px;overflow:hidden;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)">
+    <div class="inv-item"><div class="prod-thumb"><span class="t-letter">旺</span></div><div class="inv-item-info"><div class="inv-item-name">旺旺雪饼 原味</div><div class="inv-item-sku">SKU: SL002</div></div><div class="inv-item-stock"><div class="num danger">12</div><div class="label">库存</div></div></div>
+    <div class="inv-item"><div class="prod-thumb"><span class="t-letter">蓝</span></div><div class="inv-item-info"><div class="inv-item-name">蓝月亮洗衣液 1kg</div><div class="inv-item-sku">SKU: RY002</div></div><div class="inv-item-stock"><div class="num danger">8</div><div class="label">库存</div></div></div>
+    <div class="inv-item"><div class="prod-thumb"><span class="t-letter">金</span></div><div class="inv-item-info"><div class="inv-item-name">金龙鱼食用油 1.8L</div><div class="inv-item-sku">SKU: TW002</div></div><div class="inv-item-stock"><div class="num danger">5</div><div class="label">库存</div></div></div>
+    <div class="inv-item"><div class="prod-thumb"><span class="t-letter">康</span></div><div class="inv-item-info"><div class="inv-item-name">康师傅方便面 袋装</div><div class="inv-item-sku">SKU: SL008</div></div><div class="inv-item-stock"><div class="num danger">15</div><div class="label">库存</div></div></div>
+    <div class="inv-item"><div class="prod-thumb"><span class="t-letter">怡</span></div><div class="inv-item-info"><div class="inv-item-name">怡宝纯净水 555ml</div><div class="inv-item-sku">SKU: YL005</div></div><div class="inv-item-stock"><div class="num danger">18</div><div class="label">库存</div></div></div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: MEMBERS (sub) ============ -->
+<div class="pg sub" id="pg-members">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>会员管理</h1>
+  </div>
+  <div class="mem-stats">
+    <div class="mem-stat"><div class="ms-val">2,386</div><div class="ms-label">总会员</div></div>
+    <div class="mem-stat"><div class="ms-val">+156</div><div class="ms-label">本月新增</div></div>
+    <div class="mem-stat"><div class="ms-val">68%</div><div class="ms-label">活跃率</div></div>
+  </div>
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
+    <input placeholder="搜索会员姓名/手机号" readonly>
+  </div>
+  <div class="section-title">会员列表</div>
+  <div style="background:var(--bg-card);margin:0 12px;border-radius:var(--r4);overflow:hidden;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)">
+    <div class="mem-card"><div class="mem-avatar">张</div><div class="mem-info"><div class="mem-name">张建国 <span class="mem-level vip3">VIP3</span></div><div class="mem-meta">最近消费: 2025-01-15</div></div><div class="mem-spend"><div class="amount">¥28,600</div><div class="label">累计消费</div></div></div>
+    <div class="mem-card"><div class="mem-avatar">李</div><div class="mem-info"><div class="mem-name">李美华 <span class="mem-level vip2">VIP2</span></div><div class="mem-meta">最近消费: 2025-01-14</div></div><div class="mem-spend"><div class="amount">¥15,200</div><div class="label">累计消费</div></div></div>
+    <div class="mem-card"><div class="mem-avatar">王</div><div class="mem-info"><div class="mem-name">王大伟 <span class="mem-level vip2">VIP2</span></div><div class="mem-meta">最近消费: 2025-01-13</div></div><div class="mem-spend"><div class="amount">¥8,900</div><div class="label">累计消费</div></div></div>
+    <div class="mem-card"><div class="mem-avatar">赵</div><div class="mem-info"><div class="mem-name">赵晓红 <span class="mem-level">VIP1</span></div><div class="mem-meta">最近消费: 2025-01-12</div></div><div class="mem-spend"><div class="amount">¥4,350</div><div class="label">累计消费</div></div></div>
+    <div class="mem-card"><div class="mem-avatar">刘</div><div class="mem-info"><div class="mem-name">刘大伟 <span class="mem-level">VIP1</span></div><div class="mem-meta">最近消费: 2025-01-10</div></div><div class="mem-spend"><div class="amount">¥2,180</div><div class="label">累计消费</div></div></div>
+    <div class="mem-card"><div class="mem-avatar">陈</div><div class="mem-info"><div class="mem-name">陈小丽 <span class="mem-level">普通</span></div><div class="mem-meta">最近消费: 2025-01-08</div></div><div class="mem-spend"><div class="amount">¥860</div><div class="label">累计消费</div></div></div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+<!-- ============ PAGE: MESSAGES (sub) ============ -->
+<div class="pg sub" id="pg-messages">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>消息中心</h1>
+  </div>
+  <div class="tab-bar" id="msgTabs">
+    <div class="tab active">全部</div>
+    <div class="tab">订单</div>
+    <div class="tab">库存</div>
+    <div class="tab">系统</div>
+  </div>
+  <div>
+    <div class="msg-item">
+      <div class="msg-ico stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="msg-body"><div class="msg-title">库存预警 <span class="msg-time">10分钟前</span></div><div class="msg-preview">金龙鱼食用油 1.8L 库存仅剩5件，低于安全库存(20)，请尽快补货</div></div>
+    </div>
+    <div class="msg-item">
+      <div class="msg-ico order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="msg-body"><div class="msg-title">新订单提醒 <span class="msg-time">32分钟前</span></div><div class="msg-preview">张建国 通过小程序下单 ¥286.00，请尽快处理</div></div>
+    </div>
+    <div class="msg-item">
+      <div class="msg-ico order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+      <div class="msg-body"><div class="msg-title">订单已完成 <span class="msg-time">1小时前</span></div><div class="msg-preview">王大明 的订单 DD20250116003 已确认收货</div></div>
+    </div>
+    <div class="msg-item">
+      <div class="msg-ico sys"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+      <div class="msg-body"><div class="msg-title">系统更新 <span class="msg-time">昨天</span></div><div class="msg-preview">智享全链 v3.2.1 已发布，新增批量调价功能</div></div>
+    </div>
+    <div class="msg-item">
+      <div class="msg-ico stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div class="msg-body"><div class="msg-title">库存预警 <span class="msg-time">昨天</span></div><div class="msg-preview">蓝月亮洗衣液 1kg 库存仅剩8件，低于安全库存(15)</div></div>
+    </div>
+    <div class="msg-item">
+      <div class="msg-ico order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+      <div class="msg-body"><div class="msg-title">退款申请 <span class="msg-time">昨天</span></div><div class="msg-preview">周小明 申请退款 DD20250114008 ¥45.00，请及时处理</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ PAGE: REPORTS (sub) ============ -->
+<div class="pg sub" id="pg-reports">
+<div class="pg-inner">
+  <div class="pg-hd">
+    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <h1>数据报表</h1>
+  </div>
+  <div class="rpt-period">
+    <div class="rp-item">今日</div>
+    <div class="rp-item active">本周</div>
+    <div class="rp-item">本月</div>
+    <div class="rp-item">本年</div>
+  </div>
+  <div class="rpt-metrics">
+    <div class="rpt-metric"><div class="rm-label">营业额</div><div class="rm-val">¥86,400</div><div class="rm-trend up">↑ 8.3% 较上周</div></div>
+    <div class="rpt-metric"><div class="rm-label">毛利</div><div class="rm-val">¥19,600</div><div class="rm-trend up">↑ 5.1% 较上周</div></div>
+    <div class="rpt-metric"><div class="rm-label">客单价</div><div class="rm-val">¥224</div><div class="rm-trend down">↓ 2.1% 较上周</div></div>
+    <div class="rpt-metric"><div class="rm-label">复购率</div><div class="rm-val">32.5%</div><div class="rm-trend up">↑ 3.2% 较上周</div></div>
+  </div>
+  <div class="rpt-chart">
+    <h3>销售趋势</h3>
+    <div class="chart-wrap" id="rptChart"></div>
+    <div class="chart-labels"><span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span></div>
+  </div>
+  <div class="rpt-rank">
+    <h3>销售排行</h3>
+    <div class="rr-item"><div class="rr-rank">1</div><div class="rr-name">可口可乐 330ml</div><div class="rr-val">¥8,640</div></div>
+    <div class="rr-item"><div class="rr-rank">2</div><div class="rr-name">农夫山泉 550ml</div><div class="rr-val">¥6,280</div></div>
+    <div class="rr-item"><div class="rr-rank">3</div><div class="rr-name">金龙鱼食用油 1.8L</div><div class="rr-val">¥5,120</div></div>
+    <div class="rr-item"><div class="rr-rank">4</div><div class="rr-name">海天酱油 500ml</div><div class="rr-val">¥4,350</div></div>
+    <div class="rr-item"><div class="rr-rank">5</div><div class="rr-name">维达抽纸 120抽</div><div class="rr-val">¥3,890</div></div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+</div>
+
+</div><!-- end page-area -->
+
+<!-- Bottom Navigation -->
+<nav class="bnav" id="bnav">
+  <div class="bnav-item active" data-page="pg-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>首页</span>
+  </div>
+  <div class="bnav-item" data-page="pg-products">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+    <span>商品</span>
+  </div>
+  <div class="bnav-center" data-page="pg-ai-assistant">
+    <div class="bnav-btn">
+      <span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1">AI</span>
+    </div>
+  </div>
+  <div class="bnav-item" data-page="pg-functions">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span>功能</span>
+  </div>
+  <div class="bnav-item" data-page="pg-profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>我的</span>
+  </div>
+</nav>
+
+</div><!-- end phone -->
+<style>
+/* ========== Page 2: Products ========== */
+.prod-hd{padding:14px 18px;background:var(--bg-card);display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,.03)}
+.prod-hd-left{flex:1}
+.prod-hd-left h2{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.prod-hd-left .prod-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;
+  color:var(--c-success);margin-top:4px;font-weight:600;
+  background:rgba(58,157,92,.08);padding:2px 8px;border-radius:var(--r-full)}
+.prod-hd-left .prod-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--c-success);
+  animation:pulse-dot 2s infinite}
+.prod-hd-left .prod-count{font-size:12px;color:var(--t3);margin-top:4px}
+.prod-hd-icons{display:flex;gap:12px}
+.prod-hd-icons svg{width:22px;height:22px;color:var(--c-700);cursor:pointer;padding:6px;
+  border-radius:50%;transition:background .2s}
+.prod-hd-icons svg:hover{background:rgba(0,0,0,.04)}
+
+.prod-body{display:flex;flex:1;overflow:hidden}
+.prod-side{width:76px;background:rgba(0,0,0,.015);overflow-y:auto;flex-shrink:0}
+.prod-side-item{padding:16px 8px;text-align:center;font-size:12px;color:var(--c-500);
+  cursor:pointer;position:relative;transition:all .25s ease;font-weight:500}
+.prod-side-item.active{background:var(--bg-card);color:var(--c-blue);font-weight:700}
+.prod-side-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:3px;height:20px;background:var(--c-blue);border-radius:0 3px 3px 0}
+
+.prod-main{flex:1;overflow-y:auto;padding:12px 14px}
+.prod-alert{background:#fffbeb;border-radius:var(--r3);padding:12px 14px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;color:#92400e;
+  border:1px solid rgba(217,119,6,.1);box-shadow:0 2px 8px rgba(217,119,6,.06)}
+.prod-alert svg{width:16px;height:16px;flex-shrink:0}
+.prod-batch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.prod-batch span{font-size:12px;color:var(--t2);font-weight:500}
+.prod-batch .batch-btn{font-size:12px;color:var(--c-900);font-weight:500;
+  padding:6px 14px;border:1px solid var(--bd);border-radius:var(--r-full);transition:all .15s}
+.prod-batch .batch-btn:active{background:rgba(0,0,0,.03)}
+
+.prod-card{display:flex;gap:12px;padding:14px;background:var(--bg-card);border-radius:var(--r3);
+  margin-bottom:10px;box-shadow:var(--sh1);cursor:pointer;transition:all .2s ease;
+  border:1px solid rgba(0,0,0,.03)}
+.prod-card:active{transform:scale(.98);box-shadow:var(--sh2)}
+.prod-thumb{width:56px;height:56px;border-radius:var(--r2);background:var(--c-100);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.prod-thumb .t-letter{font-size:16px;font-weight:800;color:var(--c-400)}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
+.prod-spec{font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--mono)}
+.prod-price-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.prod-wholesale{font-size:16px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px;
+  color:var(--c-blue);line-height:1}
+.prod-retail{font-size:11px;color:var(--t3);font-family:var(--mono);text-decoration:line-through;
+  text-decoration-color:var(--c-300)}
+.prod-stock-tag{font-size:11px;color:var(--t3);font-family:var(--mono);display:flex;align-items:center;gap:3px}
+.prod-stock-tag::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--c-400);flex-shrink:0}
+.prod-stock-tag.low-stock{color:var(--c-danger);font-weight:700}
+.prod-stock-tag.low-stock::before{background:var(--c-danger)}
+
+
+/* ========== Page 3: Quick Order ========== */
+.qo-customer{margin:14px 14px;padding:16px;background:var(--bg-card);border-radius:var(--r3);
+  display:flex;align-items:center;gap:12px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.qo-customer .qc-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+.qo-customer .qc-name{font-size:16px;font-weight:700;flex:1;margin-top:2px}
+.qo-customer .qc-arrow{color:var(--c-400)}
+.qo-items{margin:0 14px}
+.qo-item{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.04);gap:12px}
+.qo-item:last-child{border-bottom:none}
+.qo-item-name{flex:1;font-size:13px}
+.qo-item-qty{display:flex;align-items:center;gap:8px}
+.qo-qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--c-600);
+  transition:all .15s}
+.qo-qty-btn:active{background:rgba(0,0,0,.04)}
+.qo-qty-num{font-size:14px;font-weight:700;width:24px;text-align:center;font-family:var(--mono)}
+.qo-item-price{font-size:14px;font-weight:800;font-family:var(--mono);width:64px;text-align:right;letter-spacing:-.2px}
+.qo-summary{margin:16px 14px;padding:18px;background:var(--bg-card);border-radius:var(--r4);box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.qo-row{display:flex;justify-content:space-between;font-size:13px;color:var(--t2);margin-bottom:10px}
+.qo-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:14px;
+  border-top:1px solid rgba(0,0,0,.05)}
+.qo-total .label{font-size:14px;font-weight:600}
+.qo-total .amount{font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-.5px}
+.qo-actions{display:flex;gap:12px;margin:16px 14px 20px}
+.qo-btn-sec{flex:1;height:48px;border:1px solid var(--bd);border-radius:var(--r3);
+  font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;
+  transition:all .15s}
+.qo-btn-sec:active{background:rgba(0,0,0,.03)}
+.qo-btn-pri{flex:2;height:48px;background:var(--c-blue);color:#fff;border-radius:var(--r3);
+  font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(37,99,235,.2);transition:all .15s}
+.qo-btn-pri:active{opacity:.85;transform:scale(.98)}
+
+/* ========== Page 4: Functions ========== */
+.func-hd{padding:18px 20px 14px;display:flex;align-items:center;gap:12px;background:var(--bg-card);
+  border-bottom:1px solid rgba(0,0,0,.03)}
+.func-logo{width:38px;height:38px;border-radius:var(--r2);
+  background:var(--c-blue);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;
+  box-shadow:0 4px 12px rgba(37,99,235,.15);position:relative;overflow:hidden}
+.func-logo::before{display:none}
+.func-hd h2{flex:1;font-size:18px;font-weight:700;letter-spacing:-.2px}
+.func-hd svg{width:22px;height:22px;color:var(--c-700);cursor:pointer}
+
+.func-grid{margin:14px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  background:var(--bg-card);border-radius:var(--r4);padding:20px 10px;box-shadow:var(--sh2);
+  border:1px solid rgba(0,0,0,.03)}
+.func-grid-item{display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0;cursor:pointer;
+  transition:transform .15s}
+.func-grid-item:active{transform:scale(.94)}
+.func-grid-item .fg-ico{width:44px;height:44px;border-radius:var(--r2);background:var(--c-blue-light);
+  display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.func-grid-item .fg-ico svg{width:20px;height:20px;color:var(--c-blue)}
+.func-grid-item span{font-size:11px;color:var(--c-600);font-weight:500}
+
+.func-section{margin:4px 14px 14px}
+.func-section h3{font-size:12px;font-weight:600;color:var(--t3);margin-bottom:10px;padding-left:4px;
+  text-transform:uppercase;letter-spacing:.5px}
+.func-list{background:var(--bg-card);border-radius:var(--r4);overflow:hidden;box-shadow:var(--sh2);
+  border:1px solid rgba(0,0,0,.03)}
+
+/* ========== Page 5: Profile ========== */
+.prof-card{margin:14px 14px;background:var(--bg-card);border-radius:var(--r5);padding:22px;
+  box-shadow:var(--sh2);display:flex;align-items:center;gap:16px;border:1px solid rgba(0,0,0,.03)}
+.prof-avatar{width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c-blue-light),#e0e7ff);
+  display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--c-blue);
+  box-shadow:0 4px 12px rgba(37,99,235,.1)}
+.prof-info{flex:1}
+.prof-name{font-size:18px;font-weight:700;letter-spacing:-.2px}
+.prof-role{font-size:12px;color:var(--t3);margin-top:3px;font-weight:500}
+.prof-store{font-size:12px;color:var(--t3);margin-top:1px}
+.prof-id{font-size:11px;color:var(--t4);margin-top:3px;font-family:var(--mono)}
+.prof-status{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
+  border-radius:var(--r-full);font-size:11px;font-weight:600;background:#ecfdf5;color:#059669;
+  border:1px solid rgba(5,150,105,.1)}
+.prof-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#059669;
+  animation:pulse-dot 2s infinite}
+
+.prof-shortcuts{display:flex;margin:0 14px 16px;gap:0;background:var(--bg-card);
+  border-radius:var(--r4);padding:18px 8px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.prof-sc-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;
+  transition:transform .15s}
+.prof-sc-item:active{transform:scale(.92)}
+.prof-sc-item .ps-ico{width:38px;height:38px;border-radius:var(--r2);background:var(--c-blue-light);
+  display:flex;align-items:center;justify-content:center}
+.prof-sc-item .ps-ico svg{width:18px;height:18px;color:var(--c-blue)}
+.prof-sc-item span{font-size:11px;color:var(--c-600);font-weight:500}
+
+.prof-section{margin:4px 14px 14px}
+.prof-section h3{font-size:12px;font-weight:600;color:var(--t3);padding:0 4px 10px;text-transform:uppercase;letter-spacing:.5px}
+.prof-list{background:var(--bg-card);border-radius:var(--r4);overflow:hidden;box-shadow:var(--sh2);
+  border:1px solid rgba(0,0,0,.03)}
+
+/* ========== Page 6: Orders ========== */
+.ord-card{margin:12px 14px;background:var(--bg-card);border-radius:var(--r4);padding:18px;
+  box-shadow:var(--sh2);cursor:pointer;transition:all .15s;border:1px solid rgba(0,0,0,.03)}
+.ord-card:active{transform:scale(.98)}
+.ord-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ord-no{font-size:12px;color:var(--t3);font-family:var(--mono);font-weight:500}
+.ord-status{font-size:12px;font-weight:500}
+.ord-items{font-size:13px;color:var(--t2);margin-bottom:10px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ord-ft{display:flex;justify-content:space-between;align-items:center}
+.ord-time{font-size:11px;color:var(--t3)}
+.ord-amount{font-size:18px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px}
+.ord-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;
+  border-top:1px solid rgba(0,0,0,.04)}
+.ord-action{padding:7px 16px;border-radius:var(--r-full);font-size:12px;font-weight:500;
+  border:1px solid var(--bd);color:var(--c-600);transition:all .15s}
+.ord-action:active{background:rgba(0,0,0,.03)}
+.ord-action.primary{background:var(--c-blue);color:#fff;border-color:var(--c-blue);
+  box-shadow:0 2px 6px rgba(37,99,235,.15)}
+
+/* ========== Page 7: Inventory ========== */
+.inv-stats{display:flex;margin:14px 14px;gap:10px}
+.inv-stat{flex:1;background:var(--bg-card);border-radius:var(--r3);padding:18px 12px;
+  text-align:center;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03);
+  position:relative;overflow:hidden}
+.inv-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--c-blue)}
+.inv-stat .is-val{font-size:22px;font-weight:800;font-family:var(--mono);color:var(--c-blue);
+  letter-spacing:-.5px}
+.inv-stat .is-label{font-size:11px;color:var(--t2);margin-top:4px;font-weight:500}
+.inv-stat.warn::before{background:var(--c-danger)}
+.inv-stat.warn .is-val{color:var(--c-danger)}
+.inv-stat.warn .is-label{color:#991b1b}
+
+.inv-actions{display:flex;margin:0 14px 14px;gap:10px}
+.inv-act{flex:1;background:var(--bg-card);border-radius:var(--r3);padding:16px;
+  display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--sh2);cursor:pointer;
+  transition:all .15s;border:1px solid rgba(0,0,0,.03)}
+.inv-act:active{transform:scale(.96)}
+.inv-act svg{width:18px;height:18px;color:var(--c-blue)}
+.inv-act span{font-size:13px;font-weight:600}
+
+.inv-item{display:flex;align-items:center;padding:14px 16px;
+  border-bottom:1px solid rgba(0,0,0,.03);gap:12px}
+.inv-item:last-child{border-bottom:none}
+.inv-item-info{flex:1}
+.inv-item-name{font-size:13px;font-weight:600}
+.inv-item-sku{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:3px}
+.inv-item-stock{text-align:right}
+.inv-item-stock .num{font-size:16px;font-weight:800;font-family:var(--mono)}
+.inv-item-stock .num.danger{color:var(--c-danger)}
+.inv-item-stock .label{font-size:10px;color:var(--t3)}
+
+/* ========== Page 8: Members ========== */
+.mem-stats{display:flex;margin:14px 14px;gap:10px}
+.mem-stat{flex:1;background:var(--bg-card);border-radius:var(--r3);padding:18px 12px;
+  text-align:center;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03);
+  position:relative;overflow:hidden}
+.mem-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c-blue)}
+.mem-stat .ms-val{font-size:22px;font-weight:800;font-family:var(--mono);color:var(--c-blue);letter-spacing:-.5px}
+.mem-stat .ms-label{font-size:11px;color:var(--t2);margin-top:4px;font-weight:500}
+
+.mem-card{display:flex;align-items:center;padding:16px 18px;background:var(--bg-card);
+  border-bottom:1px solid rgba(0,0,0,.03);gap:14px}
+.mem-card:last-child{border-bottom:none}
+.mem-avatar{width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c-100),var(--c-50));
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--c-500);flex-shrink:0}
+.mem-info{flex:1}
+.mem-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.mem-level{font-size:10px;padding:2px 8px;border-radius:var(--r-full);background:var(--c-100);color:var(--c-600);font-weight:600}
+.mem-level.vip3{background:#fef3c7;color:#92400e;border:1px solid rgba(217,119,6,.15)}
+.mem-level.vip2{background:var(--c-blue-light);color:var(--c-blue);border:1px solid rgba(37,99,235,.1)}
+.mem-meta{font-size:11px;color:var(--t3);margin-top:4px}
+.mem-spend{text-align:right;flex-shrink:0}
+.mem-spend .amount{font-size:16px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px}
+.mem-spend .label{font-size:10px;color:var(--t3)}
+
+/* ========== Page 9: Messages ========== */
+.msg-item{display:flex;padding:16px 18px;background:var(--bg-card);border-bottom:1px solid rgba(0,0,0,.03);gap:14px;cursor:pointer;
+  transition:background .15s}
+.msg-item:active{background:var(--c-50)}
+.msg-ico{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.msg-ico.order{background:var(--c-blue-light)}
+.msg-ico.order svg{color:var(--c-blue)}
+.msg-ico.stock{background:#fffbeb}
+.msg-ico.stock svg{color:#d97706}
+.msg-ico.sys{background:var(--c-100)}
+.msg-ico.sys svg{color:var(--c-600)}
+.msg-ico svg{width:18px;height:18px}
+.msg-body{flex:1;min-width:0}
+.msg-title{font-size:13px;font-weight:600;display:flex;justify-content:space-between}
+.msg-time{font-size:11px;color:var(--t3);font-weight:400;flex-shrink:0}
+.msg-preview{font-size:12px;color:var(--t3);margin-top:4px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;line-height:1.5}
+
+/* ========== Page 10: Reports ========== */
+.rpt-period{display:flex;margin:14px 16px;background:var(--bg-card);border-radius:var(--r-full);
+  padding:4px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.rpt-period .rp-item{flex:1;text-align:center;padding:9px 0;border-radius:var(--r-full);
+  font-size:13px;color:var(--t2);cursor:pointer;transition:all .25s ease;font-weight:500}
+.rpt-period .rp-item.active{background:var(--c-blue);color:#fff;font-weight:600;
+  box-shadow:0 2px 8px rgba(37,99,235,.2)}
+
+.rpt-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 14px}
+.rpt-metric{background:var(--bg-card);border-radius:var(--r3);padding:18px;box-shadow:var(--sh2);
+  border:1px solid rgba(0,0,0,.03);position:relative;overflow:hidden}
+.rpt-metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c-blue)}
+.rpt-metric .rm-label{font-size:12px;color:var(--t2);font-weight:500}
+.rpt-metric .rm-val{font-size:24px;font-weight:800;font-family:var(--mono);margin-top:6px;color:var(--c-900);letter-spacing:-.5px}
+.rpt-metric .rm-trend{font-size:11px;margin-top:4px;font-weight:500}
+.rpt-metric .rm-trend.up{color:var(--c-success)}
+.rpt-metric .rm-trend.down{color:var(--c-danger)}
+
+.rpt-chart{margin:14px 14px;background:var(--bg-card);border-radius:var(--r4);
+  padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.rpt-chart h3{font-size:14px;font-weight:700;margin-bottom:16px;letter-spacing:-.2px;
+  display:flex;align-items:center;gap:8px}
+.rpt-chart h3::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--c-blue)}
+
+.rpt-rank{margin:14px 14px;background:var(--bg-card);border-radius:var(--r4);
+  padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+.rpt-rank h3{font-size:14px;font-weight:700;margin-bottom:16px;letter-spacing:-.2px;
+  display:flex;align-items:center;gap:8px}
+.rpt-rank h3::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--c-blue)}
+.rr-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.03)}
+.rr-item:last-child{border:none}
+.rr-rank{width:24px;height:24px;border-radius:50%;background:var(--c-100);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+  color:var(--c-600);margin-right:12px;flex-shrink:0}
+.rr-item:nth-child(1) .rr-rank{background:var(--c-blue);color:#fff}
+.rr-item:nth-child(2) .rr-rank{background:#3b82f6;color:#fff}
+.rr-item:nth-child(3) .rr-rank{background:#60a5fa;color:#fff}
+.rr-name{flex:1;font-size:13px;font-weight:600}
+.rr-val{font-size:15px;font-weight:800;font-family:var(--mono);letter-spacing:-.2px}
+
+/* ========== Page: AI Assistant (Clean Chat) ========== */
+.ai-top-bar{padding:16px 20px 14px;background:var(--bg-card);border-bottom:1px solid rgba(0,0,0,.04);flex-shrink:0}
+.ai-top-left{display:flex;align-items:center;gap:12px}
+.ai-top-icon{width:36px;height:36px;border-radius:var(--r2);
+  background:var(--c-blue);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 2px 10px rgba(79,70,229,.2)}
+.ai-top-icon svg{width:18px;height:18px;color:#fff}
+.ai-top-title{font-size:17px;font-weight:700;color:var(--c-900);letter-spacing:-.3px}
+.ai-top-sub{font-size:12px;color:var(--t3);margin-top:2px;font-weight:400}
+
+.ai-chat-area{flex:1;overflow-y:auto;padding:16px 0;-webkit-overflow-scrolling:touch}
+.ai-chat-messages{padding:0 16px}
+.ai-msg{display:flex;gap:10px;margin-bottom:18px;animation:fadeUp .4s cubic-bezier(.4,0,.2,1) both}
+.ai-msg:nth-child(1){animation-delay:.1s}
+.ai-msg:nth-child(2){animation-delay:.25s}
+.ai-msg:nth-child(3){animation-delay:.4s}
+.ai-msg:nth-child(4){animation-delay:.55s}
+.ai-msg:nth-child(5){animation-delay:.7s}
+.ai-msg:last-child{margin-bottom:0}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-msg-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;font-size:12px;font-weight:700}
+.ai-msg.assistant .ai-msg-avatar{background:var(--c-blue);color:#fff;
+  box-shadow:0 2px 8px rgba(79,70,229,.15)}
+.ai-msg.user .ai-msg-avatar{background:var(--c-100);color:var(--c-500)}
+.ai-msg-bubble{max-width:78%;padding:12px 16px;border-radius:18px;font-size:13px;
+  line-height:1.75;letter-spacing:-.1px}
+.ai-msg.assistant .ai-msg-bubble{background:var(--bg-card);color:var(--c-800);
+  border-bottom-left-radius:6px;border:1px solid rgba(0,0,0,.05);
+  box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.ai-msg.user .ai-msg-bubble{background:var(--c-blue);color:#fff;
+  border-bottom-right-radius:6px;box-shadow:0 2px 8px rgba(37,99,235,.18)}
+.ai-msg-bubble .typing{display:inline-flex;gap:3px;align-items:center;padding:2px 0}
+.ai-msg-bubble .typing span{width:5px;height:5px;border-radius:50%;background:var(--c-400);
+  animation:typingDot 1.2s infinite}
+.ai-msg-bubble .typing span:nth-child(2){animation-delay:.2s}
+.ai-msg-bubble .typing span:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+.ai-bottom-bar{flex-shrink:0;background:var(--bg-card);border-top:1px solid rgba(0,0,0,.04);
+  padding:10px 16px 14px;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+.ai-quick-tags{display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px}
+.ai-tag{white-space:nowrap;padding:6px 14px;border-radius:var(--r-full);font-size:12px;font-weight:500;
+  background:var(--c-50);color:var(--c-600);border:1px solid rgba(0,0,0,.05);
+  cursor:pointer;transition:all .2s ease;flex-shrink:0}
+.ai-tag:active{background:#ede9fe;color:#5b21b6;
+  border-color:rgba(91,33,185,.1)}
+
+.ai-input-bar{display:flex;gap:10px;align-items:center;margin:0}
+.ai-input{flex:1;height:42px;background:var(--c-50);border:1px solid rgba(0,0,0,.06);
+  border-radius:var(--r-full);padding:0 18px;font-size:13px;color:var(--t1);
+  transition:all .25s ease}
+.ai-input:focus{background:var(--bg-card);border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.08)}
+.ai-input::placeholder{color:var(--c-400)}
+.ai-send-btn{width:42px;height:42px;border-radius:50%;
+  background:var(--c-blue);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 12px rgba(37,99,235,.2);cursor:pointer;
+  transition:all .2s cubic-bezier(.4,0,.2,1);flex-shrink:0;position:relative;overflow:hidden}
+.ai-send-btn::before{display:none}
+.ai-send-btn:active{transform:scale(.9)}
+.ai-send-btn svg{width:18px;height:18px;color:#fff}
+
+
+/* AI Camera/Scan Button */
+.ai-cam-btn{width:42px;height:42px;border-radius:50%;
+  background:rgba(0,0,0,.03);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);flex-shrink:0;position:relative;overflow:hidden}
+.ai-cam-btn:active{transform:scale(.88);background:#ede9fe}
+.ai-cam-btn svg{width:20px;height:20px;color:var(--c-500);transition:color .2s ease}
+.ai-cam-btn:active svg{color:#7c3aed}
+.ai-cam-btn .cam-ripple{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle,rgba(124,58,237,.15),transparent 70%);
+  opacity:0;transform:scale(0);transition:all .3s ease}
+.ai-cam-btn:active .cam-ripple{opacity:1;transform:scale(1)}
+
+/* AI toolbar row */
+.ai-toolbar-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.ai-tool-icon{width:32px;height:32px;border-radius:var(--r2);display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:all .2s ease;background:rgba(0,0,0,.02)}
+.ai-tool-icon:active{background:#ede9fe;transform:scale(.9)}
+.ai-tool-icon svg{width:16px;height:16px;color:var(--c-400)}
+.ai-tool-icon:active svg{color:#7c3aed}
+
+/* ========== Animations ========== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.fade-up{animation:fadeUp .5s cubic-bezier(.4,0,.2,1) both}
+@keyframes countUp{from{opacity:0}to{opacity:1}}
+
+
+/* ========== Micro-interactions ========== */
+.home-data-item .val{animation:valFadeIn .6s cubic-bezier(.4,0,.2,1) both}
+.home-data-item:nth-child(2) .val{animation-delay:.1s}
+.home-data-bot .db-val{animation:valFadeIn .6s cubic-bezier(.4,0,.2,1) both}
+.home-data-bot .db-item:nth-child(1) .db-val{animation-delay:.2s}
+.home-data-bot .db-item:nth-child(2) .db-val{animation-delay:.3s}
+.home-data-bot .db-item:nth-child(3) .db-val{animation-delay:.4s}
+@keyframes valFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.hp-item{animation:fadeUp .5s cubic-bezier(.4,0,.2,1) both}
+.hp-item:nth-child(1){animation-delay:.15s}
+.hp-item:nth-child(2){animation-delay:.2s}
+.hp-item:nth-child(3){animation-delay:.25s}
+.hp-item:nth-child(4){animation-delay:.3s}
+
+.ho-item{animation:fadeUp .4s cubic-bezier(.4,0,.2,1) both}
+.ho-item:nth-child(1){animation-delay:.2s}
+.ho-item:nth-child(2){animation-delay:.25s}
+.ho-item:nth-child(3){animation-delay:.3s}
+.ho-item:nth-child(4){animation-delay:.35s}
+
+/* Section divider refinement */
+.pg-inner > div + div{position:relative}
+
+/* Card title more link */
+.more{transition:color .2s ease}
+.more:active{color:var(--c-blue)}
+
+/* Badge refinement */
+.badge{position:relative;overflow:hidden}
+.badge::before{display:none}
+
+/* ========== Responsive ========== */
+@media(max-width:374px){
+  .home-data-item .val{font-size:24px}
+  .hp-item .hp-num{font-size:20px}
+  .rpt-metric .rm-val{font-size:20px}
+  .ai-top-title{font-size:15px}
+}
+</style>
+
+<script>
+// ========== Navigation ==========
+let currentPage = 'pg-home';
+let pageHistory = [];
+const mainPages = ['pg-home','pg-products','pg-ai-assistant','pg-functions','pg-profile'];
+
+function switchPage(id) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentPage = id;
+  // Update bottom nav active states
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector('.bnav-center').classList.remove('active');
+  const navItem = document.querySelector(`.bnav-item[data-page="${id}"]`);
+  if (navItem) {
+    navItem.classList.add('active');
+  } else if (id === 'pg-ai-assistant') {
+    document.querySelector('.bnav-center').classList.add('active');
+  }
+  const bnav = document.getElementById('bnav');
+  bnav.style.display = mainPages.includes(id) ? 'flex' : 'none';
+}
+
+function goSub(id) {
+  pageHistory.push(currentPage);
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentPage = id;
+  document.getElementById('bnav').style.display = 'none';
+}
+
+function goBack() {
+  if (pageHistory.length === 0) {
+    switchPage('pg-home');
+    return;
+  }
+  const prev = pageHistory.pop();
+  switchPage(prev);
+}
+
+// Bottom nav clicks
+document.querySelectorAll('.bnav-item, .bnav-center').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    if (page) {
+      pageHistory = [];
+      switchPage(page);
+    }
+  });
+});
+
+// ========== Tab switching ==========
+document.querySelectorAll('.tab-bar').forEach(bar => {
+  bar.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      bar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+});
+
+// Period switching
+document.querySelectorAll('.rpt-period .rp-item').forEach(item => {
+  item.addEventListener('click', () => {
+    item.parentElement.querySelectorAll('.rp-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+// ========== Products Page Data ==========
+const categories = ['全部','白酒','红酒','洋酒','啤酒','饮料','礼盒','临期'];
+const products = [
+  {name:'白酒 500ml 经典款',spec:'500ml/瓶',wholesale:'¥128',retail:'¥198',stock:156,letter:'酒',cat:1},
+  {name:'五粮液 52度 500ml',spec:'500ml/瓶',wholesale:'¥688',retail:'¥999',stock:36,letter:'五',cat:1},
+  {name:'红酒 赤霞珠干红',spec:'750ml/瓶',wholesale:'¥89',retail:'¥158',stock:43,letter:'红',cat:2},
+  {name:'奔富洛神山庄 西拉',spec:'750ml/瓶',wholesale:'¥58',retail:'¥98',stock:67,letter:'奔',cat:2},
+  {name:'洋酒 威士忌 700ml',spec:'700ml/瓶',wholesale:'¥218',retail:'¥368',stock:12,letter:'洋',cat:3},
+  {name:'啤酒 经典330ml',spec:'330ml×24/箱',wholesale:'¥45',retail:'¥78',stock:389,letter:'啤',cat:4},
+  {name:'礼盒装 精选六瓶',spec:'6瓶装/礼盒',wholesale:'¥328',retail:'¥528',stock:28,letter:'礼',cat:6},
+  {name:'饮料 混合装',spec:'330ml×24/箱',wholesale:'¥32',retail:'¥58',stock:8,letter:'饮',cat:5},
+  {name:'农夫山泉 550ml',spec:'550ml×24/箱',wholesale:'¥18',retail:'¥36',stock:240,letter:'农',cat:5},
+  {name:'白酒 窖藏老酒',spec:'500ml/瓶',wholesale:'¥258',retail:'¥398',stock:19,letter:'窖',cat:1},
+];
+
+const catColors = {'全部':'#e8e8e8','白酒':'#f5e6e0','红酒':'#f0e0e6','洋酒':'#e6e0d8','啤酒':'#e0e8d8','饮料':'#e0e4e8','礼盒':'#e8e0d0','临期':'#f0e8d8'};
+
+function renderProducts(cat) {
+  const side = document.getElementById('prodSide');
+  const main = document.getElementById('prodMain');
+  side.innerHTML = categories.map((c,i) =>
+    '<div class="prod-side-item'+((cat===0&&i===0)||(cat===i)?' active':'')+'" data-cat="'+i+'">'+c+'</div>'
+  ).join('');
+
+  const filtered = cat === 0 ? products : products.filter(p => p.cat === cat || cat === 0);
+  const list = cat === 0 ? products : filtered;
+
+  main.innerHTML = '<div class="prod-alert">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+    '<span>3件商品核价异常，建议及时调整</span></div>' +
+    '<div class="prod-batch"><span>共 ' + list.length + ' 件商品</span><div class="batch-btn">批量调价</div></div>' +
+    list.map(function(p) {
+      var stockClass = p.stock < 20 ? ' low-stock' : '';
+      return '<div class="prod-card">' +
+        '<div class="prod-thumb" style="background:' + (catColors[categories[p.cat]]||'#f0f0f0') + '"><span class="t-letter">' + p.letter + '</span></div>' +
+        '<div class="prod-info">' +
+          '<div class="prod-name">' + p.name + '</div>' +
+          '<div class="prod-spec">' + p.spec + '</div>' +
+          '<div class="prod-price-row">' +
+            '<span class="prod-wholesale">批 ' + p.wholesale + '</span>' +
+            '<span class="prod-retail">零 ' + p.retail + '</span>' +
+          '</div>' +
+          '<div class="prod-price-row" style="margin-top:4px">' +
+            '<span class="prod-stock-tag' + stockClass + '">库存 ' + p.stock + '</span>' +
+          '</div>' +
+        '</div></div>';
+    }).join('');
+
+  side.querySelectorAll('.prod-side-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      renderProducts(parseInt(item.dataset.cat));
+    });
+  });
+}
+
+renderProducts(0);
+
+// ========== SVG Charts ==========
+function drawChart(containerId, data, color) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var w = container.offsetWidth || 300;
+  var h = 140;
+  var pad = {t:20,b:20,l:10,r:10};
+  var uw = w - pad.l - pad.r;
+  var uh = h - pad.t - pad.b;
+  var min = Math.min.apply(null, data) * 0.88;
+  var max = Math.max.apply(null, data) * 1.06;
+  var range = max - min;
+
+  var points = data.map(function(v,i) {
+    return {
+      x: pad.l + (i / (data.length-1)) * uw,
+      y: pad.t + uh - ((v - min) / range) * uh,
+      val: v
+    };
+  });
+
+  function smoothPath(pts) {
+    if (pts.length < 2) return '';
+    var d = 'M' + pts[0].x.toFixed(1) + ',' + pts[0].y.toFixed(1);
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[Math.max(0, i-1)];
+      var p1 = pts[i];
+      var p2 = pts[i+1];
+      var p3 = pts[Math.min(pts.length-1, i+2)];
+      var cp1x = p1.x + (p2.x - p0.x) / 6;
+      var cp1y = p1.y + (p2.y - p0.y) / 6;
+      var cp2x = p2.x - (p3.x - p1.x) / 6;
+      var cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += ' C' + cp1x.toFixed(1) + ',' + cp1y.toFixed(1) + ' ' + cp2x.toFixed(1) + ',' + cp2y.toFixed(1) + ' ' + p2.x.toFixed(1) + ',' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+
+  var line = smoothPath(points);
+  var area = line + ' L' + points[points.length-1].x.toFixed(1) + ',' + (h-pad.b) + ' L' + points[0].x.toFixed(1) + ',' + (h-pad.b) + ' Z';
+
+  var gradId = 'grad_' + containerId;
+  var lineGradId = 'lineGrad_' + containerId;
+
+  // Grid lines
+  var gridLines = '';
+  for (var g = 0; g < 3; g++) {
+    var gy = pad.t + (uh / 3) * g;
+    gridLines += '<line x1="' + pad.l + '" y1="' + gy.toFixed(1) + '" x2="' + (w-pad.r) + '" y2="' + gy.toFixed(1) + '" stroke="rgba(0,0,0,.03)" stroke-width="1"/>';
+  }
+
+  // Average line
+  var avg = data.reduce(function(a,b){return a+b},0) / data.length;
+  var avgY = pad.t + uh - ((avg - min) / range) * uh;
+  gridLines += '<line x1="' + pad.l + '" y1="' + avgY.toFixed(1) + '" x2="' + (w-pad.r) + '" y2="' + avgY.toFixed(1) + '" stroke="' + color + '" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.15"/>';
+
+  var dotHtml = points.map(function(p, i) {
+    var isLast = i === points.length - 1;
+    var isFirst = i === 0;
+    var r = isLast ? '4.5' : '3';
+    var dot = '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r + '" fill="#fff" stroke="' + color + '" stroke-width="2"';
+    if (isLast) {
+      dot += '><animate attributeName="r" values="4.5;6;4.5" dur="2.5s" repeatCount="indefinite"/>';
+      dot += '</circle>';
+      dot += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="10" fill="' + color + '" opacity="0.06">';
+      dot += '<animate attributeName="r" values="10;16;10" dur="2.5s" repeatCount="indefinite"/>';
+      dot += '</circle>';
+      // Value label for last point
+      var label = p.val >= 10000 ? '¥' + (p.val/10000).toFixed(1) + 'w' : '¥' + (p.val/1000).toFixed(1) + 'k';
+      dot += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 12).toFixed(1) + '" text-anchor="middle" fill="' + color + '" font-size="10" font-weight="700" font-family="var(--mono)">' + label + '</text>';
+    } else if (!isFirst) {
+      dot += '/>';
+    } else {
+      dot += '/>';
+    }
+    return dot;
+  }).join('');
+
+  container.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+    '<defs>' +
+    '<linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.15"/>' +
+    '<stop offset="50%" stop-color="' + color + '" stop-opacity="0.05"/>' +
+    '<stop offset="100%" stop-color="' + color + '" stop-opacity="0"/>' +
+    '</linearGradient>' +
+    '<linearGradient id="' + lineGradId + '" x1="0" y1="0" x2="1" y2="0">' +
+    '<stop offset="0%" stop-color="' + color + '" stop-opacity="1"/>' +
+    '<stop offset="100%" stop-color="' + color + '" stop-opacity="1"/>' +
+    '</linearGradient>' +
+    '</defs>' +
+    gridLines +
+    '<path d="' + area + '" fill="url(#' + gradId + ')"/>' +
+    '<path d="' + line + '" fill="none" stroke="url(#' + lineGradId + ')" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    dotHtml +
+    '</svg>';
+}
+
+// Draw charts after DOM is ready
+setTimeout(function() {
+  drawChart('homeChart', [8200,9800,11200,10500,13400,12100,12680], '#2563eb');
+  drawChart('rptChart', [10200,11800,12400,9800,13600,15200,13400], '#2563eb');
+}, 100);
+
+// Redraw on resize
+window.addEventListener('resize', function() {
+  drawChart('homeChart', [8200,9800,11200,10500,13400,12100,12680], '#2563eb');
+  drawChart('rptChart', [10200,11800,12400,9800,13600,15200,13400], '#2563eb');
+});
+
+
+// ========== Number count-up animation ==========
+function animateCountUp() {
+  document.querySelectorAll('.home-data-item .val[data-count]').forEach(function(el) {
+    var target = parseInt(el.dataset.count);
+    var isPrice = el.textContent.includes('¥');
+    var duration = 1200;
+    var start = performance.now();
+    function update(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      var eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      var current = Math.round(target * eased);
+      if (isPrice) {
+        el.textContent = '¥' + current.toLocaleString();
+      } else {
+        el.textContent = current.toLocaleString();
+      }
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+}
+
+// Run count-up when home page is visible
+setTimeout(animateCountUp, 300);
+
+// ========== Camera button haptic feedback ==========
+document.querySelectorAll('.ai-cam-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+});
+</script>
+</body>
+</html>
