@@ -1619,11 +1619,33 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单（墨完成 R82-01 后派单）
-- **文件**：`admin-web/src/views/inventory/`（InventoryReports 7/InventoryShareConfig 5 等）
-- **问题**：库存页硬编码色残留 16 处
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `e5c8e010`，凌舟复核通过：hex 残留 4 处全为 ECharts canvas 色、vue-tsc/build 通过）
+- **文件**：`admin-web/src/views/inventory/`（InventoryReports 7/InventoryShareConfig 5/InventoryBatchPrice 2/InventoryCost 2）
+- **问题**：库存页硬编码色残留 16 处（InventoryReports 7/InventoryShareConfig 5/InventoryBatchPrice 2/InventoryCost 2）
 - **修复**：硬编码色替换为 tokens.css 变量，只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/inventory/` ≤ 原 30%
+
+**墨完成记录**（2026-08-06）：
+
+**完成内容：**
+- **改动文件**：上述 4 个页面，15+/15- 全部为颜色值，未碰布局/结构/逻辑/文字（git diff 逐行审阅确认）
+- **替换规则**（对齐 R77-01/R80-02/R81-02）：
+  - 模板内联 style/绑定色 → tokens 变量：`#D48B3A→var(--color-warning)`（InventoryBatchPrice 新价格）、`#0EA879→var(--color-success)`、`#C0392B→var(--color-danger)`（InventoryBatchPrice 变动/InventoryCost 毛利空间与临期）、`#999999→var(--text-muted)`（InventoryReports ABC 金额/InventoryShareConfig 单位后缀）、`#444444→var(--text-secondary)`（InventoryShareConfig 提示文案）
+  - ECharts canvas 色保留 token 等值 hex（R77-01 允许）：InventoryReports L224-227 库龄分布 itemStyle（#0EA879/#D48B3A/#C0392B/#999999），共 4 处
+- **残留 4 处说明（全部为 ECharts canvas 色，R77-01 规则允许）**：InventoryReports L224（30天内 #0EA879）、L225（30-60天 #D48B3A）、L226（60-90天 #C0392B）、L227（90天以上 #999999，即 --text-muted 等值 hex）
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| hex 残留计数 | `rg -c "#[0-9a-fA-F]{6}" admin-web/src/views/inventory/` | 16 → 4（全部为 InventoryReports ECharts 品牌色）✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（38.48s）✅ |
+| diff 核查 | `git diff` 逐行审阅 | 15+/15-，全部为颜色值，无逻辑/结构/文字改动 ✅ |
+| 其他色值形式 | `rg "#[0-9a-fA-F]{3}\b\|rgba?(\|hsl("`（4 个改动文件） | 0 命中 ✅ |
+
+**上报（未擅改，超出本轮最小改动范围，需凌舟决策）：**
+1. **ESLint 预存 error**：4 个改动文件在 HEAD 版本即有 89 errors + 10 warnings（vue/html-indent 缩进、vue/attributes-order 属性顺序、InventoryReports L166 PageCard 未使用等），经 `git stash` 基线对比确认与本次改动无关（改动前后均为 99 problems），未擅改
+2. **EOF 换行补充**：InventoryBatchPrice/InventoryCost/InventoryReports 原无结尾换行，apply_patch 补了 EOF 换行（仅空白差异，R80-02/R81-02 同先例）
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
