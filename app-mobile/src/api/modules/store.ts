@@ -601,7 +601,8 @@ const storeApi = {
 
   /** 管理端总览（兼容） */
   async fetchDashboardOverview(): Promise<any> {
-    const res: any = await get('/store/dashboard/overview')
+    // R94-03：原 /store/dashboard/overview 不存在；门店看板聚合接口为 /store/dashboard（store-dashboard.routes.ts）
+    const res: any = await get('/store/dashboard')
     return (res?.result ?? res)
   },
 
@@ -673,49 +674,83 @@ const storeApi = {
   // ---------- 交接班 ----------
   /** 交接班记录 */
   async fetchShifts(params?: PageParams & { date?: string; shiftType?: string }): Promise<PageResult<ShiftRecord>> {
-    const res: any = await get('/store/shifts', { page: 1, pageSize: 20, ...params })
-    return (res?.result ?? res) as PageResult<ShiftRecord>
+    // R94-03：原 /store/shifts 不存在；交接班历史真实接口为 /store/shift/history（store-shift.routes.ts）
+    const res: any = await get('/store/shift/history', params)
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        id: r.id,
+        shiftType: r.shiftType ?? r.shift_type ?? '',
+        startTime: r.startTime ?? r.start_time ?? '',
+        endTime: r.endTime ?? r.end_time,
+        operatorId: r.operatorId ?? r.operator_id,
+        operatorName: r.operatorName ?? r.operator_name,
+        status: r.status,
+        actualCash: r.actualCash ?? r.actual_cash,
+        actualWechat: r.actualWechat ?? r.actual_wechat,
+        actualAlipay: r.actualAlipay ?? r.actual_alipay,
+        remark: r.remark,
+      })),
+      total: raw?.total ?? rows.length,
+      page: raw?.page ?? 1,
+      pageSize: raw?.pageSize ?? rows.length,
+    }
   },
 
   /** 创建交接班 */
   async createShift(params: CreateShiftParams): Promise<ShiftRecord> {
-    const res: any = await post('/store/shifts', params)
-    return (res?.result ?? res) as ShiftRecord
+    // R94-03 核实：后端仅提供 /store/shift/current、/store/shift/history、/store/shift/settle，无创建交接班接口
+    return Promise.reject(new Error('创建交接班功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 交接班详情 */
   async fetchShiftDetail(shiftId: number): Promise<ShiftRecord> {
-    const res: any = await get(`/store/shifts/${shiftId}`)
-    return (res?.result ?? res) as ShiftRecord
+    // R94-03 核实：后端无交接班详情接口（仅 current/history/settle）
+    return Promise.reject(new Error('交接班详情功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 完成交接班 */
   async completeShift(shiftId: number, params: CompleteShiftParams): Promise<any> {
-    return post(`/store/shifts/${shiftId}/complete`, params)
+    // R94-03：原 /store/shifts/:shiftId/complete 不存在；交接班结算真实接口为 POST /store/shift/settle
+    return post('/store/shift/settle', params)
   },
 
   /** 交接班销售统计 */
   async fetchShiftSalesStats(shiftId: number): Promise<ShiftSalesStats> {
-    const res: any = await get(`/store/shifts/${shiftId}/sales-stats`)
-    return (res?.result ?? res) as ShiftSalesStats
+    // R94-03 核实：后端无交接班销售统计接口（仅 current/history/settle）
+    return Promise.reject(new Error('交接班销售统计功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 交接班盘点 */
   async fetchShiftStockCheck(shiftId: number): Promise<any> {
-    const res: any = await get(`/store/shifts/${shiftId}/stock-check`)
-    return (res?.result ?? res)
+    // R94-03 核实：后端无交接班盘点接口
+    return Promise.reject(new Error('交接班盘点功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 提交交接班盘点 */
   async submitShiftStockCheck(shiftId: number, items: ShiftStockCheckItem[]): Promise<any> {
-    return post(`/store/shifts/${shiftId}/stock-check`, { items })
+    // R94-03 核实：后端无交接班盘点提交接口
+    return Promise.reject(new Error('交接班盘点提交功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   // ---------- 会员 ----------
   /** 搜索会员 */
   async searchMember(keyword: string): Promise<{ records: StoreMember[] } | StoreMember[]> {
-    const res: any = await get('/store/members/search', { keyword })
-    return (res?.result ?? res)
+    // R94-03：原 /store/members/search 不存在；会员列表真实接口为 /store/members（keyword 查询参数，store.routes.ts）
+    const res: any = await get('/store/members', { keyword })
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return rows.map((r: any) => ({
+      id: r.id ?? r.memberId,
+      name: r.name ?? '',
+      mobile: r.mobile ?? r.phone ?? '',
+      levelName: r.levelName ?? r.level_name ?? r.levelCode,
+      points: Number(r.points ?? 0),
+      balance: Number(r.balance ?? 0),
+      totalSpent: Number(r.totalSpent ?? r.total_amount ?? 0),
+      lastConsumeAt: r.lastConsumeAt ?? r.last_consume_at,
+    }))
   },
 
   /** 会员列表（兼容旧版接口名） */
@@ -726,26 +761,26 @@ const storeApi = {
 
   /** 会员详情 */
   async getMemberDetail(memberId: number): Promise<StoreMember> {
-    const res: any = await get(`/store/members/${memberId}`)
-    return (res?.result ?? res) as StoreMember
+    // R94-03 核实：后端 /store/members 仅提供列表（无 /:id 详情接口），由页面降级处理
+    return Promise.reject(new Error('会员详情功能开发中（R94-03 核实：后端无详情接口）'))
   },
 
   /** 会员积分 */
   async getMemberPoints(memberId: number): Promise<{ points: number } | any> {
-    const res: any = await get(`/store/members/${memberId}/points`)
-    return (res?.result ?? res)
+    // R94-03 核实：后端无会员积分接口，由页面降级处理
+    return Promise.reject(new Error('会员积分功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 会员积分明细 */
   async getMemberPointsHistory(memberId: number, params?: PageParams): Promise<PageResult<MemberPointsHistoryItem>> {
-    const res: any = await get(`/store/members/${memberId}/points/history`, { page: 1, pageSize: 20, ...params })
-    return (res?.result ?? res) as PageResult<MemberPointsHistoryItem>
+    // R94-03 核实：后端无会员积分明细接口，由页面降级处理
+    return Promise.reject(new Error('会员积分明细功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 会员订单 */
   async getMemberOrders(memberId: number, params?: PageParams): Promise<PageResult<any>> {
-    const res: any = await get(`/store/members/${memberId}/orders`, { page: 1, pageSize: 20, ...params })
-    return (res?.result ?? res) as PageResult<any>
+    // R94-03 核实：后端无会员订单接口，由页面降级处理
+    return Promise.reject(new Error('会员订单功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   // ---------- 销售退货 ----------
@@ -792,39 +827,76 @@ const storeApi = {
 
   /** 优惠券列表 */
   async fetchCoupons(params?: PageParams & { status?: string }): Promise<PageResult<StoreCoupon>> {
-    const res: any = await get('/store/coupons', { page: 1, pageSize: 20, ...params })
-    return (res?.result ?? res) as PageResult<StoreCoupon>
+    // R94-03 核实：后端无门店优惠券列表接口（仅核销 verify/manual-verify），由页面降级处理
+    return Promise.reject(new Error('优惠券列表功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   /** 优惠券详情 */
   async fetchCouponDetail(couponId: number): Promise<StoreCoupon> {
-    const res: any = await get(`/store/coupons/${couponId}`)
-    return (res?.result ?? res) as StoreCoupon
+    // R94-03 核实：后端无优惠券详情接口，由页面降级处理
+    return Promise.reject(new Error('优惠券详情功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   // ---------- 日结 ----------
-  /** 提交日结（后端暂无 /store/daily-settle，复用 /admin/daily-settle） */
+  /** 提交日结 */
   async submitDailySettle(params: SubmitDailySettleParams): Promise<any> {
-    return post('/admin/daily-settle', params)
+    // R94-03：原 /admin/daily-settle 不存在；日结创建真实接口为 POST /admin/daily-settlements（admin-finance.routes.ts）
+    return post('/admin/daily-settlements', params)
   },
 
-  /** 日结历史（后端暂无 /store/daily-settle，复用 /admin/daily-settle） */
+  /** 日结历史 */
   async fetchDailySettleHistory(params?: DailySettleListParams): Promise<PageResult<DailySettleRecord>> {
-    const res: any = await get('/admin/daily-settle', { page: 1, pageSize: 30, ...params })
-    return (res?.result ?? res) as PageResult<DailySettleRecord>
+    // R94-03：原 /admin/daily-settle 不存在；日结列表真实接口为 GET /admin/daily-settlements
+    const res: any = await get('/admin/daily-settlements', { page: 1, pageSize: 30, ...params })
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        id: r.id,
+        settleDate: r.settleDate ?? r.settle_date ?? r.createdAt ?? '',
+        totalAmount: Number(r.totalAmount ?? r.total_amount ?? 0),
+        totalCount: Number(r.totalCount ?? r.total_count ?? 0),
+        cashAmount: Number(r.cashAmount ?? r.cash_amount ?? 0),
+        wechatAmount: Number(r.wechatAmount ?? r.wechat_amount ?? 0),
+        alipayAmount: Number(r.alipayAmount ?? r.alipay_amount ?? 0),
+        status: r.status,
+        operatorName: r.operatorName ?? r.operator_name,
+        createdAt: r.createdAt ?? r.created_at,
+      })),
+      total: raw?.total ?? rows.length,
+      page: raw?.page ?? 1,
+      pageSize: raw?.pageSize ?? rows.length,
+    }
   },
 
   // ---------- 操作日志 ----------
   /** 操作日志列表 */
   async fetchOperationLogs(params?: OperationLogListParams): Promise<PageResult<OperationLog>> {
-    const res: any = await get('/store/operation-logs', { page: 1, pageSize: 30, ...params })
-    return (res?.result ?? res) as PageResult<OperationLog>
+    // R94-03：原 /store/operation-logs 不存在；操作日志真实接口为 /admin/operation-logs（operation-log.routes.ts）
+    const res: any = await get('/admin/operation-logs', { page: 1, pageSize: 30, ...params })
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        id: r.id,
+        actionType: r.actionType ?? r.operationType ?? r.action ?? '',
+        action: r.action ?? r.operationType,
+        operatorName: r.operatorName ?? r.operator ?? r.operator_name,
+        module: r.module ?? r.moduleName,
+        target: r.target ?? r.targetType,
+        remark: r.remark ?? r.detail,
+        createdAt: r.createdAt ?? r.created_at ?? '',
+      })),
+      total: raw?.total ?? rows.length,
+      page: raw?.page ?? 1,
+      pageSize: raw?.pageSize ?? rows.length,
+    }
   },
 
   /** 操作日志详情 */
   async fetchOperationLogDetail(logId: number): Promise<OperationLog> {
-    const res: any = await get(`/store/operation-logs/${logId}`)
-    return (res?.result ?? res) as OperationLog
+    // R94-03 核实：后端操作日志仅提供列表与统计，无单条详情接口
+    return Promise.reject(new Error('操作日志详情功能开发中（R94-03 核实：后端无详情接口）'))
   },
 }
 

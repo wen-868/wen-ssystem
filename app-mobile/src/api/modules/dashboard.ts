@@ -63,23 +63,47 @@ const dashboardApi = {
   },
 
   async getSalesTrend(days?: number): Promise<SalesTrend[]> {
-    const res: any = await get('/store/dashboard/sales-trend', { days: days ?? 7 })
-    return (res?.list ?? res ?? []) as SalesTrend[]
+    // R94-03：原 /store/dashboard/sales-trend 不存在，改为 /admin/dashboard/sales-trend（dashboard.routes.ts）
+    const res: any = await get('/admin/dashboard/sales-trend', { days: days ?? 7 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      date: r.date ?? r.day ?? r.month ?? '',
+      amount: Number(r.amount ?? r.salesAmount ?? r.totalAmount ?? 0),
+      orderCount: Number(r.orderCount ?? r.count ?? 0),
+    }))
   },
 
   async getTopProducts(limit?: number): Promise<TopProduct[]> {
-    const res: any = await get('/store/dashboard/top-products', { limit: limit ?? 5 })
-    return (res?.list ?? res ?? []) as TopProduct[]
+    // R94-03：原 /store/dashboard/top-products 不存在，改为 /admin/dashboard/top-products
+    const res: any = await get('/admin/dashboard/top-products', { limit: limit ?? 5 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      name: r.name ?? r.productName ?? r.skuName ?? '',
+      sales: Number(r.sales ?? r.soldQty ?? r.quantity ?? 0),
+      amount: Number(r.amount ?? r.salesAmount ?? r.totalAmount ?? 0),
+    }))
   },
 
   async getTopCustomers(limit?: number): Promise<TopCustomer[]> {
-    const res: any = await get('/store/dashboard/top-customers', { limit: limit ?? 5 })
-    return (res?.list ?? res ?? []) as TopCustomer[]
+    // R94-03：原 /store/dashboard/top-customers 不存在，改为 /admin/dashboard/top-customers
+    const res: any = await get('/admin/dashboard/top-customers', { limit: limit ?? 5 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      name: r.name ?? r.customerName ?? '',
+      orderCount: Number(r.orderCount ?? r.count ?? 0),
+      amount: Number(r.amount ?? r.totalAmount ?? 0),
+    }))
   },
 
   async getCategoryDistribution(): Promise<CategoryDistribution[]> {
-    const res: any = await get('/store/dashboard/category-distribution')
-    return (res?.list ?? res ?? []) as CategoryDistribution[]
+    // R94-03：原 /store/dashboard/category-distribution 不存在，改为 /admin/dashboard/category-pie
+    const res: any = await get('/admin/dashboard/category-pie')
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      name: r.name ?? r.categoryName ?? '',
+      value: Number(r.value ?? r.amount ?? r.salesAmount ?? 0),
+      percent: Number(r.percent ?? r.percent_ ?? 0),
+    }))
   }
 }
 

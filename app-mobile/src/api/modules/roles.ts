@@ -44,7 +44,8 @@ function mapRole(r: any): RoleInfo {
 const rolesApi = {
   /** 角色列表 */
   async list(params?: { page?: number; pageSize?: number; keyword?: string }): Promise<{ list: RoleInfo[]; total: number }> {
-    const res: any = await get('/admin/roles', params)
+    // R94-03：原 /admin/roles 不存在，改为 /admin/system/roles（rbac.routes.ts）
+    const res: any = await get('/admin/system/roles', params)
     const raw = res?.result ?? res
     const rows: any[] = raw?.list ?? raw?.records ?? (Array.isArray(raw) ? raw : [])
     return { list: rows.map(mapRole), total: raw?.total ?? rows.length }
@@ -52,29 +53,29 @@ const rolesApi = {
 
   /** 角色详情（含权限） */
   async detail(id: number): Promise<RoleInfo> {
-    const res: any = await get(`/admin/roles/${id}`)
+    const res: any = await get(`/admin/system/roles/${id}`)
     const raw = res?.result ?? res
     return mapRole(raw?.role ?? raw ?? {})
   },
 
   /** 新建角色 */
   async create(data: RoleForm): Promise<any> {
-    return post('/admin/roles', data)
+    return post('/admin/system/roles', data)
   },
 
   /** 更新角色（含权限配置） */
   async update(id: number, data: RoleForm): Promise<any> {
-    return put(`/admin/roles/${id}`, data)
+    return put(`/admin/system/roles/${id}`, data)
   },
 
   /** 删除角色 */
   async remove(id: number): Promise<any> {
-    return del(`/admin/roles/${id}`)
+    return del(`/admin/system/roles/${id}`)
   },
 
   /** 用户角色列表 */
   async userRoles(userId: number): Promise<RoleInfo[]> {
-    const res: any = await get(`/admin/roles/users/${userId}/roles`)
+    const res: any = await get(`/admin/system/roles/users/${userId}/roles`)
     const raw = res?.result ?? res
     const rows: any[] = raw?.list ?? raw ?? (Array.isArray(raw) ? raw : [])
     return rows.map(mapRole)
@@ -82,7 +83,7 @@ const rolesApi = {
 
   /** 设置用户角色 */
   async setUserRoles(userId: number, roleIds: number[]): Promise<any> {
-    return put(`/admin/roles/users/${userId}/roles`, { roleIds })
+    return put(`/admin/system/roles/users/${userId}/roles`, { roleIds })
   },
 }
 

@@ -1,5 +1,3 @@
-import { get, post } from '../request'
-
 export interface OrderException {
   id: number
   orderNo: string
@@ -30,14 +28,15 @@ export interface OrderExceptionListResponse {
 
 export const exceptionApi = {
   async getList(query: OrderExceptionQuery): Promise<OrderExceptionListResponse> {
-    return get('/order-exceptions', query)
+    // R94-03 核实：后端无订单异常模块（全库检索无 order-exception/异常单路由），由页面降级为「开发中」占位，禁止编造数据
+    return Promise.reject(new Error('订单异常处理功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   async getById(id: number): Promise<OrderException> {
-    return get(`/order-exceptions/${id}`)
+    return Promise.reject(new Error('订单异常处理功能开发中（R94-03 核实：后端无对应接口）'))
   },
 
   async handle(id: number, handleResult: string): Promise<void> {
-    return post(`/order-exceptions/${id}/handle`, { handleResult })
+    return Promise.reject(new Error('订单异常处理功能开发中（R94-03 核实：后端无对应接口）'))
   }
 }

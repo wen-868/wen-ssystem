@@ -45,12 +45,9 @@ function formatTime(time: string): string {
 
 async function loadRecords() {
   try {
-    const result = await activityApi.participationRecords({
-      activityId: activityId.value,
-      page: 1,
-      pageSize: 100
-    })
-    list.value = result.list
+    // R94-03 核实：后端无营销活动参与记录接口，页面降级为「开发中」占位
+    uni.showToast({ title: '参与记录功能开发中', icon: 'none' })
+    list.value = []
   } catch (err) {
     console.error('加载参与记录失败:', err)
   }

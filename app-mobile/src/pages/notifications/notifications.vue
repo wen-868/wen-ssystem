@@ -333,6 +333,8 @@ function handleItemClick(item: NotificationItem) {
   }
 
   // 跳转详情页
+  // R94-03：后端无单条详情接口，列表项已含完整 content，通过本地存储传给详情页渲染（不编造数据）
+  uni.setStorageSync('notification_detail_item', item)
   uni.navigateTo({
     url: `/pages/notifications/notification-detail?id=${item.id}`
   })
@@ -427,23 +429,8 @@ async function handleDelete(id: number) {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await notificationsApi.delete(id)
-          const index = list.value.findIndex((item) => item.id === id)
-          if (index > -1) {
-            const item = list.value[index]
-            if (!item.read) {
-              // 更新未读数
-              if (unreadByType.value[item.type] > 0) {
-                unreadByType.value[item.type]--
-              }
-              if (unreadByType.value.all > 0) {
-                unreadByType.value.all--
-              }
-            }
-            list.value.splice(index, 1)
-          }
-          selectedIds.value = selectedIds.value.filter((sid) => sid !== id)
-          uni.showToast({ title: '删除成功', icon: 'success' })
+          // R94-03 核实：后端无删除消息接口（notification.routes.ts 仅列表/未读数/已读），降级为占位提示
+          uni.showToast({ title: '删除功能开发中（后端无删除接口）', icon: 'none' })
         } catch (err) {
           uni.showToast({ title: '删除失败', icon: 'none' })
         }
@@ -462,26 +449,8 @@ async function handleBatchDelete() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await notificationsApi.batchDelete(selectedIds.value)
-          // 从列表中移除
-          selectedIds.value.forEach((id) => {
-            const index = list.value.findIndex((item) => item.id === id)
-            if (index > -1) {
-              const item = list.value[index]
-              if (!item.read) {
-                if (unreadByType.value[item.type] > 0) {
-                  unreadByType.value[item.type]--
-                }
-                if (unreadByType.value.all > 0) {
-                  unreadByType.value.all--
-                }
-              }
-              list.value.splice(index, 1)
-            }
-          })
-          selectedIds.value = []
-          editMode.value = false
-          uni.showToast({ title: '删除成功', icon: 'success' })
+          // R94-03 核实：后端无批量删除接口，降级为占位提示
+          uni.showToast({ title: '批量删除功能开发中（后端无删除接口）', icon: 'none' })
         } catch (err) {
           uni.showToast({ title: '删除失败', icon: 'none' })
         }

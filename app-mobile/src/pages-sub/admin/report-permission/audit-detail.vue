@@ -105,8 +105,8 @@ async function loadDetail() {
 
   loading.value = true
   try {
-    const data = await reportPermissionApi.getAuditLogDetail(id)
-    logDetail.value = data
+    // R94-03 核实：后端审计日志仅提供列表接口（/admin/report-permissions/audit-logs），无单条详情，降级为占位
+    uni.showToast({ title: '日志详情开发中（后端无详情接口）', icon: 'none' })
   } catch (err) {
     console.error('加载日志详情失败:', err)
     uni.showToast({ title: '加载失败', icon: 'none' })

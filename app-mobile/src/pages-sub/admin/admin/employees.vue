@@ -174,13 +174,17 @@ function toggleStatus(item: Employee) {
     content: `确定要将${item.name}${action}吗？`,
     success: async (res) => {
       if (res.confirm) {
-        try {
-          const newStatus = item.status === 'active' ? 'inactive' : 'active'
-          await employeeApi.toggleStatus(item.id, newStatus)
-          item.status = newStatus
-          uni.showToast({ title: `${action}成功`, icon: 'success' })
-        } catch (err) {
-          uni.showToast({ title: `${action}失败`, icon: 'error' })
+        if (item.status === 'active') {
+          try {
+            await employeeApi.toggleStatus(item.id, 'inactive')
+            item.status = 'inactive'
+            uni.showToast({ title: '离职成功', icon: 'success' })
+          } catch (err) {
+            uni.showToast({ title: '离职失败', icon: 'error' })
+          }
+        } else {
+          // R94-03 核实：后端仅提供 PUT /admin/staff/:id/disable（禁用），无启用接口，复职降级为提示
+          uni.showToast({ title: '复职功能开发中（后端仅提供离职接口）', icon: 'none' })
         }
       }
     }

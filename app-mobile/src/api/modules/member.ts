@@ -27,8 +27,15 @@ const memberApi = {
     return post('/store/members/register', params)
   },
 
-  getMemberInfo(): Promise<MemberRegisterResult> {
-    return get('/store/members/info')
+  async getMemberInfo(): Promise<MemberRegisterResult> {
+    // R94-03：原 /store/members/info 不存在；当前登录用户信息真实接口为 /store/me（store-dashboard.routes.ts）
+    const res: any = await get('/store/me')
+    const r = res?.result ?? res ?? {}
+    return {
+      id: Number(r.userId ?? r.id ?? 0),
+      mobile: r.username ?? r.mobile ?? '',
+      name: r.realName ?? r.name ?? '',
+    }
   }
 }
 

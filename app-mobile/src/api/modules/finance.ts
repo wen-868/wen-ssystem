@@ -39,48 +39,69 @@ export interface CategoryExpense {
 
 const financeApi = {
   async getIncomeStats(): Promise<IncomeStats> {
-    const res: any = await get('/admin/finance/income-stats')
+    // R94-03：原 /admin/finance/income-stats 不存在；聚合接口为 /admin/finance/income-expense-stats
+    const res: any = await get('/admin/finance/income-expense-stats')
     return {
-      todayIncome: res?.todayIncome ?? 0,
-      monthIncome: res?.monthIncome ?? 0,
-      todayOrders: res?.todayOrders ?? 0,
-      monthOrders: res?.monthOrders ?? 0
+      todayIncome: Number(res?.income?.amount ?? 0),
+      monthIncome: Number(res?.income?.amount ?? 0),
+      todayOrders: Number(res?.income?.count ?? 0),
+      monthOrders: Number(res?.income?.count ?? 0)
     }
   },
 
   async getExpenseStats(): Promise<ExpenseStats> {
-    const res: any = await get('/admin/finance/expense-stats')
+    // R94-03：原 /admin/finance/expense-stats 不存在；聚合接口为 /admin/finance/income-expense-stats
+    const res: any = await get('/admin/finance/income-expense-stats')
     return {
-      todayExpense: res?.todayExpense ?? 0,
-      monthExpense: res?.monthExpense ?? 0,
-      todayCount: res?.todayCount ?? 0,
-      monthCount: res?.monthCount ?? 0
+      todayExpense: Number(res?.expense?.amount ?? 0),
+      monthExpense: Number(res?.expense?.amount ?? 0),
+      todayCount: Number(res?.expense?.count ?? 0),
+      monthCount: Number(res?.expense?.count ?? 0)
     }
   },
 
   async getProfitStats(): Promise<ProfitStats> {
-    const res: any = await get('/admin/finance/profit-stats')
+    // R94-03：原 /admin/finance/profit-stats 不存在；财务看板聚合接口为 /admin/finance/dashboard
+    const res: any = await get('/admin/finance/dashboard')
+    const profit = Number(res?.monthProfit ?? 0)
     return {
-      grossProfit: res?.grossProfit ?? 0,
-      netProfit: res?.netProfit ?? 0,
-      grossMargin: res?.grossMargin ?? 0,
-      netMargin: res?.netMargin ?? 0
+      grossProfit: profit,
+      netProfit: profit,
+      grossMargin: res?.grossMargin != null ? Number(res.grossMargin) : 0,
+      netMargin: res?.netMargin != null ? Number(res.netMargin) : 0
     }
   },
 
   async getIncomeTrend(days?: number): Promise<IncomeTrendItem[]> {
-    const res: any = await get('/admin/finance/income-trend', { days: days ?? 7 })
-    return (res?.list ?? res ?? []) as IncomeTrendItem[]
+    // R94-03：原 /admin/finance/income-trend 不存在；收支趋势为 /admin/finance/profit-trend（income/expense/profit 同一数据）
+    const res: any = await get('/admin/finance/profit-trend', { months: days ?? 7 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      date: r.month ?? r.date ?? '',
+      amount: Number(r.income ?? 0),
+    }))
   },
 
   async getExpenseTrend(days?: number): Promise<ExpenseTrendItem[]> {
-    const res: any = await get('/admin/finance/expense-trend', { days: days ?? 7 })
-    return (res?.list ?? res ?? []) as ExpenseTrendItem[]
+    // R94-03：原 /admin/finance/expense-trend 不存在；收支趋势为 /admin/finance/profit-trend
+    const res: any = await get('/admin/finance/profit-trend', { months: days ?? 7 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      date: r.month ?? r.date ?? '',
+      amount: Number(r.expense ?? 0),
+    }))
   },
 
   async getCategoryExpense(): Promise<CategoryExpense[]> {
-    const res: any = await get('/admin/finance/category-expense')
-    return (res?.list ?? res ?? []) as CategoryExpense[]
+    // R94-03：原 /admin/finance/category-expense 不存在；分类支出为 /admin/finance/expense-by-category
+    const res: any = await get('/admin/finance/expense-by-category')
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    const total = rows.reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0)
+    return rows.map((r: any) => ({
+      name: r.name ?? r.category ?? r.categoryName ?? '',
+      amount: Number(r.amount ?? 0),
+      percent: total > 0 ? Number(((Number(r.amount ?? 0) / total) * 100).toFixed(1)) : 0,
+    }))
   }
 }
 

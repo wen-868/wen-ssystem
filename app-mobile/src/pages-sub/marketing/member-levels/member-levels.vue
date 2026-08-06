@@ -111,13 +111,8 @@ async function toggleStatus(item: MemberLevel) {
     content: `确定要${action}"${item.name}"等级吗？`,
     success: async (res) => {
       if (res.confirm) {
-        try {
-          await memberLevelApi.toggleStatus(item.id, newStatus)
-          uni.showToast({ title: `${action}成功`, icon: 'success' })
-          loadLevels()
-        } catch (err) {
-          uni.showToast({ title: `${action}失败`, icon: 'none' })
-        }
+        // R94-03 核实：后端无会员等级启用/禁用接口（仅 list/create/update），降级为提示
+        uni.showToast({ title: `${action}功能开发中（后端无对应接口）`, icon: 'none' })
       }
     }
   })
@@ -129,13 +124,8 @@ async function deleteLevel(item: MemberLevel) {
     content: `确定要删除"${item.name}"等级吗？此操作不可恢复。`,
     success: async (res) => {
       if (res.confirm) {
-        try {
-          await memberLevelApi.delete(item.id)
-          uni.showToast({ title: '删除成功', icon: 'success' })
-          loadLevels()
-        } catch (err) {
-          uni.showToast({ title: '删除失败', icon: 'none' })
-        }
+        // R94-03 核实：后端无删除会员等级接口，降级为提示
+        uni.showToast({ title: '删除功能开发中（后端无删除接口）', icon: 'none' })
       }
     }
   })

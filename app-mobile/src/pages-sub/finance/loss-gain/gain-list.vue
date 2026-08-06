@@ -238,7 +238,8 @@ function goCreate() {
 }
 
 function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages-sub/finance/loss-gain/loss-gain-detail?id=${id}` })
+  // R94-03：详情接口按类型区分（loss-orders/profit-orders），列表已知 type=GAIN，随路由传递
+  uni.navigateTo({ url: `/pages-sub/finance/loss-gain/loss-gain-detail?id=${id}&type=GAIN` })
 }
 
 onMounted(() => {

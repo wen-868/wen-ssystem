@@ -74,7 +74,7 @@
 
     <view class="empty-state" v-else>
       <text class="empty-icon">&#xe631;</text>
-      <text class="empty-text">暂无异常订单</text>
+      <text class="empty-text">{{ devNote || '暂无异常订单' }}</text>
     </view>
 
     <view class="safe-bottom"></view>
@@ -103,6 +103,8 @@ const tabs = [
 const activeTab = ref('')
 const list = ref<any[]>([])
 const loading = ref(false)
+// R94-03 核实：后端无订单异常模块，页面降级为「开发中」占位，不编造数据
+const devNote = ref('')
 
 function onSearch() { loadExceptions() }
 function clearSearch() { searchForm.keyword = ''; loadExceptions() }
@@ -149,13 +151,9 @@ function ignoreException(item: any) {
 async function loadExceptions() {
   loading.value = true
   try {
-    const res = await exceptionApi.getList({
-      page: 1,
-      pageSize: 20,
-      keyword: searchForm.keyword,
-      exceptionType: activeTab.value,
-    })
-    list.value = res.list || []
+    // R94-03：后端无订单异常模块，不发起请求，直接展示占位
+    devNote.value = '该功能开发中（后端无订单异常模块）'
+    list.value = []
   } catch (err) {
     console.error('加载异常订单失败:', err)
     list.value = []

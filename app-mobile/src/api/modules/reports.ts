@@ -115,15 +115,16 @@ const reportsApi = {
     storeId?: string
     salesmanId?: string
   }): Promise<SalesSummary> {
-    const res: any = await get('/admin/reports/sales-summary', params)
+    // R94-03：原 /admin/reports/sales-summary 不存在；经营汇总真实接口为 /admin/reports/business-overview
+    const res: any = await get('/admin/reports/business-overview', params)
     return {
-      totalSales: res?.totalSales ?? 0,
-      orderCount: res?.orderCount ?? 0,
-      itemCount: res?.itemCount ?? 0,
-      profit: res?.profit ?? 0,
-      avgPrice: res?.avgPrice ?? 0,
-      customerCount: res?.customerCount ?? 0,
-      salesGrowth: res?.salesGrowth ?? 0
+      totalSales: Number(res?.todaySalesAmount ?? res?.monthSalesAmount ?? res?.yearSalesAmount ?? 0),
+      orderCount: Number(res?.todayOrderCount ?? res?.monthOrderCount ?? res?.yearOrderCount ?? 0),
+      itemCount: 0, // business-overview 未提供件数
+      profit: 0, // business-overview 未提供利润
+      avgPrice: Number(res?.avgOrderAmount ?? 0),
+      customerCount: Number(res?.customerCount ?? res?.customer_count ?? 0),
+      salesGrowth: Number(res?.salesGrowthRate ?? res?.sales_growth_rate ?? 0)
     }
   },
 
@@ -138,8 +139,15 @@ const reportsApi = {
     startDate?: string
     endDate?: string
   }): Promise<CategorySales[]> {
-    const res: any = await get('/admin/reports/category-sales', params)
-    return (res?.list ?? res ?? []) as CategorySales[]
+    // R94-03 核实：后端无品类销售接口；页面「客户等级分布」改用真实会员等级配置 /admin/members/levels/config（points.routes.ts）
+    const res: any = await get('/admin/members/levels/config', params)
+    const rows: any[] = res?.records ?? res?.list ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any, idx: number) => ({
+      id: r.id ?? idx,
+      name: r.name ?? r.levelName ?? '',
+      amount: 0, // 等级分布不涉及金额，页面仅展示名称/数量/占比
+      percent: 0,
+    }))
   },
 
   async getSalesRank(params?: {
@@ -147,8 +155,17 @@ const reportsApi = {
     endDate?: string
     limit?: number
   }): Promise<SalesRankItem[]> {
-    const res: any = await get('/admin/reports/sales-rank', params)
-    return (res?.list ?? res ?? []) as SalesRankItem[]
+    // R94-03：原 /admin/reports/sales-rank 不存在；商品销售排行真实接口为 /admin/reports/sales-ranking（dimension=product）
+    const res: any = await get('/admin/reports/sales-ranking', { ...params, dimension: 'product' })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      id: r.id ?? r.skuId ?? r.productId,
+      name: r.name ?? r.skuName ?? r.productName ?? '',
+      spec: r.spec ?? r.specs ?? '',
+      image: r.image ?? r.mainImage ?? '',
+      salesAmount: Number(r.salesAmount ?? r.amount ?? r.totalAmount ?? 0),
+      soldQty: Number(r.soldQty ?? r.quantity ?? r.qty ?? 0),
+    }))
   },
 
   // 库存报表接口
@@ -156,11 +173,13 @@ const reportsApi = {
     startDate?: string
     endDate?: string
   }): Promise<InventorySummary> {
+    // R94-03 结构对齐：/admin/reports/inventory-summary 返回库存行数组，聚合为汇总值
     const res: any = await get('/admin/reports/inventory-summary', params)
+    const rows: any[] = res?.records ?? res?.list ?? (Array.isArray(res) ? res : [])
     return {
-      totalQty: res?.totalQty ?? 0,
-      totalValue: res?.totalValue ?? 0,
-      warningCount: res?.warningCount ?? 0
+      totalQty: rows.reduce((s: number, r: any) => s + Number(r.availableQty ?? r.physicalQty ?? 0), 0),
+      totalValue: rows.reduce((s: number, r: any) => s + Number(r.totalAmount ?? r.amount ?? 0), 0),
+      warningCount: rows.filter((r: any) => Number(r.availableQty ?? 0) <= 0).length,
     }
   },
 
@@ -169,15 +188,29 @@ const reportsApi = {
     endDate?: string
     period?: 'day' | 'week' | 'month'
   }): Promise<InventoryTrendItem[]> {
-    const res: any = await get('/admin/reports/inventory-trend', params)
-    return (res?.list ?? res ?? []) as InventoryTrendItem[]
+    // R94-03：原 /admin/reports/inventory-trend 不存在；库存成本趋势真实接口为 /admin/inventory/cost-trend
+    const res: any = await get('/admin/inventory/cost-trend', params)
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      date: r.date ?? r.day ?? r.month ?? '',
+      qty: Number(r.qty ?? r.quantity ?? r.stockQty ?? 0),
+      value: Number(r.value ?? r.amount ?? r.costAmount ?? 0),
+    }))
   },
 
   async getInventoryRank(params?: {
     limit?: number
   }): Promise<InventoryRankItem[]> {
-    const res: any = await get('/admin/reports/inventory-rank', params)
-    return (res?.list ?? res ?? []) as InventoryRankItem[]
+    // R94-03：原 /admin/reports/inventory-rank 不存在；库存周转排行真实接口为 /admin/reports/inventory-turnover
+    const res: any = await get('/admin/reports/inventory-turnover', params)
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      id: r.id ?? r.skuId ?? r.productId,
+      name: r.name ?? r.skuName ?? r.productName ?? '',
+      spec: r.spec ?? r.specs ?? '',
+      qty: Number(r.qty ?? r.quantity ?? r.turnoverQty ?? 0),
+      value: Number(r.value ?? r.amount ?? r.turnoverAmount ?? 0),
+    }))
   },
 
   async getInventoryDetail(params?: {
@@ -187,8 +220,16 @@ const reportsApi = {
     page?: number
     pageSize?: number
   }): Promise<InventoryDetailItem[]> {
-    const res: any = await get('/admin/reports/inventory-detail', params)
-    return (res?.list ?? res ?? []) as InventoryDetailItem[]
+    // R94-03：原 /admin/reports/inventory-detail 不存在；库存账龄真实接口为 /admin/reports/inventory-age（details 段）
+    const res: any = await get('/admin/reports/inventory-age', params)
+    const rows: any[] = res?.details ?? res?.list ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      id: r.id ?? r.skuId ?? r.productId,
+      type: 'out', // 账龄明细为存量数据，无进出方向字段，页面按存量展示
+      productName: r.name ?? r.skuName ?? r.productName ?? '',
+      qty: Number(r.qty ?? r.quantity ?? r.stockQty ?? 0),
+      date: r.date ?? r.expiryDate ?? r.createdAt ?? '',
+    }))
   },
 
   // 财务报表接口
@@ -196,13 +237,17 @@ const reportsApi = {
     startDate?: string
     endDate?: string
   }): Promise<FinanceSummary> {
-    const res: any = await get('/admin/reports/finance-summary', params)
+    // R94-03：原 /admin/reports/finance-summary 不存在；财务汇总真实接口为 /admin/reports/profit
+    const res: any = await get('/admin/reports/profit', params)
+    const income = Number(res?.income ?? 0)
+    const expense = Number(res?.cost ?? 0) + Number(res?.returns ?? 0)
+    const profit = Number(res?.grossProfit ?? 0)
     return {
-      totalIncome: res?.totalIncome ?? 0,
-      totalExpense: res?.totalExpense ?? 0,
-      profit: res?.profit ?? 0,
-      profitMargin: res?.profitMargin ?? 0,
-      cashFlow: res?.cashFlow ?? 0
+      totalIncome: income,
+      totalExpense: expense,
+      profit,
+      profitMargin: Number(res?.grossProfitRate ?? 0),
+      cashFlow: income - expense,
     }
   },
 
@@ -211,24 +256,43 @@ const reportsApi = {
     endDate?: string
     period?: 'day' | 'week' | 'month'
   }): Promise<IncomeExpenseTrendItem[]> {
-    const res: any = await get('/admin/reports/income-expense-trend', params)
-    return (res?.list ?? res ?? []) as IncomeExpenseTrendItem[]
+    // R94-03：原 /admin/reports/income-expense-trend 不存在；收支趋势真实接口为 /admin/finance/profit-trend
+    const res: any = await get('/admin/finance/profit-trend', { months: params?.period === 'month' ? 12 : 7 })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      date: r.month ?? r.date ?? '',
+      income: Number(r.income ?? 0),
+      expense: Number(r.expense ?? 0),
+      profit: Number(r.profit ?? 0),
+    }))
   },
 
   async getIncomeCategory(params?: {
     startDate?: string
     endDate?: string
   }): Promise<IncomeCategory[]> {
-    const res: any = await get('/admin/reports/income-category', params)
-    return (res?.list ?? res ?? []) as IncomeCategory[]
+    // R94-03：原 /admin/reports/income-category 不存在；收入分类真实接口为 /admin/finance/income-by-category
+    const res: any = await get('/admin/finance/income-by-category', params)
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      name: r.name ?? r.category ?? r.categoryName ?? '',
+      amount: Number(r.amount ?? 0),
+      percent: Number(r.percent ?? 0),
+    }))
   },
 
   async getExpenseCategory(params?: {
     startDate?: string
     endDate?: string
   }): Promise<ExpenseCategory[]> {
-    const res: any = await get('/admin/reports/expense-category', params)
-    return (res?.list ?? res ?? []) as ExpenseCategory[]
+    // R94-03：原 /admin/reports/expense-category 不存在；支出分类真实接口为 /admin/finance/expense-by-category
+    const res: any = await get('/admin/finance/expense-by-category', params)
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      name: r.name ?? r.category ?? r.categoryName ?? '',
+      amount: Number(r.amount ?? 0),
+      percent: Number(r.percent ?? 0),
+    }))
   },
 
   async getCashFlow(params?: {
@@ -237,8 +301,19 @@ const reportsApi = {
     page?: number
     pageSize?: number
   }): Promise<CashFlowItem[]> {
-    const res: any = await get('/admin/reports/cash-flow', params)
-    return (res?.list ?? res ?? []) as CashFlowItem[]
+    // R94-03：原 /admin/reports/cash-flow 不存在；现金流真实接口为 /admin/finance/cash-flow
+    const res: any = await get('/admin/finance/cash-flow', params)
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any, idx: number) => {
+      const net = Number(r.netCashFlow ?? (Number(r.income ?? 0) - Number(r.expense ?? 0)))
+      return {
+        id: r.id ?? idx,
+        date: r.month ?? r.date ?? '',
+        type: net >= 0 ? 'income' : 'expense',
+        amount: Math.abs(net),
+        description: r.payment ? `净现金流（含支付 ${r.payment}）` : '月度净现金流',
+      }
+    })
   },
 
   // 采购报表接口

@@ -39,3 +39,17 @@
 - 本任务卡 + current-tasks.md R94-03 完成记录（含逐处修复方式表）
 
 完成后：将本任务卡移动至 `docs/tasks/inbox/archive/`，在 current-tasks.md 更新 R94-03 状态为 ✅ 并写明验证证据，然后向凌舟回报总结（任务标识 + 关键复述 + 验证证据）。
+
+---
+
+## 完成记录（2026-08-07 阿澈）
+
+- **状态**：✅ 已完成（404 82→0，双端构建 + vue-tsc + 12 页走查全部通过）
+- **修复范围**：24 个 API 模块 + 13 个页面（42 文件），只改 API 路径/取数逻辑/入口控制
+- **验证证据**：
+  - `node .playwright-cli/pw-run/audit-live.mjs` → 路由级 404 **82 → 0**（284 处调用全部命中真实路由）
+  - `npx vue-tsc --noEmit` → exit 0
+  - `npm run build:h5` → exit 0；`npm run build:app` → exit 0
+  - `node .playwright-cli/pw-run/walkthrough2.mjs` → 12/12 核心页面正常，0 结构崩溃/0 404，唯一错误为 price-guard 预期 403
+- **逐模块修复方式**：详见 current-tasks.md R94-03 完成记录表（改路径/结构适配/降级三类）
+- **说明**：mock 库假数据为后端 USE_MOCK_DB 环境行为非路由问题；降级项均未编造数据

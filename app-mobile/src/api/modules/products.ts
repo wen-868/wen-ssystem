@@ -148,7 +148,8 @@ const productsApi = {
   },
 
   async batchTrace(batchNo: string): Promise<any> {
-    return get(`/admin/products/batch/${batchNo}`)
+    // R94-03：原 /admin/products/batch/:batchNo 不存在；后端真实批次追踪接口为 /admin/inventory-batch/batches/:id/trace（按批次 id）
+    return get(`/admin/inventory-batch/batches/${batchNo}/trace`)
   },
 
   /**

@@ -56,7 +56,8 @@ const priceApi = {
   /** 价格等级列表 */
   async listLevels(): Promise<PriceLevel[]> {
     const res: any = await get('/admin/prices/levels')
-    const rows: any[] = res?.list ?? res ?? (Array.isArray(res) ? res : [])
+    // R94-03 结构对齐：后端返回 { total, records }，原先取 res.list 导致 rows.map 崩溃
+    const rows: any[] = res?.records ?? res?.list ?? (Array.isArray(res) ? res : [])
     return rows.map(mapLevel)
   },
 

@@ -151,16 +151,20 @@ function loadMore() {
 }
 
 function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages-sub/admin/system/log-detail?id=${id}` })
+  // R94-03 核实：后端操作日志仅提供列表与统计，无单条详情接口，降级为提示
+  uni.showToast({ title: '日志详情开发中（后端无详情接口）', icon: 'none' })
 }
 
 async function loadTypes() {
-  try {
-    const types = await operationLogApi.getTypes()
-    operationTypes.value = types
-  } catch (err) {
-    console.error('加载操作类型失败:', err)
-  }
+  // R94-03 核实：后端无 /admin/operation-logs/types 接口，使用静态操作类型枚举作为筛选选项
+  operationTypes.value = [
+    { value: 'CREATE', label: '创建' },
+    { value: 'UPDATE', label: '修改' },
+    { value: 'DELETE', label: '删除' },
+    { value: 'APPROVE', label: '审核' },
+    { value: 'LOGIN', label: '登录' },
+    { value: 'EXPORT', label: '导出' },
+  ]
 }
 
 onMounted(() => {

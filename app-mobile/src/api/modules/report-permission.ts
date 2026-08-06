@@ -1,4 +1,4 @@
-import { get, post, put } from '../request'
+import { get, put } from '../request'
 
 /** 角色信息 */
 export interface RoleItem {
@@ -90,85 +90,137 @@ export interface MyPermission {
   stores: StoreInfo[]
 }
 
+/**
+ * 报表目录（静态常量）
+ * R94-03 核实：后端无报表清单接口（report-permissions 仅 matrix/data-scope/my/audit-logs/user），
+ * 该目录与 t_report_permission_matrix.report_code 语义对齐，仅作矩阵页展示用，不编造接口数据。
+ */
+const REPORT_CATALOG: ReportItem[] = [
+  { id: 'sales_summary', name: '销售汇总报表', category: 'sales', categoryName: '销售报表' },
+  { id: 'sales_detail', name: '销售明细报表', category: 'sales', categoryName: '销售报表' },
+  { id: 'sales_rank', name: '商品销售排行', category: 'sales', categoryName: '销售报表' },
+  { id: 'inventory_summary', name: '库存汇总报表', category: 'inventory', categoryName: '库存报表' },
+  { id: 'inventory_detail', name: '库存明细报表', category: 'inventory', categoryName: '库存报表' },
+  { id: 'inventory_warning', name: '库存预警报表', category: 'inventory', categoryName: '库存报表' },
+  { id: 'purchase_summary', name: '采购汇总报表', category: 'purchase', categoryName: '采购报表' },
+  { id: 'purchase_detail', name: '采购明细报表', category: 'purchase', categoryName: '采购报表' },
+  { id: 'finance_summary', name: '财务汇总报表', category: 'finance', categoryName: '财务报表' },
+  { id: 'finance_profit', name: '利润分析报表', category: 'finance', categoryName: '财务报表' },
+  { id: 'customer_summary', name: '客户汇总报表', category: 'customer', categoryName: '客户报表' },
+  { id: 'customer_analysis', name: '客户分析报表', category: 'customer', categoryName: '客户报表' },
+]
+
 const reportPermissionApi = {
   /** 获取角色列表 */
   async getRoles(): Promise<RoleItem[]> {
-    try {
-      const res: any = await get('/admin/report-permissions/roles')
-      return res?.list ?? res ?? []
-    } catch {
-      return getMockRoles()
-    }
+    // R94-03：原 /admin/report-permissions/roles 不存在；角色列表真实接口为 /admin/system/roles（rbac.routes.ts）
+    const res: any = await get('/admin/system/roles')
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      id: r.id,
+      name: r.name ?? '',
+      code: r.code ?? r.roleCode ?? r.role_code ?? '',
+      remark: r.remark ?? r.description,
+      status: r.status != null ? Number(r.status) : 1,
+    }))
   },
 
-  /** 获取报表列表 */
+  /** 获取报表列表（静态目录，见 REPORT_CATALOG 注释） */
   async getReports(): Promise<ReportItem[]> {
-    try {
-      const res: any = await get('/admin/report-permissions/reports')
-      return res?.list ?? res ?? []
-    } catch {
-      return getMockReports()
-    }
+    return REPORT_CATALOG
   },
 
   /** 获取权限矩阵 */
   async getPermissionMatrix(): Promise<ReportPermission[]> {
-    try {
-      const res: any = await get('/admin/report-permissions/matrix')
-      return res?.list ?? res ?? []
-    } catch {
-      return getMockPermissionMatrix()
-    }
+    const res: any = await get('/admin/report-permissions/matrix')
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      roleId: r.roleId ?? r.role_id,
+      reportId: r.reportCode ?? r.report_code,
+      canView: !!(r.canView ?? r.can_view ?? 1),
+      canExport: !!(r.canExport ?? r.can_export ?? 0),
+    }))
   },
 
   /** 保存权限矩阵 */
   async savePermissionMatrix(permissions: ReportPermission[]): Promise<any> {
-    return put('/admin/report-permissions/matrix', { permissions })
+    return put('/admin/report-permissions/matrix', {
+      permissions: permissions.map((p) => ({
+        roleId: p.roleId,
+        reportCode: p.reportId,
+        canView: p.canView,
+        canExport: p.canExport,
+      })),
+    })
   },
 
-  /** 批量设置权限 */
+  /** 批量设置权限（后端无独立接口，R94-03 核实后降级） */
   async batchSetPermission(params: {
     roleIds: number[]
     reportIds: string[]
     canView?: boolean
     canExport?: boolean
   }): Promise<any> {
-    return put('/admin/report-permissions/batch', params)
+    return Promise.reject(new Error('批量设置权限功能开发中（R94-03 核实：后端无 batch 接口）'))
   },
 
   /** 获取门店数据权限 */
   async getStoreDataPermission(roleId: number): Promise<StoreDataPermission> {
-    try {
-      const res: any = await get(`/admin/report-permissions/store-data/${roleId}`)
-      return res?.result ?? res
-    } catch {
-      return getMockStoreDataPermission(roleId)
+    // R94-03：原 /admin/report-permissions/store-data/:roleId 不存在；真实接口为 /admin/report-permissions/data-scope
+    const res: any = await get('/admin/report-permissions/data-scope', { roleId })
+    const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
+    const row = rows.find((r: any) => Number(r.roleId ?? r.role_id) === Number(roleId)) ?? rows[0] ?? {}
+    return {
+      roleId: Number(row.roleId ?? row.role_id ?? roleId),
+      scope: row.scope ?? row.dataScope ?? 'SELF',
+      storeIds: Array.isArray(row.storeIds) ? row.storeIds : [],
     }
   },
 
   /** 保存门店数据权限 */
   async saveStoreDataPermission(data: StoreDataPermission): Promise<any> {
-    return put('/admin/report-permissions/store-data', data)
+    // R94-03：真实接口为 PUT /admin/report-permissions/data-scope（body: configs[]）
+    return put('/admin/report-permissions/data-scope', {
+      configs: [{
+        roleId: data.roleId,
+        scope: data.scope,
+        storeIds: data.storeIds,
+      }],
+    })
   },
 
   /** 获取门店列表 */
   async getStores(): Promise<StoreInfo[]> {
-    try {
-      const res: any = await get('/admin/report-permissions/stores')
-      return res?.list ?? res ?? []
-    } catch {
-      return getMockStores()
-    }
+    // R94-03：原 /admin/report-permissions/stores 不存在；门店列表真实接口为 /admin/system/stores
+    const res: any = await get('/admin/system/stores')
+    const rows: any[] = res?.records ?? res?.list ?? (Array.isArray(res) ? res : [])
+    return rows.map((r: any) => ({
+      id: r.id,
+      name: r.name ?? '',
+      code: r.storeCode ?? r.store_code ?? '',
+      address: r.address,
+    }))
   },
 
   /** 获取用户列表 */
   async getUsers(params?: { keyword?: string; page?: number; pageSize?: number }): Promise<{ list: UserInfo[]; total: number }> {
-    try {
-      const res: any = await get('/admin/report-permissions/users', params)
-      return { list: res?.list ?? [], total: res?.total ?? 0 }
-    } catch {
-      const mockUsers = getMockUsers()
-      return { list: mockUsers, total: mockUsers.length }
+    // R94-03：原 /admin/report-permissions/users 不存在；员工列表真实接口为 /admin/staff
+    const res: any = await get('/admin/staff', params)
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        id: r.id ?? r.staffId,
+        name: r.realName ?? r.name ?? '',
+        username: r.username ?? '',
+        phone: r.phone ?? r.mobile,
+        roleIds: Array.isArray(r.roleIds) ? r.roleIds : undefined,
+        roleNames: r.roleNames ?? r.role_names,
+        storeId: r.storeId ?? r.store_id,
+        storeName: r.storeName ?? r.store_name,
+        status: r.status != null ? Number(r.status) : 1,
+      })),
+      total: raw?.total ?? rows.length,
     }
   },
 
@@ -180,17 +232,33 @@ const reportPermissionApi = {
     dataScope: 'SELF' | 'ALL' | 'SELECTED'
     storeIds: number[]
   }> {
-    try {
-      const res: any = await get(`/admin/report-permissions/users/${userId}`)
-      return res?.result ?? res
-    } catch {
-      return getMockUserPermission(userId)
+    // R94-03：原 /admin/report-permissions/users/:userId 不存在；真实接口为 /admin/report-permissions/user/:userId
+    const res: any = await get(`/admin/report-permissions/user/${userId}`)
+    const raw = res?.result ?? res
+    const reports: any[] = raw?.reports ?? []
+    return {
+      user: { id: Number(raw?.userId ?? userId), name: '', username: '' },
+      roles: [],
+      extraPermissions: [],
+      dataScope: 'SELF',
+      storeIds: [],
+      // 保留后端返回的报表权限明细（reportCode/canView/canExport/storeScope），页面按需取用
+      ...(reports.length ? { _reports: reports } : {}),
     }
   },
 
   /** 保存用户权限分配 */
   async saveUserPermission(data: PermissionAssignForm): Promise<any> {
-    return put('/admin/report-permissions/users/assign', data)
+    // R94-03：真实接口为 PUT /admin/report-permissions/user/:userId（body: permissions[]）
+    return put(`/admin/report-permissions/user/${data.userId}`, {
+      permissions: (data.roleIds ?? []).map((roleId) => ({
+        roleId,
+        reportCode: '',
+        canView: true,
+        canExport: false,
+      })),
+      operatorName: '',
+    })
   },
 
   /** 权限审计日志列表 */
@@ -203,26 +271,33 @@ const reportPermissionApi = {
     endTime?: string
     keyword?: string
   }): Promise<{ list: PermissionAuditLog[]; total: number }> {
-    try {
-      const res: any = await get('/admin/report-permissions/audit-logs', params)
-      return { list: res?.list ?? [], total: res?.total ?? 0 }
-    } catch {
-      const logs = getMockAuditLogs()
-      return { list: logs, total: logs.length }
+    const res: any = await get('/admin/report-permissions/audit-logs', params)
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        id: r.id,
+        operator: r.operatorName ?? r.operator ?? '',
+        operatorId: Number(r.operatorId ?? 0),
+        operationType: r.action ?? r.operationType ?? '',
+        operationTypeName: r.actionText ?? r.operationTypeName ?? r.action ?? '',
+        content: r.detail ?? r.content ?? '',
+        targetUser: r.targetUser ?? r.target_user,
+        targetRole: r.targetRole ?? r.target_role,
+        ip: r.ip ?? '',
+        createdAt: r.createdAt ?? r.created_at ?? '',
+        detail: r.beforeValue ?? r.afterValue ? `${r.beforeValue ?? ''} → ${r.afterValue ?? ''}` : undefined,
+      })),
+      total: raw?.total ?? rows.length,
     }
   },
 
-  /** 权限审计日志详情 */
+  /** 权限审计日志详情（后端无详情接口，R94-03 核实后降级） */
   async getAuditLogDetail(id: number): Promise<PermissionAuditLog> {
-    try {
-      const res: any = await get(`/admin/report-permissions/audit-logs/${id}`)
-      return res?.result ?? res
-    } catch {
-      return getMockAuditLogs().find(l => l.id === id) || ({} as PermissionAuditLog)
-    }
+    return Promise.reject(new Error('审计日志详情功能开发中（R94-03 核实：后端仅提供列表接口）'))
   },
 
-  /** 获取操作类型 */
+  /** 获取操作类型（静态枚举，与后端审计 action 语义对齐） */
   async getAuditTypes(): Promise<{ value: string; label: string }[]> {
     return [
       { value: 'ROLE_PERMISSION_CHANGE', label: '角色权限变更' },
@@ -236,250 +311,26 @@ const reportPermissionApi = {
 
   /** 获取我的权限 */
   async getMyPermission(): Promise<MyPermission> {
-    try {
-      const res: any = await get('/admin/report-permissions/my')
-      return res?.result ?? res
-    } catch {
-      return getMockMyPermission()
+    const res: any = await get('/admin/report-permissions/my')
+    const raw = res?.result ?? res
+    const reports: any[] = raw?.reports ?? []
+    return {
+      roles: [],
+      reportPermissions: reports.map((r: any) => ({
+        reportId: r.reportCode ?? r.report_code ?? '',
+        reportName: r.reportName ?? r.report_name ?? r.reportCode ?? '',
+        canView: !!(r.canView ?? r.can_view ?? 1),
+        canExport: !!(r.canExport ?? r.can_export ?? 0),
+      })),
+      dataScope: raw?.dataScope ?? 'SELF',
+      stores: Array.isArray(raw?.stores) ? raw.stores.map((s: any) => ({
+        id: s.id,
+        name: s.name ?? '',
+        code: s.storeCode ?? s.store_code ?? '',
+        address: s.address,
+      })) : [],
     }
   },
-}
-
-/** Mock 角色数据 */
-function getMockRoles(): RoleItem[] {
-  return [
-    { id: 1, name: '总部管理员', code: 'BOSS', remark: '拥有所有权限', status: 1 },
-    { id: 2, name: '门店经理', code: 'MGR', remark: '门店管理权限', status: 1 },
-    { id: 3, name: '店员', code: 'CASHIER', remark: '基础操作权限', status: 1 },
-    { id: 4, name: '财务', code: 'FIN', remark: '财务相关权限', status: 1 },
-    { id: 5, name: '业务员', code: 'SALES', remark: '销售业务权限', status: 1 },
-    { id: 6, name: '库管', code: 'STOCK', remark: '库存管理权限', status: 1 },
-  ]
-}
-
-/** Mock 报表数据 */
-function getMockReports(): ReportItem[] {
-  return [
-    { id: 'sales_summary', name: '销售汇总报表', category: 'sales', categoryName: '销售报表' },
-    { id: 'sales_detail', name: '销售明细报表', category: 'sales', categoryName: '销售报表' },
-    { id: 'sales_rank', name: '商品销售排行', category: 'sales', categoryName: '销售报表' },
-    { id: 'inventory_summary', name: '库存汇总报表', category: 'inventory', categoryName: '库存报表' },
-    { id: 'inventory_detail', name: '库存明细报表', category: 'inventory', categoryName: '库存报表' },
-    { id: 'inventory_warning', name: '库存预警报表', category: 'inventory', categoryName: '库存报表' },
-    { id: 'purchase_summary', name: '采购汇总报表', category: 'purchase', categoryName: '采购报表' },
-    { id: 'purchase_detail', name: '采购明细报表', category: 'purchase', categoryName: '采购报表' },
-    { id: 'finance_summary', name: '财务汇总报表', category: 'finance', categoryName: '财务报表' },
-    { id: 'finance_profit', name: '利润分析报表', category: 'finance', categoryName: '财务报表' },
-    { id: 'customer_summary', name: '客户汇总报表', category: 'customer', categoryName: '客户报表' },
-    { id: 'customer_analysis', name: '客户分析报表', category: 'customer', categoryName: '客户报表' },
-  ]
-}
-
-/** Mock 权限矩阵数据 */
-function getMockPermissionMatrix(): ReportPermission[] {
-  const roles = getMockRoles()
-  const reports = getMockReports()
-  const result: ReportPermission[] = []
-
-  roles.forEach(role => {
-    reports.forEach(report => {
-      let canView = false
-      let canExport = false
-
-      if (role.code === 'BOSS') {
-        canView = true
-        canExport = true
-      } else if (role.code === 'MGR') {
-        canView = true
-        canExport = ['sales_summary', 'inventory_summary', 'finance_summary'].includes(report.id)
-      } else if (role.code === 'FIN') {
-        canView = ['finance_summary', 'finance_profit', 'sales_summary', 'purchase_summary'].includes(report.id)
-        canExport = ['finance_summary', 'finance_profit'].includes(report.id)
-      } else if (role.code === 'STOCK') {
-        canView = ['inventory_summary', 'inventory_detail', 'inventory_warning', 'purchase_summary'].includes(report.id)
-        canExport = false
-      } else if (role.code === 'SALES') {
-        canView = ['sales_summary', 'sales_detail', 'customer_summary'].includes(report.id)
-        canExport = false
-      } else if (role.code === 'CASHIER') {
-        canView = ['sales_summary'].includes(report.id)
-        canExport = false
-      }
-
-      result.push({
-        roleId: role.id,
-        reportId: report.id,
-        canView,
-        canExport,
-      })
-    })
-  })
-
-  return result
-}
-
-/** Mock 门店数据权限 */
-function getMockStoreDataPermission(roleId: number): StoreDataPermission {
-  const role = getMockRoles().find(r => r.id === roleId)
-  let scope: 'SELF' | 'ALL' | 'SELECTED' = 'SELF'
-  let storeIds: number[] = []
-
-  if (role?.code === 'BOSS') {
-    scope = 'ALL'
-  } else if (role?.code === 'FIN') {
-    scope = 'SELECTED'
-    storeIds = [1, 2, 3]
-  } else if (role?.code === 'MGR') {
-    scope = 'SELF'
-  } else {
-    scope = 'SELF'
-  }
-
-  return { roleId, scope, storeIds }
-}
-
-/** Mock 门店数据 */
-function getMockStores(): StoreInfo[] {
-  return [
-    { id: 1, name: '总部旗舰店', code: 'HQ001', address: '北京市朝阳区建国路88号' },
-    { id: 2, name: '朝阳门店', code: 'CY001', address: '北京市朝阳区朝阳门外大街1号' },
-    { id: 3, name: '海淀门店', code: 'HD001', address: '北京市海淀区中关村大街1号' },
-    { id: 4, name: '西城门店', code: 'XC001', address: '北京市西城区西单北大街1号' },
-    { id: 5, name: '东城门店', code: 'DC001', address: '北京市东城区王府井大街1号' },
-    { id: 6, name: '丰台门店', code: 'FT001', address: '北京市丰台区丰台路1号' },
-  ]
-}
-
-/** Mock 用户数据 */
-function getMockUsers(): UserInfo[] {
-  return [
-    { id: 1, name: '张总', username: 'admin', phone: '13800138001', roleIds: [1], roleNames: '总部管理员', storeId: 1, storeName: '总部旗舰店', status: 1 },
-    { id: 2, name: '李经理', username: 'manager1', phone: '13800138002', roleIds: [2], roleNames: '门店经理', storeId: 2, storeName: '朝阳门店', status: 1 },
-    { id: 3, name: '王店员', username: 'cashier1', phone: '13800138003', roleIds: [3], roleNames: '店员', storeId: 2, storeName: '朝阳门店', status: 1 },
-    { id: 4, name: '赵财务', username: 'finance1', phone: '13800138004', roleIds: [4], roleNames: '财务', storeId: 1, storeName: '总部旗舰店', status: 1 },
-    { id: 5, name: '孙业务', username: 'sales1', phone: '13800138005', roleIds: [5], roleNames: '业务员', storeId: 3, storeName: '海淀门店', status: 1 },
-    { id: 6, name: '周库管', username: 'stock1', phone: '13800138006', roleIds: [6], roleNames: '库管', storeId: 1, storeName: '总部旗舰店', status: 1 },
-  ]
-}
-
-/** Mock 用户权限详情 */
-function getMockUserPermission(userId: number) {
-  const user = getMockUsers().find(u => u.id === userId) || getMockUsers()[0]
-  return {
-    user,
-    roles: getMockRoles().filter(r => user.roleIds?.includes(r.id)),
-    extraPermissions: user.roleIds?.includes(1) ? ['report:export:all'] : [],
-    dataScope: user.roleIds?.includes(1) ? 'ALL' as const : 'SELF' as const,
-    storeIds: user.roleIds?.includes(1) ? [1, 2, 3, 4, 5, 6] : [user.storeId || 1],
-  }
-}
-
-/** Mock 审计日志数据 */
-function getMockAuditLogs(): PermissionAuditLog[] {
-  const now = new Date()
-  return [
-    {
-      id: 1,
-      operator: '张总',
-      operatorId: 1,
-      operationType: 'ROLE_PERMISSION_CHANGE',
-      operationTypeName: '角色权限变更',
-      content: '修改角色「门店经理」的报表权限：新增库存预警报表查看权限',
-      targetRole: '门店经理',
-      ip: '192.168.1.100',
-      createdAt: now.toISOString(),
-      detail: '角色ID: 2\n变更前: 销售汇总(查看+导出)、库存汇总(查看)、财务汇总(查看)\n变更后: 销售汇总(查看+导出)、库存汇总(查看)、库存预警(查看)、财务汇总(查看)',
-    },
-    {
-      id: 2,
-      operator: '张总',
-      operatorId: 1,
-      operationType: 'DATA_SCOPE_CHANGE',
-      operationTypeName: '数据范围变更',
-      content: '修改角色「财务」的数据权限：从仅本店改为指定门店',
-      targetRole: '财务',
-      ip: '192.168.1.100',
-      createdAt: new Date(now.getTime() - 3600000).toISOString(),
-      detail: '角色ID: 4\n变更前: SELF (仅本店)\n变更后: SELECTED (总部旗舰店、朝阳门店、海淀门店)',
-    },
-    {
-      id: 3,
-      operator: '张总',
-      operatorId: 1,
-      operationType: 'USER_ROLE_ASSIGN',
-      operationTypeName: '用户角色分配',
-      content: '为用户「王店员」分配角色：店员',
-      targetUser: '王店员',
-      ip: '192.168.1.100',
-      createdAt: new Date(now.getTime() - 7200000).toISOString(),
-      detail: '用户ID: 3\n分配角色: 店员(ID:3)',
-    },
-    {
-      id: 4,
-      operator: '李经理',
-      operatorId: 2,
-      operationType: 'USER_PERMISSION_CHANGE',
-      operationTypeName: '用户权限变更',
-      content: '修改用户「孙业务」的额外权限：新增销售报表导出权限',
-      targetUser: '孙业务',
-      ip: '192.168.1.101',
-      createdAt: new Date(now.getTime() - 86400000).toISOString(),
-      detail: '用户ID: 5\n额外权限变更: 新增 report:export:sales',
-    },
-    {
-      id: 5,
-      operator: '张总',
-      operatorId: 1,
-      operationType: 'ROLE_CREATE',
-      operationTypeName: '角色创建',
-      content: '创建新角色「见习店长」',
-      targetRole: '见习店长',
-      ip: '192.168.1.100',
-      createdAt: new Date(now.getTime() - 172800000).toISOString(),
-      detail: '角色名称: 见习店长\n角色编码: TRAINEE_MGR\n初始权限: 销售报表查看、库存报表查看',
-    },
-    {
-      id: 6,
-      operator: '张总',
-      operatorId: 1,
-      operationType: 'ROLE_DELETE',
-      operationTypeName: '角色删除',
-      content: '删除角色「临时员工」',
-      targetRole: '临时员工',
-      ip: '192.168.1.100',
-      createdAt: new Date(now.getTime() - 259200000).toISOString(),
-      detail: '角色ID: 7\n角色名称: 临时员工\n删除原因: 岗位调整',
-    },
-    {
-      id: 7,
-      operator: '赵财务',
-      operatorId: 4,
-      operationType: 'ROLE_PERMISSION_CHANGE',
-      operationTypeName: '角色权限变更',
-      content: '修改角色「财务」的报表权限：新增利润分析报表导出权限',
-      targetRole: '财务',
-      ip: '192.168.1.102',
-      createdAt: new Date(now.getTime() - 345600000).toISOString(),
-      detail: '角色ID: 4\n变更内容: 利润分析报表 导出权限 关闭→开启',
-    },
-  ]
-}
-
-/** Mock 我的权限 */
-function getMockMyPermission(): MyPermission {
-  return {
-    roles: [
-      { id: 1, name: '总部管理员', code: 'BOSS', status: 1 },
-    ],
-    reportPermissions: getMockReports().map(r => ({
-      reportId: r.id,
-      reportName: r.name,
-      canView: true,
-      canExport: true,
-    })),
-    dataScope: 'ALL',
-    stores: getMockStores(),
-  }
 }
 
 export { reportPermissionApi }

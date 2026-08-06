@@ -48,7 +48,8 @@ function mapStore(r: any): StoreInfo {
 const storesApi = {
   /** 门店列表 */
   async list(params?: { page?: number; pageSize?: number; keyword?: string; status?: number }): Promise<{ list: StoreInfo[]; total: number }> {
-    const res: any = await get('/admin/stores', params)
+    // R94-03：原 /admin/stores 不存在，改为 /admin/system/stores（admin-store.routes.ts）
+    const res: any = await get('/admin/system/stores', params)
     const raw = res?.result ?? res
     const rows: any[] = raw?.list ?? raw?.records ?? (Array.isArray(raw) ? raw : [])
     return { list: rows.map(mapStore), total: raw?.total ?? rows.length }
@@ -56,24 +57,24 @@ const storesApi = {
 
   /** 门店详情 */
   async detail(id: number): Promise<StoreInfo> {
-    const res: any = await get(`/admin/stores/${id}`)
+    const res: any = await get(`/admin/system/stores/${id}`)
     const raw = res?.result ?? res
     return mapStore(raw?.store ?? raw ?? {})
   },
 
   /** 新建门店 */
   async create(data: StoreForm): Promise<any> {
-    return post('/admin/stores', data)
+    return post('/admin/system/stores', data)
   },
 
   /** 更新门店 */
   async update(id: number, data: StoreForm): Promise<any> {
-    return put(`/admin/stores/${id}`, data)
+    return put(`/admin/system/stores/${id}`, data)
   },
 
   /** 切换门店状态 */
   async updateStatus(id: number, status: number): Promise<any> {
-    return put(`/admin/stores/${id}`, { status })
+    return put(`/admin/system/stores/${id}`, { status })
   },
 }
 

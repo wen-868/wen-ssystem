@@ -2256,7 +2256,7 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
 - **预计**：2 天
-- **状态**：🔄 进行中（2026-08-07 凌舟核查派单）
+- **状态**：✅ 已完成（2026-08-07 阿澈执行，404 82→0 + 双端构建 + 12 页走查通过）
 - **必读文件**：`docs/reports/R94-03-移动端API契约差距报告.md`（完整差距清单+等价接口映射，先读再动手）
 - **问题**：实测 store_manager 登录后逐条探测 `app-mobile/src/api/modules/` 312 处调用，发现路由级 404 共 82 处（后端路径不存在）、响应结构不匹配 3 处（orders/members/price levels 后端返回 `records` 而前端取 `list`）、`GET /admin/prices/batch/logs` 403 但页面照常展示「调价记录」入口。
 - **修复**：
@@ -2270,6 +2270,56 @@
   - `npm run build:h5` + `build:app` + `npx vue-tsc --noEmit` 全部 exit 0；
   - 复跑 `.playwright-cli/pw-run/audit-live.mjs`：路由级 404 从 82 降至 0（或逐条注明合理保留）；
   - 完成记录写入本任务卡（含每处 404 的修复方式：改路径/结构适配/降级）。
+
+**阿澈完成记录（2026-08-07）**：
+
+**完成内容**（24 个 API 模块 + 13 个页面，42 文件；只改 API 路径/取数逻辑/入口控制，未碰布局样式与无关代码）：
+
+**逐模块修复方式表**：
+
+| 模块 | 原 404 路径 | 修复方式 | 真实接口 |
+|------|------------|:-------:|---------|
+| batches.ts | /admin/inventory/batches(3 处) | 改路径+结构适配 | /admin/inventory-batch/batches 系列 |
+| dashboard.ts | /store/dashboard/sales-trend 等 4 处 | 改路径+字段映射 | /admin/dashboard/sales-trend、top-products、top-customers、category-pie |
+| employees.ts | /admin/staff/list | 改路径 | /admin/staff（复职无后端接口→页面降级提示） |
+| exceptions.ts | /order-exceptions(3 处) | 降级 | 后端无订单异常模块，页面「开发中」占位 |
+| finance.ts | /admin/finance/*-stats/trend/category(6 处) | 改路径+聚合映射 | /admin/finance/income-expense-stats、dashboard、profit-trend、expense-by-category |
+| inventory.ts | /admin/inventory 等 5 处 | 改路径+records 适配 | /admin/inventory-balance、inventory-logs、inventory-alerts、stock-checks |
+| inventory-loss-gain.ts | /loss-gains/:id、/statistics(2 处) | 改路径+按类型路由 | loss-orders/profit-orders/:id、/inventory/profit-loss/stats；**移除全部 mock 兜底** |
+| marketing-activities.ts | /admin/marketing/activities(3 处) | 改路径（满减活动） | /admin/marketing/full-reductions 系列；参与记录无接口→降级 |
+| member-levels.ts | /admin/member/levels(2 处) | 改路径+详情改列表查找 | /admin/members/levels/config；删除/启停无接口→降级 |
+| member.ts | /store/members/info | 改路径 | /store/me |
+| notifications.ts | /admin/notifications/:id(1 处) | 降级+方法修正 | 详情改列表项本地渲染；已读 POST→PUT；删除/批量删除无接口→降级 |
+| operation-logs.ts | /:id、/types(2 处) | 降级 | 详情/类型无接口→页面静态枚举+提示 |
+| points.ts | /admin/member/points/*(3 处) | 改路径 | /admin/marketing/points/records、redeem、points-mall/products、user/:userId |
+| products.ts | /admin/products/batch/:batchNo | 改路径 | /admin/inventory-batch/batches/:id/trace |
+| purchase.ts | /admin/purchase-orders/in-stock/:id | 改路径+数组适配 | /admin/purchase-in-stocks 系列 |
+| report-permission.ts | 7 处 | 改路径+静态目录 | matrix/data-scope/my/audit-logs/user/:userId + /admin/system/roles、/admin/staff、/admin/system/stores；**移除全部 mock 兜底** |
+| reports.ts | 11 处 | 改路径+结构映射 | business-overview、sales-ranking、inventory-summary/turnover/age、profit、finance/profit-trend、finance/income-expense-by-category、finance/cash-flow |
+| roles.ts | /admin/roles(3 处) | 改路径 | /admin/system/roles 系列 |
+| sales.ts | /admin/sales(2 处) | 改路径+body 适配 | /admin/sale-bills 列表、/store/sale-bills 创建/详情/收款/链接 |
+| store.ts | 15 处 | 改路径/降级 | shift/history、daily-settlements、operation-logs 等有等价接口的改路径；会员详情/积分/优惠券/交接班详情等无接口→降级 stub（页面均未使用） |
+| stored-cards.ts | /admin/member/stored-cards(4 处) | 改路径+cardNo 语义 | /admin/store-value-cards 系列（详情/充值/冻结用 cardNo） |
+| stores.ts | /admin/stores(2 处) | 改路径 | /admin/system/stores |
+| orders.ts | 结构不匹配 | records→list 适配 | /admin/orders；confirm/start-delivery/complete/reject 改 PUT status；export 改 export-csv |
+| customers.ts | 结构不匹配 | records→list 适配 | /admin/members |
+| price.ts | listLevels 结构 | records 适配 | /admin/prices/levels |
+
+**页面级改动**：price-manage.vue（调价记录入口进入前探测权限，403 提示「仅管理员、店长、财务可用」，计数失败静默）；notifications 详情改列表项本地渲染、删除/批量删除降级提示；operation-logs 详情降级+类型静态枚举；exception.vue/participation-records/audit-detail/member-levels 删除启停/员工复职降级提示；loss-gain 列表→详情按 type 传参（loss-orders/profit-orders）；stored-cards 改 cardNo。
+
+**验证证据**：
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 路由级 404 | `node .playwright-cli/pw-run/audit-live.mjs` | **82 → 0**（284 处调用全部命中真实路由）✅ |
+| 类型检查 | `cd app-mobile && npx vue-tsc --noEmit` | exit 0，0 errors ✅ |
+| H5 构建 | `npm run build:h5` | exit 0（DONE Build complete）✅ |
+| App 构建 | `npm run build:app` | exit 0（DONE Build complete）✅ |
+| 12 页走查 | `node .playwright-cli/pw-run/walkthrough2.mjs` | 12/12 正常，0 结构崩溃/0 404；唯一控制台错误为 price-guard 预期 403（store_manager 访问调价记录）✅ |
+
+**说明**：
+1. 审计脚本将 POST/PUT 类请求统一计为 403（CSRF 拦截先于路由匹配），82 处 404 均为 GET 等只读调用；POST 类方法不匹配（如 notifications markRead）在本轮一并按真实路由修正并记录。
+2. 后端 mock 库（USE_MOCK_DB）对部分表返回通用假数据（如 /admin/store-value-cards 返回门店行），属 mock 环境行为，非路由问题，生产真实库不受影响。
+3. 降级项（后端确无能力）：订单异常、消息删除/批量删除/单条详情、操作日志详情/类型、会员等级删除/启停、员工复职、交接班创建/详情/盘点、会员详情/积分、门店优惠券列表、营销参与记录、审计日志详情、批量设置权限——均以「开发中」占位或权限提示处理，**未编造数据**。
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1

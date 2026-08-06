@@ -49,7 +49,7 @@
           <view class="footer-btn" @tap="goRecharge(item)">
             <text>充值</text>
           </view>
-          <view class="footer-btn" @tap="goRecords(item.id)">
+          <view class="footer-btn" @tap="goRecords(item.cardNo)">
             <text>记录</text>
           </view>
           <view class="footer-btn" @tap="toggleLock(item)" v-if="item.status === 'active'">
@@ -106,7 +106,7 @@ function goRecharge(item: StoredCard) {
         const amount = parseFloat(res.content)
         if (amount > 0) {
           try {
-            await storedCardApi.recharge(item.id, amount)
+            await storedCardApi.recharge(item.cardNo, amount)
             uni.showToast({ title: '充值成功', icon: 'success' })
             loadCards()
           } catch (err) {
@@ -118,9 +118,9 @@ function goRecharge(item: StoredCard) {
   })
 }
 
-function goRecords(id: number) {
+function goRecords(cardNo: string) {
   uni.navigateTo({
-    url: `/pages-sub/marketing/stored-cards/recharge-records?cardId=${id}`
+    url: `/pages-sub/marketing/stored-cards/recharge-records?cardNo=${cardNo}`
   })
 }
 
@@ -133,9 +133,9 @@ async function toggleLock(item: StoredCard) {
       if (res.confirm) {
         try {
           if (item.status === 'active') {
-            await storedCardApi.lock(item.id)
+            await storedCardApi.lock(item.cardNo)
           } else {
-            await storedCardApi.unlock(item.id)
+            await storedCardApi.unlock(item.cardNo)
           }
           uni.showToast({ title: `${action}成功`, icon: 'success' })
           loadCards()

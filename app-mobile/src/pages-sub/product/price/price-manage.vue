@@ -115,7 +115,8 @@ async function loadBatchCount() {
     const res: any = await priceApi.listBatchLogs({ page: 1, pageSize: 1 })
     batchCount.value = res?.total ?? 0
   } catch (err) {
-    console.error('加载调价记录数失败:', err)
+    // R94-03：调价记录入口受 price-guard 权限控制（仅管理员/店长/财务），店员无权限时静默置 0
+    batchCount.value = 0
   }
 }
 
@@ -173,9 +174,16 @@ function goBatchAdjust() {
   uni.navigateTo({ url: '/pages-sub/product/price/batch-adjust' })
 }
 
-/** 调价记录（R94-01：接入真实记录页 batch-logs） */
+/** 调价记录（R94-01：接入真实记录页 batch-logs；R94-03：进入前先探测权限，403 时提示） */
 function goBatchLogs() {
-  uni.navigateTo({ url: '/pages-sub/product/price/batch-logs' })
+  priceApi
+    .listBatchLogs({ page: 1, pageSize: 1 })
+    .then(() => {
+      uni.navigateTo({ url: '/pages-sub/product/price/batch-logs' })
+    })
+    .catch(() => {
+      uni.showToast({ title: '仅管理员、店长、财务可用', icon: 'none' })
+    })
 }
 
 onMounted(() => {

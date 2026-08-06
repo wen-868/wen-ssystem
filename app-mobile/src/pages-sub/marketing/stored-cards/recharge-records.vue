@@ -51,11 +51,11 @@ function goBack() {
 async function loadRecords() {
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1] as any
-  const cardId = Number(currentPage.options?.cardId)
+  const cardNo = String(currentPage.options?.cardNo ?? '')
 
   try {
     const result = await storedCardApi.rechargeRecords({
-      cardId: cardId || undefined,
+      cardNo: cardNo || undefined,
       page: 1,
       pageSize: 100
     })

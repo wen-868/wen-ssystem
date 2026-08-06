@@ -156,7 +156,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { inventoryLossGainApi, type LossGainOrder } from '@/api/modules/inventory-loss-gain'
+import { inventoryLossGainApi, type LossGainOrder, type LossGainType } from '@/api/modules/inventory-loss-gain'
 
 const order = ref<LossGainOrder | null>(null)
 const loading = ref(false)
@@ -186,10 +186,10 @@ function previewPhoto(index: number) {
   })
 }
 
-async function loadDetail(id: number) {
+async function loadDetail(id: number, type: LossGainType = 'LOSS') {
   loading.value = true
   try {
-    const result = await inventoryLossGainApi.detail(id)
+    const result = await inventoryLossGainApi.detail(id, type)
     order.value = result
   } catch (err) {
     console.error('加载详情失败:', err)
@@ -207,7 +207,7 @@ async function onApprove() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await inventoryLossGainApi.approve(order.value!.id)
+          await inventoryLossGainApi.approve(order.value!.id, order.value!.type)
           uni.showToast({ title: '审核通过', icon: 'success' })
           loadDetail(order.value!.id)
         } catch (err) {
@@ -231,7 +231,7 @@ async function confirmReject() {
     return
   }
   try {
-    await inventoryLossGainApi.reject(order.value.id, rejectReason.value)
+    await inventoryLossGainApi.reject(order.value.id, rejectReason.value, order.value.type)
     uni.showToast({ title: '已驳回', icon: 'success' })
     showRejectModal.value = false
     loadDetail(order.value.id)
@@ -243,7 +243,7 @@ async function confirmReject() {
 
 onLoad((options: any) => {
   if (options.id) {
-    loadDetail(Number(options.id))
+    loadDetail(Number(options.id), options.type === 'GAIN' ? 'GAIN' : 'LOSS')
   }
 })
 </script>

@@ -1,4 +1,4 @@
-import { get, post, del } from '../request'
+import { get, post, put } from '../request'
 
 /**
  * 消息类型枚举
@@ -65,17 +65,19 @@ const notificationsApi = {
 
   /**
    * 获取消息详情
+   * R94-03 核实：后端无单条消息详情接口（notification.routes.ts 仅列表/未读数/已读），
+   * 详情页改用列表项数据渲染（列表已含 content），此处保留占位并拒绝请求，禁止编造数据
    */
   async detail(id: number): Promise<NotificationItem> {
-    const res: any = await get(`/admin/notifications/${id}`)
-    return (res?.result ?? res) as NotificationItem
+    return Promise.reject(new Error('消息详情功能开发中（R94-03 核实：后端无单条详情接口，请从列表进入）'))
   },
 
   /**
    * 标记单条消息已读
    */
   async markRead(id: number): Promise<void> {
-    return post(`/admin/notifications/${id}/read`)
+    // R94-03：后端已读接口为 PUT /admin/notifications/:id/read（notification.routes.ts），原 POST 方法不匹配
+    return put(`/admin/notifications/${id}/read`)
   },
 
   /**
@@ -94,16 +96,18 @@ const notificationsApi = {
 
   /**
    * 删除单条消息
+   * R94-03 核实：后端无删除接口（仅列表/未读数/已读），由页面降级为「开发中」提示
    */
   async delete(id: number): Promise<void> {
-    return del(`/admin/notifications/${id}`)
+    return Promise.reject(new Error('删除消息功能开发中（R94-03 核实：后端无删除接口）'))
   },
 
   /**
    * 批量删除消息
+   * R94-03 核实：后端无批量删除接口（notification.routes.ts 无 batch-delete），由页面降级为「开发中」提示
    */
   async batchDelete(ids: number[]): Promise<void> {
-    return post('/admin/notifications/batch-delete', { ids })
+    return Promise.reject(new Error('批量删除消息功能开发中（R94-03 核实：后端无批量删除接口）'))
   },
 
   /**
