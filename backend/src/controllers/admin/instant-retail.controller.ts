@@ -44,17 +44,22 @@ const upsertConfigSchema = z.object({
 
 const saveShopConfigSchema = z.object({
   shopName: z.string().min(1).max(100),
-  logo: z.string().optional(),
+  shopLogo: z.string().nullable().optional(),
+  logo: z.string().nullable().optional(),
   banner: z.string().optional(),
-  description: z.string().optional(),
-  businessHours: z.string().optional(),
-  phone: z.string().optional(),
+  description: z.string().nullable().optional(),
+  businessHours: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
   address: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   deliveryRange: z.number().optional(),
   deliveryFee: z.number().optional(),
   minOrderAmount: z.number().optional(),
+  deliveryEnabled: z.boolean().optional(),
+  pickupEnabled: z.boolean().optional(),
+  estimatedTime: z.string().nullable().optional(),
+  announcement: z.string().nullable().optional(),
   status: z.enum(["OPEN", "CLOSED", "RESTING"]).optional(),
 });
 
@@ -62,12 +67,16 @@ const createCategorySchema = z.object({
   name: z.string().min(1).max(50),
   sortNo: z.number().int().default(0),
   icon: z.string().optional(),
+  parentId: z.number().int().nullable().optional(),
+  status: z.enum(["ON", "OFF"]).optional(),
 });
 
 const updateCategorySchema = z.object({
   name: z.string().min(1).max(50).optional(),
   sortNo: z.number().int().optional(),
   icon: z.string().optional(),
+  parentId: z.number().int().nullable().optional(),
+  status: z.enum(["ON", "OFF"]).optional(),
 });
 
 const addRetailProductSchema = z.object({
@@ -93,16 +102,22 @@ const updateRetailProductSchema = z.object({
 const createBannerSchema = z.object({
   title: z.string().min(1).max(100),
   imageUrl: z.string().url().or(z.string().min(1)),
-  linkUrl: z.string().optional(),
+  linkUrl: z.string().nullable().optional(),
+  linkType: z.string().optional(),
   sortNo: z.number().int().default(0),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 const updateBannerSchema = z.object({
   title: z.string().min(1).max(100).optional(),
   imageUrl: z.string().url().or(z.string().min(1)).optional(),
-  linkUrl: z.string().optional(),
+  linkUrl: z.string().nullable().optional(),
+  linkType: z.string().optional(),
   sortNo: z.number().int().optional(),
   status: z.enum(["ON", "OFF"]).optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 const updateRetailOrderStatusSchema = z.object({

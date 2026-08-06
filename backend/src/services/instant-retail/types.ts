@@ -275,6 +275,7 @@ export interface MaskConfigInput {
  * 零售门店配置入参（saveShopConfig 接收的 body）
  */
 export interface RetailShopConfigInput {
+  // snake_case（DB 直连 / 内部调用）
   shop_name?: string;
   shop_logo?: string | null;
   shop_description?: string | null;
@@ -288,17 +289,36 @@ export interface RetailShopConfigInput {
   estimated_delivery_time?: string | null;
   announcement?: string | null;
   status?: string;
+  // camelCase（API 契约，controller schema 透传）
+  shopName?: string;
+  shopLogo?: string | null;
+  logo?: string | null;
+  description?: string | null;
+  phone?: string | null;
+  businessHours?: string | null;
+  deliveryEnabled?: boolean;
+  pickupEnabled?: boolean;
+  minOrderAmount?: number | string;
+  deliveryFee?: number | string;
+  deliveryRange?: number | string | null;
+  estimatedTime?: string | null;
 }
 
 /**
  * 零售分类入参（createCategory / updateCategory 接收的 body）
  */
 export interface RetailCategoryInput {
+  // snake_case（DB 直连 / 内部调用）
   category_name?: string;
   category_icon?: string | null;
   parent_id?: number | null;
   sort_order?: number;
   status?: string;
+  // camelCase（API 契约，controller schema 透传）
+  name?: string;
+  icon?: string | null;
+  parentId?: number | null;
+  sortNo?: number;
 }
 
 /**
@@ -322,6 +342,7 @@ export interface RetailProductInput {
  * 零售 Banner 入参（createBanner / updateBanner 接收的 body）
  */
 export interface RetailBannerInput {
+  // snake_case（DB 直连 / 内部调用）
   banner_title?: string | null;
   banner_image?: string;
   link_type?: string;
@@ -330,6 +351,14 @@ export interface RetailBannerInput {
   status?: string;
   start_time?: string | Date | null;
   end_time?: string | Date | null;
+  // camelCase（API 契约，controller schema 透传）
+  title?: string | null;
+  imageUrl?: string;
+  linkUrl?: string | null;
+  linkType?: string | null;
+  sortNo?: number;
+  startTime?: string | Date | null;
+  endTime?: string | Date | null;
 }
 
 /**

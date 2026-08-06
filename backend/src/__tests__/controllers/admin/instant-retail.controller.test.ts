@@ -376,6 +376,29 @@ describe("instant-retail.controller", () => {
       expect(ok).toHaveBeenCalled();
     });
 
+    it("saveShopConfig - 应透传 camelCase 扩展字段到 service", async () => {
+      (retailShopSvc.saveShopConfig as any).mockResolvedValue({});
+      const body = {
+        shopName: "测试店",
+        shopLogo: "https://example.com/logo.png",
+        description: "主营酒水",
+        phone: "13800138000",
+        businessHours: null,
+        deliveryEnabled: true,
+        pickupEnabled: false,
+        minOrderAmount: 10,
+        deliveryFee: 3,
+        deliveryRange: 5,
+        estimatedTime: "30分钟",
+        announcement: "活动进行中",
+        status: "OPEN",
+      };
+      const req = mockReq({ query: { storeId: "1" }, body });
+      const res = mockRes();
+      await saveShopConfig(req as any, res as any, vi.fn());
+      expect(retailShopSvc.saveShopConfig).toHaveBeenCalledWith(1, expect.objectContaining(body), "t1");
+    });
+
     it("listCategories - 应返回分类列表", async () => {
       (retailShopSvc.listCategories as any).mockResolvedValue([]);
       const req = mockReq({ query: { storeId: "1" } });
@@ -392,6 +415,24 @@ describe("instant-retail.controller", () => {
       await createCategory(req as any, res as any, vi.fn());
       expect(retailShopSvc.createCategory).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
+    });
+
+    it("createCategory - 应透传 parentId/status 到 service", async () => {
+      (retailShopSvc.createCategory as any).mockResolvedValue({ id: 1 });
+      const body = { name: "子分类", icon: "https://example.com/icon.png", parentId: 3, sortNo: 2, status: "OFF" };
+      const req = mockReq({ query: { storeId: "1" }, body });
+      const res = mockRes();
+      await createCategory(req as any, res as any, vi.fn());
+      expect(retailShopSvc.createCategory).toHaveBeenCalledWith(1, expect.objectContaining(body), "t1");
+    });
+
+    it("updateCategory - 应透传 parentId/status 到 service", async () => {
+      (retailShopSvc.updateCategory as any).mockResolvedValue({ id: 1 });
+      const body = { name: "新名称", parentId: null, sortNo: 5, status: "ON" };
+      const req = mockReq({ params: { id: "1" }, body });
+      const res = mockRes();
+      await updateCategory(req as any, res as any, vi.fn());
+      expect(retailShopSvc.updateCategory).toHaveBeenCalledWith(1, expect.objectContaining(body), "t1");
     });
 
     it("updateCategory - 应更新分类", async () => {
@@ -499,6 +540,43 @@ describe("instant-retail.controller", () => {
       await createBanner(req as any, res as any, vi.fn());
       expect(retailShopSvc.createBanner).toHaveBeenCalled();
       expect(ok).toHaveBeenCalled();
+    });
+
+    it("createBanner - 应透传 linkType/startTime/endTime 到 service", async () => {
+      (retailShopSvc.createBanner as any).mockResolvedValue({ id: 1 });
+      const body = {
+        title: "banner1",
+        imageUrl: "https://example.com/img.jpg",
+        linkUrl: "1001",
+        linkType: "PRODUCT",
+        sortNo: 1,
+        startTime: "2026-08-01 00:00:00",
+        endTime: "2026-08-31 23:59:59",
+      };
+      const req = mockReq({ query: { storeId: "1" }, body });
+      const res = mockRes();
+      await createBanner(req as any, res as any, vi.fn());
+      expect(retailShopSvc.createBanner).toHaveBeenCalledWith(1, expect.objectContaining(body), "t1");
+    });
+
+    it("createBanner - linkUrl 为 null 时 schema 应放行", async () => {
+      (retailShopSvc.createBanner as any).mockResolvedValue({ id: 1 });
+      const req = mockReq({
+        query: { storeId: "1" },
+        body: { title: "banner1", imageUrl: "https://example.com/img.jpg", linkUrl: null, linkType: "NONE", sortNo: 1 },
+      });
+      const res = mockRes();
+      await createBanner(req as any, res as any, vi.fn());
+      expect(retailShopSvc.createBanner).toHaveBeenCalledWith(1, expect.objectContaining({ linkUrl: null, linkType: "NONE" }), "t1");
+    });
+
+    it("updateBanner - 应透传 startTime/endTime 到 service", async () => {
+      (retailShopSvc.updateBanner as any).mockResolvedValue({ id: 1 });
+      const body = { title: "新标题", startTime: "2026-09-01 00:00:00", endTime: "2026-09-30 23:59:59" };
+      const req = mockReq({ params: { id: "1" }, body });
+      const res = mockRes();
+      await updateBanner(req as any, res as any, vi.fn());
+      expect(retailShopSvc.updateBanner).toHaveBeenCalledWith(1, expect.objectContaining(body), "t1");
     });
 
     it("updateBanner - 应更新轮播图", async () => {

@@ -2089,15 +2089,20 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（任务卡 inbox/ajian_r92_01.md）
+- **状态**：✅ 已完成（2026-08-07 阿坚执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`backend/src/controllers/admin/instant-retail.controller.ts`、`backend/src/services/instant-retail/retail-shop.service.ts`
 - **问题**：3 处写接口契约断裂（schema camelCase vs service snake_case；shop-config 依赖 storeId）
 - **修复（对齐项目惯例：API camelCase，DB snake_case，service 做映射）**：
-  1. banners：service 写入时映射 title→banner_title、imageUrl→banner_image、linkUrl→link_type/link_value、sortNo→sort_order，支持 startTime/endTime（schema 补充可选字段）
-  2. 分类：service 写入映射 name→category_name、icon→category_icon、sortNo→sort_order，schema 补 parentId/status 可选
-  3. shop-config：无 storeId 时回退租户默认门店（如 store 1 或 tenant 首个门店），GET 无 storeId 返回默认门店配置；保存同理
-  4. **最小改动，补测试**
+  1. banners：service 写入映射 title→banner_title、imageUrl→banner_image、linkUrl→link_value、linkType→link_type（缺失时按 http 推断 URL/NONE）、sortNo→sort_order，schema 补 linkType/startTime/endTime 可选、linkUrl 可空
+  2. 分类：service 写入映射 name→category_name、icon→category_icon、sortNo→sort_order、parentId→parent_id，schema 补 parentId/status 可选
+  3. shop-config：无 storeId 时回退租户默认门店（t_store 租户首个门店），GET 无 storeId 返回默认门店配置；保存同理（无门店仍抛「门店ID不能为空」）；schema 补前端实际发送的 shopLogo/deliveryEnabled/pickupEnabled/estimatedTime/announcement 等 camelCase 字段，service 一并做映射
+  4. **最小改动，补测试**（新增 service 测试 16 用例 + controller schema 透传 6 用例）
 - **验收标准**：`npm run typecheck` 0 errors；`npx vitest run` 全通过（新增 banners/分类/shop-config 写接口用例）；`rg "banner_image|category_name|sort_order" backend/src/services/instant-retail/retail-shop.service.ts` 有映射逻辑
+- **完成证据**（2026-08-07 阿坚验证）：
+  - `npm run typecheck`：0 errors ✅
+  - `npx vitest run`：437 文件 / 5098 用例全部通过（新增 `retail-shop.service.test.ts` 16 用例 + controller 透传 6 用例）✅
+  - 验收 grep 命中映射逻辑（banner_image/category_name/sort_order 在归一化函数与 INSERT/UPDATE 中）✅
+  - 改动文件：`retail-shop.service.ts`（新增 resolveDefaultStoreId + 3 个归一化函数，6 个写/读函数改用归一化入参）、`instant-retail.controller.ts`（3 组 schema 补字段）、`types.ts`（3 个入参接口补 camelCase 兼容字段）、controller 测试 + 新 service 测试
 
 ---
 
