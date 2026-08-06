@@ -1903,6 +1903,43 @@
 - **修复**：硬编码色替换为 tokens.css 变量，只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/marketing/` ≤ 原 30%
 
+---
+
+## R87 — 阶段2-5 报表版块 100% 核查 [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：营销版块（R86）完成后按《版块有序推进规划》进入阶段 2-5
+> **版块范围**：销售/库存/利润/客户/自定义报表（admin-web views/report/ 11 页）
+
+### R87-00 — 报表版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **核查结论**：
+  - 报表页 11 个；后端报表接口齐全（admin-report/custom-report/report）+ 测试 28 个
+  - **差距 G1（P0）**：`CustomerAnalysis.vue`（mock 18 处，编造 2560 客户/6 组随机数组）与 `CustomReport.vue`（mock 12 处）纯 mock 假数据，违反禁止编造数据
+  - **差距 G2（P1）**：报表页硬编码色 112 处（TransferReport 37/CustomerAnalysis 14/CollectionAnalysis 12/OnlinePaymentAnalysis 11 等）
+
+### R87-01 — [P0] 报表 mock 页接真实 API（客户分析/自定义报表）
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：待派单（墨完成 R86-01 后派单）
+- **文件**：`admin-web/src/views/report/{CustomerAnalysis,CustomReport}.vue` + 对应 API
+- **问题**：两个报表页使用 mock 编造数据（客户分析 18 处/自定义报表 12 处），后端报表接口已存在
+- **修复**：接真实报表接口（客户分析用 admin-report 客户维度；自定义报表用 custom-report），无数据显示空态；**禁止保留编造数字**
+- **验收标准**：`rg "mock" admin-web/src/views/report/{CustomerAnalysis,CustomReport}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R87-02 — [P1] 报表页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：待派单
+- **文件**：`admin-web/src/views/report/`（TransferReport 37/CustomerAnalysis 14 等）
+- **问题**：报表页硬编码色残留 112 处
+- **修复**：硬编码色替换为 tokens.css 变量（模板/样式部分）；图表色已常量化（R84-03 theme.ts）的直接用 CHART_COLORS
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/report/` ≤ 原 30%
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
