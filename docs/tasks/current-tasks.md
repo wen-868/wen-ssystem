@@ -1983,6 +1983,69 @@
 - **修复**：硬编码色替换为 tokens.css 变量（模板/样式部分）；图表色已常量化（R84-03 theme.ts）的直接用 CHART_COLORS
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/report/` ≤ 原 30%
 
+---
+
+## R89 — 阶段3-1/3-2 系统设置与权限版块 100% 核查 [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：阶段 2 完成后按《版块有序推进规划》进入阶段 3
+> **版块范围**：系统设置/门店/员工/参数/日志 + 权限/角色/岗位/操作日志（admin-web views/system/ 18 页）
+
+### R89-00 — 系统设置与权限版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **核查结论**：
+  - system 页 18 个；**无占位、无 mock**（良好）；核心页（门店/员工/角色/岗位/审计日志）均已接真实 API
+  - **唯一差距 G1（P1）**：硬编码色 41 处（MonitorView 8/ApprovalRules 7/SystemConfigView 7/AuditLogView 5/ErrorLogView 5 等）
+
+### R89-01 — [P1] 系统设置页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R88 收口后派单）
+- **文件**：`admin-web/src/views/system/`
+- **问题**：系统设置页硬编码色残留 41 处
+- **修复**：硬编码色替换为 tokens.css 变量（模板/样式），图表色用 CHART_COLORS；只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/system/` ≤ 原 30%
+
+---
+
+## R90 — 阶段3-3 即时零售版块 100% 核查 [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：系统设置版块（R89）完成后按《版块有序推进规划》进入阶段 3-3
+> **版块范围**：平台对接/履约/商品同步/门店配置（admin-web views/instant-retail/ 12 页）
+
+### R90-00 — 即时零售版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **核查结论**：
+  - 即时零售页 12 个；后端接口齐全（platforms/configs/sync-orders/sync-products/shop-config/banners 等）+ 测试 11 个
+  - **差距 G1（P0）**：3 页 mock 假数据——`InstantRetailOrders.vue`（mockOrders 28 条）、`InstantRetailSync.vue`（mockSyncLogs 25 条+批量操作）、`InstantRetailConfig.vue`（mockBanners 轮播假数据），后端接口已存在（订单/同步/`/banners`）
+  - **差距 G2（P1）**：硬编码色 49 处（InstantRetailReport 20/InstantRetailPickup 15/InstantRetailOrderBoard 7 等）
+
+### R90-01 — [P0] 即时零售 mock 页接真实 API（订单/同步/轮播）
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r90_01.md）
+- **文件**：`admin-web/src/views/instant-retail/{InstantRetailOrders,InstantRetailSync,InstantRetailConfig}.vue` + 对应 API
+- **问题**：3 页使用 mock 编造数据，后端接口已存在（订单/同步日志/banners）未接入
+- **修复**：逐页接真实 API（列表/分页/操作/轮播 CRUD），字段按后端返回适配；无数据空态；**禁止保留编造数字**
+- **验收标准**：`rg "mock" admin-web/src/views/instant-retail/{InstantRetailOrders,InstantRetailSync,InstantRetailConfig}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R90-02 — [P1] 即时零售页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单
+- **文件**：`admin-web/src/views/instant-retail/`（InstantRetailReport 20/InstantRetailPickup 15 等）
+- **问题**：即时零售页硬编码色残留 49 处
+- **修复**：硬编码色替换为 tokens.css 变量/CHART_COLORS，只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/instant-retail/` ≤ 原 30%
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
