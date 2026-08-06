@@ -2,6 +2,14 @@
 
 > 建立人:凌舟 | 日期:2026-08-03 | 用途:子代理消息通道降级协议
 
+## ⚠️ 项目当前路径（2026-08-07 迁移，所有子代理必读）
+
+**项目已从 `D:\Users\Documents\TREA\wen-ssystem` 迁移到 `D:\Users\ZXQL\ZXQL-MS\wen-ssystem`。**
+
+- 本任务信箱、任务卡、current-tasks.md、全部代码都在**新路径**下
+- 旧路径 `D:\Users\Documents\TREA\*` 下的 wen-ssystem 副本是**历史遗留，勿读勿改**（HEAD 停留在 7 月 30 日 R67 之前，不代表当前代码）
+- 子代理启动后：**只在新路径工作**，以新路径为唯一工作目录
+
 ## 为什么存在
 
 Codex 桌面端协作系统存在平台级故障:spawn_agent / followup_task / send_message 的消息正文无法送达子代理(见 docs/reports/R73-05-代理消息通道诊断.md)。为保证团队协作不被阻塞,启用文件信箱作为任务投递通道。
