@@ -126,15 +126,15 @@ function openAiSettings() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .profile-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 /* 用户卡片 */
 .user-card {
-  background: linear-gradient(135deg, #6366F1, #2563EB);
+  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
   padding: 48rpx 32rpx;
   padding-top: calc(48rpx + env(safe-area-inset-top));
   display: flex;
@@ -169,7 +169,7 @@ function openAiSettings() {
 .avatar-text {
   font-size: 48rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .user-info {
@@ -181,7 +181,7 @@ function openAiSettings() {
 .user-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-bottom: 6rpx;
 }
 
@@ -200,7 +200,7 @@ function openAiSettings() {
 
 .role-text {
   font-size: 22rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .user-arrow {
@@ -210,7 +210,7 @@ function openAiSettings() {
 
 /* 菜单区域 */
 .menu-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin: 20rpx 24rpx;
   overflow: hidden;
@@ -221,7 +221,7 @@ function openAiSettings() {
   display: flex;
   align-items: center;
   padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .menu-item:last-child {
@@ -238,30 +238,30 @@ function openAiSettings() {
   margin-right: 20rpx;
 }
 
-.menu-icon-wrap--blue { background: #e6f4ff; }
-.menu-icon-wrap--green { background: #f6ffed; }
-.menu-icon-wrap--orange { background: #fff7e6; }
-.menu-icon-wrap--purple { background: #f9f0ff; }
-.menu-icon-wrap--dark { background: #f5f5f5; }
+.menu-icon-wrap--blue { background: $uni-color-primary-soft; }
+.menu-icon-wrap--green { background: $uni-color-success-soft; }
+.menu-icon-wrap--orange { background: $uni-color-warning-soft; }
+.menu-icon-wrap--purple { background: $uni-color-purple-soft; }
+.menu-icon-wrap--dark { background: $uni-bg-color-grey; }
 
 .menu-icon {
   font-size: 32rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .menu-label {
   flex: 1;
   font-size: 30rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .menu-badge {
   min-width: 36rpx;
   height: 36rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 18rpx;
   font-size: 20rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -271,7 +271,7 @@ function openAiSettings() {
 
 .menu-arrow {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 /* 退出登录 */
@@ -282,14 +282,14 @@ function openAiSettings() {
 .logout-btn {
   width: 100%;
   height: 88rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 44rpx;
   font-size: 30rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid #ff4d4f;
+  border: 2rpx solid $uni-color-error;
 }
 
 .logout-btn::after {
@@ -304,7 +304,7 @@ function openAiSettings() {
 
 .version-text {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {
@@ -313,14 +313,14 @@ function openAiSettings() {
 
 /* AI 设置入口（移动端打磨 v1.3） */
 .menu-icon-wrap--ai {
-  background: linear-gradient(135deg, #6366F1, #2563EB);
+  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
 }
 .menu-icon--ai {
-  color: #FFFFFF;
+  color: $uni-text-color-inverse;
   font-size: 22rpx;
   font-weight: 700;
 }
 .menu-label--ai {
-  color: #6366F1;
+  color: $ai-tab-active;
 }
 </style>

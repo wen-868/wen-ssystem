@@ -61,22 +61,22 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .todos-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .todo-list {
@@ -86,7 +86,7 @@ onMounted(() => {
 .todo-item {
   display: flex;
   align-items: flex-start;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -110,20 +110,20 @@ onMounted(() => {
 }
 
 .status-pending {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .status-done {
-  background: #f6ffed;
+  background: $uni-color-success-soft;
 }
 
 .status-dot {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .status-done .status-dot {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .todo-content {
@@ -132,14 +132,14 @@ onMounted(() => {
 
 .todo-title {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   display: block;
   margin-bottom: 10rpx;
 }
 
 .todo-title--done {
   text-decoration: line-through;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .todo-meta {
@@ -154,12 +154,12 @@ onMounted(() => {
   margin-right: 16rpx;
 }
 
-.status-text-pending { background: #e6f4ff; color: #1677FF; }
-.status-text-done { background: #f6ffed; color: #52c41a; }
+.status-text-pending { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.status-text-done { background: $uni-color-success-soft; color: $uni-color-success; }
 
 .todo-deadline {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 空状态 */
@@ -172,13 +172,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

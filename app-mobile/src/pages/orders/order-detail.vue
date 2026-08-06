@@ -298,10 +298,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .order-detail-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   padding-bottom: 120rpx;
 }
 
@@ -314,7 +314,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 状态卡片 */
@@ -324,11 +324,11 @@ onMounted(() => {
   padding-top: calc(48rpx + env(safe-area-inset-top));
 }
 
-.status-bg-pending { background: linear-gradient(135deg, #fa8c16, #ffa940); }
-.status-bg-processing { background: linear-gradient(135deg, #fa8c16, #ffa940); }
-.status-bg-delivering { background: linear-gradient(135deg, #1677FF, #69b1ff); }
-.status-bg-completed { background: linear-gradient(135deg, #52c41a, #95de64); }
-.status-bg-cancelled { background: linear-gradient(135deg, #ff4d4f, #ff7875); }
+.status-bg-pending { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.status-bg-processing { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.status-bg-delivering { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
+.status-bg-completed { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
+.status-bg-cancelled { background: linear-gradient(135deg, $uni-color-error, $uni-color-error); }
 
 .status-icon-wrap {
   width: 100rpx;
@@ -343,13 +343,13 @@ onMounted(() => {
 
 .status-icon {
   font-size: 48rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .status-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: block;
   margin-bottom: 8rpx;
 }
@@ -361,7 +361,7 @@ onMounted(() => {
 
 /* 信息卡片 */
 .info-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin: 16rpx 24rpx;
@@ -371,10 +371,10 @@ onMounted(() => {
 .info-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .info-row {
@@ -386,19 +386,19 @@ onMounted(() => {
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-value {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   text-align: right;
   max-width: 400rpx;
 }
 
 .info-value--amount {
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-size: 30rpx;
 }
 
@@ -407,7 +407,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f9f9f9;
+  border-bottom: 1rpx solid $uni-gray-50;
 }
 
 .item-row:last-child {
@@ -422,25 +422,25 @@ onMounted(() => {
 
 .item-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .item-spec {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 4rpx;
 }
 
 .item-price {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin: 0 20rpx;
 }
 
 .item-total {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .item-summary {
@@ -448,20 +448,20 @@ onMounted(() => {
   justify-content: flex-end;
   align-items: center;
   padding-top: 20rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
   margin-top: 8rpx;
 }
 
 .summary-label {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   margin-right: 16rpx;
 }
 
 .summary-value {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 物流信息 */
@@ -471,7 +471,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .logistics-company {
@@ -482,13 +482,13 @@ onMounted(() => {
 
 .logistics-icon {
   font-size: 32rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .logistics-company-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .logistics-status {
@@ -498,18 +498,18 @@ onMounted(() => {
 }
 
 .logistics-status-transporting {
-  background: #e6f7ff;
-  color: #1677FF;
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .logistics-status-delivered {
-  background: #f6ffed;
-  color: #52c41a;
+  background: $uni-color-success-soft;
+  color: $uni-color-success;
 }
 
 .logistics-status-unknown {
-  background: #f5f7fa;
-  color: #666;
+  background: $uni-bg-color-page;
+  color: $uni-gray-500;
 }
 
 .logistics-no {
@@ -519,7 +519,7 @@ onMounted(() => {
 
 .logistics-no-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-family: monospace;
 }
 
@@ -538,13 +538,13 @@ onMounted(() => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #ddd;
+  background: $uni-gray-300;
   margin-top: 8rpx;
   flex-shrink: 0;
 }
 
 .tracking-dot--active {
-  background: #1677FF;
+  background: $uni-color-primary;
 }
 
 .tracking-line {
@@ -553,7 +553,7 @@ onMounted(() => {
   top: 24rpx;
   width: 2rpx;
   bottom: 0;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 
 .tracking-content {
@@ -563,25 +563,25 @@ onMounted(() => {
 
 .tracking-status {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   display: block;
 }
 
 .tracking-status--active {
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 600;
 }
 
 .tracking-desc {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   display: block;
   margin-top: 4rpx;
 }
 
 .tracking-time {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   display: block;
   margin-top: 4rpx;
 }
@@ -593,7 +593,7 @@ onMounted(() => {
 
 .no-logistics-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 /* 订单跟踪时间线 */
@@ -615,7 +615,7 @@ onMounted(() => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #1677FF;
+  background: $uni-color-primary;
   margin-top: 10rpx;
   flex-shrink: 0;
 }
@@ -626,7 +626,7 @@ onMounted(() => {
   top: 22rpx;
   width: 2rpx;
   bottom: 0;
-  background: #e8f0fe;
+  background: $uni-color-primary-soft;
 }
 
 .timeline-content {
@@ -643,22 +643,22 @@ onMounted(() => {
 
 .timeline-action {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .timeline-time {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .timeline-operator {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .timeline-remark {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-top: 4rpx;
   display: block;
 }
@@ -672,7 +672,7 @@ onMounted(() => {
 
 .error-text {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 底部操作栏 */
@@ -684,7 +684,7 @@ onMounted(() => {
   display: flex;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: $uni-bg-color;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
   gap: 20rpx;
 }
@@ -706,19 +706,19 @@ onMounted(() => {
 }
 
 .action-btn--primary {
-  background: linear-gradient(135deg, #1677FF, #4096ff);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  color: $uni-text-color-inverse;
 }
 
 .action-btn--success {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
+  color: $uni-text-color-inverse;
 }
 
 .action-btn--danger {
-  background: #fff;
-  color: #ff4d4f;
-  border: 2rpx solid #ff4d4f;
+  background: $uni-bg-color;
+  color: $uni-color-error;
+  border: 2rpx solid $uni-color-error;
 }
 
 .safe-bottom {

@@ -285,17 +285,17 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .products-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   display: flex;
   flex-direction: column;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -303,36 +303,36 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .category-bar {
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   white-space: nowrap;
   padding: 8rpx 24rpx 16rpx;
 }
@@ -343,22 +343,22 @@ onMounted(() => {
   padding: 12rpx 28rpx;
   margin: 0 8rpx;
   border-radius: 32rpx;
-  background: #ffffff;
+  background: $uni-bg-color;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .category-item--active {
-  background: #5b6abf;
+  background: $uni-color-primary;
 }
 
 .category-item--active .category-text {
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
 .category-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 /* ─── 操作卡：建议核价 / 批量调价 / 价格异常 ─── */
@@ -366,12 +366,12 @@ onMounted(() => {
   display: flex;
   gap: 16rpx;
   padding: 0 24rpx 16rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .action-card {
   flex: 1;
-  background: #ffffff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 18rpx 8rpx;
   text-align: center;
@@ -382,26 +382,26 @@ onMounted(() => {
   display: block;
   font-size: 26rpx;
   font-weight: 600;
-  color: #1f2937;
+  color: $ai-text-body;
 }
 
 .action-card-sub {
   display: block;
   font-size: 20rpx;
-  color: #9ca3af;
+  color: $ai-text-sub;
   margin-top: 6rpx;
 }
 
 .action-card--danger {
-  background: #fef2f2;
+  background: $ai-danger-bg;
 }
 
 .action-card-title--danger {
-  color: #ef4444;
+  color: $ai-danger;
 }
 
 .action-card-sub--danger {
-  color: #f59e0b;
+  color: $ai-warning;
 }
 
 .product-scroll {
@@ -413,7 +413,7 @@ onMounted(() => {
 .product-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 16rpx;
   margin-bottom: 16rpx;
@@ -425,7 +425,7 @@ onMounted(() => {
 .product-image-wrap {
   width: 160rpx;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   overflow: hidden;
   position: relative;
@@ -444,7 +444,7 @@ onMounted(() => {
 
 .offline-tag-text {
   font-size: 20rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 500;
 }
 
@@ -452,7 +452,7 @@ onMounted(() => {
   display: inline-block;
   width: 12rpx;
   height: 12rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 50%;
   margin-left: 8rpx;
   vertical-align: middle;
@@ -469,12 +469,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f4ff, #f0f5ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
 }
 
 .placeholder-icon {
   font-size: 64rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .product-info {
@@ -488,7 +488,7 @@ onMounted(() => {
 
 .product-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -506,24 +506,24 @@ onMounted(() => {
 .product-price {
   font-size: 32rpx;
   font-weight: 700;
-  color: #000000;
+  color: $uni-text-color;
 }
 
 .product-stock {
   font-size: 22rpx;
-  color: #10B981;
+  color: $ai-success;
 }
 
 .stock-low {
-  color: #F59E0B;
+  color: $ai-warning;
 }
 
 .stock-out {
-  color: #EF4444;
+  color: $ai-danger;
 }
 
 .stock-ok {
-  color: #10B981;
+  color: $ai-success;
 }
 
 /* 门店状态条 */
@@ -537,17 +537,17 @@ onMounted(() => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #10B981;
+  background: $ai-success;
 }
 .store-text {
   font-size: 26rpx;
-  color: #1F2937;
+  color: $ai-text-body;
   font-weight: 500;
 }
 .store-tip {
   margin-left: auto;
   font-size: 20rpx;
-  color: #9CA3AF;
+  color: $ai-text-sub;
 }
 
 .empty-state {
@@ -559,13 +559,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .load-more {
@@ -575,7 +575,7 @@ onMounted(() => {
 
 .load-more-text {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

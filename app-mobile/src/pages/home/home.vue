@@ -260,16 +260,16 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .home-page {
   min-height: 100vh;
-  background: #F5F7FA;
+  background: $uni-bg-color-page;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* --- 数据看板通栏 --- */
 .dashboard-banner {
-  background: linear-gradient(135deg, #5BA0FF 0%, #2B7FFF 100%);
+  background: linear-gradient(135deg, $uni-color-primary 0%, $uni-color-primary 100%);
   padding: calc(48rpx + env(safe-area-inset-top)) 32rpx 36rpx;
   border-radius: 0 0 32rpx 32rpx;
   box-shadow: 0 8rpx 32rpx rgba(43, 127, 255, 0.2);
@@ -296,7 +296,7 @@ onMounted(() => {
 .dashboard-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .realtime-tag {
@@ -311,7 +311,7 @@ onMounted(() => {
 .realtime-dot {
   width: 12rpx;
   height: 12rpx;
-  background: #4ADE80;
+  background: $uni-color-success;
   border-radius: 50%;
 }
 
@@ -335,12 +335,12 @@ onMounted(() => {
 .dash-value {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-bottom: 6rpx;
 }
 
 .dash-value--warn {
-  color: #FCA5A5;
+  color: $uni-color-error-soft;
 }
 
 .dash-label {
@@ -351,7 +351,7 @@ onMounted(() => {
 /* --- 通用卡片 --- */
 .card-section {
   margin: 24rpx 24rpx 0;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 20rpx;
   padding: 28rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -367,12 +367,12 @@ onMounted(() => {
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: $ai-text-body;
 }
 
 .card-more {
   font-size: 24rpx;
-  color: #2B7FFF;
+  color: $uni-color-primary;
 }
 
 /* --- 订单进度 --- */
@@ -385,7 +385,7 @@ onMounted(() => {
 .order-stat {
   text-align: center;
   padding: 20rpx 8rpx;
-  background: #F5F7FA;
+  background: $uni-bg-color-page;
   border-radius: 16rpx;
 }
 
@@ -396,14 +396,14 @@ onMounted(() => {
   display: block;
 }
 
-.order-num--red { color: #EF4444; }
-.order-num--orange { color: #F59E0B; }
-.order-num--blue { color: #2B7FFF; }
-.order-num--green { color: #10B981; }
+.order-num--red { color: $ai-danger; }
+.order-num--orange { color: $ai-warning; }
+.order-num--blue { color: $uni-color-primary; }
+.order-num--green { color: $ai-success; }
 
 .order-label {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: $ai-text-sub;
 }
 
 /* --- 快捷入口 --- */
@@ -429,15 +429,15 @@ onMounted(() => {
   margin-bottom: 12rpx;
 }
 
-.quick-icon-wrap--blue { background: linear-gradient(135deg, #E8F2FF, #BAE0FF); }
-.quick-icon-wrap--green { background: linear-gradient(135deg, #ECFDF5, #A7F3D0); }
-.quick-icon-wrap--orange { background: linear-gradient(135deg, #FFF7ED, #FED7AA); }
-.quick-icon-wrap--purple { background: linear-gradient(135deg, #F5F3FF, #DDD6FE); }
-.quick-icon-wrap--cyan { background: linear-gradient(135deg, #ECFEFF, #A5F3FC); }
+.quick-icon-wrap--blue { background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft); }
+.quick-icon-wrap--green { background: linear-gradient(135deg, $ai-success-bg, $uni-color-success-soft); }
+.quick-icon-wrap--orange { background: linear-gradient(135deg, $ai-warning-bg, $uni-color-warning-soft); }
+.quick-icon-wrap--purple { background: linear-gradient(135deg, $uni-color-purple-soft, $uni-color-purple-soft); }
+.quick-icon-wrap--cyan { background: linear-gradient(135deg, $uni-color-success-soft, $uni-color-cyan-soft); }
 
 .quick-icon {
   font-size: 40rpx;
-  color: #2B7FFF;
+  color: $uni-color-primary;
 }
 
 .quick-icon--ai {
@@ -448,7 +448,7 @@ onMounted(() => {
 
 .quick-label {
   font-size: 24rpx;
-  color: #6B7280;
+  color: $ai-text-mid;
 }
 
 /* --- 最新订单 --- */
@@ -461,7 +461,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F3F4F6;
+  border-bottom: 1rpx solid $ai-bg-gap;
 }
 
 .order-item:last-child {
@@ -479,14 +479,14 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.order-avatar--blue { background: #2B7FFF; }
-.order-avatar--green { background: #10B981; }
-.order-avatar--orange { background: #F59E0B; }
+.order-avatar--blue { background: $uni-color-primary; }
+.order-avatar--green { background: $ai-success; }
+.order-avatar--orange { background: $ai-warning; }
 
 .avatar-text {
   font-size: 28rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .order-info {
@@ -504,20 +504,20 @@ onMounted(() => {
 .order-customer {
   font-size: 28rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: $ai-text-body;
 }
 
 .order-type-tag {
   font-size: 20rpx;
-  color: #9CA3AF;
-  background: #F3F4F6;
+  color: $ai-text-sub;
+  background: $ai-bg-gap;
   padding: 2rpx 12rpx;
   border-radius: 8rpx;
 }
 
 .order-meta {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: $ai-text-sub;
 }
 
 .order-right {
@@ -528,17 +528,17 @@ onMounted(() => {
 .order-amount {
   font-size: 30rpx;
   font-weight: 700;
-  color: #1F2937;
+  color: $ai-text-body;
 }
 
 .order-status {
   font-size: 20rpx;
-  color: #10B981;
+  color: $ai-success;
   margin-top: 4rpx;
 }
 
 .order-status--pending {
-  color: #F59E0B;
+  color: $ai-warning;
 }
 
 /* --- 待办提醒 --- */
@@ -551,7 +551,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #F3F4F6;
+  border-bottom: 1rpx solid $ai-bg-gap;
 }
 
 .todo-item:last-child {
@@ -567,27 +567,27 @@ onMounted(() => {
 }
 
 .todo-dot--pending {
-  background: #2B7FFF;
+  background: $uni-color-primary;
 }
 
 .todo-dot--done {
-  background: #D1D5DB;
+  background: $uni-gray-300;
 }
 
 .todo-title {
   flex: 1;
   font-size: 28rpx;
-  color: #1F2937;
+  color: $ai-text-body;
 }
 
 .todo-title--done {
-  color: #D1D5DB;
+  color: $uni-gray-300;
   text-decoration: line-through;
 }
 
 .todo-date {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: $ai-text-sub;
   margin-left: 16rpx;
 }
 
@@ -598,7 +598,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 26rpx;
-  color: #D1D5DB;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {
@@ -608,7 +608,7 @@ onMounted(() => {
 /* ─── 移动端打磨 v1.3：数据看板卡片化 ─── */
 .dashboard-card {
   margin: 16rpx 32rpx 24rpx;
-  background: #FFFFFF;
+  background: $uni-bg-color;
   border-radius: 24rpx;
   padding: 28rpx 32rpx 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
@@ -627,13 +627,13 @@ onMounted(() => {
 .dash-value-today {
   font-size: 56rpx;
   font-weight: 700;
-  color: #000000;
+  color: $uni-text-color;
   font-variant-numeric: tabular-nums;
 }
 .dash-month {
   display: flex;
   margin-top: 24rpx;
-  border-top: 2rpx solid #F3F4F6;
+  border-top: 2rpx solid $ai-bg-gap;
   padding-top: 20rpx;
 }
 .dash-month-item {
@@ -645,19 +645,19 @@ onMounted(() => {
 }
 .dash-value-month {
   font-size: 28rpx;
-  color: #6B7280;
+  color: $ai-text-mid;
   font-variant-numeric: tabular-nums;
 }
 .dash-label {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: $ai-text-sub;
 }
 .dash-warn {
   display: flex;
   align-items: center;
   gap: 8rpx;
   margin-top: 20rpx;
-  background: #FEF2F2;
+  background: $ai-danger-bg;
   border-radius: 12rpx;
   padding: 10rpx 16rpx;
 }
@@ -665,18 +665,18 @@ onMounted(() => {
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background: #EF4444;
+  background: $ai-danger;
 }
 .dash-warn-text {
   font-size: 22rpx;
-  color: #EF4444;
+  color: $ai-danger;
 }
 .ai-insight {
   display: flex;
   align-items: center;
   gap: 8rpx;
   margin-top: 20rpx;
-  background: #F3F4F6;
+  background: $ai-bg-gap;
   border-radius: 12rpx;
   padding: 12rpx 16rpx;
 }
@@ -686,7 +686,7 @@ onMounted(() => {
 .ai-insight-text {
   flex: 1;
   font-size: 24rpx;
-  color: #1F2937;
+  color: $ai-text-body;
 }
 
 /* 订单进度色点 */
@@ -696,8 +696,8 @@ onMounted(() => {
   border-radius: 50%;
   margin-bottom: 4rpx;
 }
-.order-dot--red { background: #EF4444; }
-.order-dot--orange { background: #F59E0B; }
-.order-dot--blue { background: #2563EB; }
-.order-dot--green { background: #10B981; }
+.order-dot--red { background: $ai-danger; }
+.order-dot--orange { background: $ai-warning; }
+.order-dot--blue { background: $ai-primary; }
+.order-dot--green { background: $ai-success; }
 </style>

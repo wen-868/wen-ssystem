@@ -201,27 +201,27 @@ onLoad(() => {
 })
 </script>
 
-<style scoped>
-.profile-edit-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.profile-edit-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .avatar-section {
   display: flex; justify-content: center;
   padding: 48rpx 0 32rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 .avatar-wrap {
   width: 160rpx; height: 160rpx;
   border-radius: 80rpx;
   position: relative;
   overflow: hidden;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 .avatar-img { width: 100%; height: 100%; }
 .avatar-placeholder {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
-.avatar-icon { font-size: 64rpx; color: #ccc; }
+.avatar-icon { font-size: 64rpx; color: $uni-gray-300; }
 .avatar-edit-mask {
   position: absolute;
   left: 0; right: 0; bottom: 0;
@@ -229,10 +229,10 @@ onLoad(() => {
   background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
 }
-.edit-text { font-size: 20rpx; color: #fff; }
+.edit-text { font-size: 20rpx; color: $uni-text-color-inverse; }
 .edit-form { padding: 24rpx; }
 .form-group {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   margin-bottom: 24rpx;
@@ -242,13 +242,13 @@ onLoad(() => {
   display: flex;
   align-items: center;
   padding: 28rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .form-item--last { border-bottom: none; }
 .form-label {
   width: 140rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   flex-shrink: 0;
 }
@@ -256,15 +256,15 @@ onLoad(() => {
 .form-input {
   width: 100%;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   text-align: right;
 }
-.form-input--readonly { color: #999; }
-.input-placeholder { color: #bbb; font-size: 28rpx; }
+.form-input--readonly { color: $uni-gray-400; }
+.input-placeholder { color: $uni-gray-300; font-size: 28rpx; }
 .error-text {
   display: block;
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   margin-bottom: 16rpx;
   text-align: right;
   padding-right: 24rpx;
@@ -272,18 +272,18 @@ onLoad(() => {
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-bottom: 32rpx;
   border: none;
 }
 .submit-btn::after { border: none; }
 .action-list {
   margin: 0 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -293,10 +293,10 @@ onLoad(() => {
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .action-item:last-child { border-bottom: none; }
-.action-text { font-size: 28rpx; color: #333; }
-.action-arrow { font-size: 24rpx; color: #999; }
+.action-text { font-size: 28rpx; color: $uni-gray-700; }
+.action-arrow { font-size: 24rpx; color: $uni-gray-400; }
 .safe-bottom { height: 40rpx; }
 </style>

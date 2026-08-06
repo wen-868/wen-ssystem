@@ -128,17 +128,17 @@ async function onSubmit() {
 }
 </script>
 
-<style scoped>
-.change-password-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.change-password-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .password-form { padding: 24rpx; }
 .form-group {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   margin-bottom: 32rpx;
@@ -146,12 +146,12 @@ async function onSubmit() {
 }
 .form-item {
   padding: 28rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .form-item--last { border-bottom: none; }
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   margin-bottom: 12rpx;
   display: block;
@@ -160,24 +160,24 @@ async function onSubmit() {
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .field-error { margin-top: 8rpx; }
-.error-text { font-size: 24rpx; color: #ff4d4f; }
+.error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   border: none;
 }
 .submit-btn::after { border: none; }

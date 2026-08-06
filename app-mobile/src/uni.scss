@@ -20,6 +20,16 @@ $uni-color-error-soft: rgba(192, 57, 43, 0.12);
 $uni-color-info: #5B6ABF;
 $uni-color-info-soft: rgba(91, 106, 191, 0.12);
 
+/* R94-02 补充语义色（Atlas 扩展，追加不覆盖） */
+$uni-color-primary-light: #8B9ADF;   /* 品牌蓝浅色（登录页渐变等） */
+$uni-color-purple: #722ED1;          /* 紫色（会员/客户/平台状态等） */
+$uni-color-purple-light: #9254DE;    /* 紫色渐变浅端 */
+$uni-color-purple-soft: rgba(114, 46, 209, 0.12);
+$uni-color-pink: #EB2F96;            /* 粉色（活动/入口图标渐变） */
+$uni-color-pink-light: #F759AB;
+$uni-color-cyan: #13C2C2;            /* 青色（审核/处理中状态） */
+$uni-color-cyan-soft: rgba(19, 194, 194, 0.12);
+
 /* Neutral Gray Scale — 11级灰阶 */
 $uni-gray-0: #FFFFFF;
 $uni-gray-50: #F8F8F8;
@@ -264,6 +274,11 @@ $ai-success: #10B981;
 $ai-warning: #F59E0B;
 $ai-danger:  #EF4444;
 $ai-info:    #6B7280;
+
+/* AI 浅底（R94-02 补充，与 .ai-tag 浅底一致） */
+$ai-success-bg: #ECFDF5;
+$ai-warning-bg: #FFF7ED;
+$ai-danger-bg:  #FEF2F2;
 
 /* 字号（px → rpx，750 设计稿近似） */
 $ai-fs-h1:      56rpx;  /* 28px — 核心数字 */

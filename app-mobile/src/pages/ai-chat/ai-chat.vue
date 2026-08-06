@@ -576,7 +576,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
 }
 
 /* ====================== 消息列表 ====================== */
@@ -615,8 +615,8 @@ onUnmounted(() => {
 }
 
 .avatar--ai {
-  background: linear-gradient(135deg, #6366F1, #2563EB);
-  color: #fff;
+  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
+  color: $uni-text-color-inverse;
   margin-right: 16rpx;
 }
 
@@ -635,16 +635,16 @@ onUnmounted(() => {
 }
 
 .bubble--ai {
-  background: #F3F4F6;
-  color: #1f2937;
+  background: $ai-bg-gap;
+  color: $ai-text-body;
   border-top-left-radius: 8rpx;
   box-shadow: none;
 }
 
 .bubble--user {
-  background: #FFFFFF;
-  color: #1f2937;
-  border: 2rpx solid #E5E7EB;
+  background: $uni-bg-color;
+  color: $ai-text-body;
+  border: 2rpx solid $ai-border;
   border-top-right-radius: 8rpx;
 }
 
@@ -653,7 +653,7 @@ onUnmounted(() => {
 }
 
 .bubble-text--user {
-  color: #1f2937;
+  color: $ai-text-body;
 }
 
 /* 打字动画 */
@@ -668,7 +668,7 @@ onUnmounted(() => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #b9c2cf;
+  background: $uni-gray-300;
   animation: typing-bounce 1.2s infinite ease-in-out;
 }
 
@@ -691,7 +691,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 10rpx;
   margin-top: 14rpx;
-  background: #f0f2f5;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 12rpx 20rpx;
   align-self: flex-start;
@@ -700,8 +700,8 @@ onUnmounted(() => {
 .tool-tag-spin {
   width: 20rpx;
   height: 20rpx;
-  border: 4rpx solid #c9d2de;
-  border-top-color: #1677ff;
+  border: 4rpx solid $uni-gray-300;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: tool-spin 0.8s linear infinite;
 }
@@ -712,7 +712,7 @@ onUnmounted(() => {
 
 .tool-tag-text {
   font-size: 22rpx;
-  color: #6b7280;
+  color: $ai-text-mid;
 }
 
 /* 工具执行结果 */
@@ -724,11 +724,11 @@ onUnmounted(() => {
 }
 
 .tool-result--ok {
-  background: #ecfdf5;
+  background: $ai-success-bg;
 }
 
 .tool-result--fail {
-  background: #fef2f2;
+  background: $ai-danger-bg;
 }
 
 .tool-result-text {
@@ -736,11 +736,11 @@ onUnmounted(() => {
 }
 
 .tool-result--ok .tool-result-text {
-  color: #0ea879;
+  color: $uni-color-success;
 }
 
 .tool-result--fail .tool-result-text {
-  color: #c0392b;
+  color: $uni-color-error;
 }
 
 /* ====================== 欢迎语 ====================== */
@@ -752,22 +752,22 @@ onUnmounted(() => {
 }
 
 .tip-chip {
-  background: #fff;
-  border: 2rpx solid #e2e8f0;
+  background: $uni-bg-color;
+  border: 2rpx solid $uni-gray-200;
   border-radius: 32rpx;
   padding: 12rpx 24rpx;
 }
 
 .tip-chip-text {
   font-size: 24rpx;
-  color: #1677ff;
+  color: $uni-color-primary;
 }
 
 /* ====================== 写操作预览卡片 ====================== */
 .preview-card {
   margin-top: 16rpx;
-  background: #fff;
-  border: 2rpx solid #e2e8f0;
+  background: $uni-bg-color;
+  border: 2rpx solid $uni-gray-200;
   border-radius: 20rpx;
   padding: 24rpx;
 }
@@ -780,8 +780,8 @@ onUnmounted(() => {
 }
 
 .preview-operation-tag {
-  background: #fff7e6;
-  color: #d48806;
+  background: $uni-color-warning-soft;
+  color: $uni-color-warning;
   font-size: 20rpx;
   border-radius: 8rpx;
   padding: 4rpx 12rpx;
@@ -791,11 +791,11 @@ onUnmounted(() => {
 .preview-operation {
   font-size: 30rpx;
   font-weight: 600;
-  color: #1f2937;
+  color: $ai-text-body;
 }
 
 .preview-summary {
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 16rpx 20rpx;
   margin-bottom: 16rpx;
@@ -803,7 +803,7 @@ onUnmounted(() => {
 
 .preview-summary-text {
   font-size: 24rpx;
-  color: #444444;
+  color: $uni-gray-600;
   line-height: 1.5;
 }
 
@@ -820,14 +820,14 @@ onUnmounted(() => {
 
 .detail-key {
   font-size: 24rpx;
-  color: #999999;
+  color: $uni-gray-400;
   flex-shrink: 0;
   margin-right: 24rpx;
 }
 
 .detail-value {
   font-size: 24rpx;
-  color: #111111;
+  color: $uni-gray-900;
   text-align: right;
   word-break: break-all;
 }
@@ -838,12 +838,12 @@ onUnmounted(() => {
 
 .detail-list-title {
   font-size: 24rpx;
-  color: #999999;
+  color: $uni-gray-400;
   margin-bottom: 8rpx;
 }
 
 .detail-list-item {
-  background: #f8f9fb;
+  background: $uni-gray-50;
   border-radius: 10rpx;
   padding: 10rpx 16rpx;
   margin-bottom: 8rpx;
@@ -851,7 +851,7 @@ onUnmounted(() => {
 
 .detail-list-item-text {
   font-size: 22rpx;
-  color: #444444;
+  color: $uni-gray-600;
   line-height: 1.5;
 }
 
@@ -875,13 +875,13 @@ onUnmounted(() => {
 }
 
 .preview-btn--cancel {
-  background: #f0f2f5;
-  color: #444444;
+  background: $uni-bg-color-page;
+  color: $uni-gray-600;
 }
 
 .preview-btn--confirm {
-  background: linear-gradient(135deg, #5ba0ff, #1677ff);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  color: $uni-text-color-inverse;
 }
 
 .preview-btn[disabled] {
@@ -890,7 +890,7 @@ onUnmounted(() => {
 
 /* ====================== 底部输入栏 ====================== */
 .chat-footer {
-  background: #fff;
+  background: $uni-bg-color;
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -899,7 +899,7 @@ onUnmounted(() => {
 /* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
 .tabbar-placeholder {
   height: calc(108rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: $uni-bg-color;
 }
 
 .input-bar {
@@ -911,7 +911,7 @@ onUnmounted(() => {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: #f0f2f5;
+  background: $uni-bg-color-page;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -920,30 +920,30 @@ onUnmounted(() => {
 }
 
 .mic-btn--recording {
-  background: #c0392b;
+  background: $uni-color-error;
 }
 
 .mic-btn-text {
   font-size: 24rpx;
-  color: #666666;
+  color: $uni-gray-500;
 }
 
 .mic-btn--recording .mic-btn-text {
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .chat-input {
   flex: 1;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 40rpx;
   padding: 0 28rpx;
   font-size: 28rpx;
-  color: #111111;
+  color: $uni-gray-900;
 }
 
 .chat-input-placeholder {
-  color: #cccccc;
+  color: $uni-gray-300;
 }
 
 .send-btn {
@@ -951,7 +951,7 @@ onUnmounted(() => {
   height: 72rpx;
   padding: 0 32rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #6366F1, #2563EB);
+  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -964,7 +964,7 @@ onUnmounted(() => {
 
 .send-btn-text {
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .recording-hint {
@@ -979,7 +979,7 @@ onUnmounted(() => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #c0392b;
+  background: $uni-color-error;
   animation: recording-blink 1s infinite;
 }
 
@@ -990,6 +990,6 @@ onUnmounted(() => {
 
 .recording-hint-text {
   font-size: 22rpx;
-  color: #c0392b;
+  color: $uni-color-error;
 }
 </style>

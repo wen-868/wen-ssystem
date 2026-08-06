@@ -322,10 +322,10 @@ function goLogin() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .register-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #1677FF 0%, #69b1ff 60%, #f0f5ff 100%);
+  background: linear-gradient(180deg, $uni-color-primary 0%, $uni-color-primary 60%, $uni-color-primary-soft 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -357,7 +357,7 @@ function goLogin() {
   width: 72rpx;
   height: 72rpx;
   border-radius: 18rpx;
-  background: #fff;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -366,13 +366,13 @@ function goLogin() {
 .brand-icon-text {
   font-size: 38rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .brand-title {
   font-size: 44rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   letter-spacing: 4rpx;
   margin-bottom: 10rpx;
 }
@@ -389,7 +389,7 @@ function goLogin() {
 }
 
 .form-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx;
   padding: 36rpx;
   box-shadow: 0 8rpx 40rpx rgba(22, 119, 255, 0.12);
@@ -408,35 +408,35 @@ function goLogin() {
 
 .label-icon {
   font-size: 28rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   margin-right: 8rpx;
 }
 
 .label-text {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .label-optional {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-left: 6rpx;
 }
 
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 14rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
@@ -452,7 +452,7 @@ function goLogin() {
 .send-code-btn {
   width: 180rpx;
   height: 80rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 14rpx;
   display: flex;
   align-items: center;
@@ -466,12 +466,12 @@ function goLogin() {
 }
 
 .send-code-btn--disabled {
-  background: #ccc;
+  background: $uni-gray-300;
 }
 
 .send-code-text {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 500;
 }
 
@@ -484,15 +484,15 @@ function goLogin() {
 
 .toggle-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .register-error {
   margin-bottom: 12rpx;
   padding: 10rpx 16rpx;
-  background: #fff2f0;
+  background: $uni-color-error-soft;
   border-radius: 10rpx;
-  border-left: 6rpx solid #ff4d4f;
+  border-left: 6rpx solid $uni-color-error;
 }
 
 .field-error {
@@ -502,7 +502,7 @@ function goLogin() {
 
 .error-text {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 /* 密码强度样式 */
@@ -524,28 +524,28 @@ function goLogin() {
 }
 
 .strength-segment.empty {
-  background: #E5E7EB;
+  background: $ai-border;
 }
 
 .strength-segment.weak {
-  background: #EF4444;
+  background: $ai-danger;
 }
 
 .strength-segment.medium {
-  background: #F59E0B;
+  background: $ai-warning;
 }
 
 .strength-segment.strong {
-  background: #3B82F6;
+  background: $uni-color-primary;
 }
 
 .strength-segment.very-strong {
-  background: #10B981;
+  background: $ai-success;
 }
 
 .strength-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 协议勾选 */
@@ -564,7 +564,7 @@ function goLogin() {
 .checkbox {
   width: 32rpx;
   height: 32rpx;
-  border: 2rpx solid #ddd;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 6rpx;
   display: flex;
   align-items: center;
@@ -572,29 +572,29 @@ function goLogin() {
 }
 
 .checkbox--checked {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .checkbox-icon {
   font-size: 20rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .agreement-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .agreement-link {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .register-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   display: flex;
   align-items: center;
@@ -616,7 +616,7 @@ function goLogin() {
 .btn-text {
   font-size: 32rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   letter-spacing: 8rpx;
 }
 
@@ -634,7 +634,7 @@ function goLogin() {
 
 .link-btn {
   font-size: 26rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
   margin-left: 8rpx;
   text-decoration: underline;

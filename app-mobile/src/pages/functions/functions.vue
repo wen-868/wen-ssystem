@@ -49,6 +49,18 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+import {
+  AI_BG_SOFT,
+  AI_TAB_ACTIVE,
+  AI_SUCCESS,
+  AI_SUCCESS_SOFT,
+  AI_WARNING,
+  AI_WARNING_SOFT,
+  AI_DANGER,
+  AI_DANGER_SOFT,
+  AI_BG_GAP,
+  AI_TEXT_MID,
+} from '@/constants/colors'
 
 const navigate = (path: string) => {
   if (path) {
@@ -61,23 +73,23 @@ const navigate = (path: string) => {
 const goto = (path: string) => navigate(path)
 
 const hotActions = reactive([
-  { icon: '🧾', label: '开单收银', path: '/pages/sales/create-sale', bg: '#EEF2FF', color: '#6366F1' },
-  { icon: '📦', label: '订单管理', path: '/pages/orders/orders', bg: '#ECFDF5', color: '#10B981' },
-  { icon: '🔍', label: '库存盘点', path: '', bg: '#FFF7ED', color: '#F59E0B' },
-  { icon: '🚚', label: '配送管理', path: '', bg: '#FEF2F2', color: '#EF4444' },
+  { icon: '🧾', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '📦', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '🔍', label: '库存盘点', path: '', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '🚚', label: '配送管理', path: '', bg: AI_DANGER_SOFT, color: AI_DANGER },
 ])
 
 const bizActions = reactive([
-  { icon: '👥', label: '客户管理', path: '/pages-sub/product/customers/customers', bg: '#EEF2FF', color: '#6366F1' },
-  { icon: '🏷️', label: '商品管理', path: '/pages/products/products', bg: '#ECFDF5', color: '#10B981' },
-  { icon: '💰', label: '价格管理', path: '', bg: '#FFF7ED', color: '#F59E0B' },
-  { icon: '🧑‍💼', label: '员工管理', path: '', bg: '#F3F4F6', color: '#6B7280' },
+  { icon: '👥', label: '客户管理', path: '/pages-sub/product/customers/customers', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '🏷️', label: '商品管理', path: '/pages/products/products', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '💰', label: '价格管理', path: '', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '🧑‍💼', label: '员工管理', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ])
 
 const dataTools = reactive([
-  { icon: '📊', label: '销售报表', sub: '经营数据分析', path: '/pages-sub/finance/reports/reports', bg: '#EEF2FF' },
-  { icon: '📈', label: '库存报表', sub: '商品与库存', path: '', bg: '#ECFDF5' },
-  { icon: '💹', label: '利润分析', sub: '毛利与成本', path: '', bg: '#FFF7ED' },
+  { icon: '📊', label: '销售报表', sub: '经营数据分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT },
+  { icon: '📈', label: '库存报表', sub: '商品与库存', path: '', bg: AI_SUCCESS_SOFT },
+  { icon: '💹', label: '利润分析', sub: '毛利与成本', path: '', bg: AI_WARNING_SOFT },
 ])
 </script>
 
@@ -95,7 +107,7 @@ const dataTools = reactive([
 }
 .search-input {
   height: 72rpx;
-  background: #FFFFFF;
+  background: $uni-bg-color;
   border-radius: 36rpx;
   padding: 0 32rpx;
   font-size: $ai-fs-body;
@@ -147,7 +159,7 @@ const dataTools = reactive([
 }
 .data-card {
   flex: 1;
-  background: #FFFFFF;
+  background: $uni-bg-color;
   border-radius: $ai-radius-lg;
   padding: 24rpx 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);

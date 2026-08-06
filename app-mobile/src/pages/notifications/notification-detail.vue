@@ -201,15 +201,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .detail-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   padding-bottom: 120rpx;
 }
 
 .detail-content {
-  background: #fff;
+  background: $uni-bg-color;
   margin: 24rpx;
   border-radius: 16rpx;
   padding: 32rpx;
@@ -229,29 +229,29 @@ onMounted(() => {
   border-radius: 8rpx;
 }
 
-.tag-system { background: #e6f4ff; color: #1677FF; }
-.tag-order { background: #fff7e6; color: #fa8c16; }
-.tag-inventory { background: #fff2f0; color: #ff4d4f; }
-.tag-marketing { background: #f6ffed; color: #52c41a; }
+.tag-system { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-order { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.tag-inventory { background: $uni-color-error-soft; color: $uni-color-error; }
+.tag-marketing { background: $uni-color-success-soft; color: $uni-color-success; }
 
 .read-status {
   font-size: 22rpx;
-  color: #52c41a;
-  background: #f6ffed;
+  color: $uni-color-success;
+  background: $uni-color-success-soft;
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
 }
 
 .read-status--unread {
-  color: #ff4d4f;
-  background: #fff2f0;
+  color: $uni-color-error;
+  background: $uni-color-error-soft;
 }
 
 /* 标题 */
 .detail-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.5;
   margin-bottom: 16rpx;
   display: block;
@@ -260,7 +260,7 @@ onMounted(() => {
 /* 时间 */
 .detail-time {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-bottom: 8rpx;
   display: block;
 }
@@ -268,20 +268,20 @@ onMounted(() => {
 /* 分隔线 */
 .divider {
   height: 1rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
   margin: 24rpx 0;
 }
 
 /* 内容 */
 .detail-body {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.8;
 }
 
 .detail-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-all;
@@ -295,17 +295,17 @@ onMounted(() => {
 .link-card {
   display: flex;
   align-items: center;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 24rpx;
-  border: 1rpx solid #f0f0f0;
+  border: 1rpx solid $uni-gray-100;
 }
 
 .link-icon {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -315,7 +315,7 @@ onMounted(() => {
 
 .link-icon-text {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -328,12 +328,12 @@ onMounted(() => {
 
 .link-text {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .link-arrow {
   font-size: 32rpx;
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 /* 加载状态 */
@@ -347,8 +347,8 @@ onMounted(() => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #f0f0f0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-100;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16rpx;
@@ -360,7 +360,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 错误状态 */
@@ -373,21 +373,21 @@ onMounted(() => {
 
 .error-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .error-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   margin-bottom: 24rpx;
 }
 
 .retry-btn {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   padding: 12rpx 32rpx;
-  border: 1rpx solid #1677FF;
+  border: 1rpx solid $uni-color-primary;
   border-radius: 32rpx;
 }
 
@@ -401,8 +401,8 @@ onMounted(() => {
   align-items: center;
   padding: 20rpx 32rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
-  border-top: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-top: 1rpx solid $uni-gray-100;
   gap: 24rpx;
 }
 
@@ -410,16 +410,16 @@ onMounted(() => {
   flex: 1;
   text-align: center;
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
   padding: 20rpx 0;
-  border: 1rpx solid #d9d9d9;
+  border: 1rpx solid $uni-gray-300;
   border-radius: 40rpx;
 }
 
 .bottom-btn--primary {
-  color: #fff;
-  background: #1677FF;
-  border-color: #1677FF;
+  color: $uni-text-color-inverse;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .safe-bottom {

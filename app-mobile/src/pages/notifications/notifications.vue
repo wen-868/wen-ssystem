@@ -518,10 +518,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .notifications-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   display: flex;
   flex-direction: column;
 }
@@ -533,13 +533,13 @@ onMounted(() => {
   align-items: center;
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .header-actions {
@@ -549,14 +549,14 @@ onMounted(() => {
 
 .header-action {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 分类 Tab */
 .tab-bar {
   white-space: nowrap;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .tab-item {
@@ -569,11 +569,11 @@ onMounted(() => {
 
 .tab-text {
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .tab-item--active .tab-text {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -584,7 +584,7 @@ onMounted(() => {
   min-width: 32rpx;
   height: 32rpx;
   padding: 0 8rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 16rpx;
   display: flex;
   align-items: center;
@@ -593,14 +593,14 @@ onMounted(() => {
 
 .tab-badge-text {
   font-size: 20rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   line-height: 1;
 }
 
 .tab-indicator {
   width: 48rpx;
   height: 6rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 3rpx;
   margin-top: 8rpx;
 }
@@ -611,8 +611,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 32rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .action-left {
@@ -623,7 +623,7 @@ onMounted(() => {
 
 .action-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .action-right {
@@ -634,23 +634,23 @@ onMounted(() => {
 
 .action-btn {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   padding: 8rpx 20rpx;
 }
 
 .action-btn--danger {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .action-btn--disabled {
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 /* 复选框 */
 .checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -658,13 +658,13 @@ onMounted(() => {
 }
 
 .checkbox--checked {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .checkbox-icon {
   font-size: 22rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* 消息列表 */
@@ -683,8 +683,8 @@ onMounted(() => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #f0f0f0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-100;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16rpx;
@@ -696,13 +696,13 @@ onMounted(() => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .notification-item {
   display: flex;
   align-items: flex-start;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -714,11 +714,11 @@ onMounted(() => {
 }
 
 .notification-item--unread {
-  background: #f6faff;
+  background: $uni-color-primary-soft;
 }
 
 .notification-item--selected {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .select-checkbox {
@@ -741,20 +741,20 @@ onMounted(() => {
   justify-content: center;
 }
 
-.icon-system { background: #e6f4ff; }
-.icon-order { background: #fff7e6; }
-.icon-inventory { background: #fff2f0; }
-.icon-marketing { background: #f6ffed; }
+.icon-system { background: $uni-color-primary-soft; }
+.icon-order { background: $uni-color-warning-soft; }
+.icon-inventory { background: $uni-color-error-soft; }
+.icon-marketing { background: $uni-color-success-soft; }
 
 .icon-text {
   font-size: 26rpx;
   font-weight: 600;
 }
 
-.icon-system .icon-text { color: #1677FF; }
-.icon-order .icon-text { color: #fa8c16; }
-.icon-inventory .icon-text { color: #ff4d4f; }
-.icon-marketing .icon-text { color: #52c41a; }
+.icon-system .icon-text { color: $uni-color-primary; }
+.icon-order .icon-text { color: $uni-color-warning; }
+.icon-inventory .icon-text { color: $uni-color-error; }
+.icon-marketing .icon-text { color: $uni-color-success; }
 
 .unread-dot {
   position: absolute;
@@ -762,9 +762,9 @@ onMounted(() => {
   right: -4rpx;
   width: 16rpx;
   height: 16rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 50%;
-  border: 2rpx solid #fff;
+  border: 2rpx solid $uni-bg-color;
 }
 
 .notification-content {
@@ -781,7 +781,7 @@ onMounted(() => {
 
 .notification-title {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 600;
   flex: 1;
   margin-right: 16rpx;
@@ -792,13 +792,13 @@ onMounted(() => {
 
 .notification-time {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   flex-shrink: 0;
 }
 
 .notification-summary {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -819,27 +819,27 @@ onMounted(() => {
   border-radius: 6rpx;
 }
 
-.tag-system { background: #e6f4ff; color: #1677FF; }
-.tag-order { background: #fff7e6; color: #fa8c16; }
-.tag-inventory { background: #fff2f0; color: #ff4d4f; }
-.tag-marketing { background: #f6ffed; color: #52c41a; }
+.tag-system { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-order { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.tag-inventory { background: $uni-color-error-soft; color: $uni-color-error; }
+.tag-marketing { background: $uni-color-success-soft; color: $uni-color-success; }
 
 .notification-link {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .delete-btn {
   margin-left: 16rpx;
   padding: 8rpx 16rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 8rpx;
   flex-shrink: 0;
 }
 
 .delete-text {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* 空状态 */
@@ -852,13 +852,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 /* 加载更多 */
@@ -873,15 +873,15 @@ onMounted(() => {
 .loading-more-spinner {
   width: 32rpx;
   height: 32rpx;
-  border: 3rpx solid #f0f0f0;
-  border-top-color: #1677FF;
+  border: 3rpx solid $uni-gray-100;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .load-more-text {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

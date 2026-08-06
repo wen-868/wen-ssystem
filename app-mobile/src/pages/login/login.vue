@@ -152,10 +152,10 @@ function goRegister() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #5B6ABF 0%, #8B9ADF 60%, #f0f5ff 100%);
+  background: linear-gradient(180deg, $uni-color-primary 0%, $uni-color-primary-light 60%, $uni-color-primary-soft 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -187,7 +187,7 @@ function goRegister() {
   width: 88rpx;
   height: 88rpx;
   border-radius: 22rpx;
-  background: #fff;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +202,7 @@ function goRegister() {
 .brand-title {
   font-size: 48rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   letter-spacing: 4rpx;
   margin-bottom: 12rpx;
 }
@@ -244,23 +244,23 @@ function goRegister() {
 
 .label-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .form-input {
   width: 100%;
   height: 88rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 16rpx;
   padding: 0 28rpx;
   font-size: 30rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 28rpx;
 }
 
@@ -273,7 +273,7 @@ function goRegister() {
 
 .toggle-icon {
   font-size: 36rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .login-error {
@@ -319,7 +319,7 @@ function goRegister() {
 .btn-text {
   font-size: 34rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   letter-spacing: 8rpx;
 }
 
@@ -337,7 +337,7 @@ function goRegister() {
 
 .link-btn {
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
   margin-left: 8rpx;
   text-decoration: underline;

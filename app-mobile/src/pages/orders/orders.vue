@@ -462,17 +462,17 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .orders-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   display: flex;
   flex-direction: column;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -480,39 +480,39 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .tab-bar {
-  background: #fff;
+  background: $uni-bg-color;
   white-space: nowrap;
   padding: 0 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .tab-item {
@@ -526,19 +526,19 @@ onMounted(() => {
 
 .tab-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   transition: color 0.2s ease;
 }
 
 .tab-item--active .tab-text {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .tab-indicator {
   width: 40rpx;
   height: 6rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 3rpx;
   position: absolute;
   bottom: 4rpx;
@@ -548,9 +548,9 @@ onMounted(() => {
 .filter-bar {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .filter-item {
@@ -563,30 +563,30 @@ onMounted(() => {
 
 .filter-item--action {
   flex: 0.5;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .filter-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .filter-item--action .filter-label {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .filter-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .filter-value--placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .filter-arrow {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .filter-icon {
@@ -596,7 +596,7 @@ onMounted(() => {
 .filter-divider {
   width: 1rpx;
   height: 40rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 
 .order-list {
@@ -615,8 +615,8 @@ onMounted(() => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -627,12 +627,12 @@ onMounted(() => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 20rpx;
 }
 
 .order-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -645,7 +645,7 @@ onMounted(() => {
 .order-card:active,
 .card-active {
   transform: scale(0.98);
-  background: #f9fafc;
+  background: $uni-gray-50;
 }
 
 .order-card-header {
@@ -657,7 +657,7 @@ onMounted(() => {
 
 .order-no {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .order-status {
@@ -666,20 +666,20 @@ onMounted(() => {
   font-size: 22rpx;
 }
 
-.status-pending { background: #fff7e6; }
-.status-pending .status-text { color: #fa8c16; }
+.status-pending { background: $uni-color-warning-soft; }
+.status-pending .status-text { color: $uni-color-warning; }
 
-.status-processing { background: #fff7e6; }
-.status-processing .status-text { color: #fa8c16; }
+.status-processing { background: $uni-color-warning-soft; }
+.status-processing .status-text { color: $uni-color-warning; }
 
-.status-delivering { background: #e6f7ff; }
-.status-delivering .status-text { color: #1677FF; }
+.status-delivering { background: $uni-color-primary-soft; }
+.status-delivering .status-text { color: $uni-color-primary; }
 
-.status-completed { background: #f6ffed; }
-.status-completed .status-text { color: #52c41a; }
+.status-completed { background: $uni-color-success-soft; }
+.status-completed .status-text { color: $uni-color-success; }
 
-.status-cancelled { background: #fff2f0; }
-.status-cancelled .status-text { color: #ff4d4f; }
+.status-cancelled { background: $uni-color-error-soft; }
+.status-cancelled .status-text { color: $uni-color-error; }
 
 .order-card-body {
   display: flex;
@@ -691,13 +691,13 @@ onMounted(() => {
 .order-customer {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .order-amount {
   font-size: 32rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .order-card-footer {
@@ -708,12 +708,12 @@ onMounted(() => {
 
 .order-time {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .order-arrow {
   font-size: 28rpx;
-  color: #ddd;
+  color: $uni-gray-300;
 }
 
 .empty-state {
@@ -725,13 +725,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .load-more {
@@ -745,15 +745,15 @@ onMounted(() => {
 .loading-more-spinner {
   width: 32rpx;
   height: 32rpx;
-  border: 3rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 3rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .load-more-text {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {
@@ -775,7 +775,7 @@ onMounted(() => {
 
 .picker-popup {
   width: 100%;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   max-height: 70vh;
 }
@@ -785,18 +785,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .picker-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .picker-close {
   font-size: 48rpx;
-  color: #999;
+  color: $uni-gray-400;
   line-height: 1;
 }
 
@@ -809,22 +809,22 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #f9f9f9;
+  border-bottom: 1rpx solid $uni-gray-50;
 }
 
 .picker-item-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .picker-item--active .picker-item-text {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .picker-check {
   font-size: 32rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 日期选择弹窗 */
@@ -837,12 +837,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .date-picker-label {
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .date-picker-value {
@@ -850,12 +850,12 @@ onMounted(() => {
   align-items: center;
   gap: 8rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .date-picker-arrow {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .date-quick-options {
@@ -869,14 +869,14 @@ onMounted(() => {
   padding: 16rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #666;
-  background: #f5f7fa;
+  color: $uni-gray-500;
+  background: $uni-bg-color-page;
   border-radius: 8rpx;
 }
 
 .quick-btn--active {
-  background: #1677FF;
-  color: #fff;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
 }
 
 .date-picker-actions {
@@ -895,12 +895,12 @@ onMounted(() => {
 }
 
 .picker-cancel-btn {
-  background: #f5f7fa;
-  color: #666;
+  background: $uni-bg-color-page;
+  color: $uni-gray-500;
 }
 
 .picker-confirm-btn {
-  background: #1677FF;
-  color: #fff;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
 }
 </style>

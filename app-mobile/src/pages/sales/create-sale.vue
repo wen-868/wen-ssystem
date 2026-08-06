@@ -528,10 +528,10 @@ async function handleSubmit() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .create-sale-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   display: flex;
   flex-direction: column;
 }
@@ -539,13 +539,13 @@ async function handleSubmit() {
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .sale-form {
@@ -554,7 +554,7 @@ async function handleSubmit() {
 }
 
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin: 16rpx 24rpx;
@@ -564,7 +564,7 @@ async function handleSubmit() {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
@@ -574,7 +574,7 @@ async function handleSubmit() {
 .item-count {
   font-size: 24rpx;
   font-weight: 400;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 客户选择 */
@@ -582,7 +582,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
 }
@@ -597,23 +597,23 @@ async function handleSubmit() {
 .customer-name {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .customer-phone {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .customer-placeholder {
   flex: 1;
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .customer-arrow {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 /* 商品明细 */
@@ -621,7 +621,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   gap: 12rpx;
 }
 
@@ -638,7 +638,7 @@ async function handleSubmit() {
 
 .item-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 4rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -647,13 +647,13 @@ async function handleSubmit() {
 
 .item-spec {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-bottom: 4rpx;
 }
 
 .item-price {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .item-quantity {
@@ -664,19 +664,19 @@ async function handleSubmit() {
 .qty-btn {
   width: 48rpx;
   height: 48rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 8rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
   font-weight: 600;
 }
 
 .qty-btn--add {
-  background: #e6f4ff;
-  color: #1677FF;
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .qty-input {
@@ -684,9 +684,9 @@ async function handleSubmit() {
   height: 48rpx;
   text-align: center;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   margin: 0 8rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 8rpx;
 }
 
@@ -701,14 +701,14 @@ async function handleSubmit() {
 .item-total {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   min-width: 120rpx;
   text-align: right;
 }
 
 .item-delete {
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   padding: 4rpx 8rpx;
 }
 
@@ -717,20 +717,20 @@ async function handleSubmit() {
   align-items: center;
   justify-content: center;
   padding: 24rpx 0;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed $uni-gray-300;
   border-radius: 12rpx;
   margin-top: 16rpx;
 }
 
 .add-icon {
   font-size: 36rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   margin-right: 8rpx;
 }
 
 .add-text {
   font-size: 28rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 金额汇总 */
@@ -743,41 +743,41 @@ async function handleSubmit() {
 
 .amount-row--total {
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
   margin-top: 4rpx;
 }
 
 .amount-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .amount-value {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .amount-value--total {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 备注 */
 .remark-input {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .remark-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
@@ -791,7 +791,7 @@ async function handleSubmit() {
   align-items: center;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: $uni-bg-color;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
   gap: 20rpx;
 }
@@ -804,23 +804,23 @@ async function handleSubmit() {
 
 .total-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .total-value {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .submit-btn {
   width: 220rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 40rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -846,7 +846,7 @@ async function handleSubmit() {
 
 .error-text {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 /* ========== 弹窗样式 ========== */
@@ -868,7 +868,7 @@ async function handleSubmit() {
 
 .picker-popup {
   width: 100%;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   max-height: 80vh;
   display: flex;
@@ -889,25 +889,25 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
 .picker-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .picker-close {
   font-size: 48rpx;
-  color: #999;
+  color: $uni-gray-400;
   line-height: 1;
 }
 
 .picker-search {
   padding: 16rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
@@ -915,25 +915,25 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   height: 64rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 32rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 24rpx;
 }
 
@@ -956,7 +956,7 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #f9f9f9;
+  border-bottom: 1rpx solid $uni-gray-50;
 }
 
 .picker-item--customer {
@@ -972,32 +972,32 @@ async function handleSubmit() {
 
 .customer-item-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .customer-item-phone {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .customer-item-type {
   font-size: 22rpx;
-  color: #1677FF;
-  background: #e6f4ff;
+  color: $uni-color-primary;
+  background: $uni-color-primary-soft;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
   margin-right: 16rpx;
 }
 
 .picker-item--active .customer-item-name {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .picker-check {
   font-size: 32rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -1005,30 +1005,30 @@ async function handleSubmit() {
 .category-bar {
   white-space: nowrap;
   padding: 12rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
 .category-item {
   display: inline-block;
   padding: 12rpx 24rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 24rpx;
   margin-right: 12rpx;
 }
 
 .category-item--active {
-  background: #1677FF;
+  background: $uni-color-primary;
 }
 
 .category-item--active .category-text {
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 500;
 }
 
 .category-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 /* 商品列表 */
@@ -1036,7 +1036,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   gap: 16rpx;
 }
 
@@ -1048,7 +1048,7 @@ async function handleSubmit() {
   width: 96rpx;
   height: 96rpx;
   border-radius: 12rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
@@ -1062,7 +1062,7 @@ async function handleSubmit() {
 
 .product-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1071,7 +1071,7 @@ async function handleSubmit() {
 
 .product-spec {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .product-bottom {
@@ -1082,13 +1082,13 @@ async function handleSubmit() {
 
 .product-price {
   font-size: 28rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   font-weight: 600;
 }
 
 .product-stock {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .product-actions {
@@ -1107,15 +1107,15 @@ async function handleSubmit() {
 .loading-more-spinner {
   width: 28rpx;
   height: 28rpx;
-  border: 3rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 3rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .load-more-text {
   font-size: 22rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 @keyframes spin {
@@ -1135,15 +1135,15 @@ async function handleSubmit() {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 20rpx;
 }
 
@@ -1157,6 +1157,6 @@ async function handleSubmit() {
 
 .empty-text {
   font-size: 26rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 </style>
