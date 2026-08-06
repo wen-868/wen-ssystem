@@ -50,8 +50,16 @@ const dashboardApi = {
   },
 
   async getTodos(): Promise<TodoItem[]> {
-    const res: any = await get('/store/todos')
-    return (res?.list ?? res ?? []) as TodoItem[]
+    // R94-走查发现：后端无 /store/todos，实际为 /api/admin/dashboard/todos（dashboard.routes.ts:14）
+    // 后端返回 { total, items }（type/title/subtitle/count/link），映射为前端 TodoItem 结构
+    const res: any = await get('/admin/dashboard/todos')
+    const items = res?.items ?? res?.list ?? []
+    return (items as any[]).map((it: any, idx: number) => ({
+      id: idx + 1,
+      title: it.title ?? '',
+      status: 'pending',
+      deadline: it.subtitle ?? undefined,
+    }))
   },
 
   async getSalesTrend(days?: number): Promise<SalesTrend[]> {

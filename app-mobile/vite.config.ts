@@ -8,6 +8,15 @@ const TRANSPARENT_PIXEL =
 const SHADOW_CDN_RE = /https:\/\/cdn\.dcloud\.net\.cn\/img\/shadow-grey\.png/g
 
 export default defineConfig({
+  // dev 环境 API 代理：H5 本地走查时 /api 转发到后端 8080（生产由 nginx 处理）
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     // 替换 @dcloudio/uni-h5 运行时中硬编码的 CDN shadow-grey.png 为本地透明像素
     {
