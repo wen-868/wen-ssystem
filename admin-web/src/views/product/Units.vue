@@ -282,7 +282,7 @@ onMounted(() => { loadGroups(); });
 }
 .unit-node.is-disabled {
   opacity: 0.5;
-  background: #f0f0f0;
+  background: var(--gray-100);
 }
 .unit-level-label {
   font-size: 11px;

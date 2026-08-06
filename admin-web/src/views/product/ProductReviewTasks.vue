@@ -207,7 +207,7 @@
           v-for="(log, idx) in detail.reviewLogs"
           :key="idx"
           :timestamp="log.reviewedAt"
-          :color="log.result === 'APPROVED' ? '#0EA879' : log.result === 'REJECTED' ? '#C0392B' : '#D48B3A'"
+          :color="log.result === 'APPROVED' ? 'var(--color-success)' : log.result === 'REJECTED' ? 'var(--color-danger)' : 'var(--color-warning)'"
           placement="top"
         >
           <div class="timeline-node">
@@ -668,23 +668,23 @@ onMounted(() => {
 }
 
 .stat-primary .stat-icon {
-  background: linear-gradient(135deg, var(--color-primary), #66b1ff);
+  background: linear-gradient(135deg, var(--color-primary), rgba(63, 111, 239, 0.4));
 }
 
 .stat-warning .stat-icon {
-  background: linear-gradient(135deg, var(--color-warning), #f0c36d);
+  background: linear-gradient(135deg, var(--color-warning), rgba(212, 139, 58, 0.4));
 }
 
 .stat-success .stat-icon {
-  background: linear-gradient(135deg, var(--color-success), #85ce61);
+  background: linear-gradient(135deg, var(--color-success), rgba(14, 168, 121, 0.4));
 }
 
 .stat-danger .stat-icon {
-  background: linear-gradient(135deg, var(--color-danger), #f78989);
+  background: linear-gradient(135deg, var(--color-danger), rgba(192, 57, 43, 0.4));
 }
 
 .stat-info .stat-icon {
-  background: linear-gradient(135deg, var(--gray-400), #a6a9ad);
+  background: linear-gradient(135deg, var(--gray-400), rgba(153, 153, 153, 0.4));
 }
 
 .stat-label {

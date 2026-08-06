@@ -61,12 +61,12 @@
             </el-table-column>
             <el-table-column label="套装价" width="110" align="right">
               <template #default="{ row }">
-                <span style="color: #C0392B; font-weight: 600">¥{{ Number(row.comboPrice || 0).toFixed(2) }}</span>
+                <span style="color: var(--color-danger); font-weight: 600">¥{{ Number(row.comboPrice || 0).toFixed(2) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="优惠金额" width="110" align="right">
               <template #default="{ row }">
-                <span style="color: #0EA879">¥{{ Number(row.discountAmount || 0).toFixed(2) }}</span>
+                <span style="color: var(--color-success)">¥{{ Number(row.discountAmount || 0).toFixed(2) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="状态" width="90" align="center">
@@ -479,10 +479,10 @@
           <el-descriptions-item label="包含商品数">{{ currentCombo.productCount }} 件</el-descriptions-item>
           <el-descriptions-item label="原价">¥{{ Number(currentCombo.originalPrice || 0).toFixed(2) }}</el-descriptions-item>
           <el-descriptions-item label="套装价">
-            <span style="color: #C0392B; font-weight: 600">¥{{ Number(currentCombo.comboPrice || 0).toFixed(2) }}</span>
+            <span style="color: var(--color-danger); font-weight: 600">¥{{ Number(currentCombo.comboPrice || 0).toFixed(2) }}</span>
           </el-descriptions-item>
           <el-descriptions-item label="优惠金额">
-            <span style="color: #0EA879">¥{{ Number(currentCombo.discountAmount || 0).toFixed(2) }}</span>
+            <span style="color: var(--color-success)">¥{{ Number(currentCombo.discountAmount || 0).toFixed(2) }}</span>
           </el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(currentCombo.createdAt) }}</el-descriptions-item>
         </el-descriptions>
@@ -626,7 +626,7 @@
           </el-table-column>
         </el-table>
         <h4 style="margin-top: 20px">组合规则</h4>
-        <p style="color: #444444; line-height: 1.6">{{ currentGroup.ruleDescription || '暂无规则说明' }}</p>
+        <p style="color: var(--text-secondary); line-height: 1.6">{{ currentGroup.ruleDescription || '暂无规则说明' }}</p>
       </template>
     </el-drawer>
   </div>
@@ -1275,9 +1275,9 @@ function initSalesRankChart() {
       data: data.map(d => d.value),
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-          { offset: 0, color: "#83bff6" },
-          { offset: 0.5, color: "#188df0" },
-          { offset: 1, color: "#188df0" }
+          { offset: 0, color: "rgba(63, 111, 239, 0.4)" },
+          { offset: 0.5, color: "#3F6FEF" },
+          { offset: 1, color: "#3F6FEF" }
         ])
       },
       barWidth: "60%",
@@ -1480,7 +1480,7 @@ onMounted(() => {
 
 .avatar-uploader-icon {
   font-size: 28px;
-  color: #8c939d;
+  color: var(--text-muted);
 }
 
 .combo-image {

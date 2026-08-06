@@ -741,19 +741,19 @@ onMounted(() => {
 }
 
 .stat-primary .stat-icon {
-  background: linear-gradient(135deg, var(--color-primary), #66b1ff);
+  background: linear-gradient(135deg, var(--color-primary), rgba(63, 111, 239, 0.4));
 }
 
 .stat-warning .stat-icon {
-  background: linear-gradient(135deg, var(--color-warning), #f5dab1);
+  background: linear-gradient(135deg, var(--color-warning), rgba(212, 139, 58, 0.4));
 }
 
 .stat-success .stat-icon {
-  background: linear-gradient(135deg, var(--color-success), #95d475);
+  background: linear-gradient(135deg, var(--color-success), rgba(14, 168, 121, 0.4));
 }
 
 .stat-danger .stat-icon {
-  background: linear-gradient(135deg, var(--color-danger), #f89898);
+  background: linear-gradient(135deg, var(--color-danger), rgba(192, 57, 43, 0.4));
 }
 
 .stat-card .stat-info .stat-label {
