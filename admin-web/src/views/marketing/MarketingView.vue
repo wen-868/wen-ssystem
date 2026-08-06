@@ -64,9 +64,11 @@
         <el-table-column label="优惠内容" min-width="180">
           <template #default="{ row }">
             <span v-if="row.type === 'coupon'">
-              <template v-if="row.typeDetail?.couponType === 'CASH'">满{{ row.typeDetail?.minAmount }}减{{ row.typeDetail?.discountAmount }}</template>
-              <template v-else-if="row.typeDetail?.couponType === 'DISCOUNT'">{{ row.typeDetail?.discountRate }}折</template>
-              <template v-else>免邮</template>
+              <template v-if="row.typeDetail?.couponType === 'FIXED'">满{{ row.typeDetail?.minAmount }}减{{ row.typeDetail?.discountAmount }}</template>
+              <template v-else-if="row.typeDetail?.couponType === 'PERCENT'">{{ row.typeDetail?.discountRate }}%</template>
+              <template v-else-if="row.typeDetail?.couponType === 'SHIPPING'">免邮</template>
+              <template v-else-if="row.typeDetail?.couponType === 'FREE_GIFT'">买赠</template>
+              <template v-else>-</template>
             </span>
             <span v-else-if="row.type === 'fullReduction'">
               <span v-for="(rule, idx) in (row.typeDetail?.rules || [])" :key="idx">
@@ -137,18 +139,18 @@
         <template v-if="createForm.type === 'coupon'">
           <el-form-item label="优惠券类型">
             <el-select v-model="createForm.couponType" style="width: 100%">
-              <el-option label="满减券" value="CASH" />
-              <el-option label="折扣券" value="DISCOUNT" />
-              <el-option label="免邮券" value="FREE_SHIPPING" />
+              <el-option label="满减券" value="FIXED" />
+              <el-option label="折扣券" value="PERCENT" />
+              <el-option label="免邮券" value="SHIPPING" />
             </el-select>
           </el-form-item>
-          <el-form-item v-if="createForm.couponType === 'CASH'" label="最低消费">
+          <el-form-item v-if="createForm.couponType === 'FIXED'" label="最低消费">
             <el-input-number v-model="createForm.minAmount" :min="0" :precision="2" style="width: 100%" />
           </el-form-item>
-          <el-form-item v-if="createForm.couponType === 'CASH'" label="减免金额">
+          <el-form-item v-if="createForm.couponType === 'FIXED'" label="减免金额">
             <el-input-number v-model="createForm.discountAmount" :min="0" :precision="2" style="width: 100%" />
           </el-form-item>
-          <el-form-item v-if="createForm.couponType === 'DISCOUNT'" label="折扣率">
+          <el-form-item v-if="createForm.couponType === 'PERCENT'" label="折扣率">
             <el-input-number v-model="createForm.discountRate" :min="0" :max="10" :precision="1" style="width: 100%" />
           </el-form-item>
         </template>
@@ -227,8 +229,6 @@ import {
   fetchGroupBuys,
   createCouponTemplate,
   createFullReduction,
-  createFlashSale,
-  createGroupBuy,
   activateCouponTemplate,
   activateFullReduction,
   activateFlashSale,
@@ -241,6 +241,7 @@ import {
   deleteFlashSale,
   deleteGroupBuy,
   getActivityEffectAnalysis,
+  getActivityConversionTrend,
 } from "../../api";
 
 const loading = ref(false);
@@ -257,6 +258,7 @@ const dateRange = ref<any[]>([]);
 const createDialogVisible = ref(false);
 const effectDialogVisible = ref(false);
 const effectData = ref<any>(null);
+const conversionTrend = ref<any[]>([]);
 const effectChartRef = ref<HTMLDivElement>();
 let effectChartInstance: echarts.ECharts | null = null;
 
@@ -268,7 +270,7 @@ const rules = {
 const createForm = reactive({
   name: "",
   type: "coupon",
-  couponType: "CASH",
+  couponType: "FIXED",
   minAmount: 0,
   discountAmount: 0,
   discountRate: 0,
@@ -328,6 +330,17 @@ function getProgressColor(rate: number) {
   return "#C0392B";
 }
 
+/** 解析后端满减规则 JSON（minAmount/reduceAmount）为展示结构 */
+function parseRules(rules: any) {
+  let list: any[] = [];
+  if (typeof rules === "string") {
+    try { list = JSON.parse(rules); } catch { list = []; }
+  } else if (Array.isArray(rules)) {
+    list = rules;
+  }
+  return list.map((r: any) => ({ minAmount: r.minAmount, discountAmount: r.reduceAmount }));
+}
+
 async function loadActivities() {
   loading.value = true;
   try {
@@ -345,12 +358,12 @@ async function loadActivities() {
       results.push(...(couponData.records || []).map((item: any) => ({
         ...item,
         type: 'coupon',
-        typeDetail: { couponType: item.type, minAmount: item.minAmount, discountAmount: item.discountAmount, discountRate: item.discountRate },
-        participantCount: item.usedCount || 0,
-        verifiedRate: item.totalCount > 0 ? Math.round((item.usedCount / item.totalCount) * 100) : 0,
-        salesIncrease: Math.floor(Math.random() * 30) + 5,
-        startTime: item.validFrom,
-        endTime: item.validTo
+        typeDetail: { couponType: item.type, minAmount: item.minAmount, discountAmount: item.value, discountRate: item.value },
+        participantCount: item.claimedCount || 0,
+        verifiedRate: Number(item.totalCount) > 0 ? Math.round((Number(item.usedCount || 0) / Number(item.totalCount)) * 100) : 0,
+        salesIncrease: 0,
+        startTime: item.startTime,
+        endTime: item.endTime
       })));
     }
 
@@ -359,10 +372,10 @@ async function loadActivities() {
       results.push(...(frData.records || []).map((item: any) => ({
         ...item,
         type: 'fullReduction',
-        typeDetail: { rules: item.rules },
-        participantCount: Math.floor(Math.random() * 500) + 100,
-        verifiedRate: Math.floor(Math.random() * 60) + 30,
-        salesIncrease: Math.floor(Math.random() * 25) + 8,
+        typeDetail: { rules: parseRules(item.rules) },
+        participantCount: 0,
+        verifiedRate: 0,
+        salesIncrease: 0,
         startTime: item.startTime,
         endTime: item.endTime
       })));
@@ -373,10 +386,14 @@ async function loadActivities() {
       results.push(...(fsData.records || []).map((item: any) => ({
         ...item,
         type: 'flashSale',
-        typeDetail: { discountRate: item.discountRate, totalStock: item.totalStock, soldCount: item.soldCount },
+        typeDetail: {
+          discountRate: Number(item.originalPrice) > 0 ? (Number(item.flashPrice) / Number(item.originalPrice) * 10).toFixed(1) : "0.0",
+          totalStock: item.totalStock,
+          soldCount: item.soldCount
+        },
         participantCount: item.soldCount || 0,
-        verifiedRate: item.totalStock > 0 ? Math.round((item.soldCount / item.totalStock) * 100) : 0,
-        salesIncrease: Math.floor(Math.random() * 40) + 15,
+        verifiedRate: Number(item.totalStock) > 0 ? Math.round((Number(item.soldCount || 0) / Number(item.totalStock)) * 100) : 0,
+        salesIncrease: 0,
         startTime: item.startTime,
         endTime: item.endTime
       })));
@@ -387,10 +404,10 @@ async function loadActivities() {
       results.push(...(gbData.records || []).map((item: any) => ({
         ...item,
         type: 'groupBuy',
-        typeDetail: { groupPrice: item.groupPrice, minGroupSize: item.minGroupSize, totalGroups: item.totalGroups },
-        participantCount: (item.totalGroups || 0) * (item.minGroupSize || 3),
-        verifiedRate: Math.floor(Math.random() * 50) + 40,
-        salesIncrease: Math.floor(Math.random() * 20) + 10,
+        typeDetail: { groupPrice: item.groupPrice, minGroupSize: item.minGroupSize, totalGroups: 0 },
+        participantCount: 0,
+        verifiedRate: 0,
+        salesIncrease: 0,
         startTime: item.startTime,
         endTime: item.endTime
       })));
@@ -437,37 +454,37 @@ async function submitActivity() {
   submitLoading.value = true;
   try {
     if (createForm.type === 'coupon') {
+      const value = createForm.couponType === 'FIXED'
+        ? createForm.discountAmount
+        : (createForm.couponType === 'PERCENT' ? Math.round((10 - createForm.discountRate) * 10) : 0);
       await createCouponTemplate({
         name: createForm.name,
         type: createForm.couponType,
+        value,
         minAmount: createForm.minAmount,
-        discountAmount: createForm.discountAmount,
-        discountRate: createForm.discountRate,
         totalCount: createForm.totalCount,
-        validRange: createForm.validRange
+        startTime: createForm.validRange[0] || "",
+        endTime: createForm.validRange[1] || "",
+        description: ""
       });
     } else if (createForm.type === 'fullReduction') {
       await createFullReduction({
         name: createForm.name,
-        rules: createForm.fullReductionRules,
+        rules: createForm.fullReductionRules.map((r: any) => ({
+          minAmount: Number(r.minAmount),
+          reduceAmount: Number(r.discountAmount)
+        })),
+        applicableScope: "ALL",
+        applicableIds: null,
         startTime: createForm.validRange[0],
-        endTime: createForm.validRange[1]
+        endTime: createForm.validRange[1],
+        priority: 0,
+        stackable: false,
+        description: ""
       });
-    } else if (createForm.type === 'flashSale') {
-      await createFlashSale({
-        name: createForm.name,
-        discountRate: createForm.discountRate,
-        startTime: createForm.validRange[0],
-        endTime: createForm.validRange[1]
-      });
-    } else if (createForm.type === 'groupBuy') {
-      await createGroupBuy({
-        name: createForm.name,
-        groupPrice: createForm.minAmount,
-        minGroupSize: 3,
-        startTime: createForm.validRange[0],
-        endTime: createForm.validRange[1]
-      });
+    } else {
+      ElMessage.info("秒杀/拼团活动请前往对应活动管理页创建");
+      return;
     }
     ElMessage.success("创建成功");
     createDialogVisible.value = false;
@@ -530,26 +547,24 @@ async function deleteActivity(row: any) {
 async function viewEffect(row: any) {
   effectDialogVisible.value = true;
   effectData.value = null;
+  conversionTrend.value = [];
 
   try {
     const data = await getActivityEffectAnalysis(row.id, { activityType: row.type });
-    effectData.value = data || {
-      participantCount: row.participantCount || 0,
-      verifiedRate: row.verifiedRate || 0,
-      salesIncrease: row.salesIncrease || 0,
-      roi: (Math.random() * 5 + 1).toFixed(1)
-    };
-
+    effectData.value = data ? {
+      participantCount: data.totalUsers || 0,
+      verifiedRate: data.usedRate || 0,
+      salesIncrease: 0,
+      roi: data.roi || 0
+    } : null;
+    const trend = await getActivityConversionTrend(row.id, { period: "day" });
+    conversionTrend.value = trend || [];
     nextTick(() => {
       renderEffectChart();
     });
   } catch (e) {
-    effectData.value = {
-      participantCount: row.participantCount || 0,
-      verifiedRate: row.verifiedRate || 0,
-      salesIncrease: row.salesIncrease || 0,
-      roi: (Math.random() * 5 + 1).toFixed(1)
-    };
+    effectData.value = null;
+    conversionTrend.value = [];
     nextTick(() => {
       renderEffectChart();
     });
@@ -560,47 +575,30 @@ function renderEffectChart() {
   if (!effectChartRef.value) return;
   if (effectChartInstance) effectChartInstance.dispose();
 
-  const mockData = Array.from({ length: 7 }, (_, i) => ({
-    day: `第${i + 1}天`,
-    participants: Math.floor(Math.random() * 300 + 100),
-    orders: Math.floor(Math.random() * 50 + 10),
-    revenue: Math.floor(Math.random() * 5000 + 1000)
-  }));
-
+  const trend = conversionTrend.value || [];
   effectChartInstance = echarts.init(effectChartRef.value);
   effectChartInstance.setOption({
     tooltip: { trigger: "axis" },
-    legend: { data: ["参与人数", "订单数", "销售额"], bottom: 0 },
+    legend: { data: ["发放量", "使用量"], bottom: 0 },
     grid: { left: 60, right: 60, top: 20, bottom: 40 },
     xAxis: {
       type: "category",
-      data: mockData.map((d) => d.day),
+      data: trend.map((d) => d.period),
     },
-    yAxis: [
-      { type: "value", name: "数量" },
-      { type: "value", name: "销售额(元)", axisLabel: { formatter: "{value}" } }
-    ],
+    yAxis: [{ type: "value", name: "数量" }],
     series: [
       {
-        name: "参与人数",
+        name: "发放量",
         type: "bar",
-        data: mockData.map((d) => d.participants),
+        data: trend.map((d) => d.issuedCount || 0),
         itemStyle: { color: "#3F6FEF" }
       },
       {
-        name: "订单数",
+        name: "使用量",
         type: "line",
-        data: mockData.map((d) => d.orders),
+        data: trend.map((d) => d.usedCount || 0),
         smooth: true,
         itemStyle: { color: "#0EA879" }
-      },
-      {
-        name: "销售额",
-        type: "line",
-        yAxisIndex: 1,
-        data: mockData.map((d) => d.revenue),
-        smooth: true,
-        itemStyle: { color: "#D48B3A" }
       }
     ]
   });
