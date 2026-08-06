@@ -1946,11 +1946,32 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：待派单（墨完成 R86-01 后派单）
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/report/{CustomerAnalysis,CustomReport}.vue` + 对应 API
 - **问题**：两个报表页使用 mock 编造数据（客户分析 18 处/自定义报表 12 处），后端报表接口已存在
 - **修复**：接真实报表接口（客户分析用 admin-report 客户维度；自定义报表用 custom-report），无数据显示空态；**禁止保留编造数字**
 - **验收标准**：`rg "mock" admin-web/src/views/report/{CustomerAnalysis,CustomReport}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+**墨完成记录**（2026-08-07）：
+
+**完成内容：**
+- **API 封装**（`admin-web/src/api/report.ts`）：修正自定义报表 11 个封装路径——原 `/admin/report-templates`、`/admin/report-schedules` 与后端路由完全不符（后端无此前缀，属历史死链），全部对齐后端 `custom-report.routes.ts`（`/custom-report/templates`、`/custom-report/schedules`，含 execute `/templates/:id/execute`、toggle 改 PUT `{status}`）；新增客户分析 6 个封装（`/admin/reports/customer/repurchase`、`/avg-order-value`、`/rfm`、`/contribution-ranking`、`/new-customer-trend`、`/lost-customer`，对齐后端 `report.routes.ts` report-customer 控制器）
+- **CustomerAnalysis.vue**（mock 18 处全部清除）：概览 5 卡片接真实数据（客户总数=fetchMembers total、本月新增=newCustomerTrend 当月、活跃客户数=repurchase.totalCustomerCount、流失客户数=lostCustomerCount、复购率=repurchaseRate）；6 个 Tab 全部接真实接口（客户贡献排行——后端无最近消费日期，该列按空态"-"显示；复购率趋势——按月真实复购率；客单价分布；RFM 分析——分组/客户明细接真实 customers，销售额=组均消费额×客户数、占比=客户数/总数；新增客户趋势；流失客户预警——后端无趋势接口，趋势图按空态显示，列表接真实客户）；门店下拉改真实门店接口（fetchStores）单选适配后端单 storeId；默认日期改当月 1 日至今天（去掉硬编码 2026-06）；图表色改用 R84-03 `CHART_COLORS`，无数据显示「暂无数据」空态
+- **CustomReport.vue**（mock 12 处全部清除）：删除 mockReports 与全部 mock 回退（列表/删除/创建/更新仅走真实 API，失败提示错误并保持空态）；编辑时从后端 row.config（JSON）加载设计配置；筛选操作符保存时映射为后端支持的 SQL 风格（eq→=、ne→!=、gt→>、lt→<、like→LIKE、between→BETWEEN、in→IN，字段名 op）；预览改调 `executeReportTemplate(id, {dateStart, dateEnd})` 真实接口，新建未保存报表预览按空态显示；删除 generateMockPreviewData/generateMockCategories/generateMockDimensionValue 全部随机编造函数；导出按钮不再模拟"导出成功"，改为提示后端暂未提供导出接口
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| mock 残留 | `rg -i "mock\|Math.random" admin-web/src/views/report/{CustomerAnalysis,CustomReport}.vue` | 0 命中 ✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（41.49s，仅预存 @vueuse PURE 警告）✅ |
+| ESLint | `npx eslint src/api/report.ts src/views/report/CustomerAnalysis.vue src/views/report/CustomReport.vue` | 0 errors；14 warning 均为 HEAD 预存（attributes-order/unused-vars，改动行之外）✅ |
+| diff 核查 | `git diff` 逐行审阅 | 3 文件 364+/261-，全部为接真实 API 与去 mock，行尾保持 HEAD 纯 CRLF ✅ |
+
+**上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：
+1. 自定义报表 v1 executeTemplate 字段契约限制：后端 `custom-report.service.ts executeTemplate` 直接按 config.dimensions/metrics 作为列名执行单表 SQL（sales→t_sale_bill），前端设计器默认字段（date/amount 等）与真实表列（created_at/receivable_amount 等）不一致，部分配置预览会报 SQL 错误（如实提示"预览数据生成失败"）；后端另有 `custom-report-v2`（/api/admin/reports 前缀，含 generate/export，字段/数据源更完整）可作为后续升级方向，本轮按任务要求对接 v1
+2. 自定义报表导出无后端接口：custom-report 路由无 export 端点，导出按钮已改为诚实提示，待后端提供后接入
+3. 客户分析"活跃客户数"语义：后端无独立活跃客户接口，用筛选期内有消费记录客户数（repurchase.totalCustomerCount）代替，如需精确口径建议后端补接口
 
 ### R87-02 — [P1] 报表页硬编码色 token 化
 - **优先级**：P1

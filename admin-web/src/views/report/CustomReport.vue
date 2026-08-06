@@ -424,18 +424,6 @@ const pagination = reactive({
   total: 0,
 });
 
-// 模拟数据
-const mockReports = [
-  { id: 1, name: "月度销售趋势分析", type: "sales", chartType: "line", createdBy: "管理员", createdAt: "2026-07-01 10:00:00", updatedAt: "2026-07-10 14:30:00", status: "active" },
-  { id: 2, name: "商品销售排行", type: "sales", chartType: "bar", createdBy: "管理员", createdAt: "2026-07-02 11:00:00", updatedAt: "2026-07-08 09:20:00", status: "active" },
-  { id: 3, name: "库存周转率分析", type: "inventory", chartType: "bar", createdBy: "张三", createdAt: "2026-07-03 09:00:00", updatedAt: "2026-07-05 16:45:00", status: "active" },
-  { id: 4, name: "客户贡献度分布", type: "customer", chartType: "pie", createdBy: "李四", createdAt: "2026-07-04 15:00:00", updatedAt: "2026-07-06 10:10:00", status: "active" },
-  { id: 5, name: "采购金额统计", type: "purchase", chartType: "table", createdBy: "王五", createdAt: "2026-07-05 08:00:00", updatedAt: "2026-07-07 11:30:00", status: "inactive" },
-  { id: 6, name: "收支明细报表", type: "finance", chartType: "table", createdBy: "管理员", createdAt: "2026-07-06 14:00:00", updatedAt: "2026-07-09 13:00:00", status: "active" },
-  { id: 7, name: "订单状态分布", type: "orders", chartType: "pie", createdBy: "管理员", createdAt: "2026-07-08 10:30:00", updatedAt: "2026-07-10 15:00:00", status: "active" },
-  { id: 8, name: "门店业绩对比", type: "sales", chartType: "bar-line", createdBy: "张三", createdAt: "2026-07-09 11:00:00", updatedAt: "2026-07-11 09:45:00", status: "active" },
-];
-
 const getTypeLabel = (type: string) => {
   const map: Record<string, string> = {
     sales: "销售报表", purchase: "采购报表", inventory: "库存报表",
@@ -463,30 +451,17 @@ const getChartTypeLabel = (type: string) => {
 const fetchReportList = async () => {
   listLoading.value = true;
   try {
-    // 先尝试调真实 API，失败则用 mock 数据
-    try {
-      const res = await fetchReportTemplates({
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        keyword: searchForm.keyword || undefined,
-        type: searchForm.type || undefined,
-      });
-      reportList.value = res.records || [];
-      pagination.total = res.total || 0;
-    } catch {
-      // 使用 mock 数据
-      let filtered = [...mockReports];
-      if (searchForm.keyword) {
-        filtered = filtered.filter(r => r.name.includes(searchForm.keyword));
-      }
-      if (searchForm.type) {
-        filtered = filtered.filter(r => r.type === searchForm.type);
-      }
-      pagination.total = filtered.length;
-      const start = (pagination.page - 1) * pagination.pageSize;
-      reportList.value = filtered.slice(start, start + pagination.pageSize);
-    }
+    const res = await fetchReportTemplates({
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      keyword: searchForm.keyword || undefined,
+      type: searchForm.type || undefined,
+    });
+    reportList.value = res.records || [];
+    pagination.total = res.total || 0;
   } catch {
+    reportList.value = [];
+    pagination.total = 0;
     ElMessage.error("获取报表列表失败");
   } finally {
     listLoading.value = false;
@@ -504,17 +479,13 @@ const resetSearch = () => {
 const handleDelete = async (row: any) => {
   try {
     await ElMessageBox.confirm("确定删除该报表?", "确认删除", { type: "warning" });
-    try {
-      await deleteReportTemplate(row.id);
-    } catch {
-      // mock 删除
-      const idx = reportList.value.findIndex(r => r.id === row.id);
-      if (idx > -1) reportList.value.splice(idx, 1);
-      pagination.total--;
-    }
+    await deleteReportTemplate(row.id);
     ElMessage.success("删除成功");
     fetchReportList();
-  } catch { /* cancelled */ }
+  } catch (err: any) {
+    if (err === "cancel" || err === "close") return;
+    ElMessage.error("删除失败");
+  }
 };
 
 const viewReport = (row: any) => {
@@ -751,17 +722,31 @@ const openDesigner = (row?: any, viewOnly = false) => {
     reportForm.type = row.type;
     reportForm.description = row.description || "";
     reportForm.chartType = row.chartType || "bar";
-    // 模拟从后端加载配置
+    // 从后端 config 加载设计配置（JSON 字符串）
+    let cfg: any = {};
+    try {
+      cfg = typeof row.config === "string" ? JSON.parse(row.config) : (row.config || {});
+    } catch {
+      cfg = {};
+    }
     const ds = dataSources.find(d => d.type === row.type);
-    if (ds) reportForm.dataSource = ds.value;
-    if (dimensionFields.value.length > 0) {
-      reportForm.dimensions = [dimensionFields.value[0].value];
-      reportForm.xAxisField = dimensionFields.value[0].value;
-    }
-    if (metricFields.value.length > 0) {
-      reportForm.metrics = [metricFields.value[0].value];
-      reportForm.yAxisField = metricFields.value[0].value;
-    }
+    reportForm.dataSource = (ds && dataSources.some(d => d.value === cfg.dataSource) ? cfg.dataSource : ds?.value) || "sale_bill";
+    reportForm.dimensions = Array.isArray(cfg.dimensions) ? cfg.dimensions : [];
+    reportForm.metrics = Array.isArray(cfg.metrics) ? cfg.metrics : [];
+    reportForm.filters = Array.isArray(cfg.filters) ? cfg.filters.map((f: any) => ({
+      field: f.field || "",
+      operator: f.op || f.operator || "eq",
+      value: f.value ?? "",
+    })) : [];
+    reportForm.chartType = cfg.chartType || row.chartType || "bar";
+    reportForm.xAxisField = cfg.xAxisField || (reportForm.dimensions[0] ?? "");
+    reportForm.yAxisField = cfg.yAxisField || (reportForm.metrics[0] ?? "");
+    reportForm.showLegend = cfg.showLegend ?? true;
+    reportForm.showValue = cfg.showValue ?? false;
+    reportForm.groupFields = Array.isArray(cfg.groupFields) ? cfg.groupFields : [];
+    reportForm.sortField = cfg.sortField || "";
+    reportForm.sortOrder = cfg.sortOrder || "desc";
+    reportForm.limit = Number(cfg.limit) || 100;
   } else {
     isEdit.value = false;
     reportForm.id = null;
@@ -809,11 +794,25 @@ const saveReport = async () => {
   }
   saving.value = true;
   try {
+    // 筛选条件操作符映射为后端支持的 SQL 风格（custom-report.service.ts validateOperator）
+    const OPERATOR_MAP: Record<string, string> = {
+      eq: "=",
+      ne: "!=",
+      gt: ">",
+      lt: "<",
+      like: "LIKE",
+      between: "BETWEEN",
+      in: "IN",
+    };
     const config = {
       dataSource: reportForm.dataSource,
       dimensions: reportForm.dimensions,
       metrics: reportForm.metrics,
-      filters: reportForm.filters,
+      filters: reportForm.filters.map(f => ({
+        field: f.field,
+        op: OPERATOR_MAP[f.operator] || f.operator,
+        value: f.value,
+      })),
       chartType: reportForm.chartType,
       xAxisField: reportForm.xAxisField,
       yAxisField: reportForm.yAxisField,
@@ -825,43 +824,20 @@ const saveReport = async () => {
       limit: reportForm.limit,
     };
     if (isEdit.value && reportForm.id) {
-      try {
-        await updateReportTemplate(reportForm.id, {
-          name: reportForm.name,
-          type: reportForm.type,
-          description: reportForm.description,
-          config,
-        });
-      } catch {
-        // mock 更新
-        const idx = mockReports.findIndex(r => r.id === reportForm.id);
-        if (idx > -1) {
-          mockReports[idx] = { ...mockReports[idx], name: reportForm.name, type: reportForm.type, chartType: reportForm.chartType };
-        }
-      }
+      await updateReportTemplate(reportForm.id, {
+        name: reportForm.name,
+        type: reportForm.type,
+        description: reportForm.description,
+        config,
+      });
       ElMessage.success("更新成功");
     } else {
-      try {
-        await createReportTemplate({
-          name: reportForm.name,
-          type: reportForm.type,
-          description: reportForm.description,
-          config,
-        });
-      } catch {
-        // mock 创建
-        const newId = Math.max(...mockReports.map(r => r.id)) + 1;
-        mockReports.unshift({
-          id: newId,
-          name: reportForm.name,
-          type: reportForm.type,
-          chartType: reportForm.chartType,
-          createdBy: "当前用户",
-          createdAt: new Date().toLocaleString(),
-          updatedAt: new Date().toLocaleString(),
-          status: "active",
-        });
-      }
+      await createReportTemplate({
+        name: reportForm.name,
+        type: reportForm.type,
+        description: reportForm.description,
+        config,
+      });
       ElMessage.success("创建成功");
     }
     closeDesigner();
@@ -895,83 +871,6 @@ const handleResize = () => {
   chartInstance?.resize();
 };
 
-// 生成 mock 预览数据
-const generateMockPreviewData = () => {
-  const dimFields = selectedDimensionFields.value;
-  const metFields = selectedMetricFields.value;
-  if (dimFields.length === 0 || metFields.length === 0) return [];
-
-  const xField = reportForm.xAxisField || dimFields[0].value;
-  const xLabel = dimFields.find(f => f.value === xField)?.label || xField;
-
-  const count = Math.min(reportForm.limit, 12);
-  const data: any[] = [];
-  const categories = generateMockCategories(xField, count);
-
-  for (let i = 0; i < count; i++) {
-    const item: any = {};
-    // 填充维度
-    dimFields.forEach(f => {
-      if (f.value === xField) {
-        item[f.value] = categories[i];
-      } else {
-        item[f.value] = generateMockDimensionValue(f.value, i);
-      }
-    });
-    // 填充指标
-    metFields.forEach(f => {
-      item[f.value] = Math.floor(Math.random() * 10000 + 1000);
-    });
-    data.push(item);
-  }
-  return data;
-};
-
-const generateMockCategories = (field: string, count: number): string[] => {
-  if (field === "date") {
-    const dates: string[] = [];
-    const today = new Date();
-    for (let i = count - 1; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      dates.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    }
-    return dates;
-  }
-  if (field === "store_id") {
-    return ["总店", "城东店", "城西店", "城南店", "城北店", "开发区店", "高新区店", "滨江店"].slice(0, count);
-  }
-  if (field === "sku_id" || field === "商品") {
-    return ["飞天茅台", "五粮液", "剑南春", "泸州老窖", "郎酒", "习酒", "国窖1573", "汾酒", "洋河", "古井贡"].slice(0, count);
-  }
-  if (field === "customer_id") {
-    return ["张三", "李四", "王五", "赵六", "钱七", "孙八", "周九", "吴十"].slice(0, count);
-  }
-  if (field === "category_id") {
-    return ["白酒", "红酒", "啤酒", "洋酒", "黄酒", "饮料"].slice(0, count);
-  }
-  if (field === "brand_id") {
-    return ["茅台", "五粮液", "剑南春", "泸州老窖", "郎酒", "习酒"].slice(0, count);
-  }
-  if (field === "level") {
-    return ["钻石会员", "黄金会员", "白银会员", "普通会员"].slice(0, count);
-  }
-  if (field === "status") {
-    return ["待付款", "待发货", "待收货", "已完成", "已取消"].slice(0, count);
-  }
-  if (field === "platform") {
-    return ["美团外卖", "饿了么", "京东到家", "抖音外卖"].slice(0, count);
-  }
-  return Array.from({ length: count }, (_, i) => `项目${i + 1}`);
-};
-
-const generateMockDimensionValue = (field: string, index: number): string => {
-  const allStores = ["总店", "城东店", "城西店", "城南店"];
-  if (field === "store_id") return allStores[index % allStores.length];
-  if (field === "sale_type") return index % 2 === 0 ? "现销" : "赊销";
-  return `值${index + 1}`;
-};
-
 const refreshPreview = async () => {
   if (!showDesigner.value) return;
   if (selectedDimensionFields.value.length === 0 || selectedMetricFields.value.length === 0) {
@@ -979,18 +878,30 @@ const refreshPreview = async () => {
     previewTotal.value = 0;
     return;
   }
+  // 新建报表尚未保存，无模板 id，预览按空态显示
+  if (!reportForm.id) {
+    previewData.value = [];
+    previewTotal.value = 0;
+    lastPreviewTime.value = "";
+    return;
+  }
   previewLoading.value = true;
   try {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    previewData.value = generateMockPreviewData();
-    previewTotal.value = previewData.value.length;
+    const res = await executeReportTemplate(reportForm.id, {
+      dateStart: searchForm.dateRange?.[0] || undefined,
+      dateEnd: searchForm.dateRange?.[1] || undefined,
+    });
+    previewData.value = Array.isArray(res?.rows) ? res.rows : [];
+    previewTotal.value = Number(res?.total ?? previewData.value.length);
     lastPreviewTime.value = new Date().toLocaleTimeString();
     if (previewMode.value === "chart" && reportForm.chartType !== "table") {
       await nextTick();
       renderChart();
     }
   } catch {
-    ElMessage.error("预览生成失败");
+    previewData.value = [];
+    previewTotal.value = 0;
+    ElMessage.error("预览数据生成失败，请检查报表配置");
   } finally {
     previewLoading.value = false;
   }
@@ -1158,32 +1069,19 @@ const onExportCommand = async (command: string) => {
 };
 
 const exportReport = (row: any, format: string) => {
-  ElMessage.info(`正在导出 ${row.name} 为 ${format.toUpperCase()} 格式...`);
-  setTimeout(() => {
-    ElMessage.success("导出成功，文件已开始下载");
-  }, 800);
+  ElMessage.info(`「${row.name}」导出(${format.toUpperCase()})功能后端暂未提供，待接口支持后接入`);
 };
 
 const exportToExcel = () => {
-  ElMessage.info("正在生成 Excel 文件...");
-  // 模拟导出 - 实际应调后端 API
-  setTimeout(() => {
-    ElMessage.success("Excel 导出成功");
-  }, 800);
+  ElMessage.info("自定义报表导出功能后端暂未提供，待接口支持后接入");
 };
 
 const exportToPdf = () => {
-  ElMessage.info("正在生成 PDF 文件...");
-  setTimeout(() => {
-    ElMessage.success("PDF 导出成功");
-  }, 800);
+  ElMessage.info("自定义报表导出功能后端暂未提供，待接口支持后接入");
 };
 
 const exportToImage = () => {
-  ElMessage.info("正在生成图片...");
-  setTimeout(() => {
-    ElMessage.success("图片导出成功");
-  }, 800);
+  ElMessage.info("自定义报表导出功能后端暂未提供，待接口支持后接入");
 };
 
 // ========== 生命周期 ==========

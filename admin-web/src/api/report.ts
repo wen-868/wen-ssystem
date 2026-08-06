@@ -186,18 +186,49 @@ export const fetchRbacRoles = async () => {
 };
 
 
-// ==================== 自定义报表 ====================
-export async function fetchReportTemplates(params?: any) { const { data } = await api.get('/admin/report-templates', { params }); return data.data; }
-export async function createReportTemplate(payload: any) { const { data } = await api.post('/admin/report-templates', payload); return data.data; }
-export async function updateReportTemplate(id: number, payload: any) { const { data } = await api.put(`/admin/report-templates/${id}`, payload); return data.data; }
-export async function deleteReportTemplate(id: number) { const { data } = await api.delete(`/admin/report-templates/${id}`); return data.data; }
-export async function executeReportTemplate(id: number, params?: any) { const { data } = await api.post(`/admin/report-templates/${id}/execute`, params); return data.data; }
-export async function fetchReportSchedules(params?: any) { const { data } = await api.get('/admin/report-schedules', { params }); return data.data; }
-export async function createReportSchedule(payload: any) { const { data } = await api.post('/admin/report-schedules', payload); return data.data; }
-export async function updateReportSchedule(id: number, payload: any) { const { data } = await api.put(`/admin/report-schedules/${id}`, payload); return data.data; }
-export async function deleteReportSchedule(id: number) { const { data } = await api.delete(`/admin/report-schedules/${id}`); return data.data; }
-export async function toggleReportSchedule(id: number, enabled: boolean) { const { data } = await api.patch(`/admin/report-schedules/${id}/toggle`, { enabled }); return data.data; }
-export async function runReportSchedule(id: number) { const { data } = await api.post(`/admin/report-schedules/${id}/run`); return data.data; }
+// ==================== 自定义报表（对齐后端 custom-report.routes.ts：/api/custom-report） ====================
+export async function fetchReportTemplates(params?: any) { const { data } = await api.get('/custom-report/templates', { params }); return data.data; }
+export async function createReportTemplate(payload: any) { const { data } = await api.post('/custom-report/templates', payload); return data.data; }
+export async function updateReportTemplate(id: number, payload: any) { const { data } = await api.put(`/custom-report/templates/${id}`, payload); return data.data; }
+export async function deleteReportTemplate(id: number) { const { data } = await api.delete(`/custom-report/templates/${id}`); return data.data; }
+export async function executeReportTemplate(id: number, params?: any) { const { data } = await api.post(`/custom-report/templates/${id}/execute`, params); return data.data; }
+export async function fetchReportSchedules(params?: any) { const { data } = await api.get('/custom-report/schedules', { params }); return data.data; }
+export async function createReportSchedule(payload: any) { const { data } = await api.post('/custom-report/schedules', payload); return data.data; }
+export async function updateReportSchedule(id: number, payload: any) { const { data } = await api.put(`/custom-report/schedules/${id}`, payload); return data.data; }
+export async function deleteReportSchedule(id: number) { const { data } = await api.delete(`/custom-report/schedules/${id}`); return data.data; }
+export async function toggleReportSchedule(id: number, status: string) { const { data } = await api.put(`/custom-report/schedules/${id}/toggle`, { status }); return data.data; }
+export async function runReportSchedule(id: number) { const { data } = await api.post(`/custom-report/schedules/${id}/run`); return data.data; }
+
+// ==================== 客户分析报表（对齐后端 report.routes.ts：/api/admin/reports/customer/*） ====================
+export async function fetchReportCustomerRepurchase(params?: { startDate?: string; endDate?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/customer/repurchase", { params });
+  return data.data;
+}
+
+export async function fetchReportAvgOrderValueDistribution(params?: { startDate?: string; endDate?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/customer/avg-order-value", { params });
+  return data.data;
+}
+
+export async function fetchReportRFMAnalysis(params?: { storeId?: number }) {
+  const { data } = await api.get("/admin/reports/customer/rfm", { params });
+  return data.data;
+}
+
+export async function fetchReportCustomerContributionRanking(params?: { startDate?: string; endDate?: string; storeId?: number; limit?: number }) {
+  const { data } = await api.get("/admin/reports/customer/contribution-ranking", { params });
+  return data.data;
+}
+
+export async function fetchReportNewCustomerTrend(params?: { groupBy?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/customer/new-customer-trend", { params });
+  return data.data;
+}
+
+export async function fetchReportLostCustomer(params?: { daysThreshold?: number; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/customer/lost-customer", { params });
+  return data.data;
+}
 export async function exportReportExcel(id: number, params?: any) {
   const { data } = await api.get(`/admin/report-templates/${id}/export-excel`, { params, responseType: 'blob' });
   return data;

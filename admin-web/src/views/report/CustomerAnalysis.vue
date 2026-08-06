@@ -15,8 +15,8 @@
           />
         </el-col>
         <el-col :span="4">
-          <el-select v-model="selectedStores" multiple placeholder="选择门店" clearable style="width: 100%">
-            <el-option v-for="s in storeOptions" :key="s" :label="s" :value="s" />
+          <el-select v-model="selectedStore" placeholder="选择门店" clearable style="width: 100%">
+            <el-option v-for="s in storeOptions" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
         </el-col>
         <el-col :span="4">
@@ -143,38 +143,156 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from '@/styles/theme'
 import { formatYuan } from '../../utils/format'
+import {
+  fetchReportCustomerRepurchase,
+  fetchReportAvgOrderValueDistribution,
+  fetchReportRFMAnalysis,
+  fetchReportCustomerContributionRanking,
+  fetchReportNewCustomerTrend,
+  fetchReportLostCustomer,
+  fetchStores,
+  fetchMembers,
+} from '@/api'
 
 // ─── 筛选状态 ───
-const dateRange = ref<string[]>(['2026-06-01', '2026-06-30'])
-const selectedStores = ref<string[]>([])
-const storeOptions = ['门店1', '门店2', '门店3', '门店4', '门店5']
+function defaultDateRange(): string[] {
+  const now = new Date()
+  const first = new Date(now.getFullYear(), now.getMonth(), 1)
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return [fmt(first), fmt(now)]
+}
 
-// ─── Mock 数据 ───
-const mockOverview = { totalCount: 2560, newCount: 128, activeCount: 890, lostCount: 320, repurchaseRate: 35.2 }
-const mockCustomerContribution = Array.from({ length: 20 }, (_, i) => ({ customerId: i + 1, customerName: `客户${i + 1}`, totalAmount: Math.floor(Math.random() * 100000 + 10000), orderCount: Math.floor(Math.random() * 50 + 5), avgOrderValue: Math.floor(Math.random() * 3000 + 500), lastOrderDate: `2026-06-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')}` }))
-const mockRepurchaseTrend = Array.from({ length: 12 }, (_, i) => ({ month: `2026-${String(i + 1).padStart(2, '0')}`, rate: (Math.random() * 10 + 30).toFixed(1) }))
-const mockAvgOrderValueDistribution = [{ range: '0-100', label: '<100元', customerCount: 320, orderCount: 850 }, { range: '100-300', label: '100-300元', customerCount: 680, orderCount: 2100 }, { range: '300-500', label: '300-500元', customerCount: 520, orderCount: 1800 }, { range: '500-1000', label: '500-1000元', customerCount: 380, orderCount: 1200 }, { range: '1000-3000', label: '1000-3000元', customerCount: 240, orderCount: 680 }, { range: '3000+', label: '3000元以上', customerCount: 120, orderCount: 320 }]
-const mockRFM = { segments: [{ group: '重要价值客户', customerCount: 320, totalAmount: 450000, ratio: 12.5 }, { group: '重要发展客户', customerCount: 280, totalAmount: 280000, ratio: 10.9 }, { group: '重要保持客户', customerCount: 180, totalAmount: 220000, ratio: 7.0 }, { group: '重要挽留客户', customerCount: 150, totalAmount: 180000, ratio: 5.9 }, { group: '一般价值客户', customerCount: 420, totalAmount: 320000, ratio: 16.4 }, { group: '一般发展客户', customerCount: 350, totalAmount: 180000, ratio: 13.7 }, { group: '一般保持客户', customerCount: 380, totalAmount: 150000, ratio: 14.8 }, { group: '一般挽留客户', customerCount: 480, totalAmount: 120000, ratio: 18.8 }], scatter: Array.from({ length: 50 }, (_, i) => ({ r: Math.floor(Math.random() * 5) + 1, f: Math.floor(Math.random() * 5) + 1, m: Math.floor(Math.random() * 5) + 1, customerName: `客户${i + 1}` })) }
-const mockNewCustomerTrend = Array.from({ length: 12 }, (_, i) => ({ month: `2026-${String(i + 1).padStart(2, '0')}`, count: Math.floor(Math.random() * 50 + 80) }))
-const mockLostCustomer = { trend: Array.from({ length: 12 }, (_, i) => ({ month: `2026-${String(i + 1).padStart(2, '0')}`, count: Math.floor(Math.random() * 30 + 20) })), list: Array.from({ length: 20 }, (_, i) => ({ customerId: i + 1, customerName: `流失客户${i + 1}`, lastOrderDate: `2026-03-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')}`, daysSinceLastOrder: Math.floor(Math.random() * 60 + 90) })) }
+const dateRange = ref<string[]>(defaultDateRange())
+const selectedStore = ref<number | undefined>(undefined)
+const storeOptions = ref<Array<{ id: number; name: string }>>([])
 
-// ─── 数据引用 ───
-const customerContribution = ref(mockCustomerContribution)
-const repurchaseTrend = ref(mockRepurchaseTrend)
-const avgOrderValueDistribution = ref(mockAvgOrderValueDistribution)
-const rfm = ref(mockRFM)
-const newCustomerTrend = ref(mockNewCustomerTrend)
-const lostCustomer = ref(mockLostCustomer)
+// ─── 数据引用（初始空态，禁止编造数字） ───
+const customerContribution = ref<Array<{
+  customerName: string
+  totalAmount: number
+  orderCount: number
+  avgOrderValue: number
+  lastOrderDate: string
+}>>([])
+const repurchaseTrend = ref<Array<{ month: string; rate: number }>>([])
+const avgOrderValueDistribution = ref<Array<{ label: string; customerCount: number; orderCount: number }>>([])
+const rfm = ref<{ segments: any[]; customers: any[] }>({ segments: [], customers: [] })
+const newCustomerTrend = ref<Array<{ month: string; count: number }>>([])
+const lostCustomer = ref<{ list: any[]; trend: any[] }>({ list: [], trend: [] })
 
-// ─── 概览卡片 ───
+// ─── 概览卡片（真实接口数据组装） ───
+const overview = ref({ totalCount: 0, newCount: 0, activeCount: 0, lostCount: 0, repurchaseRate: 0 })
 const overviewCards = computed(() => [
-  { label: '客户总数', value: mockOverview.totalCount, gradient: 'gradient-primary' },
-  { label: '本月新增', value: mockOverview.newCount, gradient: 'gradient-success' },
-  { label: '活跃客户数', value: mockOverview.activeCount, gradient: 'gradient-warning' },
-  { label: '流失客户数', value: mockOverview.lostCount, gradient: 'gradient-danger' },
-  { label: '复购率', value: mockOverview.repurchaseRate + '%', gradient: 'gradient-info' }
+  { label: '客户总数', value: overview.value.totalCount, gradient: 'gradient-primary' },
+  { label: '本月新增', value: overview.value.newCount, gradient: 'gradient-success' },
+  { label: '活跃客户数', value: overview.value.activeCount, gradient: 'gradient-warning' },
+  { label: '流失客户数', value: overview.value.lostCount, gradient: 'gradient-danger' },
+  { label: '复购率', value: overview.value.repurchaseRate + '%', gradient: 'gradient-info' }
 ])
+
+// ─── 门店加载（真实门店接口） ───
+async function loadStores() {
+  try {
+    const data = await fetchStores()
+    const list = data?.records || data || []
+    storeOptions.value = list.map((s: any) => ({ id: Number(s.id), name: s.name }))
+  } catch {
+    storeOptions.value = []
+  }
+}
+
+// ─── 数据加载（admin-report 客户维度真实接口） ───
+async function loadData() {
+  const [startDate, endDate] = dateRange.value
+  const storeId = selectedStore.value
+  const dateParams = { startDate, endDate, storeId }
+
+  try {
+    const [repurchase, avgOrderValue, rfmRes, contribution, newTrend, lostRes, members] = await Promise.all([
+      fetchReportCustomerRepurchase(dateParams),
+      fetchReportAvgOrderValueDistribution(dateParams),
+      fetchReportRFMAnalysis({ storeId }),
+      fetchReportCustomerContributionRanking({ ...dateParams, limit: 20 }),
+      fetchReportNewCustomerTrend({ groupBy: 'month', storeId }),
+      fetchReportLostCustomer({ daysThreshold: 90, storeId }),
+      fetchMembers({ page: 1, pageSize: 1 }).catch(() => null),
+    ])
+
+    // 概览卡片
+    overview.value.totalCount = Number(members?.total ?? 0)
+    overview.value.activeCount = Number(repurchase?.totalCustomerCount ?? 0)
+    overview.value.repurchaseRate = Number(repurchase?.repurchaseRate ?? 0)
+    overview.value.lostCount = Number(lostRes?.lostCustomerCount ?? 0)
+    const now = new Date()
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const trendRows = Array.isArray(newTrend) ? newTrend : []
+    const thisMonth = trendRows.find((r: any) => String(r.period).startsWith(currentMonth))
+    overview.value.newCount = Number(thisMonth?.newCustomerCount ?? 0)
+    newCustomerTrend.value = trendRows.map((r: any) => ({ month: String(r.period), count: Number(r.newCustomerCount) }))
+
+    // 客户贡献排行（后端未返回最近消费日期，该列按空态显示）
+    customerContribution.value = (Array.isArray(contribution) ? contribution : []).map((c: any) => ({
+      customerName: c.customerName || `客户${c.customerId ?? ''}`,
+      totalAmount: Number(c.totalAmount ?? 0),
+      orderCount: Number(c.orderCount ?? 0),
+      avgOrderValue: Number(c.avgOrderValue ?? 0),
+      lastOrderDate: '-'
+    }))
+
+    // 复购率趋势（按月，rate 由真实总客户数/复购客户数计算）
+    const repurchaseTrendRows = Array.isArray(repurchase?.trend) ? repurchase.trend : []
+    repurchaseTrend.value = repurchaseTrendRows.map((t: any) => ({
+      month: String(t.month),
+      rate: Number(t.totalCustomers) > 0 ? Math.round((Number(t.repurchaseCustomers) / Number(t.totalCustomers)) * 10000) / 100 : 0
+    }))
+
+    // 客单价分布
+    avgOrderValueDistribution.value = Array.isArray(avgOrderValue?.distribution)
+      ? avgOrderValue.distribution.map((d: any) => ({
+        label: d.label,
+        customerCount: Number(d.customerCount ?? 0),
+        orderCount: Number(d.orderCount ?? 0)
+      }))
+      : []
+
+    // RFM 分析（销售额 = 组均消费额 × 客户数，占比 = 组客户数 / 总客户数）
+    const rfmGroups = Array.isArray(rfmRes?.groups) ? rfmRes.groups : []
+    const rfmTotal = Number(rfmRes?.totalCustomers ?? 0)
+    rfm.value = {
+      segments: rfmGroups.map((g: any) => ({
+        group: g.rfmGroup,
+        customerCount: Number(g.customerCount ?? 0),
+        totalAmount: Math.round(Number(g.avgMonetary ?? 0) * Number(g.customerCount ?? 0)),
+        ratio: rfmTotal > 0 ? Math.round((Number(g.customerCount) / rfmTotal) * 1000) / 10 : 0
+      })),
+      customers: Array.isArray(rfmRes?.customers) ? rfmRes.customers : []
+    }
+
+    // 流失客户预警（后端无趋势数据，图表按空态显示）
+    const lostList = Array.isArray(lostRes?.customers) ? lostRes.customers : []
+    lostCustomer.value = {
+      trend: [],
+      list: lostList.map((c: any) => ({
+        customerName: c.customerName || `客户${c.customerId ?? ''}`,
+        lastOrderDate: c.lastOrderDate ? String(c.lastOrderDate).slice(0, 10) : '-',
+        daysSinceLastOrder: Number(c.daysSinceLastOrder ?? 0)
+      }))
+    }
+
+    onTabChange(activeTab.value)
+  } catch {
+    // 接口失败时保持空态，不编造数据
+    customerContribution.value = []
+    repurchaseTrend.value = []
+    avgOrderValueDistribution.value = []
+    rfm.value = { segments: [], customers: [] }
+    newCustomerTrend.value = []
+    lostCustomer.value = { list: [], trend: [] }
+    overview.value = { totalCount: 0, newCount: 0, activeCount: 0, lostCount: 0, repurchaseRate: 0 }
+  }
+}
 
 // ─── Tab 状态 ───
 const activeTab = ref('customerContribution')
@@ -183,12 +301,14 @@ const rfmDetailVisible = ref(false)
 const rfmDetailCustomers = ref<any[]>([])
 
 function onRFMGroupClick(row: any) {
-  rfmDetailCustomers.value = rfm.value.scatter.slice(0, 10).map(s => ({
-    customerName: s.customerName,
-    r: s.r,
-    f: s.f,
-    m: s.m
-  }))
+  rfmDetailCustomers.value = rfm.value.customers
+    .filter(c => c.rfmGroup === row.group)
+    .map(c => ({
+      customerName: c.customerName || '客户',
+      r: c.rScore,
+      f: c.fScore,
+      m: c.mScore
+    }))
   rfmDetailVisible.value = true
 }
 
@@ -217,13 +337,20 @@ function initCustomerContributionChart() {
   const names = data.map(d => d.customerName).reverse()
   const values = data.map(d => d.totalAmount).reverse()
   customerContributionChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: data.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: 80, right: 80, top: 10, bottom: 20 },
     xAxis: { type: 'value', axisLabel: { formatter: (v: number) => '¥' + (v / 10000).toFixed(1) + '万' } },
     yAxis: { type: 'category', data: names, inverse: true, axisLabel: { fontSize: 11 } },
     series: [{
       type: 'bar', data: values,
-      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: '#667eea' }, { offset: 1, color: '#764ba2' }]) },
+      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: CHART_COLORS.primary }, { offset: 1, color: CHART_COLORS.purple }]) },
       label: { show: true, position: 'right', fontSize: 11, formatter: (p: any) => formatYuan(p.value) }
     }]
   })
@@ -235,15 +362,22 @@ function initRepurchaseTrendChart() {
   repurchaseTrendChart = echarts.init(repurchaseTrendChartRef.value)
   const data = repurchaseTrend.value
   repurchaseTrendChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: data.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'axis', formatter: (p: any) => `${p[0].axisValue}<br/>复购率：${p[0].value}%` },
     grid: { left: 60, right: 30, top: 20, bottom: 30 },
     xAxis: { type: 'category', data: data.map(d => d.month) },
-    yAxis: { type: 'value', name: '%', min: 20, max: 50 },
+    yAxis: { type: 'value', name: '%', min: 0 },
     series: [{
       type: 'line', smooth: true, data: data.map(d => Number(d.rate)),
-      itemStyle: { color: '#667eea' },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(102,126,234,0.3)' }, { offset: 1, color: 'rgba(102,126,234,0.05)' }]) },
-      markLine: { data: [{ type: 'average', name: '平均值' }], lineStyle: { color: '#f5576c', type: 'dashed' } }
+      itemStyle: { color: CHART_COLORS.primary },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(63,111,239,0.3)' }, { offset: 1, color: 'rgba(63,111,239,0.05)' }]) },
+      markLine: { data: [{ type: 'average', name: '平均值' }], lineStyle: { color: CHART_COLORS.danger, type: 'dashed' } }
     }]
   })
 }
@@ -254,14 +388,21 @@ function initAODistributionChart() {
   aoDistributionChart = echarts.init(aoDistributionChartRef.value)
   const data = avgOrderValueDistribution.value
   aoDistributionChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: data.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { data: ['客户数', '订单数'], bottom: 0 },
     grid: { left: 50, right: 30, top: 10, bottom: 40 },
     xAxis: { type: 'category', data: data.map(d => d.label) },
     yAxis: { type: 'value' },
     series: [
-      { name: '客户数', type: 'bar', data: data.map(d => d.customerCount), itemStyle: { color: '#667eea' } },
-      { name: '订单数', type: 'bar', data: data.map(d => d.orderCount), itemStyle: { color: '#43e97b' } }
+      { name: '客户数', type: 'bar', data: data.map(d => d.customerCount), itemStyle: { color: CHART_COLORS.primary } },
+      { name: '订单数', type: 'bar', data: data.map(d => d.orderCount), itemStyle: { color: CHART_COLORS.success } }
     ]
   })
 }
@@ -270,25 +411,43 @@ function initRFMScatterChart() {
   if (!rfmScatterChartRef.value) return
   if (rfmScatterChart) rfmScatterChart.dispose()
   rfmScatterChart = echarts.init(rfmScatterChartRef.value)
-  const scatter = rfm.value.scatter
+  const scatter = rfm.value.customers
   const isRF = rfmScatterType.value === 'rf'
-  const xKey = isRF ? 'r' : 'f'
-  const yKey = isRF ? 'f' : 'm'
-  const xLabel = isRF ? 'R值（最近消费）' : 'F值（消费频率）'
-  const yLabel = isRF ? 'F值（消费频率）' : 'M值（消费金额）'
+  const xKey = isRF ? 'recencyDays' : 'frequency'
+  const yKey = isRF ? 'frequency' : 'monetary'
+  const xLabel = isRF ? 'R值（最近消费天数）' : 'F值（消费次数）'
+  const yLabel = isRF ? 'F值（消费次数）' : 'M值（消费金额）'
+  const points = scatter.map(s => [Number(s[xKey] ?? 0), Number(s[yKey] ?? 0)])
+  const xRange = paddedRange(points.map(p => p[0]))
+  const yRange = paddedRange(points.map(p => p[1]))
   rfmScatterChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: scatter.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'item', formatter: (p: any) => `${p.data[2]}<br/>${xLabel}: ${p.data[0]}<br/>${yLabel}: ${p.data[1]}` },
     grid: { left: 60, right: 30, top: 20, bottom: 30 },
-    xAxis: { type: 'value', name: xLabel, min: 0, max: 6, interval: 1 },
-    yAxis: { type: 'value', name: yLabel, min: 0, max: 6, interval: 1 },
+    xAxis: { type: 'value', name: xLabel, min: xRange.min, max: xRange.max },
+    yAxis: { type: 'value', name: yLabel, min: yRange.min, max: yRange.max },
     series: [{
       type: 'scatter',
-      data: scatter.map(s => ({ value: [s[xKey as keyof typeof s], s[yKey as keyof typeof s]], name: s.customerName })),
-      symbolSize: (val: number[]) => (val[0] + val[1]) * 3 + 8,
-      itemStyle: { color: '#667eea' },
-      emphasis: { itemStyle: { color: '#f5576c' } }
+      data: scatter.map(s => ({ value: [Number(s[xKey] ?? 0), Number(s[yKey] ?? 0)], name: s.customerName || '客户' })),
+      symbolSize: 10,
+      itemStyle: { color: CHART_COLORS.primary },
+      emphasis: { itemStyle: { color: CHART_COLORS.danger } }
     }]
   })
+}
+
+function paddedRange(nums: number[]) {
+  if (nums.length === 0) return { min: 0, max: 1 }
+  const min = Math.min(...nums)
+  const max = Math.max(...nums)
+  const pad = max - min || 1
+  return { min: Math.max(0, min - pad * 0.2), max: max + pad * 0.2 }
 }
 
 function initNewCustomerTrendChart() {
@@ -297,14 +456,21 @@ function initNewCustomerTrendChart() {
   newCustomerTrendChart = echarts.init(newCustomerTrendChartRef.value)
   const data = newCustomerTrend.value
   newCustomerTrendChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: data.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'axis' },
     grid: { left: 60, right: 30, top: 20, bottom: 30 },
     xAxis: { type: 'category', data: data.map(d => d.month) },
     yAxis: { type: 'value', name: '人' },
     series: [{
       type: 'line', smooth: true, data: data.map(d => d.count),
-      itemStyle: { color: '#11998e' },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(17,153,142,0.3)' }, { offset: 1, color: 'rgba(17,153,142,0.05)' }]) }
+      itemStyle: { color: CHART_COLORS.success },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(14,168,121,0.3)' }, { offset: 1, color: 'rgba(14,168,121,0.05)' }]) }
     }]
   })
 }
@@ -315,14 +481,21 @@ function initLostCustomerTrendChart() {
   lostCustomerTrendChart = echarts.init(lostCustomerTrendChartRef.value)
   const data = lostCustomer.value.trend
   lostCustomerTrendChart.setOption({
+    title: {
+      text: '暂无数据',
+      show: data.length === 0,
+      left: 'center',
+      top: 'center',
+      textStyle: { color: CHART_COLORS.textMuted, fontSize: 13, fontWeight: 'normal' }
+    },
     tooltip: { trigger: 'axis' },
     grid: { left: 60, right: 30, top: 20, bottom: 30 },
     xAxis: { type: 'category', data: data.map(d => d.month) },
     yAxis: { type: 'value', name: '人' },
     series: [{
       type: 'line', smooth: true, data: data.map(d => d.count),
-      itemStyle: { color: '#f5576c' },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(245,87,108,0.3)' }, { offset: 1, color: 'rgba(245,87,108,0.05)' }]) }
+      itemStyle: { color: CHART_COLORS.danger },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(192,57,43,0.3)' }, { offset: 1, color: 'rgba(192,57,43,0.05)' }]) }
     }]
   })
 }
@@ -358,11 +531,12 @@ function disposeAllCharts() {
 }
 
 function refreshAll() {
-  onTabChange(activeTab.value)
+  loadData()
 }
 
-onMounted(() => {
-  initCustomerContributionChart()
+onMounted(async () => {
+  await loadStores()
+  await loadData()
   window.addEventListener('resize', handleResize)
 })
 
