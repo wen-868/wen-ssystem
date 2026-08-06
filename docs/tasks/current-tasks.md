@@ -1737,11 +1737,23 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r84_01.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/finance/ReconciliationView.vue`
 - **问题**：导出按钮仅提示"导出功能开发中"
 - **修复**：用当前对账列表真实数据前端生成 CSV 导出（列与列表一致，含表头）；**不编造数据**；后端无导出接口则纯前端 CSV
 - **验收标准**：`rg "导出功能开发中" admin-web/src/views/finance/` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+- **墨完成记录**（2026-08-06）：
+  - **改动文件**：`ReconciliationView.vue`（1 文件，35+/2-），只改 `exportReconciliation()` 函数，未碰其他逻辑
+  - **实现**：按当前 Tab 取 `customerReconciliations`/`supplierReconciliations` 真实数据，前端生成 CSV（含表头：客户对账=客户/期初余额/本期应收/本期收款/期末余额/状态，供应商对账=供应商/期初余额/本期应付/本期付款/期末余额/状态）；金额用 `formatYuan` 与列表展示一致；状态 PENDING/CONFIRMED 转中文；CSV 特殊字符转义 + UTF-8 BOM（Excel 中文不乱码）；无数据提示「无可导出的对账数据」；不新增后端接口
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 占位文案 | `rg "导出功能开发中" admin-web/src/views/finance/` | 0 命中 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（43.27s，仅预存 @vueuse PURE 警告）✅ |
+    | ESLint | `npx eslint src/views/finance/ReconciliationView.vue` | 0 errors；2 warning 均为 HEAD 预存 attributes-order（改动行之外）✅ |
+    | diff 核查 | `git diff` 逐行审阅 | 35+/2-，全部为导出函数，无行尾噪声 ✅ |
+  - **说明**：① 文件 HEAD 为纯 CRLF，apply_patch 新增行为 LF，已统一为 CRLF（零行尾噪声）；② 原文件 `</style>` 无 EOF 换行，已补 EOF 换行（仅空白差异，R80-02/R81-02 同先例）；③ 任务卡 inbox/mo_r84_01.md 已归档 inbox/archive/
 
 ### R84-02 — [P1] 财务页硬编码色 token 化
 - **优先级**：P1

@@ -381,7 +381,40 @@ async function handleConfirmFromDetail() {
 }
 
 function exportReconciliation() {
-  ElMessage.info("导出功能开发中");
+  const rows =
+    activeTab.value === "customer" ? customerReconciliations.value : supplierReconciliations.value;
+  if (!rows.length) {
+    ElMessage.info("无可导出的对账数据");
+    return;
+  }
+  const isCustomer = activeTab.value === "customer";
+  const headers = isCustomer
+    ? ["客户", "期初余额", "本期应收", "本期收款", "期末余额", "状态"]
+    : ["供应商", "期初余额", "本期应付", "本期付款", "期末余额", "状态"];
+  const statusText: Record<string, string> = { PENDING: "待确认", CONFIRMED: "已确认" };
+  const escapeCsv = (value: unknown): string => {
+    const s = value === null || value === undefined ? "" : String(value);
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const lines = rows.map((row: any) =>
+    [
+      escapeCsv(row.entityName),
+      escapeCsv(formatYuan(row.openingBalance)),
+      escapeCsv(formatYuan(row.periodAmount)),
+      escapeCsv(formatYuan(row.periodPayment)),
+      escapeCsv(formatYuan(row.closingBalance)),
+      escapeCsv(statusText[row.status] || row.status || "")
+    ].join(",")
+  );
+  const csv = "\uFEFF" + [headers.join(","), ...lines].join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `对账数据_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  ElMessage.success("导出成功");
 }
 
 function getSummary(param: { columns: any[]; data: any[] }) {
