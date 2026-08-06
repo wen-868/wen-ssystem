@@ -108,7 +108,7 @@
               <div class="stat-item">
                 <div class="stat-label">A类（70%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.A_count || 0 }}种</div>
-                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.A_amount) }}</div>
+                <div style="color:var(--text-muted);font-size:12px">¥{{ formatNum(abcData?.summary?.A_amount) }}</div>
               </div>
             </el-card>
           </el-col>
@@ -117,7 +117,7 @@
               <div class="stat-item">
                 <div class="stat-label">B类（20%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.B_count || 0 }}种</div>
-                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.B_amount) }}</div>
+                <div style="color:var(--text-muted);font-size:12px">¥{{ formatNum(abcData?.summary?.B_amount) }}</div>
               </div>
             </el-card>
           </el-col>
@@ -126,7 +126,7 @@
               <div class="stat-item">
                 <div class="stat-label">C类（10%销售额）</div>
                 <div class="stat-value">{{ abcData?.summary?.C_count || 0 }}种</div>
-                <div style="color:#999999;font-size:12px">¥{{ formatNum(abcData?.summary?.C_amount) }}</div>
+                <div style="color:var(--text-muted);font-size:12px">¥{{ formatNum(abcData?.summary?.C_amount) }}</div>
               </div>
             </el-card>
           </el-col>

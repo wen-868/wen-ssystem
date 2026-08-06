@@ -78,7 +78,7 @@
         </el-table-column>
         <el-table-column label="毛利空间" width="100" align="right">
           <template #default="{ row }">
-            <span v-if="row.retailPrice && row.costPrice" :style="{ color: row.retailPrice > row.costPrice ? '#0EA879' : '#C0392B' }">
+            <span v-if="row.retailPrice && row.costPrice" :style="{ color: row.retailPrice > row.costPrice ? 'var(--color-success)' : 'var(--color-danger)' }">
               {{ getMargin(row) }}%
             </span>
             <span v-else>-</span>
@@ -89,7 +89,7 @@
         </el-table-column>
         <el-table-column prop="expiryDate" label="到期日期" width="110">
           <template #default="{ row }">
-            <span :style="{ color: isNearExpiry(row.expiryDate) ? '#C0392B' : '' }">
+            <span :style="{ color: isNearExpiry(row.expiryDate) ? 'var(--color-danger)' : '' }">
               {{ formatDate(row.expiryDate) }}
             </span>
           </template>

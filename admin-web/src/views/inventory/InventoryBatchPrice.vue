@@ -105,14 +105,14 @@
           </el-table-column>
           <el-table-column label="新价格" width="140" align="right">
             <template #default="{ row }">
-              <span :style="{ color: row.newPrice !== row.oldPrice ? '#D48B3A' : '' }">
+              <span :style="{ color: row.newPrice !== row.oldPrice ? 'var(--color-warning)' : '' }">
                 {{ formatYuan(row.newPrice) }}
               </span>
             </template>
           </el-table-column>
           <el-table-column label="变动" width="120" align="right">
             <template #default="{ row }">
-              <span :style="{ color: row.diff > 0 ? '#0EA879' : row.diff < 0 ? '#C0392B' : '' }">
+              <span :style="{ color: row.diff > 0 ? 'var(--color-success)' : row.diff < 0 ? 'var(--color-danger)' : '' }">
                 {{ row.diff > 0 ? '+' : '' }}{{ formatYuan(row.diff) }}
               </span>
             </template>

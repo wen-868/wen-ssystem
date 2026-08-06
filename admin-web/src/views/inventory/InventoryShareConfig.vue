@@ -125,12 +125,12 @@
           <el-form :model="ruleForm" label-width="140px" style="max-width: 600px; padding: 20px 0">
             <el-form-item label="共享比例">
               <el-input-number v-model="ruleForm.defaultShareRatio" :min="0" :max="100" style="width: 150px" />
-              <span style="margin-left: 8px; color: #999999">%</span>
+              <span style="margin-left: 8px; color: var(--text-muted)">%</span>
               <div class="form-tip">默认共享比例，即门店可共享给其他门店的库存占总库存的比例</div>
             </el-form-item>
             <el-form-item label="自动调拨阈值">
               <el-input-number v-model="ruleForm.autoTransferThreshold" :min="1" :max="999" style="width: 150px" />
-              <span style="margin-left: 8px; color: #999999">件</span>
+              <span style="margin-left: 8px; color: var(--text-muted)">件</span>
               <div class="form-tip">当调入门店该商品库存低于此值时，自动触发调拨</div>
             </el-form-item>
             <el-form-item label="自动调拨优先级">
@@ -163,7 +163,7 @@
             </el-form-item>
             <el-form-item label="单日最大调拨量">
               <el-input-number v-model="ruleForm.dailyMaxTransfer" :min="0" :max="99999" style="width: 150px" />
-              <span style="margin-left: 8px; color: #999999">件</span>
+              <span style="margin-left: 8px; color: var(--text-muted)">件</span>
               <div class="form-tip">单个门店单日最大调入量上限，0表示不限制</div>
             </el-form-item>
             <el-form-item>
@@ -176,7 +176,7 @@
         <!-- 共享门店 -->
         <el-tab-pane label="共享门店" name="stores">
           <div class="tab-toolbar">
-            <span style="color: #444444">选择参与库存共享的门店，选中的门店之间可互相调拨库存</span>
+            <span style="color: var(--text-secondary)">选择参与库存共享的门店，选中的门店之间可互相调拨库存</span>
           </div>
           <el-table :data="storeList" border stripe>
             <el-table-column type="selection" width="55" />
@@ -192,7 +192,7 @@
             </el-table-column>
             <el-table-column label="可共享库存" width="130" align="right">
               <template #default="{ row }">
-                <span style="color: #0EA879; font-weight: 600">{{ row.shareableStock || 0 }} 件</span>
+                <span style="color: var(--color-success); font-weight: 600">{{ row.shareableStock || 0 }} 件</span>
               </template>
             </el-table-column>
           </el-table>
