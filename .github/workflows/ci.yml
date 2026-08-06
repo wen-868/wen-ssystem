@@ -7,7 +7,8 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    # 自托管 Windows runner（ZXQL-Desktop-ARM64），避免 GitHub 托管 runner 分配故障
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,10 +36,29 @@ jobs:
 
       - name: Start mock backend
         # 使用已构建的 dist 启动（node dist/server.js），避免 tsx watch 在 CI 后台不稳定
-        run: USE_MOCK_DB=true NODE_ENV=development npm --workspace backend run start > /tmp/zhixiang-backend.log 2>&1 &
+        # Windows runner：用 pwsh 设置环境变量 + Start-Process 后台启动，日志写入 RUNNER_TEMP
+        shell: pwsh
+        run: |
+          $env:USE_MOCK_DB = 'true'
+          $env:NODE_ENV = 'development'
+          $env:JWT_SECRET = 'ci-test-secret'
+          $logDir = Join-Path $env:RUNNER_TEMP 'backend'
+          New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+          Start-Process -FilePath 'npm.cmd' -ArgumentList @('--workspace','backend','run','start') `
+            -RedirectStandardOutput (Join-Path $logDir 'out.log') `
+            -RedirectStandardError (Join-Path $logDir 'err.log') -WindowStyle Hidden
 
       - name: Wait for backend
-        run: npx wait-on -t 90000 http://127.0.0.1:8080/health || (echo "=== backend log ==="; cat /tmp/zhixiang-backend.log; exit 1)
+        shell: pwsh
+        run: |
+          npx wait-on -t 90000 http://127.0.0.1:8080/health
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "=== backend out.log ==="
+            Get-Content (Join-Path $env:RUNNER_TEMP 'backend/out.log') -ErrorAction SilentlyContinue
+            Write-Host "=== backend err.log ==="
+            Get-Content (Join-Path $env:RUNNER_TEMP 'backend/err.log') -ErrorAction SilentlyContinue
+            exit 1
+          }
 
       - name: Flow self test
         run: npm run test:flow

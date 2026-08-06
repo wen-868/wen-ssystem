@@ -6,7 +6,8 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # 自托管 Windows runner（ZXQL-Desktop-ARM64），避免 GitHub 托管 runner 分配故障
+    runs-on: self-hosted
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
