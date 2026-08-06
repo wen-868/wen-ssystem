@@ -2,7 +2,10 @@
   <view class="create-sale-page">
     <!-- 顶部栏 -->
     <view class="page-header">
-      <text class="header-title">开单</text>
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
+      <text class="header-title">快速开单</text>
     </view>
 
     <!-- 表单三件套：ref + :model + :rules -->
@@ -91,16 +94,19 @@
     <!-- 底部提交 -->
     <view class="bottom-bar">
       <view class="bottom-total" v-if="saleItems.length > 0">
-        <text class="total-label">合计：</text>
+        <text class="total-label">应收金额：</text>
         <text class="total-value">¥{{ totalAmount.toFixed(2) }}</text>
       </view>
+      <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
+        暂存
+      </button>
       <button
         class="submit-btn"
         :disabled="!canSubmit || submitting"
         :class="{ 'submit-btn--disabled': !canSubmit }"
         @tap="handleSubmit"
       >
-        {{ submitting ? '提交中...' : '提交订单' }}
+        {{ submitting ? '提交中...' : '结算收款' }}
       </button>
     </view>
 
@@ -495,6 +501,23 @@ function removeItem(index: number) {
   })
 }
 
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/home/home' })
+  }
+}
+
+function handleDraft() {
+  if (saleItems.length === 0) {
+    uni.showToast({ title: '请先添加商品', icon: 'none' })
+    return
+  }
+  uni.showToast({ title: '暂存功能开发中', icon: 'none' })
+}
+
 // ========== 提交 ==========
 async function handleSubmit() {
   // 表单校验
@@ -537,15 +560,39 @@ async function handleSubmit() {
 }
 
 .page-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-back:active {
+  background: $uni-color-primary-soft;
+}
+
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: $uni-gray-700;
+  color: $uni-text-color;
 }
 
 .sale-form {
@@ -800,6 +847,28 @@ async function handleSubmit() {
   flex: 1;
   display: flex;
   align-items: baseline;
+}
+
+.draft-btn {
+  width: 160rpx;
+  height: 80rpx;
+  background: $uni-bg-color;
+  border: 2rpx solid $uni-border-color;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: $uni-gray-600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.draft-btn::after {
+  border: none;
+}
+
+.draft-btn:active {
+  background: $uni-bg-color-grey;
 }
 
 .total-label {

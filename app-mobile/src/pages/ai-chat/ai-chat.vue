@@ -1,5 +1,16 @@
 <template>
   <view class="ai-chat-page">
+    <!-- 顶部：AI 助手 -->
+    <view class="ai-top-bar">
+      <view class="ai-top-icon">
+        <text class="ai-top-icon-text">✦</text>
+      </view>
+      <view class="ai-top-info">
+        <text class="ai-top-title">AI 助手</text>
+        <text class="ai-top-sub">有什么可以帮你的？</text>
+      </view>
+    </view>
+
     <!-- 消息列表 -->
     <scroll-view
       class="chat-body"
@@ -110,6 +121,11 @@
 
     <!-- 底部输入栏 -->
     <view class="chat-footer">
+      <scroll-view class="ai-quick-tags" scroll-x :show-scrollbar="false">
+        <view class="ai-tag" v-for="tip in welcomeTips" :key="tip" @tap="quickSend(tip)">
+          <text class="ai-tag-text">{{ tip }}</text>
+        </view>
+      </scroll-view>
       <view class="input-bar">
         <view
           class="mic-btn"
@@ -577,6 +593,80 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100vh;
   background: $uni-bg-color-page;
+}
+
+/* ====================== 顶部 AI 助手 ====================== */
+.ai-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 32rpx 16rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.ai-top-icon {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 24rpx;
+  background: $uni-gradient-blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
+}
+
+.ai-top-icon-text {
+  font-size: 34rpx;
+  color: $uni-text-color-inverse;
+  font-weight: 700;
+}
+
+.ai-top-info {
+  flex: 1;
+}
+
+.ai-top-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+  letter-spacing: -0.5rpx;
+}
+
+.ai-top-sub {
+  display: block;
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  margin-top: 4rpx;
+}
+
+/* ====================== 快捷指令 ====================== */
+.ai-quick-tags {
+  white-space: nowrap;
+  padding: 0 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;
+  background: $uni-bg-color;
+  border: 1rpx solid $uni-border-color;
+  margin-right: 12rpx;
+}
+
+.ai-tag:active {
+  background: $uni-color-primary-soft;
+  border-color: $uni-color-primary-soft;
+}
+
+.ai-tag-text {
+  font-size: 22rpx;
+  color: $uni-gray-600;
 }
 
 /* ====================== 消息列表 ====================== */

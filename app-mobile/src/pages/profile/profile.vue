@@ -1,79 +1,113 @@
 <template>
-  <!-- 无表单交互，无需三件套（纯展示菜单导航页） -->
   <scroll-view class="profile-page" scroll-y>
-    <!-- 用户信息卡片 -->
-    <view class="user-card">
-      <view class="user-avatar">
+    <!-- 用户卡 -->
+    <view class="prof-card">
+      <view class="prof-avatar">
         <image v-if="userStore.user?.avatar" class="avatar-img" :src="userStore.user.avatar" mode="aspectFill" />
         <view v-else class="avatar-placeholder">
           <text class="avatar-text">{{ initialChar }}</text>
         </view>
       </view>
-      <view class="user-info">
-        <text class="user-name">{{ userStore.user?.name || '未登录' }}</text>
-        <text class="user-store">{{ userStore.user?.storeName || '' }}</text>
-        <view class="user-role-tag">
-          <text class="role-text">{{ roleText }}</text>
+      <view class="prof-info">
+        <text class="prof-name">{{ userName }}</text>
+        <view class="prof-role-row">
+          <text class="prof-role">{{ roleText }}</text>
+          <text class="prof-id" v-if="userStore.user?.id">ID: {{ userStore.user.id }}</text>
         </view>
+        <text class="prof-store">{{ storeName }}</text>
       </view>
-      <text class="user-arrow">&#xe616;</text>
-    </view>
-
-    <!-- 功能列表 -->
-    <view class="menu-section">
-      <view class="menu-item" @tap="navigateTo('/pages/profile/edit')">
-        <view class="menu-icon-wrap menu-icon-wrap--blue">
-          <text class="menu-icon">&#xe640;</text>
-        </view>
-        <text class="menu-label">编辑资料</text>
-        <text class="menu-arrow">&#xe616;</text>
-      </view>
-
-      <view class="menu-item" @tap="navigateTo('/pages/notifications/notifications')">
-        <view class="menu-icon-wrap menu-icon-wrap--orange">
-          <text class="menu-icon">&#xe642;</text>
-        </view>
-        <text class="menu-label">消息通知</text>
-        <view class="menu-badge" v-if="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</view>
-        <text class="menu-arrow">&#xe616;</text>
-      </view>
-
-      <view class="menu-item" @tap="navigateTo('/pages/todos/todos')">
-        <view class="menu-icon-wrap menu-icon-wrap--purple">
-          <text class="menu-icon">&#xe643;</text>
-        </view>
-        <text class="menu-label">待办事项</text>
-        <text class="menu-arrow">&#xe616;</text>
-      </view>
-
-      <view class="menu-item" @tap="openAiSettings">
-        <view class="menu-icon-wrap menu-icon-wrap--ai">
-          <text class="menu-icon menu-icon--ai">AI</text>
-        </view>
-        <text class="menu-label menu-label--ai">AI设置</text>
-        <text class="menu-arrow">&#xe616;</text>
+      <view class="prof-status">
+        <text class="prof-status-dot"></text>
+        <text class="prof-status-text">营业中</text>
       </view>
     </view>
 
-    <!-- 管理入口（仅管理员可见） -->
-    <view class="menu-section" v-if="userStore.isAdmin">
-      <view class="menu-item" @tap="navigateTo('/pages-sub/admin/admin/admin')">
-        <view class="menu-icon-wrap menu-icon-wrap--dark">
-          <text class="menu-icon">&#xe644;</text>
+    <!-- 快捷入口 -->
+    <view class="prof-shortcuts">
+      <view class="prof-sc-item" v-for="item in shortcuts" :key="item.label" @tap="goto(item.path)">
+        <view class="ps-ico" :style="{ background: item.bg, color: item.color }">
+          <text class="ps-ico-text">{{ item.icon }}</text>
         </view>
-        <text class="menu-label">管理后台</text>
-        <text class="menu-arrow">&#xe616;</text>
+        <text class="ps-label">{{ item.label }}</text>
+      </view>
+    </view>
+
+    <!-- 门店管理 -->
+    <view class="prof-section">
+      <text class="prof-section-title">门店管理</text>
+      <view class="prof-list">
+        <view class="list-item" @tap="navigateTo('/pages/profile/edit')">
+          <view class="li-ico li-ico--blue"><text class="li-ico-text">资</text></view>
+          <view class="li-body">
+            <text class="li-title">编辑资料</text>
+            <text class="li-desc">姓名、头像、门店信息</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages/notifications/notifications')">
+          <view class="li-ico li-ico--orange"><text class="li-ico-text">消</text></view>
+          <view class="li-body">
+            <text class="li-title">消息通知</text>
+            <text class="li-desc">订单、库存、系统消息</text>
+          </view>
+          <view class="menu-badge" v-if="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages/todos/todos')">
+          <view class="li-ico li-ico--purple"><text class="li-ico-text">待</text></view>
+          <view class="li-body">
+            <text class="li-title">待办事项</text>
+            <text class="li-desc">库存预警、订单待处理</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')" v-if="userStore.isAdmin">
+          <view class="li-ico li-ico--dark"><text class="li-ico-text">店</text></view>
+          <view class="li-body">
+            <text class="li-title">门店信息</text>
+            <text class="li-desc">门店设置与管理</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/admin/employees')" v-if="userStore.isAdmin">
+          <view class="li-ico li-ico--dark"><text class="li-ico-text">员</text></view>
+          <view class="li-body">
+            <text class="li-title">员工管理</text>
+            <text class="li-desc">在职员工管理</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 系统 -->
+    <view class="prof-section">
+      <text class="prof-section-title">系统</text>
+      <view class="prof-list">
+        <view class="list-item" @tap="openAiSettings">
+          <view class="li-ico li-ico--ai"><text class="li-ico-text ai">AI</text></view>
+          <view class="li-body">
+            <text class="li-title">AI 设置</text>
+            <text class="li-desc">AI 助手配置</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="showAbout">
+          <view class="li-ico li-ico--dark"><text class="li-ico-text">关</text></view>
+          <view class="li-body">
+            <text class="li-title">关于</text>
+            <text class="li-desc">智享全链</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
       </view>
     </view>
 
     <!-- 退出登录 -->
     <view class="logout-section">
-      <button class="logout-btn" @tap="handleLogout">退出登录</button>
-    </view>
-
-    <!-- 版本号 -->
-    <view class="version-section">
-      <text class="version-text">v1.0.0</text>
+      <view class="logout-btn" @tap="handleLogout">
+        <text class="logout-text">退出登录</text>
+      </view>
     </view>
 
     <view class="safe-bottom"></view>
@@ -84,14 +118,28 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { notificationsApi } from '@/api/modules/notifications'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+import {
+  AI_BG_SOFT,
+  AI_TAB_ACTIVE,
+  AI_SUCCESS_SOFT,
+  AI_SUCCESS,
+  AI_WARNING_SOFT,
+  AI_WARNING,
+  AI_BG_GAP,
+  AI_TEXT_MID,
+} from '@/constants/colors'
 
 const userStore = useUserStore()
 const unreadCount = ref(0)
 
+const userName = computed(() => userStore.user?.realName || userStore.user?.name || '未登录')
+const storeName = computed(() => userStore.user?.storeName || '')
+
 const initialChar = computed(() => {
-  const name = userStore.user?.name
-  return name ? name.charAt(0) : 'U'
+  const name = userName.value
+  return name && name !== '未登录' ? name.charAt(0) : 'U'
 })
 
 const roleText = computed(() => {
@@ -105,8 +153,31 @@ const roleText = computed(() => {
   return roles && roles.length > 0 ? map[roles[0]] || roles[0] : ''
 })
 
+const shortcuts = [
+  { icon: '记', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '员', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '账', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '印', label: '单据打印', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
+]
+
 function navigateTo(url: string) {
   uni.navigateTo({ url })
+}
+
+function goto(path: string) {
+  if (path) {
+    uni.navigateTo({ url: path })
+  } else {
+    uni.showToast({ title: '功能开发中', icon: 'none' })
+  }
+}
+
+function openAiSettings() {
+  uni.showToast({ title: 'AI 设置即将上线', icon: 'none' })
+}
+
+function showAbout() {
+  uni.showModal({ title: '关于', content: '智享全链管理系统 v1.0', showCancel: false })
 }
 
 function handleLogout() {
@@ -121,35 +192,51 @@ function handleLogout() {
   })
 }
 
-function openAiSettings() {
-  uni.showToast({ title: 'AI 设置即将上线', icon: 'none' })
+async function loadUnread() {
+  try {
+    const res: any = await notificationsApi.list({ page: 1, pageSize: 1 })
+    const rows = res?.list ?? res?.records ?? []
+    unreadCount.value = res?.unread ?? (Array.isArray(rows) ? rows.filter((r: any) => !r.read).length : 0)
+  } catch (err) {
+    // 静默失败，不阻断页面
+  }
 }
+
+loadUnread()
 </script>
 
 <style lang="scss" scoped>
 .profile-page {
   min-height: 100vh;
-  background: $uni-color-primary-soft;
+  background: $uni-bg-color-page;
+  padding-bottom: calc(136rpx + env(safe-area-inset-bottom));
 }
 
-/* 用户卡片 */
-.user-card {
-  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
-  padding: 48rpx 32rpx;
-  padding-top: calc(48rpx + env(safe-area-inset-top));
+/* 用户卡 */
+.prof-card {
+  margin: 28rpx 28rpx 0;
+  background: $uni-gradient-blue;
+  border-radius: 32rpx;
+  padding: 36rpx 32rpx;
   display: flex;
   align-items: center;
-  border-radius: 0 0 32rpx 32rpx;
+  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.25);
+  position: relative;
+  overflow: hidden;
 }
 
-.user-avatar {
-  width: 120rpx;
-  height: 120rpx;
+.prof-avatar {
+  width: 112rpx;
+  height: 112rpx;
   border-radius: 50%;
   overflow: hidden;
   border: 4rpx solid rgba(255, 255, 255, 0.4);
   margin-right: 24rpx;
   flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatar-img {
@@ -157,102 +244,211 @@ function openAiSettings() {
   height: 100%;
 }
 
-.avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .avatar-text {
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: 700;
   color: $uni-text-color-inverse;
 }
 
-.user-info {
+.prof-info {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
 }
 
-.user-name {
+.prof-name {
   font-size: 36rpx;
   font-weight: 700;
   color: $uni-text-color-inverse;
-  margin-bottom: 6rpx;
+  display: block;
 }
 
-.user-store {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 10rpx;
+.prof-role-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 8rpx;
 }
 
-.user-role-tag {
-  align-self: flex-start;
-  padding: 4rpx 16rpx;
+.prof-role {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.2);
+  padding: 4rpx 16rpx;
   border-radius: 8rpx;
 }
 
-.role-text {
-  font-size: 22rpx;
-  color: $uni-text-color-inverse;
+.prof-id {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.user-arrow {
-  font-size: 32rpx;
-  color: rgba(255, 255, 255, 0.6);
+.prof-store {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 10rpx;
 }
 
-/* 菜单区域 */
-.menu-section {
-  background: $uni-bg-color;
-  border-radius: 16rpx;
-  margin: 20rpx 24rpx;
-  overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.menu-item {
+.prof-status {
   display: flex;
   align-items: center;
-  padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid $uni-bg-color-grey;
+  gap: 8rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999rpx;
+  padding: 8rpx 20rpx;
+  flex-shrink: 0;
 }
 
-.menu-item:last-child {
-  border-bottom: none;
+.prof-status-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #4ADE80;
+  animation: pulse-dot 2s infinite;
 }
 
-.menu-icon-wrap {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 16rpx;
+.prof-status-text {
+  font-size: 22rpx;
+  color: $uni-text-color-inverse;
+  font-weight: 600;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* 快捷入口 */
+.prof-shortcuts {
+  margin: 28rpx 28rpx 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 28rpx 12rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.prof-sc-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.prof-sc-item:active {
+  transform: scale(0.94);
+}
+
+.ps-ico {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
 }
 
-.menu-icon-wrap--blue { background: $uni-color-primary-soft; }
-.menu-icon-wrap--green { background: $uni-color-success-soft; }
-.menu-icon-wrap--orange { background: $uni-color-warning-soft; }
-.menu-icon-wrap--purple { background: $uni-color-purple-soft; }
-.menu-icon-wrap--dark { background: $uni-bg-color-grey; }
-
-.menu-icon {
-  font-size: 32rpx;
-  color: $uni-color-primary;
-}
-
-.menu-label {
-  flex: 1;
+.ps-ico-text {
   font-size: 30rpx;
-  color: $uni-gray-700;
+  font-weight: 700;
+}
+
+.ps-label {
+  font-size: 22rpx;
+  color: $uni-gray-600;
+  font-weight: 500;
+}
+
+/* 分区 */
+.prof-section {
+  margin: 36rpx 28rpx 0;
+}
+
+.prof-section-title {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $uni-gray-400;
+  padding: 0 8rpx 16rpx;
+  letter-spacing: 1rpx;
+}
+
+.prof-list {
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  gap: 20rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: $uni-bg-color-grey;
+}
+
+.li-ico {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.li-ico--blue { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.li-ico--orange { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.li-ico--purple { background: $uni-color-purple-soft; color: $uni-color-purple; }
+.li-ico--dark { background: $uni-bg-color-grey; color: $uni-gray-500; }
+.li-ico--ai {
+  background: $uni-gradient-blue;
+  color: $uni-text-color-inverse;
+}
+
+.li-ico-text {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.li-ico-text.ai {
+  font-size: 22rpx;
+}
+
+.li-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.li-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $uni-text-color;
+}
+
+.li-desc {
+  display: block;
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  margin-top: 6rpx;
+}
+
+.li-arrow {
+  font-size: 32rpx;
+  color: $uni-gray-300;
 }
 
 .menu-badge {
@@ -266,61 +462,35 @@ function openAiSettings() {
   align-items: center;
   justify-content: center;
   padding: 0 10rpx;
-  margin-right: 12rpx;
-}
-
-.menu-arrow {
-  font-size: 28rpx;
-  color: $uni-gray-300;
 }
 
 /* 退出登录 */
 .logout-section {
-  padding: 40rpx 24rpx 0;
+  margin: 40rpx 28rpx 0;
 }
 
 .logout-btn {
-  width: 100%;
   height: 88rpx;
   background: $uni-bg-color;
   border-radius: 44rpx;
-  font-size: 30rpx;
-  color: $uni-color-error;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid $uni-color-error;
+  border: 2rpx solid $uni-color-error-soft;
+  box-shadow: $uni-shadow-card;
 }
 
-.logout-btn::after {
-  border: none;
+.logout-btn:active {
+  background: $uni-color-error-soft;
 }
 
-/* 版本号 */
-.version-section {
-  text-align: center;
-  padding: 32rpx 0;
-}
-
-.version-text {
-  font-size: 24rpx;
-  color: $uni-gray-300;
+.logout-text {
+  font-size: 30rpx;
+  color: $uni-color-error;
+  font-weight: 500;
 }
 
 .safe-bottom {
-  height: calc(108rpx + env(safe-area-inset-bottom));
-}
-
-/* AI 设置入口（移动端打磨 v1.3） */
-.menu-icon-wrap--ai {
-  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
-}
-.menu-icon--ai {
-  color: $uni-text-color-inverse;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-.menu-label--ai {
-  color: $ai-tab-active;
+  height: 40rpx;
 }
 </style>

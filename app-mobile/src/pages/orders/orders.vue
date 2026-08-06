@@ -1,5 +1,13 @@
 <template>
   <view class="orders-page">
+    <!-- 页头 -->
+    <view class="ord-hd">
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
+      <text class="header-title">订单管理</text>
+    </view>
+
     <view class="search-bar">
       <view class="search-input-wrap">
         <text class="search-icon">&#xe614;</text>
@@ -24,7 +32,6 @@
         @tap="switchTab(tab.value)"
       >
         <text class="tab-text">{{ tab.label }}</text>
-        <view v-if="activeTab === tab.value" class="tab-indicator"></view>
       </view>
     </scroll-view>
 
@@ -73,25 +80,34 @@
         <view
           class="order-card"
           @tap="goDetail(item.orderNo)"
-          @touchstart="activeCard = item.orderNo"
-          @touchend="activeCard = null"
-          :class="{ 'card-active': activeCard === item.orderNo }"
         >
           <view class="order-card-header">
-            <text class="order-no">订单号：{{ item.orderNo }}</text>
-            <view class="order-status" :class="'status-' + item.status">
+            <text class="order-no">{{ item.orderNo }}</text>
+            <view class="order-status" :class="statusClass(item.status)">
               <text class="status-text">{{ item.statusLabel }}</text>
             </view>
           </view>
 
           <view class="order-card-body">
-            <text class="order-customer">{{ item.customerName }}</text>
-            <text class="order-amount">¥{{ item.totalAmount.toFixed(2) }}</text>
+            <text class="order-items">{{ orderItemsSummary(item) }}</text>
           </view>
 
           <view class="order-card-footer">
-            <text class="order-time">{{ formatTime(item.createdAt) }}</text>
-            <text class="order-arrow">&#xe616;</text>
+            <text class="order-time">{{ item.customerName }} · {{ item.channel || '门店' }} · {{ formatTime(item.createdAt) }}</text>
+            <text class="order-amount">¥{{ item.totalAmount.toFixed(2) }}</text>
+          </view>
+
+          <view class="order-card-actions">
+            <view class="ord-action" @tap.stop="goDetail(item.orderNo)">
+              <text class="ord-action-text">详情</text>
+            </view>
+            <view
+              class="ord-action ord-action--primary"
+              v-if="primaryAction(item) !== ''"
+              @tap.stop="handleOrderAction(item, primaryAction(item))"
+            >
+              <text class="ord-action-text">{{ primaryAction(item) }}</text>
+            </view>
           </view>
         </view>
       </template>
@@ -220,8 +236,8 @@ const quickDate = ref('')
 const customerList = ref<CustomerInfo[]>([])
 const selectedCustomer = ref('')
 
-/** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
-const itemSize = ref(220)
+/** 单行高度（px），onMounted 时按 rpx 转 px 计算（含操作按钮行） */
+const itemSize = ref(280)
 
 const dateRangeText = computed(() => {
   if (!searchForm.startDate && !searchForm.endDate) return ''
@@ -311,6 +327,62 @@ function formatTime(dateStr: string): string {
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${month}-${day} ${hours}:${minutes}`
+}
+
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/home/home' })
+  }
+}
+
+function orderItemsSummary(order: OrderInfo): string {
+  if (order.items && order.items.length > 0) {
+    return order.items
+      .slice(0, 3)
+      .map((it) => `${it.productName || it.skuName || ''}×${it.quantity ?? it.totalBottleQty ?? ''}`)
+      .join('  ')
+  }
+  return '暂无商品明细'
+}
+
+function statusClass(status: string): string {
+  const s = (status || '').toUpperCase()
+  if (s === 'COMPLETED' || s === 'DONE' || s === 'ACCEPTED') return 'status-success'
+  if (s === 'PENDING' || s === 'WAIT_PAY') return 'status-danger'
+  if (s === 'DELIVERING' || s === 'PROCESSING') return 'status-warning'
+  if (s === 'CANCELLED' || s === 'REJECTED') return 'status-gray'
+  return 'status-warning'
+}
+
+function primaryAction(order: OrderInfo): string {
+  const s = (order.status || '').toUpperCase()
+  if (s === 'PENDING') return '确认收款'
+  if (s === 'PROCESSING') return '配送'
+  if (s === 'ACCEPTED') return '配送'
+  return ''
+}
+
+async function handleOrderAction(order: OrderInfo, action: string) {
+  try {
+    if (action === '确认收款') {
+      uni.showLoading({ title: '处理中...' })
+      await ordersApi.confirm(order.orderNo)
+      uni.hideLoading()
+      uni.showToast({ title: '已确认收款', icon: 'success' })
+    } else if (action === '配送') {
+      uni.showLoading({ title: '处理中...' })
+      await ordersApi.startDelivery(order.orderNo)
+      uni.hideLoading()
+      uni.showToast({ title: '已开始配送', icon: 'success' })
+    }
+    onSearch()
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: '操作失败', icon: 'none' })
+  }
 }
 
 function confirmDateFilter() {
@@ -465,15 +537,51 @@ onMounted(() => {
 <style lang="scss" scoped>
 .orders-page {
   min-height: 100vh;
-  background: $uni-color-primary-soft;
+  background: $uni-bg-color-page;
   display: flex;
   flex-direction: column;
+}
+
+/* 页头 */
+.ord-hd {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 32rpx 8rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+  background: $uni-bg-color;
+}
+
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-back:active {
+  background: $uni-color-primary-soft;
+}
+
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $uni-text-color;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
   background: $uni-bg-color;
-  padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
 .search-input-wrap {
@@ -511,38 +619,44 @@ onMounted(() => {
 .tab-bar {
   background: $uni-bg-color;
   white-space: nowrap;
-  padding: 0 16rpx;
-  border-bottom: 1rpx solid $uni-gray-100;
+  padding: 0 28rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
 }
 
 .tab-item {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
-  padding: 20rpx 20rpx;
+  padding: 26rpx 24rpx;
   position: relative;
   transition: all 0.2s ease;
 }
 
 .tab-text {
-  font-size: 26rpx;
-  color: $uni-gray-500;
+  font-size: 28rpx;
+  color: $uni-gray-400;
   transition: color 0.2s ease;
 }
 
 .tab-item--active .tab-text {
-  color: $uni-color-primary;
+  color: $uni-text-color;
   font-weight: 600;
 }
 
-.tab-indicator {
-  width: 40rpx;
-  height: 6rpx;
-  background: $uni-color-primary;
-  border-radius: 3rpx;
+.tab-item::after {
+  content: '';
   position: absolute;
-  bottom: 4rpx;
-  transition: width 0.3s ease;
+  bottom: -1rpx;
+  left: 0;
+  right: 0;
+  height: 5rpx;
+  background: $uni-color-primary;
+  border-radius: 4rpx 4rpx 0 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tab-item--active::after {
+  opacity: 1;
 }
 
 .filter-bar {
@@ -601,7 +715,7 @@ onMounted(() => {
 
 .order-list {
   flex: 1;
-  padding: 16rpx 24rpx;
+  padding: 20rpx 28rpx;
 }
 
 .loading-overlay {
@@ -633,10 +747,11 @@ onMounted(() => {
 
 .order-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border-radius: 32rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
   box-sizing: border-box;
   height: 100%;
@@ -652,68 +767,101 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
 }
 
 .order-no {
   font-size: 26rpx;
-  color: $uni-gray-500;
+  color: $uni-text-color;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .order-status {
-  padding: 4rpx 16rpx;
-  border-radius: 8rpx;
-  font-size: 22rpx;
+  padding: 4rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 600;
 }
 
-.status-pending { background: $uni-color-warning-soft; }
-.status-pending .status-text { color: $uni-color-warning; }
-
-.status-processing { background: $uni-color-warning-soft; }
-.status-processing .status-text { color: $uni-color-warning; }
-
-.status-delivering { background: $uni-color-primary-soft; }
-.status-delivering .status-text { color: $uni-color-primary; }
-
-.status-completed { background: $uni-color-success-soft; }
-.status-completed .status-text { color: $uni-color-success; }
-
-.status-cancelled { background: $uni-color-error-soft; }
-.status-cancelled .status-text { color: $uni-color-error; }
+.status-danger { background: $uni-color-error-soft; }
+.status-danger .status-text { color: $uni-color-error; }
+.status-warning { background: $uni-color-warning-soft; }
+.status-warning .status-text { color: $uni-color-warning; }
+.status-success { background: $uni-color-success-soft; }
+.status-success .status-text { color: $uni-color-success; }
+.status-gray { background: $uni-bg-color-grey; }
+.status-gray .status-text { color: $uni-gray-500; }
 
 .order-card-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: 16rpx;
 }
 
-.order-customer {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: $uni-gray-700;
+.order-items {
+  font-size: 26rpx;
+  color: $uni-gray-600;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .order-amount {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: $uni-color-primary;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: $uni-text-color;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .order-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
 .order-time {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: $uni-gray-400;
 }
 
-.order-arrow {
-  font-size: 28rpx;
-  color: $uni-gray-300;
+.order-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+  padding-top: 20rpx;
+}
+
+.ord-action {
+  padding: 12rpx 36rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid $uni-border-color;
+}
+
+.ord-action:active {
+  background: $uni-bg-color-grey;
+}
+
+.ord-action--primary {
+  background: $uni-gradient-blue;
+  border-color: transparent;
+  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.2);
+}
+
+.ord-action--primary:active {
+  opacity: 0.85;
+}
+
+.ord-action-text {
+  font-size: 24rpx;
+  color: $uni-gray-600;
+  font-weight: 500;
+}
+
+.ord-action--primary .ord-action-text {
+  color: $uni-text-color-inverse;
+  font-weight: 600;
 }
 
 .empty-state {

@@ -1,6 +1,9 @@
 <template>
   <view class="reports-page">
     <view class="page-header">
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
       <text class="header-title">数据报表</text>
     </view>
 
@@ -38,22 +41,31 @@
       <view class="stats-grid">
         <view class="stats-card stats-card--primary">
           <text class="stats-value">¥{{ summary.totalSales }}</text>
-          <text class="stats-label">销售总额</text>
-          <text class="stats-trend stats-trend--up" v-if="summary.salesGrowth > 0">
-            ↑ {{ summary.salesGrowth }}%
-          </text>
-        </view>
-        <view class="stats-card">
-          <text class="stats-value">{{ summary.orderCount }}</text>
-          <text class="stats-label">订单数</text>
-        </view>
-        <view class="stats-card">
-          <text class="stats-value">{{ summary.customerCount }}</text>
-          <text class="stats-label">客户数</text>
+          <text class="stats-label">营业额</text>
         </view>
         <view class="stats-card">
           <text class="stats-value">¥{{ summary.profit }}</text>
-          <text class="stats-label">毛利润</text>
+          <text class="stats-label">毛利</text>
+        </view>
+        <view class="stats-card">
+          <text class="stats-value">¥{{ summary.avgPrice }}</text>
+          <text class="stats-label">客单价</text>
+        </view>
+        <view class="stats-card">
+          <text class="stats-value">{{ summary.repurchaseRate }}</text>
+          <text class="stats-label">复购率</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 销售趋势 -->
+    <view class="trend-section" v-if="trendList.length > 0">
+      <view class="section-title">销售趋势</view>
+      <view class="trend-chart">
+        <view class="trend-bar-col" v-for="(item, idx) in trendList" :key="idx">
+          <text class="trend-bar-val">{{ formatShort(item.amount) }}</text>
+          <view class="trend-bar" :style="{ height: trendBarHeight(item.amount) }"></view>
+          <text class="trend-bar-label">{{ item.date }}</text>
         </view>
       </view>
     </view>
@@ -127,7 +139,7 @@ const quickDates = [
   { label: '今日', value: 'today' },
   { label: '本周', value: 'week' },
   { label: '本月', value: 'month' },
-  { label: '全年', value: 'year' },
+  { label: '本年', value: 'year' },
 ]
 const activeQuickDate = ref('month')
 
@@ -136,10 +148,13 @@ const summary = ref<any>({
   orderCount: 0,
   customerCount: 0,
   profit: '0.00',
+  avgPrice: '0.00',
+  repurchaseRate: '0%',
   salesGrowth: 0,
 })
 
 const rankList = ref<SalesRankItem[]>([])
+const trendList = ref<any[]>([])
 const loading = ref(false)
 
 function onStartDateChange(e: any) {
@@ -200,6 +215,28 @@ function goReport(type: string) {
   }
 }
 
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/functions/functions' })
+  }
+}
+
+function formatShort(amount: number): string {
+  const num = Number(amount ?? 0)
+  if (num >= 10000) return (num / 10000).toFixed(1) + '万'
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'k'
+  return String(Math.round(num))
+}
+
+function trendBarHeight(amount: number): string {
+  const max = Math.max(...trendList.value.map((t) => Number(t.amount ?? 0)), 1)
+  const ratio = max > 0 ? Number(amount ?? 0) / max : 0
+  return Math.max(8, Math.round(ratio * 140)) + 'rpx'
+}
+
 async function loadReportData() {
   loading.value = true
   try {
@@ -207,19 +244,23 @@ async function loadReportData() {
       startDate: filterForm.startDate || undefined,
       endDate: filterForm.endDate || undefined,
     }
-    // 并行加载销售汇总和商品排行
-    const [salesSummary, salesRank] = await Promise.all([
+    // 并行加载销售汇总、趋势和商品排行
+    const [salesSummary, salesRank, salesTrend] = await Promise.all([
       reportsApi.getSalesSummary(params),
       reportsApi.getSalesRank({ ...params, limit: 10 }),
+      reportsApi.getSalesTrend({ granularity: 'day' }).catch(() => []),
     ])
     summary.value = {
       totalSales: salesSummary.totalSales?.toFixed?.(2) ?? Number(salesSummary.totalSales).toFixed(2),
       orderCount: salesSummary.orderCount ?? 0,
       customerCount: salesSummary.customerCount ?? 0,
       profit: salesSummary.profit?.toFixed?.(2) ?? Number(salesSummary.profit).toFixed(2),
+      avgPrice: salesSummary.avgPrice?.toFixed?.(2) ?? Number(salesSummary.avgPrice ?? 0).toFixed(2),
+      repurchaseRate: (salesSummary as any).repurchaseRate != null ? (salesSummary as any).repurchaseRate + '%' : '0%',
       salesGrowth: salesSummary.salesGrowth ?? 0,
     }
     rankList.value = salesRank
+    trendList.value = (salesTrend || []).slice(-7)
   } catch (err) {
     console.error('加载报表数据失败:', err)
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -235,13 +276,70 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
+.reports-page { min-height: 100vh; background: $uni-bg-color-page; }
 .page-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: $uni-text-color-inverse; }
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+.header-title { font-size: 36rpx; font-weight: 700; color: $uni-text-color; }
+
+/* 销售趋势 */
+.trend-section {
+  margin: 16rpx 24rpx;
+  background: $uni-bg-color;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 16rpx;
+  height: 240rpx;
+  padding-top: 20rpx;
+}
+.trend-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  height: 100%;
+  justify-content: flex-end;
+}
+.trend-bar-val {
+  font-size: 18rpx;
+  color: $uni-gray-400;
+}
+.trend-bar {
+  width: 32rpx;
+  border-radius: 8rpx 8rpx 4rpx 4rpx;
+  background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%);
+  min-height: 8rpx;
+}
+.trend-bar-label {
+  font-size: 20rpx;
+  color: $uni-gray-500;
+}
 .filter-form {
   margin: 16rpx 24rpx 0;
   background: $uni-bg-color;

@@ -3,7 +3,10 @@
   <view class="notifications-page">
     <!-- 顶部栏 -->
     <view class="page-header">
-      <text class="header-title">消息通知</text>
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
+      <text class="header-title">消息中心</text>
       <view class="header-actions">
         <text class="header-action" @tap="toggleEditMode" v-if="list.length > 0 || editMode">
           {{ editMode ? '取消' : '管理' }}
@@ -248,6 +251,15 @@ function switchTab(tabValue: string) {
   noMore.value = false
   list.value = []
   loadNotifications()
+}
+
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/home/home' })
+  }
 }
 
 // 加载消息列表
@@ -498,17 +510,35 @@ onMounted(() => {
 /* 顶部栏 */
 .page-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 16rpx;
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
 .header-title {
-  font-size: 34rpx;
+  flex: 1;
+  font-size: 36rpx;
   font-weight: 700;
-  color: $uni-gray-700;
+  color: $uni-text-color;
 }
 
 .header-actions {

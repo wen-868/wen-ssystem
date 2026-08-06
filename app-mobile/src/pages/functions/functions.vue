@@ -1,53 +1,56 @@
 <template>
   <view class="func-page">
-    <!-- 搜索栏 -->
-    <view class="func-search">
-      <input class="search-input" placeholder="搜索功能、订单、客户" />
+    <!-- 头部 -->
+    <view class="func-hd">
+      <view class="func-logo">
+        <text class="func-logo-text">智</text>
+      </view>
+      <text class="func-hd-title">功能中心</text>
+      <text class="func-hd-search" @tap="focusSearch">&#xe614;</text>
     </view>
 
-    <!-- 高频操作 -->
-    <view class="func-section">
-      <view class="section-title">高频操作</view>
-      <view class="func-grid">
-        <view class="func-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
-          <view class="func-icon" :style="{ background: item.bg, color: item.color }">
-            <text class="func-icon-text">{{ item.icon }}</text>
-          </view>
-          <text class="func-label">{{ item.label }}</text>
-        </view>
+    <!-- 搜索栏 -->
+    <view class="func-search">
+      <view class="search-bar">
+        <text class="search-icon">&#xe614;</text>
+        <input class="search-input" v-model="keyword" placeholder="搜索功能、订单、客户" placeholder-class="search-placeholder" @confirm="doSearch" />
       </view>
     </view>
 
-    <!-- 业务管理 -->
-    <view class="func-section">
-      <view class="section-title">业务管理</view>
-      <view class="func-grid">
-        <view class="func-item" v-for="item in bizActions" :key="item.label" @tap="goto(item.path)">
-          <view class="func-icon" :style="{ background: item.bg, color: item.color }">
-            <text class="func-icon-text">{{ item.icon }}</text>
-          </view>
-          <text class="func-label">{{ item.label }}</text>
+    <!-- 高频宫格 -->
+    <view class="func-grid">
+      <view class="func-grid-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
+        <view class="fg-ico" :style="{ background: item.bg, color: item.color }">
+          <text class="fg-ico-text">{{ item.icon }}</text>
         </view>
+        <text class="fg-label">{{ item.label }}</text>
       </view>
     </view>
 
     <!-- 数据工具 -->
     <view class="func-section">
-      <view class="section-title">数据工具</view>
-      <view class="data-grid">
-        <view class="data-card" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
-          <text class="data-icon">{{ item.icon }}</text>
-          <text class="data-name">{{ item.label }}</text>
-          <text class="data-sub">{{ item.sub }}</text>
+      <text class="func-section-title">数据 · 工具</text>
+      <view class="func-list">
+        <view class="list-item" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
+          <view class="li-ico" :style="{ background: item.bg, color: item.color }">
+            <text class="li-ico-text">{{ item.icon }}</text>
+          </view>
+          <view class="li-body">
+            <text class="li-title">{{ item.label }}</text>
+            <text class="li-desc">{{ item.sub }}</text>
+          </view>
+          <text class="li-arrow">›</text>
         </view>
       </view>
     </view>
+
+    <view class="safe-bottom"></view>
+    <custom-tab-bar :current="'functions'" />
   </view>
-  <custom-tab-bar :current="'functions'" />
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref } from 'vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   AI_BG_SOFT,
@@ -62,6 +65,8 @@ import {
   AI_TEXT_MID,
 } from '@/constants/colors'
 
+const keyword = ref('')
+
 const navigate = (path: string) => {
   if (path) {
     uni.navigateTo({ url: path })
@@ -72,25 +77,35 @@ const navigate = (path: string) => {
 
 const goto = (path: string) => navigate(path)
 
-const hotActions = reactive([
-  { icon: '🧾', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '📦', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '🔍', label: '库存盘点', path: '', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '🚚', label: '配送管理', path: '', bg: AI_DANGER_SOFT, color: AI_DANGER },
-])
+const hotActions = [
+  { icon: '开', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '单', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '会', label: '会员管理', path: '/pages-sub/product/customers/customers', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '货', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_DANGER_SOFT, color: AI_DANGER },
+  { icon: '盘', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '账', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '店', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '印', label: '单据打印', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '员', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '库', label: '库存管理', path: '/pages-sub/product/inventory/inventory', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '供', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '更', label: '更多', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
+]
 
-const bizActions = reactive([
-  { icon: '👥', label: '客户管理', path: '/pages-sub/product/customers/customers', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '🏷️', label: '商品管理', path: '/pages/products/products', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '💰', label: '价格管理', path: '', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '🧑‍💼', label: '员工管理', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
-])
+const dataTools = [
+  { icon: '报', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '排', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '溯', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/batches/batch-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '设', label: '系统设置', sub: '打印、权限、通知设置', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
+]
 
-const dataTools = reactive([
-  { icon: '📊', label: '销售报表', sub: '经营数据分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT },
-  { icon: '📈', label: '库存报表', sub: '商品与库存', path: '', bg: AI_SUCCESS_SOFT },
-  { icon: '💹', label: '利润分析', sub: '毛利与成本', path: '', bg: AI_WARNING_SOFT },
-])
+function focusSearch() {
+  uni.showToast({ title: '输入关键词搜索', icon: 'none' })
+}
+
+function doSearch() {
+  uni.showToast({ title: `搜索：${keyword.value || '全部'}`, icon: 'none' })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -98,86 +113,204 @@ const dataTools = reactive([
 
 .func-page {
   min-height: 100vh;
-  background: $ai-bg-gap;
-  padding: 16rpx 0 calc(108rpx + 40rpx + env(safe-area-inset-bottom));
+  background: $uni-bg-color-page;
+  padding-bottom: calc(136rpx + env(safe-area-inset-bottom));
 }
 
-.func-search {
-  padding: 16rpx 32rpx 24rpx;
-}
-.search-input {
-  height: 72rpx;
-  background: $uni-bg-color;
-  border-radius: 36rpx;
-  padding: 0 32rpx;
-  font-size: $ai-fs-body;
-  color: $ai-text-body;
-}
-
-.func-section {
-  margin-bottom: 24rpx;
-  padding: 0 32rpx;
-}
-.section-title {
-  font-size: $ai-fs-h3;
-  font-weight: 600;
-  color: $ai-text-main;
-  margin-bottom: 16rpx;
-}
-
-.func-grid {
+/* 头部 */
+.func-hd {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 20rpx;
+  padding: 28rpx 32rpx 12rpx;
 }
-.func-item {
-  width: calc((100% - 60rpx) / 4);
+
+.func-logo {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 24rpx;
+  background: $uni-gradient-blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
+}
+
+.func-logo-text {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: $uni-text-color-inverse;
+}
+
+.func-hd-title {
+  flex: 1;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+  letter-spacing: -0.5rpx;
+}
+
+.func-hd-search {
+  font-size: 40rpx;
+  color: $uni-gray-600;
+  padding: 12rpx;
+}
+
+/* 搜索栏 */
+.func-search {
+  padding: 12rpx 28rpx 20rpx;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  height: 80rpx;
+  background: $uni-bg-color;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border-radius: $uni-border-radius-pill;
+  padding: 0 28rpx;
+  gap: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.search-icon {
+  font-size: 30rpx;
+  color: $uni-gray-400;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: $uni-text-color;
+}
+
+.search-placeholder {
+  color: $uni-gray-400;
+}
+
+/* 高频宫格 */
+.func-grid {
+  margin: 8rpx 28rpx 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 24rpx 12rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.func-grid-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: 12rpx;
+  padding: 20rpx 0;
+  transition: transform 0.15s;
 }
-.func-icon {
-  width: 88rpx;
-  height: 88rpx;
+
+.func-grid-item:active {
+  transform: scale(0.94);
+}
+
+.fg-ico {
+  width: 80rpx;
+  height: 80rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.func-icon-text {
-  font-size: 40rpx;
-}
-.func-label {
-  font-size: $ai-fs-caption;
-  color: $ai-text-body;
+
+.fg-ico-text {
+  font-size: 32rpx;
+  font-weight: 700;
 }
 
-.data-grid {
-  display: flex;
-  gap: 20rpx;
+.fg-label {
+  font-size: 22rpx;
+  color: $uni-gray-600;
+  font-weight: 500;
 }
-.data-card {
-  flex: 1;
-  background: $uni-bg-color;
-  border-radius: $ai-radius-lg;
-  padding: 24rpx 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
+
+/* 数据工具 */
+.func-section {
+  margin: 36rpx 28rpx 0;
 }
-.data-icon {
-  font-size: 40rpx;
-}
-.data-name {
-  font-size: $ai-fs-body;
+
+.func-section-title {
+  display: block;
+  font-size: 24rpx;
   font-weight: 600;
-  color: $ai-text-body;
+  color: $uni-gray-400;
+  padding: 0 8rpx 16rpx;
+  letter-spacing: 1rpx;
 }
-.data-sub {
-  font-size: $ai-fs-micro;
-  color: $ai-text-sub;
+
+.func-list {
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  gap: 24rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: $uni-bg-color-grey;
+}
+
+.li-ico {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.li-ico-text {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.li-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.li-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $uni-text-color;
+}
+
+.li-desc {
+  display: block;
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  margin-top: 6rpx;
+}
+
+.li-arrow {
+  font-size: 32rpx;
+  color: $uni-gray-300;
+}
+
+.safe-bottom {
+  height: 40rpx;
 }
 </style>

@@ -1,187 +1,174 @@
 <template>
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
-    <!-- 数据看板（卡片） -->
-    <view class="dashboard-card">
-      <view class="dashboard-header">
-        <view class="dashboard-title-wrap">
-          <text class="dashboard-icon">&#xe614;</text>
-          <text class="dashboard-title">经营数据看板</text>
-        </view>
-        <view class="realtime-tag">
-          <text class="realtime-dot"></text>
-          <text class="realtime-text">实时</text>
-        </view>
-      </view>
-      <view class="dash-today">
-        <view class="dash-today-item">
-          <text class="dash-value-today">¥{{ formatAmount(stats.todaySales) }}</text>
-          <text class="dash-label">今日营业额</text>
-        </view>
-        <view class="dash-today-item">
-          <text class="dash-value-today">{{ stats.todayOrders }}</text>
-          <text class="dash-label">今日订单</text>
-        </view>
-      </view>
-      <view class="dash-month">
-        <view class="dash-month-item">
-          <text class="dash-value-month">¥{{ formatAmount(stats.weekTotal) }}</text>
-          <text class="dash-label">本周累计</text>
-        </view>
-        <view class="dash-month-item">
-          <text class="dash-value-month">{{ stats.productCount }}</text>
-          <text class="dash-label">在售商品</text>
-        </view>
-        <view class="dash-month-item">
-          <text class="dash-value-month">{{ stats.totalCustomers }}</text>
-          <text class="dash-label">活跃客户</text>
-        </view>
-      </view>
-      <view class="dash-warn" v-if="stats.stockAlerts > 0">
-        <text class="dash-warn-dot"></text>
-        <text class="dash-warn-text">库存预警 {{ stats.stockAlerts }} 项</text>
-      </view>
-      <view class="ai-insight">
-        <text class="ai-insight-icon">💡</text>
-        <text class="ai-insight-text">AI 洞察：点击底部 AI 助手，一句话完成开单、查库存、对账</text>
-      </view>
+    <!-- 搜索栏 -->
+    <view class="search-bar" @tap="navigateTo('/pages/products/products')">
+      <text class="search-bar-icon">&#xe614;</text>
+      <text class="search-bar-placeholder">搜索商品、订单、客户名称</text>
     </view>
 
-    <!-- 订单进度 -->
-    <view class="card-section">
-      <view class="card-title-row">
-        <text class="card-title">订单进度</text>
+    <!-- 数据卡（今日营业额 / 今日订单 + 环比） -->
+    <view class="home-data">
+      <view class="home-data-top">
+        <view class="home-data-item">
+          <text class="home-data-label">今日营业额</text>
+          <text class="home-data-val">¥{{ formatAmount(stats.todaySales) }}</text>
+          <view class="home-data-trend up">
+            <text class="trend-arrow">▲</text>
+            <text class="trend-text">{{ stats.todaySales > 0 ? '实时' : '—' }}</text>
+          </view>
+        </view>
+        <view class="home-data-item">
+          <text class="home-data-label">今日订单</text>
+          <text class="home-data-val">{{ stats.todayOrders }}</text>
+          <view class="home-data-trend up">
+            <text class="trend-arrow">▲</text>
+            <text class="trend-text">{{ stats.todayOrders }}单</text>
+          </view>
+        </view>
       </view>
-      <view class="order-progress-grid">
-        <view class="order-stat">
-          <view class="order-dot order-dot--red"></view>
-          <text class="order-num order-num--red">{{ stats.pendingDelivery }}</text>
-          <text class="order-label">待配送</text>
+      <view class="home-data-div"></view>
+      <view class="home-data-bot">
+        <view class="db-item">
+          <text class="db-label">本月营业额</text>
+          <text class="db-val">¥{{ formatAmount(stats.monthSales) }}</text>
         </view>
-        <view class="order-stat">
-          <view class="order-dot order-dot--orange"></view>
-          <text class="order-num order-num--orange">{{ stats.pendingPickup }}</text>
-          <text class="order-label">待取货</text>
+        <view class="db-item">
+          <text class="db-label">本月订单</text>
+          <text class="db-val">{{ stats.monthOrders }}</text>
         </view>
-        <view class="order-stat">
-          <view class="order-dot order-dot--blue"></view>
-          <text class="order-num order-num--blue">{{ stats.pendingPayment }}</text>
-          <text class="order-label">待收款</text>
-        </view>
-        <view class="order-stat">
-          <view class="order-dot order-dot--green"></view>
-          <text class="order-num order-num--green">{{ stats.completedToday }}</text>
-          <text class="order-label">已完成</text>
+        <view class="db-item">
+          <text class="db-label">本月毛利</text>
+          <text class="db-val">¥{{ formatAmount(stats.monthProfit) }}</text>
         </view>
       </view>
     </view>
 
-    <!-- 快捷入口 -->
-    <view class="card-section">
-      <view class="card-title-row">
-        <text class="card-title">快捷入口</text>
+    <!-- 订单进度四宫格 -->
+    <view class="home-progress">
+      <view class="section-head">
+        <text class="section-title">订单进度</text>
+        <text class="section-more" @tap="navigateTo('/pages/orders/orders')">查看全部 ›</text>
       </view>
-      <view class="quick-grid">
-        <view class="quick-item" @tap="navigateTo('/pages/sales/create-sale')">
-          <view class="quick-icon-wrap quick-icon-wrap--blue">
-            <text class="quick-icon">&#xe610;</text>
+      <view class="hp-row">
+        <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
+          <view class="hp-ico hp-ico--orange">
+            <text class="hp-ico-text">配</text>
           </view>
-          <text class="quick-label">开单收银</text>
+          <text class="hp-num">{{ stats.pendingDelivery }}</text>
+          <text class="hp-label">待配送</text>
         </view>
-        <view class="quick-item" @tap="navigateTo('/pages/products/products')">
-          <view class="quick-icon-wrap quick-icon-wrap--green">
-            <text class="quick-icon">&#xe611;</text>
+        <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
+          <view class="hp-ico hp-ico--blue">
+            <text class="hp-ico-text">取</text>
           </view>
-          <text class="quick-label">商品管理</text>
+          <text class="hp-num">{{ stats.pendingPickup }}</text>
+          <text class="hp-label">待取货</text>
         </view>
-        <view class="quick-item" @tap="navigateTo('/pages-sub/product/customers/customers')">
-          <view class="quick-icon-wrap quick-icon-wrap--orange">
-            <text class="quick-icon">&#xe612;</text>
+        <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
+          <view class="hp-ico hp-ico--red">
+            <text class="hp-ico-text">收</text>
           </view>
-          <text class="quick-label">客户管理</text>
+          <text class="hp-num">{{ stats.pendingPayment }}</text>
+          <text class="hp-label">待收款</text>
         </view>
-        <view class="quick-item" @tap="navigateTo('/pages-sub/finance/reports/reports')">
-          <view class="quick-icon-wrap quick-icon-wrap--purple">
-            <text class="quick-icon">&#xe613;</text>
+        <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
+          <view class="hp-ico hp-ico--green">
+            <text class="hp-ico-text">完</text>
           </view>
-          <text class="quick-label">数据报表</text>
+          <text class="hp-num">{{ stats.completedToday }}</text>
+          <text class="hp-label">已完成</text>
         </view>
       </view>
     </view>
 
     <!-- 最新订单 -->
-    <view class="card-section" v-if="recentOrders.length > 0">
-      <view class="card-title-row">
-        <text class="card-title">最新订单</text>
-        <text class="card-more" @tap="navigateTo('/pages/orders/orders')">查看全部 ></text>
-      </view>
-      <view class="order-list">
-        <view class="order-item" v-for="order in recentOrders" :key="order.id">
-          <view class="order-avatar" :class="'order-avatar--' + order.avatarColor">
-            <text class="avatar-text">{{ order.customerName.charAt(0) }}</text>
-          </view>
-          <view class="order-info">
-            <view class="order-info-top">
-              <text class="order-customer">{{ order.customerName }}</text>
-              <text class="order-type-tag">{{ order.orderType }}</text>
-            </view>
-            <text class="order-meta">{{ order.orderNo }} · {{ order.time }}</text>
-          </view>
-          <view class="order-right">
-            <text class="order-amount">¥{{ formatAmount(order.amount) }}</text>
-            <text class="order-status" :class="{ 'order-status--pending': order.status !== 'done' }">{{ order.statusText }}</text>
-          </view>
+    <view class="home-orders" v-if="recentOrders.length > 0">
+      <view class="section-head">
+        <view class="section-title-wrap">
+          <view class="title-bar-line"></view>
+          <text class="section-title">最新订单</text>
         </view>
+        <text class="section-more" @tap="navigateTo('/pages/orders/orders')">查看全部 ›</text>
+      </view>
+      <view class="ho-item" v-for="order in recentOrders" :key="order.orderNo" @tap="navigateTo('/pages/orders/orders')">
+        <view class="ho-info">
+          <view class="ho-name">
+            {{ order.customerName }}
+            <text class="ho-channel">{{ order.channel }}</text>
+          </view>
+          <view class="ho-meta">{{ order.orderNo }} · {{ order.time }}</view>
+        </view>
+        <view class="ho-right">
+          <view class="ho-amount">¥{{ formatAmount(order.amount) }}</view>
+          <text class="ho-status badge" :class="statusBadgeClass(order.status)">{{ order.statusText }}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 7 日趋势 -->
+    <view class="home-chart">
+      <view class="section-head">
+        <view class="section-title-wrap">
+          <view class="title-bar-line"></view>
+          <text class="section-title">7日趋势</text>
+        </view>
+        <text class="chart-daily" v-if="trendList.length > 0">日均 ¥{{ formatAmount(averageDaily) }}</text>
+      </view>
+      <view class="chart-wrap" v-if="trendList.length > 0">
+        <view class="chart-bar-col" v-for="(item, idx) in trendList" :key="idx">
+          <text class="chart-bar-val">{{ formatAmount(item.amount) }}</text>
+          <view class="chart-bar" :style="{ height: barHeight(item.amount) }"></view>
+          <text class="chart-bar-label">{{ item.date }}</text>
+        </view>
+      </view>
+      <view class="chart-empty" v-else>
+        <text class="chart-empty-text">暂无趋势数据</text>
       </view>
     </view>
 
     <!-- 待办提醒 -->
-    <view class="card-section">
-      <view class="card-title-row">
-        <text class="card-title">待办提醒</text>
-        <text class="card-more" @tap="navigateTo('/pages/todos/todos')">全部 ></text>
-      </view>
-      <view class="todo-list" v-if="todos.length > 0">
-        <view class="todo-item" v-for="item in todos" :key="item.id">
-          <view class="todo-dot" :class="item.status === 'done' ? 'todo-dot--done' : 'todo-dot--pending'"></view>
-          <text class="todo-title" :class="{ 'todo-title--done': item.status === 'done' }">{{ item.title }}</text>
-          <text class="todo-date" v-if="item.deadline">{{ item.deadline }}</text>
+    <view class="home-todos" v-if="todos.length > 0">
+      <view class="section-head">
+        <view class="section-title-wrap">
+          <view class="title-bar-line"></view>
+          <text class="section-title">待办提醒</text>
         </view>
+        <text class="section-more" @tap="navigateTo('/pages/todos/todos')">全部 ›</text>
       </view>
-      <view class="empty-state" v-else>
-        <text class="empty-text">暂无待办事项</text>
+      <view class="todo-item" v-for="item in todos" :key="item.id">
+        <view class="todo-dot" :class="item.status === 'done' ? 'todo-dot--done' : 'todo-dot--pending'"></view>
+        <text class="todo-title">{{ item.title }}</text>
+        <text class="todo-date" v-if="item.deadline">{{ item.deadline }}</text>
       </view>
     </view>
 
-    <!-- 安全区域底部间距 -->
     <view class="safe-bottom"></view>
     <custom-tab-bar :current="'home'" />
   </scroll-view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { dashboardApi, type TodoItem } from '@/api/modules/dashboard'
+import { ref, computed, onMounted } from 'vue'
+import { dashboardApi, type TodoItem, type SalesTrend } from '@/api/modules/dashboard'
+import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 interface DashboardData {
   todaySales: number
   todayOrders: number
-  weekTotal: number
-  productCount: number
-  totalCustomers: number
-  stockAlerts: number
+  monthSales: number
+  monthOrders: number
+  monthProfit: number
   pendingDelivery: number
   pendingPickup: number
   pendingPayment: number
   completedToday: number
 }
 
-interface RecentOrder {
-  id: string
-  customerName: string
-  avatarColor: string
-  orderType: string
+interface HomeOrder {
   orderNo: string
+  customerName: string
+  channel: string
   time: string
   amount: number
   status: string
@@ -191,10 +178,9 @@ interface RecentOrder {
 const stats = ref<DashboardData>({
   todaySales: 0,
   todayOrders: 0,
-  weekTotal: 0,
-  productCount: 0,
-  totalCustomers: 0,
-  stockAlerts: 0,
+  monthSales: 0,
+  monthOrders: 0,
+  monthProfit: 0,
   pendingDelivery: 0,
   pendingPickup: 0,
   pendingPayment: 0,
@@ -202,9 +188,20 @@ const stats = ref<DashboardData>({
 })
 
 const todos = ref<TodoItem[]>([])
-const recentOrders = ref<RecentOrder[]>([])
-const loading = ref(false)
+const recentOrders = ref<HomeOrder[]>([])
+const trendList = ref<SalesTrend[]>([])
 const refresherTriggered = ref(false)
+
+const averageDaily = computed(() => {
+  if (trendList.value.length === 0) return 0
+  const sum = trendList.value.reduce((acc, item) => acc + item.amount, 0)
+  return sum / trendList.value.length
+})
+
+const maxTrendAmount = computed(() => {
+  if (trendList.value.length === 0) return 1
+  return Math.max(...trendList.value.map((item) => item.amount), 1)
+})
 
 function formatAmount(amount: number): string {
   if (amount >= 10000) {
@@ -213,36 +210,66 @@ function formatAmount(amount: number): string {
   return amount.toFixed(2)
 }
 
+function barHeight(amount: number): string {
+  const ratio = maxTrendAmount.value > 0 ? amount / maxTrendAmount.value : 0
+  const height = Math.max(8, Math.round(ratio * 120))
+  return height + 'rpx'
+}
+
+function statusBadgeClass(status: string): string {
+  if (status === 'done' || status === 'COMPLETED' || status === '已完成') return 'badge-green'
+  if (status === 'pending' || status === 'PENDING' || status === '待付款') return 'badge-red'
+  if (status === 'delivering' || status === 'DELIVERING' || status === '待配送') return 'badge-orange'
+  return 'badge-green'
+}
+
 function navigateTo(url: string) {
   uni.navigateTo({ url })
 }
 
+function formatOrderTime(createdAt?: string): string {
+  if (!createdAt) return ''
+  const date = new Date(createdAt)
+  if (Number.isNaN(date.getTime())) return createdAt.slice(5, 16)
+  const hh = String(date.getHours()).padStart(2, '0')
+  const mm = String(date.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
+}
+
 async function loadData() {
-  loading.value = true
   try {
-    const [statsData, todosData] = await Promise.all([
+    const [statsData, todosData, trendData, orderResult] = await Promise.all([
       dashboardApi.getStats(),
-      dashboardApi.getTodos()
+      dashboardApi.getTodos(),
+      dashboardApi.getSalesTrend(7),
+      ordersApi.list({ page: 1, pageSize: 4 }).catch(() => null)
     ])
-    // 合并接口数据到看板数据
     const s = statsData as any
     stats.value = {
       todaySales: s.todaySales || 0,
       todayOrders: s.todayOrders || 0,
-      weekTotal: s.weekTotal || s.todaySales * 5 || 0,
-      productCount: s.productCount || 0,
-      totalCustomers: s.totalCustomers || 0,
-      stockAlerts: s.stockAlerts || 0,
-      pendingDelivery: s.pendingDelivery || 0,
-      pendingPickup: s.pendingPickup || 0,
-      pendingPayment: s.pendingPayment || 0,
+      monthSales: s.monthSales || s.monthTotal || 0,
+      monthOrders: s.monthOrders || 0,
+      monthProfit: s.monthProfit || s.monthGrossProfit || 0,
+      pendingDelivery: s.pendingDelivery || s.toDeliver || 0,
+      pendingPickup: s.pendingPickup || s.toPickup || 0,
+      pendingPayment: s.pendingPayment || s.toCollect || 0,
       completedToday: s.completedToday || 0
     }
-    todos.value = todosData.slice(0, 5)
+    todos.value = todosData.slice(0, 4)
+    trendList.value = trendData.slice(0, 7)
+    const rows = orderResult?.list ?? []
+    recentOrders.value = (rows as OrderInfo[]).slice(0, 4).map((o) => ({
+      orderNo: o.orderNo || '',
+      customerName: o.customerName || '客户',
+      channel: o.channel || '门店',
+      time: formatOrderTime(o.createdAt || o.createTime),
+      amount: Number(o.totalAmount ?? o.receivableAmount ?? 0),
+      status: o.status || '',
+      statusText: o.statusLabel || o.status || ''
+    }))
   } catch (err) {
     console.error('加载首页数据失败:', err)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -267,437 +294,374 @@ onMounted(() => {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* --- 数据看板通栏 --- */
-.dashboard-banner {
-  background: linear-gradient(135deg, $uni-color-primary 0%, $uni-color-primary 100%);
-  padding: calc(48rpx + env(safe-area-inset-top)) 32rpx 36rpx;
-  border-radius: 0 0 32rpx 32rpx;
-  box-shadow: 0 8rpx 32rpx rgba(43, 127, 255, 0.2);
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28rpx;
-}
-
-.dashboard-title-wrap {
+/* 搜索栏 */
+.search-bar {
+  margin: 20rpx 28rpx 0;
+  height: 84rpx;
+  background: $uni-bg-color;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border-radius: $uni-border-radius-pill;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  padding: 0 32rpx;
+  gap: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
 }
 
-.dashboard-icon {
-  font-size: 32rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.dashboard-title {
+.search-bar-icon {
   font-size: 30rpx;
-  font-weight: 600;
-  color: $uni-text-color-inverse;
+  color: $uni-gray-400;
 }
 
-.realtime-tag {
+.search-bar-placeholder {
+  font-size: 26rpx;
+  color: $uni-gray-400;
+}
+
+/* 数据卡 */
+.home-data {
+  margin: 32rpx 28rpx 0;
+  background: #F0F5FF;
+  border-radius: 40rpx;
+  padding: 48rpx 44rpx;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.06), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba(37, 99, 235, 0.08);
+}
+
+.home-data-top {
+  display: flex;
+  gap: 48rpx;
+}
+
+.home-data-item {
+  flex: 1;
+}
+
+.home-data-label {
+  font-size: 22rpx;
+  color: $uni-gray-500;
+  font-weight: 500;
+  letter-spacing: 1rpx;
+}
+
+.home-data-val {
+  display: block;
+  font-size: 64rpx;
+  font-weight: 800;
+  margin-top: 16rpx;
+  color: $uni-text-color;
+  line-height: 1.1;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.home-data-trend {
   display: flex;
   align-items: center;
   gap: 8rpx;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 6rpx 16rpx;
-  border-radius: 16rpx;
+  margin-top: 12rpx;
 }
 
-.realtime-dot {
-  width: 12rpx;
-  height: 12rpx;
-  background: $uni-color-success;
-  border-radius: 50%;
+.home-data-trend.up .trend-arrow {
+  color: $uni-color-success;
 }
 
-.realtime-text {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.9);
+.trend-arrow {
+  font-size: 18rpx;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 24rpx 0;
-}
-
-.dash-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.dash-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: $uni-text-color-inverse;
-  margin-bottom: 6rpx;
-}
-
-.dash-value--warn {
-  color: $uni-color-error-soft;
-}
-
-.dash-label {
+.trend-text {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.75);
+  color: $uni-gray-500;
 }
 
-/* --- 通用卡片 --- */
-.card-section {
-  margin: 24rpx 24rpx 0;
-  background: $uni-bg-color;
-  border-radius: 20rpx;
-  padding: 28rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+.home-data-div {
+  height: 1rpx;
+  background: rgba(37, 99, 235, 0.12);
+  margin: 36rpx 0 28rpx;
 }
 
-.card-title-row {
+.home-data-bot {
   display: flex;
-  justify-content: space-between;
+}
+
+.db-item {
+  flex: 1;
+}
+
+.db-label {
+  font-size: 20rpx;
+  color: $uni-gray-500;
+}
+
+.db-val {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 700;
+  margin-top: 8rpx;
+  color: $uni-text-color;
+}
+
+/* 通用区块 */
+.section-head {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 4rpx;
   margin-bottom: 24rpx;
 }
 
-.card-title {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: $ai-text-body;
-}
-
-.card-more {
-  font-size: 24rpx;
-  color: $uni-color-primary;
-}
-
-/* --- 订单进度 --- */
-.order-progress-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+.section-title-wrap {
+  display: flex;
+  align-items: center;
   gap: 16rpx;
 }
 
-.order-stat {
-  text-align: center;
-  padding: 20rpx 8rpx;
-  background: $uni-bg-color-page;
-  border-radius: 16rpx;
+.title-bar-line {
+  width: 8rpx;
+  height: 32rpx;
+  border-radius: 4rpx;
+  background: $uni-color-primary;
 }
 
-.order-num {
-  font-size: 44rpx;
+.section-title {
+  font-size: 30rpx;
   font-weight: 700;
-  margin-bottom: 6rpx;
-  display: block;
+  color: $uni-text-color;
+  letter-spacing: -0.5rpx;
 }
 
-.order-num--red { color: $ai-danger; }
-.order-num--orange { color: $ai-warning; }
-.order-num--blue { color: $uni-color-primary; }
-.order-num--green { color: $ai-success; }
-
-.order-label {
-  font-size: 22rpx;
-  color: $ai-text-sub;
+.section-more {
+  font-size: 24rpx;
+  color: $uni-gray-400;
 }
 
-/* --- 快捷入口 --- */
-.quick-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 20rpx;
+/* 订单进度 */
+.home-progress {
+  margin: 36rpx 28rpx 0;
 }
 
-.quick-item {
+.hp-row {
+  display: flex;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 32rpx 12rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.hp-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 10rpx;
 }
 
-.quick-icon-wrap {
-  width: 88rpx;
-  height: 88rpx;
+.hp-ico {
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12rpx;
 }
 
-.quick-icon-wrap--blue { background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft); }
-.quick-icon-wrap--green { background: linear-gradient(135deg, $ai-success-bg, $uni-color-success-soft); }
-.quick-icon-wrap--orange { background: linear-gradient(135deg, $ai-warning-bg, $uni-color-warning-soft); }
-.quick-icon-wrap--purple { background: linear-gradient(135deg, $uni-color-purple-soft, $uni-color-purple-soft); }
-.quick-icon-wrap--cyan { background: linear-gradient(135deg, $uni-color-success-soft, $uni-color-cyan-soft); }
+.hp-ico--orange { background: rgba(200, 128, 58, 0.1); }
+.hp-ico--blue { background: rgba(37, 99, 235, 0.1); }
+.hp-ico--red { background: rgba(196, 80, 80, 0.1); }
+.hp-ico--green { background: rgba(58, 157, 92, 0.1); }
 
-.quick-icon {
-  font-size: 40rpx;
-  color: $uni-color-primary;
-}
-
-.quick-icon--ai {
-  font-size: 30rpx;
+.hp-ico-text {
+  font-size: 28rpx;
   font-weight: 700;
-  letter-spacing: 1rpx;
+  color: $uni-gray-600;
 }
 
-.quick-label {
-  font-size: 24rpx;
-  color: $ai-text-mid;
+.hp-num {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: $uni-text-color;
+  line-height: 1;
 }
 
-/* --- 最新订单 --- */
-.order-list {
-  display: flex;
-  flex-direction: column;
+.hp-label {
+  font-size: 22rpx;
+  color: $uni-gray-500;
 }
 
-.order-item {
+/* 最新订单 */
+.home-orders {
+  margin: 36rpx 28rpx 0;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 32rpx 28rpx 8rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.ho-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid $ai-bg-gap;
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
-.order-item:last-child {
+.ho-item:last-child {
   border-bottom: none;
 }
 
-.order-avatar {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 20rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 20rpx;
-  flex-shrink: 0;
-}
-
-.order-avatar--blue { background: $uni-color-primary; }
-.order-avatar--green { background: $ai-success; }
-.order-avatar--orange { background: $ai-warning; }
-
-.avatar-text {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $uni-text-color-inverse;
-}
-
-.order-info {
+.ho-info {
   flex: 1;
   min-width: 0;
 }
 
-.order-info-top {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-bottom: 6rpx;
-}
-
-.order-customer {
+.ho-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: $ai-text-body;
+  color: $uni-text-color;
 }
 
-.order-type-tag {
+.ho-channel {
   font-size: 20rpx;
-  color: $ai-text-sub;
-  background: $ai-bg-gap;
-  padding: 2rpx 12rpx;
-  border-radius: 8rpx;
+  color: $uni-gray-400;
+  margin-left: 12rpx;
+  font-weight: 400;
 }
 
-.order-meta {
+.ho-meta {
   font-size: 22rpx;
-  color: $ai-text-sub;
+  color: $uni-gray-400;
+  margin-top: 6rpx;
 }
 
-.order-right {
+.ho-right {
   text-align: right;
   flex-shrink: 0;
 }
 
-.order-amount {
+.ho-amount {
   font-size: 30rpx;
-  font-weight: 700;
-  color: $ai-text-body;
+  font-weight: 800;
+  color: $uni-text-color;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
-.order-status {
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
   font-size: 20rpx;
-  color: $ai-success;
-  margin-top: 4rpx;
+  font-weight: 600;
+  margin-top: 8rpx;
 }
 
-.order-status--pending {
-  color: $ai-warning;
+.badge-green { background: $uni-color-success-soft; color: $uni-color-success; }
+.badge-orange { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.badge-red { background: $uni-color-error-soft; color: $uni-color-error; }
+
+/* 7 日趋势 */
+.home-chart {
+  margin: 36rpx 28rpx 0;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
-/* --- 待办提醒 --- */
-.todo-list {
+.chart-daily {
+  font-size: 24rpx;
+  color: $uni-gray-400;
+}
+
+.chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 20rpx;
+  height: 240rpx;
+  padding-top: 24rpx;
+}
+
+.chart-bar-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar-val {
+  font-size: 18rpx;
+  color: $uni-gray-400;
+}
+
+.chart-bar {
+  width: 36rpx;
+  border-radius: 8rpx 8rpx 4rpx 4rpx;
+  background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%);
+  min-height: 8rpx;
+}
+
+.chart-bar-label {
+  font-size: 20rpx;
+  color: $uni-gray-500;
+}
+
+.chart-empty {
+  height: 180rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-empty-text {
+  font-size: 24rpx;
+  color: $uni-gray-400;
+}
+
+/* 待办提醒 */
+.home-todos {
+  margin: 36rpx 28rpx 0;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 32rpx 28rpx 12rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid $ai-bg-gap;
-}
-
-.todo-item:last-child {
-  border-bottom: none;
+  padding: 22rpx 0;
+  gap: 16rpx;
 }
 
 .todo-dot {
-  width: 12rpx;
-  height: 12rpx;
+  width: 16rpx;
+  height: 16rpx;
   border-radius: 50%;
-  margin-right: 16rpx;
   flex-shrink: 0;
 }
 
-.todo-dot--pending {
-  background: $uni-color-primary;
-}
-
-.todo-dot--done {
-  background: $uni-gray-300;
-}
+.todo-dot--pending { background: $uni-color-warning; }
+.todo-dot--done { background: $uni-color-success; }
 
 .todo-title {
   flex: 1;
-  font-size: 28rpx;
-  color: $ai-text-body;
-}
-
-.todo-title--done {
-  color: $uni-gray-300;
-  text-decoration: line-through;
+  font-size: 26rpx;
+  color: $uni-text-color;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .todo-date {
   font-size: 22rpx;
-  color: $ai-text-sub;
-  margin-left: 16rpx;
+  color: $uni-gray-400;
 }
-
-.empty-state {
-  padding: 40rpx 0;
-  text-align: center;
-}
-
-.empty-text {
-  font-size: 26rpx;
-  color: $uni-gray-300;
-}
-
-.safe-bottom {
-  height: calc(108rpx + env(safe-area-inset-bottom));
-}
-
-/* ─── 移动端打磨 v1.3：数据看板卡片化 ─── */
-.dashboard-card {
-  margin: 16rpx 32rpx 24rpx;
-  background: $uni-bg-color;
-  border-radius: 24rpx;
-  padding: 28rpx 32rpx 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-}
-.dash-today {
-  display: flex;
-  margin-top: 20rpx;
-}
-.dash-today-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-}
-.dash-value-today {
-  font-size: 56rpx;
-  font-weight: 700;
-  color: $uni-text-color;
-  font-variant-numeric: tabular-nums;
-}
-.dash-month {
-  display: flex;
-  margin-top: 24rpx;
-  border-top: 2rpx solid $ai-bg-gap;
-  padding-top: 20rpx;
-}
-.dash-month-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-}
-.dash-value-month {
-  font-size: 28rpx;
-  color: $ai-text-mid;
-  font-variant-numeric: tabular-nums;
-}
-.dash-label {
-  font-size: 22rpx;
-  color: $ai-text-sub;
-}
-.dash-warn {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  margin-top: 20rpx;
-  background: $ai-danger-bg;
-  border-radius: 12rpx;
-  padding: 10rpx 16rpx;
-}
-.dash-warn-dot {
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background: $ai-danger;
-}
-.dash-warn-text {
-  font-size: 22rpx;
-  color: $ai-danger;
-}
-.ai-insight {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  margin-top: 20rpx;
-  background: $ai-bg-gap;
-  border-radius: 12rpx;
-  padding: 12rpx 16rpx;
-}
-.ai-insight-icon {
-  font-size: 24rpx;
-}
-.ai-insight-text {
-  flex: 1;
-  font-size: 24rpx;
-  color: $ai-text-body;
-}
-
-/* 订单进度色点 */
-.order-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  margin-bottom: 4rpx;
-}
-.order-dot--red { background: $ai-danger; }
-.order-dot--orange { background: $ai-warning; }
-.order-dot--blue { background: $ai-primary; }
-.order-dot--green { background: $ai-success; }
 </style>

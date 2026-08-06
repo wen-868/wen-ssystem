@@ -2342,7 +2342,7 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
 - **预计**：3-5 天（分批推进，每批独立验收）
-- **状态**：🔄 进行中（2026-08-07 凌舟派单）
+- **状态**：✅ 第 1-4 批完成（2026-08-07 阿澈执行，第 5 批随 token 体系一并生效，待凌舟复核收口）
 - **必读文件**：
   1. `docs/design/智享全链-移动端UI-v1.0.html` —— 唯一设计依据（逐页对照，可浏览器打开）
   2. `docs/tasks/current-tasks.md` 必读清单 + 本任务卡
@@ -2373,6 +2373,47 @@
   - `walkthrough2.mjs` 12 核心页走查 0 结构崩溃/0 404（预期 403 除外）
   - 完成记录写入本任务卡（每批：对照页、改动文件、构建/走查证据）
 
+
+**阿澈完成记录（2026-08-07，5 批）：**
+
+**第 1 批 — tokens + tabBar：**
+- `app-mobile/src/uni.scss`：Design Tokens 换 v1.0 体系——主蓝 `#2563EB`（新增 `$uni-gradient-blue` 渐变 `#2563EB→#1D4ED8`）、灰阶 `#171717→#f7f7f7`、语义色 success/warning/danger、圆角 8~24px、阴影 sh1~sh4（`$uni-shadow-xs~lg/card/focus`）、AI token 同步；R94-02 全量 token 化页面自动换肤
+- `app-mobile/src/components/custom-tab-bar.vue`：重构为毛玻璃底栏（`rgba(255,255,255,.92)` + backdrop-filter blur(20px)）、5 tab + 中间 AI 圆形按钮（104rpx≈52px、蓝色渐变、阴影、按压缩放 .92、active 顶部 4rpx 指示条），图标颜色改用 token
+- 验证：vue-tsc 0 errors；build:h5 / build:app exit 0
+
+**第 2 批 — 四个 tab 页：**
+- `home.vue`：重写为 v1.0 布局——搜索栏、数据卡（今日营业额/今日订单 + 本月三卡）、订单进度四宫格、最新订单（接 ordersApi.list 真实数据）、7 日趋势 CSS 柱状图（接 dashboardApi.getSalesTrend）、待办提醒；数据全部接真实 API，无数据展示空态
+- `products.vue`：页头（营业中状态 + 商品标题 + 消息/搜索入口）、左侧分类栏（design 侧栏样式 + active 指示条）、右侧商品列表（缩略图/名称/规格/批发价/库存状态），保留虚拟滚动/搜索/批量调价入口
+- `functions.vue`：功能中心布局——logo 头部 + 搜索栏 + 12 宫格（开单收银/订单/会员/进货入库/盘点调拨/收银对账/门店管理/单据打印/员工/库存/供应商/更多）+ 数据工具列表（经营报表/销售排行/溯源查询/系统设置），入口映射真实页面
+- `profile.vue`：用户卡（姓名/角色/门店/ID/营业中）+ 4 快捷入口（工作记录/员工管理/对账/单据打印）+ 门店管理列表（编辑资料/消息通知/待办事项/门店信息/员工管理）+ 系统区（AI 设置/关于）+ 退出登录
+- 验证：vue-tsc 0 errors；build:h5 / build:app exit 0
+
+**第 3 批 — ai-chat + 快速开单：**
+- `ai-chat.vue`：新增顶部 AI 助手栏（蓝色渐变图标 + "有什么可以帮你的？"）+ 底部 4 快捷指令标签（今日经营分析/库存异常诊断/利润优化建议/快速开单），保留全部对话/工具调用/预览逻辑
+- `create-sale.vue`：页头改为"快速开单"+返回按钮，底部新增"暂存"按钮 + "结算收款"主按钮（应收金额展示），保留表单三件套与真实提交逻辑
+- 验证：vue-tsc 0 errors；build:h5 / build:app exit 0
+
+**第 4 批 — orders / inventory / members / messages / reports：**
+- `orders.vue`：页头（返回+订单管理）、tab 指示条样式、订单卡升级（单号+状态徽章+商品摘要+客户·渠道·时间+金额+详情/确认收款/配送操作按钮，接真实状态流转 API）
+- `inventory.vue`：页头 + 统计三卡（总SKU/库存价值/预警数）+ 快捷操作四宫格（入库/出库/盘点/库存预警）+ SKU 列表保留
+- `customers.vue`：页头（会员管理+新增）+ 统计三卡（总会员/本月新增/活跃率）+ 会员卡（首字头像/VIP 等级/最近消费/累计消费）
+- `notifications.vue`：页头改"消息中心"+返回按钮，保留分类 tab/已读/删除功能
+- `reports.vue`：页头 + 周期（今日/本周/本月/本年）+ 指标四卡（营业额/毛利/客单价/复购率）+ 销售趋势柱状图（接真实 API）+ 销售排行保留
+- 验证：vue-tsc 0 errors；build:h5 / build:app exit 0
+
+**第 5 批 — 子包页面 tokens 换肤：**
+- 依赖第 1 批 uni.scss token 全局替换自动生效（R94-02 已全量 token 化），无需逐一改文件
+
+**验收证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 类型检查 | `cd app-mobile && npx vue-tsc --noEmit` | exit 0，0 errors ✅ |
+| H5 构建 | `npm run build:h5` | exit 0（DONE Build complete）✅ |
+| App 构建 | `npm run build:app` | exit 0（DONE Build complete）✅ |
+| 12 页走查 | `node .playwright-cli/pw-run/walkthrough2.mjs` | 12/12 正常，0 结构崩溃/0 404/0 空白；唯一控制台错误为 price-manage 预期 403（store_manager 访问价格管理）✅ |
+| 数据铁律 | 代码审阅 | 设计稿演示数字（¥12,680 等）未写入代码，全部接真实 API 或空态 ✅ |
+
+**说明**：home/products/functions/profile/ai-chat 为 tab 页，直接展示在走查中；orders/inventory/customers/reports/notifications/create-sale 均带返回按钮（uni.navigateBack 兜底 reLaunch）。
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟

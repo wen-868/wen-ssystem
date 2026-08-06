@@ -1,5 +1,49 @@
 <template>
   <view class="inventory-page">
+    <!-- 页头 -->
+    <view class="inv-hd">
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
+      <text class="header-title">库存管理</text>
+    </view>
+
+    <!-- 统计 -->
+    <view class="inv-stats">
+      <view class="inv-stat">
+        <text class="is-val">{{ totalSku }}</text>
+        <text class="is-label">总SKU数</text>
+      </view>
+      <view class="inv-stat">
+        <text class="is-val">—</text>
+        <text class="is-label">库存价值</text>
+      </view>
+      <view class="inv-stat inv-stat--warn">
+        <text class="is-val">{{ warnCount }}</text>
+        <text class="is-label">预警商品</text>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="inv-actions">
+      <view class="inv-act" @tap="goto('/pages-sub/finance/purchase/in-stock')">
+        <view class="inv-act-ico inv-act-ico--blue"><text class="inv-act-text">入</text></view>
+        <text class="inv-act-label">入库</text>
+      </view>
+      <view class="inv-act" @tap="goto('/pages-sub/finance/loss-gain/create-loss')">
+        <view class="inv-act-ico inv-act-ico--orange"><text class="inv-act-text">出</text></view>
+        <text class="inv-act-label">出库</text>
+      </view>
+      <view class="inv-act" @tap="goto('/pages-sub/product/stock-check/stock-checks')">
+        <view class="inv-act-ico inv-act-ico--green"><text class="inv-act-text">盘</text></view>
+        <text class="inv-act-label">盘点</text>
+      </view>
+      <view class="inv-act" @tap="goto('/pages-sub/product/stock-warning/stock-warning')">
+        <view class="inv-act-ico inv-act-ico--red"><text class="inv-act-text">警</text></view>
+        <text class="inv-act-label">库存预警</text>
+      </view>
+    </view>
+
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
@@ -72,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { inventoryApi, type InventoryItem } from '@/api/modules/inventory'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
@@ -92,6 +136,22 @@ const { errors, validate, clearError } = useFormValidation(searchForm, searchRul
 
 const list = ref<InventoryItem[]>([])
 const loading = ref(false)
+
+const totalSku = computed(() => list.value.length)
+const warnCount = computed(() => list.value.filter((item) => item.status === 'warning' || item.status === 'shortage' || item.status === 'danger').length)
+
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/functions/functions' })
+  }
+}
+
+function goto(path: string) {
+  uni.navigateTo({ url: path })
+}
 
 function onSearch() {
   loadInventory()
@@ -144,14 +204,133 @@ onMounted(() => {
 <style lang="scss" scoped>
 .inventory-page {
   min-height: 100vh;
-  background: $uni-color-primary-soft;
+  background: $uni-bg-color-page;
+}
+
+/* 页头 */
+.inv-hd {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 32rpx 8rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+  background: $uni-bg-color;
+}
+
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+}
+
+/* 统计 */
+.inv-stats {
+  display: flex;
+  gap: 20rpx;
+  margin: 28rpx 28rpx 0;
+}
+
+.inv-stat {
+  flex: 1;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 28rpx 16rpx;
+  text-align: center;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.is-val {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: $uni-text-color;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.inv-stat--warn .is-val {
+  color: $uni-color-error;
+}
+
+.is-label {
+  display: block;
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  margin-top: 8rpx;
+}
+
+/* 快捷操作 */
+.inv-actions {
+  display: flex;
+  gap: 20rpx;
+  margin: 28rpx 28rpx 0;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  padding: 28rpx 16rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.inv-act {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.inv-act:active {
+  transform: scale(0.94);
+}
+
+.inv-act-ico {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inv-act-ico--blue { background: $uni-color-primary-soft; }
+.inv-act-ico--orange { background: $uni-color-warning-soft; }
+.inv-act-ico--green { background: $uni-color-success-soft; }
+.inv-act-ico--red { background: $uni-color-error-soft; }
+
+.inv-act-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $uni-gray-600;
+}
+
+.inv-act-label {
+  font-size: 22rpx;
+  color: $uni-gray-600;
+  font-weight: 500;
 }
 
 /* 搜索栏 */
 .search-bar {
   padding: 16rpx 24rpx;
   background: $uni-bg-color;
-  padding-top: calc(16rpx + env(safe-area-inset-top));
+  margin-top: 28rpx;
 }
 
 .search-input-wrap {
