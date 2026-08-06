@@ -3,28 +3,12 @@
     <el-card>
       <div class="toolbar">
         <div class="toolbar-left">
-          <el-select v-model="typeFilter" placeholder="活动类型" clearable style="width: 130px; margin-right: 12px" @change="loadData">
-            <el-option label="满减" value="REDUCTION" />
-            <el-option label="满赠" value="GIFT" />
-          </el-select>
           <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 120px; margin-right: 12px" @change="loadData">
-            <el-option label="未开始" value="PENDING" />
+            <el-option label="草稿" value="DRAFT" />
             <el-option label="进行中" value="ACTIVE" />
             <el-option label="已暂停" value="PAUSED" />
             <el-option label="已结束" value="ENDED" />
           </el-select>
-          <el-input
-            v-model="keyword"
-            placeholder="搜索活动名称"
-            clearable
-            style="width: 200px; margin-right: 12px"
-            @clear="loadData"
-            @keyup.enter="loadData"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
         </div>
         <div class="toolbar-right">
           <el-button type="primary" @click="openDialog()">
@@ -60,7 +44,7 @@
         </el-table-column>
         <el-table-column label="适用范围" width="110" align="center">
           <template #default="{ row }">
-            <el-tag size="small">{{ row.scope === 'ALL' ? '全部商品' : (row.scope === 'CATEGORY' ? '指定分类' : '指定商品') }}</el-tag>
+            <el-tag size="small">{{ row.scope === 'ALL' ? '全部商品' : (row.scope === 'CATEGORY' ? '指定分类' : (row.scope === 'BRAND' ? '指定品牌' : '指定商品')) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="参与次数" width="80" align="center">
@@ -68,7 +52,7 @@
         </el-table-column>
         <el-table-column label="状态" width="90" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.status === 'PENDING'" type="info">未开始</el-tag>
+            <el-tag v-if="row.status === 'DRAFT'" type="info">草稿</el-tag>
             <el-tag v-else-if="row.status === 'ACTIVE'" type="success">进行中</el-tag>
             <el-tag v-else-if="row.status === 'PAUSED'" type="warning">已暂停</el-tag>
             <el-tag v-else-if="row.status === 'ENDED'" type="danger">已结束</el-tag>
@@ -78,7 +62,7 @@
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openDialog(row)">编辑</el-button>
             <el-button v-if="row.status === 'ACTIVE'" size="small" link type="warning" @click="toggleStatus(row, 'PAUSED')">停用</el-button>
-            <el-button v-if="['PENDING', 'PAUSED'].includes(row.status)" size="small" link type="success" @click="toggleStatus(row, 'ACTIVE')">启用</el-button>
+            <el-button v-if="['DRAFT', 'PAUSED'].includes(row.status)" size="small" link type="success" @click="toggleStatus(row, 'ACTIVE')">启用</el-button>
             <el-button size="small" link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -105,9 +89,8 @@
           <el-input v-model="form.name" placeholder="请输入活动名称" />
         </el-form-item>
         <el-form-item label="活动类型" prop="type">
-          <el-radio-group v-model="form.type" @change="onTypeChange">
+          <el-radio-group v-model="form.type">
             <el-radio value="REDUCTION">满减</el-radio>
-            <el-radio value="GIFT">满赠</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="有效期" prop="timeRange">
@@ -125,7 +108,7 @@
           <el-radio-group v-model="form.scope">
             <el-radio value="ALL">全部商品</el-radio>
             <el-radio value="CATEGORY">指定分类</el-radio>
-            <el-radio value="PRODUCT">指定商品</el-radio>
+            <el-radio value="SKU">指定商品</el-radio>
           </el-radio-group>
         </el-form-item>
 
@@ -192,15 +175,22 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
-import { Search, Plus, Refresh, Delete } from "@element-plus/icons-vue";
+import { Plus, Refresh, Delete } from "@element-plus/icons-vue";
+import {
+  fetchFullReductions,
+  createFullReduction,
+  updateFullReduction,
+  deleteFullReduction,
+  activateFullReduction,
+  pauseFullReduction,
+  getErrorMessage
+} from "../../api";
 
 const loading = ref(false);
 const activities = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
-const keyword = ref("");
-const typeFilter = ref("");
 const statusFilter = ref("");
 
 // ==================== 表单 ====================
@@ -227,10 +217,6 @@ const formRules: FormRules = {
   rules: [{ required: true, message: "请至少设置一条阶梯规则", trigger: "blur" }]
 };
 
-function onTypeChange() {
-  form.rules = [{ threshold: 100, reduction: form.type === "REDUCTION" ? 10 : 0, giftName: "", giftCount: 1 }];
-}
-
 function addRule() {
   const lastRule = form.rules[form.rules.length - 1];
   const newThreshold = (lastRule?.threshold || 0) + 50;
@@ -247,61 +233,53 @@ function removeRule(i: number) {
 }
 
 function getRuleText(rule: any) {
-  if (rule.type === 'REDUCTION' || (!rule.giftName && rule.reduction > 0)) {
-    return `满${rule.threshold}减${rule.reduction}`;
-  }
-  return `满${rule.threshold}赠${rule.giftName}×${rule.giftCount || 1}`;
+  return `满${rule.threshold}减${rule.reduction}`;
 }
 
-// ==================== Mock ====================
-const mockActivities: any[] = Array.from({ length: 10 }, (_, i) => {
-  const types = ["REDUCTION", "GIFT"];
-  const statuses = ["PENDING", "ACTIVE", "ACTIVE", "ACTIVE", "PAUSED", "ENDED"];
-  const type = types[i % 2];
-  const rules = type === "REDUCTION"
-    ? [
-        { threshold: 100, reduction: 10, type: "REDUCTION" },
-        { threshold: 200, reduction: 30, type: "REDUCTION" },
-        { threshold: 500, reduction: 100, type: "REDUCTION" }
-      ]
-    : [
-        { threshold: 100, giftName: "迷你酒版", giftCount: 1, type: "GIFT" },
-        { threshold: 300, giftName: "开瓶器套装", giftCount: 1, type: "GIFT" },
-        { threshold: 500, giftName: "定制酒杯", giftCount: 2, type: "GIFT" }
-      ];
-  return {
-    id: i + 1,
-    name: `${type === "REDUCTION" ? "满减" : "满赠"}活动-${i + 1}`,
-    type,
-    rules: rules.slice(0, (i % 3) + 1),
-    startTime: "2026-06-01 00:00",
-    endTime: "2026-08-31 23:59",
-    scope: (["ALL", "CATEGORY", "PRODUCT"] as const)[i % 3],
-    participantCount: Math.floor(Math.random() * 500) + 50,
-    status: statuses[i % 6],
-    description: ""
-  };
-});
+/** 后端规则 JSON（minAmount/reduceAmount）转页面展示结构 */
+function mapRules(rules: any) {
+  let list: any[] = [];
+  if (typeof rules === "string") {
+    try { list = JSON.parse(rules); } catch { list = []; }
+  } else if (Array.isArray(rules)) {
+    list = rules;
+  }
+  return list.map((r: any) => ({
+    threshold: Number(r.minAmount ?? r.threshold),
+    reduction: Number(r.reduceAmount ?? r.reduction ?? 0),
+    type: "REDUCTION"
+  }));
+}
 
-function loadData() {
+/** 页面表单规则转后端字段（minAmount/reduceAmount） */
+function toBackendRules() {
+  return form.rules.map((r: any) => ({
+    minAmount: Number(r.threshold),
+    reduceAmount: Number(r.reduction || 0)
+  }));
+}
+
+async function loadData() {
   loading.value = true;
-  setTimeout(() => {
-    let filtered = [...mockActivities];
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase();
-      filtered = filtered.filter(a => a.name.toLowerCase().includes(kw));
-    }
-    if (typeFilter.value) {
-      filtered = filtered.filter(a => a.type === typeFilter.value);
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(a => a.status === statusFilter.value);
-    }
-    const start = (page.value - 1) * pageSize.value;
-    activities.value = filtered.slice(start, start + pageSize.value);
-    total.value = filtered.length;
+  try {
+    const params: Record<string, unknown> = { page: page.value, pageSize: pageSize.value };
+    if (statusFilter.value) params.status = statusFilter.value;
+    const data = await fetchFullReductions(params);
+    activities.value = (data.records || []).map((item: any) => ({
+      ...item,
+      type: "REDUCTION",
+      rules: mapRules(item.rules),
+      scope: item.applicableScope || "ALL",
+      startTime: item.startTime,
+      endTime: item.endTime,
+      participantCount: 0
+    }));
+    total.value = data.total || 0;
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, "加载满减活动失败"));
+  } finally {
     loading.value = false;
-  }, 300);
+  }
 }
 
 function handleSizeChange(size: number) { pageSize.value = size; page.value = 1; loadData(); }
@@ -316,7 +294,7 @@ function openDialog(row?: any) {
     form.timeRange = [row.startTime, row.endTime];
     form.scope = row.scope || "ALL";
     form.rules = JSON.parse(JSON.stringify(row.rules));
-    form.stackable = [];
+    form.stackable = row.stackable ? ["COUPON"] : [];
     form.description = row.description || "";
   } else {
     isEdit.value = false;
@@ -342,45 +320,63 @@ async function handleSubmit() {
   if (!valid) return;
 
   submitLoading.value = true;
-  setTimeout(() => {
-    const base = {
+  try {
+    const payload = {
       name: form.name,
-      type: form.type,
+      rules: toBackendRules(),
+      applicableScope: form.scope,
+      applicableIds: null,
       startTime: form.timeRange[0] || "",
       endTime: form.timeRange[1] || "",
-      scope: form.scope,
-      rules: JSON.parse(JSON.stringify(form.rules)),
+      priority: 0,
+      stackable: form.stackable.length > 0,
       description: form.description
     };
     if (isEdit.value && editingId.value) {
-      const idx = mockActivities.findIndex(a => a.id === editingId.value);
-      if (idx > -1) Object.assign(mockActivities[idx], base);
+      await updateFullReduction(editingId.value, payload);
       ElMessage.success("修改成功");
     } else {
-      const newId = Math.max(...mockActivities.map(a => a.id), 0) + 1;
-      mockActivities.unshift({ id: newId, ...base, participantCount: 0, status: "PENDING" });
+      await createFullReduction(payload);
       ElMessage.success("创建成功");
     }
     dialogVisible.value = false;
     loadData();
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, isEdit.value ? "修改失败" : "创建失败"));
+  } finally {
     submitLoading.value = false;
-  }, 500);
+  }
 }
 
 async function toggleStatus(row: any, newStatus: string) {
   const text = newStatus === "ACTIVE" ? "启用" : "停用";
-  await ElMessageBox.confirm(`确认${text}活动「${row.name}」？`, `确认${text}`, { type: "warning" });
-  row.status = newStatus;
-  ElMessage.success(`已${text}`);
-  loadData();
+  try {
+    await ElMessageBox.confirm(`确认${text}活动「${row.name}」？`, `确认${text}`, { type: "warning" });
+    if (newStatus === "ACTIVE") {
+      await activateFullReduction(row.id);
+    } else {
+      await pauseFullReduction(row.id);
+    }
+    ElMessage.success(`已${text}`);
+    loadData();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(getErrorMessage(e, `${text}失败`));
+    }
+  }
 }
 
 async function handleDelete(row: any) {
-  await ElMessageBox.confirm(`确认删除活动「${row.name}」？`, "确认删除", { type: "warning" });
-  const idx = mockActivities.findIndex(a => a.id === row.id);
-  if (idx > -1) mockActivities.splice(idx, 1);
-  ElMessage.success("已删除");
-  loadData();
+  try {
+    await ElMessageBox.confirm(`确认删除活动「${row.name}」？`, "确认删除", { type: "warning" });
+    await deleteFullReduction(row.id);
+    ElMessage.success("已删除");
+    loadData();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(getErrorMessage(e, "删除失败"));
+    }
+  }
 }
 
 onMounted(() => { loadData(); });

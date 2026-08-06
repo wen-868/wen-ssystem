@@ -30,7 +30,7 @@ export async function pauseCouponTemplate(id: number) {
   return data.data;
 }
 export async function fetchUserCoupons(params?: { page?: number; pageSize?: number; status?: string; userId?: number; templateId?: number }) {
-  const { data } = await api.get("/admin/marketing/coupons/users", { params });
+  const { data } = await api.get("/admin/marketing/coupons/user-coupons", { params });
   return data.data;
 }
 export async function fetchCouponStatistics() {
@@ -41,97 +41,132 @@ export async function fetchCouponStatistics() {
 
 // ==================== Marketing - Full Reduction APIs ====================
 export async function fetchFullReductions(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/admin/marketing/promotions/full-reduction", { params });
+  const { data } = await api.get("/admin/marketing/full-reductions", { params });
   return data.data;
 }
 export async function fetchFullReductionDetail(id: number) {
-  const { data } = await api.get(`/admin/marketing/promotions/full-reduction/${id}`);
+  const { data } = await api.get(`/admin/marketing/full-reductions/${id}`);
   return data.data;
 }
 export async function createFullReduction(payload: unknown) {
-  const { data } = await api.post("/admin/marketing/promotions/full-reduction", payload);
+  const { data } = await api.post("/admin/marketing/full-reductions", payload);
   return data.data;
 }
 export async function updateFullReduction(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/marketing/promotions/full-reduction/${id}`, payload);
+  const { data } = await api.put(`/admin/marketing/full-reductions/${id}`, payload);
   return data.data;
 }
 export async function deleteFullReduction(id: number) {
-  const { data } = await api.delete(`/admin/marketing/promotions/full-reduction/${id}`);
+  const { data } = await api.delete(`/admin/marketing/full-reductions/${id}`);
   return data.data;
 }
 export async function activateFullReduction(id: number) {
-  const { data } = await api.post(`/admin/marketing/promotions/full-reduction/${id}/activate`);
+  const { data } = await api.post(`/admin/marketing/full-reductions/${id}/activate`);
   return data.data;
 }
 export async function pauseFullReduction(id: number) {
-  const { data } = await api.post(`/admin/marketing/promotions/full-reduction/${id}/pause`);
+  const { data } = await api.post(`/admin/marketing/full-reductions/${id}/pause`);
   return data.data;
 }
 
 
 // ==================== Marketing - Flash Sale APIs ====================
 export async function fetchFlashSales(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/admin/marketing/promotions/flash-sale", { params });
+  const { data } = await api.get("/admin/marketing/flash-sales", { params });
   return data.data;
 }
 export async function fetchFlashSaleDetail(id: number) {
-  const { data } = await api.get(`/admin/marketing/promotions/flash-sale/${id}`);
+  const { data } = await api.get(`/admin/marketing/flash-sales/${id}`);
   return data.data;
 }
 export async function createFlashSale(payload: unknown) {
-  const { data } = await api.post("/admin/marketing/promotions/flash-sale", payload);
+  const { data } = await api.post("/admin/marketing/flash-sales", payload);
   return data.data;
 }
 export async function updateFlashSale(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/marketing/promotions/flash-sale/${id}`, payload);
+  const { data } = await api.put(`/admin/marketing/flash-sales/${id}`, payload);
   return data.data;
 }
 export async function deleteFlashSale(id: number) {
-  const { data } = await api.delete(`/admin/marketing/promotions/flash-sale/${id}`);
+  const { data } = await api.delete(`/admin/marketing/flash-sales/${id}`);
   return data.data;
 }
 export async function activateFlashSale(id: number) {
-  const { data } = await api.post(`/admin/marketing/promotions/flash-sale/${id}/activate`);
+  const { data } = await api.post(`/admin/marketing/flash-sales/${id}/activate`);
   return data.data;
 }
 export async function pauseFlashSale(id: number) {
-  const { data } = await api.post(`/admin/marketing/promotions/flash-sale/${id}/pause`);
+  const { data } = await api.post(`/admin/marketing/flash-sales/${id}/pause`);
   return data.data;
 }
 export async function fetchFlashSaleStatistics() {
-  const { data } = await api.get("/admin/marketing/promotions/flash-sale/statistics");
+  const { data } = await api.get("/admin/marketing/flash-sales/statistics");
   return data.data;
 }
 
 
 // ==================== Marketing - Group Buy APIs ====================
 export async function fetchGroupBuys(params?: { page?: number; pageSize?: number; status?: string }) {
-  const { data } = await api.get("/admin/marketing/promotions/group-buy", { params });
+  const { data } = await api.get("/admin/marketing/group-buys", { params });
   return data.data;
 }
 export async function fetchGroupBuyDetail(id: number) {
-  const { data } = await api.get(`/admin/marketing/promotions/group-buy/${id}`);
+  const { data } = await api.get(`/admin/marketing/group-buys/${id}`);
   return data.data;
 }
 export async function createGroupBuy(payload: unknown) {
-  const { data } = await api.post("/admin/marketing/promotions/group-buy", payload);
+  const { data } = await api.post("/admin/marketing/group-buys", payload);
   return data.data;
 }
 export async function updateGroupBuy(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/marketing/promotions/group-buy/${id}`, payload);
+  const { data } = await api.put(`/admin/marketing/group-buys/${id}`, payload);
   return data.data;
 }
 export async function deleteGroupBuy(id: number) {
-  const { data } = await api.delete(`/admin/marketing/promotions/group-buy/${id}`);
+  const { data } = await api.delete(`/admin/marketing/group-buys/${id}`);
   return data.data;
 }
 export async function activateGroupBuy(id: number) {
-  const { data } = await api.post(`/admin/marketing/promotions/group-buy/${id}/activate`);
+  const { data } = await api.post(`/admin/marketing/group-buys/${id}/activate`);
   return data.data;
 }
 export async function fetchGroupBuyTeams(params?: { page?: number; pageSize?: number; activityId?: number; status?: string }) {
-  const { data } = await api.get("/admin/marketing/promotions/group-buy/teams", { params });
+  const { data } = await api.get("/admin/marketing/group-buys/teams", { params });
+  return data.data;
+}
+
+
+// ==================== Marketing - Limited Discount APIs ====================
+export async function fetchLimitedDiscounts(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/admin/marketing/limited-discounts", { params });
+  return data.data;
+}
+export async function fetchLimitedDiscountDetail(id: number) {
+  const { data } = await api.get(`/admin/marketing/limited-discounts/${id}`);
+  return data.data;
+}
+export async function createLimitedDiscount(payload: unknown) {
+  const { data } = await api.post("/admin/marketing/limited-discounts", payload);
+  return data.data;
+}
+export async function updateLimitedDiscount(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/marketing/limited-discounts/${id}`, payload);
+  return data.data;
+}
+export async function deleteLimitedDiscount(id: number) {
+  const { data } = await api.delete(`/admin/marketing/limited-discounts/${id}`);
+  return data.data;
+}
+export async function activateLimitedDiscount(id: number) {
+  const { data } = await api.post(`/admin/marketing/limited-discounts/${id}/activate`);
+  return data.data;
+}
+export async function pauseLimitedDiscount(id: number) {
+  const { data } = await api.post(`/admin/marketing/limited-discounts/${id}/pause`);
+  return data.data;
+}
+export async function addLimitedDiscountProducts(id: number, skuIds: number[]) {
+  const { data } = await api.post(`/admin/marketing/limited-discounts/${id}/products`, { skuIds });
   return data.data;
 }
 
