@@ -1798,6 +1798,43 @@
 - **修复**：新建 theme.ts 导出 CHART_COLORS 常量，47 处图表色替换为常量引用（纯替换不碰逻辑）
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；九色硬编码命中显著下降（目标 ≤ 原 20%）
 
+---
+
+## R85 — 阶段2-3 采购版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：财务版块（R84）完成后按《版块有序推进规划》进入阶段 2-3
+> **版块范围**：采购订单/入库/退货/供应商/合同/计划/付款（admin-web views/purchase/ 8 页）
+
+### R85-00 — 采购版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 采购页 8 个；后端采购测试 18 个
+  - **差距 G1（P1）**：`PurchaseReturnsView.vue:131` 采购退货「审核功能开发中」占位；后端已有 `POST /purchase-returns/:returnNo/approve` 与 `/:returnNo/void` 接口（purchase-return.routes.ts:10-11），前端未接入
+  - **差距 G2（P2）**：采购页硬编码色 4 处（Suppliers 3/PurchaseContracts 1）
+
+### R85-01 — [P1] 采购退货审核接入（消除占位）
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R84-03 后派单）
+- **文件**：`admin-web/src/api/pos.ts` 或采购 API 文件、`admin-web/src/views/purchase/PurchaseReturnsView.vue`
+- **问题**：审核按钮为占位，后端 approve/void 接口已存在
+- **修复**：新增采购退货审核/作废 API 封装；审核按钮接后端（确认后刷新）；**最小改动**
+- **验收标准**：`rg "审核功能开发中" admin-web/src/views/purchase/` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R85-02 — [P2] 采购页硬编码色 token 化
+- **优先级**：P2
+- **负责人**：墨（admin-web）
+- **预计**：0.25 天
+- **状态**：待派单
+- **文件**：`admin-web/src/views/purchase/`（Suppliers 3/PurchaseContracts 1）
+- **问题**：采购页硬编码色残留 4 处
+- **修复**：硬编码色替换为 tokens.css 变量，只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/purchase/` → 0
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
