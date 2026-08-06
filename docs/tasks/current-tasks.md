@@ -1837,11 +1837,24 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单（墨完成 R84-03 后派单）
+- **状态**：✅ 已完成（2026-08-06 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/api/pos.ts` 或采购 API 文件、`admin-web/src/views/purchase/PurchaseReturnsView.vue`
 - **问题**：审核按钮为占位，后端 approve/void 接口已存在
 - **修复**：新增采购退货审核/作废 API 封装；审核按钮接后端（确认后刷新）；**最小改动**
 - **验收标准**：`rg "审核功能开发中" admin-web/src/views/purchase/` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+- **墨完成记录**（2026-08-06）：
+  - **改动文件**：`admin-web/src/api/purchase.ts`（+10）、`admin-web/src/views/purchase/PurchaseReturnsView.vue`（17+/4-）
+  - **实现**：① purchase.ts 新增 `approvePurchaseReturn(returnNo)`（POST /admin/purchase-returns/:returnNo/approve）与 `voidPurchaseReturn(returnNo)`（POST /admin/purchase-returns/:returnNo/void），对齐后端路由（purchase-return.routes.ts:10-11，经 index.ts `export *` 自动导出）；② PurchaseReturnsView 审核按钮接后端：`ElMessageBox.confirm` 确认 → `approvePurchaseReturn(row.returnNo)` → 成功提示 → `loadReturns()` 刷新，占位「审核功能开发中」消除；③ 页面无作废入口（操作列仅详情/通过），按任务卡「如页面有作废入口则接 void」只接审核，void 封装已备后续使用
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 占位文案 | `rg "审核功能开发中" admin-web/src/views/purchase/` | 0 命中 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（38.60s，仅预存 @vueuse PURE 警告）✅ |
+    | ESLint | `npx eslint src/api/purchase.ts src/views/purchase/PurchaseReturnsView.vue` | 0 errors；1 warning 为 HEAD 预存 attributes-order（改动行之外）✅ |
+    | diff 核查 | `git diff` 逐行审阅 | 2 文件 23+/4-，全部为审核链路，无行尾噪声（行尾保持 HEAD 纯 CRLF + 无 EOF 换行）✅ |
+  - **上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：`PurchaseReturnsView.vue` 列表数据与后端返回结构不匹配——后端 `GET /api/admin/purchase-returns`（purchase-return.controller.ts list → service.list）返回 `SELECT *` 原始行**数组**（snake_case：return_no/supplier_name/return_status/created_at 等），而页面 `loadReturns()` 期望 `res.list`/`res.total`（数组的 list 为 undefined）且模板用驼峰字段（returnNo/purchaseBillNo/supplierName/returnAmount/status/createdAt），列表数据可能无法展示（另「新增退货」按钮 dialogVisible 无对应弹窗，同属页面既有缺口）。后端已有 `service.listPurchaseReturns` 返回 `{total, records}` 结构但 controller 未使用。本轮未改列表/新增链路，建议另派任务核实修复（后端 controller 改接 listPurchaseReturns 或前端按数组适配）
+  - **说明**：任务卡「文件」字段的 `admin-web/src/api/pos.ts` 为笔误，采购 API 实际在 `admin-web/src/api/purchase.ts`（「或采购 API 文件」已涵盖）；文件行尾保持 HEAD（purchase.ts 纯 CRLF+EOF 换行、PurchaseReturnsView.vue 纯 CRLF+无 EOF 换行），零噪声
 
 ### R85-02 — [P2] 采购页硬编码色 token 化
 - **优先级**：P2

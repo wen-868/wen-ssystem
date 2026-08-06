@@ -62,6 +62,16 @@ export async function createPurchaseReturn(payload: unknown) {
   return data.data;
 }
 
+export async function approvePurchaseReturn(returnNo: string) {
+  const { data } = await api.post(`/admin/purchase-returns/${returnNo}/approve`);
+  return data.data;
+}
+
+export async function voidPurchaseReturn(returnNo: string) {
+  const { data } = await api.post(`/admin/purchase-returns/${returnNo}/void`);
+  return data.data;
+}
+
 
 // ==================== Purchase Payment APIs ====================
 export async function fetchPurchasePayments(params?: { supplierId?: number; status?: string; page?: number; pageSize?: number }) {

@@ -88,8 +88,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { ElMessage } from "element-plus";
-import { fetchPurchaseReturns } from "../../api";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { fetchPurchaseReturns, approvePurchaseReturn } from "../../api";
 
 const loading = ref(false);
 const returns = ref<any[]>([]);
@@ -127,8 +127,17 @@ function viewDetail(row: any) {
   detailVisible.value = true;
 }
 
-function approveReturn(row: any) {
-  ElMessage.info("审核功能开发中");
+async function approveReturn(row: any) {
+  try {
+    await ElMessageBox.confirm("确定审核通过该退货单吗？", "提示", { type: "warning" });
+    await approvePurchaseReturn(row.returnNo);
+    ElMessage.success("审核通过");
+    loadReturns();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(e?.response?.data?.msg || "审核失败");
+    }
+  }
 }
 </script>
 
