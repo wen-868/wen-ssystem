@@ -248,13 +248,13 @@ onLoad((options: any) => {
 })
 </script>
 
-<style scoped>
-.detail-page { min-height: 100vh; background: #f0f5ff; padding-bottom: 140rpx; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: #fff; }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+<style lang="scss" scoped>
+.detail-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 140rpx; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 
 .status-header {
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   padding: 40rpx 32rpx;
   display: flex;
   flex-direction: column;
@@ -270,11 +270,11 @@ onLoad((options: any) => {
 .status-badge--pending { background: rgba(250,173,20,0.3); }
 .status-badge--approved { background: rgba(82,196,26,0.3); }
 .status-badge--rejected { background: rgba(255,77,79,0.3); }
-.status-badge-text { font-size: 24rpx; color: #fff; font-weight: 500; }
-.order-no { font-size: 28rpx; color: #fff; font-weight: 600; }
+.status-badge-text { font-size: 24rpx; color: $uni-text-color-inverse; font-weight: 500; }
+.order-no { font-size: 28rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
 .info-card {
-  background: #fff;
+  background: $uni-bg-color;
   margin: 16rpx 24rpx;
   border-radius: 16rpx;
   padding: 24rpx;
@@ -284,10 +284,10 @@ onLoad((options: any) => {
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .info-row {
@@ -296,26 +296,26 @@ onLoad((options: any) => {
   align-items: center;
   padding: 12rpx 0;
 }
-.info-label { font-size: 26rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
+.info-label { font-size: 26rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
 
 /* 商品明细 */
 .goods-item {
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 16rpx;
 }
 .goods-item:last-child { margin-bottom: 0; }
 .goods-header { margin-bottom: 16rpx; }
-.goods-name { font-size: 28rpx; font-weight: 500; color: #333; }
+.goods-name { font-size: 28rpx; font-weight: 500; color: $uni-gray-700; }
 .goods-body { display: flex; gap: 24rpx; }
 .goods-info { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.goods-info-label { font-size: 22rpx; color: #999; margin-bottom: 8rpx; }
-.goods-info-value { font-size: 28rpx; color: #333; font-weight: 500; }
+.goods-info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 8rpx; }
+.goods-info-value { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
 
-.text-danger { color: #ff4d4f; }
-.text-success { color: #52c41a; }
+.text-danger { color: $uni-color-error; }
+.text-success { color: $uni-color-success; }
 
 /* 照片 */
 .photo-list {
@@ -332,7 +332,7 @@ onLoad((options: any) => {
 /* 备注 */
 .remark-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.6;
 }
 
@@ -353,9 +353,9 @@ onLoad((options: any) => {
   width: 16rpx;
   height: 16rpx;
   border-radius: 50%;
-  background: #1677FF;
+  background: $uni-color-primary;
 }
-.timeline-dot--last { background: #52c41a; }
+.timeline-dot--last { background: $uni-color-success; }
 .timeline-item::before {
   content: '';
   position: absolute;
@@ -363,11 +363,11 @@ onLoad((options: any) => {
   top: 24rpx;
   bottom: 0;
   width: 2rpx;
-  background: #e8e8e8;
+  background: $uni-gray-200;
 }
 .timeline-item:last-child::before { display: none; }
 .timeline-content {
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 16rpx 20rpx;
 }
@@ -377,14 +377,14 @@ onLoad((options: any) => {
   align-items: center;
   margin-bottom: 8rpx;
 }
-.timeline-action { font-size: 26rpx; font-weight: 500; color: #333; }
-.timeline-time { font-size: 22rpx; color: #999; }
-.timeline-operator { font-size: 24rpx; color: #666; display: block; margin-bottom: 4rpx; }
-.timeline-remark { font-size: 24rpx; color: #ff4d4f; display: block; }
+.timeline-action { font-size: 26rpx; font-weight: 500; color: $uni-gray-700; }
+.timeline-time { font-size: 22rpx; color: $uni-gray-400; }
+.timeline-operator { font-size: 24rpx; color: $uni-gray-500; display: block; margin-bottom: 4rpx; }
+.timeline-remark { font-size: 24rpx; color: $uni-color-error; display: block; }
 
 /* 合计卡片 */
 .total-card {
-  background: #fff;
+  background: $uni-bg-color;
   margin: 16rpx 24rpx;
   border-radius: 16rpx;
   padding: 24rpx;
@@ -399,10 +399,10 @@ onLoad((options: any) => {
 .total-row--main {
   padding-top: 16rpx;
   margin-top: 8rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
 }
-.total-label { font-size: 26rpx; color: #666; }
-.total-value { font-size: 28rpx; color: #333; font-weight: 500; }
+.total-label { font-size: 26rpx; color: $uni-gray-500; }
+.total-value { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
 .total-amount { font-size: 36rpx; font-weight: 700; }
 
 /* 底部操作栏 */
@@ -415,7 +415,7 @@ onLoad((options: any) => {
   gap: 16rpx;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: $uni-bg-color;
   box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
 }
 .btn {
@@ -428,13 +428,13 @@ onLoad((options: any) => {
   border: none;
 }
 .btn--outline {
-  background: #fff;
-  color: #ff4d4f;
-  border: 2rpx solid #ff4d4f;
+  background: $uni-bg-color;
+  color: $uni-color-error;
+  border: 2rpx solid $uni-color-error;
 }
 .btn--primary {
-  background: #52c41a;
-  color: #fff;
+  background: $uni-color-success;
+  color: $uni-text-color-inverse;
 }
 
 .safe-bottom { height: 40rpx; }
@@ -454,21 +454,21 @@ onLoad((options: any) => {
 }
 .modal-content {
   width: 600rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 32rpx;
 }
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   text-align: center;
   margin-bottom: 24rpx;
 }
 .modal-textarea {
   width: 100%;
   height: 200rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 28rpx;
@@ -489,11 +489,11 @@ onLoad((options: any) => {
   border: none;
 }
 .modal-btn--cancel {
-  background: #f5f7fa;
-  color: #666;
+  background: $uni-bg-color-page;
+  color: $uni-gray-500;
 }
 .modal-btn--confirm {
-  background: #ff4d4f;
-  color: #fff;
+  background: $uni-color-error;
+  color: $uni-text-color-inverse;
 }
 </style>

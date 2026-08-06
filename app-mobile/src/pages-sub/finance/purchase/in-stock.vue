@@ -184,26 +184,26 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .in-stock-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 .stock-form {
   padding: 16rpx 24rpx;
 }
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -212,7 +212,7 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
 }
 .form-item {
@@ -220,54 +220,54 @@ onMounted(() => {
 }
 .form-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 8rpx;
 }
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 .form-picker {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
-.picker-arrow { font-size: 32rpx; color: #bbb; }
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.picker-arrow { font-size: 32rpx; color: $uni-gray-300; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .field-error { margin-top: 8rpx; padding: 6rpx 0; }
-.error-text { font-size: 24rpx; color: #ff4d4f; }
+.error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,7 +277,7 @@ onMounted(() => {
 .submit-btn::after { border: none; }
 .history-section { padding: 0 24rpx; }
 .history-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -289,14 +289,14 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 12rpx;
 }
-.history-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.history-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .history-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: #fff7e6; }
-.status-pending .status-text { color: #fa8c16; }
-.status-confirmed { background: #f6ffed; }
-.status-confirmed .status-text { color: #52c41a; }
+.status-pending { background: $uni-color-warning-soft; }
+.status-pending .status-text { color: $uni-color-warning; }
+.status-confirmed { background: $uni-color-success-soft; }
+.status-confirmed .status-text { color: $uni-color-success; }
 .status-text { font-size: 22rpx; }
 .history-body { display: flex; flex-direction: column; gap: 8rpx; }
-.history-info { font-size: 24rpx; color: #666; }
+.history-info { font-size: 24rpx; color: $uni-gray-500; }
 .safe-bottom { height: 40rpx; }
 </style>

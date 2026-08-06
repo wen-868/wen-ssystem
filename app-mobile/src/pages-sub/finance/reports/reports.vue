@@ -234,17 +234,17 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.reports-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-text-color-inverse; }
 .filter-form {
   margin: 16rpx 24rpx 0;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -256,12 +256,12 @@ onMounted(() => {
   gap: 8rpx;
   padding: 12rpx 0;
 }
-.filter-label { font-size: 22rpx; color: #999; }
-.filter-value { font-size: 26rpx; color: #333; font-weight: 500; }
+.filter-label { font-size: 22rpx; color: $uni-gray-400; }
+.filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .quick-date-bar {
   display: flex;
   margin: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 8rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -272,20 +272,20 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: center;
   border-radius: 12rpx;
 }
-.quick-date-item--active { background: #1677FF; }
-.quick-date-item--active .quick-date-text { color: #fff; font-weight: 600; }
-.quick-date-text { font-size: 24rpx; color: #666; }
+.quick-date-item--active { background: $uni-color-primary; }
+.quick-date-item--active .quick-date-text { color: $uni-text-color-inverse; font-weight: 600; }
+.quick-date-text { font-size: 24rpx; color: $uni-gray-500; }
 .stats-section { padding: 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.title-more { font-size: 24rpx; color: #1677FF; font-weight: 400; }
+.title-more { font-size: 24rpx; color: $uni-color-primary; font-weight: 400; }
 .stats-grid {
   display: flex;
   flex-wrap: wrap;
@@ -293,7 +293,7 @@ onMounted(() => {
 }
 .stats-card {
   width: calc(50% - 8rpx);
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   display: flex;
@@ -302,15 +302,15 @@ onMounted(() => {
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .stats-card--primary {
-  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  background: linear-gradient(135deg, $uni-color-error, $uni-color-warning);
 }
 .stats-card--primary .stats-value,
-.stats-card--primary .stats-label { color: #fff; }
+.stats-card--primary .stats-label { color: $uni-text-color-inverse; }
 .stats-card--primary .stats-trend { color: rgba(255,255,255,0.85); }
-.stats-value { font-size: 36rpx; font-weight: 700; color: #333; }
-.stats-label { font-size: 22rpx; color: #999; }
+.stats-value { font-size: 36rpx; font-weight: 700; color: $uni-gray-700; }
+.stats-label { font-size: 22rpx; color: $uni-gray-400; }
 .stats-trend { font-size: 20rpx; margin-top: 4rpx; }
-.stats-trend--up { color: #52c41a; }
+.stats-trend--up { color: $uni-color-success; }
 .report-entries { padding: 0 24rpx 24rpx; }
 .entries-grid {
   display: flex;
@@ -319,7 +319,7 @@ onMounted(() => {
 }
 .entry-card {
   width: calc(50% - 8rpx);
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   display: flex;
@@ -331,19 +331,19 @@ onMounted(() => {
   width: 64rpx; height: 64rpx;
   border-radius: 16rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: 32rpx; color: #fff;
+  font-size: 32rpx; color: $uni-text-color-inverse;
   margin-bottom: 8rpx;
 }
-.entry-icon--sales { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
-.entry-icon--inventory { background: linear-gradient(135deg, #1677FF, #4096ff); }
-.entry-icon--purchase { background: linear-gradient(135deg, #52c41a, #73d13d); }
-.entry-icon--customer { background: linear-gradient(135deg, #722ed1, #9254de); }
-.entry-icon--finance { background: linear-gradient(135deg, #fa8c16, #ffa940); }
-.entry-title { font-size: 28rpx; color: #333; font-weight: 600; }
-.entry-desc { font-size: 22rpx; color: #999; }
+.entry-icon--sales { background: linear-gradient(135deg, $uni-color-error, $uni-color-warning); }
+.entry-icon--inventory { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
+.entry-icon--purchase { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
+.entry-icon--customer { background: linear-gradient(135deg, $uni-color-purple, $uni-color-purple-light); }
+.entry-icon--finance { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.entry-title { font-size: 28rpx; color: $uni-gray-700; font-weight: 600; }
+.entry-desc { font-size: 22rpx; color: $uni-gray-400; }
 .rank-section { padding: 0 24rpx 24rpx; }
 .rank-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -353,7 +353,7 @@ onMounted(() => {
   align-items: center;
   gap: 16rpx;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .rank-item:last-child { border-bottom: none; }
 .rank-num {
@@ -362,17 +362,17 @@ onMounted(() => {
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx;
   font-weight: 600;
-  background: #f5f5f5;
-  color: #999;
+  background: $uni-bg-color-grey;
+  color: $uni-gray-400;
   flex-shrink: 0;
 }
-.rank-1 { background: #ff6b6b; color: #fff; }
-.rank-2 { background: #ffa940; color: #fff; }
-.rank-3 { background: #ffd666; color: #fff; }
+.rank-1 { background: $uni-color-error; color: $uni-text-color-inverse; }
+.rank-2 { background: $uni-color-warning; color: $uni-text-color-inverse; }
+.rank-3 { background: $uni-color-warning; color: $uni-text-color-inverse; }
 .rank-img {
   width: 72rpx; height: 72rpx;
   border-radius: 8rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   flex-shrink: 0;
 }
 .rank-info {
@@ -383,19 +383,19 @@ onMounted(() => {
 }
 .rank-name {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.rank-spec { font-size: 22rpx; color: #999; }
+.rank-spec { font-size: 22rpx; color: $uni-gray-400; }
 .rank-data {
   display: flex; flex-direction: column;
   align-items: flex-end;
   gap: 4rpx;
   flex-shrink: 0;
 }
-.rank-sales { font-size: 26rpx; color: #ff4d4f; font-weight: 600; }
-.rank-qty { font-size: 22rpx; color: #999; }
+.rank-sales { font-size: 26rpx; color: $uni-color-error; font-weight: 600; }
+.rank-qty { font-size: 22rpx; color: $uni-gray-400; }
 .safe-bottom { height: 40rpx; }
 </style>

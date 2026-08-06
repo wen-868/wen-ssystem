@@ -195,126 +195,126 @@ async function loadOrders() {
 onMounted(() => { loadOrders() })
 </script>
 
-<style scoped>
-.instant-retail-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.instant-retail-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .platform-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .platform-item {
   height: 56rpx; padding: 0 24rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f7fa; border-radius: 28rpx;
+  background: $uni-bg-color-page; border-radius: 28rpx;
 }
-.platform-item--active { background: #e6f7ff; }
-.platform-item--active .platform-text { color: #1677FF; font-weight: 600; }
-.platform-text { font-size: 22rpx; color: #666; }
+.platform-item--active { background: $uni-color-primary-soft; }
+.platform-item--active .platform-text { color: $uni-color-primary; font-weight: 600; }
+.platform-text { font-size: 22rpx; color: $uni-gray-500; }
 .tab-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 8rpx 16rpx; gap: 4rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 .tab-item {
   flex: 1; height: 60rpx;
   display: flex; align-items: center; justify-content: center;
   gap: 6rpx; position: relative;
 }
-.tab-item--active .tab-text { color: #1677FF; font-weight: 600; }
-.tab-text { font-size: 24rpx; color: #666; }
+.tab-item--active .tab-text { color: $uni-color-primary; font-weight: 600; }
+.tab-text { font-size: 24rpx; color: $uni-gray-500; }
 .tab-count {
   min-width: 32rpx; height: 32rpx;
-  background: #ff4d4f; color: #fff;
+  background: $uni-color-error; color: $uni-text-color-inverse;
   border-radius: 16rpx; font-size: 20rpx;
   display: flex; align-items: center; justify-content: center;
   padding: 0 8rpx;
 }
 .order-list { padding: 16rpx 24rpx 24rpx; }
 .order-card {
-  background: #fff; border-radius: 16rpx;
+  background: $uni-bg-color; border-radius: 16rpx;
   margin-bottom: 16rpx; overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 20rpx 24rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
 }
 .platform-tag { padding: 4rpx 16rpx; border-radius: 16rpx; }
-.plat-meituan { background: #fff1f0; }
-.plat-meituan .plat-text { color: #ff4d4f; }
-.plat-eleme { background: #e6f7ff; }
-.plat-eleme .plat-text { color: #1677FF; }
-.plat-douyin { background: #f9f0ff; }
-.plat-douyin .plat-text { color: #722ed1; }
+.plat-meituan { background: $uni-color-error-soft; }
+.plat-meituan .plat-text { color: $uni-color-error; }
+.plat-eleme { background: $uni-color-primary-soft; }
+.plat-eleme .plat-text { color: $uni-color-primary; }
+.plat-douyin { background: $uni-color-purple-soft; }
+.plat-douyin .plat-text { color: $uni-color-purple; }
 .plat-text { font-size: 20rpx; font-weight: 600; }
 .order-status { font-size: 24rpx; font-weight: 600; }
-.status-pending { color: #fa8c16; }
-.status-accepted { color: #1677FF; }
-.status-shipping { color: #52c41a; }
-.status-completed { color: #999; }
+.status-pending { color: $uni-color-warning; }
+.status-accepted { color: $uni-color-primary; }
+.status-shipping { color: $uni-color-success; }
+.status-completed { color: $uni-gray-400; }
 .card-body { padding: 20rpx 24rpx; }
 .order-no-row {
   display: flex; justify-content: space-between;
   margin-bottom: 16rpx;
 }
-.order-no { font-size: 24rpx; color: #666; }
-.order-time { font-size: 22rpx; color: #999; }
+.order-no { font-size: 24rpx; color: $uni-gray-500; }
+.order-time { font-size: 22rpx; color: $uni-gray-400; }
 .goods-list { display: flex; flex-direction: column; gap: 16rpx; }
 .goods-item { display: flex; align-items: center; gap: 16rpx; }
 .goods-img {
   width: 80rpx; height: 80rpx;
-  border-radius: 8rpx; background: #f5f5f5;
+  border-radius: 8rpx; background: $uni-bg-color-grey;
 }
 .goods-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.goods-name { font-size: 26rpx; color: #333; line-height: 1.3; }
-.goods-spec { font-size: 22rpx; color: #999; }
+.goods-name { font-size: 26rpx; color: $uni-gray-700; line-height: 1.3; }
+.goods-spec { font-size: 22rpx; color: $uni-gray-400; }
 .goods-price-wrap {
   display: flex; flex-direction: column;
   align-items: flex-end; gap: 4rpx;
 }
-.goods-price { font-size: 26rpx; color: #333; font-weight: 600; }
-.goods-qty { font-size: 22rpx; color: #999; }
+.goods-price { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
+.goods-qty { font-size: 22rpx; color: $uni-gray-400; }
 .order-summary {
   display: flex; justify-content: space-between;
   align-items: center;
   margin-top: 16rpx; padding-top: 16rpx;
-  border-top: 1rpx dashed #f0f0f0;
+  border-top: 1rpx dashed $uni-gray-100;
 }
-.summary-text { font-size: 24rpx; color: #999; }
-.summary-total { font-size: 24rpx; color: #666; }
-.total-price { font-size: 30rpx; color: #ff4d4f; font-weight: 700; }
+.summary-text { font-size: 24rpx; color: $uni-gray-400; }
+.summary-total { font-size: 24rpx; color: $uni-gray-500; }
+.total-price { font-size: 30rpx; color: $uni-color-error; font-weight: 700; }
 .card-footer {
   padding: 16rpx 24rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   display: flex; flex-direction: column;
   gap: 8rpx;
 }
 .delivery-info {
-  font-size: 24rpx; color: #333;
+  font-size: 24rpx; color: $uni-gray-700;
   display: flex; align-items: center; gap: 8rpx;
 }
-.delivery-icon { font-size: 24rpx; color: #1677FF; }
-.delivery-address { font-size: 22rpx; color: #999; line-height: 1.4; }
+.delivery-icon { font-size: 24rpx; color: $uni-color-primary; }
+.delivery-address { font-size: 22rpx; color: $uni-gray-400; line-height: 1.4; }
 .card-actions {
   padding: 16rpx 24rpx;
   display: flex; justify-content: flex-end; gap: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
 }
 .action-btn {
   height: 60rpx; padding: 0 28rpx;
@@ -322,15 +322,15 @@ onMounted(() => { loadOrders() })
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
-.outline-btn { background: #f5f5f5; color: #666; }
-.primary-btn { background: #1677FF; color: #fff; }
-.danger-btn { background: #fff2f0; color: #ff4d4f; }
+.outline-btn { background: $uni-bg-color-grey; color: $uni-gray-500; }
+.primary-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.danger-btn { background: $uni-color-error-soft; color: $uni-color-error; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

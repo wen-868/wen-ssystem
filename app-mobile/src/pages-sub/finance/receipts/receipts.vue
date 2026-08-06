@@ -150,40 +150,40 @@ async function loadReceipts() {
 onMounted(() => { loadReceipts() })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .receipts-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 .search-input-wrap {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tab-bar {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 16rpx 16rpx;
   gap: 8rpx;
 }
@@ -193,15 +193,15 @@ onMounted(() => { loadReceipts() })
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 30rpx;
 }
-.tab-item--active { background: #52c41a; }
-.tab-item--active .tab-text { color: #fff; }
-.tab-text { font-size: 24rpx; color: #666; }
+.tab-item--active { background: $uni-color-success; }
+.tab-item--active .tab-text { color: $uni-text-color-inverse; }
+.tab-text { font-size: 24rpx; color: $uni-gray-500; }
 .receipt-list { padding: 16rpx 24rpx; }
 .receipt-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -213,26 +213,26 @@ onMounted(() => { loadReceipts() })
   align-items: center;
   margin-bottom: 16rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.receipt-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.receipt-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .receipt-type { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.type-online { background: #e6f7ff; }
-.type-online .type-text { color: #1677FF; }
-.type-offline { background: #f6ffed; }
-.type-offline .type-text { color: #52c41a; }
-.type-voided { background: #fff2f0; }
-.type-voided .type-text { color: #ff4d4f; }
+.type-online { background: $uni-color-primary-soft; }
+.type-online .type-text { color: $uni-color-primary; }
+.type-offline { background: $uni-color-success-soft; }
+.type-offline .type-text { color: $uni-color-success; }
+.type-voided { background: $uni-color-error-soft; }
+.type-voided .type-text { color: $uni-color-error; }
 .type-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 12rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
-.info-value--amount { color: #52c41a; font-weight: 600; font-size: 30rpx; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-value--amount { color: $uni-color-success; font-weight: 600; font-size: 30rpx; }
 .card-actions {
   margin-top: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
   display: flex;
 }
 .action-btn {
@@ -245,7 +245,7 @@ onMounted(() => { loadReceipts() })
   justify-content: center;
   border: none;
 }
-.void-btn { background: #f5f5f5; color: #ff4d4f; }
+.void-btn { background: $uni-bg-color-grey; color: $uni-color-error; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex;
@@ -253,7 +253,7 @@ onMounted(() => { loadReceipts() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

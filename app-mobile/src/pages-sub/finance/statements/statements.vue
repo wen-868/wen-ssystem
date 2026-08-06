@@ -137,40 +137,40 @@ async function loadStatements() {
 onMounted(() => { loadStatements() })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .statements-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 .search-input-wrap {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .statement-list { padding: 16rpx 24rpx; }
 .statement-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -182,33 +182,33 @@ onMounted(() => { loadStatements() })
   align-items: center;
   margin-bottom: 16rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.statement-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.statement-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .statement-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: #fff7e6; }
-.status-pending .status-text { color: #fa8c16; }
-.status-confirmed { background: #f6ffed; }
-.status-confirmed .status-text { color: #52c41a; }
-.status-disputed { background: #fff2f0; }
-.status-disputed .status-text { color: #ff4d4f; }
+.status-pending { background: $uni-color-warning-soft; }
+.status-pending .status-text { color: $uni-color-warning; }
+.status-confirmed { background: $uni-color-success-soft; }
+.status-confirmed .status-text { color: $uni-color-success; }
+.status-disputed { background: $uni-color-error-soft; }
+.status-disputed .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 12rpx; }
 .info-row { display: flex; justify-content: space-between; }
 .info-row--total {
   margin-top: 8rpx;
   padding-top: 12rpx;
-  border-top: 1rpx dashed #f0f0f0;
+  border-top: 1rpx dashed $uni-gray-100;
 }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
-.info-value--price { color: #333; font-weight: 600; }
-.info-value--paid { color: #52c41a; font-weight: 600; }
-.info-value--unpaid { color: #ff4d4f; font-weight: 600; font-size: 30rpx; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-value--price { color: $uni-gray-700; font-weight: 600; }
+.info-value--paid { color: $uni-color-success; font-weight: 600; }
+.info-value--unpaid { color: $uni-color-error; font-weight: 600; font-size: 30rpx; }
 .card-actions {
   margin-top: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
   display: flex;
   gap: 16rpx;
 }
@@ -222,8 +222,8 @@ onMounted(() => { loadStatements() })
   justify-content: center;
   border: none;
 }
-.confirm-btn { background: #1677FF; color: #fff; }
-.dispute-btn { background: #f5f5f5; color: #ff4d4f; }
+.confirm-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.dispute-btn { background: $uni-bg-color-grey; color: $uni-color-error; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex;
@@ -231,7 +231,7 @@ onMounted(() => { loadStatements() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

@@ -203,10 +203,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .expenses-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -214,21 +214,21 @@ onMounted(() => {
 .search-bar {
   display: flex;
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .search-input-wrap {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 32rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
@@ -242,7 +242,7 @@ onMounted(() => {
   margin-left: 16rpx;
   padding: 0 32rpx;
   height: 64rpx;
-  background: #1890ff;
+  background: $uni-color-primary;
   border-radius: 32rpx;
   display: flex;
   align-items: center;
@@ -251,15 +251,15 @@ onMounted(() => {
 
 .search-btn text {
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* --- 筛选栏 --- */
 .filter-bar {
   display: flex;
   padding: 16rpx 24rpx;
-  background: #fff;
-  border-top: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-top: 1rpx solid $uni-gray-100;
 }
 
 .filter-item {
@@ -270,15 +270,15 @@ onMounted(() => {
 }
 
 .filter-item.active {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .filter-text {
   font-size: 26rpx;
 }
 
-.filter-item .filter-text { color: #666; }
-.filter-item.active .filter-text { color: #1890ff; }
+.filter-item .filter-text { color: $uni-gray-500; }
+.filter-item.active .filter-text { color: $uni-color-primary; }
 
 /* --- 费用列表 --- */
 .expense-list {
@@ -287,7 +287,7 @@ onMounted(() => {
 
 .expense-card {
   margin: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
@@ -303,7 +303,7 @@ onMounted(() => {
 .expense-no {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .status-tag {
@@ -311,13 +311,13 @@ onMounted(() => {
   border-radius: 12rpx;
 }
 
-.status-tag--pending { background: #fff7e6; }
-.status-tag--approved { background: #f6ffed; }
-.status-tag--rejected { background: #fff2f0; }
+.status-tag--pending { background: $uni-color-warning-soft; }
+.status-tag--approved { background: $uni-color-success-soft; }
+.status-tag--rejected { background: $uni-color-error-soft; }
 
-.status-tag--pending .status-text { color: #fa8c16; }
-.status-tag--approved .status-text { color: #52c41a; }
-.status-tag--rejected .status-text { color: #ff4d4f; }
+.status-tag--pending .status-text { color: $uni-color-warning; }
+.status-tag--approved .status-text { color: $uni-color-success; }
+.status-tag--rejected .status-text { color: $uni-color-error; }
 
 .status-text {
   font-size: 22rpx;
@@ -338,19 +338,19 @@ onMounted(() => {
 .expense-type {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .expense-date {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-left: 16rpx;
 }
 
 .expense-amount {
   font-size: 36rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .card-footer {
@@ -358,24 +358,24 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .submitter {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .remark {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .card-actions {
   display: flex;
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .action-btn {
@@ -388,17 +388,17 @@ onMounted(() => {
 }
 
 .action-btn--reject {
-  background: #fff2f0;
+  background: $uni-color-error-soft;
   margin-right: 16rpx;
 }
 
-.action-btn--reject .action-text { color: #ff4d4f; }
+.action-btn--reject .action-text { color: $uni-color-error; }
 
 .action-btn--approve {
-  background: #f6ffed;
+  background: $uni-color-success-soft;
 }
 
-.action-btn--approve .action-text { color: #52c41a; }
+.action-btn--approve .action-text { color: $uni-color-success; }
 
 .action-text {
   font-size: 28rpx;
@@ -412,7 +412,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .load-more {
@@ -422,7 +422,7 @@ onMounted(() => {
 
 .load-more-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* --- 新增按钮 --- */
@@ -432,7 +432,7 @@ onMounted(() => {
   bottom: calc(40rpx + env(safe-area-inset-bottom));
   width: 100rpx;
   height: 100rpx;
-  background: #1890ff;
+  background: $uni-color-primary;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -442,7 +442,7 @@ onMounted(() => {
 
 .fab-icon {
   font-size: 48rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* --- 驳回弹窗 --- */
@@ -460,7 +460,7 @@ onMounted(() => {
 
 .modal-content {
   width: 600rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 20rpx;
   padding: 40rpx;
 }
@@ -468,7 +468,7 @@ onMounted(() => {
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   text-align: center;
   margin-bottom: 30rpx;
 }
@@ -476,7 +476,7 @@ onMounted(() => {
 .modal-textarea {
   width: 100%;
   height: 200rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 28rpx;
@@ -497,17 +497,17 @@ onMounted(() => {
 }
 
 .modal-btn--cancel {
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   margin-right: 20rpx;
 }
 
-.modal-btn--cancel text { color: #666; }
+.modal-btn--cancel text { color: $uni-gray-500; }
 
 .modal-btn--confirm {
-  background: #ff4d4f;
+  background: $uni-color-error;
 }
 
-.modal-btn--confirm text { color: #fff; }
+.modal-btn--confirm text { color: $uni-text-color-inverse; }
 
 .modal-btn text {
   font-size: 30rpx;

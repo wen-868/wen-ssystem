@@ -147,17 +147,17 @@ async function loadReportData() {
 onMounted(() => { loadReportData() })
 </script>
 
-<style scoped>
-.purchase-reports-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.purchase-reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .filter-form {
   margin: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -172,23 +172,23 @@ onMounted(() => { loadReportData() })
   display: flex; flex-direction: column;
   gap: 8rpx;
 }
-.filter-label { font-size: 22rpx; color: #999; }
-.filter-value { font-size: 26rpx; color: #333; font-weight: 500; }
+.filter-label { font-size: 22rpx; color: $uni-gray-400; }
+.filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .query-btn {
   width: 100%;
   height: 72rpx;
-  background: linear-gradient(135deg, #52c41a, #73d13d);
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
   border-radius: 36rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-top: 16rpx;
   border: none;
 }
 .query-btn::after { border: none; }
 .summary-section { padding: 0 24rpx 24rpx; }
 .summary-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -203,25 +203,25 @@ onMounted(() => { loadReportData() })
   align-items: center;
   gap: 8rpx;
 }
-.summary-value { font-size: 32rpx; font-weight: 700; color: #333; }
-.summary-label { font-size: 22rpx; color: #999; }
+.summary-value { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
+.summary-label { font-size: 22rpx; color: $uni-gray-400; }
 .summary-divider {
   width: 1rpx; height: 48rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 .section { padding: 0 24rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.title-more { font-size: 24rpx; color: #52c41a; font-weight: 400; }
+.title-more { font-size: 24rpx; color: $uni-color-success; font-weight: 400; }
 .chart-placeholder {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   height: 360rpx;
   display: flex;
@@ -231,10 +231,10 @@ onMounted(() => { loadReportData() })
   gap: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
-.chart-icon { font-size: 64rpx; color: #ddd; }
-.chart-text { font-size: 26rpx; color: #bbb; }
+.chart-icon { font-size: 64rpx; color: $uni-gray-300; }
+.chart-text { font-size: 26rpx; color: $uni-gray-300; }
 .supplier-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -244,7 +244,7 @@ onMounted(() => { loadReportData() })
   align-items: center;
   gap: 16rpx;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .supplier-item:last-child { border-bottom: none; }
 .rank-num {
@@ -253,13 +253,13 @@ onMounted(() => { loadReportData() })
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx;
   font-weight: 600;
-  background: #f5f5f5;
-  color: #999;
+  background: $uni-bg-color-grey;
+  color: $uni-gray-400;
   flex-shrink: 0;
 }
-.rank-1 { background: #52c41a; color: #fff; }
-.rank-2 { background: #73d13d; color: #fff; }
-.rank-3 { background: #95de64; color: #fff; }
+.rank-1 { background: $uni-color-success; color: $uni-text-color-inverse; }
+.rank-2 { background: $uni-color-success; color: $uni-text-color-inverse; }
+.rank-3 { background: $uni-color-success; color: $uni-text-color-inverse; }
 .supplier-info {
   flex: 1;
   display: flex; flex-direction: column;
@@ -268,16 +268,16 @@ onMounted(() => { loadReportData() })
 }
 .supplier-name {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .supplier-category {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   padding: 2rpx 10rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 8rpx;
   align-self: flex-start;
 }
@@ -289,15 +289,15 @@ onMounted(() => { loadReportData() })
 }
 .supplier-amount {
   font-size: 26rpx;
-  color: #52c41a;
+  color: $uni-color-success;
   font-weight: 600;
 }
 .supplier-ratio {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 .detail-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -307,7 +307,7 @@ onMounted(() => { loadReportData() })
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .detail-item:last-child { border-bottom: none; }
 .detail-left {
@@ -318,11 +318,11 @@ onMounted(() => { loadReportData() })
 }
 .detail-no {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 .detail-supplier {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -335,12 +335,12 @@ onMounted(() => { loadReportData() })
 }
 .detail-amount {
   font-size: 26rpx;
-  color: #52c41a;
+  color: $uni-color-success;
   font-weight: 600;
 }
 .detail-date {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 .safe-bottom { height: 40rpx; }
 </style>

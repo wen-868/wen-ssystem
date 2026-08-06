@@ -235,15 +235,15 @@ async function onSubmit() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .create-gain-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
 
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   margin: 20rpx 24rpx;
   border-radius: 16rpx;
   padding: 24rpx;
@@ -259,7 +259,7 @@ async function onSubmit() {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
 }
 
@@ -268,12 +268,12 @@ async function onSubmit() {
 }
 
 .required {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .add-btn {
   font-size: 26rpx;
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 /* 原因选择 */
@@ -285,23 +285,23 @@ async function onSubmit() {
 
 .reason-item {
   padding: 16rpx 32rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 32rpx;
   border: 2rpx solid transparent;
 }
 
 .reason-item.active {
-  background: #f6ffed;
-  border-color: #52c41a;
+  background: $uni-color-success-soft;
+  border-color: $uni-color-success;
 }
 
 .reason-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .reason-item.active .reason-text {
-  color: #52c41a;
+  color: $uni-color-success;
   font-weight: 500;
 }
 
@@ -313,7 +313,7 @@ async function onSubmit() {
 }
 
 .goods-item {
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 20rpx;
 }
@@ -328,13 +328,13 @@ async function onSubmit() {
 .goods-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333;
+  color: $uni-gray-700;
   flex: 1;
 }
 
 .goods-remove {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   padding: 0 8rpx;
 }
 
@@ -346,15 +346,15 @@ async function onSubmit() {
 
 .qty-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .qty-stepper {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 8rpx;
-  border: 1rpx solid #e8e8e8;
+  border: 1rpx solid $uni-gray-200;
 }
 
 .qty-btn {
@@ -364,11 +364,11 @@ async function onSubmit() {
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .qty-btn--plus {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .qty-input {
@@ -376,8 +376,8 @@ async function onSubmit() {
   height: 60rpx;
   text-align: center;
   font-size: 28rpx;
-  border-left: 1rpx solid #e8e8e8;
-  border-right: 1rpx solid #e8e8e8;
+  border-left: 1rpx solid $uni-gray-200;
+  border-right: 1rpx solid $uni-gray-200;
 }
 
 .empty-goods {
@@ -385,27 +385,27 @@ async function onSubmit() {
   flex-direction: column;
   align-items: center;
   padding: 60rpx 0;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed $uni-gray-300;
 }
 
 .empty-icon {
   font-size: 48rpx;
-  color: #ccc;
+  color: $uni-gray-300;
   margin-bottom: 12rpx;
 }
 
 .empty-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 备注 */
 .remark-input {
   width: 100%;
   height: 200rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 28rpx;
@@ -416,7 +416,7 @@ async function onSubmit() {
   display: block;
   text-align: right;
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 8rpx;
 }
 
@@ -428,13 +428,13 @@ async function onSubmit() {
   bottom: 0;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: $uni-bg-color;
   box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
 }
 
 .submit-btn {
   height: 88rpx;
-  background: #52c41a;
+  background: $uni-color-success;
   border-radius: 44rpx;
   display: flex;
   align-items: center;
@@ -442,13 +442,13 @@ async function onSubmit() {
 }
 
 .submit-btn.disabled {
-  background: #ccc;
+  background: $uni-gray-300;
 }
 
 .submit-text {
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* 商品选择弹窗 */
@@ -467,7 +467,7 @@ async function onSubmit() {
 .picker-panel {
   width: 100%;
   max-height: 80vh;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -478,18 +478,18 @@ async function onSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .picker-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .picker-close {
   font-size: 40rpx;
-  color: #999;
+  color: $uni-gray-400;
   padding: 0 16rpx;
 }
 
@@ -499,7 +499,7 @@ async function onSubmit() {
 
 .picker-search-input {
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
@@ -515,26 +515,26 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .picker-check {
   width: 44rpx;
   height: 44rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
   margin-right: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
 
 .picker-check.checked {
-  background: #52c41a;
-  border-color: #52c41a;
+  background: $uni-color-success;
+  border-color: $uni-color-success;
 }
 
 .picker-info {
@@ -543,14 +543,14 @@ async function onSubmit() {
 
 .picker-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   display: block;
   margin-bottom: 4rpx;
 }
 
 .picker-spec {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .picker-footer {
@@ -559,19 +559,19 @@ async function onSubmit() {
   align-items: center;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
 }
 
 .picker-count {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .picker-confirm {
   padding: 16rpx 48rpx;
-  background: #52c41a;
+  background: $uni-color-success;
   border-radius: 32rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-size: 28rpx;
   font-weight: 500;
 }

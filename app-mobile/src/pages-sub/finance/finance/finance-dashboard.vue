@@ -192,16 +192,16 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .finance-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* --- Header --- */
 .finance-header {
-  background: linear-gradient(135deg, #1890ff, #096dd9);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary-active);
   padding: 60rpx 32rpx 40rpx;
   padding-top: calc(60rpx + env(safe-area-inset-top));
   border-radius: 0 0 40rpx 40rpx;
@@ -216,7 +216,7 @@ onMounted(() => {
 .header-title {
   font-size: 40rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .header-date {
@@ -234,7 +234,7 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
@@ -242,7 +242,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-bottom: 12rpx;
   display: block;
 }
@@ -254,10 +254,10 @@ onMounted(() => {
   display: block;
 }
 
-.stat-card--income .stat-value { color: #52c41a; }
-.stat-card--expense .stat-value { color: #ff4d4f; }
-.stat-card--profit .stat-value { color: #1890ff; }
-.stat-card--net .stat-value { color: #722ed1; }
+.stat-card--income .stat-value { color: $uni-color-success; }
+.stat-card--expense .stat-value { color: $uni-color-error; }
+.stat-card--profit .stat-value { color: $uni-color-primary; }
+.stat-card--net .stat-value { color: $uni-color-purple; }
 
 .stat-trend {
   display: flex;
@@ -266,20 +266,20 @@ onMounted(() => {
 
 .trend-icon {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 4rpx;
 }
 
 .trend-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* --- Tab切换 --- */
 .tab-bar {
   display: flex;
   margin: 0 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 8rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
@@ -294,20 +294,20 @@ onMounted(() => {
 }
 
 .tab-item.active {
-  background: #1890ff;
+  background: $uni-color-primary;
 }
 
 .tab-text {
   font-size: 28rpx;
 }
 
-.tab-item .tab-text { color: #666; }
-.tab-item.active .tab-text { color: #fff; }
+.tab-item .tab-text { color: $uni-gray-500; }
+.tab-item.active .tab-text { color: $uni-text-color-inverse; }
 
 /* --- 趋势图表 --- */
 .chart-card {
   margin: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
@@ -320,7 +320,7 @@ onMounted(() => {
 .chart-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .chart-content {
@@ -345,7 +345,7 @@ onMounted(() => {
 .bar-wrapper {
   width: 40rpx;
   height: 220rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 8rpx;
   display: flex;
   align-items: flex-end;
@@ -358,19 +358,19 @@ onMounted(() => {
   transition: height 0.3s;
 }
 
-.bar--income { background: linear-gradient(180deg, #52c41a, #95de64); }
-.bar--expense { background: linear-gradient(180deg, #ff4d4f, #ff7875); }
+.bar--income { background: linear-gradient(180deg, $uni-color-success, $uni-color-success); }
+.bar--expense { background: linear-gradient(180deg, $uni-color-error, $uni-color-error); }
 
 .bar-label {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 12rpx;
 }
 
 /* --- 支出分类 --- */
 .section-card {
   margin: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 20rpx;
   padding: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
@@ -383,7 +383,7 @@ onMounted(() => {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .category-list {
@@ -395,7 +395,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .category-item:last-child {
@@ -410,19 +410,19 @@ onMounted(() => {
 
 .category-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .category-amount {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   margin-top: 4rpx;
 }
 
 .category-progress {
   flex: 1;
   height: 12rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 6rpx;
   margin: 0 16rpx;
   overflow: hidden;
@@ -430,14 +430,14 @@ onMounted(() => {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  background: linear-gradient(90deg, $uni-color-primary, $uni-color-primary);
   border-radius: 6rpx;
   transition: width 0.3s;
 }
 
 .category-percent {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   width: 80rpx;
   text-align: right;
 }

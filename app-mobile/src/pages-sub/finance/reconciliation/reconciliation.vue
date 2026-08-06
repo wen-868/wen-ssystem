@@ -272,64 +272,64 @@ async function onConfirm() {
 loadCustomer()
 </script>
 
-<style scoped>
-.reconciliation-page { min-height: 100vh; background: #f0f5ff; display: flex; flex-direction: column; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: #fff; }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.tab-bar { display: flex; background: #fff; border-bottom: 1rpx solid #f0f0f0; }
-.tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: #666; position: relative; }
-.tab-item--active { color: #1677FF; font-weight: 600; }
-.tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: #1677FF; border-radius: 2rpx; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
-.search-input { width: 100%; height: 64rpx; background: #f5f7fa; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
+<style lang="scss" scoped>
+.reconciliation-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.tab-bar { display: flex; background: $uni-bg-color; border-bottom: 1rpx solid $uni-gray-100; }
+.tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: $uni-gray-500; position: relative; }
+.tab-item--active { color: $uni-color-primary; font-weight: 600; }
+.tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
+.search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
 .content-scroll { flex: 1; padding: 0 24rpx; }
-.recon-card { position: relative; background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; margin-top: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid #f0f0f0; }
-.party-name { font-size: 30rpx; font-weight: 600; color: #333; }
+.recon-card { position: relative; background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; margin-top: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
+.party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
 .status-tag--pending { background: rgba(250,173,20,0.1); }
 .status-tag--confirmed { background: rgba(82,196,26,0.1); }
 .status-tag--disputed { background: rgba(255,77,79,0.1); }
 .status-tag-text { font-size: 22rpx; }
-.status-tag--pending .status-tag-text { color: #faad14; }
-.status-tag--confirmed .status-tag-text { color: #52c41a; }
-.status-tag--disputed .status-tag-text { color: #ff4d4f; }
+.status-tag--pending .status-tag-text { color: $uni-color-warning; }
+.status-tag--confirmed .status-tag-text { color: $uni-color-success; }
+.status-tag--disputed .status-tag-text { color: $uni-color-error; }
 .card-body { }
 .amount-row { display: flex; gap: 16rpx; }
 .amount-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.amount-label { font-size: 22rpx; color: #999; margin-bottom: 6rpx; }
-.amount-value { font-size: 26rpx; font-weight: 600; color: #333; }
-.text-danger { color: #ff4d4f; }
-.text-success { color: #52c41a; }
+.amount-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 6rpx; }
+.amount-value { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; }
+.text-danger { color: $uni-color-error; }
+.text-success { color: $uni-color-success; }
 .card-arrow { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); }
-.arrow-icon { font-size: 28rpx; color: #ccc; }
+.arrow-icon { font-size: 28rpx; color: $uni-gray-300; }
 .load-more { text-align: center; padding: 24rpx 0; }
-.load-more-text { font-size: 24rpx; color: #bbb; }
+.load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 100rpx 0; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 .detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: flex-end; }
-.detail-content { width: 100%; max-height: 80vh; background: #fff; border-radius: 24rpx 24rpx 0 0; display: flex; flex-direction: column; }
-.detail-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid #f0f0f0; }
-.detail-title { font-size: 30rpx; font-weight: 600; color: #333; }
-.close-btn { font-size: 32rpx; color: #999; padding: 8rpx 16rpx; }
+.detail-content { width: 100%; max-height: 80vh; background: $uni-bg-color; border-radius: 24rpx 24rpx 0 0; display: flex; flex-direction: column; }
+.detail-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid $uni-gray-100; }
+.detail-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
+.close-btn { font-size: 32rpx; color: $uni-gray-400; padding: 8rpx 16rpx; }
 .detail-scroll { flex: 1; max-height: 50vh; padding: 16rpx 32rpx; }
-.detail-info { padding: 16rpx 0; border-bottom: 1rpx solid #f0f0f0; }
+.detail-info { padding: 16rpx 0; border-bottom: 1rpx solid $uni-gray-100; }
 .detail-row { display: flex; justify-content: space-between; padding: 8rpx 0; }
-.detail-label { font-size: 26rpx; color: #999; }
-.detail-value { font-size: 28rpx; color: #333; font-weight: 500; }
+.detail-label { font-size: 26rpx; color: $uni-gray-400; }
+.detail-value { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
 .records-section { padding: 16rpx 0; }
-.records-title { font-size: 28rpx; font-weight: 600; color: #333; display: block; margin-bottom: 12rpx; }
-.record-item { padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.records-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; display: block; margin-bottom: 12rpx; }
+.record-item { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
-.record-no { font-size: 26rpx; color: #333; }
-.record-type { font-size: 22rpx; color: #1677FF; background: rgba(22,119,255,0.08); padding: 2rpx 12rpx; border-radius: 6rpx; }
+.record-no { font-size: 26rpx; color: $uni-gray-700; }
+.record-type { font-size: 22rpx; color: $uni-color-primary; background: rgba(22,119,255,0.08); padding: 2rpx 12rpx; border-radius: 6rpx; }
 .record-info { display: flex; justify-content: space-between; }
-.record-amount { font-size: 28rpx; font-weight: 600; color: #333; }
-.record-date { font-size: 22rpx; color: #999; }
-.record-remark { font-size: 22rpx; color: #999; margin-top: 4rpx; }
-.detail-bottom { padding: 16rpx 32rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid #f0f0f0; }
+.record-amount { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
+.record-date { font-size: 22rpx; color: $uni-gray-400; }
+.record-remark { font-size: 22rpx; color: $uni-gray-400; margin-top: 4rpx; }
+.detail-bottom { padding: 16rpx 32rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid $uni-gray-100; }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
-.btn--primary { background: #1677FF; color: #fff; }
+.btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }
 </style>

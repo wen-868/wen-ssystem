@@ -168,17 +168,17 @@ async function loadReportData() {
 onMounted(() => { loadReportData() })
 </script>
 
-<style scoped>
-.inventory-reports-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.inventory-reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .filter-form {
   margin: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -193,23 +193,23 @@ onMounted(() => { loadReportData() })
   display: flex; flex-direction: column;
   gap: 8rpx;
 }
-.filter-label { font-size: 22rpx; color: #999; }
-.filter-value { font-size: 26rpx; color: #333; font-weight: 500; }
+.filter-label { font-size: 22rpx; color: $uni-gray-400; }
+.filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .query-btn {
   width: 100%;
   height: 72rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 36rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-top: 16rpx;
   border: none;
 }
 .query-btn::after { border: none; }
 .summary-section { padding: 0 24rpx 24rpx; }
 .summary-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -224,25 +224,25 @@ onMounted(() => { loadReportData() })
   align-items: center;
   gap: 8rpx;
 }
-.summary-value { font-size: 32rpx; font-weight: 700; color: #333; }
-.summary-label { font-size: 22rpx; color: #999; }
+.summary-value { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
+.summary-label { font-size: 22rpx; color: $uni-gray-400; }
 .summary-divider {
   width: 1rpx; height: 48rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 .section { padding: 0 24rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.title-more { font-size: 24rpx; color: #1677FF; font-weight: 400; }
+.title-more { font-size: 24rpx; color: $uni-color-primary; font-weight: 400; }
 .chart-placeholder {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   height: 360rpx;
   display: flex;
@@ -252,10 +252,10 @@ onMounted(() => { loadReportData() })
   gap: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
-.chart-icon { font-size: 64rpx; color: #ddd; }
-.chart-text { font-size: 26rpx; color: #bbb; }
+.chart-icon { font-size: 64rpx; color: $uni-gray-300; }
+.chart-text { font-size: 26rpx; color: $uni-gray-300; }
 .rank-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -265,7 +265,7 @@ onMounted(() => { loadReportData() })
   align-items: center;
   gap: 16rpx;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .rank-item:last-child { border-bottom: none; }
 .rank-num {
@@ -274,13 +274,13 @@ onMounted(() => { loadReportData() })
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx;
   font-weight: 600;
-  background: #f5f5f5;
-  color: #999;
+  background: $uni-bg-color-grey;
+  color: $uni-gray-400;
   flex-shrink: 0;
 }
-.rank-1 { background: #ff6b6b; color: #fff; }
-.rank-2 { background: #ffa940; color: #fff; }
-.rank-3 { background: #ffd666; color: #fff; }
+.rank-1 { background: $uni-color-error; color: $uni-text-color-inverse; }
+.rank-2 { background: $uni-color-warning; color: $uni-text-color-inverse; }
+.rank-3 { background: $uni-color-warning; color: $uni-text-color-inverse; }
 .rank-info {
   flex: 1;
   display: flex; flex-direction: column;
@@ -289,22 +289,22 @@ onMounted(() => { loadReportData() })
 }
 .rank-name {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.rank-spec { font-size: 22rpx; color: #999; }
+.rank-spec { font-size: 22rpx; color: $uni-gray-400; }
 .rank-data {
   display: flex; flex-direction: column;
   align-items: flex-end;
   gap: 4rpx;
   flex-shrink: 0;
 }
-.rank-qty { font-size: 24rpx; color: #666; }
-.rank-value { font-size: 26rpx; color: #1677FF; font-weight: 600; }
+.rank-qty { font-size: 24rpx; color: $uni-gray-500; }
+.rank-value { font-size: 26rpx; color: $uni-color-primary; font-weight: 600; }
 .detail-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -314,7 +314,7 @@ onMounted(() => { loadReportData() })
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .detail-item:last-child { border-bottom: none; }
 .detail-left {
@@ -330,11 +330,11 @@ onMounted(() => { loadReportData() })
   font-size: 20rpx;
   flex-shrink: 0;
 }
-.type-in { background: #f6ffed; color: #52c41a; }
-.type-out { background: #fff2f0; color: #ff4d4f; }
+.type-in { background: $uni-color-success-soft; color: $uni-color-success; }
+.type-out { background: $uni-color-error-soft; color: $uni-color-error; }
 .detail-name {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -350,8 +350,8 @@ onMounted(() => { loadReportData() })
   font-size: 26rpx;
   font-weight: 600;
 }
-.qty-in { color: #52c41a; }
-.qty-out { color: #ff4d4f; }
-.detail-date { font-size: 22rpx; color: #999; }
+.qty-in { color: $uni-color-success; }
+.qty-out { color: $uni-color-error; }
+.detail-date { font-size: 22rpx; color: $uni-gray-400; }
 .safe-bottom { height: 40rpx; }
 </style>

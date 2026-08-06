@@ -103,10 +103,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .expense-create-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
 }
 
@@ -115,7 +115,7 @@ onMounted(() => {
 }
 
 .form-item {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -123,13 +123,13 @@ onMounted(() => {
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: block;
 }
 
 .required {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 /* --- 类型选择 --- */
@@ -141,26 +141,26 @@ onMounted(() => {
 
 .type-item {
   padding: 12rpx 24rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 24rpx;
 }
 
 .type-item.active {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .type-text {
   font-size: 26rpx;
 }
 
-.type-item .type-text { color: #666; }
-.type-item.active .type-text { color: #1890ff; }
+.type-item .type-text { color: $uni-gray-500; }
+.type-item.active .type-text { color: $uni-color-primary; }
 
 /* --- 金额输入 --- */
 .amount-input-wrap {
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 12rpx;
   padding: 0 20rpx;
 }
@@ -168,7 +168,7 @@ onMounted(() => {
 .amount-symbol {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-right: 12rpx;
 }
 
@@ -185,26 +185,26 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   height: 80rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 12rpx;
   padding: 0 20rpx;
 }
 
 .picker-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .picker-arrow {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* --- 备注输入 --- */
 .remark-input {
   width: 100%;
   height: 160rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 12rpx;
   padding: 20rpx;
   font-size: 28rpx;
@@ -217,7 +217,7 @@ onMounted(() => {
   right: 24rpx;
   bottom: calc(40rpx + env(safe-area-inset-bottom));
   height: 96rpx;
-  background: #1890ff;
+  background: $uni-color-primary;
   border-radius: 48rpx;
   display: flex;
   align-items: center;
@@ -225,12 +225,12 @@ onMounted(() => {
 }
 
 .submit-btn.disabled {
-  background: #ccc;
+  background: $uni-gray-300;
 }
 
 .submit-text {
   font-size: 32rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 </style>

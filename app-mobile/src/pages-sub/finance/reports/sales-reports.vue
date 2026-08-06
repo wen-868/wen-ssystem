@@ -272,17 +272,17 @@ async function loadReportData() {
 onMounted(() => { loadReportData() })
 </script>
 
-<style scoped>
-.sales-reports-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.sales-reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .filter-form {
   margin: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -291,7 +291,7 @@ onMounted(() => { loadReportData() })
   display: flex;
   gap: 24rpx;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .filter-row:last-of-type { border-bottom: none; }
 .filter-item {
@@ -299,30 +299,30 @@ onMounted(() => { loadReportData() })
   display: flex; flex-direction: column;
   gap: 8rpx;
 }
-.filter-label { font-size: 22rpx; color: #999; }
-.filter-value { font-size: 26rpx; color: #333; font-weight: 500; }
+.filter-label { font-size: 22rpx; color: $uni-gray-400; }
+.filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .filter-picker {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.picker-text { font-size: 26rpx; color: #333; }
-.picker-arrow { font-size: 22rpx; color: #999; }
+.picker-text { font-size: 26rpx; color: $uni-gray-700; }
+.picker-arrow { font-size: 22rpx; color: $uni-gray-400; }
 .query-btn {
   width: 100%;
   height: 72rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 36rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-top: 16rpx;
   border: none;
 }
 .query-btn::after { border: none; }
 .summary-section { padding: 0 24rpx 24rpx; }
 .summary-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -333,7 +333,7 @@ onMounted(() => { loadReportData() })
   padding: 8rpx 0;
 }
 .summary-row--second {
-  border-top: 1rpx dashed #f0f0f0;
+  border-top: 1rpx dashed $uni-gray-100;
   margin-top: 16rpx;
   padding-top: 24rpx;
 }
@@ -343,22 +343,22 @@ onMounted(() => { loadReportData() })
   align-items: center;
   gap: 8rpx;
 }
-.summary-value { font-size: 32rpx; font-weight: 700; color: #333; }
-.summary-value--profit { color: #52c41a; }
-.summary-label { font-size: 22rpx; color: #999; }
+.summary-value { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
+.summary-value--profit { color: $uni-color-success; }
+.summary-label { font-size: 22rpx; color: $uni-gray-400; }
 .summary-divider {
   width: 1rpx; height: 48rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 .chart-section { padding: 0 24rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
 }
 .chart-placeholder {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   height: 360rpx;
   display: flex;
@@ -368,11 +368,11 @@ onMounted(() => { loadReportData() })
   gap: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
-.chart-icon { font-size: 64rpx; color: #ddd; }
-.chart-text { font-size: 26rpx; color: #bbb; }
+.chart-icon { font-size: 64rpx; color: $uni-gray-300; }
+.chart-text { font-size: 26rpx; color: $uni-gray-300; }
 .category-section { padding: 0 24rpx 24rpx; }
 .category-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -382,7 +382,7 @@ onMounted(() => { loadReportData() })
   align-items: center;
   justify-content: space-between;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .category-item:last-child { border-bottom: none; }
 .category-info {
@@ -391,16 +391,16 @@ onMounted(() => { loadReportData() })
   gap: 12rpx;
   margin-right: 24rpx;
 }
-.category-name { font-size: 26rpx; color: #333; font-weight: 500; }
+.category-name { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .category-bar-wrap {
   height: 12rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 6rpx;
   overflow: hidden;
 }
 .category-bar {
   height: 100%;
-  background: linear-gradient(90deg, #1677FF, #4096ff);
+  background: linear-gradient(90deg, $uni-color-primary, $uni-color-primary);
   border-radius: 6rpx;
   min-width: 20rpx;
 }
@@ -410,22 +410,22 @@ onMounted(() => { loadReportData() })
   gap: 4rpx;
   flex-shrink: 0;
 }
-.category-amount { font-size: 26rpx; color: #ff4d4f; font-weight: 600; }
-.category-percent { font-size: 22rpx; color: #999; }
+.category-amount { font-size: 26rpx; color: $uni-color-error; font-weight: 600; }
+.category-percent { font-size: 22rpx; color: $uni-gray-400; }
 .export-section { padding: 0 24rpx; }
 .export-btn {
   width: 100%;
   height: 80rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 40rpx;
   font-size: 28rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  border: 2rpx solid #1677FF;
+  border: 2rpx solid $uni-color-primary;
 }
 .export-btn::after { border: none; }
 .export-icon { font-size: 28rpx; }

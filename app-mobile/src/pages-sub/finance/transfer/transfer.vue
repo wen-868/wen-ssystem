@@ -171,75 +171,75 @@ async function loadTransfers() {
 onMounted(() => { loadTransfers() })
 </script>
 
-<style scoped>
-.transfer-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.transfer-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tab-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .tab-item {
   flex: 1; height: 60rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f7fa; border-radius: 30rpx;
+  background: $uni-bg-color-page; border-radius: 30rpx;
 }
-.tab-item--active { background: #1677FF; }
-.tab-item--active .tab-text { color: #fff; }
-.tab-text { font-size: 22rpx; color: #666; }
+.tab-item--active { background: $uni-color-primary; }
+.tab-item--active .tab-text { color: $uni-text-color-inverse; }
+.tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .create-section { padding: 16rpx 24rpx; }
 .create-btn {
   width: 100%; height: 80rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 40rpx; font-size: 28rpx;
-  font-weight: 600; color: #fff;
+  font-weight: 600; color: $uni-text-color-inverse;
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
 .create-btn::after { border: none; }
 .transfer-list { padding: 0 24rpx 24rpx; }
 .transfer-card {
-  background: #fff; border-radius: 16rpx;
+  background: $uni-bg-color; border-radius: 16rpx;
   padding: 24rpx; margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 16rpx; padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.transfer-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.transfer-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .transfer-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: #fff7e6; }
-.status-pending .status-text { color: #fa8c16; }
-.status-approved { background: #e6f7ff; }
-.status-approved .status-text { color: #1677FF; }
-.status-completed { background: #f6ffed; }
-.status-completed .status-text { color: #52c41a; }
-.status-rejected { background: #fff2f0; }
-.status-rejected .status-text { color: #ff4d4f; }
+.status-pending { background: $uni-color-warning-soft; }
+.status-pending .status-text { color: $uni-color-warning; }
+.status-approved { background: $uni-color-primary-soft; }
+.status-approved .status-text { color: $uni-color-primary; }
+.status-completed { background: $uni-color-success-soft; }
+.status-completed .status-text { color: $uni-color-success; }
+.status-rejected { background: $uni-color-error-soft; }
+.status-rejected .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
 .card-actions {
   margin-top: 16rpx; padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
   display: flex; gap: 16rpx;
 }
 .action-btn {
@@ -248,15 +248,15 @@ onMounted(() => { loadTransfers() })
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
-.approve-btn { background: #52c41a; color: #fff; }
-.reject-btn { background: #fff2f0; color: #ff4d4f; }
-.stock-btn { background: #1677FF; color: #fff; }
+.approve-btn { background: $uni-color-success; color: $uni-text-color-inverse; }
+.reject-btn { background: $uni-color-error-soft; color: $uni-color-error; }
+.stock-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>
