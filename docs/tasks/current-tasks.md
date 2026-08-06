@@ -2252,6 +2252,25 @@
   - **其他验证**：`npx vue-tsc --noEmit` 每批 0 errors（最终复验 exit 0）；uni.scss 补充 token 后 .ai-tag 等既有样式不受影响（双端构建通过佐证）
   - **说明**：凌舟派单基线 1613 与实测 3462 的差异来自统计口径（逐文件去重后约 1460，均含 3 位缩写）；本任务按"残留 ≤322"验收，实测残留 6，两种口径均达标
 
+### R94-03 — [P1] 移动端 API 契约对齐（82 处 404 + 3 处结构不匹配 + 1 处 403 入口）
+- **优先级**：P1
+- **负责人**：阿澈（移动端）
+- **预计**：2 天
+- **状态**：🔄 进行中（2026-08-07 凌舟核查派单）
+- **必读文件**：`docs/reports/R94-03-移动端API契约差距报告.md`（完整差距清单+等价接口映射，先读再动手）
+- **问题**：实测 store_manager 登录后逐条探测 `app-mobile/src/api/modules/` 312 处调用，发现路由级 404 共 82 处（后端路径不存在）、响应结构不匹配 3 处（orders/members/price levels 后端返回 `records` 而前端取 `list`）、`GET /admin/prices/batch/logs` 403 但页面照常展示「调价记录」入口。
+- **修复**：
+  1. 按差距报告第二部分，逐模块将 404 路径改为后端真实接口（如 `/admin/inventory` → `/admin/inventory-balance`、finance 6 处 → `/admin/finance/dashboard` 聚合、reports 11 处 → report.routes.ts 真实端点、roles → `/admin/system/roles`、stored-cards → `/admin/store-value-cards`、stores → `/admin/system/stores` 等），并适配返回结构；
+  2. orders/customers/price listLevels 结构对齐 `records`（与 admin-web 一致）；
+  3. 后端确无能力接口（operation-logs 详情/types、notifications 单条详情等）→ 保留「开发中」占位或隐藏入口，注释标注 R94-03 核实结论，**不编造**；
+  4. 「调价记录」入口按角色（price-guard：管理员/店长/财务）隐藏或提示无权限；
+  5. 只改 API 模块与受影响页面取数逻辑，不碰无关代码。
+- **验收标准**：
+  - 走查 12 个核心页面（home/orders/create-sale/products/functions/ai-chat/profile/customers/inventory/price-manage/reports/finance）控制台不再出现结构崩溃与 404 报错（预期 403 除外）；
+  - `npm run build:h5` + `build:app` + `npx vue-tsc --noEmit` 全部 exit 0；
+  - 复跑 `.playwright-cli/pw-run/audit-live.mjs`：路由级 404 从 82 降至 0（或逐条注明合理保留）；
+  - 完成记录写入本任务卡（含每处 404 的修复方式：改路径/结构适配/降级）。
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟

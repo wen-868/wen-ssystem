@@ -2,6 +2,18 @@ import "dotenv/config";
 
 declare const process: any;
 
+/**
+ * JWT 签名密钥（解析一次供 JWT_SECRET / CSRF_SECRET 复用）
+ * 生产环境必须显式设置，缺失时启动失败（R63 安全加固）。
+ * 仅「USE_MOCK_DB=true + NODE_ENV=development」组合（CI/本地 mock 联调）允许回退测试密钥，
+ * 因为 CI 为全新 clone 无 .env，mock 模式无真实数据；生产路径强校验保持不变。
+ */
+const resolvedJwtSecret =
+  process.env.JWT_SECRET ||
+  (process.env.USE_MOCK_DB === "true" && (process.env.NODE_ENV || "production") === "development"
+    ? "dev-mock-jwt-secret"
+    : (() => { throw new Error("环境变量 JWT_SECRET 必须设置，不能为空"); })());
+
 /** 应用环境变量配置（统一入口，所有环境变量在此集中管理） */
 export const env = {
   /** 服务端口号，默认 8080 */
@@ -10,15 +22,15 @@ export const env = {
   /** 运行环境：development / production，默认 production */
   NODE_ENV: process.env.NODE_ENV || "production",
 
-  /** JWT 签名密钥（必须设置，无默认值，缺失时启动失败） */
-  JWT_SECRET: process.env.JWT_SECRET || (() => { throw new Error("环境变量 JWT_SECRET 必须设置，不能为空"); })(),
+  /** JWT 签名密钥（解析值见上方 resolvedJwtSecret） */
+  JWT_SECRET: resolvedJwtSecret,
 
   /**
    * CSRF 令牌 HMAC 签名密钥（独立于 JWT_SECRET）
    * 未设置时自动回退到 JWT_SECRET，确保向后兼容。
    * 建议生产环境独立配置，避免 JWT 密钥轮换导致所有 CSRF token 立即失效。
    */
-  CSRF_SECRET: process.env.CSRF_SECRET || (process.env.JWT_SECRET as string) || (() => { throw new Error("环境变量 CSRF_SECRET 或 JWT_SECRET 必须设置"); })(),
+  CSRF_SECRET: process.env.CSRF_SECRET || resolvedJwtSecret,
 
   /** MySQL 数据库主机地址，默认 127.0.0.1 */
   DB_HOST: process.env.DB_HOST || "127.0.0.1",
