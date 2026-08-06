@@ -94,7 +94,7 @@
         </el-table-column>
         <el-table-column label="余额" width="160" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.balance || 0) >= 0 ? '#0EA879' : '#C0392B' }">
+            <span :style="{ color: (row.balance || 0) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }">
               {{ formatYuan(row.balance) }}
             </span>
           </template>

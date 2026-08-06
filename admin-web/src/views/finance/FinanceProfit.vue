@@ -76,14 +76,14 @@
         </el-table-column>
         <el-table-column label="利润" width="140" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.profit || 0) >= 0 ? '#0EA879' : '#C0392B' }">
+            <span :style="{ color: (row.profit || 0) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }">
               {{ formatYuan(row.profit) }}
             </span>
           </template>
         </el-table-column>
         <el-table-column label="利润率" width="120" align="right">
           <template #default="{ row }">
-            <span :style="{ color: (row.margin || 0) >= 0 ? '#0EA879' : '#C0392B' }">
+            <span :style="{ color: (row.margin || 0) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }">
               {{ row.margin != null ? (row.margin * 1).toFixed(1) + '%' : '-' }}
             </span>
           </template>

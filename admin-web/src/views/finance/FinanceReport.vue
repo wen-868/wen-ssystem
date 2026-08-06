@@ -399,8 +399,8 @@ function renderTrendChart() {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: "rgba(64, 158, 255, 0.3)" },
-              { offset: 1, color: "rgba(64, 158, 255, 0.05)" }
+              { offset: 0, color: "rgba(63, 111, 239, 0.3)" },
+              { offset: 1, color: "rgba(63, 111, 239, 0.05)" }
             ]
           }
         }
@@ -488,7 +488,7 @@ onMounted(() => {
 }
 
 .chart-container {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 24px;

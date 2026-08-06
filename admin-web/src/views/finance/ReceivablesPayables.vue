@@ -67,7 +67,7 @@
             </el-table-column>
             <el-table-column label="余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.balance || 0) > 0 ? '#C0392B' : '#0EA879' }">
+                <span :style="{ color: (row.balance || 0) > 0 ? 'var(--color-danger)' : 'var(--color-success)' }">
                   {{ formatYuan(row.balance) }}
                 </span>
               </template>
@@ -136,7 +136,7 @@
             </el-table-column>
             <el-table-column label="余额" width="140" align="right">
               <template #default="{ row }">
-                <span :style="{ color: (row.balance || 0) > 0 ? '#C0392B' : '#0EA879' }">
+                <span :style="{ color: (row.balance || 0) > 0 ? 'var(--color-danger)' : 'var(--color-success)' }">
                   {{ formatYuan(row.balance) }}
                 </span>
               </template>
@@ -348,7 +348,7 @@ onMounted(() => {
 
 .chart-card {
   flex: 1;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 16px;
