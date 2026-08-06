@@ -2190,6 +2190,43 @@
   5. 浏览器走查：登录 → 工作台 → 收银台（hasCashier true）→ 订单页，控制台 0 error
 - **回归发现并修复**：dashboard.service.test.ts 2 用例失败——根因 getOverview 经 cacheGet(Redis) 缓存，测试间共享缓存污染；修复：测试 mock cacheGet 直接执行工厂（commit `d5a1fb98`）
 
+---
+
+## R94 — 阶段4 移动端工作台 100% 核查 [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：阶段 1-3 收口 + R93 全量回归通过后，按《版块有序推进规划》进入阶段 4
+> **版块范围**：app-mobile 手机工作台（主包 16 页 + 子包页面，三端 App/H5/小程序）
+
+### R94-00 — 移动端核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **核查结论**：
+  - 主包 16 页 + 子包；三端构建通过（R93）；mock 假数据 0
+  - **差距 G1（P1）**：5 处「功能开发中」占位——ai-chat.vue 语音转文字、product-edit.vue 分类选择/图片上传、price-manage.vue 调价记录、products.vue 操作卡入口
+  - **差距 G2（P1）**：移动端页面硬编码色 1613 处（uni.scss 有 token 体系但页面未全量使用；量大，需分批）
+
+### R94-01 — [P1] 移动端占位功能评估与处理（5 处）
+- **优先级**：P1
+- **负责人**：阿澈（移动端）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/ache_r94_01.md）
+- **文件**：`app-mobile/src/pages/ai-chat/ai-chat.vue`、`pages-sub/product/product/product-edit.vue`、`pages-sub/product/price/price-manage.vue`、`pages/products/products.vue`
+- **问题**：5 处「功能开发中」占位
+- **修复**：逐处评估——能接真实能力的接入（如分类选择可复用商品分类接口、图片上传可接 uni.chooseImage+上传接口）；依赖原生插件或后端缺失的如实保留「开发中」提示（**不编造**）；记录每处处理结论
+- **验收标准**：每处占位有处理结论记录；能接的真实接入；`npm run build:h5` + `build:app` exit 0
+
+### R94-02 — [P1] 移动端硬编码色 token 化（分批）
+- **优先级**：P1
+- **负责人**：阿澈（移动端）
+- **预计**：2 天
+- **状态**：待派单（阿澈完成 R94-01 后派单）
+- **文件**：`app-mobile/src/pages/`、`pages-sub/`
+- **问题**：移动端硬编码色 1613 处
+- **修复**：分批替换为 uni.scss token 体系（移动端品牌色/灰阶），只改颜色；按页面批次提交
+- **验收标准**：`npm run build:h5` + `build:app` exit 0；每批 hex 残留显著下降
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
