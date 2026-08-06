@@ -2232,11 +2232,25 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
 - **预计**：2 天
-- **状态**：🔄 进行中（2026-08-07 已派单，任务卡 inbox/ache_r94_02.md）
+- **状态**：✅ 已完成（2026-08-07 阿澈执行，5 批全部双端构建 + vue-tsc 0 errors）
 - **文件**：`app-mobile/src/pages/`、`pages-sub/`
-- **问题**：移动端硬编码色 1613 处
-- **修复**：分批替换为 uni.scss token 体系（移动端品牌色/灰阶），只改颜色；按页面批次提交
+- **问题**：移动端硬编码色约 1613 处（实测基线：pages 620 + pages-sub 2842 = 3462 次 hex 出现）
+- **修复**：分批替换为 uni.scss token 体系（Atlas 品牌/灰阶/语义色 + AI 设计色），只改颜色值，不碰布局/结构/逻辑/文字；补充 10 个语义色 token（紫/粉/青/品牌蓝浅色/AI 浅底）到 uni.scss；新增 `constants/colors.ts`（canvas、原生 switch color 等无法用 SCSS 变量的场景）；style 块统一 `lang="scss"`（纯 CSS 无法解析 SCSS 变量）
 - **验收标准**：`npm run build:h5` + `build:app` exit 0；每批 hex 残留显著下降
+- **完成证据（5 批，commit 见 git log 573da72d/ce2d396b/64921717/56bd0ebc/e1f4edee）**：
+
+  | 批次 | 范围 | 文件数 | hex 前→后 | 构建 |
+  |:---:|------|:---:|:---:|------|
+  | 1 | pages/ 主包 16 页 | 16 | 620 → 0 | h5+app exit 0 |
+  | 2 | pages-sub/product/ 19 页 | 19 | 554 → 0 | h5+app exit 0 |
+  | 3 | pages-sub/order/ + marketing/ 25 页 | 25 | 848 → 0 | h5+app exit 0 |
+  | 4 | pages-sub/finance/ 25 页 | 25 | 1002 → 6 | h5+app exit 0 |
+  | 5 | pages-sub/admin/ 14 页 | 14 | 438 → 0 | h5+app exit 0 |
+  | 合计 | pages + pages-sub（99 页） | 99 | **3462 → 6** | 每批 h5+app exit 0 |
+
+  - **全量残留 6 处 = 业务值**：`loss-gain-report.vue` 产品排名奖牌渐变（金牌 #FFD700→#FFB800、银牌 #C0C0C0→#A0A0A0、铜牌 #CD7F32→#B87333），属"平台品牌色/业务值"保留口径，占基线（按 1613 计）0.37%，远低于 ≤322（20%）验收线
+  - **其他验证**：`npx vue-tsc --noEmit` 每批 0 errors（最终复验 exit 0）；uni.scss 补充 token 后 .ai-tag 等既有样式不受影响（双端构建通过佐证）
+  - **说明**：凌舟派单基线 1613 与实测 3462 的差异来自统计口径（逐文件去重后约 1460，均含 3 位缩写）；本任务按"残留 ≤322"验收，实测残留 6，两种口径均达标
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
