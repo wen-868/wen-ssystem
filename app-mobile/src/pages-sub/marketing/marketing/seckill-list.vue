@@ -211,15 +211,15 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .seckill-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -227,40 +227,40 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .status-tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 16rpx;
   margin-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .status-tab {
@@ -268,12 +268,12 @@ onUnmounted(() => {
   padding: 24rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   position: relative;
 }
 
 .status-tab.active {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
@@ -285,7 +285,7 @@ onUnmounted(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 3rpx;
-  background: #fa8c16;
+  background: $uni-color-warning;
   border-radius: 2rpx;
 }
 
@@ -295,7 +295,7 @@ onUnmounted(() => {
 }
 
 .seckill-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   overflow: hidden;
@@ -320,7 +320,7 @@ onUnmounted(() => {
 .product-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #fff7e6, #ffd591);
+  background: linear-gradient(135deg, $uni-color-warning-soft, $uni-color-warning-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,8 +334,8 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  background: #fa8c16;
-  color: #fff;
+  background: $uni-color-warning;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-bottom-right-radius: 12rpx;
@@ -352,7 +352,7 @@ onUnmounted(() => {
 .product-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -369,12 +369,12 @@ onUnmounted(() => {
 .seckill-price {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .original-price {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
 }
 
@@ -392,23 +392,23 @@ onUnmounted(() => {
 
 .stock-label {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .stock-value {
   font-size: 26rpx;
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
 .stock-unit {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .limit-info {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .card-footer {
@@ -416,8 +416,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 20rpx;
-  border-top: 1rpx solid #f5f5f5;
-  background: #fafafa;
+  border-top: 1rpx solid $uni-bg-color-grey;
+  background: $uni-gray-50;
 }
 
 .countdown-row {
@@ -428,7 +428,7 @@ onUnmounted(() => {
 
 .countdown-label {
   font-size: 22rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .countdown-time {
@@ -438,8 +438,8 @@ onUnmounted(() => {
 }
 
 .time-block {
-  background: #fa8c16;
-  color: #fff;
+  background: $uni-color-warning;
+  color: $uni-text-color-inverse;
   font-size: 22rpx;
   font-weight: 600;
   padding: 4rpx 8rpx;
@@ -449,14 +449,14 @@ onUnmounted(() => {
 }
 
 .time-colon {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-size: 22rpx;
   font-weight: 600;
 }
 
 .countdown-text {
   font-size: 22rpx;
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 500;
 }
 
@@ -466,9 +466,9 @@ onUnmounted(() => {
   font-size: 22rpx;
 }
 
-.tag-DRAFT { background: #e6f7ff; color: #1677FF; }
-.tag-ACTIVE { background: #f6ffed; color: #52c41a; }
-.tag-ENDED { background: #f5f5f5; color: #999; }
+.tag-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.tag-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .empty-state {
   display: flex;
@@ -485,7 +485,7 @@ onUnmounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

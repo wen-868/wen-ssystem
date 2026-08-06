@@ -157,15 +157,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .group-buy-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -173,40 +173,40 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .status-tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 16rpx;
   margin-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .status-tab {
@@ -214,12 +214,12 @@ onMounted(() => {
   padding: 24rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   position: relative;
 }
 
 .status-tab.active {
-  color: #52c41a;
+  color: $uni-color-success;
   font-weight: 600;
 }
 
@@ -231,7 +231,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 3rpx;
-  background: #52c41a;
+  background: $uni-color-success;
   border-radius: 2rpx;
 }
 
@@ -241,7 +241,7 @@ onMounted(() => {
 }
 
 .group-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   overflow: hidden;
@@ -266,7 +266,7 @@ onMounted(() => {
 .product-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f6ffed, #d9f7be);
+  background: linear-gradient(135deg, $uni-color-success-soft, $uni-color-success-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,8 +280,8 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  background: #52c41a;
-  color: #fff;
+  background: $uni-color-success;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-bottom-right-radius: 12rpx;
@@ -298,7 +298,7 @@ onMounted(() => {
 .product-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -315,12 +315,12 @@ onMounted(() => {
 .group-price {
   font-size: 36rpx;
   font-weight: 700;
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .original-price {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
 }
 
@@ -332,11 +332,11 @@ onMounted(() => {
 
 .info-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-divider {
-  color: #ddd;
+  color: $uni-gray-300;
   font-size: 22rpx;
 }
 
@@ -345,8 +345,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 20rpx;
-  border-top: 1rpx solid #f5f5f5;
-  background: #fafafa;
+  border-top: 1rpx solid $uni-bg-color-grey;
+  background: $uni-gray-50;
 }
 
 .time-info {
@@ -356,13 +356,13 @@ onMounted(() => {
 
 .time-icon {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 6rpx;
 }
 
 .time-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .status-tag {
@@ -371,9 +371,9 @@ onMounted(() => {
   font-size: 22rpx;
 }
 
-.tag-DRAFT { background: #e6f7ff; color: #1677FF; }
-.tag-ACTIVE { background: #f6ffed; color: #52c41a; }
-.tag-ENDED { background: #f5f5f5; color: #999; }
+.tag-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.tag-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .empty-state {
   display: flex;
@@ -390,7 +390,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

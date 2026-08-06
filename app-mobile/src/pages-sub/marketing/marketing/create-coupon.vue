@@ -305,17 +305,17 @@ async function onSubmit() {
 }
 </script>
 
-<style scoped>
-.create-coupon-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.create-coupon-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .coupon-form { padding: 16rpx 24rpx; }
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -324,7 +324,7 @@ async function onSubmit() {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
 }
 .form-item {
@@ -337,7 +337,7 @@ async function onSubmit() {
 }
 .form-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 8rpx;
   display: block;
 }
@@ -345,16 +345,16 @@ async function onSubmit() {
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .field-error { margin-top: 8rpx; }
-.error-text { font-size: 24rpx; color: #ff4d4f; }
+.error-text { font-size: 24rpx; color: $uni-color-error; }
 .type-options {
   display: flex;
   gap: 16rpx;
@@ -362,7 +362,7 @@ async function onSubmit() {
 .type-option {
   flex: 1;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
@@ -371,17 +371,17 @@ async function onSubmit() {
   border: 2rpx solid transparent;
 }
 .type-option--active {
-  background: #fff1f0;
-  border-color: #ff4d4f;
+  background: $uni-color-error-soft;
+  border-color: $uni-color-error;
 }
 .option-icon {
   font-size: 28rpx;
   font-weight: 600;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 .option-label {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 .time-row {
   display: flex;
@@ -391,7 +391,7 @@ async function onSubmit() {
 .time-item {
   flex: 1;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
@@ -399,11 +399,11 @@ async function onSubmit() {
 }
 .time-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 .time-separator {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 .scope-row {
   display: flex;
@@ -412,26 +412,26 @@ async function onSubmit() {
 .scope-option {
   flex: 1;
   height: 64rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 .scope-option--active {
-  background: #1677FF;
-  color: #fff;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
 }
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  background: linear-gradient(135deg, $uni-color-error, $uni-color-warning);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   border: none;
   margin-top: 16rpx;
 }

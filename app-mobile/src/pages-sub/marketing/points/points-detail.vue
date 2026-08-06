@@ -125,15 +125,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .points-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -141,39 +141,39 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .tab-item {
@@ -181,12 +181,12 @@ onMounted(() => {
   padding: 24rpx 0;
   text-align: center;
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   position: relative;
 }
 
 .tab-item.active {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -198,7 +198,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 2rpx;
 }
 
@@ -209,7 +209,7 @@ onMounted(() => {
 .record-item {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 12rpx;
@@ -227,31 +227,31 @@ onMounted(() => {
 }
 
 .icon-earn {
-  background: #f6ffed;
+  background: $uni-color-success-soft;
 }
 
 .icon-earn text {
-  color: #52c41a;
+  color: $uni-color-success;
   font-size: 32rpx;
   font-weight: 700;
 }
 
 .icon-spend {
-  background: #fff7e6;
+  background: $uni-color-warning-soft;
 }
 
 .icon-spend text {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-size: 32rpx;
   font-weight: 700;
 }
 
 .icon-expire {
-  background: #fff2f0;
+  background: $uni-color-error-soft;
 }
 
 .icon-expire text {
-  color: #ff4d4f;
+  color: $uni-color-error;
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -270,12 +270,12 @@ onMounted(() => {
 .record-type {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .record-time {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .record-body {
@@ -285,12 +285,12 @@ onMounted(() => {
 
 .record-member {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .record-reason {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 4rpx;
 }
 
@@ -304,15 +304,15 @@ onMounted(() => {
 }
 
 .points-earn {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .points-spend {
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .points-expire {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .empty-state {
@@ -324,13 +324,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

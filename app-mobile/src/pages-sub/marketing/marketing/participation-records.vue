@@ -69,10 +69,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .records-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .record-list {
@@ -80,7 +80,7 @@ onMounted(() => {
 }
 
 .record-item {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -97,17 +97,17 @@ onMounted(() => {
 .record-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .record-mobile {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .record-body {
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .record-info {
@@ -117,17 +117,17 @@ onMounted(() => {
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   width: 140rpx;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
-.status-success { color: #52c41a; }
-.status-failed { color: #ff4d4f; }
+.status-success { color: $uni-color-success; }
+.status-failed { color: $uni-color-error; }
 
 .empty-state {
   display: flex;
@@ -138,13 +138,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

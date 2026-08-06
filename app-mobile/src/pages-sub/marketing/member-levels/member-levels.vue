@@ -159,10 +159,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .level-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
@@ -170,7 +170,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(20rpx + env(safe-area-inset-top));
 }
 
@@ -181,51 +181,51 @@ onMounted(() => {
 .page-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .add-btn {
   padding: 12rpx 24rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 32rpx;
   font-size: 26rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .search-input-wrap {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
@@ -234,7 +234,7 @@ onMounted(() => {
 }
 
 .level-item {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -260,7 +260,7 @@ onMounted(() => {
 .level-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-right: 12rpx;
 }
 
@@ -270,16 +270,16 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.status-active { background: #f6ffed; color: #52c41a; }
-.status-disabled { background: #fff2f0; color: #ff4d4f; }
+.status-active { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-disabled { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .footer-arrow {
   font-size: 28rpx;
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 .level-info {
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 16rpx;
 }
@@ -297,22 +297,22 @@ onMounted(() => {
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .info-value.highlight {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .level-actions {
   display: flex;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .action-btn {
@@ -320,8 +320,8 @@ onMounted(() => {
   padding: 20rpx;
   text-align: center;
   font-size: 28rpx;
-  color: #666;
-  border-right: 1rpx solid #f5f5f5;
+  color: $uni-gray-500;
+  border-right: 1rpx solid $uni-bg-color-grey;
 }
 
 .action-btn:last-child {
@@ -329,7 +329,7 @@ onMounted(() => {
 }
 
 .action-btn.delete {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .empty-state {
@@ -341,13 +341,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

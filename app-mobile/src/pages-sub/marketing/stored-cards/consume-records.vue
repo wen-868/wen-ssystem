@@ -70,10 +70,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .records-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
@@ -81,7 +81,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(20rpx + env(safe-area-inset-top));
 }
 
@@ -95,13 +95,13 @@ onMounted(() => {
 
 .back-icon {
   font-size: 36rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .page-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .header-right {
@@ -115,7 +115,7 @@ onMounted(() => {
 .record-item {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 12rpx;
@@ -133,11 +133,11 @@ onMounted(() => {
 }
 
 .icon-consume {
-  background: #fff2f0;
+  background: $uni-color-error-soft;
 }
 
 .icon-consume text {
-  color: #ff4d4f;
+  color: $uni-color-error;
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -156,12 +156,12 @@ onMounted(() => {
 .record-card-no {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .record-time {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .record-body {
@@ -171,12 +171,12 @@ onMounted(() => {
 
 .record-member {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .record-order {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 4rpx;
 }
 
@@ -187,7 +187,7 @@ onMounted(() => {
 .amount-value {
   font-size: 30rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .empty-state {
@@ -199,13 +199,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

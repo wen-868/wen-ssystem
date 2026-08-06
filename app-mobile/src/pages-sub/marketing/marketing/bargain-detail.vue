@@ -315,10 +315,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .bargain-detail-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   position: relative;
 }
 
@@ -327,7 +327,7 @@ onMounted(() => {
 }
 
 .product-section {
-  background: #fff;
+  background: $uni-bg-color;
   padding: 24rpx;
   display: flex;
   gap: 24rpx;
@@ -346,7 +346,7 @@ onMounted(() => {
 .product-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #fff1f0, #ffccc7);
+  background: linear-gradient(135deg, $uni-color-error-soft, $uni-color-error-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -360,8 +360,8 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  background: #ff4d4f;
-  color: #fff;
+  background: $uni-color-error;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-bottom-right-radius: 12rpx;
@@ -378,7 +378,7 @@ onMounted(() => {
 .product-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -406,25 +406,25 @@ onMounted(() => {
 
 .price-label {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .price-min {
   font-size: 40rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .price-original {
   font-size: 26rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
 }
 
 .bargain-stats {
   display: flex;
   align-items: center;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 8rpx;
   padding: 12rpx 0;
 }
@@ -439,23 +439,23 @@ onMounted(() => {
 .stat-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .stat-label {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 4rpx;
 }
 
 .stat-divider {
   width: 1rpx;
   height: 40rpx;
-  background: #e8e8e8;
+  background: $uni-gray-200;
 }
 
 .section {
-  background: #fff;
+  background: $uni-bg-color;
   margin-bottom: 16rpx;
   padding: 24rpx;
 }
@@ -469,7 +469,7 @@ onMounted(() => {
 .section-title-bar {
   width: 6rpx;
   height: 28rpx;
-  background: #ff4d4f;
+  background: $uni-color-error;
   border-radius: 3rpx;
   margin-right: 12rpx;
 }
@@ -477,11 +477,11 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bargain-progress-card {
-  background: linear-gradient(135deg, #fff1f0, #fff7e6);
+  background: linear-gradient(135deg, $uni-color-error-soft, $uni-color-warning-soft);
   border-radius: 12rpx;
   padding: 24rpx;
 }
@@ -495,13 +495,13 @@ onMounted(() => {
 
 .progress-label {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .progress-price {
   font-size: 40rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .progress-bar-wrap {
@@ -510,14 +510,14 @@ onMounted(() => {
 
 .progress-bar {
   height: 16rpx;
-  background: #ffccc7;
+  background: $uni-color-error-soft;
   border-radius: 8rpx;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff4d4f, #ff7a45);
+  background: linear-gradient(90deg, $uni-color-error, $uni-color-warning);
   border-radius: 8rpx;
   transition: width 0.3s;
 }
@@ -531,13 +531,13 @@ onMounted(() => {
 .progress-start,
 .progress-end {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .progress-count {
   text-align: center;
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 12rpx;
 }
 
@@ -550,19 +550,19 @@ onMounted(() => {
 }
 
 .progress-status.status-ONGOING {
-  background: #e6f7ff;
-  color: #1677FF;
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .progress-status.status-SUCCESS {
-  background: #f6ffed;
-  color: #52c41a;
+  background: $uni-color-success-soft;
+  color: $uni-color-success;
 }
 
 .progress-status.status-FAILED,
 .progress-status.status-EXPIRED {
-  background: #f5f5f5;
-  color: #999;
+  background: $uni-bg-color-grey;
+  color: $uni-gray-400;
 }
 
 .rule-list {
@@ -578,14 +578,14 @@ onMounted(() => {
 }
 
 .rule-dot {
-  color: #ff4d4f;
+  color: $uni-color-error;
   font-size: 24rpx;
   line-height: 1.6;
 }
 
 .rule-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.6;
   flex: 1;
 }
@@ -604,12 +604,12 @@ onMounted(() => {
 
 .time-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .time-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .help-list {
@@ -622,7 +622,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 12rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   gap: 16rpx;
 }
 
@@ -634,8 +634,8 @@ onMounted(() => {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: #ff4d4f;
-  color: #fff;
+  background: $uni-color-error;
+  color: $uni-text-color-inverse;
   font-size: 24rpx;
   display: flex;
   align-items: center;
@@ -653,19 +653,19 @@ onMounted(() => {
 
 .help-name {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .help-time {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .help-amount {
   font-size: 28rpx;
   font-weight: 600;
-  color: #ff4d4f;
+  color: $uni-color-error;
   flex-shrink: 0;
 }
 
@@ -676,7 +676,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .bottom-placeholder {
@@ -689,7 +689,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 120rpx;
-  background: #fff;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
@@ -705,9 +705,9 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.tag-DRAFT { background: #e6f7ff; color: #1677FF; }
-.tag-ACTIVE { background: #f6ffed; color: #52c41a; }
-.tag-ENDED { background: #f5f5f5; color: #999; }
+.tag-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.tag-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .action-btn {
   flex: 1;
@@ -726,23 +726,23 @@ onMounted(() => {
 }
 
 .bargain-btn {
-  background: linear-gradient(135deg, #ff4d4f, #ff7a45);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-error, $uni-color-warning);
+  color: $uni-text-color-inverse;
 }
 
 .help-btn {
-  background: linear-gradient(135deg, #fa8c16, #ffa940);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning);
+  color: $uni-text-color-inverse;
 }
 
 .buy-btn {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
+  color: $uni-text-color-inverse;
 }
 
 .action-btn.disabled {
-  background: #d9d9d9;
-  color: #fff;
+  background: $uni-gray-300;
+  color: $uni-text-color-inverse;
 }
 
 .loading-state {
@@ -750,7 +750,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 200rpx 0;
-  color: #999;
+  color: $uni-gray-400;
   font-size: 28rpx;
 }
 </style>

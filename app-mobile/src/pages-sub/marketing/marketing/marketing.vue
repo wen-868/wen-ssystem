@@ -164,39 +164,39 @@ async function loadActivities() {
 onMounted(() => { loadActivities() })
 </script>
 
-<style scoped>
-.marketing-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.marketing-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tab-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .tab-item {
   flex: 1; height: 60rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f7fa; border-radius: 30rpx;
+  background: $uni-bg-color-page; border-radius: 30rpx;
 }
-.tab-item--active { background: #1677FF; }
-.tab-item--active .tab-text { color: #fff; }
-.tab-text { font-size: 22rpx; color: #666; }
+.tab-item--active { background: $uni-color-primary; }
+.tab-item--active .tab-text { color: $uni-text-color-inverse; }
+.tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .quick-entry {
   display: flex; justify-content: space-around;
-  padding: 24rpx; background: #fff;
+  padding: 24rpx; background: $uni-bg-color;
   margin-bottom: 16rpx;
 }
 .entry-item { display: flex; flex-direction: column; align-items: center; }
@@ -204,53 +204,53 @@ onMounted(() => { loadActivities() })
   width: 80rpx; height: 80rpx;
   border-radius: 20rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: 36rpx; color: #fff;
+  font-size: 36rpx; color: $uni-text-color-inverse;
   margin-bottom: 12rpx;
 }
-.entry-icon--coupon { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
-.entry-icon--flash { background: linear-gradient(135deg, #ffa940, #ff7a45); }
-.entry-icon--full { background: linear-gradient(135deg, #52c41a, #73d13d); }
-.entry-icon--discount { background: linear-gradient(135deg, #1677FF, #4096ff); }
-.entry-text { font-size: 22rpx; color: #333; }
+.entry-icon--coupon { background: linear-gradient(135deg, $uni-color-error, $uni-color-warning); }
+.entry-icon--flash { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.entry-icon--full { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
+.entry-icon--discount { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
+.entry-text { font-size: 22rpx; color: $uni-gray-700; }
 .activity-list { padding: 0 24rpx 24rpx; }
 .activity-card {
-  background: #fff; border-radius: 16rpx;
+  background: $uni-bg-color; border-radius: 16rpx;
   padding: 24rpx; margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 16rpx; padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 .activity-title-wrap { display: flex; flex-direction: column; gap: 8rpx; flex: 1; }
-.activity-title { font-size: 28rpx; color: #333; font-weight: 600; }
+.activity-title { font-size: 28rpx; color: $uni-gray-700; font-weight: 600; }
 .activity-type-tag { display: inline-block; padding: 2rpx 12rpx; border-radius: 16rpx; align-self: flex-start; }
-.tag-coupon { background: #fff1f0; }
-.tag-coupon .tag-text { color: #ff4d4f; }
-.tag-flashsale { background: #fff7e6; }
-.tag-flashsale .tag-text { color: #fa8c16; }
-.tag-fullreduction { background: #f6ffed; }
-.tag-fullreduction .tag-text { color: #52c41a; }
-.tag-discount { background: #e6f7ff; }
-.tag-discount .tag-text { color: #1677FF; }
+.tag-coupon { background: $uni-color-error-soft; }
+.tag-coupon .tag-text { color: $uni-color-error; }
+.tag-flashsale { background: $uni-color-warning-soft; }
+.tag-flashsale .tag-text { color: $uni-color-warning; }
+.tag-fullreduction { background: $uni-color-success-soft; }
+.tag-fullreduction .tag-text { color: $uni-color-success; }
+.tag-discount { background: $uni-color-primary-soft; }
+.tag-discount .tag-text { color: $uni-color-primary; }
 .tag-text { font-size: 20rpx; }
 .activity-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-not_started { background: #e6f7ff; }
-.status-not_started .status-text { color: #1677FF; }
-.status-ongoing { background: #f6ffed; }
-.status-ongoing .status-text { color: #52c41a; }
-.status-ended { background: #f5f5f5; }
-.status-ended .status-text { color: #999; }
+.status-not_started { background: $uni-color-primary-soft; }
+.status-not_started .status-text { color: $uni-color-primary; }
+.status-ongoing { background: $uni-color-success-soft; }
+.status-ongoing .status-text { color: $uni-color-success; }
+.status-ended { background: $uni-bg-color-grey; }
+.status-ended .status-text { color: $uni-gray-400; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
-.info-value--highlight { color: #ff4d4f; font-weight: 600; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-value--highlight { color: $uni-color-error; font-weight: 600; }
 .card-actions {
   margin-top: 16rpx; padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
   display: flex; gap: 16rpx;
 }
 .action-btn {
@@ -259,14 +259,14 @@ onMounted(() => { loadActivities() })
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
-.detail-btn { background: #f5f5f5; color: #333; }
-.edit-btn { background: #1677FF; color: #fff; }
+.detail-btn { background: $uni-bg-color-grey; color: $uni-gray-700; }
+.edit-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

@@ -184,10 +184,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .config-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
@@ -195,7 +195,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(20rpx + env(safe-area-inset-top));
 }
 
@@ -209,13 +209,13 @@ onMounted(() => {
 
 .back-icon {
   font-size: 36rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .page-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .header-right {
@@ -227,7 +227,7 @@ onMounted(() => {
 }
 
 .form-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -243,28 +243,28 @@ onMounted(() => {
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 600;
   margin-bottom: 16rpx;
   display: block;
 }
 
 .required {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .form-input {
   width: 100%;
   height: 88rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 30rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .input-wrap {
@@ -278,18 +278,18 @@ onMounted(() => {
 
 .input-unit {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-left: 16rpx;
 }
 
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 30rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .status-switch {
@@ -300,12 +300,12 @@ onMounted(() => {
 
 .switch-label {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .bottom-bar {
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
 
@@ -314,11 +314,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 32rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .safe-bottom {

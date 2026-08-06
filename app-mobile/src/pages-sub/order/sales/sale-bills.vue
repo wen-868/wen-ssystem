@@ -220,44 +220,44 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .sale-bills-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   display: flex;
   flex-direction: column;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tab-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .tab-item {
   flex: 1; height: 60rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f7fa; border-radius: 30rpx;
+  background: $uni-bg-color-page; border-radius: 30rpx;
 }
-.tab-item--active { background: #fa8c16; }
-.tab-item--active .tab-text { color: #fff; }
-.tab-text { font-size: 22rpx; color: #666; }
+.tab-item--active { background: $uni-color-warning; }
+.tab-item--active .tab-text { color: $uni-text-color-inverse; }
+.tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .bill-list { padding: 16rpx 24rpx; }
 .bill-card {
-  background: #fff; border-radius: 16rpx;
+  background: $uni-bg-color; border-radius: 16rpx;
   padding: 24rpx; margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
   box-sizing: border-box;
@@ -265,55 +265,55 @@ onMounted(() => {
 .card-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 16rpx; padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.bill-no { font-size: 26rpx; color: #333; font-weight: 600; }
+.bill-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .bill-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: #fff7e6; }
-.status-pending .status-text { color: #fa8c16; }
-.status-approved { background: #e6f7ff; }
-.status-approved .status-text { color: #1677FF; }
-.status-completed { background: #f6ffed; }
-.status-completed .status-text { color: #52c41a; }
-.status-voided { background: #fff2f0; }
-.status-voided .status-text { color: #ff4d4f; }
+.status-pending { background: $uni-color-warning-soft; }
+.status-pending .status-text { color: $uni-color-warning; }
+.status-approved { background: $uni-color-primary-soft; }
+.status-approved .status-text { color: $uni-color-primary; }
+.status-completed { background: $uni-color-success-soft; }
+.status-completed .status-text { color: $uni-color-success; }
+.status-voided { background: $uni-color-error-soft; }
+.status-voided .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
-.info-value--price { color: #fa8c16; font-weight: 600; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-value--price { color: $uni-color-warning; font-weight: 600; }
 .loading-overlay {
   display: flex; flex-direction: column;
   align-items: center; padding: 120rpx 0;
 }
 .loading-spinner {
   width: 48rpx; height: 48rpx;
-  border: 4rpx solid #e5e7eb;
-  border-top-color: #fa8c16;
+  border: 4rpx solid $ai-border;
+  border-top-color: $uni-color-warning;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16rpx;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 26rpx; color: #999; }
+.loading-text { font-size: 26rpx; color: $uni-gray-400; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .load-more {
   display: flex; align-items: center; justify-content: center;
   padding: 24rpx 0; gap: 12rpx;
 }
 .loading-more-spinner {
   width: 32rpx; height: 32rpx;
-  border: 3rpx solid #e5e7eb;
-  border-top-color: #fa8c16;
+  border: 3rpx solid $ai-border;
+  border-top-color: $uni-color-warning;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-.load-more-text { font-size: 24rpx; color: #999; }
+.load-more-text { font-size: 24rpx; color: $uni-gray-400; }
 .safe-bottom { height: 40rpx; }
 </style>

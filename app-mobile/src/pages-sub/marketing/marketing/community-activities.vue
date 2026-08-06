@@ -271,15 +271,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .community-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -287,39 +287,39 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .category-tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .category-tab {
@@ -332,7 +332,7 @@ onMounted(() => {
 }
 
 .category-tab.active {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .category-tab.active::after {
@@ -343,7 +343,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 2rpx;
 }
 
@@ -354,17 +354,17 @@ onMounted(() => {
 
 .tab-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .category-tab.active .tab-label {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .status-tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 16rpx;
   margin-bottom: 16rpx;
 }
@@ -374,12 +374,12 @@ onMounted(() => {
   padding: 24rpx 0;
   text-align: center;
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   position: relative;
 }
 
 .status-tab.active {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -391,7 +391,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 3rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 2rpx;
 }
 
@@ -402,7 +402,7 @@ onMounted(() => {
 
 .activity-card {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   overflow: hidden;
@@ -420,7 +420,7 @@ onMounted(() => {
 .card-image-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #e6f7ff, #bae7ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -437,12 +437,12 @@ onMounted(() => {
   padding: 4rpx 12rpx;
   border-radius: 16rpx;
   font-size: 20rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
-.badge-group_buy { background: #52c41a; }
-.badge-bargain { background: #ff4d4f; }
-.badge-seckill { background: #fa8c16; }
+.badge-group_buy { background: $uni-color-success; }
+.badge-bargain { background: $uni-color-error; }
+.badge-seckill { background: $uni-color-warning; }
 
 .card-content {
   flex: 1;
@@ -456,7 +456,7 @@ onMounted(() => {
 .activity-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -472,18 +472,18 @@ onMounted(() => {
 
 .price-label {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .price-value {
   font-size: 32rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .price-original {
   font-size: 22rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
 }
 
@@ -494,7 +494,7 @@ onMounted(() => {
 
 .info-text {
   font-size: 22rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .activity-time-row {
@@ -504,13 +504,13 @@ onMounted(() => {
 
 .time-icon {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 6rpx;
 }
 
 .time-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .card-status {
@@ -522,9 +522,9 @@ onMounted(() => {
   font-size: 20rpx;
 }
 
-.status-DRAFT { background: #e6f7ff; color: #1677FF; }
-.status-ACTIVE { background: #f6ffed; color: #52c41a; }
-.status-ENDED { background: #f5f5f5; color: #999; }
+.status-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.status-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .empty-state {
   display: flex;
@@ -535,13 +535,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

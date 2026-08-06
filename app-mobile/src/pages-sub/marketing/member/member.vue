@@ -125,28 +125,28 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .member-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .member-card {
   margin: 24rpx;
   padding: 32rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 20rpx;
   display: flex;
   align-items: center;
@@ -171,7 +171,7 @@ onMounted(() => {
 
 .avatar-placeholder {
   font-size: 40rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 700;
 }
 
@@ -182,7 +182,7 @@ onMounted(() => {
 .member-name {
   font-size: 32rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin-bottom: 8rpx;
   display: block;
 }
@@ -196,7 +196,7 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.25);
   border-radius: 20rpx;
   font-size: 22rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .asset-grid {
@@ -207,7 +207,7 @@ onMounted(() => {
 
 .asset-item {
   flex: 1;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx 16rpx;
   display: flex;
@@ -220,17 +220,17 @@ onMounted(() => {
 .asset-value {
   font-size: 32rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .asset-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .menu-section {
   margin: 0 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -241,7 +241,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .menu-item:last-child {
@@ -260,7 +260,7 @@ onMounted(() => {
 
 .menu-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .menu-right {
@@ -271,12 +271,12 @@ onMounted(() => {
 
 .level-progress-text {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .menu-arrow {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

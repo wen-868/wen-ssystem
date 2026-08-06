@@ -184,49 +184,49 @@ async function onLoadMore() {
 onMounted(() => { loadCoupons() })
 </script>
 
-<style scoped>
-.coupons-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.coupons-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tab-bar {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .tab-item {
   flex: 1; height: 60rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f7fa; border-radius: 30rpx;
+  background: $uni-bg-color-page; border-radius: 30rpx;
 }
-.tab-item--active { background: #1677FF; }
-.tab-item--active .tab-text { color: #fff; }
-.tab-text { font-size: 22rpx; color: #666; }
+.tab-item--active { background: $uni-color-primary; }
+.tab-item--active .tab-text { color: $uni-text-color-inverse; }
+.tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .create-section { padding: 16rpx 24rpx; }
 .create-btn {
   width: 100%; height: 80rpx;
-  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  background: linear-gradient(135deg, $uni-color-error, $uni-color-warning);
   border-radius: 40rpx; font-size: 28rpx;
-  font-weight: 600; color: #fff;
+  font-weight: 600; color: $uni-text-color-inverse;
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
 .create-btn::after { border: none; }
 .coupon-list { padding: 0 24rpx 24rpx; }
 .coupon-card {
-  display: flex; background: #fff;
+  display: flex; background: $uni-bg-color;
   border-radius: 16rpx; overflow: hidden;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -243,15 +243,15 @@ onMounted(() => { loadCoupons() })
   position: absolute;
   right: -1rpx; top: 0; bottom: 0;
   width: 2rpx;
-  background-image: radial-gradient(circle, #fff 3rpx, transparent 3rpx);
+  background-image: radial-gradient(circle, $uni-bg-color 3rpx, transparent 3rpx);
   background-size: 2rpx 12rpx;
 }
-.coupon-full { background: linear-gradient(135deg, #ff6b6b, #ff4d4f); }
-.coupon-discount { background: linear-gradient(135deg, #ffa940, #fa8c16); }
-.coupon-shipping { background: linear-gradient(135deg, #52c41a, #389e0d); }
+.coupon-full { background: linear-gradient(135deg, $uni-color-error, $uni-color-error); }
+.coupon-discount { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.coupon-shipping { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .coupon-amount {
   display: flex; align-items: baseline;
-  color: #fff; margin-bottom: 8rpx;
+  color: $uni-text-color-inverse; margin-bottom: 8rpx;
 }
 .amount-symbol { font-size: 24rpx; margin-right: 4rpx; }
 .amount-value { font-size: 48rpx; font-weight: 700; }
@@ -262,15 +262,15 @@ onMounted(() => { loadCoupons() })
   justify-content: space-between;
 }
 .coupon-info { display: flex; flex-direction: column; gap: 4rpx; }
-.coupon-name { font-size: 28rpx; color: #333; font-weight: 600; }
-.coupon-type { font-size: 20rpx; color: #999; }
+.coupon-name { font-size: 28rpx; color: $uni-gray-700; font-weight: 600; }
+.coupon-type { font-size: 20rpx; color: $uni-gray-400; }
 .coupon-meta { margin-top: 4rpx; }
-.meta-text { font-size: 22rpx; color: #999; }
+.meta-text { font-size: 22rpx; color: $uni-gray-400; }
 .coupon-stats {
   display: flex; gap: 24rpx;
   margin-top: 8rpx;
 }
-.stat-item { font-size: 22rpx; color: #666; }
+.stat-item { font-size: 22rpx; color: $uni-gray-500; }
 .coupon-actions {
   display: flex; gap: 12rpx;
   margin-top: 12rpx;
@@ -279,16 +279,16 @@ onMounted(() => { loadCoupons() })
   height: 48rpx; padding: 0 20rpx;
   border-radius: 24rpx; font-size: 22rpx;
   display: flex; align-items: center; justify-content: center;
-  background: #f5f5f5; color: #666; border: none;
+  background: $uni-bg-color-grey; color: $uni-gray-500; border: none;
 }
-.mini-btn.primary { background: #1677FF; color: #fff; }
-.mini-btn.danger { background: #fff2f0; color: #ff4d4f; }
+.mini-btn.primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.mini-btn.danger { background: $uni-color-error-soft; color: $uni-color-error; }
 .mini-btn::after { border: none; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

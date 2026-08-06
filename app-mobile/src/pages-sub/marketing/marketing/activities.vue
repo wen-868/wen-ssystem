@@ -184,15 +184,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .activity-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -200,39 +200,39 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
 .tabs {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 0 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .tab-item {
@@ -240,12 +240,12 @@ onMounted(() => {
   padding: 24rpx 0;
   text-align: center;
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   position: relative;
 }
 
 .tab-item.active {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
@@ -257,7 +257,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 2rpx;
 }
 
@@ -266,7 +266,7 @@ onMounted(() => {
 }
 
 .activity-item {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -294,15 +294,15 @@ onMounted(() => {
   margin-bottom: 8rpx;
 }
 
-.type-discount { background: #fff7e6; color: #fa8c16; }
-.type-full_reduction { background: #f6ffed; color: #52c41a; }
-.type-points_mall { background: #f9f0ff; color: #722ed1; }
-.type-limited_discount { background: #fff2f0; color: #ff4d4f; }
+.type-discount { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.type-full_reduction { background: $uni-color-success-soft; color: $uni-color-success; }
+.type-points_mall { background: $uni-color-purple-soft; color: $uni-color-purple; }
+.type-limited_discount { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .activity-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .status-tag {
@@ -311,10 +311,10 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.status-draft { background: #f5f5f5; color: #999; }
-.status-active { background: #f6ffed; color: #52c41a; }
-.status-paused { background: #fff7e6; color: #fa8c16; }
-.status-ended { background: #f0f0f0; color: #bbb; }
+.status-draft { background: $uni-bg-color-grey; color: $uni-gray-400; }
+.status-active { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-paused { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.status-ended { background: $uni-gray-100; color: $uni-gray-300; }
 
 .item-body {
   margin-bottom: 16rpx;
@@ -328,18 +328,18 @@ onMounted(() => {
 
 .time-icon {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   margin-right: 8rpx;
 }
 
 .time-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .activity-desc {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   line-height: 1.5;
 }
 
@@ -347,7 +347,7 @@ onMounted(() => {
   display: flex;
   gap: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .footer-btn {
@@ -356,15 +356,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 32rpx;
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .footer-btn.delete {
-  background: #fff2f0;
-  color: #ff4d4f;
+  background: $uni-color-error-soft;
+  color: $uni-color-error;
 }
 
 .empty-state {
@@ -376,13 +376,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

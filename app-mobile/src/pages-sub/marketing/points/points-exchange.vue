@@ -108,15 +108,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .exchange-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -124,31 +124,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
@@ -158,7 +158,7 @@ onMounted(() => {
 
 .exchange-item {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx;
   margin-bottom: 16rpx;
@@ -170,7 +170,7 @@ onMounted(() => {
   height: 140rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   flex-shrink: 0;
   margin-right: 20rpx;
 }
@@ -186,12 +186,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f4ff, #f0f5ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
 }
 
 .placeholder-icon {
   font-size: 56rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .item-info {
@@ -204,12 +204,12 @@ onMounted(() => {
 .item-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .item-category {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .item-bottom {
@@ -225,19 +225,19 @@ onMounted(() => {
 
 .points-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 8rpx;
 }
 
 .points-value {
   font-size: 32rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .item-stock {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .exchange-btn {
@@ -246,16 +246,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 32rpx;
   font-size: 26rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
 
 .exchange-btn.disabled {
-  background: #e8e8e8;
-  color: #999;
+  background: $uni-gray-200;
+  color: $uni-gray-400;
 }
 
 .empty-state {
@@ -267,13 +267,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

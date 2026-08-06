@@ -349,23 +349,23 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .address-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   padding-bottom: 160rpx;
 }
 
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .address-list {
@@ -373,7 +373,7 @@ onMounted(() => {
 }
 
 .address-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -394,23 +394,23 @@ onMounted(() => {
 .address-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .address-mobile {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .default-tag {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
 }
 
 .default-text {
   font-size: 20rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .address-detail {
@@ -419,7 +419,7 @@ onMounted(() => {
 
 .detail-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.5;
 }
 
@@ -428,7 +428,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 24rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .action-left,
@@ -445,27 +445,27 @@ onMounted(() => {
 }
 
 .action-item--danger .action-text {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .action-icon {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .action-item--danger .action-icon {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .action-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .radio {
   width: 32rpx;
   height: 32rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -473,13 +473,13 @@ onMounted(() => {
 }
 
 .radio--checked {
-  border-color: #1677FF;
+  border-color: $uni-color-primary;
 }
 
 .radio-inner {
   width: 16rpx;
   height: 16rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 50%;
 }
 
@@ -492,19 +492,19 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   margin-bottom: 8rpx;
 }
 
 .empty-desc {
   font-size: 24rpx;
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 .loading-state {
@@ -517,8 +517,8 @@ onMounted(() => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -529,7 +529,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 20rpx;
 }
 
@@ -540,18 +540,18 @@ onMounted(() => {
   right: 0;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #fff;
+  background: $uni-bg-color;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
 .add-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -591,7 +591,7 @@ onMounted(() => {
 
 .edit-popup {
   width: 100%;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   max-height: 85vh;
   display: flex;
@@ -603,19 +603,19 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
 .edit-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .edit-close {
   font-size: 48rpx;
-  color: #999;
+  color: $uni-gray-400;
   line-height: 1;
 }
 
@@ -640,7 +640,7 @@ onMounted(() => {
 
 .form-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 12rpx;
   display: block;
 }
@@ -648,7 +648,7 @@ onMounted(() => {
 .form-item--switch .form-label {
   margin-bottom: 0;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .form-control {
@@ -667,41 +667,41 @@ onMounted(() => {
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .switch-btn {
   width: 88rpx;
   height: 48rpx;
-  background: #e5e5e5;
+  background: $uni-gray-200;
   border-radius: 24rpx;
   position: relative;
   transition: background 0.2s;
 }
 
 .switch-btn--on {
-  background: #1677FF;
+  background: $uni-color-primary;
 }
 
 .switch-dot {
@@ -710,7 +710,7 @@ onMounted(() => {
   left: 4rpx;
   width: 40rpx;
   height: 40rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 50%;
   transition: left 0.2s;
   box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
@@ -726,24 +726,24 @@ onMounted(() => {
 
 .error-text {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .edit-footer {
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }
 
 .save-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;

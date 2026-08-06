@@ -230,10 +230,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .group-detail-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   position: relative;
 }
 
@@ -242,7 +242,7 @@ onMounted(() => {
 }
 
 .product-section {
-  background: #fff;
+  background: $uni-bg-color;
   padding: 24rpx;
   display: flex;
   gap: 24rpx;
@@ -261,7 +261,7 @@ onMounted(() => {
 .product-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f6ffed, #d9f7be);
+  background: linear-gradient(135deg, $uni-color-success-soft, $uni-color-success-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,8 +275,8 @@ onMounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  background: #52c41a;
-  color: #fff;
+  background: $uni-color-success;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   padding: 4rpx 12rpx;
   border-bottom-right-radius: 12rpx;
@@ -293,7 +293,7 @@ onMounted(() => {
 .product-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -309,19 +309,19 @@ onMounted(() => {
 
 .group-price-symbol {
   font-size: 24rpx;
-  color: #52c41a;
+  color: $uni-color-success;
   font-weight: 600;
 }
 
 .group-price {
   font-size: 40rpx;
   font-weight: 700;
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .original-price {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
   margin-left: 12rpx;
 }
@@ -329,7 +329,7 @@ onMounted(() => {
 .group-stats {
   display: flex;
   align-items: center;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 8rpx;
   padding: 12rpx 0;
 }
@@ -344,23 +344,23 @@ onMounted(() => {
 .stat-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .stat-label {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 4rpx;
 }
 
 .stat-divider {
   width: 1rpx;
   height: 40rpx;
-  background: #e8e8e8;
+  background: $uni-gray-200;
 }
 
 .section {
-  background: #fff;
+  background: $uni-bg-color;
   margin-bottom: 16rpx;
   padding: 24rpx;
 }
@@ -374,7 +374,7 @@ onMounted(() => {
 .section-title-bar {
   width: 6rpx;
   height: 28rpx;
-  background: #52c41a;
+  background: $uni-color-success;
   border-radius: 3rpx;
   margin-right: 12rpx;
 }
@@ -382,7 +382,7 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .rule-list {
@@ -398,14 +398,14 @@ onMounted(() => {
 }
 
 .rule-dot {
-  color: #52c41a;
+  color: $uni-color-success;
   font-size: 24rpx;
   line-height: 1.6;
 }
 
 .rule-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.6;
   flex: 1;
 }
@@ -424,12 +424,12 @@ onMounted(() => {
 
 .time-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .time-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .team-list {
@@ -442,7 +442,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16rpx;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   gap: 16rpx;
 }
@@ -456,14 +456,14 @@ onMounted(() => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: #52c41a;
-  color: #fff;
+  background: $uni-color-success;
+  color: $uni-text-color-inverse;
   font-size: 22rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-left: -12rpx;
-  border: 2rpx solid #fff;
+  border: 2rpx solid $uni-bg-color;
 }
 
 .avatar:first-child {
@@ -474,14 +474,14 @@ onMounted(() => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: #f0f0f0;
-  color: #999;
+  background: $uni-gray-100;
+  color: $uni-gray-400;
   font-size: 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-left: -12rpx;
-  border: 2rpx solid #fff;
+  border: 2rpx solid $uni-bg-color;
 }
 
 .team-info {
@@ -491,7 +491,7 @@ onMounted(() => {
 
 .team-leader {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   display: block;
   margin-bottom: 8rpx;
@@ -506,21 +506,21 @@ onMounted(() => {
 .progress-bar {
   flex: 1;
   height: 12rpx;
-  background: #e8e8e8;
+  background: $uni-gray-200;
   border-radius: 6rpx;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #52c41a, #95de64);
+  background: linear-gradient(90deg, $uni-color-success, $uni-color-success);
   border-radius: 6rpx;
   transition: width 0.3s;
 }
 
 .progress-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   flex-shrink: 0;
 }
 
@@ -528,8 +528,8 @@ onMounted(() => {
   flex-shrink: 0;
   height: 56rpx;
   padding: 0 24rpx;
-  background: #52c41a;
-  color: #fff;
+  background: $uni-color-success;
+  color: $uni-text-color-inverse;
   font-size: 24rpx;
   border-radius: 28rpx;
   display: flex;
@@ -549,7 +549,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .bottom-placeholder {
@@ -562,7 +562,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 120rpx;
-  background: #fff;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
@@ -581,9 +581,9 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.tag-DRAFT { background: #e6f7ff; color: #1677FF; }
-.tag-ACTIVE { background: #f6ffed; color: #52c41a; }
-.tag-ENDED { background: #f5f5f5; color: #999; }
+.tag-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.tag-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .action-btn {
   flex: 1;
@@ -602,13 +602,13 @@ onMounted(() => {
 }
 
 .start-btn {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
+  color: $uni-text-color-inverse;
 }
 
 .start-btn.disabled {
-  background: #d9d9d9;
-  color: #fff;
+  background: $uni-gray-300;
+  color: $uni-text-color-inverse;
 }
 
 .loading-state {
@@ -616,7 +616,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 200rpx 0;
-  color: #999;
+  color: $uni-gray-400;
   font-size: 28rpx;
 }
 </style>

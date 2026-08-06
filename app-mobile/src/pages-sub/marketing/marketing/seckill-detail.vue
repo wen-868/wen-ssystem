@@ -296,10 +296,10 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .seckill-detail-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   position: relative;
 }
 
@@ -308,7 +308,7 @@ onUnmounted(() => {
 }
 
 .product-section {
-  background: #fff;
+  background: $uni-bg-color;
   padding: 24rpx;
   margin-bottom: 16rpx;
 }
@@ -325,7 +325,7 @@ onUnmounted(() => {
 .product-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #fff7e6, #ffd591);
+  background: linear-gradient(135deg, $uni-color-warning-soft, $uni-color-warning-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -339,8 +339,8 @@ onUnmounted(() => {
   position: absolute;
   top: 20rpx;
   left: 20rpx;
-  background: #fa8c16;
-  color: #fff;
+  background: $uni-color-warning;
+  color: $uni-text-color-inverse;
   font-size: 24rpx;
   font-weight: 600;
   padding: 8rpx 20rpx;
@@ -352,7 +352,7 @@ onUnmounted(() => {
   top: 20rpx;
   right: 20rpx;
   background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  color: $uni-text-color-inverse;
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
   display: flex;
@@ -371,8 +371,8 @@ onUnmounted(() => {
 }
 
 .time-block {
-  background: #fff;
-  color: #fa8c16;
+  background: $uni-bg-color;
+  color: $uni-color-warning;
   font-size: 22rpx;
   font-weight: 600;
   padding: 2rpx 6rpx;
@@ -382,7 +382,7 @@ onUnmounted(() => {
 }
 
 .time-colon {
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   font-weight: 600;
 }
@@ -394,7 +394,7 @@ onUnmounted(() => {
 .product-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.4;
   margin-bottom: 16rpx;
 }
@@ -408,25 +408,25 @@ onUnmounted(() => {
 
 .seckill-price-symbol {
   font-size: 28rpx;
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
 .seckill-price {
   font-size: 48rpx;
   font-weight: 700;
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .original-price {
   font-size: 26rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   text-decoration: line-through;
   margin-left: 12rpx;
 }
 
 .discount-tag {
-  background: #fff2e8;
+  background: $uni-color-warning-soft;
   padding: 4rpx 12rpx;
   border-radius: 6rpx;
   margin-left: 12rpx;
@@ -434,13 +434,13 @@ onUnmounted(() => {
 
 .discount-tag text {
   font-size: 22rpx;
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 500;
 }
 
 .stock-row {
   display: flex;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 8rpx;
   padding: 16rpx 0;
 }
@@ -451,7 +451,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 6rpx;
-  border-right: 1rpx solid #e8e8e8;
+  border-right: 1rpx solid $uni-gray-200;
 }
 
 .stock-item:last-child {
@@ -460,21 +460,21 @@ onUnmounted(() => {
 
 .stock-label {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .stock-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .stock-value.highlight {
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .stock-progress-section {
-  background: #fff;
+  background: $uni-bg-color;
   padding: 24rpx;
   margin-bottom: 16rpx;
 }
@@ -488,18 +488,18 @@ onUnmounted(() => {
 
 .progress-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .progress-percent {
   font-size: 26rpx;
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
 .progress-bar {
   height: 16rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
   border-radius: 8rpx;
   overflow: hidden;
   margin-bottom: 12rpx;
@@ -507,19 +507,19 @@ onUnmounted(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #fa8c16, #ffa940);
+  background: linear-gradient(90deg, $uni-color-warning, $uni-color-warning);
   border-radius: 8rpx;
   transition: width 0.3s;
 }
 
 .progress-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
   text-align: center;
 }
 
 .section {
-  background: #fff;
+  background: $uni-bg-color;
   margin-bottom: 16rpx;
   padding: 24rpx;
 }
@@ -533,7 +533,7 @@ onUnmounted(() => {
 .section-title-bar {
   width: 6rpx;
   height: 28rpx;
-  background: #fa8c16;
+  background: $uni-color-warning;
   border-radius: 3rpx;
   margin-right: 12rpx;
 }
@@ -541,7 +541,7 @@ onUnmounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .time-info {
@@ -558,12 +558,12 @@ onUnmounted(() => {
 
 .time-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .time-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .rule-list {
@@ -579,14 +579,14 @@ onUnmounted(() => {
 }
 
 .rule-dot {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-size: 24rpx;
   line-height: 1.6;
 }
 
 .rule-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.6;
   flex: 1;
 }
@@ -602,7 +602,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .detail-row:last-child {
@@ -612,16 +612,16 @@ onUnmounted(() => {
 
 .detail-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .detail-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .detail-value.highlight {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
@@ -635,7 +635,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 120rpx;
-  background: #fff;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   padding: 0 24rpx;
@@ -651,9 +651,9 @@ onUnmounted(() => {
   font-size: 24rpx;
 }
 
-.tag-DRAFT { background: #e6f7ff; color: #1677FF; }
-.tag-ACTIVE { background: #f6ffed; color: #52c41a; }
-.tag-ENDED { background: #f5f5f5; color: #999; }
+.tag-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.tag-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
+.tag-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
 
 .quantity-wrap {
   display: flex;
@@ -668,17 +668,17 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 8rpx;
   font-size: 32rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .quantity-value {
   width: 64rpx;
   text-align: center;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
@@ -699,13 +699,13 @@ onUnmounted(() => {
 }
 
 .seckill-btn {
-  background: linear-gradient(135deg, #fa8c16, #ffa940);
-  color: #fff;
+  background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning);
+  color: $uni-text-color-inverse;
 }
 
 .seckill-btn.disabled {
-  background: #d9d9d9;
-  color: #fff;
+  background: $uni-gray-300;
+  color: $uni-text-color-inverse;
 }
 
 .loading-state {
@@ -713,7 +713,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 200rpx 0;
-  color: #999;
+  color: $uni-gray-400;
   font-size: 28rpx;
 }
 </style>
