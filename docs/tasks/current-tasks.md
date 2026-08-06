@@ -1550,26 +1550,29 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r81_02.md）
-- **文件**：`admin-web/src/views/product/`（ProductCombo 14/ProductReviewTasks 6/ProductReview 4 等）
-- **问题**：商品页硬编码色残留 27 处（含 #C0392B/#0EA879/#444444/#83bff6 等）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `b4db03b7`，待凌舟复核）
+- **文件**：`admin-web/src/views/product/`（ProductCombo 14/ProductReviewTasks 6/ProductReview 4/ProductCategories 1/Units 1；任务描述 27 处中含 ProductReviewWorkflow 1 处已随 R81-01 清零，实测基线 26 处）
+- **问题**：商品页硬编码色残留 26 处（含 #C0392B/#0EA879/#444444/#83bff6/#8c939d 等）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
-- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/product/` 显著下降（目标 ≤ 原 30%）
-- **阿坚完成记录**（2026-08-06）：
-  - **改动**：`aftersale.routes.ts` 将 `GET /aftersales/statistics` 从文件末尾上移到 `GET /aftersales/:id` 之前（紧邻列表路由之后），仅调整注册顺序，controller/其他逻辑未动；既有路由测试 `aftersale.test.ts` 新增 1 条回归断言（GET statistics 注册序先于 GET :id）
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/product/` 显著下降（目标 ≤ 8，残留应为图表品牌色）
+- **墨完成记录**（2026-08-06）：
+  - **改动文件**：上述 5 个页面，23+/23- 全部为颜色值，未碰布局/结构/逻辑/文字
+  - **替换规则**（对齐 R77-01/R80-02）：
+    - 模板内联 style/绑定色 → tokens 变量：`#C0392B→var(--color-danger)`、`#0EA879→var(--color-success)`、`#444444→var(--text-secondary)`、`#999999→var(--text-muted)`、`#8c939d→var(--text-muted)`、`#f0f0f0→var(--gray-100)`
+    - el-timeline-item `:color` 三元绑定（审核记录节点）→ `var(--color-success/danger/warning)`
+    - CSS 渐变副色（stat-icon，ProductReview 4 处 + ProductReviewTasks 5 处）→ 品牌色 rgba（rgba(63,111,239,0.4)/rgba(212,139,58,0.4)/rgba(14,168,121,0.4)/rgba(192,57,43,0.4)/rgba(153,153,153,0.4)），对齐 Dashboard.vue 同款渐变
+    - ECharts canvas：销售排行渐变 #83bff6/#188df0 → rgba(63,111,239,0.4)+#3F6FEF；趋势/优惠图 itemStyle/lineStyle 保留 token 等值 hex（R77-01 允许）
   - **验证证据**：
     | 验证项 | 命令 | 结果 |
     |--------|------|------|
-    | 路由顺序 | 读文件核对 statistics 与 :id 行序 | statistics 位于 :id 之前 ✅ |
-    | 类型检查 | `npm run typecheck` | exit 0，0 errors ✅ |
-    | 路由测试 | `npx vitest run src/__tests__/routes/aftersale.test.ts` | 5/5 通过（含新增回归用例）✅ |
-    | routes 全量 | `npx vitest run src/__tests__/routes` | 131 文件 / 777 用例全部通过 ✅ |
-  - **备注**：本条目原有一行误粘贴的 R80-02 验证表（残留 hex 行数等，属前端订单页内容），更新时顺带清除，避免误导
-    | 生产构建 | `npm run build` | exit 0（32.13s）✅ |
-    | ESLint | `npx eslint`（7 个改动文件） | 0 error（19 个 warning 均为改动行之外预存问题）✅ |
-    | diff 核查 | `git diff` 逐行审阅 | 43+/43-，全部为颜色值，无逻辑/结构/文字改动 ✅ |
-  - **残留 7 行说明（全部为 ECharts canvas 色，R77-01 规则允许）**：OrderCenterView L436、OrderExceptionView L397/429/430、OrderSyncView L353 为 token 等值 hex（#3F6FEF/#C0392B/#0EA879）；OrderAftersaleView L275/L552 为 R80-01 已留图表色（不在本轮改动范围）
-  - **说明**：① 6 个文件 EOF 由 apply_patch 补了结尾换行（原文件无结尾换行），仅文件末尾空白差异、无内容变化；② 渠道品牌色映射为语义 token 与本页既有 channelTagMap 先例一致，如需保留外部平台原色可告知回退；③ 任务卡 inbox/mo_r80_02.md 已归档 inbox/archive/
+    | hex 残留计数 | `rg -c "#[0-9a-fA-F]{6}" admin-web/src/views/product/` | 26 → 7（全部为 ProductCombo ECharts canvas 品牌色）✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（42.72s）✅ |
+    | ESLint | `npx eslint`（5 个改动文件） | 无本次改动引入的 error；2 error + 30 warning 均为改动行之外预存问题（详见上报） |
+    | diff 核查 | `git diff` 逐行审阅 | 23+/23-，全部为颜色值，无逻辑/结构/文字改动 ✅ |
+  - **残留 7 处说明（全部为 ECharts canvas 色，R77-01 规则允许）**：ProductCombo L1279/1280（销售排行渐变主色 #3F6FEF）、L1326/1327（销售趋势线 #C0392B）、L1334（销量柱 #0EA879）、L1361（原价总额柱 #3F6FEF）、L1368（优惠金额柱 #D48B3A）
+  - **上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：ProductCategories.vue L35 `node` 未使用、ProductCombo.vue L351 `$index` 未使用为 ESLint error，均为 HEAD 版本即存在的预存问题（git show 验证），与本次颜色改动无关
+  - **说明**：① ProductCategories.vue/Units.vue 原无结尾换行，apply_patch 补了 EOF 换行（仅空白差异，R80-02 同先例）；② 任务卡 inbox/mo_r81_02.md 已归档 inbox/archive/
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
