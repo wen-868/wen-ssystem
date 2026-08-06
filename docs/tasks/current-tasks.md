@@ -1788,6 +1788,16 @@
 1. **hex 残留 29 处未达 ≤11 目标**：财务页 37 处中 29 处（78%）位于 ECharts/canvas 图表代码内，canvas 不支持 CSS 变量（R77-01 已确认并保留"后续轮次引入 getComputedStyle 统一读取方案"的遗留说明），而"只改颜色值、不碰逻辑"铁律禁止新增 getComputedStyle 逻辑，故模板/样式可转部分已全部转完，29 处 canvas 色为当前约束下的残留下限（且全部与 tokens 定义值等值：#3F6FEF/#0EA879/#C0392B/#F0F0F0/#999999/#444444）。前几轮（订单 28→7/商品 26→7/库存 16→4）能达 ≤30% 系其 hex 主体在模板/样式，财务版块结构不同。建议：a) 接受残留（与 R77-01 惯例一致）；或 b) 后续专项轮次授权 FinanceProfit 自定义 canvas 等页引入 getComputedStyle 统一读取
 2. **FinanceProfit 自定义 canvas 图表**（非 ECharts）14 处色值为 R77-01 已转的 token 等值 hex，未在本轮改造成变量（同上原因）
 
+### R84-03 — [P2] 图表色常量化专项（消除硬编码色技术债）
+- **优先级**：P2
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r84_03.md）
+- **文件**：`admin-web/src/styles/theme.ts`（新建）、`admin-web/src/views/{order,product,inventory,finance}/`
+- **问题**：全项目图表硬编码色 47 处（财务 29/订单 7/商品 7/库存 4），与 token 等值但品牌/主题变更时不同步（技术债）
+- **修复**：新建 theme.ts 导出 CHART_COLORS 常量，47 处图表色替换为常量引用（纯替换不碰逻辑）
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；九色硬编码命中显著下降（目标 ≤ 原 20%）
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
