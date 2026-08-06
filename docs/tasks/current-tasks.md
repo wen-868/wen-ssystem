@@ -2071,6 +2071,36 @@
 
 ---
 
+## R92 — 即时零售后端契约修复（墨上报，凌舟验证属实） [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：墨 R90-01 完成总结上报后端契约问题，凌舟逐项验证属实后派单阿坚
+
+### R92-00 — 契约问题验证（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **验证结论**（全部属实）：
+  - **G1 banners**：controller `create/updateBannerSchema` 校验 camelCase（title/imageUrl/linkUrl/sortNo），service 表字段 snake_case（banner_title/banner_image/link_type/link_value/sort_order/start_time/end_time），schema 无时间字段 → `banner_image` NOT NULL 写入失败
+  - **G2 分类**：schema（name/icon/sortNo）vs service 表字段（category_name/category_icon/sort_order，缺 parentId/status）→ 新增分类插空名失败
+  - **G3 shop-config**：saveShopConfig 无 storeId 直接 throw；getShopConfig 无 storeId 返回 null；管理端请求不带 storeId → 读取空/保存失败
+
+### R92-01 — [P0] 即时零售后端契约对齐（banners/分类/shop-config）
+- **优先级**：P0
+- **负责人**：阿坚（后端）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（任务卡 inbox/ajian_r92_01.md）
+- **文件**：`backend/src/controllers/admin/instant-retail.controller.ts`、`backend/src/services/instant-retail/retail-shop.service.ts`
+- **问题**：3 处写接口契约断裂（schema camelCase vs service snake_case；shop-config 依赖 storeId）
+- **修复（对齐项目惯例：API camelCase，DB snake_case，service 做映射）**：
+  1. banners：service 写入时映射 title→banner_title、imageUrl→banner_image、linkUrl→link_type/link_value、sortNo→sort_order，支持 startTime/endTime（schema 补充可选字段）
+  2. 分类：service 写入映射 name→category_name、icon→category_icon、sortNo→sort_order，schema 补 parentId/status 可选
+  3. shop-config：无 storeId 时回退租户默认门店（如 store 1 或 tenant 首个门店），GET 无 storeId 返回默认门店配置；保存同理
+  4. **最小改动，补测试**
+- **验收标准**：`npm run typecheck` 0 errors；`npx vitest run` 全通过（新增 banners/分类/shop-config 写接口用例）；`rg "banner_image|category_name|sort_order" backend/src/services/instant-retail/retail-shop.service.ts` 有映射逻辑
+
+---
+
 ## R91 — 阶段3-4 AI 底座版块 100% 核查与修复 [✅ 已完成 — 凌舟 2026-08-07]
 
 > **日期**：2026-08-07
