@@ -2089,7 +2089,7 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）
 - **预计**：0.5 天
-- **状态**：✅ 已完成（2026-08-07 阿坚执行，commit 见 git log（未推送），由凌舟统一收口）
+- **状态**：✅ 已完成（2026-08-07 阿坚执行 commit `eebb2c3b`，凌舟复核通过：字段映射/默认门店回退/schema 补字段/typecheck 0/instant-retail 66 用例全过；已推送）
 - **文件**：`backend/src/controllers/admin/instant-retail.controller.ts`、`backend/src/services/instant-retail/retail-shop.service.ts`
 - **问题**：3 处写接口契约断裂（schema camelCase vs service snake_case；shop-config 依赖 storeId）
 - **修复（对齐项目惯例：API camelCase，DB snake_case，service 做映射）**：
