@@ -1716,6 +1716,43 @@
   - **上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：CustomerDetail.vue 9 个 + CustomersView.vue 2 个 vue/attributes-order warning 均为 HEAD 版本即存在的预存问题（改动行之外），未随本次修复；可按后续轮次统一处理
   - **说明**：① 行尾已按 HEAD 基准恢复（CustomersView 混合行尾 314 CRLF+27 LF、CustomerDetail 纯 CRLF 均保持原状，CustomerDetail 原无 EOF 换行也保持原状）；② 任务卡 inbox/mo_r83_02.md 已归档 inbox/archive/
 
+---
+
+## R84 — 阶段2-2 财务版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：客户版块（R83）完成后按《版块有序推进规划》进入阶段 2-2
+> **版块范围**：收款/对账/欠款/日结/报表（admin-web views/finance/ 13 页）
+
+### R84-00 — 财务版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 财务页 13 个；FinanceDashboard 等已接真实 API（fetchFinanceDashboard/fetchCashFlow/fetchProfitTrend 等）
+  - **差距 G1（P1）**：`ReconciliationView.vue:384` 对账页「导出功能开发中」占位（对账数据本身真实，导出未实现）
+  - **差距 G2（P1）**：财务页硬编码色 37 处（FinanceProfit 16/FinanceDashboard 8/FinanceReport 5/ReceivablesPayables 4/ExpensesView 2/ReconciliationView 2）
+
+### R84-01 — [P1] 对账导出功能实现（消除占位）
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r84_01.md）
+- **文件**：`admin-web/src/views/finance/ReconciliationView.vue`
+- **问题**：导出按钮仅提示"导出功能开发中"
+- **修复**：用当前对账列表真实数据前端生成 CSV 导出（列与列表一致，含表头）；**不编造数据**；后端无导出接口则纯前端 CSV
+- **验收标准**：`rg "导出功能开发中" admin-web/src/views/finance/` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R84-02 — [P1] 财务页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R84-01 后派单）
+- **文件**：`admin-web/src/views/finance/`（FinanceProfit 16/FinanceDashboard 8 等）
+- **问题**：财务页硬编码色残留 37 处
+- **修复**：硬编码色替换为 tokens.css 变量，只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/finance/` ≤ 原 30%
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
