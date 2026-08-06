@@ -2046,6 +2046,33 @@
 - **修复**：硬编码色替换为 tokens.css 变量/CHART_COLORS，只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/instant-retail/` ≤ 原 30%
 
+---
+
+## R91 — 阶段3-4 AI 底座版块 100% 核查与修复 [✅ 已完成 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：即时零售版块（R90）后按《版块有序推进规划》进入阶段 3-4
+> **版块范围**：AI 底座（backend/ai-base：brain/bridge/gateway/providers/rag/tenant/tools 等 9 模块）
+
+### R91-00 — AI 底座核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-07）
+- **核查结论**：
+  - 模块结构完整（9 模块）；ENCRYPTION_KEY 强校验已做（R78-02）；依赖漏洞已清零（R77-02）
+  - **差距 G1**：本地 `pnpm run build` 失败——`@napi-rs/canvas`（pdf-parse 传递依赖）无 Windows ARM64 平台二进制（0.1.80 不支持 ARM64）
+  - **差距 G2**：`document-loader` PDF 用例失败——service 用动态 `import('pdf-parse')`，jest.mock 拦截失效，实际调用真实解析报 "Invalid PDF structure"
+
+### R91-01 — [P0] AI 底座本地构建与测试修复
+- **优先级**：P0
+- **负责人**：凌舟（环境/依赖类，直接执行）
+- **状态**：✅ 已完成（2026-08-07，commit `0980af72`）
+- **修复**：
+  1. `pnpm-workspace.yaml`：overrides `@napi-rs/canvas: ^0.1.85` + allowBuilds（0.1.85+ 有 ARM64 平台包）
+  2. `package.json`：显式 `@napi-rs/canvas@^0.1.100` 直接依赖（TS 可解析）
+  3. `document-loader.service.ts`：pdf-parse 动态 import 改静态 import（jest.mock 可拦截）
+- **验收标准**：`pnpm run build` exit 0；`npx jest` 41 套件/513 用例全通过（普通 jest 亦可，无需 --experimental-vm-modules）
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
