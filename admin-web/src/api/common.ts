@@ -30,7 +30,7 @@ export async function fetchMembers(params?: { keyword?: string; page?: number; p
   return data.data;
 }
 
-export async function createMember(payload: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
+export async function createMember(payload: { name: string; mobile: string; customerType: string; staffId?: number; contact?: string; address?: string; settlementType?: string; remark?: string }) {
   const { data } = await api.post("/admin/members", payload);
   return data.data;
 }
@@ -55,7 +55,7 @@ export async function fetchMemberDetail(id: number) {
   return data.data;
 }
 
-export async function updateMember(id: number, payload: { name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; address?: string; settlementType?: string; staffId?: number | null; remark?: string }) {
+export async function updateMember(id: number, payload: { name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; contact?: string; address?: string; settlementType?: string; staffId?: number | null; remark?: string }) {
   const { data } = await api.put(`/admin/members/${id}`, payload);
   return data.data;
 }

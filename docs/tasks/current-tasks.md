@@ -1695,11 +1695,26 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r83_02.md）
-- **文件**：`admin-web/src/views/customer/CustomersView.vue`、`CustomerDetail.vue`
+- **状态**：✅ 已完成（2026-08-06 墨执行，待凌舟复核）
+- **文件**：`admin-web/src/views/customer/CustomersView.vue`、`CustomerDetail.vue`、`admin-web/src/api/common.ts`（API payload 类型补 contact）
 - **问题**：客户列表/详情/编辑无联系人字段
 - **修复**：列表加「联系人」列（prop=contact）、新建/编辑表单加联系人输入、详情展示联系人；**最小改动**
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "联系人" admin-web/src/views/customer/` ≥ 3（列表列+表单+详情）
+- **墨完成记录**（2026-08-06）：
+  - **CustomersView.vue**：列表「客户名称」列后加联系人列（prop=contact，show-overflow-tooltip）；新增客户表单「客户名称」后加联系人输入（v-model=memberForm.contact）；memberForm 补 contact 字段；新增成功重置补 contact 清空
+  - **CustomerDetail.vue**：详情描述「客户名称」后加「联系人」项（member.contact）；编辑表单「客户名称」后加联系人输入（v-model=editForm.contact）；editForm 补 contact 字段；openEditDialog 回填 contact
+  - **api/common.ts**：createMember/updateMember payload 类型补 `contact?: string`（对齐 R83-01 后端，前后端契约完整）
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 联系人文案 | `rg "联系人" admin-web/src/views/customer/` | 6 处（列表列+新建表单+详情项+编辑表单）✅ |
+    | 字段绑定 | `rg "contact" admin-web/src/views/customer/` | 11 处 ✅ |
+    | 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+    | 生产构建 | `npm run build` | exit 0（40.79s，仅预存 @vueuse PURE 警告）✅ |
+    | ESLint | `npx eslint`（3 个改动文件） | 0 errors；11 个 warning 均为改动行之外预存 vue/attributes-order ✅ |
+    | diff 核查 | `git diff --stat` | 3 文件 14+/2-，全部为联系人相关，无行尾噪声 ✅ |
+  - **上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：CustomerDetail.vue 9 个 + CustomersView.vue 2 个 vue/attributes-order warning 均为 HEAD 版本即存在的预存问题（改动行之外），未随本次修复；可按后续轮次统一处理
+  - **说明**：① 行尾已按 HEAD 基准恢复（CustomersView 混合行尾 314 CRLF+27 LF、CustomerDetail 纯 CRLF 均保持原状，CustomerDetail 原无 EOF 换行也保持原状）；② 任务卡 inbox/mo_r83_02.md 已归档 inbox/archive/
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1

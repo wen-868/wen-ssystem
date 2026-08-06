@@ -19,6 +19,7 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item label="客户ID">{{ member.memberId || "-" }}</el-descriptions-item>
         <el-descriptions-item label="客户名称">{{ member.name || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="联系人">{{ member.contact || "-" }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ member.mobile || "-" }}</el-descriptions-item>
         <el-descriptions-item label="客户类型">
           <el-tag v-if="member.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
@@ -193,6 +194,9 @@
         <el-form-item label="客户名称" prop="name">
           <el-input v-model="editForm.name" />
         </el-form-item>
+        <el-form-item label="联系人">
+          <el-input v-model="editForm.contact" placeholder="请输入联系人" />
+        </el-form-item>
         <el-form-item label="手机号" prop="mobile">
           <el-input v-model="editForm.mobile" />
         </el-form-item>
@@ -295,6 +299,7 @@ const editDialogVisible = ref(false);
 const editFormRef = ref<FormInstance>();
 const editForm = reactive({
   name: "",
+  contact: "",
   mobile: "",
   customerType: "RETAIL" as "RETAIL" | "WHOLESALE",
   address: "",
@@ -431,6 +436,7 @@ async function handleToggleDisable(disabled: boolean) {
 
 function openEditDialog() {
   editForm.name = member.value.name || "";
+  editForm.contact = member.value.contact || "";
   editForm.mobile = member.value.mobile || "";
   editForm.customerType = member.value.customerType || "RETAIL";
   editForm.address = member.value.address || "";

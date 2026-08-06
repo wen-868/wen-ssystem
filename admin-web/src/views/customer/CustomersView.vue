@@ -26,6 +26,7 @@
       <el-table v-else class="list-table" :data="members" stripe empty-text="暂无客户">
         <el-table-column prop="memberId" label="客户ID" width="100" />
         <el-table-column prop="name" label="客户名称" min-width="140" />
+        <el-table-column prop="contact" label="联系人" min-width="100" show-overflow-tooltip />
         <el-table-column prop="mobile" label="手机号" width="140" />
         <el-table-column prop="customerType" label="客户类型" width="120">
           <template #default="{ row }">
@@ -93,6 +94,9 @@
       <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
         <el-form-item label="客户名称" prop="name">
           <el-input v-model="memberForm.name" />
+        </el-form-item>
+        <el-form-item label="联系人">
+          <el-input v-model="memberForm.contact" placeholder="请输入联系人" />
         </el-form-item>
         <el-form-item label="手机号" prop="mobile">
           <el-input v-model="memberForm.mobile" />
@@ -167,6 +171,7 @@ const mobilePattern = /^1[3-9]\d{9}$/;
 
 const memberForm = reactive({
   name: "",
+  contact: "",
   mobile: "",
   customerType: "" as string,
   address: "",
@@ -252,6 +257,7 @@ async function handleCreateMember() {
       ElMessage.success("客户已新增");
       memberDialogVisible.value = false;
       memberForm.name = "";
+      memberForm.contact = "";
       memberForm.mobile = "";
       memberForm.customerType = customerTypeOptions.value[0]?.code || "";
       memberForm.address = "";
