@@ -1835,6 +1835,43 @@
 - **修复**：硬编码色替换为 tokens.css 变量，只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/purchase/` → 0
 
+---
+
+## R86 — 阶段2-4 营销版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：采购版块（R85）完成后按《版块有序推进规划》进入阶段 2-4
+> **版块范围**：优惠券/满减/秒杀/限时折扣/积分商城/营销素材/标签（admin-web views/marketing/ 11 页）
+
+### R86-00 — 营销版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 营销页 11 个；后端营销接口齐全（admin-marketing-coupon/flash-sale/full-reduction/limited-discount/points 等）+ 测试 38 个
+  - **差距 G1（P0，严重）**：5 个页面纯 mock 假数据未接后端——FullReduction（mockActivities 10 条+CRUD）、CouponManage（mock 8 处）、FlashSale（mock 10 处）、MarketingLimitedDiscount（mock 10 处）、MarketingView（mock 5 处）；违反「禁止编造数据」铁律，后端接口均已存在
+  - **差距 G2（P1）**：营销页硬编码色 50 处（MarketingDashboard 16/MarketingGiftRule 7/MarketingView 7 等）
+
+### R86-01 — [P0] 营销 mock 页接真实 API（优惠券/满减/秒杀/限时折扣/视图）
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：2 天
+- **状态**：待派单（墨完成 R84-03 + R85-01 后派单）
+- **文件**：`admin-web/src/views/marketing/{FullReduction,CouponManage,FlashSale,MarketingLimitedDiscount,MarketingView}.vue` + 对应 API 封装
+- **问题**：5 个营销页使用 mock 编造数据（列表/统计/CRUD），后端 admin-marketing-* 接口已存在未接入
+- **修复**：逐页接入真实 API（列表/创建/编辑/删除/状态操作），字段按后端返回适配；无数据显示空态；**禁止保留编造数字**；分两批提交（满减+优惠券 → 秒杀+限时折扣 → 营销视图）
+- **验收标准**：`rg "mock" admin-web/src/views/marketing/{FullReduction,CouponManage,FlashSale,MarketingLimitedDiscount,MarketingView}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+### R86-02 — [P1] 营销页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：待派单
+- **文件**：`admin-web/src/views/marketing/`（MarketingDashboard 16/MarketingGiftRule 7 等）
+- **问题**：营销页硬编码色残留 50 处
+- **修复**：硬编码色替换为 tokens.css 变量，只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/marketing/` ≤ 原 30%
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
