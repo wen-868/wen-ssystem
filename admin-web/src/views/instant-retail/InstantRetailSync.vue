@@ -1,122 +1,159 @@
 <template>
   <div class="page">
-    <el-card>
+    <!-- 同步状态概览 -->
+    <el-row :gutter="16" class="stats-row">
+      <el-col :span="8">
+        <el-card shadow="never">
+          <div class="stat-title">价格同步</div>
+          <div class="stat-body">
+            <el-tag size="small" type="success">{{ priceSyncedCount }} 条已同步</el-tag>
+            <span class="stat-time">最近同步：{{ priceLastSync || '-' }}</span>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card shadow="never">
+          <div class="stat-title">商品同步</div>
+          <div class="stat-body">
+            <el-tag size="small" type="success">{{ productSyncedCount }} 条已同步</el-tag>
+            <span class="stat-time">最近同步：{{ productLastSync || '-' }}</span>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card shadow="never">
+          <div class="stat-title">已对接平台</div>
+          <div class="stat-body">
+            <span class="stat-time">{{ configuredPlatforms.length }} 个平台已配置（{{ enabledPlatforms }} 个启用）</span>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 平台同步操作 -->
+    <el-card shadow="never" class="table-card">
+      <template #header>
+        <div class="card-header">
+          <span>平台同步</span>
+          <el-button size="small" @click="loadPlatforms">刷新</el-button>
+        </div>
+      </template>
+      <el-table v-loading="platformLoading" :data="platforms" stripe>
+        <el-table-column label="平台" width="140">
+          <template #default="{ row }">
+            <el-tag :type="getPlatformTagType(row.platform)" size="small">{{ getPlatformName(row.platform) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="启用状态" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '已启用' : '未启用' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="storeId" label="门店ID" width="120">
+          <template #default="{ row }">{{ row.storeId || '-' }}</template>
+        </el-table-column>
+        <el-table-column prop="merchantId" label="商家ID" min-width="140">
+          <template #default="{ row }">{{ row.merchantId || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="同步操作" width="280" align="center">
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              type="primary"
+              :disabled="!row.enabled"
+              :loading="row._syncingOrders"
+              @click="handleSyncOrders(row)"
+            >
+              同步订单
+            </el-button>
+            <el-button
+              size="small"
+              type="success"
+              :disabled="!row.enabled"
+              :loading="row._syncingProducts"
+              @click="handleSyncProducts(row)"
+            >
+              同步商品
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="最近同步结果" min-width="200">
+          <template #default="{ row }">
+            <span v-if="row._lastResult" class="sync-result">{{ row._lastResult }}</span>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
+        <template #empty>
+          <el-empty description="暂无平台配置" />
+        </template>
+      </el-table>
+    </el-card>
+
+    <!-- 同步日志 -->
+    <el-card shadow="never" class="table-card">
+      <template #header>
+        <div class="card-header">
+          <span>同步日志</span>
+        </div>
+      </template>
       <div class="filter-bar">
         <div class="filter-left">
-          <el-select v-model="platformFilter" placeholder="同步平台" clearable style="width: 140px; margin-right: 12px" @change="loadData">
-            <el-option label="美团外卖" value="MEITUAN" />
-            <el-option label="饿了么" value="ELEME" />
-            <el-option label="京东到家" value="JD" />
-            <el-option label="自有小程序" value="MINIAPP" />
+          <el-select v-model="statusFilter" placeholder="同步状态" clearable style="width: 140px; margin-right: 12px" @change="loadLogs">
+            <el-option label="待同步" :value="0" />
+            <el-option label="同步成功" :value="1" />
+            <el-option label="同步失败" :value="2" />
           </el-select>
-          <el-select v-model="statusFilter" placeholder="同步状态" clearable style="width: 130px; margin-right: 12px" @change="loadData">
-            <el-option label="同步成功" value="SUCCESS" />
-            <el-option label="同步失败" value="FAILED" />
-            <el-option label="部分成功" value="PARTIAL" />
-            <el-option label="同步中" value="SYNCING" />
-          </el-select>
-          <el-date-picker
-            v-model="dateRange"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 360px; margin-right: 12px"
-            @change="loadData"
-          />
-        </div>
-        <div class="filter-right">
           <el-input
             v-model="keyword"
-            placeholder="搜索批次号"
+            placeholder="搜索订单号"
             clearable
-            style="width: 200px; margin-right: 12px"
-            @clear="loadData"
-            @keyup.enter="loadData"
+            style="width: 220px; margin-right: 12px"
+            @clear="loadLogs"
+            @keyup.enter="loadLogs"
           >
             <template #prefix>
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
-          <el-button type="primary" @click="loadData">
-            <el-icon style="margin-right: 4px"><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="resetFilters">重置</el-button>
-          <el-button type="success" @click="handleSyncAll">
-            <el-icon style="margin-right: 4px"><Refresh /></el-icon>
-            全量同步
-          </el-button>
+          <el-button type="primary" @click="loadLogs">搜索</el-button>
         </div>
       </div>
 
-      <el-table :data="syncLogs" v-loading="loading" stripe>
-        <el-table-column prop="batchNo" label="批次号" width="200">
+      <el-table v-loading="logLoading" :data="syncLogs" stripe>
+        <el-table-column prop="orderNo" label="订单号" width="200">
           <template #default="{ row }">
-            <span class="batch-no-text">{{ row.batchNo }}</span>
+            <span class="order-no-text">{{ row.orderNo }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="平台" width="110">
+        <el-table-column prop="platformOrderNo" label="平台订单号" width="200">
+          <template #default="{ row }">{{ row.platformOrderNo || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="同步状态" width="110" align="center">
           <template #default="{ row }">
-            <el-tag :type="getPlatformTagType(row.platform)" size="small">{{ getPlatformName(row.platform) }}</el-tag>
+            <el-tag v-if="row.status === 1" type="success" size="small">同步成功</el-tag>
+            <el-tag v-else-if="row.status === 2" type="danger" size="small">同步失败</el-tag>
+            <el-tag v-else type="warning" size="small">待同步</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="同步类型" width="120">
+        <el-table-column label="同步结果" min-width="220">
           <template #default="{ row }">
-            <el-tag v-if="row.syncType === 'FULL'" type="primary" size="small">全量同步</el-tag>
-            <el-tag v-else-if="row.syncType === 'INCREMENTAL'" type="success" size="small">增量同步</el-tag>
-            <el-tag v-else-if="row.syncType === 'PRICE'" type="warning" size="small">价格同步</el-tag>
-            <el-tag v-else-if="row.syncType === 'STOCK'" type="info" size="small">库存同步</el-tag>
-            <el-tag v-else size="small">{{ row.syncType }}</el-tag>
+            <span v-if="row.response" class="response-text">{{ row.response }}</span>
+            <span v-else class="text-muted">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="SKU数" width="80" align="center">
-          <template #default="{ row }">{{ row.totalCount }}</template>
-        </el-table-column>
-        <el-table-column label="成功数" width="80" align="center">
+        <el-table-column prop="createdAt" label="同步时间" width="170" />
+        <el-table-column label="操作" width="100" fixed="right" align="center">
           <template #default="{ row }">
-            <span class="success-count">{{ row.successCount }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="失败数" width="80" align="center">
-          <template #default="{ row }">
-            <span :class="row.failCount > 0 ? 'fail-count' : ''">{{ row.failCount }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="同步状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.status === 'SUCCESS'" type="success" size="small">成功</el-tag>
-            <el-tag v-else-if="row.status === 'FAILED'" type="danger" size="small">失败</el-tag>
-            <el-tag v-else-if="row.status === 'PARTIAL'" type="warning" size="small">部分成功</el-tag>
-            <el-tag v-else-if="row.status === 'SYNCING'" type="primary" size="small">
-              <el-icon class="is-loading"><Loading /></el-icon>
-              同步中
-            </el-tag>
-            <el-tag v-else size="small">{{ row.status }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="syncTime" label="同步时间" width="170" />
-        <el-table-column prop="duration" label="耗时" width="80" align="center" />
-        <el-table-column label="操作" width="220" fixed="right" align="center">
-          <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
             <el-button
-              v-if="['FAILED', 'PARTIAL'].includes(row.status)"
+              v-if="row.status !== 1"
               size="small"
               link
               type="warning"
               :loading="row._retrying"
               @click="handleRetry(row)"
-            >重试</el-button>
-            <el-button
-              v-if="row.status === 'FAILED'"
-              size="small"
-              link
-              type="warning"
-              :loading="row._retrying"
-              @click="handleRetryFailed(row)"
-            >仅重试失败</el-button>
+            >
+              重试
+            </el-button>
           </template>
         </el-table-column>
         <template #empty>
@@ -136,246 +173,188 @@
         />
       </div>
     </el-card>
-
-    <!-- 同步详情对话框 -->
-    <el-dialog v-model="detailVisible" title="同步详情" width="720px">
-      <div v-if="currentDetail" class="detail-content">
-        <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="批次号">{{ currentDetail.batchNo }}</el-descriptions-item>
-          <el-descriptions-item label="平台">{{ getPlatformName(currentDetail.platform) }}</el-descriptions-item>
-          <el-descriptions-item label="同步类型">{{ currentDetail.syncType }}</el-descriptions-item>
-          <el-descriptions-item label="同步状态">
-            <el-tag v-if="currentDetail.status === 'SUCCESS'" type="success" size="small">成功</el-tag>
-            <el-tag v-else-if="currentDetail.status === 'FAILED'" type="danger" size="small">失败</el-tag>
-            <el-tag v-else-if="currentDetail.status === 'PARTIAL'" type="warning" size="small">部分成功</el-tag>
-            <el-tag v-else size="small">{{ currentDetail.status }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="同步时间">{{ currentDetail.syncTime }}</el-descriptions-item>
-          <el-descriptions-item label="耗时">{{ currentDetail.duration }}</el-descriptions-item>
-          <el-descriptions-item label="总SKU数">{{ currentDetail.totalCount }}</el-descriptions-item>
-          <el-descriptions-item label="成功数">{{ currentDetail.successCount }}</el-descriptions-item>
-          <el-descriptions-item label="失败数">{{ currentDetail.failCount }}</el-descriptions-item>
-          <el-descriptions-item label="跳过数">{{ currentDetail.skipCount || 0 }}</el-descriptions-item>
-        </el-descriptions>
-
-        <div v-if="currentDetail.failDetails?.length > 0" class="fail-section">
-          <div class="section-title">失败明细</div>
-          <el-table :data="currentDetail.failDetails" size="small" max-height="300">
-            <el-table-column prop="sku" label="SKU" width="140" />
-            <el-table-column prop="productName" label="商品名称" min-width="150" />
-            <el-table-column prop="reason" label="失败原因" min-width="200" />
-          </el-table>
-        </div>
-      </div>
-      <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button
-          v-if="currentDetail && ['FAILED', 'PARTIAL'].includes(currentDetail.status)"
-          type="primary"
-          @click="handleRetry(currentDetail); detailVisible = false"
-        >重试同步</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Search, Refresh, Loading } from "@element-plus/icons-vue";
+import { Search } from "@element-plus/icons-vue";
+import {
+  fetchInstantRetailConfigs,
+  syncPlatformOrders,
+  syncPlatformProducts,
+  fetchSyncStatus,
+  fetchSyncLastTime,
+  fetchMiniappOrderSyncLogs,
+  retryMiniappOrderSync,
+  getErrorMessage
+} from "../../api";
 
-const loading = ref(false);
+const platformLoading = ref(false);
+const platforms = ref<any[]>([]);
+
+const logLoading = ref(false);
 const syncLogs = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
 const keyword = ref("");
-const platformFilter = ref("");
-const statusFilter = ref("");
-const dateRange = ref<[string, string] | null>(null);
+const statusFilter = ref<number | "">("");
+
+const priceSyncedCount = ref(0);
+const productSyncedCount = ref(0);
+const priceLastSync = ref("");
+const productLastSync = ref("");
 
 const platformMap: Record<string, { name: string; type: string }> = {
-  MEITUAN: { name: "美团外卖", type: "danger" },
-  ELEME: { name: "饿了么", type: "primary" },
   JD: { name: "京东到家", type: "success" },
-  MINIAPP: { name: "自有小程序", type: "warning" }
+  MEITUAN: { name: "美团外卖", type: "danger" },
+  ELEME: { name: "饿了么", type: "primary" }
 };
+
+const configuredPlatforms = computed(() => platforms.value.filter(p => p.configured));
+const enabledPlatforms = computed(() => platforms.value.filter(p => p.enabled).length);
 
 function getPlatformName(platform: string) { return platformMap[platform]?.name || platform; }
 function getPlatformTagType(platform: string) { return platformMap[platform]?.type || "info"; }
 
-// ==================== 详情 ====================
-const detailVisible = ref(false);
-const currentDetail = ref<any>(null);
-
-const mockSyncLogs = Array.from({ length: 25 }, (_, i) => {
-  const platforms = ["MEITUAN", "ELEME", "JD", "MINIAPP"];
-  const syncTypes = ["FULL", "INCREMENTAL", "PRICE", "STOCK"];
-  const statuses = ["SUCCESS", "SUCCESS", "SUCCESS", "PARTIAL", "FAILED", "SYNCING"];
-  const totalCount = Math.floor(Math.random() * 200) + 50;
-  const status = statuses[i % 6];
-  const failCount = status === "FAILED" ? Math.floor(Math.random() * 10) + 1 : (status === "PARTIAL" ? Math.floor(Math.random() * 5) + 1 : 0);
-  
-  const failDetails = failCount > 0 ? Array.from({ length: failCount }, (_, j) => ({
-    sku: `SKU${String(1000 + i * 10 + j).padStart(6, "0")}`,
-    productName: ["有机西红柿 500g", "富士苹果 约1kg", "伊利纯牛奶 250ml*12盒", "农夫山泉 550ml*24瓶", "金龙鱼调和油 5L"][j % 5],
-    reason: ["库存不足", "价格异常", "平台接口超时", "商品已下架", "SKU编码不匹配"][j % 5]
-  })) : [];
-
-  return {
-    id: i + 1,
-    batchNo: `SYNC${String(20260706).padStart(8, "0")}${String(i + 1).padStart(4, "0")}`,
-    platform: platforms[i % 4],
-    syncType: syncTypes[i % 4],
-    totalCount,
-    successCount: totalCount - failCount,
-    failCount,
-    skipCount: status === "PARTIAL" ? Math.floor(Math.random() * 3) : 0,
-    status,
-    syncTime: `2026-07-${String(6 - Math.floor(i / 4)).padStart(2, "0")} ${String(8 + (i % 12)).padStart(2, "0")}:${String((i * 7) % 60).padStart(2, "0")}:${String((i * 13) % 60).padStart(2, "0")}`,
-    duration: `${Math.floor(Math.random() * 120) + 5}s`,
-    failDetails,
-    _retrying: false
-  };
-});
-
-function loadData() {
-  loading.value = true;
-  setTimeout(() => {
-    let filtered = [...mockSyncLogs];
-    
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase();
-      filtered = filtered.filter(l => l.batchNo.toLowerCase().includes(kw));
-    }
-    if (platformFilter.value) {
-      filtered = filtered.filter(l => l.platform === platformFilter.value);
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(l => l.status === statusFilter.value);
-    }
-    if (dateRange.value?.[0] && dateRange.value?.[1]) {
-      filtered = filtered.filter(l =>
-        l.syncTime >= dateRange.value![0] && l.syncTime <= dateRange.value![1]
-      );
-    }
-    
-    const start = (page.value - 1) * pageSize.value;
-    syncLogs.value = filtered.slice(start, start + pageSize.value);
-    total.value = filtered.length;
-    loading.value = false;
-  }, 300);
+async function loadPlatforms() {
+  platformLoading.value = true;
+  try {
+    const result = await fetchInstantRetailConfigs();
+    const records = result?.records ?? result ?? [];
+    platforms.value = records.map((p: any) => ({
+      ...p,
+      _syncingOrders: false,
+      _syncingProducts: false,
+      _lastResult: ""
+    }));
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "加载平台配置失败"));
+    platforms.value = [];
+  } finally {
+    platformLoading.value = false;
+  }
 }
 
-function resetFilters() {
-  keyword.value = "";
-  platformFilter.value = "";
-  statusFilter.value = "";
-  dateRange.value = null;
-  page.value = 1;
-  loadData();
+async function loadSyncStatus() {
+  try {
+    const priceStatus = await fetchSyncStatus("price");
+    const productStatus = await fetchSyncStatus("product");
+    const priceLast = await fetchSyncLastTime("price");
+    const productLast = await fetchSyncLastTime("product");
+    priceSyncedCount.value = sumStatusCount(priceStatus);
+    productSyncedCount.value = sumStatusCount(productStatus);
+    priceLastSync.value = priceLast ? String(priceLast) : "";
+    productLastSync.value = productLast ? String(productLast) : "";
+  } catch (e) {
+    // 状态概览失败不阻塞页面，保持空值
+    priceSyncedCount.value = 0;
+    productSyncedCount.value = 0;
+  }
+}
+
+function sumStatusCount(rows: any) {
+  if (!Array.isArray(rows)) return 0;
+  return rows.reduce((sum: number, r: any) => sum + Number(r.count || 0), 0);
+}
+
+async function handleSyncOrders(row: any) {
+  row._syncingOrders = true;
+  row._lastResult = "";
+  try {
+    const result = await syncPlatformOrders(row.platform);
+    row._lastResult = `成功同步 ${result.synced ?? 0} 条订单${result.hasMore ? "（还有更多）" : ""}`;
+    ElMessage.success(`订单同步完成：${result.synced ?? 0} 条`);
+  } catch (e) {
+    row._lastResult = `同步失败：${getErrorMessage(e, "未知错误")}`;
+    ElMessage.error(getErrorMessage(e, "订单同步失败"));
+  } finally {
+    row._syncingOrders = false;
+  }
+}
+
+async function handleSyncProducts(row: any) {
+  row._syncingProducts = true;
+  row._lastResult = "";
+  try {
+    const result = await syncPlatformProducts(row.platform);
+    row._lastResult = `成功同步 ${result.synced ?? 0} 个商品${result.hasMore ? "（还有更多）" : ""}`;
+    ElMessage.success(`商品同步完成：${result.synced ?? 0} 个`);
+  } catch (e) {
+    row._lastResult = `同步失败：${getErrorMessage(e, "未知错误")}`;
+    ElMessage.error(getErrorMessage(e, "商品同步失败"));
+  } finally {
+    row._syncingProducts = false;
+  }
+}
+
+async function loadLogs() {
+  logLoading.value = true;
+  try {
+    const params: Record<string, unknown> = {
+      page: page.value,
+      pageSize: pageSize.value
+    };
+    if (keyword.value.trim()) params.orderNo = keyword.value.trim();
+    if (statusFilter.value !== "") params.status = statusFilter.value;
+    const result = await fetchMiniappOrderSyncLogs(params);
+    syncLogs.value = (result?.records ?? []).map((row: any) => ({
+      ...row,
+      orderNo: row.orderNo ?? row.order_no,
+      platformOrderNo: row.platformOrderNo ?? row.platform_order_no,
+      status: Number(row.status ?? 0),
+      createdAt: row.createdAt ?? row.created_at,
+      _retrying: false
+    }));
+    total.value = Number(result?.total ?? 0);
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "加载同步日志失败"));
+    syncLogs.value = [];
+    total.value = 0;
+  } finally {
+    logLoading.value = false;
+  }
 }
 
 function handleSizeChange(size: number) {
   pageSize.value = size;
   page.value = 1;
-  loadData();
+  loadLogs();
 }
 
 function handlePageChange(p: number) {
   page.value = p;
-  loadData();
-}
-
-function viewDetail(row: any) {
-  currentDetail.value = row;
-  detailVisible.value = true;
+  loadLogs();
 }
 
 async function handleRetry(row: any) {
-  const confirmed = await ElMessageBox.confirm(
-    `确定要重新同步批次「${row.batchNo}」吗？`,
-    "确认重试",
-    { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" }
-  ).catch(() => null);
-  if (!confirmed) return;
-
+  try {
+    await ElMessageBox.confirm(`确定要重试同步订单「${row.orderNo}」吗？`, "确认重试", {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning"
+    });
+  } catch {
+    return;
+  }
   row._retrying = true;
-  setTimeout(() => {
-    row.status = "SYNCING";
-    setTimeout(() => {
-      row.status = "SUCCESS";
-      row.failCount = 0;
-      row.successCount = row.totalCount;
-      row.failDetails = [];
-      row._retrying = false;
-      ElMessage.success(`批次 ${row.batchNo} 重试同步成功`);
-    }, 1500);
-  }, 500);
-}
-
-async function handleRetryFailed(row: any) {
-  const confirmed = await ElMessageBox.confirm(
-    `确定仅重试批次「${row.batchNo}」中失败的 ${row.failCount} 个SKU吗？`,
-    "确认重试失败项",
-    { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" }
-  ).catch(() => null);
-  if (!confirmed) return;
-
-  row._retrying = true;
-  setTimeout(() => {
-    row.status = row.failCount === row.totalCount ? "FAILED" : "PARTIAL";
-    const successRetry = Math.floor(Math.random() * row.failCount) + 1;
-    row.successCount += successRetry;
-    row.failCount -= successRetry;
-    if (row.failCount === 0) row.status = "SUCCESS";
-    row.failDetails = row.failDetails?.slice(successRetry);
+  try {
+    await retryMiniappOrderSync(row.orderNo);
+    ElMessage.success("重试已提交");
+    loadLogs();
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "重试失败"));
+  } finally {
     row._retrying = false;
-    if (row.failCount === 0) {
-      ElMessage.success("失败项全部重试成功");
-    } else {
-      ElMessage.warning(`重试完成，${successRetry} 项成功，${row.failCount} 项仍失败`);
-    }
-  }, 1500);
-}
-
-async function handleSyncAll() {
-  const confirmed = await ElMessageBox.confirm(
-    "全量同步会将所有商品的价格和库存推送到已对接平台，确认执行？",
-    "全量同步确认",
-    { confirmButtonText: "确认同步", cancelButtonText: "取消", type: "warning" }
-  ).catch(() => null);
-  if (!confirmed) return;
-
-  const newBatch = {
-    id: Math.max(...mockSyncLogs.map(l => l.id), 0) + 1,
-    batchNo: `SYNC${String(20260706).padStart(8, "0")}${String(Math.floor(Math.random() * 9000) + 1000)}`,
-    platform: "MINIAPP",
-    syncType: "FULL",
-    totalCount: 320,
-    successCount: 0,
-    failCount: 0,
-    skipCount: 0,
-    status: "SYNCING",
-    syncTime: new Date().toLocaleString("zh-CN"),
-    duration: "-",
-    failDetails: [],
-    _retrying: false
-  };
-  mockSyncLogs.unshift(newBatch);
-  ElMessage.success("全量同步任务已提交，请稍后刷新查看结果");
-  loadData();
-
-  setTimeout(() => {
-    newBatch.status = "SUCCESS";
-    newBatch.successCount = 320;
-    newBatch.duration = "45s";
-    loadData();
-  }, 3000);
+  }
 }
 
 onMounted(() => {
-  loadData();
+  loadPlatforms();
+  loadSyncStatus();
+  loadLogs();
 });
 </script>
 
@@ -383,47 +362,67 @@ onMounted(() => {
 .page {
   padding: 20px;
 }
+.stats-row {
+  margin-bottom: 16px;
+}
+.stat-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--el-text-color-primary);
+}
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.stat-time {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.table-card {
+  margin-bottom: 16px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .filter-bar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 12px;
 }
-.filter-left, .filter-right {
+.filter-left {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
 }
-.batch-no-text {
+.order-no-text {
   font-family: monospace;
   color: var(--el-color-primary);
-  cursor: pointer;
 }
-.success-count {
+.response-text {
+  font-size: 12px;
+  color: var(--el-text-color-regular);
+  word-break: break-all;
+  display: inline-block;
+  max-width: 100%;
+}
+.sync-result {
+  font-size: 12px;
   color: var(--el-color-success);
-  font-weight: 500;
 }
-.fail-count {
-  color: var(--el-color-danger);
-  font-weight: 500;
+.text-muted {
+  color: var(--el-text-color-secondary);
 }
 .pagination {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
-}
-.detail-content {
-  padding: 0 4px;
-}
-.fail-section {
-  margin-top: 20px;
-}
-.section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--el-text-color-primary);
 }
 </style>

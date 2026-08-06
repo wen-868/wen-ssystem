@@ -2030,11 +2030,34 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/mo_r90_01.md）
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/instant-retail/{InstantRetailOrders,InstantRetailSync,InstantRetailConfig}.vue` + 对应 API
 - **问题**：3 页使用 mock 编造数据，后端接口已存在（订单/同步日志/banners）未接入
 - **修复**：逐页接真实 API（列表/分页/操作/轮播 CRUD），字段按后端返回适配；无数据空态；**禁止保留编造数字**
 - **验收标准**：`rg "mock" admin-web/src/views/instant-retail/{InstantRetailOrders,InstantRetailSync,InstantRetailConfig}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+**墨完成记录**（2026-08-07）：
+
+**完成内容：**
+- `admin-web/src/api/instant-retail.ts`：修正订单接口契约（列表参数/详情/状态更新）、新增平台同步触发（sync-orders/sync-products）、同步缓存状态与最近同步时间、订单同步日志（miniapp-order-sync）、门店配置、轮播图 CRUD、分类 CRUD 封装
+- `InstantRetailOrders.vue`：删除 mockOrders 28 条编造数据，接入 `/admin/instant-retail/orders` 真实列表（分页/状态/支付状态/订单号/时间筛选）+ 详情（`orders/:orderNo`）+ 确认/取消（`orders/:orderNo/status`，传 reason）；字段按后端 snake_case 适配（receiver_name/user_name/order_status 等），移除后端不存在的编造字段（骑手/操作日志/编造商品明细）
+- `InstantRetailSync.vue`：删除 mockSyncLogs 25 条编造数据，改为真实同步能力页——平台配置列表（configs）+ 按平台触发订单/商品同步（真实返回 synced/hasMore）+ 价格/商品同步缓存状态与最近同步时间（/sync/price|product/status、/last）+ 订单同步日志真实列表（/miniapp-order-sync，分页/状态筛选/重试）
+- `InstantRetailConfig.vue`：删除 mockBanners/mockCategories/编造店铺信息，接入真实 shop-config（读取+保存）、banners CRUD（列表/新增/编辑/删除/拖拽排序）、categories 树 CRUD；状态枚举对齐后端 ON/OFF
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| mock 残留 | `rg -i "mock" <3 个页面>` | 0 处 ✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（40.03s）✅ |
+| ESLint（改动的 4 个文件） | `npx eslint <files>` | 0 errors 0 warnings ✅ |
+
+**上报（后端契约问题，需凌舟决策派单阿坚修复，前端已按后端 controller zod schema 对齐）：**
+1. **banners 写接口字段断裂**：`instant-retail.controller.ts` create/updateBannerSchema 校验 `title/imageUrl/linkUrl/sortNo`（camelCase），但 `retail-shop.service.ts` create/updateBanner 读取 `banner_title/banner_image/link_type/link_value/sort_order`（snake_case），且 schema 无 startTime/endTime 字段——按任一契约提交都会使 `banner_image` 为 undefined，插入触发 NOT NULL 失败
+2. **分类写接口同样字段断裂**：create/updateCategorySchema 校验 `name/icon/sortNo`，service 读取 `category_name/category_icon/sort_order`，且 schema 无 parentId/status——新增分类会插空名失败
+3. **shop-config 写接口字段断裂 + 依赖 storeId**：saveShopConfigSchema 校验 `shopName/phone/businessHours/deliveryRange/minOrderAmount`（camelCase），service 读取 `shop_name/contact_phone/business_hours/delivery_radius/min_order_amount`；且 saveShopConfig 无 storeId 直接 throw，管理后台请求不带 storeId 时保存不可用；GET /shop-config 无 storeId 返回 null，店铺信息页显示空表单
+4. **InstantRetailSync 页重构说明**：原 mock 为"批次级同步日志"，后端无对应批量同步日志接口，已按真实能力重构为"平台同步操作 + 同步缓存状态 + 订单同步日志（miniapp-order-sync）"，如需恢复批次日志需后端新增同步日志表/接口
+5. **订单状态枚举**：后端 update 仅支持 CONFIRMED/PREPARING/DELIVERING/COMPLETED/CANCELLED（无 REFUNDED），页面已按此收敛操作按钮（确认/取消）
 
 ### R90-02 — [P1] 即时零售页硬编码色 token 化
 - **优先级**：P1

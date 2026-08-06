@@ -3,7 +3,7 @@
     <el-card class="config-card">
       <el-tabs v-model="activeTab" class="config-tabs">
         <el-tab-pane label="店铺信息" name="store">
-          <el-form :model="storeForm" :rules="storeRules" ref="storeFormRef" label-width="120px" class="store-form">
+          <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="120px" class="store-form">
             <el-divider content-position="left">基本信息</el-divider>
             <el-row :gutter="24">
               <el-col :span="12">
@@ -67,11 +67,6 @@
             </el-row>
             <el-row :gutter="24">
               <el-col :span="8">
-                <el-form-item label="免配送费" prop="freeDeliveryAmount">
-                  <el-input-number v-model="storeForm.freeDeliveryAmount" :min="0" :precision="2" style="width: 100%" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="8">
                 <el-form-item label="配送半径(km)" prop="deliveryRadius">
                   <el-input-number v-model="storeForm.deliveryRadius" :min="0" :step="0.5" :precision="1" style="width: 100%" />
                 </el-form-item>
@@ -100,7 +95,7 @@
             <el-button type="primary" @click="openBannerDialog">新增轮播图</el-button>
             <span class="banner-tip">拖拽卡片调整排序</span>
           </div>
-          <div class="banner-grid" v-loading="bannerLoading">
+          <div v-loading="bannerLoading" class="banner-grid">
             <div
               v-for="(banner, index) in bannerList"
               :key="banner.id"
@@ -114,16 +109,16 @@
                 <el-image :src="banner.image" fit="cover" class="banner-image" />
                 <div class="banner-overlay">
                   <el-button type="primary" link @click="openBannerDialog(banner)">编辑</el-button>
-                  <el-button type="danger" link @click="deleteBanner(banner)">删除</el-button>
+                  <el-button type="danger" link @click="handleDeleteBanner(banner)">删除</el-button>
                 </div>
               </div>
               <div class="banner-info">
                 <div class="banner-title">{{ banner.title }}</div>
                 <div class="banner-meta">
-                  <el-tag :type="banner.status === 'ENABLED' ? 'success' : 'info'" size="small">
-                    {{ banner.status === 'ENABLED' ? '启用' : '禁用' }}
+                  <el-tag :type="banner.status === 'ON' ? 'success' : 'info'" size="small">
+                    {{ banner.status === 'ON' ? '启用' : '禁用' }}
                   </el-tag>
-                  <span class="banner-time">{{ banner.startTime }} ~ {{ banner.endTime }}</span>
+                  <span class="banner-time">{{ banner.startTime || '-' }} ~ {{ banner.endTime || '-' }}</span>
                 </div>
               </div>
               <div class="banner-sort">{{ index + 1 }}</div>
@@ -136,7 +131,7 @@
           <div class="category-toolbar">
             <el-button type="primary" @click="openCategoryDialog">新增分类</el-button>
           </div>
-          <el-table :data="categoryTree" v-loading="categoryLoading" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
+          <el-table v-loading="categoryLoading" :data="categoryTree" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
             <el-table-column prop="name" label="分类名称" min-width="200">
               <template #default="{ row }">
                 <div class="category-name-cell">
@@ -145,11 +140,11 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="sort" label="排序" width="100" />
-            <el-table-column prop="status" label="状态" width="120">
+            <el-table-column prop="sortOrder" label="排序" width="100" />
+            <el-table-column label="状态" width="120">
               <template #default="{ row }">
-                <el-tag :type="row.status === 'ENABLED' ? 'success' : 'danger'" size="small">
-                  {{ row.status === 'ENABLED' ? '启用' : '禁用' }}
+                <el-tag :type="row.status === 'ON' ? 'success' : 'danger'" size="small">
+                  {{ row.status === 'ON' ? '启用' : '禁用' }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -157,7 +152,7 @@
               <template #default="{ row }">
                 <el-button size="small" link type="primary" @click="openCategoryDialog(row)">编辑</el-button>
                 <el-button size="small" link type="success" @click="openCategoryDialog(null, row)">添加子分类</el-button>
-                <el-button size="small" link type="danger" @click="deleteCategory(row)">删除</el-button>
+                <el-button size="small" link type="danger" @click="handleDeleteCategory(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -166,7 +161,7 @@
     </el-card>
 
     <el-dialog v-model="bannerDialogVisible" :title="bannerEditId ? '编辑轮播图' : '新增轮播图'" width="720px">
-      <el-form :model="bannerForm" :rules="bannerRules" ref="bannerFormRef" label-width="100px">
+      <el-form ref="bannerFormRef" :model="bannerForm" :rules="bannerRules" label-width="100px">
         <el-form-item label="标题" prop="title">
           <el-input v-model="bannerForm.title" placeholder="请输入轮播图标题" />
         </el-form-item>
@@ -206,8 +201,8 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="bannerForm.status">
-            <el-radio value="ENABLED">启用</el-radio>
-            <el-radio value="DISABLED">禁用</el-radio>
+            <el-radio value="ON">启用</el-radio>
+            <el-radio value="OFF">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -218,7 +213,7 @@
     </el-dialog>
 
     <el-dialog v-model="categoryDialogVisible" :title="categoryEditId ? '编辑分类' : (isAddChild ? '添加子分类' : '新增分类')" width="480px">
-      <el-form :model="categoryForm" :rules="categoryRules" ref="categoryFormRef" label-width="100px">
+      <el-form ref="categoryFormRef" :model="categoryForm" :rules="categoryRules" label-width="100px">
         <el-form-item label="分类名称" prop="name">
           <el-input v-model="categoryForm.name" placeholder="请输入分类名称" />
         </el-form-item>
@@ -246,13 +241,13 @@
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="categoryForm.sort" :min="0" style="width: 100%" />
+        <el-form-item label="排序" prop="sortOrder">
+          <el-input-number v-model="categoryForm.sortOrder" :min="0" style="width: 100%" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="categoryForm.status">
-            <el-radio value="ENABLED">启用</el-radio>
-            <el-radio value="DISABLED">禁用</el-radio>
+            <el-radio value="ON">启用</el-radio>
+            <el-radio value="OFF">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -268,13 +263,26 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { formatYuan } from "../../utils/format";
+import {
+  fetchShopConfig,
+  saveShopConfig,
+  fetchBanners,
+  createBanner,
+  updateBanner,
+  deleteBanner,
+  fetchRetailCategories,
+  createRetailCategory,
+  updateRetailCategory,
+  deleteRetailCategory,
+  getErrorMessage
+} from "../../api";
 
 const activeTab = ref("store");
 
 // ==================== 店铺信息 ====================
 const storeFormRef = ref<FormInstance>();
 const storeSaving = ref(false);
+const storeLoading = ref(false);
 
 const storeForm = reactive({
   storeName: "",
@@ -285,7 +293,6 @@ const storeForm = reactive({
   deliveryTypes: ["DELIVERY", "PICKUP"],
   minOrderAmount: 0,
   deliveryFee: 0,
-  freeDeliveryAmount: 0,
   deliveryRadius: 3,
   estimatedTime: "",
   notice: ""
@@ -306,15 +313,71 @@ function handleLogoChange(file: any) {
   reader.readAsDataURL(file.raw);
 }
 
+function splitBusinessHours(value: string | null): string[] {
+  if (!value) return [];
+  return value.split(/[~至-]/).map(s => s.trim()).filter(Boolean).slice(0, 2);
+}
+
+function loadStoreConfig() {
+  storeLoading.value = true;
+  fetchShopConfig()
+    .then((cfg: any) => {
+      if (!cfg) {
+        resetStoreForm();
+        return;
+      }
+      storeForm.storeName = cfg.shop_name ?? cfg.shopName ?? "";
+      storeForm.logo = cfg.shop_logo ?? cfg.shopLogo ?? "";
+      storeForm.description = cfg.shop_description ?? cfg.shopDescription ?? "";
+      storeForm.phone = cfg.contact_phone ?? cfg.contactPhone ?? "";
+      storeForm.businessHours = splitBusinessHours(cfg.business_hours ?? cfg.businessHours ?? "");
+      const deliveryEnabled = Number(cfg.delivery_enabled ?? cfg.deliveryEnabled ?? 1) === 1;
+      const pickupEnabled = Number(cfg.pickup_enabled ?? cfg.pickupEnabled ?? 1) === 1;
+      storeForm.deliveryTypes = [
+        ...(deliveryEnabled ? ["DELIVERY"] : []),
+        ...(pickupEnabled ? ["PICKUP"] : [])
+      ];
+      storeForm.minOrderAmount = Number(cfg.min_order_amount ?? cfg.minOrderAmount ?? 0);
+      storeForm.deliveryFee = Number(cfg.delivery_fee ?? cfg.deliveryFee ?? 0);
+      storeForm.deliveryRadius = Number(cfg.delivery_radius ?? cfg.deliveryRadius ?? 3);
+      storeForm.estimatedTime = cfg.estimated_delivery_time ?? cfg.estimatedDeliveryTime ?? "";
+      storeForm.notice = cfg.announcement ?? "";
+    })
+    .catch((e) => {
+      ElMessage.error(getErrorMessage(e, "加载店铺配置失败"));
+    })
+    .finally(() => {
+      storeLoading.value = false;
+    });
+}
+
 function saveStoreConfig() {
   if (!storeFormRef.value) return;
-  storeFormRef.value.validate((valid) => {
+  storeFormRef.value.validate(async (valid) => {
     if (!valid) return;
     storeSaving.value = true;
-    setTimeout(() => {
+    try {
+      await saveShopConfig({
+        shopName: storeForm.storeName,
+        shopLogo: storeForm.logo,
+        description: storeForm.description,
+        phone: storeForm.phone,
+        businessHours: storeForm.businessHours.length ? storeForm.businessHours.join("~") : null,
+        deliveryEnabled: storeForm.deliveryTypes.includes("DELIVERY"),
+        pickupEnabled: storeForm.deliveryTypes.includes("PICKUP"),
+        minOrderAmount: storeForm.minOrderAmount,
+        deliveryFee: storeForm.deliveryFee,
+        deliveryRange: storeForm.deliveryRadius,
+        estimatedTime: storeForm.estimatedTime,
+        announcement: storeForm.notice,
+        status: "OPEN"
+      });
       ElMessage.success("店铺设置已保存");
+    } catch (e) {
+      ElMessage.error(getErrorMessage(e, "保存店铺设置失败"));
+    } finally {
       storeSaving.value = false;
-    }, 500);
+    }
   });
 }
 
@@ -327,7 +390,6 @@ function resetStoreForm() {
   storeForm.deliveryTypes = ["DELIVERY", "PICKUP"];
   storeForm.minOrderAmount = 0;
   storeForm.deliveryFee = 0;
-  storeForm.freeDeliveryAmount = 0;
   storeForm.deliveryRadius = 3;
   storeForm.estimatedTime = "";
   storeForm.notice = "";
@@ -348,42 +410,66 @@ const bannerForm = reactive({
   linkType: "NONE",
   linkValue: "",
   timeRange: [] as string[],
-  status: "ENABLED"
+  status: "ON"
 });
 
 const bannerRules: FormRules = {
   title: [{ required: true, message: "请输入标题", trigger: "blur" }],
-  image: [{ required: true, message: "请上传图片", trigger: "change" }],
-  timeRange: [{ required: true, message: "请选择展示时间", trigger: "change" }]
+  image: [{ required: true, message: "请上传图片", trigger: "change" }]
 };
 
-const mockBanners = [
-  { id: 1, title: "新人专享满减活动", image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=promotion%20banner%20fresh%20food%20sale&image_size=landscape_16_9", linkType: "PROMOTION", linkValue: "1001", startTime: "2024-01-01 00:00:00", endTime: "2024-12-31 23:59:59", status: "ENABLED", sort: 1 },
-  { id: 2, title: "生鲜果蔬限时特惠", image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=fresh%20vegetables%20fruits%20banner&image_size=landscape_16_9", linkType: "CATEGORY", linkValue: "FRESH", startTime: "2024-01-01 00:00:00", endTime: "2024-12-31 23:59:59", status: "ENABLED", sort: 2 },
-  { id: 3, title: "零食饮料满99减20", image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=snacks%20beverages%20promotion%20banner&image_size=landscape_16_9", linkType: "CATEGORY", linkValue: "SNACKS", startTime: "2024-06-01 00:00:00", endTime: "2024-06-30 23:59:59", status: "ENABLED", sort: 3 },
-  { id: 4, title: "首页推荐位", image: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=supermarket%20homepage%20banner&image_size=landscape_16_9", linkType: "NONE", linkValue: "", startTime: "2024-01-01 00:00:00", endTime: "2024-12-31 23:59:59", status: "DISABLED", sort: 4 }
-];
+function mapBanner(row: any) {
+  return {
+    id: row.id,
+    title: row.banner_title ?? row.bannerTitle ?? "",
+    image: row.banner_image ?? row.bannerImage ?? "",
+    linkType: row.link_type ?? row.linkType ?? "NONE",
+    linkValue: row.link_value ?? row.linkValue ?? "",
+    sortOrder: Number(row.sort_order ?? row.sortOrder ?? 0),
+    status: row.status ?? "ON",
+    startTime: row.start_time ?? row.startTime ?? null,
+    endTime: row.end_time ?? row.endTime ?? null
+  };
+}
 
 function loadBanners() {
   bannerLoading.value = true;
-  setTimeout(() => {
-    bannerList.value = [...mockBanners];
-    bannerLoading.value = false;
-  }, 300);
+  fetchBanners()
+    .then((result: any) => {
+      const list = Array.isArray(result) ? result : (result?.records ?? []);
+      bannerList.value = list.map(mapBanner);
+    })
+    .catch((e) => {
+      ElMessage.error(getErrorMessage(e, "加载轮播图失败"));
+      bannerList.value = [];
+    })
+    .finally(() => {
+      bannerLoading.value = false;
+    });
 }
 
 function handleDragStart(index: number) {
   dragIndex.value = index;
 }
 
-function handleDrop(targetIndex: number) {
+async function handleDrop(targetIndex: number) {
   if (dragIndex.value === null || dragIndex.value === targetIndex) return;
   const list = [...bannerList.value];
   const [removed] = list.splice(dragIndex.value, 1);
   list.splice(targetIndex, 0, removed);
   bannerList.value = list;
   dragIndex.value = null;
-  ElMessage.success("排序已更新");
+  try {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].sortOrder !== i + 1) {
+        await updateBanner(list[i].id, { sortNo: i + 1 });
+      }
+    }
+    ElMessage.success("排序已更新");
+  } catch (e) {
+    ElMessage.error(getErrorMessage(e, "保存排序失败"));
+    loadBanners();
+  }
 }
 
 function openBannerDialog(row?: any) {
@@ -393,15 +479,15 @@ function openBannerDialog(row?: any) {
     bannerForm.image = row.image;
     bannerForm.linkType = row.linkType || "NONE";
     bannerForm.linkValue = row.linkValue || "";
-    bannerForm.timeRange = [row.startTime, row.endTime];
-    bannerForm.status = row.status;
+    bannerForm.timeRange = [row.startTime, row.endTime].filter(Boolean) as string[];
+    bannerForm.status = row.status || "ON";
   } else {
     bannerForm.title = "";
     bannerForm.image = "";
     bannerForm.linkType = "NONE";
     bannerForm.linkValue = "";
     bannerForm.timeRange = [];
-    bannerForm.status = "ENABLED";
+    bannerForm.status = "ON";
   }
   bannerDialogVisible.value = true;
 }
@@ -429,54 +515,50 @@ function getLinkPlaceholder() {
 
 function saveBanner() {
   if (!bannerFormRef.value) return;
-  bannerFormRef.value.validate((valid) => {
+  bannerFormRef.value.validate(async (valid) => {
     if (!valid) return;
     bannerSaving.value = true;
-    setTimeout(() => {
+    const payload: Record<string, unknown> = {
+      title: bannerForm.title,
+      imageUrl: bannerForm.image,
+      linkUrl: bannerForm.linkValue || null,
+      linkType: bannerForm.linkType,
+      status: bannerForm.status
+    };
+    if (bannerForm.timeRange?.[0]) payload.startTime = bannerForm.timeRange[0];
+    if (bannerForm.timeRange?.[1]) payload.endTime = bannerForm.timeRange[1];
+    try {
       if (bannerEditId.value) {
-        const index = bannerList.value.findIndex(b => b.id === bannerEditId.value);
-        if (index > -1) {
-          bannerList.value[index] = {
-            ...bannerList.value[index],
-            title: bannerForm.title,
-            image: bannerForm.image,
-            linkType: bannerForm.linkType,
-            linkValue: bannerForm.linkValue,
-            startTime: bannerForm.timeRange[0],
-            endTime: bannerForm.timeRange[1],
-            status: bannerForm.status
-          };
-        }
+        await updateBanner(bannerEditId.value, payload);
         ElMessage.success("轮播图已更新");
       } else {
-        const newBanner = {
-          id: Date.now(),
-          title: bannerForm.title,
-          image: bannerForm.image,
-          linkType: bannerForm.linkType,
-          linkValue: bannerForm.linkValue,
-          startTime: bannerForm.timeRange[0],
-          endTime: bannerForm.timeRange[1],
-          status: bannerForm.status,
-          sort: bannerList.value.length + 1
-        };
-        bannerList.value.push(newBanner);
+        payload.sortNo = bannerList.value.length + 1;
+        await createBanner(payload);
         ElMessage.success("轮播图已添加");
       }
-      bannerSaving.value = false;
       bannerDialogVisible.value = false;
-    }, 500);
+      loadBanners();
+    } catch (e) {
+      ElMessage.error(getErrorMessage(e, "保存轮播图失败"));
+    } finally {
+      bannerSaving.value = false;
+    }
   });
 }
 
-function deleteBanner(row: any) {
+function handleDeleteBanner(row: any) {
   ElMessageBox.confirm(`确定要删除轮播图「${row.title}」吗？`, "删除确认", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
-  }).then(() => {
-    bannerList.value = bannerList.value.filter(b => b.id !== row.id);
-    ElMessage.success("已删除");
+  }).then(async () => {
+    try {
+      await deleteBanner(row.id);
+      ElMessage.success("已删除");
+      loadBanners();
+    } catch (e) {
+      ElMessage.error(getErrorMessage(e, "删除轮播图失败"));
+    }
   }).catch(() => {});
 }
 
@@ -493,98 +575,58 @@ const categoryForm = reactive({
   name: "",
   icon: "",
   parentId: null as number | null,
-  sort: 0,
-  status: "ENABLED"
+  sortOrder: 0,
+  status: "ON"
 });
 
 const categoryRules: FormRules = {
-  name: [{ required: true, message: "请输入分类名称", trigger: "blur" }],
-  sort: [{ required: true, message: "请输入排序", trigger: "blur" }]
+  name: [{ required: true, message: "请输入分类名称", trigger: "blur" }]
 };
 
-const mockCategories = [
-  {
-    id: 1,
-    name: "生鲜果蔬",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=vegetable%20icon%20simple&image_size=square",
-    parentId: null,
-    sort: 1,
-    status: "ENABLED",
-    children: [
-      { id: 11, name: "时令蔬菜", icon: "", parentId: 1, sort: 1, status: "ENABLED", children: [] },
-      { id: 12, name: "新鲜水果", icon: "", parentId: 1, sort: 2, status: "ENABLED", children: [] },
-      { id: 13, name: "菌菇类", icon: "", parentId: 1, sort: 3, status: "ENABLED", children: [] }
-    ]
-  },
-  {
-    id: 2,
-    name: "零食饮料",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=snack%20icon%20simple&image_size=square",
-    parentId: null,
-    sort: 2,
-    status: "ENABLED",
-    children: [
-      { id: 21, name: "休闲零食", icon: "", parentId: 2, sort: 1, status: "ENABLED", children: [] },
-      { id: 22, name: "饼干糕点", icon: "", parentId: 2, sort: 2, status: "ENABLED", children: [] },
-      { id: 23, name: "饮料冲调", icon: "", parentId: 2, sort: 3, status: "ENABLED", children: [] }
-    ]
-  },
-  {
-    id: 3,
-    name: "日用百货",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=daily%20necessities%20icon%20simple&image_size=square",
-    parentId: null,
-    sort: 3,
-    status: "ENABLED",
-    children: [
-      { id: 31, name: "纸品湿巾", icon: "", parentId: 3, sort: 1, status: "ENABLED", children: [] },
-      { id: 32, name: "家居清洁", icon: "", parentId: 3, sort: 2, status: "DISABLED", children: [] }
-    ]
-  },
-  {
-    id: 4,
-    name: "乳品烘焙",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=milk%20bread%20icon%20simple&image_size=square",
-    parentId: null,
-    sort: 4,
-    status: "ENABLED",
-    children: []
-  },
-  {
-    id: 5,
-    name: "酒水冲调",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=drink%20icon%20simple&image_size=square",
-    parentId: null,
-    sort: 5,
-    status: "DISABLED",
-    children: []
-  }
-];
+function mapCategory(row: any): any {
+  return {
+    id: row.id,
+    name: row.category_name ?? row.name ?? "",
+    icon: row.category_icon ?? row.icon ?? "",
+    parentId: row.parent_id ?? row.parentId ?? null,
+    sortOrder: Number(row.sort_order ?? row.sortOrder ?? 0),
+    status: row.status ?? "ON",
+    children: Array.isArray(row.children) ? row.children.map(mapCategory) : []
+  };
+}
 
 function loadCategories() {
   categoryLoading.value = true;
-  setTimeout(() => {
-    categoryTree.value = JSON.parse(JSON.stringify(mockCategories));
-    categoryLoading.value = false;
-  }, 300);
+  fetchRetailCategories()
+    .then((result: any) => {
+      const list = Array.isArray(result) ? result : (result?.records ?? []);
+      categoryTree.value = list.map(mapCategory);
+    })
+    .catch((e) => {
+      ElMessage.error(getErrorMessage(e, "加载分类失败"));
+      categoryTree.value = [];
+    })
+    .finally(() => {
+      categoryLoading.value = false;
+    });
 }
 
 function openCategoryDialog(row?: any, parent?: any) {
   categoryEditId.value = row?.id || null;
   isAddChild.value = !!parent;
-  
+
   if (row) {
     categoryForm.name = row.name;
     categoryForm.icon = row.icon || "";
     categoryForm.parentId = row.parentId;
-    categoryForm.sort = row.sort;
+    categoryForm.sortOrder = row.sortOrder;
     categoryForm.status = row.status;
   } else {
     categoryForm.name = "";
     categoryForm.icon = "";
     categoryForm.parentId = parent?.id || null;
-    categoryForm.sort = 0;
-    categoryForm.status = "ENABLED";
+    categoryForm.sortOrder = 0;
+    categoryForm.status = "ON";
   }
   categoryDialogVisible.value = true;
 }
@@ -597,109 +639,54 @@ function handleCategoryIconChange(file: any) {
   reader.readAsDataURL(file.raw);
 }
 
-function addToTree(list: any[], parentId: number | null, newItem: any): boolean {
-  if (parentId === null) {
-    list.push(newItem);
-    return true;
-  }
-  for (const item of list) {
-    if (item.id === parentId) {
-      if (!item.children) item.children = [];
-      item.children.push(newItem);
-      return true;
-    }
-    if (item.children && addToTree(item.children, parentId, newItem)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function updateInTree(list: any[], id: number, updates: any): boolean {
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].id === id) {
-      list[i] = { ...list[i], ...updates };
-      return true;
-    }
-    if (list[i].children && updateInTree(list[i].children, id, updates)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function deleteFromTree(list: any[], id: number): boolean {
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].id === id) {
-      list.splice(i, 1);
-      return true;
-    }
-    if (list[i].children && deleteFromTree(list[i].children, id)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 function saveCategory() {
   if (!categoryFormRef.value) return;
-  categoryFormRef.value.validate((valid) => {
+  categoryFormRef.value.validate(async (valid) => {
     if (!valid) return;
     categorySaving.value = true;
-    setTimeout(() => {
+    const payload: Record<string, unknown> = {
+      name: categoryForm.name,
+      icon: categoryForm.icon || null,
+      parentId: categoryForm.parentId,
+      sortNo: categoryForm.sortOrder,
+      status: categoryForm.status
+    };
+    try {
       if (categoryEditId.value) {
-        updateInTree(categoryTree.value, categoryEditId.value, {
-          name: categoryForm.name,
-          icon: categoryForm.icon,
-          parentId: categoryForm.parentId,
-          sort: categoryForm.sort,
-          status: categoryForm.status
-        });
+        await updateRetailCategory(categoryEditId.value, payload);
         ElMessage.success("分类已更新");
       } else {
-        const newCategory = {
-          id: Date.now(),
-          name: categoryForm.name,
-          icon: categoryForm.icon,
-          parentId: categoryForm.parentId,
-          sort: categoryForm.sort,
-          status: categoryForm.status,
-          children: []
-        };
-        addToTree(categoryTree.value, categoryForm.parentId, newCategory);
+        await createRetailCategory(payload);
         ElMessage.success("分类已添加");
       }
-      categorySaving.value = false;
       categoryDialogVisible.value = false;
-    }, 500);
+      loadCategories();
+    } catch (e) {
+      ElMessage.error(getErrorMessage(e, "保存分类失败"));
+    } finally {
+      categorySaving.value = false;
+    }
   });
 }
 
-function deleteCategory(row: any) {
+function handleDeleteCategory(row: any) {
   ElMessageBox.confirm(`确定要删除分类「${row.name}」吗？子分类也将被删除。`, "删除确认", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     type: "warning"
-  }).then(() => {
-    deleteFromTree(categoryTree.value, row.id);
-    ElMessage.success("已删除");
+  }).then(async () => {
+    try {
+      await deleteRetailCategory(row.id);
+      ElMessage.success("已删除");
+      loadCategories();
+    } catch (e) {
+      ElMessage.error(getErrorMessage(e, "删除分类失败"));
+    }
   }).catch(() => {});
 }
 
 onMounted(() => {
-  storeForm.storeName = "优选生活超市（望京店）";
-  storeForm.logo = "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=supermarket%20logo%20simple&image_size=square";
-  storeForm.description = "优选生活超市，提供新鲜果蔬、零食饮料、日用百货等万余种商品，30分钟极速送达。";
-  storeForm.phone = "400-888-8888";
-  storeForm.businessHours = ["08:00", "22:00"];
-  storeForm.deliveryTypes = ["DELIVERY", "PICKUP"];
-  storeForm.minOrderAmount = 20;
-  storeForm.deliveryFee = 5;
-  storeForm.freeDeliveryAmount = 49;
-  storeForm.deliveryRadius = 3;
-  storeForm.estimatedTime = "30-45分钟";
-  storeForm.notice = "欢迎光临优选生活超市！新用户首单立减10元，满49元免配送费。";
-  
+  loadStoreConfig();
   loadBanners();
   loadCategories();
 });

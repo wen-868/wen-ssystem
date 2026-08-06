@@ -1,16 +1,40 @@
 import { api } from "./request";
 
 // ==================== Instant Retail APIs ====================
-export async function fetchInstantRetailConfigs(params?: { page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/instant-retail/configs", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchInstantRetailConfigs() {
+  const { data } = await api.get("/admin/instant-retail/configs");
   return data.data;
 }
-export async function createInstantRetailConfig(payload: unknown) {
-  const { data } = await api.post("/admin/instant-retail/configs", payload);
+
+export async function syncPlatformOrders(platform: string, payload?: { startTime?: string; endTime?: string; pageSize?: number }) {
+  const { data } = await api.post(`/admin/instant-retail/configs/${platform}/sync-orders`, payload ?? {});
   return data.data;
 }
-export async function updateInstantRetailConfig(id: number, payload: unknown) {
-  const { data } = await api.put(`/admin/instant-retail/configs/${id}`, payload);
+
+export async function syncPlatformProducts(platform: string, payload?: { startTime?: string; endTime?: string; pageSize?: number }) {
+  const { data } = await api.post(`/admin/instant-retail/configs/${platform}/sync-products`, payload ?? {});
+  return data.data;
+}
+
+// 同步缓存状态（价格/商品）
+export async function fetchSyncStatus(type: "price" | "product") {
+  const { data } = await api.get(`/sync/${type}/status`);
+  return data.data;
+}
+
+export async function fetchSyncLastTime(type: "price" | "product") {
+  const { data } = await api.get(`/sync/${type}/last`);
+  return data.data;
+}
+
+// 订单同步日志（真实后端接口 /api/miniapp-order-sync）
+export async function fetchMiniappOrderSyncLogs(params?: { page?: number; pageSize?: number; orderNo?: string; status?: number }) {
+  const { data } = await api.get("/miniapp-order-sync", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function retryMiniappOrderSync(orderNo: string) {
+  const { data } = await api.post(`/miniapp-order-sync/${orderNo}/retry`);
   return data.data;
 }
 
@@ -31,7 +55,7 @@ export async function updateShelfProduct(id: number, payload: unknown) {
   return data.data;
 }
 
-export async function fetchInstantOrders(params?: { keyword?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
+export async function fetchInstantOrders(params?: { status?: string; orderNo?: string; startDate?: string; endDate?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/instant-retail/orders", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
@@ -39,16 +63,8 @@ export async function fetchInstantOrderDetail(orderNo: string) {
   const { data } = await api.get(`/admin/instant-retail/orders/${orderNo}`);
   return data.data;
 }
-export async function confirmInstantOrder(orderNo: string) {
-  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/confirm`);
-  return data.data;
-}
-export async function cancelInstantOrder(orderNo: string) {
-  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/cancel`);
-  return data.data;
-}
-export async function refundInstantOrder(orderNo: string) {
-  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/refund`);
+export async function updateInstantOrderStatus(orderNo: string, payload: { status: string; reason?: string }) {
+  const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/status`, payload);
   return data.data;
 }
 
@@ -83,15 +99,6 @@ export async function fetchInstantReportTrend(params?: { dateStart?: string; dat
   return data.data;
 }
 
-export async function fetchInstantPlatformConfig() {
-  const { data } = await api.get("/admin/instant-retail/platform/config");
-  return data.data;
-}
-export async function updateInstantPlatformConfig(payload: unknown) {
-  const { data } = await api.put("/admin/instant-retail/platform/config", payload);
-  return data.data;
-}
-
 export async function fetchOrderBoardData() {
   const { data } = await api.get("/admin/instant-retail/order-board");
   return data.data;
@@ -100,6 +107,57 @@ export async function fetchOrderBoardData() {
 export const fetchRetailCartAnalysis = (params?: { keyword?: string; page?: number; pageSize?: number }) =>
   api.get("/admin/retail-cart/analysis", { params });
 
+
+// ==================== 门店配置 / 轮播 / 分类 ====================
+export async function fetchShopConfig() {
+  const { data } = await api.get("/admin/instant-retail/shop-config");
+  return data.data;
+}
+
+export async function saveShopConfig(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/instant-retail/shop-config", payload);
+  return data.data;
+}
+
+export async function fetchBanners() {
+  const { data } = await api.get("/admin/instant-retail/banners");
+  return data.data;
+}
+
+export async function createBanner(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/instant-retail/banners", payload);
+  return data.data;
+}
+
+export async function updateBanner(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/instant-retail/banners/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteBanner(id: number) {
+  const { data } = await api.delete(`/admin/instant-retail/banners/${id}`);
+  return data.data;
+}
+
+export async function fetchRetailCategories() {
+  const { data } = await api.get("/admin/instant-retail/categories");
+  return data.data;
+}
+
+export async function createRetailCategory(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/instant-retail/categories", payload);
+  return data.data;
+}
+
+export async function updateRetailCategory(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/instant-retail/categories/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteRetailCategory(id: number) {
+  const { data } = await api.delete(`/admin/instant-retail/categories/${id}`);
+  return data.data;
+}
 
 // ==================== Miniapp Config APIs ====================
 export const fetchMiniappConfigs = () => api.get('/admin/miniapp/configs');
