@@ -30,7 +30,7 @@
 | Node.js 版本 | v24.18.0 |
 | npm 版本 | 11.16.0 |
 | 代码分支 | main (唯一分支，直接从workspace读取) |
-| 测试工作目录 | D:\Users\Documents\TREA\wen-ssystem |
+| 测试工作目录 | D:\Users\ZXQL\ZXQL-MS\wen-ssystem |
 
 ---
 
@@ -71,7 +71,7 @@
 ### E-2 [失败 P2] docs/数据库变更清单.md ⬜ 待确认 grep 计数 3 vs 预期 0
 - **来源任务**：R67-01 验收标准 `grep -c "⬜" docs/数据库变更清单.md` = 0
 - **严重性**：P2 文档（口径差异，非代码）
-- **复现步骤**：`grep -c "⬜" D:\Users\Documents\TREA\wen-ssystem\docs\数据库变更清单.md`
+- **复现步骤**：`grep -c "⬜" D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\数据库变更清单.md`
 - **实际输出**：3 条
   - 第240行（叙述文本）："不再有"⬜ 待确认"" — 是R67-01完成证据的描述文字，不是状态标记
   - 第255行（第五节"变更历史"表格）："初始化全部迁移脚本记录为 ⬜ 待确认" — 是历史记录，不是第三节脚本状态列中的⬜

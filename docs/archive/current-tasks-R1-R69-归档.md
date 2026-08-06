@@ -3109,7 +3109,7 @@
 
 ## R40 任务列表 — 系统全局统一性审查与问题修复
 
-> 审查报告：[system-consistency-review-2026-07-16.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/system-consistency-review-2026-07-16.md)
+> 审查报告：[system-consistency-review-2026-07-16.md](file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem-main/docs/reports/system-consistency-review-2026-07-16.md)
 
 ### R40-01 — 修复 alert.service.ts 租户隔离漏洞 [P0]
 
@@ -3464,7 +3464,7 @@
 - **文件**：`backend/src/services/**/*.ts`
 - **问题**：可能存在其他缺少 tenant_id 过滤的 SQL 查询
 - **修复**：使用 grep 扫描所有 service 文件中的 SQL 查询
-- **输出**：生成租户过滤缺失报告 [tenant-filter-scan-report-2026-07-15.md](file:///D:/Users/Documents/TREA/wen-ssystem-main/docs/reports/tenant-filter-scan-report-2026-07-15.md)
+- **输出**：生成租户过滤缺失报告 [tenant-filter-scan-report-2026-07-15.md](file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem-main/docs/reports/tenant-filter-scan-report-2026-07-15.md)
 - **扫描结果**：发现 25+ 个缺少 tenant_id 过滤的查询，涉及 12+ 个服务文件
 
 ### R37-01 — 修复 error-log 租户过滤漏洞 [P0]
@@ -3641,7 +3641,7 @@
 - **预计**：1 天
 - **实际**：1 天
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
-- **测试报告**：`D:\Users\Documents\TREA\wen-ssystem-local\reports\test-report-r36-2026-07-15.md`
+- **测试报告**：`D:\Users\ZXQL\ZXQL-MS\wen-ssystem-local\reports\test-report-r36-2026-07-15.md`
 - **测试结果**：
   - 后端 TSC：✅ 0 错误
   - 后端 Vitest：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过
@@ -3754,7 +3754,7 @@
 - **预计**：1 天
 - **实际耗时**：1 天
 - **验收标准**：所有测试通过，覆盖率 ≥ 90%
-- **测试报告**：`D:\Users\Documents\TREA\wen-ssystem-local\reports\test-report-r35-2026-07-15.md`
+- **测试报告**：`D:\Users\ZXQL\ZXQL-MS\wen-ssystem-local\reports\test-report-r35-2026-07-15.md`
 - **测试结果**：
   - 后端 TSC 严格检查：✅ 0 错误
   - 后端 Vitest 全量测试：✅ 412 个文件，4725 个用例全部通过，0 失败 0 跳过

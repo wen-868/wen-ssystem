@@ -9,17 +9,17 @@
 ## 必读文件（按顺序，逐份读完）
 
 1. `D:\Users\Documents\TREA\.trae\agents\ache.md`（你的角色定义）
-2. `D:\Users\Documents\TREA\wen-ssystem\docs\memories\阿澈-记忆.md`（你的记忆）
-3. `D:\Users\Documents\TREA\wen-ssystem\docs\tasks\current-tasks.md`（R73-06 段（本卡为 R73-06B 重派） + 必读清单）
-4. `D:\Users\Documents\TREA\wen-ssystem\docs\项目规则.md`
-5. `D:\Users\Documents\TREA\wen-ssystem\docs\项目统一标准.md`
-6. `D:\Users\Documents\TREA\wen-ssystem\docs\踩坑日志.md`
+2. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\memories\阿澈-记忆.md`（你的记忆）
+3. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\tasks\current-tasks.md`（R73-06 段（本卡为 R73-06B 重派） + 必读清单）
+4. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\项目规则.md`
+5. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\项目统一标准.md`
+6. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\踩坑日志.md`
 
-## 任务内容（R73-06 移动端回归，工作目录 D:\Users\Documents\TREA\wen-ssystem，分支 main）
+## 任务内容（R73-06 移动端回归，工作目录 D:\Users\ZXQL\ZXQL-MS\wen-ssystem，分支 main）
 
 1. **构建验证**（必须两项都 exit 0）：
-   - `cd D:\Users\Documents\TREA\wen-ssystem\app-mobile && npm run build:h5`
-   - `cd D:\Users\Documents\TREA\wen-ssystem\app-mobile && npm run build:app`
+   - `cd D:\Users\ZXQL\ZXQL-MS\wen-ssystem\app-mobile && npm run build:h5`
+   - `cd D:\Users\ZXQL\ZXQL-MS\wen-ssystem\app-mobile && npm run build:app`
 2. **代码走查**（逐项确认后记录结论）：
    - 自定义 tabBar：`app-mobile/src/components/custom-tab-bar.vue` 存在；5 个 tab 页面（home/products/ai-chat/functions/profile）均正确引入 `<custom-tab-bar :current="..." />`；AI 按钮凸起（translateY 负值）+ 渐变 + 呼吸动画；pages.json tabBar `custom: true`
    - 商品页操作卡：`app-mobile/src/pages/products/products.vue` 含建议核价/批量调价/价格异常三入口；批量调价跳转 `/pages-sub/product/batch-price/batch-price`（确认该页面存在）；其余入口提示"开发中"；无编造数字

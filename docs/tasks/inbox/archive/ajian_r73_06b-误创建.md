@@ -9,16 +9,16 @@
 ## 必读文件（按顺序，逐份读完）
 
 1. `D:\Users\Documents\TREA\.trae\agents\ajian.md`（你的角色定义）
-2. `D:\Users\Documents\TREA\wen-ssystem\docs\memories\阿坚-记忆.md`（你的记忆）
-3. `D:\Users\Documents\TREA\wen-ssystem\docs\tasks\current-tasks.md`（R73-06 段（本卡为 R73-06B 重派） + 必读清单）
-4. `D:\Users\Documents\TREA\wen-ssystem\docs\项目规则.md`
-5. `D:\Users\Documents\TREA\wen-ssystem\docs\项目统一标准.md`
-6. `D:\Users\Documents\TREA\wen-ssystem\docs\踩坑日志.md`
+2. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\memories\阿坚-记忆.md`（你的记忆）
+3. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\tasks\current-tasks.md`（R73-06 段（本卡为 R73-06B 重派） + 必读清单）
+4. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\项目规则.md`
+5. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\项目统一标准.md`
+6. `D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\踩坑日志.md`
 
-## 任务内容（R73-06 AI 底座验证，工作目录 D:\Users\Documents\TREA\wen-ssystem，分支 main）
+## 任务内容（R73-06 AI 底座验证，工作目录 D:\Users\ZXQL\ZXQL-MS\wen-ssystem，分支 main）
 
 1. **AI 底座构建**：
-   - `cd D:\Users\Documents\TREA\wen-ssystem\backend\ai-base`
+   - `cd D:\Users\ZXQL\ZXQL-MS\wen-ssystem\backend\ai-base`
    - 按 `package.json` 实际脚本执行构建（如 `pnpm install` 完成后 `pnpm build` 或 npm 对应命令；先勘察确认）
    - 预期：构建成功产出 `dist/`，exit 0
 2. **AI 底座健康检查（本地）**：

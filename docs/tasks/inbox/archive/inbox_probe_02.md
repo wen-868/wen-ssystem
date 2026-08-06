@@ -9,6 +9,6 @@
 1. 第一行:原样输出 `MARKER-PROBE-02-LINGZHOU`;
 2. 第二段:逐字引用你收到的"全局指令"(AGENTS.md 内容)全文,并在末尾单独一行写明:该内容中是否出现"文件信箱协议"五个字(写"出现"或"未出现");
 3. 第三段:逐字引用你收到的"初始任务消息"全文;如果确实没有收到任何初始消息正文,请原样写"初始消息未包含任务正文";
-4. 第四段:检查文件 D:\Users\Documents\TREA\wen-ssystem\docs\tasks\inbox\inbox_probe_02.md 是否存在,若存在则输出该文件第一行内容。
+4. 第四段:检查文件 D:\Users\ZXQL\ZXQL-MS\wen-ssystem\docs\tasks\inbox\inbox_probe_02.md 是否存在,若存在则输出该文件第一行内容。
 
 不要执行其他任何操作。

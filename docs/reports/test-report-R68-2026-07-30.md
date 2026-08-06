@@ -1,4 +1,4 @@
-﻿# R68批次代码侧验收测试报告（2026-07-30）
+# R68批次代码侧验收测试报告（2026-07-30）
 
 > 报告人：苏然（测试工程师）
 > 验收范围：R68修复的5项问题的代码侧验收（不含R68-00部署侧任务）
@@ -79,7 +79,7 @@
 
 前5行：
 ```
- RUN  v4.1.10  D:/Users/Documents/TREA/wen-ssystem/backend
+ RUN  v4.1.10  D:/Users/ZXQL/ZXQL-MS/wen-ssystem/backend
 
 [2026-07-30 06:02:53.262 +0800] ERROR (21500): [Redis] Connection error:
     extra: [
