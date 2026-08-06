@@ -2174,7 +2174,7 @@
 ### R93-00 — 全量回归执行（凌舟主导）
 - **优先级**：P0
 - **负责人**：凌舟（回归命令）/ 苏然（走查复核，可选）
-- **状态**：🔄 进行中
+- **状态**：✅ 已完成（2026-08-07）
 - **回归项**：
   1. 后端 `npm run typecheck` 0 errors
   2. 后端 `npx vitest run` 全通过（基线 436 文件/5075+ 用例）
@@ -2182,6 +2182,13 @@
   4. app-mobile `npm run build:h5` + `npm run build:app` exit 0
   5. AI 底座 `pnpm run build` + `npx jest` 全通过
   6. 浏览器走查：登录 → 工作台 → 收银台 → 核心列表页，控制台 0 error
+- **回归结果（全部通过）**：
+  1. 后端 typecheck 0 errors；`npx vitest run` 437 文件/5098 用例全过
+  2. admin-web vue-tsc 0 + build exit 0
+  3. app-mobile build:h5 + build:app exit 0
+  4. AI 底座 pnpm build + jest 41 套件/513 用例全过
+  5. 浏览器走查：登录 → 工作台 → 收银台（hasCashier true）→ 订单页，控制台 0 error
+- **回归发现并修复**：dashboard.service.test.ts 2 用例失败——根因 getOverview 经 cacheGet(Redis) 缓存，测试间共享缓存污染；修复：测试 mock cacheGet 直接执行工厂（commit `d5a1fb98`）
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
