@@ -1647,6 +1647,43 @@
 1. **ESLint 预存 error**：4 个改动文件在 HEAD 版本即有 89 errors + 10 warnings（vue/html-indent 缩进、vue/attributes-order 属性顺序、InventoryReports L166 PageCard 未使用等），经 `git stash` 基线对比确认与本次改动无关（改动前后均为 99 problems），未擅改
 2. **EOF 换行补充**：InventoryBatchPrice/InventoryCost/InventoryReports 原无结尾换行，apply_patch 补了 EOF 换行（仅空白差异，R80-02/R81-02 同先例）
 
+---
+
+## R83 — 客户版块四要素核对 + 联系人字段补齐 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：用户明确要求客户信息必包含「客户名称/联系人/电话/地址」，凌舟核对
+
+### R83-00 — 客户四要素核对（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核对结论**：
+  - 客户名称 ✅（t_member.name，后端/前端均在）
+  - 电话 ✅（t_member.mobile，唯一键）
+  - 地址 ✅（迁移 `011_phase7_member_fields.sql` 已加 t_member.address，后端 customer.service 列表/创建/更新均已处理，前端列表列+表单已含）
+  - **联系人 ❌ 全链路缺失**：t_member 无 contact 列（全库 contact 仅供应商表）；后端 listMembers/createCustomer/updateCustomer 无 contact；前端 CustomersView/CustomerDetail 无联系人表单与列
+
+### R83-01 — [P0] 后端 + 数据库补客户「联系人」字段
+- **优先级**：P0
+- **负责人**：阿坚（后端）
+- **预计**：0.5 天
+- **状态**：🔄 进行中（任务卡 inbox/ajian_r83_01.md）
+- **文件**：`docs/migrations/122_member_contact.sql`（新建）、`backend/src/services/admin/customer.service.ts`
+- **问题**：t_member 无 contact 列，客户信息缺「联系人」
+- **修复**：① 迁移脚本 `ALTER TABLE t_member ADD COLUMN contact VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name`（IF NOT EXISTS 保护）；② customer.service 列表 SELECT 加 m.contact、createCustomer/updateCustomer 支持 contact
+- **验收标准**：`npm run typecheck` 0 errors；迁移脚本含 IF NOT EXISTS 保护；`rg "contact" backend/src/services/admin/customer.service.ts` 存在
+
+### R83-02 — [P0] 前端客户页补「联系人」表单与列
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R82-02 后派单）
+- **文件**：`admin-web/src/views/customer/CustomersView.vue`、`CustomerDetail.vue`
+- **问题**：客户列表/详情/编辑无联系人字段
+- **修复**：列表加「联系人」列（prop=contact）、新建/编辑表单加联系人输入、详情展示联系人；**最小改动**
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "联系人" admin-web/src/views/customer/` ≥ 3（列表列+表单+详情）
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟
