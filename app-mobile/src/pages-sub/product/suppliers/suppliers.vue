@@ -109,40 +109,40 @@ async function loadSuppliers() {
 onMounted(() => { loadSuppliers() })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .suppliers-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 .search-input-wrap {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .supplier-list { padding: 16rpx 24rpx; }
 .supplier-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -154,18 +154,18 @@ onMounted(() => { loadSuppliers() })
   align-items: center;
   margin-bottom: 16rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.supplier-name { font-size: 30rpx; font-weight: 600; color: #333; }
-.supplier-code { font-size: 24rpx; color: #999; }
+.supplier-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
+.supplier-code { font-size: 24rpx; color: $uni-gray-400; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: #999; }
-.info-value { font-size: 26rpx; color: #333; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; }
 .card-footer {
   margin-top: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid $uni-gray-100;
   display: flex;
   gap: 16rpx;
 }
@@ -179,8 +179,8 @@ onMounted(() => { loadSuppliers() })
   justify-content: center;
   border: none;
 }
-.order-btn { background: #1677FF; color: #fff; }
-.statement-btn { background: #f5f5f5; color: #333; }
+.order-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.statement-btn { background: $uni-bg-color-grey; color: $uni-gray-700; }
 .action-btn::after { border: none; }
 .empty-state {
   display: flex;
@@ -188,7 +188,7 @@ onMounted(() => { loadSuppliers() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

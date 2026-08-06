@@ -115,27 +115,27 @@ async function onSubmit() {
 }
 </script>
 
-<style scoped>
-.create-check-page { min-height: 100vh; background: #f0f5ff; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: #fff; }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+<style lang="scss" scoped>
+.create-check-page { min-height: 100vh; background: $uni-color-primary-soft; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .check-form { padding: 16rpx 24rpx; }
-.form-section { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.form-section { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .form-item { margin-bottom: 20rpx; }
-.form-label { font-size: 26rpx; color: #666; margin-bottom: 12rpx; display: block; }
+.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: 12rpx; display: block; }
 .form-control { position: relative; }
-.form-input { width: 100%; height: 80rpx; background: #f5f7fa; border-radius: 12rpx; padding: 0 24rpx; font-size: 28rpx; color: #333; box-sizing: border-box; }
-.form-textarea { width: 100%; height: 160rpx; background: #f5f7fa; border-radius: 12rpx; padding: 20rpx 24rpx; font-size: 28rpx; color: #333; box-sizing: border-box; }
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.form-input { width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: 12rpx; padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box; }
+.form-textarea { width: 100%; height: 160rpx; background: $uni-bg-color-page; border-radius: 12rpx; padding: 20rpx 24rpx; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .field-error { margin-top: 8rpx; }
-.error-text { font-size: 24rpx; color: #ff4d4f; }
+.error-text { font-size: 24rpx; color: $uni-color-error; }
 .scope-options { display: flex; gap: 16rpx; }
-.scope-option { flex: 1; height: 72rpx; background: #f5f7fa; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; font-size: 26rpx; color: #666; border: 2rpx solid transparent; }
-.scope-option--active { background: #e6f4ff; border-color: #1677FF; color: #1677FF; }
-.tips-card { background: #fffbe6; border-radius: 16rpx; padding: 24rpx; margin-bottom: 24rpx; border: 1rpx solid #ffe58f; }
-.tips-title { font-size: 26rpx; font-weight: 600; color: #faad14; display: block; margin-bottom: 12rpx; }
-.tips-text { font-size: 24rpx; color: #999; display: block; line-height: 1.8; }
-.submit-btn { width: 100%; height: 88rpx; background: linear-gradient(135deg, #1677FF, #4096ff); border-radius: 44rpx; font-size: 30rpx; font-weight: 600; color: #fff; border: none; margin-top: 16rpx; }
+.scope-option { flex: 1; height: 72rpx; background: $uni-bg-color-page; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; font-size: 26rpx; color: $uni-gray-500; border: 2rpx solid transparent; }
+.scope-option--active { background: $uni-color-primary-soft; border-color: $uni-color-primary; color: $uni-color-primary; }
+.tips-card { background: $uni-color-warning-soft; border-radius: 16rpx; padding: 24rpx; margin-bottom: 24rpx; border: 1rpx solid $uni-color-warning-soft; }
+.tips-title { font-size: 26rpx; font-weight: 600; color: $uni-color-warning; display: block; margin-bottom: 12rpx; }
+.tips-text { font-size: 24rpx; color: $uni-gray-400; display: block; line-height: 1.8; }
+.submit-btn { width: 100%; height: 88rpx; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); border-radius: 44rpx; font-size: 30rpx; font-weight: 600; color: $uni-text-color-inverse; border: none; margin-top: 16rpx; }
 .submit-btn::after { border: none; }
 .submit-btn[disabled] { opacity: 0.5; }
 .safe-bottom { height: 40rpx; }

@@ -143,15 +143,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .customers-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -159,31 +159,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
@@ -203,8 +203,8 @@ onMounted(() => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -215,14 +215,14 @@ onMounted(() => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 20rpx;
 }
 
 .customer-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -233,7 +233,7 @@ onMounted(() => {
 .customer-card:active,
 .card-active {
   transform: scale(0.98);
-  background: #f9fafc;
+  background: $uni-gray-50;
 }
 
 .card-left {
@@ -245,7 +245,7 @@ onMounted(() => {
   width: 88rpx;
   height: 88rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e6f4ff, #bae0ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,7 +254,7 @@ onMounted(() => {
 .avatar-text {
   font-size: 36rpx;
   font-weight: 700;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .card-right {
@@ -272,18 +272,18 @@ onMounted(() => {
 .customer-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .customer-type-tag {
   padding: 4rpx 14rpx;
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
   border-radius: 8rpx;
 }
 
 .type-text {
   font-size: 22rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .customer-info {
@@ -294,13 +294,13 @@ onMounted(() => {
 
 .customer-phone {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 4rpx;
 }
 
 .customer-address {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -311,27 +311,27 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 12rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .debt-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .debt-amount {
   font-size: 28rpx;
   font-weight: 700;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .debt-zero {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .card-arrow {
   font-size: 28rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-left: 16rpx;
   flex-shrink: 0;
 }
@@ -345,18 +345,18 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .empty-hint {
   font-size: 24rpx;
-  color: #ccc;
+  color: $uni-gray-300;
   margin-top: 12rpx;
 }
 
@@ -370,7 +370,7 @@ onMounted(() => {
 .add-btn {
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -385,7 +385,7 @@ onMounted(() => {
 
 .add-icon {
   font-size: 40rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .safe-bottom {

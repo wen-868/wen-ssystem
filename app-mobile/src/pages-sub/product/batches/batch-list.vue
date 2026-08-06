@@ -120,15 +120,15 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .batch-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -136,31 +136,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
@@ -169,7 +169,7 @@ onMounted(() => {
 }
 
 .batch-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -182,7 +182,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 20rpx;
   padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .batch-no-wrap {
@@ -192,14 +192,14 @@ onMounted(() => {
 
 .batch-no-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 8rpx;
 }
 
 .batch-no {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .status-tag {
@@ -208,9 +208,9 @@ onMounted(() => {
   font-size: 24rpx;
 }
 
-.status-valid { background: #f6ffed; color: #52c41a; }
-.status-expiring { background: #fff7e6; color: #fa8c16; }
-.status-expired { background: #fff2f0; color: #ff4d4f; }
+.status-valid { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-expiring { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.status-expired { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .card-body {
   margin-bottom: 16rpx;
@@ -226,7 +226,7 @@ onMounted(() => {
   height: 100rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   flex-shrink: 0;
   margin-right: 16rpx;
 }
@@ -242,12 +242,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f4ff, #f0f5ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
 }
 
 .placeholder-icon {
   font-size: 40rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .product-detail {
@@ -260,17 +260,17 @@ onMounted(() => {
 .product-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 8rpx;
 }
 
 .product-sku {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .batch-info {
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   padding: 16rpx;
 }
@@ -288,16 +288,16 @@ onMounted(() => {
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .expiry-warning {
-  color: #fa8c16;
+  color: $uni-color-warning;
   font-weight: 600;
 }
 
@@ -308,7 +308,7 @@ onMounted(() => {
 
 .footer-arrow {
   font-size: 28rpx;
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 .empty-state {
@@ -320,13 +320,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

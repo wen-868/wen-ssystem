@@ -141,16 +141,16 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .inventory-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 /* 搜索栏 */
 .search-bar {
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(16rpx + env(safe-area-inset-top));
 }
 
@@ -158,31 +158,31 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
 .search-clear {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   padding: 4rpx;
 }
 
@@ -193,7 +193,7 @@ onMounted(() => {
 
 .inventory-card {
   display: flex;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx;
   margin-bottom: 16rpx;
@@ -210,7 +210,7 @@ onMounted(() => {
   height: 120rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
 }
 
 .product-image {
@@ -224,12 +224,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f4ff, #f0f5ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
 }
 
 .placeholder-icon {
   font-size: 48rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .card-right {
@@ -246,7 +246,7 @@ onMounted(() => {
 .product-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   flex: 1;
   margin-right: 12rpx;
 }
@@ -258,14 +258,14 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.status-normal { background: #f6ffed; }
-.status-normal .status-text { color: #52c41a; }
+.status-normal { background: $uni-color-success-soft; }
+.status-normal .status-text { color: $uni-color-success; }
 
-.status-warning { background: #fff7e6; }
-.status-warning .status-text { color: #fa8c16; }
+.status-warning { background: $uni-color-warning-soft; }
+.status-warning .status-text { color: $uni-color-warning; }
 
-.status-danger { background: #fff2f0; }
-.status-danger .status-text { color: #ff4d4f; }
+.status-danger { background: $uni-color-error-soft; }
+.status-danger .status-text { color: $uni-color-error; }
 
 .stock-info {
   margin-bottom: 16rpx;
@@ -279,7 +279,7 @@ onMounted(() => {
 
 .stock-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   width: 120rpx;
 }
 
@@ -289,14 +289,14 @@ onMounted(() => {
   margin-right: 6rpx;
 }
 
-.stock-value--normal { color: #52c41a; }
-.stock-value--warning { color: #fa8c16; }
-.stock-value--danger { color: #ff4d4f; }
-.stock-value--safe { color: #1677FF; }
+.stock-value--normal { color: $uni-color-success; }
+.stock-value--warning { color: $uni-color-warning; }
+.stock-value--danger { color: $uni-color-error; }
+.stock-value--safe { color: $uni-color-primary; }
 
 .stock-unit {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 /* 库存进度条 */
@@ -306,7 +306,7 @@ onMounted(() => {
 
 .stock-bar-bg {
   height: 10rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
   border-radius: 5rpx;
   overflow: hidden;
 }
@@ -317,9 +317,9 @@ onMounted(() => {
   transition: width 0.3s;
 }
 
-.bar-fill--normal { background: linear-gradient(90deg, #52c41a, #95de64); }
-.bar-fill--warning { background: linear-gradient(90deg, #fa8c16, #ffc069); }
-.bar-fill--danger { background: linear-gradient(90deg, #ff4d4f, #ff7875); }
+.bar-fill--normal { background: linear-gradient(90deg, $uni-color-success, $uni-color-success); }
+.bar-fill--warning { background: linear-gradient(90deg, $uni-color-warning, $uni-color-warning); }
+.bar-fill--danger { background: linear-gradient(90deg, $uni-color-error, $uni-color-error); }
 
 /* 空状态 */
 .empty-state {
@@ -331,13 +331,13 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  color: #ddd;
+  color: $uni-gray-300;
   margin-bottom: 20rpx;
 }
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .safe-bottom {

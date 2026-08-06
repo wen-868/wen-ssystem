@@ -178,22 +178,22 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .collection-link-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .link-form {
@@ -201,7 +201,7 @@ onMounted(() => {
 }
 
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -211,7 +211,7 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
 }
 
@@ -221,34 +221,34 @@ onMounted(() => {
 
 .form-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 8rpx;
 }
 
 .form-input {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
@@ -259,17 +259,17 @@ onMounted(() => {
 
 .error-text {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,7 +286,7 @@ onMounted(() => {
 }
 
 .link-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -302,7 +302,7 @@ onMounted(() => {
 
 .link-no {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 600;
 }
 
@@ -313,18 +313,18 @@ onMounted(() => {
 }
 
 .link-status.active {
-  background: #e6f7ff;
-  color: #1677FF;
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .link-status.paid {
-  background: #f6ffed;
-  color: #52c41a;
+  background: $uni-color-success-soft;
+  color: $uni-color-success;
 }
 
 .link-status.revoked {
-  background: #fff2f0;
-  color: #ff4d4f;
+  background: $uni-color-error-soft;
+  color: $uni-color-error;
 }
 
 .status-text {
@@ -340,13 +340,13 @@ onMounted(() => {
 
 .link-amount {
   font-size: 28rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .link-bill {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .link-actions {
@@ -366,13 +366,13 @@ onMounted(() => {
 }
 
 .share-btn {
-  background: #1677FF;
-  color: #fff;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
 }
 
 .revoke-btn {
-  background: #f5f5f5;
-  color: #ff4d4f;
+  background: $uni-bg-color-grey;
+  color: $uni-color-error;
 }
 
 .action-btn::after {

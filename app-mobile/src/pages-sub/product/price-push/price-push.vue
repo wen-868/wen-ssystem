@@ -207,22 +207,22 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .price-push-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .push-form {
@@ -230,7 +230,7 @@ onMounted(() => {
 }
 
 .form-section {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -240,7 +240,7 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
 }
 
@@ -250,42 +250,42 @@ onMounted(() => {
 
 .form-label {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 8rpx;
 }
 
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .form-picker {
   width: 100%;
   height: 80rpx;
-  background: #f5f7fa;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   padding: 0 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 
 .picker-arrow {
   font-size: 32rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .input-placeholder {
-  color: #bbb;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 
@@ -304,23 +304,23 @@ onMounted(() => {
 .channel-check {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 8rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .channel-check--active {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .channel-label {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .field-error {
@@ -330,17 +330,17 @@ onMounted(() => {
 
 .error-text {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -357,7 +357,7 @@ onMounted(() => {
 }
 
 .quote-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -373,7 +373,7 @@ onMounted(() => {
 
 .quote-no {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 600;
 }
 
@@ -384,13 +384,13 @@ onMounted(() => {
 }
 
 .quote-status.sent {
-  background: #e6f7ff;
-  color: #1677FF;
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .quote-status.read {
-  background: #f6ffed;
-  color: #52c41a;
+  background: $uni-color-success-soft;
+  color: $uni-color-success;
 }
 
 .status-text {
@@ -405,7 +405,7 @@ onMounted(() => {
 
 .quote-info {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .quote-actions {
@@ -424,8 +424,8 @@ onMounted(() => {
 }
 
 .resend-btn {
-  background: #1677FF;
-  color: #fff;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
 }
 
 .action-btn::after {

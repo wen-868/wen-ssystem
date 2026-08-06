@@ -115,17 +115,17 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.batch-logs-page { min-height: 100vh; background: #f5f5f5; padding-bottom: 40rpx; }
+<style lang="scss" scoped>
+.batch-logs-page { min-height: 100vh; background: $uni-bg-color-grey; padding-bottom: 40rpx; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .log-list { padding: 16rpx 24rpx 0; }
 .log-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -137,21 +137,21 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 12rpx;
 }
-.log-no { font-size: 26rpx; color: #333; font-weight: 600; }
-.log-time { font-size: 24rpx; color: #999; }
+.log-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
+.log-time { font-size: 24rpx; color: $uni-gray-400; }
 .log-info-row {
   display: flex;
   align-items: center;
   margin-top: 8rpx;
   font-size: 26rpx;
 }
-.info-label { color: #999; width: 140rpx; flex-shrink: 0; }
-.info-value { color: #333; flex: 1; }
-.info-value--up { color: #C0392B; }
-.info-value--down { color: #0EA879; }
-.info-value--reason { color: #666; }
+.info-label { color: $uni-gray-400; width: 140rpx; flex-shrink: 0; }
+.info-value { color: $uni-gray-700; flex: 1; }
+.info-value--up { color: $uni-color-error; }
+.info-value--down { color: $uni-color-success; }
+.info-value--reason { color: $uni-gray-500; }
 .load-more { padding: 20rpx 0 10rpx; text-align: center; }
-.load-more-text { font-size: 24rpx; color: #999; }
+.load-more-text { font-size: 24rpx; color: $uni-gray-400; }
 .empty-state {
   padding: 120rpx 0;
   display: flex;
@@ -159,7 +159,7 @@ onMounted(() => {
   align-items: center;
   gap: 16rpx;
 }
-.empty-icon { font-size: 72rpx; color: #ccc; }
-.empty-text { font-size: 26rpx; color: #999; }
+.empty-icon { font-size: 72rpx; color: $uni-gray-300; }
+.empty-text { font-size: 26rpx; color: $uni-gray-400; }
 .safe-bottom { height: calc(40rpx + env(safe-area-inset-bottom)); }
 </style>

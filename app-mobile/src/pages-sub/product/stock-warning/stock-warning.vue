@@ -194,47 +194,47 @@ async function onSaveConfig() {
 loadWarningList()
 </script>
 
-<style scoped>
-.stock-warning-page { min-height: 100vh; background: #f0f5ff; display: flex; flex-direction: column; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: #fff; }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.tab-bar { display: flex; background: #fff; border-bottom: 1rpx solid #f0f0f0; }
-.tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: #666; position: relative; }
-.tab-item--active { color: #1677FF; font-weight: 600; }
-.tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: #1677FF; border-radius: 2rpx; }
+<style lang="scss" scoped>
+.stock-warning-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.tab-bar { display: flex; background: $uni-bg-color; border-bottom: 1rpx solid $uni-gray-100; }
+.tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: $uni-gray-500; position: relative; }
+.tab-item--active { color: $uni-color-primary; font-weight: 600; }
+.tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
 .content-scroll { flex: 1; padding: 16rpx 24rpx; padding-bottom: 120rpx; }
-.warning-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.warning-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.product-name { font-size: 30rpx; font-weight: 600; color: #333; }
+.product-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .shortage-tag { background: rgba(255,77,79,0.1); padding: 4rpx 16rpx; border-radius: 8rpx; }
-.shortage-text { font-size: 22rpx; color: #ff4d4f; }
-.card-info { display: flex; gap: 24rpx; padding: 16rpx 0; border-top: 1rpx solid #f0f0f0; }
+.shortage-text { font-size: 22rpx; color: $uni-color-error; }
+.card-info { display: flex; gap: 24rpx; padding: 16rpx 0; border-top: 1rpx solid $uni-gray-100; }
 .info-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.info-label { font-size: 22rpx; color: #999; margin-bottom: 8rpx; }
-.info-value { font-size: 32rpx; font-weight: 600; color: #333; }
-.text-danger { color: #ff4d4f; }
-.text-primary { color: #1677FF; }
+.info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 8rpx; }
+.info-value { font-size: 32rpx; font-weight: 600; color: $uni-gray-700; }
+.text-danger { color: $uni-color-error; }
+.text-primary { color: $uni-color-primary; }
 .card-category { margin-top: 8rpx; }
-.category-text { font-size: 22rpx; color: #999; }
-.config-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.category-text { font-size: 22rpx; color: $uni-gray-400; }
+.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .config-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.config-name { font-size: 28rpx; font-weight: 600; color: #333; }
+.config-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }
 .config-status--on { background: rgba(82,196,26,0.1); }
 .config-status--off { background: rgba(0,0,0,0.05); }
 .config-status-text { font-size: 22rpx; }
-.config-status--on .config-status-text { color: #52c41a; }
-.config-status--off .config-status-text { color: #999; }
+.config-status--on .config-status-text { color: $uni-color-success; }
+.config-status--off .config-status-text { color: $uni-gray-400; }
 .config-row { display: flex; justify-content: space-between; align-items: center; }
-.config-label { font-size: 26rpx; color: #666; }
-.config-input { width: 200rpx; height: 60rpx; border: 1rpx solid #d9d9d9; border-radius: 8rpx; text-align: center; font-size: 28rpx; }
+.config-label { font-size: 26rpx; color: $uni-gray-500; }
+.config-input { width: 200rpx; height: 60rpx; border: 1rpx solid $uni-gray-300; border-radius: 8rpx; text-align: center; font-size: 28rpx; }
 .load-more { text-align: center; padding: 24rpx 0; }
-.load-more-text { font-size: 24rpx; color: #bbb; }
+.load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 200rpx 0; }
-.empty-text { font-size: 28rpx; color: #bbb; }
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: #fff; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
-.btn--primary { background: #1677FF; color: #fff; }
+.btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }
 .safe-bottom { height: 40rpx; }
 </style>

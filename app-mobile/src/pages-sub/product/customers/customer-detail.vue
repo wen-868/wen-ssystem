@@ -272,8 +272,8 @@ onLoad((options: any) => {
 })
 </script>
 
-<style scoped>
-.customer-detail-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.customer-detail-page { min-height: 100vh; background: $uni-color-primary-soft; }
 
 .loading-overlay {
   position: fixed;
@@ -281,7 +281,7 @@ onLoad((options: any) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -292,8 +292,8 @@ onLoad((options: any) => {
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e0e0e0;
-  border-top-color: #1677FF;
+  border: 4rpx solid $uni-gray-200;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -304,7 +304,7 @@ onLoad((options: any) => {
 
 .loading-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-top: 20rpx;
 }
 
@@ -313,7 +313,7 @@ onLoad((options: any) => {
   gap: 24rpx;
   padding: 32rpx;
   padding-top: calc(32rpx + env(safe-area-inset-top));
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
 }
 
 .customer-avatar {
@@ -323,11 +323,11 @@ onLoad((options: any) => {
   display: flex; align-items: center; justify-content: center;
 }
 
-.avatar-text { font-size: 40rpx; color: #fff; font-weight: 600; }
+.avatar-text { font-size: 40rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
 .customer-info { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
 
-.customer-name { font-size: 34rpx; color: #fff; font-weight: 600; }
+.customer-name { font-size: 34rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
 .customer-tag-row { display: flex; align-items: center; gap: 16rpx; }
 
@@ -337,13 +337,13 @@ onLoad((options: any) => {
 
 .tag-WHOLESALE { background: rgba(82,196,26,0.3); }
 
-.tag-text { font-size: 20rpx; color: #fff; }
+.tag-text { font-size: 20rpx; color: $uni-text-color-inverse; }
 
 .customer-phone { font-size: 24rpx; color: rgba(255,255,255,0.85); }
 
 .stats-row {
   display: flex; align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   margin: -24rpx 24rpx 0;
   border-radius: 16rpx;
   padding: 24rpx 0;
@@ -358,13 +358,13 @@ onLoad((options: any) => {
   align-items: center; gap: 8rpx;
 }
 
-.stat-value { font-size: 32rpx; color: #333; font-weight: 700; }
+.stat-value { font-size: 32rpx; color: $uni-gray-700; font-weight: 700; }
 
-.stat-label { font-size: 22rpx; color: #999; }
+.stat-label { font-size: 22rpx; color: $uni-gray-400; }
 
 .stat-divider {
   width: 1rpx; height: 48rpx;
-  background: #f0f0f0;
+  background: $uni-gray-100;
 }
 
 .info-section { padding: 24rpx; }
@@ -379,16 +379,16 @@ onLoad((options: any) => {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .edit-toggle {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .info-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -399,21 +399,21 @@ onLoad((options: any) => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .info-row:last-child { border-bottom: none; }
 
-.info-label { font-size: 26rpx; color: #999; flex-shrink: 0; width: 140rpx; }
+.info-label { font-size: 26rpx; color: $uni-gray-400; flex-shrink: 0; width: 140rpx; }
 
-.info-value { font-size: 26rpx; color: #333; text-align: right; flex: 1; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; text-align: right; flex: 1; }
 
-.info-value--link { color: #1677FF; }
+.info-value--link { color: $uni-color-primary; }
 
 .info-value--multi { line-height: 1.4; }
 
 .edit-form {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 0 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -423,7 +423,7 @@ onLoad((options: any) => {
   display: flex;
   align-items: center;
   padding: 24rpx 0;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .form-item--last { border-bottom: none; }
@@ -431,7 +431,7 @@ onLoad((options: any) => {
 .form-label {
   width: 160rpx;
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   flex-shrink: 0;
 }
 
@@ -440,19 +440,19 @@ onLoad((options: any) => {
 .form-input {
   width: 100%;
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   text-align: right;
 }
 
 .form-textarea {
   width: 100%;
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   text-align: right;
   min-height: 120rpx;
 }
 
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 
 .picker-value {
   display: flex;
@@ -461,14 +461,14 @@ onLoad((options: any) => {
   gap: 8rpx;
 }
 
-.picker-value text { font-size: 26rpx; color: #333; }
+.picker-value text { font-size: 26rpx; color: $uni-gray-700; }
 
-.picker-arrow { font-size: 24rpx; color: #999; }
+.picker-arrow { font-size: 24rpx; color: $uni-gray-400; }
 
 .error-text {
   display: block;
   font-size: 22rpx;
-  color: #ff4d4f;
+  color: $uni-color-error;
   margin-top: 12rpx;
   text-align: right;
 }
@@ -476,11 +476,11 @@ onLoad((options: any) => {
 .submit-btn {
   width: 100%;
   height: 80rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   margin: 24rpx 0;
   border: none;
 }

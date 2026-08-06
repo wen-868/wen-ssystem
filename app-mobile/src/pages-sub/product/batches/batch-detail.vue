@@ -131,10 +131,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .batch-detail-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
@@ -142,7 +142,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   padding-top: calc(20rpx + env(safe-area-inset-top));
 }
 
@@ -156,13 +156,13 @@ onMounted(() => {
 
 .back-icon {
   font-size: 36rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .page-title {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .header-right {
@@ -174,7 +174,7 @@ onMounted(() => {
 }
 
 .detail-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -195,13 +195,13 @@ onMounted(() => {
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .product-card {
   display: flex;
   padding: 16rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
 }
 
@@ -210,7 +210,7 @@ onMounted(() => {
   height: 140rpx;
   border-radius: 12rpx;
   overflow: hidden;
-  background: #fff;
+  background: $uni-bg-color;
   flex-shrink: 0;
   margin-right: 20rpx;
 }
@@ -226,12 +226,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f4ff, #f0f5ff);
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
 }
 
 .placeholder-icon {
   font-size: 56rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .product-info {
@@ -244,19 +244,19 @@ onMounted(() => {
 .product-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 12rpx;
 }
 
 .product-sku {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-bottom: 8rpx;
 }
 
 .batch-no {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .info-grid {
@@ -269,20 +269,20 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   padding: 16rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
 }
 
 .info-label {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-bottom: 8rpx;
 }
 
 .info-value {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .expiry-text {
@@ -290,7 +290,7 @@ onMounted(() => {
 }
 
 .expiry-warning {
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .status-tag {
@@ -301,13 +301,13 @@ onMounted(() => {
   align-self: flex-start;
 }
 
-.status-valid { background: #f6ffed; color: #52c41a; }
-.status-expiring { background: #fff7e6; color: #fa8c16; }
-.status-expired { background: #fff2f0; color: #ff4d4f; }
+.status-valid { background: $uni-color-success-soft; color: $uni-color-success; }
+.status-expiring { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.status-expired { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .time-info {
   padding: 16rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
 }
 
@@ -324,12 +324,12 @@ onMounted(() => {
 
 .time-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .time-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .record-list {
@@ -339,7 +339,7 @@ onMounted(() => {
 .record-item {
   display: flex;
   padding: 16rpx;
-  background: #fafafa;
+  background: $uni-gray-50;
   border-radius: 12rpx;
   margin-bottom: 12rpx;
 }
@@ -360,21 +360,21 @@ onMounted(() => {
 }
 
 .icon-in {
-  background: #f6ffed;
+  background: $uni-color-success-soft;
 }
 
 .icon-in text {
-  color: #52c41a;
+  color: $uni-color-success;
   font-size: 28rpx;
   font-weight: 700;
 }
 
 .icon-out {
-  background: #fff2f0;
+  background: $uni-color-error-soft;
 }
 
 .icon-out text {
-  color: #ff4d4f;
+  color: $uni-color-error;
   font-size: 28rpx;
   font-weight: 700;
 }
@@ -393,12 +393,12 @@ onMounted(() => {
 .record-type {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .record-time {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .record-detail {
@@ -413,16 +413,16 @@ onMounted(() => {
 }
 
 .quantity-in {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .quantity-out {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .record-remaining {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

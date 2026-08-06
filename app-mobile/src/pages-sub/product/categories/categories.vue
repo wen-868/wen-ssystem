@@ -206,32 +206,32 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .categories-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
   display: flex;
   flex-direction: column;
 }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center; height: 72rpx;
-  background: #f5f7fa; border-radius: 36rpx; padding: 0 24rpx;
+  background: $uni-bg-color-page; border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .tree-scroll { flex: 1; padding: 16rpx 24rpx; }
-.tree-list { background: #fff; border-radius: 16rpx; overflow: hidden; }
+.tree-list { background: $uni-bg-color; border-radius: 16rpx; overflow: hidden; }
 .tree-node {
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
   padding: 20rpx 24rpx;
 }
 .tree-node:last-child { border-bottom: none; }
@@ -239,35 +239,35 @@ onMounted(() => {
   display: flex; align-items: center; margin-bottom: 12rpx;
 }
 .expand-icon {
-  font-size: 28rpx; color: #1677FF; width: 40rpx;
+  font-size: 28rpx; color: $uni-color-primary; width: 40rpx;
   display: inline-block; text-align: center;
 }
 .expand-icon--leaf { width: 40rpx; }
-.node-name { font-size: 30rpx; color: #333; font-weight: 500; flex: 1; }
+.node-name { font-size: 30rpx; color: $uni-gray-700; font-weight: 500; flex: 1; }
 .offline-badge {
   padding: 2rpx 12rpx; background: rgba(255,77,79,0.1);
   border-radius: 6rpx; margin-left: 12rpx;
 }
-.offline-badge-text { font-size: 20rpx; color: #ff4d4f; }
-.node-sort { font-size: 22rpx; color: #bbb; margin-left: 12rpx; }
+.offline-badge-text { font-size: 20rpx; color: $uni-color-error; }
+.node-sort { font-size: 22rpx; color: $uni-gray-300; margin-left: 12rpx; }
 .node-actions { display: flex; gap: 20rpx; padding-left: 40rpx; }
 .action-text { font-size: 24rpx; }
-.action-text.edit { color: #1677FF; }
-.action-text.sort { color: #52c41a; }
-.action-text.add-sub { color: #faad14; }
-.action-text.delete { color: #ff4d4f; }
+.action-text.edit { color: $uni-color-primary; }
+.action-text.sort { color: $uni-color-success; }
+.action-text.add-sub { color: $uni-color-warning; }
+.action-text.delete { color: $uni-color-error; }
 .empty-state {
   display: flex; flex-direction: column; align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: #ddd; margin-bottom: 20rpx; }
-.empty-text { font-size: 28rpx; color: #bbb; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .fab-btn {
   position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom));
   width: 100rpx; height: 100rpx; border-radius: 50%;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.4);
 }
-.fab-icon { font-size: 56rpx; color: #fff; font-weight: 300; }
+.fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }
 </style>

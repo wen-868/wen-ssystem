@@ -54,7 +54,7 @@
             <text class="form-label">允许线上销售</text>
             <text class="form-hint">禁止后该分类商品仅线下销售</text>
           </view>
-          <switch :checked="form.allowOnlineSale === 1" @change="onToggleOnline" color="#1677FF" />
+          <switch :checked="form.allowOnlineSale === 1" @change="onToggleOnline" :color="COLOR_PRIMARY" />
         </view>
 
         <view class="form-item form-item--row">
@@ -62,7 +62,7 @@
             <text class="form-label">启用状态</text>
             <text class="form-hint">禁用后该分类不可使用</text>
           </view>
-          <switch :checked="form.status === 1" @change="onToggleStatus" color="#1677FF" />
+          <switch :checked="form.status === 1" @change="onToggleStatus" :color="COLOR_PRIMARY" />
         </view>
       </view>
 
@@ -78,6 +78,7 @@ import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { categoriesApi, type CategoryInfo } from '@/api/modules/categories'
+import { COLOR_PRIMARY } from '@/constants/colors'
 
 const formRef = ref<any>(null)
 const isEdit = ref(false)
@@ -195,43 +196,43 @@ onLoad((options) => {
 })
 </script>
 
-<style scoped>
-.category-edit-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.category-edit-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .category-form { padding: 16rpx 24rpx; }
 .form-section {
-  background: #fff; border-radius: 16rpx; padding: 24rpx;
+  background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx;
   margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
-.section-title { font-size: 28rpx; font-weight: 600; color: #333; margin-bottom: 20rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: 20rpx; }
 .form-item { margin-bottom: 20rpx; }
 .form-item--row {
   display: flex; justify-content: space-between; align-items: center;
 }
-.form-label { font-size: 26rpx; color: #666; margin-bottom: 8rpx; display: block; }
-.form-hint { font-size: 22rpx; color: #bbb; display: block; }
+.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: 8rpx; display: block; }
+.form-hint { font-size: 22rpx; color: $uni-gray-300; display: block; }
 .row-left { flex: 1; }
 .form-control { position: relative; }
 .form-input {
-  width: 100%; height: 80rpx; background: #f5f7fa; border-radius: 12rpx;
-  padding: 0 24rpx; font-size: 28rpx; color: #333; box-sizing: border-box;
+  width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: 12rpx;
+  padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box;
 }
 .form-value {
-  display: block; height: 80rpx; line-height: 80rpx; background: #f5f7fa;
-  border-radius: 12rpx; padding: 0 24rpx; font-size: 28rpx; color: #333;
+  display: block; height: 80rpx; line-height: 80rpx; background: $uni-bg-color-page;
+  border-radius: 12rpx; padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700;
 }
-.form-value--placeholder { color: #bbb; font-size: 26rpx; }
-.input-placeholder { color: #bbb; font-size: 26rpx; }
+.form-value--placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .field-error { margin-top: 8rpx; }
-.error-text { font-size: 24rpx; color: #ff4d4f; }
+.error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
-  width: 100%; height: 88rpx; background: linear-gradient(135deg, #1677FF, #4096ff);
-  border-radius: 44rpx; font-size: 30rpx; font-weight: 600; color: #fff; border: none; margin-top: 16rpx;
+  width: 100%; height: 88rpx; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  border-radius: 44rpx; font-size: 30rpx; font-weight: 600; color: $uni-text-color-inverse; border: none; margin-top: 16rpx;
 }
 .submit-btn::after { border: none; }
 .safe-bottom { height: 40rpx; }

@@ -448,32 +448,32 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.product-edit-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.product-edit-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 
 .library-hit-bar {
   margin: 16rpx 24rpx 0;
   padding: 16rpx 20rpx;
-  background: linear-gradient(135deg, #e6f7ff, #f0f5ff);
-  border: 2rpx solid #91d5ff;
+  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
+  border: 2rpx solid $uni-color-primary-soft;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   gap: 12rpx;
 }
-.hit-icon { font-size: 28rpx; color: #1677FF; }
-.hit-text { font-size: 24rpx; color: #0050b3; line-height: 1.5; flex: 1; }
+.hit-icon { font-size: 28rpx; color: $uni-color-primary; }
+.hit-text { font-size: 24rpx; color: $uni-color-primary-active; line-height: 1.5; flex: 1; }
 
 .edit-form { padding: 0 0 32rpx; }
 .form-section {
   margin: 16rpx 24rpx 0;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -481,12 +481,12 @@ onMounted(() => {
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 20rpx;
   padding-left: 12rpx;
-  border-left: 6rpx solid #1677FF;
+  border-left: 6rpx solid $uni-color-primary;
 }
-.form-item { padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.form-item { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-child { border-bottom: none; }
 .form-row {
   display: flex;
@@ -496,30 +496,30 @@ onMounted(() => {
 .form-label {
   display: block;
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
   margin-bottom: 12rpx;
 }
-.required { color: #ff4d4f; margin-right: 4rpx; }
+.required { color: $uni-color-error; margin-right: 4rpx; }
 .form-input {
   width: 100%;
   height: 72rpx;
   padding: 0 20rpx;
-  background: #f7f9fc;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 .form-input--flex { flex: 1; }
-.input-placeholder { color: #bbb; }
+.input-placeholder { color: $uni-gray-300; }
 .form-textarea {
   width: 100%;
   min-height: 200rpx;
   padding: 20rpx;
-  background: #f7f9fc;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   box-sizing: border-box;
 }
 .form-picker {
@@ -528,12 +528,12 @@ onMounted(() => {
   justify-content: space-between;
   height: 72rpx;
   padding: 0 20rpx;
-  background: #f7f9fc;
+  background: $uni-bg-color-page;
   border-radius: 12rpx;
 }
-.picker-value { font-size: 26rpx; color: #333; }
-.picker-placeholder { font-size: 26rpx; color: #bbb; }
-.picker-arrow { font-size: 24rpx; color: #999; }
+.picker-value { font-size: 26rpx; color: $uni-gray-700; }
+.picker-placeholder { font-size: 26rpx; color: $uni-gray-300; }
+.picker-arrow { font-size: 24rpx; color: $uni-gray-400; }
 
 .input-with-action {
   display: flex;
@@ -544,20 +544,20 @@ onMounted(() => {
   width: 72rpx;
   height: 72rpx;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.scan-icon { font-size: 32rpx; color: #fff; }
+.scan-icon { font-size: 32rpx; color: $uni-text-color-inverse; }
 
 .image-upload {
   width: 200rpx;
   height: 200rpx;
   border-radius: 16rpx;
   overflow: hidden;
-  background: #f7f9fc;
+  background: $uni-bg-color-page;
 }
 .main-image { width: 100%; height: 100%; }
 .image-placeholder {
@@ -568,22 +568,22 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed $uni-gray-300;
   border-radius: 16rpx;
   box-sizing: border-box;
 }
-.upload-icon { font-size: 48rpx; color: #bbb; }
-.upload-text { font-size: 22rpx; color: #bbb; }
+.upload-icon { font-size: 48rpx; color: $uni-gray-300; }
+.upload-text { font-size: 22rpx; color: $uni-gray-300; }
 
 .submit-section { padding: 32rpx 48rpx 0; }
 .submit-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   font-size: 30rpx;
   font-weight: 600;
-  color: #fff;
+  color: $uni-text-color-inverse;
   border: none;
 }
 .submit-btn::after { border: none; }
@@ -605,7 +605,7 @@ onMounted(() => {
 .category-sheet {
   width: 100%;
   max-height: 70vh;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -615,24 +615,24 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
-.sheet-title { font-size: 30rpx; font-weight: 600; color: #333; }
-.sheet-close { font-size: 26rpx; color: #999; }
+.sheet-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
+.sheet-close { font-size: 26rpx; color: $uni-gray-400; }
 .category-scroll { max-height: 60vh; }
 .category-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
-.category-item-name { font-size: 28rpx; color: #333; }
-.category-item-check { font-size: 28rpx; color: #1677FF; }
+.category-item-name { font-size: 28rpx; color: $uni-gray-700; }
+.category-item-check { font-size: 28rpx; color: $uni-color-primary; }
 .category-empty {
   padding: 60rpx 32rpx;
   text-align: center;
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 </style>
