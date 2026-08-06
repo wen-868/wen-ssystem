@@ -8,6 +8,7 @@ import { getCustomerLevelCode, type CustomerType } from "../../shared/fulfillmen
 interface MemberListRow {
   memberId: number;
   name: string;
+  contact: string | null;
   mobile: string;
   customerType: string;
   address: string | null;
@@ -26,6 +27,7 @@ interface MemberListRow {
 interface MemberDetailRow {
   memberId: number;
   name: string;
+  contact: string | null;
   mobile: string;
   customerType: string;
   address: string | null;
@@ -161,7 +163,7 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   // 使用 LEFT JOIN + GROUP BY 替代相关子查询，减少数据库查询次数
   // R54-04：补充 address/settlement_type/remark 字段，修复列表页这些字段显示为空的 Bug
   const records = await queryWithTenant<MemberListRow>(
-    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+    `SELECT m.id AS memberId, m.name, m.contact, m.mobile, m.customer_type AS customerType,
             m.address, m.settlement_type AS settlementType, m.remark,
             m.points, m.level_code AS levelCode, m.status,
             m.staff_id AS staffId, u.real_name AS staffName,
@@ -171,7 +173,7 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
      LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.business_status NOT IN('DRAFT', 'VOIDED')
      WHERE m.tenant_id = ? AND(m.name LIKE ? OR m.mobile LIKE ?)
-     GROUP BY m.id, m.name, m.mobile, m.customer_type, m.address, m.settlement_type, m.remark, m.points, m.level_code, m.status, m.staff_id, u.real_name
+     GROUP BY m.id, m.name, m.contact, m.mobile, m.customer_type, m.address, m.settlement_type, m.remark, m.points, m.level_code, m.status, m.staff_id, u.real_name
      ORDER BY m.id DESC
      LIMIT ? OFFSET ? `,
     [tenantId, kw, kw, pageSize, offset],
@@ -181,23 +183,23 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   return { total: totalRow?.total ?? 0, page, pageSize, records };
 }
 
-export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string }) {
+export async function createCustomer(tenantId: string, body: { name: string; mobile: string; customerType: string; staffId?: number; address?: string; settlementType?: string; remark?: string; contact?: string }) {
   const levelCode = getCustomerLevelCode(body.customerType as CustomerType);
   const result = await queryWithTenant<InsertResultRow>(
-    `INSERT INTO t_member (name, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
-     VALUES(?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
-    [body.name, body.mobile, body.customerType, body.staffId ?? null, body.address ?? null, body.settlementType ?? 'CASH', body.remark ?? null, levelCode, tenantId],
+    `INSERT INTO t_member (name, contact, mobile, customer_type, staff_id, address, settlement_type, remark, points, level_code, status, tenant_id)
+     VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1, ?)`,
+    [body.name, body.contact ?? null, body.mobile, body.customerType, body.staffId ?? null, body.address ?? null, body.settlementType ?? 'CASH', body.remark ?? null, levelCode, tenantId],
     tenantId
   );
   const memberId = result?.[0]?.insertId;
   if (!memberId) throw new Error("创建客户失败");
-  return { memberId, name: body.name, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null, address: body.address ?? null, settlementType: body.settlementType ?? 'CASH', remark: body.remark ?? null };
+  return { memberId, name: body.name, contact: body.contact ?? null, mobile: body.mobile, customerType: body.customerType, staffId: body.staffId ?? null, address: body.address ?? null, settlementType: body.settlementType ?? 'CASH', remark: body.remark ?? null };
 }
 
 export async function getCustomerDetail(tenantId: string, memberId: number) {
   // R54-04：补充 address/settlement_type/remark 字段，修复详情页这些字段显示为空的 Bug
   const member = await queryOneWithTenant<MemberDetailRow>(
-    `SELECT m.id AS memberId, m.name, m.mobile, m.customer_type AS customerType,
+    `SELECT m.id AS memberId, m.name, m.contact, m.mobile, m.customer_type AS customerType,
     m.address, m.settlement_type AS settlementType, m.remark,
     m.points, m.level_code AS levelCode, m.status,
     m.staff_id AS staffId, u.real_name AS staffName
@@ -213,7 +215,7 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
   return member;
 }
 
-export async function updateCustomer(tenantId: string, memberId: number, body: { name?: string; mobile?: string; address?: string; customerType?: string; levelCode?: string; settlementType?: string; remark?: string }) {
+export async function updateCustomer(tenantId: string, memberId: number, body: { name?: string; mobile?: string; address?: string; customerType?: string; levelCode?: string; settlementType?: string; remark?: string; contact?: string }) {
   const existing = await queryOneWithTenant<MemberBasicRow>("SELECT id, name, mobile FROM t_member WHERE id = ? AND tenant_id = ?", [memberId, tenantId], tenantId);
   if (!existing) {
     throw Object.assign(new Error("客户不存在"), { statusCode: 404 });
@@ -221,6 +223,7 @@ export async function updateCustomer(tenantId: string, memberId: number, body: {
   const sets: string[] = [];
   const params: unknown[] = [];
   if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
+  if (body.contact !== undefined) { sets.push("contact = ?"); params.push(body.contact); }
   if (body.mobile !== undefined) { sets.push("mobile = ?"); params.push(body.mobile); }
   if (body.address !== undefined) { sets.push("address = ?"); params.push(body.address); }
   if (body.customerType !== undefined) { sets.push("customer_type = ?"); params.push(body.customerType); }

@@ -1668,11 +1668,28 @@
 - **优先级**：P0
 - **负责人**：阿坚（后端）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（任务卡 inbox/ajian_r83_01.md）
-- **文件**：`docs/migrations/122_member_contact.sql`（新建）、`backend/src/services/admin/customer.service.ts`
+- **状态**：✅ 已完成（2026-08-06 阿坚执行，待凌舟复核）
+- **文件**：`docs/migrations/123_member_contact.sql`（新建，任务卡原写 122，因 122 已被 `122_ai_rag.sql` 占用避免序号重复改 123）、`backend/src/services/admin/customer.service.ts`、`backend/src/__tests__/services/admin/customer.test.ts`
 - **问题**：t_member 无 contact 列，客户信息缺「联系人」
 - **修复**：① 迁移脚本 `ALTER TABLE t_member ADD COLUMN contact VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name`（IF NOT EXISTS 保护）；② customer.service 列表 SELECT 加 m.contact、createCustomer/updateCustomer 支持 contact
 - **验收标准**：`npm run typecheck` 0 errors；迁移脚本含 IF NOT EXISTS 保护；`rg "contact" backend/src/services/admin/customer.service.ts` 存在
+- **阿坚完成记录**（2026-08-06）：
+  - **迁移脚本** `123_member_contact.sql`：`CALL add_column_if_not_exists('t_member', 'contact', "VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name")`（092 号脚本定义的存储过程，精确传 `t_member` 表名，可重复执行）；末尾附 information_schema 验证 SQL + 完成提示（对齐 120/121 结尾风格）
+  - **customer.service.ts（最小改动，未碰无关代码）**：
+    - `MemberListRow`/`MemberDetailRow` 接口加 `contact: string | null`
+    - `listMembers` SELECT 加 `m.contact`，GROUP BY 同步加 `m.contact`
+    - `createCustomer` body 类型加 `contact?: string`，INSERT 列/参数/返回值支持 contact（缺省存 NULL）
+    - `getCustomerDetail` SELECT 加 `m.contact`（R83-02 前端详情页展示联系人所需，属同一字段链路）
+    - `updateCustomer` body 类型加 `contact?: string`，SET 支持 `contact = ?`
+    - 未改动 controller（req.body 直接透传 service）
+  - **验证证据**：
+    | 验证项 | 命令 | 结果 |
+    |--------|------|------|
+    | 类型检查 | `npm run typecheck` | exit 0，0 errors ✅ |
+    | service 单测 | `npx vitest run src/__tests__/services/admin/customer.test.ts` | 31/31 通过 ✅ |
+    | controller+路由回归 | `npx vitest run src/__tests__/controllers/admin/customer.controller.test.ts src/__tests__/routes/admin-customer.test.ts` | 19/19 通过 ✅ |
+    | 验收 grep | `rg "contact" backend/src/services/admin/customer.service.ts` | 列表 SELECT/GROUP BY + 创建 INSERT/返回 + 更新 SET 全链路存在 ✅ |
+  - **说明**：① 序号 122→123 系任务卡笔误规避（122_ai_rag.sql 已存在，数据库变更清单有历史序号重复教训）；② 迁移脚本在服务器部署时由 migration.ts 启动自动执行（092 存储过程先于 123 创建），或运维手动执行；③ 本次未改 API 接口文档/前端（R83-02 由墨负责，前端详情页读取 contact 字段即可）
 
 ### R83-02 — [P0] 前端客户页补「联系人」表单与列
 - **优先级**：P0

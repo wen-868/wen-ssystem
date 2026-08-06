@@ -60,10 +60,10 @@ function flushMicrotasks() {
 // ============ listMembers ============
 describe("admin customer.service - listMembers", () => {
   it("有数据 + totalRow 有值（?. 左 + ?? 左）", async () => {
-    mocks.queryWithTenant.mockResolvedValue([{ id: 1, name: "张三" }]);
+    mocks.queryWithTenant.mockResolvedValue([{ id: 1, name: "张三", contact: "李经理" }]);
     mocks.queryOneWithTenant.mockResolvedValue({ total: 1 });
     const res = await listMembers("t1", 1, 10, "张三");
-    expect(res).toEqual({ total: 1, page: 1, pageSize: 10, records: [{ id: 1, name: "张三" }] });
+    expect(res).toEqual({ total: 1, page: 1, pageSize: 10, records: [{ id: 1, name: "张三", contact: "李经理" }] });
   });
 
   it("无数据 + totalRow 为 null（?. 右 + ?? 右）", async () => {
@@ -81,9 +81,10 @@ describe("admin customer.service - createCustomer", () => {
     mocks.queryWithTenant.mockResolvedValue([{ insertId: 100 }]);
     const res = await createCustomer("t1", {
       name: "李四", mobile: "13800000000", customerType: "WHOLESALE",
-      staffId: 5, address: "地址", settlementType: "ACCOUNT", remark: "备注",
+      staffId: 5, address: "地址", settlementType: "ACCOUNT", remark: "备注", contact: "王经理",
     });
     expect(res.memberId).toBe(100);
+    expect(res.contact).toBe("王经理");
     expect(res.staffId).toBe(5);
     expect(res.address).toBe("地址");
     expect(res.settlementType).toBe("ACCOUNT");
@@ -96,6 +97,7 @@ describe("admin customer.service - createCustomer", () => {
       name: "王五", mobile: "13900000000", customerType: "RETAIL",
     });
     expect(res.memberId).toBe(101);
+    expect(res.contact).toBeNull();
     expect(res.staffId).toBeNull();
     expect(res.address).toBeNull();
     expect(res.settlementType).toBe("CASH");
@@ -118,9 +120,9 @@ describe("admin customer.service - createCustomer", () => {
 // ============ getCustomerDetail ============
 describe("admin customer.service - getCustomerDetail", () => {
   it("客户存在时返回详情", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ memberId: 1, name: "张三" });
+    mocks.queryOneWithTenant.mockResolvedValue({ memberId: 1, name: "张三", contact: "李经理" });
     const res = await getCustomerDetail("t1", 1);
-    expect(res).toEqual({ memberId: 1, name: "张三" });
+    expect(res).toEqual({ memberId: 1, name: "张三", contact: "李经理" });
   });
 
   it("客户不存在时抛 404", async () => {
@@ -149,7 +151,7 @@ describe("admin customer.service - updateCustomer", () => {
     mocks.syncChangedFields.mockResolvedValue([]);
     const res = await updateCustomer("t1", 1, {
       name: "新名", mobile: "139", address: "新地址", customerType: "WHOLESALE",
-      levelCode: "VIP", settlementType: "ACCOUNT", remark: "新备注",
+      levelCode: "VIP", settlementType: "ACCOUNT", remark: "新备注", contact: "赵经理",
     });
     expect(res).toEqual({ memberId: 1 });
     expect(mocks.queryWithTenant).toHaveBeenCalledOnce();
