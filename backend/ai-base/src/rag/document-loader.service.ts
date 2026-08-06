@@ -24,6 +24,7 @@ import { readFile } from 'fs/promises';
 import { basename } from 'path';
 import * as XLSX from 'xlsx';
 import * as mammoth from 'mammoth';
+import { PDFParse } from 'pdf-parse';
 
 /** 支持的文档类型 */
 export type SupportedDocType = 'pdf' | 'docx' | 'markdown' | 'excel' | 'text';
@@ -144,7 +145,6 @@ export class DocumentLoaderService {
           // 无 canvas 原生绑定：PDF 解析将失败，但不阻塞服务启动
         }
       }
-      const { PDFParse } = await import('pdf-parse');
       const parser = new PDFParse({ data: buffer });
       const result = await parser.getText();
       const text = result.text ?? '';
