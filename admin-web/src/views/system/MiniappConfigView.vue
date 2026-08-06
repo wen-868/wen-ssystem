@@ -326,9 +326,9 @@ async function loadTemplates() {
   } catch {
     // 接口不可用时使用默认模板
     templates.value = [
-      { id: "standard", name: "标准模板", description: "简洁布局，适合零售门店", icon: "🏪", bgColor: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-      { id: "featured", name: "精选模板", description: "图文混排，适合品牌展示", icon: "✨", bgColor: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-      { id: "premium", name: "高级模板", description: "全屏轮播，适合高端酒水", icon: "🥂", bgColor: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+      { id: "standard", name: "标准模板", description: "简洁布局，适合零售门店", icon: "🏪", bgColor: "linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%)" },
+      { id: "featured", name: "精选模板", description: "图文混排，适合品牌展示", icon: "✨", bgColor: "linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%)" },
+      { id: "premium", name: "高级模板", description: "全屏轮播，适合高端酒水", icon: "🥂", bgColor: "linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%)" },
     ];
   } finally {
     templateLoading.value = false;

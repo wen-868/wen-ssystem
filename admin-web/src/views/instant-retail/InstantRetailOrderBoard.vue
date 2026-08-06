@@ -238,6 +238,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Refresh, ArrowDown, User, Goods, Clock, Van } from "@element-plus/icons-vue";
 
@@ -377,9 +378,9 @@ const countdownClass = computed(() => {
 });
 
 const countdownGradient = computed(() => {
-  if (countdown.value > 40) return "#0EA879";
-  if (countdown.value > 20) return "#D48B3A";
-  return "#C0392B";
+  if (countdown.value > 40) return CHART_COLORS.success;
+  if (countdown.value > 20) return CHART_COLORS.warning;
+  return CHART_COLORS.danger;
 });
 
 function getPlatformName(platform?: string) {
@@ -649,13 +650,13 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 .pending-column .column-header {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(63, 111, 239, 0.4) 100%);
 }
 .processing-column .column-header {
-  background: linear-gradient(135deg, var(--color-warning) 0%, #f0c78a 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, rgba(212, 139, 58, 0.4) 100%);
 }
 .completed-column .column-header {
-  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14, 168, 121, 0.4) 100%);
 }
 .column-title {
   font-size: 15px;
@@ -783,7 +784,7 @@ onBeforeUnmount(() => {
   border-top: 1px solid var(--border-light);
 }
 .popup-header {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #f78989 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, rgba(192, 57, 43, 0.4) 100%);
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;

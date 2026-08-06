@@ -15,19 +15,19 @@
           <el-statistic title="今日操作" :value="statistics.todayCount || 0" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="新增操作" :value="statistics.createCount || 0" value-style="color: #0EA879" />
+          <el-statistic title="新增操作" :value="statistics.createCount || 0" value-style="color: var(--color-success)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="修改操作" :value="statistics.updateCount || 0" value-style="color: #3F6FEF" />
+          <el-statistic title="修改操作" :value="statistics.updateCount || 0" value-style="color: var(--color-primary)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="删除操作" :value="statistics.deleteCount || 0" value-style="color: #C0392B" />
+          <el-statistic title="删除操作" :value="statistics.deleteCount || 0" value-style="color: var(--color-danger)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="查询操作" :value="statistics.queryCount || 0" value-style="color: #999999" />
+          <el-statistic title="查询操作" :value="statistics.queryCount || 0" value-style="color: var(--gray-400)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="操作用户" :value="statistics.userCount || 0" value-style="color: #D48B3A" />
+          <el-statistic title="操作用户" :value="statistics.userCount || 0" value-style="color: var(--color-warning)" />
         </el-col>
       </el-row>
 

@@ -2003,11 +2003,24 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单（墨完成 R88 收口后派单）
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/system/`
 - **问题**：系统设置页硬编码色残留 41 处
 - **修复**：硬编码色替换为 tokens.css 变量（模板/样式），图表色用 CHART_COLORS；只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/system/` ≤ 原 30%
+
+**墨完成记录**（2026-08-07，与 R90-02 合并派单收尾）：
+
+**完成内容：**
+- 改动 9 个 system 页 .vue 文件，全部为颜色值替换；4 个文件新增 `import { CHART_COLORS } from "@/styles/theme"`（ApprovalDetail/ApprovalRules/MonitorView）；行尾保持 HEAD 纯 CRLF
+- **模板内联 style/绑定色**：`#999999→var(--gray-400)`、`#9CA3AF→var(--gray-400)`、`#4B5563→var(--gray-500)`、`#D1D5DB→var(--gray-300)`、`#E5E7EB→var(--border-normal)`、`#f0f0f0→var(--border-light)`；el-statistic `value-style` 语义色 → `var(--color-success/primary/danger/warning)`
+- **脚本状态映射色**（ApprovalDetail 审批时间线/ApprovalRules 业务类型标签）→ `CHART_COLORS.success/danger/warning/textMuted/purple/cyan`
+- **ECharts 图表色**（MonitorView 状态码饼图/错误趋势线）→ `CHART_COLORS` 常量
+- **渐变副色按品牌 rgba 惯例**：`#66b1ff→rgba(63,111,239,0.4)`、`#85ce61→rgba(14,168,121,0.4)`、`#f89898→rgba(192,57,43,0.4)`、`#ebb563→rgba(212,139,58,0.4)`
+- **MiniappConfigView 模板 fallback 数据**：bgColor 装饰渐变改品牌 token 组合（primary/chart-5/chart-6/danger），保留 var() 在 style 绑定中生效
+- **保留 2 处（业务数据默认值）**：SystemConfigView `theme_color: "#1677FF"`（主题色配置默认值）+ 提示文案「默认 #1677FF」（文字内容非样式）
+
+**验证证据：** `rg "#[0-9a-fA-F]{6}\b" system/` → 2 处（均为业务默认值）；`npx vue-tsc -b` exit 0，0 errors；`npm run build` exit 0（57.43s）；ESLint 5 errors 全为 HEAD 预存（git diff -U0 证明不在改动行），本轮 0 新增
 
 ---
 
@@ -2063,11 +2076,30 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/instant-retail/`（InstantRetailReport 20/InstantRetailPickup 15 等）
 - **问题**：即时零售页硬编码色残留 49 处
 - **修复**：硬编码色替换为 tokens.css 变量/CHART_COLORS，只改颜色
 - **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/instant-retail/` ≤ 原 30%
+
+**墨完成记录**（2026-08-07，与 R89-01 合并派单收尾）：
+
+**完成内容：**
+- 改动 4 个 instant-retail 页 .vue 文件（Dashboard/OrderBoard/Pickup/Report），全部为颜色值替换；4 个文件新增 `import { CHART_COLORS } from "@/styles/theme"`；行尾保持 HEAD 纯 CRLF
+- **模板内联 style/SVG**：`#C0392B→var(--color-danger)`、`#0EA879→var(--color-success)`；SVG 进度环 `stroke="#F0F0F0"→var(--gray-100)`、`stroke="#0EA879"→var(--color-success)`
+- **脚本状态/平台映射色**（倒计时、平台色、状态码）→ `CHART_COLORS.success/warning/danger/textMuted/primary`
+- **ECharts 图表色**（Report 趋势线/柱状渐变）→ `CHART_COLORS.primary/warning`
+- **渐变副色按品牌 rgba 惯例**：`#66b1ff→rgba(63,111,239,0.4)`、`#85ce61→rgba(14,168,121,0.4)`、`#f78989→rgba(192,57,43,0.4)`、`#f0c78a→rgba(212,139,58,0.4)`；Report 装饰渐变改品牌 token 组合（primary/chart-5/chart-6/danger/success）
+- **保留 13 处（业务数据默认值）**：InstantRetailPlatform 3 处平台品牌色（京东 #E1251B/美团 #FFD101/饿了么 #0097FF）；InstantRetailReport 10 处（platformData+对比表 6 处平台品牌色 + 金银铜勋章 4 处，银色已 token 化为 gray-300/400）
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| hex 残留（本目录） | `rg "#[0-9a-fA-F]{6}\b" instant-retail/` | 13 处（均为业务默认值）✅ |
+| 两目录合计（任务卡合并验收） | instant-retail 13 + system 2 | 15 ≤ 18 ✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（57.43s）✅ |
+| ESLint（改动的 13 文件） | `npx eslint <files>` | 5 errors 全为 HEAD 预存（git diff -U0 证明不在改动行），本轮 0 新增 ✅ |
 
 ---
 

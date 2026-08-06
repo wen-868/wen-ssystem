@@ -124,6 +124,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import echarts from '@/utils/echarts'
 import { Refresh, Monitor, DataLine, Warning, Timer, Bell } from "@element-plus/icons-vue";
@@ -184,7 +185,7 @@ const statusCodeData = () => {
     name: `HTTP ${code}`,
     value: count,
     itemStyle: {
-      color: code.startsWith("2") ? "#0EA879" : code.startsWith("3") ? "#D48B3A" : code.startsWith("4") ? "#C0392B" : "#999999",
+      color: code.startsWith("2") ? CHART_COLORS.success : code.startsWith("3") ? CHART_COLORS.warning : code.startsWith("4") ? CHART_COLORS.danger : CHART_COLORS.textMuted,
     },
   }));
 };
@@ -274,8 +275,8 @@ function renderErrorTrendChart() {
           smooth: true,
           symbol: "circle",
           symbolSize: 6,
-          lineStyle: { width: 2, color: "#C0392B" },
-          itemStyle: { color: "#C0392B" },
+          lineStyle: { width: 2, color: CHART_COLORS.danger },
+          itemStyle: { color: CHART_COLORS.danger },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: "rgba(192,57,43,0.3)" },
@@ -353,7 +354,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .stat-icon {
@@ -367,22 +368,22 @@ onUnmounted(() => {
 }
 
 .db-icon {
-  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14, 168, 121, 0.4) 100%);
   color: #fff;
 }
 
 .request-icon {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(63, 111, 239, 0.4) 100%);
   color: #fff;
 }
 
 .error-icon {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #f89898 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, rgba(192, 57, 43, 0.4) 100%);
   color: #fff;
 }
 
 .response-icon {
-  background: linear-gradient(135deg, var(--color-warning) 0%, #ebb563 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, rgba(212, 139, 58, 0.4) 100%);
   color: #fff;
 }
 

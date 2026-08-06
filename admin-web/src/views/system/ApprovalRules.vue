@@ -73,7 +73,7 @@
         </el-form-item>
         <el-form-item label="SLA时效">
           <el-input-number v-model="form.slaHours" :min="1" :max="720" style="width: 160px" />
-          <span style="margin-left: 8px; color: #999999">小时</span>
+          <span style="margin-left: 8px; color: var(--gray-400)">小时</span>
         </el-form-item>
         <el-form-item label="升级级别">
           <el-input-number v-model="form.escalationLevel" :min="0" :max="10" style="width: 160px" />
@@ -95,18 +95,19 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchApprovalRules, createApprovalRule, updateApprovalRule, deleteApprovalRule } from "../../api";
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
 const businessTypeOptions = [
-  { value: "PURCHASE", label: "采购审批", color: "#3F6FEF" },
-  { value: "SALE", label: "销售审批", color: "#0EA879" },
-  { value: "REFUND", label: "退款审批", color: "#D48B3A" },
-  { value: "EXPENSE", label: "费用审批", color: "#999999" },
-  { value: "PRICE_CHANGE", label: "价格变更", color: "#9b59b6" },
-  { value: "CREDIT_LIMIT", label: "信用额度", color: "#00bcd4" }
+  { value: "PURCHASE", label: "采购审批", color: CHART_COLORS.primary },
+  { value: "SALE", label: "销售审批", color: CHART_COLORS.success },
+  { value: "REFUND", label: "退款审批", color: CHART_COLORS.warning },
+  { value: "EXPENSE", label: "费用审批", color: CHART_COLORS.textMuted },
+  { value: "PRICE_CHANGE", label: "价格变更", color: CHART_COLORS.purple },
+  { value: "CREDIT_LIMIT", label: "信用额度", color: CHART_COLORS.cyan }
 ];
 
 function businessTypeLabel(v: string) {

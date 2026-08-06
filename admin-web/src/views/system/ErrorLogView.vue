@@ -15,19 +15,19 @@
           <el-statistic title="总错误数" :value="totalStats.total || 0" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="FATAL" :value="totalStats.fatal || 0" value-style="color: #C0392B" />
+          <el-statistic title="FATAL" :value="totalStats.fatal || 0" value-style="color: var(--color-danger)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="ERROR" :value="totalStats.error || 0" value-style="color: #D48B3A" />
+          <el-statistic title="ERROR" :value="totalStats.error || 0" value-style="color: var(--color-warning)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="WARN" :value="totalStats.warn || 0" value-style="color: #3F6FEF" />
+          <el-statistic title="WARN" :value="totalStats.warn || 0" value-style="color: var(--color-primary)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="后端错误" :value="totalStats.backend || 0" value-style="color: #999999" />
+          <el-statistic title="后端错误" :value="totalStats.backend || 0" value-style="color: var(--gray-400)" />
         </el-col>
         <el-col :span="4">
-          <el-statistic title="前端错误" :value="totalStats.frontend || 0" value-style="color: #0EA879" />
+          <el-statistic title="前端错误" :value="totalStats.frontend || 0" value-style="color: var(--color-success)" />
         </el-col>
       </el-row>
 

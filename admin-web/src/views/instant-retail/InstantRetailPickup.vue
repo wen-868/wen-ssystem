@@ -184,7 +184,7 @@
                 <el-table-column prop="itemCount" label="商品数" width="80" align="center" />
                 <el-table-column label="金额" width="120" align="right">
                   <template #default="{ row }">
-                    <span style="color: #C0392B; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
+                    <span style="color: var(--color-danger); font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="statusText" label="状态" width="120">
@@ -220,7 +220,7 @@
                 <el-table-column prop="itemCount" label="商品数" width="80" align="center" />
                 <el-table-column label="金额" width="120" align="right">
                   <template #default="{ row }">
-                    <span style="color: #C0392B; font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
+                    <span style="color: var(--color-danger); font-weight: 600">¥{{ row.amount.toFixed(2) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column prop="responseTime" label="响应时间" width="120" align="center">
@@ -268,13 +268,13 @@
           <div class="sidebar-title">今日接单统计</div>
           <div class="stat-ring">
             <svg viewBox="0 0 100 100" class="ring-svg">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#F0F0F0" stroke-width="8" />
+              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--gray-100)" stroke-width="8" />
               <circle
                 cx="50"
                 cy="50"
                 r="42"
                 fill="none"
-                stroke="#0EA879"
+                stroke="var(--color-success)"
                 stroke-width="8"
                 stroke-linecap="round"
                 :stroke-dasharray="2 * Math.PI * 42"
@@ -368,6 +368,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Bell,
@@ -646,11 +647,11 @@ function getPlatformTagType(platform: string) {
 
 function getPlatformColor(platform: string) {
   const map: Record<string, string> = {
-    jd: "#C0392B",
-    meituan: "#D48B3A",
-    eleme: "#3F6FEF"
+    jd: CHART_COLORS.danger,
+    meituan: CHART_COLORS.warning,
+    eleme: CHART_COLORS.primary
   };
-  return map[platform] || "#999999";
+  return map[platform] || CHART_COLORS.textMuted;
 }
 
 function getDeliveryName(type: string) {
@@ -675,9 +676,9 @@ function getCountdownClass(order: Order) {
 
 function getCountdownColor(order: Order) {
   const remaining = getRemainingSeconds(order);
-  if (remaining > 40) return "#0EA879";
-  if (remaining > 20) return "#D48B3A";
-  return "#C0392B";
+  if (remaining > 40) return CHART_COLORS.success;
+  if (remaining > 20) return CHART_COLORS.warning;
+  return CHART_COLORS.danger;
 }
 
 function togglePlatform(platform: string) {
@@ -819,16 +820,16 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 .pending-stat .stat-icon {
-  background: linear-gradient(135deg, var(--color-danger) 0%, #f78989 100%);
+  background: linear-gradient(135deg, var(--color-danger) 0%, rgba(192, 57, 43, 0.4) 100%);
 }
 .accepted-stat .stat-icon {
-  background: linear-gradient(135deg, var(--color-success) 0%, #85ce61 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14, 168, 121, 0.4) 100%);
 }
 .today-stat .stat-icon {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #66b1ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, rgba(63, 111, 239, 0.4) 100%);
 }
 .avg-stat .stat-icon {
-  background: linear-gradient(135deg, var(--color-warning) 0%, #f0c78a 100%);
+  background: linear-gradient(135deg, var(--color-warning) 0%, rgba(212, 139, 58, 0.4) 100%);
 }
 .stat-info {
   display: flex;

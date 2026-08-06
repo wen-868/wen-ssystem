@@ -825,13 +825,13 @@ onMounted(() => {
 }
 
 .tip-text {
-  color: #9CA3AF;
+  color: var(--gray-400);
   font-size: 13px;
   white-space: nowrap;
 }
 
 .suffix-text {
-  color: #4B5563;
+  color: var(--gray-500);
   font-size: 14px;
 }
 
@@ -844,7 +844,7 @@ onMounted(() => {
 .logo-uploader {
   width: 200px;
   height: 60px;
-  border: 1px dashed #D1D5DB;
+  border: 1px dashed var(--gray-300);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -860,7 +860,7 @@ onMounted(() => {
 
 .logo-uploader-icon {
   font-size: 24px;
-  color: #9CA3AF;
+  color: var(--gray-400);
 }
 
 .logo-preview {
@@ -872,7 +872,7 @@ onMounted(() => {
 .action-bar {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-normal);
   display: flex;
   gap: 12px;
   justify-content: flex-end;

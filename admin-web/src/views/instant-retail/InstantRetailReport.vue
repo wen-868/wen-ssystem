@@ -151,7 +151,7 @@
         </el-table-column>
         <el-table-column prop="netIncome" label="净收入">
           <template #default="{ row }" class="net-income">
-            <span style="color: #0EA879; font-weight: 600">¥{{ formatNumber(row.netIncome) }}</span>
+            <span style="color: var(--color-success); font-weight: 600">¥{{ formatNumber(row.netIncome) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -199,7 +199,7 @@
             <el-table-column prop="category" label="分类" width="120" />
             <el-table-column prop="profit" label="毛利额" width="140" sortable>
               <template #default="{ row }">
-                <span style="color: #0EA879; font-weight: 500">¥{{ formatNumber(row.profit) }}</span>
+                <span style="color: var(--color-success); font-weight: 500">¥{{ formatNumber(row.profit) }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="profitRate" label="毛利率" width="140" sortable>
@@ -217,6 +217,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import echarts from '@/utils/echarts'
 import { ElMessage } from "element-plus";
 import { Money, Document, Wallet, TrendCharts, CaretTop, CaretBottom } from "@element-plus/icons-vue";
@@ -426,10 +427,10 @@ function updateTrendChart() {
         },
         lineStyle: {
           width: 3,
-          color: "#3F6FEF"
+          color: CHART_COLORS.primary
         },
         itemStyle: {
-          color: "#3F6FEF"
+          color: CHART_COLORS.primary
         },
         data: trendData.sales
       },
@@ -440,7 +441,7 @@ function updateTrendChart() {
         barWidth: "40%",
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#D48B3A" },
+            { offset: 0, color: CHART_COLORS.warning },
             { offset: 1, color: "rgba(230, 162, 60, 0.6)" }
           ]),
           borderRadius: [4, 4, 0, 0]
@@ -619,16 +620,16 @@ watch(trendGranularity, () => {
   min-height: 120px;
 }
 .gradient-blue {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%);
 }
 .gradient-green {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14, 168, 121, 0.45) 100%);
 }
 .gradient-orange {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%);
 }
 .gradient-purple {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%);
 }
 .stat-info {
   z-index: 1;
@@ -650,10 +651,10 @@ watch(trendGranularity, () => {
   font-size: 13px;
 }
 .stat-trend.trend-up {
-  color: #b7eb8f;
+  color: rgba(14, 168, 121, 0.85);
 }
 .stat-trend.trend-down {
-  color: #ffa39e;
+  color: rgba(192, 57, 43, 0.85);
 }
 .trend-label {
   opacity: 0.8;
@@ -733,7 +734,7 @@ watch(trendGranularity, () => {
   color: #fff;
 }
 .rank-badge.rank-2 {
-  background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+  background: linear-gradient(135deg, var(--gray-300), var(--gray-400));
   color: #fff;
 }
 .rank-badge.rank-3 {

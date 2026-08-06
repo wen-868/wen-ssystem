@@ -174,7 +174,7 @@
             <el-table-column label="是否默认" width="100">
               <template #default="{ row }">
                 <el-tag v-if="row.isDefault" type="success" size="small">默认</el-tag>
-                <span v-else style="color: #9CA3AF">-</span>
+                <span v-else style="color: var(--gray-400)">-</span>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
@@ -662,7 +662,7 @@ onMounted(() => {
 .action-bar {
   margin-top: 8px;
   padding-top: 20px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-normal);
   display: flex;
   gap: 12px;
   max-width: 600px;

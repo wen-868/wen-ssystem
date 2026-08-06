@@ -203,6 +203,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { Tickets, Clock, Coin, Connection, Refresh, ArrowRight } from "@element-plus/icons-vue";
 
 const loading = ref(false);
@@ -309,10 +310,10 @@ const platformData = ref<any[]>([]);
 
 function loadPlatformData() {
   const mock = [
-    { name: "美团外卖", count: 128, percent: 38, color: "#C0392B" },
-    { name: "饿了么", count: 95, percent: 28, color: "#3F6FEF" },
-    { name: "京东到家", count: 52, percent: 15, color: "#0EA879" },
-    { name: "自有小程序", count: 66, percent: 19, color: "#D48B3A" }
+    { name: "美团外卖", count: 128, percent: 38, color: CHART_COLORS.danger },
+    { name: "饿了么", count: 95, percent: 28, color: CHART_COLORS.primary },
+    { name: "京东到家", count: 52, percent: 15, color: CHART_COLORS.success },
+    { name: "自有小程序", count: 66, percent: 19, color: CHART_COLORS.warning }
   ];
   platformData.value = mock;
 }

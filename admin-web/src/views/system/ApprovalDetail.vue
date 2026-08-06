@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { CHART_COLORS } from "@/styles/theme";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchApprovalDetail, approveApproval, rejectApproval, cancelApproval } from "../../api";
@@ -105,9 +106,9 @@ function statusTagType(v: string) {
 
 function timelineColor(result: string) {
   const map: Record<string, string> = {
-    APPROVED: "#0EA879", REJECTED: "#C0392B", PENDING: "#D48B3A", CANCELLED: "#999999"
+    APPROVED: CHART_COLORS.success, REJECTED: CHART_COLORS.danger, PENDING: CHART_COLORS.warning, CANCELLED: CHART_COLORS.textMuted
   };
-  return map[result] || "#999999";
+  return map[result] || CHART_COLORS.textMuted;
 }
 
 function nodeResultLabel(result: string) {
