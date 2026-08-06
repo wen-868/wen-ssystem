@@ -2163,6 +2163,26 @@
   3. `document-loader.service.ts`：pdf-parse 动态 import 改静态 import（jest.mock 可拦截）
 - **验收标准**：`pnpm run build` exit 0；`npx jest` 41 套件/513 用例全通过（普通 jest 亦可，无需 --experimental-vm-modules）
 
+---
+
+## R93 — 全量回归（阶段1-3 收口后强制回归） [进行中 — 凌舟 2026-08-07]
+
+> **日期**：2026-08-07
+> **来源**：凌舟总负责人判断——阶段 1-3 完成、数十个提交累积后，必须先全量回归确认稳定性，再进阶段 4
+> **范围**：后端全量测试 + 三端构建 + 浏览器走查
+
+### R93-00 — 全量回归执行（凌舟主导）
+- **优先级**：P0
+- **负责人**：凌舟（回归命令）/ 苏然（走查复核，可选）
+- **状态**：🔄 进行中
+- **回归项**：
+  1. 后端 `npm run typecheck` 0 errors
+  2. 后端 `npx vitest run` 全通过（基线 436 文件/5075+ 用例）
+  3. admin-web `npx vue-tsc -b` + `npm run build` exit 0
+  4. app-mobile `npm run build:h5` + `npm run build:app` exit 0
+  5. AI 底座 `pnpm run build` + `npx jest` 全通过
+  6. 浏览器走查：登录 → 工作台 → 收银台 → 核心列表页，控制台 0 error
+
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
 - **负责人**：凌舟

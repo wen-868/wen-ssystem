@@ -17,6 +17,16 @@ vi.mock("../../../shared/db", () => ({
   transaction: vi.fn(),
 }));
 
+// getOverview 使用 cacheGet 缓存（Redis），测试间共享缓存会污染断言。
+// mock cacheGet 直接执行工厂（无缓存），保证每个用例独立执行查询。
+vi.mock("../../../shared/redis-cache", async (importOriginal) => {
+  const original = await importOriginal<typeof import("../../../shared/redis-cache")>();
+  return {
+    ...original,
+    cacheGet: (_key: string, fetcher: () => Promise<unknown>) => fetcher(),
+  };
+});
+
 import {
   getOverview,
   getSalesTrend,
@@ -75,6 +85,7 @@ describe("dashboard.service", () => {
     });
 
     it("数据库返回 null 时全部归零", async () => {
+      mocks.queryOne.mockReset();
       mocks.queryOne.mockResolvedValue(null);
       const res = await getOverview("t1");
       expect(res.today.salesAmount).toBe(0);
@@ -86,6 +97,7 @@ describe("dashboard.service", () => {
     });
 
     it("昨日销售额为 0 时环比变化为 0", async () => {
+      mocks.queryOne.mockReset();
       mocks.queryOne.mockResolvedValueOnce({
         todaySalesAmount: 100, todayOrderCount: 1, todayReceivedAmount: 50,
         yesterdaySalesAmount: 0, yesterdayOrderCount: 0,
