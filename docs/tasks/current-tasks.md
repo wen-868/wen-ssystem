@@ -1507,7 +1507,7 @@
 
 ---
 
-## R81 — 阶段1-3 商品版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+## R81 — 阶段1-3 商品版块 100% 核查 [✅ 已完成 — 凌舟 2026-08-06]
 
 > **日期**：2026-08-06
 > **来源**：订单版块（R80）完成后按《版块有序推进规划》进入阶段 1-3
@@ -1550,7 +1550,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：✅ 已完成（2026-08-06 墨执行 commit `b4db03b7`，待凌舟复核）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `b4db03b7`，凌舟复核通过：hex 残留 7 处全为 ECharts 品牌色、vue-tsc 0）
 - **文件**：`admin-web/src/views/product/`（ProductCombo 14/ProductReviewTasks 6/ProductReview 4/ProductCategories 1/Units 1；任务描述 27 处中含 ProductReviewWorkflow 1 处已随 R81-01 清零，实测基线 26 处）
 - **问题**：商品页硬编码色残留 26 处（含 #C0392B/#0EA879/#444444/#83bff6/#8c939d 等）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
@@ -1573,6 +1573,44 @@
   - **残留 7 处说明（全部为 ECharts canvas 色，R77-01 规则允许）**：ProductCombo L1279/1280（销售排行渐变主色 #3F6FEF）、L1326/1327（销售趋势线 #C0392B）、L1334（销量柱 #0EA879）、L1361（原价总额柱 #3F6FEF）、L1368（优惠金额柱 #D48B3A）
   - **上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：ProductCategories.vue L35 `node` 未使用、ProductCombo.vue L351 `$index` 未使用为 ESLint error，均为 HEAD 版本即存在的预存问题（git show 验证），与本次颜色改动无关
   - **说明**：① ProductCategories.vue/Units.vue 原无结尾换行，apply_patch 补了 EOF 换行（仅空白差异，R80-02 同先例）；② 任务卡 inbox/mo_r81_02.md 已归档 inbox/archive/
+
+---
+
+## R82 — 阶段1-4 库存版块 100% 核查 [进行中 — 凌舟 2026-08-06]
+
+> **日期**：2026-08-06
+> **来源**：商品版块（R81）完成后按《版块有序推进规划》进入阶段 1-4
+> **版块范围**：库存查询/盘点/调拨/预警/成本（admin-web views/inventory/ 13 页 + 后端 inventory/transfer 服务）
+
+### R82-00 — 库存版块核查（凌舟）
+- **优先级**：P0
+- **负责人**：凌舟
+- **状态**：✅ 已完成（2026-08-06）
+- **核查结论**：
+  - 库存页 13 个；后端 admin-inventory/transfer 路由存在
+  - **差距 G1（P0）**：`Inventory.vue` 调 `fetchInventoryBalances()`（customer.ts → `GET /admin/inventory/balances` 复数），后端仅提供 `GET /admin/inventory-balance`（单数，listInventoryBalance）→ 404（即 R76-05-01 已知 bug）
+  - **差距 G2（P0）**：`InventoryTransfer.vue` + `InventoryTransferCreate.vue` 调拨商品选择器用 mockProducts 假数据（后端有调拨单接口 transfer.routes.ts，商品选择应接真实商品搜索）
+  - **差距 G3（P1）**：库存页硬编码色 16 处（InventoryReports 7/InventoryShareConfig 5/InventoryBatchPrice 2/InventoryCost 2）
+
+### R82-01 — [P0] 库存余额 404 + 调拨商品 mock 修复
+- **优先级**：P0
+- **负责人**：墨（admin-web）
+- **预计**：1 天
+- **状态**：🔄 进行中（任务卡 inbox/mo_r82_01.md）
+- **文件**：`admin-web/src/api/customer.ts`、`admin-web/src/views/inventory/Inventory.vue`、`InventoryTransfer.vue`、`InventoryTransferCreate.vue`
+- **问题**：① 库存余额接口 404（前端 /inventory/balances 复数 vs 后端 /inventory-balance 单数）；② 调拨商品选择器 mock 假数据
+- **修复**：① fetchInventoryBalances 路径改 `/admin/inventory-balance`（对齐后端）；② 调拨商品选择器接真实商品搜索接口（复用现有商品 API，按后端返回字段适配）；**最小改动，不碰无关逻辑**
+- **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；`rg "mockProducts" admin-web/src/views/inventory/` → 0；`rg "inventory/balances" admin-web/src` → 0
+
+### R82-02 — [P1] 库存页硬编码色 token 化
+- **优先级**：P1
+- **负责人**：墨（admin-web）
+- **预计**：0.5 天
+- **状态**：待派单（墨完成 R82-01 后派单）
+- **文件**：`admin-web/src/views/inventory/`（InventoryReports 7/InventoryShareConfig 5 等）
+- **问题**：库存页硬编码色残留 16 处
+- **修复**：硬编码色替换为 tokens.css 变量，只改颜色
+- **验收标准**：`npm run build` exit 0；`rg "#[0-9a-fA-F]{6}" admin-web/src/views/inventory/` ≤ 原 30%
 
 ### R74-03 — 工作台打磨（Dashboard）
 - **优先级**：P1
