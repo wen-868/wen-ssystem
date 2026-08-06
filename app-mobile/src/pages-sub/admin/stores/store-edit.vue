@@ -39,7 +39,7 @@
       </view>
       <view class="form-item form-item--switch">
         <text class="form-label">营业状态</text>
-        <switch :checked="form.status === 1" @change="onStatusChange" color="#1677FF" />
+        <switch :checked="form.status === 1" @change="onStatusChange" :color="COLOR_PRIMARY" />
         <text class="switch-text">{{ form.status === 1 ? '营业中' : '已停业' }}</text>
       </view>
     </view>
@@ -51,6 +51,7 @@
 </template>
 
 <script setup lang="ts">
+import { COLOR_PRIMARY } from '@/constants/colors'
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { storesApi, type StoreForm } from '@/api/modules/stores'
@@ -130,22 +131,22 @@ onLoad((options: any) => {
 })
 </script>
 
-<style scoped>
-.store-edit-page { min-height: 100vh; background: #f0f5ff; padding-bottom: 140rpx; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: #fff; }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.form-section { background: #fff; margin: 16rpx 24rpx; border-radius: 16rpx; padding: 8rpx 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.form-item { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+<style lang="scss" scoped>
+.store-edit-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 140rpx; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.form-section { background: $uni-bg-color; margin: 16rpx 24rpx; border-radius: 16rpx; padding: 8rpx 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.form-item { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-child { border-bottom: none; }
 .form-item--textarea { flex-direction: column; align-items: stretch; }
 .form-item--switch { gap: 16rpx; }
-.form-label { font-size: 28rpx; color: #333; width: 160rpx; flex-shrink: 0; }
+.form-label { font-size: 28rpx; color: $uni-gray-700; width: 160rpx; flex-shrink: 0; }
 .form-item--textarea .form-label { margin-bottom: 16rpx; width: auto; }
-.form-input { flex: 1; height: 60rpx; font-size: 28rpx; color: #333; }
-.form-textarea { width: 100%; min-height: 120rpx; font-size: 28rpx; color: #333; }
-.switch-text { font-size: 26rpx; color: #999; }
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: #fff; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
+.form-input { flex: 1; height: 60rpx; font-size: 28rpx; color: $uni-gray-700; }
+.form-textarea { width: 100%; min-height: 120rpx; font-size: 28rpx; color: $uni-gray-700; }
+.switch-text { font-size: 26rpx; color: $uni-gray-400; }
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
-.btn--primary { background: #1677FF; color: #fff; }
+.btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }
 </style>

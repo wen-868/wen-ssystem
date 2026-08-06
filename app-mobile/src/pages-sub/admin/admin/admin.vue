@@ -141,29 +141,29 @@ async function loadEmployees() {
 onMounted(() => { loadEmployees() })
 </script>
 
-<style scoped>
-.admin-page { min-height: 100vh; background: #f0f5ff; }
+<style lang="scss" scoped>
+.admin-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
-  background: #fff;
+  background: $uni-bg-color;
 }
-.header-title { font-size: 34rpx; font-weight: 700; color: #333; }
-.search-bar { padding: 16rpx 24rpx; background: #fff; }
+.header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input-wrap {
   display: flex; align-items: center;
-  height: 72rpx; background: #f5f7fa;
+  height: 72rpx; background: $uni-bg-color-page;
   border-radius: 36rpx; padding: 0 24rpx;
 }
-.search-icon { font-size: 32rpx; color: #999; margin-right: 12rpx; }
-.search-input { flex: 1; font-size: 28rpx; color: #333; }
-.search-placeholder { color: #bbb; font-size: 26rpx; }
-.search-clear { font-size: 32rpx; color: #bbb; padding: 4rpx; }
+.search-icon { font-size: 32rpx; color: $uni-gray-400; margin-right: 12rpx; }
+.search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
+.search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
+.search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
 .quick-actions {
   display: flex;
   justify-content: space-around;
   padding: 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   margin-bottom: 16rpx;
 }
 .action-item {
@@ -179,26 +179,26 @@ onMounted(() => { loadEmployees() })
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
-.action-icon--user { background: linear-gradient(135deg, #1677FF, #4096ff); }
-.action-icon--role { background: linear-gradient(135deg, #722ed1, #9254de); }
-.action-icon--store { background: linear-gradient(135deg, #fa8c16, #ffa940); }
-.action-icon--setting { background: linear-gradient(135deg, #52c41a, #73d13d); }
-.action-text { font-size: 22rpx; color: #333; }
+.action-icon--user { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
+.action-icon--role { background: linear-gradient(135deg, $uni-color-purple, $uni-color-purple-light); }
+.action-icon--store { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.action-icon--setting { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
+.action-text { font-size: 22rpx; color: $uni-gray-700; }
 .employee-section { padding: 0 24rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.title-add { font-size: 24rpx; color: #1677FF; font-weight: 400; }
+.title-add { font-size: 24rpx; color: $uni-color-primary; font-weight: 400; }
 .employee-list {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -208,19 +208,19 @@ onMounted(() => { loadEmployees() })
   align-items: center;
   gap: 20rpx;
   padding: 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .employee-card:last-child { border-bottom: none; }
 .employee-avatar {
   width: 72rpx; height: 72rpx;
   border-radius: 36rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.avatar-text { font-size: 30rpx; color: #fff; font-weight: 600; }
+.avatar-text { font-size: 30rpx; color: $uni-text-color-inverse; font-weight: 600; }
 .employee-info {
   flex: 1;
   display: flex;
@@ -228,21 +228,21 @@ onMounted(() => { loadEmployees() })
   gap: 6rpx;
   min-width: 0;
 }
-.employee-name { font-size: 28rpx; color: #333; font-weight: 500; }
-.employee-role { font-size: 22rpx; color: #999; }
+.employee-name { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
+.employee-role { font-size: 22rpx; color: $uni-gray-400; }
 .employee-status {
   padding: 4rpx 16rpx;
   border-radius: 16rpx;
   flex-shrink: 0;
 }
-.status-active { background: #f6ffed; }
-.status-active .status-text { color: #52c41a; }
-.status-inactive { background: #f5f5f5; }
-.status-inactive .status-text { color: #999; }
+.status-active { background: $uni-color-success-soft; }
+.status-active .status-text { color: $uni-color-success; }
+.status-inactive { background: $uni-bg-color-grey; }
+.status-inactive .status-text { color: $uni-gray-400; }
 .status-text { font-size: 20rpx; }
 .setting-list {
   margin: 0 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
@@ -252,7 +252,7 @@ onMounted(() => { loadEmployees() })
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .setting-item:last-child { border-bottom: none; }
 .setting-left {
@@ -267,13 +267,13 @@ onMounted(() => { loadEmployees() })
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
-.setting-icon--basic { background: linear-gradient(135deg, #1677FF, #4096ff); }
-.setting-icon--notify { background: linear-gradient(135deg, #fa8c16, #ffa940); }
-.setting-icon--log { background: linear-gradient(135deg, #722ed1, #9254de); }
-.setting-icon--about { background: linear-gradient(135deg, #52c41a, #73d13d); }
-.setting-text { font-size: 28rpx; color: #333; }
-.setting-arrow { font-size: 24rpx; color: #ccc; }
+.setting-icon--basic { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
+.setting-icon--notify { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
+.setting-icon--log { background: linear-gradient(135deg, $uni-color-purple, $uni-color-purple-light); }
+.setting-icon--about { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
+.setting-text { font-size: 28rpx; color: $uni-gray-700; }
+.setting-arrow { font-size: 24rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

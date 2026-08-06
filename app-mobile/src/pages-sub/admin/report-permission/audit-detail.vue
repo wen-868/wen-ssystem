@@ -120,10 +120,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .audit-detail-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .top-bar {
@@ -132,8 +132,8 @@ onMounted(() => {
   align-items: center;
   padding: 16rpx 24rpx;
   padding-top: calc(16rpx + env(safe-area-inset-top));
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .bar-left {
@@ -144,13 +144,13 @@ onMounted(() => {
 
 .back-icon {
   font-size: 32rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bar-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .detail-content {
@@ -199,38 +199,38 @@ onMounted(() => {
 }
 
 .type-ROLE_PERMISSION_CHANGE .badge-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .type-DATA_SCOPE_CHANGE .badge-text {
-  color: #52c41a;
+  color: $uni-color-success;
 }
 
 .type-USER_ROLE_ASSIGN .badge-text {
-  color: #722ed1;
+  color: $uni-color-purple;
 }
 
 .type-USER_PERMISSION_CHANGE .badge-text {
-  color: #fa8c16;
+  color: $uni-color-warning;
 }
 
 .type-ROLE_CREATE .badge-text {
-  color: #13c2c2;
+  color: $uni-color-cyan;
 }
 
 .type-ROLE_DELETE .badge-text {
-  color: #ff4d4f;
+  color: $uni-color-error;
 }
 
 .log-id {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-card,
 .content-card,
 .detail-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   margin-bottom: 16rpx;
   overflow: hidden;
@@ -242,7 +242,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .info-row:last-child {
@@ -251,12 +251,12 @@ onMounted(() => {
 
 .info-label {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .info-value {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
   text-align: right;
   flex: 1;
@@ -265,13 +265,13 @@ onMounted(() => {
 
 .card-title {
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .title-text {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .content-body,
@@ -281,13 +281,13 @@ onMounted(() => {
 
 .content-text {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.8;
 }
 
 .detail-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   line-height: 1.8;
   white-space: pre-wrap;
   font-family: monospace;
@@ -300,7 +300,7 @@ onMounted(() => {
 
 .loading-text {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

@@ -78,22 +78,22 @@ function goMyPermission() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .permission-page {
   min-height: 100vh;
-  background: #f0f5ff;
+  background: $uni-color-primary-soft;
 }
 
 .page-header {
   padding: 32rpx;
   padding-top: calc(32rpx + env(safe-area-inset-top));
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
 }
 
 .header-title {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
   display: block;
 }
 
@@ -111,7 +111,7 @@ function goMyPermission() {
 .menu-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 28rpx 24rpx;
   margin-bottom: 16rpx;
@@ -126,28 +126,28 @@ function goMyPermission() {
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
 
 .menu-icon--matrix {
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
 }
 
 .menu-icon--store {
-  background: linear-gradient(135deg, #52c41a, #73d13d);
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
 }
 
 .menu-icon--user {
-  background: linear-gradient(135deg, #722ed1, #9254de);
+  background: linear-gradient(135deg, $uni-color-purple, $uni-color-purple-light);
 }
 
 .menu-icon--log {
-  background: linear-gradient(135deg, #fa8c16, #ffa940);
+  background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning);
 }
 
 .menu-icon--my {
-  background: linear-gradient(135deg, #eb2f96, #f759ab);
+  background: linear-gradient(135deg, $uni-color-pink, $uni-color-pink-light);
 }
 
 .menu-content {
@@ -162,17 +162,17 @@ function goMyPermission() {
 .menu-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .menu-desc {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .menu-arrow {
   font-size: 28rpx;
-  color: #ccc;
+  color: $uni-gray-300;
   flex-shrink: 0;
 }
 

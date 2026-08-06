@@ -190,10 +190,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .my-permission-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .user-header {
@@ -201,7 +201,7 @@ onMounted(() => {
   align-items: center;
   padding: 48rpx 32rpx;
   padding-top: calc(48rpx + env(safe-area-inset-top));
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   gap: 24rpx;
 }
 
@@ -218,7 +218,7 @@ onMounted(() => {
 
 .avatar-text {
   font-size: 40rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
@@ -231,7 +231,7 @@ onMounted(() => {
 .user-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .user-account {
@@ -241,7 +241,7 @@ onMounted(() => {
 
 .section {
   margin: 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -252,18 +252,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .section-count {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .role-tags {
@@ -282,7 +282,7 @@ onMounted(() => {
 
 .role-tag-text {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 500;
 }
 
@@ -294,7 +294,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 26rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .scope-card {
@@ -308,7 +308,7 @@ onMounted(() => {
   width: 72rpx;
   height: 72rpx;
   border-radius: 20rpx;
-  background: linear-gradient(135deg, #52c41a, #73d13d);
+  background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -317,7 +317,7 @@ onMounted(() => {
 
 .icon-text {
   font-size: 32rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .scope-info {
@@ -330,17 +330,17 @@ onMounted(() => {
 .scope-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .scope-desc {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .store-list-wrap {
   padding: 0 24rpx 24rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .store-list-title {
@@ -352,13 +352,13 @@ onMounted(() => {
 
 .title-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   font-weight: 500;
 }
 
 .store-count {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .store-list {
@@ -373,7 +373,7 @@ onMounted(() => {
   gap: 8rpx;
   width: calc(50% - 6rpx);
   padding: 12rpx 16rpx;
-  background: #f9f9f9;
+  background: $uni-gray-50;
   border-radius: 12rpx;
 }
 
@@ -381,7 +381,7 @@ onMounted(() => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #52c41a;
+  background: $uni-color-success;
   flex-shrink: 0;
 }
 
@@ -394,7 +394,7 @@ onMounted(() => {
 
 .store-name {
   font-size: 24rpx;
-  color: #333;
+  color: $uni-gray-700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -402,12 +402,12 @@ onMounted(() => {
 
 .store-code {
   font-size: 20rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .category-scroll {
   white-space: nowrap;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .category-list {
@@ -418,21 +418,21 @@ onMounted(() => {
 
 .category-item {
   padding: 10rpx 24rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 24rpx;
 }
 
 .category-item.active {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .category-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .category-item.active .category-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .perm-list {
@@ -444,7 +444,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .perm-item:last-child {
@@ -458,7 +458,7 @@ onMounted(() => {
 
 .perm-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
@@ -471,7 +471,7 @@ onMounted(() => {
 .status-tag {
   padding: 6rpx 16rpx;
   border-radius: 8rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .status-tag.active {
@@ -484,11 +484,11 @@ onMounted(() => {
 
 .status-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .status-tag.active .status-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .safe-bottom {

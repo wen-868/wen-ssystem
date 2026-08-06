@@ -212,10 +212,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .store-permission-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .top-bar {
@@ -224,8 +224,8 @@ onMounted(() => {
   align-items: center;
   padding: 16rpx 24rpx;
   padding-top: calc(16rpx + env(safe-area-inset-top));
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .bar-left {
@@ -236,29 +236,29 @@ onMounted(() => {
 
 .back-icon {
   font-size: 32rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bar-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .save-btn {
   padding: 12rpx 24rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 32rpx;
 }
 
 .save-text {
   font-size: 26rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .section {
   margin: 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -269,13 +269,13 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .select-all {
@@ -284,7 +284,7 @@ onMounted(() => {
 
 .select-all-text {
   font-size: 26rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .role-list,
@@ -304,7 +304,7 @@ onMounted(() => {
 .scope-radio {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -314,13 +314,13 @@ onMounted(() => {
 
 .role-item.active .role-radio,
 .scope-item.active .scope-radio {
-  border-color: #1677FF;
+  border-color: $uni-color-primary;
 }
 
 .radio-inner {
   width: 20rpx;
   height: 20rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 50%;
 }
 
@@ -335,18 +335,18 @@ onMounted(() => {
 .role-name,
 .scope-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .role-code {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .scope-desc {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .store-list {
@@ -359,7 +359,7 @@ onMounted(() => {
   align-items: center;
   padding: 20rpx 24rpx;
   gap: 16rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .store-item:last-child {
@@ -369,7 +369,7 @@ onMounted(() => {
 .store-checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 8rpx;
   display: flex;
   align-items: center;
@@ -378,13 +378,13 @@ onMounted(() => {
 }
 
 .store-checkbox.checked {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .check-icon {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .store-info {
@@ -397,18 +397,18 @@ onMounted(() => {
 
 .store-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .store-code {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .store-address {
   font-size: 22rpx;
-  color: #bbb;
+  color: $uni-gray-300;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -416,13 +416,13 @@ onMounted(() => {
 
 .selected-count {
   padding: 16rpx 24rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
   text-align: center;
 }
 
 .count-text {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

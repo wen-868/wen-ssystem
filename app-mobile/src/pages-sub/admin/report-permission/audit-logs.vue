@@ -196,10 +196,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .audit-logs-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -207,21 +207,21 @@ onMounted(() => {
 .search-bar {
   display: flex;
   padding: 16rpx 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 
 .search-input-wrap {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 32rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
@@ -235,7 +235,7 @@ onMounted(() => {
   margin-left: 16rpx;
   padding: 0 32rpx;
   height: 64rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 32rpx;
   display: flex;
   align-items: center;
@@ -244,15 +244,15 @@ onMounted(() => {
 
 .search-btn text {
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 /* 筛选栏 */
 .filter-bar {
   display: flex;
   padding: 16rpx 24rpx;
-  background: #fff;
-  border-top: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-top: 1rpx solid $uni-gray-100;
   align-items: center;
 }
 
@@ -260,25 +260,25 @@ onMounted(() => {
   flex: 1;
   text-align: center;
   padding: 12rpx 0;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 12rpx;
 }
 
 .filter-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .filter-divider {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin: 0 16rpx;
 }
 
 /* 操作类型筛选 */
 .type-scroll {
-  background: #fff;
-  border-top: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-top: 1rpx solid $uni-gray-100;
   white-space: nowrap;
 }
 
@@ -290,12 +290,12 @@ onMounted(() => {
 .type-item {
   padding: 12rpx 24rpx;
   margin-right: 16rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 24rpx;
 }
 
 .type-item.active {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .type-text {
@@ -303,11 +303,11 @@ onMounted(() => {
 }
 
 .type-item .type-text {
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .type-item.active .type-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 /* 日志列表 */
@@ -317,7 +317,7 @@ onMounted(() => {
 }
 
 .log-card {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
@@ -341,7 +341,7 @@ onMounted(() => {
   width: 56rpx;
   height: 56rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -349,7 +349,7 @@ onMounted(() => {
 
 .avatar-text {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
@@ -362,17 +362,17 @@ onMounted(() => {
 .operator-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .log-ip {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .log-time {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .log-body {
@@ -394,55 +394,55 @@ onMounted(() => {
 }
 
 .type-ROLE_PERMISSION_CHANGE {
-  color: #1677FF;
+  color: $uni-color-primary;
   background: rgba(22, 119, 255, 0.1);
 }
 
 .type-DATA_SCOPE_CHANGE {
-  color: #52c41a;
+  color: $uni-color-success;
   background: rgba(82, 196, 26, 0.1);
 }
 
 .type-USER_ROLE_ASSIGN {
-  color: #722ed1;
+  color: $uni-color-purple;
   background: rgba(114, 46, 209, 0.1);
 }
 
 .type-USER_PERMISSION_CHANGE {
-  color: #fa8c16;
+  color: $uni-color-warning;
   background: rgba(250, 140, 22, 0.1);
 }
 
 .type-ROLE_CREATE {
-  color: #13c2c2;
+  color: $uni-color-cyan;
   background: rgba(19, 194, 194, 0.1);
 }
 
 .type-ROLE_DELETE {
-  color: #ff4d4f;
+  color: $uni-color-error;
   background: rgba(255, 77, 79, 0.1);
 }
 
 .target-text {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .log-content {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   line-height: 1.6;
 }
 
 .log-arrow {
   text-align: right;
   padding-top: 8rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .arrow-icon {
   font-size: 24rpx;
-  color: #ccc;
+  color: $uni-gray-300;
 }
 
 .empty-state {
@@ -452,7 +452,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .load-more {
@@ -462,7 +462,7 @@ onMounted(() => {
 
 .load-more-text {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

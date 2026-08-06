@@ -79,7 +79,7 @@
             <view class="col-permission">
               <switch
                 :checked="getPermission(report.id).canView"
-                color="#1677FF"
+                :color="COLOR_PRIMARY"
                 @change="(e: any) => onToggleView(report.id, e.detail.value)"
               />
             </view>
@@ -87,7 +87,7 @@
               <switch
                 :checked="getPermission(report.id).canExport"
                 :disabled="!getPermission(report.id).canView"
-                color="#52c41a"
+                :color="COLOR_SUCCESS"
                 @change="(e: any) => onToggleExport(report.id, e.detail.value)"
               />
             </view>
@@ -172,6 +172,7 @@
 </template>
 
 <script setup lang="ts">
+import { COLOR_PRIMARY, COLOR_SUCCESS } from '@/constants/colors'
 import { ref, computed, onMounted } from 'vue'
 import {
   reportPermissionApi,
@@ -332,10 +333,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .matrix-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   display: flex;
   flex-direction: column;
 }
@@ -346,8 +347,8 @@ onMounted(() => {
   align-items: center;
   padding: 16rpx 24rpx;
   padding-top: calc(16rpx + env(safe-area-inset-top));
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .bar-left {
@@ -358,13 +359,13 @@ onMounted(() => {
 
 .back-icon {
   font-size: 32rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bar-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bar-right {
@@ -374,29 +375,29 @@ onMounted(() => {
 
 .batch-btn {
   padding: 12rpx 24rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 32rpx;
 }
 
 .batch-text {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .save-btn {
   padding: 12rpx 24rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 32rpx;
 }
 
 .save-text {
   font-size: 26rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .role-tabs {
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
   white-space: nowrap;
 }
 
@@ -418,23 +419,23 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 40rpx;
   height: 4rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 2rpx;
 }
 
 .tab-text {
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .tab-item.active .tab-text {
-  color: #1677FF;
+  color: $uni-color-primary;
   font-weight: 600;
 }
 
 .category-tabs {
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
   white-space: nowrap;
 }
 
@@ -446,21 +447,21 @@ onMounted(() => {
 
 .category-item {
   padding: 10rpx 24rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 24rpx;
 }
 
 .category-item.active {
-  background: #e6f4ff;
+  background: $uni-color-primary-soft;
 }
 
 .category-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .category-item.active .category-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .matrix-scroll {
@@ -469,7 +470,7 @@ onMounted(() => {
 }
 
 .matrix-table {
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -477,14 +478,14 @@ onMounted(() => {
 
 .table-header {
   display: flex;
-  background: #fafafa;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-gray-50;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .header-text {
   font-size: 26rpx;
   font-weight: 600;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .table-body {
@@ -495,7 +496,7 @@ onMounted(() => {
 .table-row {
   display: flex;
   align-items: center;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .table-row:last-child {
@@ -513,13 +514,13 @@ onMounted(() => {
 
 .report-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .report-category {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .col-permission {
@@ -542,7 +543,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 /* 批量设置弹窗 */
@@ -561,7 +562,7 @@ onMounted(() => {
 .batch-content {
   width: 100%;
   max-height: 80vh;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 24rpx 24rpx 0 0;
   display: flex;
   flex-direction: column;
@@ -572,29 +573,29 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 32rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .batch-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .batch-close {
   font-size: 32rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .batch-section {
   padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .section-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
   margin-bottom: 16rpx;
   display: block;
 }
@@ -616,7 +617,7 @@ onMounted(() => {
 .checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 8rpx;
   display: flex;
   align-items: center;
@@ -625,18 +626,18 @@ onMounted(() => {
 }
 
 .checkbox.checked {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .check-icon {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .checkbox-label {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .permission-options {
@@ -652,7 +653,7 @@ onMounted(() => {
 
 .perm-label {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .batch-actions {
@@ -673,20 +674,20 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
 }
 
 .btn-confirm {
-  background: #1677FF;
+  background: $uni-color-primary;
 }
 
 .btn-text {
   font-size: 28rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .btn-text.btn-text-white {
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 

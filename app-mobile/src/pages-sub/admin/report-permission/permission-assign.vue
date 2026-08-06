@@ -331,10 +331,10 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .permission-assign-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   display: flex;
   flex-direction: column;
 }
@@ -345,8 +345,8 @@ onMounted(() => {
   align-items: center;
   padding: 16rpx 24rpx;
   padding-top: calc(16rpx + env(safe-area-inset-top));
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .bar-left {
@@ -357,34 +357,34 @@ onMounted(() => {
 
 .back-icon {
   font-size: 32rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .bar-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .search-bar {
   display: flex;
   padding: 16rpx 24rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .search-input-wrap {
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 32rpx;
   padding: 0 24rpx;
 }
 
 .search-icon {
   font-size: 28rpx;
-  color: #999;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 
@@ -398,7 +398,7 @@ onMounted(() => {
   margin-left: 16rpx;
   padding: 0 32rpx;
   height: 64rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 32rpx;
   display: flex;
   align-items: center;
@@ -407,7 +407,7 @@ onMounted(() => {
 
 .search-btn text {
   font-size: 28rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .user-scroll {
@@ -424,7 +424,7 @@ onMounted(() => {
 .user-card {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -434,7 +434,7 @@ onMounted(() => {
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -443,7 +443,7 @@ onMounted(() => {
 
 .avatar-text {
   font-size: 32rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
@@ -459,12 +459,12 @@ onMounted(() => {
 .user-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .user-account {
   font-size: 24rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .user-meta {
@@ -476,7 +476,7 @@ onMounted(() => {
 
 .meta-tag {
   font-size: 20rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
   background: rgba(22, 119, 255, 0.1);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
@@ -484,15 +484,15 @@ onMounted(() => {
 
 .meta-store {
   font-size: 20rpx;
-  color: #666;
-  background: #f5f5f5;
+  color: $uni-gray-500;
+  background: $uni-bg-color-grey;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
 
 .user-arrow {
   font-size: 28rpx;
-  color: #ccc;
+  color: $uni-gray-300;
   flex-shrink: 0;
 }
 
@@ -504,17 +504,17 @@ onMounted(() => {
 .user-card-detail {
   display: flex;
   align-items: center;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 32rpx 24rpx;
   margin-bottom: 16rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-bottom: 1rpx solid $uni-gray-100;
 }
 
 .user-avatar-lg {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -523,7 +523,7 @@ onMounted(() => {
 
 .avatar-text-lg {
   font-size: 40rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
@@ -539,34 +539,34 @@ onMounted(() => {
 .user-name-detail {
   font-size: 34rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .user-account-detail {
   font-size: 26rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .user-phone {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .change-user {
   padding: 12rpx 24rpx;
-  border: 1rpx solid #1677FF;
+  border: 1rpx solid $uni-color-primary;
   border-radius: 24rpx;
   flex-shrink: 0;
 }
 
 .change-text {
   font-size: 24rpx;
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .section {
   margin: 0 24rpx 16rpx;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -577,18 +577,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24rpx;
-  border-bottom: 1rpx solid #f5f5f5;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
 .section-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .section-tip {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .role-checkbox-list,
@@ -607,7 +607,7 @@ onMounted(() => {
 .checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 8rpx;
   display: flex;
   align-items: center;
@@ -617,13 +617,13 @@ onMounted(() => {
 }
 
 .checkbox.checked {
-  background: #1677FF;
-  border-color: #1677FF;
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
 }
 
 .check-icon {
   font-size: 24rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
 }
 
 .role-info,
@@ -637,14 +637,14 @@ onMounted(() => {
 .role-name,
 .perm-name {
   font-size: 28rpx;
-  color: #333;
+  color: $uni-gray-700;
   font-weight: 500;
 }
 
 .role-remark,
 .perm-desc {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .scope-options {
@@ -662,7 +662,7 @@ onMounted(() => {
 .radio {
   width: 32rpx;
   height: 32rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -671,24 +671,24 @@ onMounted(() => {
 }
 
 .scope-option.active .radio {
-  border-color: #1677FF;
+  border-color: $uni-color-primary;
 }
 
 .radio-inner {
   width: 18rpx;
   height: 18rpx;
-  background: #1677FF;
+  background: $uni-color-primary;
   border-radius: 50%;
 }
 
 .scope-text {
   font-size: 26rpx;
-  color: #333;
+  color: $uni-gray-700;
 }
 
 .store-select-wrap {
   padding: 0 24rpx 24rpx;
-  border-top: 1rpx solid #f5f5f5;
+  border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .store-select-header {
@@ -700,13 +700,13 @@ onMounted(() => {
 
 .store-select-title {
   font-size: 26rpx;
-  color: #666;
+  color: $uni-gray-500;
   font-weight: 500;
 }
 
 .store-count {
   font-size: 22rpx;
-  color: #999;
+  color: $uni-gray-400;
 }
 
 .store-tags {
@@ -717,23 +717,23 @@ onMounted(() => {
 
 .store-tag {
   padding: 12rpx 24rpx;
-  background: #f5f5f5;
+  background: $uni-bg-color-grey;
   border-radius: 24rpx;
   border: 1rpx solid transparent;
 }
 
 .store-tag.active {
   background: rgba(22, 119, 255, 0.1);
-  border-color: #1677FF;
+  border-color: $uni-color-primary;
 }
 
 .tag-text {
   font-size: 24rpx;
-  color: #666;
+  color: $uni-gray-500;
 }
 
 .store-tag.active .tag-text {
-  color: #1677FF;
+  color: $uni-color-primary;
 }
 
 .empty-state {
@@ -745,7 +745,7 @@ onMounted(() => {
 
 .empty-text {
   font-size: 28rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .load-more {
@@ -755,7 +755,7 @@ onMounted(() => {
 
 .load-more-text {
   font-size: 24rpx;
-  color: #bbb;
+  color: $uni-gray-300;
 }
 
 .bottom-bar {
@@ -763,7 +763,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #fff;
+  background: $uni-bg-color;
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
@@ -773,7 +773,7 @@ onMounted(() => {
 .save-btn {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, #1677FF, #4096ff);
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   border-radius: 44rpx;
   display: flex;
   align-items: center;
@@ -782,7 +782,7 @@ onMounted(() => {
 
 .save-text {
   font-size: 30rpx;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-weight: 600;
 }
 
