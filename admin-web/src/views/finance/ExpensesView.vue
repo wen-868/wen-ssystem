@@ -165,6 +165,7 @@
 import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchExpenses, createExpense, approveExpense, voidExpense, fetchExpenseSummary } from "../../api";
@@ -263,7 +264,7 @@ function renderBarChart(data: any[]) {
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: "#3F6FEF" },
+          { offset: 0, color: CHART_COLORS.primary },
           { offset: 1, color: "rgba(63,111,239,0.4)" }
         ])
       }

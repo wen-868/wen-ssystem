@@ -163,6 +163,7 @@
 import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import { fetchInventoryTurnover, fetchInventoryAge, fetchInventoryABC, fetchStores } from "../../api";
@@ -221,10 +222,10 @@ function renderAgeChart() {
     series: [{
       type: "pie", radius: ["40%", "70%"],
       data: [
-        { value: Number(d.age0_30 || 0), name: "30天内", itemStyle: { color: "#0EA879" } },
-        { value: Number(d.age30_60 || 0), name: "30-60天", itemStyle: { color: "#D48B3A" } },
-        { value: Number(d.age60_90 || 0), name: "60-90天", itemStyle: { color: "#C0392B" } },
-        { value: Number(d.age90plus || 0), name: "90天以上", itemStyle: { color: "#999999" } },
+        { value: Number(d.age0_30 || 0), name: "30天内", itemStyle: { color: CHART_COLORS.success } },
+        { value: Number(d.age30_60 || 0), name: "30-60天", itemStyle: { color: CHART_COLORS.warning } },
+        { value: Number(d.age60_90 || 0), name: "60-90天", itemStyle: { color: CHART_COLORS.danger } },
+        { value: Number(d.age90plus || 0), name: "90天以上", itemStyle: { color: CHART_COLORS.textMuted } },
       ]
     }]
   };

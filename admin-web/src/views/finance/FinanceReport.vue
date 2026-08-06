@@ -182,6 +182,7 @@ import { ElMessage } from "element-plus";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatMoney } from "../../utils/format";
 import initECharts from "../../utils/echarts";
+import { CHART_COLORS } from "@/styles/theme";
 import {
   fetchBankAccountsForFinance,
   fetchFundTransactions,
@@ -341,9 +342,9 @@ function renderTrendChart() {
     tooltip: {
       trigger: "axis",
       backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderColor: "#F0F0F0",
+      borderColor: CHART_COLORS.gray100,
       borderWidth: 1,
-      textStyle: { color: "#444444" },
+      textStyle: { color: CHART_COLORS.textSecondary },
       axisPointer: { type: "cross" }
     },
     legend: {
@@ -390,7 +391,7 @@ function renderTrendChart() {
         smooth: true,
         data: balances,
         yAxisIndex: 0,
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         areaStyle: {
           color: {
             type: "linear",
@@ -410,14 +411,14 @@ function renderTrendChart() {
         type: "bar",
         data: income,
         yAxisIndex: 1,
-        itemStyle: { color: "#0EA879" }
+        itemStyle: { color: CHART_COLORS.success }
       },
       {
         name: "支出",
         type: "bar",
         data: expense,
         yAxisIndex: 1,
-        itemStyle: { color: "#C0392B" }
+        itemStyle: { color: CHART_COLORS.danger }
       }
     ]
   });

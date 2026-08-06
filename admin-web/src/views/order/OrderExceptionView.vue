@@ -246,6 +246,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled, Plus, CircleCheckFilled, Warning, CircleClose, CircleCloseFilled } from "@element-plus/icons-vue";
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 
 // ── Mock 数据 ──
 const mockStats = { pendingCount: 15, todayNewCount: 8, weekResolvedCount: 42, avgHandleHours: 3.5 };
@@ -394,7 +395,7 @@ function renderChannelExceptionChart() {
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#C0392B" },
+            { offset: 0, color: CHART_COLORS.danger },
             { offset: 1, color: "rgba(192,57,43,0.4)" },
           ]),
         },
@@ -426,8 +427,8 @@ function renderExceptionTrendChart() {
         type: "line",
         data: data.map((d) => d.count),
         smooth: true,
-        lineStyle: { color: "#3F6FEF", width: 2 },
-        itemStyle: { color: "#3F6FEF" },
+        lineStyle: { color: CHART_COLORS.primary, width: 2 },
+        itemStyle: { color: CHART_COLORS.primary },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: "rgba(63,111,239,0.25)" },

@@ -210,6 +210,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Clock } from "@element-plus/icons-vue";
 import echarts from "@/utils/echarts";
+import { CHART_COLORS } from "@/styles/theme";
 import {
   fetchAfterSales,
   fetchAfterSaleDetail,
@@ -272,7 +273,7 @@ const STATUS_TAGS: Record<string, string> = {
 };
 
 // 图表配色与 tokens.css 图表色保持一致（画布不支持 CSS 变量，使用 token 对应色值）
-const CHART_PALETTE = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#8B5CF6", "#06B6D4"];
+const CHART_PALETTE = [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.warning, CHART_COLORS.danger, CHART_COLORS.purple, CHART_COLORS.cyan];
 
 function typeLabel(type: string) {
   return TYPE_LABELS[type] || type || "-";
@@ -549,7 +550,7 @@ function renderStatusChart() {
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#3F6FEF" },
+            { offset: 0, color: CHART_COLORS.primary },
             { offset: 1, color: "rgba(63,111,239,0.35)" },
           ]),
         },

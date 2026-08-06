@@ -637,6 +637,7 @@ import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage, type FormRules, type ElForm } from "element-plus";
 import { Plus, Search } from "@element-plus/icons-vue";
 import echarts from "../../utils/echarts";
+import { CHART_COLORS } from "@/styles/theme";
 import { api } from "../../api";
 import { formatDate } from "../../utils/format";
 
@@ -1276,8 +1277,8 @@ function initSalesRankChart() {
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
           { offset: 0, color: "rgba(63, 111, 239, 0.4)" },
-          { offset: 0.5, color: "#3F6FEF" },
-          { offset: 1, color: "#3F6FEF" }
+          { offset: 0.5, color: CHART_COLORS.primary },
+          { offset: 1, color: CHART_COLORS.primary }
         ])
       },
       barWidth: "60%",
@@ -1323,15 +1324,15 @@ function initSalesTrendChart() {
             { offset: 1, color: "rgba(245, 108, 108, 0.05)" }
           ])
         },
-        lineStyle: { color: "#C0392B", width: 2 },
-        itemStyle: { color: "#C0392B" }
+        lineStyle: { color: CHART_COLORS.danger, width: 2 },
+        itemStyle: { color: CHART_COLORS.danger }
       },
       {
         name: "销量",
         type: "bar",
         yAxisIndex: 1,
         data: sales,
-        itemStyle: { color: "#0EA879" },
+        itemStyle: { color: CHART_COLORS.success },
         barWidth: "30%"
       }
     ]
@@ -1358,14 +1359,14 @@ function initDiscountChart() {
         name: "原价总额",
         type: "bar",
         data: originalAmounts,
-        itemStyle: { color: "#3F6FEF" },
+        itemStyle: { color: CHART_COLORS.primary },
         barWidth: "30%"
       },
       {
         name: "优惠金额",
         type: "bar",
         data: discountAmounts,
-        itemStyle: { color: "#D48B3A" },
+        itemStyle: { color: CHART_COLORS.warning },
         barWidth: "30%"
       }
     ]

@@ -101,6 +101,7 @@ import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import PageCard from "../../components/PageCard.vue";
 import { formatYuan } from "../../utils/format";
 import { fetchReportProfit, fetchReportBusinessOverview } from "../../api";
+import { CHART_COLORS } from "@/styles/theme";
 
 const dateRange = ref<[Date, Date] | null>(null);
 const loading = ref(false);
@@ -201,7 +202,7 @@ function renderBarChart() {
   const barWidth = barGroupWidth * 0.35;
 
   // Grid lines
-  ctx.strokeStyle = "#F0F0F0";
+  ctx.strokeStyle = CHART_COLORS.gray100;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + chartH - (chartH / 5) * i;
@@ -209,7 +210,7 @@ function renderBarChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#999999";
+    ctx.fillStyle = CHART_COLORS.textMuted;
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText(formatYuan((maxVal / 5) * i), padding.left - 10, y + 4);
@@ -221,15 +222,15 @@ function renderBarChart() {
     const revH = revenues[i] * yScale;
     const costH = costs[i] * yScale;
 
-    ctx.fillStyle = "#3F6FEF";
+    ctx.fillStyle = CHART_COLORS.primary;
     ctx.fillRect(x, padding.top + chartH - revH, barWidth, revH);
 
-    ctx.fillStyle = "#C0392B";
+    ctx.fillStyle = CHART_COLORS.danger;
     ctx.fillRect(x + barWidth + 4, padding.top + chartH - costH, barWidth, costH);
   });
 
   // X labels
-  ctx.fillStyle = "#444444";
+  ctx.fillStyle = CHART_COLORS.textSecondary;
   ctx.font = "11px sans-serif";
   ctx.textAlign = "center";
   data.forEach((_: any, i: number) => {
@@ -238,15 +239,15 @@ function renderBarChart() {
   });
 
   // Legend
-  ctx.fillStyle = "#3F6FEF";
+  ctx.fillStyle = CHART_COLORS.primary;
   ctx.fillRect(padding.left, 8, 12, 12);
-  ctx.fillStyle = "#444444";
+  ctx.fillStyle = CHART_COLORS.textSecondary;
   ctx.textAlign = "left";
   ctx.fillText("收入", padding.left + 18, 18);
 
-  ctx.fillStyle = "#C0392B";
+  ctx.fillStyle = CHART_COLORS.danger;
   ctx.fillRect(padding.left + 60, 8, 12, 12);
-  ctx.fillStyle = "#444444";
+  ctx.fillStyle = CHART_COLORS.textSecondary;
   ctx.fillText("成本", padding.left + 78, 18);
 }
 
@@ -280,7 +281,7 @@ function renderLineChart() {
   const yScale = chartH / range;
 
   // Grid lines
-  ctx.strokeStyle = "#F0F0F0";
+  ctx.strokeStyle = CHART_COLORS.gray100;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const y = padding.top + (chartH / 5) * i;
@@ -288,7 +289,7 @@ function renderLineChart() {
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
     ctx.stroke();
-    ctx.fillStyle = "#999999";
+    ctx.fillStyle = CHART_COLORS.textMuted;
     ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     const val = maxVal - (range / 5) * i;
@@ -296,7 +297,7 @@ function renderLineChart() {
   }
 
   // Line
-  ctx.strokeStyle = "#0EA879";
+  ctx.strokeStyle = CHART_COLORS.success;
   ctx.lineWidth = 2;
   ctx.beginPath();
   profits.forEach((val: number, i: number) => {
@@ -311,14 +312,14 @@ function renderLineChart() {
   profits.forEach((val: number, i: number) => {
     const x = padding.left + (chartW / (periods.length - 1 || 1)) * i;
     const y = padding.top + (maxVal - val) * yScale;
-    ctx.fillStyle = "#0EA879";
+    ctx.fillStyle = CHART_COLORS.success;
     ctx.beginPath();
     ctx.arc(x, y, 4, 0, Math.PI * 2);
     ctx.fill();
   });
 
   // X labels
-  ctx.fillStyle = "#444444";
+  ctx.fillStyle = CHART_COLORS.textSecondary;
   ctx.font = "11px sans-serif";
   ctx.textAlign = "center";
   data.forEach((_: any, i: number) => {

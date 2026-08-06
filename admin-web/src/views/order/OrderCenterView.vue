@@ -266,6 +266,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
 
 // ─── Mock 数据 ───
@@ -433,7 +434,7 @@ function initOrderTrendChart() {
     yAxis: { type: 'value', axisLabel: { fontSize: 9 } },
     series: [{
       type: 'line', data: mockOrderTrend.map(d => d.count),
-      smooth: true, symbol: 'none', lineStyle: { color: '#3F6FEF', width: 2 },
+      smooth: true, symbol: 'none', lineStyle: { color: CHART_COLORS.primary, width: 2 },
       areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(63,111,239,0.3)' }, { offset: 1, color: 'rgba(63,111,239,0.05)' }]) }
     }]
   })

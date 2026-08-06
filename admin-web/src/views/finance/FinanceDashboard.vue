@@ -107,6 +107,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import {
@@ -196,7 +197,7 @@ function renderCashFlowChart(data: any[]) {
         type: "line",
         data: incomes,
         smooth: true,
-        itemStyle: { color: "#0EA879" },
+        itemStyle: { color: CHART_COLORS.success },
         areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(14,168,121,0.3)" }, { offset: 1, color: "rgba(14,168,121,0)" }]) }
       },
       {
@@ -204,7 +205,7 @@ function renderCashFlowChart(data: any[]) {
         type: "line",
         data: expenses,
         smooth: true,
-        itemStyle: { color: "#C0392B" },
+        itemStyle: { color: CHART_COLORS.danger },
         areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: "rgba(192,57,43,0.3)" }, { offset: 1, color: "rgba(192,57,43,0)" }]) }
       }
     ]
@@ -228,9 +229,9 @@ function renderProfitChart(data: any[]) {
     xAxis: { type: "category", data: months },
     yAxis: { type: "value", axisLabel: { formatter: (v: number) => formatYuan(v) } },
     series: [
-      { name: "收入", type: "bar", data: incomes, itemStyle: { color: "#3F6FEF" }, barGap: "10%" },
-      { name: "支出", type: "bar", data: expenses, itemStyle: { color: "#C0392B" } },
-      { name: "利润", type: "line", data: profits, smooth: true, itemStyle: { color: "#0EA879" }, symbol: "circle", symbolSize: 8 }
+      { name: "收入", type: "bar", data: incomes, itemStyle: { color: CHART_COLORS.primary }, barGap: "10%" },
+      { name: "支出", type: "bar", data: expenses, itemStyle: { color: CHART_COLORS.danger } },
+      { name: "利润", type: "line", data: profits, smooth: true, itemStyle: { color: CHART_COLORS.success }, symbol: "circle", symbolSize: 8 }
     ]
   });
 }
@@ -259,8 +260,8 @@ function renderTopBarChart(
       data: values,
       itemStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-          { offset: 0, color: "#3F6FEF" },
-          { offset: 1, color: "#0EA879" }
+          { offset: 0, color: CHART_COLORS.primary },
+          { offset: 1, color: CHART_COLORS.success }
         ])
       }
     }]

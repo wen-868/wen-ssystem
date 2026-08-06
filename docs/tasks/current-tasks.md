@@ -1792,11 +1792,29 @@
 - **优先级**：P2
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r84_03.md）
+- **状态**：✅ 已完成（2026-08-06 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/styles/theme.ts`（新建）、`admin-web/src/views/{order,product,inventory,finance}/`
 - **问题**：全项目图表硬编码色 47 处（财务 29/订单 7/商品 7/库存 4），与 token 等值但品牌/主题变更时不同步（技术债）
 - **修复**：新建 theme.ts 导出 CHART_COLORS 常量，47 处图表色替换为常量引用（纯替换不碰逻辑）
 - **验收标准**：`npm run build` exit 0；`npx vue-tsc -b` 0 errors；九色硬编码命中显著下降（目标 ≤ 原 20%）
+
+**墨完成记录**（2026-08-06）：
+
+**完成内容：**
+- 新建 `admin-web/src/styles/theme.ts`：导出 `CHART_COLORS` 常量（primary/success/warning/danger/purple/cyan/gray100/textMuted/textSecondary 共 9 色），值与 tokens.css 图表色/token 定义完全一致，作为 canvas/ECharts 图表色的唯一真相源
+- 11 个视图文件 47 处图表色（财务 29/订单 7/商品 7/库存 4）全部替换为 `CHART_COLORS.xxx` 常量引用：ExpensesView/FinanceDashboard/FinanceReport/FinanceProfit/ReceivablesPayables/InventoryReports/OrderAftersaleView/OrderCenterView/OrderExceptionView/OrderSyncView/ProductCombo
+- 含 OrderAftersaleView `CHART_PALETTE` 六色盘整体改常量引用；仅替换色值来源（hex 字面量 → 常量），未碰任何渲染/布局/逻辑/文案
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 九色硬编码命中 | `rg "#3F6FEF|#0EA879|#C0392B|#D48B3A|#8B5CF6|#06B6D4|#F0F0F0|#999999|#444444" admin-web/src/views/{order,product,inventory,finance} -g "*.vue"` | 47 → 0（目标 ≤ 9）✅ |
+| 类型检查 | `npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build` | exit 0（39.44s，仅预存 @vueuse PURE 警告）✅ |
+| ESLint | `npx eslint`（12 个改动文件） | theme.ts 0 问题；11 个 vue 文件 31 problems（4 errors + 27 warnings）经 git stash 基线对比与 HEAD 完全一致，均为预存问题，本次零新增 ✅ |
+| diff 核查 | `git diff` 逐行审阅 | 11 文件 58+/47-，全部为颜色常量引用替换 + import 新增，无行尾噪声 ✅ |
+
+**说明**：① 验收 grep 目标「≤ 原 47 处 20%」实际达成 0 命中（47 → 0）；② 渐变 rgba 副色（如 rgba(63,111,239,0.4)）不在九色 hex 模式内，按 R77-01 惯例保留不动；③ 任务卡 inbox/mo_r84_03.md 已归档 inbox/archive/
 
 ---
 

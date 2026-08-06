@@ -212,6 +212,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import echarts from '@/utils/echarts'
+import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
 
 // ─── Mock 数据 ───
@@ -350,7 +351,7 @@ function initChannelSuccessChart() {
       itemStyle: {
         borderRadius: [4, 4, 0, 0],
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: '#0EA879' },
+          { offset: 0, color: CHART_COLORS.success },
           { offset: 1, color: 'rgba(14,168,121,0.4)' }
         ])
       },
