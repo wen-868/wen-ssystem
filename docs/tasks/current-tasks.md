@@ -1887,11 +1887,33 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：2 天
-- **状态**：待派单（墨完成 R84-03 + R85-01 后派单）
+- **状态**：✅ 已完成（2026-08-07 墨执行，commit 见 git log（未推送），由凌舟统一收口）
 - **文件**：`admin-web/src/views/marketing/{FullReduction,CouponManage,FlashSale,MarketingLimitedDiscount,MarketingView}.vue` + 对应 API 封装
 - **问题**：5 个营销页使用 mock 编造数据（列表/统计/CRUD），后端 admin-marketing-* 接口已存在未接入
-- **修复**：逐页接入真实 API（列表/创建/编辑/删除/状态操作），字段按后端返回适配；无数据显示空态；**禁止保留编造数字**；分两批提交（满减+优惠券 → 秒杀+限时折扣 → 营销视图）
+- **修复**：逐页接入真实 API（列表/创建/编辑/删除/状态操作），字段按后端返回适配；无数据显示空态；**禁止保留编造数字**；分三批提交（满减+优惠券 → 秒杀+限时折扣 → 营销视图）
 - **验收标准**：`rg "mock" admin-web/src/views/marketing/{FullReduction,CouponManage,FlashSale,MarketingLimitedDiscount,MarketingView}.vue` → 0；`npm run build` exit 0；`npx vue-tsc -b` 0 errors
+
+**墨完成记录**（2026-08-07）：
+
+**完成内容：**
+- **批次1**（commit `829be6c6`）：`admin-web/src/api/marketing.ts` 修复满减/秒杀/拼团/用户券 API 路径（原 `/admin/marketing/promotions/full-reduction` 等与后端实际路由 `/admin/marketing/full-reductions` 等不符，已全部对齐后端 routeConfig 前缀），新增限时折扣 8 个 API 封装（list/detail/create/update/delete/activate/pause/addProducts）；FullReduction.vue 接真实 API（列表/创建/编辑/删除/启停，规则 JSON 解析与 minAmount/reduceAmount 字段双向适配）；CouponManage.vue 接真实 API（列表/创建/编辑/删除/启停/发放记录，类型枚举 AMOUNT→FIXED、FREE_SHIP→SHIPPING 适配，发放记录接 user-coupons 接口）
+- **批次2**（commit `30765d38`）：FlashSale.vue 接真实 API（列表/创建/编辑/删除/停用，flashPrice/limitPerUser 字段适配，商品选择器接 fetchProducts 真实商品，SKU 维度提交 skuId）；MarketingLimitedDiscount.vue 接真实 API（列表/创建/编辑/删除/启停，snake_case 行转驼峰展示，折扣类型 PERCENT→PERCENTAGE 适配，创建后按 skuIds 调 add-products 追加商品，编辑时加载详情商品展示）
+- **批次3**（commit `3a94cc6b`）：MarketingView.vue 去除全部 Math.random 编造（7 处），字段映射对齐真实 API（优惠券 value/claimedCount、满减 rules JSON 解析、秒杀折扣率由 flashPrice/originalPrice 计算、salesIncrease 后端无字段统一零值）；效果分析接 dashboard activity-effect 接口，转化趋势图接 activity-conversion-trend 真实数据（发放量/使用量），新建对话框仅保留优惠券/满减（秒杀/拼团提示前往对应管理页）
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| mock 残留 | `rg -i "mock\|Math.random" admin-web/src/views/marketing/{FullReduction,CouponManage,FlashSale,MarketingLimitedDiscount,MarketingView}.vue` | 0 命中 ✅ |
+| 类型检查 | `npx vue-tsc -b`（三批各过） | exit 0，0 errors ✅ |
+| 生产构建 | `npm run build`（三批各过） | exit 0（约 39s，仅预存 @vueuse PURE 警告）✅ |
+| ESLint | `npx eslint`（5 个 vue + marketing.ts） | 0 errors；10 warning 均为 HEAD 预存（attributes-order/multiline，改动行之外）✅ |
+| diff 核查 | `git diff` 逐行审阅 | 三批零行尾噪声（5 个 vue 保持 HEAD 纯 CRLF，MarketingView/marketing.ts 保持 EOF 换行，其余 4 个 vue 无 EOF 换行）✅ |
+
+**上报（未擅改，超出本轮最小改动范围，需凌舟决策）**：
+1. **满减页收敛为满减单类型**：后端 `t_full_reduction` 无满赠字段（rules 仅 minAmount/reduceAmount），原「满赠」radio 无法持久化已移除；类型/关键词筛选后端 list 接口不支持，一并移除（status 筛选保留且枚举对齐 DRAFT/ACTIVE/PAUSED/ENDED）
+2. **优惠券无每人限领字段**：后端 `t_coupon_template` 无 per_limit 列/入参，「每人限领」列与表单项已移除
+3. **限时折扣字段缺口**：后端 create/update schema 无 minAmount/orderLimit/商品折扣价入参，「最低消费/每单限购」表单项已移除；`addDiscountProduct` 固定以原价写入 discount_price，前端商品折扣价输入无法持久化（编辑时商品仅展示不同步，需后端支持商品级折扣价更新接口）
+4. **营销视图新建秒杀/拼团**：新建对话框仅具备优惠券/满减所需字段，秒杀/拼团创建需商品选择等完整表单，已改为提示「请前往对应活动管理页创建」，不编造参数调用
 
 ### R86-02 — [P1] 营销页硬编码色 token 化
 - **优先级**：P1
