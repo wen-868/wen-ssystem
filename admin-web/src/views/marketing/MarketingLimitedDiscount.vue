@@ -2,14 +2,6 @@
   <div class="limited-discount">
     <!-- 工具栏 -->
     <div class="tab-toolbar">
-      <el-input
-        v-model="keyword"
-        placeholder="活动名称/编码"
-        clearable
-        style="width: 200px"
-        @clear="loadData"
-        @keyup.enter="loadData"
-      />
       <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 130px" @change="loadData">
         <el-option label="草稿" value="DRAFT" />
         <el-option label="待审核" value="PENDING" />
@@ -28,13 +20,13 @@
       <el-table-column prop="activityName" label="活动名称" min-width="140" />
       <el-table-column label="折扣类型" width="100">
         <template #default="{ row }">
-          <el-tag v-if="row.discountType === 'PERCENT'" type="warning">百分比</el-tag>
+          <el-tag v-if="row.discountType === 'PERCENTAGE'" type="warning">百分比</el-tag>
           <el-tag v-else type="primary">固定金额</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="折扣值" width="100">
         <template #default="{ row }">
-          <span v-if="row.discountType === 'PERCENT'">{{ row.discountValue }}%</span>
+          <span v-if="row.discountType === 'PERCENTAGE'">{{ row.discountValue }}%</span>
           <span v-else>¥{{ row.discountValue }}</span>
         </template>
       </el-table-column>
@@ -107,20 +99,15 @@
         </el-form-item>
         <el-form-item label="折扣类型" prop="discountType">
           <el-radio-group v-model="form.discountType">
-            <el-radio value="PERCENT">百分比</el-radio>
-            <el-radio value="AMOUNT">固定金额</el-radio>
+            <el-radio value="PERCENTAGE">百分比</el-radio>
+            <el-radio value="FIXED">固定金额</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="折扣值" prop="discountValue">
           <el-input-number v-model="form.discountValue" :min="0.01" :precision="2" style="width: 200px" />
-          <span class="form-hint">{{ form.discountType === 'PERCENT' ? '%' : '元' }}</span>
+          <span class="form-hint">{{ form.discountType === 'PERCENTAGE' ? '%' : '元' }}</span>
         </el-form-item>
         <el-row :gutter="16">
-          <el-col :span="8">
-            <el-form-item label="最低消费" prop="minAmount">
-              <el-input-number v-model="form.minAmount" :min="0" :precision="2" style="width: 100%" />
-            </el-form-item>
-          </el-col>
           <el-col :span="8">
             <el-form-item label="总库存" prop="totalStock">
               <el-input-number v-model="form.totalStock" :min="0" style="width: 100%" />
@@ -132,16 +119,12 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="每单限购">
-          <el-input-number v-model="form.orderLimit" :min="1" style="width: 200px" />
-        </el-form-item>
-
         <!-- 适用商品 -->
         <el-form-item label="适用商品">
           <div class="product-section">
             <div class="product-header">
               <span class="product-count">已选 {{ form.selectedProducts.length }} 个商品</span>
-              <el-button size="small" type="primary" @click="productPickerVisible = true">选择商品</el-button>
+              <el-button size="small" type="primary" @click="openProductPicker">选择商品</el-button>
             </div>
             <el-table v-if="form.selectedProducts.length > 0" :data="form.selectedProducts" size="small" max-height="240">
               <el-table-column prop="productName" label="商品名称" min-width="120" />
@@ -258,35 +241,18 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-
-// ==================== Mock 数据 ====================
-const mockDiscounts = ref(Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  activityCode: `LD202606${String(i + 1).padStart(3, '0')}`,
-  activityName: `限时折扣${i + 1}`,
-  discountType: (i % 2 === 0 ? 'PERCENT' : 'AMOUNT') as string,
-  discountValue: i % 2 === 0 ? Math.floor(Math.random() * 30 + 20) : Math.floor(Math.random() * 50 + 10),
-  startTime: '2026-06-01 00:00',
-  endTime: '2026-07-15 23:59',
-  productCount: Math.floor(Math.random() * 20 + 5),
-  usedStock: Math.floor(Math.random() * 500),
-  totalStock: 1000,
-  status: (['DRAFT', 'PENDING', 'ACTIVE', 'PAUSED', 'ENDED', 'SOLD_OUT'] as const)[i % 6],
-  description: '',
-  minAmount: 0,
-  perLimit: 1,
-  orderLimit: 1,
-  selectedProducts: [] as any[]
-})))
-
-const mockProducts = ref(Array.from({ length: 30 }, (_, i) => ({
-  id: i + 1,
-  productName: `商品${i + 1}`,
-  skuCode: `SKU${String(i + 1).padStart(4, '0')}`,
-  categoryName: (['白酒', '红酒', '啤酒', '洋酒'] as const)[i % 4],
-  originalPrice: Math.floor(Math.random() * 500 + 100),
-  stockQty: Math.floor(Math.random() * 200 + 50)
-})))
+import {
+  fetchLimitedDiscounts,
+  fetchLimitedDiscountDetail,
+  createLimitedDiscount,
+  updateLimitedDiscount,
+  deleteLimitedDiscount,
+  activateLimitedDiscount,
+  pauseLimitedDiscount,
+  addLimitedDiscountProducts,
+  fetchProducts,
+  getErrorMessage
+} from '../../api'
 
 // ==================== 列表 ====================
 const loading = ref(false)
@@ -294,23 +260,41 @@ const list = ref<any[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
-const keyword = ref('')
 const statusFilter = ref('')
 
-function loadData() {
+/** 后端 snake_case 行转页面展示结构 */
+function mapDiscountRow(item: any) {
+  const totalStock = Number(item.total_stock ?? 0)
+  const availableStock = Number(item.available_stock ?? 0)
+  return {
+    id: Number(item.id),
+    activityCode: item.activity_code,
+    activityName: item.activity_name,
+    description: item.activity_desc || '',
+    discountType: item.discount_type,
+    discountValue: Number(item.discount_value),
+    minAmount: Number(item.min_purchase || 0),
+    startTime: item.start_time,
+    endTime: item.end_time,
+    totalStock,
+    usedStock: Math.max(totalStock - availableStock, 0),
+    perLimit: item.limit_per_user,
+    status: item.status,
+    productCount: 0
+  }
+}
+
+async function loadData() {
   loading.value = true
   try {
-    let filtered = [...mockDiscounts.value]
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase()
-      filtered = filtered.filter(d => d.activityName.toLowerCase().includes(kw) || d.activityCode.toLowerCase().includes(kw))
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(d => d.status === statusFilter.value)
-    }
-    total.value = filtered.length
-    const start = (page.value - 1) * pageSize.value
-    list.value = filtered.slice(start, start + pageSize.value)
+    const params: Record<string, unknown> = { page: page.value, pageSize: pageSize.value }
+    if (statusFilter.value) params.status = statusFilter.value
+    const data = await fetchLimitedDiscounts(params)
+    const rows = data.list || data.records || []
+    list.value = rows.map(mapDiscountRow)
+    total.value = data.total || 0
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, '加载限时折扣失败'))
   } finally {
     loading.value = false
   }
@@ -329,11 +313,20 @@ function handlePageChange(p: number) {
 
 async function toggleStatus(row: any, newStatus: string) {
   const text = newStatus === 'PAUSED' ? '停用' : '启用'
-  const confirmed = await ElMessageBox.confirm(`确认${text}活动 ${row.activityName}？`, `确认${text}`, { type: 'warning' }).catch(() => null)
-  if (!confirmed) return
-  row.status = newStatus
-  ElMessage.success(`已${text}`)
-  loadData()
+  try {
+    await ElMessageBox.confirm(`确认${text}活动 ${row.activityName}？`, `确认${text}`, { type: 'warning' })
+    if (newStatus === 'ACTIVE') {
+      await activateLimitedDiscount(row.id)
+    } else {
+      await pauseLimitedDiscount(row.id)
+    }
+    ElMessage.success(`已${text}`)
+    loadData()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(getErrorMessage(e, `${text}失败`))
+    }
+  }
 }
 
 async function handleEnable(row: any) {
@@ -345,12 +338,16 @@ async function handleEnable(row: any) {
 }
 
 async function handleDelete(row: any) {
-  const confirmed = await ElMessageBox.confirm(`确认删除活动 ${row.activityName}？`, '确认删除', { type: 'warning' }).catch(() => null)
-  if (!confirmed) return
-  const idx = mockDiscounts.value.findIndex(d => d.id === row.id)
-  if (idx > -1) mockDiscounts.value.splice(idx, 1)
-  ElMessage.success('已删除')
-  loadData()
+  try {
+    await ElMessageBox.confirm(`确认删除活动 ${row.activityName}？`, '确认删除', { type: 'warning' })
+    await deleteLimitedDiscount(row.id)
+    ElMessage.success('已删除')
+    loadData()
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(getErrorMessage(e, '删除失败'))
+    }
+  }
 }
 
 // ==================== 表单 ====================
@@ -365,12 +362,10 @@ const form = reactive({
   activityName: '',
   description: '',
   timeRange: [] as any[],
-  discountType: 'PERCENT',
+  discountType: 'PERCENTAGE',
   discountValue: 0,
-  minAmount: 0,
   totalStock: 100,
   perLimit: 1,
-  orderLimit: 1,
   selectedProducts: [] as any[]
 })
 
@@ -382,7 +377,6 @@ const formRules: FormRules = {
     { required: true, message: '请输入折扣值', trigger: 'blur' },
     { type: 'number', min: 0.01, message: '折扣值必须大于0', trigger: 'blur' }
   ],
-  minAmount: [{ required: true, message: '请输入最低消费', trigger: 'blur' }],
   totalStock: [
     { required: true, message: '请输入总库存', trigger: 'blur' },
     { type: 'number', min: 0, message: '库存不能为负数', trigger: 'blur' }
@@ -390,7 +384,7 @@ const formRules: FormRules = {
   perLimit: [{ required: true, message: '请输入每人限购', trigger: 'blur' }]
 }
 
-function openDialog(row?: any) {
+async function openDialog(row?: any) {
   enableWarnings.value = []
   if (row) {
     isEdit.value = true
@@ -400,11 +394,34 @@ function openDialog(row?: any) {
     form.timeRange = [row.startTime, row.endTime]
     form.discountType = row.discountType
     form.discountValue = row.discountValue
-    form.minAmount = row.minAmount || 0
     form.totalStock = row.totalStock
     form.perLimit = row.perLimit || 1
-    form.orderLimit = row.orderLimit || 1
-    form.selectedProducts = [...(row.selectedProducts || [])]
+    form.selectedProducts = []
+    // 编辑时加载详情商品（后端无商品名，用商品列表解析名称展示）
+    try {
+      const [detail, productsData] = await Promise.all([
+        fetchLimitedDiscountDetail(row.id),
+        fetchProducts({ page: 1, pageSize: 100 })
+      ])
+      const productMap = new Map<number, any>((productsData.records || []).map((p: any) => [Number(p.skuId), p]))
+      form.selectedProducts = (detail?.products || []).map((p: any) => {
+        const skuId = Number(p.sku_id)
+        const info = productMap.get(skuId)
+        return {
+          id: skuId,
+          skuId,
+          productName: info?.name || `商品#${skuId}`,
+          skuCode: info?.skuCode || `SKU-${skuId}`,
+          categoryName: info?.categoryName || '',
+          originalPrice: Number(p.original_price),
+          discountPrice: Number(p.discount_price),
+          stockQty: Number(p.stock || 0),
+          soldQty: 0
+        }
+      })
+    } catch {
+      form.selectedProducts = []
+    }
   } else {
     isEdit.value = false
     editingId.value = null
@@ -417,12 +434,10 @@ function resetForm() {
   form.activityName = ''
   form.description = ''
   form.timeRange = []
-  form.discountType = 'PERCENT'
+  form.discountType = 'PERCENTAGE'
   form.discountValue = 0
-  form.minAmount = 0
   form.totalStock = 100
   form.perLimit = 1
-  form.orderLimit = 1
   form.selectedProducts = []
   enableWarnings.value = []
   formRef.value?.resetFields()
@@ -443,37 +458,33 @@ async function handleSubmit() {
   submitLoading.value = true
   try {
     const baseData = {
-      activityName: form.activityName,
+      name: form.activityName,
       description: form.description,
-      startTime: form.timeRange[0] || '',
-      endTime: form.timeRange[1] || '',
       discountType: form.discountType,
       discountValue: form.discountValue,
-      minAmount: form.minAmount,
-      totalStock: form.totalStock,
-      perLimit: form.perLimit,
-      orderLimit: form.orderLimit,
-      productCount: form.selectedProducts.length,
-      selectedProducts: [...form.selectedProducts]
+      startTime: form.timeRange[0] || '',
+      endTime: form.timeRange[1] || '',
+      limitPerUser: form.perLimit,
+      totalLimit: form.totalStock,
+      status: 'DRAFT',
+      applicableScope: 'ALL'
     }
 
     if (isEdit.value && editingId.value) {
-      const idx = mockDiscounts.value.findIndex(d => d.id === editingId.value)
-      if (idx > -1) Object.assign(mockDiscounts.value[idx], baseData)
+      await updateLimitedDiscount(editingId.value, baseData)
       ElMessage.success('修改成功')
     } else {
-      const newId = Math.max(...mockDiscounts.value.map(d => d.id), 0) + 1
-      mockDiscounts.value.unshift({
-        id: newId,
-        activityCode: `LD202606${String(newId).padStart(3, '0')}`,
-        ...baseData,
-        usedStock: 0,
-        status: 'DRAFT'
-      })
+      const created = await createLimitedDiscount(baseData)
+      const newId = Number(created?.id)
+      if (newId && form.selectedProducts.length > 0) {
+        await addLimitedDiscountProducts(newId, form.selectedProducts.map((p: any) => Number(p.skuId)))
+      }
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
     loadData()
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, isEdit.value ? '修改失败' : '创建失败'))
   } finally {
     submitLoading.value = false
   }
@@ -486,7 +497,12 @@ const productCategoryFilter = ref('')
 const tempSelectedProducts = ref<any[]>([])
 const pickerTableRef = ref()
 
-const allProducts = ref([...mockProducts.value])
+const allProducts = ref<any[]>([])
+
+function openProductPicker() {
+  productPickerVisible.value = true
+  loadAllProducts()
+}
 
 const filteredAllProducts = computed(() => {
   let result = [...allProducts.value]
@@ -500,8 +516,21 @@ const filteredAllProducts = computed(() => {
   return result
 })
 
-function loadAllProducts() {
-  // mock - no-op
+async function loadAllProducts() {
+  try {
+    const data = await fetchProducts({ page: 1, pageSize: 100 })
+    allProducts.value = (data.records || []).map((item: any) => ({
+      id: item.skuId,
+      skuId: item.skuId,
+      productName: item.name,
+      skuCode: item.skuCode,
+      categoryName: item.categoryName || '',
+      originalPrice: Number(item.retailPrice || 0),
+      stockQty: Number(item.availableQty || 0)
+    }))
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, '加载商品列表失败'))
+  }
 }
 
 function handlePickerSelectionChange(val: any[]) {

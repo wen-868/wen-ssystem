@@ -4,23 +4,12 @@
       <div class="toolbar">
         <div class="toolbar-left">
           <el-select v-model="statusFilter" placeholder="活动状态" clearable style="width: 130px; margin-right: 12px" @change="loadData">
-            <el-option label="未开始" value="PENDING" />
+            <el-option label="草稿" value="DRAFT" />
             <el-option label="进行中" value="ACTIVE" />
+            <el-option label="已暂停" value="PAUSED" />
             <el-option label="已结束" value="ENDED" />
             <el-option label="已售罄" value="SOLD_OUT" />
           </el-select>
-          <el-input
-            v-model="keyword"
-            placeholder="搜索活动名称"
-            clearable
-            style="width: 200px; margin-right: 12px"
-            @clear="loadData"
-            @keyup.enter="loadData"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
         </div>
         <div class="toolbar-right">
           <el-button type="primary" @click="openDialog()">
@@ -66,12 +55,13 @@
           </template>
         </el-table-column>
         <el-table-column label="每人限购" width="80" align="center">
-          <template #default="{ row }">{{ row.perLimit }}</template>
+          <template #default="{ row }">{{ row.limitPerUser }}</template>
         </el-table-column>
         <el-table-column label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.status === 'PENDING'" type="info">未开始</el-tag>
+            <el-tag v-if="row.status === 'DRAFT'" type="info">草稿</el-tag>
             <el-tag v-else-if="row.status === 'ACTIVE'" type="success">进行中</el-tag>
+            <el-tag v-else-if="row.status === 'PAUSED'" type="warning">已暂停</el-tag>
             <el-tag v-else-if="row.status === 'ENDED'" type="danger">已结束</el-tag>
             <el-tag v-else-if="row.status === 'SOLD_OUT'" type="warning">已售罄</el-tag>
           </template>
@@ -79,7 +69,7 @@
         <el-table-column label="操作" width="180" fixed="right" align="center">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openDialog(row)">编辑</el-button>
-            <el-button v-if="row.status === 'ACTIVE'" size="small" link type="warning" @click="handleEnd(row)">结束</el-button>
+            <el-button v-if="row.status === 'ACTIVE'" size="small" link type="warning" @click="handlePause(row)">停用</el-button>
             <el-button size="small" link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -108,7 +98,7 @@
         <el-form-item label="秒杀商品" prop="productName">
           <div class="product-select">
             <el-input v-model="form.productName" placeholder="点击选择商品" readonly style="width: 300px" />
-            <el-button type="primary" @click="productPickerVisible = true">选择商品</el-button>
+            <el-button type="primary" @click="openProductPicker">选择商品</el-button>
           </div>
         </el-form-item>
         <el-row :gutter="16">
@@ -166,7 +156,14 @@
     <!-- 商品选择器 -->
     <el-dialog v-model="productPickerVisible" title="选择秒杀商品" width="720px">
       <div class="picker-toolbar">
-        <el-input v-model="productSearch" placeholder="搜索商品" clearable style="width: 200px" />
+        <el-input
+          v-model="productSearch"
+          placeholder="搜索商品"
+          clearable
+          style="width: 200px"
+          @clear="loadAllProducts"
+          @keyup.enter="loadAllProducts"
+        />
       </div>
       <el-table
         :data="allProducts"
@@ -191,14 +188,22 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
-import { Search, Plus, Refresh } from "@element-plus/icons-vue";
+import { Plus, Refresh } from "@element-plus/icons-vue";
+import {
+  fetchFlashSales,
+  createFlashSale,
+  updateFlashSale,
+  deleteFlashSale,
+  pauseFlashSale,
+  fetchProducts,
+  getErrorMessage
+} from "../../api";
 
 const loading = ref(false);
 const activities = ref<any[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(20);
-const keyword = ref("");
 const statusFilter = ref("");
 
 // ==================== 表单 ====================
@@ -212,6 +217,7 @@ const form = reactive({
   name: "",
   productName: "",
   productId: null as number | null,
+  skuId: null as number | null,
   seckillPrice: 0,
   originalPrice: 0,
   timeRange: [] as any[],
@@ -240,19 +246,38 @@ const formRules: FormRules = {
 const productPickerVisible = ref(false);
 const productSearch = ref("");
 
-const mockProducts = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  productName: ["茅台飞天 53度 500ml", "五粮液 52度 500ml", "国窖1573 52度 500ml", "剑南春 52度 500ml", "洋河梦之蓝 M6 52度", "汾酒青花30 53度", "古井贡酒年份原浆 50度", "水井坊臻酿八号 52度", "舍得酒品味舍得 52度", "酒鬼酒内参 52度"][i % 10],
-  sku: `SKU${String(i + 1).padStart(6, "0")}`,
-  retailPrice: [1499, 1099, 999, 468, 788, 598, 358, 298, 458, 888][i % 10],
-  stock: Math.floor(Math.random() * 500) + 50
-}));
+const allProducts = ref<any[]>([]);
 
-const allProducts = ref([...mockProducts]);
+async function loadAllProducts() {
+  try {
+    const data = await fetchProducts({
+      keyword: productSearch.value || undefined,
+      page: 1,
+      pageSize: 100
+    });
+    allProducts.value = (data.records || []).map((item: any) => ({
+      id: item.skuId,
+      spuId: item.spuId,
+      skuId: item.skuId,
+      productName: item.name,
+      sku: item.skuCode,
+      retailPrice: Number(item.retailPrice || 0),
+      stock: Number(item.availableQty || 0)
+    }));
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, "加载商品列表失败"));
+  }
+}
+
+function openProductPicker() {
+  productPickerVisible.value = true;
+  loadAllProducts();
+}
 
 function handleProductSelect(row: any) {
   if (!row) return;
-  form.productId = row.id;
+  form.productId = row.spuId ?? row.id;
+  form.skuId = row.skuId ?? row.id;
   form.productName = row.productName;
   form.originalPrice = row.retailPrice;
   form.seckillPrice = Math.round(row.retailPrice * 0.6 * 100) / 100;
@@ -260,64 +285,56 @@ function handleProductSelect(row: any) {
   productPickerVisible.value = false;
 }
 
-// ==================== Mock ====================
-const mockActivities: any[] = Array.from({ length: 12 }, (_, i) => {
-  const statuses = ["PENDING", "ACTIVE", "ACTIVE", "ENDED", "SOLD_OUT"];
-  const totalStock = Math.floor(Math.random() * 200) + 50;
-  const status = statuses[i % 5];
-  return {
-    id: i + 1,
-    name: `秒杀活动-${i + 1}`,
-    productId: i + 1,
-    productName: ["茅台飞天 53度", "五粮液 52度", "国窖1573", "剑南春"][i % 4],
-    seckillPrice: [999, 699, 599, 299][i % 4],
-    originalPrice: [1499, 1099, 999, 468][i % 4],
-    discountRate: (6.7).toFixed(1),
-    totalStock,
-    soldCount: status === "SOLD_OUT" ? totalStock : Math.floor(Math.random() * totalStock),
-    perLimit: Math.floor(Math.random() * 3) + 1,
-    startTime: "2026-07-06 10:00:00",
-    endTime: "2026-07-06 22:00:00",
-    status,
-    description: ""
-  };
-});
-
-function loadData() {
+async function loadData() {
   loading.value = true;
-  setTimeout(() => {
-    let filtered = [...mockActivities];
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase();
-      filtered = filtered.filter(a => a.name.toLowerCase().includes(kw));
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(a => a.status === statusFilter.value);
-    }
-    const start = (page.value - 1) * pageSize.value;
-    activities.value = filtered.slice(start, start + pageSize.value);
-    total.value = filtered.length;
+  try {
+    const params: Record<string, unknown> = { page: page.value, pageSize: pageSize.value };
+    if (statusFilter.value) params.status = statusFilter.value;
+    const data = await fetchFlashSales(params);
+    activities.value = (data.records || []).map((item: any) => ({
+      ...item,
+      seckillPrice: Number(item.flashPrice),
+      originalPrice: Number(item.originalPrice),
+      discountRate: Number(item.originalPrice) > 0 ? (Number(item.flashPrice) / Number(item.originalPrice) * 10).toFixed(1) : "0.0",
+      limitPerUser: item.limitPerUser,
+      totalStock: Number(item.totalStock),
+      soldCount: Number(item.soldCount)
+    }));
+    total.value = data.total || 0;
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, "加载秒杀活动失败"));
+  } finally {
     loading.value = false;
-  }, 300);
+  }
 }
 
 function handleSizeChange(size: number) { pageSize.value = size; page.value = 1; loadData(); }
 function handlePageChange(p: number) { page.value = p; loadData(); }
 
-function openDialog(row?: any) {
+async function openDialog(row?: any) {
   if (row) {
     isEdit.value = true;
     editingId.value = row.id;
     form.name = row.name;
     form.productId = row.productId;
-    form.productName = row.productName;
+    form.skuId = row.skuId;
+    form.productName = row.productName || "";
     form.seckillPrice = row.seckillPrice;
     form.originalPrice = row.originalPrice;
     form.timeRange = [row.startTime, row.endTime];
     form.totalStock = row.totalStock;
-    form.perLimit = row.perLimit;
+    form.perLimit = row.limitPerUser || 1;
     form.preheatMinutes = 30;
     form.description = row.description || "";
+    if (!form.productName) {
+      try {
+        const data = await fetchProducts({ page: 1, pageSize: 100 });
+        const found = (data.records || []).find((p: any) => Number(p.skuId) === Number(row.skuId));
+        form.productName = found?.name || `商品#${row.skuId}`;
+      } catch {
+        form.productName = `商品#${row.skuId}`;
+      }
+    }
   } else {
     isEdit.value = false;
     editingId.value = null;
@@ -329,6 +346,7 @@ function openDialog(row?: any) {
 function resetForm() {
   form.name = "";
   form.productId = null;
+  form.skuId = null;
   form.productName = "";
   form.seckillPrice = 0;
   form.originalPrice = 0;
@@ -345,48 +363,58 @@ async function handleSubmit() {
   if (!valid) return;
 
   submitLoading.value = true;
-  setTimeout(() => {
-    const base = {
+  try {
+    const payload = {
       name: form.name,
       productId: form.productId,
-      productName: form.productName,
-      seckillPrice: form.seckillPrice,
+      skuId: form.skuId,
+      flashPrice: form.seckillPrice,
       originalPrice: form.originalPrice,
-      discountRate: (form.seckillPrice / form.originalPrice * 10).toFixed(1),
       startTime: form.timeRange[0] || "",
       endTime: form.timeRange[1] || "",
       totalStock: form.totalStock,
-      perLimit: form.perLimit,
-      description: form.description
+      limitPerUser: form.perLimit
     };
     if (isEdit.value && editingId.value) {
-      const idx = mockActivities.findIndex(a => a.id === editingId.value);
-      if (idx > -1) Object.assign(mockActivities[idx], base);
+      await updateFlashSale(editingId.value, payload);
       ElMessage.success("修改成功");
     } else {
-      const newId = Math.max(...mockActivities.map(a => a.id), 0) + 1;
-      mockActivities.unshift({ id: newId, ...base, soldCount: 0, status: "PENDING" });
+      await createFlashSale(payload);
       ElMessage.success("创建成功");
     }
     dialogVisible.value = false;
     loadData();
+  } catch (e: any) {
+    ElMessage.error(getErrorMessage(e, isEdit.value ? "修改失败" : "创建失败"));
+  } finally {
     submitLoading.value = false;
-  }, 500);
+  }
 }
 
-async function handleEnd(row: any) {
-  await ElMessageBox.confirm(`确认结束秒杀活动「${row.name}」？`, "确认结束", { type: "warning" });
-  row.status = "ENDED";
-  ElMessage.success("活动已结束");
-  loadData();
+async function handlePause(row: any) {
+  try {
+    await ElMessageBox.confirm(`确认停用秒杀活动「${row.name}」？`, "确认停用", { type: "warning" });
+    await pauseFlashSale(row.id);
+    ElMessage.success("活动已停用");
+    loadData();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(getErrorMessage(e, "停用失败"));
+    }
+  }
 }
 
 async function handleDelete(row: any) {
-  await ElMessageBox.confirm(`确认删除秒杀活动「${row.name}」？`, "确认删除", { type: "warning" });
-  const idx = mockActivities.findIndex(a => a.id === row.id);
-  if (idx > -1) mockActivities.splice(idx, 1);
-  ElMessage.success("已删除");
-  loadData();
+  try {
+    await ElMessageBox.confirm(`确认删除秒杀活动「${row.name}」？`, "确认删除", { type: "warning" });
+    await deleteFlashSale(row.id);
+    ElMessage.success("已删除");
+    loadData();
+  } catch (e: any) {
+    if (e !== "cancel") {
+      ElMessage.error(getErrorMessage(e, "删除失败"));
+    }
+  }
 }
 
 onMounted(() => { loadData(); });
