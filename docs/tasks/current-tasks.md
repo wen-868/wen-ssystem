@@ -1527,7 +1527,7 @@
 - **优先级**：P0
 - **负责人**：墨（admin-web）
 - **预计**：1 天
-- **状态**：✅ 已完成（2026-08-06 墨执行，凌舟复核中）
+- **状态**：✅ 已完成（2026-08-06 墨执行 commit `f6fcf81a`，凌舟复核通过：mock 清零、el-empty 空态+待后端支持提示、菜单保留、vue-tsc 0）
 - **文件**：`admin-web/src/views/product/ReviewDelegation.vue`、`ProductReviewWorkflow.vue`
 - **问题**：两个页面使用 mock 编造数据（审核委托 3 组假列表、审核流程 mockRecords），后端无对应接口
 - **修复**：移除全部 mock 假数据；页面改真实空态 + 明确提示"该功能待后端支持（审核委托/流程配置）"；保留页面结构与入口（不删菜单）；**不编造数据**
@@ -1550,7 +1550,7 @@
 - **优先级**：P1
 - **负责人**：墨（admin-web）
 - **预计**：0.5 天
-- **状态**：待派单（墨完成 R81-01 后派单）
+- **状态**：🔄 进行中（2026-08-06 已派单，任务卡 inbox/mo_r81_02.md）
 - **文件**：`admin-web/src/views/product/`（ProductCombo 14/ProductReviewTasks 6/ProductReview 4 等）
 - **问题**：商品页硬编码色残留 27 处（含 #C0392B/#0EA879/#444444/#83bff6 等）
 - **修复**：硬编码色替换为 tokens.css 变量（品牌/灰阶/语义色），只改颜色
