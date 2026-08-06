@@ -531,14 +531,14 @@ function stopNativeRecording(): void {
 /**
  * 录音完成回调（骨架实现）
  *
- * TODO: 对接后端语音转文字接口：
+ * R94-01 评估：保留「开发中」提示
  *   - H5：data 为 base64 DataURL（audio/webm）
  *   - 小程序/App：data 为录音文件临时路径 tempFilePath
- *   - 后端 AI 底座当前暂无语音转写（ASR）接口，
+ *   - 后端 AI 底座当前无语音转写（ASR）接口（已核实，不编造），
  *     待接口就绪后在此上传录音数据，取回识别文本填入 inputText
  */
 function handleRecordComplete(data: string) {
-  // TODO: 语音转文字对接点（见上方注释）
+  // R94-01：语音转文字对接点（见上方注释，后端 ASR 接口缺失前保留提示）
   console.log('[ai-chat] 录音完成，待转写数据:', data ? data.slice(0, 80) : '空')
   uni.showToast({ title: '语音转文字功能开发中', icon: 'none' })
 }

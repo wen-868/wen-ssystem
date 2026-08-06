@@ -2211,11 +2211,22 @@
 - **优先级**：P1
 - **负责人**：阿澈（移动端）
 - **预计**：1 天
-- **状态**：🔄 进行中（任务卡 inbox/ache_r94_01.md）
+- **状态**：✅ 已完成（2026-08-07 阿澈执行，构建验证通过）
 - **文件**：`app-mobile/src/pages/ai-chat/ai-chat.vue`、`pages-sub/product/product/product-edit.vue`、`pages-sub/product/price/price-manage.vue`、`pages/products/products.vue`
 - **问题**：5 处「功能开发中」占位
 - **修复**：逐处评估——能接真实能力的接入（如分类选择可复用商品分类接口、图片上传可接 uni.chooseImage+上传接口）；依赖原生插件或后端缺失的如实保留「开发中」提示（**不编造**）；记录每处处理结论
 - **验收标准**：每处占位有处理结论记录；能接的真实接入；`npm run build:h5` + `build:app` exit 0
+- **处理结论（5 处）**：
+  1. `ai-chat.vue` 语音转文字 → **保留**「开发中」提示。录音骨架（H5 MediaRecorder / App-小程序 RecorderManager）已实现；后端 AI 底座当前无语音转写（ASR）接口（已核实 src 无 speech/asr/transcri 实现），不编造，注释标注 R94-01 核实结论
+  2. `product-edit.vue` 分类选择 → **接入真实能力**：复用 `productsApi.categories()`（GET /api/admin/products/categories），新增底部弹层选择器，按 parentId 构建层级树缩进展示，选中回填 categoryId/categoryName
+  3. `product-edit.vue` 图片上传 → **保留**「开发中」提示。后端无通用文件上传接口（未配置 multer/静态目录/对象存储，仅采购合同 fileUrl 记录式接口），接 uni.chooseImage+upload 会造成假上传，不编造；注释已标注原因，待后端提供上传接口后经 request.ts 的 upload() 接入
+  4. `price-manage.vue` 调价记录 → **接入真实能力**：后端 `GET /api/admin/prices/batch/logs` 已存在（batch-price.service.ts listBatchPriceLogs），新建 `pages-sub/product/price/batch-logs.vue` 记录页（分页加载更多，展示 batchNo/priceType/skuCount/涨降金额/备注/时间），pages.json 注册「调价记录」，入口 navigateTo 跳转
+  5. `products.vue` 操作卡 → 批量调价已接入真实页（navigateTo batch-price，无需改）；建议核价/价格异常后端无对应接口（已核实），**保留**「开发中」提示，不编造；注释标注评估结论
+- **验证证据**：
+  - `npm run build:h5` → exit 0（DONE Build complete）
+  - `npm run build:app` → exit 0（DONE Build complete）
+  - 产物包含新页 `dist/build/h5/assets/pages-sub-product-price-batch-logs.*.js`、`dist/build/app/pages-sub/product/price/batch-logs.css`
+  - 5 处占位均有处理结论：接入 2 处（分类选择、调价记录）、保留 3 处（语音转文字、图片上传、建议核价/价格异常）
 
 ### R94-02 — [P1] 移动端硬编码色 token 化（分批）
 - **优先级**：P1

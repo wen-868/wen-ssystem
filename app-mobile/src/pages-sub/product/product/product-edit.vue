@@ -228,6 +228,31 @@
 
       <view class="safe-bottom"></view>
     </form>
+
+    <!-- 商品分类选择弹层（R94-01：接入真实分类接口） -->
+    <view v-if="categoryPickerVisible" class="category-mask" @tap="categoryPickerVisible = false">
+      <view class="category-sheet" @tap.stop>
+        <view class="sheet-header">
+          <text class="sheet-title">选择商品分类</text>
+          <text class="sheet-close" @tap="categoryPickerVisible = false">取消</text>
+        </view>
+        <scroll-view class="category-scroll" scroll-y>
+          <view
+            v-for="node in categoryTree"
+            :key="node.id"
+            class="category-item"
+            :style="{ paddingLeft: (24 + node.level * 32) + 'rpx' }"
+            @tap="onSelectCategory(node)"
+          >
+            <text class="category-item-name">{{ node.name }}</text>
+            <text v-if="form.categoryId === node.id" class="category-item-check">✓</text>
+          </view>
+          <view v-if="categoryTree.length === 0 && !categoryLoading" class="category-empty">
+            暂无分类，请先到商品分类创建
+          </view>
+        </scroll-view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -242,6 +267,10 @@ const formRef = ref<any>(null)
 const libraryHit = ref(false)
 /** 是否编辑模式（暂未接入 edit 入口） */
 const isEdit = ref(false)
+/** 分类选择弹层状态（R94-01） */
+const categoryPickerVisible = ref(false)
+const categoryLoading = ref(false)
+const categoryTree = ref<Array<CategoryInfo & { level: number }>>([])
 
 const form = reactive({
   // 基本信息
@@ -332,12 +361,55 @@ function loadLibraryFillData() {
   if (sku.boxRatio != null && sku.boxRatio !== '') form.boxRatio = String(sku.boxRatio)
 }
 
-/** 选择商品分类（简单实现：跳转分类列表） */
-function onChooseCategory() {
-  uni.showToast({ title: '分类选择开发中', icon: 'none' })
+/** 将扁平分类列表构建为层级树（parentId -> children，缩进展示） */
+function buildCategoryTree(list: CategoryInfo[]): Array<CategoryInfo & { level: number }> {
+  const result: Array<CategoryInfo & { level: number }> = []
+  const walk = (parentId: number | undefined, level: number) => {
+    list
+      .filter((c) => (c.parentId ?? undefined) === parentId)
+      .forEach((c) => {
+        result.push({ ...c, level })
+        walk(c.id, level + 1)
+      })
+  }
+  walk(undefined, 0)
+  return result
 }
 
-/** 上传主图 */
+/** 打开分类选择弹层（R94-01：加载真实分类接口） */
+async function openCategoryPicker() {
+  categoryPickerVisible.value = true
+  if (categoryTree.value.length > 0) return
+  categoryLoading.value = true
+  try {
+    const list = await productsApi.categories()
+    categoryTree.value = buildCategoryTree(list)
+  } catch (err) {
+    console.error('加载分类失败:', err)
+    uni.showToast({ title: '分类加载失败', icon: 'none' })
+  } finally {
+    categoryLoading.value = false
+  }
+}
+
+/** 选择分类并回填表单 */
+function onSelectCategory(node: CategoryInfo & { level: number }) {
+  form.categoryId = node.id
+  form.categoryName = node.name
+  categoryPickerVisible.value = false
+}
+
+/** 选择商品分类 */
+function onChooseCategory() {
+  openCategoryPicker()
+}
+
+/**
+ * 上传主图（R94-01 评估：保留「开发中」提示）
+ * 后端当前无通用文件上传接口（未配置 multer/静态目录/对象存储，
+ * 仅采购合同存在 fileUrl 记录式接口），故不接入 uni.uploadFile，避免假上传。
+ * 待后端提供通用上传接口后，在此使用 request.ts 的 upload() 接入。
+ */
 function onChooseImage() {
   uni.showToast({ title: '图片上传开发中', icon: 'none' })
 }
@@ -517,4 +589,50 @@ onMounted(() => {
 .submit-btn::after { border: none; }
 
 .safe-bottom { height: calc(40rpx + env(safe-area-inset-bottom)); }
+
+/* ─── 商品分类选择弹层（R94-01） ─── */
+.category-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+.category-sheet {
+  width: 100%;
+  max-height: 70vh;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.sheet-title { font-size: 30rpx; font-weight: 600; color: #333; }
+.sheet-close { font-size: 26rpx; color: #999; }
+.category-scroll { max-height: 60vh; }
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.category-item-name { font-size: 28rpx; color: #333; }
+.category-item-check { font-size: 28rpx; color: #1677FF; }
+.category-empty {
+  padding: 60rpx 32rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #999;
+}
 </style>

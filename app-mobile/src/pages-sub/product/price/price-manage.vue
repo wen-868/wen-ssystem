@@ -173,8 +173,9 @@ function goBatchAdjust() {
   uni.navigateTo({ url: '/pages-sub/product/price/batch-adjust' })
 }
 
+/** 调价记录（R94-01：接入真实记录页 batch-logs） */
 function goBatchLogs() {
-  uni.showToast({ title: '调价记录功能开发中', icon: 'none' })
+  uni.navigateTo({ url: '/pages-sub/product/price/batch-logs' })
 }
 
 onMounted(() => {

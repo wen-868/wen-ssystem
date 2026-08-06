@@ -213,6 +213,12 @@
                     }
                 },
                 {
+                    "path": "price/batch-logs",
+                    "style": {
+                        "navigationBarTitleText": "调价记录"
+                    }
+                },
+                {
                     "path": "price-push/price-push",
                     "style": {
                         "navigationBarTitleText": "报价推送"

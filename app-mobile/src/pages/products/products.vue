@@ -42,7 +42,7 @@
       </view>
     </scroll-view>
 
-    <!-- 操作卡：建议核价 / 批量调价 / 价格异常（入口，功能开发中不编造数字） -->
+    <!-- 操作卡：建议核价 / 批量调价 / 价格异常（R94-01：批量调价已接入真实页；建议核价/价格异常后端无接口，保留开发中提示） -->
     <view class="action-row">
       <view class="action-card" @tap="onAction('suggest')">
         <text class="action-card-title">建议核价</text>
@@ -261,6 +261,7 @@ function goDetail(id: number) {
 /** 操作卡入口：对应功能尚未开发，提示占位（不编造数据） */
 function onAction(type: 'suggest' | 'batch' | 'anomaly') {
   if (type === 'batch') {
+    // R94-01：批量调价已接入真实页面
     uni.navigateTo({ url: '/pages-sub/product/batch-price/batch-price' })
     return
   }
@@ -268,6 +269,7 @@ function onAction(type: 'suggest' | 'batch' | 'anomaly') {
     suggest: '建议核价',
     anomaly: '价格异常'
   }
+  // R94-01 评估：建议核价 / 价格异常后端无对应接口（已核实），如实保留开发中提示，不编造
   uni.showToast({ title: `${titles[type]}功能开发中`, icon: 'none' })
 }
 
