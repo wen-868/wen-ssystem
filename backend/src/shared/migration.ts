@@ -898,6 +898,13 @@ export async function runMigrations(): Promise<void> {
             logger.info(`[migration] ${file}: 跳过存储过程语句`);
             continue;
           }
+          // 紧急保护（R95-03）：外部迁移含 DROP TABLE IF EXISTS（001/003 等），
+          // 在已上线库上执行会删除重建核心表导致数据丢失（已在生产触发一次）。
+          // 后续只允许补建缺失表，禁止任何 DROP。
+          if (/DROP\s+TABLE/i.test(stmt)) {
+            logger.warn(`[migration] ${file}: 跳过 DROP TABLE 语句（保护生产数据）`);
+            continue;
+          }
           // 自动给所有表名加 t_ 前缀
           const prefixedStmt = addTablePrefix(stmt);
           await safeExec(conn, prefixedStmt, `${file}`);
