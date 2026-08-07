@@ -233,7 +233,7 @@ export async function getInventoryAge(
 
   const records = await queryWithTenant<InventoryAgeRow>(
     `SELECT
-        ps.sku_id AS skuId,
+        ps.id AS skuId,
         ps.sku_name AS skuName,
         psi.sku_id AS psiSkuId,
         psi.batch_no AS batchNo,

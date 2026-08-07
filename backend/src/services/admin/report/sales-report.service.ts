@@ -149,10 +149,10 @@ export async function getSalesTrend(
             COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
      FROM t_sale_bill sb
      WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
-       AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ?)
+       AND sb.created_at >= DATE_SUB(CURDATE(), INTERVAL ${intervalExpr})
      GROUP BY period
      ORDER BY period ASC`,
-    [dateFormat, intervalExpr],
+    [dateFormat],
     tenantId
   );
 
