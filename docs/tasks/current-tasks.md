@@ -2332,6 +2332,13 @@
 
 **阿坚完成记录（2026-08-07，R95-04-1 / R95-04-3 / R95-04-4）：**
 
+**凌舟验收记录（2026-08-07）：**
+- R95-04-1 ✅：6e33fcbc 修正 5 个迁移文件（003/007/013/103/108），复核全仓无真实 `ADD COLUMN/INDEX IF NOT EXISTS` 语句残留（077/078/092/093/120b 仅注释说明）
+- R95-04-3 ✅：备份脚本 RETENTION_DAYS 14 + 异地 rsync 支持 + crontab 3 次（02/10/18 时），待服务器更新 crontab（见下）
+- R95-04-4 ✅：`scripts/schema-audit.mjs --mock` 运行成功（代码引用 253 表/迁移期望 232 表，报告 `docs/reports/schema-audit-2026-08-07.md`），待生产实跑（见下）
+- R95-04-2 ✅：生产 store 端登录已用 admin/admin123 验证成功（store 接口全 200），移动端线上可正常登录，无需创建账号
+- **待用户服务器执行**：① crontab 更新为 3 次备份；② `node scripts/schema-audit.mjs` 生产实跑生成真实差异报告
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
