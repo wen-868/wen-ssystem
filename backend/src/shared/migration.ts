@@ -860,8 +860,15 @@ export async function runMigrations(): Promise<void> {
     // ============================================================
     // 第8步：执行其他 SQL 迁移文件
     // ============================================================
-    const migrationsDir = resolve(process.cwd(), "docs/migrations");
-    if (existsSync(migrationsDir)) {
+    // 兼容 pm2 --cwd backend 启动（auto-deploy.sh）：docs/migrations 在项目根，
+    // cwd 为 backend 时需回退到上级目录查找，避免外部迁移被整体跳过（R95-03 修复：
+    // 此前仅查 cwd/docs/migrations，导致 086 之后的建表 SQL（t_receipt/t_print_record 等）在生产未执行）
+    const migrationsDir = [
+      resolve(process.cwd(), "docs/migrations"),
+      resolve(process.cwd(), "../docs/migrations"),
+      resolve(process.cwd(), "../../docs/migrations"),
+    ].find((candidate) => existsSync(candidate));
+    if (migrationsDir) {
       const files = readdirSync(migrationsDir)
         .filter((f) => f.endsWith(".sql") && f !== "add_tenant_id.sql")
         .sort();
