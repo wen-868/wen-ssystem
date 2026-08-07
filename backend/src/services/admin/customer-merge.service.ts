@@ -42,7 +42,7 @@ interface DuplicateNameStatRow {
   customer_ids: string;
 }
 
-/** t_sales_order 销售统计行（queryOneWithTenant 用，snake_case） */
+/** t_sale_bill 销售统计行（queryOneWithTenant 用，snake_case） */
 interface SalesStatsRow {
   order_count: number;
   total_amount: number | string;
@@ -184,10 +184,10 @@ export async function getCustomerRelations(tenantId: string, customerId: number)
 
   const salesStats = await queryOneWithTenant<SalesStatsRow>(
     `SELECT COUNT(*) as order_count,
-            COALESCE(SUM(total_amount), 0) as total_amount,
-            COALESCE(SUM(paid_amount), 0) as paid_amount,
-            COALESCE(SUM(total_amount - paid_amount), 0) as unpaid_amount
-     FROM t_sales_order
+            COALESCE(SUM(receivable_amount), 0) as total_amount,
+            COALESCE(SUM(received_amount), 0) as paid_amount,
+            COALESCE(SUM(receivable_amount - received_amount), 0) as unpaid_amount
+     FROM t_sale_bill
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, tenantId],
     tenantId
@@ -303,7 +303,7 @@ export async function mergeCustomers(tenantId: string, body: {
     }
 
     await conn.execute(
-      `UPDATE t_sales_order SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
+      `UPDATE t_sale_bill SET customer_id = ? WHERE customer_id IN (?) AND tenant_id = ?`,
       [body.primaryCustomerId, body.duplicateCustomerIds, tenantId]
     );
 

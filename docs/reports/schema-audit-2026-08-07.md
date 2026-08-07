@@ -5,7 +5,7 @@
 
 ## 一、代码引用的表与列（backend/src 正则提取）
 
-共引用 **253** 张表：
+共引用 **241** 张表：
 
 - `t_aftersale`（32 列）：`aftersale_no`、`aftersale_type`、`created_at`、`customer_comment`、`customer_id`、`deadline`、`exchange_qty`、`exchange_sku_id`、`id`、`images`、`inspect_images`、`inspect_result`、`inspected_by`、`items`、`order_id`、`order_no`、`process_remark`、`processed_by`、`reason`、`reason_detail`、`receiver_address`、`receiver_mobile`、`receiver_name`、`refund_amount`、`return_logistics_company`、`return_logistics_no`、`satisfaction`、`status`、`store_id`、`tenant_id`、`updated_at`、`version`
 - `t_alert_record`（20 列）：`alert_level`、`alert_no`、`biz_id`、`biz_no`、`biz_type`、`created_at`、`current_value`、`description`、`handle_remark`、`handle_time`、`handler_id`、`handler_name`、`id`、`rule_id`、`rule_type`、`status`、`tenant_id`、`threshold_value`、`title`、`updated_at`
@@ -73,9 +73,8 @@
 - `t_group_buy_team`（18 列）：`activity_id`、`completed_at`、`created_at`、`current_size`、`expires_at`、`group_price`、`id`、`leader_id`、`leader_order_id`、`max_group_size`、`name`、`original_price`、`sku_id`、`sold_count`、`status`、`target_size`、`tenant_id`、`total_stock`
 - `t_growth_record`（8 列）：`balance_growth`、`change_growth`、`created_at`、`id`、`remark`、`source_id`、`source_type`、`type`
 - `t_hold_order`（11 列）：`amount`、`created_at`、`customer_mobile`、`customer_name`、`hold_no`、`payload`、`remark`、`status`、`store_id`、`tenant_id`、`updated_at`
-- `t_inventory`（8 列）：`available_quantity`、`locked_quantity`、`quantity`、`sku_code`、`sku_id`、`sku_name`、`store_id`、`updated_at`
 - `t_inventory_balance`（64 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`barcode`、`base_unit`、`batch_no`、`bottle_qty`、`box_ratio`、`box_unit`、`brand_id`、`category_id`、`change_qty`、`cost_price`、`created_at`、`description`、`detail`、`enabled`、`id`、`image_urls`、`is_new`、`is_recommend`、`locked_qty`、`low`、`main_image`、`marketing_tags`、`max_qty`、`min_order_qty`、`min_qty`、`miniapp_price`、`name`、`offline`、`order_qty`、`origin`、`packaging`、`physical_qty`、`price`、`production_date`、`quantity`、`retail_price`、`safety_stock`…等 64 列
-- `t_inventory_batch`（20 列）：`batch_no`、`bottle_qty`、`cost_price`、`created_at`、`expiry_date`、`id`、`inbound_order_id`、`locked_quantity`、`name`、`physical_qty`、`product_name`、`production_date`、`quantity`、`sku_id`、`sku_name`、`spu_id`、`store_id`、`supplier_id`、`tenant_id`、`updated_at`
+- `t_inventory_batch`（22 列）：`batch_no`、`biz_no`、`bottle_qty`、`change_qty`、`cost_price`、`created_at`、`expiry_date`、`id`、`inbound_order_id`、`locked_quantity`、`name`、`physical_qty`、`product_name`、`production_date`、`quantity`、`sku_id`、`sku_name`、`spu_id`、`store_id`、`supplier_id`、`tenant_id`、`updated_at`
 - `t_inventory_ledger`（26 列）：`after_locked_qty`、`after_qty`、`available_qty`、`before_locked_qty`、`before_qty`、`biz_no`、`biz_type`、`change_qty`、`cost_price`、`created_at`、`id`、`idempotency_key`、`ledger_no`、`offline`、`operator_id`、`physical_qty`、`product_name`、`remark`、`sku_id`、`sku_name`、`stock_type`、`store_id`、`tenant_id`、`transfer_in`、`transfer_out`、`updated_at`
 - `t_inventory_loss_gain`（14 列）：`amount`、`cost_price`、`created_at`、`lg_no`、`name`、`operator_id`、`qty`、`reason`、`sku_id`、`sku_name`、`status`、`store_id`、`tenant_id`、`type`
 - `t_inventory_loss_order`（19 列）：`audited_at`、`auditor_id`、`auditor_name`、`created_at`、`id`、`loss_no`、`loss_type`、`operator_id`、`operator_name`、`reason`、`reject_reason`、`remark`、`status`、`store_id`、`store_name`、`tenant_id`、`total_amount`、`total_qty`、`updated_at`
@@ -84,7 +83,6 @@
 - `t_inventory_profit_order_item`（13 列）：`barcode`、`cost_price`、`id`、`profit_no`、`profit_order_id`、`profit_reason`、`qty`、`sku_id`、`sku_name`、`specification`、`subtotal_amount`、`tenant_id`、`unit_name`
 - `t_inventory_share_product`（12 列）：`barcode`、`created_at`、`id`、`min_keep_qty`、`share_qty`、`sku_id`、`sku_name`、`spu_id`、`spu_name`、`status`、`tenant_id`、`updated_at`
 - `t_inventory_share_setting`（7 列）：`auto_transfer`、`auto_transfer_threshold`、`id`、`share_enabled`、`share_scope`、`specified_store_ids`、`tenant_id`
-- `t_last`（0 列）：
 - `t_level_config`（7 列）：`benefits`、`discount_rate`、`id`、`level_name`、`max_points`、`min_points`、`tenant_id`
 - `t_library_api_key`（12 列）：`allowed_ips`、`api_key`、`api_secret`、`app_name`、`created_at`、`daily_limit`、`id`、`last_called_at`、`remark`、`status`、`today_count`、`updated_at`
 - `t_library_brand`（24 列）：`brand_id`、`created_at`、`description`、`detail`、`fields`、`hit_count`、`id`、`image_urls`、`logo`、`main_image`、`name`、`origin_country`、`properties`、`reviewed_at`、`reviewed_by`、`sort_no`、`source`、`specs`、`spu_code`、`status`、`submit_count`、`suggested_retail_price`、`unit`、`updated_at`
@@ -96,7 +94,7 @@
 - `t_marketing_material`（18 列）：`category_id`、`created_by`、`file_format`、`file_size`、`file_url`、`image_height`、`image_width`、`material_code`、`material_desc`、`material_name`、`material_type`、`related_activity_id`、`related_activity_type`、`status`、`tags`、`tenant_id`、`usage_scene`、`view_count`
 - `t_marketing_operation_log`（8 列）：`action`、`detail`、`module`、`target_id`、`target_type`、`tenant_id`、`user_id`、`user_name`
 - `t_material_category`（4 列）：`name`、`parent_id`、`sort_order`、`tenant_id`
-- `t_member`（83 列）：`address`、`avatar`、`avg_order_amount`、`balance`、`bill_no`、`birthday`、`collection_content`、`collection_level`、`collection_method`、`contact`、`contact_person`、`contact_result`、`created_at`、`credit_available`、`credit_frozen`、`credit_limit`、`credit_used`、`custom_price`、`customer_id`、`customer_type`、`dateformat`、`effective_end`、`effective_start`、`freeze_reason`、`frozen_at`、`gender`、`growth_value`、`id`、`last_order_at`、`late_fee_rate`、`level_code`、`level_name`、`lifecycle_stage`、`max_late_fee_rate`、`member_level`、`mobile`、`name`、`net_15`、`net_30`、`net_60`…等 83 列
+- `t_member`（88 列）：`address`、`amount`、`avatar`、`avg_order_amount`、`balance`、`bill_no`、`birthday`、`collection_content`、`collection_level`、`collection_method`、`contact`、`contact_person`、`contact_result`、`created_at`、`credit_available`、`credit_frozen`、`credit_limit`、`credit_used`、`custom_price`、`customer_id`、`customer_type`、`dateformat`、`effective_end`、`effective_start`、`freeze_reason`、`frozen_at`、`gender`、`growth_value`、`id`、`last_order_at`、`late_fee_rate`、`level_code`、`level_name`、`lifecycle_stage`、`max_late_fee_rate`、`member_level`、`mobile`、`name`、`net_15`、`net_30`…等 88 列
 - `t_member_level`（13 列）：`birthday_gift`、`description`、`discount_rate`、`free_shipping_amount`、`id`、`level_code`、`level_icon`、`level_name`、`min_growth`、`min_points`、`point_ratio`、`sort_no`、`status`
 - `t_member_sms_code`（7 列）：`code`、`created_at`、`expires_at`、`id`、`mobile`、`purpose`、`used`
 - `t_miniapp_config`（13 列）：`app_id`、`app_name`、`app_secret`、`app_version`、`audit_reason`、`audit_status`、`enabled`、`id`、`platform`、`status`、`template_id`、`tenant_id`、`updated_at`
@@ -105,9 +103,7 @@
 - `t_miniapp_order_sync_log`（7 列）：`created_at`、`id`、`order_no`、`platform_order_no`、`response`、`status`、`updated_at`
 - `t_miniapp_publish_log`（11 列）：`action`、`created_at`、`id`、`operator`、`platform`、`remark`、`result`、`status`、`template_id`、`tenant_id`、`version`
 - `t_miniapp_template`（16 列）：`app_id`、`app_name`、`created_at`、`description`、`id`、`name`、`page_config`、`preview_urls`、`sort_order`、`status`、`style_config`、`template_id`、`tenant_id`、`thumbnail`、`updated_at`、`version`
-- `t_module_name`（0 列）：
 - `t_notification`（13 列）：`content`、`created_at`、`id`、`is_read`、`read_at`、`recipient_id`、`recipient_type`、`related_id`、`related_type`、`sent_at`、`tenant_id`、`title`、`type`
-- `t_notifications`（8 列）：`content`、`created_at`、`id`、`is_read`、`recipient_id`、`tenant_id`、`title`、`type`
 - `t_operation_log`（18 列）：`action`、`after_data`、`biz_no`、`category`、`created_at`、`detail`、`id`、`log_no`、`module`、`operator_id`、`operator_name`、`remark`、`target`、`target_id`、`target_type`、`tenant_id`、`user_id`、`user_name`
 - `t_order_coupon`（3 列）：`discount_amount`、`order_amount`、`order_id`
 - `t_order_timeout_config`（10 列）：`action`、`created_at`、`description`、`enabled`、`id`、`order_type`、`tenant_id`、`timeout_minutes`、`timeout_type`、`updated_at`
@@ -131,22 +127,20 @@
 - `t_points_mall_item`（9 列）：`image`、`limit_per_user`、`name`、`points`、`sort_order`、`status`、`stock`、`valid_end`、`valid_start`
 - `t_points_mall_order`（3 列）：`cancelled_at`、`delivered_at`、`status`
 - `t_points_product`（14 列）：`exchange_limit_per_user`、`exchange_limit_total`、`id`、`market_price`、`points_required`、`product_code`、`product_desc`、`product_image`、`product_name`、`sort_order`、`status`、`stock_available`、`stock_total`、`tenant_id`
-- `t_points_record`（19 列）：`amount`、`balance`、`balance_after`、`balance_points`、`change_points`、`created_at`、`customer_id`、`id`、`name`、`phone`、`points`、`record_no`、`remark`、`source_id`、`source_no`、`source_type`、`tenant_id`、`type`、`user_id`
+- `t_points_record`（19 列）：`amount`、`balance`、`balance_after`、`balance_points`、`change_points`、`created_at`、`customer_id`、`id`、`mobile`、`name`、`points`、`record_no`、`remark`、`source_id`、`source_no`、`source_type`、`tenant_id`、`type`、`user_id`
 - `t_points_rule`（14 列）：`created_at`、`daily_limit`、`earn_rate`、`earn_ratio`、`earn_type`、`enabled`、`expire_days`、`id`、`max_redeem_ratio`、`min_redeem_amount`、`redeem_ratio`、`rule_name`、`tenant_id`、`updated_at`
 - `t_price_change_log`（13 列）：`change_reason`、`changed_at`、`changed_by`、`created_at`、`id`、`level_code`、`level_name`、`new_price`、`old_price`、`price_level_id`、`product_id`、`sku_id`、`tenant_id`
 - `t_price_level`（29 列）：`apply_reason`、`approved_at`、`approved_by`、`change_reason`、`changed_by`、`cost_price`、`created_at`、`customer_id`、`description`、`discount_rate`、`effective_end`、`effective_start`、`expire_at`、`id`、`level_code`、`level_name`、`min_order_amount`、`min_qty`、`name`、`new_price`、`old_price`、`price`、`price_level_id`、`sku_id`、`sort_order`、`status`、`suggested_retail_price`、`tenant_id`、`updated_at`
 - `t_print_record`（14 列）：`bill_no`、`bill_type`、`copies`、`created_at`、`error_msg`、`id`、`operator_id`、`original_id`、`print_content`、`printer_mac`、`status`、`store_id`、`tenant_id`、`updated_at`
-- `t_product`（5 列）：`group_price`、`id`、`min_group_size`、`name`、`product_id`
 - `t_product_bundle`（15 列）：`bundle_name`、`bundle_no`、`bundle_price`、`category_id`、`cost_price`、`cover_image`、`created_at`、`description`、`id`、`original_price`、`sales_count`、`sort_order`、`status`、`tenant_id`、`updated_at`
 - `t_product_bundle_item`（10 列）：`barcode`、`bundle_id`、`cost_price`、`id`、`qty`、`sku_id`、`sku_name`、`subtotal_price`、`tenant_id`、`unit_price`
 - `t_product_category`（55 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`barcode`、`base_unit`、`bill_no`、`box_ratio`、`box_unit`、`brand`、`brand_id`、`category_id`、`category_name`、`code`、`cost_price`、`created_at`、`description`、`detail`、`icon`、`id`、`image_urls`、`is_new`、`is_recommend`、`level`、`main_image`、`marketing_tags`、`min_order_qty`、`miniapp_price`、`name`、`origin`、`packaging`、`parent_id`、`physical_qty`、`quantity`、`retail_price`、`sale_channels`、`sku_code`、`sku_id`、`sku_name`、`sort_no`、`specs`…等 55 列
 - `t_product_marketing_tag`（9 列）：`color`、`created_at`、`id`、`sort_no`、`status`、`tag_code`、`tag_name`、`tenant_id`、`updated_at`
-- `t_product_price`（58 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`barcode`、`base_unit`、`box_ratio`、`box_unit`、`brand_id`、`category_id`、`cost_price`、`custom_price`、`customer_id`、`description`、`detail`、`effective_end`、`effective_start`、`icon`、`id`、`image_urls`、`is_new`、`is_recommend`、`level`、`locked_qty`、`main_image`、`marketing_tags`、`min_order_qty`、`min_qty`、`miniapp_price`、`name`、`origin`、`packaging`、`parent_id`、`physical_qty`、`price`、`price_level_id`、`purchase_price`、`quantity`、`retail_price`、`sale_channels`、`sku_code`…等 58 列
+- `t_product_price`（59 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`barcode`、`base_unit`、`box_ratio`、`box_unit`、`brand_id`、`category_id`、`cost_price`、`custom_price`、`customer_id`、`description`、`detail`、`effective_end`、`effective_start`、`icon`、`id`、`image_urls`、`is_new`、`is_recommend`、`level`、`locked_qty`、`main_image`、`marketing_tags`、`min_order_qty`、`min_qty`、`miniapp_price`、`name`、`origin`、`packaging`、`parent_id`、`physical_qty`、`price`、`price_level_id`、`purchase_price`、`quantity`、`retail_price`、`sale_channels`、`sku_code`…等 59 列
 - `t_product_price_log`（12 列）：`action_type`、`batch_no`、`change_reason`、`created_at`、`id`、`new_price`、`old_price`、`operator_id`、`price_type`、`sku_id`、`sku_name`、`tenant_id`
 - `t_product_review`（16 列）：`change_content`、`created_at`、`id`、`product_id`、`product_name`、`review_comment`、`review_no`、`review_type`、`reviewed_at`、`reviewer_id`、`reviewer_name`、`status`、`submitter_id`、`submitter_name`、`tenant_id`、`updated_at`
 - `t_product_sku`（98 列）：`after_qty`、`alcohol_content`、`allow_online_sale`、`amount`、`available_qty`、`barcode`、`base_unit`、`batch_no`、`before_qty`、`bill_no`、`bottle_qty`、`box_ratio`、`box_unit`、`brand`、`brand_id`、`category`、`category_id`、`change_qty`、`change_reason`、`cost_price`、`created_at`、`custom_price`、`customer_id`、`description`、`detail`、`effective_end`、`effective_start`、`enabled`、`expiry_date`、`icon`、`id`、`image`、`image_urls`、`is_hot`、`is_new`、`is_recommend`、`is_recommended`、`ledger_no`、`level`、`lg_no`…等 98 列
-- `t_product_spu`（71 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`available_stock`、`barcode`、`base_unit`、`box_ratio`、`box_unit`、`brand`、`brand_id`、`brand_name`、`category_id`、`category_name`、`cost_price`、`created_at`、`description`、`detail`、`end_time`、`icon`、`id`、`image_urls`、`is_new`、`is_recommend`、`level`、`limit_per_user`、`locked_qty`、`main_image`、`marketing_tags`、`min_keep_qty`、`min_order_qty`、`min_qty`、`miniapp_price`、`name`、`origin`、`original_price`、`packaging`、`parent_id`、`physical_qty`、`price`、`price_level_id`…等 71 列
-- `t_product_step_price`（18 列）：`available_qty`、`category_id`、`id`、`is_new`、`main_image`、`min_order_qty`、`min_qty`、`name`、`price`、`retail_price`、`sku_code`、`sku_id`、`sku_name`、`specs`、`spu_code`、`stock_type`、`unit`、`wholesale_price`
+- `t_product_spu`（73 列）：`alcohol_content`、`allow_online_sale`、`available_qty`、`available_stock`、`barcode`、`base_unit`、`box_ratio`、`box_unit`、`brand`、`brand_id`、`brand_name`、`category_id`、`category_name`、`cost_price`、`created_at`、`description`、`detail`、`end_time`、`group_price`、`icon`、`id`、`image_urls`、`is_new`、`is_recommend`、`level`、`limit_per_user`、`locked_qty`、`main_image`、`marketing_tags`、`min_group_size`、`min_keep_qty`、`min_order_qty`、`min_qty`、`miniapp_price`、`name`、`origin`、`original_price`、`packaging`、`parent_id`、`physical_qty`…等 73 列
 - `t_product_tag`（8 列）：`code`、`created_at`、`group_id`、`id`、`is_multiple`、`name`、`sort_no`、`status`
 - `t_product_tag_group`（9 列）：`code`、`created_at`、`group_id`、`id`、`is_multiple`、`name`、`sort_no`、`status`、`updated_at`
 - `t_product_tag_relation`（7 列）：`code`、`group_id`、`id`、`is_multiple`、`name`、`spu_id`、`tag_id`
@@ -189,22 +183,17 @@
 - `t_retail_review`（3 列）：`rating`、`reply`、`reply_at`
 - `t_retail_shop_config`（19 列）：`announcement`、`business_hours`、`contact_phone`、`created_at`、`delivery_enabled`、`delivery_fee`、`delivery_radius`、`estimated_delivery_time`、`free_delivery_amount`、`id`、`min_order_amount`、`pickup_enabled`、`shop_description`、`shop_logo`、`shop_name`、`status`、`store_id`、`tenant_id`、`updated_at`
 - `t_role_data_permission`（10 列）：`created_at`、`data_permission_id`、`description`、`id`、`permission_code`、`permission_name`、`permission_type`、`role_id`、`scope_values`、`tenant_id`
-- `t_sale_bill`（55 列）：`address`、`amount`、`bill_no`、`business_status`、`collection_status`、`contact`、`created_at`、`customer_id`、`customer_mobile`、`customer_name`、`customer_type`、`discount_amount`、`due_date`、`expire_at`、`goods_amount`、`id`、`internal_remark`、`last_payment_time`、`last_share_time`、`level_code`、`link_no`、`locked_amount_flag`、`mobile`、`name`、`operator_id`、`order_qty`、`paid_amount`、`physical_qty`、`points`、`real_name`、`receivable_amount`、`received_amount`、`remark`、`rounding_amount`、`safety_stock`、`sale_type`、`settlement_type`、`share_collection_count`、`sku_id`、`sku_name`…等 55 列
+- `t_sale_bill`（56 列）：`address`、`amount`、`bill_no`、`business_status`、`collection_status`、`contact`、`created_at`、`customer_id`、`customer_mobile`、`customer_name`、`customer_type`、`discount_amount`、`due_date`、`expire_at`、`goods_amount`、`id`、`internal_remark`、`last_payment_time`、`last_share_time`、`level_code`、`link_no`、`locked_amount_flag`、`mobile`、`name`、`operator_id`、`order_qty`、`paid_amount`、`physical_qty`、`points`、`real_name`、`receivable_amount`、`received_amount`、`remark`、`rounding_amount`、`safety_stock`、`sale_type`、`settlement_type`、`share_collection_count`、`sku_id`、`sku_name`…等 56 列
 - `t_sale_bill_archive`（1 列）：`bill_no`
 - `t_sale_bill_item`（21 列）：`bill_id`、`bill_no`、`bottle_qty`、`box_qty`、`created_at`、`id`、`name`、`order_qty`、`physical_qty`、`price_type`、`safety_stock`、`sku_id`、`sku_name`、`spu_id`、`store_id`、`subtotal_amount`、`tenant_id`、`total_bottle_qty`、`unit_price`、`updated_at`、`y`
 - `t_sale_bill_item_archive`（0 列）：
-- `t_sale_bill_items`（5 列）：`batch_id`、`bill_id`、`bill_no`、`created_at`、`tenant_id`
-- `t_sale_bills`（6 列）：`bill_no`、`created_at`、`id`、`pay_amount`、`status`、`tenant_id`
-- `t_sale_order`（4 列）：`pay_amount`、`pay_status`、`tenant_id`、`tenant_name`
 - `t_sale_payment`（14 列）：`amount`、`created_at`、`customer_id`、`customer_name`、`id`、`payment_date`、`payment_method`、`receipt_no`、`remark`、`sale_payment`、`source_no`、`source_type`、`status`、`voucher_no`
 - `t_sale_return`（19 列）：`audited_at`、`auditor_id`、`created_at`、`customer_id`、`customer_mobile`、`customer_name`、`discount_amount`、`goods_amount`、`name`、`operator_id`、`refund_amount`、`refund_method`、`refunded_amount`、`remark`、`return_no`、`return_status`、`source_bill_no`、`store_id`、`tenant_id`
 - `t_sale_return_item`（11 列）：`bottle_qty`、`box_qty`、`product_name`、`reason`、`return_no`、`sku_id`、`sku_name`、`subtotal_amount`、`total_bottle_qty`、`unit_price`、`updated_at`
 - `t_sales_commission_record`（15 列）：`base_amount`、`bill_no`、`commission_amount`、`created_at`、`id`、`rate`、`real_name`、`record_no`、`rule_id`、`rule_name`、`rule_type`、`settled_at`、`staff_id`、`status`、`tenant_id`
 - `t_sales_commission_rule`（18 列）：`base_amount`、`bill_no`、`commission_amount`、`config`、`created_at`、`effective_end`、`effective_start`、`id`、`rate`、`real_name`、`record_no`、`remark`、`rule_name`、`rule_type`、`settled_at`、`staff_id`、`status`、`tenant_id`
-- `t_sales_order`（9 列）：`created_at`、`customer_id`、`customer_name`、`discount_amount`、`order_no`、`paid_amount`、`payment_method`、`status`、`total_amount`
 - `t_seckill_product`（11 列）：`available_stock`、`end_time`、`id`、`limit_per_user`、`name`、`original_price`、`product_id`、`seckill_price`、`seckill_stock`、`start_time`、`status`
-- `t_sku`（6 列）：`cost_price`、`id`、`market_price`、`price`、`spu_id`、`store_id`
-- `t_sku_price`（16 列）：`cost_price`、`created_at`、`discount_rate`、`effective_end`、`effective_start`、`id`、`level_code`、`level_name`、`min_qty`、`price`、`price_level_id`、`sku_id`、`status`、`suggested_retail_price`、`tenant_id`、`updated_at`
+- `t_sku_price`（30 列）：`available_qty`、`category_id`、`cost_price`、`created_at`、`discount_rate`、`effective_end`、`effective_start`、`id`、`is_new`、`level_code`、`level_name`、`main_image`、`min_order_qty`、`min_qty`、`name`、`price`、`price_level_id`、`retail_price`、`sku_code`、`sku_id`、`sku_name`、`specs`、`spu_code`、`status`、`stock_type`、`suggested_retail_price`、`tenant_id`、`unit`、`updated_at`、`wholesale_price`
 - `t_stock_check`（12 列）：`check_no`、`completed_at`、`created_at`、`diff_amount`、`diff_sku`、`id`、`name`、`remark`、`status`、`store_id`、`tenant_id`、`total_sku`
 - `t_stock_check_item`（10 列）：`actual_qty`、`batch_no`、`check_id`、`diff_amount`、`diff_qty`、`handled`、`sku_id`、`sku_name`、`system_qty`、`tenant_id`
 - `t_stock_warning`（7 列）：`current_stock`、`sku_name`、`status`、`store_name`、`tenant_id`、`warning_level`、`warning_threshold`
@@ -253,7 +242,6 @@
 - `t_upload_file`（1 列）：`file_size`
 - `t_user_binding`（9 列）：`binding_type`、`bound_at`、`id`、`real_name`、`status`、`system_user_id`、`unbound_at`、`username`、`wx_user_id`
 - `t_user_coupon`（34 列）：`applicable_ids`、`applicable_scope`、`claimed_at`、`coupon_name`、`coupon_no`、`coupon_template_id`、`coupon_type`、`coupon_value`、`created_at`、`customer_id`、`dateformat`、`description`、`discount_amount`、`expire_at`、`expires_at`、`id`、`max_discount`、`min_amount`、`min_purchase`、`name`、`order_amount`、`order_id`、`source`、`status`、`template_id`、`tenant_id`、`type`、`used_amount`、`used_at`、`used_order_no`、`user_id`、`valid_end`、`valid_start`、`value`
-- `t_user_customer`（12 列）：`amount`、`balance`、`created_at`、`id`、`name`、`phone`、`remark`、`source_id`、`source_type`、`tenant_id`、`type`、`user_id`
 - `t_user_points`（6 列）：`id`、`points`、`total_earned`、`total_spent`、`updated_at`、`user_id`
 - `t_user_session`（4 列）：`last_activity_at`、`real_name`、`user_id`、`username`
 - `t_wholesale_cart`（14 列）：`available_qty`、`created_at`、`id`、`main_image`、`member_id`、`min_order_qty`、`name`、`quantity`、`sku_code`、`sku_id`、`sku_name`、`tenant_id`、`updated_at`、`wholesale_price`
@@ -263,6 +251,6 @@
 
 ## 二、迁移 DDL 期望表（init_database.sql + docs/migrations/*.sql）
 
-共 **232** 张表。连接生产数据库后，将用 information_schema 对比缺表/缺列/类型不匹配。
+共 **258** 张表。连接生产数据库后，将用 information_schema 对比缺表/缺列/类型不匹配。
 
 > 提示：mock 模式仅用于本地验证脚本可运行；真实差异请在生产服务器执行 `node scripts/schema-audit.mjs`。

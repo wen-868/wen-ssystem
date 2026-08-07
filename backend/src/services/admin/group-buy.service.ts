@@ -68,7 +68,7 @@ export async function getGroupBuyActivities(tenantId: string, params?: { status?
   const vals: unknown[] = [];
   if (params?.status) { where += " AND gba.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<GroupBuyActivityRow>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
+    query<GroupBuyActivityRow>(`SELECT gba.*, p.name AS productName FROM t_group_buy_activity gba LEFT JOIN t_product_spu p ON gba.product_id = p.id ${where} ORDER BY gba.start_time ASC LIMIT ${offset}, ${pageSize}`, vals),
     queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_group_buy_activity ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
@@ -79,7 +79,7 @@ export async function getGroupBuyRecordDetail(groupNo: string) {
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName
      FROM t_group_buy_record gbr
      LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id
-     LEFT JOIN t_product p ON gba.product_id = p.id
+     LEFT JOIN t_product_spu p ON gba.product_id = p.id
      WHERE gbr.group_no = ?`,
     [groupNo]
   );
@@ -131,7 +131,7 @@ export async function getGroupBuyRecords(tenantId: string, params?: { activityId
   if (params?.activityId) { where += " AND gbr.activity_id = ?"; vals.push(params.activityId); }
   if (params?.status) { where += " AND gbr.status = ?"; vals.push(params.status); }
   const [rows, total] = await Promise.all([
-    query<GroupBuyRecordRow>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM t_group_buy_record gbr LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
+    query<GroupBuyRecordRow>(`SELECT gbr.*, gba.product_id AS productId, p.name AS productName FROM t_group_buy_record gbr LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id LEFT JOIN t_product_spu p ON gba.product_id = p.id ${where} ORDER BY gbr.id DESC LIMIT ${offset}, ${pageSize}`, vals),
     queryOne<CountCntRow>(`SELECT COUNT(*) AS cnt FROM t_group_buy_record ${where}`, vals)
   ]);
   return { records: rows, total: total?.cnt || 0, page, pageSize };
@@ -142,7 +142,7 @@ export async function getGroupBuyDetail(groupNo: string) {
     `SELECT gbr.*, gba.product_id AS productId, p.name AS productName, gba.group_price AS groupPrice, gba.min_group_size AS minGroupSize
      FROM t_group_buy_record gbr
      LEFT JOIN t_group_buy_activity gba ON gbr.activity_id = gba.id
-     LEFT JOIN t_product p ON gba.product_id = p.id
+     LEFT JOIN t_product_spu p ON gba.product_id = p.id
      WHERE gbr.group_no = ?`,
     [groupNo]
   );

@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS t_sys_config (
 -- 说明：系统登录账号，支持超级管理员、门店管理员、操作员等
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS t_sys_user (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',
+  id INT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   username VARCHAR(64) NOT NULL COMMENT '登录账号',
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS t_sys_user (
 -- 说明：RBAC 角色管理，支持 JSON 格式的权限列表
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS t_sys_role (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
+  id INT NOT NULL AUTO_INCREMENT COMMENT '角色ID',
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   role_code VARCHAR(64) NOT NULL COMMENT '角色编码',
   role_name VARCHAR(64) NOT NULL COMMENT '角色名称',
@@ -289,8 +289,8 @@ CREATE TABLE IF NOT EXISTS t_store_control_config (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   store_id INT NOT NULL UNIQUE COMMENT '门店ID',
-  auto_open_time TIME DEFAULT NULL COMMENT '自动开门时间',
-  auto_close_time TIME DEFAULT NULL COMMENT '自动关门时间',
+  auto_open_time VARCHAR(10) DEFAULT NULL COMMENT '自动开门时间（HH:mm）',
+  auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间（HH:mm）',
   max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
   max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '每日最大订单金额',
   suspended_reason TEXT DEFAULT NULL COMMENT '暂停原因',

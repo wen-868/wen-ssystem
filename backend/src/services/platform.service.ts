@@ -16,7 +16,7 @@ export async function getOverview() {
     queryOne<CountRow>("SELECT COUNT(*) AS count FROM t_tenant WHERE status = 'ACTIVE'"),
     queryOne<CountRow>("SELECT COUNT(*) AS count FROM t_sys_user WHERE status = 1"),
     queryOne<CountRow>("SELECT COUNT(*) AS count FROM t_store WHERE status = 1"),
-    queryOne<CountRow>("SELECT COUNT(*) AS count FROM t_sale_order WHERE deleted = 0"),
+    queryOne<CountRow>("SELECT COUNT(*) AS count FROM t_sale_bill WHERE business_status <> 'VOIDED'"),
   ]);
 
   return {

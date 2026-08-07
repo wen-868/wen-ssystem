@@ -206,7 +206,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
        (SELECT COUNT(*) FROM t_store WHERE tenant_id = ?) AS totalStores,
        (SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?) AS totalProducts,
        (SELECT COUNT(*) FROM t_member WHERE tenant_id = ?) AS totalMembers,
-       (SELECT COUNT(*) FROM t_sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
+       (SELECT COUNT(*) FROM t_sale_bill WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
      FROM DUAL`,
     [tenantId, tenantId, tenantId, tenantId, tenantId]
   );

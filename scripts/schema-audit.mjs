@@ -120,6 +120,53 @@ function collectSourceFiles(dir) {
 }
 
 /** 从一段代码中提取所有 SQL 相关语句块（按分号切分，保留含 t_ 表的块） */
+/** 移除源码注释（保留字符串字面量），避免注释里的 t_ 表名被误判为 SQL 引用 */
+function stripComments(content) {
+  let out = "";
+  let i = 0;
+  const n = content.length;
+  while (i < n) {
+    const ch = content[i];
+    const next = content[i + 1];
+    // 字符串字面量（含模板字符串）：原样保留，避免 URL 等含 // 的内容被误删
+    if (ch === '"' || ch === "'" || ch === "`") {
+      const quote = ch;
+      let j = i + 1;
+      while (j < n && content[j] !== quote) {
+        if (content[j] === "\\") j++;
+        j++;
+      }
+      out += content.slice(i, Math.min(j + 1, n));
+      i = j + 1;
+      continue;
+    }
+    // 块注释 /* ... */（含 JSDoc）
+    if (ch === "/" && next === "*") {
+      const end = content.indexOf("*/", i + 2);
+      i = end === -1 ? n : end + 2;
+      out += " ";
+      continue;
+    }
+    // 行注释 //
+    if (ch === "/" && next === "/") {
+      const end = content.indexOf("\n", i + 2);
+      i = end === -1 ? n : end + 1;
+      out += " ";
+      continue;
+    }
+    // SQL 行注释 --
+    if (ch === "-" && next === "-") {
+      const end = content.indexOf("\n", i + 2);
+      i = end === -1 ? n : end + 1;
+      out += " ";
+      continue;
+    }
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
 function extractSqlBlocks(content) {
   // 去掉注释与字符串字面量中的干扰：先粗粒度按行切，只保留含 SQL 关键字的行区域
   const blocks = [];
@@ -135,12 +182,13 @@ function extractSqlBlocks(content) {
 /** 解析一段 SQL 块：返回 { table: string, alias: string|null, columns: Set<string> } */
 function parseSqlBlock(block) {
   const results = [];
-  // 表引用：FROM/JOIN/INTO/UPDATE t_xxx (可选别名)
-  const tableRe = /(?:FROM|JOIN|INTO|UPDATE)\s+`?(t_[a-z0-9_]+)`?(?:\s+(?:AS\s+)?([a-z_][a-z0-9_]*))?/gi;
+  // 表引用：FROM/JOIN/INTO/UPDATE t_xxx (可选别名)。
+  // UPDATE 分支加 (?!\s*=) 防误报：ON DUPLICATE KEY UPDATE t_xxx = ... 中的列名不算表
+  const tableRe = /(?:(?:FROM|JOIN|INTO)\s+`?(t_[a-z0-9_]+)`?|UPDATE\s+`?(t_[a-z0-9_]+)`?(?!\s*=))(?:\s+(?:AS\s+)?([a-z_][a-z0-9_]*))?/gi;
   let m;
   while ((m = tableRe.exec(block)) !== null) {
-    const table = m[1].toLowerCase();
-    const alias = m[2] ? m[2].toLowerCase() : null;
+    const table = (m[1] || m[2]).toLowerCase();
+    const alias = m[3] ? m[3].toLowerCase() : null;
     const columns = new Set();
 
     // a) INSERT INTO t_xxx (col1, col2) 括号列
@@ -221,7 +269,7 @@ function scanCode() {
   const tableColumns = new Map(); // table -> Set<column>
   const sourceFiles = collectSourceFiles(SRC_DIR);
   for (const file of sourceFiles) {
-    const content = readFileSync(file, "utf-8");
+    const content = stripComments(readFileSync(file, "utf-8"));
     for (const block of extractSqlBlocks(content)) {
       for (const { table, columns } of parseSqlBlock(block)) {
         if (!tableColumns.has(table)) tableColumns.set(table, new Set());
@@ -235,12 +283,37 @@ function scanCode() {
 // ---------------- 2. 解析迁移 DDL（期望列类型） ----------------
 function parseCreateTable(sql) {
   const tables = new Map(); // table -> Map<column, type>
-  const re = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?(t_[a-z0-9_]+)`?\s*\(([\s\S]*?)\)\s*(?:ENGINE|DEFAULT|COMMENT|;)/gi;
+  const re = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?(t_[a-z0-9_]+)`?\s*\(/gi;
   let m;
   while ((m = re.exec(sql)) !== null) {
     const table = m[1].toLowerCase();
+    // 从 '(' 开始括号深度扫描（跳过引号字符串），取完整表体，
+    // 避免列类型括号（如 VARCHAR(200) DEFAULT NULL）被误判为表定义结尾
+    let j = m.index + m[0].length - 1;
+    let depth = 0;
+    let quote = null;
+    for (; j < sql.length; j++) {
+      const ch = sql[j];
+      if (quote) {
+        if (ch === quote && sql[j - 1] !== "\\") quote = null;
+        continue;
+      }
+      if (ch === "'" || ch === "`" || ch === '"') {
+        quote = ch;
+        continue;
+      }
+      if (ch === "(") depth++;
+      else if (ch === ")") {
+        depth--;
+        if (depth === 0) {
+          j++;
+          break;
+        }
+      }
+    }
+    const body = sql.slice(m.index + m[0].length, j - 1);
     const cols = new Map();
-    for (const lineRaw of m[2].split("\n")) {
+    for (const lineRaw of body.split("\n")) {
       const line = lineRaw.trim();
       if (!line || line.startsWith("--") || /^(KEY|INDEX|UNIQUE|PRIMARY|FOREIGN|CONSTRAINT|FULLTEXT)/i.test(line)) continue;
       const cm = line.match(/^`?([a-z_][a-z0-9_]*)`?\s+([A-Z]+(?:\s*\([^)]*\))?)/i);

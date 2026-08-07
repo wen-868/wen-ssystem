@@ -10,7 +10,7 @@ interface CountCountRow {
   count: number;
 }
 
-/** t_notifications 列表行（带别名） */
+/** t_notification 列表行（带别名） */
 interface NotificationRow {
   id: number | string;
   title: string;
@@ -22,7 +22,7 @@ interface NotificationRow {
   createdAt: string | Date;
 }
 
-/** t_notifications 按类型分组统计行 */
+/** t_notification 按类型分组统计行 */
 interface NotificationTypeCountRow {
   type: string;
   count: number | string;
@@ -53,7 +53,7 @@ export async function listNotifications(
   const records = await queryWithTenant<NotificationRow>(
     `SELECT id, title, content, type, is_read AS isRead,
             recipient_id AS recipientId, tenant_id AS tenantId, created_at AS createdAt
-     FROM t_notifications
+     FROM t_notification
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -62,7 +62,7 @@ export async function listNotifications(
   );
 
   const totalRow = await queryOneWithTenant<CountTotalRow>(
-    `SELECT COUNT(*) AS total FROM t_notifications ${where}`,
+    `SELECT COUNT(*) AS total FROM t_notification ${where}`,
     params,
     tenantId
   );
@@ -77,7 +77,7 @@ export async function listNotifications(
 
 export async function getUnreadCount(tenantId: string) {
   const row = await queryOneWithTenant<CountCountRow>(
-    `SELECT COUNT(*) AS count FROM t_notifications WHERE tenant_id = ? AND is_read = 0`,
+    `SELECT COUNT(*) AS count FROM t_notification WHERE tenant_id = ? AND is_read = 0`,
     [tenantId],
     tenantId
   );
@@ -87,7 +87,7 @@ export async function getUnreadCount(tenantId: string) {
 export async function getTypeStats(tenantId: string) {
   const rows = await queryWithTenant<NotificationTypeCountRow>(
     `SELECT type, COUNT(*) AS count
-     FROM t_notifications
+     FROM t_notification
      WHERE tenant_id = ? AND is_read = 0
      GROUP BY type`,
     [tenantId],
@@ -120,7 +120,7 @@ export async function getTypeStats(tenantId: string) {
 
 export async function markAsRead(tenantId: string, id: number) {
   await executeWithTenant(
-    `UPDATE t_notifications SET is_read = 1 WHERE id = ? AND tenant_id = ? AND is_read = 0`,
+    `UPDATE t_notification SET is_read = 1 WHERE id = ? AND tenant_id = ? AND is_read = 0`,
     [id, tenantId],
     tenantId
   );
@@ -129,7 +129,7 @@ export async function markAsRead(tenantId: string, id: number) {
 
 export async function markAllRead(tenantId: string) {
   await executeWithTenant(
-    `UPDATE t_notifications SET is_read = 1 WHERE tenant_id = ? AND is_read = 0`,
+    `UPDATE t_notification SET is_read = 1 WHERE tenant_id = ? AND is_read = 0`,
     [tenantId],
     tenantId
   );
@@ -138,7 +138,7 @@ export async function markAllRead(tenantId: string) {
 
 export async function deleteNotification(tenantId: string, id: number) {
   await executeWithTenant(
-    `DELETE FROM t_notifications WHERE id = ? AND tenant_id = ?`,
+    `DELETE FROM t_notification WHERE id = ? AND tenant_id = ?`,
     [id, tenantId],
     tenantId
   );

@@ -43,7 +43,7 @@ interface ProductSkuRow {
   createdAt: string | Date;
 }
 
-/** 库存导出行（t_inventory） */
+/** 库存导出行（t_inventory_balance JOIN t_product_sku） */
 interface InventoryRow {
   storeId: string | number;
   skuId: number;
@@ -77,7 +77,7 @@ interface PaymentRow {
   createdAt: string | Date;
 }
 
-/** 销售单导出行（t_sales_order） */
+/** 销售单导出行（t_sale_bill） */
 interface SalesOrderRow {
   orderNo: string;
   customerName: string | null;
@@ -156,23 +156,25 @@ export async function exportProducts(tenantId: string, keyword?: string) {
 }
 
 export async function exportInventory(tenantId: string, storeId?: string, keyword?: string) {
-  const conditions: string[] = ["tenant_id = ?"];
+  const conditions: string[] = ["ib.tenant_id = ?"];
   const params: unknown[] = [tenantId];
   if (storeId) {
-    conditions.push("store_id = ?");
+    conditions.push("ib.store_id = ?");
     params.push(storeId);
   }
   if (keyword) {
     const kw = `%${keyword}%`;
-    conditions.push("(sku_name LIKE ? OR sku_code LIKE ?)");
+    conditions.push("(s.sku_name LIKE ? OR s.sku_code LIKE ?)");
     params.push(kw, kw);
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   return query<InventoryRow>(
-    `SELECT store_id AS storeId, sku_id AS skuId, sku_code AS skuCode, sku_name AS skuName,
-            quantity, locked_quantity AS lockedQuantity, available_quantity AS availableQuantity,
-            updated_at AS updatedAt
-     FROM t_inventory ${where} ORDER BY store_id, sku_id LIMIT 5000`,
+    `SELECT ib.store_id AS storeId, ib.sku_id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName,
+            ib.physical_qty AS quantity, ib.locked_qty AS lockedQuantity, ib.available_qty AS availableQuantity,
+            ib.updated_at AS updatedAt
+     FROM t_inventory_balance ib
+     JOIN t_product_sku s ON s.id = ib.sku_id AND s.tenant_id = ib.tenant_id
+     ${where} ORDER BY ib.store_id, ib.sku_id LIMIT 5000`,
     params
   );
 }
@@ -226,11 +228,11 @@ export async function exportSalesOrders(
   const params: unknown[] = [tenantId];
   if (keyword) {
     const kw = `%${keyword}%`;
-    conditions.push("(order_no LIKE ? OR customer_name LIKE ?)");
+    conditions.push("(bill_no LIKE ? OR customer_name LIKE ?)");
     params.push(kw, kw);
   }
   if (status) {
-    conditions.push("status = ?");
+    conditions.push("business_status = ?");
     params.push(status);
   }
   if (startDate) {
@@ -243,11 +245,11 @@ export async function exportSalesOrders(
   }
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   return query<SalesOrderRow>(
-    `SELECT order_no AS orderNo, customer_name AS customerName,
-            total_amount AS totalAmount, discount_amount AS discountAmount,
-            paid_amount AS paidAmount, payment_method AS paymentMethod,
-            status, created_at AS createdAt
-     FROM t_sales_order ${where} ORDER BY created_at DESC LIMIT 5000`,
+    `SELECT bill_no AS orderNo, customer_name AS customerName,
+            receivable_amount AS totalAmount, discount_amount AS discountAmount,
+            received_amount AS paidAmount, collection_status AS paymentMethod,
+            business_status AS status, created_at AS createdAt
+     FROM t_sale_bill ${where} ORDER BY created_at DESC LIMIT 5000`,
     params
   );
 }

@@ -8,7 +8,7 @@
 
 -- 1. 即时零售店铺配置表（retail_shop_config）
 CREATE TABLE IF NOT EXISTS t_retail_shop_config (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   shop_name VARCHAR(128) NOT NULL COMMENT '店铺名称',
   shop_logo VARCHAR(255) COMMENT '店铺Logo',
   shop_description VARCHAR(500) COMMENT '店铺描述',
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS t_retail_shop_config (
 
 -- 2. 即时零售分类表（retail_category）
 CREATE TABLE IF NOT EXISTS t_retail_category (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   category_name VARCHAR(64) NOT NULL COMMENT '分类名称',
   category_icon VARCHAR(255) COMMENT '分类图标',
   parent_id INT DEFAULT 0 COMMENT '父分类ID（0为一级分类）',
@@ -71,9 +71,9 @@ CREATE TABLE IF NOT EXISTS t_retail_banner (
 
 -- 4. 即时零售商品表（retail_product）
 CREATE TABLE IF NOT EXISTS t_retail_product (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  product_id INT NOT NULL COMMENT '关联商品ID（product_sku表）',
-  category_id INT COMMENT '分类ID',
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  product_id BIGINT NOT NULL COMMENT '关联商品ID（product_sku表）',
+  category_id BIGINT COMMENT '分类ID',
   retail_price DECIMAL(10,2) NOT NULL COMMENT '零售价',
   original_price DECIMAL(10,2) COMMENT '原价',
   stock INT NOT NULL DEFAULT 0 COMMENT '库存',
@@ -98,9 +98,9 @@ CREATE TABLE IF NOT EXISTS t_retail_product (
 
 -- 5. 即时零售订单表（retail_order）
 CREATE TABLE IF NOT EXISTS t_retail_order (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订单编号',
-  user_id INT NOT NULL COMMENT '用户ID',
+  user_id BIGINT NOT NULL COMMENT '用户ID',
   user_name VARCHAR(64) COMMENT '用户姓名',
   user_phone VARCHAR(20) COMMENT '用户电话',
   total_amount DECIMAL(10,2) NOT NULL COMMENT '订单总金额',

@@ -319,7 +319,7 @@ export async function getWholesaleProducts(
      JOIN t_product_sku s ON s.spu_id = p.id
      JOIN t_product_price pp ON pp.sku_id = s.id
      LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'WHOLESALE'
-     LEFT JOIN t_product_step_price psp ON psp.sku_id = s.id
+     LEFT JOIN t_sku_price psp ON psp.sku_id = s.id
      WHERE ${where} AND p.tenant_id = ?
      GROUP BY s.id
      ORDER BY ${orderBy}
@@ -428,7 +428,7 @@ export async function getWholesaleProductDetail(spuId: number, tenantId: string)
     const placeholders = skuIds.map(() => "?").join(",");
     stepPrices = await queryWithTenant<ProductStepPriceRow>(
       `SELECT sku_id AS skuId, min_qty AS minQty, price
-       FROM t_product_step_price
+       FROM t_sku_price
        WHERE sku_id IN (${placeholders}) AND tenant_id = ?
        ORDER BY sku_id, min_qty ASC`,
       [...skuIds, tenantId],

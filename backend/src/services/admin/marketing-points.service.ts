@@ -36,7 +36,7 @@ interface PointsRecordListRow {
   createdAt: string | Date;
 }
 
-/** t_points_record JOIN t_user_customer 查询行（带别名） */
+/** t_points_record JOIN t_member 查询行（带别名） */
 interface PointsRecordDetailRow extends PointsRecordListRow {
   userName: string | null;
   phone: string | null;
@@ -247,9 +247,9 @@ export async function getPointsRecords(params: {
     `SELECT pr.id, pr.user_id AS userId, pr.type, pr.amount, pr.balance,
             pr.source_type AS sourceType, pr.source_id AS sourceId,
             pr.remark, pr.created_at AS createdAt,
-            uc.name AS userName, uc.phone AS phone
+            uc.name AS userName, uc.mobile AS phone
      FROM t_points_record pr
-     LEFT JOIN t_user_customer uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id
+     LEFT JOIN t_member uc ON uc.id = pr.user_id AND uc.tenant_id = pr.tenant_id
      WHERE ${where}
      ORDER BY pr.created_at DESC
      LIMIT ? OFFSET ?`,

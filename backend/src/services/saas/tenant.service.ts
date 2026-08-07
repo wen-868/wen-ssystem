@@ -154,7 +154,7 @@ export async function getTenantDetail(id: number): Promise<TenantDetail | null> 
        COALESCE((SELECT COUNT(*) FROM t_store WHERE tenant_id = ?), 0) AS totalStores,
        COALESCE((SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?), 0) AS totalProducts,
        COALESCE((SELECT COUNT(*) FROM t_member WHERE tenant_id = ?), 0) AS totalMembers,
-       COALESCE((SELECT COUNT(*) FROM t_sale_order WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS recentOrders
+       COALESCE((SELECT COUNT(*) FROM t_sale_bill WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS recentOrders
      FROM DUAL`,
     [id, id, id, id, id]
   );

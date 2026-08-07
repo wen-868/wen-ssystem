@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS t_subscription (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   plan_id INT NOT NULL COMMENT '套餐ID',
   plan_name VARCHAR(64) NOT NULL COMMENT '套餐名称（冗余）',
   plan_type VARCHAR(32) NOT NULL COMMENT '套餐类型',

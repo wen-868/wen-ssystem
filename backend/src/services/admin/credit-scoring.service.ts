@@ -19,7 +19,7 @@ interface CustomerBasicRow {
   mobile: string | null;
 }
 
-/** t_sale_bills 交易统计行（queryOneWithTenant 用） */
+/** t_sale_bill 交易统计行（queryOneWithTenant 用） */
 interface TradeStatsRow {
   totalOrders: number | string;
   totalAmount: number | string;
@@ -184,11 +184,11 @@ export async function evaluateCreditScore(
   const tradeStats = await queryOneWithTenant<TradeStatsRow>(
     `SELECT
        COUNT(*) AS totalOrders,
-       COALESCE(SUM(pay_amount), 0) AS totalAmount,
-       COALESCE(SUM(CASE WHEN status = 'PAID' THEN pay_amount ELSE 0 END), 0) AS paidAmount,
-       COALESCE(SUM(CASE WHEN status = 'OVERDUE' THEN 1 ELSE 0 END), 0) AS overdueCount,
+       COALESCE(SUM(receivable_amount), 0) AS totalAmount,
+       COALESCE(SUM(CASE WHEN collection_status = 'PAID' THEN receivable_amount ELSE 0 END), 0) AS paidAmount,
+       COALESCE(SUM(CASE WHEN collection_status = 'OVERDUE' THEN 1 ELSE 0 END), 0) AS overdueCount,
        MAX(created_at) AS lastTradeDate
-     FROM t_sale_bills
+     FROM t_sale_bill
      WHERE customer_id = ? AND tenant_id = ?`,
     [customerId, ctx.tenantId],
     ctx.tenantId

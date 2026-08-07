@@ -8,7 +8,7 @@
 
 -- 1. 租户表（tenant）
 CREATE TABLE IF NOT EXISTS t_tenant (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）',
   tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',
   company_name VARCHAR(128) NOT NULL COMMENT '公司名称',
   company_short_name VARCHAR(64) COMMENT '公司简称',
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS t_subscription_plan (
 CREATE TABLE IF NOT EXISTS t_subscription (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',
-  tenant_id INT NOT NULL COMMENT '租户ID',
+  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',
   plan_id INT NOT NULL COMMENT '套餐ID',
   plan_name VARCHAR(64) NOT NULL COMMENT '套餐名称（冗余）',
   plan_type VARCHAR(32) NOT NULL COMMENT '套餐类型',

@@ -47,7 +47,7 @@ INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_
 -- ────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS t_bank_account (
-  id            INT AUTO_INCREMENT PRIMARY KEY,
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     VARCHAR(64)  NOT NULL,
   bank_name     VARCHAR(64)  NOT NULL COMMENT '银行名称',
   branch_name   VARCHAR(128) NOT NULL DEFAULT '' COMMENT '支行名称',

@@ -358,7 +358,7 @@ export async function setTenantModules(tenantId: number, body: {
         `INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by, expire_at, remark)
          VALUES (?, ?, ?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE
-           t_module_name = VALUES(module_name),
+           module_name = VALUES(module_name),
            enabled = VALUES(enabled),
            granted_by = VALUES(granted_by),
            expire_at = VALUES(expire_at),

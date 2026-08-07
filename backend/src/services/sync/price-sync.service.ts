@@ -11,7 +11,7 @@ interface PriceChangeLogRow {
   changedAt: string | Date;
 }
 
-/** SKU 价格行（按 ID 批量查询）— t_sku */
+/** SKU 价格行（按 ID 批量查询）— t_product_sku JOIN t_product_price */
 interface SkuPriceRow {
   skuId: number;
   spuId: number;
@@ -20,7 +20,7 @@ interface SkuPriceRow {
   marketPrice: number | string;
 }
 
-/** SKU 价格行（含 storeId）— t_sku，用于价格同步 */
+/** SKU 价格行（含 storeId）— t_product_sku JOIN t_product_price + t_inventory_balance，用于价格同步 */
 interface SkuPriceWithStoreRow extends SkuPriceRow {
   storeId: number;
 }
@@ -55,8 +55,10 @@ export async function getPricesByIds(tenantId: string, ids: number[]) {
   if (!ids || ids.length === 0) return [];
   const placeholders = ids.map(() => "?").join(",");
   const rows = await queryWithTenant<SkuPriceRow>(
-    `SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice
-     FROM t_sku WHERE tenant_id = ? AND id IN (${placeholders})`,
+    `SELECT s.id AS skuId, s.spu_id AS spuId, pp.retail_price AS price, pp.cost_price AS costPrice, pp.store_price AS marketPrice
+     FROM t_product_sku s
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     WHERE s.tenant_id = ? AND s.id IN (${placeholders})`,
     [tenantId, ...ids],
     tenantId
   );
@@ -71,14 +73,17 @@ export async function syncPrices(tenantId: string, skuIds?: number[]) {
   if (skuIds && skuIds.length > 0) {
     const placeholders = skuIds.map(() => "?").join(",");
     skus = await queryWithTenant<SkuPriceWithStoreRow>(
-      `SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice, store_id AS storeId
-       FROM t_sku WHERE tenant_id = ? AND id IN (${placeholders})`,
+      `SELECT s.id AS skuId, s.spu_id AS spuId, pp.retail_price AS price, pp.cost_price AS costPrice, pp.store_price AS marketPrice, ib.store_id AS storeId
+       FROM t_product_sku s
+       JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+       LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.tenant_id = s.tenant_id
+       WHERE s.tenant_id = ? AND s.id IN (${placeholders})`,
       [tenantId, ...skuIds],
       tenantId
     );
   } else {
     skus = await queryWithTenant<SkuPriceWithStoreRow>(
-      "SELECT id AS skuId, spu_id AS spuId, price, cost_price AS costPrice, market_price AS marketPrice, store_id AS storeId FROM t_sku WHERE tenant_id = ?",
+      "SELECT s.id AS skuId, s.spu_id AS spuId, pp.retail_price AS price, pp.cost_price AS costPrice, pp.store_price AS marketPrice, ib.store_id AS storeId FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.tenant_id = s.tenant_id WHERE s.tenant_id = ?",
       [tenantId],
       tenantId
     );

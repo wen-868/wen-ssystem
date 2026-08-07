@@ -2386,7 +2386,7 @@
 - **验收标准**：3 套模板均能 `build:mp-weixin` 成功产出；租户配置页可完成「选模板→填 APPID→生成包→发布」全流程；文档（使用说明）齐备
 - **状态**：🔄 待启动（需确认模板方向与优先级）
 
-## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[进行中 — 凌舟 2026-08-07]
+## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：
 
@@ -2405,6 +2405,13 @@
   2. **表名变体**（t_flash_sale/t_flash_sale_record→t_seckill_product、t_full_reduction→t_full_reduction_rule、t_group_buy*/t_promo_stack_rule→t_promotion_stack_rule、t_product_step_price→t_sku_price、t_payment_method 等）：核实代码 SQL，修正为真实表名/列名（真实表已存在）
   3. **真实漂移**（t_aftersale/t_audit_log/t_cart_item/t_cash_flow/t_daily_settlement/t_order_coupon/t_platform_settlement/t_purchase_order_archive/t_purchase_order_item_archive/t_sale_bill_archive/t_sale_bill_item_archive/t_sys_user_login/t_wx_user 等）：核实代码用途——功能需要则**补建表**（定义 DDL 补入迁移并生产执行），代码误引用则修正；无法确认的逐条说明
 - **验收**：38 张漂移表逐条给出处理结论（误报/改代码/补建表）；重跑 schema-audit 漂移表显著减少或清零；`npm run build` + 后端测试通过
+
+**阿坚完成记录（2026-08-07，commit 待凌舟复核）**：
+- **任务一 17 处类型 DDL 对齐**：修改 `docs/init_database.sql` + 8 个迁移文件（001/007/008/016/017/020/029/031/120d），方向以任务卡 + R95-04-5 记录为准（9 处 DDL int→bigint、t_sys_role.id/t_sys_user.id 反向 bigint→int、payment_method/status/时间/tenant_id 改 varchar）；时间字段先核实代码按 "HH:MM" 字符串处理；另修复 schema-audit 解析器缺陷（CREATE TABLE 表体被 `) DEFAULT` 误截断）后 17 列期望类型与生产记录全部一致
+- **任务二 38 张漂移表**：逐表核实后分三类处理——脚本改进 2（t_last 注释误报 + t_module_name UPDATE 列名误报，stripComments + `(?!\s*=)`）、改代码 10（t_notifications→t_notification、t_sale_bills→t_sale_bill、t_sale_order/t_sales_order→t_sale_bill、t_inventory→t_inventory_balance、t_product→t_product_spu、t_sku→t_product_sku+t_product_price、t_product_step_price→t_sku_price、t_user_customer→t_member、t_sale_bill_items 追溯重构为 t_inventory_ledger）、补建表 26（新建 `docs/migrations/124_drift_tables_fill.sql`，按代码 SQL 列定义，无外键；营销旧设计 t_flash_sale/t_full_reduction/t_group_buy*/t_promo_stack_rule 与 DDL 新设计属设计分歧，本次按路由代码补建保功能）
+- **验证**：typecheck 0 errors；`npx vitest run` 437 文件/5098 用例全通过；`npm --workspace backend run build` exit 0；schema-audit 重算漂移表 **0 张**（无 DDL 候选仅剩生产已有的 t_customer_type/t_employee/t_system_feedback）；类型不匹配本地模拟 17/17 一致
+- **待服务器**：执行 `docs/migrations/124_drift_tables_fill.sql`（26 表）后重跑 `node scripts/schema-audit.mjs` 最终确认（本机无生产库凭据）；生产实跑类型以服务器重跑为准
+- **明细**：`docs/reports/R95-06-结构差异清零.md`（38 表逐条结论表 + 证据）
 
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：

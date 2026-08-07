@@ -86,8 +86,8 @@ DROP TABLE IF EXISTS t_store_control_config;
 CREATE TABLE IF NOT EXISTS t_store_control_config (
   id INT AUTO_INCREMENT PRIMARY KEY,
   store_id INT NOT NULL UNIQUE COMMENT '门店ID',
-  auto_open_time TIME DEFAULT NULL COMMENT '自动开门时间',
-  auto_close_time TIME DEFAULT NULL COMMENT '自动关门时间',
+  auto_open_time VARCHAR(10) DEFAULT NULL COMMENT '自动开门时间（HH:mm）',
+  auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间（HH:mm）',
   max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
   max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '每日最大订单金额',
   suspended_reason TEXT DEFAULT NULL COMMENT '暂停原因',
