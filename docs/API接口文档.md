@@ -130,7 +130,7 @@
 | A29 | `POST /api/admin/purchase-orders` | 新建采购单 | supplierId,items:[{skuId,qty,price}],remark,expectedDate | orderNo,totalAmount | purchase-order.service.ts create() | PurchaseOrderCreateView.vue |
 | A30 | `GET /api/admin/stock-batches` | 库存批次 | ?skuId&page&pageSize&warehouseId | {total,records:[{batchNo,skuId,skuName,qty,inPrice,inboundDate,expireDate,warehouseId}]} | stock-batch.service.ts list() + stock-batch.routes.ts | StockBatchListView.vue |
 
-### 二、PLATFORM 端点（24 个，/api/platform/*）
+### 二、PLATFORM 端点（24 个 + R97-01 新增 12 个，共 36 个，/api/platform/*）
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
@@ -155,9 +155,21 @@
 | P19 | `PUT /api/platform/applications/:id/reject` | 审核驳回 | reason✅ | status:"REJECTED",reason | platform-applications.routes.ts | ApplicationRejectDialog.vue |
 | P20 | `GET /api/platform/announcements` | 公告列表 | ?page&pageSize&status | {total,records:[{id,title,content,type,priority,status,publishRange,publishedAt,author}]} | admin-platform-announcement.routes.ts + platform.routes.ts | saas-admin AnnouncementManage.vue |
 | P21 | `POST /api/platform/announcements` | 发布公告 | title✅,content,type,priority✅,status,publishRange[] | id,title | admin-platform-announcement.routes.ts | AnnouncementPublishDialog.vue |
-| P22 | `GET /api/platform/reconciliation` | 平台对账汇总 | ?startDate&endDate&tenantId&status | {totalGMV,totalCommission,totalSettled,totalPending,records[]} | platform-reconciliation.routes.ts + service | ReconciliationView.vue |
+| P22 | `GET /api/platform/reconciliation` | 财务结算列表（平台视角，数据源 t_platform_settlement） | ?page&pageSize&keyword&status | {total,page,pageSize,records:[{id,reconciliationNo,tenantName,period,orderAmount,settleAmount,status,createdAt}]} | platform-reconciliation.routes.ts + controllers/platform/platform-reconciliation.controller.ts | saas-admin/src/views/Reconciliation.vue |
 | P23 | `GET /api/platform/settlements` | 结算单列表 | ?tenantId&status&page&pageSize | {total,records:[{settlementNo,tenantId,period,amount,commission,settleAmount,status,createdAt}]} | admin-platform-settlement.routes.ts + service | SettlementListView.vue |
 | P24 | `GET /api/platform/monitor` | 系统监控（健康+租户配额） | — | {health:{cpu,memory,dbPool},quotas:[{tenantId,storageMB,userCount,apiCalls}]} | platform-monitor.routes.ts + service | SystemMonitorView.vue |
+| P25 | `GET /api/platform/monitor/db-status` | 数据库状态（R97-01） | — | {connection,database,uptime,tableCount} | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts fetchDbStatus |
+| P26 | `GET /api/platform/monitor/api-stats` | API 调用统计（R97-01） | — | {totalRequests,errorCount,errorRate,statusCodes,...} | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts fetchApiStats |
+| P27 | `GET /api/platform/monitor/expiring-tenants` | 即将到期租户（R97-01） | ?days=7 | [{id,tenantCode,companyName,expireAt,daysLeft}] | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts fetchExpiringTenants |
+| P28 | `POST /api/platform/monitor/notify-expiring` | 通知即将到期租户（R97-01，需 x-csrf-token） | tenantIds:number[]✅ | {notifiedCount} | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts notifyExpiringTenants |
+| P29 | `GET /api/platform/error-logs` | 错误日志列表（全租户，R97-01） | ?page&pageSize&error_type&severity&source&keyword | {records:[{id,errorType,severity,message,stack,requestUrl,source,createdAt}],total} | platform-error-log.routes.ts + controllers/platform/error-log.controller.ts | saas-admin/src/views/ErrorLogs.vue |
+| P30 | `GET /api/platform/dashboard/overview` | 平台看板总览（R97-01，对齐 Dashboard.vue） | ?trendType=MONTHLY\|DAILY | {totalTenants,activeTenants,pendingTenants,monthlyRevenue,totalRevenue,incomeTrend:[{period,amount}],planDistribution:[{planName,count}],tenantStatus:[{status,count}],recentTenants:[{companyName,planName,status,createdAt}]} | platform-dashboard.routes.ts + platform-overview.service.ts | saas-admin/src/views/Dashboard.vue |
+| P31 | `GET /api/platform/reconciliation/stats` | 财务结算统计（R97-01） | — | {monthlyRevenue,pendingAmount,settledAmount,totalCount} | platform-reconciliation.routes.ts + platform-settlement.service.getSettlementStats | saas-admin/src/views/Reconciliation.vue |
+| P32 | `PUT /api/platform/reconciliation/:id/settle` | 结算确认（置 SETTLED，R97-01，需 x-csrf-token） | — | {id,status:"SETTLED"} | platform-reconciliation.routes.ts + platform-settlement.service.updateSettlementStatus | saas-admin/src/views/Reconciliation.vue |
+| P33 | `GET /api/platform/tenants/usage-stats` | 租户使用统计（R97-01） | ?tenantId&metric&dateStart&dateEnd&period=day\|week\|month | {overview:{totalUsers,totalOrders,totalSales,totalProducts},trendData:[{period,value}],moduleUsage:[{moduleName,moduleCode,usageCount,percentage}]} | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
+| P34 | `GET /api/platform/tenants/rank` | 租户使用排行（R97-01） | ?sortBy=order_count\|sales_amount\|user_count\|activity&limit=10 | [{tenantName,planName,value,percentage,lastActive}] | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
+| P35 | `GET /api/platform/config/sys-config` | 平台系统设置（R97-01，对齐 Settings.vue） | — | {platformName,servicePhone,serviceEmail,trialDays,defaultPlanId,taxRate,maxUploadSizeMb,openRegister,registerNeedAudit,registerRequireMobile,registerRequireLicense,registerAgreementUrl,maintenanceMode,maintenanceTitle,maintenanceMessage,maintenanceWhitelist,announcements} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
+| P36 | `PUT /api/platform/config/sys-config` | 保存平台系统设置（整包 JSON，R97-01，需 x-csrf-token） | 同 P35 字段对象 | {updated:true} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 
 ### 三、STORE 端点（16 个，/api/store/*）
 

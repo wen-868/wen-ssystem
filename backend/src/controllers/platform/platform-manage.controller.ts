@@ -3,6 +3,7 @@ import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as configService from "../../services/platform/platform-config.service";
 import * as announcementService from "../../services/platform/platform-announcement.service";
+import * as sysConfigService from "../../services/platform/platform-sys-config.service";
 
 // ─── 平台全局配置 ────────────────────────────────────────────
 
@@ -25,6 +26,19 @@ export const updateConfig = asyncHandler(async (req, res) => {
     body.value,
     "platform"
   );
+  res.json(ok(result));
+});
+
+// R97-01: GET /api/platform/config/sys-config - 平台系统设置（saas-admin Settings.vue）
+export const getPlatformSysConfig = asyncHandler(async (_req, res) => {
+  const result = await sysConfigService.getSysConfig();
+  res.json(ok(result));
+});
+
+// R97-01: PUT /api/platform/config/sys-config - 保存平台系统设置
+export const updatePlatformSysConfig = asyncHandler(async (req, res) => {
+  const body = z.record(z.string(), z.unknown()).default({}).parse(req.body ?? {});
+  const result = await sysConfigService.updateSysConfig(body, "platform");
   res.json(ok(result));
 });
 

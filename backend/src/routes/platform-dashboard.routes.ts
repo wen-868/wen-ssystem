@@ -1,7 +1,12 @@
 import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
-import { getDashboard, getTenantStats, getRevenueStats } from "../controllers/platform/dashboard.controller";
+import {
+  getDashboard,
+  getTenantStats,
+  getRevenueStats,
+  getDashboardOverview,
+} from "../controllers/platform/dashboard.controller";
 
 export const platformDashboardRouter = Router();
 
@@ -16,6 +21,9 @@ platformDashboardRouter.get("/tenants", getTenantStats);
 
 // GET /api/platform/dashboard/revenue - 收入统计
 platformDashboardRouter.get("/revenue", getRevenueStats);
+
+// R97-01: GET /api/platform/dashboard/overview - 平台看板总览（saas-admin 调用）
+platformDashboardRouter.get("/overview", getDashboardOverview);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {

@@ -19,3 +19,9 @@ export const getRevenueStats = asyncHandler(async (_req, res) => {
   const result = await overviewService.getRevenueStatistics();
   res.json(ok(result));
 });
+
+// R97-01: GET /api/platform/dashboard/overview - 平台看板总览（对齐 saas-admin Dashboard.vue）
+export const getDashboardOverview = asyncHandler(async (_req, res) => {
+  const result = await overviewService.getPlatformDashboardOverview();
+  res.json(ok(result));
+});

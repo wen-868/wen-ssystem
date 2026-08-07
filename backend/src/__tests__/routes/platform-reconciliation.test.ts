@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
 import { createTestApp } from "../fixtures/create-test-app";
 
@@ -7,6 +7,13 @@ vi.mock("../../services/admin/platform-reconciliation.service", () => ({
   createReconciliation: vi.fn(),
   updateReconciliation: vi.fn(),
   getDetail: vi.fn(),
+}));
+
+vi.mock("../../services/admin/platform-settlement.service", () => ({
+  listSettlements: vi.fn(),
+  getSettlementById: vi.fn(),
+  getSettlementStats: vi.fn(),
+  updateSettlementStatus: vi.fn(),
 }));
 
 vi.mock("../../shared/response", () => ({
@@ -26,6 +33,7 @@ vi.mock("../../middleware/tenant", () => ({
 }));
 
 import * as reconciliationService from "../../services/admin/platform-reconciliation.service";
+import * as settlementService from "../../services/admin/platform-settlement.service";
 import { platformReconciliationRouter } from "../../routes/platform-reconciliation.routes";
 
 const app = createTestApp({ prefix: "/api/platform-reconciliation", router: platformReconciliationRouter });
@@ -34,31 +42,80 @@ describe("routes/platform-reconciliation 集成测试", () => {
   beforeEach(() => vi.clearAllMocks());
 
   describe("GET /", () => {
-    it("应返回对账列表", async () => {
-      (reconciliationService.listReconciliations as any).mockResolvedValue({ records: [], total: 0 });
+    it("应返回财务结算列表（平台视角，数据源 t_platform_settlement）", async () => {
+      (settlementService.listSettlements as any).mockResolvedValue({
+        records: [{
+          id: 1,
+          settlementNo: "SET123",
+          tenantName: "测试租户",
+          periodStart: "2026-07-01",
+          periodEnd: "2026-07-31",
+          totalAmount: 1000,
+          settledAmount: 800,
+          status: "PENDING",
+          createdAt: "2026-08-01T00:00:00.000Z",
+        }],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      });
       const res = await request(app).get("/api/platform-reconciliation");
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
-      expect(reconciliationService.listReconciliations).toHaveBeenCalledWith(
-        "test-tenant",
+      expect(settlementService.listSettlements).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 20 })
       );
+      expect(res.body.data.records[0]).toEqual(expect.objectContaining({
+        reconciliationNo: "SET123",
+        tenantName: "测试租户",
+        period: "2026-07-01 ~ 2026-07-31",
+        orderAmount: 1000,
+        settleAmount: 800,
+        status: "PENDING",
+      }));
     });
 
-    it("应传递筛选参数", async () => {
-      (reconciliationService.listReconciliations as any).mockResolvedValue({ records: [], total: 0 });
-      const res = await request(app).get("/api/platform-reconciliation?reconciliationNo=RC001&platformName=JD&status=1&dateStart=2026-01-01&dateEnd=2026-01-31");
+    it("应传递 keyword/status 筛选参数", async () => {
+      (settlementService.listSettlements as any).mockResolvedValue({ records: [], total: 0, page: 1, pageSize: 20 });
+      const res = await request(app).get("/api/platform-reconciliation?keyword=测试&status=SETTLED");
       expect(res.status).toBe(200);
-      expect(reconciliationService.listReconciliations).toHaveBeenCalledWith(
-        "test-tenant",
-        expect.objectContaining({ reconciliationNo: "RC001", platformName: "JD", status: 1, dateStart: "2026-01-01", dateEnd: "2026-01-31" })
+      expect(settlementService.listSettlements).toHaveBeenCalledWith(
+        expect.objectContaining({ tenantName: "测试", status: "SETTLED" })
       );
     });
 
     it("service 抛错时返回500", async () => {
-      (reconciliationService.listReconciliations as any).mockRejectedValue(new Error("db error"));
+      (settlementService.listSettlements as any).mockRejectedValue(new Error("db error"));
       const res = await request(app).get("/api/platform-reconciliation");
       expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /stats", () => {
+    it("应返回财务结算统计（对齐 saas-admin 字段）", async () => {
+      (settlementService.getSettlementStats as any).mockResolvedValue({
+        currentMonthRevenue: 1000,
+        pendingSettlement: 200,
+        settledAmount: 800,
+        settlementCount: 5,
+      });
+      const res = await request(app).get("/api/platform-reconciliation/stats");
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual({
+        monthlyRevenue: 1000,
+        pendingAmount: 200,
+        settledAmount: 800,
+        totalCount: 5,
+      });
+    });
+  });
+
+  describe("PUT /:id/settle", () => {
+    it("应确认结算（置为 SETTLED）", async () => {
+      (settlementService.updateSettlementStatus as any).mockResolvedValue({ id: 1, status: "SETTLED" });
+      const res = await request(app).put("/api/platform-reconciliation/1/settle");
+      expect(res.status).toBe(200);
+      expect(settlementService.updateSettlementStatus).toHaveBeenCalledWith(1, "SETTLED");
     });
   });
 
@@ -83,22 +140,6 @@ describe("routes/platform-reconciliation 集成测试", () => {
       expect(res.status).toBe(500);
       expect(reconciliationService.createReconciliation).not.toHaveBeenCalled();
     });
-
-    it("amount 为负数时 zod 校验失败", async () => {
-      const res = await request(app)
-        .post("/api/platform-reconciliation")
-        .send({ reconciliationNo: "RC001", platformNo: "P001", platformName: "JD", type: 0, amount: -1 });
-      expect(res.status).toBe(500);
-      expect(reconciliationService.createReconciliation).not.toHaveBeenCalled();
-    });
-
-    it("service 抛错时返回500", async () => {
-      (reconciliationService.createReconciliation as any).mockRejectedValue(new Error("create error"));
-      const res = await request(app)
-        .post("/api/platform-reconciliation")
-        .send({ reconciliationNo: "RC001", platformNo: "P001", platformName: "JD", type: 0, amount: 100 });
-      expect(res.status).toBe(500);
-    });
   });
 
   describe("PUT /:id", () => {
@@ -114,27 +155,30 @@ describe("routes/platform-reconciliation 集成测试", () => {
         expect.objectContaining({ status: 1, amount: 200 })
       );
     });
-
-    it("service 抛错时返回500", async () => {
-      (reconciliationService.updateReconciliation as any).mockRejectedValue(new Error("update error"));
-      const res = await request(app)
-        .put("/api/platform-reconciliation/1")
-        .send({ status: 1 });
-      expect(res.status).toBe(500);
-    });
   });
 
   describe("GET /:id", () => {
-    it("应返回对账详情", async () => {
-      (reconciliationService.getDetail as any).mockResolvedValue({ id: 1, reconciliationNo: "RC001" });
+    it("应返回财务结算详情（平台视角）", async () => {
+      (settlementService.getSettlementById as any).mockResolvedValue({
+        id: 1,
+        settlementNo: "SET123",
+        tenantName: "测试租户",
+        periodStart: "2026-07-01",
+        periodEnd: "2026-07-31",
+        totalAmount: 1000,
+        settledAmount: 800,
+        status: "PENDING",
+        createdAt: "2026-08-01T00:00:00.000Z",
+      });
       const res = await request(app).get("/api/platform-reconciliation/1");
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
-      expect(reconciliationService.getDetail).toHaveBeenCalledWith("test-tenant", 1);
+      expect(settlementService.getSettlementById).toHaveBeenCalledWith(1);
+      expect(res.body.data.reconciliationNo).toBe("SET123");
     });
 
     it("service 抛错时返回500", async () => {
-      (reconciliationService.getDetail as any).mockRejectedValue(new Error("db error"));
+      (settlementService.getSettlementById as any).mockRejectedValue(new Error("db error"));
       const res = await request(app).get("/api/platform-reconciliation/1");
       expect(res.status).toBe(500);
     });

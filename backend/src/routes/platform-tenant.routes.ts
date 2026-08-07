@@ -3,6 +3,7 @@ import type { RouteConfig } from "../shared/auto-routes";
 import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import * as controller from "../controllers/platform/tenant.controller";
+import * as usageController from "../controllers/platform/tenant-usage.controller";
 
 export const platformTenantRouter = Router();
 
@@ -11,6 +12,10 @@ platformTenantRouter.use(requirePlatformAuth);
 
 // GET /api/platform/tenants - 租户列表
 platformTenantRouter.get("/", asyncHandler(controller.listPlatformTenants));
+
+// R97-01: 租户使用统计/排行（必须注册在 /:id 之前，避免被当作 id 捕获）
+platformTenantRouter.get("/usage-stats", asyncHandler(usageController.getUsageStatsCtrl));
+platformTenantRouter.get("/rank", asyncHandler(usageController.getRankCtrl));
 
 // GET /api/platform/tenants/:id - 租户详情
 platformTenantRouter.get("/:id", asyncHandler(controller.getPlatformTenantById));

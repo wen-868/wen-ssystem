@@ -2436,6 +2436,55 @@
 3. 首页 banner/商品图使用 `neeko-copilot.bytedance.net` 外链 mock 图，走查时超时属网络环境问题，不影响主题验证（weapp 真机以真实 API 数据为准）
 4. `package.json` 新增脚本：`build:weapp:a/b/c`、`build:h5:a`、`gen:tab-icons`；`build:weapp` 默认走主题化构建（等价 UNI_THEME=a）
 
+## R97 — saas 总后台接口 404 修复（补 /api/platform/* 平台版端点）[P0 生产故障 — 2026-08-08]
+
+> 故障：saas.onepan.cn 多数功能点击报错。诊断确认：saas-admin 前端按平台语义调用 `/api/platform/*`，后端部分平台级功能错挂在 `/api/admin/*`（租户鉴权）下或缺失，导致 404。
+
+### R97-01 — [P0] 补平台版端点（负责人：阿坚）
+- **状态**：✅ 已完成（2026-08-08 阿坚执行，待凌舟复核收口；任务卡已归档 `docs/tasks/inbox/archive/ajian_saas_fix_01.md`）
+- **待补端点**：monitor/db-status|api-stats|expiring-tenants|notify-expiring、error-logs（全租户）、dashboard/overview、reconciliation/stats、tenants/usage-stats|rank、config/sys-config
+- **要求**：全部 requirePlatformAuth、全租户数据范围、复用现有 controller/service、返回结构对齐 saas-admin 页面
+- **已另修**：saas-admin AI 配置页 localhost:3016（deploy/auto-deploy.sh 注入 VITE_AI_BASE_URL=/ai-api + nginx saas 加 /ai-api 代理）
+
+**R97-01 完成记录（2026-08-08 阿坚）：**
+
+**① 平台监控 4 端点**（`platform-monitor.routes.ts`，复用 `admin/monitor.controller`，requirePlatformAuth）：
+- `GET /api/platform/monitor/db-status`、`GET /api/platform/monitor/api-stats`、`GET /api/platform/monitor/expiring-tenants?days=`、`POST /api/platform/monitor/notify-expiring` 全部补齐
+
+**② 错误日志（全租户）**：新增 `platform-error-log.routes.ts`（`GET /api/platform/error-logs`）+ `controllers/platform/error-log.controller.ts`，复用 `error-log.service.listErrorLogs`（不传 tenantId），返回驼峰 records/total 对齐 ErrorLogs.vue
+
+**③ 平台看板总览**：新增 `GET /api/platform/dashboard/overview`（`platform-dashboard.routes.ts` + `platform-overview.service.getPlatformDashboardOverview`），返回 totalTenants/activeTenants/pendingTenants/monthlyRevenue/totalRevenue + incomeTrend(近6月)/planDistribution/tenantStatus/recentTenants，对齐 Dashboard.vue
+
+**④ 财务结算**（`platform-reconciliation.routes.ts` 改造为平台视角，数据源 `t_platform_settlement`，新增 `controllers/platform/platform-reconciliation.controller.ts`）：
+- `GET /api/platform/reconciliation` 列表与 `GET /:id` 详情：settlement 数据映射 reconciliationNo/tenantName/period/orderAmount/settleAmount/status/createdAt（修复原控制器用 req.tenantId 在平台 token 下必 500 的问题）
+- 新增 `GET /api/platform/reconciliation/stats`（复用 getSettlementStats，映射 monthlyRevenue/pendingAmount/settledAmount/totalCount）
+- 新增 `PUT /api/platform/reconciliation/:id/settle`（复用 updateSettlementStatus(id,'SETTLED')）
+- 原 POST/PUT 租户级对账能力保留未删
+
+**⑤ 租户使用统计**：新增 `platform-tenant.routes.ts` 的 `GET /tenants/usage-stats` + `GET /tenants/rank`（注册在 `/:id` 之前防捕获），新增 `services/platform/tenant-usage.service.ts` + `controllers/platform/tenant-usage.controller.ts`：usage-stats 返回 overview{totalUsers,totalOrders,totalSales,totalProducts}/trendData/moduleUsage，rank 按 sortBy 排序返回数组
+
+**⑥ 平台系统设置**：新增 `GET/PUT /api/platform/config/sys-config`（`platform-config.routes.ts` + `services/platform/platform-sys-config.service.ts`），设置以 JSON 存 `t_platform_config`（platform='SAAS', tenant_id='platform', config_key='saas_settings'），GET 返回 Settings.vue 全字段对象，PUT 整包 upsert
+
+**⑦ saas-admin CSRF 修复**：`saas-admin/src/api.ts` 请求拦截器补注入 `x-csrf-token`（登录/ME 接口已下发 platform_csrf_token，原 axios 实例未注入导致写操作 403），与 `utils/request.ts` 行为对齐
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 后端类型检查 | `cd backend && npm run typecheck` | exit 0，0 errors ✅ |
+| 后端构建 | `cd backend && npm run build` | exit 0 ✅ |
+| 后端全量测试 | `cd backend && npm test` | 441 文件 / 5117 用例全通过（新增 2 测试文件 9 用例）✅ |
+| 定向路由测试 | vitest platform-reconciliation/monitor/tenant/platform/auth/review + 新增 platform-r97/platform-monitor-r97 | 8 文件 62 用例全通过 ✅ |
+| saas-admin 构建 | `cd saas-admin && npm run build` | exit 0（22.8s）✅ |
+| 本地实测（平台 token + mock DB） | 15 端点依次 curl | 全部 200，返回结构正确 ✅ |
+
+**说明与上报（未越权，需凌舟决策）：**
+1. 平台级新端点全部 `requirePlatformAuth` + 全租户数据范围（不依赖 req.tenantId）
+2. 财务结算列表/详情改用 `t_platform_settlement`（原 `t_platform_reconciliation` 为租户级即时零售对账，字段与 saas-admin 财务结算页完全不符；原控制器在平台 token 下 req.tenantId 为 undefined 必 500）。若需保留旧对账数据查询，可另开 /api/platform/reconciliation/legacy 或前端改调 /api/platform/settlements
+3. 平台系统设置以 JSON 单行存储：`t_platform_config` 唯一键为 (platform,store_id,tenant_id)，无法一行一配置键；GET 缺失字段回退默认值，PUT 全量覆盖
+4. **deploy/auto-deploy.sh + deploy/nginx-production.conf 存在凌舟已改未提交的 /ai-api 代理改动**（与任务卡"已另修"对应），本次未纳入提交，部署前需凌舟确认提交
+5. `admin-web/src/views/LoginView.vue` 未纳入本次提交（阿澈 R96-02 已上报归属待定）
+6. `docs/API接口文档.md` 已补 R97-01 平台端点契约（P25-P36）+ 修正 P22 对账契约
+
 ### R96-02 — [P1] 租户小程序配置页（选模板 + 填 APPID + 生成代码包 + 发布指引）
 - **优先级**：P1
 - **负责人**：阿澈（移动端/小程序 + 后端配置接口）

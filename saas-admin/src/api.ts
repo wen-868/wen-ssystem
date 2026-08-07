@@ -18,6 +18,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // CSRF 防护：写操作需注入 x-csrf-token（登录/ME 接口下发，存于 platform_csrf_token）
+  const csrfToken = localStorage.getItem("platform_csrf_token");
+  if (csrfToken) {
+    config.headers["x-csrf-token"] = csrfToken;
+  }
   return config;
 });
 
