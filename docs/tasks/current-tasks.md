@@ -2604,6 +2604,95 @@
 4. `admin-web/src/views/LoginView.vue` 有一处非本任务改动（注册链接点击跳转，已核实 router 已定义、构建通过），未纳入本次提交范围，提请凌舟确认归属
 5. 新增 130 迁移执行状态与模板种子生效情况需在服务器部署后由凌舟按防线 3 验证
 
+### R96-05 — [P1] 小程序一键生成并发布（极简流程改造）
+- **优先级**：P1
+- **负责人**：阿澈（移动端/小程序 + 后端发布集成）
+- **状态**：✅ 已完成（2026-08-08 ache_r96_05b 执行，待凌舟复核收口）
+- **背景（用户需求）**：现有流程「配置→选模板→生成包→手工导入开发者工具」对非技术店主太复杂。用户要求**越简单越好**：填 AppID → 选模板 → 一个按钮「一键生成并发布」，系统自动完成生成代码包 + 上传微信。
+- **任务**：
+  1. **前端极简改造**（admin-web `views/system/MiniappConfigView.vue`）：
+     - 单页三要素：① 模板选择（3 卡片，颜色预览）② AppID + 商城名称（必填项最少化）③ 上传密钥（.key 文件，一次性配置，复用已存密钥时隐藏/只显示"已配置"）
+     - 主按钮「🚀 一键生成并发布」：点击后展示进度（生成代码包 → 上传微信 → 完成），完成后显示结果（体验版已上传 + 微信公众平台提交审核入口链接）
+     - 已保存配置自动预填，二次发布只点按钮；保留发布历史列表；「仅生成包下载」降级为次要入口或保留为高级选项
+  2. **后端一键发布接口**：
+     - 新增 `POST /api/miniapp-config/publish`：读取租户配置（AppID/模板/商城名/密钥）→ 校验 → 基于 template-dist 预构建产物生成代码包（替换 project.config.json appid、app.json 标题/导航色）→ 调用 miniprogram-ci 上传（体验版）→ 写 publish_log（action='publish'、状态 uploaded/submitted）→ 返回结果
+     - 新增密钥管理：`POST /api/miniapp-config/upload-key`（.key 文件加密存储，脱敏返回）、`GET /api/miniapp-config/key-status`（是否已配置）
+     - 后端接入 `miniprogram-ci`（npm 依赖）：上传需要 AppID + 上传密钥 + 私钥密码（若有）
+     - 复用 R96-02 的 generatePackage 产物逻辑，避免重复实现
+  3. **服务器侧**：backend 依赖安装 miniprogram-ci；`template-dist/{a,b,c}` 三套预构建产物在服务器生成一次（`cd miniapp && npm run build:weapp:all`）；上传密钥文件落 `backend/storage/`（不入库）
+  4. **微信限制说明**（文档/前端提示）：上传后为体验版，微信审核为平台强制流程，系统提供「提交审核」指引/入口，审核通过后在公众平台上线
+  5. **验证**：后端 build + typecheck；接口层验证到「生成代码包 + CI 调用参数正确」；真实上传需用户提供真实 AppID + 上传密钥（端到端验证项标注待用户密钥）
+- **验收标准**：配置页单页完成「选模板 + 填 AppID + 传密钥 → 一键生成并发布」；后端 publish 接口链路通；publish_log 状态完整；文档说明微信审核限制
+- **必读文件**：`docs/tasks/current-tasks.md` R96-00/R96-01/R96-02 完成记录；`admin-web/src/views/system/MiniappConfigView.vue`；`backend/src/controllers/admin/miniapp-config.controller.ts` + `services/admin/miniapp-config.service.ts`；`miniapp/scripts/build-with-theme.js` / `post-build-theme.js`
+
+**R96-05 完成记录（2026-08-08 ache_r96_05b，接续余额中断后重新派单）：**
+
+**① 后端一键发布链路（接续未提交工作区代码，核查修正后过全量验证）：**
+- `miniapp-ci.service.ts`（新增）：miniprogram-ci 上传封装，动态 import 避免未安装环境启动失败；`upload()` 构造 Project（appid/projectPath/privateKeyPath）+ 上传体验版（version/desc/robot/setting）
+- `miniapp-upload.service.ts`（新增）：.key 上传密钥管理——AES-256-GCM 加密落盘 `backend/storage/miniapp-keys/`（不入库已 gitignore）+ `.meta.json` 元信息；`uploadKey`（.key 扩展名/2MB 上限校验）、`getKeyStatus`（脱敏返回）、`readDecryptedKey`（供 CI 上传）
+- `miniapp-publish.service.ts`（重构，替换旧占位符退役实现）：校验租户配置/AppID（wx+16位hex）/模板存在/密钥已配置/版本号（x.y.z）→ 复用 R96-02 `buildPackageStaging` 生成产物（不重复实现）→ 解密密钥到临时文件 → `miniprogram-ci` 上传体验版 → 写 `t_miniapp_publish_log`（action='publish'、result=success/failed、status=uploaded/failed、error_msg 记录失败原因），成功/失败均落库；失败抛可读错误；`mpUrl` 返回微信公众平台版本管理入口
+- `miniapp-config.controller.ts` / `routes`：新增 `POST /publish`、`POST /upload-key`（multer 内存存储 + .key 过滤）、`GET /key-status`
+- `env.ts`：新增 `MINIAPP_KEY_ENCRYPTION_KEY`（未配置时由 JWT_SECRET 派生，确定性免额外配置）；`backend/package.json` 新增 `miniprogram-ci` + `multer` + `@types/multer`
+
+**② 前端极简改造（MiniappConfigView.vue 单页三要素）：**
+- ① 模板选择：3 张卡片（渐变预览/描述/色点），选中态清晰，已存配置自动回显
+- ② 基础信息：AppID + 商城名称（必填最少化），AppSecret/版本号/联系人折叠进「更多设置」；已保存配置自动预填
+- ③ 上传密钥：.key 文件选择 + 私钥密码（选填）；已配置时显示「已配置（文件名 · 时间），重新上传可覆盖」，二次发布无需重复上传
+- 主按钮「🚀 一键生成并发布」：进度态（保存配置 → 上传密钥 → 生成代码包并上传微信）+ 成功结果弹窗（版本/状态 + 「前往微信公众平台提交审核」链接 + 体验版审核限制提示）+ 失败原因展示
+- 「仅生成代码包下载」降级为高级选项（折叠区，保留发布指引）；发布历史保留（新增状态解读：uploaded=已上传体验版/failed=失败）
+- `instant-retail.ts` API 层新增：`publishMiniapp` / `fetchMiniappKeyStatus` / `uploadMiniappKey`（multipart）
+
+**③ 单测补充：**
+- `miniapp-upload.service.test.ts`（6 用例）：加解密往返、扩展名/大小/空文件校验、上传→查询→解密完整链路、落盘非明文
+- `miniapp-publish.service.test.ts`（7 用例，新增）：配置不存在/AppID 格式/密钥未配置/版本号格式 4 类校验抛 400；成功路径（产物构建 + CI 上传参数正确 + publish_log 落库）；上传失败（写失败日志 + 抛可读错误）
+
+**④ 验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 后端类型检查 | `npm run typecheck`（backend） | exit 0，0 errors ✅ |
+| 后端构建 | `npm run build`（backend） | exit 0 ✅ |
+| 后端 ESLint（新增/改动文件） | `npx eslint <7 文件>` | exit 0，0 errors ✅ |
+| 后端全量测试 | `npm test`（backend） | 447 文件 5160 用例全通过 ✅ |
+| 前端类型检查 | `npx vue-tsc -b`（admin-web） | exit 0，0 errors ✅ |
+| 前端构建 | `npm run build`（admin-web） | exit 0（1m13s）✅ |
+| 接口链路冒烟 | supertest 直挂路由（临时测试，验证后删除） | `GET /key-status` 未配置 200、`POST /upload-key` 上传后 configured=true、`POST /publish` 无配置返回 400 可读错误 ✅ |
+| publish 日志落库 | 单测断言 | action='publish'、result=success/failed、status=uploaded/failed、error_msg 记录 ✅ |
+
+**⑤ 说明（如实标注）：**
+1. **真实微信上传为待用户密钥项**：端到端真实上传需用户提供真实小程序 AppID + 微信公众平台代码上传密钥（.key）；代码与 CI 调用参数已通过单测验证（uploadFn 参数断言 appId/version/privateKeyPath），本机无密钥不进行真实上传
+2. **服务器部署前置**：`npm install`（含 miniprogram-ci）；`cd miniapp && npm run build:weapp:all` 生成三套 template-dist；迁移 130（三套模板种子）已执行
+3. **微信限制**：一键发布上传后为「体验版」；提交审核/发布上线是微信公众平台强制流程，前端已在提示区与结果弹窗给出 mp.weixin.qq.com 版本管理入口
+4. 密钥文件加密落盘于 `backend/storage/miniapp-keys/`（不入库、已 gitignore），响应脱敏仅返回是否配置/时间/文件名
+
+## R98 — 平台小程序（产品介绍 + 套餐订阅）[规划 — 凌舟 2026-08-08]
+
+> 用户需求：智享全链 SaaS 平台自己做一个小程序，用于**产品介绍**和**套餐订阅**（面向潜在客户/租户），与 R96 租户商城小程序（miniapp/）相互独立。
+
+### R98-00 — 平台小程序方案（凌舟）
+- **工程**：新建 `platform-miniapp/`（Taro 3.6 + Vue3 + Vant4，复制 miniapp 工程骨架精简），独立构建（`build:weapp`）；与租户商城小程序互不影响
+- **页面（MVP 5 页）**：
+  1. 首页：产品介绍（SaaS 能力亮点/适用场景/核心差异化，文案复用 website/landing-page）
+  2. 套餐列表：展示订阅套餐（公开接口读后端 t_subscription_plan 或等价数据，仅 active）
+  3. 订阅申请：选套餐 + 公司/联系人/手机/备注 → 提交
+  4. 我的申请：wx.login 关联 openid，查询本人申请与状态
+  5. 关于我们
+- **订阅模式**：意向申请 → 平台后台审核（通过/驳回）→ 微信订阅消息通知结果（MVP 后置订阅消息，先做审核状态可查）；不做在线支付（SaaS 订阅走线下签约/对公）
+- **后端**（新增公开接口，挂在主后端 8080）：
+  - `GET /api/platform-miniapp/plans`：公开套餐列表（无鉴权或轻鉴权，仅 active + 脱敏）
+  - `POST /api/platform-miniapp/subscriptions`：提交订阅申请（校验手机号等必填）
+  - `GET /api/platform-miniapp/subscriptions/me`：按 openid/mobile 查本人申请
+  - 新表 `t_platform_subscription_apply`（id/openid/plan_id/plan_name/company/contact/mobile/remark/status/audit_remark/audited_at/created_at 等）+ 迁移 SQL
+  - saas-admin 后台：订阅申请列表 + 审核（通过/驳回，复用 platform 审核交互模式；可新增页面或并入现有应用审核）
+- **依赖**：平台小程序 AppID 由用户后续申请提供（构建先占位 appid）
+- **分阶段**：
+  - R98-01：platform-miniapp 工程 + 5 页面 + 后端公开接口 + 订阅申请表 + 后台审核（MVP 端到端）
+  - R98-02：微信登录 openid 关联 + 订阅消息通知 + 小程序发布（AppID 到位后）
+
+### R98-01 — [P1] 平台小程序 MVP（工程 + 页面 + 后端接口 + 后台审核）
+- **优先级**：P1
+- **负责人**：阿澈（小程序 + 后端接口）
+- **状态**：🔄 进行中（2026-08-08 凌舟派单，任务卡 `docs/tasks/inbox/ache_r98_01.md`）
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

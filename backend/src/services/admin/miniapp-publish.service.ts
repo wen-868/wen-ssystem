@@ -1,286 +1,281 @@
 /**
- * 【已退役】旧占位符替换发布机制（R96-02 决策）
+ * 小程序一键发布服务（R96-05）
  *
- * 原机制：24 个 `__XXX__` 占位符 → t_sys_config → 渲染 miniapp/config.template.js。
- * 退役原因：与 R96-01 的新机制（UNI_THEME 编译期主题 + 构建后注入 app.json）脱节，
- * miniapp/src 已无任何占位符引用；R96-02 起发布流程改为「预构建产物 → zip 代码包」
- * （见 miniapp-package.service.ts）。本文件不再被任何路由引用，仅保留存档。
+ * 流程：读取租户配置/模板 → 校验（AppID、模板、密钥、版本号）→ 复用
+ * buildPackageStaging 生成产物（替换 appid/标题/导航色）→ 解密上传密钥 →
+ * 调用 miniprogram-ci 上传体验版 → 写 t_miniapp_publish_log（action='publish'）。
+ *
+ * 微信限制：上传后为体验版；「提交审核/发布上线」为微信公众平台强制流程，
+ * 本服务返回公众平台入口链接与指引，不代替平台审核。
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { queryWithTenant, queryOneWithTenant, query } from "../../shared/db";
+import { queryOneWithTenant, queryWithTenant } from "../../shared/db";
+import { buildPackageStaging, type TemplateStyleConfig } from "./miniapp-package-builder";
+import { MiniappUploadService } from "./miniapp-upload.service";
+import { MiniappCiService, type MiniappCiUploadParams } from "./miniapp-ci.service";
 
-/** 系统配置行 */
-interface SysConfigRow {
-  configKey: string;
-  configValue: string;
+/** 业务错误（携带 HTTP 状态码，供全局 error-handler 返回可读信息） */
+export class MiniappPublishError extends Error {
+  statusCode: number;
+  constructor(statusCode: number, message: string) {
+    super(message);
+    this.statusCode = statusCode;
+  }
 }
 
-/** 小程序配置行 */
-interface MiniappConfigRow {
-  appId: string;
-  appName: string;
-  status: string;
-  templateId: string;
-}
-
-/** 发布日志行 */
-interface PublishLogRow {
-  id: number;
-  version: string;
-  remark: string;
-  status: string;
-  createdAt: string;
-}
-
-/** 发布日志总数 */
-interface PublishLogCountRow {
-  total: number;
-}
-
-/** 当前版本行 */
-interface CurrentVersionRow {
-  appVersion: string;
-  status: string;
-  auditStatus: string;
-  updatedAt: string;
-}
-
-/** 配置键行 */
-interface ConfigKeyRow {
-  configKey: string;
-}
-
-/** 发布/审核请求体 */
-interface PublishBody {
+/** 一键发布请求体（可选覆盖，未传读租户已存配置） */
+export interface PublishInput {
+  platform?: string;
+  templateId?: number;
+  appId?: string;
+  appName?: string;
   version?: string;
   remark?: string;
 }
 
-// ========== 占位符 → sys_config key 映射 ==========
-
-const PLACEHOLDER_CONFIG_MAP: Record<string, string> = {
-  __API_BASE__: "miniapp.api_base",
-  __STORE_ID__: "miniapp.store_id",
-  __STORE_NAME__: "miniapp.store_name",
-  __PAYMENT_MCH_ID__: "miniapp.payment_mch_id",
-  __PAYMENT_KEY__: "miniapp.payment_key",
-  __PAYMENT_NOTIFY_URL__: "miniapp.payment_notify_url",
-  __PAYMENT_ENABLE__: "miniapp.payment_enable",
-  __SYNC_WS_URL__: "miniapp.sync_ws_url",
-  __SYNC_POLL_INTERVAL__: "miniapp.sync_poll_interval",
-  __SYNC_ENABLED__: "miniapp.sync_enabled",
-  __PAGE_HOME_MODE__: "miniapp.page_home_mode",
-  __PAGE_SHOW_SEARCH__: "miniapp.page_show_search",
-  __PAGE_SHOW_CART__: "miniapp.page_show_cart",
-  __PAGE_SHOW_PRICE__: "miniapp.page_show_price",
-  __PAGE_SHOW_WHOLESALE_PRICE__: "miniapp.page_show_wholesale_price",
-  __PAGE_SHOW_STOCK__: "miniapp.page_show_stock",
-  __PAGE_SHOW_CATEGORY__: "miniapp.page_show_category",
-  __PAGE_ORDER_BUTTON_TEXT__: "miniapp.page_order_button_text",
-  __THEME_NAME__: "miniapp.theme_name",
-  __BRAND_NAME__: "miniapp.brand_name",
-  __BRAND_SLOGAN__: "miniapp.brand_slogan",
-  __COLOR_PRIMARY__: "miniapp.color_primary",
-  __NAV_BG_COLOR__: "miniapp.nav_bg_color",
-  __NAV_TEXT_COLOR__: "miniapp.nav_text_color",
-};
-
-const ALL_PLACEHOLDERS = Object.keys(PLACEHOLDER_CONFIG_MAP);
-
-const DEFAULT_VALUES: Record<string, string> = {
-  __API_BASE__: "https://api.onepan.cn/api",
-  __STORE_ID__: "1",
-  __STORE_NAME__: "智享商城",
-  __PAYMENT_MCH_ID__: "",
-  __PAYMENT_KEY__: "",
-  __PAYMENT_NOTIFY_URL__: "",
-  __PAYMENT_ENABLE__: "true",
-  __SYNC_WS_URL__: "wss://ws.onepan.cn/sync",
-  __SYNC_POLL_INTERVAL__: "10000",
-  __SYNC_ENABLED__: "true",
-  __PAGE_HOME_MODE__: "standard",
-  __PAGE_SHOW_SEARCH__: "true",
-  __PAGE_SHOW_CART__: "true",
-  __PAGE_SHOW_PRICE__: "true",
-  __PAGE_SHOW_WHOLESALE_PRICE__: "false",
-  __PAGE_SHOW_STOCK__: "true",
-  __PAGE_SHOW_CATEGORY__: "true",
-  __PAGE_ORDER_BUTTON_TEXT__: "加入下单",
-  __THEME_NAME__: "liquor-blue",
-  __BRAND_NAME__: "智享商城",
-  __BRAND_SLOGAN__: "正品酒水，极速配送",
-  __COLOR_PRIMARY__: "#1677FF",
-  __NAV_BG_COLOR__: "#1677FF",
-  __NAV_TEXT_COLOR__: "#ffffff",
-};
-
-// ========== 模板占位符替换 ==========
-
-export async function getPublishConfigs(tenantId: string): Promise<Record<string, string>> {
-  const configKeys = Object.values(PLACEHOLDER_CONFIG_MAP);
-  const placeholders = Object.keys(PLACEHOLDER_CONFIG_MAP);
-  const result: Record<string, string> = {};
-
-  const records = await query<SysConfigRow>(
-    `SELECT config_key AS configKey, config_value AS configValue
-     FROM t_sys_config
-     WHERE config_key IN (${configKeys.map(() => "?").join(",")})
-       AND tenant_id = ?`,
-    [...configKeys, tenantId]
-  );
-
-  const configMap: Record<string, string> = {};
-  for (const r of records) {
-    configMap[r.configKey] = r.configValue;
-  }
-
-  for (const placeholder of placeholders) {
-    const configKey = PLACEHOLDER_CONFIG_MAP[placeholder];
-    result[placeholder] = configMap[configKey] ?? DEFAULT_VALUES[placeholder] ?? "";
-  }
-
-  return result;
+/** 测试注入点：CI 上传函数与产物构建函数可替换 */
+export interface PublishDeps {
+  uploadFn?: (params: MiniappCiUploadParams) => Promise<{ status: string; message: string }>;
+  buildStagingFn?: typeof buildPackageStaging;
+  /** 仓库根目录（测试注入用，默认自动定位） */
+  repoRoot?: string;
 }
 
-export async function renderTemplate(tenantId: string): Promise<string> {
-  const templatePath = path.resolve("miniapp/config.template.js");
-  let template = fs.readFileSync(templatePath, "utf-8");
+const THEME_IDS = ["a", "b", "c"] as const;
+type ThemeId = (typeof THEME_IDS)[number];
 
-  const configs = await getPublishConfigs(tenantId);
+/** 微信小程序 AppID：wx + 16 位十六进制字符 */
+const WECHAT_APPID_RE = /^wx[0-9a-f]{16}$/i;
+/** 微信版本号：x.y.z */
+const VERSION_RE = /^\d+\.\d+\.\d+$/;
 
-  for (const placeholder of ALL_PLACEHOLDERS) {
-    const value = configs[placeholder] ?? DEFAULT_VALUES[placeholder] ?? "";
-    template = template.replaceAll(placeholder, value);
-  }
+/** 公众平台「版本管理」入口（提交审核需在此完成） */
+export const WECHAT_MP_VERSION_URL =
+  "https://mp.weixin.qq.com/wxamp/wadevelopment/index?new=1&lang=zh_CN";
 
-  return template;
+/** t_miniapp_template 模板行 */
+interface TemplateRow {
+  id: number | string;
+  name: string;
+  style_config: string | null;
 }
 
-export async function validatePlaceholders(tenantId: string): Promise<{
-  valid: boolean;
-  missing: string[];
-  extra: string[];
-}> {
-  const configs = await getPublishConfigs(tenantId);
-  const missing: string[] = [];
-  const extra: string[] = [];
+/** t_miniapp_config 配置行 */
+interface ConfigRow {
+  app_id: string | null;
+  app_name: string | null;
+  app_version: string | null;
+  template_id: number | string | null;
+}
 
-  for (const placeholder of ALL_PLACEHOLDERS) {
-    if (!configs[placeholder] && !DEFAULT_VALUES[placeholder]) {
-      missing.push(placeholder);
+/** 定位仓库根目录（兼容 backend/ 目录与仓库根目录启动两种 cwd） */
+function findRepoRoot(): string {
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), ".."),
+    path.resolve(process.cwd(), "../.."),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, "miniapp")) && fs.existsSync(path.join(c, "docs"))) {
+      return c;
     }
   }
-
-  const configKeys = Object.values(PLACEHOLDER_CONFIG_MAP);
-  const records = await query<ConfigKeyRow>(
-    `SELECT config_key AS configKey
-     FROM t_sys_config
-     WHERE config_key NOT IN (${configKeys.map(() => "?").join(",")})
-       AND config_key LIKE 'miniapp.%'
-       AND tenant_id = ?`,
-    [...configKeys, tenantId]
-  );
-  extra.push(...records.map((r) => r.configKey));
-
-  return { valid: missing.length === 0 && extra.length === 0, missing, extra };
+  return process.cwd();
 }
 
-export function getTemplatePlaceholders(): string[] {
-  return [...ALL_PLACEHOLDERS];
+/** 解析模板 style_config */
+function parseStyleConfig(raw: string | null): TemplateStyleConfig {
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as TemplateStyleConfig;
+  } catch {
+    return {};
+  }
 }
 
-// ========== 发布/回滚/审核 ==========
-
-export async function publish(tenantId: string, body: PublishBody, platform: string = "WECHAT") {
-  const config = await queryOneWithTenant<MiniappConfigRow>(
-    "SELECT app_id AS appId, app_name AS appName, status, template_id AS templateId FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
-    [tenantId, platform],
-    tenantId
-  );
-  if (!config) throw new Error("未配置小程序信息");
-  if (!config.appId) throw new Error("AppID 未配置");
-  if (!config.templateId) throw new Error("未选择模板");
-
-  const version = body.version || `1.0.${Date.now()}`;
-  const remark = body.remark || "";
-
-  // 渲染模板：替换占位符 → 写入 miniapp/config.js
-  const rendered = await renderTemplate(tenantId);
-  const outputPath = path.resolve("miniapp/config.js");
-  fs.writeFileSync(outputPath, rendered, "utf-8");
-
-  await queryWithTenant(
-    "UPDATE t_miniapp_config SET status = 'published', app_version = ?, audit_status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
-    [version, tenantId, platform],
-    tenantId
-  );
-
-  const publishLogId = await queryWithTenant(
-    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'published', 'publish', 'success')",
-    [tenantId, platform, version, remark],
-    tenantId
-  );
-
-  return {
-    success: true,
-    version,
-    appName: config.appName,
-    publishLogId: (publishLogId as unknown as Record<string, unknown>).insertId,
-  };
-}
-
-export async function rollback(tenantId: string, version: string, platform: string = "WECHAT") {
-  await queryWithTenant(
-    "UPDATE t_miniapp_config SET app_version = ?, status = 'published', updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
-    [version, tenantId, platform],
-    tenantId
-  );
-  await queryWithTenant(
-    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'rollback', 'rollback', 'success')",
-    [tenantId, platform, version, `回滚到版本 ${version}`],
-    tenantId
-  );
-  return { success: true, version };
-}
-
-export async function submitAudit(tenantId: string, body: PublishBody, platform: string = "WECHAT") {
-  await queryWithTenant(
-    "UPDATE t_miniapp_config SET audit_status = 'submitted', audit_reason = ?, updated_at = NOW() WHERE tenant_id = ? AND platform = ?",
-    [body.remark || "", tenantId, platform],
-    tenantId
-  );
-
-  await queryWithTenant(
-    "INSERT INTO t_miniapp_publish_log (tenant_id, platform, version, remark, status, action, result) VALUES (?, ?, ?, ?, 'audit_submitted', 'audit_submit', 'success')",
-    [tenantId, platform, body.version || `1.0.${Date.now()}`, body.remark || ""],
-    tenantId
-  );
-  return { success: true };
-}
-
-export async function getPublishHistory(tenantId: string, page: number, pageSize: number, platform: string = "WECHAT") {
-  const offset = (page - 1) * pageSize;
-  const [rows, total] = await Promise.all([
-    queryWithTenant<PublishLogRow>(
-      "SELECT id, version, remark, status, created_at AS createdAt FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ? ORDER BY id DESC LIMIT ? OFFSET ?",
-      [tenantId, platform, pageSize, offset],
+export class MiniappPublishService {
+  /** 写发布日志（action='publish'） */
+  private static async writeLog(
+    tenantId: string,
+    row: {
+      platform: string;
+      templateId: number | string;
+      version: string;
+      result: "success" | "failed";
+      status: string;
+      remark: string;
+      errorMsg: string;
+    }
+  ) {
+    const logResult = await queryWithTenant(
+      `INSERT INTO t_miniapp_publish_log
+       (tenant_id, platform, template_id, action, version, result, remark, status, error_msg)
+       VALUES (?, ?, ?, 'publish', ?, ?, ?, ?, ?)`,
+      [
+        tenantId,
+        row.platform,
+        row.templateId,
+        row.version,
+        row.result,
+        row.remark,
+        row.status,
+        row.errorMsg,
+      ],
       tenantId
-    ),
-    queryOneWithTenant<PublishLogCountRow>(
-      "SELECT COUNT(*) AS total FROM t_miniapp_publish_log WHERE tenant_id = ? AND platform = ?",
-      [tenantId, platform],
-      tenantId
-    ),
-  ]);
-  return { list: rows, total: total?.total || 0, page, pageSize };
-}
+    );
+    return (logResult as unknown as Record<string, unknown>).insertId;
+  }
 
-export async function getCurrentVersion(tenantId: string, platform: string = "WECHAT") {
-  const row = await queryOneWithTenant<CurrentVersionRow>(
-    "SELECT app_version AS appVersion, status, audit_status AS auditStatus, updated_at AS updatedAt FROM t_miniapp_config WHERE tenant_id = ? AND platform = ?",
-    [tenantId, platform],
-    tenantId
-  );
-  return row || null;
+  /**
+   * 一键生成并发布：
+   * 1. 校验租户配置/AppID/模板/密钥/版本号；
+   * 2. 复用 R96-02 buildPackageStaging 生成代码包（不重新实现）；
+   * 3. 解密密钥 → miniprogram-ci 上传体验版；
+   * 4. 写 publish_log（成功/失败均记录），失败时抛出可读错误。
+   */
+  static async publish(
+    tenantId: string,
+    input: PublishInput = {},
+    deps: PublishDeps = {}
+  ) {
+    const uploadFn = deps.uploadFn || MiniappCiService.upload;
+    const buildStagingFn = deps.buildStagingFn || buildPackageStaging;
+    const repoRoot = deps.repoRoot || findRepoRoot();
+    const platform = (input.platform || "WECHAT").toUpperCase();
+
+    // 1. 租户配置
+    const config = await queryOneWithTenant<ConfigRow>(
+      `SELECT app_id, app_name, app_version, template_id FROM t_miniapp_config
+       WHERE platform = ? AND tenant_id = ?`,
+      [platform, tenantId],
+      tenantId
+    );
+    if (!config) {
+      throw new MiniappPublishError(400, "请先保存小程序配置（AppID/商城名称）");
+    }
+
+    const appId = (input.appId || config.app_id || "").trim();
+    if (!appId) {
+      throw new MiniappPublishError(400, "AppID 未配置，无法发布");
+    }
+    if (!WECHAT_APPID_RE.test(appId)) {
+      throw new MiniappPublishError(
+        400,
+        "AppID 格式不正确：应为 wx 开头 + 16 位十六进制字符（mp.weixin.qq.com 小程序 AppID）"
+      );
+    }
+
+    const appName = (input.appName || config.app_name || "").trim();
+    if (!appName) {
+      throw new MiniappPublishError(400, "商城名称未配置，无法发布");
+    }
+
+    // 2. 模板
+    const templateId = input.templateId ?? config.template_id;
+    if (!templateId) {
+      throw new MiniappPublishError(400, "请先选择小程序模板");
+    }
+    const template = await queryOneWithTenant<TemplateRow>(
+      `SELECT id, name, style_config FROM t_miniapp_template
+       WHERE id = ? AND (tenant_id = ? OR tenant_id = 'DEFAULT')`,
+      [templateId, tenantId],
+      tenantId
+    );
+    if (!template) {
+      throw new MiniappPublishError(400, "模板不存在或已被停用");
+    }
+    const style = parseStyleConfig(template.style_config);
+    const theme = (THEME_IDS as readonly string[]).includes(style.theme as string)
+      ? (style.theme as ThemeId)
+      : "a";
+
+    // 3. 上传密钥
+    const keyStatus = MiniappUploadService.getKeyStatus(tenantId, platform);
+    if (!keyStatus.configured) {
+      throw new MiniappPublishError(
+        400,
+        "上传密钥未配置：请在微信公众平台「开发管理-开发设置」生成代码上传密钥并上传 .key 文件"
+      );
+    }
+
+    // 4. 版本号/备注
+    const version = (input.version || config.app_version || "1.0.0").trim();
+    if (!VERSION_RE.test(version)) {
+      throw new MiniappPublishError(400, "版本号格式不正确，应为 x.y.z（如 1.0.0）");
+    }
+    const remark = (input.remark || `智享小程序自动发布 ${version}`).slice(0, 200);
+
+    const distDir = path.join(repoRoot, "miniapp", "template-dist", theme);
+    if (!fs.existsSync(distDir)) {
+      throw new MiniappPublishError(
+        400,
+        `模板产物未构建（${theme}），请先在 miniapp 目录执行 npm run build:weapp:all`
+      );
+    }
+
+    let staging = "";
+    let keyTempDir = "";
+    try {
+      // 5. 复用 R96-02 产物构建逻辑（替换 appid/标题/导航栏/tabBar 色）
+      staging = buildStagingFn({
+        templateDistDir: distDir,
+        appId,
+        appName,
+        styleConfig: style,
+      });
+
+      // 6. 解密密钥到临时文件，供 miniprogram-ci 使用
+      keyTempDir = fs.mkdtempSync(path.join(os.tmpdir(), "miniapp-key-"));
+      const privateKeyPath = path.join(keyTempDir, "private.key");
+      fs.writeFileSync(privateKeyPath, MiniappUploadService.readDecryptedKey(tenantId, platform));
+
+      // 7. 上传体验版
+      const uploadResult = await uploadFn({
+        appId,
+        projectPath: staging,
+        privateKeyPath,
+        version,
+        desc: remark,
+      });
+
+      const publishLogId = await this.writeLog(tenantId, {
+        platform,
+        templateId: template.id,
+        version,
+        result: "success",
+        status: uploadResult.status || "uploaded",
+        remark,
+        errorMsg: "",
+      });
+
+      return {
+        publishLogId,
+        version,
+        status: uploadResult.status || "uploaded",
+        message: uploadResult.message || "体验版上传成功",
+        mpUrl: WECHAT_MP_VERSION_URL,
+      };
+    } catch (err) {
+      // 已带状态码的业务错误（校验类）原样抛出，不写失败日志
+      if (err instanceof MiniappPublishError) {
+        throw err;
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      await this.writeLog(tenantId, {
+        platform,
+        templateId: template.id,
+        version,
+        result: "failed",
+        status: "failed",
+        remark,
+        errorMsg: message.slice(0, 1000),
+      }).catch(() => undefined);
+      throw new MiniappPublishError(500, `发布失败：${message}`);
+    } finally {
+      if (staging) fs.rmSync(staging, { recursive: true, force: true });
+      if (keyTempDir) fs.rmSync(keyTempDir, { recursive: true, force: true });
+    }
+  }
 }

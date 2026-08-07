@@ -168,6 +168,20 @@ export const fetchMiniappTemplate = (id: number) => api.get(`/miniapp-config/tem
 export const generateMiniappPackage = (data: any) => api.post('/miniapp-config/packages', data);
 export const fetchMiniappPackageDownloadUrl = (id: number | string) => `${api.defaults.baseURL}/miniapp-config/packages/${id}/download`;
 export const fetchMiniappPublishLogs = (params: any) => api.get('/miniapp-config/publish-logs', { params });
+// 一键生成并发布（R96-05：生成代码包 + miniprogram-ci 上传体验版）
+export const publishMiniapp = (data: any) => api.post('/miniapp-config/publish', data);
+// 查询上传密钥配置状态（脱敏）
+export const fetchMiniappKeyStatus = (platform: string) => api.get('/miniapp-config/key-status', { params: { platform } });
+// 上传小程序上传密钥（.key 文件，multipart）
+export const uploadMiniappKey = (platform: string, file: File, privateKeyPassword?: string) => {
+  const form = new FormData();
+  form.append("key", file);
+  form.append("platform", platform);
+  if (privateKeyPassword) form.append("privateKeyPassword", privateKeyPassword);
+  return api.post('/miniapp-config/upload-key', form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
 
 

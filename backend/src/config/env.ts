@@ -120,6 +120,9 @@ export const env = {
   /** 微信支付回调通知 URL，默认空字符串 */
   WECHAT_PAY_NOTIFY_URL: process.env.WECHAT_PAY_NOTIFY_URL || "",
 
+  /** 小程序上传密钥（.key）AES-256-GCM 加密密钥（32 字节 hex），未配置时由 JWT_SECRET 派生 */
+  MINIAPP_KEY_ENCRYPTION_KEY: process.env.MINIAPP_KEY_ENCRYPTION_KEY || "",
+
   /** 微信 AppID（兼容别名，优先 WX_APPID 否则回退 WECHAT_APP_ID） */
   WX_APPID: process.env.WX_APPID || process.env.WECHAT_APP_ID || "",
 

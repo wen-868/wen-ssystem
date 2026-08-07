@@ -1,5 +1,7 @@
 ﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 import { MiniappPackageService } from "./miniapp-package.service";
+import { MiniappUploadService } from "./miniapp-upload.service";
+import { MiniappPublishService, type PublishInput } from "./miniapp-publish.service";
 
 /** t_miniapp_config 配置行 */
 interface MiniappConfigRow {
@@ -225,5 +227,25 @@ export class MiniappConfigService {
   // 代码包下载文件
   static async getPackageFile(tenantId: string, id: number) {
     return MiniappPackageService.getPackageFile(tenantId, id);
+  }
+
+  // 上传小程序上传密钥（.key，加密落盘）
+  static async uploadKey(
+    tenantId: string,
+    platform: string,
+    file: { originalname: string; buffer: Buffer; size: number },
+    privateKeyPassword?: string
+  ) {
+    return MiniappUploadService.uploadKey(tenantId, platform, file, privateKeyPassword);
+  }
+
+  // 查询上传密钥配置状态（脱敏）
+  static async getKeyStatus(tenantId: string, platform: string) {
+    return MiniappUploadService.getKeyStatus(tenantId, platform);
+  }
+
+  // 一键生成并发布（复用 generatePackage 产物逻辑 + miniprogram-ci 上传体验版）
+  static async publish(tenantId: string, input: PublishInput) {
+    return MiniappPublishService.publish(tenantId, input);
   }
 }

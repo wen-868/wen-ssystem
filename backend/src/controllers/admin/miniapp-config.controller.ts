@@ -23,6 +23,15 @@ const generatePackageSchema = z.object({
   version: z.string().optional(),
 });
 
+const publishSchema = z.object({
+  platform: z.string().optional(),
+  templateId: z.number().int().positive().optional(),
+  appId: z.string().optional(),
+  appName: z.string().optional(),
+  version: z.string().optional(),
+  remark: z.string().optional(),
+});
+
 export const listConfigs = asyncHandler(async (req: Request, res: Response) => {
   const data = await MiniappConfigService.listConfigs(req.tenantId!);
   res.json(ok(data));
@@ -71,5 +80,38 @@ export const listPublishLogs = asyncHandler(async (req: Request, res: Response) 
   const page = parseInt(req.query.page as string) || 1;
   const pageSize = parseInt(req.query.pageSize as string) || 20;
   const data = await MiniappConfigService.listPublishLogs(req.tenantId!, page, pageSize);
+  res.json(ok(data));
+});
+
+// 一键生成并发布（生成代码包 + miniprogram-ci 上传体验版）
+export const publish = asyncHandler(async (req: Request, res: Response) => {
+  const body = publishSchema.parse(req.body);
+  const data = await MiniappConfigService.publish(req.tenantId!, body);
+  res.json(ok(data));
+});
+
+// 上传小程序上传密钥（.key，multer 已解析到 req.file）
+export const uploadKey = asyncHandler(async (req: Request, res: Response) => {
+  const platform = String(req.query.platform || req.body?.platform || "wechat");
+  const file = req.file;
+  if (!file) {
+    res.json(fail("请选择 .key 上传密钥文件", "400"));
+    return;
+  }
+  const privateKeyPassword =
+    typeof req.body?.privateKeyPassword === "string" ? req.body.privateKeyPassword : undefined;
+  const data = await MiniappConfigService.uploadKey(
+    req.tenantId!,
+    platform,
+    { originalname: file.originalname, buffer: file.buffer, size: file.size },
+    privateKeyPassword
+  );
+  res.json(ok(data));
+});
+
+// 查询上传密钥配置状态（脱敏）
+export const getKeyStatus = asyncHandler(async (req: Request, res: Response) => {
+  const platform = String(req.query.platform || "wechat");
+  const data = await MiniappConfigService.getKeyStatus(req.tenantId!, platform);
   res.json(ok(data));
 });
