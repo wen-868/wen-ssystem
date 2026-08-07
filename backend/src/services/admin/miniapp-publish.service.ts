@@ -1,3 +1,11 @@
+/**
+ * 【已退役】旧占位符替换发布机制（R96-02 决策）
+ *
+ * 原机制：24 个 `__XXX__` 占位符 → t_sys_config → 渲染 miniapp/config.template.js。
+ * 退役原因：与 R96-01 的新机制（UNI_THEME 编译期主题 + 构建后注入 app.json）脱节，
+ * miniapp/src 已无任何占位符引用；R96-02 起发布流程改为「预构建产物 → zip 代码包」
+ * （见 miniapp-package.service.ts）。本文件不再被任何路由引用，仅保留存档。
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { queryWithTenant, queryOneWithTenant, query } from "../../shared/db";

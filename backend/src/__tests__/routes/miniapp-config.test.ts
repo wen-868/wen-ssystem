@@ -1,5 +1,6 @@
 ﻿import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
+import path from "node:path";
 import { createTestApp } from "../fixtures/create-test-app";
 
 vi.mock("../../services/admin/miniapp-config.service", () => ({
@@ -9,7 +10,8 @@ vi.mock("../../services/admin/miniapp-config.service", () => ({
     saveConfig: vi.fn(),
     listTemplates: vi.fn(),
     getTemplate: vi.fn(),
-    publish: vi.fn(),
+    generatePackage: vi.fn(),
+    getPackageFile: vi.fn(),
     listPublishLogs: vi.fn(),
   },
 }));
@@ -134,34 +136,57 @@ describe("routes/miniapp-config 集成测试", () => {
     });
   });
 
-  describe("POST /publish", () => {
-    it("应发布小程序", async () => {
-      (MiniappConfigService.publish as any).mockResolvedValue({ success: true });
+  describe("POST /packages", () => {
+    it("应生成代码包", async () => {
+      (MiniappConfigService.generatePackage as any).mockResolvedValue({
+        id: 1,
+        fileName: "miniapp-a-test-1.zip",
+        downloadUrl: "/api/miniapp-config/packages/1/download",
+      });
       const res = await request(app)
-        .post("/api/miniapp-config/publish")
-        .send({ platform: "WECHAT", templateId: 1, version: "1.0.0" });
+        .post("/api/miniapp-config/packages")
+        .send({ platform: "WECHAT", templateId: 1, appId: "wx123", appName: "测试商城", version: "1.0.0" });
       expect(res.status).toBe(200);
       expect(res.body.code).toBe("0");
-      expect(MiniappConfigService.publish).toHaveBeenCalledWith(
+      expect(MiniappConfigService.generatePackage).toHaveBeenCalledWith(
         "test-tenant",
-        expect.objectContaining({ platform: "WECHAT", templateId: 1, version: "1.0.0" })
+        expect.objectContaining({ platform: "WECHAT", templateId: 1, appId: "wx123" })
       );
     });
 
     it("platform 缺失时 zod 校验失败", async () => {
       const res = await request(app)
-        .post("/api/miniapp-config/publish")
-        .send({ templateId: 1, version: "1.0.0" });
+        .post("/api/miniapp-config/packages")
+        .send({ templateId: 1, appId: "wx123" });
       expect(res.status).toBe(500);
-      expect(MiniappConfigService.publish).not.toHaveBeenCalled();
+      expect(MiniappConfigService.generatePackage).not.toHaveBeenCalled();
     });
 
     it("service 抛错时返回500", async () => {
-      (MiniappConfigService.publish as any).mockRejectedValue(new Error("publish error"));
+      (MiniappConfigService.generatePackage as any).mockRejectedValue(new Error("package error"));
       const res = await request(app)
-        .post("/api/miniapp-config/publish")
-        .send({ platform: "WECHAT", templateId: 1, version: "1.0.0" });
+        .post("/api/miniapp-config/packages")
+        .send({ platform: "WECHAT", templateId: 1, appId: "wx123", appName: "测试商城" });
       expect(res.status).toBe(500);
+    });
+  });
+
+  describe("GET /packages/:id/download", () => {
+    it("应下载代码包", async () => {
+      (MiniappConfigService.getPackageFile as any).mockResolvedValue({
+        filePath: path.resolve("package.json"),
+        fileName: "miniapp-a-test-1.zip",
+      });
+      const res = await request(app).get("/api/miniapp-config/packages/1/download");
+      expect(res.status).toBe(200);
+      expect(MiniappConfigService.getPackageFile).toHaveBeenCalledWith("test-tenant", 1);
+    });
+
+    it("ID 无效时返回错误", async () => {
+      const res = await request(app).get("/api/miniapp-config/packages/abc/download");
+      expect(res.status).toBe(200);
+      expect(res.body.code).not.toBe("0");
+      expect(MiniappConfigService.getPackageFile).not.toHaveBeenCalled();
     });
   });
 

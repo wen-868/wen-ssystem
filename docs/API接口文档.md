@@ -2612,3 +2612,57 @@
 | 即时零售（管理端） | 11 |
 | 即时零售（门店端） | 6 |
 | **合计** | **~290** |
+
+---
+
+## 小程序配置（管理后台，前缀 /api/miniapp-config）
+
+> R96-02 新增/修订（阿澈）。端点隔离：管理后台专用，认证 `requireAuthWithTenant`。
+> 旧「一键发布」（POST /publish）已退役，改为「生成代码包」（POST /packages）。
+
+### GET /api/miniapp-config/configs
+- **描述**: 获取本租户全部平台小程序配置（app_secret 脱敏为 `***`）
+- **认证**: 需要认证（管理后台）
+- **响应**: `{ code: "0", data: [{ id, platform, appId, appSecret, appName, appVersion, templateId, status, auditStatus, contactName, contactEmail, contactPhone, createdAt, updatedAt }] }`
+- **后端文件**: backend/src/controllers/admin/miniapp-config.controller.ts
+- **前端文件**: admin-web/src/api/instant-retail.ts
+
+### GET /api/miniapp-config/configs/:platform
+- **描述**: 获取指定平台配置（platform: wechat/alipay/douyin/kuaishou）
+- **认证**: 需要认证（管理后台）
+- **响应**: 同上单条；不存在时 `data: null`
+
+### PUT /api/miniapp-config/configs/:platform
+- **描述**: 保存指定平台配置（appSecret 传 `***` 时保留原值；不再使用不存在的 enabled 列）
+- **认证**: 需要认证（管理后台）
+- **请求体**: `{ appId: string(必填), appSecret?: string, appName?: string, appVersion?: string, templateId?: number, contactName?: string, contactEmail?: string, contactPhone?: string }`
+- **响应**: `{ code: "0", data: { success: true } }`
+
+### GET /api/miniapp-config/templates
+- **描述**: 模板列表（仅 active：DEFAULT 全局模板 + 本租户模板），styleConfig 已解析
+- **认证**: 需要认证（管理后台）
+- **响应**: `{ code: "0", data: [{ id, name, description, thumbnail, previewUrls, styleConfig, pageConfig, theme, version, status, sortOrder }] }`
+
+### GET /api/miniapp-config/templates/:id
+- **描述**: 模板详情
+- **认证**: 需要认证（管理后台）
+
+### POST /api/miniapp-config/packages
+- **描述**: 生成小程序代码包（zip）。校验模板与租户配置存在，读取预构建产物
+  `miniapp/template-dist/{a,b,c}`，替换 appid/标题/导航栏/tabBar 色后压缩，记录落
+  `t_miniapp_publish_log`（action='package'）
+- **认证**: 需要认证（管理后台）
+- **请求体**: `{ platform: string(必填), templateId: number(必填), appId?: string, appName?: string, version?: string }`
+- **响应**: `{ code: "0", data: { id, fileName, downloadUrl: "/api/miniapp-config/packages/{id}/download" } }`
+- **失败示例**: `{ code: "400", msg: "模板产物未构建（a），请先在 miniapp 目录执行 npm run build:weapp:all" }`
+
+### GET /api/miniapp-config/packages/:id/download
+- **描述**: 下载已生成的代码包 zip（校验租户归属 + 防路径穿越）
+- **认证**: 需要认证（管理后台）
+- **响应**: 附件流（application/octet-stream）
+
+### GET /api/miniapp-config/publish-logs
+- **描述**: 发布/生成记录分页列表
+- **认证**: 需要认证（管理后台）
+- **Query**: `page`, `pageSize`
+- **响应**: `{ code: "0", data: { list: [...], total, page, pageSize } }`

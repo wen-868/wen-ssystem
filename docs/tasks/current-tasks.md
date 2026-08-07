@@ -2436,6 +2436,73 @@
 3. 首页 banner/商品图使用 `neeko-copilot.bytedance.net` 外链 mock 图，走查时超时属网络环境问题，不影响主题验证（weapp 真机以真实 API 数据为准）
 4. `package.json` 新增脚本：`build:weapp:a/b/c`、`build:h5:a`、`gen:tab-icons`；`build:weapp` 默认走主题化构建（等价 UNI_THEME=a）
 
+### R96-02 — [P1] 租户小程序配置页（选模板 + 填 APPID + 生成代码包 + 发布指引）
+- **优先级**：P1
+- **负责人**：阿澈（移动端/小程序 + 后端配置接口）
+- **预计**：2 天
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **现状盘点（2026-08-08 凌舟调研）**：
+  - 表已存在：`t_miniapp_config`（app_id/app_secret/app_name/app_icon/template_id/status/audit_status/联系人/域名/开关）、`t_miniapp_template`（含旧三套种子：经典蓝白/暖橙商务/深色臻品）、`t_miniapp_publish_log`（docs/migrations/020_migrate_v3_payment_miniapp.sql）
+  - 后端已有雏形：`backend/src/routes/miniapp-config.routes.ts`（/api/miniapp-config：configs/templates/publish/logs CRUD）、`services/admin/miniapp-publish.service.ts`（旧占位符替换机制：24 个 `__XXX__` → t_sys_config → 渲染 miniapp/config.template.js；**与当前 miniapp 源码脱节，miniapp/src 无任何占位符**）、`miniapp-template.service.ts`（模板 CRUD）
+  - 前端已有半成品：`admin-web/src/views/system/MiniappConfigView.vue`（平台 Tab + AppID/Secret/名称/版本/启用表单 + 模板卡片选择 + 预览弹窗；**无生成代码包/发布指引/发布记录**）
+  - 已知问题：`miniapp-config.service.saveConfig` 使用了表定义中**不存在的 `enabled` 列**（表字段为 status/audit_status）；模板种子与 R96-01 新三套（深海蓝/酒红金/青翠）不一致
+- **任务**：
+  1. **模板种子对齐**：新增迁移 SQL（docs/migrations/130_*.sql 或等价）将 `t_miniapp_template` 对齐为 R96-01 三套新主题（A 深海蓝/B 酒红金/C 青翠），`style_config` 含 `theme: "a|b|c"` + 主色/渐变/背景色，`page_config` 保留结构；旧种子置为 inactive 或替换
+  2. **后端修正与新增**：
+     - 修正 `miniapp-config.service` 字段与表定义一致（enabled → status 等），并核对 SQL 可用
+     - 新增**生成代码包**接口：`POST /api/miniapp-config/packages`（body: platform/templateId/appId/appName/version）→ 基于预构建模板产物生成 zip（`project.config.json` 的 appid、`app.json` 的标题/导航栏/tabBar 色随租户配置替换）→ 返回下载信息；`GET /packages/:id/download` 下载 zip；产物记录落 `t_miniapp_publish_log`（action='package'）或独立表
+     - **预构建产物**：`miniapp/template-dist/{a,b,c}`（加入 .gitignore，不入库），提供 `npm run build:weapp:all`（或等价脚本）一次构建三套模板产物；生成包逻辑优先读缓存，缺失时返回明确错误提示先构建
+     - 旧占位符机制（miniapp-publish.service renderTemplate/config.template.js）与新机制并存或退役：以任务卡结论为准，不重复维护
+  3. **前端配置页完善**（MiniappConfigView.vue）：
+     - 模板卡片改为 R96-01 新三套（名称/描述/主色预览；预览图用 docs/reports/R96-01-themes 截图或内联样式）
+     - 表单：AppID/AppSecret/商城名称/联系人 + 保存（去掉或修正 enabled）
+     - 生成代码包：按钮 + 进度/结果提示 + 下载链接
+     - 发布指引：步骤条/弹窗（下载代码包 → 微信开发者工具导入 → 校验 AppID → 上传 → 提交审核 → 发布）
+     - 发布记录列表（action/version/status/时间）
+  4. **验证**：后端 `npm run build` + typecheck 通过；admin-web build 通过；三套模板产物构建成功；生成代码包 zip 实测可下载且 appid/标题/导航色正确
+  5. 提交推送 origin/main（中文提交信息；push 网络波动重试即可）
+- **验收标准**：配置页可完成「选模板 → 填 APPID/名称 → 保存 → 生成代码包（zip 可下载、project.config.json appid 正确、app.json 标题/导航色正确）→ 发布指引清晰」全流程；三套模板均可生成；文档齐备
+
+**R96-02 完成记录（2026-08-08 阿澈，待凌舟复核收口）：**
+
+**① 模板种子对齐：**
+- 新增 `docs/migrations/130_miniapp_template_r96.sql`：旧三套（经典蓝白/暖橙商务/深色臻品）置 inactive；幂等插入新三套（商务经典·深海蓝 / 高端酒红金·臻品 / 清新活力·青翠），`style_config` 含 `theme/primaryColor/gradient/backgroundColor/navBgColor/tabBar*`，与 `miniapp/config/themes.js` 一一对应；末尾含验证 SELECT（migration.ts 第 8 步按文件名顺序自动执行）
+
+**② 后端修正与新增：**
+- `miniapp-config.service`：saveConfig 去掉不存在的 `enabled` 列 → 对齐表定义（app_id/app_secret/app_name/app_version/template_id/contact_name/contact_email/contact_phone/status）；配置/模板返回改驼峰结构；`app_secret` 传 `***` 时保留原值
+- 新增 `POST /api/miniapp-config/packages` + `GET /packages/:id/download`：`miniapp-package.service.ts` 校验模板（DEFAULT 或本租户）与配置存在 → 读 `miniapp/template-dist/{theme}` → `buildPackageStaging` 替换 `project.config.json.appid`、`app.json` 标题/导航栏/tabBar 色 → 自研 `shared/zip.ts`（纯 Node，无新依赖）压缩 → 落 `backend/storage/miniapp-packages/`（已 gitignore）→ 记录 `t_miniapp_publish_log`（action='package'）
+- 旧占位符机制退役：`miniapp-publish.service.ts` 顶部标注已退役（不再被路由引用），`POST /publish` 路由移除（原实现使用不存在的 operator 列，本就不可能成功）
+- 控制器/路由同步：remove publish、add packages；`docs/API接口文档.md` 补充 `/api/miniapp-config` 契约段（防线2）
+
+**③ 预构建产物：**
+- 新增 `miniapp/scripts/build-all-themes.mjs` + `npm run build:weapp:all`：a/b/c 三主题依次构建并复制到 `template-dist/{a,b,c}`；`miniapp/template-dist/` 与 `backend/storage/` 加入根 .gitignore
+
+**④ 前端配置页（MiniappConfigView.vue 重写）：**
+- 表单：AppID/AppSecret/商城名称/联系人（姓名/电话/邮箱，选填）+ 保存（去掉 enabled 开关）
+- 模板卡片：新三套名称/描述/主色渐变预览/色点，选中态清晰，保存时回填 templateId
+- 生成代码包：版本号（选填）→ 生成 → 成功弹窗含 zip 下载链接 + 文件名；失败展示原因（如产物未构建提示）
+- 发布指引：6 步步骤条弹窗（下载 → 导入 → 校验 AppID → 上传 → 提交审核 → 发布）
+- 发布记录表：时间/操作/版本/结果/状态/文件备注 + 分页
+- `admin-web/src/api/instant-retail.ts`：修正路径 `/admin/miniapp/*` → `/miniapp-config/*`（原与后端前缀不匹配，接口必 404），新增 `generateMiniappPackage`/`fetchMiniappPackageDownloadUrl`
+
+**⑤ 验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 后端类型检查 | `cd backend && npm run typecheck` | exit 0，0 errors ✅ |
+| 后端构建 | `cd backend && npm run build` | exit 0 ✅ |
+| 后端全量测试 | `cd backend && npx vitest run` | 439 文件 / 5108 用例全通过（新增 zip/builder 6 用例 + 控制器/路由 28 用例）✅ |
+| admin-web 构建 | `cd admin-web && npm run build` | exit 0（35s）✅ |
+| 三套模板产物 | `cd miniapp && npm run build:weapp:all` | a/b/c 均构建成功，template-dist 三套 app.json 主色/标题可区分 ✅ |
+| 代码包生成实测 | 真实模板产物 + zip 工具 | a/b/c 三套各生成 175 条目 zip；project.config.json appid、app.json 标题/导航栏/tabBar 色均正确 ✅ |
+| 独立解压验证 | Windows Expand-Archive | 解压正常，appid/标题/导航色正确 ✅ |
+
+**说明：**
+1. 本地无 MySQL（USE_MOCK_DB=true），接口层 DB 行为以单测（mock service）+ 源码核对为准；真实库验证属 R96-04 端到端验收范围
+2. `template-dist/` 与 `backend/storage/` 不入库；服务器生成代码包前需先执行 `npm run build:weapp:all`（缺失时接口返回明确提示）
+3. 模板预览图采用内联渐变主色块（不依赖外链截图，避免网络依赖）；`docs/reports/R96-01-themes/` 截图仍可用于人工对照
+4. `admin-web/src/views/LoginView.vue` 有一处非本任务改动（注册链接点击跳转，已核实 router 已定义、构建通过），未纳入本次提交范围，提请凌舟确认归属
+5. 新增 130 迁移执行状态与模板种子生效情况需在服务器部署后由凌舟按防线 3 验证
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

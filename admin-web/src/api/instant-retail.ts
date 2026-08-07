@@ -160,13 +160,14 @@ export async function deleteRetailCategory(id: number) {
 }
 
 // ==================== Miniapp Config APIs ====================
-export const fetchMiniappConfigs = () => api.get('/admin/miniapp/configs');
-export const fetchMiniappConfig = (platform: string) => api.get(`/admin/miniapp/configs/${platform}`);
-export const saveMiniappConfig = (platform: string, data: any) => api.put(`/admin/miniapp/configs/${platform}`, data);
-export const fetchMiniappTemplates = () => api.get('/admin/miniapp/templates');
-export const fetchMiniappTemplate = (id: number) => api.get(`/admin/miniapp/templates/${id}`);
-export const publishMiniapp = (data: any) => api.post('/admin/miniapp/publish', data);
-export const fetchMiniappPublishLogs = (params: any) => api.get('/admin/miniapp/publish-logs', { params });
+export const fetchMiniappConfigs = () => api.get('/miniapp-config/configs');
+export const fetchMiniappConfig = (platform: string) => api.get(`/miniapp-config/configs/${platform}`);
+export const saveMiniappConfig = (platform: string, data: any) => api.put(`/miniapp-config/configs/${platform}`, data);
+export const fetchMiniappTemplates = () => api.get('/miniapp-config/templates');
+export const fetchMiniappTemplate = (id: number) => api.get(`/miniapp-config/templates/${id}`);
+export const generateMiniappPackage = (data: any) => api.post('/miniapp-config/packages', data);
+export const fetchMiniappPackageDownloadUrl = (id: number | string) => `${api.defaults.baseURL}/miniapp-config/packages/${id}/download`;
+export const fetchMiniappPublishLogs = (params: any) => api.get('/miniapp-config/publish-logs', { params });
 export const setTenantModules = (id: number, data: any) => api.put(`/admin/tenants/${id}/modules`, data);
 
 

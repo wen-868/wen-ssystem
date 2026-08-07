@@ -9,3 +9,5 @@ coverage
 .superpowers/
 store-terminal/.env.production
 tsconfig.tsbuildinfo
+backend/storage/
+miniapp/template-dist/

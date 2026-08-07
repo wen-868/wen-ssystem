@@ -8,6 +8,7 @@
     "build:weapp:a": "cross-env UNI_THEME=a node scripts/build-with-theme.js weapp",
     "build:weapp:b": "cross-env UNI_THEME=b node scripts/build-with-theme.js weapp",
     "build:weapp:c": "cross-env UNI_THEME=c node scripts/build-with-theme.js weapp",
+    "build:weapp:all": "node scripts/build-all-themes.mjs",
     "dev:h5": "taro build --type h5 --watch",
     "build:h5": "taro build --type h5",
     "build:h5:a": "cross-env UNI_THEME=a node scripts/build-with-theme.js h5",

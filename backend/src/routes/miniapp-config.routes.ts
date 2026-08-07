@@ -10,7 +10,8 @@ miniappConfigRouter.get("/configs/:platform", ctrl.getConfig);
 miniappConfigRouter.put("/configs/:platform", ctrl.saveConfig);
 miniappConfigRouter.get("/templates", ctrl.listTemplates);
 miniappConfigRouter.get("/templates/:id", ctrl.getTemplate);
-miniappConfigRouter.post("/publish", ctrl.publish);
+miniappConfigRouter.post("/packages", ctrl.generatePackage);
+miniappConfigRouter.get("/packages/:id/download", ctrl.downloadPackage);
 miniappConfigRouter.get("/publish-logs", ctrl.listPublishLogs);
 
 export const routeConfig: RouteConfig = {

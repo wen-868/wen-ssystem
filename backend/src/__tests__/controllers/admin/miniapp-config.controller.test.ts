@@ -7,7 +7,8 @@ vi.mock("../../../services/admin/miniapp-config.service", () => ({
     saveConfig: vi.fn(),
     listTemplates: vi.fn(),
     getTemplate: vi.fn(),
-    publish: vi.fn(),
+    generatePackage: vi.fn(),
+    getPackageFile: vi.fn(),
     listPublishLogs: vi.fn(),
   },
 }));
@@ -25,7 +26,8 @@ import {
   saveConfig,
   listTemplates,
   getTemplate,
-  publish,
+  generatePackage,
+  downloadPackage,
   listPublishLogs,
 } from "../../../controllers/admin/miniapp-config.controller";
 
@@ -95,13 +97,31 @@ describe("miniapp-config.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
-  it("publish - 应发布小程序", async () => {
-    (MiniappConfigService.publish as any).mockResolvedValue({});
-    const req = mockReq({ body: { platform: "wechat", templateId: 1, version: "1.0.0", description: "测试发布" } });
+  it("generatePackage - 应生成代码包", async () => {
+    (MiniappConfigService.generatePackage as any).mockResolvedValue({ id: 1, fileName: "a.zip", downloadUrl: "/api/miniapp-config/packages/1/download" });
+    const req = mockReq({ body: { platform: "wechat", templateId: 1, appId: "wx123", appName: "测试商城", version: "1.0.0" } });
     const res = mockRes();
-    await publish(req as any, res as any, vi.fn());
-    expect(MiniappConfigService.publish).toHaveBeenCalled();
+    await generatePackage(req as any, res as any, vi.fn());
+    expect(MiniappConfigService.generatePackage).toHaveBeenCalledWith("t1", expect.objectContaining({ platform: "wechat", templateId: 1 }));
     expect(ok).toHaveBeenCalled();
+  });
+
+  it("downloadPackage - 应返回代码包文件", async () => {
+    (MiniappConfigService.getPackageFile as any).mockResolvedValue({ filePath: "D:/tmp/a.zip", fileName: "a.zip" });
+    const req = mockReq({ params: { id: "1" } });
+    const res = mockRes();
+    res.download = vi.fn();
+    await downloadPackage(req as any, res as any, vi.fn());
+    expect(MiniappConfigService.getPackageFile).toHaveBeenCalledWith("t1", 1);
+    expect(res.download).toHaveBeenCalledWith("D:/tmp/a.zip", "a.zip");
+  });
+
+  it("downloadPackage - ID 无效时应返回错误", async () => {
+    const req = mockReq({ params: { id: "abc" } });
+    const res = mockRes();
+    await downloadPackage(req as any, res as any, vi.fn());
+    expect(MiniappConfigService.getPackageFile).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalled();
   });
 
   it("listPublishLogs - 应返回发布日志列表", async () => {
