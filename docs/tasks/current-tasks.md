@@ -2339,6 +2339,16 @@
 - R95-04-2 ✅：生产 store 端登录已用 admin/admin123 验证成功（store 接口全 200），移动端线上可正常登录，无需创建账号
 - **待用户服务器执行**：① crontab 更新为 3 次备份；② `node scripts/schema-audit.mjs` 生产实跑生成真实差异报告
 
+**R95-04-5 结构漂移技术债（2026-08-07 凌舟收敛决策）**：
+- 生产补建 41 张真实缺表（373→414 张），缺表从 87 降至 45。
+- **收敛决策：剩余 45 张缺表不再盲目补建**。理由：① 纯静态扫描不收敛（差异 1017→1076，缺列多为脚本将 JOIN/别名列归错表的误报，盲目补列会破坏生产表）；② 生产接口已全绿、移动端 16 页走查通过，剩余缺表不影响已验收功能；③ 正确路径是按功能版块启用时补建+修正代码引用。
+- **45 张缺表分类**：
+  - 误报约 15 张（正则把关键字/占位/复数当表）：t_last、t_module_name、t_inventory、t_notifications、t_product、t_sale_bill_items、t_sale_bills、t_sale_order、t_sales_order、t_sku、t_sync_cache、t_todos、t_user_points、t_user_customer、t_user_binding
+  - 表名变体约 10 张（代码用错名，真实表为另一名）：t_flash_sale→t_seckill_product、t_flash_sale_record、t_full_reduction→t_full_reduction_rule、t_group_buy*→t_group_buy_activity、t_payment_method、t_promo_stack_rule→t_promotion_stack_rule、t_product_step_price→t_sku_price、t_sys_menu/t_sys_role_menu（权限系统待核实）
+  - 真实缺表约 20 张（代码引用但无 DDL 定义，结构漂移）：t_aftersale、t_audit_log、t_cart_item、t_cash_flow、t_daily_settlement、t_order_coupon、t_platform_settlement、t_purchase_order_archive、t_purchase_order_item_archive、t_sale_bill_archive、t_sale_bill_item_archive、t_sys_user_login、t_wx_user 等
+- **后续动作**：① 改进 schema-audit 脚本——期望列改为「迁移 DDL 定义」而非代码正则，剔除误报，产出可信报告；② 真实缺表按功能版块启用时补建（售后/审计/购物车/现金流/归档等），并在对应版块任务中修正代码引用；③ t_user_coupon 等有 DDL 但 extract 遗漏的表，在版块任务中补建。
+- **不阻塞当前验收**：生产接口全绿、移动端走查通过、备份每日 3 次、迁移保护生效。
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
