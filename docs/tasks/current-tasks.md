@@ -2361,6 +2361,31 @@
 - **38 张代码漂移表归档**（代码引用但无 DDL 定义，按功能版块处理）：误报约 15（t_last/t_module_name/t_product/t_sale_bills/t_todos 等）、变体约 10（t_flash_sale→t_seckill_product、t_full_reduction→t_full_reduction_rule、t_group_buy→t_group_buy_activity 等已建，代码用旧名）、真实漂移约 13（t_aftersale/t_audit_log/t_cart_item/t_cash_flow/t_daily_settlement/t_order_coupon/t_platform_settlement/归档表/t_sys_user_login/t_wx_user），随对应版块启用时补建或修正代码。
 - **建议**：schema-audit 纳入 CI 或定期生产巡检（每日备份后），防止结构漂移累积。
 
+## R96 — 小程序模板建设（3 套 UI + 租户一键发布）[规划 — 凌舟 2026-08-07]
+
+> **背景**：用户明确需求——小程序提供 **3 套不同 UI 模板**，租户填入自己的 APPID 即可一键发布使用，越简单越好。现有 `miniapp/` 目录为小程序基础工程，app-mobile 已支持 `build:mp-weixin`。
+> **前置**：核心系统（阶段 1-4 + R95）已完成，生产稳定，达到小程序建设条件。
+
+### R96-00 — 小程序模板建设方案（凌舟）
+- **目标**：3 套不同 UI 主题模板 + 租户自助发布流程（填 APPID → 生成代码包 → 发布）
+- **技术方案**：
+  1. **模板 UI**：以 app-mobile 页面为基础，通过 uni.scss 主题变量实现 3 套主题（避免三份代码维护）：
+     - 模板 A「商务经典」：深蓝 + 白（现有 v1.0 蓝色体系）
+     - 模板 B「高端酒红金」：酒红 + 香槟金（契合酒饮行业）
+     - 模板 C「清新活力」：翠绿 + 青柠（年轻化）
+  2. **构建发布**：`build:mp-weixin` 已支持；模板切换通过编译期主题变量（`UNI_THEME` 环境变量）实现
+  3. **租户发布流程**（管理端/租户端）：
+     - 租户在小程序配置页选择模板 + 填 AppID/AppSecret + 上传代码（微信开发者工具 CI 或云构建）
+     - 提供「生成代码包」下载 + 「一键发布」指引（最小化操作）
+  4. **后端支持**：miniapp-config 表已存在（t_miniapp_config/t_miniapp_template/t_miniapp_publish_log），复用现有字段
+- **分阶段**：
+  - R96-01：3 套主题变量 + mp-weixin 构建验证（三模板可产出）
+  - R96-02：租户小程序配置页（选模板 + 填 APPID + 生成包 + 发布指引）
+  - R96-03：后端 miniapp 发布记录/状态接口 + 发布流程打通
+  - R96-04：端到端验收（三模板构建 + 配置页流程）
+- **验收标准**：3 套模板均能 `build:mp-weixin` 成功产出；租户配置页可完成「选模板→填 APPID→生成包→发布」全流程；文档（使用说明）齐备
+- **状态**：🔄 待启动（需确认模板方向与优先级）
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
