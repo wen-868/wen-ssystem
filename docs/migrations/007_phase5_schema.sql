@@ -111,7 +111,8 @@ CREATE TABLE IF NOT EXISTS t_store_status_log (
   KEY idx_change_type (change_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店状态变更记录表';
 
+ALTER TABLE t_store ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'OPEN' COMMENT '门店状态: OPEN/CLOSED/SUSPENDED' AFTER business_status;
 -- ========== store表新增 status 字段 ==========
-ALTER TABLE t_store ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'OPEN' COMMENT '门店状态: OPEN/CLOSED/SUSPENDED' AFTER business_status;
+-- 说明：MySQL 的 ALTER 不支持条件新增（仅 MariaDB 支持），列已存在时报错由迁移引擎 safeExec 跳过
 
 SET FOREIGN_KEY_CHECKS = 1;

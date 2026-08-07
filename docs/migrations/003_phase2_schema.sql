@@ -293,13 +293,13 @@ CREATE TABLE t_customer_payment (
   KEY idx_customer_payment_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户收款单表';
 
--- ========== 快速开单相关扩展 ==========
-
--- 销售单扩展字段（赊销支持）
 ALTER TABLE t_sale_bill
-  ADD COLUMN IF NOT EXISTS sale_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '销售类型：CASH(现销)/CREDIT(赊销)' AFTER customer_type,
-  ADD COLUMN IF NOT EXISTS due_date DATE DEFAULT NULL COMMENT '应收截止日期（赊销时）' AFTER collection_status,
-  ADD COLUMN IF NOT EXISTS statement_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关联对账单ID' AFTER due_date;
+  ADD COLUMN sale_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '销售类型：CASH(现销)/CREDIT(赊销)' AFTER customer_type,
+  ADD COLUMN due_date DATE DEFAULT NULL COMMENT '应收截止日期（赊销时）' AFTER collection_status,
+  ADD COLUMN statement_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关联对账单ID' AFTER due_date;
+-- ========== 快速开单相关扩展 ==========
+-- 销售单扩展字段（赊销支持）
+-- 说明：MySQL 的 ALTER 不支持条件新增（仅 MariaDB 支持），列已存在时报错由迁移引擎 safeExec 跳过
 
 -- 销售退货单
 DROP TABLE IF EXISTS t_sale_return;

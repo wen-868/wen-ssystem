@@ -115,9 +115,12 @@ bash deploy/05-setup-https.sh
 echo "==> 测试数据库备份"
 sudo bash deploy/02-mysql-backup.sh
 
-echo "==> 写入每日备份任务"
-CRON_LINE="0 2 * * * ${PROJECT_DIR}/deploy/02-mysql-backup.sh >> /var/log/zhixiang-mysql-backup.log 2>&1"
-(sudo crontab -l 2>/dev/null | grep -v "zhixiang-mysql-backup"; echo "${CRON_LINE}") | sudo crontab -
+echo "==> 写入每日备份任务（02:00 / 10:00 / 18:00，R95-04 增强）"
+CRON_LOG=">> /var/log/zhixiang-mysql-backup.log 2>&1"
+CRON_LINE_1="0 2 * * * ${PROJECT_DIR}/deploy/02-mysql-backup.sh ${CRON_LOG}"
+CRON_LINE_2="0 10 * * * ${PROJECT_DIR}/deploy/02-mysql-backup.sh ${CRON_LOG}"
+CRON_LINE_3="0 18 * * * ${PROJECT_DIR}/deploy/02-mysql-backup.sh ${CRON_LOG}"
+(sudo crontab -l 2>/dev/null | grep -v "zhixiang-mysql-backup"; echo "${CRON_LINE_1}"; echo "${CRON_LINE_2}"; echo "${CRON_LINE_3}") | sudo crontab -
 
 echo "==> 最终健康检查"
 curl -fsS "http://127.0.0.1:8080/health"

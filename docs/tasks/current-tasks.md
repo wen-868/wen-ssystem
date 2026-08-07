@@ -2319,6 +2319,29 @@
 
 > 执行顺序：R95-04-1（迁移修正，防止字段缺失继续积累）→ R95-04-3（备份增强，防再次事故）→ R95-04-4（schema 体检，暴露剩余漂移）→ R95-04-2（需用户提供 store 账号）→ R95-04-5（网络修复后）。
 
+**阿坚完成记录（2026-08-07，R95-04-1 / R95-04-3 / R95-04-4）：**
+
+**① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
+- 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
+  - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
+  - `docs/migrations/007_phase5_schema.sql`（L115：t_store.status）
+  - `docs/migrations/013_phase7_sale_bill_credit.sql`（L7-12：t_sale_bill sale_type/due_date + idx_sale_bill_credit_overdue 索引）
+  - `docs/migrations/103_member_register.sql`（L2-3：t_member password_hash/register_source）
+  - `docs/migrations/108_miniapp_member_wholesale.sql`（L146-150：t_member growth_value/avatar/nickname/gender/birthday）
+- **关键修正**：中文说明注释移到 ALTER 语句之后——runMigrations 按 `;` 拆分后过滤以 `--` 开头的块，注释在语句前会导致 ALTER 整块被丢弃（已验证：修改前 013 拆分后 0 条语句；修改后 6 条 ALTER 全部可执行）
+- 验证：`npm run build`（backend）exit 0；`npx vitest run src/__tests__/shared/migration.test.ts` 56/56 通过；`npm run typecheck` 0 errors；模拟 runMigrations 逻辑确认 6 条 ALTER 均会被执行
+- ⚠️ 根目录 `npm run build` 失败原因：`miniapp` workspace 无 `build` 脚本（HEAD 预存，与本次改动无关；CI 实际用 `npm --workspace backend run build` 等，不受影响）
+
+**② R95-04-3 备份脚本增强（P2）✅：**
+- `deploy/02-mysql-backup.sh`：RETENTION_DAYS 7→14；新增可选异地备份 `RSYNC_REMOTE` / `RSYNC_SSH_KEY`（默认关闭，注释说明）；备份文件名本就含时分 `liquor_inventory_YYYYMMDD_HHMMSS.sql.gz`，同一天不覆盖
+- `deploy/06-onepan-bootstrap.sh` / `deploy/07-local-archive-deploy.sh`：crontab 由 1 行改为 3 行（02:00 / 10:00 / 18:00）
+- `docs/部署文档.md`：数据库备份章节更新（每日 3 次、保留 14 天、文件名格式、crontab 3 行示例、异地 rsync 配置说明）
+- 验证：Git Bash `bash -n` 三个脚本全部语法 OK
+
+**③ R95-04-4 生产 schema 体检脚本（P2）✅：**
+- 新建 `scripts/schema-audit.mjs`：① 正则扫描 `backend/src` 代码中 FROM/JOIN/INTO/UPDATE 引用的 t_ 表与列（跳过 __tests__ 目录与聚合函数/别名误报）；② 读 .env 或 `--db-host` 等参数连接生产 MySQL，用 information_schema 对比缺表/缺列/列类型不匹配（类型期望来自 init_database.sql + docs/migrations/*.sql 的 CREATE TABLE）；③ 输出 Markdown 报告到 `docs/reports/schema-audit-<日期>.md`；④ 只读不修改数据库；`--mock` 模式跳过连接（本地演示）
+- 本地验证：`node scripts/schema-audit.mjs --mock` 运行成功，代码引用 253 张表 / 迁移 DDL 期望 232 张表，样例报告已生成 `docs/reports/schema-audit-2026-08-07.md`；连接失败（如端口错误）有清晰报错并 exit 1
+
 **逐模块修复方式表**：
 
 | 模块 | 原 404 路径 | 修复方式 | 真实接口 |

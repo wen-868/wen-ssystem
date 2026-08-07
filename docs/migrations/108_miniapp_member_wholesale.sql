@@ -141,13 +141,14 @@ CREATE TABLE IF NOT EXISTS t_wholesale_order_item (
   INDEX idx_tenant (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='批发订单项表';
 
--- 新增会员字段：成长值、头像、昵称、性别、生日
 ALTER TABLE t_member 
-  ADD COLUMN IF NOT EXISTS growth_value INT NOT NULL DEFAULT 0 COMMENT '成长值' AFTER points,
-  ADD COLUMN IF NOT EXISTS avatar VARCHAR(512) DEFAULT NULL COMMENT '头像URL' AFTER name,
-  ADD COLUMN IF NOT EXISTS nickname VARCHAR(64) DEFAULT NULL COMMENT '昵称' AFTER avatar,
-  ADD COLUMN IF NOT EXISTS gender TINYINT DEFAULT 0 COMMENT '性别：0未知 1男 2女' AFTER nickname,
-  ADD COLUMN IF NOT EXISTS birthday DATE DEFAULT NULL COMMENT '生日' AFTER gender;
+  ADD COLUMN growth_value INT NOT NULL DEFAULT 0 COMMENT '成长值' AFTER points,
+  ADD COLUMN avatar VARCHAR(512) DEFAULT NULL COMMENT '头像URL' AFTER name,
+  ADD COLUMN nickname VARCHAR(64) DEFAULT NULL COMMENT '昵称' AFTER avatar,
+  ADD COLUMN gender TINYINT DEFAULT 0 COMMENT '性别：0未知 1男 2女' AFTER nickname,
+  ADD COLUMN birthday DATE DEFAULT NULL COMMENT '生日' AFTER gender;
+-- 新增会员字段：成长值、头像、昵称、性别、生日
+-- 说明：MySQL 的 ALTER 不支持条件新增（仅 MariaDB 支持），列已存在时报错由迁移引擎 safeExec 跳过
 
 -- 初始化会员等级数据（默认5个等级）
 INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id)
