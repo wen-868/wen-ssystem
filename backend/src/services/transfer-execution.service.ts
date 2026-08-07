@@ -292,12 +292,12 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
 
 export async function getInTransitOrders(storeId: number, tenantId: string) {
   const records = await queryWithTenant<TransferOrderWithStoreRow>(
-    `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM t_transfer_order to
-     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
-     WHERE to.to_store_id = ? AND to.status IN ('APPROVED', 'TRANSIT')
-     ORDER BY to.created_at DESC`,
+    `SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name
+     FROM t_transfer_order to_
+     LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
+     WHERE to_.to_store_id = ? AND to_.status IN ('APPROVED', 'TRANSIT')
+     ORDER BY to_.created_at DESC`,
     [storeId],
     tenantId
   );
@@ -307,12 +307,12 @@ export async function getInTransitOrders(storeId: number, tenantId: string) {
 
 export async function getMyShipments(storeId: number, tenantId: string) {
   const records = await queryWithTenant<TransferOrderWithStoreRow>(
-    `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM t_transfer_order to
-     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
-     WHERE to.from_store_id = ? AND to.status IN ('TRANSIT', 'RECEIVED')
-     ORDER BY to.created_at DESC`,
+    `SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name
+     FROM t_transfer_order to_
+     LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
+     WHERE to_.from_store_id = ? AND to_.status IN ('TRANSIT', 'RECEIVED')
+     ORDER BY to_.created_at DESC`,
     [storeId],
     tenantId
   );

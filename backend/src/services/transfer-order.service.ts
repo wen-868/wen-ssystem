@@ -94,42 +94,42 @@ export interface ListTransferOrdersParams {
 export async function listTransferOrders(params: ListTransferOrdersParams) {
   const { tenantId, page, pageSize, status, storeId, dateStart, dateEnd } = params;
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = ["to.tenant_id = ?"];
+  const conditions: string[] = ["to_.tenant_id = ?"];
   const values: unknown[] = [tenantId];
 
   if (status) {
-    conditions.push("to.status = ?");
+    conditions.push("to_.status = ?");
     values.push(status);
   }
   if (storeId !== undefined) {
-    conditions.push("(to.from_store_id = ? OR to.to_store_id = ?)");
+    conditions.push("(to_.from_store_id = ? OR to_.to_store_id = ?)");
     values.push(storeId, storeId);
   }
   if (dateStart) {
-    conditions.push("to.created_at >= ?");
+    conditions.push("to_.created_at >= ?");
     values.push(dateStart);
   }
   if (dateEnd) {
-    conditions.push("to.created_at <= ?");
+    conditions.push("to_.created_at <= ?");
     values.push(dateEnd + " 23:59:59");
   }
 
   const where = conditions.join(" AND ");
 
   const records = await queryWithTenant<Record<string, unknown>>(
-    `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM t_transfer_order to
-     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
+    `SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name
+     FROM t_transfer_order to_
+     LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
      WHERE ${where}
-     ORDER BY to.created_at DESC
+     ORDER BY to_.created_at DESC
      LIMIT ? OFFSET ?`,
     [...values, pageSize, offset],
     tenantId
   );
 
   const totalRow = await queryOneWithTenant<Record<string, unknown>>(
-    `SELECT COUNT(*) AS total FROM t_transfer_order to WHERE ${where}`,
+    `SELECT COUNT(*) AS total FROM t_transfer_order to_ WHERE ${where}`,
     values,
     tenantId
   );
@@ -170,11 +170,11 @@ export async function getTransferStatistics(tenantId: string) {
 
 export async function getTransferOrderDetail(id: number, tenantId: string) {
   const order = await queryOneWithTenant<Record<string, unknown>>(
-    `SELECT to.*, fs.name AS from_store_name, ts.name AS to_store_name
-     FROM t_transfer_order to
-     LEFT JOIN t_store fs ON fs.id = to.from_store_id AND fs.tenant_id = to.tenant_id
-     LEFT JOIN t_store ts ON ts.id = to.to_store_id AND ts.tenant_id = to.tenant_id
-     WHERE to.id = ?`,
+    `SELECT to_.*, fs.name AS from_store_name, ts.name AS to_store_name
+     FROM t_transfer_order to_
+     LEFT JOIN t_store fs ON fs.id = to_.from_store_id AND fs.tenant_id = to_.tenant_id
+     LEFT JOIN t_store ts ON ts.id = to_.to_store_id AND ts.tenant_id = to_.tenant_id
+     WHERE to_.id = ?`,
     [id],
     tenantId
   );

@@ -224,59 +224,59 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
 export async function listTransferOrders(params: ListTransferOrdersParams) {
   const { tenantId, page, pageSize, status, fromStoreId, toStoreId, storeId, dateStart, dateEnd, keyword } = params;
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = ["to.tenant_id = ?"];
+  const conditions: string[] = ["to_.tenant_id = ?"];
   const queryParams: unknown[] = [tenantId];
 
   if (status) {
-    conditions.push("to.status = ?");
+    conditions.push("to_.status = ?");
     queryParams.push(status);
   }
   if (fromStoreId !== undefined) {
-    conditions.push("to.from_store_id = ?");
+    conditions.push("to_.from_store_id = ?");
     queryParams.push(fromStoreId);
   }
   if (toStoreId !== undefined) {
-    conditions.push("to.to_store_id = ?");
+    conditions.push("to_.to_store_id = ?");
     queryParams.push(toStoreId);
   }
   if (storeId !== undefined) {
-    conditions.push("(to.from_store_id = ? OR to.to_store_id = ?)");
+    conditions.push("(to_.from_store_id = ? OR to_.to_store_id = ?)");
     queryParams.push(storeId, storeId);
   }
   if (dateStart) {
-    conditions.push("DATE(to.created_at) >= ?");
+    conditions.push("DATE(to_.created_at) >= ?");
     queryParams.push(dateStart);
   }
   if (dateEnd) {
-    conditions.push("DATE(to.created_at) <= ?");
+    conditions.push("DATE(to_.created_at) <= ?");
     queryParams.push(dateEnd);
   }
   if (keyword) {
-    conditions.push("(to.transfer_no LIKE ? OR to.remark LIKE ?)");
+    conditions.push("(to_.transfer_no LIKE ? OR to_.remark LIKE ?)");
     queryParams.push(`%${keyword}%`, `%${keyword}%`);
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
   const records = await queryWithTenant<TransferOrderListRow>(
-    `SELECT to.id, to.transfer_no AS transferNo, to.from_store_id AS fromStoreId, to.from_store_name AS fromStoreName,
-            to.to_store_id AS toStoreId, to.to_store_name AS toStoreName, to.status, to.expected_date AS expectedDate,
-            to.total_amount AS totalAmount, to.total_items AS totalItems, to.remark,
-            to.created_by AS createdBy, to.created_by_name AS createdByName,
-            to.approved_by AS approvedBy, to.approved_by_name AS approvedByName, to.approved_at AS approvedAt,
-            to.shipped_by AS shippedBy, to.shipped_by_name AS shippedByName, to.shipped_at AS shippedAt,
-            to.received_by AS receivedBy, to.received_by_name AS receivedByName, to.received_at AS receivedAt,
-            to.created_at AS createdAt, to.updated_at AS updatedAt
-     FROM t_transfer_order to
+    `SELECT to_.id, to_.transfer_no AS transferNo, to_.from_store_id AS fromStoreId, to_.from_store_name AS fromStoreName,
+            to_.to_store_id AS toStoreId, to_.to_store_name AS toStoreName, to_.status, to_.expected_date AS expectedDate,
+            to_.total_amount AS totalAmount, to_.total_items AS totalItems, to_.remark,
+            to_.created_by AS createdBy, to_.created_by_name AS createdByName,
+            to_.approved_by AS approvedBy, to_.approved_by_name AS approvedByName, to_.approved_at AS approvedAt,
+            to_.shipped_by AS shippedBy, to_.shipped_by_name AS shippedByName, to_.shipped_at AS shippedAt,
+            to_.received_by AS receivedBy, to_.received_by_name AS receivedByName, to_.received_at AS receivedAt,
+            to_.created_at AS createdAt, to_.updated_at AS updatedAt
+     FROM t_transfer_order to_
      ${where}
-     ORDER BY to.created_at DESC
+     ORDER BY to_.created_at DESC
      LIMIT ? OFFSET ?`,
     [...queryParams, pageSize, offset],
     tenantId
   );
 
   const totalRow = await queryOneWithTenant<CountTotalRow>(
-    `SELECT COUNT(*) AS total FROM t_transfer_order to ${where}`,
+    `SELECT COUNT(*) AS total FROM t_transfer_order to_ ${where}`,
     queryParams,
     tenantId
   );
