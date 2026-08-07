@@ -1,4 +1,9 @@
 const path = require('path')
+const { resolveThemeId, resolveTheme } = require('./resolve-theme')
+
+// 编译期主题（R96-01）：UNI_THEME ∈ {a, b, c}，默认 a
+const themeId = resolveThemeId()
+const theme = resolveTheme()
 
 const config = {
   projectName: '智享全链小程序',
@@ -14,7 +19,9 @@ const config = {
   plugins: ['@tarojs/plugin-framework-vue3', '@tarojs/plugin-html'],
   defineConstants: {
     // API 地址通过环境变量注入（Taro 构建期替换），源码不写死域名，避免正式包泄漏本地地址
-    BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE || '')
+    BASE_URL: JSON.stringify(process.env.TARO_APP_API_BASE || ''),
+    // 当前主题配置（R96-01）：品牌文案等随模板切换
+    __THEME__: JSON.stringify(theme)
   },
   copy: {
     patterns: [],
@@ -26,7 +33,8 @@ const config = {
     enable: false
   },
   sass: {
-    data: `@import "@/styles/variables.scss";`
+    // 主题变量按 UNI_THEME 全局注入（R96-01），默认 theme-a
+    data: `@import "@/styles/themes/theme-${themeId}.scss";`
   },
   mini: {
     postcss: {

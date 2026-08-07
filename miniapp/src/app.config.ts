@@ -47,26 +47,26 @@ export default {
       {
         pagePath: 'pages/index/index',
         text: '首页',
-        iconPath: 'src/assets/tab/home.png',
-        selectedIconPath: 'src/assets/tab/home-active.png'
+        iconPath: 'assets/tab/home.png',
+        selectedIconPath: 'assets/tab/home-active.png'
       },
       {
         pagePath: 'pages/category/index',
         text: '分类',
-        iconPath: 'src/assets/tab/category.png',
-        selectedIconPath: 'src/assets/tab/category-active.png'
+        iconPath: 'assets/tab/category.png',
+        selectedIconPath: 'assets/tab/category-active.png'
       },
       {
         pagePath: 'pages/cart/index',
         text: '购物车',
-        iconPath: 'src/assets/tab/cart.png',
-        selectedIconPath: 'src/assets/tab/cart-active.png'
+        iconPath: 'assets/tab/cart.png',
+        selectedIconPath: 'assets/tab/cart-active.png'
       },
       {
         pagePath: 'pages/profile/index',
         text: '我的',
-        iconPath: 'src/assets/tab/profile.png',
-        selectedIconPath: 'src/assets/tab/profile-active.png'
+        iconPath: 'assets/tab/profile.png',
+        selectedIconPath: 'assets/tab/profile-active.png'
       }
     ]
   },

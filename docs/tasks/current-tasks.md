@@ -2363,28 +2363,78 @@
 
 ## R96 — 小程序模板建设（3 套 UI + 租户一键发布）[规划 — 凌舟 2026-08-07]
 
-> **背景**：用户明确需求——小程序提供 **3 套不同 UI 模板**，租户填入自己的 APPID 即可一键发布使用，越简单越好。现有 `miniapp/` 目录为小程序基础工程，app-mobile 已支持 `build:mp-weixin`。
+> **背景**：用户明确需求——小程序提供 **3 套不同 UI 模板**，租户填入自己的 APPID 即可一键发布使用，越简单越好。
+> **工程边界（2026-08-08 用户确认，重要）**：`miniapp/` = **消费端小程序**（Taro 3.6 + Vue3 + Vant4，本次 R96 目标工程）；`app-mobile/` = **商户手机工作台**（uni-app，不在本任务范围）。
 > **前置**：核心系统（阶段 1-4 + R95）已完成，生产稳定，达到小程序建设条件。
 
 ### R96-00 — 小程序模板建设方案（凌舟）
-- **目标**：3 套不同 UI 主题模板 + 租户自助发布流程（填 APPID → 生成代码包 → 发布）
+- **目标**：消费端小程序 3 套不同 UI 主题模板 + 租户自助发布流程（填 APPID → 生成代码包 → 发布）
+- **调研结论（2026-08-08 凌舟）**：
+  - 酒饮行业 UI 主流：**红金配色 + 品牌文化视觉**（口子窖官方商城红金配、茅台系文化博物馆体验）——佐证「高端酒红金」方向
+  - 零售小程序趋势：简约卡片、品牌色大图轮播、悬浮结算按钮、3 秒识别主营（品牌色暗红→酒红 + 首页爆款大图轮播 + 悬浮结算案例）
+  - 多租户 SaaS 参考（RuoYi 系）：租户级主题/菜单/权限可配置——本系统已有 tenant 体系，模板选择按租户落库
 - **技术方案**：
-  1. **模板 UI**：以 app-mobile 页面为基础，通过 uni.scss 主题变量实现 3 套主题（避免三份代码维护）：
-     - 模板 A「商务经典」：深蓝 + 白（现有 v1.0 蓝色体系）
-     - 模板 B「高端酒红金」：酒红 + 香槟金（契合酒饮行业）
-     - 模板 C「清新活力」：翠绿 + 青柠（年轻化）
-  2. **构建发布**：`build:mp-weixin` 已支持；模板切换通过编译期主题变量（`UNI_THEME` 环境变量）实现
+  1. **模板 UI**：以 `miniapp/src/styles/variables.scss`（Design Tokens v4.0）为基础，重构为 3 套主题变量文件 `styles/themes/theme-{a,b,c}.scss`（避免三份代码维护）：
+     - **模板 A「商务经典 · 深海蓝」**（默认）：主色 `#1e40af`、渐变 `#2563eb→#1e40af`、白底灰阶——批发/综合零售，稳重专业
+     - **模板 B「高端酒红金 · 臻品」**：主色 `#9d1f33`、渐变 `#b91c1c→#7f1d2d`、香槟金点缀 `#c9a86a/#e2c992`、暖白底——酒类专卖/高端门店，文化轻奢
+     - **模板 C「清新活力 · 青翠」**：主色 `#0e9f6e`、渐变 `#10b981→#059669`、青柠点缀 `#84cc16`、浅绿底——便利店/年轻化零售
+  2. **构建发布**：`build:weapp`（Taro）为发布入口；模板通过编译期环境变量 `UNI_THEME`（a/b/c，默认 a）切换；tabBar/导航栏色值随主题联动（原生 tabBar 需构建期写入 app.json）；`config/theme.js` 现有半成品（liquor-blue/warm-retail）升级为 3 套正式模板并接线
   3. **租户发布流程**（管理端/租户端）：
      - 租户在小程序配置页选择模板 + 填 AppID/AppSecret + 上传代码（微信开发者工具 CI 或云构建）
      - 提供「生成代码包」下载 + 「一键发布」指引（最小化操作）
-  4. **后端支持**：miniapp-config 表已存在（t_miniapp_config/t_miniapp_template/t_miniapp_publish_log），复用现有字段
+  4. **后端支持**：t_miniapp_config/t_miniapp_template/t_miniapp_publish_log 已存在，复用现有字段
 - **分阶段**：
-  - R96-01：3 套主题变量 + mp-weixin 构建验证（三模板可产出）
+  - R96-01：3 套主题变量（themes/theme-{a,b,c}.scss，UNI_THEME 编译期切换）+ weapp 三模板构建验证
   - R96-02：租户小程序配置页（选模板 + 填 APPID + 生成包 + 发布指引）
   - R96-03：后端 miniapp 发布记录/状态接口 + 发布流程打通
   - R96-04：端到端验收（三模板构建 + 配置页流程）
-- **验收标准**：3 套模板均能 `build:mp-weixin` 成功产出；租户配置页可完成「选模板→填 APPID→生成包→发布」全流程；文档（使用说明）齐备
-- **状态**：🔄 待启动（需确认模板方向与优先级）
+- **验收标准**：3 套模板均能 `build:weapp` 成功产出且视觉可区分；租户配置页可完成「选模板→填 APPID→生成包→发布」全流程；文档（使用说明）齐备
+- **状态**：🔄 进行中（2026-08-08 凌舟已确认 miniapp 为消费端目标工程，启动 R96-01）
+
+### R96-01 — [P1] 3 套主题体系 + weapp 三模板构建（miniapp 消费端）
+- **优先级**：P1
+- **负责人**：阿澈（移动端/小程序）
+- **预计**：2 天
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **必读文件**：`docs/tasks/current-tasks.md` R96-00 主题定义；`miniapp/src/styles/variables.scss`（现有 tokens 基线）；`miniapp/config/index.js`（sass 全局注入入口）；`miniapp/config/theme.js`（现有半成品模板配置）；`miniapp/src/app.config.ts`（tabBar/导航栏静态配置）
+- **任务**：
+  1. 将 `miniapp/src/styles/variables.scss` 的品牌色/渐变/语义色/背景/文字/边框/圆角/阴影重构为**主题变量文件**：`src/styles/themes/theme-a.scss`（深海蓝）、`theme-b.scss`（酒红金）、`theme-c.scss`（青翠），三者变量名统一（如 `$brand-primary`、`$brand-gradient`、`$bg-page`、`$card-bg`、`$text-primary`、`$border-color`、`$shadow-card` 等）；保留 `$primary-color` 等既有变量为兼容别名或全量迁移（注意页面使用量，最小改动）
+  2. 编译期切换：构建时通过 `UNI_THEME` 环境变量（a/b/c）选择主题，默认 a；`config/index.js` 的 `sass.data` 全局注入改为按主题引入（参考/升级 `config/theme.js`）
+  3. **小程序特有**：tabBar 选中色/导航栏背景随主题联动（app.config.ts 静态值需构建期处理，如构建后替换 dist/app.json 或自定义 tabBar）；品牌文案（导航标题/关于页）随模板
+  4. 三模板构建验证：`UNI_THEME=a/b/c npm run build:weapp` 均 exit 0，产出物可区分（dist 按主题归档或产物可 grep 主色）
+  5. 关键页面（首页/分类/购物车/我的）三主题视觉走查截图
+- **验收标准**：三套主题构建通过、变量统一、页面视觉符合 R96-00 定义；`build:h5` 不回归；完成后记录三主题截图与构建证据
+
+**R96-01 完成记录（2026-08-08 阿澈）：**
+
+**交付内容：**
+1. **主题变量体系**：`miniapp/src/styles/themes/theme-{a,b,c}.scss` 三套主题文件，83 个变量名完全一致（品牌/语义/灰阶/文字/背景/边框/阴影/圆角/字号/间距/动效/布局），仅值不同；`$primary-color` 等旧变量名在主题文件内保留为兼容别名，页面零改动即随主题切换
+   - A「商务经典·深海蓝」：主色 `#1e40af`、渐变 `#2563eb→#1e40af`、白底灰阶
+   - B「高端酒红金·臻品」：主色 `#9d1f33`、渐变 `#b91c1c→#7f1d2d`、香槟金 `#c9a86a`、暖白底 `#faf7f2`
+   - C「清新活力·青翠」：主色 `#0e9f6e`、渐变 `#10b981→#059669`、青柠 `#84cc16`、浅绿底 `#f2fbf7`
+2. **编译期切换**：`config/index.js` 的 `sass.data` 按 `UNI_THEME`（a/b/c，默认 a）注入对应主题；`config/themes.js` 新增三模板定义（品牌名/导航标题/tabBar 色/主色）；`config/theme.js` 升级为按环境变量读取
+3. **小程序联动**：`scripts/post-build-theme.js` 构建后将主题色写入 `dist/app.json`（navigationBarBackgroundColor/TitleText + tabBar color/selectedColor/backgroundColor）；tab 选中图标随主题生成（`scripts/generate-tab-icons.js`，81×81 单色字形 PNG，无第三方依赖）；品牌文案通过 `defineConstants` 注入 `__THEME__`，关于页品牌名/标语/版权随模板
+4. **H5 修复（本次顺带）**：`src/index.html` 缺失导致 H5 无 HTML 入口 → 补 Taro H5 模板；`app.ts` 改为默认导出 Vue app 实例（原返回 `{app}` 包装对象导致 H5 运行时 `initVue3Components` 报错）；`main.ts` 收敛为副作用导入；`app.config.ts` tab 图标路径去掉 `src/` 前缀（修复 H5 双重路径解析）；补装 `@tarojs/plugin-platform-h5`
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 主题 A 构建 | `UNI_THEME=a npm run build:weapp` | exit 0，dist/app.json `navBg=#1e40af`、`tabBarSelectedColor=#1e40af`、标题「智享商城」✅ |
+| 主题 B 构建 | `UNI_THEME=b npm run build:weapp` | exit 0，`navBg=#7f1d2d`、`tabBarSelectedColor=#9d1f33`、标题「臻品酒庄」✅ |
+| 主题 C 构建 | `UNI_THEME=c npm run build:weapp` | exit 0，`navBg=#059669`、`tabBarSelectedColor=#0e9f6e`、标题「青翠便利」✅ |
+| 默认构建不回归 | `npm run build:weapp`（不带 UNI_THEME） | exit 0，等价主题 a ✅ |
+| H5 构建 | `UNI_THEME=a npm run build:h5` | exit 0，页面正常渲染（Playwright 走查 4 页 0 结构崩溃）✅ |
+| 类型检查 | `npm run type-check` | exit 0，0 errors ✅ |
+| 变量统一 | 脚本比对 theme-a/b/c | 83 变量名完全一致，无缺失/多余 ✅ |
+| 产物可区分 | dist/app.json + CSS grep | 三主题主色各归其位，页面 wxss 含对应主色 ✅ |
+| tab 图标 | 解码 H5 内联 PNG + weapp dist 图标 | 选中图标三主题分别为 `#1e40af/#9d1f33/#0e9f6e` ✅ |
+| 视觉走查 | Playwright 截图 + 视觉模型核验 | 首页/分类/购物车/我的三主题截图齐备（`docs/reports/R96-01-themes/`），主色符合定义，无渲染异常 ✅ |
+
+**说明：**
+1. vant 依赖在 miniapp 源码中无实际 import（已核实），故未注入 `--van-*` CSS 变量
+2. 页面保留的中性灰阶/会员金色装饰/购物车浅红促销底色为语义装饰色，非品牌主色，未做主题化
+3. 首页 banner/商品图使用 `neeko-copilot.bytedance.net` 外链 mock 图，走查时超时属网络环境问题，不影响主题验证（weapp 真机以真实 API 数据为准）
+4. `package.json` 新增脚本：`build:weapp:a/b/c`、`build:h5:a`、`gen:tab-icons`；`build:weapp` 默认走主题化构建（等价 UNI_THEME=a）
 
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 

@@ -2,7 +2,8 @@
   <view class="about-page">
     <view class="logo-section">
       <view class="logo-icon">🍷</view>
-      <text class="app-name">智享全链</text>
+      <text class="app-name">{{ brandName }}</text>
+      <text class="app-slogan">{{ brandSlogan }}</text>
       <text class="app-version">版本 v1.0.0</text>
     </view>
 
@@ -20,7 +21,7 @@
         <text class="menu-icon">📱</text>
         <text class="menu-label">官方公众号</text>
         <view class="menu-right">
-          <text class="menu-value">智享全链</text>
+          <text class="menu-value">{{ brandName }}</text>
           <text class="menu-arrow">›</text>
         </view>
       </view>
@@ -60,13 +61,18 @@
     </view>
 
     <view class="copyright">
-      <text>© 2026 智享全链 版权所有</text>
+      <text>© 2026 {{ brandName }} 版权所有</text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 import Taro from '@tarojs/taro'
+
+// 当前主题品牌文案（R96-01）：由 config/index.js defineConstants 在编译期注入
+const activeTheme = __THEME__
+const brandName = activeTheme.brandName
+const brandSlogan = activeTheme.brandSlogan
 
 const goUserAgreement = () => {
   Taro.showToast({ title: '用户协议开发中', icon: 'none' })
@@ -107,6 +113,12 @@ const goPrivacyPolicy = () => {
 .app-version {
   font-size: $font-size-sm;
   color: $text-tertiary;
+}
+
+.app-slogan {
+  font-size: $font-size-sm;
+  color: $brand-accent;
+  margin-bottom: $spacing-xs;
 }
 
 .about-section {

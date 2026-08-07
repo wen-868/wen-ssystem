@@ -2,9 +2,9 @@ import { createSSRApp } from 'vue'
 import { createPinia } from 'pinia'
 import './styles/app.scss'
 
-export function createApp() {
-  const app = createSSRApp({})
-  const pinia = createPinia()
-  app.use(pinia)
-  return { app }
-}
+// Taro 入口约定：默认导出 Vue app 实例（H5/小程序运行时均按此初始化）
+const app = createSSRApp({})
+const pinia = createPinia()
+app.use(pinia)
+
+export default app

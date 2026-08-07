@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════════════════════
+   模板 C「清新活力 · 青翠」
+   便利店/年轻化零售 · 清爽活力
+   主色 #0e9f6e / 渐变 #10b981 → #059669 / 青柠点缀 #84cc16 / 浅绿底
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Brand */
+$brand-primary: #0e9f6e;
+$brand-primary-dark: #059669;
+$brand-primary-light: #10b981;
+$brand-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+$brand-soft: rgba(14, 159, 110, 0.12);
+$brand-bg: rgba(14, 159, 110, 0.06);
+$brand-accent: #84cc16;
+
+/* 兼容别名（R96-01）：既有页面使用的旧变量名，随本主题取值 */
+$primary-color: $brand-primary;
+$primary-dark: $brand-primary-dark;
+$primary-light: $brand-primary-light;
+$primary-soft: $brand-soft;
+$primary-bg: $brand-bg;
+
+/* Semantic */
+$success-color: #0e9f6e;
+$success-soft: rgba(14, 159, 110, 0.12);
+$warning-color: #d48b3a;
+$warning-soft: rgba(212, 139, 58, 0.12);
+$error-color: #c0392b;
+$error-soft: rgba(192, 57, 43, 0.12);
+$info-color: #0e9f6e;
+$info-soft: rgba(14, 159, 110, 0.12);
+
+/* Neutral Gray Scale — 11 级灰阶 */
+$gray-0: #ffffff;
+$gray-50: #f7fbf9;
+$gray-100: #edf5f1;
+$gray-200: #ddebe3;
+$gray-300: #bfd4c8;
+$gray-400: #92ac9e;
+$gray-500: #63806f;
+$gray-600: #47594e;
+$gray-700: #34423a;
+$gray-800: #222c26;
+$gray-900: #141a16;
+
+/* Text */
+$text-primary: #141a16;
+$text-secondary: #47594e;
+$text-tertiary: #92ac9e;
+$text-placeholder: #bfd4c8;
+$text-inverse: #ffffff;
+$text-link: #0e9f6e;
+
+/* Background */
+$bg-primary: #ffffff;
+$bg-secondary: #f2fbf7;
+$bg-tertiary: #edf5f1;
+$bg-page: #f2fbf7;
+
+/* Border */
+$border-color: #ddebe3;
+$border-light: #edf5f1;
+$divider-color: #ddebe3;
+$border-focus: #0e9f6e;
+$border-error: #c0392b;
+
+/* Shadows */
+$shadow-xs: 0 2rpx 4rpx rgba(16, 90, 60, 0.04);
+$shadow-sm: 0 2rpx 8rpx rgba(16, 90, 60, 0.05);
+$shadow-md: 0 4rpx 16rpx rgba(16, 90, 60, 0.06);
+$shadow-lg: 0 8rpx 24rpx rgba(16, 90, 60, 0.08);
+$shadow-card: 0 2rpx 6rpx rgba(16, 90, 60, 0.04);
+$shadow-focus: 0 0 0 6rpx rgba(14, 159, 110, 0.18);
+
+/* Radius */
+$radius-xs: 8rpx;
+$radius-sm: 12rpx;
+$radius-md: 16rpx;
+$radius-lg: 20rpx;
+$radius-xl: 24rpx;
+$radius-pill: 40rpx;
+$radius-full: 9999rpx;
+
+/* Font Size Scale */
+$font-size-xs: 22rpx;
+$font-size-sm: 24rpx;
+$font-size-base: 28rpx;
+$font-size-md: 32rpx;
+$font-size-lg: 36rpx;
+$font-size-xl: 40rpx;
+$font-size-xxl: 48rpx;
+
+/* Font Weight */
+$font-normal: 400;
+$font-medium: 500;
+$font-semibold: 600;
+$font-bold: 700;
+
+/* Line Height */
+$line-height-base: 1.5;
+$line-height-relaxed: 1.75;
+
+/* Spacing — 4px 基准（8rpx） */
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+
+/* Motion */
+$transition-fast: 150ms ease;
+$transition-normal: 200ms ease;
+$transition-slow: 250ms ease-out;
+
+/* Layout */
+$status-bar-height: var(--status-bar-height);
+$navigation-bar-height: 88rpx;
+$tab-bar-height: 100rpx;

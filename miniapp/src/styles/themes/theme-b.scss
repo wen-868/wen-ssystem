@@ -1,0 +1,118 @@
+/* ═══════════════════════════════════════════════════════════════
+   模板 B「高端酒红金 · 臻品」
+   酒类专卖/高端门店 · 轻奢文化感
+   主色 #9d1f33 / 渐变 #b91c1c → #7f1d2d / 香槟金点缀 #c9a86a #e2c992 / 暖白底
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Brand */
+$brand-primary: #9d1f33;
+$brand-primary-dark: #7f1d2d;
+$brand-primary-light: #b91c1c;
+$brand-gradient: linear-gradient(135deg, #b91c1c 0%, #7f1d2d 100%);
+$brand-soft: rgba(157, 31, 51, 0.12);
+$brand-bg: rgba(157, 31, 51, 0.06);
+$brand-accent: #c9a86a;
+
+/* 兼容别名（R96-01）：既有页面使用的旧变量名，随本主题取值 */
+$primary-color: $brand-primary;
+$primary-dark: $brand-primary-dark;
+$primary-light: $brand-primary-light;
+$primary-soft: $brand-soft;
+$primary-bg: $brand-bg;
+
+/* Semantic */
+$success-color: #0e9f6e;
+$success-soft: rgba(14, 159, 110, 0.12);
+$warning-color: #d48b3a;
+$warning-soft: rgba(212, 139, 58, 0.12);
+$error-color: #b3261e;
+$error-soft: rgba(179, 38, 30, 0.12);
+$info-color: #9d1f33;
+$info-soft: rgba(157, 31, 51, 0.12);
+
+/* Neutral Gray Scale — 11 级灰阶 */
+$gray-0: #ffffff;
+$gray-50: #faf7f2;
+$gray-100: #f3ede2;
+$gray-200: #e6dccb;
+$gray-300: #cdbfa8;
+$gray-400: #a89a83;
+$gray-500: #7a6f5e;
+$gray-600: #57503f;
+$gray-700: #3f3a2e;
+$gray-800: #2a261e;
+$gray-900: #1a1712;
+
+/* Text */
+$text-primary: #2a261e;
+$text-secondary: #57503f;
+$text-tertiary: #a89a83;
+$text-placeholder: #cdbfa8;
+$text-inverse: #ffffff;
+$text-link: #9d1f33;
+
+/* Background */
+$bg-primary: #ffffff;
+$bg-secondary: #faf7f2;
+$bg-tertiary: #f3ede2;
+$bg-page: #faf7f2;
+
+/* Border */
+$border-color: #e6dccb;
+$border-light: #f3ede2;
+$divider-color: #e6dccb;
+$border-focus: #9d1f33;
+$border-error: #b3261e;
+
+/* Shadows */
+$shadow-xs: 0 2rpx 4rpx rgba(90, 60, 30, 0.04);
+$shadow-sm: 0 2rpx 8rpx rgba(90, 60, 30, 0.05);
+$shadow-md: 0 4rpx 16rpx rgba(90, 60, 30, 0.06);
+$shadow-lg: 0 8rpx 24rpx rgba(90, 60, 30, 0.08);
+$shadow-card: 0 2rpx 6rpx rgba(90, 60, 30, 0.05);
+$shadow-focus: 0 0 0 6rpx rgba(157, 31, 51, 0.18);
+
+/* Radius */
+$radius-xs: 8rpx;
+$radius-sm: 12rpx;
+$radius-md: 16rpx;
+$radius-lg: 20rpx;
+$radius-xl: 24rpx;
+$radius-pill: 40rpx;
+$radius-full: 9999rpx;
+
+/* Font Size Scale */
+$font-size-xs: 22rpx;
+$font-size-sm: 24rpx;
+$font-size-base: 28rpx;
+$font-size-md: 32rpx;
+$font-size-lg: 36rpx;
+$font-size-xl: 40rpx;
+$font-size-xxl: 48rpx;
+
+/* Font Weight */
+$font-normal: 400;
+$font-medium: 500;
+$font-semibold: 600;
+$font-bold: 700;
+
+/* Line Height */
+$line-height-base: 1.5;
+$line-height-relaxed: 1.75;
+
+/* Spacing — 4px 基准（8rpx） */
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+
+/* Motion */
+$transition-fast: 150ms ease;
+$transition-normal: 200ms ease;
+$transition-slow: 250ms ease-out;
+
+/* Layout */
+$status-bar-height: var(--status-bar-height);
+$navigation-bar-height: 88rpx;
+$tab-bar-height: 100rpx;

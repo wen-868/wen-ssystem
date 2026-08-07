@@ -1,109 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════
-   Design Tokens v4.0 — Atlas 灰阶体系（小程序适配）
-   核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
-   适用：miniapp 小程序端
+   Design Tokens v4.0（R96-01 主题化改造）
+
+   说明：
+   - 主题变量定义迁移至 src/styles/themes/theme-{a,b,c}.scss，
+     由 config/index.js 的 sass.data 在编译期按 UNI_THEME 全局注入；
+   - 本文件保留既有变量名（$primary-color 等）作为兼容别名，
+     页面/组件无需改动即可随主题切换，避免大面积修改页面文件。
    ═══════════════════════════════════════════════════════════════ */
 
-/* Primary / Brand Color — Atlas Blue */
-$primary-color: #5B6ABF;
-$primary-dark: #4A5AA8;
-$primary-light: #6B7BCF;
-$primary-soft: rgba(91, 106, 191, 0.12);
-$primary-bg: rgba(91, 106, 191, 0.06);
-
-/* Semantic — Status Colors */
-$success-color: #0EA879;
-$success-soft: rgba(14, 168, 121, 0.12);
-$warning-color: #D48B3A;
-$warning-soft: rgba(212, 139, 58, 0.12);
-$error-color: #C0392B;
-$error-soft: rgba(192, 57, 43, 0.12);
-$info-color: #5B6ABF;
-$info-soft: rgba(91, 106, 191, 0.12);
-
-/* Neutral Gray Scale — 11级灰阶 */
-$gray-0: #FFFFFF;
-$gray-50: #F8F8F8;
-$gray-100: #F0F0F0;
-$gray-200: #E2E2E2;
-$gray-300: #CCCCCC;
-$gray-400: #999999;
-$gray-500: #666666;
-$gray-600: #444444;
-$gray-700: #333333;
-$gray-800: #222222;
-$gray-900: #111111;
-
-/* Text — 唯一可以用纯黑的地方 */
-$text-primary: #000000;
-$text-secondary: #444444;
-$text-tertiary: #999999;
-$text-placeholder: #CCCCCC;
-$text-inverse: #FFFFFF;
-$text-link: #5B6ABF;
-
-/* Background — 灰+白搭配 */
-$bg-primary: #ffffff;
-$bg-secondary: #f5f5f5;
-$bg-tertiary: #f0f0f0;
-$bg-page: #f5f5f5;
-
-/* Border — 全部灰色，不用黑色 */
-$border-color: #E2E2E2;
-$border-light: #F0F0F0;
-$divider-color: #E2E2E2;
-$border-focus: #5B6ABF;
-$border-error: #C0392B;
-
-/* Shadows */
-$shadow-xs: 0 2rpx 4rpx rgba(0, 0, 0, 0.04);
-$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
-$shadow-card: 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
-$shadow-focus: 0 0 0 6rpx rgba(91, 106, 191, 0.18);
-
-/* Radius */
-$radius-xs: 8rpx;
-$radius-sm: 12rpx;
-$radius-md: 16rpx;
-$radius-lg: 20rpx;
-$radius-xl: 24rpx;
-$radius-pill: 40rpx;
-$radius-full: 9999rpx;
-
-/* Font Size Scale */
-$font-size-xs: 22rpx;
-$font-size-sm: 24rpx;
-$font-size-base: 28rpx;
-$font-size-md: 32rpx;
-$font-size-lg: 36rpx;
-$font-size-xl: 40rpx;
-$font-size-xxl: 48rpx;
-
-/* Font Weight */
-$font-normal: 400;
-$font-medium: 500;
-$font-semibold: 600;
-$font-bold: 700;
-
-/* Line Height */
-$line-height-base: 1.5;
-$line-height-relaxed: 1.75;
-
-/* Spacing — 4px基准（8rpx） */
-$spacing-xs: 8rpx;
-$spacing-sm: 16rpx;
-$spacing-md: 24rpx;
-$spacing-lg: 32rpx;
-$spacing-xl: 48rpx;
-
-/* Motion */
-$transition-fast: 150ms ease;
-$transition-normal: 200ms ease;
-$transition-slow: 250ms ease-out;
-
-/* Layout */
-$status-bar-height: var(--status-bar-height);
-$navigation-bar-height: 88rpx;
-$tab-bar-height: 100rpx;
+/* 说明：主题变量与兼容别名定义在 src/styles/themes/theme-{a,b,c}.scss，
+   由 config/index.js 的 sass.data 在编译期按 UNI_THEME 全局注入。
+   本文件仅作为兼容入口保留（app.scss 依赖其存在）。 */
