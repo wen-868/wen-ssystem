@@ -2413,6 +2413,12 @@
 - **待服务器**：执行 `docs/migrations/124_drift_tables_fill.sql`（26 表）后重跑 `node scripts/schema-audit.mjs` 最终确认（本机无生产库凭据）；生产实跑类型以服务器重跑为准
 - **明细**：`docs/reports/R95-06-结构差异清零.md`（38 表逐条结论表 + 证据）
 
+**凌舟验收记录（2026-08-07，R95-06 收口）**：
+- **服务器重跑 schema-audit：✅ 未发现结构差异**（缺表 0 / 缺列 0 / 类型 0 / 漂移 0），生产 458 张表与迁移 DDL 完全对齐
+- 独立复核：`npm --workspace backend run typecheck` 0 errors；阿坚提交 72dac177（17 类型 DDL 对齐 + 解析器修复 + 10 处代码修正 + 26 表补建）
+- 复核差异修复：服务器实测暴露 31 列缺失 + 7 处类型复核差异 → 补列 SQL（c3ece96d）+ 7 处 DDL 再对齐（d39fe66c），最终清零
+- **R95-06 状态：✅ 完成**（结构差异专项全部闭环）
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
