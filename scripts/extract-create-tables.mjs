@@ -32,8 +32,8 @@ for (const file of files) {
         // 移除外键约束（与项目建表风格一致：无 FK，避免建表顺序/类型依赖导致失败）
         let clean = stmt.replace(/,?\s*CONSTRAINT\s+`?[a-zA-Z0-9_]+`?\s+FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,)]*/gi, '')
         clean = clean.replace(/,?\s*FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,)]*/gi, '')
-        // 幂等：CREATE TABLE → CREATE TABLE IF NOT EXISTS
-        clean = clean.replace(/CREATE\s+TABLE\s+/i, 'CREATE TABLE IF NOT EXISTS ')
+        // 幂等：CREATE TABLE → CREATE TABLE IF NOT EXISTS（兼容源文件已含 IF NOT EXISTS，避免重复）
+        clean = clean.replace(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?/i, 'CREATE TABLE IF NOT EXISTS ')
         found.set(m[1], clean)
       }
     }

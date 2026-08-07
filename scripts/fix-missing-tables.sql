@@ -1,4 +1,4 @@
--- 自动生成的缺表补建 SQL（2026-08-07T13:16:10.648Z）
+-- 自动生成的缺表补建 SQL（2026-08-07T13:18:05.596Z）
 -- 共找到 46 张缺表的 CREATE TABLE，未找到 22 张：t_aftersale, t_audit_log, t_cart_item, t_cash_flow, t_daily_settlement, t_flash_sale, t_flash_sale_record, t_full_reduction, t_group_buy, t_group_buy_member, t_group_buy_team, t_order_coupon, t_payment_method, t_platform_settlement, t_product_step_price, t_promo_stack_rule, t_purchase_order_archive, t_purchase_order_item_archive, t_sale_bill_archive, t_sale_bill_item_archive, t_sys_user_login, t_wx_user
 SET NAMES utf8mb4;
 
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS t_approval_notification (
 -- P1-08: 客户拜访记录表
 -- 用于记录销售人员拜访客户的详细信息
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_customer_visit (
+CREATE TABLE IF NOT EXISTS t_customer_visit (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拜访记录ID',
   visit_no VARCHAR(64) NOT NULL COMMENT '拜访单号',
   customer_id BIGINT UNSIGNED NOT NULL COMMENT '客户ID',
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_customer_visit (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户拜访记录表';
 
 -- 4. 租户模块访问权限表（tenant_module_access）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_tenant_module_access (
+CREATE TABLE IF NOT EXISTS t_tenant_module_access (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id INT NOT NULL COMMENT '租户ID',
   module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/inventory/marketing）',
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_tenant_module_access (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户模块访问权限表';
 
 -- 5. 订阅操作日志表（subscription_operation_log）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_subscription_operation_log (
+CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   subscription_id INT NOT NULL COMMENT '订阅ID',
   operation_type VARCHAR(32) NOT NULL COMMENT '操作类型（CREATE/RENEW/UPGRADE/DOWNGRADE/CANCEL/SUSPEND/RESUME）',
@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_subscription_operation_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅操作日志表';
 
 -- 6. 租户管理员表（tenant_admin）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_tenant_admin (
+CREATE TABLE IF NOT EXISTS t_tenant_admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id INT NOT NULL COMMENT '租户ID',
   user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_tenant_admin (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户管理员表';
 
 -- 3. 即时零售轮播图表（retail_banner）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_banner (
+CREATE TABLE IF NOT EXISTS t_retail_banner (
   id INT AUTO_INCREMENT PRIMARY KEY,
   banner_title VARCHAR(128) NOT NULL COMMENT '轮播图标题',
   banner_image VARCHAR(255) NOT NULL COMMENT '轮播图URL',
@@ -238,7 +238,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_banner (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售轮播图表';
 
 -- 6. 即时零售订单商品表（retail_order_item）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_order_item (
+CREATE TABLE IF NOT EXISTS t_retail_order_item (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL COMMENT '订单ID',
   product_id INT NOT NULL COMMENT '商品ID',
@@ -261,7 +261,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_order_item (
 -- ============================================================
 
 -- 1. 优惠券模板表（coupon_template）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_coupon_template (
+CREATE TABLE IF NOT EXISTS t_coupon_template (
   id INT AUTO_INCREMENT PRIMARY KEY,
   template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',
   template_name VARCHAR(128) NOT NULL COMMENT '模板名称',
@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_coupon_template (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';
 
 -- 3. 促销活动表（promotion_activity）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_promotion_activity (
+CREATE TABLE IF NOT EXISTS t_promotion_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_code VARCHAR(32) NOT NULL UNIQUE COMMENT '活动编码',
   activity_name VARCHAR(128) NOT NULL COMMENT '活动名称',
@@ -322,7 +322,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_promotion_activity (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='促销活动表';
 
 -- 5. 秒杀商品表（seckill_product）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_seckill_product (
+CREATE TABLE IF NOT EXISTS t_seckill_product (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   product_id INT NOT NULL COMMENT '商品ID',
@@ -339,7 +339,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_seckill_product (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
 
 -- 6. 拼团活动表（group_buy_activity）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_group_buy_activity (
+CREATE TABLE IF NOT EXISTS t_group_buy_activity (
   id INT AUTO_INCREMENT PRIMARY KEY,
   activity_id INT NOT NULL COMMENT '活动ID',
   group_size INT NOT NULL COMMENT '成团人数',
@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_group_buy_activity (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团活动表';
 
 -- 7. 拼团记录表（group_buy_record）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_group_buy_record (
+CREATE TABLE IF NOT EXISTS t_group_buy_record (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_no VARCHAR(32) NOT NULL UNIQUE COMMENT '团号',
   activity_id INT NOT NULL COMMENT '活动ID',
@@ -377,7 +377,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_group_buy_record (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团记录表';
 
 -- 10. 营销操作日志表（marketing_operation_log）
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_marketing_operation_log (
+CREATE TABLE IF NOT EXISTS t_marketing_operation_log (
   id INT AUTO_INCREMENT PRIMARY KEY,
   module VARCHAR(32) NOT NULL COMMENT '模块（coupon/promotion/seckill/group_buy）',
   action VARCHAR(32) NOT NULL COMMENT '操作类型',
@@ -407,7 +407,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_marketing_operation_log (
 -- 1. 支付配置表（独立，不放 sys_config）
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_payment_config (
+CREATE TABLE IF NOT EXISTS t_payment_config (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id     VARCHAR(64)  NOT NULL,
   provider      VARCHAR(20)  NOT NULL COMMENT 'wechat/alipay/unionpay',
@@ -426,7 +426,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_payment_config (
 -- 注意：app_id 是小程序AppID（来自 mp.weixin.qq.com），不同于支付AppID
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_config (
+CREATE TABLE IF NOT EXISTS t_miniapp_config (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id       VARCHAR(64)  NOT NULL,
   platform        VARCHAR(20)  NOT NULL COMMENT 'WECHAT/ALIPAY/DOUYIN/KUAISHOU',
@@ -471,7 +471,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_config (
 -- 4. 小程序模板仓库
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_template (
+CREATE TABLE IF NOT EXISTS t_miniapp_template (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id    VARCHAR(64)  NOT NULL DEFAULT 'DEFAULT' COMMENT '租户ID（DEFAULT=全局模板）',
   name         VARCHAR(64)  NOT NULL COMMENT '模板名称',
@@ -491,7 +491,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_template (
 -- 5. 小程序发布日志
 -- ────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_publish_log (
+CREATE TABLE IF NOT EXISTS t_miniapp_publish_log (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   tenant_id   VARCHAR(64)  NOT NULL,
   platform    VARCHAR(20)  NOT NULL DEFAULT 'WECHAT',
@@ -507,7 +507,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_publish_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序发布日志';
 
 -- 编号: 049, 描述: 添加订单同步日志表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_order_sync_log (
+CREATE TABLE IF NOT EXISTS t_miniapp_order_sync_log (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   platform VARCHAR(32) NOT NULL COMMENT '平台',
@@ -525,7 +525,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_miniapp_order_sync_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序订单同步日志表';
 
 -- 编号: 050, 描述: 添加平台对账表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_reconciliation (
+CREATE TABLE IF NOT EXISTS t_platform_reconciliation (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   platform VARCHAR(32) NOT NULL COMMENT '平台',
   reconciliation_date DATE NOT NULL COMMENT '对账日期',
@@ -547,7 +547,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_reconciliation (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='平台对账表';
 
 -- 编号: 051, 描述: 添加平台审核表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_review (
+CREATE TABLE IF NOT EXISTS t_platform_review (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   platform VARCHAR(32) NOT NULL COMMENT '平台',
   platform_review_id VARCHAR(128) DEFAULT NULL COMMENT '平台评价ID',
@@ -570,7 +570,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_review (
 -- 说明：原表无 tenant_id 列，所有 SQL 仅按 store_id 过滤且 storeId 来自用户输入，
 --       任何认证用户可跨租户访问/修改/删除其他租户公告。本次新增 tenant_id 列。
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_announcement (
+CREATE TABLE IF NOT EXISTS t_retail_announcement (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',
   store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',
@@ -588,7 +588,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_announcement (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序公告表';
 
 -- 编号: 054, 描述: 添加零售客户地址表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_consumer_address (
+CREATE TABLE IF NOT EXISTS t_retail_consumer_address (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
   name VARCHAR(64) NOT NULL COMMENT '收货人姓名',
@@ -605,7 +605,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_retail_consumer_address (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消费者收货地址表';
 
 -- 编号: 055, 描述: 添加积分商城商品表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_points_mall_item (
+CREATE TABLE IF NOT EXISTS t_points_mall_item (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '商品名称',
   image VARCHAR(255) DEFAULT NULL COMMENT '商品图片',
@@ -623,7 +623,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_points_mall_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分商城商品表';
 
 -- 编号: 056, 描述: 添加积分商城订单表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_points_mall_order (
+CREATE TABLE IF NOT EXISTS t_points_mall_order (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   order_no VARCHAR(64) NOT NULL COMMENT '订单号',
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
@@ -646,7 +646,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_points_mall_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='积分商城订单表';
 
 -- 编号: 057, 描述: 添加营销资产表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_marketing_asset (
+CREATE TABLE IF NOT EXISTS t_marketing_asset (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '素材名称',
   type VARCHAR(32) NOT NULL COMMENT '类型：IMAGE/VIDEO/COPYWRITING',
@@ -665,7 +665,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_marketing_asset (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='营销素材表';
 
 -- 编号: 058, 描述: 添加系统部门表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_sys_department (
+CREATE TABLE IF NOT EXISTS t_sys_department (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父部门ID',
   name VARCHAR(64) NOT NULL COMMENT '部门名称',
@@ -679,7 +679,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_sys_department (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='部门表';
 
 -- 编号: 059, 描述: 添加用户会话表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_user_session (
+CREATE TABLE IF NOT EXISTS t_user_session (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
   token VARCHAR(512) NOT NULL COMMENT '会话令牌',
@@ -695,7 +695,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_user_session (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户会话表';
 
 -- 编号: 060, 描述: 添加自定义报表模板表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_custom_report_template (
+CREATE TABLE IF NOT EXISTS t_custom_report_template (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(128) NOT NULL COMMENT '模板名称',
   type VARCHAR(32) NOT NULL COMMENT '报表类型：SALES/INVENTORY/FINANCE/CUSTOMER',
@@ -710,7 +710,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_custom_report_template (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='自定义报表模板表';
 
 -- 编号: 061, 描述: 添加自定义报表计划表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_custom_report_schedule (
+CREATE TABLE IF NOT EXISTS t_custom_report_schedule (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   template_id BIGINT UNSIGNED NOT NULL COMMENT '模板ID',
   name VARCHAR(128) NOT NULL COMMENT '任务名称',
@@ -726,7 +726,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_custom_report_schedule (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='定时报表导出表';
 
 -- 编号: 062, 描述: 添加报表权限矩阵表, 创建人: 阿坚, 日期: 2026-07-05
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_report_permission_matrix (
+CREATE TABLE IF NOT EXISTS t_report_permission_matrix (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',
   report_code VARCHAR(64) NOT NULL COMMENT '报表编码',
@@ -741,7 +741,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_report_permission_matrix (
 -- 编号: 067, 描述: 添加单位组表, 创建人: 阿坚, 日期: 2026-07-05
 -- 支持 4-5 级自定义单位（箱>包>条>合>个）及换算率
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_unit_group (
+CREATE TABLE IF NOT EXISTS t_unit_group (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) NOT NULL COMMENT '单位组名称',
   tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
@@ -751,7 +751,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_unit_group (
   INDEX idx_tenant (tenant_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单位组表';
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_unit_group_item (
+CREATE TABLE IF NOT EXISTS t_unit_group_item (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   group_id BIGINT UNSIGNED NOT NULL COMMENT '单位组ID',
   tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
@@ -767,7 +767,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_unit_group_item (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单位层级明细表';
 
 -- 10. 零售评价表
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS `t_retail_review` (
+CREATE TABLE IF NOT EXISTS `t_retail_review` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
   `order_id` BIGINT NOT NULL COMMENT '订单ID',
   `user_id` BIGINT NOT NULL COMMENT '用户ID',
@@ -827,7 +827,7 @@ CREATE TABLE IF NOT EXISTS t_sys_field_permission (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='字段权限表';
 
 -- 平台操作日志
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_audit_log (
+CREATE TABLE IF NOT EXISTS t_platform_audit_log (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   admin_id INT NOT NULL COMMENT '操作人ID',
   admin_name VARCHAR(64) NOT NULL COMMENT '操作人姓名',
@@ -902,7 +902,7 @@ CREATE TABLE IF NOT EXISTS t_customer_quote_push_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报价推送日志';
 
 -- 损益表
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_inventory_loss_gain (
+CREATE TABLE IF NOT EXISTS t_inventory_loss_gain (
   id BIGINT AUTO_INCREMENT PRIMARY KEY,
   lg_no VARCHAR(32) NOT NULL COMMENT '损益编号',
   store_id BIGINT NOT NULL COMMENT '门店ID',
@@ -927,7 +927,7 @@ CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_inventory_loss_gain (
 -- 编号: 104, 描述: 平台公告表, 创建人: 阿坚, 日期: 2026-07-13
 -- 平台总后台向所有租户/商户发布的全局公告，区别于即时零售公告（retail_announcement）
 
-CREATE TABLE IF NOT EXISTS IF NOT EXISTS t_platform_announcement (
+CREATE TABLE IF NOT EXISTS t_platform_announcement (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(200) NOT NULL COMMENT '公告标题',
   content TEXT NOT NULL COMMENT '公告内容',
