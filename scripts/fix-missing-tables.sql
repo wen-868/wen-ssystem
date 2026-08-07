@@ -1,4 +1,4 @@
--- 自动生成的缺表补建 SQL（2026-08-07T13:19:19.854Z）
+-- 自动生成的缺表补建 SQL（2026-08-07T13:22:54.096Z）
 -- 共找到 46 张缺表的 CREATE TABLE，未找到 22 张：t_aftersale, t_audit_log, t_cart_item, t_cash_flow, t_daily_settlement, t_flash_sale, t_flash_sale_record, t_full_reduction, t_group_buy, t_group_buy_member, t_group_buy_team, t_order_coupon, t_payment_method, t_platform_settlement, t_product_step_price, t_promo_stack_rule, t_purchase_order_archive, t_purchase_order_item_archive, t_sale_bill_archive, t_sale_bill_item_archive, t_sys_user_login, t_wx_user
 SET NAMES utf8mb4;
 
@@ -179,7 +179,8 @@ CREATE TABLE IF NOT EXISTS t_tenant_module_access (
   
   UNIQUE KEY uk_tenant_module (tenant_id, module_code),
   INDEX idx_tenant_module_tenant (tenant_id),
-  INDEX idx_tenant_module_enabled (enabled);
+  INDEX idx_tenant_module_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户模块访问权限表';
 
 -- 5. 订阅操作日志表（subscription_operation_log）
 CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
@@ -198,7 +199,8 @@ CREATE TABLE IF NOT EXISTS t_subscription_operation_log (
   
   INDEX idx_log_subscription (subscription_id),
   INDEX idx_log_operation (operation_type),
-  INDEX idx_log_created (created_at);
+  INDEX idx_log_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订阅操作日志表';
 
 -- 6. 租户管理员表（tenant_admin）
 CREATE TABLE IF NOT EXISTS t_tenant_admin (
@@ -212,7 +214,8 @@ CREATE TABLE IF NOT EXISTS t_tenant_admin (
   
   UNIQUE KEY uk_tenant_user (tenant_id, user_id),
   INDEX idx_tenant_admin_tenant (tenant_id),
-  INDEX idx_tenant_admin_user (user_id);
+  INDEX idx_tenant_admin_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户管理员表';
 
 -- 3. 即时零售轮播图表（retail_banner）
 CREATE TABLE IF NOT EXISTS t_retail_banner (
@@ -246,7 +249,8 @@ CREATE TABLE IF NOT EXISTS t_retail_order_item (
   subtotal DECIMAL(10,2) NOT NULL COMMENT '小计金额',
   
   INDEX idx_order (order_id),
-  INDEX idx_product (product_id);
+  INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='即时零售订单商品表';
 
 -- 编号: 018, 描述: 营销功能相关表, 创建人: 阿坚, 日期: 2026-07-06
 
@@ -331,7 +335,8 @@ CREATE TABLE IF NOT EXISTS t_seckill_product (
   
   UNIQUE KEY uk_activity_product (activity_id, product_id),
   INDEX idx_activity (activity_id),
-  INDEX idx_product (product_id);
+  INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
 
 -- 6. 拼团活动表（group_buy_activity）
 CREATE TABLE IF NOT EXISTS t_group_buy_activity (
@@ -344,7 +349,8 @@ CREATE TABLE IF NOT EXISTS t_group_buy_activity (
   auto_cancel TINYINT(1) NOT NULL DEFAULT 1 COMMENT '未成团是否自动取消',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
-  INDEX idx_activity (activity_id);
+  INDEX idx_activity (activity_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团活动表';
 
 -- 7. 拼团记录表（group_buy_record）
 CREATE TABLE IF NOT EXISTS t_group_buy_record (
@@ -757,7 +763,8 @@ CREATE TABLE IF NOT EXISTS t_unit_group_item (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_group (group_id),
   INDEX idx_tenant (tenant_id),
-  INDEX idx_level (group_id, level);
+  INDEX idx_level (group_id, level)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='单位层级明细表';
 
 -- 10. 零售评价表
 CREATE TABLE IF NOT EXISTS `t_retail_review` (

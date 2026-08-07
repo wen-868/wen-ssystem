@@ -29,9 +29,12 @@ for (const file of files) {
     const m = stmt.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s*\(/i)
     if (m && wanted.includes(m[1].toLowerCase())) {
       if (!found.has(m[1])) {
-        // 移除外键约束（含 ON DELETE/ON UPDATE 子句，与项目建表风格一致：无 FK）
-        let clean = stmt.replace(/,?\s*CONSTRAINT\s+`?[a-zA-Z0-9_]+`?\s+FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,]*/gi, '')
-        clean = clean.replace(/,?\s*FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,]*/gi, '')
+        // 移除外键约束（精确匹配 REFERENCES 表名/列 + ON DELETE/UPDATE 子句，
+        // 不吞掉后续的 `) ENGINE=...` 表定义结尾）
+        const fkRe =
+          /,?\s*(?:CONSTRAINT\s+`?[a-zA-Z0-9_]+`?\s+)?FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES\s+`?[a-zA-Z0-9_]+`?(?:\s*\([^)]*\))?(?:\s+ON\s+DELETE\s+\w+)?(?:\s+ON\s+UPDATE\s+\w+)?/gi
+        let clean = stmt.replace(fkRe, '')
+        clean = clean.replace(/,\s*\)/g, ')')
         // 幂等：CREATE TABLE → CREATE TABLE IF NOT EXISTS（兼容源文件已含 IF NOT EXISTS，避免重复）
         clean = clean.replace(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?/i, 'CREATE TABLE IF NOT EXISTS ')
         found.set(m[1], clean)
