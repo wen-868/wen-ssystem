@@ -65,8 +65,17 @@ const expenseApi = {
   },
 
   async getTypes(): Promise<ExpenseType[]> {
-    const res: any = await get('/admin/expenses/types')
-    return (res?.list ?? res ?? []) as ExpenseType[]
+    // R95-03 核实：后端无独立费用类型接口（t_expense.expense_type 为自由填写字段，
+    // expense.routes.ts 无 /types 路由，此前调用被 :expenseNo 参数路由吞掉返回「费用不存在」）。
+    // 录入页仅需类型选项，使用静态常用类型（不编造业务数据）。
+    return [
+      { value: 'PURCHASE', label: '采购支出' },
+      { value: 'SALARY', label: '工资薪酬' },
+      { value: 'RENT', label: '房租水电' },
+      { value: 'TRANSPORT', label: '物流运输' },
+      { value: 'MARKETING', label: '营销费用' },
+      { value: 'OTHER', label: '其他' },
+    ]
   }
 }
 
