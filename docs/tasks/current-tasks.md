@@ -2310,6 +2310,11 @@
 - **验收**：sales-ranking 三维度（product/customer/staff）全部 200；生产 30 接口回归全绿。
 - **风险登记**：`injectTenantCondition` 对多表 JOIN 且 JOIN 条件不含 tenant_id 的查询存在歧义风险（finance-report:176、product-report:146、staff-report:32 等），已纳入 R95-04-4 schema 体检范围，由阿坚统一排查修复。
 
+**R95-03c 追加（2026-08-07，报表接口全部修复）**：
+- sales-trend 500：`DATE_SUB(CURDATE(), INTERVAL ?)` 参数化不被 MySQL 接受 → intervalExpr 改为直接拼接（内部固定值，无注入风险）（93b387c5）
+- inventory-age 500：`ps.sku_id` 列不存在（t_product_sku 主键为 id）→ 改 `ps.id AS skuId`（93b387c5）
+- **最终验收**：生产走查 16/16 页全绿；报表接口（sales-ranking 三维度/sales-trend/inventory-age/business-overview 等）全部 200；生产 30 接口回归全绿；部署脚本已含 dist 清理（b45fca8b）
+
 ## R95-04 — 剩余问题修复安排 [规划 — 凌舟 2026-08-07]
 
 > 全量排查结论（生产 32 接口全 200、CI/部署全绿、移动端 build:h5 通过后，剩余问题清单）：
