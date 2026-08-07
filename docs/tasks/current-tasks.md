@@ -2486,11 +2486,49 @@
 6. `docs/API接口文档.md` 已补 R97-01 平台端点契约（P25-P36）+ 修正 P22 对账契约
 
 ### R97-02 — [P0] 工作台即时零售/小程序功能恢复（菜单 + 后端接口）
-- **状态**：🔄 进行中（2026-08-08 凌舟诊断；前端菜单已恢复，后端派单阿坚）
+- **状态**：🔄 进行中（2026-08-08 凌舟诊断；前端菜单已恢复，后端已完成待复核——阿坚 2026-08-08 提交推送）
 - **根因**：`f30aba74` 导航减法把即时零售菜单 12→4 项、系统菜单砍掉「小程序配置」等 8 项（页面/路由都在，仅入口被删）；后端 shelf/payments/deliveries/order-board/retail-announcements(前缀)/retail-cart/analysis 六组接口从未实现（生产 404）；miniapp-order-sync 生产 500
 - **前端（凌舟已完成，未提交）**：MainLayout.vue 恢复即时零售 12 项 + 系统菜单 8 项，admin-web 构建通过
 - **后端（阿坚，任务卡 `docs/tasks/inbox/ajian_retail_fix_01.md`）**：开发 6 组缺失接口（商品货架/支付记录/配送管理/接单看板/公告别名/购物车分析）+ 修 miniapp-order-sync 500
 - **部署**：前后端改动提交推送后重新部署生效
+
+**后端完成记录（2026-08-08 阿坚，任务卡 `ajian_retail_fix_01`）：**
+
+**① 商品货架 shelf**（B 商品货架管理）：`GET/POST /api/admin/instant-retail/shelf`、`PUT/DELETE /shelf/:id`
+- 数据源：`t_retail_product` JOIN `t_product_sku`/`t_product_spu`（取 sku_code/spu.name/main_image）
+- 列表支持 keyword/category/status/tag 筛选 + 分页，输出 camelCase + tags 数组（RECOMMEND/HOT/NEW）
+- 上架校验 SKU 存在（404 兜底），编辑动态 SET，移除即 DELETE
+
+**② 在线支付 payments**（F 在线支付）：`GET /payments`、`GET /payments/:paymentNo`
+- 数据源：`t_payment_order`（`source_type='MINIAPP_ORDER'`）——规范支付单表，含 pay_no/channel/status/wx_transaction_id/paid_at
+- 状态映射：PENDING/FAILED/CLOSED→UNPAID、SUCCESS→PAID、REFUNDED→REFUNDED；筛选 orderNo/paymentMethod/status/日期 + 分页
+
+**③ 配送管理 deliveries**（I 配送管理 + M 履约调度）：`GET /deliveries`、`POST /deliveries/:deliveryId/assign`、`PUT /deliveries/:deliveryId/status`
+- 数据源：`t_delivery_record` LEFT JOIN `t_retail_order`；配送状态映射 PICKED_UP→PICKING
+- 分配骑手落 rider_id/rider_name（迁移 125 补 rider_id 列）；状态流转写 picked_up_at/delivered_at；不存在抛 404
+
+**④ 60 秒接单看板 order-board**（K）：`GET /order-board`
+- 数据源：`t_platform_order`（PENDING/ACCEPTED/PREPARING/DELIVERING/COMPLETED）
+- 输出 pending/processing/completed 三列 + stats（含 urgentCount），解析 order_data_json 取客户/金额/明细/备注
+
+**⑤ 公告别名**：新增 `GET/POST /api/admin/retail-announcements`、`PUT/DELETE /:id`
+- 原实现挂 `/api/retail-announcement/admin/...` 且返回数组；新别名按 admin-web 契约实现：分页 records/total、storeName JOIN、isTop/startTime/endTime/status(ENABLED/DISABLED) camelCase、storeId 支持请求体入参，复用 retail-announcement.service（扩展 listAnnouncementsAdmin + update 支持 status/store_id）
+
+**⑥ 购物车分析**（E）：`GET /api/admin/retail-cart/analysis`
+- 数据源：`t_retail_cart`（迁移 125 补 tenant_id 列）JOIN `t_product_sku`/`t_product_spu`/`t_product_price`
+- 输出 totalCarts/totalItems/checkedItems/totalAmount/productDistribution/topProducts/recentCarts
+
+**⑦ miniapp-order-sync 500 修复**：根因 = 049 建表缺 `tenant_id/platform_order_no/response/updated_at` 列，service 查询这些列生产必 500；迁移 125 补列 + service 改 CASE 归一化 status（SUCCESS/FAILED→1/2、其余→0），重试置 PENDING
+
+**⑧ 迁移脚本**：`docs/migrations/125_instant_retail_admin_fix.sql`（t_miniapp_order_sync_log 补 4 列 + 索引、t_retail_cart 补 tenant_id + 索引、t_delivery_record 补 rider_id + 索引，add_column_if_not_exists 幂等保护 + 验证 SQL）
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 后端类型检查 | `cd backend && npm run typecheck` | exit 0，0 errors ✅ |
+| 后端构建 | `cd backend && npm run build` | exit 0 ✅ |
+| 后端全量测试 | `cd backend && npx vitest run` | 445 文件 / 5147 用例全通过（新增 3 测试文件 + 路由断言）✅ |
+| 本地 mock 实测 | USE_MOCK_DB 后端 + admin token（8090 端口） | 13 端点全通：8 新 GET 全 200 结构正确、miniapp-order-sync 200、写接口业务 404（SKU/配送单不存在）正确、既有 orders/products/configs/reports 无回归 ✅ |
 
 ### R96-02 — [P1] 租户小程序配置页（选模板 + 填 APPID + 生成代码包 + 发布指引）
 - **优先级**：P1

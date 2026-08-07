@@ -1,6 +1,7 @@
 ﻿import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as retailAdminController from "../controllers/admin/instant-retail.controller";
+import * as retailExtController from "../controllers/admin/instant-retail-ext.controller";
 import * as reviewController from "../controllers/instant-retail/review.controller";
 import * as reconciliationController from "../controllers/instant-retail/reconciliation.controller";
 import * as analyticsController from "../controllers/instant-retail/analytics.controller";
@@ -15,6 +16,18 @@ export const instantRetailAdminOpsRouter = Router();
 instantRetailAdminOpsRouter.get("/orders", retailAdminController.listRetailOrders);
 instantRetailAdminOpsRouter.get("/orders/:orderNo", retailAdminController.getRetailOrderDetail);
 instantRetailAdminOpsRouter.post("/orders/:orderNo/status", retailAdminController.updateRetailOrderStatus);
+
+// 60 秒接单看板（静态路由）
+instantRetailAdminOpsRouter.get("/order-board", retailExtController.getOrderBoard);
+
+// 在线支付记录
+instantRetailAdminOpsRouter.get("/payments", retailExtController.listPayments);
+instantRetailAdminOpsRouter.get("/payments/:paymentNo", retailExtController.getPaymentDetail);
+
+// 配送管理（I 配送管理 + M 履约调度）
+instantRetailAdminOpsRouter.get("/deliveries", retailExtController.listDeliveries);
+instantRetailAdminOpsRouter.post("/deliveries/:deliveryId/assign", retailExtController.assignDelivery);
+instantRetailAdminOpsRouter.put("/deliveries/:deliveryId/status", retailExtController.updateDeliveryStatus);
 
 // 评价管理
 instantRetailAdminOpsRouter.get("/reviews", reviewController.listReviews);

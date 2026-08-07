@@ -11,7 +11,7 @@
  * 关联任务：R55-01 retail-announcement 跨租户数据泄露修复
  */
 
-import { query, queryWithTenant } from "../../shared/db";
+import { query, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** 零售公告行 */
 interface RetailAnnouncementRow {
@@ -24,6 +24,16 @@ interface RetailAnnouncementRow {
   start_time: Date | string | null;
   end_time: Date | string | null;
   created_at: Date | string;
+}
+
+/** 公告列表行（管理端：JOIN t_store 取门店名） */
+interface RetailAnnouncementAdminRow extends RetailAnnouncementRow {
+  store_name: string | null;
+}
+
+/** COUNT(*) AS cnt 聚合行 */
+interface CountCntRow {
+  cnt: number;
 }
 
 /**
@@ -81,18 +91,30 @@ export async function createAnnouncement(
 export async function updateAnnouncement(
   id: number,
   data: {
+    store_id?: number;
     title?: string;
     content?: string;
     is_top?: number;
     start_time?: string | null;
     end_time?: string | null;
+    status?: number;
   },
   storeId: number,
   tenantId: string
 ) {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  if (data.store_id !== undefined) { fields.push("store_id = ?"); values.push(data.store_id); }
+  if (data.title !== undefined) { fields.push("title = ?"); values.push(data.title); }
+  if (data.content !== undefined) { fields.push("content = ?"); values.push(data.content); }
+  if (data.is_top !== undefined) { fields.push("is_top = ?"); values.push(data.is_top); }
+  if (data.start_time !== undefined) { fields.push("start_time = ?"); values.push(data.start_time); }
+  if (data.end_time !== undefined) { fields.push("end_time = ?"); values.push(data.end_time); }
+  if (data.status !== undefined) { fields.push("status = ?"); values.push(data.status); }
+  if (fields.length === 0) return { id };
   const result = await queryWithTenant<{ affectedRows: number }>(
-    "UPDATE t_retail_announcement SET title = ?, content = ?, is_top = ?, start_time = ?, end_time = ? WHERE id = ? AND store_id = ?",
-    [data.title, data.content, data.is_top, data.start_time ?? null, data.end_time ?? null, id, storeId],
+    `UPDATE t_retail_announcement SET ${fields.join(", ")} WHERE id = ? AND store_id = ?`,
+    [...values, id, storeId],
     tenantId
   );
   const affectedRows = Number(
@@ -102,6 +124,66 @@ export async function updateAnnouncement(
     throw Object.assign(new Error("公告不存在或无权限"), { statusCode: 404 });
   }
   return { id };
+}
+
+/**
+ * 查询公告列表（管理端，分页 + 关键词 + 门店名）
+ *
+ * 输出字段与 admin-web RetailAnnouncement.vue 契约对齐：
+ *   storeId / storeName / isTop / startTime / endTime / status(ENABLED/DISABLED) / createdAt
+ */
+export async function listAnnouncementsAdmin(params: {
+  storeId?: number;
+  keyword?: string;
+  page: number;
+  pageSize: number;
+}, tenantId: string) {
+  const conditions = ["a.tenant_id = ?"];
+  const values: unknown[] = [tenantId];
+  if (params.storeId) {
+    conditions.push("a.store_id = ?");
+    values.push(params.storeId);
+  }
+  if (params.keyword) {
+    conditions.push("a.title LIKE ?");
+    values.push(`%${params.keyword}%`);
+  }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+
+  const totalRow = await queryOneWithTenant<CountCntRow>(
+    `SELECT COUNT(*) AS cnt FROM t_retail_announcement a ${where}`,
+    values,
+    tenantId
+  );
+  const rows = await queryWithTenant<RetailAnnouncementAdminRow>(
+    `SELECT a.id, a.store_id, a.title, a.content, a.is_top, a.start_time, a.end_time,
+            a.status, a.created_at, s.name AS store_name
+     FROM t_retail_announcement a
+     LEFT JOIN t_store s ON s.id = a.store_id AND s.tenant_id = a.tenant_id
+     ${where}
+     ORDER BY a.is_top DESC, a.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [...values, params.pageSize, (params.page - 1) * params.pageSize],
+    tenantId
+  );
+
+  return {
+    total: Number(totalRow?.cnt ?? 0),
+    page: params.page,
+    pageSize: params.pageSize,
+    records: rows.map((row) => ({
+      id: row.id,
+      storeId: row.store_id,
+      storeName: row.store_name,
+      title: row.title,
+      content: row.content,
+      isTop: Number(row.is_top) === 1,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      status: Number(row.status) === 1 ? "ENABLED" : "DISABLED",
+      createdAt: row.created_at,
+    })),
+  };
 }
 
 /**

@@ -2,6 +2,7 @@
 import type { RouteConfig } from "../shared/auto-routes";
 import * as platformIntegrationController from "../controllers/instant-retail/platform-integration.controller";
 import * as retailAdminController from "../controllers/admin/instant-retail.controller";
+import * as retailExtController from "../controllers/admin/instant-retail-ext.controller";
 
 export const instantRetailAdminPlatformRouter = Router();
 
@@ -34,6 +35,12 @@ instantRetailAdminPlatformRouter.get("/products", retailAdminController.listReta
 instantRetailAdminPlatformRouter.post("/products", retailAdminController.addRetailProduct);
 instantRetailAdminPlatformRouter.put("/products/:id", retailAdminController.updateRetailProduct);
 instantRetailAdminPlatformRouter.delete("/products/:id", retailAdminController.deleteRetailProduct);
+
+// 商品货架（shelf）
+instantRetailAdminPlatformRouter.get("/shelf", retailExtController.listShelfProducts);
+instantRetailAdminPlatformRouter.post("/shelf", retailExtController.addShelfProduct);
+instantRetailAdminPlatformRouter.put("/shelf/:id", retailExtController.updateShelfProduct);
+instantRetailAdminPlatformRouter.delete("/shelf/:id", retailExtController.removeShelfProduct);
 
 // Banner
 instantRetailAdminPlatformRouter.get("/banners", retailAdminController.listBanners);

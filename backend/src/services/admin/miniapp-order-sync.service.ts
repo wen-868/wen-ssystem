@@ -1,11 +1,17 @@
 ﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
-/** t_miniapp_order_sync_log 列表行（带别名） */
+/**
+ * t_miniapp_order_sync_log 列表行（带别名）
+ *
+ * 注意：表内 status 为 VARCHAR（SUCCESS/FAILED），前端契约要求数字（0=待同步/1=成功/2=失败），
+ * 查询时用 CASE 做归一化映射；platform_order_no / response / updated_at / tenant_id
+ * 由迁移脚本 125 补齐（原 049 建表缺失，是生产 500 的根因）。
+ */
 interface SyncLogRow {
   id: number | string;
   orderNo: string;
   platformOrderNo: string;
-  status: number | string;
+  status: number;
   response: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -24,7 +30,11 @@ export async function listSyncLogs(tenantId: string, params: SyncLogListParams) 
   const sqlParams: unknown[] = [tenantId];
 
   if (params.orderNo) { conditions.push("order_no LIKE ?"); sqlParams.push(`%${params.orderNo}%`); }
-  if (params.status !== undefined) { conditions.push("status = ?"); sqlParams.push(params.status); }
+  // status 过滤：前端传数字（0/1/2），与表内 VARCHAR（SUCCESS/FAILED）做同一套 CASE 归一化比较
+  if (params.status !== undefined) {
+    conditions.push("CASE WHEN status IN ('SUCCESS','1') THEN 1 WHEN status IN ('FAILED','2') THEN 2 ELSE 0 END = ?");
+    sqlParams.push(params.status);
+  }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
@@ -35,7 +45,8 @@ export async function listSyncLogs(tenantId: string, params: SyncLogListParams) 
 
   const records = await queryWithTenant<SyncLogRow>(
     `SELECT id, order_no AS orderNo, platform_order_no AS platformOrderNo,
-            status, response, created_at AS createdAt, updated_at AS updatedAt
+            CASE WHEN status IN ('SUCCESS','1') THEN 1 WHEN status IN ('FAILED','2') THEN 2 ELSE 0 END AS status,
+            response, created_at AS createdAt, updated_at AS updatedAt
      FROM t_miniapp_order_sync_log ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,
@@ -48,7 +59,8 @@ export async function listSyncLogs(tenantId: string, params: SyncLogListParams) 
 
 export async function retrySync(tenantId: string, orderNo: string) {
   await queryWithTenant(
-    "UPDATE t_miniapp_order_sync_log SET status = 0, updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
+    // 重试语义：置为待同步（PENDING），前端数字 0 与 CASE 归一化映射对应
+    "UPDATE t_miniapp_order_sync_log SET status = 'PENDING', updated_at = NOW() WHERE order_no = ? AND tenant_id = ?",
     [orderNo, tenantId],
     tenantId
   );

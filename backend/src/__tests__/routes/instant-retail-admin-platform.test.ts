@@ -18,4 +18,15 @@ describe("routes/instant-retail-admin-platform", () => {
     expect(typeof routeConfig.router.put).toBe("function");
     expect(typeof routeConfig.router.delete).toBe("function");
   });
+
+  it("应注册货架 shelf 端点", () => {
+    const router = routeConfig.router as any;
+    const paths = router.stack
+      .filter((s: any) => s.route)
+      .map((s: any) => `${Object.keys(s.route.methods)[0].toLowerCase()} ${s.route.path}`);
+    expect(paths).toContain("get /shelf");
+    expect(paths).toContain("post /shelf");
+    expect(paths).toContain("put /shelf/:id");
+    expect(paths).toContain("delete /shelf/:id");
+  });
 });
