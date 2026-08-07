@@ -218,12 +218,13 @@ export async function getSalesRanking(
               COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
        FROM t_sale_bill sb
        LEFT JOIN t_sys_user u ON u.id = sb.operator_id
-       WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       WHERE sb.tenant_id = ?
+         AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.operator_id, u.real_name
        ORDER BY totalAmount DESC
        LIMIT ?`,
-      [start, end, lim],
+      [tenantId, start, end, lim],
       tenantId
     );
   }
