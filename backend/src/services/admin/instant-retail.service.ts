@@ -346,7 +346,7 @@ export async function handleWebhook(platform: PlatformType, rawBody: Record<stri
 export async function getPlatforms(tenantId: string) {
   const rows = await queryWithTenant<PlatformConfigListRow>(
     `SELECT platform, store_id AS storeId, enabled, merchant_id AS merchantId, updated_at AS updatedAt
-     FROM t_platform_config
+     FROM t_platform_config WHERE 1=1
      ORDER BY platform`,
     [],
     tenantId

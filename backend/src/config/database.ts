@@ -220,7 +220,14 @@ function injectSelectTenant(sql: string, params: unknown[], tenantId: string): {
     const modifiedSql = sql.substring(0, insertIndex) + ` tenant_id = ? AND ` + sql.substring(insertIndex);
     return { modifiedSql, modifiedParams: [tenantId, ...params] };
   } else {
-    const modifiedSql = sql + ' WHERE tenant_id = ?';
+    // 无 WHERE 时，若存在 ORDER BY / GROUP BY / LIMIT / HAVING，须在其之前插入 WHERE，
+    // 否则会生成 `... ORDER BY x WHERE tenant_id = ?` 语法错误（R95-03 修复）
+    const clauseMatch = lowerSql.search(/\b(order\s+by|group\s+by|limit|having)\b/);
+    if (clauseMatch === -1) {
+      const modifiedSql = sql + ' WHERE tenant_id = ?';
+      return { modifiedSql, modifiedParams: [...params, tenantId] };
+    }
+    const modifiedSql = sql.substring(0, clauseMatch) + ' WHERE tenant_id = ? ' + sql.substring(clauseMatch);
     return { modifiedSql, modifiedParams: [...params, tenantId] };
   }
 }

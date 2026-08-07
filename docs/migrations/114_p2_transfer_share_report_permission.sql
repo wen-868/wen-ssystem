@@ -8,19 +8,19 @@
 -- ========== 1. 完善调拨单表 ==========
 -- 补充现有 transfer_order 表缺失的字段（与现有service代码对齐）
 ALTER TABLE t_transfer_order
-  ADD COLUMN IF NOT EXISTS `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态：DRAFT=草稿 PENDING=待审核 APPROVED=已审核 TRANSIT=运输中 RECEIVED=已完成 CANCELLED=已取消' AFTER `to_store_id`,
-  ADD COLUMN IF NOT EXISTS `expected_date` DATE DEFAULT NULL COMMENT '预计到货日期' AFTER `status`,
-  ADD COLUMN IF NOT EXISTS `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '调拨总金额' AFTER `expected_date`,
-  ADD COLUMN IF NOT EXISTS `total_items` INT NOT NULL DEFAULT 0 COMMENT '明细行数' AFTER `total_amount`,
-  ADD COLUMN IF NOT EXISTS `created_by` BIGINT DEFAULT NULL COMMENT '创建人ID' AFTER `total_items`,
-  ADD COLUMN IF NOT EXISTS `approved_by` BIGINT DEFAULT NULL COMMENT '审核人ID' AFTER `created_by`,
-  ADD COLUMN IF NOT EXISTS `approved_at` DATETIME DEFAULT NULL COMMENT '审核时间' AFTER `approved_by`,
-  ADD COLUMN IF NOT EXISTS `shipped_by` BIGINT DEFAULT NULL COMMENT '出库人ID' AFTER `approved_at`,
-  ADD COLUMN IF NOT EXISTS `shipped_at` DATETIME DEFAULT NULL COMMENT '出库时间' AFTER `shipped_by`,
-  ADD COLUMN IF NOT EXISTS `received_by` BIGINT DEFAULT NULL COMMENT '入库人ID' AFTER `shipped_at`,
-  ADD COLUMN IF NOT EXISTS `received_at` DATETIME DEFAULT NULL COMMENT '入库时间' AFTER `received_by`,
-  ADD COLUMN IF NOT EXISTS `cancel_reason` VARCHAR(512) DEFAULT NULL COMMENT '取消原因' AFTER `received_at`,
-  ADD COLUMN IF NOT EXISTS `remark` VARCHAR(512) DEFAULT NULL COMMENT '备注' AFTER `cancel_reason`;
+  ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态：DRAFT=草稿 PENDING=待审核 APPROVED=已审核 TRANSIT=运输中 RECEIVED=已完成 CANCELLED=已取消' AFTER `to_store_id`,
+  ADD COLUMN `expected_date` DATE DEFAULT NULL COMMENT '预计到货日期' AFTER `status`,
+  ADD COLUMN `total_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '调拨总金额' AFTER `expected_date`,
+  ADD COLUMN `total_items` INT NOT NULL DEFAULT 0 COMMENT '明细行数' AFTER `total_amount`,
+  ADD COLUMN `created_by` BIGINT DEFAULT NULL COMMENT '创建人ID' AFTER `total_items`,
+  ADD COLUMN `approved_by` BIGINT DEFAULT NULL COMMENT '审核人ID' AFTER `created_by`,
+  ADD COLUMN `approved_at` DATETIME DEFAULT NULL COMMENT '审核时间' AFTER `approved_by`,
+  ADD COLUMN `shipped_by` BIGINT DEFAULT NULL COMMENT '出库人ID' AFTER `approved_at`,
+  ADD COLUMN `shipped_at` DATETIME DEFAULT NULL COMMENT '出库时间' AFTER `shipped_by`,
+  ADD COLUMN `received_by` BIGINT DEFAULT NULL COMMENT '入库人ID' AFTER `shipped_at`,
+  ADD COLUMN `received_at` DATETIME DEFAULT NULL COMMENT '入库时间' AFTER `received_by`,
+  ADD COLUMN `cancel_reason` VARCHAR(512) DEFAULT NULL COMMENT '取消原因' AFTER `received_at`,
+  ADD COLUMN `remark` VARCHAR(512) DEFAULT NULL COMMENT '备注' AFTER `cancel_reason`;
 
 -- 兼容旧字段：如果 transfer_status 存在但 status 不存在，数据迁移
 -- （注意：由于不同MySQL版本对IF EXISTS列的支持差异，此处用通用ALTER）
@@ -28,10 +28,10 @@ ALTER TABLE t_transfer_order
 -- ========== 2. 完善调拨单明细表 ==========
 -- 补充现有 transfer_order_item 表缺失的字段
 ALTER TABLE t_transfer_order_item
-  ADD COLUMN IF NOT EXISTS `transfer_order_id` BIGINT NOT NULL DEFAULT 0 COMMENT '调拨单ID' AFTER `id`,
-  ADD COLUMN IF NOT EXISTS `sku_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'SKU名称' AFTER `sku_id`,
-  ADD COLUMN IF NOT EXISTS `quantity` INT NOT NULL DEFAULT 0 COMMENT '数量' AFTER `sku_name`,
-  ADD COLUMN IF NOT EXISTS `subtotal` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '小计金额' AFTER `unit_price`;
+  ADD COLUMN `transfer_order_id` BIGINT NOT NULL DEFAULT 0 COMMENT '调拨单ID' AFTER `id`,
+  ADD COLUMN `sku_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'SKU名称' AFTER `sku_id`,
+  ADD COLUMN `quantity` INT NOT NULL DEFAULT 0 COMMENT '数量' AFTER `sku_name`,
+  ADD COLUMN `subtotal` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT '小计金额' AFTER `unit_price`;
 
 -- ========== 3. 库存共享设置表 ==========
 CREATE TABLE IF NOT EXISTS `t_inventory_share_setting` (
@@ -72,10 +72,10 @@ CREATE TABLE IF NOT EXISTS `t_inventory_share_product` (
 -- ========== 5. 扩展报表权限矩阵表 ==========
 -- 增加查看/导出权限字段
 ALTER TABLE t_report_permission_matrix
-  ADD COLUMN IF NOT EXISTS `can_view` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否可查看：0=否 1=是' AFTER `store_scope`,
-  ADD COLUMN IF NOT EXISTS `can_export` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否可导出：0=否 1=是' AFTER `can_view`,
-  ADD COLUMN IF NOT EXISTS `tenant_id` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '租户ID' AFTER `can_export`,
-  ADD COLUMN IF NOT EXISTS `store_ids` TEXT DEFAULT NULL COMMENT '指定门店ID列表（JSON数组，store_scope=SPECIFIED时使用）' AFTER `tenant_id`;
+  ADD COLUMN `can_view` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否可查看：0=否 1=是' AFTER `store_scope`,
+  ADD COLUMN `can_export` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否可导出：0=否 1=是' AFTER `can_view`,
+  ADD COLUMN `tenant_id` VARCHAR(64) NOT NULL DEFAULT '' COMMENT '租户ID' AFTER `can_export`,
+  ADD COLUMN `store_ids` TEXT DEFAULT NULL COMMENT '指定门店ID列表（JSON数组，store_scope=SPECIFIED时使用）' AFTER `tenant_id`;
 
 -- 注意：原表 UNIQUE KEY uk_role_report (role_id, report_code) 需要包含 tenant_id
 -- 先尝试删除旧唯一键，添加新的
