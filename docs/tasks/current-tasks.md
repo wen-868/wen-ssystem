@@ -2294,6 +2294,16 @@
 - **最终部署结果**：0e9ab85d（含 R94-03 + R95-01 + R95-02 全部代码）Auto Deploy success（2m40s），CI success（3m16s）。服务器线上验收：m.onepan.cn JS 含 print-records/trace-query/settings/more-functions 等 R95 新页面 ✅；后端 API 正常（登录接口业务响应）✅。
 - 待办：生产 admin 账号处于锁定期（连续登录失败触发，疑似密码非 Admin@2026），需用户确认生产管理员密码后完成端到端登录验收。
 
+## R95-03 — 生产事故处置与结构对齐 [已完成 — 凌舟 2026-08-07]
+
+> **事故**：修复「pm2 --cwd backend 导致 runMigrations 找不到 docs/migrations」后，生产首次全量执行外部迁移，001/003 早期 SQL 含 DROP TABLE IF EXISTS 核心表，核心表被删重建为空 → 业务数据丢失、登录失效。
+> **止损**：紧急推送迁移保护（外部 SQL 跳过 DROP TABLE，8aa55466）并部署。
+> **数据恢复**：从每日 02:00 自动备份恢复（liquor_inventory_20260807_020001.sql.gz），登录与商品/库存数据恢复。注意：08-07 02:00～13:07 新录入数据丢失（备份点限制）。
+> **结构对齐**（备份旧结构 vs 代码新结构）：补建 068+ 迁移表（t_receipt/t_print_record/t_expense/t_stock_check/t_store_value_card/t_transfer_order/库存共享/审计日志等）；补列 t_member（contact/address/remark）、t_transfer_order（19 列）、t_transfer_order_item（4 列）、t_operation_log（target_id/target_type/remark）；114 迁移 `ADD COLUMN IF NOT EXISTS` 改标准语法（f3ef6edb）。
+> **代码修复**（生产 500 暴露）：transfer-order 别名 `to` 保留字改 `to_`（53bbf8ff，58 单测通过）；injectTenantCondition 无 WHERE+ORDER BY 追加位置错误（f3ef6edb）；instant-retail 显式 WHERE（f3ef6edb）；expenses.getTypes 后端无 /types 路由降级静态类型（577056fd）。
+> **验收**：生产登录 200；核心接口全绿（members/print/finance/expenses/receipts/receivables/trace/stock-checks/store-value-cards/transfer-orders/operation-logs/suppliers/purchase/reports/staff/notifications/prices/products/inventory/sys-config/dashboard/todos/instant-retail 全 200）。
+> **遗留**：① 092/093/096/099/100/101/102/103/104/108/120b/120c 迁移执行时重复列/索引或语法报错（多数已存在项，safeExec 跳过），建议后续统一修正；② 备份每日 02:00 单点，建议加多次/异地备份；③ mock 库掩盖结构漂移，建议增加生产 schema 体检任务。
+
 **逐模块修复方式表**：
 
 | 模块 | 原 404 路径 | 修复方式 | 真实接口 |
