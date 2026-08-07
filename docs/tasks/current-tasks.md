@@ -2304,6 +2304,12 @@
 > **验收**：生产登录 200；核心接口全绿（members/print/finance/expenses/receipts/receivables/trace/stock-checks/store-value-cards/transfer-orders/operation-logs/suppliers/purchase/reports/staff/notifications/prices/products/inventory/sys-config/dashboard/todos/instant-retail 全 200）。
 > **遗留**：① 092/093/096/099/100/101/102/103/104/108/120b/120c 迁移执行时重复列/索引或语法报错（多数已存在项，safeExec 跳过），建议后续统一修正；② 备份每日 02:00 单点，建议加多次/异地备份；③ mock 库掩盖结构漂移，建议增加生产 schema 体检任务。
 
+**R95-03b 追加（2026-08-07，销售排行 500 根因）**：
+- **根因**：`backend/dist/routes/admin.routes.js` 为**已删除源文件（src 无 admin.routes.ts）的旧编译残留**；tsc 增量编译不清理 dist，auto-routes 扫描 dist/routes 时加载它并注册旧 `/reports/sales-ranking`（旧 reportController → JOIN t_employee 表不存在 → 500），优先级高于新实现（report.routes.ts）。
+- **修复**：① 服务器清理 11 个 dist 残留路由文件（admin/instant-retail/instant-retail-new/inventory-alert/marketing/marketing-new/menu-permission/quote/report-permission/store-customer/store-product）；② `auto-deploy.sh` 构建前 `rm -rf backend/dist`（b45fca8b）根治残留；③ sales-ranking staff 维度 `tenant_id` 歧义（多表 JOIN，injectTenantCondition 注入无前缀列名）→ 显式 `sb.tenant_id`（d785e5d2）；④ 兼容建 t_employee 空表（LEFT JOIN 取员工名，空表返回 NULL 不影响业务）。
+- **验收**：sales-ranking 三维度（product/customer/staff）全部 200；生产 30 接口回归全绿。
+- **风险登记**：`injectTenantCondition` 对多表 JOIN 且 JOIN 条件不含 tenant_id 的查询存在歧义风险（finance-report:176、product-report:146、staff-report:32 等），已纳入 R95-04-4 schema 体检范围，由阿坚统一排查修复。
+
 ## R95-04 — 剩余问题修复安排 [规划 — 凌舟 2026-08-07]
 
 > 全量排查结论（生产 32 接口全 200、CI/部署全绿、移动端 build:h5 通过后，剩余问题清单）：
