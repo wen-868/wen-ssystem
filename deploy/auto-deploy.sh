@@ -21,8 +21,8 @@ echo "==> 构建后端"
 rm -rf backend/dist
 npm --workspace backend run build
 
-echo "==> 构建前端（相对路径 /api）"
-VITE_API_BASE=/api npm --workspace admin-web run build
+echo "==> 构建前端（相对路径 /api；AI 底座走 /ai-api nginx 代理 → 服务器 3016）"
+VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace admin-web run build
 VITE_API_BASE=/api npm --workspace saas-admin run build
 
 echo "==> 构建商户端 H5"
