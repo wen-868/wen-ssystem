@@ -2386,6 +2386,26 @@
 - **验收标准**：3 套模板均能 `build:mp-weixin` 成功产出；租户配置页可完成「选模板→填 APPID→生成包→发布」全流程；文档（使用说明）齐备
 - **状态**：🔄 待启动（需确认模板方向与优先级）
 
+## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[进行中 — 凌舟 2026-08-07]
+
+> 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：
+
+### R95-06-1 — [P1] 17 处列类型不匹配：迁移 DDL 期望对齐生产实际
+- **负责人**：阿坚（后端/数据库）
+- **方案**：修正 `docs/init_database.sql` + `docs/migrations/*.sql` 的 DDL 类型定义，使其与生产实际一致（**不改生产表，零风险**）：
+  - int vs bigint（t_bank_account/t_error_logs/t_retail_*/t_sys_user/t_sys_role 的 id 类）：DDL 统一为生产实际类型
+  - t_purchase_payment.payment_method enum→varchar、t_sys_role.status tinyint→varchar、t_subscription.tenant_id/t_tenant.id int→varchar：DDL 对齐生产
+  - t_store_control_config auto_open_time/auto_close_time time→varchar：**先查代码用法**（生产存 "HH:MM" 字符串，若代码按字符串处理则 DDL 改 varchar；若代码期望 Date 需评估）
+- **验收**：改完重跑 schema-audit，类型不匹配 **17 → 0**；`npm run build` 通过
+
+### R95-06-2 — [P1] 38 张代码漂移表：逐个核实处理
+- **负责人**：阿坚（后端代码）+ 凌舟复核
+- **方案**：对 38 张表逐个查 `backend/src` 代码引用点，分三类处理：
+  1. **误报**（t_last/t_module_name/t_product/t_sale_bills/t_sale_order/t_sales_order/t_sku/t_inventory/t_notifications/t_todos/t_sync_cache/t_user_points/t_user_customer/t_user_binding 等）：改进 schema-audit 代码解析规则（剔除关键字/占位/复数/单复数变体），处理后不再出现在报告
+  2. **表名变体**（t_flash_sale/t_flash_sale_record→t_seckill_product、t_full_reduction→t_full_reduction_rule、t_group_buy*/t_promo_stack_rule→t_promotion_stack_rule、t_product_step_price→t_sku_price、t_payment_method 等）：核实代码 SQL，修正为真实表名/列名（真实表已存在）
+  3. **真实漂移**（t_aftersale/t_audit_log/t_cart_item/t_cash_flow/t_daily_settlement/t_order_coupon/t_platform_settlement/t_purchase_order_archive/t_purchase_order_item_archive/t_sale_bill_archive/t_sale_bill_item_archive/t_sys_user_login/t_wx_user 等）：核实代码用途——功能需要则**补建表**（定义 DDL 补入迁移并生产执行），代码误引用则修正；无法确认的逐条说明
+- **验收**：38 张漂移表逐条给出处理结论（误报/改代码/补建表）；重跑 schema-audit 漂移表显著减少或清零；`npm run build` + 后端测试通过
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
