@@ -260,6 +260,15 @@ function loadDdlExpectation() {
         if (!expectation.get(table).has(col)) expectation.get(table).set(col, type);
       }
     }
+    // 补充 ALTER TABLE ... ADD COLUMN 定义（R95-04-5：此前未纳入类型期望）
+    const alterRe = /ALTER\s+TABLE\s+`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s+ADD\s+COLUMN\s+`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s+([a-zA-Z_][a-zA-Z0-9_]*)/gi;
+    let m;
+    while ((m = alterRe.exec(sql))) {
+      const table = m[1].toLowerCase();
+      if (!expectation.has(table)) expectation.set(table, new Map());
+      const col = m[2].toLowerCase();
+      if (!expectation.get(table).has(col)) expectation.get(table).set(col, m[3].toLowerCase());
+    }
   };
   if (existsSync(INIT_SQL)) merge(readFileSync(INIT_SQL, "utf-8"));
   if (existsSync(MIGRATIONS_DIR)) {
@@ -313,20 +322,26 @@ function normalizeType(type) {
 
 function compare(codeExpect, ddlExpect, actual) {
   const report = {
-    missingTables: [],          // 代码引用但生产缺失的表
-    missingColumns: new Map(),  // table -> Set<column>
+    missingTables: [],          // 迁移 DDL 有定义但生产缺失的表（可信缺表）
+    driftTables: [],            // 代码引用但无 DDL 定义且生产缺失（结构漂移，需人工核实）
+    missingColumns: new Map(),  // 迁移 DDL 定义列但表内缺失（可信缺列）
     typeMismatches: new Map(),  // table -> Map<column, {expected, actual}>
   };
 
-  const allCodeTables = new Set(codeExpect.keys());
-  for (const table of allCodeTables) {
-    if (!actual.has(table)) {
-      report.missingTables.push(table);
-      continue;
-    }
+  // 可信缺表：迁移 DDL 有定义、生产缺失
+  for (const table of ddlExpect.keys()) {
+    if (!actual.has(table)) report.missingTables.push(table);
+  }
+  // 代码漂移表：代码引用、DDL 无定义、生产缺失（提示人工核实，不作为缺表）
+  for (const table of codeExpect.keys()) {
+    if (!actual.has(table) && !ddlExpect.has(table)) report.driftTables.push(table);
+  }
+
+  // 可信缺列：迁移 DDL 定义列 vs 生产实际
+  for (const [table, ddlCols] of ddlExpect) {
+    if (!actual.has(table)) continue;
     const actualCols = actual.get(table);
-    const expectedCols = codeExpect.get(table);
-    for (const col of expectedCols) {
+    for (const col of ddlCols.keys()) {
       if (!actualCols.has(col)) {
         if (!report.missingColumns.has(table)) report.missingColumns.set(table, new Set());
         report.missingColumns.get(table).add(col);
@@ -370,17 +385,21 @@ function renderReport(report, meta) {
   const missingTableCount = report.missingTables.length;
   const missingColCount = [...report.missingColumns.values()].reduce((n, s) => n + s.size, 0);
   const typeMismatchCount = [...report.typeMismatches.values()].reduce((n, m) => n + m.size, 0);
+  const driftTableCount = report.driftTables.length;
   if (missingTableCount + missingColCount + typeMismatchCount === 0) {
-    lines.push("✅ 未发现结构漂移：代码引用的表/列均存在，迁移 DDL 类型与生产一致。");
+    lines.push("✅ 未发现结构差异：迁移 DDL 定义的表/列均存在，类型与生产一致。");
   } else {
     lines.push(`⚠️ 发现结构差异 ${missingTableCount + missingColCount + typeMismatchCount} 处：`);
-    lines.push(`- 缺表：${missingTableCount} 张`);
-    lines.push(`- 缺列：${missingColCount} 列`);
+    lines.push(`- 缺表（迁移 DDL 定义但生产缺失）：${missingTableCount} 张`);
+    lines.push(`- 缺列（迁移 DDL 定义列但表内缺失）：${missingColCount} 列`);
     lines.push(`- 类型不匹配：${typeMismatchCount} 列`);
+  }
+  if (driftTableCount > 0) {
+    lines.push(`- 代码漂移表（代码引用但无 DDL 定义，需人工核实）：${driftTableCount} 张`);
   }
   lines.push("");
 
-  lines.push("## 一、缺表（代码引用但生产缺失）");
+  lines.push("## 一、缺表（迁移 DDL 定义但生产缺失）");
   lines.push("");
   if (report.missingTables.length === 0) {
     lines.push("无。");
@@ -393,7 +412,7 @@ function renderReport(report, meta) {
   }
   lines.push("");
 
-  lines.push("## 二、缺列（代码引用但表内缺失）");
+  lines.push("## 二、缺列（迁移 DDL 定义列但表内缺失）");
   lines.push("");
   if (missingColCount === 0) {
     lines.push("无。");
@@ -420,12 +439,22 @@ function renderReport(report, meta) {
     }
   }
   lines.push("");
+  lines.push("## 四、代码漂移表（代码引用但无 DDL 定义且生产缺失）");
+  lines.push("");
+  if (driftTableCount === 0) {
+    lines.push("无。");
+  } else {
+    lines.push("> 这些表被 backend/src 代码引用，但迁移 DDL 无对应 CREATE/ALTER 定义，属结构漂移。需人工核实：补建表或修正代码引用，不自动补建。");
+    lines.push("");
+    lines.push(`\`${report.driftTables.sort().join("`、`")}\``);
+  }
+  lines.push("");
   lines.push("---");
   lines.push("");
   lines.push("## 附注");
   lines.push("");
-  lines.push("- 代码表/列引用通过正则从 `backend/src` 提取，`SELECT` 列表与别名列可能包含少量误报，人工复核时以 `t_xxx.列名` / `INSERT 括号` / `SET 列` 为准。");
-  lines.push("- 类型对比期望值来自 `docs/init_database.sql` + `docs/migrations/*.sql` 的 `CREATE TABLE` 定义；`ALTER TABLE ADD COLUMN` 变更未纳入类型期望。");
+  lines.push("- 缺表/缺列以迁移 DDL（`docs/init_database.sql` + `docs/migrations/*.sql` 的 `CREATE TABLE` 与 `ALTER TABLE ADD COLUMN`）为期望基线，剔除代码正则误报。");
+  lines.push("- 代码漂移表单独列出（代码引用但无 DDL 定义），需人工核实后决定补建或修正代码。");
   lines.push("- 本脚本只读 information_schema，不修改数据库。");
   lines.push("");
   return lines.join("\n");
