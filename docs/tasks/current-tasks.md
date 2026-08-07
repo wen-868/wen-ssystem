@@ -2486,11 +2486,18 @@
 6. `docs/API接口文档.md` 已补 R97-01 平台端点契约（P25-P36）+ 修正 P22 对账契约
 
 ### R97-02 — [P0] 工作台即时零售/小程序功能恢复（菜单 + 后端接口）
-- **状态**：🔄 进行中（2026-08-08 凌舟诊断；前端菜单已恢复，后端已完成待复核——阿坚 2026-08-08 提交推送）
+- **状态**：✅ 已完成（2026-08-08 凌舟验收收口：生产实测 14 接口全 200）
 - **根因**：`f30aba74` 导航减法把即时零售菜单 12→4 项、系统菜单砍掉「小程序配置」等 8 项（页面/路由都在，仅入口被删）；后端 shelf/payments/deliveries/order-board/retail-announcements(前缀)/retail-cart/analysis 六组接口从未实现（生产 404）；miniapp-order-sync 生产 500
 - **前端（凌舟已完成，未提交）**：MainLayout.vue 恢复即时零售 12 项 + 系统菜单 8 项，admin-web 构建通过
 - **后端（阿坚，任务卡 `docs/tasks/inbox/ajian_retail_fix_01.md`）**：开发 6 组缺失接口（商品货架/支付记录/配送管理/接单看板/公告别名/购物车分析）+ 修 miniapp-order-sync 500
 - **部署**：前后端改动提交推送后重新部署生效
+
+**验收收口（2026-08-08 凌舟）：**
+- 生产实测全部 200：shelf / payments / deliveries / order-board / retail-announcements / retail-cart/analysis / miniapp-order-sync + 原有 orders/configs/reports/platforms/banners/categories/shop-config 无回归
+- 部署中发现两个数据库问题并修复（已同步迁移入库）：
+  1. 迁移 125 依赖 092 存储过程，生产未自动创建导致补列被静默跳过 → 手动执行 125 补列成功
+  2. 即时零售相关表 tenant_id 列 collation 不一致（unicode_ci vs 0900_ai_ci），deliveries JOIN 500 → 生产 ALTER 统一 + 新增迁移 [126_retail_tenant_collation_fix.sql](docs/migrations/126_retail_tenant_collation_fix.sql) 入库
+- 待办：admin-web 前端菜单恢复需在服务器重新构建部署（`VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace admin-web run build` + 部署 /var/www/admin-web）
 
 **后端完成记录（2026-08-08 阿坚，任务卡 `ajian_retail_fix_01`）：**
 
