@@ -215,7 +215,15 @@
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/config') }" @click="navTo('/instant-retail/config')">平台配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/pickup') }" @click="navTo('/instant-retail/pickup')">接单工作台</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/orders') }" @click="navTo('/instant-retail/orders')">小程序订单</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/order-board') }" @click="navTo('/instant-retail/order-board')">订单看板</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/shelf') }" @click="navTo('/instant-retail/shelf')">商品货架</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/sync') }" @click="navTo('/instant-retail/sync')">库存同步</div>
             <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/delivery') }" @click="navTo('/instant-retail/delivery')">配送管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/platform') }" @click="navTo('/instant-retail/platform')">平台管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/payment') }" @click="navTo('/instant-retail/payment')">平台对账</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/announcements') }" @click="navTo('/instant-retail/announcements')">平台公告</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/dashboard') }" @click="navTo('/instant-retail/dashboard')">零售看板</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/instant-retail/report') }" @click="navTo('/instant-retail/report')">零售报表</div>
           </div>
         </div>
 
@@ -262,13 +270,21 @@
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
           <div v-show="openGroups.system && !isMenuCollapsed" class="nav-sub">
+            <div class="nav-sub-item" :class="{ active: isActive('/department-manage') }" @click="navTo('/department-manage')">部门管理</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/position-manage') }" @click="navTo('/position-manage')">岗位管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/employees') }" @click="navTo('/employees')">员工管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/config') }" @click="navTo('/system/config')">系统配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/rules') }" @click="navTo('/system/approval/rules')">审批规则</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/my') }" @click="navTo('/system/approval/my')">我的审批</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/report-permissions') }" @click="navTo('/report-permissions')">报表权限</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/payment') }" @click="navTo('/system/payment')">支付配置</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/miniapp') }" @click="navTo('/system/miniapp')">小程序配置</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/monitor') }" @click="navTo('/monitor')">系统监控</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/feedback') }" @click="navTo('/system/feedback')">反馈管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/audit-log') }" @click="navTo('/audit-log')">操作日志</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/error-log') }" @click="navTo('/error-log')">错误日志</div>
           </div>
         </div>
       </nav>

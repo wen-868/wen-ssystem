@@ -94,7 +94,7 @@
         </el-form>
 
         <div class="register-hint">
-          还没账号？<span class="register-link">立即注册</span>
+          还没账号？<span class="register-link" @click="router.push('/register')">立即注册</span>
         </div>
         <div class="icp-line">
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
