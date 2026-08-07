@@ -6,8 +6,8 @@ on:
 
 jobs:
   deploy:
-    # 自托管 Windows runner（ZXQL-Desktop-ARM64），避免 GitHub 托管 runner 分配故障
-    runs-on: self-hosted
+    # 托管 runner：自托管 Windows runner 因本机网络访问 codeload 下载 actions 404 暂时不可用
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
