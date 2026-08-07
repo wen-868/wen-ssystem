@@ -1,0 +1,25 @@
+-- 缺列补建 SQL（2026-08-07T13:33:10.815Z）
+SET NAMES utf8mb4;
+ALTER TABLE t_bank_account ADD COLUMN bank_code VARCHAR(32) NOT NULL DEFAULT '' COMMENT '银行联行号';
+ALTER TABLE t_bank_account ADD COLUMN branch_name VARCHAR(128) NOT NULL DEFAULT '' COMMENT '支行名称';
+ALTER TABLE t_bank_account ADD COLUMN is_default TINYINT NOT NULL DEFAULT 0 COMMENT '是否默认收款账户';
+ALTER TABLE t_bank_account ADD COLUMN qr_code_url VARCHAR(512) NOT NULL DEFAULT '' COMMENT '收款码图片URL';
+ALTER TABLE t_bank_account ADD COLUMN remark VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE t_bank_account ADD COLUMN sort_order INT NOT NULL DEFAULT 0;
+ALTER TABLE t_points_record ADD COLUMN balance_points INT NOT NULL COMMENT '变动后余额';
+ALTER TABLE t_points_record ADD COLUMN change_points INT NOT NULL COMMENT '变动积分（正=获得，负=消耗）';
+ALTER TABLE t_points_record ADD COLUMN member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID';
+ALTER TABLE t_points_record ADD COLUMN source_id VARCHAR(64) DEFAULT NULL COMMENT '来源ID';
+ALTER TABLE t_price_change_log ADD COLUMN changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE t_price_change_log ADD COLUMN product_id INT NOT NULL;
+ALTER TABLE t_product_price_log ADD COLUMN batch_no VARCHAR(32) DEFAULT NULL COMMENT '批量调整批次号';
+ALTER TABLE t_product_price_log ADD COLUMN change_reason VARCHAR(255) DEFAULT NULL COMMENT '变更原因';
+ALTER TABLE t_product_sku ADD COLUMN alcohol_degree DECIMAL(5,2) DEFAULT NULL COMMENT '酒精度(%)';
+ALTER TABLE t_purchase_payment ADD COLUMN payment_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00;
+ALTER TABLE t_purchase_payment ADD COLUMN purchase_order_id BIGINT NOT NULL;
+ALTER TABLE t_report_permission_matrix ADD COLUMN `can_view` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否可查看：0=否 1=是' AFTER `store_scope`;
+ALTER TABLE t_retail_order ADD COLUMN user_name VARCHAR(64) COMMENT '用户姓名';
+ALTER TABLE t_sys_user ADD COLUMN mobile VARCHAR(20) DEFAULT NULL COMMENT '手机号';
+ALTER TABLE t_tenant ADD COLUMN company_name VARCHAR(128) NOT NULL COMMENT '公司名称';
+ALTER TABLE t_tenant ADD COLUMN company_short_name VARCHAR(64) COMMENT '公司简称';
+ALTER TABLE t_tenant ADD COLUMN tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）';
