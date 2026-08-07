@@ -16,6 +16,9 @@ echo "==> 重建后端原生模块"
 npm --workspace backend rebuild 2>/dev/null || true
 
 echo "==> 构建后端"
+# R95-03 修复：构建前清理 dist，防止已删除源文件的旧编译产物残留
+# （auto-routes 扫描 dist/routes 曾加载已删的 admin.routes.js 旧路由，导致销售排行走旧实现）
+rm -rf backend/dist
 npm --workspace backend run build
 
 echo "==> 构建前端（相对路径 /api）"
