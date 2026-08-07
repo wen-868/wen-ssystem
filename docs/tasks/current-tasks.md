@@ -2691,7 +2691,47 @@
 ### R98-01 — [P1] 平台小程序 MVP（工程 + 页面 + 后端接口 + 后台审核）
 - **优先级**：P1
 - **负责人**：阿澈（小程序 + 后端接口）
-- **状态**：🔄 进行中（2026-08-08 凌舟派单，任务卡 `docs/tasks/inbox/ache_r98_01.md`）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，commit 见 git log，待凌舟复核收口）
+
+**R98-01 完成记录（2026-08-08 ache_r98_01b，接续余额中断后重新派单）：**
+
+**① 前端工程（已由凌舟接手建好，本轮补身份链路）：**
+- `platform-miniapp/` Taro 3.6 + Vue3 工程：5 页齐全（首页/套餐/订阅申请/我的申请/关于），tabBar 首页/套餐/我的申请，测试 AppID `wx3ea76428aa15cec7` 已配置（正式发布换平台自己的）
+- 已注册进根 package.json workspaces（`npm install --legacy-peer-deps` 通过，根 lockfile 已含 platform-miniapp 依赖）
+- `src/api/platform.ts`：新增本地身份体系（`getDeviceOpenid`/`getLocalIdentity`/`saveLocalIdentity`）——MVP 无 code2session，提交时生成持久化设备 ID 充当 openid，R98-02 换真实微信 openid
+- `pages/subscribe/index.vue`：提交时带 openid + 保存本地身份（openid+mobile）
+- `pages/my-applications/index.vue`：有本地身份按 openid 查、无身份时手机号兜底查询输入框（修复原 wx.login code 当 openid 的不可用链路）
+
+**② 后端公开接口（挂主后端 8080，auth: none + 基础防刷）：**
+- `backend/src/routes/platform-miniapp.routes.ts`：`GET /api/platform-miniapp/plans`（仅 ACTIVE + 脱敏 id/name/price/cycle/description/features，周期映射月/年/永久）、`POST /api/platform-miniapp/subscriptions`（zod 校验 + express-rate-limit 每 IP 每小时 20 次 + 同手机号/公司待审核防重）、`GET /api/platform-miniapp/subscriptions/me`（openid 优先 mobile 兜底）
+- `backend/src/controllers/platform-miniapp.controller.ts` + `services/platform-miniapp.service.ts`（listPublicPlans/submitSubscription/listMySubscriptions）
+- 新表 `docs/migrations/131_platform_subscription_apply.sql`（CREATE TABLE IF NOT EXISTS 幂等 + 索引 + 验证 SQL，字段按任务卡规格：openid/plan_id/plan_name/company/contact/mobile/remark/status/audit_remark/audited_by/audited_at/tenant_id/created_at/updated_at）
+
+**③ 平台后台审核（requirePlatformAuth）：**
+- `backend/src/routes/platform-subscription-applies.routes.ts`：`GET /api/platform/subscription-applies`（PENDING 优先 + 状态筛选 + 分页）、`GET /:id`、`PUT /:id/audit`（action APPROVED/REJECTED + auditRemark，写入 audited_by/audited_at）
+- saas-admin：`api/subscription-apply.ts` + `views/subscription/SubscriptionApplies.vue`（列表 + 详情弹窗 + 通过/驳回 + 审核备注）+ 路由 `/subscription-applies` + 侧边栏「订阅申请」入口
+
+**④ 验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 服务单测 | `npx vitest run src/__tests__/services/platform-miniapp.service.test.ts` | 18/18 通过 ✅ |
+| 后端全量测试 | `npx vitest run` | 448 文件 / 5178 用例全通过 ✅ |
+| 后端类型检查 | `npm run typecheck` | 0 errors ✅ |
+| 后端构建 | `npm run build` | exit 0 ✅ |
+| ESLint（新增/改动文件） | `npx eslint <9个文件>` | 0 errors 0 warnings ✅ |
+| 小程序 weapp 构建 | `cd platform-miniapp && npm run build:weapp` | Compiled successfully ✅ |
+| 小程序 H5 构建 | `npm run build:h5` | exit 0 ✅ |
+| 小程序类型检查 | `npm run type-check` | 0 errors ✅ |
+| saas-admin 构建 | `cd saas-admin && npm run build` | exit 0 ✅ |
+| 租户商城回归 | `cd miniapp && npm run build:weapp` | Compiled successfully（workspace 变更未破坏 R96）✅ |
+| 接口实测（mock 联调） | 公开套餐 200 → 提交申请 201 → me 查询 200 → 平台登录 200 → 审核列表 200 → 详情 200 → PUT audit 200 → me 状态 APPROVED | 端到端流转全通 ✅ |
+
+**⑤ 说明：**
+1. 本地 mock-db 补充 `mock-db-platform-miniapp.ts`（套餐 + 订阅申请两个 handler），并修复预存缺陷：mock 平台管理员行密码键为 `password` 而服务读 `password_hash`，登录必 500（已补别名，登录链路恢复）
+2. openid 为 MVP 设备标识兜底，正式微信登录（code2session 换 openid）留待 R98-02；真实上传/审核需用户提供正式 AppID
+3. 迁移 131 待服务器部署时由 migration.ts 自动执行（本地无 MySQL）
+
+**任务卡归档**：`docs/tasks/inbox/ache_r98_01.md` + `ache_r98_01b.md` → `docs/tasks/inbox/archive/`
 
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 

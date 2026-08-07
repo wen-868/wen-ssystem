@@ -159,7 +159,10 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
   // platform_admin / t_platform_admin
   (s, params) => {
     if ((s.includes("from t_platform_admin where username") || s.includes("from t_platform_admin where username")) && s.includes("status")) {
-      return state.platformAdmins.filter((u: any) => u.username === params[0] && u.status === 1);
+      // mock 态中密码存在 password 键，服务层读取 password_hash，此处补别名保证登录链路可用
+      return state.platformAdmins
+        .filter((u: any) => u.username === params[0] && u.status === 1)
+        .map((u: any) => ({ ...u, password_hash: u.password }));
     }
     if (s.includes("from t_platform_admin where id") || s.includes("from t_platform_admin where id")) {
       return state.platformAdmins.filter((u: any) => u.id === Number(params[0]));

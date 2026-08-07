@@ -12,6 +12,7 @@ import { queryHandlers as inventoryQuery, executeHandlers as inventoryExecute } 
 import { queryHandlers as orderQuery, executeHandlers as orderExecute } from "./mock-db-order";
 import { queryHandlers as financeQuery, executeHandlers as financeExecute } from "./mock-db-finance";
 import { queryHandlers as supplierQuery, executeHandlers as supplierExecute } from "./mock-db-supplier";
+import { queryHandlers as platformMiniappQuery, executeHandlers as platformMiniappExecute } from "./mock-db-platform-miniapp";
 
 // 按原 mock-db.ts 中的顺序组合所有 handler
 const allQueryHandlers = [
@@ -26,6 +27,7 @@ const allQueryHandlers = [
   // 在原文件中位于财务处理之后，但 systemQuery 已包含它们排在前面
   // 这里通过把 systemQuery 分为前后两部分来解决顺序问题
   ...supplierQuery,   // supplier, purchase_order, purchase_in_stock, purchase_return, sale_return
+  ...platformMiniappQuery, // subscription_plan, platform_subscription_apply
 ];
 
 // 注意：systemQuery 和 supplierQuery 的某些 handler 在原文件中位于后面
@@ -42,6 +44,7 @@ const allExecuteHandlers = [
   ...orderExecute,
   ...financeExecute,
   ...supplierExecute,
+  ...platformMiniappExecute,
 ];
 
 export async function mockQuery<T = any>(sql: string, params: unknown[] = []) {

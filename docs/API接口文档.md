@@ -88,6 +88,7 @@
 8. [即时零售接口](#即时零售接口)
 9. [平台总后台接口](#平台总后台接口)
 10. [核心 70 API 端到端契约明细](#核心-70-api-端到端契约明细)
+11. [平台小程序公开接口](#平台小程序公开接口)
 
 ---
 
@@ -130,7 +131,7 @@
 | A29 | `POST /api/admin/purchase-orders` | 新建采购单 | supplierId,items:[{skuId,qty,price}],remark,expectedDate | orderNo,totalAmount | purchase-order.service.ts create() | PurchaseOrderCreateView.vue |
 | A30 | `GET /api/admin/stock-batches` | 库存批次 | ?skuId&page&pageSize&warehouseId | {total,records:[{batchNo,skuId,skuName,qty,inPrice,inboundDate,expireDate,warehouseId}]} | stock-batch.service.ts list() + stock-batch.routes.ts | StockBatchListView.vue |
 
-### 二、PLATFORM 端点（24 个 + R97-01 新增 12 个，共 36 个，/api/platform/*）
+### 二、PLATFORM 端点（24 个 + R97-01 新增 12 个 + R98-01 新增 3 个，共 39 个，/api/platform/*）
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
@@ -170,6 +171,9 @@
 | P34 | `GET /api/platform/tenants/rank` | 租户使用排行（R97-01） | ?sortBy=order_count\|sales_amount\|user_count\|activity&limit=10 | [{tenantName,planName,value,percentage,lastActive}] | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
 | P35 | `GET /api/platform/config/sys-config` | 平台系统设置（R97-01，对齐 Settings.vue） | — | {platformName,servicePhone,serviceEmail,trialDays,defaultPlanId,taxRate,maxUploadSizeMb,openRegister,registerNeedAudit,registerRequireMobile,registerRequireLicense,registerAgreementUrl,maintenanceMode,maintenanceTitle,maintenanceMessage,maintenanceWhitelist,announcements} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 | P36 | `PUT /api/platform/config/sys-config` | 保存平台系统设置（整包 JSON，R97-01，需 x-csrf-token） | 同 P35 字段对象 | {updated:true} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
+| P37 | `GET /api/platform/subscription-applies` | 订阅申请列表（R98-01，PENDING 优先） | ?page&pageSize&status=PENDING\|APPROVED\|REJECTED | {list:[{id,planId,planName,company,contact,mobile,remark,status,auditRemark,auditedAt,createdAt}],total,page,pageSize} | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
+| P38 | `GET /api/platform/subscription-applies/:id` | 订阅申请详情（R98-01） | — | 同 P37 单条记录 | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
+| P39 | `PUT /api/platform/subscription-applies/:id/audit` | 订阅申请审核（R98-01，需 x-csrf-token） | action:"APPROVED"\|"REJECTED"✅, auditRemark?:string | 更新后记录（status/auditRemark/auditedAt） | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/api/subscription-apply.ts |
 
 ### 三、STORE 端点（16 个，/api/store/*）
 
@@ -193,6 +197,38 @@
 | S16 | `GET /api/store/dashboard` | 门店看板 | ?granularity=day&days=7 | {todaySales,todayOrders,currentCustomers,weekTrend[],top5[],inventoryWarning} | store-dashboard.routes.ts + dashboard for store | store-terminal Dashboard.vue |
 
 > **契约对齐约定**：后端改字段/加路径 → 先在上方表新增行，再改代码；前端加请求 → 先查表，表中不存在的端点必须提 Issue 让凌舟派单补契约，不允许自行开发。
+
+---
+
+## 平台小程序公开接口
+
+> **说明（R98-01）**：平台小程序（platform-miniapp，产品介绍 + 套餐订阅）专用公开端点，无需登录，面向潜在客户/租户。写接口有基础防刷（提交申请每 IP 每小时 20 次 + 同手机号/公司待审核防重）。
+
+### GET /api/platform-miniapp/plans
+- **端类型**：平台小程序（公开）
+- **描述**：公开套餐列表（仅 ACTIVE + 字段脱敏为 id/name/price/cycle/description/features）
+- **请求**：无
+- **响应**：`{ code:"0", data:[{ id, name, price, cycle(月/年/永久), description, features: string[] }] }`
+- **后端文件**：backend/src/routes/platform-miniapp.routes.ts + services/platform-miniapp.service.ts（listPublicPlans）
+- **前端文件**：platform-miniapp/src/api/platform.ts（fetchPlans）+ pages/plans/index.vue
+
+### POST /api/platform-miniapp/subscriptions
+- **端类型**：平台小程序（公开 + 限流防刷）
+- **描述**：提交套餐订阅意向申请（落 t_platform_subscription_apply，状态 PENDING）
+- **请求体**：`{ openid?: string, planId: number✅, company: string✅, contact: string✅, mobile: string✅(1开头的11位手机号), remark?: string }`
+- **响应**：201 `{ code:"0", data:{ id, planId, planName, company, contact, mobile, remark, status:"PENDING", auditRemark, auditedAt, createdAt } }`
+- **错误**：400（套餐不存在/已下架、手机号或公司已有待审核申请、参数校验失败）；429（提交过于频繁）
+- **后端文件**：backend/src/routes/platform-miniapp.routes.ts + controllers/platform-miniapp.controller.ts + services/platform-miniapp.service.ts（submitSubscription）
+- **前端文件**：platform-miniapp/src/api/platform.ts（submitSubscription）+ pages/subscribe/index.vue
+
+### GET /api/platform-miniapp/subscriptions/me
+- **端类型**：平台小程序（公开）
+- **描述**：查询本人申请（openid 优先，mobile 兜底）
+- **请求**：`?openid=xxx` 或 `?mobile=xxx`（至少一个）
+- **响应**：`{ code:"0", data:[ { id, planId, planName, company, contact, mobile, remark, status, auditRemark, auditedAt, createdAt } ] }`
+- **错误**：400（缺少 openid/mobile 参数）
+- **后端文件**：backend/src/routes/platform-miniapp.routes.ts + services/platform-miniapp.service.ts（listMySubscriptions）
+- **前端文件**：platform-miniapp/src/api/platform.ts（fetchMyApplications）+ pages/my-applications/index.vue
 
 ---
 

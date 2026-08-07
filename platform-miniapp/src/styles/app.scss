@@ -1,0 +1,177 @@
+@import './variables.scss';
+
+page {
+  background-color: $bg-page;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: $font-size-base;
+  color: $text-primary;
+  line-height: $line-height-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  padding: $spacing-md;
+  box-sizing: border-box;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.text-primary {
+  color: $brand-primary;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.text-tertiary {
+  color: $text-tertiary;
+}
+
+.bg-white {
+  background-color: $bg-card;
+}
+
+.radius-md {
+  border-radius: $radius-md;
+}
+
+.shadow-card {
+  box-shadow: $shadow-card;
+}
+
+/* Card — 白色背景，圆角，轻阴影 */
+.card {
+  background: $bg-card;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+/* 主按钮 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22rpx 40rpx;
+  font-size: $font-size-md;
+  border-radius: $radius-full;
+  transition: all $transition-fast;
+  border: none;
+  line-height: 1.5;
+}
+
+.btn-primary {
+  background: $brand-gradient;
+  color: $text-inverse;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.28);
+}
+
+.btn-primary:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.btn-default {
+  background: $bg-card;
+  color: $text-primary;
+  border: 2rpx solid $gray-300;
+}
+
+.btn-default:active {
+  background: $bg-soft;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 20rpx;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.status-tag.success { background: $success-soft; color: $success-color; }
+.status-tag.warning { background: $warning-soft; color: #b45309; }
+.status-tag.danger  { background: $error-soft; color: $error-color; }
+.status-tag.info    { background: $info-soft; color: $info-color; }
+.status-tag.default { background: $bg-soft; color: $text-secondary; }
+
+/* 表单输入 */
+.form-item {
+  margin-bottom: $spacing-lg;
+}
+
+.form-label {
+  display: block;
+  font-size: $font-size-sm;
+  color: $text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.form-input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 $spacing-md;
+  background: $bg-card;
+  border: 2rpx solid $border-color;
+  border-radius: $radius-sm;
+  font-size: $font-size-base;
+  color: $text-primary;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 160rpx;
+  padding: $spacing-md;
+  background: $bg-card;
+  border: 2rpx solid $border-color;
+  border-radius: $radius-sm;
+  font-size: $font-size-base;
+  color: $text-primary;
+  box-sizing: border-box;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ellipsis-2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}

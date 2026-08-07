@@ -107,6 +107,12 @@ const router = createRouter({
           meta: { title: '订阅详情' },
         },
         {
+          path: 'subscription-applies',
+          name: 'SubscriptionApplies',
+          component: () => import('../views/subscription/SubscriptionApplies.vue'),
+          meta: { title: '订阅申请' },
+        },
+        {
           path: 'settings',
           name: 'Settings',
           component: () => import('../views/Settings.vue'),

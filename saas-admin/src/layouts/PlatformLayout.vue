@@ -27,6 +27,10 @@
           <el-icon><CreditCard /></el-icon>
           <span>订阅管理</span>
         </el-menu-item>
+        <el-menu-item index="/subscription-applies">
+          <el-icon><Tickets /></el-icon>
+          <span>订阅申请</span>
+        </el-menu-item>
         <el-menu-item index="/reconciliation">
           <el-icon><Money /></el-icon>
           <span>财务结算</span>
@@ -99,7 +103,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

@@ -1,0 +1,12 @@
+{
+  "appid": "wx3ea76428aa15cec7",
+  "projectname": "platform-miniapp",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true
+  },
+  "compileType": "miniprogram"
+}
