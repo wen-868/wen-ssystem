@@ -2349,6 +2349,18 @@
 - **后续动作**：① 改进 schema-audit 脚本——期望列改为「迁移 DDL 定义」而非代码正则，剔除误报，产出可信报告；② 真实缺表按功能版块启用时补建（售后/审计/购物车/现金流/归档等），并在对应版块任务中修正代码引用；③ t_user_coupon 等有 DDL 但 extract 遗漏的表，在版块任务中补建。
 - **不阻塞当前验收**：生产接口全绿、移动端走查通过、备份每日 3 次、迁移保护生效。
 
+**R95-04-5 收口（2026-08-07 凌舟，schema 体检全量对齐）**：
+- schema-audit 脚本改进：缺表/缺列以迁移 DDL 为基线（含 ALTER ADD COLUMN），代码漂移表单独分类，差异从 1076 → 58 → **17 处**。
+- **生产缺表/缺列清零**：补建 59 张表（373→432），生产全部迁移 DDL 定义的表均已建成；补列 24 列（含 t_retail_order_item.sku_id 漂移列）；修复源文件缺陷 104（updated_at 缺 DATETIME）。
+- **17 处类型不匹配评估结论：全部为兼容性差异，不改**（避免 ALTER 类型转换风险）：
+  - int vs bigint（12 处）：t_bank_account/t_error_logs/t_retail_*/t_sys_user/t_sys_role 的 id 类字段，互转兼容；
+  - t_purchase_payment.payment_method enum vs varchar：兼容；
+  - t_store_control_config auto_open/close_time time vs varchar：生产按字符串存 "HH:MM"，代码兼容；
+  - t_subscription.tenant_id / t_tenant.id int vs varchar：生产实际 varchar（代码以字符串租户 ID 为准），DDL 期望过时；
+  - t_sys_role.status tinyint vs varchar：生产存状态字符串，代码兼容。
+- **38 张代码漂移表归档**（代码引用但无 DDL 定义，按功能版块处理）：误报约 15（t_last/t_module_name/t_product/t_sale_bills/t_todos 等）、变体约 10（t_flash_sale→t_seckill_product、t_full_reduction→t_full_reduction_rule、t_group_buy→t_group_buy_activity 等已建，代码用旧名）、真实漂移约 13（t_aftersale/t_audit_log/t_cart_item/t_cash_flow/t_daily_settlement/t_order_coupon/t_platform_settlement/归档表/t_sys_user_login/t_wx_user），随对应版块启用时补建或修正代码。
+- **建议**：schema-audit 纳入 CI 或定期生产巡检（每日备份后），防止结构漂移累积。
+
 **① R95-04-1 迁移文件 MySQL 兼容语法修正（P1）✅：**
 - 5 个文件 `ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS` → 标准语法（去 IF NOT EXISTS，靠迁移引擎 safeExec 容错——列/索引已存在报错跳过，不存在则添加）：
   - `docs/migrations/003_phase2_schema.sql`（L300-302：t_sale_bill sale_type/due_date/statement_id）
