@@ -2304,6 +2304,21 @@
 > **验收**：生产登录 200；核心接口全绿（members/print/finance/expenses/receipts/receivables/trace/stock-checks/store-value-cards/transfer-orders/operation-logs/suppliers/purchase/reports/staff/notifications/prices/products/inventory/sys-config/dashboard/todos/instant-retail 全 200）。
 > **遗留**：① 092/093/096/099/100/101/102/103/104/108/120b/120c 迁移执行时重复列/索引或语法报错（多数已存在项，safeExec 跳过），建议后续统一修正；② 备份每日 02:00 单点，建议加多次/异地备份；③ mock 库掩盖结构漂移，建议增加生产 schema 体检任务。
 
+## R95-04 — 剩余问题修复安排 [规划 — 凌舟 2026-08-07]
+
+> 全量排查结论（生产 32 接口全 200、CI/部署全绿、移动端 build:h5 通过后，剩余问题清单）：
+
+| 编号 | 问题 | 级别 | 修复安排 | 负责人 |
+|:---:|------|:---:|----------|:---:|
+| R95-04-1 | 迁移文件 MySQL 兼容语法：`ADD COLUMN IF NOT EXISTS` / `ADD INDEX IF NOT EXISTS`（003:300-302、007:115、013:7-12、103:2-3、108:146），生产执行报 1064 跳过，字段/索引可能未真正添加 | P1 | 统一改标准语法（去 IF NOT EXISTS，靠 safeExec 容错），修正后服务器重新执行并验证 t_sale_bill/t_member/t_store 等关键字段 | 阿坚 |
+| R95-04-2 | 生产 store 端账号缺失：`store_manager/admin123` 登录 400，移动端 H5 线上无法登录验收 | P2 | 需用户确认生产店长/店员账号；无则创建 store 端账号后做移动端线上走查（m.onepan.cn 12 页） | 阿澈+用户 |
+| R95-04-3 | 备份单点：每日 02:00 一次（02-mysql-backup.sh + crontab），本次事故暴露恢复窗口 11h | P2 | 备份脚本增强：每日 3 次（02/10/18 时）+ 保留 14 天 + 可选异地 rsync；更新 crontab | 阿坚 |
+| R95-04-4 | mock 库掩盖结构漂移（t_member.contact 等仅 mock 有，生产缺） | P2 | 新增 `scripts/schema-audit.mjs`：对比代码期望列 vs 生产 information_schema，输出差异报告；跑通后纳入 CI | 阿坚 |
+| R95-04-5 | 自托管 runner offline（本机 codeload.github.com 下载 actions 404，进程已退出） | P3 | 本机网络修复后重新启动 runner 并验证；当前托管 runner 正常，不阻塞 | 凌舟 |
+| R95-04-6 | 生产 08-07 02:00~13:07 数据窗口丢失（备份点限制） | — | 已记录，不可恢复；通过 R95-04-3 降低未来风险 | — |
+
+> 执行顺序：R95-04-1（迁移修正，防止字段缺失继续积累）→ R95-04-3（备份增强，防再次事故）→ R95-04-4（schema 体检，暴露剩余漂移）→ R95-04-2（需用户提供 store 账号）→ R95-04-5（网络修复后）。
+
 **逐模块修复方式表**：
 
 | 模块 | 原 404 路径 | 修复方式 | 真实接口 |
