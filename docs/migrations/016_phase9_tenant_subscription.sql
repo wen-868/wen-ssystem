@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS t_tenant (
   industry VARCHAR(64) COMMENT '所属行业',
   company_scale VARCHAR(32) COMMENT '公司规模（如：1-10人、11-50人等）',
   source VARCHAR(32) DEFAULT 'MANUAL' COMMENT '来源（MANUAL/SELF_REGISTER/INVITATION）',
-  status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态（ACTIVE/SUSPENDED/EXPIRED/CLOSED）',
+  status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1正常 0停用（与 092 迁移及生产一致）',
   suspend_reason VARCHAR(255) COMMENT '停用原因',
   suspended_at DATETIME COMMENT '停用时间',
   expire_at DATETIME COMMENT '到期时间（冗余字段，便于查询）',

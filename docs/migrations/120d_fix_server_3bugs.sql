@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `t_error_logs` (
   `request_url` VARCHAR(500) DEFAULT NULL COMMENT '请求URL',
   `request_method` VARCHAR(10) DEFAULT NULL COMMENT '请求方法',
   `status_code` INT DEFAULT NULL COMMENT 'HTTP状态码',
-  `user_id` VARCHAR(64) DEFAULT NULL COMMENT '用户ID',
+  `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
   `tenant_id` VARCHAR(64) DEFAULT NULL COMMENT '租户ID',
   `source` VARCHAR(16) DEFAULT 'backend' COMMENT '来源：backend/frontend',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

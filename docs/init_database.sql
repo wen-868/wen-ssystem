@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS t_sys_user (
   password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
   real_name VARCHAR(64) NOT NULL COMMENT '真实姓名',
   mobile VARCHAR(20) DEFAULT NULL COMMENT '手机号',
-  store_id BIGINT UNSIGNED DEFAULT NULL COMMENT '所属门店ID，超级管理员可为空',
+  store_id INT DEFAULT NULL COMMENT '所属门店ID，超级管理员可为空',
   status TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1正常，0禁用',
   last_login_at DATETIME DEFAULT NULL COMMENT '最后登录时间',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -293,7 +293,7 @@ CREATE TABLE IF NOT EXISTS t_store_control_config (
   auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间（HH:mm）',
   max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
   max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '每日最大订单金额',
-  suspended_reason TEXT DEFAULT NULL COMMENT '暂停原因',
+  suspended_reason VARCHAR(500) DEFAULT NULL COMMENT '暂停原因',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)

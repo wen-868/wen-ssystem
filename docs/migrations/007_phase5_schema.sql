@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS t_store_control_config (
   auto_close_time VARCHAR(10) DEFAULT NULL COMMENT '自动关门时间（HH:mm）',
   max_daily_orders INT DEFAULT NULL COMMENT '每日最大订单数',
   max_order_amount DECIMAL(10,2) DEFAULT NULL COMMENT '每日最大订单金额',
-  suspended_reason TEXT DEFAULT NULL COMMENT '暂停原因',
+  suspended_reason VARCHAR(500) DEFAULT NULL COMMENT '暂停原因',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门店管控配置表';
