@@ -28,7 +28,14 @@ for (const file of files) {
   for (const stmt of stmts) {
     const m = stmt.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([a-zA-Z_][a-zA-Z0-9_]*)`?\s*\(/i)
     if (m && wanted.includes(m[1].toLowerCase())) {
-      if (!found.has(m[1])) found.set(m[1], stmt)
+      if (!found.has(m[1])) {
+        // 移除外键约束（与项目建表风格一致：无 FK，避免建表顺序/类型依赖导致失败）
+        let clean = stmt.replace(/,?\s*CONSTRAINT\s+`?[a-zA-Z0-9_]+`?\s+FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,)]*/gi, '')
+        clean = clean.replace(/,?\s*FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES[^,)]*/gi, '')
+        // 幂等：CREATE TABLE → CREATE TABLE IF NOT EXISTS
+        clean = clean.replace(/CREATE\s+TABLE\s+/i, 'CREATE TABLE IF NOT EXISTS ')
+        found.set(m[1], clean)
+      }
     }
   }
 }
