@@ -253,6 +253,12 @@
                     "style": {
                         "navigationBarTitleText": "收款链接"
                     }
+                },
+                {
+                    "path": "trace/trace-query",
+                    "style": {
+                        "navigationBarTitleText": "溯源查询"
+                    }
                 }
             ]
         },
@@ -627,6 +633,24 @@
                     "path": "report-permission/my-permission",
                     "style": {
                         "navigationBarTitleText": "我的权限"
+                    }
+                },
+                {
+                    "path": "print/print-records",
+                    "style": {
+                        "navigationBarTitleText": "单据打印"
+                    }
+                },
+                {
+                    "path": "settings/settings",
+                    "style": {
+                        "navigationBarTitleText": "系统设置"
+                    }
+                },
+                {
+                    "path": "more/more-functions",
+                    "style": {
+                        "navigationBarTitleText": "全部功能"
                     }
                 }
             ]

@@ -2373,6 +2373,64 @@
   - `walkthrough2.mjs` 12 核心页走查 0 结构崩溃/0 404（预期 403 除外）
   - 完成记录写入本任务卡（每批：对照页、改动文件、构建/走查证据）
 
+**凌舟补充决策（2026-08-07，核查用户质疑后）**：
+> 用户质疑「单据打印/系统设置/溯源查询等入口标『开发中』是否属实」。凌舟核查后端源码，结论：**这三个功能后端均已开发，不得标「开发中」**，必须接入真实后端：
+
+| 入口 | 后端已实现证据 | 修正要求 |
+|------|---------------|---------|
+| 单据打印 | `backend/src/routes/print.routes.ts`（R51-03）：POST/GET `/api/admin/print/records`、`/records/:id`、`/records/:id/reprint`；`app-mobile/src/api/modules/print.ts` 已封装 | 新建「打印记录」页（列表+详情+重打），接 `printApi`，入口 path 指向该页 |
+| 溯源查询 | `backend/src/routes/trace.routes.ts`：`/api/admin/trace/configs`、`/codes/generate`、`/codes/:traceCode`、`/query/:traceCode`（追溯链）、`/verify`（防伪）、`/recalls`（召回） | 新建 `api/modules/trace.ts` + 「溯源查询」页（输入追溯码 → 追溯链 + 防伪验证），入口 path 指向该页 |
+| 系统设置 | `backend/src/routes/sys-config.routes.ts`：`/api/admin/sys-config`（GET 全部/分组、PUT batch、POST） | 新建「系统设置」页，接 sys-config API（至少配置列表/分组展示+批量保存），入口 path 指向该页 |
+
+- 原「更多」入口 path 为空属设计稿占位，可跳转功能中心全量列表或保留入口聚合，不得显示「开发中」
+- 以上修正并入 R95-01 功能中心批次（阿澈执行），完成后按批次验收；仍属「后端确无能力」的才允许占位（需附源码核查证据）
+
+### R95-02 — [P1] 功能中心三入口接入真实后端（单据打印/溯源查询/系统设置）
+- **优先级**：P1
+- **负责人**：阿澈（移动端）
+- **预计**：1 天
+- **状态**：✅ 已完成（2026-08-07 阿澈执行，待凌舟复核收口）
+- **必读文件**：`docs/tasks/inbox/ache_r95_02.md`（完整要求+后端路由证据）
+- **问题**：R95-01 遗留——功能中心「单据打印/溯源查询/系统设置」入口标「功能开发中」，凌舟核查后端源码确认三者均已实现（print.routes.ts R51-03 / trace.routes.ts / sys-config.routes.ts），须接入真实后端
+- **修复**：① 单据打印：新建打印记录页接 `printApi`（复用已封装 API）；② 溯源查询：新建 `trace.ts` + 溯源查询页（追溯码→追溯链+防伪验证）；③ 系统设置：新建设置页接 sys-config API（分组展示+批量保存）；④ 「更多」入口跳转全量列表；pages.json 注册新页面；入口 path 全部指向真实页面
+- **验收标准**：三入口可跳转真实页面且数据来自后端（或空态）；无「开发中」占位；`build:h5`/`build:app`/`vue-tsc` 全过；12 页走查 0 崩溃/0 404（预期 403 除外）
+
+**R95-02 完成记录（2026-08-07 阿澈）：**
+
+**① 单据打印：**
+- `app-mobile/src/pages-sub/admin/print/print-records.vue`（新建）：页头返回 + 状态筛选 tab（全部/成功/失败/待打印）+ 打印记录列表（单据类型/单据编号/打印份数/打印机/时间/状态标签）+ 详情弹层（含打印内容）+ 重打按钮（`printApi.reprint` 生成 REPRINT 新记录）+ 分页加载更多 + 空态
+- `app-mobile/src/api/modules/print.ts`（复用 + 修复）：`listRecords` 过滤 undefined/空值参数——uni.request 会把 `status: undefined` 序列化为字符串 "undefined"，后端 zod 枚举校验报 400「参数校验失败」，过滤后接口 200
+- `pages.json` 注册 `pages-sub/admin/print/print-records`；`functions.vue` 「单据打印」入口 path 指向该页（原为空 → 不再提示开发中）
+
+**② 溯源查询：**
+- `app-mobile/src/api/modules/trace.ts`（新建）：`getCodeDetail`（GET `/admin/trace/codes/:traceCode`）、`queryChain`（GET `/admin/trace/query/:traceCode`）、`verify`（POST `/admin/trace/verify`，scanType 默认 ADMIN）——参数/返回结构对照 trace-records.controller/service 源码
+- `app-mobile/src/pages-sub/product/trace/trace-query.vue`（新建）：追溯码输入 → 查询（404 显示「未查询到该追溯码」空态）→ 商品/批次/生产日期/有效期/当前状态/质检结果卡 + 防伪验证按钮（结果横幅：正品绿/仿冒红/过期橙/无效灰）+ 追溯链时间线（生成/状态变更/召回事件）
+- `pages.json` 注册 `pages-sub/product/trace/trace-query`；`functions.vue` 「溯源查询」入口 path 由 batch-list 改为该页
+
+**③ 系统设置：**
+- `app-mobile/src/api/modules/sys-config.ts`（新建）：`getAll`（GET `/admin/sys-config`，返回 all+grouped）、`getByGroup`、`updateBatch`（PUT `/admin/sys-config/batch`，body `[{ config_key, config_value }]`）
+- `app-mobile/src/pages-sub/admin/settings/settings.vue`（新建）：按分组展示配置（系统/微信/支付/企业信息等动态分组）+ 布尔值 switch / 文本输入 + 底部保存栏（仅变更项 PUT batch）+ 空态
+- `pages.json` 注册 `pages-sub/admin/settings/settings`；`functions.vue` 「系统设置」入口 path 指向该页（原为空）
+
+**④ 「更多」入口：**
+- `app-mobile/src/pages-sub/admin/more/more-functions.vue`（新建）：功能中心全量列表页（高频功能 12 宫格 + 数据工具列表，全部指向真实页面）
+- `pages.json` 注册 `pages-sub/admin/more/more-functions`；`functions.vue` 「更多」入口 path 指向该页；`functions.vue` 中 navigate 兜底「功能开发中」提示已移除
+
+**验收证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 类型检查 | `cd app-mobile && npx vue-tsc --noEmit` | exit 0，0 errors ✅ |
+| H5 构建 | `npm run build:h5` | exit 0（DONE Build complete）✅ |
+| App 构建 | `npm run build:app` | exit 0（DONE Build complete）✅ |
+| 12 页走查 | `node .playwright-cli/pw-run/walkthrough2.mjs` | 12/12 正常，0 结构崩溃/0 404；唯一控制台错误为 price-manage 预期 403 ✅ |
+| 新页面冒烟 | Playwright 直达 4 新页 | print/trace/settings/more 全部渲染正常，0 结构崩溃；print 页 0 报错（修复前 400 已消除）✅ |
+| 接口探测 | 真实 token 调用三接口 | GET /print/records 200、GET /sys-config 200（本地库空 → 空态）、GET /trace/query 404（页面正确显示未查询到）✅ |
+
+**说明**：
+1. 本地开发库 `t_sys_config`/`t_print_record` 无数据（后端 USE_MOCK_DB 环境），页面按数据铁律展示空态，未编造数据；生产真实库有数据即正常展示
+2. `POST /trace/verify` 直连不带 x-csrf-token 时返回 403 属 CSRF 中间件先于路由匹配的已知伪影（踩坑日志 [34]），App 内登录后 request.ts 自动注入 `x-csrf-token`，验证可用
+3. 后端 print/trace 接口契约已在 backend 源码实现但 `docs/API接口文档.md` 未收录 print 段（R51-03 遗留），本轮未越权改文档，提请凌舟决定是否补录
+
 
 **阿澈完成记录（2026-08-07，5 批）：**
 

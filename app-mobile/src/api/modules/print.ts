@@ -110,7 +110,18 @@ const printApi = {
      * @returns 分页记录列表
      */
     async listRecords(params?: PrintRecordListParams): Promise<PrintRecordListResult> {
-        const res = (await get('/admin/print/records', params)) as any
+        // 过滤空值：uni.request 会把 undefined 序列化为字符串 "undefined"，
+        // 后端 zod 枚举校验会报 400（如 status=undefined），空值一律不下发
+        const query: Record<string, any> = {}
+        if (params) {
+            for (const key of Object.keys(params)) {
+                const value = (params as Record<string, any>)[key]
+                if (value !== undefined && value !== null && value !== '') {
+                    query[key] = value
+                }
+            }
+        }
+        const res = (await get('/admin/print/records', query)) as any
         // 兼容后端直接返回 { total, records, ... } 或 { data: { ... } } 两种结构
         const raw = res?.result ?? res
         return (raw ?? {

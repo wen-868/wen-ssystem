@@ -1,57 +1,48 @@
 <template>
-  <view class="func-page">
-    <!-- 头部 -->
-    <view class="func-hd">
-      <view class="func-logo">
-        <text class="func-logo-text">智</text>
+  <view class="more-page">
+    <!-- 页头 -->
+    <view class="mf-hd">
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
       </view>
-      <text class="func-hd-title">功能中心</text>
-      <text class="func-hd-search" @tap="focusSearch">&#xe614;</text>
+      <text class="header-title">全部功能</text>
     </view>
 
-    <!-- 搜索栏 -->
-    <view class="func-search">
-      <view class="search-bar">
-        <text class="search-icon">&#xe614;</text>
-        <input class="search-input" v-model="keyword" placeholder="搜索功能、订单、客户" placeholder-class="search-placeholder" @confirm="doSearch" />
-      </view>
-    </view>
-
-    <!-- 高频宫格 -->
-    <view class="func-grid">
-      <view class="func-grid-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
-        <view class="fg-ico" :style="{ background: item.bg, color: item.color }">
-          <text class="fg-ico-text">{{ item.icon }}</text>
+    <!-- 高频功能 -->
+    <view class="mf-section">
+      <text class="mf-section-title">高频功能</text>
+      <view class="mf-grid">
+        <view class="mf-grid-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
+          <view class="mf-ico" :style="{ background: item.bg, color: item.color }">
+            <text class="mf-ico-text">{{ item.icon }}</text>
+          </view>
+          <text class="mf-label">{{ item.label }}</text>
         </view>
-        <text class="fg-label">{{ item.label }}</text>
       </view>
     </view>
 
-    <!-- 数据工具 -->
-    <view class="func-section">
-      <text class="func-section-title">数据 · 工具</text>
-      <view class="func-list">
-        <view class="list-item" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
-          <view class="li-ico" :style="{ background: item.bg, color: item.color }">
-            <text class="li-ico-text">{{ item.icon }}</text>
+    <!-- 数据与工具 -->
+    <view class="mf-section">
+      <text class="mf-section-title">数据 · 工具</text>
+      <view class="mf-list">
+        <view class="mf-list-item" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
+          <view class="mf-li-ico" :style="{ background: item.bg, color: item.color }">
+            <text class="mf-li-ico-text">{{ item.icon }}</text>
           </view>
-          <view class="li-body">
-            <text class="li-title">{{ item.label }}</text>
-            <text class="li-desc">{{ item.sub }}</text>
+          <view class="mf-li-body">
+            <text class="mf-li-title">{{ item.label }}</text>
+            <text class="mf-li-desc">{{ item.sub }}</text>
           </view>
-          <text class="li-arrow">›</text>
+          <text class="mf-li-arrow">›</text>
         </view>
       </view>
     </view>
 
     <view class="safe-bottom"></view>
-    <custom-tab-bar :current="'functions'" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -65,16 +56,6 @@ import {
   AI_TEXT_MID,
 } from '@/constants/colors'
 
-const keyword = ref('')
-
-const navigate = (path: string) => {
-  if (path) {
-    uni.navigateTo({ url: path })
-  }
-}
-
-const goto = (path: string) => navigate(path)
-
 const hotActions = [
   { icon: '开', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '单', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
@@ -87,156 +68,82 @@ const hotActions = [
   { icon: '员', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '库', label: '库存管理', path: '/pages-sub/product/inventory/inventory', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '供', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '更', label: '更多', path: '/pages-sub/admin/more/more-functions', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '溯', label: '溯源查询', path: '/pages-sub/product/trace/trace-query', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
 ]
 
 const dataTools = [
   { icon: '报', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '排', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '溯', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '批', label: '批次管理', sub: '库存批次与出入库明细', path: '/pages-sub/product/batches/batch-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '警', label: '库存预警', sub: '低库存与临期提醒', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_DANGER_SOFT, color: AI_DANGER },
+  { icon: '价', label: '价格管理', sub: '零售/批发价与调价', path: '/pages-sub/product/price/price-manage', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '调', label: '批量调价', sub: '按分类批量调整价格', path: '/pages-sub/product/price/batch-price', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '销', label: '销售报表', sub: '销售数据明细分析', path: '/pages-sub/finance/reports/sales-reports', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '设', label: '系统设置', sub: '打印、权限、通知设置', path: '/pages-sub/admin/settings/settings', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
-function focusSearch() {
-  uni.showToast({ title: '输入关键词搜索', icon: 'none' })
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.reLaunch({ url: '/pages/functions/functions' })
+  }
 }
 
-function doSearch() {
-  uni.showToast({ title: `搜索：${keyword.value || '全部'}`, icon: 'none' })
+function goto(path: string) {
+  if (path) {
+    uni.navigateTo({ url: path })
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/uni.scss';
-
-.func-page {
+.more-page {
   min-height: 100vh;
   background: $uni-bg-color-page;
-  padding-bottom: calc(136rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
 }
 
-/* 头部 */
-.func-hd {
+/* 页头 */
+.mf-hd {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 28rpx 32rpx 12rpx;
+  gap: 16rpx;
+  padding: 24rpx 32rpx 8rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
+  background: $uni-bg-color;
 }
 
-.func-logo {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 24rpx;
-  background: $uni-gradient-blue;
+.header-back {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-bg-color-page;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
 }
 
-.func-logo-text {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: $uni-text-color-inverse;
+.header-back-icon {
+  font-size: 44rpx;
+  color: $uni-gray-600;
+  line-height: 1;
+  margin-top: -4rpx;
 }
 
-.func-hd-title {
-  flex: 1;
+.header-title {
   font-size: 36rpx;
   font-weight: 700;
   color: $uni-text-color;
-  letter-spacing: -0.5rpx;
 }
 
-.func-hd-search {
-  font-size: 40rpx;
-  color: $uni-gray-600;
-  padding: 12rpx;
+/* 区块 */
+.mf-section {
+  margin: 32rpx 28rpx 0;
 }
 
-/* 搜索栏 */
-.func-search {
-  padding: 12rpx 28rpx 20rpx;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-  height: 80rpx;
-  background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
-  border-radius: $uni-border-radius-pill;
-  padding: 0 28rpx;
-  gap: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
-}
-
-.search-icon {
-  font-size: 30rpx;
-  color: $uni-gray-400;
-}
-
-.search-input {
-  flex: 1;
-  font-size: 26rpx;
-  color: $uni-text-color;
-}
-
-.search-placeholder {
-  color: $uni-gray-400;
-}
-
-/* 高频宫格 */
-.func-grid {
-  margin: 8rpx 28rpx 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 24rpx 12rpx;
-  box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
-}
-
-.func-grid-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12rpx;
-  padding: 20rpx 0;
-  transition: transform 0.15s;
-}
-
-.func-grid-item:active {
-  transform: scale(0.94);
-}
-
-.fg-ico {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fg-ico-text {
-  font-size: 32rpx;
-  font-weight: 700;
-}
-
-.fg-label {
-  font-size: 22rpx;
-  color: $uni-gray-600;
-  font-weight: 500;
-}
-
-/* 数据工具 */
-.func-section {
-  margin: 36rpx 28rpx 0;
-}
-
-.func-section-title {
+.mf-section-title {
   display: block;
   font-size: 24rpx;
   font-weight: 600;
@@ -245,15 +152,59 @@ function doSearch() {
   letter-spacing: 1rpx;
 }
 
-.func-list {
+/* 高频宫格 */
+.mf-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
-  border-radius: 32rpx;
+  border-radius: $uni-border-radius-base;
+  padding: 24rpx 12rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+}
+
+.mf-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 0;
+}
+
+.mf-grid-item:active {
+  transform: scale(0.94);
+}
+
+.mf-ico {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: $uni-border-radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mf-ico-text {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.mf-label {
+  font-size: 22rpx;
+  color: $uni-gray-600;
+  font-weight: 500;
+}
+
+/* 数据工具列表 */
+.mf-list {
+  background: $uni-bg-color;
+  border-radius: $uni-border-radius-base;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
-.list-item {
+.mf-list-item {
   display: flex;
   align-items: center;
   padding: 28rpx 24rpx;
@@ -261,54 +212,54 @@ function doSearch() {
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
-.list-item:last-child {
+.mf-list-item:last-child {
   border-bottom: none;
 }
 
-.list-item:active {
+.mf-list-item:active {
   background: $uni-bg-color-grey;
 }
 
-.li-ico {
+.mf-li-ico {
   width: 72rpx;
   height: 72rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.li-ico-text {
+.mf-li-ico-text {
   font-size: 28rpx;
   font-weight: 700;
 }
 
-.li-body {
+.mf-li-body {
   flex: 1;
   min-width: 0;
 }
 
-.li-title {
+.mf-li-title {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-text-color;
 }
 
-.li-desc {
+.mf-li-desc {
   display: block;
   font-size: 22rpx;
   color: $uni-gray-400;
   margin-top: 6rpx;
 }
 
-.li-arrow {
+.mf-li-arrow {
   font-size: 32rpx;
   color: $uni-gray-300;
 }
 
 .safe-bottom {
-  height: 40rpx;
+  height: env(safe-area-inset-bottom);
 }
 </style>
