@@ -2287,6 +2287,13 @@
 - 应对：已配置自托管 Windows ARM64 runner（`ZXQL-Desktop-ARM64`，状态 online，日志正常 Listening for Jobs）；workflow 已切换 `runs-on: self-hosted`（ci.yml 适配 pwsh、deploy.yml）并推送（commit 33e9f7e0）；获得 workflow scope 授权。
 - 待办：GitHub 恢复后确认 1df2fa35/32503bb1 的 CI 与自动部署在自托管 runner 上跑通；服务器验收移动端 R94-03 修复。
 
+**环境阻塞记录更新（2026-08-07 凌舟收口）**：
+- GitHub Actions 官方已恢复（08-07 00:06 UTC mitigated，webhook 全吞吐、自托管 runner 修复全量上线）。
+- 自托管 runner 实测：能正常接单，但**本机网络访问 codeload.github.com 下载 actions 持续 404**（checkout/setup-node 均 404，端口通但 zip 下载 404），CI 无法在自托管上跑——属本机网络/路由问题，非 GitHub 侧。
+- 决策：workflow **切回托管 runner（ubuntu-latest）**（commit 0e9ab85d），CI + Auto Deploy 立即恢复 success；自托管 runner 保留在线，待本机 codeload 网络修复后再切回。
+- **最终部署结果**：0e9ab85d（含 R94-03 + R95-01 + R95-02 全部代码）Auto Deploy success（2m40s），CI success（3m16s）。服务器线上验收：m.onepan.cn JS 含 print-records/trace-query/settings/more-functions 等 R95 新页面 ✅；后端 API 正常（登录接口业务响应）✅。
+- 待办：生产 admin 账号处于锁定期（连续登录失败触发，疑似密码非 Admin@2026），需用户确认生产管理员密码后完成端到端登录验收。
+
 **逐模块修复方式表**：
 
 | 模块 | 原 404 路径 | 修复方式 | 真实接口 |
