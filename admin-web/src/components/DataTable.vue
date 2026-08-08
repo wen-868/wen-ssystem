@@ -11,7 +11,11 @@
         </template>
       </el-table-column>
       <template #empty>
-        <el-empty description="暂无数据" :image-size="80" />
+        <el-empty :description="emptyText" :image-size="80">
+          <template v-if="$slots.empty" #default>
+            <slot name="empty" />
+          </template>
+        </el-empty>
       </template>
       <slot name="append" />
     </el-table>
@@ -51,13 +55,15 @@ const props = withDefaults(
     page?: number;
     pageSize?: number;
     pageSizes?: number[];
+    emptyText?: string;
   }>(),
   {
     loading: false,
     total: 0,
     page: 1,
     pageSize: 20,
-    pageSizes: () => [10, 20, 50, 100]
+    pageSizes: () => [10, 20, 50, 100],
+    emptyText: "暂无数据"
   }
 );
 
@@ -77,9 +83,23 @@ function handlePageChange(p: number) {
 </script>
 
 <style scoped>
-.pagination {
+.data-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.pagination-wrapper {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-card);
+}
+.data-table :deep(.el-table) {
+  --el-table-border-color: var(--table-border);
+  --el-table-header-bg-color: var(--table-header-bg);
 }
 </style>

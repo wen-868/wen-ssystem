@@ -429,7 +429,16 @@ async function handleSubmit() {
 .page { padding: 20px; }
 .info-card { margin-bottom: 0; }
 .card-title { font-weight: 600; color: var(--text-primary); }
-.summary-card { position: sticky; top: 20px; }
+.summary-card {
+  position: sticky;
+  top: 20px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+}
+.summary-card :deep(.el-card__body) {
+  padding: 16px 18px;
+}
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -439,7 +448,16 @@ async function handleSubmit() {
   color: var(--text-secondary);
 }
 .summary-row.total { font-size: 16px; font-weight: 600; color: var(--text-primary); }
-.money-text { font-weight: 600; color: var(--text-primary); }
-.total-money { font-size: 22px; font-weight: 700; color: #e53935; }
+.money-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.total-money {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
 .internal-tag { margin-left: 6px; vertical-align: middle; }
 </style>

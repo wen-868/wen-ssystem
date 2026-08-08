@@ -13,28 +13,28 @@
 
         <div class="brand-features">
           <div class="feature-item">
-            <div class="feature-icon">✓</div>
+            <div class="feature-icon"><el-icon><Goods /></el-icon></div>
             <div>
               <div class="feature-title">批零一体营销</div>
               <div class="feature-desc">批发、零售、线上商城一套系统打通，库存订单实时同步</div>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon">✓</div>
+            <div class="feature-icon"><el-icon><Van /></el-icon></div>
             <div>
               <div class="feature-title">即时零售履约</div>
               <div class="feature-desc">对接美团、达达、顺丰，最快 30 分钟送达门店周边</div>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon">✓</div>
+            <div class="feature-icon"><el-icon><ChatDotRound /></el-icon></div>
             <div>
               <div class="feature-title">本地 AI 轻营助手</div>
               <div class="feature-desc">本地推理、数据不出店，开口即办对账、发券、查欠</div>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon">✓</div>
+            <div class="feature-icon"><el-icon><OfficeBuilding /></el-icon></div>
             <div>
               <div class="feature-title">多门店连锁管控</div>
               <div class="feature-desc">连锁总部与门店统一管控，权限按岗位精细分配</div>
@@ -110,6 +110,7 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
+import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
 import { adminLogin } from "../api";
 import { useAuthStore } from "../stores/auth";
 
@@ -172,11 +173,27 @@ async function handleLogin() {
 .brand-panel {
   flex: 1.2;
   background: linear-gradient(160deg, #3F6FEF 0%, #2F5BD6 100%);
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px;
   min-width: 520px;
+}
+
+/* 品牌区装饰：大号半透明 logo 字（克制、仅此一处允许的装饰） */
+.brand-panel::after {
+  content: "智";
+  position: absolute;
+  right: -70px;
+  bottom: -90px;
+  font-size: 320px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.06);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 .brand-inner {
@@ -243,9 +260,14 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+.feature-icon :deep(svg) {
+  width: 13px;
+  height: 13px;
 }
 
 .feature-title {
@@ -277,7 +299,7 @@ async function handleLogin() {
   border: 1px solid var(--border-light);
   border-radius: 12px;
   padding: 40px 36px 28px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-modal);
 }
 
 .login-title {

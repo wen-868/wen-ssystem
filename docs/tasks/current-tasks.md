@@ -2733,6 +2733,40 @@
 
 **任务卡归档**：`docs/tasks/inbox/ache_r98_01.md` + `ache_r98_01b.md` → `docs/tasks/inbox/archive/`
 
+## R99 — 工作台全页面设计（Swiss 结构 × 高端卡片精致度）[规划 — 凌舟 2026-08-08]
+
+> 用户需求：工作台（admin-web，152 页/14 模块）此前只设计了首页，其余页面未按设计体系落地。要求**逐页面设计**，达到用户提供的两张参考图的高端 SaaS 精美度。
+
+### R99-00 — 设计方案（凌舟）
+- **设计语言**：沿用 Swiss（PC端UIUX设计方案-Swiss.md：品牌蓝 #3F6FEF、白底、1px 细分隔线、左对齐、克制无装饰）为结构骨架；**融入参考图精致度**（卡片层级 + 柔和阴影 + 圆角 + 适中留白 + 精致图表 + 清晰字体层级）
+- **参考图（用户提供，本地路径）**：
+  - `D:\Huawei Share\Huawei Share\share_86a64ce95dc681ea4c99f0450b8c3878.png`（销售 B 端后台：三栏布局、卡片+轻阴影+圆角、蓝白主调）
+  - `D:\Huawei Share\Huawei Share\share_a7a0e28abc05cff2740fcb0cf325a4d3.png`（SaaS 后台：卡片柔和阴影、圆角、精致图表、大标题层级）
+- **精美度要点（从参考图提炼）**：卡片化分组 + 柔和阴影分层；圆角 8-12px；信息密度适中（合理留白）；指标卡大数字构图；图表精致（渐变/配色规范）；扁平线性图标；字体层级（大标题/正文/辅助）
+- **页面分级**：
+  - P0 核心页（~22，逐页精设计）：登录、首页看板、收银台、商品管理/列表/详情、销售开单、客户管理、订单管理、库存管理、报表首页
+  - P1 常规页（~65）：套统一列表/表单/详情骨架 + 模块级微调
+  - P2 低频页（~65）：全局主题自动生效 + 抽查
+- **分阶段**：
+  - R99-01：设计体系落地（tokens 补齐 + Element Plus 主题 + 4 种页面骨架 + 5 个示范页）
+  - R99-02：P0 核心页逐页精设计
+  - R99-03：P1 页批量套模板 + 模块走查
+  - R99-04：全局走查收口（152 页截图对比、一致性）
+- **验收**：工作台页面整体达到参考图精美度；构建通过；无回归
+
+### R99-01 — 设计体系落地（tokens + 主题 + 骨架 + 5 示范页）[已完成 — 阿澈 2026-08-08]
+
+**任务卡**：`docs/tasks/inbox/ache_r99_01.md`（唯一卡，已读取）
+
+**阿澈完成记录（2026-08-08，commit 待凌舟复核）**：
+- **Design Tokens v4.1**（`admin-web/src/styles/tokens.css`）：补齐语义字号（--text-page-title/--text-caption/--text-body/--text-hint/--text-regular/--text-amount-lg/--text-amount-xl）；阴影对齐参考图柔和分层（rgba(16,24,40,…)，卡片/悬浮/弹窗三档 --shadow-card/--shadow-hover/--shadow-modal）；新增状态标签 token（--tag-*）、指标卡 token（--metric-*）、图表网格色 --chart-grid；卡片圆角 8→10px
+- **Element Plus 主题全局定制**（`admin-web/src/styles.css` R99 段）：卡片（hairline 边框+柔和阴影+10px 圆角）、按钮三档（主/默认/文字）、表格（表头 #F8F8F8 + 12px/600、行高 44px、hover #F5F7FA）、表单（32px 输入框+聚焦双环）、弹窗/抽屉（12px 圆角+--shadow-modal）、分页（圆角+品牌蓝激活）、标签（6px 圆角浅底彩字）、Tabs/Popper/Empty/Descriptions/Collapse；所有 --el-* 覆盖写在 :root:root（踩坑 [31] 提特异性）
+- **四种页面骨架规范**（`docs/design/工作台页面设计规范.md` 新建）：列表页（页头→统计条→筛选栏→表格→分页）、表单页（页头→表单分区卡→底部操作栏）、详情页（页头→详情卡片/抽屉→关联区块）、看板页（指标卡→图表区→明细表），附代码模板与通用类（.page-header/.filter-bar/.table-card/.stat-grid/.form-card/.detail-section/.chart-card）
+- **通用组件完善**：PageCard（description 属性+头部样式）、DataTable（空态插槽 emptyText + 分页栏卡片化）、StatBar（卡片化+大数字 24px）、TableSkeleton（默认 8 行+卡片容器）
+- **5 个示范页精设计**：登录页（Element 线性图标替换 unicode ✓、品牌区大号装饰字、表单卡 --shadow-modal）、首页看板（指标卡 28px 大数字+悬浮提升、图表卡统一）、收银台（三栏面板 shadow-card+商品卡 hover 提升）、商品列表（改造为列表页骨架：页头+统计条+表格卡+分页）、销售开单（金额汇总卡+应收品牌蓝大数字 tabular-nums）
+- **验证**：`npm run build:check`（vue-tsc + vite build）exit 0；本地 H5 走查 5 页截图（`docs/reports/R99-01-走查/`）全部正常渲染 + 0 控制台错误；read-image 视觉对照参考图达标（卡片分层/圆角/大数字/清晰层级）；改动文件 lint 0 新增 error（Dashboard 322 errors 为 HEAD 预存，已对比确认）
+- **最小改动**：仅改 admin-web 样式/5 个示范页/通用组件 + 规范文档，未动 backend/miniapp/app-mobile/saas-admin 业务逻辑
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

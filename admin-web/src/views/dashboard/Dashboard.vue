@@ -2098,13 +2098,14 @@ onUnmounted(() => {
 }
 .welcome-text {
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--gray-700);
 }
 .date-text {
   font-size: 14px;
   color: var(--gray-400);
+  font-variant-numeric: tabular-nums;
 }
 .header-right {
   display: flex;
@@ -2124,13 +2125,16 @@ onUnmounted(() => {
 .metric-card {
   cursor: pointer;
   border: 1px solid var(--border-light);
-  transition: box-shadow 0.2s;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 .metric-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 .metric-card :deep(.el-card__body) {
-  padding: 16px 20px 12px;
+  padding: 18px 20px 14px;
 }
 .metric-card-inner {
   display: flex;
@@ -2142,15 +2146,17 @@ onUnmounted(() => {
   align-items: center;
 }
 .metric-label {
-  font-size: 13px;
+  font-size: var(--metric-label-size);
   color: var(--text-muted);
+  font-weight: 500;
 }
 .metric-value {
-  font-size: 26px;
+  font-size: var(--metric-value-size);
   font-weight: 700;
   color: var(--text-primary);
   margin: 6px 0 4px;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 .metric-footer {
   display: flex;
@@ -2192,9 +2198,11 @@ onUnmounted(() => {
 /* ─── 今日焦点（待办 / 本页可帮你 / 经营助手） ─── */
 .focus-card {
   border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
 }
 .focus-card :deep(.el-card__body) {
-  padding: 4px 16px 12px;
+  padding: 6px 16px 12px;
 }
 .focus-card-header {
   display: flex;
@@ -2202,7 +2210,7 @@ onUnmounted(() => {
   align-items: center;
 }
 .focus-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -2470,6 +2478,8 @@ onUnmounted(() => {
 /* 图表卡片 */
 .chart-card {
   min-height: 360px;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
 }
 .chart-card :deep(.el-card__body) {
   padding: 12px 16px;
@@ -2478,7 +2488,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--gray-700);
 }

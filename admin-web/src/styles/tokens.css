@@ -1,6 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
-   Design Tokens v4.0 — Atlas 灰阶体系
+   Design Tokens v4.1 — Atlas 灰阶体系（R99-01 对齐高端 SaaS 参考图）
    核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
+   v4.1 变更（2026-08-08 R99-01）：
+   - 补齐语义字号 token（--text-page-title/--text-caption/--text-body/--text-hint/--text-regular/--text-amount-lg/--text-amount-xl）
+   - 阴影对齐参考图柔和分层（rgba(16,24,40,…)），卡片/悬浮/弹窗三档
+   - 新增状态标签 token（--tag-*）、指标卡 token（--metric-*）、图表网格色
    适用：admin-web 管理后台
    ═══════════════════════════════════════════════════════════════ */
 
@@ -127,6 +131,15 @@
   --text-3xl: 24px;
   --text-4xl: 28px;
 
+  /* 语义字号（R99-01 补齐：styles.css 已引用但未定义的 token） */
+  --text-page-title: 20px;   /* 页头大标题 */
+  --text-caption: 12px;      /* 辅助说明 */
+  --text-hint: 11px;         /* 最小辅助文字 */
+  --text-body: 13px;         /* 表格/正文默认字号 */
+  --text-regular: 14px;      /* 常规正文 */
+  --text-amount-lg: 26px;    /* 指标卡大数字（紧凑） */
+  --text-amount-xl: 32px;    /* 指标卡大数字（Hero，参考图 28-32px/700） */
+
   /* Font Weight */
   --font-normal: 400;
   --font-medium: 500;
@@ -156,16 +169,43 @@
   --space-section-gap: 24px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Shadows
+     Shadows — 柔和阴影三档（R99-01 对齐参考图分层）
+     卡片(静态) / 悬浮(hover) / 弹窗(浮层)
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 16px -4px rgba(16, 24, 40, 0.10);
+  --shadow-lg: 0 8px 16px -4px rgba(16, 24, 40, 0.10), 0 16px 24px -8px rgba(16, 24, 40, 0.08);
+  --shadow-xl: 0 24px 48px -12px rgba(16, 24, 40, 0.18), 0 8px 16px -8px rgba(16, 24, 40, 0.10);
+  /* 三档规范名（推荐直接使用） */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-hover: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 16px -4px rgba(16, 24, 40, 0.10);
+  --shadow-modal: 0 24px 48px -12px rgba(16, 24, 40, 0.18), 0 8px 16px -8px rgba(16, 24, 40, 0.10);
   --shadow-focus: 0 0 0 3px rgba(63, 111, 239, 0.18);
   --shadow-error: 0 0 0 3px rgba(192, 57, 43, 0.14);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Status Tag — 状态标签规范（R99-01）
+     浅底彩字：底 = 语义色 12% 透明，字 = 语义色
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --tag-radius: 6px;
+  --tag-padding: 3px 10px;
+  --tag-font-size: 12px;
+  --tag-font-weight: 500;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Metric Card — 指标卡大数字（R99-01）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --metric-value-size: 28px;
+  --metric-label-size: 13px;
+  --metric-change-size: 12px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Chart — 图表网格/轴线（R99-01 精致图表）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --chart-grid: #EEF0F3;
+  --chart-axis: #CCCCCC;
+  --chart-gradient-primary: linear-gradient(180deg, rgba(63, 111, 239, 0.32) 0%, rgba(63, 111, 239, 0) 100%);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Motion / Transition
@@ -223,11 +263,12 @@
   --btn-padding: 0 16px;
   --btn-active-scale: 0.97;
 
-  --tag-radius: 4px;
-  --tag-padding: 2px 10px;
+  --tag-radius: 6px;
+  --tag-padding: 3px 10px;
 
-  --card-radius: 8px;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --card-radius: 10px;
+  --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --card-radius-lg: 12px;
 
   --tooltip-bg: #2A2A2A;
   --tooltip-text: #FFFFFF;

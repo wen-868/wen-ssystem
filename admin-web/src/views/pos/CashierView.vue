@@ -782,8 +782,9 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .category-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   padding: 10px;
+  box-shadow: var(--shadow-card);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -847,8 +848,9 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .product-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   padding: 14px;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -889,9 +891,10 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .product-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   padding: 10px 12px;
   cursor: pointer;
+  box-shadow: var(--shadow-xs);
   transition: border-color 150ms ease, box-shadow 150ms ease, transform 120ms ease;
   display: flex;
   flex-direction: column;
@@ -899,8 +902,8 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .product-card:hover {
   border-color: var(--color-primary-soft);
-  box-shadow: 0 4px 16px rgba(17, 17, 17, 0.07);
-  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 .product-card:active {
   transform: scale(0.98);
@@ -1003,8 +1006,9 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .cart-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius);
   padding: 12px;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 10px;

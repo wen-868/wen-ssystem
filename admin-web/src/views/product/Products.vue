@@ -1,28 +1,27 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>商品中心</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword" placeholder="搜索商品名称/SKU编码/条码" size="default"
-              style="width: 220px; margin-right: 10px" clearable @clear="search" @keyup.enter="search"
-            />
-            <el-button type="primary" @click="openCreateDialog">
-              <el-icon><Plus /></el-icon> 新增商品
-            </el-button>
-            <el-button @click="search">刷新</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头：标题 + 说明 + 操作区（列表页骨架示范） -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">商品中心</h2>
+        <p class="page-desc">管理商品 SPU 与 SKU 规格、价格与库存</p>
+      </div>
+      <div class="page-header-actions">
+        <el-input
+          v-model="keyword" placeholder="搜索商品名称/SKU编码/条码" size="default"
+          style="width: 240px" clearable @clear="search" @keyup.enter="search"
+        />
+        <el-button type="primary" @click="openCreateDialog">
+          <el-icon><Plus /></el-icon>&nbsp;新增商品
+        </el-button>
+        <el-button @click="search">刷新</el-button>
+      </div>
+    </div>
 
-      <StatBar :stats="productStats" />
-      <TableSkeleton v-if="loading" />
-      <el-table v-else class="list-table"
-        :data="spuList" stripe row-key="spuId"
-        @expand-change="onExpandChange" :expand-row-keys="expandKeys"
-      >
+    <StatBar :stats="productStats" />
+    <TableSkeleton v-if="loading" />
+    <div v-else class="table-card">
+      <el-table class="list-table" :data="spuList" stripe row-key="spuId" @expand-change="onExpandChange" :expand-row-keys="expandKeys">
         <el-table-column type="expand">
           <template #default="{ row }">
             <div class="expand-content">
@@ -120,7 +119,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background layout="total, sizes, prev, pager, next, jumper"
           :total="total" :page-size="pageSize" :current-page="page"
@@ -128,7 +127,7 @@
           @current-change="(p: number) => { page = p; search(); }"
         />
       </div>
-    </el-card>
+    </div>
 
     <!-- 新增/编辑 SPU -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑商品' : '新增商品'" width="900px" :close-on-click-modal="false">
@@ -970,15 +969,17 @@ onMounted(() => { search(); loadRefData(); });
 
 <style scoped>
 .page { padding: 0; }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.header-actions { display: flex; align-items: center; }
-.pagination { margin-top: 16px; display: flex; justify-content: flex-end; }
+.page-header { margin-bottom: 16px; }
+.page-header-actions .el-input { margin-right: 0; }
 .expand-content { padding: 8px 20px; background: var(--gray-50); }
 .expand-content h4 { margin: 0 0 8px; font-size: 14px; color: var(--gray-700); }
 .detail-main-image { text-align: center; background: var(--bg-page); border-radius: 8px; padding: 12px; }
 .tag-cb-group { display: flex; flex-direction: column; gap: 8px; }
 .sku-row { background: var(--gray-50); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
 .sku-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 500; }
+.table-card :deep(.el-table__expanded-cell) {
+  background: var(--gray-50);
+}
 
 /* tiptap 富文本编辑器样式 */
 :deep(.ProseMirror) {
