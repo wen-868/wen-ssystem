@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 统计卡片 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">收款链接</h2>
+      <p class="page-desc">分享收款链接管理</p>
+    </div>
+  </div>
+<!-- 统计卡片 -->
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-value">{{ stats.total }}</div>
@@ -120,7 +126,7 @@
         <el-button type="primary" :loading="batchLoading" @click="handleBatchCreate">确认生成</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

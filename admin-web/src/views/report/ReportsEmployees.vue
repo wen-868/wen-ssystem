@@ -1,19 +1,27 @@
 <template>
-  <div class="page">
-    <PageCard title="员工业绩">
-      <template #extra>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="loadData"
-        />
-        <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">员工业绩</h2>
+    <p class="page-desc">员工业绩统计与对比</p>
+  </div>
+  <div class="page-header-actions">
+    <el-date-picker
+    v-model="dateRange"
+    type="daterange"
+    range-separator="至"
+    start-placeholder="开始日期"
+    end-placeholder="结束日期"
+    @change="loadData"
+    />
+    <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <el-table :data="employeeData" v-loading="loading" stripe>
+      
+
+      <div class="table-card">
+<el-table :data="employeeData" v-loading="loading" stripe>
         <el-table-column prop="employeeName" label="员工" min-width="140" />
         <el-table-column prop="orders" label="订单数" width="100" align="right" />
         <el-table-column label="销售额" width="140" align="right">
@@ -41,13 +49,14 @@
           <el-empty description="暂无数据" :image-size="80" />
         </template>
       </el-table>
-    </PageCard>
+</div>
+    
 
     <!-- 业绩图表 -->
     <PageCard title="业绩对比">
       <div ref="chartRef" class="chart-container"></div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

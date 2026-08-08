@@ -1,6 +1,12 @@
 <template>
-  <div class="custom-report-page">
-    <!-- 报表列表 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">自定义报表</h2>
+      <p class="page-desc">自定义报表设计与查询</p>
+    </div>
+  </div>
+<!-- 报表列表 -->
     <div v-show="!showDesigner">
       <el-card class="toolbar-card">
         <el-form :model="searchForm" inline>
@@ -39,7 +45,8 @@
       </el-card>
 
       <el-card class="table-card">
-        <el-table :data="reportList" border v-loading="listLoading">
+        <div class="table-card">
+<el-table :data="reportList" border v-loading="listLoading">
           <el-table-column type="index" label="序号" width="60" align="center" />
           <el-table-column prop="name" label="报表名称" min-width="160" show-overflow-tooltip />
           <el-table-column prop="type" label="类型" width="110" align="center">
@@ -72,7 +79,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <div class="pagination">
+        <div class="table-card-footer">
           <el-pagination
             v-model:current-page="pagination.page"
             v-model:page-size="pagination.pageSize"
@@ -83,6 +90,7 @@
             @current-change="fetchReportList"
           />
         </div>
+</div>
       </el-card>
     </div>
 
@@ -181,7 +189,7 @@
 
             <!-- 筛选条件 -->
             <el-collapse-item name="filters" title="筛选条件">
-              <div class="filter-list">
+              <div class="filter-bar">
                 <div v-for="(filter, index) in reportForm.filters" :key="index" class="filter-item">
                   <el-select v-model="filter.field" placeholder="字段" style="width: 100px" size="small">
                     <el-option
@@ -347,7 +355,8 @@
             <!-- 图表预览 -->
             <div v-show="previewMode === 'chart'" class="chart-preview" ref="chartPreviewRef">
               <div v-if="reportForm.chartType === 'table'" class="table-preview">
-                <el-table :data="previewData" border size="small" max-height="500">
+                <div class="table-card">
+<el-table :data="previewData" border size="small" max-height="500">
                   <el-table-column
                     v-for="col in previewColumns"
                     :key="col.value"
@@ -357,13 +366,15 @@
                     align="center"
                   />
                 </el-table>
+</div>
               </div>
               <div v-else ref="chartRef" class="chart-canvas"></div>
             </div>
 
             <!-- 表格预览 -->
             <div v-show="previewMode === 'table'" class="table-preview">
-              <el-table :data="previewData" border stripe max-height="500">
+              <div class="table-card">
+<el-table :data="previewData" border stripe max-height="500">
                 <el-table-column type="index" label="序号" width="60" align="center" />
                 <el-table-column
                   v-for="col in previewColumns"
@@ -374,6 +385,7 @@
                   show-overflow-tooltip
                 />
               </el-table>
+</div>
               <div class="preview-pagination">
                 <el-pagination
                   small
@@ -393,7 +405,7 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

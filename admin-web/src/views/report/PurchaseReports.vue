@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 筛选栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">采购报表</h2>
+      <p class="page-desc">采购金额/品类/供应商分析</p>
+    </div>
+  </div>
+<!-- 筛选栏 -->
     <el-card shadow="never" class="filter-card">
       <el-row :gutter="12" align="middle">
         <el-col :span="6">
@@ -77,7 +83,8 @@
       <!-- Tab 2: 供应商排行 -->
       <el-tab-pane label="供应商排行" name="supplierRank">
         <div ref="supplierChart" class="chart-box chart-tall"></div>
-        <el-table :data="supplierRankingList" stripe border style="width: 100%; margin-top: 16px" v-loading="loading">
+        <div class="table-card">
+<el-table :data="supplierRankingList" stripe border style="width: 100%; margin-top: 16px" v-loading="loading">
           <el-table-column type="index" label="排名" width="60" />
           <el-table-column prop="supplierName" label="供应商名称" min-width="160" />
           <el-table-column prop="orderCount" label="采购单数" sortable width="100" />
@@ -87,11 +94,13 @@
           <el-table-column prop="inStockCount" label="入库次数" sortable width="100" />
           <el-table-column prop="returnCount" label="退货次数" sortable width="100" />
         </el-table>
+</div>
       </el-tab-pane>
 
       <!-- Tab 3: 采购明细 -->
       <el-tab-pane label="采购明细" name="detail">
-        <el-table :data="purchaseDetailList" stripe border style="width: 100%" v-loading="loading">
+        <div class="table-card">
+<el-table :data="purchaseDetailList" stripe border style="width: 100%" v-loading="loading">
           <el-table-column prop="orderNo" label="采购单号" width="180" />
           <el-table-column prop="supplierName" label="供应商" min-width="140" />
           <el-table-column prop="storeName" label="门店" width="120" />
@@ -115,6 +124,7 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
         <el-pagination
           v-if="purchaseDetailList.length > 0"
           style="margin-top: 16px; justify-content: flex-end"
@@ -132,7 +142,7 @@
         <div ref="categoryChart" class="chart-box chart-tall"></div>
       </el-tab-pane>
     </el-tabs>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

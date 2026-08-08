@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="快捷入口配置">
-      <template #extra>
-        <el-button type="primary" @click="openAddDialog">新增入口</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">快捷入口配置</h2>
+    <p class="page-desc">首页快捷入口配置</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openAddDialog">新增入口</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-row :gutter="16">
         <!-- 左侧入口列表 -->
@@ -99,7 +106,7 @@
         <el-button type="primary" @click="handleSaveSort">保存排序</el-button>
         <el-button @click="handleResetDefaults">重置默认</el-button>
       </div>
-    </PageCard>
+    
 
     <!-- 新增入口弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增入口" width="480px">
@@ -139,7 +146,7 @@
         <el-button type="primary" :loading="addLoading" @click="handleAdd">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -147,8 +154,6 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { ArrowUp, ArrowDown, HomeFilled, ShoppingCart, Document, Box, User, Goods, Shop, Coin, DataAnalysis, Setting, List, Tickets, Bell, Present, Star, Edit } from "@element-plus/icons-vue";
 import axios from "axios";
-import PageCard from "../../components/PageCard.vue";
-
 const iconOptions = ["HomeFilled", "ShoppingCart", "Document", "Box", "User", "Goods", "Shop", "Coin", "DataAnalysis", "Setting", "List", "Tickets", "Bell", "Present", "Star", "Edit"];
 
 const defaultEntries = [

@@ -1,13 +1,13 @@
 <template>
-  <div class="transfer-report-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <h2>调拨统计报表</h2>
       <p class="page-desc">多维度分析门店调拨数据，辅助库存调配决策</p>
     </div>
 
     <!-- 筛选条件 -->
     <PageCard>
-      <div class="filter-row">
+      <div class="filter-bar">
         <div class="filter-item">
           <span class="filter-label">时间范围：</span>
           <el-radio-group v-model="timeRange" size="default" @change="onTimeRangeChange">
@@ -138,7 +138,7 @@
         <div ref="reasonPieChartRef" class="chart-container"></div>
       </PageCard>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

@@ -1,24 +1,31 @@
 <template>
-  <div class="page">
-    <PageCard title="价格策略">
-      <template #extra>
-        <el-input
-          v-model="keyword"
-          placeholder="搜索客户/商品"
-          size="default"
-          style="width: 220px"
-          clearable
-          @clear="loadList"
-          @keyup.enter="loadList"
-        />
-        <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 110px" clearable @change="loadList">
-          <el-option label="生效中" value="ACTIVE" />
-          <el-option label="已过期" value="EXPIRED" />
-        </el-select>
-        <el-button @click="loadList">刷新</el-button>
-        <el-button type="primary" @click="showAddDialog">新增</el-button>
-        <el-button @click="showBatchDialog">批量设置</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">价格策略</h2>
+    <p class="page-desc">客户价格策略维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-input
+    v-model="keyword"
+    placeholder="搜索客户/商品"
+    size="default"
+    style="width: 220px"
+    clearable
+    @clear="loadList"
+    @keyup.enter="loadList"
+    />
+    <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 110px" clearable @change="loadList">
+    <el-option label="生效中" value="ACTIVE" />
+    <el-option label="已过期" value="EXPIRED" />
+    </el-select>
+    <el-button @click="loadList">刷新</el-button>
+    <el-button type="primary" @click="showAddDialog">新增</el-button>
+    <el-button @click="showBatchDialog">批量设置</el-button>
+  </div>
+</div>
+
+      
 
       <DataTable
         :columns="columns"
@@ -43,7 +50,7 @@
           <el-button size="small" link type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </DataTable>
-    </PageCard>
+    
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑专属价格' : '新增专属价格'" width="480px" :close-on-click-modal="false">
@@ -130,14 +137,13 @@
         <el-button type="primary" :loading="batchLoading" @click="handleBatchSubmit">确认设置</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { fetchCustomerPrices, createCustomerPrice, updateCustomerPrice, deleteCustomerPrice, batchSetCustomerPrices, fetchMembers, fetchProducts } from "../../api";
-import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
 const loading = ref(false);

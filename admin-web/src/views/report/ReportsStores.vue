@@ -1,24 +1,32 @@
 <template>
-  <div class="page">
-    <PageCard title="门店对比">
-      <template #extra>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="loadData"
-        />
-        <el-select v-model="metric" style="width: 150px; margin-left: 12px" @change="loadData">
-          <el-option label="按销售额" value="revenue" />
-          <el-option label="按订单量" value="orders" />
-          <el-option label="按利润" value="profit" />
-        </el-select>
-        <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">门店对比</h2>
+    <p class="page-desc">门店销售对比分析</p>
+  </div>
+  <div class="page-header-actions">
+    <el-date-picker
+    v-model="dateRange"
+    type="daterange"
+    range-separator="至"
+    start-placeholder="开始日期"
+    end-placeholder="结束日期"
+    @change="loadData"
+    />
+    <el-select v-model="metric" style="width: 150px; margin-left: 12px" @change="loadData">
+    <el-option label="按销售额" value="revenue" />
+    <el-option label="按订单量" value="orders" />
+    <el-option label="按利润" value="profit" />
+    </el-select>
+    <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <el-table :data="storeData" v-loading="loading" stripe>
+      
+
+      <div class="table-card">
+<el-table :data="storeData" v-loading="loading" stripe>
         <el-table-column prop="storeName" label="门店名称" min-width="160" />
         <el-table-column label="销售额" width="140" align="right">
           <template #default="{ row }">
@@ -52,13 +60,14 @@
         <el-empty description="暂无数据" :image-size="80" />
       </template>
       </el-table>
-    </PageCard>
+</div>
+    
 
     <!-- 对比图表 -->
     <PageCard title="对比图表">
       <div ref="chartRef" class="chart-container"></div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

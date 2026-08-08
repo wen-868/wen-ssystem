@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="待办提醒">
-      <template #extra>
-        <el-button type="primary" @click="openCreateDialog">新建待办</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">待办提醒</h2>
+    <p class="page-desc">待办事项与提醒</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openCreateDialog">新建待办</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <!-- 统计卡片 -->
       <el-row :gutter="16" class="stat-row">
@@ -44,7 +51,8 @@
         <el-button type="primary" style="margin-left: 12px" @click="search">搜索</el-button>
       </div>
 
-      <el-table :data="list" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="list" v-loading="loading" stripe>
         <el-table-column label="类型" width="130">
           <template #default="{ row }">
             <el-tag :color="getTypeColor(row.type)" effect="dark" style="border: none; color: #fff">
@@ -82,7 +90,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -93,7 +101,8 @@
           @current-change="(p: number) => { page = p; search(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 新建待办弹窗 -->
     <el-dialog v-model="dialogVisible" title="新建待办" width="480px">
@@ -130,14 +139,13 @@
         <el-button type="primary" :loading="submitLoading" @click="handleCreate">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import axios from "axios";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 
 const loading = ref(false);

@@ -1,29 +1,37 @@
 <template>
-  <div class="page">
-    <PageCard title="商品排行">
-      <template #extra>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="loadData"
-        />
-        <el-select v-model="dimension" style="width: 150px; margin-left: 12px" @change="loadData">
-          <el-option label="按销售额" value="sales" />
-          <el-option label="按销量" value="qty" />
-          <el-option label="按利润" value="profit" />
-        </el-select>
-        <el-select v-model="topN" style="width: 120px; margin-left: 12px" @change="loadData">
-          <el-option label="Top 10" :value="10" />
-          <el-option label="Top 20" :value="20" />
-          <el-option label="Top 50" :value="50" />
-        </el-select>
-        <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">商品排行</h2>
+    <p class="page-desc">商品销售排行</p>
+  </div>
+  <div class="page-header-actions">
+    <el-date-picker
+    v-model="dateRange"
+    type="daterange"
+    range-separator="至"
+    start-placeholder="开始日期"
+    end-placeholder="结束日期"
+    @change="loadData"
+    />
+    <el-select v-model="dimension" style="width: 150px; margin-left: 12px" @change="loadData">
+    <el-option label="按销售额" value="sales" />
+    <el-option label="按销量" value="qty" />
+    <el-option label="按利润" value="profit" />
+    </el-select>
+    <el-select v-model="topN" style="width: 120px; margin-left: 12px" @change="loadData">
+    <el-option label="Top 10" :value="10" />
+    <el-option label="Top 20" :value="20" />
+    <el-option label="Top 50" :value="50" />
+    </el-select>
+    <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <el-table :data="rankingData" v-loading="loading" stripe>
+      
+
+      <div class="table-card">
+<el-table :data="rankingData" v-loading="loading" stripe>
         <el-table-column label="排名" width="80" align="center">
           <template #default="{ $index }">
             <el-tag v-if="$index === 0" type="danger" size="small">1</el-tag>
@@ -54,13 +62,14 @@
           <el-empty description="暂无数据" :image-size="80" />
         </template>
       </el-table>
-    </PageCard>
+</div>
+    
 
     <!-- 图表 -->
     <PageCard title="排行图表">
       <div ref="chartRef" class="chart-container"></div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

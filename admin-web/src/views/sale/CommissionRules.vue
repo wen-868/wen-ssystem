@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="提成规则">
-      <template #extra>
-        <el-button @click="loadList">刷新</el-button>
-        <el-button type="primary" @click="showAddDialog">新增规则</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">提成规则</h2>
+    <p class="page-desc">提成规则配置</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button @click="loadList">刷新</el-button>
+    <el-button type="primary" @click="showAddDialog">新增规则</el-button>
+  </div>
+</div>
+
+      
 
       <DataTable
         :columns="columns"
@@ -40,7 +47,7 @@
           <el-button size="small" link type="danger" @click="handleDelete(row)">删除</el-button>
         </template>
       </DataTable>
-    </PageCard>
+    
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑规则' : '新增规则'" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -95,14 +102,13 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { fetchCommissionRules, createCommissionRule, updateCommissionRule, deleteCommissionRule } from "../../api";
-import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
 const loading = ref(false);

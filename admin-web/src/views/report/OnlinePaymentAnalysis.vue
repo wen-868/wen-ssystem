@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 筛选栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">线上支付分析</h2>
+      <p class="page-desc">线上支付渠道分析</p>
+    </div>
+  </div>
+<!-- 筛选栏 -->
     <PageCard>
       <div class="filter-bar">
         <span class="filter-label">日期范围：</span>
@@ -90,7 +96,8 @@
 
     <!-- 收款明细列表 -->
     <PageCard :title="getDetailTitle()" style="margin-top: 16px">
-      <el-table :data="records" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="records" v-loading="loading" stripe>
         <el-table-column v-if="groupBy === 'date'" label="日期" min-width="140">
           <template #default="{ row }">{{ row.period }}</template>
         </el-table-column>
@@ -127,8 +134,9 @@
           <el-empty description="暂无收款数据" :image-size="80" />
         </template>
       </el-table>
+</div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

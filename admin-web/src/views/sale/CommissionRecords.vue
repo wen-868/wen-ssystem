@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 月度统计卡片 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">提成记录</h2>
+      <p class="page-desc">提成结算记录查询</p>
+    </div>
+  </div>
+<!-- 月度统计卡片 -->
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-value">¥{{ Number(stats.monthTotal || 0).toFixed(2) }}</div>
@@ -87,7 +93,7 @@
         <el-button type="primary" :loading="calcLoading" @click="handleCalc">开始计算</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

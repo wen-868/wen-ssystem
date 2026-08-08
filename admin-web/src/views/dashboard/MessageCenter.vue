@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="消息中心">
-      <template #extra>
-        <el-button type="primary" text @click="handleMarkAllRead">全部标为已读</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">消息中心</h2>
+    <p class="page-desc">系统消息中心</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" text @click="handleMarkAllRead">全部标为已读</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-row :gutter="16">
         <!-- 左侧类型筛选 -->
@@ -92,7 +99,7 @@
           </div>
         </el-col>
       </el-row>
-    </PageCard>
+    
 
     <!-- 消息详情抽屉 -->
     <el-drawer
@@ -115,7 +122,7 @@
         </div>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -125,7 +132,6 @@ import {
   Bell, Warning, Document, Money, ShoppingCart, CreditCard, CircleClose
 } from "@element-plus/icons-vue";
 import axios from "axios";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 
 const loading = ref(false);

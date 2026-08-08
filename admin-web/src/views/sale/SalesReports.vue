@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 业务概览 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">销售报表</h2>
+      <p class="page-desc">销售业绩与排行分析</p>
+    </div>
+  </div>
+<!-- 业务概览 -->
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-value">¥{{ Number(overview.todaySales || 0).toFixed(2) }}</div>
@@ -65,7 +71,7 @@
         <div ref="staffChart" class="chart-body" style="height: 300px"></div>
       </div>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

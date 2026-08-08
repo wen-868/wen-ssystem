@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 筛选栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">收款分析</h2>
+      <p class="page-desc">收款结构与趋势分析</p>
+    </div>
+  </div>
+<!-- 筛选栏 -->
     <el-card shadow="never" class="filter-card">
       <el-row :gutter="12" align="middle">
         <el-col :span="5">
@@ -97,7 +103,8 @@
             <div ref="channelPieRef" class="chart-box chart-medium"></div>
           </el-col>
           <el-col :span="12">
-            <el-table :data="channelConversionData" stripe border style="width: 100%">
+            <div class="table-card">
+<el-table :data="channelConversionData" stripe border style="width: 100%">
               <el-table-column prop="channel" label="渠道" width="100" />
               <el-table-column prop="shareCount" label="分享数" width="80" />
               <el-table-column prop="viewCount" label="查看数" width="80" />
@@ -112,6 +119,7 @@
                 <template #default="{ row }">{{ row.ratio }}%</template>
               </el-table-column>
             </el-table>
+</div>
           </el-col>
         </el-row>
       </el-tab-pane>
@@ -126,7 +134,8 @@
             <div ref="timeoutTrendRef" class="chart-box chart-medium"></div>
           </el-col>
         </el-row>
-        <el-table :data="timeoutOrders" stripe border style="width: 100%; margin-top: 16px">
+        <div class="table-card">
+<el-table :data="timeoutOrders" stripe border style="width: 100%; margin-top: 16px">
           <el-table-column prop="billNo" label="订单号" width="180" />
           <el-table-column prop="customerName" label="客户" width="120" />
           <el-table-column prop="amount" label="金额" width="120">
@@ -140,6 +149,7 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
         <el-pagination
           v-if="timeoutOrders.length > 0"
           style="margin-top: 16px; justify-content: flex-end"
@@ -163,7 +173,7 @@
         </el-row>
       </el-tab-pane>
     </el-tabs>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
