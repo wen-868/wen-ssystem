@@ -186,28 +186,24 @@ export async function deleteApprovalRule(id: number) {
   const { data } = await api.delete(`/admin/approval/rules/${id}`);
   return data.data;
 }
-export async function fetchMyApplications(params?: { page?: number; pageSize?: number; businessType?: string; status?: string }) {
-  const { data } = await api.get("/admin/approval/my-applications", { params: { page: 1, pageSize: 20, ...params } });
+export async function fetchMyApplications(params?: { page?: number; pageSize?: number; businessType?: string; status?: string; applicantId?: number }) {
+  const { data } = await api.get("/admin/approval/instances", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
-export async function submitApproval(payload: { ruleId: number; title: string; content: string }) {
-  const { data } = await api.post("/admin/approval/submit", payload);
+export async function submitApproval(payload: { businessType: string; businessNo: string; businessTitle: string; remark?: string }) {
+  const { data } = await api.post("/admin/approval/instances/submit", payload);
   return data.data;
 }
-export async function fetchApprovalDetail(id: number) {
-  const { data } = await api.get(`/admin/approval/detail/${id}`);
+export async function fetchApprovalDetail(instanceNo: string) {
+  const { data } = await api.get(`/admin/approval/instances/${instanceNo}`);
   return data.data;
 }
-export async function approveApproval(id: number, payload?: { opinion?: string }) {
-  const { data } = await api.post(`/admin/approval/${id}/approve`, payload || {});
+export async function approveApproval(taskId: number, payload?: { comment?: string }) {
+  const { data } = await api.post(`/admin/approval/tasks/${taskId}/approve`, payload || {});
   return data.data;
 }
-export async function rejectApproval(id: number, payload?: { opinion?: string }) {
-  const { data } = await api.post(`/admin/approval/${id}/reject`, payload || {});
-  return data.data;
-}
-export async function cancelApproval(id: number) {
-  const { data } = await api.post(`/admin/approval/${id}/cancel`);
+export async function rejectApproval(taskId: number, payload?: { comment?: string }) {
+  const { data } = await api.post(`/admin/approval/tasks/${taskId}/reject`, payload || {});
   return data.data;
 }
 

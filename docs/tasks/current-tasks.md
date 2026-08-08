@@ -2958,6 +2958,47 @@
 
 **提请凌舟知悉（未越权改）：** ① 审批详情前后端契约不匹配（前端调 `/admin/approval/detail/:id`，后端提供 `/instances/:instanceNo`，404 时 router.back 静默跳回，建议 R99-05 核对审批 4 接口）；② 报表中心硬编码值（Reports.vue 客户数 128 等）属 R99-05 范围；③ 系统页表头白底符合 P2 既定口径。详见 `docs/reports/R99-04-走查总结.md`
 
+**R99-05 完成记录（2026-08-08 阿澈）：** 6 处 mock 全部接真实接口——后端新增 `/admin/instant-retail/order-center-stats`、`/admin/reports/sales-hourly-heatmap`、`/admin/reports/collection/refund-analysis` 3 接口并扩展订单/排行/收款/超时/套装 5 组；前端 OrderCenterView/SalesAnalysis/CollectionAnalysis/Reports/ProductCombo/MarketingMaterial 6 页改调真实接口（ProductCombo 创建/编辑/删除/上下架接真实 CRUD）；后端 typecheck+build 与 admin-web build:check 全过；24 接口实测 200；走查 6 页正常、无数据源显示空态而非随机数；素材缩略图因无对象存储保留占位并注释。提交 `f8d8df22` 已推送。
+
+### R99-06 — [P1] 审批详情页接口契约修复
+- **优先级**：P1（R99-04 收口发现：审批详情 404 静默跳回，功能不可用）
+- **负责人**：阿澈（全栈）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **根因**：前端 `GET /admin/approval/detail/:id`（列表传 row.id）vs 后端仅 `GET /instances/:instanceNo`
+- **修复**：确认 row.id 语义（MyApprovals 数据源）后统一契约（后端补 detail/:id 按实例 id 查，或前端改调 instances/:instanceNo），取最小改动
+- **任务卡**：`docs/tasks/inbox/ache_r99_06.md`
+
+**R99-06 完成记录（2026-08-08 阿澈）：**
+
+**契约确认（任务要求第 1 步）：**
+- MyApprovals 的 `row.id` = `t_approval_instance` 数值主键；`row.instanceNo` = 审批单号（SP 开头字符串），后端列表接口 `GET /instances` 已返回 instanceNo
+- 后端详情唯一查询口径是 `GET /instances/:instanceNo`（controller/service 按 instance_no 字符串查，任务/日志随之组装）；`t_approval_task.instance_id` 存的也是 instanceNo
+- ApprovalRules 是规则管理页，无跳详情按钮（规则页跳实例详情不合理），未改动
+- **结论：取最小改动方案二——前端统一改调 `/instances/:instanceNo`，跳转传 instanceNo，后端零改动**
+
+**前端改动（仅审批相关 3 文件）：**
+- `admin-web/src/api/system.ts`：`fetchMyApplications` → `GET /admin/approval/instances`（补 applicantId 参数）；`submitApproval` → `POST /admin/approval/instances/submit`（body 改 businessType/businessNo/businessTitle/remark）；`fetchApprovalDetail(instanceNo)` → `GET /admin/approval/instances/:instanceNo`；`approveApproval/rejectApproval` → `POST /admin/approval/tasks/:taskId/approve|reject`（body 改 comment）；移除无后端支持的 `cancelApproval`
+- `MyApprovals.vue`：数据源对齐 listInstances（applicantId=当前用户 id）；列字段改 instanceNo/businessTitle/businessType（枚举对齐后端 PURCHASE_ORDER/SALE_RETURN/PRICE_CHANGE/CREDIT_LIMIT）；跳详情改 `router.push('/system/approval/detail/${row.instanceNo}')`（原 `/approval/detail/${row.id}` 少 system 前缀且语义错）；提交弹窗改业务类型/业务单号/标题/备注四字段；撤销按钮移除（后端无 cancel 接口，不编造）
+- `ApprovalDetail.vue`：按 instanceNo 拉详情；后端返回映射为页面字段（approvalNo=instanceNo、title=businessTitle、applicant=applicantName、approvalContent={业务单号,备注}、approvalNodes=任务数组{approver/approvalTime/result/opinion}）；通过/拒绝走任务接口（当前审批人 PENDING 任务 id）；撤销按钮移除；**加载失败不再 router.back() 静默跳回**——显示 el-result 错误态 + 返回列表按钮
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 后端 typecheck | `cd backend && npx tsc --noEmit` | exit 0，0 errors ✅ |
+| 后端 build | `cd backend && npm run build` | exit 0（644 JS，1366 导入修复）✅ |
+| admin-web build:check | `cd admin-web && npm run build:check`（vue-tsc -b + vite build） | exit 0 ✅ |
+| 接口冒烟（mock 8081） | 登录后 `GET /admin/approval/instances?applicantId=1` | 200 `{total:0,records:[]}` ✅ |
+| 详情 404 契约 | `GET /admin/approval/instances/SP-NOT-EXIST` | 404 `{code:"404",msg:"审批实例不存在"}`（前端展示错误态）✅ |
+| 页面走查 | `.playwright-cli/pw-run/walkthrough-r99-06.mjs`（mock 8081 + dev 5173） | 列表页 0 错误空态正常；详情页停留本页+显示错误提示，不静默跳回；截图 `docs/reports/R99-06-走查/` ✅ |
+| 残留检查 | `rg cancelApproval / approval/my-applications / approval/detail/` | 0 残留 ✅ |
+
+**提请凌舟知悉（未越权改，属审批模块其他契约缺口）：**
+1. 审批规则页（ApprovalRules）仍有契约缺口：`deleteApprovalRule` 调 `DELETE /admin/approval/rules/:id`（后端无此接口）；创建/编辑规则 payload（approvalChain 用 role/order、status 用 ACTIVE/INACTIVE、businessType 旧枚举）与后端 zod（level/approverType/approverValue、status 数字、PURCHASE_ORDER 等枚举）不匹配，建议后续轮次专项对齐
+2. 后端提交/审批接口在业务失败时抛 Error 返回 500（如无规则时 submit 报「服务器内部错误」而非 400），建议后端将业务错误映射为 4xx
+3. 本地 mock（USE_MOCK_DB）无审批种子数据，无法演示 200 详情页真实数据；生产库有规则/实例数据时即可完整展示
+
+**任务卡归档**：`docs/tasks/inbox/ache_r99_06.md` → `docs/tasks/inbox/archive/`
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

@@ -5,56 +5,60 @@
         <el-button @click="router.back()">返回</el-button>
       </template>
 
-      <el-descriptions :column="2" border style="margin-bottom: 20px">
-        <el-descriptions-item label="审批编号">{{ detail.approvalNo }}</el-descriptions-item>
-        <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
-        <el-descriptions-item label="业务类型">
-          <el-tag :type="businessTypeTagType(detail.businessType)">{{ businessTypeLabel(detail.businessType) }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ detail.applicant }}</el-descriptions-item>
-        <el-descriptions-item label="申请时间">{{ formatDate(detail.createdAt) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="statusTagType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
-        </el-descriptions-item>
-      </el-descriptions>
+      <el-result v-if="loadError" icon="error" :title="loadError" style="padding: 40px 0">
+        <template #extra>
+          <el-button @click="router.back()">返回列表</el-button>
+        </template>
+      </el-result>
+      <template v-else>
+        <el-descriptions :column="2" border style="margin-bottom: 20px">
+          <el-descriptions-item label="审批编号">{{ detail.approvalNo }}</el-descriptions-item>
+          <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
+          <el-descriptions-item label="业务类型">
+            <el-tag :type="businessTypeTagType(detail.businessType)">{{ businessTypeLabel(detail.businessType) }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="申请人">{{ detail.applicant }}</el-descriptions-item>
+          <el-descriptions-item label="申请时间">{{ formatDate(detail.createdAt) }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="statusTagType(detail.status)">{{ statusLabel(detail.status) }}</el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
 
-      <el-card shadow="never" style="margin-bottom: 20px">
-        <template #header><span class="card-title">审批内容</span></template>
-        <pre class="content-json">{{ formatJson(detail.approvalContent) }}</pre>
-      </el-card>
+        <el-card shadow="never" style="margin-bottom: 20px">
+          <template #header><span class="card-title">审批内容</span></template>
+          <pre class="content-json">{{ formatJson(detail.approvalContent) }}</pre>
+        </el-card>
 
-      <el-card shadow="never" style="margin-bottom: 20px">
-        <template #header><span class="card-title">审批时间线</span></template>
-        <el-timeline v-if="detail.approvalNodes && detail.approvalNodes.length">
-          <el-timeline-item
-            v-for="(node, index) in detail.approvalNodes"
-            :key="index"
-            :timestamp="formatDate(node.approvalTime)"
-            :color="timelineColor(node.result)"
-            placement="top"
-          >
-            <div class="timeline-node">
-              <div class="node-header">
-                <span class="node-approver">{{ node.approver }}</span>
-                <el-tag :type="nodeResultTagType(node.result)" size="small">{{ nodeResultLabel(node.result) }}</el-tag>
+        <el-card shadow="never" style="margin-bottom: 20px">
+          <template #header><span class="card-title">审批时间线</span></template>
+          <el-timeline v-if="detail.approvalNodes && detail.approvalNodes.length">
+            <el-timeline-item
+              v-for="(node, index) in detail.approvalNodes"
+              :key="index"
+              :timestamp="formatDate(node.approvalTime)"
+              :color="timelineColor(node.result)"
+              placement="top"
+            >
+              <div class="timeline-node">
+                <div class="node-header">
+                  <span class="node-approver">{{ node.approver }}</span>
+                  <el-tag :type="nodeResultTagType(node.result)" size="small">{{ nodeResultLabel(node.result) }}</el-tag>
+                </div>
+                <div v-if="node.opinion" class="node-opinion">{{ node.opinion }}</div>
               </div>
-              <div v-if="node.opinion" class="node-opinion">{{ node.opinion }}</div>
-            </div>
-          </el-timeline-item>
-        </el-timeline>
-        <el-empty v-else description="暂无审批记录" :image-size="60" />
-      </el-card>
+            </el-timeline-item>
+          </el-timeline>
+          <el-empty v-else description="暂无审批记录" :image-size="60" />
+        </el-card>
 
-      <div class="action-bar">
-        <template v-if="isCurrentApprover && detail.status === 'PENDING'">
-          <el-button type="success" @click="handleApprove">通过</el-button>
-          <el-button type="danger" @click="handleReject">拒绝</el-button>
-        </template>
-        <template v-if="isApplicant && detail.status === 'PENDING'">
-          <el-button type="warning" @click="handleCancel">撤销</el-button>
-        </template>
-        <el-button @click="router.back()">返回</el-button>
-      </div>
+        <div class="action-bar">
+          <template v-if="isCurrentApprover && detail.status === 'PENDING'">
+            <el-button type="success" @click="handleApprove">通过</el-button>
+            <el-button type="danger" @click="handleReject">拒绝</el-button>
+          </template>
+          <el-button @click="router.back()">返回</el-button>
+        </div>
+      </template>
     </PageCard>
   </div>
 </template>
@@ -64,17 +68,20 @@ import { onMounted, ref } from "vue";
 import { CHART_COLORS } from "@/styles/theme";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { fetchApprovalDetail, approveApproval, rejectApproval, cancelApproval } from "../../api";
+import { useAuthStore } from "../../stores/auth";
+import { fetchApprovalDetail, approveApproval, rejectApproval } from "../../api";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
+// 与后端 t_approval_rule / t_approval_instance 的 business_type 枚举对齐
 const businessTypeOptions = [
-  { value: "PURCHASE", label: "采购审批" },
-  { value: "SALE", label: "销售审批" },
-  { value: "REFUND", label: "退款审批" },
+  { value: "PURCHASE_ORDER", label: "采购审批" },
+  { value: "SALE_RETURN", label: "销售退货审批" },
+  { value: "EXPENSE", label: "费用审批" },
   { value: "PRICE_CHANGE", label: "价格变更" },
   { value: "CREDIT_LIMIT", label: "信用额度" }
 ];
@@ -85,7 +92,7 @@ function businessTypeLabel(v: string) {
 
 function businessTypeTagType(v: string) {
   const map: Record<string, string> = {
-    PURCHASE: "", SALE: "success", REFUND: "warning", PRICE_CHANGE: "", CREDIT_LIMIT: ""
+    PURCHASE_ORDER: "", SALE_RETURN: "warning", EXPENSE: "", PRICE_CHANGE: "", CREDIT_LIMIT: ""
   };
   return map[v] || "";
 }
@@ -134,54 +141,80 @@ function formatJson(content: any) {
 }
 
 const detail = ref<any>({});
+const loadError = ref("");
+const currentTaskId = ref<number | null>(null);
 const isCurrentApprover = ref(false);
 const isApplicant = ref(false);
 
 async function loadDetail() {
-  const id = Number(route.params.id);
-  if (!id) { ElMessage.error("缺少审批ID"); router.back(); return; }
+  const instanceNo = String(route.params.id || "");
+  if (!instanceNo) {
+    const msg = "缺少审批编号";
+    ElMessage.error(msg);
+    loadError.value = msg;
+    return;
+  }
   try {
-    const data = await fetchApprovalDetail(id);
-    detail.value = data;
-    isCurrentApprover.value = data.isCurrentApprover || false;
-    isApplicant.value = data.isApplicant || false;
+    const data = await fetchApprovalDetail(instanceNo);
+    mapDetail(data);
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.msg || "加载详情失败");
-    router.back();
+    const msg = e.response?.data?.msg || "加载详情失败";
+    ElMessage.error(msg);
+    // 不静默跳回：保留页面并给出错误提示，便于用户重试/返回
+    loadError.value = msg;
   }
 }
 
+function mapDetail(data: any) {
+  const me = authStore.user?.id;
+  const pendingTask = (data.tasks || []).find(
+    (t: any) => t.taskStatus === "PENDING" && Number(t.approverId) === Number(me)
+  );
+  detail.value = {
+    id: data.id,
+    approvalNo: data.instanceNo,
+    title: data.businessTitle,
+    businessType: data.businessType,
+    applicant: data.applicantName,
+    createdAt: data.createdAt || data.submittedAt,
+    status: data.status,
+    approvalContent: { 业务单号: data.businessNo, 备注: data.remark ?? "-" },
+    approvalNodes: (data.tasks || []).map((t: any) => ({
+      approver: t.approverName,
+      approvalTime: t.processedAt || t.receivedAt || null,
+      result: t.taskStatus,
+      opinion: t.approvalComment
+    }))
+  };
+  currentTaskId.value = pendingTask?.id ?? null;
+  isCurrentApprover.value = !!pendingTask && data.status === "PENDING";
+  isApplicant.value = Number(data.applicantId) === Number(me);
+}
+
 async function handleApprove() {
+  if (!currentTaskId.value) { ElMessage.warning("当前没有待处理的审批任务"); return; }
   try {
     const { value: opinion } = await ElMessageBox.prompt("请输入审批意见", "审批通过", {
       confirmButtonText: "确认通过",
       type: "success"
     });
-    await approveApproval(detail.value.id, { opinion: opinion || "" });
+    await approveApproval(currentTaskId.value, { comment: opinion || "" });
     ElMessage.success("审批通过");
     loadDetail();
   } catch { /* 取消操作 */ }
 }
 
 async function handleReject() {
+  if (!currentTaskId.value) { ElMessage.warning("当前没有待处理的审批任务"); return; }
   try {
     const { value: opinion } = await ElMessageBox.prompt("请输入拒绝原因", "审批拒绝", {
       confirmButtonText: "确认拒绝",
       type: "error"
     });
-    await rejectApproval(detail.value.id, { opinion: opinion || "" });
+    await rejectApproval(currentTaskId.value, { comment: opinion || "" });
     ElMessage.success("已拒绝");
     loadDetail();
   } catch { /* 取消操作 */ }
-}
-
-async function handleCancel() {
-  try { await ElMessageBox.confirm("确定撤销该审批吗？", "确认撤销", { type: "warning" }); } catch { return; }
-  try {
-    await cancelApproval(detail.value.id);
-    ElMessage.success("已撤销");
-    loadDetail();
-  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "撤销失败"); }
 }
 
 onMounted(() => { loadDetail(); });

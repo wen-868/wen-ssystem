@@ -43,31 +43,30 @@
         </template>
         <template #actions="{ row }">
           <el-button size="small" link type="primary" @click="viewDetail(row)">查看详情</el-button>
-          <el-button v-if="row.status === 'PENDING'" size="small" link type="danger" @click="handleCancel(row)">撤销</el-button>
         </template>
       </DataTable>
     </PageCard>
 
     <el-dialog v-model="dialogVisible" title="提交审批" width="720px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="submitForm" :rules="rules" label-width="100px">
-        <el-form-item label="审批规则" prop="ruleId">
-          <el-select v-model="submitForm.ruleId" style="width: 100%" placeholder="请选择审批规则" @change="onRuleChange">
+        <el-form-item label="业务类型" prop="businessType">
+          <el-select v-model="submitForm.businessType" style="width: 100%" placeholder="请选择业务类型">
             <el-option
-              v-for="r in ruleOptions"
-              :key="r.id"
-              :label="r.ruleName + ' (' + businessTypeLabel(r.businessType) + ')'"
-              :value="r.id"
+              v-for="bt in businessTypeOptions"
+              :key="bt.value"
+              :label="bt.label"
+              :value="bt.value"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="标题" prop="title">
-          <el-input v-model="submitForm.title" placeholder="请输入审批标题" />
+        <el-form-item label="业务单号" prop="businessNo">
+          <el-input v-model="submitForm.businessNo" placeholder="请输入业务单号（如采购单号/退货单号）" />
         </el-form-item>
-        <el-form-item label="内容">
-          <el-input v-model="submitForm.content" type="textarea" :rows="4" placeholder="请输入审批内容" />
+        <el-form-item label="标题" prop="businessTitle">
+          <el-input v-model="submitForm.businessTitle" placeholder="请输入审批标题" />
         </el-form-item>
-        <el-form-item label="业务类型">
-          <el-input :model-value="submitForm.businessTypeLabel" disabled />
+        <el-form-item label="备注">
+          <el-input v-model="submitForm.remark" type="textarea" :rows="4" placeholder="请输入审批备注（可选）" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -81,17 +80,19 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage, ElMessageBox } from "element-plus";
-import { fetchMyApplications, submitApproval, cancelApproval, fetchApprovalRules } from "../../api";
+import { ElMessage } from "element-plus";
+import { useAuthStore } from "../../stores/auth";
+import { fetchMyApplications, submitApproval } from "../../api";
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
+// 与后端 t_approval_rule / t_approval_instance 的 business_type 枚举对齐
 const businessTypeOptions = [
-  { value: "PURCHASE", label: "采购审批" },
-  { value: "SALE", label: "销售审批" },
-  { value: "REFUND", label: "退款审批" },
+  { value: "PURCHASE_ORDER", label: "采购审批" },
+  { value: "SALE_RETURN", label: "销售退货审批" },
   { value: "PRICE_CHANGE", label: "价格变更" },
   { value: "CREDIT_LIMIT", label: "信用额度" }
 ];
@@ -102,7 +103,7 @@ function businessTypeLabel(v: string) {
 
 function businessTypeTagType(v: string) {
   const map: Record<string, string> = {
-    PURCHASE: "", SALE: "success", REFUND: "warning", PRICE_CHANGE: "", CREDIT_LIMIT: ""
+    PURCHASE_ORDER: "", SALE_RETURN: "warning", PRICE_CHANGE: "", CREDIT_LIMIT: ""
   };
   return map[v] || "";
 }
@@ -129,30 +130,29 @@ const pageSize = ref(20);
 const searchForm = reactive({ businessType: "", status: "" });
 
 const columns = [
-  { prop: "approvalNo", label: "审批编号", width: 160 },
-  { prop: "title", label: "标题", minWidth: 140 },
-  { prop: "businessType", label: "业务类型", width: 110, slot: "businessType" },
-  { prop: "ruleName", label: "审批规则", minWidth: 140 },
+  { prop: "instanceNo", label: "审批编号", width: 160 },
+  { prop: "businessTitle", label: "标题", minWidth: 140 },
+  { prop: "businessType", label: "业务类型", width: 130, slot: "businessType" },
   { prop: "status", label: "状态", width: 90, slot: "status" },
   { prop: "currentLevel", label: "当前审批节点", width: 120 },
   { prop: "createdAt", label: "创建时间", width: 170 },
-  { label: "操作", width: 160, fixed: "right", slot: "actions" }
+  { label: "操作", width: 120, fixed: "right", slot: "actions" }
 ];
 
 const dialogVisible = ref(false);
 const submitLoading = ref(false);
-const ruleOptions = ref<any[]>([]);
 const submitForm = reactive({
-  ruleId: null as number | null,
-  title: "",
-  content: "",
-  businessTypeLabel: ""
+  businessType: "",
+  businessNo: "",
+  businessTitle: "",
+  remark: ""
 });
 
 const formRef = ref();
 const rules = {
-  ruleId: [{ required: true, message: "请选择审批规则", trigger: "change" }],
-  title: [{ required: true, message: "请输入标题", trigger: "blur" }]
+  businessType: [{ required: true, message: "请选择业务类型", trigger: "change" }],
+  businessNo: [{ required: true, message: "请输入业务单号", trigger: "blur" }],
+  businessTitle: [{ required: true, message: "请输入标题", trigger: "blur" }]
 };
 
 async function search() {
@@ -162,7 +162,8 @@ async function search() {
       page: page.value,
       pageSize: pageSize.value,
       businessType: searchForm.businessType || undefined,
-      status: searchForm.status || undefined
+      status: searchForm.status || undefined,
+      applicantId: authStore.user?.id
     });
     records.value = data.records || data.list || [];
     total.value = data.total || 0;
@@ -173,27 +174,11 @@ async function search() {
   }
 }
 
-async function loadRules() {
-  try {
-    const data = await fetchApprovalRules({ page: 1, pageSize: 100 });
-    ruleOptions.value = (data.records || data.list || []).filter((r: any) => r.status === "ACTIVE");
-  } catch { /* ignore */ }
-}
-
-function onRuleChange(val: number | null) {
-  if (!val) {
-    submitForm.businessTypeLabel = "";
-    return;
-  }
-  const rule = ruleOptions.value.find(r => r.id === val);
-  submitForm.businessTypeLabel = rule ? businessTypeLabel(rule.businessType) : "";
-}
-
 function showSubmitDialog() {
-  submitForm.ruleId = null;
-  submitForm.title = "";
-  submitForm.content = "";
-  submitForm.businessTypeLabel = "";
+  submitForm.businessType = "";
+  submitForm.businessNo = "";
+  submitForm.businessTitle = "";
+  submitForm.remark = "";
   dialogVisible.value = true;
 }
 
@@ -202,9 +187,10 @@ async function handleSubmit() {
   submitLoading.value = true;
   try {
     await submitApproval({
-      ruleId: submitForm.ruleId!,
-      title: submitForm.title,
-      content: submitForm.content
+      businessType: submitForm.businessType,
+      businessNo: submitForm.businessNo,
+      businessTitle: submitForm.businessTitle,
+      remark: submitForm.remark || undefined
     });
     ElMessage.success("提交成功");
     dialogVisible.value = false;
@@ -217,19 +203,10 @@ async function handleSubmit() {
 }
 
 function viewDetail(row: any) {
-  router.push(`/approval/detail/${row.id}`);
+  router.push(`/system/approval/detail/${row.instanceNo}`);
 }
 
-async function handleCancel(row: any) {
-  try { await ElMessageBox.confirm("确定撤销该审批申请吗？", "确认撤销", { type: "warning" }); } catch { return; }
-  try {
-    await cancelApproval(row.id);
-    ElMessage.success("已撤销");
-    search();
-  } catch (e: any) { ElMessage.error(e.response?.data?.msg || "撤销失败"); }
-}
-
-onMounted(() => { search(); loadRules(); });
+onMounted(() => { search(); });
 </script>
 
 <style scoped>
