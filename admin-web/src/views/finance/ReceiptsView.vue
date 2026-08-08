@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="收款管理">
-      <template #extra>
-        <el-button type="primary" @click="openNewReceipt">新增收款</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">收款管理</h2>
+    <p class="page-desc">收款单登记与核销</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openNewReceipt">新增收款</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-select v-model="filters.customerId" placeholder="客户" clearable filterable style="width: 180px">
           <el-option v-for="m in memberList" :key="m.id" :label="m.name" :value="m.id" />
         </el-select>
@@ -33,7 +40,8 @@
         <el-button @click="resetFilters">重置</el-button>
       </div>
 
-      <el-table :data="receipts" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="receipts" v-loading="loading" stripe>
         <el-table-column prop="receiptNo" label="收款单号" width="180" />
         <el-table-column prop="customerName" label="客户" min-width="140" />
         <el-table-column label="金额" width="140" align="right">
@@ -64,7 +72,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -75,7 +83,8 @@
           @current-change="(p: number) => { page = p; loadData(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 新增收款弹窗 -->
     <el-dialog v-model="dialogVisible" title="新增收款" width="720px">
@@ -189,13 +198,12 @@
         <el-button @click="detailVisible = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchReceipts, createReceipt, getReceiptDetail, writeoffReceipt, voidReceipt, fetchMembers, fetchSaleBills } from "../../api";
 

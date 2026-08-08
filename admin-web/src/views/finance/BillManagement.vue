@@ -1,5 +1,16 @@
 <template>
-  <PageCard title="票据管理">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">票据管理</h2>
+
+      <p class="page-desc">票据登记与核销管理</p>
+
+    </div>
+
+  </div>
+
     <div class="bill-header">
       <el-input
         v-model="keyword"
@@ -37,7 +48,8 @@
       </el-button>
     </div>
 
-    <el-table :data="billList" v-loading="loading" stripe empty-text="暂无票据记录">
+    <div class="table-card">
+<el-table :data="billList" v-loading="loading" stripe empty-text="暂无票据记录">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="billNo" label="票据号" min-width="160" />
       <el-table-column prop="billType" label="类型" width="100">
@@ -86,7 +98,7 @@
       </el-table-column>
     </el-table>
 
-    <div class="pagination">
+    <div class="table-card-footer">
       <el-pagination
         background
         layout="total, sizes, prev, pager, next, jumper"
@@ -97,6 +109,7 @@
         @current-page="handlePageChange"
       />
     </div>
+</div>
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑票据' : '新增票据'" width="720px" :close-on-click-modal="false">
@@ -130,14 +143,13 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatMoney } from "../../utils/format";
 import {
   fetchBills,

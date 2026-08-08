@@ -1,17 +1,24 @@
 <template>
-  <div class="page">
-    <PageCard title="经营利润">
-      <template #extra>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="loadData"
-        />
-        <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">经营利润</h2>
+    <p class="page-desc">收入成本对比与利润明细</p>
+  </div>
+  <div class="page-header-actions">
+    <el-date-picker
+    v-model="dateRange"
+    type="daterange"
+    range-separator="至"
+    start-placeholder="开始日期"
+    end-placeholder="结束日期"
+    @change="loadData"
+    />
+    <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <!-- 汇总卡片 -->
       <el-row :gutter="16" class="summary-row">
@@ -44,7 +51,7 @@
           </el-card>
         </el-col>
       </el-row>
-    </PageCard>
+    
 
     <!-- 图表 -->
     <PageCard title="收入成本对比">
@@ -57,7 +64,8 @@
 
     <!-- 明细表格 -->
     <PageCard title="利润明细">
-      <el-table :data="profitData" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="profitData" v-loading="loading" stripe>
         <el-table-column prop="period" label="期间" width="140" />
         <el-table-column label="收入" width="140" align="right">
           <template #default="{ row }">
@@ -92,8 +100,9 @@
           <el-empty description="暂无数据" :image-size="80" />
         </template>
       </el-table>
+</div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

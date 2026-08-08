@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="费用管理">
-      <template #extra>
-        <el-button type="primary" @click="openNewExpense">新增费用</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">费用管理</h2>
+    <p class="page-desc">费用登记与汇总分析</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openNewExpense">新增费用</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-select v-model="filters.expenseType" placeholder="类型" clearable style="width: 140px">
           <el-option label="日常费用" value="daily" />
           <el-option label="差旅费" value="travel" />
@@ -33,7 +40,8 @@
         <el-button @click="resetFilters">重置</el-button>
       </div>
 
-      <el-table :data="expenses" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="expenses" v-loading="loading" stripe>
         <el-table-column prop="expenseNo" label="费用单号" width="180" />
         <el-table-column prop="expenseType" label="类型" width="100" align="center" />
         <el-table-column prop="category" label="分类" width="120" />
@@ -65,7 +73,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -76,7 +84,8 @@
           @current-change="(p: number) => { page = p; loadData(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 汇总图表 -->
     <PageCard title="费用汇总">
@@ -158,7 +167,7 @@
         <el-button type="success" @click="handleApprove">通过</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

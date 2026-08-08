@@ -1,6 +1,17 @@
 <template>
-  <PageCard title="银行账户管理">
-    <div class="bank-header">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">银行账户管理</h2>
+
+      <p class="page-desc">银行账户维护与余额流水查询</p>
+
+    </div>
+
+  </div>
+
+    <div class="filter-bar">
       <el-input
         v-model="keyword"
         placeholder="搜索开户行/账户名称/账号"
@@ -18,7 +29,8 @@
       </el-button>
     </div>
 
-    <el-table :data="accountList" v-loading="loading" stripe empty-text="暂无银行账户">
+    <div class="table-card">
+<el-table :data="accountList" v-loading="loading" stripe empty-text="暂无银行账户">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="bankName" label="开户行" min-width="140" />
       <el-table-column prop="accountNo" label="账号" min-width="180" />
@@ -58,7 +70,7 @@
       </el-table-column>
     </el-table>
 
-    <div class="pagination">
+    <div class="table-card-footer">
       <el-pagination
         background
         layout="total, sizes, prev, pager, next, jumper"
@@ -69,6 +81,7 @@
         @current-page="handlePageChange"
       />
     </div>
+</div>
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑银行账户' : '新增银行账户'" width="720px" :close-on-click-modal="false">
@@ -147,14 +160,13 @@
         />
       </div>
     </el-dialog>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatMoney } from "../../utils/format";
 import {
   fetchBankAccountsForFinance,

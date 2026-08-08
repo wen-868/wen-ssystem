@@ -1,10 +1,16 @@
 <template>
-  <div class="page">
-    <PageCard title="对账中心">
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">对账中心</h2>
+    <p class="page-desc">客户/供应商对账核销</p>
+  </div>
+</div>
+
       <el-tabs v-model="activeTab" @tab-change="loadData">
         <!-- 客户对账 -->
         <el-tab-pane label="客户对账" name="customer">
-          <div class="search-bar">
+          <div class="filter-bar">
             <el-select v-model="customerFilters.entityId" placeholder="客户" clearable filterable style="width: 180px">
               <el-option v-for="m in memberList" :key="m.id" :label="m.name" :value="m.id" />
             </el-select>
@@ -25,7 +31,8 @@
             <el-button @click="exportReconciliation">导出</el-button>
           </div>
 
-          <el-table :data="customerReconciliations" v-loading="loading" stripe>
+          <div class="table-card">
+<el-table :data="customerReconciliations" v-loading="loading" stripe>
             <el-table-column prop="entityName" label="客户" min-width="140" />
             <el-table-column label="期初余额" width="140" align="right">
               <template #default="{ row }">
@@ -63,11 +70,12 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
 
         <!-- 供应商对账 -->
         <el-tab-pane label="供应商对账" name="supplier">
-          <div class="search-bar">
+          <div class="filter-bar">
             <el-select v-model="supplierFilters.entityId" placeholder="供应商" clearable filterable style="width: 180px">
               <el-option v-for="s in supplierList" :key="s.id" :label="s.name" :value="s.id" />
             </el-select>
@@ -88,7 +96,8 @@
             <el-button @click="exportReconciliation">导出</el-button>
           </div>
 
-          <el-table :data="supplierReconciliations" v-loading="loading" stripe>
+          <div class="table-card">
+<el-table :data="supplierReconciliations" v-loading="loading" stripe>
             <el-table-column prop="entityName" label="供应商" min-width="140" />
             <el-table-column label="期初余额" width="140" align="right">
               <template #default="{ row }">
@@ -126,9 +135,10 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
       </el-tabs>
-    </PageCard>
+    
 
     <!-- 生成对账单弹窗 -->
     <el-dialog v-model="generateVisible" title="生成对账单" width="480px">
@@ -202,13 +212,12 @@
         <el-button v-if="detail?.status === 'PENDING'" type="success" @click="handleConfirmFromDetail">确认对账</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import {
   fetchCustomerReconciliation, fetchCustomerReconciliationDetail, confirmCustomerReconciliation,

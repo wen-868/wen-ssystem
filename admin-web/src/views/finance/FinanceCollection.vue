@@ -1,12 +1,20 @@
 <template>
-  <div class="page">
-    <PageCard title="收款链接">
-      <template #extra>
-        <el-button type="primary" @click="openCreate">创建链接</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">收款链接</h2>
+    <p class="page-desc">分享收款链接创建与管理</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openCreate">创建链接</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <el-table :data="links" v-loading="loading" stripe>
+      
+
+      <div class="table-card">
+<el-table :data="links" v-loading="loading" stripe>
         <el-table-column prop="linkNo" label="链接编号" width="180" />
         <el-table-column prop="customerName" label="客户名称" min-width="140" />
         <el-table-column label="金额" width="140" align="right">
@@ -52,7 +60,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -63,7 +71,8 @@
           @current-change="(p: number) => { page = p; loadData(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 创建收款链接弹窗 -->
     <el-dialog v-model="dialogVisible" title="创建收款链接" width="720px">
@@ -108,13 +117,12 @@
         <el-button @click="statusDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchCollectionLinks, createCollectionLink, fetchSaleBills } from "../../api";
 

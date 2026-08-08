@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 范围切换 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">财务总览</h2>
+      <p class="page-desc">现金流、利润与应收应付整体情况</p>
+    </div>
+  </div>
+<!-- 范围切换 -->
     <div class="range-bar">
       <el-radio-group v-model="rangeType" size="default" @change="loadData">
         <el-radio-button value="month">本月</el-radio-button>
@@ -76,7 +82,8 @@
 
     <!-- 日报表 -->
     <PageCard title="日报表">
-      <el-table :data="dailyReport" stripe>
+      <div class="table-card">
+<el-table :data="dailyReport" stripe>
         <el-table-column prop="date" label="日期" width="140">
           <template #default="{ row }">
             {{ formatDate(row.date) }}
@@ -100,8 +107,9 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

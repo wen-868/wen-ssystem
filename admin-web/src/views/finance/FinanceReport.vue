@@ -1,5 +1,16 @@
 <template>
-  <PageCard title="资金报表">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">资金报表</h2>
+
+      <p class="page-desc">资金收支与余额报表</p>
+
+    </div>
+
+  </div>
+
     <el-tabs v-model="activeTab" type="card" @tab-change="handleTabChange">
       <!-- 资金流水 -->
       <el-tab-pane label="资金流水" name="transactions">
@@ -23,7 +34,8 @@
           <el-button @click="resetFilters">重置</el-button>
         </div>
 
-        <el-table :data="transactionList" v-loading="loading" stripe empty-text="暂无资金流水">
+        <div class="table-card">
+<el-table :data="transactionList" v-loading="loading" stripe empty-text="暂无资金流水">
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="transactionNo" label="交易单号" min-width="160" />
           <el-table-column prop="transactionType" label="类型" width="100">
@@ -53,7 +65,7 @@
           </el-table-column>
         </el-table>
 
-        <div class="pagination">
+        <div class="table-card-footer">
           <el-pagination
             background
             layout="total, sizes, prev, pager, next, jumper"
@@ -64,6 +76,7 @@
             @current-page="handlePageChange"
           />
         </div>
+</div>
       </el-tab-pane>
 
       <!-- 收支统计 -->
@@ -106,7 +119,8 @@
           </div>
         </div>
 
-        <el-table :data="statistics.list" v-loading="statsLoading" stripe empty-text="暂无统计数据">
+        <div class="table-card">
+<el-table :data="statistics.list" v-loading="statsLoading" stripe empty-text="暂无统计数据">
           <el-table-column prop="date" label="日期" width="120" />
           <el-table-column prop="income" label="收入" width="140">
             <template #default="{ row }">
@@ -127,6 +141,7 @@
           </el-table-column>
           <el-table-column prop="count" label="交易笔数" width="100" />
         </el-table>
+</div>
       </el-tab-pane>
 
       <!-- 资金趋势 -->
@@ -173,13 +188,12 @@
         </div>
       </el-tab-pane>
     </el-tabs>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, nextTick } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatMoney } from "../../utils/format";
 import initECharts from "../../utils/echarts";
 import { CHART_COLORS } from "@/styles/theme";

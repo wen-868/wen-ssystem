@@ -1,17 +1,24 @@
 <template>
-  <div class="page">
-    <PageCard title="应收应付汇总">
-      <template #extra>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          @change="loadData"
-        />
-        <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">应收应付汇总</h2>
+    <p class="page-desc">应收应付汇总与账龄分析</p>
+  </div>
+  <div class="page-header-actions">
+    <el-date-picker
+    v-model="dateRange"
+    type="daterange"
+    range-separator="至"
+    start-placeholder="开始日期"
+    end-placeholder="结束日期"
+    @change="loadData"
+    />
+    <el-button style="margin-left: 12px" @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-tabs v-model="activeTab" @tab-change="loadData">
         <el-tab-pane label="应收汇总" name="receivables">
@@ -52,7 +59,8 @@
           </div>
 
           <!-- 明细表格 -->
-          <el-table :data="arDetail" v-loading="loading" stripe>
+          <div class="table-card">
+<el-table :data="arDetail" v-loading="loading" stripe>
             <el-table-column prop="customerName" label="客户" min-width="140" />
             <el-table-column prop="billNo" label="单据号" width="180" />
             <el-table-column label="金额" width="140" align="right">
@@ -81,6 +89,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
 
         <el-tab-pane label="应付汇总" name="payables">
@@ -121,7 +130,8 @@
           </div>
 
           <!-- 明细表格 -->
-          <el-table :data="apDetail" v-loading="loading" stripe>
+          <div class="table-card">
+<el-table :data="apDetail" v-loading="loading" stripe>
             <el-table-column prop="supplierName" label="供应商" min-width="140" />
             <el-table-column prop="billNo" label="单据号" width="180" />
             <el-table-column label="金额" width="140" align="right">
@@ -150,17 +160,17 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
       </el-tabs>
-    </PageCard>
-  </div>
+    
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
-import PageCard from "../../components/PageCard.vue";
 import { formatYuan } from "../../utils/format";
 import { fetchReceivablesSummary, fetchPayablesSummary } from "../../api";
 

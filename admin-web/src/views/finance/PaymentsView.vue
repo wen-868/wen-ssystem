@@ -1,17 +1,18 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>收款记录</span>
-          <div class="header-actions">
-            <el-button @click="refreshCurrent">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">收款记录</h2>
+    <p class="page-desc">收款与退款记录查询</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button @click="refreshCurrent">刷新</el-button>
+  </div>
+</div>
+
 
       <StatBar :stats="paymentStats" />
-      <div class="list-filter-bar">
+      <div class="filter-bar">
         <el-input
           v-model="filterKeyword"
           placeholder="搜索单号/关联单号"
@@ -28,7 +29,8 @@
       </div>
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="分享收款" name="collection">
-          <el-table class="list-table" :data="collectionLinks" v-loading="loading" stripe empty-text="暂无记录">
+          <div class="table-card">
+<el-table class="list-table" :data="collectionLinks" v-loading="loading" stripe empty-text="暂无记录">
             <el-table-column prop="linkNo" label="收款单号" width="200" />
             <el-table-column prop="sourceNo" label="关联销售单" width="200" />
             <el-table-column label="收款金额" width="120">
@@ -51,10 +53,12 @@
               <el-empty description="暂无数据" :image-size="80" />
             </template>
           </el-table>
+</div>
         </el-tab-pane>
 
         <el-tab-pane label="支付记录" name="payment">
-          <el-table class="list-table" :data="paymentOrders" v-loading="loading" stripe empty-text="暂无记录">
+          <div class="table-card">
+<el-table class="list-table" :data="paymentOrders" v-loading="loading" stripe empty-text="暂无记录">
             <el-table-column prop="payNo" label="支付单号" width="200" />
             <el-table-column prop="sourceNo" label="关联来源" width="200" />
             <el-table-column label="金额" width="120">
@@ -76,10 +80,12 @@
               <el-empty description="暂无数据" :image-size="80" />
             </template>
           </el-table>
+</div>
         </el-tab-pane>
 
         <el-tab-pane label="退款记录" name="refund">
-          <el-table class="list-table" :data="refundOrders" v-loading="loading" stripe empty-text="暂无退款">
+          <div class="table-card">
+<el-table class="list-table" :data="refundOrders" v-loading="loading" stripe empty-text="暂无退款">
             <el-table-column prop="refundNo" label="退款单号" width="200" />
             <el-table-column prop="payNo" label="支付单号" width="200" />
             <el-table-column prop="sourceNo" label="关联来源" width="180" />
@@ -102,6 +108,7 @@
               <el-empty description="暂无数据" :image-size="80" />
             </template>
           </el-table>
+</div>
           </el-tab-pane>
         </el-tabs>
 
@@ -116,8 +123,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
-  </div>
+    
+</div>
 </template>
 
 <script setup lang="ts">

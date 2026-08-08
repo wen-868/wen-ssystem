@@ -1,31 +1,33 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>客户对账</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索对账单号/客户"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadStatements"
-              @keyup.enter="loadStatements"
-            />
-            <el-select v-model="status" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadStatements">
-              <el-option label="待确认" value="PENDING" />
-              <el-option label="已确认" value="CONFIRMED" />
-              <el-option label="已结算" value="SETTLED" />
-              <el-option label="已作废" value="VOID" />
-            </el-select>
-            <el-button @click="loadStatements">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户对账</h2>
+    <p class="page-desc">客户对账单查询与确认</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索对账单号/客户"
+  size="default"
+  style="width: 220px; margin-right: 10px"
+  clearable
+  @clear="loadStatements"
+  @keyup.enter="loadStatements"
+  />
+  <el-select v-model="status" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadStatements">
+  <el-option label="待确认" value="PENDING" />
+  <el-option label="已确认" value="CONFIRMED" />
+  <el-option label="已结算" value="SETTLED" />
+  <el-option label="已作废" value="VOID" />
+  </el-select>
+  <el-button @click="loadStatements">刷新</el-button>
+</div>
 
-      <el-table :data="statements" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="statements" v-loading="loading" stripe>
         <el-table-column prop="statementNo" label="对账单号" width="200" />
         <el-table-column prop="customerName" label="客户" min-width="140" />
         <el-table-column prop="period" label="账期" width="140" />
@@ -67,7 +69,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -78,7 +80,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-drawer v-model="detailVisible" title="对账单详情" size="600px">
       <template v-if="currentStatement">
@@ -138,7 +141,7 @@
         </el-table>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
