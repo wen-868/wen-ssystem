@@ -2835,6 +2835,45 @@
 
 **任务卡归档**：`docs/tasks/inbox/ache_r99_02.md` → `docs/tasks/inbox/archive/`
 
+### R99-03 — [P1] P1 常规页批量套模板 + 模块走查（阶段 3）
+- **优先级**：P1
+- **负责人**：阿澈（前端设计/开发）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **前置**：R99-01（体系）+ R99-02（P0 23 页）已完成
+- **范围**：以下模块中**未在 P0 完成**的业务页，按四种骨架批量套模板（列表/表单/详情/看板）：
+  - customer（客户剩余页）、finance（13）、instant-retail（12）、inventory（剩余）、marketing（11）、order（剩余）、pos（剩余）、product（剩余）、purchase（8）、report（剩余）、sale（剩余）、dashboard（剩余）
+  - **P2 不逐页改**：system 模块（配置/日志/监控）与低频页，依赖全局 Element Plus 主题自动生效 + R99-04 抽查
+- **要求**：统一落地页头/指标卡/筛选栏/表格卡/分页/状态标签/空态，用 R99-01 通用类与 tokens；只改样式与模板结构，不动业务逻辑与接口；保持与 P0 页风格一致
+- **验证**：admin-web `build:check` exit 0；分模块走查截图（docs/reports/R99-03-*）；无回归
+- **提交**：中文提交信息，可分模块提交，推送 origin/main
+- **任务卡**：`docs/tasks/inbox/ache_r99_03.md`
+
+**R99-03 完成记录（2026-08-08 阿澈）：**
+
+**完成内容（P1 常规页 98 页全部按四种骨架批量落地，只改样式与模板结构）：**
+
+| 批次 | 模块 | 页数 | 提交 | 走查 |
+|------|------|:---:|------|------|
+| 1 | finance | 13 | `e7aa2bac` | 13/13 正常 |
+| 2 | instant-retail | 12 | `2cf348bc` | 12/12 正常 0 错误 |
+| 3 | marketing + purchase | 19 | `239378b9` | 19/19 正常（3 页为 mock 404/btoa 既有问题） |
+| 4 | customer/inventory/order/pos/product | 47 | `b0f69118` | 47/47 正常（含补测 /reports/inventory，错误均为 mock 404） |
+| 5 | report/sale/dashboard | 16 | `e91dd6cb` | 16/16 正常（错误均为 mock 400/404） |
+
+- **落地内容**：每页统一 `.page-header`（h2.page-title 20px/700 + page-desc + 操作区）→ 保留/前置统计条（StatBar/stat-grid）→ `.filter-bar` 筛选卡（旧 search-bar/toolbar/bank-header 等容器统一转换）→ `.table-card` 表格卡 + `.table-card-footer` 分页 → el-tag 语义色状态标签（全局主题生效）→ 空态（empty-text/el-empty）
+- **骨架判定**：单 PageCard 全页容器 → 转页头；多 PageCard 看板页 → 前置页头并保留区块卡；已有 page-header 的页面跳过；弹窗内表格不包裹（避免层级破坏）
+- **验证证据**：
+  - `npm run build:check`（vue-tsc + vite build）最终全量 exit 0 ✅
+  - 分模块走查截图共 107 张：`docs/reports/R99-03-走查/{finance,instant-retail,marketing,purchase,customer,inventory,order,pos,product,report,sale,dashboard}/` ✅
+  - 走查 0 空白页/0 结构崩溃；控制台错误仅为 mock 后端数据接口 400/404 与 MarketingMaterial btoa 既有问题（`git diff` 核对 script 段 0 逻辑改动，非本轮引入）✅
+  - P0 页面零误改（git log 逐批核对）；P1 页面除无表格/卡片列表/看板/表单页外全部含 page-header + table-card ✅
+- **说明**：
+  1. 部分页头副说明使用通用文案「数据查询与维护」（既有 el-card 标题未逐一映射场景），建议 R99-04 收口时按页微调
+  2. 存在既有技术债（未越权改，沿用 R99-02 记录）：MarketingMaterial btoa 缩略图、OrderCenterView/SalesAnalysis 等 mock 随机数据、CollectionAnalysis 趋势随机数，建议后续轮次接真实接口
+  3. P2（system 模块及低频页）未逐页改，依赖全局 Element Plus 主题 + tokens 自动生效，留 R99-04 抽查
+
+**任务卡归档**：`docs/tasks/inbox/ache_r99_03.md` → `docs/tasks/inbox/archive/`
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：
