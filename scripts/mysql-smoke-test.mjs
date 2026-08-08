@@ -12,6 +12,9 @@ const DB = {
 };
 
 const API_BASE = process.env.API_BASE || "http://localhost:8080";
+// 冒烟测试登录账号（生产密码若被修改，用 SMOKE_ADMIN_PASSWORD 环境变量覆盖）
+const ADMIN_USERNAME = process.env.SMOKE_ADMIN_USERNAME || "admin";
+const ADMIN_PASSWORD = process.env.SMOKE_ADMIN_PASSWORD || "admin123";
 
 let passed = 0;
 let failed = 0;
@@ -107,7 +110,7 @@ async function apiChecks() {
 
   const login = await request("/api/admin/auth/login", {
     method: "POST",
-    body: { username: "admin", password: "Admin@2026" }
+    body: { username: ADMIN_USERNAME, password: ADMIN_PASSWORD }
   });
   const token = login.body?.data?.token;
   check("管理后台登录", login.status === 200 && login.body?.code === "0" && Boolean(token));
