@@ -1,17 +1,25 @@
 <template>
-  <div class="page">
-    <PageCard title="小程序公告管理">
-      <template #extra>
-        <el-button type="primary" @click="openDialog()">新增公告</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">小程序公告管理</h2>
+    <p class="page-desc">小程序公告发布与维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openDialog()">新增公告</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="公告标题" clearable style="width: 200px" />
         <el-button type="primary" style="margin-left: 12px" @click="searchAnnouncements">搜索</el-button>
       </div>
 
-      <el-table :data="announcements" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="announcements" v-loading="loading" stripe>
         <el-table-column prop="title" label="标题" min-width="160" show-overflow-tooltip />
         <el-table-column prop="storeName" label="门店" min-width="120" />
         <el-table-column prop="isTop" label="是否置顶" width="100" align="center">
@@ -46,10 +54,11 @@
         <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total" :page-size="pageSize" :current-page="page" @size-change="(s: number) => { pageSize = s; searchAnnouncements(); }" @current-change="(p: number) => { page = p; searchAnnouncements(); }" />
       </div>
-    </PageCard>
+</div>
+    
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑公告' : '新增公告'" width="720px">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
@@ -84,13 +93,12 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import {
   fetchRetailAnnouncements,

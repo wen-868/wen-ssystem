@@ -1,13 +1,19 @@
 <template>
-  <div class="page">
-    <el-card class="toolbar-card" shadow="never">
-      <div class="toolbar">
-        <div class="toolbar-left">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售订单看板</h2>
+      <p class="page-desc">60秒接单与订单状态看板</p>
+    </div>
+  </div>
+<el-card class="toolbar-card" shadow="never">
+      <div class="filter-bar">
+        <div class="filter-bar">
           <span class="toolbar-title">60秒接单看板</span>
           <el-tag v-if="autoAccept" type="success" effect="dark">自动接单</el-tag>
           <el-tag v-else type="warning" effect="dark">手动接单</el-tag>
         </div>
-        <div class="toolbar-right">
+        <div class="filter-bar">
           <el-tooltip content="新订单音效">
             <el-button :icon="soundEnabled ? 'Bell' : 'BellOff'" circle @click="toggleSound" />
           </el-tooltip>
@@ -233,7 +239,7 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

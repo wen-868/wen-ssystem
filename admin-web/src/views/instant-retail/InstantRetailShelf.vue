@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <div class="shelf-layout">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售货架</h2>
+      <p class="page-desc">线上商品上架与管理</p>
+    </div>
+  </div>
+<div class="shelf-layout">
       <div class="category-sidebar">
         <el-card class="sidebar-card">
           <div class="sidebar-header">
@@ -29,8 +35,8 @@
 
       <div class="main-content">
         <el-card>
-          <div class="toolbar">
-            <div class="toolbar-left">
+          <div class="filter-bar">
+            <div class="filter-bar">
               <el-input
                 v-model="keyword"
                 placeholder="搜索商品名称/SKU"
@@ -75,7 +81,8 @@
             <el-button size="small" link @click="clearSelection">取消选择</el-button>
           </div>
 
-          <el-table
+          <div class="table-card">
+<el-table
             :data="products"
             v-loading="loading"
             stripe
@@ -140,7 +147,7 @@
             </template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -151,12 +158,13 @@
               @current-change="handlePageChange"
             />
           </div>
+</div>
         </el-card>
       </div>
     </div>
 
     <el-dialog v-model="addDialogVisible" title="添加商品到货架" width="900px" class="add-product-dialog">
-      <div class="add-product-search">
+      <div class="filter-bar">
         <el-input
           v-model="addKeyword"
           placeholder="搜索商品名称/SKU"
@@ -346,7 +354,7 @@
         <el-button type="primary" :loading="batchTagLoading" @click="handleBatchTag">确认设置</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

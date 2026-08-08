@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-row :gutter="16" class="stat-cards">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售报表</h2>
+      <p class="page-desc">销售/配送/平台经营分析</p>
+    </div>
+  </div>
+<el-row :gutter="16" class="stat-cards">
       <el-col :span="6">
         <div class="stat-card gradient-blue">
           <div class="stat-info">
@@ -128,7 +134,8 @@
       <template #header>
         <span class="section-title">平台对比明细</span>
       </template>
-      <el-table :data="platformCompareTable" stripe>
+      <div class="table-card">
+<el-table :data="platformCompareTable" stripe>
         <el-table-column prop="platform" label="平台" width="120">
           <template #default="{ row }">
             <span class="platform-tag" :style="{ color: row.color }">
@@ -155,6 +162,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
     </el-card>
 
     <el-card class="section-card" shadow="never">
@@ -166,7 +174,8 @@
       </template>
       <el-tabs v-model="rankTab" class="rank-tabs">
         <el-tab-pane label="热销TOP20" name="sales">
-          <el-table :data="topSalesList" stripe>
+          <div class="table-card">
+<el-table :data="topSalesList" stripe>
             <el-table-column type="index" label="排名" width="80" align="center">
               <template #default="{ $index }">
                 <span class="rank-badge" :class="'rank-' + ($index + 1)">{{ $index + 1 }}</span>
@@ -187,9 +196,11 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
         <el-tab-pane label="毛利TOP20" name="profit">
-          <el-table :data="topProfitList" stripe>
+          <div class="table-card">
+<el-table :data="topProfitList" stripe>
             <el-table-column type="index" label="排名" width="80" align="center">
               <template #default="{ $index }">
                 <span class="rank-badge" :class="'rank-' + ($index + 1)">{{ $index + 1 }}</span>
@@ -209,10 +220,11 @@
               <template #default="{ row }">{{ formatNumber(row.quantity) }}</template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

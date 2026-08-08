@@ -1,44 +1,46 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>即时零售配送</span>
-          <div class="header-actions">
-            <el-input
-              v-model="orderNoFilter"
-              placeholder="搜索订单号"
-              size="default"
-              style="width: 200px; margin-right: 8px"
-              clearable
-              @clear="loadData"
-              @keyup.enter="loadData"
-            />
-            <el-select v-model="deliveryStatus" placeholder="配送状态" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
-              <el-option label="待分配" value="PENDING" />
-              <el-option label="已分配" value="ASSIGNED" />
-              <el-option label="取货中" value="PICKING" />
-              <el-option label="配送中" value="DELIVERING" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已取消" value="CANCELLED" />
-            </el-select>
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="margin-right: 8px"
-              value-format="YYYY-MM-DD"
-              @change="loadData"
-            />
-            <el-button @click="loadData">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">即时零售配送</h2>
+    <p class="page-desc">配送订单管理与调度</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="orderNoFilter"
+  placeholder="搜索订单号"
+  size="default"
+  style="width: 200px; margin-right: 8px"
+  clearable
+  @clear="loadData"
+  @keyup.enter="loadData"
+  />
+  <el-select v-model="deliveryStatus" placeholder="配送状态" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
+  <el-option label="待分配" value="PENDING" />
+  <el-option label="已分配" value="ASSIGNED" />
+  <el-option label="取货中" value="PICKING" />
+  <el-option label="配送中" value="DELIVERING" />
+  <el-option label="已完成" value="COMPLETED" />
+  <el-option label="已取消" value="CANCELLED" />
+  </el-select>
+  <el-date-picker
+  v-model="dateRange"
+  type="daterange"
+  range-separator="至"
+  start-placeholder="开始日期"
+  end-placeholder="结束日期"
+  size="default"
+  style="margin-right: 8px"
+  value-format="YYYY-MM-DD"
+  @change="loadData"
+  />
+  <el-button @click="loadData">刷新</el-button>
+</div>
 
-      <el-table :data="deliveries" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="deliveries" v-loading="loading" stripe>
         <el-table-column prop="deliveryNo" label="配送单号" width="200" />
         <el-table-column prop="orderNo" label="关联订单号" width="200" />
         <el-table-column prop="customer" label="客户" min-width="120" />
@@ -75,7 +77,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -86,7 +88,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="assignDialogVisible" title="分配骑手" width="480px">
       <el-form ref="assignFormRef" :model="assignForm" :rules="assignRules" label-width="100px">
@@ -102,7 +105,7 @@
         <el-button type="primary" :loading="assignLoading" @click="handleAssign">确认分配</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

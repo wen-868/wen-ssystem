@@ -1,46 +1,48 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>即时零售支付</span>
-          <div class="header-actions">
-            <el-input
-              v-model="orderNoFilter"
-              placeholder="搜索订单号"
-              size="default"
-              style="width: 200px; margin-right: 8px"
-              clearable
-              @clear="loadData"
-              @keyup.enter="loadData"
-            />
-            <el-select v-model="methodFilter" placeholder="支付方式" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
-              <el-option label="微信支付" value="WECHAT" />
-              <el-option label="支付宝" value="ALIPAY" />
-              <el-option label="余额支付" value="BALANCE" />
-            </el-select>
-            <el-select v-model="statusFilter" placeholder="支付状态" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
-              <el-option label="已支付" value="PAID" />
-              <el-option label="未支付" value="UNPAID" />
-              <el-option label="已退款" value="REFUNDED" />
-            </el-select>
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="margin-right: 8px"
-              value-format="YYYY-MM-DD"
-              @change="loadData"
-            />
-            <el-button @click="loadData">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">即时零售支付</h2>
+    <p class="page-desc">支付/退款记录与平台对账</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="orderNoFilter"
+  placeholder="搜索订单号"
+  size="default"
+  style="width: 200px; margin-right: 8px"
+  clearable
+  @clear="loadData"
+  @keyup.enter="loadData"
+  />
+  <el-select v-model="methodFilter" placeholder="支付方式" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
+  <el-option label="微信支付" value="WECHAT" />
+  <el-option label="支付宝" value="ALIPAY" />
+  <el-option label="余额支付" value="BALANCE" />
+  </el-select>
+  <el-select v-model="statusFilter" placeholder="支付状态" size="default" style="width: 130px; margin-right: 8px" clearable @change="loadData">
+  <el-option label="已支付" value="PAID" />
+  <el-option label="未支付" value="UNPAID" />
+  <el-option label="已退款" value="REFUNDED" />
+  </el-select>
+  <el-date-picker
+  v-model="dateRange"
+  type="daterange"
+  range-separator="至"
+  start-placeholder="开始日期"
+  end-placeholder="结束日期"
+  size="default"
+  style="margin-right: 8px"
+  value-format="YYYY-MM-DD"
+  @change="loadData"
+  />
+  <el-button @click="loadData">刷新</el-button>
+</div>
 
-      <el-table :data="payments" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="payments" v-loading="loading" stripe>
         <el-table-column prop="paymentNo" label="支付单号" width="200" />
         <el-table-column prop="orderNo" label="关联订单号" width="200" />
         <el-table-column prop="amount" label="支付金额" width="120">
@@ -75,7 +77,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -86,7 +88,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="detailVisible" title="支付详情" width="720px">
       <el-descriptions v-if="paymentDetail" :column="2" border>
@@ -114,7 +117,7 @@
         <el-button @click="detailVisible = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

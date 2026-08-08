@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-card>
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售订单</h2>
+      <p class="page-desc">即时零售订单查询与处理</p>
+    </div>
+  </div>
+<el-card>
       <div class="filter-bar">
         <div class="filter-left">
           <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 130px; margin-right: 12px" @change="loadData">
@@ -49,7 +55,8 @@
         </div>
       </div>
 
-      <el-table v-loading="loading" :data="orders" stripe @row-click="viewDetail">
+      <div class="table-card">
+<el-table v-loading="loading" :data="orders" stripe @row-click="viewDetail">
         <el-table-column prop="orderNo" label="订单号" width="200">
           <template #default="{ row }">
             <span class="order-no-text">{{ row.orderNo }}</span>
@@ -120,7 +127,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -131,6 +138,7 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <el-drawer
@@ -286,7 +294,7 @@
         <el-button type="danger" :loading="cancelLoading" @click="submitCancel">确定取消</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

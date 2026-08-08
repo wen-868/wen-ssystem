@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-tabs v-model="activeTab" class="platform-tabs">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">平台对接</h2>
+      <p class="page-desc">京东秒送/美团/饿了么平台配置</p>
+    </div>
+  </div>
+<el-tabs v-model="activeTab" class="platform-tabs">
       <el-tab-pane label="京东秒送" name="jd">
         <PlatformPanel :platform="platforms.jd" />
       </el-tab-pane>
@@ -11,7 +17,7 @@
         <PlatformPanel :platform="platforms.eleme" />
       </el-tab-pane>
     </el-tabs>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

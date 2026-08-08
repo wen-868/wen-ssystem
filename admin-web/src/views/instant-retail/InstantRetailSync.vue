@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 同步状态概览 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售同步</h2>
+      <p class="page-desc">价格/库存/商品同步状态</p>
+    </div>
+  </div>
+<!-- 同步状态概览 -->
     <el-row :gutter="16" class="stats-row">
       <el-col :span="8">
         <el-card shadow="never">
@@ -38,7 +44,8 @@
           <el-button size="small" @click="loadPlatforms">刷新</el-button>
         </div>
       </template>
-      <el-table v-loading="platformLoading" :data="platforms" stripe>
+      <div class="table-card">
+<el-table v-loading="platformLoading" :data="platforms" stripe>
         <el-table-column label="平台" width="140">
           <template #default="{ row }">
             <el-tag :type="getPlatformTagType(row.platform)" size="small">{{ getPlatformName(row.platform) }}</el-tag>
@@ -87,6 +94,7 @@
           <el-empty description="暂无平台配置" />
         </template>
       </el-table>
+</div>
     </el-card>
 
     <!-- 同步日志 -->
@@ -119,7 +127,8 @@
         </div>
       </div>
 
-      <el-table v-loading="logLoading" :data="syncLogs" stripe>
+      <div class="table-card">
+<el-table v-loading="logLoading" :data="syncLogs" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200">
           <template #default="{ row }">
             <span class="order-no-text">{{ row.orderNo }}</span>
@@ -161,7 +170,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -172,8 +181,9 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

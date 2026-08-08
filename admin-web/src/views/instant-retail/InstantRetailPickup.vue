@@ -1,6 +1,12 @@
 <template>
-  <div class="pickup-page">
-    <!-- 顶部状态栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售自提</h2>
+      <p class="page-desc">自提单接单与核销</p>
+    </div>
+  </div>
+<!-- 顶部状态栏 -->
     <el-card class="stats-card" shadow="never">
       <div class="stats-bar">
         <div class="stat-item pending-stat">
@@ -171,7 +177,8 @@
           <!-- 已接单 Tab -->
           <el-tab-pane :label="`已接单 (${acceptedOrders.length})`" name="accepted">
             <div class="order-list-section">
-              <el-table :data="acceptedOrders" stripe style="width: 100%">
+              <div class="table-card">
+<el-table :data="acceptedOrders" stripe style="width: 100%">
                 <el-table-column prop="orderNo" label="订单号" width="200" />
                 <el-table-column label="平台" width="120">
                   <template #default="{ row }">
@@ -201,13 +208,15 @@
                   </template>
                 </el-table-column>
               </el-table>
+</div>
             </div>
           </el-tab-pane>
 
           <!-- 已完成 Tab -->
           <el-tab-pane :label="`已完成 (${completedOrders.length})`" name="completed">
             <div class="order-list-section">
-              <el-table :data="completedOrders" stripe style="width: 100%">
+              <div class="table-card">
+<el-table :data="completedOrders" stripe style="width: 100%">
                 <el-table-column prop="orderNo" label="订单号" width="200" />
                 <el-table-column label="平台" width="120">
                   <template #default="{ row }">
@@ -230,6 +239,7 @@
                 </el-table-column>
                 <el-table-column prop="completeTime" label="完成时间" width="180" />
               </el-table>
+</div>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -363,7 +373,7 @@
         <el-button type="danger" @click="confirmReject">确定拒单</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

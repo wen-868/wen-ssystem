@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-card class="config-card">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">即时零售配置</h2>
+      <p class="page-desc">店铺信息/配送/平台对接等配置</p>
+    </div>
+  </div>
+<el-card class="config-card">
       <el-tabs v-model="activeTab" class="config-tabs">
         <el-tab-pane label="店铺信息" name="store">
           <el-form ref="storeFormRef" :model="storeForm" :rules="storeRules" label-width="120px" class="store-form">
@@ -128,10 +134,11 @@
         </el-tab-pane>
 
         <el-tab-pane label="分类管理" name="category">
-          <div class="category-toolbar">
+          <div class="filter-bar">
             <el-button type="primary" @click="openCategoryDialog">新增分类</el-button>
           </div>
-          <el-table v-loading="categoryLoading" :data="categoryTree" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
+          <div class="table-card">
+<el-table v-loading="categoryLoading" :data="categoryTree" row-key="id" default-expand-all :tree-props="{ children: 'children' }" stripe>
             <el-table-column prop="name" label="分类名称" min-width="200">
               <template #default="{ row }">
                 <div class="category-name-cell">
@@ -156,6 +163,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -256,7 +264,7 @@
         <el-button type="primary" :loading="categorySaving" @click="saveCategory">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

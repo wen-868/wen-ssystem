@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <div class="dashboard-header">
+<div class="page">
+<div class="dashboard-header">
       <h2 class="page-title">即时零售数据看板</h2>
       <div class="header-actions">
         <el-date-picker
@@ -172,7 +172,8 @@
           </el-button>
         </div>
       </template>
-      <el-table :data="recentOrders" v-loading="loading" stripe size="small">
+      <div class="table-card">
+<el-table :data="recentOrders" v-loading="loading" stripe size="small">
         <el-table-column prop="orderNo" label="订单号" width="200" />
         <el-table-column label="平台" width="100">
           <template #default="{ row }">
@@ -197,8 +198,9 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
