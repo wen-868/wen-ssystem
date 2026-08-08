@@ -1,12 +1,20 @@
 <template>
-  <div class="page">
-    <PageCard title="报价推送">
-      <template #extra>
-        <el-button type="primary" @click="openCreateQuote">新建报价</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">报价推送</h2>
+    <p class="page-desc">报价单推送记录</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openCreateQuote">新建报价</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <el-table :data="quotes" v-loading="loading" stripe>
+      
+
+      <div class="table-card">
+<el-table :data="quotes" v-loading="loading" stripe>
         <el-table-column prop="quoteNo" label="报价单号" width="180" />
         <el-table-column prop="customerName" label="客户名称" min-width="140" />
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -42,7 +50,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -53,7 +61,8 @@
           @current-change="(p: number) => { page = p; loadData(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 新建报价弹窗 -->
     <el-dialog v-model="createDialogVisible" title="新建报价" width="900px">
@@ -157,13 +166,12 @@
         <el-button @click="statsDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchNotifications, sendNotification, fetchProducts, fetchMembers } from "../../api";
 

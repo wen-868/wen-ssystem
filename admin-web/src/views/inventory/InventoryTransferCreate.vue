@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer-create-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <el-button link @click="goBack">
         <el-icon><ArrowLeft /></el-icon> 返回
       </el-button>
@@ -81,7 +81,8 @@
         </el-button>
       </template>
 
-      <el-table :data="form.items" border stripe>
+      <div class="table-card">
+<el-table :data="form.items" border stripe>
         <el-table-column label="商品图片" width="80" align="center">
           <template #default="{ row }">
             <el-image
@@ -138,6 +139,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <div class="table-footer">
         <div class="item-count">
@@ -168,7 +170,7 @@
       width="900px"
       :close-on-click-modal="false"
     >
-      <div class="product-search">
+      <div class="filter-bar">
         <el-input
           v-model="productSearchKey"
           placeholder="搜索商品名称/条码/规格"
@@ -244,7 +246,7 @@
         </el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

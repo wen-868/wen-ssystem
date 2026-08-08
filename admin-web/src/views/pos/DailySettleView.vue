@@ -1,22 +1,12 @@
 <template>
-  <div class="pos-daily-settle">
-    <el-card shadow="never" style="margin-bottom: 16px">
-      <template #header>
-        <div class="card-header">
-          <span>日结对账</span>
-          <div class="action-area">
-            <el-date-picker
-              v-model="dailySettleDateRange"
-              type="daterange"
-              size="small"
-              value-format="YYYY-MM-DD"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-            />
-            <el-button size="small" type="primary" :loading="loading" @click="handleDailySettle">生成日结单</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">日结对账</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
+
       <div v-if="!dailySettleResult" class="empty-tip">请选择日期范围后点击"生成日结单"</div>
       <div v-else>
         <el-descriptions :column="2" border size="small" style="margin-bottom: 16px">
@@ -46,13 +36,15 @@
         </div>
 
         <h4 class="section-title">收款明细</h4>
-        <el-table :data="dailySettleResult.paymentBreakdown" size="small" style="margin-bottom: 16px">
+        <div class="table-card">
+<el-table :data="dailySettleResult.paymentBreakdown" size="small" style="margin-bottom: 16px">
           <el-table-column prop="method" label="收款方式" />
           <el-table-column label="金额" width="140">
             <template #default="{ row }">¥{{ Number(row.amount || 0).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="count" label="笔数" width="100" />
         </el-table>
+</div>
 
         <h4 class="section-title">现金对账</h4>
         <el-form label-width="100px" size="small" style="max-width: 500px; margin-bottom: 16px">
@@ -74,7 +66,7 @@
           <el-button @click="dailySettleResult = null">关闭</el-button>
         </div>
       </div>
-    </el-card>
+    
 
     <el-card shadow="never">
       <template #header>
@@ -83,7 +75,8 @@
           <el-button size="small" @click="loadDailySettleHistory">刷新</el-button>
         </div>
       </template>
-      <el-table :data="dailySettleHistory" size="small" empty-text="暂无日结记录">
+      <div class="table-card">
+<el-table :data="dailySettleHistory" size="small" empty-text="暂无日结记录">
         <el-table-column prop="settleDate" label="日结日期" width="120" />
         <el-table-column label="总销售" width="120">
           <template #default="{ row }">¥{{ Number(row.totalSales || 0).toFixed(2) }}</template>
@@ -106,8 +99,9 @@
         <el-table-column prop="operatorName" label="操作员" width="120" />
         <el-table-column prop="createdAt" label="创建时间" width="170" />
       </el-table>
+</div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

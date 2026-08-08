@@ -1,6 +1,12 @@
 <template>
-  <div class="product-review-page">
-    <!-- 统计卡片 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">商品审核</h2>
+      <p class="page-desc">商品审核任务与流程</p>
+    </div>
+  </div>
+<!-- 统计卡片 -->
     <div class="stat-row">
       <div class="stat-card stat-primary">
         <div class="stat-icon"><el-icon :size="24"><Goods /></el-icon></div>
@@ -93,7 +99,8 @@
         </div>
       </template>
 
-      <el-table :data="records" border v-loading="loading" @selection-change="handleSelectionChange">
+      <div class="table-card">
+<el-table :data="records" border v-loading="loading" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" v-if="activeTab === 'PENDING'" />
         <el-table-column label="商品信息" min-width="220">
           <template #default="{ row }">
@@ -143,7 +150,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           v-model:current-page="pagination.page"
           v-model:page-size="pagination.pageSize"
@@ -154,6 +161,7 @@
           @current-change="fetchData"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 审核详情弹窗 -->
@@ -283,7 +291,7 @@
         <el-button type="success" @click="confirmApprove">确认通过</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

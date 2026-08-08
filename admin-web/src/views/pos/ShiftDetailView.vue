@@ -1,6 +1,12 @@
 <template>
-  <div class="pos-shift-detail">
-    <!-- 头部：返回 + 标题 + 班次 + 状态 + 提交交班（对标设计稿 p13） -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">交接班明细</h2>
+      <p class="page-desc">交接班数据明细</p>
+    </div>
+  </div>
+<!-- 头部：返回 + 标题 + 班次 + 状态 + 提交交班（对标设计稿 p13） -->
     <div class="recon-header">
       <div class="recon-header-left">
         <el-button @click="goBack" size="small">← 返回列表</el-button>
@@ -120,7 +126,8 @@
           </el-button>
         </div>
       </template>
-      <el-table :data="stockCheckItems" size="small" v-loading="stockCheckLoading">
+      <div class="table-card">
+<el-table :data="stockCheckItems" size="small" v-loading="stockCheckLoading">
         <el-table-column prop="skuName" label="商品名称" />
         <el-table-column prop="skuCode" label="商品编码" width="120" />
         <el-table-column prop="bookQty" label="账面数量" width="100" />
@@ -141,6 +148,7 @@
         </el-table-column>
         <el-table-column prop="diffReason" label="差异原因" />
       </el-table>
+</div>
       <div v-if="stockCheckItems.length === 0 && !stockCheckLoading" class="empty-tip">暂无盘点数据</div>
     </el-card>
 
@@ -166,7 +174,7 @@
         <el-button type="primary" @click="handleSubmitStockCheck">确认提交</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

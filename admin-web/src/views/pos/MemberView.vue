@@ -1,17 +1,15 @@
 <template>
-  <div class="pos-member">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>会员识别</span>
-          <div class="search-area">
-            <el-input v-model="keyword" placeholder="输入手机号/姓名搜索会员" size="small" style="width: 260px" clearable @keyup.enter="handleSearch" />
-            <el-button size="small" type="primary" @click="handleSearch">搜索</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">会员识别</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
 
-      <el-table :data="members" v-loading="loading" size="small" style="width: 100%">
+
+      <div class="table-card">
+<el-table :data="members" v-loading="loading" size="small" style="width: 100%">
         <el-table-column prop="memberId" label="ID" width="80" />
         <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="mobile" label="手机号" width="140" />
@@ -31,7 +29,8 @@
           </template>
         </el-table-column>
       </el-table>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="detailVisible" title="会员详情" width="720px">
       <el-descriptions :column="2" border>
@@ -43,7 +42,7 @@
         <el-descriptions-item label="累计消费">¥{{ Number(currentMember.totalAmount || 0).toFixed(2) }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-tabs v-model="activeTab" type="border-card">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">订单路由</h2>
+      <p class="page-desc">订单路由规则与日志</p>
+    </div>
+  </div>
+<el-tabs v-model="activeTab" type="border-card">
       <!-- Tab 1: 路由规则管理 -->
       <el-tab-pane label="路由规则管理" name="rules">
         <!-- 分发看板 -->
@@ -31,13 +37,14 @@
         </el-row>
 
         <!-- 操作栏 -->
-        <div class="toolbar">
+        <div class="filter-bar">
           <el-button type="primary" @click="openRuleDialog()">新增规则</el-button>
           <el-button @click="handleRefreshRules">刷新</el-button>
         </div>
 
         <!-- 规则表格 -->
-        <el-table :data="mockRules" stripe border style="width: 100%">
+        <div class="table-card">
+<el-table :data="mockRules" stripe border style="width: 100%">
           <el-table-column prop="ruleName" label="规则名称" width="140" />
           <el-table-column label="适用渠道" width="120">
             <template #default="{ row }">
@@ -61,6 +68,7 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
       </el-tab-pane>
 
       <!-- Tab 2: 分发日志 -->
@@ -96,7 +104,8 @@
         </el-card>
 
         <!-- 日志表格 -->
-        <el-table :data="filteredDispatchLogs" stripe border style="width: 100%">
+        <div class="table-card">
+<el-table :data="filteredDispatchLogs" stripe border style="width: 100%">
           <el-table-column prop="channelOrderNo" label="订单号" width="150" />
           <el-table-column label="渠道" width="80">
             <template #default="{ row }">
@@ -118,6 +127,7 @@
           <el-table-column prop="dispatchReason" label="分发原因" min-width="150" show-overflow-tooltip />
           <el-table-column prop="createdAt" label="分发时间" width="160" />
         </el-table>
+</div>
         <el-pagination
           style="margin-top: 16px; justify-content: flex-end"
           background
@@ -248,7 +258,7 @@
         <el-button type="primary" @click="handleSaveRule">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

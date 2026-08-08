@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="批量价格调整">
-      <template #extra>
-        <el-button type="primary" @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">批量价格调整</h2>
+    <p class="page-desc">批量调价与调价历史</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <!-- 搜索区 -->
-      <div class="search-bar">
+      <div class="filter-bar">
         <el-input v-model="keyword" placeholder="搜索商品名称/编码" clearable style="width: 240px" @clear="searchProducts" @keyup.enter="searchProducts" />
         <el-select v-model="filterCategory" placeholder="选择分类" clearable style="width: 180px; margin-left: 12px" @change="searchProducts">
           <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
@@ -15,7 +22,8 @@
       </div>
 
       <!-- 商品选择表格 -->
-      <el-table
+      <div class="table-card">
+<el-table
         ref="productTableRef"
         :data="products"
         v-loading="productLoading"
@@ -47,7 +55,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -58,7 +66,8 @@
           @current-change="(p: number) => { productPage = p; searchProducts(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 价格调整面板 -->
     <PageCard v-if="selectedProducts.length > 0" title="价格调整">
@@ -96,7 +105,8 @@
         </div>
 
         <!-- 预览表格 -->
-        <el-table :data="previewData" stripe class="preview-table">
+        <div class="table-card">
+<el-table :data="previewData" stripe class="preview-table">
           <el-table-column prop="name" label="商品名称" min-width="160" />
           <el-table-column label="原价格" width="140" align="right">
             <template #default="{ row }">
@@ -121,6 +131,7 @@
             <el-empty description="暂无数据" :image-size="80" />
           </template>
         </el-table>
+</div>
 
         <div style="margin-top: 16px; text-align: right">
           <el-popconfirm title="确认执行价格调整？" @confirm="executeAdjust">
@@ -134,7 +145,8 @@
 
     <!-- 调整历史 -->
     <PageCard title="调整历史">
-      <el-table :data="historyLogs" v-loading="historyLoading" stripe>
+      <div class="table-card">
+<el-table :data="historyLogs" v-loading="historyLoading" stripe>
         <el-table-column prop="productName" label="商品名称" min-width="160" />
         <el-table-column label="原价格" width="120" align="right">
           <template #default="{ row }">
@@ -158,7 +170,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -169,8 +181,9 @@
           @current-change="(p: number) => { historyPage = p; loadHistory(); }"
         />
       </div>
+</div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

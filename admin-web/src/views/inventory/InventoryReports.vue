@@ -1,15 +1,22 @@
 <template>
-  <div class="page">
-    <el-tabs v-model="activeTab" type="border-card">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">库存报表</h2>
+      <p class="page-desc">库存结构/周转/预警分析</p>
+    </div>
+  </div>
+<el-tabs v-model="activeTab" type="border-card">
       <!-- 周转率报表 -->
       <el-tab-pane label="库存周转率" name="turnover">
-        <div class="search-bar">
+        <div class="filter-bar">
           <el-select v-model="tFilter.storeId" placeholder="门店" clearable filterable style="width: 150px">
             <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
           <el-button type="primary" style="margin-left: 12px" @click="loadTurnover">查询</el-button>
         </div>
-        <el-table :data="turnover.list" v-loading="turnover.loading" stripe>
+        <div class="table-card">
+<el-table :data="turnover.list" v-loading="turnover.loading" stripe>
           <el-table-column prop="skuName" label="商品名称" min-width="140" />
           <el-table-column prop="productName" label="SPU" min-width="120" />
           <el-table-column prop="categoryName" label="分类" width="100" />
@@ -28,17 +35,18 @@
             <template #default="{ row }">{{ row.turnoverDays }}天</template>
           </el-table-column>
         </el-table>
-        <div class="pagination">
+        <div class="table-card-footer">
           <el-pagination background layout="total, sizes, prev, pager, next, jumper"
             :total="turnover.total" :page-size="tPageSize" :current-page="tPage"
             @size-change="(s: number) => { tPageSize = s; loadTurnover(); }"
             @current-change="(p: number) => { tPage = p; loadTurnover(); }" />
         </div>
+</div>
       </el-tab-pane>
 
       <!-- 库龄报表 -->
       <el-tab-pane label="库龄分布" name="age">
-        <div class="search-bar">
+        <div class="filter-bar">
           <el-select v-model="ageFilter.storeId" placeholder="门店" clearable filterable style="width: 150px">
             <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
@@ -72,7 +80,8 @@
           </el-col>
         </el-row>
 
-        <el-table :data="ageData?.details || []" stripe size="small">
+        <div class="table-card">
+<el-table :data="ageData?.details || []" stripe size="small">
           <el-table-column prop="batchNo" label="批次号" width="140" />
           <el-table-column prop="skuName" label="商品" min-width="120" />
           <el-table-column prop="productName" label="SPU" min-width="100" />
@@ -90,11 +99,12 @@
             <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
           </el-table-column>
         </el-table>
+</div>
       </el-tab-pane>
 
       <!-- ABC 分类 -->
       <el-tab-pane label="ABC 分析" name="abc">
-        <div class="search-bar">
+        <div class="filter-bar">
           <el-select v-model="abcFilter.storeId" placeholder="门店" clearable filterable style="width: 150px">
             <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
           </el-select>
@@ -132,7 +142,8 @@
           </el-col>
         </el-row>
 
-        <el-table :data="abcData?.items || []" stripe max-height="500">
+        <div class="table-card">
+<el-table :data="abcData?.items || []" stripe max-height="500">
           <el-table-column type="index" label="#" width="60" align="center" />
           <el-table-column prop="skuName" label="商品名称" min-width="140" />
           <el-table-column prop="productName" label="SPU" min-width="120" />
@@ -154,9 +165,10 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
       </el-tab-pane>
     </el-tabs>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -164,7 +176,6 @@ import { ref, reactive, onMounted, nextTick } from "vue";
 import { ElMessage } from "element-plus";
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import { fetchInventoryTurnover, fetchInventoryAge, fetchInventoryABC, fetchStores } from "../../api";
 

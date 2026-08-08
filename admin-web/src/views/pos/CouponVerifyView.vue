@@ -1,6 +1,12 @@
 <template>
-  <div class="pos-coupon-verify">
-    <!-- 扫码核销区域 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">优惠券核销</h2>
+      <p class="page-desc">优惠券扫码核销</p>
+    </div>
+  </div>
+<!-- 扫码核销区域 -->
     <el-card shadow="never" style="margin-bottom: 16px">
       <template #header>
         <div class="card-header">
@@ -88,7 +94,8 @@
           <el-button size="small" @click="loadVerifyHistory">刷新</el-button>
         </div>
       </template>
-      <el-table :data="verifyHistory" size="small" v-loading="historyLoading">
+      <div class="table-card">
+<el-table :data="verifyHistory" size="small" v-loading="historyLoading">
         <el-table-column prop="couponCode" label="优惠券码" width="140" />
         <el-table-column prop="couponName" label="优惠券名称" />
         <el-table-column prop="couponType" label="类型" width="100">
@@ -109,9 +116,10 @@
         <el-table-column prop="verifiedAt" label="核销时间" width="160" />
         <el-table-column prop="operatorName" label="操作员" width="120" />
       </el-table>
+</div>
       <div v-if="verifyHistory.length === 0 && !historyLoading" class="empty-tip">暂无核销记录</div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

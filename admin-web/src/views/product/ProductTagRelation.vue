@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="商品标签关联">
-      <div class="search-bar">
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">商品标签关联</h2>
+    <p class="page-desc">商品标签关联管理</p>
+  </div>
+</div>
+
+      <div class="filter-bar">
         <el-input v-model="keyword" placeholder="搜索商品名称" clearable style="width: 220px" @keyup.enter="searchProducts" />
         <el-button type="primary" style="margin-left: 12px" @click="searchProducts">搜索</el-button>
       </div>
 
-      <el-table :data="products" v-loading="loading" stripe @row-click="selectProduct" highlight-current-row>
+      <div class="table-card">
+<el-table :data="products" v-loading="loading" stripe @row-click="selectProduct" highlight-current-row>
         <el-table-column prop="name" label="商品名称" min-width="160" />
         <el-table-column prop="skuCode" label="SKU编码" width="140" />
         <el-table-column label="已关联标签" min-width="200">
@@ -24,7 +31,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background layout="total, sizes, prev, pager, next, jumper"
           :total="total" :page-size="pageSize" :current-page="page"
@@ -32,7 +39,8 @@
           @current-change="(p: number) => { page = p; searchProducts(); }"
         />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 标签设置弹窗 -->
     <el-dialog v-model="tagDialogVisible" title="设置商品标签" width="720px">
@@ -53,13 +61,12 @@
         <el-button type="primary" :loading="tagSubmitLoading" @click="handleSaveTags">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 
 const loading = ref(false);

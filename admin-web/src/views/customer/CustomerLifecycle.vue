@@ -1,9 +1,16 @@
 <template>
-  <div class="page">
-    <PageCard title="客户生命周期">
-      <template #extra>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户生命周期</h2>
+    <p class="page-desc">客户生命周期统计与明细</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-row :gutter="20" class="stat-row">
         <el-col :span="4" v-for="s in stageStats" :key="s.stage">
@@ -37,7 +44,8 @@
           </el-select>
         </template>
 
-        <el-table :data="detailList" v-loading="detailLoading" stripe>
+        <div class="table-card">
+<el-table :data="detailList" v-loading="detailLoading" stripe>
           <el-table-column prop="name" label="客户" min-width="120" />
           <el-table-column prop="lifecycleStage" label="当前阶段" width="100" align="center">
             <template #default="{ row }">{{ stageLabel(row.lifecycleStage) }}</template>
@@ -52,12 +60,13 @@
           <template #empty><el-empty description="暂无数据" :image-size="60" /></template>
         </el-table>
 
-        <div class="pagination">
+        <div class="table-card-footer">
           <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="detailTotal" :page-size="detailPageSize" :current-page="detailPage" @size-change="(s: number) => { detailPageSize = s; loadDetail(); }" @current-change="(p: number) => { detailPage = p; loadDetail(); }" />
         </div>
-      </PageCard>
+</div>
+      
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

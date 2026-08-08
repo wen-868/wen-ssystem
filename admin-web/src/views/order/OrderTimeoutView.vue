@@ -1,11 +1,12 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>订单超时</span>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">订单超时</h2>
+    <p class="page-desc">超时订单监控与处理</p>
+  </div>
+</div>
+
 
       <el-row :gutter="16" style="margin-bottom: 16px">
         <el-col :span="6">
@@ -29,7 +30,8 @@
             <el-button @click="loadConfigs">刷新</el-button>
           </div>
 
-          <el-table :data="configs" v-loading="configLoading" stripe>
+          <div class="table-card">
+<el-table :data="configs" v-loading="configLoading" stripe>
             <el-table-column prop="orderType" label="订单类型" width="140">
               <template #default="{ row }">
                 <el-tag v-if="row.orderType === 'NORMAL'" type="primary">普通订单</el-tag>
@@ -75,6 +77,7 @@
               <el-empty description="暂无数据" :image-size="80" />
             </template>
           </el-table>
+</div>
         </el-tab-pane>
 
         <el-tab-pane label="超时日志" name="logs">
@@ -97,7 +100,8 @@
             <el-button @click="loadLogs">刷新</el-button>
           </div>
 
-          <el-table :data="logs" v-loading="logLoading" stripe>
+          <div class="table-card">
+<el-table :data="logs" v-loading="logLoading" stripe>
             <el-table-column prop="id" label="日志ID" width="80" />
             <el-table-column prop="orderNo" label="订单号" width="200" />
             <el-table-column prop="orderType" label="订单类型" width="120">
@@ -137,7 +141,7 @@
             </template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -148,9 +152,10 @@
               @current-change="handleLogPageChange"
             />
           </div>
+</div>
         </el-tab-pane>
       </el-tabs>
-    </el-card>
+    
 
     <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑配置' : '新增配置'" width="480px">
       <el-form ref="configFormRef" :model="configForm" :rules="configRules" label-width="120px">
@@ -190,7 +195,7 @@
         <el-button type="primary" :loading="configSubmitLoading" @click="submitConfig">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

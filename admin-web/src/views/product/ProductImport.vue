@@ -1,6 +1,16 @@
 <template>
-  <div class="page">
-    <PageCard title="商品导入">
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">商品导入</h2>
+    <p class="page-desc">商品批量导入</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="resetAll">继续导入</el-button>
+    <el-button @click="$router.push('/products')">查看商品列表</el-button>
+  </div>
+</div>
+
       <el-steps :active="step" align-center style="margin-bottom: 24px">
         <el-step title="上传文件" description="选择Excel/CSV文件" />
         <el-step title="字段映射" description="匹配列" />
@@ -50,7 +60,8 @@
       <!-- Step 3: 预览 -->
       <div v-if="step === 2" class="step-content">
         <el-alert :title="`共 ${previewRows.length} 条数据待导入`" type="info" :closable="false" style="margin-bottom: 16px" />
-        <el-table :data="previewRows.slice(0, 10)" border stripe max-height="400">
+        <div class="table-card">
+<el-table :data="previewRows.slice(0, 10)" border stripe max-height="400">
           <el-table-column type="index" width="55" label="#" />
           <el-table-column prop="name" label="商品名称" min-width="140" />
           <el-table-column prop="skuCode" label="SKU编码" width="130" />
@@ -65,6 +76,7 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
         <div class="step-actions">
           <el-button @click="goStep(1)">上一步</el-button>
           <el-button type="primary" :loading="importLoading" @click="doImport">开始导入</el-button>
@@ -74,21 +86,17 @@
       <!-- Step 4: 结果 -->
       <div v-if="step === 3" class="step-content">
         <el-result icon="success" title="导入完成" :sub-title="`成功 ${result.success} 条，失败 ${result.fail} 条`">
-          <template #extra>
-            <el-button type="primary" @click="resetAll">继续导入</el-button>
-            <el-button @click="$router.push('/products')">查看商品列表</el-button>
-          </template>
+          
         </el-result>
       </div>
-    </PageCard>
-  </div>
+    
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
 import { Upload } from "@element-plus/icons-vue";
-import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 
 const step = ref(0);

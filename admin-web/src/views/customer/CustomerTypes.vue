@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-card shadow="never">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">客户类型</h2>
+      <p class="page-desc">客户类型维护</p>
+    </div>
+  </div>
+<el-card shadow="never">
       <div class="header">
         <div class="title">客户类型管理</div>
         <div class="actions">
@@ -21,7 +27,8 @@
         </div>
       </div>
 
-      <el-table :data="tableData" v-loading="loading" border stripe>
+      <div class="table-card">
+<el-table :data="tableData" v-loading="loading" border stripe>
         <el-table-column type="index" label="序号" width="70" />
         <el-table-column prop="name" label="类型名称" min-width="140" />
         <el-table-column prop="code" label="编码" min-width="140" />
@@ -53,7 +60,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -64,6 +71,7 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 新增/编辑弹窗 -->
@@ -90,7 +98,7 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

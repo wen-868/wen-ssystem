@@ -1,13 +1,20 @@
 <template>
-  <div class="page">
-    <PageCard title="客户标签管理">
-      <template #extra>
-        <el-button type="primary" @click="openDialog()">新增标签</el-button>
-        <el-button @click="openTagCustomerDialog">打标签</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户标签管理</h2>
+    <p class="page-desc">客户标签维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openDialog()">新增标签</el-button>
+    <el-button @click="openTagCustomerDialog">打标签</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="标签名称" clearable style="width: 180px" />
         <el-select v-model="searchForm.tagGroup" placeholder="分组" clearable style="width: 150px; margin-left: 12px">
           <el-option v-for="g in tagGroups" :key="g" :label="g" :value="g" />
@@ -19,7 +26,8 @@
         <el-button type="primary" style="margin-left: 12px" @click="search">搜索</el-button>
       </div>
 
-      <el-table :data="list" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="name" label="标签名称" min-width="120" />
         <el-table-column prop="tagGroup" label="分组" width="120" />
         <el-table-column prop="tagType" label="类型" width="100" align="center">
@@ -45,10 +53,11 @@
         <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total" :page-size="pageSize" :current-page="page" @size-change="(s: number) => { pageSize = s; search(); }" @current-change="(p: number) => { page = p; search(); }" />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 标签表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑标签' : '新增标签'" width="480px">
@@ -105,13 +114,12 @@
         <el-button type="primary" :loading="tagLoading" @click="handleAddTag">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { fetchCustomerTags, createCustomerTag, updateCustomerTag, deleteCustomerTag, addCustomerTag, fetchMembers } from "../../api";
 
 const colorPresets = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#999999", "#1890FF", "#13C2C2", "#722ED1"];

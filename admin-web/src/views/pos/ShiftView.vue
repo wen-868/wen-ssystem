@@ -1,12 +1,12 @@
 <template>
-  <div class="pos-shift">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>交接班管理</span>
-          <el-button type="primary" size="small" @click="showCreateDialog = true">新建交接班</el-button>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">交接班管理</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
+
 
       <div class="filter-bar">
         <el-date-picker
@@ -26,7 +26,8 @@
         <el-button size="small" @click="resetFilter">重置</el-button>
       </div>
 
-      <el-table :data="shifts" size="small" style="margin-top: 12px" v-loading="loading">
+      <div class="table-card">
+<el-table :data="shifts" size="small" style="margin-top: 12px" v-loading="loading">
         <el-table-column prop="shiftNo" label="交接班编号" width="140" />
         <el-table-column prop="shiftType" label="班次" width="80">
           <template #default="{ row }">
@@ -64,6 +65,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <el-pagination
         v-if="total > 0"
@@ -75,7 +77,7 @@
         @current-change="handlePageChange"
       />
       <div v-if="shifts.length === 0 && !loading" class="empty-tip">暂无交接班记录</div>
-    </el-card>
+    
 
     <!-- 新建交接班弹窗 -->
     <el-dialog v-model="showCreateDialog" title="新建交接班" width="480px">
@@ -141,7 +143,7 @@
         <el-button type="primary" @click="handleComplete">确认完成</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

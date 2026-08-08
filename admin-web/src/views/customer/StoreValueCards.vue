@@ -1,6 +1,17 @@
 <template>
-  <PageCard title="储值卡管理">
-    <div class="search-bar">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">储值卡管理</h2>
+
+      <p class="page-desc">储值卡发行与余额管理</p>
+
+    </div>
+
+  </div>
+
+    <div class="filter-bar">
       <el-input v-model="search.keyword" placeholder="卡号 / 客户名称 / 手机号" clearable style="width: 260px" @keyup.enter="loadCards" />
       <el-select v-model="search.status" placeholder="状态" clearable style="width: 140px">
         <el-option label="正常" value="NORMAL" />
@@ -11,7 +22,8 @@
       <el-button type="primary" @click="handleCreateCard">新建储值卡</el-button>
     </div>
 
-    <el-table :data="cards" v-loading="cardsLoading" stripe empty-text="暂无储值卡">
+    <div class="table-card">
+<el-table :data="cards" v-loading="cardsLoading" stripe empty-text="暂无储值卡">
       <el-table-column prop="cardNo" label="卡号" width="160" />
       <el-table-column prop="customerName" label="客户" min-width="120" />
       <el-table-column prop="balance" label="余额" width="120">
@@ -40,13 +52,14 @@
       </el-table-column>
     </el-table>
 
-    <div class="pagination">
+    <div class="table-card-footer">
       <el-pagination
         background layout="total, sizes, prev, pager, next, jumper"
         :total="cardsTotal" :page-size="cardsPageSize" :current-page="cardsPage"
         @size-change="handleCardsSizeChange" @current-change="handleCardsPageChange"
       />
     </div>
+</div>
 
     <!-- 新建储值卡 -->
     <el-dialog v-model="createCardVisible" title="新建储值卡" width="480px">
@@ -151,13 +164,12 @@
         />
       </div>
     </el-dialog>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate, formatYuan } from "../../utils/format";
 import {
   fetchStoreValueCards, createStoreValueCard, rechargeStoreValueCard, consumeStoreValueCard,

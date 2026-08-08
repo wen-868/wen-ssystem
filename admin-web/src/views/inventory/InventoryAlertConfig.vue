@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 统计卡片 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">库存预警配置</h2>
+      <p class="page-desc">实时预警与阈值配置</p>
+    </div>
+  </div>
+<!-- 统计卡片 -->
     <el-row :gutter="16" class="stat-row">
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card stat-danger">
@@ -38,13 +44,14 @@
 
     <!-- 实时预警列表 -->
     <PageCard title="实时库存预警">
-      <div class="search-bar">
+      <div class="filter-bar">
         <el-select v-model="warnStoreId" placeholder="门店" clearable filterable style="width: 150px">
           <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
         </el-select>
         <el-button type="primary" style="margin-left: 12px" @click="loadWarnings">刷新</el-button>
       </div>
-      <el-table :data="warnings" v-loading="warnLoading" stripe>
+      <div class="table-card">
+<el-table :data="warnings" v-loading="warnLoading" stripe>
         <el-table-column prop="productName" label="商品名称" min-width="140" />
         <el-table-column prop="skuName" label="SKU" min-width="120" />
         <el-table-column prop="storeName" label="门店" width="100" />
@@ -64,12 +71,13 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper"
           :total="warnTotal" :page-size="warnPageSize" :current-page="warnPage"
           @size-change="(s: number) => { warnPageSize = s; loadWarnings(); }"
           @current-change="(p: number) => { warnPage = p; loadWarnings(); }" />
       </div>
+</div>
     </PageCard>
 
     <!-- 预警配置管理 -->
@@ -78,7 +86,8 @@
         <el-button type="primary" @click="openConfigDialog()">新增配置</el-button>
         <el-button @click="loadConfigs">刷新</el-button>
       </template>
-      <el-table :data="configs" v-loading="configLoading" stripe>
+      <div class="table-card">
+<el-table :data="configs" v-loading="configLoading" stripe>
         <el-table-column prop="productName" label="商品名称" min-width="140" />
         <el-table-column prop="skuName" label="SKU" min-width="120" />
         <el-table-column prop="storeName" label="门店" width="100" />
@@ -104,12 +113,13 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper"
           :total="configTotal" :page-size="configPageSize" :current-page="configPage"
           @size-change="(s: number) => { configPageSize = s; loadConfigs(); }"
           @current-change="(p: number) => { configPage = p; loadConfigs(); }" />
       </div>
+</div>
     </PageCard>
 
     <!-- 新增/编辑配置弹窗 -->
@@ -140,7 +150,7 @@
         <el-button type="primary" :loading="configSubmitLoading" @click="handleConfigSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

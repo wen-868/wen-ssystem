@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="标签分组管理">
-      <template #extra>
-        <el-button type="primary" @click="openGroupDialog()">新增分组</el-button>
-        <el-button @click="loadAll">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">标签分组管理</h2>
+    <p class="page-desc">标签分组维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openGroupDialog()">新增分组</el-button>
+    <el-button @click="loadAll">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-tabs v-model="activeTab" @tab-change="onTabChange" type="card" closable @tab-remove="handleTabRemove">
         <el-tab-pane v-for="g in tagGroups" :key="g.groupCode" :label="g.groupName" :name="g.groupCode" :closable="false">
@@ -15,7 +22,8 @@
               <el-button size="small" type="primary" @click="openTagDialog()">新增标签</el-button>
             </div>
           </div>
-          <el-table :data="groupTags" v-loading="tagLoading" stripe>
+          <div class="table-card">
+<el-table :data="groupTags" v-loading="tagLoading" stripe>
             <el-table-column type="index" label="#" width="60" align="center" />
             <el-table-column prop="name" label="标签名称" min-width="160" />
             <el-table-column prop="sortNo" label="排序" width="80" align="center" />
@@ -44,6 +52,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
           <el-pagination
             class="pagination"
             v-model:current-page="tagPage"
@@ -56,7 +65,7 @@
           />
         </el-tab-pane>
       </el-tabs>
-    </PageCard>
+    
 
     <!-- 标签弹窗 -->
     <el-dialog v-model="tagDialogVisible" :title="editingTag ? '编辑标签' : '新增标签'" width="480px">
@@ -115,13 +124,12 @@
         <el-button type="primary" :loading="groupSubmitLoading" @click="handleGroupSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import {
   fetchProductTagGroups, createProductTagGroup, updateProductTagGroup, deleteProductTagGroup,

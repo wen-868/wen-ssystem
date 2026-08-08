@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="品牌管理">
-      <template #extra>
-        <el-button type="primary" @click="openDialog()">新增品牌</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">品牌管理</h2>
+    <p class="page-desc">商品品牌维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openDialog()">新增品牌</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="品牌名称" clearable style="width: 200px" />
         <el-select v-model="searchForm.status" placeholder="状态" clearable style="width: 120px; margin-left: 12px">
           <el-option label="启用" value="active" /><el-option label="停用" value="inactive" />
@@ -14,7 +21,8 @@
         <el-button type="primary" style="margin-left: 12px" @click="searchBrands">搜索</el-button>
       </div>
 
-      <el-table :data="brands" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="brands" v-loading="loading" stripe>
         <el-table-column prop="name" label="品牌名称" min-width="120" />
         <el-table-column prop="sortNo" label="排序" width="80" align="center" />
         <el-table-column prop="status" label="状态" width="80" align="center">
@@ -36,10 +44,11 @@
         <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total" :page-size="pageSize" :current-page="page" @size-change="(s: number) => { pageSize = s; searchBrands(); }" @current-change="(p: number) => { page = p; searchBrands(); }" />
       </div>
-    </PageCard>
+</div>
+    
 
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑品牌' : '新增品牌'" width="480px">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
@@ -58,13 +67,12 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import { api } from "../../api";
 

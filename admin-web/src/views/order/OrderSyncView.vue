@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 同步统计区 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">订单同步</h2>
+      <p class="page-desc">渠道订单同步状态</p>
+    </div>
+  </div>
+<!-- 同步统计区 -->
     <el-row :gutter="16" class="stats-row">
       <el-col :span="4">
         <el-card shadow="never">
@@ -100,7 +106,8 @@
         </el-col>
       </el-row>
 
-      <el-table :data="filteredSyncLogs" stripe border style="width: 100%; margin-top: 12px">
+      <div class="table-card">
+<el-table :data="filteredSyncLogs" stripe border style="width: 100%; margin-top: 12px">
         <el-table-column prop="channelOrderNo" label="订单号" width="150" />
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
@@ -151,6 +158,7 @@
         </el-table-column>
         <el-table-column prop="syncedAt" label="同步时间" width="160" />
       </el-table>
+</div>
       <el-pagination
         style="margin-top: 16px; justify-content: flex-end"
         background
@@ -206,7 +214,7 @@
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

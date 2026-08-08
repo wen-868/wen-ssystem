@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <h2>多店调拨</h2>
       <p class="page-desc">管理门店间库存调拨，支持提交、审批、发货、收货全流程</p>
     </div>
@@ -333,7 +333,7 @@
       append-to-body
       destroy-on-close
     >
-      <div class="product-search-bar">
+      <div class="filter-bar">
         <el-input
           v-model="productSearchKey"
           placeholder="搜索商品名称/条码"
@@ -392,7 +392,7 @@
         </el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

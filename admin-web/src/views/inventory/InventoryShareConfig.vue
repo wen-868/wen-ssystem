@@ -1,6 +1,6 @@
 <template>
-  <div class="share-config-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <h2>库存共享设置</h2>
       <p class="page-desc">配置跨店库存共享规则，实现门店间库存智能调配</p>
     </div>
@@ -55,7 +55,8 @@
             </el-button>
           </div>
 
-          <el-table :data="shareProducts" border stripe v-loading="productLoading">
+          <div class="table-card">
+<el-table :data="shareProducts" border stripe v-loading="productLoading">
             <el-table-column label="商品图片" width="70" align="center">
               <template #default="{ row }">
                 <el-image
@@ -107,7 +108,7 @@
             </el-table-column>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -118,6 +119,7 @@
               @current-change="onProductPageChange"
             />
           </div>
+</div>
         </el-tab-pane>
 
         <!-- 共享规则 -->
@@ -178,7 +180,8 @@
           <div class="tab-toolbar">
             <span style="color: var(--text-secondary)">选择参与库存共享的门店，选中的门店之间可互相调拨库存</span>
           </div>
-          <el-table :data="storeList" border stripe>
+          <div class="table-card">
+<el-table :data="storeList" border stripe>
             <el-table-column type="selection" width="55" />
             <el-table-column prop="name" label="门店名称" min-width="160" />
             <el-table-column prop="address" label="门店地址" min-width="200" />
@@ -196,6 +199,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
           <div style="margin-top: 16px; text-align: right">
             <el-button type="primary" @click="saveStoreConfig">保存配置</el-button>
           </div>
@@ -210,7 +214,7 @@
       width="720px"
       :close-on-click-modal="false"
     >
-      <div class="product-search">
+      <div class="filter-bar">
         <el-input
         v-model="addProductSearch"
         placeholder="搜索商品名称/条码"

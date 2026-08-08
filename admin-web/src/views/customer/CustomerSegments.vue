@@ -1,17 +1,25 @@
 <template>
-  <div class="page">
-    <PageCard title="客户分群">
-      <template #extra>
-        <el-button type="primary" @click="openDialog()">新增分群</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户分群</h2>
+    <p class="page-desc">客户分群与筛选</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openDialog()">新增分群</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="分群名称" clearable style="width: 220px" />
         <el-button type="primary" style="margin-left: 12px" @click="search">搜索</el-button>
       </div>
 
-      <el-table :data="list" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="list" v-loading="loading" stripe>
         <el-table-column prop="name" label="分群名称" min-width="140" />
         <el-table-column prop="conditions" label="条件摘要" min-width="200">
           <template #default="{ row }">
@@ -40,10 +48,11 @@
         <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total" :page-size="pageSize" :current-page="page" @size-change="(s: number) => { pageSize = s; search(); }" @current-change="(p: number) => { page = p; search(); }" />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 分群表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑分群' : '新增分群'" width="720px">
@@ -104,13 +113,12 @@
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="memberTotal" :page-size="memberPageSize" :current-page="memberPage" @size-change="(s: number) => { memberPageSize = s; loadMembers(); }" @current-change="(p: number) => { memberPage = p; loadMembers(); }" />
       </div>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import { fetchSegments, createSegment, updateSegment, deleteSegment, refreshSegment, fetchSegmentMembers } from "../../api";
 

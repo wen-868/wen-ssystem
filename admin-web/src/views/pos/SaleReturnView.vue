@@ -1,23 +1,15 @@
 <template>
-  <div class="pos-sale-return">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>销售退货</span>
-          <div class="filter-area">
-            <el-select v-model="returnStatus" placeholder="退货状态" size="small" style="width: 120px" clearable @change="loadList">
-              <el-option label="待审核" value="PENDING" />
-              <el-option label="已批准" value="APPROVED" />
-              <el-option label="已拒绝" value="REJECTED" />
-              <el-option label="已完成" value="COMPLETED" />
-            </el-select>
-            <el-button size="small" type="primary" @click="loadList">刷新</el-button>
-            <el-button size="small" type="success" @click="createVisible = true">新建退货</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">销售退货</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
 
-      <el-table v-loading="loading" :data="records" size="small" style="width: 100%">
+
+      <div class="table-card">
+<el-table v-loading="loading" :data="records" size="small" style="width: 100%">
         <el-table-column prop="return_no" label="退货单号" width="160" />
         <el-table-column prop="source_bill_no" label="原销售单号" width="160" />
         <el-table-column prop="refund_amount" label="退货金额" width="100">
@@ -35,6 +27,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <el-pagination
         v-if="total > 0"
@@ -45,7 +38,7 @@
         style="margin-top: 16px"
         @current-change="loadList"
       />
-    </el-card>
+    
 
     <el-dialog v-model="detailVisible" title="退货单详情" width="720px">
       <el-descriptions :column="2" border>
@@ -105,7 +98,7 @@
         <el-button type="primary" :loading="submitting" @click="submitCreate">提交</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

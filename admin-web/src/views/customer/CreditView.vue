@@ -1,29 +1,30 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>授信管理</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索客户名称/手机号"
-              size="default"
-              style="width: 200px; margin-right: 10px"
-              clearable
-              @clear="loadCredits"
-              @keyup.enter="loadCredits"
-            />
-            <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadCredits">
-              <el-option label="正常" value="NORMAL" />
-              <el-option label="冻结" value="FROZEN" />
-              <el-option label="逾期" value="OVERDUE" />
-            </el-select>
-            <el-button @click="loadCredits">搜索</el-button>
-            <el-button @click="loadCredits">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">授信管理</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索客户名称/手机号"
+  size="default"
+  style="width: 200px; margin-right: 10px"
+  clearable
+  @clear="loadCredits"
+  @keyup.enter="loadCredits"
+  />
+  <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadCredits">
+  <el-option label="正常" value="NORMAL" />
+  <el-option label="冻结" value="FROZEN" />
+  <el-option label="逾期" value="OVERDUE" />
+  </el-select>
+  <el-button @click="loadCredits">搜索</el-button>
+  <el-button @click="loadCredits">刷新</el-button>
+</div>
+
 
       <el-row :gutter="16" style="margin-bottom: 16px">
         <el-col :span="6">
@@ -40,7 +41,8 @@
         </el-col>
       </el-row>
 
-      <el-table :data="credits" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="credits" v-loading="loading" stripe>
         <el-table-column prop="customerName" label="客户名称" min-width="140" />
         <el-table-column prop="customerType" label="客户类型" width="120">
           <template #default="{ row }">
@@ -83,7 +85,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -94,7 +96,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="detailVisible" title="授信详情" width="720px">
       <template v-if="currentCredit">
@@ -156,7 +159,7 @@
         <el-button type="primary" :loading="submitLoading" @click="submitAdjustLimit">确认调整</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

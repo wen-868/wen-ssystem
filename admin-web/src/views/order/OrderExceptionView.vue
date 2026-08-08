@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 异常统计区 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">订单异常</h2>
+      <p class="page-desc">异常订单监控与处理</p>
+    </div>
+  </div>
+<!-- 异常统计区 -->
     <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="6">
         <el-card shadow="hover">
@@ -63,7 +69,7 @@
 
     <!-- 筛选栏 -->
     <el-card style="margin-bottom: 16px">
-      <div class="filter-area" style="margin-bottom: 0; border: none; padding: 0; box-shadow: none">
+      <div class="filter-bar" style="margin-bottom: 0; border: none; padding: 0; box-shadow: none">
         <el-select v-model="filters.exceptionTypes" multiple placeholder="异常类型" clearable style="width: 180px">
           <el-option v-for="t in mockExceptionTypes" :key="t.type" :label="t.name" :value="t.type" />
         </el-select>
@@ -108,7 +114,8 @@
           <el-button @click="handleRefresh">刷新</el-button>
         </div>
       </template>
-      <el-table :data="filteredExceptions" stripe>
+      <div class="table-card">
+<el-table :data="filteredExceptions" stripe>
         <el-table-column label="异常级别" width="120">
           <template #default="{ row }">
             <el-tag v-if="row.exceptionLevel === 'WARNING'" type="warning" effect="dark">
@@ -162,7 +169,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -173,6 +180,7 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 异常详情弹窗 -->
@@ -238,7 +246,7 @@
         </div>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

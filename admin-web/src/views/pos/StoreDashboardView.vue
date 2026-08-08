@@ -1,6 +1,12 @@
 <template>
-  <div class="pos-dashboard">
-    <el-row :gutter="16">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">门店看板</h2>
+      <p class="page-desc">门店经营数据看板</p>
+    </div>
+  </div>
+<el-row :gutter="16">
       <el-col v-for="card in cards" :key="card.label" :span="4">
         <el-card shadow="hover">
           <div class="metric">{{ card.value }}</div>
@@ -17,7 +23,8 @@
           <el-button size="small" @click="loadInventoryAlerts">刷新</el-button>
         </div>
       </template>
-      <el-table :data="inventoryAlerts" size="small">
+      <div class="table-card">
+<el-table :data="inventoryAlerts" size="small">
         <el-table-column prop="skuName" label="商品" />
         <el-table-column prop="stockType" label="库存类型" width="120" />
         <el-table-column prop="availableQty" label="可用库存" width="100">
@@ -26,6 +33,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
     </el-card>
 
     <el-card style="margin-top: 16px">
@@ -56,7 +64,7 @@
         <el-button type="primary" @click="goToDailySettle">进入日结</el-button>
       </div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

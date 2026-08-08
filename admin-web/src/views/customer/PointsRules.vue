@@ -1,11 +1,23 @@
 <template>
-  <PageCard title="积分管理">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">积分管理</h2>
+
+      <p class="page-desc">积分规则与明细</p>
+
+    </div>
+
+  </div>
+
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <el-tab-pane label="积分规则" name="rules">
-        <div class="search-bar">
+        <div class="filter-bar">
           <el-button type="primary" @click="handleAddRule">新建规则</el-button>
         </div>
-        <el-table :data="rules" v-loading="rulesLoading" stripe empty-text="暂无规则">
+        <div class="table-card">
+<el-table :data="rules" v-loading="rulesLoading" stripe empty-text="暂无规则">
           <el-table-column prop="name" label="规则名称" min-width="140" />
           <el-table-column prop="earnType" label="获取方式" width="120">
             <template #default="{ row }">
@@ -28,15 +40,17 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
       </el-tab-pane>
 
       <el-tab-pane label="积分记录" name="records">
-        <div class="search-bar">
+        <div class="filter-bar">
           <el-input v-model="recordSearch.customerId" placeholder="客户ID" clearable style="width: 200px" />
           <el-button @click="loadRecords">搜索</el-button>
           <el-button type="primary" @click="adjustDialogVisible = true">手动调整</el-button>
         </div>
-        <el-table :data="records" v-loading="recordsLoading" stripe empty-text="暂无记录">
+        <div class="table-card">
+<el-table :data="records" v-loading="recordsLoading" stripe empty-text="暂无记录">
           <el-table-column prop="customerName" label="客户名称" min-width="120" />
           <el-table-column prop="type" label="类型" width="100">
             <template #default="{ row }">
@@ -55,13 +69,14 @@
             <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
           </el-table-column>
         </el-table>
-        <div class="pagination">
+        <div class="table-card-footer">
           <el-pagination
             background layout="total, sizes, prev, pager, next, jumper"
             :total="recordsTotal" :page-size="recordsPageSize" :current-page="recordsPage"
             @size-change="handleRecordsSizeChange" @current-change="handleRecordsPageChange"
           />
         </div>
+</div>
       </el-tab-pane>
     </el-tabs>
 
@@ -112,13 +127,12 @@
         <el-button type="primary" :loading="adjustSubmitLoading" @click="handleAdjustSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import {
   fetchPointsRules, createPointsRule, updatePointsRule, deletePointsRule,

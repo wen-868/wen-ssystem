@@ -1,12 +1,19 @@
 <template>
-  <div class="page">
-    <PageCard title="客户关怀规则">
-      <template #extra>
-        <el-button type="primary" @click="openDialog()">新增规则</el-button>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户关怀规则</h2>
+    <p class="page-desc">客户关怀规则配置</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openDialog()">新增规则</el-button>
+    <el-button @click="loadData">刷新</el-button>
+  </div>
+</div>
 
-      <div class="search-bar">
+      
+
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="规则名称" clearable style="width: 180px" />
         <el-select v-model="searchForm.triggerType" placeholder="触发类型" clearable style="width: 150px; margin-left: 12px">
           <el-option v-for="t in triggerTypes" :key="t.value" :label="t.label" :value="t.value" />
@@ -14,7 +21,8 @@
         <el-button type="primary" style="margin-left: 12px" @click="search">搜索</el-button>
       </div>
 
-      <el-table :data="rules" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="rules" v-loading="loading" stripe>
         <el-table-column prop="name" label="规则名称" min-width="140" />
         <el-table-column prop="triggerType" label="触发类型" width="120" align="center">
           <template #default="{ row }">{{ triggerTypeLabel(row.triggerType) }}</template>
@@ -40,14 +48,16 @@
         <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total" :page-size="pageSize" :current-page="page" @size-change="(s: number) => { pageSize = s; search(); }" @current-change="(p: number) => { page = p; search(); }" />
       </div>
-    </PageCard>
+</div>
+    
 
     <!-- 关怀记录 -->
     <PageCard title="关怀记录">
-      <el-table :data="logs" v-loading="logLoading" stripe>
+      <div class="table-card">
+<el-table :data="logs" v-loading="logLoading" stripe>
         <el-table-column prop="ruleName" label="规则名称" min-width="120" />
         <el-table-column prop="customerName" label="客户" width="120" />
         <el-table-column prop="triggerType" label="触发类型" width="100" align="center">
@@ -65,9 +75,10 @@
         <template #empty><el-empty description="暂无记录" :image-size="60" /></template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="logTotal" :page-size="logPageSize" :current-page="logPage" @size-change="(s: number) => { logPageSize = s; loadLogs(); }" @current-change="(p: number) => { logPage = p; loadLogs(); }" />
       </div>
+</div>
     </PageCard>
 
     <!-- 规则表单弹窗 -->
@@ -93,7 +104,7 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

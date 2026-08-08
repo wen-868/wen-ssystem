@@ -1,12 +1,12 @@
 <template>
-  <div class="pos-store-control">
-    <el-card shadow="never" style="margin-bottom: 16px">
-      <template #header>
-        <div class="card-header">
-          <span>门店状态</span>
-          <el-button size="small" @click="loadStoreControlStatus">刷新</el-button>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">门店状态</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
+
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item label="门店名称">{{ storeControlStatusData?.storeName || "-" }}</el-descriptions-item>
         <el-descriptions-item label="当前状态">
@@ -23,7 +23,7 @@
         <el-descriptions-item label="日订单上限">{{ storeControlConfig?.maxDailyOrders || "未设置" }}</el-descriptions-item>
         <el-descriptions-item label="日金额上限">{{ storeControlConfig?.maxOrderAmount || "未设置" }}</el-descriptions-item>
       </el-descriptions>
-    </el-card>
+    
 
     <el-card shadow="never">
       <template #header>
@@ -32,7 +32,8 @@
           <el-button size="small" @click="loadStoreControlMyLogs">刷新</el-button>
         </div>
       </template>
-      <el-table :data="storeControlMyLogs" size="small" empty-text="暂无日志">
+      <div class="table-card">
+<el-table :data="storeControlMyLogs" size="small" empty-text="暂无日志">
         <el-table-column prop="fromStatus" label="变更前" width="90">
           <template #default="{ row }">{{ getStatusName(row.fromStatus) }}</template>
         </el-table-column>
@@ -49,8 +50,9 @@
         <el-table-column prop="remark" label="备注" />
         <el-table-column prop="createdAt" label="时间" width="170" />
       </el-table>
+</div>
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

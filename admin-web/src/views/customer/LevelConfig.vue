@@ -1,12 +1,24 @@
 <template>
-  <PageCard title="等级配置">
-    <div class="search-bar">
+  <div class="page-header">
+
+    <div class="page-header-main">
+
+      <h2 class="page-title">等级配置</h2>
+
+      <p class="page-desc">会员等级配置</p>
+
+    </div>
+
+  </div>
+
+    <div class="filter-bar">
       <el-button type="primary" @click="handleAddLevel">新建等级</el-button>
       <el-button @click="handleShowUpgradeRecords">升级记录</el-button>
       <el-button type="warning" @click="handleManualUpgrade">手动升级</el-button>
     </div>
 
-    <el-table :data="levels" v-loading="levelsLoading" stripe empty-text="暂无等级">
+    <div class="table-card">
+<el-table :data="levels" v-loading="levelsLoading" stripe empty-text="暂无等级">
       <el-table-column prop="name" label="等级名称" min-width="120" />
       <el-table-column prop="minPoints" label="最低积分" width="100" />
       <el-table-column prop="maxPoints" label="最高积分" width="100" />
@@ -26,6 +38,7 @@
         </template>
       </el-table-column>
     </el-table>
+</div>
 
     <!-- 等级弹窗 -->
     <el-dialog v-model="levelDialogVisible" :title="editingLevel ? '编辑等级' : '新建等级'" width="480px">
@@ -100,13 +113,12 @@
         <el-button type="primary" :loading="manualUpgradeSubmitLoading" @click="handleManualUpgradeSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </PageCard>
+  
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import {
   fetchLevelConfigs, createLevelConfig, updateLevelConfig, deleteLevelConfig,

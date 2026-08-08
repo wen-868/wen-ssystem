@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 统计卡片 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">成本分析</h2>
+      <p class="page-desc">成本趋势与成本明细</p>
+    </div>
+  </div>
+<!-- 统计卡片 -->
     <el-row :gutter="16" class="stat-row">
       <el-col :span="6">
         <el-card shadow="hover" class="stat-card">
@@ -54,14 +60,15 @@
 
     <!-- 成本明细 -->
     <PageCard title="成本明细">
-      <div class="search-bar">
+      <div class="filter-bar">
         <el-input v-model="searchForm.keyword" placeholder="商品名称/编码" clearable style="width: 180px" />
         <el-select v-model="searchForm.storeId" placeholder="门店" clearable filterable style="width: 150px; margin-left: 12px">
           <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
         </el-select>
         <el-button type="primary" style="margin-left: 12px" @click="search">搜索</el-button>
       </div>
-      <el-table :data="records" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="records" v-loading="loading" stripe>
         <el-table-column prop="skuName" label="商品名称" min-width="140" />
         <el-table-column prop="productName" label="SPU" min-width="120" />
         <el-table-column prop="storeName" label="门店" width="100" />
@@ -95,14 +102,15 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination background layout="total, sizes, prev, pager, next, jumper"
           :total="total" :page-size="pageSize" :current-page="page"
           @size-change="(s: number) => { pageSize = s; search(); }"
           @current-change="(p: number) => { page = p; search(); }" />
       </div>
+</div>
     </PageCard>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

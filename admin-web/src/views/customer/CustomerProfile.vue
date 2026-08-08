@@ -1,11 +1,18 @@
 <template>
-  <div class="page">
-    <PageCard title="客户画像">
-      <template #extra>
-        <el-select v-model="selectedMemberId" placeholder="搜索客户" filterable remote :remote-method="searchMembers" :loading="memberLoading" clearable @change="onMemberChange" style="width: 280px">
-          <el-option v-for="m in memberOptions" :key="m.memberId" :label="`${m.name} (${m.mobile})`" :value="m.memberId" />
-        </el-select>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户画像</h2>
+    <p class="page-desc">客户画像标签与特征</p>
+  </div>
+  <div class="page-header-actions">
+    <el-select v-model="selectedMemberId" placeholder="搜索客户" filterable remote :remote-method="searchMembers" :loading="memberLoading" clearable @change="onMemberChange" style="width: 280px">
+    <el-option v-for="m in memberOptions" :key="m.memberId" :label="`${m.name} (${m.mobile})`" :value="m.memberId" />
+    </el-select>
+  </div>
+</div>
+
+      
 
       <template v-if="!profile">
         <el-empty description="请选择客户查看画像" />
@@ -58,7 +65,7 @@
           <div ref="trendChartRef" class="chart-box" />
         </el-card>
       </template>
-    </PageCard>
+    
 
     <!-- 编辑画像弹窗 -->
     <el-dialog v-model="editVisible" title="编辑画像" width="480px">
@@ -100,14 +107,13 @@
         <el-button type="primary" :loading="editLoading" @click="handleEditSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import { ElMessage } from "element-plus";
 import echarts from '@/utils/echarts'
-import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
 import { fetchCustomerProfile, updateCustomerProfile, fetchMembers } from "../../api";
 

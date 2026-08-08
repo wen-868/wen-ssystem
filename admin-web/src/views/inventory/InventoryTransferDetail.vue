@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer-detail-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <el-button link @click="goBack">
         <el-icon><ArrowLeft /></el-icon> 返回列表
       </el-button>
@@ -47,7 +47,8 @@
 
         <!-- 商品明细 -->
         <PageCard title="商品明细">
-          <el-table :data="detail?.items || []" border stripe>
+          <div class="table-card">
+<el-table :data="detail?.items || []" border stripe>
             <el-table-column label="商品图片" width="80" align="center">
               <template #default="{ row }">
                 <el-image
@@ -87,6 +88,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
 
           <div class="table-footer">
             <div class="item-count">
@@ -129,11 +131,13 @@
 
         <!-- 操作日志 -->
         <PageCard title="操作日志">
-          <el-table :data="operationLogs" size="small" stripe>
+          <div class="table-card">
+<el-table :data="operationLogs" size="small" stripe>
             <el-table-column prop="action" label="操作" width="100" />
             <el-table-column prop="operator" label="操作人" width="90" />
             <el-table-column prop="time" label="时间" min-width="140" />
           </el-table>
+</div>
         </PageCard>
       </div>
     </div>
@@ -191,7 +195,7 @@
         取消调拨
       </el-button>
     </div>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

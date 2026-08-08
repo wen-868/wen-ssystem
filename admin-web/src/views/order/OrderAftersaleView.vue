@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 售后统计区 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">订单售后</h2>
+      <p class="page-desc">订单售后处理与审核</p>
+    </div>
+  </div>
+<!-- 售后统计区 -->
     <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="6">
         <el-card shadow="hover">
@@ -52,7 +58,7 @@
 
     <!-- 筛选栏 -->
     <el-card style="margin-bottom: 16px">
-      <div class="filter-area" style="margin-bottom: 0; border: none; padding: 0; box-shadow: none">
+      <div class="filter-bar" style="margin-bottom: 0; border: none; padding: 0; box-shadow: none">
         <el-select v-model="filters.status" placeholder="售后状态" clearable style="width: 130px">
           <el-option v-for="item in STATUS_OPTIONS" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
@@ -79,7 +85,8 @@
           <el-button :loading="loading" @click="handleRefresh">刷新</el-button>
         </div>
       </template>
-      <el-table v-loading="loading" :data="aftersales" stripe>
+      <div class="table-card">
+<el-table v-loading="loading" :data="aftersales" stripe>
         <el-table-column prop="aftersaleNo" label="售后单号" width="160" />
         <el-table-column prop="orderNo" label="关联订单号" width="160" />
         <el-table-column label="售后类型" width="110">
@@ -110,7 +117,7 @@
           <el-empty description="暂无数据" :image-size="80" />
         </template>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -121,6 +128,7 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 售后详情弹窗 -->
@@ -202,7 +210,7 @@
         <el-button type="danger" :loading="actionLoading" @click="handleRejectConfirm">确定拒绝</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

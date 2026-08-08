@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-card>
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">商品映射</h2>
+      <p class="page-desc">渠道商品映射维护</p>
+    </div>
+  </div>
+<el-card>
       <!-- 渠道 Tab -->
       <el-tabs v-model="activeChannel" @tab-change="handleChannelChange">
         <el-tab-pane v-for="ch in channelTypes" :key="ch" :name="ch">
@@ -40,7 +46,8 @@
       </div>
 
       <!-- 映射列表表格 -->
-      <el-table :data="filteredMaps" stripe>
+      <div class="table-card">
+<el-table :data="filteredMaps" stripe>
         <el-table-column label="渠道" width="90">
           <template #default="{ row }">
             <el-tag :type="channelTagType(row.channelType)" size="small">{{ channelName(row.channelType) }}</el-tag>
@@ -72,7 +79,7 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -83,6 +90,7 @@
           @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 未映射商品列表 -->
@@ -93,7 +101,8 @@
             <span style="font-weight: 600">未映射商品列表</span>
             <el-tag type="warning" size="small" style="margin-left: 8px">{{ mockUnmappedProducts.length }}条</el-tag>
           </template>
-          <el-table :data="mockUnmappedProducts" stripe size="small">
+          <div class="table-card">
+<el-table :data="mockUnmappedProducts" stripe size="small">
             <el-table-column label="渠道" width="90">
               <template #default="{ row }">
                 <el-tag :type="channelTagType(row.channelType)" size="small">{{ channelName(row.channelType) }}</el-tag>
@@ -108,6 +117,7 @@
               </template>
             </el-table-column>
           </el-table>
+</div>
         </el-collapse-item>
       </el-collapse>
     </el-card>
@@ -258,7 +268,7 @@
         <el-button type="primary" @click="handleQuickMapSave">确认映射</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

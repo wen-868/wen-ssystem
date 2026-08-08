@@ -1,23 +1,15 @@
 <template>
-  <div class="pos-order-fulfill">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>接单履约</span>
-          <div class="filter-area">
-            <el-select v-model="statusFilter" placeholder="订单状态" size="small" style="width: 140px" clearable @change="loadList">
-              <el-option label="待接单" value="PENDING" />
-              <el-option label="已接单" value="ACCEPTED" />
-              <el-option label="配送中" value="DELIVERING" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已拒绝" value="REJECTED" />
-            </el-select>
-            <el-button size="small" type="primary" @click="loadList">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">接单履约</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
 
-      <el-table :data="records" v-loading="loading" size="small" style="width: 100%">
+
+      <div class="table-card">
+<el-table :data="records" v-loading="loading" size="small" style="width: 100%">
         <el-table-column prop="orderNo" label="订单号" width="160" />
         <el-table-column prop="customerName" label="客户" width="100" />
         <el-table-column prop="totalAmount" label="金额" width="100">
@@ -39,6 +31,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <el-pagination
         v-if="total > 0"
@@ -49,7 +42,7 @@
         style="margin-top: 16px"
         @current-change="loadList"
       />
-    </el-card>
+    
 
     <el-dialog v-model="detailVisible" title="订单详情" width="720px">
       <el-descriptions :column="2" border>
@@ -68,7 +61,7 @@
         </el-table-column>
       </el-table>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

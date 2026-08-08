@@ -1,6 +1,6 @@
 <template>
-  <div class="check-page">
-    <div class="page-header">
+<div class="page">
+<div class="page-header">
       <h2>库存盘点</h2>
       <p class="page-desc">管理库存盘点任务，支持开始、完成、取消和差异处理</p>
     </div>
@@ -226,7 +226,8 @@
         </el-descriptions>
 
         <h4 style="margin: 20px 0 10px">盘点明细</h4>
-        <el-table :data="currentCheck.items || []" size="small" border>
+        <div class="table-card">
+<el-table :data="currentCheck.items || []" size="small" border>
           <el-table-column prop="skuName" label="商品名称" />
           <el-table-column prop="theoreticalQty" label="理论库存" width="90" />
           <el-table-column prop="actualQty" label="实际库存" width="90" />
@@ -238,9 +239,10 @@
             </template>
           </el-table-column>
         </el-table>
+</div>
       </template>
     </DetailDrawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

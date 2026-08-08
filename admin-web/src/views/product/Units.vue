@@ -1,10 +1,17 @@
 <template>
-  <div class="page">
-    <PageCard title="单位组管理">
-      <template #extra>
-        <el-button type="primary" @click="openCreateDialog">新增单位组</el-button>
-        <el-button @click="loadGroups">刷新</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">单位组管理</h2>
+    <p class="page-desc">计量单位组维护</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="openCreateDialog">新增单位组</el-button>
+    <el-button @click="loadGroups">刷新</el-button>
+  </div>
+</div>
+
+      
 
       <el-empty v-if="!loading && groups.length === 0" description="暂无单位组，点击上方按钮创建" :image-size="80" />
 
@@ -47,7 +54,7 @@
           <span style="color: #999; font-size: 13px;">暂无层级单位，点击编辑添加</span>
         </div>
       </div>
-    </PageCard>
+    
 
     <!-- 新增/编辑单位组弹窗 -->
     <el-dialog
@@ -93,14 +100,13 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
-import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 
 interface UnitItem {

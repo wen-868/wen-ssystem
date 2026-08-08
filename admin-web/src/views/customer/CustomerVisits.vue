@@ -1,59 +1,61 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>客户拜访记录</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="关键词搜索"
-              size="default"
-              style="width: 200px; margin-right: 10px"
-              clearable
-              @clear="loadVisits"
-              @keyup.enter="loadVisits"
-            />
-            <el-select v-model="filterCustomerId" placeholder="客户名称" size="default" style="width: 160px; margin-right: 10px" clearable filterable @change="loadVisits">
-              <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
-            </el-select>
-            <el-select v-model="filterVisitor" placeholder="拜访人" size="default" style="width: 140px; margin-right: 10px" clearable filterable @change="loadVisits">
-              <el-option v-for="s in staffList" :key="s.id" :label="s.name" :value="s.name" />
-            </el-select>
-            <el-select v-model="filterVisitType" placeholder="拜访方式" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadVisits">
-              <el-option label="上门" value="VISIT" />
-              <el-option label="电话" value="PHONE" />
-              <el-option label="微信" value="WECHAT" />
-            </el-select>
-            <el-select v-model="filterPurpose" placeholder="拜访目的" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadVisits">
-              <el-option label="新客开发" value="DEVELOP" />
-              <el-option label="维护关系" value="MAINTAIN" />
-              <el-option label="产品推介" value="PROMOTE" />
-              <el-option label="订单跟进" value="FOLLOW_UP" />
-              <el-option label="售后服务" value="SERVICE" />
-              <el-option label="其他" value="OTHER" />
-            </el-select>
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="margin-right: 10px; width: 260px"
-              value-format="YYYY-MM-DD"
-              @change="loadVisits"
-            />
-            <el-button type="primary" @click="handleCreate">
-              <el-icon><Plus /></el-icon> 新增拜访
-            </el-button>
-            <el-button @click="handleExport">导出</el-button>
-            <el-button @click="loadVisits">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">客户拜访记录</h2>
+    <p class="page-desc">数据查询与维护</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="关键词搜索"
+  size="default"
+  style="width: 200px; margin-right: 10px"
+  clearable
+  @clear="loadVisits"
+  @keyup.enter="loadVisits"
+  />
+  <el-select v-model="filterCustomerId" placeholder="客户名称" size="default" style="width: 160px; margin-right: 10px" clearable filterable @change="loadVisits">
+  <el-option v-for="c in customers" :key="c.id" :label="c.name" :value="c.id" />
+  </el-select>
+  <el-select v-model="filterVisitor" placeholder="拜访人" size="default" style="width: 140px; margin-right: 10px" clearable filterable @change="loadVisits">
+  <el-option v-for="s in staffList" :key="s.id" :label="s.name" :value="s.name" />
+  </el-select>
+  <el-select v-model="filterVisitType" placeholder="拜访方式" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadVisits">
+  <el-option label="上门" value="VISIT" />
+  <el-option label="电话" value="PHONE" />
+  <el-option label="微信" value="WECHAT" />
+  </el-select>
+  <el-select v-model="filterPurpose" placeholder="拜访目的" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadVisits">
+  <el-option label="新客开发" value="DEVELOP" />
+  <el-option label="维护关系" value="MAINTAIN" />
+  <el-option label="产品推介" value="PROMOTE" />
+  <el-option label="订单跟进" value="FOLLOW_UP" />
+  <el-option label="售后服务" value="SERVICE" />
+  <el-option label="其他" value="OTHER" />
+  </el-select>
+  <el-date-picker
+  v-model="dateRange"
+  type="daterange"
+  range-separator="至"
+  start-placeholder="开始日期"
+  end-placeholder="结束日期"
+  size="default"
+  style="margin-right: 10px; width: 260px"
+  value-format="YYYY-MM-DD"
+  @change="loadVisits"
+  />
+  <el-button type="primary" @click="handleCreate">
+  <el-icon><Plus /></el-icon> 新增拜访
+  </el-button>
+  <el-button @click="handleExport">导出</el-button>
+  <el-button @click="loadVisits">刷新</el-button>
+</div>
 
-      <el-table :data="visits" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="visits" v-loading="loading" stripe>
         <el-table-column prop="customerName" label="客户名称" min-width="160" />
         <el-table-column prop="visitorName" label="拜访人" width="120" />
         <el-table-column prop="visitType" label="拜访方式" width="100">
@@ -89,7 +91,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -100,7 +102,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <!-- 新建/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑拜访记录' : '新增拜访记录'" width="720px">
@@ -271,7 +274,7 @@
         </div>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

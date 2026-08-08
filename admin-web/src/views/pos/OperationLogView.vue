@@ -1,6 +1,12 @@
 <template>
-  <div class="pos-operation-log">
-    <!-- 搜索条件 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">操作日志</h2>
+      <p class="page-desc">收银操作日志查询</p>
+    </div>
+  </div>
+<!-- 搜索条件 -->
     <el-card shadow="never" style="margin-bottom: 16px">
       <template #header>
         <div class="card-header">
@@ -46,7 +52,8 @@
 
     <!-- 操作记录列表 -->
     <el-card shadow="never">
-      <el-table :data="operationLogs" size="small" v-loading="loading">
+      <div class="table-card">
+<el-table :data="operationLogs" size="small" v-loading="loading">
         <el-table-column prop="id" label="编号" width="80" />
         <el-table-column prop="actionType" label="操作类型" width="120">
           <template #default="{ row }">
@@ -71,6 +78,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <!-- 分页 -->
       <div class="pagination-area">
@@ -114,7 +122,7 @@
         <el-button @click="showDetailDialog = false">关闭</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
