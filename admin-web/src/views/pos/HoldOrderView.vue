@@ -1,19 +1,26 @@
 <template>
   <div class="pos-hold-orders">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>挂单管理</span>
-          <el-button size="small" type="primary" @click="loadList">刷新</el-button>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">挂单管理</h2>
+        <p class="page-desc">暂存挂单的取单与删除</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadList">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
-      <el-table :data="records" v-loading="loading" size="small" style="width: 100%">
+    <!-- 表格 -->
+    <div class="table-card">
+      <el-table :data="records" v-loading="loading" stripe>
         <el-table-column prop="holdNo" label="挂单号" width="180" />
         <el-table-column prop="customerName" label="客户" width="120" />
         <el-table-column prop="customerMobile" label="手机号" width="120" />
         <el-table-column prop="amount" label="金额" width="100">
-          <template #default="{ row }">¥{{ Number(row.amount || 0).toFixed(2) }}</template>
+          <template #default="{ row }"><span class="amount-text">¥{{ Number(row.amount || 0).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column prop="itemCount" label="商品数" width="80" />
         <el-table-column prop="remark" label="备注" min-width="120" />
@@ -24,24 +31,29 @@
             <el-button size="small" type="danger" link @click="handleDelete(row.holdNo)">删除</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无挂单" :image-size="80" />
+        </template>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 16px"
-        @current-change="loadList"
-      />
-    </el-card>
+      <div class="table-card-footer">
+        <el-pagination
+          v-if="total > 0"
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="loadList"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { Refresh } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import { fetchStoreHoldOrders, restoreStoreHoldOrder, deleteStoreHoldOrder } from "../../api";
 
@@ -98,11 +110,10 @@ onMounted(() => {
 
 <style scoped>
 .pos-hold-orders {
-  padding: 16px;
+  padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.amount-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 </style>

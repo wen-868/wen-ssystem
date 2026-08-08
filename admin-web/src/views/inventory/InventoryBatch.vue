@@ -1,29 +1,45 @@
 <template>
   <div class="page">
-    <PageCard title="批次追溯">
-      <template #extra>
-        <el-button @click="loadData">刷新</el-button>
-      </template>
-
-      <div class="search-bar">
-        <el-input v-model="searchForm.skuId" placeholder="商品ID" clearable style="width: 150px" />
-        <el-input v-model="searchForm.batchNo" placeholder="批次号" clearable style="width: 180px; margin-left: 12px" />
-        <el-select v-model="searchForm.storeId" placeholder="门店" clearable filterable style="width: 180px; margin-left: 12px">
-          <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
-        </el-select>
-        <el-select v-model="searchForm.expiryStatus" placeholder="效期状态" clearable style="width: 150px; margin-left: 12px">
-          <el-option label="正常" value="NORMAL" />
-          <el-option label="临期" value="NEAR_EXPIRY" />
-          <el-option label="已过期" value="EXPIRED" />
-        </el-select>
-        <el-button type="primary" style="margin-left: 12px" @click="searchBatches">搜索</el-button>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">批次追溯</h2>
+        <p class="page-desc">批次库存、效期预警配置与预警列表</p>
       </div>
+      <div class="page-header-actions">
+        <el-button @click="loadData">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <el-input v-model="searchForm.skuId" placeholder="商品ID" clearable style="width: 140px" />
+      <el-input v-model="searchForm.batchNo" placeholder="批次号" clearable style="width: 180px" />
+      <el-select v-model="searchForm.storeId" placeholder="门店" clearable filterable style="width: 180px">
+        <el-option v-for="s in storeList" :key="s.id" :label="s.name" :value="s.id" />
+      </el-select>
+      <el-select v-model="searchForm.expiryStatus" placeholder="效期状态" clearable style="width: 150px">
+        <el-option label="正常" value="NORMAL" />
+        <el-option label="临期" value="NEAR_EXPIRY" />
+        <el-option label="已过期" value="EXPIRED" />
+      </el-select>
+      <el-button type="primary" @click="searchBatches">搜索</el-button>
+      <div class="filter-bar-spacer" />
+    </div>
+
+    <!-- 批次列表 -->
+    <div class="table-card">
       <el-table :data="batches" v-loading="loading" stripe>
         <el-table-column prop="batchNo" label="批次号" width="180" />
         <el-table-column prop="productName" label="商品名称" min-width="160" />
         <el-table-column prop="storeName" label="门店" width="140" />
-        <el-table-column prop="quantity" label="数量" width="100" align="right" />
+        <el-table-column prop="quantity" label="数量" width="100" align="right">
+          <template #default="{ row }">
+            <span class="qty-text">{{ row.quantity }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="productionDate" label="生产日期" width="120">
           <template #default="{ row }">
             {{ formatDate(row.productionDate) }}
@@ -47,9 +63,12 @@
             <el-button size="small" link type="primary" @click="openDetail(row)">追溯</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无批次数据" :image-size="80" />
+        </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -60,7 +79,7 @@
           @current-change="(p: number) => { page = p; searchBatches(); }"
         />
       </div>
-    </PageCard>
+    </div>
 
     <!-- 批次详情/追溯 -->
     <DetailDrawer v-model="detailVisible" title="批次追溯详情" width="720px">
@@ -113,32 +132,38 @@
     </DetailDrawer>
 
     <!-- 效期预警配置 -->
-    <PageCard title="效期预警配置">
-      <template #extra>
-        <el-button type="primary" @click="openExpiryConfigDialog">新增配置</el-button>
-      </template>
-      <el-table :data="expiryConfigs" v-loading="configLoading" stripe>
-        <el-table-column prop="productName" label="商品名称" min-width="160" />
-        <el-table-column prop="alertDaysBefore" label="预警天数" width="120" align="center" />
-        <el-table-column prop="alertLevel" label="预警级别" width="120" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.alertLevel === 1" type="warning">一级预警</el-tag>
-            <el-tag v-else-if="row.alertLevel === 2" type="danger">二级预警</el-tag>
-            <el-tag v-else>{{ row.alertLevel }}</el-tag>
+    <div class="detail-section">
+      <div class="detail-section-header">
+        <h3 class="detail-section-title">效期预警配置</h3>
+        <el-button type="primary" size="small" @click="openExpiryConfigDialog">新增配置</el-button>
+      </div>
+      <div class="table-card">
+        <el-table :data="expiryConfigs" v-loading="configLoading" stripe>
+          <el-table-column prop="productName" label="商品名称" min-width="160" />
+          <el-table-column prop="alertDaysBefore" label="预警天数" width="120" align="center" />
+          <el-table-column prop="alertLevel" label="预警级别" width="120" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.alertLevel === 1" type="warning">一级预警</el-tag>
+              <el-tag v-else-if="row.alertLevel === 2" type="danger">二级预警</el-tag>
+              <el-tag v-else>{{ row.alertLevel }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="160" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" link type="primary" @click="openExpiryConfigDialog(row)">编辑</el-button>
+              <el-popconfirm title="确定删除该配置？" @confirm="deleteExpiryConfigItem(row.id)">
+                <template #reference>
+                  <el-button size="small" link type="danger">删除</el-button>
+                </template>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <el-empty description="暂无预警配置" :image-size="80" />
           </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="openExpiryConfigDialog(row)">编辑</el-button>
-            <el-popconfirm title="确定删除该配置？" @confirm="deleteExpiryConfigItem(row.id)">
-              <template #reference>
-                <el-button size="small" link type="danger">删除</el-button>
-              </template>
-            </el-popconfirm>
-          </template>
-        </el-table-column>
-      </el-table>
-    </PageCard>
+        </el-table>
+      </div>
+    </div>
 
     <!-- 效期预警弹窗 -->
     <el-dialog v-model="configDialogVisible" :title="editingConfig ? '编辑预警配置' : '新增预警配置'" width="480px">
@@ -165,57 +190,63 @@
     </el-dialog>
 
     <!-- 效期预警列表 -->
-    <PageCard title="效期预警列表">
-      <el-table :data="expiryAlerts" v-loading="alertLoading" stripe>
-        <el-table-column prop="batchNo" label="批次号" width="180" />
-        <el-table-column prop="productName" label="商品名称" min-width="160" />
-        <el-table-column prop="storeName" label="门店" width="140" />
-        <el-table-column prop="alertLevel" label="预警级别" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.alertLevel === 1" type="warning">一级</el-tag>
-            <el-tag v-else-if="row.alertLevel === 2" type="danger">二级</el-tag>
-            <el-tag v-else>{{ row.alertLevel }}</el-tag>
+    <div class="detail-section">
+      <h3 class="detail-section-title">效期预警列表</h3>
+      <div class="table-card">
+        <el-table :data="expiryAlerts" v-loading="alertLoading" stripe>
+          <el-table-column prop="batchNo" label="批次号" width="180" />
+          <el-table-column prop="productName" label="商品名称" min-width="160" />
+          <el-table-column prop="storeName" label="门店" width="140" />
+          <el-table-column prop="alertLevel" label="预警级别" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.alertLevel === 1" type="warning">一级</el-tag>
+              <el-tag v-else-if="row.alertLevel === 2" type="danger">二级</el-tag>
+              <el-tag v-else>{{ row.alertLevel }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="expiryDate" label="到期日期" width="120">
+            <template #default="{ row }">
+              {{ formatDate(row.expiryDate) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="daysLeft" label="剩余天数" width="100" align="center" />
+          <el-table-column prop="status" label="状态" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.status === 'PENDING'" type="warning">待处理</el-tag>
+              <el-tag v-else-if="row.status === 'HANDLED'" type="success">已处理</el-tag>
+              <el-tag v-else>{{ row.status }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="160" fixed="right">
+            <template #default="{ row }">
+              <el-button v-if="row.status === 'PENDING'" size="small" link type="primary" @click="handleAlertItem(row)">处理</el-button>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <el-empty description="暂无预警数据" :image-size="80" />
           </template>
-        </el-table-column>
-        <el-table-column prop="expiryDate" label="到期日期" width="120">
-          <template #default="{ row }">
-            {{ formatDate(row.expiryDate) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="daysLeft" label="剩余天数" width="100" align="center" />
-        <el-table-column prop="status" label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.status === 'PENDING'" type="warning">待处理</el-tag>
-            <el-tag v-else-if="row.status === 'HANDLED'" type="success">已处理</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
-          <template #default="{ row }">
-            <el-button v-if="row.status === 'PENDING'" size="small" link type="primary" @click="handleAlertItem(row)">处理</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        </el-table>
 
-      <div class="pagination">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="alertTotal"
-          :page-size="alertPageSize"
-          :current-page="alertPage"
-          @size-change="(s: number) => { alertPageSize = s; loadExpiryAlerts(); }"
-          @current-change="(p: number) => { alertPage = p; loadExpiryAlerts(); }"
-        />
+        <div class="table-card-footer">
+          <el-pagination
+            background
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="alertTotal"
+            :page-size="alertPageSize"
+            :current-page="alertPage"
+            @size-change="(s: number) => { alertPageSize = s; loadExpiryAlerts(); }"
+            @current-change="(p: number) => { alertPage = p; loadExpiryAlerts(); }"
+          />
+        </div>
       </div>
-    </PageCard>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import PageCard from "../../components/PageCard.vue";
+import { Refresh } from "@element-plus/icons-vue";
 import DetailDrawer from "../../components/DetailDrawer.vue";
 import { formatDate } from "../../utils/format";
 import {
@@ -408,17 +439,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.search-bar {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 0;
-}
-
-.pagination {
+.detail-section {
   margin-top: 16px;
+}
+.detail-section-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.detail-section-header .detail-section-title {
+  margin-bottom: 0;
+}
+.qty-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 </style>

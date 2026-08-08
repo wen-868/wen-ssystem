@@ -2767,6 +2767,74 @@
 - **验证**：`npm run build:check`（vue-tsc + vite build）exit 0；本地 H5 走查 5 页截图（`docs/reports/R99-01-走查/`）全部正常渲染 + 0 控制台错误；read-image 视觉对照参考图达标（卡片分层/圆角/大数字/清晰层级）；改动文件 lint 0 新增 error（Dashboard 322 errors 为 HEAD 预存，已对比确认）
 - **最小改动**：仅改 admin-web 样式/5 个示范页/通用组件 + 规范文档，未动 backend/miniapp/app-mobile/saas-admin 业务逻辑
 
+### R99-02 — [P1] P0 核心页逐页精设计（阶段 2）
+- **优先级**：P1
+- **负责人**：阿澈（前端设计/开发）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **前置**：R99-01 已完成（tokens v4.1 + Element Plus 主题 + 骨架规范 + 5 示范页，提交 2712579f）
+- **范围**（已做 5 页：登录/首页看板/收银台/商品列表/销售开单；本阶段剩余 P0 核心页 18 页）：
+  - 客户：CustomersView（列表）、CustomerDetail（详情）、MemberSystem（会员体系）
+  - 订单：Orders（列表）、OrderCenterView（订单中心）、OrderBoardView（订单看板）
+  - 库存：Inventory（总览）、InventoryAlerts（预警）、InventoryBatch（批次）
+  - 商品：ProductCategories（分类）、PricesView（价格）、ProductCombo（组合）
+  - 报表：Reports（销售统计）、SalesAnalysis（销售分析）、CustomerAnalysis（客户分析）
+  - POS：SaleBillsView（销售单据）、HoldOrderView（挂单）、CollectionView（收款）
+- **要求**：每页按 R99-01 骨架规范（列表/表单/详情/看板）落地；指标卡大数字、柔和阴影、圆角、留白、状态标签、空态/加载态齐全；只改样式与模板结构，不动业务逻辑与接口
+- **验证**：admin-web `build:check` exit 0；每页本地走查截图（docs/reports/R99-02-*）；无回归
+- **提交**：中文提交信息，推送 origin/main
+- **任务卡**：`docs/tasks/inbox/ache_r99_02.md`
+
+**R99-02 完成记录（2026-08-08 阿澈，待凌舟复核收口）：**
+
+**完成内容（18 页全部按四种骨架规范精设计，只改样式与模板结构）：**
+
+**客户模块（3）：**
+- `CustomersView.vue`：列表页骨架——页头（标题+说明+新增客户）+ StatBar 统计条 + filter-bar 筛选卡 + table-card 表格卡（空态"暂无客户数据"）+ table-card-footer 分页
+- `CustomerDetail.vue`：详情页骨架——页头（返回/禁用/编辑）+ detail-section 蓝色竖条标题 + 卡片化详情区；会员卡信息卡；数据统计改 4 列 stat-grid 大数字指标卡（采购次数/总额/平均/最近）；相关数据 tabs（销售单/付款/对账）
+- `MemberSystem.vue`：会员注册表单分区卡（form-card）+ 会员权益 table-card 列表（filter-bar 右侧批量编辑按钮）
+
+**订单模块（3）：**
+- `Orders.vue`：列表页骨架——页头 + StatBar + filter-bar（关键词/订单状态/支付状态）+ table-card + footer 分页
+- `OrderCenterView.vue`：看板页骨架——页头 + 渠道 Tab + stat-grid 大数字指标卡（今日订单/今日金额/待处理/异常）+ 双 chart-card 图表卡（渠道占比/订单趋势）+ filter-bar + table-card；渠道标签改浅底彩字（channelSoftColors）
+- `OrderBoardView.vue`：看板页骨架——页头 + board-card 泳道容器 + order-card 卡片升级（--shadow-card/hover + 圆角 + 悬浮提升）
+
+**库存模块（3）：**
+- `Inventory.vue`：列表页骨架——页头 + tabs + StatBar + 每 tab filter-bar + table-card + footer 分页
+- `InventoryAlerts.vue`：列表页骨架——页头 + DataTable（empty-text 真实文案）
+- `InventoryBatch.vue`：列表页骨架——页头 + filter-bar（商品/批次/门店/效期）+ 批次 table-card；效期预警配置/列表改 detail-section 区块卡
+
+**商品模块（3）：**
+- `ProductCategories.vue`：页头对齐标准类（page-title/page-desc），树形 + 详情面板保留
+- `PricesView.vue`：列表页骨架——页头 + tabs + 每 tab filter-bar/操作栏 + table-card + footer 分页；金额 tabular-nums
+- `ProductCombo.vue`：列表+看板——页头 + 三 tab（套装/组合/销售统计）filter-bar + table-card + footer；统计卡改 stat-grid 大数字；图表改 chart-card
+
+**报表模块（3）：**
+- `Reports.vue`：看板页骨架——页头 + stat-grid 指标卡（**原 4 张彩色渐变卡改为白底卡片，符合配色纪律**）+ 销售趋势/订单状态分布 chart-card + 门店业绩排名表
+- `SalesAnalysis.vue`：看板页骨架——页头 + filter-bar（日期预设/日期/门店）+ tabs 去 border-card + 全部排行表格 table-card 化 + 金额 tabular-nums
+- `CustomerAnalysis.vue`：看板页骨架——页头 + filter-bar + **概览 5 张渐变卡改 stat-grid 白底指标卡** + tabs 去 border-card + 表格 table-card 化
+
+**POS 模块（3）：**
+- `SaleBillsView.vue`：列表页骨架——页头 + filter-bar（单号/收款状态）+ table-card + footer
+- `HoldOrderView.vue`：列表页骨架——页头（刷新）+ table-card + footer
+- `CollectionView.vue`：列表页骨架——页头（刷新）+ tabs（收款链接/收款记录/退款记录）+ table-card + footer
+
+**验证证据：**
+| 验证项 | 命令 | 结果 |
+|--------|------|------|
+| 类型检查 | `cd admin-web && npx vue-tsc -b` | exit 0，0 errors ✅ |
+| 生产构建 | `cd admin-web && npm run build:check` | vue-tsc + vite build 全过，exit 0 ✅ |
+| 18 页走查 | `.playwright-cli/pw-run/walkthrough-r99-02.mjs`（dev 后端 8081 mock + 真 token） | 18/18 全部正常渲染，0 空白页/0 结构崩溃；控制台错误仅 mock 后端数据接口 404（页面均正确显示空态，非渲染错误）✅ |
+| 截图 | `docs/reports/R99-02-走查/`（18 张） | 全部生成 ✅ |
+| 逻辑零改动 | `git diff` 逐文件核查 script 段 | 仅 import 新增（Plus/Refresh/ArrowLeft），业务逻辑/接口/数据流 0 改动 ✅ |
+
+**说明：**
+1. 走查前曾误报 4 页空白，经诊断确认为首载竞态 + 旧 vite 缓存导致，改进脚本（先载首页注入 auth 再 goto + networkidle）后 18 页全部正常
+2. 本地走查 dev server 需 `VITE_API_BASE=http://localhost:8081/api`（mock 后端 8081），默认 8080 为生产配置
+3. OrderCenterView/SalesAnalysis/ProductCombo 存在既有 mock 数据技术债（今日订单 128、排行随机数等），属任务范围外（只改样式），已记录待凌舟决策是否后续接真实接口
+4. Reports.vue 的 totalCustomers/newCustomers/各 growth 百分比为既有硬编码值，未在本轮改动
+
+**任务卡归档**：`docs/tasks/inbox/ache_r99_02.md` → `docs/tasks/inbox/archive/`
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

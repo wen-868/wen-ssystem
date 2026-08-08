@@ -1,67 +1,59 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>统计报表</span>
-          <div class="header-actions">
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="width: 280px; margin-right: 10px"
-              value-format="YYYY-MM-DD"
-            />
-            <el-button type="primary" @click="loadAllData">
-              <el-icon><Search /></el-icon> 查询
-            </el-button>
-            <el-button @click="loadAllData">
-              <el-icon><Refresh /></el-icon> 刷新
-            </el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">统计报表</h2>
+        <p class="page-desc">销售趋势、订单状态分布与门店业绩</p>
+      </div>
+      <div class="page-header-actions">
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+        />
+        <el-button type="primary" @click="loadAllData">
+          <el-icon><Search /></el-icon>&nbsp;查询
+        </el-button>
+        <el-button @click="loadAllData">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
-      <el-row :gutter="16" class="stats-cards">
-        <el-col :span="6">
-          <div class="stat-card stat-card-primary">
-            <div class="stat-label">总销售额</div>
-            <div class="stat-value">¥{{ totalSales.toFixed(2) }}</div>
-            <div class="stat-desc">较上期 {{ salesGrowth }}%</div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card stat-card-success">
-            <div class="stat-label">订单总数</div>
-            <div class="stat-value">{{ totalOrders }}</div>
-            <div class="stat-desc">较上期 {{ orderGrowth }}%</div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card stat-card-warning">
-            <div class="stat-label">客户数</div>
-            <div class="stat-value">{{ totalCustomers }}</div>
-            <div class="stat-desc">新增 {{ newCustomers }} 人</div>
-          </div>
-        </el-col>
-        <el-col :span="6">
-          <div class="stat-card stat-card-info">
-            <div class="stat-label">客单价</div>
-            <div class="stat-value">¥{{ avgOrderValue.toFixed(2) }}</div>
-            <div class="stat-desc">较上期 {{ avgGrowth }}%</div>
-          </div>
-        </el-col>
-      </el-row>
+    <!-- 指标卡 -->
+    <div class="stat-grid">
+      <div class="stat-grid-card">
+        <div class="stat-grid-value stat-grid-value--primary">¥{{ totalSales.toFixed(2) }}</div>
+        <div class="stat-grid-label">总销售额</div>
+        <div class="stat-grid-trend up">较上期 {{ salesGrowth }}%</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">{{ totalOrders }}</div>
+        <div class="stat-grid-label">订单总数</div>
+        <div class="stat-grid-trend up">较上期 {{ orderGrowth }}%</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">{{ totalCustomers }}</div>
+        <div class="stat-grid-label">客户数</div>
+        <div class="stat-grid-trend down">新增 {{ newCustomers }} 人</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">¥{{ avgOrderValue.toFixed(2) }}</div>
+        <div class="stat-grid-label">客单价</div>
+        <div class="stat-grid-trend up">较上期 {{ avgGrowth }}%</div>
+      </div>
+    </div>
 
-      <el-row :gutter="16" style="margin-top: 20px">
-        <el-col :span="16">
-          <el-card class="chart-card">
-            <template #header>
-              <span>销售趋势</span>
-            </template>
+    <!-- 图表区 -->
+    <el-row :gutter="16" class="chart-row">
+      <el-col :span="16">
+        <div class="chart-card">
+          <div class="chart-card-header">销售趋势</div>
+          <div class="chart-card-body">
             <div v-loading="dailySalesLoading" class="chart-container">
               <div class="chart-bars">
                 <div
@@ -69,23 +61,23 @@
                   class="bar-item"
                 >
                   <div class="bar-wrapper">
-                  <div
-                    class="bar"
-                    :style="{ height: getBarHeight(item.salesAmount) + '%' }"
-                  ></div>
+                    <div
+                      class="bar"
+                      :style="{ height: getBarHeight(item.salesAmount) + '%' }"
+                    ></div>
                   </div>
-                <div class="bar-label">{{ formatDate(item.date) }}</div>
-                <div class="bar-value">¥{{ Number(item.salesAmount || 0).toFixed(0) }}</div>
+                  <div class="bar-label">{{ formatDate(item.date) }}</div>
+                  <div class="bar-value">¥{{ Number(item.salesAmount || 0).toFixed(0) }}</div>
                 </div>
               </div>
             </div>
-          </el-card>
-        </el-col>
-        <el-col :span="8">
-          <el-card class="chart-card">
-            <template #header>
-              <span>订单状态分布</span>
-            </template>
+          </div>
+        </div>
+      </el-col>
+      <el-col :span="8">
+        <div class="chart-card">
+          <div class="chart-card-header">订单状态分布</div>
+          <div class="chart-card-body">
             <div v-loading="orderStatsLoading" class="pie-chart-container">
               <div class="pie-legend">
                 <div
@@ -104,25 +96,25 @@
                   :key="index"
                   class="progress-item"
                 >
-                <div class="progress-label">{{ item.statusName }}</div>
-                <el-progress
-                  :percentage="getPercentage(item.count, totalOrderCount)"
-                  :color="getProgressColor(index)"
-                  :show-text="false"
-                />
-                <div class="progress-count">{{ item.count || 0 }}</div>
+                  <div class="progress-label">{{ item.statusName }}</div>
+                  <el-progress
+                    :percentage="getPercentage(item.count, totalOrderCount)"
+                    :color="getProgressColor(index)"
+                    :show-text="false"
+                  />
+                  <div class="progress-count">{{ item.count || 0 }}</div>
                 </div>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
 
-      <el-row style="margin-top: 20px">
-        <el-card class="chart-card">
-          <template #header>
-            <span>门店业绩排名</span>
-          </template>
+    <!-- 明细表 -->
+    <div class="chart-card table-block">
+      <div class="chart-card-header">门店业绩排名</div>
+      <div class="table-card chart-card-table">
           <el-table :data="storePerformance" v-loading="storePerformanceLoading" stripe>
             <el-table-column type="index" label="排名" width="80">
               <template #default="{ $index }">
@@ -155,9 +147,8 @@
               <el-empty description="暂无数据" :image-size="80" />
             </template>
           </el-table>
-        </el-card>
-      </el-row>
-    </el-card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -274,51 +265,16 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.chart-row {
+  margin-bottom: 16px;
 }
-.header-actions {
-  display: flex;
-  align-items: center;
+.table-block {
+  margin-top: 16px;
 }
-.stats-cards {
-  margin-bottom: 0;
-}
-.stat-card {
-  padding: 20px;
-  border-radius: 8px;
-  color: var(--text-inverse);
-}
-.stat-card-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%);
-}
-.stat-card-success {
-  background: linear-gradient(135deg, var(--color-success) 0%, rgba(14,168,121,0.4) 100%);
-}
-.stat-card-warning {
-  background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%);
-}
-.stat-card-info {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%);
-}
-.stat-label {
-  font-size: 14px;
-  opacity: 0.9;
-  margin-bottom: 8px;
-}
-.stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.stat-desc {
-  font-size: 12px;
-  opacity: 0.8;
-}
-.chart-card {
-  height: 100%;
+.chart-card-table {
+  border-top: none;
+  border-radius: 0 0 var(--card-radius) var(--card-radius);
+  box-shadow: none;
 }
 .chart-container {
   height: 300px;

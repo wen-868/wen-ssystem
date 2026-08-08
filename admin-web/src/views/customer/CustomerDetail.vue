@@ -1,98 +1,113 @@
 <template>
   <div class="page">
-    <div style="margin-bottom: 16px">
-      <el-button @click="router.back()" icon="ArrowLeft">返回</el-button>
+    <!-- 页头：标题 + 返回 + 操作 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">客户详情</h2>
+        <p class="page-desc">客户档案、会员卡与交易数据</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="router.back()">
+          <el-icon><ArrowLeft /></el-icon>&nbsp;返回
+        </el-button>
+        <el-button v-if="member.status === 'ACTIVE'" type="danger" plain @click="handleToggleDisable(true)">禁用</el-button>
+        <el-button v-else type="success" @click="handleToggleDisable(false)">启用</el-button>
+        <el-button type="primary" @click="openEditDialog">编辑</el-button>
+      </div>
     </div>
 
-    <el-card v-loading="loading">
-      <template #header>
-        <div class="card-header">
-          <span>客户详情</span>
-          <div class="header-actions">
-            <el-button type="success" v-if="member.status === 'ACTIVE'" @click="handleToggleDisable(true)">禁用</el-button>
-            <el-button type="primary" v-else @click="handleToggleDisable(false)">启用</el-button>
-            <el-button type="primary" @click="openEditDialog">编辑</el-button>
-          </div>
+    <!-- 基本信息 -->
+    <div class="detail-section">
+      <h3 class="detail-section-title">基本信息</h3>
+      <div class="detail-card-inner" v-loading="loading">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="客户ID">{{ member.memberId || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="客户名称">{{ member.name || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="联系人">{{ member.contact || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="手机号">{{ member.mobile || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="客户类型">
+            <el-tag v-if="member.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
+            <el-tag v-else-if="member.customerType === 'WHOLESALE'" type="success">批发客户</el-tag>
+            <el-tag v-else>{{ member.customerType }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="归属销售员">{{ member.staffName || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="积分">{{ member.points || 0 }}</el-descriptions-item>
+          <el-descriptions-item label="客户等级">
+            <el-tag v-if="member.levelCode === 'VIP'" type="danger">VIP</el-tag>
+            <el-tag v-else-if="member.levelCode === 'GOLD'" type="warning">GOLD</el-tag>
+            <el-tag v-else-if="member.levelCode === 'SILVER'" type="info">SILVER</el-tag>
+            <el-tag v-else>{{ member.levelCode || "-" }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag v-if="member.status === 'ACTIVE'" type="success">启用</el-tag>
+            <el-tag v-else-if="member.status === 'INACTIVE'" type="danger">停用</el-tag>
+            <el-tag v-else>{{ member.status }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="地址">{{ member.address || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="结算方式">
+            <el-tag v-if="member.settlementType === 'CASH'" type="success">现金</el-tag>
+            <el-tag v-else-if="member.settlementType === 'ACCOUNT'" type="warning">挂账</el-tag>
+            <el-tag v-else>{{ member.settlementType || "-" }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="备注">{{ member.remark || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDate(member.createTime) }}</el-descriptions-item>
+        </el-descriptions>
+      </div>
+    </div>
+
+    <!-- 会员卡信息 -->
+    <div class="detail-section">
+      <div class="detail-section-header">
+        <h3 class="detail-section-title">会员卡信息</h3>
+        <el-button size="small" type="primary" @click="openLevelDialog">调整会员等级</el-button>
+      </div>
+      <div class="detail-card-inner" v-loading="cardLoading">
+        <el-descriptions :column="2" border v-if="memberCard">
+          <el-descriptions-item label="卡号">{{ memberCard.cardNo || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="卡类型">{{ memberCard.cardType || "-" }}</el-descriptions-item>
+          <el-descriptions-item label="余额">
+            <span class="amount-text">¥{{ Number(memberCard.balance || 0).toFixed(2) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="开卡时间">{{ formatDate(memberCard.openTime) }}</el-descriptions-item>
+          <el-descriptions-item label="过期时间">{{ formatDate(memberCard.expireTime) }}</el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag v-if="memberCard.status === 'ACTIVE'" type="success">正常</el-tag>
+            <el-tag v-else-if="memberCard.status === 'FROZEN'" type="warning">冻结</el-tag>
+            <el-tag v-else>{{ memberCard.status }}</el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+        <el-empty v-else description="暂无会员卡信息" :image-size="80" />
+      </div>
+    </div>
+
+    <!-- 数据统计 -->
+    <div class="detail-section">
+      <h3 class="detail-section-title">数据统计</h3>
+      <div v-if="purchaseStats" class="stat-grid overview-grid">
+        <div class="stat-grid-card">
+          <div class="stat-grid-value">{{ purchaseStats.purchaseCount || 0 }}</div>
+          <div class="stat-grid-label">采购次数</div>
         </div>
-      </template>
-
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="客户ID">{{ member.memberId || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="客户名称">{{ member.name || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="联系人">{{ member.contact || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ member.mobile || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="客户类型">
-          <el-tag v-if="member.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
-          <el-tag v-else-if="member.customerType === 'WHOLESALE'" type="success">批发客户</el-tag>
-          <el-tag v-else>{{ member.customerType }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="归属销售员">{{ member.staffName || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="积分">{{ member.points || 0 }}</el-descriptions-item>
-        <el-descriptions-item label="客户等级">
-          <el-tag v-if="member.levelCode === 'VIP'" type="danger">VIP</el-tag>
-          <el-tag v-else-if="member.levelCode === 'GOLD'" type="warning">GOLD</el-tag>
-          <el-tag v-else-if="member.levelCode === 'SILVER'" type="info">SILVER</el-tag>
-          <el-tag v-else>{{ member.levelCode || "-" }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag v-if="member.status === 'ACTIVE'" type="success">启用</el-tag>
-          <el-tag v-else-if="member.status === 'INACTIVE'" type="danger">停用</el-tag>
-          <el-tag v-else>{{ member.status }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="地址">{{ member.address || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="结算方式">
-          <el-tag v-if="member.settlementType === 'CASH'" type="success">现金</el-tag>
-          <el-tag v-else-if="member.settlementType === 'ACCOUNT'" type="warning">挂账</el-tag>
-          <el-tag v-else>{{ member.settlementType || "-" }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="备注">{{ member.remark || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ formatDate(member.createTime) }}</el-descriptions-item>
-      </el-descriptions>
-    </el-card>
-
-    <el-card style="margin-top: 16px" v-loading="cardLoading">
-      <template #header>
-        <div class="card-header">
-          <span>会员卡信息</span>
-          <el-button type="primary" size="small" @click="openLevelDialog">调整会员等级</el-button>
+        <div class="stat-grid-card">
+          <div class="stat-grid-value stat-grid-value--primary">{{ formatMoney(purchaseStats.totalAmount || 0) }}</div>
+          <div class="stat-grid-label">采购总额</div>
         </div>
-      </template>
-
-      <el-descriptions :column="2" border v-if="memberCard">
-        <el-descriptions-item label="卡号">{{ memberCard.cardNo || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="卡类型">{{ memberCard.cardType || "-" }}</el-descriptions-item>
-        <el-descriptions-item label="余额">{{ memberCard.balance || 0 }}</el-descriptions-item>
-        <el-descriptions-item label="开卡时间">{{ formatDate(memberCard.openTime) }}</el-descriptions-item>
-        <el-descriptions-item label="过期时间">{{ formatDate(memberCard.expireTime) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag v-if="memberCard.status === 'ACTIVE'" type="success">正常</el-tag>
-          <el-tag v-else-if="memberCard.status === 'FROZEN'" type="warning">冻结</el-tag>
-          <el-tag v-else>{{ memberCard.status }}</el-tag>
-        </el-descriptions-item>
-      </el-descriptions>
-      <el-empty v-else description="暂无会员卡信息" :image-size="80" />
-    </el-card>
-
-    <el-card style="margin-top: 16px">
-      <template #header>
-        <span>数据统计</span>
-      </template>
-
-      <el-descriptions :column="4" border v-if="purchaseStats">
-        <el-descriptions-item label="采购次数">{{ purchaseStats.purchaseCount || 0 }}</el-descriptions-item>
-        <el-descriptions-item label="采购总额">{{ formatMoney(purchaseStats.totalAmount || 0) }}</el-descriptions-item>
-        <el-descriptions-item label="平均采购金额">{{ formatMoney(purchaseStats.avgAmount || 0) }}</el-descriptions-item>
-        <el-descriptions-item label="最近采购时间">{{ formatDate(purchaseStats.lastPurchaseTime) }}</el-descriptions-item>
-      </el-descriptions>
+        <div class="stat-grid-card">
+          <div class="stat-grid-value">{{ formatMoney(purchaseStats.avgAmount || 0) }}</div>
+          <div class="stat-grid-label">平均采购金额</div>
+        </div>
+        <div class="stat-grid-card">
+          <div class="stat-grid-value stat-grid-value--sm">{{ formatDate(purchaseStats.lastPurchaseTime) || "-" }}</div>
+          <div class="stat-grid-label">最近采购时间</div>
+        </div>
+      </div>
       <el-empty v-else description="暂无采购统计数据" :image-size="80" />
-    </el-card>
+    </div>
 
-    <el-card style="margin-top: 16px">
-      <template #header>
-        <span>相关数据</span>
-      </template>
-
-      <el-tabs v-model="activeTab" type="border-card">
+    <!-- 相关数据 -->
+    <div class="detail-section">
+      <h3 class="detail-section-title">相关数据</h3>
+      <el-tabs v-model="activeTab">
         <el-tab-pane label="销售单列表" name="sale-bills">
           <el-table :data="saleBills" v-loading="tabLoading['sale-bills']" stripe empty-text="暂无销售单">
             <el-table-column prop="billNo" label="单据编号" width="180" />
@@ -187,7 +202,7 @@
           </div>
         </el-tab-pane>
       </el-tabs>
-    </el-card>
+    </div>
 
     <el-dialog v-model="editDialogVisible" title="编辑客户" width="720px">
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
@@ -252,6 +267,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
+import { ArrowLeft } from "@element-plus/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { formatDate, formatMoney } from "../../utils/format";
 import {
@@ -534,15 +550,30 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
+.detail-section {
+  margin-bottom: 16px;
+}
+.detail-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.detail-section-header .detail-section-title {
+  margin-bottom: 0;
+}
+.detail-card-inner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+}
+.overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.stat-grid-value--sm {
+  font-size: 16px;
 }
 .pagination {
   margin-top: 16px;

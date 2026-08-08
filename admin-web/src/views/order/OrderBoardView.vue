@@ -1,36 +1,35 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>订单泳道</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索订单号/收货人"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadAllOrders"
-              @keyup.enter="loadAllOrders"
-            />
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="width: 280px; margin-right: 10px"
-              value-format="YYYY-MM-DD"
-            />
-            <el-button @click="loadAllOrders">搜索</el-button>
-            <el-button @click="loadAllOrders">刷新</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">订单看板</h2>
+        <p class="page-desc">按订单状态泳道实时跟踪</p>
+      </div>
+      <div class="page-header-actions">
+        <el-input
+          v-model="keyword"
+          placeholder="搜索订单号/收货人"
+          clearable
+          @clear="loadAllOrders"
+          @keyup.enter="loadAllOrders"
+        />
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+        />
+        <el-button type="primary" @click="loadAllOrders">查询</el-button>
+        <el-button @click="loadAllOrders">刷新</el-button>
+      </div>
+    </div>
 
-      <div class="board-container" v-loading="loading">
+    <!-- 泳道看板 -->
+    <div class="board-card" v-loading="loading">
+      <div class="board-container">
         <div class="board-column" v-for="column in columns" :key="column.status">
           <div class="column-header" :class="column.class">
             <span class="column-title">{{ column.title }}</span>
@@ -68,7 +67,7 @@
           </div>
         </div>
       </div>
-    </el-card>
+    </div>
 
     <el-drawer v-model="detailVisible" title="订单详情" size="600px">
       <template v-if="currentOrder">
@@ -183,14 +182,12 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
+.board-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: 16px;
 }
 .board-container {
   display: flex;
@@ -202,8 +199,8 @@ onMounted(() => {
 .board-column {
   flex: 1;
   min-width: 260px;
-  background: var(--bg-page);
-  border-radius: 8px;
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
 }
@@ -245,16 +242,18 @@ onMounted(() => {
   max-height: calc(100vh - 320px);
 }
 .order-card {
-  background: #fff;
-  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   padding: 12px;
   margin-bottom: 10px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  transition: all 0.2s;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 .order-card:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-normal);
   transform: translateY(-1px);
 }
 .card-header-row {
@@ -303,6 +302,7 @@ onMounted(() => {
   color: var(--color-danger);
   font-weight: 600;
   font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 .order-time {
   color: var(--gray-300);
@@ -311,6 +311,7 @@ onMounted(() => {
   color: var(--color-danger);
   font-weight: 600;
   font-size: 16px;
+  font-variant-numeric: tabular-nums;
 }
 .empty-column {
   padding: 20px 0;

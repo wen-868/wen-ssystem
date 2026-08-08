@@ -1,55 +1,51 @@
 <template>
   <div class="page">
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">销售分析</h2>
+        <p class="page-desc">销售趋势、时段分布与多维度排行分析</p>
+      </div>
+    </div>
+
     <!-- 筛选栏 -->
-    <el-card shadow="never" class="filter-card">
-      <el-row :gutter="12" align="middle">
-        <el-col :span="4">
-          <el-radio-group v-model="datePreset" @change="onDatePresetChange">
-            <el-radio-button value="day">日</el-radio-button>
-            <el-radio-button value="week">周</el-radio-button>
-            <el-radio-button value="month">月</el-radio-button>
-            <el-radio-button value="custom">自定义</el-radio-button>
-          </el-radio-group>
-        </el-col>
-        <el-col :span="6">
-          <el-date-picker
-            v-if="datePreset === 'custom'"
-            v-model="customDateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            @change="refreshAll"
-          />
-          <el-date-picker
-            v-else
-            v-model="singleDate"
-            :type="datePreset === 'day' ? 'date' : datePreset === 'week' ? 'week' : 'month'"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            @change="refreshAll"
-          />
-        </el-col>
-        <el-col :span="8">
-          <el-select v-model="selectedStores" multiple placeholder="选择门店" clearable style="width: 100%" @change="refreshAll">
-            <el-option v-for="s in storeOptions" :key="s.value" :label="s.label" :value="s.value" />
-          </el-select>
-        </el-col>
-        <el-col :span="6">
-          <el-button type="primary" @click="refreshAll">
-            <el-icon><Search /></el-icon> 查询
-          </el-button>
-          <el-button @click="refreshAll">
-            <el-icon><Refresh /></el-icon> 刷新
-          </el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    <div class="filter-bar">
+      <el-radio-group v-model="datePreset" @change="onDatePresetChange">
+        <el-radio-button value="day">日</el-radio-button>
+        <el-radio-button value="week">周</el-radio-button>
+        <el-radio-button value="month">月</el-radio-button>
+        <el-radio-button value="custom">自定义</el-radio-button>
+      </el-radio-group>
+      <el-date-picker
+        v-if="datePreset === 'custom'"
+        v-model="customDateRange"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="YYYY-MM-DD"
+        @change="refreshAll"
+      />
+      <el-date-picker
+        v-else
+        v-model="singleDate"
+        :type="datePreset === 'day' ? 'date' : datePreset === 'week' ? 'week' : 'month'"
+        value-format="YYYY-MM-DD"
+        @change="refreshAll"
+      />
+      <el-select v-model="selectedStores" multiple placeholder="选择门店" clearable @change="refreshAll">
+        <el-option v-for="s in storeOptions" :key="s.value" :label="s.label" :value="s.value" />
+      </el-select>
+      <el-button type="primary" @click="refreshAll">
+        <el-icon><Search /></el-icon>&nbsp;查询
+      </el-button>
+      <el-button @click="refreshAll">
+        <el-icon><Refresh /></el-icon>&nbsp;刷新
+      </el-button>
+    </div>
 
     <!-- Tab 切换 -->
-    <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
+    <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <!-- Tab 1: 销售趋势 -->
       <el-tab-pane label="销售趋势" name="trend">
         <el-row :gutter="16" style="margin-bottom: 12px">
@@ -71,135 +67,153 @@
 
       <!-- Tab 3: 商品排行 -->
       <el-tab-pane label="商品排行" name="productRank">
-        <el-button size="small" type="primary" style="margin-bottom: 12px" @click="exportProductRank">
-          <el-icon><Download /></el-icon> 导出
-        </el-button>
-        <el-table :data="productRanking" stripe border style="width: 100%">
-          <el-table-column type="index" label="排名" width="60" />
-          <el-table-column prop="productName" label="商品名" width="150" />
-          <el-table-column prop="categoryName" label="品类" width="100" />
-          <el-table-column prop="salesCount" label="销量" sortable width="100" />
-          <el-table-column prop="salesAmount" label="销售额" sortable width="130">
-            <template #default="{ row }">¥{{ formatMoney(row.salesAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="grossProfit" label="毛利" sortable width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.grossProfit) }}</template>
-          </el-table-column>
-          <el-table-column prop="profitRate" label="毛利率" sortable width="100">
-            <template #default="{ row }">{{ row.profitRate }}%</template>
-          </el-table-column>
-        </el-table>
-        <el-pagination
-          v-if="productRanking.length > 0"
-          style="margin-top: 16px; justify-content: flex-end"
-          layout="total, prev, pager, next"
-          :total="productRanking.length"
-          :page-size="20"
-          :pager-count="5"
-          small
-        />
+        <div class="filter-bar">
+          <div class="filter-bar-spacer" />
+          <el-button type="primary" @click="exportProductRank">
+            <el-icon><Download /></el-icon>&nbsp;导出
+          </el-button>
+        </div>
+        <div class="table-card">
+          <el-table :data="productRanking" stripe border style="width: 100%">
+            <el-table-column type="index" label="排名" width="60" />
+            <el-table-column prop="productName" label="商品名" width="150" />
+            <el-table-column prop="categoryName" label="品类" width="100" />
+            <el-table-column prop="salesCount" label="销量" sortable width="100" />
+            <el-table-column prop="salesAmount" label="销售额" sortable width="130">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.salesAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="grossProfit" label="毛利" sortable width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.grossProfit) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="profitRate" label="毛利率" sortable width="100">
+              <template #default="{ row }">{{ row.profitRate }}%</template>
+            </el-table-column>
+          </el-table>
+          <div class="table-card-footer">
+            <el-pagination
+              v-if="productRanking.length > 0"
+              layout="total, prev, pager, next"
+              :total="productRanking.length"
+              :page-size="20"
+              :pager-count="5"
+              small
+            />
+          </div>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 4: 客户排行 -->
       <el-tab-pane label="客户排行" name="customerRank">
-        <el-table :data="customerRanking" stripe border style="width: 100%">
-          <el-table-column type="index" label="排名" width="60" />
-          <el-table-column prop="customerName" label="客户名" width="150" />
-          <el-table-column prop="totalAmount" label="消费金额" sortable width="130">
-            <template #default="{ row }">¥{{ formatMoney(row.totalAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="orderCount" label="订单数" sortable width="100" />
-          <el-table-column prop="avgOrderValue" label="客单价" sortable width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.avgOrderValue) }}</template>
-          </el-table-column>
-          <el-table-column prop="lastOrderTime" label="最近消费" width="160" />
-        </el-table>
-        <el-pagination
-          v-if="customerRanking.length > 0"
-          style="margin-top: 16px; justify-content: flex-end"
-          layout="total, prev, pager, next"
-          :total="customerRanking.length"
-          :page-size="20"
-          :pager-count="5"
-          small
-        />
+        <div class="table-card">
+          <el-table :data="customerRanking" stripe border style="width: 100%">
+            <el-table-column type="index" label="排名" width="60" />
+            <el-table-column prop="customerName" label="客户名" width="150" />
+            <el-table-column prop="totalAmount" label="消费金额" sortable width="130">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.totalAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="orderCount" label="订单数" sortable width="100" />
+            <el-table-column prop="avgOrderValue" label="客单价" sortable width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.avgOrderValue) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="lastOrderTime" label="最近消费" width="160" />
+          </el-table>
+          <div class="table-card-footer">
+            <el-pagination
+              v-if="customerRanking.length > 0"
+              layout="total, prev, pager, next"
+              :total="customerRanking.length"
+              :page-size="20"
+              :pager-count="5"
+              small
+            />
+          </div>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 5: 门店排行 -->
       <el-tab-pane label="门店排行" name="storeRank">
         <div ref="storeRankChartRef" class="chart-box chart-medium"></div>
-        <el-table :data="storeRankingData" stripe border style="width: 100%; margin-top: 16px">
-          <el-table-column type="index" label="排名" width="60" />
-          <el-table-column prop="storeName" label="门店" width="150" />
-          <el-table-column prop="salesAmount" label="销售额" sortable width="130">
-            <template #default="{ row }">¥{{ formatMoney(row.salesAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="orderCount" label="订单数" sortable width="100" />
-          <el-table-column prop="grossProfit" label="毛利" sortable width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.grossProfit) }}</template>
-          </el-table-column>
-        </el-table>
+        <div class="table-card chart-table">
+          <el-table :data="storeRankingData" stripe border style="width: 100%">
+            <el-table-column type="index" label="排名" width="60" />
+            <el-table-column prop="storeName" label="门店" width="150" />
+            <el-table-column prop="salesAmount" label="销售额" sortable width="130">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.salesAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="orderCount" label="订单数" sortable width="100" />
+            <el-table-column prop="grossProfit" label="毛利" sortable width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.grossProfit) }}</span></template>
+            </el-table-column>
+          </el-table>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 6: 业务员排行 -->
       <el-tab-pane label="业务员排行" name="salesmanRank">
         <div ref="salesmanChartRef" class="chart-box chart-medium"></div>
-        <el-table :data="salesmanRanking" stripe border style="width: 100%; margin-top: 16px">
-          <el-table-column type="index" label="排名" width="60" />
-          <el-table-column prop="salesmanName" label="业务员" width="120" />
-          <el-table-column prop="salesAmount" label="销售额" sortable width="130">
-            <template #default="{ row }">¥{{ formatMoney(row.salesAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="orderCount" label="订单数" sortable width="100" />
-          <el-table-column prop="grossProfit" label="毛利" sortable width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.grossProfit) }}</template>
-          </el-table-column>
-        </el-table>
+        <div class="table-card chart-table">
+          <el-table :data="salesmanRanking" stripe border style="width: 100%">
+            <el-table-column type="index" label="排名" width="60" />
+            <el-table-column prop="salesmanName" label="业务员" width="120" />
+            <el-table-column prop="salesAmount" label="销售额" sortable width="130">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.salesAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="orderCount" label="订单数" sortable width="100" />
+            <el-table-column prop="grossProfit" label="毛利" sortable width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.grossProfit) }}</span></template>
+            </el-table-column>
+          </el-table>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 7: 同期对比 -->
       <el-tab-pane label="同期对比" name="compare">
-        <el-table :data="compareData" stripe border style="width: 100%">
-          <el-table-column prop="metric" label="指标" width="150" />
-          <el-table-column prop="currentValue" label="本期" width="150" />
-          <el-table-column prop="previousValue" label="上期" width="150" />
-          <el-table-column prop="changeAmount" label="变化金额" width="150" />
-          <el-table-column label="变化率" width="120">
-            <template #default="{ row }">
-              <span :class="row.changeRate >= 0 ? 'growth-up-text' : 'growth-down-text'">
-                {{ row.changeRate >= 0 ? '+' : '' }}{{ row.changeRate }}%
-              </span>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="table-card">
+          <el-table :data="compareData" stripe border style="width: 100%">
+            <el-table-column prop="metric" label="指标" width="150" />
+            <el-table-column prop="currentValue" label="本期" width="150" />
+            <el-table-column prop="previousValue" label="上期" width="150" />
+            <el-table-column prop="changeAmount" label="变化金额" width="150" />
+            <el-table-column label="变化率" width="120">
+              <template #default="{ row }">
+                <span :class="row.changeRate >= 0 ? 'growth-up-text' : 'growth-down-text'">
+                  {{ row.changeRate >= 0 ? '+' : '' }}{{ row.changeRate }}%
+                </span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </el-tab-pane>
 
       <!-- Tab 8: 销售日报 -->
       <el-tab-pane label="销售日报" name="dailyReport">
-        <el-table :data="paginatedDailyReport" stripe border style="width: 100%">
-          <el-table-column prop="date" label="日期" width="120" />
-          <el-table-column prop="salesAmount" label="销售额" sortable width="130">
-            <template #default="{ row }">¥{{ formatMoney(row.salesAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="orderCount" label="订单数" sortable width="100" />
-          <el-table-column prop="avgOrderValue" label="客单价" sortable width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.avgOrderValue) }}</template>
-          </el-table-column>
-          <el-table-column prop="refundAmount" label="退款金额" width="120">
-            <template #default="{ row }">¥{{ formatMoney(row.refundAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="refundRate" label="退款率" width="100">
-            <template #default="{ row }">{{ row.refundRate }}%</template>
-          </el-table-column>
-        </el-table>
-        <el-pagination
-          v-model:current-page="dailyReportPage"
-          style="margin-top: 16px; justify-content: flex-end"
-          layout="total, prev, pager, next"
-          :total="dailyReportData.length"
-          :page-size="10"
-          :pager-count="5"
-        />
+        <div class="table-card">
+          <el-table :data="paginatedDailyReport" stripe border style="width: 100%">
+            <el-table-column prop="date" label="日期" width="120" />
+            <el-table-column prop="salesAmount" label="销售额" sortable width="130">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.salesAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="orderCount" label="订单数" sortable width="100" />
+            <el-table-column prop="avgOrderValue" label="客单价" sortable width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.avgOrderValue) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="refundAmount" label="退款金额" width="120">
+              <template #default="{ row }"><span class="amount-text">¥{{ formatMoney(row.refundAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="refundRate" label="退款率" width="100">
+              <template #default="{ row }">{{ row.refundRate }}%</template>
+            </el-table-column>
+          </el-table>
+          <div class="table-card-footer">
+            <el-pagination
+              v-model:current-page="dailyReportPage"
+              layout="total, prev, pager, next"
+              :total="dailyReportData.length"
+              :page-size="10"
+              :pager-count="5"
+            />
+          </div>
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -499,11 +513,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .page {
-  padding: 20px;
-}
-
-.filter-card {
-  margin-bottom: 16px;
+  padding: 0;
 }
 
 .chart-box {
@@ -525,6 +535,15 @@ onBeforeUnmount(() => {
 
 .growth-down-text {
   color: var(--color-success);
+  font-weight: 600;
+}
+
+.chart-table {
+  margin-top: 16px;
+}
+
+.amount-text {
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 </style>

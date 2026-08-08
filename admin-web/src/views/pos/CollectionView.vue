@@ -1,25 +1,31 @@
 <template>
   <div class="pos-collection">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>分享收款</span>
-          <el-button size="small" type="primary" @click="loadList">刷新</el-button>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">分享收款</h2>
+        <p class="page-desc">收款链接、收款记录与退款记录</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadList">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
-      <el-tabs v-model="activeTab" @tab-change="loadList">
-        <el-tab-pane label="收款链接" name="links" />
-        <el-tab-pane label="收款记录" name="payments" />
-        <el-tab-pane label="退款记录" name="refunds" />
-      </el-tabs>
+    <el-tabs v-model="activeTab" @tab-change="loadList">
+      <el-tab-pane label="收款链接" name="links" />
+      <el-tab-pane label="收款记录" name="payments" />
+      <el-tab-pane label="退款记录" name="refunds" />
+    </el-tabs>
 
-      <el-table :data="records" v-loading="loading" size="small" style="width: 100%">
+    <div class="table-card">
+      <el-table :data="records" v-loading="loading" stripe>
         <template v-if="activeTab === 'links'">
           <el-table-column prop="linkNo" label="链接编号" width="160" />
           <el-table-column prop="billNo" label="关联单号" width="160" />
           <el-table-column prop="amount" label="金额" width="100">
-            <template #default="{ row }">¥{{ Number(row.amount || 0).toFixed(2) }}</template>
+            <template #default="{ row }"><span class="amount-text">¥{{ Number(row.amount || 0).toFixed(2) }}</span></template>
           </el-table-column>
           <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
@@ -40,7 +46,7 @@
           <el-table-column prop="paymentNo" label="支付单号" width="180" />
           <el-table-column prop="billNo" label="关联单号" width="160" />
           <el-table-column prop="amount" label="金额" width="100">
-            <template #default="{ row }">¥{{ Number(row.amount || 0).toFixed(2) }}</template>
+            <template #default="{ row }"><span class="amount-text">¥{{ Number(row.amount || 0).toFixed(2) }}</span></template>
           </el-table-column>
           <el-table-column prop="paymentMethod" label="支付方式" width="100" />
           <el-table-column prop="status" label="状态" width="100">
@@ -55,7 +61,7 @@
           <el-table-column prop="refundNo" label="退款单号" width="180" />
           <el-table-column prop="billNo" label="关联单号" width="160" />
           <el-table-column prop="amount" label="退款金额" width="100">
-            <template #default="{ row }">¥{{ Number(row.amount || 0).toFixed(2) }}</template>
+            <template #default="{ row }"><span class="amount-text">¥{{ Number(row.amount || 0).toFixed(2) }}</span></template>
           </el-table-column>
           <el-table-column prop="reason" label="退款原因" min-width="120" />
           <el-table-column prop="status" label="状态" width="100">
@@ -67,24 +73,29 @@
           </el-table-column>
           <el-table-column prop="createdAt" label="申请时间" width="160" />
         </template>
+        <template #empty>
+          <el-empty description="暂无数据" :image-size="80" />
+        </template>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 16px"
-        @current-change="loadList"
-      />
-    </el-card>
+      <div class="table-card-footer">
+        <el-pagination
+          v-if="total > 0"
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="loadList"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Refresh } from "@element-plus/icons-vue";
 import {
   fetchStoreCollectionLinks,
   fetchStorePaymentOrders,
@@ -131,11 +142,10 @@ onMounted(() => {
 
 <style scoped>
 .pos-collection {
-  padding: 16px;
+  padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.amount-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 </style>

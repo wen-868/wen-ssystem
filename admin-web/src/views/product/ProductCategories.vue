@@ -1,8 +1,11 @@
 <template>
   <div class="category-page">
+    <!-- 页头 -->
     <div class="page-header">
-      <h2>商品分类管理</h2>
-      <p class="page-desc">管理商品分类树结构，支持拖拽排序</p>
+      <div class="page-header-main">
+        <h2 class="page-title">商品分类管理</h2>
+        <p class="page-desc">管理商品分类树结构，支持拖拽排序</p>
+      </div>
     </div>
 
     <PageCard>
@@ -406,23 +409,7 @@ onMounted(() => {
 
 <style scoped>
 .category-page {
-  padding: 20px;
-}
-
-.page-header {
-  margin-bottom: 16px;
-}
-
-.page-header h2 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.page-desc {
-  margin: 0;
-  color: var(--gray-400);
-  font-size: 14px;
+  padding: 0;
 }
 
 .category-layout {

@@ -1,29 +1,37 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>客户管理</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="客户名/手机号"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadMembers"
-              @keyup.enter="loadMembers"
-            />
-            <el-button @click="loadMembers">搜索</el-button>
-            <el-button @click="loadMembers">刷新客户</el-button>
-            <el-button type="primary" @click="memberDialogVisible = true">新增客户</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头：标题 + 说明 + 操作区 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">客户管理</h2>
+        <p class="page-desc">管理客户档案、等级与结算方式</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadMembers">刷新</el-button>
+        <el-button type="primary" @click="memberDialogVisible = true">
+          <el-icon><Plus /></el-icon>&nbsp;新增客户
+        </el-button>
+      </div>
+    </div>
 
-      <StatBar :stats="memberStats" />
-      <TableSkeleton v-if="loading" />
-      <el-table v-else class="list-table" :data="members" stripe empty-text="暂无客户">
+    <StatBar :stats="memberStats" />
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <el-input
+        v-model="keyword"
+        placeholder="客户名/手机号"
+        clearable
+        @clear="loadMembers"
+        @keyup.enter="loadMembers"
+      />
+      <el-button type="primary" @click="loadMembers">查询</el-button>
+      <div class="filter-bar-spacer" />
+    </div>
+
+    <TableSkeleton v-if="loading" />
+    <div v-else class="table-card">
+      <el-table :data="members" stripe>
         <el-table-column prop="memberId" label="客户ID" width="100" />
         <el-table-column prop="name" label="客户名称" min-width="140" />
         <el-table-column prop="contact" label="联系人" min-width="100" show-overflow-tooltip />
@@ -69,15 +77,11 @@
           </template>
         </el-table-column>
         <template #empty>
-          <el-empty description="暂无数据" :image-size="80" />
+          <el-empty description="暂无客户数据" :image-size="80" />
         </template>
       </el-table>
 
-      <el-alert v-if="priceHistoryTip" type="info" show-icon :closable="false" style="margin-top: 12px">
-        <template #title>{{ priceHistoryTip }}</template>
-      </el-alert>
-
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -88,7 +92,11 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+    </div>
+
+    <el-alert v-if="priceHistoryTip" type="info" show-icon :closable="false" class="price-tip">
+      <template #title>{{ priceHistoryTip }}</template>
+    </el-alert>
 
     <el-dialog v-model="memberDialogVisible" title="新增客户" width="720px">
       <el-form ref="memberFormRef" :model="memberForm" :rules="memberRules" label-width="100px">
@@ -135,6 +143,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
@@ -330,18 +339,7 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+.price-tip {
+  margin-top: 12px;
 }
 </style>

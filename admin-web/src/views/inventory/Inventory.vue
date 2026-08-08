@@ -1,38 +1,39 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>库存管理</span>
-          <div class="header-actions">
-            <el-button @click="loadData">
-              <el-icon><Refresh /></el-icon> 刷新
-            </el-button>
-          </div>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">库存管理</h2>
+        <p class="page-desc">库存总览与出入库流水查询</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadData">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
+
+    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+      <el-tab-pane label="库存总览" name="balances">
+        <StatBar :stats="inventoryStats" />
+        <div class="filter-bar">
+          <el-input
+            v-model="balanceKeyword"
+            placeholder="搜索商品/SKU"
+            clearable
+            @clear="loadBalances"
+            @keyup.enter="loadBalances"
+          />
+          <el-select v-model="storeId" placeholder="全部门店" clearable @change="loadBalances">
+            <el-option v-for="store in stores" :key="store.id" :label="store.name" :value="store.id" />
+          </el-select>
+          <el-button type="primary" @click="loadBalances">查询</el-button>
+          <div class="filter-bar-spacer" />
         </div>
-      </template>
 
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="库存总览" name="balances">
-          <StatBar :stats="inventoryStats" />
-          <div class="list-filter-bar">
-            <el-input
-              v-model="balanceKeyword"
-              placeholder="搜索商品/SKU"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadBalances"
-              @keyup.enter="loadBalances"
-            />
-            <el-select v-model="storeId" placeholder="全部门店" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadBalances">
-              <el-option v-for="store in stores" :key="store.id" :label="store.name" :value="store.id" />
-            </el-select>
-            <el-button type="primary" @click="loadBalances">查询</el-button>
-          </div>
-
-          <TableSkeleton v-if="loading" />
-          <el-table v-else class="list-table" :data="balances" stripe>
+        <TableSkeleton v-if="loading" />
+        <div v-else class="table-card">
+          <el-table :data="balances" stripe>
             <el-table-column prop="storeName" label="门店" width="140" />
             <el-table-column prop="barcode" label="条码" width="160" />
             <el-table-column prop="skuName" label="商品名称" min-width="180" />
@@ -47,11 +48,11 @@
             </el-table-column>
             <el-table-column prop="lockedQty" label="锁定库存" width="100" />
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无库存数据" :image-size="80" />
             </template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -62,32 +63,33 @@
               @current-change="handleBalancePageChange"
             />
           </div>
-        </el-tab-pane>
+        </div>
+      </el-tab-pane>
 
-        <el-tab-pane label="库存流水" name="logs">
-          <div class="list-filter-bar">
-            <el-input
-              v-model="logKeyword"
-              placeholder="搜索商品/SKU"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadLogs"
-              @keyup.enter="loadLogs"
-            />
-            <el-select v-model="logType" placeholder="全部类型" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadLogs">
-              <el-option label="采购入库" value="PURCHASE_IN" />
-              <el-option label="销售出库" value="SALE_OUT" />
-              <el-option label="销售退货" value="SALE_RETURN" />
-              <el-option label="调拨入库" value="TRANSFER_IN" />
-              <el-option label="调拨出库" value="TRANSFER_OUT" />
-              <el-option label="盘点调整" value="INVENTORY_ADJUST" />
-            </el-select>
-            <el-button type="primary" @click="loadLogs">查询</el-button>
-          </div>
+      <el-tab-pane label="库存流水" name="logs">
+        <div class="filter-bar">
+          <el-input
+            v-model="logKeyword"
+            placeholder="搜索商品/SKU"
+            clearable
+            @clear="loadLogs"
+            @keyup.enter="loadLogs"
+          />
+          <el-select v-model="logType" placeholder="全部类型" clearable @change="loadLogs">
+            <el-option label="采购入库" value="PURCHASE_IN" />
+            <el-option label="销售出库" value="SALE_OUT" />
+            <el-option label="销售退货" value="SALE_RETURN" />
+            <el-option label="调拨入库" value="TRANSFER_IN" />
+            <el-option label="调拨出库" value="TRANSFER_OUT" />
+            <el-option label="盘点调整" value="INVENTORY_ADJUST" />
+          </el-select>
+          <el-button type="primary" @click="loadLogs">查询</el-button>
+          <div class="filter-bar-spacer" />
+        </div>
 
-          <TableSkeleton v-if="loading" />
-          <el-table v-else class="list-table" :data="logs" stripe>
+        <TableSkeleton v-if="loading" />
+        <div v-else class="table-card">
+          <el-table :data="logs" stripe>
             <el-table-column prop="logNo" label="流水单号" width="200" />
             <el-table-column prop="skuName" label="商品名称" min-width="160" />
             <el-table-column prop="reason" label="原因" min-width="120" />
@@ -101,11 +103,11 @@
             <el-table-column prop="afterQty" label="变动后库存" width="110" />
             <el-table-column prop="createdAt" label="操作时间" width="170" />
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无流水数据" :image-size="80" />
             </template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -116,9 +118,9 @@
               @current-change="handleLogPageChange"
             />
           </div>
-        </el-tab-pane>
-      </el-tabs>
-    </el-card>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -271,34 +273,24 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
-}
 .low-stock {
   color: var(--color-warning);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .out-stock {
   color: var(--color-danger);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .qty-in {
   color: var(--color-success);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .qty-out {
   color: var(--color-danger);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 </style>

@@ -1,62 +1,65 @@
 <template>
   <div class="page">
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">客户分析</h2>
+        <p class="page-desc">客户贡献、复购、RFM 与流失预警分析</p>
+      </div>
+    </div>
+
     <!-- 筛选区 -->
-    <el-card shadow="never" class="filter-card">
-      <el-row :gutter="12" align="middle">
-        <el-col :span="5">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-          />
-        </el-col>
-        <el-col :span="4">
-          <el-select v-model="selectedStore" placeholder="选择门店" clearable style="width: 100%">
-            <el-option v-for="s in storeOptions" :key="s.id" :label="s.name" :value="s.id" />
-          </el-select>
-        </el-col>
-        <el-col :span="4">
-          <el-button type="primary" @click="refreshAll">
-            <el-icon><Search /></el-icon> 查询
-          </el-button>
-          <el-button @click="refreshAll">
-            <el-icon><Refresh /></el-icon> 刷新
-          </el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    <div class="filter-bar">
+      <el-date-picker
+        v-model="dateRange"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="YYYY-MM-DD"
+      />
+      <el-select v-model="selectedStore" placeholder="选择门店" clearable>
+        <el-option v-for="s in storeOptions" :key="s.id" :label="s.name" :value="s.id" />
+      </el-select>
+      <el-button type="primary" @click="refreshAll">
+        <el-icon><Search /></el-icon>&nbsp;查询
+      </el-button>
+      <el-button @click="refreshAll">
+        <el-icon><Refresh /></el-icon>&nbsp;刷新
+      </el-button>
+      <div class="filter-bar-spacer" />
+    </div>
 
     <!-- 客户概览卡片 -->
-    <el-row :gutter="16" class="overview-row">
-      <el-col :span="4" v-for="(card, idx) in overviewCards" :key="idx">
-        <el-card shadow="hover" :class="['overview-card', card.gradient]">
-          <div class="overview-label">{{ card.label }}</div>
-          <div class="overview-value">{{ card.value }}</div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <div class="stat-grid">
+      <div v-for="card in overviewCards" :key="card.label" class="stat-grid-card">
+        <div class="stat-grid-value stat-grid-value--primary">{{ card.value }}</div>
+        <div class="stat-grid-label">{{ card.label }}</div>
+      </div>
+    </div>
 
     <!-- Tab 切换 -->
-    <el-tabs v-model="activeTab" type="border-card" @tab-change="onTabChange">
+    <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <!-- 客户贡献排行 -->
       <el-tab-pane label="客户贡献排行" name="customerContribution">
         <div ref="customerContributionChartRef" class="chart-box chart-medium"></div>
-        <el-table :data="customerContribution" stripe style="width:100%;margin-top:12px">
-          <el-table-column type="index" label="排名" width="60" align="center" />
-          <el-table-column prop="customerName" label="客户名称" min-width="140" />
-          <el-table-column label="累计消费" width="120" align="right">
-            <template #default="{ row }">{{ formatYuan(row.totalAmount) }}</template>
-          </el-table-column>
-          <el-table-column prop="orderCount" label="订单数" width="90" align="right" />
-          <el-table-column label="客单价" width="110" align="right">
-            <template #default="{ row }">{{ formatYuan(row.avgOrderValue) }}</template>
-          </el-table-column>
-          <el-table-column prop="lastOrderDate" label="最近消费" width="120" align="center" />
-        </el-table>
+        <div class="table-card chart-table">
+          <el-table :data="customerContribution" stripe style="width:100%">
+            <el-table-column type="index" label="排名" width="60" align="center" />
+            <el-table-column prop="customerName" label="客户名称" min-width="140" />
+            <el-table-column label="累计消费" width="120" align="right">
+              <template #default="{ row }"><span class="amount-text">{{ formatYuan(row.totalAmount) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="orderCount" label="订单数" width="90" align="right" />
+            <el-table-column label="客单价" width="110" align="right">
+              <template #default="{ row }"><span class="amount-text">{{ formatYuan(row.avgOrderValue) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="lastOrderDate" label="最近消费" width="120" align="center" />
+            <template #empty>
+              <el-empty description="暂无客户贡献数据" :image-size="80" />
+            </template>
+          </el-table>
+        </div>
       </el-tab-pane>
 
       <!-- 复购率趋势 -->
@@ -69,11 +72,16 @@
         <el-row :gutter="16">
           <el-col :span="14"><div ref="aoDistributionChartRef" class="chart-box chart-medium"></div></el-col>
           <el-col :span="10">
-            <el-table :data="avgOrderValueDistribution" stripe size="small">
-              <el-table-column prop="label" label="客单价区间" width="120" />
-              <el-table-column prop="customerCount" label="客户数" width="90" align="right" />
-              <el-table-column prop="orderCount" label="订单数" width="90" align="right" />
-            </el-table>
+            <div class="table-card">
+              <el-table :data="avgOrderValueDistribution" stripe size="small">
+                <el-table-column prop="label" label="客单价区间" width="120" />
+                <el-table-column prop="customerCount" label="客户数" width="90" align="right" />
+                <el-table-column prop="orderCount" label="订单数" width="90" align="right" />
+                <template #empty>
+                  <el-empty description="暂无客单价分布数据" :image-size="60" />
+                </template>
+              </el-table>
+            </div>
           </el-col>
         </el-row>
       </el-tab-pane>
@@ -91,16 +99,21 @@
         <el-row :gutter="16">
           <el-col :span="14"><div ref="rfmScatterChartRef" class="chart-box chart-medium"></div></el-col>
           <el-col :span="10">
-            <el-table :data="rfm.segments" stripe size="small" max-height="350" @row-click="onRFMGroupClick">
-              <el-table-column prop="group" label="分群名称" min-width="120" />
-              <el-table-column prop="customerCount" label="客户数" width="80" align="right" />
-              <el-table-column label="销售额" width="110" align="right">
-                <template #default="{ row }">{{ formatYuan(row.totalAmount) }}</template>
-              </el-table-column>
-              <el-table-column label="占比" width="80" align="center">
-                <template #default="{ row }">{{ row.ratio }}%</template>
-              </el-table-column>
-            </el-table>
+            <div class="table-card">
+              <el-table :data="rfm.segments" stripe size="small" max-height="350" @row-click="onRFMGroupClick">
+                <el-table-column prop="group" label="分群名称" min-width="120" />
+                <el-table-column prop="customerCount" label="客户数" width="80" align="right" />
+                <el-table-column label="销售额" width="110" align="right">
+                  <template #default="{ row }"><span class="amount-text">{{ formatYuan(row.totalAmount) }}</span></template>
+                </el-table-column>
+                <el-table-column label="占比" width="80" align="center">
+                  <template #default="{ row }">{{ row.ratio }}%</template>
+                </el-table-column>
+                <template #empty>
+                  <el-empty description="暂无 RFM 分群数据" :image-size="60" />
+                </template>
+              </el-table>
+            </div>
           </el-col>
         </el-row>
         <!-- 客户明细弹窗 -->
@@ -122,18 +135,23 @@
       <!-- 流失客户预警 -->
       <el-tab-pane label="流失客户预警" name="lostCustomer">
         <div ref="lostCustomerTrendChartRef" class="chart-box chart-medium"></div>
-        <el-table :data="lostCustomer.list" stripe style="width:100%;margin-top:12px">
-          <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="customerName" label="客户名称" min-width="140" />
-          <el-table-column prop="lastOrderDate" label="最后消费日期" width="130" align="center" />
-          <el-table-column label="未消费天数" width="110" align="center">
-            <template #default="{ row }">
-              <el-tag :type="row.daysSinceLastOrder > 120 ? 'danger' : row.daysSinceLastOrder > 100 ? 'warning' : 'info'" size="small">
-                {{ row.daysSinceLastOrder }}天
-              </el-tag>
+        <div class="table-card chart-table">
+          <el-table :data="lostCustomer.list" stripe style="width:100%">
+            <el-table-column type="index" label="序号" width="60" align="center" />
+            <el-table-column prop="customerName" label="客户名称" min-width="140" />
+            <el-table-column prop="lastOrderDate" label="最后消费日期" width="130" align="center" />
+            <el-table-column label="未消费天数" width="110" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.daysSinceLastOrder > 120 ? 'danger' : row.daysSinceLastOrder > 100 ? 'warning' : 'info'" size="small">
+                  {{ row.daysSinceLastOrder }}天
+                </el-tag>
+              </template>
+            </el-table-column>
+            <template #empty>
+              <el-empty description="暂无流失客户数据" :image-size="80" />
             </template>
-          </el-table-column>
-        </el-table>
+          </el-table>
+        </div>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -547,21 +565,18 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.page { padding: 20px; }
-.filter-card { margin-bottom: 16px; }
-.overview-row { margin-bottom: 16px; }
-
-.overview-card { border-radius: 8px; text-align: center; padding: 4px 0; }
-.overview-card .overview-label { font-size: 13px; color: var(--text-inverse); opacity: 0.9; margin-bottom: 8px; }
-.overview-card .overview-value { font-size: 24px; font-weight: 700; color: var(--text-inverse); }
-
-.gradient-primary { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-5) 100%); }
-.gradient-success { background: linear-gradient(135deg, var(--color-success) 0%, rgba(14,168,121,0.4) 100%); }
-.gradient-warning { background: linear-gradient(135deg, var(--chart-5) 0%, var(--color-danger) 100%); }
-.gradient-danger { background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-warning) 100%); }
-.gradient-info { background: linear-gradient(135deg, var(--color-primary) 0%, var(--chart-6) 100%); }
+.page { padding: 0; }
 
 .chart-box { width: 100%; }
 .chart-medium { height: 350px; }
 .chart-tall { height: 400px; }
+
+.chart-table {
+  margin-top: 12px;
+}
+
+.amount-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
 </style>

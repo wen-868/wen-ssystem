@@ -1,29 +1,35 @@
 <template>
   <div class="pos-sale-bills">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>销售单据</span>
-          <div class="filter-area">
-            <el-input v-model="keyword" placeholder="搜索单号/客户" size="small" style="width: 200px" clearable @keyup.enter="loadList" />
-            <el-select v-model="collectionStatus" placeholder="收款状态" size="small" style="width: 120px" clearable>
-              <el-option label="未收款" value="UNPAID" />
-              <el-option label="部分收款" value="PARTIAL" />
-              <el-option label="已收款" value="PAID" />
-            </el-select>
-            <el-button size="small" type="primary" @click="loadList">查询</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">销售单据</h2>
+        <p class="page-desc">销售单收款状态与收款链接</p>
+      </div>
+    </div>
 
-      <el-table :data="records" v-loading="loading" size="small" style="width: 100%">
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <el-input v-model="keyword" placeholder="搜索单号/客户" clearable @keyup.enter="loadList" />
+      <el-select v-model="collectionStatus" placeholder="收款状态" clearable @change="loadList">
+        <el-option label="未收款" value="UNPAID" />
+        <el-option label="部分收款" value="PARTIAL" />
+        <el-option label="已收款" value="PAID" />
+      </el-select>
+      <el-button type="primary" @click="loadList">查询</el-button>
+      <div class="filter-bar-spacer" />
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-card">
+      <el-table :data="records" v-loading="loading" stripe>
         <el-table-column prop="billNo" label="单号" width="160" />
         <el-table-column prop="customerName" label="客户" width="120" />
         <el-table-column prop="receivableAmount" label="应收" width="100">
-          <template #default="{ row }">¥{{ Number(row.receivableAmount || 0).toFixed(2) }}</template>
+          <template #default="{ row }"><span class="amount-text">¥{{ Number(row.receivableAmount || 0).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column prop="paidAmount" label="已收" width="100">
-          <template #default="{ row }">¥{{ Number(row.paidAmount || 0).toFixed(2) }}</template>
+          <template #default="{ row }"><span class="amount-text">¥{{ Number(row.paidAmount || 0).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column prop="collectionStatus" label="状态" width="100">
           <template #default="{ row }">
@@ -39,18 +45,22 @@
             <el-button size="small" link type="success" @click="sharePay(row)">分享收款</el-button>
           </template>
         </el-table-column>
+        <template #empty>
+          <el-empty description="暂无销售单据" :image-size="80" />
+        </template>
       </el-table>
 
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 16px"
-        @current-change="loadList"
-      />
-    </el-card>
+      <div class="table-card-footer">
+        <el-pagination
+          v-if="total > 0"
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="loadList"
+        />
+      </div>
+    </div>
 
     <el-dialog v-model="detailVisible" title="销售单详情" width="720px">
       <el-descriptions :column="2" border>
@@ -153,15 +163,10 @@ onMounted(() => {
 
 <style scoped>
 .pos-sale-bills {
-  padding: 16px;
+  padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.filter-area {
-  display: flex;
-  gap: 8px;
+.amount-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 </style>

@@ -1,20 +1,25 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>价格中心</span>
-          <div class="header-actions">
-            <el-button @click="refreshCurrent">刷新</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">价格中心</h2>
+        <p class="page-desc">价格等级、SKU 价格与客户价格绑定管理</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="refreshCurrent">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="价格等级" name="levels">
-          <div class="tab-toolbar">
-            <el-button type="primary" size="small" @click="levelDialogVisible = true">新增价格等级</el-button>
-          </div>
+    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+      <el-tab-pane label="价格等级" name="levels">
+        <div class="filter-bar">
+          <div class="filter-bar-spacer" />
+          <el-button type="primary" @click="levelDialogVisible = true">新增价格等级</el-button>
+        </div>
+        <div class="table-card">
           <el-table :data="priceLevels" v-loading="loading" stripe>
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="name" label="等级名称" min-width="140" />
@@ -34,33 +39,36 @@
               </template>
             </el-table-column>
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无价格等级数据" :image-size="80" />
             </template>
           </el-table>
-        </el-tab-pane>
+        </div>
+      </el-tab-pane>
 
-        <el-tab-pane label="SKU 价格" name="sku-prices">
-          <div class="tab-toolbar">
-            <el-input
-              v-model="skuKeyword"
-              placeholder="搜索 SKU 编码/名称"
-              size="small"
-              style="width: 220px; margin-right: 10px"
-              clearable
-            />
-            <el-button size="small" @click="loadSkuPrices">搜索</el-button>
-          </div>
+      <el-tab-pane label="SKU 价格" name="sku-prices">
+        <div class="filter-bar">
+          <el-input
+            v-model="skuKeyword"
+            placeholder="搜索 SKU 编码/名称"
+            clearable
+            @clear="loadSkuPrices"
+            @keyup.enter="loadSkuPrices"
+          />
+          <el-button type="primary" @click="loadSkuPrices">搜索</el-button>
+          <div class="filter-bar-spacer" />
+        </div>
+        <div class="table-card">
           <el-table :data="skuPrices" v-loading="loading" stripe>
             <el-table-column prop="skuCode" label="SKU 编码" width="160" />
             <el-table-column prop="skuName" label="商品名称" min-width="160" />
             <el-table-column label="零售价" width="120">
-              <template #default="{ row }">¥{{ Number(row.retailPrice || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.retailPrice || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column label="批发价" width="120">
-              <template #default="{ row }">¥{{ Number(row.wholesalePrice || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.wholesalePrice || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column label="小程序价" width="120">
-              <template #default="{ row }">¥{{ Number(row.miniappPrice || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.miniappPrice || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column label="操作" width="160" fixed="right">
               <template #default="{ row }">
@@ -68,22 +76,25 @@
               </template>
             </el-table-column>
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无 SKU 价格数据" :image-size="80" />
             </template>
           </el-table>
-        </el-tab-pane>
+        </div>
+      </el-tab-pane>
 
-        <el-tab-pane label="客户价格绑定" name="bindings">
-          <div class="tab-toolbar">
-            <el-button type="primary" size="small" @click="bindingDialogVisible = true">新增绑定</el-button>
-          </div>
+      <el-tab-pane label="客户价格绑定" name="bindings">
+        <div class="filter-bar">
+          <div class="filter-bar-spacer" />
+          <el-button type="primary" @click="bindingDialogVisible = true">新增绑定</el-button>
+        </div>
+        <div class="table-card">
           <el-table :data="customerBindings" v-loading="loading" stripe>
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="customerName" label="客户名称" min-width="140" />
             <el-table-column prop="skuName" label="商品" min-width="160" />
             <el-table-column prop="priceLevelName" label="价格等级" width="140" />
             <el-table-column label="协议价" width="120">
-              <template #default="{ row }">¥{{ Number(row.price || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.price || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
@@ -101,44 +112,46 @@
               </template>
             </el-table-column>
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无客户价格绑定" :image-size="80" />
             </template>
           </el-table>
-        </el-tab-pane>
+        </div>
+      </el-tab-pane>
 
-        <el-tab-pane label="价格变更日志" name="logs">
+      <el-tab-pane label="价格变更日志" name="logs">
+        <div class="table-card">
           <el-table :data="priceLogs" v-loading="loading" stripe>
             <el-table-column prop="id" label="ID" width="80" />
             <el-table-column prop="skuName" label="商品" min-width="160" />
             <el-table-column prop="priceType" label="价格类型" width="120" />
             <el-table-column label="变更前" width="120">
-              <template #default="{ row }">¥{{ Number(row.oldPrice || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.oldPrice || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column label="变更后" width="120">
-              <template #default="{ row }">¥{{ Number(row.newPrice || 0).toFixed(2) }}</template>
+              <template #default="{ row }"><span class="amount-text">¥{{ Number(row.newPrice || 0).toFixed(2) }}</span></template>
             </el-table-column>
             <el-table-column prop="operatorName" label="操作人" width="120" />
             <el-table-column prop="createdAt" label="变更时间" width="170" />
             <el-table-column prop="remark" label="备注" min-width="140" />
             <template #empty>
-              <el-empty description="暂无数据" :image-size="80" />
+              <el-empty description="暂无价格变更日志" :image-size="80" />
             </template>
           </el-table>
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
 
-      <div class="pagination">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @size-change="handleSizeChange"
-          @current-change="handlePageChange"
-        />
-      </div>
-    </el-card>
+    <div class="table-card-footer pagination-footer">
+      <el-pagination
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        :page-size="pageSize"
+        :current-page="page"
+        @size-change="handleSizeChange"
+        @current-change="handlePageChange"
+      />
+    </div>
 
     <el-dialog v-model="levelDialogVisible" :title="isLevelEdit ? '编辑价格等级' : '新增价格等级'" width="480px">
       <el-form ref="levelFormRef" :model="levelForm" :rules="levelRules" label-width="100px">
@@ -222,6 +235,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
+import { Refresh } from "@element-plus/icons-vue";
 import {
   approveCustomerBinding,
   createCustomerBinding,
@@ -528,23 +542,15 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.tab-toolbar {
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-}
-.pagination {
+.pagination-footer {
   margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+.amount-text {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 </style>

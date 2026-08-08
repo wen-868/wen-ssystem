@@ -1,5 +1,13 @@
 <template>
   <div class="page">
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">订单中心</h2>
+        <p class="page-desc">多渠道订单聚合、同步与处理</p>
+      </div>
+    </div>
+
     <!-- 渠道Tab -->
     <el-card shadow="never" class="channel-tab-card">
       <el-tabs v-model="activeChannel" @tab-change="onChannelChange">
@@ -14,97 +22,87 @@
     </el-card>
 
     <!-- 统计区 -->
-    <el-row :gutter="16" class="stats-row">
-      <el-col :span="4">
-        <el-card shadow="never">
-          <el-statistic title="今日订单数" :value="mockStats.todayOrders" />
-        </el-card>
+    <div class="stat-grid">
+      <div class="stat-grid-card">
+        <div class="stat-grid-value stat-grid-value--primary">{{ mockStats.todayOrders }}</div>
+        <div class="stat-grid-label">今日订单数</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">¥{{ mockStats.todayAmount.toLocaleString("zh-CN") }}</div>
+        <div class="stat-grid-label">今日金额</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">{{ mockStats.pendingCount }}</div>
+        <div class="stat-grid-label">待处理数</div>
+      </div>
+      <div class="stat-grid-card">
+        <div class="stat-grid-value">{{ mockStats.exceptionCount }}</div>
+        <div class="stat-grid-label">异常数</div>
+      </div>
+    </div>
+
+    <!-- 图表区 -->
+    <el-row :gutter="16" class="chart-row">
+      <el-col :span="12">
+        <div class="chart-card">
+          <div class="chart-card-header">渠道占比</div>
+          <div class="chart-card-body">
+            <div ref="channelPieChartRef" class="chart-mini-box"></div>
+          </div>
+        </div>
       </el-col>
-      <el-col :span="4">
-        <el-card shadow="never">
-          <el-statistic title="今日金额" :value="mockStats.todayAmount" prefix="¥" :precision="2" />
-        </el-card>
-      </el-col>
-      <el-col :span="4">
-        <el-card shadow="never">
-          <el-statistic title="待处理数" :value="mockStats.pendingCount">
-            <template #suffix>
-              <el-tag type="warning" size="small">待处理</el-tag>
-            </template>
-          </el-statistic>
-        </el-card>
-      </el-col>
-      <el-col :span="4">
-        <el-card shadow="never">
-          <el-statistic title="异常数" :value="mockStats.exceptionCount">
-            <template #suffix>
-              <el-tag type="danger" size="small">异常</el-tag>
-            </template>
-          </el-statistic>
-        </el-card>
-      </el-col>
-      <el-col :span="4">
-        <el-card shadow="never">
-          <div ref="channelPieChartRef" class="chart-mini-box"></div>
-        </el-card>
-      </el-col>
-      <el-col :span="4">
-        <el-card shadow="never">
-          <div ref="orderTrendChartRef" class="chart-mini-box"></div>
-        </el-card>
+      <el-col :span="12">
+        <div class="chart-card">
+          <div class="chart-card-header">订单趋势（近30天）</div>
+          <div class="chart-card-body">
+            <div ref="orderTrendChartRef" class="chart-mini-box"></div>
+          </div>
+        </div>
       </el-col>
     </el-row>
 
     <!-- 筛选栏 -->
-    <el-card shadow="never" class="filter-card">
-      <el-row :gutter="12" align="middle">
-        <el-col :span="3">
-          <el-select v-model="filterChannel" placeholder="渠道" clearable style="width: 100%">
-            <el-option v-for="ch in channelOptions" :key="ch.value" :label="ch.label" :value="ch.value" />
-          </el-select>
-        </el-col>
-        <el-col :span="3">
-          <el-select v-model="filterOrderStatus" placeholder="订单状态" clearable style="width: 100%">
-            <el-option label="待处理" value="PENDING" />
-            <el-option label="已确认" value="CONFIRMED" />
-            <el-option label="已完成" value="COMPLETED" />
-            <el-option label="已取消" value="CANCELLED" />
-          </el-select>
-        </el-col>
-        <el-col :span="3">
-          <el-select v-model="filterPaymentStatus" placeholder="支付状态" clearable style="width: 100%">
-            <el-option label="已支付" value="PAID" />
-            <el-option label="未支付" value="UNPAID" />
-            <el-option label="已退款" value="REFUNDED" />
-          </el-select>
-        </el-col>
-        <el-col :span="5">
-          <el-date-picker
-            v-model="filterDateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-          />
-        </el-col>
-        <el-col :span="4">
-          <el-input v-model="filterKeyword" placeholder="搜索订单号/客户" clearable style="width: 100%" />
-        </el-col>
-        <el-col :span="3">
-          <el-button type="primary" @click="handleFilter">查询</el-button>
-          <el-button @click="handleExport">导出</el-button>
-        </el-col>
-      </el-row>
-    </el-card>
+    <div class="filter-bar">
+      <el-select v-model="filterChannel" placeholder="渠道" clearable>
+        <el-option v-for="ch in channelOptions" :key="ch.value" :label="ch.label" :value="ch.value" />
+      </el-select>
+      <el-select v-model="filterOrderStatus" placeholder="订单状态" clearable>
+        <el-option label="待处理" value="PENDING" />
+        <el-option label="已确认" value="CONFIRMED" />
+        <el-option label="已完成" value="COMPLETED" />
+        <el-option label="已取消" value="CANCELLED" />
+      </el-select>
+      <el-select v-model="filterPaymentStatus" placeholder="支付状态" clearable>
+        <el-option label="已支付" value="PAID" />
+        <el-option label="未支付" value="UNPAID" />
+        <el-option label="已退款" value="REFUNDED" />
+      </el-select>
+      <el-date-picker
+        v-model="filterDateRange"
+        type="daterange"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        value-format="YYYY-MM-DD"
+      />
+      <el-input v-model="filterKeyword" placeholder="搜索订单号/客户" clearable />
+      <el-button type="primary" @click="handleFilter">查询</el-button>
+      <el-button @click="handleExport">导出</el-button>
+    </div>
 
     <!-- 订单表格 -->
-    <el-card shadow="never" class="table-card">
+    <div class="table-card">
       <el-table :data="paginatedOrders" stripe border style="width: 100%">
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
-            <el-tag :color="channelColors[row.channelType]" style="color: #fff; border: none" size="small">
+            <el-tag
+              size="small"
+              :style="{
+                background: channelSoftColors[row.channelType],
+                color: channelColors[row.channelType],
+                border: 'none'
+              }"
+            >
               {{ channelNames[row.channelType] }}
             </el-tag>
           </template>
@@ -151,18 +149,19 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        v-if="filteredOrders.length > 0"
-        style="margin-top: 16px; justify-content: flex-end"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="filteredOrders.length"
-        v-model:page-size="pageSize"
-        v-model:current-page="currentPage"
-        :page-sizes="[10, 20, 50]"
-        :pager-count="5"
-      />
-    </el-card>
+      <div class="table-card-footer">
+        <el-pagination
+          v-if="filteredOrders.length > 0"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="filteredOrders.length"
+          v-model:page-size="pageSize"
+          v-model:current-page="currentPage"
+          :page-sizes="[10, 20, 50]"
+          :pager-count="5"
+        />
+      </div>
+    </div>
 
     <!-- 详情抽屉 -->
     <el-drawer v-model="detailVisible" title="订单详情" size="900px" direction="rtl">
@@ -174,7 +173,14 @@
               <el-descriptions :column="2" border size="small">
                 <el-descriptions-item label="渠道订单号">{{ currentOrder.channelOrderNo }}</el-descriptions-item>
                 <el-descriptions-item label="渠道">
-                  <el-tag :color="channelColors[currentOrder.channelType]" style="color: #fff; border: none" size="small">
+                  <el-tag
+                    size="small"
+                    :style="{
+                      background: channelSoftColors[currentOrder.channelType],
+                      color: channelColors[currentOrder.channelType],
+                      border: 'none'
+                    }"
+                  >
                     {{ channelNames[currentOrder.channelType] }}
                   </el-tag>
                 </el-descriptions-item>
@@ -273,6 +279,7 @@ import { ElMessage } from 'element-plus'
 const channelTypes = ['ALL', 'WECHAT', 'DOUYIN', 'MEITUAN', 'ELEME', 'JD', 'OFFLINE']
 const channelNames: Record<string, string> = { ALL: '全部', WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
+const channelSoftColors: Record<string, string> = { WECHAT: 'var(--color-success-soft)', DOUYIN: 'var(--bg-soft)', MEITUAN: 'var(--color-warning-soft)', ELEME: 'var(--color-primary-soft)', JD: 'var(--color-danger-soft)', OFFLINE: 'var(--gray-100)' }
 
 const mockStats = { todayOrders: 128, todayAmount: 35680, pendingCount: 23, exceptionCount: 5 }
 
@@ -467,7 +474,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .page {
-  padding: 20px;
+  padding: 0;
 }
 
 .channel-tab-card {
@@ -478,21 +485,13 @@ onBeforeUnmount(() => {
   margin-left: 6px;
 }
 
-.stats-row {
+.chart-row {
   margin-bottom: 16px;
-}
-
-.stats-row .el-card {
-  text-align: center;
 }
 
 .chart-mini-box {
   width: 100%;
-  height: 160px;
-}
-
-.filter-card {
-  margin-bottom: 16px;
+  height: 180px;
 }
 
 .table-card {
@@ -502,6 +501,7 @@ onBeforeUnmount(() => {
 .amount-text {
   color: var(--color-danger);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .detail-card {

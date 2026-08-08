@@ -1,45 +1,47 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>套装与组合品管理</span>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">套装与组合品管理</h2>
+        <p class="page-desc">套装商品、组合品与销售统计</p>
+      </div>
+    </div>
+
+    <el-tabs v-model="activeTab">
+      <!-- ============ 套装商品列表 ============ -->
+      <el-tab-pane label="套装管理" name="combo">
+        <!-- 搜索栏 -->
+        <div class="filter-bar">
+          <el-input
+            v-model="comboSearch.keyword" placeholder="搜索套装名称/编号"
+            style="width: 220px" clearable @clear="searchCombo" @keyup.enter="searchCombo"
+          />
+          <el-select v-model="comboSearch.categoryId" placeholder="分类" clearable style="width: 140px">
+            <el-option v-for="c in categoryList" :key="c.id" :label="c.name" :value="c.id" />
+          </el-select>
+          <el-select v-model="comboSearch.status" placeholder="状态" clearable style="width: 120px">
+            <el-option label="上架" value="ON_SALE" />
+            <el-option label="下架" value="OFF_SALE" />
+            <el-option label="草稿" value="DRAFT" />
+          </el-select>
+          <el-date-picker
+            v-model="comboSearch.dateRange" type="daterange" range-separator="至"
+            start-placeholder="开始日期" end-placeholder="结束日期"
+            style="width: 260px"
+          />
+          <el-button type="primary" @click="searchCombo">
+            <el-icon><Search /></el-icon>&nbsp;搜索
+          </el-button>
+          <el-button @click="resetComboSearch">重置</el-button>
+          <div class="filter-bar-spacer" />
+          <el-button type="primary" @click="openComboDialog()">
+            <el-icon><Plus /></el-icon>&nbsp;新建套装
+          </el-button>
         </div>
-      </template>
 
-      <el-tabs v-model="activeTab">
-        <!-- ============ 套装商品列表 ============ -->
-        <el-tab-pane label="套装管理" name="combo">
-          <!-- 搜索栏 -->
-          <div class="search-bar">
-            <el-input
-              v-model="comboSearch.keyword" placeholder="搜索套装名称/编号"
-              style="width: 220px" clearable @clear="searchCombo" @keyup.enter="searchCombo"
-            />
-            <el-select v-model="comboSearch.categoryId" placeholder="分类" clearable style="width: 140px; margin-left: 10px">
-              <el-option v-for="c in categoryList" :key="c.id" :label="c.name" :value="c.id" />
-            </el-select>
-            <el-select v-model="comboSearch.status" placeholder="状态" clearable style="width: 120px; margin-left: 10px">
-              <el-option label="上架" value="ON_SALE" />
-              <el-option label="下架" value="OFF_SALE" />
-              <el-option label="草稿" value="DRAFT" />
-            </el-select>
-            <el-date-picker
-              v-model="comboSearch.dateRange" type="daterange" range-separator="至"
-              start-placeholder="开始日期" end-placeholder="结束日期"
-              style="margin-left: 10px; width: 260px"
-            />
-            <el-button type="primary" style="margin-left: 10px" @click="searchCombo">
-              <el-icon><Search /></el-icon> 搜索
-            </el-button>
-            <el-button @click="resetComboSearch">重置</el-button>
-            <div style="flex: 1"></div>
-            <el-button type="primary" @click="openComboDialog()">
-              <el-icon><Plus /></el-icon> 新建套装
-            </el-button>
-          </div>
-
-          <!-- 套装列表 -->
+        <!-- 套装列表 -->
+        <div class="table-card">
           <el-table :data="comboList" v-loading="comboLoading" stripe>
             <el-table-column label="套装图片" width="80" align="center">
               <template #default="{ row }">
@@ -98,7 +100,7 @@
             <template #empty><el-empty description="暂无套装数据" :image-size="80" /></template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background layout="total, sizes, prev, pager, next, jumper"
               :total="comboTotal" :page-size="comboPageSize" :current-page="comboPage"
@@ -106,31 +108,33 @@
               @current-change="(p: number) => { comboPage = p; searchCombo(); }"
             />
           </div>
-        </el-tab-pane>
+        </div>
+      </el-tab-pane>
 
         <!-- ============ 组合品管理 ============ -->
         <el-tab-pane label="组合品管理" name="group">
-          <div class="search-bar">
+          <div class="filter-bar">
             <el-input
               v-model="groupSearch.keyword" placeholder="搜索组合名称"
               style="width: 220px" clearable @clear="searchGroup" @keyup.enter="searchGroup"
             />
-            <el-select v-model="groupSearch.type" placeholder="组合类型" clearable style="width: 140px; margin-left: 10px" @change="searchGroup">
+            <el-select v-model="groupSearch.type" placeholder="组合类型" clearable style="width: 140px" @change="searchGroup">
               <el-option label="固定组合" value="FIXED" />
               <el-option label="可选组合" value="OPTIONAL" />
             </el-select>
-            <el-select v-model="groupSearch.status" placeholder="状态" clearable style="width: 120px; margin-left: 10px" @change="searchGroup">
+            <el-select v-model="groupSearch.status" placeholder="状态" clearable style="width: 120px" @change="searchGroup">
               <el-option label="启用" value="ACTIVE" />
               <el-option label="停用" value="INACTIVE" />
             </el-select>
-            <el-button type="primary" style="margin-left: 10px" @click="searchGroup">搜索</el-button>
-            <div style="flex: 1"></div>
+            <el-button type="primary" @click="searchGroup">搜索</el-button>
+            <div class="filter-bar-spacer" />
             <el-button type="primary" @click="openGroupDialog()">
-              <el-icon><Plus /></el-icon> 新建组合
+              <el-icon><Plus /></el-icon>&nbsp;新建组合
             </el-button>
           </div>
 
-          <el-table :data="groupList" v-loading="groupLoading" stripe>
+          <div class="table-card">
+            <el-table :data="groupList" v-loading="groupLoading" stripe>
             <el-table-column prop="groupCode" label="组合编号" width="140" />
             <el-table-column prop="name" label="组合名称" min-width="180" show-overflow-tooltip />
             <el-table-column label="类型" width="100" align="center">
@@ -167,102 +171,89 @@
               </template>
             </el-table-column>
             <template #empty><el-empty description="暂无组合品数据" :image-size="80" /></template>
-          </el-table>
+            </el-table>
 
-          <div class="pagination">
-            <el-pagination
-              background layout="total, sizes, prev, pager, next, jumper"
-              :total="groupTotal" :page-size="groupPageSize" :current-page="groupPage"
-              @size-change="(s: number) => { groupPageSize = s; groupPage = 1; searchGroup(); }"
-              @current-change="(p: number) => { groupPage = p; searchGroup(); }"
-            />
+            <div class="table-card-footer">
+              <el-pagination
+                background layout="total, sizes, prev, pager, next, jumper"
+                :total="groupTotal" :page-size="groupPageSize" :current-page="groupPage"
+                @size-change="(s: number) => { groupPageSize = s; groupPage = 1; searchGroup(); }"
+                @current-change="(p: number) => { groupPage = p; searchGroup(); }"
+              />
+            </div>
           </div>
         </el-tab-pane>
 
         <!-- ============ 套装销售统计 ============ -->
         <el-tab-pane label="销售统计" name="stats">
           <!-- 筛选条件 -->
-          <div class="search-bar">
+          <div class="filter-bar">
             <el-date-picker
               v-model="statsDateRange" type="daterange" range-separator="至"
               start-placeholder="开始日期" end-placeholder="结束日期"
               style="width: 280px"
             />
-            <el-button type="primary" style="margin-left: 10px" @click="loadStats">查询</el-button>
-            <div style="flex: 1"></div>
+            <el-button type="primary" @click="loadStats">查询</el-button>
+            <div class="filter-bar-spacer" />
           </div>
 
           <!-- 数据概览卡片 -->
-          <el-row :gutter="16" style="margin-bottom: 20px">
-            <el-col :span="6">
-              <el-card shadow="hover" class="stat-card">
-                <div class="stat-label">套装销量</div>
-                <div class="stat-value">{{ statsSummary.totalSales }} 件</div>
-                <div class="stat-trend up">↑ 较上期 +12.5%</div>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" class="stat-card">
-                <div class="stat-label">套装销售额</div>
-                <div class="stat-value">¥{{ Number(statsSummary.totalAmount).toFixed(2) }}</div>
-                <div class="stat-trend up">↑ 较上期 +18.3%</div>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" class="stat-card">
-                <div class="stat-label">优惠总金额</div>
-                <div class="stat-value">¥{{ Number(statsSummary.totalDiscount).toFixed(2) }}</div>
-                <div class="stat-trend down">↓ 较上期 -5.2%</div>
-              </el-card>
-            </el-col>
-            <el-col :span="6">
-              <el-card shadow="hover" class="stat-card">
-                <div class="stat-label">活跃套装数</div>
-                <div class="stat-value">{{ statsSummary.activeComboCount }} 个</div>
-                <div class="stat-trend up">↑ 较上期 +3 个</div>
-              </el-card>
-            </el-col>
-          </el-row>
+          <div class="stat-grid">
+            <div class="stat-grid-card">
+              <div class="stat-grid-value">{{ statsSummary.totalSales }}</div>
+              <div class="stat-grid-label">套装销量（件）</div>
+              <div class="stat-grid-trend up">↑ 较上期 +12.5%</div>
+            </div>
+            <div class="stat-grid-card">
+              <div class="stat-grid-value">¥{{ Number(statsSummary.totalAmount).toLocaleString("zh-CN", { minimumFractionDigits: 2 }) }}</div>
+              <div class="stat-grid-label">套装销售额</div>
+              <div class="stat-grid-trend up">↑ 较上期 +18.3%</div>
+            </div>
+            <div class="stat-grid-card">
+              <div class="stat-grid-value">¥{{ Number(statsSummary.totalDiscount).toLocaleString("zh-CN", { minimumFractionDigits: 2 }) }}</div>
+              <div class="stat-grid-label">优惠总金额</div>
+              <div class="stat-grid-trend down">↓ 较上期 -5.2%</div>
+            </div>
+            <div class="stat-grid-card">
+              <div class="stat-grid-value">{{ statsSummary.activeComboCount }}</div>
+              <div class="stat-grid-label">活跃套装数（个）</div>
+              <div class="stat-grid-trend up">↑ 较上期 +3 个</div>
+            </div>
+          </div>
 
           <!-- 图表 -->
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-card shadow="hover">
-                <template #header>
-                  <div class="chart-header">
-                    <span>套装销量排行 TOP10</span>
-                  </div>
-                </template>
+              <div class="chart-card">
+                <div class="chart-card-header">套装销量排行 TOP10</div>
+                <div class="chart-card-body">
                 <div ref="salesRankChartRef" class="chart-container"></div>
-              </el-card>
+                </div>
+              </div>
             </el-col>
             <el-col :span="12">
-              <el-card shadow="hover">
-                <template #header>
-                  <div class="chart-header">
-                    <span>销售额趋势</span>
-                  </div>
-                </template>
+              <div class="chart-card">
+                <div class="chart-card-header">销售额趋势</div>
+                <div class="chart-card-body">
                 <div ref="salesTrendChartRef" class="chart-container"></div>
-              </el-card>
+                </div>
+              </div>
             </el-col>
           </el-row>
 
           <el-row :gutter="16" style="margin-top: 16px">
             <el-col :span="24">
-              <el-card shadow="hover">
-                <template #header>
-                  <div class="chart-header">
-                    <span>优惠金额统计</span>
-                  </div>
-                </template>
+              <div class="chart-card">
+                <div class="chart-card-header">优惠金额统计</div>
+                <div class="chart-card-body">
                 <div ref="discountChartRef" class="chart-container-horizontal"></div>
-              </el-card>
+                </div>
+              </div>
             </el-col>
           </el-row>
         </el-tab-pane>
       </el-tabs>
-    </el-card>
+    </div>
 
     <!-- ============ 套装新增/编辑 Dialog ============ -->
     <el-dialog
@@ -629,7 +620,6 @@
         <p style="color: var(--text-secondary); line-height: 1.6">{{ currentGroup.ruleDescription || '暂无规则说明' }}</p>
       </template>
     </el-drawer>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -1391,66 +1381,14 @@ onMounted(() => {
 
 <style scoped>
 .page {
-  padding: 16px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 0;
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 8px 0;
-}
-
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
-.stat-card {
-  text-align: center;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: var(--gray-400);
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--gray-700);
-  margin-bottom: 8px;
-}
-
-.stat-trend {
-  font-size: 12px;
-}
-
-.stat-trend.up {
-  color: var(--color-success);
-}
-
-.stat-trend.down {
-  color: var(--color-danger);
-}
-
-.chart-header {
-  font-weight: 600;
 }
 
 .chart-container {

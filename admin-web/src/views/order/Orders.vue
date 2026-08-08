@@ -1,40 +1,49 @@
 <template>
   <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>小程序订单</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索订单号/收货人"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadOrders"
-              @keyup.enter="loadOrders"
-            />
-            <el-select v-model="orderStatus" placeholder="订单状态" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadOrders">
-              <el-option label="待付款" value="PENDING_PAY" />
-              <el-option label="待发货" value="PENDING_SHIP" />
-              <el-option label="待收货" value="PENDING_RECEIVE" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已取消" value="CANCELLED" />
-              <el-option label="已退款" value="REFUNDED" />
-            </el-select>
-            <el-select v-model="payStatus" placeholder="支付状态" size="default" style="width: 130px; margin-right: 10px" clearable @change="loadOrders">
-              <el-option label="未支付" value="UNPAID" />
-              <el-option label="已支付" value="PAID" />
-              <el-option label="已退款" value="REFUNDED" />
-            </el-select>
-            <el-button @click="loadOrders">刷新</el-button>
-          </div>
-        </div>
-      </template>
+    <!-- 页头 -->
+    <div class="page-header">
+      <div class="page-header-main">
+        <h2 class="page-title">小程序订单</h2>
+        <p class="page-desc">小程序渠道订单查询与处理</p>
+      </div>
+      <div class="page-header-actions">
+        <el-button @click="loadOrders">
+          <el-icon><Refresh /></el-icon>&nbsp;刷新
+        </el-button>
+      </div>
+    </div>
 
-      <StatBar :stats="orderStats" />
-      <TableSkeleton v-if="loading" />
-      <el-table v-else class="list-table" :data="orders" stripe>
+    <StatBar :stats="orderStats" />
+
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+      <el-input
+        v-model="keyword"
+        placeholder="搜索订单号/收货人"
+        clearable
+        @clear="loadOrders"
+        @keyup.enter="loadOrders"
+      />
+      <el-select v-model="orderStatus" placeholder="订单状态" clearable @change="loadOrders">
+        <el-option label="待付款" value="PENDING_PAY" />
+        <el-option label="待发货" value="PENDING_SHIP" />
+        <el-option label="待收货" value="PENDING_RECEIVE" />
+        <el-option label="已完成" value="COMPLETED" />
+        <el-option label="已取消" value="CANCELLED" />
+        <el-option label="已退款" value="REFUNDED" />
+      </el-select>
+      <el-select v-model="payStatus" placeholder="支付状态" clearable @change="loadOrders">
+        <el-option label="未支付" value="UNPAID" />
+        <el-option label="已支付" value="PAID" />
+        <el-option label="已退款" value="REFUNDED" />
+      </el-select>
+      <el-button type="primary" @click="loadOrders">查询</el-button>
+      <div class="filter-bar-spacer" />
+    </div>
+
+    <TableSkeleton v-if="loading" />
+    <div v-else class="table-card">
+      <el-table :data="orders" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200" />
         <el-table-column prop="customerType" label="客户类型" width="100">
           <template #default="{ row }">
@@ -75,12 +84,12 @@
             <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>
-      <template #empty>
-        <el-empty description="暂无数据" :image-size="80" />
-      </template>
+        <template #empty>
+          <el-empty description="暂无订单数据" :image-size="80" />
+        </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -91,7 +100,7 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+    </div>
 
     <el-drawer v-model="detailVisible" title="订单详情" size="600px">
       <template v-if="currentOrder">
@@ -152,6 +161,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Refresh } from "@element-plus/icons-vue";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
 import { fetchOrderDetail, fetchOrders } from "../../api";
@@ -227,22 +237,9 @@ onMounted(() => {
 .page {
   padding: 0;
 }
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
-}
 .amount-text {
   color: var(--color-danger);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 </style>
