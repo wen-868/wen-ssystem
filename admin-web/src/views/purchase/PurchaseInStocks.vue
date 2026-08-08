@@ -1,34 +1,36 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>采购入库</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索入库单号/供应商"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadInStocks"
-              @keyup.enter="loadInStocks"
-            />
-            <el-select v-model="status" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadInStocks">
-              <el-option label="待入库" value="PENDING" />
-              <el-option label="部分入库" value="PARTIAL" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已作废" value="VOID" />
-            </el-select>
-            <el-button type="primary" @click="dialogVisible = true">
-              <el-icon><Plus /></el-icon> 新建入库
-            </el-button>
-            <el-button @click="loadInStocks">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">采购入库</h2>
+    <p class="page-desc">采购入库单登记与审核</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索入库单号/供应商"
+  size="default"
+  style="width: 220px; margin-right: 10px"
+  clearable
+  @clear="loadInStocks"
+  @keyup.enter="loadInStocks"
+  />
+  <el-select v-model="status" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadInStocks">
+  <el-option label="待入库" value="PENDING" />
+  <el-option label="部分入库" value="PARTIAL" />
+  <el-option label="已完成" value="COMPLETED" />
+  <el-option label="已作废" value="VOID" />
+  </el-select>
+  <el-button type="primary" @click="dialogVisible = true">
+  <el-icon><Plus /></el-icon> 新建入库
+  </el-button>
+  <el-button @click="loadInStocks">刷新</el-button>
+</div>
 
-      <el-table :data="inStocks" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="inStocks" v-loading="loading" stripe>
         <el-table-column prop="inStockNo" label="入库单号" width="200" />
         <el-table-column prop="relatedOrderNo" label="关联订单号" width="200" />
         <el-table-column prop="supplierName" label="供应商" min-width="160" />
@@ -57,7 +59,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -68,7 +70,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="dialogVisible" title="新建采购入库" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -179,7 +182,7 @@
         </el-table>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

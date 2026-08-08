@@ -1,18 +1,19 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>营销活动总览</span>
-          <div class="header-actions">
-            <el-button type="primary" @click="showCreateDialog">新建活动</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">营销活动总览</h2>
+    <p class="page-desc">营销活动创建与总览</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="showCreateDialog">新建活动</el-button>
+  </div>
+</div>
+
 
       <!-- 统一筛选器 -->
       <div class="filter-bar">
-        <div class="filter-group">
+        <div class="filter-bar">
           <el-input
             v-model="keyword"
             placeholder="搜索活动名称"
@@ -49,7 +50,8 @@
       </div>
 
       <!-- 活动列表 -->
-      <el-table :data="activities" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="activities" v-loading="loading" stripe>
         <el-table-column prop="name" label="活动名称" min-width="160" />
         <el-table-column prop="type" label="类型" width="100">
           <template #default="{ row }">
@@ -108,7 +110,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -119,7 +121,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <!-- 新建活动对话框 -->
     <el-dialog v-model="createDialogVisible" title="新建活动" width="720px">
@@ -215,7 +218,7 @@
       </div>
       <el-empty v-else description="暂无效果数据" :image-size="80" />
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

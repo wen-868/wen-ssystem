@@ -1,6 +1,12 @@
 <template>
-  <div class="gift-rule">
-    <!-- 工具栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">赠品规则</h2>
+      <p class="page-desc">赠品规则配置与维护</p>
+    </div>
+  </div>
+<!-- 工具栏 -->
     <div class="tab-toolbar">
       <el-input
         v-model="keyword"
@@ -21,7 +27,8 @@
     </div>
 
     <!-- 表格 -->
-    <el-table :data="list" v-loading="loading" stripe>
+    <div class="table-card">
+<el-table :data="list" v-loading="loading" stripe>
       <el-table-column prop="ruleCode" label="规则编码" width="150" />
       <el-table-column prop="ruleName" label="规则名称" min-width="140" />
       <el-table-column label="满赠类型" width="110">
@@ -63,13 +70,14 @@
       </el-table-column>
     </el-table>
 
-    <div class="pagination">
+    <div class="table-card-footer">
       <el-pagination
         background layout="total, sizes, prev, pager, next, jumper"
         :total="total" :page-size="pageSize" :current-page="page"
         @size-change="handleSizeChange" @current-change="handlePageChange"
       />
     </div>
+</div>
 
     <!-- 新建/编辑对话框 -->
     <el-dialog
@@ -198,7 +206,7 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

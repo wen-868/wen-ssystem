@@ -1,35 +1,37 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>采购订单</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索订单号"
-              size="default"
-              style="width: 200px; margin-right: 10px"
-              clearable
-              @clear="loadOrders"
-              @keyup.enter="loadOrders"
-            />
-            <el-select v-model="orderStatus" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadOrders">
-              <el-option label="草稿" value="DRAFT" />
-              <el-option label="待确认" value="PENDING" />
-              <el-option label="已确认" value="APPROVED" />
-              <el-option label="部分入库" value="PARTIAL" />
-              <el-option label="已取消" value="CANCELLED" />
-            </el-select>
-            <el-button type="primary" @click="dialogVisible = true">
-              <el-icon><Plus /></el-icon> 新建采购单
-            </el-button>
-            <el-button @click="loadOrders">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">采购订单</h2>
+    <p class="page-desc">采购订单创建与跟踪</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索订单号"
+  size="default"
+  style="width: 200px; margin-right: 10px"
+  clearable
+  @clear="loadOrders"
+  @keyup.enter="loadOrders"
+  />
+  <el-select v-model="orderStatus" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadOrders">
+  <el-option label="草稿" value="DRAFT" />
+  <el-option label="待确认" value="PENDING" />
+  <el-option label="已确认" value="APPROVED" />
+  <el-option label="部分入库" value="PARTIAL" />
+  <el-option label="已取消" value="CANCELLED" />
+  </el-select>
+  <el-button type="primary" @click="dialogVisible = true">
+  <el-icon><Plus /></el-icon> 新建采购单
+  </el-button>
+  <el-button @click="loadOrders">刷新</el-button>
+</div>
 
-      <el-table :data="orders" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="orders" v-loading="loading" stripe>
         <el-table-column prop="orderNo" label="订单号" width="200" />
         <el-table-column prop="supplierName" label="供应商" width="160" />
         <el-table-column prop="storeId" label="门店ID" width="100" />
@@ -67,7 +69,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -78,7 +80,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-dialog v-model="dialogVisible" title="新建采购订单" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
@@ -189,7 +192,7 @@
         </el-table>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

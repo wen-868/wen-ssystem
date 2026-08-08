@@ -1,17 +1,24 @@
 <template>
-  <div class="page">
-    <PageCard title="采购计划">
-      <template #extra>
-        <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px" clearable @change="loadList">
-          <el-option label="草稿" value="DRAFT" />
-          <el-option label="已审批" value="APPROVED" />
-          <el-option label="已转换" value="CONVERTED" />
-          <el-option label="已取消" value="CANCELLED" />
-        </el-select>
-        <el-button @click="loadList">刷新</el-button>
-        <el-button type="primary" @click="showCreateDialog">新建计划</el-button>
-        <el-button @click="showReplenishDialog">智能补货建议</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">采购计划</h2>
+    <p class="page-desc">采购计划制定与跟踪</p>
+  </div>
+  <div class="page-header-actions">
+    <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px" clearable @change="loadList">
+    <el-option label="草稿" value="DRAFT" />
+    <el-option label="已审批" value="APPROVED" />
+    <el-option label="已转换" value="CONVERTED" />
+    <el-option label="已取消" value="CANCELLED" />
+    </el-select>
+    <el-button @click="loadList">刷新</el-button>
+    <el-button type="primary" @click="showCreateDialog">新建计划</el-button>
+    <el-button @click="showReplenishDialog">智能补货建议</el-button>
+  </div>
+</div>
+
+      
 
       <DataTable
         :columns="columns"
@@ -42,7 +49,7 @@
           <el-button v-if="row.status === 'DRAFT' || row.status === 'APPROVED'" size="small" link type="danger" @click="handleCancel(row)">取消</el-button>
         </template>
       </DataTable>
-    </PageCard>
+    
 
     <!-- 新建计划弹窗 -->
     <el-dialog v-model="createVisible" title="新建采购计划" width="720px" :close-on-click-modal="false">
@@ -134,7 +141,8 @@
         </el-descriptions>
 
         <h4 style="margin-bottom: 10px">商品明细</h4>
-        <el-table :data="currentDetail.items || []" size="small" border>
+        <div class="table-card">
+<el-table :data="currentDetail.items || []" size="small" border>
           <el-table-column prop="skuName" label="商品" minWidth="130" />
           <el-table-column prop="spec" label="规格" width="80" />
           <el-table-column prop="currentStock" label="库存" width="60" />
@@ -148,9 +156,10 @@
             <template #default="{ row }">¥{{ Number(row.subtotalAmount || 0).toFixed(2) }}</template>
           </el-table-column>
         </el-table>
+</div>
       </template>
     </DetailDrawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -161,7 +170,6 @@ import {
   approvePurchasePlan, convertPurchasePlanToOrder, cancelPurchasePlan,
   fetchReplenishmentSuggestions, fetchSuppliers
 } from "../../api";
-import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 import DetailDrawer from "../../components/DetailDrawer.vue";
 

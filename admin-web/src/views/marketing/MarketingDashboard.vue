@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 概览卡片行 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">营销概览</h2>
+      <p class="page-desc">营销活动整体效果概览</p>
+    </div>
+  </div>
+<!-- 概览卡片行 -->
     <div class="stat-row">
       <div class="stat-card stat-primary">
         <div class="stat-icon"><el-icon :size="24"><TrendCharts /></el-icon></div>
@@ -176,7 +182,8 @@
           </el-select>
         </div>
       </template>
-      <el-table v-if="compareData.length > 0" :data="compareData" stripe border>
+      <div class="table-card">
+<el-table v-if="compareData.length > 0" :data="compareData" stripe border>
         <el-table-column prop="dimension" label="对比维度" width="140" />
         <el-table-column
           v-for="(col, idx) in compareColumns"
@@ -194,9 +201,10 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
       <el-empty v-if="compareData.length === 0" description="请选择2-4个活动进行对比" :image-size="80" />
     </el-card>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

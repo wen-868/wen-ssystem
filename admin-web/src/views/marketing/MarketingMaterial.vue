@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <div class="material-layout">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">营销素材库</h2>
+      <p class="page-desc">营销素材分类与维护</p>
+    </div>
+  </div>
+<div class="material-layout">
       <!-- 左侧分类树 -->
       <div class="material-sidebar">
         <el-card>
@@ -43,7 +49,7 @@
         <el-card>
           <!-- 顶部操作栏 -->
           <div class="material-toolbar">
-            <div class="toolbar-left">
+            <div class="filter-bar">
               <el-input
                 v-model="searchKeyword"
                 placeholder="搜索素材名称"
@@ -165,7 +171,8 @@
 
           <!-- 列表视图 -->
           <div v-if="viewMode === 'list'">
-            <el-table :data="materials" stripe @row-click="openDetailDialog">
+            <div class="table-card">
+<el-table :data="materials" stripe @row-click="openDetailDialog">
               <el-table-column label="缩略图" width="80">
                 <template #default="{ row }">
                   <el-image
@@ -224,6 +231,7 @@
                 </template>
               </el-table-column>
             </el-table>
+</div>
             <el-empty v-if="materials.length === 0" description="暂无素材" :image-size="80" />
           </div>
 
@@ -376,7 +384,7 @@
         <el-button type="primary" @click="submitUpload">上传</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,14 @@
 <template>
-  <div class="page">
-    <el-card>
-      <div class="toolbar">
-        <div class="toolbar-left">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">限时秒杀</h2>
+      <p class="page-desc">秒杀活动配置与执行</p>
+    </div>
+  </div>
+<el-card>
+      <div class="filter-bar">
+        <div class="filter-bar">
           <el-select v-model="statusFilter" placeholder="活动状态" clearable style="width: 130px; margin-right: 12px" @change="loadData">
             <el-option label="草稿" value="DRAFT" />
             <el-option label="进行中" value="ACTIVE" />
@@ -23,7 +29,8 @@
         </div>
       </div>
 
-      <el-table :data="activities" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="activities" v-loading="loading" stripe>
         <el-table-column prop="name" label="活动名称" min-width="160" />
         <el-table-column label="秒杀价" width="110" align="center">
           <template #default="{ row }">
@@ -75,13 +82,14 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background layout="total, sizes, prev, pager, next, jumper"
           :total="total" :page-size="pageSize" :current-page="page"
           @size-change="handleSizeChange" @current-change="handlePageChange"
         />
       </div>
+</div>
     </el-card>
 
     <!-- 新建/编辑对话框 -->
@@ -182,7 +190,7 @@
         <el-button @click="productPickerVisible = false">取消</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

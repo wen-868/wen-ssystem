@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <!-- 统计卡片行 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">积分商城</h2>
+      <p class="page-desc">积分商品与兑换管理</p>
+    </div>
+  </div>
+<!-- 统计卡片行 -->
     <div class="stat-row">
       <div class="stat-card stat-primary">
         <div class="stat-icon"><el-icon :size="28"><Goods /></el-icon></div>
@@ -151,7 +157,8 @@
             <el-button @click="exportRecords">导出兑换记录</el-button>
           </div>
 
-          <el-table :data="exchangeRecords" stripe>
+          <div class="table-card">
+<el-table :data="exchangeRecords" stripe>
             <el-table-column prop="exchangeCode" label="兑换编号" width="160" />
             <el-table-column label="用户信息" min-width="160">
               <template #default="{ row }">
@@ -195,7 +202,7 @@
             </el-table-column>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -206,6 +213,7 @@
               @current-change="handleRecordPageChange"
             />
           </div>
+</div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -261,7 +269,7 @@
         <el-button type="primary" @click="submitProduct">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

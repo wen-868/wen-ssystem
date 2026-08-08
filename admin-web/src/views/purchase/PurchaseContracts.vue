@@ -1,49 +1,51 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>采购合同</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="合同编号/关键词"
-              size="default"
-              style="width: 200px; margin-right: 10px"
-              clearable
-              @clear="loadContracts"
-              @keyup.enter="loadContracts"
-            />
-            <el-select v-model="filterStatus" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadContracts">
-              <el-option label="待审核" value="PENDING" />
-              <el-option label="执行中" value="ACTIVE" />
-              <el-option label="已完成" value="COMPLETED" />
-              <el-option label="已作废" value="VOIDED" />
-            </el-select>
-            <el-select v-model="filterSupplierId" placeholder="供应商" size="default" style="width: 160px; margin-right: 10px" clearable filterable @change="loadContracts">
-              <el-option v-for="s in suppliers" :key="s.id" :label="s.name" :value="s.id" />
-            </el-select>
-            <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              size="default"
-              style="margin-right: 10px; width: 260px"
-              value-format="YYYY-MM-DD"
-              @change="loadContracts"
-            />
-            <el-button type="primary" @click="handleCreate">
-              <el-icon><Plus /></el-icon> 新建合同
-            </el-button>
-            <el-button @click="handleExport">导出</el-button>
-            <el-button @click="loadContracts">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">采购合同</h2>
+    <p class="page-desc">采购合同登记与管理</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="合同编号/关键词"
+  size="default"
+  style="width: 200px; margin-right: 10px"
+  clearable
+  @clear="loadContracts"
+  @keyup.enter="loadContracts"
+  />
+  <el-select v-model="filterStatus" placeholder="全部状态" size="default" style="width: 140px; margin-right: 10px" clearable @change="loadContracts">
+  <el-option label="待审核" value="PENDING" />
+  <el-option label="执行中" value="ACTIVE" />
+  <el-option label="已完成" value="COMPLETED" />
+  <el-option label="已作废" value="VOIDED" />
+  </el-select>
+  <el-select v-model="filterSupplierId" placeholder="供应商" size="default" style="width: 160px; margin-right: 10px" clearable filterable @change="loadContracts">
+  <el-option v-for="s in suppliers" :key="s.id" :label="s.name" :value="s.id" />
+  </el-select>
+  <el-date-picker
+  v-model="dateRange"
+  type="daterange"
+  range-separator="至"
+  start-placeholder="开始日期"
+  end-placeholder="结束日期"
+  size="default"
+  style="margin-right: 10px; width: 260px"
+  value-format="YYYY-MM-DD"
+  @change="loadContracts"
+  />
+  <el-button type="primary" @click="handleCreate">
+  <el-icon><Plus /></el-icon> 新建合同
+  </el-button>
+  <el-button @click="handleExport">导出</el-button>
+  <el-button @click="loadContracts">刷新</el-button>
+</div>
 
-      <el-table :data="contracts" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="contracts" v-loading="loading" stripe>
         <el-table-column prop="contractNo" label="合同编号" width="200" />
         <el-table-column prop="supplierName" label="供应商名称" width="180" />
         <el-table-column prop="contractType" label="合同类型" width="120">
@@ -86,7 +88,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -97,7 +99,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <!-- 新建/编辑弹窗 -->
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑采购合同' : '新建采购合同'" width="900px">
@@ -264,7 +267,7 @@
         </el-timeline>
       </template>
     </el-drawer>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

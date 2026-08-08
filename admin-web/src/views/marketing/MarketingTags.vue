@@ -1,6 +1,12 @@
 <template>
-  <div class="page">
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">营销标签</h2>
+      <p class="page-desc">营销标签维护与关联</p>
+    </div>
+  </div>
+<el-tabs v-model="activeTab" @tab-change="handleTabChange">
       <!-- 标签管理 -->
       <el-tab-pane label="标签管理" name="tags">
         <PageCard title="营销标签管理">
@@ -9,7 +15,7 @@
             <el-button @click="loadData">刷新</el-button>
           </template>
 
-          <div class="search-bar">
+          <div class="filter-bar">
             <el-input v-model="searchForm.keyword" placeholder="标签名称" clearable style="width: 180px" />
             <el-select v-model="searchForm.tagType" placeholder="标签类型" clearable style="width: 150px; margin-left: 12px">
               <el-option v-for="t in tagTypes" :key="t.value" :label="t.label" :value="t.value" />
@@ -21,7 +27,8 @@
             <el-button type="primary" style="margin-left: 12px" @click="searchTags">搜索</el-button>
           </div>
 
-          <el-table :data="tags" v-loading="loading" stripe>
+          <div class="table-card">
+<el-table :data="tags" v-loading="loading" stripe>
             <el-table-column prop="name" label="标签名称" min-width="120">
               <template #default="{ row }">
                 <el-tag :color="row.color" effect="dark" style="border: none">{{ row.name }}</el-tag>
@@ -53,7 +60,7 @@
             <template #empty><el-empty description="暂无数据" :image-size="80" /></template>
           </el-table>
 
-          <div class="pagination">
+          <div class="table-card-footer">
             <el-pagination
               background
               layout="total, sizes, prev, pager, next, jumper"
@@ -64,6 +71,7 @@
               @current-change="(p: number) => { page = p; searchTags(); }"
             />
           </div>
+</div>
         </PageCard>
       </el-tab-pane>
 
@@ -88,7 +96,8 @@
                   <el-button @click="loadProducts">搜索</el-button>
                 </template>
               </el-input>
-              <el-table
+              <div class="table-card">
+<el-table
                 :data="products"
                 v-loading="productLoading"
                 stripe
@@ -115,7 +124,7 @@
                 </el-table-column>
                 <template #empty><el-empty description="暂无商品" :image-size="60" /></template>
               </el-table>
-              <div class="pagination">
+              <div class="table-card-footer">
                 <el-pagination
                   background
                   small
@@ -126,6 +135,7 @@
                   @current-change="(p: number) => { productPage = p; loadProducts(); }"
                 />
               </div>
+</div>
             </PageCard>
           </el-col>
 
@@ -206,7 +216,7 @@
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

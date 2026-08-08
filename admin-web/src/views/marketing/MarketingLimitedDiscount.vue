@@ -1,6 +1,12 @@
 <template>
-  <div class="limited-discount">
-    <!-- 工具栏 -->
+<div class="page">
+    <div class="page-header">
+    <div class="page-header-main">
+      <h2 class="page-title">限时折扣</h2>
+      <p class="page-desc">限时折扣活动配置</p>
+    </div>
+  </div>
+<!-- 工具栏 -->
     <div class="tab-toolbar">
       <el-select v-model="statusFilter" placeholder="状态" clearable style="width: 130px" @change="loadData">
         <el-option label="草稿" value="DRAFT" />
@@ -15,7 +21,8 @@
     </div>
 
     <!-- 表格 -->
-    <el-table :data="list" v-loading="loading" stripe>
+    <div class="table-card">
+<el-table :data="list" v-loading="loading" stripe>
       <el-table-column prop="activityCode" label="活动编码" width="150" />
       <el-table-column prop="activityName" label="活动名称" min-width="140" />
       <el-table-column label="折扣类型" width="100">
@@ -65,13 +72,14 @@
       </el-table-column>
     </el-table>
 
-    <div class="pagination">
+    <div class="table-card-footer">
       <el-pagination
         background layout="total, sizes, prev, pager, next, jumper"
         :total="total" :page-size="pageSize" :current-page="page"
         @size-change="handleSizeChange" @current-change="handlePageChange"
       />
     </div>
+</div>
 
     <!-- 新建/编辑对话框 -->
     <el-dialog
@@ -235,7 +243,7 @@
         <el-button type="primary" @click="confirmProductSelection">确认选择 ({{ tempSelectedProducts.length }})</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

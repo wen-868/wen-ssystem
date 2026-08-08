@@ -1,38 +1,39 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>售后管理</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索售后单号/订单号/客户"
-              size="default"
-              style="width: 220px; margin-right: 10px"
-              clearable
-              @clear="loadAfterSales"
-              @keyup.enter="loadAfterSales"
-            />
-            <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadAfterSales">
-              <el-option label="待审核" value="PENDING" />
-              <el-option label="已通过" value="APPROVED" />
-              <el-option label="已拒绝" value="REJECTED" />
-              <el-option label="待收货" value="WAIT_RECEIPT" />
-              <el-option label="待质检" value="WAIT_INSPECT" />
-              <el-option label="已完成" value="COMPLETED" />
-            </el-select>
-            <el-select v-model="typeFilter" placeholder="类型" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadAfterSales">
-              <el-option label="退货退款" value="RETURN_REFUND" />
-              <el-option label="仅退款" value="REFUND_ONLY" />
-              <el-option label="换货" value="EXCHANGE" />
-              <el-option label="维修" value="REPAIR" />
-            </el-select>
-            <el-button @click="loadAfterSales">搜索</el-button>
-            <el-button @click="loadAfterSales">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">售后管理</h2>
+    <p class="page-desc">售后单处理与审核</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索售后单号/订单号/客户"
+  size="default"
+  style="width: 220px; margin-right: 10px"
+  clearable
+  @clear="loadAfterSales"
+  @keyup.enter="loadAfterSales"
+  />
+  <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadAfterSales">
+  <el-option label="待审核" value="PENDING" />
+  <el-option label="已通过" value="APPROVED" />
+  <el-option label="已拒绝" value="REJECTED" />
+  <el-option label="待收货" value="WAIT_RECEIPT" />
+  <el-option label="待质检" value="WAIT_INSPECT" />
+  <el-option label="已完成" value="COMPLETED" />
+  </el-select>
+  <el-select v-model="typeFilter" placeholder="类型" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadAfterSales">
+  <el-option label="退货退款" value="RETURN_REFUND" />
+  <el-option label="仅退款" value="REFUND_ONLY" />
+  <el-option label="换货" value="EXCHANGE" />
+  <el-option label="维修" value="REPAIR" />
+  </el-select>
+  <el-button @click="loadAfterSales">搜索</el-button>
+  <el-button @click="loadAfterSales">刷新</el-button>
+</div>
+
 
       <el-row :gutter="16" style="margin-bottom: 16px">
         <el-col :span="6">
@@ -49,7 +50,8 @@
         </el-col>
       </el-row>
 
-      <el-table :data="aftersales" v-loading="loading" stripe>
+      <div class="table-card">
+<el-table :data="aftersales" v-loading="loading" stripe>
         <el-table-column prop="aftersaleNo" label="售后单号" width="180" />
         <el-table-column prop="orderNo" label="关联订单" width="180" />
         <el-table-column prop="customerName" label="客户" min-width="100" />
@@ -93,7 +95,7 @@
         </template>
       </el-table>
 
-      <div class="pagination">
+      <div class="table-card-footer">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next, jumper"
@@ -104,7 +106,8 @@
           @current-change="handlePageChange"
         />
       </div>
-    </el-card>
+</div>
+    
 
     <el-drawer v-model="detailVisible" title="售后详情" size="560px">
       <template v-if="currentAftersale">
@@ -169,7 +172,7 @@
         <el-button type="primary" :loading="inspectLoading" @click="submitInspect">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">

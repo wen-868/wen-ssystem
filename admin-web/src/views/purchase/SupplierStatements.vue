@@ -1,15 +1,22 @@
 <template>
-  <div class="page">
-    <PageCard title="供应商对账">
-      <template #extra>
-        <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px" clearable @change="loadList">
-          <el-option label="待确认" value="GENERATED" />
-          <el-option label="已确认" value="CONFIRMED" />
-          <el-option label="争议" value="DISPUTED" />
-        </el-select>
-        <el-button @click="loadList">刷新</el-button>
-        <el-button type="primary" @click="showGenerateDialog">生成对账单</el-button>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">供应商对账</h2>
+    <p class="page-desc">供应商对账与结算</p>
+  </div>
+  <div class="page-header-actions">
+    <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px" clearable @change="loadList">
+    <el-option label="待确认" value="GENERATED" />
+    <el-option label="已确认" value="CONFIRMED" />
+    <el-option label="争议" value="DISPUTED" />
+    </el-select>
+    <el-button @click="loadList">刷新</el-button>
+    <el-button type="primary" @click="showGenerateDialog">生成对账单</el-button>
+  </div>
+</div>
+
+      
 
       <DataTable
         :columns="columns"
@@ -41,7 +48,7 @@
           <el-button v-if="row.status !== 'CONFIRMED'" size="small" link type="danger" @click="handleDispute(row)">争议</el-button>
         </template>
       </DataTable>
-    </PageCard>
+    
 
     <!-- 生成对账单弹窗 -->
     <el-dialog v-model="genVisible" title="生成对账单" width="480px" :close-on-click-modal="false">
@@ -106,7 +113,8 @@
         </el-descriptions>
 
         <h4 style="margin-bottom: 10px">明细列表</h4>
-        <el-table :data="currentDetail.items || []" size="small" border>
+        <div class="table-card">
+<el-table :data="currentDetail.items || []" size="small" border>
           <el-table-column prop="sourceNo" label="单号" width="180" />
           <el-table-column prop="itemType" label="类型" width="80">
             <template #default="{ row }">
@@ -121,6 +129,7 @@
           </el-table-column>
           <el-table-column prop="occurredAt" label="发生时间" width="150" />
         </el-table>
+</div>
       </template>
     </DetailDrawer>
 
@@ -132,14 +141,13 @@
         <el-button type="primary" :loading="disputeLoading" @click="handleDisputeSubmit">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchSupplierStatements, generateSupplierStatement, fetchSupplierStatementDetail, confirmSupplierStatement, disputeSupplierStatement, fetchSuppliers } from "../../api";
-import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 import DetailDrawer from "../../components/DetailDrawer.vue";
 

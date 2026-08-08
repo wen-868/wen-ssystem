@@ -1,33 +1,35 @@
 <template>
-  <div class="page">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>采购退货</span>
-          <div class="header-actions">
-            <el-input
-              v-model="keyword"
-              placeholder="搜索退货单号/供应商"
-              size="default"
-              style="width: 200px; margin-right: 10px"
-              clearable
-              @clear="loadReturns"
-              @keyup.enter="loadReturns"
-            />
-            <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadReturns">
-              <el-option label="待审核" value="PENDING" />
-              <el-option label="已通过" value="APPROVED" />
-              <el-option label="已拒绝" value="REJECTED" />
-              <el-option label="已完成" value="COMPLETED" />
-            </el-select>
-            <el-button @click="loadReturns">搜索</el-button>
-            <el-button type="primary" @click="dialogVisible = true">新增退货</el-button>
-            <el-button @click="loadReturns">刷新</el-button>
-          </div>
-        </div>
-      </template>
+<div class="page">
+<div class="page-header">
+  <div class="page-header-main">
+    <h2 class="page-title">采购退货</h2>
+    <p class="page-desc">采购退货单登记与处理</p>
+  </div>
+</div>
+<div class="filter-bar">
+  <el-input
+  v-model="keyword"
+  placeholder="搜索退货单号/供应商"
+  size="default"
+  style="width: 200px; margin-right: 10px"
+  clearable
+  @clear="loadReturns"
+  @keyup.enter="loadReturns"
+  />
+  <el-select v-model="statusFilter" placeholder="状态" size="default" style="width: 120px; margin-right: 10px" clearable @change="loadReturns">
+  <el-option label="待审核" value="PENDING" />
+  <el-option label="已通过" value="APPROVED" />
+  <el-option label="已拒绝" value="REJECTED" />
+  <el-option label="已完成" value="COMPLETED" />
+  </el-select>
+  <el-button @click="loadReturns">搜索</el-button>
+  <el-button type="primary" @click="dialogVisible = true">新增退货</el-button>
+  <el-button @click="loadReturns">刷新</el-button>
+</div>
 
-      <el-table :data="returns" v-loading="loading" stripe>
+
+      <div class="table-card">
+<el-table :data="returns" v-loading="loading" stripe>
         <el-table-column prop="returnNo" label="退货单号" width="200" />
         <el-table-column prop="purchaseBillNo" label="关联采购单" width="200" />
         <el-table-column prop="supplierName" label="供应商" min-width="120" />
@@ -60,6 +62,7 @@
           </template>
         </el-table-column>
       </el-table>
+</div>
 
       <el-pagination
         v-if="total > 0"
@@ -71,7 +74,7 @@
         :current-page="page"
         @current-change="onPageChange"
       />
-    </el-card>
+    
 
     <el-dialog v-model="detailVisible" title="退货详情" width="720px">
       <el-descriptions :column="2" border>
@@ -83,7 +86,7 @@
         <el-descriptions-item label="创建时间">{{ detail.createdAt }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
