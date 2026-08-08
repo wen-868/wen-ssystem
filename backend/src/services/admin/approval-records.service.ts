@@ -1,5 +1,6 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
+import { AppError } from "../../shared/app-error";
 import type { RowDataPacket } from "mysql2/promise";
 
 /** t_approval_rule 原始字段行（conn.query 用，字段为下划线命名） */
@@ -214,7 +215,7 @@ export async function submitApproval(
     );
 
     if (rules.length === 0) {
-      throw new Error(`未找到业务类型 ${body.businessType} 的审批规则`);
+      throw new AppError("未配置审批规则", 400);
     }
 
     const rule = rules[0];
@@ -243,7 +244,7 @@ export async function submitApproval(
       );
 
       if (approvers.length === 0) {
-        throw new Error(`未找到审批人：${chainItem.approverType} - ${chainItem.approverValue}`);
+        throw new AppError(`未找到审批人：${chainItem.approverType} - ${chainItem.approverValue}`, 400);
       }
 
       const approver = approvers[0];
@@ -379,9 +380,9 @@ export async function approveTask(
     );
 
     const task = taskRows[0];
-    if (!task) throw new Error("审批任务不存在");
-    if (task.approver_id !== userId) throw new Error("无权审批此任务");
-    if (task.task_status !== "PENDING") throw new Error("任务已处理");
+    if (!task) throw new AppError("审批任务不存在", 404);
+    if (task.approver_id !== userId) throw new AppError("无权审批此任务", 403);
+    if (task.task_status !== "PENDING") throw new AppError("任务已处理", 400);
 
     await conn.execute(
       `UPDATE t_approval_task SET task_status = 'APPROVED', processed_at = NOW(), approval_comment = ?
@@ -452,9 +453,9 @@ export async function rejectTask(
     );
 
     const task = taskRows[0];
-    if (!task) throw new Error("审批任务不存在");
-    if (task.approver_id !== userId) throw new Error("无权审批此任务");
-    if (task.task_status !== "PENDING") throw new Error("任务已处理");
+    if (!task) throw new AppError("审批任务不存在", 404);
+    if (task.approver_id !== userId) throw new AppError("无权审批此任务", 403);
+    if (task.task_status !== "PENDING") throw new AppError("任务已处理", 400);
 
     await conn.execute(
       `UPDATE t_approval_task SET task_status = 'REJECTED', processed_at = NOW(), approval_comment = ?

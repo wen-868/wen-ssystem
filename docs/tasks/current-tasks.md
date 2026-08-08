@@ -2999,6 +2999,24 @@
 
 **任务卡归档**：`docs/tasks/inbox/ache_r99_06.md` → `docs/tasks/inbox/archive/`
 
+### R99-07 — [P1] 审批规则页契约对齐 + 后端错误处理专项
+- **优先级**：P1（规则创建/编辑当前不可用）
+- **负责人**：阿澈（全栈）
+- **状态**：✅ 已完成（2026-08-08 阿澈实现 + 凌舟收口）
+- **范围**（R99-06 核实）：
+  1. **前端 ApprovalRules.vue 表单对齐后端 zod**：approvalChain 由 `{role,order}` 改为 `{level, approverType(ROLE/USER/DEPARTMENT), approverValue}`；status 由字符串 ACTIVE/INACTIVE 改为数字 1/0；businessType 用后端枚举；escalationLevel 对齐
+  2. **后端补 `DELETE /api/admin/approval/rules/:id`**（approval-flow controller/service 删除规则）
+  3. **后端业务失败改 4xx**：submit 无规则等业务错误抛 AppError(400, "未配置审批规则")，不再 500
+- **验证**：后端 typecheck+build、admin-web build:check；本地实测规则创建/编辑/删除、submit 错误提示正确（400 非 500）；提交推送
+- **任务卡**：`docs/tasks/inbox/ache_r99_07.md`
+
+**R99-07 完成记录（2026-08-08 阿澈实现，2026-08-09 凌舟收口）：**
+- 前端 `ApprovalRules.vue` 表单对齐后端 zod：approvalChain 改 `{level, approverType(ROLE/USER/DEPARTMENT), approverValue}`（类型选择+值输入）、status 改数字 1/0、escalationLevel 对齐
+- 后端新增 `DELETE /api/admin/approval/rules/:id`（approval-flow controller/service deleteRule，规则不存在返回 null）
+- 后端 submit 等业务失败改 AppError 4xx（无规则场景明确提示，不再 500）
+- 新增/更新 3 个测试文件（controller/routes/service，16 用例）
+- 验证：后端 typecheck/build exit 0、admin-web build:check exit 0、审批相关测试 3 文件 16 用例全过（凌舟收口时修复 service 测试 import 路径错误）
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

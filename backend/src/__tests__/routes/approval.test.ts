@@ -18,4 +18,11 @@ describe("routes/approval", () => {
     expect(typeof routeConfig.router.put).toBe("function");
     expect(typeof routeConfig.router.delete).toBe("function");
   });
+
+  it("应注册 DELETE /rules/:id 删除规则路由", () => {
+    const routes = routeConfig.router.stack
+      .filter((layer: any) => layer.route)
+      .map((layer: any) => ({ method: layer.route.methods, path: layer.route.path }));
+    expect(routes).toContainEqual({ method: { delete: true }, path: "/rules/:id" });
+  });
 });

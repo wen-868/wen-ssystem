@@ -25,7 +25,7 @@
         </template>
         <template #status="{ row }">
           <el-switch
-            :model-value="row.status === 'ACTIVE'"
+            :model-value="Number(row.status) === 1"
             active-text="启用"
             inactive-text="禁用"
             @change="(val: boolean) => handleToggleStatus(row, val)"
@@ -57,13 +57,25 @@
           <div class="chain-config">
             <div v-for="(level, index) in form.approvalChain" :key="index" class="chain-level">
               <span class="level-index">第{{ index + 1 }}级</span>
-              <el-select v-model="level.role" placeholder="审批人角色" style="width: 200px">
-                <el-option label="部门经理" value="DEPT_MANAGER" />
-                <el-option label="财务主管" value="FINANCE_DIRECTOR" />
-                <el-option label="总经理" value="GENERAL_MANAGER" />
-                <el-option label="区域经理" value="REGION_MANAGER" />
-                <el-option label="运营总监" value="OPERATION_DIRECTOR" />
+              <el-select v-model="level.approverType" placeholder="审批人类型" style="width: 120px">
+                <el-option label="角色" value="ROLE" />
+                <el-option label="用户" value="USER" />
+                <el-option label="部门" value="DEPARTMENT" />
               </el-select>
+              <el-select
+                v-if="level.approverType === 'ROLE'"
+                v-model="level.approverValue"
+                placeholder="选择审批角色"
+                style="width: 200px"
+              >
+                <el-option v-for="r in roleOptions" :key="r.value" :label="r.label" :value="r.value" />
+              </el-select>
+              <el-input
+                v-else
+                v-model="level.approverValue"
+                :placeholder="level.approverType === 'USER' ? '请输入用户ID' : '请输入部门ID'"
+                style="width: 200px"
+              />
               <el-button size="small" :disabled="index === 0" @click="moveLevel(index, -1)">上移</el-button>
               <el-button size="small" :disabled="index === form.approvalChain.length - 1" @click="moveLevel(index, 1)">下移</el-button>
               <el-button size="small" type="danger" link @click="removeLevel(index)">删除</el-button>
@@ -76,13 +88,11 @@
           <span style="margin-left: 8px; color: var(--gray-400)">小时</span>
         </el-form-item>
         <el-form-item label="升级级别">
-          <el-input-number v-model="form.escalationLevel" :min="0" :max="10" style="width: 160px" />
+          <el-input-number v-model="form.escalationLevel" :min="1" :max="3" style="width: 160px" />
+          <span style="margin-left: 8px; color: var(--gray-400)">1-3</span>
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入规则描述" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-switch v-model="form.status" active-value="ACTIVE" inactive-value="INACTIVE" active-text="启用" inactive-text="禁用" />
+        <el-form-item v-if="isEdit" label="状态">
+          <el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="禁用" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -101,13 +111,22 @@ import { fetchApprovalRules, createApprovalRule, updateApprovalRule, deleteAppro
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 
+/** 后端 zod 业务类型枚举：PURCHASE_ORDER/SALE_RETURN/PRICE_CHANGE/CREDIT_LIMIT/EXPENSE */
 const businessTypeOptions = [
-  { value: "PURCHASE", label: "采购审批", color: CHART_COLORS.primary },
-  { value: "SALE", label: "销售审批", color: CHART_COLORS.success },
-  { value: "REFUND", label: "退款审批", color: CHART_COLORS.warning },
-  { value: "EXPENSE", label: "费用审批", color: CHART_COLORS.textMuted },
-  { value: "PRICE_CHANGE", label: "价格变更", color: CHART_COLORS.purple },
-  { value: "CREDIT_LIMIT", label: "信用额度", color: CHART_COLORS.cyan }
+  { value: "PURCHASE_ORDER", label: "采购订单审批", color: CHART_COLORS.primary },
+  { value: "SALE_RETURN", label: "销售退货审批", color: CHART_COLORS.success },
+  { value: "PRICE_CHANGE", label: "价格变更审批", color: CHART_COLORS.purple },
+  { value: "CREDIT_LIMIT", label: "信用额度审批", color: CHART_COLORS.cyan },
+  { value: "EXPENSE", label: "费用审批", color: CHART_COLORS.warning }
+];
+
+/** 审批人角色选项：与 t_approval_approver 种子数据保持一致 */
+const roleOptions = [
+  { value: "PURCHASE_MANAGER", label: "采购经理" },
+  { value: "FINANCE_MANAGER", label: "财务经理" },
+  { value: "STORE_MANAGER", label: "门店经理" },
+  { value: "SALES_MANAGER", label: "销售经理" },
+  { value: "GENERAL_MANAGER", label: "总经理" }
 ];
 
 function businessTypeLabel(v: string) {
@@ -116,13 +135,24 @@ function businessTypeLabel(v: string) {
 
 function businessTypeTagType(v: string) {
   const map: Record<string, string> = {
-    PURCHASE: "",
-    SALE: "success",
-    REFUND: "warning",
-    PRICE_CHANGE: "",
-    CREDIT_LIMIT: ""
+    PURCHASE_ORDER: "",
+    SALE_RETURN: "success",
+    PRICE_CHANGE: "warning",
+    CREDIT_LIMIT: "info",
+    EXPENSE: "warning"
   };
   return map[v] || "";
+}
+
+function approverTypeLabel(t: string) {
+  const map: Record<string, string> = { ROLE: "角色", USER: "用户", DEPARTMENT: "部门" };
+  return map[t] || t;
+}
+
+interface ChainLevel {
+  level: number;
+  approverType: string;
+  approverValue: string;
 }
 
 const loading = ref(false);
@@ -142,31 +172,45 @@ const rules = {
 const form = ref({
   ruleName: "",
   businessType: "",
-  approvalChain: [] as { role: string }[],
+  approvalChain: [] as ChainLevel[],
   slaHours: 24,
-  escalationLevel: 0,
-  description: "",
-  status: "ACTIVE"
+  escalationLevel: 1,
+  status: 1
 });
 
 const columns = [
   { prop: "ruleName", label: "规则名称", minWidth: 140 },
-  { prop: "businessType", label: "业务类型", width: 120, slot: "businessType" },
-  { prop: "chainSummary", label: "审批链", minWidth: 180 },
+  { prop: "businessType", label: "业务类型", width: 130, slot: "businessType" },
+  { prop: "chainSummary", label: "审批链", minWidth: 220 },
   { prop: "slaHours", label: "SLA时效", width: 100, slot: "slaHours" },
   { prop: "status", label: "状态", width: 120, slot: "status" },
   { prop: "createdAt", label: "创建时间", width: 170 },
   { label: "操作", width: 140, fixed: "right", slot: "actions" }
 ];
 
+function parseChain(raw: any): ChainLevel[] {
+  let chain = raw;
+  if (typeof chain === "string") {
+    try { chain = JSON.parse(chain); } catch { chain = []; }
+  }
+  if (!Array.isArray(chain)) return [];
+  return chain.map((c: any) => ({
+    level: Number(c.level ?? 0),
+    approverType: c.approverType || "ROLE",
+    approverValue: c.approverValue || ""
+  }));
+}
+
 async function loadList() {
   loading.value = true;
   try {
     const data = await fetchApprovalRules({ page: page.value, pageSize: pageSize.value });
     records.value = (data.records || data.list || []).map((r: any) => {
-      if (r.approvalChain && typeof r.approvalChain === "string") {
-        r.approvalChain = JSON.parse(r.approvalChain);
-      }
+      const chain = parseChain(r.approvalChain);
+      r.approvalChain = chain;
+      r.chainSummary = chain.length
+        ? chain.map((c: ChainLevel) => `${c.level}级:${approverTypeLabel(c.approverType)}-${c.approverValue}`).join(" → ")
+        : "-";
       return r;
     });
     total.value = data.total || 0;
@@ -183,11 +227,10 @@ function showAddDialog() {
   form.value = {
     ruleName: "",
     businessType: "",
-    approvalChain: [{ role: "" }],
+    approvalChain: [{ level: 1, approverType: "ROLE", approverValue: "" }],
     slaHours: 24,
-    escalationLevel: 0,
-    description: "",
-    status: "ACTIVE"
+    escalationLevel: 1,
+    status: 1
   };
   dialogVisible.value = true;
 }
@@ -195,23 +238,24 @@ function showAddDialog() {
 function showEditDialog(row: any) {
   isEdit.value = true;
   editId.value = row.id;
-  const chain = row.approvalChain && typeof row.approvalChain === "string"
-    ? JSON.parse(row.approvalChain)
-    : (row.approvalChain || []);
+  const chain = parseChain(row.approvalChain);
   form.value = {
     ruleName: row.ruleName || "",
     businessType: row.businessType || "",
-    approvalChain: chain.length ? chain.map((c: any) => ({ role: c.role || "" })) : [{ role: "" }],
+    approvalChain: chain.length ? chain : [{ level: 1, approverType: "ROLE", approverValue: "" }],
     slaHours: row.slaHours || 24,
-    escalationLevel: row.escalationLevel || 0,
-    description: row.description || "",
-    status: row.status || "ACTIVE"
+    escalationLevel: row.escalationLevel || 1,
+    status: Number(row.status ?? 1)
   };
   dialogVisible.value = true;
 }
 
 function addLevel() {
-  form.value.approvalChain.push({ role: "" });
+  form.value.approvalChain.push({
+    level: form.value.approvalChain.length + 1,
+    approverType: "ROLE",
+    approverValue: ""
+  });
 }
 
 function removeLevel(index: number) {
@@ -220,6 +264,7 @@ function removeLevel(index: number) {
     return;
   }
   form.value.approvalChain.splice(index, 1);
+  form.value.approvalChain.forEach((item, i) => { item.level = i + 1; });
 }
 
 function moveLevel(index: number, direction: number) {
@@ -229,26 +274,30 @@ function moveLevel(index: number, direction: number) {
   const temp = arr[index];
   arr[index] = arr[target];
   arr[target] = temp;
+  arr.forEach((item, i) => { item.level = i + 1; });
 }
 
 async function handleSubmit() {
   const valid = await formRef.value?.validate().catch(() => false); if (!valid) return;
   if (!form.value.businessType) { ElMessage.warning("请选择业务类型"); return; }
+  const invalidLevel = form.value.approvalChain.find(l => !l.approverType || !l.approverValue);
+  if (invalidLevel) { ElMessage.warning("请完整填写每一级审批人"); return; }
   submitLoading.value = true;
   try {
-    const payload = {
+    const payload: Record<string, unknown> = {
       ruleName: form.value.ruleName,
       businessType: form.value.businessType,
+      triggerCondition: {},
       approvalChain: form.value.approvalChain.map((level, index) => ({
-        role: level.role,
-        order: index + 1
+        level: level.level || index + 1,
+        approverType: level.approverType,
+        approverValue: level.approverValue
       })),
       slaHours: form.value.slaHours,
-      escalationLevel: form.value.escalationLevel,
-      description: form.value.description,
-      status: form.value.status
+      escalationLevel: form.value.escalationLevel
     };
     if (isEdit.value && editId.value) {
+      payload.status = form.value.status;
       await updateApprovalRule(editId.value, payload);
       ElMessage.success("更新成功");
     } else {
@@ -266,7 +315,7 @@ async function handleSubmit() {
 
 async function handleToggleStatus(row: any, val: boolean) {
   try {
-    await updateApprovalRule(row.id, { status: val ? "ACTIVE" : "INACTIVE" });
+    await updateApprovalRule(row.id, { status: val ? 1 : 0 });
     ElMessage.success(val ? "已启用" : "已禁用");
     loadList();
   } catch (e: any) {

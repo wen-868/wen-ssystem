@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { AppError } from "../../shared/app-error";
 
 /** t_approval_rule 规则列表行 */
 interface ApprovalRuleRow {
@@ -169,4 +170,33 @@ export async function updateRule(
   }
 
   return { id, ...body };
+}
+
+export async function deleteRule(id: number, tenantId: string) {
+  const existing = await queryOneWithTenant<IdRow>(
+    "SELECT id FROM t_approval_rule WHERE id = ?",
+    [id],
+    tenantId
+  );
+  if (!existing) {
+    return null;
+  }
+
+  // 规则已被审批实例引用时禁止物理删除，保护历史审批数据
+  const usedRow = await queryOneWithTenant<CountTotalRow>(
+    "SELECT COUNT(*) AS total FROM t_approval_instance WHERE rule_id = ?",
+    [id],
+    tenantId
+  );
+  if (Number(usedRow?.total ?? 0) > 0) {
+    throw new AppError("该审批规则已被审批实例使用，无法删除", 400);
+  }
+
+  await queryWithTenant(
+    "DELETE FROM t_approval_rule WHERE id = ?",
+    [id],
+    tenantId
+  );
+
+  return { id };
 }

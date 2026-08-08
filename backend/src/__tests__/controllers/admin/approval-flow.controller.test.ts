@@ -4,6 +4,7 @@ vi.mock("../../../services/admin/approval-flow.service", () => ({
   listRules: vi.fn(),
   createRule: vi.fn(),
   updateRule: vi.fn(),
+  deleteRule: vi.fn(),
 }));
 
 vi.mock("../../../shared/response", () => ({
@@ -21,6 +22,7 @@ import {
   listRules,
   createRule,
   updateRule,
+  deleteRule,
 } from "../../../controllers/admin/approval-flow.controller";
 
 const mockReq = (overrides: any = {}) => ({
@@ -125,5 +127,23 @@ describe("approval-flow.controller", () => {
     const res = mockRes();
     await expect(updateRule(req as any, res as any, vi.fn())).rejects.toThrow();
     expect(approvalFlowService.updateRule).not.toHaveBeenCalled();
+  });
+
+  it("deleteRule - 应删除审批规则", async () => {
+    (approvalFlowService.deleteRule as any).mockResolvedValue({ id: 1 });
+    const req = mockReq({ params: { id: "1" } });
+    const res = mockRes();
+    await deleteRule(req as any, res as any, vi.fn());
+    expect(approvalFlowService.deleteRule).toHaveBeenCalledWith(1, "t1");
+    expect(ok).toHaveBeenCalled();
+  });
+
+  it("deleteRule - 规则不存在应返回404", async () => {
+    (approvalFlowService.deleteRule as any).mockResolvedValue(null);
+    const req = mockReq({ params: { id: "999" } });
+    const res = mockRes();
+    await deleteRule(req as any, res as any, vi.fn());
+    expect(fail).toHaveBeenCalledWith("规则不存在", "404");
+    expect(res.status).toHaveBeenCalledWith(404);
   });
 });

@@ -9,6 +9,7 @@ export const approvalRouter = Router();
 approvalRouter.get("/rules", approvalFlowController.listRules);
 approvalRouter.post("/rules", approvalFlowController.createRule);
 approvalRouter.put("/rules/:id", approvalFlowController.updateRule);
+approvalRouter.delete("/rules/:id", approvalFlowController.deleteRule);
 
 // 审批实例
 approvalRouter.get("/instances", approvalRecordsController.listInstances);

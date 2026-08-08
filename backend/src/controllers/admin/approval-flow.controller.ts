@@ -19,7 +19,7 @@ export const createRule = asyncHandler(async (req, res) => {
   const body = z.object({
     ruleName: z.string().min(1, "规则名称不能为空"),
     businessType: z.enum(["PURCHASE_ORDER", "SALE_RETURN", "PRICE_CHANGE", "CREDIT_LIMIT", "EXPENSE"]),
-    triggerCondition: z.any(),
+    triggerCondition: z.any().default({}),
     approvalChain: z.array(z.object({
       level: z.number().int().positive(),
       approverType: z.enum(["ROLE", "USER", "DEPARTMENT"]),
@@ -55,6 +55,17 @@ export const updateRule = asyncHandler(async (req, res) => {
   }).parse(req.body);
 
   const result = await approvalFlowService.updateRule(id, body, tenantId);
+  if (!result) {
+    res.status(404).json(fail("规则不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const deleteRule = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const id = Number(req.params.id);
+  const result = await approvalFlowService.deleteRule(id, tenantId);
   if (!result) {
     res.status(404).json(fail("规则不存在", "404"));
     return;
