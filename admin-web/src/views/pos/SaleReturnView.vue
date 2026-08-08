@@ -3,7 +3,7 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">销售退货</h2>
-    <p class="page-desc">数据查询与维护</p>
+    <p class="page-desc">销售退货</p>
   </div>
 </div>
 

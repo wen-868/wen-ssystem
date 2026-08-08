@@ -2874,6 +2874,45 @@
 
 **任务卡归档**：`docs/tasks/inbox/ache_r99_03.md` → `docs/tasks/inbox/archive/`
 
+### R99-05 — [P0] 页面 mock 数据接真实接口（订单中心/销售分析/客户分析/报表/组合/素材）
+- **优先级**：P0（页面显示假数据，功能正确性优先）
+- **负责人**：阿澈（全栈：后端接口核查/补齐 + 前端接入）
+- **状态**：🔄 进行中（2026-08-08 凌舟派单）
+- **范围**（R99-03 核查确认）：
+  1. OrderCenterView：今日订单/金额/待处理/异常 = mockStats；渠道/趋势为 mock
+  2. SalesAnalysis：排行数据 Math.random 随机
+  3. CollectionAnalysis：pendingAmount 128000 硬编码 + 趋势随机
+  4. Reports：客户数 128 硬编码
+  5. ProductCombo：组合列表/统计卡/图表 mock（保存与上下架为本地模拟）
+  6. MarketingMaterial：btoa SVG 占位缩略图 → 接真实素材图
+- **任务**：逐页核查后端是否有对应统计/列表接口（无则按现有 service/表补），前端改调真实接口；素材缩略图接真实图片 URL（无素材上传则保留占位但标注）；验证 build + 页面真实数据
+- **任务卡**：`docs/tasks/inbox/ache_r99_05.md`
+
+### R99-04 — [P1] 全局走查收口（P2 system 抽查 + 页头文案 + 一致性）
+- **优先级**：P1（与 R99-05 并行）
+- **负责人**：阿澈（前端设计/开发）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
+- **范围**：
+  1. P2 system 模块 18 页抽查（依赖全局主题的视觉是否正常，异常则修）
+  2. 页头通用副标题「数据查询与维护」8 页按语义微调（CustomerVisits/CreditView/MemberView/DailySettleView/SaleReturnView/StoreControlView/OrderFulfillView/ShiftView）
+  3. 152 页一致性走查（截图对比、风格统一性、明显视觉问题修复）
+- **验证**：admin-web build:check exit 0；走查截图；提交推送
+- **任务卡**：`docs/tasks/inbox/ache_r99_04.md`
+
+**R99-04 完成记录（2026-08-08 阿澈）：**
+
+**① P2 system 18 页抽查：** 18 页全部正常渲染（0 空白/0 横向溢出/0 结构崩溃），截图 `docs/reports/R99-04-走查/system/`；计算样式审计确认全局主题真实生效（主按钮 rgb(63,111,239)、卡片 10px 圆角+阴影、表头 12px/600、Tab/输入框品牌色），表格/卡片/按钮视觉统一
+
+**② 8 页页头文案语义化：** `数据查询与维护` → 客户回访（CustomerVisits）/ 客户赊销（CreditView）/ 会员管理（MemberView）/ 日结对账（DailySettleView）/ 销售退货（SaleReturnView）/ 门店管控（StoreControlView）/ 订单履约（OrderFulfillView）/ 交班管理（ShiftView），每页 1 行改动；`rg "数据查询与维护" admin-web/src` → 0
+
+**③ 152 页一致性走查：** 复用 R99-01/02/03 截图（5+18+107）+ 本轮补充 system/根目录/页头 28 张（`docs/reports/R99-04-走查/{system,root,header}/`）；结构审计 152 页中 125 页含 page-header、105 页含 table-card，无骨架标记的均为 P2/system/根目录/表单页（符合分级设计）；12 模块代表页回归 12/12 正常
+
+**④ 主题修复（抽查发现）：** `styles.css` `.el-tag` 覆盖规则被 element-plus base.css 同特异性后加载覆盖（踩坑 [31] 同型），圆角 4px/内边距 0 9px 未按规范（6px/3px 10px）生效；选择器提特异性 `.el-tag.el-tag` 修复，实测 6px/3px 10px/18px 行高
+
+**验证证据：** `npm run build:check` exit 0（vue-tsc + vite build）；walkthrough-r99-04 28/28、regress 12/12、style-audit 全命中；截图 28 张已归档；commit 见 git log（待凌舟复核推送情况）
+
+**提请凌舟知悉（未越权改）：** ① 审批详情前后端契约不匹配（前端调 `/admin/approval/detail/:id`，后端提供 `/instances/:instanceNo`，404 时 router.back 静默跳回，建议 R99-05 核对审批 4 接口）；② 报表中心硬编码值（Reports.vue 客户数 128 等）属 R99-05 范围；③ 系统页表头白底符合 P2 既定口径。详见 `docs/reports/R99-04-走查总结.md`
+
 ## R95-06 — 结构差异清零专项（17 类型 + 38 漂移表）[阿坚已提交待凌舟复核 — 2026-08-07]
 
 > 用户要求彻底解决 schema 体检剩余差异（不归档），凌舟安排专项清零：

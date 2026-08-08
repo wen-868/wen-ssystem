@@ -3,7 +3,7 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">交接班管理</h2>
-    <p class="page-desc">数据查询与维护</p>
+    <p class="page-desc">交班管理</p>
   </div>
 </div>
 

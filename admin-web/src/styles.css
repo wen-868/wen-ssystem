@@ -831,8 +831,10 @@ a,
   color: var(--gray-0);
 }
 
-/* ── 标签：统一圆角/内边距/字号（浅底彩字） ── */
-.el-tag {
+/* ── 标签：统一圆角/内边距/字号（浅底彩字）
+   双类选择器提特异性（0,2,0），防止 element-plus 按需注入的 base.css
+   以同特异性后加载覆盖（踩坑日志 [31] 同型问题，R99-04 抽查发现） ── */
+.el-tag.el-tag {
   border-radius: var(--tag-radius);
   padding: var(--tag-padding);
   font-size: var(--tag-font-size);
