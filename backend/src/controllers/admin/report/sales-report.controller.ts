@@ -20,10 +20,20 @@ export const getSalesTrend = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+export const getSalesHourlyHeatmap = asyncHandler(async (req, res) => {
+  const result = await salesReportService.getSalesHourlyHeatmap(
+    req.tenantId!,
+    req.query.dateStart as string | undefined,
+    req.query.dateEnd as string | undefined,
+    req.query.storeId ? Number(req.query.storeId) : undefined
+  );
+  res.json(ok(result));
+});
+
 export const getSalesRanking = asyncHandler(async (req, res) => {
   const result = await salesReportService.getSalesRanking(
     req.tenantId!,
-    (req.query.dimension as "product" | "customer" | "staff") || "product",
+    (req.query.dimension as "product" | "customer" | "staff" | "store") || "product",
     req.query.dateStart as string | undefined,
     req.query.dateEnd as string | undefined,
     Number(req.query.limit || 20)

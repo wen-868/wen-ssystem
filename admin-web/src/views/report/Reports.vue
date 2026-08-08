@@ -157,12 +157,18 @@ import { computed, onMounted, ref } from "vue";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Refresh, Search } from "@element-plus/icons-vue";
-import { fetchDailySales, fetchOrderStats, fetchStorePerformance } from "../../api";
+import {
+  fetchReportSalesDaily,
+  fetchReportBusinessOverview,
+  fetchDashboardCustomerStats,
+} from "../../api";
+import { api } from "../../api";
 
 const dateRange = ref<string[]>([]);
 const dailySalesLoading = ref(false);
 const orderStatsLoading = ref(false);
 const storePerformanceLoading = ref(false);
+const customerLoading = ref(false);
 const dailySales = ref<any[]>([]);
 const orderStats = ref<any[]>([]);
 const storePerformance = ref<any[]>([]);
@@ -177,11 +183,22 @@ const totalOrders = computed(() => {
 
 const totalOrderCount = computed(() => totalOrders.value);
 
-const totalCustomers = ref(128);
-const newCustomers = ref(12);
-const salesGrowth = ref(12.5);
-const orderGrowth = ref(8.3);
-const avgGrowth = ref(3.8);
+const totalCustomers = ref(0);
+const newCustomers = ref(0);
+const salesGrowth = ref(0);
+const orderGrowth = ref(0);
+
+// 客单价增长率：由销售日报最近两日客单价计算
+const avgGrowth = computed(() => {
+  const list = dailySales.value;
+  if (list.length < 2) return 0;
+  const last = list[list.length - 1];
+  const prev = list[list.length - 2];
+  const cur = Number(last.salesAmount ?? 0) / (Number(last.orderCount ?? 0) || 1);
+  const pre = Number(prev.salesAmount ?? 0) / (Number(prev.orderCount ?? 0) || 1);
+  if (pre === 0) return 0;
+  return Math.round(((cur - pre) / pre) * 1000) / 10;
+});
 
 const avgOrderValue = computed(() => {
   if (totalOrders.value === 0) return 0;
@@ -217,7 +234,10 @@ function getProgressColor(index: number) {
 async function loadDailySales() {
   dailySalesLoading.value = true;
   try {
-    const data = await fetchDailySales();
+    const data = await fetchReportSalesDaily({
+      dateStart: dateRange.value?.[0],
+      dateEnd: dateRange.value?.[1],
+    });
     dailySales.value = Array.isArray(data) ? data : (data.records || data || []);
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载销售趋势失败");
@@ -229,8 +249,19 @@ async function loadDailySales() {
 async function loadOrderStats() {
   orderStatsLoading.value = true;
   try {
-    const data = await fetchOrderStats();
-    orderStats.value = Array.isArray(data) ? data : (data.records || data || []);
+    const { data } = await api.get("/admin/orders/stats");
+    const list = Array.isArray(data.data) ? data.data : (data.data?.records || []);
+    const statusNames: Record<string, string> = {
+      PENDING_PAYMENT: "待付款",
+      PAID: "已支付",
+      COMPLETED: "已完成",
+      CANCELLED: "已取消",
+      CLOSED: "已关闭",
+    };
+    orderStats.value = list.map((s: any) => ({
+      statusName: statusNames[s.status] || s.status || "-",
+      count: Number(s.count ?? 0),
+    }));
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载订单统计失败");
   } finally {
@@ -241,8 +272,14 @@ async function loadOrderStats() {
 async function loadStorePerformance() {
   storePerformanceLoading.value = true;
   try {
-    const data = await fetchStorePerformance();
-    storePerformance.value = Array.isArray(data) ? data : (data.records || data || []);
+    const { data } = await api.get("/admin/store-sales-performance");
+    const list = Array.isArray(data.data) ? data.data : (data.data?.records || []);
+    storePerformance.value = list.map((s: any) => ({
+      storeId: s.storeId,
+      storeName: s.storeName || "-",
+      salesAmount: Number(s.totalSales ?? 0),
+      orderCount: Number(s.billCount ?? 0),
+    }));
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载门店业绩失败");
   } finally {
@@ -250,10 +287,30 @@ async function loadStorePerformance() {
   }
 }
 
+// 客户数/新增/增长率：来自客户统计 + 经营概览
+async function loadCustomerAndGrowth() {
+  customerLoading.value = true;
+  try {
+    const [customer, overview] = await Promise.all([
+      fetchDashboardCustomerStats(),
+      fetchReportBusinessOverview(),
+    ]);
+    totalCustomers.value = Number(customer?.totalCount ?? 0);
+    newCustomers.value = Number(customer?.monthlyNewCount ?? 0);
+    salesGrowth.value = Number(overview?.salesGrowthRate ?? 0);
+    orderGrowth.value = Number(overview?.orderGrowthRate ?? 0);
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "加载客户/增长率失败");
+  } finally {
+    customerLoading.value = false;
+  }
+}
+
 function loadAllData() {
   loadDailySales();
   loadOrderStats();
   loadStorePerformance();
+  loadCustomerAndGrowth();
 }
 
 onMounted(() => {

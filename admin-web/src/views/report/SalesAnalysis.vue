@@ -50,7 +50,7 @@
       <el-tab-pane label="销售趋势" name="trend">
         <el-row :gutter="16" style="margin-bottom: 12px">
           <el-col :span="6">
-            <el-radio-group v-model="trendGranularity" size="small" @change="initTrendChart">
+            <el-radio-group v-model="trendGranularity" size="small" @change="onTrendGranularityChange">
               <el-radio-button value="day">日</el-radio-button>
               <el-radio-button value="week">周</el-radio-button>
               <el-radio-button value="month">月</el-radio-button>
@@ -225,20 +225,73 @@ import { CHART_COLORS } from "@/styles/theme";
 import { Download, Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
+import {
+  fetchReportSalesTrend,
+  fetchReportSalesHourlyHeatmap,
+  fetchReportSalesRanking,
+  fetchReportSalesDaily,
+  fetchReportStaffPerformance,
+} from '@/api'
+import { fetchStores } from '@/api/common'
 
 // ─── 筛选状态 ───
 const datePreset = ref('day')
-const singleDate = ref('2026-06-30')
+const singleDate = ref(new Date().toISOString().slice(0, 10))
 const customDateRange = ref<string[]>([])
 const selectedStores = ref<number[]>([])
-const storeOptions = ref(
-  Array.from({ length: 10 }, (_, i) => ({ label: `门店${i + 1}`, value: i + 1 }))
-)
+const storeOptions = ref<{ label: string; value: number }[]>([])
+
+// 根据预设日期计算查询区间（day/week/month/custom）
+function getDateRange(): { startDate?: string; endDate?: string } {
+  if (datePreset.value === 'custom') {
+    if (customDateRange.value?.length === 2) {
+      return { startDate: customDateRange.value[0], endDate: customDateRange.value[1] }
+    }
+    return {}
+  }
+  const d = new Date(singleDate.value + 'T00:00:00')
+  if (Number.isNaN(d.getTime())) return {}
+  const fmt = (dt: Date) => {
+    const y = dt.getFullYear()
+    const m = String(dt.getMonth() + 1).padStart(2, '0')
+    const day = String(dt.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+  if (datePreset.value === 'day') {
+    return { startDate: fmt(d), endDate: fmt(d) }
+  }
+  if (datePreset.value === 'week') {
+    const offset = (d.getDay() + 6) % 7 // 周一为一周起点
+    const start = new Date(d)
+    start.setDate(d.getDate() - offset)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    return { startDate: fmt(start), endDate: fmt(end) }
+  }
+  // month
+  const start = new Date(d.getFullYear(), d.getMonth(), 1)
+  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+  return { startDate: fmt(start), endDate: fmt(end) }
+}
+
+async function loadStores() {
+  try {
+    const data = await fetchStores()
+    const records = Array.isArray(data) ? data : (data?.records || data?.list || [])
+    storeOptions.value = records.map((s: any) => ({ label: s.name, value: Number(s.id) }))
+  } catch {
+    storeOptions.value = []
+  }
+}
 
 function onDatePresetChange() {
   if (datePreset.value !== 'custom') {
     refreshAll()
   }
+}
+
+function onTrendGranularityChange() {
+  loadTrend().then(initTrendChart)
 }
 
 const activeTab = ref('trend')
@@ -252,31 +305,40 @@ function formatMoney(v: number) {
 const trendGranularity = ref('day')
 const trendChartRef = ref<HTMLDivElement | null>(null)
 let trendChart: echarts.ECharts | null = null
+const trendLoading = ref(false)
 
-const trendData = computed(() => {
-  if (trendGranularity.value === 'day') {
-    return Array.from({ length: 30 }, (_, i) => ({
-      label: `06-${String(i + 1).padStart(2, '0')}`,
-      salesAmount: Math.floor(Math.random() * 50000 + 30000),
-      orderCount: Math.floor(Math.random() * 30 + 20),
-      avgOrderValue: Math.floor(Math.random() * 2000 + 1500)
-    }))
-  } else if (trendGranularity.value === 'week') {
-    return ['第1周', '第2周', '第3周', '第4周'].map(l => ({
-      label: l,
-      salesAmount: Math.floor(Math.random() * 300000 + 200000),
-      orderCount: Math.floor(Math.random() * 200 + 150),
-      avgOrderValue: Math.floor(Math.random() * 2000 + 1500)
-    }))
-  } else {
-    return ['1月', '2月', '3月', '4月', '5月', '6月'].map(l => ({
-      label: l,
-      salesAmount: Math.floor(Math.random() * 1200000 + 800000),
-      orderCount: Math.floor(Math.random() * 800 + 600),
-      avgOrderValue: Math.floor(Math.random() * 2000 + 1500)
-    }))
+const trendData = ref<{ label: string; salesAmount: number; orderCount: number; avgOrderValue: number }[]>([])
+
+async function loadTrend() {
+  trendLoading.value = true
+  try {
+    const data = await fetchReportSalesTrend({ granularity: trendGranularity.value })
+    const list = Array.isArray(data) ? data : (data?.list || data?.records || [])
+    trendData.value = list.map((d: any) => {
+      const salesAmount = Number(d.salesAmount ?? 0)
+      const orderCount = Number(d.orderCount ?? 0)
+      return {
+        label: formatPeriodLabel(d.period, trendGranularity.value),
+        salesAmount,
+        orderCount,
+        avgOrderValue: orderCount > 0 ? Math.round((salesAmount / orderCount) * 100) / 100 : 0,
+      }
+    })
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载销售趋势失败')
+    trendData.value = []
+  } finally {
+    trendLoading.value = false
   }
-})
+}
+
+function formatPeriodLabel(period: string | undefined, granularity: string): string {
+  const p = String(period || '')
+  if (!p) return '-'
+  if (granularity === 'day') return p.slice(5) // MM-DD
+  if (granularity === 'week') return `第${p.slice(-2).replace(/^0/, '')}周`
+  return p // YYYY-MM
+}
 
 function initTrendChart() {
   if (!trendChartRef.value) return
@@ -303,18 +365,35 @@ function initTrendChart() {
 // ─── Tab 2: 时段热力图 ───
 const heatmapChartRef = ref<HTMLDivElement | null>(null)
 let heatmapChart: echarts.ECharts | null = null
+const heatmapLoading = ref(false)
 
-const heatmapData = computed(() => {
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00')
-  const days = Array.from({ length: 30 }, (_, i) => `06-${String(i + 1).padStart(2, '0')}`)
-  const data: [number, number, number][] = []
-  for (let h = 0; h < 24; h++) {
-    for (let d = 0; d < 30; d++) {
-      data.push([d, h, Math.floor(Math.random() * 10000 + 500)])
-    }
-  }
-  return { hours, days, data }
+const heatmapData = ref<{ hours: string[]; days: string[]; data: [number, number, number][] }>({
+  hours: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00'),
+  days: [],
+  data: [],
 })
+
+async function loadHeatmap() {
+  heatmapLoading.value = true
+  try {
+    const range = getDateRange()
+    const data = await fetchReportSalesHourlyHeatmap({
+      dateStart: range.startDate,
+      dateEnd: range.endDate,
+      storeId: selectedStores.value.length === 1 ? selectedStores.value[0] : undefined,
+    })
+    heatmapData.value = {
+      hours: data?.hours || heatmapData.value.hours,
+      days: data?.days || [],
+      data: data?.data || [],
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载时段热力图失败')
+    heatmapData.value = { hours: heatmapData.value.hours, days: [], data: [] }
+  } finally {
+    heatmapLoading.value = false
+  }
+}
 
 function initHeatmapChart() {
   if (!heatmapChartRef.value) return
@@ -352,44 +431,72 @@ function initHeatmapChart() {
 }
 
 // ─── Tab 3: 商品排行 ───
-const productRanking = ref(
-  Array.from({ length: 20 }, (_, i) => ({
-    productName: `商品${i + 1}`,
-    categoryName: ['白酒', '红酒', '啤酒', '洋酒'][i % 4],
-    salesCount: Math.floor(Math.random() * 500 + 50),
-    salesAmount: Math.floor(Math.random() * 50000 + 5000),
-    grossProfit: Math.floor(Math.random() * 15000 + 2000),
-    profitRate: Number((Math.random() * 20 + 20).toFixed(1))
-  }))
-)
+const productRanking = ref<any[]>([])
+const rankingLoading = ref(false)
 
-function exportProductRank() {
-  ElMessage.success('导出功能暂未实现（使用 mock 数据）')
+async function loadRankings() {
+  rankingLoading.value = true
+  try {
+    const range = getDateRange()
+    const [product, customer, store, staff] = await Promise.all([
+      fetchReportSalesRanking({ dimension: 'product', dateStart: range.startDate, dateEnd: range.endDate, limit: 20 }),
+      fetchReportSalesRanking({ dimension: 'customer', dateStart: range.startDate, dateEnd: range.endDate, limit: 20 }),
+      fetchReportSalesRanking({ dimension: 'store', dateStart: range.startDate, dateEnd: range.endDate, limit: 10 }),
+      fetchReportStaffPerformance({ dateStart: range.startDate, dateEnd: range.endDate }),
+    ])
+    const asList = (d: any) => (Array.isArray(d) ? d : (d?.list || d?.records || []))
+    productRanking.value = asList(product).map((r: any) => ({
+      productName: r.name || '-',
+      categoryName: '-',
+      salesCount: Number(r.totalQty ?? 0),
+      salesAmount: Number(r.totalAmount ?? 0),
+      // 毛利/毛利率无数据源（t_sale_bill_item 无成本字段），显示 0 而非随机数
+      grossProfit: 0,
+      profitRate: 0,
+    }))
+    customerRanking.value = asList(customer).map((r: any) => {
+      const totalAmount = Number(r.totalAmount ?? 0)
+      const orderCount = Number(r.orderCount ?? 0)
+      return {
+        customerName: r.name || r.mobile || '-',
+        totalAmount,
+        orderCount,
+        avgOrderValue: orderCount > 0 ? Math.round((totalAmount / orderCount) * 100) / 100 : 0,
+        lastOrderTime: r.lastOrderTime ? String(r.lastOrderTime).replace('T', ' ').slice(0, 19) : '-',
+      }
+    })
+    storeRankingData.value = asList(store).map((r: any) => ({
+      storeName: r.name || '-',
+      salesAmount: Number(r.totalAmount ?? 0),
+      orderCount: Number(r.orderCount ?? 0),
+      grossProfit: 0,
+    }))
+    salesmanRanking.value = asList(staff).map((r: any) => ({
+      salesmanName: r.name || '-',
+      salesAmount: Number(r.totalAmount ?? 0),
+      orderCount: Number(r.orderCount ?? 0),
+      grossProfit: 0,
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载排行数据失败')
+  } finally {
+    rankingLoading.value = false
+  }
 }
 
-// ─── Tab 4: 客户排行 ───
-const customerRanking = ref(
-  Array.from({ length: 20 }, (_, i) => ({
-    customerName: `客户${i + 1}`,
-    totalAmount: Math.floor(Math.random() * 100000 + 10000),
-    orderCount: Math.floor(Math.random() * 50 + 10),
-    avgOrderValue: Math.floor(Math.random() * 3000 + 1000),
-    lastOrderTime: `2026-06-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')} ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:00:00`
-  }))
-)
+function exportProductRank() {
+  // TODO: 排行导出可接入后端 POST /admin/reports/export（report_type=sales_ranking）
+  ElMessage.info('导出功能暂未实现')
+}
+
+// ─── Tab 4: 客户排行（数据在 loadRankings 中加载） ───
+const customerRanking = ref<any[]>([])
 
 // ─── Tab 5: 门店排行 ───
 const storeRankChartRef = ref<HTMLDivElement | null>(null)
 let storeRankChart: echarts.ECharts | null = null
 
-const storeRankingData = ref(
-  Array.from({ length: 10 }, (_, i) => ({
-    storeName: `门店${i + 1}`,
-    salesAmount: Math.floor(Math.random() * 50000 + 10000),
-    orderCount: Math.floor(Math.random() * 50 + 10),
-    grossProfit: Math.floor(Math.random() * 15000 + 3000)
-  }))
-)
+const storeRankingData = ref<any[]>([])
 
 function initStoreRankChart() {
   if (!storeRankChartRef.value) return
@@ -414,14 +521,7 @@ function initStoreRankChart() {
 const salesmanChartRef = ref<HTMLDivElement | null>(null)
 let salesmanChart: echarts.ECharts | null = null
 
-const salesmanRanking = ref(
-  Array.from({ length: 10 }, (_, i) => ({
-    salesmanName: `业务员${i + 1}`,
-    salesAmount: Math.floor(Math.random() * 40000 + 8000),
-    orderCount: Math.floor(Math.random() * 40 + 10),
-    grossProfit: Math.floor(Math.random() * 12000 + 2000)
-  }))
-)
+const salesmanRanking = ref<any[]>([])
 
 function initSalesmanChart() {
   if (!salesmanChartRef.value) return
@@ -443,24 +543,69 @@ function initSalesmanChart() {
 }
 
 // ─── Tab 7: 同期对比 ───
-const compareData = ref([
-  { metric: '销售额', currentValue: '¥125,600', previousValue: '¥111,600', changeAmount: '+¥14,000', changeRate: 12.5 },
-  { metric: '订单数', currentValue: '48', previousValue: '44', changeAmount: '+4', changeRate: 9.1 },
-  { metric: '客单价', currentValue: '¥2,617', previousValue: '¥2,536', changeAmount: '+¥81', changeRate: 3.2 },
-  { metric: '毛利', currentValue: '¥38,200', previousValue: '¥33,200', changeAmount: '+¥5,000', changeRate: 15.1 }
-])
+const fmtMoney = (v: number) => '¥' + v.toLocaleString('zh-CN')
+
+// 基于销售趋势数据计算「本期 vs 上期」（前半段为上期、后半段为本期）
+const compareData = computed(() => {
+  const list = trendData.value
+  const half = Math.floor(list.length / 2)
+  const current = list.slice(half)
+  const previous = list.slice(0, half)
+  const sum = (arr: { salesAmount: number; orderCount: number; avgOrderValue: number }[], key: 'salesAmount' | 'orderCount') =>
+    arr.reduce((s, d) => s + (d[key] || 0), 0)
+  const curAmount = sum(current, 'salesAmount')
+  const prevAmount = sum(previous, 'salesAmount')
+  const curOrders = sum(current, 'orderCount')
+  const prevOrders = sum(previous, 'orderCount')
+  const curAvg = current.length > 0 ? curAmount / current.length : 0
+  const prevAvg = previous.length > 0 ? prevAmount / previous.length : 0
+  const calc = (cur: number, prev: number) => {
+    const change = cur - prev
+    const rate = prev !== 0 ? Math.round((change / prev) * 1000) / 10 : (cur > 0 ? 100 : 0)
+    return { change, rate }
+  }
+  const amount = calc(curAmount, prevAmount)
+  const orders = calc(curOrders, prevOrders)
+  const avg = calc(curAvg, prevAvg)
+  const sign = (v: number) => (v >= 0 ? '+' : '')
+  return [
+    { metric: '销售额', currentValue: fmtMoney(curAmount), previousValue: fmtMoney(prevAmount), changeAmount: `${sign(amount.change)}${fmtMoney(amount.change)}`, changeRate: amount.rate },
+    { metric: '订单数', currentValue: String(curOrders), previousValue: String(prevOrders), changeAmount: `${sign(orders.change)}${orders.change}`, changeRate: orders.rate },
+    { metric: '客单价', currentValue: fmtMoney(curAvg), previousValue: fmtMoney(prevAvg), changeAmount: `${sign(avg.change)}${fmtMoney(avg.change)}`, changeRate: avg.rate },
+    // 毛利暂无数据源（销售明细无成本字段），显示 0 而非随机数
+    { metric: '毛利', currentValue: fmtMoney(0), previousValue: fmtMoney(0), changeAmount: '+¥0', changeRate: 0 },
+  ]
+})
 
 // ─── Tab 8: 销售日报 ───
-const dailyReportData = ref(
-  Array.from({ length: 30 }, (_, i) => ({
-    date: `2026-06-${String(i + 1).padStart(2, '0')}`,
-    salesAmount: Math.floor(Math.random() * 50000 + 30000),
-    orderCount: Math.floor(Math.random() * 30 + 20),
-    avgOrderValue: Math.floor(Math.random() * 2000 + 1500),
-    refundAmount: Math.floor(Math.random() * 3000 + 500),
-    refundRate: Number((Math.random() * 5 + 1).toFixed(1))
-  }))
-)
+const dailyReportData = ref<any[]>([])
+const dailyReportLoading = ref(false)
+
+async function loadDailyReport() {
+  dailyReportLoading.value = true
+  try {
+    const range = getDateRange()
+    const data = await fetchReportSalesDaily({ dateStart: range.startDate, dateEnd: range.endDate })
+    const list = Array.isArray(data) ? data : (data?.list || data?.records || [])
+    dailyReportData.value = list.map((d: any) => {
+      const salesAmount = Number(d.salesAmount ?? 0)
+      const refundAmount = Number(d.returnAmount ?? 0)
+      return {
+        date: String(d.date).slice(0, 10),
+        salesAmount,
+        orderCount: Number(d.orderCount ?? 0),
+        avgOrderValue: Number(d.avgOrderAmount ?? 0),
+        refundAmount,
+        refundRate: salesAmount > 0 ? Math.round((refundAmount / salesAmount) * 1000) / 10 : 0,
+      }
+    })
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载销售日报失败')
+    dailyReportData.value = []
+  } finally {
+    dailyReportLoading.value = false
+  }
+}
 
 const dailyReportPage = ref(1)
 const paginatedDailyReport = computed(() => {
@@ -497,11 +642,26 @@ function disposeAllCharts() {
 }
 
 function refreshAll() {
-  onTabChange(activeTab.value)
+  loadTrend().then(() => {
+    if (activeTab.value === 'trend') initTrendChart()
+  })
+  loadHeatmap().then(() => {
+    if (activeTab.value === 'heatmap') initHeatmapChart()
+  })
+  loadRankings().then(() => {
+    if (activeTab.value === 'storeRank') initStoreRankChart()
+    if (activeTab.value === 'salesmanRank') initSalesmanChart()
+  })
+  loadDailyReport()
+}
+
+async function loadAllData() {
+  await Promise.all([loadStores(), loadTrend(), loadHeatmap(), loadRankings(), loadDailyReport()])
+  initTrendChart()
 }
 
 onMounted(() => {
-  initTrendChart()
+  loadAllData()
   window.addEventListener('resize', handleResize)
 })
 

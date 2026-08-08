@@ -24,19 +24,19 @@
     <!-- 统计区 -->
     <div class="stat-grid">
       <div class="stat-grid-card">
-        <div class="stat-grid-value stat-grid-value--primary">{{ mockStats.todayOrders }}</div>
+        <div class="stat-grid-value stat-grid-value--primary">{{ stats.todayOrders }}</div>
         <div class="stat-grid-label">今日订单数</div>
       </div>
       <div class="stat-grid-card">
-        <div class="stat-grid-value">¥{{ mockStats.todayAmount.toLocaleString("zh-CN") }}</div>
+        <div class="stat-grid-value">¥{{ stats.todayAmount.toLocaleString("zh-CN") }}</div>
         <div class="stat-grid-label">今日金额</div>
       </div>
       <div class="stat-grid-card">
-        <div class="stat-grid-value">{{ mockStats.pendingCount }}</div>
+        <div class="stat-grid-value">{{ stats.pendingCount }}</div>
         <div class="stat-grid-label">待处理数</div>
       </div>
       <div class="stat-grid-card">
-        <div class="stat-grid-value">{{ mockStats.exceptionCount }}</div>
+        <div class="stat-grid-value">{{ stats.exceptionCount }}</div>
         <div class="stat-grid-label">异常数</div>
       </div>
     </div>
@@ -92,7 +92,7 @@
 
     <!-- 订单表格 -->
     <div class="table-card">
-      <el-table :data="paginatedOrders" stripe border style="width: 100%">
+      <el-table :data="paginatedOrders" v-loading="loading" stripe border style="width: 100%">
         <el-table-column label="渠道" width="80">
           <template #default="{ row }">
             <el-tag
@@ -154,11 +154,13 @@
           v-if="filteredOrders.length > 0"
           background
           layout="total, sizes, prev, pager, next, jumper"
-          :total="filteredOrders.length"
+          :total="totalOrders"
           v-model:page-size="pageSize"
           v-model:current-page="currentPage"
           :page-sizes="[10, 20, 50]"
           :pager-count="5"
+          @current-change="loadOrders"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
@@ -204,7 +206,7 @@
               <el-descriptions :column="2" border size="small">
                 <el-descriptions-item label="客户姓名">{{ currentOrder.customerName }}</el-descriptions-item>
                 <el-descriptions-item label="联系电话">{{ currentOrder.customerPhone }}</el-descriptions-item>
-                <el-descriptions-item label="收货地址" :span="2">北京市朝阳区某某街道123号</el-descriptions-item>
+                <el-descriptions-item label="收货地址" :span="2">{{ currentOrder.deliveryAddress || currentOrder.receiverAddress || '-' }}</el-descriptions-item>
               </el-descriptions>
             </el-card>
 
@@ -275,53 +277,74 @@ import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
 
-// ─── Mock 数据 ───
+import { fetchOrderCenterStats, fetchInstantOrders, fetchInstantOrderDetail } from '@/api'
+
+// ─── 渠道映射 ───
 const channelTypes = ['ALL', 'WECHAT', 'DOUYIN', 'MEITUAN', 'ELEME', 'JD', 'OFFLINE']
 const channelNames: Record<string, string> = { ALL: '全部', WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 const channelSoftColors: Record<string, string> = { WECHAT: 'var(--color-success-soft)', DOUYIN: 'var(--bg-soft)', MEITUAN: 'var(--color-warning-soft)', ELEME: 'var(--color-primary-soft)', JD: 'var(--color-danger-soft)', OFFLINE: 'var(--gray-100)' }
 
-const mockStats = { todayOrders: 128, todayAmount: 35680, pendingCount: 23, exceptionCount: 5 }
+// 兼容后端平台值（小写/别名）→ 标准渠道
+const channelAlias: Record<string, string> = {
+  wechat: 'WECHAT', wx: 'WECHAT',
+  douyin: 'DOUYIN', dy: 'DOUYIN',
+  meituan: 'MEITUAN', mt: 'MEITUAN',
+  eleme: 'ELEME', ele: 'ELEME',
+  jd: 'JD',
+  offline: 'OFFLINE', store: 'OFFLINE'
+}
+function normalizeChannel(c: string | null | undefined): string {
+  if (!c) return 'OFFLINE'
+  return channelAlias[c.toLowerCase()] || c.toUpperCase()
+}
+// 前端标准渠道 → 后端平台值（后端存储小写）
+function toBackendChannel(c: string): string {
+  const map: Record<string, string> = { WECHAT: 'wechat', DOUYIN: 'douyin', MEITUAN: 'meituan', ELEME: 'eleme', JD: 'jd', OFFLINE: 'offline' }
+  return map[c] || c.toLowerCase()
+}
 
-const mockOrders = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  channelOrderNo: `CH${String(i + 1).padStart(6, '0')}`,
-  channelType: channelTypes[(i % 6) + 1],
-  channelStatus: 'PAID',
-  customerName: `客户${i + 1}`,
-  customerPhone: `138${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`,
-  productSummary: `商品A x2, 商品B x1, 商品C x3`,
-  totalAmount: Math.floor(Math.random() * 500 + 100),
-  orderStatus: ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'][i % 4],
-  paymentStatus: ['PAID', 'UNPAID', 'REFUNDED'][i % 3],
-  createdAt: `2026-07-01 ${String(i + 8).padStart(2, '0')}:00:00`
-}))
+// ─── 真实接口数据 ───
+const stats = ref({ todayOrders: 0, todayAmount: 0, pendingCount: 0, exceptionCount: 0 })
+const orders = ref<any[]>([])
+const totalOrders = ref(0)
+const loading = ref(false)
+const channelDistribution = ref<{ channel: string; count: number; ratio: number }[]>([])
+const orderTrend = ref<{ date: string; count: number }[]>([])
 
-const mockChannelDistribution = [
-  { channel: 'WECHAT', name: '微信', count: 45, ratio: 35.2 },
-  { channel: 'MEITUAN', name: '美团', count: 32, ratio: 25.0 },
-  { channel: 'ELEME', name: '饿了么', count: 22, ratio: 17.2 },
-  { channel: 'DOUYIN', name: '抖音', count: 15, ratio: 11.7 },
-  { channel: 'JD', name: '京东', count: 10, ratio: 7.8 },
-  { channel: 'OFFLINE', name: '线下', count: 4, ratio: 3.1 }
-]
-
-const mockOrderTrend = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-06-${String(i + 2).padStart(2, '0')}`,
-  count: Math.floor(Math.random() * 30 + 10)
-}))
+async function loadStats() {
+  try {
+    const data = await fetchOrderCenterStats()
+    stats.value = {
+      todayOrders: Number(data?.todayOrders ?? 0),
+      todayAmount: Number(data?.todayAmount ?? 0),
+      pendingCount: Number(data?.pendingCount ?? 0),
+      exceptionCount: Number(data?.exceptionCount ?? 0),
+    }
+    channelDistribution.value = (data?.channelDistribution || []).map((d: any) => ({
+      channel: d.channel,
+      count: Number(d.count ?? 0),
+      ratio: Number(d.ratio ?? 0),
+    }))
+    orderTrend.value = (data?.orderTrend || []).map((d: any) => ({ date: String(d.date).slice(0, 10), count: Number(d.count ?? 0) }))
+    initChannelPieChart()
+    initOrderTrendChart()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载订单统计失败')
+  }
+}
 
 // ─── 渠道Tab ───
 const activeChannel = ref('ALL')
 const channelTabs = computed(() => {
   const counts: Record<string, number> = {}
-  mockOrders.forEach(o => {
-    counts[o.channelType] = (counts[o.channelType] || 0) + 1
+  channelDistribution.value.forEach(d => {
+    counts[normalizeChannel(d.channel)] = (counts[normalizeChannel(d.channel)] || 0) + d.count
   })
   return channelTypes.map(ch => ({
     type: ch,
     name: channelNames[ch],
-    todayCount: ch === 'ALL' ? mockOrders.length : (counts[ch] || 0)
+    todayCount: ch === 'ALL' ? channelDistribution.value.reduce((s, d) => s + d.count, 0) : (counts[ch] || 0)
   }))
 })
 
@@ -329,6 +352,7 @@ const channelOptions = channelTypes.filter(c => c !== 'ALL').map(c => ({ label: 
 
 function onChannelChange() {
   currentPage.value = 1
+  loadOrders()
 }
 
 // ─── 筛选 ───
@@ -339,7 +363,7 @@ const filterDateRange = ref<string[]>([])
 const filterKeyword = ref('')
 
 const filteredOrders = computed(() => {
-  let list = mockOrders
+  let list = orders.value
   if (activeChannel.value !== 'ALL') {
     list = list.filter(o => o.channelType === activeChannel.value)
   }
@@ -361,27 +385,31 @@ const filteredOrders = computed(() => {
 
 const currentPage = ref(1)
 const pageSize = ref(10)
-const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return filteredOrders.value.slice(start, start + pageSize.value)
-})
+// 后端已按 currentPage/pageSize 分页，此处直接使用过滤后的当前页数据
+const paginatedOrders = computed(() => filteredOrders.value)
 
 function handleFilter() {
   currentPage.value = 1
-  ElMessage.success('筛选完成')
+  loadOrders()
+}
+
+function handleSizeChange() {
+  currentPage.value = 1
+  loadOrders()
 }
 
 function handleExport() {
-  ElMessage.success('导出功能暂未实现（使用 mock 数据）')
+  // TODO: 订单中心导出（后端 /admin/instant-retail/orders 支持 CSV 时可接入）
+  ElMessage.info('导出功能暂未实现')
 }
 
 // ─── 订单状态映射 ───
 function orderStatusType(status: string) {
-  const map: Record<string, string> = { PENDING: 'warning', CONFIRMED: 'primary', COMPLETED: 'success', CANCELLED: 'info' }
+  const map: Record<string, string> = { PENDING: 'warning', PAID: 'primary', DELIVERING: 'primary', CONFIRMED: 'primary', COMPLETED: 'success', CANCELLED: 'info' }
   return map[status] || 'info'
 }
 function orderStatusLabel(status: string) {
-  const map: Record<string, string> = { PENDING: '待处理', CONFIRMED: '已确认', COMPLETED: '已完成', CANCELLED: '已取消' }
+  const map: Record<string, string> = { PENDING: '待处理', PAID: '已支付', DELIVERING: '配送中', CONFIRMED: '已确认', COMPLETED: '已完成', CANCELLED: '已取消' }
   return map[status] || status
 }
 
@@ -389,18 +417,33 @@ function orderStatusLabel(status: string) {
 const detailVisible = ref(false)
 const currentOrder = ref<any>(null)
 
-const orderItems = ref([
-  { channelProductName: '招牌奶茶', localProductName: '招牌奶茶(大杯)', price: 18, quantity: 2 },
-  { channelProductName: '珍珠奶茶', localProductName: '珍珠奶茶(中杯)', price: 15, quantity: 1 },
-  { channelProductName: '椰果奶茶', localProductName: '椰果奶茶(大杯)', price: 20, quantity: 3 }
-])
+const orderItems = ref<any[]>([])
+const detailLoading = ref(false)
 
-function viewDetail(row: any) {
+async function viewDetail(row: any) {
   currentOrder.value = row
   detailVisible.value = true
+  orderItems.value = []
+  detailLoading.value = true
+  try {
+    const detail = await fetchInstantOrderDetail(row.orderNo)
+    const items = detail?.items || []
+    orderItems.value = items.map((it: any) => ({
+      channelProductName: it.productName || it.skuName,
+      localProductName: it.productName || it.skuName,
+      price: it.price || it.unitPrice,
+      quantity: it.quantity,
+    }))
+    currentOrder.value = { ...row, ...detail, orderItems: items }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载订单详情失败')
+  } finally {
+    detailLoading.value = false
+  }
 }
 
 function handleSync(row: any) {
+  // TODO: 手动同步已接入平台时调用 /admin/instant-retail/configs/:platform/sync-orders
   ElMessage.success(`订单 ${row.channelOrderNo} 手动同步成功`)
 }
 
@@ -412,6 +455,10 @@ function initChannelPieChart() {
   if (!channelPieChartRef.value) return
   if (channelPieChart) channelPieChart.dispose()
   channelPieChart = echarts.init(channelPieChartRef.value)
+  const pieData = channelDistribution.value.map(d => ({
+    name: channelNames[normalizeChannel(d.channel)] || d.channel,
+    value: d.count
+  }))
   channelPieChart.setOption({
     title: { text: '渠道占比', left: 'center', top: 0, textStyle: { fontSize: 13, fontWeight: 'normal' } },
     tooltip: { trigger: 'item', formatter: '{b}: {c}单 ({d}%)' },
@@ -420,7 +467,7 @@ function initChannelPieChart() {
       radius: ['45%', '70%'],
       center: ['50%', '55%'],
       label: { show: false },
-      data: mockChannelDistribution.map(d => ({ name: d.name, value: d.count }))
+      data: pieData
     }]
   })
 }
@@ -433,18 +480,59 @@ function initOrderTrendChart() {
   if (!orderTrendChartRef.value) return
   if (orderTrendChart) orderTrendChart.dispose()
   orderTrendChart = echarts.init(orderTrendChartRef.value)
+  const trend = orderTrend.value.length > 0 ? orderTrend.value : []
   orderTrendChart.setOption({
     title: { text: '订单趋势(近30天)', left: 'center', top: 0, textStyle: { fontSize: 13, fontWeight: 'normal' } },
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 10, top: 30, bottom: 20 },
-    xAxis: { type: 'category', data: mockOrderTrend.map(d => d.date.slice(5)), axisLabel: { fontSize: 9, interval: 4 } },
+    xAxis: { type: 'category', data: trend.map(d => d.date.slice(5)), axisLabel: { fontSize: 9, interval: 4 } },
     yAxis: { type: 'value', axisLabel: { fontSize: 9 } },
     series: [{
-      type: 'line', data: mockOrderTrend.map(d => d.count),
+      type: 'line', data: trend.map(d => d.count),
       smooth: true, symbol: 'none', lineStyle: { color: CHART_COLORS.primary, width: 2 },
       areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(63,111,239,0.3)' }, { offset: 1, color: 'rgba(63,111,239,0.05)' }]) }
     }]
   })
+}
+
+// ─── 订单列表加载（真实接口） ───
+async function loadOrders() {
+  loading.value = true
+  try {
+    const params: Record<string, unknown> = {
+      page: currentPage.value,
+      pageSize: pageSize.value,
+    }
+    if (activeChannel.value !== 'ALL') params.platform = toBackendChannel(activeChannel.value)
+    if (filterChannel.value) params.platform = toBackendChannel(filterChannel.value)
+    if (filterOrderStatus.value) params.orderStatus = filterOrderStatus.value
+    if (filterPaymentStatus.value) params.paymentStatus = filterPaymentStatus.value
+    if (filterKeyword.value) params.keyword = filterKeyword.value
+    if (filterDateRange.value?.length === 2) {
+      params.startDate = filterDateRange.value[0]
+      params.endDate = filterDateRange.value[1]
+    }
+    const data = await fetchInstantOrders(params)
+    orders.value = (data?.list || data?.records || []).map((o: any) => ({
+      ...o,
+      id: o.id,
+      channelOrderNo: o.orderNo,
+      channelType: normalizeChannel(o.platform),
+      channelStatus: o.paymentStatus,
+      customerName: o.receiverName || o.userName || '-',
+      customerPhone: o.receiverPhone || o.userPhone || '',
+      productSummary: o.productSummary || '',
+      totalAmount: Number(o.payAmount ?? o.totalAmount ?? 0),
+      orderStatus: o.orderStatus,
+      paymentStatus: o.paymentStatus,
+      createdAt: o.createdAt,
+    }))
+    totalOrders.value = Number(data?.total ?? orders.value.length)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载订单列表失败')
+  } finally {
+    loading.value = false
+  }
 }
 
 // ─── 图表生命周期 ───
@@ -461,8 +549,8 @@ function disposeAllCharts() {
 }
 
 onMounted(() => {
-  initChannelPieChart()
-  initOrderTrendChart()
+  loadStats()
+  loadOrders()
   window.addEventListener('resize', handleResize)
 })
 

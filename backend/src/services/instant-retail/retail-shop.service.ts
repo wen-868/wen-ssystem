@@ -299,13 +299,21 @@ export async function deleteRetailProduct(id: number, tenantId: string) {
 
 export async function listRetailOrders(params: {
   storeId?: number; tenantId: string; page: number; pageSize: number;
-  status?: string; orderNo?: string; startDate?: string; endDate?: string;
+  status?: string; paymentStatus?: string; platform?: string; keyword?: string;
+  orderNo?: string; startDate?: string; endDate?: string;
 }) {
-  const { storeId, tenantId, page, pageSize, status, orderNo, startDate, endDate } = params;
+  const { storeId, tenantId, page, pageSize, status, paymentStatus, platform, keyword, orderNo, startDate, endDate } = params;
   const conditions = ["tenant_id = ?"];
   const values: unknown[] = [tenantId];
   if (storeId) { conditions.push("store_id = ?"); values.push(storeId); }
   if (status) { conditions.push("order_status = ?"); values.push(status); }
+  if (paymentStatus) { conditions.push("payment_status = ?"); values.push(paymentStatus); }
+  if (platform) { conditions.push("platform = ?"); values.push(platform); }
+  if (keyword) {
+    const like = `%${keyword}%`;
+    conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_phone LIKE ? OR user_name LIKE ?)");
+    values.push(like, like, like, like);
+  }
   if (orderNo) { conditions.push("order_no = ?"); values.push(orderNo); }
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }

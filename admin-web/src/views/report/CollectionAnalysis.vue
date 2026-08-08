@@ -181,18 +181,41 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { CHART_COLORS } from "@/styles/theme";
 import { Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
+import { ElMessage } from 'element-plus'
+import {
+  fetchReportCollectionSummary,
+  fetchReportCollectionFunnel,
+  fetchReportCollectionDailyTrend,
+  fetchReportCollectionChannelConversion,
+  fetchReportCollectionTimeout,
+  fetchReportCollectionRefundAnalysis,
+} from '@/api'
+import { fetchStores } from '@/api/common'
 
 // ─── 筛选状态 ───
 const dateRange = ref<string[]>(['2026-06-01', '2026-06-30'])
 const selectedStores = ref<number[]>([])
 const selectedChannels = ref<string[]>([])
-const storeOptions = ref(Array.from({ length: 10 }, (_, i) => ({ label: `门店${i + 1}`, value: i + 1 })))
-const channelOptions = ref([
-  { label: '微信', value: 'wechat' },
-  { label: '支付宝', value: 'alipay' },
-  { label: '银行卡', value: 'bank' },
-  { label: '现金', value: 'cash' }
-])
+const storeOptions = ref<{ label: string; value: number }[]>([])
+const channelOptions = ref<{ label: string; value: string }[]>([])
+
+function getRange() {
+  return {
+    startDate: dateRange.value?.[0],
+    endDate: dateRange.value?.[1],
+    storeId: selectedStores.value.length === 1 ? selectedStores.value[0] : undefined,
+  }
+}
+
+async function loadStores() {
+  try {
+    const data = await fetchStores()
+    const records = Array.isArray(data) ? data : (data?.records || data?.list || [])
+    storeOptions.value = records.map((s: any) => ({ label: s.name, value: Number(s.id) }))
+  } catch {
+    storeOptions.value = []
+  }
+}
 
 function formatMoney(v: number) {
   return v.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -200,24 +223,58 @@ function formatMoney(v: number) {
 
 // ─── 收款总览 ───
 const overview = ref({
-  totalCollection: 2856000,
-  monthCollection: 452000,
-  todayCollection: 38600,
-  pendingAmount: 128000,
-  refundRate: 3.2,
-  avgCollectionCycle: 7
+  totalCollection: 0,
+  monthCollection: 0,
+  todayCollection: 0,
+  pendingAmount: 0,
+  refundRate: 0,
+  avgCollectionCycle: 0,
 })
+
+async function loadSummary() {
+  try {
+    const data = await fetchReportCollectionSummary({ storeId: getRange().storeId })
+    overview.value = {
+      totalCollection: Number(data?.totalCollection ?? 0),
+      monthCollection: Number(data?.monthCollection ?? 0),
+      todayCollection: Number(data?.todayCollection ?? 0),
+      pendingAmount: Number(data?.pendingAmount ?? 0),
+      refundRate: Number(data?.refundRate ?? 0),
+      avgCollectionCycle: Number(data?.avgCollectionHours ?? 0),
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载收款总览失败')
+  }
+}
 
 // ─── Tab 1: 收款漏斗 ───
 const funnelChartRef = ref<HTMLDivElement | null>(null)
 let funnelChart: echarts.ECharts | null = null
+const funnelLoading = ref(false)
 
-const funnelData = ref([
-  { name: '分享数', value: 1000 },
-  { name: '查看数', value: 780 },
-  { name: '支付数', value: 520 },
-  { name: '支付成功数', value: 480 }
+const funnelData = ref<{ name: string; value: number }[]>([
+  { name: '分享数', value: 0 },
+  { name: '查看数', value: 0 },
+  { name: '支付数', value: 0 },
+  { name: '支付成功数', value: 0 },
 ])
+
+async function loadFunnel() {
+  funnelLoading.value = true
+  try {
+    const data = await fetchReportCollectionFunnel(getRange())
+    funnelData.value = [
+      { name: '分享数', value: Number(data?.shareCount ?? 0) },
+      { name: '查看数', value: Number(data?.viewCount ?? 0) },
+      { name: '支付数', value: Number(data?.payCount ?? 0) },
+      { name: '支付成功数', value: Number(data?.payAmount ?? 0) },
+    ]
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载收款漏斗失败')
+  } finally {
+    funnelLoading.value = false
+  }
+}
 
 function initFunnelChart() {
   if (!funnelChartRef.value) return
@@ -261,14 +318,37 @@ function initFunnelChart() {
 const collectionTrendRef = ref<HTMLDivElement | null>(null)
 let collectionTrendChart: echarts.ECharts | null = null
 const splitByChannel = ref(false)
+const trendLoading = ref(false)
 
-const trendData = ref(
-  Array.from({ length: 30 }, (_, i) => ({
-    date: `06-${String(i + 1).padStart(2, '0')}`,
-    amount: Math.floor(Math.random() * 30000 + 10000),
-    count: Math.floor(Math.random() * 20 + 5)
-  }))
-)
+const trendData = ref<{ date: string; amount: number; count: number }[]>([])
+const trendByChannelData = ref<{ date: string; channel: string; amount: number; count: number }[]>([])
+
+async function loadTrend() {
+  trendLoading.value = true
+  try {
+    const range = getRange()
+    const [daily, byChannel] = await Promise.all([
+      fetchReportCollectionDailyTrend({ ...range, splitByChannel: false }),
+      fetchReportCollectionDailyTrend({ ...range, splitByChannel: true }),
+    ])
+    const asList = (d: any) => (Array.isArray(d) ? d : (d?.list || d?.records || []))
+    trendData.value = asList(daily).map((d: any) => ({
+      date: String(d.date).slice(5, 10),
+      amount: Number(d.paidAmount ?? 0),
+      count: Number(d.paidCount ?? 0),
+    }))
+    trendByChannelData.value = asList(byChannel).map((d: any) => ({
+      date: String(d.date).slice(5, 10),
+      channel: d.channel || '未知',
+      amount: Number(d.paidAmount ?? 0),
+      count: Number(d.paidCount ?? 0),
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载收款趋势失败')
+  } finally {
+    trendLoading.value = false
+  }
+}
 
 function initTrendChart() {
   if (!collectionTrendRef.value) return
@@ -276,14 +356,18 @@ function initTrendChart() {
   collectionTrendChart = echarts.init(collectionTrendRef.value)
 
   if (splitByChannel.value) {
-    const channels = ['微信', '支付宝', '银行卡', '现金']
-    const dates = trendData.value.map(d => d.date)
+    const dates = Array.from(new Set(trendByChannelData.value.map(d => d.date))).sort()
+    const channels = Array.from(new Set(trendByChannelData.value.map(d => d.channel)))
+    const palette = [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.danger, CHART_COLORS.warning, CHART_COLORS.purple]
     const series = channels.map((ch, idx) => ({
       name: ch,
       type: 'line' as const,
       smooth: true,
-      data: trendData.value.map(() => Math.floor(Math.random() * 15000 + 3000)),
-      itemStyle: { color: [CHART_COLORS.primary, CHART_COLORS.success, CHART_COLORS.danger, CHART_COLORS.warning][idx] }
+      data: dates.map(date => {
+        const row = trendByChannelData.value.find(d => d.date === date && d.channel === ch)
+        return row ? row.amount : 0
+      }),
+      itemStyle: { color: palette[idx % palette.length] }
     }))
     collectionTrendChart.setOption({
       tooltip: { trigger: 'axis' },
@@ -314,22 +398,41 @@ function initTrendChart() {
 // ─── Tab 3: 渠道分布 ───
 const channelPieRef = ref<HTMLDivElement | null>(null)
 let channelPieChart: echarts.ECharts | null = null
+const channelDistLoading = ref(false)
 
-const channelDistribution = ref([
-  { method: '微信', amount: 52000, ratio: 41.6 },
-  { method: '支付宝', amount: 38000, ratio: 30.4 },
-  { method: '银行卡', amount: 12000, ratio: 9.6 },
-  { method: '现金', amount: 18000, ratio: 14.4 },
-  { method: '其他', amount: 5000, ratio: 4 }
-])
+const channelDistribution = ref<{ method: string; amount: number; ratio: number }[]>([])
+const channelConversionData = ref<any[]>([])
 
-const channelConversionData = ref([
-  { channel: '微信', shareCount: 400, viewCount: 320, payCount: 240, payAmount: 52000, conversionRate: 60, ratio: 41.6 },
-  { channel: '支付宝', shareCount: 300, viewCount: 240, payCount: 180, payAmount: 38000, conversionRate: 60, ratio: 30.4 },
-  { channel: '银行卡', shareCount: 150, viewCount: 100, payCount: 60, payAmount: 12000, conversionRate: 40, ratio: 9.6 },
-  { channel: '现金', shareCount: 100, viewCount: 80, payCount: 50, payAmount: 18000, conversionRate: 50, ratio: 14.4 },
-  { channel: '其他', shareCount: 50, viewCount: 40, payCount: 30, payAmount: 5000, conversionRate: 60, ratio: 4 }
-])
+async function loadChannelDistribution() {
+  channelDistLoading.value = true
+  try {
+    const data = await fetchReportCollectionChannelConversion(getRange())
+    const list = Array.isArray(data) ? data : (data?.list || data?.records || [])
+    const totalAmount = list.reduce((s: number, d: any) => s + Number(d.paidAmount ?? 0), 0)
+    channelConversionData.value = list.map((d: any) => {
+      const payAmount = Number(d.paidAmount ?? 0)
+      return {
+        channel: d.channel || '未知',
+        shareCount: Number(d.totalCount ?? 0),
+        viewCount: Number(d.totalCount ?? 0),
+        payCount: Number(d.paidCount ?? 0),
+        payAmount,
+        conversionRate: Number(d.conversionRate ?? 0),
+        ratio: totalAmount > 0 ? Math.round((payAmount / totalAmount) * 1000) / 10 : 0,
+      }
+    })
+    channelDistribution.value = channelConversionData.value.map((d) => ({
+      method: d.channel,
+      amount: d.payAmount,
+      ratio: d.ratio,
+    }))
+    channelOptions.value = channelConversionData.value.map((d) => ({ label: d.channel, value: d.channel }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载渠道分布失败')
+  } finally {
+    channelDistLoading.value = false
+  }
+}
 
 function initChannelPieChart() {
   if (!channelPieRef.value) return
@@ -351,24 +454,33 @@ const timeoutDistRef = ref<HTMLDivElement | null>(null)
 const timeoutTrendRef = ref<HTMLDivElement | null>(null)
 let timeoutDistChart: echarts.ECharts | null = null
 let timeoutTrendChart: echarts.ECharts | null = null
+const timeoutLoading = ref(false)
 
-const timeoutOrders = ref(
-  Array.from({ length: 15 }, (_, i) => ({
-    billNo: `XS20260630${String(i + 1).padStart(3, '0')}`,
-    customerName: `客户${i + 1}`,
-    amount: Math.floor(Math.random() * 5000 + 500),
-    overdueHours: Math.floor(Math.random() * 48 + 2),
-    createdAt: `2026-06-${String(Math.floor(Math.random() * 30) + 1).padStart(2, '0')} ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:00:00`
-  }))
-)
+const timeoutOrders = ref<any[]>([])
+const timeoutDistData = ref<{ name: string; value: number }[]>([])
+const timeoutRateData = ref<{ date: string; rate: number }[]>([])
 
-const timeoutDistData = ref([
-  { name: '2小时内', value: 25 },
-  { name: '2-6小时', value: 40 },
-  { name: '6-12小时', value: 20 },
-  { name: '12-24小时', value: 10 },
-  { name: '24小时以上', value: 5 }
-])
+async function loadTimeout() {
+  timeoutLoading.value = true
+  try {
+    const data = await fetchReportCollectionTimeout(getRange())
+    const intervals = (data?.intervals || []).map((it: any) => ({ name: it.label, value: Number(it.count ?? 0) }))
+    timeoutDistData.value = intervals
+    timeoutOrders.value = (data?.orders || []).map((o: any) => ({
+      billNo: o.linkNo,
+      customerName: o.customerName || '-',
+      amount: Number(o.amount ?? 0),
+      overdueHours: Number(o.overdueHours ?? 0),
+      createdAt: String(o.createdAt).replace('T', ' ').slice(0, 19),
+    }))
+    // 超时率趋势：按当前筛选区间生成每日占位（无历史明细，仅展示实时超时率）
+    timeoutRateData.value = []
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载超时未付分析失败')
+  } finally {
+    timeoutLoading.value = false
+  }
+}
 
 function initTimeoutDistChart() {
   if (!timeoutDistRef.value) return
@@ -390,14 +502,15 @@ function initTimeoutTrendChart() {
   if (!timeoutTrendRef.value) return
   if (timeoutTrendChart) timeoutTrendChart.dispose()
   timeoutTrendChart = echarts.init(timeoutTrendRef.value)
-  const days = Array.from({ length: 30 }, (_, i) => `06-${String(i + 1).padStart(2, '0')}`)
-  const data = days.map(() => Number((Math.random() * 10 + 5).toFixed(1)))
+  // 超时率趋势：后端仅有实时区间分布，无历史逐日数据源，显示空态（TODO: 接入超时率历史统计后填充）
+  const days: string[] = []
+  const data: number[] = []
   timeoutTrendChart.setOption({
     title: { text: '超时率趋势', left: 'center', textStyle: { fontSize: 14 } },
     tooltip: { trigger: 'axis' },
     grid: { left: 50, right: 20, top: 40, bottom: 30 },
     xAxis: { type: 'category', data: days, axisLabel: { fontSize: 10, rotate: 45, interval: 4 } },
-    yAxis: { type: 'value', name: '%' },
+    yAxis: { type: 'value', name: '%', max: 100 },
     series: [{
       type: 'line', smooth: true, data,
       itemStyle: { color: CHART_COLORS.danger },
@@ -411,20 +524,39 @@ const refundTrendRef = ref<HTMLDivElement | null>(null)
 const refundReasonPieRef = ref<HTMLDivElement | null>(null)
 let refundTrendChart: echarts.ECharts | null = null
 let refundReasonPieChart: echarts.ECharts | null = null
+const refundLoading = ref(false)
 
-const refundReasonData = ref([
-  { name: '商品质量问题', value: 35 },
-  { name: '发货延迟', value: 25 },
-  { name: '客户取消', value: 20 },
-  { name: '价格异议', value: 12 },
-  { name: '其他', value: 8 }
-])
+const refundReasonData = ref<{ name: string; value: number }[]>([])
+const refundTrendData = ref<{ date: string; refundAmount: number; refundRate: number }[]>([])
+
+async function loadRefundAnalysis() {
+  refundLoading.value = true
+  try {
+    const data = await fetchReportCollectionRefundAnalysis({
+      startDate: dateRange.value?.[0],
+      endDate: dateRange.value?.[1],
+    })
+    refundTrendData.value = (data?.trend || []).map((d: any) => ({
+      date: String(d.date).slice(5, 10),
+      refundAmount: Number(d.refundAmount ?? 0),
+      refundRate: Number(d.refundRate ?? 0),
+    }))
+    refundReasonData.value = (data?.reasonDistribution || []).map((d: any) => ({
+      name: d.name || '其他',
+      value: Number(d.count ?? 0),
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载退款分析失败')
+  } finally {
+    refundLoading.value = false
+  }
+}
 
 function initRefundTrendChart() {
   if (!refundTrendRef.value) return
   if (refundTrendChart) refundTrendChart.dispose()
   refundTrendChart = echarts.init(refundTrendRef.value)
-  const days = Array.from({ length: 30 }, (_, i) => `06-${String(i + 1).padStart(2, '0')}`)
+  const days = refundTrendData.value.map(d => d.date)
   refundTrendChart.setOption({
     title: { text: '退款金额/退款率趋势', left: 'center', textStyle: { fontSize: 14 } },
     tooltip: { trigger: 'axis' },
@@ -433,11 +565,11 @@ function initRefundTrendChart() {
     xAxis: { type: 'category', data: days, axisLabel: { fontSize: 10, rotate: 45, interval: 4 } },
     yAxis: [
       { type: 'value', name: '元', axisLabel: { formatter: (v: number) => (v / 1000).toFixed(0) + 'k' } },
-      { type: 'value', name: '%', max: 10 }
+      { type: 'value', name: '%', max: 100 }
     ],
     series: [
-      { name: '退款金额', type: 'line', smooth: true, data: days.map(() => Math.floor(Math.random() * 5000 + 1000)), itemStyle: { color: CHART_COLORS.danger } },
-      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: days.map(() => Number((Math.random() * 5 + 2).toFixed(1))), itemStyle: { color: CHART_COLORS.warning } }
+      { name: '退款金额', type: 'line', smooth: true, data: refundTrendData.value.map(d => d.refundAmount), itemStyle: { color: CHART_COLORS.danger } },
+      { name: '退款率', type: 'line', smooth: true, yAxisIndex: 1, data: refundTrendData.value.map(d => d.refundRate), itemStyle: { color: CHART_COLORS.warning } }
     ]
   })
 }
@@ -498,11 +630,29 @@ function disposeAllCharts() {
 }
 
 function refreshAll() {
-  onTabChange(activeTab.value)
+  loadSummary()
+  loadFunnel().then(() => { if (activeTab.value === 'funnel') initFunnelChart() })
+  loadTrend().then(() => { if (activeTab.value === 'trend') initTrendChart() })
+  loadChannelDistribution().then(() => { if (activeTab.value === 'channelDist') initChannelPieChart() })
+  loadTimeout().then(() => { if (activeTab.value === 'timeout') { initTimeoutDistChart(); initTimeoutTrendChart() } })
+  loadRefundAnalysis().then(() => { if (activeTab.value === 'refund') { initRefundTrendChart(); initRefundReasonPieChart() } })
+}
+
+async function loadAllData() {
+  await Promise.all([
+    loadStores(),
+    loadSummary(),
+    loadFunnel(),
+    loadTrend(),
+    loadChannelDistribution(),
+    loadTimeout(),
+    loadRefundAnalysis(),
+  ])
+  initFunnelChart()
 }
 
 onMounted(() => {
-  initFunnelChart()
+  loadAllData()
   window.addEventListener('resize', handleResize)
 })
 

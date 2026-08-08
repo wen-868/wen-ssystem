@@ -89,13 +89,19 @@ export async function fetchReportSalesDaily(params?: { dateType?: string; dateSt
   return data.data;
 }
 
-export async function fetchReportSalesRanking(params?: { dimension?: string; dateStart?: string; dateEnd?: string }) {
+export async function fetchReportSalesRanking(params?: { dimension?: string; dateStart?: string; dateEnd?: string; limit?: number }) {
   const { data } = await api.get("/admin/reports/sales-ranking", { params });
   return data.data;
 }
 
-export async function fetchReportSalesTrend(params?: { dateType?: string; dateStart?: string; dateEnd?: string }) {
+export async function fetchReportSalesTrend(params?: { dateType?: string; granularity?: string; dateStart?: string; dateEnd?: string }) {
   const { data } = await api.get("/admin/reports/sales-trend", { params });
+  return data.data;
+}
+
+// 销售时段热力图（按日 x 小时聚合销售金额）
+export async function fetchReportSalesHourlyHeatmap(params?: { dateStart?: string; dateEnd?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/sales-hourly-heatmap", { params });
   return data.data;
 }
 
@@ -155,6 +161,37 @@ export async function fetchReportProfit() {
 
 export async function fetchReportBusinessOverview() {
   const { data } = await api.get("/admin/reports/business-overview");
+  return data.data;
+}
+
+// ==================== 收款报表（对齐后端 report.routes.ts：/api/admin/reports/collection/*） ====================
+export async function fetchReportCollectionSummary(params?: { storeId?: number }) {
+  const { data } = await api.get("/admin/reports/collection/summary", { params });
+  return data.data;
+}
+
+export async function fetchReportCollectionFunnel(params?: { startDate?: string; endDate?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/collection/funnel", { params });
+  return data.data;
+}
+
+export async function fetchReportCollectionDailyTrend(params?: { startDate?: string; endDate?: string; storeId?: number; splitByChannel?: boolean }) {
+  const { data } = await api.get("/admin/reports/collection/daily-trend", { params });
+  return data.data;
+}
+
+export async function fetchReportCollectionChannelConversion(params?: { startDate?: string; endDate?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/collection/channel-conversion", { params });
+  return data.data;
+}
+
+export async function fetchReportCollectionTimeout(params?: { startDate?: string; endDate?: string; storeId?: number }) {
+  const { data } = await api.get("/admin/reports/collection/timeout", { params });
+  return data.data;
+}
+
+export async function fetchReportCollectionRefundAnalysis(params?: { startDate?: string; endDate?: string }) {
+  const { data } = await api.get("/admin/reports/collection/refund-analysis", { params });
   return data.data;
 }
 

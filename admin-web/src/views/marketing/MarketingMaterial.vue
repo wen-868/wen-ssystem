@@ -388,42 +388,44 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick } from "vue";
+import { ref, reactive, nextTick, onMounted } from "vue";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Grid, List, Upload, UploadFilled } from "@element-plus/icons-vue";
-
-// ==================== Mock 数据 ====================
-const mockCategories = [
-  { id: 1, label: "全部素材", children: [] },
-  { id: 2, label: "海报", children: [{ id: 21, label: "活动海报" }, { id: 22, label: "节日海报" }] },
-  { id: 3, label: "优惠券背景", children: [] },
-  { id: 4, label: "秒杀背景", children: [] },
-  { id: 5, label: "公众号文章", children: [] },
-  { id: 6, label: "其他", children: [] },
-];
-
-const mockMaterials = Array.from({ length: 30 }, (_, i) => ({
-  id: i + 1,
-  materialCode: `MT${String(i + 1).padStart(5, "0")}`,
-  materialName: `素材${i + 1}`,
-  materialType: ["IMAGE", "VIDEO", "DOCUMENT", "HTML"][i % 4],
-  fileFormat: ["jpg", "png", "mp4", "pdf", "html"][i % 5],
-  fileSize: Math.floor(Math.random() * 10000000 + 100000),
-  categoryName: ["海报", "优惠券背景", "秒杀背景", "公众号文章", "其他"][i % 5],
-  tags: ["促销", "618", "双11", "新品"][i % 4],
-  scene: ["活动页", "商品详情", "首页", "弹窗"][i % 4],
-  downloadCount: Math.floor(Math.random() * 500),
-  viewCount: Math.floor(Math.random() * 2000),
-  useCount: Math.floor(Math.random() * 100),
-  status: ["DRAFT", "PUBLISHED", "ARCHIVED"][i % 3],
-  createdAt: `2026-06-${String(Math.floor(Math.random() * 30) + 1).padStart(2, "0")}`,
-}));
+import {
+  fetchMarketingMaterials,
+  deleteMarketingMaterial,
+  publishMarketingMaterial,
+  archiveMarketingMaterial,
+  fetchMarketingMaterialCategories,
+  createMarketingMaterialCategory,
+  updateMarketingMaterialCategory,
+  deleteMarketingMaterialCategory,
+} from "@/api";
 
 // ==================== 分类树 ====================
 const treeRef = ref();
-const categoryTree = ref(JSON.parse(JSON.stringify(mockCategories)));
+const categoryTree = ref<any[]>([]);
 const activeCategoryId = ref(1);
+
+async function loadCategories() {
+  try {
+    const data = await fetchMarketingMaterialCategories();
+    const list = Array.isArray(data) ? data : (data?.list || []);
+    const toTree = (nodes: any[]): any[] => nodes.map((n) => ({
+      id: n.id,
+      label: n.name || n.label || "-",
+      children: n.children ? toTree(n.children) : [],
+    }));
+    categoryTree.value = [
+      { id: 1, label: "全部素材", children: [] },
+      ...toTree(list),
+    ];
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "加载素材分类失败");
+    categoryTree.value = [{ id: 1, label: "全部素材", children: [] }];
+  }
+}
 
 function handleTreeNodeClick(data: any) {
   activeCategoryId.value = data.id;
@@ -451,9 +453,12 @@ function closeContextMenu() {
 function addCategory() {
   ElMessageBox.prompt("请输入分类名称", "新增分类").then(({ value }) => {
     if (value) {
-      const newId = Date.now();
-      categoryTree.value.push({ id: newId, label: value, children: [] });
-      ElMessage.success("分类已添加");
+      createMarketingMaterialCategory({ name: value, sortNo: 0 })
+        .then(() => {
+          ElMessage.success("分类已添加");
+          loadCategories();
+        })
+        .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "新增分类失败"));
     }
   }).catch(() => {});
 }
@@ -463,12 +468,13 @@ function addSubCategory() {
   closeContextMenu();
   ElMessageBox.prompt("请输入子分类名称", "新增子分类").then(({ value }) => {
     if (value && contextMenuNode.value) {
-      const newId = Date.now();
-      if (!contextMenuNode.value.children) {
-        contextMenuNode.value.children = [];
-      }
-      contextMenuNode.value.children.push({ id: newId, label: value, children: [] });
-      ElMessage.success("子分类已添加");
+      const parentId = contextMenuNode.value.id;
+      createMarketingMaterialCategory({ name: value, parentId: parentId === 1 ? undefined : parentId, sortNo: 0 })
+        .then(() => {
+          ElMessage.success("子分类已添加");
+          loadCategories();
+        })
+        .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "新增子分类失败"));
     }
   }).catch(() => {});
 }
@@ -479,8 +485,12 @@ function renameCategory() {
   closeContextMenu();
   ElMessageBox.prompt("请输入新的分类名称", "重命名", { inputValue: node.label }).then(({ value }) => {
     if (value && node) {
-      node.label = value;
-      ElMessage.success("重命名成功");
+      updateMarketingMaterialCategory(node.id, { name: value })
+        .then(() => {
+          ElMessage.success("重命名成功");
+          loadCategories();
+        })
+        .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "重命名失败"));
     }
   }).catch(() => {});
 }
@@ -490,20 +500,16 @@ function deleteCategory() {
   const node = contextMenuNode.value;
   closeContextMenu();
   ElMessageBox.confirm(`确认删除分类 "${node.label}"？`, "确认删除", { type: "warning" }).then(() => {
-    const removeFromTree = (list: any[], id: number): boolean => {
-      for (let i = 0; i < list.length; i++) {
-        if (list[i].id === id) {
-          list.splice(i, 1);
-          return true;
-        }
-        if (list[i].children && removeFromTree(list[i].children, id)) {
-          return true;
-        }
-      }
-      return false;
-    };
-    removeFromTree(categoryTree.value, node.id);
-    ElMessage.success("已删除");
+    if (node.id === 1) {
+      ElMessage.warning("「全部素材」为内置分类，不可删除");
+      return;
+    }
+    deleteMarketingMaterialCategory(node.id)
+      .then(() => {
+        ElMessage.success("已删除");
+        loadCategories();
+      })
+      .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "删除分类失败"));
   }).catch(() => {});
 }
 
@@ -513,44 +519,75 @@ const typeFilter = ref("");
 const sceneFilter = ref("");
 const tagFilter = ref("");
 const viewMode = ref<"grid" | "list">("grid");
-const materials = ref<any[]>([...mockMaterials]);
-const totalMaterials = ref(mockMaterials.length);
+const materials = ref<any[]>([]);
+const totalMaterials = ref(0);
+const materialLoading = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(12);
 
-function loadMaterials() {
-  let filtered = [...mockMaterials];
-  if (searchKeyword.value) {
-    filtered = filtered.filter((m) => m.materialName.includes(searchKeyword.value));
+async function loadMaterials() {
+  materialLoading.value = true;
+  try {
+    const data = await fetchMarketingMaterials({
+      page: currentPage.value,
+      pageSize: pageSize.value,
+      materialType: typeFilter.value || undefined,
+      categoryId: activeCategoryId.value && activeCategoryId.value !== 1 ? activeCategoryId.value : undefined,
+      tags: tagFilter.value || undefined,
+      status: undefined,
+    });
+    const list = data?.list || data?.records || [];
+    materials.value = list.map((m: any) => ({
+      ...m, // 保留后端 snake_case 字段（material_type/file_size/file_url/...），供模板直接使用
+      id: Number(m.id),
+      materialCode: m.material_code,
+      materialName: m.material_name,
+      materialType: m.material_type,
+      fileFormat: m.file_format,
+      fileUrl: m.file_url,
+      fileSize: Number(m.file_size ?? 0),
+      categoryId: m.category_id,
+      categoryName: findCategoryName(categoryTree.value, m.category_id),
+      tags: parseTags(m.tags),
+      scene: m.usage_scene || "-",
+      downloadCount: 0,
+      viewCount: Number(m.view_count ?? 0),
+      useCount: 0,
+      status: m.status || "DRAFT",
+      createdAt: String(m.created_at).slice(0, 10),
+    }));
+    totalMaterials.value = Number(data?.total ?? 0);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "加载素材列表失败");
+    materials.value = [];
+  } finally {
+    materialLoading.value = false;
   }
-  if (typeFilter.value) {
-    filtered = filtered.filter((m) => m.materialType === typeFilter.value);
-  }
-  if (sceneFilter.value) {
-    filtered = filtered.filter((m) => m.scene === sceneFilter.value);
-  }
-  if (tagFilter.value) {
-    filtered = filtered.filter((m) => m.tags === tagFilter.value);
-  }
-  if (activeCategoryId.value && activeCategoryId.value !== 1) {
-    const findCategoryLabel = (list: any[], id: number): string | null => {
-      for (const item of list) {
-        if (item.id === id) return item.label;
-        if (item.children) {
-          const found = findCategoryLabel(item.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const label = findCategoryLabel(categoryTree.value, activeCategoryId.value);
-    if (label) {
-      filtered = filtered.filter((m) => m.categoryName === label);
+}
+
+function findCategoryName(nodes: any[], id: number | string | null): string {
+  if (!id) return "-";
+  for (const n of nodes) {
+    if (n.id === id) return n.label;
+    if (n.children) {
+      const found = findCategoryName(n.children, id);
+      if (found !== "-") return found;
     }
   }
-  totalMaterials.value = filtered.length;
-  const start = (currentPage.value - 1) * pageSize.value;
-  materials.value = filtered.slice(start, start + pageSize.value);
+  return "-";
+}
+
+function parseTags(tags: unknown): string {
+  if (Array.isArray(tags)) return tags[0] || "未分类";
+  if (typeof tags === "string") {
+    try {
+      const parsed = JSON.parse(tags);
+      return Array.isArray(parsed) ? (parsed[0] || "未分类") : (tags || "未分类");
+    } catch {
+      return tags || "未分类";
+    }
+  }
+  return "未分类";
 }
 
 function handleSizeChange(size: number) {
@@ -575,9 +612,14 @@ function openDetailDialog(item: any) {
 
 function toggleStatus(item: any) {
   const newStatus = item.status === "PUBLISHED" ? "ARCHIVED" : "PUBLISHED";
-  item.status = newStatus;
-  ElMessage.success(newStatus === "PUBLISHED" ? "已发布" : "已归档");
-  loadMaterials();
+  const action = newStatus === "PUBLISHED" ? publishMarketingMaterial : archiveMarketingMaterial;
+  action(item.id)
+    .then(() => {
+      item.status = newStatus;
+      ElMessage.success(newStatus === "PUBLISHED" ? "已发布" : "已归档");
+      loadMaterials();
+    })
+    .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "操作失败"));
 }
 
 function toggleStatusFromDetail() {
@@ -587,10 +629,12 @@ function toggleStatusFromDetail() {
 }
 
 function deleteMaterial(item: any) {
-  const idx = mockMaterials.findIndex((m) => m.id === item.id);
-  if (idx > -1) mockMaterials.splice(idx, 1);
-  ElMessage.success("已删除");
-  loadMaterials();
+  deleteMarketingMaterial(item.id)
+    .then(() => {
+      ElMessage.success("已删除");
+      loadMaterials();
+    })
+    .catch((e: any) => ElMessage.error(e?.response?.data?.msg || "删除失败"));
 }
 
 function deleteFromDetail() {
@@ -669,37 +713,11 @@ async function submitUpload() {
   const valid = await uploadFormRef.value?.validate().catch(() => false);
   if (!valid) return;
 
-  uploadProgress.value = 0;
-  const timer = setInterval(() => {
-    uploadProgress.value += 20;
-    if (uploadProgress.value >= 100) {
-      clearInterval(timer);
-      uploadProgress.value = 100;
-      const newMaterials = uploadFileList.value.map((f: any, i: number) => ({
-        id: mockMaterials.length + i + 1,
-        materialCode: `MT${String(mockMaterials.length + i + 1).padStart(5, "0")}`,
-        materialName: uploadForm.materialName || f.name,
-        materialType: getFileType(f.name),
-        fileFormat: getFileExtension(f.name),
-        fileSize: f.size || 100000,
-        categoryName: uploadForm.categoryId
-          ? categoryTree.value.find((c: any) => c.id === uploadForm.categoryId)?.label || "其他"
-          : "其他",
-        tags: uploadForm.tags.length > 0 ? uploadForm.tags[0] : "未分类",
-        scene: uploadForm.scene || "活动页",
-        downloadCount: 0,
-        viewCount: 0,
-        useCount: 0,
-        status: "DRAFT",
-        createdAt: new Date().toISOString().slice(0, 10),
-      }));
-      mockMaterials.push(...newMaterials);
-      ElMessage.success(`成功上传 ${newMaterials.length} 个素材`);
-      uploadDialogVisible.value = false;
-      resetUploadForm();
-      loadMaterials();
-    }
-  }, 300);
+  // TODO: 素材上传能力依赖对象存储/静态文件服务，后端暂未实现（仅 t_upload_file 配额表，无写文件逻辑）。
+  // 当前保留前端占位流程，不写入 mock 数据；接入存储后改为 multipart 上传并调用 POST /admin/marketing/materials。
+  ElMessage.info("素材上传功能待接入对象存储后开放（当前为占位）");
+  uploadDialogVisible.value = false;
+  resetUploadForm();
 }
 
 function getFileType(filename: string): string {
@@ -717,6 +735,11 @@ function getFileExtension(filename: string): string {
 
 // ==================== 辅助函数 ====================
 function getMaterialThumbnail(item: any): string {
+  // 优先使用真实素材 URL（后端 file_url 字段），无 URL 时保留 SVG 占位
+  // TODO: 素材上传/静态存储能力接入后，图片类素材将展示真实文件
+  if (item.materialType === "IMAGE" && item.fileUrl) {
+    return item.fileUrl;
+  }
   if (item.materialType === "IMAGE") {
     return `data:image/svg+xml;base64,${btoa(
       `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="rgba(63,111,239,0.12)"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="${CHART_COLORS.primary}" font-size="14">图片</text></svg>`
@@ -762,6 +785,11 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + "KB";
   return (bytes / (1024 * 1024)).toFixed(1) + "MB";
 }
+
+onMounted(() => {
+  loadCategories();
+  loadMaterials();
+});
 </script>
 
 <style scoped>

@@ -152,3 +152,61 @@ export async function batchRejectProductReviews(ids: number[], reviewComment: st
 }
 
 
+// ==================== 产品套装（对齐后端 product-bundle.routes.ts：/api/admin/product-bundles） ====================
+export async function fetchProductBundles(params?: { page?: number; pageSize?: number; keyword?: string; status?: number; categoryId?: number }) {
+  const { data } = await api.get("/admin/product-bundles", { params: { page: 1, pageSize: 10, ...params } });
+  return data.data;
+}
+
+export async function createProductBundle(payload: unknown) {
+  const { data } = await api.post("/admin/product-bundles", payload);
+  return data.data;
+}
+
+export async function updateProductBundle(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/product-bundles/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteProductBundle(id: number) {
+  const { data } = await api.delete(`/admin/product-bundles/${id}`);
+  return data.data;
+}
+
+export async function publishProductBundle(id: number) {
+  const { data } = await api.post(`/admin/product-bundles/${id}/publish`);
+  return data.data;
+}
+
+export async function unpublishProductBundle(id: number) {
+  const { data } = await api.post(`/admin/product-bundles/${id}/unpublish`);
+  return data.data;
+}
+
+export async function fetchProductBundleStats(params?: { dateStart?: string; dateEnd?: string }) {
+  const { data } = await api.get("/admin/product-bundles/stats", { params });
+  return data.data;
+}
+
+// ==================== 组合品（对齐后端 product-bundle.routes.ts：/api/admin/combo-products） ====================
+export async function fetchComboProducts(params?: { page?: number; pageSize?: number; keyword?: string; status?: number; comboType?: string }) {
+  const { data } = await api.get("/admin/combo-products", { params: { page: 1, pageSize: 10, ...params } });
+  return data.data;
+}
+
+export async function createComboProduct(payload: unknown) {
+  const { data } = await api.post("/admin/combo-products", payload);
+  return data.data;
+}
+
+export async function updateComboProduct(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/combo-products/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteComboProduct(id: number) {
+  const { data } = await api.delete(`/admin/combo-products/${id}`);
+  return data.data;
+}
+
+

@@ -255,3 +255,64 @@ export async function updateMarketingAsset(id: number, data: any) { const { data
 export async function deleteMarketingAsset(id: number) { const { data: res } = await api.delete(`/admin/marketing-assets/${id}`); return res.data; }
 
 
+// ==================== 营销素材库（对齐后端 marketing-material.routes.ts：/api/admin/marketing/materials） ====================
+export async function fetchMarketingMaterials(params?: { page?: number; pageSize?: number; materialType?: string; categoryId?: number; tags?: string; status?: string }) {
+  const { data } = await api.get("/admin/marketing/materials", {
+    params: {
+      page: params?.page ?? 1,
+      pageSize: params?.pageSize ?? 12,
+      material_type: params?.materialType,
+      category_id: params?.categoryId,
+      tags: params?.tags,
+      status: params?.status,
+    },
+  });
+  return data.data;
+}
+
+export async function createMarketingMaterial(payload: unknown) {
+  const { data } = await api.post("/admin/marketing/materials", payload);
+  return data.data;
+}
+
+export async function updateMarketingMaterial(id: number, payload: unknown) {
+  const { data } = await api.put(`/admin/marketing/materials/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteMarketingMaterial(id: number) {
+  const { data } = await api.delete(`/admin/marketing/materials/${id}`);
+  return data.data;
+}
+
+export async function publishMarketingMaterial(id: number) {
+  const { data } = await api.post(`/admin/marketing/materials/${id}/publish`);
+  return data.data;
+}
+
+export async function archiveMarketingMaterial(id: number) {
+  const { data } = await api.post(`/admin/marketing/materials/${id}/archive`);
+  return data.data;
+}
+
+export async function fetchMarketingMaterialCategories() {
+  const { data } = await api.get("/admin/marketing/materials/categories");
+  return data.data;
+}
+
+export async function createMarketingMaterialCategory(payload: { name: string; parentId?: number; sortNo?: number }) {
+  const { data } = await api.post("/admin/marketing/materials/categories", payload);
+  return data.data;
+}
+
+export async function updateMarketingMaterialCategory(id: number, payload: { name?: string; parentId?: number; sortNo?: number }) {
+  const { data } = await api.put(`/admin/marketing/materials/categories/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteMarketingMaterialCategory(id: number) {
+  const { data } = await api.delete(`/admin/marketing/materials/categories/${id}`);
+  return data.data;
+}
+
+

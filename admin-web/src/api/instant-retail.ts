@@ -63,6 +63,12 @@ export async function fetchInstantOrderDetail(orderNo: string) {
   const { data } = await api.get(`/admin/instant-retail/orders/${orderNo}`);
   return data.data;
 }
+
+// 订单中心统计（今日订单/金额、待处理、异常、渠道占比、近30天趋势）
+export async function fetchOrderCenterStats(params?: { storeId?: number }) {
+  const { data } = await api.get("/admin/instant-retail/order-center-stats", { params });
+  return data.data;
+}
 export async function updateInstantOrderStatus(orderNo: string, payload: { status: string; reason?: string }) {
   const { data } = await api.post(`/admin/instant-retail/orders/${orderNo}/status`, payload);
   return data.data;

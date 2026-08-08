@@ -16,6 +16,7 @@ export const reportRouter = Router();
 reportRouter.get("/sales-daily", salesReportController.getSalesDaily);
 reportRouter.get("/sales-ranking", salesReportController.getSalesRanking);
 reportRouter.get("/sales-trend", salesReportController.getSalesTrend);
+reportRouter.get("/sales-hourly-heatmap", salesReportController.getSalesHourlyHeatmap);
 reportRouter.get("/business-overview", salesReportController.getBusinessOverview);
 
 // 客户报表
@@ -42,6 +43,7 @@ reportRouter.get("/collection/channel-conversion", reportCollectionController.ge
 reportRouter.get("/collection/timeout", reportCollectionController.getCollectionTimeout);
 reportRouter.get("/collection/daily-trend", reportCollectionController.getCollectionDailyTrend);
 reportRouter.get("/collection/summary", reportCollectionController.getCollectionSummary);
+reportRouter.get("/collection/refund-analysis", reportCollectionController.getRefundAnalysis);
 
 // ==================== Phase 9: 客户分析报表 ====================
 reportRouter.get("/customer/repurchase", reportCustomerController.getRepurchaseAnalysis);

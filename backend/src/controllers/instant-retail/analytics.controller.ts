@@ -9,6 +9,12 @@ export const getAnalyticsSummary = asyncHandler(async (req: Request, res: Respon
   res.json(ok(result));
 });
 
+export const getOrderCenterStats = asyncHandler(async (req: Request, res: Response) => {
+  const { storeId } = req.query as Record<string, string | undefined>;
+  const result = await svc.getOrderCenterStats({ tenantId: req.tenantId!, storeId: storeId ? Number(storeId) : undefined });
+  res.json(ok(result));
+});
+
 export const getSalesTrend = asyncHandler(async (req: Request, res: Response) => {
   const { period, startDate, endDate, storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.getSalesTrend({ tenantId: req.tenantId!, period, startDate, endDate, storeId: storeId ? Number(storeId) : undefined });

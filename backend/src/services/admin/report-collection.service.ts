@@ -46,6 +46,25 @@ interface CollectionDailyTrendRow {
   totalAmount: number | string;
 }
 
+/** 超时未付订单行 */
+interface CollectionTimeoutOrderRow {
+  linkNo: string;
+  sourceType: string | null;
+  sourceNo: string | null;
+  amount: number | string;
+  customerName: string | null;
+  overdueHours: number | string;
+  createdAt: string | Date;
+}
+
+/** 退款分析行 */
+interface RefundAnalysisRow {
+  date?: string | Date;
+  reason?: string | null;
+  count: number | string;
+  amount: number | string;
+}
+
 // 收款漏斗分析
 export async function getCollectionFunnel(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {
   const { tenantId, startDate, endDate, storeId } = params;
@@ -126,18 +145,65 @@ export async function getCollectionTimeout(params: { tenantId: string; startDate
       { label: "2-24小时", count: Number(timeout2to24?.cnt ?? 0), amount: Number(timeout2to24?.amount ?? 0) },
       { label: "24小时以上", count: Number(timeout24plus?.cnt ?? 0), amount: Number(timeout24plus?.amount ?? 0) },
     ],
+    orders: await getTimeoutOrders({ tenantId: params.tenantId, startDate: params.startDate, endDate: params.endDate, storeId: params.storeId }),
   };
 }
 
-// 收款趋势
-export async function getCollectionDailyTrend(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {
+// 超时未付订单明细（供前端表格展示）
+async function getTimeoutOrders(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number }) {
   const { tenantId, startDate, endDate, storeId } = params;
+  const conditions: string[] = ["cl.tenant_id = ?", "cl.status NOT IN ('PAID', 'REVOKED')"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("cl.created_at >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("cl.created_at <= ?"); values.push(endDate); }
+  if (storeId) { conditions.push("cl.store_id = ?"); values.push(storeId); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const rows = await queryWithTenant<CollectionTimeoutOrderRow>(
+    `SELECT cl.link_no AS linkNo, cl.source_type AS sourceType, cl.source_no AS sourceNo,
+            cl.amount, m.name AS customerName,
+            TIMESTAMPDIFF(HOUR, cl.created_at, NOW()) AS overdueHours,
+            cl.created_at AS createdAt
+     FROM t_collection_link cl
+     LEFT JOIN t_member m ON m.id = cl.customer_id
+     ${where}
+     ORDER BY cl.created_at ASC
+     LIMIT 50`,
+    values,
+    tenantId
+  );
+  return rows.map((r) => ({
+    linkNo: r.linkNo,
+    sourceType: r.sourceType,
+    sourceNo: r.sourceNo,
+    amount: Number(r.amount),
+    customerName: r.customerName,
+    overdueHours: Number(r.overdueHours),
+    createdAt: r.createdAt,
+  }));
+}
+
+// 收款趋势
+export async function getCollectionDailyTrend(params: { tenantId: string; startDate?: string; endDate?: string; storeId?: number; splitByChannel?: boolean }) {
+  const { tenantId, startDate, endDate, storeId, splitByChannel } = params;
   const conditions: string[] = ["tenant_id = ?"];
   const values: unknown[] = [tenantId];
   if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
   if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
   if (storeId) { conditions.push("store_id = ?"); values.push(storeId); }
   const where = `WHERE ${conditions.join(" AND ")}`;
+  if (splitByChannel) {
+    return queryWithTenant<CollectionDailyTrendRow & { channel: string | null }>(
+      `SELECT DATE(created_at) AS date, share_channel AS channel,
+              COUNT(*) AS totalCount,
+              COUNT(CASE WHEN status = 'PAID' THEN 1 END) AS paidCount,
+              COALESCE(SUM(CASE WHEN status = 'PAID' THEN paid_amount ELSE 0 END), 0) AS paidAmount,
+              COALESCE(SUM(amount), 0) AS totalAmount
+       FROM t_collection_link ${where}
+       GROUP BY DATE(created_at), share_channel ORDER BY date, channel`,
+      values,
+      tenantId
+    );
+  }
   return queryWithTenant<CollectionDailyTrendRow>(
     `SELECT DATE(created_at) AS date,
             COUNT(*) AS totalCount,
@@ -166,9 +232,56 @@ export async function getCollectionSummary(params: { tenantId: string; storeId?:
     totalCollection: Number(total?.amount ?? 0),
     monthCollection: Number(month?.amount ?? 0),
     todayCollection: Number(today?.amount ?? 0),
+    pendingAmount: Math.max(0, Number(totalAll?.amount ?? 0) - Number(total?.amount ?? 0)),
     refundAmount: Number(refund?.amount ?? 0),
     refundRate: Number(totalAll?.amount ?? 0) > 0 ? Math.round((Number(refund?.amount ?? 0) / Number(totalAll!.amount)) * 10000) / 100 : 0,
     avgCollectionHours: Math.round(Number(avgCycle?.avgHours ?? 0)),
     totalPaidCount: Number(totalPaid?.cnt ?? 0),
+  };
+}
+
+// 退款分析（趋势 + 原因分布）
+export async function getRefundAnalysis(params: { tenantId: string; startDate?: string; endDate?: string }) {
+  const { tenantId, startDate, endDate } = params;
+  const conditions: string[] = ["tenant_id = ?", "status = 'SUCCESS'"];
+  const values: unknown[] = [tenantId];
+  if (startDate) { conditions.push("created_at >= ?"); values.push(startDate); }
+  if (endDate) { conditions.push("created_at <= ?"); values.push(endDate); }
+  const where = `WHERE ${conditions.join(" AND ")}`;
+
+  const trend = await queryWithTenant<RefundAnalysisRow>(
+    `SELECT DATE(created_at) AS date, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS amount
+     FROM t_refund_order ${where}
+     GROUP BY DATE(created_at) ORDER BY date`,
+    values,
+    tenantId
+  );
+  const reasonDistribution = await queryWithTenant<RefundAnalysisRow>(
+    `SELECT COALESCE(reason, '其他') AS reason, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS amount
+     FROM t_refund_order ${where}
+     GROUP BY COALESCE(reason, '其他') ORDER BY count DESC LIMIT 10`,
+    values,
+    tenantId
+  );
+  const total = await queryOneWithTenant<CountAmountRow>(
+    `SELECT COUNT(*) AS cnt, COALESCE(SUM(amount), 0) AS amount FROM t_refund_order ${where}`,
+    values,
+    tenantId
+  );
+  const totalAmount = Number(total?.amount ?? 0);
+  return {
+    totalRefundCount: Number(total?.cnt ?? 0),
+    totalRefundAmount: totalAmount,
+    trend: trend.map((r) => ({
+      date: r.date,
+      refundAmount: Number(r.amount),
+      refundCount: Number(r.count),
+      refundRate: totalAmount > 0 ? Math.round((Number(r.amount) / totalAmount) * 10000) / 100 : 0,
+    })),
+    reasonDistribution: reasonDistribution.map((r) => ({
+      name: r.reason || "其他",
+      count: Number(r.count),
+      amount: Number(r.amount),
+    })),
   };
 }

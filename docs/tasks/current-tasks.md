@@ -2877,7 +2877,7 @@
 ### R99-05 — [P0] 页面 mock 数据接真实接口（订单中心/销售分析/客户分析/报表/组合/素材）
 - **优先级**：P0（页面显示假数据，功能正确性优先）
 - **负责人**：阿澈（全栈：后端接口核查/补齐 + 前端接入）
-- **状态**：🔄 进行中（2026-08-08 凌舟派单）
+- **状态**：✅ 已完成（2026-08-08 阿澈执行，待凌舟复核收口）
 - **范围**（R99-03 核查确认）：
   1. OrderCenterView：今日订单/金额/待处理/异常 = mockStats；渠道/趋势为 mock
   2. SalesAnalysis：排行数据 Math.random 随机
@@ -2887,6 +2887,51 @@
   6. MarketingMaterial：btoa SVG 占位缩略图 → 接真实素材图
 - **任务**：逐页核查后端是否有对应统计/列表接口（无则按现有 service/表补），前端改调真实接口；素材缩略图接真实图片 URL（无素材上传则保留占位但标注）；验证 build + 页面真实数据
 - **任务卡**：`docs/tasks/inbox/ache_r99_05.md`
+
+**R99-05 完成记录（2026-08-08 阿澈）：**
+
+**完成内容（6 处 mock 全部接入真实接口，无随机/硬编码数字）：**
+
+**后端（12 个文件，全部遵循现有 service/controller/routes 分层）：**
+| 接口 | 说明 |
+|------|------|
+| `GET /api/admin/instant-retail/order-center-stats` | 订单中心统计：今日订单/金额、待处理、异常、渠道占比、近30天趋势（基于 t_retail_order） |
+| `GET /api/admin/instant-retail/orders`（扩展） | 列表支持 keyword/platform/orderStatus/paymentStatus/日期筛选，返回 platform/platformOrderId |
+| `GET /api/admin/reports/sales-hourly-heatmap` | 销售时段热力图（按日 x 小时聚合 t_sale_bill） |
+| `GET /api/admin/reports/sales-ranking?dimension=store` | 销售排行新增「门店」维度；客户维度补 lastOrderTime |
+| `GET /api/admin/reports/collection/summary`（扩展） | 补 pendingAmount（未付金额） |
+| `GET /api/admin/reports/collection/daily-trend`（扩展） | 支持 splitByChannel=true 按渠道拆分 |
+| `GET /api/admin/reports/collection/timeout`（扩展） | 返回超时未付订单明细 orders（LEFT JOIN t_member 取客户名） |
+| `GET /api/admin/reports/collection/refund-analysis` | 退款分析（按日趋势 + 原因分布，基于 t_refund_order） |
+| `GET /api/admin/product-bundles/stats`（扩展） | 补 totalSalesAmount/totalDiscountAmount、topBundles 扩至 10 |
+| `GET /api/admin/product-bundles`（扩展） | 列表补 categoryName（join 分类）与 itemCount（明细计数） |
+
+**前端（6 页 + 4 个 api 封装文件）：**
+- `OrderCenterView.vue`：mockStats/mockOrders/渠道占比/趋势 → 真实接口；列表/详情接 `/admin/instant-retail/orders*`；筛选与分页走服务端
+- `SalesAnalysis.vue`：趋势/热力图/商品/客户/门店/业务员排行/同期对比/销售日报全部接真实接口；门店选项来自 `/admin/system/stores`；排行无毛利数据源显示 0 而非随机数
+- `CollectionAnalysis.vue`：总览（含 pendingAmount）/漏斗/趋势（含按渠道拆分）/渠道分布/超时分析（含订单明细）/退款分析全部接真实接口
+- `Reports.vue`：日报/订单状态分布/门店业绩改接真实接口；客户数/新增/增长率来自 customer-stats + business-overview；客单价增长率由日报最近两日计算
+- `ProductCombo.vue`：套装/组合品列表、创建/编辑/删除、上架/下架、统计卡全部接 `/admin/product-bundles` + `/admin/combo-products`；销售排行图用 stats.topBundles；趋势/优惠图无数据源显示空态（TODO 注释）
+- `MarketingMaterial.vue`：分类树/素材列表/发布归档/删除接 `/admin/marketing/materials`；图片缩略图优先用真实 file_url，无 URL 保留 SVG 占位并注释；上传保留占位（后端无对象存储实现，已注释说明）
+
+**验证证据：**
+| 验证项 | 命令/方式 | 结果 |
+|--------|-----------|------|
+| 后端类型检查 | `npm run typecheck`（backend） | exit 0 ✅ |
+| 后端构建 | `npm run build`（backend） | exit 0 ✅ |
+| 前端构建 | `npm run build:check`（admin-web） | vue-tsc + vite build 全过，exit 0 ✅ |
+| 接口冒烟 | 登录后请求 24 个新/扩展端点 | 全部 HTTP 200 ✅ |
+| 页面走查 | `.playwright-cli/pw-run/walkthrough-r99-05.mjs`（mock 后端 8081 + dev 5173） | 6/6 正常渲染，0 空白页，0 控制台错误 ✅ |
+| 截图 | `docs/reports/R99-05-走查/`（6 张） | 全部生成 ✅ |
+| 随机数清零 | 6 页 grep `Math.random/mock*` | 0 残留（仅导出 TODO 与上传占位注释）✅ |
+
+**说明：**
+1. mock 后端（USE_MOCK_DB）对 t_retail_order/t_product_bundle/t_marketing_material 无数据，页面显示空态（0 统计/暂无数据），符合「无接口数据时显示空态而非随机数」；生产库接真实数据后即展示
+2. 排行毛利/毛利率、套装逐日趋势、渠道分类优惠、超时率历史趋势无数据源（表结构无成本/趋势字段），显示 0 或空态并留 TODO 注释，未编造数字
+3. 素材上传依赖对象存储/静态文件服务（后端仅有 t_upload_file 配额表、无写文件逻辑），保留占位并注释；缩略图已支持真实 file_url
+4. 走查用 mock 后端（8081）与 admin-web dev server（5173）保持运行，供凌舟验收
+
+**任务卡归档**：`docs/tasks/inbox/ache_r99_05.md` → `docs/tasks/inbox/archive/`
 
 ### R99-04 — [P1] 全局走查收口（P2 system 抽查 + 页头文案 + 一致性）
 - **优先级**：P1（与 R99-05 并行）

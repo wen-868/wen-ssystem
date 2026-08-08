@@ -8,6 +8,8 @@ interface ProductBundleRow {
   bundleNo: string;
   bundleName: string;
   categoryId: number | string | null;
+  categoryName: string | null;
+  itemCount: number | string;
   coverImage: string | null;
   description?: string | null;
   originalPrice: number | string;
@@ -45,6 +47,8 @@ interface ProductBundleStatsRow {
   publishedCount: number | string | null;
   unpublishedCount: number | string | null;
   totalSales: number | string | null;
+  totalSalesAmount: number | string | null;
+  totalDiscountAmount: number | string | null;
 }
 
 /** 套装销量TOP行 */
@@ -96,12 +100,15 @@ export async function listProductBundles(params: {
   const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await queryWithTenant<ProductBundleRow>(
     `SELECT b.id, b.bundle_no AS bundleNo, b.bundle_name AS bundleName,
-            b.category_id AS categoryId, b.cover_image AS coverImage,
+            b.category_id AS categoryId, c.name AS categoryName,
+            (SELECT COUNT(*) FROM t_product_bundle_item bi WHERE bi.bundle_id = b.id) AS itemCount,
+            b.cover_image AS coverImage,
             b.original_price AS originalPrice, b.bundle_price AS bundlePrice,
             b.cost_price AS costPrice, b.status, b.sort_order AS sortOrder,
             b.sales_count AS salesCount, b.created_at AS createdAt,
             b.updated_at AS updatedAt
      FROM t_product_bundle b
+     LEFT JOIN t_product_category c ON c.id = b.category_id
      ${where}
      ORDER BY b.sort_order ASC, b.created_at DESC
      LIMIT ? OFFSET ?`,
@@ -393,21 +400,23 @@ export async function getProductBundleStats(params: {
        COUNT(*) AS totalBundles,
        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS publishedCount,
        SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS unpublishedCount,
-       SUM(sales_count) AS totalSales
+       SUM(sales_count) AS totalSales,
+       SUM(sales_count * bundle_price) AS totalSalesAmount,
+       SUM(sales_count * (original_price - bundle_price)) AS totalDiscountAmount
      FROM t_product_bundle b
      ${where}`,
     queryParams,
     tenantId
   );
 
-  // 销量TOP5套装
+  // 销量TOP10套装
   const topBundles = await queryWithTenant<ProductBundleTopRow>(
     `SELECT id, bundle_no AS bundleNo, bundle_name AS bundleName,
             sales_count AS salesCount, bundle_price AS bundlePrice
      FROM t_product_bundle b
      ${where}
      ORDER BY sales_count DESC
-     LIMIT 5`,
+     LIMIT 10`,
     queryParams,
     tenantId
   );
@@ -417,6 +426,8 @@ export async function getProductBundleStats(params: {
     publishedCount: totalStats?.publishedCount ?? 0,
     unpublishedCount: totalStats?.unpublishedCount ?? 0,
     totalSales: totalStats?.totalSales ?? 0,
+    totalSalesAmount: totalStats?.totalSalesAmount ?? 0,
+    totalDiscountAmount: totalStats?.totalDiscountAmount ?? 0,
     topBundles,
   };
 }

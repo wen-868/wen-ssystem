@@ -140,6 +140,8 @@ interface ProductSkuIdNameRow {
 interface RetailOrderListRow {
   id: number | string;
   orderNo: string;
+  platform: string | null;
+  platformOrderId: string | null;
   userId: number | string | null;
   userName: string | null;
   userPhone: string | null;
@@ -926,12 +928,14 @@ export async function listRetailOrders(params: {
   tenantId: string;
   orderStatus?: string;
   paymentStatus?: string;
+  platform?: string;
+  keyword?: string;
   startDate?: string;
   endDate?: string;
   page: number;
   pageSize: number;
 }) {
-  const { tenantId, orderStatus, paymentStatus, startDate, endDate, page, pageSize } = params;
+  const { tenantId, orderStatus, paymentStatus, platform, keyword, startDate, endDate, page, pageSize } = params;
 
   const conditions: string[] = ["tenant_id = ?"];
   const queryParams: unknown[] = [tenantId];
@@ -943,6 +947,15 @@ export async function listRetailOrders(params: {
   if (paymentStatus) {
     conditions.push("payment_status = ?");
     queryParams.push(paymentStatus);
+  }
+  if (platform) {
+    conditions.push("platform = ?");
+    queryParams.push(platform);
+  }
+  if (keyword) {
+    const like = `%${keyword}%`;
+    conditions.push("(order_no LIKE ? OR receiver_name LIKE ? OR receiver_phone LIKE ? OR user_name LIKE ?)");
+    queryParams.push(like, like, like, like);
   }
   if (startDate) {
     conditions.push("DATE(created_at) >= ?");
@@ -965,6 +978,7 @@ export async function listRetailOrders(params: {
             payment_method AS paymentMethod, payment_time AS paymentTime,
             order_status AS orderStatus, cancel_reason AS cancelReason,
             cancelled_at AS cancelledAt, completed_at AS completedAt,
+            platform, platform_order_id AS platformOrderId,
             created_at AS createdAt
      FROM t_retail_order
      ${where}

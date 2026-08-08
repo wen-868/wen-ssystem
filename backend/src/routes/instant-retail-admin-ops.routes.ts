@@ -24,6 +24,9 @@ instantRetailAdminOpsRouter.get("/order-board", retailExtController.getOrderBoar
 instantRetailAdminOpsRouter.get("/payments", retailExtController.listPayments);
 instantRetailAdminOpsRouter.get("/payments/:paymentNo", retailExtController.getPaymentDetail);
 
+// 订单中心统计（今日/待处理/异常 + 渠道占比 + 近30天趋势）
+instantRetailAdminOpsRouter.get("/order-center-stats", analyticsController.getOrderCenterStats);
+
 // 配送管理（I 配送管理 + M 履约调度）
 instantRetailAdminOpsRouter.get("/deliveries", retailExtController.listDeliveries);
 instantRetailAdminOpsRouter.post("/deliveries/:deliveryId/assign", retailExtController.assignDelivery);

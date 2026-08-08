@@ -23,12 +23,19 @@ export const getCollectionTimeout = asyncHandler(async (req: Request, res: Respo
 
 export const getCollectionDailyTrend = asyncHandler(async (req: Request, res: Response) => {
   const { startDate, endDate, storeId } = req.query as Record<string, string | undefined>;
-  const result = await svc.getCollectionDailyTrend({ tenantId: req.tenantId!, startDate, endDate, storeId: storeId ? Number(storeId) : undefined });
+  const splitByChannel = req.query.splitByChannel === "true" || req.query.splitByChannel === "1";
+  const result = await svc.getCollectionDailyTrend({ tenantId: req.tenantId!, startDate, endDate, storeId: storeId ? Number(storeId) : undefined, splitByChannel });
   res.json(ok(result));
 });
 
 export const getCollectionSummary = asyncHandler(async (req: Request, res: Response) => {
   const { storeId } = req.query as Record<string, string | undefined>;
   const result = await svc.getCollectionSummary({ tenantId: req.tenantId!, storeId: storeId ? Number(storeId) : undefined });
+  res.json(ok(result));
+});
+
+export const getRefundAnalysis = asyncHandler(async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query as Record<string, string | undefined>;
+  const result = await svc.getRefundAnalysis({ tenantId: req.tenantId!, startDate, endDate });
   res.json(ok(result));
 });

@@ -408,7 +408,18 @@ export const listRetailOrders = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const { page, pageSize } = getPagination(req);
   const storeId = getStoreIdFromQuery(req);
-  const result = await retailShopSvc.listRetailOrders({ storeId, tenantId, page, pageSize });
+  const result = await retailShopSvc.listRetailOrders({
+    storeId,
+    tenantId,
+    page,
+    pageSize,
+    status: String(req.query.orderStatus || ""),
+    paymentStatus: String(req.query.paymentStatus || ""),
+    platform: String(req.query.platform || ""),
+    keyword: String(req.query.keyword || ""),
+    startDate: String(req.query.startDate || ""),
+    endDate: String(req.query.endDate || ""),
+  });
   res.json(ok(result));
 });
 

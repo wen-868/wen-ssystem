@@ -38,6 +38,15 @@ interface SalesRankingRow {
   orderCount?: number | string;
   totalAmount: number | string;
   receivedAmount?: number | string;
+  lastOrderTime?: string | Date;
+}
+
+/** 时段热力图行 */
+interface SalesHourlyHeatmapRow {
+  day: string | Date;
+  hour: number | string;
+  amount: number | string;
+  count: number | string;
 }
 
 /** 金额+笔数统计行 */
@@ -164,14 +173,65 @@ export async function getSalesTrend(
   }));
 }
 
+/**
+ * 时段热力图（近30天，按日 x 小时聚合销售金额）
+ * 供销售分析页「时段热力图」Tab 使用，替代前端随机数
+ */
+export async function getSalesHourlyHeatmap(
+  tenantId: string,
+  dateStart?: string,
+  dateEnd?: string,
+  storeId?: number
+) {
+  const start = parseDateParam(dateStart, getDefaultDateStart(30));
+  const end = parseDateParam(dateEnd, getDefaultDateEnd());
+  const conditions: string[] = ["sb.business_status NOT IN ('DRAFT', 'VOIDED')", "DATE(sb.created_at) BETWEEN ? AND ?"];
+  const params: unknown[] = [start, end];
+  if (storeId) {
+    conditions.push("sb.store_id = ?");
+    params.push(storeId);
+  }
+  const where = conditions.join(" AND ");
+
+  const rows = await queryWithTenant<SalesHourlyHeatmapRow>(
+    `SELECT DATE(sb.created_at) AS day, HOUR(sb.created_at) AS hour,
+            COALESCE(SUM(sb.receivable_amount), 0) AS amount,
+            COUNT(DISTINCT sb.bill_no) AS count
+     FROM t_sale_bill sb
+     WHERE ${where}
+     GROUP BY DATE(sb.created_at), HOUR(sb.created_at)
+     ORDER BY day ASC, hour ASC`,
+    params,
+    tenantId
+  );
+
+  // 生成连续日期轴
+  const days: string[] = [];
+  const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
+  const cursor = new Date(`${start}T00:00:00`);
+  const endDate = new Date(`${end}T00:00:00`);
+  while (cursor <= endDate) {
+    days.push(cursor.toISOString().slice(0, 10));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  const dayIndex = new Map(days.map((d, i) => [d, i]));
+  const data: [number, number, number][] = rows.map((r) => {
+    const dayStr = r.day instanceof Date ? r.day.toISOString().slice(0, 10) : String(r.day).slice(0, 10);
+    return [dayIndex.get(dayStr) ?? 0, Number(r.hour), Number(r.amount)];
+  });
+
+  return { days, hours, data };
+}
+
 export async function getSalesRanking(
   tenantId: string,
-  dimension: "product" | "customer" | "staff" = "product",
+  dimension: "product" | "customer" | "staff" | "store" = "product",
   dateStart?: string,
   dateEnd?: string,
   limit: number = 20
 ) {
-  const dim = z.enum(["product", "customer", "staff"]).parse(dimension);
+  const dim = z.enum(["product", "customer", "staff", "store"]).parse(dimension);
   const start = parseDateParam(dateStart, getDefaultDateStart(30));
   const end = parseDateParam(dateEnd, getDefaultDateEnd());
   // limit 有默认值 20，无需 || 20
@@ -199,12 +259,30 @@ export async function getSalesRanking(
       `SELECT sb.customer_id AS id, sb.customer_name AS name, sb.customer_mobile AS mobile,
               COUNT(DISTINCT sb.bill_no) AS orderCount,
               COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
-              COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
+              COALESCE(SUM(sb.received_amount), 0) AS receivedAmount,
+              MAX(sb.created_at) AS lastOrderTime
        FROM t_sale_bill sb
        WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
          AND sb.customer_id IS NOT NULL
          AND DATE(sb.created_at) BETWEEN ? AND ?
        GROUP BY sb.customer_id, sb.customer_name, sb.customer_mobile
+       ORDER BY totalAmount DESC
+       LIMIT ?`,
+      [start, end, lim],
+      tenantId
+    );
+  } else if (dim === "store") {
+    records = await queryWithTenant<SalesRankingRow>(
+      `SELECT sb.store_id AS id, s.name AS name,
+              COUNT(DISTINCT sb.bill_no) AS orderCount,
+              COALESCE(SUM(sb.receivable_amount), 0) AS totalAmount,
+              COALESCE(SUM(sb.received_amount), 0) AS receivedAmount
+       FROM t_sale_bill sb
+       LEFT JOIN t_store s ON s.id = sb.store_id
+       WHERE sb.business_status NOT IN ('DRAFT', 'VOIDED')
+         AND sb.store_id IS NOT NULL
+         AND DATE(sb.created_at) BETWEEN ? AND ?
+       GROUP BY sb.store_id, s.name
        ORDER BY totalAmount DESC
        LIMIT ?`,
       [start, end, lim],

@@ -630,6 +630,19 @@ import echarts from "../../utils/echarts";
 import { CHART_COLORS } from "@/styles/theme";
 import { api } from "../../api";
 import { formatDate } from "../../utils/format";
+import {
+  fetchProductBundles,
+  createProductBundle,
+  updateProductBundle,
+  deleteProductBundle,
+  publishProductBundle,
+  unpublishProductBundle,
+  fetchProductBundleStats,
+  fetchComboProducts,
+  createComboProduct,
+  updateComboProduct,
+  deleteComboProduct,
+} from "../../api";
 
 // ============================================================
 // 通用
@@ -647,39 +660,16 @@ async function loadBaseData() {
     const prodRes = prodData.data || {};
     allProducts.value = prodRes.records || prodRes.list || [];
   } catch {
-    // fallback mock
-    allProducts.value = mockProducts;
+    allProducts.value = [];
   }
   try {
     // 加载分类
-    const { data: catData } = await api.get("/admin/product-categories");
+    const { data: catData } = await api.get("/admin/products/categories");
     categoryList.value = (catData.data || []).map((c: any) => ({ id: c.id, name: c.name }));
   } catch {
-    categoryList.value = [
-      { id: 1, name: "白酒" },
-      { id: 2, name: "啤酒" },
-      { id: 3, name: "红酒" },
-      { id: 4, name: "洋酒" },
-      { id: 5, name: "饮料" }
-    ];
+    categoryList.value = [];
   }
 }
-
-// Mock 商品数据
-const mockProducts = [
-  { id: 1, name: "飞天茅台53度500ml", spec: "500ml", retailPrice: 2999, image: "", stock: 150 },
-  { id: 2, name: "五粮液普五52度500ml", spec: "500ml", retailPrice: 1299, image: "", stock: 200 },
-  { id: 3, name: "剑南春水晶剑52度500ml", spec: "500ml", retailPrice: 459, image: "", stock: 300 },
-  { id: 4, name: "泸州老窖特曲52度500ml", spec: "500ml", retailPrice: 288, image: "", stock: 250 },
-  { id: 5, name: "青岛啤酒经典500ml*24", spec: "500ml*24", retailPrice: 98, image: "", stock: 500 },
-  { id: 6, name: "百威啤酒330ml*24", spec: "330ml*24", retailPrice: 118, image: "", stock: 400 },
-  { id: 7, name: "张裕解百纳干红750ml", spec: "750ml", retailPrice: 168, image: "", stock: 180 },
-  { id: 8, name: "长城干红葡萄酒750ml", spec: "750ml", retailPrice: 88, image: "", stock: 220 },
-  { id: 9, name: "人头马XO700ml", spec: "700ml", retailPrice: 1580, image: "", stock: 60 },
-  { id: 10, name: "轩尼诗VSOP700ml", spec: "700ml", retailPrice: 598, image: "", stock: 80 },
-  { id: 11, name: "可口可乐330ml*24", spec: "330ml*24", retailPrice: 58, image: "", stock: 800 },
-  { id: 12, name: "农夫山泉550ml*24", spec: "550ml*24", retailPrice: 35, image: "", stock: 1000 }
-];
 
 // ============================================================
 // 套装管理
@@ -697,97 +687,44 @@ const comboSearch = reactive({
   dateRange: [] as Date[]
 });
 
-// Mock 套装数据
-const mockComboList = [
-  {
-    id: 1, comboCode: "CB20260701001", name: "中秋佳节送礼套装",
-    categoryName: "白酒", productCount: 3,
-    originalPrice: 4757, comboPrice: 3999, discountAmount: 758,
-    status: "ON_SALE", createdAt: "2026-07-01 10:30:00",
-    image: "",
-    products: [
-      { id: 1, name: "飞天茅台53度500ml", spec: "500ml", unitPrice: 2999, quantity: 1 },
-      { id: 2, name: "五粮液普五52度500ml", spec: "500ml", unitPrice: 1299, quantity: 1 },
-      { id: 3, name: "剑南春水晶剑52度500ml", spec: "500ml", unitPrice: 459, quantity: 1 }
-    ]
-  },
-  {
-    id: 2, comboCode: "CB20260705002", name: "啤酒畅饮套装",
-    categoryName: "啤酒", productCount: 2,
-    originalPrice: 216, comboPrice: 188, discountAmount: 28,
-    status: "ON_SALE", createdAt: "2026-07-05 14:20:00",
-    image: "",
-    products: [
-      { id: 5, name: "青岛啤酒经典500ml*24", spec: "500ml*24", unitPrice: 98, quantity: 1 },
-      { id: 6, name: "百威啤酒330ml*24", spec: "330ml*24", unitPrice: 118, quantity: 1 }
-    ]
-  },
-  {
-    id: 3, comboCode: "CB20260708003", name: "红酒品鉴套装",
-    categoryName: "红酒", productCount: 2,
-    originalPrice: 256, comboPrice: 218, discountAmount: 38,
-    status: "DRAFT", createdAt: "2026-07-08 09:15:00",
-    image: "",
-    products: [
-      { id: 7, name: "张裕解百纳干红750ml", spec: "750ml", unitPrice: 168, quantity: 1 },
-      { id: 8, name: "长城干红葡萄酒750ml", spec: "750ml", unitPrice: 88, quantity: 1 }
-    ]
-  },
-  {
-    id: 4, comboCode: "CB20260710004", name: "洋酒尊享套装",
-    categoryName: "洋酒", productCount: 2,
-    originalPrice: 2178, comboPrice: 1999, discountAmount: 179,
-    status: "OFF_SALE", createdAt: "2026-07-10 16:45:00",
-    image: "",
-    products: [
-      { id: 9, name: "人头马XO700ml", spec: "700ml", unitPrice: 1580, quantity: 1 },
-      { id: 10, name: "轩尼诗VSOP700ml", spec: "700ml", unitPrice: 598, quantity: 1 }
-    ]
-  },
-  {
-    id: 5, comboCode: "CB20260712005", name: "家庭聚会套装",
-    categoryName: "饮料", productCount: 3,
-    originalPrice: 151, comboPrice: 128, discountAmount: 23,
-    status: "ON_SALE", createdAt: "2026-07-12 11:00:00",
-    image: "",
-    products: [
-      { id: 5, name: "青岛啤酒经典500ml*24", spec: "500ml*24", unitPrice: 98, quantity: 1 },
-      { id: 11, name: "可口可乐330ml*24", spec: "330ml*24", unitPrice: 58, quantity: 1 },
-      { id: 12, name: "农夫山泉550ml*24", spec: "550ml*24", unitPrice: 35, quantity: 1 }
-    ]
-  }
-];
+// 后端状态（0=下架/草稿，1=上架）→ 前端展示状态
+function mapBundleStatus(status: number | string): string {
+  return Number(status) === 1 ? "ON_SALE" : "OFF_SALE"
+}
+function toBackendBundleStatus(status: string): number {
+  return status === "ON_SALE" ? 1 : 0
+}
 
 async function searchCombo() {
   comboLoading.value = true;
   try {
-    // 先尝试调用后端 API
-    const { data } = await api.get("/admin/product-combos", {
-      params: {
-        page: comboPage.value,
-        pageSize: comboPageSize.value,
-        keyword: comboSearch.keyword || undefined,
-        categoryId: comboSearch.categoryId || undefined,
-        status: comboSearch.status || undefined
-      }
+    const res = await fetchProductBundles({
+      page: comboPage.value,
+      pageSize: comboPageSize.value,
+      keyword: comboSearch.keyword || undefined,
+      categoryId: comboSearch.categoryId || undefined,
+      status: comboSearch.status ? toBackendBundleStatus(comboSearch.status) : undefined,
     });
-    const res = data.data || {};
-    comboList.value = res.records || res.list || [];
-    comboTotal.value = res.total || 0;
-  } catch {
-    // 使用 mock 数据
-    await new Promise(r => setTimeout(r, 300));
-    let filtered = [...mockComboList];
-    if (comboSearch.keyword) {
-      const kw = comboSearch.keyword.toLowerCase();
-      filtered = filtered.filter(c => c.name.toLowerCase().includes(kw) || c.comboCode.toLowerCase().includes(kw));
-    }
-    if (comboSearch.status) {
-      filtered = filtered.filter(c => c.status === comboSearch.status);
-    }
-    comboTotal.value = filtered.length;
-    const start = (comboPage.value - 1) * comboPageSize.value;
-    comboList.value = filtered.slice(start, start + comboPageSize.value);
+    const records = res?.records || res?.list || [];
+    comboList.value = records.map((b: any) => ({
+      id: b.id,
+      comboCode: b.bundleNo || b.comboCode || "",
+      name: b.bundleName || b.name || "",
+      categoryId: b.categoryId,
+      categoryName: b.categoryName || "-",
+      productCount: Number(b.itemCount ?? 0),
+      originalPrice: Number(b.originalPrice ?? 0),
+      comboPrice: Number(b.bundlePrice ?? 0),
+      discountAmount: Math.max(0, Number(b.originalPrice ?? 0) - Number(b.bundlePrice ?? 0)),
+      status: mapBundleStatus(b.status),
+      createdAt: b.createdAt,
+      image: b.coverImage || b.image || "",
+      products: b.items || b.products || [],
+    }));
+    comboTotal.value = res?.total || 0;
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "加载套装列表失败");
+    comboList.value = [];
   } finally {
     comboLoading.value = false;
   }
@@ -977,28 +914,62 @@ async function submitCombo() {
 async function doSaveCombo() {
   comboSubmitLoading.value = true;
   try {
-    // mock 保存
-    await new Promise(r => setTimeout(r, 500));
+    const payload = {
+      bundleName: comboForm.name,
+      categoryId: comboForm.categoryId || undefined,
+      coverImage: comboForm.image || undefined,
+      description: comboForm.description || undefined,
+      bundlePrice: Number(comboForm.comboPrice || 0),
+      status: toBackendBundleStatus(comboForm.status),
+      sortOrder: 0,
+      items: comboForm.products.map((p: any) => ({
+        skuId: p.id,
+        skuName: p.name,
+        barcode: p.barcode || undefined,
+        qty: Number(p.quantity || 1),
+        unitPrice: Number(p.unitPrice || 0),
+        costPrice: Number(p.costPrice ?? 0),
+      })),
+    };
+    if (comboEditing.value && comboForm.id) {
+      await updateProductBundle(comboForm.id, payload);
+    } else {
+      await createProductBundle(payload);
+    }
     ElMessage.success(comboEditing.value ? "编辑成功" : "创建成功");
     comboDialogVisible.value = false;
     searchCombo();
-  } catch (e) {
-    ElMessage.error("保存失败");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败");
   } finally {
     comboSubmitLoading.value = false;
   }
 }
 
-function toggleComboStatus(row: any) {
-  const newStatus = row.status === "ON_SALE" ? "OFF_SALE" : "ON_SALE";
-  ElMessage.success(`已${newStatus === "ON_SALE" ? "上架" : "下架"}`);
-  row.status = newStatus;
+async function toggleComboStatus(row: any) {
+  const toOnSale = row.status !== "ON_SALE";
+  try {
+    if (toOnSale) {
+      await publishProductBundle(row.id);
+    } else {
+      await unpublishProductBundle(row.id);
+    }
+    ElMessage.success(`已${toOnSale ? "上架" : "下架"}`);
+    row.status = toOnSale ? "ON_SALE" : "OFF_SALE";
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "操作失败");
+  }
 }
 
-function deleteCombo(id: number) {
-  const index = comboList.value.findIndex(c => c.id === id);
-  if (index > -1) comboList.value.splice(index, 1);
-  ElMessage.success("删除成功");
+async function deleteCombo(id: number) {
+  try {
+    await deleteProductBundle(id);
+    const index = comboList.value.findIndex(c => c.id === id);
+    if (index > -1) comboList.value.splice(index, 1);
+    ElMessage.success("删除成功");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "删除失败");
+  }
 }
 
 // 套装详情
@@ -1025,74 +996,42 @@ const groupSearch = reactive({
   status: ""
 });
 
-const mockGroupList = [
-  {
-    id: 1, groupCode: "GP20260701001", name: "白酒+下酒菜组合",
-    type: "FIXED", mainProductName: "飞天茅台53度500ml",
-    optionCount: 2, basePrice: 3199, status: "ACTIVE",
-    createdAt: "2026-07-01 10:30:00",
-    options: [
-      { id: 1, name: "飞天茅台53度500ml", spec: "500ml", extraPrice: 0, required: true },
-      { id: 2, name: "酒鬼花生200g", spec: "200g", extraPrice: 15, required: true }
-    ],
-    ruleDescription: "固定组合，商品固定，价格固定，不可调整。"
-  },
-  {
-    id: 2, groupCode: "GP20260703002", name: "啤酒畅饮可选组合",
-    type: "OPTIONAL", mainProductName: "青岛啤酒经典500ml*24",
-    optionCount: 3, basePrice: 98, status: "ACTIVE",
-    createdAt: "2026-07-03 14:20:00",
-    options: [
-      { id: 5, name: "青岛啤酒经典500ml*24", spec: "500ml*24", extraPrice: 0, required: true },
-      { id: 11, name: "可口可乐330ml*24", spec: "330ml*24", extraPrice: 45, required: false },
-      { id: 12, name: "农夫山泉550ml*24", spec: "550ml*24", extraPrice: 28, required: false }
-    ],
-    ruleDescription: "主商品必选，配件可自由搭配，每件配件单独加价。"
-  },
-  {
-    id: 3, groupCode: "GP20260706003", name: "红酒双支礼盒组合",
-    type: "FIXED", mainProductName: "张裕解百纳干红750ml",
-    optionCount: 2, basePrice: 358, status: "INACTIVE",
-    createdAt: "2026-07-06 09:15:00",
-    options: [
-      { id: 7, name: "张裕解百纳干红750ml", spec: "750ml", extraPrice: 0, required: true },
-      { id: 8, name: "长城干红葡萄酒750ml", spec: "750ml", extraPrice: 88, required: true }
-    ],
-    ruleDescription: "双支装礼盒，固定搭配。"
-  }
-];
+// 组合品状态（0=停用，1=启用）→ 前端展示状态
+function mapGroupStatus(status: number | string): string {
+  return Number(status) === 1 ? "ACTIVE" : "INACTIVE"
+}
+function toBackendGroupStatus(status: string): number {
+  return status === "ACTIVE" ? 1 : 0
+}
 
 async function searchGroup() {
   groupLoading.value = true;
   try {
-    const { data } = await api.get("/admin/product-groups", {
-      params: {
-        page: groupPage.value,
-        pageSize: groupPageSize.value,
-        keyword: groupSearch.keyword || undefined,
-        type: groupSearch.type || undefined,
-        status: groupSearch.status || undefined
-      }
+    const res = await fetchComboProducts({
+      page: groupPage.value,
+      pageSize: groupPageSize.value,
+      keyword: groupSearch.keyword || undefined,
+      comboType: groupSearch.type || undefined,
+      status: groupSearch.status ? toBackendGroupStatus(groupSearch.status) : undefined,
     });
-    const res = data.data || {};
-    groupList.value = res.records || res.list || [];
-    groupTotal.value = res.total || 0;
-  } catch {
-    await new Promise(r => setTimeout(r, 300));
-    let filtered = [...mockGroupList];
-    if (groupSearch.keyword) {
-      const kw = groupSearch.keyword.toLowerCase();
-      filtered = filtered.filter(g => g.name.toLowerCase().includes(kw) || g.groupCode.toLowerCase().includes(kw));
-    }
-    if (groupSearch.type) {
-      filtered = filtered.filter(g => g.type === groupSearch.type);
-    }
-    if (groupSearch.status) {
-      filtered = filtered.filter(g => g.status === groupSearch.status);
-    }
-    groupTotal.value = filtered.length;
-    const start = (groupPage.value - 1) * groupPageSize.value;
-    groupList.value = filtered.slice(start, start + groupPageSize.value);
+    const records = res?.records || res?.list || [];
+    groupList.value = records.map((g: any) => ({
+      id: g.id,
+      groupCode: g.comboNo || g.groupCode || "",
+      name: g.comboName || g.name || "",
+      type: g.comboType || "FIXED",
+      mainProductName: "-",
+      optionCount: 0,
+      basePrice: Number(g.basePrice ?? 0),
+      status: mapGroupStatus(g.status),
+      createdAt: g.createdAt,
+      options: g.options || [],
+      ruleDescription: g.description || "",
+    }));
+    groupTotal.value = res?.total || 0;
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "加载组合品列表失败");
+    groupList.value = [];
   } finally {
     groupLoading.value = false;
   }
@@ -1180,12 +1119,34 @@ async function saveGroup() {
     if (valid) {
       groupSubmitLoading.value = true;
       try {
-        await new Promise(r => setTimeout(r, 500));
+        const payload = {
+          comboName: groupForm.name,
+          comboType: groupForm.type,
+          description: groupForm.ruleDescription || undefined,
+          basePrice: Number(groupForm.basePrice || 0),
+          status: toBackendGroupStatus(groupForm.status),
+          sortOrder: 0,
+          options: groupForm.options.map((o: any) => ({
+            groupName: "默认组",
+            skuId: o.id,
+            skuName: o.name,
+            barcode: o.barcode || undefined,
+            extraPrice: Number(o.extraPrice || 0),
+            isRequired: o.required ? 1 : 0,
+            isDefault: 0,
+            sortOrder: 0,
+          })),
+        };
+        if (groupEditing.value && groupForm.id) {
+          await updateComboProduct(groupForm.id, payload);
+        } else {
+          await createComboProduct(payload);
+        }
         ElMessage.success(groupEditing.value ? "编辑成功" : "创建成功");
         groupDialogVisible.value = false;
         searchGroup();
-      } catch {
-        ElMessage.error("保存失败");
+      } catch (e: any) {
+        ElMessage.error(e?.response?.data?.msg || "保存失败");
       } finally {
         groupSubmitLoading.value = false;
       }
@@ -1193,10 +1154,15 @@ async function saveGroup() {
   });
 }
 
-function deleteGroup(id: number) {
-  const index = groupList.value.findIndex(g => g.id === id);
-  if (index > -1) groupList.value.splice(index, 1);
-  ElMessage.success("删除成功");
+async function deleteGroup(id: number) {
+  try {
+    await deleteComboProduct(id);
+    const index = groupList.value.findIndex(g => g.id === id);
+    if (index > -1) groupList.value.splice(index, 1);
+    ElMessage.success("删除成功");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "删除失败");
+  }
 }
 
 // 组合详情
@@ -1221,13 +1187,30 @@ let salesTrendChart: echarts.ECharts | null = null;
 let discountChart: echarts.ECharts | null = null;
 
 const statsSummary = reactive({
-  totalSales: 1286,
-  totalAmount: 568920.50,
-  totalDiscount: 78650.30,
-  activeComboCount: 15
+  totalSales: 0,
+  totalAmount: 0,
+  totalDiscount: 0,
+  activeComboCount: 0,
 });
+const salesRankData = ref<{ name: string; value: number }[]>([]);
 
 async function loadStats() {
+  try {
+    const data = await fetchProductBundleStats({
+      dateStart: statsDateRange.value?.[0] ? statsDateRange.value[0].toISOString().slice(0, 10) : undefined,
+      dateEnd: statsDateRange.value?.[1] ? statsDateRange.value[1].toISOString().slice(0, 10) : undefined,
+    });
+    statsSummary.totalSales = Number(data?.totalSales ?? 0);
+    statsSummary.totalAmount = Number(data?.totalSalesAmount ?? 0);
+    statsSummary.totalDiscount = Number(data?.totalDiscountAmount ?? 0);
+    statsSummary.activeComboCount = Number(data?.publishedCount ?? 0);
+    salesRankData.value = (data?.topBundles || []).map((b: any) => ({
+      name: b.bundleName || "-",
+      value: Number(b.salesCount ?? 0),
+    }));
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "加载套装统计失败");
+  }
   await nextTick();
   initSalesRankChart();
   initSalesTrendChart();
@@ -1239,18 +1222,7 @@ function initSalesRankChart() {
   if (salesRankChart) salesRankChart.dispose();
   salesRankChart = echarts.init(salesRankChartRef.value);
 
-  const data = [
-    { name: "中秋佳节送礼套装", value: 328 },
-    { name: "啤酒畅饮套装", value: 256 },
-    { name: "家庭聚会套装", value: 201 },
-    { name: "红酒品鉴套装", value: 178 },
-    { name: "洋酒尊享套装", value: 145 },
-    { name: "双支白酒礼盒", value: 89 },
-    { name: "夏日冰爽套装", value: 76 },
-    { name: "商务宴请套装", value: 65 },
-    { name: "入门品鉴套装", value: 52 },
-    { name: "婚庆喜宴套装", value: 48 }
-  ].sort((a, b) => a.value - b.value);
+  const data = [...salesRankData.value].sort((a, b) => a.value - b.value);
 
   salesRankChart.setOption({
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
@@ -1282,16 +1254,10 @@ function initSalesTrendChart() {
   if (salesTrendChart) salesTrendChart.dispose();
   salesTrendChart = echarts.init(salesTrendChartRef.value);
 
-  const days = [];
-  const amounts = [];
-  const sales = [];
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    amounts.push(Math.round(30000 + Math.random() * 20000));
-    sales.push(Math.round(60 + Math.random() * 50));
-  }
+  // TODO: 套装逐日销售趋势无数据源（t_product_bundle 仅有 sales_count 累计值），显示空态
+  const days: string[] = [];
+  const amounts: number[] = [];
+  const sales: number[] = [];
 
   salesTrendChart.setOption({
     tooltip: { trigger: "axis" },
@@ -1334,9 +1300,10 @@ function initDiscountChart() {
   if (discountChart) discountChart.dispose();
   discountChart = echarts.init(discountChartRef.value);
 
-  const categories = ["白酒套装", "啤酒套装", "红酒套装", "洋酒套装", "饮料套装", "混合套装"];
-  const originalAmounts = [285000, 62000, 48000, 95000, 32000, 62000];
-  const discountAmounts = [42800, 8600, 6200, 12500, 3800, 8900];
+  // TODO: 按分类的套装优惠数据无数据源（统计接口仅返回汇总金额），显示空态
+  const categories: string[] = [];
+  const originalAmounts: number[] = [];
+  const discountAmounts: number[] = [];
 
   discountChart.setOption({
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
