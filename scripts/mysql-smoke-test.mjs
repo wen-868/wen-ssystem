@@ -127,7 +127,7 @@ async function apiChecks() {
   check("管理后台看板", dashboard.body?.code === "0" && dashboard.body?.data);
 
   const miniProducts = await request("/api/miniapp/products?storeId=1", { headers: auth });
-  check("小程序商品列表", miniProducts.body?.code === "0" && Array.isArray(miniProducts.body?.data));
+  check("小程序商品列表", miniProducts.body?.code === "0" && Array.isArray(miniProducts.body?.data?.records));
 
   const miniOrder = await request("/api/miniapp/orders", {
     method: "POST",
