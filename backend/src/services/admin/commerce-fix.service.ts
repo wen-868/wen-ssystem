@@ -156,12 +156,19 @@ export async function listBills(tenantId: string, params: {
   if (params.dateStart) { where.push("issue_date >= ?"); args.push(params.dateStart); }
   if (params.dateEnd) { where.push("issue_date <= ?"); args.push(params.dateEnd); }
   const whereSql = where.join(" AND ");
-  const totalRow = await queryOne<{ total: number }>(`SELECT COUNT(*) AS total FROM t_bill WHERE ${whereSql}`, args);
-  const rows = await query<BillRow>(
-    `SELECT id, bill_no, bill_type, amount, issue_date, due_date, status, verified_at, remark, created_at
-     FROM t_bill WHERE ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [...args, pageSize, (page - 1) * pageSize]
-  );
+  let totalRow: { total: number } | null = null;
+  let rows: BillRow[] = [];
+  try {
+    totalRow = await queryOne<{ total: number }>(`SELECT COUNT(*) AS total FROM t_bill WHERE ${whereSql}`, args);
+    rows = await query<BillRow>(
+      `SELECT id, bill_no, bill_type, amount, issue_date, due_date, status, verified_at, remark, created_at
+       FROM t_bill WHERE ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...args, pageSize, (page - 1) * pageSize]
+    );
+  } catch {
+    // 表尚未初始化（无建表权限或未执行迁移）时返回空列表，不报 500
+    return { records: [], total: 0, page, pageSize, warning: "票据表未初始化，请先执行迁移 docs/migrations/126_bills.sql" };
+  }
   return {
     records: rows.map((r) => ({
       id: r.id,
@@ -242,8 +249,9 @@ export async function voidBill(tenantId: string, id: number) {
 
 /** 确保票据表存在（126 迁移；此处兜底防部署顺序问题） */
 async function ensureBillTable() {
-  await query(
-    `CREATE TABLE IF NOT EXISTS t_bill (
+  try {
+    await query(
+      `CREATE TABLE IF NOT EXISTS t_bill (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       tenant_id VARCHAR(36) NOT NULL,
       bill_no VARCHAR(64) NOT NULL,
@@ -260,8 +268,11 @@ async function ensureBillTable() {
       UNIQUE KEY uk_bill_no (bill_no, tenant_id),
       KEY idx_bill_tenant_status (tenant_id, status),
       KEY idx_bill_tenant_type (tenant_id, bill_type)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='票据管理表'`
-  );
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='票据管理表'`
+    );
+  } catch {
+    // 建表权限不足时静默，由 migration 兜底
+  }
 }
 
 // ==================== 5. 优惠券核销记录 ====================
