@@ -12,6 +12,7 @@ export const adminTransferRouter = Router();
 adminTransferRouter.post("/", transferOrderController.createTransferOrder);
 adminTransferRouter.get("/", transferOrderController.listTransferOrders);
 adminTransferRouter.get("/statistics", transferOrderController.getTransferStatistics);
+adminTransferRouter.get("/trend", transferOrderController.getTransferTrend);
 adminTransferRouter.get("/:id", transferOrderController.getTransferOrderDetail);
 adminTransferRouter.put("/:id", transferOrderController.updateTransferOrder);
 adminTransferRouter.post("/:id/submit", transferOrderController.submitTransferOrder);

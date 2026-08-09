@@ -143,6 +143,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { fetchTransferStatistics, fetchTransferTrend } from "../../api";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Refresh, Download, Document, CircleCheck, Goods, Money, ArrowUp } from "@element-plus/icons-vue";
@@ -161,14 +162,14 @@ const storeOptions = [
 ];
 
 const statData = reactive({
-  totalTransfers: 128,
-  transferGrowth: 12.5,
-  completedTransfers: 106,
-  completeRate: 82.8,
-  totalQty: 3256,
-  qtyGrowth: 18.3,
-  totalAmount: "268.5万",
-  amountGrowth: 15.7
+  totalTransfers: 0,
+  transferGrowth: 0,
+  completedTransfers: 0,
+  completeRate: 0,
+  totalQty: 0,
+  qtyGrowth: 0,
+  totalAmount: "0",
+  amountGrowth: 0
 });
 
 const trendChartRef = ref<HTMLElement>();
@@ -183,48 +184,30 @@ let productRankChart: any = null;
 let statusPieChart: any = null;
 let reasonPieChart: any = null;
 
-function generateTrendData(granularity: string) {
-  if (granularity === "day") {
-    const days = timeRange.value === "week" ? 7 : timeRange.value === "month" ? 30 : timeRange.value === "quarter" ? 90 : 365;
-    const categories = [];
-    const data1 = [];
-    const data2 = [];
-    const now = new Date();
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      categories.push(`${d.getMonth() + 1}/${d.getDate()}`);
-      const base = 3 + Math.random() * 4;
-      data1.push(Math.floor(base + Math.random() * 2));
-      data2.push(Math.floor(base * 25 + Math.random() * 10));
-    }
-    return { categories, series1: data1, series2: data2 };
-  } else if (granularity === "week") {
-    const weeks = timeRange.value === "week" ? 1 : timeRange.value === "month" ? 4 : timeRange.value === "quarter" ? 12 : 52;
-    const categories = [];
-    const data1 = [];
-    const data2 = [];
-    for (let i = weeks - 1; i >= 0; i--) {
-      categories.push(`第${weeks - i}周`);
-      const base = 15 + Math.random() * 10;
-      data1.push(Math.floor(base));
-      data2.push(Math.floor(base * 25));
-    }
-    return { categories, series1: data1, series2: data2 };
-  } else {
-    const months = timeRange.value === "week" || timeRange.value === "month" ? 1 : timeRange.value === "quarter" ? 3 : 12;
-    const categories = [];
-    const data1 = [];
-    const data2 = [];
-    const now = new Date();
-    for (let i = months - 1; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      categories.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-      const base = 50 + Math.random() * 30;
-      data1.push(Math.floor(base));
-      data2.push(Math.floor(base * 25));
-    }
-    return { categories, series1: data1, series2: data2 };
+const trendCache = ref<any[]>([])
+
+async function loadRealData() {
+  try {
+    const [stats, trend] = await Promise.all([
+      fetchTransferStatistics(),
+      fetchTransferTrend(90),
+    ])
+    statData.totalTransfers = stats?.monthTotal ?? 0
+    statData.completedTransfers = stats?.receivedCount ?? 0
+    statData.totalQty = stats?.transitCount ?? 0
+    statData.completeRate = statData.totalTransfers ? Math.round((statData.completedTransfers / statData.totalTransfers) * 1000) / 10 : 0
+    trendCache.value = (trend || []).map((t: any) => ({ date: (t.date || '').slice(5), count: Number(t.count || 0) }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载调拨统计失败')
+    trendCache.value = []
   }
+}
+
+function generateTrendData(granularity: string) {
+  const categories = trendCache.value.map((t) => t.date)
+  const series1 = trendCache.value.map((t) => t.count)
+  const series2 = trendCache.value.map((t) => t.count)
+  return { categories, series1, series2 }
 }
 
 function renderTrendChart() {
@@ -559,7 +542,8 @@ function onTimeRangeChange() {
   renderTrendChart();
 }
 
-function refreshData() {
+async function refreshData() {
+  await loadRealData();
   renderTrendChart();
   renderStoreRankChart();
   renderProductRankChart();
@@ -580,7 +564,8 @@ function handleResize() {
   reasonPieChart?.resize();
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadRealData();
   nextTick(() => {
     initCharts();
   });

@@ -265,165 +265,13 @@ import WorkflowFlowChart from "../components/WorkflowFlowChart.vue";
 const placeholderImg = "https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png";
 
 // ==================== Mock 数据 ====================
-const mockPendingList = [
-  {
-    id: 1,
-    reviewNo: "PR202607150001",
-    productName: "飞天茅台53度500ml",
-    productImage: "",
-    reviewType: "CREATE",
-    urgent: "URGENT",
-    submitterName: "张经理",
-    currentLevelName: "一级审核",
-    remainingHours: 18,
-    submittedAt: "2026-07-15 09:30:00",
-    status: "PENDING",
-    canReview: true
-  },
-  {
-    id: 2,
-    reviewNo: "PR202607150002",
-    productName: "五粮液普五52度500ml",
-    productImage: "",
-    reviewType: "UPDATE",
-    urgent: "NORMAL",
-    submitterName: "李业务员",
-    currentLevelName: "二级审核",
-    remainingHours: 42,
-    submittedAt: "2026-07-14 14:20:00",
-    status: "PENDING",
-    canReview: true
-  },
-  {
-    id: 3,
-    reviewNo: "PR202607150003",
-    productName: "青岛啤酒经典500ml*12",
-    productImage: "",
-    reviewType: "PRICE_CHANGE",
-    urgent: "CRITICAL",
-    submitterName: "王店长",
-    currentLevelName: "一级审核",
-    remainingHours: 5,
-    submittedAt: "2026-07-15 08:00:00",
-    status: "PENDING",
-    canReview: true
-  },
-  {
-    id: 4,
-    reviewNo: "PR202607150004",
-    productName: "张裕解百纳干红750ml",
-    productImage: "",
-    reviewType: "OFFLINE",
-    urgent: "NORMAL",
-    submitterName: "赵库管",
-    currentLevelName: "一级审核",
-    remainingHours: 20,
-    submittedAt: "2026-07-15 10:15:00",
-    status: "PENDING",
-    canReview: true
-  }
-];
+const mockPendingList = []
 
-const mockReviewedList = [
-  {
-    id: 11,
-    reviewNo: "PR202607140001",
-    productName: "洋河蓝色经典天之蓝480ml",
-    productImage: "",
-    reviewType: "CREATE",
-    submitterName: "张经理",
-    reviewerName: "我（店长）",
-    result: "APPROVED",
-    reviewedAt: "2026-07-14 16:30:00",
-    reviewOpinion: "信息完整，同意上架",
-    status: "APPROVED"
-  },
-  {
-    id: 12,
-    reviewNo: "PR202607140002",
-    productName: "农夫山泉550ml*24",
-    productImage: "",
-    reviewType: "PRICE_CHANGE",
-    submitterName: "李业务员",
-    reviewerName: "我（店长）",
-    result: "REJECTED",
-    reviewedAt: "2026-07-14 11:20:00",
-    reviewOpinion: "价格调整幅度过大，请确认进价后重新提交",
-    status: "REJECTED"
-  },
-  {
-    id: 13,
-    reviewNo: "PR202607130001",
-    productName: "红牛维生素功能饮料250ml*24",
-    productImage: "",
-    reviewType: "UPDATE",
-    submitterName: "王店长",
-    reviewerName: "我（店长）",
-    result: "APPROVED",
-    reviewedAt: "2026-07-13 15:45:00",
-    reviewOpinion: "",
-    status: "APPROVED"
-  }
-];
+const mockReviewedList = []
 
-const mockSubmittedList = [
-  {
-    id: 21,
-    reviewNo: "PR202607150010",
-    productName: "泸州老窖特曲52度500ml",
-    productImage: "",
-    reviewType: "CREATE",
-    submitterName: "我",
-    status: "PENDING",
-    currentLevelName: "一级审核",
-    createdAt: "2026-07-15 09:00:00"
-  },
-  {
-    id: 22,
-    reviewNo: "PR202607140015",
-    productName: "怡宝纯净水555ml*24",
-    productImage: "",
-    reviewType: "PRICE_CHANGE",
-    submitterName: "我",
-    status: "APPROVED",
-    createdAt: "2026-07-14 10:00:00"
-  },
-  {
-    id: 23,
-    reviewNo: "PR202607130008",
-    productName: "康师傅冰红茶500ml*15",
-    productImage: "",
-    reviewType: "UPDATE",
-    submitterName: "我",
-    status: "REJECTED",
-    createdAt: "2026-07-13 14:30:00"
-  }
-];
+const mockSubmittedList = []
 
-const mockDetail = {
-  id: 1,
-  reviewNo: "PR202607150001",
-  productName: "飞天茅台53度500ml",
-  productImage: "",
-  reviewType: "CREATE",
-  urgent: "URGENT",
-  submitterName: "张经理",
-  submittedAt: "2026-07-15 09:30:00",
-  status: "PENDING",
-  changeReason: "新品上架，供应商直供，价格有优势",
-  currentLevel: 0,
-  approvedLevels: [] as number[],
-  rejectedLevel: -1,
-  canReview: true,
-  levels: [
-    { name: "一级审核", role: "MGR", approverName: "张经理", timeLimitHours: 24 },
-    { name: "二级审核", role: "FIN", approverName: "李财务", timeLimitHours: 48 },
-    { name: "三级审核", role: "BOSS", approverName: "王老板", timeLimitHours: 72 }
-  ],
-  reviewLogs: [
-    { levelName: "提交申请", reviewerName: "张经理", result: "APPROVED", opinion: "提交商品新增审核", reviewedAt: "2026-07-15 09:30:00" }
-  ]
-};
+const mockDetail = {}
 
 // ==================== 数据状态 ====================
 const activeTab = ref("pending");
@@ -534,34 +382,36 @@ function handleTabChange() {
   loadList();
 }
 
-function loadList() {
+async function loadList() {
   loading.value = true;
-  setTimeout(() => {
-    let source: any[] = [];
-    if (activeTab.value === "pending") source = mockPendingList;
-    else if (activeTab.value === "reviewed") source = mockReviewedList;
-    else source = mockSubmittedList;
-
-    let filtered = [...source];
-    if (searchForm.keyword) {
-      filtered = filtered.filter(r =>
-        r.productName.includes(searchForm.keyword!) || r.reviewNo.includes(searchForm.keyword!)
-      );
-    }
-    if (searchForm.reviewType) {
-      filtered = filtered.filter(r => r.reviewType === searchForm.reviewType);
-    }
-    if (searchForm.urgent && activeTab.value === "pending") {
-      filtered = filtered.filter(r => r.urgent === searchForm.urgent);
-    }
-    if (searchForm.result && activeTab.value === "reviewed") {
-      filtered = filtered.filter(r => r.result === searchForm.result);
-    }
-
-    records.value = filtered;
-    total.value = filtered.length;
-    loading.value = false;
-  }, 300);
+  try {
+    const statusMap: Record<string, string | undefined> = { pending: "PENDING", reviewed: "APPROVED", submitted: undefined }
+    const data = await fetchProductReviews({
+      page: page.value,
+      pageSize: pageSize.value,
+      status: statusMap[activeTab.value],
+      keyword: searchForm.keyword || undefined,
+      reviewType: searchForm.reviewType || undefined,
+    })
+    records.value = (data?.records || []).map((r: any) => ({
+      ...r,
+      reviewNo: r.reviewNo || '',
+      productName: r.productName || '',
+      urgent: 0,
+      result: r.status,
+      submittedAt: r.createdAt || '',
+      reviewOpinion: r.reviewComment || '',
+      status: r.status || 'PENDING',
+      reviewerName: r.reviewerName || ''
+    }))
+    total.value = data?.total || 0
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载审核任务失败')
+    records.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
 }
 
 function handleReset() {
@@ -573,19 +423,14 @@ function handleReset() {
   loadList();
 }
 
-function viewDetail(row: any) {
-  detail.value = {
-    ...mockDetail,
-    ...row,
-    levels: mockDetail.levels,
-    approvedLevels: row.status === "APPROVED" ? [0, 1, 2] : row.status === "REJECTED" ? [0] : [],
-    rejectedLevel: row.status === "REJECTED" ? 1 : -1,
-    currentLevel: row.status === "PENDING" ? 0 : -1,
-    reviewLogs: row.status === "PENDING"
-      ? [{ levelName: "提交申请", reviewerName: row.submitterName, result: "APPROVED", opinion: "提交审核", reviewedAt: row.submittedAt }]
-      : [{ levelName: "审核", reviewerName: row.reviewerName || row.submitterName, result: row.result || row.status, opinion: row.reviewOpinion || "", reviewedAt: row.reviewedAt || row.createdAt }]
-  };
-  detailVisible.value = true;
+async function viewDetail(row: any) {
+  try {
+    const d = await fetchProductReviewDetail(row.id)
+    detail.value = { ...(d || {}), ...row }
+    detailVisible.value = true
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载详情失败')
+  }
 }
 
 function handleApprove(row: any) {

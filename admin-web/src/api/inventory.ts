@@ -197,6 +197,10 @@ export async function fetchTransferStatistics() {
   const { data } = await api.get("/admin/transfers/statistics");
   return data.data;
 }
+export async function fetchTransferTrend(days = 30) {
+  const { data } = await api.get("/admin/transfers/trend", { params: { days } });
+  return data.data;
+}
 
 
 // ==================== Stock Check (盘点) APIs ====================
@@ -292,4 +296,3 @@ export async function fetchInventoryABC(params?: { storeId?: number }) {
   const { data } = await api.get("/admin/reports/inventory-abc", { params });
   return data.data;
 }
-

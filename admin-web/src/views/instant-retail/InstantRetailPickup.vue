@@ -378,6 +378,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { fetchInstantOrders, updateInstantOrderStatus } from "../../api";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
@@ -445,129 +446,35 @@ let countdownTimer: ReturnType<typeof setInterval> | null = null;
 let nowTimestamp = ref(Date.now());
 
 // Mock 数据
-const orders = ref<Order[]>([
-  {
-    id: "1",
-    orderNo: "JD202607160001",
-    platform: "jd",
-    receiverName: "张先生",
-    receiverPhone: "138****5678",
-    address: "北京市朝阳区建国路88号SOHO现代城A座1201",
-    deliveryType: "platform",
-    distance: 1.2,
-    amount: 89.5,
-    itemCount: 3,
-    items: [
-      { id: "i1", name: "农夫山泉 550ml", qty: 2, price: 2.5 },
-      { id: "i2", name: "乐事薯片 原味 75g", qty: 1, price: 8.5 }
-    ],
-    remark: "请尽快送达，谢谢！",
-    createTime: "10:30:00",
-    createTimestamp: Date.now() - 15000,
-    status: "pending"
-  },
-  {
-    id: "2",
-    orderNo: "MT202607160002",
-    platform: "meituan",
-    receiverName: "李女士",
-    receiverPhone: "139****1234",
-    address: "北京市海淀区中关村大街1号海龙大厦5层",
-    deliveryType: "self",
-    distance: 0.8,
-    amount: 156.8,
-    itemCount: 5,
-    items: [
-      { id: "i3", name: "可口可乐 330ml", qty: 3, price: 3.5 },
-      { id: "i4", name: "康师傅红烧牛肉面", qty: 2, price: 5.5 }
-    ],
-    createTime: "10:28:00",
-    createTimestamp: Date.now() - 45000,
-    status: "pending"
-  },
-  {
-    id: "3",
-    orderNo: "ELM202607160003",
-    platform: "eleme",
-    receiverName: "王先生",
-    receiverPhone: "137****9876",
-    address: "北京市西城区金融街7号英蓝国际金融中心B1层",
-    deliveryType: "platform",
-    distance: 2.5,
-    amount: 220.0,
-    itemCount: 8,
-    items: [
-      { id: "i5", name: "伊利纯牛奶 250ml", qty: 6, price: 3.5 },
-      { id: "i6", name: "奥利奥原味饼干 116g", qty: 2, price: 12.5 }
-    ],
-    createTime: "10:25:00",
-    createTimestamp: Date.now() - 8000,
-    status: "pending"
-  },
-  {
-    id: "4",
-    orderNo: "JD202607160004",
-    platform: "jd",
-    receiverName: "赵女士",
-    receiverPhone: "136****5555",
-    address: "北京市东城区王府井大街138号新东安市场3层",
-    deliveryType: "platform",
-    distance: 1.8,
-    amount: 45.9,
-    itemCount: 2,
-    items: [{ id: "i7", name: "脉动青柠味 600ml", qty: 2, price: 6.0 }],
-    createTime: "10:20:00",
-    createTimestamp: Date.now() - 600000,
-    acceptTimestamp: Date.now() - 540000,
-    status: "accepted",
-    statusText: "备货中",
-    acceptTime: "10:21:30",
-    responseTime: 30
-  },
-  {
-    id: "5",
-    orderNo: "MT202607160005",
-    platform: "meituan",
-    receiverName: "孙先生",
-    receiverPhone: "135****7777",
-    address: "北京市丰台区丰台路5号",
-    deliveryType: "self",
-    distance: 3.2,
-    amount: 128.0,
-    itemCount: 4,
-    items: [
-      { id: "i8", name: "三只松鼠每日坚果 750g", qty: 1, price: 59.9 },
-      { id: "i9", name: "百草味芒果干 120g", qty: 1, price: 35.9 }
-    ],
-    createTime: "10:15:00",
-    createTimestamp: Date.now() - 1800000,
-    acceptTimestamp: Date.now() - 1740000,
-    status: "completed",
-    acceptTime: "10:16:00",
-    completeTime: "10:45:00",
-    responseTime: 25
-  },
-  {
-    id: "6",
-    orderNo: "ELM202607160006",
-    platform: "eleme",
-    receiverName: "周女士",
-    receiverPhone: "134****8888",
-    address: "北京市朝阳区三里屯太古里南区",
-    deliveryType: "platform",
-    distance: 1.5,
-    amount: 68.5,
-    itemCount: 3,
-    items: [{ id: "i10", name: "元气森林白桃味 480ml", qty: 3, price: 6.5 }],
-    createTime: "09:50:00",
-    createTimestamp: Date.now() - 2400000,
-    acceptTimestamp: Date.now() - 2340000,
-    status: "completed",
-    acceptTime: "09:51:00",
-    completeTime: "10:20:00",
-    responseTime: 18
+const orders = ref<Order[]>([])
+
+async function loadOrders() {
+  try {
+    const data = await fetchInstantOrders({ page: 1, pageSize: 20 })
+    const rows = data?.records || data?.list || []
+    orders.value = rows.map((o: any) => ({
+      id: String(o.id || o.orderNo || ''),
+      orderNo: o.orderNo || o.order_no || '',
+      platform: o.platform || '',
+      receiverName: o.receiverName || o.userName || o.customerName || '',
+      receiverPhone: o.receiverPhone || o.userMobile || o.customerMobile || '',
+      address: o.address || o.receiverAddress || '',
+      deliveryType: o.deliveryType || 'platform',
+      distance: o.distance || 0,
+      amount: Number(o.payAmount ?? o.totalAmount ?? o.total_amount ?? 0),
+      itemCount: o.items?.length || 0,
+      items: (o.items || []).map((it: any) => ({ id: String(it.id || ''), name: it.skuName || it.name || '', qty: it.quantity || it.totalBottleQty || 0, price: it.unitPrice || it.price || 0 })),
+      remark: o.remark || '',
+      createTime: (o.createdAt || o.created_at || '').slice(11, 19),
+      createTimestamp: Date.now(),
+      status: (o.status === 'ACCEPTED' ? 'accepted' : o.status === 'COMPLETED' ? 'completed' : o.status === 'REJECTED' ? 'rejected' : 'pending') as any,
+      statusText: o.status === 'ACCEPTED' ? '备货中' : undefined
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载待接单失败')
+    orders.value = []
   }
-]);
+}
 
 // 平台选项
 const platformOptions = [
@@ -714,21 +621,13 @@ function handleRefresh() {
   ElMessage.success("数据已刷新");
 }
 
-function acceptOrder(order: Order) {
-  const target = orders.value.find((o) => o.id === order.id);
-  if (!target) return;
-  target.status = "accepted";
-  target.statusText = "备货中";
-  target.acceptTimestamp = Date.now();
-  target.acceptTime = new Date().toLocaleTimeString("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-  target.responseTime = Math.round((Date.now() - target.createTimestamp) / 1000);
-  ElMessage.success(`订单 ${target.orderNo} 已接单`);
-  if (voiceEnabled.value) {
-    // 语音提示模拟
+async function acceptOrder(order: Order) {
+  try {
+    await updateInstantOrderStatus(order.orderNo, { status: 'ACCEPTED' })
+    ElMessage.success(`订单 ${order.orderNo} 已接单`)
+    await loadOrders()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '接单失败')
   }
 }
 
@@ -738,29 +637,31 @@ function openRejectDialog(order: Order) {
   rejectDialogVisible.value = true;
 }
 
-function confirmReject() {
+async function confirmReject() {
   if (!rejectForm.value.reason) {
     ElMessage.warning("请选择拒单原因");
     return;
   }
-  const target = orders.value.find((o) => o.id === rejectOrder.value?.id);
-  if (target) {
-    target.status = "rejected";
+  const target = rejectOrder.value;
+  if (!target) return;
+  try {
+    await updateInstantOrderStatus(target.orderNo, { status: 'REJECTED', reason: rejectForm.value.reason })
+    ElMessage.success("已拒单")
+    rejectDialogVisible.value = false
+    await loadOrders()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '拒单失败')
   }
-  rejectDialogVisible.value = false;
-  ElMessage.success("已拒单");
 }
 
-function completeOrder(order: Order) {
-  const target = orders.value.find((o) => o.id === order.id);
-  if (!target) return;
-  target.status = "completed";
-  target.completeTime = new Date().toLocaleTimeString("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-  ElMessage.success(`订单 ${target.orderNo} 已完成`);
+async function completeOrder(order: Order) {
+  try {
+    await updateInstantOrderStatus(order.orderNo, { status: 'COMPLETED' })
+    ElMessage.success(`订单 ${order.orderNo} 已完成`)
+    await loadOrders()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '操作失败')
+  }
 }
 
 // 启动倒计时
@@ -788,6 +689,7 @@ function stopCountdown() {
 }
 
 onMounted(() => {
+  loadOrders();
   startCountdown();
 });
 

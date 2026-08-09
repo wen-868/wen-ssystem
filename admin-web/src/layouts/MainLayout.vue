@@ -359,9 +359,6 @@ const auth = useAuthStore();
 
 /** 尚为 mock 演示数据的页面（商用化接入中，标识提示） */
 const MOCK_PAGES = [
-  "/instant-retail/pickup",
-  "/products/review-tasks",
-  "/reports/transfer",
 ];
 const isMockPage = computed(() => MOCK_PAGES.some((p) => route.path === p || route.path.startsWith(p + "/")));
 

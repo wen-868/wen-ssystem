@@ -63,6 +63,14 @@ export const getTransferStatistics = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+/** 调拨趋势（按日期统计单数） */
+export const getTransferTrend = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const days = Math.min(365, Math.max(7, Number(req.query.days) || 30));
+  const result = await transferOrderService.getTransferTrend(tenantId, days);
+  res.json(ok(result));
+});
+
 export const getTransferOrderDetail = asyncHandler(async (req, res) => {
   const id = z.coerce.number().parse(req.params.id);
   const tenantId = req.tenantId!;

@@ -240,6 +240,19 @@ export async function updateTransferOrder(id: number, tenantId: string, params: 
   return { transferOrderId: id };
 }
 
+/** 调拨趋势（按日期统计单数，R100 商用化补充） */
+export async function getTransferTrend(tenantId: string, days: number) {
+  const rows = await queryWithTenant<{ date: string; count: number }>(
+    `SELECT DATE(created_at) AS date, COUNT(*) AS count
+     FROM t_transfer_order
+     WHERE tenant_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+     GROUP BY DATE(created_at) ORDER BY date ASC`,
+    [tenantId, days],
+    tenantId
+  );
+  return rows.map((r) => ({ date: r.date, count: Number(r.count) }));
+}
+
 export async function submitTransferOrder(id: number, tenantId: string) {
   await transaction(async (conn) => {
     const [rows] = await connExecute<TransferOrderRow[]>(
