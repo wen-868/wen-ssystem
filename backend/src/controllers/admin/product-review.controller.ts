@@ -82,3 +82,22 @@ export async function batchApproveProductReviews(req: any, res: any) {
   );
   res.json(ok(result));
 }
+
+/** 批量审核驳回 */
+export async function batchRejectProductReviews(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const reviewerId = req.user?.id;
+  const reviewerName = req.user?.name || req.user?.username;
+  const data = z.object({
+    ids: z.array(z.number().int().positive()).min(1).max(100),
+    reviewComment: z.string().min(1).max(500),
+  }).parse(req.body || {});
+  const result = await productReviewService.batchRejectProductReviews(
+    tenantId,
+    data.ids,
+    reviewerId,
+    reviewerName,
+    data.reviewComment
+  );
+  res.json(ok(result));
+}

@@ -493,35 +493,21 @@ async function fetchData() {
       params.status = activeTab.value;
     }
 
-    // 使用 mock 数据（实际对接时替换为真实 API）
-    const mockData = generateMockData();
-    let filtered: ProductReviewItem[] = mockData;
+    const data = await fetchProductReviews(params as any);
+    records.value = data?.records || [];
+    pagination.total = data?.total ?? records.value.length;
 
-    if (params.status) {
-      filtered = filtered.filter((item) => item.status === params.status);
-    }
-    if (params.keyword) {
-      const kw = (params.keyword as string).toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          item.productName.toLowerCase().includes(kw) ||
-          item.reviewNo.toLowerCase().includes(kw)
-      );
-    }
-    if (params.reviewType) {
-      filtered = filtered.filter((item) => item.reviewType === params.reviewType);
-    }
-
-    stats.totalCount = mockData.length;
-    stats.pendingCount = mockData.filter((i) => i.status === "PENDING").length;
-    stats.approvedCount = mockData.filter((i) => i.status === "APPROVED").length;
-    stats.rejectedCount = mockData.filter((i) => i.status === "REJECTED").length;
-
-    const total = filtered.length;
-    const start = (pagination.page - 1) * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    records.value = filtered.slice(start, end);
-    pagination.total = total;
+    // 统计：并发获取各状态总数
+    const [all, pending, approved, rejected] = await Promise.all([
+      fetchProductReviews({ page: 1, pageSize: 1 } as any),
+      fetchProductReviews({ page: 1, pageSize: 1, status: "PENDING" } as any),
+      fetchProductReviews({ page: 1, pageSize: 1, status: "APPROVED" } as any),
+      fetchProductReviews({ page: 1, pageSize: 1, status: "REJECTED" } as any),
+    ]);
+    stats.totalCount = all?.total ?? 0;
+    stats.pendingCount = pending?.total ?? 0;
+    stats.approvedCount = approved?.total ?? 0;
+    stats.rejectedCount = rejected?.total ?? 0;
   } catch (error) {
     ElMessage.error("获取审核列表失败");
     console.error(error);
@@ -530,77 +516,6 @@ async function fetchData() {
   }
 }
 
-// 生成 mock 数据
-function generateMockData(): ProductReviewItem[] {
-  const reviewTypes = ["CREATE", "UPDATE", "OFFLINE"];
-  const statuses = ["PENDING", "APPROVED", "REJECTED"];
-  const products = [
-    "飞天茅台53度500ml",
-    "五粮液普五52度500ml",
-    "泸州老窖特曲52度500ml",
-    "剑南春水晶剑52度500ml",
-    "汾酒青花20年53度500ml",
-    "洋河梦之蓝M3 52度500ml",
-    "古井贡酒年份原浆古20 52度500ml",
-    "郎酒青花郎53度500ml",
-    "习酒窖藏1988 53度500ml",
-    "水井坊臻酿八号52度500ml",
-    "牛栏山二锅头56度500ml",
-    "红星二锅头56度750ml",
-  ];
-  const submitters = ["张三", "李四", "王五", "赵六", "钱七"];
-  const reviewers = ["管理员", "系统审核员"];
-  const data: ProductReviewItem[] = [];
-
-  for (let i = 0; i < 35; i++) {
-    const status = statuses[i % 3];
-    const reviewType = reviewTypes[i % 3];
-    const createdAt = new Date(Date.now() - i * 86400000);
-    const reviewedAt = status !== "PENDING" ? new Date(createdAt.getTime() + 3600000 * (i + 1)) : null;
-
-    data.push({
-      id: i + 1,
-      reviewNo: `PR${createdAt.getFullYear()}${String(createdAt.getMonth() + 1).padStart(2, "0")}${String(createdAt.getDate()).padStart(2, "0")}${String(1000 + i).padStart(4, "0")}`,
-      productId: 100 + i,
-      productName: products[i % products.length],
-      productImage: "",
-      reviewType,
-      status,
-      submitterId: (i % 5) + 1,
-      submitterName: submitters[i % submitters.length],
-      reviewerId: status !== "PENDING" ? (i % 2) + 1 : null,
-      reviewerName: status !== "PENDING" ? reviewers[i % reviewers.length] : null,
-      reviewComment:
-        status === "APPROVED"
-          ? "信息无误，审核通过"
-          : status === "REJECTED"
-          ? "商品图片不符合要求，请重新上传清晰的产品图"
-          : null,
-      createdAt: createdAt.toLocaleString("zh-CN", { hour12: false }),
-      reviewedAt: reviewedAt ? reviewedAt.toLocaleString("zh-CN", { hour12: false }) : null,
-      changeContent:
-        reviewType === "CREATE"
-          ? JSON.stringify({
-              name: products[i % products.length],
-              category: "白酒",
-              brand: i % 2 === 0 ? "茅台" : "五粮液",
-              retailPrice: 1299 + i * 50,
-              costPrice: 899 + i * 30,
-              spec: "500ml",
-              unit: "瓶",
-            })
-          : reviewType === "UPDATE"
-          ? JSON.stringify({
-              retailPrice: 1399 + i * 50,
-              costPrice: 999 + i * 30,
-            })
-          : JSON.stringify({
-              reason: "商品停产",
-            }),
-    });
-  }
-  return data;
-}
 
 // 选择变更
 function handleSelectionChange(selection: ProductReviewItem[]) {
@@ -610,9 +525,7 @@ function handleSelectionChange(selection: ProductReviewItem[]) {
 // 查看详情
 async function handleViewDetail(row: ProductReviewItem) {
   try {
-    // 从 mock 数据中找对应记录
-    const mockData = generateMockData();
-    const detail = mockData.find((item) => item.id === row.id);
+    const detail = await fetchProductReviewDetail(row.id);
     currentDetail.value = detail || null;
     detailVisible.value = true;
   } catch (error) {

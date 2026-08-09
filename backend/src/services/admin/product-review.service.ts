@@ -222,3 +222,36 @@ export async function batchApproveProductReviews(
   const affectedRows = (result as unknown as Record<string, unknown>).affectedRows as number;
   return { successCount: affectedRows || 0, totalCount: ids.length };
 }
+
+/** 批量审核驳回 */
+export async function batchRejectProductReviews(
+  tenantId: string,
+  ids: number[],
+  reviewerId: number,
+  reviewerName?: string,
+  reviewComment?: string
+) {
+  if (!ids || ids.length === 0) {
+    throw Object.assign(new Error("审核ID列表不能为空"), { statusCode: 400 });
+  }
+  if (ids.length > 100) {
+    throw Object.assign(new Error("批量审核不能超过100条"), { statusCode: 400 });
+  }
+  if (!reviewComment || !reviewComment.trim()) {
+    throw Object.assign(new Error("驳回原因不能为空"), { statusCode: 400 });
+  }
+
+  const placeholders = ids.map(() => "?").join(", ");
+  const sqlParams: unknown[] = [reviewerId, reviewerName || null, reviewComment, ...ids, tenantId];
+
+  const result = await queryWithTenant<Record<string, unknown>>(
+    `UPDATE t_product_review
+     SET status = 'REJECTED', reviewer_id = ?, reviewer_name = ?, review_comment = ?, reviewed_at = NOW(), updated_at = NOW()
+     WHERE id IN (${placeholders}) AND tenant_id = ? AND status = 'PENDING'`,
+    sqlParams,
+    tenantId
+  );
+
+  const affectedRows = (result as unknown as Record<string, unknown>).affectedRows as number;
+  return { successCount: affectedRows || 0, totalCount: ids.length };
+}

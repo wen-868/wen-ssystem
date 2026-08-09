@@ -13,6 +13,7 @@ productReviewRouter.get("/:id", asyncHandler(controller.getProductReview));
 productReviewRouter.post("/:id/approve", asyncHandler(controller.approveProductReview));
 productReviewRouter.post("/:id/reject", asyncHandler(controller.rejectProductReview));
 productReviewRouter.post("/batch-approve", asyncHandler(controller.batchApproveProductReviews));
+productReviewRouter.post("/batch-reject", asyncHandler(controller.batchRejectProductReviews));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
