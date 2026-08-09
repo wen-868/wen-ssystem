@@ -1223,8 +1223,8 @@ kbd,
 }
 
 /* 侧边栏激活项：渐变胶囊 + 左侧色条 */
-.nav-item.active {
-  background: linear-gradient(135deg, rgba(63, 111, 239, 0.14), rgba(79, 184, 255, 0.10));
+.layout .nav-item.active {
+  background: linear-gradient(135deg, rgba(63, 111, 239, 0.14), rgba(79, 184, 255, 0.10)) !important;
   box-shadow: inset 3px 0 0 #3F6FEF;
 }
 
