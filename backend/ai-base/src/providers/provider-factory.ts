@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IModelProvider, ProviderConfig } from './provider.interface';
+import { GlmProvider } from './glm.provider';
 import { DeepSeekProvider } from './deepseek.provider';
 import { OllamaProvider } from './ollama.provider';
 import { ProviderError } from './provider-error';
@@ -32,22 +33,24 @@ export class ProviderFactory {
   private readonly defaultType: string;
 
   constructor(
+    private readonly glm: GlmProvider,
     private readonly deepseek: DeepSeekProvider,
     private readonly ollama: OllamaProvider,
     private readonly configService: ConfigService,
   ) {
     // 注册所有已实现的 Provider
+    this.providers.set('glm', this.glm);
     this.providers.set('deepseek', this.deepseek);
     this.providers.set('ollama', this.ollama);
 
     this.defaultType = this.configService.get<string>(
       'DEFAULT_MODEL_PROVIDER',
-      'deepseek',
+      'glm',
     );
 
     if (!this.providers.has(this.defaultType)) {
       this.logger.warn(
-        `DEFAULT_MODEL_PROVIDER=${this.defaultType} 不在已注册列表 [${this.list().join(', ')}] 中，将回退到 deepseek`,
+        `DEFAULT_MODEL_PROVIDER=${this.defaultType} 不在已注册列表 [${this.list().join(', ')}] 中，将回退到 glm`,
       );
     }
   }
@@ -55,7 +58,7 @@ export class ProviderFactory {
   /**
    * 创建（或获取缓存的）Provider 实例
    *
-   * @param type   Provider 类型（'deepseek' | 'ollama' | ...）
+   * @param type   Provider 类型（'glm' | 'deepseek' | 'ollama' | ...）
    * @param config 运行时配置（覆盖默认 env 配置，支持租户级切换）
    * @returns Provider 实例（已 configure）
    *
@@ -86,9 +89,9 @@ export class ProviderFactory {
       return this.providers.get(this.defaultType)!;
     }
     this.logger.warn(
-      `默认 Provider ${this.defaultType} 不可用，回退到 deepseek`,
+      `默认 Provider ${this.defaultType} 不可用，回退到 glm`,
     );
-    return this.providers.get('deepseek')!;
+    return this.providers.get('glm')!;
   }
 
   /**
