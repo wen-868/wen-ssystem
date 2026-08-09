@@ -38,6 +38,30 @@ export async function retryMiniappOrderSync(orderNo: string) {
   return data.data;
 }
 
+/** 订单同步日志（真实后端） */
+export async function fetchInstantRetailSyncLogs(params?: { page?: number; pageSize?: number; status?: string; platform?: string }) {
+  const { data } = await api.get("/admin/instant-retail/sync-logs", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+/** 订单同步统计 */
+export async function fetchInstantRetailSyncStats() {
+  const { data } = await api.get("/admin/instant-retail/sync-stats");
+  return data.data;
+}
+
+/** 平台商品映射列表 */
+export async function fetchProductMaps(params?: { page?: number; pageSize?: number; platform?: string; syncStatus?: string; keyword?: string }) {
+  const { data } = await api.get("/admin/instant-retail/product-maps", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+/** 平台商品映射统计 */
+export async function fetchProductMapStats() {
+  const { data } = await api.get("/admin/instant-retail/product-maps/stats");
+  return data.data;
+}
+
 export async function fetchShelfProducts(params?: { keyword?: string; category?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/instant-retail/shelf", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;

@@ -5,6 +5,7 @@ import * as retailExtController from "../controllers/admin/instant-retail-ext.co
 import * as reviewController from "../controllers/instant-retail/review.controller";
 import * as reconciliationController from "../controllers/instant-retail/reconciliation.controller";
 import * as analyticsController from "../controllers/instant-retail/analytics.controller";
+import * as fixController from "../controllers/admin/instant-retail-fix.controller";
 
 export const instantRetailAdminOpsRouter = Router();
 
@@ -26,6 +27,14 @@ instantRetailAdminOpsRouter.get("/payments/:paymentNo", retailExtController.getP
 
 // 订单中心统计（今日/待处理/异常 + 渠道占比 + 近30天趋势）
 instantRetailAdminOpsRouter.get("/order-center-stats", analyticsController.getOrderCenterStats);
+
+// 订单同步日志与统计
+instantRetailAdminOpsRouter.get("/sync-logs", fixController.listSyncLogs);
+instantRetailAdminOpsRouter.get("/sync-stats", fixController.getSyncStats);
+
+// 平台商品映射与统计
+instantRetailAdminOpsRouter.get("/product-maps", fixController.listProductMaps);
+instantRetailAdminOpsRouter.get("/product-maps/stats", fixController.getProductMapStats);
 
 // 配送管理（I 配送管理 + M 履约调度）
 instantRetailAdminOpsRouter.get("/deliveries", retailExtController.listDeliveries);

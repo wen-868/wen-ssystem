@@ -14,12 +14,12 @@
             <span>{{ channelNames[ch] }}</span>
             <el-badge
               v-if="ch !== 'ALL'"
-              :value="mockChannelStats[ch] ? mockChannelStats[ch].mapped : 0"
+              :value="channelStats[ch] ? channelStats[ch].mapped : 0"
               class="channel-badge"
               type="primary"
             >
               <span style="margin-left: 8px; font-size: 12px; color: var(--text-muted)">
-                / {{ mockChannelStats[ch] ? mockChannelStats[ch].unmapped : 0 }}未映射
+                / {{ channelStats[ch] ? channelStats[ch].unmapped : 0 }}未映射
               </span>
             </el-badge>
           </template>
@@ -99,10 +99,10 @@
         <el-collapse-item title="未映射商品列表" name="1">
           <template #title>
             <span style="font-weight: 600">未映射商品列表</span>
-            <el-tag type="warning" size="small" style="margin-left: 8px">{{ mockUnmappedProducts.length }}条</el-tag>
+            <el-tag type="warning" size="small" style="margin-left: 8px">{{ unmappedProducts.length }}条</el-tag>
           </template>
           <div class="table-card">
-<el-table :data="mockUnmappedProducts" stripe size="small">
+<el-table :data="unmappedProducts" stripe size="small">
             <el-table-column label="渠道" width="90">
               <template #default="{ row }">
                 <el-tag :type="channelTagType(row.channelType)" size="small">{{ channelName(row.channelType) }}</el-tag>
@@ -280,41 +280,18 @@ import { Search, UploadFilled, WarningFilled } from "@element-plus/icons-vue";
 const channelTypes = ["ALL", "WECHAT", "DOUYIN", "MEITUAN", "ELEME", "JD"];
 const channelNames: Record<string, string> = { ALL: "全部", WECHAT: "微信", DOUYIN: "抖音", MEITUAN: "美团", ELEME: "饿了么", JD: "京东" };
 
-const mockChannelStats: Record<string, { mapped: number; unmapped: number }> = {
-  WECHAT: { mapped: 125, unmapped: 15 },
-  DOUYIN: { mapped: 80, unmapped: 8 },
-  MEITUAN: { mapped: 200, unmapped: 25 },
-  ELEME: { mapped: 150, unmapped: 12 },
-  JD: { mapped: 90, unmapped: 5 },
-};
+const channelStats = ref<Record<string, { mapped: number; unmapped: number }>>({})
 
-const mockProductMaps = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  channelType: ["WECHAT", "DOUYIN", "MEITUAN", "ELEME", "JD"][i % 5] as string,
-  channelSkuId: `CH-SKU-${String(i + 1).padStart(5, "0")}`,
-  channelProductName: `渠道商品${i + 1}`,
-  channelPrice: Math.floor(Math.random() * 200 + 50),
-  localSkuId: 1000 + i,
-  localProductName: `本地商品${i + 1}`,
-  localPrice: Math.floor(Math.random() * 180 + 50),
-  syncStatus: ["MAPPED", "UNMAPPED", "MISMATCH"][i % 3] as string,
-  lastSyncedAt: `2026-07-01 ${String(i + 8).padStart(2, "0")}:00:00`,
-}));
+const productMaps = ref<any[]>([])
 
-const mockUnmappedProducts = Array.from({ length: 10 }, (_, i) => ({
-  id: i + 1,
-  channelType: ["WECHAT", "MEITUAN", "ELEME"][i % 3] as string,
-  channelSkuId: `UNMAPPED-${String(i + 1).padStart(5, "0")}`,
-  channelProductName: `未映射商品${i + 1}`,
-  orderCount: Math.floor(Math.random() * 20 + 1),
-}));
+const unmappedProducts = ref<any[]>([])
 
 // ── 渠道 Tab ──
 const activeChannel = ref("ALL");
 const keyword = ref("");
 
 const filteredMaps = computed(() => {
-  let list = [...mockProductMaps];
+  let list = [...productMaps.value];
   if (activeChannel.value !== "ALL") {
     list = list.filter((m) => m.channelType === activeChannel.value);
   }
@@ -489,8 +466,23 @@ async function handleQuickMapSave() {
 // ── 未映射折叠 ──
 const unmappedCollapse = ref<string[]>([]);
 
+async function loadMapData() {
+  try {
+    const [stats, maps, unmapped] = await Promise.all([
+      fetchProductMapStats(),
+      fetchProductMaps({ page: 1, pageSize: 200 }),
+      fetchProductMaps({ page: 1, pageSize: 50, syncStatus: 'UNSYNCED' }),
+    ])
+    channelStats.value = stats?.byChannel || {}
+    productMaps.value = maps?.records || []
+    unmappedProducts.value = unmapped?.records || []
+  } catch (e: any) {
+    ElMessage.warning(e?.response?.data?.msg || '加载映射数据失败')
+  }
+}
+
 onMounted(() => {
-  // 初始化
+  loadMapData()
 });
 </script>
 

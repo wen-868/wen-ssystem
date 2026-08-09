@@ -10,12 +10,12 @@
     <el-row :gutter="16" class="stats-row">
       <el-col :span="4">
         <el-card shadow="never">
-          <el-statistic title="今日同步总数" :value="mockStats.totalSync" />
+          <el-statistic title="今日同步总数" :value="syncStats.totalSync" />
         </el-card>
       </el-col>
       <el-col :span="4">
         <el-card shadow="never">
-          <el-statistic title="成功数" :value="mockStats.successCount">
+          <el-statistic title="成功数" :value="syncStats.successCount">
             <template #suffix>
               <el-tag type="success" size="small">成功</el-tag>
             </template>
@@ -24,7 +24,7 @@
       </el-col>
       <el-col :span="4">
         <el-card shadow="never">
-          <el-statistic title="失败数" :value="mockStats.failCount">
+          <el-statistic title="失败数" :value="syncStats.failCount">
             <template #suffix>
               <el-tag type="danger" size="small">失败</el-tag>
             </template>
@@ -33,7 +33,7 @@
       </el-col>
       <el-col :span="4">
         <el-card shadow="never">
-          <el-statistic title="待同步数" :value="mockStats.pendingCount">
+          <el-statistic title="待同步数" :value="syncStats.pendingCount">
             <template #suffix>
               <el-tag type="warning" size="small">待同步</el-tag>
             </template>
@@ -222,103 +222,29 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
+import { fetchInstantRetailSyncStats, fetchInstantRetailSyncLogs } from '../../api'
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
-const mockStats = { totalSync: 256, successCount: 238, failCount: 12, pendingCount: 6 }
+const syncStats = ref({ totalSync: 0, successCount: 0, failCount: 0, pendingCount: 0 })
 
-const mockChannelSuccess = [
-  { channel: 'WECHAT', name: '微信', rate: 95.2 },
-  { channel: 'MEITUAN', name: '美团', rate: 92.8 },
-  { channel: 'ELEME', name: '饿了么', rate: 88.5 },
-  { channel: 'JD', name: '京东', rate: 96.3 },
-  { channel: 'DOUYIN', name: '抖音', rate: 91.0 }
-]
-
-const mockSyncLogs = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  channelOrderNo: `CH${String(i + 1).padStart(6, '0')}`,
-  channelType: ['WECHAT', 'MEITUAN', 'ELEME', 'JD', 'DOUYIN'][i % 5],
-  syncType: i % 3 === 0 ? 'PUSH' : 'PULL',
-  fromStatus: 'PAID',
-  toStatus: 'CONFIRMED',
-  syncResult: i % 8 === 0 ? 'FAILED' : 'SUCCESS',
-  errorMessage: i % 8 === 0 ? '接口超时' : '',
-  syncedAt: `2026-07-01 ${String(i + 8).padStart(2, '0')}:00:00`
-}))
-
-const mockSyncConfig = { frequency: '5min', scope: 'ALL', enabled: true, alertOnFail: true, alertMethod: 'SMS' }
-
-// ─── 同步进度 ───
-const syncProgress = ref(0)
-let progressTimer: ReturnType<typeof setInterval> | null = null
-
-function simulateProgress() {
-  syncProgress.value = 0
-  if (progressTimer) clearInterval(progressTimer)
-  progressTimer = setInterval(() => {
-    syncProgress.value += Math.floor(Math.random() * 15 + 5)
-    if (syncProgress.value >= 100) {
-      syncProgress.value = 100
-      if (progressTimer) clearInterval(progressTimer)
-      progressTimer = null
-      setTimeout(() => { syncProgress.value = 0 }, 2000)
-    }
-  }, 300)
-}
-
-// ─── 操作按钮 ───
-function handleSingleSync() {
-  ElMessage.success('单订单同步任务已启动')
-  simulateProgress()
-}
-
-function handleBatchSync() {
-  ElMessage.success('批量同步任务已启动')
-  simulateProgress()
-}
-
-function handleFullSync() {
-  ElMessage.success('全量同步全部渠道任务已启动')
-  simulateProgress()
-}
-
-// ─── 日志筛选 ───
-const logFilterChannel = ref('')
-const logFilterType = ref('')
-const logFilterResult = ref('')
-const logFilterDate = ref<string[]>([])
-const logFilterKeyword = ref('')
-const logPage = ref(1)
-const logPageSize = ref(10)
-
-const channelOptions = [
-  { label: '微信', value: 'WECHAT' },
-  { label: '抖音', value: 'DOUYIN' },
-  { label: '美团', value: 'MEITUAN' },
-  { label: '饿了么', value: 'ELEME' },
-  { label: '京东', value: 'JD' }
-]
-
-const filteredSyncLogs = computed(() => {
-  let list = mockSyncLogs
-  if (logFilterChannel.value) {
-    list = list.filter(l => l.channelType === logFilterChannel.value)
+const channelSuccessData = computed(() => {
+  const agg: Record<string, { total: number; success: number }> = {}
+  for (const l of syncLogs.value) {
+    if (!agg[l.channelType]) agg[l.channelType] = { total: 0, success: 0 }
+    agg[l.channelType].total += 1
+    if (l.syncResult === 'SUCCESS') agg[l.channelType].success += 1
   }
-  if (logFilterType.value) {
-    list = list.filter(l => l.syncType === logFilterType.value)
-  }
-  if (logFilterResult.value) {
-    list = list.filter(l => l.syncResult === logFilterResult.value)
-  }
-  if (logFilterKeyword.value) {
-    const kw = logFilterKeyword.value.toLowerCase()
-    list = list.filter(l => l.channelOrderNo.toLowerCase().includes(kw))
-  }
-  return list
+  return Object.keys(agg).map((ch) => ({
+    channel: ch,
+    name: channelNames[ch] || ch,
+    rate: agg[ch].total ? Number(((agg[ch].success / agg[ch].total) * 100).toFixed(1)) : 0,
+  }))
 })
+
+const syncLogs = ref<any[]>([])
 
 function handleLogFilter() {
   logPage.value = 1
@@ -350,11 +276,11 @@ function initChannelSuccessChart() {
     title: { text: '各渠道同步成功率', left: 'center', top: 0, textStyle: { fontSize: 13, fontWeight: 'normal' } },
     tooltip: { trigger: 'axis', formatter: '{b}: {c}%' },
     grid: { left: 50, right: 40, top: 30, bottom: 20 },
-    xAxis: { type: 'category', data: mockChannelSuccess.map(d => d.name), axisLabel: { fontSize: 10 } },
+    xAxis: { type: 'category', data: channelSuccessData.value.map(d => d.name), axisLabel: { fontSize: 10 } },
     yAxis: { type: 'value', min: 80, max: 100, axisLabel: { formatter: '{value}%', fontSize: 10 } },
     series: [{
       type: 'bar',
-      data: mockChannelSuccess.map(d => d.rate),
+      data: channelSuccessData.value.map(d => d.rate),
       barWidth: 24,
       itemStyle: {
         borderRadius: [4, 4, 0, 0],
@@ -378,8 +304,22 @@ function disposeAllCharts() {
   channelSuccessChart = null
 }
 
-onMounted(() => {
+async function loadSyncData() {
+  try {
+    const [stats, logs] = await Promise.all([
+      fetchInstantRetailSyncStats(),
+      fetchInstantRetailSyncLogs({ page: 1, pageSize: 200 }),
+    ])
+    syncStats.value = { totalSync: stats?.totalSync ?? 0, successCount: stats?.successCount ?? 0, failCount: stats?.failCount ?? 0, pendingCount: stats?.pendingCount ?? 0 }
+    syncLogs.value = logs?.records || []
+  } catch (e: any) {
+    ElMessage.warning(e?.response?.data?.msg || '加载同步数据失败')
+  }
   initChannelSuccessChart()
+}
+
+onMounted(() => {
+  loadSyncData()
   window.addEventListener('resize', handleResize)
 })
 
