@@ -203,7 +203,7 @@ export async function fetchStoreDailySettleHistory(params?: { page?: number; pag
 
 // ---------- 交接班 ----------
 export async function fetchStoreShifts(params?: { page?: number; pageSize?: number; date?: string; shiftType?: string }) {
-  const { data } = await api.get("/store/shifts", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/store/shift/history", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
@@ -215,12 +215,12 @@ export async function createStoreShift(payload: {
   operatorName?: string;
   remark?: string;
 }) {
-  const { data } = await api.post("/store/shifts", payload);
+  const { data } = await api.post("/store/shift/settle", payload);
   return data.data;
 }
 
 export async function fetchStoreShiftDetail(shiftId: number) {
-  const { data } = await api.get(`/store/shifts/${shiftId}`);
+  const { data } = await api.get(`/store/shift/history`);
   return data.data;
 }
 
@@ -231,7 +231,7 @@ export async function completeStoreShift(shiftId: number, payload: {
   actualAlipay?: number;
   remark?: string;
 }) {
-  const { data } = await api.post(`/store/shifts/${shiftId}/complete`, payload);
+  const { data } = await api.post(`/store/shift/settle`, payload);
   return data.data;
 }
 
@@ -306,12 +306,12 @@ export async function fetchStoreOperationLogs(params?: {
   operatorName?: string;
   actionType?: string;
 }) {
-  const { data } = await api.get("/store/operation-logs", { params: { page: 1, pageSize: 30, ...params } });
+  const { data } = await api.get("/admin/operation-logs", { params: { page: 1, pageSize: 30, ...params } });
   return data.data;
 }
 
 export async function fetchStoreOperationLogDetail(logId: number) {
-  const { data } = await api.get(`/store/operation-logs/${logId}`);
+  const { data } = await api.get(`/admin/operation-logs/${logId}`);
   return data.data;
 }
 

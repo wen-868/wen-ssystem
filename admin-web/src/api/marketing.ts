@@ -196,23 +196,23 @@ export async function calculatePromotion(payload: unknown) {
 
 // ==================== Marketing Tag APIs ====================
 export async function fetchMarketingTags(params?: { keyword?: string; tagType?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/marketing/tags", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/product-tags", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createMarketingTag(payload: { name: string; tagType: string; color?: string; sortNo?: number; remark?: string }) {
-  const { data } = await api.post("/admin/marketing/tags", payload);
+  const { data } = await api.post("/admin/product-tags", payload);
   return data.data;
 }
 export async function updateMarketingTag(id: number, payload: { name?: string; tagType?: string; color?: string; sortNo?: number; remark?: string }) {
-  const { data } = await api.put(`/admin/marketing/tags/${id}`, payload);
+  const { data } = await api.put(`/admin/product-tags/${id}`, payload);
   return data.data;
 }
 export async function deleteMarketingTag(id: number) {
-  const { data } = await api.delete(`/admin/marketing/tags/${id}`);
+  const { data } = await api.delete(`/admin/product-tags/${id}`);
   return data.data;
 }
 export async function fetchMarketingTagsByType() {
-  const { data } = await api.get("/admin/marketing/tags/by-type");
+  const { data } = await api.get("/admin/product-tags/by-type");
   return data.data;
 }
 export async function fetchProductMarketingTags(productId: number) {

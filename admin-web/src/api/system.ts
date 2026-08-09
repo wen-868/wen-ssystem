@@ -255,11 +255,11 @@ export async function fetchApiStats() {
 
 
 // ==================== 部门管理 ====================
-export async function getDepartments(params?: any) { const { data } = await api.get('/admin/departments', { params }); return data.data; }
-export async function getDepartmentTree() { const { data } = await api.get('/admin/departments/tree'); return data.data; }
-export async function createDepartment(data: any) { const { data: res } = await api.post('/admin/departments', data); return res.data; }
-export async function updateDepartment(id: number, data: any) { const { data: res } = await api.put(`/admin/departments/${id}`, data); return res.data; }
-export async function deleteDepartment(id: number) { const { data: res } = await api.delete(`/admin/departments/${id}`); return res.data; }
+export async function getDepartments(params?: any) { const { data } = await api.get('/department', { params }); return data.data; }
+export async function getDepartmentTree() { const { data } = await api.get('/department/tree'); return data.data; }
+export async function createDepartment(data: any) { const { data: res } = await api.post('/department', data); return res.data; }
+export async function updateDepartment(id: number, data: any) { const { data: res } = await api.put(`/department/${id}`, data); return res.data; }
+export async function deleteDepartment(id: number) { const { data: res } = await api.delete(`/department/${id}`); return res.data; }
 
 
 // ==================== 用户会话 ====================

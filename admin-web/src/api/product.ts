@@ -54,19 +54,19 @@ export async function importProducts(payload: { rows: Record<string, unknown>[];
 
 // ==================== Product Tag Group APIs ====================
 export async function fetchProductTagGroups() {
-  const { data } = await api.get("/admin/product-tag-groups");
+  const { data } = await api.get("/admin/tags/groups");
   return data.data;
 }
 export async function createProductTagGroup(payload: { groupCode: string; groupName: string; description?: string; sortNo?: number }) {
-  const { data } = await api.post("/admin/product-tag-groups", payload);
+  const { data } = await api.post("/admin/tags/groups", payload);
   return data.data;
 }
 export async function updateProductTagGroup(id: number, payload: { groupName?: string; description?: string; sortNo?: number; status?: string }) {
-  const { data } = await api.put(`/admin/product-tag-groups/${id}`, payload);
+  const { data } = await api.put(`/admin/tags/groups/${id}`, payload);
   return data.data;
 }
 export async function deleteProductTagGroup(id: number) {
-  const { data } = await api.delete(`/admin/product-tag-groups/${id}`);
+  const { data } = await api.delete(`/admin/tags/groups/${id}`);
   return data.data;
 }
 

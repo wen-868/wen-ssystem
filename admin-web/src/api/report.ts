@@ -126,17 +126,17 @@ export async function fetchReportPurchaseTrend(params?: { granularity?: string; 
 }
 
 export async function fetchReportInventorySummary() {
-  const { data } = await api.get("/admin/reports/inventory-summary");
+  const { data } = await api.get("/admin/admin/reports/inventory-summary");
   return data.data;
 }
 
 export async function fetchReportInventoryTurnover() {
-  const { data } = await api.get("/admin/reports/inventory-turnover");
+  const { data } = await api.get("/admin/admin/reports/inventory-turnover");
   return data.data;
 }
 
 export async function fetchReportInventoryAge() {
-  const { data } = await api.get("/admin/reports/inventory-age");
+  const { data } = await api.get("/admin/admin/reports/inventory-age");
   return data.data;
 }
 
@@ -218,7 +218,7 @@ export const fetchReportPermissionMatrix = () => api.get("/admin/report-permissi
 export const saveReportPermissionMatrix = (data: Array<{ role_id: number; report_code: string; store_scope: string }>) =>
   api.put("/admin/report-permissions/matrix", data);
 export const fetchRbacRoles = async () => {
-  const { data } = await api.get("/admin/rbac/roles");
+  const { data } = await api.get("/admin/system/roles");
   return data.data;
 };
 

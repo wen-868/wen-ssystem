@@ -69,55 +69,55 @@ export async function voidBill(id: number) {
 
 // --- 收款 ---
 export async function fetchReceipts(params?: { customerId?: number; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/finance/receipts", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/receipts", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createReceipt(payload: { customerId: number; amount: number; paymentMethod: string; bankAccount: string; date: string }) {
-  const { data } = await api.post("/admin/finance/receipts", payload);
+  const { data } = await api.post("/admin/receipts", payload);
   return data.data;
 }
 export async function getReceiptDetail(id: number) {
-  const { data } = await api.get(`/admin/finance/receipts/${id}`);
+  const { data } = await api.get(`/admin/receipts/${id}`);
   return data.data;
 }
 export async function writeoffReceipt(id: number, payload: { billIds: number[]; amounts: number[] }) {
-  const { data } = await api.post(`/admin/finance/receipts/${id}/writeoff`, payload);
+  const { data } = await api.post(`/admin/receipts/${id}/writeoff`, payload);
   return data.data;
 }
 export async function voidReceipt(id: number) {
-  const { data } = await api.post(`/admin/finance/receipts/${id}/void`);
+  const { data } = await api.post(`/admin/receipts/${id}/void`);
   return data.data;
 }
 
 // --- 付款 ---
 export async function fetchPaymentsNew(params?: { supplierId?: number; type?: string; status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/finance/payments", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/payments-new", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createPaymentNew(payload: { supplierId: number; amount: number; type: string; paymentMethod: string; bankAccount: string; date: string }) {
-  const { data } = await api.post("/admin/finance/payments", payload);
+  const { data } = await api.post("/admin/payments-new", payload);
   return data.data;
 }
 export async function getPaymentDetail(id: number) {
-  const { data } = await api.get(`/admin/finance/payments/${id}`);
+  const { data } = await api.get(`/admin/payments-new/${id}`);
   return data.data;
 }
 export async function writeoffPayment(id: number, payload: { billIds: number[]; amounts: number[] }) {
-  const { data } = await api.post(`/admin/finance/payments/${id}/writeoff`, payload);
+  const { data } = await api.post(`/admin/payments-new/${id}/writeoff`, payload);
   return data.data;
 }
 export async function voidPayment(id: number) {
-  const { data } = await api.post(`/admin/finance/payments/${id}/void`);
+  const { data } = await api.post(`/admin/payments-new/${id}/void`);
   return data.data;
 }
 
 // --- 应收应付汇总 ---
 export async function fetchReceivablesSummary(params?: { dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/finance/receivables-summary", { params });
+  const { data } = await api.get("/admin/receivables", { params });
   return data.data;
 }
 export async function fetchPayablesSummary(params?: { dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/finance/payables-summary", { params });
+  const { data } = await api.get("/admin/receivables/payables", { params });
   return data.data;
 }
 
@@ -143,37 +143,37 @@ export async function voidExpense(id: number) {
   return data.data;
 }
 export async function fetchExpenseSummary(params?: { dateStart?: string; dateEnd?: string }) {
-  const { data } = await api.get("/admin/expense-summary", { params });
+  const { data } = await api.get("/admin/expenses/summary", { params });
   return data.data;
 }
 
 // --- 对账 ---
 export async function fetchCustomerReconciliation(params?: { status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/finance/reconciliation/customer", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/reconciliation/customer", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchCustomerReconciliationDetail(id: number) {
-  const { data } = await api.get(`/admin/finance/reconciliation/customer/${id}`);
+  const { data } = await api.get(`/admin/reconciliation/customer/${id}`);
   return data.data;
 }
 export async function confirmCustomerReconciliation(id: number) {
-  const { data } = await api.post(`/admin/finance/reconciliation/customer/${id}/confirm`);
+  const { data } = await api.post(`/admin/reconciliation/customer/${id}/confirm`);
   return data.data;
 }
 export async function fetchSupplierReconciliation(params?: { status?: string; dateStart?: string; dateEnd?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/finance/reconciliation/supplier", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/reconciliation/supplier", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchSupplierReconciliationDetail(id: number) {
-  const { data } = await api.get(`/admin/finance/reconciliation/supplier/${id}`);
+  const { data } = await api.get(`/admin/reconciliation/supplier/${id}`);
   return data.data;
 }
 export async function confirmSupplierReconciliation(id: number) {
-  const { data } = await api.post(`/admin/finance/reconciliation/supplier/${id}/confirm`);
+  const { data } = await api.post(`/admin/reconciliation/supplier/${id}/confirm`);
   return data.data;
 }
 export async function generateReconciliation(payload: { reconType: string; entityId: number; periodStart: string; periodEnd: string }) {
-  const { data } = await api.post("/admin/finance/reconciliation/generate", payload);
+  const { data } = await api.post("/admin/reconciliation/generate", payload);
   return data.data;
 }
 
@@ -205,9 +205,9 @@ export async function fetchDailyReport(params?: { month?: string }) {
 
 
 // ==================== Payment Config APIs ====================
-export const fetchPaymentConfig = (provider: string) => api.get(`/admin/payment/configs/${provider}`);
-export const savePaymentConfig = (provider: string, data: any) => api.put(`/admin/payment/configs/${provider}`, data);
-export const testPaymentConnection = (provider: string) => api.post(`/admin/payment/configs/${provider}/test`);
+export const fetchPaymentConfig = (provider: string) => api.get(`/payment-config/configs/${provider}`);
+export const savePaymentConfig = (provider: string, data: any) => api.put(`/payment-config/configs/${provider}`, data);
+export const testPaymentConnection = (provider: string) => api.post(`/payment-config/configs/${provider}/test`);
 export const fetchPaymentStatus = () => api.get('/admin/payment/status');
 export const fetchBankAccounts = () => api.get('/admin/payment/bank-accounts');
 export const createBankAccount = (data: any) => api.post('/admin/payment/bank-accounts', data);

@@ -213,49 +213,49 @@ export async function fetchInventoryBalanceList() {
 
 // ==================== Phase 6: 库存成本核算 API ====================
 export async function fetchInventoryCostDetail(params?: { page?: number; pageSize?: number; storeId?: number; keyword?: string }) {
-  const { data } = await api.get("/admin/inventory-cost/cost-detail", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/inventory/cost-detail", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchInventoryCostTrend(params?: { skuId?: number; days?: number }) {
-  const { data } = await api.get("/admin/inventory-cost/cost-trend", { params });
+  const { data } = await api.get("/admin/inventory/cost-trend", { params });
   return data.data;
 }
 
 
 // ==================== Phase 6: 库存预警配置 API ====================
 export async function fetchStockWarningConfigs(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/admin/stock-warning/configs", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/stock-warnings/configs", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchStockWarnings(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/admin/stock-warning/warnings", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/stock-warnings/", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function createStockWarningConfig(payload: { storeId: number; skuIds: number[]; minQty: number; maxQty: number }) {
-  const { data } = await api.post("/admin/stock-warning/config", payload);
+  const { data } = await api.post("/admin/stock-warnings/config", payload);
   return data.data;
 }
 export async function updateStockWarningConfig(id: number, payload: { minQty?: number; maxQty?: number; enabled?: number }) {
-  const { data } = await api.put(`/admin/stock-warning/configs/${id}`, payload);
+  const { data } = await api.put(`/admin/stock-warnings/configs/${id}`, payload);
   return data.data;
 }
 export async function deleteStockWarningConfig(id: number) {
-  const { data } = await api.delete(`/admin/stock-warning/configs/${id}`);
+  const { data } = await api.delete(`/admin/stock-warnings/configs/${id}`);
   return data.data;
 }
 
 
 // ==================== Phase 6: 库存报表 API ====================
 export async function fetchInventoryTurnover(params?: { page?: number; pageSize?: number; storeId?: number }) {
-  const { data } = await api.get("/reports/inventory-turnover", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/admin/reports/inventory-turnover", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 export async function fetchInventoryAge(params?: { storeId?: number }) {
-  const { data } = await api.get("/reports/inventory-age", { params });
+  const { data } = await api.get("/admin/reports/inventory-age", { params });
   return data.data;
 }
 export async function fetchInventoryABC(params?: { storeId?: number }) {
-  const { data } = await api.get("/reports/inventory-abc", { params });
+  const { data } = await api.get("/admin/reports/inventory-abc", { params });
   return data.data;
 }
 

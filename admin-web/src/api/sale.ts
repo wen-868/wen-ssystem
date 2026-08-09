@@ -37,12 +37,12 @@ export async function createSaleReturn(payload: unknown) {
 
 // ==================== Statement / Customer Payment APIs ====================
 export async function fetchCustomerStatements(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/customer-statements", { params: { page: 1, pageSize: 20, ...params } });
+  const { data } = await api.get("/store/customer-statements", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 
 export async function generateCustomerStatement(payload: unknown) {
-  const { data } = await api.post("/admin/customer-statements/generate", payload);
+  const { data } = await api.post("/store/customer-statements/generate", payload);
   return data.data;
 }
 
