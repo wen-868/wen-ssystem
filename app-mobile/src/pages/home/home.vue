@@ -52,28 +52,28 @@
       <view class="hp-row">
         <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
           <view class="hp-ico hp-ico--orange">
-            <text class="hp-ico-text">配</text>
+            <image class="hp-ico-img" src="/static/icons/hp-deliver.svg" mode="aspectFit" />
           </view>
           <text class="hp-num">{{ stats.pendingDelivery }}</text>
           <text class="hp-label">待配送</text>
         </view>
         <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
           <view class="hp-ico hp-ico--blue">
-            <text class="hp-ico-text">取</text>
+            <image class="hp-ico-img" src="/static/icons/hp-pickup.svg" mode="aspectFit" />
           </view>
           <text class="hp-num">{{ stats.pendingPickup }}</text>
           <text class="hp-label">待取货</text>
         </view>
         <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
           <view class="hp-ico hp-ico--red">
-            <text class="hp-ico-text">收</text>
+            <image class="hp-ico-img" src="/static/icons/hp-payment.svg" mode="aspectFit" />
           </view>
           <text class="hp-num">{{ stats.pendingPayment }}</text>
           <text class="hp-label">待收款</text>
         </view>
         <view class="hp-item" @tap="navigateTo('/pages/orders/orders')">
           <view class="hp-ico hp-ico--green">
-            <text class="hp-ico-text">完</text>
+            <image class="hp-ico-img" src="/static/icons/hp-complete.svg" mode="aspectFit" />
           </view>
           <text class="hp-num">{{ stats.completedToday }}</text>
           <text class="hp-label">已完成</text>
@@ -473,10 +473,9 @@ onMounted(() => {
 .hp-ico--red { background: rgba(196, 80, 80, 0.1); }
 .hp-ico--green { background: rgba(58, 157, 92, 0.1); }
 
-.hp-ico-text {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: $uni-gray-600;
+.hp-ico-img {
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .hp-num {
