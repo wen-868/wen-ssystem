@@ -9,6 +9,8 @@ sysConfigRouter.get("/", ctrl.getAllConfigs);
 sysConfigRouter.get("/:group", ctrl.getConfigByGroup);
 sysConfigRouter.put("/batch", ctrl.batchUpdateConfigs);
 sysConfigRouter.post("/", ctrl.createConfig);
+sysConfigRouter.post("/test-mail", ctrl.testMail);
+sysConfigRouter.post("/manual-backup", ctrl.manualBackup);
 // ========== ·���Զ��������� ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/sys-config",

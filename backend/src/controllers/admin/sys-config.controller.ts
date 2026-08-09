@@ -35,3 +35,15 @@ export const createConfig = asyncHandler(async (req, res) => {
   const result = await service.createConfig(body, req.tenantId!);
   res.json(ok(result));
 });
+
+/** 邮件配置测试 */
+export const testMail = asyncHandler(async (req, res) => {
+  const result = await service.testMailConfig(req.tenantId!);
+  res.json(ok(result));
+});
+
+/** 手动数据库备份 */
+export const manualBackup = asyncHandler(async (req, res) => {
+  const result = await service.manualBackup();
+  res.json(ok(result));
+});

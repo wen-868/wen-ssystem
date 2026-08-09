@@ -82,3 +82,38 @@ export async function createConfig(body: {
   );
   return { configKey: body.config_key };
 }
+
+/** 邮件配置测试（R100 商用化）：校验 SMTP 配置完整性 */
+export async function testMailConfig(tenantId: string) {
+  const rows = await query<{ config_key: string; config_value: string }>(
+    "SELECT config_key, config_value FROM t_sys_config WHERE tenant_id = ? AND config_group = 'mail'",
+    [tenantId]
+  );
+  const cfg: Record<string, string> = {};
+  for (const r of rows) cfg[r.config_key] = r.config_value;
+  const required = ["smtp_host", "smtp_port", "smtp_username", "smtp_password"];
+  const missing = required.filter((k) => !cfg[k]);
+  return {
+    success: missing.length === 0,
+    message: missing.length === 0
+      ? `SMTP 配置完整（${cfg.smtp_host}:${cfg.smtp_port}），接入邮件服务后即可发送`
+      : `缺少配置项：${missing.join("、")}`,
+    config: { host: cfg.smtp_host || "", port: cfg.smtp_port || "", username: cfg.smtp_username || "", ssl: cfg.smtp_ssl || "0" },
+  };
+}
+
+/** 手动数据库备份（复用服务器 mysqldump 备份脚本） */
+export async function manualBackup() {
+  const { execFile } = await import("child_process");
+  const { promisify } = await import("util");
+  const { resolve } = await import("path");
+  const execFileAsync = promisify(execFile);
+  const script = resolve(__dirname, "../../../../../deploy/02-mysql-backup.sh");
+  try {
+    const { stdout } = await execFileAsync("bash", [script], { timeout: 180000 });
+    const lastLine = stdout.trim().split("\n").filter(Boolean).pop() || "";
+    return { success: true, message: "备份完成", detail: lastLine, backupTime: new Date().toISOString() };
+  } catch (e: any) {
+    return { success: false, message: "备份失败", detail: e?.stderr || e?.message || "" };
+  }
+}
