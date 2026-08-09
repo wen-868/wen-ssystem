@@ -116,6 +116,17 @@
         <el-table-column prop="verifiedAt" label="核销时间" width="160" />
         <el-table-column prop="operatorName" label="操作员" width="120" />
       </el-table>
+        <div class="table-card-footer" v-if="historyTotal > 0">
+          <el-pagination
+            background
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="historyTotal"
+            :page-size="historyPageSize"
+            :current-page="historyPage"
+            @size-change="(s: number) => { historyPageSize = s; historyPage = 1; loadVerifyHistory(); }"
+            @current-change="(p: number) => { historyPage = p; loadVerifyHistory(); }"
+          />
+        </div>
 </div>
       <div v-if="verifyHistory.length === 0 && !historyLoading" class="empty-tip">暂无核销记录</div>
     </el-card>
@@ -161,6 +172,9 @@ const manualVerifying = ref(false);
 const verifyResult = ref<VerifyResult | null>(null);
 const verifyHistory = ref<any[]>([]);
 const historyLoading = ref(false);
+const historyPage = ref(1);
+const historyPageSize = ref(20);
+const historyTotal = ref(0);
 
 function getCouponTypeName(type: string) {
   const map: Record<string, string> = {
@@ -246,8 +260,9 @@ async function doVerify(code: string) {
 async function loadVerifyHistory() {
   historyLoading.value = true;
   try {
-    const data = await fetchStoreCouponVerifyRecords({ status: "USED", page: 1, pageSize: 20 });
+    const data = await fetchStoreCouponVerifyRecords({ status: "USED", page: historyPage.value, pageSize: historyPageSize.value });
     verifyHistory.value = data?.records || [];
+    historyTotal.value = data?.total || 0;
   } catch {
     ElMessage.warning("加载核销历史失败");
   } finally {

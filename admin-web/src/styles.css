@@ -1284,3 +1284,80 @@ kbd,
 .el-empty .el-empty__bottom {
   margin-top: 12px;
 }
+
+/* ═══════════════════════════════════════════
+   统计条兼容（stats-row/stat-card 形态，R100 统一）
+   兼容历史页面使用的两种统计条类名，视觉对齐 stat-row
+   ═══════════════════════════════════════════ */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.stats-row .stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-normal);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+  border-left: 4px solid transparent;
+  border-image: linear-gradient(180deg, #3F6FEF, #4FB8FF) 1;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stats-row .stat-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.stats-row .stat-card .stat-value {
+  font-size: var(--text-amount-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-row .stat-card .stat-label {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stats-row .stat-card.paid {
+  border-image: linear-gradient(180deg, #0EA879, #34D399) 1;
+}
+
+.stats-row .stat-card.pending,
+.stats-row .stat-card.warning {
+  border-image: linear-gradient(180deg, #D48B3A, #FBBF24) 1;
+}
+
+.stats-row .stat-card.expired {
+  border-image: linear-gradient(180deg, #999999, #CCCCCC) 1;
+}
+
+.stats-row .stat-card.revoked,
+.stats-row .stat-card.danger {
+  border-image: linear-gradient(180deg, #C0392B, #E07A6A) 1;
+}
+
+@media (max-width: 1200px) {
+  .stats-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+}
