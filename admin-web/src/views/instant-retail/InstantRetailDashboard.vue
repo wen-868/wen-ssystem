@@ -205,6 +205,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from "vue";
+import { ElMessage } from "element-plus";
+import { fetchOrderCenterStats, fetchInstantOrders } from "../../api";
 import { CHART_COLORS } from "@/styles/theme";
 import { Tickets, Clock, Coin, Connection, Refresh, ArrowRight } from "@element-plus/icons-vue";
 
@@ -292,32 +294,25 @@ function getBarHeight(item: any, _index: number) {
   return maxBarValue.value > 0 ? Math.round((val / maxBarValue.value) * 100) : 0;
 }
 
-function loadTrendData() {
-  const mock = [
-    { date: "07-01", orders: 45, sales: 3280 },
-    { date: "07-02", orders: 52, sales: 4150 },
-    { date: "07-03", orders: 38, sales: 2890 },
-    { date: "07-04", orders: 61, sales: 5020 },
-    { date: "07-05", orders: 48, sales: 3760 },
-    { date: "07-06", orders: 55, sales: 4480 },
-    { date: "07-07", orders: 42, sales: 3210 }
-  ];
-  trendData.value = mock;
-  const vals = mock.map(m => trendMetric.value === "orders" ? m.orders : m.sales);
-  maxBarValue.value = Math.max(...vals, 1);
+function loadTrendData(stats: any) {
+  const trend = stats?.orderTrend || []
+  trendData.value = trend.map((d: any) => ({ date: (d.date || '').slice(5), orders: Number(d.count || 0), sales: 0 }))
+  const vals = trendData.value.map(m => trendMetric.value === "orders" ? m.orders : m.sales)
+  maxBarValue.value = Math.max(...vals, 1)
 }
 
 // ==================== 平台分布 ====================
 const platformData = ref<any[]>([]);
 
-function loadPlatformData() {
-  const mock = [
-    { name: "美团外卖", count: 128, percent: 38, color: CHART_COLORS.danger },
-    { name: "饿了么", count: 95, percent: 28, color: CHART_COLORS.primary },
-    { name: "京东到家", count: 52, percent: 15, color: CHART_COLORS.success },
-    { name: "自有小程序", count: 66, percent: 19, color: CHART_COLORS.warning }
-  ];
-  platformData.value = mock;
+function loadPlatformData(stats: any) {
+  const dist = stats?.channelDistribution || []
+  const colorMap: Record<string, string> = { MEITUAN: CHART_COLORS.danger, ELEME: CHART_COLORS.primary, JD: CHART_COLORS.success, MINIAPP: CHART_COLORS.warning }
+  platformData.value = dist.map((d: any) => ({
+    name: platformMap[d.channel]?.name || d.channel,
+    count: Number(d.count || 0),
+    percent: Number(d.ratio || 0),
+    color: colorMap[d.channel] || CHART_COLORS.info
+  }))
 }
 
 // ==================== 最近订单 ====================
@@ -345,36 +340,38 @@ function getStatusTagType(status: string) { return statusMap[status]?.type || "i
 function getPlatformName(platform: string) { return platformMap[platform]?.name || platform; }
 function getPlatformTagType(platform: string) { return platformMap[platform]?.type || "info"; }
 
-function loadData() {
-  loading.value = true;
-  setTimeout(() => {
-    // 模拟指标数据
-    metrics.todayOrders = 55;
-    metrics.pendingOrders = 12;
-    metrics.urgentOrders = 3;
-    metrics.todaySales = 4480;
-    metrics.orderTrend = 8.5;
-    metrics.salesTrend = 12.3;
-    metrics.lastSyncTime = "10分钟前";
+async function loadData() {
+  loading.value = true
+  try {
+    const [stats, orders] = await Promise.all([
+      fetchOrderCenterStats({}),
+      fetchInstantOrders({ page: 1, pageSize: 6 }).catch(() => ({ records: [] })),
+    ])
+    metrics.todayOrders = stats?.todayOrders ?? 0
+    metrics.pendingOrders = stats?.pendingCount ?? 0
+    metrics.urgentOrders = stats?.exceptionCount ?? 0
+    metrics.todaySales = stats?.todayAmount ?? 0
+    metrics.orderTrend = 0
+    metrics.salesTrend = 0
+    metrics.lastSyncTime = "实时"
 
-    syncStatus.successCount = 320;
-    syncStatus.failCount = 0;
-    syncStatus.lastSyncTime = "2026-07-06 14:30:00";
+    recentOrders.value = (orders?.records || orders?.list || []).map((o: any) => ({
+      id: o.id,
+      orderNo: o.orderNo || o.order_no || '',
+      platform: o.platform || '',
+      userName: o.userName || o.receiverName || o.customerName || '',
+      payAmount: o.payAmount ?? o.totalAmount ?? o.total_amount ?? 0,
+      status: o.status || o.orderStatus || 'PENDING',
+      createdAt: o.createdAt || o.created_at || ''
+    }))
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载看板数据失败')
+  } finally {
+    loading.value = false
+  }
 
-    // 最近订单
-    recentOrders.value = [
-      { id: 1, orderNo: "IR20260706000001", platform: "MEITUAN", userName: "张三", payAmount: 68.5, status: "CONFIRMED", createdAt: "2026-07-06 14:25:00" },
-      { id: 2, orderNo: "IR20260706000002", platform: "ELEME", userName: "李四", payAmount: 128.0, status: "PENDING", createdAt: "2026-07-06 14:20:00" },
-      { id: 3, orderNo: "IR20260706000003", platform: "MINIAPP", userName: "王五", payAmount: 45.6, status: "PREPARING", createdAt: "2026-07-06 14:15:00" },
-      { id: 4, orderNo: "IR20260706000004", platform: "JD", userName: "赵六", payAmount: 89.9, status: "DELIVERING", createdAt: "2026-07-06 14:10:00" },
-      { id: 5, orderNo: "IR20260706000005", platform: "MEITUAN", userName: "钱七", payAmount: 35.0, status: "COMPLETED", createdAt: "2026-07-06 14:00:00" }
-    ];
-
-    loading.value = false;
-  }, 300);
-
-  loadTrendData();
-  loadPlatformData();
+  loadTrendData(stats)
+  loadPlatformData(stats)
 }
 
 onMounted(() => {

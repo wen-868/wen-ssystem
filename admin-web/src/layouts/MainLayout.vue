@@ -359,7 +359,6 @@ const auth = useAuthStore();
 
 /** 尚为 mock 演示数据的页面（商用化接入中，标识提示） */
 const MOCK_PAGES = [
-  "/instant-retail/dashboard",
   "/instant-retail/pickup",
   "/products/review-tasks",
   "/reports/transfer",
