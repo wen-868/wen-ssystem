@@ -278,7 +278,7 @@ export async function demoLogin() {
 
   // 确保绑定 SUPER_ADMIN 角色（幂等）
   const superRole = await queryOne<RoleRow>(
-    "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND status = 'ACTIVE' LIMIT 1"
+    "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' LIMIT 1"
   );
   if (superRole) {
     await query(
@@ -296,7 +296,7 @@ export async function demoLogin() {
     `SELECT r.role_code
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
+     WHERE ur.user_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
     [account.id]
   );
   const roleCodes = roles.map((r) => r.role_code);
