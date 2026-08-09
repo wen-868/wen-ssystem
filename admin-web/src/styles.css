@@ -1155,3 +1155,91 @@ kbd,
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════
+   R100 V2 视觉升级 — 全站生效（仅视觉，不动业务逻辑）
+   目标：登录后第一眼可感知的精致度提升
+   ═══════════════════════════════════════════ */
+:root:root {
+  --bg-page: #F2F5FC;
+  --table-header-bg: #F4F7FF;
+  --table-header-text: #333333;
+  --table-row-hover: #F7FAFF;
+}
+
+/* 主内容区：顶部右侧柔和蓝色氛围 */
+.main {
+  background:
+    radial-gradient(760px 260px at 100% 0%, rgba(63, 111, 239, 0.055), transparent 62%),
+    var(--bg-page);
+}
+
+/* 全局卡片：更圆润 + 柔和分层阴影 + hover 轻浮起 */
+.el-card {
+  border-radius: 12px;
+  border-color: #E8ECF4;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.el-card.is-always-shadow,
+.el-card.is-hover-shadow:hover {
+  box-shadow: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 16px -4px rgba(16, 24, 40, 0.10);
+}
+
+/* 主按钮：品牌渐变 */
+.el-button--primary {
+  background: linear-gradient(135deg, #3F6FEF 0%, #2F5BD6 100%);
+  border-color: #2F5BD6;
+  box-shadow: 0 2px 6px rgba(47, 91, 214, 0.18);
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background: linear-gradient(135deg, #4C7DF5 0%, #3663DE 100%);
+  border-color: #3663DE;
+  box-shadow: 0 4px 10px rgba(47, 91, 214, 0.24);
+}
+.el-button--primary.is-plain {
+  background: #EFF4FF;
+  border-color: #C9D8FF;
+  color: #2F5BD6;
+  box-shadow: none;
+}
+
+/* 页头标题：品牌色装饰竖条 */
+.page-header .page-title {
+  position: relative;
+  padding-left: 13px;
+}
+.page-header .page-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #3F6FEF, #4FB8FF);
+}
+
+/* 侧边栏激活项：渐变胶囊 + 左侧色条 */
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(63, 111, 239, 0.14), rgba(79, 184, 255, 0.10));
+  box-shadow: inset 3px 0 0 #3F6FEF;
+}
+
+/* 分页激活：品牌渐变 */
+.el-pagination.is-background .el-pager li.is-active {
+  background: linear-gradient(135deg, #3F6FEF, #2F5BD6);
+}
+
+/* 表格表头：浅蓝底 */
+.el-table th.el-table__cell {
+  background: #F4F7FF !important;
+}
+
+/* 统计卡装饰条：灰 → 品牌渐变 */
+.stat-item {
+  border-left: 4px solid transparent;
+  border-image: linear-gradient(180deg, #3F6FEF, #4FB8FF) 1;
+}
