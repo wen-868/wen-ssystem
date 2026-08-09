@@ -364,14 +364,13 @@ async function loadData() {
       status: o.status || o.orderStatus || 'PENDING',
       createdAt: o.createdAt || o.created_at || ''
     }))
+    loadTrendData(stats)
+    loadPlatformData(stats)
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || '加载看板数据失败')
   } finally {
     loading.value = false
   }
-
-  loadTrendData(stats)
-  loadPlatformData(stats)
 }
 
 onMounted(() => {
