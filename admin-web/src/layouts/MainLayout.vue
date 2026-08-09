@@ -317,6 +317,17 @@
 
       <!-- 常规内容 -->
       <div v-else class="page-content">
+        <el-alert
+          v-if="isMockPage"
+          type="warning"
+          :closable="false"
+          show-icon
+          class="mock-page-alert"
+        >
+          <template #title>
+            功能建设中：当前页面为演示占位数据，正在接入真实业务数据，暂不建议用于正式经营
+          </template>
+        </el-alert>
         <router-view />
       </div>
     </main>
@@ -345,6 +356,16 @@ import { useAuthStore } from "../stores/auth";
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+
+/** 尚为 mock 演示数据的页面（商用化接入中，标识提示） */
+const MOCK_PAGES = [
+  "/instant-retail/shelf",
+  "/instant-retail/dashboard",
+  "/instant-retail/pickup",
+  "/products/review-tasks",
+  "/reports/transfer",
+];
+const isMockPage = computed(() => MOCK_PAGES.some((p) => route.path === p || route.path.startsWith(p + "/")));
 
 /** 收银台模式功能导航（一级入口，对应 /pos/* 版块） */
 const cashierNavItems = [
@@ -607,6 +628,10 @@ function handleLogout() {
 </script>
 
 <style scoped>
+.mock-page-alert {
+  margin-bottom: 16px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr auto;
