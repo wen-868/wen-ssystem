@@ -443,6 +443,41 @@
             </el-form-item>
           </el-form>
         </el-tab-pane>
+
+        <!-- 系统初始化 -->
+        <el-tab-pane label="系统初始化" name="reset">
+          <div class="reset-wrapper">
+            <el-alert type="error" :closable="false" show-icon class="reset-alert">
+              <template #title>危险操作：系统初始化将清空全部业务数据</template>
+              初始化会删除商品、客户、供应商、销售单、采购单、库存、营销、审批等全部业务数据，
+              且不可恢复。系统账号、角色、菜单与平台配置将保留。
+            </el-alert>
+
+            <div class="reset-card">
+              <div class="reset-title">执行系统初始化</div>
+              <div class="reset-desc">初始化后建议重新登录，并可通过演示登录一键重建演示数据。</div>
+              <el-form label-width="140px" class="reset-form">
+                <el-form-item label="确认口令">
+                  <el-input
+                    v-model="resetConfirm"
+                    placeholder="请输入 RESET 确认执行"
+                    style="width: 320px"
+                    clearable
+                  />
+                </el-form-item>
+              </el-form>
+              <el-button
+                type="danger"
+                :loading="resetLoading"
+                :disabled="resetConfirm !== 'RESET'"
+                @click="handleSystemReset"
+              >
+                确认初始化，清空全部业务数据
+              </el-button>
+              <p class="reset-tip">仅超级管理员可执行；输入 RESET 后按钮方可点击。</p>
+            </div>
+          </div>
+        </el-tab-pane>
       </el-tabs>
 
       <div class="action-bar">
@@ -489,9 +524,12 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Share, Download } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
+import { resetSystemData } from "../../api/common";
 
 const activeTab = ref("system");
 const saveLoading = ref(false);
+const resetLoading = ref(false);
+const resetConfirm = ref("");
 const testMailLoading = ref(false);
 const manualBackupLoading = ref(false);
 const showSmsTemplateDialog = ref(false);
@@ -499,6 +537,29 @@ const isSmsTemplateEdit = ref(false);
 const smsTemplateLoading = ref(false);
 const formRef = ref<FormInstance>();
 const smsTemplateFormRef = ref<FormInstance>();
+
+/** 系统初始化：二次确认后清空全部业务数据 */
+async function handleSystemReset() {
+  if (resetConfirm.value !== "RESET") {
+    ElMessage.warning("请输入 RESET 确认口令");
+    return;
+  }
+  resetLoading.value = true;
+  try {
+    const res = await resetSystemData(resetConfirm.value);
+    ElMessage.success(res?.message || "系统初始化完成");
+    resetConfirm.value = "";
+    // 初始化后清除本地登录态，引导重新登录
+    setTimeout(() => {
+      localStorage.removeItem("admin_auth");
+      window.location.href = "/login";
+    }, 1500);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "系统初始化失败");
+  } finally {
+    resetLoading.value = false;
+  }
+}
 
 const rules: FormRules = {
   company_name: [{ required: true, message: "请输入公司名称", trigger: "blur" }],
@@ -804,6 +865,45 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.reset-wrapper {
+  max-width: 720px;
+}
+
+.reset-alert {
+  margin-bottom: 20px;
+}
+
+.reset-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+
+.reset-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.reset-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.reset-form {
+  margin-bottom: 8px;
+}
+
+.reset-tip {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--text-placeholder);
+}
+
 .config-wrapper {
   max-width: 800px;
   margin: 0 auto;

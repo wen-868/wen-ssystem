@@ -159,6 +159,8 @@ app.get("/health", (_req: any, res: any) => {
 // 登录接口（无需认证，但受 Rate Limiting 保护）
 // admin/store 登录由 server.ts 手动注册（带限流），其他 /api/admin/auth/* 路由（me/settings/change-password）由 admin-auth.routes.ts 自动注册
 app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
+// 演示账号登录：免密，受同一限流器保护
+app.post("/api/admin/auth/demo-login", adminLoginLimiter, authController.demoLogin);
 app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
 
 // CSRF 防护：不再全局注册，避免与 auto-routes 中的按路由注册形成双重注册。

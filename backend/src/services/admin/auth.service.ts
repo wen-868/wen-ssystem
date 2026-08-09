@@ -235,3 +235,102 @@ export async function changePassword(userId: number, oldPassword: string, newPas
   await queryWithTenant("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], tenantId);
   return { message: "密码修改成功" };
 }
+
+/**
+ * 演示账号登录（免密）：确保 demo 账号存在并绑定超级管理员角色后签发 token。
+ * 演示账号仅用于产品演示，不暴露真实密码。
+ */
+export async function demoLogin() {
+  const DEMO_USERNAME = "demo";
+  const DEMO_TENANT = "default";
+
+  let account = await queryOne<SysUserRow>(
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
+    [DEMO_USERNAME]
+  );
+
+  if (!account) {
+    // 创建演示账号：随机密码哈希，仅用于占位，无法通过密码登录
+    const randomPassword = `demo-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const hashed = await hashPassword(randomPassword);
+    const insert = (await query(
+      "INSERT INTO t_sys_user (username, password_hash, real_name, store_id, status, tenant_id, last_login_at) VALUES (?, ?, ?, NULL, 1, ?, NOW())",
+      [DEMO_USERNAME, hashed, "演示账号", DEMO_TENANT]
+    )) as unknown as ResultSetHeaderRow;
+    account = {
+      id: insert.insertId,
+      username: DEMO_USERNAME,
+      password_hash: hashed,
+      real_name: "演示账号",
+      store_id: null,
+      status: 1,
+      tenant_id: DEMO_TENANT,
+      login_fail_count: 0,
+      locked_until: null,
+    };
+  }
+
+  if (account.status !== 1) {
+    // 演示账号被禁用时自动恢复
+    await query("UPDATE t_sys_user SET status = 1, updated_at = NOW() WHERE id = ?", [account.id]);
+    account.status = 1;
+  }
+
+  // 确保绑定 SUPER_ADMIN 角色（幂等）
+  const superRole = await queryOne<RoleRow>(
+    "SELECT id, role_code FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' AND status = 'ACTIVE' LIMIT 1"
+  );
+  if (superRole) {
+    await query(
+      "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
+      [account.id, superRole.id, DEMO_TENANT]
+    );
+  }
+
+  await query(
+    "UPDATE t_sys_user SET login_fail_count = 0, locked_until = NULL, last_login_at = NOW(), updated_at = NOW() WHERE id = ?",
+    [account.id]
+  );
+
+  const roles = await query<RoleCodeRow>(
+    `SELECT r.role_code
+     FROM t_sys_user_role ur
+     JOIN t_sys_role r ON r.id = ur.role_id
+     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
+    [account.id]
+  );
+  const roleCodes = roles.map((r) => r.role_code);
+  const permissions = await getUserPermissions(account.id, DEMO_TENANT);
+
+  const authUser: AuthUser = {
+    id: account.id,
+    username: account.username,
+    realName: account.real_name,
+    roles: roleCodes,
+    storeId: account.store_id,
+    tenantId: DEMO_TENANT,
+  };
+  const accessInfo = getUserAccessInfo(authUser);
+  const user = {
+    id: account.id,
+    username: account.username,
+    realName: account.real_name,
+    storeId: account.store_id,
+    tenantId: DEMO_TENANT,
+    roles: roleCodes,
+    permissions,
+    ...accessInfo,
+  };
+  return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id), demo: true };
+}
+
+/** 插入结果行（mysql2 ResultSetHeader 的最小字段） */
+interface ResultSetHeaderRow {
+  insertId: number;
+}
+
+/** 角色行 */
+interface RoleRow {
+  id: number;
+  role_code: string;
+}

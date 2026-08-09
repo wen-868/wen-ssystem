@@ -9,6 +9,9 @@
           <span class="store-name">{{ storeDisplayName }}</span>
           <span class="store-state">营业中</span>
         </div>
+        <el-tag v-if="currentUser?.demo" size="small" type="warning" effect="light" class="demo-mode-tag">
+          演示模式
+        </el-tag>
         <span class="breadcrumb">{{ isCashierMode ? "快速收银台" : pageTitle }}</span>
       </div>
       <div class="header-right">
@@ -877,6 +880,13 @@ function handleLogout() {
   padding-right: 16px;
   margin-right: 16px;
   border-right: 1px solid var(--border-light);
+}
+
+.demo-mode-tag {
+  margin-left: 4px;
+  border-radius: 999px;
+  padding: 0 10px;
+  flex-shrink: 0;
 }
 
 .store-status-dot {

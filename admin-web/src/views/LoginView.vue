@@ -2,6 +2,9 @@
   <div class="login-page">
     <!-- 左侧品牌区（对标设计稿 p02） -->
     <div class="brand-panel">
+      <div class="brand-glow brand-glow--a" />
+      <div class="brand-glow brand-glow--b" />
+      <div class="brand-grid" />
       <div class="brand-inner">
         <div class="brand-logo">
           <div class="logo-mark">智</div>
@@ -41,6 +44,18 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- 玻璃拟态经营数据卡（视觉装饰） -->
+      <div class="float-card float-card--sales">
+        <div class="float-card-label">今日销售额</div>
+        <div class="float-card-value">¥ 12,860</div>
+        <div class="float-card-trend up">↑ 12.5%</div>
+      </div>
+      <div class="float-card float-card--orders">
+        <div class="float-card-label">待处理订单</div>
+        <div class="float-card-value">18 单</div>
+        <div class="float-card-trend">实时同步中</div>
       </div>
     </div>
 
@@ -91,6 +106,21 @@
           >
             立即登录
           </el-button>
+          <div class="demo-login-divider">
+            <span class="demo-divider-line" />
+            <span class="demo-divider-text">或</span>
+            <span class="demo-divider-line" />
+          </div>
+          <el-button
+            size="large"
+            class="demo-login-btn"
+            :loading="loading"
+            @click="handleDemoLogin"
+          >
+            <el-icon class="demo-login-icon"><Van /></el-icon>
+            演示账号登录（免密体验）
+          </el-button>
+          <p class="demo-login-tip">无需注册，一键进入工作台，自动填充演示数据</p>
         </el-form>
 
         <div class="register-hint">
@@ -111,7 +141,7 @@ import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { ChatDotRound, Goods, OfficeBuilding, Van } from "@element-plus/icons-vue";
-import { adminLogin } from "../api";
+import { adminLogin, demoLogin, seedDemoData } from "../api";
 import { useAuthStore } from "../stores/auth";
 
 const router = useRouter();
@@ -160,6 +190,29 @@ async function handleLogin() {
     loading.value = false;
   }
 }
+
+/** 演示账号登录：免密进入工作台，自动初始化演示数据 */
+async function handleDemoLogin() {
+  loading.value = true;
+  try {
+    const res = await demoLogin();
+    const token = res.token;
+    if (token) {
+      const userInfo: any = { ...(res.user || {}), demo: true };
+      auth.setAuth(token, userInfo, res.csrfToken);
+      ElMessage.success("已进入演示模式");
+      // 幂等初始化演示数据（失败不阻塞进入）
+      seedDemoData().catch(() => {});
+      router.push("/dashboard");
+    } else {
+      ElMessage.error("演示登录失败：未获取到 token");
+    }
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "演示登录失败，请稍后再试");
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -172,7 +225,10 @@ async function handleLogin() {
 /* ─── 左侧品牌区 ─── */
 .brand-panel {
   flex: 1.2;
-  background: linear-gradient(160deg, #3F6FEF 0%, #2F5BD6 100%);
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(90, 190, 255, 0.45), transparent 60%),
+    radial-gradient(700px 420px at -10% 110%, rgba(90, 220, 255, 0.32), transparent 55%),
+    linear-gradient(150deg, #3F6FEF 0%, #2F5BD6 55%, #2451C4 100%);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -180,6 +236,41 @@ async function handleLogin() {
   justify-content: center;
   padding: 48px;
   min-width: 520px;
+}
+
+/* 品牌区装饰：光晕 + 网格 + 大号 logo 字 */
+.brand-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.brand-glow--a {
+  width: 420px;
+  height: 420px;
+  left: -140px;
+  top: -120px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 65%);
+}
+
+.brand-glow--b {
+  width: 360px;
+  height: 360px;
+  right: -110px;
+  top: 32%;
+  background: radial-gradient(circle, rgba(130, 220, 255, 0.22), transparent 62%);
+}
+
+.brand-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+  pointer-events: none;
 }
 
 /* 品牌区装饰：大号半透明 logo 字（克制、仅此一处允许的装饰） */
@@ -196,9 +287,70 @@ async function handleLogin() {
   user-select: none;
 }
 
+/* 玻璃拟态数据卡 */
+.float-card {
+  position: absolute;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 32px rgba(20, 40, 110, 0.25);
+  color: #fff;
+  animation: float-in 0.8s ease-out both;
+  pointer-events: none;
+}
+
+.float-card--sales {
+  right: 40px;
+  bottom: 12%;
+  animation-delay: 0.15s;
+}
+
+.float-card--orders {
+  left: 32px;
+  bottom: 6%;
+  animation-delay: 0.3s;
+}
+
+.float-card-label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.float-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.float-card-trend {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.float-card-trend.up {
+  color: #9ff3c6;
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .brand-inner {
   max-width: 460px;
   color: var(--gray-0);
+  position: relative;
+  z-index: 1;
 }
 
 .brand-logo {
@@ -296,10 +448,23 @@ async function handleLogin() {
   width: 100%;
   max-width: 400px;
   background: var(--gray-0);
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
+  border: 1px solid rgba(63, 111, 239, 0.16);
+  border-radius: 16px;
   padding: 40px 36px 28px;
   box-shadow: var(--shadow-modal);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 登录卡片顶部高光条 */
+.login-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3F6FEF, #4FB8FF, #6BE0FF);
 }
 
 .login-title {
@@ -346,6 +511,64 @@ async function handleLogin() {
   height: 44px;
   font-size: 15px;
   font-weight: 600;
+  border: none;
+  background: linear-gradient(135deg, #3F6FEF 0%, #2F5BD6 100%);
+  box-shadow: 0 8px 18px rgba(47, 91, 214, 0.28);
+}
+
+.login-submit:hover {
+  background: linear-gradient(135deg, #4C7DF5 0%, #3663DE 100%);
+  box-shadow: 0 10px 22px rgba(47, 91, 214, 0.34);
+}
+
+.demo-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+
+.demo-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
+.demo-divider-text {
+  font-size: 12px;
+  color: var(--text-placeholder);
+}
+
+.demo-login-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px dashed var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(63, 111, 239, 0.04);
+}
+
+.demo-login-btn:hover {
+  background: rgba(63, 111, 239, 0.1);
+  border: 1px dashed var(--color-primary);
+  color: var(--color-primary);
+}
+
+.demo-login-icon {
+  margin-right: 4px;
+}
+
+.demo-login-tip {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-placeholder);
+}
+
+.login-form :deep(.el-input__wrapper) {
+  border-radius: 10px;
 }
 
 .register-hint {

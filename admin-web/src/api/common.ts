@@ -5,6 +5,24 @@ export async function adminLogin(username: string, password: string) {
   return data.data as { token: string; user: unknown };
 }
 
+/** 演示账号登录（免密，内置演示数据） */
+export async function demoLogin() {
+  const { data } = await api.post("/admin/auth/demo-login");
+  return data.data as { token: string; user: unknown; csrfToken?: string; demo?: boolean };
+}
+
+/** 初始化演示数据（幂等：业务表为空时自动填充） */
+export async function seedDemoData() {
+  const { data } = await api.post("/admin/demo/seed");
+  return data.data;
+}
+
+/** 系统初始化：清空全部业务数据（需超级管理员 + 确认口令） */
+export async function resetSystemData(confirm: string) {
+  const { data } = await api.post("/admin/demo/reset", { confirm });
+  return data.data;
+}
+
 export async function fetchDashboard() {
   const { data } = await api.get("/admin/reports/dashboard");
   return data.data;

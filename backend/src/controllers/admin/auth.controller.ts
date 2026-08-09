@@ -9,6 +9,12 @@ export const login = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+/** 演示账号登录（免密，仅供产品演示） */
+export const demoLogin = asyncHandler(async (_req, res) => {
+  const result = await authService.demoLogin();
+  res.json(ok(result));
+});
+
 export const changePassword = asyncHandler(async (req, res) => {
   const body = z.object({
     oldPassword: z.string(),

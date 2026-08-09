@@ -2090,27 +2090,50 @@ onUnmounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
+  padding: 20px 24px;
+  border-radius: var(--card-radius);
+  background: linear-gradient(120deg, #F3F7FF 0%, #EAF2FF 55%, #F6FAFF 100%);
+  border: 1px solid rgba(63, 111, 239, 0.1);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.header-bar::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79, 184, 255, 0.18), transparent 65%);
+  pointer-events: none;
 }
 .header-left {
   display: flex;
   align-items: baseline;
   gap: 16px;
+  position: relative;
+  z-index: 1;
 }
 .welcome-text {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: var(--gray-700);
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
 }
 .date-text {
   font-size: 14px;
-  color: var(--gray-400);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 .quick-cashier-btn {
   display: flex;
@@ -2128,6 +2151,26 @@ onUnmounted(() => {
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-card);
   transition: box-shadow 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.metric-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3F6FEF, #4FB8FF);
+}
+.el-col:nth-child(2) .metric-card::before {
+  background: linear-gradient(90deg, #10B981, #34D399);
+}
+.el-col:nth-child(3) .metric-card::before {
+  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+}
+.el-col:nth-child(4) .metric-card::before {
+  background: linear-gradient(90deg, #8B5CF6, #A78BFA);
 }
 .metric-card:hover {
   box-shadow: var(--shadow-hover);
@@ -2491,6 +2534,16 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 600;
   color: var(--gray-700);
+  gap: 8px;
+}
+.chart-card-header::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3F6FEF, #4FB8FF);
+  box-shadow: 0 0 0 3px rgba(63, 111, 239, 0.12);
+  flex-shrink: 0;
 }
 .chart-container {
   width: 100%;
