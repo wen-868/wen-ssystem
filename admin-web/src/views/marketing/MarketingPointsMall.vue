@@ -275,46 +275,19 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
+import { onMounted } from "vue";
+import { fetchPointsProducts, createPointsProduct, updatePointsProduct, deletePointsProduct, togglePointsProduct, fetchPointsExchangeRecords, fetchPointsMallStats } from "../../api";
 import { Goods, CircleCheck, ShoppingCart, Coin, Plus } from "@element-plus/icons-vue";
 
 // ==================== Mock 数据 ====================
-const mockStats = {
-  totalProducts: 45,
-  onlineProducts: 28,
-  totalExchanges: 12580,
-  totalPoints: 2560000,
-};
+const stats = reactive({ totalProducts: 0, onlineProducts: 0, totalExchanges: 0, totalPoints: 0 });
 
-const mockProducts = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  productName: `积分商品${i + 1}`,
-  productDesc: `这是积分商品${i + 1}的描述`,
-  productImage: "",
-  pointsRequired: Math.floor(Math.random() * 5000 + 500),
-  marketPrice: Math.floor(Math.random() * 200 + 50),
-  remainingStock: Math.floor(Math.random() * 100),
-  totalStock: Math.floor(Math.random() * 200 + 100),
-  status: i % 3 === 0 ? "OFF" : "ON",
-  sortOrder: i + 1,
-  exchangeCount: Math.floor(Math.random() * 500 + 50),
-}));
+const mockProducts = ref<any[]>([])
 
-const mockExchangeRecords = Array.from({ length: 25 }, (_, i) => ({
-  id: i + 1,
-  exchangeCode: `EX202606${String(i + 1).padStart(4, "0")}`,
-  memberName: `用户${i + 1}`,
-  memberPhone: `138${String(Math.floor(Math.random() * 100000000)).padStart(8, "0")}`,
-  productName: `积分商品${Math.floor(Math.random() * 20) + 1}`,
-  pointsUsed: Math.floor(Math.random() * 3000 + 500),
-  exchangeQty: Math.floor(Math.random() * 3) + 1,
-  status: ["PENDING", "CONFIRMED", "CANCELLED"][i % 3],
-  createdAt: `2026-06-${String(Math.floor(Math.random() * 30) + 1).padStart(2, "0")} ${String(
-    Math.floor(Math.random() * 24)
-  ).padStart(2, "0")}:00:00`,
-}));
+const mockExchangeRecords = ref<any[]>([])
 
 // ==================== 统计 ====================
-const stats = reactive({ ...mockStats });
+
 
 // ==================== Tab 切换 ====================
 const activeTab = ref("products");
@@ -322,22 +295,34 @@ const activeTab = ref("products");
 // ==================== 商品管理 ====================
 const productKeyword = ref("");
 const productStatus = ref("");
-const products = ref<any[]>([...mockProducts]);
-const productTotal = ref(mockProducts.length);
+const products = ref<any[]>([]);
+const productTotal = ref(0);
 const productPage = ref(1);
 const productPageSize = ref(20);
 
-function loadProducts() {
-  let filtered = [...mockProducts];
-  if (productKeyword.value) {
-    filtered = filtered.filter((p) => p.productName.includes(productKeyword.value));
+async function loadProducts() {
+  try {
+    const data = await fetchPointsProducts({ page: productPage.value, pageSize: productPageSize.value, status: productStatus.value || undefined, keyword: productKeyword.value || undefined })
+    const rows = data?.list || data?.records || []
+    products.value = rows.map((p: any) => ({
+      id: p.id,
+      productName: p.name || p.product_name || '',
+      productDesc: p.description || p.product_desc || '',
+      productImage: p.imageUrl || p.product_image || '',
+      pointsRequired: p.pointsRequired || p.points_required || 0,
+      marketPrice: p.marketPrice || p.market_price || 0,
+      remainingStock: p.stock ?? p.stock_available ?? 0,
+      totalStock: p.stock ?? p.total_stock ?? 0,
+      status: p.status || 'OFF',
+      sortOrder: p.sortNo ?? p.sort_no ?? 0,
+      exchangeCount: p.exchangeCount || p.exchange_count || 0
+    }))
+    productTotal.value = data?.total || 0
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载积分商品失败')
+    products.value = []
+    productTotal.value = 0
   }
-  if (productStatus.value) {
-    filtered = filtered.filter((p) => p.status === productStatus.value);
-  }
-  productTotal.value = filtered.length;
-  const start = (productPage.value - 1) * productPageSize.value;
-  products.value = filtered.slice(start, start + productPageSize.value);
 }
 
 function handleProductSizeChange(size: number) {
@@ -352,17 +337,23 @@ function handleProductPageChange(p: number) {
 }
 
 async function toggleProductStatus(product: any) {
-  const newStatus = product.status === "ON" ? "OFF" : "ON";
-  product.status = newStatus;
-  ElMessage.success(`已${newStatus === "ON" ? "上架" : "下架"}`);
-  loadProducts();
+  try {
+    await togglePointsProduct(product.id)
+    ElMessage.success(product.status === "ON" ? "已下架" : "已上架")
+    await loadProducts()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '操作失败')
+  }
 }
 
 async function deleteProduct(product: any) {
-  const idx = mockProducts.findIndex((p) => p.id === product.id);
-  if (idx > -1) mockProducts.splice(idx, 1);
-  ElMessage.success("已删除");
-  loadProducts();
+  try {
+    await deletePointsProduct(product.id)
+    ElMessage.success("已删除")
+    await loadProducts()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '删除失败')
+  }
 }
 
 // ==================== 商品表单 ====================
@@ -442,41 +433,63 @@ function handleProductImageRemove() {
 }
 
 async function submitProduct() {
-  const valid = await productFormRef.value?.validate().catch(() => false);
+  const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
-  if (editingProduct.value) {
-    Object.assign(editingProduct.value, productForm);
-    ElMessage.success("修改成功");
-  } else {
-    mockProducts.push({
-      id: mockProducts.length + 1,
-      ...productForm,
-      remainingStock: productForm.totalStock,
-      status: "ON",
-      exchangeCount: 0,
-    });
-    ElMessage.success("创建成功");
+  const payload = {
+    name: productForm.productName,
+    description: productForm.productDesc,
+    imageUrl: productForm.productImage || undefined,
+    pointsRequired: productForm.pointsRequired,
+    stock: productForm.totalStock,
+    limitPerUser: productForm.limitPerPerson,
+    status: editingProduct.value?.status || "ON",
+    sortNo: productForm.sortOrder
+  };
+  try {
+    if (editingProduct.value) {
+      await updatePointsProduct(editingProduct.value.id, payload);
+      ElMessage.success("修改成功");
+    } else {
+      await createPointsProduct(payload);
+      ElMessage.success("创建成功");
+    }
+    productDialogVisible.value = false;
+    await loadProducts();
+    await loadStats();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '保存失败');
   }
-  productDialogVisible.value = false;
-  loadProducts();
 }
 
 // ==================== 兑换记录 ====================
 const recordDateRange = ref<any[]>([]);
 const recordStatus = ref("");
-const exchangeRecords = ref<any[]>([...mockExchangeRecords]);
-const recordTotal = ref(mockExchangeRecords.length);
+const exchangeRecords = ref<any[]>([]);
+const recordTotal = ref(0);
 const recordPage = ref(1);
 const recordPageSize = ref(20);
 
-function loadExchangeRecords() {
-  let filtered = [...mockExchangeRecords];
-  if (recordStatus.value) {
-    filtered = filtered.filter((r) => r.status === recordStatus.value);
+async function loadExchangeRecords() {
+  try {
+    const data = await fetchPointsExchangeRecords({ page: recordPage.value, pageSize: recordPageSize.value, status: recordStatus.value || undefined })
+    const rows = data?.list || data?.records || []
+    exchangeRecords.value = rows.map((r: any) => ({
+      id: r.id,
+      exchangeCode: r.record_no || r.exchangeCode || '',
+      memberName: r.member_name || r.userName || '',
+      memberPhone: r.member_phone || r.userMobile || '',
+      productName: r.product_name || r.productName || '',
+      pointsUsed: r.points_used ?? r.pointsUsed ?? 0,
+      exchangeQty: r.quantity ?? r.exchangeQty ?? 1,
+      status: r.status || 'PENDING',
+      createdAt: r.created_at || r.createdAt || ''
+    }))
+    recordTotal.value = data?.total || 0
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载兑换记录失败')
+    exchangeRecords.value = []
+    recordTotal.value = 0
   }
-  recordTotal.value = filtered.length;
-  const start = (recordPage.value - 1) * recordPageSize.value;
-  exchangeRecords.value = filtered.slice(start, start + recordPageSize.value);
 }
 
 function handleRecordSizeChange(size: number) {
@@ -505,6 +518,18 @@ function cancelExchange(row: any) {
 function exportRecords() {
   ElMessage.success("兑换记录导出中...");
 }
+
+async function loadStats() {
+  try {
+    Object.assign(stats, await fetchPointsMallStats())
+  } catch {}
+}
+
+onMounted(() => {
+  loadProducts();
+  loadExchangeRecords();
+  loadStats();
+});
 </script>
 
 <style scoped>

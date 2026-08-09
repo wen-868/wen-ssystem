@@ -100,3 +100,8 @@ export const confirmExchange = asyncHandler(async (req: Request, res: Response) 
   await svc.confirmExchange(Number(req.params.id), req.tenantId!);
   res.json(ok(null));
 });
+
+export const getPointsMallStats = asyncHandler(async (req: Request, res: Response) => {
+  const result = await svc.getPointsMallStats(req.tenantId!);
+  res.json(ok(result));
+});

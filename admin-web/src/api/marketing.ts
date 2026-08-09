@@ -18,6 +18,36 @@ export async function deleteGiftRule(id: number) {
   return data.data;
 }
 
+// ==================== 积分商城（R100 商用化） ====================
+export async function fetchPointsProducts(params?: { page?: number; pageSize?: number; status?: string; keyword?: string }) {
+  const { data } = await api.get("/admin/marketing/points-mall/products", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createPointsProduct(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/marketing/points-mall/products", payload);
+  return data.data;
+}
+export async function updatePointsProduct(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/marketing/points-mall/products/${id}`, payload);
+  return data.data;
+}
+export async function deletePointsProduct(id: number) {
+  const { data } = await api.delete(`/admin/marketing/points-mall/products/${id}`);
+  return data.data;
+}
+export async function togglePointsProduct(id: number) {
+  const { data } = await api.post(`/admin/marketing/points-mall/products/${id}/toggle`);
+  return data.data;
+}
+export async function fetchPointsExchangeRecords(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/admin/marketing/points-mall/exchange-records", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchPointsMallStats() {
+  const { data } = await api.get("/admin/marketing/points-mall/stats");
+  return data.data;
+}
+
 // ==================== Marketing - Coupon Template APIs ====================
 export async function fetchCouponTemplates(params?: { page?: number; pageSize?: number; status?: string; type?: string; keyword?: string }) {
   const { data } = await api.get("/admin/marketing/coupons/templates", { params });

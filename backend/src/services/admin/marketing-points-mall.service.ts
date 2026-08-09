@@ -197,3 +197,27 @@ export async function cancelExchange(id: number, tenantId: string) {
 export async function confirmExchange(id: number, tenantId: string) {
   await queryWithTenant("UPDATE t_points_exchange_record SET status = 'CONFIRMED' WHERE id = ? AND tenant_id = ?", [id, tenantId], tenantId);
 }
+
+/** 积分商城统计（R100 商用化补充） */
+export async function getPointsMallStats(tenantId: string) {
+  const productStat = await queryOneWithTenant<{ totalProducts: number; onlineProducts: number }>(
+    `SELECT COUNT(*) AS totalProducts,
+            COALESCE(SUM(CASE WHEN status = 'ON' THEN 1 ELSE 0 END), 0) AS onlineProducts
+     FROM t_points_product WHERE tenant_id = ?`,
+    [tenantId],
+    tenantId
+  );
+  const exchangeStat = await queryOneWithTenant<{ totalExchanges: number; totalPoints: number }>(
+    `SELECT COUNT(*) AS totalExchanges,
+            COALESCE(SUM(points_used), 0) AS totalPoints
+     FROM t_points_exchange_record WHERE tenant_id = ?`,
+    [tenantId],
+    tenantId
+  );
+  return {
+    totalProducts: productStat?.totalProducts ?? 0,
+    onlineProducts: productStat?.onlineProducts ?? 0,
+    totalExchanges: exchangeStat?.totalExchanges ?? 0,
+    totalPoints: exchangeStat?.totalPoints ?? 0,
+  };
+}

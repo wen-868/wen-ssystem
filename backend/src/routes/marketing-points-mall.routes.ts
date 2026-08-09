@@ -17,6 +17,7 @@ marketingPointsMallRouter.get("/exchange-records/:id", pointsMallController.getE
 marketingPointsMallRouter.post("/exchange", pointsMallController.exchangeProduct);
 marketingPointsMallRouter.post("/exchange-records/:id/cancel", pointsMallController.cancelExchange);
 marketingPointsMallRouter.post("/exchange-records/:id/confirm", pointsMallController.confirmExchange);
+marketingPointsMallRouter.get("/stats", pointsMallController.getPointsMallStats);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/marketing/points-mall",
