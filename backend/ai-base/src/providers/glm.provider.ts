@@ -209,7 +209,7 @@ export class GlmProvider implements IModelProvider {
     let response: AxiosResponse<Readable>;
     try {
       response = await axios.post<Readable>(
-        `${cfg.baseUrl}/v1/chat/completions`,
+        `${cfg.baseUrl}/chat/completions`,
         requestBody,
         {
           headers: this.buildHeaders(),
@@ -370,7 +370,7 @@ export class GlmProvider implements IModelProvider {
     let response: AxiosResponse<GlmChatResponse>;
     try {
       response = await axios.post<GlmChatResponse>(
-        `${cfg.baseUrl}/v1/chat/completions`,
+        `${cfg.baseUrl}/chat/completions`,
         requestBody,
         {
           headers: this.buildHeaders(),
