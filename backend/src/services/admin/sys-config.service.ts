@@ -93,13 +93,45 @@ export async function testMailConfig(tenantId: string) {
   for (const r of rows) cfg[r.config_key] = r.config_value;
   const required = ["smtp_host", "smtp_port", "smtp_username", "smtp_password"];
   const missing = required.filter((k) => !cfg[k]);
-  return {
-    success: missing.length === 0,
-    message: missing.length === 0
-      ? `SMTP 配置完整（${cfg.smtp_host}:${cfg.smtp_port}），接入邮件服务后即可发送`
-      : `缺少配置项：${missing.join("、")}`,
-    config: { host: cfg.smtp_host || "", port: cfg.smtp_port || "", username: cfg.smtp_username || "", ssl: cfg.smtp_ssl || "0" },
-  };
+  if (missing.length > 0) {
+    throw Object.assign(new Error(`SMTP 配置不完整，缺少：${missing.join("、")}`), { statusCode: 400 });
+  }
+  const script = `
+import smtplib, sys
+from email.mime.text import MIMEText
+host, port, user, pwd, ssl_flag, to = sys.argv[1:7]
+msg = MIMEText("智享全链管理系统测试邮件：SMTP 配置验证成功。", "plain", "utf-8")
+msg["Subject"] = "智享全链 - SMTP 配置测试"
+msg["From"] = user
+msg["To"] = to
+try:
+    if ssl_flag == "1":
+        s = smtplib.SMTP_SSL(host, int(port), timeout=15)
+    else:
+        s = smtplib.SMTP(host, int(port), timeout=15)
+        s.starttls()
+    s.login(user, pwd)
+    s.sendmail(user, [to], msg.as_string())
+    s.quit()
+    print("OK")
+except Exception as e:
+    print("ERR", e)
+    sys.exit(1)
+`;
+  const { execFile } = await import("child_process");
+  const { promisify } = await import("util");
+  const execFileAsync = promisify(execFile);
+  try {
+    const { stdout } = await execFileAsync(
+      "python3",
+      ["-c", script, cfg.smtp_host, cfg.smtp_port || "465", cfg.smtp_username, cfg.smtp_password, cfg.smtp_ssl || "1", cfg.smtp_username],
+      { timeout: 30000 }
+    );
+    return { success: true, message: `测试邮件已发送至 ${cfg.smtp_username}（${stdout.trim()}）` };
+  } catch (e: any) {
+    const detail = (e?.stderr || e?.message || "").toString().slice(0, 200);
+    throw Object.assign(new Error(`邮件发送失败：${detail}`), { statusCode: 400 });
+  }
 }
 
 /** 手动数据库备份（复用服务器 mysqldump 备份脚本） */
