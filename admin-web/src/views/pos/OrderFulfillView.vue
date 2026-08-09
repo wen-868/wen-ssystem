@@ -3,7 +3,16 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">接单履约</h2>
-    <p class="page-desc">订单履约</p>
+    <p class="page-desc">线上订单接单、拒单与履约完成</p>
+  </div>
+  <div class="page-header-actions">
+    <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 140px">
+      <el-option label="待接单" value="PENDING" />
+      <el-option label="已接单" value="ACCEPTED" />
+      <el-option label="已完成" value="COMPLETED" />
+    </el-select>
+    <el-button type="primary" @click="page = 1; loadList()">查询</el-button>
+    <el-button @click="statusFilter = ''; page = 1; loadList()">重置</el-button>
   </div>
 </div>
 
@@ -33,15 +42,17 @@
       </el-table>
 </div>
 
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 16px"
-        @current-change="loadList"
-      />
+      <div class="table-card-footer" v-if="total > 0">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="loadList"
+          @size-change="page = 1; loadList()"
+        />
+      </div>
     
 
     <el-dialog v-model="detailVisible" title="订单详情" width="720px">

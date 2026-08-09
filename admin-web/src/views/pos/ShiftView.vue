@@ -3,7 +3,12 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">交接班管理</h2>
-    <p class="page-desc">交班管理</p>
+    <p class="page-desc">班次交接、现金清点与交接记录</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="showCreateDialog = true">
+      <el-icon><Plus /></el-icon>&nbsp;新建交接班
+    </el-button>
   </div>
 </div>
 
@@ -67,16 +72,17 @@
       </el-table>
 </div>
 
-      <el-pagination
-        v-if="total > 0"
-        style="margin-top: 16px; text-align: right"
-        :current-page="page"
-        :page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        @current-change="handlePageChange"
-      />
-      <div v-if="shifts.length === 0 && !loading" class="empty-tip">暂无交接班记录</div>
+      <div class="table-card-footer" v-if="total > 0">
+        <el-pagination
+          :current-page="page"
+          :page-size="pageSize"
+          :total="total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="handlePageChange"
+          @size-change="handleSizeChange"
+        />
+      </div>
     
 
     <!-- 新建交接班弹窗 -->
@@ -150,6 +156,7 @@
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
 import { fetchStoreShifts, createStoreShift, completeStoreShift } from "../../api";
 
 const router = useRouter();
@@ -239,6 +246,12 @@ async function loadShifts() {
 
 function handlePageChange(newPage: number) {
   page.value = newPage;
+  loadShifts();
+}
+
+function handleSizeChange(newSize: number) {
+  pageSize.value = newSize;
+  page.value = 1;
   loadShifts();
 }
 

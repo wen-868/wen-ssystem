@@ -3,7 +3,21 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">会员识别</h2>
-    <p class="page-desc">会员管理</p>
+    <p class="page-desc">按姓名或手机号快速识别会员身份</p>
+  </div>
+  <div class="page-header-actions">
+    <el-input
+      v-model="keyword"
+      placeholder="输入姓名或手机号搜索"
+      clearable
+      style="width: 240px"
+      @keyup.enter="handleSearch"
+      @clear="handleSearch"
+    >
+      <template #prefix><el-icon><Search /></el-icon></template>
+    </el-input>
+    <el-button type="primary" @click="handleSearch">搜索</el-button>
+    <el-button @click="keyword = ''; handleSearch()">重置</el-button>
   </div>
 </div>
 
@@ -48,6 +62,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Search } from "@element-plus/icons-vue";
 import { searchStoreMembers } from "../../api";
 
 const loading = ref(false);
