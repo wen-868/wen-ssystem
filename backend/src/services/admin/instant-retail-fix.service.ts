@@ -353,3 +353,104 @@ interface ExceptionRow {
 interface ExceptionLogRow {
   id: number; handler_name: string | null; action: string; result: string | null; created_at: string;
 }
+
+// ==================== 6. 即时零售商品上架 ====================
+export async function listShelfProducts(tenantId: string, params: {
+  page?: number; pageSize?: number; keyword?: string; categoryId?: number; status?: string;
+}) {
+  const page = Math.max(1, params.page || 1);
+  const pageSize = Math.min(100, Math.max(1, params.pageSize || 20));
+  const where: string[] = ["rp.tenant_id = ?"];
+  const args: unknown[] = [tenantId];
+  if (params.keyword) { where.push("(spu.name LIKE ? OR sku.sku_code LIKE ?)"); const kw = `%${params.keyword}%`; args.push(kw, kw); }
+  if (params.categoryId) { where.push("rp.category_id = ?"); args.push(params.categoryId); }
+  if (params.status) { where.push("rp.status = ?"); args.push(params.status); }
+  const whereSql = where.join(" AND ");
+  const totalRow = await queryOne<{ total: number }>(
+    `SELECT COUNT(*) AS total FROM t_retail_product rp
+     LEFT JOIN t_product_spu spu ON spu.id = rp.product_id
+     LEFT JOIN t_product_sku sku ON sku.id = rp.sku_id
+     WHERE ${whereSql}`,
+    args
+  );
+  const rows = await query<ShelfRow>(
+    `SELECT rp.id, rp.product_id, rp.sku_id, rp.category_id, rp.retail_price, rp.original_price,
+            rp.stock, rp.sales_count, rp.is_recommended, rp.is_hot, rp.is_new, rp.sort_order, rp.status,
+            spu.name AS product_name, spu.main_image, sku.sku_code
+     FROM t_retail_product rp
+     LEFT JOIN t_product_spu spu ON spu.id = rp.product_id
+     LEFT JOIN t_product_sku sku ON sku.id = rp.sku_id
+     WHERE ${whereSql} ORDER BY rp.sort_order ASC, rp.id DESC LIMIT ? OFFSET ?`,
+    [...args, pageSize, (page - 1) * pageSize]
+  );
+  return {
+    records: rows.map((r) => ({
+      id: r.id,
+      productId: r.product_id,
+      skuId: r.sku_id,
+      productName: r.product_name || "",
+      sku: r.sku_code || "",
+      productImage: r.main_image || "",
+      retailPrice: r.retail_price,
+      originalPrice: r.original_price,
+      stock: r.stock,
+      sales: r.sales_count,
+      sort: r.sort_order,
+      shelfStatus: r.status,
+      categoryId: r.category_id,
+      tags: [
+        ...(r.is_recommended ? ["RECOMMEND"] : []),
+        ...(r.is_hot ? ["HOT"] : []),
+        ...(r.is_new ? ["NEW"] : []),
+      ],
+    })),
+    total: totalRow?.total ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+export async function createShelfProduct(tenantId: string, body: any) {
+  const insert = (await query(
+    `INSERT INTO t_retail_product (product_id, sku_id, category_id, retail_price, original_price, stock, sort_order, status,
+       is_recommended, is_hot, is_new, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [body.productId, body.skuId ?? null, body.categoryId ?? null, body.retailPrice ?? 0, body.originalPrice ?? null,
+      body.stock ?? 0, body.sort ?? 0, body.shelfStatus === "OFF" ? "OFF" : "ON",
+      body.tags?.includes("RECOMMEND") ? 1 : 0, body.tags?.includes("HOT") ? 1 : 0, body.tags?.includes("NEW") ? 1 : 0, tenantId]
+  )) as unknown as { insertId: number };
+  return { id: insert.insertId };
+}
+
+export async function updateShelfProduct(tenantId: string, id: number, body: any) {
+  const sets: string[] = [];
+  const args: unknown[] = [];
+  if (body.retailPrice !== undefined) { sets.push("retail_price = ?"); args.push(body.retailPrice); }
+  if (body.originalPrice !== undefined) { sets.push("original_price = ?"); args.push(body.originalPrice ?? null); }
+  if (body.stock !== undefined) { sets.push("stock = ?"); args.push(body.stock); }
+  if (body.sort !== undefined) { sets.push("sort_order = ?"); args.push(body.sort); }
+  if (body.shelfStatus !== undefined) { sets.push("status = ?"); args.push(body.shelfStatus === "OFF" ? "OFF" : "ON"); }
+  if (body.categoryId !== undefined) { sets.push("category_id = ?"); args.push(body.categoryId ?? null); }
+  if (body.tags !== undefined) {
+    sets.push("is_recommended = ?", "is_hot = ?", "is_new = ?");
+    args.push(body.tags.includes("RECOMMEND") ? 1 : 0, body.tags.includes("HOT") ? 1 : 0, body.tags.includes("NEW") ? 1 : 0);
+  }
+  if (!sets.length) return { success: true };
+  sets.push("updated_at = NOW()");
+  args.push(id, tenantId);
+  await query(`UPDATE t_retail_product SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`, args);
+  return { success: true };
+}
+
+export async function removeShelfProduct(tenantId: string, id: number) {
+  const result = (await query("DELETE FROM t_retail_product WHERE id = ? AND tenant_id = ?", [id, tenantId])) as unknown as { affectedRows: number };
+  if (!result.affectedRows) throw new Error("商品不存在");
+  return { success: true };
+}
+
+interface ShelfRow {
+  id: number; product_id: number; sku_id: number | null; category_id: number | null;
+  retail_price: number; original_price: number | null; stock: number; sales_count: number;
+  is_recommended: number; is_hot: number; is_new: number; sort_order: number; status: string;
+  product_name: string | null; main_image: string | null; sku_code: string | null;
+}

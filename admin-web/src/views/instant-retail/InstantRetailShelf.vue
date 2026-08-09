@@ -359,6 +359,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from "vue";
+import { fetchShelfProducts, addShelfProduct, removeShelfProduct, updateShelfProduct, fetchRetailCategories, fetchProducts } from "../../api";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
 
@@ -389,92 +390,18 @@ const flatCategories = computed(() => {
   return result;
 });
 
-const mockCategories = [
-  {
-    id: 1,
-    name: "生鲜果蔬",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=vegetable%20icon%20simple&image_size=square",
-    count: 128,
-    children: [
-      { id: 11, name: "时令蔬菜", count: 45, children: [] },
-      { id: 12, name: "新鲜水果", count: 52, children: [] },
-      { id: 13, name: "菌菇类", count: 31, children: [] }
-    ]
-  },
-  {
-    id: 2,
-    name: "零食饮料",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=snack%20icon%20simple&image_size=square",
-    count: 256,
-    children: [
-      { id: 21, name: "休闲零食", count: 98, children: [] },
-      { id: 22, name: "饼干糕点", count: 76, children: [] },
-      { id: 23, name: "饮料冲调", count: 82, children: [] }
-    ]
-  },
-  {
-    id: 3,
-    name: "日用百货",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=daily%20necessities%20icon%20simple&image_size=square",
-    count: 189,
-    children: [
-      { id: 31, name: "纸品湿巾", count: 67, children: [] },
-      { id: 32, name: "家居清洁", count: 54, children: [] }
-    ]
-  },
-  {
-    id: 4,
-    name: "乳品烘焙",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=milk%20bread%20icon%20simple&image_size=square",
-    count: 78,
-    children: []
-  },
-  {
-    id: 5,
-    name: "酒水冲调",
-    icon: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=drink%20icon%20simple&image_size=square",
-    count: 92,
-    children: []
+const mockCategories = []
+
+const mockProducts = []
+
+async function loadCategories() {
+  try {
+    const data = await fetchRetailCategories();
+    const rows = data?.records || data?.list || data || []
+    categoryTree.value = (Array.isArray(rows) ? rows : []).map((c: any) => ({ id: c.id, name: c.name || c.categoryName, children: c.children || [] }))
+  } catch {
+    categoryTree.value = []
   }
-];
-
-const mockProducts = Array.from({ length: 35 }, (_, i) => ({
-  id: i + 1,
-  productName: [
-    "有机西红柿 500g",
-    "富士苹果 约1kg",
-    "伊利纯牛奶 250ml*12盒",
-    "乐事薯片 原味 75g",
-    "农夫山泉 550ml*24瓶",
-    "清风抽纸 3层100抽*6包",
-    "金龙鱼调和油 5L",
-    "海天酱油 500ml",
-    "双汇火腿肠 30g*10支",
-    "奥利奥饼干 原味 116g"
-  ][i % 10] + (i >= 10 ? ` (${Math.floor(i / 10) + 1}号)` : ""),
-  sku: `SKU${String(i + 1).padStart(6, '0')}`,
-  productImage: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=product%20photo%20${encodeURIComponent(['tomato', 'apple', 'milk', 'chips', 'water', 'tissue', 'oil', 'soy%20sauce', 'sausage', 'cookie'][i % 10])}&image_size=square`,
-  retailPrice: [5.99, 12.9, 45.0, 6.5, 28.8, 15.9, 69.9, 9.9, 12.5, 8.9][i % 10],
-  originalPrice: [7.99, 15.9, 52.0, 8.5, 32.0, 18.9, 79.9, 12.9, 15.0, 11.9][i % 10],
-  stock: Math.floor(Math.random() * 500) + 10,
-  sales: Math.floor(Math.random() * 2000) + 50,
-  sort: i + 1,
-  shelfStatus: i % 7 === 0 ? 'OFF' : 'ON',
-  tags: [
-    [],
-    ['RECOMMEND'],
-    ['HOT'],
-    ['NEW'],
-    ['RECOMMEND', 'HOT'],
-    ['HOT', 'NEW'],
-    ['RECOMMEND', 'NEW'],
-    ['RECOMMEND', 'HOT', 'NEW']
-  ][i % 8],
-  categoryId: [1, 1, 4, 2, 2, 3, 3, 3, 2, 2][i % 10]
-}));
-
-function loadCategories() {
-  categoryTree.value = JSON.parse(JSON.stringify(mockCategories));
 }
 
 function handleCategoryClick(data: any) {
@@ -483,33 +410,29 @@ function handleCategoryClick(data: any) {
   loadData();
 }
 
-function loadData() {
+async function loadData() {
   loading.value = true;
-  setTimeout(() => {
-    let filtered = [...mockProducts];
-    
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.productName.toLowerCase().includes(kw) || 
-        p.sku.toLowerCase().includes(kw)
-      );
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(p => p.shelfStatus === statusFilter.value);
-    }
+  try {
+    const data = await fetchShelfProducts({
+      page: page.value,
+      pageSize: pageSize.value,
+      keyword: keyword.value || undefined,
+      categoryId: currentCategoryId.value || undefined,
+      status: statusFilter.value || undefined
+    });
+    let list = data?.records || [];
     if (tagFilter.value) {
-      filtered = filtered.filter(p => p.tags?.includes(tagFilter.value));
+      list = list.filter((p: any) => p.tags?.includes(tagFilter.value));
     }
-    if (currentCategoryId.value) {
-      filtered = filtered.filter(p => p.categoryId === currentCategoryId.value);
-    }
-    
-    const start = (page.value - 1) * pageSize.value;
-    products.value = filtered.slice(start, start + pageSize.value);
-    total.value = filtered.length;
+    products.value = list;
+    total.value = data?.total || 0;
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载上架商品失败');
+    products.value = [];
+    total.value = 0;
+  } finally {
     loading.value = false;
-  }, 300);
+  }
 }
 
 function handleSizeChange(size: number) {
@@ -536,56 +459,46 @@ function clearSelection() {
   }
 }
 
-function toggleShelf(row: any, status: string) {
-  ElMessageBox.confirm(`确定要${status === 'ON' ? '上架' : '下架'}「${row.productName}」吗？`, "确认操作", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning"
-  }).then(() => {
-    const item = products.value.find(p => p.id === row.id);
-    if (item) item.shelfStatus = status;
-    ElMessage.success(status === 'ON' ? '已上架' : '已下架');
-  }).catch(() => {});
+async function toggleShelf(row: any, status: string) {
+  try {
+    await ElMessageBox.confirm(`确定要${status === 'ON' ? '上架' : '下架'}「${row.productName}」吗？`, "确认操作", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+    await updateShelfProduct(row.id, { shelfStatus: status })
+    ElMessage.success(status === 'ON' ? '已上架' : '已下架')
+    await loadData()
+  } catch {}
 }
 
-function handleRemove(row: any) {
-  ElMessageBox.confirm(`确定要从货架移除「${row.productName}」吗？`, "移除确认", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning"
-  }).then(() => {
-    products.value = products.value.filter(p => p.id !== row.id);
-    total.value--;
-    ElMessage.success("已从货架移除");
-  }).catch(() => {});
+async function handleRemove(row: any) {
+  try {
+    await ElMessageBox.confirm(`确定要从货架移除「${row.productName}」吗？`, "移除确认", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+    await removeShelfProduct(row.id)
+    ElMessage.success("已从货架移除")
+    await loadData()
+  } catch {}
 }
 
-function batchOnShelf() {
-  ElMessageBox.confirm(`确定要上架选中的 ${selectedIds.value.length} 件商品吗？`, "批量上架", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning"
-  }).then(() => {
-    products.value.forEach(p => {
-      if (selectedIds.value.includes(p.id)) p.shelfStatus = 'ON';
-    });
-    ElMessage.success("批量上架成功");
-    clearSelection();
-  }).catch(() => {});
+async function batchOnShelf() {
+  try {
+    await ElMessageBox.confirm(`确定要上架选中的 ${selectedIds.value.length} 件商品吗？`, "批量上架", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+    for (const id of selectedIds.value) {
+      await updateShelfProduct(id, { shelfStatus: 'ON' }).catch(() => {})
+    }
+    ElMessage.success("批量上架成功")
+    clearSelection()
+    await loadData()
+  } catch {}
 }
 
-function batchOffShelf() {
-  ElMessageBox.confirm(`确定要下架选中的 ${selectedIds.value.length} 件商品吗？`, "批量下架", {
-    confirmButtonText: "确定",
-    cancelButtonText: "取消",
-    type: "warning"
-  }).then(() => {
-    products.value.forEach(p => {
-      if (selectedIds.value.includes(p.id)) p.shelfStatus = 'OFF';
-    });
-    ElMessage.success("批量下架成功");
-    clearSelection();
-  }).catch(() => {});
+async function batchOffShelf() {
+  try {
+    await ElMessageBox.confirm(`确定要下架选中的 ${selectedIds.value.length} 件商品吗？`, "批量下架", { confirmButtonText: "确定", cancelButtonText: "取消", type: "warning" })
+    for (const id of selectedIds.value) {
+      await updateShelfProduct(id, { shelfStatus: 'OFF' }).catch(() => {})
+    }
+    ElMessage.success("批量下架成功")
+    clearSelection()
+    await loadData()
+  } catch {}
 }
 
 // ==================== 添加商品 ====================
@@ -599,52 +512,23 @@ const batchCategory = ref<number | null>(null);
 const batchTags = ref<string[]>([]);
 const batchSort = ref(0);
 
-const mockSelectableProducts = Array.from({ length: 20 }, (_, i) => ({
-  id: 100 + i,
-  productName: [
-    "康师傅方便面 红烧牛肉味",
-    "统一冰红茶 500ml",
-    "旺旺雪饼 84g",
-    "洽洽瓜子 原味 160g",
-    "蒙牛酸酸乳 250ml*12盒",
-    "达利园蛋黄派 230g",
-    "盼盼法式小面包 200g",
-    "白象大骨面 五连包",
-    "今麦郎凉白开 550ml*24",
-    "喜之郎果冻 360g",
-    "上好佳虾条 80g",
-    "可比克薯片 番茄味 60g",
-    "娃哈哈AD钙奶 220ml*20",
-    "三元酸奶 100g*8杯",
-    "古船面粉 5kg",
-    "福临门大米 5kg",
-    "鲁花花生油 1.8L",
-    "李锦记蚝油 255g",
-    "老干妈辣椒酱 280g",
-    "王致和豆腐乳 340g"
-  ][i],
-  sku: `SKU${String(100 + i).padStart(6, '0')}`,
-  productImage: `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=food%20product%20${i}&image_size=square`,
-  retailPrice: [3.5, 3.0, 5.5, 8.9, 36.0, 6.8, 5.9, 12.5, 29.9, 7.5, 4.5, 4.9, 45.0, 18.9, 29.9, 39.9, 45.0, 7.9, 10.5, 8.5][i],
-  originalPrice: [4.5, 4.0, 7.0, 10.9, 42.0, 8.5, 7.5, 15.0, 35.0, 9.0, 5.5, 6.0, 52.0, 22.0, 35.0, 45.0, 52.0, 9.9, 12.9, 10.0][i],
-  stock: Math.floor(Math.random() * 300) + 20,
-  categoryId: 2
-}));
+const mockSelectableProducts = []
 
-function loadSelectableProducts() {
+async function loadSelectableProducts() {
   selectableLoading.value = true;
-  setTimeout(() => {
-    let list = [...mockSelectableProducts];
-    if (addKeyword.value) {
-      const kw = addKeyword.value.toLowerCase();
-      list = list.filter(p => 
-        p.productName.toLowerCase().includes(kw) || 
-        p.sku.toLowerCase().includes(kw)
-      );
-    }
-    selectableProducts.value = list;
+  try {
+    const data = await fetchProducts({ keyword: addKeyword.value || undefined, page: 1, pageSize: 50 });
+    selectableProducts.value = (data?.records || data?.list || []).map((p: any) => ({
+      id: p.id,
+      skuId: p.skuId || null,
+      productName: p.name || p.skuName || "",
+      sku: p.skuCode || p.barcode || ""
+    }));
+  } catch {
+    selectableProducts.value = [];
+  } finally {
     selectableLoading.value = false;
-  }, 300);
+  }
 }
 
 function openAddDialog() {
@@ -661,25 +545,31 @@ function handleSelectableChange(selection: any[]) {
   selectedProductIds.value = selection.map(s => s.id);
 }
 
-function handleAddProducts() {
-  if (selectedProductIds.value.length === 0) return;
-  addLoading.value = true;
-  setTimeout(() => {
-    const newProducts = mockSelectableProducts
-      .filter(p => selectedProductIds.value.includes(p.id))
-      .map(p => ({
-        ...p,
-        shelfStatus: 'ON',
-        sort: batchSort.value || products.value.length + 1,
+async function handleAddProducts() {
+  if (selectedProductIds.value.length === 0) return
+  addLoading.value = true
+  try {
+    const rows = selectableProducts.value.filter((s: any) => selectedProductIds.value.includes(s.id));
+    for (const row of rows) {
+      await addShelfProduct({
+        productId: row.id,
+        skuId: row.skuId ?? null,
+        categoryId: batchCategory.value || null,
+        retailPrice: 0,
+        stock: 0,
+        sort: batchSort.value || 0,
         tags: [...batchTags.value],
-        categoryId: batchCategory.value || p.categoryId
-      }));
-    products.value = [...newProducts, ...products.value];
-    total.value += newProducts.length;
-    ElMessage.success(`成功添加 ${newProducts.length} 件商品`);
-    addLoading.value = false;
-    addDialogVisible.value = false;
-  }, 500);
+        shelfStatus: 'ON'
+      }).catch(() => {})
+    }
+    ElMessage.success(`成功添加 ${rows.length} 件商品`)
+    addDialogVisible.value = false
+    await loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '添加失败')
+  } finally {
+    addLoading.value = false
+  }
 }
 
 // ==================== 编辑商品 ====================
@@ -719,30 +609,29 @@ function openEditDialog(row: any) {
   editDialogVisible.value = true;
 }
 
-function handleEditSubmit() {
-  if (!editFormRef.value || !editingId.value) return;
-  editFormRef.value.validate((valid) => {
-    if (!valid) return;
-    editLoading.value = true;
-    setTimeout(() => {
-      const index = products.value.findIndex(p => p.id === editingId.value);
-      if (index > -1) {
-        products.value[index] = {
-          ...products.value[index],
-          retailPrice: editForm.retailPrice,
-          originalPrice: editForm.originalPrice,
-          stock: editForm.stock,
-          categoryId: editForm.categoryId,
-          tags: editForm.tags,
-          sort: editForm.sort,
-          shelfStatus: editForm.shelfStatus
-        };
-      }
-      ElMessage.success("商品信息已更新");
-      editLoading.value = false;
-      editDialogVisible.value = false;
-    }, 500);
-  });
+async function handleEditSubmit() {
+  if (!editFormRef.value || !editingId.value) return
+  const valid = await editFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  editLoading.value = true
+  try {
+    await updateShelfProduct(editingId.value, {
+      retailPrice: editForm.retailPrice,
+      originalPrice: editForm.originalPrice,
+      stock: editForm.stock,
+      categoryId: editForm.categoryId,
+      tags: editForm.tags,
+      sort: editForm.sort,
+      shelfStatus: editForm.shelfStatus
+    })
+    ElMessage.success("商品信息已更新")
+    editDialogVisible.value = false
+    await loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '更新失败')
+  } finally {
+    editLoading.value = false
+  }
 }
 
 // ==================== 批量改价 ====================

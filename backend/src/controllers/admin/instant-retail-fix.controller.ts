@@ -100,3 +100,31 @@ export const listExceptionLogs = asyncHandler(async (req, res) => {
   const result = await fixService.listExceptionLogs(tenant(req), Number(req.params.id));
   res.json(ok(result));
 });
+
+/** 上架商品列表 */
+export const listShelfProducts = asyncHandler(async (req, res) => {
+  const q = req.query as Record<string, string | undefined>;
+  const result = await fixService.listShelfProducts(tenant(req), {
+    page: num(q.page), pageSize: num(q.pageSize), keyword: q.keyword,
+    categoryId: q.categoryId ? Number(q.categoryId) : undefined, status: q.status,
+  });
+  res.json(ok(result));
+});
+
+/** 上架商品 */
+export const createShelfProduct = asyncHandler(async (req, res) => {
+  const result = await fixService.createShelfProduct(tenant(req), req.body || {});
+  res.json(ok(result));
+});
+
+/** 更新上架商品 */
+export const updateShelfProduct = asyncHandler(async (req, res) => {
+  const result = await fixService.updateShelfProduct(tenant(req), Number(req.params.id), req.body || {});
+  res.json(ok(result));
+});
+
+/** 删除上架商品 */
+export const removeShelfProduct = asyncHandler(async (req, res) => {
+  const result = await fixService.removeShelfProduct(tenant(req), Number(req.params.id));
+  res.json(ok(result));
+});

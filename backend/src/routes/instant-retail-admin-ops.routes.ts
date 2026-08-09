@@ -49,6 +49,12 @@ instantRetailAdminOpsRouter.get("/exceptions/stats", fixController.getExceptionS
 instantRetailAdminOpsRouter.post("/exceptions/:id/handle", fixController.handleException);
 instantRetailAdminOpsRouter.get("/exceptions/:id/logs", fixController.listExceptionLogs);
 
+// 即时零售商品上架
+instantRetailAdminOpsRouter.get("/shelf", fixController.listShelfProducts);
+instantRetailAdminOpsRouter.post("/shelf", fixController.createShelfProduct);
+instantRetailAdminOpsRouter.put("/shelf/:id", fixController.updateShelfProduct);
+instantRetailAdminOpsRouter.delete("/shelf/:id", fixController.removeShelfProduct);
+
 // 配送管理（I 配送管理 + M 履约调度）
 instantRetailAdminOpsRouter.get("/deliveries", retailExtController.listDeliveries);
 instantRetailAdminOpsRouter.post("/deliveries/:deliveryId/assign", retailExtController.assignDelivery);
