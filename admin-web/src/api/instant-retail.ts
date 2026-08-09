@@ -62,6 +62,48 @@ export async function fetchProductMapStats() {
   return data.data;
 }
 
+/** 订单路由规则 */
+export async function fetchRoutingRules(params?: { page?: number; pageSize?: number; channelType?: string }) {
+  const { data } = await api.get("/admin/instant-retail/routing-rules", { params: { page: 1, pageSize: 50, ...params } });
+  return data.data;
+}
+export async function createRoutingRule(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/instant-retail/routing-rules", payload);
+  return data.data;
+}
+export async function updateRoutingRule(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/instant-retail/routing-rules/${id}`, payload);
+  return data.data;
+}
+export async function deleteRoutingRule(id: number) {
+  const { data } = await api.delete(`/admin/instant-retail/routing-rules/${id}`);
+  return data.data;
+}
+
+/** 门店负载 */
+export async function fetchStoreLoad() {
+  const { data } = await api.get("/admin/instant-retail/store-load");
+  return data.data;
+}
+
+/** 订单异常 */
+export async function fetchOrderExceptions(params?: { page?: number; pageSize?: number; handleStatus?: string; level?: string; channelType?: string; keyword?: string }) {
+  const { data } = await api.get("/admin/instant-retail/exceptions", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function fetchOrderExceptionStats() {
+  const { data } = await api.get("/admin/instant-retail/exceptions/stats");
+  return data.data;
+}
+export async function handleOrderException(id: number, payload: { action?: string; result?: string; status?: string }) {
+  const { data } = await api.post(`/admin/instant-retail/exceptions/${id}/handle`, payload);
+  return data.data;
+}
+export async function fetchOrderExceptionLogs(id: number) {
+  const { data } = await api.get(`/admin/instant-retail/exceptions/${id}/logs`);
+  return data.data;
+}
+
 export async function fetchShelfProducts(params?: { keyword?: string; category?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/instant-retail/shelf", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;

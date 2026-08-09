@@ -36,6 +36,19 @@ instantRetailAdminOpsRouter.get("/sync-stats", fixController.getSyncStats);
 instantRetailAdminOpsRouter.get("/product-maps", fixController.listProductMaps);
 instantRetailAdminOpsRouter.get("/product-maps/stats", fixController.getProductMapStats);
 
+// 订单路由规则
+instantRetailAdminOpsRouter.get("/routing-rules", fixController.listRoutingRules);
+instantRetailAdminOpsRouter.post("/routing-rules", fixController.createRoutingRule);
+instantRetailAdminOpsRouter.put("/routing-rules/:id", fixController.updateRoutingRule);
+instantRetailAdminOpsRouter.delete("/routing-rules/:id", fixController.deleteRoutingRule);
+instantRetailAdminOpsRouter.get("/store-load", fixController.getStoreLoad);
+
+// 订单异常
+instantRetailAdminOpsRouter.get("/exceptions", fixController.listExceptions);
+instantRetailAdminOpsRouter.get("/exceptions/stats", fixController.getExceptionStats);
+instantRetailAdminOpsRouter.post("/exceptions/:id/handle", fixController.handleException);
+instantRetailAdminOpsRouter.get("/exceptions/:id/logs", fixController.listExceptionLogs);
+
 // 配送管理（I 配送管理 + M 履约调度）
 instantRetailAdminOpsRouter.get("/deliveries", retailExtController.listDeliveries);
 instantRetailAdminOpsRouter.post("/deliveries/:deliveryId/assign", retailExtController.assignDelivery);

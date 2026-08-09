@@ -10,28 +10,28 @@
     <el-row :gutter="16" style="margin-bottom: 16px">
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="待处理异常" :value="mockStats.pendingCount" value-style="color: var(--color-danger)">
+          <el-statistic title="待处理异常" :value="exceptionStats.pendingCount" value-style="color: var(--color-danger)">
             <template #prefix><el-icon><WarningFilled /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="今日新增异常" :value="mockStats.todayNewCount" value-style="color: var(--color-warning)">
+          <el-statistic title="今日新增异常" :value="exceptionStats.todayNewCount" value-style="color: var(--color-warning)">
             <template #prefix><el-icon><Plus /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="本周解决异常" :value="mockStats.weekResolvedCount" value-style="color: var(--color-success)">
+          <el-statistic title="本周解决异常" :value="exceptionStats.weekResolvedCount" value-style="color: var(--color-success)">
             <template #prefix><el-icon><CircleCheckFilled /></el-icon></template>
           </el-statistic>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card shadow="hover">
-          <el-statistic title="平均处理时长" :value="mockStats.avgHandleHours" value-style="color: var(--color-primary)">
+          <el-statistic title="平均处理时长" :value="exceptionStats.avgHandleHours" value-style="color: var(--color-primary)">
             <template #suffix>小时</template>
           </el-statistic>
         </el-card>
@@ -71,7 +71,7 @@
     <el-card style="margin-bottom: 16px">
       <div class="filter-bar" style="margin-bottom: 0; border: none; padding: 0; box-shadow: none">
         <el-select v-model="filters.exceptionTypes" multiple placeholder="异常类型" clearable style="width: 180px">
-          <el-option v-for="t in mockExceptionTypes" :key="t.type" :label="t.name" :value="t.type" />
+          <el-option v-for="t in exceptionTypes" :key="t.type" :label="t.name" :value="t.type" />
         </el-select>
         <el-select v-model="filters.exceptionLevel" placeholder="异常级别" clearable style="width: 130px">
           <el-option label="WARNING" value="WARNING" />
@@ -222,11 +222,11 @@
             <h4 style="margin: 0 0 12px">处理记录</h4>
             <el-timeline>
               <el-timeline-item
-                v-for="(log, idx) in mockResolutionLogs"
+                v-for="(log, idx) in resolutionLogs"
                 :key="idx"
                 :timestamp="log.createdAt"
                 placement="top"
-                :type="idx === mockResolutionLogs.length - 1 ? 'success' : 'primary'"
+                :type="idx === resolutionLogs.length - 1 ? 'success' : 'primary'"
               >
                 <div><strong>{{ log.handlerName }}</strong> - {{ log.action }}</div>
                 <div v-if="log.result" style="color: var(--text-muted); font-size: 13px; margin-top: 4px">{{ log.result }}</div>
@@ -251,54 +251,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { fetchOrderExceptions, fetchOrderExceptionStats, handleOrderException, fetchOrderExceptionLogs } from "../../api";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { WarningFilled, Plus, CircleCheckFilled, Warning, CircleClose, CircleCloseFilled } from "@element-plus/icons-vue";
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 
 // ── Mock 数据 ──
-const mockStats = { pendingCount: 15, todayNewCount: 8, weekResolvedCount: 42, avgHandleHours: 3.5 };
+const exceptionStats = ref({ pendingCount: 0, todayNewCount: 0, weekResolvedCount: 0, avgHandleHours: 0 });
 
-const mockExceptionTypes = [
-  { type: "DELAY", name: "配送延迟", count: 12 },
-  { type: "CANCEL", name: "订单取消", count: 8 },
-  { type: "PRICE_MISMATCH", name: "价格不匹配", count: 5 },
-  { type: "STOCK_MISMATCH", name: "库存不匹配", count: 3 },
-  { type: "PAYMENT_FAIL", name: "支付失败", count: 6 },
-  { type: "SYNC_FAIL", name: "同步失败", count: 4 },
-  { type: "OTHER", name: "其他", count: 2 },
-];
+const exceptionTypes = ref<any[]>([])
 
-const mockChannelException = [
-  { channel: "MEITUAN", name: "美团", rate: 3.5 },
-  { channel: "ELEME", name: "饿了么", rate: 2.8 },
-  { channel: "WECHAT", name: "微信", rate: 1.5 },
-  { channel: "JD", name: "京东", rate: 2.1 },
-  { channel: "DOUYIN", name: "抖音", rate: 4.2 },
-];
+const channelException = ref<any[]>([])
 
-const mockExceptionTrend = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-06-${String(i + 2).padStart(2, "0")}`,
-  count: Math.floor(Math.random() * 5 + 1),
-}));
+const exceptionTrend = ref<any[]>([])
 
-const mockExceptions = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  exceptionLevel: ["WARNING", "ERROR", "CRITICAL"][i % 3] as string,
-  channelOrderNo: `CH${String(i + 1).padStart(6, "0")}`,
-  channelType: ["WECHAT", "MEITUAN", "ELEME", "JD", "DOUYIN"][i % 5] as string,
-  exceptionType: ["DELAY", "CANCEL", "PRICE_MISMATCH", "STOCK_MISMATCH", "PAYMENT_FAIL", "SYNC_FAIL", "OTHER"][i % 7] as string,
-  exceptionDetail: `异常详情描述${i + 1}：订单在处理过程中出现异常，需要人工介入处理。`,
-  handleStatus: ["PENDING", "PROCESSING", "RESOLVED", "CLOSED"][i % 4] as string,
-  handlerName: i % 3 === 0 ? "" : `处理人${i}`,
-  createdAt: `2026-07-01 ${String(i + 8).padStart(2, "0")}:00:00`,
-}));
+const exceptions = ref<any[]>([])
 
-const mockResolutionLogs = [
-  { handlerName: "张三", action: "分配处理人", result: "", createdAt: "2026-07-01 10:00:00" },
-  { handlerName: "张三", action: "处理中", result: "已联系客户确认", createdAt: "2026-07-01 10:30:00" },
-  { handlerName: "张三", action: "已解决", result: "已退款并补偿优惠券", createdAt: "2026-07-01 11:00:00" },
-];
+const resolutionLogs = ref<any[]>([])
 
 // ── 图表 ref ──
 const exceptionTypeChartRef = ref<HTMLDivElement | null>(null);
@@ -324,7 +294,7 @@ const page = ref(1);
 const pageSize = ref(10);
 
 const filteredExceptions = computed(() => {
-  let list = [...mockExceptions];
+  let list = [...exceptions.value];
   if (filters.value.exceptionTypes.length > 0) {
     list = list.filter((e) => filters.value.exceptionTypes.includes(e.exceptionType));
   }
@@ -376,7 +346,7 @@ function renderExceptionTypeChart() {
         radius: ["45%", "70%"],
         center: ["50%", "50%"],
         label: { show: true, formatter: "{b}\n{d}%" },
-        data: mockExceptionTypes.map((t) => ({ name: t.name, value: t.count })),
+        data: exceptionTypes.value.map((t) => ({ name: t.name, value: t.count })),
         emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: "rgba(0,0,0,0.3)" } },
       },
     ],
@@ -392,14 +362,14 @@ function renderChannelExceptionChart() {
     tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
     xAxis: {
       type: "category",
-      data: mockChannelException.map((c) => c.name),
+      data: channelException.value.map((c) => c.name),
       axisLabel: { fontSize: 12 },
     },
     yAxis: { type: "value", name: "异常率(%)", axisLabel: { formatter: "{value}%" } },
     series: [
       {
         type: "bar",
-        data: mockChannelException.map((c) => c.rate),
+        data: channelException.value.map((c) => c.rate),
         itemStyle: {
           borderRadius: [4, 4, 0, 0],
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -420,11 +390,11 @@ function renderExceptionTrendChart() {
   if (!exceptionTrendChart) {
     exceptionTrendChart = echarts.init(exceptionTrendChartRef.value);
   }
-  let data = mockExceptionTrend;
+  let data = exceptionTrend.value;
   if (trendMode.value === "week") {
-    data = mockExceptionTrend.filter((_, i) => i % 7 === 0);
+    data = exceptionTrend.value.filter((_, i) => i % 7 === 0);
   } else if (trendMode.value === "month") {
-    data = mockExceptionTrend.filter((_, i) => i % 10 === 0);
+    data = exceptionTrend.value.filter((_, i) => i % 10 === 0);
   }
   exceptionTrendChart.setOption({
     tooltip: { trigger: "axis" },
@@ -459,7 +429,8 @@ function handleReset() {
   page.value = 1;
 }
 
-function handleRefresh() {
+async function handleRefresh() {
+  await loadExceptionData();
   ElMessage.success("刷新成功");
 }
 
@@ -471,36 +442,42 @@ function handlePageChange(p: number) {
   page.value = p;
 }
 
-function handleException(row: any) {
+async function handleException(row: any) {
   currentException.value = row;
   detailVisible.value = true;
   assignHandler.value = "";
   handlePlan.value = "";
+  await loadResolutionLogs(row.id);
 }
 
-function viewDetail(row: any) {
+async function viewDetail(row: any) {
   currentException.value = row;
   detailVisible.value = true;
   assignHandler.value = "";
   handlePlan.value = "";
+  await loadResolutionLogs(row.id);
 }
 
-function markResolved() {
-  ElMessageBox.confirm("确认标记为已解决？", "确认", { confirmButtonText: "确定", cancelButtonText: "取消", type: "success" })
-    .then(() => {
-      ElMessage.success("已标记为已解决");
-      detailVisible.value = false;
-    })
-    .catch(() => {});
+async function markResolved() {
+  if (!currentException.value?.id) return
+  try {
+    await ElMessageBox.confirm("确认标记为已解决？", "确认", { confirmButtonText: "确定", cancelButtonText: "取消", type: "success" })
+    await handleOrderException(currentException.value.id, { action: "标记已解决", status: "RESOLVED" })
+    ElMessage.success("已标记为已解决")
+    detailVisible.value = false
+    await loadExceptionData()
+  } catch {}
 }
 
-function closeException() {
-  ElMessageBox.confirm("确认关闭此异常？关闭后不可恢复。", "二次确认", { confirmButtonText: "确定关闭", cancelButtonText: "取消", type: "warning" })
-    .then(() => {
-      ElMessage.success("异常已关闭");
-      detailVisible.value = false;
-    })
-    .catch(() => {});
+async function closeException() {
+  if (!currentException.value?.id) return
+  try {
+    await ElMessageBox.confirm("确认关闭此异常？关闭后不可恢复。", "二次确认", { confirmButtonText: "确定关闭", cancelButtonText: "取消", type: "warning" })
+    await handleOrderException(currentException.value.id, { action: "关闭异常", status: "CLOSED" })
+    ElMessage.success("异常已关闭")
+    detailVisible.value = false
+    await loadExceptionData()
+  } catch {}
 }
 
 // ── 响应式 resize ──
@@ -510,12 +487,37 @@ function handleResize() {
   exceptionTrendChart?.resize();
 }
 
-onMounted(() => {
+async function loadExceptionData() {
+  try {
+    const [stats, list] = await Promise.all([
+      fetchOrderExceptionStats(),
+      fetchOrderExceptions({ page: page.value, pageSize: pageSize.value, handleStatus: filters.value.handleStatus || undefined, keyword: filters.value.keyword || undefined }),
+    ])
+    exceptionStats.value = { pendingCount: stats?.pendingCount ?? 0, todayNewCount: stats?.todayNewCount ?? 0, weekResolvedCount: stats?.weekResolvedCount ?? 0, avgHandleHours: stats?.avgHandleHours ?? 0 }
+    exceptionTypes.value = stats?.exceptionTypes || []
+    channelException.value = stats?.channelException || []
+    exceptionTrend.value = stats?.exceptionTrend || []
+    exceptions.value = list?.records || []
+  } catch (e: any) {
+    ElMessage.warning(e?.response?.data?.msg || '加载异常数据失败')
+  }
   nextTick(() => {
     renderExceptionTypeChart();
     renderChannelExceptionChart();
     renderExceptionTrendChart();
   });
+}
+
+async function loadResolutionLogs(id: number) {
+  try {
+    resolutionLogs.value = (await fetchOrderExceptionLogs(id)) || []
+  } catch {
+    resolutionLogs.value = []
+  }
+}
+
+onMounted(() => {
+  loadExceptionData();
   window.addEventListener("resize", handleResize);
 });
 

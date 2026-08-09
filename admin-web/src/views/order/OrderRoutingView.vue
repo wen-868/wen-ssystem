@@ -11,7 +11,7 @@
       <el-tab-pane label="路由规则管理" name="rules">
         <!-- 分发看板 -->
         <el-row :gutter="16" class="board-row">
-          <el-col :span="8" v-for="store in mockStoreLoad" :key="store.storeName">
+          <el-col :span="8" v-for="store in storeLoad" :key="store.storeName">
             <el-card shadow="never">
               <template #header>
                 <div class="card-header">
@@ -44,7 +44,7 @@
 
         <!-- 规则表格 -->
         <div class="table-card">
-<el-table :data="mockRules" stripe border style="width: 100%">
+<el-table :data="routingRules" stripe border style="width: 100%">
           <el-table-column prop="ruleName" label="规则名称" width="140" />
           <el-table-column label="适用渠道" width="120">
             <template #default="{ row }">
@@ -262,41 +262,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { fetchRoutingRules, createRoutingRule, updateRoutingRule, deleteRoutingRule, fetchStoreLoad } from '../../api'
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
-const mockRules = ref(Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  ruleName: `路由规则${i + 1}`,
-  channelType: ['WECHAT', 'MEITUAN', 'ELEME', 'JD'][i % 4],
-  storeName: `门店${i + 1}`,
-  priority: i + 1,
-  conditionSummary: '区域: 朝阳区, 金额: 100-500',
-  actionType: 'ASSIGN_STORE',
-  isEnabled: i % 3 !== 0
-})))
+const routingRules = ref<any[]>([])
 
-const mockDispatchLogs = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  channelOrderNo: `CH${String(i + 1).padStart(6, '0')}`,
-  channelType: ['WECHAT', 'MEITUAN', 'ELEME'][i % 3],
-  ruleName: `路由规则${(i % 8) + 1}`,
-  fromStoreName: '总仓',
-  toStoreName: `门店${(i % 5) + 1}`,
-  dispatchStatus: ['SUCCESS', 'FAILED', 'PENDING'][i % 3],
-  dispatchReason: '',
-  createdAt: `2026-07-01 ${String(i + 8).padStart(2, '0')}:00:00`
-}))
+const dispatchLogs = ref<any[]>([])
 
-const mockStoreLoad = [
-  { storeName: '门店1', orderCount: 45, capacity: 80, loadRate: 56 },
-  { storeName: '门店2', orderCount: 32, capacity: 60, loadRate: 53 },
-  { storeName: '门店3', orderCount: 18, capacity: 50, loadRate: 36 }
-]
+const storeLoad = ref<any[]>([])
 
 // ─── Tab 状态 ───
 const activeTab = ref('rules')
@@ -412,48 +390,41 @@ async function handleSaveRule() {
     return
   }
   const channelType = ruleForm.value.channelTypes[0] || 'WECHAT'
-  if (isEditRule.value && editingRuleId.value) {
-    const idx = mockRules.value.findIndex(r => r.id === editingRuleId.value)
-    if (idx >= 0) {
-      mockRules.value[idx] = {
-        ...mockRules.value[idx],
-        ruleName: ruleForm.value.ruleName,
-        channelType,
-        storeName: ruleForm.value.storeName,
-        priority: ruleForm.value.priority,
-        conditionSummary: `区域: ${ruleForm.value.region.join('/') || '-'}, 金额: ${ruleForm.value.amountRange[0]}-${ruleForm.value.amountRange[1]}`,
-        actionType: ruleForm.value.actionType,
-        isEnabled: ruleForm.value.isEnabled
-      }
-    }
-    ElMessage.success('规则更新成功')
-  } else {
-    const newId = Math.max(...mockRules.value.map(r => r.id), 0) + 1
-    mockRules.value.push({
-      id: newId,
-      ruleName: ruleForm.value.ruleName,
-      channelType,
-      storeName: ruleForm.value.storeName,
-      priority: ruleForm.value.priority,
-      conditionSummary: `区域: ${ruleForm.value.region.join('/') || '-'}, 金额: ${ruleForm.value.amountRange[0]}-${ruleForm.value.amountRange[1]}`,
-      actionType: ruleForm.value.actionType,
-      isEnabled: ruleForm.value.isEnabled
-    })
-    ElMessage.success('规则创建成功')
+  const payload = {
+    ruleName: ruleForm.value.ruleName,
+    channelType,
+    storeName: ruleForm.value.storeName,
+    priority: ruleForm.value.priority,
+    conditionSummary: `区域: ${ruleForm.value.region.join('/') || '-'}, 金额: ${ruleForm.value.amountRange[0]}-${ruleForm.value.amountRange[1]}`,
+    actionType: ruleForm.value.actionType,
+    isEnabled: ruleForm.value.isEnabled
   }
-  ruleDialogVisible.value = false
+  try {
+    if (isEditRule.value && editingRuleId.value) {
+      await updateRoutingRule(editingRuleId.value, payload)
+      ElMessage.success('规则更新成功')
+    } else {
+      await createRoutingRule(payload)
+      ElMessage.success('规则创建成功')
+    }
+    ruleDialogVisible.value = false
+    await loadRules()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '保存失败')
+  }
 }
 
-function handleDeleteRule(row: any) {
-  ElMessageBox.confirm(`确定删除规则「${row.ruleName}」吗？`, '提示', { type: 'warning' })
-    .then(() => {
-      mockRules.value = mockRules.value.filter(r => r.id !== row.id)
-      ElMessage.success('删除成功')
-    })
-    .catch(() => {})
+async function handleDeleteRule(row: any) {
+  try {
+    await ElMessageBox.confirm(`确定删除规则「${row.ruleName}」吗？`, '提示', { type: 'warning' })
+    await deleteRoutingRule(row.id)
+    ElMessage.success('删除成功')
+    await loadRules()
+  } catch {}
 }
 
-function handleRefreshRules() {
+async function handleRefreshRules() {
+  await loadRules()
   ElMessage.success('刷新完成')
 }
 
@@ -464,7 +435,7 @@ const logFilterKeyword = ref('')
 const logPage = ref(1)
 
 const filteredDispatchLogs = computed(() => {
-  let list = mockDispatchLogs
+  let list = dispatchLogs.value
   if (logFilterStatus.value) {
     list = list.filter(l => l.dispatchStatus === logFilterStatus.value)
   }
@@ -479,6 +450,26 @@ function handleLogFilter() {
   logPage.value = 1
   ElMessage.success('筛选完成')
 }
+
+async function loadRules() {
+  try {
+    const data = await fetchRoutingRules({ page: 1, pageSize: 100 })
+    routingRules.value = data?.records || []
+  } catch (e: any) {
+    ElMessage.warning(e?.response?.data?.msg || '加载路由规则失败')
+  }
+}
+
+async function loadStoreLoad() {
+  try {
+    storeLoad.value = (await fetchStoreLoad()) || []
+  } catch {}
+}
+
+onMounted(() => {
+  loadRules()
+  loadStoreLoad()
+})
 </script>
 
 <style scoped>
