@@ -1243,3 +1243,44 @@ kbd,
   border-left: 4px solid transparent;
   border-image: linear-gradient(180deg, #3F6FEF, #4FB8FF) 1;
 }
+
+/* ═══════════════════════════════════════════
+   空态统一（R100 商用化）— 全站表格/列表空数据
+   ═══════════════════════════════════════════ */
+.el-table__empty-block {
+  padding: 44px 0;
+}
+
+.el-table__empty-text {
+  position: relative;
+  padding-top: 44px;
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.el-table__empty-text::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A8B3C9' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 8l-9-5-9 5v8l9 5 9-5V8z'/%3E%3Cpath d='M3 8l9 5 9-5'/%3E%3Cpath d='M12 13v8'/%3E%3C/svg%3E") center/contain no-repeat;
+  opacity: 0.55;
+}
+
+/* 组件级 el-empty 空态：居中 + 柔和 */
+.el-empty {
+  padding: 32px 0;
+}
+
+.el-empty__description p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.el-empty .el-empty__bottom {
+  margin-top: 12px;
+}

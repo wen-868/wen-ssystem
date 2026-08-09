@@ -202,6 +202,40 @@ export async function seedDemoData(tenantId: string) {
       [tenantId, poNo, skuMap[0].skuId, skuMap[0].skuName]
     );
 
+    // 7. 营销活动（满减 + 秒杀）
+    const activities = [
+      { code: demoNo("HD"), name: "中秋白酒满减", type: "FULL_REDUCTION", desc: "全场白酒满 1000 减 120", days: 10, status: "ACTIVE" },
+      { code: demoNo("HD"), name: "周末啤酒秒杀", type: "SECKILL", desc: "精酿啤酒 5 折限量秒杀", days: -2, status: "ACTIVE" },
+    ] as const;
+    for (const a of activities) {
+      await connExecute(
+        conn,
+        `INSERT INTO t_promotion_activity (activity_code, activity_name, activity_type, activity_desc,
+           start_time, end_time, applicable_scope, applicable_ids, rules, max_participants, participant_count,
+           status, priority, stackable, tenant_id, created_by)
+         VALUES (?, ?, ?, ?, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_ADD(NOW(), INTERVAL ? DAY), 'ALL',
+           CAST(? AS JSON), CAST(? AS JSON), 0, 0, ?, 1, 0, ?, ?)`,
+        [a.code, a.name, a.type, a.desc, a.days, JSON.stringify([]), JSON.stringify({ threshold: 1000, discount: 120 }), a.status, tenantId, operatorId]
+      );
+    }
+
+    // 8. 资金流水（近 3 天：两笔收入一笔支出）
+    const flows = [
+      { type: "SALE_INCOME", days: 0, amount: 1980, remark: "演示销售回款" },
+      { type: "SALE_INCOME", days: 1, amount: 1014, remark: "演示销售回款" },
+      { type: "PURCHASE_PAY", days: 2, amount: -3796.8, remark: "演示采购付款" },
+    ] as const;
+    let balance = 50000;
+    for (const f of flows) {
+      balance += f.amount;
+      await connExecute(
+        conn,
+        `INSERT INTO t_cash_flow (tenant_id, transaction_type, transaction_date, amount, balance_before, balance_after, related_type, related_no, remark)
+         VALUES (?, ?, DATE_SUB(CURDATE(), INTERVAL ? DAY), ?, ?, ?, 'DEMO', ?, ?)`,
+        [tenantId, f.type, f.days, f.amount, balance - f.amount, balance, demoNo("FL"), f.remark]
+      );
+    }
+
     return {
       skipped: false,
       message: "演示数据初始化完成",
@@ -212,6 +246,8 @@ export async function seedDemoData(tenantId: string) {
         suppliers: supplierRows.length,
         saleBills: billSpecs.length,
         purchaseOrders: 1,
+        activities: activities.length,
+        cashFlows: flows.length,
       },
     };
   });
