@@ -1361,3 +1361,41 @@ kbd,
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════
+   加载体验统一（R100 商用化）— v-loading 全站
+   品牌蓝 spinner + 柔和毛玻璃遮罩 + 文案
+   ═══════════════════════════════════════════ */
+.el-loading-mask {
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.el-loading-spinner .circular {
+  width: 32px;
+  height: 32px;
+}
+
+.el-loading-spinner .path {
+  stroke: #3F6FEF;
+  stroke-width: 3;
+}
+
+.el-loading-spinner .el-loading-text {
+  color: #3F6FEF;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: 10px;
+}
+
+/* 表格内加载：更轻的遮罩，避免整页白化 */
+.el-table .el-loading-mask {
+  background-color: rgba(255, 255, 255, 0.55);
+}
+
+.el-table .el-loading-spinner .circular {
+  width: 26px;
+  height: 26px;
+}
