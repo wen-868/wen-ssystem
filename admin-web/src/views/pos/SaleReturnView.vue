@@ -3,10 +3,25 @@
 <div class="page-header">
   <div class="page-header-main">
     <h2 class="page-title">销售退货</h2>
-    <p class="page-desc">销售退货</p>
+    <p class="page-desc">退货登记、审核与退款进度跟踪</p>
+  </div>
+  <div class="page-header-actions">
+    <el-button type="primary" @click="createVisible = true">
+      <el-icon><Plus /></el-icon>&nbsp;新建退货单
+    </el-button>
   </div>
 </div>
 
+      <div class="filter-bar">
+        <el-select v-model="returnStatus" placeholder="退货状态" clearable size="small" style="width: 140px">
+          <el-option label="待审核" value="PENDING" />
+          <el-option label="已批准" value="APPROVED" />
+          <el-option label="已拒绝" value="REJECTED" />
+          <el-option label="已完成" value="COMPLETED" />
+        </el-select>
+        <el-button type="primary" size="small" @click="page = 1; loadList()">查询</el-button>
+        <el-button size="small" @click="returnStatus = ''; page = 1; loadList()">重置</el-button>
+      </div>
 
       <div class="table-card">
 <el-table v-loading="loading" :data="records" size="small" style="width: 100%">
@@ -29,15 +44,17 @@
       </el-table>
 </div>
 
-      <el-pagination
-        v-if="total > 0"
-        v-model:current-page="page"
-        v-model:page-size="pageSize"
-        :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 16px"
-        @current-change="loadList"
-      />
+      <div class="table-card-footer" v-if="total > 0">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @current-change="loadList"
+          @size-change="page = 1; loadList()"
+        />
+      </div>
     
 
     <el-dialog v-model="detailVisible" title="退货单详情" width="720px">
@@ -104,6 +121,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { Plus } from "@element-plus/icons-vue";
 import { fetchStoreSaleReturns, fetchSaleReturnDetail, createStoreSaleReturn } from "../../api";
 
 const loading = ref(false);
