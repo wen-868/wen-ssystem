@@ -1,5 +1,23 @@
 import { api } from "./request";
 
+// ==================== 赠品规则（R100 商用化） ====================
+export async function fetchGiftRules(params?: { page?: number; pageSize?: number; status?: string }) {
+  const { data } = await api.get("/admin/marketing/gift-rules", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function createGiftRule(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/marketing/gift-rules", payload);
+  return data.data;
+}
+export async function updateGiftRule(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/marketing/gift-rules/${id}`, payload);
+  return data.data;
+}
+export async function deleteGiftRule(id: number) {
+  const { data } = await api.delete(`/admin/marketing/gift-rules/${id}`);
+  return data.data;
+}
+
 // ==================== Marketing - Coupon Template APIs ====================
 export async function fetchCouponTemplates(params?: { page?: number; pageSize?: number; status?: string; type?: string; keyword?: string }) {
   const { data } = await api.get("/admin/marketing/coupons/templates", { params });
@@ -314,5 +332,3 @@ export async function deleteMarketingMaterialCategory(id: number) {
   const { data } = await api.delete(`/admin/marketing/materials/categories/${id}`);
   return data.data;
 }
-
-

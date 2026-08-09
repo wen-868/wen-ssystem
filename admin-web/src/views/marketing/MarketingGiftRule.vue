@@ -212,31 +212,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
+import { fetchGiftRules, createGiftRule, updateGiftRule, deleteGiftRule, fetchProducts } from '../../api'
 
 // ==================== Mock 数据 ====================
-const mockGiftRules = ref(Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  ruleCode: `GR202606${String(i + 1).padStart(3, '0')}`,
-  ruleName: `满赠活动${i + 1}`,
-  giftType: (['AMOUNT', 'QTY', 'BOTH'] as const)[i % 3],
-  productCount: Math.floor(Math.random() * 30 + 5),
-  giftStock: Math.floor(Math.random() * 500 + 100),
-  giftedCount: Math.floor(Math.random() * 200),
-  status: (['DRAFT', 'ACTIVE', 'PAUSED', 'ENDED'] as const)[i % 4],
-  startTime: '2026-06-01',
-  endTime: '2026-12-31',
-  description: '',
-  scopeType: 'ALL',
-  tiers: [] as any[]
-})))
+const giftRules = ref<any[]>([])
 
-const giftProducts = ref(Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  productName: `赠品${i + 1}`,
-  skuCode: `GP${String(i + 1).padStart(4, '0')}`,
-  stockQty: Math.floor(Math.random() * 100 + 20),
-  imageUrl: ''
-})))
+const giftProducts = ref<any[]>([])
 
 // ==================== 列表 ====================
 const loading = ref(false)
@@ -247,20 +228,31 @@ const pageSize = ref(20)
 const keyword = ref('')
 const statusFilter = ref('')
 
-function loadData() {
+async function loadData() {
   loading.value = true
   try {
-    let filtered = [...mockGiftRules.value]
-    if (keyword.value) {
-      const kw = keyword.value.toLowerCase()
-      filtered = filtered.filter(r => r.ruleName.toLowerCase().includes(kw) || r.ruleCode.toLowerCase().includes(kw))
-    }
-    if (statusFilter.value) {
-      filtered = filtered.filter(r => r.status === statusFilter.value)
-    }
-    total.value = filtered.length
-    const start = (page.value - 1) * pageSize.value
-    list.value = filtered.slice(start, start + pageSize.value)
+    const data = await fetchGiftRules({ page: page.value, pageSize: pageSize.value, status: statusFilter.value || undefined })
+    const rows = data?.list || data?.records || []
+    list.value = rows.map((r: any) => ({
+      id: r.id,
+      ruleCode: r.rule_code || '',
+      ruleName: r.rule_name || '',
+      giftType: r.threshold_type === 'QUANTITY' ? 'QTY' : 'AMOUNT',
+      productCount: r.product_count || 0,
+      giftStock: r.gift_stock_limit || 0,
+      giftedCount: r.gifted_count || 0,
+      status: r.status || 'DRAFT',
+      startTime: r.start_time || '',
+      endTime: r.end_time || '',
+      description: r.rule_desc || '',
+      scopeType: r.applicable_scope || 'ALL',
+      tiers: r.levels || []
+    }))
+    total.value = data?.total || 0
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '加载赠品规则失败')
+    list.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -281,18 +273,25 @@ async function toggleStatus(row: any, newStatus: string) {
   const text = newStatus === 'ACTIVE' ? '启用' : '停用'
   const confirmed = await ElMessageBox.confirm(`确认${text}规则 ${row.ruleName}？`, `确认${text}`, { type: 'warning' }).catch(() => null)
   if (!confirmed) return
-  row.status = newStatus
-  ElMessage.success(`已${text}`)
-  loadData()
+  try {
+    await updateGiftRule(row.id, { status: newStatus })
+    ElMessage.success(`已${text}`)
+    await loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '操作失败')
+  }
 }
 
 async function handleDelete(row: any) {
   const confirmed = await ElMessageBox.confirm(`确认删除规则 ${row.ruleName}？`, '确认删除', { type: 'warning' }).catch(() => null)
   if (!confirmed) return
-  const idx = mockGiftRules.value.findIndex(r => r.id === row.id)
-  if (idx > -1) mockGiftRules.value.splice(idx, 1)
-  ElMessage.success('已删除')
-  loadData()
+  try {
+    await deleteGiftRule(row.id)
+    ElMessage.success('已删除')
+    await loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '删除失败')
+  }
 }
 
 // ==================== 表单 ====================
@@ -414,40 +413,33 @@ async function handleSubmit() {
 
   submitLoading.value = true
   try {
-    const baseData = {
-      ruleName: form.ruleName,
-      description: form.description,
-      startTime: form.timeRange[0] || '',
-      endTime: form.timeRange[1] || '',
-      giftType: form.giftType,
-      scopeType: form.scopeType,
-      tiers: sortedTiers.value.map(t => ({
-        thresholdAmount: t.thresholdAmount,
-        giftProductId: t.giftProductId,
-        giftQty: t.giftQty,
-        stockQty: t.stockQty
-      })),
-      giftStock: sortedTiers.value.reduce((sum, t) => sum + (t.stockQty || 0), 0),
-      productCount: Math.floor(Math.random() * 30 + 5)
+    const payload: Record<string, unknown> = {
+      rule_name: form.ruleName,
+      rule_desc: form.description,
+      threshold_type: form.giftType === 'QTY' ? 'QUANTITY' : 'AMOUNT',
+      threshold_amount: form.tiers[0]?.thresholdAmount || 0,
+      start_time: form.timeRange[0] || '',
+      end_time: form.timeRange[1] || '',
+      applicable_scope: form.scopeType,
+      gift_stock_limit: sortedTiers.value.reduce((sum, t) => sum + (t.stockQty || 0), 0),
+      levels: sortedTiers.value.map((t, idx) => ({
+        gift_product_id: t.giftProductId,
+        gift_sku_id: t.giftProductId,
+        gift_quantity: t.giftQty,
+        sort_order: idx + 1
+      }))
     }
-
     if (isEdit.value && editingId.value) {
-      const idx = mockGiftRules.value.findIndex(r => r.id === editingId.value)
-      if (idx > -1) Object.assign(mockGiftRules.value[idx], baseData)
+      await updateGiftRule(editingId.value, payload)
       ElMessage.success('修改成功')
     } else {
-      const newId = Math.max(...mockGiftRules.value.map(r => r.id), 0) + 1
-      mockGiftRules.value.unshift({
-        id: newId,
-        ruleCode: `GR202606${String(newId).padStart(3, '0')}`,
-        ...baseData,
-        giftedCount: 0,
-        status: 'DRAFT'
-      } as any)
+      await createGiftRule(payload)
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
-    loadData()
+    await loadData()
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || '保存失败')
   } finally {
     submitLoading.value = false
   }
@@ -455,6 +447,22 @@ async function handleSubmit() {
 
 // 初始化
 loadData()
+loadGiftProducts()
+
+async function loadGiftProducts() {
+  try {
+    const data = await fetchProducts({ page: 1, pageSize: 50 })
+    giftProducts.value = (data.records || data.list || []).map((p: any) => ({
+      id: p.skuId || p.id,
+      productName: p.name || p.skuName,
+      skuCode: p.skuCode || p.barcode || '',
+      stockQty: p.stock || 0,
+      imageUrl: p.mainImage || ''
+    }))
+  } catch {
+    giftProducts.value = []
+  }
+}
 </script>
 
 <style scoped>
