@@ -344,6 +344,17 @@ onMounted(() => {
   color: $uni-gray-500;
   font-weight: 500;
   letter-spacing: 1rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.home-data-label::before {
+  content: '';
+  width: 28rpx;
+  height: 2rpx;
+  background: rgba(37, 99, 235, 0.2);
+  border-radius: 2rpx;
 }
 
 .home-data-val {
@@ -351,7 +362,7 @@ onMounted(() => {
   font-size: 64rpx;
   font-weight: 800;
   margin-top: 16rpx;
-  color: $uni-text-color;
+  color: #2563EB;
   line-height: 1.1;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
@@ -378,7 +389,7 @@ onMounted(() => {
 
 .home-data-div {
   height: 1rpx;
-  background: rgba(37, 99, 235, 0.12);
+  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.08) 20%, rgba(37, 99, 235, 0.08) 80%, transparent);
   margin: 36rpx 0 28rpx;
 }
 
@@ -392,15 +403,18 @@ onMounted(() => {
 
 .db-label {
   font-size: 20rpx;
-  color: $uni-gray-500;
+  color: #A3A3A3;
+  font-weight: 500;
 }
 
 .db-val {
   display: block;
-  font-size: 26rpx;
-  font-weight: 700;
+  font-size: 36rpx;
+  font-weight: 800;
   margin-top: 8rpx;
-  color: $uni-text-color;
+  color: #2563EB;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  letter-spacing: -0.6rpx;
 }
 
 /* 通用区块 */
@@ -410,6 +424,20 @@ onMounted(() => {
   justify-content: space-between;
   padding: 0 4rpx;
   margin-bottom: 24rpx;
+  position: relative;
+  padding-left: 20rpx;
+}
+
+.section-head::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4rpx;
+  height: 32rpx;
+  border-radius: 2rpx;
+  background: #2563EB;
 }
 
 .section-title-wrap {
@@ -440,29 +468,32 @@ onMounted(() => {
 /* 订单进度 */
 .home-progress {
   margin: 36rpx 28rpx 0;
-}
-
-.hp-row {
-  display: flex;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 32rpx 12rpx;
+  border-radius: 40rpx;
+  padding: 40rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
+.hp-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+}
+
 .hp-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
+  text-align: center;
+  padding: 28rpx 16rpx;
+  border-radius: 24rpx;
+  background: rgba(0, 0, 0, 0.015);
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
 .hp-ico {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 24rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  margin: 0 auto 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -474,16 +505,17 @@ onMounted(() => {
 .hp-ico--green { background: rgba(58, 157, 92, 0.1); }
 
 .hp-ico-text {
-  font-size: 28rpx;
+  font-size: 22rpx;
   font-weight: 700;
-  color: $uni-gray-600;
+  color: #2563EB;
 }
 
 .hp-num {
-  font-size: 36rpx;
+  font-size: 44rpx;
   font-weight: 800;
   color: $uni-text-color;
   line-height: 1;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .hp-label {
