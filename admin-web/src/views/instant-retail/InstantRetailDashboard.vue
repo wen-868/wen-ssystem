@@ -112,7 +112,7 @@
           <template #header>
             <div class="chart-header">
               <span class="chart-title">近7日订单趋势</span>
-              <el-radio-group v-model="trendMetric" size="small" @change="loadTrendData">
+              <el-radio-group v-model="trendMetric" size="small" @change="loadData">
                 <el-radio-button value="orders">订单数</el-radio-button>
                 <el-radio-button value="sales">销售额</el-radio-button>
               </el-radio-group>
@@ -294,7 +294,7 @@ function getBarHeight(item: any, _index: number) {
   return maxBarValue.value > 0 ? Math.round((val / maxBarValue.value) * 100) : 0;
 }
 
-function loadTrendData(stats: any) {
+function loadTrendData(stats?: any) {
   const trend = stats?.orderTrend || []
   trendData.value = trend.map((d: any) => ({ date: (d.date || '').slice(5), orders: Number(d.count || 0), sales: 0 }))
   const vals = trendData.value.map(m => trendMetric.value === "orders" ? m.orders : m.sales)
@@ -304,7 +304,7 @@ function loadTrendData(stats: any) {
 // ==================== 平台分布 ====================
 const platformData = ref<any[]>([]);
 
-function loadPlatformData(stats: any) {
+function loadPlatformData(stats?: any) {
   const dist = stats?.channelDistribution || []
   const colorMap: Record<string, string> = { MEITUAN: CHART_COLORS.danger, ELEME: CHART_COLORS.primary, JD: CHART_COLORS.success, MINIAPP: CHART_COLORS.warning }
   platformData.value = dist.map((d: any) => ({
