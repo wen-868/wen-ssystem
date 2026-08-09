@@ -1,5 +1,39 @@
 import { api } from "./request";
 
+// ========== 库存共享（R100 商用化） ==========
+export async function fetchShareSetting() {
+  const { data } = await api.get("/admin/inventory-share/settings");
+  return data.data;
+}
+export async function updateShareSetting(payload: Record<string, unknown>) {
+  const { data } = await api.put("/admin/inventory-share/settings", payload);
+  return data.data;
+}
+export async function fetchShareProducts(params?: { page?: number; pageSize?: number; keyword?: string }) {
+  const { data } = await api.get("/admin/inventory-share/products", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+export async function addShareProduct(payload: Record<string, unknown>) {
+  const { data } = await api.post("/admin/inventory-share/products", payload);
+  return data.data;
+}
+export async function batchAddShareProducts(payload: { skuIds: number[] }) {
+  const { data } = await api.post("/admin/inventory-share/products/batch-add", payload);
+  return data.data;
+}
+export async function batchRemoveShareProducts(payload: { ids: number[] }) {
+  const { data } = await api.post("/admin/inventory-share/products/batch-remove", payload);
+  return data.data;
+}
+export async function updateShareProduct(id: number, payload: Record<string, unknown>) {
+  const { data } = await api.put(`/admin/inventory-share/products/${id}`, payload);
+  return data.data;
+}
+export async function removeShareProduct(id: number) {
+  const { data } = await api.delete(`/admin/inventory-share/products/${id}`);
+  return data.data;
+}
+
 // ========== Dashboard - 库存分析 ==========
 export async function fetchDashboardInventoryStats() {
   const { data } = await api.get("/admin/dashboard/inventory-stats");
@@ -258,5 +292,4 @@ export async function fetchInventoryABC(params?: { storeId?: number }) {
   const { data } = await api.get("/admin/reports/inventory-abc", { params });
   return data.data;
 }
-
 

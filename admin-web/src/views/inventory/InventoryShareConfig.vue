@@ -301,7 +301,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
-import { fetchStores, fetchProducts } from "../../api";
+import { fetchStores, fetchProducts, fetchShareProducts } from "../../api";
 import PageCard from "../../components/PageCard.vue";
 
 const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%23f5f7fa' width='80' height='80'/%3E%3Ctext fill='%23c0c4cc' font-family='Arial' font-size='12' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E";
@@ -366,15 +366,8 @@ async function loadShareProducts() {
     }));
     productTotal.value = data.total || 0;
   } catch {
-    // mock 数据
-    shareProducts.value = [
-      { id: 1, skuId: 1, name: "飞天茅台53度500ml", specs: "53度/500ml", barcode: "6902952880011", stock: 120, shareStock: 60, shareRatio: 50, priority: 1, autoTransferThreshold: 20, enabled: true, imageUrl: "" },
-      { id: 2, skuId: 2, name: "五粮液普五52度500ml", specs: "52度/500ml", barcode: "6901382100015", stock: 200, shareStock: 100, shareRatio: 50, priority: 1, autoTransferThreshold: 30, enabled: true, imageUrl: "" },
-      { id: 3, skuId: 3, name: "剑南春水晶剑52度500ml", specs: "52度/500ml", barcode: "6901434888886", stock: 150, shareStock: 75, shareRatio: 50, priority: 2, autoTransferThreshold: 15, enabled: true, imageUrl: "" },
-      { id: 4, skuId: 4, name: "泸州老窖特曲52度500ml", specs: "52度/500ml", barcode: "6901798111220", stock: 80, shareStock: 40, shareRatio: 50, priority: 2, autoTransferThreshold: 10, enabled: false, imageUrl: "" },
-      { id: 5, skuId: 5, name: "青岛啤酒经典500ml", specs: "500ml/罐", barcode: "6903252710017", stock: 500, shareStock: 250, shareRatio: 50, priority: 3, autoTransferThreshold: 50, enabled: true, imageUrl: "" }
-    ];
-    productTotal.value = shareProducts.value.length;
+    shareProducts.value = [];
+    productTotal.value = 0;
   } finally {
     productLoading.value = false;
   }
@@ -423,14 +416,21 @@ function removeShareProduct(row: any) {
   }).catch(() => {});
 }
 
-function searchAddProducts() {
-  // mock 搜索
-  addProductList.value = [
-    { id: 10, name: "洋河蓝色经典52度500ml", specs: "52度/500ml", barcode: "6901234567890", stock: 60, imageUrl: "" },
-    { id: 11, name: "古井贡酒52度500ml", specs: "52度/500ml", barcode: "6902345678901", stock: 80, imageUrl: "" },
-    { id: 12, name: "汾酒青花20年53度500ml", specs: "53度/500ml", barcode: "6903456789012", stock: 45, imageUrl: "" },
-    { id: 13, name: "百威啤酒500ml", specs: "500ml/罐", barcode: "6904567890123", stock: 300, imageUrl: "" }
-  ];
+async function searchAddProducts() {
+  try {
+    const data = await fetchProducts({ keyword: addSearchKeyword.value || undefined, page: 1, pageSize: 50 });
+    addProductList.value = (data.records || data.list || []).map((p: any) => ({
+      id: p.id,
+      skuId: p.skuId || p.id,
+      name: p.name || p.skuName,
+      specs: p.specs || "",
+      barcode: p.barcode || "",
+      stock: p.stock || 0,
+      imageUrl: p.mainImage || ""
+    }));
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "搜索商品失败");
+  }
 }
 
 function onAddProductSelectionChange(selection: any[]) {
@@ -478,19 +478,14 @@ async function loadStores() {
   try {
     const data = await fetchStores();
     const stores = Array.isArray(data) ? data : (data.records || data.list || []);
-    storeList.value = stores.map((s: any, i: number) => ({
+    storeList.value = stores.map((s: any) => ({
       ...s,
-      shareEnabled: i < 3,
-      totalStock: Math.floor(Math.random() * 500) + 100,
-      shareableStock: Math.floor(Math.random() * 200) + 50
+      shareEnabled: true,
+      totalStock: 0,
+      shareableStock: 0
     }));
   } catch {
-    storeList.value = [
-      { id: 1, name: "总店", address: "北京市朝阳区建国路88号", shareEnabled: true, totalStock: 1200, shareableStock: 600 },
-      { id: 2, name: "朝阳门店", address: "北京市朝阳区朝阳门外大街1号", shareEnabled: true, totalStock: 800, shareableStock: 400 },
-      { id: 3, name: "海淀门店", address: "北京市海淀区中关村大街1号", shareEnabled: true, totalStock: 650, shareableStock: 325 },
-      { id: 4, name: "丰台门店", address: "北京市丰台区丰台路5号", shareEnabled: false, totalStock: 450, shareableStock: 0 }
-    ];
+    storeList.value = [];
   }
 }
 

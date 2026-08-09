@@ -723,9 +723,8 @@ async function loadTransfers() {
     pagination.total = data.total || 0;
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载失败");
-    // 使用 mock 数据（前端独立开发）
-    tableData.value = generateMockData();
-    pagination.total = tableData.value.length;
+    tableData.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
@@ -736,45 +735,10 @@ async function loadStores() {
     const data = await fetchStores();
     storeList.value = Array.isArray(data) ? data : (data.records || data.list || []);
   } catch {
-    // mock 门店数据
-    storeList.value = [
-      { id: 1, name: "总店" },
-      { id: 2, name: "朝阳门店" },
-      { id: 3, name: "海淀门店" },
-      { id: 4, name: "丰台门店" }
-    ];
+    storeList.value = [];
   }
 }
 
-function generateMockData() {
-  const statuses = ["DRAFT", "PENDING", "APPROVED", "SHIPPED", "RECEIVED", "REJECTED", "CANCELLED"];
-  const fromStores = ["总店", "朝阳门店", "海淀门店"];
-  const toStores = ["朝阳门店", "海淀门店", "丰台门店"];
-  const creators = ["张三", "李四", "王五", "赵六"];
-  const data: any[] = [];
-  for (let i = 1; i <= 25; i++) {
-    const status = statuses[i % statuses.length];
-    data.push({
-      id: i,
-      transferNo: `DB202607${String(i).padStart(4, "0")}`,
-      fromStoreId: (i % 3) + 1,
-      fromStoreName: fromStores[i % fromStores.length],
-      toStoreId: ((i + 1) % 3) + 2,
-      toStoreName: toStores[i % toStores.length],
-      skuCount: Math.floor(Math.random() * 10) + 1,
-      totalQty: Math.floor(Math.random() * 100) + 10,
-      status,
-      creatorName: creators[i % creators.length],
-      createdAt: `2026-07-${String(15 - (i % 10)).padStart(2, "0")} ${String(9 + (i % 8)).padStart(2, "0")}:${String(i * 3 % 60).padStart(2, "0")}:00`,
-      items: [
-        { skuId: 1, skuName: "飞天茅台53度500ml", quantity: 10, unit: "瓶" },
-        { skuId: 2, skuName: "五粮液普五52度500ml", quantity: 20, unit: "瓶" }
-      ],
-      remark: "常规补货调拨"
-    });
-  }
-  return data;
-}
 
 function handleSearch() {
   pagination.page = 1;
