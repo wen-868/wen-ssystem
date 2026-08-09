@@ -260,7 +260,7 @@ const formRules: FormRules = {
 async function searchTags() {
   loading.value = true;
   try {
-    const { data } = await api.get("/admin/marketing/tags", {
+    const { data } = await api.get("/admin/product-tags", {
       params: {
         page: page.value,
         pageSize: pageSize.value,
@@ -304,12 +304,12 @@ async function handleSubmit() {
   submitLoading.value = true;
   try {
     if (editing.value) {
-      await api.put(`/admin/marketing/tags/${editingItem.value.id}`, {
+      await api.put(`/admin/product-tags/${editingItem.value.id}`, {
         name: form.name, tagType: form.tagType, color: form.color, sortNo: form.sortNo, remark: form.remark
       });
       ElMessage.success("标签更新成功");
     } else {
-      await api.post("/admin/marketing/tags", {
+      await api.post("/admin/product-tags", {
         name: form.name, tagType: form.tagType, color: form.color, sortNo: form.sortNo, remark: form.remark
       });
       ElMessage.success("标签创建成功");
@@ -325,7 +325,7 @@ async function handleSubmit() {
 
 async function deleteItem(id: number) {
   try {
-    await api.delete(`/admin/marketing/tags/${id}`);
+    await api.delete(`/admin/product-tags/${id}`);
     ElMessage.success("删除成功");
     await searchTags();
   } catch {

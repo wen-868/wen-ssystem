@@ -65,7 +65,7 @@ export async function fetchOrderStats() {
 }
 
 export async function fetchStorePerformance() {
-  const { data } = await api.get("/admin/reports/store-performance");
+  const { data } = await api.get("/admin/store-sales-performance");
   return data.data || [];
 }
 

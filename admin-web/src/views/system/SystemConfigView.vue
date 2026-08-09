@@ -700,7 +700,7 @@ const tabGroupMap: Record<string, string> = {
 /* ── 加载指定分组配置 ── */
 async function loadConfigGroup(group: string) {
   try {
-    const { data } = await api.get(`/admin/system/configs/${group}`);
+    const { data } = await api.get(`/admin/sys-config/${group}`);
     const items = data.data || data || [];
     const list = Array.isArray(items) ? items : (items.records || items || []);
     for (const item of list) {
@@ -736,7 +736,7 @@ async function handleSave() {
       config_key: key,
       config_value: String(value)
     }));
-    await api.put("/admin/system/configs/batch", payload);
+    await api.put("/admin/sys-config/batch", payload);
     ElMessage.success("配置保存成功");
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
@@ -768,7 +768,7 @@ function handleLogoBeforeUpload(file: File) {
 async function handleTestMail() {
   testMailLoading.value = true;
   try {
-    await api.post("/admin/system/configs/test-mail");
+    await api.post("/admin/sys-config/test-mail");
     ElMessage.success("测试邮件发送成功");
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || e?.message || "测试邮件发送失败");
@@ -834,7 +834,7 @@ async function handleSmsTemplateSubmit() {
 async function handleManualBackup() {
   manualBackupLoading.value = true;
   try {
-    await api.post("/admin/system/configs/manual-backup");
+    await api.post("/admin/sys-config/manual-backup");
     ElMessage.success("备份成功");
     // 添加到备份历史
     backupHistory.value.unshift({

@@ -402,7 +402,7 @@ function maskValue(val: string): string {
 async function loadWechatConfig() {
   wechatLoading.value = true;
   try {
-    const { data } = await api.get("/admin/payment/configs/wechat");
+    const { data } = await api.get("/payment-config/configs/wechat");
     const cfg = data.data || data;
     if (cfg) {
       wechatConfig.enabled = !!cfg.enabled;
@@ -424,7 +424,7 @@ async function loadWechatConfig() {
 async function loadAlipayConfig() {
   alipayLoading.value = true;
   try {
-    const { data } = await api.get("/admin/payment/configs/alipay");
+    const { data } = await api.get("/payment-config/configs/alipay");
     const cfg = data.data || data;
     if (cfg) {
       alipayConfig.enabled = !!cfg.enabled;
@@ -470,7 +470,7 @@ async function handleSaveConfig(provider: string) {
   if (provider === "wechat") {
     wechatSaving.value = true;
     try {
-      await api.put("/admin/payment/configs/wechat", {
+      await api.put("/payment-config/configs/wechat", {
         enabled: wechatConfig.enabled ? "1" : "0",
         mchId: wechatConfig.mchId,
         appId: wechatConfig.appId,
@@ -488,7 +488,7 @@ async function handleSaveConfig(provider: string) {
   } else if (provider === "alipay") {
     alipaySaving.value = true;
     try {
-      await api.put("/admin/payment/configs/alipay", {
+      await api.put("/payment-config/configs/alipay", {
         enabled: alipayConfig.enabled ? "1" : "0",
         appId: alipayConfig.appId,
         privateKey: alipayRawPrivateKey.value,
@@ -526,7 +526,7 @@ async function handleTestConnection(provider: string) {
       payload.alipayPublicKey = alipayRawPublicKey.value;
     }
 
-    await api.post(`/admin/payment/configs/${provider}/test`, payload);
+    await api.post(`/payment-config/configs/${provider}/test`, payload);
     ElMessage.success(provider === "wechat" ? "微信支付连接测试成功" : "支付宝连接测试成功");
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || e?.message || "连接测试失败");
