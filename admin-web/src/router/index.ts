@@ -208,7 +208,7 @@ const routes = [
       { path: "reports/sales-analysis", name: "sales-analysis", component: () => import("../views/report/SalesAnalysis.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "销售分析", icon: TrendCharts } },
       { path: "reports/collection-analysis", name: "collection-analysis", component: () => import("../views/report/CollectionAnalysis.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "回款分析", icon: DataLine } },
       { path: "reports/customers", name: "customer-analysis", component: () => import("../views/report/CustomerAnalysis.vue"), meta: { roles: ["SUPER_ADMIN"], title: "客户分析", icon: User } },
-      { path: "reports/inventory", name: "inventory-reports", component: () => import("../views/inventory/InventoryReports.vue"), meta: { roles: ["SUPER_ADMIN"], title: "库存报表", icon: PieChart } },
+      { path: "reports/inventory", name: "reports-inventory", component: () => import("../views/inventory/InventoryReports.vue"), meta: { roles: ["SUPER_ADMIN"], title: "库存报表", icon: PieChart } },
       { path: "reports/transfer", name: "transfer-reports", component: () => import("../views/report/TransferReport.vue"), meta: { roles: ["SUPER_ADMIN"], title: "调拨统计", icon: TrendCharts } },
       { path: "reports/custom-report", name: "custom-report", component: () => import("../views/report/CustomReport.vue"), meta: { roles: ["SUPER_ADMIN"], title: "自定义报表", icon: Document } },
       // 11. 营销推广

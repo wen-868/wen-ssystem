@@ -128,8 +128,8 @@ function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>
 
 // 全局限流：生产环境 100 次/分钟/IP；非生产（开发/本地）放宽到 1000，避免脚本测试频繁触发 429
 if (process.env.NODE_ENV !== "test") {
-  // 全局 Rate Limiting：每IP每分钟100请求
-  app.use(createRateLimiter({ windowMs: 60_000, max: process.env.NODE_ENV === "production" ? 100 : 1000 }));
+  // 全局 Rate Limiting：每IP每分钟600请求（商用标准，避免正常浏览多页面触发429）
+  app.use(createRateLimiter({ windowMs: 60_000, max: process.env.NODE_ENV === "production" ? 600 : 2000 }));
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
 // admin 和 store 登录使用独立实例，避免互相影响计数
