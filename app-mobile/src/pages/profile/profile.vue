@@ -25,8 +25,9 @@
     <!-- 快捷入口 -->
     <view class="prof-shortcuts">
       <view class="prof-sc-item" v-for="item in shortcuts" :key="item.label" @tap="goto(item.path)">
-        <view class="ps-ico" :style="{ background: item.bg, color: item.color }">
-          <text class="ps-ico-text">{{ item.icon }}</text>
+        <view class="ps-ico" :style="{ background: item.bg }">
+          <image v-if="item.icon.startsWith('/static')" class="ps-ico-img" :src="item.icon" mode="aspectFit" />
+          <text v-else class="ps-ico-text">{{ item.icon }}</text>
         </view>
         <text class="ps-label">{{ item.label }}</text>
       </view>
@@ -37,7 +38,7 @@
       <text class="prof-section-title">门店管理</text>
       <view class="prof-list">
         <view class="list-item" @tap="navigateTo('/pages/profile/edit')">
-          <view class="li-ico li-ico--blue"><text class="li-ico-text">资</text></view>
+          <view class="li-ico li-ico--blue"><image class="li-ico-img" src="/static/icons/prf-work.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">编辑资料</text>
             <text class="li-desc">姓名、头像、门店信息</text>
@@ -45,7 +46,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="navigateTo('/pages/notifications/notifications')">
-          <view class="li-ico li-ico--orange"><text class="li-ico-text">消</text></view>
+          <view class="li-ico li-ico--orange"><image class="li-ico-img" src="/static/icons/prf-consume.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">消息通知</text>
             <text class="li-desc">订单、库存、系统消息</text>
@@ -54,7 +55,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="navigateTo('/pages/todos/todos')">
-          <view class="li-ico li-ico--purple"><text class="li-ico-text">待</text></view>
+          <view class="li-ico li-ico--purple"><image class="li-ico-img" src="/static/icons/prf-todo.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">待办事项</text>
             <text class="li-desc">库存预警、订单待处理</text>
@@ -62,7 +63,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')" v-if="userStore.isAdmin">
-          <view class="li-ico li-ico--dark"><text class="li-ico-text">店</text></view>
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-store.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">门店信息</text>
             <text class="li-desc">门店设置与管理</text>
@@ -70,7 +71,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="navigateTo('/pages-sub/admin/admin/employees')" v-if="userStore.isAdmin">
-          <view class="li-ico li-ico--dark"><text class="li-ico-text">员</text></view>
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">员工管理</text>
             <text class="li-desc">在职员工管理</text>
@@ -93,7 +94,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="showAbout">
-          <view class="li-ico li-ico--dark"><text class="li-ico-text">关</text></view>
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-close.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">关于</text>
             <text class="li-desc">智享全链</text>
@@ -154,8 +155,8 @@ const roleText = computed(() => {
 })
 
 const shortcuts = [
-  { icon: '记', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '员', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/prf-staff.svg', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '账', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '印', label: '单据打印', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
@@ -355,6 +356,11 @@ loadUnread()
   font-weight: 700;
 }
 
+.ps-ico-img {
+  width: 40rpx;
+  height: 40rpx;
+}
+
 .ps-label {
   font-size: 22rpx;
   color: $uni-gray-600;
@@ -421,6 +427,11 @@ loadUnread()
 .li-ico-text {
   font-size: 28rpx;
   font-weight: 700;
+}
+
+.li-ico-img {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .li-ico-text.ai {
