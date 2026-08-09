@@ -469,12 +469,14 @@
               <el-button
                 type="danger"
                 :loading="resetLoading"
-                :disabled="resetConfirm !== 'RESET'"
+                :disabled="resetConfirm !== 'RESET' || isDemoUser"
                 @click="handleSystemReset"
               >
                 确认初始化，清空全部业务数据
               </el-button>
-              <p class="reset-tip">仅超级管理员可执行；输入 RESET 后按钮方可点击。</p>
+              <p class="reset-tip">
+                {{ isDemoUser ? "演示账号不可执行系统初始化，请使用管理员账号登录。" : "仅系统管理员可执行；输入 RESET 后按钮方可点击。" }}
+              </p>
             </div>
           </div>
         </el-tab-pane>
@@ -519,17 +521,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Share, Download } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 import { resetSystemData } from "../../api/common";
+import { useAuthStore } from "../../stores/auth";
 
 const activeTab = ref("system");
 const saveLoading = ref(false);
 const resetLoading = ref(false);
 const resetConfirm = ref("");
+const auth = useAuthStore();
+const isDemoUser = computed(() => auth.user?.demo === true);
 const testMailLoading = ref(false);
 const manualBackupLoading = ref(false);
 const showSmsTemplateDialog = ref(false);

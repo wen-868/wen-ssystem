@@ -222,8 +222,10 @@ export async function seedDemoData(tenantId: string) {
  * confirmKey 必须为 "RESET"，防止误触
  */
 export async function resetSystemData(user: AuthUser, confirmKey: string) {
-  if (!user.roles.includes("SUPER_ADMIN")) {
-    throw new AppError("仅超级管理员可执行系统初始化", 403);
+  // 生产环境角色数据历史缺失（admin roles 为空），且演示账号免密登录
+  // 绝不允许清空数据：仅生产管理员账号 admin 可执行系统初始化
+  if (user.username !== "admin") {
+    throw new AppError("仅系统管理员可执行系统初始化（演示账号无此权限）", 403);
   }
   if (confirmKey !== "RESET") {
     throw new AppError("确认口令不正确，初始化已取消", 400);
