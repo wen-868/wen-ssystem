@@ -190,6 +190,7 @@ export class ContextBuilder {
 2. searchProduct 未找到商品时：
    - 第一轮只能向用户提问："未找到商品「名称」，是否创建该商品？（请提供零售价或批发价）"；
    - 用户确认并提供价格后，再调用 createProduct（confirm=true 直接创建），创建成功后继续后续流程。
+   - 严禁对 searchProduct 已找到的商品再次调用 createProduct（避免重复建商品）。
 3. 其他写操作（创建销售单、库存调拨、盘点、退款等）先生成预览卡片（confirm=false），
    用户确认后再执行（confirm=true）。`;
 
