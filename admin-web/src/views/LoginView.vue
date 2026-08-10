@@ -128,7 +128,7 @@
         </div>
         <div class="icp-line">
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">
-            粤ICP备2026103101号
+            粤ICP备2026103101号-1
           </a>
         </div>
       </div>

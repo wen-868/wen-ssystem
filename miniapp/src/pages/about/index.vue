@@ -74,13 +74,14 @@ const activeTheme = __THEME__
 const brandName = activeTheme.brandName
 const brandSlogan = activeTheme.brandSlogan
 
-const goUserAgreement = () => {
-  Taro.showToast({ title: '用户协议开发中', icon: 'none' })
+const openDoc = (path: string) => {
+  const url = encodeURIComponent(`https://www.onepan.cn/legal/${path}`)
+  Taro.navigateTo({ url: `/pages/webview/index?url=${url}` })
 }
 
-const goPrivacyPolicy = () => {
-  Taro.showToast({ title: '隐私政策开发中', icon: 'none' })
-}
+const goUserAgreement = () => openDoc('用户协议.html')
+
+const goPrivacyPolicy = () => openDoc('隐私政策.html')
 </script>
 
 <style lang="scss" scoped>

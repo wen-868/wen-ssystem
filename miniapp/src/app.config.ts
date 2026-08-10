@@ -25,6 +25,7 @@ export default {
     'pages/setting/profile-edit',
     'pages/setting/password',
     'pages/about/index',
+    'pages/webview/index',
     'pages/wholesale/index',
     'pages/wholesale/product/index',
     'pages/wholesale/cart/index',

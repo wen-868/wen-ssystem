@@ -139,11 +139,13 @@
             <a href="#contact">公司介绍</a>
             <a href="#contact">联系我们</a>
             <a href="#contact">加入我们</a>
+            <a href="/legal/用户协议.html" target="_blank">用户协议</a>
+            <a href="/legal/隐私政策.html" target="_blank">隐私政策</a>
           </div>
         </div>
         <div class="footer-bottom">
           <p>&copy; {{ year }} 智享全链管理系统 onepan.cn. All rights reserved.</p>
-          <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">粤ICP备2026103101号</a></p>
+          <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">粤ICP备2026103101号-1</a></p>
         </div>
       </div>
     </footer>
