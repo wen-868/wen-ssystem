@@ -72,6 +72,22 @@ else
   echo "==> [AI底座] .env 已存在，保留现有配置"
 fi
 
+# ---- 2.4 每次部署都同步 CSRF_SECRET（写操作请求后端需要 x-csrf-token，
+#          token = HMAC(CSRF_SECRET || JWT_SECRET, userId)，必须与 backend 一致） ----
+if [ -f ".env" ] && [ -f "${BACKEND_ENV}" ]; then
+  B_CSRF=$(grep '^CSRF_SECRET=' "${BACKEND_ENV}" | head -1 | cut -d= -f2- || true)
+  if [ -n "${B_CSRF}" ]; then
+    if grep -q '^CSRF_SECRET=' ".env"; then
+      sed -i "s|^CSRF_SECRET=.*|CSRF_SECRET=${B_CSRF}|" ".env"
+    else
+      echo "CSRF_SECRET=${B_CSRF}" >> ".env"
+    fi
+    echo "==> [AI底座] 已同步 CSRF_SECRET（与 backend/.env 一致）"
+  else
+    echo "==> [AI底座] backend/.env 无 CSRF_SECRET，AI 底座将回退 JWT_SECRET 计算 CSRF"
+  fi
+fi
+
 # ---- 2.5 确保 ENCRYPTION_KEY 为真实随机密钥（AUDIT-REPORT R3：禁止占位符/示例密钥启动） ----
 if [ -f ".env" ]; then
   CUR_KEY=$(grep '^ENCRYPTION_KEY=' ".env" | head -1 | cut -d= -f2- || true)
