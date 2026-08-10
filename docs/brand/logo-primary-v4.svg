@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512">
+  <!-- 智享全链 · 主标识 v4（几何化"链"字 · 精修）
+       圆角六边形描边（节点）+ 三链节（节奏化）+ 连弧（走之底），浅蓝底 + 深蓝/品牌蓝 -->
+  <circle cx="100" cy="100" r="96" fill="#EAF2FF"/>
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#3F6FEF" stroke-width="6"/>
+  <circle cx="100" cy="100" r="78" fill="none" stroke="#BFD7FF" stroke-width="2"/>
+  <!-- 左：圆角六边形节点 -->
+  <polygon
+    points="74,80 89,89 89,111 74,120 59,111 59,89"
+    fill="none" stroke="#1E3A8A" stroke-width="9" stroke-linejoin="round"
+  />
+  <!-- 右：三链节（长度节奏：上短、中长、下中） -->
+  <g fill="#1E3A8A">
+    <rect x="108" y="79" width="44" height="12" rx="6"/>
+    <rect x="102" y="94" width="60" height="12" rx="6"/>
+    <rect x="110" y="109" width="38" height="12" rx="6"/>
+  </g>
+  <!-- 底：连弧（走之底） -->
+  <path d="M56,140 Q104,152 162,132" fill="none" stroke="#3F6FEF" stroke-width="6" stroke-linecap="round"/>
+</svg>
