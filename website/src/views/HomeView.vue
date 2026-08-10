@@ -119,7 +119,8 @@
               <div class="logo-icon">智</div>
               智享全链管理系统
             </div>
-            <p>多租户 SaaS 全链路数字化管理平台，为酒水零售行业提供一站式经营管理解决方案。</p>
+            <p class="brand-company">深圳市宝安区智享全链软件工作室</p>
+            <p>智享全链管理系统专注酒水行业数字化经营，提供覆盖商品、采购、库存、销售、财务、客户、营销、报表全链路的进销存管理与即时零售 SaaS 服务，帮助批零商家实现全流程数字化管理。</p>
           </div>
           <div class="footer-col">
             <h4>产品</h4>
@@ -136,15 +137,19 @@
           </div>
           <div class="footer-col">
             <h4>关于</h4>
-            <a href="#contact">公司介绍</a>
-            <a href="#contact">联系我们</a>
-            <a href="#contact">加入我们</a>
             <a href="/legal/用户协议.html" target="_blank">用户协议</a>
             <a href="/legal/隐私政策.html" target="_blank">隐私政策</a>
+          </div>
+          <div class="footer-col">
+            <h4>联系方式</h4>
+            <p class="footer-contact">联系电话：13410954557</p>
+            <p class="footer-contact">电子邮箱：xbe868@126.com</p>
+            <p class="footer-contact">办公地址：深圳市宝安区石岩街道三祝里社区三祝里村北区66号502</p>
           </div>
         </div>
         <div class="footer-bottom">
           <p>&copy; {{ year }} 智享全链管理系统 onepan.cn. All rights reserved.</p>
+          <p>运营主体：深圳市宝安区智享全链软件工作室</p>
           <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">粤ICP备2026103101号-1</a></p>
         </div>
       </div>
