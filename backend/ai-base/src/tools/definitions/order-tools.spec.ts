@@ -95,8 +95,9 @@ describe('R70-09 销售工具', () => {
   });
 
   beforeEach(() => {
-    mockServiceClient.get.mockClear();
-    mockServiceClient.post.mockClear();
+    // mockReset 清空实现，避免 mockResolvedValueOnce 跨用例残留
+    mockServiceClient.get.mockReset();
+    mockServiceClient.post.mockReset();
   });
 
   // ── 1. SearchCustomerTool ──
@@ -363,6 +364,47 @@ describe('R70-09 销售工具', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('无可用价格');
+    });
+
+    it('缺少 productInfo 时应按 skuId 回查后端价格（兜底）', async () => {
+      // customerId 已传入，仅需商品列表回查（GET 一次）
+      mockServiceClient.get.mockResolvedValue({
+        total: 1,
+        page: 1,
+        pageSize: 200,
+        records: [
+          {
+            id: 101,
+            name: '五粮液 500ml',
+            skuId: 101,
+            boxRatio: 6,
+            retailPrice: 1200,
+            wholesalePrice: 980,
+            storePrice: 1100,
+            costPrice: 850,
+          },
+        ],
+      });
+
+      const result = await createSalesOrder.execute(
+        {
+          customerId: 1,
+          customerType: 'WHOLESALE',
+          items: [{ skuId: 101, skuName: '五粮液 500ml', boxQty: 1 }],
+          confirm: false,
+        },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const items = result.preview?.details.items as Array<{
+        unitPrice: number;
+        totalBottleQty: number;
+        priceSource: string;
+      }>;
+      expect(items[0].totalBottleQty).toBe(6); // 1箱 × 6瓶
+      expect(items[0].unitPrice).toBe(980); // 批发价
+      expect(items[0].priceSource).toContain('批发');
     });
 
     it('执行模式（confirm=true）应调用后端 POST', async () => {

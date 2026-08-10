@@ -222,7 +222,11 @@ export class CreateSalesOrderTool implements ITool {
     const effectiveType =
       resolved?.customerType ?? orderArgs.customerType ?? 'CASH';
 
-    // ── 2. 智能价格填充 + 单位换算 ──
+    // ── 2. 商品价格兜底解析 + 智能价格填充 + 单位换算 ──
+    // LLM 可能未传 productInfo（导致箱瓶比/价格缺失），按 skuId 回查后端权威价格，
+    // 保证箱→瓶换算和自动匹配价格不依赖 LLM 传参。
+    await this.resolveMissingProductInfo(orderArgs.items, context);
+
     const processedItems = orderArgs.items.map((item) =>
       this.processItem(item, effectiveType),
     );
@@ -351,6 +355,48 @@ export class CreateSalesOrderTool implements ITool {
   }
 
   // ── 私有方法 ──
+
+  /**
+   * 为缺失 productInfo 的商品项回查后端商品列表，按 skuId 匹配权威价格与箱瓶比。
+   * 后端列表接口将首个 SKU 字段拍平到记录顶层（skuId/boxRatio/价格等）。
+   */
+  private async resolveMissingProductInfo(
+    items: OrderItemInput[],
+    context: ToolContext,
+  ): Promise<void> {
+    const missing = items.filter((item) => !item.productInfo);
+    if (missing.length === 0) return;
+
+    const result = await this.serviceClient.get<{
+      records?: Array<Record<string, unknown>>;
+      list?: Array<Record<string, unknown>>;
+    }>(
+      `${API_ENDPOINTS.PRODUCTS}?page=1&pageSize=200`,
+      context,
+    );
+    const records = result?.records ?? result?.list ?? [];
+
+    const bySkuId = new Map<number, ProductPriceInfo>();
+    for (const r of records) {
+      const skuId = Number(r.skuId);
+      if (Number.isFinite(skuId) && skuId > 0) {
+        bySkuId.set(skuId, {
+          boxRatio: Number(r.boxRatio) || 1,
+          retailPrice: Number(r.retailPrice),
+          wholesalePrice: Number(r.wholesalePrice),
+          storePrice: Number(r.storePrice),
+          costPrice: Number(r.costPrice),
+        });
+      }
+    }
+
+    for (const item of missing) {
+      const info = bySkuId.get(item.skuId);
+      if (info) {
+        item.productInfo = info;
+      }
+    }
+  }
 
   /**
    * 解析客户：customerId 优先；否则按 customerName 搜索；
