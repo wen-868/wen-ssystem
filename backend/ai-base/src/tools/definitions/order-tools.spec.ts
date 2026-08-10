@@ -395,13 +395,123 @@ describe('R70-09 销售工具', () => {
       expect(data.billNo).toBe('SB20260801001');
     });
 
+    it('仅传 customerName 且客户已存在：预览应解析出 customerId', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        records: [{ memberId: 8, name: '光明超市', customerType: 'RETAIL' }],
+      });
+
+      const result = await createSalesOrder.execute(
+        {
+          customerName: '光明超市',
+          items: [
+            {
+              skuId: 101,
+              skuName: '五粮液 500ml',
+              bottleQty: 2,
+              productInfo,
+            },
+          ],
+          confirm: false,
+        },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const details = result.preview?.details as {
+        customerId: number;
+        customerName: string;
+        willCreateCustomer?: boolean;
+      };
+      expect(details.customerId).toBe(8);
+      expect(details.customerName).toBe('光明超市');
+      expect(details.willCreateCustomer).toBeUndefined();
+      expect(mockServiceClient.post).not.toHaveBeenCalled();
+    });
+
+    it('仅传 customerName 且客户不存在：预览标记将自动创建（不调用创建接口）', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 0,
+        page: 1,
+        pageSize: 10,
+        records: [],
+      });
+
+      const result = await createSalesOrder.execute(
+        {
+          customerName: '红星商行',
+          items: [
+            {
+              skuId: 101,
+              skuName: '五粮液 500ml',
+              boxQty: 1,
+              productInfo,
+            },
+          ],
+          confirm: false,
+        },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const details = result.preview?.details as {
+        willCreateCustomer: boolean;
+        customerType: string;
+      };
+      expect(details.willCreateCustomer).toBe(true);
+      expect(details.customerType).toBe('WHOLESALE'); // 名称含"商行" → 批发
+      expect(result.preview?.summary).toContain('将自动创建客户');
+      expect(mockServiceClient.post).not.toHaveBeenCalled();
+    });
+
+    it('执行模式：客户不存在时自动创建客户再创建销售单', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 0,
+        page: 1,
+        pageSize: 10,
+        records: [],
+      });
+      mockServiceClient.post
+        .mockResolvedValueOnce({ memberId: 99, name: '红星商行' }) // 自动创建客户
+        .mockResolvedValueOnce({ billNo: 'SB20260801002', totalAmount: 9800 });
+
+      const result = await createSalesOrder.execute(
+        {
+          customerName: '红星商行',
+          items: [
+            {
+              skuId: 101,
+              skuName: '五粮液 500ml',
+              boxQty: 1,
+              productInfo,
+            },
+          ],
+          confirm: true,
+        },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockServiceClient.post).toHaveBeenCalledTimes(2);
+      const data = result.data as {
+        billNo: string;
+        customerId: number;
+        createdCustomer: boolean;
+      };
+      expect(data.billNo).toBe('SB20260801002');
+      expect(data.customerId).toBe(99);
+      expect(data.createdCustomer).toBe(true);
+    });
+
     it('缺少 customerId 应返回参数错误', async () => {
       const result = await createSalesOrder.execute(
         { items: [{ skuId: 1, boxQty: 1 }] },
         mockContext,
       );
       expect(result.success).toBe(false);
-      expect(result.error).toContain('customerId');
+      expect(result.error).toContain('customerId 或 customerName');
     });
 
     it('空 items 应返回参数错误', async () => {

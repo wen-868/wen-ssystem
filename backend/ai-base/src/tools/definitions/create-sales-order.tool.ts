@@ -34,13 +34,30 @@ import { UnitConverterService } from '../unit-converter.service';
 
 /** 创建销售单的参数 */
 interface CreateSalesOrderArgs {
-  customerId: number;
+  /** 客户ID（可选；不传时按 customerName 自动查找，找不到自动创建） */
+  customerId?: number;
   customerName?: string;
   customerType?: string;
   items: OrderItemInput[];
   saleType?: 'CASH' | 'CREDIT';
   remark?: string;
   confirm?: boolean;
+}
+
+/** 客户解析结果 */
+interface ResolvedCustomer {
+  customerId: number;
+  customerName: string;
+  customerType: string;
+  /** 本次是否自动创建了客户 */
+  created: boolean;
+}
+
+/** 后端客户列表项（searchCustomer 同源） */
+interface CustomerListItem {
+  memberId: number;
+  name: string;
+  customerType: string;
 }
 
 /** 订单商品项输入 */
@@ -76,9 +93,10 @@ export class CreateSalesOrderTool implements ITool {
     '创建销售单（写操作，需用户确认）。' +
     '支持智能价格填充：根据客户类型自动匹配价格（批发客户→批发价，散客→零售价），' +
     '支持单位换算（箱→瓶，按boxRatio换算）。' +
-    '必须先调用 searchCustomer 获取 customerId 和 customerType，再调用 searchProduct 获取 skuId 和价格信息。' +
+    '推荐直接传入 customerName（客户名称）即可：工具会自动查找客户，客户不存在时自动创建（预览中会提示）。' +
+    '也可先调用 searchProduct 获取 skuId 和价格信息。' +
     '首次调用 confirm=false 生成预览，用户确认后 confirm=true 正式创建。' +
-    '示例参数：{"customerId":1,"customerType":"WHOLESALE","items":[{"skuId":10,"boxQty":5,"productInfo":{"boxRatio":6,"retailPrice":1200,"wholesalePrice":980,"storePrice":1100,"costPrice":850}}],"confirm":false}';
+    '示例参数：{"customerName":"红星商行","items":[{"skuId":10,"boxQty":5,"productInfo":{"boxRatio":6,"retailPrice":1200,"wholesalePrice":980,"storePrice":1100,"costPrice":850}}],"confirm":false}';
   readonly category = 'order' as const;
   readonly isWriteOperation = true;
   readonly requiredTools = [
@@ -92,11 +110,12 @@ export class CreateSalesOrderTool implements ITool {
     properties: {
       customerId: {
         type: 'number',
-        description: '客户ID（从 searchCustomer 工具获取的 memberId）',
+        description: '客户ID（可选；不传时按 customerName 自动查找/创建）',
       },
       customerName: {
         type: 'string',
-        description: '客户名称（可选，用于预览展示）',
+        description:
+          '客户名称（推荐传入；客户不存在时工具将自动创建，并在预览中提示）',
       },
       customerType: {
         type: 'string',
@@ -156,7 +175,7 @@ export class CreateSalesOrderTool implements ITool {
         description: '是否确认执行（false=生成预览，true=正式创建。默认false）',
       },
     },
-    required: ['customerId', 'items'],
+    required: ['items'],
   };
 
   constructor(
@@ -182,9 +201,30 @@ export class CreateSalesOrderTool implements ITool {
     const orderArgs = parsed.data;
     const confirm = orderArgs.confirm === true;
 
+    // ── 2. 客户解析（按 customerName 查找；找不到时预览阶段仅提示，执行阶段自动创建） ──
+    let resolved: ResolvedCustomer | undefined;
+    try {
+      resolved = await this.resolveCustomer(orderArgs, context, confirm);
+    } catch (err) {
+      const errorMsg =
+        err instanceof BridgeError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : String(err);
+      return {
+        success: false,
+        error: `解析客户失败：${errorMsg}`,
+        suggestion: '请确认客户名称是否正确，或直接传入 customerId',
+      };
+    }
+
+    const effectiveType =
+      resolved?.customerType ?? orderArgs.customerType ?? 'CASH';
+
     // ── 2. 智能价格填充 + 单位换算 ──
     const processedItems = orderArgs.items.map((item) =>
-      this.processItem(item, orderArgs.customerType ?? 'CASH'),
+      this.processItem(item, effectiveType),
     );
 
     // 检查是否有阻止性错误（零价格）
@@ -212,9 +252,11 @@ export class CreateSalesOrderTool implements ITool {
     // ── 3. 预览阶段 ──
     if (!confirm) {
       const previewDetails: Record<string, unknown> = {
-        customerId: orderArgs.customerId,
-        customerName: orderArgs.customerName ?? '未知',
-        customerType: orderArgs.customerType ?? 'CASH',
+        customerId: resolved?.customerId ?? null,
+        customerName: resolved?.customerName ?? orderArgs.customerName ?? '未知',
+        customerType: effectiveType,
+        willCreateCustomer:
+          resolved && resolved.customerId === 0 ? true : undefined,
         saleType: orderArgs.saleType ?? 'CASH',
         items: processedItems.map((item) => ({
           skuId: item.skuId,
@@ -240,8 +282,11 @@ export class CreateSalesOrderTool implements ITool {
         preview: {
           operation: '创建销售单',
           summary:
-            `${orderArgs.customerName ?? '客户' + orderArgs.customerId} ` +
+            `${resolved?.customerName ?? orderArgs.customerName ?? '客户'} ` +
             `${processedItems.length} 种商品，合计 ${totalAmount.toFixed(2)} 元` +
+            (resolved && resolved.customerId === 0
+              ? `（将自动创建客户「${orderArgs.customerName}」）`
+              : '') +
             (warnings.length > 0 ? `（含 ${warnings.length} 条警告）` : ''),
           details: previewDetails,
         },
@@ -251,8 +296,8 @@ export class CreateSalesOrderTool implements ITool {
     // ── 4. 执行阶段：调用后端创建销售单 ──
     try {
       const requestBody = {
-        customerId: orderArgs.customerId,
-        customerName: orderArgs.customerName,
+        customerId: resolved!.customerId,
+        customerName: resolved!.customerName,
         saleType: orderArgs.saleType ?? 'CASH',
         remark: orderArgs.remark,
         items: processedItems.map((item) => ({
@@ -261,7 +306,7 @@ export class CreateSalesOrderTool implements ITool {
           bottleQty: item.bottleQty,
           totalBottleQty: item.totalBottleQty,
           unitPrice: item.unitPrice,
-          priceType: this.mapPriceType(orderArgs.customerType ?? 'CASH'),
+          priceType: this.mapPriceType(effectiveType),
         })),
       };
 
@@ -280,7 +325,9 @@ export class CreateSalesOrderTool implements ITool {
         data: {
           billNo: result.billNo,
           totalAmount: result.totalAmount ?? totalAmount,
-          customerName: orderArgs.customerName,
+          customerId: resolved!.customerId,
+          customerName: resolved!.customerName,
+          createdCustomer: resolved!.created,
           itemCount: processedItems.length,
           message: `销售单 ${result.billNo} 创建成功，合计 ${(result.totalAmount ?? totalAmount).toFixed(2)} 元`,
           warnings: warnings.length > 0 ? warnings : undefined,
@@ -305,18 +352,121 @@ export class CreateSalesOrderTool implements ITool {
 
   // ── 私有方法 ──
 
+  /**
+   * 解析客户：customerId 优先；否则按 customerName 搜索；
+   * 未找到时执行阶段自动创建（预览阶段仅标记 willCreate）。
+   */
+  private async resolveCustomer(
+    args: CreateSalesOrderArgs,
+    context: ToolContext,
+    isExecute: boolean,
+  ): Promise<ResolvedCustomer | undefined> {
+    if (args.customerId !== undefined) {
+      return {
+        customerId: args.customerId,
+        customerName: args.customerName ?? `客户${args.customerId}`,
+        customerType: args.customerType ?? 'CASH',
+        created: false,
+      };
+    }
+
+    const name = args.customerName?.trim();
+    if (!name) {
+      return undefined;
+    }
+
+    // 1. 搜索已有客户
+    const result = await this.serviceClient.get<{
+      records?: CustomerListItem[];
+      list?: CustomerListItem[];
+    }>(
+      `${API_ENDPOINTS.CUSTOMERS}?keyword=${encodeURIComponent(name)}&page=1&pageSize=10`,
+      context,
+    );
+    const customers = result?.records ?? result?.list ?? [];
+    const exact = customers.find((c) => c.name === name);
+    const fuzzy = exact ?? customers.find((c) => c.name.includes(name));
+    if (fuzzy) {
+      return {
+        customerId: fuzzy.memberId,
+        customerName: fuzzy.name,
+        customerType: this.mapBackendCustomerType(fuzzy.customerType),
+        created: false,
+      };
+    }
+
+    // 2. 未找到：执行阶段自动创建（预览阶段返回 willCreate 标记）
+    if (!isExecute) {
+      return {
+        customerId: 0,
+        customerName: name,
+        customerType: this.inferCustomerType(name),
+        created: false,
+      };
+    }
+
+    const inferredType = this.inferCustomerType(name);
+    const created = await this.serviceClient.post<{ memberId: number }>(
+      API_ENDPOINTS.CUSTOMERS,
+      {
+        name,
+        mobile: `139${String(Math.floor(10000000 + Math.random() * 89999999))}`,
+        customerType: inferredType,
+        settlementType: inferredType === 'WHOLESALE' ? 'ACCOUNT' : 'CASH',
+      },
+      context,
+    );
+
+    this.logger.log(
+      `客户不存在，已自动创建：memberId=${created.memberId} name=${name}`,
+    );
+
+    return {
+      customerId: created.memberId,
+      customerName: name,
+      customerType: inferredType,
+      created: true,
+    };
+  }
+
+  /** 后端客户类型（RETAIL/WHOLESALE）→ 价格引擎类型（CASH/WHOLESALE/VIP） */
+  private mapBackendCustomerType(type: string): string {
+    switch (type) {
+      case 'WHOLESALE':
+        return 'WHOLESALE';
+      case 'VIP':
+        return 'VIP';
+      case 'RETAIL':
+      default:
+        return 'CASH';
+    }
+  }
+
+  /** 按名称推断客户类型：含批发/商行/贸易/经销/商贸 → WHOLESALE，否则 CASH */
+  private inferCustomerType(name: string): string {
+    return /批发|商行|贸易|经销|商贸/.test(name) ? 'WHOLESALE' : 'CASH';
+  }
+
   /** 解析并校验参数 */
   private parseArgs(
     args: Record<string, unknown>,
   ):
     | { valid: true; data: CreateSalesOrderArgs }
     | { valid: false; error: string; suggestion?: string } {
-    const customerId = args.customerId;
-    if (typeof customerId !== 'number' || customerId <= 0) {
+    const customerId =
+      typeof args.customerId === 'number' && args.customerId > 0
+        ? args.customerId
+        : undefined;
+    const customerName =
+      typeof args.customerName === 'string' && args.customerName.trim()
+        ? args.customerName.trim()
+        : undefined;
+
+    if (customerId === undefined && !customerName) {
       return {
         valid: false,
-        error: '参数 customerId 必须为正整数',
-        suggestion: '请先调用 searchCustomer 获取客户的 memberId',
+        error: '必须提供 customerId 或 customerName（推荐 customerName）',
+        suggestion: '请传入客户名称，工具会自动查找或创建客户',
       };
     }
 
@@ -355,8 +505,7 @@ export class CreateSalesOrderTool implements ITool {
       valid: true,
       data: {
         customerId,
-        customerName:
-          typeof args.customerName === 'string' ? args.customerName : undefined,
+        customerName,
         customerType:
           typeof args.customerType === 'string' ? args.customerType : undefined,
         items: items as OrderItemInput[],
