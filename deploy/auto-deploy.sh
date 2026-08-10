@@ -32,7 +32,7 @@ VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace admin-web run build
 VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace saas-admin run build
 
 echo "==> 构建商户端 H5"
-VITE_API_BASE=/api npm --workspace app-mobile run build:h5 2>/dev/null || echo "app-mobile 构建跳过"
+VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace app-mobile run build:h5 2>/dev/null || echo "app-mobile 构建跳过"
 
 echo "==> 构建官网"
 npm --workspace website run build
