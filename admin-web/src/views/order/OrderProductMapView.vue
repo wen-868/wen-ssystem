@@ -275,6 +275,7 @@
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, UploadFilled, WarningFilled } from "@element-plus/icons-vue";
+import { fetchProductMaps, fetchProductMapStats } from "../../api/instant-retail";
 
 // ── Mock 数据 ──
 const channelTypes = ["ALL", "WECHAT", "DOUYIN", "MEITUAN", "ELEME", "JD"];

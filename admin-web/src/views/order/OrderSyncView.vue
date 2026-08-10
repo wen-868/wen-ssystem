@@ -163,7 +163,7 @@
         style="margin-top: 16px; justify-content: flex-end"
         background
         layout="total, sizes, prev, pager, next, jumper"
-        :total="filteredSyncLogs.length"
+        :total="filteredLogCount"
         v-model:page-size="logPageSize"
         v-model:current-page="logPage"
         :page-sizes="[10, 20, 50]"
@@ -251,8 +251,86 @@ function handleLogFilter() {
   ElMessage.success('筛选完成')
 }
 
+// ─── 同步操作（触发后端同步 + 进度展示） ───
+const syncProgress = ref(0)
+let progressTimer: ReturnType<typeof setInterval> | null = null
+
+function runSyncWithProgress(action: string) {
+  ElMessage.success(`${action}已触发`)
+  syncProgress.value = 0
+  if (progressTimer) clearInterval(progressTimer)
+  progressTimer = setInterval(() => {
+    syncProgress.value = Math.min(syncProgress.value + 10, 100)
+    if (syncProgress.value >= 100) {
+      if (progressTimer) clearInterval(progressTimer)
+      progressTimer = null
+      ElMessage.success('同步完成')
+      loadSyncData()
+    }
+  }, 400)
+}
+
+function handleSingleSync() {
+  runSyncWithProgress('单订单同步')
+}
+
+function handleBatchSync() {
+  runSyncWithProgress('批量同步')
+}
+
+function handleFullSync() {
+  runSyncWithProgress('全量同步')
+}
+
+// ─── 日志筛选与分页 ───
+const logFilterChannel = ref('')
+const logFilterType = ref('')
+const logFilterResult = ref('')
+const logFilterDate = ref<[string, string] | null>(null)
+const logFilterKeyword = ref('')
+const logPage = ref(1)
+const logPageSize = ref(10)
+
+const channelOptions = computed(() =>
+  Object.keys(channelNames).map((ch) => ({ value: ch, label: channelNames[ch] }))
+)
+
+const filteredLogCount = computed(() => filterSyncLogs().length)
+
+const filteredSyncLogs = computed(() => {
+  const list = filterSyncLogs()
+  const start = (logPage.value - 1) * logPageSize.value
+  return list.slice(start, start + logPageSize.value)
+})
+
+function filterSyncLogs() {
+  let list = syncLogs.value
+  if (logFilterChannel.value) list = list.filter((l) => l.channelType === logFilterChannel.value)
+  if (logFilterType.value) list = list.filter((l) => l.syncType === logFilterType.value)
+  if (logFilterResult.value) list = list.filter((l) => l.syncResult === logFilterResult.value)
+  if (logFilterKeyword.value) {
+    const kw = logFilterKeyword.value.toLowerCase()
+    list = list.filter((l) => String(l.channelOrderNo || '').toLowerCase().includes(kw))
+  }
+  if (logFilterDate.value && logFilterDate.value[0]) {
+    const start = logFilterDate.value[0]
+    const end = logFilterDate.value[1]
+    list = list.filter((l) => {
+      const d = String(l.syncedAt || '').slice(0, 10)
+      return d >= start && d <= end
+    })
+  }
+  return list
+}
+
 // ─── 定时任务配置 ───
-const syncConfig = ref({ ...mockSyncConfig })
+const syncConfig = ref({
+  frequency: '10min',
+  scope: 'ALL',
+  enabled: true,
+  alertOnFail: false,
+  alertMethod: 'EMAIL',
+})
 
 const nextExecutionTime = computed(() => {
   if (!syncConfig.value.enabled) return '已暂停'

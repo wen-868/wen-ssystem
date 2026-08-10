@@ -417,7 +417,7 @@ async function loadData() {
       page: page.value,
       pageSize: pageSize.value,
       keyword: keyword.value || undefined,
-      categoryId: currentCategoryId.value || undefined,
+      category: currentCategoryId.value ? String(currentCategoryId.value) : undefined,
       status: statusFilter.value || undefined
     });
     let list = data?.records || [];

@@ -13,6 +13,7 @@ export const CHART_COLORS = {
   purple: "#8B5CF6",
   cyan: "#06B6D4",
   gray100: "#F0F0F0",
+  info: "#909399",
   textMuted: "#999999",
   textSecondary: "#444444",
 };

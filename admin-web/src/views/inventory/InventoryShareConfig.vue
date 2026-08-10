@@ -418,7 +418,7 @@ function removeShareProduct(row: any) {
 
 async function searchAddProducts() {
   try {
-    const data = await fetchProducts({ keyword: addSearchKeyword.value || undefined, page: 1, pageSize: 50 });
+    const data = await fetchProducts({ keyword: addProductSearch.value || undefined, page: 1, pageSize: 50 });
     addProductList.value = (data.records || data.list || []).map((p: any) => ({
       id: p.id,
       skuId: p.skuId || p.id,

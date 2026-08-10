@@ -358,8 +358,7 @@ const router = useRouter();
 const auth = useAuthStore();
 
 /** 尚为 mock 演示数据的页面（商用化接入中，标识提示） */
-const MOCK_PAGES = [
-];
+const MOCK_PAGES: string[] = [];
 const isMockPage = computed(() => MOCK_PAGES.some((p) => route.path === p || route.path.startsWith(p + "/")));
 
 /** 收银台模式功能导航（一级入口，对应 /pos/* 版块） */

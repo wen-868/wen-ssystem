@@ -433,7 +433,7 @@ function handleProductImageRemove() {
 }
 
 async function submitProduct() {
-  const valid = await formRef.value?.validate().catch(() => false);
+  const valid = await productFormRef.value?.validate().catch(() => false);
   if (!valid) return;
   const payload = {
     name: productForm.productName,

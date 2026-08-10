@@ -261,6 +261,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { Search, Clock, Warning, CircleCheck, Close } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import WorkflowFlowChart from "../components/WorkflowFlowChart.vue";
+import { fetchProductReviews, fetchProductReviewDetail } from "../../api/product";
 
 const placeholderImg = "https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png";
 

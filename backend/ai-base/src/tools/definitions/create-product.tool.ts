@@ -41,6 +41,14 @@ interface CategoryItem {
   name: string;
 }
 
+/** 后端商品列表项（查重用，列表接口字段拍平到记录顶层） */
+interface ProductListItem {
+  id: number;
+  name: string;
+  skuId?: number;
+  spuCode?: string;
+}
+
 @Injectable()
 export class CreateProductTool implements ITool {
   private readonly logger = new Logger(CreateProductTool.name);
@@ -189,6 +197,28 @@ export class CreateProductTool implements ITool {
 
     // ── 执行阶段：调用后端创建商品 ──
     try {
+      // ── 查重：同租户已存在同名商品则不重复创建，直接复用 ──
+      const existed = await this.findExistingProduct(
+        productArgs.name,
+        context,
+      );
+      if (existed) {
+        this.logger.log(
+          `商品「${productArgs.name}」已存在（spuId=${existed.id}），跳过创建`,
+        );
+        return {
+          success: true,
+          data: {
+            spuId: existed.id,
+            skuId: existed.skuId ?? existed.id,
+            spuCode: existed.spuCode,
+            name: existed.name,
+            duplicate: true,
+            message: `商品「${existed.name}」已存在（spuId=${existed.id}），已直接复用，未重复创建`,
+          },
+        };
+      }
+
       const requestBody = {
         name: productArgs.name,
         categoryId,
@@ -247,6 +277,22 @@ export class CreateProductTool implements ITool {
         suggestion: '请确认后端服务正常、商品名称非空、且至少提供一个价格',
       };
     }
+  }
+
+  /** 按名称查重（精确匹配，防止重复创建商品） */
+  private async findExistingProduct(
+    name: string,
+    context: ToolContext,
+  ): Promise<ProductListItem | undefined> {
+    const result = await this.serviceClient.get<{
+      records?: ProductListItem[];
+      list?: ProductListItem[];
+    }>(
+      `${API_ENDPOINTS.PRODUCTS}?keyword=${encodeURIComponent(name)}&page=1&pageSize=10`,
+      context,
+    );
+    const products = result?.records ?? result?.list ?? [];
+    return products.find((p) => p.name === name);
   }
 
   /** 解析分类：按名称模糊匹配，找不到时取第一个分类 */

@@ -69,6 +69,14 @@ interface CreateCustomerResult {
   remark: string | null;
 }
 
+/** 后端客户列表项（查重用） */
+interface CustomerListItem {
+  memberId: number;
+  name: string;
+  mobile?: string;
+  customerType?: string;
+}
+
 @Injectable()
 export class CreateCustomerTool implements ITool {
   private readonly logger = new Logger(CreateCustomerTool.name);
@@ -191,6 +199,32 @@ export class CreateCustomerTool implements ITool {
 
     // ── 3. 执行阶段：调用后端创建客户 ──
     try {
+      // ── 查重：同租户已存在同名客户则不重复创建，直接复用 ──
+      const existed = await this.findExistingCustomer(
+        customerArgs.name,
+        context,
+      );
+      if (existed) {
+        this.logger.log(
+          `客户「${customerArgs.name}」已存在（memberId=${existed.memberId}），跳过创建`,
+        );
+        return {
+          success: true,
+          data: {
+            memberId: existed.memberId,
+            name: existed.name,
+            mobile: existed.mobile ?? '',
+            customerType: existed.customerType ?? 'CASH',
+            customerTypeLabel:
+              CUSTOMER_TYPE_LABELS[
+                (existed.customerType ?? 'CASH') as CustomerType
+              ] ?? existed.customerType,
+            duplicate: true,
+            message: `客户「${existed.name}」已存在（客户ID=${existed.memberId}），已直接复用，未重复创建`,
+          },
+        };
+      }
+
       // t_member.mobile 有全局唯一键 uk_member_mobile：未提供手机号时不能插入空串（第二次会撞键），
       // 生成唯一占位号（139 + 8 位随机数），客户创建后可到客户管理页修改为真实手机号。
       const mobile =
@@ -261,6 +295,22 @@ export class CreateCustomerTool implements ITool {
   }
 
   // ── 私有方法 ──
+
+  /** 按名称查重（精确匹配，防止重复创建客户） */
+  private async findExistingCustomer(
+    name: string,
+    context: ToolContext,
+  ): Promise<CustomerListItem | undefined> {
+    const result = await this.serviceClient.get<{
+      records?: CustomerListItem[];
+      list?: CustomerListItem[];
+    }>(
+      `${API_ENDPOINTS.CUSTOMERS}?keyword=${encodeURIComponent(name)}&page=1&pageSize=10`,
+      context,
+    );
+    const customers = result?.records ?? result?.list ?? [];
+    return customers.find((c) => c.name === name);
+  }
 
   /** 解析并校验参数 */
   private parseArgs(

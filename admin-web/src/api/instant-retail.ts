@@ -104,7 +104,7 @@ export async function fetchOrderExceptionLogs(id: number) {
   return data.data;
 }
 
-export async function fetchShelfProducts(params?: { keyword?: string; category?: string; page?: number; pageSize?: number }) {
+export async function fetchShelfProducts(params?: { keyword?: string; category?: string; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/instant-retail/shelf", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }

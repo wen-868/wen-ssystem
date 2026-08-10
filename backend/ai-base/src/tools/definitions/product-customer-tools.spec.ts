@@ -87,9 +87,10 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
   });
 
   beforeEach(() => {
-    mockServiceClient.get.mockClear();
-    mockServiceClient.post.mockClear();
-    mockServiceClient.put.mockClear();
+    // mockReset 清空实现，避免 mockResolvedValueOnce 跨用例残留
+    mockServiceClient.get.mockReset();
+    mockServiceClient.post.mockReset();
+    mockServiceClient.put.mockReset();
   });
 
   // ── 1. UpdateProductPriceTool ──
@@ -463,6 +464,29 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
       const data = result.data as { note?: string; creditLimit?: unknown };
       expect(data.note).toContain('人工设置');
       expect(data.creditLimit).toBeUndefined();
+    });
+
+    it('执行时同名客户已存在应复用且不重复创建', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        records: [
+          { memberId: 5, name: '兴旺超市', mobile: '13800000000', customerType: 'WHOLESALE' },
+        ],
+      });
+
+      const result = await createCustomer.execute(
+        { name: '兴旺超市', phone: '13800000000', customerType: 'WHOLESALE', confirm: true },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const data = result.data as { memberId: number; duplicate: boolean; message: string };
+      expect(data.memberId).toBe(5);
+      expect(data.duplicate).toBe(true);
+      expect(data.message).toContain('已存在');
+      expect(mockServiceClient.post).not.toHaveBeenCalled();
     });
 
     it('name 为空应返回参数错误', async () => {
@@ -938,6 +962,30 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
       expect(data.skuId).toBe(200);
       const [path] = mockServiceClient.post.mock.calls[0] as [string];
       expect(path).toContain('/api/admin/products');
+    });
+
+    it('执行时同名商品已存在应复用且不重复创建', async () => {
+      // 第一次 GET：分类解析；第二次 GET：按名称查重
+      mockServiceClient.get
+        .mockResolvedValueOnce([{ id: 1, name: '白酒' }])
+        .mockResolvedValueOnce({
+          total: 1,
+          page: 1,
+          pageSize: 10,
+          records: [{ id: 100, name: '红星二锅头 56度 500ml', skuId: 200 }],
+        });
+
+      const result = await createProduct.execute(
+        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, confirm: true },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const data = result.data as { spuId: number; duplicate: boolean; message: string };
+      expect(data.spuId).toBe(100);
+      expect(data.duplicate).toBe(true);
+      expect(data.message).toContain('已存在');
+      expect(mockServiceClient.post).not.toHaveBeenCalled();
     });
   });
 });
