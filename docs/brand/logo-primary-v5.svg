@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512">
+  <!-- 智享全链 · 主标识 v5（以"智"字为基，几何字体变形，参考图风格）
+       左上斜撇（智能/箭头）+ 右上圆角"口" + 底部横长"日"（含中线负空间） -->
+  <circle cx="100" cy="100" r="96" fill="#EAF2FF"/>
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#3F6FEF" stroke-width="6"/>
+  <circle cx="100" cy="100" r="78" fill="none" stroke="#BFD7FF" stroke-width="2"/>
+  <!-- 矢：左上斜撇（智能/箭头） -->
+  <line x1="58" y1="60" x2="90" y2="92" stroke="#1E3A8A" stroke-width="11" stroke-linecap="round"/>
+  <!-- 矢：上横 -->
+  <rect x="58" y="46" width="30" height="10" rx="5" fill="#1E3A8A"/>
+  <!-- 口：右上圆角方 -->
+  <rect x="102" y="42" width="40" height="36" rx="7" fill="#1E3A8A"/>
+  <!-- 日：底部横长圆角矩形 + 中线负空间 -->
+  <rect x="60" y="108" width="82" height="38" rx="9" fill="#1E3A8A"/>
+  <rect x="66" y="124" width="70" height="4" rx="2" fill="#EAF2FF"/>
+</svg>
