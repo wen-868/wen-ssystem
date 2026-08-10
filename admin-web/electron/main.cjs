@@ -1,8 +1,11 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require("electron");
 const path = require("path");
 
-// 后端 API 地址（桌面版直连远程服务器）
-const API_BASE = "https://api.onepan.cn";
+// 后端 API 地址（桌面版直连远程服务器；api.onepan.cn 解析到生产服务器 IP：159.75.153.59）
+const API_BASE = "https://api.onepan.cn/api";
+
+// AI 底座地址（桌面版通过 nginx /ai-api 代理访问）
+const AI_BASE = "https://admin.onepan.cn/ai-api";
 
 let mainWindow;
 
@@ -62,6 +65,16 @@ app.on("window-all-closed", () => {
 
 // IPC 通信：提供 API 基础地址
 ipcMain.handle("get-api-base", () => API_BASE);
+
+// IPC 通信（同步）：渲染层模块加载时同步获取 API 地址
+ipcMain.on("get-api-base-sync", (event) => {
+  event.returnValue = API_BASE;
+});
+
+// IPC 通信（同步）：渲染层模块加载时同步获取 AI 地址
+ipcMain.on("get-ai-base-sync", (event) => {
+  event.returnValue = AI_BASE;
+});
 
 // IPC 通信：打开系统浏览器
 ipcMain.handle("open-external", async (_event, url) => {

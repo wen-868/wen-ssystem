@@ -20,6 +20,10 @@ import { parseSseChunk, type SseEvent } from "./sse";
 
 /** 解析 AI 底座服务地址：优先读 VITE_AI_BASE_URL，未配置时默认本地 3016 端口 */
 function resolveAiBase(): string {
+  // Electron 桌面环境：通过 preload 获取 AI 底座地址
+  if (typeof window !== "undefined" && (window as any).electronAPI?.aiBase) {
+    return String((window as any).electronAPI.aiBase).replace(/\/+$/, "");
+  }
   const configured = import.meta.env.VITE_AI_BASE_URL;
   if (configured) return configured.replace(/\/+$/, "");
   return "http://localhost:3016";

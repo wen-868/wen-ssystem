@@ -4,8 +4,10 @@ import { useAuthStore } from "../stores/auth";
 
 function resolveApiBase() {
   // Electron 桌面环境：通过 preload 获取远程 API 地址
-  if (typeof window !== "undefined" && window.electronAPI) {
-    return window.electronAPI.apiBase || "http://159.75.153.59/api";
+  // 生产服务器真实 IP：159.75.153.59（api.onepan.cn 解析到该机器）。
+  // 桌面版走域名 https://api.onepan.cn/api（TLS 证书匹配域名）；直连 IP 因证书不匹配不建议使用。
+  if (typeof window !== "undefined" && window.electronAPI?.apiBase) {
+    return window.electronAPI.apiBase;
   }
   const configured = import.meta.env.VITE_API_BASE;
   if (configured) return configured;

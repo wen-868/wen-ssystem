@@ -1,6 +1,10 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  // API 基础地址（同步，供渲染层模块加载时读取）
+  apiBase: ipcRenderer.sendSync("get-api-base-sync"),
+  // AI 底座地址（同步）
+  aiBase: ipcRenderer.sendSync("get-ai-base-sync"),
   // 获取 API 基础地址
   getApiBase: () => ipcRenderer.invoke("get-api-base"),
 

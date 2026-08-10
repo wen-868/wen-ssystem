@@ -21,6 +21,8 @@ jobs:
       - name: Build Vite
         working-directory: admin-web
         run: npx vite build
+        env:
+          VITE_AI_BASE_URL: https://admin.onepan.cn/ai-api
       - name: Build Electron EXE
         working-directory: admin-web
         run: |

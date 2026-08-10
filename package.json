@@ -16,7 +16,6 @@
     "webpack": "5.87.0",
     "ip-address": "^10.4.0",
     "ws": "^8.21.2",
-    "brace-expansion": "^1.1.18",
     "vite": {
       "postcss": "8.5.25"
     }
@@ -39,6 +38,7 @@
   },
   "devDependencies": {
     "@vue/babel-plugin-jsx": "^3.0.0",
+    "brace-expansion": "5.0.5",
     "esbuild": "^0.25.0",
     "js-yaml": "^4.2.0",
     "typescript": "^5.5.3",
