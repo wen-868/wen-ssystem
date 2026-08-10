@@ -191,10 +191,17 @@ export class CreateCustomerTool implements ITool {
 
     // ── 3. 执行阶段：调用后端创建客户 ──
     try {
+      // t_member.mobile 有全局唯一键 uk_member_mobile：未提供手机号时不能插入空串（第二次会撞键），
+      // 生成唯一占位号（139 + 8 位随机数），客户创建后可到客户管理页修改为真实手机号。
+      const mobile =
+        customerArgs.phone && customerArgs.phone.trim()
+          ? customerArgs.phone.trim()
+          : `139${String(Math.floor(10000000 + Math.random() * 89999999))}`;
+
       // 对齐后端 createCustomer 支持字段（creditLimit 后端不支持，不发送）
       const requestBody = {
         name: customerArgs.name,
-        mobile: customerArgs.phone ?? '',
+        mobile,
         customerType: customerArgs.customerType,
         address: customerArgs.address ?? undefined,
         settlementType: customerArgs.settlementType,
@@ -225,6 +232,10 @@ export class CreateCustomerTool implements ITool {
           settlementType: result.settlementType,
           remark: result.remark,
           message: `客户「${result.name}」创建成功，客户ID=${result.memberId}`,
+          phoneNote:
+            customerArgs.phone && customerArgs.phone.trim()
+              ? undefined
+              : '客户未提供手机号，已生成占位号，请到客户管理页修改为真实手机号',
           note:
             customerArgs.creditLimit !== undefined
               ? '信用额度已提示但未写入，请到客户管理页人工设置'

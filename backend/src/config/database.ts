@@ -162,7 +162,11 @@ export async function queryWithTenant<T = any>(sql: string, params: unknown[] = 
   }
   
   const { modifiedSql, modifiedParams } = injectTenantCondition(sql, params, tenantId);
-  const [rows] = await pool.query(modifiedSql, modifiedParams);
+  const [result] = await pool.query(modifiedSql, modifiedParams);
+  // R70-24 修复：mysql2 callback 池的 INSERT/UPDATE/DELETE 返回 ResultSetHeader 对象（非数组），
+  // 而调用方按数组取 result[0].insertId / result[0].affectedRows（如 createCustomer），
+  // 导致"插入成功但拿不到 ID → 抛"创建客户失败"500"。统一归一化为数组，与 mock 模式一致。
+  const rows = Array.isArray(result) ? result : [result];
   return rows as T[];
 }
 
