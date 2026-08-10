@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="512" height="512">
+  <!-- 智享全链 · 主标识 v2（全链路闭环 + 智能核心，不局限行业）
+       圆形徽章 = 平台闭环；六边形环 = 全链路六域（经营/运营/数据/AI/服务/平台）；
+       中心四角星芒 = 智能(AI/数据)驱动 -->
+  <circle cx="100" cy="100" r="97" fill="#3F6FEF"/>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="2"/>
+  <!-- 六边形闭环（白色描边环） -->
+  <polygon
+    points="158,100 129,150.3 71,150.3 42,100 71,49.7 129,49.7"
+    fill="none" stroke="#ffffff" stroke-width="11" stroke-linejoin="round"
+  />
+  <!-- 中心智能星芒（四角星） -->
+  <path
+    d="M100 60 L108 92 L140 100 L108 108 L100 140 L92 108 L60 100 L92 92 Z"
+    fill="#ffffff"
+  />
+</svg>
