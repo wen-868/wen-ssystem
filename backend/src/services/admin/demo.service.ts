@@ -117,6 +117,7 @@ export async function seedDemoData(tenantId: string) {
 
     // 3. 客户
     const customers = [
+      { name: "红星商行", mobile: "13900000004", type: "WHOLESALE", address: "广州市越秀区" },
       { name: "天河烟酒批发部", mobile: "13900000001", type: "WHOLESALE", address: "广州市天河区" },
       { name: "海珠便利店", mobile: "13900000002", type: "RETAIL", address: "广州市海珠区" },
       { name: "珠江新城餐厅", mobile: "13900000003", type: "RETAIL", address: "广州市天河区" },

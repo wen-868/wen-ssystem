@@ -3,6 +3,7 @@ import { ToolRegistry } from './tool-registry';
 import { EchoTool } from './definitions/echo.tool';
 import { SearchCustomerTool } from './definitions/search-customer.tool';
 import { SearchProductTool } from './definitions/search-product.tool';
+import { CreateProductTool } from './definitions/create-product.tool';
 import { CheckInventoryTool } from './definitions/check-inventory.tool';
 import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
@@ -70,6 +71,7 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly echoTool: EchoTool,
     private readonly searchCustomerTool: SearchCustomerTool,
     private readonly searchProductTool: SearchProductTool,
+    private readonly createProductTool: CreateProductTool,
     private readonly checkInventoryTool: CheckInventoryTool,
     private readonly createSalesOrderTool: CreateSalesOrderTool,
     private readonly querySaleBillsTool: QuerySaleBillsTool,
@@ -106,6 +108,7 @@ export class ToolBootstrap implements OnModuleInit {
       // R70-09: 销售管理 7 个工具
       this.searchCustomerTool,
       this.searchProductTool,
+      this.createProductTool,
       this.checkInventoryTool,
       this.createSalesOrderTool,
       this.querySaleBillsTool,

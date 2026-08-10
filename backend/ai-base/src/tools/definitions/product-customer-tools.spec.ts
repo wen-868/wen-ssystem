@@ -21,6 +21,8 @@ import { QueryProductDetailTool } from './query-product-detail.tool';
 import { CreateCustomerTool } from './create-customer.tool';
 import { QueryCustomerDetailTool } from './query-customer-detail.tool';
 import { SearchCustomerTool } from './search-customer.tool';
+import { SearchProductTool } from './search-product.tool';
+import { CreateProductTool } from './create-product.tool';
 
 const mockContext: ToolContext = {
   tenantId: 'test-tenant',
@@ -55,6 +57,8 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
   let createCustomer: CreateCustomerTool;
   let queryCustomerDetail: QueryCustomerDetailTool;
   let searchCustomer: SearchCustomerTool;
+  let searchProduct: SearchProductTool;
+  let createProduct: CreateProductTool;
 
   beforeAll(async () => {
     mockServiceClient = createMockServiceClient();
@@ -68,6 +72,8 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
         CreateCustomerTool,
         QueryCustomerDetailTool,
         SearchCustomerTool,
+        SearchProductTool,
+        CreateProductTool,
       ],
     }).compile();
 
@@ -76,6 +82,8 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
     createCustomer = module.get(CreateCustomerTool);
     queryCustomerDetail = module.get(QueryCustomerDetailTool);
     searchCustomer = module.get(SearchCustomerTool);
+    searchProduct = module.get(SearchProductTool);
+    createProduct = module.get(CreateProductTool);
   });
 
   beforeEach(() => {
@@ -799,6 +807,133 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('搜索客户失败');
+    });
+  });
+
+  // ── 6. SearchProductTool 回归测试（records 字段兼容，与 searchCustomer 同源问题） ──
+  describe('SearchProductTool 回归测试', () => {
+    it('调用路径必须为 /api/admin/products', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        records: [
+          {
+            id: 2,
+            spuCode: 'SPU_WLY_52',
+            name: '五粮液 52度 500ml',
+            categoryId: 1,
+            categoryName: '白酒',
+            brandId: null,
+            brandName: null,
+            unit: '瓶',
+            specs: '500ml/瓶，52度',
+            status: 'ON_SALE',
+            skus: [
+              {
+                id: 2,
+                skuCode: 'SKU_WLY_52',
+                skuName: '五粮液 52度 500ml',
+                barcode: '6901234567002',
+                volume: '500ml',
+                packaging: '瓶装',
+                baseUnit: '瓶',
+                boxUnit: '箱',
+                boxRatio: 6,
+                costPrice: 850,
+                retailPrice: 1200,
+                wholesalePrice: 980,
+                miniappPrice: 1100,
+                storePrice: 1150,
+                availableQty: 150,
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = await searchProduct.execute(
+        { keyword: '五粮液' },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const [path] = mockServiceClient.get.mock.calls[0] as [string];
+      expect(path).toContain('/api/admin/products');
+      expect(path).toContain('keyword=');
+      const data = result.data as {
+        list: Array<{ spuId: number; name: string }>;
+        total: number;
+      };
+      expect(data.list).toHaveLength(1);
+      expect(data.list[0].spuId).toBe(2);
+      expect(data.list[0].name).toBe('五粮液 52度 500ml');
+      expect(data.total).toBe(1);
+    });
+
+    it('空结果应返回成功 + 空列表 + 自动创建建议', async () => {
+      mockServiceClient.get.mockResolvedValue({
+        total: 0,
+        page: 1,
+        pageSize: 20,
+        records: [],
+      });
+
+      const result = await searchProduct.execute(
+        { keyword: '不存在' },
+        mockContext,
+      );
+
+      expect(result.success).toBe(true);
+      const data = result.data as { list: unknown[]; suggestion?: string };
+      expect(data.list).toHaveLength(0);
+      expect(data.suggestion).toContain('createProduct');
+    });
+  });
+
+  // ── 7. CreateProductTool（预览 + 执行） ──
+  describe('CreateProductTool', () => {
+    it('无价格应返回参数错误（需向用户确认价格）', async () => {
+      const result = await createProduct.execute(
+        { name: '测试酒', categoryId: 1 },
+        mockContext,
+      );
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('价格');
+    });
+
+    it('预览阶段应返回 preview 且不调用后端', async () => {
+      mockServiceClient.get.mockResolvedValue([
+        { id: 1, name: '白酒' },
+      ]);
+      const result = await createProduct.execute(
+        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, wholesalePrice: 38, confirm: false },
+        mockContext,
+      );
+      expect(result.success).toBe(true);
+      expect(result.preview).toBeDefined();
+      expect(mockServiceClient.post).not.toHaveBeenCalled();
+    });
+
+    it('执行阶段应调用 POST /api/admin/products 并返回 skuId', async () => {
+      mockServiceClient.get.mockResolvedValue([
+        { id: 1, name: '白酒' },
+      ]);
+      mockServiceClient.post.mockResolvedValue({
+        id: 100,
+        spuId: 100,
+        skuId: 200,
+        spuCode: 'SPU_TEST',
+      });
+      const result = await createProduct.execute(
+        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, wholesalePrice: 38, boxRatio: 6, confirm: true },
+        mockContext,
+      );
+      expect(result.success).toBe(true);
+      const data = result.data as { skuId: number };
+      expect(data.skuId).toBe(200);
+      const [path] = mockServiceClient.post.mock.calls[0] as [string];
+      expect(path).toContain('/api/admin/products');
     });
   });
 });

@@ -121,13 +121,30 @@ function tagText(status?: string): string {
 /** 工具返回数据的摘要文本（成功且无预览时展示） */
 function toolSummary(message: AiChatMessage): string {
   if (message.preview) return "";
-  if (typeof message.data === "string") return message.data;
-  if (message.data && typeof message.data === "object") {
+  const data = message.data;
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object") {
+    const obj = data as Record<string, unknown>;
+    const list = Array.isArray(obj.list)
+      ? (obj.list as unknown[])
+      : Array.isArray(obj.records)
+        ? (obj.records as unknown[])
+        : null;
+    // 空结果：直接展示工具自带的可读提示（如"未找到匹配...的客户/商品"）
+    if (list && list.length === 0 && typeof obj.message === "string" && obj.message) {
+      return obj.message;
+    }
+    // 有结果：展示数量，避免堆原始 JSON
+    if (list && list.length > 0) {
+      const total = typeof obj.total === "number" ? obj.total : list.length;
+      return `查询到 ${list.length} 条结果${total !== list.length ? `（共 ${total} 条）` : ""}`;
+    }
+    if (typeof obj.message === "string" && obj.message) return obj.message;
     try {
-      const text = JSON.stringify(message.data);
+      const text = JSON.stringify(data);
       return text.length > 200 ? `${text.slice(0, 200)}...` : text;
     } catch {
-      return String(message.data);
+      return String(data);
     }
   }
   return "";

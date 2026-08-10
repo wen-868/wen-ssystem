@@ -110,7 +110,12 @@ export class SearchCustomerTool implements ITool {
       if (customers.length === 0) {
         return {
           success: true,
-          data: { list: [], total: 0, message: `未找到匹配"${keyword}"的客户` },
+          data: {
+            list: [],
+            total: 0,
+            message: `未找到匹配"${keyword}"的客户`,
+            suggestion: `未找到客户「${keyword}」。若当前是创建销售单/采购单等需要客户的流程，请询问用户是否创建该客户；用户确认后调用 createCustomer 自动创建。`,
+          },
         };
       }
 

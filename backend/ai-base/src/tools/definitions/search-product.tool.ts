@@ -61,7 +61,10 @@ interface ProductSkuItem {
 
 /** 后端返回的分页结构 */
 interface PaginatedResult<T> {
-  list: T[];
+  /** 后端真实字段（listProducts 返回 records） */
+  records?: T[];
+  /** 兼容旧形态 */
+  list?: T[];
   total: number;
   page: number;
   pageSize: number;
@@ -126,15 +129,25 @@ export class SearchProductTool implements ITool {
         context,
       );
 
-      if (!result || !result.list || result.list.length === 0) {
+      // R70-11 修复：后端 listProducts 返回 records 字段（非 list），双字段兼容，
+      // 否则搜索永远返回空列表（与 searchCustomer 同源问题）
+      const products = result?.records ?? result?.list ?? [];
+      const total = result?.total ?? 0;
+
+      if (products.length === 0) {
         return {
           success: true,
-          data: { list: [], total: 0, message: `未找到匹配"${keyword}"的商品` },
+          data: {
+            list: [],
+            total,
+            message: `未找到匹配"${keyword}"的商品`,
+            suggestion: `未找到商品「${keyword}」。请询问用户是否创建该商品（创建需要确认至少一个价格：零售价或批发价）；用户确认并提供价格后调用 createProduct 自动创建。`,
+          },
         };
       }
 
       // 精简返回，突出关键字段
-      const simplified = result.list.map((p) => ({
+      const simplified = products.map((p) => ({
         spuId: p.id,
         name: p.name,
         brandName: p.brandName,
@@ -166,7 +179,7 @@ export class SearchProductTool implements ITool {
         success: true,
         data: {
           list: simplified,
-          total: result.total,
+          total,
           page,
           pageSize,
         },
