@@ -3,14 +3,14 @@
  * 封装 uni.request，提供统一拦截、Token注入、错误处理
  */
 
-// uni-app 条件编译：H5 使用 Vite 环境变量，其他平台使用固定域名
+// uni-app 条件编译：H5 使用 Vite 环境变量，其他平台（App）使用生产 API 域名
 // 使用 IIFE 包裹避免 vue-tsc 误报重复声明（uni-app 编译器会按平台去除无用分支）
 const BASE_URL: string = (() => {
   // #ifdef H5
   return import.meta.env.VITE_API_BASE || '/api'
   // #endif
   // #ifndef H5
-  return 'https://api.zhixiang-chain.com'
+  return 'https://api.onepan.cn'
   // #endif
 })()
 

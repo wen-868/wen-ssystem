@@ -24,14 +24,14 @@
  * @author 阿澈
  */
 
-// H5 使用 Vite 环境变量（VITE_AI_BASE_URL），其他平台使用默认地址
+// H5 使用 Vite 环境变量（VITE_AI_BASE_URL=/ai-api），其他平台（App）使用生产 AI 代理地址
 // 使用 IIFE 包裹避免 vue-tsc 误报重复声明（uni-app 编译器会按平台去除无用分支）
 const AI_BASE_URL: string = (() => {
   // #ifdef H5
-  return import.meta.env.VITE_AI_BASE_URL || 'http://localhost:3016'
+  return import.meta.env.VITE_AI_BASE_URL || 'https://m.onepan.cn/ai-api'
   // #endif
   // #ifndef H5
-  return 'http://localhost:3016'
+  return 'https://m.onepan.cn/ai-api'
   // #endif
 })()
 

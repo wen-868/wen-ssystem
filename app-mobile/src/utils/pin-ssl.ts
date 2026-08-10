@@ -2,7 +2,7 @@
  * SSL 证书锁定（SSL Pinning）— R51-05 安全加固
  *
  * 核心功能：
- *  1. PINNED_CERTS                — 内置生产证书 SHA256 指纹配置（占位，后续替换实际值）
+ *  1. PINNED_CERTS                — 内置生产证书 SHA256 指纹配置（api.onepan.cn / m.onepan.cn）
  *  2. validateCertificate(host, cert) — 校验证书指纹是否匹配锁定列表
  *  3. getPinnedCerts(host)        — 获取指定域名的锁定证书列表
  *  4. isPinningEnabled()          — 是否启用 Pinning（支持远程配置应急关闭）
@@ -16,8 +16,8 @@
  *  - 使用 IIFE 包裹条件编译，避免 vue-tsc 误报重复声明（踩坑日志 [15]）
  *
  * 注意：
- *  - 当前 PINNED_CERTS 中的指纹为占位值，正式发布前必须替换为生产证书实际 SHA256
- *  - 证书轮换时，新旧证书指纹应同时保留在列表中，确保切换期间 App 仍可连接
+ *  - 已配置生产证书实际指纹（2026-09-15 到期），证书轮换时同步更新叶子证书指纹
+ *  - 中间证书指纹用于轮换兜底（新叶子证书仍由同一中间证书签发）
  *  - 应急开关关闭后，App 仍受 HTTPS 标准校验保护（仅失去 Pinning 额外防护）
  *
  * @author 阿澈
@@ -56,22 +56,20 @@ export interface PinningResult {
 // ====================== 证书指纹配置 ======================
 
 /**
- * 锁定证书列表（生产环境替换实际 SHA256 指纹）
+ * 锁定证书列表（生产环境实际 SHA256 指纹，2026-08-11 采集）
  *
  * 格式：sha256/<Base64(SubjectPublicKeyInfo 的 SHA256)>=
  *
- * 占位说明：
- *  - 当前为占位值（AAAA... / BBBB...），发布前必须替换
- *  - 建议保留 2 个指纹：当前证书 + 备用证书（用于轮换）
- *
- * 生成方式：
- *  - OpenSSL: openssl x509 -in cert.pem -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
- *  - 在线工具: https://www.ssllabs.com/ssltest/
+ * 每个域名保留 2 个指纹：叶子证书 + 中间证书（TrustAsia DV TLS RSA CA 2024，用于轮换兜底）
  */
 const PINNED_CERTS: Record<string, string[]> = {
-    'api.zhixiang-chain.com': [
-        'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', // 占位 — 主证书（发布前替换）
-        'sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=' // 占位 — 备用证书（用于轮换）
+    'api.onepan.cn': [
+        'sha256/SS6pnMVjm+Pm2R2cPKFxCIn4G6mgE7D4rnUtHdW0NC4=', // 叶子证书（2026-09-15 到期）
+        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
+    ],
+    'm.onepan.cn': [
+        'sha256/JKxBAU4tJIzGZXm3bavQMEwJPILBOnmx/X9D5i9uJO4=', // 叶子证书（2026-09-15 到期）
+        'sha256/X4AGLwdqSLcL//rYNWWFtfT1CnCt94N7jSHB6cabFBU=' // 中间证书 TrustAsia DV TLS RSA CA 2024
     ]
 }
 
@@ -116,7 +114,7 @@ export function setPinningEnabled(enabled: boolean): void {
 /**
  * 获取指定域名的锁定证书列表
  *
- * @param hostname 域名（如 api.zhixiang-chain.com）
+ * @param hostname 域名（如 api.onepan.cn）
  * @returns 证书指纹数组；未配置的域名返回空数组
  */
 export function getPinnedCerts(hostname: string): string[] {
@@ -132,7 +130,7 @@ export function getPinnedCerts(hostname: string): string[] {
  *
  * @example
  * ```ts
- * const result = validateCertificate('api.zhixiang-chain.com', {
+ * const result = validateCertificate('api.onepan.cn', {
  *   fingerprint: 'sha256/XXXX...'
  * })
  * if (!result.valid) {
