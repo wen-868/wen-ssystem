@@ -24,9 +24,6 @@
     <section class="hero">
       <div class="container">
         <div class="hero-content">
-          <div class="hero-badge">
-            <span class="dot"></span> v7.0 全新升级
-          </div>
           <h1>让生意<span>更简单</span></h1>
           <p>智享全链管理系统，覆盖商品、采购、库存、销售、订单、客户、营销、财务全链路。多租户 SaaS 架构，一部手机管好生意。</p>
           <div class="hero-actions">
@@ -35,24 +32,7 @@
           </div>
         </div>
         <div class="hero-visual">
-          <img 
-            src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20SaaS%20dashboard%20interface%20with%20charts%20and%20data%20tables%2C%20clean%20blue%20and%20white%20design%2C%20professional%20business%20analytics%20dashboard%2C%20minimalist%20UI&image_size=square_hd" 
-            alt="智享全链管理系统" 
-          />
-          <div class="float-card card1">
-            <div class="fc-icon green">↑</div>
-            <div>
-              <div class="fc-label">订单处理效率</div>
-              <div class="fc-value">提升 3x</div>
-            </div>
-          </div>
-          <div class="float-card card2">
-            <div class="fc-icon blue">✓</div>
-            <div>
-              <div class="fc-label">库存准确率</div>
-              <div class="fc-value">99.8%</div>
-            </div>
-          </div>
+          <img src="/hero-dashboard.svg" alt="智享全链管理系统数据看板" />
         </div>
       </div>
     </section>
@@ -84,18 +64,6 @@
               <h3>{{ s.title }}</h3>
               <p>{{ s.desc }}</p>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="stats">
-      <div class="container">
-        <div class="stats-grid">
-          <div class="stat-item" v-for="s in stats" :key="s.label">
-            <div class="stat-number">{{ s.value }}</div>
-            <div class="stat-label">{{ s.label }}</div>
           </div>
         </div>
       </div>
@@ -184,7 +152,7 @@ onUnmounted(() => {
 const features = [
   { icon: "📦", title: "商品管理", desc: "多规格 SKU、品牌分类、单位管理，支持商品批量导入导出和价格等级设置", color: "#2563eb", bg: "#dbeafe" },
   { icon: "📋", title: "采购管理", desc: "采购订单、入库、退货全流程，供应商对账与采购计划智能生成", color: "#7c3aed", bg: "#ede9fe" },
-  { icon: "🏪", title: "库存管理", desc: "实时库存查询、批次追踪、效期预警、盘点调拨，库存准确率高达 99.8%", color: "#059669", bg: "#d1fae5" },
+  { icon: "🏪", title: "库存管理", desc: "实时库存查询、批次追踪、效期预警、盘点调拨，库存状态实时掌控", color: "#059669", bg: "#d1fae5" },
   { icon: "💰", title: "销售管理", desc: "销售单、退货单、收款记录，支持多种支付方式与客户对账", color: "#ea580c", bg: "#fff7ed" },
   { icon: "👥", title: "客户管理", desc: "客户档案、标签分组、授信额度、客户专属价，精细化客户运营", color: "#dc2626", bg: "#fee2e2" },
   { icon: "📊", title: "数据报表", desc: "销售报表、采购报表、库存报表、客户报表、财务报表，多维度数据分析", color: "#0891b2", bg: "#cffafe" },
@@ -199,10 +167,4 @@ const solutions = [
   { icon: "📱", title: "社区团购 / 线上零售", desc: "微信小程序商城，即时零售平台对接，订单自动处理，库存实时同步", bg: "linear-gradient(135deg, #ede9fe, #ddd6fe)" },
 ];
 
-const stats = [
-  { value: "500+", label: "服务商家" },
-  { value: "99.8%", label: "库存准确率" },
-  { value: "3x", label: "效率提升" },
-  { value: "24/7", label: "技术支持" },
-];
 </script>
