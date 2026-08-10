@@ -38,6 +38,18 @@ interface ProductListItem {
   specs: string;
   status: string;
   skus?: ProductSkuItem[];
+  // 后端列表接口将首个 SKU 字段拍平到记录顶层（无嵌套 skus 数组时使用）
+  skuId?: number;
+  skuName?: string;
+  barcode?: string;
+  boxRatio?: number;
+  baseUnit?: string;
+  boxUnit?: string;
+  retailPrice?: number;
+  wholesalePrice?: number;
+  storePrice?: number;
+  costPrice?: number;
+  availableQty?: number;
 }
 
 /** 后端返回的 SKU 信息 */
@@ -147,29 +159,56 @@ export class SearchProductTool implements ITool {
       }
 
       // 精简返回，突出关键字段
-      const simplified = products.map((p) => ({
-        spuId: p.id,
-        name: p.name,
-        brandName: p.brandName,
-        specs: p.specs,
-        unit: p.unit,
-        categoryName: p.categoryName,
-        skus: (p.skus ?? []).map((s) => ({
-          skuId: s.id,
-          skuName: s.skuName,
-          barcode: s.barcode,
-          boxRatio: s.boxRatio,
-          baseUnit: s.baseUnit,
-          boxUnit: s.boxUnit,
-          prices: {
-            retailPrice: s.retailPrice,
-            wholesalePrice: s.wholesalePrice,
-            storePrice: s.storePrice,
-            costPrice: s.costPrice,
-          },
-          availableQty: s.availableQty,
-        })),
-      }));
+      // 后端 listProducts 将首个 SKU 字段拍平到记录顶层（skuId/boxRatio/价格等），
+      // 无嵌套 skus 时从拍平字段构造，确保 LLM 拿到 skuId 与价格（否则无法继续开单）
+      const simplified = products.map((p) => {
+        const nestedSkus = Array.isArray(p.skus) ? p.skus : [];
+        const skus =
+          nestedSkus.length > 0
+            ? nestedSkus.map((s) => ({
+                skuId: s.id,
+                skuName: s.skuName,
+                barcode: s.barcode,
+                boxRatio: s.boxRatio,
+                baseUnit: s.baseUnit,
+                boxUnit: s.boxUnit,
+                prices: {
+                  retailPrice: s.retailPrice,
+                  wholesalePrice: s.wholesalePrice,
+                  storePrice: s.storePrice,
+                  costPrice: s.costPrice,
+                },
+                availableQty: s.availableQty,
+              }))
+            : p.skuId !== undefined
+              ? [
+                  {
+                    skuId: p.skuId,
+                    skuName: p.skuName ?? p.name,
+                    barcode: p.barcode,
+                    boxRatio: p.boxRatio ?? 1,
+                    baseUnit: p.baseUnit,
+                    boxUnit: p.boxUnit,
+                    prices: {
+                      retailPrice: p.retailPrice,
+                      wholesalePrice: p.wholesalePrice,
+                      storePrice: p.storePrice,
+                      costPrice: p.costPrice,
+                    },
+                    availableQty: p.availableQty,
+                  },
+                ]
+              : [];
+        return {
+          spuId: p.id,
+          name: p.name,
+          brandName: p.brandName,
+          specs: p.specs,
+          unit: p.unit,
+          categoryName: p.categoryName,
+          skus,
+        };
+      });
 
       this.logger.debug(
         `搜索商品"${keyword}"：找到 ${result.total} 条，返回 ${simplified.length} 条`,

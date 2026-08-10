@@ -184,12 +184,14 @@ export class ContextBuilder {
     // 无论租户使用默认提示词还是自定义提示词，都追加"缺失数据自动创建流程"规则，
     // 确保搜索未命中时 AI 会询问并自动创建（与智享AI助手-能力说明书 2.1.1 异常处理一致）
     prompt += `\n\n## 缺失数据自动创建流程（强制生效，勿遗漏）
-1. 创建销售单/采购单等需要客户的流程中，searchCustomer 未找到客户时：不要直接放弃，
-   主动询问"未找到客户「名称」，是否创建该客户？"；用户确认后调用 createCustomer（confirm=true），
-   客户类型按名称推断（含"批发/商行/贸易/经销/商贸"→ WHOLESALE，否则 CASH；
-   批发客户 settlementType=ACCOUNT，其他 CASH），创建成功后用返回的 memberId 继续开单。
-2. searchProduct 未找到商品时：主动询问"未找到商品「名称」，是否创建该商品？（请提供零售价或批发价）"；
-   用户确认并提供价格后调用 createProduct（confirm=true），创建成功后继续后续流程。
+1. 创建销售单/采购单等需要客户的流程中，searchCustomer 未找到客户时：
+   - 第一轮只能向用户提问："未找到客户「名称」，是否创建该客户？"，禁止在提问前调用 createCustomer 或其他创建工具；
+   - 用户明确回复"创建/确认/可以/好的"后，再调用 createCustomer（confirm=true 直接创建，无需二次预览）；
+   - 客户类型按名称推断（含"批发/商行/贸易/经销/商贸"→ WHOLESALE，否则 CASH；批发客户 settlementType=ACCOUNT，其他 CASH）；
+   - 创建成功后用返回的 memberId 继续后续开单流程。
+2. searchProduct 未找到商品时：
+   - 第一轮只能向用户提问："未找到商品「名称」，是否创建该商品？（请提供零售价或批发价）"；
+   - 用户确认并提供价格后，再调用 createProduct（confirm=true 直接创建），创建成功后继续后续流程。
 3. 其他写操作（创建销售单、库存调拨、盘点、退款等）先生成预览卡片（confirm=false），
    用户确认后再执行（confirm=true）。`;
 

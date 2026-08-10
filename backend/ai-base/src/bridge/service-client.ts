@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHmac } from 'crypto';
 import axios, {
   AxiosInstance,
   AxiosRequestConfig,
@@ -116,6 +117,8 @@ export class ServiceClient {
   private readonly baseUrl: string;
   private readonly timeout: number;
   private readonly maxRetries = 1;
+  /** CSRF 密钥（后端 CSRF_SECRET，缺失时回退 JWT_SECRET，与 backend csrf.ts 一致） */
+  private readonly csrfSecret: string | undefined;
 
   constructor(private readonly configService: ConfigService) {
     this.baseUrl = this.configService.get<string>(
@@ -123,6 +126,10 @@ export class ServiceClient {
       'http://127.0.0.1:8080',
     );
     this.timeout = this.configService.get<number>('BACKEND_API_TIMEOUT', 15000);
+    this.csrfSecret =
+      this.configService.get<string>('CSRF_SECRET') ||
+      this.configService.get<string>('JWT_SECRET') ||
+      undefined;
 
     this.httpClient = axios.create({
       baseURL: this.baseUrl,
@@ -295,6 +302,14 @@ export class ServiceClient {
     const headers: Record<string, string> = {
       'X-Tenant-Id': context.tenantId,
     };
+
+    // 后端写操作（POST/PUT/DELETE）要求 x-csrf-token：
+    // token = HMAC-SHA256(CSRF_SECRET || JWT_SECRET, userId)，与 backend/src/middleware/csrf.ts 对齐
+    if (context.userId && this.csrfSecret) {
+      headers['x-csrf-token'] = createHmac('sha256', this.csrfSecret)
+        .update(String(context.userId))
+        .digest('hex');
+    }
 
     // 透传用户 JWT token（后端 requireAuthWithTenant 会解析）
     if (context.authToken) {

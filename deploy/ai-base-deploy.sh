@@ -53,6 +53,7 @@ if [ ! -f ".env" ]; then
       [REDIS_PORT]=REDIS_PORT
       [REDIS_PASSWORD]=REDIS_PASSWORD
       [JWT_SECRET]=JWT_SECRET
+      [CSRF_SECRET]=CSRF_SECRET
     )
     for SRC in "${!KEY_MAP[@]}"; do
       DST="${KEY_MAP[$SRC]}"

@@ -829,25 +829,22 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
             unit: '瓶',
             specs: '500ml/瓶，52度',
             status: 'ON_SALE',
-            skus: [
-              {
-                id: 2,
-                skuCode: 'SKU_WLY_52',
-                skuName: '五粮液 52度 500ml',
-                barcode: '6901234567002',
-                volume: '500ml',
-                packaging: '瓶装',
-                baseUnit: '瓶',
-                boxUnit: '箱',
-                boxRatio: 6,
-                costPrice: 850,
-                retailPrice: 1200,
-                wholesalePrice: 980,
-                miniappPrice: 1100,
-                storePrice: 1150,
-                availableQty: 150,
-              },
-            ],
+            // 真实后端形态：首个 SKU 字段拍平到记录顶层（无嵌套 skus）
+            skuId: 2,
+            skuCode: 'SKU_WLY_52',
+            skuName: '五粮液 52度 500ml',
+            barcode: '6901234567002',
+            volume: '500ml',
+            packaging: '瓶装',
+            baseUnit: '瓶',
+            boxUnit: '箱',
+            boxRatio: 6,
+            costPrice: 850,
+            retailPrice: 1200,
+            wholesalePrice: 980,
+            miniappPrice: 1100,
+            storePrice: 1150,
+            availableQty: 150,
           },
         ],
       });
@@ -862,12 +859,19 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
       expect(path).toContain('/api/admin/products');
       expect(path).toContain('keyword=');
       const data = result.data as {
-        list: Array<{ spuId: number; name: string }>;
+        list: Array<{
+          spuId: number;
+          name: string;
+          skus: Array<{ skuId: number; boxRatio: number }>;
+        }>;
         total: number;
       };
       expect(data.list).toHaveLength(1);
       expect(data.list[0].spuId).toBe(2);
       expect(data.list[0].name).toBe('五粮液 52度 500ml');
+      expect(data.list[0].skus).toHaveLength(1);
+      expect(data.list[0].skus[0].skuId).toBe(2);
+      expect(data.list[0].skus[0].boxRatio).toBe(6);
       expect(data.total).toBe(1);
     });
 
