@@ -29,7 +29,7 @@
         <text class="menu-icon">📞</text>
         <text class="menu-label">客服热线</text>
         <view class="menu-right">
-          <text class="menu-value">400-888-8888</text>
+          <text class="menu-value">13410954557</text>
           <text class="menu-arrow">›</text>
         </view>
       </view>
@@ -37,7 +37,7 @@
         <text class="menu-icon">📧</text>
         <text class="menu-label">商务邮箱</text>
         <view class="menu-right">
-          <text class="menu-value">biz@zhixiang.com</text>
+          <text class="menu-value">xbe868@126.com</text>
           <text class="menu-arrow">›</text>
         </view>
       </view>
