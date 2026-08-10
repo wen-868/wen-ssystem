@@ -8,6 +8,7 @@ import { UnitConverterService } from './unit-converter.service';
 import { EchoTool } from './definitions/echo.tool';
 import { SearchCustomerTool } from './definitions/search-customer.tool';
 import { SearchProductTool } from './definitions/search-product.tool';
+import { CreateProductTool } from './definitions/create-product.tool';
 import { CheckInventoryTool } from './definitions/check-inventory.tool';
 import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
@@ -77,6 +78,7 @@ import { BridgeModule } from '../bridge/bridge.module';
     // R70-09: 销售管理 7 个工具
     SearchCustomerTool,
     SearchProductTool,
+    CreateProductTool,
     CheckInventoryTool,
     CreateSalesOrderTool,
     QuerySaleBillsTool,
