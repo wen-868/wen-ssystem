@@ -694,7 +694,18 @@ describe("instant-retail.controller", () => {
       const req = mockReq({ query: {} });
       const res = mockRes();
       await listRetailOrders(req as any, res as any, vi.fn());
-      expect(retailShopSvc.listRetailOrders).toHaveBeenCalledWith({ storeId: undefined, tenantId: "t1", page: 1, pageSize: 20 });
+      expect(retailShopSvc.listRetailOrders).toHaveBeenCalledWith({
+        storeId: undefined,
+        tenantId: "t1",
+        page: 1,
+        pageSize: 20,
+        status: "",
+        paymentStatus: "",
+        platform: "",
+        keyword: "",
+        startDate: "",
+        endDate: "",
+      });
     });
 
     it("addRetailProduct - 不传storeId时使用undefined", async () => {

@@ -98,6 +98,9 @@ describe("admin report-collection.service - getCollectionTimeout", () => {
       .mockResolvedValueOnce({ cnt: 6, amount: 600 })   // timeout24plus
       .mockResolvedValueOnce({ avgMinutes: 120 })       // avgTimeout
       .mockResolvedValueOnce({ cnt: 100 });             // totalLinks
+    mocks.queryWithTenant.mockResolvedValue([
+      { linkNo: "L001", sourceType: "SALE", sourceNo: "SO001", amount: "100", customerName: "客户A", overdueHours: 2, createdAt: "2026-01-01 10:00:00" },
+    ]);
     const res = await getCollectionTimeout({
       tenantId, startDate: "2026-01-01", endDate: "2026-12-31", storeId: 1,
     });
@@ -107,16 +110,21 @@ describe("admin report-collection.service - getCollectionTimeout", () => {
     expect(res.intervals).toHaveLength(5);
     expect(res.intervals[0].count).toBe(5);
     expect(res.intervals[4].count).toBe(6);
+    expect(res.orders).toHaveLength(1);
+    expect(res.orders[0].linkNo).toBe("L001");
+    expect(res.orders[0].amount).toBe(100);
   });
 
   it("仅 tenantId + 全部 null（if 全 false + ?? 右分支 + totalAll = 0 三元 false）", async () => {
     mocks.queryOneWithTenant.mockResolvedValue(null);
+    mocks.queryWithTenant.mockResolvedValue([]);
     const res = await getCollectionTimeout({ tenantId });
     expect(res.timeoutCount).toBe(0);
     expect(res.timeoutRate).toBe(0);
     expect(res.avgTimeoutMinutes).toBe(0);
     expect(res.intervals).toHaveLength(5);
     expect(res.intervals[0].count).toBe(0);
+    expect(res.orders).toEqual([]);
   });
 
   it("total 为 null + totalAll > 0（?. null 分支 + 三元 true 分支）", async () => {
@@ -130,10 +138,15 @@ describe("admin report-collection.service - getCollectionTimeout", () => {
       .mockResolvedValueOnce({ cnt: 6, amount: 600 }) // timeout24plus
       .mockResolvedValueOnce({ avgMinutes: 120 })     // avgTimeout
       .mockResolvedValueOnce({ cnt: 100 });           // totalLinks → 有值（totalAll > 0）
+    mocks.queryWithTenant.mockResolvedValue([
+      { linkNo: "L002", sourceType: "WECHAT", sourceNo: "P001", amount: "50", customerName: "客户B", overdueHours: 1, createdAt: "2026-01-02 09:00:00" },
+    ]);
     const res = await getCollectionTimeout({ tenantId });
     expect(res.timeoutCount).toBe(0);   // total 为 null → 0
     expect(res.timeoutRate).toBe(0);    // 0/100*100 = 0
     expect(res.avgTimeoutMinutes).toBe(120);
+    expect(res.orders).toHaveLength(1);
+    expect(res.orders[0].sourceNo).toBe("P001");
   });
 });
 

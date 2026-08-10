@@ -57,7 +57,7 @@
 | 配置组 | 关键变量 | 说明 |
 |--------|---------|------|
 | **服务** | PORT=3016, NODE_ENV | 服务端口和运行环境 |
-| **AI Provider** | DEFAULT_MODEL_PROVIDER, DEEPSEEK_API_KEY | 默认服务商和API Key |
+| **AI Provider** | DEFAULT_MODEL_PROVIDER（默认 glm）, GLM_BASE_URL/GLM_API_KEY/GLM_MODEL, DEEPSEEK_API_KEY | 默认服务商和API Key（glm 为内置免费兜底，默认 glm-4-flash） |
 | **加密** | ENCRYPTION_KEY | API Key加密密钥（32字节hex） |
 | **Redis** | REDIS_HOST, REDIS_PORT, REDIS_DB=1 | 对话记忆存储，使用DB1避免冲突 |
 | **后端服务** | BACKEND_API_BASE | 现有后端服务（Express.js单体，默认端口8080）的API基础地址 |
@@ -183,7 +183,7 @@ pnpm run start:dev
 | **前端** | 总台AI配置页面 | Admin API | 2天 | 可管理租户AI配置 |
 | **安全** | 限流（令牌桶） | Redis | 0.5天 | 60次/分钟限制生效 |
 | **安全** | API Key加密存储 | crypto | 0.5天 | AES-256加密/解密 |
-| **运维** | 健康检查 + 监控指标 | 全部模块 | 1天 | /api/platform/ai/health正常 |
+| **运维** | 健康检查 + 监控指标 | 全部模块 | 1天 | /api/admin/health正常 |
 | **运维** | 日志聚合 + 告警 | AuditLogger | 1天 | 异常自动告警 |
 | **CI/CD** | Dockerfile + 部署脚本 | 全部模块 | 1天 | 一键部署 |
 
@@ -242,9 +242,9 @@ Step 11 ──────▶ Step 12 ──────▶ Step 13 ────
 | 1 | `mysql -u root -p -e "SELECT 1"` | MySQL连接成功 |
 | 1 | `redis-cli ping` | PONG |
 | 2 | `pnpm run start:dev` | AI底座已启动: http://localhost:3016 |
-| 3 | `curl localhost:3016/api/platform/ai/test-connection` | `{"code":"0","msg":"成功","data":{"success":true}}` |
-| 4 | `curl -X POST localhost:3016/api/admin/ai/chat -d '{"message":"你好"}'` | SSE流式文本 |
-| 5 | `curl localhost:3016/api/platform/ai/tools` | 工具列表JSON |
+| 3 | `curl localhost:3016/api/admin/test-connection` | `{"type":"glm","success":true,...}`（测试默认 Provider 连通性） |
+| 4 | `curl -X POST localhost:3016/api/chat -H "Content-Type: application/json" -d '{"message":"你好","tenantId":"default"}'` | SSE流式文本 |
+| 5 | `curl localhost:3016/api/admin/tools` | 工具列表JSON |
 | 6 | `curl localhost:8080/api/admin/sale-bills`（测试后端可达） | 订单列表 |
 | 8 | 对话："红星商行20件五粮液价格980" | 销售单创建成功 |
 | 10 | `mysql -e "SHOW TABLES LIKE 't_%ai%'"` | 3张新表 |
@@ -377,7 +377,8 @@ export interface IModelProvider {
 export class ProviderFactory {
   private readonly providers = new Map<string, IModelProvider>();
 
-  constructor(private readonly deepseek, private readonly ollama) {
+  constructor(private readonly glm, private readonly deepseek, private readonly ollama) {
+    this.providers.set('glm', glm);
     this.providers.set('deepseek', deepseek);
     this.providers.set('ollama', ollama);
   }
@@ -512,7 +513,7 @@ export class BusinessToolHandler {
 1. src/tools/definitions/xxx.tool.ts → ToolDefinition[]
 2. src/tools/handlers/xxx.handler.ts → 实现逻辑 + 注册到Registry
 3. src/app.module.ts → providers 中添加 Handler
-4. 测试: curl /api/platform/ai/tools 查看新工具
+4. 测试: curl /api/admin/tools 查看新工具
 5. 测试: 对话中使用自然语言触发该工具
 ```
 
@@ -824,7 +825,8 @@ interface SSEEvent {
 
 3. 验证
    mysql -u root -p zhixiang -e "SHOW TABLES LIKE 't_%ai%';"
-   预期输出: t_platform_ai_config, t_tenant_ai_config, t_ai_audit_log
+   预期输出: t_platform_ai_config, t_tenant_ai_config, t_ai_audit_log, t_ai_usage_daily, t_tenant_ai_billing
+   （RAG 启用后另含 t_ai_knowledge_chunks，见 122_ai_rag.sql）
 
 4. 初始化全局配置
    # 121_ai_base_tables.sql 中已包含 INSERT 语句
@@ -938,7 +940,7 @@ console.log('order created');
 | traceId | string | 链路追踪ID（uuid v4） |
 | apiCost | number | 接口耗时（毫秒），AI接口可表示Token成本 |
 
-> SSE 流式接口（`/api/admin/ai/chat`）不适用此格式，按 SSE 事件流输出。
+> SSE 流式接口（`/api/chat`）不适用此格式，按 SSE 事件流输出。
 
 ---
 
@@ -993,19 +995,23 @@ LOG_LEVEL=info     # 生产：只显示关键事件
 ### 14.3 常用调试命令
 
 ```bash
-# 测试Provider连接
-curl -X POST localhost:3016/api/platform/ai/test-connection \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"deepseek","apiKey":"sk-xxx"}'
+# 测试默认 Provider（GLM）连通性
+curl localhost:3016/api/admin/test-connection
+
+# 列出已注册 Provider / 非流式对话测试
+curl localhost:3016/api/admin/providers
+curl -X POST localhost:3016/api/admin/chat-test -H "Content-Type: application/json" -d '{"message":"你好"}'
 
 # 查看已注册工具
-curl localhost:3016/api/platform/ai/tools
+curl localhost:3016/api/admin/tools
 
-# 健康检查
-curl localhost:3016/api/platform/ai/health
+# 健康检查（AI底座 + 后端 + 数据库 + Redis）
+curl localhost:3016/api/admin/health
+# 基础健康检查
+curl localhost:3016/api/health
 
-# 清除对话记忆
-curl -X DELETE localhost:3016/api/platform/ai/memory/{tenantId}/{sessionId}
+# 对话记忆：暂无独立清除接口；Redis 键 ai:memory:{tenantId}:{sessionId} 默认 TTL 1 小时自动过期，
+# 新建对话通过传入新的 conversationId 自动开启新会话。
 ```
 
 ---
@@ -1035,13 +1041,16 @@ services:
 ### 15.3 Nginx配置
 
 ```nginx
-# AI底座路由：对话 /api/admin/ai/*、管理 /api/platform/ai/* 转发至AI底座(3016)
-location ~ ^/api/(admin|platform)/ai/ {
-    proxy_pass http://127.0.0.1:3016;
+# AI底座路由：/ai-api/* 转发至AI底座(3016)，保留 /api 前缀
+# 实际路径示例：/ai-api/api/chat、/ai-api/api/admin/tools、/ai-api/api/rag/search
+location /ai-api/ {
+    proxy_pass http://127.0.0.1:3016/;
     proxy_buffering off;              # SSE必须关闭buffering
+    proxy_cache off;
     proxy_read_timeout 300s;          # SSE长连接
-    chunked_transfer_encoding on;
+    proxy_send_timeout 300s;
 }
+# 生产完整配置见 deploy/nginx-production.conf（admin.onepan.cn / m.onepan.cn / saas.onepan.cn 三个 server 块均含该 location）
 ```
 
 ### 15.4 数据库迁移
@@ -1072,7 +1081,7 @@ pm2 stop zhixiang-ai-base || true
 pm2 start dist/main.js --name zhixiang-ai-base
 
 # 5. 验证
-curl localhost:3016/api/platform/ai/health
+curl localhost:3016/api/admin/health
 ```
 
 ### 16.2 Docker部署
@@ -1091,7 +1100,7 @@ docker run -d \
 
 # 验证
 docker logs zhixiang-ai-base
-curl localhost:3016/api/platform/ai/health
+curl localhost:3016/api/admin/health
 ```
 
 ### 16.3 GitHub Actions（可选，后期启用）
