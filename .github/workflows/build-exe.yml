@@ -25,6 +25,12 @@ jobs:
           VITE_AI_BASE_URL: https://admin.onepan.cn/ai-api
       - name: Build Electron EXE
         working-directory: admin-web
+        env:
+          # 代码签名证书（pfx 的 base64 或下载 URL）与私钥密码，在仓库 Secrets 中配置：
+          #   CSC_LINK / CSC_KEY_PASSWORD
+          # 未配置时 electron-builder 自动跳过签名，产物为未签名版（Windows 会提示未知发布者）
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
           # electron-builder 与 type:module 不兼容，临时移除
           node -e "const p=require('./package.json');delete p.type;require('fs').writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
