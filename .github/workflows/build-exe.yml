@@ -22,6 +22,8 @@ jobs:
         working-directory: admin-web
         run: npx vite build
         env:
+          # Electron 打包专用：相对资源路径 + hash 路由（file:// 下可正常加载）
+          ELECTRON_BUILD: "1"
           VITE_AI_BASE_URL: https://admin.onepan.cn/ai-api
       - name: Build Electron EXE
         working-directory: admin-web

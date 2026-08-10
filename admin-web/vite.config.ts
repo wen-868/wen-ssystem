@@ -6,6 +6,8 @@ import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 
 export default defineConfig({
+  // Electron 桌面版通过 file:// 加载，必须使用相对路径；Web 部署保持根路径
+  base: process.env.ELECTRON_BUILD === "1" ? "./" : "/",
   plugins: [
     vue(),
     AutoImport({

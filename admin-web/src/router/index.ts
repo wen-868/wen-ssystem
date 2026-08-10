@@ -1,5 +1,6 @@
 ﻿import { createRouter, createWebHistory } from "vue-router";
 import { ElMessage } from "element-plus";
+import { createWebHashHistory } from "vue-router";
 import {
   Avatar,
   Bell,
@@ -265,7 +266,11 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  // Electron 桌面版（file://）必须用 hash 路由；Web 部署保持 history 路由
+  history:
+    typeof window !== "undefined" && (window as any).electronAPI
+      ? createWebHashHistory()
+      : createWebHistory(),
   routes
 });
 
