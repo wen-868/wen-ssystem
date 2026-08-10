@@ -32,7 +32,7 @@
           </div>
         </div>
         <div class="hero-visual">
-          <img src="/hero-dashboard.svg" alt="智享全链管理系统数据看板" />
+          <img src="/hero-workbench.png" alt="智享全链管理系统工作台" />
         </div>
       </div>
     </section>
