@@ -1,7 +1,9 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction, pool } from "../../shared/db";
 import { makeBizNo, makeToken } from "../../shared/id";
 import { computeSellingPrice, getPriceType, type CustomerType } from "../../shared/fulfillment";
-import { updateTraceCodesBySkuList } from "../../shared/trace-code";
+import { updateTraceCodesBySkuList, verifyTraceCode } from "../../shared/trace-code";
+import { sendNotification } from "../notification.service";
+import logger from "../../shared/logger";
 import type { RowDataPacket } from "mysql2";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
@@ -104,6 +106,10 @@ interface MemberRow {
 /** 商品价格行 */
 interface ProductPriceRow {
   sku_name: string;
+  volume?: string | null;
+  packaging?: string | null;
+  base_unit?: string | null;
+  barcode?: string | null;
   retail_price: number;
   wholesale_price: number;
   store_price: number;
@@ -206,8 +212,10 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
   );
   if (!bill) return null;
   const items = await queryWithTenant<SaleBillItemRow>(
-    `SELECT sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
-            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, subtotal_amount AS subtotalAmount
+    `SELECT sku_id AS skuId, sku_name AS skuName, sku_spec AS skuSpec, unit, barcode,
+            box_qty AS boxQty, bottle_qty AS bottleQty, total_bottle_qty AS totalBottleQty,
+            unit_price AS unitPrice, subtotal_amount AS subtotalAmount,
+            item_remark AS remark, item_discount AS itemDiscount, trace_codes AS traceCodes
      FROM t_sale_bill_item WHERE bill_no = ?`,
     [billNo],
     tenantId
@@ -222,6 +230,8 @@ export async function createSaleBill(params: {
   dueDate?: string; items: Array<{
     skuId: number; boxQty: number; bottleQty: number;
     totalBottleQty: number; unitPrice?: number; priceType?: string;
+    spec?: string; unit?: string; barcode?: string;
+    remark?: string; discount?: number; traceCodes?: string[];
   }>;
   userId: number; tenantId: string;
 }) {
@@ -233,10 +243,17 @@ export async function createSaleBill(params: {
       ? await queryOneWithTenant<MemberRow>("SELECT id, name, mobile, customer_type FROM t_member WHERE id = ? AND tenant_id = ?", [customerId, tenantId], tenantId)
       : null;
     let goodsAmount = 0;
-    const itemSnapshots: Array<{ skuId: number; skuName: string; boxQty: number; bottleQty: number; totalBottleQty: number; unitPrice: number; priceType: string; subtotalAmount: number }> = [];
+    const itemSnapshots: Array<{
+      skuId: number; skuName: string; boxQty: number; bottleQty: number;
+      totalBottleQty: number; unitPrice: number; priceType: string;
+      subtotalAmount: number; skuSpec?: string | null; unit?: string | null;
+      barcode?: string | null; itemRemark?: string | null; itemDiscount?: number;
+      traceCodes?: string[];
+    }> = [];
     for (const item of items) {
       const price = await queryOneWithTenant<ProductPriceRow>(
-        `SELECT s.sku_name, pp.retail_price, pp.wholesale_price, pp.store_price
+        `SELECT s.sku_name, s.volume, s.packaging, s.base_unit, s.barcode,
+                pp.retail_price, pp.wholesale_price, pp.store_price
          FROM t_product_sku s JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
          WHERE s.id = ? AND s.tenant_id = ?`,
         [item.skuId, tenantId],
@@ -247,7 +264,20 @@ export async function createSaleBill(params: {
       const computedPrice = item.unitPrice ?? computeSellingPrice(customerType as CustomerType, price.wholesale_price, price.store_price, price.retail_price);
       const subtotal = computedPrice * item.totalBottleQty;
       goodsAmount += subtotal;
-      itemSnapshots.push({ ...item, skuName: price.sku_name, unitPrice: computedPrice, subtotalAmount: subtotal, priceType: item.priceType ?? getPriceType(customerType as CustomerType) });
+      // 规格快照：净含量 + 包装（如 "500ml 瓶装"），前端传入优先
+      const spec = item.spec || [price.volume, price.packaging].filter(Boolean).join(" ") || null;
+      itemSnapshots.push({
+        ...item,
+        skuName: price.sku_name,
+        unitPrice: computedPrice,
+        subtotalAmount: subtotal,
+        priceType: item.priceType ?? getPriceType(customerType as CustomerType),
+        skuSpec: spec,
+        unit: item.unit || price.base_unit || "瓶",
+        barcode: item.barcode || price.barcode || null,
+        itemRemark: item.remark || null,
+        itemDiscount: item.discount ?? 0,
+      });
     }
     const receivableAmount = Math.max(0, goodsAmount - discountAmount - roundingAmount);
     await conn.execute(
@@ -263,9 +293,14 @@ export async function createSaleBill(params: {
     );
     for (const item of itemSnapshots) {
       await conn.execute(
-        `INSERT INTO t_sale_bill_item (bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [billNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount]
+        `INSERT INTO t_sale_bill_item (bill_no, sku_id, sku_name, sku_spec, unit, barcode,
+                box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount,
+                item_remark, item_discount, trace_codes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [billNo, item.skuId, item.skuName, item.skuSpec ?? null, item.unit ?? "瓶", item.barcode ?? null,
+         item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount,
+         item.itemRemark ?? null, item.itemDiscount ?? 0,
+         item.traceCodes && item.traceCodes.length > 0 ? JSON.stringify(item.traceCodes) : null]
       );
     }
 
@@ -273,6 +308,46 @@ export async function createSaleBill(params: {
     const skuIds = [...new Set(itemSnapshots.map(it => it.skuId))];
     if (skuIds.length > 0) {
       await updateTraceCodesBySkuList(conn, tenantId, billNo, skuIds);
+    }
+
+    // 用户录入的追溯码：校验存在且未出库，标记 SOLD 并绑定销售单
+    const userTraceCodes = [
+      ...new Set(itemSnapshots.flatMap((it) => it.traceCodes ?? []).filter(Boolean)),
+    ];
+    if (userTraceCodes.length > 0) {
+      for (const code of userTraceCodes) {
+        const verify = await verifyTraceCode(conn, tenantId, code);
+        if (!verify.valid) {
+          throw new Error(`追溯码「${code}」${verify.message}`);
+        }
+        await conn.execute(
+          `UPDATE t_trace_code
+           SET current_status = 'SOLD', current_location = ?, version = version + 1, updated_at = NOW()
+           WHERE trace_code = ? AND tenant_id = ?`,
+          [billNo, code, tenantId],
+        );
+        await conn.execute(
+          `INSERT INTO t_trace_event_log (trace_code, event_type, from_status, to_status,
+             operator_type, location, remark, tenant_id)
+           VALUES (?, 'SOLD', NULL, 'SOLD', 'SYSTEM', ?, ?, ?)`,
+          [code, billNo, `销售单出库: ${billNo}`, tenantId],
+        );
+      }
+    }
+
+    // 销售单创建通知（真实数据源，供工作台消息中心展示）
+    try {
+      await sendNotification(pool, {
+        recipientId: userId,
+        recipientType: "ADMIN",
+        title: "销售单已创建",
+        content: `销售单 ${billNo} 创建成功，客户：${member?.name ?? customerName ?? "散客"}，应收 ¥${receivableAmount.toFixed(2)}`,
+        type: "ORDER",
+        relatedType: "sale_bill",
+        tenantId,
+      });
+    } catch (e) {
+      logger.warn(`[sale-bill] 创建通知失败: ${(e as Error).message}`);
     }
 
     return { billNo, storeId, businessStatus: "CREATED", collectionStatus: "UNPAID", receivableAmount, receivedAmount: 0, unreceivedAmount: receivableAmount, items: itemSnapshots };
