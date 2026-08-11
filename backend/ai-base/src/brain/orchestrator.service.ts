@@ -207,6 +207,14 @@ export class Orchestrator {
       let totalPromptTokens = 0;
       let totalCompletionTokens = 0;
       const allToolCalls: Record<string, unknown>[] = [];
+      // 工具结果记录：模型未输出总结文本时用于生成兜底摘要
+      const toolResults: Array<{
+        tool: string;
+        success: boolean;
+        data?: unknown;
+        error?: string;
+      }> = [];
+      let finalAssistantText = '';
       const newMessagesToSave: ChatMessage[] = [
         { role: 'user', content: params.message },
       ];
@@ -252,6 +260,7 @@ export class Orchestrator {
         const toolCalls = chatResult!.tool_calls;
         if (!toolCalls || toolCalls.length === 0) {
           // 无工具调用，对话结束
+          finalAssistantText = contentBuf;
           // assistant 消息加入待保存列表
           newMessagesToSave.push({
             role: 'assistant',
@@ -325,6 +334,12 @@ export class Orchestrator {
             success: toolResult.success,
             error: toolResult.error,
           });
+          toolResults.push({
+            tool: tc.function.name,
+            success: toolResult.success,
+            data: toolResult.data,
+            error: toolResult.error,
+          });
 
           // 工具结果加入消息历史
           const toolMsg: ChatMessage = {
@@ -344,6 +359,21 @@ export class Orchestrator {
         this.logger.warn(
           `Agent Loop 达到最大迭代次数 ${MAX_ITERATIONS}，强制终止`,
         );
+      }
+
+      // ── 5.5 兜底总结：模型未输出任何文本但执行过工具时，用工具结果生成摘要 ──
+      // 解决模型在工具调用后直接结束（无总结文本）导致前端只显示工具 JSON 的问题
+      if (finalAssistantText.trim().length === 0 && toolResults.length > 0) {
+        const fallbackText = this.buildFallbackSummary(toolResults);
+        yield { type: 'text', content: fallbackText };
+        // 将兜底摘要写入最后一条 assistant 消息（供对话历史保存）
+        for (let i = newMessagesToSave.length - 1; i >= 0; i--) {
+          const m = newMessagesToSave[i];
+          if (m.role === 'assistant' && !m.content) {
+            m.content = fallbackText;
+            break;
+          }
+        }
       }
 
       // ── 6. 保存对话历史 ──
@@ -414,5 +444,94 @@ export class Orchestrator {
         errorMessage: errorMsg,
       });
     }
+  }
+
+  /**
+   * 工具结果兜底摘要：模型未输出总结时，从工具返回数据生成可读中文摘要。
+   * 覆盖高频工具（销售单/报表/查询类），未覆盖的工具给出通用提示。
+   */
+  private buildFallbackSummary(
+    toolResults: Array<{
+      tool: string;
+      success: boolean;
+      data?: unknown;
+      error?: string;
+    }>,
+  ): string {
+    const parts: string[] = [];
+    for (const tr of toolResults) {
+      if (!tr.success) {
+        parts.push(`「${tr.tool}」执行失败：${tr.error || '未知错误'}`);
+        continue;
+      }
+      const d = (tr.data ?? {}) as Record<string, unknown>;
+      switch (tr.tool) {
+        case 'createSalesOrder': {
+          const items = Array.isArray(d.items)
+            ? (d.items as Array<Record<string, unknown>>)
+            : [];
+          const itemText = items
+            .map((it) => {
+              const name = String(it.skuName ?? it.productName ?? '');
+              const box = it.boxQty ? `${it.boxQty}箱` : '';
+              const bottle = it.bottleQty ? `${it.bottleQty}瓶` : '';
+              const price =
+                it.totalPrice != null ? `（¥${it.totalPrice}）` : '';
+              return [name, box, bottle, price].filter(Boolean).join(' ');
+            })
+            .filter(Boolean)
+            .join('、');
+          parts.push(
+            `销售单 ${d.billNo ?? ''} 创建成功：客户 ${d.customerName ?? '未知'}，` +
+              `${itemText || `${d.itemCount ?? ''} 种商品`}，` +
+              `总金额 ¥${d.totalAmount ?? '未知'}。`,
+          );
+          break;
+        }
+        case 'salesReport': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(
+            `销售报表查询完成：${d.reportType === 'trend' ? '趋势报表' : '日报'}，` +
+              `日期 ${d.dateStart ?? '-'} 至 ${d.dateEnd ?? '-'}，` +
+              `共 ${list.length} 条记录。`,
+          );
+          break;
+        }
+        case 'querySaleBills': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`共查询到 ${list.length} 张销售单。`);
+          break;
+        }
+        case 'searchProduct': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`共找到 ${list.length} 个匹配商品。`);
+          break;
+        }
+        case 'searchCustomer': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`共找到 ${list.length} 个匹配客户。`);
+          break;
+        }
+        case 'checkInventory': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`库存查询完成，共 ${list.length} 条记录。`);
+          break;
+        }
+        case 'queryReceivables': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`应收账款查询完成，共 ${list.length} 条记录。`);
+          break;
+        }
+        case 'queryPayables': {
+          const list = Array.isArray(d.list) ? d.list : [];
+          parts.push(`应付账款查询完成，共 ${list.length} 条记录。`);
+          break;
+        }
+        default: {
+          parts.push(`「${tr.tool}」执行完成。`);
+        }
+      }
+    }
+    return parts.join('\n');
   }
 }

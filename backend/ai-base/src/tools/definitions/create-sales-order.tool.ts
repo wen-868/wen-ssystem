@@ -333,6 +333,13 @@ export class CreateSalesOrderTool implements ITool {
           customerName: resolved!.customerName,
           createdCustomer: resolved!.created,
           itemCount: processedItems.length,
+          items: processedItems.map((item) => ({
+            skuName: item.skuName,
+            boxQty: item.boxQty,
+            bottleQty: item.bottleQty,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+          })),
           message: `销售单 ${result.billNo} 创建成功，合计 ${(result.totalAmount ?? totalAmount).toFixed(2)} 元`,
           warnings: warnings.length > 0 ? warnings : undefined,
         },
