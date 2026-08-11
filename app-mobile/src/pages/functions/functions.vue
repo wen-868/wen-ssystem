@@ -3,7 +3,7 @@
     <!-- 头部 -->
     <view class="func-hd">
       <view class="func-logo">
-        <text class="func-logo-text">智</text>
+        <image class="func-logo-img" src="/static/logo.png" mode="aspectFit" />
       </view>
       <text class="func-hd-title">功能中心</text>
       <text class="func-hd-search" @tap="focusSearch">&#xe614;</text>
@@ -128,17 +128,16 @@ function doSearch() {
   width: 76rpx;
   height: 76rpx;
   border-radius: 24rpx;
-  background: $uni-gradient-blue;
+  background: $uni-bg-color;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
 }
 
-.func-logo-text {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: $uni-text-color-inverse;
+.func-logo-img {
+  width: 56rpx;
+  height: 56rpx;
 }
 
 .func-hd-title {

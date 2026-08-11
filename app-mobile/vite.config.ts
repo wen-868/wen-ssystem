@@ -7,12 +7,15 @@ const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
 const SHADOW_CDN_RE = /https:\/\/cdn\.dcloud\.net\.cn\/img\/shadow-grey\.png/g
 
+// API 代理目标：默认本地后端 8080；本地预览连服务器时可设 VITE_PROXY_TARGET 覆盖
+const API_PROXY_TARGET = process.env.VITE_PROXY_TARGET || 'http://localhost:8080'
+
 export default defineConfig({
   // dev 环境 API 代理：H5 本地走查时 /api 转发到后端 8080（生产由 nginx 处理）
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: API_PROXY_TARGET,
         changeOrigin: true,
       },
     },
