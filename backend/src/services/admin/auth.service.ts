@@ -149,15 +149,16 @@ export async function login(username: string, password: string) {
     [account.id]
   );
 
+  const resolvedTenantId = account.tenant_id || 'default';
   const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
-    [account.id]
+     WHERE ur.user_id = ? AND ur.tenant_id = ?
+       AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
+    [account.id, resolvedTenantId]
   );
   const roleCodes = roles.map((r) => r.role_code);
-  const resolvedTenantId = account.tenant_id || 'default';
 
   // 根据用户角色获取实际权限列表
   const permissions = await getUserPermissions(account.id, resolvedTenantId);
