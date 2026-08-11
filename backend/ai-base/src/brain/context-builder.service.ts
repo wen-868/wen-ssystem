@@ -167,6 +167,14 @@ export class ContextBuilder {
       .replace(/\{userId\}/g, params.userId ?? '未知')
       .replace(/\{role\}/g, params.role ?? '未知');
 
+    // 注入当前日期（防止模型使用训练数据中的旧示例日期，如 2023-01-01）
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    prompt += `\n\n## 当前时间
+今天是 ${todayStr}（${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日）。
+- 用户未指定日期时，查询报表/单据默认使用今天或本月/本月至今，严禁使用示例或训练数据中的旧日期（如 2023 年）。
+- 涉及"本月/上月/今天/昨天/本周"等相对时间时，以上述当前日期为准计算。`;
+
     // 追加可用工具描述
     const tools = registry.list();
     if (tools.length > 0) {
@@ -193,6 +201,12 @@ export class ContextBuilder {
    - 严禁对 searchProduct 已找到的商品再次调用 createProduct（避免重复建商品）。
 3. 其他写操作（创建销售单、库存调拨、盘点、退款等）先生成预览卡片（confirm=false），
    用户确认后再执行（confirm=true）。`;
+
+    // 回复格式要求：工具执行后必须输出可读总结，禁止直接展示原始 JSON
+    prompt += `\n\n## 回复格式要求（强制生效）
+1. 每次工具执行完成后，必须基于工具返回结果用简洁中文向用户输出总结（推荐用表格或要点）；禁止只输出 JSON 或工具原始数据。
+2. 查询无数据时，如实说明"暂无相关数据"，并给出建议（如调整日期范围、检查筛选条件）。
+3. 禁止把工具返回的原始 JSON 直接展示给用户。`;
 
     return prompt;
   }
