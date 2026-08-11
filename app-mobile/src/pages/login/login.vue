@@ -94,10 +94,19 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
 const userStore = useUserStore()
+
+// 已登录（如跳转失败后刷新/重新显示本页）时自动进入系统
+onLoad(() => {
+  if (userStore.isLoggedIn) goHome()
+})
+onShow(() => {
+  if (userStore.isLoggedIn && userStore.initialized) goHome()
+})
 
 const showPassword = ref(false)
 const loading = ref(false)
@@ -130,7 +139,7 @@ async function handleLogin() {
   try {
     await userStore.login(loginForm.username.trim(), loginForm.password)
     uni.showToast({ title: '登录成功', icon: 'success' })
-    setTimeout(() => goHome(), 800)
+    goHome()
   } catch (err: any) {
     errorMsg.value = err?.message || '登录失败，请重试'
   } finally {
@@ -145,7 +154,7 @@ async function handleDemoLogin() {
   try {
     await userStore.login('store_manager', 'admin123')
     uni.showToast({ title: '已进入演示环境', icon: 'success' })
-    setTimeout(() => goHome(), 800)
+    goHome()
   } catch (err: any) {
     errorMsg.value = err?.message || '演示登录失败，请稍后重试'
   } finally {
@@ -156,13 +165,17 @@ async function handleDemoLogin() {
 function goHome() {
   uni.switchTab({
     url: '/pages/home/home',
-    fail(err) {
-      console.warn('[login] switchTab fail, fallback to reLaunch:', err)
+    fail(switchErr) {
+      console.warn('[login] switchTab fail, fallback to reLaunch:', switchErr)
       uni.reLaunch({
         url: '/pages/home/home',
-        fail(e) {
-          console.error('[login] reLaunch also fail:', e)
-          uni.showToast({ title: '跳转失败，请手动进入首页', icon: 'none' })
+        fail(reLaunchErr) {
+          console.error('[login] reLaunch also fail:', reLaunchErr)
+          uni.showToast({
+            title: `跳转失败(${switchErr?.errMsg || reLaunchErr?.errMsg || '未知错误'})，请手动进入首页`,
+            icon: 'none',
+            duration: 3000,
+          })
         }
       })
     }
