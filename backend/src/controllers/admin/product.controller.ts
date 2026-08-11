@@ -154,6 +154,16 @@ export const updateProductPrice = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+export const updateSkuBarcode = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const skuId = Number(req.params.skuId);
+  const body = z.object({
+    barcode: z.string().max(128).default(""),
+  }).parse(req.body);
+  const result = await productService.updateSkuBarcode(skuId, body.barcode, tenantId);
+  res.json(ok(result));
+});
+
 export const importProducts = asyncHandler(async (req, res) => {
   const tenantId = req.tenantId!;
   const rows = req.body.rows;

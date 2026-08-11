@@ -21,6 +21,7 @@ adminProductRouter.put("/products/:id", productController.updateProduct);
 adminProductRouter.put("/products/:id/disable", productController.disableProduct);
 adminProductRouter.get("/products/:skuId/price-history", productController.getProductPriceHistory);
 adminProductRouter.put("/products/:skuId/price", productController.updateProductPrice);
+adminProductRouter.put("/products/skus/:skuId/barcode", productController.updateSkuBarcode);
 adminProductRouter.post("/products/import", productController.importProducts);
 adminProductRouter.put("/products/:spuId/marketing-tags", productController.setMarketingTags);
 adminProductRouter.put("/products/:id/warning-threshold", stockWarningController.updateWarningThreshold);

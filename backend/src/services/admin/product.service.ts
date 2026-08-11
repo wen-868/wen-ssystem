@@ -536,6 +536,37 @@ export async function updateProductPrice(skuId: number, body: {
   return result;
 }
 
+/**
+ * 更新 SKU 条码（商品档案维护：每个 SKU 可录入/修改条码）
+ * 注意：t_product_sku.barcode 有唯一约束，重复条码需提示
+ */
+export async function updateSkuBarcode(
+  skuId: number,
+  barcode: string,
+  tenantId: string,
+) {
+  const trimmed = (barcode || "").trim();
+  try {
+    const result = await queryWithTenant(
+      `UPDATE t_product_sku SET barcode = ?, updated_at = NOW() WHERE id = ?`,
+      [trimmed || null, skuId],
+      tenantId,
+    );
+    if ((result as { affectedRows?: number }).affectedRows === 0) {
+      throw Object.assign(new Error("SKU 不存在"), { statusCode: 404 });
+    }
+    return { skuId, barcode: trimmed || null };
+  } catch (e: any) {
+    // 唯一键冲突：条码已存在
+    if (e?.code === "ER_DUP_ENTRY") {
+      throw Object.assign(new Error("该条码已被其他商品使用"), {
+        statusCode: 400,
+      });
+    }
+    throw e;
+  }
+}
+
 // 商品导入
 export async function importProducts(
   rows: Array<Record<string, string>>,
