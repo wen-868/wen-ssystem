@@ -13,6 +13,7 @@
     "platform-miniapp"
   ],
   "overrides": {
+    "vue": "3.4.21",
     "webpack": "5.87.0",
     "ip-address": "^10.4.0",
     "ws": "^8.21.2",
@@ -42,6 +43,7 @@
     "esbuild": "^0.25.0",
     "js-yaml": "^4.2.0",
     "typescript": "^5.5.3",
+    "vue": "3.4.21",
     "wait-on": "^9.0.10",
     "webpack": "5.87.0"
   }

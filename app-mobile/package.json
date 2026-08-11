@@ -19,7 +19,7 @@
     "@dcloudio/uni-mp-weixin": "3.0.0-5020320260806002",
     "@dcloudio/uni-ui": "^1.5.7",
     "pinia": "^2.1.7",
-    "vue": "^3.4.0"
+    "vue": "3.4.21"
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.8",
