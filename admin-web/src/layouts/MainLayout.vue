@@ -61,9 +61,8 @@
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <div class="logo-icon">智</div>
+          <img class="sidebar-logo-img" src="@/assets/logo.png" alt="智享全链" />
           <h1 v-show="!isMenuCollapsed">智享全链</h1>
-          <h1 v-show="isMenuCollapsed" class="logo-text-collapsed">智</h1>
         </div>
         <el-button
           v-if="!isMenuCollapsed"
@@ -700,17 +699,11 @@ function handleLogout() {
   min-width: 0;
 }
 
-.logo-icon {
-  width: 30px;
-  height: 30px;
-  background: var(--color-primary);
+.sidebar-logo-img {
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 13px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 

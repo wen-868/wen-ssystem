@@ -7,8 +7,8 @@
       </template>
 
       <el-row :gutter="16">
-        <!-- 左侧：基础信息 + 商品明细 -->
-        <el-col :span="16">
+        <!-- 主区域：基础信息 + 商品明细 + 底部结算 -->
+        <el-col :span="24">
           <!-- 基础信息 -->
           <el-card shadow="never" class="info-card">
             <template #header><span class="card-title">基础信息</span></template>
@@ -126,6 +126,11 @@
               <el-button type="primary" size="small" link style="float:right" @click="addProductRow">+ 添加商品</el-button>
             </template>
             <el-table :data="form.items" border stripe>
+              <el-table-column label="条码" width="130">
+                <template #default="{ row }">
+                  <span class="barcode-text">{{ row.barcode || "-" }}</span>
+                </template>
+              </el-table-column>
               <el-table-column label="商品" min-width="180">
                 <template #default="{ row, $index }">
                   <el-select
@@ -137,9 +142,12 @@
                     style="width:100%"
                     @change="(val:any) => onProductChange(val, $index)"
                   >
-                    <el-option v-for="p in productOptions[$index] || []" :key="p.id" :label="p.name" :value="p.id" />
+                    <el-option v-for="p in productOptions[$index] || []" :key="p.id" :value="p.id" :label="formatProductLabel(p)" />
                   </el-select>
                 </template>
+              </el-table-column>
+              <el-table-column label="规格" width="110">
+                <template #default="{ row }">{{ row.spec || "-" }}</template>
               </el-table-column>
               <el-table-column label="单位" width="100">
                 <template #default="{ row }">
@@ -170,6 +178,21 @@
                   <span class="money-text">¥{{ row.subtotal.toFixed(2) }}</span>
                 </template>
               </el-table-column>
+              <el-table-column label="追溯码" min-width="150">
+                <template #default="{ row }">
+                  <el-input
+                    v-model="row.traceCodes"
+                    size="small"
+                    placeholder="扫码/输入，多个用逗号分隔"
+                    clearable
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column label="备注" min-width="130">
+                <template #default="{ row }">
+                  <el-input v-model="row.remark" size="small" placeholder="行备注" clearable />
+                </template>
+              </el-table-column>
               <el-table-column label="操作" width="60">
                 <template #default="{ $index }">
                   <el-button type="danger" size="small" link @click="removeProductRow($index)">删除</el-button>
@@ -177,34 +200,34 @@
               </el-table-column>
             </el-table>
           </el-card>
-        </el-col>
 
-        <!-- 右侧：金额汇总 -->
-        <el-col :span="8">
-          <el-card shadow="never" class="summary-card">
-            <template #header><span class="card-title">金额汇总</span></template>
-            <div class="summary-row">
-              <span>商品金额</span>
-              <span class="money-text">¥{{ totalAmount.toFixed(2) }}</span>
-            </div>
-            <div class="summary-row">
-              <span>整单折扣</span>
-              <el-input-number v-model="form.orderDiscount" :min="0" :max="100" size="small" style="width:100px">
-                <template #suffix>%</template>
-              </el-input-number>
-            </div>
-            <div class="summary-row">
-              <span>优惠金额</span>
-              <el-input-number v-model="form.discountAmount" :min="0" :precision="2" size="small" style="width:120px" />
-            </div>
-            <div class="summary-row">
-              <span>抹零金额</span>
-              <el-input-number v-model="form.wipeAmount" :min="0" :precision="2" size="small" style="width:120px" />
-            </div>
-            <el-divider />
-            <div class="summary-row total">
-              <span>应收金额</span>
-              <span class="total-money">¥{{ receivableAmount.toFixed(2) }}</span>
+          <!-- 底部结算栏：金额信息置于单据最下方 -->
+          <el-card shadow="never" class="settlement-card" style="margin-top:12px">
+            <div class="settlement-inner">
+              <div class="settlement-left">
+                <div class="settlement-item">
+                  <span class="settlement-label">商品金额</span>
+                  <span class="settlement-value">¥{{ totalAmount.toFixed(2) }}</span>
+                </div>
+                <div class="settlement-item">
+                  <span class="settlement-label">整单折扣</span>
+                  <el-input-number v-model="form.orderDiscount" :min="0" :max="100" size="small" style="width:100px">
+                    <template #suffix>%</template>
+                  </el-input-number>
+                </div>
+                <div class="settlement-item">
+                  <span class="settlement-label">优惠金额</span>
+                  <el-input-number v-model="form.discountAmount" :min="0" :precision="2" size="small" style="width:110px" />
+                </div>
+                <div class="settlement-item">
+                  <span class="settlement-label">抹零金额</span>
+                  <el-input-number v-model="form.wipeAmount" :min="0" :precision="2" size="small" style="width:110px" />
+                </div>
+              </div>
+              <div class="settlement-right">
+                <span class="settlement-label">应收金额</span>
+                <span class="settlement-total">¥{{ receivableAmount.toFixed(2) }}</span>
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -215,9 +238,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import PageCard from "../../components/PageCard.vue";
 import { api, fetchStores, fetchMemberDetail } from "../../api";
+
+const router = useRouter();
 
 const form = reactive({
   storeId: null as number | null,
@@ -283,11 +309,15 @@ function addProductRow() {
   form.items.push({
     productId: null,
     productName: "",
+    barcode: "",
+    spec: "",
     units: ["瓶"],
     unit: "瓶",
     qty: 1,
     price: 0,
     discount: 0,
+    remark: "",
+    traceCodes: "",
     subtotal: 0
   });
 }
@@ -297,10 +327,11 @@ function removeProductRow(index: number) {
 }
 
 async function searchCustomers(query: string) {
-  if (!query || query.length < 1) return;
   customerLoading.value = true;
   try {
-    const res = await api.get("/members", { params: { keyword: query, pageSize: 20 } });
+    const res = await api.get("/members", {
+      params: query ? { keyword: query, pageSize: 20 } : { pageSize: 50 }
+    });
     customerOptions.value = res.data?.data || res.data?.list || [];
   } catch (e) {
     console.error("搜索客户失败", e);
@@ -345,6 +376,7 @@ async function loadStores() {
 
 onMounted(() => {
   loadStores();
+  searchCustomers("");
 });
 
 async function searchProducts(query: string, index: number) {
@@ -362,11 +394,21 @@ function onProductChange(productId: any, index: number) {
   const product = products.find((p: any) => p.id === productId);
   if (product) {
     form.items[index].productName = product.name;
+    form.items[index].barcode = product.barcode || product.skuCode || "";
+    form.items[index].spec = product.spec || product.skuSpec || "";
     form.items[index].price = product.retailPrice || product.price || 0;
     form.items[index].units = product.units || ["瓶"];
     form.items[index].unit = product.defaultUnit || "瓶";
     calcRow(form.items[index]);
   }
+}
+
+/** 商品下拉展示：名称 + 规格 + 条码 */
+function formatProductLabel(p: any) {
+  const parts = [p.name];
+  if (p.spec || p.skuSpec) parts.push(p.spec || p.skuSpec);
+  if (p.barcode || p.skuCode) parts.push(p.barcode || p.skuCode);
+  return parts.join(" / ");
 }
 
 async function handleSaveDraft() {
@@ -402,23 +444,20 @@ async function handleSubmit() {
         unitPrice: item.price,
         discount: item.discount
       })),
+      traceCodes: form.items.map((item: any) => item.traceCodes || ""),
       orderDiscount: form.orderDiscount,
       discountAmount: form.discountAmount,
       roundingAmount: form.wipeAmount
     };
     const res = await api.post("/sale-bills", payload);
-    ElMessage.success("订单创建成功！");
-    // 重置表单
-    form.customerId = null;
-    form.customerName = "";
-    form.customerMobile = "";
-    form.customerAddress = "";
-    form.customerRemark = "";
-    form.internalRemark = "";
-    form.items = [];
-    form.orderDiscount = 0;
-    form.discountAmount = 0;
-    form.wipeAmount = 0;
+    const billNo = res.data?.data?.billNo || res.data?.billNo;
+    ElMessage.success(`销售单 ${billNo || ""} 创建成功`);
+    // 创建完成直接跳转到当前销售单详情页
+    if (billNo) {
+      router.push(`/sale-bills/${encodeURIComponent(billNo)}`);
+    } else {
+      router.push("/sale-bills");
+    }
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || "创建订单失败");
   }
@@ -429,35 +468,39 @@ async function handleSubmit() {
 .page { padding: 20px; }
 .info-card { margin-bottom: 0; }
 .card-title { font-weight: 600; color: var(--text-primary); }
-.summary-card {
-  position: sticky;
-  top: 20px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--card-radius);
-  box-shadow: var(--shadow-card);
-}
-.summary-card :deep(.el-card__body) {
-  padding: 16px 18px;
-}
-.summary-row {
+.settlement-card :deep(.el-card__body) { padding: 16px 20px; }
+.settlement-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
+  gap: 24px;
+  flex-wrap: wrap;
 }
-.summary-row.total { font-size: 16px; font-weight: 600; color: var(--text-primary); }
-.money-text {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
+.settlement-left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
 }
-.total-money {
+.settlement-item { display: flex; align-items: center; gap: 8px; }
+.settlement-label { font-size: 14px; color: var(--text-secondary); }
+.settlement-value { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.settlement-right { display: flex; align-items: baseline; gap: 10px; }
+.settlement-total {
   font-size: 26px;
   font-weight: 700;
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
+}
+.money-text {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.barcode-text {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 .internal-tag { margin-left: 6px; vertical-align: middle; }
 </style>

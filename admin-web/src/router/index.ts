@@ -102,6 +102,7 @@ const routes = [
       // 2. 销售管理
       { path: "sales/create", name: "sales-order-create", component: () => import("../views/sale/SalesOrderCreate.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "销售开单", icon: Edit } },
       { path: "sale-bills", name: "sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "销售单据", icon: Document } },
+      { path: "sale-bills/:billNo", name: "sale-bill-detail", component: () => import("../views/pos/SaleBillDetail.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "销售单详情", icon: Document } },
       { path: "sale-returns", name: "sale-returns", component: () => import("../views/pos/SaleReturnView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "销售退货", icon: RefreshRight } },
       { path: "collection", name: "collection", component: () => import("../views/pos/CollectionView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "收款管理", icon: Money } },
       { path: "sales/collection-links", name: "collection-links", component: () => import("../views/sale/CollectionLinks.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "收款关联", icon: Link } },

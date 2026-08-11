@@ -366,11 +366,29 @@
       <template v-if="detailSpu">
         <el-tabs v-model="detailTab">
           <el-tab-pane label="基本信息" name="basic">
-            <div class="detail-main-image" v-if="detailSpu.mainImage">
-              <el-image :src="detailSpu.mainImage" style="width: 100%; max-height: 300px" fit="contain" />
+            <!-- 商品主图：图片化展示 + URL 维护 -->
+            <div class="detail-main-image">
+              <el-image
+                v-if="detailSpu.mainImage"
+                :src="detailSpu.mainImage"
+                class="detail-main-img"
+                fit="contain"
+                :preview-src-list="[detailSpu.mainImage]"
+                preview-teleported
+              />
+              <div v-else class="detail-main-img detail-main-img--empty">
+                <el-icon :size="36"><Picture /></el-icon>
+                <span>暂无主图</span>
+              </div>
+              <div class="detail-main-img-actions">
+                <el-input v-model="detailSpu.mainImage" placeholder="主图 URL，修改后自动保存" clearable>
+                  <template #append>
+                    <el-button @click="saveDetailField('mainImage', detailSpu.mainImage)">保存</el-button>
+                  </template>
+                </el-input>
+              </div>
             </div>
             <el-descriptions :column="2" border style="margin-top: 16px">
-              <el-descriptions-item label="SPU编码">{{ detailSpu.spuCode }}</el-descriptions-item>
               <el-descriptions-item label="商品名称">{{ detailSpu.name }}</el-descriptions-item>
               <el-descriptions-item label="分类">{{ detailSpu.categoryName || '-' }}</el-descriptions-item>
               <el-descriptions-item label="品牌">{{ detailSpu.brandName || '-' }}</el-descriptions-item>
@@ -391,9 +409,8 @@
               <el-descriptions-item label="创建时间">{{ formatDate(detailSpu.createdAt) }}</el-descriptions-item>
               <el-descriptions-item label="更新时间">{{ formatDate(detailSpu.updatedAt) }}</el-descriptions-item>
             </el-descriptions>
-            <el-divider content-position="left">主图</el-divider>
-            <el-input v-model="detailSpu.mainImage" placeholder="主图URL，修改后自动保存" @change="saveDetailField('mainImage', detailSpu.mainImage)" />
-            <el-divider content-position="left">商品详情 (富文本)</el-divider>
+          </el-tab-pane>
+          <el-tab-pane label="商品详情" name="detail">
             <div style="border: 1px solid var(--gray-200); border-radius: 4px">
               <div style="border-bottom: 1px solid var(--gray-200); padding: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
                 <el-button size="small" :type="richEditor?.isActive('bold') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBold().run()" style="font-weight: bold;">B</el-button>
@@ -415,7 +432,17 @@
             <el-table :data="detailSpu._skus" size="small" stripe>
               <el-table-column prop="skuCode" label="SKU编码" width="130" />
               <el-table-column prop="skuName" label="规格名称" min-width="130" />
-              <el-table-column prop="barcode" label="条码" width="120" />
+              <el-table-column label="条码" width="160">
+                <template #default="{ row }">
+                  <el-input
+                    v-model="row.barcode"
+                    size="small"
+                    placeholder="录入条码"
+                    clearable
+                    @change="saveSkuBarcode(row)"
+                  />
+                </template>
+              </el-table-column>
               <el-table-column prop="retailPrice" label="零售价" width="90">
                 <template #default="{ row }">¥{{ Number(row.retailPrice || 0).toFixed(2) }}</template>
               </el-table-column>
@@ -486,7 +513,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import { Plus, Search } from "@element-plus/icons-vue";
+import { Picture, Plus, Search } from "@element-plus/icons-vue";
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../../api";
@@ -887,6 +914,19 @@ async function saveDetailField(field: string, value: any) {
   try {
     await api.put(`/admin/products/${detailSpu.value.spuId}`, { [field]: value });
   } catch { /* silent */ }
+}
+
+/** 保存 SKU 条码（每个 SKU 可录入/修改条码） */
+async function saveSkuBarcode(row: any) {
+  if (!row?.skuId) return;
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}/barcode`, {
+      barcode: row.barcode || "",
+    });
+    ElMessage.success("条码已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "条码保存失败，请重试");
+  }
 }
 
 async function saveDetailTags() {

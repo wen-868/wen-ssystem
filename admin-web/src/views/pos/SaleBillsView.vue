@@ -22,7 +22,7 @@
 
     <!-- 表格 -->
     <div class="table-card">
-      <el-table :data="records" v-loading="loading" stripe>
+      <el-table :data="records" v-loading="loading" stripe @row-click="openDetail" class="clickable-table">
         <el-table-column prop="billNo" label="单号" width="160" />
         <el-table-column prop="customerName" label="客户" width="120" />
         <el-table-column prop="receivableAmount" label="应收" width="100">
@@ -41,8 +41,8 @@
         <el-table-column prop="createdAt" label="创建时间" width="160" />
         <el-table-column label="操作" min-width="120">
           <template #default="{ row }">
-            <el-button size="small" link type="primary" @click="viewDetail(row.billNo)">详情</el-button>
-            <el-button size="small" link type="success" @click="sharePay(row)">分享收款</el-button>
+            <el-button size="small" link type="primary" @click.stop="openDetail(row)">详情</el-button>
+            <el-button size="small" link type="success" @click.stop="sharePay(row)">分享收款</el-button>
           </template>
         </el-table-column>
         <template #empty>
@@ -62,35 +62,15 @@
       </div>
     </div>
 
-    <el-dialog v-model="detailVisible" title="销售单详情" width="720px">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="单号">{{ detail.billNo }}</el-descriptions-item>
-        <el-descriptions-item label="客户">{{ detail.customerName }}</el-descriptions-item>
-        <el-descriptions-item label="应收">¥{{ Number(detail.receivableAmount || 0).toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="已收">¥{{ Number(detail.paidAmount || 0).toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ getStatusText(detail.collectionStatus) }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detail.createdAt }}</el-descriptions-item>
-      </el-descriptions>
-      <el-table :data="detail.items || []" size="small" style="margin-top: 16px">
-        <el-table-column prop="skuName" label="商品" />
-        <el-table-column prop="quantity" label="数量" width="80" />
-        <el-table-column prop="unitPrice" label="单价" width="100">
-          <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
-        </el-table-column>
-        <el-table-column label="小计" width="100">
-          <template #default="{ row }">¥{{ (Number(row.unitPrice || 0) * Number(row.quantity || 0)).toFixed(2) }}</template>
-        </el-table-column>
-      </el-table>
-    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
   fetchStoreSaleBills,
-  fetchStoreSaleBillDetail,
   createStoreCollectionLink
 } from "../../api";
 
@@ -101,8 +81,7 @@ const records = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
-const detailVisible = ref(false);
-const detail = ref<any>({});
+const router = useRouter();
 
 function getStatusType(status: string) {
   const map: Record<string, string> = { PAID: "success", PARTIAL: "warning", UNPAID: "danger" };
@@ -132,14 +111,8 @@ async function loadList() {
   }
 }
 
-async function viewDetail(billNo: string) {
-  try {
-    const data = await fetchStoreSaleBillDetail(billNo);
-    detail.value = data;
-    detailVisible.value = true;
-  } catch {
-    ElMessage.error("加载详情失败");
-  }
+function openDetail(row: any) {
+  router.push(`/sale-bills/${encodeURIComponent(row.billNo)}`);
 }
 
 async function sharePay(row: any) {
@@ -168,5 +141,8 @@ onMounted(() => {
 .amount-text {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+}
+.clickable-table :deep(.el-table__row) {
+  cursor: pointer;
 }
 </style>
