@@ -82,6 +82,12 @@ interface SaleBillDetailRow {
   dueDate: Date | string | null;
   remark: string;
   createdAt: Date | string;
+  operatorId: number;
+  operatorName: string | null;
+  auditorId: number | null;
+  auditorName: string | null;
+  salesmanId: number | null;
+  salesmanName: string | null;
 }
 
 /** 销售单项行 */
@@ -205,7 +211,10 @@ export async function getSaleBillDetail(billNo: string, tenantId: string) {
             collection_status AS collectionStatus, goods_amount AS goodsAmount, discount_amount AS discountAmount,
             rounding_amount AS roundingAmount, receivable_amount AS receivableAmount, 
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
-            due_date AS dueDate, remark, created_at AS createdAt
+            due_date AS dueDate, remark, created_at AS createdAt,
+            operator_id AS operatorId, operator_name AS operatorName,
+            auditor_id AS auditorId, auditor_name AS auditorName,
+            salesman_id AS salesmanId, salesman_name AS salesmanName
      FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?`,
     [billNo, tenantId],
     tenantId
@@ -234,9 +243,13 @@ export async function createSaleBill(params: {
     remark?: string; discount?: number; traceCodes?: string[];
   }>;
   userId: number; tenantId: string;
+  operatorId?: number | null; operatorName?: string;
+  auditorId?: number | null; auditorName?: string;
+  salesmanId?: number | null; salesmanName?: string;
 }) {
   const { tenantId, userId, storeId, customerId, customerName, customerMobile,
-    discountAmount, roundingAmount, remark, internalRemark, saleType, dueDate, items } = params;
+    discountAmount, roundingAmount, remark, internalRemark, saleType, dueDate, items,
+    operatorId, operatorName, auditorId, auditorName, salesmanId, salesmanName } = params;
   return transaction(async (conn) => {
     const billNo = makeBizNo("XS");
     const member = customerId
@@ -283,12 +296,15 @@ export async function createSaleBill(params: {
     await conn.execute(
       `INSERT INTO t_sale_bill (bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type,
                               sale_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount,
-                              receivable_amount, received_amount, unreceived_amount, due_date, operator_id, remark, internal_remark, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
+                              receivable_amount, received_amount, unreceived_amount, due_date, operator_id, operator_name,
+                              auditor_id, auditor_name, salesman_id, salesman_name, remark, internal_remark, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         billNo, storeId, customerId ?? null, member?.name ?? customerName ?? null, member?.mobile ?? customerMobile ?? null,
         member?.customer_type ?? "RETAIL", saleType, goodsAmount, discountAmount, roundingAmount, receivableAmount, receivableAmount,
-        saleType === "CREDIT" ? dueDate ?? null : null, userId, remark ?? null, internalRemark ?? null, tenantId
+        saleType === "CREDIT" ? dueDate ?? null : null, operatorId ?? userId, operatorName ?? null,
+        auditorId ?? null, auditorName ?? null, salesmanId ?? null, salesmanName ?? null,
+        remark ?? null, internalRemark ?? null, tenantId
       ]
     );
     for (const item of itemSnapshots) {

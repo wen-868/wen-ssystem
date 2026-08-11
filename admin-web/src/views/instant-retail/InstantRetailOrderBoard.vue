@@ -604,8 +604,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .toolbar-card {
   margin-bottom: 16px;

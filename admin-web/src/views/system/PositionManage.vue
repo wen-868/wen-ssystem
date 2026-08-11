@@ -106,8 +106,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!isEdit"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
   </PageCard>
@@ -119,6 +124,7 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "elem
 import { Plus, Refresh } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
+import FormFooter from "../../components/FormFooter.vue";
 import {
   fetchPositions,
   createPosition,
@@ -242,7 +248,7 @@ async function handleDelete(row: any) {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -263,9 +269,10 @@ async function handleSubmit() {
         await createPosition(payload);
         ElMessage.success("岗位已创建");
       }
-      dialogVisible.value = false;
+      if (!keepOpen) dialogVisible.value = false;
       Object.assign(form, defaultForm);
       loadPositions();
+      if (keepOpen) handleAdd();
     } catch (e: any) {
       ElMessage.error(getErrorMessage(e, isEdit.value ? "更新失败" : "创建失败"));
     } finally {

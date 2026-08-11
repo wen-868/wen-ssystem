@@ -118,8 +118,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleCreate">确认</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="false"
+          save-text="确认"
+          @cancel="dialogVisible = false"
+          @save="handleCreate"
+        />
       </template>
     </el-dialog>
 
@@ -154,8 +159,13 @@
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="writeoffVisible = false">取消</el-button>
-        <el-button type="primary" :loading="writeoffLoading" @click="handleWriteoff">确认核销</el-button>
+        <FormFooter
+          :loading="writeoffLoading"
+          :show-save-and-add="false"
+          save-text="确认核销"
+          @cancel="writeoffVisible = false"
+          @save="handleWriteoff"
+        />
       </template>
     </el-dialog>
 
@@ -206,6 +216,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchReceipts, createReceipt, getReceiptDetail, writeoffReceipt, voidReceipt, fetchMembers, fetchSaleBills } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const receipts = ref<any[]>([]);
 const loading = ref(false);

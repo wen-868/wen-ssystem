@@ -67,7 +67,7 @@
       <el-table :data="detail.items || []" size="small" style="margin-top: 16px">
         <el-table-column prop="skuName" label="商品" />
         <el-table-column prop="quantity" label="数量" width="80" />
-        <el-table-column label="小计" width="100">
+        <el-table-column label="合计金额" width="100">
           <template #default="{ row }">¥{{ Number(row.subtotalAmount || 0).toFixed(2) }}</template>
         </el-table-column>
       </el-table>

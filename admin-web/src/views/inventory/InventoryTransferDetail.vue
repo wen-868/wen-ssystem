@@ -80,7 +80,7 @@
             <el-table-column label="单价" width="110" align="right">
               <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
             </el-table-column>
-            <el-table-column label="小计" width="120" align="right">
+            <el-table-column label="合计金额" width="120" align="right">
               <template #default="{ row }">
                 <span class="subtotal">
                   ¥{{ (Number(row.unitPrice || 0) * Number(row.quantity || row.totalBottleQty || 0)).toFixed(2) }}

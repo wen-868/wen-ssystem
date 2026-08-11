@@ -224,7 +224,7 @@
               </template>
             </el-table-column>
             <el-table-column prop="quantity" label="数量" width="70" align="center" />
-            <el-table-column label="小计" width="110" align="right">
+            <el-table-column label="合计金额" width="110" align="right">
               <template #default="{ row }">
                 <span class="amount-text">¥{{ Number(row.subtotal || 0).toFixed(2) }}</span>
               </template>
@@ -508,8 +508,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .filter-bar {
   display: flex;

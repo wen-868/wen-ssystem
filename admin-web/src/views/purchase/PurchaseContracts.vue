@@ -171,7 +171,7 @@
                 <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" />
               </template>
             </el-table-column>
-            <el-table-column label="小计" width="110">
+            <el-table-column label="合计金额" width="110">
               <template #default="{ row }">¥{{ Number((row.quantity || 0) * (row.unitPrice || 0)).toFixed(2) }}</template>
             </el-table-column>
             <el-table-column label="操作" width="70">
@@ -240,7 +240,7 @@
           <el-table-column prop="unitPrice" label="单价" width="100">
             <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column label="小计" width="100">
+          <el-table-column label="合计金额" width="100">
             <template #default="{ row }">¥{{ Number((row.quantity || 0) * (row.unitPrice || 0)).toFixed(2) }}</template>
           </el-table-column>
         </el-table>

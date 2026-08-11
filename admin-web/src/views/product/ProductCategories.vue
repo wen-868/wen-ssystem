@@ -130,8 +130,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!isEdit"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
   </div>
@@ -144,6 +149,7 @@ import { Plus, Refresh } from "@element-plus/icons-vue";
 import { api } from "../../api";
 import { formatDate } from "../../utils/format";
 import PageCard from "../../components/PageCard.vue";
+import FormFooter from "../../components/FormFooter.vue";
 
 const treeRef = ref<any>();
 const treeData = ref<any[]>([]);
@@ -344,7 +350,7 @@ async function handleDelete() {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -358,9 +364,10 @@ async function handleSubmit() {
         await api.post("/admin/products/categories", payload);
         ElMessage.success("创建成功");
       }
-      dialogVisible.value = false;
+      if (!keepOpen) dialogVisible.value = false;
       currentNode.value = null;
       loadCategories();
+      if (keepOpen) handleAddRoot();
     } catch (e: any) {
       ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally {

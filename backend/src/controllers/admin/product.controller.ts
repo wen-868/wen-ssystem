@@ -113,6 +113,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
     unit: z.string().optional(),
     boxRatio: z.number().optional(),
     specs: z.string().optional(),
+    mainImage: z.string().optional(),
+    imageUrls: z.union([z.array(z.string()), z.string()]).optional(),
+    detail: z.string().optional(),
+    alcoholContent: z.number().nullable().optional(),
+    origin: z.string().optional(),
+    saleChannels: z.array(z.string()).optional(),
     status: z.enum(["DRAFT", "ON_SALE", "OFF_SALE"]).optional(),
     sortNo: z.number().optional(),
     isNew: z.boolean().optional(),
@@ -122,6 +128,82 @@ export const updateProduct = asyncHandler(async (req, res) => {
   const result = await productService.updateProduct(spuId, body, tenantId);
   if (!result) {
     res.status(404).json(fail("商品不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const updateSku = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const skuId = Number(req.params.skuId);
+  const body = z.object({
+    skuName: z.string().optional(),
+    volume: z.string().optional(),
+    packaging: z.string().optional(),
+    baseUnit: z.string().optional(),
+    boxUnit: z.string().optional(),
+    boxBarcode: z.string().optional(),
+    boxRatio: z.number().optional(),
+    temperature: z.enum(["NORMAL", "CHILLED"]).optional(),
+    traceEnabled: z.boolean().optional(),
+    warningThreshold: z.number().optional(),
+  }).parse(req.body);
+  const result = await productService.updateSku(skuId, body, tenantId);
+  if (!result) {
+    res.status(404).json(fail("SKU不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const addSkuUnit = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const skuId = Number(req.params.skuId);
+  const body = z.object({
+    unitName: z.string().min(1),
+    ratio: z.number().positive().default(1),
+    barcode: z.string().optional(),
+    retailPrice: z.number().nullable().optional(),
+    wholesalePrice: z.number().nullable().optional(),
+    storePrice: z.number().nullable().optional(),
+    miniappPrice: z.number().nullable().optional(),
+  }).parse(req.body);
+  const result = await productService.addSkuUnit(skuId, body, tenantId);
+  if (!result) {
+    res.status(404).json(fail("SKU不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const updateSkuUnit = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const skuId = Number(req.params.skuId);
+  const unitId = Number(req.params.unitId);
+  const body = z.object({
+    unitName: z.string().min(1).optional(),
+    ratio: z.number().positive().optional(),
+    barcode: z.string().optional(),
+    retailPrice: z.number().nullable().optional(),
+    wholesalePrice: z.number().nullable().optional(),
+    storePrice: z.number().nullable().optional(),
+    miniappPrice: z.number().nullable().optional(),
+  }).parse(req.body);
+  const result = await productService.updateSkuUnit(skuId, unitId, body, tenantId);
+  if (!result) {
+    res.status(404).json(fail("单位不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+export const deleteSkuUnit = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const skuId = Number(req.params.skuId);
+  const unitId = Number(req.params.unitId);
+  const result = await productService.deleteSkuUnit(skuId, unitId, tenantId);
+  if (!result) {
+    res.status(404).json(fail("单位不存在", "404"));
     return;
   }
   res.json(ok(result));

@@ -145,8 +145,7 @@ async function approveReturn(row: any) {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .card-header {
   display: flex;

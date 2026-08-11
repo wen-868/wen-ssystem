@@ -136,7 +136,7 @@
               {{ row.quantity || 1 }}
             </template>
           </el-table-column>
-          <el-table-column label="小计" width="140" align="right">
+          <el-table-column label="合计金额" width="140" align="right">
             <template #default="{ row }">
               {{ formatYuan((row.unitPrice || 0) * (row.quantity || 1)) }}
             </template>

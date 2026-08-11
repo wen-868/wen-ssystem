@@ -202,8 +202,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">创建</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="false"
+          save-text="创建"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit"
+        />
       </template>
     </el-dialog>
 
@@ -262,6 +267,7 @@ import { formatDate } from "../../utils/format";
 import PageCard from "../../components/PageCard.vue";
 import DataTable from "../../components/DataTable.vue";
 import DetailDrawer from "../../components/DetailDrawer.vue";
+import FormFooter from "../../components/FormFooter.vue";
 
 const loading = ref(false);
 const submitLoading = ref(false);

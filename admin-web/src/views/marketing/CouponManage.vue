@@ -373,7 +373,7 @@ onMounted(() => { loadData(); });
 </script>
 
 <style scoped>
-.page { padding: 20px; }
+.page { padding: 0; }
 .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .toolbar-left, .toolbar-right { display: flex; align-items: center; }
 .pagination { margin-top: 16px; display: flex; justify-content: flex-end; }

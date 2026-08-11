@@ -145,7 +145,7 @@
           <el-table-column label="单价" width="100">
             <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column label="小计" width="120">
+          <el-table-column label="合计金额" width="120">
             <template #default="{ row }">-¥{{ Number(row.subtotal || 0).toFixed(2) }}</template>
           </el-table-column>
         <template #empty>

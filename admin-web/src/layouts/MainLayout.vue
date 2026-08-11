@@ -1,5 +1,5 @@
 <template>
-  <div class="layout" :class="{ 'is-cashier': isCashierMode }">
+  <div class="layout" :class="{ 'is-cashier': isCashierMode, 'side-collapsed': isMenuCollapsed && !isCashierMode }">
     <!-- 通栏顶栏（横跨全宽：门店 · 面包屑 | 搜索 · 后台/收银切换 · 通知 · 用户） -->
     <header class="global-header">
       <div class="header-left">
@@ -59,19 +59,11 @@
 
     <!-- 侧边栏：深色磨砂 + 胶囊导航 -->
     <aside class="side" :class="{ 'is-collapsed': isMenuCollapsed && !isCashierMode, 'is-hidden': isCashierMode }">
-      <div class="sidebar-header">
+      <div class="sidebar-header" :title="isMenuCollapsed ? '展开导航' : '收起导航'" @click="isMenuCollapsed = !isMenuCollapsed">
         <div class="sidebar-logo">
           <img class="sidebar-logo-img" src="@/assets/logo.png" alt="智享全链" />
           <h1 v-show="!isMenuCollapsed">智享全链</h1>
         </div>
-        <el-button
-          v-if="!isMenuCollapsed"
-          class="collapse-btn"
-          :icon="isMenuCollapsed ? 'Expand' : 'Fold'"
-          size="small"
-          text
-          @click="isMenuCollapsed = !isMenuCollapsed"
-        />
       </div>
 
       <!-- 自定义胶囊导航（按产品规划v6.1的12个一级模块顺序） -->
@@ -346,7 +338,7 @@ import { ElMessage } from "element-plus";
 import {
   HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
   DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
-  ArrowDown, CaretBottom, ArrowLeft, Money, Discount, Van,
+  ArrowDown, CaretBottom, Money, Discount, Van,
   Edit, FolderOpened, Clock, RefreshRight, Share, Checked
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
@@ -446,10 +438,20 @@ function isActive(path: string): boolean {
 }
 
 function navTo(path: string) {
+  // 收起态点击主菜单：先展开导航再跳转
+  if (isMenuCollapsed.value) {
+    isMenuCollapsed.value = false;
+  }
   router.push(path);
 }
 
 function toggleGroup(group: keyof typeof openGroups) {
+  // 收起态点击主菜单：先展开导航并直接打开该分组
+  if (isMenuCollapsed.value) {
+    isMenuCollapsed.value = false;
+    openGroups[group] = true;
+    return;
+  }
   openGroups[group] = !openGroups[group];
 }
 
@@ -632,6 +634,9 @@ function handleLogout() {
   min-height: 100vh;
   background: var(--bg-page);
 }
+.layout.side-collapsed {
+  grid-template-columns: var(--sidebar-width-collapsed) 1fr auto;
+}
 
 /* 收银台模式：侧栏与 AI 面板隐藏，内容占满 */
 .layout.is-cashier {
@@ -663,6 +668,7 @@ function handleLogout() {
 .side {
   grid-row: 2;
   width: var(--sidebar-width);
+  box-sizing: border-box;
   background: var(--frost-sidebar);
   backdrop-filter: var(--frost-sidebar-blur);
   -webkit-backdrop-filter: var(--frost-sidebar-blur);
@@ -689,6 +695,11 @@ function handleLogout() {
   justify-content: space-between;
   padding: 0 12px;
   border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+.sidebar-header:hover {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .sidebar-logo {
@@ -723,10 +734,6 @@ function handleLogout() {
   margin: 0 auto;
 }
 
-.collapse-btn {
-  color: var(--sidebar-text-muted) !important;
-}
-
 /* ========== 胶囊导航 ========== */
 .sidebar-nav {
   flex: 1;
@@ -758,6 +765,7 @@ function handleLogout() {
 .nav-item {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   height: 36px;
   padding: 0 12px;
@@ -812,6 +820,8 @@ function handleLogout() {
   font-size: 12px;
   color: var(--sidebar-text-muted);
   transition: transform 200ms ease;
+  position: absolute;
+  right: 8px;
 }
 
 .nav-item.open .nav-arrow {

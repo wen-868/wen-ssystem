@@ -131,7 +131,7 @@
                 <el-input-number v-model="row.unitPrice" :min="0" :precision="2" size="small" style="width: 100%" />
               </template>
             </el-table-column>
-            <el-table-column label="小计" width="110">
+            <el-table-column label="合计金额" width="110">
               <template #default="{ row }">¥{{ Number((row.totalBottleQty || 0) * (row.unitPrice || 0)).toFixed(2) }}</template>
             </el-table-column>
             <el-table-column label="操作" width="70">
@@ -150,8 +150,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleCreate">创建</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="false"
+          save-text="创建"
+          @cancel="dialogVisible = false"
+          @save="handleCreate"
+        />
       </template>
     </el-dialog>
 
@@ -186,7 +191,7 @@
           <el-table-column prop="unitPrice" label="单价" width="100">
             <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column prop="subtotalAmount" label="小计" width="100">
+          <el-table-column prop="subtotalAmount" label="合计金额" width="100">
             <template #default="{ row }">¥{{ Number(row.subtotalAmount || 0).toFixed(2) }}</template>
           </el-table-column>
         </el-table>
@@ -199,6 +204,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
+import FormFooter from "../../components/FormFooter.vue";
 import {
   cancelPurchaseOrder,
   confirmPurchaseOrder,

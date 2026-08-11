@@ -74,8 +74,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!editing"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
 </div>
@@ -86,6 +91,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
 import { formatDate } from "../../utils/format";
 import { api } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const tagTypes = [
   { value: "aroma", label: "香型" },
@@ -127,7 +133,7 @@ function openDialog(row?: any) {
   dialogVisible.value = true;
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
   submitLoading.value = true;
@@ -139,7 +145,9 @@ async function handleSubmit() {
       await api.post("/admin/product-tags", { name: form.name, tagType: form.tagType, sortNo: form.sortNo, remark: form.remark });
       ElMessage.success("标签创建成功");
     }
-    dialogVisible.value = false; await searchTags();
+    if (!keepOpen) dialogVisible.value = false;
+    await searchTags();
+    if (keepOpen) openDialog();
   } catch { ElMessage.error("操作失败"); }
   finally { submitLoading.value = false; }
 }

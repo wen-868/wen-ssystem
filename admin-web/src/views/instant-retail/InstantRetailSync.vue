@@ -369,8 +369,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .stats-row {
   margin-bottom: 16px;

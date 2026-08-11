@@ -157,7 +157,7 @@
               <el-table-column label="单价" width="90">
                 <template #default="{ row }">¥{{ Number(row.unitPrice ?? 0).toFixed(2) }}</template>
               </el-table-column>
-              <el-table-column label="小计" width="90">
+              <el-table-column label="合计金额" width="90">
                 <template #default="{ row }">¥{{ Number(row.subtotal ?? 0).toFixed(2) }}</template>
               </el-table-column>
               <template #empty>
@@ -589,8 +589,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .chart-box {
   width: 100%;

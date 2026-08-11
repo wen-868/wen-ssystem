@@ -110,7 +110,7 @@
           <el-table-column prop="unitPrice" label="单价" width="100" align="right">
             <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column prop="subtotal" label="小计" width="120" align="right">
+          <el-table-column prop="subtotal" label="合计金额" width="120" align="right">
             <template #default="{ row }">¥{{ Number(row.subtotal || 0).toFixed(2) }}</template>
           </el-table-column>
           <el-table-column prop="expectedDate" label="预计到货" width="110" />

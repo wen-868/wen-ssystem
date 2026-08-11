@@ -614,8 +614,7 @@ watch(trendGranularity, () => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .stat-cards {
   margin-bottom: 16px;

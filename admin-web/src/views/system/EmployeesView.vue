@@ -101,8 +101,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!isEdit"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
 
@@ -135,6 +140,7 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { createStaff, fetchStaff, fetchStores, toggleStaffStatus, updateStaff, resetEmployeePassword } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -286,7 +292,7 @@ function openEdit(row: any) {
   dialogVisible.value = true;
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -311,7 +317,7 @@ async function handleSubmit() {
         });
         ElMessage.success("员工已新增");
       }
-      dialogVisible.value = false;
+      if (!keepOpen) dialogVisible.value = false;
       Object.assign(form, defaultForm);
       loadStaff();
     } catch (e: any) {

@@ -356,116 +356,237 @@
         <el-button type="primary" link @click="addSku">+ 添加SKU</el-button>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!isEdit"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
 
-    <!-- 详情抽屉 (3 Tab) -->
-    <el-drawer v-model="detailVisible" :title="'商品详情 - ' + (detailSpu?.name || '')" size="650px">
+    <!-- 详情抽屉 (4 Tab: 商品信息/商品详情/SKU列表/商品标签) -->
+    <el-drawer v-model="detailVisible" :title="'商品详情 - ' + (detailSpu?.name || '')" size="720px">
       <template v-if="detailSpu">
         <el-tabs v-model="detailTab">
-          <el-tab-pane label="基本信息" name="basic">
-            <!-- 商品主图：图片化展示 + URL 维护 -->
-            <div class="detail-main-image">
-              <el-image
-                v-if="detailSpu.mainImage"
-                :src="detailSpu.mainImage"
-                class="detail-main-img"
-                fit="contain"
-                :preview-src-list="[detailSpu.mainImage]"
-                preview-teleported
-              />
-              <div v-else class="detail-main-img detail-main-img--empty">
-                <el-icon :size="36"><Picture /></el-icon>
-                <span>暂无主图</span>
-              </div>
-              <div class="detail-main-img-actions">
-                <el-input v-model="detailSpu.mainImage" placeholder="主图 URL，修改后自动保存" clearable>
+          <el-tab-pane label="商品信息" name="basic">
+            <div class="detail-basic-layout">
+              <!-- 左侧：商品大图区（主图 + 图册） -->
+              <div class="detail-image-panel">
+                <div class="detail-section-title">商品图片</div>
+                <el-image
+                  v-if="detailSpu.mainImage"
+                  :src="detailSpu.mainImage"
+                  class="detail-main-img"
+                  fit="contain"
+                  :preview-src-list="[detailSpu.mainImage]"
+                  preview-teleported
+                />
+                <div v-else class="detail-main-img detail-main-img--empty">
+                  <el-icon :size="28"><Picture /></el-icon>
+                  <span>暂无主图</span>
+                </div>
+                <el-input
+                  v-model="detailSpu.mainImage" size="small" placeholder="主图 URL（1:1，≥800×800）" clearable :disabled="!detailEditing"
+                  @keyup.enter="saveDetailField('mainImage', detailSpu.mainImage, true)"
+                >
                   <template #append>
-                    <el-button @click="saveDetailField('mainImage', detailSpu.mainImage)">保存</el-button>
+                    <el-button v-if="detailEditing" size="small" @click="saveDetailField('mainImage', detailSpu.mainImage, true)">保存</el-button>
                   </template>
                 </el-input>
+                <div class="detail-section-title detail-section-title--sub">图册</div>
+                <div v-if="detailImageUrls.length" class="detail-gallery-list">
+                  <div v-for="(url, i) in detailImageUrls" :key="i" class="detail-gallery-item">
+                    <el-image
+                      :src="url" fit="cover" :preview-src-list="detailImageUrls" preview-teleported
+                      style="width: 52px; height: 52px; border-radius: 6px; background: var(--bg-page);"
+                    />
+                    <el-icon v-if="detailEditing" class="detail-gallery-del" @click="removeGalleryImage(i)"><Close /></el-icon>
+                  </div>
+                </div>
+                <el-input v-model="galleryInput" size="small" placeholder="输入图册 URL，回车添加" clearable :disabled="!detailEditing" @keyup.enter="addGalleryImage">
+                  <template #append>
+                    <el-button v-if="detailEditing" size="small" @click="addGalleryImage">添加</el-button>
+                  </template>
+                </el-input>
+                <div class="detail-image-panel-actions">
+                  <span v-if="!detailImageUrls.length" class="detail-gallery-empty">暂无图册</span>
+                  <el-button v-if="detailEditing" size="small" type="primary" plain :loading="gallerySaving" @click="saveGallery">保存图册</el-button>
+                </div>
+              </div>
+              <!-- 右侧：基本信息 + 扩展信息（两栏表单，适配本系统字段） -->
+              <div class="detail-basic-form">
+                <div class="detail-section-title">基本信息</div>
+                <el-form label-position="top" size="small" class="detail-basic-grid">
+                  <el-form-item label="商品名称">
+                    <el-input v-model="detailSpu.name" placeholder="商品名称" :disabled="!detailEditing" @change="saveDetailField('name', detailSpu.name, true)" />
+                  </el-form-item>
+                  <el-form-item label="商品分类">
+                    <el-tree-select
+                      v-model="detailSpu.categoryId" :data="categoryTree" check-strictly
+                      :props="{ label: 'name', value: 'id', children: 'children' }"
+                      placeholder="选择分类" style="width: 100%" :disabled="!detailEditing"
+                      @change="saveDetailField('category', detailSpu.categoryId, true)"
+                    />
+                  </el-form-item>
+                  <el-form-item label="商品品牌">
+                    <el-select v-model="detailSpu.brandId" placeholder="选择品牌" clearable style="width: 100%" :disabled="!detailEditing" @change="saveDetailField('brandId', detailSpu.brandId, true)">
+                      <el-option v-for="b in brandList" :key="b.id" :label="b.name" :value="b.id" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="规格/净含量">
+                    <el-input v-model="detailSpu.specs" placeholder="如 500ml×12" :disabled="!detailEditing" @change="saveDetailField('specs', detailSpu.specs, true)" />
+                  </el-form-item>
+                  <el-form-item label="酒精度(%vol)">
+                    <el-input-number v-model="detailSpu.alcoholContent" :min="0" :max="100" :precision="1" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveDetailField('alcoholContent', detailSpu.alcoholContent, true)" />
+                  </el-form-item>
+                  <el-form-item label="产地">
+                    <el-input v-model="detailSpu.origin" placeholder="产地" :disabled="!detailEditing" @change="saveDetailField('origin', detailSpu.origin, true)" />
+                  </el-form-item>
+                  <el-form-item label="销售渠道">
+                    <el-select v-model="detailChannels" multiple placeholder="选择渠道" style="width: 100%" :disabled="!detailEditing" @change="saveDetailChannels">
+                      <el-option label="小程序" value="MINIAPP" />
+                      <el-option label="门店" value="STORE" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="状态">
+                    <el-select v-model="detailSpu.status" style="width: 100%" :disabled="!detailEditing" @change="saveDetailField('status', detailSpu.status, true)">
+                      <el-option label="草稿" value="DRAFT" />
+                      <el-option label="上架" value="ON_SALE" />
+                      <el-option label="下架" value="OFF_SALE" />
+                    </el-select>
+                  </el-form-item>
+                </el-form>
+                <div class="detail-section-title">扩展信息</div>
+                <div class="detail-extras">
+                  <el-checkbox v-model="detailSpu.isNew" :disabled="!detailEditing" @change="saveDetailField('isNew', detailSpu.isNew, true)">新品</el-checkbox>
+                  <el-checkbox v-model="detailSpu.isRecommend" :disabled="!detailEditing" @change="saveDetailField('isRecommend', detailSpu.isRecommend, true)">推荐</el-checkbox>
+                  <span class="detail-meta">创建 {{ formatDate(detailSpu.createdAt) }} · 更新 {{ formatDate(detailSpu.updatedAt) }}</span>
+                </div>
               </div>
             </div>
-            <el-descriptions :column="2" border style="margin-top: 16px">
-              <el-descriptions-item label="商品名称">{{ detailSpu.name }}</el-descriptions-item>
-              <el-descriptions-item label="分类">{{ detailSpu.categoryName || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="品牌">{{ detailSpu.brandName || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="酒精度">{{ detailSpu.alcoholContent ? detailSpu.alcoholContent + '%vol' : '-' }}</el-descriptions-item>
-              <el-descriptions-item label="产地">{{ detailSpu.origin || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="销售渠道">
-                <template v-if="detailSpu.saleChannels">
-                  <el-tag v-for="ch in parseChannels(detailSpu.saleChannels)" :key="ch" size="small" style="margin: 1px">
-                    {{ ch === 'MINIAPP' ? '小程序' : ch === 'STORE' ? '门店' : ch }}
-                  </el-tag>
+            <!-- 单位与 SKU 信息：追溯/库存/预警为 SKU 全局设置；单位价格表按瓶/箱拆分 -->
+            <div class="detail-section-title detail-section-title--block">单位与 SKU 信息</div>
+            <div class="sku-detail-tip">追溯为 SKU 全局设置：开启后该规格所有单位出库均需录入追溯码；库存按基础单位统计</div>
+            <el-table :data="detailSpu._skus" size="small" stripe border max-height="240">
+              <el-table-column label="规格" min-width="180">
+                <template #default="{ row }">
+                  <div class="sku-name-cell">
+                    <span>{{ row.skuName }}</span>
+                    <span class="sku-code-sub">{{ row.skuCode }}</span>
+                  </div>
                 </template>
-              </el-descriptions-item>
-              <el-descriptions-item label="状态">
-                <el-tag v-if="detailSpu.status === 'ON_SALE'" type="success">上架</el-tag>
-                <el-tag v-else-if="detailSpu.status === 'DRAFT'" type="info">草稿</el-tag>
-                <el-tag v-else type="danger">下架</el-tag>
-              </el-descriptions-item>
-              <el-descriptions-item label="创建时间">{{ formatDate(detailSpu.createdAt) }}</el-descriptions-item>
-              <el-descriptions-item label="更新时间">{{ formatDate(detailSpu.updatedAt) }}</el-descriptions-item>
-            </el-descriptions>
+              </el-table-column>
+              <el-table-column prop="availableQty" label="库存(基础单位)" width="125" align="center" />
+              <el-table-column label="预警阈值" width="115">
+                <template #default="{ row }">
+                  <el-input-number v-model="row.warningThreshold" :min="0" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuInfo(row, 'warningThreshold')" />
+                </template>
+              </el-table-column>
+              <el-table-column label="追溯(全局)" width="115" align="center">
+                <template #default="{ row }">
+                  <el-switch v-model="row.traceEnabled" inline-prompt active-text="开" inactive-text="关" :disabled="!detailEditing" @change="saveSkuInfo(row, 'traceEnabled')" />
+                </template>
+              </el-table-column>
+            </el-table>
+            <div class="detail-section-title detail-section-title--sub">单位价格明细（支持多单位增加与换算：1 单位 = 换算 个基础单位）</div>
+            <el-table :data="skuUnitRows" size="small" stripe border max-height="320">
+              <el-table-column label="单位" width="122">
+                <template #default="{ row }">
+                  <div class="sku-unit-name-cell">
+                    <el-input v-model="row.unitName" size="small" :disabled="!detailEditing" @change="saveSkuUnitName(row)" />
+                    <el-tag v-if="row.isBase" size="small" type="success" class="sku-unit-base-tag">基础</el-tag>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="换算(折基础)" width="115">
+                <template #default="{ row }">
+                  <el-input-number v-if="!row.isBase" v-model="row.ratio" :min="0.01" :precision="2" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuUnitRatio(row)" />
+                  <span v-else>1</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="条码" width="142">
+                <template #default="{ row }">
+                  <el-input v-model="row.barcode" size="small" placeholder="录入条码" clearable :disabled="!detailEditing" @change="saveSkuUnitBarcode(row)" />
+                </template>
+              </el-table-column>
+              <el-table-column label="零售价" width="112">
+                <template #default="{ row }">
+                  <el-input-number v-model="row.retailPrice" :min="0" :precision="2" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuUnitPrice(row)" />
+                </template>
+              </el-table-column>
+              <el-table-column label="批发价" width="112">
+                <template #default="{ row }">
+                  <el-input-number v-model="row.wholesalePrice" :min="0" :precision="2" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuUnitPrice(row)" />
+                </template>
+              </el-table-column>
+              <el-table-column label="门店价" width="112">
+                <template #default="{ row }">
+                  <el-input-number v-model="row.storePrice" :min="0" :precision="2" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuUnitPrice(row)" />
+                </template>
+              </el-table-column>
+              <el-table-column label="小程序价" width="112">
+                <template #default="{ row }">
+                  <el-input-number v-model="row.miniappPrice" :min="0" :precision="2" size="small" controls-position="right" style="width: 100%" :disabled="!detailEditing" @change="saveSkuUnitPrice(row)" />
+                </template>
+              </el-table-column>
+              <el-table-column v-if="detailEditing" label="操作" width="105" fixed="right">
+                <template #default="{ row }">
+                  <el-button v-if="row.isBase" size="small" link type="primary" @click="addSkuUnit(row)">+ 添加单位</el-button>
+                  <el-button v-else size="small" link type="danger" @click="deleteSkuUnit(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <!-- 商品标签（营销标签） -->
+            <div class="detail-section-title detail-section-title--block">商品标签</div>
+            <el-tabs v-model="tagTypeTab" type="card">
+              <el-tab-pane v-for="group in tagGroups" :key="group" :label="tagTypeLabel(group)" :name="group">
+                <el-checkbox-group v-model="detailTagIds" class="tag-cb-group">
+                  <el-checkbox v-for="tag in tagsByType[group]" :key="tag.id" :label="tag.id" :value="tag.id" :disabled="!detailEditing">{{ tag.name }}</el-checkbox>
+                </el-checkbox-group>
+              </el-tab-pane>
+            </el-tabs>
+            <p class="detail-tag-tip">标签随底部「保存 / 保存并增加」一并提交</p>
           </el-tab-pane>
           <el-tab-pane label="商品详情" name="detail">
             <div style="border: 1px solid var(--gray-200); border-radius: 4px">
               <div style="border-bottom: 1px solid var(--gray-200); padding: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
-                <el-button size="small" :type="richEditor?.isActive('bold') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBold().run()" style="font-weight: bold;">B</el-button>
-                <el-button size="small" :type="richEditor?.isActive('italic') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleItalic().run()" style="font-style: italic;">I</el-button>
-                <el-button size="small" :type="richEditor?.isActive('strike') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleStrike().run()" style="text-decoration: line-through;">S</el-button>
-                <el-button size="small" :type="richEditor?.isActive('heading', { level: 1 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 1 }).run()">H1</el-button>
-                <el-button size="small" :type="richEditor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 2 }).run()">H2</el-button>
-                <el-button size="small" :type="richEditor?.isActive('bulletList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBulletList().run()">无序列表</el-button>
-                <el-button size="small" :type="richEditor?.isActive('orderedList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleOrderedList().run()">有序列表</el-button>
-                <el-button size="small" :type="richEditor?.isActive('codeBlock') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleCodeBlock().run()">代码块</el-button>
-                <el-button size="small" :type="richEditor?.isActive('blockquote') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBlockquote().run()">引用</el-button>
-                <el-button size="small" @click="richEditor?.chain().focus().undo().run()">撤销</el-button>
-                <el-button size="small" @click="richEditor?.chain().focus().redo().run()">重做</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('bold') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBold().run()" style="font-weight: bold;">B</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('italic') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleItalic().run()" style="font-style: italic;">I</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('strike') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleStrike().run()" style="text-decoration: line-through;">S</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('heading', { level: 1 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 1 }).run()">H1</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleHeading({ level: 2 }).run()">H2</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('bulletList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBulletList().run()">无序列表</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('orderedList') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleOrderedList().run()">有序列表</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('codeBlock') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleCodeBlock().run()">代码块</el-button>
+                <el-button size="small" :disabled="!detailEditing" :type="richEditor?.isActive('blockquote') ? 'primary' : 'default'" @click="richEditor?.chain().focus().toggleBlockquote().run()">引用</el-button>
+                <el-button size="small" :disabled="!detailEditing" @click="richEditor?.chain().focus().undo().run()">撤销</el-button>
+                <el-button size="small" :disabled="!detailEditing" @click="richEditor?.chain().focus().redo().run()">重做</el-button>
               </div>
-              <EditorContent :editor="richEditor" style="height: 300px; overflow-y: auto; padding: 10px;" />
+              <EditorContent :editor="richEditor" class="detail-editor-content" />
+            </div>
+            <div class="detail-editor-actions">
+              <span class="detail-editor-tip">修改后自动保存，也可手动保存</span>
+              <div v-if="detailEditing" class="detail-editor-btns">
+                <el-button size="small" @click="resetDetailEditor">恢复</el-button>
+                <el-button size="small" type="primary" @click="flushDetailSave">保存详情</el-button>
+              </div>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="SKU列表" name="skus">
-            <el-table :data="detailSpu._skus" size="small" stripe>
-              <el-table-column prop="skuCode" label="SKU编码" width="130" />
-              <el-table-column prop="skuName" label="规格名称" min-width="130" />
-              <el-table-column label="条码" width="160">
-                <template #default="{ row }">
-                  <el-input
-                    v-model="row.barcode"
-                    size="small"
-                    placeholder="录入条码"
-                    clearable
-                    @change="saveSkuBarcode(row)"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column prop="retailPrice" label="零售价" width="90">
-                <template #default="{ row }">¥{{ Number(row.retailPrice || 0).toFixed(2) }}</template>
-              </el-table-column>
-              <el-table-column prop="wholesalePrice" label="批发价" width="90">
-                <template #default="{ row }">¥{{ Number(row.wholesalePrice || 0).toFixed(2) }}</template>
-              </el-table-column>
-              <el-table-column prop="miniappPrice" label="小程序价" width="90">
-                <template #default="{ row }">¥{{ Number(row.miniappPrice || 0).toFixed(2) }}</template>
-              </el-table-column>
-              <el-table-column prop="boxRatio" label="箱瓶比" width="70" />
-            </el-table>
-          </el-tab-pane>
-          <el-tab-pane label="商品标签" name="tags">
-            <el-tabs v-model="tagTypeTab" type="card">
-              <el-tab-pane v-for="group in tagGroups" :key="group" :label="tagTypeLabel(group)" :name="group">
-                <el-checkbox-group v-model="detailTagIds" class="tag-cb-group">
-                  <el-checkbox v-for="tag in tagsByType[group]" :key="tag.id" :label="tag.id" :value="tag.id">{{ tag.name }}</el-checkbox>
-                </el-checkbox-group>
-              </el-tab-pane>
-            </el-tabs>
-            <el-button type="primary" :loading="tagSubmitLoading" @click="saveDetailTags" style="margin-top: 12px">保存标签</el-button>
-          </el-tab-pane>
         </el-tabs>
+      </template>
+      <template #footer>
+        <div class="detail-footer">
+          <span class="detail-footer-tip">{{ detailEditing ? '编辑模式：修改后点保存' : '查看模式：点修改进入编辑' }}</span>
+          <div class="detail-footer-btns">
+            <el-button :type="detailEditing ? 'default' : 'primary'" @click="toggleDetailEdit">
+              {{ detailEditing ? '取消修改' : '修改' }}
+            </el-button>
+            <el-button type="primary" :disabled="!detailEditing" :loading="detailSaving" @click="saveDetailAll">保存</el-button>
+            <el-button type="success" :disabled="!detailEditing" :loading="detailSaving" @click="saveDetailAndAdd">保存并增加</el-button>
+          </div>
+        </div>
       </template>
     </el-drawer>
 
@@ -512,8 +633,9 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { ElMessage, type FormInstance, type FormRules } from "element-plus";
-import { Picture, Plus, Search } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
+import { Close, Picture, Plus, Search } from "@element-plus/icons-vue";
+import FormFooter from "../../components/FormFooter.vue";
 import { useEditor, EditorContent } from "@tiptap/vue-3";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../../api";
@@ -568,6 +690,38 @@ const skuPriceTarget = ref<any>(null);
 const tagGroups = ref<string[]>([]);
 const tagsByType = ref<Record<string, any[]>>({});
 const detailTagIds = ref<number[]>([]);
+const detailImageUrls = ref<string[]>([]);
+const detailChannels = ref<string[]>([]);
+const galleryInput = ref("");
+const gallerySaving = ref(false);
+const detailEditing = ref(false);
+const detailSaving = ref(false);
+
+/** SKU 单位行：将多单位平铺（基础单位在前，非基础单位价格空时后端已按换算推导） */
+const skuUnitRows = computed(() => {
+  const rows: any[] = [];
+  for (const s of (detailSpu.value?._skus || [])) {
+    const units = Array.isArray(s.units) && s.units.length > 0
+      ? s.units
+      : [
+          { unitName: s.baseUnit || "瓶", ratio: 1, barcode: s.barcode || "", isBase: 1, retailPrice: s.retailPrice, wholesalePrice: s.wholesalePrice, storePrice: s.storePrice, miniappPrice: s.miniappPrice },
+          {
+            unitName: s.boxUnit || "箱",
+            ratio: Number(s.boxRatio || 1),
+            barcode: s.boxBarcode || "",
+            isBase: 0,
+            retailPrice: Number(s.retailPrice || 0) * Number(s.boxRatio || 1),
+            wholesalePrice: s.wholesalePrice === null || s.wholesalePrice === undefined ? null : Number(s.wholesalePrice) * Number(s.boxRatio || 1),
+            storePrice: s.storePrice === null || s.storePrice === undefined ? null : Number(s.storePrice) * Number(s.boxRatio || 1),
+            miniappPrice: s.miniappPrice === null || s.miniappPrice === undefined ? null : Number(s.miniappPrice) * Number(s.boxRatio || 1),
+          },
+        ];
+    for (const u of units) {
+      rows.push({ ...s, ...u, rowKey: `u-${s.skuId}-${u.id || u.unitName || ""}` });
+    }
+  }
+  return rows;
+});
 
 const TAG_LABELS: Record<string, string> = {
   aroma: "香型", alcohol_level: "度数段", region: "产区", scene: "场景", vintage: "年份"
@@ -657,11 +811,13 @@ function groupSpus(raw: any[]): any[] {
     }
     spu._skus.push({
       skuId: r.skuId, skuCode: r.skuCode, skuName: r.skuName, barcode: r.barcode,
+      boxBarcode: r.boxBarcode,
       retailPrice: r.retailPrice, wholesalePrice: r.wholesalePrice,
       miniappPrice: r.miniappPrice, storePrice: r.storePrice, costPrice: r.costPrice,
-      boxRatio: r.boxRatio, temperature: r.temperature, traceEnabled: r.traceEnabled,
+      boxRatio: r.boxRatio, temperature: r.temperature, traceEnabled: !!r.traceEnabled,
       warningThreshold: r.warningThreshold,
-      volume: r.volume, packaging: r.packaging, baseUnit: r.baseUnit, boxUnit: r.boxUnit
+      volume: r.volume, packaging: r.packaging, baseUnit: r.baseUnit, boxUnit: r.boxUnit,
+      availableQty: r.availableQty ?? 0
     });
   }
   for (const [_, spu] of map) {
@@ -830,7 +986,7 @@ async function lookupFromLibrary(idx: number) {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -875,8 +1031,9 @@ async function handleSubmit() {
         });
         ElMessage.success("创建成功");
       }
-      dialogVisible.value = false;
+      if (!keepOpen) dialogVisible.value = false;
       search();
+      if (keepOpen) openCreateDialog();
     } catch (e: any) {
       ElMessage.error(e.response?.data?.msg || "保存失败");
     } finally { submitLoading.value = false; }
@@ -894,9 +1051,32 @@ async function toggleStatus(row: any) {
 
 // ---------- Detail Drawer ----------
 async function openDetail(row: any) {
+  // 切换商品时清空上一商品的富文本自动保存定时器，避免误写
+  if (richEditorSaveTimer) { clearTimeout(richEditorSaveTimer); richEditorSaveTimer = null; }
+  detailEditing.value = false;
+  richEditor.value?.setEditable(false);
   detailSpu.value = { ...row, _skus: row._skus || [] };
   detailVisible.value = true;
   detailTab.value = "basic";
+  // 拉取完整详情（含 SKU 库存/单位/追溯等完整字段）
+  try {
+    const { data: rd } = await api.get(`/admin/products/${row.spuId}`);
+    const full = rd.data || {};
+    detailSpu.value = {
+      ...detailSpu.value,
+      ...full,
+      _skus: (full.skus || detailSpu.value?._skus || []).map((s: any) => ({
+        ...s,
+        availableQty: s.availableQty ?? 0,
+        traceEnabled: !!s.traceEnabled,
+      })),
+    };
+    detailChannels.value = parseChannels(detailSpu.value?.saleChannels);
+    detailImageUrls.value = parseImageUrls(full.imageUrls);
+  } catch {
+    detailChannels.value = parseChannels(detailSpu.value?.saleChannels);
+    detailImageUrls.value = parseImageUrls(detailSpu.value?.imageUrls);
+  }
   // 加载标签
   try {
     const { data: td } = await api.get(`/admin/products/${row.spuId}/tags`);
@@ -909,11 +1089,59 @@ async function openDetail(row: any) {
   } catch { /* ignore */ }
 }
 
-async function saveDetailField(field: string, value: any) {
+/** 解析图册 URL（兼容 JSON 字符串与数组） */
+function parseImageUrls(raw: any): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (typeof raw === "string") {
+    try {
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr.filter(Boolean) : raw ? [raw] : [];
+    } catch { return raw ? [raw] : []; }
+  }
+  return [];
+}
+
+function addGalleryImage() {
+  if (!detailEditing.value) return;
+  const url = (galleryInput.value || "").trim();
+  if (!url) return;
+  detailImageUrls.value = [...detailImageUrls.value, url];
+  galleryInput.value = "";
+}
+
+function removeGalleryImage(i: number) {
+  if (!detailEditing.value) return;
+  detailImageUrls.value = detailImageUrls.value.filter((_, idx) => idx !== i);
+}
+
+/** 保存销售渠道（多选） */
+function saveDetailChannels() {
+  if (!detailSpu.value?.spuId) return;
+  detailSpu.value.saleChannels = detailChannels.value;
+  saveDetailField("saleChannels", detailChannels.value, true);
+}
+
+async function saveGallery(showMsg = true) {
+  if (!detailSpu.value?.spuId) return;
+  gallerySaving.value = true;
+  try {
+    await api.put(`/admin/products/${detailSpu.value.spuId}`, { imageUrls: detailImageUrls.value });
+    if (showMsg) ElMessage.success("图册已保存");
+  } catch (e: any) {
+    if (showMsg) ElMessage.error(e.response?.data?.msg || "图册保存失败");
+  } finally { gallerySaving.value = false; }
+}
+
+async function saveDetailField(field: string, value: any, showMsg = false) {
   if (!detailSpu.value?.spuId) return;
   try {
     await api.put(`/admin/products/${detailSpu.value.spuId}`, { [field]: value });
-  } catch { /* silent */ }
+    if (showMsg) ElMessage.success("已保存");
+  } catch (e: any) {
+    if (showMsg) ElMessage.error(e.response?.data?.msg || "保存失败");
+    else throw e;
+  }
 }
 
 /** 保存 SKU 条码（每个 SKU 可录入/修改条码） */
@@ -929,14 +1157,203 @@ async function saveSkuBarcode(row: any) {
   }
 }
 
-async function saveDetailTags() {
+/** 保存 SKU 档案字段（规格名称/单位/箱瓶比/预警/追溯等非价格字段） */
+async function saveSkuInfo(row: any, field: string) {
+  if (!row?.skuId) return;
+  const payload: Record<string, unknown> = {};
+  if (field === "traceEnabled") payload.traceEnabled = !!row.traceEnabled;
+  else if (field === "boxRatio") payload.boxRatio = Number(row.boxRatio || 1);
+  else if (field === "warningThreshold") payload.warningThreshold = Number(row.warningThreshold || 0);
+  else payload[field] = row[field] ?? "";
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}`, payload);
+    ElMessage.success(field === "traceEnabled" ? (row.traceEnabled ? "已启用追溯" : "已关闭追溯") : "已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败，请重试");
+  }
+}
+
+/** 保存 SKU 价格（零售/批发/门店/小程序一次性提交，保留价格历史） */
+async function saveSkuPrice(row: any) {
+  if (!row?.skuId) return;
+  try {
+    await api.put(`/admin/products/${row.skuId}/price`, {
+      retailPrice: Number(row.retailPrice || 0),
+      wholesalePrice: row.wholesalePrice === null || row.wholesalePrice === undefined ? null : Number(row.wholesalePrice),
+      storePrice: row.storePrice === null || row.storePrice === undefined ? null : Number(row.storePrice),
+      miniappPrice: row.miniappPrice === null || row.miniappPrice === undefined ? null : Number(row.miniappPrice),
+    });
+    ElMessage.success("价格已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "价格保存失败");
+  }
+}
+
+/** 添加/删除单位后刷新 SKU 明细，保持与后端一致 */
+async function refreshDetailSkus() {
+  if (!detailSpu.value?.spuId) return;
+  try {
+    const { data: rd } = await api.get(`/admin/products/${detailSpu.value.spuId}`);
+    const full = rd.data || {};
+    detailSpu.value._skus = (full.skus || []).map((s: any) => ({
+      ...s,
+      availableQty: s.availableQty ?? 0,
+      traceEnabled: !!s.traceEnabled,
+    }));
+  } catch { /* ignore */ }
+}
+
+/** 保存单位名称（基础单位改名同步到 SKU 基础单位） */
+async function saveSkuUnitName(row: any) {
+  if (!row?.skuId || !row?.id) return;
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}/units/${row.id}`, { unitName: row.unitName });
+    ElMessage.success("单位名称已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败，请重试");
+  }
+}
+
+/** 保存单位换算比例（1 单位 = 换算 个基础单位） */
+async function saveSkuUnitRatio(row: any) {
+  if (!row?.skuId || !row?.id) return;
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}/units/${row.id}`, { ratio: Number(row.ratio || 1) });
+    ElMessage.success("换算比例已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败，请重试");
+  }
+}
+
+/** 保存单位条码（一品多码） */
+async function saveSkuUnitBarcode(row: any) {
+  if (!row?.skuId || !row?.id) return;
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}/units/${row.id}`, { barcode: row.barcode || "" });
+    ElMessage.success("条码已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "条码保存失败，请重试");
+  }
+}
+
+/** 保存单位价格：基础单位走 SKU 价格（保留价格历史），非基础单位写单位价格 */
+async function saveSkuUnitPrice(row: any) {
+  if (!row?.skuId) return;
+  if (row.isBase) {
+    await saveSkuPrice(row);
+    return;
+  }
+  if (!row?.id) return;
+  try {
+    await api.put(`/admin/products/skus/${row.skuId}/units/${row.id}`, {
+      retailPrice: Number(row.retailPrice || 0),
+      wholesalePrice: row.wholesalePrice === null || row.wholesalePrice === undefined ? null : Number(row.wholesalePrice),
+      storePrice: row.storePrice === null || row.storePrice === undefined ? null : Number(row.storePrice),
+      miniappPrice: row.miniappPrice === null || row.miniappPrice === undefined ? null : Number(row.miniappPrice),
+    });
+    ElMessage.success("单位价格已保存");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "价格保存失败");
+  }
+}
+
+/** 新增单位（多单位增加） */
+async function addSkuUnit(row: any) {
+  if (!row?.skuId) return;
+  try {
+    await api.post(`/admin/products/skus/${row.skuId}/units`, { unitName: "新单位", ratio: 1 });
+    ElMessage.success("单位已添加，请修改名称与换算比例");
+    await refreshDetailSkus();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "添加单位失败");
+  }
+}
+
+/** 删除单位（基础单位不可删除） */
+async function deleteSkuUnit(row: any) {
+  if (!row?.skuId || !row?.id) return;
+  try {
+    await ElMessageBox.confirm(`确认删除单位「${row.unitName}」？删除后该单位条码与价格将一并移除。`, "删除单位", { type: "warning" });
+    await api.delete(`/admin/products/skus/${row.skuId}/units/${row.id}`);
+    ElMessage.success("单位已删除");
+    await refreshDetailSkus();
+  } catch (e: any) {
+    if (e !== "cancel" && e !== "close") {
+      ElMessage.error(e?.response?.data?.msg || "删除失败");
+    }
+  }
+}
+
+/** 手动保存富文本详情（立即落库） */
+function flushDetailSave(showMsg = true) {
+  if (!detailSpu.value?.spuId) return;
+  if (richEditorSaveTimer) { clearTimeout(richEditorSaveTimer); richEditorSaveTimer = null; }
+  return saveDetailField("detail", richEditor.value?.getHTML() || "", showMsg);
+}
+
+/** 恢复编辑器内容为已保存的详情 */
+function resetDetailEditor() {
+  if (richEditor.value) {
+    richEditor.value.commands.setContent(detailSpu.value?.detail || "", { emitUpdate: false });
+  }
+}
+
+/** 修改：切换详情抽屉 查看/编辑 模式 */
+function toggleDetailEdit() {
+  detailEditing.value = !detailEditing.value;
+  richEditor.value?.setEditable(detailEditing.value);
+}
+
+/** 保存：提交抽屉内全部待保存内容（富文本详情/图册/标签）并返回查看模式 */
+async function saveDetailAll() {
+  if (!detailSpu.value?.spuId || !detailEditing.value) return;
+  detailSaving.value = true;
+  try {
+    const results = await Promise.allSettled([
+      flushDetailSave(false),
+      saveGallery(false),
+      saveDetailTags(false),
+    ]);
+    const failed = results.filter((r) => r.status === "rejected");
+    if (failed.length > 0) {
+      ElMessage.warning("部分内容保存失败，请检查后重试");
+    } else {
+      ElMessage.success("保存成功");
+    }
+    detailEditing.value = false;
+    richEditor.value?.setEditable(false);
+  } finally {
+    detailSaving.value = false;
+  }
+}
+
+/** 保存并增加：保存当前商品后打开新增商品 */
+async function saveDetailAndAdd() {
+  if (!detailSpu.value?.spuId || !detailEditing.value) return;
+  detailSaving.value = true;
+  try {
+    await Promise.allSettled([
+      flushDetailSave(false),
+      saveGallery(false),
+      saveDetailTags(false),
+    ]);
+    detailVisible.value = false;
+    detailEditing.value = false;
+    richEditor.value?.setEditable(false);
+    openCreateDialog();
+  } finally {
+    detailSaving.value = false;
+  }
+}
+
+async function saveDetailTags(showMsg = true) {
   if (!detailSpu.value?.spuId) return;
   tagSubmitLoading.value = true;
   try {
     await api.put(`/admin/products/${detailSpu.value.spuId}/tags`, { tagIds: detailTagIds.value });
-    ElMessage.success("标签已保存");
+    if (showMsg) ElMessage.success("标签已保存");
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.msg || "保存失败");
+    if (showMsg) ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally { tagSubmitLoading.value = false; }
 }
 
@@ -1013,7 +1430,33 @@ onMounted(() => { search(); loadRefData(); });
 .page-header-actions .el-input { margin-right: 0; }
 .expand-content { padding: 8px 20px; background: var(--gray-50); }
 .expand-content h4 { margin: 0 0 8px; font-size: 14px; color: var(--gray-700); }
-.detail-main-image { text-align: center; background: var(--bg-page); border-radius: 8px; padding: 12px; }
+.detail-basic-layout { display: flex; gap: 16px; align-items: flex-start; }
+.detail-basic-form { flex: 1; min-width: 0; }
+.detail-basic-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
+.detail-section-title { font-size: 13px; font-weight: 600; color: var(--gray-700); margin: 4px 0 10px; }
+.detail-section-title--sub { margin-top: 14px; }
+.detail-extras { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.detail-meta { font-size: 12px; color: var(--gray-300); }
+.detail-image-panel { width: 280px; flex: none; border: 1px solid var(--gray-200); border-radius: 8px; padding: 12px; }
+.detail-main-img { width: 100%; height: 230px; margin-bottom: 8px; object-fit: contain; border-radius: 6px; background: var(--bg-page); }
+.detail-main-img--empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 230px; color: var(--gray-300); font-size: 13px; border: 1px dashed var(--gray-200); border-radius: 6px; }
+.detail-gallery-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.detail-gallery-item { position: relative; }
+.detail-gallery-del { position: absolute; top: -6px; right: -6px; background: var(--el-color-danger); color: #fff; border-radius: 50%; padding: 2px; cursor: pointer; }
+.detail-gallery-empty { font-size: 12px; color: var(--gray-300); }
+.detail-image-panel-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+.detail-editor-content { min-height: 320px; overflow-y: auto; padding: 10px; }
+.detail-editor-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.detail-editor-tip { font-size: 12px; color: var(--gray-400); }
+.sku-detail-tip { font-size: 12px; color: var(--gray-400); margin-bottom: 8px; }
+.sku-name-cell { display: flex; flex-direction: column; gap: 2px; }
+.sku-code-sub { font-size: 12px; color: var(--gray-400); }
+.sku-unit-name-cell { display: flex; align-items: center; gap: 6px; }
+.sku-unit-base-tag { flex: none; }
+.detail-footer { display: flex; justify-content: space-between; align-items: center; }
+.detail-footer-tip { font-size: 12px; color: var(--gray-400); }
+.detail-footer-btns { display: flex; gap: 8px; }
+.detail-tag-tip { font-size: 12px; color: var(--gray-400); margin: 8px 0 0; }
 .tag-cb-group { display: flex; flex-direction: column; gap: 8px; }
 .sku-row { background: var(--gray-50); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
 .sku-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 500; }

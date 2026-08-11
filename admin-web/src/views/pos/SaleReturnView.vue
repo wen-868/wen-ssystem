@@ -85,7 +85,7 @@
         <el-table-column label="单价" width="100">
           <template #default="{ row }">¥{{ Number(row.unit_price || 0).toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column label="小计" width="110">
+        <el-table-column label="合计金额" width="110">
           <template #default="{ row }">¥{{ Number(row.subtotal_amount || 0).toFixed(2) }}</template>
         </el-table-column>
         <el-table-column prop="reason" label="退货原因" min-width="120" />
@@ -111,8 +111,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="submitCreate">提交</el-button>
+        <FormFooter
+          :loading="submitting"
+          :show-save-and-add="false"
+          save-text="提交"
+          @cancel="createVisible = false"
+          @save="submitCreate"
+        />
       </template>
     </el-dialog>
 </div>
@@ -123,6 +128,7 @@ import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import { fetchStoreSaleReturns, fetchSaleReturnDetail, createStoreSaleReturn } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const loading = ref(false);
 const submitting = ref(false);

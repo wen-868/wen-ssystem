@@ -93,8 +93,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!isEdit"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
   </PageCard>
@@ -106,6 +111,7 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh, OfficeBuilding } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { formatDate } from "../../utils/format";
+import FormFooter from "../../components/FormFooter.vue";
 import {
   getDepartmentTree, createDepartment, updateDepartment, deleteDepartment, fetchStores
 } from "../../api";
@@ -264,7 +270,7 @@ async function handleDelete() {
   }
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   if (!formRef.value) return;
   await formRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -283,9 +289,10 @@ async function handleSubmit() {
         await createDepartment(payload);
         ElMessage.success("部门已创建");
       }
-      dialogVisible.value = false;
+      if (!keepOpen) dialogVisible.value = false;
       currentNode.value = null;
       loadTree();
+      if (keepOpen) handleAddRoot();
     } catch (e: any) {
       ElMessage.error(getErrorMessage(e, "操作失败"));
     } finally {

@@ -92,8 +92,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="tagDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="tagSubmitLoading" @click="handleTagSubmit">保存</el-button>
+        <FormFooter
+          :loading="tagSubmitLoading"
+          :show-save-and-add="!editingTag"
+          @cancel="tagDialogVisible = false"
+          @save="handleTagSubmit()"
+          @save-add="handleTagSubmit(true)"
+        />
       </template>
     </el-dialog>
 
@@ -120,8 +125,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="groupDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="groupSubmitLoading" @click="handleGroupSubmit">保存</el-button>
+        <FormFooter
+          :loading="groupSubmitLoading"
+          :show-save-and-add="!editingGroup"
+          @cancel="groupDialogVisible = false"
+          @save="handleGroupSubmit()"
+          @save-add="handleGroupSubmit(true)"
+        />
       </template>
     </el-dialog>
 </div>
@@ -131,6 +141,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { formatDate } from "../../utils/format";
+import FormFooter from "../../components/FormFooter.vue";
 import {
   fetchProductTagGroups, createProductTagGroup, updateProductTagGroup, deleteProductTagGroup,
   fetchProductTags, createProductTag, updateProductTag, deleteProductTag
@@ -226,7 +237,7 @@ function openTagDialog(row?: any) {
   tagDialogVisible.value = true;
 }
 
-async function handleTagSubmit() {
+async function handleTagSubmit(keepOpen = false) {
   const valid = await tagFormRef.value?.validate().catch(() => false);
   if (!valid) return;
   tagSubmitLoading.value = true;
@@ -242,8 +253,9 @@ async function handleTagSubmit() {
       });
       ElMessage.success("创建成功");
     }
-    tagDialogVisible.value = false;
+    if (!keepOpen) tagDialogVisible.value = false;
     loadTags();
+    if (keepOpen) openTagDialog();
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {
@@ -290,7 +302,7 @@ function openGroupDialog(row?: any) {
   groupDialogVisible.value = true;
 }
 
-async function handleGroupSubmit() {
+async function handleGroupSubmit(keepOpen = false) {
   const valid = await groupFormRef.value?.validate().catch(() => false);
   if (!valid) return;
   groupSubmitLoading.value = true;
@@ -307,8 +319,9 @@ async function handleGroupSubmit() {
       });
       ElMessage.success("创建成功");
     }
-    groupDialogVisible.value = false;
+    if (!keepOpen) groupDialogVisible.value = false;
     loadAll();
+    if (keepOpen) openGroupDialog();
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "保存失败");
   } finally {

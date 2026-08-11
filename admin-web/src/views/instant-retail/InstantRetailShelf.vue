@@ -777,8 +777,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .shelf-layout {
   display: flex;

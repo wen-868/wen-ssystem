@@ -66,6 +66,12 @@ export const createSaleBill = asyncHandler(async (req, res) => {
     roundingAmount: z.number().default(0),
     remark: z.string().optional(),
     internalRemark: z.string().optional(),
+    operatorId: z.number().nullable().optional(),
+    operatorName: z.string().optional(),
+    auditorId: z.number().nullable().optional(),
+    auditorName: z.string().optional(),
+    salesmanId: z.number().nullable().optional(),
+    salesmanName: z.string().optional(),
     saleType: z.enum(["CASH", "CREDIT"]).default("CASH"),
     dueDate: z.string().optional(),
     items: z.array(storeSaleBillItemSchema).min(1)

@@ -63,8 +63,13 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!editing"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
 </div>
@@ -75,6 +80,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
 import { formatDate } from "../../utils/format";
 import { api } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const brands = ref<any[]>([]);
 const loading = ref(false); const total = ref(0); const page = ref(1); const pageSize = ref(20);
@@ -106,7 +112,7 @@ function openDialog(row?: any) {
   dialogVisible.value = true;
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
   submitLoading.value = true;
@@ -118,7 +124,9 @@ async function handleSubmit() {
       await api.post("/admin/brands", { name: form.name, sortNo: form.sortNo, remark: form.remark });
       ElMessage.success("品牌创建成功");
     }
-    dialogVisible.value = false; await searchBrands();
+    if (!keepOpen) dialogVisible.value = false;
+    await searchBrands();
+    if (keepOpen) openDialog();
   } catch { ElMessage.error("操作失败"); }
   finally { submitLoading.value = false; }
 }

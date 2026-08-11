@@ -163,7 +163,8 @@
   --space-8: 32px;
   --space-10: 40px;
 
-  --space-page-padding: 24px;
+  /* 工作区边距：自适应屏宽（clamp 最小/自适应/最大），1280px 视口约 15px */
+  --space-page-padding: clamp(12px, 1.2vw, 24px);
   --space-card-padding: 16px;
   --space-card-gap: 16px;
   --space-section-gap: 24px;
@@ -226,8 +227,9 @@
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Layout Dimensions
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --sidebar-width: 200px;
-  --sidebar-width-collapsed: 64px;
+  /* 侧栏宽度自适应（clamp 最小/自适应/最大）：1280~1366px 屏约 180px */
+  --sidebar-width: clamp(176px, 14vw, 192px);
+  --sidebar-width-collapsed: clamp(56px, 4.5vw, 64px);
   --topbar-height: 48px;
   --bottombar-height: 56px;
   --fab-size: 56px;

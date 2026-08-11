@@ -277,7 +277,7 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column label="小计(元)" width="120" align="right">
+              <el-table-column label="合计金额(元)" width="120" align="right">
                 <template #default="{ row }">
                   <span class="subtotal-text">¥{{ computeSubtotal(row).toFixed(2) }}</span>
                 </template>

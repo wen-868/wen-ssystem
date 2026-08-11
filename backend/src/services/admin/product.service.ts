@@ -6,6 +6,16 @@ import { detectChangedFields, syncChangedFields } from "../../shared/field-sync"
 import { syncProductFullChain, syncProductStatus, syncProductPrice } from "../../shared/product-sync";
 import { cacheGet, CacheKeys } from "../../shared/redis-cache";
 
+/** 规范图片 URL 列表：兼容数组与换行/逗号分隔字符串 */
+function normalizeImageUrls(raw?: string[] | string | null): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  return String(raw)
+    .split(/[\n,;]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 // ==================== 类型定义 ====================
 
 /** 商品列表行（含SKU、价格、库存） */
@@ -36,6 +46,7 @@ interface ProductListRow {
   skuCode: string;
   skuName: string;
   barcode: string | null;
+  boxBarcode: string | null;
   volume: string | null;
   packaging: string | null;
   baseUnit: string | null;
@@ -107,6 +118,21 @@ interface ProductSkuRow {
   availableQty: number | string;
 }
 
+/** SKU 多单位行（t_product_sku_unit） */
+interface SkuUnitRow {
+  id: number;
+  skuId: number;
+  unitName: string;
+  ratio: number | string;
+  barcode: string | null;
+  retailPrice: number | string | null;
+  wholesalePrice: number | string | null;
+  storePrice: number | string | null;
+  miniappPrice: number | string | null;
+  isBase: number;
+  sortNo: number;
+}
+
 /** 商品SPU全部字段行（用于 update 对比） */
 interface ProductSpuFullRow {
   id: number;
@@ -174,7 +200,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
               p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
               p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
               p.description, p.marketing_tags AS marketingTags, p.status,
-              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
               s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
               s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
               s.warning_threshold AS warningThreshold,
@@ -216,7 +242,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
               p.image_urls AS imageUrls, p.detail, p.sale_channels AS saleChannels,
               p.sort_no AS sortNo, p.is_new AS isNew, p.is_recommend AS isRecommend,
               p.description, p.marketing_tags AS marketingTags, p.status,
-              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+              s.id AS skuId, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
               s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
               s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
               s.warning_threshold AS warningThreshold,
@@ -264,7 +290,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
   if (!spu) throw Object.assign(new Error("商品不存在"), { statusCode: 404 });
 
   const skus = await queryWithTenant<ProductSkuRow>(
-    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode,
+    `SELECT s.id, s.sku_code AS skuCode, s.sku_name AS skuName, s.barcode, s.box_barcode AS boxBarcode,
             s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit,
             s.box_ratio AS boxRatio, s.temperature, s.trace_enabled AS traceEnabled,
             s.warning_threshold AS warningThreshold,
@@ -280,7 +306,51 @@ export async function getProductDetail(spuId: number, tenantId: string) {
     [spuId, tenantId], tenantId
   );
 
-  return { ...spu, skus };
+  // 加载 SKU 多单位（基础单位为库存单位，非基础单位价格为空时按 基础价×换算 推导）
+  const unitMap = new Map<number, SkuUnitRow[]>();
+  if (skus.length > 0) {
+    const placeholders = skus.map(() => "?").join(",");
+    const unitRows = await queryWithTenant<SkuUnitRow>(
+      `SELECT id, sku_id AS skuId, unit_name AS unitName, ratio, barcode,
+              retail_price AS retailPrice, wholesale_price AS wholesalePrice,
+              store_price AS storePrice, miniapp_price AS miniappPrice,
+              is_base AS isBase, sort_no AS sortNo
+       FROM t_product_sku_unit
+       WHERE sku_id IN (${placeholders}) AND tenant_id = ? AND status = 1
+       ORDER BY is_base DESC, sort_no ASC, id ASC`,
+      [...skus.map((s) => s.id), tenantId],
+      tenantId,
+    );
+    for (const u of unitRows) {
+      const list = unitMap.get(u.skuId) || [];
+      list.push(u);
+      unitMap.set(u.skuId, list);
+    }
+  }
+
+  const skusWithUnits = skus.map((s) => {
+    const units = (unitMap.get(s.id) || []).map((u) => {
+      if (u.isBase) {
+        // 基础单位价格以 SKU 价格（t_product_price）为准
+        u.retailPrice = s.retailPrice;
+        u.wholesalePrice = s.wholesalePrice;
+        u.storePrice = s.storePrice;
+        u.miniappPrice = s.miniappPrice;
+      } else {
+        const ratio = Number(u.ratio || 1);
+        const derive = (v: number | string | null | undefined, base: number | string | null | undefined) =>
+          v === null || v === undefined ? Number(base || 0) * ratio : v;
+        u.retailPrice = derive(u.retailPrice, s.retailPrice);
+        u.wholesalePrice = derive(u.wholesalePrice, s.wholesalePrice);
+        u.storePrice = derive(u.storePrice, s.storePrice);
+        u.miniappPrice = derive(u.miniappPrice, s.miniappPrice);
+      }
+      return u;
+    });
+    return { ...s, units };
+  });
+
+  return { ...spu, skus: skusWithUnits };
 }
 
 export async function createProduct(body: {
@@ -290,6 +360,7 @@ export async function createProduct(body: {
   unit?: string;
   specs?: string;
   mainImage?: string;
+  imageUrls?: string[];
   saleChannels: string[];
   alcoholContent?: number;
   origin?: string;
@@ -297,6 +368,7 @@ export async function createProduct(body: {
   isNew?: boolean;
   isRecommend?: boolean;
   description?: string;
+  detail?: string;
   skus: Array<{
     skuName: string;
     barcode?: string;
@@ -319,15 +391,16 @@ export async function createProduct(body: {
     const spuCode = makeBizNo("SPU");
     const [spuResult] = await conn.query<ResultSetHeader>(
       `INSERT INTO t_product_spu (spu_code, name, category_id, brand_id, unit, specs,
-       main_image, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
-       description, status, tenant_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
+       main_image, image_urls, sale_channels, alcohol_content, origin, sort_no, is_new, is_recommend,
+       description, detail, status, tenant_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, 'DRAFT', ?)`,
       [spuCode, body.name, body.categoryId,
         body.brandId ?? null, body.unit ?? null, body.specs ?? null,
-        body.mainImage ?? null, JSON.stringify(body.saleChannels),
+        body.mainImage ?? null, JSON.stringify(normalizeImageUrls(body.imageUrls)),
+        JSON.stringify(body.saleChannels),
         body.alcoholContent ?? null, body.origin ?? null,
         body.sortNo ?? 0, body.isNew ? 1 : 0, body.isRecommend ? 1 : 0,
-        body.description ?? null, tenantId]
+        body.description ?? null, body.detail ?? null, tenantId]
     );
     const spuId = spuResult.insertId as number;
     let firstSkuId: number | null = null;
@@ -384,6 +457,12 @@ export async function updateProduct(spuId: number, body: {
   unit?: string;
   boxRatio?: number;
   specs?: string;
+  mainImage?: string;
+  imageUrls?: string[] | string;
+  detail?: string;
+  alcoholContent?: number | null;
+  origin?: string;
+  saleChannels?: string[];
   status?: "DRAFT" | "ON_SALE" | "OFF_SALE";
   sortNo?: number;
   isNew?: boolean;
@@ -401,6 +480,18 @@ export async function updateProduct(spuId: number, body: {
   if (body.brandId !== undefined) { sets.push("brand_id = ?"); params.push(body.brandId); }
   if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
   if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
+  if (body.mainImage !== undefined) { sets.push("main_image = ?"); params.push(body.mainImage); }
+  if (body.imageUrls !== undefined) {
+    sets.push("image_urls = CAST(? AS JSON)");
+    params.push(JSON.stringify(normalizeImageUrls(body.imageUrls)));
+  }
+  if (body.detail !== undefined) { sets.push("detail = ?"); params.push(body.detail); }
+  if (body.alcoholContent !== undefined) { sets.push("alcohol_content = ?"); params.push(body.alcoholContent); }
+  if (body.origin !== undefined) { sets.push("origin = ?"); params.push(body.origin); }
+  if (body.saleChannels !== undefined) {
+    sets.push("sale_channels = CAST(? AS JSON)");
+    params.push(JSON.stringify(body.saleChannels));
+  }
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
   if (body.sortNo !== undefined) { sets.push("sort_no = ?"); params.push(body.sortNo); }
   if (body.isNew !== undefined) { sets.push("is_new = ?"); params.push(body.isNew ? 1 : 0); }
@@ -565,6 +656,205 @@ export async function updateSkuBarcode(
     }
     throw e;
   }
+}
+
+/**
+ * 更新 SKU 档案（商品详情页 SKU 列表逐行维护）
+ * 支持：规格名称 / 净含量 / 包装 / 基础单位 / 组合单位 / 箱瓶比 / 温层 / 追溯开关 / 库存预警
+ */
+export async function updateSku(
+  skuId: number,
+  body: {
+    skuName?: string;
+    volume?: string;
+    packaging?: string;
+    baseUnit?: string;
+    boxUnit?: string;
+    boxBarcode?: string;
+    boxRatio?: number;
+    temperature?: "NORMAL" | "CHILLED";
+    traceEnabled?: boolean;
+    warningThreshold?: number;
+  },
+  tenantId: string,
+) {
+  const existing = await queryOneWithTenant<{ id: number }>(
+    "SELECT id FROM t_product_sku WHERE id = ? AND tenant_id = ?",
+    [skuId, tenantId],
+    tenantId,
+  );
+  if (!existing) return null;
+
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.skuName !== undefined) { sets.push("sku_name = ?"); params.push(body.skuName); }
+  if (body.volume !== undefined) { sets.push("volume = ?"); params.push(body.volume); }
+  if (body.packaging !== undefined) { sets.push("packaging = ?"); params.push(body.packaging); }
+  if (body.baseUnit !== undefined) { sets.push("base_unit = ?"); params.push(body.baseUnit); }
+  if (body.boxUnit !== undefined) { sets.push("box_unit = ?"); params.push(body.boxUnit); }
+  if (body.boxBarcode !== undefined) { sets.push("box_barcode = ?"); params.push(body.boxBarcode || null); }
+  if (body.boxRatio !== undefined) { sets.push("box_ratio = ?"); params.push(body.boxRatio); }
+  if (body.temperature !== undefined) { sets.push("temperature = ?"); params.push(body.temperature); }
+  if (body.traceEnabled !== undefined) { sets.push("trace_enabled = ?"); params.push(body.traceEnabled ? 1 : 0); }
+  if (body.warningThreshold !== undefined) { sets.push("warning_threshold = ?"); params.push(body.warningThreshold); }
+  if (sets.length === 0) return { skuId };
+
+  sets.push("updated_at = NOW()");
+  params.push(skuId, tenantId);
+  await queryWithTenant(
+    `UPDATE t_product_sku SET ${sets.join(", ")} WHERE id = ? AND tenant_id = ?`,
+    params,
+    tenantId,
+  );
+  return { skuId };
+}
+
+/** 同步 SKU 遗留字段（base_unit/box_unit/box_ratio/box_barcode），保证销售/库存旧流程可用 */
+async function syncSkuLegacyUnits(skuId: number, tenantId: string) {
+  const units = await queryWithTenant<{ unit_name: string; ratio: number | string; barcode: string | null; is_base: number }>(
+    `SELECT unit_name, ratio, barcode, is_base FROM t_product_sku_unit
+     WHERE sku_id = ? AND tenant_id = ? AND status = 1
+     ORDER BY is_base DESC, sort_no ASC, id ASC`,
+    [skuId, tenantId],
+    tenantId,
+  );
+  const base = units.find((u) => u.is_base);
+  const firstNonBase = units.find((u) => !u.is_base);
+  await queryWithTenant(
+    `UPDATE t_product_sku
+     SET base_unit = ?, box_unit = ?, box_ratio = ?, box_barcode = ?
+     WHERE id = ? AND tenant_id = ?`,
+    [
+      base?.unit_name ?? "瓶",
+      firstNonBase?.unit_name ?? "箱",
+      Number(firstNonBase?.ratio ?? 1),
+      firstNonBase?.barcode ?? null,
+      skuId,
+      tenantId,
+    ],
+    tenantId,
+  );
+}
+
+/** 新增 SKU 单位（多单位增加） */
+export async function addSkuUnit(
+  skuId: number,
+  body: {
+    unitName: string;
+    ratio?: number;
+    barcode?: string;
+    retailPrice?: number | null;
+    wholesalePrice?: number | null;
+    storePrice?: number | null;
+    miniappPrice?: number | null;
+  },
+  tenantId: string,
+) {
+  const sku = await queryOneWithTenant<{ id: number }>(
+    "SELECT id FROM t_product_sku WHERE id = ? AND tenant_id = ?",
+    [skuId, tenantId],
+    tenantId,
+  );
+  if (!sku) return null;
+  const unitName = (body.unitName || "").trim();
+  if (!unitName) throw Object.assign(new Error("单位名称不能为空"), { statusCode: 400 });
+  const ratio = Number(body.ratio ?? 1);
+  if (!(ratio > 0)) throw Object.assign(new Error("换算比例必须大于 0"), { statusCode: 400 });
+  try {
+    const result = await queryWithTenant<{ insertId: number }>(
+      `INSERT INTO t_product_sku_unit
+       (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, 0, COALESCE(MAX(sort_no), 0) + 1, ?
+       FROM t_product_sku_unit WHERE sku_id = ?`,
+      [skuId, unitName, ratio, body.barcode?.trim() || null,
+        body.retailPrice ?? null, body.wholesalePrice ?? null,
+        body.storePrice ?? null, body.miniappPrice ?? null,
+        tenantId, skuId],
+      tenantId,
+    );
+    const unitId = (result as unknown as Record<string, unknown>).insertId as number;
+    await syncSkuLegacyUnits(skuId, tenantId);
+    return { skuId, unitId };
+  } catch (e: any) {
+    if (e?.code === "ER_DUP_ENTRY") {
+      throw Object.assign(new Error("该单位已存在"), { statusCode: 400 });
+    }
+    throw e;
+  }
+}
+
+/** 更新 SKU 单位（名称/换算/条码/单位价格） */
+export async function updateSkuUnit(
+  skuId: number,
+  unitId: number,
+  body: {
+    unitName?: string;
+    ratio?: number;
+    barcode?: string;
+    retailPrice?: number | null;
+    wholesalePrice?: number | null;
+    storePrice?: number | null;
+    miniappPrice?: number | null;
+  },
+  tenantId: string,
+) {
+  const existing = await queryOneWithTenant<{ id: number; is_base: number }>(
+    "SELECT id, is_base FROM t_product_sku_unit WHERE id = ? AND sku_id = ? AND tenant_id = ?",
+    [unitId, skuId, tenantId],
+    tenantId,
+  );
+  if (!existing) return null;
+
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (body.unitName !== undefined) {
+    const unitName = (body.unitName || "").trim();
+    if (!unitName) throw Object.assign(new Error("单位名称不能为空"), { statusCode: 400 });
+    sets.push("unit_name = ?");
+    params.push(unitName);
+  }
+  if (body.ratio !== undefined) {
+    const ratio = Number(body.ratio);
+    if (!(ratio > 0)) throw Object.assign(new Error("换算比例必须大于 0"), { statusCode: 400 });
+    sets.push("ratio = ?");
+    params.push(ratio);
+  }
+  if (body.barcode !== undefined) { sets.push("barcode = ?"); params.push(body.barcode?.trim() || null); }
+  if (body.retailPrice !== undefined) { sets.push("retail_price = ?"); params.push(body.retailPrice); }
+  if (body.wholesalePrice !== undefined) { sets.push("wholesale_price = ?"); params.push(body.wholesalePrice); }
+  if (body.storePrice !== undefined) { sets.push("store_price = ?"); params.push(body.storePrice); }
+  if (body.miniappPrice !== undefined) { sets.push("miniapp_price = ?"); params.push(body.miniappPrice); }
+  if (sets.length === 0) return { unitId };
+
+  sets.push("updated_at = NOW()");
+  params.push(unitId, skuId, tenantId);
+  await queryWithTenant(
+    `UPDATE t_product_sku_unit SET ${sets.join(", ")} WHERE id = ? AND sku_id = ? AND tenant_id = ?`,
+    params,
+    tenantId,
+  );
+  await syncSkuLegacyUnits(skuId, tenantId);
+  return { unitId };
+}
+
+/** 删除 SKU 单位（基础单位不可删除） */
+export async function deleteSkuUnit(skuId: number, unitId: number, tenantId: string) {
+  const existing = await queryOneWithTenant<{ id: number; is_base: number }>(
+    "SELECT id, is_base FROM t_product_sku_unit WHERE id = ? AND sku_id = ? AND tenant_id = ?",
+    [unitId, skuId, tenantId],
+    tenantId,
+  );
+  if (!existing) return null;
+  if (existing.is_base) {
+    throw Object.assign(new Error("基础单位（库存单位）不可删除，可修改名称"), { statusCode: 400 });
+  }
+  await queryWithTenant(
+    "DELETE FROM t_product_sku_unit WHERE id = ? AND sku_id = ? AND tenant_id = ?",
+    [unitId, skuId, tenantId],
+    tenantId,
+  );
+  await syncSkuLegacyUnits(skuId, tenantId);
+  return { unitId };
 }
 
 // 商品导入

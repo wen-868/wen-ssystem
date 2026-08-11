@@ -96,8 +96,13 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          :show-save-and-add="!editingGroup"
+          @cancel="dialogVisible = false"
+          @save="handleSubmit()"
+          @save-add="handleSubmit(true)"
+        />
       </template>
     </el-dialog>
 </div>
@@ -108,6 +113,7 @@ import { ref, reactive, onMounted } from "vue";
 import { ElMessage, type FormRules } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { api } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 interface UnitItem {
   id?: number; name: string; level: number; conversionRate: number; status: number;
@@ -178,7 +184,7 @@ function removeItem(idx: number) {
   form.items.forEach((it, i) => { it.level = i; });
 }
 
-async function handleSubmit() {
+async function handleSubmit(keepOpen = false) {
   const valid = await formRef.value?.validate().catch(() => false);
   if (!valid) return;
 
@@ -206,8 +212,9 @@ async function handleSubmit() {
       await api.post("/admin/unit-groups", payload);
       ElMessage.success("单位组创建成功");
     }
-    dialogVisible.value = false;
+    if (!keepOpen) dialogVisible.value = false;
     await loadGroups();
+    if (keepOpen) openCreateDialog();
   } catch { ElMessage.error("操作失败"); }
   finally { submitLoading.value = false; }
 }

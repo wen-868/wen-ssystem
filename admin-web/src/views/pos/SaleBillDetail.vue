@@ -38,7 +38,6 @@
           {{ detail.saleType === "CREDIT" ? "赊销" : "现销" }}
         </el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ detail.createdAt }}</el-descriptions-item>
-        <el-descriptions-item label="业务员">{{ detail.salesmanName || "-" }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 商品明细 -->
@@ -75,7 +74,7 @@
       <div class="summary-bar">
         <div class="summary-left">
           <div class="summary-item">
-            <span class="summary-label">商品金额</span>
+            <span class="summary-label">应收金额</span>
             <span class="summary-value">¥{{ Number(detail.totalAmount ?? detail.receivableAmount ?? 0).toFixed(2) }}</span>
           </div>
           <div class="summary-item">
@@ -85,7 +84,7 @@
         </div>
         <div class="summary-right">
           <div class="summary-item">
-            <span class="summary-label">应收金额</span>
+            <span class="summary-label">实收金额</span>
             <span class="summary-total">¥{{ Number(detail.receivableAmount || 0).toFixed(2) }}</span>
           </div>
           <div class="summary-item">
@@ -107,7 +106,9 @@
 
       <!-- 签章区 -->
       <div class="print-sign">
-        <span>开单人：{{ detail.operatorName || "-" }}</span>
+        <span>制单人：{{ detail.operatorName || "-" }}</span>
+        <span>审核人：{{ detail.auditorName || "-" }}</span>
+        <span>业务员：{{ detail.salesmanName || "-" }}</span>
         <span>客户签收：____________</span>
         <span>日期：____________</span>
       </div>
@@ -165,7 +166,13 @@ async function loadDetail() {
   loading.value = false;
 }
 
-onMounted(loadDetail);
+onMounted(() => {
+  loadDetail();
+  // 提交并打印：进入详情后自动调起打印
+  if (route.query.print === "1") {
+    setTimeout(() => handlePrint(), 800);
+  }
+});
 </script>
 
 <style scoped>

@@ -152,7 +152,7 @@
           <el-table-column prop="estimatedPrice" label="单价" width="80">
             <template #default="{ row }">¥{{ Number(row.estimatedPrice || 0).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column prop="subtotalAmount" label="小计" width="90">
+          <el-table-column prop="subtotalAmount" label="合计金额" width="90">
             <template #default="{ row }">¥{{ Number(row.subtotalAmount || 0).toFixed(2) }}</template>
           </el-table-column>
         </el-table>

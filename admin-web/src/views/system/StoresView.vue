@@ -118,8 +118,12 @@
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="storeDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleCreateStore">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          @cancel="storeDialogVisible = false"
+          @save="handleCreateStore()"
+          @save-add="handleCreateStore(true)"
+        />
       </template>
     </el-dialog>
 
@@ -208,8 +212,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="storeEditDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="storeEditLoading" @click="submitStoreEdit">保存</el-button>
+        <FormFooter
+          :loading="storeEditLoading"
+          :show-save-and-add="false"
+          @cancel="storeEditDialogVisible = false"
+          @save="submitStoreEdit()"
+        />
       </template>
     </el-dialog>
   </div>
@@ -219,6 +227,7 @@
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { createStore, fetchStoreDetail, fetchStores, fetchWxInfo, updateStore } from "../../api";
+import FormFooter from "../../components/FormFooter.vue";
 
 const loading = ref(false);
 const submitLoading = ref(false);
@@ -319,7 +328,7 @@ function handlePageChange(p: number) {
   loadStores();
 }
 
-async function handleCreateStore() {
+async function handleCreateStore(keepOpen = false) {
   if (!storeFormRef.value) return;
   await storeFormRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -339,7 +348,7 @@ async function handleCreateStore() {
         fulfillmentPickupEnabled: storeForm.fulfillmentPickupEnabled
       });
       ElMessage.success("门店已新增");
-      storeDialogVisible.value = false;
+      if (!keepOpen) storeDialogVisible.value = false;
       storeForm.code = "";
       storeForm.name = "";
       storeForm.address = "";

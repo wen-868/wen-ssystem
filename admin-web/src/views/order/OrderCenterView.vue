@@ -226,7 +226,7 @@
                   <template #default="{ row }">¥{{ Number(row.price || 0).toFixed(2) }}</template>
                 </el-table-column>
                 <el-table-column prop="quantity" label="数量" width="60" />
-                <el-table-column label="小计" width="90">
+                <el-table-column label="合计金额" width="90">
                   <template #default="{ row }">¥{{ Number(row.price * row.quantity || 0).toFixed(2) }}</template>
                 </el-table-column>
               </el-table>

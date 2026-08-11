@@ -59,14 +59,6 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="备注">
-          <el-input
-            v-model="form.remark"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入备注信息（选填）"
-          />
-        </el-form-item>
       </el-form>
     </PageCard>
 
@@ -126,7 +118,7 @@
             ¥{{ Number(row.unitPrice || 0).toFixed(2) }}
           </template>
         </el-table-column>
-        <el-table-column label="小计金额" width="130" align="right">
+        <el-table-column label="合计金额" width="130" align="right">
           <template #default="{ row }">
             <span class="subtotal">¥{{ (Number(row.unitPrice || 0) * Number(row.quantity || 0)).toFixed(2) }}</span>
           </template>
@@ -150,6 +142,20 @@
           合计金额：<span class="amount">¥{{ totalAmount.toFixed(2) }}</span>
         </div>
       </div>
+    </PageCard>
+
+    <!-- 单据备注：位于商品明细下方 -->
+    <PageCard title="备注">
+      <el-form label-width="80px">
+        <el-form-item label="备注">
+          <el-input
+            v-model="form.remark"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注信息（选填）"
+          />
+        </el-form-item>
+      </el-form>
     </PageCard>
 
     <!-- 底部操作栏 -->

@@ -133,8 +133,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="memberDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleCreateMember">保存</el-button>
+        <FormFooter
+          :loading="submitLoading"
+          @cancel="memberDialogVisible = false"
+          @save="handleCreateMember()"
+          @save-add="handleCreateMember(true)"
+        />
       </template>
     </el-dialog>
   </div>
@@ -149,6 +153,7 @@ import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
 import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../../api";
 import { fetchCustomerTypes } from "../../api/customer";
+import FormFooter from "../../components/FormFooter.vue";
 
 const router = useRouter();
 const loading = ref(false);
@@ -256,7 +261,7 @@ function handlePageChange(p: number) {
   loadMembers();
 }
 
-async function handleCreateMember() {
+async function handleCreateMember(keepOpen = false) {
   if (!memberFormRef.value) return;
   await memberFormRef.value.validate(async (valid) => {
     if (!valid) return;
@@ -264,7 +269,7 @@ async function handleCreateMember() {
     try {
       await createMember({ ...memberForm, staffId: memberForm.staffId ?? undefined });
       ElMessage.success("客户已新增");
-      memberDialogVisible.value = false;
+      if (!keepOpen) memberDialogVisible.value = false;
       memberForm.name = "";
       memberForm.contact = "";
       memberForm.mobile = "";

@@ -488,8 +488,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 20px;
+.page { padding: 0;
 }
 .channel-badge {
   margin-left: 4px;
