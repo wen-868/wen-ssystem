@@ -9,6 +9,7 @@ import "./styles.css";
 import App from "./App.vue";
 import router from "./router";
 import { reportFrontendError } from "./api";
+import { useAuthStore } from "./stores/auth";
 
 const app = createApp(App);
 
@@ -52,4 +53,18 @@ window.addEventListener("unhandledrejection", (event) => {
 
 // element-plus 组件由 unplugin-vue-components 自动注册，无需 app.use(ElementPlus)
 app.use(router);
+
+// 统一门户 SSO 注入（P2：本地门户 iframe 透传管理系统登录态）
+window.addEventListener("message", (event) => {
+  const allowedOrigins = ["http://127.0.0.1:8080", "http://localhost:8080"];
+  if (!allowedOrigins.includes(event.origin)) return;
+  const data = event.data;
+  if (!data || data.type !== "ops-portal-login" || !data.token) return;
+  const auth = useAuthStore();
+  auth.setAuth(data.token, data.user || {}, data.csrfToken || "");
+  if (window.location.pathname === "/login") {
+    window.location.href = "/";
+  }
+});
+
 app.mount("#app");

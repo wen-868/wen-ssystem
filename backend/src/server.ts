@@ -14,6 +14,8 @@ import { responseTimeTracker } from "./middleware/response-tracker";
 import { runMigrations } from "./shared/migration";
 import { setupRoutes } from "./shared/auto-routes";
 import * as authController from "./controllers/admin/auth.controller";
+import * as orderController from "./controllers/admin/order.controller";
+import { requireAuthWithTenant } from "./middleware/auth";
 import { startAlertScheduler } from "./services/alert.service";
 import { startStoreControlScheduler } from "./shared/store-control-scheduler";
 import { startOrderTimeoutScanner } from "./services/admin/order-timeout.service";
@@ -162,6 +164,10 @@ app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
 // 演示账号登录：免密，受同一限流器保护
 app.post("/api/admin/auth/demo-login", adminLoginLimiter, authController.demoLogin);
 app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
+// 服务账号换发 JWT（运营系统适配层调用，服务端专用；无需 CSRF，由凭证 + 限流保护）
+app.post("/api/admin/auth/service-token", adminLoginLimiter, authController.serviceToken);
+// 运营系统挂车转化推单受理（服务账号 JWT 鉴权；真实建单待订单业务模块接入）
+app.post("/api/admin/orders", requireAuthWithTenant, orderController.acceptExternalOrder);
 
 // CSRF 防护：不再全局注册，避免与 auto-routes 中的按路由注册形成双重注册。
 // - 自动注册的路由：auto-routes.ts 的 getAuthMiddlewares 已对 requireAuth/requireAuthWithTenant/requirePlatformAuth 三种模式附加 csrfMiddleware

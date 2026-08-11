@@ -3,6 +3,7 @@ import { signToken, getUserAccessInfo, AuthUser } from "../../middleware/auth";
 import { verifyPassword, validatePassword, hashPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
+import { env } from "../../config/env";
 
 // ==================== 类型定义 ====================
 
@@ -181,6 +182,40 @@ export async function login(username: string, password: string) {
     ...accessInfo
   };
   return { token: signToken(authUser), user, csrfToken: generateCsrfToken(account.id) };
+}
+
+/**
+ * 运营系统服务账号换发 JWT（统一管理后台方案 §5.4 / P0）。
+ * - 校验服务账号凭证（环境变量 SERVICE_ACCOUNT_CLIENT_ID/SECRET）
+ * - 按请求方指定 tenantId 签发（租户隔离来自 JWT，须按租户换发）
+ * - 角色固定 SUPER_ADMIN（服务账号专用，仅服务端调用，权限最小化后续可收紧）
+ */
+export async function issueServiceToken(
+  clientId: string,
+  clientSecret: string,
+  tenantId?: string,
+) {
+  const expectedId = env.SERVICE_ACCOUNT_CLIENT_ID;
+  const expectedSecret = env.SERVICE_ACCOUNT_CLIENT_SECRET;
+  if (
+    !expectedId ||
+    !expectedSecret ||
+    clientId !== expectedId ||
+    clientSecret !== expectedSecret
+  ) {
+    throw new AppError("服务账号凭证无效", 401);
+  }
+
+  const authUser: AuthUser = {
+    id: -1,
+    username: "service-ops",
+    realName: "运营系统服务账号",
+    roles: ["SUPER_ADMIN"],
+    storeId: null,
+    tenantId: tenantId || "default",
+  };
+  const token = signToken(authUser);
+  return { token, expiresIn: 4 * 3600 };
 }
 
 export async function getMe(user: AuthUser) {

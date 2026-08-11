@@ -32,6 +32,11 @@ export const env = {
    */
   CSRF_SECRET: process.env.CSRF_SECRET || resolvedJwtSecret,
 
+  /** 运营系统服务账号客户端ID（用于 POST /api/admin/auth/service-token 换发服务 JWT；服务端专用） */
+  SERVICE_ACCOUNT_CLIENT_ID: process.env.SERVICE_ACCOUNT_CLIENT_ID || "",
+  /** 运营系统服务账号客户端密钥（与客户端ID成对配置） */
+  SERVICE_ACCOUNT_CLIENT_SECRET: process.env.SERVICE_ACCOUNT_CLIENT_SECRET || "",
+
   /** MySQL 数据库主机地址，默认 127.0.0.1 */
   DB_HOST: process.env.DB_HOST || "127.0.0.1",
 

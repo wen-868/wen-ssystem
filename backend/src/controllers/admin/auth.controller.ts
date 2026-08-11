@@ -15,6 +15,23 @@ export const demoLogin = asyncHandler(async (_req, res) => {
   res.json(ok(result));
 });
 
+/** 服务账号换发 JWT（供运营系统适配层调用，统一管理后台方案 §5.4） */
+export const serviceToken = asyncHandler(async (req, res) => {
+  const body = z
+    .object({
+      clientId: z.string().min(1),
+      clientSecret: z.string().min(1),
+      tenantId: z.string().optional(),
+    })
+    .parse(req.body);
+  const result = await authService.issueServiceToken(
+    body.clientId,
+    body.clientSecret,
+    body.tenantId,
+  );
+  res.json(ok(result));
+});
+
 export const changePassword = asyncHandler(async (req, res) => {
   const body = z.object({
     oldPassword: z.string(),

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as orderService from "../../services/admin/order.service";
+import logger from "../../shared/logger";
 
 // ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
 
@@ -159,4 +160,33 @@ export const getOrderOperationLogs = asyncHandler(async (req, res) => {
   const orderNo = req.params.orderNo;
   const result = await orderService.getOrderOperationLogs(orderNo, tenantId);
   res.json(ok(result));
+});
+
+/**
+ * 运营系统挂车转化推单受理（统一管理后台方案 §18-④ / pushOrder 契约）。
+ * 一期最小实现：校验 + 审计记录 + 受理回执；真实建单由订单业务模块接入（避免直接写库破坏订单/库存一致性）。
+ */
+export const acceptExternalOrder = asyncHandler(async (req, res) => {
+  const tenantId = req.tenantId!;
+  const body = z
+    .object({
+      orderId: z.string().min(1),
+      platform: z.string().default("ops"),
+      productSku: z.string().optional(),
+      amount: z.number().optional(),
+      buyer: z.record(z.string(), z.unknown()).optional(),
+      attributionId: z.string().optional(),
+    })
+    .parse(req.body);
+
+  logger.info(
+    `[ops-push-order] tenant=${tenantId} orderId=${body.orderId} platform=${body.platform} sku=${body.productSku || "-"} amount=${body.amount ?? "-"} attribution=${body.attributionId || "-"}`,
+  );
+  res.json(
+    ok({
+      orderId: body.orderId,
+      accepted: true,
+      note: "受理成功，真实建单由订单业务模块接入",
+    }),
+  );
 });

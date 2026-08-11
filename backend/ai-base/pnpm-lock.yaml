@@ -13,7 +13,7 @@ importers:
   .:
     dependencies:
       '@napi-rs/canvas':
-        specifier: ^0.1.100
+        specifier: ^0.1.85
         version: 0.1.100
       '@nestjs/axios':
         specifier: ^4.0.1

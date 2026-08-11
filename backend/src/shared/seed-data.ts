@@ -8,6 +8,7 @@
  */
 import mysql from "mysql2/promise";
 import logger from "./logger";
+import { hashPasswordSync } from "./password";
 
 const TENANT_ID = "default";
 
@@ -71,6 +72,45 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
         }
     } catch (e: unknown) {
         logger.error(`[seed] 获取门店ID失败: ${(e as any).message}`);
+    }
+
+    // ============================================================
+    // 1.1 确保演示账号存在（幂等：已存在则跳过，不覆盖密码）
+    // 演示账号：store_manager / admin123（店长，绑定总店，可体验全部业务数据）
+    // ============================================================
+    const demoAccounts = [
+        { username: "store_manager", realName: "默认店长", mobile: "13800000001", storeId },
+        { username: "store_operator", realName: "默认店员", mobile: "13800000002", storeId },
+    ];
+    const demoRoleCodes: Record<string, string> = {
+        store_manager: "STORE_MANAGER",
+        store_operator: "STORE_OPERATOR",
+    };
+    for (const acc of demoAccounts) {
+        const [existing] = await conn.query(
+            "SELECT id FROM t_sys_user WHERE username = ? AND tenant_id = ? LIMIT 1",
+            [acc.username, TENANT_ID]
+        );
+        const rows = existing as unknown as Record<string, unknown>[];
+        if (rows.length > 0) {
+            logger.info(`[seed] 演示账号 ${acc.username} 已存在，跳过`);
+            continue;
+        }
+        const [insertResult] = await conn.query(
+            `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, 1, NOW(), NOW())`,
+            [TENANT_ID, acc.username, hashPasswordSync("admin123"), acc.realName, acc.mobile, acc.storeId]
+        );
+        const userId = (insertResult as { insertId?: number }).insertId;
+        if (userId) {
+            await conn.query(
+                `INSERT INTO t_sys_user_role (user_id, role_id)
+                 SELECT ?, id FROM t_sys_role WHERE role_code = ?
+                 ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)`,
+                [userId, demoRoleCodes[acc.username]]
+            );
+            logger.info(`[seed] 演示账号 ${acc.username} 创建成功（密码 admin123）`);
+        }
     }
 
     // ============================================================
