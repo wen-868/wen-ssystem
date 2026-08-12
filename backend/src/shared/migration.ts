@@ -84,7 +84,8 @@ export function addTablePrefix(sql: string): string {
     /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
     /(ALTER\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
     /(INSERT\s+INTO\s+)([a-z_][a-z0-9_]*)/gi,
-    /(UPDATE\s+)([a-z_][a-z0-9_]*)/gi,
+    // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
+    /((?:^|\n)\s*UPDATE\s+)([a-z_][a-z0-9_]*)/gim,
     /(DELETE\s+FROM\s+)([a-z_][a-z0-9_]*)/gi,
     /(FROM\s+)([a-z_][a-z0-9_]*)/gi,
     /(JOIN\s+)([a-z_][a-z0-9_]*)/gi,
