@@ -48,7 +48,7 @@
               <el-button text size="small" :disabled="idx === visibleModules.length - 1" @click.stop="moveModuleById(mod.id, 1)">↓</el-button>
               <el-button text type="danger" size="small" @click.stop="removeModuleById(mod.id)">删除</el-button>
             </div>
-            <div class="ed-mod-body" v-html="renderModuleHtml(mod, sampleVars(billType))"></div>
+            <div class="ed-mod-body" v-html="renderModuleHtml(mod, sampleVars(billType), billType)"></div>
           </div>
           <div v-if="visibleModules.length === 0" class="canvas-empty">左侧点击模块库添加模块</div>
         </div>

@@ -718,6 +718,7 @@ function handlePrint() {
           ? `<div class="row"><span>会员余额</span><span>¥${fmtMoney(memberBalance.value)}</span></div>`
           : ""
       ),
+      memberBalance: fmtMoney(memberBalance.value),
       remarkBlock: "",
       footerText: cfg.footerText,
     },
@@ -833,6 +834,7 @@ async function confirmPayment() {
           changeAmount: fmtMoney(changeAmount.value),
           paymentMethod: payLabel,
           memberBalanceRow: "",
+          memberBalance: fmtMoney(memberBalance.value),
           remarkBlock: "",
           footerText: cfg.footerText,
         },

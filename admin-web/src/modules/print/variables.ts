@@ -33,6 +33,7 @@ export const BILL_TYPE_VARIABLES: Record<PrintBillType, PrintVariable[]> = {
     { key: "changeAmount", label: "找零" },
     { key: "paymentMethod", label: "支付方式" },
     { key: "memberBalanceRow", label: "会员余额行（可空）" },
+    { key: "memberBalance", label: "会员余额" },
     { key: "remarkBlock", label: "备注块（可空）" },
   ],
   SALE_BILL: [

@@ -8,15 +8,30 @@ import type { PrintVars } from "./types";
 import type { PrintModule, PrintModuleType, PrintTemplateJson } from "./types";
 import { COMMON_PRINT_VARIABLES, BILL_TYPE_VARIABLES } from "./variables";
 
-/** 变量中文名映射（渲染键值行用） */
-const VARIABLE_LABEL_MAP: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  for (const v of COMMON_PRINT_VARIABLES) map[v.key] = v.label;
-  for (const list of Object.values(BILL_TYPE_VARIABLES)) {
-    for (const v of list) map[v.key] = v.label;
+/** 金额类字段：渲染时自动补 ¥ */
+const AMOUNT_KEYS = new Set([
+  "totalAmount", "paidAmount", "changeAmount", "discountAmount", "receivedAmount",
+  "memberBalance", "price", "cashAmount", "wechatAmount", "alipayAmount", "balanceAmount",
+]);
+
+/** 变量中文名：优先当前单据类型，其次通用变量，最后回退键名 */
+function getVariableLabel(key: string, billType?: string): string {
+  if (billType) {
+    const typeVars = BILL_TYPE_VARIABLES[billType as keyof typeof BILL_TYPE_VARIABLES];
+    const found = typeVars?.find((v) => v.key === key);
+    if (found) return found.label;
   }
-  return map;
-})();
+  const common = COMMON_PRINT_VARIABLES.find((v) => v.key === key);
+  return common?.label ?? key;
+}
+
+/** 金额字段格式化：空值显示 -，非空补 ¥ */
+function formatAmountValue(key: string, value: unknown): string {
+  if (value === null || value === undefined || value === "") return "-";
+  const str = String(value);
+  if (AMOUNT_KEYS.has(key) && !str.includes("¥")) return `¥${str}`;
+  return str;
+}
 
 /** 可视化模板纸张样式 */
 function paperCss(paper: string): string {
@@ -74,14 +89,14 @@ body{font-family:"SimSun","Microsoft YaHei",sans-serif;font-size:12px;color:#000
 }
 
 /** 渲染单个可视化模块（导出供编辑器画布逐模块渲染与拖拽） */
-export function renderModuleHtml(module: PrintModule, vars: PrintVars): string {
+export function renderModuleHtml(module: PrintModule, vars: PrintVars, billType?: string): string {
   const enabledFields = Object.entries(module.fields ?? {})
     .filter(([, on]) => on)
     .map(([key]) => key);
   const align = module.align ? ` style="text-align:${module.align}"` : "";
-  const label = (key: string) => VARIABLE_LABEL_MAP[key] || key;
+  const label = (key: string) => getVariableLabel(key, billType);
   const row = (key: string, total = false) =>
-    `<div class="m-row${total ? " total" : ""}"><span class="k">${label(key)}</span><span>${escapeHtml(vars[key] ?? "")}</span></div>`;
+    `<div class="m-row${total ? " total" : ""}"><span class="k">${label(key)}</span><span>${escapeHtml(formatAmountValue(key, vars[key]))}</span></div>`;
 
   switch (module.type) {
     case "title": {
@@ -115,7 +130,12 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars): string {
       return `<div class="m-block m-rows">${enabledFields.map((k) => row(k, k === totalKey)).join("")}</div>`;
     }
     case "memberBalance": {
-      return `<div class="m-block m-rows">${row("memberBalance")}</div>`;
+      const balance = vars.memberBalance ?? vars.memberBalanceRow ?? "";
+      const value = String(balance).startsWith("__raw:")
+        ? String(balance).slice(6)
+        : String(balance);
+      if (!value && !vars.memberBalance) return "";
+      return `<div class="m-block m-rows"><div class="m-row"><span class="k">${getVariableLabel("memberBalance", billType)}</span><span>${escapeHtml(value.startsWith("¥") ? value : `¥${value}`)}</span></div></div>`;
     }
     case "remark": {
       const remark = (vars.remarkBlock as string) || "";
@@ -135,11 +155,11 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars): string {
 }
 
 /** 渲染可视化 JSON 模板（content 为 JSON 时使用） */
-export function renderJsonTemplate(json: PrintTemplateJson, vars: PrintVars): string {
+export function renderJsonTemplate(json: PrintTemplateJson, vars: PrintVars, billType?: string): string {
   const css = paperCss(json.paperType);
   const body = json.modules
     .filter((m) => m.enabled)
-    .map((m) => renderModuleHtml(m, vars))
+    .map((m) => renderModuleHtml(m, vars, billType))
     .join("\n");
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${body}</body></html>`;
 }

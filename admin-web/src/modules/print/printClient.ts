@@ -137,10 +137,10 @@ th{background:#f5f5f5}
 </body></html>`;
 
 /** 渲染模板内容（兼容可视化 JSON 与旧 HTML） */
-export function renderAnyTemplate(content: string, vars: PrintVars): string {
+export function renderAnyTemplate(content: string, vars: PrintVars, billType?: string): string {
   if (isTemplateJson(content)) {
     try {
-      return renderJsonTemplate(JSON.parse(content) as PrintTemplateJson, vars);
+      return renderJsonTemplate(JSON.parse(content) as PrintTemplateJson, vars, billType);
     } catch {
       // JSON 解析失败回退 HTML 渲染
     }
@@ -166,9 +166,9 @@ export async function printBill(opts: {
   let html = "";
   try {
     const template = await loadTemplate(billType);
-    html = renderAnyTemplate(template?.content ?? FALLBACK_TEMPLATE, vars);
+    html = renderAnyTemplate(template?.content ?? FALLBACK_TEMPLATE, vars, billType);
   } catch (e) {
-    html = renderAnyTemplate(FALLBACK_TEMPLATE, vars);
+    html = renderAnyTemplate(FALLBACK_TEMPLATE, vars, billType);
     if (report) {
       reportPrintRecord({
         billType,

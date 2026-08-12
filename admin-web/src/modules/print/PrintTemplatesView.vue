@@ -259,7 +259,7 @@ async function handleDelete(row: PrintTemplate) {
 }
 
 async function handlePreview(row: PrintTemplate) {
-  const html = renderAnyTemplate(row.content, sampleVars(row.billType));
+  const html = renderAnyTemplate(row.content, sampleVars(row.billType), row.billType);
   const win = openPrintWindow();
   if (win) {
     fillPrintWindow(win, `预览：${row.templateName}`, html, 1);
