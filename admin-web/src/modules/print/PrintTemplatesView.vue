@@ -80,6 +80,14 @@
         </div>
 
         <el-form-item label="模板内容">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            class="content-tip"
+            title="模板内容为排版代码"
+            description="看不懂没关系：直接点下方『预览』看打印效果，或点『载入系统默认』恢复官方模板。只需修改店名、电话、文案等 {{变量}} 内容。"
+          />
           <div class="editor-body">
             <div class="variable-panel">
               <div class="variable-title">插入变量（{{ billTypeLabel(form.billType) }}）</div>
@@ -463,6 +471,11 @@ onMounted(async () => {
   display: flex;
   gap: 10px;
   width: 100%;
+  margin-top: 10px;
+}
+.content-tip {
+  width: 100%;
+  margin-bottom: 2px;
 }
 .variable-panel {
   width: 210px;
