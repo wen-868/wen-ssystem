@@ -300,7 +300,7 @@ onMounted(() => {
 
 .stat-card {
   flex: 1;
-  padding: 20px;
+  padding: 16px;
   border-radius: 8px;
   background: var(--bg-page);
   border-left: 4px solid var(--color-primary);

@@ -711,7 +711,7 @@ onUnmounted(() => {
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 16px;
   background: var(--bg-soft);
   border-radius: var(--radius-md);
 }

@@ -385,7 +385,7 @@ onMounted(async () => {
 }
 
 .stats-row { display: flex; gap: 16px; margin-bottom: 16px; }
-.stat-card { flex: 1; background: var(--bg-card); border-radius: 8px; padding: 16px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid var(--color-primary); }
+.stat-card { flex: 1; background: var(--bg-card); border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid var(--color-primary); }
 .stat-card.green { border-left-color: var(--color-success); }
 .stat-card.blue { border-left-color: var(--color-primary); }
 .stat-card.orange { border-left-color: var(--color-warning); }

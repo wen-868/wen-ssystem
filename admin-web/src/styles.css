@@ -122,8 +122,8 @@ body {
   color: var(--text-primary);
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-md);
-  padding: 24px 28px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 .dashboard-hero h2 {
   margin: 0 0 6px;
@@ -191,7 +191,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-md);
-  padding: 16px 18px;
+  padding: 16px;
   box-shadow: var(--shadow-card);
   border-left: 4px solid var(--gray-200);
 }
@@ -214,7 +214,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-md);
-  padding: 16px 18px;
+  padding: 16px;
   margin-bottom: 16px;
   display: flex;
   flex-wrap: wrap;
@@ -314,7 +314,7 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-md);
-  padding: 20px 24px;
+  padding: 16px;
   margin-bottom: 16px;
   box-shadow: var(--shadow-card);
 }
@@ -1029,7 +1029,7 @@ a,
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--card-radius);
-  padding: 14px 16px;
+  padding: 16px;
   margin-bottom: 16px;
   box-shadow: var(--shadow-card);
 }
@@ -1061,7 +1061,7 @@ a,
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px;
   border-top: 1px solid var(--border-light);
 }
 
@@ -1073,14 +1073,14 @@ a,
   box-shadow: var(--shadow-card);
 }
 .form-card-header {
-  padding: 14px 20px;
+  padding: 16px;
   border-bottom: 1px solid var(--border-light);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 .form-card-body {
-  padding: 20px;
+  padding: 16px;
 }
 .form-actions-bar {
   display: flex;

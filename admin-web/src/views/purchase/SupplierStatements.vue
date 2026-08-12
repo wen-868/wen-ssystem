@@ -288,7 +288,7 @@ onMounted(() => { loadList(); });
 <style scoped>
 .page { padding: 0; }
 .summary-row { display: flex; gap: 12px; margin-bottom: 16px; }
-.summary-card { flex: 1; background: var(--bg-page); border-radius: 8px; padding: 12px; text-align: center; }
+.summary-card { flex: 1; background: var(--bg-page); border-radius: 8px; padding: 16px; text-align: center; }
 .summary-label { font-size: 12px; color: var(--gray-400); }
 .summary-value { font-size: 20px; font-weight: 700; color: var(--gray-700); margin-top: 4px; }
 .summary-value.green { color: var(--color-success); }

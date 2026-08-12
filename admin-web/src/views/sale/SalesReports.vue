@@ -223,7 +223,7 @@ onMounted(async () => {
   flex: 1;
   background: #fff;
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 16px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   border-left: 4px solid var(--color-primary);
