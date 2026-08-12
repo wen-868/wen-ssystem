@@ -73,8 +73,8 @@ body{font-family:"SimSun","Microsoft YaHei",sans-serif;font-size:12px;color:#000
 .m-footer{text-align:center;font-size:11px;color:#666;margin-top:14px;border-top:1px dashed #999;padding-top:6px}`;
 }
 
-/** 渲染单个可视化模块 */
-function renderModule(module: PrintModule, vars: PrintVars): string {
+/** 渲染单个可视化模块（导出供编辑器画布逐模块渲染与拖拽） */
+export function renderModuleHtml(module: PrintModule, vars: PrintVars): string {
   const enabledFields = Object.entries(module.fields ?? {})
     .filter(([, on]) => on)
     .map(([key]) => key);
@@ -139,7 +139,7 @@ export function renderJsonTemplate(json: PrintTemplateJson, vars: PrintVars): st
   const css = paperCss(json.paperType);
   const body = json.modules
     .filter((m) => m.enabled)
-    .map((m) => renderModule(m, vars))
+    .map((m) => renderModuleHtml(m, vars))
     .join("\n");
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${body}</body></html>`;
 }

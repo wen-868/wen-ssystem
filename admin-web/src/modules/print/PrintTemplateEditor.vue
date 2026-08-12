@@ -26,9 +26,32 @@
         </div>
       </aside>
 
-      <!-- 画布预览 -->
+      <!-- 画布预览（逐模块渲染，可直接拖动换位） -->
       <div class="editor-canvas">
-        <div class="canvas-paper" :style="canvasStyle" v-html="previewHtml"></div>
+        <div class="canvas-paper" :style="canvasStyle">
+          <div
+            v-for="(mod, idx) in visibleModules"
+            :key="mod.id"
+            class="ed-module"
+            :class="{ active: selectedId === mod.id }"
+            :style="moduleStyle(mod)"
+            draggable="true"
+            @dragstart="onCanvasDragStart(mod.id)"
+            @dragover.prevent="onCanvasDragOver(mod.id)"
+            @drop="onCanvasDrop"
+            @click.stop="selectedId = mod.id"
+          >
+            <div class="ed-mod-toolbar">
+              <el-switch v-model="mod.enabled" size="small" />
+              <span class="ed-mod-name">{{ moduleTypeLabel(mod.type) }}</span>
+              <el-button text size="small" :disabled="idx === 0" @click.stop="moveModuleById(mod.id, -1)">↑</el-button>
+              <el-button text size="small" :disabled="idx === visibleModules.length - 1" @click.stop="moveModuleById(mod.id, 1)">↓</el-button>
+              <el-button text type="danger" size="small" @click.stop="removeModuleById(mod.id)">删除</el-button>
+            </div>
+            <div class="ed-mod-body" v-html="renderModuleHtml(mod, sampleVars(billType))"></div>
+          </div>
+          <div v-if="visibleModules.length === 0" class="canvas-empty">左侧点击模块库添加模块</div>
+        </div>
       </div>
 
       <!-- 模块列表（拖拽排序） -->
@@ -94,6 +117,18 @@
               <el-radio-button value="right">右</el-radio-button>
             </el-radio-group>
           </el-form-item>
+          <el-form-item label="字号">
+            <el-select v-model="selected.fontSize" placeholder="默认" clearable style="width: 120px">
+              <el-option v-for="s in fontSizes" :key="s" :label="`${s}px`" :value="s" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="模块间距">
+            <el-radio-group v-model="selected.spacing">
+              <el-radio-button value="compact">紧凑</el-radio-button>
+              <el-radio-button value="normal">正常</el-radio-button>
+              <el-radio-button value="loose">宽松</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
         </el-form>
       </div>
     </div>
@@ -102,7 +137,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
-import { renderJsonTemplate } from "./renderer";
+import { renderModuleHtml } from "./renderer";
 import { PAPER_TYPE_LABELS } from "./localConfig";
 import { sampleVars } from "./sampleVars";
 import {
@@ -177,6 +212,7 @@ const LABEL_MAP: Record<string, string> = (() => {
 })();
 
 const paperTypes = Object.entries(PAPER_TYPE_LABELS).map(([value, label]) => ({ value, label }));
+const fontSizes = [12, 14, 16, 18, 20, 24];
 
 function moduleTypeLabel(type: PrintModuleType): string {
   return MODULE_TYPE_LABELS[type] || type;
@@ -198,6 +234,7 @@ function newModule(type: PrintModuleType): PrintModule {
     fields,
     align: type === "title" || type === "header" || type === "footer" ? "center" : "left",
     text: type === "title" ? "单 据 标 题" : type === "footer" ? "谢谢惠顾，欢迎再次光临！" : "",
+    spacing: "normal",
   };
 }
 
@@ -290,13 +327,16 @@ watch(
 const selectedId = ref<string | null>(json.modules[0]?.id ?? null);
 const selected = computed(() => json.modules.find((m) => m.id === selectedId.value) ?? null);
 
-const previewHtml = computed(() => {
-  try {
-    return renderJsonTemplate(json, sampleVars(props.billType));
-  } catch {
-    return "<div>模板预览渲染失败</div>";
-  }
-});
+/** 画布只显示启用模块（关闭的模块在右侧列表管理） */
+const visibleModules = computed(() => json.modules.filter((m) => m.enabled));
+
+/** 模块容器样式：字号 + 间距 */
+function moduleStyle(mod: PrintModule) {
+  const fontSize = mod.fontSize ? `font-size:${mod.fontSize}px;` : "";
+  const margin =
+    mod.spacing === "compact" ? "2px 0" : mod.spacing === "loose" ? "14px 0" : "6px 0";
+  return `${fontSize} margin:${margin};`;
+}
 
 const canvasStyle = computed(() => {
   const p = json.paperType;
@@ -321,11 +361,21 @@ function removeModule(idx: number) {
   }
 }
 
+function removeModuleById(id: string) {
+  const idx = json.modules.findIndex((m) => m.id === id);
+  if (idx >= 0) removeModule(idx);
+}
+
 function moveModule(idx: number, dir: -1 | 1) {
   const target = idx + dir;
   if (target < 0 || target >= json.modules.length) return;
   const arr = json.modules;
   [arr[idx], arr[target]] = [arr[target], arr[idx]];
+}
+
+function moveModuleById(id: string, dir: -1 | 1) {
+  const idx = json.modules.findIndex((m) => m.id === id);
+  if (idx >= 0) moveModule(idx, dir);
 }
 
 /** 拖拽排序 */
@@ -364,6 +414,28 @@ function addModuleAt(type: PrintModuleType, idx: number) {
 function onModDrop() {
   dragType = null;
   dragIdx = -1;
+}
+
+/** 画布内模块拖拽换位 */
+let canvasDragId: string | null = null;
+
+function onCanvasDragStart(id: string) {
+  canvasDragId = id;
+}
+
+function onCanvasDragOver(targetId: string) {
+  if (!canvasDragId || canvasDragId === targetId) return;
+  const arr = json.modules;
+  const from = arr.findIndex((m) => m.id === canvasDragId);
+  const to = arr.findIndex((m) => m.id === targetId);
+  if (from < 0 || to < 0) return;
+  const [moved] = arr.splice(from, 1);
+  arr.splice(to, 0, moved);
+  canvasDragId = targetId;
+}
+
+function onCanvasDrop() {
+  canvasDragId = null;
 }
 </script>
 
@@ -441,6 +513,59 @@ function onModDrop() {
   min-height: 200px;
   padding: 8px;
   border-radius: 4px;
+}
+.ed-module {
+  position: relative;
+  border: 1px dashed transparent;
+  border-radius: 4px;
+  padding: 2px;
+  cursor: grab;
+  transition: border-color 120ms;
+}
+.ed-module:hover {
+  border-color: #d9d9d9;
+}
+.ed-module.active {
+  border-color: var(--color-primary, #1677ff);
+  background: rgba(22, 119, 255, 0.04);
+}
+.ed-mod-toolbar {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  position: absolute;
+  top: -14px;
+  right: 0;
+  background: var(--color-primary, #1677ff);
+  color: #fff;
+  border-radius: 4px;
+  padding: 0 4px;
+  z-index: 2;
+  font-size: 12px;
+}
+.ed-module:hover .ed-mod-toolbar,
+.ed-module.active .ed-mod-toolbar {
+  display: flex;
+}
+.ed-mod-name {
+  font-size: 12px;
+  padding: 0 4px;
+}
+.ed-mod-toolbar :deep(.el-button) {
+  color: #fff;
+  margin-left: 0;
+}
+.ed-mod-body {
+  pointer-events: none;
+}
+.ed-mod-body :deep(table.m-items) {
+  pointer-events: none;
+}
+.canvas-empty {
+  text-align: center;
+  color: var(--text-muted, #aaa);
+  padding: 40px 0;
+  font-size: 13px;
 }
 .module-list {
   width: 190px;

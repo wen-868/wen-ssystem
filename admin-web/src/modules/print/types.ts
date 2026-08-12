@@ -130,6 +130,8 @@ export interface PrintModule {
   align?: "left" | "center" | "right";
   /** 字号（px） */
   fontSize?: number;
+  /** 模块间距 */
+  spacing?: "compact" | "normal" | "loose";
 }
 
 /** 可视化模板（存储于 t_print_template.content，JSON 字符串） */
