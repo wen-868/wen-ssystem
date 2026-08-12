@@ -76,7 +76,7 @@ export interface LocalPrintConfig {
 
 /** 模板渲染变量（渲染器入参，键与模板 {{变量}} 对应） */
 export interface PrintVars {
-  [key: string]: string | number;
+  [key: string]: unknown;
 }
 
 /** 本地打印助手响应 */
@@ -149,4 +149,194 @@ export interface PrintTemplateJson {
 export function isTemplateJson(content: string): boolean {
   const trimmed = (content ?? "").trim();
   return trimmed.startsWith("{") && trimmed.includes('"modules"');
+}
+
+// ==================== v3 自由控件模板（行业标准可视化设计） ====================
+
+/** 控件种类 */
+export type PrintWidgetKind =
+  | "text"       // 文本（可含 {{变量}} 占位符）
+  | "field"      // 数据字段（标签 + 值）
+  | "table"      // 表格（商品明细/报表数据）
+  | "image"      // 图片（Logo 等）
+  | "barcode"    // 一维条码
+  | "qrcode"     // 二维码
+  | "rect"       // 矩形
+  | "line";      // 线条
+
+/** 控件基础属性（位置/尺寸均以毫米 mm 为单位，与纸张一致） */
+export interface PrintWidgetBase {
+  id: string;
+  kind: PrintWidgetKind;
+  /** 距纸面左上角水平距离（mm） */
+  x: number;
+  /** 距纸面左上角垂直距离（mm） */
+  y: number;
+  /** 控件宽度（mm） */
+  width: number;
+  /** 控件高度（mm） */
+  height: number;
+  /** 层叠顺序 */
+  zIndex: number;
+  /** 锁定（编辑时不可拖动） */
+  locked?: boolean;
+  /** 是否显示 */
+  visible?: boolean;
+  /** 字号（pt，1pt ≈ 0.3528mm） */
+  fontSize?: number;
+  fontWeight?: "normal" | "bold";
+  align?: "left" | "center" | "right";
+  color?: string;
+  opacity?: number;
+  /** 旋转角度（度） */
+  rotation?: number;
+  /** 边框宽度（pt） */
+  borderWidth?: number;
+  borderColor?: string;
+  backgroundColor?: string;
+  /** 内边距（mm） */
+  padding?: number;
+}
+
+/** 文本控件 */
+export interface PrintTextWidget extends PrintWidgetBase {
+  kind: "text";
+  /** 文本内容，支持 {{变量}} 占位符 */
+  text: string;
+}
+
+/** 数据字段控件（显示"标签：值"） */
+export interface PrintFieldWidget extends PrintWidgetBase {
+  kind: "field";
+  /** 模板变量 key（如 billNo、customerName） */
+  fieldKey: string;
+  /** 显示名（如"客户名称"） */
+  label: string;
+  /** 是否显示标签 */
+  showLabel: boolean;
+  /** 空值显示文案 */
+  emptyText?: string;
+}
+
+/** 表格列配置 */
+export interface PrintTableColumn {
+  key: string;
+  label: string;
+  /** 列宽（mm） */
+  width: number;
+  align?: "left" | "center" | "right";
+}
+
+/** 表格控件（商品明细/报表数据） */
+export interface PrintTableWidget extends PrintWidgetBase {
+  kind: "table";
+  /** 数据源变量 key（如 itemsRows、reportRows） */
+  dataSource: string;
+  columns: PrintTableColumn[];
+  /** 是否显示表头 */
+  showHeader: boolean;
+  /** 行高（mm） */
+  rowHeight?: number;
+  /** 表头字号（pt） */
+  headerFontSize?: number;
+  /** 单元格内边距（mm） */
+  cellPadding?: number;
+}
+
+/** 图片控件 */
+export interface PrintImageWidget extends PrintWidgetBase {
+  kind: "image";
+  /** 图片地址，或模板变量 key（如 logo） */
+  src: string;
+  fit: "contain" | "cover" | "stretch";
+}
+
+/** 条码/二维码控件 */
+export interface PrintCodeWidget extends PrintWidgetBase {
+  kind: "barcode" | "qrcode";
+  /** 编码内容：固定值或模板变量 key（如 barcode） */
+  value: string;
+  /** 一维条码格式 */
+  format?: "CODE128" | "CODE39" | "EAN13";
+  /** 条码下方是否显示文字 */
+  showText?: boolean;
+}
+
+/** 矩形控件 */
+export interface PrintRectWidget extends PrintWidgetBase {
+  kind: "rect";
+  borderRadius?: number;
+}
+
+/** 线条控件 */
+export interface PrintLineWidget extends PrintWidgetBase {
+  kind: "line";
+  lineStyle?: "solid" | "dashed" | "dotted";
+}
+
+/** 全部控件类型 */
+export type PrintWidget =
+  | PrintTextWidget
+  | PrintFieldWidget
+  | PrintTableWidget
+  | PrintImageWidget
+  | PrintCodeWidget
+  | PrintRectWidget
+  | PrintLineWidget;
+
+/** 纸张设置（v3 完整可自定义） */
+export interface PrintPaperSettings {
+  /** 纸张类型标识（便于与旧数据/配置对接） */
+  type: PrintPaperType;
+  /** 纸宽（mm） */
+  width: number;
+  /** 纸高（mm） */
+  height: number;
+  orientation: "portrait" | "landscape";
+  /** 上边距（mm） */
+  marginTop: number;
+  marginBottom: number;
+  marginLeft: number;
+  marginRight: number;
+}
+
+/** v3 自由控件模板（存储于 t_print_template.content，JSON 字符串） */
+export interface PrintTemplateV3 {
+  version: 3;
+  paper: PrintPaperSettings;
+  widgets: PrintWidget[];
+}
+
+/** 判断 content 是否为 v3 自由控件模板 */
+export function isTemplateV3(content: string): boolean {
+  const trimmed = (content ?? "").trim();
+  return trimmed.startsWith("{") && trimmed.includes('"version":3');
+}
+
+/** 纸张类型默认尺寸（mm）：用于新建模板与纸张切换 */
+export const PAPER_DEFAULT_SIZE: Record<PrintPaperType, { width: number; height: number }> = {
+  RECEIPT_58: { width: 58, height: 120 },
+  RECEIPT_80: { width: 80, height: 140 },
+  RECEIPT_110: { width: 110, height: 160 },
+  A4: { width: 210, height: 297 },
+  DOT_1UP: { width: 241, height: 279 },
+  DOT_2UP: { width: 241, height: 140 },
+  DOT_3UP: { width: 241, height: 93 },
+  LABEL_60X40: { width: 60, height: 40 },
+  LABEL_CUSTOM: { width: 60, height: 40 },
+};
+
+/** 创建默认 v3 纸张设置 */
+export function createPaperSettings(type: PrintPaperType = "A4"): PrintPaperSettings {
+  const size = PAPER_DEFAULT_SIZE[type] ?? PAPER_DEFAULT_SIZE.A4;
+  return {
+    type,
+    width: size.width,
+    height: size.height,
+    orientation: "portrait",
+    marginTop: 5,
+    marginBottom: 5,
+    marginLeft: 5,
+    marginRight: 5,
+  };
 }

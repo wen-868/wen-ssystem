@@ -15,9 +15,10 @@ import type {
   LocalAgentPrinter,
   PrintResult,
   PrintTemplateJson,
+  PrintTemplateV3,
   PrintVars,
 } from "./types";
-import { isTemplateJson } from "./types";
+import { isTemplateJson, isTemplateV3 } from "./types";
 
 /** 同步打开打印窗口（必须在用户点击等手势内调用） */
 export function openPrintWindow(): Window | null {
@@ -114,7 +115,10 @@ export async function printViaAgent(opts: {
 /** 加载单据类型模板（取启用状态的第一条） */
 export async function loadTemplate(billType: string): Promise<{ content: string; paperType: string } | null> {
   const list = await fetchPrintTemplates({ billType });
-  const active = list.find((t) => t.status === 1) ?? list[0];
+  const active =
+    list.find((t) => t.status === 1 && t.isDefault === 1) ??
+    list.find((t) => t.status === 1) ??
+    list[0];
   if (!active) return null;
   return { content: active.content ?? "", paperType: active.paperType };
 }
@@ -138,9 +142,10 @@ th{background:#f5f5f5}
 
 /** 渲染模板内容（兼容可视化 JSON 与旧 HTML） */
 export function renderAnyTemplate(content: string, vars: PrintVars, billType?: string): string {
-  if (isTemplateJson(content)) {
+  if (isTemplateV3(content) || isTemplateJson(content)) {
     try {
-      return renderJsonTemplate(JSON.parse(content) as PrintTemplateJson, vars, billType);
+      const json = JSON.parse(content) as PrintTemplateJson | PrintTemplateV3;
+      return renderJsonTemplate(json, vars, billType);
     } catch {
       // JSON 解析失败回退 HTML 渲染
     }

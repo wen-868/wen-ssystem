@@ -2,8 +2,9 @@
  * 模板预览示例数据（可视化编辑器与模板页预览共用）
  */
 import { buildTableHtml, rawHtml } from "./renderer";
+import type { PrintVars } from "./types";
 
-export function sampleVars(_billType?: string): Record<string, string> {
+export function sampleVars(_billType?: string): PrintVars {
   const items = buildTableHtml(
     [
       { name: "五粮液 52度 500ml", qty: "10", price: "980.00" },
@@ -15,6 +16,10 @@ export function sampleVars(_billType?: string): Record<string, string> {
       { key: "price", label: "金额", align: "right" },
     ]
   );
+  const itemsRows = [
+    { name: "五粮液 52度 500ml", spec: "500ml/瓶", barcode: "6901234567890", unit: "瓶", qty: "10", price: "980.00", amount: "9800.00", trace: "ZX20260812001", remark: "" },
+    { name: "剑南春 水晶剑 52度 500ml", spec: "500ml/瓶", barcode: "6901234567891", unit: "瓶", qty: "5", price: "599.00", amount: "2995.00", trace: "ZX20260812002", remark: "" },
+  ];
   return {
     storeName: "智享全链门店",
     storePhone: "0755-00000000",
@@ -32,6 +37,7 @@ export function sampleVars(_billType?: string): Record<string, string> {
     saleType: "赊销",
     billStatus: "已创建",
     items: rawHtml(items),
+    itemsRows,
     totalAmount: "3,975.00",
     discountAmount: "0.00",
     paidAmount: "3,975.00",

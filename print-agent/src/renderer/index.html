@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'" />
+  <title>智享打印助手 · 设置</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f6fa; color: #333; }
+    .header { background: linear-gradient(135deg, #1677ff, #0958d9); color: #fff; padding: 18px 22px; }
+    .header h1 { font-size: 17px; }
+    .header p { font-size: 12px; opacity: .85; margin-top: 4px; }
+    .status { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 12px; font-size: 12px; background: rgba(255,255,255,.18); }
+    .status.ok { background: rgba(22, 200, 120, .85); }
+    .status.bad { background: rgba(255, 90, 90, .9); }
+    .card { background: #fff; margin: 14px 18px; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .card h2 { font-size: 14px; margin-bottom: 12px; color: #444; }
+    .row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .row label { width: 78px; font-size: 13px; color: #666; flex-shrink: 0; }
+    select, input[type="number"], input[type="text"] { flex: 1; height: 32px; border: 1px solid #d9d9d9; border-radius: 6px; padding: 0 10px; font-size: 13px; background: #fff; }
+    select:focus, input:focus { outline: none; border-color: #1677ff; }
+    .switch { position: relative; width: 42px; height: 22px; background: #ccc; border-radius: 11px; cursor: pointer; transition: background .2s; }
+    .switch.on { background: #1677ff; }
+    .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left .2s; }
+    .switch.on::after { left: 22px; }
+    .btn { height: 32px; padding: 0 16px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff; font-size: 13px; cursor: pointer; }
+    .btn.primary { background: #1677ff; border-color: #1677ff; color: #fff; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+    .tip { font-size: 12px; color: #999; line-height: 1.6; }
+    .tip code { background: #f0f2f5; padding: 1px 6px; border-radius: 4px; }
+    .msg { margin-top: 10px; font-size: 12px; color: #1677ff; min-height: 18px; }
+    .msg.err { color: #e14d4d; }
+    .printer-item { padding: 6px 10px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 6px; font-size: 13px; display: flex; justify-content: space-between; }
+    .printer-item .def { color: #1677ff; font-size: 11px; }
+    .empty { font-size: 12px; color: #999; padding: 8px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>智享打印助手</h1>
+    <p>热敏小票 / 针式 / A4 / 标签 · 原生常驻打印服务</p>
+    <span id="status" class="status">检测中…</span>
+  </div>
+
+  <div class="card">
+    <h2>服务状态</h2>
+    <div class="row">
+      <label>服务地址</label>
+      <div class="tip">http://127.0.0.1:<span id="portText">5178</span></div>
+    </div>
+    <div class="row">
+      <label>版本</label>
+      <div class="tip" id="versionText">-</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>打印机设置</h2>
+    <div class="row">
+      <label>默认打印机</label>
+      <select id="printerSelect"></select>
+    </div>
+    <div class="row">
+      <label>默认份数</label>
+      <input id="copies" type="number" min="1" max="99" value="1" />
+    </div>
+    <div class="row">
+      <label>开机自启</label>
+      <div id="autoStart" class="switch"></div>
+    </div>
+    <div class="tip">自启需在系统设置中授予"登录时启动"权限（macOS），Windows 安装版自动配置。</div>
+  </div>
+
+  <div class="card">
+    <h2>本机打印机</h2>
+    <div id="printerList"><div class="empty">加载中…</div></div>
+  </div>
+
+  <div class="card">
+    <h2>测试</h2>
+    <div class="row">
+      <label>测试页</label>
+      <button class="btn" id="testBtn">打印测试小票</button>
+    </div>
+    <div id="testMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="actions">
+      <button class="btn" id="refreshBtn">刷新</button>
+      <button class="btn primary" id="saveBtn">保存设置</button>
+    </div>
+    <div id="saveMsg" class="msg"></div>
+  </div>
+
+  <script src="./renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "zhixiang-print-agent",
+  "version": "1.0.0",
+  "description": "智享全链 · 本地打印助手（热敏小票 / 针式 / A4 / 标签，原生常驻服务）",
+  "main": "dist/main.js",
+  "author": "深圳市宝安区智享全链软件工作室",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-renderer.js",
+    "dev": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --win",
+    "dist:portable": "npm run build && electron-builder --win portable"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "electron": "43.1.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.5.3"
+  }
+}

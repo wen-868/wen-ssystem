@@ -74,6 +74,12 @@ export async function resetPrintTemplate(id: number): Promise<{ id: number }> {
   return data.data;
 }
 
+/** 设为默认模板（同单据类型仅一个默认启用） */
+export async function setDefaultPrintTemplate(id: number): Promise<{ id: number }> {
+  const { data } = await api.post(`/admin/print/templates/${id}/set-default`);
+  return data.data;
+}
+
 /** 上报打印记录（留痕审计） */
 export async function reportPrintRecord(input: PrintRecordInput): Promise<{ id: number }> {
   const { data } = await api.post("/admin/print/records", input);

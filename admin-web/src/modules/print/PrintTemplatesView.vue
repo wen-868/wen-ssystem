@@ -32,19 +32,21 @@
         </el-table-column>
         <el-table-column prop="isDefault" label="类型" width="90">
           <template #default="{ row }">
-            <el-tag v-if="row.isDefault === 1" size="small" type="info">系统默认</el-tag>
-            <el-tag v-else size="small" type="success">自定义</el-tag>
+            <el-tag v-if="row.isDefault === 1" size="small" type="success">默认启用</el-tag>
+            <el-tag v-else size="small" type="info">普通</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="version" label="版本" width="70" align="center" />
         <el-table-column prop="updatedAt" label="更新时间" width="170">
           <template #default="{ row }">{{ formatTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click="openEdit(row)">编辑</el-button>
+            <el-button size="small" link @click="handleDuplicate(row)">复制</el-button>
             <el-button size="small" link @click="handlePreview(row)">预览</el-button>
-            <el-button size="small" link @click="handleReset(row)">恢复默认</el-button>
+            <el-button v-if="row.isDefault !== 1" size="small" link @click="handleSetDefault(row)">设为默认</el-button>
+            <el-button size="small" link :disabled="row.isDefault === 1" @click="handleReset(row)">重置</el-button>
             <el-button size="small" type="danger" link :disabled="row.isDefault === 1" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -102,9 +104,11 @@ import { Plus, Printer, Refresh } from "@element-plus/icons-vue";
 import {
   createPrintTemplate,
   deletePrintTemplate,
+  fetchPrintTemplate,
   fetchPrintMeta,
   fetchPrintTemplates,
   resetPrintTemplate,
+  setDefaultPrintTemplate,
   updatePrintTemplate,
 } from "./api";
 import { PAPER_TYPE_LABELS } from "./localConfig";
@@ -241,6 +245,40 @@ async function handleReset(row: PrintTemplate) {
   try {
     await resetPrintTemplate(row.id);
     ElMessage.success("已恢复系统默认模板");
+    await loadTemplates();
+  } catch (e) {
+    ElMessage.error(e instanceof Error ? e.message : String(e));
+  }
+}
+
+/** 复制模板（同单据类型快速新建，便于多版本并存） */
+async function handleDuplicate(row: PrintTemplate) {
+  try {
+    const detail = await fetchPrintTemplate(row.id);
+    await createPrintTemplate({
+      billType: detail.billType,
+      paperType: detail.paperType,
+      templateName: `${detail.templateName} - 副本`,
+      content: detail.content,
+      status: 1,
+    });
+    ElMessage.success("已复制为新模板");
+    await loadTemplates();
+  } catch (e) {
+    ElMessage.error(`复制失败：${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
+/** 设为默认（同单据类型仅一个默认启用） */
+async function handleSetDefault(row: PrintTemplate) {
+  await ElMessageBox.confirm(
+    `将「${row.templateName}」设为 ${billTypeLabel(row.billType)} 的默认模板？自动打印将使用该模板。`,
+    "设为默认",
+    { type: "warning" }
+  );
+  try {
+    await setDefaultPrintTemplate(row.id);
+    ElMessage.success("已设为默认模板");
     await loadTemplates();
   } catch (e) {
     ElMessage.error(e instanceof Error ? e.message : String(e));

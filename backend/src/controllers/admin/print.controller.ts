@@ -219,6 +219,17 @@ export const resetTemplate = asyncHandler(async (req, res) => {
 });
 
 /**
+ * POST /templates/:id/set-default — 设为默认模板（同单据类型仅一个）
+ */
+export const setDefaultTemplate = asyncHandler(async (req, res) => {
+    const { id } = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(req.params);
+    const result = await printService.setDefaultPrintTemplate(id, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
  * GET /meta — 单据类型与纸张类型枚举（前端配置页使用）
  */
 export const getPrintMeta = asyncHandler(async (_req, res) => {

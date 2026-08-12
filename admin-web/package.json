@@ -24,8 +24,10 @@
     "axios": "^1.7.2",
     "echarts": "^6.1.0",
     "element-plus": "^2.7.6",
+    "jsbarcode": "^3.12.3",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
+    "qrcode-generator": "^2.0.4",
     "vue": "^3.4.31",
     "vue-router": "^4.4.0"
   },

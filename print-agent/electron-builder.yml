@@ -1,0 +1,24 @@
+appId: com.zhixiang.printagent
+productName: 智享打印助手
+copyright: Copyright © 2026 智享全链
+directories:
+  output: release
+files:
+  - dist/**/*
+  - package.json
+asar: true
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 智享打印助手
+  artifactName: "${productName}-${version}-setup.${ext}"
+portable:
+  artifactName: "${productName}-${version}-portable.${ext}"

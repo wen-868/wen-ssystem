@@ -541,3 +541,24 @@ export async function resetPrintTemplate(id: number, tenantId: string): Promise<
     );
     return { id };
 }
+
+/**
+ * 设为默认模板（同一单据类型仅一个默认启用模板）
+ * 行业惯例：每类单据可建多个模板，仅"默认"模板参与自动打印
+ */
+export async function setDefaultPrintTemplate(id: number, tenantId: string): Promise<{ id: number }> {
+    const existing = await getPrintTemplate(id, tenantId);
+    // 同单据类型全部清除默认标记
+    await queryWithTenant<ResultSetHeader>(
+        `UPDATE t_print_template SET is_default = 0 WHERE bill_type = ? AND tenant_id = ?`,
+        [existing.bill_type, tenantId],
+        tenantId
+    );
+    // 当前模板设为默认并确保启用
+    await queryWithTenant<ResultSetHeader>(
+        `UPDATE t_print_template SET is_default = 1, status = 1 WHERE id = ? AND tenant_id = ?`,
+        [id, tenantId],
+        tenantId
+    );
+    return { id };
+}

@@ -57,6 +57,9 @@ printRouter.delete("/templates/:id", printController.deleteTemplate);
 // 重置为系统默认模板
 printRouter.post("/templates/:id/reset", printController.resetTemplate);
 
+// 设为默认模板（同单据类型仅一个默认启用）
+printRouter.post("/templates/:id/set-default", printController.setDefaultTemplate);
+
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
     prefix: "/api/admin/print",

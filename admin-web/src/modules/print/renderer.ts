@@ -5,8 +5,17 @@
  * 并负责生成商品明细行等结构化片段。
  */
 import type { PrintVars } from "./types";
-import type { PrintModule, PrintModuleType, PrintTemplateJson } from "./types";
+import type {
+  PrintCodeWidget,
+  PrintModule,
+  PrintModuleType,
+  PrintTemplateJson,
+  PrintTemplateV3,
+  PrintWidget,
+} from "./types";
 import { COMMON_PRINT_VARIABLES, BILL_TYPE_VARIABLES } from "./variables";
+import JsBarcode from "jsbarcode";
+import QRCode from "qrcode-generator";
 
 /** 金额类字段：渲染时自动补 ¥ */
 const AMOUNT_KEYS = new Set([
@@ -207,16 +216,6 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars, billType?
   }
 }
 
-/** 渲染可视化 JSON 模板（content 为 JSON 时使用） */
-export function renderJsonTemplate(json: PrintTemplateJson, vars: PrintVars, billType?: string): string {
-  const css = paperCss(json.paperType);
-  const body = json.modules
-    .filter((m) => m.enabled)
-    .map((m) => renderModuleHtml(m, vars, billType))
-    .join("\n");
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${body}</body></html>`;
-}
-
 /** HTML 转义（业务字段输出到模板前必须转义，防 XSS/格式破坏） */
 export function escapeHtml(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -306,4 +305,226 @@ export function fmtMoney(value: unknown): string {
 /** 空值转占位符 */
 export function dash(value: unknown): string {
   return value === null || value === undefined || value === "" ? "-" : String(value);
+}
+
+// ==================== v3 自由控件渲染 ====================
+
+/** 替换 {{变量}} 占位符（与 renderTemplate 同规则） */
+function replaceVars(text: string, vars: PrintVars): string {
+  return String(text ?? "").replace(/\{\{\s*([\w]+)\s*\}\}/g, (match, key: string) => {
+    if (!(key in vars)) return match;
+    const value = vars[key];
+    if (typeof value === "string" && value.startsWith("__raw:")) {
+      return value.slice("__raw:".length);
+    }
+    return escapeHtml(value);
+  });
+}
+
+/** 控件通用 CSS（位置/尺寸/字体/边框等，单位 mm/pt） */
+function widgetStyle(w: PrintWidget): string {
+  const s: string[] = [
+    `left:${w.x}mm`,
+    `top:${w.y}mm`,
+    `width:${w.width}mm`,
+    `height:${w.height}mm`,
+    `z-index:${w.zIndex ?? 0}`,
+  ];
+  if (w.fontSize) s.push(`font-size:${w.fontSize}pt`);
+  if (w.fontWeight) s.push(`font-weight:${w.fontWeight}`);
+  if (w.align) s.push(`text-align:${w.align}`);
+  if (w.color) s.push(`color:${w.color}`);
+  if (w.opacity !== undefined && w.opacity < 1) s.push(`opacity:${w.opacity}`);
+  if (w.rotation) s.push(`transform:rotate(${w.rotation}deg)`);
+  if (w.borderWidth) {
+    if (w.kind === "line") {
+      const style = (w as PrintWidget & { lineStyle?: "solid" | "dashed" | "dotted" }).lineStyle ?? "solid";
+      s.push("border:none");
+      if (w.width >= w.height) {
+        s.push(`border-top:${w.borderWidth}pt ${style} ${w.color ?? "#000"}`);
+      } else {
+        s.push(`border-left:${w.borderWidth}pt ${style} ${w.color ?? "#000"}`);
+      }
+    } else {
+      s.push(`border:${w.borderWidth}pt solid ${w.borderColor ?? "#000"}`);
+    }
+  }
+  if (w.backgroundColor) s.push(`background:${w.backgroundColor}`);
+  if (w.padding) s.push(`padding:${w.padding}mm`);
+  return s.join(";");
+}
+
+/** 生成一维条码 dataURL（同步） */
+function renderBarcodeDataUrl(value: string, widget: PrintCodeWidget): string {
+  try {
+    const canvas = document.createElement("canvas");
+    const px = (n: number) => Math.max(2, Math.round(n * 3.78));
+    JsBarcode(canvas, value, {
+      format: (widget.format ?? "CODE128") as "CODE128" | "CODE39" | "EAN13",
+      displayValue: widget.showText !== false,
+      width: 2,
+      height: px(widget.height),
+      margin: 2,
+      font: "monospace",
+      fontSize: 12,
+    });
+    return canvas.toDataURL("image/png");
+  } catch {
+    return "";
+  }
+}
+
+/** 生成二维码 dataURL（同步） */
+function renderQrcodeDataUrl(value: string): string {
+  try {
+    const qr = QRCode(0, "M");
+    qr.addData(value);
+    qr.make();
+    return qr.createDataURL(4, 4);
+  } catch {
+    return "";
+  }
+}
+
+/** 字段值格式化（金额自动 ¥、空值占位） */
+function widgetFieldValue(key: string, vars: PrintVars, emptyText?: string): string {
+  const value = vars[key];
+  if (value === null || value === undefined || value === "") return emptyText ?? "";
+  const str = String(value);
+  if (AMOUNT_KEYS.has(key) && !str.includes("¥")) return `¥${str}`;
+  return str;
+}
+
+/** 渲染单个 v3 控件内容 HTML（编辑器画布内层使用，不含定位样式） */
+function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): string {
+  switch (w.kind) {
+    case "text":
+      return replaceVars(w.text, vars);
+
+    case "field": {
+      const value = widgetFieldValue(w.fieldKey, vars, w.emptyText);
+      if (!w.showLabel) return escapeHtml(value);
+      const label = w.label || getVariableLabel(w.fieldKey, billType);
+      return `<span class="zx-field-label">${escapeHtml(label)}：</span><span class="zx-field-value">${escapeHtml(value)}</span>`;
+    }
+
+    case "table": {
+      const rows = Array.isArray(vars[w.dataSource]) ? (vars[w.dataSource] as Array<Record<string, unknown>>) : [];
+      const totalColWidth = w.columns.reduce((sum, c) => sum + (c.width || 10), 0) || 1;
+      const colCss = w.columns
+        .map(
+          (c) =>
+            `<col style="width:${((c.width || 10) / totalColWidth) * 100}%">`
+        )
+        .join("");
+      const head = w.showHeader
+        ? `<tr>${w.columns
+            .map(
+              (c) =>
+                `<th style="text-align:${c.align ?? "center"}">${escapeHtml(c.label || c.key)}</th>`
+            )
+            .join("")}</tr>`
+        : "";
+      const body = rows
+        .map((row) => {
+          const tds = w.columns
+            .map((c) => {
+              const meta = ITEM_COLUMN_META[c.key];
+              const align = c.align ?? meta?.align ?? "center";
+              const value = meta?.formatter ? meta.formatter(row) : (row[c.key] ?? "");
+              return `<td style="text-align:${align}">${escapeHtml(value)}</td>`;
+            })
+            .join("");
+          return `<tr>${tds}</tr>`;
+        })
+        .join("");
+      const pad = w.cellPadding ?? 1;
+      return `<table class="zx-table" style="width:100%;border-collapse:collapse;font-size:${w.fontSize ?? 9}pt;line-height:1.35">` +
+        `<colgroup>${colCss}</colgroup>${head}${body || `<tr><td style="text-align:center">（无明细）</td></tr>`}</table>`;
+    }
+
+    case "image": {
+      const src = w.src.startsWith("{{") ? String(vars[w.src.slice(2, -2).trim()] ?? "") : w.src;
+      if (!src) return "";
+      return `<img src="${escapeHtml(src)}" style="width:100%;height:100%;object-fit:${w.fit}" />`;
+    }
+
+    case "barcode":
+    case "qrcode": {
+      const value = w.value.startsWith("{{")
+        ? String(vars[w.value.slice(2, -2).trim()] ?? "")
+        : w.value;
+      const dataUrl = w.kind === "barcode" ? renderBarcodeDataUrl(value, w) : renderQrcodeDataUrl(value);
+      if (!dataUrl) return escapeHtml(value || "（空）");
+      return `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:contain" />`;
+    }
+
+    case "rect":
+      return "";
+
+    case "line":
+      return "";
+
+    default:
+      return "";
+  }
+}
+
+/** 渲染单个 v3 控件 HTML（打印使用，mm 精确定位） */
+export function renderV3WidgetHtml(w: PrintWidget, vars: PrintVars, billType?: string): string {
+  const cls = ["zx-widget", w.kind === "table" ? "zx-table-wrap" : w.kind === "rect" ? "zx-rect" : w.kind === "line" ? "zx-line" : ""]
+    .filter(Boolean)
+    .join(" ");
+  return `<div class="${cls}" data-widget-id="${escapeHtml(w.id)}" style="${widgetStyle(w)}">${widgetContentHtml(w, vars, billType)}</div>`;
+}
+
+/** 渲染控件内容（编辑器画布内层使用，不含定位样式） */
+export function renderV3WidgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): string {
+  return widgetContentHtml(w, vars, billType);
+}
+
+/** v3 纸张 CSS（精确 mm 打印） */
+function v3PaperCss(paper: PrintTemplateV3["paper"]): string {
+  const { width, height } = paper;
+  const orientation = paper.orientation === "landscape" && width < height
+    ? `size:${height}mm ${width}mm`
+    : `size:${width}mm ${height}mm`;
+  return `@page{${orientation};margin:0}
+body{margin:0;font-family:"Microsoft YaHei","SimSun",sans-serif;color:#000}
+.zx-paper{position:relative;width:${width}mm;height:${height}mm;margin:0 auto;overflow:hidden;box-sizing:border-box;background:#fff}
+.zx-widget{position:absolute;box-sizing:border-box;overflow:hidden;white-space:pre-wrap;word-break:break-all}
+.zx-widget.zx-table-wrap{overflow:visible}
+.zx-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.zx-table th,.zx-table td{border:1px solid #000;padding:${paper.type.startsWith("RECEIPT_") ? 0 : 1}mm 1mm;vertical-align:top}
+.zx-table th{font-weight:700}
+.zx-field-label{font-weight:700}
+.zx-rect{background:${"#fff"}}`;
+}
+
+/** 渲染完整 v3 纸张 HTML（打印用，mm 精确） */
+export function renderV3PaperHtml(json: PrintTemplateV3, vars: PrintVars, billType?: string): string {
+  const css = v3PaperCss(json.paper);
+  const widgets = (json.widgets ?? [])
+    .filter((w) => w.visible !== false)
+    .sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0))
+    .map((w) => renderV3WidgetHtml(w, vars, billType))
+    .join("\n");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body><div class="zx-paper">${widgets}</div></body></html>`;
+}
+
+/** 渲染可视化模板：v3 自由控件 / v2 模块化 分流 */
+export function renderJsonTemplate(
+  json: PrintTemplateJson | PrintTemplateV3,
+  vars: PrintVars,
+  billType?: string
+): string {
+  if (json.version === 3) {
+    return renderV3PaperHtml(json, vars, billType);
+  }
+  const css = paperCss(json.paperType);
+  const body = json.modules
+    .filter((m) => m.enabled)
+    .map((m) => renderModuleHtml(m, vars, billType))
+    .join("\n");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${css}</style></head><body>${body}</body></html>`;
 }
