@@ -426,12 +426,13 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): 
             .join("")}</tr>`
         : "";
       const body = rows
-        .map((row) => {
+        .map((row, rowIndex) => {
           const tds = w.columns
             .map((c) => {
               const meta = ITEM_COLUMN_META[c.key];
               const align = c.align ?? meta?.align ?? "center";
-              const value = meta?.formatter ? meta.formatter(row) : (row[c.key] ?? "");
+              // 序号列自动生成行号
+              const value = c.key === "index" ? String(rowIndex + 1) : meta?.formatter ? meta.formatter(row) : (row[c.key] ?? "");
               return `<td style="text-align:${align}">${escapeHtml(value)}</td>`;
             })
             .join("");

@@ -407,6 +407,20 @@ export async function ensureDefaultPrintTemplates(tenantId: string): Promise<voi
                 [def.paper, def.name, def.content, tenantId, billType],
                 tenantId
             );
+        } else if (
+            billType === "SALE_BILL" &&
+            existing.is_default === 1 &&
+            content.includes('"modules"') &&
+            !content.includes('"version":3')
+        ) {
+            // 销售单默认模板 v2 模块化 → v3 自由控件标准版式（参考行业销货单模板）
+            await queryWithTenant<ResultSetHeader>(
+                `UPDATE t_print_template
+                 SET paper_type = ?, template_name = ?, content = ?, version = version + 1
+                 WHERE tenant_id = ? AND bill_type = ? AND is_default = 1`,
+                [def.paper, def.name, def.content, tenantId, billType],
+                tenantId
+            );
         } else if (existing.is_default === 1 && existing.template_name === "批发销售单（默认）") {
             // 旧模板名自动迁移：批发销售单 → 销售单
             await queryWithTenant<ResultSetHeader>(

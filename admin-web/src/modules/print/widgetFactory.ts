@@ -145,6 +145,11 @@ export function createDefaultV3Template(
   const widgets: PrintWidget[] = [];
   let Y = paper.marginTop;
 
+  // 销售单（批发）采用标准销货单版式：抬头/标题/客户信息/8列明细/合计/备注追溯/声明/四联签章
+  if (billType === "SALE_BILL" && !isReceipt && !isLabel) {
+    return createStandardSaleBill(paper);
+  }
+
   /** 添加一个字段控件 */
   function addField(
     key: string,
@@ -396,6 +401,155 @@ export function createDefaultV3Template(
   Y += 7;
 
   // 控件超高时自动加高纸张（小票高度随内容增长）
+  paper.height = Math.max(paper.height, Math.ceil(Y + paper.marginBottom));
+  return { version: 3, paper, widgets };
+}
+
+/**
+ * 标准销售单版式（参考行业销货单/送货单模板）
+ * 版式：公司抬头 → 单据标题 → 客户信息(名称/联系人/日期 + 地址/电话/单号)
+ *       → 8列商品明细(序号/条码/商品名称/规格/单价/单位/数量/合计金额)
+ *       → 合计(大写+小写) → 备注+(追溯码) → 声明 → 制单/审核/业务/客户签收
+ */
+function createStandardSaleBill(paper: PrintPaperSettings): PrintTemplateV3 {
+  const X = paper.marginLeft;
+  const W = paper.width - paper.marginLeft - paper.marginRight;
+  const widgets: PrintWidget[] = [];
+  let Y = paper.marginTop;
+
+  /** 添加文本控件 */
+  function addText(text: string, opts: { x?: number; w?: number; align?: "left" | "center" | "right"; size?: number; bold?: boolean; y?: number; h?: number } = {}): PrintWidget {
+    const w = createWidget("text", opts.x ?? X, opts.y ?? Y, "SALE_BILL") as PrintWidget & {
+      text: string;
+      align: "left" | "center" | "right";
+      fontWeight: "normal" | "bold";
+      fontSize: number;
+      height: number;
+    };
+    w.text = text;
+    w.width = opts.w ?? W;
+    w.height = opts.h ?? 7;
+    w.align = opts.align ?? "left";
+    w.fontSize = opts.size ?? 12;
+    w.fontWeight = opts.bold ? "bold" : "normal";
+    widgets.push(w);
+    return w;
+  }
+
+  /** 添加字段控件 */
+  function addField(
+    key: string,
+    opts: { label?: string; x?: number; w?: number; align?: "left" | "center" | "right"; size?: number; bold?: boolean; y?: number; h?: number; showLabel?: boolean } = {}
+  ): PrintWidget {
+    const w = createWidget("field", opts.x ?? X, opts.y ?? Y, "SALE_BILL") as PrintWidget & {
+      fieldKey: string;
+      label: string;
+      showLabel: boolean;
+      align: "left" | "center" | "right";
+      fontWeight: "normal" | "bold";
+      fontSize: number;
+      height: number;
+    };
+    w.fieldKey = key;
+    w.label = opts.label ?? "";
+    w.showLabel = opts.showLabel ?? true;
+    w.width = opts.w ?? W;
+    w.height = opts.h ?? 7;
+    w.align = opts.align ?? "left";
+    w.fontWeight = opts.bold ? "bold" : "normal";
+    w.fontSize = opts.size ?? 12;
+    widgets.push(w);
+    return w;
+  }
+
+  /** 添加线条 */
+  function addLine(y: number, style: "solid" | "dashed" = "solid"): void {
+    const line = createWidget("line", X, y, "SALE_BILL") as PrintWidget & { width: number; height: number; lineStyle: string };
+    line.width = W;
+    line.height = 1;
+    line.borderWidth = 1;
+    line.lineStyle = style;
+    widgets.push(line);
+  }
+
+  // ===== 1. 公司抬头（整行居中，大字） =====
+  const header = addField("storeName", { label: "", showLabel: false, align: "center", size: 18, bold: true, h: 10 });
+  header.y = Y;
+  Y += 12;
+
+  // ===== 2. 单据标题：销售单 =====
+  const title = addText("销 售 单", { align: "center", size: 16, bold: true, h: 9 });
+  title.y = Y;
+  Y += 11;
+
+  // ===== 3. 客户信息两行三列 =====
+  const c1 = 58; // 第一列宽
+  const c2 = 58; // 第二列宽
+  const c3 = W - c1 - c2; // 第三列宽（单号/日期右对齐）
+  addField("customerName", { label: "客户名称", x: X, w: c1, h: 7 });
+  addField("customerPhone", { label: "联系人", x: X + c1, w: c2, h: 7 });
+  addField("billDate", { label: "销售日期", x: X + c1 + c2, w: c3, align: "right", h: 7 });
+  Y += 8;
+  addField("storeAddress", { label: "客户地址", x: X, w: c1, h: 7 });
+  addField("customerPhone", { label: "联系电话", x: X + c1, w: c2, h: 7 });
+  addField("billNo", { label: "单号", x: X + c1 + c2, w: c3, align: "right", h: 7 });
+  Y += 8;
+
+  // ===== 4. 明细表（8 列，序号/条码/商品名称/规格/单价/单位/数量/合计金额） =====
+  addLine(Y, "solid");
+  Y += 3;
+  const table = createWidget("table", X, Y, "SALE_BILL") as PrintWidget & {
+    dataSource: string;
+    columns: Array<{ key: string; label: string; width: number; align: string }>;
+    showHeader: boolean;
+    rowHeight: number;
+    cellPadding: number;
+    fontSize: number;
+    height: number;
+  };
+  table.width = W;
+  table.height = 52;
+  table.columns = [
+    { key: "index", label: "序号", width: Math.round(W * 0.07), align: "center" },
+    { key: "barcode", label: "条码", width: Math.round(W * 0.14), align: "center" },
+    { key: "name", label: "商品名称", width: Math.round(W * 0.2), align: "left" },
+    { key: "spec", label: "规格", width: Math.round(W * 0.12), align: "left" },
+    { key: "price", label: "单价", width: Math.round(W * 0.12), align: "right" },
+    { key: "unit", label: "单位", width: Math.round(W * 0.1), align: "center" },
+    { key: "qty", label: "数量", width: Math.round(W * 0.12), align: "right" },
+    { key: "amount", label: "合计金额", width: Math.round(W * 0.13), align: "right" },
+  ];
+  table.showHeader = true;
+  table.rowHeight = 7;
+  table.cellPadding = 1;
+  table.fontSize = 10;
+  widgets.push(table);
+  Y += table.height + 4;
+
+  // ===== 5. 合计行：合计（大写）+ 小写 =====
+  addField("totalAmount", { label: "合计金额（小写）", x: X + W * 0.55, w: W * 0.45, align: "right", bold: true, size: 13, h: 8 });
+  addField("amountChinese", { label: "合计（大写）", x: X, w: W * 0.55, align: "left", h: 8 });
+  Y += 9;
+
+  // ===== 6. 备注 +（追溯码） =====
+  addField("remarkBlock", { label: "备注", x: X, w: W, align: "left", h: 8 });
+  Y += 9;
+  addText("（追溯码）", { x: X, w: W, align: "left", size: 11, h: 7 });
+  Y += 8;
+
+  // ===== 7. 声明栏 =====
+  addText("此栏声明内容", { x: X, w: W, align: "left", size: 11, h: 7 });
+  Y += 8;
+
+  // ===== 8. 四联签章：制单 / 审核 / 业务 / 客户签收 =====
+  const signW = W / 4;
+  addText("制单：{{operatorName}}", { x: X, w: signW, align: "left", size: 11, h: 8 });
+  addText("审核：{{auditorName}}", { x: X + signW, w: signW, align: "left", size: 11, h: 8 });
+  addText("业务：{{salesmanName}}", { x: X + signW * 2, w: signW, align: "left", size: 11, h: 8 });
+  addText("客户签收：", { x: X + signW * 3, w: signW, align: "left", size: 11, h: 8 });
+  Y += 9;
+
+  // 纸张高度自适应
   paper.height = Math.max(paper.height, Math.ceil(Y + paper.marginBottom));
   return { version: 3, paper, widgets };
 }
