@@ -421,7 +421,7 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, s
         ? `<tr>${w.columns
             .map(
               (c) =>
-                `<th style="text-align:${c.align ?? "center"}">${escapeHtml(c.label || c.key)}</th>`
+                `<th style="text-align:${c.align ?? w.align ?? "center"}">${escapeHtml(c.label || c.key)}</th>`
             )
             .join("")}</tr>`
         : "";
@@ -430,7 +430,8 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, s
           const tds = w.columns
             .map((c) => {
               const meta = ITEM_COLUMN_META[c.key];
-              const align = c.align ?? meta?.align ?? "center";
+              // 列级对齐优先，其次列类型默认，最后跟随控件“样式-对齐”
+              const align = c.align ?? meta?.align ?? w.align ?? "center";
               // 序号列自动生成行号
               const value = c.key === "index" ? String(rowIndex + 1) : meta?.formatter ? meta.formatter(row) : (row[c.key] ?? "");
               return `<td style="text-align:${align}">${escapeHtml(value)}</td>`;

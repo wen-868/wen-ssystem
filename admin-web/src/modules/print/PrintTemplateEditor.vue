@@ -138,11 +138,14 @@
 
       <!-- 右侧属性面板 -->
       <aside class="props-panel">
-        <template v-if="selectedWidget">
-          <div class="props-title">
-            {{ widgetKindLabel(selectedWidget.kind) }} · 属性
-            <el-button text size="small" type="danger" @click="removeSelected">删除</el-button>
-          </div>
+        <div class="props-title props-tabs">
+          <el-radio-group v-model="panelMode" size="small" @change="onPanelModeChange">
+            <el-radio-button value="page">页面设置</el-radio-button>
+            <el-radio-button value="widget" :disabled="!selectedWidget">控件属性</el-radio-button>
+          </el-radio-group>
+          <el-button v-if="panelMode === 'widget' && selectedWidget" text size="small" type="danger" @click="removeSelected">删除</el-button>
+        </div>
+        <template v-if="panelMode === 'widget' && selectedWidget">
           <div class="props-body">
             <el-form label-width="76px" size="small" label-position="left">
               <el-divider content-position="left">位置与尺寸（mm）</el-divider>
@@ -160,7 +163,7 @@
               </el-form-item>
               <el-form-item label="加粗"><el-switch v-model="selectedWidget.fontWeight" active-value="bold" inactive-value="normal" size="small" @change="mutate" /></el-form-item>
               <el-form-item label="对齐">
-                <el-radio-group v-model="selectedWidget.align" size="small" @change="mutate">
+                <el-radio-group v-model="selectedWidget.align" size="small">
                   <el-radio-button value="left">左</el-radio-button>
                   <el-radio-button value="center">中</el-radio-button>
                   <el-radio-button value="right">右</el-radio-button>
@@ -288,7 +291,6 @@
         </template>
 
         <template v-else>
-          <div class="props-title">纸张设置</div>
           <div class="props-body">
             <el-form label-width="76px" size="small" label-position="left">
               <el-form-item label="纸张类型">
@@ -379,6 +381,8 @@ const paperTypes = Object.entries(PAPER_TYPE_LABELS).map(([value, label]) => ({ 
 const paper = ref<PrintPaperSettings>({ type: "A4", width: 210, height: 297, orientation: "portrait", marginTop: 5, marginBottom: 5, marginLeft: 5, marginRight: 5 });
 const widgets = ref<PrintWidget[]>([]);
 const selectedIds = ref<string[]>([]);
+/** 属性面板模式：页面设置 / 控件属性 */
+const panelMode = ref<"page" | "widget">("page");
 /** 自动缩放系数（px/mm）：按纸张比例铺满工作区，整页可见，字号随比例缩放 */
 const autoScale = ref(2);
 const gridOn = ref(true);
@@ -555,6 +559,7 @@ function isSelected(id: string): boolean {
 
 function deselect() {
   selectedIds.value = [];
+  panelMode.value = "page";
 }
 
 function selectWidget(w: PrintWidget, additive = false) {
@@ -565,11 +570,22 @@ function selectWidget(w: PrintWidget, additive = false) {
   } else {
     selectedIds.value = [w.id];
   }
+  panelMode.value = "widget";
+}
+
+/** 属性面板切换：切到页面设置时清空选中；无选中时不允许切到控件属性 */
+function onPanelModeChange(mode: string | number | boolean | undefined) {
+  if (mode === "page") {
+    selectedIds.value = [];
+  } else if (mode === "widget" && !selectedWidget.value) {
+    panelMode.value = "page";
+  }
 }
 
 function removeSelected() {
   widgets.value = widgets.value.filter((w) => !selectedIds.value.includes(w.id));
   selectedIds.value = [];
+  panelMode.value = "page";
   pushHistory();
   sync();
 }
@@ -754,6 +770,7 @@ function addWidgetByKind(kind: PrintWidgetKind, x?: number, y?: number) {
   w.y = Math.round(clamp(w.y, 0, paper.value.height - w.height));
   widgets.value.push(w);
   selectedIds.value = [w.id];
+  panelMode.value = "widget";
   pushHistory();
   sync();
 }
@@ -770,6 +787,7 @@ function addFieldWidget(v: PrintVariable, x?: number, y?: number) {
   w.y = Math.round(clamp(w.y, 0, paper.value.height - w.height));
   widgets.value.push(w);
   selectedIds.value = [w.id];
+  panelMode.value = "widget";
   pushHistory();
   sync();
 }
@@ -939,6 +957,19 @@ watch(
 watch(
   () => [paper.value.width, paper.value.height, paper.value.orientation],
   () => fitZoom()
+);
+
+// 表格控件“样式-对齐”变化：批量应用到所有列（整体居中/左/右，列级仍可单独调整）
+watch(
+  () => selectedWidget.value?.align,
+  (val, old) => {
+    if (!val || val === old) return;
+    const w = selectedWidget.value;
+    if (w && w.kind === "table") {
+      (w as PrintTableWidget).columns.forEach((c) => (c.align = w.align));
+      mutate();
+    }
+  }
 );
 
 onMounted(() => {
@@ -1281,6 +1312,12 @@ onBeforeUnmount(() => {
   background: #fff;
   z-index: 2;
 }
+.props-tabs {
+  gap: 4px;
+}
+.props-tabs :deep(.el-radio-group) {
+  flex-shrink: 0;
+}
 .props-body {
   padding: 10px 12px 20px;
 }
@@ -1315,17 +1352,22 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 4px;
   margin: 4px 0;
+  overflow-x: auto;
 }
 .table-col-row {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+  min-width: max-content;
+}
+.table-col-row > * {
+  flex-shrink: 0;
 }
 .col-label-input {
   width: 86px;
 }
 .col-align-select {
-  width: 46px;
+  width: 62px;
 }
 .col-width-input {
   width: 52px;
