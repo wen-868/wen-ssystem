@@ -13,16 +13,17 @@
           <el-button size="small" :disabled="historyIndex <= 0" :icon="Back" title="撤销 (Ctrl+Z)" @click="undo">撤销</el-button>
           <el-button size="small" :disabled="historyIndex >= historyStack.length - 1" :icon="Right" title="重做 (Ctrl+Y)" @click="redo">重做</el-button>
         </el-button-group>
-        <el-button-group class="tb-align-group">
-          <el-button size="small" title="左对齐" @click="alignWidgets('left')">左对齐</el-button>
-          <el-button size="small" title="水平居中" @click="alignWidgets('hcenter')">水平居中</el-button>
-          <el-button size="small" title="垂直居中" @click="alignWidgets('vcenter')">垂直居中</el-button>
-          <el-button size="small" title="右对齐" @click="alignWidgets('right')">右对齐</el-button>
-        </el-button-group>
-        <div class="tb-zoom">
-          <span>缩放</span>
-          <el-slider v-model="zoom" :min="30" :max="300" :step="5" style="width: 110px" @change="manualZoom = true" />
+        <div class="tb-zoom-group">
+          <el-button size="small" title="适应窗口" @click="fitWindow">适应窗口</el-button>
+          <el-button size="small" title="适应宽度" @click="fitWidth">适应宽度</el-button>
+          <el-button size="small" title="100% 实际大小" @click="setZoom(100)">100%</el-button>
+          <span class="tb-zoom">
+            <el-slider v-model="zoom" :min="40" :max="400" :step="5" style="width: 100px" @change="manualZoom = true" />
+          </span>
           <span class="zoom-num">{{ zoom }}%</span>
+          <el-tooltip content="显示网格（辅助对齐）" placement="top">
+            <el-button size="small" :type="gridOn ? 'primary' : 'default'" :icon="Grid" title="网格开关" @click="gridOn = !gridOn" />
+          </el-tooltip>
         </div>
       </div>
       <div class="tb-right">
@@ -63,45 +64,81 @@
       <!-- 中间画布 -->
       <div class="editor-canvas" @dragover.prevent @drop="onCanvasDrop">
         <div class="canvas-scroll">
-          <div
-            class="canvas-paper"
-            :style="paperStyle"
-            @mousedown="deselect"
-            @click.self="deselect"
-          >
-            <div
-              v-for="w in widgets"
-              :key="w.id"
-              class="ed-widget"
-              :class="{ selected: isSelected(w.id), locked: w.locked }"
-              :style="widgetBoxStyle(w)"
-              @mousedown.stop="onWidgetMouseDown($event, w)"
-              @dblclick.stop="onWidgetDblClick(w)"
-            >
-              <div class="ed-widget-inner" :style="widgetInnerStyle(w)" v-html="renderContent(w)"></div>
-
-              <template v-if="isSelected(w.id)">
-                <div
-                  v-for="h in handles"
-                  :key="h"
-                  :class="['ed-handle', h]"
-                  @mousedown.stop="onHandleMouseDown($event, w, h)"
-                ></div>
-                <div class="ed-size-tip">{{ fmt(w.x) }}, {{ fmt(w.y) }} · {{ fmt(w.width) }}×{{ fmt(w.height) }}mm</div>
-              </template>
-              <div v-if="w.locked" class="ed-lock-tag">已锁定</div>
+          <div class="ruler-area">
+            <!-- 顶部：角标 + 横向毫米标尺 -->
+            <div class="ruler-top">
+              <div class="ruler-corner"></div>
+              <div class="ruler-h" :style="{ width: rulerWidth + 'px' }">
+                <span
+                  v-for="m in hMarks"
+                  :key="'h' + m.mm"
+                  class="ruler-mark"
+                  :class="{ major: m.major }"
+                  :style="{ left: (m.mm * zoomFactor) + 'px' }"
+                >
+                  <i v-if="m.major" class="ruler-label">{{ m.mm }}</i>
+                </span>
+              </div>
             </div>
 
-            <!-- 对齐辅助线 -->
-            <div
-              v-for="(g, i) in guides"
-              :key="'g' + i"
-              class="ed-guide"
-              :class="g.vertical ? 'v' : 'h'"
-              :style="guideStyle(g)"
-            ></div>
+            <!-- 主体：纵向标尺 + 纸面 -->
+            <div class="ruler-main">
+              <div class="ruler-v" :style="{ height: rulerHeight + 'px' }">
+                <span
+                  v-for="m in vMarks"
+                  :key="'v' + m.mm"
+                  class="ruler-mark"
+                  :class="{ major: m.major }"
+                  :style="{ top: (m.mm * zoomFactor) + 'px' }"
+                >
+                  <i v-if="m.major" class="ruler-label">{{ m.mm }}</i>
+                </span>
+              </div>
 
-            <div v-if="widgets.length === 0" class="canvas-empty">从左侧拖入控件，或点击控件库添加<br />支持自由摆放、拖拽缩放、对齐吸附</div>
+              <!-- 纸张容器：占位尺寸随缩放变化，保证居中与标尺对齐 -->
+              <div class="paper-wrap" :style="{ width: rulerWidth + 'px', height: rulerHeight + 'px' }">
+                <div
+                  class="canvas-paper"
+                  :style="paperStyle"
+                  @mousedown="deselect"
+                  @click.self="deselect"
+                >
+                  <div
+                    v-for="w in widgets"
+                    :key="w.id"
+                    class="ed-widget"
+                    :class="{ selected: isSelected(w.id), locked: w.locked }"
+                    :style="widgetBoxStyle(w)"
+                    @mousedown.stop="onWidgetMouseDown($event, w)"
+                    @dblclick.stop="onWidgetDblClick(w)"
+                  >
+                    <div class="ed-widget-inner" :style="widgetInnerStyle(w)" v-html="renderContent(w)"></div>
+
+                    <template v-if="isSelected(w.id)">
+                      <div
+                        v-for="h in handles"
+                        :key="h"
+                        :class="['ed-handle', h]"
+                        @mousedown.stop="onHandleMouseDown($event, w, h)"
+                      ></div>
+                      <div class="ed-size-tip">{{ fmt(w.x) }}, {{ fmt(w.y) }} · {{ fmt(w.width) }}×{{ fmt(w.height) }}mm</div>
+                    </template>
+                    <div v-if="w.locked" class="ed-lock-tag">已锁定</div>
+                  </div>
+
+                  <!-- 对齐辅助线 -->
+                  <div
+                    v-for="(g, i) in guides"
+                    :key="'g' + i"
+                    class="ed-guide"
+                    :class="g.vertical ? 'v' : 'h'"
+                    :style="guideStyle(g)"
+                  ></div>
+
+                  <div v-if="widgets.length === 0" class="canvas-empty">从左侧拖入控件，或点击控件库添加<br />支持自由摆放、拖拽缩放、对齐吸附</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -296,7 +333,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { ArrowLeft, Back, Right, View } from "@element-plus/icons-vue";
+import { ArrowLeft, Back, Grid, Right, View } from "@element-plus/icons-vue";
 import {
   createDefaultV3Template,
   createWidget,
@@ -350,6 +387,7 @@ const paper = ref<PrintPaperSettings>({ type: "A4", width: 210, height: 297, ori
 const widgets = ref<PrintWidget[]>([]);
 const selectedIds = ref<string[]>([]);
 const zoom = ref(80);
+const gridOn = ref(true);
 const guides = ref<Array<{ vertical: boolean; pos: number }>>([]);
 const manualZoom = ref(false);
 let resizeObserver: ResizeObserver | null = null;
@@ -377,6 +415,22 @@ const fieldItems = computed<PrintVariable[]>(() => {
 /** 画布缩放系数 */
 const zoomFactor = computed(() => zoom.value / 100);
 
+/** 缩放后的纸面尺寸（px），用于标尺与纸张占位对齐 */
+const rulerWidth = computed(() => Math.round(paper.value.width * zoomFactor.value * 10) / 10);
+const rulerHeight = computed(() => Math.round(paper.value.height * zoomFactor.value * 10) / 10);
+
+/** 毫米刻度：每 5mm 一刻度，每 10mm 显示数字 */
+const rulerMarks = computed(() => {
+  const marks: Array<{ mm: number; major: boolean }> = [];
+  const maxMm = Math.ceil(Math.max(paper.value.width, paper.value.height));
+  for (let mm = 0; mm <= maxMm; mm += 5) {
+    marks.push({ mm, major: mm % 10 === 0 });
+  }
+  return marks;
+});
+const hMarks = computed(() => rulerMarks.value.filter((m) => m.mm <= paper.value.width));
+const vMarks = computed(() => rulerMarks.value.filter((m) => m.mm <= paper.value.height));
+
 /** 纸面样式：mm 数值当 px 渲染，transform 缩放 */
 const paperStyle = computed(() => {
   const w = paper.value.width;
@@ -385,9 +439,10 @@ const paperStyle = computed(() => {
     width: `${w}px`,
     height: `${h}px`,
     transform: `scale(${zoomFactor.value})`,
-    backgroundImage:
-      "linear-gradient(rgba(22,119,255,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(22,119,255,.11) 1px, transparent 1px)",
-    backgroundSize: "5px 5px",
+    backgroundImage: gridOn.value
+      ? "linear-gradient(rgba(22,119,255,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(22,119,255,.11) 1px, transparent 1px)"
+      : "none",
+    backgroundSize: gridOn.value ? "5px 5px" : undefined,
   };
 });
 
@@ -832,11 +887,39 @@ function fitZoom() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    // 纸面按实际纸张等比显示（宽度适配，默认不超过 150%，可手动放大）
-    const avail = canvasEl.clientWidth * 0.92 - 48;
-    const fit = Math.floor((avail / paper.value.width) * 100);
-    zoom.value = Math.min(150, Math.max(40, fit));
+    // 纸面最大化且完整可见：按宽/高双适配取小者，保持纸张宽高比不变形
+    // 扣掉标尺(22px)、两侧留白与滚动条余量
+    const availW = canvasEl.clientWidth * 0.94 - 48 - 30;
+    const availH = canvasEl.clientHeight * 0.94 - 48 - 30;
+    const fitW = (availW / paper.value.width) * 100;
+    const fitH = (availH / paper.value.height) * 100;
+    const fit = Math.floor(Math.min(fitW, fitH));
+    zoom.value = Math.min(400, Math.max(60, fit));
   });
+}
+
+/** 适应窗口：整张纸完整可见并居中 */
+function fitWindow() {
+  manualZoom.value = true;
+  fitZoom();
+}
+
+/** 适应宽度：纸面宽度撑满画布可视区 */
+function fitWidth() {
+  manualZoom.value = true;
+  nextTick(() => {
+    const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
+    if (!canvasEl) return;
+    const availW = canvasEl.clientWidth * 0.94 - 48 - 30;
+    const fit = Math.floor((availW / paper.value.width) * 100);
+    zoom.value = Math.min(400, Math.max(40, fit));
+  });
+}
+
+/** 设置指定缩放百分比（100% = 实际大小） */
+function setZoom(v: number) {
+  manualZoom.value = true;
+  zoom.value = v;
 }
 
 function widgetKindLabel(kind: PrintWidgetKind): string {
@@ -1026,8 +1109,8 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   overflow: auto;
-  /* 白板平铺：画布白底，纸面最大化铺开 */
-  background: #fff;
+  /* 行业标准：浅灰工作区，白色纸张平铺其上 */
+  background: #eef0f3;
   position: relative;
 }
 .canvas-scroll {
@@ -1036,6 +1119,86 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+.ruler-area {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.ruler-top {
+  display: flex;
+}
+.ruler-corner {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  background: #f7f8fa;
+  border: 1px solid #e2e4e8;
+  border-right: none;
+  border-bottom: none;
+}
+.ruler-h {
+  position: relative;
+  height: 22px;
+  background: #f7f8fa;
+  border: 1px solid #e2e4e8;
+  border-bottom: none;
+  overflow: hidden;
+}
+.ruler-v {
+  position: relative;
+  width: 22px;
+  background: #f7f8fa;
+  border: 1px solid #e2e4e8;
+  border-right: none;
+  overflow: hidden;
+}
+.ruler-mark {
+  position: absolute;
+  display: block;
+  width: 1px;
+  height: 6px;
+  background: #c4c9d2;
+}
+.ruler-mark.major {
+  height: 10px;
+  background: #9aa2af;
+}
+.ruler-h .ruler-label {
+  position: absolute;
+  top: 10px;
+  left: 3px;
+  font-size: 9px;
+  font-style: normal;
+  color: #8a919c;
+  white-space: nowrap;
+}
+.ruler-v .ruler-mark {
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 1px;
+}
+.ruler-v .ruler-mark.major {
+  width: 10px;
+}
+.ruler-v .ruler-label {
+  position: absolute;
+  left: 11px;
+  top: 0;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  font-size: 9px;
+  font-style: normal;
+  color: #8a919c;
+  white-space: nowrap;
+}
+.ruler-main {
+  display: flex;
+}
+.paper-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 .canvas-paper {
   position: relative;
