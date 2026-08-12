@@ -880,18 +880,21 @@ function preview() {
 }
 
 /**
- * 自动适配：按纸张比例直接铺满工作区（整页完整可见、居中），
- * 字号随纸面比例同步缩放，不提供手动缩放。
+ * 自动适配：按真实纸张比例直接铺满工作区（宽度撑满、纸面最大化），
+ * 字号随纸面比例同步缩放；小票/标签等超高纸张回退为高度适配（最多 2 屏）。
  */
 function fitZoom() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    // 双适配取小者，保持纸张宽高比不变形；扣除标尺(22px)、留白与滚动条余量
-    const availW = canvasEl.clientWidth - 60;
-    const availH = canvasEl.clientHeight - 60;
+    // 扣除标尺(22px)、画布内边距(24px)与滚动条余量
+    const availW = canvasEl.clientWidth - 50;
+    const availH = canvasEl.clientHeight - 34;
     if (availW <= 0 || availH <= 0) return;
-    autoScale.value = Math.min(availW / paper.value.width, availH / paper.value.height);
+    // 优先宽度撑满（真实比例不变形）；高度超 2 屏时按高度适配
+    const scaleW = availW / paper.value.width;
+    const scaleH = availH / paper.value.height;
+    autoScale.value = Math.max(0.4, Math.min(scaleW, scaleH * 2));
   });
 }
 
