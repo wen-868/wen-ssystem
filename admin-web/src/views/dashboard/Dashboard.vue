@@ -557,8 +557,9 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
-.dash-col--right .side-card--fill {
-  flex: 1 1 auto;
+.dash-col--right .side-card {
+  /* 三卡片等高均分右列，顶部/底部严格对齐，避免内容少的卡片被过度拉伸 */
+  flex: 1 1 0;
 }
 .header-bar {
   display: flex;
@@ -841,6 +842,9 @@ onUnmounted(() => {
   gap: 10px;
 }
 .quick-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   padding: 14px 6px;
