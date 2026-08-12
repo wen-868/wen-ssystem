@@ -203,6 +203,19 @@ function handlePrint() {
       billStatus: getStatusText(d.collectionStatus),
       roleRow: rawHtml(roleRow),
       items: rawHtml(itemsHtml),
+      itemsRows: (d.items || []).map((row: any) => ({
+        name: row.skuName || row.productName || "-",
+        spec: dash(row.spec || row.skuSpec),
+        barcode: dash(row.barcode),
+        unit: row.unit || "瓶",
+        qty: row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? "-",
+        price: fmtMoney(row.unitPrice),
+        amount: fmtMoney(
+          Number(row.unitPrice || 0) * Number(row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? 0)
+        ),
+        trace: formatTraceCodes(row.traceCodes || row.trace_codes),
+        remark: dash(row.remark),
+      })),
       totalAmount: fmtMoney(d.totalAmount ?? d.receivableAmount ?? 0),
       discountAmount: fmtMoney(d.discountAmount || 0),
       paidAmount: fmtMoney(d.receivableAmount || 0),

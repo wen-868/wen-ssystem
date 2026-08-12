@@ -14,8 +14,30 @@ const AMOUNT_KEYS = new Set([
   "memberBalance", "price", "cashAmount", "wechatAmount", "alipayAmount", "balanceAmount",
 ]);
 
-/** 变量中文名：优先当前单据类型，其次通用变量，最后回退键名 */
-function getVariableLabel(key: string, billType?: string): string {
+/** 商品明细列元信息（可视化编辑器可勾选/排序的列） */
+const ITEM_COLUMN_META: Record<
+  string,
+  { label: string; align?: "left" | "center" | "right"; formatter?: (row: Record<string, unknown>) => string }
+> = {
+  name: { label: "商品名称", align: "left" },
+  spec: { label: "规格", align: "left" },
+  barcode: { label: "条码" },
+  unit: { label: "单位" },
+  qty: { label: "数量" },
+  price: { label: "单价", align: "right", formatter: (r) => `¥${fmtMoney(r.price)}` },
+  amount: {
+    label: "金额",
+    align: "right",
+    formatter: (r) => `¥${fmtMoney(r.amount ?? Number(r.price ?? 0) * Number(r.qty ?? r.quantity ?? 0))}`,
+  },
+  trace: { label: "追溯码", align: "left" },
+  remark: { label: "备注", align: "left" },
+};
+
+/** 变量中文名：优先模块自定义名 → 当前单据类型 → 通用变量 → 回退键名 */
+function getVariableLabel(key: string, billType?: string, module?: PrintModule): string {
+  const custom = module?.fieldLabels?.[key];
+  if (custom) return custom;
   if (billType) {
     const typeVars = BILL_TYPE_VARIABLES[billType as keyof typeof BILL_TYPE_VARIABLES];
     const found = typeVars?.find((v) => v.key === key);
@@ -45,9 +67,10 @@ function paperCss(paper: string): string {
 .m-header .sub{font-size:11px;line-height:1.5}
 .m-block{margin:6px 0}
 .m-block hr{border:none;border-top:1px dashed #000;margin:6px 0}
-.m-row{display:flex;justify-content:space-between;font-size:11px;line-height:1.6}
-.m-row .k{color:#333}
-.m-row.total{font-weight:700;font-size:13px;margin-top:2px}
+.m-rows{display:grid;gap:2px 10px;margin:2px 0}
+.m-cell{display:flex;justify-content:space-between;font-size:11px;line-height:1.6}
+.m-cell .k{color:#333}
+.m-cell.total{font-weight:700;font-size:13px;margin-top:2px}
 .m-items{width:100%;border-collapse:collapse;font-size:11px}
 .m-items th{border-bottom:1px dashed #000;padding:2px 0;text-align:left}
 .m-items td{padding:2px 0;vertical-align:top}
@@ -61,9 +84,10 @@ function paperCss(paper: string): string {
 .m-title{font-size:14px;font-weight:700;margin:3px 0 2px;line-height:1.25}
 .m-block{margin:2px 0;font-size:11px}
 .m-items{display:none}
-.m-row{font-size:11px;line-height:1.5}
-.m-row .k{color:#333}
-.m-row.total{font-size:18px;font-weight:700;color:#c00}
+.m-rows{display:grid;gap:2px}
+.m-cell{display:flex;justify-content:space-between;font-size:11px;line-height:1.5}
+.m-cell .k{color:#333}
+.m-cell.total{font-size:18px;font-weight:700;color:#c00}
 .m-footer{display:none}`;
   }
   // A4 / 针式
@@ -76,10 +100,10 @@ body{font-family:"SimSun","Microsoft YaHei",sans-serif;font-size:12px;color:#000
 .m-header .sub{font-size:12px;line-height:1.5}
 .m-block{margin:8px 0}
 .m-block hr{border:none;border-top:1px solid #999;margin:8px 0}
-.m-rows{border:1px solid #999}
-.m-row{display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #eee;font-size:12px;line-height:1.6}
-.m-row:last-child{border-bottom:none}
-.m-row.total{font-weight:700}
+.m-rows{display:grid;gap:0;border:1px solid #999}
+.m-cell{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-bottom:1px solid #eee;font-size:12px;line-height:1.6}
+.m-cell:last-child{border-bottom:none}
+.m-cell.total{font-weight:700}
 .m-items{width:100%;border-collapse:collapse;margin-bottom:8px}
 .m-items th,.m-items td{border:1px solid #999;padding:5px 6px;font-size:12px;text-align:center}
 .m-items th{background:#f5f5f5}
@@ -94,9 +118,10 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars, billType?
     .filter(([, on]) => on)
     .map(([key]) => key);
   const align = module.align ? ` style="text-align:${module.align}"` : "";
-  const label = (key: string) => getVariableLabel(key, billType);
-  const row = (key: string, total = false) =>
-    `<div class="m-row${total ? " total" : ""}"><span class="k">${label(key)}</span><span>${escapeHtml(formatAmountValue(key, vars[key]))}</span></div>`;
+  const label = (key: string) => getVariableLabel(key, billType, module);
+  const colCount = module.layout === "2col" ? 2 : module.layout === "3col" ? 3 : 1;
+  const cell = (key: string, total = false) =>
+    `<div class="m-cell${total ? " total" : ""}"><span class="k">${label(key)}</span><span>${escapeHtml(formatAmountValue(key, vars[key]))}</span></div>`;
 
   switch (module.type) {
     case "title": {
@@ -118,16 +143,44 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars, billType?
     }
     case "billInfo":
     case "customer": {
-      return `<div class="m-block m-rows">${enabledFields.map((k) => row(k)).join("")}</div>`;
+      return `<div class="m-block m-rows" style="grid-template-columns:repeat(${colCount},1fr)">${enabledFields.map((k) => cell(k)).join("")}</div>`;
     }
     case "items": {
+      // 优先结构化明细（可视化编辑器可配置列），否则兼容旧 HTML
+      if (Array.isArray(vars.itemsRows)) {
+        const colKeys = Object.keys(module.fields ?? {}).filter((k) => module.fields?.[k]);
+        const cols = colKeys.length > 0
+          ? colKeys
+          : ["name", "qty", "amount"];
+        const head = cols
+          .map((key) => {
+            const meta = ITEM_COLUMN_META[key];
+            const align = meta?.align === "right" ? ' class="num"' : meta?.align === "left" ? ' class="left"' : "";
+            const headLabel = module.fieldLabels?.[key] ?? meta?.label ?? key;
+            return `<th${align}>${escapeHtml(headLabel)}</th>`;
+          })
+          .join("");
+        const rows = (vars.itemsRows as Array<Record<string, unknown>>)
+          .map(
+            (row) =>
+              `<tr>${cols
+                .map((key) => {
+                  const meta = ITEM_COLUMN_META[key];
+                  const align = meta?.align === "right" ? ' class="num"' : meta?.align === "left" ? ' class="left"' : "";
+                  return `<td${align}>${escapeHtml(meta?.formatter ? meta.formatter(row) : (row[key] ?? ""))}</td>`;
+                })
+                .join("")}</tr>`
+          )
+          .join("");
+        return `<table class="m-items"><tr>${head}</tr>${rows}</table>`;
+      }
       const items = (vars.items as string) || "";
       const raw = items.startsWith("__raw:") ? items.slice(6) : items;
       return `<table class="m-items">${raw}</table>`;
     }
     case "summary": {
       const totalKey = enabledFields.includes("totalAmount") ? "totalAmount" : enabledFields[enabledFields.length - 1];
-      return `<div class="m-block m-rows">${enabledFields.map((k) => row(k, k === totalKey)).join("")}</div>`;
+      return `<div class="m-block m-rows" style="grid-template-columns:repeat(${colCount},1fr)">${enabledFields.map((k) => cell(k, k === totalKey)).join("")}</div>`;
     }
     case "memberBalance": {
       const balance = vars.memberBalance ?? vars.memberBalanceRow ?? "";
@@ -135,12 +188,12 @@ export function renderModuleHtml(module: PrintModule, vars: PrintVars, billType?
         ? String(balance).slice(6)
         : String(balance);
       if (!value && !vars.memberBalance) return "";
-      return `<div class="m-block m-rows"><div class="m-row"><span class="k">${getVariableLabel("memberBalance", billType)}</span><span>${escapeHtml(value.startsWith("¥") ? value : `¥${value}`)}</span></div></div>`;
+      return `<div class="m-block m-rows"><div class="m-cell"><span class="k">${getVariableLabel("memberBalance", billType, module)}</span><span>${escapeHtml(value.startsWith("¥") ? value : `¥${value}`)}</span></div></div>`;
     }
     case "remark": {
       const remark = (vars.remarkBlock as string) || "";
       const raw = remark.startsWith("__raw:") ? remark.slice(6) : remark;
-      return raw ? `<div class="m-block m-rows">${raw}</div>` : "";
+      return raw ? `<div class="m-block">${raw}</div>` : "";
     }
     case "sign": {
       const sign = (vars.signRoles as string) || "";

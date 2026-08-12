@@ -709,6 +709,11 @@ function handlePrint() {
       operatorName: getLoginUserRealName() || "收银员",
       customerName: saleForm.customerName || "散客",
       items: rawHtml(items),
+      itemsRows: cartItems.value.map((item) => ({
+        name: item.skuName || item.productName || "-",
+        qty: `x${item.quantity}`,
+        amount: fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1)),
+      })),
       totalAmount: fmtMoney(cartAmount.value),
       paidAmount: fmtMoney(cartAmount.value),
       changeAmount: fmtMoney(changeAmount.value),
@@ -829,6 +834,11 @@ async function confirmPayment() {
           operatorName: getLoginUserRealName() || "收银员",
           customerName: saleForm.customerName || "散客",
           items: rawHtml(items),
+          itemsRows: cartItems.value.map((item) => ({
+            name: item.skuName || item.productName || "-",
+            qty: `x${item.quantity}`,
+            amount: fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1)),
+          })),
           totalAmount: fmtMoney(printedAmount),
           paidAmount: fmtMoney(printedAmount),
           changeAmount: fmtMoney(changeAmount.value),

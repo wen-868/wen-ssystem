@@ -99,14 +99,17 @@
           </template>
           <template v-if="fieldOptions(selected.type).length > 0">
             <el-form-item label="显示内容">
-              <div class="field-checks">
-                <el-checkbox
-                  v-for="f in fieldOptions(selected.type)"
-                  :key="f.key"
-                  v-model="selected.fields![f.key]"
-                >
-                  {{ f.label }}
-                </el-checkbox>
+              <div class="field-list">
+                <div v-for="f in fieldOptions(selected.type)" :key="f.key" class="field-row">
+                  <el-checkbox v-model="selected.fields![f.key]">{{ f.label }}</el-checkbox>
+                  <el-input
+                    v-if="selected.fields![f.key]"
+                    v-model="fieldLabelRef(selected, f.key)[f.key]"
+                    size="small"
+                    class="field-name-input"
+                    placeholder="显示名（默认）"
+                  />
+                </div>
               </div>
             </el-form-item>
           </template>
@@ -128,6 +131,16 @@
               <el-radio-button value="normal">正常</el-radio-button>
               <el-radio-button value="loose">宽松</el-radio-button>
             </el-radio-group>
+          </el-form-item>
+          <el-form-item v-if="['billInfo', 'customer', 'summary'].includes(selected.type)" label="每行列数">
+            <el-radio-group v-model="selected.layout">
+              <el-radio-button value="1col">1列</el-radio-button>
+              <el-radio-button value="2col">2列</el-radio-button>
+              <el-radio-button value="3col">3列</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item v-if="selected.type === 'items'" label="明细提示">
+            <span class="props-tip">勾选要打印的列（商品/规格/条码/单位/数量/单价/金额/追溯码/备注），列顺序按勾选顺序</span>
           </el-form-item>
         </el-form>
       </div>
@@ -193,7 +206,7 @@ const MODULE_FIELDS: Record<PrintModuleType, string[]> = {
   header: ["headerName", "headerPhone", "headerAddress", "storeName", "storePhone", "storeAddress"],
   billInfo: ["billNo", "billDate", "operatorName", "paymentMethod", "billStatus", "saleType", "customerName", "customerPhone", "skuName", "barcode", "unit", "reportPeriod", "shiftNo", "receiverName", "saleCount", "productName"],
   customer: ["customerName", "customerPhone"],
-  items: [],
+  items: ["name", "spec", "barcode", "unit", "qty", "price", "amount", "trace", "remark"],
   summary: ["totalAmount", "paidAmount", "changeAmount", "discountAmount", "receivedAmount", "memberBalance", "price", "cashAmount", "wechatAmount", "alipayAmount", "balanceAmount"],
   memberBalance: ["memberBalance"],
   remark: ["remarkBlock"],
@@ -202,14 +215,13 @@ const MODULE_FIELDS: Record<PrintModuleType, string[]> = {
 };
 
 /** 变量中文名映射 */
-const LABEL_MAP: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  for (const v of COMMON_PRINT_VARIABLES) map[v.key] = v.label;
-  for (const list of Object.values(BILL_TYPE_VARIABLES)) {
-    for (const v of list) map[v.key] = v.label;
-  }
-  return map;
-})();
+function labelOf(key: string): string {
+  const typeVars = BILL_TYPE_VARIABLES[props.billType as keyof typeof BILL_TYPE_VARIABLES];
+  const found =
+    typeVars?.find((v) => v.key === key) ??
+    COMMON_PRINT_VARIABLES.find((v) => v.key === key);
+  return found?.label ?? key;
+}
 
 const paperTypes = Object.entries(PAPER_TYPE_LABELS).map(([value, label]) => ({ value, label }));
 const fontSizes = [12, 14, 16, 18, 20, 24];
@@ -219,7 +231,13 @@ function moduleTypeLabel(type: PrintModuleType): string {
 }
 
 function fieldOptions(type: PrintModuleType): PrintVariable[] {
-  return MODULE_FIELDS[type]?.map((key) => ({ key, label: LABEL_MAP[key] || key })) ?? [];
+  return MODULE_FIELDS[type]?.map((key) => ({ key, label: labelOf(key) })) ?? [];
+}
+
+/** 字段自定义显示名容器（惰性初始化） */
+function fieldLabelRef(mod: PrintModule, _key: string): Record<string, string> {
+  if (!mod.fieldLabels) mod.fieldLabels = {};
+  return mod.fieldLabels;
 }
 
 let seq = 0;
@@ -235,6 +253,7 @@ function newModule(type: PrintModuleType): PrintModule {
     align: type === "title" || type === "header" || type === "footer" ? "center" : "left",
     text: type === "title" ? "单 据 标 题" : type === "footer" ? "谢谢惠顾，欢迎再次光临！" : "",
     spacing: "normal",
+    layout: "1col",
   };
 }
 
@@ -258,7 +277,7 @@ function buildDefaultJson(): PrintTemplateJson {
   if (props.billType === "SALE_RECEIPT") {
     add("header", ["headerName", "headerPhone", "headerAddress"]);
     add("billInfo", ["billNo", "billDate", "operatorName", "customerName"]);
-    add("items");
+    add("items", ["name", "qty", "amount"]);
     add("summary", ["totalAmount", "paidAmount", "changeAmount", "paymentMethod"]);
     add("memberBalance", ["memberBalance"]);
     add("remark", ["remarkBlock"]);
@@ -275,9 +294,9 @@ function buildDefaultJson(): PrintTemplateJson {
   } else {
     add("title", undefined, "销 售 单");
     add("header", ["storeName", "storePhone", "storeAddress"]);
-    add("billInfo", ["billNo", "billDate", "operatorName", "billStatus", "auditorName", "salesmanName"]);
+    add("billInfo", ["billNo", "billDate", "operatorName", "billStatus", "auditorName", "salesmanName"], undefined);
     add("customer", ["customerName", "customerPhone"]);
-    add("items");
+    add("items", ["name", "spec", "barcode", "unit", "qty", "price", "amount", "trace", "remark"]);
     add("summary", ["totalAmount", "discountAmount", "paidAmount", "receivedAmount"]);
     add("remark", ["remarkBlock"]);
     add("sign");
@@ -624,9 +643,22 @@ function onCanvasDrop() {
   max-height: 220px;
   overflow-y: auto;
 }
-.field-checks {
+.field-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.field-name-input {
+  width: 160px;
+}
+.props-tip {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  line-height: 1.5;
 }
 </style>

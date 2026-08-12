@@ -126,12 +126,16 @@ export interface PrintModule {
   text?: string;
   /** 字段开关：键为模板变量 key */
   fields?: Record<string, boolean>;
+  /** 字段显示名自定义：键为变量 key，值为自定义中文名 */
+  fieldLabels?: Record<string, string>;
   /** 对齐方式 */
   align?: "left" | "center" | "right";
   /** 字号（px） */
   fontSize?: number;
   /** 模块间距 */
   spacing?: "compact" | "normal" | "loose";
+  /** 信息类模块每行显示列数（单据信息/客户/金额汇总） */
+  layout?: "1col" | "2col" | "3col";
 }
 
 /** 可视化模板（存储于 t_print_template.content，JSON 字符串） */

@@ -52,6 +52,7 @@ export interface PrintModule {
   fields?: Record<string, boolean>;
   align?: "left" | "center" | "right";
   fontSize?: number;
+  layout?: "1col" | "2col" | "3col";
 }
 
 /** 模板内容 JSON */
@@ -65,7 +66,7 @@ let moduleSeq = 0;
 function m(
   type: PrintModuleType,
   fields?: string[],
-  opts?: { text?: string; align?: "left" | "center" | "right"; enabled?: boolean }
+  opts?: { text?: string; align?: "left" | "center" | "right"; enabled?: boolean; layout?: "1col" | "2col" | "3col" }
 ): PrintModule {
   const fieldsObj: Record<string, boolean> = {};
   (fields ?? []).forEach((k) => {
@@ -79,6 +80,7 @@ function m(
     text: opts?.text,
     fields: fieldsObj,
     align: opts?.align,
+    layout: opts?.layout,
   };
 }
 
@@ -95,7 +97,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
           modules: [
             m("header", ["headerName", "headerPhone", "headerAddress"], { align: "center" }),
             m("billInfo", ["billNo", "billDate", "operatorName", "customerName"]),
-            m("items"),
+            m("items", ["name", "qty", "amount"]),
             m("summary", ["totalAmount", "paidAmount", "changeAmount", "paymentMethod"]),
             m("memberBalance", ["memberBalance"]),
             m("remark", ["remarkBlock"]),
@@ -115,7 +117,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
             m("header", ["storeName", "storePhone", "storeAddress"], { align: "center" }),
             m("billInfo", ["billNo", "saleType", "billDate", "billStatus", "operatorName", "auditorName", "salesmanName"]),
             m("customer", ["customerName", "customerPhone"]),
-            m("items"),
+            m("items", ["name", "spec", "barcode", "unit", "qty", "price", "amount", "trace", "remark"]),
             m("summary", ["totalAmount", "discountAmount", "paidAmount", "receivedAmount"]),
             m("remark", ["remarkBlock"]),
             m("sign", [], { align: "center" }),
@@ -135,7 +137,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
             m("header", ["storeName", "storePhone"], { align: "center" }),
             m("billInfo", ["billNo", "billDate", "operatorName", "billStatus"]),
             m("customer", ["customerName"]),
-            m("items"),
+            m("items", ["name", "spec", "unit", "qty", "price", "amount", "remark"]),
             m("summary", ["totalAmount", "paidAmount"]),
             m("remark", ["remarkBlock"]),
             m("sign", [], { align: "center" }),
@@ -155,7 +157,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
             m("header", ["storeName", "storePhone"], { align: "center" }),
             m("billInfo", ["billNo", "billDate", "operatorName", "billStatus"]),
             m("customer", ["customerName"]),
-            m("items"),
+            m("items", ["name", "spec", "unit", "qty", "price", "amount", "remark"]),
             m("summary", ["totalAmount"]),
             m("remark", ["remarkBlock"]),
             m("sign", [], { align: "center" }),
@@ -217,8 +219,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
           modules: [
             m("title", [], { text: "日 结 单", align: "center" }),
             m("billInfo", ["storeName", "billDate", "operatorName"]),
-            m("items"),
-            m("summary", ["totalAmount"]),
+            m("summary", ["totalAmount", "saleCount", "cashAmount", "wechatAmount", "alipayAmount", "balanceAmount"], { layout: "2col" }),
             m("footer", [], { text: "谢谢惠顾，欢迎再次光临！", align: "center" }),
           ],
         } satisfies PrintTemplateJson),
