@@ -21,7 +21,7 @@
         </el-button-group>
         <div class="tb-zoom">
           <span>缩放</span>
-          <el-slider v-model="zoom" :min="30" :max="200" :step="5" style="width: 110px" />
+          <el-slider v-model="zoom" :min="30" :max="200" :step="5" style="width: 110px" @change="manualZoom = true" />
           <span class="zoom-num">{{ zoom }}%</span>
         </div>
       </div>
@@ -351,6 +351,8 @@ const widgets = ref<PrintWidget[]>([]);
 const selectedIds = ref<string[]>([]);
 const zoom = ref(80);
 const guides = ref<Array<{ vertical: boolean; pos: number }>>([]);
+const manualZoom = ref(false);
+let resizeObserver: ResizeObserver | null = null;
 
 const historyStack = ref<string[]>([]);
 const historyIndex = ref(-1);
@@ -830,9 +832,9 @@ function fitZoom() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    const avail = canvasEl.clientWidth - 48;
+    const avail = canvasEl.clientWidth - 32;
     const fit = Math.floor((avail / paper.value.width) * 100);
-    zoom.value = Math.min(150, Math.max(30, fit));
+    zoom.value = Math.min(200, Math.max(30, fit));
   });
 }
 
@@ -875,11 +877,20 @@ watch(
 
 onMounted(() => {
   parseModel();
-  fitZoom();
+  // 布局稳定后再自适应（AI 面板/侧边栏就绪后画布宽度才正确）
+  setTimeout(fitZoom, 350);
+  const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
+  if (canvasEl && typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver(() => {
+      if (!manualZoom.value) fitZoom();
+    });
+    resizeObserver.observe(canvasEl);
+  }
   window.addEventListener("keydown", onKeydown);
 });
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
   window.removeEventListener("keydown", onKeydown);
   if (mutateTimer) clearTimeout(mutateTimer);
 });
@@ -945,7 +956,7 @@ onBeforeUnmount(() => {
   min-height: 0;
 }
 .widget-library {
-  width: 176px;
+  width: 150px;
   flex-shrink: 0;
   padding: 10px;
   border-right: 1px solid var(--border-light, #e5e6eb);
@@ -1117,7 +1128,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 .props-panel {
-  width: 268px;
+  width: 240px;
   flex-shrink: 0;
   border-left: 1px solid var(--border-light, #e5e6eb);
   background: #fff;

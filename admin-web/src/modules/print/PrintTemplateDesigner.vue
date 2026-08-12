@@ -189,9 +189,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 12px;
+  padding: 10px;
   box-sizing: border-box;
-  gap: 10px;
+  gap: 8px;
 }
 .designer-toolbar {
   display: flex;

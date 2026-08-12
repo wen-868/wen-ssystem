@@ -347,7 +347,8 @@
     </main>
 
     <!-- 最右侧固定整栏 AI 经营助手（非收银台模式显示） -->
-    <AiSidePanel v-if="!isCashierMode" />
+    <!-- 全屏页面（如打印设计器）隐藏 AI 面板，让画布占满工作区 -->
+    <AiSidePanel v-if="!isCashierMode && !route.meta.fullscreen" />
 
     <!-- 本机打印设置（收银台导航入口） -->
     <PrintSettingsPanel v-model="printSettingsVisible" />
@@ -1194,7 +1195,7 @@ function handleLogout() {
 /* 页面内容区 */
 .page-content {
   flex: 1;
-  padding: 20px 24px;
+  padding: 10px;
   overflow-y: auto;
 }
 
