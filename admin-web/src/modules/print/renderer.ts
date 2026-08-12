@@ -396,7 +396,7 @@ function widgetFieldValue(key: string, vars: PrintVars, emptyText?: string): str
 }
 
 /** 渲染单个 v3 控件内容 HTML（编辑器画布内层使用，不含定位样式） */
-function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): string {
+function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, scale?: number): string {
   switch (w.kind) {
     case "text":
       return replaceVars(w.text, vars);
@@ -440,7 +440,10 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): 
         })
         .join("");
       const pad = w.cellPadding ?? 1;
-      return `<table class="zx-table" style="width:100%;border-collapse:collapse;font-size:${w.fontSize ?? 9}pt;line-height:1.35">` +
+      // 编辑器画布按 scale 放大字号保证清晰；打印保持 pt 单位
+      const fs = w.fontSize ?? 9;
+      const fsCss = scale ? `${(fs * scale).toFixed(1)}px` : `${fs}pt`;
+      return `<table class="zx-table" style="width:100%;border-collapse:collapse;font-size:${fsCss};line-height:1.35">` +
         `<colgroup>${colCss}</colgroup>${head}${body || `<tr><td style="text-align:center">（无明细）</td></tr>`}</table>`;
     }
 
@@ -480,8 +483,8 @@ export function renderV3WidgetHtml(w: PrintWidget, vars: PrintVars, billType?: s
 }
 
 /** 渲染控件内容（编辑器画布内层使用，不含定位样式） */
-export function renderV3WidgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string): string {
-  return widgetContentHtml(w, vars, billType);
+export function renderV3WidgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, scale?: number): string {
+  return widgetContentHtml(w, vars, billType, scale);
 }
 
 /** v3 纸张 CSS（精确 mm 打印） */

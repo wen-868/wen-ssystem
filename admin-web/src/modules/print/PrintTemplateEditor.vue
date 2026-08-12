@@ -433,41 +433,43 @@ const vMarks = computed(() => rulerMarks.value.filter((m) => m.mm <= paper.value
 
 /** 纸面样式：mm 数值当 px 渲染，transform 缩放 */
 const paperStyle = computed(() => {
-  const w = paper.value.width;
-  const h = paper.value.height;
+  const z = zoomFactor.value;
+  // Excel 式画布：纸面直接按像素比例平铺渲染（不再 transform 缩放），
+  // 网格线恒为 1px 细线，网格间距随比例增大，字号/控件同步放大保证清晰
   return {
-    width: `${w}px`,
-    height: `${h}px`,
-    transform: `scale(${zoomFactor.value})`,
+    width: `${paper.value.width * z}px`,
+    height: `${paper.value.height * z}px`,
     backgroundImage: gridOn.value
       ? "linear-gradient(rgba(22,119,255,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(22,119,255,.11) 1px, transparent 1px)"
       : "none",
-    backgroundSize: gridOn.value ? "5px 5px" : undefined,
+    backgroundSize: gridOn.value ? `${5 * z}px ${5 * z}px` : undefined,
   };
 });
 
 function widgetBoxStyle(w: PrintWidget): Record<string, string> {
+  const z = zoomFactor.value;
   return {
-    left: `${w.x}px`,
-    top: `${w.y}px`,
-    width: `${w.width}px`,
-    height: `${w.height}px`,
+    left: `${w.x * z}px`,
+    top: `${w.y * z}px`,
+    width: `${w.width * z}px`,
+    height: `${w.height * z}px`,
     zIndex: String(w.zIndex ?? 0),
   };
 }
 
 function widgetInnerStyle(w: PrintWidget): Record<string, string> {
+  const z = zoomFactor.value;
   const s: Record<string, string> = {};
-  if (w.fontSize) s.fontSize = `${w.fontSize}px`;
+  if (w.fontSize) s.fontSize = `${(w.fontSize * z).toFixed(1)}px`;
   if (w.fontWeight) s.fontWeight = w.fontWeight;
   if (w.align) s.textAlign = w.align;
   if (w.color) s.color = w.color;
-  if (w.padding) s.padding = `${w.padding}px`;
+  if (w.padding) s.padding = `${(w.padding * z).toFixed(1)}px`;
   return s;
 }
 
 function renderContent(w: PrintWidget): string {
-  return renderV3WidgetContentHtml(w, sampleVars(props.billType), props.billType);
+  return renderV3WidgetContentHtml(w, sampleVars(props.billType), props.billType, zoomFactor.value);
 }
 
 /** 当前模板 JSON 文本 */
@@ -637,9 +639,10 @@ function pushGuide(vertical: boolean, pos: number) {
 }
 
 function guideStyle(g: { vertical: boolean; pos: number }): Record<string, string> {
+  const z = zoomFactor.value;
   return g.vertical
-    ? { left: `${g.pos}px`, top: "0", height: `${paper.value.height}px` }
-    : { top: `${g.pos}px`, left: "0", width: `${paper.value.width}px` };
+    ? { left: `${g.pos * z}px`, top: "0", height: `${paper.value.height * z}px` }
+    : { top: `${g.pos * z}px`, left: "0", width: `${paper.value.width * z}px` };
 }
 
 /** 拖拽移动控件 */
