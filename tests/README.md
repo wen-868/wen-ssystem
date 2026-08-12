@@ -25,7 +25,7 @@ tests/
 
 | 模块 | 路由文件 | 接口数 |
 |---|---|---|
-| 管理后台 | admin.routes.ts | ~18 |
+| 工作台 | admin.routes.ts | ~18 |
 | 门店操作 | store.routes.ts | ~10 |
 | 微信小程序 | miniapp.routes.ts | ~5 |
 | 健康检查 | 直接挂在 server | 1 |
@@ -179,7 +179,7 @@ k6 run tests/k6-products.js
 |---|---|
 | 项目代码 | /workspace |
 | 后端启动 | `npm --workspace backend run dev` |
-| 管理后台 | `npm --workspace admin-web run dev` |
+| 工作台 | `npm --workspace admin-web run dev` |
 | 门店终端 | `npm --workspace store-terminal run dev` |
 | 数据库初始化 | 后端启动时自动执行 |
 | MySQL 初始化脚本 | `/workspace/backend/src/db/schema.sql` & `seed.sql` |

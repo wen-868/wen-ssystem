@@ -80,7 +80,7 @@ R30-A6 新增的小程序后端 API 相关文件**完全没有测试覆盖**：
 | `services/miniapp/checkout.service.ts` | 结算服务 | ❌ 无测试 |
 | `services/miniapp/retail-consumer-address.service.ts` | 地址服务 | ❌ 无测试 |
 
-**注：** 现有 `__tests__/controllers/miniapp.controller.test.ts` 测试的是 `controllers/admin/miniapp.controller.ts`（管理后台旧版），不是 R30 新增的 `controllers/miniapp/miniapp.controller.ts`（C 端小程序）。
+**注：** 现有 `__tests__/controllers/miniapp.controller.test.ts` 测试的是 `controllers/admin/miniapp.controller.ts`（工作台旧版），不是 R30 新增的 `controllers/miniapp/miniapp.controller.ts`（C 端小程序）。
 
 ### 2.4 ESLint 检查
 
@@ -231,7 +231,7 @@ R30-A6 新增的小程序后端 API 相关文件**完全没有测试覆盖**：
 4. 新增了 `services/miniapp/checkout.service.ts`，无对应测试文件
 5. 新增了 `services/miniapp/retail-consumer-address.service.ts`，无对应测试文件
 
-**注意：** 现有 `__tests__/controllers/miniapp.controller.test.ts` 测试的是 `controllers/admin/miniapp.controller.ts`（管理后台旧版），不是 R30 新增的 C 端小程序控制器。
+**注意：** 现有 `__tests__/controllers/miniapp.controller.test.ts` 测试的是 `controllers/admin/miniapp.controller.ts`（工作台旧版），不是 R30 新增的 C 端小程序控制器。
 
 **建议修复方向：**
 1. 新增 `__tests__/controllers/miniapp/miniapp.controller.test.ts`，覆盖 23 个 API handler

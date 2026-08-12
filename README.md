@@ -7,7 +7,7 @@
 | 目录 | 说明 |
 |---|---|
 | `backend` | 后端 API 服务骨架，包含后台、门店端、小程序、支付、分享收款路由 |
-| `admin-web` | 管理后台前端骨架 |
+| `admin-web` | 工作台前端骨架 |
 | `store-terminal` | 门店操作端前端骨架 |
 | `miniapp` | 微信小程序原生骨架 |
 | `docs` | 阶段文档、数据库脚本、OpenAPI 文档 |
@@ -30,7 +30,7 @@ npm install
 npm run dev:backend
 ```
 
-启动管理后台：
+启动工作台：
 
 ```bash
 npm run dev:admin

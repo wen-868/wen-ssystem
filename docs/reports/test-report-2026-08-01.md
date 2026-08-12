@@ -47,7 +47,7 @@
 
 | # | 站点 | URL | HTTP 状态 | 结果 |
 |---|------|-----|:---------:|------|
-| 1 | 管理后台 | https://admin.onepan.cn | 200 | 通过 |
+| 1 | 工作台 | https://admin.onepan.cn | 200 | 通过 |
 | 2 | SaaS 平台 | https://saas.onepan.cn | 200 | 通过 |
 | 3 | 移动端 | https://m.onepan.cn | 200 | 通过 |
 | 4 | 官网 | https://www.onepan.cn | 200 | 通过 |

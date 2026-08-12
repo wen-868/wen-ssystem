@@ -34,7 +34,7 @@
 
 1. [健康检查](#健康检查)
 2. [认证接口](#认证接口)
-3. [管理后台接口](#管理后台接口)
+3. [工作台接口](#工作台接口)
    - [员工管理](#员工管理)
    - [客户管理](#客户管理)
    - [门店管理](#门店管理)
@@ -94,13 +94,13 @@
 
 ## 核心 70 API 端到端契约明细
 
-> **说明（防线2）**：本章为前后端唯一真相源。前端禁止自行编造端点路径，后端禁止自行改字段名。所有端点按 ADMIN（管理后台，`/api/admin/*`）、STORE（门店终端，`/api/store/*`）、PLATFORM（超级后台，`/api/platform/*`）三类端点隔离。✅=必填；其余=选填。
+> **说明（防线2）**：本章为前后端唯一真相源。前端禁止自行编造端点路径，后端禁止自行改字段名。所有端点按 ADMIN（工作台，`/api/admin/*`）、STORE（门店终端，`/api/store/*`）、PLATFORM（超级后台，`/api/platform/*`）三类端点隔离。✅=必填；其余=选填。
 
 ### 一、ADMIN 端点（30 个，/api/admin/*）
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
-| A1 | `POST /api/admin/auth/login` | 管理后台登录 | username:string✅, password:string✅ | token:string, user:{id,username,realName,role} | auth.routes.ts + auth.service.ts | admin-web/src/api/auth.ts + LoginView.vue |
+| A1 | `POST /api/admin/auth/login` | 工作台登录 | username:string✅, password:string✅ | token:string, user:{id,username,realName,role} | auth.routes.ts + auth.service.ts | admin-web/src/api/auth.ts + LoginView.vue |
 | A2 | `GET /api/admin/auth/me` | 当前登录用户 | — | {id,username,realName,tenantId,roles[]} | auth.routes.ts | admin-web/src/api/auth.ts |
 | A3 | `GET /api/admin/dashboard/summary` | 看板汇总 | —（含 ?days=30） | {sales,receivable,profit,customerCount,top5Products[]} | dashboard.service.ts + dashboard.routes.ts | admin-web/src/views/dashboard/DashboardView.vue |
 | A4 | `GET /api/admin/dashboard/sales-trend` | 销售趋势 | ?days=30 | [{date,amount,count}] | dashboard.service.ts getSalesTrend() | DashboardView.vue |
@@ -345,7 +345,7 @@
 
 ---
 
-## 管理后台接口
+## 工作台接口
 
 ### 员工管理
 
@@ -728,7 +728,7 @@
 ### 数据看板
 
 #### GET /api/admin/reports/dashboard
-- **描述**: 管理后台数据概览（当日销售额、订单数、待收款、库存预警等）
+- **描述**: 工作台数据概览（当日销售额、订单数、待收款、库存预警等）
 - **认证**: 需要认证
 
 #### GET /api/admin/dashboard/overview
@@ -1527,7 +1527,7 @@
 - **Query参数**: dateStart, dateEnd
 
 ##### GET /api/admin/reports/staff-performance
-- **端类型**: 管理后台（admin-web 报表中心）
+- **端类型**: 工作台（admin-web 报表中心）
 - **描述**: 员工绩效排行（按销售额/收款额排序）
 - **认证**: 需要认证
 - **Query参数**: dateStart, dateEnd, limit（默认 20）
@@ -2663,54 +2663,54 @@
 
 ---
 
-## 小程序配置（管理后台，前缀 /api/miniapp-config）
+## 小程序配置（工作台，前缀 /api/miniapp-config）
 
-> R96-02 新增/修订（阿澈）。端点隔离：管理后台专用，认证 `requireAuthWithTenant`。
+> R96-02 新增/修订（阿澈）。端点隔离：工作台专用，认证 `requireAuthWithTenant`。
 > 旧「一键发布」（POST /publish）已退役，改为「生成代码包」（POST /packages）。
 
 ### GET /api/miniapp-config/configs
 - **描述**: 获取本租户全部平台小程序配置（app_secret 脱敏为 `***`）
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **响应**: `{ code: "0", data: [{ id, platform, appId, appSecret, appName, appVersion, templateId, status, auditStatus, contactName, contactEmail, contactPhone, createdAt, updatedAt }] }`
 - **后端文件**: backend/src/controllers/admin/miniapp-config.controller.ts
 - **前端文件**: admin-web/src/api/instant-retail.ts
 
 ### GET /api/miniapp-config/configs/:platform
 - **描述**: 获取指定平台配置（platform: wechat/alipay/douyin/kuaishou）
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **响应**: 同上单条；不存在时 `data: null`
 
 ### PUT /api/miniapp-config/configs/:platform
 - **描述**: 保存指定平台配置（appSecret 传 `***` 时保留原值；不再使用不存在的 enabled 列）
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **请求体**: `{ appId: string(必填), appSecret?: string, appName?: string, appVersion?: string, templateId?: number, contactName?: string, contactEmail?: string, contactPhone?: string }`
 - **响应**: `{ code: "0", data: { success: true } }`
 
 ### GET /api/miniapp-config/templates
 - **描述**: 模板列表（仅 active：DEFAULT 全局模板 + 本租户模板），styleConfig 已解析
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **响应**: `{ code: "0", data: [{ id, name, description, thumbnail, previewUrls, styleConfig, pageConfig, theme, version, status, sortOrder }] }`
 
 ### GET /api/miniapp-config/templates/:id
 - **描述**: 模板详情
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 
 ### POST /api/miniapp-config/packages
 - **描述**: 生成小程序代码包（zip）。校验模板与租户配置存在，读取预构建产物
   `miniapp/template-dist/{a,b,c}`，替换 appid/标题/导航栏/tabBar 色后压缩，记录落
   `t_miniapp_publish_log`（action='package'）
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **请求体**: `{ platform: string(必填), templateId: number(必填), appId?: string, appName?: string, version?: string }`
 - **响应**: `{ code: "0", data: { id, fileName, downloadUrl: "/api/miniapp-config/packages/{id}/download" } }`
 - **失败示例**: `{ code: "400", msg: "模板产物未构建（a），请先在 miniapp 目录执行 npm run build:weapp:all" }`
 
 ### GET /api/miniapp-config/packages/:id/download
 - **描述**: 下载已生成的代码包 zip（校验租户归属 + 防路径穿越）
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **响应**: 附件流（application/octet-stream）
 
 ### GET /api/miniapp-config/publish-logs
 - **描述**: 发布/生成记录分页列表
-- **认证**: 需要认证（管理后台）
+- **认证**: 需要认证（工作台）
 - **Query**: `page`, `pageSize`
 - **响应**: `{ code: "0", data: { list: [...], total, page, pageSize } }`

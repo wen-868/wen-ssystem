@@ -39,7 +39,7 @@
 | 模块 | 测试项数 | 通过数 | 失败数 | 阻塞数 | 通过率 | 说明 |
 |:----:|:--------:|:------:|:------:|:------:|:------:|:-----|
 | **A. backend 后端** | 4 | 3 | 0 | 1 | 75% | tsc 0错误、install OK、grep OK；vitest 4829/4857用例通过（28失败为R63已知预存环境问题：feishu 8 + push.HMS 19 + platform-auth 1，非新代码引入） |
-| **B. admin-web 管理后台** | 4 | 4 | 0 | 0 | 100% | 构建35.34s成功；密码复杂度验证已删除；底部"联系平台管理员开通账号"存在；MainLayout品牌名"智享全链"；title正确 |
+| **B. admin-web 工作台** | 4 | 4 | 0 | 0 | 100% | 构建35.34s成功；密码复杂度验证已删除；底部"联系平台管理员开通账号"存在；MainLayout品牌名"智享全链"；title正确 |
 | **C. saas-admin 平台总后台** | 4 | 4 | 0 | 0 | 100% | 构建0错误(EXIT=0)；/login meta.requiresAuth=false已补；index.html title"智享全链管理系统 - 平台总后台"正确 |
 | **D. app-mobile 商户端** | 4 | 4 | 0 | 0 | 100% | vue-tsc 0错误；H5构建DONE；dashboard全路径/store/dashboard(无admin)；auth登录为/store/auth/login；vite.config有shadow-grey插件；login.vue switchTab(/pages/home/home)正确 |
 | **E. 文档/规范五道防线** | 4 | 3 | 1 | 0 | 75% | API ^### 89条≥50；120_stock_warning.sql有CREATE TABLE IF NOT EXISTS t_stock_warning；踩坑日志#16#17存在；DB清单⬜ grep计数=3（全部在叙述/历史表格，非第三节脚本状态列，需人工复核） |
@@ -180,7 +180,7 @@
 
 命令：admin-web/index.html `<title>`
 ```
-<title>智享全链管理系统 - 管理后台</title> ✅
+<title>智享全链管理系统 - 工作台</title> ✅
 ```
 
 ### 5.5 C模块 — saas-admin /login meta.requiresAuth=false + title
@@ -291,7 +291,7 @@ EXIT=0  ✅  H5构建完成，可部署到 /var/www/app-mobile
   HTTP 200 OK, 内容长度=31719字节, 耗时=412ms
   Title预览: 智享全链管理系统 - 酒水行业数字化管理专家 | onepan.cn ✅
 
-=== admin管理后台: https://admin.onepan.cn ===
+=== admin工作台: https://admin.onepan.cn ===
   HTTP 200 OK, 内容长度=699字节, 耗时=205ms
   Title预览: <link rel="icon" type="image/png" href="/icon.png" /> ✅ (单页应用入口)
 

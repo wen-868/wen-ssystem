@@ -77,7 +77,7 @@ bash deploy/03-deploy.sh
 ```text
 git pull origin main
 npm install
-构建后端、管理后台、门店端
+构建后端、工作台、门店端
 启动后端
 运行 MySQL smoke test
 运行 QA 回归

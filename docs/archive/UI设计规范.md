@@ -52,7 +52,7 @@
 
 ## 跨端落地
 
-- 管理后台：`admin-web/src/styles/tokens.css`
+- 工作台：`admin-web/src/styles/tokens.css`
 - 门店端：`store-terminal/src/styles/tokens.css`
 - 小程序：`miniapp/styles/tokens.wxss`
 - UI 契约测试：`scripts/ui-contract-test.mjs`

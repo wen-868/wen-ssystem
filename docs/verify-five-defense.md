@@ -93,7 +93,7 @@ foreach ($k in $kw) {
 ```powershell
 # 5. 手工对照，无自动化命令：
 #    - 后端 Express / 数据库 DDL / 迁移脚本  → 阿坚
-#    - admin-web 管理后台（Vue3+ElementPlus）/ saas-admin 超级后台 → 墨
+#    - admin-web 工作台（Vue3+ElementPlus）/ saas-admin 超级后台 → 墨
 #    - merchant-mobile 商户端 / app-mobile 移动端 H5 / 营销模块 / 系统设置 → 阿澈
 #    - 部署运维 / PM2 / SSL / Nginx / 任务文件更新 / 自检表文档 → 凌舟
 #    - 自动化测试 / 性能测试 / Bug报告 → 苏然

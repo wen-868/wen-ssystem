@@ -317,7 +317,7 @@
 - **预计**：2天
 - **状态**：待开始
 - **文件**：`admin-web/src/components/AiChat/`（新建组件目录）
-- **问题**：管理后台需要AI对话窗口，支持SSE流式接收、卡片渲染、写操作确认交互
+- **问题**：工作台需要AI对话窗口，支持SSE流式接收、卡片渲染、写操作确认交互
 - **修复**：
   1. AiChatWindow.vue：对话窗口主体，支持SSE流式文本显示、消息历史滚动
   2. AiMessageCard.vue：消息卡片组件，区分用户消息/AI回复/工具调用/预览卡片
@@ -673,13 +673,13 @@
   2. 每个API必须包含：端类型、请求体、响应体、后端文件、前端文件
   3. **重点补全**：
      - 移动端（`/api/store/*`）所有端点
-     - 管理后台（`/api/admin/*`）所有端点
+     - 工作台（`/api/admin/*`）所有端点
      - 超级后台（`/api/platform/*`）所有端点
   4. 标注哪些API的数据库表依赖尚未确认（与R67-01联动）
 - **验收标准**：
   1. `grep -c "^### " docs/API接口文档.md` 返回值 ≥ 50（至少50个API契约定义）
   2. `grep "/api/store/" docs/API接口文档.md` 有移动端端点定义
-  3. `grep "/api/admin/" docs/API接口文档.md` 有管理后台端点定义
+  3. `grep "/api/admin/" docs/API接口文档.md` 有工作台端点定义
   4. `grep "/api/platform/" docs/API接口文档.md` 有超级后台端点定义
 - **核实**：凌舟执行上述grep命令确认数量和覆盖范围
 
@@ -1262,7 +1262,7 @@
 | 域名 | 状态 | 问题数 |
 |------|------|:------:|
 | www.onepan.cn（官网） | 🟡 页面正常但门店终端链接指向已删除域名 | 2 |
-| admin.onepan.cn（管理后台） | 🔴 仪表盘可加载但16个API返回500 + 商品列表报错 | 5 |
+| admin.onepan.cn（工作台） | 🔴 仪表盘可加载但16个API返回500 + 商品列表报错 | 5 |
 | saas.onepan.cn（超级后台） | 🔴 页面空白+浏览器卡死30秒超时 | 2 |
 | m.onepan.cn（移动端） | 🔴 登录成功但不跳转首页 + API 401 | 4 |
 | api.onepan.cn（API后端） | 🟡 登录正常但业务API 500 | 1 |
@@ -1353,10 +1353,10 @@
 - **文件**：`admin-web/index.html`、`saas-admin/index.html`
 - **问题**：admin.onepan.cn 和 saas.onepan.cn 的浏览器标签页标题显示"Untitled"，因为 index.html 中 `<title>` 标签为空。对比 www.onepan.cn 的标题"智享全链管理系统 - 酒水行业数字化管理专家 | onepan.cn"正常
 - **修复方向**：
-  - `admin-web/index.html` 设置 `<title>智享全链管理系统 - 管理后台</title>`
+  - `admin-web/index.html` 设置 `<title>智享全链管理系统 - 工作台</title>`
   - `saas-admin/index.html` 设置 `<title>智享全链管理系统 - 平台总后台</title>`
 - **验收标准**：浏览器标签页显示正确标题
-- **验证**：admin-web index.html补完整HTML结构+title设为"智享全链管理系统 - 管理后台"，saas-admin index.html补完整结构+title设为"智享全链管理系统 - 平台总后台"；两个项目vue-tsc和build均通过
+- **验证**：admin-web index.html补完整HTML结构+title设为"智享全链管理系统 - 工作台"，saas-admin index.html补完整结构+title设为"智享全链管理系统 - 平台总后台"；两个项目vue-tsc和build均通过
 
 ### R66-05 — [P1] m.onepan.cn 移动端登录后首页数据加载失败
 
@@ -1365,7 +1365,7 @@
 - **预计**：0.5天
 - **状态**：✅ 已完成
 - **文件**：`app-mobile/src/api/modules/dashboard.ts`、`app-mobile/src/api/modules/store.ts`
-- **问题**：移动端 m.onepan.cn 登录成功（POST `/api/admin/auth/login` 返回200），但首页数据加载失败。**根因是移动端API调用路径错误**：`dashboard.ts` 第43行调用 `GET /admin/dashboard`，第58行调用 `GET /admin/dashboard/sales-trend`，这些是管理后台API路径，需要admin权限。移动端使用的是store登录token，调用admin端点返回401（Unauthorized），导致首页无法加载数据
+- **问题**：移动端 m.onepan.cn 登录成功（POST `/api/admin/auth/login` 返回200），但首页数据加载失败。**根因是移动端API调用路径错误**：`dashboard.ts` 第43行调用 `GET /admin/dashboard`，第58行调用 `GET /admin/dashboard/sales-trend`，这些是工作台API路径，需要admin权限。移动端使用的是store登录token，调用admin端点返回401（Unauthorized），导致首页无法加载数据
 - **修复方向（已落地）**：
   1. 将 `app-mobile/src/api/modules/dashboard.ts` 中所有 `/admin/dashboard` 路径改为 `/store/dashboard`（对应的store端点），共 6 处接口（getStats/getTodos/getSalesTrend/getTopProducts/getTopCustomers/getCategoryDistribution）
   2. 已确认后端存在 `GET /api/store/dashboard` 等 store 端点（`store-dashboard.routes.ts` prefix /api/store）
@@ -1383,7 +1383,7 @@
 - **预计**：0.25天
 - **状态**：✅ 已完成
 - **文件**：`admin-web/src/layouts/`（侧边栏组件）
-- **问题**：管理后台登录页显示"智享全链管理系统"，但登录后侧边栏Logo旁显示"智享酒仓"，品牌名称不一致
+- **问题**：工作台登录页显示"智享全链管理系统"，但登录后侧边栏Logo旁显示"智享酒仓"，品牌名称不一致
 - **修复方向**：统一品牌名称为"智享全链"，侧边栏Logo文字改为"智享全链"或"智享全链管理系统"
 - **验收标准**：全站品牌名称统一
 - **验证**：admin-web/src/layouts/MainLayout.vue第8行 `<h1 v-show="!isMenuCollapsed">智享全链</h1>`，从"智享酒仓"改为"智享全链"；登录页`<h1>智享全链管理系统</h1>`保持一致；admin-web build通过
@@ -1410,7 +1410,7 @@
 - **预计**：0.25天
 - **状态**：✅ 已完成
 - **文件**：`admin-web/src/views/LoginView.vue`
-- **问题**：管理后台登录页底部有"还没有账号？立即注册"链接，但当前系统是B2B SaaS模式，租户通过平台总后台创建，不应在管理后台登录页提供注册入口
+- **问题**：工作台登录页底部有"还没有账号？立即注册"链接，但当前系统是B2B SaaS模式，租户通过平台总后台创建，不应在工作台登录页提供注册入口
 - **修复方向**：移除登录页的"立即注册"链接，或改为"联系管理员开通账号"提示文字
 - **验收标准**：登录页不再显示不合理的注册入口
 - **验证**：LoginView.vue第22行从`<router-link to="/register">立即注册</router-link>`改为纯文字"联系平台管理员开通账号"；vue-tsc 0错误+build通过
@@ -1499,7 +1499,7 @@
 - **预计**：0.5天
 - **状态**：已完成（第二轮测试验证通过）
 - **文件**：`admin-web/src/layouts/`（侧边栏组件，可能涉及 `SidebarMenu.vue` 或 `MainLayout.vue`）
-- **问题**：在管理后台仪表盘页面，展开"商品中心"子菜单后，点击"商品列表"菜单项，URL不变化，页面不跳转。但直接在地址栏输入 `https://admin.onepan.cn/products` 可以正常访问商品列表页。说明侧边栏菜单项的点击事件未正确触发路由跳转
+- **问题**：在工作台仪表盘页面，展开"商品中心"子菜单后，点击"商品列表"菜单项，URL不变化，页面不跳转。但直接在地址栏输入 `https://admin.onepan.cn/products` 可以正常访问商品列表页。说明侧边栏菜单项的点击事件未正确触发路由跳转
 - **修复方向**：
   1. 检查侧边栏菜单组件的 `@click` 或 `router-link` 绑定是否正确
   2. 检查 `el-menu` 的 `router` 属性是否启用（Element Plus 的 `el-menu` 需设置 `router` 属性才能自动路由跳转）
@@ -1534,7 +1534,7 @@
 - **预计**：0.25天
 - **状态**：✅ 已完成（与R66-14同一代码根因：缺 t_brand 表 + t_product_spu.brand_id 列，已一起修复）
 - **文件**：`backend/src/services/admin/product.service.ts`、`backend/src/shared/migration.ts`
-- **问题**：管理后台商品列表页面（`https://admin.onepan.cn/products`）底部显示"服务器内部错误"文字，表格显示"No Data"。这是 `GET /api/admin/products` API返回500的错误信息。属于R66-02后端API 500错误的组成部分，但商品列表API的根因可能与其他dashboard API不同，需单独排查
+- **问题**：工作台商品列表页面（`https://admin.onepan.cn/products`）底部显示"服务器内部错误"文字，表格显示"No Data"。这是 `GET /api/admin/products` API返回500的错误信息。属于R66-02后端API 500错误的组成部分，但商品列表API的根因可能与其他dashboard API不同，需单独排查
 - **修复方向（已落地）**：
   1. **程序化补建 t_brand 表**（R66-14 Step 5.5.3c）：原仅 `docs/migrations/070_品牌表.sql` 有建表，若 Step8 外部迁移解析顺序/跳过即缺失，`LEFT JOIN t_brand b` 直接 500（ER_NO_SUCH_TABLE）
   2. **补建 t_product_spu.brand_id 列**（R66-14 Step 5.5.4）：原 `init_database.sql` 中 `t_product_spu` 仅有 `brand VARCHAR(128)` 冗余列，没有 `brand_id`，但 `product.service.ts` 使用 `p.brand_id AS brandId`，MySQL 返回 Unknown column
@@ -1576,7 +1576,7 @@
 > - R66-05 根因已变更为移动端API路径错误（非后端500），负责人改为阿澈
 > - R66-13 第二轮测试验证通过：侧边栏菜单点击可正常跳转，已关闭
 > - R66-14 代码侧兜底建表 6 张关键高频依赖表已落地（t_product_*×4 + t_sale_bill + t_purchase_order）+ t_brand + t_stock_warning；部署侧需 pm2 restart 重新触发迁移
-> - R66-15 修复方式：全仓库grep确认已无store.onepan.cn残留链接，下载中心管理后台卡片补标注"（含门店收银）"以明确说明门店收银已并入admin-web
+> - R66-15 修复方式：全仓库grep确认已无store.onepan.cn残留链接，下载中心工作台卡片补标注"（含门店收银）"以明确说明门店收银已并入admin-web
 > - R66-16 第二轮新发现：移动端登录成功后不跳转首页，可能与R66-05 API 401有关
 > - R66-17 与R66-14同源：缺 t_brand 表 + t_product_spu.brand_id 列，已同批次修复（验证通过vitest product-bundle 104 case全过）
 > - R66-02/R66-14/R66-17 部署侧最后一步：`ssh root@onepan.cn "cd /opt/zhixiang/liquor-inventory-system && git pull origin main && pm2 restart zhixiang-backend && sleep 15 && pm2 logs zhixiang-backend --lines 50 --nostream | grep -E 'migration|兜底|init_database|t_brand|t_stock_warning|ERROR'"`
@@ -2441,7 +2441,7 @@
 ### 背景
 
 按用户要求实现"PC端统一"和"各端统一"：
-- store-terminal 门店终端合并到 admin-web 管理后台（PC端统一）
+- store-terminal 门店终端合并到 admin-web 工作台（PC端统一）
 - app-mobile 移动端补齐门店收银功能（移动端统一）
 - 后端 /store/* 路由复用，无需新增
 
@@ -2798,7 +2798,7 @@
 
 | 产品规格要求 | 实际现状 | 偏差程度 | 影响 |
 |-------------|---------|---------|------|
-| PC端统一：管理后台+收银台同一个应用，角色权限切换 | 有 admin-web 和 store-terminal 两个独立 PC 端 | ⭐⭐⭐ 重大 | 双倍维护成本，用户体验不一致 |
+| PC端统一：工作台+收银台同一个应用，角色权限切换 | 有 admin-web 和 store-terminal 两个独立 PC 端 | ⭐⭐⭐ 重大 | 双倍维护成本，用户体验不一致 |
 | 移动端统一：商家功能+门店收银同一个H5，角色权限切换 | 有 app-mobile 和 store-terminal 两个独立移动端 | ⭐⭐⭐ 重大 | 双倍维护成本，功能割裂 |
 | 4个域名：api/admin/m/saas | 现有5端（admin-web/saas-admin/app-mobile/store-terminal/miniapp） | ⭐⭐ 中等 | 部署复杂度高 |
 
@@ -2806,7 +2806,7 @@
 
 ### 三、各端页面完整性统计
 
-#### 3.1 admin-web 管理后台（PC端）
+#### 3.1 admin-web 工作台（PC端）
 
 - **页面总数**：约 140 个 .vue 文件
 - **12大模块覆盖**：✅ 全部覆盖（工作总台/销售/订单/采购/库存/客户/商品/即时零售/财务/报表/营销/系统）
@@ -2908,7 +2908,7 @@
 
 | 编号 | 问题 | 影响 | 负责人 |
 |------|------|------|--------|
-| R43-08 | PC端统一架构调整（收银台并入管理后台） | 架构优化 | 墨 |
+| R43-08 | PC端统一架构调整（收银台并入工作台） | 架构优化 | 墨 |
 | R43-09 | 营销模块路由文件合并精简 | 代码整洁 | 阿坚 |
 | R43-10 | 产品规格文档更新（匹配当前5端架构） | 文档同步 | 墨 |
 

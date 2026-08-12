@@ -111,11 +111,11 @@ mkdir -p /var/www/merchant-mobile
 cp -r /tmp/deploy/merchant-mobile-dist/* /var/www/merchant-mobile/
 echo "  ✓ 商家端部署完成"
 
-# 管理后台
+# 工作台
 rm -rf /var/www/admin-web
 mkdir -p /var/www/admin-web
 cp -r /tmp/deploy/admin-web-dist/* /var/www/admin-web/
-echo "  ✓ 管理后台部署完成"
+echo "  ✓ 工作台部署完成"
 
 # 门店终端
 rm -rf /var/www/store-terminal
@@ -192,7 +192,7 @@ server {
     }
 }
 
-# 管理后台
+# 工作台
 server {
     listen 80;
     server_name admin.onepan.cn;
@@ -283,7 +283,7 @@ echo ""
 echo "访问地址:"
 echo "  官网:        https://www.onepan.cn"
 echo "  后端 API:    https://api.onepan.cn"
-echo "  管理后台:    https://admin.onepan.cn"
+echo "  工作台:    https://admin.onepan.cn"
 echo "  商家端 H5:   https://m.onepan.cn"
 echo ""
 echo "待办事项:"

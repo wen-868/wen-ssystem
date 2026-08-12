@@ -5,7 +5,7 @@
 
 智享全链管理系统是一个面向酒类进销存与批发/零售的综合业务系统，主要包含：
 
-- 管理后台（Admin：管理员/商品/订单/库存/收款/退款/报表
+- 工作台（Admin：管理员/商品/订单/库存/收款/退款/报表
 - 门店操作端（Store）：门店库存查询、快速开单、离线收款、挂单/取单、订单接单/完成
 - 微信小程序（Miniapp）：商品浏览、下单、订单详情、分享收款页
 - 支付回调/分享收款（Payment/Share）：支付状态管理
@@ -17,7 +17,7 @@
 | 测试版本 | origin/main HEAD |
 | 后端 | Node.js 20 + Express + MySQL 8.4 + Redis 7 |
 | API 基础地址 | https://api.onepan.cn |
-| 管理后台 | https://admin.onepan.cn |
+| 工作台 | https://admin.onepan.cn |
 | 小程序 | 微信小程序原生 |
 
 ## 2. 测试目标
@@ -148,7 +148,7 @@
 - 数据库：MySQL 8.4
 - 数据：测试专用数据
 - API地址：https://api.onepan.cn
-- 管理后台：https://admin.onepan.cn
+- 工作台：https://admin.onepan.cn
 ```
 
 ### 4.2 测试方法

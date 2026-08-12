@@ -485,7 +485,7 @@
 - **预计**：2天
 - **状态**：✅ 已完成（2026-08-02 墨执行）
 - **文件**：`admin-web/src/components/AiChat/`（新建）
-- **问题**：管理后台需要AI对话窗口，支持SSE流式接收、卡片渲染、写操作确认
+- **问题**：工作台需要AI对话窗口，支持SSE流式接收、卡片渲染、写操作确认
 - **修复**：
   1. AiChatWindow.vue：对话窗口主体，SSE流式文本显示、消息历史滚动
   2. AiMessageCard.vue：消息卡片（用户消息/AI回复/工具调用/预览卡片）
@@ -1090,7 +1090,7 @@
 - **说明**：用户指出仅换色不算打磨，要求按《智享PC收银-UIUX设计总览.pdf》重新设计页面布局与信息架构，而非只改视觉 token。
 - **重设计清单（按 PDF 逐页对标）**：
   1. **登录页**（PDF p02）：左品牌区（蓝底：智享全链/批零一体 SaaS/即时零售履约/本地 AI 助手/多门店连锁 + 门店账号提示）右登录表单（账号/密码/记住账号/忘记密码），去紫蓝渐变
-  2. **全局框架**（PDF 业务页通用）：窄侧边栏（工作台/业务：订单·商品·库存·客户·财务/系统）+ 顶栏（门店名·营业状态/全局搜索/管理后台与收银台切换/通知/用户）
+  2. **全局框架**（PDF 业务页通用）：窄侧边栏（工作台/业务：订单·商品·库存·客户·财务/系统）+ 顶栏（门店名·营业状态/全局搜索/工作台与收银台切换/通知/用户）
   3. **工作台**（PDF p03）：欢迎语+日期+门店状态 → 今日/本月指标卡（环比）→ 7日趋势 → 最新订单 → 订单进度 → 待办事项 → 经营助手面板 → "本页可帮你"快捷入口
   4. **收银台**（PDF p11）：顶部今日营业/订单/客单价+班次+打印状态 → 左侧分类栏+搜索+商品网格（库存色标/价格大字）→ 右侧购物车（会员/商品/折扣/应收/快捷键 F2·F3·F8·F9/结算）
   5. **结算弹窗**（PDF p12）：应收金额/支付方式（微信/支付宝/现金/会员余额）/找零/确认收款
@@ -1204,7 +1204,7 @@
 - **修复**：逐个补齐子功能或跳转真实页面；无法实现的按项目标准提示"开发中"（不编造数据）
 - **验收标准**：`rg "敬请期待" app-mobile/src` → 0；`npm run build:h5` + `npm run build:app` exit 0
 - **阿澈完成记录**（2026-08-06）：
-  - 管理后台 admin.vue：角色权限 → `/pages-sub/admin/roles/roles`、门店管理 → `/pages-sub/admin/stores/stores`、操作日志 → `/pages-sub/admin/system/operation-logs`（均已在 pages.json 注册的真实页面）；系统设置/基本设置/通知设置/关于系统无独立页面，按项目标准提示「该功能开发中」
+  - 工作台 admin.vue：角色权限 → `/pages-sub/admin/roles/roles`、门店管理 → `/pages-sub/admin/stores/stores`、操作日志 → `/pages-sub/admin/system/operation-logs`（均已在 pages.json 注册的真实页面）；系统设置/基本设置/通知设置/关于系统无独立页面，按项目标准提示「该功能开发中」
   - 营销中心 marketing.vue：限时秒杀 → `/pages-sub/marketing/marketing/seckill-list`（R32 已实现页）、满减/折扣活动 → `/pages-sub/marketing/marketing/activities`（营销活动管理页，activityApi 支持 full_reduction/discount 类型）
   - 销售报表 sales-reports.vue：导出按钮接入后端真实能力 `POST /api/admin/reports/export`（report_type=sales&format=csv，后端 report-export.service.ts 已实现），新增 reportsApi.exportSalesReport()；H5 端 Blob 触发浏览器下载，APP 端 plus.io 写入应用文档目录；空数据提示「暂无可导出的数据」，失败提示真实错误
   - 未新增任何后端接口，未改动后端代码；未编造数据
@@ -2068,7 +2068,7 @@
 **上报（后端契约问题，需凌舟决策派单阿坚修复，前端已按后端 controller zod schema 对齐）：**
 1. **banners 写接口字段断裂**：`instant-retail.controller.ts` create/updateBannerSchema 校验 `title/imageUrl/linkUrl/sortNo`（camelCase），但 `retail-shop.service.ts` create/updateBanner 读取 `banner_title/banner_image/link_type/link_value/sort_order`（snake_case），且 schema 无 startTime/endTime 字段——按任一契约提交都会使 `banner_image` 为 undefined，插入触发 NOT NULL 失败
 2. **分类写接口同样字段断裂**：create/updateCategorySchema 校验 `name/icon/sortNo`，service 读取 `category_name/category_icon/sort_order`，且 schema 无 parentId/status——新增分类会插空名失败
-3. **shop-config 写接口字段断裂 + 依赖 storeId**：saveShopConfigSchema 校验 `shopName/phone/businessHours/deliveryRange/minOrderAmount`（camelCase），service 读取 `shop_name/contact_phone/business_hours/delivery_radius/min_order_amount`；且 saveShopConfig 无 storeId 直接 throw，管理后台请求不带 storeId 时保存不可用；GET /shop-config 无 storeId 返回 null，店铺信息页显示空表单
+3. **shop-config 写接口字段断裂 + 依赖 storeId**：saveShopConfigSchema 校验 `shopName/phone/businessHours/deliveryRange/minOrderAmount`（camelCase），service 读取 `shop_name/contact_phone/business_hours/delivery_radius/min_order_amount`；且 saveShopConfig 无 storeId 直接 throw，工作台请求不带 storeId 时保存不可用；GET /shop-config 无 storeId 返回 null，店铺信息页显示空表单
 4. **InstantRetailSync 页重构说明**：原 mock 为"批次级同步日志"，后端无对应批量同步日志接口，已按真实能力重构为"平台同步操作 + 同步缓存状态 + 订单同步日志（miniapp-order-sync）"，如需恢复批次日志需后端新增同步日志表/接口
 5. **订单状态枚举**：后端 update 仅支持 CONFIRMED/PREPARING/DELIVERING/COMPLETED/CANCELLED（无 REFUNDED），页面已按此收敛操作按钮（确认/取消）
 
