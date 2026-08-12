@@ -105,9 +105,9 @@ body {
   font-weight: 500;
 }
 
-/* 主内容区：白色背景，内边距 24px 28px */
+/* 主内容区：间距由 page-content 统一控制（10px），避免双层边距 */
 .main {
-  padding: var(--space-page-padding);
+  padding: 0;
   overflow-y: auto;
   max-height: 100vh;
   background: var(--bg-page);
