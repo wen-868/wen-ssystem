@@ -7,7 +7,7 @@ describe("routes/trace", () => {
     expect(routeConfigs).toHaveLength(2);
   });
 
-  it("管理后台溯源路由配置应正确", () => {
+  it("工作台溯源路由配置应正确", () => {
     const adminConfig = routeConfigs[0];
     expect(adminConfig).toBeDefined();
     expect(adminConfig.prefix).toBe("/api/admin/trace");

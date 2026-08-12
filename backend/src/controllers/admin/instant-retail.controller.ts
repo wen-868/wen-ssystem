@@ -165,7 +165,7 @@ export const handleElemeWebhook = asyncHandler(async (req, res) => {
 });
 
 // ────────────────────────────────────────────────────────────────────────────
-// 管理后台端点
+// 工作台端点
 // ────────────────────────────────────────────────────────────────────────────
 
 export const getPlatforms = asyncHandler(async (req, res) => {

@@ -1,5 +1,5 @@
 /**
- * 服务账号换发 JWT 单元测试（统一管理后台方案 §5.4 / P0）。
+ * 服务账号换发 JWT 单元测试（统一工作台方案 §5.4 / P0）。
  * 被测：src/services/admin/auth.service.ts 的 issueServiceToken
  */
 import { describe, it, expect, vi } from "vitest";

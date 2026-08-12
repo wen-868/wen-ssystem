@@ -7,7 +7,7 @@ import * as retailExtController from "../controllers/admin/instant-retail-ext.co
 export const instantRetailAdminPlatformRouter = Router();
 
 /* ────────────────────────────────────────────────────────────────────────────
- * 管理后台 - 平台对接、门店配置、商品、分类、Banner
+ * 工作台 - 平台对接、门店配置、商品、分类、Banner
  * ──────────────────────────────────────────────────────────────────────────── */
 
 // 平台对接

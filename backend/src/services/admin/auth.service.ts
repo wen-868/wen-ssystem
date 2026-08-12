@@ -186,7 +186,7 @@ export async function login(username: string, password: string) {
 }
 
 /**
- * 运营系统服务账号换发 JWT（统一管理后台方案 §5.4 / P0）。
+ * 运营系统服务账号换发 JWT（统一工作台方案 §5.4 / P0）。
  * - 校验服务账号凭证（环境变量 SERVICE_ACCOUNT_CLIENT_ID/SECRET）
  * - 按请求方指定 tenantId 签发（租户隔离来自 JWT，须按租户换发）
  * - 角色固定 SUPER_ADMIN（服务账号专用，仅服务端调用，权限最小化后续可收紧）

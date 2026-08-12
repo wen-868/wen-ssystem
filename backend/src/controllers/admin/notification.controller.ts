@@ -3,7 +3,7 @@ import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as service from "../../services/admin/notification.service";
 
-// ========== 管理后台通知 Controller ==========
+// ========== 工作台通知 Controller ==========
 
 export const list = asyncHandler(async (req, res) => {
   const result = await service.listNotifications(

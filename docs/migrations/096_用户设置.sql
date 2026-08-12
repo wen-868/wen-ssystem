@@ -1,12 +1,12 @@
 -- 编号: 096, 描述: 用户设置, 创建人: 阿坚, 日期: 2026-07-05
 -- --------------------------------------------------------------------------
 -- 用户设置扩展：添加用户默认首页字段
--- 用途：支持用户自定义默认进入管理后台还是收银台
+-- 用途：支持用户自定义默认进入工作台还是收银台
 -- --------------------------------------------------------------------------
 
 -- 添加 default_homepage 字段到 sys_user 表
 ALTER TABLE t_sys_user
-ADD COLUMN default_homepage VARCHAR(32) DEFAULT NULL COMMENT '用户默认首页：/admin 管理后台，/cashier 收银台';
+ADD COLUMN default_homepage VARCHAR(32) DEFAULT NULL COMMENT '用户默认首页：/admin 工作台，/cashier 收银台';
 
 -- 添加索引
 ALTER TABLE t_sys_user

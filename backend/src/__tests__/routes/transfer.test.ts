@@ -7,7 +7,7 @@ describe("routes/transfer", () => {
     expect(routeConfigs).toHaveLength(2);
   });
 
-  it("管理后台调拨路由配置应正确", () => {
+  it("工作台调拨路由配置应正确", () => {
     const adminConfig = routeConfigs[0];
     expect(adminConfig).toBeDefined();
     expect(adminConfig.prefix).toBe("/api/admin/transfers");

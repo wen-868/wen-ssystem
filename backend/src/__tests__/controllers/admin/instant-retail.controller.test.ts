@@ -137,7 +137,7 @@ describe("instant-retail.controller", () => {
     });
   });
 
-  describe("管理后台端点", () => {
+  describe("工作台端点", () => {
     it("getPlatforms - 应返回平台列表", async () => {
       (instantRetailService.getPlatforms as any).mockResolvedValue([]);
       const req = mockReq();

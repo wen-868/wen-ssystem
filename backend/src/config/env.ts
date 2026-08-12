@@ -92,7 +92,7 @@ export const env = {
   /** API 服务子域名，默认 api.onepan.cn */
   API_DOMAIN: process.env.API_DOMAIN || "api.onepan.cn",
 
-  /** 管理后台子域名，默认 admin.onepan.cn */
+  /** 工作台子域名，默认 admin.onepan.cn */
   ADMIN_DOMAIN: process.env.ADMIN_DOMAIN || "admin.onepan.cn",
 
   /** 商户端子域名，默认 m.onepan.cn */

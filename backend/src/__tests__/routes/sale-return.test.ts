@@ -60,7 +60,7 @@ describe("routes/sale-return 集成测试", () => {
       expect(storeConfig.auth).toBe("requireAuthWithTenant");
     });
 
-    it("管理后台销退路由配置应正确", () => {
+    it("工作台销退路由配置应正确", () => {
       const adminConfig = routeConfigs[1];
       expect(adminConfig).toBeDefined();
       expect(adminConfig.prefix).toBe("/api/admin/sale-returns");

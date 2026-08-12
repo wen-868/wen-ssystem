@@ -15,7 +15,7 @@ describe("routes/aftersale", () => {
     expect(miniappConfig.auth).toBe("none");
   });
 
-  it("管理后台售后路由配置应正确", () => {
+  it("工作台售后路由配置应正确", () => {
     const adminConfig = routeConfigs[1];
     expect(adminConfig).toBeDefined();
     expect(adminConfig.prefix).toBe("/api/admin/aftersales");

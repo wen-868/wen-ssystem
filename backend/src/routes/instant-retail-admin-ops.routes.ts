@@ -10,7 +10,7 @@ import * as fixController from "../controllers/admin/instant-retail-fix.controll
 export const instantRetailAdminOpsRouter = Router();
 
 /* ────────────────────────────────────────────────────────────────────────────
- * 管理后台 - 订单、评价、对账、经营分析
+ * 工作台 - 订单、评价、对账、经营分析
  * ──────────────────────────────────────────────────────────────────────────── */
 
 // 零售订单

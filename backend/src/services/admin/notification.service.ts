@@ -72,7 +72,7 @@ export async function sendNotification(
   return (result as unknown as { insertId: number }).insertId;
 }
 
-// ========== 管理后台通知 ==========
+// ========== 工作台通知 ==========
 
 export async function listNotifications(
   tenantId: string, filters: { type?: string; isRead?: number },

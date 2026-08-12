@@ -163,7 +163,7 @@ export const getOrderOperationLogs = asyncHandler(async (req, res) => {
 });
 
 /**
- * 运营系统挂车转化推单受理（统一管理后台方案 §18-④ / pushOrder 契约）。
+ * 运营系统挂车转化推单受理（统一工作台方案 §18-④ / pushOrder 契约）。
  * 一期最小实现：校验 + 审计记录 + 受理回执；真实建单由订单业务模块接入（避免直接写库破坏订单/库存一致性）。
  */
 export const acceptExternalOrder = asyncHandler(async (req, res) => {

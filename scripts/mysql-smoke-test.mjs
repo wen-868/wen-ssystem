@@ -113,7 +113,7 @@ async function apiChecks() {
     body: { username: ADMIN_USERNAME, password: ADMIN_PASSWORD }
   });
   const token = login.body?.data?.token;
-  check("管理后台登录", login.status === 200 && login.body?.code === "0" && Boolean(token));
+  check("工作台登录", login.status === 200 && login.body?.code === "0" && Boolean(token));
   // 写操作需携带 x-csrf-token（auto-routes csrfMiddleware 契约）
   const csrfToken = login.body?.data?.csrfToken;
   const auth = token
@@ -121,10 +121,10 @@ async function apiChecks() {
     : {};
 
   const products = await request("/api/admin/products", { headers: auth });
-  check("管理后台商品列表", products.body?.code === "0" && Array.isArray(products.body?.data?.records));
+  check("工作台商品列表", products.body?.code === "0" && Array.isArray(products.body?.data?.records));
 
   const dashboard = await request("/api/admin/dashboard", { headers: auth });
-  check("管理后台看板", dashboard.body?.code === "0" && dashboard.body?.data);
+  check("工作台看板", dashboard.body?.code === "0" && dashboard.body?.data);
 
   const miniProducts = await request("/api/miniapp/products?storeId=1", { headers: auth });
   check("小程序商品列表", miniProducts.body?.code === "0" && Array.isArray(miniProducts.body?.data?.records));

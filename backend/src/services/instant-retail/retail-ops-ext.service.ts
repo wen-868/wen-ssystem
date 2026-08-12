@@ -1,7 +1,7 @@
 /**
  * 即时零售管理扩展 Service 层（ajian_retail_fix_01）
  *
- * 用途：补齐管理后台缺失的 5 类接口数据逻辑：
+ * 用途：补齐工作台缺失的 5 类接口数据逻辑：
  *   1. 商品货架 shelf（t_retail_product + t_product_sku + t_product_spu）
  *   2. 在线支付 payments（t_payment_order，来源 MINIAPP_ORDER）
  *   3. 配送管理 deliveries（t_delivery_record + t_retail_order）

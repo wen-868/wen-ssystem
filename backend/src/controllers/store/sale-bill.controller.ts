@@ -82,6 +82,9 @@ export const createSaleBill = asyncHandler(async (req, res) => {
     storeId: body.storeId ?? req.user?.storeId ?? 1,
     customerId: body.customerId ?? null,
     userId: id,
+    // 收银员/制单人快照：未显式传入时默认当前登录人
+    operatorId: body.operatorId ?? id,
+    operatorName: body.operatorName ?? (req as any).user?.realName ?? (req as any).user?.username ?? null,
     tenantId: req.tenantId!
   });
   res.json(ok(result));
