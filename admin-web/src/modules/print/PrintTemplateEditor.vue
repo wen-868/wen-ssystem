@@ -21,7 +21,7 @@
         </el-button-group>
         <div class="tb-zoom">
           <span>缩放</span>
-          <el-slider v-model="zoom" :min="30" :max="200" :step="5" style="width: 110px" @change="manualZoom = true" />
+          <el-slider v-model="zoom" :min="30" :max="300" :step="5" style="width: 110px" @change="manualZoom = true" />
           <span class="zoom-num">{{ zoom }}%</span>
         </div>
       </div>
@@ -386,7 +386,7 @@ const paperStyle = computed(() => {
     height: `${h}px`,
     transform: `scale(${zoomFactor.value})`,
     backgroundImage:
-      "linear-gradient(rgba(22,119,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(22,119,255,.08) 1px, transparent 1px)",
+      "linear-gradient(rgba(22,119,255,.11) 1px, transparent 1px), linear-gradient(90deg, rgba(22,119,255,.11) 1px, transparent 1px)",
     backgroundSize: "5px 5px",
   };
 });
@@ -832,9 +832,10 @@ function fitZoom() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    const avail = canvasEl.clientWidth - 32;
+    // 纸面按实际纸张等比显示（宽度适配，默认不超过 150%，可手动放大）
+    const avail = canvasEl.clientWidth * 0.92 - 48;
     const fit = Math.floor((avail / paper.value.width) * 100);
-    zoom.value = Math.min(200, Math.max(30, fit));
+    zoom.value = Math.min(150, Math.max(40, fit));
   });
 }
 
@@ -1025,7 +1026,8 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   overflow: auto;
-  background: #eef0f3;
+  /* 白板平铺：画布白底，纸面最大化铺开 */
+  background: #fff;
   position: relative;
 }
 .canvas-scroll {
@@ -1038,7 +1040,7 @@ onBeforeUnmount(() => {
 .canvas-paper {
   position: relative;
   background: #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 24px rgba(0, 0, 0, 0.08);
   transform-origin: top left;
   flex-shrink: 0;
 }
