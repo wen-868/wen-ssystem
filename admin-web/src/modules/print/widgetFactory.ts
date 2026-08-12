@@ -119,7 +119,20 @@ function defaultFieldKeys(billType: PrintBillType): string[] {
   return map[billType] ?? ["headerName", "billNo", "billDate", "operatorName", "totalAmount"];
 }
 
-/** 生成 v3 默认模板（按行业常用排版自动布局） */
+/** 字段行定义（默认模板布局用） */
+interface FieldRow {
+  /** 每格字段（整行字段放单元素数组） */
+  cells: Array<{
+    key: string;
+    label?: string;
+    align?: "left" | "center" | "right";
+    bold?: boolean;
+    fontSize?: number;
+    height?: number;
+  }>;
+}
+
+/** 生成 v3 默认模板（按行业常用排版自动布局，完整可直接使用） */
 export function createDefaultV3Template(
   billType: PrintBillType = "SALE_BILL",
   paperType: PrintPaperType = "A4"
@@ -127,187 +140,263 @@ export function createDefaultV3Template(
   const paper = createPaperSettings(paperType);
   const isReceipt = paperType.startsWith("RECEIPT_");
   const isLabel = paperType.startsWith("LABEL");
+  const X = paper.marginLeft;
   const innerW = paper.width - paper.marginLeft - paper.marginRight;
   const widgets: PrintWidget[] = [];
-  const X = paper.marginLeft;
   let Y = paper.marginTop;
 
+  /** 添加一个字段控件 */
+  function addField(
+    key: string,
+    opts: { label?: string; x?: number; width?: number; align?: "left" | "center" | "right"; bold?: boolean; fontSize?: number; height?: number; showLabel?: boolean } = {}
+  ): PrintWidget {
+    const w = createWidget("field", opts.x ?? X, Y, billType) as PrintWidget & {
+      fieldKey: string;
+      label: string;
+      showLabel: boolean;
+      align: "left" | "center" | "right";
+      fontWeight: "normal" | "bold";
+      fontSize: number;
+      height: number;
+    };
+    w.fieldKey = key;
+    w.label = opts.label ?? "";
+    w.showLabel = opts.showLabel ?? true;
+    w.width = opts.width ?? innerW;
+    w.height = opts.height ?? (isReceipt ? 6 : 7);
+    w.align = opts.align ?? (isReceipt ? "left" : "right");
+    w.fontWeight = opts.bold ? "bold" : "normal";
+    w.fontSize = opts.fontSize ?? (isReceipt ? 10 : 12);
+    widgets.push(w);
+    return w;
+  }
+
+  /** 添加一行文本 */
+  function addText(text: string, opts: { fontSize?: number; align?: "left" | "center" | "right"; bold?: boolean; height?: number } = {}): PrintWidget {
+    const w = createWidget("text", X, Y, billType) as PrintWidget & {
+      text: string;
+      align: "left" | "center" | "right";
+      fontWeight: "normal" | "bold";
+      fontSize: number;
+      height: number;
+    };
+    w.text = text;
+    w.width = innerW;
+    w.height = opts.height ?? 7;
+    w.align = opts.align ?? "left";
+    w.fontSize = opts.fontSize ?? (isReceipt ? 11 : 13);
+    w.fontWeight = opts.bold ? "bold" : "normal";
+    widgets.push(w);
+    return w;
+  }
+
+  /** 添加字段行组（按列数自动分行，不重叠） */
+  function addFieldRows(rows: FieldRow[], rowHeight: number): void {
+    for (const row of rows) {
+      const cols = row.cells.length;
+      const gap = isReceipt ? 6 : 12;
+      const cellW = (innerW - (cols - 1) * gap) / cols;
+      let maxH = 0;
+      row.cells.forEach((cell, ci) => {
+        const w = addField(cell.key, {
+          label: cell.label,
+          x: X + ci * (cellW + gap),
+          width: cellW,
+          align: cell.align ?? (isReceipt ? "left" : "right"),
+          bold: cell.bold,
+          fontSize: cell.fontSize,
+          height: cell.height ?? rowHeight,
+        });
+        maxH = Math.max(maxH, w.height);
+      });
+      Y += maxH + (isReceipt ? 2 : 3);
+    }
+  }
+
   if (isLabel) {
-    // 标签：居中商品名 + 条码 + 价格
-    widgets.push(createWidget("text", X, Y, billType));
-    const title = widgets[0] as PrintWidget & { text: string };
-    title.text = "{{productName}}";
-    title.width = innerW;
-    title.height = 8;
-    title.align = "center";
-    title.fontSize = 13;
-    title.fontWeight = "bold";
+    // ===== 商品标签：商品名 + 条码 + 售价 =====
+    const name = addText("{{productName}}", { fontSize: 13, align: "center", bold: true, height: 8 });
+    name.y = Y;
     Y += 10;
-    const code = createWidget("barcode", X, Y, billType);
-    (code as PrintWidget & { value: string; width: number }).value = "{{barcode}}";
+    const spec = addText("{{skuName}}", { fontSize: 10, align: "center", height: 5 });
+    spec.y = Y;
+    Y += 7;
+    const code = createWidget("barcode", X, Y, billType) as PrintWidget & { value: string; width: number; height: number };
+    code.value = "{{barcode}}";
     code.width = innerW;
     code.height = 12;
     widgets.push(code);
     Y += 14;
-    const price = createWidget("field", X, Y, billType);
-    (price as PrintWidget & { fieldKey: string; label: string }).fieldKey = "price";
-    (price as PrintWidget & { label: string }).label = "售价";
-    price.width = innerW / 2;
-    price.height = 6;
-    price.fontSize = 14;
-    price.fontWeight = "bold";
-    widgets.push(price);
+    const price = addField("price", { label: "售价", width: innerW / 2, align: "left", bold: true, fontSize: 14, height: 7, showLabel: true });
+    price.y = Y;
+    Y += 9;
+    const unit = addField("unit", { label: "单位", width: innerW / 2, align: "right", fontSize: 10, height: 7 });
+    unit.x = X + innerW / 2;
+    unit.y = Y - 9;
+    paper.height = Math.max(paper.height, Math.ceil(Y + paper.marginBottom));
     return { version: 3, paper, widgets };
   }
 
-  // 抬头（店名）默认从变量取：门店名称或小票抬头
-  const header = createWidget("field", X, Y, billType);
-  (header as PrintWidget & { fieldKey: string }).fieldKey = isReceipt ? "headerName" : "storeName";
-  (header as PrintWidget & { label: string }).label = "";
-  (header as PrintWidget & { showLabel: boolean }).showLabel = false;
-  header.width = innerW;
-  header.height = isReceipt ? 7 : 9;
-  header.align = "center";
-  header.fontSize = isReceipt ? 14 : 18;
-  header.fontWeight = "bold";
-  widgets.push(header);
-  Y += (isReceipt ? 8 : 11);
+  // ===== 抬头（店名） =====
+  const header = addField(isReceipt ? "headerName" : "storeName", {
+    label: "",
+    showLabel: false,
+    align: "center",
+    bold: true,
+    fontSize: isReceipt ? 15 : 18,
+    height: isReceipt ? 8 : 10,
+  });
+  header.y = Y;
+  Y += (isReceipt ? 9 : 12);
+
+  // 抬头电话/地址（小票与 A4 都显示，窄纸只放电话）
+  if (isReceipt) {
+    const phone = addField("headerPhone", { label: "", showLabel: false, align: "center", fontSize: 9, height: 5 });
+    phone.y = Y;
+    Y += 7;
+  } else {
+    const sub = addText("{{storePhone}}　{{storeAddress}}", { fontSize: 10, align: "center", height: 5 });
+    sub.y = Y;
+    Y += 7;
+  }
+
+  // 分隔线
+  const line1 = createWidget("line", X, Y, billType) as PrintWidget & { width: number; height: number; lineStyle: string };
+  line1.width = innerW;
+  line1.height = 1;
+  line1.borderWidth = isReceipt ? 1 : 1;
+  line1.lineStyle = isReceipt ? "dashed" : "solid";
+  widgets.push(line1);
+  Y += (isReceipt ? 4 : 6);
 
   // 单据标题
-  const title = createWidget("text", X, Y, billType);
-  (title as PrintWidget & { text: string }).text = defaultTexts(billType)[0].text;
-  title.width = innerW;
-  title.height = 8;
-  title.align = "center";
-  title.fontSize = defaultTexts(billType)[0].size;
-  title.fontWeight = "bold";
-  widgets.push(title);
-  Y += 10;
+  const titleText = defaultTexts(billType)[0];
+  const title = addText(titleText.text, { fontSize: titleText.size, align: "center", bold: true, height: isReceipt ? 7 : 9 });
+  title.y = Y;
+  Y += (isReceipt ? 9 : 12);
 
-  // 单据信息字段（小票 1 列，其余 2 列）
-  const fields = defaultFieldKeys(billType);
-  const cols = isReceipt ? 1 : 2;
-  const colW = (innerW - 4) / cols;
-  for (let i = 0; i < fields.length; i++) {
-    const key = fields[i];
-    // 大字段单独占整行
-    const wide = key === "remarkBlock" || key === "signRoles" || key === "amountChinese";
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const f = createWidget("field", X + col * (colW + 4), Y + row * 7, billType) as PrintWidget & {
-      fieldKey: string;
-      label: string;
-      showLabel: boolean;
-    };
-    f.fieldKey = key;
-    f.label = "";
-    f.showLabel = true;
-    f.width = wide ? innerW : colW;
-    f.height = 6;
-    f.fontSize = isReceipt ? 10 : 12;
-    widgets.push(f);
-    if (wide && i === fields.length - 1) {
-      // 宽字段占用后不再叠加
-    }
+  // ===== 单据信息区（按单据类型组织） =====
+  const fieldRows: FieldRow[] = [];
+  if (isReceipt) {
+    fieldRows.push(
+      { cells: [{ key: "billNo", label: "单号" }] },
+      { cells: [{ key: "billDate", label: "时间" }] },
+      { cells: [{ key: "operatorName", label: "收银员" }] },
+      { cells: [{ key: "customerName", label: "客户" }] }
+    );
+  } else {
+    fieldRows.push(
+      { cells: [{ key: "billNo", label: "单号" }, { key: "billDate", label: "日期" }] },
+      { cells: [{ key: "operatorName", label: "制单人" }, { key: "saleType", label: "销售类型" }] },
+      { cells: [{ key: "customerName", label: "客户名称" }, { key: "customerPhone", label: "客户电话" }] }
+    );
   }
-  const fieldRows = Math.ceil(fields.length / cols) + (fields.some((k) => k === "remarkBlock" || k === "signRoles") ? 1 : 0);
-  Y += fieldRows * 7 + 3;
+  addFieldRows(fieldRows, isReceipt ? 6 : 7);
+  Y += (isReceipt ? 2 : 4);
 
-  // 商品明细表
+  // 分隔线
+  const line2 = createWidget("line", X, Y, billType) as PrintWidget & { width: number; height: number; lineStyle: string };
+  line2.width = innerW;
+  line2.height = 1;
+  line2.borderWidth = 1;
+  line2.lineStyle = isReceipt ? "dashed" : "solid";
+  widgets.push(line2);
+  Y += (isReceipt ? 3 : 5);
+
+  // ===== 商品明细表 =====
   const table = createWidget("table", X, Y, billType) as PrintWidget & {
     dataSource: string;
     columns: Array<{ key: string; label: string; width: number; align: string }>;
+    showHeader: boolean;
+    rowHeight: number;
+    cellPadding: number;
+    fontSize: number;
+    height: number;
   };
   table.width = innerW;
-  table.height = Math.min(70, Math.max(28, fieldRows * 0 + 40));
+  table.height = isReceipt ? 34 : 46;
   if (isReceipt) {
     table.columns = [
       { key: "name", label: "商品", width: 30, align: "left" },
-      { key: "qty", label: "数量", width: 8, align: "right" },
-      { key: "amount", label: "金额", width: 14, align: "right" },
+      { key: "qty", label: "数量", width: 9, align: "right" },
+      { key: "price", label: "单价", width: 13, align: "right" },
+      { key: "amount", label: "金额", width: 16, align: "right" },
+    ];
+  } else {
+    table.columns = [
+      { key: "name", label: "商品名称", width: 42, align: "left" },
+      { key: "spec", label: "规格", width: 20, align: "left" },
+      { key: "unit", label: "单位", width: 8, align: "center" },
+      { key: "qty", label: "数量", width: 10, align: "right" },
+      { key: "price", label: "单价", width: 14, align: "right" },
+      { key: "amount", label: "金额", width: 18, align: "right" },
+      { key: "remark", label: "备注", width: 14, align: "left" },
     ];
   }
+  table.showHeader = true;
+  table.rowHeight = isReceipt ? 5 : 6;
+  table.cellPadding = 1;
+  table.fontSize = isReceipt ? 9 : 10;
   widgets.push(table);
-  Y += table.height + 4;
+  Y += table.height + (isReceipt ? 4 : 6);
 
-  // 金额汇总
-  const summaryKeys = isReceipt
-    ? ["totalAmount", "paidAmount", "changeAmount"]
-    : ["totalAmount", "discountAmount", "paidAmount", "amountChinese"];
-  for (let i = 0; i < summaryKeys.length; i++) {
-    const key = summaryKeys[i];
-    const wide = key === "amountChinese";
-    const f = createWidget("field", X, Y, billType) as PrintWidget & {
-      fieldKey: string;
-      label: string;
-      showLabel: boolean;
-    };
-    f.fieldKey = key;
-    f.label = "";
-    f.showLabel = true;
-    f.width = wide ? innerW : innerW / 2;
-    f.height = 6;
-    f.fontSize = isReceipt ? 11 : 12;
-    f.fontWeight = key === "totalAmount" ? "bold" : "normal";
-    if (key === "totalAmount") f.fontSize = isReceipt ? 13 : 14;
-    // 金额靠右对齐，宽字段整行
-    if (wide) {
-      f.y = Y;
-      f.align = "left";
-      Y += 7;
-    } else {
-      f.x = X + (i % 2) * (innerW / 2);
-      f.y = Y;
-      f.align = "right";
-      if (i % 2 === 1) Y += 7;
-    }
-    widgets.push(f);
+  // ===== 金额汇总 =====
+  const summaryRows: FieldRow[] = isReceipt
+    ? [
+        { cells: [{ key: "totalAmount", label: "合计", align: "left", bold: true, fontSize: 13, height: 7 }] },
+        { cells: [{ key: "paidAmount", label: "实收", height: 6 }] },
+        { cells: [{ key: "changeAmount", label: "找零", height: 6 }] },
+        { cells: [{ key: "paymentMethod", label: "支付方式", height: 6 }] },
+      ]
+    : [
+        { cells: [{ key: "totalAmount", label: "应收金额", align: "right", bold: true, fontSize: 14, height: 8 }] },
+        { cells: [{ key: "discountAmount", label: "优惠金额" }, { key: "paidAmount", label: "实收金额" }] },
+        { cells: [{ key: "amountChinese", label: "金额大写" }] },
+      ];
+  addFieldRows(summaryRows, isReceipt ? 6 : 7);
+  Y += 2;
+
+  // 分隔线
+  if (isReceipt) {
+    const line3 = createWidget("line", X, Y, billType) as PrintWidget & { width: number; height: number; lineStyle: string };
+    line3.width = innerW;
+    line3.height = 1;
+    line3.borderWidth = 1;
+    line3.lineStyle = "dashed";
+    widgets.push(line3);
+    Y += 4;
   }
-  if (summaryKeys.length % 2 === 1) Y += 7;
-  Y += 3;
 
-  // 备注
-  const remark = createWidget("field", X, Y, billType) as PrintWidget & {
-    fieldKey: string;
-    label: string;
-    showLabel: boolean;
-  };
-  remark.fieldKey = "remarkBlock";
-  remark.label = "备注";
-  remark.showLabel = true;
-  remark.width = innerW;
-  remark.height = 8;
-  remark.fontSize = 11;
-  widgets.push(remark);
-  Y += 10;
+  // ===== 备注 =====
+  const remark = addField("remarkBlock", { label: "备注", height: isReceipt ? 8 : 10, fontSize: isReceipt ? 9 : 11 });
+  remark.y = Y;
+  remark.align = "left";
+  Y += (isReceipt ? 10 : 12);
 
-  // 签章区
-  const sign = createWidget("text", X, Y, billType);
-  (sign as PrintWidget & { text: string }).text = "制单：{{operatorName}}    审核：{{auditorName}}    业务：{{salesmanName}}";
-  sign.width = innerW;
-  sign.height = 8;
-  sign.fontSize = 11;
-  widgets.push(sign);
-  Y += 9;
+  // ===== 签章区（非小票） =====
+  if (!isReceipt) {
+    const sign = addText("制单：{{operatorName}}    审核：{{auditorName}}    业务：{{salesmanName}}", {
+      fontSize: 11,
+      align: "left",
+      height: 8,
+    });
+    sign.y = Y;
+    Y += 10;
+  }
 
-  // 页脚
-  const footer = createWidget("field", X, Y, billType) as PrintWidget & {
-    fieldKey: string;
-    label: string;
-    showLabel: boolean;
-  };
-  footer.fieldKey = "footerText";
-  footer.label = "";
-  footer.showLabel = false;
-  footer.width = innerW;
-  footer.height = 6;
-  footer.align = "center";
-  footer.fontSize = 10;
-  widgets.push(footer);
+  // ===== 页脚 =====
+  const footer = addField("footerText", {
+    label: "",
+    showLabel: false,
+    align: "center",
+    fontSize: isReceipt ? 9 : 10,
+    height: 6,
+  });
+  footer.y = Y;
+  Y += 7;
 
-  // 控件超高时加高纸张
-  const maxY = Math.max(...widgets.map((w) => w.y + w.height));
-  paper.height = Math.max(paper.height, Math.ceil(maxY + paper.marginBottom));
+  // 控件超高时自动加高纸张（小票高度随内容增长）
+  paper.height = Math.max(paper.height, Math.ceil(Y + paper.marginBottom));
   return { version: 3, paper, widgets };
 }
 

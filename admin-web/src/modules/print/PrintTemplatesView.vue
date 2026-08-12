@@ -53,42 +53,33 @@
       </el-table>
     </el-card>
 
-    <!-- 模板编辑弹窗 -->
+    <!-- 新建模板（选择单据类型/纸张/名称后进入全屏设计器） -->
     <el-dialog
-      v-model="editorVisible"
-      :title="editingId ? '编辑打印模板' : '新建打印模板'"
-      width="1180px"
+      v-model="createVisible"
+      title="新建打印模板"
+      width="520px"
       align-center
-      top="4vh"
     >
-      <el-form :model="form" label-width="90px" label-position="left">
-        <div class="editor-grid">
-          <el-form-item label="单据类型">
-            <el-select v-model="form.billType" style="width: 100%" :disabled="!!editingId" @change="onBillTypeChange">
-              <el-option v-for="b in billTypes" :key="b.value" :label="b.label" :value="b.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="纸张类型">
-            <el-select v-model="form.paperType" style="width: 100%">
-              <el-option v-for="p in paperTypes" :key="p.value" :label="p.label" :value="p.value" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="模板名称">
-            <el-input v-model="form.templateName" maxlength="64" placeholder="如：我的 80mm 小票" />
-          </el-form-item>
-          <el-form-item label="状态">
-            <el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="停用" />
-          </el-form-item>
-        </div>
-
-        <el-form-item label="模板内容">
-          <PrintTemplateEditor v-model="form.content" :bill-type="form.billType" />
+      <el-form label-width="90px" label-position="left">
+        <el-form-item label="单据类型" required>
+          <el-select v-model="createForm.billType" style="width: 100%" @change="onBillTypeChange">
+            <el-option v-for="b in billTypes" :key="b.value" :label="b.label" :value="b.value" />
+          </el-select>
         </el-form-item>
+        <el-form-item label="纸张类型" required>
+          <el-select v-model="createForm.paperType" style="width: 100%">
+            <el-option v-for="p in paperTypes" :key="p.value" :label="p.label" :value="p.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="模板名称">
+          <el-input v-model="createForm.templateName" maxlength="64" placeholder="留空自动命名，如：销售单（默认）" />
+        </el-form-item>
+        <div class="create-tip">创建后将进入全屏设计器，已按所选单据类型生成完整默认版式，可直接修改使用</div>
       </el-form>
 
       <template #footer>
-        <el-button @click="editorVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
+        <el-button @click="createVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmCreate">进入设计器</el-button>
       </template>
     </el-dialog>
 
@@ -99,6 +90,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus, Printer, Refresh } from "@element-plus/icons-vue";
 import {
@@ -109,33 +101,29 @@ import {
   fetchPrintTemplates,
   resetPrintTemplate,
   setDefaultPrintTemplate,
-  updatePrintTemplate,
 } from "./api";
 import { PAPER_TYPE_LABELS } from "./localConfig";
 import { fillPrintWindow, openPrintWindow, renderAnyTemplate } from "./printClient";
 import { sampleVars } from "./sampleVars";
 import { BILL_TYPE_LABELS } from "./variables";
 import PrintSettingsPanel from "./PrintSettingsPanel.vue";
-import PrintTemplateEditor from "./PrintTemplateEditor.vue";
 import type { PrintBillType, PrintPaperType, PrintTemplate } from "./types";
 
+const router = useRouter();
+
 const loading = ref(false);
-const saving = ref(false);
 const templates = ref<PrintTemplate[]>([]);
 const billTypes = ref<Array<{ value: string; label: string }>>([]);
 const paperTypes = ref<Array<{ value: string; label: string }>>([]);
 const filterBillType = ref("");
 const filterPaperType = ref("");
-const editorVisible = ref(false);
 const settingsVisible = ref(false);
-const editingId = ref<number | null>(null);
+const createVisible = ref(false);
 
-const form = reactive({
-  billType: "SALE_RECEIPT" as string,
-  paperType: "RECEIPT_80" as string,
+const createForm = reactive({
+  billType: "SALE_BILL" as string,
+  paperType: "A4" as string,
   templateName: "",
-  content: "",
-  status: 1,
 });
 
 function billTypeLabel(value: string): string {
@@ -176,68 +164,36 @@ async function loadTemplates() {
 }
 
 function openCreate() {
-  editingId.value = null;
-  Object.assign(form, {
-    billType: "SALE_RECEIPT",
-    paperType: "RECEIPT_80",
+  Object.assign(createForm, {
+    billType: "SALE_BILL",
+    paperType: "A4",
     templateName: "",
-    content: "",
-    status: 1,
   });
-  editorVisible.value = true;
+  createVisible.value = true;
 }
 
 function openEdit(row: PrintTemplate) {
-  editingId.value = row.id;
-  Object.assign(form, {
-    billType: row.billType,
-    paperType: row.paperType,
-    templateName: row.templateName,
-    content: row.content,
-    status: row.status,
-  });
-  editorVisible.value = true;
+  router.push(`/system/print/designer/${row.id}`);
 }
 
 function onBillTypeChange(value: string) {
-  form.paperType = value === "LABEL" ? "LABEL_60X40" : "RECEIPT_80";
+  if (value === "LABEL") createForm.paperType = "LABEL_60X40";
+  else if (value === "SALE_RECEIPT" || value === "SHIFT" || value === "DAILY_SETTLE") createForm.paperType = "RECEIPT_80";
+  else createForm.paperType = "A4";
 }
 
-async function handleSave() {
-  if (!form.billType || !form.paperType) {
+function confirmCreate() {
+  if (!createForm.billType || !createForm.paperType) {
     ElMessage.warning("请选择单据类型与纸张类型");
     return;
   }
-  if (!form.content.trim()) {
-    ElMessage.warning("模板内容不能为空");
-    return;
-  }
-  saving.value = true;
-  try {
-    if (editingId.value) {
-      await updatePrintTemplate(editingId.value, {
-        paperType: form.paperType as PrintPaperType,
-        templateName: form.templateName,
-        content: form.content,
-        status: form.status,
-      });
-    } else {
-      await createPrintTemplate({
-        billType: form.billType as PrintBillType,
-        paperType: form.paperType as PrintPaperType,
-        templateName: form.templateName,
-        content: form.content,
-        status: form.status,
-      });
-    }
-    ElMessage.success("模板已保存");
-    editorVisible.value = false;
-    await loadTemplates();
-  } catch (e) {
-    ElMessage.error(`保存失败：${e instanceof Error ? e.message : String(e)}`);
-  } finally {
-    saving.value = false;
-  }
+  createVisible.value = false;
+  const params = new URLSearchParams({
+    billType: createForm.billType,
+    paperType: createForm.paperType,
+  });
+  if (createForm.templateName.trim()) params.set("name", createForm.templateName.trim());
+  router.push(`/system/print/designer?${params.toString()}`);
 }
 
 async function handleReset(row: PrintTemplate) {
@@ -348,5 +304,13 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0 16px;
+}
+.create-tip {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  line-height: 1.6;
+  background: var(--gray-50, #fafafa);
+  border-radius: 6px;
+  padding: 8px 10px;
 }
 </style>

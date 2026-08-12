@@ -135,7 +135,7 @@ export const BILL_TYPE_VARIABLES: Record<PrintBillType, PrintVariable[]> = {
 /** 单据类型中文名 */
 export const BILL_TYPE_LABELS: Record<PrintBillType, string> = {
   SALE_RECEIPT: "收银小票",
-  SALE_BILL: "批发销售单",
+  SALE_BILL: "销售单",
   SALE_RETURN: "销售退货单",
   PURCHASE_ORDER: "采购单",
   REPORT: "报表",

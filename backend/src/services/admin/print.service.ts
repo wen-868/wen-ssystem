@@ -370,18 +370,18 @@ function assertTemplateInput(input: PrintTemplateInput): void {
  * 幂等：仅当该租户某单据类型无任何模板时写入。
  */
 export async function ensureDefaultPrintTemplates(tenantId: string): Promise<void> {
-    const rows = await queryWithTenant<{ bill_type: string; content: string | null; is_default: number }>(
-        `SELECT bill_type, content, is_default FROM t_print_template WHERE tenant_id = ?`,
+    const rows = await queryWithTenant<{ bill_type: string; content: string | null; is_default: number; template_name: string | null }>(
+        `SELECT bill_type, content, is_default, template_name FROM t_print_template WHERE tenant_id = ?`,
         [tenantId],
         tenantId
-    ) as unknown as Array<{ bill_type: string; content: string | null; is_default: number }>;
+    ) as unknown as Array<{ bill_type: string; content: string | null; is_default: number; template_name: string | null }>;
     const list = Array.isArray(rows) ? rows : [];
     // 每种单据类型取第一条（默认模板优先）
-    const existingByType = new Map<string, { content: string | null; is_default: number }>();
+    const existingByType = new Map<string, { content: string | null; is_default: number; template_name: string | null }>();
     for (const r of list) {
         const cur = existingByType.get(r.bill_type);
         if (!cur || (r.is_default === 1 && cur.is_default !== 1)) {
-            existingByType.set(r.bill_type, { content: r.content, is_default: r.is_default });
+            existingByType.set(r.bill_type, { content: r.content, is_default: r.is_default, template_name: r.template_name });
         }
     }
 
@@ -405,6 +405,15 @@ export async function ensureDefaultPrintTemplates(tenantId: string): Promise<voi
                  SET paper_type = ?, template_name = ?, content = ?, version = version + 1
                  WHERE tenant_id = ? AND bill_type = ? AND is_default = 1`,
                 [def.paper, def.name, def.content, tenantId, billType],
+                tenantId
+            );
+        } else if (existing.is_default === 1 && existing.template_name === "批发销售单（默认）") {
+            // 旧模板名自动迁移：批发销售单 → 销售单
+            await queryWithTenant<ResultSetHeader>(
+                `UPDATE t_print_template
+                 SET template_name = ?, version = version + 1
+                 WHERE tenant_id = ? AND bill_type = ? AND is_default = 1`,
+                ["销售单（默认）", tenantId, billType],
                 tenantId
             );
         }

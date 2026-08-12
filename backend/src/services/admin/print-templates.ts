@@ -8,7 +8,7 @@
 /** 单据类型枚举（打印模板按单据类型管理） */
 export const PRINT_BILL_TYPES: ReadonlyArray<{ value: string; label: string }> = [
   { value: "SALE_RECEIPT", label: "收银小票" },
-  { value: "SALE_BILL", label: "批发销售单" },
+  { value: "SALE_BILL", label: "销售单" },
   { value: "SALE_RETURN", label: "销售退货单" },
   { value: "PURCHASE_ORDER", label: "采购单" },
   { value: "REPORT", label: "报表" },
@@ -107,7 +107,7 @@ function buildDefault(billType: string): { name: string; paper: string; content:
       };
     case "SALE_BILL":
       return {
-        name: "批发销售单（默认）",
+        name: "销售单（默认）",
         paper: "A4",
         content: JSON.stringify({
           version: 2,

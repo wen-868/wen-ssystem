@@ -3,6 +3,7 @@
     <!-- 顶部工具栏 -->
     <div class="editor-topbar">
       <div class="tb-left">
+        <el-button size="small" :icon="ArrowLeft" title="返回模板列表" @click="emit('back')">返回</el-button>
         <span class="tb-title">可视化模板设计</span>
         <el-tag size="small" type="info">{{ billTypeLabel }}</el-tag>
         <span class="tb-paper">{{ paper.width }} × {{ paper.height }}mm · {{ paperOrientationLabel }}</span>
@@ -26,7 +27,6 @@
       </div>
       <div class="tb-right">
         <el-button size="small" :icon="View" @click="preview">预览</el-button>
-        <el-button size="small" type="primary" :icon="Check" @click="emitSave">保存</el-button>
       </div>
     </div>
 
@@ -296,7 +296,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { Back, Check, Right, View } from "@element-plus/icons-vue";
+import { ArrowLeft, Back, Right, View } from "@element-plus/icons-vue";
 import {
   createDefaultV3Template,
   createWidget,
@@ -326,7 +326,7 @@ import { PAPER_DEFAULT_SIZE } from "./types";
 import type { PrintVariable } from "./variables";
 
 const props = defineProps<{ modelValue: string; billType: string }>();
-const emit = defineEmits<{ (e: "update:modelValue", value: string): void; (e: "save"): void }>();
+const emit = defineEmits<{ (e: "update:modelValue", value: string): void; (e: "save"): void; (e: "back"): void }>();
 
 /** 工具控件库 */
 const toolItems: Array<{ kind: PrintWidgetKind; label: string; icon: string }> = [
@@ -421,11 +421,6 @@ function jsonText(): string {
 
 function sync() {
   emit("update:modelValue", jsonText());
-}
-
-function emitSave() {
-  sync();
-  emit("save");
 }
 
 /** 历史快照 */
@@ -830,6 +825,17 @@ function preview() {
   }
 }
 
+/** 打开时按画布可用宽度自适应缩放（平铺工作区后画布更大） */
+function fitZoom() {
+  nextTick(() => {
+    const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
+    if (!canvasEl) return;
+    const avail = canvasEl.clientWidth - 48;
+    const fit = Math.floor((avail / paper.value.width) * 100);
+    zoom.value = Math.min(150, Math.max(30, fit));
+  });
+}
+
 function widgetKindLabel(kind: PrintWidgetKind): string {
   return toolItems.find((t) => t.kind === kind)?.label ?? kind;
 }
@@ -869,6 +875,7 @@ watch(
 
 onMounted(() => {
   parseModel();
+  fitZoom();
   window.addEventListener("keydown", onKeydown);
 });
 
@@ -882,7 +889,7 @@ onBeforeUnmount(() => {
 .print-editor {
   display: flex;
   flex-direction: column;
-  height: 620px;
+  height: 100%;
   border: 1px solid var(--border-light, #e5e6eb);
   border-radius: 8px;
   overflow: hidden;
