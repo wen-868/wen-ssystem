@@ -406,8 +406,9 @@ export async function listPrintTemplates(
         values.push(filters.paperType);
     }
     return (await queryWithTenant<PrintTemplateRow>(
-        `SELECT id, tenant_id, store_id, bill_type, paper_type, template_name, content,
-                is_default, version, status, updated_by, created_at, updated_at
+        `SELECT id, tenant_id AS tenantId, store_id AS storeId, bill_type AS billType, paper_type AS paperType,
+                template_name AS templateName, content, is_default AS isDefault, version, status,
+                updated_by AS updatedBy, created_at AS createdAt, updated_at AS updatedAt
          FROM t_print_template
          WHERE ${conditions.join(" AND ")}
          ORDER BY bill_type, id`,
@@ -419,8 +420,9 @@ export async function listPrintTemplates(
 /** 模板详情 */
 export async function getPrintTemplate(id: number, tenantId: string): Promise<PrintTemplateRow> {
     const row = await queryOneWithTenant<PrintTemplateRow>(
-        `SELECT id, tenant_id, store_id, bill_type, paper_type, template_name, content,
-                is_default, version, status, updated_by, created_at, updated_at
+        `SELECT id, tenant_id AS tenantId, store_id AS storeId, bill_type AS billType, paper_type AS paperType,
+                template_name AS templateName, content, is_default AS isDefault, version, status,
+                updated_by AS updatedBy, created_at AS createdAt, updated_at AS updatedAt
          FROM t_print_template
          WHERE id = ? AND tenant_id = ?`,
         [id, tenantId],
