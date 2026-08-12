@@ -554,7 +554,7 @@
                 {
                     "path": "admin/admin",
                     "style": {
-                        "navigationBarTitleText": "管理后台"
+                        "navigationBarTitleText": "工作台"
                     }
                 },
                 {

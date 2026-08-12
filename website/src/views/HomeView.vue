@@ -94,7 +94,7 @@
             <h4>产品</h4>
             <a href="#features">产品功能</a>
             <a href="#solutions">解决方案</a>
-            <a href="https://admin.onepan.cn" target="_blank">管理后台</a>
+            <a href="https://admin.onepan.cn" target="_blank">工作台</a>
             <a href="https://m.onepan.cn" target="_blank">移动商家端</a>
           </div>
           <div class="footer-col">

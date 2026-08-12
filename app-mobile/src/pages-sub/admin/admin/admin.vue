@@ -1,7 +1,7 @@
 <template>
   <view class="admin-page">
     <view class="page-header">
-      <text class="header-title">管理后台</text>
+      <text class="header-title">工作台</text>
     </view>
 
     <form ref="formRef" :model="searchForm" class="search-form">

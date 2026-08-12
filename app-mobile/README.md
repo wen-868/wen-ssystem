@@ -58,7 +58,7 @@ app-mobile/
 │   ├── profile/            # 个人中心
 │   ├── notifications/      # 消息通知
 │   ├── todos/              # 待办事项
-│   ├── admin/              # 管理后台
+│   ├── admin/              # 工作台
 │   ├── receipts/           # 财务往来
 │   └── transfer/           # 库存调拨
 ├── src/
