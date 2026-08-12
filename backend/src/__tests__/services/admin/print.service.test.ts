@@ -33,6 +33,13 @@ import {
     reprintRecord,
     BILL_TYPE_VALUES,
     STATUS_VALUES,
+    ensureDefaultPrintTemplates,
+    listPrintTemplates,
+    getPrintTemplate,
+    createPrintTemplate,
+    updatePrintTemplate,
+    deletePrintTemplate,
+    resetPrintTemplate,
 } from "../../../services/admin/print.service";
 
 beforeEach(() => {
@@ -41,12 +48,16 @@ beforeEach(() => {
 
 // ============ 常量校验 ============
 describe("print.service - 常量", () => {
-    it("BILL_TYPE_VALUES 包含 5 种类型", () => {
+    it("BILL_TYPE_VALUES 包含 9 种类型（含打印模板新增单据）", () => {
         expect(BILL_TYPE_VALUES).toEqual([
             "SALE_BILL",
             "SALE_RETURN",
             "SHIFT",
             "DAILY_SETTLE",
+            "SALE_RECEIPT",
+            "PURCHASE_ORDER",
+            "REPORT",
+            "LABEL",
             "REPRINT",
         ]);
     });
@@ -436,5 +447,109 @@ describe("print.service - reprintRecord", () => {
         mocks.queryWithTenant.mockResolvedValue({});
         const res = await reprintRecord(60, 100, "t1");
         expect(res).toEqual({ id: 0, originalId: 60 });
+    });
+});
+
+// ============ 打印模板管理 ============
+describe("print.service - 打印模板管理", () => {
+    const row = {
+        id: 1,
+        tenant_id: "t1",
+        store_id: null,
+        bill_type: "SALE_RECEIPT",
+        paper_type: "RECEIPT_80",
+        template_name: "收银小票（默认）",
+        content: "<h1>{{headerName}}</h1>",
+        is_default: 1,
+        version: 1,
+        status: 1,
+        updated_by: null,
+        created_at: "2026-08-12 12:00:00",
+        updated_at: "2026-08-12 12:00:00",
+    };
+
+    it("ensureDefaultPrintTemplates：无模板时为首个单据类型写入默认", async () => {
+        mocks.queryWithTenant.mockResolvedValueOnce([]); // 查询现有
+        mocks.queryWithTenant.mockResolvedValueOnce({ insertId: 1 }); // INSERT
+        await ensureDefaultPrintTemplates("t1");
+        // 1 次查询 + 8 个单据类型各 1 次 INSERT
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(9);
+    });
+
+    it("ensureDefaultPrintTemplates：已有模板时不重复写入", async () => {
+        mocks.queryWithTenant.mockResolvedValue([{ bill_type: "SALE_RECEIPT" }]);
+        await ensureDefaultPrintTemplates("t1");
+        // 1 次查询 + 其余 7 个单据类型 INSERT
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(8);
+    });
+
+    it("listPrintTemplates：显式带 tenant_id 条件，避免注入器跳过导致跨租户", async () => {
+        mocks.queryWithTenant.mockResolvedValue([row]);
+        const res = await listPrintTemplates({ billType: "SALE_RECEIPT" }, "t1");
+        expect(res).toHaveLength(1);
+        const [sql, params] = mocks.queryWithTenant.mock.calls[0];
+        expect(sql).toContain("tenant_id = ?");
+        expect(params[0]).toBe("t1");
+    });
+
+    it("getPrintTemplate：不存在时抛 404", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue(null);
+        await expect(getPrintTemplate(99, "t1")).rejects.toMatchObject({
+            message: "打印模板不存在",
+            statusCode: 404,
+        });
+    });
+
+    it("createPrintTemplate：非法单据类型抛 400", async () => {
+        await expect(
+            createPrintTemplate(
+                { billType: "UNKNOWN", paperType: "A4" },
+                null,
+                "t1"
+            )
+        ).rejects.toMatchObject({ statusCode: 400 });
+        expect(mocks.queryWithTenant).not.toHaveBeenCalled();
+    });
+
+    it("createPrintTemplate：合法入参插入并返回 id", async () => {
+        mocks.queryWithTenant.mockResolvedValue({ insertId: 42 });
+        const res = await createPrintTemplate(
+            { billType: "SALE_BILL", paperType: "A4", templateName: "我的销售单" },
+            7,
+            "t1"
+        );
+        expect(res).toEqual({ id: 42 });
+    });
+
+    it("updatePrintTemplate：更新版本号自增", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue(row);
+        mocks.queryWithTenant.mockResolvedValue({});
+        const res = await updatePrintTemplate(
+            1,
+            { content: "<h2>新内容</h2>", paperType: "A4" },
+            7,
+            "t1"
+        );
+        expect(res).toEqual({ id: 1 });
+        const [sql] = mocks.queryWithTenant.mock.calls[0];
+        expect(sql).toContain("version = version + 1");
+    });
+
+    it("deletePrintTemplate：系统默认模板禁止删除", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue(row);
+        await expect(deletePrintTemplate(1, "t1")).rejects.toMatchObject({
+            message: expect.stringContaining("系统默认模板不可删除"),
+            statusCode: 400,
+        });
+    });
+
+    it("resetPrintTemplate：恢复默认模板内容", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue({ ...row, bill_type: "SALE_RECEIPT" });
+        mocks.queryWithTenant.mockResolvedValue({});
+        const res = await resetPrintTemplate(1, "t1");
+        expect(res).toEqual({ id: 1 });
+        const [sql, params] = mocks.queryWithTenant.mock.calls[0];
+        expect(sql).toContain("SET paper_type = ?");
+        expect(params[0]).toBe("RECEIPT_80");
     });
 });

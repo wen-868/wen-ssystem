@@ -9,11 +9,25 @@
 
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2/promise";
+import {
+    DEFAULT_PRINT_TEMPLATES,
+    PRINT_BILL_TYPE_VALUES,
+    PRINT_PAPER_TYPE_VALUES,
+} from "./print-templates";
 
 // ==================== 类型定义 ====================
 
 /** 单据类型枚举 */
-export type PrintBillType = "SALE_BILL" | "SALE_RETURN" | "SHIFT" | "DAILY_SETTLE" | "REPRINT";
+export type PrintBillType =
+    | "SALE_BILL"
+    | "SALE_RETURN"
+    | "SHIFT"
+    | "DAILY_SETTLE"
+    | "SALE_RECEIPT"
+    | "PURCHASE_ORDER"
+    | "REPORT"
+    | "LABEL"
+    | "REPRINT";
 
 /** 打印状态枚举 */
 export type PrintStatus = "SUCCESS" | "FAILED" | "PENDING";
@@ -73,6 +87,10 @@ export const BILL_TYPE_VALUES: readonly PrintBillType[] = [
     "SALE_RETURN",
     "SHIFT",
     "DAILY_SETTLE",
+    "SALE_RECEIPT",
+    "PURCHASE_ORDER",
+    "REPORT",
+    "LABEL",
     "REPRINT",
 ] as const;
 
@@ -307,4 +325,195 @@ export async function reprintRecord(
             Array.isArray(result) ? result[0]?.insertId : result?.insertId
         ) || 0;
     return { id: insertId, originalId: original.id };
+}
+
+// ==================== 打印模板管理 ====================
+
+/** 打印模板行（数据库返回结构） */
+export interface PrintTemplateRow {
+    id: number;
+    tenant_id: string;
+    store_id: number | null;
+    bill_type: string;
+    paper_type: string;
+    template_name: string;
+    content: string | null;
+    is_default: number;
+    version: number;
+    status: number;
+    updated_by: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+/** 模板创建/更新入参 */
+export interface PrintTemplateInput {
+    billType: string;
+    paperType: string;
+    templateName?: string;
+    content?: string;
+    status?: number;
+}
+
+/** 校验模板入参（单据类型/纸张类型白名单） */
+function assertTemplateInput(input: PrintTemplateInput): void {
+    if (!PRINT_BILL_TYPE_VALUES.includes(input.billType)) {
+        throw Object.assign(new Error(`非法的单据类型：${input.billType}`), { statusCode: 400 });
+    }
+    if (!PRINT_PAPER_TYPE_VALUES.includes(input.paperType)) {
+        throw Object.assign(new Error(`非法的纸张类型：${input.paperType}`), { statusCode: 400 });
+    }
+}
+
+/**
+ * 确保租户存在默认模板：首次访问模板列表时，为每个单据类型写入系统默认模板。
+ * 幂等：仅当该租户某单据类型无任何模板时写入。
+ */
+export async function ensureDefaultPrintTemplates(tenantId: string): Promise<void> {
+    const rows = await queryWithTenant<{ bill_type: string }>(
+        `SELECT DISTINCT bill_type FROM t_print_template WHERE tenant_id = ?`,
+        [tenantId],
+        tenantId
+    ) as unknown as Array<{ bill_type: string }>;
+    const existing = new Set((Array.isArray(rows) ? rows : []).map((r) => r.bill_type));
+
+    for (const [billType, def] of Object.entries(DEFAULT_PRINT_TEMPLATES)) {
+        if (existing.has(billType)) continue;
+        await queryWithTenant<ResultSetHeader>(
+            `INSERT INTO t_print_template
+              (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status)
+             VALUES (?, NULL, ?, ?, ?, ?, 1, 1, 1)`,
+            [tenantId, billType, def.paper, def.name, def.content],
+            tenantId
+        );
+    }
+}
+
+/** 模板列表（支持按单据类型筛选，返回内容字段） */
+export async function listPrintTemplates(
+    filters: { billType?: string; paperType?: string },
+    tenantId: string
+): Promise<PrintTemplateRow[]> {
+    // 注意：SELECT 列含 tenant_id 时注入器会跳过自动注入，须显式带租户条件
+    const conditions = ["tenant_id = ?"];
+    const values: unknown[] = [tenantId];
+    if (filters.billType) {
+        conditions.push("bill_type = ?");
+        values.push(filters.billType);
+    }
+    if (filters.paperType) {
+        conditions.push("paper_type = ?");
+        values.push(filters.paperType);
+    }
+    return (await queryWithTenant<PrintTemplateRow>(
+        `SELECT id, tenant_id, store_id, bill_type, paper_type, template_name, content,
+                is_default, version, status, updated_by, created_at, updated_at
+         FROM t_print_template
+         WHERE ${conditions.join(" AND ")}
+         ORDER BY bill_type, id`,
+        values,
+        tenantId
+    )) as unknown as PrintTemplateRow[];
+}
+
+/** 模板详情 */
+export async function getPrintTemplate(id: number, tenantId: string): Promise<PrintTemplateRow> {
+    const row = await queryOneWithTenant<PrintTemplateRow>(
+        `SELECT id, tenant_id, store_id, bill_type, paper_type, template_name, content,
+                is_default, version, status, updated_by, created_at, updated_at
+         FROM t_print_template
+         WHERE id = ? AND tenant_id = ?`,
+        [id, tenantId],
+        tenantId
+    );
+    if (!row) {
+        throw Object.assign(new Error("打印模板不存在"), { statusCode: 404 });
+    }
+    return row;
+}
+
+/** 创建模板 */
+export async function createPrintTemplate(
+    input: PrintTemplateInput,
+    operatorId: number | null,
+    tenantId: string
+): Promise<{ id: number }> {
+    assertTemplateInput(input);
+    const result = await queryWithTenant<ResultSetHeader>(
+        `INSERT INTO t_print_template
+          (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status, updated_by)
+         VALUES (?, NULL, ?, ?, ?, ?, 0, 1, ?, ?)`,
+        [
+            tenantId,
+            input.billType,
+            input.paperType,
+            input.templateName?.trim() || "未命名模板",
+            input.content ?? "",
+            input.status ?? 1,
+            operatorId,
+        ],
+        tenantId
+    ) as unknown as ResultSetHeader | ResultSetHeader[];
+    const insertId = Number(Array.isArray(result) ? result[0]?.insertId : result?.insertId) || 0;
+    return { id: insertId };
+}
+
+/** 更新模板 */
+export async function updatePrintTemplate(
+    id: number,
+    input: Partial<PrintTemplateInput>,
+    operatorId: number | null,
+    tenantId: string
+): Promise<{ id: number }> {
+    const existing = await getPrintTemplate(id, tenantId);
+    assertTemplateInput({
+        billType: input.billType ?? existing.bill_type,
+        paperType: input.paperType ?? existing.paper_type,
+    });
+    await queryWithTenant<ResultSetHeader>(
+        `UPDATE t_print_template
+         SET paper_type = ?, template_name = ?, content = ?, status = ?, version = version + 1, updated_by = ?
+         WHERE id = ?`,
+        [
+            input.paperType ?? existing.paper_type,
+            input.templateName?.trim() || existing.template_name,
+            input.content ?? existing.content ?? "",
+            input.status ?? existing.status,
+            operatorId,
+            id,
+        ],
+        tenantId
+    );
+    return { id };
+}
+
+/** 删除模板（系统默认模板不允许删除） */
+export async function deletePrintTemplate(id: number, tenantId: string): Promise<{ id: number }> {
+    const existing = await getPrintTemplate(id, tenantId);
+    if (existing.is_default === 1) {
+        throw Object.assign(new Error("系统默认模板不可删除，可重置后另存为自定义模板"), { statusCode: 400 });
+    }
+    await queryWithTenant<ResultSetHeader>(
+        `DELETE FROM t_print_template WHERE id = ?`,
+        [id],
+        tenantId
+    );
+    return { id };
+}
+
+/** 重置为系统默认模板（按单据类型） */
+export async function resetPrintTemplate(id: number, tenantId: string): Promise<{ id: number }> {
+    const existing = await getPrintTemplate(id, tenantId);
+    const def = DEFAULT_PRINT_TEMPLATES[existing.bill_type];
+    if (!def) {
+        throw Object.assign(new Error(`该单据类型暂无默认模板：${existing.bill_type}`), { statusCode: 400 });
+    }
+    await queryWithTenant<ResultSetHeader>(
+        `UPDATE t_print_template
+         SET paper_type = ?, template_name = ?, content = ?, version = version + 1
+         WHERE id = ?`,
+        [def.paper, def.name, def.content, id],
+        tenantId
+    );
+    return { id };
 }

@@ -17,6 +17,7 @@ import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import { z } from "zod";
 import * as printService from "../../services/admin/print.service";
+import { PRINT_BILL_TYPES, PRINT_PAPER_TYPES } from "../../services/admin/print-templates";
 
 // 单据类型白名单（与 service 层 BILL_TYPE_VALUES 保持一致，controller 层做早期校验给出明确 400）
 const billTypeEnum = z.enum([
@@ -24,6 +25,10 @@ const billTypeEnum = z.enum([
     "SALE_RETURN",
     "SHIFT",
     "DAILY_SETTLE",
+    "SALE_RECEIPT",
+    "PURCHASE_ORDER",
+    "REPORT",
+    "LABEL",
     "REPRINT",
 ]);
 
@@ -128,4 +133,94 @@ export const reprint = asyncHandler(async (req, res) => {
         req.tenantId!
     );
     res.json(ok(result));
+});
+
+// ==================== 打印模板管理 ====================
+
+/** 模板创建/更新入参校验 */
+const templateInputSchema = z.object({
+    billType: z.string().min(1),
+    paperType: z.string().min(1),
+    templateName: z.string().max(64).optional(),
+    content: z.string().optional(),
+    status: z.coerce.number().int().min(0).max(1).optional(),
+});
+
+/**
+ * GET /templates — 模板列表（首次访问自动初始化默认模板）
+ * 支持 billType/paperType 筛选
+ */
+export const listTemplates = asyncHandler(async (req, res) => {
+    const params = z
+        .object({
+            billType: z.string().min(1).optional(),
+            paperType: z.string().min(1).optional(),
+        })
+        .parse(req.query);
+
+    // 首次访问自动写入系统默认模板（幂等）
+    await printService.ensureDefaultPrintTemplates(req.tenantId!);
+    const result = await printService.listPrintTemplates(params, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * GET /templates/:id — 模板详情
+ */
+export const getTemplate = asyncHandler(async (req, res) => {
+    const { id } = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(req.params);
+    const result = await printService.getPrintTemplate(id, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * POST /templates — 新建自定义模板
+ */
+export const createTemplate = asyncHandler(async (req, res) => {
+    const body = templateInputSchema.parse(req.body);
+    const result = await printService.createPrintTemplate(body, req.user?.id ?? null, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * PUT /templates/:id — 更新模板
+ */
+export const updateTemplate = asyncHandler(async (req, res) => {
+    const { id } = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(req.params);
+    const body = templateInputSchema.partial().parse(req.body);
+    const result = await printService.updatePrintTemplate(id, body, req.user?.id ?? null, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * DELETE /templates/:id — 删除自定义模板（默认模板不可删）
+ */
+export const deleteTemplate = asyncHandler(async (req, res) => {
+    const { id } = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(req.params);
+    const result = await printService.deletePrintTemplate(id, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * POST /templates/:id/reset — 重置为系统默认模板
+ */
+export const resetTemplate = asyncHandler(async (req, res) => {
+    const { id } = z
+        .object({ id: z.coerce.number().int().positive() })
+        .parse(req.params);
+    const result = await printService.resetPrintTemplate(id, req.tenantId!);
+    res.json(ok(result));
+});
+
+/**
+ * GET /meta — 单据类型与纸张类型枚举（前端配置页使用）
+ */
+export const getPrintMeta = asyncHandler(async (_req, res) => {
+    res.json(ok({ billTypes: PRINT_BILL_TYPES, paperTypes: PRINT_PAPER_TYPES }));
 });

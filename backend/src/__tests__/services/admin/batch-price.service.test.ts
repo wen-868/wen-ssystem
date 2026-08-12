@@ -139,7 +139,8 @@ describe("batch-price.service", () => {
       expect(res.updatedCount).toBe(1);
       expect(res.failedCount).toBe(0);
       expect(res.changeLogs).toBe(1);
-      expect(res.batchNo).toContain("BATCH_");
+  // 统一编号规则：前缀 + 日期8位 + 5位数字（如 BATCH2026081212510）
+  expect(res.batchNo).toMatch(/^BATCH\d{13}$/);
       // 校验日志写入参数
       const logCall = conn.query.mock.calls[2];
       expect(logCall[0]).toContain("INSERT INTO t_product_price_log");

@@ -11,6 +11,7 @@
 
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { makeBizNo } from "../../shared/id";
 
 // ─── 类型定义 ─────────────────────────────────────────────────
 
@@ -313,7 +314,7 @@ export async function executeBatchPriceAdjustment(
       params
     );
 
-    const batchNo = "BATCH_" + Date.now();
+    const batchNo = makeBizNo("BATCH");
     let updatedCount = 0;
     let failedCount = 0;
     let logCount = 0;

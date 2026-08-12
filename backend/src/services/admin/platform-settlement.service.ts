@@ -1,5 +1,6 @@
 import { query, queryOne } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2/promise";
+import { makeBizNo } from "../../shared/id";
 
 export interface SettlementListParams {
   page: number;
@@ -111,7 +112,7 @@ export async function getSettlementById(id: number) {
 }
 
 export async function createSettlement(data: SettlementCreate) {
-  const settlementNo = `SET${Date.now()}`;
+  const settlementNo = makeBizNo("SET");
   const result = await query(
     `INSERT INTO t_platform_settlement
      (settlement_no, tenant_id, period_start, period_end,

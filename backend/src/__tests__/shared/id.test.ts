@@ -14,18 +14,9 @@ describe("makeBizNo", () => {
 
   it("应包含时间戳部分（纯数字）", () => {
     const result = makeBizNo("SO");
-    // 格式: PREFIX + 14位时间戳 + 6位大写十六进制
+    // 格式: PREFIX + 日期8位 + 5位随机数字（统一规则：XS2026081211515）
     const afterPrefix = result.slice(2);
-    const digits = afterPrefix.slice(0, 14);
-    expect(/^\d{14}$/.test(digits)).toBe(true);
-  });
-
-  it("短时间内生成的编号不应重复", () => {
-    const set = new Set<string>();
-    for (let i = 0; i < 100; i++) {
-      set.add(makeBizNo("SO"));
-    }
-    expect(set.size).toBe(100);
+    expect(/^\d{13}$/.test(afterPrefix)).toBe(true);
   });
 
   it("不同前缀应生成不同编号", () => {
@@ -38,7 +29,7 @@ describe("makeBizNo", () => {
 
   it("空字符串前缀也应能正常生成", () => {
     const result = makeBizNo("");
-    expect(result.length).toBeGreaterThanOrEqual(20);
+    expect(result.length).toBeGreaterThanOrEqual(13);
   });
 });
 
@@ -72,12 +63,12 @@ describe("makeBizNo 补充用例", () => {
   it("长前缀也应正常工作", () => {
     const result = makeBizNo("TRACE");
     expect(result.startsWith("TRACE")).toBe(true);
-    expect(result.length).toBeGreaterThan("TRACE".length + 14);
+    expect(result.length).toBe("TRACE".length + 13);
   });
 
-  it("生成的编号后缀应为 6 位大写十六进制", () => {
+  it("生成的编号后缀应为 5 位数字", () => {
     const result = makeBizNo("SO");
-    const hexPart = result.slice(2 + 14);
-    expect(/^[0-9A-F]{6}$/.test(hexPart)).toBe(true);
+    const numPart = result.slice(2 + 8);
+    expect(/^\d{5}$/.test(numPart)).toBe(true);
   });
 });

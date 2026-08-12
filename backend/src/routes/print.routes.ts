@@ -34,6 +34,29 @@ printRouter.get("/records/:id", printController.getRecordDetail);
 // 重打（生成新记录，关联原记录 original_id）
 printRouter.post("/records/:id/reprint", printController.reprint);
 
+// ==================== 打印模板管理路由 ====================
+
+// 枚举元数据（单据类型/纸张类型）
+printRouter.get("/meta", printController.getPrintMeta);
+
+// 模板列表（首次访问自动初始化默认模板）
+printRouter.get("/templates", printController.listTemplates);
+
+// 模板详情
+printRouter.get("/templates/:id", printController.getTemplate);
+
+// 新建模板
+printRouter.post("/templates", printController.createTemplate);
+
+// 更新模板
+printRouter.put("/templates/:id", printController.updateTemplate);
+
+// 删除模板
+printRouter.delete("/templates/:id", printController.deleteTemplate);
+
+// 重置为系统默认模板
+printRouter.post("/templates/:id/reset", printController.resetTemplate);
+
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
     prefix: "/api/admin/print",
