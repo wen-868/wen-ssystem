@@ -370,22 +370,44 @@ function assertTemplateInput(input: PrintTemplateInput): void {
  * 幂等：仅当该租户某单据类型无任何模板时写入。
  */
 export async function ensureDefaultPrintTemplates(tenantId: string): Promise<void> {
-    const rows = await queryWithTenant<{ bill_type: string }>(
-        `SELECT DISTINCT bill_type FROM t_print_template WHERE tenant_id = ?`,
+    const rows = await queryWithTenant<{ bill_type: string; content: string | null; is_default: number }>(
+        `SELECT bill_type, content, is_default FROM t_print_template WHERE tenant_id = ?`,
         [tenantId],
         tenantId
-    ) as unknown as Array<{ bill_type: string }>;
-    const existing = new Set((Array.isArray(rows) ? rows : []).map((r) => r.bill_type));
+    ) as unknown as Array<{ bill_type: string; content: string | null; is_default: number }>;
+    const list = Array.isArray(rows) ? rows : [];
+    // 每种单据类型取第一条（默认模板优先）
+    const existingByType = new Map<string, { content: string | null; is_default: number }>();
+    for (const r of list) {
+        const cur = existingByType.get(r.bill_type);
+        if (!cur || (r.is_default === 1 && cur.is_default !== 1)) {
+            existingByType.set(r.bill_type, { content: r.content, is_default: r.is_default });
+        }
+    }
 
     for (const [billType, def] of Object.entries(DEFAULT_PRINT_TEMPLATES)) {
-        if (existing.has(billType)) continue;
-        await queryWithTenant<ResultSetHeader>(
-            `INSERT INTO t_print_template
-              (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status)
-             VALUES (?, NULL, ?, ?, ?, ?, 1, 1, 1)`,
-            [tenantId, billType, def.paper, def.name, def.content],
-            tenantId
-        );
+        const existing = existingByType.get(billType);
+        if (!existing) {
+            await queryWithTenant<ResultSetHeader>(
+                `INSERT INTO t_print_template
+                  (tenant_id, store_id, bill_type, paper_type, template_name, content, is_default, version, status)
+                 VALUES (?, NULL, ?, ?, ?, ?, 1, 1, 1)`,
+                [tenantId, billType, def.paper, def.name, def.content],
+                tenantId
+            );
+            continue;
+        }
+        // 旧版 HTML 默认模板自动升级为可视化 JSON 结构
+        const content = String(existing.content ?? "");
+        if (existing.is_default === 1 && !content.includes('"modules"')) {
+            await queryWithTenant<ResultSetHeader>(
+                `UPDATE t_print_template
+                 SET paper_type = ?, template_name = ?, content = ?, version = version + 1
+                 WHERE tenant_id = ? AND bill_type = ? AND is_default = 1`,
+                [def.paper, def.name, def.content, tenantId, billType],
+                tenantId
+            );
+        }
     }
 }
 
