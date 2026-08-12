@@ -440,9 +440,9 @@ function widgetContentHtml(w: PrintWidget, vars: PrintVars, billType?: string, s
         })
         .join("");
       const pad = w.cellPadding ?? 1;
-      // 编辑器画布按 scale 放大字号保证清晰；打印保持 pt 单位
+      // 编辑器画布字号按物理比例随纸面缩放：1pt = 0.3528mm，所见即打印；打印保持 pt 单位
       const fs = w.fontSize ?? 9;
-      const fsCss = scale ? `${(fs * scale).toFixed(1)}px` : `${fs}pt`;
+      const fsCss = scale ? `${(fs * scale / 2.835).toFixed(1)}px` : `${fs}pt`;
       return `<table class="zx-table" style="width:100%;border-collapse:collapse;font-size:${fsCss};line-height:1.35">` +
         `<colgroup>${colCss}</colgroup>${head}${body || `<tr><td style="text-align:center">（无明细）</td></tr>`}</table>`;
     }

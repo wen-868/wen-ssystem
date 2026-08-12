@@ -14,13 +14,6 @@
           <el-button size="small" :disabled="historyIndex >= historyStack.length - 1" :icon="Right" title="重做 (Ctrl+Y)" @click="redo">重做</el-button>
         </el-button-group>
         <div class="tb-zoom-group">
-          <el-button size="small" title="适应窗口" @click="fitWindow">适应窗口</el-button>
-          <el-button size="small" title="适应宽度" @click="fitWidth">适应宽度</el-button>
-          <el-button size="small" title="100% 实际大小" @click="setZoom(100)">100%</el-button>
-          <span class="tb-zoom">
-            <el-slider v-model="zoom" :min="40" :max="600" :step="5" style="width: 100px" @change="manualZoom = true" />
-          </span>
-          <span class="zoom-num">{{ zoom }}%</span>
           <el-tooltip content="显示网格（辅助对齐）" placement="top">
             <el-button size="small" :type="gridOn ? 'primary' : 'default'" :icon="Grid" title="网格开关" @click="gridOn = !gridOn" />
           </el-tooltip>
@@ -386,10 +379,10 @@ const paperTypes = Object.entries(PAPER_TYPE_LABELS).map(([value, label]) => ({ 
 const paper = ref<PrintPaperSettings>({ type: "A4", width: 210, height: 297, orientation: "portrait", marginTop: 5, marginBottom: 5, marginLeft: 5, marginRight: 5 });
 const widgets = ref<PrintWidget[]>([]);
 const selectedIds = ref<string[]>([]);
-const zoom = ref(80);
+/** 自动缩放系数（px/mm）：按纸张比例铺满工作区，整页可见，字号随比例缩放 */
+const autoScale = ref(2);
 const gridOn = ref(true);
 const guides = ref<Array<{ vertical: boolean; pos: number }>>([]);
-const manualZoom = ref(false);
 let resizeObserver: ResizeObserver | null = null;
 
 const historyStack = ref<string[]>([]);
@@ -412,8 +405,8 @@ const fieldItems = computed<PrintVariable[]>(() => {
   return merged;
 });
 
-/** 画布缩放系数 */
-const zoomFactor = computed(() => zoom.value / 100);
+/** 画布缩放系数（px/mm）：自动按纸张比例铺满工作区，不提供手动缩放 */
+const zoomFactor = computed(() => autoScale.value);
 
 /** 缩放后的纸面尺寸（px），用于标尺与纸张占位对齐 */
 const rulerWidth = computed(() => Math.round(paper.value.width * zoomFactor.value * 10) / 10);
@@ -460,7 +453,8 @@ function widgetBoxStyle(w: PrintWidget): Record<string, string> {
 function widgetInnerStyle(w: PrintWidget): Record<string, string> {
   const z = zoomFactor.value;
   const s: Record<string, string> = {};
-  if (w.fontSize) s.fontSize = `${(w.fontSize * z).toFixed(1)}px`;
+  // 字号按物理比例随纸面同步缩放：1pt = 0.3528mm，所见即打印
+  if (w.fontSize) s.fontSize = `${(w.fontSize * z / 2.835).toFixed(1)}px`;
   if (w.fontWeight) s.fontWeight = w.fontWeight;
   if (w.align) s.textAlign = w.align;
   if (w.color) s.color = w.color;
@@ -885,45 +879,20 @@ function preview() {
   }
 }
 
-/** 打开时按画布可用宽度自适应缩放（平铺工作区后画布更大） */
+/**
+ * 自动适配：按纸张比例直接铺满工作区（整页完整可见、居中），
+ * 字号随纸面比例同步缩放，不提供手动缩放。
+ */
 function fitZoom() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    // 纸面最大化且完整可见：按宽/高双适配取小者，保持纸张宽高比不变形
-    // 扣掉标尺(22px)、两侧留白与滚动条余量
-    const availW = canvasEl.clientWidth - 90;
-    const availH = canvasEl.clientHeight - 90;
-    const fitW = (availW / paper.value.width) * 100;
-    const fitH = (availH / paper.value.height) * 100;
-    const fit = Math.floor(Math.min(fitW, fitH));
-    zoom.value = Math.min(600, Math.max(60, fit));
+    // 双适配取小者，保持纸张宽高比不变形；扣除标尺(22px)、留白与滚动条余量
+    const availW = canvasEl.clientWidth - 60;
+    const availH = canvasEl.clientHeight - 60;
+    if (availW <= 0 || availH <= 0) return;
+    autoScale.value = Math.min(availW / paper.value.width, availH / paper.value.height);
   });
-}
-
-/** 适应窗口：整张纸完整可见并居中 */
-function fitWindow() {
-  manualZoom.value = true;
-  fitZoom();
-}
-
-/** 适应宽度：纸面宽度撑满画布可视区 */
-function fitWidth() {
-  manualZoom.value = true;
-  nextTick(() => {
-    const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
-    if (!canvasEl) return;
-    // 纸面宽度直接铺满画布可视宽度（只留标尺与滚动条余量），内容清晰可操作
-    const availW = canvasEl.clientWidth - 58;
-    const fit = Math.floor((availW / paper.value.width) * 100);
-    zoom.value = Math.min(600, Math.max(60, fit));
-  });
-}
-
-/** 设置指定缩放百分比（100% = 实际大小） */
-function setZoom(v: number) {
-  manualZoom.value = true;
-  zoom.value = v;
 }
 
 function widgetKindLabel(kind: PrintWidgetKind): string {
@@ -963,15 +932,19 @@ watch(
   }
 );
 
+// 纸张宽高/方向变化后重新按比例铺满工作区
+watch(
+  () => [paper.value.width, paper.value.height, paper.value.orientation],
+  () => fitZoom()
+);
+
 onMounted(() => {
   parseModel();
-  // 默认按纸面宽度铺满工作区（内容优先，清晰可操作）；布局稳定后再计算
-  setTimeout(fitWidth, 350);
+  // 默认按纸张比例铺满工作区（整页可见），布局稳定后再计算
+  setTimeout(fitZoom, 350);
   const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
   if (canvasEl && typeof ResizeObserver !== "undefined") {
-    resizeObserver = new ResizeObserver(() => {
-      if (!manualZoom.value) fitWidth();
-    });
+    resizeObserver = new ResizeObserver(() => fitZoom());
     resizeObserver.observe(canvasEl);
   }
   window.addEventListener("keydown", onKeydown);
@@ -1026,17 +999,6 @@ onBeforeUnmount(() => {
 }
 .tb-align-group {
   margin-left: 4px;
-}
-.tb-zoom {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-secondary, #666);
-}
-.zoom-num {
-  min-width: 36px;
-  text-align: right;
 }
 .editor-body {
   display: flex;
