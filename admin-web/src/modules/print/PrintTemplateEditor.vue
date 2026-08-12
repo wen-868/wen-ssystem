@@ -18,7 +18,7 @@
           <el-button size="small" title="适应宽度" @click="fitWidth">适应宽度</el-button>
           <el-button size="small" title="100% 实际大小" @click="setZoom(100)">100%</el-button>
           <span class="tb-zoom">
-            <el-slider v-model="zoom" :min="40" :max="400" :step="5" style="width: 100px" @change="manualZoom = true" />
+            <el-slider v-model="zoom" :min="40" :max="600" :step="5" style="width: 100px" @change="manualZoom = true" />
           </span>
           <span class="zoom-num">{{ zoom }}%</span>
           <el-tooltip content="显示网格（辅助对齐）" placement="top">
@@ -889,12 +889,12 @@ function fitZoom() {
     if (!canvasEl) return;
     // 纸面最大化且完整可见：按宽/高双适配取小者，保持纸张宽高比不变形
     // 扣掉标尺(22px)、两侧留白与滚动条余量
-    const availW = canvasEl.clientWidth * 0.94 - 48 - 30;
-    const availH = canvasEl.clientHeight * 0.94 - 48 - 30;
+    const availW = canvasEl.clientWidth - 90;
+    const availH = canvasEl.clientHeight - 90;
     const fitW = (availW / paper.value.width) * 100;
     const fitH = (availH / paper.value.height) * 100;
     const fit = Math.floor(Math.min(fitW, fitH));
-    zoom.value = Math.min(400, Math.max(60, fit));
+    zoom.value = Math.min(600, Math.max(60, fit));
   });
 }
 
@@ -910,9 +910,10 @@ function fitWidth() {
   nextTick(() => {
     const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
     if (!canvasEl) return;
-    const availW = canvasEl.clientWidth * 0.94 - 48 - 30;
+    // 纸面宽度直接铺满画布可视宽度（只留标尺与滚动条余量），内容清晰可操作
+    const availW = canvasEl.clientWidth - 58;
     const fit = Math.floor((availW / paper.value.width) * 100);
-    zoom.value = Math.min(400, Math.max(40, fit));
+    zoom.value = Math.min(600, Math.max(60, fit));
   });
 }
 
@@ -961,12 +962,12 @@ watch(
 
 onMounted(() => {
   parseModel();
-  // 布局稳定后再自适应（AI 面板/侧边栏就绪后画布宽度才正确）
-  setTimeout(fitZoom, 350);
+  // 默认按纸面宽度铺满工作区（内容优先，清晰可操作）；布局稳定后再计算
+  setTimeout(fitWidth, 350);
   const canvasEl = document.querySelector(".editor-canvas") as HTMLElement | null;
   if (canvasEl && typeof ResizeObserver !== "undefined") {
     resizeObserver = new ResizeObserver(() => {
-      if (!manualZoom.value) fitZoom();
+      if (!manualZoom.value) fitWidth();
     });
     resizeObserver.observe(canvasEl);
   }
@@ -1114,7 +1115,7 @@ onBeforeUnmount(() => {
   position: relative;
 }
 .canvas-scroll {
-  padding: 24px;
+  padding: 12px;
   min-height: 100%;
   display: flex;
   justify-content: center;
