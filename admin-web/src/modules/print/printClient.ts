@@ -10,12 +10,14 @@
  */
 import { fetchPrintTemplates, reportPrintRecord } from "./api";
 import { getLocalPrintConfig } from "./localConfig";
-import { renderTemplate } from "./renderer";
+import { renderJsonTemplate, renderTemplate } from "./renderer";
 import type {
   LocalAgentPrinter,
   PrintResult,
+  PrintTemplateJson,
   PrintVars,
 } from "./types";
+import { isTemplateJson } from "./types";
 
 /** 同步打开打印窗口（必须在用户点击等手势内调用） */
 export function openPrintWindow(): Window | null {
@@ -134,6 +136,18 @@ th{background:#f5f5f5}
 <div class="foot">{{footerText}}</div>
 </body></html>`;
 
+/** 渲染模板内容（兼容可视化 JSON 与旧 HTML） */
+export function renderAnyTemplate(content: string, vars: PrintVars): string {
+  if (isTemplateJson(content)) {
+    try {
+      return renderJsonTemplate(JSON.parse(content) as PrintTemplateJson, vars);
+    } catch {
+      // JSON 解析失败回退 HTML 渲染
+    }
+  }
+  return renderTemplate(content, vars);
+}
+
 /**
  * 打印单据（异步加载模板后输出）
  * @param win 已同步打开的打印窗口（推荐）；为空时尝试本地助手，再兜底新窗口
@@ -152,9 +166,9 @@ export async function printBill(opts: {
   let html = "";
   try {
     const template = await loadTemplate(billType);
-    html = renderTemplate(template?.content ?? FALLBACK_TEMPLATE, vars);
+    html = renderAnyTemplate(template?.content ?? FALLBACK_TEMPLATE, vars);
   } catch (e) {
-    html = renderTemplate(FALLBACK_TEMPLATE, vars);
+    html = renderAnyTemplate(FALLBACK_TEMPLATE, vars);
     if (report) {
       reportPrintRecord({
         billType,

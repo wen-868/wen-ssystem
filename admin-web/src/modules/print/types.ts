@@ -101,3 +101,46 @@ export interface PrintResult {
   channel: "browser" | "agent";
   message?: string;
 }
+
+// ==================== 可视化模板（JSON 结构） ====================
+
+/** 可视化模板模块类型 */
+export type PrintModuleType =
+  | "title"          // 单据大标题（如：销 售 单）
+  | "header"         // 门店抬头（店名/电话/地址）
+  | "billInfo"       // 单据信息（单号/日期/操作员/支付方式/状态）
+  | "customer"       // 客户信息（名称/电话）
+  | "items"          // 商品明细表
+  | "summary"        // 金额汇总（合计/应收/实收/找零/优惠）
+  | "memberBalance"  // 会员余额
+  | "remark"         // 备注（客户/内部）
+  | "sign"           // 签章区（制单/审核/业务/客户签收）
+  | "footer";        // 页脚文案
+
+/** 可视化模板模块 */
+export interface PrintModule {
+  id: string;
+  type: PrintModuleType;
+  enabled: boolean;
+  /** 标题文本（title 模块用） */
+  text?: string;
+  /** 字段开关：键为模板变量 key */
+  fields?: Record<string, boolean>;
+  /** 对齐方式 */
+  align?: "left" | "center" | "right";
+  /** 字号（px） */
+  fontSize?: number;
+}
+
+/** 可视化模板（存储于 t_print_template.content，JSON 字符串） */
+export interface PrintTemplateJson {
+  version: 2;
+  paperType: PrintPaperType;
+  modules: PrintModule[];
+}
+
+/** 判断 content 是否为可视化 JSON 模板 */
+export function isTemplateJson(content: string): boolean {
+  const trimmed = (content ?? "").trim();
+  return trimmed.startsWith("{") && trimmed.includes('"modules"');
+}
