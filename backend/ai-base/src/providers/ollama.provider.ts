@@ -16,11 +16,11 @@ import { ProviderError } from './provider-error';
  * - 计划在 R70-21 RAG 任务中完整实现（含 chat / embedding）
  * - 当前所有调用方法抛 501 NotImplemented，保证 ProviderFactory 可注册但不会被误用
  *
- * 设计目的：让 ProviderFactory 能识别 'ollama' 名称，避免管理后台选择 Ollama 时报"未知 provider"。
+ * 设计目的：让 ProviderFactory 能识别 'ollama' 名称，避免工作台选择 Ollama 时报"未知 provider"。
  *
  * 实现说明：
  * - chat/chatSync/embedding 用普通函数 + throw（throw 是合法控制流，函数返回类型不强制要求 return）
- * - testConnection 返回 Promise.resolve（不抛错，便于管理后台展示"未实现"状态而非 500）
+ * - testConnection 返回 Promise.resolve（不抛错，便于工作台展示"未实现"状态而非 500）
  * - 这样避免 ESLint 的 require-await / require-yield 规则对占位 async/generator 函数的误报
  */
 @Injectable()
@@ -84,7 +84,7 @@ export class OllamaProvider implements IModelProvider {
   /**
    * 连通性测试（占位）
    *
-   * 不抛错，返回 success: false + 明确提示，便于管理后台展示"未实现"状态。
+   * 不抛错，返回 success: false + 明确提示，便于工作台展示"未实现"状态。
    */
   testConnection(): Promise<ConnectionTestResult> {
     return Promise.resolve({

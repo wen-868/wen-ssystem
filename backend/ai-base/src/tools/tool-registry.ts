@@ -8,7 +8,7 @@ import { ITool, ToolCategory, ToolMeta } from './tool.interface';
  * 职责：
  * 1. 注册所有业务工具（order/inventory/product/customer/purchase/delivery/finance/report/system）
  * 2. 按名称查找工具（供 ToolExecutor 调用）
- * 3. 列出全部工具元信息（供管理后台展示）
+ * 3. 列出全部工具元信息（供工作台展示）
  * 4. 生成 OpenAI Function Calling 格式的 ToolDefinition[]（喂给 LLM）
  * 5. 按租户过滤可用工具（任务文件要求"按租户配置哪些工具可用"）
  *

@@ -70,7 +70,7 @@ export interface ProactiveTaskResult {
 export interface IProactiveTask {
   /** 任务唯一名（kebab-case，如 inventory_warning） */
   readonly name: string;
-  /** 任务描述（中文，管理后台展示） */
+  /** 任务描述（中文，工作台展示） */
   readonly description: string;
   /** 调度类型：cron（六位 cron 表达式）/ interval（毫秒） */
   readonly scheduleType: 'cron' | 'interval';

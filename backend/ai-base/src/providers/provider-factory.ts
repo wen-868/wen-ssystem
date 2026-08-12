@@ -126,7 +126,7 @@ export class ProviderFactory {
   }
 
   /**
-   * 列出所有已注册 Provider 的详情（用于管理后台展示）
+   * 列出所有已注册 Provider 的详情（用于工作台展示）
    */
   listWithDetails(): Array<{ type: string; name: string }> {
     return Array.from(this.providers.entries()).map(([type, p]) => ({

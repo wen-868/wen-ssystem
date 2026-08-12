@@ -22,7 +22,7 @@
  * 工具业务域分类
  *
  * 与 docs/ai-base/智享AI助手-能力说明书.md 的 9 大业务域对齐，
- * 用于管理后台按分类展示工具、按租户启用/禁用整个业务域。
+ * 用于工作台按分类展示工具、按租户启用/禁用整个业务域。
  */
 export type ToolCategory =
   | 'order' // 销售管理
@@ -107,7 +107,7 @@ export interface ToolResult {
  * - name：唯一，camelCase，语义明确（如 createSalesOrder、queryInventory）
  * - description：必须描述清楚用途、前置条件、返回内容（LLM 据此判断何时调用）
  * - parameters：JSON Schema 对象，每个字段必须有 description，required 字段标注，状态/类型字段用 enum 约束
- * - category：业务域分类，用于管理后台分组展示
+ * - category：业务域分类，用于工作台分组展示
  * - isWriteOperation：写操作标记，true 时需配合 R70-15 确认机制
  * - requiredTools：前置工具依赖（如 createSalesOrder 依赖 searchCustomer/searchProduct/checkInventory），供 Brain Engine 编排
  * - execute：执行函数，禁止抛异常，所有错误通过返回 ToolResult.success=false 传递
@@ -152,7 +152,7 @@ export interface ITool {
 }
 
 /**
- * 工具元信息（管理后台展示用，不含 execute 函数）
+ * 工具元信息（工作台展示用，不含 execute 函数）
  *
  * ToolRegistry.list() / AdminController GET /tools 返回此结构，
  * 避免把 execute 函数序列化到 JSON 响应中。

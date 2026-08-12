@@ -211,7 +211,7 @@ export class AiConfigService {
   }
 
   /**
-   * 清除平台配置缓存（管理后台修改配置后调用）
+   * 清除平台配置缓存（工作台修改配置后调用）
    */
   clearCache(): void {
     this.platformConfigCache = null;

@@ -187,7 +187,7 @@ export class AuditLogger {
   }
 
   /**
-   * 查询审计日志（管理后台用）
+   * 查询审计日志（工作台用）
    *
    * @param tenantId 租户 ID
    * @param options  查询条件（日期范围 / 意图 / 分页）
