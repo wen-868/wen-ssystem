@@ -48,6 +48,7 @@
                   <template #default="{ row: s }">
                     <el-button size="small" link type="primary" @click="viewSkuPriceHistory(s)">价格历史</el-button>
                     <el-button size="small" link type="warning" @click="openSkuPriceDialog(s)">改价</el-button>
+                    <el-button size="small" link type="success" @click="printSkuLabel(s)">标签</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -105,10 +106,11 @@
         <el-table-column prop="updatedAt" label="更新时间" width="120">
           <template #default="{ row }">{{ formatDate(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button size="small" link type="primary" @click="openDetail(row)">详情</el-button>
             <el-button size="small" link type="success" @click="openEditDialog(row)">编辑</el-button>
+            <el-button size="small" link type="warning" @click="printSkuLabel(row, row._skus?.[0])">打印标签</el-button>
             <el-button
               size="small" link :type="row.status === 'ON_SALE' ? 'danger' : 'success'"
               @click="toggleStatus(row)"
@@ -641,6 +643,9 @@ import StarterKit from "@tiptap/starter-kit";
 import { api } from "../../api";
 import { lookupLibraryByBarcode } from "../../api/library";
 import { formatDate } from "../../utils/format";
+import { getLocalPrintConfig } from "../../modules/print/localConfig";
+import { openPrintWindow, printBill } from "../../modules/print/printClient";
+import { fmtMoney } from "../../modules/print/renderer";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
 
@@ -1373,6 +1378,30 @@ function openSkuPriceDialog(sku: any) {
   skuPriceForm.wholesalePrice = sku.wholesalePrice || 0;
   skuPriceForm.miniappPrice = sku.miniappPrice || 0;
   skuPriceVisible.value = true;
+}
+
+/** 打印商品标签（SPU 级用首个 SKU 信息，SKU 级用当前行） */
+function printSkuLabel(spuOrSku: any, sku?: any) {
+  const cfg = getLocalPrintConfig();
+  const target = sku || spuOrSku;
+  const productName = spuOrSku.name || spuOrSku.productName || target.skuName || "商品";
+  const win = openPrintWindow();
+  printBill({
+    billType: "LABEL",
+    billNo: `LABEL-${target.skuId || spuOrSku.spuId || Date.now()}`,
+    title: "商品标签",
+    win,
+    copies: cfg.copies,
+    vars: {
+      productName,
+      skuName: target.skuName || "-",
+      barcode: target.barcode || "-",
+      price: fmtMoney(target.retailPrice ?? spuOrSku._firstRetailPrice ?? 0),
+      unit: target.baseUnit || target.unit || "瓶",
+    },
+  }).catch((e: any) => {
+    ElMessage.error(e?.response?.data?.msg || "打印标签失败");
+  });
 }
 
 async function handleSkuPriceUpdate() {

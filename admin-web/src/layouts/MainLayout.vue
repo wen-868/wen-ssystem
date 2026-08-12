@@ -292,6 +292,7 @@
             <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/config') }" @click="navTo('/system/config')">系统配置</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/print') }" @click="navTo('/system/print')">打印模板</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/rules') }" @click="navTo('/system/approval/rules')">审批规则</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/my') }" @click="navTo('/system/approval/my')">我的审批</div>
             <div class="nav-sub-item" :class="{ active: isActive('/report-permissions') }" @click="navTo('/report-permissions')">报表权限</div>
@@ -317,7 +318,7 @@
             :key="item.path"
             class="cashier-nav-item"
             :class="{ active: isCashierNavActive(item.path) }"
-            @click="navTo(item.path)"
+            @click="handleCashierNavClick(item)"
           >
             <el-icon class="cashier-nav-icon"><component :is="item.icon" /></el-icon>
             <span class="cashier-nav-label">{{ item.label }}</span>
@@ -347,6 +348,9 @@
 
     <!-- 最右侧固定整栏 AI 经营助手（非收银台模式显示） -->
     <AiSidePanel v-if="!isCashierMode" />
+
+    <!-- 本机打印设置（收银台导航入口） -->
+    <PrintSettingsPanel v-model="printSettingsVisible" />
   </div>
 </template>
 
@@ -358,11 +362,12 @@ import {
   HomeFilled, Goods, Document, ShoppingCart, User, Files, Shop,
   DataAnalysis, Setting, Bell, Grid, ChatDotRound, Search,
   ArrowDown, CaretBottom, Money, Discount, Van,
-  Edit, FolderOpened, Clock, RefreshRight, Share, Checked
+  Edit, FolderOpened, Clock, RefreshRight, Share, Checked, Printer
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
 import { api } from "../api";
+import PrintSettingsPanel from "../modules/print/PrintSettingsPanel.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -381,8 +386,21 @@ const cashierNavItems = [
   { path: "/pos/sale-return", label: "销售退货", icon: RefreshRight },
   { path: "/pos/member", label: "会员识别", icon: User },
   { path: "/pos/collection", label: "分享收款", icon: Share },
-  { path: "/pos/daily-settle", label: "日结管理", icon: Checked }
+  { path: "/pos/daily-settle", label: "日结管理", icon: Checked },
+  { path: "/pos/print-settings", label: "打印设置", icon: Printer, action: "print-settings" }
 ];
+
+/** 本机打印设置弹窗 */
+const printSettingsVisible = ref(false);
+
+/** 收银台功能导航点击：打印设置为本地弹窗，其余路由跳转 */
+function handleCashierNavClick(item: { path: string; action?: string }) {
+  if (item.action === "print-settings") {
+    printSettingsVisible.value = true;
+    return;
+  }
+  navTo(item.path);
+}
 
 /** 判断功能导航高亮：路由前缀匹配（含详情页如 /pos/shift/:id） */
 function isCashierNavActive(path: string): boolean {

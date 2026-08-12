@@ -122,6 +122,9 @@ import { ArrowLeft, Printer } from "@element-plus/icons-vue";
 import { fetchStoreSaleBillDetail } from "../../api";
 import { amountToChinese } from "../../utils/money";
 import { formatDate } from "../../utils/format";
+import { getLocalPrintConfig } from "../../modules/print/localConfig";
+import { openPrintWindow, printBill } from "../../modules/print/printClient";
+import { buildTableHtml, dash, fmtMoney, rawHtml } from "../../modules/print/renderer";
 
 const route = useRoute();
 const router = useRouter();
@@ -145,7 +148,75 @@ function goBack() {
 }
 
 function handlePrint() {
-  window.print();
+  const d = detail.value || {};
+  const cfg = getLocalPrintConfig();
+  const rows = (d.items || []).map((row: any, index: number) => ({
+    idx: index + 1,
+    name: row.skuName || row.productName || "-",
+    spec: dash(row.spec || row.skuSpec),
+    barcode: dash(row.barcode),
+    unit: row.unit || "瓶",
+    qty: row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? "-",
+    price: `¥${fmtMoney(row.unitPrice)}`,
+    amount: `¥${fmtMoney(
+      Number(row.unitPrice || 0) * Number(row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? 0)
+    )}`,
+    trace: formatTraceCodes(row.traceCodes || row.trace_codes),
+    remark: dash(row.remark),
+  }));
+  const itemsHtml = buildTableHtml(rows, [
+    { key: "idx", label: "#", width: "34px" },
+    { key: "name", label: "商品名称", align: "left" },
+    { key: "spec", label: "规格", align: "left" },
+    { key: "barcode", label: "条码" },
+    { key: "unit", label: "单位" },
+    { key: "qty", label: "数量" },
+    { key: "price", label: "单价", align: "right" },
+    { key: "amount", label: "金额", align: "right" },
+    { key: "trace", label: "追溯码", align: "left" },
+    { key: "remark", label: "备注", align: "left" },
+  ]);
+  const hasRoles = !!(d.auditorName || d.salesmanName);
+  const roleRow = hasRoles
+    ? `<tr><td class="lbl">审核人</td><td>${d.auditorName || "-"}</td><td class="lbl">业务员</td><td>${d.salesmanName || "-"}</td><td class="lbl">制单人</td><td>${d.operatorName || "-"}</td></tr>`
+    : "";
+  const remarkBlock =
+    d.remark || d.internalRemark
+      ? `<div class="remark-box"><div class="title">备注</div><div class="body">${
+          d.remark ? `客户备注：${d.remark}<br>` : ""
+        }${d.internalRemark ? `内部备注：${d.internalRemark}` : ""}</div></div>`
+      : "";
+  const win = openPrintWindow();
+  printBill({
+    billType: "SALE_BILL",
+    billNo: d.billNo || String(route.params.billNo || ""),
+    title: `销售单 ${d.billNo || ""}`,
+    win,
+    copies: cfg.copies,
+    vars: {
+      billNo: d.billNo || "-",
+      customerName: d.customerName || "散户",
+      customerPhone: d.customerMobile || "",
+      storeName: d.storeName || "-",
+      saleType: d.saleType === "CREDIT" ? "赊销" : "现销",
+      billDate: formatDate(d.createdAt),
+      billStatus: getStatusText(d.collectionStatus),
+      roleRow: rawHtml(roleRow),
+      items: rawHtml(itemsHtml),
+      totalAmount: fmtMoney(d.totalAmount ?? d.receivableAmount ?? 0),
+      discountAmount: fmtMoney(d.discountAmount || 0),
+      paidAmount: fmtMoney(d.receivableAmount || 0),
+      receivedAmount: fmtMoney(d.receivedAmount ?? d.paidAmount ?? 0),
+      amountChinese: amountToChinese(d.receivableAmount || 0),
+      remarkBlock: rawHtml(remarkBlock),
+      signRoles: hasRoles
+        ? `制单人：${d.operatorName || "-"}    审核人：${d.auditorName || "-"}    业务员：${d.salesmanName || "-"}`
+        : `收银员：${d.operatorName || "-"}`,
+      footerText: cfg.footerText,
+    },
+  }).catch((e) => {
+    console.error("打印销售单失败", e);
+  });
 }
 
 function formatTraceCodes(codes: unknown): string {

@@ -337,6 +337,9 @@ import {
   restoreStoreHoldOrder,
   deleteStoreHoldOrder
 } from "../../api";
+import { getLocalPrintConfig } from "../../modules/print/localConfig";
+import { openPrintWindow, printBill } from "../../modules/print/printClient";
+import { buildTableHtml, fmtMoney, rawHtml } from "../../modules/print/renderer";
 
 const loading = ref(false);
 const productKeyword = ref("");
@@ -505,6 +508,18 @@ function getLoginUserStoreId(): number {
   return 1;
 }
 
+function getLoginUserRealName(): string {
+  try {
+    const raw = localStorage.getItem("admin_auth");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const user = parsed?.user || parsed;
+      return user?.realName || user?.username || "";
+    }
+  } catch { /* ignore */ }
+  return "";
+}
+
 async function handleSearchProducts() {
   if (!productKeyword.value.trim()) {
     loadAllProducts();
@@ -655,41 +670,60 @@ function numpadPress(key: string) {
   receivedAmount.value = Number(next.toFixed(2));
 }
 
-/** 打印：生成小票并调用浏览器打印 */
+/** 打印小票：加载模板 → 渲染 → 输出（本机配置优先本地助手，其次浏览器） */
 function handlePrint() {
   if (cartItems.value.length === 0) {
     ElMessage.warning("购物车为空，无可打印内容");
     return;
   }
-  const lines = cartItems.value
-    .map(
-      (item) =>
-        `<tr><td>${item.skuName || item.productName || ""}</td><td>x${item.quantity}</td><td style="text-align:right">¥${(Number(item.unitPrice || 0) * Number(item.quantity || 1)).toFixed(2)}</td></tr>`
-    )
-    .join("");
-  const win = window.open("", "_blank", "width=300,height=500");
-  if (!win) {
-    ElMessage.error("请允许弹出窗口以打印小票");
-    return;
-  }
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>销售小票</title><style>
-    body{font-family:monospace;font-size:12px;width:280px;margin:0 auto;padding:12px}
-    h2{text-align:center;margin:0 0 8px}hr{border:none;border-top:1px dashed #000;margin:8px 0}
-    table{width:100%;border-collapse:collapse}td{padding:2px 0}
-    .total{font-weight:700;font-size:14px} .foot{text-align:center;margin-top:8px}
-  </style></head><body>
-    <h2>智享全链 · 销售小票</h2>
-    <div>会员：${saleForm.customerName || "散客"}</div>
-    <div>时间：${new Date().toLocaleString()}</div>
-    <hr>
-    <table>${lines}</table>
-    <hr>
-    <div class="total">应收：¥${cartAmount.value.toFixed(2)}</div>
-    <div class="foot">谢谢惠顾</div>
-  </body></html>`);
-  win.document.close();
-  win.focus();
-  win.print();
+  const cfg = getLocalPrintConfig();
+  const items = buildTableHtml(
+    cartItems.value.map((item) => ({
+      name: item.skuName || item.productName || "-",
+      qty: `x${item.quantity}`,
+      amount: `¥${fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1))}`,
+    })),
+    [
+      { key: "name", label: "品名", align: "left" },
+      { key: "qty", label: "数量" },
+      { key: "amount", label: "金额", align: "right" },
+    ]
+  );
+  const payLabel =
+    payMethodOptions.find((m) => m.value === paymentMethod.value)?.label ??
+    paymentMethod.value;
+  // 同步开窗防弹窗拦截，模板异步加载后写入
+  const win = openPrintWindow();
+  printBill({
+    billType: "SALE_RECEIPT",
+    billNo: currentBillNo.value || `POS${Date.now()}`,
+    title: "销售小票",
+    win,
+    copies: cfg.copies,
+    vars: {
+      headerName: cfg.headerName,
+      storePhone: cfg.headerPhone,
+      storeAddressLine: rawHtml(cfg.headerAddress ? `<br>${cfg.headerAddress}` : ""),
+      billNo: currentBillNo.value || "-",
+      billDate: new Date().toLocaleString(),
+      operatorName: getLoginUserRealName() || "收银员",
+      customerName: saleForm.customerName || "散客",
+      items: rawHtml(items),
+      totalAmount: fmtMoney(cartAmount.value),
+      paidAmount: fmtMoney(cartAmount.value),
+      changeAmount: fmtMoney(changeAmount.value),
+      paymentMethod: payLabel,
+      memberBalanceRow: rawHtml(
+        selectedMemberId.value
+          ? `<div class="row"><span>会员余额</span><span>¥${fmtMoney(memberBalance.value)}</span></div>`
+          : ""
+      ),
+      remarkBlock: "",
+      footerText: cfg.footerText,
+    },
+  }).catch((error) => {
+    ElMessage.error(getErrorMessage(error, "打印失败"));
+  });
 }
 
 async function handleCreateSaleBill() {
@@ -760,6 +794,52 @@ async function confirmPayment() {
 
     await createStoreOfflinePayment(currentBillNo.value, currentAmount.value, paymentMethod.value);
     ElMessage.success("收款成功");
+    // 本机配置：结算后自动打印小票（先取号再清空购物车）
+    const printedBillNo = currentBillNo.value;
+    const printedAmount = currentAmount.value;
+    if (getLocalPrintConfig().autoPrint && printedBillNo) {
+      const cfg = getLocalPrintConfig();
+      const items = buildTableHtml(
+        cartItems.value.map((item) => ({
+          name: item.skuName || item.productName || "-",
+          qty: `x${item.quantity}`,
+          amount: `¥${fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1))}`,
+        })),
+        [
+          { key: "name", label: "品名", align: "left" },
+          { key: "qty", label: "数量" },
+          { key: "amount", label: "金额", align: "right" },
+        ]
+      );
+      const payLabel =
+        payMethodOptions.find((m) => m.value === paymentMethod.value)?.label ??
+        paymentMethod.value;
+      printBill({
+        billType: "SALE_RECEIPT",
+        billNo: printedBillNo,
+        title: "销售小票",
+        copies: cfg.copies,
+        vars: {
+          headerName: cfg.headerName,
+          storePhone: cfg.headerPhone,
+          storeAddressLine: rawHtml(cfg.headerAddress ? `<br>${cfg.headerAddress}` : ""),
+          billNo: printedBillNo,
+          billDate: new Date().toLocaleString(),
+          operatorName: getLoginUserRealName() || "收银员",
+          customerName: saleForm.customerName || "散客",
+          items: rawHtml(items),
+          totalAmount: fmtMoney(printedAmount),
+          paidAmount: fmtMoney(printedAmount),
+          changeAmount: fmtMoney(changeAmount.value),
+          paymentMethod: payLabel,
+          memberBalanceRow: "",
+          remarkBlock: "",
+          footerText: cfg.footerText,
+        },
+      }).catch(() => {
+        // 自动打印失败不阻断收款流程，用户可手动点打印
+      });
+    }
     currentAmount.value = 0;
     currentBillNo.value = "";
     cartItems.value = [];
