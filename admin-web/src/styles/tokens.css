@@ -5,7 +5,7 @@
    - 补齐语义字号 token（--text-page-title/--text-caption/--text-body/--text-hint/--text-regular/--text-amount-lg/--text-amount-xl）
    - 阴影对齐参考图柔和分层（rgba(16,24,40,…)），卡片/悬浮/弹窗三档
    - 新增状态标签 token（--tag-*）、指标卡 token（--metric-*）、图表网格色
-   适用：admin-web 管理后台
+   适用：admin-web 工作台
    ═══════════════════════════════════════════════════════════════ */
 
 :root {

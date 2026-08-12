@@ -21,13 +21,13 @@
           <kbd>⌘K</kbd>
         </div>
 
-        <!-- 管理后台 / 收银台 模式切换（对标设计稿） -->
+        <!-- 工作台 / 收银台 模式切换（对标设计稿） -->
         <div class="mode-switch">
           <span
             class="mode-switch-item"
             :class="{ active: !isCashierMode }"
             @click="exitCashierMode"
-          >管理后台</span>
+          >工作台</span>
           <span
             class="mode-switch-item"
             :class="{ active: isCashierMode }"
@@ -35,11 +35,33 @@
           >收银台</span>
         </div>
 
-        <el-badge :value="3" :max="99" class="header-badge">
-          <el-button circle size="small">
-            <el-icon><Bell /></el-icon>
-          </el-button>
-        </el-badge>
+        <!-- 真实通知：未读数 + 最近通知 -->
+        <el-popover v-if="!isCashierMode" v-model:visible="notifyVisible" placement="bottom-end" :width="330" trigger="click" popper-class="notify-popper">
+          <template #reference>
+            <el-badge :value="notifyCount" :max="99" :hidden="notifyCount === 0" class="header-badge">
+              <el-button circle size="small">
+                <el-icon><Bell /></el-icon>
+              </el-button>
+            </el-badge>
+          </template>
+          <div class="notify-pop">
+            <div class="notify-head">
+              <span class="notify-title">消息通知</span>
+              <el-link type="primary" :underline="false" @click="goMessages">全部消息</el-link>
+            </div>
+            <div v-if="notifyList.length === 0" class="notify-empty">暂无通知</div>
+            <div v-else class="notify-list">
+              <div v-for="n in notifyList.slice(0, 6)" :key="n.id" class="notify-item" @click="goMessages">
+                <div class="notify-item-head">
+                  <span class="notify-dot" :class="{ unread: !n.isRead }"></span>
+                  <span class="notify-item-title">{{ n.title || "系统通知" }}</span>
+                </div>
+                <div class="notify-item-desc">{{ n.content || "" }}</div>
+                <div class="notify-item-time">{{ formatNotifyTime(n.sentAt || n.createdAt) }}</div>
+              </div>
+            </div>
+          </div>
+        </el-popover>
         <el-dropdown trigger="click">
           <span class="user-info">
             <el-avatar :size="28" class="user-avatar-icon" style="background: var(--color-primary)">
@@ -325,9 +347,6 @@
 
     <!-- 最右侧固定整栏 AI 经营助手（非收银台模式显示） -->
     <AiSidePanel v-if="!isCashierMode" />
-
-    <!-- AI 助手悬浮窗口（仅收银台模式显示，工作区用左侧固定面板） -->
-    <AiChatWindow v-if="isCashierMode" />
   </div>
 </template>
 
@@ -343,6 +362,7 @@ import {
 } from "@element-plus/icons-vue";
 import { formatDate } from "../utils/format";
 import { useAuthStore } from "../stores/auth";
+import { api } from "../api";
 
 const route = useRoute();
 const router = useRouter();
@@ -369,16 +389,15 @@ function isCashierNavActive(path: string): boolean {
   return route.path === path || route.path.startsWith(`${path}/`);
 }
 
-// AI 对话窗口：组件级懒加载（defineAsyncComponent），避免打进主 chunk（chunk ≤ 500KB 规则）
-const AiChatWindow = defineAsyncComponent(
-  () => import("../components/AiChat/AiChatWindow.vue"),
-);
 const AiSidePanel = defineAsyncComponent(
   () => import("../components/AiChat/AiSidePanel.vue"),
 );
 
 const isMenuCollapsed = ref(false);
 const pageLoading = ref(false);
+const notifyVisible = ref(false);
+const notifyCount = ref(0);
+const notifyList = ref<any[]>([]);
 const currentUser = computed(() => auth.user);
 /** 收银台模式：由路由驱动（/pos/*），刷新后状态不丢失 */
 const isCashierMode = computed(() => route.path.startsWith("/pos/"));
@@ -431,6 +450,9 @@ onMounted(() => {
   if (path.startsWith('/reports')) openGroups.reports = true;
   // 11. 系统设置
   if (path.startsWith('/system') || path.startsWith('/employees') || path.startsWith('/stores') || path.startsWith('/department-manage') || path.startsWith('/position-manage') || path.startsWith('/audit') || path.startsWith('/error-log') || path.startsWith('/monitor') || path.startsWith('/report-permissions')) openGroups.system = true;
+  loadNotifications();
+  // 每 60 秒刷新通知
+  window.setInterval(loadNotifications, 60000);
 });
 
 function isActive(path: string): boolean {
@@ -443,6 +465,41 @@ function navTo(path: string) {
     isMenuCollapsed.value = false;
   }
   router.push(path);
+}
+
+/** 加载真实通知：未读数 + 最近通知列表 */
+async function loadNotifications() {
+  try {
+    const [uc, list] = await Promise.allSettled([
+      api.get("/admin/wb-notifications/unread-count"),
+      api.get("/admin/wb-notifications", { params: { page: 1, pageSize: 6 } }),
+    ]);
+    if (uc.status === "fulfilled") {
+      const d = uc.value.data?.data ?? uc.value.data ?? {};
+      notifyCount.value = typeof d === "object" ? Number(d.count ?? d.total ?? 0) : Number(d || 0);
+    }
+    if (list.status === "fulfilled") {
+      const d = list.value.data?.data ?? list.value.data ?? {};
+      notifyList.value = d.records || d.list || [];
+    }
+  } catch { /* 忽略 */ }
+}
+
+function goMessages() {
+  notifyVisible.value = false;
+  navTo("/messages");
+}
+
+function formatNotifyTime(v: any): string {
+  if (!v) return "";
+  const d = new Date(String(v).replace("T", " ").replace("Z", "").trim().slice(0, 19));
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  if (diff < 60000) return "刚刚";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
+  return `${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 function toggleGroup(group: keyof typeof openGroups) {
@@ -604,13 +661,13 @@ const pageTitle = computed(() => {
 });
 
 function toggleCashierMode() {
-  // 管理后台 → 收银台
+  // 工作台 → 收银台
   isMenuCollapsed.value = true;
   router.push("/pos/cashier");
 }
 
 function exitCashierMode() {
-  // 收银台 → 管理后台
+  // 收银台 → 工作台
   isMenuCollapsed.value = false;
   router.push("/dashboard");
 }
@@ -954,7 +1011,7 @@ function handleLogout() {
   gap: 16px;
 }
 
-/* 管理后台 / 收银台 模式切换 */
+/* 工作台 / 收银台 模式切换 */
 .mode-switch {
   display: flex;
   background: var(--bg-soft);
@@ -1013,6 +1070,78 @@ function handleLogout() {
 .header-badge {
   margin-left: 4px;
 }
+.notify-pop {
+  display: flex;
+  flex-direction: column;
+}
+.notify-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+.notify-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.notify-empty {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--text-placeholder);
+  font-size: 13px;
+}
+.notify-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.notify-item {
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+.notify-item:last-child {
+  border-bottom: none;
+}
+.notify-item:hover {
+  background: var(--bg-soft);
+}
+.notify-item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notify-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  flex-shrink: 0;
+}
+.notify-dot.unread {
+  background: var(--color-primary);
+}
+.notify-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.notify-item-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.notify-item-time {
+  font-size: 11px;
+  color: var(--text-placeholder);
+  margin-top: 4px;
+}
 
 .user-info {
   display: flex;
@@ -1055,20 +1184,24 @@ function handleLogout() {
 .cashier-container {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background: var(--bg-page);
 }
 
-/* 收银台功能导航栏（对标移动端功能中心一级入口） */
+/* 收银台功能导航栏：最左侧竖排 */
 .cashier-nav {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 46px;
-  padding: 0 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 76px;
+  padding: 12px 8px;
+  margin: 10px 0 10px 10px;
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
-  overflow-x: auto;
+  border-right: 1px solid var(--border-light);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  overflow-y: auto;
   scrollbar-width: none;
   flex-shrink: 0;
 }
@@ -1077,9 +1210,11 @@ function handleLogout() {
 }
 .cashier-nav-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 4px;
   border-radius: var(--radius-md);
   font-size: 13px;
   color: var(--text-secondary);
@@ -1098,7 +1233,7 @@ function handleLogout() {
   font-weight: 600;
 }
 .cashier-nav-icon {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .cashier-main {

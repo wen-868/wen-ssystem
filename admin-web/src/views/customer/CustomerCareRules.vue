@@ -66,7 +66,7 @@
         <el-table-column prop="content" label="内容" min-width="200" show-overflow-tooltip />
         <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'SUCCESS' ? 'success' : row.status === 'FAILED' ? 'danger' : 'info'">{{ row.status }}</el-tag>
+                <el-tag :type="row.status === 'SUCCESS' ? 'success' : row.status === 'FAILED' ? 'danger' : 'info'">{{ row.status === 'SUCCESS' ? '成功' : row.status === 'FAILED' ? '失败' : row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="时间" width="180">

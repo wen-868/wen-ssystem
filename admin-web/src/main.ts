@@ -10,6 +10,7 @@ import App from "./App.vue";
 import router from "./router";
 import { reportFrontendError } from "./api";
 import { useAuthStore } from "./stores/auth";
+import { installGlobalRowClick } from "./plugins/globalRowClick";
 
 const app = createApp(App);
 
@@ -66,5 +67,8 @@ window.addEventListener("message", (event) => {
     window.location.href = "/";
   }
 });
+
+// 全局表格整行点击直达明细（所有列表页生效）
+installGlobalRowClick();
 
 app.mount("#app");

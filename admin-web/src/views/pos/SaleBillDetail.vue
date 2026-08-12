@@ -23,10 +23,6 @@
       <!-- 打印抬头 -->
       <div class="print-header">
         <h1 class="print-title">销 售 单</h1>
-        <div class="print-meta">
-          <span>单号：{{ detail.billNo }}</span>
-          <span>日期：{{ detail.createdAt }}</span>
-        </div>
       </div>
 
       <!-- 单据头 -->
@@ -37,7 +33,8 @@
         <el-descriptions-item label="销售类型">
           {{ detail.saleType === "CREDIT" ? "赊销" : "现销" }}
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detail.createdAt }}</el-descriptions-item>
+        <el-descriptions-item v-if="!(detail.auditorName || detail.salesmanName)" label="收银员">{{ detail.operatorName || "-" }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ formatDate(detail.createdAt) }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 商品明细 -->
@@ -51,13 +48,15 @@
         <el-table-column prop="unit" label="单位" width="80">
           <template #default="{ row }">{{ row.unit || "瓶" }}</template>
         </el-table-column>
-        <el-table-column prop="quantity" label="数量" width="100" />
+        <el-table-column label="数量" width="100">
+          <template #default="{ row }">{{ row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? '-' }}</template>
+        </el-table-column>
         <el-table-column prop="unitPrice" label="单价" width="120">
           <template #default="{ row }">¥{{ Number(row.unitPrice || 0).toFixed(2) }}</template>
         </el-table-column>
         <el-table-column label="金额" width="130">
           <template #default="{ row }">
-            <span class="money-text">¥{{ (Number(row.unitPrice || 0) * Number(row.quantity || 0)).toFixed(2) }}</span>
+            <span class="money-text">¥{{ (Number(row.unitPrice || 0) * Number(row.totalBottleQty ?? row.bottleQty ?? row.quantity ?? 0)).toFixed(2) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="追溯码" min-width="160">
@@ -89,7 +88,7 @@
           </div>
           <div class="summary-item">
             <span class="summary-label">已收金额</span>
-            <span class="summary-value">¥{{ Number(detail.paidAmount || 0).toFixed(2) }}</span>
+            <span class="summary-value">¥{{ Number(detail.receivedAmount ?? detail.paidAmount ?? 0).toFixed(2) }}</span>
           </div>
         </div>
       </div>
@@ -106,11 +105,11 @@
 
       <!-- 签章区 -->
       <div class="print-sign">
-        <span>制单人：{{ detail.operatorName || "-" }}</span>
-        <span>审核人：{{ detail.auditorName || "-" }}</span>
-        <span>业务员：{{ detail.salesmanName || "-" }}</span>
+        <!-- 收银台单据只显示收银员；工作台单据显示 制单/审核/业务 -->
+        <span v-if="detail.auditorName || detail.salesmanName">制单人：{{ detail.operatorName || "-" }}</span>
+        <span v-if="detail.auditorName || detail.salesmanName">审核人：{{ detail.auditorName || "-" }}</span>
+        <span v-if="detail.auditorName || detail.salesmanName">业务员：{{ detail.salesmanName || "-" }}</span>
         <span>客户签收：____________</span>
-        <span>日期：____________</span>
       </div>
     </el-card>
   </div>
@@ -122,6 +121,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ArrowLeft, Printer } from "@element-plus/icons-vue";
 import { fetchStoreSaleBillDetail } from "../../api";
 import { amountToChinese } from "../../utils/money";
+import { formatDate } from "../../utils/format";
 
 const route = useRoute();
 const router = useRouter();
@@ -139,7 +139,9 @@ function getStatusText(status: string) {
 }
 
 function goBack() {
-  router.push("/sale-bills");
+  // 收银台模式：返回收银台销售单据列表，不跳出
+  const listPath = route.path.startsWith("/pos/") ? "/pos/sale-bills" : "/sale-bills";
+  router.push(listPath);
 }
 
 function handlePrint() {

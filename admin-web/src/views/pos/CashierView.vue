@@ -89,41 +89,37 @@
       <section class="cart-panel">
         <!-- 会员信息 -->
         <div class="member-section">
-          <template v-if="saleForm.customerName">
-            <div class="member-selected">
-              <span class="member-avatar"><el-icon><User /></el-icon></span>
-              <div class="member-meta">
-                <div class="member-name">{{ saleForm.customerName }}</div>
-                <div class="member-phone">{{ saleForm.customerMobile || "会员" }}</div>
-              </div>
-              <el-button link type="primary" @click="clearMember">更换</el-button>
+          <div class="member-selected">
+            <span class="member-avatar"><el-icon><User /></el-icon></span>
+            <div class="member-meta">
+              <div class="member-name">{{ saleForm.customerName || "散户" }}</div>
+              <div class="member-phone">{{ saleForm.customerId > 0 ? (saleForm.customerMobile || "会员") : "散户" }}</div>
             </div>
-          </template>
-          <template v-else>
-            <div class="member-search">
-              <el-input
-                v-model="memberKeyword"
-                placeholder="手机号 / 姓名 识别会员"
-                size="small"
-                clearable
-                @keyup.enter="handleSearchMembers"
-              >
-                <template #prefix><el-icon><User /></el-icon></template>
-              </el-input>
-              <el-button size="small" @click="handleSearchMembers">识别</el-button>
-            </div>
-            <div v-if="memberOptions.length > 0" class="member-dropdown">
-              <div
+            <!-- 会员选择框：默认散户，下拉直接选择会员，选中即切换为会员 -->
+            <el-select
+              v-model="selectedMemberId"
+              filterable
+              remote
+              clearable
+              size="small"
+              placeholder="识别 / 选择会员"
+              :remote-method="handleSearchMembers"
+              :loading="memberLoading"
+              class="member-select"
+              @change="onMemberSelect"
+              @clear="useWalkInCustomer"
+            >
+              <template #prefix>
+                <el-icon><User /></el-icon>
+              </template>
+              <el-option
                 v-for="m in memberOptions"
                 :key="m.memberId || m.id"
-                class="member-option"
-                @click="selectMember(m)"
-              >
-                <span>{{ m.name }}</span>
-                <span class="muted">{{ m.mobile }}</span>
-              </div>
-            </div>
-          </template>
+                :label="`${m.name} ${m.mobile || ''}`"
+                :value="m.memberId || m.id"
+              />
+            </el-select>
+          </div>
         </div>
 
         <!-- 购物车列表 -->
@@ -132,7 +128,25 @@
             <div v-for="(item, index) in cartItems" :key="item.skuId" class="cart-row">
               <div class="cart-row-main">
                 <div class="cart-row-name">{{ item.skuName }}</div>
-                <div class="cart-row-sub">¥{{ Number(item.unitPrice).toFixed(2) }}</div>
+                <div v-if="editingPriceIdx === index" class="cart-row-price">
+                  <span class="cart-row-price-symbol">¥</span>
+                  <el-input-number
+                    v-model="item.unitPrice"
+                    :min="0"
+                    :precision="2"
+                    :controls="false"
+                    size="small"
+                    class="cart-row-price-input"
+                    :ref="(el: any) => priceInputRefs[index] = el"
+                    @change="confirmPriceEdit(index)"
+                    @blur="confirmPriceEdit(index)"
+                    @keyup.enter="confirmPriceEdit(index)"
+                  />
+                </div>
+                <div v-else class="cart-row-price cart-row-price--static" @click="startPriceEdit(index)">
+                  <span class="cart-row-price-symbol">¥</span>
+                  <span class="cart-row-price-text">{{ Number(item.unitPrice).toFixed(2) }}</span>
+                </div>
               </div>
               <div class="cart-row-qty">
                 <button class="qty-btn" @click="decreaseQty(index)">−</button>
@@ -174,13 +188,18 @@
             :class="{ active: paymentMethod === m.value }"
             @click="paymentMethod = m.value"
           >
-            <span class="pay-method-icon">{{ m.icon }}</span>
+            <span
+              class="pay-method-icon"
+              :class="payIconClass(m.value)"
+            >
+              <PayMethodLogo :method="m.value" />
+            </span>
             <span class="pay-method-name">{{ m.label }}</span>
           </button>
         </div>
 
-        <!-- 功能导航：挂单 / 取单 / 清空 / 打印 -->
-        <div class="cart-actions">
+        <!-- 功能导航 + 结算：结算占右侧两列并跨两行（填充原清空/打印位） -->
+        <div class="cart-action-grid">
           <button class="action-btn" @click="handleCreateHoldOrder">
             <span class="action-kbd">F2</span>
             <span class="action-label">挂单</span>
@@ -196,15 +215,13 @@
             <span class="action-kbd">F9</span>
             <span class="action-label">打印</span>
           </button>
+          <button class="checkout-btn" :disabled="cartItems.length === 0 || loading" @click="openPayDialog">
+            <span class="checkout-label">结算</span>
+            <span class="checkout-amount">
+              <span class="price-symbol">¥</span>{{ cartAmount.toFixed(2) }}
+            </span>
+          </button>
         </div>
-
-        <!-- 结算按钮 -->
-        <button class="checkout-btn" :disabled="cartItems.length === 0 || loading" @click="openPayDialog">
-          <span class="checkout-label">结算</span>
-          <span class="checkout-amount">
-            <span class="price-symbol">¥</span>{{ cartAmount.toFixed(2) }}
-          </span>
-        </button>
 
         <el-alert
           v-if="currentBillNo"
@@ -221,7 +238,7 @@
     <el-dialog
       v-model="payDialogVisible"
       title="收款结算"
-      width="520px"
+      width="680px"
       :close-on-click-modal="false"
       align-center
       class="pay-dialog"
@@ -245,7 +262,12 @@
             :class="{ active: paymentMethod === m.value }"
             @click="paymentMethod = m.value"
           >
-            <span class="pay-method-icon">{{ m.icon }}</span>
+            <span
+              class="pay-method-icon"
+              :class="payIconClass(m.value)"
+            >
+              <PayMethodLogo :method="m.value" />
+            </span>
             <span>{{ m.label }}</span>
           </button>
         </div>
@@ -298,11 +320,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, reactive, ref, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
 import {
   Search, User, Plus, Close, FullScreen, ShoppingCart
 } from "@element-plus/icons-vue";
+import PayMethodLogo from "../../components/pos/PayMethodLogo.vue";
 import {
   searchStoreProducts,
   searchStoreMembers,
@@ -323,11 +346,13 @@ const categories = ref<any[]>([]);
 const activeCategory = ref(0);
 const memberKeyword = ref("");
 const memberOptions = ref<any[]>([]);
+const selectedMemberId = ref<number | null>(null);
+const memberLoading = ref(false);
 const cartItems = ref<any[]>([]);
 const paymentMethod = ref("CASH");
 const saleForm = reactive({
   customerId: 0,
-  customerName: "",
+  customerName: "散户",
   customerMobile: ""
 });
 const currentBillNo = ref("");
@@ -341,11 +366,21 @@ const memberBalance = ref(0);
 
 /** 支付方式配置：图标 + 文案（现金/微信/支付宝/余额） */
 const payMethodOptions = [
-  { value: "CASH", label: "现金", icon: "¥" },
-  { value: "WECHAT", label: "微信", icon: "微" },
-  { value: "ALIPAY", label: "支付宝", icon: "支" },
-  { value: "BALANCE", label: "余额", icon: "储" }
+  { value: "CASH", label: "现金" },
+  { value: "WECHAT", label: "微信" },
+  { value: "ALIPAY", label: "支付宝" },
+  { value: "BALANCE", label: "余额" }
 ];
+
+function payIconClass(value: string): string {
+  const map: Record<string, string> = {
+    CASH: "pay-method-icon--cash",
+    WECHAT: "pay-method-icon--wechat",
+    ALIPAY: "pay-method-icon--alipay",
+    BALANCE: "pay-method-icon--balance",
+  };
+  return map[value] || "";
+}
 
 /** 分类色板：按 categoryId 循环取色，商品与分类颜色一致 */
 const CATEGORY_COLORS = ["#3F6FEF", "#0EA879", "#D48B3A", "#C0392B", "#8B5CF6", "#06B6D4", "#E67E22", "#16A085"];
@@ -483,35 +518,50 @@ async function handleSearchProducts() {
     activeCategory.value = 0;
     if (productOptions.value.length === 0) {
       ElMessage.info("未找到匹配商品");
+    } else if (productOptions.value.length === 1) {
+      // 扫码/精确搜索命中唯一商品：自动加入购物车（数量默认 1）
+      addCartItem(productOptions.value[0]);
     }
   } finally {
     loading.value = false;
   }
 }
 
-async function handleSearchMembers() {
-  if (!memberKeyword.value.trim()) return;
+/** 会员下拉远程搜索（el-select remote-method） */
+async function handleSearchMembers(query?: string) {
+  memberKeyword.value = (query ?? memberKeyword.value ?? "").trim();
+  if (!memberKeyword.value) {
+    memberOptions.value = [];
+    return;
+  }
+  memberLoading.value = true;
   try {
     const data = await searchStoreMembers(memberKeyword.value.trim());
     memberOptions.value = data.records || [];
   } catch {
     memberOptions.value = [];
+  } finally {
+    memberLoading.value = false;
   }
 }
 
-function selectMember(row: any) {
-  saleForm.customerId = Number(row.memberId || row.id || 0);
-  saleForm.customerName = row.name || "";
-  saleForm.customerMobile = row.mobile || "";
+/** 选择会员：散户直接切换为所选会员 */
+function onMemberSelect(id: number) {
+  const m = memberOptions.value.find((x) => Number(x.memberId || x.id) === Number(id));
+  saleForm.customerId = Number(id || 0);
+  saleForm.customerName = m?.name || "";
+  saleForm.customerMobile = m?.mobile || "";
   memberOptions.value = [];
   memberKeyword.value = "";
-  ElMessage.success(`已选择客户：${saleForm.customerName || "散客"}`);
+  ElMessage.success(`已选择客户：${saleForm.customerName || "散户"}`);
 }
 
-function clearMember() {
+/** 清空/切换回散户 */
+function useWalkInCustomer() {
   saleForm.customerId = 0;
-  saleForm.customerName = "";
+  saleForm.customerName = "散户";
   saleForm.customerMobile = "";
+  selectedMemberId.value = null;
 }
 
 function addCartItem(row: any) {
@@ -542,6 +592,29 @@ function addCartItem(row: any) {
 
 function increaseQty(index: number) {
   cartItems.value[index].quantity = Number(cartItems.value[index].quantity || 0) + 1;
+}
+
+/** 改价：点击价格才进入编辑框，改完自动回到文本显示 */
+const editingPriceIdx = ref(-1);
+const priceInputRefs = ref<any[]>([]);
+
+function startPriceEdit(index: number) {
+  editingPriceIdx.value = index;
+  nextTick(() => {
+    priceInputRefs.value[index]?.focus?.();
+  });
+}
+
+function confirmPriceEdit(index: number) {
+  if (editingPriceIdx.value !== index) return;
+  const item = cartItems.value[index];
+  if (item) onPriceChange(item);
+  editingPriceIdx.value = -1;
+}
+
+/** 改价：谈好价后直接修改行单价，金额自动重算 */
+function onPriceChange(item: any) {
+  item.unitPrice = Math.max(0, Number(item.unitPrice || 0));
 }
 
 function decreaseQty(index: number) {
@@ -768,13 +841,13 @@ async function handleDeleteHoldOrder(holdNo: string) {
 <style scoped>
 .pos-cashier {
   height: 100%;
-  padding: 14px;
+  padding: 10px;
   box-sizing: border-box;
 }
 .cashier-workspace {
   display: grid;
-  grid-template-columns: clamp(130px, 10vw, 160px) minmax(0, 1fr) clamp(300px, 25vw, 350px);
-  gap: 14px;
+  grid-template-columns: clamp(130px, 10vw, 160px) minmax(0, 1fr) clamp(360px, 30vw, 430px);
+  gap: 10px;
   height: 100%;
 }
 
@@ -1049,37 +1122,12 @@ async function handleDeleteHoldOrder(holdNo: string) {
   font-size: 11px;
   color: var(--text-muted);
 }
-.member-search {
-  display: flex;
-  gap: 6px;
+.member-select {
+  width: 220px;
+  flex-shrink: 0;
 }
-.member-search :deep(.el-input__wrapper) {
+.member-select :deep(.el-select__wrapper) {
   border-radius: var(--radius-md);
-}
-.member-dropdown {
-  position: absolute;
-  top: calc(100% - 4px);
-  left: 0;
-  right: 0;
-  margin-top: 4px;
-  background: #fff;
-  border: 1px solid var(--border-normal);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-  z-index: 100;
-  max-height: 160px;
-  overflow-y: auto;
-}
-.member-option {
-  padding: 8px 12px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-light);
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-}
-.member-option:hover {
-  background: var(--gray-50);
 }
 .muted {
   color: var(--text-muted);
@@ -1131,10 +1179,35 @@ async function handleDeleteHoldOrder(holdNo: string) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cart-row-sub {
+.cart-row-price {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+.cart-row-price-symbol {
   font-size: 11px;
+  color: var(--text-secondary);
+}
+.cart-row-price--static {
+  cursor: pointer;
+}
+.cart-row-price-text {
+  font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+.cart-row-price-input {
+  width: 86px;
+}
+.cart-row-price-input :deep(.el-input__wrapper) {
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  transition: none;
+}
+.cart-row-price-input :deep(.el-input__inner) {
+  font-size: 12px;
+  padding: 0 6px;
 }
 .cart-row-qty {
   display: flex;
@@ -1237,12 +1310,71 @@ async function handleDeleteHoldOrder(holdNo: string) {
   background: var(--color-primary-bg);
 }
 .pay-method-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
   font-weight: 700;
   color: var(--text-secondary);
 }
+/* 微信/支付宝使用官方徽标（自带品牌底色），容器透明只保留形状 */
+.pay-method-icon--wechat,
+.pay-method-icon--alipay {
+  background: transparent;
+}
+.pay-method-icon--cash {
+  background: var(--gray-400, #999999);
+  color: #fff;
+}
+.pay-method-icon--balance {
+  background: var(--gray-400, #999999);
+  color: #fff;
+}
+.pay-logo {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.pay-logo--wechat {
+  width: 28px;
+  height: 28px;
+}
+.pay-logo--alipay {
+  width: 28px;
+  height: 28px;
+}
+.pay-logo--balance {
+  width: 20px;
+  height: 20px;
+}
+/* 无状态灰阶：未选中时微信/支付宝徽标置灰，选中恢复品牌色 */
+.pay-method-btn:not(.active) .pay-logo--wechat,
+.pay-method-btn:not(.active) .pay-logo--alipay,
+.pay-method-card:not(.active) .pay-logo--wechat,
+.pay-method-card:not(.active) .pay-logo--alipay {
+  filter: grayscale(1);
+  opacity: 0.85;
+}
+/* 选中点亮：现金绿、余额橙（收银台与结算弹窗一致） */
+.pay-method-btn.active .pay-method-icon--cash,
+.pay-method-card.active .pay-method-icon--cash {
+  background: #16a34a;
+}
+.pay-method-btn.active .pay-method-icon--balance,
+.pay-method-card.active .pay-method-icon--balance {
+  background: #fa8c16;
+}
 .pay-method-btn.active .pay-method-icon {
   color: var(--color-primary);
+}
+.pay-method-btn.active .pay-method-icon--wechat,
+.pay-method-btn.active .pay-method-icon--alipay,
+.pay-method-btn.active .pay-method-icon--cash,
+.pay-method-btn.active .pay-method-icon--balance {
+  color: #fff;
 }
 .pay-method-name {
   font-size: 11px;
@@ -1253,11 +1385,19 @@ async function handleDeleteHoldOrder(holdNo: string) {
   font-weight: 600;
 }
 
-/* 功能导航 */
-.cart-actions {
+/* 功能导航 + 结算网格：结算占右侧两列并跨两行 */
+.cart-action-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr 1fr;
   gap: 6px;
+  margin-top: 8px;
+}
+.cart-action-grid .checkout-btn {
+  grid-column: 3 / 5;
+  grid-row: 1 / 3;
+  height: 100%;
+  min-height: 96px;
 }
 .action-btn {
   position: relative;
@@ -1297,14 +1437,16 @@ async function handleDeleteHoldOrder(holdNo: string) {
 /* 结算按钮 */
 .checkout-btn {
   width: 100%;
-  height: 48px;
+  height: 56px;
   border: none;
   border-radius: var(--radius-lg);
   background: var(--color-primary);
   color: #fff;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
+  gap: 2px;
   padding: 0 18px;
   cursor: pointer;
   transition: background 150ms ease, transform 120ms ease;
@@ -1322,11 +1464,11 @@ async function handleDeleteHoldOrder(holdNo: string) {
   cursor: not-allowed;
 }
 .checkout-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 }
 .checkout-amount {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1339,7 +1481,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
   border-radius: var(--radius-xl);
 }
 .pay-dialog-body {
-  padding: 2px 4px;
+  padding: 10px 16px;
 }
 .pay-amount-row {
   display: flex;
@@ -1353,7 +1495,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
   color: var(--text-secondary);
 }
 .pay-amount-value {
-  font-size: 30px;
+  font-size: 40px;
   font-weight: 700;
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;

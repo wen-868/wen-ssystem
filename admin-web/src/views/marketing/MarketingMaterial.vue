@@ -188,7 +188,7 @@
               <el-table-column prop="materialType" label="类型" width="80">
                 <template #default="{ row }">
                   <el-tag size="small" :type="typeTagType(row.materialType)">
-                    {{ row.materialType }}
+                    {{ materialTypeName(row.materialType) }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -778,6 +778,11 @@ function typeTagType(type: string): string {
   if (type === "DOCUMENT") return "warning";
   if (type === "HTML") return "success";
   return "";
+}
+
+function materialTypeName(type: string): string {
+  const map: Record<string, string> = { IMAGE: "图片", VIDEO: "视频", DOCUMENT: "文档", HTML: "网页" };
+  return map[type] || type;
 }
 
 function formatFileSize(bytes: number): string {

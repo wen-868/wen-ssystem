@@ -37,7 +37,13 @@
             <el-table-column prop="storeName" label="门店" width="140" />
             <el-table-column prop="barcode" label="条码" width="160" />
             <el-table-column prop="skuName" label="商品名称" min-width="180" />
-            <el-table-column prop="stockType" label="库存类型" width="100" />
+            <el-table-column label="库存类型" width="100">
+              <template #default="{ row }">
+                <el-tag size="small" :type="row.stockType === 'ONLINE' ? 'primary' : 'info'">
+                  {{ row.stockType === 'ONLINE' ? '线上' : '线下' }}
+                </el-tag>
+              </template>
+            </el-table-column>
             <el-table-column prop="physicalQty" label="实物库存" width="100" />
             <el-table-column prop="availableQty" label="可用库存" width="110">
               <template #default="{ row }">

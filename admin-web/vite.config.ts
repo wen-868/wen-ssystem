@@ -15,7 +15,14 @@ export default defineConfig({
       dts: false,
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [
+        // 全局表格增强：所有 <el-table> 自动走 ZxElTable（列宽/列序拖拽+持久化，强制 border）
+        (name: string) =>
+          name === "ElTable"
+            ? { name: "default", from: "@/components/zx/ZxElTable.vue", as: "ElTable" }
+            : undefined,
+        ElementPlusResolver(),
+      ],
       dts: false,
     }),
   ],
@@ -25,7 +32,15 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173
+    port: 5173,
+    // 本地预览临时代理：对接线上 API（验证后还原）
+    proxy: {
+      "/api": {
+        target: "https://api.onepan.cn",
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   build: {
     chunkSizeWarningLimit: 500,

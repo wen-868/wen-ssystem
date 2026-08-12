@@ -140,7 +140,7 @@
           <template #default="{ row }">
             <span class="platform-tag" :style="{ color: row.color }">
               <span class="platform-dot" :style="{ background: row.color }"></span>
-              {{ row.platform }}
+              {{ platformName(row.platform) }}
             </span>
           </template>
         </el-table-column>
@@ -338,6 +338,11 @@ const topProfitList = ref([
 
 function formatNumber(num: number) {
   return num.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function platformName(p: string): string {
+  const map: Record<string, string> = { JD: "京东", MEITUAN: "美团", ELEME: "饿了么", DOUYIN: "抖音" };
+  return map[p] || p;
 }
 
 function handleQuickDateChange(val: string) {

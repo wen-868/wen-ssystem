@@ -29,7 +29,7 @@
           <template #default="{ row }"><span class="amount-text">¥{{ Number(row.receivableAmount || 0).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column prop="paidAmount" label="已收" width="100">
-          <template #default="{ row }"><span class="amount-text">¥{{ Number(row.paidAmount || 0).toFixed(2) }}</span></template>
+          <template #default="{ row }"><span class="amount-text">¥{{ Number(row.receivedAmount ?? row.paidAmount ?? 0).toFixed(2) }}</span></template>
         </el-table-column>
         <el-table-column prop="collectionStatus" label="状态" width="100">
           <template #default="{ row }">
@@ -67,13 +67,12 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
   fetchStoreSaleBills,
   createStoreCollectionLink
 } from "../../api";
-
 const loading = ref(false);
 const keyword = ref("");
 const collectionStatus = ref("");
@@ -82,6 +81,7 @@ const page = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const router = useRouter();
+const route = useRoute();
 
 function getStatusType(status: string) {
   const map: Record<string, string> = { PAID: "success", PARTIAL: "warning", UNPAID: "danger" };
@@ -112,7 +112,9 @@ async function loadList() {
 }
 
 function openDetail(row: any) {
-  router.push(`/sale-bills/${encodeURIComponent(row.billNo)}`);
+  // 收银台模式：停留在 POS 查看本店单据，不跳工作台
+  const base = route.path.startsWith("/pos/") ? "/pos/sale-bills" : "/sale-bills";
+  router.push(`${base}/${encodeURIComponent(row.billNo)}`);
 }
 
 async function sharePay(row: any) {

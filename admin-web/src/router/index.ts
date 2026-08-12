@@ -249,7 +249,8 @@ const routes = [
       // 14. 门店收银
       { path: "pos/dashboard", name: "pos-dashboard", component: () => import("../views/pos/StoreDashboardView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "门店工作台", icon: DataAnalysis } },
       { path: "pos/cashier", name: "pos-cashier", component: () => import("../views/pos/CashierView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "快速收银", icon: Edit } },
-      { path: "pos/sale-bills", name: "pos-sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "销售单据", icon: Document } },
+{ path: "pos/sale-bills", name: "pos-sale-bills", component: () => import("../views/pos/SaleBillsView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "销售单据", icon: Document } },
+{ path: "pos/sale-bills/:billNo", name: "pos-sale-bill-detail", component: () => import("../views/pos/SaleBillDetail.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "销售单详情", icon: Document, hidden: true } },
       { path: "pos/order-fulfill", name: "pos-order-fulfill", component: () => import("../views/pos/OrderFulfillView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "接单履约", icon: Tickets } },
       { path: "pos/collection", name: "pos-collection", component: () => import("../views/pos/CollectionView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "分享收款", icon: Share } },
       { path: "pos/sale-return", name: "pos-sale-return", component: () => import("../views/pos/SaleReturnView.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER", "CASHIER", "STORE_OPERATOR"], title: "销售退货", icon: RefreshRight } },

@@ -59,21 +59,20 @@
           :disabled="streaming"
           @keydown.enter.exact.prevent="sendMessage"
         />
-      </div>
-      <div class="ai-input-footer">
-        <span class="ai-status">{{ statusText }}</span>
         <el-button
           type="primary"
+          circle
           class="ai-send-btn"
           :loading="streaming"
           :disabled="!canSend"
+          title="发送"
           @click="sendMessage"
         >
-          <el-icon v-if="!streaming" class="ai-send-icon"><Promotion /></el-icon>
-          <span>{{ streaming ? "生成中" : "发送" }}</span>
+          <el-icon v-if="!streaming"><Promotion /></el-icon>
+          <span v-else class="ai-send-dots">···</span>
         </el-button>
       </div>
-      <div class="ai-input-hint">Enter 发送 · Shift+Enter 换行 · 数据不出店</div>
+      <div class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</div>
     </div>
   </aside>
 </template>
@@ -385,15 +384,24 @@ onBeforeUnmount(() => {
 
 .ai-input-area {
   border-top: 1px solid var(--border-light);
-  padding: 12px 16px 10px;
+  padding: 10px 12px 12px;
   background: var(--gray-0);
+  flex-shrink: 0;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+}
+
+.ai-input-box {
+  position: relative;
 }
 
 .ai-input-box :deep(.el-textarea__inner) {
   border-radius: 10px;
   background: var(--bg-soft);
   border: 1px solid var(--border-light);
-  padding: 10px 12px;
+  padding: 10px 46px 10px 12px;
   font-size: 13px;
   line-height: 1.5;
   transition: all 160ms ease;
@@ -405,35 +413,25 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-focus);
 }
 
-.ai-input-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-
-.ai-status {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
 .ai-send-btn {
-  border-radius: 8px;
-  padding: 8px 16px;
-  height: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 14px;
 }
 
-.ai-send-icon {
-  font-size: 14px;
+.ai-send-dots {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .ai-input-hint {
   margin-top: 6px;
   font-size: 11px;
   color: var(--text-placeholder);
-  text-align: right;
+  text-align: center;
 }
 </style>

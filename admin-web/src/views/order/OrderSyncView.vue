@@ -119,15 +119,15 @@
         <el-table-column label="同步类型" width="90">
           <template #default="{ row }">
             <el-tag :type="row.syncType === 'PULL' ? '' : 'success'" size="small">
-              {{ row.syncType === 'PULL' ? 'PULL' : 'PUSH' }}
+              {{ syncTypeName(row.syncType) }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="状态变更" width="180">
           <template #default="{ row }">
-            <span class="status-from">{{ row.fromStatus }}</span>
+            <span class="status-from">{{ orderStatusNames[row.fromStatus] || row.fromStatus }}</span>
             <span class="status-arrow">→</span>
-            <span class="status-to">{{ row.toStatus }}</span>
+            <span class="status-to">{{ orderStatusNames[row.toStatus] || row.toStatus }}</span>
           </template>
         </el-table-column>
         <el-table-column label="同步结果" width="90">
@@ -226,6 +226,11 @@ import { fetchInstantRetailSyncStats, fetchInstantRetailSyncLogs } from '../../a
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
+const orderStatusNames: Record<string, string> = {
+  PENDING_PAY: '待付款', PENDING_SHIP: '待发货', PENDING_RECEIVE: '待收货',
+  COMPLETED: '已完成', CANCELLED: '已取消', REFUNDED: '已退款', CREATED: '已创建', CLOSED: '已关闭',
+}
+const syncTypeName = (t: string) => (t === 'PULL' ? '拉取' : '推送')
 const channelColors: Record<string, string> = { WECHAT: 'var(--color-success)', DOUYIN: 'var(--text-primary)', MEITUAN: 'var(--color-warning)', ELEME: 'var(--color-primary)', JD: 'var(--color-danger)', OFFLINE: 'var(--gray-500)' }
 
 const syncStats = ref({ totalSync: 0, successCount: 0, failCount: 0, pendingCount: 0 })

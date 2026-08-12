@@ -1,7 +1,7 @@
 {
   "name": "admin-web",
   "version": "0.1.0",
-  "description": "智享全链管理系统 — 管理后台（进销存 / 即时零售 SaaS）",
+  "description": "智享全链管理系统 — 工作台（进销存 / 即时零售 SaaS）",
   "author": "深圳市宝安区智享全链软件工作室",
   "type": "module",
   "main": "electron/main.cjs",

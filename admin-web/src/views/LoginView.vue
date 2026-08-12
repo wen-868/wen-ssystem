@@ -12,7 +12,7 @@
         </div>
 
         <h1 class="brand-title">批零一体 SaaS 即时零售中台</h1>
-        <p class="brand-subtitle">一个账号，管理后台与收银台一体贯通</p>
+        <p class="brand-subtitle">一个账号，工作台与收银台一体贯通</p>
 
         <div class="brand-features">
           <div class="feature-item">

@@ -1,5 +1,23 @@
 @import "./styles/tokens.css";
 
+/* 整行可点击表格：行悬停指针 + 高亮 */
+.clickable-table .el-table__row {
+  cursor: pointer;
+}
+.clickable-table .el-table__row:hover > td {
+  background: var(--table-row-hover, #f8f8f8);
+}
+/* 表头列拖拽重排（Excel 式） */
+.zx-col-draggable {
+  cursor: move;
+}
+.zx-col-draggable.zx-col-dragging {
+  opacity: 0.55;
+}
+.zx-col-draggable.zx-col-over {
+  background: rgba(63, 111, 239, 0.08);
+}
+
 /* ═══════════════════════════════════════════
    Element Plus theme overrides — V4.0 Atlas 灰阶
    原则：只有字体用黑色，背景灰+白，按钮保留彩色
