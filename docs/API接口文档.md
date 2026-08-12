@@ -2714,3 +2714,68 @@
 - **认证**: 需要认证（工作台）
 - **Query**: `page`, `pageSize`
 - **响应**: `{ code: "0", data: { list: [...], total, page, pageSize } }`
+
+---
+
+## 打印模块（模板管理 + 留痕审计）
+
+> 架构约定：打印模板存服务端（多端共享），打印机/纸张/份数/抬头页脚等设备配置存客户端本地（localStorage），服务端只负责模板与打印记录。
+
+### GET /api/admin/print/meta
+- **描述**: 单据类型与纸张类型枚举（模板配置页使用）
+- **认证**: 需要认证（工作台）
+- **响应**: `{ code: "0", data: { billTypes: [{value,label}], paperTypes: [{value,label}] } }`
+
+### GET /api/admin/print/templates
+- **描述**: 模板列表；**首次访问自动初始化系统默认模板**（幂等）
+- **认证**: 需要认证（工作台）
+- **Query**: `billType?`, `paperType?`
+- **响应**: `{ code: "0", data: [{ id, tenantId, storeId, billType, paperType, templateName, content, isDefault, version, status, updatedBy, createdAt, updatedAt }] }`
+
+### GET /api/admin/print/templates/:id
+- **描述**: 模板详情（租户隔离）
+- **认证**: 需要认证（工作台）
+
+### POST /api/admin/print/templates
+- **描述**: 新建自定义模板
+- **认证**: 需要认证（工作台）
+- **请求体**: `{ billType(必填), paperType(必填), templateName?, content?, status? }`
+- **响应**: `{ code: "0", data: { id } }`
+
+### PUT /api/admin/print/templates/:id
+- **描述**: 更新模板（version 自动 +1）
+- **认证**: 需要认证（工作台）
+- **请求体**: `{ paperType?, templateName?, content?, status? }`
+
+### DELETE /api/admin/print/templates/:id
+- **描述**: 删除自定义模板（系统默认模板不可删，返回 400）
+- **认证**: 需要认证（工作台）
+
+### POST /api/admin/print/templates/:id/reset
+- **描述**: 重置为系统默认模板内容
+- **认证**: 需要认证（工作台）
+
+### POST /api/admin/print/records
+- **描述**: 上报打印记录（留痕审计）；操作人由服务端注入
+- **认证**: 需要认证（工作台）
+- **请求体**: `{ storeId?, billType(枚举), billNo(必填), printerMac?, printContent?, copies?=1, status?=SUCCESS, errorMsg?, originalId? }`
+- **billType 枚举**: `SALE_BILL / SALE_RETURN / SHIFT / DAILY_SETTLE / SALE_RECEIPT / PURCHASE_ORDER / REPORT / LABEL / REPRINT`
+
+### GET /api/admin/print/records
+- **描述**: 打印记录分页列表（支持 billType/billNo/storeId/status/operatorId/startDate/endDate 筛选）
+- **认证**: 需要认证（工作台）
+- **Query**: `page`, `pageSize`, 以上筛选字段
+
+### GET /api/admin/print/records/:id
+- **描述**: 打印记录详情
+- **认证**: 需要认证（工作台）
+
+### POST /api/admin/print/records/:id/reprint
+- **描述**: 重打（生成新记录，billType=REPRINT，original_id 关联原记录）
+- **认证**: 需要认证（工作台）
+
+### 模板变量约定
+- 模板内容为 HTML，业务字段用 `{{变量}}` 占位符；
+- `{{items}}` 由前端渲染器自动生成表格行（**不要手工插入**）；
+- 变量字典按单据类型在打印配置页"插入变量"面板展示；
+- 业务字段输出前统一 HTML 转义，防注入。
