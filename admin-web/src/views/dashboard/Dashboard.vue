@@ -38,8 +38,8 @@
 
     <el-row :gutter="16">
       <!-- ====== 左：经营动态信息流 ====== -->
-      <el-col :xs="24" :md="16" class="dash-col">
-        <el-card class="feed-card" shadow="hover">
+      <el-col :xs="24" :md="16" class="dash-col dash-col--left">
+        <el-card class="feed-card feed-card--feed" shadow="hover">
           <template #header>
             <div class="feed-header">
               <span class="feed-title">经营动态</span>
@@ -89,7 +89,7 @@
         </el-card>
 
         <!-- 本月销售趋势 -->
-        <el-card class="feed-card" shadow="hover">
+        <el-card class="feed-card feed-card--trend" shadow="hover">
           <template #header>
             <div class="feed-header">
               <span class="feed-title">本月销售趋势</span>
@@ -114,9 +114,12 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills.slice(0, 10)" :key="b.billNo || b.id" class="order-item" @click="navTo(b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills')">
+            <div v-for="b in recentBills.slice(0, 10)" :key="b.billNo || b.id" class="order-item" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
               <div class="order-main">
-                <div class="order-no">{{ b.billNo || "-" }}</div>
+                <div class="order-no-row">
+                  <span class="order-no">{{ b.billNo || "-" }}</span>
+                  <span class="order-source">{{ b.source || "线下门店" }}</span>
+                </div>
                 <div class="order-customer">{{ b.customerName || "-" }}</div>
               </div>
               <div class="order-side">
@@ -191,6 +194,7 @@ import {
 import { fetchSaleBills, fetchMembers, fetchStores } from "../../api";
 import { fetchReceipts } from "../../api/finance";
 import { fetchNotifications } from "../../api/system";
+import { fetchInstantOrders } from "../../api/instant-retail";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -305,6 +309,50 @@ function billStatusType(s: string): any {
     RETURNED: "warning",
   };
   return map[s] || "info";
+}
+
+/** 订单来源渠道中文名（平台订单/小程序） */
+const CHANNEL_SOURCE_LABELS: Record<string, string> = {
+  JD: "京东",
+  MEITUAN: "美团",
+  ELEME: "饿了么",
+  WECHAT: "小程序",
+  DOUYIN: "抖音",
+  OFFLINE: "线下门店",
+  MINIAPP: "小程序",
+};
+
+function channelSourceLabel(platform: string): string {
+  const key = String(platform || "").toUpperCase();
+  return CHANNEL_SOURCE_LABELS[key] || key || "其他渠道";
+}
+
+/** 平台订单（京东/美团等）转最新订单统一结构 */
+function channelOrderToBill(o: any) {
+  let data: any = {};
+  try {
+    data = JSON.parse(o.orderDataJson || "{}");
+  } catch {
+    /* 忽略解析失败，使用默认值 */
+  }
+  return {
+    billNo: o.platformOrderId || o.orderNo || "-",
+    customerName: data.customerName || data.receiverName || data.buyerName || "渠道客户",
+    receivableAmount: Number(data.amount ?? data.payAmount ?? data.totalAmount ?? 0),
+    businessStatus: o.status,
+    createdAt: o.createdAt,
+    source: channelSourceLabel(o.platform),
+    route: "/order-center",
+  };
+}
+
+/** 线下销售单来源：优先门店名，其次“线下门店” */
+function offlineSourceLabel(b: any): string {
+  if (b.storeId && storeList.value.length) {
+    const s = storeList.value.find((x: any) => String(x.id) === String(b.storeId));
+    if (s?.storeName || s?.name) return s.storeName || s.name;
+  }
+  return "线下门店";
 }
 
 function receiptStatusText(s: string): string {
@@ -513,6 +561,7 @@ async function loadAllData() {
       fetchMembers({ page: 1, pageSize: 6 }),
       fetchStores(),
       fetchDashboardSalesTrend(),
+      fetchInstantOrders({ page: 1, pageSize: 20 }),
     ]);
     if (results[0].status === "fulfilled") overview.value = results[0].value || {};
     if (results[1].status === "fulfilled") alertData.value = results[1].value || { inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] };
@@ -524,7 +573,7 @@ async function loadAllData() {
     const receipts = results[3].status === "fulfilled" ? (results[3].value?.records || []) : [];
     const notices = results[4].status === "fulfilled" ? (results[4].value?.records || []) : [];
     const members = results[5].status === "fulfilled" ? (results[5].value?.records || []) : [];
-    // 最新订单：只显示进行中的（过滤已完成/作废/退货），固定展示 10 条
+    // 最新订单：只显示进行中的（过滤已完成/作废/退货），合并多渠道来源，固定展示 10 条
     const activeBills = bills.filter((b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus));
     if (!overview.value.recentBills && activeBills.length) overview.value.recentBills = activeBills.slice(0, 10);
     if (!overview.value.recentReceipts && receipts.length) overview.value.recentReceipts = receipts.slice(0, 5);
@@ -533,7 +582,20 @@ async function loadAllData() {
     const overviewActiveBills = (overview.value.recentBills || []).filter(
       (b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus)
     );
-    recentBills.value = (overviewActiveBills.length ? overviewActiveBills : activeBills).slice(0, 10);
+    const channelOrders = results[8].status === "fulfilled" ? (results[8].value?.records || []) : [];
+    const channelItems = channelOrders
+      .filter((o: any) => !["COMPLETED", "CANCELLED", "VOIDED", "RETURNED"].includes(o.status))
+      .map(channelOrderToBill);
+    const offlineItems = (overviewActiveBills.length ? overviewActiveBills : activeBills)
+      .slice(0, 10)
+      .map((b: any) => ({
+        ...b,
+        source: offlineSourceLabel(b),
+        route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
+      }));
+    recentBills.value = [...offlineItems, ...channelItems]
+      .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0))
+      .slice(0, 10);
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
@@ -563,13 +625,37 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
+/* 左列：经营动态与趋势图固定高度，内容过多时卡片内部滚动，避免被信息拉伸 */
+.dash-col--left .feed-card--feed {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+.dash-col--left .feed-card--feed :deep(.el-card__body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.dash-col--left .feed-card--trend {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+.dash-col--left .feed-card--trend :deep(.el-card__body) {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 20px 12px;
+}
+/* 右列：三卡片与左列底部对齐，最新订单/待办等高均分，快捷入口固定高度 */
 .dash-col--right {
-  /* 右侧列高度自适应内容，不被左侧大卡片拉伸 */
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 .dash-col--right .side-card--fill {
-  /* 最新订单、待办与预警：固定等高（内容过多时内部滚动），两卡片始终对齐 */
-  height: 190px;
+  /* 固定等高（内容过多时内部滚动），两卡片始终对齐，不被信息拉伸 */
+  flex: 1 1 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
@@ -715,10 +801,14 @@ onUnmounted(() => {
 }
 .trend-chart {
   width: 100%;
-  height: 300px;
+  height: 100%;
 }
 .chart-empty {
-  padding: 20px 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 .metric-strip {
   margin-bottom: 16px;
@@ -779,10 +869,29 @@ onUnmounted(() => {
   gap: 2px;
   min-width: 0;
 }
+.order-no-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .order-no {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.order-source {
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  background: var(--bg-soft);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 0 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .order-customer {
   font-size: 12px;
