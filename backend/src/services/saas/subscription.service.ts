@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 export interface Subscription {
@@ -291,7 +291,7 @@ export async function getSubscriptionStatistics(): Promise<{
        COALESCE((SELECT COUNT(*) FROM t_subscription WHERE status = 'CANCELLED'), 0) AS cancelledSubscriptions,
        COALESCE((SELECT SUM(price) FROM t_subscription WHERE payment_status = 'PAID'), 0) AS totalRevenue,
        COALESCE((SELECT SUM(price) FROM t_subscription WHERE payment_status = 'PAID' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)), 0) AS monthlyRevenue
-     FROM DUAL`
+     `
   );
 
   return {

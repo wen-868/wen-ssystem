@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 平台总后台 - 租户管理服务
  *
  * 功能：创建、编辑、禁用/启用租户，查看租户详情
@@ -207,7 +207,7 @@ export async function getPlatformTenantDetail(tenantId: string) {
        (SELECT COUNT(*) FROM t_product_spu WHERE tenant_id = ?) AS totalProducts,
        (SELECT COUNT(*) FROM t_member WHERE tenant_id = ?) AS totalMembers,
        (SELECT COUNT(*) FROM t_sale_bill WHERE tenant_id = ? AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS recentOrders
-     FROM DUAL`,
+     `,
     [tenantId, tenantId, tenantId, tenantId, tenantId]
   );
 

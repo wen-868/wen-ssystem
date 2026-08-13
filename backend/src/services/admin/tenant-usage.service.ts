@@ -76,7 +76,7 @@ export async function getStats(): Promise<UsageStats> {
        (SELECT COUNT(*) FROM t_sale_bill) AS totalOrders,
        (SELECT IFNULL(SUM(received_amount), 0) FROM t_sale_bill WHERE collection_status = 'PAID') AS totalSales,
        (SELECT COUNT(*) FROM t_sys_user_login) AS totalLogins
-     FROM DUAL`
+     `
   );
 
   return {

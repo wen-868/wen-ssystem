@@ -169,7 +169,7 @@ export async function getSettlementStats(): Promise<SettlementStats> {
        (SELECT IFNULL(SUM(settled_amount), 0) FROM t_platform_settlement
         WHERE status = 'SETTLED') AS settledAmount,
        (SELECT COUNT(*) FROM t_platform_settlement) AS settlementCount
-     FROM DUAL`
+     `
   );
 
   return {

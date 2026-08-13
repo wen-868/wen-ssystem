@@ -80,7 +80,7 @@ export async function getPlatformOverview() {
        (SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE') AS activeSubscriptions,
        (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE status = 'ACTIVE' AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS monthlyRevenue,
        (SELECT COUNT(*) FROM t_platform_admin) AS totalAdmins
-     FROM DUAL`
+     `
   );
 
   // 近7天新增租户趋势
@@ -125,7 +125,7 @@ export async function getTenantStatistics() {
        (SELECT COUNT(*) FROM t_tenant WHERE status = 'EXPIRED') AS expiredTenants,
        (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)) AS newTenantsMonth,
        (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek
-     FROM DUAL`
+     `
   );
 
   // 近30天新增租户趋势
@@ -160,7 +160,7 @@ export async function getRevenueStatistics() {
        (SELECT IFNULL(SUM(amount), 0) FROM t_subscription WHERE YEAR(created_at) = YEAR(NOW()) AND MONTH(created_at) = MONTH(NOW())) AS currentMonthRevenue,
        (SELECT COUNT(*) FROM t_subscription WHERE payment_status = 'PAID') AS paidCount,
        (SELECT COUNT(*) FROM t_subscription) AS totalOrders
-     FROM DUAL`
+     `
   );
 
   // 近6个月收入趋势
@@ -266,7 +266,7 @@ export async function getPlatformDashboardOverview(): Promise<PlatformDashboardO
        (SELECT COUNT(*) FROM t_tenant WHERE DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)) AS newTenantsWeek,
        (SELECT COUNT(*) FROM t_subscription WHERE status = 'ACTIVE') AS activeSubscriptions,
        (SELECT COUNT(*) FROM t_platform_admin) AS totalAdmins
-     FROM DUAL`
+     `
   );
 
   const [incomeTrend, planDistribution, tenantStatus, recentTenants] = await Promise.all([
