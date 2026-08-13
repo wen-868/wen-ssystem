@@ -112,6 +112,34 @@ export async function printViaAgent(opts: {
   }
 }
 
+/** 弹开钱箱（经本地打印助手发送 ESC/POS 钱箱脉冲，依赖打印机 RJ11 钱箱口） */
+export async function openCashDrawer(opts?: {
+  printerName?: string;
+  pulse?: number;
+  baseUrl?: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  const cfg = getLocalPrintConfig();
+  const url = (opts?.baseUrl ?? cfg.agentBaseUrl).replace(/\/+$/, "");
+  try {
+    const res = await fetch(`${url}/cash-drawer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        printerName: opts?.printerName ?? cfg.printerName,
+        pulse: opts?.pulse ?? 0,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      return { ok: false, message: text || `打印助手返回 ${res.status}` };
+    }
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    return { ok: data.ok !== false, message: data.message };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** 加载单据类型模板（取启用状态的第一条） */
 export async function loadTemplate(billType: string): Promise<{ content: string; paperType: string } | null> {
   const list = await fetchPrintTemplates({ billType });

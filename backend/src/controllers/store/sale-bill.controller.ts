@@ -2,6 +2,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as saleBillService from "../../services/store/sale-bill.service";
+import * as scanPayService from "../../services/payment/scan-pay.service";
 import { storeSaleBillItemSchema } from "../../routes/store-sale-bill.routes";
 
 // ── 辅助函数（集中分支逻辑，减少重复分支统计） ──
@@ -116,7 +117,7 @@ export const createCollectionLink = asyncHandler(async (req, res) => {
 export const offlinePayment = asyncHandler(async (req, res) => {
   const body = z.object({
     amount: z.number(),
-    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE"]),
     remark: z.string().optional()
   }).parse(req.body);
   const { id, name } = getOperator(req);
@@ -132,7 +133,7 @@ export const offlinePayment = asyncHandler(async (req, res) => {
 export const paymentOnSaleBill = asyncHandler(async (req, res) => {
   const body = z.object({
     amount: z.number().positive(),
-    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY"]),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE"]),
     remark: z.string().optional()
   }).parse(req.body);
   const { id, name } = getOperator(req);
@@ -142,6 +143,31 @@ export const paymentOnSaleBill = asyncHandler(async (req, res) => {
     userId: id, username: name,
     tenantId: req.tenantId!
   });
+  res.json(ok(result));
+});
+
+/** 收银台付款码反扫收款（扫码枪扫顾客付款码） */
+export const paySaleBillByCode = asyncHandler(async (req, res) => {
+  const body = z.object({
+    amount: z.number().positive(),
+    authCode: z.string().trim().regex(/^\d{16,24}$/, "付款码应为 16~24 位纯数字"),
+  }).parse(req.body);
+  const { id, name } = getOperator(req);
+  const result = await scanPayService.payByCode({
+    billNo: req.params.billNo,
+    amount: body.amount,
+    authCode: body.authCode,
+    deviceIp: req.ip || "127.0.0.1",
+    userId: id,
+    username: name,
+    tenantId: req.tenantId!,
+  });
+  res.json(ok(result));
+});
+
+/** 收银台支付渠道状态（微信/支付宝/收款盒子是否可用） */
+export const listPosChannels = asyncHandler(async (req, res) => {
+  const result = await scanPayService.getPosChannels(req.tenantId!);
   res.json(ok(result));
 });
 

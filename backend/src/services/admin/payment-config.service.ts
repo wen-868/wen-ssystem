@@ -12,7 +12,8 @@ interface ChannelConfigData {
   serialNo?: string;
   notifyUrl?: string;
   alipayPublicKey?: string;
-  enabled?: number | boolean;
+  boxConfig?: string;
+  enabled?: number | boolean | string;
 }
 
 /** 银行账号数据（创建/编辑银行账号用，与 controller Zod schema 对齐） */
@@ -31,6 +32,24 @@ export async function isProviderReady(tenantId: string, provider: string): Promi
 export class PaymentConfigService {
   // 获取渠道配置（敏感字段脱敏：返回 ***）
   static async getChannelConfig(tenantId: string, provider: string) {
+    // 收款盒子配置复用微信配置行的 box_config 字段
+    if (provider === 'box') {
+      const row = await queryOneWithTenant(
+        `SELECT enabled, box_config FROM t_payment_config WHERE provider = 'wechat'`,
+        [],
+        tenantId
+      );
+      if (!row) return null;
+      let boxData: Record<string, unknown> = {};
+      try {
+        boxData = row.box_config ? JSON.parse(row.box_config) : {};
+      } catch { /* 忽略解析错误 */ }
+      return {
+        provider: 'box',
+        enabled: Number(row.enabled) === 1,
+        boxConfig: boxData,
+      };
+    }
     const row = await queryOneWithTenant(
       `SELECT * FROM t_payment_config WHERE provider = ?`,
       [provider],
@@ -39,6 +58,7 @@ export class PaymentConfigService {
     if (!row) return null;
     // 脱敏：返回到前端时脱敏 api_v3_key, private_key, app_secret
     row.api_v3_key = row.api_v3_key ? '***' : '';
+    row.api_key = row.api_key ? '***' : '';
     row.private_key = row.private_key ? '***' : '';
     row.app_secret = row.app_secret ? '***' : '';
     return row;
@@ -46,19 +66,29 @@ export class PaymentConfigService {
 
   // 保存渠道配置
   static async saveChannelConfig(tenantId: string, provider: string, data: ChannelConfigData) {
+    const enabledFlag = data.enabled === true || data.enabled === 1 || data.enabled === "1" ? 1 : 0;
+    // 收款盒子配置保存到微信配置行的 box_config 字段
+    if (provider === 'box') {
+      await executeWithTenant(
+        `UPDATE t_payment_config SET box_config=?, enabled=?, updated_at=NOW() WHERE provider='wechat'`,
+        [data.boxConfig || null, enabledFlag],
+        tenantId
+      );
+      return { success: true };
+    }
     const existing = await queryOneWithTenant(
       `SELECT id FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     if (existing) {
       await executeWithTenant(
-        `UPDATE t_payment_config SET app_id=?, mch_id=?, api_v3_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, enabled=?, updated_at=NOW() WHERE provider=?`,
-        [data.appId || '', data.mchId || '', data.apiV3Key || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.enabled ? 1 : 0, provider],
+        `UPDATE t_payment_config SET app_id=?, mch_id=?, api_v3_key=?, api_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, box_config=?, enabled=?, updated_at=NOW() WHERE provider=?`,
+        [data.appId || '', data.mchId || '', data.apiV3Key || '', data.apiKey || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.boxConfig || null, enabledFlag, provider],
         tenantId
       );
     } else {
       await executeWithTenant(
-        `INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, private_key, serial_no, notify_url, alipay_public_key, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-        [provider, data.appId || '', data.mchId || '', data.apiV3Key || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.enabled ? 1 : 0, tenantId],
+        `INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, api_key, private_key, serial_no, notify_url, alipay_public_key, box_config, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [provider, data.appId || '', data.mchId || '', data.apiV3Key || '', data.apiKey || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.boxConfig || null, enabledFlag, tenantId],
         tenantId
       );
     }
@@ -73,14 +103,45 @@ export class PaymentConfigService {
     return !!row && row.enabled === 1 && !!row.app_id && !!row.mch_id;
   }
 
-  // 测试连接（mock实现）
+  // 测试连接：真实校验渠道配置完整性（无模拟数据）
   static async testConnection(tenantId: string, provider: string) {
+    if (provider === 'box') {
+      const row = await queryOneWithTenant(
+        `SELECT enabled, box_config FROM t_payment_config WHERE provider = 'wechat'`,
+        [],
+        tenantId
+      );
+      if (!row) throw new Error('配置不存在');
+      let boxData: Record<string, unknown> = {};
+      try {
+        boxData = row.box_config ? JSON.parse(row.box_config) : {};
+      } catch { /* 忽略 */ }
+      const missing: string[] = [];
+      if (Number(row.enabled) !== 1) missing.push('启用开关');
+      if (!boxData.provider) missing.push('服务商名称');
+      if (!boxData.activationCode && !boxData.comPort) missing.push('激活码或串口参数');
+      if (missing.length > 0) {
+        return { success: false, message: `配置不完整：缺少 ${missing.join('、')}`, provider: 'box' };
+      }
+      return { success: true, message: '收款盒子配置校验通过', provider: 'box' };
+    }
     const config = await queryOneWithTenant(
       `SELECT * FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
     if (!config) throw new Error('配置不存在');
-    // Mock: 模拟测试连接
-    return { success: true, message: '连接测试成功', provider };
+    const enabled = Number(config.enabled) === 1;
+    const missing: string[] = [];
+    if (!config.app_id) missing.push('AppID');
+    if (!config.mch_id) missing.push('商户号');
+    if (provider === 'wechat' && !config.api_v3_key) missing.push('API V3 密钥');
+    if (provider === 'wechat' && !config.api_key) missing.push('APIv2 密钥（扫码枪反扫必需）');
+    if (provider === 'wechat' && !config.private_key) missing.push('商户私钥');
+    if (provider === 'alipay' && !config.alipay_public_key) missing.push('支付宝公钥');
+    if (!enabled) missing.push('启用开关');
+    if (missing.length > 0) {
+      return { success: false, message: `配置不完整：缺少 ${missing.join('、')}`, provider };
+    }
+    return { success: true, message: '配置校验通过', provider };
   }
 
   // 各渠道配置状态

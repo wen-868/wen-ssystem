@@ -64,6 +64,17 @@ describe("admin payment-config.service - getChannelConfig", () => {
     expect(res.private_key).toBe("");
     expect(res.app_secret).toBe("");
   });
+
+  it("provider=box 时返回 box_config 解析结果", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"provider":"银盛","activationCode":"ACT123"}',
+    });
+    const res = await PaymentConfigService.getChannelConfig("t1", "box");
+    expect(res.provider).toBe("box");
+    expect(res.enabled).toBe(true);
+    expect(res.boxConfig.activationCode).toBe("ACT123");
+  });
 });
 
 // ============ saveChannelConfig ============
@@ -109,6 +120,31 @@ describe("admin payment-config.service - saveChannelConfig", () => {
     });
     expect(res.success).toBe(true);
   });
+
+  it("provider=box 时更新微信配置行的 box_config 与 enabled", async () => {
+    mocks.executeWithTenant.mockResolvedValue({});
+    const res = await PaymentConfigService.saveChannelConfig("t1", "box", {
+      boxConfig: '{"provider":"银盛","activationCode":"ACT123"}',
+      enabled: "1",
+    });
+    expect(res.success).toBe(true);
+    expect(mocks.executeWithTenant).toHaveBeenCalledWith(
+      expect.stringContaining("SET box_config"),
+      ['{"provider":"银盛","activationCode":"ACT123"}', 1],
+      "t1"
+    );
+  });
+
+  it("enabled 字符串 0 归一化为 0", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ id: 1 });
+    mocks.executeWithTenant.mockResolvedValue({});
+    await PaymentConfigService.saveChannelConfig("t1", "WECHAT", { appId: "wx", enabled: "0" });
+    expect(mocks.executeWithTenant).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.arrayContaining([0]),
+      "t1"
+    );
+  });
 });
 
 // ============ isProviderReady（静态方法） ============
@@ -146,15 +182,41 @@ describe("admin payment-config.service - PaymentConfigService.isProviderReady", 
 
 // ============ testConnection ============
 describe("admin payment-config.service - testConnection", () => {
-  it("config 存在时返回成功", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ provider: "WECHAT", app_id: "wx123" });
+  it("config 完整且启用时返回成功", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      provider: "WECHAT", enabled: 1, app_id: "wx123", mch_id: "mch123",
+      api_v3_key: "v3key", api_key: "v2key", private_key: "pk",
+    });
     const res = await PaymentConfigService.testConnection("t1", "WECHAT");
     expect(res.success).toBe(true);
+  });
+
+  it("config 不完整时返回失败并提示缺少项", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ provider: "WECHAT", app_id: "wx123" });
+    const res = await PaymentConfigService.testConnection("t1", "WECHAT");
+    expect(res.success).toBe(false);
+    expect(res.message).toContain("商户号");
   });
 
   it("config 不存在时抛异常", async () => {
     mocks.queryOneWithTenant.mockResolvedValue(null);
     await expect(PaymentConfigService.testConnection("t1", "WECHAT")).rejects.toThrow("配置不存在");
+  });
+
+  it("provider=box 完整配置返回成功", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"provider":"银盛","activationCode":"ACT123"}',
+    });
+    const res = await PaymentConfigService.testConnection("t1", "box");
+    expect(res.success).toBe(true);
+  });
+
+  it("provider=box 缺少激活码/串口时返回失败", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ enabled: 1, box_config: '{"provider":"银盛"}' });
+    const res = await PaymentConfigService.testConnection("t1", "box");
+    expect(res.success).toBe(false);
+    expect(res.message).toContain("激活码或串口参数");
   });
 });
 

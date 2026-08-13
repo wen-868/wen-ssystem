@@ -90,6 +90,18 @@ export async function createStoreOfflinePayment(billNo: string, amount: number, 
   return data.data;
 }
 
+/** 收银台付款码反扫收款（扫码枪扫顾客付款码） */
+export async function payStoreSaleBillByCode(billNo: string, amount: number, authCode: string) {
+  const { data } = await api.post(`/store/sale-bills/${billNo}/pay-by-code`, { amount, authCode });
+  return data.data;
+}
+
+/** 收银台支付渠道状态（微信/支付宝/收款盒子是否可用） */
+export async function fetchStorePaymentChannels() {
+  const { data } = await api.get("/store/payment/channels");
+  return data.data;
+}
+
 export async function createStoreCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
   const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
     shareChannel: "LINK",
@@ -324,4 +336,3 @@ export async function notifyExpiringTenants(tenantIds: number[]) {
   const { data } = await api.post("/admin/monitor/notify-expiring", { tenantIds });
   return data.data;
 }
-

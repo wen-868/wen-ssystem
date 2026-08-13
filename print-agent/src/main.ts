@@ -6,12 +6,14 @@
  *  - 本地 HTTP 服务 127.0.0.1:5178，供工作台/收银台调用
  *  - 静默直出打印（热敏小票 / 针式 / A4 / 标签）
  *  - 原始指令通道（ESC/POS，针式/热敏指令级，预留）
+ *  - 钱箱弹开通道（ESC/POS 脉冲，经打印机 RJ11 钱箱口）
  *
  * HTTP API：
  *  GET  /health             服务状态
  *  GET  /printers           本机打印机列表
  *  POST /print              打印 HTML（静默直出）
  *  POST /print-raw          原始指令打印（base64，ESC/POS）
+ *  POST /cash-drawer        弹开钱箱（ESC/POS 脉冲指令）
  */
 import {
   app,
@@ -250,6 +252,17 @@ function startServer(port: number): Promise<void> {
           }
           const printer = body.printerName || settings.printerName;
           const result = await printRaw(body.base64, printer);
+          json(res, result.ok ? 200 : 500, result);
+          return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/cash-drawer") {
+          const body = JSON.parse(await readBody(req)) as { printerName?: string; pulse?: number };
+          const printer = body.printerName || settings.printerName;
+          // ESC/POS 钱箱脉冲：ESC p m t1 t2（m=0 常开，1B 70 00 19 FA 为常见 80ms 脉冲）
+          const pulse = Math.max(0, Math.min(1, body.pulse ?? 0));
+          const base64 = Buffer.from([0x1b, 0x70, pulse, 0x19, 0xfa]).toString("base64");
+          const result = await printRaw(base64, printer);
           json(res, result.ok ? 200 : 500, result);
           return;
         }

@@ -47,6 +47,10 @@
           <el-button type="primary" class="search-button" :loading="loading" @click="handleSearchProducts">
             搜索
           </el-button>
+          <el-button class="settings-button" title="收银硬件设置" @click="settingsDialogVisible = true">
+            <el-icon class="btn-icon"><Setting /></el-icon>
+            设置
+          </el-button>
         </div>
 
         <div v-if="productOptions.length === 0" class="empty-state">
@@ -272,6 +276,30 @@
           </button>
         </div>
 
+        <!-- 扫码收款（反扫）：扫码枪扫顾客付款码，自动识别微信/支付宝扣款 -->
+        <div class="pay-code-section">
+          <div class="pay-code-title">
+            扫顾客付款码收款
+            <span v-if="payCodeChannelLabel" class="pay-code-channel">{{ payCodeChannelLabel }}</span>
+          </div>
+          <div class="pay-code-input-row">
+            <el-input
+              ref="payCodeRef"
+              v-model="payCode"
+              class="pay-code-input"
+              placeholder="用扫码枪扫顾客微信 / 支付宝付款码"
+              clearable
+              @keyup.enter="handlePayByCode"
+            >
+              <template #prefix><el-icon><FullScreen /></el-icon></template>
+            </el-input>
+            <el-button type="success" :loading="payCodeLoading" @click="handlePayByCode">
+              扫码收款
+            </el-button>
+          </div>
+          <div class="pay-code-hint">{{ payCodeHint }}</div>
+        </div>
+
         <div class="pay-received-row">
           <span class="pay-received-label">实收金额</span>
           <span class="pay-received-value">¥{{ receivedAmount.toFixed(2) }}</span>
@@ -299,6 +327,59 @@
       </template>
     </el-dialog>
 
+    <!-- 收银硬件设置 -->
+    <el-dialog v-model="settingsDialogVisible" title="收银硬件设置" width="520px" align-center>
+      <div class="hardware-settings">
+        <el-alert
+          type="info"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 14px"
+          title="扫码枪（USB/蓝牙模拟键盘）即插即用，商品条码在搜索框扫描，顾客付款码在结算弹窗扫描"
+        />
+        <div class="hardware-setting-row">
+          <div class="hardware-setting-meta">
+            <div class="hardware-setting-name">现金收款后自动弹钱箱</div>
+            <div class="hardware-setting-desc">需打印机连接 RJ11 钱箱口，经本地打印助手发送 ESC/POS 脉冲</div>
+          </div>
+          <el-switch v-model="hardwareSettings.cashDrawerEnabled" />
+        </div>
+        <div class="hardware-setting-row">
+          <div class="hardware-setting-meta">
+            <div class="hardware-setting-name">收款成功语音播报</div>
+            <div class="hardware-setting-desc">浏览器语音播报收款金额，无需额外硬件</div>
+          </div>
+          <el-switch v-model="hardwareSettings.voiceEnabled" />
+        </div>
+        <div class="hardware-setting-row">
+          <div class="hardware-setting-meta">
+            <div class="hardware-setting-name">结算时自动聚焦付款码框</div>
+            <div class="hardware-setting-desc">打开结算弹窗后直接扫顾客付款码，无需鼠标点击</div>
+          </div>
+          <el-switch v-model="hardwareSettings.scanPayAutoFocus" />
+        </div>
+        <div class="hardware-setting-footer">
+          <span>支付通道状态：</span>
+          <template v-if="channelStatus">
+            <el-tag size="small" :type="channelStatus.wechat.ready ? 'success' : 'info'" style="margin-right: 6px">
+              微信{{ channelStatus.wechat.ready ? "已配置" : "未配置" }}
+            </el-tag>
+            <el-tag size="small" :type="channelStatus.alipay.ready ? 'success' : 'info'" style="margin-right: 6px">
+              支付宝{{ channelStatus.alipay.ready ? "已配置" : "未配置" }}
+            </el-tag>
+            <el-tag size="small" :type="channelStatus.box.ready ? 'success' : 'info'">
+              收款盒子{{ channelStatus.box.ready ? "已配置" : "未配置" }}
+            </el-tag>
+          </template>
+          <el-tag v-else size="small" type="info">查询中</el-tag>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="settingsDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveHardwareSettings">保存</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 挂单弹窗 -->
     <el-dialog v-model="holdDialogVisible" title="挂单列表" width="720px">
       <el-button type="primary" style="margin-bottom: 12px" @click="handleCreateHoldOrder">挂当前购物车</el-button>
@@ -323,7 +404,7 @@
 import { computed, reactive, ref, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage } from "element-plus";
 import {
-  Search, User, Plus, Close, FullScreen, ShoppingCart
+  Search, User, Plus, Close, FullScreen, ShoppingCart, Setting
 } from "@element-plus/icons-vue";
 import PayMethodLogo from "../../components/pos/PayMethodLogo.vue";
 import {
@@ -332,13 +413,21 @@ import {
   fetchProductCategories,
   createStoreSaleBill,
   createStoreOfflinePayment,
+  payStoreSaleBillByCode,
+  fetchStorePaymentChannels,
   createStoreHoldOrder,
   fetchStoreHoldOrders,
   restoreStoreHoldOrder,
   deleteStoreHoldOrder
 } from "../../api";
 import { getLocalPrintConfig } from "../../modules/print/localConfig";
-import { openPrintWindow, printBill } from "../../modules/print/printClient";
+import { openPrintWindow, printBill, openCashDrawer } from "../../modules/print/printClient";
+import {
+  getPosHardwareSettings,
+  savePosHardwareSettings,
+  DEFAULT_POS_HARDWARE,
+  type PosHardwareSettings,
+} from "../../modules/pos/hardwareConfig";
 import { buildTableHtml, fmtMoney, rawHtml } from "../../modules/print/renderer";
 
 const loading = ref(false);
@@ -366,6 +455,42 @@ const payDialogVisible = ref(false);
 const receivedAmount = ref(0);
 /** 会员可用余额（选中会员且有数据时展示，无则 0） */
 const memberBalance = ref(0);
+/** 付款码（反扫） */
+const payCode = ref("");
+const payCodeRef = ref();
+const payCodeLoading = ref(false);
+/** 支付渠道状态（微信/支付宝/收款盒子） */
+const channelStatus = ref<any>(null);
+/** 收银硬件设置 */
+const settingsDialogVisible = ref(false);
+const hardwareSettings = ref<PosHardwareSettings>({ ...DEFAULT_POS_HARDWARE });
+
+/** 付款码渠道识别提示（前端预判，最终以后端为准） */
+const payCodeChannelLabel = computed(() => {
+  const code = payCode.value.trim();
+  if (!/^\d{16,24}$/.test(code)) return "";
+  const prefix = Number(code.slice(0, 2));
+  if (code.length === 18 && prefix >= 10 && prefix <= 15) return "识别为：微信付款码";
+  if (code.length >= 16 && code.length <= 24 && prefix >= 25 && prefix <= 30) return "识别为：支付宝付款码";
+  if (code.length === 19 && code.startsWith("62")) return "识别为：云闪付付款码";
+  return "";
+});
+
+/** 扫码收款提示（通道状态 + 输入引导） */
+const payCodeHint = computed(() => {
+  const code = payCode.value.trim();
+  if (code && !/^\d{16,24}$/.test(code)) return "付款码为 16~24 位纯数字，请直接扫顾客手机上的付款码";
+  if (channelStatus.value) {
+    const readyChannels: string[] = [];
+    if (channelStatus.value.wechat.ready) readyChannels.push("微信");
+    if (channelStatus.value.alipay.ready) readyChannels.push("支付宝");
+    if (readyChannels.length === 0) {
+      return "微信/支付宝通道均未配置，扫码收款会提示失败；可先用现金/余额或手动确认收款";
+    }
+    return `支持通道：${readyChannels.join("、")}（未配置通道扫描后仍可点击确认收款手工记账）`;
+  }
+  return "正在检测支付通道…";
+});
 
 /** 支付方式配置：图标 + 文案（现金/微信/支付宝/余额） */
 const payMethodOptions = [
@@ -435,12 +560,52 @@ onMounted(() => {
   loadHoldOrders();
   loadCategories();
   loadAllProducts();
+  loadPosChannels();
+  hardwareSettings.value = getPosHardwareSettings();
   window.addEventListener("keydown", handleHotkey);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleHotkey);
 });
+
+/** 加载支付通道状态（微信/支付宝/收款盒子） */
+async function loadPosChannels() {
+  try {
+    channelStatus.value = await fetchStorePaymentChannels();
+  } catch {
+    channelStatus.value = null;
+  }
+}
+
+/** 保存收银硬件设置（本机 localStorage，每台终端独立） */
+function saveHardwareSettings() {
+  savePosHardwareSettings(hardwareSettings.value);
+  settingsDialogVisible.value = false;
+  ElMessage.success("收银硬件设置已保存");
+}
+
+/** 收款成功语音播报（浏览器 SpeechSynthesis，无需额外硬件） */
+function speakResult(text: string) {
+  if (!hardwareSettings.value.voiceEnabled) return;
+  try {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "zh-CN";
+    window.speechSynthesis.speak(utterance);
+  } catch {
+    // 语音播报失败不影响收款
+  }
+}
+
+/** 现金收款后自动弹钱箱（经本地打印助手 ESC/POS 脉冲） */
+function kickCashDrawer() {
+  if (!hardwareSettings.value.cashDrawerEnabled) return;
+  openCashDrawer().catch(() => {
+    // 钱箱未接/助手未启动不阻断收款
+  });
+}
 
 /** 键盘快捷键：F2 挂单 / F3 扫码 / F4 取单 / F8 结算 / F9 打印 */
 function handleHotkey(e: KeyboardEvent) {
@@ -533,9 +698,15 @@ async function handleSearchProducts() {
     activeCategory.value = 0;
     if (productOptions.value.length === 0) {
       ElMessage.info("未找到匹配商品");
+      // 扫码未命中：清空输入框并保持焦点，便于重新扫描
+      productKeyword.value = "";
+      productSearchRef.value?.focus?.();
     } else if (productOptions.value.length === 1) {
       // 扫码/精确搜索命中唯一商品：自动加入购物车（数量默认 1）
       addCartItem(productOptions.value[0]);
+      // 连续扫码：加入购物车后清空输入框并保持焦点，避免下一次扫码条码拼接
+      productKeyword.value = "";
+      productSearchRef.value?.focus?.();
     }
   } finally {
     loading.value = false;
@@ -770,7 +941,14 @@ function openPayDialog() {
   }
   receivedAmount.value = cartAmount.value;
   memberBalance.value = 0;
+  payCode.value = "";
   payDialogVisible.value = true;
+  // 硬件设置开启时自动聚焦付款码框：扫码枪扫完商品可直接扫顾客付款码
+  if (hardwareSettings.value.scanPayAutoFocus) {
+    nextTick(() => {
+      payCodeRef.value?.focus?.();
+    });
+  }
 }
 
 async function confirmPayment() {
@@ -800,66 +978,134 @@ async function confirmPayment() {
 
     await createStoreOfflinePayment(currentBillNo.value, currentAmount.value, paymentMethod.value);
     ElMessage.success("收款成功");
-    // 本机配置：结算后自动打印小票（先取号再清空购物车）
-    const printedBillNo = currentBillNo.value;
-    const printedAmount = currentAmount.value;
-    if (getLocalPrintConfig().autoPrint && printedBillNo) {
-      const cfg = getLocalPrintConfig();
-      const items = buildTableHtml(
-        cartItems.value.map((item) => ({
-          name: item.skuName || item.productName || "-",
-          qty: `x${item.quantity}`,
-          amount: `¥${fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1))}`,
-        })),
-        [
-          { key: "name", label: "品名", align: "left" },
-          { key: "qty", label: "数量" },
-          { key: "amount", label: "金额", align: "right" },
-        ]
-      );
-      const payLabel =
-        payMethodOptions.find((m) => m.value === paymentMethod.value)?.label ??
-        paymentMethod.value;
-      printBill({
-        billType: "SALE_RECEIPT",
-        billNo: printedBillNo,
-        title: "销售小票",
-        copies: cfg.copies,
-        vars: {
-          headerName: cfg.headerName,
-          storePhone: cfg.headerPhone,
-          storeAddressLine: rawHtml(cfg.headerAddress ? `<br>${cfg.headerAddress}` : ""),
-          billNo: printedBillNo,
-          billDate: new Date().toLocaleString(),
-          operatorName: getLoginUserRealName() || "收银员",
-          customerName: saleForm.customerName || "散客",
-          items: rawHtml(items),
-          itemsRows: cartItems.value.map((item) => ({
-            name: item.skuName || item.productName || "-",
-            qty: `x${item.quantity}`,
-            amount: fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1)),
-          })),
-          totalAmount: fmtMoney(printedAmount),
-          paidAmount: fmtMoney(printedAmount),
-          changeAmount: fmtMoney(changeAmount.value),
-          paymentMethod: payLabel,
-          memberBalanceRow: "",
-          memberBalance: fmtMoney(memberBalance.value),
-          remarkBlock: "",
-          footerText: cfg.footerText,
-        },
-      }).catch(() => {
-        // 自动打印失败不阻断收款流程，用户可手动点打印
-      });
-    }
-    currentAmount.value = 0;
-    currentBillNo.value = "";
-    cartItems.value = [];
-    payDialogVisible.value = false;
+    const payLabel =
+      payMethodOptions.find((m) => m.value === paymentMethod.value)?.label ??
+      paymentMethod.value;
+    completePaymentFlow(currentBillNo.value, currentAmount.value, payLabel, paymentMethod.value);
   } catch (error) {
     ElMessage.error(getErrorMessage(error, "收款失败"));
   } finally {
     loading.value = false;
+  }
+}
+
+/**
+ * 收款成功统一收尾：现金弹钱箱 + 语音播报 + 自动打印小票 + 清空购物车
+ * @param drawerChannel 现金(CASH)收款时触发钱箱
+ */
+function completePaymentFlow(printedBillNo: string, printedAmount: number, payLabel: string, drawerChannel: string) {
+  // 现金收款弹钱箱（经本地打印助手 ESC/POS 脉冲）
+  if (drawerChannel === "CASH") kickCashDrawer();
+  // 语音播报收款金额
+  speakResult(`收款成功，${fmtMoney(printedAmount)} 元`);
+  // 本机配置：结算后自动打印小票（先取号再清空购物车）
+  if (getLocalPrintConfig().autoPrint && printedBillNo) {
+    const cfg = getLocalPrintConfig();
+    const items = buildTableHtml(
+      cartItems.value.map((item) => ({
+        name: item.skuName || item.productName || "-",
+        qty: `x${item.quantity}`,
+        amount: `¥${fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1))}`,
+      })),
+      [
+        { key: "name", label: "品名", align: "left" },
+        { key: "qty", label: "数量" },
+        { key: "amount", label: "金额", align: "right" },
+      ]
+    );
+    printBill({
+      billType: "SALE_RECEIPT",
+      billNo: printedBillNo,
+      title: "销售小票",
+      copies: cfg.copies,
+      vars: {
+        headerName: cfg.headerName,
+        storePhone: cfg.headerPhone,
+        storeAddressLine: rawHtml(cfg.headerAddress ? `<br>${cfg.headerAddress}` : ""),
+        billNo: printedBillNo,
+        billDate: new Date().toLocaleString(),
+        operatorName: getLoginUserRealName() || "收银员",
+        customerName: saleForm.customerName || "散客",
+        items: rawHtml(items),
+        itemsRows: cartItems.value.map((item) => ({
+          name: item.skuName || item.productName || "-",
+          qty: `x${item.quantity}`,
+          amount: fmtMoney(Number(item.unitPrice || 0) * Number(item.quantity || 1)),
+        })),
+        totalAmount: fmtMoney(printedAmount),
+        paidAmount: fmtMoney(printedAmount),
+        changeAmount: fmtMoney(changeAmount.value),
+        paymentMethod: payLabel,
+        memberBalanceRow: "",
+        memberBalance: fmtMoney(memberBalance.value),
+        remarkBlock: "",
+        footerText: cfg.footerText,
+      },
+    }).catch(() => {
+      // 自动打印失败不阻断收款流程，用户可手动点打印
+    });
+  }
+  currentAmount.value = 0;
+  currentBillNo.value = "";
+  cartItems.value = [];
+  payCode.value = "";
+  payDialogVisible.value = false;
+}
+
+/** 扫码收款（反扫）：建单后调支付通道扣款；失败保留当前单号便于重试，避免重复建单 */
+async function handlePayByCode() {
+  if (cartItems.value.length === 0) {
+    ElMessage.warning("请先加入商品到购物车");
+    return;
+  }
+  const code = payCode.value.trim();
+  if (!/^\d{16,24}$/.test(code)) {
+    ElMessage.warning("请用扫码枪扫顾客付款码（16~24 位纯数字）");
+    return;
+  }
+  payCodeLoading.value = true;
+  try {
+    // 优先复用本次弹窗已创建的单号（付款失败重试时避免重复建单）
+    if (!currentBillNo.value) {
+      const result = await createStoreSaleBill({
+        storeId: getLoginUserStoreId(),
+        customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
+        customerName: saleForm.customerName,
+        customerMobile: saleForm.customerMobile,
+        items: cartItems.value.map((item) => ({
+          skuId: Number(item.skuId),
+          quantity: Number(item.quantity || 1),
+          boxQty: 0,
+          bottleQty: Number(item.quantity || 1),
+          totalBottleQty: Number(item.quantity || 1),
+          unitPrice: Number(item.unitPrice || 0),
+          priceType: "STORE"
+        }))
+      });
+      currentBillNo.value = result.billNo;
+      currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
+    }
+
+    const payResult = await payStoreSaleBillByCode(
+      currentBillNo.value,
+      currentAmount.value || cartAmount.value,
+      code
+    );
+    ElMessage.success(`扫码收款成功（${payResult.channelLabel || "电子支付"}）`);
+    completePaymentFlow(
+      currentBillNo.value,
+      currentAmount.value || cartAmount.value,
+      payResult.channelLabel || "扫码支付",
+      payResult.channel || ""
+    );
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, "扫码收款失败"));
+  } finally {
+    payCodeLoading.value = false;
+    payCode.value = "";
+    nextTick(() => {
+      payCodeRef.value?.focus?.();
+    });
   }
 }
 
@@ -1769,5 +2015,94 @@ async function handleDeleteHoldOrder(holdNo: string) {
   .cashier-workspace {
     min-width: 700px;
   }
+}
+
+/* ─── 收银硬件设置 ─── */
+.settings-button {
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.hardware-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hardware-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border-light);
+}
+.hardware-setting-row:last-of-type {
+  border-bottom: none;
+}
+.hardware-setting-meta {
+  min-width: 0;
+}
+.hardware-setting-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.hardware-setting-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.hardware-setting-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ─── 扫码收款（反扫） ─── */
+.pay-code-section {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--gray-50, #f5f7fa);
+  border: 1px dashed var(--color-primary-soft, #b8cdf8);
+  border-radius: var(--radius-md, 8px);
+}
+.pay-code-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+.pay-code-channel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-success);
+  background: var(--color-success-soft, #e8f8ee);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.pay-code-input-row {
+  display: flex;
+  gap: 8px;
+}
+.pay-code-input {
+  flex: 1;
+}
+.pay-code-input :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1px var(--border-normal) inset;
+}
+.pay-code-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--color-success) inset;
+}
+.pay-code-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 </style>

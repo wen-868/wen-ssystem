@@ -398,9 +398,10 @@ export async function createCollectionLink(params: {
 
 export async function offlinePayment(params: {
   billNo: string; amount: number; paymentMethod: string;
-  remark?: string; userId: number; username: string; tenantId: string;
+  remark?: string; transactionId?: string; authCode?: string;
+  userId: number; username: string; tenantId: string;
 }) {
-  const { billNo, amount, paymentMethod, remark, userId, username, tenantId } = params;
+  const { billNo, amount, paymentMethod, remark, transactionId, authCode, userId, username, tenantId } = params;
   return transaction(async (conn) => {
     const [rows] = await conn.query<SaleBillConnRow[]>(
       "SELECT bill_no, store_id, received_amount, receivable_amount, collection_status FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE",
@@ -422,8 +423,8 @@ export async function offlinePayment(params: {
       [received, received, status, billNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
-      [makeBizNo("ZF"), billNo, paymentMethod, amount, tenantId]
+      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, transaction_id, auth_code, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?, ?, ?)`,
+      [makeBizNo("ZF"), billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
     );
     if (!alreadyDeducted) {
       const [items] = await conn.query<SaleBillItemConnRow[]>(
@@ -455,9 +456,10 @@ export async function offlinePayment(params: {
 
 export async function paymentOnSaleBill(params: {
   billNo: string; amount: number; paymentMethod: string;
-  remark?: string; userId: number; username: string; tenantId: string;
+  remark?: string; transactionId?: string; authCode?: string;
+  userId: number; username: string; tenantId: string;
 }) {
-  const { billNo, amount, paymentMethod, remark, userId, username, tenantId } = params;
+  const { billNo, amount, paymentMethod, remark, transactionId, authCode, userId, username, tenantId } = params;
   return transaction(async (conn) => {
     const [rows] = await conn.query<SaleBillConnRow[]>(
       `SELECT bill_no, store_id, received_amount, receivable_amount, unreceived_amount, collection_status FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ? FOR UPDATE`,
@@ -474,8 +476,8 @@ export async function paymentOnSaleBill(params: {
       [received, received, status, billNo, tenantId]
     );
     await conn.execute(
-      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?)`,
-      [makeBizNo("ZF"), billNo, paymentMethod, amount, tenantId]
+      `INSERT INTO t_payment_order (pay_no, source_type, source_no, channel, amount, status, paid_at, transaction_id, auth_code, tenant_id) VALUES (?, 'SALE_BILL', ?, ?, ?, 'SUCCESS', NOW(), ?, ?, ?)`,
+      [makeBizNo("ZF"), billNo, paymentMethod, amount, transactionId || "", authCode || "", tenantId]
     );
     await conn.execute(
       `INSERT INTO t_operation_log (operator_id, operator_name, module, action, biz_no, after_data, tenant_id) VALUES (?, ?, 'SALE_BILL', 'PAYMENT', ?, ?, ?)`,

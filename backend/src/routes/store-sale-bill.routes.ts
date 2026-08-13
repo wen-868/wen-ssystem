@@ -13,6 +13,8 @@ storeSaleBillRouter.get("/sale-bills/:billNo", saleBillController.getSaleBillDet
 storeSaleBillRouter.post("/sale-bills/:billNo/collection-link", saleBillController.createCollectionLink);
 storeSaleBillRouter.post("/sale-bills/:billNo/offline-payment", saleBillController.offlinePayment);
 storeSaleBillRouter.post("/sale-bills/:billNo/payment", saleBillController.paymentOnSaleBill);
+storeSaleBillRouter.post("/sale-bills/:billNo/pay-by-code", saleBillController.paySaleBillByCode);
+storeSaleBillRouter.get("/payment/channels", saleBillController.listPosChannels);
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",

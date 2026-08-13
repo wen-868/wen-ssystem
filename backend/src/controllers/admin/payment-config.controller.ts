@@ -6,12 +6,17 @@ import { PaymentConfigService } from "../../services/admin/payment-config.servic
 
 const saveChannelConfigSchema = z.object({
   appId: z.string().min(1),
-  appSecret: z.string().min(1),
+  appSecret: z.string().optional(),
   mchId: z.string().optional(),
   apiKey: z.string().optional(),
+  apiV3Key: z.string().optional(),
+  privateKey: z.string().optional(),
+  serialNo: z.string().optional(),
+  alipayPublicKey: z.string().optional(),
+  boxConfig: z.string().optional(),
   certPath: z.string().optional(),
   notifyUrl: z.string().optional(),
-  enabled: z.boolean().optional(),
+  enabled: z.union([z.boolean(), z.string(), z.number()]).optional(),
 });
 
 const createBankAccountSchema = z.object({
