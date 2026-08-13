@@ -687,8 +687,9 @@ onUnmounted(() => {
   /* el-col 自带 display:block 且后加载会覆盖 flex，必须 !important 保证列内卡片纵向布局生效 */
   display: flex !important;
   flex-direction: column;
-  height: 100%;
 }
+/* 注意：不能给列设 height:100%——el-row 高度由内容决定(非显式)，百分比高度会失效并破坏 align-items:stretch，
+   导致列高退回内容高度、flex 填充卡片被压缩为 0。靠 stretch 自然等高即可底部对齐。 */
 /* 卡片间距用 margin 替代 flex gap：兼容不支持 flex gap 的浏览器（旧内核/兼容模式），保证卡片之间始终有 16px 间距 */
 .dash-col > .el-card {
   margin-bottom: 16px;
