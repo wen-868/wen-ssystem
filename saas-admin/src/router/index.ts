@@ -119,6 +119,12 @@ const router = createRouter({
           meta: { title: '平台配置' },
         },
         {
+          path: 'message-config',
+          name: 'MessageConfig',
+          component: () => import('../views/MessageConfig.vue'),
+          meta: { title: '消息配置' },
+        },
+        {
           path: 'announcements',
           name: 'Announcements',
           component: () => import('../views/Announcements.vue'),

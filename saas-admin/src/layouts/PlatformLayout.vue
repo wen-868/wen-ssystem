@@ -59,6 +59,10 @@
           <el-icon><Setting /></el-icon>
           <span>平台配置</span>
         </el-menu-item>
+        <el-menu-item index="/message-config">
+          <el-icon><Message /></el-icon>
+          <span>消息配置</span>
+        </el-menu-item>
         <el-sub-menu index="library">
           <template #title>
             <el-icon><Goods /></el-icon>
@@ -103,7 +107,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets, Message } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
