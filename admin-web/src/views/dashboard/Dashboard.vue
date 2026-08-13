@@ -114,7 +114,7 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills.slice(0, 6)" :key="b.billNo || b.id" class="order-item" @click="navTo(b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills')">
+            <div v-for="b in recentBills.slice(0, 10)" :key="b.billNo || b.id" class="order-item" @click="navTo(b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills')">
               <div class="order-main">
                 <div class="order-no">{{ b.billNo || "-" }}</div>
                 <div class="order-customer">{{ b.customerName || "-" }}</div>
@@ -406,7 +406,8 @@ function buildFeed() {
   }
 
   list.sort((a, b) => (parseTime(b.time)?.getTime() || 0) - (parseTime(a.time)?.getTime() || 0));
-  feedList.value = list.slice(0, 40);
+  // 经营动态固定展示 10 条
+  feedList.value = list.slice(0, 10);
 }
 
 const filteredFeed = computed(() => {
@@ -523,11 +524,16 @@ async function loadAllData() {
     const receipts = results[3].status === "fulfilled" ? (results[3].value?.records || []) : [];
     const notices = results[4].status === "fulfilled" ? (results[4].value?.records || []) : [];
     const members = results[5].status === "fulfilled" ? (results[5].value?.records || []) : [];
-    if (!overview.value.recentBills && bills.length) overview.value.recentBills = bills.slice(0, 6);
+    // 最新订单：只显示进行中的（过滤已完成/作废/退货），固定展示 10 条
+    const activeBills = bills.filter((b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus));
+    if (!overview.value.recentBills && activeBills.length) overview.value.recentBills = activeBills.slice(0, 10);
     if (!overview.value.recentReceipts && receipts.length) overview.value.recentReceipts = receipts.slice(0, 5);
     if (!overview.value.recentMembers && members.length) overview.value.recentMembers = members.slice(0, 5);
     if (!overview.value.recentNotices && notices.length) overview.value.recentNotices = notices.slice(0, 6);
-    recentBills.value = overview.value.recentBills || bills.slice(0, 6);
+    const overviewActiveBills = (overview.value.recentBills || []).filter(
+      (b) => !["COMPLETED", "VOIDED", "RETURNED"].includes(b.businessStatus)
+    );
+    recentBills.value = (overviewActiveBills.length ? overviewActiveBills : activeBills).slice(0, 10);
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
