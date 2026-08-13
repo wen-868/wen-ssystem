@@ -686,6 +686,7 @@ onUnmounted(() => {
 .dash-col {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 /* 卡片间距用 margin 替代 flex gap：兼容不支持 flex gap 的浏览器（旧内核/兼容模式），保证卡片之间始终有 16px 间距 */
 .dash-col > .el-card {
@@ -706,7 +707,9 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 .dash-col--left .feed-card--trend {
-  height: 420px;
+  /* 弹性填充左列剩余高度：与右列底部严格对齐（内容过少时保底 320px，过多时卡片内部滚动） */
+  flex: 1 1 0;
+  min-height: 320px;
   display: flex;
   flex-direction: column;
 }
