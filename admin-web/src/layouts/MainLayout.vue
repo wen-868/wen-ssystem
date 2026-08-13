@@ -349,6 +349,7 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, reactive, ref } from "vue";
+import { checkWebUpdate } from "../modules/update/checker";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import {
@@ -438,6 +439,8 @@ const isCashierUser = computed(() => {
 });
 
 onMounted(() => {
+  // 启动检查更新（有新版本提示刷新）
+  checkWebUpdate();
   const path = route.path;
   // 2. 销售管理
   if (path.startsWith('/sales') || path.startsWith('/sale-') || path.startsWith('/collection')) openGroups.sales = true;

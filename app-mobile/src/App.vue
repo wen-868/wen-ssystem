@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+import { checkAppUpdate } from '@/utils/update'
 
 onLaunch(() => {
+  // 启动检查更新（有新版本及时提示）
+  checkAppUpdate()
   // 检查登录状态
   const token = uni.getStorageSync('merchant_token')
   if (!token) {

@@ -55,6 +55,10 @@
           <el-icon><Warning /></el-icon>
           <span>错误日志</span>
         </el-menu-item>
+        <el-menu-item index="/app-versions">
+          <el-icon><Promotion /></el-icon>
+          <span>版本发布</span>
+        </el-menu-item>
         <el-menu-item index="/settings">
           <el-icon><Setting /></el-icon>
           <span>平台配置</span>
@@ -107,7 +111,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets, Message } from '@element-plus/icons-vue'
+import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets, Message, Promotion } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()

@@ -161,6 +161,12 @@ const router = createRouter({
           meta: { title: '错误日志' },
         },
         {
+          path: 'app-versions',
+          name: 'AppVersions',
+          component: () => import('../views/AppVersions.vue'),
+          meta: { title: '版本发布' },
+        },
+        {
           path: 'library/spus',
           name: 'LibrarySpus',
           component: () => import('../views/library/LibrarySpus.vue'),

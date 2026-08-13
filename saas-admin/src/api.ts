@@ -325,3 +325,26 @@ export function getErrorLogs(params?: {
 }) {
   return api.get<any, { data: ApiResult<PaginatedResult<any>> }>("/platform/error-logs", { params: { page: 1, pageSize: 20, ...params } });
 }
+
+// ==================== 应用版本发布（电脑端/移动端更新检查） ====================
+export function listAppVersions(params?: { platform?: string }) {
+  return api.get<any, { data: ApiResult<any[]> }>("/platform/app-versions", { params });
+}
+
+export function publishAppVersion(payload: {
+  platform: string;
+  versionCode: number;
+  versionName: string;
+  minVersionCode?: number;
+  isForce?: boolean;
+  updateUrl?: string;
+  packageUrl?: string;
+  updateNote?: string;
+  enabled?: boolean;
+}) {
+  return api.post<any, { data: ApiResult<any> }>("/platform/app-versions", payload);
+}
+
+export function deleteAppVersion(id: number) {
+  return api.delete<any, { data: ApiResult<any> }>(`/platform/app-versions/${id}`);
+}

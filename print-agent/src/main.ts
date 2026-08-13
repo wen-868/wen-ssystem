@@ -23,9 +23,11 @@
 import {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   Menu,
   nativeImage,
+  shell,
   Tray,
 } from "electron";
 import * as http from "http";
@@ -43,6 +45,8 @@ interface AgentSettings {
   copies: number;
   autoStart: boolean;
   rawMode: boolean;
+  /** 更新检查接口（总台发布） */
+  updateCheckUrl: string;
 }
 
 const DEFAULT_SETTINGS: AgentSettings = {
@@ -51,6 +55,7 @@ const DEFAULT_SETTINGS: AgentSettings = {
   copies: 1,
   autoStart: true,
   rawMode: false,
+  updateCheckUrl: "https://api.onepan.cn/api/app/version/print_agent",
 };
 
 let settings: AgentSettings = { ...DEFAULT_SETTINGS };
@@ -77,6 +82,44 @@ function saveSettings(): void {
     fs.writeFileSync(settingsFile(), JSON.stringify(settings, null, 2), "utf-8");
   } catch (e) {
     console.error("保存配置失败：", e);
+  }
+}
+
+// ==================== 版本更新检查 ====================
+
+interface LatestAgentVersion {
+  versionName?: string;
+  isForce?: boolean;
+  updateUrl?: string;
+  updateNote?: string;
+}
+
+/** 启动后检查总台发布的最新版本，有新版弹窗提示并打开下载 */
+async function checkAgentUpdate(): Promise<void> {
+  try {
+    const res = await fetch(settings.updateCheckUrl, { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return;
+    const json = (await res.json()) as { data?: LatestAgentVersion | null };
+    const latest = json.data;
+    const current = app.getVersion();
+    if (!latest?.versionName || latest.versionName === current) return;
+
+    const note = latest.updateNote ? `\n${latest.updateNote}` : "";
+    const result = await dialog.showMessageBox({
+      type: "info",
+      title: "发现新版本",
+      message: `本地打印助手有新版本 ${latest.versionName}（当前 ${current}）`,
+      detail: note || "建议更新以获得最新功能与修复。",
+      buttons: ["打开下载", "稍后再说"],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    });
+    if (result.response === 0 && latest.updateUrl) {
+      await shell.openExternal(latest.updateUrl);
+    }
+  } catch {
+    // 检查失败静默，不影响打印服务
   }
 }
 
@@ -556,6 +599,10 @@ if (!gotLock) {
       return;
     }
     createTray();
+    // 启动后延迟检查更新（不阻塞托盘与打印服务就绪）
+    setTimeout(() => {
+      checkAgentUpdate().catch(() => {});
+    }, 6000);
     try {
       await startServer(settings.port);
     } catch (e) {
