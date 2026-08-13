@@ -686,7 +686,13 @@ onUnmounted(() => {
 .dash-col {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+/* 卡片间距用 margin 替代 flex gap：兼容不支持 flex gap 的浏览器（旧内核/兼容模式），保证卡片之间始终有 16px 间距 */
+.dash-col > .el-card {
+  margin-bottom: 16px;
+}
+.dash-col > .el-card:last-child {
+  margin-bottom: 0;
 }
 /* 左列：经营动态与趋势图固定高度，内容过多时卡片内部滚动，避免被信息拉伸 */
 .dash-col--left .feed-card--feed {
@@ -713,7 +719,6 @@ onUnmounted(() => {
 .dash-col--right {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 .dash-col--right .side-card--fill {
   /* 固定等高（内容过多时内部滚动），两卡片始终对齐，不被信息拉伸 */
