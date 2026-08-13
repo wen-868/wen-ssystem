@@ -43,8 +43,22 @@
             </el-form-item>
             <el-form-item label="营业执照">
               <div class="config-field">
-                <el-input v-model="configs.business_license" placeholder="营业执照号（注册时自动填充）" style="width: 320px" />
-                <span class="tip-text">注册/审核时自动填充，可手动修改</span>
+                <div class="license-block">
+                  <el-input v-model="configs.business_license" placeholder="营业执照号（注册时自动填充）" style="width: 320px" />
+                  <div class="logo-upload">
+                    <el-upload
+                      class="logo-uploader"
+                      action="#"
+                      :show-file-list="false"
+                      :before-upload="handleLicenseBeforeUpload"
+                      :http-request="() => {}"
+                    >
+                      <img v-if="configs.business_license_img" :src="configs.business_license_img" class="license-preview" />
+                      <div v-else class="license-placeholder">上传营业执照图片</div>
+                    </el-upload>
+                  </div>
+                  <span class="tip-text">注册/审核时自动填充，可手动修改；支持上传营业执照图片</span>
+                </div>
               </div>
             </el-form-item>
           </el-form>
@@ -241,7 +255,7 @@ import { fetchStores, createStore, updateStore } from "../../api/common";
 import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../api/system";
 import { useAuthStore } from "../../stores/auth";
 
-const activeTab = ref("system");
+const activeTab = ref("general");
 const saveLoading = ref(false);
 const saving = ref(false);
 const auth = useAuthStore();
@@ -272,6 +286,7 @@ const defaultConfigs: Record<string, string> = {
   contact_person: "",
   contact_phone: "",
   business_license: "",
+  business_license_img: "",
   // 数据备份
   backup_auto: "0",
   backup_frequency: "daily",
@@ -378,11 +393,17 @@ function handleReset() {
 function handleLogoBeforeUpload(file: File) {
   const reader = new FileReader();
   reader.onload = (e) => {
-    if (activeTab.value === "system") {
-      configs.system_logo = (e.target?.result as string) || "";
-    } else {
-      configs.company_logo = (e.target?.result as string) || "";
-    }
+    configs.company_logo = (e.target?.result as string) || "";
+  };
+  reader.readAsDataURL(file);
+  return false;
+}
+
+/* ── 营业执照图片上传前处理 ── */
+function handleLicenseBeforeUpload(file: File) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    configs.business_license_img = (e.target?.result as string) || "";
   };
   reader.readAsDataURL(file);
   return false;
@@ -628,7 +649,7 @@ onMounted(() => {
 
 .logo-uploader {
   width: 200px;
-  height: 60px;
+  height: 200px;
   border: 1px dashed var(--gray-300);
   border-radius: 6px;
   cursor: pointer;
@@ -652,6 +673,30 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.license-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.license-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.license-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--gray-400);
+  font-size: 13px;
+  text-align: center;
 }
 
 .action-bar {
