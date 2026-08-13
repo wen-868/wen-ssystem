@@ -132,6 +132,11 @@
             <div v-for="(item, index) in cartItems" :key="item.skuId" class="cart-row">
               <div class="cart-row-main">
                 <div class="cart-row-name">{{ item.skuName }}</div>
+                <div v-if="item.traceCodes?.length" class="cart-row-trace">
+                  <span v-for="(c, i) in item.traceCodes" :key="i" class="trace-chip" :title="c">
+                    {{ shortTrace(c) }}
+                  </span>
+                </div>
                 <div v-if="editingPriceIdx === index" class="cart-row-price">
                   <span class="cart-row-price-symbol">¥</span>
                   <el-input-number
@@ -158,6 +163,7 @@
                 <button class="qty-btn" @click="increaseQty(index)">+</button>
               </div>
               <div class="cart-row-amount">¥{{ (item.unitPrice * item.quantity).toFixed(2) }}</div>
+              <button class="cart-row-trace-btn" title="扫追溯码" @click="openTraceDialog(index)">追溯</button>
               <button class="cart-row-del" @click="removeCartItem(index)">
                 <el-icon><Close /></el-icon>
               </button>
@@ -559,6 +565,39 @@
       </template>
     </el-dialog>
 
+    <!-- 追溯码录入弹窗（连续扫码，扫完自动归入当前行） -->
+    <el-dialog
+      v-model="traceDialogVisible"
+      title="扫追溯码"
+      width="440px"
+      align-center
+      :close-on-click-modal="false"
+      @open="focusTraceInput"
+    >
+      <div class="trace-dialog-body">
+        <div class="trace-dialog-item" v-if="traceDialogItemIndex >= 0">
+          当前商品：{{ cartItems[traceDialogItemIndex]?.skuName || "-" }}
+          <span v-if="cartItems[traceDialogItemIndex]?.traceCodes?.length" class="trace-count">
+            已录 {{ cartItems[traceDialogItemIndex].traceCodes.length }} 个
+          </span>
+        </div>
+        <el-input
+          ref="traceCodeRef"
+          v-model="traceCodeInput"
+          class="trace-code-input"
+          placeholder="用扫码枪扫瓶盖 / 瓶身追溯码"
+          clearable
+          @keyup.enter="handleTraceDialogScan"
+        >
+          <template #prefix><el-icon><FullScreen /></el-icon></template>
+        </el-input>
+        <div class="trace-dialog-tip">连续扫码自动累加到当前商品；扫入后即锁定瓶码，出库时自动更新追溯状态</div>
+      </div>
+      <template #footer>
+        <el-button @click="traceDialogVisible = false">完成</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 挂单弹窗 -->
     <el-dialog v-model="holdDialogVisible" title="挂单列表" width="720px">
       <el-button type="primary" style="margin-bottom: 12px" @click="handleCreateHoldOrder">挂当前购物车</el-button>
@@ -594,6 +633,7 @@ import {
   createStoreOfflinePayment,
   payStoreSaleBillByCode,
   fetchStorePaymentChannels,
+  verifyStoreTraceCode,
   createStoreHoldOrder,
   fetchStoreHoldOrders,
   restoreStoreHoldOrder,
@@ -650,6 +690,12 @@ const memberBalance = ref(0);
 const payCode = ref("");
 const payCodeRef = ref();
 const payCodeLoading = ref(false);
+/** 追溯码录入 */
+const traceDialogVisible = ref(false);
+const traceDialogItemIndex = ref(-1);
+const traceCodeInput = ref("");
+const traceCodeRef = ref();
+const traceScanLoading = ref(false);
 /** 支付渠道状态（微信/支付宝/收款盒子） */
 const channelStatus = ref<any>(null);
 /** 收银硬件设置 */
@@ -1110,7 +1156,9 @@ async function handleSearchProducts() {
     // 搜索结果展示全部匹配商品，重置分类过滤
     activeCategory.value = 0;
     if (productOptions.value.length === 0) {
-      ElMessage.info("未找到匹配商品");
+      // 商品未命中：尝试按追溯码识别（扫瓶盖/瓶身追溯码自动带出商品）
+      const traceHit = await handleTraceCodeScan(productKeyword.value);
+      if (!traceHit) ElMessage.info("未找到匹配商品");
       // 扫码未命中：清空输入框并保持焦点，便于重新扫描
       productKeyword.value = "";
       productSearchRef.value?.focus?.();
@@ -1163,7 +1211,7 @@ function useWalkInCustomer() {
   selectedMemberId.value = null;
 }
 
-function addCartItem(row: any) {
+function addCartItem(row: any, opts?: { traceCode?: string }) {
   const skuId = Number(row.skuId || row.id);
   if (!skuId) {
     ElMessage.warning("当前商品缺少 SKU ID");
@@ -1177,6 +1225,10 @@ function addCartItem(row: any) {
   const existed = cartItems.value.find((item) => Number(item.skuId) === skuId);
   if (existed) {
     existed.quantity = Number(existed.quantity || 0) + 1;
+    if (opts?.traceCode) {
+      existed.traceCodes = existed.traceCodes || [];
+      if (!existed.traceCodes.includes(opts.traceCode)) existed.traceCodes.push(opts.traceCode);
+    }
     return;
   }
   cartItems.value.push({
@@ -1185,8 +1237,103 @@ function addCartItem(row: any) {
     productName: row.productName || "",
     quantity: 1,
     unitPrice,
-    availableQty: Number(row.availableQty || 0)
+    availableQty: Number(row.availableQty || 0),
+    traceCodes: opts?.traceCode ? [opts.traceCode] : []
   });
+}
+
+/** 追溯码短显（前 8 位 + …） */
+function shortTrace(code: string) {
+  const c = String(code || "");
+  return c.length > 10 ? `${c.slice(0, 8)}…` : c;
+}
+
+/** 打开追溯码录入弹窗（连续扫码归入指定商品行） */
+function openTraceDialog(index: number) {
+  traceDialogItemIndex.value = index;
+  traceCodeInput.value = "";
+  traceDialogVisible.value = true;
+}
+
+function focusTraceInput() {
+  nextTick(() => {
+    traceCodeRef.value?.focus?.();
+  });
+}
+
+/**
+ * 追溯码验证 + 归位：
+ * - 传入 itemIndex：追加到指定购物车行（弹窗连续扫码）
+ * - 不传：按 skuId 自动带出商品加入购物车（搜索框扫码）
+ */
+async function handleTraceCodeScan(code: string, itemIndex?: number): Promise<boolean> {
+  const traceCode = (code || "").trim();
+  if (!traceCode) return false;
+  try {
+    const verify = await verifyStoreTraceCode(traceCode);
+    if (verify.result !== "SUCCESS" || !verify.skuId) return false;
+    if (verify.currentStatus === "SOLD_OUT") {
+      ElMessage.warning("该追溯码已售出，请核实后重扫");
+      return false;
+    }
+    // 弹窗模式：追加到指定商品行
+    if (itemIndex !== undefined && itemIndex >= 0) {
+      const item = cartItems.value[itemIndex];
+      if (!item) return false;
+      item.traceCodes = item.traceCodes || [];
+      if (item.traceCodes.includes(traceCode)) {
+        ElMessage.warning("该追溯码已录入当前商品");
+        return true;
+      }
+      item.traceCodes.push(traceCode);
+      ElMessage.success(`已录入追溯码：${verify.skuName || "商品"}（${item.traceCodes.length} 个）`);
+      return true;
+    }
+    // 搜索框模式：按 skuId 找商品自动加入购物车
+    let product = productOptions.value.find((p) => Number(p.skuId) === Number(verify.skuId));
+    if (!product) {
+      const data = await searchStoreProducts({ keyword: verify.skuName || String(verify.skuId) });
+      product = (data.records || []).find((p: any) => Number(p.skuId) === Number(verify.skuId));
+    }
+    if (!product) {
+      ElMessage.warning("追溯码商品未在售或未找到，请核对商品");
+      return false;
+    }
+    addCartItem(product, { traceCode });
+    ElMessage.success(`已扫追溯码：${product.skuName || product.productName}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 追溯弹窗扫码：录入后清空输入保持焦点，支持连续扫 */
+async function handleTraceDialogScan() {
+  if (!traceCodeInput.value.trim()) return;
+  traceScanLoading.value = true;
+  try {
+    const hit = await handleTraceCodeScan(traceCodeInput.value, traceDialogItemIndex.value);
+    if (hit) {
+      traceCodeInput.value = "";
+      focusTraceInput();
+    }
+  } finally {
+    traceScanLoading.value = false;
+  }
+}
+
+/** 结算明细（含追溯码，出库时后端自动更新追溯状态） */
+function buildSaleItems() {
+  return cartItems.value.map((item) => ({
+    skuId: Number(item.skuId),
+    quantity: Number(item.quantity || 1),
+    boxQty: 0,
+    bottleQty: Number(item.quantity || 1),
+    totalBottleQty: Number(item.quantity || 1),
+    unitPrice: Number(item.unitPrice || 0),
+    priceType: "STORE",
+    traceCodes: Array.isArray(item.traceCodes) && item.traceCodes.length > 0 ? item.traceCodes : undefined,
+  }));
 }
 
 function increaseQty(index: number) {
@@ -1328,15 +1475,7 @@ async function handleCreateSaleBill() {
       customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
       customerName: saleForm.customerName,
       customerMobile: saleForm.customerMobile,
-      items: cartItems.value.map((item) => ({
-        skuId: Number(item.skuId),
-        quantity: Number(item.quantity || 1),
-        boxQty: 0,
-        bottleQty: Number(item.quantity || 1),
-        totalBottleQty: Number(item.quantity || 1),
-        unitPrice: Number(item.unitPrice || 0),
-        priceType: "STORE"
-      }))
+      items: buildSaleItems()
     });
     currentBillNo.value = result.billNo;
     currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
@@ -1377,15 +1516,7 @@ async function confirmPayment() {
       customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
       customerName: saleForm.customerName,
       customerMobile: saleForm.customerMobile,
-      items: cartItems.value.map((item) => ({
-        skuId: Number(item.skuId),
-        quantity: Number(item.quantity || 1),
-        boxQty: 0,
-        bottleQty: Number(item.quantity || 1),
-        totalBottleQty: Number(item.quantity || 1),
-        unitPrice: Number(item.unitPrice || 0),
-        priceType: "STORE"
-      }))
+      items: buildSaleItems()
     });
     currentBillNo.value = result.billNo;
     currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
@@ -1488,15 +1619,7 @@ async function handlePayByCode() {
         customerId: saleForm.customerId > 0 ? saleForm.customerId : undefined,
         customerName: saleForm.customerName,
         customerMobile: saleForm.customerMobile,
-        items: cartItems.value.map((item) => ({
-          skuId: Number(item.skuId),
-          quantity: Number(item.quantity || 1),
-          boxQty: 0,
-          bottleQty: Number(item.quantity || 1),
-          totalBottleQty: Number(item.quantity || 1),
-          unitPrice: Number(item.unitPrice || 0),
-          priceType: "STORE"
-        }))
+        items: buildSaleItems()
       });
       currentBillNo.value = result.billNo;
       currentAmount.value = Number(result.receivableAmount || cartAmount.value || 0);
@@ -2316,12 +2439,12 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .numpad {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin-top: 12px;
 }
 .numpad-key {
-  height: 40px;
+  height: 44px;
   border: 1px solid var(--border-normal);
   border-radius: var(--radius-md);
   background: var(--bg-card);
@@ -2342,12 +2465,14 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .numpad-clear {
   color: var(--color-danger);
+  grid-column: 1 / 2;
 }
 .numpad-equal {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #fff;
   font-size: 13px;
+  grid-column: 2 / 4;
 }
 .numpad-equal:hover {
   background: var(--color-primary-hover);
@@ -2558,6 +2683,68 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .pay-code-hint {
   margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ─── 追溯码 ─── */
+.cart-row-trace {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.trace-chip {
+  font-size: 11px;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.cart-row-trace-btn {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: 4px;
+  background: var(--bg-card);
+  padding: 2px 8px;
+  cursor: pointer;
+  align-self: center;
+}
+.cart-row-trace-btn:hover {
+  background: var(--color-primary-bg);
+}
+.trace-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.trace-dialog-item {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trace-count {
+  font-size: 12px;
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+.trace-code-input :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 1px var(--border-normal) inset;
+}
+.trace-code-input :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px var(--color-primary) inset;
+}
+.trace-dialog-tip {
   font-size: 12px;
   color: var(--text-muted);
 }

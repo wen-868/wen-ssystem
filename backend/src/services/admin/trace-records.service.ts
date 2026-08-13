@@ -659,6 +659,7 @@ export async function verifyTraceCode(
     result,
     message,
     traceCode,
+    skuId: verifyResult.code?.skuId ?? null,
     skuName: verifyResult.code?.skuName ?? null,
     batchNo: verifyResult.code?.batchNo ?? null,
     currentStatus: verifyResult.code?.currentStatus ?? null,

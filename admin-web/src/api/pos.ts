@@ -102,6 +102,12 @@ export async function fetchStorePaymentChannels() {
   return data.data;
 }
 
+/** 收银台追溯码验证（扫追溯码自动带出商品） */
+export async function verifyStoreTraceCode(traceCode: string) {
+  const { data } = await api.post("/store/trace/verify", { traceCode });
+  return data.data;
+}
+
 export async function createStoreCollectionLink(billNo: string, amount: number, options?: { taxEnabled?: boolean; taxRate?: number }) {
   const { data } = await api.post(`/store/sale-bills/${billNo}/collection-link`, {
     shareChannel: "LINK",
