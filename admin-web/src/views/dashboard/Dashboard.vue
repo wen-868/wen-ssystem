@@ -708,9 +708,8 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 .dash-col--left .feed-card--trend {
-  /* 弹性填充左列剩余高度：与右列底部严格对齐（内容过少时保底 320px，过多时卡片内部滚动） */
-  flex: 1 1 0;
-  min-height: 320px;
+  /* 固定高度：左列总高(400+16+420)作为行高基准，右列 height:100% 据此填满，避免 flex 循环压缩 */
+  height: 420px;
   display: flex;
   flex-direction: column;
 }
