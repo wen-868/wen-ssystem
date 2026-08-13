@@ -56,7 +56,7 @@
             <el-tag v-else-if="row.orderStatus === 'APPROVED'" type="success">已确认</el-tag>
             <el-tag v-else-if="row.orderStatus === 'PARTIAL'" type="warning">部分入库</el-tag>
             <el-tag v-else-if="row.orderStatus === 'CANCELLED'" type="danger">已取消</el-tag>
-            <el-tag v-else>{{ row.orderStatus }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.orderStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
@@ -202,6 +202,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import FormFooter from "../../components/FormFooter.vue";

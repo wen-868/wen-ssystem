@@ -40,7 +40,7 @@
           <el-tag v-if="row.accountType === 'DEBIT'" type="success">借记卡</el-tag>
           <el-tag v-else-if="row.accountType === 'CREDIT'" type="warning">信用卡</el-tag>
           <el-tag v-else-if="row.accountType === 'CORPORATE'" type="danger">对公账户</el-tag>
-          <el-tag v-else>{{ row.accountType }}</el-tag>
+          <el-tag v-else>{{ fmtAccountType(row.accountType) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="balance" label="余额" width="140">
@@ -165,6 +165,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtAccountType } from "../../utils/enums";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
 import { formatDate, formatMoney } from "../../utils/format";

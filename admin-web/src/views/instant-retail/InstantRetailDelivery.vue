@@ -53,7 +53,7 @@
             <el-tag v-else-if="row.deliveryStatus === 'DELIVERING'" type="">配送中</el-tag>
             <el-tag v-else-if="row.deliveryStatus === 'COMPLETED'" type="success">已完成</el-tag>
             <el-tag v-else-if="row.deliveryStatus === 'CANCELLED'" type="danger">已取消</el-tag>
-            <el-tag v-else>{{ row.deliveryStatus }}</el-tag>
+            <el-tag v-else>{{ fmtDeliveryStatus(row.deliveryStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="rider" label="骑手" width="100">
@@ -110,6 +110,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtDeliveryStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { assignDelivery, fetchInstantDeliveries, updateDeliveryStatus } from "../../api";
 

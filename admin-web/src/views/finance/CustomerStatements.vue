@@ -56,7 +56,7 @@
             <el-tag v-else-if="row.status === 'CONFIRMED'" type="primary">已确认</el-tag>
             <el-tag v-else-if="row.status === 'SETTLED'" type="success">已结算</el-tag>
             <el-tag v-else-if="row.status === 'VOID'" type="info">已作废</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
@@ -113,7 +113,7 @@
             <template #default="{ row }">
               <el-tag v-if="row.billType === 'SALE'" type="primary">销售</el-tag>
               <el-tag v-else-if="row.billType === 'RETURN'" type="danger">退货</el-tag>
-              <el-tag v-else>{{ row.billType }}</el-tag>
+              <el-tag v-else>{{ fmtBillType(row.billType) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="amount" label="金额" width="120">
@@ -146,6 +146,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtBillType } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { fetchCustomerStatements } from "../../api";
 

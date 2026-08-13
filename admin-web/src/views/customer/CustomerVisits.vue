@@ -63,7 +63,7 @@
             <el-tag v-if="row.visitType === 'VISIT'" type="primary">上门</el-tag>
             <el-tag v-else-if="row.visitType === 'PHONE'" type="success">电话</el-tag>
             <el-tag v-else-if="row.visitType === 'WECHAT'" type="warning">微信</el-tag>
-            <el-tag v-else>{{ row.visitType }}</el-tag>
+            <el-tag v-else>{{ fmtVisitType(row.visitType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="purpose" label="拜访目的" width="120">
@@ -74,7 +74,7 @@
             <el-tag v-else-if="row.purpose === 'FOLLOW_UP'" type="info">订单跟进</el-tag>
             <el-tag v-else-if="row.purpose === 'SERVICE'" type="danger">售后服务</el-tag>
             <el-tag v-else-if="row.purpose === 'OTHER'">其他</el-tag>
-            <el-tag v-else>{{ row.purpose }}</el-tag>
+            <el-tag v-else>{{ fmtPurpose(row.purpose) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="visitTime" label="拜访时间" width="170" />
@@ -279,6 +279,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtVisitType, fmtPurpose } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Paperclip } from "@element-plus/icons-vue";
 import {

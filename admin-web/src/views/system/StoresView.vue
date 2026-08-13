@@ -21,7 +21,7 @@
             <el-tag v-if="row.businessStatus === 'OPEN'" type="success">营业中</el-tag>
             <el-tag v-else-if="row.businessStatus === 'PAUSED'" type="warning">暂停营业</el-tag>
             <el-tag v-else-if="row.businessStatus === 'CLOSED'" type="info">已关闭</el-tag>
-            <el-tag v-else>{{ row.businessStatus }}</el-tag>
+            <el-tag v-else>{{ fmtBusinessStatus(row.businessStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
@@ -225,6 +225,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtBusinessStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { createStore, fetchStoreDetail, fetchStores, fetchWxInfo, updateStore } from "../../api";
 import FormFooter from "../../components/FormFooter.vue";

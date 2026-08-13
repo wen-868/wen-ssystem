@@ -70,7 +70,7 @@
             <el-tag v-if="row.severity === 'FATAL'" type="danger" effect="dark">FATAL</el-tag>
             <el-tag v-else-if="row.severity === 'ERROR'" type="warning">ERROR</el-tag>
             <el-tag v-else-if="row.severity === 'WARN'" type="info">WARN</el-tag>
-            <el-tag v-else>{{ row.severity }}</el-tag>
+            <el-tag v-else>{{ fmtSeverity(row.severity) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="error_type" label="类型" width="150" />
@@ -78,7 +78,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.source === 'backend'" type="primary">后端</el-tag>
             <el-tag v-else-if="row.source === 'frontend'" type="success">前端</el-tag>
-            <el-tag v-else>{{ row.source }}</el-tag>
+            <el-tag v-else>{{ fmtSource(row.source) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="message" label="错误消息" min-width="240" show-overflow-tooltip />
@@ -150,6 +150,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtSeverity, fmtSource } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { fetchErrorLogs } from "../../api";
 

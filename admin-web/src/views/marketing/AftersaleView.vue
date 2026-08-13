@@ -61,7 +61,7 @@
             <el-tag v-else-if="row.type === 'REFUND_ONLY'" type="danger">仅退款</el-tag>
             <el-tag v-else-if="row.type === 'EXCHANGE'" type="primary">换货</el-tag>
             <el-tag v-else-if="row.type === 'REPAIR'" type="info">维修</el-tag>
-            <el-tag v-else>{{ row.type }}</el-tag>
+            <el-tag v-else>{{ fmtType(row.type) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="退款金额" width="110">
@@ -77,7 +77,7 @@
             <el-tag v-else-if="row.status === 'WAIT_RECEIPT'" type="info">待收货</el-tag>
             <el-tag v-else-if="row.status === 'WAIT_INSPECT'" type="warning">待质检</el-tag>
             <el-tag v-else-if="row.status === 'COMPLETED'" type="success">已完成</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="申请时间" width="170" />
@@ -177,6 +177,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtType } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import {
   fetchAfterSales,

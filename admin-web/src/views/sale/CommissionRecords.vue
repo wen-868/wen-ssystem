@@ -67,7 +67,7 @@
         <template #status="{ row }">
           <el-tag v-if="row.status === 'PENDING'" type="warning">待结算</el-tag>
           <el-tag v-else-if="row.status === 'SETTLED'" type="success">已结算</el-tag>
-          <el-tag v-else>{{ row.status }}</el-tag>
+          <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
         </template>
       </DataTable>
     </PageCard>
@@ -98,6 +98,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchCommissionRecords, calculateCommission, settleCommission, fetchCommissionStats } from "../../api";
 import PageCard from "../../components/PageCard.vue";

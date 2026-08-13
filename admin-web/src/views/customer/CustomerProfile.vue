@@ -36,7 +36,7 @@
                 <el-descriptions-item label="性别">{{ profile.gender === 'MALE' ? '男' : profile.gender === 'FEMALE' ? '女' : '-' }}</el-descriptions-item>
                 <el-descriptions-item label="偏好品类">{{ profile.preferCategories || '-' }}</el-descriptions-item>
                 <el-descriptions-item label="偏好品牌">{{ profile.preferBrands || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="生命周期">{{ profile.lifecycleStage || '-' }}</el-descriptions-item>
+                <el-descriptions-item label="生命周期">{{ fmtLifecycleStage(profile.lifecycleStage) || '-' }}</el-descriptions-item>
                 <el-descriptions-item label="平均客单价">¥{{ Number(profile.avgOrderAmount || 0).toFixed(2) }}</el-descriptions-item>
                 <el-descriptions-item label="累计消费次数">{{ profile.totalOrderCount || 0 }} 次</el-descriptions-item>
                 <el-descriptions-item label="累计消费金额">¥{{ Number(profile.totalConsumeAmount || 0).toFixed(2) }}</el-descriptions-item>
@@ -115,6 +115,7 @@ import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import { ElMessage } from "element-plus";
 import echarts from '@/utils/echarts'
 import { formatDate } from "../../utils/format";
+import { fmtLifecycleStage } from "../../utils/enums";
 import { fetchCustomerProfile, updateCustomerProfile, fetchMembers } from "../../api";
 
 const selectedMemberId = ref<number | null>(null);

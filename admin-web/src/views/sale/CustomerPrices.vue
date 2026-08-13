@@ -43,7 +43,7 @@
         <template #status="{ row }">
           <el-tag v-if="row.status === 'ACTIVE'" type="success">生效中</el-tag>
           <el-tag v-else-if="row.status === 'EXPIRED'" type="info">已过期</el-tag>
-          <el-tag v-else>{{ row.status }}</el-tag>
+          <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
         </template>
         <template #actions="{ row }">
           <el-button size="small" link type="primary" @click="showEditDialog(row)">编辑</el-button>
@@ -142,6 +142,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { fetchCustomerPrices, createCustomerPrice, updateCustomerPrice, deleteCustomerPrice, batchSetCustomerPrices, fetchMembers, fetchProducts } from "../../api";
 import DataTable from "../../components/DataTable.vue";

@@ -84,7 +84,7 @@
           <el-tag v-else-if="row.status === 'IN_PROGRESS'" type="warning" size="small">进行中</el-tag>
           <el-tag v-else-if="row.status === 'COMPLETED'" type="success" size="small">已完成</el-tag>
           <el-tag v-else-if="row.status === 'CANCELLED'" type="danger" size="small">已取消</el-tag>
-          <el-tag v-else size="small">{{ row.status }}</el-tag>
+          <el-tag v-else size="small">{{ fmtStatus(row.status) }}</el-tag>
         </template>
 
         <template #actions="{ row }">
@@ -252,6 +252,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
 import {

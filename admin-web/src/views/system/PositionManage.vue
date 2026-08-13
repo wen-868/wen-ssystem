@@ -32,7 +32,7 @@
           <el-tag v-else-if="row.level === 'MIDDLE'" type="primary">中级</el-tag>
           <el-tag v-else-if="row.level === 'SENIOR'" type="success">高级</el-tag>
           <el-tag v-else-if="row.level === 'MANAGER'" type="warning">管理</el-tag>
-          <el-tag v-else>{{ row.level }}</el-tag>
+          <el-tag v-else>{{ fmtStaffLevel(row.level) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="salary" label="薪资范围" width="140">
@@ -120,6 +120,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtStaffLevel } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";

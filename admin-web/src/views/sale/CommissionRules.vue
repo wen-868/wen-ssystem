@@ -27,7 +27,7 @@
           <el-tag v-if="row.ruleType === 'FIXED'" type="warning">固定金额</el-tag>
           <el-tag v-else-if="row.ruleType === 'RATIO'" type="primary">按比例</el-tag>
           <el-tag v-else-if="row.ruleType === 'TIERED'" type="success">阶梯式</el-tag>
-          <el-tag v-else>{{ row.ruleType }}</el-tag>
+          <el-tag v-else>{{ fmtRuleType(row.ruleType) }}</el-tag>
         </template>
         <template #config="{ row }">
           <template v-if="row.ruleType === 'FIXED'">¥{{ (row.config?.amount || 0) }}/单</template>
@@ -107,6 +107,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtRuleType } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { fetchCommissionRules, createCommissionRule, updateCommissionRule, deleteCommissionRule } from "../../api";
 import DataTable from "../../components/DataTable.vue";

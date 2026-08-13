@@ -84,7 +84,7 @@
             <el-tag v-else-if="row.action === 'QUERY'" type="info">查询</el-tag>
             <el-tag v-else-if="row.action === 'LOGIN'" type="warning">登录</el-tag>
             <el-tag v-else-if="row.action === 'EXPORT'" type="warning">导出</el-tag>
-            <el-tag v-else>{{ row.action }}</el-tag>
+            <el-tag v-else>{{ fmtAction(row.action) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="resourceType" label="资源类型" width="120">
@@ -96,7 +96,7 @@
             <el-tag v-else-if="row.resourceType === 'STORE'" type="danger">门店</el-tag>
             <el-tag v-else-if="row.resourceType === 'MARKETING'" type="success">营销</el-tag>
             <el-tag v-else-if="row.resourceType === 'SYSTEM'" type="info">系统</el-tag>
-            <el-tag v-else>{{ row.resourceType }}</el-tag>
+            <el-tag v-else>{{ fmtResourceType(row.resourceType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="resourceId" label="资源ID" width="120" />
@@ -173,6 +173,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtAction, fmtResourceType } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { fetchAuditLogs, fetchAuditLogStatistics, exportAuditLogsCsv } from "../../api";
 

@@ -139,7 +139,7 @@
                 <el-upload action="#" :show-file-list="false" accept=".csv" :before-upload="handleCustomerImport">
                   <el-button :loading="transferLoading">导入客户 CSV</el-button>
                 </el-upload>
-                <span class="tip-text">表头：客户名称,手机号,客户类型,积分,等级,状态（客户类型填 零售/批发，可省略）</span>
+                <span class="tip-text">表头：客户名称,手机号,客户类型,积分,等级,状态（客户类型填 零售/批发或系统自定义类型，可省略）</span>
               </div>
             </el-form-item>
             <el-form-item label="客户导出">

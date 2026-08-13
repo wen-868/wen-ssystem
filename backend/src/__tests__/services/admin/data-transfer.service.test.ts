@@ -76,20 +76,31 @@ describe("data-transfer.service", () => {
         { id: 1, name: "张三", mobile: "13800138000", customerType: "WHOLESALE", points: 10, levelCode: "VIP", status: 1 },
         { id: 2, name: "李四", mobile: "13900139000", customerType: "RETAIL", points: 0, levelCode: null, status: 0 },
       ]);
+      mocks.query.mockResolvedValue([]); // t_customer_type 配置为空，走内置兜底
       const rows = await exportCustomersData("t1");
       expect(rows[0]["客户类型"]).toBe("批发");
       expect(rows[0]["状态"]).toBe("正常");
       expect(rows[1]["客户类型"]).toBe("零售");
       expect(rows[1]["状态"]).toBe("停用");
     });
+
+    it("自定义客户类型按配置导出中文名", async () => {
+      mocks.exportCustomers.mockResolvedValue([
+        { id: 3, name: "王五", mobile: "13700137000", customerType: "AGENCY", points: 0, levelCode: null, status: 1 },
+      ]);
+      mocks.query.mockResolvedValue([{ code: "AGENCY", name: "代理商" }]);
+      const rows = await exportCustomersData("t1");
+      expect(rows[0]["客户类型"]).toBe("代理商");
+    });
   });
 
   describe("importCustomersCsv", () => {
     it("中文表头导入并映射零售/批发", async () => {
       mocks.query
+        .mockResolvedValueOnce([]) // t_customer_type 配置
         .mockResolvedValueOnce([]) // 手机号查重：不存在
         .mockResolvedValueOnce([]) // 手机号查重：不存在
-        .mockResolvedValueOnce([]); // 预留
+        .mockResolvedValue({}); // INSERT 兜底
       const csv = "客户名称,手机号,客户类型,积分,等级\n张三,13800138000,零售,100,VIP\n李四,13900139000,批发,50,普通";
       const res = await importCustomersCsv(csv, "t1");
       expect(res.imported).toBe(2);
@@ -100,7 +111,10 @@ describe("data-transfer.service", () => {
     });
 
     it("兼容英文表头并规范 +86 手机号", async () => {
-      mocks.query.mockResolvedValueOnce([]);
+      mocks.query
+        .mockResolvedValueOnce([]) // t_customer_type 配置
+        .mockResolvedValueOnce([]) // 手机号查重
+        .mockResolvedValue({});
       const csv = "name,mobile,customerType\n王五,+8613700137000,WHOLESALE";
       const res = await importCustomersCsv(csv, "t1");
       expect(res.imported).toBe(1);
@@ -113,11 +127,25 @@ describe("data-transfer.service", () => {
     });
 
     it("手机号已存在则跳过", async () => {
-      mocks.query.mockResolvedValueOnce([{ id: 9 }]);
+      mocks.query
+        .mockResolvedValueOnce([]) // t_customer_type 配置
+        .mockResolvedValueOnce([{ id: 9 }]); // 手机号已存在
       const csv = "客户名称,手机号\n张三,13800138000";
       const res = await importCustomersCsv(csv, "t1");
       expect(res.imported).toBe(0);
       expect(res.skipped).toBe(1);
+    });
+
+    it("自定义客户类型按配置 name/code 匹配", async () => {
+      mocks.query
+        .mockResolvedValueOnce([{ code: "AGENCY", name: "代理商" }]) // t_customer_type 配置
+        .mockResolvedValueOnce([]) // 手机号查重
+        .mockResolvedValue({});
+      const csv = "客户名称,手机号,客户类型\n赵六,13600136000,代理商";
+      const res = await importCustomersCsv(csv, "t1");
+      expect(res.imported).toBe(1);
+      const insert = mocks.query.mock.calls.find((c) => String(c[0]).includes("INSERT INTO t_member"));
+      expect(insert![1]).toEqual(["赵六", "13600136000", "AGENCY", 0, null, 1, "t1"]);
     });
   });
 

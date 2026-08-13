@@ -46,7 +46,7 @@
             <el-tag v-else-if="row.status === 'PARTIAL'" type="warning">部分入库</el-tag>
             <el-tag v-else-if="row.status === 'COMPLETED'" type="success">已完成</el-tag>
             <el-tag v-else-if="row.status === 'VOID'" type="danger">已作废</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="160" />
@@ -192,6 +192,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import { purchaseInStock, fetchPurchaseInStocks, fetchSuppliers, fetchStores } from "../../api";

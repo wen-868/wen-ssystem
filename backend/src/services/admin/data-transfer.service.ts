@@ -71,13 +71,30 @@ export async function exportProductsData(tenantId: string, keyword?: string) {
   }));
 }
 
+/** 租户客户类型配置（code → name） */
+async function loadCustomerTypeMap(tenantId: string): Promise<Map<string, string>> {
+  const rows = await query<{ code: string; name: string }>(
+    "SELECT code, name FROM t_customer_type WHERE tenant_id = ? AND status = 1 ORDER BY sort ASC, id ASC",
+    [tenantId]
+  );
+  const map = new Map<string, string>();
+  for (const r of rows) {
+    map.set(String(r.code), String(r.name));
+  }
+  // 内置兜底
+  map.set("RETAIL", "零售");
+  map.set("WHOLESALE", "批发");
+  return map;
+}
+
 /** 客户模板导出（中文表头对象数组，前端直接转 CSV） */
 export async function exportCustomersData(tenantId: string, keyword?: string) {
   const rows = await exportCustomers(tenantId, keyword);
+  const typeMap = await loadCustomerTypeMap(tenantId);
   return rows.map((r) => ({
     "客户名称": r.name ?? "",
     "手机号": r.mobile ?? "",
-    "客户类型": r.customerType === "WHOLESALE" ? "批发" : "零售",
+    "客户类型": typeMap.get(String(r.customerType ?? "")) ?? String(r.customerType ?? "零售"),
     "积分": r.points ?? 0,
     "等级": r.levelCode ?? "",
     "状态": String(r.status) === "0" ? "停用" : "正常",
@@ -138,10 +155,24 @@ function parseCsv(text: string): string[][] {
   return rows;
 }
 
-/** 客户类型值兼容：同行模板常见的 零售/批发/散客/会员/WHOLESALE/RETAIL */
-function normalizeCustomerType(value: string): string {
-  const v = (value || "").trim().toLowerCase();
-  if (["wholesale", "批发", "批发客户", "经销商"].includes(v)) return "WHOLESALE";
+/** 客户类型值兼容：优先匹配系统配置（code/name），再按同行常见叫法归类 */
+async function normalizeCustomerType(
+  value: string,
+  tenantId: string,
+  typeMap?: Map<string, string>
+): Promise<string> {
+  const v = (value || "").trim();
+  if (!v) return "RETAIL";
+  const map = typeMap ?? await loadCustomerTypeMap(tenantId);
+  // 1) 精确匹配配置 name 或 code
+  for (const [code, name] of map.entries()) {
+    if (name === v || code === v) return code;
+  }
+  // 2) 按同行常见叫法归类
+  const lower = v.toLowerCase();
+  if (["wholesale", "批发", "批发客户", "经销商", "批发商"].includes(lower)) return "WHOLESALE";
+  if (["retail", "零售", "零售客户", "散客", "会员", "普通"].includes(lower)) return "RETAIL";
+  // 3) 无法识别则归为零售（避免导入失败）
   return "RETAIL";
 }
 
@@ -165,6 +196,7 @@ export async function importCustomersCsv(csv: string, tenantId: string): Promise
   const pointsIdx = resolveHeaderIndex(header, CUSTOMER_HEADER_ALIASES, "points");
   const levelIdx = resolveHeaderIndex(header, CUSTOMER_HEADER_ALIASES, "levelCode");
   const statusIdx = resolveHeaderIndex(header, CUSTOMER_HEADER_ALIASES, "status");
+  const typeMap = await loadCustomerTypeMap(tenantId);
 
   let imported = 0;
   let skipped = 0;
@@ -188,7 +220,7 @@ export async function importCustomersCsv(csv: string, tenantId: string): Promise
       errors.push(`第 ${i + 1} 行：手机号 ${mobile} 已存在`);
       continue;
     }
-    const customerType = typeIdx !== null ? normalizeCustomerType(r[typeIdx]) : "RETAIL";
+    const customerType = typeIdx !== null ? await normalizeCustomerType(r[typeIdx], tenantId, typeMap) : "RETAIL";
     const points = pointsIdx !== null ? Number((r[pointsIdx] || "").trim()) || 0 : 0;
     const levelCode = levelIdx !== null ? (r[levelIdx] || "").trim() : null;
     const statusValue = statusIdx !== null ? (r[statusIdx] || "").trim() : "";

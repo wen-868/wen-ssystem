@@ -69,7 +69,7 @@
             <el-tag v-if="row.status === 'NORMAL'" type="success">正常</el-tag>
             <el-tag v-else-if="row.status === 'FROZEN'" type="warning">冻结</el-tag>
             <el-tag v-else-if="row.status === 'OVERDUE'" type="danger">逾期</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
@@ -164,6 +164,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   fetchCreditDetail,

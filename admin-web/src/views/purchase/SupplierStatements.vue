@@ -40,7 +40,7 @@
           <el-tag v-if="row.status === 'GENERATED'" type="warning">待确认</el-tag>
           <el-tag v-else-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
           <el-tag v-else-if="row.status === 'DISPUTED'" type="danger">争议</el-tag>
-          <el-tag v-else>{{ row.status }}</el-tag>
+          <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
         </template>
         <template #actions="{ row }">
           <el-button size="small" link type="primary" @click="viewDetail(row)">详情</el-button>
@@ -121,7 +121,7 @@
               <el-tag v-if="row.itemType === 'PURCHASE'" type="primary" size="small">采购</el-tag>
               <el-tag v-else-if="row.itemType === 'PAYMENT'" type="success" size="small">付款</el-tag>
               <el-tag v-else-if="row.itemType === 'RETURN'" type="danger" size="small">退货</el-tag>
-              <el-tag v-else size="small">{{ row.itemType }}</el-tag>
+              <el-tag v-else size="small">{{ fmtItemType(row.itemType) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="amount" label="金额" width="120">
@@ -146,6 +146,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtItemType } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchSupplierStatements, generateSupplierStatement, fetchSupplierStatementDetail, confirmSupplierStatement, disputeSupplierStatement, fetchSuppliers } from "../../api";
 import DataTable from "../../components/DataTable.vue";

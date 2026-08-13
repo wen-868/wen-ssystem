@@ -37,7 +37,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.type === 'FULL'" type="warning">全额退货</el-tag>
             <el-tag v-else-if="row.type === 'PARTIAL'" type="primary">部分退货</el-tag>
-            <el-tag v-else>{{ row.type }}</el-tag>
+            <el-tag v-else>{{ fmtType(row.type) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="退货金额" width="120">
@@ -51,7 +51,7 @@
             <el-tag v-else-if="row.status === 'APPROVED'" type="primary">已通过</el-tag>
             <el-tag v-else-if="row.status === 'REJECTED'" type="danger">已拒绝</el-tag>
             <el-tag v-else-if="row.status === 'COMPLETED'" type="success">已完成</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -91,6 +91,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { fmtType } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { fetchPurchaseReturns, approvePurchaseReturn } from "../../api";
 

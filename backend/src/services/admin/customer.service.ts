@@ -16,6 +16,7 @@ interface MemberListRow {
   remark: string | null;
   points: number;
   levelCode: string;
+  levelName: string | null;
   status: number | string;
   staffId: number | null;
   staffName: string | null;
@@ -35,6 +36,7 @@ interface MemberDetailRow {
   remark: string | null;
   points: number;
   levelCode: string;
+  levelName: string | null;
   status: number | string;
   staffId: number | null;
   staffName: string | null;
@@ -165,15 +167,16 @@ export async function listMembers(tenantId: string, page: number, pageSize: numb
   const records = await queryWithTenant<MemberListRow>(
     `SELECT m.id AS memberId, m.name, m.contact, m.mobile, m.customer_type AS customerType,
             m.address, m.settlement_type AS settlementType, m.remark,
-            m.points, m.level_code AS levelCode, m.status,
+            m.points, m.level_code AS levelCode, ml.level_name AS levelName, m.status,
             m.staff_id AS staffId, u.real_name AS staffName,
     COALESCE(SUM(sb.receivable_amount), 0) AS totalSpent,
     COALESCE(SUM(sb.unreceived_amount), 0) AS arrears
      FROM t_member m
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
+     LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
      LEFT JOIN t_sale_bill sb ON sb.customer_id = m.id AND sb.business_status NOT IN('DRAFT', 'VOIDED')
      WHERE m.tenant_id = ? AND(m.name LIKE ? OR m.mobile LIKE ?)
-     GROUP BY m.id, m.name, m.contact, m.mobile, m.customer_type, m.address, m.settlement_type, m.remark, m.points, m.level_code, m.status, m.staff_id, u.real_name
+     GROUP BY m.id, m.name, m.contact, m.mobile, m.customer_type, m.address, m.settlement_type, m.remark, m.points, m.level_code, ml.level_name, m.status, m.staff_id, u.real_name
      ORDER BY m.id DESC
      LIMIT ? OFFSET ? `,
     [tenantId, kw, kw, pageSize, offset],
@@ -201,10 +204,11 @@ export async function getCustomerDetail(tenantId: string, memberId: number) {
   const member = await queryOneWithTenant<MemberDetailRow>(
     `SELECT m.id AS memberId, m.name, m.contact, m.mobile, m.customer_type AS customerType,
     m.address, m.settlement_type AS settlementType, m.remark,
-    m.points, m.level_code AS levelCode, m.status,
+    m.points, m.level_code AS levelCode, ml.level_name AS levelName, m.status,
     m.staff_id AS staffId, u.real_name AS staffName
      FROM t_member m
      LEFT JOIN t_sys_user u ON u.id = m.staff_id
+     LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
      WHERE m.id = ? AND m.tenant_id = ? `,
     [memberId, tenantId],
     tenantId

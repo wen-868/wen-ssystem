@@ -86,7 +86,7 @@
           <el-tag v-else-if="row.status === 'APPROVED'" type="success" size="small">已审核</el-tag>
           <el-tag v-else-if="row.status === 'PAID'" type="primary" size="small">已付款</el-tag>
           <el-tag v-else-if="row.status === 'CANCELLED'" type="danger" size="small">已取消</el-tag>
-          <el-tag v-else size="small">{{ row.status }}</el-tag>
+          <el-tag v-else size="small">{{ fmtStatus(row.status) }}</el-tag>
         </template>
 
         <template #amount="{ row }">
@@ -105,7 +105,7 @@
           <span v-if="row.paymentMethod === 'BANK_TRANSFER'">银行转账</span>
           <span v-else-if="row.paymentMethod === 'CASH'">现金</span>
           <span v-else-if="row.paymentMethod === 'CHECK'">支票</span>
-          <span v-else>{{ row.paymentMethod || '-' }}</span>
+          <span v-else>{{ fmtPayMethod(row.paymentMethod) }}</span>
         </template>
 
         <template #actions="{ row }">
@@ -240,6 +240,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtPayMethod } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
 import {

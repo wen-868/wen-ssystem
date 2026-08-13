@@ -58,7 +58,7 @@
           <el-tag v-else-if="row.billType === 'RECEIPT'" type="info">收据</el-tag>
           <el-tag v-else-if="row.billType === 'CHECK'" type="warning">支票</el-tag>
           <el-tag v-else-if="row.billType === 'DRAFT'" type="danger">汇票</el-tag>
-          <el-tag v-else>{{ row.billType }}</el-tag>
+          <el-tag v-else>{{ fmtBillType(row.billType) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="amount" label="金额" width="140">
@@ -148,6 +148,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtBillType } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
 import { formatDate, formatMoney } from "../../utils/format";

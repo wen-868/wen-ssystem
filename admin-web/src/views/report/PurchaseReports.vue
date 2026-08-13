@@ -120,7 +120,7 @@
               <el-tag v-else-if="row.status === 'PENDING'" type="warning" size="small">待确认</el-tag>
               <el-tag v-else-if="row.status === 'PARTIAL'" type="warning" size="small">部分入库</el-tag>
               <el-tag v-else-if="row.status === 'CANCELLED'" type="danger" size="small">已取消</el-tag>
-              <el-tag v-else size="small">{{ row.status }}</el-tag>
+              <el-tag v-else size="small">{{ fmtStatus(row.status) }}</el-tag>
             </template>
           </el-table-column>
         </el-table>
@@ -147,6 +147,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref, nextTick } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from "element-plus";
 import { Search, Refresh, Download } from "@element-plus/icons-vue";

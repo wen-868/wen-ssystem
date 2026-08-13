@@ -55,7 +55,7 @@
             <el-tag v-if="row.status === 'NORMAL'" type="success">正常</el-tag>
             <el-tag v-else-if="row.status === 'NEAR_EXPIRY'" type="warning">临期</el-tag>
             <el-tag v-else-if="row.status === 'EXPIRED'" type="danger">过期</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
@@ -145,7 +145,7 @@
             <template #default="{ row }">
               <el-tag v-if="row.alertLevel === 1" type="warning">一级预警</el-tag>
               <el-tag v-else-if="row.alertLevel === 2" type="danger">二级预警</el-tag>
-              <el-tag v-else>{{ row.alertLevel }}</el-tag>
+              <el-tag v-else>三级预警</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="160" fixed="right">
@@ -201,7 +201,7 @@
             <template #default="{ row }">
               <el-tag v-if="row.alertLevel === 1" type="warning">一级</el-tag>
               <el-tag v-else-if="row.alertLevel === 2" type="danger">二级</el-tag>
-              <el-tag v-else>{{ row.alertLevel }}</el-tag>
+              <el-tag v-else>三级</el-tag>
             </template>
           </el-table-column>
           <el-table-column prop="expiryDate" label="到期日期" width="120">
@@ -214,7 +214,7 @@
             <template #default="{ row }">
               <el-tag v-if="row.status === 'PENDING'" type="warning">待处理</el-tag>
               <el-tag v-else-if="row.status === 'HANDLED'" type="success">已处理</el-tag>
-              <el-tag v-else>{{ row.status }}</el-tag>
+              <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="160" fixed="right">
@@ -245,6 +245,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import DetailDrawer from "../../components/DetailDrawer.vue";

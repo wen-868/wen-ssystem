@@ -97,7 +97,7 @@
                 <el-tag v-if="row.role === 'ADMIN'" type="danger">管理员</el-tag>
                 <el-tag v-else-if="row.role === 'MANAGER'" type="primary">店长</el-tag>
                 <el-tag v-else-if="row.role === 'STAFF'" type="success">员工</el-tag>
-                <el-tag v-else>{{ row.role }}</el-tag>
+                <el-tag v-else>{{ fmtRole(row.role) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="100">
@@ -229,6 +229,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtRole } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Refresh } from "@element-plus/icons-vue";
 import { createStore, fetchStaff, fetchStores } from "../../api";

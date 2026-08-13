@@ -174,7 +174,7 @@
             <el-tag v-else-if="row.status === 'USED'" type="success" size="small">已使用</el-tag>
             <el-tag v-else-if="row.status === 'EXPIRED'" type="info" size="small">已过期</el-tag>
             <el-tag v-else-if="row.status === 'LOCKED'" type="warning" size="small">已锁定</el-tag>
-            <el-tag v-else type="info" size="small">{{ row.status }}</el-tag>
+            <el-tag v-else type="info" size="small">{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="claimedAt" label="领取时间" width="160" />
@@ -189,6 +189,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh } from "@element-plus/icons-vue";
 import {

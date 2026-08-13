@@ -28,7 +28,7 @@
         <el-tag v-if="row.inventoryType === 'NORMAL'" type="primary">正常库存</el-tag>
         <el-tag v-else-if="row.inventoryType === 'LOW'" type="warning">低库存</el-tag>
         <el-tag v-else-if="row.inventoryType === 'OUT'" type="danger">缺货</el-tag>
-        <el-tag v-else>{{ row.inventoryType }}</el-tag>
+        <el-tag v-else>{{ fmtInventoryType(row.inventoryType) }}</el-tag>
       </template>
 
       <template #availableQty="{ row }">
@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtInventoryType } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import { fetchInventoryAlerts } from "../../api";

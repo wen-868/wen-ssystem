@@ -52,7 +52,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.contractType === 'FRAME'" type="primary">采购框架</el-tag>
             <el-tag v-else-if="row.contractType === 'SINGLE'" type="success">单次采购</el-tag>
-            <el-tag v-else>{{ row.contractType }}</el-tag>
+            <el-tag v-else>{{ fmtContractType(row.contractType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="contractAmount" label="合同金额" width="130">
@@ -74,7 +74,7 @@
             <el-tag v-else-if="row.status === 'ACTIVE'" type="success">执行中</el-tag>
             <el-tag v-else-if="row.status === 'COMPLETED'" type="info">已完成</el-tag>
             <el-tag v-else-if="row.status === 'VOIDED'" type="danger">已作废</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -272,6 +272,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { fmtContractType } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import {

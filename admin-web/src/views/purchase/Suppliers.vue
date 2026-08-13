@@ -75,21 +75,21 @@
           <el-tag v-if="row.category === 'BRAND'" type="primary">品牌商</el-tag>
           <el-tag v-else-if="row.category === 'WHOLESALER'" type="success">批发商</el-tag>
           <el-tag v-else-if="row.category === 'DISTRIBUTOR'" type="warning">经销商</el-tag>
-          <el-tag v-else>{{ row.category || '-' }}</el-tag>
+          <el-tag v-else>{{ fmtSupplierCategory(row.category) }}</el-tag>
         </template>
 
         <template #creditLevel="{ row }">
           <el-tag v-if="row.creditLevel === 'A'" type="success">A级</el-tag>
           <el-tag v-else-if="row.creditLevel === 'B'" type="warning">B级</el-tag>
           <el-tag v-else-if="row.creditLevel === 'C'" type="danger">C级</el-tag>
-          <el-tag v-else type="info">{{ row.creditLevel || '-' }}</el-tag>
+          <el-tag v-else type="info">{{ fmtCreditLevel(row.creditLevel) }}</el-tag>
         </template>
 
         <template #settlementType="{ row }">
           <span v-if="row.settlementType === 'CASH'">现结</span>
           <span v-else-if="row.settlementType === 'MONTHLY'">月结</span>
           <span v-else-if="row.settlementType === 'WEEKLY'">周结</span>
-          <span v-else>{{ row.settlementType || '-' }}</span>
+          <span v-else>{{ fmtSettlementType(row.settlementType) }}</span>
         </template>
 
         <template #primaryContact="{ row }">
@@ -398,6 +398,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtCreditLevel, fmtSupplierCategory, fmtSettlementType } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, Plus, Refresh, Delete } from "@element-plus/icons-vue";
 import { fetchSuppliers, createSupplier, updateSupplier, fetchSupplierContacts, createSupplierContact, updateSupplierContact, deleteSupplierContact, setPrimarySupplierContact } from "../../api/purchase";

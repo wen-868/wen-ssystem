@@ -106,7 +106,7 @@
             <el-tag v-if="row.paymentStatus === 'PAID'" type="success" size="small">已支付</el-tag>
             <el-tag v-else-if="row.paymentStatus === 'UNPAID'" type="danger" size="small">未支付</el-tag>
             <el-tag v-else-if="row.paymentStatus === 'REFUNDED'" type="warning" size="small">已退款</el-tag>
-            <el-tag v-else size="small">{{ row.paymentStatus }}</el-tag>
+            <el-tag v-else size="small">{{ fmtStatus(row.paymentStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="订单状态" width="100" align="center">
@@ -299,6 +299,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Search, InfoFilled, Location, ChatDotRound, Goods, Wallet, Van, CircleClose } from "@element-plus/icons-vue";
 import {

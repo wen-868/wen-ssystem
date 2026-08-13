@@ -62,7 +62,7 @@
             <el-tag v-else-if="row.status === 'APPROVED'" type="success">已审批</el-tag>
             <el-tag v-else-if="row.status === 'REJECTED'" type="danger">已驳回</el-tag>
             <el-tag v-else-if="row.status === 'VOIDED'" type="info">已作废</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" fixed="right">
@@ -172,6 +172,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, nextTick } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";

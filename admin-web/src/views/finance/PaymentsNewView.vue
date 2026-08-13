@@ -49,7 +49,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="type" label="类型" width="100" align="center" />
-        <el-table-column prop="paymentMethod" label="付款方式" width="110" align="center" />
+        <el-table-column label="付款方式" width="110" align="center" ><template #default="{ row }">{{ fmtPayMethod(row.paymentMethod) }}</template></el-table-column>
         <el-table-column label="日期" width="180">
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
@@ -60,7 +60,7 @@
             <el-tag v-if="row.status === 'PENDING'" type="warning">待确认</el-tag>
             <el-tag v-else-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
             <el-tag v-else-if="row.status === 'VOIDED'" type="info">已作废</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
@@ -165,7 +165,7 @@
         <el-descriptions-item label="付款单号">{{ detail.paymentNo }}</el-descriptions-item>
         <el-descriptions-item label="供应商">{{ detail.supplierName }}</el-descriptions-item>
         <el-descriptions-item label="金额">{{ formatYuan(detail.amount) }}</el-descriptions-item>
-        <el-descriptions-item label="付款方式">{{ detail.paymentMethod }}</el-descriptions-item>
+                <el-descriptions-item label="付款方式">{{ fmtPayMethod(detail.paymentMethod) }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag v-if="detail.status === 'PENDING'" type="warning">待确认</el-tag>
           <el-tag v-else-if="detail.status === 'CONFIRMED'" type="success">已确认</el-tag>
@@ -203,6 +203,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus, fmtPayMethod } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchPaymentsNew, createPaymentNew, getPaymentDetail, writeoffPayment, voidPayment, fetchSuppliers } from "../../api";

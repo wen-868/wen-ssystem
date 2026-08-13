@@ -101,7 +101,7 @@
                 <el-tag v-if="row.status === 'APPROVED'" type="success">已批准</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">待审批</el-tag>
                 <el-tag v-else-if="row.status === 'REJECTED'" type="danger">已拒绝</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -234,6 +234,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import {

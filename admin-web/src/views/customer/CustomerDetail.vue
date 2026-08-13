@@ -28,26 +28,23 @@
           <el-descriptions-item label="客户类型">
             <el-tag v-if="member.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
             <el-tag v-else-if="member.customerType === 'WHOLESALE'" type="success">批发客户</el-tag>
-            <el-tag v-else>{{ member.customerType }}</el-tag>
+            <el-tag v-else>{{ fmtCustomerType(member.customerType) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="归属销售员">{{ member.staffName || "-" }}</el-descriptions-item>
           <el-descriptions-item label="积分">{{ member.points || 0 }}</el-descriptions-item>
           <el-descriptions-item label="客户等级">
-            <el-tag v-if="member.levelCode === 'VIP'" type="danger">VIP</el-tag>
-            <el-tag v-else-if="member.levelCode === 'GOLD'" type="warning">GOLD</el-tag>
-            <el-tag v-else-if="member.levelCode === 'SILVER'" type="info">SILVER</el-tag>
-            <el-tag v-else>{{ member.levelCode || "-" }}</el-tag>
+            <el-tag>{{ member.levelName || fmtLevelCode(member.levelCode) || "-" }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag v-if="member.status === 'ACTIVE'" type="success">启用</el-tag>
             <el-tag v-else-if="member.status === 'INACTIVE'" type="danger">停用</el-tag>
-            <el-tag v-else>{{ member.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(member.status) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="地址">{{ member.address || "-" }}</el-descriptions-item>
           <el-descriptions-item label="结算方式">
             <el-tag v-if="member.settlementType === 'CASH'" type="success">现金</el-tag>
             <el-tag v-else-if="member.settlementType === 'ACCOUNT'" type="warning">挂账</el-tag>
-            <el-tag v-else>{{ member.settlementType || "-" }}</el-tag>
+            <el-tag v-else>{{ fmtSettlementType(member.settlementType) || "-" }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="备注">{{ member.remark || "-" }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatDate(member.createTime) }}</el-descriptions-item>
@@ -118,7 +115,7 @@
               <template #default="{ row }">
                 <el-tag v-if="row.status === 'PAID'" type="success">已付款</el-tag>
                 <el-tag v-else-if="row.status === 'UNPAID'" type="warning">未付款</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="160">
@@ -144,12 +141,14 @@
             <el-table-column prop="amount" label="金额" width="120">
               <template #default="{ row }">{{ formatMoney(row.amount) }}</template>
             </el-table-column>
-            <el-table-column prop="paymentMethod" label="付款方式" width="120" />
+            <el-table-column label="付款方式" width="120">
+              <template #default="{ row }">{{ fmtPayMethod(row.paymentMethod) }}</template>
+            </el-table-column>
             <el-table-column prop="status" label="状态" width="100">
               <template #default="{ row }">
                 <el-tag v-if="row.status === 'SUCCESS'" type="success">成功</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">处理中</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="付款时间" width="160">
@@ -182,7 +181,7 @@
               <template #default="{ row }">
                 <el-tag v-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">待确认</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="生成时间" width="160">
@@ -270,6 +269,7 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "elem
 import { ArrowLeft } from "@element-plus/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { formatDate, formatMoney } from "../../utils/format";
+import { fmtStatus, fmtLevelCode, fmtSettlementType, fmtCustomerType, fmtPayMethod } from "../../utils/enums";
 import {
   fetchMemberDetail,
   updateMember,

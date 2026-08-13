@@ -37,7 +37,7 @@
                 <el-tag v-if="row.orderType === 'NORMAL'" type="primary">普通订单</el-tag>
                 <el-tag v-else-if="row.orderType === 'GROUP_BUY'" type="success">拼团订单</el-tag>
                 <el-tag v-else-if="row.orderType === 'FLASH_SALE'" type="warning">秒杀订单</el-tag>
-                <el-tag v-else>{{ row.orderType }}</el-tag>
+                <el-tag v-else>{{ fmtOrderType(row.orderType) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="timeoutType" label="超时类型" width="140">
@@ -45,7 +45,7 @@
                 <el-tag v-if="row.timeoutType === 'PAYMENT'" type="warning">付款超时</el-tag>
                 <el-tag v-else-if="row.timeoutType === 'SHIPMENT'" type="primary">发货超时</el-tag>
                 <el-tag v-else-if="row.timeoutType === 'RECEIPT'" type="info">收货超时</el-tag>
-                <el-tag v-else>{{ row.timeoutType }}</el-tag>
+                <el-tag v-else>{{ fmtTimeoutType(row.timeoutType) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="timeoutMinutes" label="超时时间(分钟)" width="140" />
@@ -54,7 +54,7 @@
                 <el-tag v-if="row.action === 'CANCEL'" type="danger">自动取消</el-tag>
                 <el-tag v-else-if="row.action === 'REMIND'" type="warning">提醒通知</el-tag>
                 <el-tag v-else-if="row.action === 'COMPLETE'" type="success">自动完成</el-tag>
-                <el-tag v-else>{{ row.action }}</el-tag>
+                <el-tag v-else>{{ fmtAction(row.action) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="enabled" label="状态" width="100">
@@ -109,7 +109,7 @@
                 <el-tag v-if="row.orderType === 'NORMAL'" type="primary">普通订单</el-tag>
                 <el-tag v-else-if="row.orderType === 'GROUP_BUY'" type="success">拼团订单</el-tag>
                 <el-tag v-else-if="row.orderType === 'FLASH_SALE'" type="warning">秒杀订单</el-tag>
-                <el-tag v-else>{{ row.orderType }}</el-tag>
+                <el-tag v-else>{{ fmtOrderType(row.orderType) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="timeoutType" label="超时类型" width="120">
@@ -117,7 +117,7 @@
                 <el-tag v-if="row.timeoutType === 'PAYMENT'" type="warning">付款超时</el-tag>
                 <el-tag v-else-if="row.timeoutType === 'SHIPMENT'" type="primary">发货超时</el-tag>
                 <el-tag v-else-if="row.timeoutType === 'RECEIPT'" type="info">收货超时</el-tag>
-                <el-tag v-else>{{ row.timeoutType }}</el-tag>
+                <el-tag v-else>{{ fmtTimeoutType(row.timeoutType) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="action" label="执行动作" width="120">
@@ -125,7 +125,7 @@
                 <el-tag v-if="row.action === 'CANCEL'" type="danger">自动取消</el-tag>
                 <el-tag v-else-if="row.action === 'REMIND'" type="warning">提醒通知</el-tag>
                 <el-tag v-else-if="row.action === 'COMPLETE'" type="success">自动完成</el-tag>
-                <el-tag v-else>{{ row.action }}</el-tag>
+                <el-tag v-else>{{ fmtAction(row.action) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="result" label="结果" width="100">
@@ -200,6 +200,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
+import { fmtAction, fmtOrderType, fmtTimeoutType } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   fetchOrderTimeoutConfigs,

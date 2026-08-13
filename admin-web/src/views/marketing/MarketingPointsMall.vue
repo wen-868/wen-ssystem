@@ -174,7 +174,7 @@
                 <el-tag v-if="row.status === 'PENDING'" type="warning">待确认</el-tag>
                 <el-tag v-else-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
                 <el-tag v-else-if="row.status === 'CANCELLED'" type="info">已取消</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
@@ -274,6 +274,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, type FormRules } from "element-plus";
 import { onMounted } from "vue";
 import { fetchPointsProducts, createPointsProduct, updatePointsProduct, deletePointsProduct, togglePointsProduct, fetchPointsExchangeRecords, fetchPointsMallStats } from "../../api";

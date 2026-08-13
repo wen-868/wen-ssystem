@@ -55,7 +55,7 @@
             <el-tag v-if="row.method === 'WECHAT'" type="success">微信支付</el-tag>
             <el-tag v-else-if="row.method === 'ALIPAY'" type="primary">支付宝</el-tag>
             <el-tag v-else-if="row.method === 'BALANCE'" type="info">余额支付</el-tag>
-            <el-tag v-else>{{ row.method }}</el-tag>
+            <el-tag v-else>{{ fmtPayMethod(row.method) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="支付状态" width="100">
@@ -63,7 +63,7 @@
             <el-tag v-if="row.status === 'PAID'" type="success">已支付</el-tag>
             <el-tag v-else-if="row.status === 'UNPAID'" type="danger">未支付</el-tag>
             <el-tag v-else-if="row.status === 'REFUNDED'" type="warning">已退款</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="paidAt" label="支付时间" width="160" />
@@ -122,6 +122,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtPayMethod } from "../../utils/enums";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { fetchInstantPaymentDetail, fetchInstantPayments } from "../../api";
 

@@ -48,7 +48,7 @@
           <el-table-column prop="amount" label="金额" width="100">
             <template #default="{ row }"><span class="amount-text">¥{{ Number(row.amount || 0).toFixed(2) }}</span></template>
           </el-table-column>
-          <el-table-column prop="paymentMethod" label="支付方式" width="100" />
+          <el-table-column label="付款方式" width="100" ><template #default="{ row }">{{ fmtPayMethod(row.paymentMethod) }}</template></el-table-column>
           <el-table-column prop="status" label="状态" width="100">
             <template #default="{ row }">
               <el-tag type="success" size="small">{{ row.status || "成功" }}</el-tag>
@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { fmtPayMethod } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import {

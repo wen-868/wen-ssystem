@@ -44,7 +44,7 @@
                 <el-tag v-if="row.status === 'PAID'" type="success">已支付</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">待支付</el-tag>
                 <el-tag v-else-if="row.status === 'EXPIRED'" type="info">已过期</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="shareChannel" label="分享渠道" width="120" />
@@ -71,10 +71,10 @@
                 <el-tag v-if="row.status === 'SUCCESS'" type="success">成功</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">处理中</el-tag>
                 <el-tag v-else-if="row.status === 'FAILED'" type="danger">失败</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="paymentMethod" label="方式" width="100" />
+            <el-table-column label="付款方式" width="100" ><template #default="{ row }">{{ fmtPayMethod(row.paymentMethod) }}</template></el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="170" />
             <template #empty>
               <el-empty description="暂无数据" :image-size="80" />
@@ -100,7 +100,7 @@
                 <el-tag v-if="row.status === 'SUCCESS'" type="success">成功</el-tag>
                 <el-tag v-else-if="row.status === 'PENDING'" type="warning">处理中</el-tag>
                 <el-tag v-else-if="row.status === 'FAILED'" type="danger">失败</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createdAt" label="创建时间" width="170" />
@@ -129,6 +129,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { fmtStatus, fmtPayMethod } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import StatBar from "../../components/StatBar.vue";
 import { fetchCollectionLinks, fetchPaymentOrders, fetchRefundOrders } from "../../api";

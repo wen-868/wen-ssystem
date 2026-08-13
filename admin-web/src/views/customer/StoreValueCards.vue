@@ -150,7 +150,7 @@
         <el-table-column prop="balance" label="余额" width="120">
           <template #default="{ row }">{{ formatYuan(row.balance) }}</template>
         </el-table-column>
-        <el-table-column prop="paymentMethod" label="支付方式/来源" min-width="120" />
+        <el-table-column label="付款方式" min-width="120" ><template #default="{ row }">{{ fmtPayMethod(row.paymentMethod) }}</template></el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" />
         <el-table-column prop="createdAt" label="时间" width="170">
           <template #default="{ row }">{{ formatDate(row.createdAt) }}</template>
@@ -169,6 +169,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtPayMethod } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import {

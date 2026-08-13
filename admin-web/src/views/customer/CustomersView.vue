@@ -45,17 +45,14 @@
         <el-table-column prop="points" label="积分" width="80" />
         <el-table-column prop="levelCode" label="客户等级" width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.levelCode === 'VIP'" type="danger">VIP</el-tag>
-            <el-tag v-else-if="row.levelCode === 'GOLD'" type="warning">GOLD</el-tag>
-            <el-tag v-else-if="row.levelCode === 'SILVER'" type="info">SILVER</el-tag>
-            <el-tag v-else>{{ row.levelCode }}</el-tag>
+            <el-tag>{{ row.levelName || fmtLevelCode(row.levelCode) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
             <el-tag v-if="row.status === 'ACTIVE'" type="success">启用</el-tag>
             <el-tag v-else-if="row.status === 'INACTIVE'" type="danger">停用</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="address" label="地址" min-width="140" show-overflow-tooltip />
@@ -63,7 +60,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.settlementType === 'CASH'" type="success">现金</el-tag>
             <el-tag v-else-if="row.settlementType === 'ACCOUNT'" type="warning">挂账</el-tag>
-            <el-tag v-else>{{ row.settlementType }}</el-tag>
+            <el-tag v-else>{{ fmtSettlementType(row.settlementType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip />
@@ -154,6 +151,7 @@ import StatBar from "../../components/StatBar.vue";
 import { assignMember, createMember, disableMember, fetchMemberPriceHistory, fetchMembers, fetchStaff } from "../../api";
 import { fetchCustomerTypes } from "../../api/customer";
 import FormFooter from "../../components/FormFooter.vue";
+import { fmtStatus, fmtLevelCode, fmtSettlementType, fmtCustomerType } from "../../utils/enums";
 
 const router = useRouter();
 const loading = ref(false);
@@ -167,7 +165,7 @@ const memberStats = computed(() => {
   const active = list.filter((m) => m.status === "ACTIVE").length;
   return [
     { label: "全部客户", value: list.length, primary: true },
-    { label: "VIP", value: vip },
+    { label: "VIP会员", value: vip },
     { label: "启用", value: active },
   ];
 });
@@ -223,7 +221,7 @@ async function loadCustomerTypes() {
 
 function getCustomerTypeName(code: string) {
   const found = customerTypeOptions.value.find(t => t.code === code);
-  return found?.name || code;
+  return found?.name || fmtCustomerType(code);
 }
 
 function getCustomerTypeTagType(code: string) {

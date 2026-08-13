@@ -23,7 +23,7 @@
             <el-tag v-else-if="row.status === 'SENT'" type="primary">已发送</el-tag>
             <el-tag v-else-if="row.status === 'READ'" type="success">已查阅</el-tag>
             <el-tag v-else-if="row.status === 'EXPIRED'" type="warning">已过期</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="totalItems" label="商品数" width="100" align="center" />
@@ -171,6 +171,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchNotifications, sendNotification, fetchProducts, fetchMembers } from "../../api";

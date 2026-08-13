@@ -60,7 +60,7 @@
               <template #default="{ row }">
                 <el-tag v-if="row.status === 'PENDING'" type="warning">待确认</el-tag>
                 <el-tag v-else-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
@@ -125,7 +125,7 @@
               <template #default="{ row }">
                 <el-tag v-if="row.status === 'PENDING'" type="warning">待确认</el-tag>
                 <el-tag v-else-if="row.status === 'CONFIRMED'" type="success">已确认</el-tag>
-                <el-tag v-else>{{ row.status }}</el-tag>
+                <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
               </template>
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
@@ -217,6 +217,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import {

@@ -49,7 +49,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.customerType === 'RETAIL'" type="primary">零售</el-tag>
             <el-tag v-else-if="row.customerType === 'WHOLESALE'" type="success">批发</el-tag>
-            <el-tag v-else>{{ row.customerType }}</el-tag>
+            <el-tag v-else>{{ fmtCustomerType(row.customerType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="orderStatus" label="订单状态" width="100">
@@ -60,7 +60,7 @@
             <el-tag v-else-if="row.orderStatus === 'COMPLETED'" type="success">已完成</el-tag>
             <el-tag v-else-if="row.orderStatus === 'CANCELLED'" type="info">已取消</el-tag>
             <el-tag v-else-if="row.orderStatus === 'REFUNDED'" type="danger">已退款</el-tag>
-            <el-tag v-else>{{ row.orderStatus }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.orderStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="payStatus" label="支付状态" width="100">
@@ -68,7 +68,7 @@
             <el-tag v-if="row.payStatus === 'UNPAID'" type="danger">未支付</el-tag>
             <el-tag v-else-if="row.payStatus === 'PAID'" type="success">已支付</el-tag>
             <el-tag v-else-if="row.payStatus === 'REFUNDED'" type="warning">已退款</el-tag>
-            <el-tag v-else>{{ row.payStatus }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.payStatus) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="totalAmount" label="金额" width="120">
@@ -109,14 +109,14 @@
           <el-descriptions-item label="客户类型">
             <el-tag v-if="currentOrder.customerType === 'RETAIL'" type="primary">零售</el-tag>
             <el-tag v-else-if="currentOrder.customerType === 'WHOLESALE'" type="success">批发</el-tag>
-            <el-tag v-else>{{ currentOrder.customerType }}</el-tag>
+            <el-tag v-else>{{ fmtCustomerType(currentOrder.customerType) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="订单状态">
             <el-tag v-if="currentOrder.orderStatus === 'PENDING_PAY'" type="warning">待付款</el-tag>
             <el-tag v-else-if="currentOrder.orderStatus === 'PENDING_SHIP'" type="primary">待发货</el-tag>
             <el-tag v-else-if="currentOrder.orderStatus === 'PENDING_RECEIVE'" type="info">待收货</el-tag>
             <el-tag v-else-if="currentOrder.orderStatus === 'COMPLETED'" type="success">已完成</el-tag>
-            <el-tag v-else>{{ currentOrder.orderStatus }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(currentOrder.orderStatus) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="支付状态">
             <el-tag v-if="currentOrder.payStatus === 'UNPAID'" type="danger">未支付</el-tag>
@@ -165,6 +165,7 @@ import { Refresh } from "@element-plus/icons-vue";
 import TableSkeleton from "../../components/TableSkeleton.vue";
 import StatBar from "../../components/StatBar.vue";
 import { fetchOrderDetail, fetchOrders } from "../../api";
+import { fmtStatus, fmtCustomerType } from "../../utils/enums";
 
 const loading = ref(false);
 const orders = ref<any[]>([]);

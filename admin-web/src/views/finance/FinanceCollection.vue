@@ -26,7 +26,7 @@
           <template #default="{ row }">
             <el-tag v-if="row.channel === 'WECHAT'" type="success">微信</el-tag>
             <el-tag v-else-if="row.channel === 'ALIPAY'" type="primary">支付宝</el-tag>
-            <el-tag v-else>{{ row.channel }}</el-tag>
+            <el-tag v-else>{{ fmtChannel(row.channel) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100" align="center">
@@ -35,7 +35,7 @@
             <el-tag v-else-if="row.status === 'PAID'" type="success">已支付</el-tag>
             <el-tag v-else-if="row.status === 'REVOKED'" type="warning">已撤销</el-tag>
             <el-tag v-else-if="row.status === 'EXPIRED'" type="danger">已过期</el-tag>
-            <el-tag v-else>{{ row.status }}</el-tag>
+            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="expireAt" label="到期时间" width="180">
@@ -122,6 +122,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { fmtStatus, fmtChannel } from "../../utils/enums";
 import { ElMessage } from "element-plus";
 import { formatDate, formatYuan } from "../../utils/format";
 import { fetchCollectionLinks, createCollectionLink, fetchSaleBills } from "../../api";
