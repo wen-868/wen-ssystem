@@ -1,7 +1,7 @@
 <template>
   <el-container class="platform-layout">
     <el-aside width="220px">
-      <div class="logo">至象 · 平台总后台</div>
+      <div class="logo">智享 · 平台总后台</div>
       <el-menu :default-active="activeMenu" router>
         <el-menu-item index="/dashboard">
           <el-icon><DataAnalysis /></el-icon>

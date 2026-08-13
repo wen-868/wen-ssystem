@@ -1,7 +1,7 @@
 <template>
   <div class="login-wrapper">
     <el-card class="login-card">
-      <h2>至象平台总后台</h2>
+      <h2>智享平台总后台</h2>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="0">
         <el-form-item prop="username">
           <el-input v-model="form.username" placeholder="用户名" />
