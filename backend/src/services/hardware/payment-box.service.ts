@@ -53,6 +53,7 @@ export async function getBoxConfigPublic(tenantId: string) {
       appId: config.appId || "",
       comPort: config.comPort || "",
       apiUrl: config.apiUrl || "",
+      secret: mask(config.secret),
       commandTemplate: config.commandTemplate || "",
     },
   };
@@ -66,7 +67,23 @@ export async function saveBoxConfig(tenantId: string, config: BoxConfig, enabled
     tenantId
   );
   if (!row) throw new Error("微信支付配置不存在，请先保存微信支付配置");
+  // 掩码值（****）或空密钥保留原值，避免脱敏回写覆盖真实密钥
+  const prevRow = await queryOneWithTenant(
+    `SELECT box_config FROM t_payment_config WHERE provider = 'wechat'`,
+    [],
+    tenantId
+  );
+  let prev: BoxConfig = {};
+  try {
+    prev = prevRow?.box_config ? JSON.parse(prevRow.box_config) : {};
+  } catch { /* 忽略 */ }
   const merged: BoxConfig = { ...config, enabled };
+  if (typeof merged.activationCode === "string" && merged.activationCode.includes("****") && prev.activationCode) {
+    merged.activationCode = prev.activationCode;
+  }
+  if (typeof merged.secret === "string" && (!merged.secret || merged.secret.includes("****")) && prev.secret) {
+    merged.secret = prev.secret;
+  }
   await executeWithTenant(
     `UPDATE t_payment_config SET box_config = ?, updated_at = NOW() WHERE provider = 'wechat'`,
     [JSON.stringify(merged)],
@@ -143,6 +160,18 @@ export async function handleBoxCallback(params: {
   const body = params.body || {};
   const orderNo = String(body.outTradeNo || body.orderNo || body.billNo || "");
   const amount = Number(body.amount ?? body.totalAmount ?? 0);
+  // 安全默认：必须配置签名密钥，否则拒绝回调（防止未授权伪造"支付成功"）
+  const { enabled, config } = await getBoxConfig(params.tenantId);
+  if (!config.secret) {
+    return { success: false, reason: "收款盒子未配置签名密钥，拒绝回调（请在收银台硬件设置中填写 secret）" };
+  }
+  const expected = crypto
+    .createHash("md5")
+    .update(`${orderNo}|${amount}|${config.secret}`)
+    .digest("hex");
+  if (String(body.sign || "") !== expected) {
+    return { success: false, reason: "回调签名校验失败" };
+  }
   const status = String(body.status || body.tradeStatus || "");
   const transactionId = String(body.transactionId || body.tradeNo || "");
   const paid = status === "SUCCESS" || status === "PAID" || status === "TRADE_SUCCESS" || Number(body.paid ?? 0) === 1;

@@ -89,6 +89,21 @@ describe("hardware-config.service", () => {
     const res = await HardwareConfigService.getRawConfig("t1", "unionpay");
     expect(res.config.apiKey).toBe("RAW_SECRET");
   });
+
+  it("保存时掩码值（****）保留库中原密钥，不覆盖真实值", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      id: 1,
+      config_json: '{"gatewayUrl":"https://up.example.com","apiKey":"REAL_SECRET"}',
+    });
+    mocks.executeWithTenant.mockResolvedValue({});
+    await HardwareConfigService.saveConfig("t1", "unionpay", {
+      gatewayUrl: "https://up.example.com",
+      apiKey: "REAL****CRET",
+    }, true);
+    const [, params] = mocks.executeWithTenant.mock.calls[0];
+    const stored = JSON.parse(params[0] as string);
+    expect(stored.apiKey).toBe("REAL_SECRET");
+  });
 });
 
 describe("cloud-speaker.service", () => {
@@ -145,22 +160,91 @@ describe("payment-box.service", () => {
   });
 
   it("回调成功时落销售单收款", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"secret":"SECRET1","enabled":true}',
+    });
+    const crypto = await import("crypto");
+    const sign = crypto.createHash("md5").update("XS1|98|SECRET1").digest("hex");
     mocks.offlinePayment.mockResolvedValue({ billNo: "XS1", receivedAmount: 98, collectionStatus: "PAID" });
     const res = await paymentBox.handleBoxCallback({
       tenantId: "t1",
-      body: { outTradeNo: "XS1", amount: 98, status: "SUCCESS", transactionId: "BOX001" },
+      body: { outTradeNo: "XS1", amount: 98, status: "SUCCESS", transactionId: "BOX001", sign },
     });
     expect(res.success).toBe(true);
     expect(mocks.offlinePayment).toHaveBeenCalledWith(expect.objectContaining({ billNo: "XS1", paymentMethod: "BOX" }));
   });
 
   it("回调非成功状态不落单", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"secret":"SECRET1","enabled":true}',
+    });
+    const crypto = await import("crypto");
+    const sign = crypto.createHash("md5").update("XS1|98|SECRET1").digest("hex");
     const res = await paymentBox.handleBoxCallback({
       tenantId: "t1",
-      body: { outTradeNo: "XS1", amount: 98, status: "FAIL" },
+      body: { outTradeNo: "XS1", amount: 98, status: "FAIL", sign },
     });
     expect(res.success).toBe(false);
     expect(mocks.offlinePayment).not.toHaveBeenCalled();
+  });
+
+  it("回调未配置签名密钥时拒绝（防伪造支付成功）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ enabled: 1, box_config: '{"provider":"银盛","enabled":true}' });
+    const res = await paymentBox.handleBoxCallback({
+      tenantId: "t1",
+      body: { outTradeNo: "XS1", amount: 98, status: "SUCCESS" },
+    });
+    expect(res.success).toBe(false);
+    expect(res.reason).toContain("签名密钥");
+    expect(mocks.offlinePayment).not.toHaveBeenCalled();
+  });
+
+  it("回调配置 secret 时校验签名，错误签名拒绝", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"secret":"SECRET1","enabled":true}',
+    });
+    const res = await paymentBox.handleBoxCallback({
+      tenantId: "t1",
+      body: { outTradeNo: "XS1", amount: 98, status: "SUCCESS", sign: "WRONG" },
+    });
+    expect(res.success).toBe(false);
+    expect(res.reason).toContain("签名");
+    expect(mocks.offlinePayment).not.toHaveBeenCalled();
+  });
+
+  it("回调正确签名时落单", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      enabled: 1,
+      box_config: '{"secret":"SECRET1","enabled":true}',
+    });
+    const crypto = await import("crypto");
+    const sign = crypto.createHash("md5").update("XS1|98|SECRET1").digest("hex");
+    mocks.offlinePayment.mockResolvedValue({ billNo: "XS1", receivedAmount: 98, collectionStatus: "PAID" });
+    const res = await paymentBox.handleBoxCallback({
+      tenantId: "t1",
+      body: { outTradeNo: "XS1", amount: 98, status: "SUCCESS", sign },
+    });
+    expect(res.success).toBe(true);
+    expect(mocks.offlinePayment).toHaveBeenCalled();
+  });
+
+  it("保存盒子配置：掩码激活码与空密钥保留原值", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 1 }) // provider 行存在
+      .mockResolvedValueOnce({ box_config: '{"provider":"银盛","activationCode":"ACT123456","secret":"SECRET1"}' });
+    mocks.executeWithTenant.mockResolvedValue({});
+    await paymentBox.saveBoxConfig("t1", {
+      provider: "银盛",
+      activationCode: "ACT1****3456",
+      secret: "",
+    }, true);
+    const [, params] = mocks.executeWithTenant.mock.calls[0];
+    const stored = JSON.parse(params[0] as string);
+    expect(stored.activationCode).toBe("ACT123456");
+    expect(stored.secret).toBe("SECRET1");
   });
 });
 

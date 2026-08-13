@@ -1,10 +1,18 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+/**
+ * 会员自助注册 service 单元测试
+ * 被测文件：src/services/admin/member.service.ts
+ * 短信通道以 sms.service 为边界 mock（真实发送在集成环境验证）
+ */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
+  queryWithTenant: vi.fn(),
   hashPassword: vi.fn(),
   validatePassword: vi.fn(),
+  isSmsVerifyEnabled: vi.fn(),
+  verifySmsCode: vi.fn(),
+  sendSmsCode: vi.fn(),
 }));
 
 vi.mock("../../../shared/db", () => ({
@@ -24,11 +32,20 @@ vi.mock("../../../shared/logger", () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+vi.mock("../../../services/sms.service", () => ({
+  isSmsVerifyEnabled: mocks.isSmsVerifyEnabled,
+  verifySmsCode: mocks.verifySmsCode,
+  sendSmsCode: mocks.sendSmsCode,
+}));
+
 import { selfRegisterMember, sendRegisterSmsCode } from "../../../services/admin/member.service";
 
 describe("member.service - selfRegisterMember", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 短信验证开关默认开启，验证码校验默认为通过（各用例按需覆盖）
+    mocks.isSmsVerifyEnabled.mockResolvedValue(true);
+    mocks.verifySmsCode.mockResolvedValue();
     mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
     mocks.hashPassword.mockResolvedValue("hashed_password");
     mocks.queryWithTenant.mockResolvedValue({ insertId: 1 });
@@ -54,39 +71,49 @@ describe("member.service - selfRegisterMember", () => {
 
   it("验证码错误应拒绝", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce(null);
+    mocks.verifySmsCode.mockRejectedValue(Object.assign(new Error("验证码错误"), { statusCode: 400 }));
     await expect(selfRegisterMember(validParams)).rejects.toThrow("验证码错误");
   });
 
   it("验证码已使用应拒绝", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 1, used: 1, expires_at: new Date(Date.now() + 300000) });
+    mocks.verifySmsCode.mockRejectedValue(Object.assign(new Error("验证码已使用"), { statusCode: 400 }));
     await expect(selfRegisterMember(validParams)).rejects.toThrow("验证码已使用");
   });
 
   it("验证码已过期应拒绝", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 1, used: 0, expires_at: new Date(Date.now() - 300000) });
+    mocks.verifySmsCode.mockRejectedValue(Object.assign(new Error("验证码已过期，请重新获取"), { statusCode: 400 }));
     await expect(selfRegisterMember(validParams)).rejects.toThrow("验证码已过期");
   });
 
-  it("会员注册成功", async () => {
+  it("短信验证关闭时无需验证码直接注册", async () => {
+    mocks.isSmsVerifyEnabled.mockResolvedValue(false);
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 1, used: 0, expires_at: new Date(Date.now() + 300000) });
+    mocks.queryWithTenant.mockResolvedValue({ insertId: 123 });
+    const result = await selfRegisterMember({ ...validParams, smsCode: "" });
+    expect(result.id).toBe(123);
+    expect(mocks.verifySmsCode).not.toHaveBeenCalled();
+  });
+
+  it("会员注册成功（初始化积分/等级/画像）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null);
     mocks.queryWithTenant.mockResolvedValue({ insertId: 123 });
 
     const result = await selfRegisterMember(validParams);
 
     expect(result).toEqual({ id: 123, name: "张三", mobile: "13800000000" });
     expect(mocks.hashPassword).toHaveBeenCalledWith("Pass@1234");
-    expect(mocks.queryWithTenant).toHaveBeenCalledTimes(5);
+    // 会员 + 积分 + 等级 + 画像 共 4 次写入
+    expect(mocks.queryWithTenant).toHaveBeenCalledTimes(4);
   });
 });
 
 describe("member.service - sendRegisterSmsCode", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.queryWithTenant.mockResolvedValue({ insertId: 1 });
+    mocks.isSmsVerifyEnabled.mockResolvedValue(true);
+    mocks.sendSmsCode.mockResolvedValue({ success: true, message: "验证码已发送，请查收短信" });
   });
 
   it("手机号格式不正确应拒绝", async () => {
@@ -98,20 +125,25 @@ describe("member.service - sendRegisterSmsCode", () => {
     await expect(sendRegisterSmsCode("13800000000", "default")).rejects.toThrow("该手机号已注册");
   });
 
+  it("短信验证关闭时无需发送", async () => {
+    mocks.isSmsVerifyEnabled.mockResolvedValue(false);
+    mocks.queryOneWithTenant.mockResolvedValueOnce(null);
+    const result = await sendRegisterSmsCode("13800000000", "default");
+    expect(result.message).toContain("无需验证码");
+    expect(mocks.sendSmsCode).not.toHaveBeenCalled();
+  });
+
   it("验证码发送过于频繁应拒绝", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce({ created_at: new Date() });
+    mocks.sendSmsCode.mockRejectedValue(Object.assign(new Error("验证码发送过于频繁，请稍后再试"), { statusCode: 400 }));
     await expect(sendRegisterSmsCode("13800000000", "default")).rejects.toThrow("验证码发送过于频繁");
   });
 
   it("验证码发送成功", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-    mocks.queryOneWithTenant.mockResolvedValueOnce(null);
-
     const result = await sendRegisterSmsCode("13800000000", "default");
-
     expect(result.success).toBe(true);
     expect(result.message).toContain("验证码已发送");
-    expect(mocks.queryWithTenant).toHaveBeenCalled();
+    expect(mocks.sendSmsCode).toHaveBeenCalledWith("13800000000", "REGISTER", "default");
   });
 });

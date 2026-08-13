@@ -54,12 +54,25 @@ export class HardwareConfigService {
 
   /** 保存配置（upsert） */
   static async saveConfig(tenantId: string, category: string, config: Record<string, unknown>, enabled: boolean) {
-    const json = JSON.stringify(config || {});
     const existing = await queryOneWithTenant(
-      `SELECT id FROM t_hardware_config WHERE tenant_id = ? AND category = ?`,
+      `SELECT id, config_json FROM t_hardware_config WHERE tenant_id = ? AND category = ?`,
       [tenantId, category],
       tenantId
     );
+    // 掩码值（含 ****）视为"未修改"，保留库中原值，避免脱敏回写覆盖真实密钥
+    let prev: Record<string, unknown> = {};
+    try {
+      prev = existing?.config_json ? JSON.parse(existing.config_json) : {};
+    } catch { /* 忽略解析错误 */ }
+    const merged: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(config || {})) {
+      if (typeof v === "string" && v.includes("****") && prev[k] !== undefined) {
+        merged[k] = prev[k];
+      } else {
+        merged[k] = v;
+      }
+    }
+    const json = JSON.stringify(merged);
     if (existing) {
       await executeWithTenant(
         `UPDATE t_hardware_config SET config_json = ?, enabled = ?, updated_at = NOW() WHERE id = ?`,

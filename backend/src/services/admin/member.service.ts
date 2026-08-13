@@ -109,6 +109,17 @@ export async function selfRegisterMember(params: {
 }
 
 export async function sendRegisterSmsCode(mobile: string, tenantId: string): Promise<{ success: boolean; message: string }> {
+  // 防御校验：格式不合法 / 手机号已注册直接拒绝（不发短信）
+  if (!/^1[3-9]\d{9}$/.test(mobile)) {
+    throw new AppError("手机号格式不正确", 400);
+  }
+  const existing = await queryOneWithTenant<IdRow>(
+    "SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?",
+    [mobile, tenantId], tenantId
+  );
+  if (existing) {
+    throw new AppError("该手机号已注册", 400);
+  }
   // 总台短信验证开关关闭时无需发送验证码
   if (!(await isSmsVerifyEnabled(tenantId))) {
     return { success: true, message: "短信验证未开启，注册无需验证码" };

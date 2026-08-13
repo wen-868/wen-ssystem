@@ -96,18 +96,27 @@ export class PaymentConfigService {
       return { success: true };
     }
     const existing = await queryOneWithTenant(
-      `SELECT id FROM t_payment_config WHERE provider = ?`, [provider], tenantId
+      `SELECT id, api_v3_key, api_key, private_key, alipay_public_key, app_secret FROM t_payment_config WHERE provider = ?`, [provider], tenantId
     );
+    // 掩码值（含 *）视为"未修改"，保留库中原值，避免脱敏回写覆盖真实密钥
+    const keepSecret = (incoming: string | undefined, prev: unknown): string => {
+      if (!incoming || incoming.includes("*")) return String(prev || "");
+      return incoming;
+    };
+    const apiV3Key = keepSecret(data.apiV3Key, existing?.api_v3_key);
+    const apiKey = keepSecret(data.apiKey, existing?.api_key);
+    const privateKey = keepSecret(data.privateKey, existing?.private_key);
+    const alipayPublicKey = keepSecret(data.alipayPublicKey, existing?.alipay_public_key);
     if (existing) {
       await executeWithTenant(
         `UPDATE t_payment_config SET app_id=?, mch_id=?, api_v3_key=?, api_key=?, private_key=?, serial_no=?, notify_url=?, alipay_public_key=?, box_config=?, enabled=?, updated_at=NOW() WHERE provider=?`,
-        [data.appId || '', data.mchId || '', data.apiV3Key || '', data.apiKey || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.boxConfig || null, enabledFlag, provider],
+        [data.appId || '', data.mchId || '', apiV3Key, apiKey, privateKey, data.serialNo || '', data.notifyUrl || '', alipayPublicKey, data.boxConfig || null, enabledFlag, provider],
         tenantId
       );
     } else {
       await executeWithTenant(
         `INSERT INTO t_payment_config (provider, app_id, mch_id, api_v3_key, api_key, private_key, serial_no, notify_url, alipay_public_key, box_config, enabled, tenant_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [provider, data.appId || '', data.mchId || '', data.apiV3Key || '', data.apiKey || '', data.privateKey || '', data.serialNo || '', data.notifyUrl || '', data.alipayPublicKey || '', data.boxConfig || null, enabledFlag, tenantId],
+        [provider, data.appId || '', data.mchId || '', apiV3Key, apiKey, privateKey, data.serialNo || '', data.notifyUrl || '', alipayPublicKey, data.boxConfig || null, enabledFlag, tenantId],
         tenantId
       );
     }

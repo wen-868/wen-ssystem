@@ -149,6 +149,29 @@ describe("admin payment-config.service - saveChannelConfig", () => {
       "t1"
     );
   });
+
+  it("掩码密钥保存时保留库中原值（避免脱敏回写覆盖）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({
+      id: 1,
+      private_key: "REAL_PK",
+      api_v3_key: "REAL_V3",
+      api_key: "REAL_V2",
+      alipay_public_key: "REAL_APK",
+    });
+    mocks.executeWithTenant.mockResolvedValue({});
+    await PaymentConfigService.saveChannelConfig("t1", "WECHAT", {
+      appId: "wx123",
+      privateKey: "***",
+      apiV3Key: "***",
+      apiKey: "***",
+      alipayPublicKey: "***",
+    });
+    const params = mocks.executeWithTenant.mock.calls[0][1] as unknown[];
+    expect(params).toContain("REAL_PK");
+    expect(params).toContain("REAL_V3");
+    expect(params).toContain("REAL_V2");
+    expect(params).toContain("REAL_APK");
+  });
 });
 
 // ============ isProviderReady（静态方法） ============

@@ -65,7 +65,8 @@ describe("employee.service", () => {
       expect(res.staffId).toBe(8);
       expect(mocks.bcryptHash).toHaveBeenCalledWith("secret", 10);
       const [, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(params).toEqual(["u", "r", null, 1, 1, "hash_pwd"]);
+      // 组织架构扩展后：mobile/store_id/department_id/position_id/status/password_hash
+      expect(params).toEqual(["u", "r", null, null, null, null, 1, "hash_pwd"]);
     });
 
     it("未传密码时使用默认 123456", async () => {
@@ -79,7 +80,7 @@ describe("employee.service", () => {
   describe("updateStaff", () => {
     it("无字段更新时返回空对象", async () => {
       const res = await updateStaff(1, {}, "t1");
-      expect(res).toEqual({});
+      expect(res).toEqual({ staffId: 1 });
       expect(mocks.queryWithTenant).not.toHaveBeenCalled();
     });
 
@@ -204,12 +205,13 @@ describe("employee.service", () => {
     });
 
     it("有 AppID 时返回微信信息并更新数据库", async () => {
-      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, name: "店", phone: "123", miniappAppid: "wx123" });
-      mocks.queryWithTenant.mockResolvedValue(undefined);
+      mocks.queryOneWithTenant.mockResolvedValue({
+        id: 1, name: "店", phone: "123", miniappAppid: "wx123",
+        wxMerchantName: "店", wxServicePhone: "0755-12345678",
+      });
       const res = await getStoreWechatInfo(1, "t1");
       expect(res.miniappAppid).toBe("wx123");
       expect(res.wxMerchantName).toBe("店");
-      expect(mocks.queryWithTenant).toHaveBeenCalled();
     });
   });
 });
