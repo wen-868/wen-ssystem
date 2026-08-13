@@ -286,11 +286,7 @@
             <el-icon v-show="!isMenuCollapsed" class="nav-arrow"><ArrowDown /></el-icon>
           </div>
           <div v-show="openGroups.system && !isMenuCollapsed" class="nav-sub">
-            <div class="nav-sub-item" :class="{ active: isActive('/department-manage') }" @click="navTo('/department-manage')">部门管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/position-manage') }" @click="navTo('/position-manage')">岗位管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/employees') }" @click="navTo('/employees')">员工管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/stores') }" @click="navTo('/stores')">门店管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/roles') }" @click="navTo('/system/roles')">角色权限</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/organization') }" @click="navTo('/organization')">组织架构</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/config') }" @click="navTo('/system/config')">系统配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/print') }" @click="navTo('/system/print')">打印模板</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/approval/rules') }" @click="navTo('/system/approval/rules')">审批规则</div>

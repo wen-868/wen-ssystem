@@ -9,6 +9,7 @@ export const adminStaffRouter = Router();
 adminStaffRouter.get("/staff", employeeController.listStaff);
 adminStaffRouter.post("/staff", employeeController.createStaff);
 adminStaffRouter.put("/staff/:id", employeeController.updateStaff);
+adminStaffRouter.put("/staff/:id/status", employeeController.setStaffStatus);
 adminStaffRouter.put("/staff/:id/disable", employeeController.disableStaff);
 
 // ========== 路由自动发现配置 ==========

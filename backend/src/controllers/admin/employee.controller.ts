@@ -15,6 +15,8 @@ export const createStaff = asyncHandler(async (req, res) => {
     mobile: z.string().optional(),
     roleId: z.string().optional(),
     storeId: z.number().optional(),
+    departmentId: z.number().optional(),
+    positionId: z.number().optional(),
     status: z.number().default(1),
     password: z.string().optional()
   }).parse(req.body);
@@ -27,8 +29,10 @@ export const updateStaff = asyncHandler(async (req, res) => {
     username: z.string().optional(),
     realName: z.string().optional(),
     mobile: z.string().optional(),
-    roleId: z.string().optional(),
+    roleId: z.string().nullable().optional(),
     storeId: z.number().optional(),
+    departmentId: z.number().nullable().optional(),
+    positionId: z.number().nullable().optional(),
     status: z.number().optional()
   }).parse(req.body);
   const result = await employeeService.updateStaff(Number(req.params.staffId), body, req.user!.tenantId);
@@ -37,6 +41,13 @@ export const updateStaff = asyncHandler(async (req, res) => {
 
 export const disableStaff = asyncHandler(async (req, res) => {
   const result = await employeeService.disableStaff(Number(req.params.id), req.user!.tenantId);
+  res.json(ok(result));
+});
+
+/** 启用/禁用员工（组织架构页） */
+export const setStaffStatus = asyncHandler(async (req, res) => {
+  const body = z.object({ status: z.number().min(0).max(1) }).parse(req.body || {});
+  const result = await employeeService.setStaffStatus(Number(req.params.id), body.status, req.user!.tenantId);
   res.json(ok(result));
 });
 

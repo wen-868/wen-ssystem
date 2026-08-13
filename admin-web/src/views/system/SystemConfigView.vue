@@ -2,227 +2,6 @@
   <PageCard title="系统设置">
     <div class="config-wrapper">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <!-- 系统参数 -->
-        <el-tab-pane label="系统参数" name="system">
-          <el-form ref="formRef" :model="configs" :rules="rules" label-width="140px" class="config-form">
-            <el-form-item label="系统名称" prop="system_name">
-              <div class="config-field">
-                <el-input v-model="configs.system_name" placeholder="请输入系统名称" style="width: 320px" />
-                <span class="tip-text">用于系统头部展示</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="系统版本号">
-              <div class="config-field">
-                <el-input v-model="configs.system_version" placeholder="当前系统版本" style="width: 320px" :disabled="true" />
-                <span class="tip-text">系统版本信息，自动获取</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="系统Logo">
-              <div class="config-field">
-                <div class="logo-upload">
-                  <el-upload
-                    class="logo-uploader"
-                    action="#"
-                    :show-file-list="false"
-                    :before-upload="handleLogoBeforeUpload"
-                    :http-request="() => {}"
-                  >
-                    <img v-if="configs.system_logo" :src="configs.system_logo" class="logo-preview" />
-                    <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
-                  </el-upload>
-                  <span class="tip-text">建议尺寸 200x60px，支持 PNG/JPG</span>
-                </div>
-              </div>
-            </el-form-item>
-            <el-form-item label="默认首页">
-              <div class="config-field">
-                <el-select v-model="configs.default_homepage" placeholder="请选择默认首页" style="width: 240px">
-                  <el-option label="工作台" value="dashboard" />
-                  <el-option label="销售单据" value="sale-bills" />
-                  <el-option label="订单列表" value="orders" />
-                  <el-option label="库存列表" value="inventory" />
-                  <el-option label="报表中心" value="reports" />
-                </el-select>
-                <span class="tip-text">登录后默认跳转的页面</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="欢迎语">
-              <div class="config-field">
-                <el-input v-model="configs.welcome_message" placeholder="请输入欢迎语" style="width: 320px" />
-                <span class="tip-text">显示在工作台首页的欢迎信息</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="时间格式">
-              <div class="config-field">
-                <el-select v-model="configs.time_format" placeholder="请选择时间格式" style="width: 200px">
-                  <el-option label="12小时制" value="12h" />
-                  <el-option label="24小时制" value="24h" />
-                </el-select>
-                <span class="tip-text">系统显示时间的格式</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="日期格式">
-              <div class="config-field">
-                <el-select v-model="configs.date_format" placeholder="请选择日期格式" style="width: 200px">
-                  <el-option label="YYYY-MM-DD" value="yyyy-mm-dd" />
-                  <el-option label="YYYY/MM/DD" value="yyyy/mm/dd" />
-                  <el-option label="MM/DD/YYYY" value="mm/dd/yyyy" />
-                  <el-option label="DD/MM/YYYY" value="dd/mm/yyyy" />
-                </el-select>
-                <span class="tip-text">系统显示日期的格式</span>
-              </div>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <!-- 邮件配置 -->
-        <el-tab-pane label="邮件配置" name="mail">
-          <el-form label-width="160px" class="config-form">
-            <el-form-item label="SMTP服务器地址" prop="smtp_host">
-              <div class="config-field">
-                <el-input v-model="configs.smtp_host" placeholder="如 smtp.qq.com" style="width: 320px" />
-                <span class="tip-text">邮件服务器地址</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="SMTP端口" prop="smtp_port">
-              <div class="config-field">
-                <el-input-number v-model="configs.smtp_port" :min="1" :max="65535" style="width: 160px" />
-                <span class="tip-text">常见端口：25、465、587</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="SMTP用户名" prop="smtp_username">
-              <div class="config-field">
-                <el-input v-model="configs.smtp_username" placeholder="邮箱账号" style="width: 320px" />
-                <span class="tip-text">发件邮箱账号</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="SMTP密码">
-              <div class="config-field">
-                <el-input v-model="configs.smtp_password" type="password" placeholder="请输入密码" style="width: 320px" show-password />
-                <span class="tip-text">邮箱授权码或密码</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="发件人地址" prop="mail_from_address">
-              <div class="config-field">
-                <el-input v-model="configs.mail_from_address" placeholder="如 service@example.com" style="width: 320px" />
-                <span class="tip-text">显示的发件人邮箱</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="发件人名称" prop="mail_from_name">
-              <div class="config-field">
-                <el-input v-model="configs.mail_from_name" placeholder="如 智享全链管理系统" style="width: 320px" />
-                <span class="tip-text">显示的发件人名称</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="启用SSL">
-              <div class="config-field">
-                <el-switch v-model="configs.smtp_ssl" active-value="1" inactive-value="0" />
-                <span class="tip-text">启用SSL加密连接</span>
-              </div>
-            </el-form-item>
-            <el-divider content-position="left">邮件模板</el-divider>
-            <el-form-item label="验证码邮件模板">
-              <div class="config-field">
-                <el-input
-                  v-model="configs.mail_template_verify"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入验证码邮件模板内容，支持变量 {code} {expire}"
-                  style="width: 480px"
-                />
-                <span class="tip-text">模板变量：{code} 验证码，{expire} 有效期</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="通知邮件模板">
-              <div class="config-field">
-                <el-input
-                  v-model="configs.mail_template_notify"
-                  type="textarea"
-                  :rows="3"
-                  placeholder="请输入通知邮件模板内容"
-                  style="width: 480px"
-                />
-                <span class="tip-text">用于发送系统通知类邮件</span>
-              </div>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" :loading="testMailLoading" @click="handleTestMail">
-                <el-icon><Share /></el-icon> 测试发送
-              </el-button>
-              <span class="tip-text" style="margin-left: 12px">测试邮件配置是否正确</span>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <!-- 短信配置 -->
-        <el-tab-pane label="短信配置" name="sms">
-          <el-form label-width="160px" class="config-form">
-            <el-form-item label="短信验证开关" prop="sms_verify_enabled">
-              <div class="config-field">
-                <el-switch v-model="configs.sms_verify_enabled" active-value="1" inactive-value="0" />
-                <span class="tip-text">关闭时注册无需短信验证码；短信平台申请完成后开启</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="短信服务商" prop="sms_provider">
-              <div class="config-field">
-                <el-select v-model="configs.sms_provider" placeholder="请选择短信服务商" style="width: 200px" @change="handleSmsProviderChange">
-                  <el-option label="阿里云" value="aliyun" />
-                  <el-option label="腾讯云" value="tencent" />
-                </el-select>
-                <span class="tip-text">选择短信服务提供商</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="AccessKey ID" prop="sms_access_key">
-              <div class="config-field">
-                <el-input v-model="configs.sms_access_key" placeholder="请输入AccessKey ID" style="width: 320px" />
-                <span class="tip-text">{{ configs.sms_provider === 'aliyun' ? '阿里云AccessKey' : '腾讯云SecretId' }}</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="AccessKey Secret" prop="sms_secret_key">
-              <div class="config-field">
-                <el-input v-model="configs.sms_secret_key" type="password" placeholder="请输入AccessKey Secret" style="width: 320px" show-password />
-                <span class="tip-text">{{ configs.sms_provider === 'aliyun' ? '阿里云AccessKey Secret' : '腾讯云SecretKey' }}</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="短信签名" prop="sms_sign_name">
-              <div class="config-field">
-                <el-input v-model="configs.sms_sign_name" placeholder="请输入短信签名" style="width: 320px" />
-                <span class="tip-text">需在对应平台申请审核</span>
-              </div>
-            </el-form-item>
-            <el-divider content-position="left">短信模板管理</el-divider>
-            <div class="template-list">
-              <el-table :data="smsTemplates" border style="width: 100%">
-                <el-table-column prop="name" label="模板名称" width="150" />
-                <el-table-column prop="code" label="模板编码" width="150" />
-                <el-table-column prop="content" label="模板内容" min-width="300" />
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="{ row }">
-                    <el-tag :type="row.status === 'ENABLED' ? 'success' : 'info'">
-                      {{ row.status === 'ENABLED' ? '启用' : '禁用' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-                <el-table-column label="操作" width="240" fixed="right">
-                  <template #default="{ row }">
-                    <el-button size="small" link type="primary" @click="editSmsTemplate(row)">编辑</el-button>
-                    <el-button size="small" link :type="row.status === 'ENABLED' ? 'danger' : 'success'" @click="toggleSmsTemplate(row)">
-                      {{ row.status === 'ENABLED' ? '禁用' : '启用' }}
-                    </el-button>
-                    <el-button size="small" link type="danger" @click="deleteSmsTemplate(row)">删除</el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-            <div style="margin-top: 16px">
-              <el-button type="primary" @click="showSmsTemplateDialog = true">
-                <el-icon><Plus /></el-icon> 新增模板
-              </el-button>
-            </div>
-          </el-form>
-        </el-tab-pane>
-
-        <!-- 数据备份设置 -->
         <el-tab-pane label="数据备份" name="backup">
           <el-form label-width="160px" class="config-form">
             <el-form-item label="自动备份">
@@ -313,9 +92,15 @@
           </el-form>
         </el-tab-pane>
 
-        <!-- 原有配置Tab保留 -->
-        <el-tab-pane label="通用配置" name="general">
+        <!-- 公司信息（客户公司信息） -->
+        <el-tab-pane label="公司信息" name="general">
           <el-form ref="formRef" :model="configs" :rules="rules" label-width="140px" class="config-form">
+            <el-form-item label="系统名称" prop="system_name">
+              <div class="config-field">
+                <el-input v-model="configs.system_name" placeholder="请输入系统名称" style="width: 320px" />
+                <span class="tip-text">用于系统头部展示</span>
+              </div>
+            </el-form-item>
             <el-form-item label="公司名称" prop="company_name">
               <div class="config-field">
                 <el-input v-model="configs.company_name" placeholder="请输入公司名称" style="width: 320px" />
@@ -351,139 +136,53 @@
                 <span class="tip-text">设置系统全局主题色，默认 #1677FF</span>
               </div>
             </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <el-tab-pane label="订单配置" name="order">
-          <el-form label-width="160px" class="config-form">
-            <el-form-item label="自动接单">
+            <el-form-item label="欢迎语">
               <div class="config-field">
-                <el-switch v-model="configs.auto_accept_order" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后新订单将自动确认接单</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="订单超时时间">
-              <div class="config-field">
-                <el-input-number v-model="configs.order_timeout_minutes" :min="1" :max="1440" style="width: 160px" />
-                <span class="suffix-text">分钟后</span>
-                <span class="tip-text">订单超过此时间未处理将自动提醒</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="订单自动取消时间">
-              <div class="config-field">
-                <el-input-number v-model="configs.auto_cancel_minutes" :min="1" :max="10080" style="width: 160px" />
-                <span class="suffix-text">分钟后</span>
-                <span class="tip-text">订单超过此时间未支付将自动取消</span>
+                <el-input v-model="configs.welcome_message" placeholder="请输入欢迎语" style="width: 320px" />
+                <span class="tip-text">显示在工作台首页的欢迎信息</span>
               </div>
             </el-form-item>
           </el-form>
         </el-tab-pane>
 
-        <el-tab-pane label="支付配置" name="payment">
-          <el-form label-width="140px" class="config-form">
-            <el-form-item label="微信支付">
-              <div class="config-field">
-                <el-switch v-model="configs.wechat_pay" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后支持微信扫码支付</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="支付宝">
-              <div class="config-field">
-                <el-switch v-model="configs.alipay" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后支持支付宝扫码支付</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="线下支付">
-              <div class="config-field">
-                <el-switch v-model="configs.offline_pay" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后支持现金及线下转账支付</span>
-              </div>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <el-tab-pane label="库存配置" name="inventory">
-          <el-form label-width="160px" class="config-form">
-            <el-form-item label="低库存预警阈值">
-              <div class="config-field">
-                <el-input-number v-model="configs.low_stock_threshold" :min="1" :max="99999" style="width: 160px" />
-                <span class="tip-text">库存低于此数量时触发预警通知</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="保质期预警天数">
-              <div class="config-field">
-                <el-input-number v-model="configs.expiry_warning_days" :min="1" :max="365" style="width: 160px" />
-                <span class="tip-text">距保质期不足此天数时触发预警</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="自动补货">
-              <div class="config-field">
-                <el-switch v-model="configs.auto_replenish" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后库存不足时自动生成采购建议</span>
-              </div>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <el-tab-pane label="通知配置" name="notification">
-          <el-form label-width="140px" class="config-form">
-            <el-form-item label="短信通知">
-              <div class="config-field">
-                <el-switch v-model="configs.sms_notify" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后通过短信发送订单及库存预警通知</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="微信通知">
-              <div class="config-field">
-                <el-switch v-model="configs.wechat_notify" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后通过微信公众号发送相关通知</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="站内信">
-              <div class="config-field">
-                <el-switch v-model="configs.site_notify" active-value="1" inactive-value="0" />
-                <span class="tip-text">开启后通过系统站内信发送通知</span>
-              </div>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <!-- 系统初始化 -->
-        <el-tab-pane label="系统初始化" name="reset">
-          <div class="reset-wrapper">
-            <el-alert type="error" :closable="false" show-icon class="reset-alert">
-              <template #title>危险操作：系统初始化将清空全部业务数据</template>
-              初始化会删除商品、客户、供应商、销售单、采购单、库存、营销、审批等全部业务数据，
-              且不可恢复。系统账号、角色、菜单与平台配置将保留。
-            </el-alert>
-
-            <div class="reset-card">
-              <div class="reset-title">执行系统初始化</div>
-              <div class="reset-desc">初始化后建议重新登录，并可通过演示登录一键重建演示数据。</div>
-              <el-form label-width="140px" class="reset-form">
-                <el-form-item label="确认口令">
-                  <el-input
-                    v-model="resetConfirm"
-                    placeholder="请输入 RESET 确认执行"
-                    style="width: 320px"
-                    clearable
-                  />
-                </el-form-item>
-              </el-form>
-              <el-button
-                type="danger"
-                :loading="resetLoading"
-                :disabled="resetConfirm !== 'RESET' || isDemoUser"
-                @click="handleSystemReset"
-              >
-                确认初始化，清空全部业务数据
-              </el-button>
-              <p class="reset-tip">
-                {{ isDemoUser ? "演示账号不可执行系统初始化，请使用管理员账号登录。" : "仅系统管理员可执行；输入 RESET 后按钮方可点击。" }}
-              </p>
-            </div>
+        <!-- 门店设置 -->
+        <el-tab-pane label="门店设置" name="store">
+          <div class="config-list-toolbar">
+            <el-button type="primary" size="small" :icon="Plus" @click="openStoreEdit()">新增门店</el-button>
           </div>
+          <el-table :data="storeList" border size="small" max-height="420">
+            <el-table-column prop="storeCode" label="门店编码" width="130" />
+            <el-table-column prop="name" label="门店名称" min-width="140" />
+            <el-table-column prop="address" label="地址" min-width="180" />
+            <el-table-column prop="phone" label="联系电话" width="130" />
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="{ row }">
+                <el-button size="small" link type="primary" @click="openStoreEdit(row)">编辑</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
         </el-tab-pane>
+
+        <!-- 仓库设置 -->
+        <el-tab-pane label="仓库设置" name="warehouse">
+          <div class="config-list-toolbar">
+            <el-button type="primary" size="small" :icon="Plus" @click="openWarehouseEdit()">新增仓库</el-button>
+          </div>
+          <el-table :data="warehouseList" border size="small" max-height="420">
+            <el-table-column prop="storeCode" label="仓库编码" width="130" />
+            <el-table-column prop="name" label="仓库名称" min-width="140" />
+            <el-table-column prop="address" label="地址" min-width="180" />
+            <el-table-column prop="contact" label="联系人" width="110" />
+            <el-table-column prop="phone" label="联系电话" width="130" />
+            <el-table-column label="操作" width="140" fixed="right">
+              <template #default="{ row }">
+                <el-button size="small" link type="primary" @click="openWarehouseEdit(row)">编辑</el-button>
+                <el-button size="small" link type="danger" @click="handleDeleteWarehouse(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+
       </el-tabs>
 
       <div class="action-bar">
@@ -492,33 +191,47 @@
       </div>
     </div>
 
-    <!-- 短信模板编辑弹窗 -->
-    <el-dialog v-model="showSmsTemplateDialog" :title="isSmsTemplateEdit ? '编辑短信模板' : '新增短信模板'" width="720px">
-      <el-form :model="smsTemplateForm" label-width="100px" :rules="smsTemplateRules" ref="smsTemplateFormRef">
-        <el-form-item label="模板名称" prop="name">
-          <el-input v-model="smsTemplateForm.name" placeholder="请输入模板名称" />
+    <!-- 门店编辑弹窗 -->
+    <el-dialog v-model="storeEditVisible" :title="storeForm.id ? '编辑门店' : '新增门店'" width="480px">
+      <el-form :model="storeForm" label-width="90px">
+        <el-form-item label="门店名称">
+          <el-input v-model="storeForm.name" placeholder="门店名称" />
         </el-form-item>
-        <el-form-item label="模板编码" prop="code">
-          <el-input v-model="smsTemplateForm.code" placeholder="请输入模板编码" />
+        <el-form-item label="地址">
+          <el-input v-model="storeForm.address" placeholder="门店地址" />
         </el-form-item>
-        <el-form-item label="模板内容" prop="content">
-          <el-input
-            v-model="smsTemplateForm.content"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入短信模板内容，支持变量"
-          />
+        <el-form-item label="联系人">
+          <el-input v-model="storeForm.contact" placeholder="联系人" />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="smsTemplateForm.status" style="width: 100%">
-            <el-option label="启用" value="ENABLED" />
-            <el-option label="禁用" value="DISABLED" />
-          </el-select>
+        <el-form-item label="联系电话">
+          <el-input v-model="storeForm.phone" placeholder="联系电话" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showSmsTemplateDialog = false">取消</el-button>
-        <el-button type="primary" :loading="smsTemplateLoading" @click="handleSmsTemplateSubmit">保存</el-button>
+        <el-button @click="storeEditVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveStore">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 仓库编辑弹窗 -->
+    <el-dialog v-model="warehouseEditVisible" :title="warehouseForm.id ? '编辑仓库' : '新增仓库'" width="480px">
+      <el-form :model="warehouseForm" label-width="90px">
+        <el-form-item label="仓库名称">
+          <el-input v-model="warehouseForm.name" placeholder="仓库名称" />
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="warehouseForm.address" placeholder="仓库地址" />
+        </el-form-item>
+        <el-form-item label="联系人">
+          <el-input v-model="warehouseForm.contact" placeholder="联系人" />
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="warehouseForm.phone" placeholder="联系电话" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="warehouseEditVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="handleSaveWarehouse">保存</el-button>
       </template>
     </el-dialog>
   </PageCard>
@@ -530,140 +243,53 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Plus, Share, Download } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
-import { resetSystemData } from "../../api/common";
+import { fetchStores, createStore, updateStore } from "../../api/common";
+import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../api/system";
 import { useAuthStore } from "../../stores/auth";
 
 const activeTab = ref("system");
 const saveLoading = ref(false);
-const resetLoading = ref(false);
-const resetConfirm = ref("");
+const saving = ref(false);
 const auth = useAuthStore();
 const isDemoUser = computed(() => auth.user?.demo === true);
-const testMailLoading = ref(false);
 const manualBackupLoading = ref(false);
-const showSmsTemplateDialog = ref(false);
-const isSmsTemplateEdit = ref(false);
-const smsTemplateLoading = ref(false);
 const formRef = ref<FormInstance>();
-const smsTemplateFormRef = ref<FormInstance>();
 
-/** 系统初始化：二次确认后清空全部业务数据 */
-async function handleSystemReset() {
-  if (resetConfirm.value !== "RESET") {
-    ElMessage.warning("请输入 RESET 确认口令");
-    return;
-  }
-  resetLoading.value = true;
-  try {
-    const res = await resetSystemData(resetConfirm.value);
-    ElMessage.success(res?.message || "系统初始化完成");
-    resetConfirm.value = "";
-    // 初始化后清除本地登录态，引导重新登录
-    setTimeout(() => {
-      localStorage.removeItem("admin_auth");
-      window.location.href = "/login";
-    }, 1500);
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || "系统初始化失败");
-  } finally {
-    resetLoading.value = false;
-  }
-}
+/* ── 门店设置 ── */
+const storeList = ref<any[]>([]);
+const storeEditVisible = ref(false);
+const storeForm = reactive<any>({ id: 0, name: "", address: "", contact: "", phone: "" });
+
+/* ── 仓库设置 ── */
+const warehouseList = ref<any[]>([]);
+const warehouseEditVisible = ref(false);
+const warehouseForm = reactive<any>({ id: 0, name: "", address: "", contact: "", phone: "" });
 
 const rules: FormRules = {
   company_name: [{ required: true, message: "请输入公司名称", trigger: "blur" }],
-  system_name: [{ required: true, message: "请输入系统名称", trigger: "blur" }],
-  smtp_host: [{ required: true, message: "请输入SMTP服务器地址", trigger: "blur" }],
-  smtp_port: [{ required: true, message: "请输入SMTP端口", trigger: "blur" }],
-  smtp_username: [{ required: true, message: "请输入SMTP用户名", trigger: "blur" }],
-  mail_from_address: [{ required: true, message: "请输入发件人地址", trigger: "blur" }],
-  mail_from_name: [{ required: true, message: "请输入发件人名称", trigger: "blur" }],
-  sms_provider: [{ required: true, message: "请选择短信服务商", trigger: "change" }],
-  sms_access_key: [{ required: true, message: "请输入AccessKey ID", trigger: "blur" }],
-  sms_secret_key: [{ required: true, message: "请输入AccessKey Secret", trigger: "blur" }],
-  sms_sign_name: [{ required: true, message: "请输入短信签名", trigger: "blur" }]
-};
-
-const smsTemplateRules: FormRules = {
-  name: [{ required: true, message: "请输入模板名称", trigger: "blur" }],
-  code: [{ required: true, message: "请输入模板编码", trigger: "blur" }],
-  content: [{ required: true, message: "请输入模板内容", trigger: "blur" }]
+  system_name: [{ required: true, message: "请输入系统名称", trigger: "blur" }]
 };
 
 /* ── 默认配置值 ── */
 const defaultConfigs: Record<string, string> = {
-  // 系统参数
+  // 公司信息
   system_name: "智享全链管理系统",
   system_version: "V6.0.0",
   system_logo: "",
-  default_homepage: "dashboard",
   welcome_message: "欢迎使用智享全链管理系统",
-  time_format: "24h",
-  date_format: "yyyy-mm-dd",
-  // 邮件配置
-  smtp_host: "",
-  smtp_port: "465",
-  smtp_username: "",
-  smtp_password: "",
-  mail_from_address: "",
-  mail_from_name: "",
-  smtp_ssl: "1",
-  mail_template_verify: "您的验证码是：{code}，有效期{expire}分钟。",
-  mail_template_notify: "您有新的系统通知，请登录查看。",
-  // 短信配置
-  sms_verify_enabled: "0",
-  sms_provider: "",
-  sms_access_key: "",
-  sms_secret_key: "",
-  sms_sign_name: "",
+  company_name: "",
+  company_logo: "",
+  contact_phone: "",
+  theme_color: "#1677FF",
   // 数据备份
   backup_auto: "0",
   backup_frequency: "daily",
   backup_time: "02:00",
   backup_retention_days: "30",
-  backup_path: "",
-  // 原有配置
-  company_name: "",
-  company_logo: "",
-  contact_phone: "",
-  theme_color: "#1677FF",
-  auto_accept_order: "0",
-  order_timeout_minutes: "30",
-  auto_cancel_minutes: "120",
-  wechat_pay: "1",
-  alipay: "1",
-  offline_pay: "1",
-  low_stock_threshold: "10",
-  expiry_warning_days: "7",
-  auto_replenish: "0",
-  sms_notify: "1",
-  wechat_notify: "1",
-  site_notify: "1"
+  backup_path: ""
 };
 
 const configs = reactive<Record<string, string>>({ ...defaultConfigs });
-
-/* ── 短信模板列表 ── */
-interface SmsTemplate {
-  id: number;
-  name: string;
-  code: string;
-  content: string;
-  status: "ENABLED" | "DISABLED";
-}
-
-// 短信模板从真实接口加载（t_sms_template），不再内置模拟数据
-const smsTemplates = ref<SmsTemplate[]>([]);
-
-const defaultSmsTemplateForm = {
-  id: 0,
-  name: "",
-  code: "",
-  content: "",
-  status: "ENABLED" as "ENABLED" | "DISABLED"
-};
-
-const smsTemplateForm = reactive({ ...defaultSmsTemplateForm });
 
 /* ── 备份历史列表 ── */
 interface BackupRecord {
@@ -684,15 +310,10 @@ const timeSelectOptions = {
 
 /* ── 分组与 Tab 名映射 ── */
 const tabGroupMap: Record<string, string> = {
-  system: "system",
-  mail: "mail",
-  sms: "sms",
   backup: "backup",
   general: "general",
-  order: "order",
-  payment: "payment",
-  inventory: "inventory",
-  notification: "notification"
+  store: "store",
+  warehouse: "warehouse"
 };
 
 /* ── 加载指定分组配置 ── */
@@ -763,85 +384,6 @@ function handleLogoBeforeUpload(file: File) {
 }
 
 /* ── 测试邮件发送 ── */
-async function handleTestMail() {
-  testMailLoading.value = true;
-  try {
-    await api.post("/admin/sys-config/test-mail");
-    ElMessage.success("测试邮件发送成功");
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || e?.message || "测试邮件发送失败");
-  } finally {
-    testMailLoading.value = false;
-  }
-}
-
-/* ── 短信服务商切换 ── */
-function handleSmsProviderChange() {
-  // 可根据服务商不同显示不同的配置项
-}
-
-/* ── 编辑短信模板 ── */
-function editSmsTemplate(row: SmsTemplate) {
-  isSmsTemplateEdit.value = true;
-  Object.assign(smsTemplateForm, {
-    id: row.id,
-    name: row.name,
-    code: row.code,
-    content: row.content,
-    status: row.status
-  });
-  showSmsTemplateDialog.value = true;
-}
-
-/* ── 加载短信模板（真实接口） ── */
-async function loadSmsTemplates() {
-  try {
-    const { data } = await api.get("/admin/sms-templates");
-    smsTemplates.value = data.data || [];
-  } catch {
-    smsTemplates.value = [];
-  }
-}
-
-/* ── 切换短信模板状态（真实接口） ── */
-async function toggleSmsTemplate(row: SmsTemplate) {
-  const next = row.status === "ENABLED" ? "DISABLED" : "ENABLED";
-  await api.put(`/admin/sms-templates/${row.id}`, { ...row, status: next });
-  row.status = next;
-  ElMessage.success(`短信模板${next === "ENABLED" ? "启用" : "禁用"}成功`);
-}
-
-/* ── 删除短信模板（真实接口） ── */
-async function deleteSmsTemplate(row: SmsTemplate) {
-  await api.delete(`/admin/sms-templates/${row.id}`);
-  smsTemplates.value = smsTemplates.value.filter((t) => t.id !== row.id);
-  ElMessage.success("删除成功");
-}
-
-/* ── 提交短信模板 ── */
-async function handleSmsTemplateSubmit() {
-  if (!smsTemplateFormRef.value) return;
-  await smsTemplateFormRef.value.validate(async (valid) => {
-    if (!valid) return;
-    smsTemplateLoading.value = true;
-    try {
-      if (isSmsTemplateEdit.value) {
-        await api.put(`/admin/sms-templates/${smsTemplateForm.id}`, { ...smsTemplateForm });
-      } else {
-        await api.post("/admin/sms-templates", { ...smsTemplateForm });
-      }
-      await loadSmsTemplates();
-      showSmsTemplateDialog.value = false;
-      Object.assign(smsTemplateForm, defaultSmsTemplateForm);
-      ElMessage.success(isSmsTemplateEdit.value ? "更新成功" : "创建成功");
-    } catch (e: any) {
-      ElMessage.error(e?.response?.data?.msg || "保存失败");
-    } finally {
-      smsTemplateLoading.value = false;
-    }
-  });
-}
-
 /* ── 手动备份 ── */
 function formatFileSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + "MB";
@@ -907,10 +449,97 @@ async function deleteBackup(row: BackupRecord) {
   }
 }
 
+/* ── 门店设置 ── */
+async function loadStores() {
+  try {
+    storeList.value = (await fetchStores()) || [];
+  } catch {
+    storeList.value = [];
+  }
+}
+
+function openStoreEdit(row?: any) {
+  Object.assign(storeForm, {
+    id: row?.id || 0,
+    name: row?.name || "",
+    address: row?.address || "",
+    contact: row?.contact || "",
+    phone: row?.phone || "",
+  });
+  storeEditVisible.value = true;
+}
+
+async function handleSaveStore() {
+  saving.value = true;
+  try {
+    if (storeForm.id) {
+      await updateStore(storeForm.id, { name: storeForm.name, address: storeForm.address, phone: storeForm.phone });
+    } else {
+      await createStore({ name: storeForm.name, address: storeForm.address, contact: storeForm.contact, phone: storeForm.phone });
+    }
+    ElMessage.success("保存成功");
+    storeEditVisible.value = false;
+    await loadStores();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败");
+  } finally {
+    saving.value = false;
+  }
+}
+
+/* ── 仓库设置 ── */
+async function loadWarehouses() {
+  try {
+    warehouseList.value = (await fetchWarehouses()) || [];
+  } catch {
+    warehouseList.value = [];
+  }
+}
+
+function openWarehouseEdit(row?: any) {
+  Object.assign(warehouseForm, {
+    id: row?.id || 0,
+    name: row?.name || "",
+    address: row?.address || "",
+    contact: row?.contact || "",
+    phone: row?.phone || "",
+  });
+  warehouseEditVisible.value = true;
+}
+
+async function handleSaveWarehouse() {
+  saving.value = true;
+  try {
+    if (warehouseForm.id) {
+      await updateWarehouse(warehouseForm.id, { name: warehouseForm.name, address: warehouseForm.address, contact: warehouseForm.contact, phone: warehouseForm.phone });
+    } else {
+      await createWarehouse({ name: warehouseForm.name, address: warehouseForm.address, contact: warehouseForm.contact, phone: warehouseForm.phone });
+    }
+    ElMessage.success("保存成功");
+    warehouseEditVisible.value = false;
+    await loadWarehouses();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "保存失败");
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function handleDeleteWarehouse(row: any) {
+  try {
+    await deleteWarehouse(row.id);
+    warehouseList.value = warehouseList.value.filter((w) => w.id !== row.id);
+    ElMessage.success("已删除");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "删除失败");
+  }
+}
+
 onMounted(() => {
   loadAllConfigs();
-  loadSmsTemplates();
   loadBackups();
+  loadStores();
+  loadWarehouses();
 });
 </script>
 

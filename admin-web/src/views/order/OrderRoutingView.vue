@@ -265,6 +265,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchRoutingRules, createRoutingRule, updateRoutingRule, deleteRoutingRule, fetchStoreLoad } from '../../api'
+import { fetchWarehouses } from '../../api/system'
 
 // ─── Mock 数据 ───
 const channelNames: Record<string, string> = { WECHAT: '微信', DOUYIN: '抖音', MEITUAN: '美团', ELEME: '饿了么', JD: '京东', OFFLINE: '线下' }
@@ -289,7 +290,8 @@ const ruleChannelOptions = [
 ]
 
 const storeOptions = ['门店1', '门店2', '门店3', '门店4', '门店5']
-const warehouseOptions = ['总仓', '分仓A', '分仓B', '分仓C']
+// 仓库选项来自真实仓库管理（t_store store_type=WAREHOUSE）
+const warehouseOptions = ref<string[]>([])
 
 const regionOptions = [
   { label: '北京市', value: 'beijing', children: [
@@ -469,6 +471,13 @@ async function loadStoreLoad() {
 onMounted(() => {
   loadRules()
   loadStoreLoad()
+  fetchWarehouses()
+    .then((list) => {
+      warehouseOptions.value = (list || []).map((w: any) => w.name)
+    })
+    .catch(() => {
+      warehouseOptions.value = []
+    })
 })
 </script>
 

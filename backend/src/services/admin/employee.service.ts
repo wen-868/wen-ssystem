@@ -21,7 +21,15 @@ interface StaffListRow {
   staffId: number | string;
   username: string;
   realName: string | null;
+  mobile: string | null;
   storeId: number | string | null;
+  storeName: string | null;
+  departmentId: number | string | null;
+  departmentName: string | null;
+  positionId: number | string | null;
+  positionName: string | null;
+  roleCodes: string | null;
+  roleIds: string | null;
   status: number | string;
 }
 
@@ -71,11 +79,23 @@ interface StoreWechatInfoRow {
 
 export async function listStaff(tenantId: string) {
   const records = await queryWithTenant<StaffListRow>(
-    `SELECT id AS staffId, username, real_name AS realName, store_id AS storeId, status
-     FROM t_sys_user
-     WHERE status = 1
-     ORDER BY id ASC`,
-    [],
+    `SELECT u.id AS staffId, u.username, u.real_name AS realName, u.mobile,
+            u.store_id AS storeId, u.department_id AS departmentId, u.position_id AS positionId,
+            d.name AS departmentName, p.position_name AS positionName,
+            s.name AS storeName,
+            GROUP_CONCAT(r.role_code ORDER BY r.role_code SEPARATOR ',') AS roleCodes,
+            GROUP_CONCAT(ur.role_id ORDER BY ur.role_id SEPARATOR ',') AS roleIds,
+            u.status
+     FROM t_sys_user u
+     LEFT JOIN t_sys_department d ON d.id = u.department_id
+     LEFT JOIN t_sys_position p ON p.id = u.position_id
+     LEFT JOIN t_store s ON s.id = u.store_id AND s.tenant_id = u.tenant_id
+     LEFT JOIN t_sys_user_role ur ON ur.user_id = u.id
+     LEFT JOIN t_sys_role r ON r.id = ur.role_id
+     WHERE u.tenant_id = ? AND u.status = 1
+     GROUP BY u.id
+     ORDER BY u.id ASC`,
+    [tenantId],
     tenantId
   );
   return { total: records.length, records };
@@ -85,8 +105,10 @@ export async function createStaff(body: {
   username: string;
   realName: string;
   mobile?: string;
-  roleId?: string;
+  roleId?: number | string;
   storeId?: number;
+  departmentId?: number;
+  positionId?: number;
   status?: number;
   password?: string;
 }, tenantId: string) {
@@ -101,20 +123,35 @@ export async function createStaff(body: {
     ? await bcrypt.hash(body.password, 10)
     : await bcrypt.hash("123456", 10);
   const result = await queryWithTenant<ResultSetHeader>(
-    `INSERT INTO t_sys_user (username, real_name, mobile, store_id, status, password_hash)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [body.username, body.realName, body.mobile ?? null, body.storeId ?? 1, body.status ?? 1, passwordHash],
+    `INSERT INTO t_sys_user (username, real_name, mobile, store_id, department_id, position_id, status, password_hash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      body.username, body.realName, body.mobile ?? null,
+      body.storeId ?? null, body.departmentId ?? null, body.positionId ?? null,
+      body.status ?? 1, passwordHash
+    ],
     tenantId
   );
-  return { staffId: (result as unknown as Record<string, unknown>).insertId, username: body.username, realName: body.realName };
+  const staffId = (result as unknown as Record<string, unknown>).insertId;
+  // 绑定角色（角色权限一体化）
+  if (body.roleId) {
+    await queryWithTenant(
+      "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
+      [staffId, Number(body.roleId), tenantId],
+      tenantId
+    );
+  }
+  return { staffId, username: body.username, realName: body.realName };
 }
 
 export async function updateStaff(id: number, body: {
   username?: string;
   realName?: string;
   mobile?: string;
-  roleId?: string;
+  roleId?: number | string | null;
   storeId?: number;
+  departmentId?: number | null;
+  positionId?: number | null;
   status?: number;
 }, tenantId: string) {
   const sets: string[] = [];
@@ -123,10 +160,24 @@ export async function updateStaff(id: number, body: {
   if (body.realName !== undefined) { sets.push("real_name = ?"); params.push(body.realName); }
   if (body.mobile !== undefined) { sets.push("mobile = ?"); params.push(body.mobile); }
   if (body.storeId !== undefined) { sets.push("store_id = ?"); params.push(body.storeId); }
+  if (body.departmentId !== undefined) { sets.push("department_id = ?"); params.push(body.departmentId); }
+  if (body.positionId !== undefined) { sets.push("position_id = ?"); params.push(body.positionId); }
   if (body.status !== undefined) { sets.push("status = ?"); params.push(body.status); }
-  if (sets.length === 0) return {};
-  params.push(id);
-  await queryWithTenant(`UPDATE t_sys_user SET ${sets.join(", ")} WHERE id = ?`, params, tenantId);
+  if (sets.length > 0) {
+    params.push(id);
+    await queryWithTenant(`UPDATE t_sys_user SET ${sets.join(", ")} WHERE id = ?`, params, tenantId);
+  }
+  // 角色变更：先清后绑（null 表示清空角色）
+  if (body.roleId !== undefined) {
+    await queryWithTenant("DELETE FROM t_sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
+    if (body.roleId) {
+      await queryWithTenant(
+        "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
+        [id, Number(body.roleId), tenantId],
+        tenantId
+      );
+    }
+  }
   return { staffId: id };
 }
 
@@ -140,6 +191,16 @@ export async function disableStaff(id: number, tenantId: string) {
   }
   await queryWithTenant("UPDATE t_sys_user SET status = 0 WHERE id = ?", [id], tenantId);
   return { staffId: id, username: existing.username };
+}
+
+/** 启用/禁用员工（组织架构页统一入口） */
+export async function setStaffStatus(id: number, status: number, tenantId: string) {
+  const existing = await queryOneWithTenant<StaffIdUsernameStatusRow>("SELECT id, username, status FROM t_sys_user WHERE id = ?", [id], tenantId);
+  if (!existing) {
+    throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
+  }
+  await queryWithTenant("UPDATE t_sys_user SET status = ? WHERE id = ?", [status, id], tenantId);
+  return { staffId: id, username: existing.username, status };
 }
 
 export async function listStores(page: number, pageSize: number, tenantId: string, keyword?: string) {

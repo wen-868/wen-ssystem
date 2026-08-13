@@ -1,18 +1,37 @@
 import { api } from "./request";
 
 // ==================== Staff Management APIs ====================
-export async function createStaff(payload: { username: string; realName: string; mobile: string; role: string; storeId?: number; password?: string }) {
+export async function createStaff(payload: {
+  username: string;
+  realName: string;
+  mobile: string;
+  role?: string;
+  roleId?: number | string;
+  storeId?: number;
+  departmentId?: number;
+  positionId?: number;
+  password?: string;
+}) {
   const { data } = await api.post("/admin/staff", payload);
   return data.data;
 }
 
-export async function updateStaff(id: number, payload: { username?: string; realName?: string; mobile?: string; role?: string; storeId?: number }) {
+export async function updateStaff(id: number, payload: {
+  username?: string;
+  realName?: string;
+  mobile?: string;
+  role?: string;
+  roleId?: number | string | null;
+  storeId?: number;
+  departmentId?: number | null;
+  positionId?: number | null;
+}) {
   const { data } = await api.put(`/admin/staff/${id}`, payload);
   return data.data;
 }
 
 export async function toggleStaffStatus(id: number, status: number) {
-  const { data } = await api.patch(`/admin/staff/${id}/status`, { status });
+  const { data } = await api.put(`/admin/staff/${id}/status`, { status });
   return data.data;
 }
 
@@ -45,6 +64,27 @@ export async function toggleEmployeeStatus(id: number, status: number) {
 
 export async function resetEmployeePassword(id: number, payload: { newPassword: string }) {
   const { data } = await api.post(`/admin/system/employees/${id}/reset-password`, payload);
+  return data.data;
+}
+
+// ==================== Warehouse APIs ====================
+export async function fetchWarehouses() {
+  const { data } = await api.get("/admin/warehouses");
+  return data.data;
+}
+
+export async function createWarehouse(payload: { name: string; address?: string; contact?: string; phone?: string }) {
+  const { data } = await api.post("/admin/warehouses", payload);
+  return data.data;
+}
+
+export async function updateWarehouse(id: number, payload: { name?: string; address?: string; contact?: string; phone?: string; status?: number }) {
+  const { data } = await api.put(`/admin/warehouses/${id}`, payload);
+  return data.data;
+}
+
+export async function deleteWarehouse(id: number) {
+  const { data } = await api.delete(`/admin/warehouses/${id}`);
   return data.data;
 }
 
@@ -266,5 +306,3 @@ export async function deleteDepartment(id: number) { const { data: res } = await
 export async function getUserSessions(params?: any) { const { data } = await api.get('/admin/sessions', { params }); return data.data; }
 export async function revokeSession(id: number) { const { data: res } = await api.delete(`/admin/sessions/${id}`); return res.data; }
 export async function getOnlineStats() { const { data } = await api.get('/admin/sessions/stats'); return data.data; }
-
-

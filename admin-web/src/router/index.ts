@@ -228,6 +228,7 @@ const routes = [
       { path: "aftersale", name: "aftersale", component: () => import("../views/marketing/AftersaleView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "售后管理", icon: Service } },
       // 12. 系统管理
       { path: "employees", name: "employees", component: () => import("../views/system/EmployeesView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "员工管理", icon: User } },
+      { path: "organization", name: "organization", component: () => import("../views/system/OrganizationView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "组织架构", icon: User } },
       { path: "department-manage", name: "department-manage", component: () => import("../views/system/DepartmentManage.vue"), meta: { roles: ["SUPER_ADMIN"], title: "部门管理", icon: OfficeBuilding } },
       { path: "position-manage", name: "position-manage", component: () => import("../views/system/PositionManage.vue"), meta: { roles: ["SUPER_ADMIN"], title: "岗位管理", icon: Medal } },
       { path: "stores", name: "stores", component: () => import("../views/system/StoresView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "门店管理", icon: Shop } },
