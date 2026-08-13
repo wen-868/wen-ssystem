@@ -9,22 +9,22 @@ import {
 
 export const tenantRegisterRouter = Router();
 
-// POST /api/tenant/register - ×â»§×ÔÖú×¢²á£¨¹«¿ª½Ó¿Ú£©
+// POST /api/tenant/register - ç§Ÿæˆ·è‡ªåŠ©æ³¨å†Œï¼ˆå…¬å¼€æ¥å£ï¼‰
 tenantRegisterRouter.post("/register", asyncHandler(handleApplyTenantRegister));
 
-// ========== ĞèÒªÆ½Ì¨¹ÜÀíÔ±ÈÏÖ¤µÄÉóºË½Ó¿Ú ==========
+// ========== éœ€è¦å¹³å°ç®¡ç†å‘˜è®¤è¯çš„å®¡æ ¸æ¥å£ ==========
 tenantRegisterRouter.use("/applications", requirePlatformAuth);
 
-// GET /api/tenant/applications - ÉêÇëÁĞ±í
+// GET /api/tenant/applications - ç”³è¯·åˆ—è¡¨
 tenantRegisterRouter.get("/applications", asyncHandler(handleListApplications));
 
-// GET /api/tenant/applications/:id - ÉêÇëÏêÇé
+// GET /api/tenant/applications/:id - ç”³è¯·è¯¦æƒ…
 tenantRegisterRouter.get("/applications/:id", asyncHandler(handleGetApplication));
 
-// POST /api/tenant/applications/:id/approve - Í¨¹ıÉêÇë
+// POST /api/tenant/applications/:id/approve - é€šè¿‡ç”³è¯·
 tenantRegisterRouter.post("/applications/:id/approve", asyncHandler(handleApproveApplication));
 
-// POST /api/tenant/applications/:id/reject - ²µ»ØÉêÇë
+// POST /api/tenant/applications/:id/reject - é©³å›ç”³è¯·
 tenantRegisterRouter.post("/applications/:id/reject", asyncHandler(handleRejectApplication));
 
 export const routeConfig: RouteConfig = {

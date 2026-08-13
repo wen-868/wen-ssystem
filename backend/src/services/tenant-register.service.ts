@@ -1,25 +1,29 @@
-﻿import { query, queryOne, transaction } from "../shared/db";
+import { randomUUID } from "node:crypto";
+import type { ResultSetHeader } from "mysql2";
+import { connExecute, query, queryOne, transaction } from "../shared/db";
 import { hashPassword, validatePassword } from "../shared/password";
 import { AppError } from "../shared/app-error";
 import logger from "../shared/logger";
+import { makeBizNo } from "../shared/id";
 
 export interface TenantRegisterInput {
-  companyName: string;
-  companyShortName?: string;
-  contactPerson: string;
-  contactMobile: string;
-  contactEmail?: string;
+  // 与前端注册表单字段一致（snake_case）
+  company_name: string;
+  company_short_name?: string;
+  contact_person: string;
+  contact_mobile: string;
+  contact_email?: string;
   province?: string;
   city?: string;
   district?: string;
   address?: string;
-  businessLicense?: string;
-  legalPerson?: string;
+  business_license?: string;
+  legal_person?: string;
   industry?: string;
-  companyScale?: string;
-  adminUsername: string;
-  adminPassword: string;
-  adminRealName: string;
+  company_scale?: string;
+  admin_username: string;
+  admin_password: string;
+  admin_real_name: string;
 }
 
 export interface TenantApplication {
@@ -85,7 +89,12 @@ interface TenantRegisterAppRawRow {
 }
 
 export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ applicationId: number }> {
-  const { companyName, contactMobile, adminUsername, adminPassword } = body;
+  const companyName = body.company_name;
+  const contactMobile = body.contact_mobile;
+  const adminUsername = body.admin_username;
+  const adminPassword = body.admin_password;
+  const contactPerson = body.contact_person;
+  const adminRealName = body.admin_real_name;
 
   const validation = validatePassword(adminPassword);
   if (!validation.valid) {
@@ -133,9 +142,9 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
       industry, company_scale, admin_username, admin_password_hash, admin_real_name
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      companyName, body.companyShortName || "", contactMobile, body.contactPerson, body.contactEmail || "",
-      body.province || "", body.city || "", body.district || "", body.address || "", body.businessLicense || "",
-      body.legalPerson || "", body.industry || "", body.companyScale || "", adminUsername, passwordHash, body.adminRealName
+      companyName, body.company_short_name || "", contactMobile, contactPerson, body.contact_email || "",
+      body.province || "", body.city || "", body.district || "", body.address || "", body.business_license || "",
+      body.legal_person || "", body.industry || "", body.company_scale || "", adminUsername, passwordHash, adminRealName
     ]
   );
 
@@ -155,29 +164,61 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     throw new AppError("申请不存在或已处理", 404);
   }
 
-  let tenantId = "";
+  const tenantId = randomUUID();
+  const tenantCode = makeBizNo("T");
 
   await transaction(async (conn) => {
-    const tenantResult = await conn.query(
-      `INSERT INTO t_tenant (name, contact_name, contact_phone, contact_email, status, review_status)
-       VALUES (?, ?, ?, ?, 'ACTIVE', 'APPROVED')`,
-      [application.company_name, application.contact_person, application.contact_mobile, application.contact_email || ""]
+    // 1) 创建租户（id 为 UUID，status 为 ACTIVE）
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_tenant (
+        id, tenant_code, company_name, company_short_name,
+        contact_person, contact_mobile, contact_email,
+        province, city, district, address,
+        business_license, legal_person, industry, company_scale,
+        source, status, review_status, reviewed_at, reviewed_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 'ACTIVE', 'APPROVED', NOW(), ?)`,
+      [
+        tenantId, tenantCode, application.company_name, application.company_short_name || "",
+        application.contact_person, application.contact_mobile, application.contact_email || "",
+        application.province || "", application.city || "", application.district || "", application.address || "",
+        application.business_license || "", application.legal_person || "",
+        application.industry || "", application.company_scale || "",
+        reviewerId
+      ]
     );
-    tenantId = (tenantResult as unknown as { insertId: number }).insertId.toString();
 
-    await conn.query(
-      `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status, role)
-       VALUES (?, ?, ?, ?, ?, 'ACTIVE', 'ADMIN')`,
+    // 2) 创建管理员账号（tenant_id 关联新租户）
+    const [userResult] = await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, status)
+       VALUES (?, ?, ?, ?, ?, 1)`,
       [tenantId, application.admin_username, application.admin_password_hash, application.admin_real_name, application.contact_mobile]
     );
+    const userId = userResult.insertId;
 
-    await conn.query(
-      `INSERT INTO t_tenant_admin (tenant_id, user_id, role, is_primary)
-       SELECT ?, id, 'ADMIN', 1 FROM t_sys_user WHERE tenant_id = ? AND username = ?`,
-      [tenantId, tenantId, application.admin_username]
+    // 3) 绑定超级管理员角色（优先当前租户角色，其次 default 全局角色）
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+       SELECT ?, id, ? FROM t_sys_role
+       WHERE role_code = 'SUPER_ADMIN' AND status = 'ACTIVE'
+       ORDER BY CASE WHEN tenant_id = ? THEN 0 ELSE 1 END
+       LIMIT 1`,
+      [userId, tenantId, tenantId]
     );
 
-    await conn.query(
+    // 4) 记录租户管理员
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_tenant_admin (tenant_id, user_id, role, is_primary)
+       VALUES (?, ?, 'ADMIN', 1)`,
+      [tenantId, userId]
+    );
+
+    // 5) 更新申请状态
+    await connExecute<ResultSetHeader>(
+      conn,
       `UPDATE t_tenant_register_application SET status = 'APPROVED', reviewed_at = NOW(), reviewed_by = ? WHERE id = ?`,
       [reviewerId, applicationId]
     );
@@ -185,7 +226,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
 
   logger.info(`[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId}`);
 
-  return { tenantId: tenantId!, applicationId };
+  return { tenantId, applicationId };
 }
 
 export async function rejectTenantApplication(applicationId: number, reviewerId: number, rejectReason: string): Promise<{ applicationId: number }> {
