@@ -5,7 +5,7 @@ import { hashPassword, validatePassword } from "../shared/password";
 import { AppError } from "../shared/app-error";
 import logger from "../shared/logger";
 import { makeBizNo } from "../shared/id";
-import { verifySmsCode, isSmsVerifyEnabled } from "./sms.service";
+import { verifySmsCode, isSmsVerifyEnabled, sendSms } from "./sms.service";
 
 export interface TenantRegisterInput {
   // 与前端注册表单字段一致（snake_case）
@@ -235,11 +235,67 @@ export async function approveTenantApplication(applicationId: number, reviewerId
       `UPDATE t_tenant_register_application SET status = 'APPROVED', reviewed_at = NOW(), reviewed_by = ? WHERE id = ?`,
       [reviewerId, applicationId]
     );
+
+    // 6) 初始化租户默认数据（门店/价格等级/支付方式），保证审核通过即可使用
+    const storeName = application.company_short_name || application.company_name;
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_store (
+         tenant_id, store_code, name, address, contact, phone,
+         delivery_radius, business_status, status,
+         fulfillment_delivery_enabled, fulfillment_pickup_enabled
+       ) VALUES (?, 'S001', ?, '', ?, ?, 5.00, 'OPEN', 'OPEN', 1, 1)`,
+      [tenantId, storeName, application.contact_person, application.contact_mobile]
+    );
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_price_level (tenant_id, level_code, level_name, discount_rate, min_order_amount, description, sort_order)
+       VALUES (?, 'RETAIL', '零售价', 100.00, 0, '默认零售价格', 1),
+              (?, 'WHOLESALE', '批发价', 90.00, 0, '默认批发价格', 2)`,
+      [tenantId, tenantId]
+    );
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_payment_method (tenant_id, method_name, method_code, status)
+       VALUES (?, '现金', 'CASH', 'ACTIVE'),
+              (?, '微信支付', 'WECHAT', 'ACTIVE'),
+              (?, '支付宝', 'ALIPAY', 'ACTIVE')`,
+      [tenantId, tenantId, tenantId]
+    );
   });
 
   logger.info(`[租户注册审核] 申请通过 applicationId=${applicationId} tenantId=${tenantId}`);
 
+  // 7) 审核结果短信通知（短信开关关闭/未配置时不阻塞审核，静默跳过）
+  try {
+    if (await isSmsVerifyEnabled("default")) {
+      await sendSms({
+        mobile: application.contact_mobile,
+        templateCode: await getRegisterResultTemplateCode("default"),
+        templateParam: { companyName: application.company_name, status: "审核通过" },
+        tenantId: "default",
+      });
+      logger.info(`[租户注册审核] 已发送通过通知 mobile=${application.contact_mobile}`);
+    }
+  } catch (e: any) {
+    logger.warn(`[租户注册审核] 短信通知发送失败（不影响审核结果）：${e?.message || e}`);
+  }
+
   return { tenantId, applicationId };
+}
+
+/** 获取注册结果通知模板（用途 TENANT_REGISTER_RESULT） */
+async function getRegisterResultTemplateCode(tenantId: string): Promise<string> {
+  const row = await queryOne<{ code: string }>(
+    `SELECT code FROM t_sms_template
+     WHERE tenant_id = ? AND purpose = 'TENANT_REGISTER_RESULT' AND status = 'ENABLED'
+     ORDER BY id DESC LIMIT 1`,
+    [tenantId]
+  );
+  if (!row?.code) {
+    throw new AppError(`短信模板未配置（用途：TENANT_REGISTER_RESULT）`, 500);
+  }
+  return row.code;
 }
 
 export async function rejectTenantApplication(applicationId: number, reviewerId: number, rejectReason: string): Promise<{ applicationId: number }> {

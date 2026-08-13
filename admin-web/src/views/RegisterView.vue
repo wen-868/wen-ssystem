@@ -27,14 +27,14 @@
           <el-input v-model="registerForm.contact_mobile" placeholder="请输入手机号码" />
         </el-form-item>
 
-        <el-form-item label="短信验证码" prop="sms_code">
+        <el-form-item v-if="smsVerifyEnabled" label="短信验证码" prop="sms_code">
           <div class="sms-code-row">
             <el-input v-model="registerForm.sms_code" placeholder="请输入短信验证码" />
             <el-button :disabled="smsCountdown > 0" :loading="smsSending" @click="handleSendSmsCode">
               {{ smsCountdown > 0 ? `${smsCountdown}s 后重发` : "获取验证码" }}
             </el-button>
           </div>
-          <div class="sms-code-tip">短信平台申请完成后需输入验证码；未开启时可直接提交</div>
+          <div class="sms-code-tip">短信平台申请完成后需输入验证码；未开启时无需验证可直接提交</div>
         </el-form-item>
 
         <el-form-item label="联系邮箱" prop="contact_email">
@@ -161,11 +161,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onBeforeUnmount } from "vue";
+import { reactive, ref, computed, onBeforeUnmount, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Check } from "@element-plus/icons-vue";
-import { tenantRegister, tenantRegisterSmsCode } from "../api";
+import { tenantRegister, tenantRegisterSmsCode, tenantRegisterConfig } from "../api";
 
 const router = useRouter();
 const registerFormRef = ref<FormInstance>();
@@ -173,6 +173,7 @@ const loading = ref(false);
 const showSuccess = ref(false);
 const smsSending = ref(false);
 const smsCountdown = ref(0);
+const smsVerifyEnabled = ref(true);
 let smsTimer: ReturnType<typeof setInterval> | null = null;
 
 const registerForm = reactive({
@@ -231,6 +232,17 @@ const registerRules: FormRules = {
   ],
   agreement: [{ required: true, message: "请先阅读并同意协议", trigger: "change" }]
 };
+
+/** 读取注册配置：短信验证开关关闭时无需验证码 */
+onMounted(async () => {
+  try {
+    const config = await tenantRegisterConfig();
+    smsVerifyEnabled.value = config?.smsVerifyEnabled !== false;
+  } catch {
+    // 查询失败时默认按需要验证码处理（后端兜底校验）
+    smsVerifyEnabled.value = true;
+  }
+});
 
 const passwordStrength = computed(() => {
   const pwd = registerForm.admin_password;

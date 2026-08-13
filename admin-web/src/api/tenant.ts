@@ -29,3 +29,9 @@ export async function tenantRegisterSmsCode(mobile: string) {
   const { data } = await api.post("/tenant/register/sms-code", { mobile });
   return data.data;
 }
+
+/** 注册配置（短信验证开关，公开接口） */
+export async function tenantRegisterConfig() {
+  const { data } = await api.get("/tenant/register/config");
+  return data.data;
+}

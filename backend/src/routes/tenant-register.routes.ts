@@ -3,7 +3,7 @@ import type { RouteConfig } from "../shared/auto-routes";
 import { asyncHandler } from "../middleware/async-handler";
 import { requirePlatformAuth } from "../middleware/auth";
 import {
-  handleApplyTenantRegister, handleSendRegisterSmsCode, handleListApplications,
+  handleApplyTenantRegister, handleSendRegisterSmsCode, handleGetRegisterConfig, handleListApplications,
   handleGetApplication, handleApproveApplication, handleRejectApplication
 } from "../controllers/admin/tenant-register.controller";
 
@@ -14,6 +14,9 @@ tenantRegisterRouter.post("/register", asyncHandler(handleApplyTenantRegister));
 
 // POST /api/tenant/register/sms-code - 注册验证码（公开接口，真实短信发送）
 tenantRegisterRouter.post("/register/sms-code", asyncHandler(handleSendRegisterSmsCode));
+
+// GET /api/tenant/register/config - 注册配置（验证码开关），公开接口
+tenantRegisterRouter.get("/register/config", asyncHandler(handleGetRegisterConfig));
 
 // ========== 需要平台管理员认证的审核接口 ==========
 tenantRegisterRouter.use("/applications", requirePlatformAuth);

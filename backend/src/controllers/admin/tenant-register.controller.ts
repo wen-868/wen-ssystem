@@ -2,6 +2,12 @@ import { applyTenantRegister, approveTenantApplication, rejectTenantApplication,
 import { sendSmsCode, isSmsVerifyEnabled } from "../../services/sms.service";
 import { ok } from "../../shared/response";
 
+/** 注册配置（公开）：前端据此决定是否展示验证码输入 */
+export async function handleGetRegisterConfig(_req: any, res: any) {
+  const smsVerifyEnabled = await isSmsVerifyEnabled("default");
+  res.json(ok({ smsVerifyEnabled }));
+}
+
 export async function handleSendRegisterSmsCode(req: any, res: any) {
   const { mobile } = req.body || {};
   if (!mobile) {
