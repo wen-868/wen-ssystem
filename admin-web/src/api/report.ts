@@ -7,7 +7,8 @@ export async function fetchDashboardOverview() {
 }
 
 export async function fetchDashboardSalesTrend() {
-  const { data } = await api.get("/admin/dashboard/sales-trend");
+  // 按天展示本月销售趋势（62 天覆盖整月，前端再过滤当月并补全每日）
+  const { data } = await api.get("/admin/dashboard/sales-trend-daily", { params: { days: 62 } });
   return data.data;
 }
 
@@ -276,5 +277,4 @@ export async function exportReportPdf(id: number, params?: any) {
 }
 export async function fetchReportDataSources() { const { data } = await api.get('/admin/report-templates/data-sources'); return data.data; }
 export async function fetchReportFields(dataSource: string) { const { data } = await api.get(`/admin/report-templates/fields/${dataSource}`); return data.data; }
-
 

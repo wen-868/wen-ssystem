@@ -486,19 +486,41 @@ function navTo(path: string) {
 }
 
 // ==================== 本月销售趋势图 ====================
+/** 构建本月 1 号至今天的按天趋势（无销售的天补 0，保证折线连续） */
+function buildMonthlyDailyTrend(data: any[]): any[] {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const prefix = `${y}-${pad(m)}`;
+  const byDate = new Map<string, any>();
+  for (const d of data || []) {
+    if (String(d.date).startsWith(prefix)) byDate.set(String(d.date).slice(0, 10), d);
+  }
+  const today = now.getDate();
+  const out: any[] = [];
+  for (let day = 1; day <= today; day++) {
+    const key = `${prefix}-${pad(day)}`;
+    const row = byDate.get(key);
+    out.push({
+      date: key,
+      salesAmount: row ? Number(row.salesAmount ?? 0) : 0,
+      orderCount: row ? Number(row.orderCount ?? 0) : 0,
+    });
+  }
+  return out;
+}
+
 function renderSalesTrendChart() {
   if (!salesTrendChartRef.value || salesTrendData.value.length === 0) return;
   if (!salesTrendChart) {
     salesTrendChart = echarts.init(salesTrendChartRef.value);
   }
-  // 后端返回字段：month("2026-08") / salesAmount / orderCount，这里做兼容映射并转中文月份
-  const dates = salesTrendData.value.map((d) => {
-    const m = d.month ?? d.date ?? "";
-    const parts = String(m).split("-");
-    return parts.length >= 2 ? `${Number(parts[1])}月` : m;
-  });
-  const amounts = salesTrendData.value.map((d) => Number(d.salesAmount ?? d.amount ?? 0));
-  const orders = salesTrendData.value.map((d) => Number(d.orderCount ?? 0));
+  // 按天展示：本月 1 号至今天的每日销售额/订单数，X 轴显示中文日期
+  const daily = buildMonthlyDailyTrend(salesTrendData.value);
+  const dates = daily.map((d) => `${Number(d.date.slice(8, 10))}日`);
+  const amounts = daily.map((d) => d.salesAmount);
+  const orders = daily.map((d) => d.orderCount);
   salesTrendChart.setOption({
     // 全局字体中文优先，避免数字/英文使用默认西文字体显得突兀
     textStyle: {
