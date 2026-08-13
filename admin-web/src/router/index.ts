@@ -247,6 +247,7 @@ const routes = [
       { path: "system/payment", name: "payment-config", component: () => import("../views/system/PaymentConfigView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "支付配置", icon: CreditCard } },
       { path: "system/miniapp", name: "miniapp-config", component: () => import("../views/system/MiniappConfigView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "小程序配置", icon: Connection } },
       { path: "monitor", name: "monitor", component: () => import("../views/system/MonitorView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "系统监控", icon: Monitor } },
+      { path: "monitor-manage", name: "monitor-manage", component: () => import("../views/system/SystemMonitorManage.vue"), meta: { roles: ["SUPER_ADMIN"], title: "系统监控", icon: Monitor } },
       { path: "system/feedback", name: "feedback", component: () => import("../views/system/FeedbackView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "反馈管理", icon: ChatDotRound } },
       { path: "consumer-addresses", name: "consumer-addresses", component: () => import("../views/system/ConsumerAddress.vue"), meta: { roles: ["SUPER_ADMIN"], title: "收货地址", icon: Location } },
       // 13. 在线收款分析

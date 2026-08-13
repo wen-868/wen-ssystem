@@ -1,7 +1,16 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, queryOne, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { AppError } from "../../shared/app-error";
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
+
+/** 审批总开关（单店自管可关闭，关闭后业务不发起审批） */
+export async function isApprovalEnabled(tenantId: string): Promise<boolean> {
+  const row = await queryOne<{ configValue: string }>(
+    "SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'approval_enabled' AND tenant_id = ?",
+    [tenantId]
+  );
+  return row?.configValue === "1";
+}
 
 /** t_approval_rule 原始字段行（conn.query 用，字段为下划线命名） */
 interface ApprovalRuleRawRow extends RowDataPacket {
@@ -230,7 +239,12 @@ export async function submitApproval(
   userId: number | null,
   username: string,
   tenantId: string
-) {
+): Promise<{ started: boolean; instanceNo?: string; businessType?: string; businessNo?: string; status?: string }> {
+  // 审批总开关：单店自管关闭审批时，业务不发起审批、不阻塞
+  if (!(await isApprovalEnabled(tenantId))) {
+    return { started: false };
+  }
+
   const result = await transaction(async (conn) => {
     const [rules] = await conn.query<ApprovalRuleRawRow[]>(
       `SELECT id, rule_name, trigger_condition, approval_chain, sla_hours, escalation_level

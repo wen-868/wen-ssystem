@@ -293,10 +293,7 @@
             <div class="nav-sub-item" :class="{ active: isActive('/report-permissions') }" @click="navTo('/report-permissions')">报表权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/payment') }" @click="navTo('/system/payment')">支付配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/miniapp') }" @click="navTo('/system/miniapp')">小程序配置</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/monitor') }" @click="navTo('/monitor')">系统监控</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/feedback') }" @click="navTo('/system/feedback')">反馈管理</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/audit-log') }" @click="navTo('/audit-log')">操作日志</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/error-log') }" @click="navTo('/error-log')">错误日志</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/monitor-manage') }" @click="navTo('/monitor-manage')">系统监控</div>
           </div>
         </div>
       </nav>
