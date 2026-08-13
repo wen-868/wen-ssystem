@@ -45,14 +45,12 @@
         <el-table-column prop="points" label="积分" width="80" />
         <el-table-column prop="levelCode" label="客户等级" width="100">
           <template #default="{ row }">
-            <el-tag>{{ row.levelName || fmtLevelCode(row.levelCode) }}</el-tag>
+            <el-tag>{{ getLevelDisplay(row) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
-            <el-tag v-if="row.status === 'ACTIVE'" type="success">启用</el-tag>
-            <el-tag v-else-if="row.status === 'INACTIVE'" type="danger">停用</el-tag>
-            <el-tag v-else>{{ fmtStatus(row.status) }}</el-tag>
+            <el-tag :type="String(row.status) === 'ACTIVE' || row.status === 1 ? 'success' : 'danger'">{{ fmtStatus(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="address" label="地址" min-width="140" show-overflow-tooltip />
@@ -214,14 +212,24 @@ async function loadStaff() {
 
 async function loadCustomerTypes() {
   try {
-    const data = await fetchCustomerTypes({ status: "ENABLED" });
+    const data = await fetchCustomerTypes({ status: 1 });
     customerTypeOptions.value = data.records || data || [];
   } catch { /* ignore */ }
 }
 
 function getCustomerTypeName(code: string) {
   const found = customerTypeOptions.value.find(t => t.code === code);
-  return found?.name || fmtCustomerType(code);
+  if (found?.name) return found.name;
+  const mapped = fmtCustomerType(code);
+  // 未识别的枚举值（脏数据如 CASH）不直接裸露英文，显示占位
+  return mapped === String(code ?? "") && !["RETAIL", "WHOLESALE", "零售", "批发"].includes(mapped) ? "-" : mapped;
+}
+
+/** 客户等级显示：优先后端等级名，未识别编码不裸露英文 */
+function getLevelDisplay(row: any) {
+  if (row.levelName) return row.levelName;
+  const mapped = fmtLevelCode(row.levelCode);
+  return mapped === String(row.levelCode ?? "") ? "-" : mapped;
 }
 
 function getCustomerTypeTagType(code: string) {

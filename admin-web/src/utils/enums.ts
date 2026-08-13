@@ -308,6 +308,9 @@ function fmt(map: Record<string, string>, value: unknown): string {
 }
 
 export function fmtStatus(value: unknown): string {
+  // 兼容数字状态：1=启用，0=停用
+  if (value === 1 || value === "1") return "启用";
+  if (value === 0 || value === "0") return "停用";
   return fmt(STATUS_MAP, value);
 }
 

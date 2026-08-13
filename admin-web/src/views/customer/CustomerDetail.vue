@@ -28,12 +28,12 @@
           <el-descriptions-item label="客户类型">
             <el-tag v-if="member.customerType === 'RETAIL'" type="primary">零售客户</el-tag>
             <el-tag v-else-if="member.customerType === 'WHOLESALE'" type="success">批发客户</el-tag>
-            <el-tag v-else>{{ fmtCustomerType(member.customerType) }}</el-tag>
+            <el-tag v-else>{{ getTypeDisplay(member.customerType) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="归属销售员">{{ member.staffName || "-" }}</el-descriptions-item>
           <el-descriptions-item label="积分">{{ member.points || 0 }}</el-descriptions-item>
           <el-descriptions-item label="客户等级">
-            <el-tag>{{ member.levelName || fmtLevelCode(member.levelCode) || "-" }}</el-tag>
+            <el-tag>{{ getLevelDisplay(member) }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag v-if="member.status === 'ACTIVE'" type="success">启用</el-tag>
@@ -298,6 +298,20 @@ const memberCard = ref<any>(null);
 const purchaseStats = ref<any>(null);
 const staffList = ref<any[]>([]);
 const levelList = ref<any[]>([]);
+
+/** 客户类型显示：未识别枚举（脏数据）不裸露英文 */
+function getTypeDisplay(code: string | null | undefined) {
+  if (!code) return "-";
+  const mapped = fmtCustomerType(code);
+  return mapped === String(code) ? "-" : mapped;
+}
+
+/** 客户等级显示：优先等级名，未识别编码不裸露英文 */
+function getLevelDisplay(row: any) {
+  if (row.levelName) return row.levelName;
+  const mapped = fmtLevelCode(row.levelCode);
+  return mapped === String(row.levelCode ?? "") ? "-" : mapped;
+}
 
 const activeTab = ref("sale-bills");
 const tabLoading = ref<Record<string, boolean>>({});

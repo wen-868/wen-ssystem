@@ -4,9 +4,14 @@ import * as service from "../../services/admin/customer-type.service";
 
 /** 客户类型列表 */
 export async function listCustomerTypes(req: any, res: any) {
-    const status = req.query.status !== undefined
-        ? Number(req.query.status)
-        : undefined;
+    const rawStatus = req.query.status;
+    // 兼容数字 1/0 与字符串 ENABLED/DISABLED
+    let status: number | undefined;
+    if (rawStatus === "ENABLED" || rawStatus === "true" || rawStatus === "1" || rawStatus === 1) {
+        status = 1;
+    } else if (rawStatus === "DISABLED" || rawStatus === "false" || rawStatus === "0" || rawStatus === 0) {
+        status = 0;
+    }
     const rows = await service.list({
         status,
         tenantId: req.tenantId!,
