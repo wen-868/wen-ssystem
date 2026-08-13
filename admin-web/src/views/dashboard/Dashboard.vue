@@ -684,7 +684,8 @@ onUnmounted(() => {
   min-height: calc(100vh - var(--topbar-height) - 32px);
 }
 .dash-col {
-  display: flex;
+  /* el-col 自带 display:block 且后加载会覆盖 flex，必须 !important 保证列内卡片纵向布局生效 */
+  display: flex !important;
   flex-direction: column;
   height: 100%;
 }
