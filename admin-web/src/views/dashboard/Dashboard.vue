@@ -114,7 +114,7 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills.slice(0, 10)" :key="b.billNo || b.id" class="order-item" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
+            <div v-for="b in recentBills" :key="b.billNo || b.id" class="order-item" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
               <div class="order-main">
                 <div class="order-no-row">
                   <span class="order-no">{{ b.billNo || "-" }}</span>
@@ -454,8 +454,8 @@ function buildFeed() {
   }
 
   list.sort((a, b) => (parseTime(b.time)?.getTime() || 0) - (parseTime(a.time)?.getTime() || 0));
-  // 经营动态固定展示 10 条
-  feedList.value = list.slice(0, 10);
+  // 经营动态全部展示（上限 50 条防接口数据过大），卡片内滚动查看
+  feedList.value = list.slice(0, 50);
 }
 
 const filteredFeed = computed(() => {
@@ -587,7 +587,7 @@ async function loadAllData() {
       .filter((o: any) => !["COMPLETED", "CANCELLED", "VOIDED", "RETURNED"].includes(o.status))
       .map(channelOrderToBill);
     const offlineItems = (overviewActiveBills.length ? overviewActiveBills : activeBills)
-      .slice(0, 10)
+      .slice(0, 50)
       .map((b: any) => ({
         ...b,
         source: offlineSourceLabel(b),
@@ -595,7 +595,8 @@ async function loadAllData() {
       }));
     recentBills.value = [...offlineItems, ...channelItems]
       .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0))
-      .slice(0, 10);
+      // 最新订单全部展示（上限 50 条），卡片内滚动查看所有进行中的单据
+      .slice(0, 50);
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
