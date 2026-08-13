@@ -491,9 +491,14 @@ function renderSalesTrendChart() {
   if (!salesTrendChart) {
     salesTrendChart = echarts.init(salesTrendChartRef.value);
   }
-  const dates = salesTrendData.value.map((d) => d.date);
-  const amounts = salesTrendData.value.map((d) => d.amount);
-  const orders = salesTrendData.value.map((d) => d.orderCount);
+  // 后端返回字段：month("2026-08") / salesAmount / orderCount，这里做兼容映射并转中文月份
+  const dates = salesTrendData.value.map((d) => {
+    const m = d.month ?? d.date ?? "";
+    const parts = String(m).split("-");
+    return parts.length >= 2 ? `${Number(parts[1])}月` : m;
+  });
+  const amounts = salesTrendData.value.map((d) => Number(d.salesAmount ?? d.amount ?? 0));
+  const orders = salesTrendData.value.map((d) => Number(d.orderCount ?? 0));
   salesTrendChart.setOption({
     // 全局字体中文优先，避免数字/英文使用默认西文字体显得突兀
     textStyle: {
