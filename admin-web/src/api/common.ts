@@ -179,8 +179,8 @@ export async function exportOrdersCsv(params?: { keyword?: string; status?: stri
   return data as Blob;
 }
 
-export async function fetchSaleBills() {
-  const { data } = await api.get("/admin/sale-bills", { params: { page: 1, pageSize: 20 } });
+export async function fetchSaleBills(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get("/admin/sale-bills", { params: { page: 1, pageSize: 20, ...params } });
   return data.data;
 }
 

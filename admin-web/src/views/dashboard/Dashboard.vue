@@ -555,13 +555,13 @@ async function loadAllData() {
     const results = await Promise.allSettled([
       fetchDashboardOverview(),
       fetchDashboardRecentAlerts(),
-      fetchSaleBills(),
+      fetchSaleBills({ page: 1, pageSize: 100 }),
       fetchReceipts({ page: 1, pageSize: 6 }),
       fetchNotifications({ page: 1, pageSize: 8 }),
       fetchMembers({ page: 1, pageSize: 6 }),
       fetchStores(),
       fetchDashboardSalesTrend(),
-      fetchInstantOrders({ page: 1, pageSize: 20 }),
+      fetchInstantOrders({ page: 1, pageSize: 100 }),
     ]);
     if (results[0].status === "fulfilled") overview.value = results[0].value || {};
     if (results[1].status === "fulfilled") alertData.value = results[1].value || { inventoryAlerts: [], expiryAlerts: [], overdueReceivables: [], pendingOrders: [] };
@@ -587,16 +587,14 @@ async function loadAllData() {
       .filter((o: any) => !["COMPLETED", "CANCELLED", "VOIDED", "RETURNED"].includes(o.status))
       .map(channelOrderToBill);
     const offlineItems = (overviewActiveBills.length ? overviewActiveBills : activeBills)
-      .slice(0, 50)
       .map((b: any) => ({
         ...b,
         source: offlineSourceLabel(b),
         route: b.billNo ? `/sale-bills/${encodeURIComponent(b.billNo)}` : "/sale-bills",
       }));
     recentBills.value = [...offlineItems, ...channelItems]
-      .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0))
-      // 最新订单全部展示（上限 50 条），卡片内滚动查看所有进行中的单据
-      .slice(0, 50);
+      // 最新订单不限制条数，卡片内滚动查看所有进行中的单据
+      .sort((a: any, b: any) => (parseTime(b.createdAt)?.getTime() || 0) - (parseTime(a.createdAt)?.getTime() || 0));
     buildFeed();
     await nextTick();
     renderSalesTrendChart();
