@@ -1,6 +1,3 @@
--- 编号: 141, 描述: 应用版本发布表（电脑端/移动端更新检查与提示）
--- 创建人: Codex, 日期: 2026-08-14
-
 CREATE TABLE IF NOT EXISTS t_app_version (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   platform        VARCHAR(32) NOT NULL COMMENT 'admin_web/app_mobile/print_agent',
@@ -17,9 +14,12 @@ CREATE TABLE IF NOT EXISTS t_app_version (
   UNIQUE KEY uk_platform_version (platform, version_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='应用版本发布';
 
--- 种子数据：与当前各端 package.json 版本对齐（幂等）
 INSERT IGNORE INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, package_url, update_note, enabled)
 VALUES
   ('admin_web', 1, '0.1.0', 1, 0, '', '', '工作台/收银台 Web 端，部署后刷新即更新', 1),
   ('app_mobile', 1, '1.0.0', 1, 0, '', '', '移动端 APP 首个版本', 1),
   ('print_agent', 1, '1.0.0', 1, 0, '', '', '本地打印助手首个版本', 1);
+
+-- 编号: 141, 描述: 应用版本发布表（电脑端/移动端更新检查与提示）
+-- 创建人: Codex, 日期: 2026-08-14
+-- 注意: 文件头不写注释（自动迁移按分号拆分，注释会污染首条语句被丢弃），说明放文件末尾。
