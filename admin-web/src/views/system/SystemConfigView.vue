@@ -102,6 +102,35 @@
           </el-table>
         </el-tab-pane>
 
+        <!-- 数据导入导出 -->
+        <el-tab-pane label="数据导入导出" name="transfer">
+          <el-form label-width="160px" class="config-form">
+            <el-divider content-position="left">商品数据</el-divider>
+            <el-form-item label="商品导出">
+              <div class="config-field">
+                <el-button :loading="transferLoading" @click="handleExportProducts">导出商品</el-button>
+                <span class="tip-text">导出全部商品（SKU）为 CSV 文件</span>
+              </div>
+            </el-form-item>
+
+            <el-divider content-position="left">客户资料</el-divider>
+            <el-form-item label="客户导出">
+              <div class="config-field">
+                <el-button :loading="transferLoading" @click="handleExportCustomers">导出客户</el-button>
+                <span class="tip-text">导出全部客户资料为 CSV 文件</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="客户导入">
+              <div class="config-field">
+                <el-upload action="#" :show-file-list="false" accept=".csv" :before-upload="handleCustomerImport">
+                  <el-button :loading="transferLoading">导入客户 CSV</el-button>
+                </el-upload>
+                <span class="tip-text">CSV 表头：name,mobile,customerType（customerType 可选 RETAIL/WHOLESALE，可省略）</span>
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
         <el-tab-pane label="数据备份" name="backup">
           <el-form label-width="160px" class="config-form">
             <el-form-item label="自动备份">
@@ -252,12 +281,14 @@ import { Plus, Share, Download } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 import { fetchStores, createStore, updateStore } from "../../api/common";
-import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../api/system";
+import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse, exportProductsData, exportCustomersData, importCustomersCsv } from "../../api/system";
+import { downloadRowsCsv } from "../../utils/download";
 import { useAuthStore } from "../../stores/auth";
 
 const activeTab = ref("general");
 const saveLoading = ref(false);
 const saving = ref(false);
+const transferLoading = ref(false);
 const auth = useAuthStore();
 const isDemoUser = computed(() => auth.user?.demo === true);
 const manualBackupLoading = ref(false);
@@ -559,6 +590,61 @@ async function handleDeleteWarehouse(row: any) {
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || "删除失败");
   }
+}
+
+/* ── 数据导入导出 ── */
+async function handleExportProducts() {
+  transferLoading.value = true;
+  try {
+    const rows = await exportProductsData();
+    if (!rows?.length) {
+      ElMessage.info("暂无商品数据可导出");
+      return;
+    }
+    downloadRowsCsv("商品数据.csv", rows);
+    ElMessage.success("导出成功");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "导出失败");
+  } finally {
+    transferLoading.value = false;
+  }
+}
+
+async function handleExportCustomers() {
+  transferLoading.value = true;
+  try {
+    const rows = await exportCustomersData();
+    if (!rows?.length) {
+      ElMessage.info("暂无客户数据可导出");
+      return;
+    }
+    downloadRowsCsv("客户资料.csv", rows);
+    ElMessage.success("导出成功");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "导出失败");
+  } finally {
+    transferLoading.value = false;
+  }
+}
+
+function handleCustomerImport(file: File) {
+  const reader = new FileReader();
+  reader.onload = async () => {
+    transferLoading.value = true;
+    try {
+      const res = await importCustomersCsv(String(reader.result || ""));
+      ElMessage.success(`导入完成：成功 ${res.imported} 条，跳过 ${res.skipped} 条`);
+      if (res.errors?.length) {
+        ElMessage.warning(res.errors.slice(0, 3).join("；"));
+      }
+    } catch (e: any) {
+      ElMessage.error(e?.response?.data?.msg || "导入失败");
+    } finally {
+      transferLoading.value = false;
+    }
+  };
+  reader.readAsText(file);
+  return false;
 }
 
 onMounted(() => {

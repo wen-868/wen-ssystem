@@ -12,6 +12,17 @@ export async function fetchDashboardSalesTrend() {
   return data.data;
 }
 
+/** 报表导出（CSV/Excel），后端 /reports/export 返回数据 */
+export async function exportReportData(params: {
+  report_type: string;
+  format?: string;
+  filters?: Record<string, unknown>;
+  columns?: string[];
+}) {
+  const { data } = await api.post("/reports/export", { format: "csv", ...params });
+  return data.data;
+}
+
 export async function fetchDashboardCategoryPie() {
   const { data } = await api.get("/admin/dashboard/category-pie");
   return data.data;
@@ -277,4 +288,3 @@ export async function exportReportPdf(id: number, params?: any) {
 }
 export async function fetchReportDataSources() { const { data } = await api.get('/admin/report-templates/data-sources'); return data.data; }
 export async function fetchReportFields(dataSource: string) { const { data } = await api.get(`/admin/report-templates/fields/${dataSource}`); return data.data; }
-

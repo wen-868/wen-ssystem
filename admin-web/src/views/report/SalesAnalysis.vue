@@ -225,6 +225,7 @@ import { CHART_COLORS } from "@/styles/theme";
 import { Download, Refresh, Search } from '@element-plus/icons-vue'
 import echarts from '@/utils/echarts'
 import { ElMessage } from 'element-plus'
+import { downloadRowsCsv } from '@/utils/download'
 import {
   fetchReportSalesTrend,
   fetchReportSalesHourlyHeatmap,
@@ -485,8 +486,12 @@ async function loadRankings() {
 }
 
 function exportProductRank() {
-  // TODO: 排行导出可接入后端 POST /admin/reports/export（report_type=sales_ranking）
-  ElMessage.info('导出功能暂未实现')
+  if (!productRanking.value.length) {
+    ElMessage.info('暂无数据可导出')
+    return
+  }
+  downloadRowsCsv('商品销售排行.csv', productRanking.value)
+  ElMessage.success('导出成功')
 }
 
 // ─── Tab 4: 客户排行（数据在 loadRankings 中加载） ───

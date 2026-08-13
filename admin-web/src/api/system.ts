@@ -88,6 +88,22 @@ export async function deleteWarehouse(id: number) {
   return data.data;
 }
 
+// ==================== 数据导入导出 ====================
+export async function exportProductsData() {
+  const { data } = await api.get("/admin/data-transfer/export/products");
+  return data.data;
+}
+
+export async function exportCustomersData() {
+  const { data } = await api.get("/admin/data-transfer/export/customers");
+  return data.data;
+}
+
+export async function importCustomersCsv(csv: string) {
+  const { data } = await api.post("/admin/data-transfer/import/customers", { csv });
+  return data.data;
+}
+
 
 // ==================== System APIs ====================
 export async function fetchSystemRoles() {

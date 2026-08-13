@@ -276,6 +276,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import echarts from '@/utils/echarts'
 import { CHART_COLORS } from "@/styles/theme";
 import { ElMessage } from 'element-plus'
+import { downloadRowsCsv } from '@/utils/download'
 
 import { fetchOrderCenterStats, fetchInstantOrders, fetchInstantOrderDetail } from '@/api'
 
@@ -399,8 +400,12 @@ function handleSizeChange() {
 }
 
 function handleExport() {
-  // TODO: 订单中心导出（后端 /admin/instant-retail/orders 支持 CSV 时可接入）
-  ElMessage.info('导出功能暂未实现')
+  if (!orders.value.length) {
+    ElMessage.info('暂无数据可导出')
+    return
+  }
+  downloadRowsCsv('订单中心.csv', orders.value)
+  ElMessage.success('导出成功')
 }
 
 // ─── 订单状态映射 ───
