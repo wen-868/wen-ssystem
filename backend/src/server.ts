@@ -22,6 +22,7 @@ import { startOrderTimeoutScanner } from "./services/admin/order-timeout.service
 import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
 import "./jobs/report-aggregation.job.js";
+import "./jobs/auto-backup.job.js";
 import { insertErrorLog, cleanupOldLogs } from "./services/admin/error-log.service";
 import { reportToLingZhou } from "./shared/feishu-report";
 import cron from "node-cron";
