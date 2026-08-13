@@ -28,14 +28,14 @@ export interface TenantRegisterInput {
 
 export interface TenantApplication {
   id: number;
-  companyName: string;
-  contactPerson: string;
-  contactMobile: string;
-  adminUsername: string;
+  company_name: string;
+  contact_person: string;
+  contact_mobile: string;
+  admin_username: string;
   status: string;
-  rejectReason?: string;
-  reviewedAt?: string;
-  createdAt: string;
+  reject_reason?: string;
+  reviewed_at?: string;
+  created_at: string;
 }
 
 interface IdRow {
@@ -52,26 +52,26 @@ interface CountTotalRow {
 
 interface TenantApplicationFullRow {
   id: number;
-  companyName: string;
-  companyShortName: string;
-  contactPerson: string;
-  contactMobile: string;
-  contactEmail: string;
+  company_name: string;
+  company_short_name: string;
+  contact_person: string;
+  contact_mobile: string;
+  contact_email: string;
   province: string;
   city: string;
   district: string;
   address: string;
-  businessLicense: string;
-  legalPerson: string;
+  business_license: string;
+  legal_person: string;
   industry: string;
-  companyScale: string;
-  adminUsername: string;
-  adminRealName: string;
+  company_scale: string;
+  admin_username: string;
+  admin_real_name: string;
   status: string;
-  rejectReason: string | null;
-  reviewedAt: string | null;
-  reviewedBy: number | null;
-  createdAt: string;
+  reject_reason: string | null;
+  reviewed_at: string | null;
+  reviewed_by: number | null;
+  created_at: string;
 }
 
 interface TenantRegisterAppRawRow {
@@ -253,7 +253,7 @@ export async function listTenantApplications(params: {
   status?: string;
   page?: number;
   pageSize?: number;
-}): Promise<{ list: TenantApplication[]; total: number; page: number; pageSize: number }> {
+}): Promise<{ items: TenantApplication[]; total: number; page: number; pageSize: number }> {
   const { status, page = 1, pageSize = 20 } = params;
   const offset = (page - 1) * pageSize;
   const conditions: string[] = [];
@@ -269,9 +269,8 @@ export async function listTenantApplications(params: {
   const [totalResult, rows] = await Promise.all([
     queryOne<CountTotalRow>(`SELECT COUNT(*) AS total FROM t_tenant_register_application ${where}`, values),
     query<TenantApplication>(
-      `SELECT id, company_name AS companyName, contact_person AS contactPerson,
-              contact_mobile AS contactMobile, admin_username AS adminUsername,
-              status, reject_reason AS rejectReason, reviewed_at AS reviewedAt, created_at AS createdAt
+      `SELECT id, company_name, contact_person, contact_mobile, admin_username,
+              status, reject_reason, reviewed_at, created_at
        FROM t_tenant_register_application ${where}
        ORDER BY id DESC LIMIT ? OFFSET ?`,
       [...values, pageSize, offset]
@@ -279,7 +278,7 @@ export async function listTenantApplications(params: {
   ]);
 
   return {
-    list: rows as TenantApplication[],
+    items: rows as TenantApplication[],
     total: Number(totalResult?.total || 0),
     page,
     pageSize
@@ -288,13 +287,10 @@ export async function listTenantApplications(params: {
 
 export async function getTenantApplication(applicationId: number): Promise<TenantApplication | null> {
   const row = await queryOne<TenantApplicationFullRow>(
-    `SELECT id, company_name AS companyName, company_short_name AS companyShortName,
-            contact_person AS contactPerson, contact_mobile AS contactMobile,
-            contact_email AS contactEmail, province, city, district, address,
-            business_license AS businessLicense, legal_person AS legalPerson,
-            industry, company_scale AS companyScale, admin_username AS adminUsername,
-            admin_real_name AS adminRealName, status, reject_reason AS rejectReason,
-            reviewed_at AS reviewedAt, reviewed_by AS reviewedBy, created_at AS createdAt
+    `SELECT id, company_name, company_short_name, contact_person, contact_mobile,
+            contact_email, province, city, district, address,
+            business_license, legal_person, industry, company_scale, admin_username,
+            admin_real_name, status, reject_reason, reviewed_at, reviewed_by, created_at
      FROM t_tenant_register_application WHERE id = ?`,
     [applicationId]
   );

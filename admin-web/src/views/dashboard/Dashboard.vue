@@ -497,7 +497,8 @@ function renderSalesTrendChart() {
   salesTrendChart.setOption({
     tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
     legend: { data: ["销售额", "订单数"], bottom: 0 },
-    grid: { left: "3%", right: "4%", bottom: "14%", top: "8%", containLabel: true },
+    // 底部留白加大，确保图例与 X 轴日期完整显示不截断
+    grid: { left: "3%", right: "4%", bottom: "22%", top: "8%", containLabel: true },
     xAxis: {
       type: "category",
       data: dates,
@@ -636,7 +637,7 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 .dash-col--left .feed-card--trend {
-  height: 360px;
+  height: 420px;
   display: flex;
   flex-direction: column;
 }
