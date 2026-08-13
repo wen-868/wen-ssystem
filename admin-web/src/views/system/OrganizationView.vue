@@ -87,9 +87,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="角色" prop="roleId">
-          <el-select v-model="staffForm.roleId" placeholder="选择角色" clearable style="width: 100%">
+          <el-select v-model="staffForm.roleId" placeholder="选择角色" clearable style="width: 100%" :disabled="staffForm.isBoss">
             <el-option v-for="r in roleOptions" :key="r.id" :label="r.roleName" :value="r.id" />
           </el-select>
+          <div v-if="staffForm.isBoss" class="boss-tip">超级管理员为老板唯一账号，不可通过员工管理修改</div>
         </el-form-item>
         <el-form-item v-if="!staffForm.id" label="初始密码" prop="password">
           <el-input v-model="staffForm.password" placeholder="留空默认 123456" show-password />
@@ -235,7 +236,7 @@ const positionList = ref<any[]>([]);
 /* 员工表单 */
 const staffDialogVisible = ref(false);
 const staffFormRef = ref<FormInstance>();
-const staffForm = reactive<any>({ id: 0, username: "", realName: "", mobile: "", departmentId: undefined, storeId: undefined, positionId: undefined, roleId: undefined, password: "" });
+const staffForm = reactive<any>({ id: 0, username: "", realName: "", mobile: "", departmentId: undefined, storeId: undefined, positionId: undefined, roleId: undefined, password: "", isBoss: false });
 const staffRules: FormRules = {
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   realName: [{ required: true, message: "请输入姓名", trigger: "blur" }],
@@ -322,7 +323,10 @@ async function loadOptions() {
     departmentList.value = departments.value || [];
   }
   if (stores.status === "fulfilled") storeOptions.value = stores.value || [];
-  if (roles.status === "fulfilled") roleOptions.value = roles.value || [];
+  if (roles.status === "fulfilled") {
+    // 超级管理员为老板唯一账号，不参与员工授权
+    roleOptions.value = (roles.value || []).filter((r: any) => r.roleCode !== "SUPER_ADMIN");
+  }
   if (positions.status === "fulfilled") positionOptions.value = positions.value?.records || [];
 }
 
@@ -338,6 +342,7 @@ function openStaffDialog(row?: any) {
     positionId: row?.positionId ? Number(row.positionId) : undefined,
     roleId: row?.roleIds ? Number(String(row.roleIds).split(",")[0]) : undefined,
     password: "",
+    isBoss: row?.roleCodes ? String(row.roleCodes).includes("SUPER_ADMIN") : false,
   });
   staffDialogVisible.value = true;
 }
@@ -351,7 +356,8 @@ async function handleSaveStaff() {
       const payload: any = {
         realName: staffForm.realName,
         mobile: staffForm.mobile,
-        roleId: staffForm.roleId ? String(staffForm.roleId) : undefined,
+        // 老板（超级管理员）角色不可通过员工管理修改
+        roleId: staffForm.isBoss ? undefined : staffForm.roleId ? String(staffForm.roleId) : undefined,
         storeId: staffForm.storeId ?? undefined,
         departmentId: staffForm.departmentId ?? undefined,
         positionId: staffForm.positionId ?? undefined,
@@ -536,6 +542,11 @@ onMounted(() => {
 }
 .role-tag {
   margin-right: 4px;
+}
+.boss-tip {
+  font-size: 12px;
+  color: var(--color-warning);
+  margin-top: 4px;
 }
 .mini-toolbar {
   display: flex;

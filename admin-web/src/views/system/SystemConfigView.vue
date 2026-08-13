@@ -2,6 +2,92 @@
   <PageCard title="系统设置">
     <div class="config-wrapper">
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+
+        <!-- 公司信息（客户公司信息） -->
+        <el-tab-pane label="公司信息" name="general">
+          <el-form ref="formRef" :model="configs" :rules="rules" label-width="140px" class="config-form">
+            <el-form-item label="公司名称" prop="company_name">
+              <div class="config-field">
+                <el-input v-model="configs.company_name" placeholder="请输入公司名称" style="width: 320px" />
+                <span class="tip-text">用于系统头部及报表展示</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="公司Logo">
+              <div class="config-field">
+                <div class="logo-upload">
+                  <el-upload
+                    class="logo-uploader"
+                    action="#"
+                    :show-file-list="false"
+                    :before-upload="handleLogoBeforeUpload"
+                    :http-request="() => {}"
+                  >
+                    <img v-if="configs.company_logo" :src="configs.company_logo" class="logo-preview" />
+                    <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
+                  </el-upload>
+                  <span class="tip-text">建议尺寸 200x200px，支持 PNG/JPG</span>
+                </div>
+              </div>
+            </el-form-item>
+            <el-form-item label="负责人">
+              <div class="config-field">
+                <el-input v-model="configs.contact_person" placeholder="请输入负责人" style="width: 320px" />
+                <span class="tip-text">企业负责人/联系人</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="联系电话">
+              <div class="config-field">
+                <el-input v-model="configs.contact_phone" placeholder="请输入联系电话" style="width: 320px" />
+                <span class="tip-text">用于客户联系及售后热线展示</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="营业执照">
+              <div class="config-field">
+                <el-input v-model="configs.business_license" placeholder="营业执照号（注册时自动填充）" style="width: 320px" />
+                <span class="tip-text">注册/审核时自动填充，可手动修改</span>
+              </div>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 门店设置 -->
+        <el-tab-pane label="门店设置" name="store">
+          <div class="config-list-toolbar">
+            <el-button type="primary" size="small" :icon="Plus" @click="openStoreEdit()">新增门店</el-button>
+          </div>
+          <el-table :data="storeList" border size="small" max-height="420">
+            <el-table-column prop="storeCode" label="门店编码" width="130" />
+            <el-table-column prop="name" label="门店名称" min-width="140" />
+            <el-table-column prop="address" label="地址" min-width="180" />
+            <el-table-column prop="phone" label="联系电话" width="130" />
+            <el-table-column label="操作" width="120" fixed="right">
+              <template #default="{ row }">
+                <el-button size="small" link type="primary" @click="openStoreEdit(row)">编辑</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+
+        <!-- 仓库设置 -->
+        <el-tab-pane label="仓库设置" name="warehouse">
+          <div class="config-list-toolbar">
+            <el-button type="primary" size="small" :icon="Plus" @click="openWarehouseEdit()">新增仓库</el-button>
+          </div>
+          <el-table :data="warehouseList" border size="small" max-height="420">
+            <el-table-column prop="storeCode" label="仓库编码" width="130" />
+            <el-table-column prop="name" label="仓库名称" min-width="140" />
+            <el-table-column prop="address" label="地址" min-width="180" />
+            <el-table-column prop="contact" label="联系人" width="110" />
+            <el-table-column prop="phone" label="联系电话" width="130" />
+            <el-table-column label="操作" width="140" fixed="right">
+              <template #default="{ row }">
+                <el-button size="small" link type="primary" @click="openWarehouseEdit(row)">编辑</el-button>
+                <el-button size="small" link type="danger" @click="handleDeleteWarehouse(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+
         <el-tab-pane label="数据备份" name="backup">
           <el-form label-width="160px" class="config-form">
             <el-form-item label="自动备份">
@@ -91,98 +177,6 @@
             </div>
           </el-form>
         </el-tab-pane>
-
-        <!-- 公司信息（客户公司信息） -->
-        <el-tab-pane label="公司信息" name="general">
-          <el-form ref="formRef" :model="configs" :rules="rules" label-width="140px" class="config-form">
-            <el-form-item label="系统名称" prop="system_name">
-              <div class="config-field">
-                <el-input v-model="configs.system_name" placeholder="请输入系统名称" style="width: 320px" />
-                <span class="tip-text">用于系统头部展示</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="公司名称" prop="company_name">
-              <div class="config-field">
-                <el-input v-model="configs.company_name" placeholder="请输入公司名称" style="width: 320px" />
-                <span class="tip-text">用于系统头部及报表展示</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="公司Logo">
-              <div class="config-field">
-                <div class="logo-upload">
-                  <el-upload
-                    class="logo-uploader"
-                    action="#"
-                    :show-file-list="false"
-                    :before-upload="handleLogoBeforeUpload"
-                    :http-request="() => {}"
-                  >
-                    <img v-if="configs.company_logo" :src="configs.company_logo" class="logo-preview" />
-                    <el-icon v-else class="logo-uploader-icon"><Plus /></el-icon>
-                  </el-upload>
-                  <span class="tip-text">建议尺寸 200x60px，支持 PNG/JPG</span>
-                </div>
-              </div>
-            </el-form-item>
-            <el-form-item label="联系电话">
-              <div class="config-field">
-                <el-input v-model="configs.contact_phone" placeholder="请输入联系电话" style="width: 320px" />
-                <span class="tip-text">用于客户联系及售后热线展示</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="系统主题色">
-              <div class="config-field">
-                <el-color-picker v-model="configs.theme_color" show-alpha />
-                <span class="tip-text">设置系统全局主题色，默认 #1677FF</span>
-              </div>
-            </el-form-item>
-            <el-form-item label="欢迎语">
-              <div class="config-field">
-                <el-input v-model="configs.welcome_message" placeholder="请输入欢迎语" style="width: 320px" />
-                <span class="tip-text">显示在工作台首页的欢迎信息</span>
-              </div>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <!-- 门店设置 -->
-        <el-tab-pane label="门店设置" name="store">
-          <div class="config-list-toolbar">
-            <el-button type="primary" size="small" :icon="Plus" @click="openStoreEdit()">新增门店</el-button>
-          </div>
-          <el-table :data="storeList" border size="small" max-height="420">
-            <el-table-column prop="storeCode" label="门店编码" width="130" />
-            <el-table-column prop="name" label="门店名称" min-width="140" />
-            <el-table-column prop="address" label="地址" min-width="180" />
-            <el-table-column prop="phone" label="联系电话" width="130" />
-            <el-table-column label="操作" width="120" fixed="right">
-              <template #default="{ row }">
-                <el-button size="small" link type="primary" @click="openStoreEdit(row)">编辑</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-
-        <!-- 仓库设置 -->
-        <el-tab-pane label="仓库设置" name="warehouse">
-          <div class="config-list-toolbar">
-            <el-button type="primary" size="small" :icon="Plus" @click="openWarehouseEdit()">新增仓库</el-button>
-          </div>
-          <el-table :data="warehouseList" border size="small" max-height="420">
-            <el-table-column prop="storeCode" label="仓库编码" width="130" />
-            <el-table-column prop="name" label="仓库名称" min-width="140" />
-            <el-table-column prop="address" label="地址" min-width="180" />
-            <el-table-column prop="contact" label="联系人" width="110" />
-            <el-table-column prop="phone" label="联系电话" width="130" />
-            <el-table-column label="操作" width="140" fixed="right">
-              <template #default="{ row }">
-                <el-button size="small" link type="primary" @click="openWarehouseEdit(row)">编辑</el-button>
-                <el-button size="small" link type="danger" @click="handleDeleteWarehouse(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-tab-pane>
-
       </el-tabs>
 
       <div class="action-bar">
@@ -266,21 +260,18 @@ const warehouseEditVisible = ref(false);
 const warehouseForm = reactive<any>({ id: 0, name: "", address: "", contact: "", phone: "" });
 
 const rules: FormRules = {
-  company_name: [{ required: true, message: "请输入公司名称", trigger: "blur" }],
-  system_name: [{ required: true, message: "请输入系统名称", trigger: "blur" }]
+  company_name: [{ required: true, message: "请输入公司名称", trigger: "blur" }]
 };
 
 /* ── 默认配置值 ── */
 const defaultConfigs: Record<string, string> = {
   // 公司信息
-  system_name: "智享全链管理系统",
   system_version: "V6.0.0",
-  system_logo: "",
-  welcome_message: "欢迎使用智享全链管理系统",
   company_name: "",
   company_logo: "",
+  contact_person: "",
   contact_phone: "",
-  theme_color: "#1677FF",
+  business_license: "",
   // 数据备份
   backup_auto: "0",
   backup_frequency: "daily",
@@ -335,6 +326,20 @@ async function loadConfigGroup(group: string) {
 /* ── 加载所有分组配置 ── */
 async function loadAllConfigs() {
   await Promise.all(Object.values(tabGroupMap).map((g) => loadConfigGroup(g)));
+}
+
+/* ── 加载当前租户信息（公司名称/负责人/电话/营业执照自动填充） ── */
+async function loadTenantInfo() {
+  try {
+    const { data } = await api.get("/admin/sys-config/tenant-info");
+    const t = data.data || {};
+    if (t.companyName) configs.company_name = t.companyName;
+    if (t.contactPerson) configs.contact_person = t.contactPerson;
+    if (t.contactMobile) configs.contact_phone = t.contactMobile;
+    if (t.businessLicense) configs.business_license = t.businessLicense;
+  } catch {
+    /* 租户信息缺失时忽略，保持可编辑 */
+  }
 }
 
 /* ── Tab 切换时加载当前分组 ── */
@@ -537,6 +542,7 @@ async function handleDeleteWarehouse(row: any) {
 
 onMounted(() => {
   loadAllConfigs();
+  loadTenantInfo();
   loadBackups();
   loadStores();
   loadWarehouses();

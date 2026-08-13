@@ -8,6 +8,7 @@ export const sysConfigRouter = Router();
 sysConfigRouter.get("/backups", ctrl.listBackups);
 sysConfigRouter.get("/backups/:name/download", ctrl.downloadBackup);
 sysConfigRouter.delete("/backups/:name", ctrl.deleteBackup);
+sysConfigRouter.get("/tenant-info", ctrl.getTenantInfo);
 sysConfigRouter.get("/", ctrl.getAllConfigs);
 sysConfigRouter.get("/:group", ctrl.getConfigByGroup);
 sysConfigRouter.put("/batch", ctrl.batchUpdateConfigs);

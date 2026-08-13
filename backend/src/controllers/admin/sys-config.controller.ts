@@ -14,6 +14,12 @@ export const getConfigByGroup = asyncHandler(async (req, res) => {
   res.json(ok(records));
 });
 
+/** 当前租户信息（公司名称/负责人/电话/营业执照自动填充） */
+export const getTenantInfo = asyncHandler(async (req, res) => {
+  const row = await service.getTenantInfo(req.tenantId!);
+  res.json(ok(row || {}));
+});
+
 export const batchUpdateConfigs = asyncHandler(async (req, res) => {
   const body = z.array(z.object({
     config_key: z.string().min(1),

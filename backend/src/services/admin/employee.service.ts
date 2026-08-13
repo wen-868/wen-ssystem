@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
@@ -77,6 +77,17 @@ interface StoreWechatInfoRow {
   wxQrcodeUrl: string | null;
 }
 
+/** 校验角色是否可通过员工管理授权（超级管理员为老板唯一账号，禁止授权） */
+async function assertRoleAssignable(roleId: number) {
+  const role = await queryOne<{ role_code: string }>(
+    "SELECT role_code FROM t_sys_role WHERE id = ?",
+    [roleId]
+  );
+  if (role?.role_code === "SUPER_ADMIN") {
+    throw new AppError("超级管理员为老板唯一账号，不能通过员工管理授权", 400);
+  }
+}
+
 export async function listStaff(tenantId: string) {
   const records = await queryWithTenant<StaffListRow>(
     `SELECT u.id AS staffId, u.username, u.real_name AS realName, u.mobile,
@@ -135,6 +146,7 @@ export async function createStaff(body: {
   const staffId = (result as unknown as Record<string, unknown>).insertId;
   // 绑定角色（角色权限一体化）
   if (body.roleId) {
+    await assertRoleAssignable(Number(body.roleId));
     await queryWithTenant(
       "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
       [staffId, Number(body.roleId), tenantId],
@@ -171,6 +183,7 @@ export async function updateStaff(id: number, body: {
   if (body.roleId !== undefined) {
     await queryWithTenant("DELETE FROM t_sys_user_role WHERE user_id = ? AND tenant_id = ?", [id, tenantId], tenantId);
     if (body.roleId) {
+      await assertRoleAssignable(Number(body.roleId));
       await queryWithTenant(
         "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (?, ?, ?)",
         [id, Number(body.roleId), tenantId],

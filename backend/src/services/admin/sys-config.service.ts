@@ -69,6 +69,22 @@ export async function batchUpdateConfigs(items: Array<{ config_key: string; conf
   return { updated: items.length };
 }
 
+/** 当前租户信息（公司名称/负责人/联系电话/营业执照） */
+export async function getTenantInfo(tenantId: string) {
+  const row = await queryOne<{
+    companyName: string;
+    contactPerson: string;
+    contactMobile: string;
+    businessLicense: string;
+  }>(
+    `SELECT company_name AS companyName, contact_person AS contactPerson,
+            contact_mobile AS contactMobile, business_license AS businessLicense
+     FROM t_tenant WHERE id = ?`,
+    [tenantId]
+  );
+  return row || null;
+}
+
 export async function createConfig(body: {
   config_key: string;
   config_value: string;
