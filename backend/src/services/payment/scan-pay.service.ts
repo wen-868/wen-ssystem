@@ -1,6 +1,7 @@
 import { queryOneWithTenant } from "../../shared/db";
 import * as wechatV2 from "../../config/wechat-pay-v2";
 import * as alipayF2F from "../../config/alipay-f2f";
+import * as unionpay from "../hardware/unionpay.service";
 import { offlinePayment } from "../store/sale-bill.service";
 
 /**
@@ -61,7 +62,8 @@ export async function getPosChannels(tenantId: string) {
   let boxProvider = "";
   try {
     const parsed = boxRow?.box_config ? JSON.parse(String(boxRow.box_config)) : null;
-    boxReady = Number(boxRow?.enabled) === 1 && !!parsed && (!!parsed.activationCode || !!parsed.appId || !!parsed.comPort);
+    // 盒子启用开关独立存 box_config.enabled，不依赖微信支付行 enabled
+    boxReady = parsed?.enabled === true && !!parsed && (!!parsed.activationCode || !!parsed.appId || !!parsed.comPort);
     boxProvider = parsed?.provider || "";
   } catch {
     boxReady = false;
@@ -104,9 +106,6 @@ export async function payByCode(params: {
 }) {
   const { billNo, amount, authCode, deviceIp, userId, username, tenantId } = params;
   const channel = detectChannel(authCode);
-  if (channel === "UNIONPAY") {
-    throw new Error("云闪付付款码通道暂未接入，请使用微信/支付宝或线下收款");
-  }
   if (channel === "BOX") {
     throw new Error("收款盒子通道未配置，请在总台支付配置中填写服务商激活码/串口参数");
   }
@@ -121,6 +120,13 @@ export async function payByCode(params: {
       amount,
       authCode,
       deviceIp,
+    });
+  } else if (channel === "UNIONPAY") {
+    payResult = await unionpay.payByAuthCode({
+      tenantId,
+      outTradeNo: billNo,
+      amount,
+      authCode,
     });
   } else {
     payResult = await alipayF2F.payByAuthCode({
@@ -137,7 +143,9 @@ export async function payByCode(params: {
     const paid =
       channel === "WECHAT"
         ? await wechatV2.isOrderPaid(tenantId, billNo)
-        : await alipayF2F.isOrderPaid(tenantId, billNo);
+        : channel === "UNIONPAY"
+          ? await unionpay.isOrderPaid(tenantId, billNo)
+          : await alipayF2F.isOrderPaid(tenantId, billNo);
     if (!paid) {
       throw new Error(payResult.errMsg || "扫码支付失败，请重试");
     }

@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   offlinePayment: vi.fn(),
   wechatV2: { payByAuthCode: vi.fn(), isOrderPaid: vi.fn() },
   alipayF2F: { payByAuthCode: vi.fn(), isOrderPaid: vi.fn() },
+  unionpay: { payByAuthCode: vi.fn(), isOrderPaid: vi.fn() },
 }));
 
 vi.mock("../../../shared/db", () => ({
@@ -22,6 +23,7 @@ vi.mock("../../../shared/db", () => ({
 
 vi.mock("../../../config/wechat-pay-v2", () => mocks.wechatV2);
 vi.mock("../../../config/alipay-f2f", () => mocks.alipayF2F);
+vi.mock("../../../services/hardware/unionpay.service", () => mocks.unionpay);
 vi.mock("../../../services/store/sale-bill.service", () => ({
   offlinePayment: mocks.offlinePayment,
   paymentOnSaleBill: vi.fn(),
@@ -42,6 +44,8 @@ beforeEach(() => {
   mocks.wechatV2.isOrderPaid.mockReset();
   mocks.alipayF2F.payByAuthCode.mockReset();
   mocks.alipayF2F.isOrderPaid.mockReset();
+  mocks.unionpay.payByAuthCode.mockReset();
+  mocks.unionpay.isOrderPaid.mockReset();
 });
 
 describe("scan-pay - detectChannel", () => {
@@ -137,7 +141,29 @@ describe("scan-pay - payByCode", () => {
     expect(mocks.offlinePayment).toHaveBeenCalled();
   });
 
-  it("云闪付通道未接入时抛出错误", async () => {
+  it("云闪付通道支付成功", async () => {
+    mocks.unionpay.payByAuthCode.mockResolvedValue({ success: true, transactionId: "UP202608140001" });
+    mocks.offlinePayment.mockResolvedValue({ billNo: "XS202608140001", receivedAmount: 98, collectionStatus: "PAID" });
+    const res = await payByCode({
+      billNo: "XS202608140001",
+      amount: 98,
+      authCode: "6212345678901234567",
+      userId: 4,
+      username: "store_manager",
+      tenantId: "default",
+    });
+    expect(res.channel).toBe("UNIONPAY");
+    expect(mocks.unionpay.payByAuthCode).toHaveBeenCalled();
+    expect(mocks.offlinePayment).toHaveBeenCalledWith(expect.objectContaining({ paymentMethod: "UNIONPAY" }));
+  });
+
+  it("云闪付通道未配置时抛出明确错误", async () => {
+    mocks.unionpay.payByAuthCode.mockResolvedValue({
+      success: false,
+      errCode: "CHANNEL_NOT_CONFIGURED",
+      errMsg: "云闪付通道未配置",
+    });
+    mocks.unionpay.isOrderPaid.mockResolvedValue(false);
     await expect(
       payByCode({
         billNo: "XS202608140001",
@@ -147,7 +173,7 @@ describe("scan-pay - payByCode", () => {
         username: "store_manager",
         tenantId: "default",
       })
-    ).rejects.toThrow("云闪付付款码通道暂未接入");
+    ).rejects.toThrow("云闪付通道未配置");
   });
 
   it("付款码格式不正确时抛出错误", async () => {
@@ -168,7 +194,7 @@ describe("scan-pay - getPosChannels", () => {
   it("返回微信/支付宝/盒子渠道状态", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce({ enabled: 1, app_id: "wx", mch_id: "mch", api_key: "key" });
     mocks.queryOneWithTenant.mockResolvedValueOnce({ enabled: 1, app_id: "ali" });
-    mocks.queryOneWithTenant.mockResolvedValueOnce({ enabled: 1, box_config: '{"provider":"银盛","activationCode":"ACT123"}' });
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ enabled: 1, box_config: '{"provider":"银盛","activationCode":"ACT123","enabled":true}' });
     const res = await getPosChannels("default");
     expect(res.wechat.ready).toBe(true);
     expect(res.alipay.ready).toBe(true);

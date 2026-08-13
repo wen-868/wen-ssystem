@@ -68,7 +68,7 @@ describe("admin payment-config.service - getChannelConfig", () => {
   it("provider=box 时返回 box_config 解析结果", async () => {
     mocks.queryOneWithTenant.mockResolvedValue({
       enabled: 1,
-      box_config: '{"provider":"银盛","activationCode":"ACT123"}',
+      box_config: '{"provider":"银盛","activationCode":"ACT123","enabled":true}',
     });
     const res = await PaymentConfigService.getChannelConfig("t1", "box");
     expect(res.provider).toBe("box");
@@ -122,6 +122,7 @@ describe("admin payment-config.service - saveChannelConfig", () => {
   });
 
   it("provider=box 时更新微信配置行的 box_config 与 enabled", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ box_config: '{"provider":"旧服务商"}' });
     mocks.executeWithTenant.mockResolvedValue({});
     const res = await PaymentConfigService.saveChannelConfig("t1", "box", {
       boxConfig: '{"provider":"银盛","activationCode":"ACT123"}',
@@ -130,9 +131,12 @@ describe("admin payment-config.service - saveChannelConfig", () => {
     expect(res.success).toBe(true);
     expect(mocks.executeWithTenant).toHaveBeenCalledWith(
       expect.stringContaining("SET box_config"),
-      ['{"provider":"银盛","activationCode":"ACT123"}', 1],
+      expect.any(Array),
       "t1"
     );
+    const json = JSON.parse((mocks.executeWithTenant.mock.calls[0][1] as unknown[])[0] as string);
+    expect(json.enabled).toBe(true);
+    expect(json.provider).toBe("银盛");
   });
 
   it("enabled 字符串 0 归一化为 0", async () => {
@@ -206,14 +210,14 @@ describe("admin payment-config.service - testConnection", () => {
   it("provider=box 完整配置返回成功", async () => {
     mocks.queryOneWithTenant.mockResolvedValue({
       enabled: 1,
-      box_config: '{"provider":"银盛","activationCode":"ACT123"}',
+      box_config: '{"provider":"银盛","activationCode":"ACT123","enabled":true}',
     });
     const res = await PaymentConfigService.testConnection("t1", "box");
     expect(res.success).toBe(true);
   });
 
   it("provider=box 缺少激活码/串口时返回失败", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ enabled: 1, box_config: '{"provider":"银盛"}' });
+    mocks.queryOneWithTenant.mockResolvedValue({ enabled: 1, box_config: '{"provider":"银盛","enabled":true}' });
     const res = await PaymentConfigService.testConnection("t1", "box");
     expect(res.success).toBe(false);
     expect(res.message).toContain("激活码或串口参数");

@@ -7,6 +7,7 @@
  *  - 静默直出打印（热敏小票 / 针式 / A4 / 标签）
  *  - 原始指令通道（ESC/POS，针式/热敏指令级，预留）
  *  - 钱箱弹开通道（ESC/POS 脉冲，经打印机 RJ11 钱箱口）
+ *  - 串口通道（客显/电子秤：经 PowerShell System.IO.Ports 读写 COM 口）
  *
  * HTTP API：
  *  GET  /health             服务状态
@@ -14,6 +15,10 @@
  *  POST /print              打印 HTML（静默直出）
  *  POST /print-raw          原始指令打印（base64，ESC/POS）
  *  POST /cash-drawer        弹开钱箱（ESC/POS 脉冲指令）
+ *  GET  /serial/ports       本机 COM 口列表
+ *  POST /serial/write       向 COM 口写入字节（客显/盒子指令）
+ *  POST /serial/read        读取 COM 口数据（电子秤连续输出）
+ *  POST /serial/transaction 写后读（电子秤命令应答协议）
  */
 import {
   app,
@@ -165,6 +170,90 @@ async function printRaw(base64: string, printerName: string): Promise<{ ok: bool
   }
 }
 
+// ==================== 串口（客显 / 电子秤） ====================
+
+interface SerialOptions {
+  port: string;
+  baudRate?: number;
+  dataBits?: number;
+  parity?: string;
+  stopBits?: string;
+}
+
+const SERIAL_PS = `
+param([string]$Port,[int]$Baud,[string]$Parity,[int]$DataBits,[string]$StopBits,[string]$HexWrite,[string]$ReadMode,[int]$Bytes,[int]$TimeoutMs)
+$sp = New-Object System.IO.Ports.SerialPort $Port,$Baud,$Parity,$DataBits,$StopBits
+$sp.ReadTimeout = 300
+function Out-Line([string]$Text){ [pscustomobject]@{ ok=$true; output=$Text } | ConvertTo-Json -Compress }
+try {
+  $sp.Open()
+  if ($HexWrite) {
+    $len = $HexWrite.Length / 2
+    $bytes = New-Object byte[] $len
+    for($i=0; $i -lt $HexWrite.Length; $i+=2){ $bytes[$i/2] = [Convert]::ToByte($HexWrite.Substring($i,2),16) }
+    $sp.Write($bytes,0,$bytes.Length)
+  }
+  if ($ReadMode -eq 'line') {
+    $sb = New-Object System.Text.StringBuilder
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMs)
+    while([DateTime]::UtcNow -lt $deadline){
+      try { $ch = $sp.ReadExisting(); if($ch){ [void]$sb.Append($ch); if($ch.IndexOf([char]10) -ge 0){ break } } } catch { }
+      Start-Sleep -Milliseconds 80
+    }
+    Out-Line $sb.ToString()
+  } elseif ($ReadMode -eq 'bytes') {
+    $buf = New-Object byte[] $Bytes
+    $read = 0
+    $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMs)
+    while($read -lt $Bytes -and [DateTime]::UtcNow -lt $deadline){
+      try { $n = $sp.Read($buf,$read,$Bytes-$read); if($n -gt 0){ $read += $n } } catch { }
+      if($read -lt $Bytes){ Start-Sleep -Milliseconds 60 }
+    }
+    Out-Line (([BitConverter]::ToString($buf,0,$read)) -replace '-','')
+  } else {
+    Out-Line ''
+  }
+} catch {
+  [pscustomobject]@{ ok=$false; message=$_.Exception.Message } | ConvertTo-Json -Compress
+} finally {
+  if($sp.IsOpen){ $sp.Close() }
+  $sp.Dispose()
+}
+`;
+
+/** 执行串口脚本（临时 ps1 + powershell.exe，避免命令注入） */
+async function runSerialScript(args: string[]): Promise<{ ok: boolean; output?: string; message?: string }> {
+  const tmp = path.join(app.getPath("temp"), `zx_serial_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.ps1`);
+  try {
+    fs.writeFileSync(tmp, SERIAL_PS, "utf8");
+    const { stdout } = await execFileAsync("powershell.exe", [
+      "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+      "-File", tmp, ...args,
+    ], { timeout: 30000, windowsHide: true, maxBuffer: 2 * 1024 * 1024 });
+    const trimmed = stdout.trim();
+    if (!trimmed) return { ok: false, message: "串口脚本无输出（请确认 COM 口与参数）" };
+    return JSON.parse(trimmed);
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : String(e) };
+  } finally {
+    fs.promises.unlink(tmp).catch(() => {});
+  }
+}
+
+function normalizeSerialBody(body: Record<string, unknown>) {
+  return {
+    port: String(body.port || ""),
+    baudRate: Number(body.baudRate || 9600),
+    dataBits: Number(body.dataBits || 8),
+    parity: String(body.parity || "None"),
+    stopBits: String(body.stopBits || "One"),
+    writeBase64: String(body.writeBase64 || ""),
+    readMode: String(body.readMode || ""),
+    bytes: Number(body.bytes || 64),
+    timeoutMs: Number(body.timeoutMs || 3000),
+  };
+}
+
 // ==================== HTTP 服务 ====================
 
 function json(res: http.ServerResponse, code: number, data: unknown): void {
@@ -263,6 +352,64 @@ function startServer(port: number): Promise<void> {
           const pulse = Math.max(0, Math.min(1, body.pulse ?? 0));
           const base64 = Buffer.from([0x1b, 0x70, pulse, 0x19, 0xfa]).toString("base64");
           const result = await printRaw(base64, printer);
+          json(res, result.ok ? 200 : 500, result);
+          return;
+        }
+
+        if (req.method === "GET" && url.pathname === "/serial/ports") {
+          try {
+            const { stdout } = await execFileAsync("powershell.exe", [
+              "-NoProfile", "-NonInteractive", "-Command",
+              "[System.IO.Ports.SerialPort]::GetPortNames()",
+            ], { timeout: 10000, windowsHide: true });
+            json(res, 200, { ok: true, ports: stdout.split(/\r?\n/).map((s) => s.trim()).filter(Boolean) });
+          } catch (e) {
+            json(res, 500, { ok: false, message: e instanceof Error ? e.message : String(e) });
+          }
+          return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/serial/write") {
+          const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+          const opt = normalizeSerialBody(body);
+          if (!opt.port) { json(res, 400, { ok: false, message: "缺少 COM 口" }); return; }
+          if (!opt.writeBase64) { json(res, 400, { ok: false, message: "缺少写入内容 base64" }); return; }
+          const result = await runSerialScript([
+            "-Port", opt.port, "-Baud", String(opt.baudRate), "-Parity", opt.parity,
+            "-DataBits", String(opt.dataBits), "-StopBits", opt.stopBits,
+            "-HexWrite", opt.writeBase64, "-ReadMode", "", "-Bytes", String(opt.bytes),
+            "-TimeoutMs", String(opt.timeoutMs),
+          ]);
+          json(res, result.ok ? 200 : 500, result);
+          return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/serial/read") {
+          const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+          const opt = normalizeSerialBody(body);
+          if (!opt.port) { json(res, 400, { ok: false, message: "缺少 COM 口" }); return; }
+          if (opt.readMode !== "line" && opt.readMode !== "bytes") opt.readMode = "line";
+          const result = await runSerialScript([
+            "-Port", opt.port, "-Baud", String(opt.baudRate), "-Parity", opt.parity,
+            "-DataBits", String(opt.dataBits), "-StopBits", opt.stopBits,
+            "-HexWrite", "", "-ReadMode", opt.readMode, "-Bytes", String(opt.bytes),
+            "-TimeoutMs", String(opt.timeoutMs),
+          ]);
+          json(res, result.ok ? 200 : 500, result);
+          return;
+        }
+
+        if (req.method === "POST" && url.pathname === "/serial/transaction") {
+          const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+          const opt = normalizeSerialBody(body);
+          if (!opt.port) { json(res, 400, { ok: false, message: "缺少 COM 口" }); return; }
+          if (!opt.readMode) opt.readMode = "line";
+          const result = await runSerialScript([
+            "-Port", opt.port, "-Baud", String(opt.baudRate), "-Parity", opt.parity,
+            "-DataBits", String(opt.dataBits), "-StopBits", opt.stopBits,
+            "-HexWrite", opt.writeBase64, "-ReadMode", opt.readMode, "-Bytes", String(opt.bytes),
+            "-TimeoutMs", String(opt.timeoutMs),
+          ]);
           json(res, result.ok ? 200 : 500, result);
           return;
         }

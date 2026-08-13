@@ -172,54 +172,7 @@
           </el-skeleton>
         </el-tab-pane>
 
-        <!-- Tab 3: 收款盒子（聚合收款） -->
-        <el-tab-pane label="收款盒子" name="box">
-          <el-skeleton :loading="boxLoading" animated>
-            <template #template>
-              <div class="skeleton-form">
-                <el-skeleton-item variant="text" style="width: 30%; margin-bottom: 16px" />
-                <el-skeleton-item variant="text" style="width: 100%; margin-bottom: 12px" />
-                <el-skeleton-item variant="text" style="width: 100%; margin-bottom: 12px" />
-              </div>
-            </template>
-            <template #default>
-              <div class="tab-header">
-                <div class="switch-row">
-                  <span class="switch-label">启用收款盒子（聚合收款）</span>
-                  <el-switch v-model="boxConfig.enabled" />
-                </div>
-              </div>
-              <el-alert
-                title="收款盒子由聚合支付服务商提供（如银盛、随行付等）。填写服务商激活码或串口参数后，收银台即可把金额下发到盒子，顾客扫码、盒子语音播报到账。"
-                type="warning"
-                show-icon
-                :closable="false"
-                style="margin-bottom: 20px"
-              />
-              <el-form label-width="160px" class="config-form">
-                <el-form-item label="服务商名称">
-                  <el-input v-model="boxConfig.provider" placeholder="如：银盛 / 随行付 / 拉卡拉" />
-                </el-form-item>
-                <el-form-item label="激活码 / 设备号">
-                  <el-input v-model="boxConfig.activationCode" placeholder="服务商后台生成的设备激活码" />
-                </el-form-item>
-                <el-form-item label="应用ID(appId)">
-                  <el-input v-model="boxConfig.appId" placeholder="服务商开放平台应用ID（选填）" />
-                </el-form-item>
-                <el-form-item label="串口(COM)">
-                  <el-input v-model="boxConfig.comPort" placeholder="串口联动模式时填写，如 COM3" />
-                </el-form-item>
-              </el-form>
-              <div class="action-bar">
-                <el-button type="primary" :loading="boxSaving" @click="handleSaveConfig('box')">
-                  保存配置
-                </el-button>
-              </div>
-            </template>
-          </el-skeleton>
-        </el-tab-pane>
-
-        <!-- Tab 4: 银行账号 -->
+        <!-- Tab 3: 银行账号 -->
         <el-tab-pane label="银行账号" name="bank">
           <div class="bank-header">
             <el-button type="primary" @click="handleAddBankAccount">添加银行账号</el-button>
@@ -418,26 +371,6 @@ function toggleAlipayPublicKey() {
   alipayShowPublicKey.value = !alipayShowPublicKey.value;
 }
 
-/* ── 收款盒子（聚合收款） ── */
-const boxLoading = ref(false);
-const boxSaving = ref(false);
-
-interface BoxConfig {
-  enabled: boolean;
-  provider: string;
-  activationCode: string;
-  appId: string;
-  comPort: string;
-}
-
-const boxConfig = reactive<BoxConfig>({
-  enabled: false,
-  provider: "",
-  activationCode: "",
-  appId: "",
-  comPort: ""
-});
-
 /* ── 银行账号 ── */
 const bankLoading = ref(false);
 const bankAccounts = ref<any[]>([]);
@@ -527,26 +460,6 @@ async function loadAlipayConfig() {
   }
 }
 
-async function loadBoxConfig() {
-  boxLoading.value = true;
-  try {
-    const { data } = await api.get("/payment-config/configs/box");
-    const cfg = data.data || data;
-    if (cfg) {
-      boxConfig.enabled = !!cfg.enabled;
-      const boxData = cfg.boxConfig || {};
-      boxConfig.provider = boxData.provider || "";
-      boxConfig.activationCode = boxData.activationCode || "";
-      boxConfig.appId = boxData.appId || "";
-      boxConfig.comPort = boxData.comPort || "";
-    }
-  } catch {
-    // 加载失败时使用默认值
-  } finally {
-    boxLoading.value = false;
-  }
-}
-
 async function loadBankAccounts() {
   bankLoading.value = true;
   try {
@@ -565,8 +478,6 @@ function handleTabChange(tab: string) {
     loadWechatConfig();
   } else if (tab === "alipay") {
     loadAlipayConfig();
-  } else if (tab === "box") {
-    loadBoxConfig();
   } else if (tab === "bank") {
     loadBankAccounts();
   }
@@ -608,24 +519,6 @@ async function handleSaveConfig(provider: string) {
       ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
     } finally {
       alipaySaving.value = false;
-    }
-  } else if (provider === "box") {
-    boxSaving.value = true;
-    try {
-      await api.put("/payment-config/configs/box", {
-        enabled: boxConfig.enabled,
-        boxConfig: JSON.stringify({
-          provider: boxConfig.provider,
-          activationCode: boxConfig.activationCode,
-          appId: boxConfig.appId,
-          comPort: boxConfig.comPort
-        })
-      });
-      ElMessage.success("收款盒子配置保存成功");
-    } catch (e: any) {
-      ElMessage.error(e?.response?.data?.msg || e?.message || "保存失败");
-    } finally {
-      boxSaving.value = false;
     }
   }
 }

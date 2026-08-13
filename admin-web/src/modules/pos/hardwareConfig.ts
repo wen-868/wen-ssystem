@@ -12,6 +12,16 @@ export interface PosHardwareSettings {
   voiceEnabled: boolean;
   /** 结算弹窗打开后自动聚焦付款码输入框（扫码枪反扫） */
   scanPayAutoFocus: boolean;
+  /** 客显：COM 口（本机串口设备，经本地打印助手驱动） */
+  displayPort: string;
+  displayBaudRate: number;
+  displayProtocol: "ESC_POS" | "VKP80" | "TEXT" | "CUSTOM";
+  displayTemplate: string;
+  /** 电子秤：COM 口 */
+  scalePort: string;
+  scaleBaudRate: number;
+  scaleProtocol: "CONTINUOUS" | "COMMAND";
+  scaleCommandHex: string;
 }
 
 const STORAGE_KEY = "zx_pos_hardware_v1";
@@ -20,11 +30,20 @@ export const DEFAULT_POS_HARDWARE: PosHardwareSettings = {
   cashDrawerEnabled: true,
   voiceEnabled: true,
   scanPayAutoFocus: true,
+  displayPort: "",
+  displayBaudRate: 9600,
+  displayProtocol: "ESC_POS",
+  displayTemplate: "",
+  scalePort: "",
+  scaleBaudRate: 9600,
+  scaleProtocol: "CONTINUOUS",
+  scaleCommandHex: "57", // 'W' 命令（多数电子秤应答式协议），可改
 };
 
 function isPosHardwareSettings(value: unknown): value is PosHardwareSettings {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
+  // 只校验核心布尔字段，其余字段缺失时由读取方用默认值补齐（向后兼容旧存储）
   return (
     typeof v.cashDrawerEnabled === "boolean" &&
     typeof v.voiceEnabled === "boolean" &&

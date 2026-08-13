@@ -46,7 +46,7 @@ export class PaymentConfigService {
       } catch { /* 忽略解析错误 */ }
       return {
         provider: 'box',
-        enabled: Number(row.enabled) === 1,
+        enabled: boxData.enabled === true,
         boxConfig: boxData,
       };
     }
@@ -69,9 +69,28 @@ export class PaymentConfigService {
     const enabledFlag = data.enabled === true || data.enabled === 1 || data.enabled === "1" ? 1 : 0;
     // 收款盒子配置保存到微信配置行的 box_config 字段
     if (provider === 'box') {
+      const existing = await queryOneWithTenant(
+        `SELECT box_config FROM t_payment_config WHERE provider='wechat'`,
+        [],
+        tenantId
+      );
+      let merged: Record<string, unknown> = {};
+      try {
+        merged = existing?.box_config ? JSON.parse(existing.box_config) : {};
+      } catch { /* 忽略 */ }
+      // 盒子启用开关独立存 JSON，不覆盖微信支付行 enabled
+      let boxFields: Record<string, unknown> = {};
+      if (data.boxConfig) {
+        try {
+          boxFields = JSON.parse(data.boxConfig);
+        } catch {
+          boxFields = {};
+        }
+      }
+      const next = { ...merged, ...boxFields, enabled: enabledFlag === 1 };
       await executeWithTenant(
-        `UPDATE t_payment_config SET box_config=?, enabled=?, updated_at=NOW() WHERE provider='wechat'`,
-        [data.boxConfig || null, enabledFlag],
+        `UPDATE t_payment_config SET box_config=?, updated_at=NOW() WHERE provider='wechat'`,
+        [JSON.stringify(next)],
         tenantId
       );
       return { success: true };
@@ -117,7 +136,7 @@ export class PaymentConfigService {
         boxData = row.box_config ? JSON.parse(row.box_config) : {};
       } catch { /* 忽略 */ }
       const missing: string[] = [];
-      if (Number(row.enabled) !== 1) missing.push('启用开关');
+      if (boxData.enabled !== true) missing.push('启用开关');
       if (!boxData.provider) missing.push('服务商名称');
       if (!boxData.activationCode && !boxData.comPort) missing.push('激活码或串口参数');
       if (missing.length > 0) {

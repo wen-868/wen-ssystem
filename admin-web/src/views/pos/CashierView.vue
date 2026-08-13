@@ -47,7 +47,7 @@
           <el-button type="primary" class="search-button" :loading="loading" @click="handleSearchProducts">
             搜索
           </el-button>
-          <el-button class="settings-button" title="收银硬件设置" @click="settingsDialogVisible = true">
+          <el-button class="settings-button" title="收银硬件设置" @click="openSettingsDialog">
             <el-icon class="btn-icon"><Setting /></el-icon>
             设置
           </el-button>
@@ -328,36 +328,215 @@
     </el-dialog>
 
     <!-- 收银硬件设置 -->
-    <el-dialog v-model="settingsDialogVisible" title="收银硬件设置" width="520px" align-center>
-      <div class="hardware-settings">
+    <el-dialog
+      v-model="settingsDialogVisible"
+      title="收银硬件设置"
+      width="780px"
+      align-center
+      :close-on-click-modal="false"
+    >
+      <div class="hardware-settings" v-loading="hardwareLoading">
         <el-alert
           type="info"
           :closable="false"
           show-icon
           style="margin-bottom: 14px"
-          title="扫码枪（USB/蓝牙模拟键盘）即插即用，商品条码在搜索框扫描，顾客付款码在结算弹窗扫描"
+          title="扫码枪即插即用：商品条码在搜索框扫描，顾客付款码在结算弹窗扫描；客显/电子秤为串口设备，需本机安装「智享打印助手」"
         />
-        <div class="hardware-setting-row">
-          <div class="hardware-setting-meta">
-            <div class="hardware-setting-name">现金收款后自动弹钱箱</div>
-            <div class="hardware-setting-desc">需打印机连接 RJ11 钱箱口，经本地打印助手发送 ESC/POS 脉冲</div>
-          </div>
-          <el-switch v-model="hardwareSettings.cashDrawerEnabled" />
-        </div>
-        <div class="hardware-setting-row">
-          <div class="hardware-setting-meta">
-            <div class="hardware-setting-name">收款成功语音播报</div>
-            <div class="hardware-setting-desc">浏览器语音播报收款金额，无需额外硬件</div>
-          </div>
-          <el-switch v-model="hardwareSettings.voiceEnabled" />
-        </div>
-        <div class="hardware-setting-row">
-          <div class="hardware-setting-meta">
-            <div class="hardware-setting-name">结算时自动聚焦付款码框</div>
-            <div class="hardware-setting-desc">打开结算弹窗后直接扫顾客付款码，无需鼠标点击</div>
-          </div>
-          <el-switch v-model="hardwareSettings.scanPayAutoFocus" />
-        </div>
+
+        <el-collapse v-model="activeHardwareSection">
+          <!-- 基础设置 -->
+          <el-collapse-item name="basic" title="基础设置（钱箱 / 语音 / 聚焦）">
+            <div class="hardware-setting-row">
+              <div class="hardware-setting-meta">
+                <div class="hardware-setting-name">现金收款后自动弹钱箱</div>
+                <div class="hardware-setting-desc">需打印机连接 RJ11 钱箱口，经本地打印助手发送 ESC/POS 脉冲</div>
+              </div>
+              <el-switch v-model="hardwareSettings.cashDrawerEnabled" />
+            </div>
+            <div class="hardware-setting-row">
+              <div class="hardware-setting-meta">
+                <div class="hardware-setting-name">收款成功语音播报</div>
+                <div class="hardware-setting-desc">浏览器语音播报收款金额，无需额外硬件</div>
+              </div>
+              <el-switch v-model="hardwareSettings.voiceEnabled" />
+            </div>
+            <div class="hardware-setting-row">
+              <div class="hardware-setting-meta">
+                <div class="hardware-setting-name">结算时自动聚焦付款码框</div>
+                <div class="hardware-setting-desc">打开结算弹窗后直接扫顾客付款码，无需鼠标点击</div>
+              </div>
+              <el-switch v-model="hardwareSettings.scanPayAutoFocus" />
+            </div>
+          </el-collapse-item>
+
+          <!-- 客显 -->
+          <el-collapse-item name="display" title="客显（顾客显示屏，本机串口）">
+            <div class="hw-grid">
+              <div class="hw-field">
+                <label>COM 口</label>
+                <el-select v-model="hardwareSettings.displayPort" placeholder="选择串口" style="width: 100%">
+                  <el-option v-for="p in serialPorts" :key="p" :label="p" :value="p" />
+                </el-select>
+              </div>
+              <div class="hw-field">
+                <label>波特率</label>
+                <el-select v-model="hardwareSettings.displayBaudRate" style="width: 100%">
+                  <el-option v-for="b in [9600, 19200, 38400, 115200]" :key="b" :label="b" :value="b" />
+                </el-select>
+              </div>
+              <div class="hw-field">
+                <label>协议</label>
+                <el-select v-model="hardwareSettings.displayProtocol" style="width: 100%">
+                  <el-option label="ESC/POS（启明/亿城等）" value="ESC_POS" />
+                  <el-option label="VKP80（威肯/联迪）" value="VKP80" />
+                  <el-option label="纯文本（UTF-8 屏）" value="TEXT" />
+                  <el-option label="自定义十六进制模板" value="CUSTOM" />
+                </el-select>
+              </div>
+              <div v-if="hardwareSettings.displayProtocol === 'CUSTOM'" class="hw-field hw-field--wide">
+                <label>命令模板（hex，支持 {line1} {line2} {amount}）</label>
+                <el-input v-model="hardwareSettings.displayTemplate" placeholder="如 1B5A1B4A7B6C696E65317D1B4B7B6C696E65327D" />
+              </div>
+            </div>
+            <div class="hw-actions">
+              <el-button size="small" :loading="displayTesting" @click="testCustomerDisplay">测试显示</el-button>
+              <span class="hw-tip">结算打开时自动显示应收金额</span>
+            </div>
+          </el-collapse-item>
+
+          <!-- 电子秤 -->
+          <el-collapse-item name="scale" title="电子秤（本机串口）">
+            <div class="hw-grid">
+              <div class="hw-field">
+                <label>COM 口</label>
+                <el-select v-model="hardwareSettings.scalePort" placeholder="选择串口" style="width: 100%">
+                  <el-option v-for="p in serialPorts" :key="p" :label="p" :value="p" />
+                </el-select>
+              </div>
+              <div class="hw-field">
+                <label>波特率</label>
+                <el-select v-model="hardwareSettings.scaleBaudRate" style="width: 100%">
+                  <el-option v-for="b in [9600, 19200, 38400, 115200]" :key="b" :label="b" :value="b" />
+                </el-select>
+              </div>
+              <div class="hw-field">
+                <label>协议</label>
+                <el-select v-model="hardwareSettings.scaleProtocol" style="width: 100%">
+                  <el-option label="连续输出（耀华/托利多等）" value="CONTINUOUS" />
+                  <el-option label="命令应答（发命令后读数）" value="COMMAND" />
+                </el-select>
+              </div>
+              <div v-if="hardwareSettings.scaleProtocol === 'COMMAND'" class="hw-field">
+                <label>命令（hex）</label>
+                <el-input v-model="hardwareSettings.scaleCommandHex" placeholder="如 57（W）" />
+              </div>
+            </div>
+            <div class="hw-actions">
+              <el-button size="small" :loading="scaleTesting" @click="testScale">读取重量</el-button>
+              <span class="hw-tip">{{ scaleTestResult }}</span>
+            </div>
+          </el-collapse-item>
+
+          <!-- 云喇叭 -->
+          <el-collapse-item name="speaker" title="云喇叭 / 收款播报器（云端）">
+            <div class="hw-grid">
+              <div class="hw-field">
+                <label>启用</label>
+                <el-switch v-model="cloudSpeakerForm.enabled" />
+              </div>
+              <div class="hw-field">
+                <label>服务商</label>
+                <el-input v-model="cloudSpeakerForm.provider" placeholder="如 云喇叭/银盛" />
+              </div>
+              <div class="hw-field">
+                <label>播报接口地址 apiUrl</label>
+                <el-input v-model="cloudSpeakerForm.apiUrl" placeholder="服务商 HTTP 播报接口" />
+              </div>
+              <div class="hw-field">
+                <label>设备号 deviceId</label>
+                <el-input v-model="cloudSpeakerForm.deviceId" placeholder="云喇叭设备编号" />
+              </div>
+              <div class="hw-field">
+                <label>密钥 secret</label>
+                <el-input v-model="cloudSpeakerForm.secret" type="password" show-password placeholder="接口签名密钥（选填）" />
+              </div>
+            </div>
+            <div class="hw-actions">
+              <el-button size="small" :loading="speakerTesting" @click="testCloudSpeaker">测试播报</el-button>
+              <span class="hw-tip">收款成功后自动播报金额</span>
+            </div>
+          </el-collapse-item>
+
+          <!-- 收款盒子 -->
+          <el-collapse-item name="box" title="收款盒子（聚合收款）">
+            <div class="hw-grid">
+              <div class="hw-field">
+                <label>启用</label>
+                <el-switch v-model="boxForm.enabled" />
+              </div>
+              <div class="hw-field">
+                <label>服务商</label>
+                <el-input v-model="boxForm.provider" placeholder="如 银盛/随行付/拉卡拉" />
+              </div>
+              <div class="hw-field">
+                <label>激活码 / 设备号</label>
+                <el-input v-model="boxForm.activationCode" placeholder="服务商后台生成的激活码" />
+              </div>
+              <div class="hw-field">
+                <label>应用ID appId</label>
+                <el-input v-model="boxForm.appId" placeholder="服务商开放平台应用ID（选填）" />
+              </div>
+              <div class="hw-field">
+                <label>HTTP 接口 apiUrl</label>
+                <el-input v-model="boxForm.apiUrl" placeholder="服务商金额下发接口（与串口二选一）" />
+              </div>
+              <div class="hw-field">
+                <label>串口 COM（串口联动）</label>
+                <el-input v-model="boxForm.comPort" placeholder="如 COM3（与 HTTP 二选一）" />
+              </div>
+              <div class="hw-field">
+                <label>接口密钥 secret</label>
+                <el-input v-model="boxForm.secret" type="password" show-password placeholder="签名密钥（选填）" />
+              </div>
+              <div class="hw-field hw-field--wide">
+                <label>串口命令模板（hex，{amount} 占位）</label>
+                <el-input v-model="boxForm.commandTemplate" placeholder="服务商串口协议指令模板" />
+              </div>
+            </div>
+            <div class="hw-actions">
+              <el-button size="small" :loading="boxTesting" @click="testBoxConfig">测试配置</el-button>
+              <span class="hw-tip">HTTP 通道直接下发金额；串口通道经本地打印助手写入指令</span>
+            </div>
+          </el-collapse-item>
+
+          <!-- 云闪付 -->
+          <el-collapse-item name="unionpay" title="云闪付付款码（云端）">
+            <div class="hw-grid">
+              <div class="hw-field">
+                <label>启用</label>
+                <el-switch v-model="unionpayForm.enabled" />
+              </div>
+              <div class="hw-field">
+                <label>网关地址 gatewayUrl</label>
+                <el-input v-model="unionpayForm.gatewayUrl" placeholder="银联/聚合服务商网关接口" />
+              </div>
+              <div class="hw-field">
+                <label>商户号 mchId</label>
+                <el-input v-model="unionpayForm.mchId" placeholder="银联/聚合商户号" />
+              </div>
+              <div class="hw-field">
+                <label>密钥 apiKey</label>
+                <el-input v-model="unionpayForm.apiKey" type="password" show-password placeholder="网关签名密钥" />
+              </div>
+            </div>
+            <div class="hw-actions">
+              <el-button size="small" :loading="unionpayTesting" @click="testUnionpayConfig">测试连通</el-button>
+              <span class="hw-tip">配置后结算弹窗可直接扫云闪付付款码（62 开头）</span>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+
         <div class="hardware-setting-footer">
           <span>支付通道状态：</span>
           <template v-if="channelStatus">
@@ -376,7 +555,7 @@
       </div>
       <template #footer>
         <el-button @click="settingsDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveHardwareSettings">保存</el-button>
+        <el-button type="primary" :loading="hardwareSaving" @click="saveHardwareSettings">保存</el-button>
       </template>
     </el-dialog>
 
@@ -428,6 +607,18 @@ import {
   DEFAULT_POS_HARDWARE,
   type PosHardwareSettings,
 } from "../../modules/pos/hardwareConfig";
+import {
+  fetchHardwareConfigs,
+  saveHardwareConfig,
+  fetchBoxConfig,
+  saveBoxConfig,
+  testBoxConfig as testBoxConfigApi,
+  announceCloudSpeaker,
+  testUnionpay,
+} from "../../api/hardware";
+import { listSerialPorts } from "../../modules/hardware/serialClient";
+import { showCustomerDisplay } from "../../modules/hardware/customerDisplay";
+import { readScaleWeight } from "../../modules/hardware/scale";
 import { buildTableHtml, fmtMoney, rawHtml } from "../../modules/print/renderer";
 
 const loading = ref(false);
@@ -464,6 +655,43 @@ const channelStatus = ref<any>(null);
 /** 收银硬件设置 */
 const settingsDialogVisible = ref(false);
 const hardwareSettings = ref<PosHardwareSettings>({ ...DEFAULT_POS_HARDWARE });
+const activeHardwareSection = ref<string[]>(["basic"]);
+const hardwareLoading = ref(false);
+const hardwareSaving = ref(false);
+const serialPorts = ref<string[]>([]);
+const displayTesting = ref(false);
+const scaleTesting = ref(false);
+const scaleTestResult = ref("");
+const speakerTesting = ref(false);
+const boxTesting = ref(false);
+const unionpayTesting = ref(false);
+
+/** 云喇叭配置（租户级） */
+const cloudSpeakerForm = reactive({
+  enabled: false,
+  provider: "",
+  apiUrl: "",
+  deviceId: "",
+  secret: "",
+});
+/** 收款盒子配置（租户级，存 t_payment_config.box_config） */
+const boxForm = reactive({
+  enabled: false,
+  provider: "",
+  activationCode: "",
+  appId: "",
+  comPort: "",
+  apiUrl: "",
+  secret: "",
+  commandTemplate: "",
+});
+/** 云闪付配置（租户级） */
+const unionpayForm = reactive({
+  enabled: false,
+  gatewayUrl: "",
+  mchId: "",
+  apiKey: "",
+});
 
 /** 付款码渠道识别提示（前端预判，最终以后端为准） */
 const payCodeChannelLabel = computed(() => {
@@ -561,6 +789,7 @@ onMounted(() => {
   loadCategories();
   loadAllProducts();
   loadPosChannels();
+  loadTenantHardwareConfigs();
   hardwareSettings.value = getPosHardwareSettings();
   window.addEventListener("keydown", handleHotkey);
 });
@@ -578,11 +807,195 @@ async function loadPosChannels() {
   }
 }
 
-/** 保存收银硬件设置（本机 localStorage，每台终端独立） */
-function saveHardwareSettings() {
-  savePosHardwareSettings(hardwareSettings.value);
-  settingsDialogVisible.value = false;
-  ElMessage.success("收银硬件设置已保存");
+/** 打开硬件设置：加载本机串口 + 租户级配置 + 通道状态 */
+async function openSettingsDialog() {
+  settingsDialogVisible.value = true;
+  hardwareLoading.value = true;
+  try {
+    hardwareSettings.value = getPosHardwareSettings();
+    serialPorts.value = await listSerialPorts();
+    await Promise.all([loadTenantHardwareConfigs(), loadPosChannels()]);
+  } finally {
+    hardwareLoading.value = false;
+  }
+}
+
+/** 加载租户级硬件配置（云喇叭/收款盒子/云闪付） */
+async function loadTenantHardwareConfigs() {
+  try {
+    const [configs, box] = await Promise.all([fetchHardwareConfigs(), fetchBoxConfig()]);
+    const speaker = (configs || []).find((c: any) => c.category === "cloud_speaker");
+    const unionpayCfg = (configs || []).find((c: any) => c.category === "unionpay");
+    if (speaker) {
+      cloudSpeakerForm.enabled = !!speaker.enabled;
+      cloudSpeakerForm.provider = speaker.config?.provider || "";
+      cloudSpeakerForm.apiUrl = speaker.config?.apiUrl || "";
+      cloudSpeakerForm.deviceId = speaker.config?.deviceId || "";
+      cloudSpeakerForm.secret = speaker.config?.secret || "";
+    }
+    if (unionpayCfg) {
+      unionpayForm.enabled = !!unionpayCfg.enabled;
+      unionpayForm.gatewayUrl = unionpayCfg.config?.gatewayUrl || "";
+      unionpayForm.mchId = unionpayCfg.config?.mchId || "";
+      unionpayForm.apiKey = unionpayCfg.config?.apiKey || "";
+    }
+    if (box) {
+      boxForm.enabled = !!box.enabled;
+      boxForm.provider = box.config?.provider || "";
+      boxForm.activationCode = box.config?.activationCode || "";
+      boxForm.appId = box.config?.appId || "";
+      boxForm.comPort = box.config?.comPort || "";
+      boxForm.apiUrl = box.config?.apiUrl || "";
+      boxForm.commandTemplate = box.config?.commandTemplate || "";
+    }
+  } catch {
+    // 租户级配置加载失败不阻断本机设置
+  }
+}
+
+/** 保存收银硬件设置：本机（localStorage）+ 租户级（后端） */
+async function saveHardwareSettings() {
+  hardwareSaving.value = true;
+  try {
+    savePosHardwareSettings(hardwareSettings.value);
+    await Promise.all([
+      saveHardwareConfig("cloud_speaker", {
+        provider: cloudSpeakerForm.provider,
+        apiUrl: cloudSpeakerForm.apiUrl,
+        deviceId: cloudSpeakerForm.deviceId,
+        secret: cloudSpeakerForm.secret,
+      }, cloudSpeakerForm.enabled),
+      saveBoxConfig({
+        provider: boxForm.provider,
+        activationCode: boxForm.activationCode,
+        appId: boxForm.appId,
+        comPort: boxForm.comPort,
+        apiUrl: boxForm.apiUrl,
+        secret: boxForm.secret,
+        commandTemplate: boxForm.commandTemplate,
+      }, boxForm.enabled),
+      saveHardwareConfig("unionpay", {
+        gatewayUrl: unionpayForm.gatewayUrl,
+        mchId: unionpayForm.mchId,
+        apiKey: unionpayForm.apiKey,
+      }, unionpayForm.enabled),
+    ]);
+    settingsDialogVisible.value = false;
+    ElMessage.success("收银硬件设置已保存");
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, "保存硬件设置失败"));
+  } finally {
+    hardwareSaving.value = false;
+  }
+}
+
+/** 客显测试：显示测试内容 */
+async function testCustomerDisplay() {
+  displayTesting.value = true;
+  try {
+    const res = await showCustomerDisplay({
+      port: hardwareSettings.value.displayPort,
+      baudRate: hardwareSettings.value.displayBaudRate,
+      protocol: hardwareSettings.value.displayProtocol,
+      template: hardwareSettings.value.displayTemplate,
+      lines: ["智享全链", "测试显示 ¥123.45"],
+      amount: 123.45,
+    });
+    if (res.ok) ElMessage.success("客显指令已发送");
+    else ElMessage.error(res.message || "客显发送失败");
+  } finally {
+    displayTesting.value = false;
+  }
+}
+
+/** 电子秤测试：读取当前重量 */
+async function testScale() {
+  scaleTesting.value = true;
+  scaleTestResult.value = "读取中…";
+  try {
+    const res = await readScaleWeight({
+      port: hardwareSettings.value.scalePort,
+      baudRate: hardwareSettings.value.scaleBaudRate,
+      protocol: hardwareSettings.value.scaleProtocol,
+      commandHex: hardwareSettings.value.scaleCommandHex,
+    });
+    if (res.ok && res.weight !== undefined) {
+      scaleTestResult.value = `当前重量 ${res.weight.toFixed(3)} kg`;
+    } else {
+      scaleTestResult.value = res.message || "读取失败";
+    }
+  } finally {
+    scaleTesting.value = false;
+  }
+}
+
+/** 云喇叭测试播报 */
+async function testCloudSpeaker() {
+  speakerTesting.value = true;
+  try {
+    const res = await announceCloudSpeaker({ amount: 1, orderNo: `TEST${Date.now()}`, channel: "TEST" });
+    if (res.success) ElMessage.success("播报指令已下发");
+    else ElMessage.warning(res.reason || "云喇叭未配置或播报失败");
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, "播报测试失败"));
+  } finally {
+    speakerTesting.value = false;
+  }
+}
+
+/** 收款盒子配置测试 */
+async function testBoxConfig() {
+  boxTesting.value = true;
+  try {
+    const res = await testBoxConfigApi();
+    if (res.success) ElMessage.success(res.message || "配置校验通过");
+    else ElMessage.warning(res.message || "配置不完整");
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, "测试失败"));
+  } finally {
+    boxTesting.value = false;
+  }
+}
+
+/** 云闪付网关连通测试 */
+async function testUnionpayConfig() {
+  unionpayTesting.value = true;
+  try {
+    const res = await testUnionpay();
+    if (res.success) ElMessage.success("云闪付网关连通");
+    else ElMessage.warning(res.message || "云闪付网关未连通或未配置");
+  } catch (error) {
+    ElMessage.error(getErrorMessage(error, "测试失败"));
+  } finally {
+    unionpayTesting.value = false;
+  }
+}
+
+/** 结算打开时：客显显示应收金额（本机串口，失败不阻断） */
+function showAmountOnCustomerDisplay() {
+  if (!hardwareSettings.value.displayPort) return;
+  showCustomerDisplay({
+    port: hardwareSettings.value.displayPort,
+    baudRate: hardwareSettings.value.displayBaudRate,
+    protocol: hardwareSettings.value.displayProtocol,
+    template: hardwareSettings.value.displayTemplate,
+    lines: ["智享全链", `应收 ¥${cartAmount.value.toFixed(2)}`],
+    amount: cartAmount.value,
+  }).catch(() => {
+    // 客显未接/助手未启动不阻断结算
+  });
+}
+
+/** 收款成功后：云喇叭播报（租户级云端设备） */
+function announceCloud() {
+  if (!cloudSpeakerForm.enabled) return;
+  announceCloudSpeaker({
+    amount: currentAmount.value || cartAmount.value,
+    orderNo: currentBillNo.value || `POS${Date.now()}`,
+    channel: "SALE",
+  }).catch(() => {
+    // 播报失败不阻断收款
+  });
 }
 
 /** 收款成功语音播报（浏览器 SpeechSynthesis，无需额外硬件） */
@@ -943,6 +1356,7 @@ function openPayDialog() {
   memberBalance.value = 0;
   payCode.value = "";
   payDialogVisible.value = true;
+  showAmountOnCustomerDisplay();
   // 硬件设置开启时自动聚焦付款码框：扫码枪扫完商品可直接扫顾客付款码
   if (hardwareSettings.value.scanPayAutoFocus) {
     nextTick(() => {
@@ -996,6 +1410,8 @@ async function confirmPayment() {
 function completePaymentFlow(printedBillNo: string, printedAmount: number, payLabel: string, drawerChannel: string) {
   // 现金收款弹钱箱（经本地打印助手 ESC/POS 脉冲）
   if (drawerChannel === "CASH") kickCashDrawer();
+  // 云喇叭播报（租户级云端设备）
+  announceCloud();
   // 语音播报收款金额
   speakResult(`收款成功，${fmtMoney(printedAmount)} 元`);
   // 本机配置：结算后自动打印小票（先取号再清空购物车）
@@ -2059,6 +2475,46 @@ async function handleDeleteHoldOrder(holdNo: string) {
   padding-top: 14px;
   font-size: 13px;
   color: var(--text-secondary);
+}
+.hardware-settings :deep(.el-collapse) {
+  border: none;
+}
+.hardware-settings :deep(.el-collapse-item__header) {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+}
+.hardware-settings :deep(.el-collapse-item__content) {
+  padding-bottom: 12px;
+}
+.hw-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+.hw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.hw-field label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.hw-field--wide {
+  grid-column: span 3;
+}
+.hw-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.hw-tip {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* ─── 扫码收款（反扫） ─── */

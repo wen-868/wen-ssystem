@@ -117,7 +117,7 @@ export const createCollectionLink = asyncHandler(async (req, res) => {
 export const offlinePayment = asyncHandler(async (req, res) => {
   const body = z.object({
     amount: z.number(),
-    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE"]),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE", "BOX"]),
     remark: z.string().optional()
   }).parse(req.body);
   const { id, name } = getOperator(req);
@@ -133,7 +133,7 @@ export const offlinePayment = asyncHandler(async (req, res) => {
 export const paymentOnSaleBill = asyncHandler(async (req, res) => {
   const body = z.object({
     amount: z.number().positive(),
-    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE"]),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "OTHER_WECHAT", "ALIPAY", "WECHAT", "BALANCE", "BOX"]),
     remark: z.string().optional()
   }).parse(req.body);
   const { id, name } = getOperator(req);
