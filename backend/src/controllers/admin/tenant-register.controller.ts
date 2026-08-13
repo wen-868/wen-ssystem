@@ -1,5 +1,22 @@
-﻿import { applyTenantRegister, approveTenantApplication, rejectTenantApplication, listTenantApplications, getTenantApplication } from "../../services/tenant-register.service";
+import { applyTenantRegister, approveTenantApplication, rejectTenantApplication, listTenantApplications, getTenantApplication } from "../../services/tenant-register.service";
+import { sendSmsCode, isSmsVerifyEnabled } from "../../services/sms.service";
 import { ok } from "../../shared/response";
+
+export async function handleSendRegisterSmsCode(req: any, res: any) {
+  const { mobile } = req.body || {};
+  if (!mobile) {
+    res.status(400).json({ success: false, code: "400", message: "手机号不能为空" });
+    return;
+  }
+  // 总台短信验证开关关闭时无需验证码
+  if (!(await isSmsVerifyEnabled("default"))) {
+    res.json(ok({ success: true, message: "短信验证未开启，注册无需验证码" }));
+    return;
+  }
+  // 租户注册为公开流程，验证码记录挂 default 租户（按手机号+用途校验）
+  const result = await sendSmsCode(mobile, "TENANT_REGISTER", "default");
+  res.json(ok(result));
+}
 
 export async function handleApplyTenantRegister(req: any, res: any) {
   const result = await applyTenantRegister(req.body);

@@ -27,6 +27,16 @@
           <el-input v-model="registerForm.contact_mobile" placeholder="请输入手机号码" />
         </el-form-item>
 
+        <el-form-item label="短信验证码" prop="sms_code">
+          <div class="sms-code-row">
+            <el-input v-model="registerForm.sms_code" placeholder="请输入短信验证码" />
+            <el-button :disabled="smsCountdown > 0" :loading="smsSending" @click="handleSendSmsCode">
+              {{ smsCountdown > 0 ? `${smsCountdown}s 后重发` : "获取验证码" }}
+            </el-button>
+          </div>
+          <div class="sms-code-tip">短信平台申请完成后需输入验证码；未开启时可直接提交</div>
+        </el-form-item>
+
         <el-form-item label="联系邮箱" prop="contact_email">
           <el-input v-model="registerForm.contact_email" placeholder="请输入邮箱地址（选填）" />
         </el-form-item>
@@ -151,22 +161,26 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { Check } from "@element-plus/icons-vue";
-import { tenantRegister } from "../api";
+import { tenantRegister, tenantRegisterSmsCode } from "../api";
 
 const router = useRouter();
 const registerFormRef = ref<FormInstance>();
 const loading = ref(false);
 const showSuccess = ref(false);
+const smsSending = ref(false);
+const smsCountdown = ref(0);
+let smsTimer: ReturnType<typeof setInterval> | null = null;
 
 const registerForm = reactive({
   company_name: "",
   company_short_name: "",
   contact_person: "",
   contact_mobile: "",
+  sms_code: "",
   contact_email: "",
   province: "",
   city: "",
@@ -190,6 +204,7 @@ const registerRules: FormRules = {
     { required: true, message: "请输入联系电话", trigger: "blur" },
     { pattern: /^1[3-9]\d{9}$/, message: "请输入有效的手机号码", trigger: "blur" }
   ],
+  sms_code: [{ required: true, message: "请输入短信验证码", trigger: "blur" }],
   admin_username: [
     { required: true, message: "请输入登录账号", trigger: "blur" },
     { min: 4, max: 64, message: "账号长度4-64个字符", trigger: "blur" }
@@ -249,6 +264,33 @@ function getStrengthClass(level: number) {
   return "empty";
 }
 
+/** 发送注册短信验证码（60 秒倒计时） */
+async function handleSendSmsCode() {
+  const mobile = registerForm.contact_mobile;
+  if (!/^1[3-9]\d{9}$/.test(mobile)) {
+    ElMessage.error("请输入有效的手机号码");
+    return;
+  }
+  smsSending.value = true;
+  try {
+    const res: any = await tenantRegisterSmsCode(mobile);
+    ElMessage.success(res?.message || "验证码已发送，请查收短信");
+    if (smsTimer) clearInterval(smsTimer);
+    smsCountdown.value = 60;
+    smsTimer = setInterval(() => {
+      smsCountdown.value--;
+      if (smsCountdown.value <= 0 && smsTimer) {
+        clearInterval(smsTimer);
+        smsTimer = null;
+      }
+    }, 1000);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || e?.message || "验证码发送失败");
+  } finally {
+    smsSending.value = false;
+  }
+}
+
 async function handleRegister() {
   try {
     await registerFormRef.value?.validate();
@@ -274,7 +316,8 @@ async function handleRegister() {
       company_scale: registerForm.company_scale,
       admin_username: registerForm.admin_username,
       admin_password: registerForm.admin_password,
-      admin_real_name: registerForm.admin_real_name
+      admin_real_name: registerForm.admin_real_name,
+      sms_code: registerForm.sms_code
     });
     showSuccess.value = true;
   } catch (e: any) {
@@ -287,6 +330,11 @@ async function handleRegister() {
 function goToLogin() {
   router.push("/login");
 }
+
+onBeforeUnmount(() => {
+  if (smsTimer) clearInterval(smsTimer);
+  smsTimer = null;
+});
 </script>
 
 <style scoped>
@@ -318,6 +366,20 @@ function goToLogin() {
 
 .password-strength {
   margin-top: 8px;
+}
+
+.sms-code-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.sms-code-row .el-input {
+  flex: 1;
+}
+.sms-code-tip {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .strength-bar {

@@ -2,23 +2,12 @@
 import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";
+import { sendSmsCode, isSmsVerifyEnabled, verifySmsCode } from "../sms.service";
 import type { ResultSetHeader } from "mysql2/promise";
 
 /** SELECT id 通用返回 */
 interface IdRow {
   id: number | string;
-}
-
-/** t_member_sms_code 验证码查询行（原始字段名） */
-interface MemberSmsCodeRow {
-  id: number | string;
-  used: number | string;
-  expires_at: string | Date;
-}
-
-/** t_member_sms_code 仅 created_at */
-interface MemberSmsCodeCreatedAtRow {
-  created_at: string | Date;
 }
 
 /** t_member 会员卡基础信息行（带别名） */
@@ -85,21 +74,12 @@ export async function selfRegisterMember(params: {
     throw new AppError("该手机号已注册", 400);
   }
 
-  const codeRecord = await queryOneWithTenant<MemberSmsCodeRow>(
-    "SELECT id, used, expires_at FROM t_member_sms_code WHERE mobile = ? AND code = ? AND purpose = 'REGISTER' ORDER BY created_at DESC LIMIT 1",
-    [mobile, smsCode], tenantId
-  );
-
-  if (!codeRecord) {
-    throw new AppError("验证码错误", 400);
-  }
-
-  if (codeRecord.used) {
-    throw new AppError("验证码已使用", 400);
-  }
-
-  if (new Date(codeRecord.expires_at) < new Date()) {
-    throw new AppError("验证码已过期", 400);
+  // 总台短信验证开关开启时校验验证码，关闭时无需验证码
+  if (await isSmsVerifyEnabled(tenantId)) {
+    if (!smsCode) {
+      throw new AppError("请输入短信验证码", 400);
+    }
+    await verifySmsCode(mobile, smsCode, "REGISTER", tenantId);
   }
 
   const passwordHash = await hashPassword(password);
@@ -109,8 +89,6 @@ export async function selfRegisterMember(params: {
     [name || "", mobile, passwordHash, tenantId], tenantId
   );
   const memberId = (result as unknown as Record<string, unknown>).insertId;
-
-  await queryWithTenant("UPDATE t_member_sms_code SET used = 1 WHERE id = ?", [codeRecord.id], tenantId);
 
   await queryWithTenant(
     "INSERT INTO t_customer_points (customer_id, total_points, available_points, tenant_id) VALUES (?, 0, 0, ?)",
@@ -131,42 +109,12 @@ export async function selfRegisterMember(params: {
 }
 
 export async function sendRegisterSmsCode(mobile: string, tenantId: string): Promise<{ success: boolean; message: string }> {
-  if (!/^1[3-9]\d{9}$/.test(mobile)) {
-    throw new AppError("手机号格式不正确", 400);
+  // 总台短信验证开关关闭时无需发送验证码
+  if (!(await isSmsVerifyEnabled(tenantId))) {
+    return { success: true, message: "短信验证未开启，注册无需验证码" };
   }
-
-  const existing = await queryOneWithTenant<IdRow>(
-    "SELECT id FROM t_member WHERE mobile = ? AND tenant_id = ?",
-    [mobile, tenantId], tenantId
-  );
-  if (existing) {
-    throw new AppError("该手机号已注册", 400);
-  }
-
-  const recentCode = await queryOneWithTenant<MemberSmsCodeCreatedAtRow>(
-    "SELECT created_at FROM t_member_sms_code WHERE mobile = ? AND purpose = 'REGISTER' ORDER BY created_at DESC LIMIT 1",
-    [mobile], tenantId
-  );
-
-  if (recentCode) {
-    const createdTime = new Date(recentCode.created_at).getTime();
-    const now = Date.now();
-    if (now - createdTime < 60000) {
-      throw new AppError("验证码发送过于频繁，请稍后再试", 400);
-    }
-  }
-
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-  await queryWithTenant(
-    "INSERT INTO t_member_sms_code (mobile, code, purpose, expires_at) VALUES (?, ?, 'REGISTER', ?)",
-    [mobile, code, expiresAt], tenantId
-  );
-
-  logger.info(`[短信验证码] 发送成功 mobile=${mobile} code=${code}`);
-
-  return { success: true, message: "验证码已发送（开发环境：" + code + "）" };
+  // 真实短信发送（配置/发送失败直接抛错，不再返回开发环境验证码）
+  return sendSmsCode(mobile, "REGISTER", tenantId);
 }
 
 // 注册会员（管理员操作）

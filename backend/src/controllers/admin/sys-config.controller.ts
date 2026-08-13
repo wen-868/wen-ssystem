@@ -47,3 +47,32 @@ export const manualBackup = asyncHandler(async (req, res) => {
   const result = await service.manualBackup();
   res.json(ok(result));
 });
+
+/** 备份历史列表（真实读取备份目录） */
+export const listBackups = asyncHandler(async (req, res) => {
+  const items = await service.listBackups();
+  res.json(ok(items));
+});
+
+/** 下载备份文件 */
+export const downloadBackup = asyncHandler(async (req, res) => {
+  const name = z.string().min(1).parse(req.params.name);
+  const full = service.resolveBackupPath(name);
+  if (!full) {
+    res.status(400).json({ success: false, code: "400", message: "非法备份文件名" });
+    return;
+  }
+  const fs = require("fs");
+  if (!fs.existsSync(full)) {
+    res.status(404).json({ success: false, code: "404", message: "备份文件不存在" });
+    return;
+  }
+  res.download(full);
+});
+
+/** 删除备份文件 */
+export const deleteBackup = asyncHandler(async (req, res) => {
+  const name = z.string().min(1).parse(req.params.name);
+  await service.deleteBackupFile(name);
+  res.json(ok({ name }));
+});

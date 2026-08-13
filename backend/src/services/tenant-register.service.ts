@@ -5,6 +5,7 @@ import { hashPassword, validatePassword } from "../shared/password";
 import { AppError } from "../shared/app-error";
 import logger from "../shared/logger";
 import { makeBizNo } from "../shared/id";
+import { verifySmsCode, isSmsVerifyEnabled } from "./sms.service";
 
 export interface TenantRegisterInput {
   // 与前端注册表单字段一致（snake_case）
@@ -24,6 +25,7 @@ export interface TenantRegisterInput {
   admin_username: string;
   admin_password: string;
   admin_real_name: string;
+  sms_code?: string;
 }
 
 export interface TenantApplication {
@@ -95,6 +97,17 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
   const adminPassword = body.admin_password;
   const contactPerson = body.contact_person;
   const adminRealName = body.admin_real_name;
+
+  // 手机短信验证码校验（总台开关开启时必填，防止恶意注册；关闭时无需验证码）
+  if (!contactMobile) {
+    throw new AppError("联系电话不能为空", 400);
+  }
+  if (await isSmsVerifyEnabled("default")) {
+    if (!body.sms_code) {
+      throw new AppError("请输入短信验证码", 400);
+    }
+    await verifySmsCode(contactMobile, body.sms_code, "TENANT_REGISTER", "default");
+  }
 
   const validation = validatePassword(adminPassword);
   if (!validation.valid) {

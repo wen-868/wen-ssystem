@@ -149,3 +149,43 @@ export async function manualBackup() {
     return { success: false, message: "备份失败", detail: e?.stderr || e?.message || "" };
   }
 }
+
+/** 备份文件目录（与 deploy/02-mysql-backup.sh 的 BACKUP_DIR 一致） */
+const BACKUP_DIR = process.env.BACKUP_DIR || "/var/backups/mysql";
+
+/** 备份历史列表（真实读取备份目录） */
+export async function listBackups(): Promise<Array<{ name: string; size: number; mtime: string }>> {
+  const fs = await import("fs");
+  const path = await import("path");
+  try {
+    const files = fs.readdirSync(BACKUP_DIR).filter((f: string) => f.endsWith(".sql.gz"));
+    return files
+      .map((f: string) => {
+        const st = fs.statSync(path.join(BACKUP_DIR, f));
+        return { name: f, size: st.size, mtime: st.mtime.toISOString() };
+      })
+      .sort((a: { mtime: string }, b: { mtime: string }) => (a.mtime < b.mtime ? 1 : -1));
+  } catch {
+    return [];
+  }
+}
+
+/** 解析备份文件绝对路径（防路径穿越） */
+export function resolveBackupPath(name: string): string | null {
+  const path = require("path");
+  const safe = path.basename(name);
+  const full = path.join(BACKUP_DIR, safe);
+  return full.startsWith(path.resolve(BACKUP_DIR)) ? full : null;
+}
+
+/** 删除备份文件 */
+export async function deleteBackupFile(name: string): Promise<void> {
+  const fs = await import("fs");
+  const full = resolveBackupPath(name);
+  if (!full) {
+    throw new Error("非法备份文件名");
+  }
+  if (fs.existsSync(full)) {
+    fs.unlinkSync(full);
+  }
+}

@@ -18,7 +18,14 @@ export async function tenantRegister(payload: {
   admin_username: string;
   admin_password: string;
   admin_real_name: string;
+  sms_code: string;
 }) {
   const { data } = await api.post("/tenant/register", payload);
+  return data.data;
+}
+
+/** 租户注册发送短信验证码（真实短信） */
+export async function tenantRegisterSmsCode(mobile: string) {
+  const { data } = await api.post("/tenant/register/sms-code", { mobile });
   return data.data;
 }

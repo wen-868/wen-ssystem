@@ -13,7 +13,7 @@ export async function sendSmsCode(req: any, res: any) {
 
 export async function registerMember(req: any, res: any) {
   const { mobile, password, smsCode, name, tenantId } = req.body;
-  if (!mobile || !password || !smsCode || !tenantId) {
+  if (!mobile || !password || !tenantId) {
     res.status(400).json({ success: false, code: "400", message: "缺少必填字段" });
     return;
   }

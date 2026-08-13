@@ -157,6 +157,12 @@
         <!-- 短信配置 -->
         <el-tab-pane label="短信配置" name="sms">
           <el-form label-width="160px" class="config-form">
+            <el-form-item label="短信验证开关" prop="sms_verify_enabled">
+              <div class="config-field">
+                <el-switch v-model="configs.sms_verify_enabled" active-value="1" inactive-value="0" />
+                <span class="tip-text">关闭时注册无需短信验证码；短信平台申请完成后开启</span>
+              </div>
+            </el-form-item>
             <el-form-item label="短信服务商" prop="sms_provider">
               <div class="config-field">
                 <el-select v-model="configs.sms_provider" placeholder="请选择短信服务商" style="width: 200px" @change="handleSmsProviderChange">
@@ -197,12 +203,13 @@
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" width="180" fixed="right">
+                <el-table-column label="操作" width="240" fixed="right">
                   <template #default="{ row }">
                     <el-button size="small" link type="primary" @click="editSmsTemplate(row)">编辑</el-button>
                     <el-button size="small" link :type="row.status === 'ENABLED' ? 'danger' : 'success'" @click="toggleSmsTemplate(row)">
                       {{ row.status === 'ENABLED' ? '禁用' : '启用' }}
                     </el-button>
+                    <el-button size="small" link type="danger" @click="deleteSmsTemplate(row)">删除</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -288,15 +295,12 @@
             <el-divider content-position="left">备份历史</el-divider>
             <div class="backup-history">
               <el-table :data="backupHistory" border style="width: 100%">
-                <el-table-column prop="backupNo" label="备份编号" width="160" />
-                <el-table-column prop="backupTime" label="备份时间" width="180" />
-                <el-table-column prop="fileSize" label="文件大小" width="100" />
-                <el-table-column prop="status" label="状态" width="100">
-                  <template #default="{ row }">
-                    <el-tag :type="row.status === 'SUCCESS' ? 'success' : 'danger'">
-                      {{ row.status === 'SUCCESS' ? '成功' : '失败' }}
-                    </el-tag>
-                  </template>
+                <el-table-column prop="name" label="备份文件" min-width="220" />
+                <el-table-column label="备份时间" width="180">
+                  <template #default="{ row }">{{ formatBackupTime(row.mtime) }}</template>
+                </el-table-column>
+                <el-table-column label="文件大小" width="100">
+                  <template #default="{ row }">{{ formatFileSize(row.size) }}</template>
                 </el-table-column>
                 <el-table-column label="操作" width="180" fixed="right">
                   <template #default="{ row }">
@@ -607,6 +611,7 @@ const defaultConfigs: Record<string, string> = {
   mail_template_verify: "您的验证码是：{code}，有效期{expire}分钟。",
   mail_template_notify: "您有新的系统通知，请登录查看。",
   // 短信配置
+  sms_verify_enabled: "0",
   sms_provider: "",
   sms_access_key: "",
   sms_secret_key: "",
@@ -647,11 +652,8 @@ interface SmsTemplate {
   status: "ENABLED" | "DISABLED";
 }
 
-const smsTemplates = ref<SmsTemplate[]>([
-  { id: 1, name: "验证码短信", code: "SMS_123456", content: "【智享全链】您的验证码是：{code}，有效期{expire}分钟。", status: "ENABLED" },
-  { id: 2, name: "订单通知", code: "SMS_123457", content: "【智享全链】您有新的订单，请及时处理。", status: "ENABLED" },
-  { id: 3, name: "库存预警", code: "SMS_123458", content: "【智享全链】商品{product}库存不足，请及时补货。", status: "DISABLED" }
-]);
+// 短信模板从真实接口加载（t_sms_template），不再内置模拟数据
+const smsTemplates = ref<SmsTemplate[]>([]);
 
 const defaultSmsTemplateForm = {
   id: 0,
@@ -665,17 +667,13 @@ const smsTemplateForm = reactive({ ...defaultSmsTemplateForm });
 
 /* ── 备份历史列表 ── */
 interface BackupRecord {
-  backupNo: string;
-  backupTime: string;
-  fileSize: string;
-  status: "SUCCESS" | "FAILED";
+  name: string;
+  size: number;
+  mtime: string;
 }
 
-const backupHistory = ref<BackupRecord[]>([
-  { backupNo: "BK202401010001", backupTime: "2024-01-01 02:00:00", fileSize: "128MB", status: "SUCCESS" },
-  { backupNo: "BK202401020001", backupTime: "2024-01-02 02:00:00", fileSize: "135MB", status: "SUCCESS" },
-  { backupNo: "BK202401030001", backupTime: "2024-01-03 02:00:00", fileSize: "142MB", status: "SUCCESS" }
-]);
+// 备份历史从真实接口加载（备份目录文件列表），不再内置模拟数据
+const backupHistory = ref<BackupRecord[]>([]);
 
 /* ── 时间选择器选项 ── */
 const timeSelectOptions = {
@@ -795,10 +793,29 @@ function editSmsTemplate(row: SmsTemplate) {
   showSmsTemplateDialog.value = true;
 }
 
-/* ── 切换短信模板状态 ── */
-function toggleSmsTemplate(row: SmsTemplate) {
-  row.status = row.status === "ENABLED" ? "DISABLED" : "ENABLED";
-  ElMessage.success(`短信模板${row.status === "ENABLED" ? "启用" : "禁用"}成功`);
+/* ── 加载短信模板（真实接口） ── */
+async function loadSmsTemplates() {
+  try {
+    const { data } = await api.get("/admin/sms-templates");
+    smsTemplates.value = data.data || [];
+  } catch {
+    smsTemplates.value = [];
+  }
+}
+
+/* ── 切换短信模板状态（真实接口） ── */
+async function toggleSmsTemplate(row: SmsTemplate) {
+  const next = row.status === "ENABLED" ? "DISABLED" : "ENABLED";
+  await api.put(`/admin/sms-templates/${row.id}`, { ...row, status: next });
+  row.status = next;
+  ElMessage.success(`短信模板${next === "ENABLED" ? "启用" : "禁用"}成功`);
+}
+
+/* ── 删除短信模板（真实接口） ── */
+async function deleteSmsTemplate(row: SmsTemplate) {
+  await api.delete(`/admin/sms-templates/${row.id}`);
+  smsTemplates.value = smsTemplates.value.filter((t) => t.id !== row.id);
+  ElMessage.success("删除成功");
 }
 
 /* ── 提交短信模板 ── */
@@ -809,16 +826,11 @@ async function handleSmsTemplateSubmit() {
     smsTemplateLoading.value = true;
     try {
       if (isSmsTemplateEdit.value) {
-        const index = smsTemplates.value.findIndex((t) => t.id === smsTemplateForm.id);
-        if (index !== -1) {
-          smsTemplates.value[index] = { ...smsTemplateForm };
-        }
+        await api.put(`/admin/sms-templates/${smsTemplateForm.id}`, { ...smsTemplateForm });
       } else {
-        smsTemplates.value.unshift({
-          ...smsTemplateForm,
-          id: Date.now()
-        });
+        await api.post("/admin/sms-templates", { ...smsTemplateForm });
       }
+      await loadSmsTemplates();
       showSmsTemplateDialog.value = false;
       Object.assign(smsTemplateForm, defaultSmsTemplateForm);
       ElMessage.success(isSmsTemplateEdit.value ? "更新成功" : "创建成功");
@@ -831,18 +843,37 @@ async function handleSmsTemplateSubmit() {
 }
 
 /* ── 手动备份 ── */
+function formatFileSize(bytes: number): string {
+  if (bytes >= 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + "MB";
+  if (bytes >= 1024) return (bytes / 1024).toFixed(1) + "KB";
+  return bytes + "B";
+}
+
+function formatBackupTime(iso: string): string {
+  if (!iso) return "";
+  return String(iso).replace("T", " ").slice(0, 19);
+}
+
+async function loadBackups() {
+  try {
+    const { data } = await api.get("/admin/sys-config/backups");
+    backupHistory.value = data.data || [];
+  } catch {
+    backupHistory.value = [];
+  }
+}
+
 async function handleManualBackup() {
   manualBackupLoading.value = true;
   try {
-    await api.post("/admin/sys-config/manual-backup");
-    ElMessage.success("备份成功");
-    // 添加到备份历史
-    backupHistory.value.unshift({
-      backupNo: `BK${Date.now()}`,
-      backupTime: new Date().toLocaleString(),
-      fileSize: "150MB",
-      status: "SUCCESS"
-    });
+    const res = await api.post("/admin/sys-config/manual-backup");
+    const r = res.data?.data || {};
+    if (r.success === false) {
+      ElMessage.error(r.message || "备份失败");
+    } else {
+      ElMessage.success(r.message || "备份成功");
+    }
+    await loadBackups();
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.msg || e?.message || "备份失败");
   } finally {
@@ -850,22 +881,36 @@ async function handleManualBackup() {
   }
 }
 
-/* ── 下载备份 ── */
-function downloadBackup(row: BackupRecord) {
-  ElMessage.success(`正在下载备份文件：${row.backupNo}`);
+/* ── 下载备份（真实文件） ── */
+async function downloadBackup(row: BackupRecord) {
+  try {
+    const res = await api.get(`/admin/sys-config/backups/${encodeURIComponent(row.name)}/download`, { responseType: "blob" });
+    const url = URL.createObjectURL(new Blob([res.data]));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = row.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "下载失败");
+  }
 }
 
-/* ── 删除备份 ── */
-function deleteBackup(row: BackupRecord) {
-  const index = backupHistory.value.findIndex((b) => b.backupNo === row.backupNo);
-  if (index !== -1) {
-    backupHistory.value.splice(index, 1);
+/* ── 删除备份（真实删除文件） ── */
+async function deleteBackup(row: BackupRecord) {
+  try {
+    await api.delete(`/admin/sys-config/backups/${encodeURIComponent(row.name)}`);
+    backupHistory.value = backupHistory.value.filter((b) => b.name !== row.name);
     ElMessage.success("删除成功");
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "删除失败");
   }
 }
 
 onMounted(() => {
   loadAllConfigs();
+  loadSmsTemplates();
+  loadBackups();
 });
 </script>
 
