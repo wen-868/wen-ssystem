@@ -14,5 +14,8 @@ appVersionAdminRouter.delete("/app-versions/:id", appVersionController.removeApp
 
 export const routeConfigs: RouteConfig[] = [
   { prefix: "/api/app", router: appVersionPublicRouter, auth: "none" },
-  { prefix: "/api/platform", router: appVersionAdminRouter, auth: "requirePlatformAuth" },
+  // 注意：管理端不用 /api/platform 前缀——Express app.use(prefix, middleware, router)
+  // 会让 requirePlatformAuth 拦截同前缀下的全部请求（含 /api/platform/auth/login），
+  // 导致总台登录被 401。使用独立前缀 /api/padmin 隔离。
+  { prefix: "/api/padmin", router: appVersionAdminRouter, auth: "requirePlatformAuth" },
 ];

@@ -328,7 +328,7 @@ export function getErrorLogs(params?: {
 
 // ==================== 应用版本发布（电脑端/移动端更新检查） ====================
 export function listAppVersions(params?: { platform?: string }) {
-  return api.get<any, { data: ApiResult<any[]> }>("/platform/app-versions", { params });
+  return api.get<any, { data: ApiResult<any[]> }>("/padmin/app-versions", { params });
 }
 
 export function publishAppVersion(payload: {
@@ -342,9 +342,9 @@ export function publishAppVersion(payload: {
   updateNote?: string;
   enabled?: boolean;
 }) {
-  return api.post<any, { data: ApiResult<any> }>("/platform/app-versions", payload);
+  return api.post<any, { data: ApiResult<any> }>("/padmin/app-versions", payload);
 }
 
 export function deleteAppVersion(id: number) {
-  return api.delete<any, { data: ApiResult<any> }>(`/platform/app-versions/${id}`);
+  return api.delete<any, { data: ApiResult<any> }>(`/padmin/app-versions/${id}`);
 }
