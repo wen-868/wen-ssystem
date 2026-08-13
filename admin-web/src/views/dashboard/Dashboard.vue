@@ -557,9 +557,24 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
-.dash-col--right .side-card {
-  /* 三卡片等高均分右列，顶部/底部严格对齐，避免内容少的卡片被过度拉伸 */
-  flex: 1 1 0;
+.dash-col--right {
+  /* 右侧列高度自适应内容，不被左侧大卡片拉伸 */
+  align-self: flex-start;
+}
+.dash-col--right .side-card--fill {
+  /* 最新订单、待办与预警：固定等高（内容过多时内部滚动），两卡片始终对齐 */
+  height: 190px;
+  display: flex;
+  flex-direction: column;
+}
+.dash-col--right .side-card--fill :deep(.el-card__body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.dash-col--right .side-card:not(.side-card--fill) {
+  /* 快捷入口：保持自然高度，不拉伸 */
+  flex: 0 0 auto;
 }
 .header-bar {
   display: flex;
