@@ -41,8 +41,8 @@ export const exportSuppliers = asyncHandler(async (req, res) => {
 export const exportProducts = asyncHandler(async (req, res) => {
   const keyword = getQueryParam(req, "keyword");
   const records = await service.exportProducts(req.tenantId!, keyword);
-  const header = ["ID", "SKU编码", "商品名称", "规格", "品类", "品牌", "单位", "零售价", "批发价", "小程序价", "状态", "创建时间"];
-  const rows = records.map((r: any) => [r.id, r.skuCode, r.name, r.skuName, r.category, r.brand, r.unit, r.retailPrice, r.wholesalePrice, r.miniappPrice, r.status, r.createdAt]);
+  const header = ["商品编码", "条码", "商品名称", "规格型号", "单位", "分类", "品牌", "进价", "售价", "批发价", "库存数量", "预警值"];
+  const rows = records.map((r: any) => [r.skuCode, r.barcode, r.skuName, r.specs, r.baseUnit, r.categoryName, r.brandName, r.costPrice, r.retailPrice, r.wholesalePrice, r.quantity, r.warningThreshold]);
   sendCsv(res, `products-${today()}.csv`, header, rows);
 });
 

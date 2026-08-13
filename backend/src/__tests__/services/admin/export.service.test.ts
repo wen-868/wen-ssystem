@@ -72,14 +72,18 @@ describe("export.service", () => {
       const res = await exportProducts("t1");
       expect(res.length).toBe(1);
       const [sql] = mocks.query.mock.calls[0];
-      expect(sql).toContain("FROM t_product_sku");
+      expect(sql).toContain("FROM t_product_sku s");
+      expect(sql).toContain("JOIN t_product_spu p");
+      expect(sql).toContain("LEFT JOIN t_brand b");
     });
 
     it("带 keyword 时拼接 LIKE", async () => {
       mocks.query.mockResolvedValue([]);
       await exportProducts("t1", "茅台");
       const [, params] = mocks.query.mock.calls[0];
-      expect(params).toEqual(["t1", "%茅台%", "%茅台%"]);
+      expect(params).toEqual(["t1", "%茅台%", "%茅台%", "%茅台%", "%茅台%"]);
+      const [sql] = mocks.query.mock.calls[0];
+      expect(sql).toContain("s.barcode LIKE ?");
     });
   });
 

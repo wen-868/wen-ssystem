@@ -104,6 +104,23 @@ export async function importCustomersCsv(csv: string) {
   return data.data;
 }
 
+export async function importProductsCsv(csv: string) {
+  const { data } = await api.post("/admin/data-transfer/import/products", { csv });
+  return data.data;
+}
+
+/** 商品导入模板（行业通用中文表头 CSV） */
+export async function fetchProductTemplate() {
+  const { data } = await api.get("/admin/data-transfer/templates/products", { responseType: "text" });
+  return data;
+}
+
+/** 客户导入模板（行业通用中文表头 CSV） */
+export async function fetchCustomerTemplate() {
+  const { data } = await api.get("/admin/data-transfer/templates/customers", { responseType: "text" });
+  return data;
+}
+
 
 // ==================== System APIs ====================
 export async function fetchSystemRoles() {

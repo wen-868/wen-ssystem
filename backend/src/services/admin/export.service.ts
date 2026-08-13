@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { query } from "../../shared/db";
+import { query } from "../../shared/db";
 
 // ── 数据库行接口（类型安全） ──
 
@@ -31,14 +31,19 @@ interface SupplierRow {
 interface ProductSkuRow {
   id: number;
   skuCode: string | null;
-  name: string;
+  barcode: string | null;
   skuName: string | null;
-  category: string | null;
-  brand: string | null;
-  unit: string | null;
+  specs: string | null;
+  categoryName: string | null;
+  brandName: string | null;
+  baseUnit: string | null;
+  costPrice: number | string | null;
   retailPrice: number | string | null;
   wholesalePrice: number | string | null;
   miniappPrice: number | string | null;
+  warningThreshold: number | string | null;
+  /** 全门店物理库存合计 */
+  quantity: number | string;
   status: string | null;
   createdAt: string | Date;
 }
@@ -142,15 +147,26 @@ export async function exportProducts(tenantId: string, keyword?: string) {
   const params: unknown[] = [tenantId];
   if (keyword) {
     const kw = `%${keyword}%`;
-    conditions.push("(name LIKE ? OR sku_code LIKE ?)");
-    params.push(kw, kw);
+    conditions.push("(p.name LIKE ? OR s.sku_code LIKE ? OR s.sku_name LIKE ? OR s.barcode LIKE ?)");
+    params.push(kw, kw, kw, kw);
   }
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const where = `WHERE ${conditions.join(" AND ")}`;
   return query<ProductSkuRow>(
-    `SELECT id, sku_code AS skuCode, name, sku_name AS skuName, category, brand, unit,
-            retail_price AS retailPrice, wholesale_price AS wholesalePrice,
-            miniapp_price AS miniappPrice, status, created_at AS createdAt
-     FROM t_product_sku ${where} ORDER BY id DESC LIMIT 5000`,
+    `SELECT s.id, s.sku_code AS skuCode, s.barcode, s.sku_name AS skuName,
+            p.specs, pc.name AS categoryName, b.name AS brandName,
+            s.base_unit AS baseUnit,
+            pp.cost_price AS costPrice, pp.retail_price AS retailPrice,
+            pp.wholesale_price AS wholesalePrice, pp.miniapp_price AS miniappPrice,
+            s.warning_threshold AS warningThreshold,
+            COALESCE((SELECT SUM(ib.physical_qty) FROM t_inventory_balance ib
+                      WHERE ib.sku_id = s.id AND ib.tenant_id = s.tenant_id), 0) AS quantity,
+            s.status, s.created_at AS createdAt
+     FROM t_product_sku s
+     JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.tenant_id = s.tenant_id
+     LEFT JOIN t_product_category pc ON pc.id = p.category_id AND pc.tenant_id = s.tenant_id
+     LEFT JOIN t_brand b ON b.id = p.brand_id
+     ${where} ORDER BY s.id DESC LIMIT 5000`,
     params
   );
 }

@@ -106,18 +106,32 @@
         <el-tab-pane label="数据导入导出" name="transfer">
           <el-form label-width="160px" class="config-form">
             <el-divider content-position="left">商品数据</el-divider>
+            <el-form-item label="商品模板下载">
+              <div class="config-field">
+                <el-button :loading="transferLoading" @click="handleDownloadProductTemplate">下载模板</el-button>
+                <span class="tip-text">行业通用中文表头模板，可直接使用管家婆/用友等导出的商品文件导入</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="商品导入">
+              <div class="config-field">
+                <el-upload action="#" :show-file-list="false" accept=".csv" :before-upload="handleProductImport">
+                  <el-button :loading="transferLoading">导入商品 CSV</el-button>
+                </el-upload>
+                <span class="tip-text">表头：商品编码,条码,商品名称,规格型号,单位,分类,品牌,进价,售价,批发价,库存数量,预警值</span>
+              </div>
+            </el-form-item>
             <el-form-item label="商品导出">
               <div class="config-field">
                 <el-button :loading="transferLoading" @click="handleExportProducts">导出商品</el-button>
-                <span class="tip-text">导出全部商品（SKU）为 CSV 文件</span>
+                <span class="tip-text">按行业通用模板导出全部商品（SKU）为 CSV 文件</span>
               </div>
             </el-form-item>
 
             <el-divider content-position="left">客户资料</el-divider>
-            <el-form-item label="客户导出">
+            <el-form-item label="客户模板下载">
               <div class="config-field">
-                <el-button :loading="transferLoading" @click="handleExportCustomers">导出客户</el-button>
-                <span class="tip-text">导出全部客户资料为 CSV 文件</span>
+                <el-button :loading="transferLoading" @click="handleDownloadCustomerTemplate">下载模板</el-button>
+                <span class="tip-text">行业通用中文表头模板，可直接使用同行客户资料文件导入</span>
               </div>
             </el-form-item>
             <el-form-item label="客户导入">
@@ -125,7 +139,13 @@
                 <el-upload action="#" :show-file-list="false" accept=".csv" :before-upload="handleCustomerImport">
                   <el-button :loading="transferLoading">导入客户 CSV</el-button>
                 </el-upload>
-                <span class="tip-text">CSV 表头：name,mobile,customerType（customerType 可选 RETAIL/WHOLESALE，可省略）</span>
+                <span class="tip-text">表头：客户名称,手机号,客户类型,积分,等级,状态（客户类型填 零售/批发，可省略）</span>
+              </div>
+            </el-form-item>
+            <el-form-item label="客户导出">
+              <div class="config-field">
+                <el-button :loading="transferLoading" @click="handleExportCustomers">导出客户</el-button>
+                <span class="tip-text">按行业通用模板导出全部客户资料为 CSV 文件</span>
               </div>
             </el-form-item>
           </el-form>
@@ -281,8 +301,8 @@ import { Plus, Share, Download } from "@element-plus/icons-vue";
 import PageCard from "../../components/PageCard.vue";
 import { api } from "../../api";
 import { fetchStores, createStore, updateStore } from "../../api/common";
-import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse, exportProductsData, exportCustomersData, importCustomersCsv } from "../../api/system";
-import { downloadRowsCsv } from "../../utils/download";
+import { fetchWarehouses, createWarehouse, updateWarehouse, deleteWarehouse, exportProductsData, exportCustomersData, importCustomersCsv, importProductsCsv, fetchProductTemplate, fetchCustomerTemplate } from "../../api/system";
+import { downloadRowsCsv, downloadTextFile } from "../../utils/download";
 import { useAuthStore } from "../../stores/auth";
 
 const activeTab = ref("general");
@@ -593,6 +613,30 @@ async function handleDeleteWarehouse(row: any) {
 }
 
 /* ── 数据导入导出 ── */
+async function handleDownloadProductTemplate() {
+  transferLoading.value = true;
+  try {
+    const csv = await fetchProductTemplate();
+    downloadTextFile("商品导入模板.csv", csv);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "模板下载失败");
+  } finally {
+    transferLoading.value = false;
+  }
+}
+
+async function handleDownloadCustomerTemplate() {
+  transferLoading.value = true;
+  try {
+    const csv = await fetchCustomerTemplate();
+    downloadTextFile("客户导入模板.csv", csv);
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.msg || "模板下载失败");
+  } finally {
+    transferLoading.value = false;
+  }
+}
+
 async function handleExportProducts() {
   transferLoading.value = true;
   try {
@@ -634,6 +678,26 @@ function handleCustomerImport(file: File) {
     try {
       const res = await importCustomersCsv(String(reader.result || ""));
       ElMessage.success(`导入完成：成功 ${res.imported} 条，跳过 ${res.skipped} 条`);
+      if (res.errors?.length) {
+        ElMessage.warning(res.errors.slice(0, 3).join("；"));
+      }
+    } catch (e: any) {
+      ElMessage.error(e?.response?.data?.msg || "导入失败");
+    } finally {
+      transferLoading.value = false;
+    }
+  };
+  reader.readAsText(file);
+  return false;
+}
+
+function handleProductImport(file: File) {
+  const reader = new FileReader();
+  reader.onload = async () => {
+    transferLoading.value = true;
+    try {
+      const res = await importProductsCsv(String(reader.result || ""));
+      ElMessage.success(`导入完成：新增 ${res.imported} 条，更新 ${res.updated} 条，跳过 ${res.skipped} 条`);
       if (res.errors?.length) {
         ElMessage.warning(res.errors.slice(0, 3).join("；"));
       }

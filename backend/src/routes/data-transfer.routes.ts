@@ -5,6 +5,9 @@ import {
   exportProductsHandler,
   exportCustomersHandler,
   importCustomersHandler,
+  importProductsHandler,
+  productTemplateHandler,
+  customerTemplateHandler,
 } from "../controllers/admin/data-transfer.controller";
 
 export const dataTransferRouter = Router();
@@ -15,6 +18,13 @@ dataTransferRouter.get("/export/customers", asyncHandler(exportCustomersHandler)
 
 // 数据导入（客户 CSV）
 dataTransferRouter.post("/import/customers", asyncHandler(importCustomersHandler));
+
+// 数据导入（商品 CSV，行业通用模板）
+dataTransferRouter.post("/import/products", asyncHandler(importProductsHandler));
+
+// 模板下载
+dataTransferRouter.get("/templates/products", asyncHandler(productTemplateHandler));
+dataTransferRouter.get("/templates/customers", asyncHandler(customerTemplateHandler));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/data-transfer",
