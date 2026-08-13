@@ -2,6 +2,7 @@ import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant, conn
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import type { ServiceContext, PageResult } from "../types/index";
 import { makeBizNo } from "../shared/id";
+import { submitApproval } from "./admin/approval-records.service";
 
 // ---------------------------------------------------------------------------
 // Type Definitions (previously in purchase.model.ts)
@@ -549,7 +550,27 @@ class PurchaseService {
       throw Object.assign(new Error("只有草稿状态的订单可以提交审核"), { statusCode: 400 });
     }
 
+    // 全局审批接入：配置了审批规则则自动发起多级审批，审批通过后回写 APPROVED
+    const approval = await submitApproval(
+      {
+        businessType: "PURCHASE_ORDER",
+        businessNo: orderNo,
+        businessTitle: `采购订单 ${orderNo}`,
+        remark: "提交采购审批",
+      },
+      ctx.userId,
+      ctx.username,
+      ctx.tenantId
+    );
+
     await updateOrderStatus(orderNo, "PENDING", ctx.tenantId);
+    if (approval.started && approval.instanceNo) {
+      await queryWithTenant(
+        "UPDATE t_purchase_order SET approval_instance_no = ? WHERE order_no = ? AND tenant_id = ?",
+        [approval.instanceNo, orderNo, ctx.tenantId],
+        ctx.tenantId
+      );
+    }
     await addOperationLog(
       "purchase",
       "SUBMIT",

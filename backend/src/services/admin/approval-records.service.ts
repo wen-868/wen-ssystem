@@ -1,7 +1,7 @@
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import { AppError } from "../../shared/app-error";
-import type { RowDataPacket } from "mysql2/promise";
+import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 
 /** t_approval_rule 原始字段行（conn.query 用，字段为下划线命名） */
 interface ApprovalRuleRawRow extends RowDataPacket {
@@ -24,6 +24,32 @@ interface ApprovalInstanceRawRow extends RowDataPacket {
   applicant_id: number | string;
   applicant_name: string;
   business_title: string;
+  business_type: string;
+  business_no: string;
+}
+
+/** 审批完成回写业务单据状态（全局审批接入） */
+async function writeBackBusiness(
+  conn: PoolConnection,
+  businessType: string,
+  businessNo: string,
+  approved: boolean,
+  operatorId: number | null,
+  tenantId: string
+) {
+  if (businessType === "PURCHASE_ORDER") {
+    await conn.execute(
+      `UPDATE t_purchase_order SET order_status = ?, auditor_id = ?, audited_at = NOW(), updated_at = NOW()
+       WHERE order_no = ? AND tenant_id = ?`,
+      [approved ? "APPROVED" : "CANCELLED", operatorId ?? null, businessNo, tenantId]
+    );
+  } else if (businessType === "SALE_RETURN") {
+    await conn.execute(
+      `UPDATE t_sale_return SET return_status = ?, auditor_id = ?, audited_at = NOW(), updated_at = NOW()
+       WHERE return_no = ? AND tenant_id = ?`,
+      [approved ? "COMPLETED" : "VOIDED", operatorId ?? null, businessNo, tenantId]
+    );
+  }
 }
 
 /** conn.query 的 t_approval_task JOIN t_approval_instance 行（审批任务 + 实例状态） */
@@ -214,8 +240,9 @@ export async function submitApproval(
       [body.businessType, tenantId]
     );
 
+    // 未配置审批规则：业务不阻塞，返回未发起（由业务侧走原单级审核或直接生效）
     if (rules.length === 0) {
-      throw new AppError("未配置审批规则", 400);
+      return { started: false };
     }
 
     const rule = rules[0];
@@ -272,7 +299,7 @@ export async function submitApproval(
       [instanceNo, userId ?? 0, username, body.remark ?? "提交审批", tenantId]
     );
 
-    return { instanceNo, businessType: body.businessType, businessNo: body.businessNo, status: "PENDING" };
+    return { started: true, instanceNo, businessType: body.businessType, businessNo: body.businessNo, status: "PENDING" };
   });
 
   return result;
@@ -417,10 +444,16 @@ export async function approveTask(
     );
 
     const [instanceRows] = await conn.query<ApprovalInstanceRawRow[]>(
-      `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
+      `SELECT applicant_id, applicant_name, business_title, business_type, business_no
+       FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
     const instance = instanceRows[0];
+
+    // 全局审批接入：审批通过后回写业务单据状态
+    if (instance) {
+      await writeBackBusiness(conn, instance.business_type, instance.business_no, true, userId, tenantId);
+    }
 
     await conn.execute(
       `INSERT INTO t_approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,
@@ -477,10 +510,16 @@ export async function rejectTask(
     );
 
     const [instanceRows] = await conn.query<ApprovalInstanceRawRow[]>(
-      `SELECT applicant_id, applicant_name, business_title FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
+      `SELECT applicant_id, applicant_name, business_title, business_type, business_no
+       FROM t_approval_instance WHERE instance_no = ? AND tenant_id = ?`,
       [task.instance_id, tenantId]
     );
     const instance = instanceRows[0];
+
+    // 全局审批接入：审批拒绝后回写业务单据状态
+    if (instance) {
+      await writeBackBusiness(conn, instance.business_type, instance.business_no, false, userId, tenantId);
+    }
 
     await conn.execute(
       `INSERT INTO t_approval_notification (instance_id, task_id, notification_type, recipient_id, recipient_name,

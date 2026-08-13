@@ -2,6 +2,7 @@ import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant, conn
 import { makeBizNo } from "../shared/id";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import type { ServiceContext, PageResult } from "../types/index";
+import { submitApproval } from "./admin/approval-records.service";
 
 // ── 数据库行接口定义 ──
 
@@ -267,6 +268,25 @@ class SaleReturnService {
       );
     });
 
+    // 全局审批接入：配置审批规则则自动发起退货审批，审批通过回写 COMPLETED
+    const approval = await submitApproval(
+      {
+        businessType: "SALE_RETURN",
+        businessNo: returnNo,
+        businessTitle: `销售退货单 ${returnNo}`,
+        remark: "提交退货审批",
+      },
+      ctx.userId,
+      ctx.username,
+      ctx.tenantId
+    );
+    if (approval.started && approval.instanceNo) {
+      await queryWithTenant(
+        "UPDATE t_sale_return SET approval_instance_no = ? WHERE return_no = ? AND tenant_id = ?",
+        [approval.instanceNo, returnNo, ctx.tenantId],
+        ctx.tenantId
+      );
+    }
     return { returnNo };
   }
 
