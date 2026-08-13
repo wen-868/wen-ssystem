@@ -289,8 +289,7 @@
             <div class="nav-sub-item" :class="{ active: isActive('/organization') }" @click="navTo('/organization')">组织架构</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/config') }" @click="navTo('/system/config')">系统配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/print') }" @click="navTo('/system/print')">打印模板</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/approval/rules') }" @click="navTo('/system/approval/rules')">审批规则</div>
-            <div class="nav-sub-item" :class="{ active: isActive('/system/approval/my') }" @click="navTo('/system/approval/my')">我的审批</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/system/approval/manage') }" @click="navTo('/system/approval/manage')">审批管理</div>
             <div class="nav-sub-item" :class="{ active: isActive('/report-permissions') }" @click="navTo('/report-permissions')">报表权限</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/payment') }" @click="navTo('/system/payment')">支付配置</div>
             <div class="nav-sub-item" :class="{ active: isActive('/system/miniapp') }" @click="navTo('/system/miniapp')">小程序配置</div>
@@ -434,7 +433,7 @@ const openGroups = reactive({
   instant: false,
   marketing: false,
   reports: false,
-  system: false,
+  system: true,
 });
 
 const isCashierUser = computed(() => {

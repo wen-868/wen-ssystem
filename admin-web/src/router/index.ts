@@ -240,6 +240,7 @@ const routes = [
       { path: "system/print", name: "system-print", component: () => import("../modules/print/PrintTemplatesView.vue"), meta: { roles: ["SUPER_ADMIN"], title: "打印模板", icon: Printer } },
       { path: "system/print/designer/:id?", name: "system-print-designer", component: () => import("../modules/print/PrintTemplateDesigner.vue"), meta: { roles: ["SUPER_ADMIN"], title: "模板设计", fullscreen: true } },
       { path: "system/approval/rules", name: "approval-rules", component: () => import("../views/system/ApprovalRules.vue"), meta: { roles: ["SUPER_ADMIN"], title: "审批规则", icon: Checked } },
+      { path: "system/approval/manage", name: "approval-manage", component: () => import("../views/system/ApprovalManage.vue"), meta: { roles: ["SUPER_ADMIN"], title: "审批管理", icon: Checked } },
       { path: "report-permissions", name: "report-permissions", component: () => import("../views/system/ReportPermission.vue"), meta: { roles: ["SUPER_ADMIN"], title: "报表权限", icon: Lock } },
       { path: "system/approval/detail/:id", name: "approval-detail", component: () => import("../views/system/ApprovalDetail.vue"), meta: { roles: ["SUPER_ADMIN"], title: "审批详情", icon: Document } },
       { path: "system/approval/my", name: "my-approvals", component: () => import("../views/system/MyApprovals.vue"), meta: { roles: ["SUPER_ADMIN"], title: "我的审批", icon: List } },
