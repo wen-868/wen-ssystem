@@ -495,23 +495,59 @@ function renderSalesTrendChart() {
   const amounts = salesTrendData.value.map((d) => d.amount);
   const orders = salesTrendData.value.map((d) => d.orderCount);
   salesTrendChart.setOption({
+    // 全局字体中文优先，避免数字/英文使用默认西文字体显得突兀
+    textStyle: {
+      fontFamily: '"Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif',
+    },
     tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
-    legend: { data: ["销售额", "订单数"], bottom: 0 },
-    // 底部留白加大，确保图例与 X 轴日期完整显示不截断
-    grid: { left: "3%", right: "4%", bottom: "22%", top: "8%", containLabel: true },
+    legend: {
+      data: ["销售额", "订单数"],
+      bottom: 0,
+      itemWidth: 14,
+      itemHeight: 10,
+      textStyle: { fontSize: 12, color: "#606266" },
+    },
+    // 底部留白固定像素，确保图例与 X 轴日期完整显示不截断
+    grid: { left: 8, right: 8, bottom: 46, top: 32, containLabel: true },
     xAxis: {
       type: "category",
       data: dates,
       boundaryGap: false,
-      axisLabel: { rotate: dates.length > 14 ? 45 : 0 },
+      axisLabel: {
+        rotate: dates.length > 14 ? 45 : 0,
+        color: "#909399",
+        fontSize: 11,
+      },
+      axisLine: { lineStyle: { color: "#DCDFE6" } },
+      axisTick: { show: false },
     },
     yAxis: [
       {
         type: "value",
-        name: "金额 (¥)",
-        axisLabel: { formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()) },
+        name: "金额(元)",
+        nameLocation: "middle",
+        nameGap: 48,
+        nameTextStyle: { fontSize: 12, color: "#909399" },
+        axisLabel: {
+          formatter: (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : v.toString()),
+          color: "#909399",
+          fontSize: 11,
+        },
+        splitLine: { lineStyle: { color: "#F2F3F5", type: "dashed" } },
       },
-      { type: "value", name: "订单数", axisLabel: { formatter: (v: number) => v.toString() } },
+      {
+        type: "value",
+        name: "订单数",
+        nameLocation: "middle",
+        nameGap: 48,
+        nameTextStyle: { fontSize: 12, color: "#909399" },
+        axisLabel: {
+          formatter: (v: number) => v.toString(),
+          color: "#909399",
+          fontSize: 11,
+        },
+        splitLine: { show: false },
+      },
     ],
     series: [
       {
