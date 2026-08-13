@@ -337,29 +337,18 @@ export async function getStoreWechatInfo(id: number, tenantId: string) {
     throw Object.assign(new Error("请先设置小程序 AppID"), { statusCode: 400 });
   }
 
-  // 模拟通过微信 API 根据 appid 拉取商户信息
-  // 真实环境需要调用微信开放平台 API：https://open.weixin.qq.com
-  // 需要配置 access_token 和对应的 API secret
-  const mockWxInfo = {
-    merchantName: store.name || "未命名商户",
-    servicePhone: store.phone || "400-000-0000",
-    headImg: "https://thirdwx.qlogo.cn/mmopen/test/132",
-    qrcodeUrl: `https://mp.weixin.qq.com/a/~${appid}~`
-  };
-
-  // 更新到数据库
-  await queryWithTenant(
-    `UPDATE t_store SET wx_merchant_name = ?, wx_service_phone = ?, wx_head_img = ?, wx_qrcode_url = ?, updated_at = NOW()
-     WHERE id = ? AND tenant_id = ?`,
-    [mockWxInfo.merchantName, mockWxInfo.servicePhone, mockWxInfo.headImg, mockWxInfo.qrcodeUrl, id, tenantId],
-    tenantId
-  );
-
+  // 真实环境：不再模拟微信商户信息；未配置时明确提示
+  if (!store.wxMerchantName) {
+    throw Object.assign(
+      new Error("尚未配置微信商户信息（商户名称/服务电话/头像/二维码），请在门店信息中补充"),
+      { statusCode: 400 }
+    );
+  }
   return {
     miniappAppid: appid,
-    wxMerchantName: mockWxInfo.merchantName,
-    wxServicePhone: mockWxInfo.servicePhone,
-    wxHeadImg: mockWxInfo.headImg,
-    wxQrcodeUrl: mockWxInfo.qrcodeUrl
+    wxMerchantName: store.wxMerchantName,
+    wxServicePhone: store.wxServicePhone,
+    wxHeadImg: store.wxHeadImg,
+    wxQrcodeUrl: store.wxQrcodeUrl
   };
 }
