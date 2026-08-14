@@ -19,6 +19,7 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 import { env } from "../../shared/env";
+import { fetchWithRetry } from "../../shared/http-with-retry";
 
 // ==================== 类型定义 ====================
 
@@ -144,7 +145,7 @@ class JPushProvider implements PushProvider {
             options: { time_to_live: 86400 },
         };
         try {
-            const resp = await fetch("https://api.jpush.cn/v3/push", {
+            const resp = await fetchWithRetry("https://api.jpush.cn/v3/push", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -196,7 +197,7 @@ class FCMProvider implements PushProvider {
             },
         };
         try {
-            const resp = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+            const resp = await fetchWithRetry(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -237,7 +238,7 @@ class HMSProvider implements PushProvider {
     /** 获取 HMS OAuth access_token */
     private async fetchAccessToken(appId: string, appSecret: string): Promise<string | null> {
         try {
-            const resp = await fetch(`https://oauth-api.cloud.huawei.com/openapi/v1/${appId}/token`, {
+            const resp = await fetchWithRetry(`https://oauth-api.cloud.huawei.com/openapi/v1/${appId}/token`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -266,7 +267,7 @@ class HMSProvider implements PushProvider {
             if (!accessToken) {
                 return { success: false, errorMsg: "HMS 获取 access_token 失败" };
             }
-            const pushResp = await fetch(`https://push-api.cloud.huawei.com/v2/${appId}/messages:send`, {
+            const pushResp = await fetchWithRetry(`https://push-api.cloud.huawei.com/v2/${appId}/messages:send`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

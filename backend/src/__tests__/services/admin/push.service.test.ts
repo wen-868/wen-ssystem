@@ -622,7 +622,7 @@ describe("push.service - sendToUser", () => {
             json: () => Promise.resolve({ msg_id: "ok-1" }),
         });
         // fcm 抛异常
-        mockFetch.mockRejectedValueOnce(new Error("FCM 网络错误"));
+        mockFetch.mockRejectedValue(new Error("FCM 网络错误"));
         global.fetch = mockFetch as any;
 
         const results = await sendToUser(30, "t-err", {
@@ -1057,7 +1057,7 @@ describe("push.service - HMSProvider", () => {
             status: 200,
             json: () => Promise.resolve({ access_token: "at" }),
         });
-        mockFetch.mockResolvedValueOnce({
+        mockFetch.mockResolvedValue({
             ok: true,
             status: 500,
             json: () => Promise.resolve({ code: "1" }),
@@ -1068,7 +1068,7 @@ describe("push.service - HMSProvider", () => {
         const result = await provider.send({ token: "t", title: "T", content: "C" });
 
         expect(result.success).toBe(false);
-        expect(result.errorMsg).toContain("HMS HTTP 500");
+        expect(result.errorMsg).toContain("HTTP 500");
     });
 
     it("send 推送阶段 fetch 抛异常 → 错误信息透传", async () => {
@@ -1080,7 +1080,7 @@ describe("push.service - HMSProvider", () => {
             status: 200,
             json: () => Promise.resolve({ access_token: "at" }),
         });
-        mockFetch.mockRejectedValueOnce(new Error("push endpoint down"));
+        mockFetch.mockRejectedValue(new Error("push endpoint down"));
         global.fetch = mockFetch as any;
 
         const provider = getProvider("hms");
