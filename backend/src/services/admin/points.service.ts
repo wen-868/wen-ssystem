@@ -48,6 +48,7 @@ interface LevelConfigListRow {
   maxPoints: number | string;
   discountRate: number | string;
   benefits: string | null;
+  status: string;
 }
 
 /** t_level_config 升级查询行（带别名） */
@@ -128,31 +129,65 @@ export async function getCustomerPointsRecords(params: { customerId: number; typ
 // ===== 等级配置 =====
 export async function listLevelConfigs(tenantId: string) {
   return queryWithTenant<LevelConfigListRow>(
-    "SELECT id, level_name AS levelName, min_points AS minPoints, max_points AS maxPoints, discount_rate AS discountRate, benefits FROM t_level_config WHERE tenant_id = ? ORDER BY min_points",
+    "SELECT id, level_name AS levelName, min_points AS minPoints, max_points AS maxPoints, discount_rate AS discountRate, benefits, status FROM t_level_config WHERE tenant_id = ? ORDER BY min_points",
     [tenantId], tenantId
   );
 }
 
-export async function createLevelConfig(params: { levelName: string; minPoints: number; maxPoints: number; discountRate: number; benefits?: Record<string, unknown>; tenantId: string }) {
-  const { levelName, minPoints, maxPoints, discountRate, benefits, tenantId } = params;
+export async function createLevelConfig(params: { levelName: string; minPoints: number; maxPoints: number; discountRate: number; benefits?: Record<string, unknown>; status?: string; tenantId: string }) {
+  const { levelName, minPoints, maxPoints, discountRate, benefits, status, tenantId } = params;
   const result = await queryWithTenant<ResultSetHeader>(
-    "INSERT INTO t_level_config (level_name, min_points, max_points, discount_rate, benefits, tenant_id) VALUES (?, ?, ?, ?, ?, ?)",
-    [levelName, minPoints, maxPoints, discountRate, benefits ? JSON.stringify(benefits) : null, tenantId], tenantId
+    "INSERT INTO t_level_config (level_name, min_points, max_points, discount_rate, benefits, status, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [levelName, minPoints, maxPoints, discountRate, benefits ? JSON.stringify(benefits) : null, status ?? "active", tenantId], tenantId
   );
   return { id: (result as unknown as Record<string, unknown>).insertId, levelName };
 }
 
-export async function updateLevelConfig(id: number, params: { levelName?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: Record<string, unknown>; tenantId: string }) {
+export async function updateLevelConfig(id: number, params: { levelName?: string; minPoints?: number; maxPoints?: number; discountRate?: number; benefits?: Record<string, unknown>; status?: string; tenantId: string }) {
   const fields: string[] = []; const values: unknown[] = [];
   if (params.levelName !== undefined) { fields.push("level_name = ?"); values.push(params.levelName); }
   if (params.minPoints !== undefined) { fields.push("min_points = ?"); values.push(params.minPoints); }
   if (params.maxPoints !== undefined) { fields.push("max_points = ?"); values.push(params.maxPoints); }
   if (params.discountRate !== undefined) { fields.push("discount_rate = ?"); values.push(params.discountRate); }
   if (params.benefits !== undefined) { fields.push("benefits = ?"); values.push(JSON.stringify(params.benefits)); }
+  if (params.status !== undefined) { fields.push("status = ?"); values.push(params.status); }
   if (fields.length === 0) throw new Error("没有需要更新的字段");
   values.push(id, params.tenantId);
   await queryWithTenant<ResultSetHeader>(`UPDATE t_level_config SET ${fields.join(", ")} WHERE id = ? AND tenant_id = ?`, values, params.tenantId);
   return { id, ...params };
+}
+
+/** 启用/停用会员等级（status: active/disabled） */
+export async function updateLevelConfigStatus(id: number, status: string, tenantId: string) {
+  const normalized = status === "active" ? "active" : "disabled";
+  const existing = await queryOneWithTenant<{ id: number | string }>(
+    "SELECT id FROM t_level_config WHERE id = ? AND tenant_id = ?",
+    [id, tenantId], tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("会员等级不存在"), { statusCode: 404 });
+  }
+  await queryWithTenant<ResultSetHeader>(
+    "UPDATE t_level_config SET status = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    [normalized, id, tenantId], tenantId
+  );
+  return { id, status: normalized };
+}
+
+/** 删除会员等级 */
+export async function deleteLevelConfig(id: number, tenantId: string) {
+  const existing = await queryOneWithTenant<{ id: number | string }>(
+    "SELECT id FROM t_level_config WHERE id = ? AND tenant_id = ?",
+    [id, tenantId], tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("会员等级不存在"), { statusCode: 404 });
+  }
+  await queryWithTenant<ResultSetHeader>(
+    "DELETE FROM t_level_config WHERE id = ? AND tenant_id = ?",
+    [id, tenantId], tenantId
+  );
+  return { id, deleted: true };
 }
 
 // 自动升级检查
@@ -161,7 +196,7 @@ export async function checkLevelUpgrade(customerId: number, tenantId: string) {
   if (!cp) return null;
   const totalPoints = Number(cp.total_points);
   const configs = await queryWithTenant<LevelConfigUpgradeRow>(
-    "SELECT level_name AS levelName, min_points AS minPoints, max_points AS maxPoints FROM t_level_config WHERE tenant_id = ? AND min_points <= ? AND max_points >= ? ORDER BY min_points DESC LIMIT 1",
+    "SELECT level_name AS levelName, min_points AS minPoints, max_points AS maxPoints FROM t_level_config WHERE tenant_id = ? AND status = 'active' AND min_points <= ? AND max_points >= ? ORDER BY min_points DESC LIMIT 1",
     [tenantId, totalPoints, totalPoints], tenantId
   );
   if (configs.length === 0) return null;

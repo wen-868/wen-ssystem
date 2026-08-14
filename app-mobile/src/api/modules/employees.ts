@@ -8,6 +8,7 @@ export interface Employee {
   storeName?: string
   hireDate?: string
   status: 'active' | 'inactive'
+  statusLabel?: string
 }
 
 export interface EmployeeListParams {
@@ -48,8 +49,12 @@ const employeeApi = {
   },
 
   async toggleStatus(id: number, status: 'active' | 'inactive'): Promise<void> {
-    // R94-03：后端仅提供 PUT /admin/staff/:id/disable（无启用接口）；启用时由页面降级提示，此处仅保留禁用调用
-    await put(`/admin/staff/${id}/disable`, { status })
+    // 禁用走 PUT /admin/staff/:id/disable；启用走 POST /admin/staff/:id/restore
+    if (status === 'inactive') {
+      await put(`/admin/staff/${id}/disable`, { status })
+    } else {
+      await post(`/admin/staff/${id}/restore`)
+    }
   }
 }
 

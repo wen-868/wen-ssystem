@@ -34,6 +34,14 @@ export interface SysConfigUpdateItem {
   config_value: string
 }
 
+/** 当前租户公司信息（GET /admin/sys-config/tenant-info） */
+export interface TenantInfo {
+  companyName: string
+  contactPerson: string
+  contactMobile: string
+  businessLicense: string
+}
+
 // ====================== API 封装 ======================
 
 const sysConfigApi = {
@@ -67,6 +75,16 @@ const sysConfigApi = {
    */
   async updateBatch(items: SysConfigUpdateItem[]): Promise<{ updated: number }> {
     return put('/admin/sys-config/batch', items)
+  },
+
+  /**
+   * 获取当前租户公司信息
+   * GET /api/admin/sys-config/tenant-info
+   *
+   * @returns 公司名称/负责人/联系电话/营业执照
+   */
+  async getTenantInfo(): Promise<TenantInfo | null> {
+    return get('/admin/sys-config/tenant-info')
   },
 }
 

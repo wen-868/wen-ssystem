@@ -201,6 +201,18 @@
                     }
                 },
                 {
+                    "path": "price-review/price-review",
+                    "style": {
+                        "navigationBarTitleText": "建议核价"
+                    }
+                },
+                {
+                    "path": "price-anomaly/price-anomaly",
+                    "style": {
+                        "navigationBarTitleText": "价格异常"
+                    }
+                },
+                {
                     "path": "price/price-manage",
                     "style": {
                         "navigationBarTitleText": "价格管理"
@@ -591,6 +603,12 @@
                     "path": "system/operation-logs",
                     "style": {
                         "navigationBarTitleText": "操作日志"
+                    }
+                },
+                {
+                    "path": "system/operation-log-detail",
+                    "style": {
+                        "navigationBarTitleText": "操作日志详情"
                     }
                 },
                 {

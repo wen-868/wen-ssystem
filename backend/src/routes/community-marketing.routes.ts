@@ -11,6 +11,8 @@ groupBuyRouter.get("/", asyncHandler(controller.listGroupBuys));
 groupBuyRouter.get("/:id", asyncHandler(controller.getGroupBuy));
 groupBuyRouter.post("/:id/join", asyncHandler(controller.joinGroupBuy));
 groupBuyRouter.post("/:id/start", asyncHandler(controller.startGroupBuy));
+groupBuyRouter.post("/:id/end", asyncHandler(controller.endGroupBuy));
+groupBuyRouter.get("/:id/records", asyncHandler(controller.listGroupBuyRecords));
 
 // ==================== 砍价 ====================
 export const bargainRouter = Router();
@@ -19,6 +21,8 @@ bargainRouter.get("/", asyncHandler(controller.listBargains));
 bargainRouter.get("/:id", asyncHandler(controller.getBargain));
 bargainRouter.post("/:id/start", asyncHandler(controller.startBargain));
 bargainRouter.post("/:id/help", asyncHandler(controller.helpBargain));
+bargainRouter.post("/:id/end", asyncHandler(controller.endBargain));
+bargainRouter.get("/:id/records", asyncHandler(controller.listBargainRecords));
 
 // ==================== 秒杀 ====================
 export const seckillRouter = Router();
@@ -26,6 +30,8 @@ export const seckillRouter = Router();
 seckillRouter.get("/", asyncHandler(controller.listSeckills));
 seckillRouter.get("/:id", asyncHandler(controller.getSeckill));
 seckillRouter.post("/:id/buy", asyncHandler(controller.buySeckill));
+seckillRouter.post("/:id/end", asyncHandler(controller.endSeckill));
+seckillRouter.get("/:id/records", asyncHandler(controller.listSeckillRecords));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfigs: RouteConfig[] = [

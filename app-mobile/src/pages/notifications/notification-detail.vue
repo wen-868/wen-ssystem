@@ -112,13 +112,7 @@ async function loadDetail() {
   loading.value = true
 
   try {
-    // R94-03：后端无单条详情接口，从列表页经本地存储传入的列表项渲染（列表项已含完整 content）
-    const cached: NotificationItem | null = uni.getStorageSync('notification_detail_item') || null
-    if (cached && Number(cached.id) === notificationId.value) {
-      detail.value = cached
-    } else {
-      uni.showToast({ title: '消息详情开发中（请从列表进入）', icon: 'none' })
-    }
+    detail.value = await notificationsApi.detail(notificationId.value)
 
     // 自动标记已读
     if (detail.value && !detail.value.read) {
@@ -159,8 +153,11 @@ function handleDelete() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          // R94-03 核实：后端无删除消息接口，降级为占位提示
-          uni.showToast({ title: '删除功能开发中（后端无删除接口）', icon: 'none' })
+          await notificationsApi.delete(notificationId.value)
+          uni.showToast({ title: '删除成功', icon: 'success' })
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 500)
         } catch (err) {
           uni.showToast({ title: '删除失败', icon: 'none' })
         }

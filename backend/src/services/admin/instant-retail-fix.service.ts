@@ -1,4 +1,5 @@
 import { query, queryOne, queryWithTenant } from "../../shared/db";
+import { makeBizNo } from "../../shared/id";
 
 /**
  * 即时零售补全服务（R100 商用化）：
@@ -231,6 +232,7 @@ export async function getStoreLoad(tenantId: string) {
 // ==================== 5. 订单异常 ====================
 export async function listExceptions(tenantId: string, params: {
   page?: number; pageSize?: number; handleStatus?: string; level?: string; channelType?: string; keyword?: string;
+  exceptionType?: string; startDate?: string; endDate?: string;
 }) {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(1, params.pageSize || 20));
@@ -239,6 +241,9 @@ export async function listExceptions(tenantId: string, params: {
   if (params.handleStatus) { where.push("handle_status = ?"); args.push(params.handleStatus); }
   if (params.level) { where.push("exception_level = ?"); args.push(params.level); }
   if (params.channelType) { where.push("channel_type = ?"); args.push(params.channelType); }
+  if (params.exceptionType) { where.push("exception_type = ?"); args.push(params.exceptionType); }
+  if (params.startDate) { where.push("created_at >= ?"); args.push(`${params.startDate} 00:00:00`); }
+  if (params.endDate) { where.push("created_at <= ?"); args.push(`${params.endDate} 23:59:59`); }
   if (params.keyword) { where.push("(channel_order_no LIKE ? OR exception_detail LIKE ?)"); const kw = `%${params.keyword}%`; args.push(kw, kw); }
   const whereSql = where.join(" AND ");
   const totalRow = await queryOne<{ total: number }>(
@@ -252,21 +257,28 @@ export async function listExceptions(tenantId: string, params: {
     [...args, pageSize, (page - 1) * pageSize]
   );
   return {
-    records: rows.map((r) => ({
-      id: r.id,
-      exceptionLevel: r.exception_level,
-      channelOrderNo: r.channel_order_no || "",
-      channelType: r.channel_type || "",
-      exceptionType: r.exception_type,
-      exceptionDetail: r.exception_detail || "",
-      handleStatus: r.handle_status,
-      handlerName: r.handler_name || "",
-      handleResult: r.handle_result || "",
-      createdAt: r.created_at,
-    })),
+    records: rows.map(mapExceptionRow),
     total: totalRow?.total ?? 0,
     page,
     pageSize,
+  };
+}
+
+/** 订单异常行 → 前端契约（驼峰 + 缺省空串） */
+function mapExceptionRow(r: ExceptionRow) {
+  return {
+    id: r.id,
+    exceptionNo: r.exception_no,
+    exceptionLevel: r.exception_level,
+    channelOrderNo: r.channel_order_no || "",
+    channelType: r.channel_type || "",
+    exceptionType: r.exception_type,
+    exceptionDetail: r.exception_detail || "",
+    handleStatus: r.handle_status,
+    handlerName: r.handler_name || "",
+    handleResult: r.handle_result || "",
+    handledAt: r.handled_at || null,
+    createdAt: r.created_at,
   };
 }
 
@@ -338,6 +350,50 @@ export async function listExceptionLogs(tenantId: string, exceptionId: number) {
     result: r.result || "",
     createdAt: r.created_at,
   })));
+}
+
+/** 订单异常详情（含处理日志），不存在返回 null */
+export async function getExceptionDetail(tenantId: string, id: number) {
+  const row = await queryOne<ExceptionRow>(
+    `SELECT id, exception_no, exception_level, channel_order_no, channel_type, exception_type, exception_detail,
+            handle_status, handler_name, handle_result, handled_at, created_at
+     FROM t_order_exception WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId]
+  );
+  if (!row) return null;
+  const logs = await listExceptionLogs(tenantId, id);
+  return { ...mapExceptionRow(row), logs };
+}
+
+/** 从订单标记异常（创建订单异常记录） */
+export async function createException(tenantId: string, body: {
+  orderNo: string;
+  channelType?: string;
+  exceptionType?: string;
+  exceptionDetail?: string;
+  level?: string;
+}) {
+  if (!body.orderNo) throw new Error("订单号不能为空");
+  const exceptionNo = makeBizNo("OE");
+  const insert = (await query(
+    `INSERT INTO t_order_exception (tenant_id, exception_no, exception_level, channel_order_no, channel_type, exception_type, exception_detail)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [tenantId, exceptionNo, body.level || "WARNING", body.orderNo, body.channelType || null,
+      body.exceptionType || "OTHER", body.exceptionDetail || null]
+  )) as unknown as { insertId: number };
+  return { id: insert.insertId, exceptionNo };
+}
+
+/** 编辑订单异常备注（更新异常详情） */
+export async function updateException(tenantId: string, id: number, body: { exceptionDetail?: string; remark?: string }) {
+  const detail = body.exceptionDetail ?? body.remark;
+  if (detail === undefined) throw new Error("备注内容不能为空");
+  const result = (await query(
+    "UPDATE t_order_exception SET exception_detail = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    [detail, id, tenantId]
+  )) as unknown as { affectedRows: number };
+  if (!result.affectedRows) throw Object.assign(new Error("异常记录不存在"), { statusCode: 404 });
+  return { success: true };
 }
 
 interface RoutingRuleRow {

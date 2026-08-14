@@ -207,11 +207,69 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
     }
     return null;
   },
+
+  // notifications（t_notification）
+  (s, params) => {
+    if ((s.includes("from t_notification") || s.includes("from t_notification")) && s.includes("where id = ?") && s.includes("tenant_id")) {
+      const id = Number(params[0]);
+      const tenantId = params[1];
+      return state.notifications.filter((n: any) => Number(n.id) === id && n.tenant_id === tenantId);
+    }
+    if (s.includes("from t_notification") || s.includes("from t_notification")) {
+      return state.notifications;
+    }
+    return null;
+  },
+
+  // operation_logs SELECT（t_operation_log）
+  (s, params) => {
+    if ((s.includes("from t_operation_log") || s.includes("from t_operation_log")) && s.includes("where id = ?") && s.includes("tenant_id")) {
+      const id = Number(params[0]);
+      const tenantId = params[1];
+      return state.operationLogs.filter((log: any) => Number(log.id) === id && log.tenant_id === tenantId);
+    }
+    if (s.includes("from t_operation_log") || s.includes("from t_operation_log")) {
+      return state.operationLogs;
+    }
+    return null;
+  },
+
+  // report_permission_audit_log（t_report_permission_audit_log）
+  (s, params) => {
+    if ((s.includes("from t_report_permission_audit_log") || s.includes("from t_report_permission_audit_log")) && s.includes("where id = ?") && s.includes("tenant_id")) {
+      const id = Number(params[0]);
+      const tenantId = params[1];
+      return state.reportPermissionAuditLogs.filter((log: any) => Number(log.id) === id && log.tenant_id === tenantId);
+    }
+    if (s.includes("from t_report_permission_audit_log") || s.includes("from t_report_permission_audit_log")) {
+      return state.reportPermissionAuditLogs;
+    }
+    return null;
+  },
 ];
 
 // ==================== mockExecute handlers ====================
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
+  // notifications DELETE（单条 / 批量）
+  (s, params) => {
+    if (s.includes("delete from t_notification") && s.includes("in (")) {
+      const ids = params.slice(0, -1).map(Number);
+      const tenantId = params[params.length - 1];
+      const before = state.notifications.length;
+      state.notifications = state.notifications.filter((n: any) => !(ids.includes(Number(n.id)) && n.tenant_id === tenantId));
+      return [{ affectedRows: before - state.notifications.length, insertId: Date.now() }];
+    }
+    if (s.includes("delete from t_notification") && s.includes("where id = ?")) {
+      const id = Number(params[0]);
+      const tenantId = params[1];
+      const before = state.notifications.length;
+      state.notifications = state.notifications.filter((n: any) => !(Number(n.id) === id && n.tenant_id === tenantId));
+      return [{ affectedRows: before - state.notifications.length, insertId: Date.now() }];
+    }
+    return null;
+  },
+
   // error_logs DELETE
   (s, params) => {
     if ((s.includes("delete from t_error_logs") || s.includes("delete from t_error_logs")) && s.includes("created_at <")) {

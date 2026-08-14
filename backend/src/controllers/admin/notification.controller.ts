@@ -58,6 +58,48 @@ export const send = asyncHandler(async (req, res) => {
   res.json(ok({ id, sent: true }));
 });
 
+/** 单条通知详情 */
+export const getNotificationDetail = asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json(fail("通知ID无效", "400"));
+    return;
+  }
+
+  const detail = await service.getNotificationById(req.tenantId!, id);
+  if (!detail) {
+    res.status(404).json(fail("通知不存在", "404"));
+    return;
+  }
+  res.json(ok(detail));
+});
+
+/** 删除单条通知 */
+export const deleteNotification = asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json(fail("通知ID无效", "400"));
+    return;
+  }
+
+  const result = await service.deleteNotification(req.tenantId!, id);
+  if (!result.deleted) {
+    res.status(404).json(fail("通知不存在", "404"));
+    return;
+  }
+  res.json(ok(result));
+});
+
+/** 批量删除通知 */
+export const batchDeleteNotifications = asyncHandler(async (req, res) => {
+  const body = z.object({
+    ids: z.array(z.number().int().positive()).min(1).max(200),
+  }).parse(req.body);
+
+  const result = await service.batchDeleteNotifications(req.tenantId!, body.ids);
+  res.json(ok(result));
+});
+
 // ========== 小程序通知 Controller ==========
 
 export const myList = asyncHandler(async (req, res) => {

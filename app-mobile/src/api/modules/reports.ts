@@ -351,9 +351,29 @@ const reportsApi = {
         endDate: params?.endDate,
         storeId: params?.storeId,
       },
+    }) 
+    return res as ReportExportResult
+  },
+
+  /** 导出损耗/溢余报表（CSV，后端 report-export.service 的 loss_gain 查询） */
+  async exportLossGainReport(params?: {
+    startDate?: string
+    endDate?: string
+    storeId?: string
+    type?: 'LOSS' | 'GAIN'
+  }): Promise<ReportExportResult> {
+    const res: any = await post('/admin/reports/export', {
+      report_type: 'loss_gain',
+      format: 'csv',
+      filters: {
+        startDate: params?.startDate,
+        endDate: params?.endDate,
+        storeId: params?.storeId,
+        type: params?.type,
+      },
     })
     return res as ReportExportResult
-  }
+  },
 }
 
 export { reportsApi }

@@ -391,6 +391,20 @@ export interface CouponVerifyResult {
   message?: string
 }
 
+/** 优惠券模板行 → StoreCoupon（R100-02：门店优惠券列表/详情映射） */
+function mapStoreCoupon(r: any): StoreCoupon {
+  return {
+    id: Number(r.id),
+    code: r.code ?? r.couponCode ?? r.templateCode,
+    name: r.name ?? r.templateName ?? '',
+    faceValue: Number(r.value ?? r.couponValue ?? r.faceValue ?? 0),
+    minValue: Number(r.minAmount ?? r.minValue ?? 0),
+    status: r.status ?? '',
+    expireAt: r.endTime ?? r.expireAt ?? r.validEnd,
+    usedAt: r.usedAt,
+  }
+}
+
 // ==================== 日结 ====================
 export interface SubmitDailySettleParams {
   settleDate: string
@@ -700,14 +714,16 @@ const storeApi = {
 
   /** 创建交接班 */
   async createShift(params: CreateShiftParams): Promise<ShiftRecord> {
-    // R94-03 核实：后端仅提供 /store/shift/current、/store/shift/history、/store/shift/settle，无创建交接班接口
-    return Promise.reject(new Error('创建交接班功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：POST /store/shifts 创建交接班（t_shift 落库）
+    const res: any = await post('/store/shifts', params)
+    return (res?.result ?? res) as ShiftRecord
   },
 
   /** 交接班详情 */
   async fetchShiftDetail(shiftId: number): Promise<ShiftRecord> {
-    // R94-03 核实：后端无交接班详情接口（仅 current/history/settle）
-    return Promise.reject(new Error('交接班详情功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/shifts/:shiftNo 交接班详情（含本班次销售统计）
+    const res: any = await get(`/store/shifts/${shiftId}`)
+    return (res?.result ?? res) as ShiftRecord
   },
 
   /** 完成交接班 */
@@ -718,20 +734,23 @@ const storeApi = {
 
   /** 交接班销售统计 */
   async fetchShiftSalesStats(shiftId: number): Promise<ShiftSalesStats> {
-    // R94-03 核实：后端无交接班销售统计接口（仅 current/history/settle）
-    return Promise.reject(new Error('交接班销售统计功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/shifts/:shiftNo/sales 本班次销售统计
+    const res: any = await get(`/store/shifts/${shiftId}/sales`)
+    return (res?.result ?? res) as ShiftSalesStats
   },
 
   /** 交接班盘点 */
   async fetchShiftStockCheck(shiftId: number): Promise<any> {
-    // R94-03 核实：后端无交接班盘点接口
-    return Promise.reject(new Error('交接班盘点功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/shifts/:shiftNo/check 当前门店库存快照
+    const res: any = await get(`/store/shifts/${shiftId}/check`)
+    return res?.result ?? res
   },
 
   /** 提交交接班盘点 */
   async submitShiftStockCheck(shiftId: number, items: ShiftStockCheckItem[]): Promise<any> {
-    // R94-03 核实：后端无交接班盘点提交接口
-    return Promise.reject(new Error('交接班盘点提交功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：POST /store/shifts/:shiftNo/check 盘点明细落库
+    const res: any = await post(`/store/shifts/${shiftId}/check`, { items })
+    return res?.result ?? res
   },
 
   // ---------- 会员 ----------
@@ -761,26 +780,30 @@ const storeApi = {
 
   /** 会员详情 */
   async getMemberDetail(memberId: number): Promise<StoreMember> {
-    // R94-03 核实：后端 /store/members 仅提供列表（无 /:id 详情接口），由页面降级处理
-    return Promise.reject(new Error('会员详情功能开发中（R94-03 核实：后端无详情接口）'))
+    // R100-04：GET /store/members/:id 会员详情（含等级/累计消费/积分）
+    const res: any = await get(`/store/members/${memberId}`)
+    return (res?.result ?? res) as StoreMember
   },
 
   /** 会员积分 */
   async getMemberPoints(memberId: number): Promise<{ points: number } | any> {
-    // R94-03 核实：后端无会员积分接口，由页面降级处理
-    return Promise.reject(new Error('会员积分功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/members/:id/points 会员积分账户
+    const res: any = await get(`/store/members/${memberId}/points`)
+    return res?.result ?? res
   },
 
   /** 会员积分明细 */
   async getMemberPointsHistory(memberId: number, params?: PageParams): Promise<PageResult<MemberPointsHistoryItem>> {
-    // R94-03 核实：后端无会员积分明细接口，由页面降级处理
-    return Promise.reject(new Error('会员积分明细功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/members/:id/points/logs 积分明细
+    const res: any = await get(`/store/members/${memberId}/points/logs`, params)
+    return (res?.result ?? res) as PageResult<MemberPointsHistoryItem>
   },
 
   /** 会员订单 */
   async getMemberOrders(memberId: number, params?: PageParams): Promise<PageResult<any>> {
-    // R94-03 核实：后端无会员订单接口，由页面降级处理
-    return Promise.reject(new Error('会员订单功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-04：GET /store/members/:id/orders 会员订单列表
+    const res: any = await get(`/store/members/${memberId}/orders`, params)
+    return (res?.result ?? res) as PageResult<any>
   },
 
   // ---------- 销售退货 ----------
@@ -827,14 +850,23 @@ const storeApi = {
 
   /** 优惠券列表 */
   async fetchCoupons(params?: PageParams & { status?: string }): Promise<PageResult<StoreCoupon>> {
-    // R94-03 核实：后端无门店优惠券列表接口（仅核销 verify/manual-verify），由页面降级处理
-    return Promise.reject(new Error('优惠券列表功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-02：门店优惠券列表真实接口 GET /api/store/coupons（分页，复用优惠券模板数据源）
+    const res: any = await get('/store/coupons', { page: 1, pageSize: 20, ...params })
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => mapStoreCoupon(r)),
+      total: Number(raw?.total ?? rows.length),
+      page: Number(raw?.page ?? params?.page ?? 1),
+      pageSize: Number(raw?.pageSize ?? params?.pageSize ?? 20),
+    }
   },
 
   /** 优惠券详情 */
   async fetchCouponDetail(couponId: number): Promise<StoreCoupon> {
-    // R94-03 核实：后端无优惠券详情接口，由页面降级处理
-    return Promise.reject(new Error('优惠券详情功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-02：门店优惠券详情真实接口 GET /api/store/coupons/:id
+    const res: any = await get(`/store/coupons/${couponId}`)
+    return mapStoreCoupon(res?.result ?? res ?? {})
   },
 
   // ---------- 日结 ----------
@@ -895,8 +927,9 @@ const storeApi = {
 
   /** 操作日志详情 */
   async fetchOperationLogDetail(logId: number): Promise<OperationLog> {
-    // R94-03 核实：后端操作日志仅提供列表与统计，无单条详情接口
-    return Promise.reject(new Error('操作日志详情功能开发中（R94-03 核实：后端无详情接口）'))
+    // R100-03：GET /admin/operation-logs/:id 单条详情（含变更前后数据）
+    const res: any = await get(`/admin/operation-logs/${logId}`)
+    return (res?.result ?? res) as OperationLog
   },
 }
 

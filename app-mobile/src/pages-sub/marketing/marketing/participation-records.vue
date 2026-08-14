@@ -1,6 +1,6 @@
 <template>
   <view class="records-page">
-    <scroll-view class="record-list" scroll-y v-if="list.length > 0">
+    <scroll-view class="record-list" scroll-y v-if="list.length > 0" @scrolltolower="onLoadMore">
       <view class="record-item" v-for="item in list" :key="item.id">
         <view class="record-header">
           <text class="record-name">{{ item.memberName }}</text>
@@ -25,7 +25,11 @@
 
     <view class="empty-state" v-else>
       <text class="empty-icon">&#xe631;</text>
-      <text class="empty-text">暂无参与记录</text>
+      <text class="empty-text">{{ emptyText }}</text>
+    </view>
+
+    <view class="load-more" v-if="list.length > 0 && !noMore">
+      <text class="load-more-text">{{ loadingMore ? '加载中...' : '上拉加载更多' }}</text>
     </view>
 
     <view class="safe-bottom"></view>
@@ -38,31 +42,83 @@ import { activityApi, type ParticipationRecord } from '@/api/modules/marketing-a
 
 const list = ref<ParticipationRecord[]>([])
 const activityId = ref<number | undefined>(undefined)
+const activityType = ref<'group_buy' | 'bargain' | 'seckill'>('group_buy')
+const page = ref(1)
+const pageSize = 20
+const noMore = ref(false)
+const loadingMore = ref(false)
+const loading = ref(false)
+const emptyText = ref('暂无参与记录')
 
 function formatTime(time: string): string {
   return time.substring(0, 16).replace('T', ' ')
 }
 
 async function loadRecords() {
+  if (loading.value) return
+  loading.value = true
   try {
-    // R94-03 核实：后端无营销活动参与记录接口，页面降级为「开发中」占位
-    uni.showToast({ title: '参与记录功能开发中', icon: 'none' })
-    list.value = []
+    // R100-02：拼团/砍价/秒杀参与记录已接真实接口（/api/marketing/*/:id/records）
+    const result = await activityApi.participationRecords({
+      activityId: activityId.value,
+      type: activityType.value,
+      page: page.value,
+      pageSize,
+    })
+    const dataList = result.list || []
+    if (page.value === 1) {
+      list.value = dataList
+    } else {
+      list.value = [...list.value, ...dataList]
+    }
+    noMore.value = dataList.length < pageSize
+    emptyText.value = '暂无参与记录'
   } catch (err) {
     console.error('加载参与记录失败:', err)
+    if (page.value === 1) {
+      list.value = []
+      emptyText.value = '暂无参与记录'
+    }
+  } finally {
+    loading.value = false
+    loadingMore.value = false
   }
+}
+
+async function onLoadMore() {
+  if (loadingMore.value || noMore.value || loading.value) return
+  loadingMore.value = true
+  page.value++
+  await loadRecords()
+}
+
+async function resetAndLoad() {
+  page.value = 1
+  noMore.value = false
+  list.value = []
+  await loadRecords()
 }
 
 onMounted(() => {
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1] as any
   const options = currentPage?.options || {}
-  
+
   if (options.activityId) {
     activityId.value = parseInt(options.activityId)
   }
-  
-  loadRecords()
+  if (options.type === 'bargain') {
+    activityType.value = 'bargain'
+  } else if (options.type === 'seckill') {
+    activityType.value = 'seckill'
+  }
+
+  // 满减活动无参与记录数据源（后端无对应记录表），展示空态，不发起不存在接口的请求
+  if (options.type === 'full_reduction') {
+    emptyText.value = '该活动暂无参与记录'
+    return
+  }
+  resetAndLoad()
 })
 </script>
 
@@ -142,6 +198,16 @@ onMounted(() => {
 .empty-text {
   font-size: 28rpx;
   color: $uni-gray-300;
+}
+
+.load-more {
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.load-more-text {
+  font-size: 24rpx;
+  color: $uni-gray-400;
 }
 
 .safe-bottom {

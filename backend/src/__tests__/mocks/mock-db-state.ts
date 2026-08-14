@@ -71,7 +71,19 @@ export const state = {
   viewLogs: [] as Row[],
   inventoryLogs: [] as Row[],
   receivables: [] as Row[],
-  operationLogs: [] as Row[],
+  notifications: [
+    { id: 1, recipient_id: 1, recipient_type: "ADMIN", title: "系统通知：欢迎使用", content: "欢迎使用智享全链管理系统，请及时完善店铺资料。", type: "SYSTEM", related_id: null, related_type: null, is_read: 0, sent_at: "2026-08-14 10:00:00", read_at: null, created_at: "2026-08-14 10:00:00", tenant_id: "default" },
+    { id: 2, recipient_id: 1, recipient_type: "ADMIN", title: "库存预警：示例白酒低于安全库存", content: "商品「示例白酒 53度 500ml」当前可用库存低于预警阈值，请及时补货。", type: "ALERT", related_id: 1, related_type: "PRODUCT", is_read: 1, sent_at: "2026-08-14 11:00:00", read_at: "2026-08-14 11:05:00", created_at: "2026-08-14 11:00:00", tenant_id: "default" },
+  ] as Row[],
+  operationLogs: [
+    { id: 1, operator_id: 1, operator_name: "系统管理员", module: "ORDER", action: "CREATE", biz_no: "SO20260814001", target_id: null, target_type: null, before_data: null, after_data: JSON.stringify({ orderNo: "SO20260814001", amount: 129 }), ip: "127.0.0.1", user_agent: "mock", remark: "创建销售单", created_at: "2026-08-14 10:30:00", tenant_id: "default" },
+  ] as Row[],
+  reportPermissionAuditLogs: [
+    { id: 1, operator_id: 1, operator_name: "系统管理员", action: "UPDATE", target_type: "ROLE", target_id: 1, target_name: "超级管理员", report_code: "sales_summary", before_value: JSON.stringify({ canView: false }), after_value: JSON.stringify({ canView: true }), remark: "更新权限矩阵", created_at: "2026-08-14 10:35:00", tenant_id: "default" },
+  ] as Row[],
+  reportPermissionMatrix: [
+    { id: 1, role_id: 1, report_code: "sales_summary", store_scope: "SELF", can_view: 1, can_export: 0, store_ids: null, tenant_id: "default" },
+  ] as Row[],
   errorLogs: [] as Row[],
   platformCredentials: [] as Row[],
   platformOrders: [] as Row[],

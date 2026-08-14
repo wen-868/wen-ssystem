@@ -1,4 +1,4 @@
-import { get, put } from '../request'
+import { get, post, put } from '../request'
 
 /** 角色信息 */
 export interface RoleItem {
@@ -110,6 +110,38 @@ const REPORT_CATALOG: ReportItem[] = [
   { id: 'customer_analysis', name: '客户分析报表', category: 'customer', categoryName: '客户报表' },
 ]
 
+/** 格式化变更前后值 */
+function formatChangeValue(value: any): string {
+  if (value === null || value === undefined || value === '') return ''
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return String(value)
+  }
+}
+
+/** 后端审计日志行 → 前端审计日志项 */
+function normalizeAuditLog(r: any): PermissionAuditLog {
+  const targetRole = r.targetType === 'ROLE' ? (r.targetName ?? `角色#${r.targetId}`) : undefined
+  const targetUser = r.targetType === 'USER' ? (r.targetName ?? `用户#${r.targetId}`) : undefined
+  const before = formatChangeValue(r.beforeValue ?? r.before_value)
+  const after = formatChangeValue(r.afterValue ?? r.after_value)
+  return {
+    id: Number(r.id),
+    operator: r.operatorName ?? r.operator ?? '',
+    operatorId: Number(r.operatorId ?? r.operator_id ?? 0),
+    operationType: r.action ?? r.operationType ?? '',
+    operationTypeName: r.actionText ?? r.operationTypeName ?? r.action ?? '',
+    content: r.remark ?? r.content ?? '',
+    targetUser,
+    targetRole,
+    ip: r.ip ?? '',
+    createdAt: r.createdAt ?? r.created_at ?? '',
+    detail: before || after ? `${before || '无'} → ${after || '无'}` : undefined,
+  }
+}
+
 const reportPermissionApi = {
   /** 获取角色列表 */
   async getRoles(): Promise<RoleItem[]> {
@@ -154,14 +186,19 @@ const reportPermissionApi = {
     })
   },
 
-  /** 批量设置权限（后端无独立接口，R94-03 核实后降级） */
+  /** 批量设置权限（POST /admin/report-permissions/batch） */
   async batchSetPermission(params: {
     roleIds: number[]
     reportIds: string[]
     canView?: boolean
     canExport?: boolean
   }): Promise<any> {
-    return Promise.reject(new Error('批量设置权限功能开发中（R94-03 核实：后端无 batch 接口）'))
+    return post('/admin/report-permissions/batch', {
+      roleIds: params.roleIds,
+      reportCodes: params.reportIds,
+      canView: params.canView ?? true,
+      canExport: params.canExport ?? false,
+    })
   },
 
   /** 获取门店数据权限 */
@@ -275,26 +312,16 @@ const reportPermissionApi = {
     const raw = res?.result ?? res
     const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
     return {
-      list: rows.map((r: any) => ({
-        id: r.id,
-        operator: r.operatorName ?? r.operator ?? '',
-        operatorId: Number(r.operatorId ?? 0),
-        operationType: r.action ?? r.operationType ?? '',
-        operationTypeName: r.actionText ?? r.operationTypeName ?? r.action ?? '',
-        content: r.detail ?? r.content ?? '',
-        targetUser: r.targetUser ?? r.target_user,
-        targetRole: r.targetRole ?? r.target_role,
-        ip: r.ip ?? '',
-        createdAt: r.createdAt ?? r.created_at ?? '',
-        detail: r.beforeValue ?? r.afterValue ? `${r.beforeValue ?? ''} → ${r.afterValue ?? ''}` : undefined,
-      })),
+      list: rows.map(normalizeAuditLog),
       total: raw?.total ?? rows.length,
     }
   },
 
-  /** 权限审计日志详情（后端无详情接口，R94-03 核实后降级） */
+  /** 权限审计日志详情（GET /admin/report-permissions/audit-logs/:id） */
   async getAuditLogDetail(id: number): Promise<PermissionAuditLog> {
-    return Promise.reject(new Error('审计日志详情功能开发中（R94-03 核实：后端仅提供列表接口）'))
+    const res: any = await get(`/admin/report-permissions/audit-logs/${id}`)
+    const raw = res?.result ?? res
+    return normalizeAuditLog(raw)
   },
 
   /** 获取操作类型（静态枚举，与后端审计 action 语义对齐） */

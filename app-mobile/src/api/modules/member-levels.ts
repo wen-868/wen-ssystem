@@ -62,17 +62,18 @@ const memberLevelApi = {
   },
 
   async delete(id: number): Promise<void> {
-    // R94-03 核实：后端无删除会员等级接口（仅 list/create/update），由页面降级为「开发中」提示，此处不再发起不存在的请求
-    return Promise.reject(new Error('删除会员等级功能开发中（R94-03 核实：后端无删除接口）'))
+    // R100-02：删除会员等级真实接口 DELETE /admin/members/levels/config/:id
+    return del(`/admin/members/levels/config/${id}`)
   },
 
   async toggleStatus(id: number, status: string): Promise<void> {
-    // R94-03 核实：后端无启用/禁用会员等级接口（仅 list/create/update），由页面降级为「开发中」提示
-    return Promise.reject(new Error('启停会员等级功能开发中（R94-03 核实：后端无对应接口）'))
+    // R100-02：启停会员等级真实接口 PUT /admin/members/levels/config/:id/status
+    return put(`/admin/members/levels/config/${id}/status`, { status })
   }
 }
 
 function mapLevel(r: any): MemberLevel {
+  const status = normalizeLevelStatus(r.status)
   return {
     id: r.id,
     name: r.name ?? r.levelName ?? '',
@@ -80,10 +81,19 @@ function mapLevel(r: any): MemberLevel {
     discountRate: Number(r.discountRate ?? r.discount_rate ?? r.discount ?? 0),
     description: r.description ?? r.remark,
     sortOrder: Number(r.sortOrder ?? r.sort_order ?? 0),
-    status: r.status === 0 || r.status === 'DISABLED' ? 'disabled' : 'active',
+    status,
+    statusText: status === 'active' ? '启用' : '停用',
     createdAt: r.createdAt ?? r.created_at,
     updatedAt: r.updatedAt ?? r.updated_at,
   }
+}
+
+function normalizeLevelStatus(status: any): MemberLevel['status'] {
+  if (status === undefined || status === null || status === '') return 'active'
+  if (status === 0 || status === '0' || status === false) return 'disabled'
+  const v = String(status).toUpperCase()
+  if (v === 'DISABLED' || v === 'INACTIVE' || v === 'OFF') return 'disabled'
+  return 'active'
 }
 
 export { memberLevelApi }

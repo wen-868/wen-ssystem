@@ -12,6 +12,9 @@ adminNotificationRouter.get("/unread-count", ctrl.getUnreadCount);
 adminNotificationRouter.put("/:id/read", ctrl.markAsRead);
 adminNotificationRouter.post("/read-all", ctrl.markAllAsRead);
 adminNotificationRouter.post("/send", ctrl.send);
+adminNotificationRouter.get("/:id", ctrl.getNotificationDetail);
+adminNotificationRouter.delete("/:id", ctrl.deleteNotification);
+adminNotificationRouter.post("/batch-delete", ctrl.batchDeleteNotifications);
 
 export const miniappNotificationRouter = Router();
 

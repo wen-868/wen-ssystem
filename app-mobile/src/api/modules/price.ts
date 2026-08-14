@@ -88,6 +88,46 @@ const priceApi = {
     const res: any = await get('/admin/prices/batch/logs', params)
     return res?.result ?? res
   },
+
+  /** 提交建议核价单（后端 POST /admin/prices/review） */
+  async submitReview(data: {
+    skuId: number
+    suggestedPrice: number
+    reason?: string
+  }): Promise<{ id: number; reviewNo: string; status: string }> {
+    const res: any = await post('/admin/prices/review', data)
+    return res?.result ?? res
+  },
+
+  /** 价格异常列表（后端 GET /admin/prices/anomalies） */
+  async listAnomalies(params?: {
+    page?: number
+    pageSize?: number
+    keyword?: string
+    anomalyType?: string
+  }): Promise<{
+    records: Array<{
+      skuId: number
+      spuId: number
+      productName: string
+      skuName: string
+      spec: string
+      barcode: string
+      costPrice: number
+      retailPrice: number
+      storePrice: number
+      miniappPrice: number
+      wholesalePrice: number
+      anomalyType: string
+      anomalyTypeLabel: string
+    }>
+    total: number
+    page: number
+    pageSize: number
+  }> {
+    const res: any = await get('/admin/prices/anomalies', params)
+    return res?.result ?? res
+  },
 }
 
 export { priceApi }

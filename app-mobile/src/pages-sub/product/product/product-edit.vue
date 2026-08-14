@@ -260,7 +260,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { consumeLibraryFillData, scanForNewProduct } from '@/native/scan'
-import { productsApi, type CategoryInfo } from '@/api/modules/products'
+import { productsApi, createProduct, uploadImage, type CategoryInfo } from '@/api/modules/products'
 
 const formRef = ref<any>(null)
 /** 是否命中平台商品库（控制顶部提示条） */
@@ -404,14 +404,28 @@ function onChooseCategory() {
   openCategoryPicker()
 }
 
-/**
- * 上传主图（R94-01 评估：保留「开发中」提示）
- * 后端当前无通用文件上传接口（未配置 multer/静态目录/对象存储，
- * 仅采购合同存在 fileUrl 记录式接口），故不接入 uni.uploadFile，避免假上传。
- * 待后端提供通用上传接口后，在此使用 request.ts 的 upload() 接入。
- */
+/** 上传主图：选择图片后调后端 POST /admin/products/upload-image 获取真实 URL */
 function onChooseImage() {
-  uni.showToast({ title: '图片上传开发中', icon: 'none' })
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed'],
+    sourceType: ['album', 'camera'],
+    success: async (res) => {
+      const filePath = res.tempFilePaths?.[0]
+      if (!filePath) return
+      uni.showLoading({ title: '上传中...' })
+      try {
+        const url = await uploadImage(filePath)
+        form.mainImage = url
+        uni.showToast({ title: '上传成功', icon: 'success' })
+      } catch (err: any) {
+        console.error('上传主图失败:', err)
+        uni.showToast({ title: err?.message || '上传失败', icon: 'none' })
+      } finally {
+        uni.hideLoading()
+      }
+    },
+  })
 }
 
 /** 点击条码旁扫码按钮（复用新建商品流程扫码） */
@@ -424,23 +438,53 @@ async function onScanBarcode() {
   }
 }
 
-/** 提交表单（占位，后续对接创建商品 API） */
+/** 提交表单：对接后端 POST /admin/products 创建商品 */
 async function onSubmit() {
   const ok = await validate()
   if (!ok) {
     uni.showToast({ title: '请完善必填信息', icon: 'none' })
     return
   }
-  uni.showModal({
-    title: '确认提交',
-    content: '确认创建商品？（提交功能待对接后端 API）',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '提交成功', icon: 'success' })
-        setTimeout(() => uni.navigateBack(), 800)
-      }
-    }
-  })
+  const retailPrice = Number(form.suggestedRetailPrice) || 0
+  if (retailPrice <= 0) {
+    uni.showToast({ title: '请输入建议零售价', icon: 'none' })
+    return
+  }
+  const payload = {
+    name: form.name,
+    categoryId: form.categoryId,
+    brand: form.brandName || undefined,
+    unit: form.unit || undefined,
+    specs: form.specs || undefined,
+    mainImage: form.mainImage || undefined,
+    saleChannels: ['MINIAPP', 'STORE'],
+    alcoholContent: form.alcohol ? Number(parseFloat(form.alcohol)) : undefined,
+    origin: form.origin || undefined,
+    description: form.description || undefined,
+    skus: [
+      {
+        skuName: form.skuName || form.name,
+        barcode: form.barcode || undefined,
+        volume: form.volume || undefined,
+        packaging: form.packaging || undefined,
+        baseUnit: form.baseUnit || undefined,
+        boxUnit: form.boxUnit || undefined,
+        boxRatio: Number(form.boxRatio) || 1,
+        retailPrice,
+      },
+    ],
+  }
+  uni.showLoading({ title: '提交中...' })
+  try {
+    await createProduct(payload)
+    uni.hideLoading()
+    uni.showToast({ title: '创建成功', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 800)
+  } catch (err) {
+    uni.hideLoading()
+    console.error('创建商品失败:', err)
+    uni.showToast({ title: '创建失败，请稍后重试', icon: 'none' })
+  }
 }
 
 onMounted(() => {

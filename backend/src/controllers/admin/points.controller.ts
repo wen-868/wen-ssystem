@@ -1,6 +1,7 @@
 ﻿import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as pointsService from "../../services/admin/points.service";
+import { z } from "zod";
 
 export const listPointsRules = asyncHandler(async (req, res) => { res.json(ok(await pointsService.listPointsRules(req.tenantId!))); });
 export const createPointsRule = asyncHandler(async (req, res) => {
@@ -23,10 +24,21 @@ export const getCustomerPointsRecords = asyncHandler(async (req, res) => {
 });
 export const listLevelConfigs = asyncHandler(async (req, res) => { res.json(ok(await pointsService.listLevelConfigs(req.tenantId!))); });
 export const createLevelConfig = asyncHandler(async (req, res) => {
-  const { levelName, minPoints, maxPoints, discountRate, benefits } = req.body;
-  res.json(ok(await pointsService.createLevelConfig({ levelName, minPoints, maxPoints, discountRate, benefits, tenantId: req.tenantId! })));
+  const { levelName, minPoints, maxPoints, discountRate, benefits, status } = req.body;
+  res.json(ok(await pointsService.createLevelConfig({ levelName, minPoints, maxPoints, discountRate, benefits, status, tenantId: req.tenantId! })));
 });
 export const updateLevelConfig = asyncHandler(async (req, res) => {
-  const { levelName, minPoints, maxPoints, discountRate, benefits } = req.body;
-  res.json(ok(await pointsService.updateLevelConfig(Number(req.params.id), { levelName, minPoints, maxPoints, discountRate, benefits, tenantId: req.tenantId! })));
+  const { levelName, minPoints, maxPoints, discountRate, benefits, status } = req.body;
+  res.json(ok(await pointsService.updateLevelConfig(Number(req.params.id), { levelName, minPoints, maxPoints, discountRate, benefits, status, tenantId: req.tenantId! })));
+});
+/** 启用/停用会员等级 */
+export const updateLevelConfigStatus = asyncHandler(async (req, res) => {
+  const { status } = z.object({
+    status: z.enum(["active", "disabled", "inactive"]),
+  }).parse(req.body);
+  res.json(ok(await pointsService.updateLevelConfigStatus(Number(req.params.id), status, req.tenantId!)));
+});
+/** 删除会员等级 */
+export const deleteLevelConfig = asyncHandler(async (req, res) => {
+  res.json(ok(await pointsService.deleteLevelConfig(Number(req.params.id), req.tenantId!)));
 });

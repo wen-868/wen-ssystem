@@ -11,11 +11,33 @@ export interface OperationLog {
   moduleName: string
   ip: string
   createdAt: string
+  bizNo?: string
+  beforeData?: string
+  afterData?: string
 }
 
 export interface OperationType {
   value: string
   label: string
+}
+
+/** 后端操作日志行 → 前端日志项 */
+function normalizeLog(r: any): OperationLog {
+  return {
+    id: Number(r.id),
+    operator: r.operatorName ?? r.operator ?? '',
+    operatorId: Number(r.operatorId ?? r.operator_id ?? 0),
+    operationType: r.action ?? r.operationType ?? '',
+    operationTypeName: r.action ?? r.operationTypeName ?? r.actionText ?? '',
+    content: r.remark ?? r.content ?? (r.action ? `${r.action}${r.bizNo ? ' ' + r.bizNo : ''}` : ''),
+    module: r.module ?? '',
+    moduleName: r.module ?? '',
+    ip: r.ip ?? '',
+    createdAt: r.createdAt ?? r.created_at ?? '',
+    bizNo: r.bizNo ?? r.biz_no ?? undefined,
+    beforeData: r.beforeValue !== undefined ? JSON.stringify(r.beforeValue) : (r.beforeData ?? r.before_data ?? undefined),
+    afterData: r.afterValue !== undefined ? JSON.stringify(r.afterValue) : (r.afterData ?? r.after_data ?? undefined),
+  }
 }
 
 const operationLogApi = {
@@ -32,30 +54,21 @@ const operationLogApi = {
     const raw = res?.result ?? res
     const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
     return {
-      list: rows.map((r: any) => ({
-        id: r.id,
-        operator: r.operatorName ?? r.operator ?? '',
-        operatorId: Number(r.operatorId ?? r.operator_id ?? 0),
-        operationType: r.action ?? r.operationType ?? '',
-        operationTypeName: r.action ?? r.operationTypeName ?? r.actionText ?? '',
-        content: r.remark ?? r.content ?? (r.action ? `${r.action}${r.bizNo ? ' ' + r.bizNo : ''}` : ''),
-        module: r.module ?? '',
-        moduleName: r.module ?? '',
-        ip: r.ip ?? '',
-        createdAt: r.createdAt ?? r.created_at ?? '',
-      })),
+      list: rows.map(normalizeLog),
       total: raw?.total ?? rows.length,
     }
   },
 
   async getDetail(id: number): Promise<OperationLog> {
-    // R94-03 核实：后端仅提供 /admin/operation-logs 列表与 /statistics，无单条详情，由页面降级为「开发中」提示
-    return Promise.reject(new Error('操作日志详情功能开发中（R94-03 核实：后端无详情接口）'))
+    const res: any = await get(`/admin/operation-logs/${id}`)
+    const raw = res?.result ?? res
+    return normalizeLog(raw)
   },
 
   async getTypes(): Promise<OperationType[]> {
-    // R94-03 核实：后端无操作类型接口（/admin/operation-logs/types 不存在），筛选类型由页面降级为静态枚举
-    return Promise.reject(new Error('操作类型接口开发中（R94-03 核实：后端无 /types 接口）'))
+    const res: any = await get('/admin/operation-logs/types')
+    const raw = res?.result ?? res
+    return raw?.list ?? (Array.isArray(raw) ? raw : [])
   }
 }
 

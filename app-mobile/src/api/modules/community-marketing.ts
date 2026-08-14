@@ -146,6 +146,29 @@ export interface SeckillListResult {
   records: SeckillActivity[]
 }
 
+// ==================== 参与记录（管理端） ====================
+
+export interface ParticipationRecord {
+  id: number
+  activityId: number
+  activityName: string
+  memberId?: number
+  memberName?: string
+  memberMobile?: string
+  quantity?: number
+  currentPrice?: number
+  status: string
+  statusText?: string
+  participationTime: string
+}
+
+export interface ParticipationRecordListResult {
+  total: number
+  page: number
+  pageSize: number
+  records: ParticipationRecord[]
+}
+
 // ==================== API ====================
 
 const communityMarketingApi = {
@@ -205,6 +228,38 @@ const communityMarketingApi = {
   async buySeckill(activityId: number, quantity = 1): Promise<SeckillOrderResult> {
     const res: any = await post(`/marketing/seckill/${activityId}/buy`, { quantity })
     return (res?.result ?? res) as SeckillOrderResult
+  },
+
+  // ---- 结束活动（R100-02：POST /api/marketing/*/:id/end） ----
+  async endGroupBuy(id: number): Promise<{ id: number; status: string }> {
+    const res: any = await post(`/marketing/group-buy/${id}/end`)
+    return (res?.result ?? res) as { id: number; status: string }
+  },
+
+  async endBargain(id: number): Promise<{ id: number; status: string }> {
+    const res: any = await post(`/marketing/bargain/${id}/end`)
+    return (res?.result ?? res) as { id: number; status: string }
+  },
+
+  async endSeckill(id: number): Promise<{ id: number; status: string }> {
+    const res: any = await post(`/marketing/seckill/${id}/end`)
+    return (res?.result ?? res) as { id: number; status: string }
+  },
+
+  // ---- 参与记录（R100-02：GET /api/marketing/*/:id/records） ----
+  async getGroupBuyRecords(activityId: number, params?: { page?: number; pageSize?: number }): Promise<ParticipationRecordListResult> {
+    const res: any = await get(`/marketing/group-buy/${activityId}/records`, { page: 1, pageSize: 20, ...params })
+    return (res?.result ?? res) as ParticipationRecordListResult
+  },
+
+  async getBargainRecords(activityId: number, params?: { page?: number; pageSize?: number }): Promise<ParticipationRecordListResult> {
+    const res: any = await get(`/marketing/bargain/${activityId}/records`, { page: 1, pageSize: 20, ...params })
+    return (res?.result ?? res) as ParticipationRecordListResult
+  },
+
+  async getSeckillRecords(activityId: number, params?: { page?: number; pageSize?: number }): Promise<ParticipationRecordListResult> {
+    const res: any = await get(`/marketing/seckill/${activityId}/records`, { page: 1, pageSize: 20, ...params })
+    return (res?.result ?? res) as ParticipationRecordListResult
   },
 }
 

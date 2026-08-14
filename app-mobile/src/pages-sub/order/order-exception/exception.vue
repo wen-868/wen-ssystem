@@ -36,7 +36,7 @@
     </view>
 
     <!-- 异常订单列表 -->
-    <scroll-view class="exception-list" scroll-y v-if="list.length > 0">
+    <scroll-view class="exception-list" scroll-y v-if="list.length > 0" @scrolltolower="onLoadMore">
       <view class="exception-card" v-for="item in list" :key="item.exceptionNo">
         <view class="card-header">
           <view class="header-left">
@@ -72,9 +72,9 @@
       </view>
     </scroll-view>
 
-    <view class="empty-state" v-else>
+    <view class="empty-state" v-else-if="!loading">
       <text class="empty-icon">&#xe631;</text>
-      <text class="empty-text">{{ devNote || '暂无异常订单' }}</text>
+      <text class="empty-text">暂无异常订单</text>
     </view>
 
     <view class="safe-bottom"></view>
@@ -103,12 +103,20 @@ const tabs = [
 const activeTab = ref('')
 const list = ref<any[]>([])
 const loading = ref(false)
-// R94-03 核实：后端无订单异常模块，页面降级为「开发中」占位，不编造数据
-const devNote = ref('')
+const page = ref(1)
+const pageSize = 20
+const noMore = ref(false)
+/** tab → 后端异常类型（空=全部） */
+const TYPE_MAP: Record<string, string> = {
+  timeout: 'TIMEOUT',
+  stockout: 'STOCKOUT',
+  logistics: 'LOGISTICS',
+  other: 'OTHER',
+}
 
-function onSearch() { loadExceptions() }
-function clearSearch() { searchForm.keyword = ''; loadExceptions() }
-function switchTab(val: string) { activeTab.value = val; loadExceptions() }
+function onSearch() { page.value = 1; loadExceptions() }
+function clearSearch() { searchForm.keyword = ''; page.value = 1; loadExceptions() }
+function switchTab(val: string) { activeTab.value = val; page.value = 1; loadExceptions() }
 
 async function handleException(item: any) {
   uni.showModal({
@@ -117,7 +125,7 @@ async function handleException(item: any) {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await exceptionApi.handle(item.id, '已处理')
+          await exceptionApi.handle(item.id, '已处理', 'RESOLVED')
           uni.showToast({ title: '已处理', icon: 'success' })
           loadExceptions()
         } catch (err) {
@@ -136,7 +144,7 @@ function ignoreException(item: any) {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await exceptionApi.handle(item.id, '已忽略')
+          await exceptionApi.handle(item.id, '已忽略', 'CLOSED')
           uni.showToast({ title: '已忽略', icon: 'success' })
           loadExceptions()
         } catch (err) {
@@ -149,11 +157,23 @@ function ignoreException(item: any) {
 }
 
 async function loadExceptions() {
+  if (loading.value) return
   loading.value = true
   try {
-    // R94-03：后端无订单异常模块，不发起请求，直接展示占位
-    devNote.value = '该功能开发中（后端无订单异常模块）'
-    list.value = []
+    const result = await exceptionApi.getList({
+      keyword: searchForm.keyword || undefined,
+      status: activeTab.value || undefined,
+      exceptionType: activeTab.value ? TYPE_MAP[activeTab.value] : undefined,
+      page: page.value,
+      pageSize,
+    })
+    const rows = result.records || []
+    if (page.value === 1) {
+      list.value = rows
+    } else {
+      list.value = [...list.value, ...rows]
+    }
+    noMore.value = rows.length < pageSize
   } catch (err) {
     console.error('加载异常订单失败:', err)
     list.value = []
@@ -163,6 +183,13 @@ async function loadExceptions() {
 }
 
 onMounted(() => { loadExceptions() })
+
+/** 触底加载更多 */
+function onLoadMore() {
+  if (loading.value || noMore.value) return
+  page.value += 1
+  loadExceptions()
+}
 </script>
 
 <style lang="scss" scoped>
@@ -214,7 +241,7 @@ onMounted(() => { loadExceptions() })
 .tab-item--active { background: $uni-color-error; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.exception-list { padding: 16rpx 24rpx; }
+.exception-list { padding: 16rpx 24rpx; height: calc(100vh - 340rpx); }
 .exception-card {
   background: $uni-bg-color;
   border-radius: 16rpx;

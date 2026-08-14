@@ -109,6 +109,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import VirtualList from '@/components/virtual-list.vue'
+import { salesApi } from '@/api/modules/sales'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -119,10 +120,10 @@ const { errors, validate, clearError } = useFormValidation(searchForm, searchRul
 
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待审核', value: 'pending' },
-  { label: '已审核', value: 'approved' },
-  { label: '已完成', value: 'completed' },
-  { label: '已作废', value: 'voided' },
+  { label: '未收款', value: 'UNPAID' },
+  { label: '部分收款', value: 'PARTIAL' },
+  { label: '已收款', value: 'PAID' },
+  { label: '已逾期', value: 'OVERDUE' },
 ]
 const activeTab = ref('')
 const list = ref<any[]>([])
@@ -168,22 +169,29 @@ async function loadBills() {
   if (loading.value) return
   loading.value = true
   try {
-    // 占位实现：保持原有逻辑，待后端 API 接入后替换为真实数据
-    // 接入示例：
-    // const result = await salesApi.list({
-    //   keyword: searchForm.keyword || undefined,
-    //   status: activeTab.value || undefined,
-    //   page: page.value,
-    //   pageSize
-    // })
-    // if (page.value === 1) {
-    //   list.value = result.list || []
-    // } else {
-    //   list.value = [...list.value, ...(result.list || [])]
-    // }
-    // noMore.value = !result.list || result.list.length < pageSize
-    list.value = []
-    noMore.value = true
+    const result = await salesApi.list({
+      keyword: searchForm.keyword || undefined,
+      status: activeTab.value || undefined,
+      page: page.value,
+      pageSize,
+    })
+    const rows: any[] = result.list || []
+    const mapped = rows.map((r) => ({
+      billNo: r.billNo,
+      customerName: r.customerName || '散客',
+      itemCount: Number(r.itemCount ?? r.item_count ?? 0),
+      totalAmount: Number(r.receivableAmount ?? r.receivable_amount ?? 0),
+      paymentMethod: mapPaymentMethod(r.paymentMethod, r.collectionStatus),
+      saleDate: formatDate(r.createdAt),
+      status: (r.collectionStatus ?? '').toLowerCase(),
+      statusLabel: mapStatusLabel(r.collectionStatus),
+    }))
+    if (page.value === 1) {
+      list.value = mapped
+    } else {
+      list.value = [...list.value, ...mapped]
+    }
+    noMore.value = mapped.length < pageSize
   } catch (err) {
     console.error('加载销售单失败:', err)
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -192,6 +200,50 @@ async function loadBills() {
     loadingMore.value = false
     refresherTriggered.value = false
   }
+}
+
+/** 收款状态 → 中文标签 */
+function mapStatusLabel(status?: string): string {
+  const map: Record<string, string> = {
+    UNPAID: '未收款',
+    PENDING: '待支付',
+    SHARED: '分享中',
+    PARTIAL: '部分收款',
+    PAID: '已收款',
+    OVERDUE: '已逾期',
+    CLOSED: '已关闭',
+  }
+  return map[status ?? ''] ?? status ?? ''
+}
+
+/** 支付渠道 → 中文展示（无成功支付记录时按收款状态展示） */
+function mapPaymentMethod(channel?: string, collectionStatus?: string): string {
+  const map: Record<string, string> = {
+    WECHAT: '微信支付',
+    ALIPAY: '支付宝',
+    CASH: '现金',
+    TRANSFER: '银行转账',
+    OTHER_WECHAT: '微信转账',
+    BALANCE: '余额',
+    BOX: '收款盒子',
+    UNIONPAY: '云闪付',
+  }
+  if (channel && map[channel]) return map[channel]
+  if (channel) return channel
+  return mapStatusLabel(collectionStatus)
+}
+
+/** 时间格式化：yyyy-MM-dd HH:mm */
+function formatDate(value?: string | Date): string {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return String(value)
+  const y = d.getFullYear()
+  const m = `${d.getMonth() + 1}`.padStart(2, '0')
+  const day = `${d.getDate()}`.padStart(2, '0')
+  const h = `${d.getHours()}`.padStart(2, '0')
+  const min = `${d.getMinutes()}`.padStart(2, '0')
+  return `${y}-${m}-${day} ${h}:${min}`
 }
 
 function onLoadMore() {
@@ -269,14 +321,20 @@ onMounted(() => {
 }
 .bill-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .bill-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
+.status-unpaid { background: $uni-color-warning-soft; }
+.status-unpaid .status-text { color: $uni-color-warning; }
 .status-pending { background: $uni-color-warning-soft; }
 .status-pending .status-text { color: $uni-color-warning; }
-.status-approved { background: $uni-color-primary-soft; }
-.status-approved .status-text { color: $uni-color-primary; }
-.status-completed { background: $uni-color-success-soft; }
-.status-completed .status-text { color: $uni-color-success; }
-.status-voided { background: $uni-color-error-soft; }
-.status-voided .status-text { color: $uni-color-error; }
+.status-shared { background: $uni-color-primary-soft; }
+.status-shared .status-text { color: $uni-color-primary; }
+.status-partial { background: $uni-color-primary-soft; }
+.status-partial .status-text { color: $uni-color-primary; }
+.status-paid { background: $uni-color-success-soft; }
+.status-paid .status-text { color: $uni-color-success; }
+.status-overdue { background: $uni-color-error-soft; }
+.status-overdue .status-text { color: $uni-color-error; }
+.status-closed { background: $uni-bg-color-page; }
+.status-closed .status-text { color: $uni-gray-400; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }

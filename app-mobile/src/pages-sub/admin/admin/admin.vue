@@ -99,6 +99,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { employeeApi, type Employee } from '@/api/modules/employees'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -107,7 +108,8 @@ const searchRules: Rules = {
 }
 const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
 
-const employeeList = ref<any[]>([])
+const employeeList = ref<Employee[]>([])
+const loading = ref(false)
 
 function onSearch() { loadEmployees() }
 function clearSearch() { searchForm.keyword = ''; loadEmployees() }
@@ -121,9 +123,16 @@ function goTo(page: string) {
     uni.navigateTo({ url: '/pages-sub/admin/stores/stores' })
   } else if (page === 'logs') {
     uni.navigateTo({ url: '/pages-sub/admin/system/operation-logs' })
+  } else if (page === 'settings') {
+    uni.navigateTo({ url: '/pages-sub/settings/settings?tab=company' })
+  } else if (page === 'basic') {
+    uni.navigateTo({ url: '/pages-sub/settings/settings?tab=basic' })
+  } else if (page === 'notification') {
+    uni.navigateTo({ url: '/pages-sub/settings/settings?tab=notification' })
+  } else if (page === 'about') {
+    uni.navigateTo({ url: '/pages-sub/settings/settings?tab=about' })
   } else {
-    // 系统设置/基本设置/通知设置/关于系统暂无独立页面，按项目标准提示开发中
-    uni.showToast({ title: '该功能开发中', icon: 'none' })
+    uni.showToast({ title: '暂不支持', icon: 'none' })
   }
 }
 function goAddEmployee() {
@@ -131,10 +140,23 @@ function goAddEmployee() {
 }
 
 async function loadEmployees() {
+  if (loading.value) return
+  loading.value = true
   try {
-    employeeList.value = []
+    const result = await employeeApi.getEmployees({
+      keyword: searchForm.keyword || undefined,
+      page: 1,
+      pageSize: 20,
+    })
+    employeeList.value = (result.records || []).map((item) => ({
+      ...item,
+      statusLabel: item.status === 'active' ? '在职' : '停用',
+    }))
   } catch (err) {
     console.error('加载员工列表失败:', err)
+    uni.showToast({ title: '员工加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 }
 

@@ -5,6 +5,7 @@ import { requirePriceManagementAccess, requirePriceChangeLogAccess } from "../mi
 import * as priceLevelController from "../controllers/admin/price-level.controller";
 import * as priceManagementController from "../controllers/admin/price-management.controller";
 import * as batchPriceController from "../controllers/admin/batch-price.controller";
+import * as priceReviewController from "../controllers/admin/price-review.controller";
 
 export const priceRouter = Router();
 
@@ -38,6 +39,10 @@ priceRouter.post("/batch/preview", requirePriceManagementAccess(), batchPriceCon
 priceRouter.post("/batch/execute", requirePriceManagementAccess(), batchPriceController.executeBatchAdjustment);
 priceRouter.get("/batch/logs", requirePriceChangeLogAccess(), batchPriceController.listBatchLogs);
 priceRouter.get("/batch/:batchNo", requirePriceChangeLogAccess(), batchPriceController.getBatchDetail);
+
+// 建议核价 / 价格异常 - 仅管理员/店长可操作
+priceRouter.post("/review", requirePriceManagementAccess(), priceReviewController.submitPriceReview);
+priceRouter.get("/anomalies", requirePriceManagementAccess(), priceReviewController.listPriceAnomalies);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/prices",

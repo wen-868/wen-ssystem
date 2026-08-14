@@ -426,7 +426,7 @@ function formatDetailItem(item: unknown): string {
   return JSON.stringify(item)
 }
 
-// ====================== 语音输入（骨架，TODO 对接语音转文字） ======================
+// ====================== 语音输入（H5 Web Speech / APP 原生识别，真实对接） ======================
 
 const recording = ref(false)
 const recordingTime = ref(0)
@@ -593,13 +593,10 @@ function stopNativeRecording(): void {
 }
 
 /**
- * 录音完成回调（骨架实现）
- *
- * R94-01 评估：保留「开发中」提示
- *   - H5：data 为 base64 DataURL（audio/webm）
- *   - 小程序/App：data 为录音文件临时路径 tempFilePath
- *   - 后端 AI 底座当前无语音转写（ASR）接口（已核实，不编造），
- *     待接口就绪后在此上传录音数据，取回识别文本填入 inputText
+ * 录音完成回调
+ *   - H5：data 为 base64 DataURL（audio/webm），语音识别由 Web SpeechRecognition 实时完成
+ *   - 小程序/App：data 为录音文件临时路径 tempFilePath，语音识别由 plus.speech 完成
+ *   识别文本已实时填入 inputText，此处仅兜底提示未识别情况
  */
 function handleRecordComplete(data: string) {
   // 录音数据回调：语音识别已在录音过程中进行（H5 Web Speech / APP 原生识别），

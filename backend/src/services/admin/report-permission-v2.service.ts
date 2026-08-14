@@ -74,6 +74,24 @@ export interface UserReportPermission {
   storeIds?: number[] | null;
 }
 
+/** 批量设置报表权限参数 */
+export interface BatchSetPermissionParams {
+  roleIds: number[];
+  reportCodes: string[];
+  canView: boolean;
+  canExport: boolean;
+}
+
+/** 安全解析 JSON（解析失败时原样返回字符串） */
+function safeParseJson(value: string | null): unknown {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
 // ========== 1. 权限矩阵 ==========
 
 // 获取权限矩阵
@@ -405,4 +423,79 @@ export async function getAuditLogs(params: AuditLogQueryParams) {
   );
 
   return { total: totalRow?.total ?? 0, page, pageSize, records };
+}
+
+// ========== 6. 批量设置权限 / 审计日志详情 ==========
+
+/**
+ * 批量设置报表权限（多角色 × 多报表，已存在则更新，不存在则新增，保留门店范围）
+ */
+export async function batchSetPermissions(
+  tenantId: string,
+  params: BatchSetPermissionParams,
+  operatorInfo: { operatorId: number; operatorName?: string }
+) {
+  const { roleIds, reportCodes, canView, canExport } = params;
+  const { operatorId, operatorName } = operatorInfo;
+
+  if (roleIds.length === 0 || reportCodes.length === 0) {
+    return { success: true, count: 0 };
+  }
+
+  let applied = 0;
+  await transaction(async (conn) => {
+    for (const roleId of roleIds) {
+      for (const reportCode of reportCodes) {
+        // 唯一键 uk_role_report(role_id, report_code)：已存在则更新查看/导出权限，保留 store_scope/store_ids
+        await conn.execute(
+          `INSERT INTO t_report_permission_matrix (
+            role_id, report_code, store_scope, can_view, can_export, tenant_id
+          ) VALUES (?, ?, 'SELF', ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             can_view = VALUES(can_view),
+             can_export = VALUES(can_export),
+             tenant_id = VALUES(tenant_id)`,
+          [roleId, reportCode, canView ? 1 : 0, canExport ? 1 : 0, tenantId]
+        );
+        applied += 1;
+      }
+    }
+
+    // 记录审计日志
+    await conn.execute(
+      `INSERT INTO t_report_permission_audit_log (
+        operator_id, operator_name, action, target_type, target_id,
+        before_value, after_value, remark, tenant_id
+      ) VALUES (?, ?, 'BATCH_UPDATE', 'ROLE', 0, ?, ?, '批量设置报表权限', ?)`,
+      [
+        operatorId ?? null,
+        operatorName ?? null,
+        JSON.stringify({ total: 0 }),
+        JSON.stringify({ total: applied }),
+        tenantId,
+      ]
+    );
+  });
+
+  return { success: true, count: applied };
+}
+
+/** 权限审计日志详情 */
+export async function getAuditLogDetail(id: number, tenantId: string) {
+  const row = await queryOneWithTenant<AuditLogRow>(
+    `SELECT id, operator_id AS operatorId, operator_name AS operatorName,
+            action, target_type AS targetType, target_id AS targetId, target_name AS targetName,
+            report_code AS reportCode, before_value AS beforeValue, after_value AS afterValue,
+            remark, created_at AS createdAt
+     FROM t_report_permission_audit_log
+     WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId],
+    tenantId
+  );
+  if (!row) return null;
+  return {
+    ...row,
+    beforeValue: safeParseJson(row.beforeValue),
+    afterValue: safeParseJson(row.afterValue),
+  };
 }

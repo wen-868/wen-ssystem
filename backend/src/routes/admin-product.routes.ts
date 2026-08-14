@@ -1,8 +1,10 @@
 import { Router } from "express";
+import multer from "multer";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import { priceResponseFilter } from "../middleware/price-guard";
 import * as productController from "../controllers/admin/product.controller";
+import { uploadProductImage } from "../controllers/admin/product-image.controller";
 import * as stockWarningController from "../controllers/admin/stock-warning.controller";
 import * as categoryController from "../controllers/admin/category.controller";
 
@@ -10,10 +12,23 @@ export const adminProductRouter = Router();
 
 adminProductRouter.use(priceResponseFilter());
 
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(file.originalname || "")) {
+      cb(null, true);
+    } else {
+      cb(Object.assign(new Error("请上传 jpg/png/gif/webp 图片"), { statusCode: 400 }));
+    }
+  },
+});
+
 // ============ 商品管理 ============
 // 注意：/products/categories 必须在 /products/:spuId 之前注册，否则 "categories" 会被当作 spuId 参数
 adminProductRouter.get("/products/categories", categoryController.listCategories);
 adminProductRouter.get("/products", productController.listProducts);
+adminProductRouter.post("/products/upload-image", upload.single("image"), uploadProductImage);
 adminProductRouter.get("/products/:spuId(\\d+)", productController.getProductDetail);
 adminProductRouter.post("/products", productController.createProduct);
 adminProductRouter.put("/products/:id/status", productController.updateProductStatus);

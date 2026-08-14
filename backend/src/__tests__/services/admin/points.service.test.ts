@@ -28,6 +28,8 @@ import {
   listLevelConfigs,
   createLevelConfig,
   updateLevelConfig,
+  updateLevelConfigStatus,
+  deleteLevelConfig,
   checkLevelUpgrade,
 } from "../../../services/admin/points.service";
 
@@ -167,5 +169,61 @@ describe("points.service - checkLevelUpgrade", () => {
     const res = await checkLevelUpgrade(1, "t1");
     expect(res).toEqual({ customerId: 1, oldLevel: "NONE", newLevel: "VIP2" });
     expect(String(mocks.queryWithTenant.mock.calls[1][0])).toContain("INSERT INTO t_customer_level");
+  });
+});
+
+describe("points.service - 会员等级删除/启停（R100-02）", () => {
+  it("updateLevelConfigStatus 正常启用", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ id: 1 });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+    const res = await updateLevelConfigStatus(1, "active", "t1");
+    expect(res).toEqual({ id: 1, status: "active" });
+    const sql = String(mocks.queryWithTenant.mock.calls[0][0]);
+    expect(sql).toContain("UPDATE t_level_config SET status = ?");
+    expect(mocks.queryWithTenant.mock.calls[0][1]).toEqual(["active", 1, "t1"]);
+  });
+
+  it("updateLevelConfigStatus 停用时归一化为 disabled", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ id: 2 });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+    const res = await updateLevelConfigStatus(2, "inactive", "t1");
+    expect(res.status).toBe("disabled");
+  });
+
+  it("updateLevelConfigStatus 等级不存在时抛 404", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue(null);
+    await expect(updateLevelConfigStatus(99, "active", "t1")).rejects.toMatchObject({
+      message: "会员等级不存在",
+      statusCode: 404,
+    });
+  });
+
+  it("deleteLevelConfig 正常删除并返回结果", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue({ id: 1 });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+    const res = await deleteLevelConfig(1, "t1");
+    expect(res).toEqual({ id: 1, deleted: true });
+    expect(String(mocks.queryWithTenant.mock.calls[0][0])).toContain("DELETE FROM t_level_config");
+  });
+
+  it("deleteLevelConfig 等级不存在时抛 404", async () => {
+    mocks.queryOneWithTenant.mockResolvedValue(null);
+    await expect(deleteLevelConfig(99, "t1")).rejects.toMatchObject({
+      message: "会员等级不存在",
+      statusCode: 404,
+    });
+  });
+
+  it("listLevelConfigs 查询包含 status 字段", async () => {
+    mocks.queryWithTenant.mockResolvedValue([{ id: 1, status: "active" }]);
+    await listLevelConfigs("t1");
+    expect(String(mocks.queryWithTenant.mock.calls[0][0])).toContain("status");
+  });
+
+  it("checkLevelUpgrade 只匹配启用状态等级", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ total_points: 200 });
+    mocks.queryWithTenant.mockResolvedValueOnce([]);
+    await checkLevelUpgrade(1, "t1");
+    expect(String(mocks.queryWithTenant.mock.calls[0][0])).toContain("status = 'active'");
   });
 });

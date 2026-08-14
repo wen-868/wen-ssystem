@@ -5,7 +5,7 @@ interface ReportExportRow {
   [key: string]: unknown;
 }
 
-type ReportType = "sales" | "collection" | "product" | "customer" | "inventory" | "purchase" | "finance" | "staff" | "dashboard";
+type ReportType = "sales" | "collection" | "product" | "customer" | "inventory" | "purchase" | "finance" | "staff" | "dashboard" | "loss_gain";
 type ExportFormat = "excel" | "csv";
 
 interface ExportRequest {
@@ -151,6 +151,29 @@ const reportQueries: Record<ReportType, (filters: Record<string, any>, tenantId:
             FROM t_sale_bill WHERE tenant_id = ? AND business_status = 'CREATED'
             GROUP BY DATE(created_at) ORDER BY date DESC`,
       params: [tenantId],
+    };
+  },
+  loss_gain: (filters, tenantId) => {
+    const conditions = ["lg.tenant_id = ?"];
+    const params: unknown[] = [tenantId];
+    if (filters.startDate) { conditions.push("lg.created_at >= ?"); params.push(filters.startDate); }
+    if (filters.endDate) { conditions.push("lg.created_at <= ?"); params.push(filters.endDate); }
+    if (filters.type) { conditions.push("lg.type = ?"); params.push(filters.type); }
+    if (filters.storeId) { conditions.push("lg.store_id = ?"); params.push(filters.storeId); }
+    return {
+      sql: `SELECT lg.lg_no AS orderNo, st.name AS storeName,
+                   CASE lg.type WHEN 'LOSS' THEN '报损' ELSE '报溢' END AS type,
+                   ps.sku_name AS skuName, lg.qty AS qty,
+                   lg.cost_price AS costPrice, lg.amount AS amount,
+                   COALESCE(lg.reason, '') AS reason,
+                   CASE lg.status WHEN 'PENDING' THEN '待审核' WHEN 'APPROVED' THEN '已通过' WHEN 'REJECTED' THEN '已驳回' ELSE lg.status END AS status,
+                   lg.created_at AS createdAt
+            FROM t_inventory_loss_gain lg
+            LEFT JOIN t_store st ON st.id = lg.store_id
+            LEFT JOIN t_product_sku ps ON ps.id = lg.sku_id
+            WHERE ${conditions.join(" AND ")}
+            ORDER BY lg.created_at DESC`,
+      params,
     };
   },
 };

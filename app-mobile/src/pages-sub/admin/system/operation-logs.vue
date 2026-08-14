@@ -108,7 +108,7 @@ async function loadLogs() {
   try {
     const res = await operationLogApi.list({
       page: page.value,
-      pageSize: page.value,
+      pageSize: pageSize.value,
       startTime: startDate.value || undefined,
       endTime: endDate.value || undefined,
       operationType: typeFilter.value || undefined,
@@ -151,20 +151,16 @@ function loadMore() {
 }
 
 function goDetail(id: number) {
-  // R94-03 核实：后端操作日志仅提供列表与统计，无单条详情接口，降级为提示
-  uni.showToast({ title: '日志详情开发中（后端无详情接口）', icon: 'none' })
+  uni.navigateTo({ url: `/pages-sub/admin/system/operation-log-detail?id=${id}` })
 }
 
 async function loadTypes() {
-  // R94-03 核实：后端无 /admin/operation-logs/types 接口，使用静态操作类型枚举作为筛选选项
-  operationTypes.value = [
-    { value: 'CREATE', label: '创建' },
-    { value: 'UPDATE', label: '修改' },
-    { value: 'DELETE', label: '删除' },
-    { value: 'APPROVE', label: '审核' },
-    { value: 'LOGIN', label: '登录' },
-    { value: 'EXPORT', label: '导出' },
-  ]
+  try {
+    operationTypes.value = await operationLogApi.getTypes()
+  } catch (err) {
+    console.error('加载操作类型失败:', err)
+    operationTypes.value = []
+  }
 }
 
 onMounted(() => {

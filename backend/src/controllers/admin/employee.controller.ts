@@ -51,6 +51,12 @@ export const setStaffStatus = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+/** 员工复职（离职员工置回启用状态） */
+export const restoreStaff = asyncHandler(async (req, res) => {
+  const result = await employeeService.setStaffStatus(Number(req.params.id), 1, req.user!.tenantId);
+  res.json(ok(result));
+});
+
 export const listStores = asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const pageSize = Number(req.query.pageSize || 20);

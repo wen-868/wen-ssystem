@@ -107,7 +107,8 @@ function formatTime(time: string): string {
 
 function goRecords(id: number) {
   uni.navigateTo({
-    url: `/pages-sub/marketing/marketing/participation-records?activityId=${id}`
+    // R100-02：满减活动暂无参与记录数据源，页面按 type=full_reduction 展示空态
+    url: `/pages-sub/marketing/marketing/participation-records?activityId=${id}&type=full_reduction`
   })
 }
 

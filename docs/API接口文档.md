@@ -175,7 +175,7 @@
 | P38 | `GET /api/platform/subscription-applies/:id` | 订阅申请详情（R98-01） | — | 同 P37 单条记录 | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
 | P39 | `PUT /api/platform/subscription-applies/:id/audit` | 订阅申请审核（R98-01，需 x-csrf-token） | action:"APPROVED"\|"REJECTED"✅, auditRemark?:string | 更新后记录（status/auditRemark/auditedAt） | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/api/subscription-apply.ts |
 
-### 三、STORE 端点（16 个，/api/store/*）
+### 三、STORE 端点（18 个，/api/store/*）
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
@@ -195,6 +195,8 @@
 | S14 | `GET /api/store/pending-bills` | 挂单列表（门店） | — | [{billNo, tempSaveData, clerkId, createdAt}] | hold-bill.routes.ts + service | store-terminal CashierDesk.vue hold tray |
 | S15 | `POST /api/store/pending-bills` | 挂单保存 | billNo, tempSaveData✅ | billNo | hold-bill.routes.ts | CashierDesk.vue hold |
 | S16 | `GET /api/store/dashboard` | 门店看板 | ?granularity=day&days=7 | {todaySales,todayOrders,currentCustomers,weekTrend[],top5[],inventoryWarning} | store-dashboard.routes.ts + dashboard for store | store-terminal Dashboard.vue |
+| S17 | `GET /api/store/coupons` | 门店优惠券列表（分页） | ?page&pageSize&status&keyword | {total,page,pageSize,records:[{id,name,type,value,minAmount,applicableScope,totalCount,claimedCount,usedCount,startTime,endTime,status}]} | store-coupon.routes.ts + marketing-coupon.service.ts | app-mobile store.ts fetchCoupons |
+| S18 | `GET /api/store/coupons/:id` | 门店优惠券详情 | — | {id,name,type,value,minAmount,applicableScope,totalCount,claimedCount,usedCount,startTime,endTime,status,description} | store-coupon.routes.ts + marketing-coupon.service.ts | app-mobile store.ts fetchCouponDetail |
 
 > **契约对齐约定**：后端改字段/加路径 → 先在上方表新增行，再改代码；前端加请求 → 先查表，表中不存在的端点必须提 Issue 让凌舟派单补契约，不允许自行开发。
 
@@ -447,6 +449,40 @@
 - **描述**: 查询客户的采购统计
 - **认证**: 需要认证
 - **Query参数**: memberId
+
+#### 会员等级管理（积分等级配置，R100-02 补齐）
+
+##### GET /api/admin/members/levels/config
+- **描述**: 会员等级配置列表（含 status：active/disabled）
+- **认证**: 需要认证
+- **响应**: `[{ id, levelName, minPoints, maxPoints, discountRate, benefits, status }]`
+- **后端文件**: backend/src/routes/points.routes.ts + services/admin/points.service.ts
+- **前端文件**: app-mobile member-levels.ts / admin-web customer.ts
+
+##### POST /api/admin/members/levels/config
+- **描述**: 创建会员等级
+- **认证**: 需要认证
+- **请求体**: `{ levelName✅, minPoints✅, maxPoints✅, discountRate✅, benefits?, status?（默认 active） }`
+
+##### PUT /api/admin/members/levels/config/:id
+- **描述**: 更新会员等级（含 status）
+- **认证**: 需要认证
+- **请求体**: `{ levelName?, minPoints?, maxPoints?, discountRate?, benefits?, status? }`
+
+##### PUT /api/admin/members/levels/config/:id/status
+- **描述**: 启用/停用会员等级（R100-02 新增）
+- **认证**: 需要认证
+- **请求体**: `{ status✅: "active" | "disabled" | "inactive" }`
+- **响应**: `{ id, status }`
+- **后端文件**: backend/src/routes/points.routes.ts + services/admin/points.service.ts（updateLevelConfigStatus）
+- **前端文件**: app-mobile member-levels.ts toggleStatus / member-levels.vue
+
+##### DELETE /api/admin/members/levels/config/:id
+- **描述**: 删除会员等级（R100-02 新增）
+- **认证**: 需要认证
+- **响应**: `{ id, deleted: true }`；不存在返回 404「会员等级不存在」
+- **后端文件**: backend/src/routes/points.routes.ts + services/admin/points.service.ts（deleteLevelConfig）
+- **前端文件**: app-mobile member-levels.ts delete / member-levels.vue；admin-web customer.ts deleteLevelConfig
 
 ---
 
@@ -1282,6 +1318,47 @@
 - **认证**: 需要认证
 - **请求体**: { items: [{ skuId, quantity, price }], coupons: [], customerId }
 
+#### 社群营销（拼团/砍价/秒杀，R100-02 补齐结束/参与记录）
+
+> 端点前缀 `/api/marketing/*`，认证：requireAuthWithTenant。管理端（移动端营销中心）与 C 端共用一套活动数据。
+
+##### POST /api/marketing/group-buy/:id/end
+- **描述**: 结束拼团活动（仅 ACTIVE 可结束，置 ENDED）（R100-02 新增）
+- **认证**: 需要认证
+- **响应**: `{ id, status: "ENDED" }`；不存在返回 404「拼团活动不存在」
+- **后端文件**: backend/src/routes/community-marketing.routes.ts + services/marketing/community-marketing.service.ts
+- **前端文件**: app-mobile community-marketing.ts endGroupBuy / marketing-activities.ts end
+
+##### GET /api/marketing/group-buy/:id/records
+- **描述**: 拼团参与记录（分页）（R100-02 新增）
+- **认证**: 需要认证
+- **Query参数**: page, pageSize
+- **响应**: `{ total, page, pageSize, records: [{ id, activityId, activityName, memberId, memberName, memberMobile, quantity, teamStatus, participationTime }] }`
+- **后端文件**: backend/src/routes/community-marketing.routes.ts + services/marketing/community-marketing.service.ts
+- **前端文件**: app-mobile community-marketing.ts getGroupBuyRecords / participation-records.vue
+
+##### POST /api/marketing/bargain/:id/end
+- **描述**: 结束砍价活动（仅 ACTIVE 可结束，置 ENDED）（R100-02 新增）
+- **认证**: 需要认证
+- **响应**: `{ id, status: "ENDED" }`；不存在返回 404「砍价活动不存在」
+
+##### GET /api/marketing/bargain/:id/records
+- **描述**: 砍价参与记录（分页）（R100-02 新增）
+- **认证**: 需要认证
+- **Query参数**: page, pageSize
+- **响应**: `{ total, page, pageSize, records: [{ id, activityId, activityName, memberId, memberName, memberMobile, currentPrice, status, participationTime }] }`
+
+##### POST /api/marketing/seckill/:id/end
+- **描述**: 结束秒杀活动（仅 ACTIVE 可结束，置 ENDED）（R100-02 新增）
+- **认证**: 需要认证
+- **响应**: `{ id, status: "ENDED" }`；不存在返回 404「秒杀活动不存在」
+
+##### GET /api/marketing/seckill/:id/records
+- **描述**: 秒杀参与记录（分页）（R100-02 新增）
+- **认证**: 需要认证
+- **Query参数**: page, pageSize
+- **响应**: `{ total: 0, page, pageSize, records: [] }`（当前秒杀下单未落参与记录表，无数据源，返回空分页，不编造数据）
+
 ---
 
 ### 追溯管理
@@ -1709,6 +1786,90 @@
 - **描述**: 手动发送通知
 - **认证**: 需要认证
 - **请求体**: recipientId, recipientType, title, content, type, relatedId, relatedType
+
+#### GET /api/admin/notifications/:id
+- **描述**: 获取单条通知详情
+- **认证**: 需要认证
+- **响应**: { code: "0", data: { id, recipientId, recipientType, title, content, type, relatedId, relatedType, isRead, sentAt, readAt, createdAt } }
+- **后端文件**: backend/src/routes/notification.routes.ts + controllers/admin/notification.controller.ts + services/admin/notification.service.ts
+- **前端文件**: app-mobile/src/api/modules/notifications.ts
+
+#### DELETE /api/admin/notifications/:id
+- **描述**: 删除单条通知
+- **认证**: 需要认证
+- **响应**: { code: "0", data: { deleted: boolean } }
+
+#### POST /api/admin/notifications/batch-delete
+- **描述**: 批量删除通知
+- **认证**: 需要认证
+- **请求体**: { ids: number[] }
+- **响应**: { code: "0", data: { deleted: number } }
+
+---
+
+### 操作日志（管理端）
+
+#### GET /api/admin/operation-logs
+- **描述**: 操作日志列表（分页 + 筛选）
+- **认证**: 需要认证
+- **Query参数**: page, pageSize, module, action, operatorName, bizNo, dateStart, dateEnd
+
+#### GET /api/admin/operation-logs/statistics
+- **描述**: 操作日志统计（今日/近7日/模块分布/动作分布）
+- **认证**: 需要认证
+
+#### GET /api/admin/operation-logs/types
+- **描述**: 操作类型枚举（供前端筛选）
+- **认证**: 需要认证
+- **响应**: { code: "0", data: { list: [{ value: "CREATE", label: "创建" }, ...] } }
+- **后端文件**: backend/src/routes/operation-log.routes.ts + controllers/admin/operation-log.controller.ts + services/admin/operation-log.service.ts
+- **前端文件**: app-mobile/src/api/modules/operation-logs.ts
+
+#### GET /api/admin/operation-logs/:id
+- **描述**: 操作日志详情（含变更前后数据）
+- **认证**: 需要认证
+- **响应**: { code: "0", data: { id, operatorId, operatorName, module, action, bizNo, targetId, targetType, beforeData, afterData, beforeValue, afterValue, ip, userAgent, remark, createdAt } }
+
+---
+
+### 报表权限（管理端）
+
+#### GET /api/admin/report-permissions/matrix
+- **描述**: 获取报表权限矩阵
+- **认证**: 需要认证
+
+#### PUT /api/admin/report-permissions/matrix
+- **描述**: 全量保存报表权限矩阵
+- **认证**: 需要认证
+
+#### GET /api/admin/report-permissions/data-scope
+- **描述**: 获取门店数据权限配置
+- **认证**: 需要认证
+
+#### PUT /api/admin/report-permissions/data-scope
+- **描述**: 更新门店数据权限配置
+- **认证**: 需要认证
+
+#### GET /api/admin/report-permissions/my
+- **描述**: 获取当前用户报表权限
+- **认证**: 需要认证
+
+#### POST /api/admin/report-permissions/batch
+- **描述**: 批量设置报表权限（多角色 × 多报表，已存在则更新，不存在则新增）
+- **认证**: 需要认证
+- **请求体**: { roleIds: number[], reportCodes: string[], canView?: boolean, canExport?: boolean }
+- **响应**: { code: "0", data: { success: true, count: number } }
+- **后端文件**: backend/src/routes/report-permissions.routes.ts + controllers/admin/report-permission-v2.controller.ts + services/admin/report-permission-v2.service.ts
+- **前端文件**: app-mobile/src/api/modules/report-permission.ts
+
+#### GET /api/admin/report-permissions/audit-logs
+- **描述**: 权限审计日志列表（分页 + 筛选）
+- **认证**: 需要认证
+
+#### GET /api/admin/report-permissions/audit-logs/:id
+- **描述**: 权限审计日志详情（含变更前后值）
+- **认证**: 需要认证
+- **响应**: { code: "0", data: { id, operatorId, operatorName, action, targetType, targetId, targetName, reportCode, beforeValue, afterValue, remark, createdAt } }
 
 ---
 

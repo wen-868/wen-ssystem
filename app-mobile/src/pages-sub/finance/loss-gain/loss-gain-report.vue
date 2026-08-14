@@ -183,6 +183,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { inventoryLossGainApi, type LossGainStatistics } from '@/api/modules/inventory-loss-gain'
+import { reportsApi } from '@/api/modules/reports'
 
 const stats = reactive<LossGainStatistics>({
   totalLossCount: 0,
@@ -260,7 +261,74 @@ async function loadStats() {
 }
 
 function onExport() {
-  uni.showToast({ title: '导出功能开发中', icon: 'none' })
+  uni.showModal({
+    title: '导出报表',
+    content: '确认导出当前期间的报损/报溢报表？',
+    success: async (res) => {
+      if (!res.confirm) return
+      uni.showLoading({ title: '导出中...' })
+      try {
+        const result = await reportsApi.exportLossGainReport()
+        if (result.format === 'csv' && typeof result.data === 'string' && result.data) {
+          saveCsv(result.data, `报损报溢报表_${formatDate(new Date())}.csv`)
+        } else {
+          uni.showToast({ title: '暂无可导出的数据', icon: 'none' })
+        }
+      } catch (err) {
+        console.error('导出报损报溢报表失败:', err)
+        uni.showToast({ title: '导出失败，请稍后重试', icon: 'none' })
+      } finally {
+        uni.hideLoading()
+      }
+    },
+  })
+}
+
+function formatDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = `${date.getMonth() + 1}`.padStart(2, '0')
+  const d = `${date.getDate()}`.padStart(2, '0')
+  return `${y}${m}${d}`
+}
+
+function saveCsv(csv: string, fileName: string) {
+  // H5 端：通过 Blob 触发浏览器下载
+  // #ifdef H5
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+  uni.showToast({ title: '导出成功', icon: 'none' })
+  // #endif
+  // APP 原生端：写入应用文档目录并提示
+  // #ifdef APP-PLUS
+  const plusObj: any = (globalThis as any).plus
+  if (plusObj?.io) {
+    plusObj.io.requestFileSystem(plusObj.io.PRIVATE_DOC, (fs: any) => {
+      fs.root.getFile(fileName, { create: true }, (entry: any) => {
+        entry.createWriter(
+          (writer: any) => {
+            writer.onwrite = () => {
+              uni.showToast({ title: '导出成功，已保存至应用文档目录', icon: 'none' })
+            }
+            writer.onerror = () => {
+              uni.showToast({ title: '导出文件保存失败', icon: 'none' })
+            }
+            writer.write(csv)
+          },
+          () => uni.showToast({ title: '导出文件保存失败', icon: 'none' })
+        )
+      }, () => uni.showToast({ title: '导出文件保存失败', icon: 'none' }))
+    }, () => uni.showToast({ title: '导出文件保存失败', icon: 'none' }))
+  } else {
+    uni.showToast({ title: '当前环境暂不支持导出', icon: 'none' })
+  }
+  // #endif
 }
 
 onMounted(() => {

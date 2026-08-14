@@ -244,6 +244,7 @@ import { ref, computed, reactive } from 'vue'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
+import { storeApi } from '@/api/modules/store'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 
 // ========== 表单三件套 ==========
@@ -510,12 +511,29 @@ function goBack() {
   }
 }
 
-function handleDraft() {
+async function handleDraft() {
   if (saleItems.length === 0) {
     uni.showToast({ title: '请先添加商品', icon: 'none' })
     return
   }
-  uni.showToast({ title: '暂存功能开发中', icon: 'none' })
+  try {
+    const result = await storeApi.createHoldOrder({
+      customerName: selectedCustomer.value?.name || '散户',
+      customerMobile: selectedCustomer.value?.phone || '',
+      amount: totalAmount.value,
+      remark: saleForm.remark || '移动端开单暂存',
+      items: saleItems.map((item) => ({
+        skuId: Number(item.productId || 0),
+        skuName: item.productName || '',
+        quantity: Number(item.quantity || 1),
+        unitPrice: Number(item.price ?? item.unitPrice ?? 0),
+        subtotalAmount: Number(item.total ?? item.subtotalAmount ?? 0),
+      })),
+    })
+    uni.showToast({ title: `已暂存（${result.holdNo}）`, icon: 'success' })
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '暂存失败，请重试', icon: 'none' })
+  }
 }
 
 // ========== 提交 ==========

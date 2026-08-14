@@ -106,6 +106,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { activityApi, type Activity } from '@/api/modules/marketing-activities'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -138,24 +139,66 @@ function goCreate(type: string) {
     // 满减/折扣活动统一走营销活动管理页
     uni.navigateTo({ url: '/pages-sub/marketing/marketing/activities' })
   } else {
-    uni.showToast({ title: '该功能开发中', icon: 'none' })
+    uni.navigateTo({ url: '/pages-sub/marketing/marketing/activities' })
   }
 }
 
 function viewDetail(item: any) {
-  uni.showToast({ title: '查看详情', icon: 'none' })
+  // 查看详情：跳转营销活动管理页查看该活动（参与记录仅社群营销有数据源）
+  uni.navigateTo({ url: '/pages-sub/marketing/marketing/activities' })
 }
 
 function editActivity(item: any) {
-  uni.showToast({ title: '编辑活动', icon: 'none' })
+  // 编辑活动：跳转营销活动管理页（满减/折扣活动编辑入口）
+  uni.navigateTo({ url: '/pages-sub/marketing/marketing/activities' })
+}
+
+/** 活动状态 → 页面 tab 口径 */
+function mapStatus(status?: string): string {
+  const map: Record<string, string> = {
+    draft: 'not_started',
+    active: 'ongoing',
+    ended: 'ended',
+    paused: 'paused',
+  }
+  return map[status ?? ''] ?? status ?? ''
+}
+
+/** 页面 tab → 后端状态参数 */
+function statusParam(tab: string): string | undefined {
+  const map: Record<string, string> = {
+    not_started: 'draft',
+    ongoing: 'active',
+    ended: 'ended',
+  }
+  return tab === '' ? undefined : (map[tab] ?? tab)
 }
 
 async function loadActivities() {
   loading.value = true
   try {
-    list.value = []
+    const result = await activityApi.list({
+      keyword: searchForm.keyword || undefined,
+      status: statusParam(activeTab.value),
+      page: 1,
+      pageSize: 20,
+    })
+    list.value = (result.list || []).map((item: Activity) => ({
+      id: item.id,
+      name: item.name,
+      type: item.type === 'full_reduction' ? 'fullreduction' : item.type,
+      typeLabel: item.typeText || '满减活动',
+      status: mapStatus(item.status),
+      statusLabel: item.statusText || item.status,
+      startTime: item.startTime || '—',
+      endTime: item.endTime || '—',
+      productCount: Number((item as any).productCount ?? 0),
+      issuedCount: Number((item as any).issuedCount ?? 0),
+      usedCount: Number((item as any).usedCount ?? 0),
+    }))
   } catch (err) {
     console.error('加载营销活动失败:', err)
+    list.value = []
   } finally {
     loading.value = false
   }

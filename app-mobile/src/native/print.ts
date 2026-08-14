@@ -632,7 +632,7 @@ export async function printWithHMSBLE(lines: PrintLine[]): Promise<void> {
 /**
  * 保存打印记录到后端（对外接口，对齐任务"修复方向 #3"）
  *
- * 调用 POST /api/admin/print/records（R51-03 阿坚开发中，API 路径以 R51-03 任务定义为标准）。
+ * 调用 POST /api/admin/print/records（R51-03 已实现，见 backend/src/routes/print.routes.ts）。
  * 打印成功/失败均应调用此接口保存记录，便于审计留痕。
  *
  * @param record 打印记录入参

@@ -41,6 +41,13 @@ export interface ParticipationRecord {
   statusText?: string
 }
 
+/** 社群营销活动类型 → /api/marketing/* 路径段（R100-02） */
+const ACTIVITY_TYPE_PATHS: Record<'group_buy' | 'bargain' | 'seckill', string> = {
+  group_buy: 'group-buy',
+  bargain: 'bargain',
+  seckill: 'seckill',
+}
+
 const activityApi = {
   async list(params?: ActivityListParams): Promise<ActivityListResult> {
     // R94-03 核实：后端无统一 /admin/marketing/activities 模块；页面原定位为「满减/折扣活动」，
@@ -85,14 +92,33 @@ const activityApi = {
     return post(`/admin/marketing/full-reductions/${id}/pause`)
   },
 
-  async end(id: number): Promise<void> {
-    // R94-03 核实：满减活动仅提供 activate/pause，无 end 接口，由页面降级处理
-    return Promise.reject(new Error('结束活动功能开发中（R94-03 核实：后端无 end 接口）'))
+  async end(id: number, type: 'group_buy' | 'bargain' | 'seckill' = 'group_buy'): Promise<void> {
+    // R100-02：结束活动真实接口为 /api/marketing/{group-buy|bargain|seckill}/:id/end
+    // （满减活动仍只有 activate/pause，无 end 能力，不在此处编造）
+    await post(`/marketing/${ACTIVITY_TYPE_PATHS[type]}/${id}/end`)
   },
 
-  async participationRecords(params?: { page?: number; pageSize?: number; activityId?: number }): Promise<{ list: ParticipationRecord[]; total: number }> {
-    // R94-03 核实：后端无营销活动参与记录接口，由页面降级为「开发中」占位
-    return Promise.reject(new Error('参与记录功能开发中（R94-03 核实：后端无对应接口）'))
+  async participationRecords(params?: {
+    page?: number
+    pageSize?: number
+    activityId?: number
+    type?: 'group_buy' | 'bargain' | 'seckill'
+  }): Promise<{ list: ParticipationRecord[]; total: number }> {
+    // R100-02：参与记录真实接口为 /api/marketing/{group-buy|bargain|seckill}/:id/records（分页）
+    const type = params?.type ?? 'group_buy'
+    if (!params?.activityId) {
+      return { list: [], total: 0 }
+    }
+    const res: any = await get(`/marketing/${ACTIVITY_TYPE_PATHS[type]}/${params.activityId}/records`, {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 20,
+    })
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map(mapParticipationRecord),
+      total: Number(raw?.total ?? rows.length),
+    }
   }
 }
 
@@ -129,6 +155,34 @@ function statusTextOf(s: Activity['status']): string {
     paused: '已暂停',
   }
   return map[s] ?? s
+}
+
+function mapParticipationRecord(r: any): ParticipationRecord {
+  const status = r.teamStatus ?? r.status ?? ''
+  return {
+    id: r.id,
+    activityId: r.activityId ?? r.activity_id,
+    activityName: r.activityName ?? r.activity_name ?? '',
+    memberId: r.memberId ?? r.member_id,
+    memberName: r.memberName ?? r.member_name ?? '',
+    memberMobile: r.memberMobile ?? r.member_mobile ?? '',
+    participationTime: r.participationTime ?? r.participation_time ?? r.joinedAt ?? r.createdAt ?? '',
+    status,
+    statusText: r.statusText ?? statusTextOfRecord(status),
+  }
+}
+
+function statusTextOfRecord(status: string): string {
+  const map: Record<string, string> = {
+    PENDING: '成团中',
+    COMPLETED: '已成团',
+    ONGOING: '进行中',
+    SUCCESS: '成功',
+    FAILED: '失败',
+    EXPIRED: '已过期',
+    CANCELLED: '已取消',
+  }
+  return map[status] ?? status
 }
 
 export { activityApi }

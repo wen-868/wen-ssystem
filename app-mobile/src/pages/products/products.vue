@@ -288,19 +288,20 @@ function focusSearch() {
   }).exec()
 }
 
-/** 操作卡入口：对应功能尚未开发，提示占位（不编造数据） */
+/** 操作卡入口：建议核价/批量调价/价格异常均接入真实页面 */
 function onAction(type: 'suggest' | 'batch' | 'anomaly') {
   if (type === 'batch') {
     // R94-01：批量调价已接入真实页面
     uni.navigateTo({ url: '/pages-sub/product/batch-price/batch-price' })
     return
   }
-  const titles: Record<string, string> = {
-    suggest: '建议核价',
-    anomaly: '价格异常'
+  if (type === 'suggest') {
+    // R100：建议核价已接入真实页面（搜索商品 → 填写建议价 → 提交核价单）
+    uni.navigateTo({ url: '/pages-sub/product/price-review/price-review' })
+    return
   }
-  // R94-01 评估：建议核价 / 价格异常后端无对应接口（已核实），如实保留开发中提示，不编造
-  uni.showToast({ title: `${titles[type]}功能开发中`, icon: 'none' })
+  // R100：价格异常已接入真实页面（售价低于成本 / 售价为 0 商品列表）
+  uni.navigateTo({ url: '/pages-sub/product/price-anomaly/price-anomaly' })
 }
 
 onMounted(() => {

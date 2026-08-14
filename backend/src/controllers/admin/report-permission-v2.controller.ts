@@ -1,5 +1,6 @@
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
-import { ok } from "../../shared/response";
+import { ok, fail } from "../../shared/response";
 import * as reportPermissionV2Service from "../../services/admin/report-permission-v2.service";
 
 // ========== 权限矩阵 ==========
@@ -95,4 +96,49 @@ export const getAuditLogs = asyncHandler(async (req, res) => {
     tenantId: req.tenantId!,
   });
   res.json(ok(result));
+});
+
+// ========== 批量设置权限 ==========
+
+// 批量设置报表权限（多角色 × 多报表）
+export const batchSetPermissions = asyncHandler(async (req, res) => {
+  const body = z.object({
+    roleIds: z.array(z.number().int().positive()).min(1).max(100),
+    reportCodes: z.array(z.string().min(1).max(64)).min(1).max(100),
+    canView: z.boolean().default(true),
+    canExport: z.boolean().default(false),
+  }).parse(req.body);
+
+  const result = await reportPermissionV2Service.batchSetPermissions(
+    req.tenantId!,
+    {
+      roleIds: body.roleIds,
+      reportCodes: body.reportCodes,
+      canView: body.canView,
+      canExport: body.canExport,
+    },
+    {
+      operatorId: req.user!.id,
+      operatorName: req.body.operatorName,
+    }
+  );
+  res.json(ok(result));
+});
+
+// ========== 权限审计日志详情 ==========
+
+// 获取权限审计日志详情
+export const getAuditLogDetail = asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json(fail("日志ID无效", "400"));
+    return;
+  }
+
+  const detail = await reportPermissionV2Service.getAuditLogDetail(id, req.tenantId!);
+  if (!detail) {
+    res.status(404).json(fail("审计日志不存在", "404"));
+    return;
+  }
+  res.json(ok(detail));
 });

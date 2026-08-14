@@ -59,6 +59,8 @@ interface SaleBillListRow {
   storeId: number;
   customerName: string;
   customerMobile: string;
+  itemCount: number | string;
+  paymentMethod: string | null;
   receivableAmount: number | string;
   receivedAmount: number | string;
   unreceivedAmount: number | string;
@@ -268,11 +270,16 @@ export async function listSaleBills(
   const where = `WHERE ${conditions.join(" AND ")}`;
   const records = await queryWithTenant<SaleBillListRow>(
     `SELECT bill_no AS billNo, store_id AS storeId, customer_name AS customerName,
-            customer_mobile AS customerMobile, receivable_amount AS receivableAmount,
+            customer_mobile AS customerMobile,
+            (SELECT COUNT(*) FROM t_sale_bill_item sbi WHERE sbi.bill_no = sb.bill_no) AS itemCount,
+            (SELECT po.channel FROM t_payment_order po
+             WHERE po.source_type = 'SALE_BILL' AND po.source_no = sb.bill_no AND po.status = 'SUCCESS'
+             ORDER BY po.paid_at DESC LIMIT 1) AS paymentMethod,
+            receivable_amount AS receivableAmount,
             received_amount AS receivedAmount, unreceived_amount AS unreceivedAmount,
             collection_status AS collectionStatus, business_status AS businessStatus,
             created_at AS createdAt
-     FROM t_sale_bill
+     FROM t_sale_bill sb
      ${where}
      ORDER BY created_at DESC
      LIMIT ? OFFSET ?`,

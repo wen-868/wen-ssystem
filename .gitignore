@@ -1,6 +1,8 @@
 node_modules
 dist
 admin-web/release/
+print-agent/release/
+print-agent/build/
 .env
 .env.local
 .env.production

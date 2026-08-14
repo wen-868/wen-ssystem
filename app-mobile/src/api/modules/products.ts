@@ -1,5 +1,20 @@
 ﻿import { get, post } from '../request'
 
+/** API 基础地址（与 request.ts 保持一致） */
+const API_BASE: string = (() => {
+  // #ifdef H5
+  return (import.meta.env.VITE_API_BASE as string | undefined) || '/api'
+  // #endif
+  // #ifndef H5
+  return 'https://api.onepan.cn'
+  // #endif
+})()
+
+/** 创建商品（后端 POST /admin/products） */
+export async function createProduct(data: Record<string, any>): Promise<any> {
+  return post('/admin/products', data)
+}
+
 export interface ProductInfo {
   id: number
   skuId: string
@@ -178,4 +193,37 @@ const productsApi = {
   },
 }
 
-export { productsApi }
+/** 上传商品主图（multipart 字段名 image，后端 POST /admin/products/upload-image） */
+function uploadImage(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const token = uni.getStorageSync('merchant_token') || ''
+    const tenantId = uni.getStorageSync('merchant_tenant_id') || ''
+    const csrfToken = uni.getStorageSync('merchant_csrf_token') || ''
+    const header: Record<string, string> = {}
+    if (token) header['Authorization'] = `Bearer ${token}`
+    if (tenantId) header['X-Tenant-Id'] = tenantId
+    if (csrfToken) header['x-csrf-token'] = csrfToken
+    uni.uploadFile({
+      url: `${API_BASE}/admin/products/upload-image`,
+      filePath,
+      name: 'image',
+      header,
+      success: (res: any) => {
+        try {
+          const body = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+          const url = body?.data?.url ?? body?.url
+          if (res.statusCode === 200 && url) {
+            resolve(url)
+          } else {
+            reject(new Error(body?.msg || '图片上传失败'))
+          }
+        } catch (err) {
+          reject(new Error('图片上传响应解析失败'))
+        }
+      },
+      fail: (err: any) => reject(new Error(err?.errMsg || '图片上传失败')),
+    })
+  })
+}
+
+export { productsApi, uploadImage }

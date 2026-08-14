@@ -1,4 +1,4 @@
-﻿import { query, queryOne, pool } from "../../shared/db";
+import { query, queryOne, queryWithTenant, pool } from "../../shared/db";
 
 // ==================== 类型定义 ====================
 
@@ -142,6 +142,49 @@ export async function markAllRead(tenantId: string, userId: number) {
     [userId, tenantId]
   );
   return { marked: true };
+}
+
+// ========== 通知详情 / 删除（工作台） ==========
+
+/** 单条通知详情 */
+export async function getNotificationById(tenantId: string, id: number) {
+  const row = await queryOne<NotificationRow>(
+    `SELECT id, recipient_id AS recipientId, recipient_type AS recipientType,
+            title, content, type,
+            related_id AS relatedId, related_type AS relatedType,
+            is_read AS isRead, sent_at AS sentAt, read_at AS readAt,
+            created_at AS createdAt
+     FROM t_notification
+     WHERE id = ? AND tenant_id = ?`,
+    [id, tenantId]
+  );
+  return row ?? null;
+}
+
+/** 删除单条通知 */
+export async function deleteNotification(tenantId: string, id: number) {
+  const [result] = await queryWithTenant(
+    "DELETE FROM t_notification WHERE id = ? AND tenant_id = ?",
+    [id, tenantId],
+    tenantId
+  );
+  const affected = (result as unknown as { affectedRows: number }).affectedRows ?? 0;
+  return { deleted: affected > 0 };
+}
+
+/** 批量删除通知 */
+export async function batchDeleteNotifications(tenantId: string, ids: number[]) {
+  if (ids.length === 0) {
+    return { deleted: 0 };
+  }
+  const placeholders = ids.map(() => "?").join(", ");
+  const [result] = await queryWithTenant(
+    `DELETE FROM t_notification WHERE id IN (${placeholders}) AND tenant_id = ?`,
+    [...ids, tenantId],
+    tenantId
+  );
+  const affected = (result as unknown as { affectedRows: number }).affectedRows ?? 0;
+  return { deleted: affected };
 }
 
 // ========== 小程序通知 ==========

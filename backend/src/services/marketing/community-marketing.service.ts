@@ -699,3 +699,225 @@ export async function buySeckill(
 
   return result;
 }
+
+// ==================== 结束活动（管理端） ====================
+
+/** 结束拼团活动（仅 ACTIVE 可结束，状态置 ENDED） */
+export async function endGroupBuyActivity(tenantId: string, id: number) {
+  const existing = await queryOneWithTenant<{ id: number | string; status: string }>(
+    "SELECT id, status FROM t_group_buy WHERE id = ?",
+    [id],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("拼团活动不存在"), { statusCode: 404 });
+  }
+  if (existing.status !== "ACTIVE") {
+    throw Object.assign(new Error("仅进行中的活动可结束"), { statusCode: 400 });
+  }
+  await queryWithTenant(
+    "UPDATE t_group_buy SET status = 'ENDED', updated_at = NOW() WHERE id = ?",
+    [id],
+    tenantId
+  );
+  return { id, status: "ENDED" };
+}
+
+/** 结束砍价活动（仅 ACTIVE 可结束，状态置 ENDED） */
+export async function endBargainActivity(tenantId: string, id: number) {
+  const existing = await queryOneWithTenant<{ id: number | string; status: string }>(
+    "SELECT id, status FROM t_bargain_activity WHERE id = ?",
+    [id],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("砍价活动不存在"), { statusCode: 404 });
+  }
+  if (existing.status !== "ACTIVE") {
+    throw Object.assign(new Error("仅进行中的活动可结束"), { statusCode: 400 });
+  }
+  await queryWithTenant(
+    "UPDATE t_bargain_activity SET status = 'ENDED', updated_at = NOW() WHERE id = ?",
+    [id],
+    tenantId
+  );
+  return { id, status: "ENDED" };
+}
+
+/** 结束秒杀活动（仅 ACTIVE 可结束，状态置 ENDED） */
+export async function endSeckillActivity(tenantId: string, id: number) {
+  const existing = await queryOneWithTenant<{ id: number | string; status: string }>(
+    "SELECT id, status FROM t_seckill_product WHERE id = ?",
+    [id],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
+  }
+  if (existing.status !== "ACTIVE") {
+    throw Object.assign(new Error("仅进行中的活动可结束"), { statusCode: 400 });
+  }
+  await queryWithTenant(
+    "UPDATE t_seckill_product SET status = 'ENDED', updated_at = NOW() WHERE id = ?",
+    [id],
+    tenantId
+  );
+  return { id, status: "ENDED" };
+}
+
+// ==================== 参与记录（管理端，分页） ====================
+
+/** 拼团参与记录行 — t_group_buy_member JOIN 活动/组/会员 */
+interface GroupBuyParticipationRow extends RowDataPacket {
+  id: number | string;
+  activityId: number | string;
+  activityName: string;
+  memberId: number | string | null;
+  memberName: string | null;
+  memberMobile: string | null;
+  quantity: number | string;
+  teamStatus: string;
+  participationTime: string | Date;
+}
+
+/** 拼团参与记录（分页） */
+export async function listGroupBuyParticipationRecords(
+  tenantId: string,
+  activityId: number,
+  page: number,
+  pageSize: number
+) {
+  const activity = await queryOneWithTenant<{ id: number | string }>(
+    "SELECT id FROM t_group_buy WHERE id = ?",
+    [activityId],
+    tenantId
+  );
+  if (!activity) {
+    throw Object.assign(new Error("拼团活动不存在"), { statusCode: 404 });
+  }
+
+  const offset = (page - 1) * pageSize;
+  const records = await queryWithTenant<GroupBuyParticipationRow>(
+    `SELECT gm.id, gb.id AS activityId, gb.name AS activityName,
+            gm.user_id AS memberId, m.name AS memberName, m.mobile AS memberMobile,
+            gm.quantity, gt.status AS teamStatus, gm.joined_at AS participationTime
+     FROM t_group_buy_member gm
+     JOIN t_group_buy_team gt ON gt.id = gm.team_id AND gt.tenant_id = ?
+     JOIN t_group_buy gb ON gb.id = gt.activity_id AND gb.tenant_id = ?
+     LEFT JOIN t_member m ON m.id = gm.user_id AND m.tenant_id = ?
+     WHERE gb.id = ? AND gm.tenant_id = ?
+     ORDER BY gm.joined_at DESC
+     LIMIT ? OFFSET ?`,
+    [tenantId, tenantId, tenantId, activityId, tenantId, pageSize, offset],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<{ total: number | string }>(
+    `SELECT COUNT(*) AS total
+     FROM t_group_buy_member gm
+     JOIN t_group_buy_team gt ON gt.id = gm.team_id AND gt.tenant_id = ?
+     JOIN t_group_buy gb ON gb.id = gt.activity_id AND gb.tenant_id = ?
+     WHERE gb.id = ? AND gm.tenant_id = ?`,
+    [tenantId, tenantId, activityId, tenantId],
+    tenantId
+  );
+
+  return {
+    total: Number(totalRow?.total ?? 0),
+    page,
+    pageSize,
+    records,
+  };
+}
+
+/** 砍价参与记录行 — t_bargain_record JOIN 活动/会员 */
+interface BargainParticipationRow extends RowDataPacket {
+  id: number | string;
+  activityId: number | string;
+  activityName: string;
+  memberId: number | string | null;
+  memberName: string | null;
+  memberMobile: string | null;
+  currentPrice: number | string;
+  status: string;
+  participationTime: string | Date;
+}
+
+/** 砍价参与记录（分页） */
+export async function listBargainParticipationRecords(
+  tenantId: string,
+  activityId: number,
+  page: number,
+  pageSize: number
+) {
+  const activity = await queryOneWithTenant<{ id: number | string }>(
+    "SELECT id FROM t_bargain_activity WHERE id = ?",
+    [activityId],
+    tenantId
+  );
+  if (!activity) {
+    throw Object.assign(new Error("砍价活动不存在"), { statusCode: 404 });
+  }
+
+  const offset = (page - 1) * pageSize;
+  const records = await queryWithTenant<BargainParticipationRow>(
+    `SELECT br.id, ba.id AS activityId, ba.activity_name AS activityName,
+            br.initiator_id AS memberId, m.name AS memberName, m.mobile AS memberMobile,
+            br.current_price AS currentPrice, br.status,
+            br.created_at AS participationTime
+     FROM t_bargain_record br
+     JOIN t_bargain_activity ba ON ba.id = br.activity_id AND ba.tenant_id = ?
+     LEFT JOIN t_member m ON m.id = br.initiator_id AND m.tenant_id = ?
+     WHERE ba.id = ? AND br.tenant_id = ?
+     ORDER BY br.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [tenantId, tenantId, activityId, tenantId, pageSize, offset],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<{ total: number | string }>(
+    `SELECT COUNT(*) AS total
+     FROM t_bargain_record br
+     JOIN t_bargain_activity ba ON ba.id = br.activity_id AND ba.tenant_id = ?
+     WHERE ba.id = ? AND br.tenant_id = ?`,
+    [tenantId, activityId, tenantId],
+    tenantId
+  );
+
+  return {
+    total: Number(totalRow?.total ?? 0),
+    page,
+    pageSize,
+    records,
+  };
+}
+
+/**
+ * 秒杀参与记录（分页）
+ *
+ * 说明：社区营销秒杀（t_seckill_product）下单 buySeckill 仅扣减库存并返回订单号，
+ * 未落任何参与/订单记录表，系统内无秒杀参与数据源。为满足「参与记录」接口契约，
+ * 返回空分页（不编造数据），待秒杀订单落库能力建设后可在此补充真实查询。
+ */
+export async function listSeckillParticipationRecords(
+  tenantId: string,
+  activityId: number,
+  page: number,
+  pageSize: number
+) {
+  const activity = await queryOneWithTenant<{ id: number | string }>(
+    "SELECT id FROM t_seckill_product WHERE id = ?",
+    [activityId],
+    tenantId
+  );
+  if (!activity) {
+    throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
+  }
+
+  return {
+    total: 0,
+    page,
+    pageSize,
+    records: [],
+  };
+}

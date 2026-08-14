@@ -7,29 +7,47 @@
     <!-- 筛选表单：ref + :model + :rules -->
     <form ref="formRef" :model="filterForm" class="filter-form">
       <view class="filter-row">
-        <view class="filter-item" @tap="chooseStartDate">
-          <text class="filter-label">开始日期</text>
-          <text class="filter-value">{{ filterForm.startDate || '请选择' }}</text>
-        </view>
-        <view class="filter-item" @tap="chooseEndDate">
-          <text class="filter-label">结束日期</text>
-          <text class="filter-value">{{ filterForm.endDate || '请选择' }}</text>
-        </view>
+        <picker mode="date" :value="filterForm.startDate" @change="onStartDateChange">
+          <view class="filter-item">
+            <text class="filter-label">开始日期</text>
+            <text class="filter-value">{{ filterForm.startDate || '请选择' }}</text>
+          </view>
+        </picker>
+        <picker mode="date" :value="filterForm.endDate" @change="onEndDateChange">
+          <view class="filter-item">
+            <text class="filter-label">结束日期</text>
+            <text class="filter-value">{{ filterForm.endDate || '请选择' }}</text>
+          </view>
+        </picker>
       </view>
       <view class="filter-row">
         <view class="filter-item">
           <text class="filter-label">门店</text>
-          <view class="filter-picker" @tap="chooseStore">
-            <text class="picker-text">{{ filterForm.storeName || '全部门店' }}</text>
-            <text class="picker-arrow">&#xe612;</text>
-          </view>
+          <picker
+            mode="selector"
+            :range="storeOptions"
+            range-key="name"
+            @change="onStoreChange"
+          >
+            <view class="filter-picker">
+              <text class="picker-text">{{ filterForm.storeName || '全部门店' }}</text>
+              <text class="picker-arrow">&#xe612;</text>
+            </view>
+          </picker>
         </view>
         <view class="filter-item">
           <text class="filter-label">销售员</text>
-          <view class="filter-picker" @tap="chooseSalesman">
-            <text class="picker-text">{{ filterForm.salesmanName || '全部' }}</text>
-            <text class="picker-arrow">&#xe612;</text>
-          </view>
+          <picker
+            mode="selector"
+            :range="staffOptions"
+            range-key="realName"
+            @change="onSalesmanChange"
+          >
+            <view class="filter-picker">
+              <text class="picker-text">{{ filterForm.salesmanName || '全部' }}</text>
+              <text class="picker-arrow">&#xe612;</text>
+            </view>
+          </picker>
         </view>
       </view>
       <button class="query-btn" @tap="onQuery">查询</button>
@@ -117,6 +135,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { reportsApi } from '@/api/modules/reports'
+import { get } from '@/api/request'
 
 const formRef = ref<any>(null)
 const filterForm = reactive({
@@ -133,6 +152,9 @@ const filterRules: Rules = {
 }
 const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
 
+const storeOptions = ref<any[]>([])
+const staffOptions = ref<any[]>([])
+
 const summary = ref<any>({
   totalSales: '0.00',
   orderCount: 0,
@@ -145,17 +167,42 @@ const summary = ref<any>({
 const categoryList = ref<any[]>([])
 const rankList = ref<any[]>([])
 
-function chooseStartDate() {
-  uni.showToast({ title: '日期选择开发中', icon: 'none' })
+function onStartDateChange(e: any) {
+  filterForm.startDate = e?.detail?.value || ''
 }
-function chooseEndDate() {
-  uni.showToast({ title: '日期选择开发中', icon: 'none' })
+function onEndDateChange(e: any) {
+  filterForm.endDate = e?.detail?.value || ''
 }
-function chooseStore() {
-  uni.showToast({ title: '门店选择开发中', icon: 'none' })
+function onStoreChange(e: any) {
+  const idx = Number(e?.detail?.value ?? -1)
+  if (idx >= 0 && storeOptions.value[idx]) {
+    filterForm.storeId = String(storeOptions.value[idx].id)
+    filterForm.storeName = storeOptions.value[idx].name
+  }
 }
-function chooseSalesman() {
-  uni.showToast({ title: '销售员选择开发中', icon: 'none' })
+function onSalesmanChange(e: any) {
+  const idx = Number(e?.detail?.value ?? -1)
+  if (idx >= 0 && staffOptions.value[idx]) {
+    filterForm.salesmanId = String(staffOptions.value[idx].id)
+    filterForm.salesmanName = staffOptions.value[idx].realName
+  }
+}
+
+async function loadFilterOptions() {
+  try {
+    const [stores, staff] = await Promise.allSettled([
+      get('/admin/system/stores'),
+      get('/admin/staff', { page: 1, pageSize: 100 }),
+    ])
+    if (stores.status === 'fulfilled') {
+      const list = (stores.value as any)?.records || (stores.value as any) || []
+      storeOptions.value = list.map((s: any) => ({ id: s.id, name: s.name || s.storeName }))
+    }
+    if (staff.status === 'fulfilled') {
+      const list = (staff.value as any)?.records || (staff.value as any) || []
+      staffOptions.value = list.map((s: any) => ({ id: s.id, realName: s.realName || s.username }))
+    }
+  } catch { /* 加载失败保持空选项 */ }
 }
 async function onQuery() {
   await validate()
@@ -269,7 +316,10 @@ async function loadReportData() {
   }
 }
 
-onMounted(() => { loadReportData() })
+onMounted(() => {
+  loadReportData()
+  loadFilterOptions()
+})
 </script>
 
 <style lang="scss" scoped>

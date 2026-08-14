@@ -11,6 +11,8 @@ reportPermissionRouter.get("/data-scope", reportPermissionV2Controller.getDataSc
 reportPermissionRouter.put("/data-scope", reportPermissionV2Controller.updateDataScopeConfig);
 reportPermissionRouter.get("/my", reportPermissionV2Controller.getMyPermissions);
 reportPermissionRouter.get("/audit-logs", reportPermissionV2Controller.getAuditLogs);
+reportPermissionRouter.get("/audit-logs/:id", reportPermissionV2Controller.getAuditLogDetail);
+reportPermissionRouter.post("/batch", reportPermissionV2Controller.batchSetPermissions);
 reportPermissionRouter.get("/user/:userId", reportPermissionV2Controller.getUserPermissions);
 reportPermissionRouter.put("/user/:userId", reportPermissionV2Controller.assignUserPermissions);
 

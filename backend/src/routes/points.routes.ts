@@ -12,6 +12,8 @@ pointsRouter.get("/:id/points/records", pointsController.getCustomerPointsRecord
 pointsRouter.get("/levels/config", pointsController.listLevelConfigs);
 pointsRouter.post("/levels/config", pointsController.createLevelConfig);
 pointsRouter.put("/levels/config/:id", pointsController.updateLevelConfig);
+pointsRouter.put("/levels/config/:id/status", pointsController.updateLevelConfigStatus);
+pointsRouter.delete("/levels/config/:id", pointsController.deleteLevelConfig);
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/members",

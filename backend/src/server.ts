@@ -23,6 +23,7 @@ import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
 import expressStatic from "express";
 import { avatarDir } from "./controllers/admin/avatar.controller";
+import { productImageDir } from "./controllers/admin/product-image.controller";
 import "./jobs/report-aggregation.job.js";
 import "./jobs/auto-backup.job.js";
 import { insertErrorLog, cleanupOldLogs } from "./services/admin/error-log.service";
@@ -154,6 +155,8 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 // 头像等静态文件（/uploads/avatar/xxx，nginx /uploads 反代到本服务）
 app.use("/uploads", expressStatic.static(avatarDir()));
+// 商品主图静态文件（/uploads/product-image/xxx）
+app.use("/uploads/product-image", expressStatic.static(productImageDir()));
 app.use(responseTimeTracker);
 app.use(errorResponseInterceptor);
 

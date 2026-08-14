@@ -158,7 +158,7 @@ const shortcuts = [
   { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/prf-staff.svg', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '账', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '印', label: '单据打印', path: '', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '印', label: '单据打印', path: '/pages-sub/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
 function navigateTo(url: string) {
@@ -169,7 +169,7 @@ function goto(path: string) {
   if (path) {
     uni.navigateTo({ url: path })
   } else {
-    uni.showToast({ title: '功能开发中', icon: 'none' })
+    uni.showToast({ title: '页面不存在', icon: 'none' })
   }
 }
 

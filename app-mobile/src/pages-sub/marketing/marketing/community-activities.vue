@@ -77,6 +77,10 @@
         <view class="card-status" :class="'status-' + item.status">
           <text>{{ getStatusLabel(item.status) }}</text>
         </view>
+        <view class="card-actions">
+          <view class="card-action" @tap.stop="goRecords(item)">参与记录</view>
+          <view class="card-action primary" v-if="item.status === 'ACTIVE'" @tap.stop="endActivity(item)">结束活动</view>
+        </view>
       </view>
     </scroll-view>
 
@@ -242,6 +246,37 @@ function goDetail(item: ActivityItem) {
     url = `/pages-sub/marketing/marketing/seckill-detail?id=${item.id}`
   }
   uni.navigateTo({ url })
+}
+
+/** 参与记录（R100-02：按活动类型路由到真实接口） */
+function goRecords(item: ActivityItem) {
+  uni.navigateTo({
+    url: `/pages-sub/marketing/marketing/participation-records?type=${item.type}&activityId=${item.id}`
+  })
+}
+
+/** 结束活动（R100-02：POST /api/marketing/group-buy|bargain|seckill/:id/end） */
+function endActivity(item: ActivityItem) {
+  uni.showModal({
+    title: '确认结束',
+    content: `确定要结束"${item.name}"活动吗？结束后活动立即停止，不可恢复。`,
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        if (item.type === 'group_buy') {
+          await communityMarketingApi.endGroupBuy(item.id)
+        } else if (item.type === 'bargain') {
+          await communityMarketingApi.endBargain(item.id)
+        } else {
+          await communityMarketingApi.endSeckill(item.id)
+        }
+        uni.showToast({ title: '活动已结束', icon: 'success' })
+        loadAllActivities()
+      } catch (err) {
+        console.error('结束活动失败:', err)
+      }
+    }
+  })
 }
 
 async function loadAllActivities() {
@@ -525,6 +560,31 @@ onMounted(() => {
 .status-DRAFT { background: $uni-color-primary-soft; color: $uni-color-primary; }
 .status-ACTIVE { background: $uni-color-success-soft; color: $uni-color-success; }
 .status-ENDED { background: $uni-bg-color-grey; color: $uni-gray-400; }
+
+.card-actions {
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx 16rpx;
+  border-top: 1rpx solid $uni-gray-100;
+  background: $uni-gray-50;
+}
+
+.card-action {
+  flex: 1;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26rpx;
+  font-size: 22rpx;
+  color: $uni-gray-500;
+  background: $uni-bg-color;
+}
+
+.card-action.primary {
+  color: $uni-text-color-inverse;
+  background: $uni-color-primary;
+}
 
 .empty-state {
   display: flex;

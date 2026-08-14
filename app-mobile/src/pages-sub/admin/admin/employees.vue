@@ -183,8 +183,13 @@ function toggleStatus(item: Employee) {
             uni.showToast({ title: '离职失败', icon: 'error' })
           }
         } else {
-          // R94-03 核实：后端仅提供 PUT /admin/staff/:id/disable（禁用），无启用接口，复职降级为提示
-          uni.showToast({ title: '复职功能开发中（后端仅提供离职接口）', icon: 'none' })
+          try {
+            await employeeApi.toggleStatus(item.id, 'active')
+            item.status = 'active'
+            uni.showToast({ title: '复职成功', icon: 'success' })
+          } catch (err) {
+            uni.showToast({ title: '复职失败', icon: 'error' })
+          }
         }
       }
     }
