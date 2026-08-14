@@ -49,11 +49,12 @@ export async function login(wxData: { openid: string; session_key: string; union
     );
     wxUserId = existing.id;
   } else {
-    const result = await query<{ insertId: number }>(
+    const result = await query<Array<{ insertId?: number }> | { insertId?: number }>(
       "INSERT INTO t_wx_user (openid, unionid, session_key, last_login_at) VALUES (?, ?, ?, NOW())",
       [wxData.openid, wxData.unionid || null, wxData.session_key]
-    ) as unknown as unknown as { insertId: number };
-    wxUserId = result.insertId as unknown as number;
+    );
+    // database.ts 将 ResultSetHeader 归一化为数组返回，需从首元素取 insertId
+    wxUserId = Array.isArray(result) ? (result[0]?.insertId ?? 0) : (result?.insertId ?? 0);
   }
 
   const userInfo = await queryOne<WxUserInfoRow>(
