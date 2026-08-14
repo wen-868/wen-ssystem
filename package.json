@@ -17,6 +17,8 @@
     "webpack": "5.87.0",
     "ip-address": "^10.4.0",
     "ws": "^8.21.2",
+    "json5": "2.2.3",
+    "fast-xml-parser": "4.4.1",
     "vite": {
       "postcss": "8.5.25"
     }
