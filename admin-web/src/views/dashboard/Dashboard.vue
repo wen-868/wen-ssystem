@@ -18,6 +18,7 @@
           collapse-tags-tooltip
           placeholder="全部门店"
           clearable
+          aria-label="选择门店"
           style="width: 220px"
           @change="loadAllData"
         >
@@ -39,7 +40,7 @@
     <el-row :gutter="16">
       <!-- ====== 左：经营动态信息流 ====== -->
       <el-col :xs="24" :md="16" class="dash-col dash-col--left">
-        <el-card class="feed-card feed-card--feed" shadow="hover">
+        <el-card class="feed-card feed-card--feed" shadow="hover" tabindex="0">
           <template #header>
             <div class="feed-header">
               <span class="feed-title">经营动态</span>
@@ -52,7 +53,7 @@
                   <el-radio-button value="ALERT">预警</el-radio-button>
                   <el-radio-button value="NOTICE">通知</el-radio-button>
                 </el-radio-group>
-                <el-button size="small" :icon="Refresh" circle @click="loadAllData" />
+                <el-button size="small" :icon="Refresh" circle aria-label="刷新经营动态" @click="loadAllData" />
               </div>
             </div>
           </template>
@@ -66,6 +67,8 @@
                   v-for="item in group.items"
                   :key="item.key"
                   class="feed-item"
+                  tabindex="0"
+                  role="button"
                   @click="onFeedClick(item)"
                 >
                   <span class="feed-icon" :class="'feed-icon--' + item.type.toLowerCase()">
@@ -105,7 +108,7 @@
       <!-- ====== 右：今日经营 / 待办预警 / 快捷入口 ====== -->
       <el-col :xs="24" :md="8" class="dash-col dash-col--right">
         <!-- 最新订单（原待办位） -->
-        <el-card class="side-card side-card--fill" shadow="hover">
+        <el-card class="side-card side-card--fill" shadow="hover" tabindex="0">
           <template #header>
             <div class="side-header">
               <span class="side-title">最新订单</span>
@@ -114,7 +117,7 @@
           </template>
           <div v-if="recentBills.length === 0" class="side-empty">暂无最新订单</div>
           <div v-else class="order-list">
-            <div v-for="b in recentBills" :key="b.billNo || b.id" class="order-item" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
+            <div v-for="b in recentBills" :key="b.billNo || b.id" class="order-item" tabindex="0" role="button" @click="navTo(b.route || (b.billNo ? '/sale-bills/' + encodeURIComponent(b.billNo) : '/sale-bills'))">
               <div class="order-main">
                 <div class="order-no-row">
                   <span class="order-no">{{ b.billNo || "-" }}</span>
@@ -131,7 +134,7 @@
         </el-card>
 
         <!-- 待办与预警（原可帮你位） -->
-        <el-card class="side-card side-card--fill" shadow="hover">
+        <el-card class="side-card side-card--fill" shadow="hover" tabindex="0">
           <template #header>
             <div class="side-header">
               <span class="side-title">待办与预警</span>
@@ -140,7 +143,7 @@
           </template>
           <div v-if="todoCount === 0" class="side-empty">今日无待办事项</div>
           <div v-else class="todo-list">
-            <div v-if="alertData.inventoryAlerts.length" class="todo-item" @click="navTo('/inventory')">
+            <div v-if="alertData.inventoryAlerts.length" class="todo-item" tabindex="0" role="button" @click="navTo('/inventory')">
               <span class="todo-dot todo-dot--warning"></span>
               <span class="todo-text">{{ alertData.inventoryAlerts.length }} 项库存预警</span>
               <span class="todo-arrow">›</span>
@@ -759,7 +762,7 @@ onUnmounted(() => {
 }
 .date-text {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
 }
 .header-right {
   display: flex;
@@ -791,7 +794,7 @@ onUnmounted(() => {
 }
 .feed-group-label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
   padding: 8px 0 4px;
   border-bottom: 1px solid var(--border-light);
 }
@@ -854,7 +857,7 @@ onUnmounted(() => {
 }
 .feed-desc {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
   margin-top: 3px;
 }
 .feed-side {
@@ -865,10 +868,10 @@ onUnmounted(() => {
 }
 .feed-time {
   font-size: 12px;
-  color: var(--text-placeholder);
+  color: #595959; /* WCAG AA */
 }
 .feed-arrow {
-  color: var(--text-placeholder);
+  color: #595959; /* WCAG AA */
   font-size: 14px;
 }
 .trend-chart {
@@ -901,7 +904,7 @@ onUnmounted(() => {
 }
 .metric-strip-label {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
 }
 .metric-strip-num {
   font-size: 18px;
@@ -910,11 +913,12 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
 }
 .metric-num--accent {
-  color: var(--color-primary);
+  /* WCAG AA：原 #3f6fef 对比度 4.43:1 略低于 4.5 */
+  color: #2f5fd0;
 }
 .side-sub {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
 }
 .order-list {
   display: flex;
@@ -957,7 +961,7 @@ onUnmounted(() => {
 .order-source {
   font-size: 10px;
   line-height: 16px;
-  color: var(--text-secondary);
+  color: #595959; /* WCAG AA */
   background: var(--bg-soft);
   border: 1px solid var(--border-light);
   border-radius: 4px;
@@ -967,7 +971,7 @@ onUnmounted(() => {
 }
 .order-customer {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #595959; /* WCAG AA */
 }
 .order-side {
   display: flex;
@@ -994,7 +998,7 @@ onUnmounted(() => {
   line-height: 20px;
 }
 .side-empty {
-  color: var(--text-placeholder);
+  color: #595959; /* WCAG AA */
   font-size: 13px;
   padding: 12px 0;
 }
@@ -1036,7 +1040,7 @@ onUnmounted(() => {
   font-size: 13px;
 }
 .todo-arrow {
-  color: var(--text-placeholder);
+  color: #595959; /* WCAG AA */
 }
 .quick-grid {
   display: grid;
@@ -1052,7 +1056,7 @@ onUnmounted(() => {
   padding: 14px 6px;
   text-align: center;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #595959; /* WCAG AA */
   cursor: pointer;
   transition: all 150ms ease;
 }
@@ -1060,5 +1064,21 @@ onUnmounted(() => {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-bg);
+}
+
+/* WCAG AA：Element 组件对比度覆盖（el-select 占位符 / el-radio-button 激活态） */
+.dashboard :deep(.el-select__placeholder span) {
+  color: #595959;
+}
+.dashboard :deep(.el-radio-button.is-active .el-radio-button__inner) {
+  background: #2f5fd0;
+  border-color: #2f5fd0;
+  box-shadow: -1px 0 0 0 #2f5fd0;
+}
+.dashboard :deep(.el-tag--success .el-tag__content) {
+  color: #0f5132;
+}
+.dashboard :deep(.el-tag--primary .el-tag__content) {
+  color: #2f5fd0;
 }
 </style>

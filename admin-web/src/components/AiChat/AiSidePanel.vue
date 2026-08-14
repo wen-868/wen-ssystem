@@ -12,6 +12,7 @@
       </div>
       <el-button
         class="ai-collapse-btn"
+        aria-label="折叠或展开智能助手"
         :icon="collapsed ? 'Expand' : 'Fold'"
         size="small"
         text
@@ -326,7 +327,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--color-success);
+  /* WCAG AA：原 #0ea879 对比度不足 */
+  color: #0f5132;
 }
 
 .status-dot {
@@ -355,7 +357,7 @@ onBeforeUnmount(() => {
 
 .empty-sub {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #595959; /* WCAG AA */
   margin: 0 0 14px;
 }
 
@@ -372,7 +374,7 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #595959; /* WCAG AA */
   cursor: pointer;
   transition: all 150ms;
 }
@@ -431,7 +433,7 @@ onBeforeUnmount(() => {
 .ai-input-hint {
   margin-top: 6px;
   font-size: 11px;
-  color: var(--text-placeholder);
+  color: #595959; /* WCAG AA */
   text-align: center;
 }
 </style>

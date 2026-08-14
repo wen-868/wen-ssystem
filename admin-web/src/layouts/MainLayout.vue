@@ -39,7 +39,7 @@
         <el-popover v-if="!isCashierMode" v-model:visible="notifyVisible" placement="bottom-end" :width="330" trigger="click" popper-class="notify-popper">
           <template #reference>
             <el-badge :value="notifyCount" :max="99" :hidden="notifyCount === 0" class="header-badge">
-              <el-button circle size="small">
+              <el-button circle size="small" aria-label="消息通知">
                 <el-icon><Bell /></el-icon>
               </el-button>
             </el-badge>
@@ -89,7 +89,7 @@
       </div>
 
       <!-- 自定义胶囊导航（按产品规划v6.1的12个一级模块顺序） -->
-      <nav class="sidebar-nav">
+      <nav class="sidebar-nav" tabindex="0" aria-label="主导航">
         <!-- 1. 工作台 -->
         <div class="nav-group">
           <div class="nav-item" :class="{ active: isActive('/dashboard') }" @click="navTo('/dashboard')">
@@ -816,7 +816,8 @@ function handleLogout() {
 /* 导航分组标签（业务/功能/系统） */
 .nav-section-label {
   font-size: 11px;
-  color: var(--text-placeholder);
+  /* WCAG AA：原 #cccccc 对比度 1.51:1 不达标 */
+  color: #595959;
   padding: 10px 12px 4px;
   letter-spacing: 1px;
 }
@@ -997,7 +998,8 @@ function handleLogout() {
 
 .store-state {
   font-size: 12px;
-  color: var(--color-success);
+  /* WCAG AA：原 #0ea879 对比度 2.68:1 不达标 */
+  color: #0f5132;
   background: var(--color-success-soft);
   padding: 2px 8px;
   border-radius: 4px;
@@ -1042,7 +1044,8 @@ function handleLogout() {
 }
 .mode-switch-item.active {
   background: #ffffff;
-  color: var(--color-primary);
+  /* WCAG AA：原 #3f6fef 对比度 4.43:1 略低于 4.5 */
+  color: #2f5fd0;
   font-weight: 600;
   box-shadow: var(--shadow-xs);
 }
@@ -1058,7 +1061,8 @@ function handleLogout() {
   padding: 0 12px;
   gap: 8px;
   font-size: 12px;
-  color: var(--text-muted);
+  /* WCAG AA：原 #999999 对比度 2.5:1 不达标 */
+  color: #595959;
   cursor: pointer;
   transition: all 150ms ease;
 }
@@ -1076,6 +1080,8 @@ function handleLogout() {
   font-size: 11px;
   padding: 1px 6px;
   background: #fff;
+  /* WCAG AA：原 #999999 对比度 2.84:1 不达标 */
+  color: #595959;
   border: 1px solid var(--border-normal);
   border-radius: 4px;
   font-family: var(--font-mono);
