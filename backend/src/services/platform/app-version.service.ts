@@ -27,12 +27,14 @@ export interface AppVersionRow {
   updatedAt: string;
 }
 
-/** 当前启用的最新版本（供客户端检查） */
-export async function getLatestVersion(platform: string) {
+/** 当前启用的最新版本（供客户端检查；arch 用于桌面客户端按架构选下载地址） */
+export async function getLatestVersion(platform: string, arch?: string) {
   const row = await queryOne<Record<string, unknown>>(
     `SELECT platform, version_code AS versionCode, version_name AS versionName,
             min_version_code AS minVersionCode, is_force AS isForce,
             update_url AS updateUrl, package_url AS packageUrl,
+            update_url_x64 AS updateUrlX64, update_url_ia32 AS updateUrlIa32,
+            update_url_arm64 AS updateUrlArm64,
             update_note AS updateNote, updated_at AS updatedAt
      FROM t_app_version
      WHERE platform = ? AND enabled = 1
@@ -40,13 +42,28 @@ export async function getLatestVersion(platform: string) {
     [platform]
   );
   if (!row) return null;
+  // 按架构取安装包地址（优先分架构地址，回退通用 updateUrl）
+  // 兼容桌面(x64/ia32/arm64)与手机 ABI(arm64-v8a/armeabi-v7a/x86/x86_64)
+  const key =
+    arch === "x64" || arch === "x86_64" || arch === "x86" ? "x64"
+      : arch === "ia32" || arch === "armeabi-v7a" || arch === "armeabi" || arch === "armv7" ? "ia32"
+        : arch === "arm64" || arch === "arm64-v8a" ? "arm64"
+          : "";
+  const archUrl =
+    key === "x64" ? row.updateUrlX64
+      : key === "ia32" ? row.updateUrlIa32
+        : key === "arm64" ? row.updateUrlArm64
+          : "";
   return {
     platform: row.platform,
     versionCode: Number(row.versionCode),
     versionName: row.versionName,
     minVersionCode: Number(row.minVersionCode || 0),
     isForce: Number(row.isForce || 0) === 1,
-    updateUrl: row.updateUrl || "",
+    updateUrl: String(archUrl || row.updateUrl || ""),
+    updateUrlX64: row.updateUrlX64 || "",
+    updateUrlIa32: row.updateUrlIa32 || "",
+    updateUrlArm64: row.updateUrlArm64 || "",
     packageUrl: row.packageUrl || "",
     updateNote: row.updateNote || "",
     updatedAt: row.updatedAt,
@@ -73,6 +90,9 @@ export async function publishVersion(data: {
   minVersionCode?: number;
   isForce?: boolean;
   updateUrl?: string;
+  updateUrlX64?: string;
+  updateUrlIa32?: string;
+  updateUrlArm64?: string;
   packageUrl?: string;
   updateNote?: string;
   enabled?: boolean;
@@ -88,6 +108,9 @@ export async function publishVersion(data: {
     data.minVersionCode || 0,
     data.isForce ? 1 : 0,
     data.updateUrl || "",
+    data.updateUrlX64 || "",
+    data.updateUrlIa32 || "",
+    data.updateUrlArm64 || "",
     data.packageUrl || "",
     data.updateNote || "",
     data.enabled === false ? 0 : 1,
@@ -95,13 +118,14 @@ export async function publishVersion(data: {
   if (existing) {
     await query(
       `UPDATE t_app_version SET platform=?, version_code=?, version_name=?, min_version_code=?,
-              is_force=?, update_url=?, package_url=?, update_note=?, enabled=?, updated_at=NOW() WHERE id=?`,
+              is_force=?, update_url=?, update_url_x64=?, update_url_ia32=?, update_url_arm64=?,
+              package_url=?, update_note=?, enabled=?, updated_at=NOW() WHERE id=?`,
       [...values, existing.id]
     );
   } else {
     await query(
-      `INSERT INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, package_url, update_note, enabled)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, update_url_x64, update_url_ia32, update_url_arm64, package_url, update_note, enabled)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       values
     );
   }

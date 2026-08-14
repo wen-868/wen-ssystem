@@ -12,7 +12,8 @@ import {
 /** 公开：客户端检查最新版本（无需登录） */
 export const checkAppVersion = asyncHandler(async (req, res) => {
   const platform = z.enum(APP_PLATFORMS).parse(req.params.platform);
-  const data = await getLatestVersion(platform);
+  const arch = typeof req.query.arch === "string" ? req.query.arch : undefined;
+  const data = await getLatestVersion(platform, arch);
   res.json(ok(data));
 });
 
@@ -36,6 +37,9 @@ export const createAppVersion = asyncHandler(async (req, res) => {
     minVersionCode: z.number().int().min(0).default(0),
     isForce: z.boolean().default(false),
     updateUrl: z.string().max(512).default(""),
+    updateUrlX64: z.string().max(512).default(""),
+    updateUrlIa32: z.string().max(512).default(""),
+    updateUrlArm64: z.string().max(512).default(""),
     packageUrl: z.string().max(512).default(""),
     updateNote: z.string().max(2000).default(""),
     enabled: z.boolean().default(true),

@@ -72,6 +72,15 @@
         <el-form-item label="下载/详情地址">
           <el-input v-model="form.updateUrl" placeholder="客户端弹窗后跳转的地址" />
         </el-form-item>
+        <el-form-item label="x64 安装包（桌面x64/安卓x86）">
+          <el-input v-model="form.updateUrlX64" placeholder="桌面 exe 或安卓 x86 APK 直链" />
+        </el-form-item>
+        <el-form-item label="ARM64 安装包（桌面/安卓）">
+          <el-input v-model="form.updateUrlArm64" placeholder="桌面 exe 或安卓 arm64 APK 直链" />
+        </el-form-item>
+        <el-form-item label="32位 安装包（桌面x86/安卓armv7）">
+          <el-input v-model="form.updateUrlIa32" placeholder="桌面 exe 或安卓 armeabi-v7a APK 直链" />
+        </el-form-item>
         <el-form-item label="安装包/WGT 地址">
           <el-input v-model="form.packageUrl" placeholder="APP 热更新包(.wgt)或安装包直链" />
         </el-form-item>
@@ -106,6 +115,9 @@ const form = reactive({
   minVersionCode: 0,
   isForce: false,
   updateUrl: "",
+  updateUrlX64: "",
+  updateUrlIa32: "",
+  updateUrlArm64: "",
   packageUrl: "",
   updateNote: "",
   enabled: true,
@@ -133,6 +145,9 @@ function openDialog(row?: any) {
       minVersionCode: Number(row.minVersionCode || 0),
       isForce: Number(row.isForce) === 1,
       updateUrl: row.updateUrl || "",
+      updateUrlX64: row.updateUrlX64 || "",
+      updateUrlIa32: row.updateUrlIa32 || "",
+      updateUrlArm64: row.updateUrlArm64 || "",
       packageUrl: row.packageUrl || "",
       updateNote: row.updateNote || "",
       enabled: Number(row.enabled) === 1,
@@ -145,6 +160,9 @@ function openDialog(row?: any) {
       minVersionCode: 0,
       isForce: false,
       updateUrl: "",
+      updateUrlX64: "",
+      updateUrlIa32: "",
+      updateUrlArm64: "",
       packageUrl: "",
       updateNote: "",
       enabled: true,

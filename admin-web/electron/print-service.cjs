@@ -295,7 +295,9 @@ function stopPrintService() {
 /** 启动后检查总台发布的桌面客户端版本，有新版弹窗打开下载 */
 async function checkDesktopUpdate() {
   try {
-    const res = await fetch("https://api.onepan.cn/api/app/version/admin_web", { signal: AbortSignal.timeout(8000) });
+    // 按客户端架构请求对应安装包地址（x64 / ia32 / arm64）
+    const arch = process.arch;
+    const res = await fetch(`https://api.onepan.cn/api/app/version/admin_web?arch=${arch}`, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return;
     const jsonRes = await res.json();
     const latest = jsonRes.data;

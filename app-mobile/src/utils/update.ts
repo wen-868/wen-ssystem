@@ -111,8 +111,19 @@ function handleAppUpdate(data: LatestAppVersion): void {
 /** 启动/回前台时调用：检查是否有新版本 */
 export function checkAppUpdate(): void {
   const base = resolveBase()
+  // 按设备架构请求对应安装包地址（arm64-v8a→arm64 / armeabi-v7a→ia32 / x86→x64）
+  let arch = ''
+  // #ifdef APP-PLUS
+  try {
+    const info = uni.getSystemInfoSync()
+    const abi: string = (info as any).abi || (info as any).platform || ''
+    if (abi.indexOf('arm64') >= 0) arch = 'arm64'
+    else if (abi.indexOf('x86_64') >= 0 || abi.indexOf('x86') >= 0) arch = 'x64'
+    else if (abi.indexOf('armeabi') >= 0 || abi.indexOf('armv7') >= 0) arch = 'ia32'
+  } catch { /* 忽略 */ }
+  // #endif
   uni.request({
-    url: `${base}/app/version/app_mobile`,
+    url: `${base}/app/version/app_mobile${arch ? `?arch=${arch}` : ''}`,
     method: 'GET',
     timeout: 8000,
     success: (res) => {
