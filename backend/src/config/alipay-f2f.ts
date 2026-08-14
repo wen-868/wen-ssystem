@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { queryOneWithTenant } from "../shared/db";
+import { fetchWithRetry } from "../shared/http-with-retry";
 
 /**
  * 支付宝当面付（条码支付/反扫）
@@ -94,7 +95,7 @@ async function request(method: string, bizContent: Record<string, unknown>, cfg:
 
   const url = new URL(GATEWAY);
   for (const [k, v] of Object.entries(baseParams)) url.searchParams.set(k, v);
-  const response = await fetch(url.toString(), { method: "GET" });
+  const response = await fetchWithRetry(url.toString(), { method: "GET" }, { timeoutMs: 10_000, retries: 1, backoffMs: 500 });
   const data = (await response.json()) as Record<string, unknown>;
   const body = (data[method.replace(".", "_") + "_response"] || {}) as Record<string, string>;
   return { ...body, sign: String(data.sign || "") };

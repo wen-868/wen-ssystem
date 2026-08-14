@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { env } from "../shared/env";
 import { fail } from "../shared/response";
+import { fetchWithRetry } from "../shared/http-with-retry";
 
 declare const Buffer: any;
 
@@ -23,7 +24,7 @@ export function requireWxAuth(req: any, res: any, next: any) {
 
 export async function code2Session(code: string): Promise<{ openid: string; session_key: string; unionid?: string }> {
   const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${env.WX_APPID}&secret=${env.WX_APP_SECRET}&js_code=${code}&grant_type=authorization_code`;
-  const res = await fetch(url);
+  const res = await fetchWithRetry(url, {}, { timeoutMs: 10_000, retries: 1, backoffMs: 500 });
   const data = await res.json() as Record<string, string>;
   if (data.errcode && data.errcode !== "0") {
     throw new Error(`微信code2Session失败: ${data.errcode} ${data.errmsg}`);

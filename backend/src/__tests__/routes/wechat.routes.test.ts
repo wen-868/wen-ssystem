@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { wechatRouter, routeConfig } from "../../routes/wechat.routes";
 
+// wechat-auth 依赖 http-with-retry → logger，测试环境 mock 避免 pino 初始化依赖真实 env
+vi.mock("../../shared/logger", () => ({
+  default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
 vi.mock("../../controllers/admin/wechat.controller", () => ({
   createWechatController: vi.fn().mockReturnValue({
     login: vi.fn(),

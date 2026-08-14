@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import { env } from "./env";
+import { fetchWithRetry } from "../shared/http-with-retry";
 
 declare const Buffer: any;
 
@@ -103,14 +104,14 @@ export class WechatPay {
 
     const authorization = this.buildAuthorization('POST', url, body);
     
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': authorization
       },
       body
-    });
+    }, { timeoutMs: 10_000, retries: 0 });
 
     const result = await response.json() as { code?: string; message?: string; prepay_id?: string };
     
@@ -133,10 +134,10 @@ export class WechatPay {
     const url = `https://api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no/${outTradeNo}?mchid=${this.config.mchId}`;
     const authorization = this.buildAuthorization('GET', url);
     
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: 'GET',
       headers: { 'Authorization': authorization }
-    });
+    }, { timeoutMs: 10_000, retries: 1, backoffMs: 500 });
     
     return response.json();
   }
@@ -146,14 +147,14 @@ export class WechatPay {
     const body = JSON.stringify({ mchid: this.config.mchId });
     const authorization = this.buildAuthorization('POST', url, body);
     
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': authorization
       },
       body
-    });
+    }, { timeoutMs: 10_000, retries: 0 });
     
     return response.json();
   }
@@ -179,14 +180,14 @@ export class WechatPay {
 
     const authorization = this.buildAuthorization('POST', url, body);
     
-    const response = await fetch(url, {
+    const response = await fetchWithRetry(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': authorization
       },
       body
-    });
+    }, { timeoutMs: 10_000, retries: 0 });
     
     return response.json();
   }

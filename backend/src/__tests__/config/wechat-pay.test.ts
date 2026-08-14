@@ -13,6 +13,11 @@ vi.mock("../../config/env", () => ({
   }
 }));
 
+// http-with-retry 依赖 logger，测试环境 mock 避免 pino 初始化依赖真实 env
+vi.mock("../../shared/logger", () => ({
+  default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}));
+
 // Mock fs
 vi.mock("fs", async () => {
   const actual = await vi.importActual<typeof import("fs")>("fs");
