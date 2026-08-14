@@ -31,14 +31,15 @@ export default defineConfig({
         "tests/**",
       ],
       thresholds: {
-        // 全局阈值：以 2026-08-15 实测基线（statements 63.09 / branches 51.27 /
-        // functions 61.87 / lines 64.72）为准并留 2~3 个点防抖动余量，确保
+        // 全局阈值：2026-08-15 第二轮实测基线（statements 64.40 / branches 52.59 /
+        // functions 63.62 / lines 66.04，补测 12+ 个服务模块后较首轮 +1.3~1.8pt）
+        // 留 2 个点防抖动余量，确保
         // `vitest run --coverage` 在 CI 可真实通过；覆盖率提升按验收路线图
         // 逐轮向核心业务 ≥85% 推进，每提升一轮同步上调阈值。
-        statements: 60,
-        branches: 48,
-        functions: 58,
-        lines: 61,
+        statements: 62,
+        branches: 50,
+        functions: 61,
+        lines: 63,
         // 核心业务 services/admin 专项阈值：2026-08-15 实测基线
         // （statements 56.34 / branches 52.81 / functions 55.54 / lines 57.68），
         // 留 2 个点余量防回归，低于此值即 CI 失败。
