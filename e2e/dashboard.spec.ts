@@ -28,3 +28,17 @@ test("快速收银页面可访问", async ({ page }) => {
   // 收银台标题或商品搜索区出现
   await expect(page.getByText("快速收银", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
 });
+
+test("商品管理页面可访问", async ({ page }) => {
+  await login(page);
+  await page.goto("/products");
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await expect(page.getByText("商品中心", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
+});
+
+test("客户管理页面可访问", async ({ page }) => {
+  await login(page);
+  await page.goto("/customers");
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await expect(page.getByText("客户管理", { exact: false }).first()).toBeVisible({ timeout: 20_000 });
+});
