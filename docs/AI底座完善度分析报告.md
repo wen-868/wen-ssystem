@@ -5,13 +5,13 @@
 
 ## 一、总体结论
 
-**完善度评级：规划内功能 100% 落地，整体完成度约 85%——已具备商用骨架与核心业务闭环；剩余约 15% 为集成验证、运维实测与能力补强（撤销自动回滚、实时推送联调、RAG 知识库内容、Ollama 完善、CI 门禁接入）。**
+**完善度评级：规划内功能 100% 落地，整体完成度约 90%——已具备商用骨架与核心业务闭环；剩余约 10% 为集成验证与运维实测（服务器端到端验收、实时推送联调、RAG 知识库内容、Docker/计费/告警实测）。**
 
 ```
 P0 核心骨架  ✅ 100% 完成（9/9 任务）
 P1 核心业务  ✅ 100% 完成（6/6 任务）
 P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系未更新，实际代码已交付）
-自身测试    ✅ 41 套件 / 512+ 用例；覆盖率 statements 72.81% / lines 72.66% / functions 73.9% / branches 60.38%
+自身测试    ✅ 43 套件 / 538 用例；覆盖率 statements 72.81% / lines 72.66% / functions 73.9% / branches 60.38%
 ```
 
 ## 二、三阶段完成对照（R70-01 ~ R70-22）
@@ -26,7 +26,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 
 | 能力 | 规划 | 实际 | 结论 |
 |---|---|---|---|
-| 业务工具 | 24 个（9 业务域）+ echo | **28 个**（echo+7销售+1商品创建+3库存+4商品客户+4采购配送+8财务报表） | ✅ 超规划 |
+| 业务工具 | 24 个（9 业务域）+ echo | **29 个**（echo+7销售+1商品创建+3库存+4商品客户+5采购配送+8财务报表） | ✅ 超规划 |
 | 主动服务 | 9 项 | 9 项全实现（库存预警/订单异常/应收提醒/日报/经营异常/补货建议/配送异常/客户流失/毛利异常） | ✅ |
 | 多租户 | JWT 解析+租户配置 | TenantContext(AsyncLocalStorage)+TenantMiddleware+AiConfigService(降级链)+CryptoService | ✅ |
 | 确认机制 | 预览→确认→执行→撤销 | ConfirmationService（TTL 5min+撤销窗口 3min+确认词识别防误判） | ✅ |
@@ -41,7 +41,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 |---|---|
 | 编译 | `nest build` 0 errors（dist 已生成） |
 | Lint | `eslint src/**/*.ts` 0 errors 0 warnings |
-| 单元测试 | 41 套件 / 512 用例全通过（工具/主动服务/RAG 新代码 Stmts 100%） |
+| 单元测试 | 43 套件 / 538 用例全通过（工具/主动服务/RAG/回滚新代码 Stmts 100%） |
 | 自身覆盖率 | statements 72.81% / branches 60.38% / functions 73.9% / lines 72.66% |
 | 服务器部署 | pm2 zhixiang-ai-base online，/api/admin/health 返回 {"status":"ok"} |
 | 前端集成 | admin-web AI 窗口（SSE+预览确认）、app-mobile AI 页（H5 语音真实对接）、saas-admin AI 配置 4 页 |
@@ -52,8 +52,8 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 | 缺口 | 现状 | 影响 | 建议 |
 |---|---|---|---|
 | 服务器端到端验收 | **scripts/ai-base-e2e.mjs 已就绪**（health/工具/Provider/巡检/RAG/LLM/对话/审计 8 项检查+报告输出），待服务器配置 DEEPSEEK_API_KEY 后执行 | 核心价值待生产验证 | 服务器配置 Key 后执行 `node scripts/ai-base-e2e.mjs` |
-| ai-base CI 门禁 | ✅ **已接入 ci.yml**（ai-base job：corepack pnpm + install + build + lint + jest，41 套件 524 用例） | 回归防线已补齐 | 随主 CI 自动执行 |
-| 撤销为"登记"模式 | R70-15 撤销仅登记状态，业务回退依赖单据取消/退货流程 | 撤销体验非自动 | 按单据类型接入自动回滚/引导 |
+| ai-base CI 门禁 | ✅ **已接入 ci.yml**（ai-base job：corepack pnpm + install + build + lint + jest，43 套件 538 用例） | 回归防线已补齐 | 随主 CI 自动执行 |
+| 撤销为"登记"模式 | ✅ **已接入自动回滚**：RollbackExecutorService + cancelPurchaseOrder 工具，撤销时自动执行取消采购单；无映射的写操作降级为登记+引导（6 个回滚单测） | 已闭环 | 后续按业务端点扩展回滚映射 |
 
 ### P1 — 能力补强
 | 缺口 | 现状 | 建议 |
@@ -75,7 +75,8 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 2. ✅ scripts/ai-base-e2e.mjs 端到端验收脚本（8 项检查 + docs/reports 报告输出）
 3. ⏳ 服务器执行端到端验收（需 DEEPSEEK_API_KEY）——脚本就绪待执行
 4. ✅ Ollama Provider 完善：占位 501 → 真实 OpenAI 兼容实现（流式/非流式含 function calling、embedding、连通性测试），8 个单元测试；同时修复 DeepSeek/GLM/Ollama 三处「业务错误被 catch 转 503」透传 bug；ai-base 全量 42 套件 / 532 用例通过
+5. ✅ 撤销自动回滚接入：新增 RollbackExecutorService（写操作→回滚工具映射表，createPurchaseOrder→cancelPurchaseOrder，无映射/无工具/无单号均优雅降级）+ cancelPurchaseOrder 工具（复用 ServiceClient 调后端取消接口）+ revoke 端点自动执行回滚并返回 rollbackHandled/rollbackSuccess；6 个回滚单测；同时修复 orchestrator 兜底摘要 10 处类型不安全拼接（存量 lint 错误，CI 门禁会挂）；ai-base 全量 43 套件 / 538 用例通过，lint 0 errors
 
 ## 七、结论
 
-AI 底座按规划完成全部 P0/P1/P2 任务，三层架构（大脑-工具-记忆）、28 个业务工具、9 项主动服务、RAG、多租户与安全机制均已落地且有 512 个单元测试支撑（自身覆盖率 72%+）。**当前处于「代码与能力就绪、生产验证待执行」状态**——补齐服务器端到端验收、CI 门禁接入、撤销自动回退与 RAG 知识库内容后即可进入完整商用。
+AI 底座按规划完成全部 P0/P1/P2 任务，三层架构（大脑-工具-记忆）、29 个业务工具（新增取消采购单）、9 项主动服务、RAG、多租户与安全机制均已落地且有 538 个单元测试支撑（自身覆盖率 72%+），撤销登记模式已升级为自动回滚闭环。**当前处于「代码与能力就绪、生产验证待执行」状态**——补齐服务器端到端验收、实时推送联调与 RAG 知识库内容后即可进入完整商用。

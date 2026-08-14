@@ -46,6 +46,14 @@ import type { ToolContext, ToolResult } from '../tools/tool.interface';
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
 
+/** 将未知类型安全转为展示文本：字符串/数字/布尔原样返回，其余按兜底值处理（避免 [object Object]） */
+function toText(value: unknown, fallback = ''): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value);
+  return fallback;
+}
+
 /**
  * Orchestrator 产出的事件
  *
@@ -472,19 +480,19 @@ export class Orchestrator {
             : [];
           const itemText = items
             .map((it) => {
-              const name = String(it.skuName ?? it.productName ?? '');
-              const box = it.boxQty ? `${it.boxQty}箱` : '';
-              const bottle = it.bottleQty ? `${it.bottleQty}瓶` : '';
+              const name = toText(it.skuName) || toText(it.productName);
+              const box = it.boxQty ? `${toText(it.boxQty)}箱` : '';
+              const bottle = it.bottleQty ? `${toText(it.bottleQty)}瓶` : '';
               const price =
-                it.totalPrice != null ? `（¥${it.totalPrice}）` : '';
+                it.totalPrice != null ? `（¥${toText(it.totalPrice)}）` : '';
               return [name, box, bottle, price].filter(Boolean).join(' ');
             })
             .filter(Boolean)
             .join('、');
           parts.push(
-            `销售单 ${d.billNo ?? ''} 创建成功：客户 ${d.customerName ?? '未知'}，` +
-              `${itemText || `${d.itemCount ?? ''} 种商品`}，` +
-              `总金额 ¥${d.totalAmount ?? '未知'}。`,
+            `销售单 ${toText(d.billNo)} 创建成功：客户 ${toText(d.customerName, '未知')}，` +
+              `${itemText || `${toText(d.itemCount)} 种商品`}，` +
+              `总金额 ¥${toText(d.totalAmount, '未知')}。`,
           );
           break;
         }
@@ -492,7 +500,7 @@ export class Orchestrator {
           const list = Array.isArray(d.list) ? d.list : [];
           parts.push(
             `销售报表查询完成：${d.reportType === 'trend' ? '趋势报表' : '日报'}，` +
-              `日期 ${d.dateStart ?? '-'} 至 ${d.dateEnd ?? '-'}，` +
+              `日期 ${toText(d.dateStart, '-')} 至 ${toText(d.dateEnd, '-')}，` +
               `共 ${list.length} 条记录。`,
           );
           break;

@@ -24,6 +24,7 @@ import { ContextBuilder } from './context-builder.service';
 import { MemoryManager } from './memory-manager.service';
 import { Orchestrator } from './orchestrator.service';
 import { ConfirmationService } from './confirmation.service';
+import { RollbackExecutorService } from './rollback-executor.service';
 
 @Module({
   imports: [
@@ -33,7 +34,18 @@ import { ConfirmationService } from './confirmation.service';
     TenantModule,
     RagModule,
   ],
-  providers: [ContextBuilder, MemoryManager, Orchestrator, ConfirmationService],
-  exports: [Orchestrator, MemoryManager, ConfirmationService],
+  providers: [
+    ContextBuilder,
+    MemoryManager,
+    Orchestrator,
+    ConfirmationService,
+    RollbackExecutorService,
+  ],
+  exports: [
+    Orchestrator,
+    MemoryManager,
+    ConfirmationService,
+    RollbackExecutorService,
+  ],
 })
 export class BrainModule {}

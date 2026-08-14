@@ -14,6 +14,7 @@ import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
 import { GetSaleBillDetailTool } from './definitions/get-sale-bill-detail.tool';
 import { CancelOrderTool } from './definitions/cancel-order.tool';
+import { CancelPurchaseOrderTool } from './definitions/cancel-purchase-order.tool';
 // R70-10: 库存管理 3 个工具
 import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
 import { StockCheckTool } from './definitions/stock-check.tool';
@@ -84,6 +85,8 @@ import { BridgeModule } from '../bridge/bridge.module';
     QuerySaleBillsTool,
     GetSaleBillDetailTool,
     CancelOrderTool,
+    // R70 完善度 P1: 取消采购单（写操作 + 自动回滚执行工具）
+    CancelPurchaseOrderTool,
     // R70-10: 库存管理 3 个工具
     InventoryTransferTool,
     StockCheckTool,

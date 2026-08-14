@@ -9,6 +9,7 @@ import { CreateSalesOrderTool } from './definitions/create-sales-order.tool';
 import { QuerySaleBillsTool } from './definitions/query-sale-bills.tool';
 import { GetSaleBillDetailTool } from './definitions/get-sale-bill-detail.tool';
 import { CancelOrderTool } from './definitions/cancel-order.tool';
+import { CancelPurchaseOrderTool } from './definitions/cancel-purchase-order.tool';
 import { InventoryTransferTool } from './definitions/inventory-transfer.tool';
 import { StockCheckTool } from './definitions/stock-check.tool';
 import { QueryInventoryTool } from './definitions/query-inventory.tool';
@@ -77,6 +78,7 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly querySaleBillsTool: QuerySaleBillsTool,
     private readonly getSaleBillDetailTool: GetSaleBillDetailTool,
     private readonly cancelOrderTool: CancelOrderTool,
+    private readonly cancelPurchaseOrderTool: CancelPurchaseOrderTool,
     private readonly inventoryTransferTool: InventoryTransferTool,
     private readonly stockCheckTool: StockCheckTool,
     private readonly queryInventoryTool: QueryInventoryTool,
@@ -114,6 +116,8 @@ export class ToolBootstrap implements OnModuleInit {
       this.querySaleBillsTool,
       this.getSaleBillDetailTool,
       this.cancelOrderTool,
+      // R70 完善度 P1: 取消采购单（自动回滚执行工具）
+      this.cancelPurchaseOrderTool,
       // R70-10: 库存管理 3 个工具
       this.inventoryTransferTool,
       this.stockCheckTool,

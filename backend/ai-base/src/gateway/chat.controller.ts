@@ -29,6 +29,7 @@ import {
 import type { Response } from 'express';
 import { Orchestrator } from '../brain/orchestrator.service';
 import { ConfirmationService } from '../brain/confirmation.service';
+import { RollbackExecutorService } from '../brain/rollback-executor.service';
 import { TenantContext } from '../tenant/tenant-context';
 import { ToolExecutor } from '../tools/tool-executor';
 import type { ToolCall } from '../providers/provider.interface';
@@ -50,6 +51,7 @@ export class ChatController {
     private readonly tenantContext: TenantContext,
     private readonly confirmationService: ConfirmationService,
     private readonly executor: ToolExecutor,
+    private readonly rollbackExecutor: RollbackExecutorService,
   ) {}
 
   /**
@@ -280,15 +282,17 @@ export class ChatController {
    *       本端点负责校验撤销窗口并登记撤销状态，返回操作指引。
    */
   @Post('operations/:operationId/revoke')
-  revokeOperation(
+  async revokeOperation(
     @Param('operationId') operationId: string,
     @Body() dto: RevokeOperationDto,
-  ): {
+  ): Promise<{
     success: boolean;
     message?: string;
     error?: string;
     revocable?: boolean;
-  } {
+    rollbackHandled?: boolean;
+    rollbackSuccess?: boolean;
+  }> {
     const tenantId = this.getTenantId();
     if (!tenantId) {
       return { success: false, error: '未认证：无法确定租户身份' };
@@ -299,15 +303,35 @@ export class ChatController {
       return { success: false, error: check.reason ?? '无法撤销' };
     }
 
+    // 在登记撤销前取操作记录（用于自动回滚）
+    const operation = this.confirmationService.getExecuted(operationId);
     this.confirmationService.markRevoked(operationId, tenantId);
     this.logger.log(
       `操作已登记撤销：id=${operationId} tenant=${tenantId} reason=${dto.reason ?? '用户主动撤销'}`,
     );
 
+    // 自动回滚：有映射的写操作自动调用回滚工具，无映射降级为引导
+    if (operation) {
+      const ctx = this.tenantContext.getData();
+      const rollback = await this.rollbackExecutor.executeRollback(operation, {
+        tenantId,
+        userId: ctx?.userId,
+        authToken: ctx?.authToken,
+        sessionId: operation.conversationId,
+      });
+      return {
+        success: true,
+        revocable: true,
+        rollbackHandled: rollback.handled,
+        rollbackSuccess: rollback.success,
+        message: rollback.message,
+      };
+    }
+
     return {
       success: true,
       revocable: true,
-      message: '撤销登记成功，请通过对应单据的取消/退货流程完成最终回退',
+      message: '撤销登记成功，操作记录已清理',
     };
   }
 
