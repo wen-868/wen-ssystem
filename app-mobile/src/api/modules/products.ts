@@ -6,7 +6,7 @@ const API_BASE: string = (() => {
   return (import.meta.env.VITE_API_BASE as string | undefined) || '/api'
   // #endif
   // #ifndef H5
-  return 'https://api.onepan.cn'
+  return 'https://api.onepan.cn/api'
   // #endif
 })()
 

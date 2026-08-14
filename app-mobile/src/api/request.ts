@@ -10,7 +10,8 @@ const BASE_URL: string = (() => {
   return import.meta.env.VITE_API_BASE || '/api'
   // #endif
   // #ifndef H5
-  return 'https://api.onepan.cn'
+  // APP 端必须带 /api 路径前缀（nginx 仅反代 /api/* 到后端），否则所有请求 404 导致无法登录
+  return 'https://api.onepan.cn/api'
   // #endif
 })()
 

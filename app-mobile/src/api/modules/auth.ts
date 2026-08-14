@@ -59,9 +59,9 @@ const authApi = {
     return post('/store/auth/login', params)
   },
 
-  /** 获取当前用户信息（商户端store端点） */
+  /** 获取当前用户信息（统一 JWT，复用 /admin/auth/me；原 /store/me 后端无此路由，登录态拉取会 404 踢回登录页） */
   getProfile(): Promise<ProfileResult> {
-    return get('/store/me')
+    return get('/admin/auth/me')
   },
 
   /** 修改密码（暂用admin端点，若后端补齐store端点后替换） */

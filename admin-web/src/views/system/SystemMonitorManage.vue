@@ -1,9 +1,6 @@
 <template>
   <div class="page">
     <el-tabs v-model="activeTab" class="monitor-tabs">
-      <el-tab-pane label="系统监控" name="monitor">
-        <MonitorView />
-      </el-tab-pane>
       <el-tab-pane label="操作日志" name="audit">
         <AuditLogView />
       </el-tab-pane>
@@ -19,12 +16,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import MonitorView from "./MonitorView.vue";
 import AuditLogView from "./AuditLogView.vue";
 import ErrorLogView from "./ErrorLogView.vue";
 import FeedbackView from "./FeedbackView.vue";
 
-const activeTab = ref("monitor");
+const activeTab = ref("audit");
 </script>
 
 <style scoped>
