@@ -317,7 +317,10 @@ export async function updateCartItemQuantity(tenantId: string, customerId: numbe
       [quantity, customerId, skuId],
       tenantId
     );
-    if ((result as unknown as { affectedRows: number }).affectedRows === 0) {
+    // database.ts 将 ResultSetHeader 归一化为数组返回，需从首元素取 affectedRows
+    const raw = result as unknown as Array<{ affectedRows?: number }> | { affectedRows?: number } | null;
+    const affectedRows = Array.isArray(raw) ? raw[0]?.affectedRows : raw?.affectedRows;
+    if (affectedRows === 0) {
       return { success: false, message: "购物车中无此商品" };
     }
     return { success: true, message: "已更新" };
