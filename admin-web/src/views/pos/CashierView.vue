@@ -2016,6 +2016,12 @@ async function handleDeleteHoldOrder(holdNo: string) {
   flex: 1;
   overflow-y: auto;
   min-height: 120px;
+  /* 隐藏滚动条（内容仍可滚轮滚动）：避免滚动条出现/消失占位导致结算台布局跳动 */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cart-list::-webkit-scrollbar {
+  display: none;
 }
 .cart-list.empty {
   display: flex;
