@@ -92,7 +92,9 @@ process.on("unhandledRejection", (reason: any, _promise: Promise<any>) => {
  */
 function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>) {
   // express-rate-limit v8 默认验证 X-Forwarded-For 头，Nginx 反代下需禁用验证
-  const baseOptions = { standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false, xForwardedForHeader: false }, ...options };
+  // 信任 nginx 反代（app.set("trust proxy", 1) 已启用），限流按真实客户端 IP 计数；
+  // 不能禁用 trustProxy，否则所有请求都算到 127.0.0.1，全站共享配额被限流(429)。
+  const baseOptions = { standardHeaders: true, legacyHeaders: false, ...options };
   // 测试环境使用 MemoryStore，避免依赖真实 Redis 影响测试
   if (process.env.NODE_ENV === "test") {
     return rateLimit(baseOptions);
