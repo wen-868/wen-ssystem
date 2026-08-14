@@ -523,7 +523,34 @@ function formatProductLabel(p: any) {
 }
 
 async function handleSaveDraft() {
-  ElMessage.info("草稿保存功能开发中");
+  if (form.items.length === 0) {
+    ElMessage.warning("请添加至少一个商品");
+    return;
+  }
+  try {
+    // 真实挂单接口：POST /api/store/hold-orders（与移动端暂存共用）
+    const payload = {
+      customerName: form.customerName || "散客",
+      customerMobile: form.customerMobile || "",
+      amount: form.items.reduce(
+        (sum: number, it: any) => sum + Number(it.price || 0) * Number(it.qty || 0),
+        0
+      ),
+      remark: (form.internalRemark || form.customerRemark || "工作台开单暂存").slice(0, 200),
+      items: form.items.map((item: any) => ({
+        skuId: item.skuId || item.productId,
+        skuName: item.name || item.skuName || "",
+        quantity: Number(item.qty || 1),
+        unitPrice: Number(item.price || 0),
+        subtotalAmount: Number((Number(item.price || 0) * Number(item.qty || 1)).toFixed(2)),
+      })),
+    };
+    const res = await api.post("/store/hold-orders", payload);
+    ElMessage.success(`已暂存（${res.data?.data?.holdNo || ""}）`);
+  } catch (err) {
+    console.error("暂存销售单失败:", err);
+    ElMessage.error("暂存失败，请稍后重试");
+  }
 }
 
 async function handleSubmit(print = false) {

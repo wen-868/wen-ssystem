@@ -68,9 +68,6 @@
         <el-button type="primary" @click="showProductDialog = true">
           <el-icon><Plus /></el-icon> 添加商品
         </el-button>
-        <el-button @click="handleImport">
-          <el-icon><Upload /></el-icon> 批量导入
-        </el-button>
       </template>
 
       <div class="table-card">
@@ -431,10 +428,6 @@ function confirmAddProducts() {
   }
   showProductDialog.value = false;
   selectedProducts.value = [];
-}
-
-function handleImport() {
-  ElMessage.info("批量导入功能开发中");
 }
 
 async function validateForm(): Promise<boolean> {
