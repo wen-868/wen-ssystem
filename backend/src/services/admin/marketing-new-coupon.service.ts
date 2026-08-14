@@ -92,7 +92,8 @@ export async function listCouponTemplates(
   pageSize: number,
   tenantId: string,
   status?: string,
-  type?: string
+  type?: string,
+  keyword?: string
 ) {
   const conditions: string[] = [];
   const params: unknown[] = [];
@@ -104,6 +105,10 @@ export async function listCouponTemplates(
   if (type) {
     conditions.push("coupon_type = ?");
     params.push(type);
+  }
+  if (keyword) {
+    conditions.push("template_name LIKE ?");
+    params.push(`%${keyword}%`);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";

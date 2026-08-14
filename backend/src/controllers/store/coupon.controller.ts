@@ -1,6 +1,8 @@
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
-import { listCouponTemplates, getCouponTemplate } from "../../services/admin/marketing-coupon.service";
+// 门店优惠券数据源统一切到 marketing-new-coupon.service（列名与真实表 total_quantity/issued_quantity/used_quantity 一致；
+// 旧 marketing-coupon.service 查询不存在的 total_count/claimed_count/used_count 列，真实库会 500——整合方案步骤 1）
+import { listCouponTemplates, getCouponTemplate } from "../../services/admin/marketing-new-coupon.service";
 import * as couponVerifyService from "../../services/store/coupon-verify.service";
 import { z } from "zod";
 
