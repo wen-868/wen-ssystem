@@ -68,3 +68,54 @@ jobs:
 
       - name: QA regression test
         run: npm run test:qa
+
+  migration-check:
+    # 数据库迁移纳入 CI：真实 MySQL 8 执行迁移脚本，验证关键表存在（验收项：迁移可前滚/纳入 CI）
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: liquor_inventory
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build backend
+        run: npm --workspace backend run build
+
+      - name: Run migrations via server boot and verify tables
+        run: |
+          DB_HOST=127.0.0.1 DB_PORT=3306 DB_USER=root DB_PASSWORD=root \
+          DB_NAME=liquor_inventory NODE_ENV=production JWT_SECRET=ci-migration-secret \
+          PORT=8095 node backend/dist/server.js > /tmp/mig.log 2>&1 &
+          npx wait-on -t 120000 http://127.0.0.1:8095/health || (echo "=== 迁移日志 ==="; cat /tmp/mig.log; exit 1)
+          mysql -h127.0.0.1 -uroot -proot liquor_inventory -e "
+            SHOW TABLES LIKE 't_sale_bill';
+            SHOW TABLES LIKE 't_sys_user';
+            SHOW TABLES LIKE 't_seckill_order';
+            SHOW TABLES LIKE 't_user_coupon';
+            SHOW TABLES LIKE 't_payment_config';
+            SHOW TABLES LIKE 't_print_template';
+          "
+          if grep -q "失败" /tmp/mig.log; then echo "存在迁移失败记录"; cat /tmp/mig.log; exit 1; fi
+          echo "迁移验证通过"

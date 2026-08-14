@@ -51,7 +51,10 @@ export async function createSmsTemplate(body: SmsTemplateInput, tenantId: string
      VALUES (?, ?, ?, ?, ?, ?)`,
     [tenantId, body.name, body.code, body.content, body.purpose || "", body.status || "ENABLED"]
   );
-  return { id: (result as unknown as { insertId: number }).insertId };
+  // database.ts 将 ResultSetHeader 归一化为数组返回，需从首元素取 insertId
+  const raw = result as unknown as Array<{ insertId?: number }> | { insertId?: number } | null;
+  const insertId = Array.isArray(raw) ? raw[0]?.insertId : raw?.insertId;
+  return { id: insertId ?? 0 };
 }
 
 export async function updateSmsTemplate(id: number, body: Partial<SmsTemplateInput>, tenantId: string): Promise<void> {
