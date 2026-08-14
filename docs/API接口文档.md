@@ -197,6 +197,17 @@
 | S16 | `GET /api/store/dashboard` | 门店看板 | ?granularity=day&days=7 | {todaySales,todayOrders,currentCustomers,weekTrend[],top5[],inventoryWarning} | store-dashboard.routes.ts + dashboard for store | store-terminal Dashboard.vue |
 | S17 | `GET /api/store/coupons` | 门店优惠券列表（分页） | ?page&pageSize&status&keyword | {total,page,pageSize,records:[{id,name,type,value,minAmount,applicableScope,totalCount,claimedCount,usedCount,startTime,endTime,status}]} | store-coupon.routes.ts + marketing-coupon.service.ts | app-mobile store.ts fetchCoupons |
 | S18 | `GET /api/store/coupons/:id` | 门店优惠券详情 | — | {id,name,type,value,minAmount,applicableScope,totalCount,claimedCount,usedCount,startTime,endTime,status,description} | store-coupon.routes.ts + marketing-coupon.service.ts | app-mobile store.ts fetchCouponDetail |
+| S19 | `POST /api/store/coupons/verify` | 优惠券核销（扫码/券码） | {code, orderNo?, orderAmount?} | {couponId,couponNo,couponName,couponType,couponValue,discountAmount,orderNo,userName,userMobile,status:"USED",usedAt} | store-coupon.routes.ts + coupon-verify.service.ts | app-mobile coupon-verify.vue 扫码核销 |
+| S20 | `POST /api/store/coupons/manual-verify` | 优惠券手动核销（报手机号） | {couponCode, mobile?, saleBillNo?, orderAmount?} | 同 S19 | store-coupon.routes.ts + coupon-verify.service.ts | app-mobile coupon-verify.vue 手动核销 |
+
+### 秒杀订单（社区营销秒杀参与闭环）
+
+| 方法 | 端点 | 说明 | 入参 | 返回 | 实现 | 前端 |
+|---|---|---|---|---|---|---|
+| POST | `/api/marketing/seckill/:id/buy` | 秒杀下单（扣库存+落 t_seckill_order，状态 PENDING_PAY） | {quantity} | {orderNo,productId,seckillPrice,quantity,totalAmount,status:"PENDING_PAY",memberName,memberMobile} | community-marketing.service.ts buySeckill | seckill-detail.vue |
+| POST | `/api/marketing/seckill/:orderNo/pay` | 秒杀订单支付确认（PENDING_PAY→PAID，幂等） | — | {orderNo,status:"PAID"} | paySeckillOrder | community-marketing.ts paySeckillOrder |
+| POST | `/api/marketing/seckill/:orderNo/cancel` | 秒杀订单取消（回补库存，PENDING_PAY→CANCELLED） | {reason?} | {orderNo,status:"CANCELLED"} | cancelSeckillOrder | community-marketing.ts cancelSeckillOrder |
+| GET | `/api/marketing/seckill/:id/records` | 秒杀参与记录（真实数据源 t_seckill_order，分页） | ?page&pageSize | {total,page,pageSize,records:[{id,activityId,productId,memberId,memberName,memberMobile,quantity,seckillPrice,totalAmount,status,participationTime}]} | listSeckillParticipationRecords | participation-records.vue |
 
 > **契约对齐约定**：后端改字段/加路径 → 先在上方表新增行，再改代码；前端加请求 → 先查表，表中不存在的端点必须提 Issue 让凌舟派单补契约，不允许自行开发。
 

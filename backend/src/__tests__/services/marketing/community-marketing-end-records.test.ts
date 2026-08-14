@@ -110,11 +110,17 @@ describe("community-marketing.service - 参与记录（R100-02）", () => {
     expect(String(mocks.queryWithTenant.mock.calls[0][0])).toContain("FROM t_bargain_record br");
   });
 
-  it("listSeckillParticipationRecords 无数据源返回空分页", async () => {
-    mocks.queryOneWithTenant.mockResolvedValue({ id: 3 });
+  it("listSeckillParticipationRecords 有数据源返回真实分页", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 3 });
+    mocks.queryWithTenant.mockResolvedValueOnce([
+      { id: 1, activityId: 3, productId: 100, memberId: 9, memberName: "张三", quantity: 2, seckillPrice: 88, totalAmount: 176, status: "PAID", participationTime: "2026-08-15T01:00:00.000Z" },
+    ]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ total: 1 });
     const res = await listSeckillParticipationRecords(tenantId, 3, 1, 20);
-    expect(res).toEqual({ total: 0, page: 1, pageSize: 20, records: [] });
-    expect(mocks.queryWithTenant).not.toHaveBeenCalled();
+    expect(res.total).toBe(1);
+    expect(res.records).toHaveLength(1);
+    expect(res.records[0]).toMatchObject({ memberName: "张三", status: "PAID" });
+    expect(mocks.queryWithTenant).toHaveBeenCalled();
   });
 
   it("listSeckillParticipationRecords 活动不存在抛 404", async () => {

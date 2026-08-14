@@ -129,6 +129,27 @@ export async function buySeckill(req: any, res: any) {
   res.json(ok(result));
 }
 
+/** 秒杀订单支付确认 */
+export async function paySeckillOrder(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const orderNo = z.string().trim().min(1).parse(req.params.orderNo);
+  const userId = req.user?.id;
+  const result = await communityService.paySeckillOrder(tenantId, orderNo, userId);
+  res.json(ok(result));
+}
+
+/** 秒杀订单取消（回补库存） */
+export async function cancelSeckillOrder(req: any, res: any) {
+  const tenantId = req.tenantId!;
+  const orderNo = z.string().trim().min(1).parse(req.params.orderNo);
+  const userId = req.user?.id;
+  const { reason } = z.object({
+    reason: z.string().max(255).optional(),
+  }).parse(req.body || {});
+  const result = await communityService.cancelSeckillOrder(tenantId, orderNo, userId, reason);
+  res.json(ok(result));
+}
+
 // ==================== 结束活动（管理端） ====================
 
 /** 结束拼团活动 */

@@ -130,6 +130,9 @@ export interface SeckillOrderResult {
   seckillPrice: number
   quantity: number
   totalAmount: number
+  status: string
+  memberName?: string | null
+  memberMobile?: string | null
 }
 
 export interface SeckillListParams {
@@ -228,6 +231,18 @@ const communityMarketingApi = {
   async buySeckill(activityId: number, quantity = 1): Promise<SeckillOrderResult> {
     const res: any = await post(`/marketing/seckill/${activityId}/buy`, { quantity })
     return (res?.result ?? res) as SeckillOrderResult
+  },
+
+  /** 秒杀订单支付确认（POST /api/marketing/seckill/:orderNo/pay） */
+  async paySeckillOrder(orderNo: string): Promise<{ orderNo: string; status: string }> {
+    const res: any = await post(`/marketing/seckill/${orderNo}/pay`, {})
+    return (res?.result ?? res) as { orderNo: string; status: string }
+  },
+
+  /** 秒杀订单取消（POST /api/marketing/seckill/:orderNo/cancel，回补库存） */
+  async cancelSeckillOrder(orderNo: string, reason?: string): Promise<{ orderNo: string; status: string }> {
+    const res: any = await post(`/marketing/seckill/${orderNo}/cancel`, { reason })
+    return (res?.result ?? res) as { orderNo: string; status: string }
   },
 
   // ---- 结束活动（R100-02：POST /api/marketing/*/:id/end） ----

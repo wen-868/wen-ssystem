@@ -1,5 +1,6 @@
 import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
+import { makeBizNo } from "../../shared/id";
 
 // ── 数据库行接口定义 ──
 
@@ -680,24 +681,155 @@ export async function buySeckill(
       throw Object.assign(new Error(`每人限购${limitPerUser}件`), { statusCode: 400 });
     }
 
+    // 每人限购校验：统计该会员当前活动未取消的累计购买量（含本次）
+    const [boughtRows] = await connExecute<SeckillBoughtRow[]>(
+      conn,
+      `SELECT COALESCE(SUM(quantity), 0) AS totalQty FROM t_seckill_order
+       WHERE activity_id = ? AND member_id = ? AND tenant_id = ? AND status IN ('PENDING_PAY', 'PAID')`,
+      [activityId, userId, tenantId]
+    );
+    const boughtQty = Number(boughtRows[0]?.totalQty ?? 0);
+    if (boughtQty + quantity > limitPerUser) {
+      throw Object.assign(new Error(`每人限购${limitPerUser}件，已购${boughtQty}件`), { statusCode: 400 });
+    }
+
     await connExecute<ResultSetHeader>(
       conn,
       `UPDATE t_seckill_product SET available_stock = available_stock - ? WHERE id = ? AND tenant_id = ?`,
       [quantity, activityId, tenantId]
     );
 
-    const orderNo = `SK${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, "0")}`;
+    // 会员姓名/手机号快照（小程序用户 id 即 t_member.id；后台用户查不到则为空）
+    const member = await queryOneWithTenant<{ name: string | null; mobile: string | null }>(
+      "SELECT name, mobile FROM t_member WHERE id = ? AND tenant_id = ?",
+      [userId, tenantId],
+      tenantId
+    );
+
+    const orderNo = makeBizNo("MK");
+    const seckillPrice = Number(activity.seckill_price);
+    const totalAmount = Math.round(seckillPrice * quantity * 100) / 100;
+
+    await connExecute<ResultSetHeader>(
+      conn,
+      `INSERT INTO t_seckill_order (
+         order_no, activity_id, product_id, member_id, member_name, member_mobile,
+         quantity, seckill_price, original_price, total_amount, status, tenant_id
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_PAY', ?)`,
+      [
+        orderNo,
+        activityId,
+        activity.product_id,
+        userId,
+        member?.name ?? null,
+        member?.mobile ?? null,
+        quantity,
+        seckillPrice,
+        Number(activity.original_price ?? seckillPrice),
+        totalAmount,
+        tenantId,
+      ]
+    );
 
     return {
       orderNo,
       productId: activity.product_id,
-      seckillPrice: activity.seckill_price,
+      seckillPrice,
       quantity,
-      totalAmount: Number(activity.seckill_price) * quantity,
+      totalAmount,
+      status: "PENDING_PAY",
+      memberName: member?.name ?? null,
+      memberMobile: member?.mobile ?? null,
     };
   });
 
   return result;
+}
+
+/** 秒杀订单行（支付/取消校验用） */
+interface SeckillOrderRow extends RowDataPacket {
+  id: number;
+  order_no: string;
+  activity_id: number;
+  quantity: number | string;
+  status: string;
+  member_id: number;
+}
+
+/** 秒杀累计购买行 */
+interface SeckillBoughtRow extends RowDataPacket {
+  totalQty: number | string;
+}
+
+/**
+ * 秒杀订单支付确认（PENDING_PAY → PAID）
+ * 幂等：已 PAID 的订单重复调用直接返回成功；非本人订单或状态不可流转时明确报错。
+ */
+export async function paySeckillOrder(tenantId: string, orderNo: string, userId: number) {
+  const order = await queryOneWithTenant<SeckillOrderRow>(
+    `SELECT id, order_no, activity_id, quantity, status, member_id
+     FROM t_seckill_order WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId],
+    tenantId
+  );
+  if (!order) {
+    throw Object.assign(new Error("秒杀订单不存在"), { statusCode: 404 });
+  }
+  if (Number(order.member_id) !== userId) {
+    throw Object.assign(new Error("无权操作他人订单"), { statusCode: 403 });
+  }
+  if (order.status === "PAID") {
+    return { orderNo, status: "PAID" };
+  }
+  if (order.status !== "PENDING_PAY") {
+    throw Object.assign(new Error(`当前状态(${order.status})不可支付`), { statusCode: 400 });
+  }
+  await queryWithTenant(
+    `UPDATE t_seckill_order SET status = 'PAID', paid_at = NOW() WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId],
+    tenantId
+  );
+  return { orderNo, status: "PAID" };
+}
+
+/**
+ * 秒杀订单取消（PENDING_PAY → CANCELLED，回补秒杀库存）
+ * 幂等：已取消/已支付时明确报错（已支付需走售后，不回补）。
+ */
+export async function cancelSeckillOrder(tenantId: string, orderNo: string, userId: number, reason?: string) {
+  const order = await queryOneWithTenant<SeckillOrderRow>(
+    `SELECT id, order_no, activity_id, quantity, status, member_id
+     FROM t_seckill_order WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId],
+    tenantId
+  );
+  if (!order) {
+    throw Object.assign(new Error("秒杀订单不存在"), { statusCode: 404 });
+  }
+  if (Number(order.member_id) !== userId) {
+    throw Object.assign(new Error("无权操作他人订单"), { statusCode: 403 });
+  }
+  if (order.status === "CANCELLED") {
+    return { orderNo, status: "CANCELLED" };
+  }
+  if (order.status !== "PENDING_PAY") {
+    throw Object.assign(new Error(`当前状态(${order.status})不可取消`), { statusCode: 400 });
+  }
+  await transaction(async (conn) => {
+    await connExecute<ResultSetHeader>(
+      conn,
+      `UPDATE t_seckill_order SET status = 'CANCELLED', cancelled_at = NOW(), cancel_reason = ?
+       WHERE order_no = ? AND tenant_id = ? AND status = 'PENDING_PAY'`,
+      [reason ?? null, orderNo, tenantId]
+    );
+    await connExecute<ResultSetHeader>(
+      conn,
+      `UPDATE t_seckill_product SET available_stock = available_stock + ?
+       WHERE id = ? AND tenant_id = ?`,
+      [order.quantity, order.activity_id, tenantId]
+    );
+  });
+  return { orderNo, status: "CANCELLED" };
 }
 
 // ==================== 结束活动（管理端） ====================
@@ -895,9 +1027,7 @@ export async function listBargainParticipationRecords(
 /**
  * 秒杀参与记录（分页）
  *
- * 说明：社区营销秒杀（t_seckill_product）下单 buySeckill 仅扣减库存并返回订单号，
- * 未落任何参与/订单记录表，系统内无秒杀参与数据源。为满足「参与记录」接口契约，
- * 返回空分页（不编造数据），待秒杀订单落库能力建设后可在此补充真实查询。
+ * 说明：秒杀参与记录数据源为 t_seckill_order（buySeckill 下单即落库，状态 PENDING_PAY/PAID）。
  */
 export async function listSeckillParticipationRecords(
   tenantId: string,
@@ -914,10 +1044,34 @@ export async function listSeckillParticipationRecords(
     throw Object.assign(new Error("秒杀活动不存在"), { statusCode: 404 });
   }
 
+  const offset = (page - 1) * pageSize;
+  const records = await queryWithTenant<Record<string, unknown>>(
+    `SELECT so.id, sp.id AS activityId, sp.product_id AS productId,
+            so.member_id AS memberId,
+            COALESCE(so.member_name, m.name) AS memberName,
+            COALESCE(so.member_mobile, m.mobile) AS memberMobile,
+            so.quantity, so.seckill_price AS seckillPrice,
+            so.total_amount AS totalAmount, so.status,
+            so.created_at AS participationTime
+     FROM t_seckill_order so
+     JOIN t_seckill_product sp ON sp.id = so.activity_id AND sp.tenant_id = ?
+     LEFT JOIN t_member m ON m.id = so.member_id AND m.tenant_id = ?
+     WHERE so.activity_id = ? AND so.tenant_id = ?
+     ORDER BY so.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [tenantId, tenantId, activityId, tenantId, pageSize, offset],
+    tenantId
+  );
+  const totalRow = await queryOneWithTenant<{ total: number | string }>(
+    `SELECT COUNT(*) AS total FROM t_seckill_order
+     WHERE activity_id = ? AND tenant_id = ?`,
+    [activityId, tenantId],
+    tenantId
+  );
   return {
-    total: 0,
+    total: Number(totalRow?.total ?? 0),
     page,
     pageSize,
-    records: [],
+    records,
   };
 }

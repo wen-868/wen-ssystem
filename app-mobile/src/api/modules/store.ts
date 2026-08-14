@@ -843,7 +843,7 @@ const storeApi = {
   },
 
   /** 手动核销优惠券 */
-  async manualVerifyCoupon(payload: { couponCode: string; saleBillNo?: string }): Promise<CouponVerifyResult> {
+  async manualVerifyCoupon(payload: { couponCode: string; mobile?: string; saleBillNo?: string; orderAmount?: number }): Promise<CouponVerifyResult> {
     const res: any = await post('/store/coupons/manual-verify', payload)
     return (res?.result ?? res) as CouponVerifyResult
   },

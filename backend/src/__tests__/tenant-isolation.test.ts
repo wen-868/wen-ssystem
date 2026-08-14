@@ -102,6 +102,8 @@ describe("租户隔离专项测试", () => {
         transaction: mockTransaction,
         query: vi.fn(),
         queryOne: vi.fn(),
+        queryWithTenant: vi.fn(),
+        queryOneWithTenant: vi.fn().mockResolvedValue(null),
         connExecute: async (conn: any, sql: string, params: unknown[]) => conn.execute(sql, params),
       }));
 

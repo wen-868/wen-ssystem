@@ -40,9 +40,10 @@ describe("seckill.service - getSeckillProducts", () => {
     mocks.queryOne.mockResolvedValue({ cnt: 0 });
     await getSeckillProducts("t1", { status: "ACTIVE", page: 2, pageSize: 10 });
     const sql = String(mocks.query.mock.calls[0][0]);
+    expect(sql).toContain("sp.tenant_id = ?");
     expect(sql).toContain("sp.status = ?");
     expect(sql).toContain("LIMIT 10, 10");
-    expect(mocks.query.mock.calls[0][1]).toEqual(["ACTIVE"]);
+    expect(mocks.query.mock.calls[0][1]).toEqual(["t1", "ACTIVE"]);
   });
 
   it("total 行不存在时兜底 0", async () => {
@@ -99,7 +100,11 @@ describe("seckill.service - updateSeckillProduct", () => {
     });
     expect(res).toEqual({ success: true });
     const params = mocks.query.mock.calls[0][1] as unknown[];
-    expect(params[6]).toBe("ACTIVE");
+    expect(params[8]).toBe("ACTIVE");
+    // total_stock/available_stock 与 seckill_stock 同步
+    expect(params[2]).toBe(5);
+    expect(params[3]).toBe(5);
+    expect(params[4]).toBe(5);
   });
 });
 
@@ -108,6 +113,6 @@ describe("seckill.service - deleteSeckillProduct", () => {
     mocks.query.mockResolvedValue([{ affectedRows: 1 }]);
     const res = await deleteSeckillProduct(3);
     expect(res).toEqual({ success: true });
-    expect(mocks.query.mock.calls[0][1]).toEqual([3]);
+    expect(mocks.query.mock.calls[0][1]).toEqual([3, "", ""]);
   });
 });

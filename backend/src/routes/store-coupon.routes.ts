@@ -9,6 +9,10 @@ export const storeCouponRouter = Router();
 storeCouponRouter.get("/", asyncHandler(couponController.listStoreCoupons));
 storeCouponRouter.get("/:id", asyncHandler(couponController.getStoreCoupon));
 
+// 门店侧优惠券核销（扫码核销 / 手动核销）
+storeCouponRouter.post("/verify", asyncHandler(couponController.verifyCoupon));
+storeCouponRouter.post("/manual-verify", asyncHandler(couponController.manualVerifyCoupon));
+
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/store/coupons",

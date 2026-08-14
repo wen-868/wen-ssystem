@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
@@ -20,6 +20,8 @@ import {
   listSeckillActivities,
   getSeckillActivity,
   buySeckill,
+  paySeckillOrder,
+  cancelSeckillOrder,
 } from "../../../services/marketing/community-marketing.service";
 
 const tenantId = "t1";
@@ -131,9 +133,12 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 3, limit_per_user: 5, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 3);
-    expect(res.orderNo).toMatch(/^SK/);
+    expect(res.orderNo).toMatch(/^MK/);
     expect(res.totalAmount).toBe(264);
   });
 
@@ -152,9 +157,12 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 2, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 2);
-    expect(res.orderNo).toMatch(/^SK/);
+    expect(res.orderNo).toMatch(/^MK/);
     expect(res.quantity).toBe(2);
   });
 
@@ -165,9 +173,12 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 0, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 1);
-    expect(res.orderNo).toMatch(/^SK/);
+    expect(res.orderNo).toMatch(/^MK/);
   });
 
   it("limit_per_user 为 null 时默认限购 1 件", async () => {
@@ -177,9 +188,12 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: null, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 1);
-    expect(res.orderNo).toMatch(/^SK/);
+    expect(res.orderNo).toMatch(/^MK/);
   });
 
   it("秒杀下单成功", async () => {
@@ -189,24 +203,30 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 2, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 1);
-    expect(res.orderNo).toMatch(/^SK/);
+    expect(res.orderNo).toMatch(/^MK/);
     expect(res.totalAmount).toBe(88);
   });
 
-  it("订单号格式应为 SK + 时间戳 + 3位随机数", async () => {
+  it("订单号格式应为 MK + 日期8位 + 5位随机", async () => {
     mockConn.execute
       .mockResolvedValueOnce([[{
         id: 1, product_id: 100, seckill_price: 88, seckill_stock: 100,
         available_stock: 50, limit_per_user: 2, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 1);
-    // 订单号以SK开头，后面跟着数字
-    expect(res.orderNo).toMatch(/^SK\d+$/);
-    expect(res.orderNo.length).toBeGreaterThanOrEqual(14); // SK + 13位时间戳
+    // 订单号以MK开头，后面跟着数字
+    expect(res.orderNo).toMatch(/^MK\d+$/);
+    expect(res.orderNo.length).toBeGreaterThanOrEqual(13); // MK + 8位日期 + 5位随机
   });
 
   it("默认购买数量为 1", async () => {
@@ -216,7 +236,10 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 2, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1);
     expect(res.quantity).toBe(1);
     expect(res.totalAmount).toBe(88);
@@ -229,7 +252,10 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 5, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     const res: any = await buySeckill(tenantId, 1, 1, 3);
     expect(res.totalAmount).toBeCloseTo(89.7, 5);
   });
@@ -241,7 +267,10 @@ describe("community-marketing.service - 秒杀下单", () => {
         available_stock: 50, limit_per_user: 2, status: "ACTIVE",
         start_time: "2026-01-01", end_time: "2026-12-31",
       }]])
+      .mockResolvedValueOnce([[{ totalQty: 0 }]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
       .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ name: '张三', mobile: '13800000000' });
     await buySeckill(tenantId, 1, 1, 2);
     // 验证库存扣减
     const updateStockCall = mockConn.execute.mock.calls.find(
@@ -249,5 +278,72 @@ describe("community-marketing.service - 秒杀下单", () => {
     );
     expect(updateStockCall).toBeTruthy();
     expect(updateStockCall[1][0]).toBe(2);
+  });
+});
+
+describe("community-marketing.service - 秒杀订单支付/取消", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.transaction.mockImplementation(async (cb: (c: typeof mockConn) => Promise<unknown>) => cb(mockConn));
+    mocks.connExecute.mockImplementation(async (conn: typeof mockConn, sql: string, params: unknown[]) => conn.execute(sql, params));
+  });
+
+  it("支付确认：PENDING_PAY → PAID", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({
+      id: 1, order_no: "MK2026081500001", activity_id: 1, quantity: 1, status: "PENDING_PAY", member_id: 9,
+    });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+    const res = await paySeckillOrder(tenantId, "MK2026081500001", 9);
+    expect(res).toEqual({ orderNo: "MK2026081500001", status: "PAID" });
+    expect(mocks.queryWithTenant).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE t_seckill_order SET status = 'PAID'"),
+      ["MK2026081500001", tenantId],
+      tenantId
+    );
+  });
+
+  it("支付确认幂等：已 PAID 直接返回成功", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({
+      id: 1, order_no: "MK2026081500001", activity_id: 1, quantity: 1, status: "PAID", member_id: 9,
+    });
+    const res = await paySeckillOrder(tenantId, "MK2026081500001", 9);
+    expect(res.status).toBe("PAID");
+    expect(mocks.queryWithTenant).not.toHaveBeenCalled();
+  });
+
+  it("支付他人订单抛 403", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({
+      id: 1, order_no: "MK2026081500001", activity_id: 1, quantity: 1, status: "PENDING_PAY", member_id: 9,
+    });
+    await expect(paySeckillOrder(tenantId, "MK2026081500001", 99))
+      .rejects.toMatchObject({ statusCode: 403 });
+  });
+
+  it("取消订单：PENDING_PAY → CANCELLED 并回补库存", async () => {
+    mockConn.execute
+      .mockResolvedValueOnce([{ affectedRows: 1 }])
+      .mockResolvedValueOnce([{ affectedRows: 1 }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({
+      id: 1, order_no: "MK2026081500001", activity_id: 1, quantity: 2, status: "PENDING_PAY", member_id: 9,
+    });
+    const res = await cancelSeckillOrder(tenantId, "MK2026081500001", 9, "用户取消");
+    expect(res).toEqual({ orderNo: "MK2026081500001", status: "CANCELLED" });
+    const updateOrderCall = mockConn.execute.mock.calls.find(
+      (call: any) => call[0].includes("UPDATE t_seckill_order SET status = 'CANCELLED'")
+    );
+    const restoreStockCall = mockConn.execute.mock.calls.find(
+      (call: any) => call[0].includes("UPDATE t_seckill_product SET available_stock = available_stock +")
+    );
+    expect(updateOrderCall).toBeTruthy();
+    expect(restoreStockCall).toBeTruthy();
+    expect(restoreStockCall[1][0]).toBe(2);
+  });
+
+  it("已支付订单不可取消", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({
+      id: 1, order_no: "MK2026081500001", activity_id: 1, quantity: 1, status: "PAID", member_id: 9,
+    });
+    await expect(cancelSeckillOrder(tenantId, "MK2026081500001", 9))
+      .rejects.toMatchObject({ statusCode: 400 });
   });
 });

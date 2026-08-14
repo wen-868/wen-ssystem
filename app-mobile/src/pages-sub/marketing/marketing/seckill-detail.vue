@@ -263,10 +263,30 @@ function handleSeckill() {
     success: async (res) => {
       if (res.confirm) {
         try {
-          await communityMarketingApi.buySeckill(activity.value!.id, quantity.value)
-          uni.showToast({ title: '秒杀成功', icon: 'success' })
+          const order = await communityMarketingApi.buySeckill(activity.value!.id, quantity.value)
+          uni.showModal({
+            title: '下单成功，待支付',
+            content: `订单号 ${order.orderNo}，金额 ¥${order.totalAmount}。确认已支付？`,
+            confirmText: '已支付',
+            cancelText: '取消订单',
+            success: async (payRes) => {
+              try {
+                if (payRes.confirm) {
+                  await communityMarketingApi.paySeckillOrder(order.orderNo)
+                  uni.showToast({ title: '支付成功', icon: 'success' })
+                } else {
+                  await communityMarketingApi.cancelSeckillOrder(order.orderNo, '用户取消')
+                  uni.showToast({ title: '订单已取消，库存已退回', icon: 'none' })
+                }
+              } catch (err) {
+                console.error('秒杀订单支付/取消失败:', err)
+                uni.showToast({ title: '订单状态更新失败', icon: 'none' })
+              }
+            },
+          })
         } catch (err) {
           console.error('秒杀失败:', err)
+          uni.showToast({ title: '秒杀失败', icon: 'none' })
         }
       }
     }

@@ -30,6 +30,8 @@ export const seckillRouter = Router();
 seckillRouter.get("/", asyncHandler(controller.listSeckills));
 seckillRouter.get("/:id", asyncHandler(controller.getSeckill));
 seckillRouter.post("/:id/buy", asyncHandler(controller.buySeckill));
+seckillRouter.post("/:orderNo/pay", asyncHandler(controller.paySeckillOrder));
+seckillRouter.post("/:orderNo/cancel", asyncHandler(controller.cancelSeckillOrder));
 seckillRouter.post("/:id/end", asyncHandler(controller.endSeckill));
 seckillRouter.get("/:id/records", asyncHandler(controller.listSeckillRecords));
 

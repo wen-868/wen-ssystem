@@ -296,6 +296,12 @@
                     }
                 },
                 {
+                    "path": "marketing/coupon-verify",
+                    "style": {
+                        "navigationBarTitleText": "优惠券核销"
+                    }
+                },
+                {
                     "path": "marketing/activities",
                     "style": {
                         "navigationBarTitleText": "营销活动"

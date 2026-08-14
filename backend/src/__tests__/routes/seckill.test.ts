@@ -106,7 +106,7 @@ describe("routes/seckill 集成测试", () => {
       (seckillService.deleteSeckillProduct as any).mockResolvedValue({ id: 1 });
       const res = await request(app).delete("/api/seckill/1");
       expect(res.status).toBe(200);
-      expect(seckillService.deleteSeckillProduct).toHaveBeenCalledWith(1);
+      expect(seckillService.deleteSeckillProduct).toHaveBeenCalledWith(1, expect.any(String));
     });
 
     it("service 抛错时返回500", async () => {

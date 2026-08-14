@@ -37,6 +37,9 @@
       <button class="create-btn" @tap="goCreate">
         <text>+ 新建优惠券</text>
       </button>
+      <button class="verify-entry-btn" @tap="goVerify">
+        <text>核销优惠券</text>
+      </button>
     </view>
 
     <scroll-view class="coupon-list" scroll-y v-if="list.length > 0">
@@ -123,6 +126,10 @@ function switchTab(val: string) {
 }
 function goCreate() {
   uni.navigateTo({ url: '/pages-sub/marketing/marketing/create-coupon' })
+}
+
+function goVerify() {
+  uni.navigateTo({ url: '/pages-sub/marketing/marketing/coupon-verify' })
 }
 function viewDetail(item: CouponTemplate) {
   uni.showToast({ title: '查看详情', icon: 'none' })
@@ -214,9 +221,13 @@ onMounted(() => { loadCoupons() })
 .tab-item--active { background: $uni-color-primary; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.create-section { padding: 16rpx 24rpx; }
+.create-section {
+  padding: 16rpx 24rpx;
+  display: flex;
+  gap: 16rpx;
+}
 .create-btn {
-  width: 100%; height: 80rpx;
+  flex: 1; height: 80rpx;
   background: linear-gradient(135deg, $uni-color-error, $uni-color-warning);
   border-radius: 40rpx; font-size: 28rpx;
   font-weight: 600; color: $uni-text-color-inverse;
@@ -224,6 +235,15 @@ onMounted(() => { loadCoupons() })
   border: none;
 }
 .create-btn::after { border: none; }
+.verify-entry-btn {
+  flex: 1; height: 80rpx;
+  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  border-radius: 40rpx; font-size: 28rpx;
+  font-weight: 600; color: $uni-text-color-inverse;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+}
+.verify-entry-btn::after { border: none; }
 .coupon-list { padding: 0 24rpx 24rpx; }
 .coupon-card {
   display: flex; background: $uni-bg-color;
