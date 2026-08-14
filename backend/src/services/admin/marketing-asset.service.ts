@@ -66,7 +66,10 @@ export async function createMarketingAsset(data: CreateMarketingAssetBody) {
     `INSERT INTO t_marketing_asset (name, type, url, thumbnail_url, content, category, tags, file_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [data.name, data.type, data.url, data.thumbnailUrl, data.content, data.category, JSON.stringify(data.tags || []), data.fileSize, data.status || 'ACTIVE']
   );
-  return { id: (result as unknown as Record<string, unknown>).insertId };
+  // database.ts 将 ResultSetHeader 归一化为数组返回，需从首元素取 insertId
+  const raw = result as unknown as Array<{ insertId?: number }> | { insertId?: number } | null;
+  const insertId = Array.isArray(raw) ? raw[0]?.insertId : raw?.insertId;
+  return { id: insertId ?? 0 };
 }
 
 export async function updateMarketingAsset(id: number, data: UpdateMarketingAssetBody) {
