@@ -29,6 +29,9 @@ jobs:
       - name: Backend lint gate (zero error)
         run: npm --workspace backend run lint
 
+      - name: Shell script syntax check (deploy/scripts)
+        run: bash -n deploy/*.sh scripts/*.sh
+
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage
 

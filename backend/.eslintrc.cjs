@@ -36,6 +36,9 @@ module.exports = {
     "no-var": "error",
     "prefer-const": "warn",
     "no-unused-vars": "off",
+    // 圈复杂度基线（验收标准目标 ≤8，现状有历史超限函数；先按 15 门禁可观测，
+    // 逐轮下调，见 docs/顶级商业软件完成标准明细-智享系统验收.md 改进路线图）
+    "complexity": ["warn", { "max": 15 }],
 
     // 路由文件规范：禁止在路由文件中使用 try/catch（应在 controller 中处理）
     // 通过目录匹配规则实现，见 overrides
