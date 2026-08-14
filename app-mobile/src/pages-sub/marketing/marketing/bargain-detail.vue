@@ -120,7 +120,7 @@
         </view>
       </view>
 
-      <!-- 帮砍记录（模拟） -->
+      <!-- 砍价参与记录 -->
       <view class="section">
         <view class="section-header">
           <view class="section-title-bar"></view>
@@ -135,7 +135,7 @@
               <text class="help-name">{{ help.name }}</text>
               <text class="help-time">{{ help.time }}</text>
             </view>
-            <text class="help-amount">-¥{{ help.amount }}</text>
+            <text class="help-status">{{ help.statusText }}</text>
           </view>
         </view>
         <view class="empty-help" v-else>
@@ -189,23 +189,30 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { communityMarketingApi, type BargainActivity, type BargainRecord } from '@/api/modules/community-marketing'
+import { getUser } from '@/api/storage'
 
 interface HelpRecord {
   id: number
   name: string
   time: string
-  amount: number
+  statusText: string
 }
 
 const activity = ref<BargainActivity | null>(null)
 const myBargain = ref<BargainRecord | null>(null)
 const loading = ref(false)
 const showHelpButton = ref(false)
-const helpList = ref<HelpRecord[]>([
-  { id: 1, name: '张三', time: '10分钟前', amount: 5.5 },
-  { id: 2, name: '李四', time: '20分钟前', amount: 3.2 },
-  { id: 3, name: '王五', time: '30分钟前', amount: 8.8 },
-])
+const helpList = ref<HelpRecord[]>([])
+
+function getBargainStatusText(status: string): string {
+  const map: Record<string, string> = {
+    ONGOING: '砍价中',
+    SUCCESS: '砍价成功',
+    FAILED: '砍价失败',
+    EXPIRED: '已过期',
+  }
+  return map[status] || status || ''
+}
 
 const progressPercent = computed(() => {
   if (!activity.value || !myBargain.value) return 0
@@ -254,6 +261,19 @@ async function loadDetail() {
     if (recordId) {
       showHelpButton.value = true
     }
+
+    // 砍价参与记录（真实接口 GET /marketing/bargain/:id/records）
+    try {
+      const records = await communityMarketingApi.getBargainRecords(id, { page: 1, pageSize: 50 })
+      helpList.value = (records.records || []).map((r) => ({
+        id: r.id,
+        name: r.memberName || '匿名用户',
+        time: formatDateTime(r.participationTime),
+        statusText: getBargainStatusText(r.status),
+      }))
+    } catch (err) {
+      console.error('加载砍价记录失败:', err)
+    }
   } catch (err) {
     console.error('加载砍价详情失败:', err)
     uni.showToast({ title: '加载失败', icon: 'none' })
@@ -282,15 +302,24 @@ function startBargain() {
 }
 
 function helpBargain() {
-  if (!activity.value) return
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1] as any
+  const recordId = Number(currentPage?.options?.recordId || 0)
+  if (!activity.value || !recordId) {
+    uni.showToast({ title: '缺少砍价记录，无法帮砍', icon: 'none' })
+    return
+  }
+  const user = getUser()
   uni.showModal({
     title: '帮砍确认',
     content: '确定帮好友砍一刀吗？',
     success: async (res) => {
       if (res.confirm) {
         try {
-          // 模拟使用第一个记录
-          const result = await communityMarketingApi.helpBargain(1, '测试用户')
+          const result = await communityMarketingApi.helpBargain(
+            recordId,
+            user?.realName || user?.name || user?.username || ''
+          )
           uni.showToast({ title: `砍了¥${result.bargainAmount}`, icon: 'success' })
           // 更新进度
           if (myBargain.value) {
@@ -662,10 +691,10 @@ onMounted(() => {
   color: $uni-gray-400;
 }
 
-.help-amount {
+.help-status {
   font-size: 28rpx;
   font-weight: 600;
-  color: $uni-color-error;
+  color: $uni-color-primary;
   flex-shrink: 0;
 }
 

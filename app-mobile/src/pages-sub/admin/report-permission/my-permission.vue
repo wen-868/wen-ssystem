@@ -116,6 +116,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { reportPermissionApi, type MyPermission } from '@/api/modules/report-permission'
+import { getUser } from '@/api/storage'
 
 const myPermission = ref<MyPermission>({
   roles: [],
@@ -183,9 +184,10 @@ async function loadMyPermission() {
 }
 
 onMounted(() => {
-  // 模拟当前用户信息
-  userName.value = '张总'
-  userAccount.value = 'admin'
+  // 当前登录用户信息（登录后由 storage 加密保存，展示真实姓名与账号）
+  const user = getUser()
+  userName.value = user?.realName || user?.name || user?.username || '未知用户'
+  userAccount.value = user?.username || user?.account || ''
   loadMyPermission()
 })
 </script>

@@ -103,7 +103,7 @@
         </view>
       </view>
 
-      <!-- 商品详情（模拟） -->
+      <!-- 商品详情 -->
       <view class="section">
         <view class="section-header">
           <view class="section-title-bar"></view>

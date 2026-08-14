@@ -79,7 +79,7 @@
         </view>
       </view>
 
-      <!-- 拼团列表（模拟数据） -->
+      <!-- 拼团列表 -->
       <view class="section">
         <view class="section-header">
           <view class="section-title-bar"></view>
