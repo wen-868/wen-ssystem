@@ -37,7 +37,8 @@
     "test:mysql": "node scripts/mysql-smoke-test.mjs",
     "test:acceptance:admin": "node scripts/acceptance-admin-mvp.mjs",
     "test:miniapp-release": "node scripts/check-miniapp-release.mjs",
-    "test:acceptance:production": "node scripts/acceptance-production.mjs"
+    "test:acceptance:production": "node scripts/acceptance-production.mjs",
+    "dup:check": "jscpd --min-lines 5 --min-tokens 50 --ignore \"**/node_modules/**\" \"**/dist/**\" \"**/__tests__/**\" \"**/*.test.ts\" \"**/coverage/**\" backend/src admin-web/src saas-admin/src app-mobile/src --reporters html,console --output jscpd-report"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -46,6 +47,7 @@
     "brace-expansion": "5.0.5",
     "esbuild": "^0.25.0",
     "js-yaml": "^4.2.0",
+    "jscpd": "^5.0.15",
     "typescript": "^5.5.3",
     "vue": "3.4.21",
     "wait-on": "^9.0.10",
