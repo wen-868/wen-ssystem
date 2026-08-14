@@ -76,6 +76,37 @@ jobs:
       - name: Security smoke scan (basic DAST)
         run: node scripts/security-smoke.mjs
 
+  ai-base:
+    # AI 底座门禁（R70 完善度 P0-2）：构建 + lint + 单元测试，与主后端测试隔离（独立 pnpm 项目）
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable pnpm (corepack)
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: Install AI base dependencies
+        working-directory: backend/ai-base
+        run: pnpm install --frozen-lockfile
+
+      - name: Build AI base
+        working-directory: backend/ai-base
+        run: pnpm run build
+
+      - name: Lint AI base
+        working-directory: backend/ai-base
+        run: pnpm run lint
+
+      - name: Test AI base
+        working-directory: backend/ai-base
+        run: pnpm test -- --runInBand
+
   migration-check:
     # 数据库迁移纳入 CI：真实 MySQL 8 执行迁移脚本，验证关键表存在（验收项：迁移可前滚/纳入 CI）
     runs-on: ubuntu-latest

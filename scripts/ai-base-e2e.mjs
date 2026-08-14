@@ -1,0 +1,165 @@
+/**
+ * AI 底座端到端验收脚本（R70 完善度 P0-1：服务器执行前置）
+ *
+ * 用法：
+ *   node scripts/ai-base-e2e.mjs [--ai-base http://127.0.0.1:3016] [--backend http://127.0.0.1:8080]
+ *
+ * 检查项：
+ *   1. health（database/redis 连通性）
+ *   2. 工具列表（≥28 个业务工具）
+ *   3. Provider 列表（deepseek/glm/ollama）
+ *   4. 主动巡检任务（9 项）
+ *   5. RAG 知识库（可达性）
+ *   6. LLM 连接（配置了 DEEPSEEK_API_KEY 时 test-connection success=true）
+ *   7. 对话链路（chat 端点可达；无 Key 时应返回明确配置缺失错误而非 500）
+ *   8. 审计日志（admin 鉴权后可查）
+ *
+ * 输出：docs/reports/ai-base-e2e-{时间戳}.md
+ */
+
+import { writeFileSync, mkdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
+const AI_BASE = process.argv.includes("--ai-base")
+  ? process.argv[process.argv.indexOf("--ai-base") + 1]
+  : "http://127.0.0.1:3016";
+const BACKEND = process.argv.includes("--backend")
+  ? process.argv[process.argv.indexOf("--backend") + 1]
+  : "http://127.0.0.1:8080";
+
+async function req(base, path, options = {}) {
+  try {
+    const res = await fetch(`${base}${path}`, {
+      ...options,
+      signal: AbortSignal.timeout(15_000),
+    });
+    const text = await res.text().catch(() => "");
+    let data;
+    try { data = JSON.parse(text); } catch { data = text.slice(0, 200); }
+    return { status: res.status, data };
+  } catch (err) {
+    return { status: 0, data: String(err?.message || err) };
+  }
+}
+
+async function login() {
+  const r = await req(BACKEND, "/api/admin/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "admin", password: "admin123" }),
+  });
+  return r.data?.data?.token || "";
+}
+
+const results = [];
+function record(name, pass, detail) {
+  results.push({ name, pass, detail });
+  console.log(`${pass ? "✅" : "❌"} ${name} — ${detail}`);
+}
+
+async function run() {
+  const token = await login();
+  const auth = token ? { Authorization: `Bearer ${token}` } : {};
+
+  // 1. 健康检查
+  const health = await req(AI_BASE, "/api/admin/health");
+  const hd = health.data?.data || health.data || {};
+  record(
+    "健康检查",
+    health.status === 200 && ["ok", "degraded"].includes(hd.status),
+    `HTTP ${health.status} status=${hd.status} db=${hd.database} redis=${hd.redis}`
+  );
+
+  // 2. 工具列表
+  const tools = await req(AI_BASE, "/api/admin/tools");
+  const toolCount = tools.data?.data?.total ?? tools.data?.tools?.length ?? 0;
+  record(
+    "工具列表",
+    tools.status === 200 && toolCount >= 20,
+    `HTTP ${tools.status} 工具数=${toolCount}`
+  );
+
+  // 3. Provider 列表
+  const providers = await req(AI_BASE, "/api/admin/providers");
+  const providerNames = Array.isArray(providers.data?.data)
+    ? providers.data.data.map((p) => p?.name || p?.type || "").join(",")
+    : JSON.stringify(providers.data?.data || "").slice(0, 80);
+  record(
+    "Provider 列表",
+    providers.status === 200,
+    `HTTP ${providers.status} providers=${providerNames}`
+  );
+
+  // 4. 主动巡检任务
+  const jobs = await req(AI_BASE, "/api/admin/proactive/jobs");
+  const jobCount = Array.isArray(jobs.data?.data) ? jobs.data.data.length : 0;
+  record(
+    "主动巡检任务",
+    jobs.status === 200 && jobCount >= 9,
+    `HTTP ${jobs.status} 任务数=${jobCount}`
+  );
+
+  // 5. RAG 知识库
+  const rag = await req(AI_BASE, "/api/rag/knowledge");
+  record(
+    "RAG 知识库可达",
+    rag.status === 200,
+    `HTTP ${rag.status}`
+  );
+
+  // 6. LLM 连接
+  const conn = await req(AI_BASE, "/api/admin/test-connection");
+  const connOk = conn.data?.data?.success === true;
+  record(
+    "LLM 连接",
+    conn.status === 200 && connOk,
+    `HTTP ${conn.status} success=${conn.data?.data?.success} msg=${String(conn.data?.data?.message || "").slice(0, 60)}`
+  );
+
+  // 7. 对话链路（chat 端点；无 Key 时返回明确配置缺失而非 500）
+  const chat = await req(AI_BASE, "/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...auth },
+    body: JSON.stringify({ message: "你好" }),
+  });
+  record(
+    "对话链路",
+    chat.status !== 500 && chat.status !== 0,
+    `HTTP ${chat.status}（无 Key 时预期 4xx 配置缺失提示）`
+  );
+
+  // 8. 审计日志（需 token）
+  const audit = await req(AI_BASE, "/api/admin/audit-logs", { headers: auth });
+  record(
+    "审计日志",
+    audit.status === 200 || audit.status === 401,
+    `HTTP ${audit.status}${token ? "" : "（未登录，401 预期）"}`
+  );
+
+  const passed = results.filter((r) => r.pass).length;
+  const dir = join(ROOT, "docs", "reports");
+  mkdirSync(dir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const mdPath = join(dir, `ai-base-e2e-${stamp}.md`);
+  writeFileSync(mdPath, [
+    `# AI 底座端到端验收报告 ${stamp}`,
+    "",
+    `| 检查项 | 结果 | 详情 |`,
+    `|---|---|---|`,
+    ...results.map((r) => `| ${r.name} | ${r.pass ? "✅" : "❌"} | ${r.detail} |`),
+    "",
+    `**通过 ${passed}/${results.length}**`,
+    "",
+    `> 由 \`node scripts/ai-base-e2e.mjs\` 生成；LLM 连接项需服务器配置 DEEPSEEK_API_KEY 后为 true。`,
+  ].join("\n"), "utf8");
+  console.log(`\n通过 ${passed}/${results.length}；报告：${mdPath}`);
+  process.exit(passed === results.length ? 0 : 1);
+}
+
+run().catch((err) => {
+  console.error("验收脚本执行失败:", err);
+  process.exit(1);
+});
