@@ -36,7 +36,11 @@ export async function scanOverdueCreditBills(tenantId?: string): Promise<number>
       [tid]
     );
 
-    const affectedRows = (result as { affectedRows?: number } | null)?.affectedRows || 0;
+    // database.ts 将 ResultSetHeader 归一化为数组返回（与 mock 一致），需从首个元素取 affectedRows
+    const raw = result as Array<{ affectedRows?: number }> | { affectedRows?: number } | null;
+    const affectedRows = Array.isArray(raw)
+      ? (raw[0]?.affectedRows ?? 0)
+      : (raw?.affectedRows ?? 0);
     totalAffected += affectedRows;
 
     if (affectedRows > 0) {
