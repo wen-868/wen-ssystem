@@ -138,7 +138,8 @@ if (process.env.NODE_ENV !== "test") {
 }
 // 登录接口 Rate Limiting：每IP每15分钟20次（防暴力破解，兼顾测试）
 // admin 和 store 登录使用独立实例，避免互相影响计数
-const loginLimitMax = process.env.NODE_ENV === "production" ? 20 : 1000;
+// 放宽到 100 次/15分钟：移动端演示登录+多设备共享IP场景频繁登录，20次过严导致误伤429
+const loginLimitMax = process.env.NODE_ENV === "production" ? 100 : 1000;
 const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
 const storeLoginLimiter = createRateLimiter({ windowMs: 15 * 60_000, max: loginLimitMax, message: "登录请求过于频繁，请15分钟后再试" });
 

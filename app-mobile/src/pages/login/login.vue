@@ -163,22 +163,13 @@ async function handleDemoLogin() {
 }
 
 function goHome() {
-  uni.switchTab({
+  // H5 下 uni.switchTab 偶发 switchTab:fail（tabBar 路由兼容问题），统一用 reLaunch 更可靠
+  uni.reLaunch({
     url: '/pages/home/home',
-    fail(switchErr) {
-      console.warn('[login] switchTab fail, fallback to reLaunch:', switchErr)
-      uni.reLaunch({
-        url: '/pages/home/home',
-        fail(reLaunchErr) {
-          console.error('[login] reLaunch also fail:', reLaunchErr)
-          uni.showToast({
-            title: `跳转失败(${switchErr?.errMsg || reLaunchErr?.errMsg || '未知错误'})，请手动进入首页`,
-            icon: 'none',
-            duration: 3000,
-          })
-        }
-      })
-    }
+    fail(err) {
+      console.error('[login] reLaunch fail:', err)
+      uni.showToast({ title: '跳转失败，请手动进入首页', icon: 'none', duration: 3000 })
+    },
   })
 }
 

@@ -152,11 +152,8 @@ interface TeamItem {
 
 const activity = ref<GroupBuyActivity | null>(null)
 const loading = ref(false)
-const teamList = ref<TeamItem[]>([
-  { id: 1, leaderName: '张先生', currentSize: 2, targetSize: 5, avatars: ['张', '李'] },
-  { id: 2, leaderName: '王女士', currentSize: 3, targetSize: 5, avatars: ['王', '赵', '刘'] },
-  { id: 3, leaderName: '陈先生', currentSize: 1, targetSize: 5, avatars: ['陈'] },
-])
+// 后端暂无参团列表接口：不编造数据，展示空态；等接口提供后接入
+const teamList = ref<TeamItem[]>([])
 
 function getStatusLabel(status: string): string {
   const map: Record<string, string> = {
