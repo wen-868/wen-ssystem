@@ -73,6 +73,9 @@ jobs:
       - name: QA regression test
         run: npm run test:qa
 
+      - name: Security smoke scan (basic DAST)
+        run: node scripts/security-smoke.mjs
+
   migration-check:
     # 数据库迁移纳入 CI：真实 MySQL 8 执行迁移脚本，验证关键表存在（验收项：迁移可前滚/纳入 CI）
     runs-on: ubuntu-latest
