@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import axios, { AxiosResponse } from 'axios';
+import type { Readable } from 'stream';
 import {
   ChatMessage,
   ChatOptions,
@@ -6,91 +9,352 @@ import {
   ConnectionTestResult,
   IModelProvider,
   ProviderConfig,
+  ToolCall,
 } from './provider.interface';
 import { ProviderError } from './provider-error';
 
 /**
- * Ollama Provider（占位实现）
+ * Ollama Provider（本地模型，OpenAI 兼容协议）
  *
- * - API 地址：http://127.0.0.1:11434（本地部署）
- * - 计划在 R70-21 RAG 任务中完整实现（含 chat / embedding）
- * - 当前所有调用方法抛 501 NotImplemented，保证 ProviderFactory 可注册但不会被误用
- *
- * 设计目的：让 ProviderFactory 能识别 'ollama' 名称，避免工作台选择 Ollama 时报"未知 provider"。
- *
- * 实现说明：
- * - chat/chatSync/embedding 用普通函数 + throw（throw 是合法控制流，函数返回类型不强制要求 return）
- * - testConnection 返回 Promise.resolve（不抛错，便于工作台展示"未实现"状态而非 500）
- * - 这样避免 ESLint 的 require-await / require-yield 规则对占位 async/generator 函数的误报
+ * - API 地址：默认 http://127.0.0.1:11434/v1（Ollama OpenAI 兼容端点）
+ * - 支持 chat（流式/非流式，含 function calling）与 embedding
+ * - 无 API Key 要求（本地服务），配置项 OLLAMA_BASE_URL / OLLAMA_MODEL
  */
+interface OllamaRuntimeConfig {
+  baseUrl: string;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  timeoutMs: number;
+}
+
+interface OllamaChatResponse {
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: string;
+      content: string | null;
+      tool_calls?: Array<{
+        id: string;
+        type: 'function';
+        function: { name: string; arguments: string };
+      }>;
+    };
+    finish_reason: string;
+  }>;
+  usage?: { prompt_tokens: number; completion_tokens: number };
+}
+
+interface OllamaEmbeddingResponse {
+  data: Array<{ embedding: number[]; index: number }>;
+  model: string;
+}
+
+interface OllamaStreamChunk {
+  choices?: Array<{
+    index: number;
+    delta: {
+      role?: string;
+      content?: string | null;
+      tool_calls?: Array<{
+        index: number;
+        id?: string;
+        type?: 'function';
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
+    finish_reason: string | null;
+  }>;
+}
+
+interface ToolCallAccumulator {
+  index: number;
+  id?: string;
+  type: 'function';
+  name?: string;
+  arguments: string;
+}
+
 @Injectable()
 export class OllamaProvider implements IModelProvider {
   readonly name = 'ollama';
   private readonly logger = new Logger(OllamaProvider.name);
 
+  private config!: OllamaRuntimeConfig;
+
+  constructor(private readonly configService: ConfigService) {
+    this.config = {
+      baseUrl: this.configService.get<string>(
+        'OLLAMA_BASE_URL',
+        'http://127.0.0.1:11434/v1',
+      ),
+      model: this.configService.get<string>('OLLAMA_MODEL', 'qwen2.5:7b'),
+      temperature: this.configService.get<number>('DEFAULT_TEMPERATURE', 0.3),
+      maxTokens: this.configService.get<number>('DEFAULT_MAX_TOKENS', 2048),
+      timeoutMs: this.configService.get<number>('OLLAMA_TIMEOUT_MS', 30000),
+    };
+  }
+
   configure(config: ProviderConfig): void {
-    // 占位实现：仅记录日志，不持久化（noUnusedLocals 严格模式不持久化未读取字段）
-    this.logger.log(
-      `Ollama 配置已接收（model=${config.model}, baseUrl=${config.baseUrl ?? '默认'}），但 Provider 尚未实现`,
+    this.config = {
+      baseUrl: config.baseUrl ?? this.config.baseUrl,
+      model: config.model,
+      temperature: config.temperature ?? this.config.temperature,
+      maxTokens: config.max_tokens ?? this.config.maxTokens,
+      timeoutMs: config.timeoutMs ?? this.config.timeoutMs,
+    };
+  }
+
+  private buildResult(
+    content: string,
+    toolCallMap: Map<number, ToolCallAccumulator>,
+    finishReason: string,
+    promptTokens: number,
+    completionTokens: number,
+  ): ChatResult {
+    const toolCalls: ToolCall[] = Array.from(toolCallMap.values()).map(
+      (tc) => ({
+        id: tc.id ?? `call_${tc.index}`,
+        type: 'function',
+        function: { name: tc.name ?? '', arguments: tc.arguments },
+      }),
     );
+    return {
+      content,
+      tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      finish_reason:
+        toolCalls.length > 0
+          ? 'tool_calls'
+          : ((finishReason as ChatResult['finish_reason']) ?? 'stop'),
+    };
   }
 
   /**
-   * 流式对话（占位）
-   *
-   * 直接抛 501 NotImplemented，调用方 try/catch 捕获。
-   * 函数签名返回 AsyncGenerator，但 throw 是合法控制流，TypeScript 不强制 return。
+   * 流式对话（SSE，OpenAI 兼容）
    */
-  chat(
-    _messages: ChatMessage[],
-    _options?: ChatOptions,
+  async *chat(
+    messages: ChatMessage[],
+    options?: ChatOptions,
   ): AsyncGenerator<string, ChatResult, unknown> {
-    throw new ProviderError(
-      'Ollama Provider 暂未实现，计划在 R70-21 RAG 任务中完成',
-      501,
-      this.name,
+    const cfg = this.config;
+    const requestBody: Record<string, unknown> = {
+      model: cfg.model,
+      messages,
+      temperature: options?.temperature ?? cfg.temperature,
+      max_tokens: options?.max_tokens ?? cfg.maxTokens,
+      stream: true,
+    };
+    if (options?.tools && options.tools.length > 0) {
+      requestBody.tools = options.tools;
+    }
+
+    this.logger.debug(
+      `流式调用 Ollama：model=${cfg.model}, messages=${messages.length}条`,
+    );
+
+    let response: AxiosResponse<Readable>;
+    try {
+      response = await axios.post<Readable>(
+        `${cfg.baseUrl}/chat/completions`,
+        requestBody,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          responseType: 'stream',
+          timeout: cfg.timeoutMs,
+          signal: options?.signal,
+        },
+      );
+    } catch (err) {
+      if (err instanceof ProviderError) throw err;
+      throw ProviderError.fromAxiosError(err, this.name);
+    }
+
+    let contentBuf = '';
+    const toolCallMap = new Map<number, ToolCallAccumulator>();
+    let finishReason = 'stop';
+    const promptTokens = 0;
+    const completionTokens = 0;
+    let buffer = '';
+    const stream = response.data;
+    const decoder = new TextDecoder('utf-8');
+
+    try {
+      for await (const chunk of stream) {
+        if (options?.signal?.aborted) {
+          stream.destroy();
+          break;
+        }
+        buffer += decoder.decode(chunk as Buffer, { stream: true });
+        let newlineIdx: number;
+        while ((newlineIdx = buffer.indexOf('\n')) !== -1) {
+          const line = buffer.slice(0, newlineIdx).trim();
+          buffer = buffer.slice(newlineIdx + 1);
+          if (!line || line.startsWith(':') || !line.startsWith('data:'))
+            continue;
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') {
+            buffer = '';
+            return this.buildResult(
+              contentBuf,
+              toolCallMap,
+              finishReason,
+              promptTokens,
+              completionTokens,
+            );
+          }
+          let parsed: OllamaStreamChunk;
+          try {
+            parsed = JSON.parse(data) as OllamaStreamChunk;
+          } catch {
+            continue;
+          }
+          const choice = parsed.choices?.[0];
+          if (!choice) continue;
+          if (choice.finish_reason) finishReason = choice.finish_reason;
+          if (choice.delta?.content) {
+            contentBuf += choice.delta.content;
+            yield choice.delta.content;
+          }
+          for (const delta of choice.delta?.tool_calls ?? []) {
+            let acc = toolCallMap.get(delta.index);
+            if (!acc) {
+              acc = { index: delta.index, type: 'function', arguments: '' };
+              toolCallMap.set(delta.index, acc);
+            }
+            if (delta.id) acc.id = delta.id;
+            if (delta.function?.name)
+              acc.name = (acc.name ?? '') + delta.function.name;
+            if (delta.function?.arguments)
+              acc.arguments += delta.function.arguments;
+          }
+        }
+      }
+    } catch (err) {
+      if (options?.signal?.aborted) {
+        return this.buildResult(
+          contentBuf,
+          toolCallMap,
+          'stop',
+          promptTokens,
+          completionTokens,
+        );
+      }
+      throw ProviderError.fromAxiosError(err, this.name);
+    }
+    return this.buildResult(
+      contentBuf,
+      toolCallMap,
+      finishReason,
+      promptTokens,
+      completionTokens,
     );
   }
 
   /**
-   * 非流式对话（占位）
-   *
-   * 直接抛 501 NotImplemented，调用方 try/catch 捕获。
+   * 非流式对话（OpenAI 兼容，含 function calling）
    */
-  chatSync(
-    _messages: ChatMessage[],
-    _options?: ChatOptions,
+  async chatSync(
+    messages: ChatMessage[],
+    options?: ChatOptions,
   ): Promise<ChatResult> {
-    throw new ProviderError(
-      'Ollama Provider 暂未实现，计划在 R70-21 RAG 任务中完成',
-      501,
-      this.name,
-    );
+    const cfg = this.config;
+    const requestBody: Record<string, unknown> = {
+      model: cfg.model,
+      messages,
+      temperature: options?.temperature ?? cfg.temperature,
+      max_tokens: options?.max_tokens ?? cfg.maxTokens,
+      stream: false,
+    };
+    if (options?.tools && options.tools.length > 0) {
+      requestBody.tools = options.tools;
+    }
+    try {
+      const resp = await axios.post<OllamaChatResponse>(
+        `${cfg.baseUrl}/chat/completions`,
+        requestBody,
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: cfg.timeoutMs,
+          signal: options?.signal,
+        },
+      );
+      const choice = resp.data.choices?.[0];
+      if (!choice) {
+        throw new ProviderError('Ollama 返回空响应', 502, this.name);
+      }
+      const toolCallMap = new Map<number, ToolCallAccumulator>();
+      (choice.message.tool_calls ?? []).forEach((tc, idx) => {
+        toolCallMap.set(idx, {
+          index: idx,
+          id: tc.id,
+          type: 'function',
+          name: tc.function.name,
+          arguments: tc.function.arguments,
+        });
+      });
+      return this.buildResult(
+        choice.message.content ?? '',
+        toolCallMap,
+        choice.finish_reason,
+        resp.data.usage?.prompt_tokens ?? 0,
+        resp.data.usage?.completion_tokens ?? 0,
+      );
+    } catch (err) {
+      if (err instanceof ProviderError) throw err;
+      throw ProviderError.fromAxiosError(err, this.name);
+    }
   }
 
   /**
-   * 文本嵌入（占位）
-   *
-   * 直接抛 501 NotImplemented。
+   * 文本嵌入（OpenAI 兼容 /embeddings）
    */
-  embedding(_text: string): Promise<number[]> {
-    throw new ProviderError(
-      'Ollama embedding 暂未实现，计划在 R70-21 RAG 任务中完成',
-      501,
-      this.name,
-    );
+  async embedding(text: string): Promise<number[]> {
+    const cfg = this.config;
+    try {
+      const resp = await axios.post<OllamaEmbeddingResponse>(
+        `${cfg.baseUrl}/embeddings`,
+        { model: cfg.model, input: text },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: cfg.timeoutMs,
+        },
+      );
+      const emb = resp.data.data?.[0]?.embedding;
+      if (!emb) {
+        throw new ProviderError('Ollama embedding 返回空结果', 502, this.name);
+      }
+      return emb;
+    } catch (err) {
+      if (err instanceof ProviderError) throw err;
+      throw ProviderError.fromAxiosError(err, this.name);
+    }
   }
 
   /**
-   * 连通性测试（占位）
-   *
-   * 不抛错，返回 success: false + 明确提示，便于工作台展示"未实现"状态。
+   * 连通性测试：GET /models 验证本地 Ollama 可达
    */
-  testConnection(): Promise<ConnectionTestResult> {
-    return Promise.resolve({
-      success: false,
-      message: 'Ollama Provider 尚未实现，请使用 DeepSeek',
-      latencyMs: 0,
-    });
+  async testConnection(): Promise<ConnectionTestResult> {
+    const cfg = this.config;
+    const start = Date.now();
+    try {
+      await axios.get(`${cfg.baseUrl}/models`, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: Math.min(cfg.timeoutMs, 8000),
+      });
+      return {
+        success: true,
+        message: `Ollama 连接成功（model=${cfg.model}, baseUrl=${cfg.baseUrl}）`,
+        latencyMs: Date.now() - start,
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: `Ollama 连接失败：${err instanceof Error ? err.message : String(err)}（请确认本地已启动 ollama serve）`,
+        latencyMs: Date.now() - start,
+      };
+    }
   }
 }

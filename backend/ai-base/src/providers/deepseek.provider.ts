@@ -219,6 +219,7 @@ export class DeepSeekProvider implements IModelProvider {
         },
       );
     } catch (err) {
+      if (err instanceof ProviderError) throw err;
       throw ProviderError.fromAxiosError(err, this.name);
     }
 
@@ -329,6 +330,7 @@ export class DeepSeekProvider implements IModelProvider {
       if (options?.signal?.aborted) {
         this.logger.warn('DeepSeek 流式调用已被取消');
       } else {
+        if (err instanceof ProviderError) throw err;
         throw ProviderError.fromAxiosError(err, this.name);
       }
     }
@@ -379,6 +381,7 @@ export class DeepSeekProvider implements IModelProvider {
         },
       );
     } catch (err) {
+      if (err instanceof ProviderError) throw err;
       throw ProviderError.fromAxiosError(err, this.name);
     }
 

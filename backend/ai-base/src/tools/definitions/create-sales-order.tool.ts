@@ -257,7 +257,8 @@ export class CreateSalesOrderTool implements ITool {
     if (!confirm) {
       const previewDetails: Record<string, unknown> = {
         customerId: resolved?.customerId ?? null,
-        customerName: resolved?.customerName ?? orderArgs.customerName ?? '未知',
+        customerName:
+          resolved?.customerName ?? orderArgs.customerName ?? '未知',
         customerType: effectiveType,
         willCreateCustomer:
           resolved && resolved.customerId === 0 ? true : undefined,
@@ -377,10 +378,7 @@ export class CreateSalesOrderTool implements ITool {
     const result = await this.serviceClient.get<{
       records?: Array<Record<string, unknown>>;
       list?: Array<Record<string, unknown>>;
-    }>(
-      `${API_ENDPOINTS.PRODUCTS}?page=1&pageSize=200`,
-      context,
-    );
+    }>(`${API_ENDPOINTS.PRODUCTS}?page=1&pageSize=200`, context);
     const records = result?.records ?? result?.list ?? [];
 
     const bySkuId = new Map<number, ProductPriceInfo>();

@@ -253,10 +253,10 @@ describe('RateLimiterService', () => {
     });
 
     it('桶数量超阈值时清理过期条目', async () => {
-        const service = new RateLimiterService(
-          createConfigService({ RATE_LIMIT_PER_MINUTE: 10 }),
-        );
-        service.cleanupThreshold = 1; // 阈值设为 1，便于触发清理
+      const service = new RateLimiterService(
+        createConfigService({ RATE_LIMIT_PER_MINUTE: 10 }),
+      );
+      service.cleanupThreshold = 1; // 阈值设为 1，便于触发清理
       await service.onModuleInit();
 
       let now = 1_000_000;

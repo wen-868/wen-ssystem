@@ -472,17 +472,31 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
         page: 1,
         pageSize: 10,
         records: [
-          { memberId: 5, name: '兴旺超市', mobile: '13800000000', customerType: 'WHOLESALE' },
+          {
+            memberId: 5,
+            name: '兴旺超市',
+            mobile: '13800000000',
+            customerType: 'WHOLESALE',
+          },
         ],
       });
 
       const result = await createCustomer.execute(
-        { name: '兴旺超市', phone: '13800000000', customerType: 'WHOLESALE', confirm: true },
+        {
+          name: '兴旺超市',
+          phone: '13800000000',
+          customerType: 'WHOLESALE',
+          confirm: true,
+        },
         mockContext,
       );
 
       expect(result.success).toBe(true);
-      const data = result.data as { memberId: number; duplicate: boolean; message: string };
+      const data = result.data as {
+        memberId: number;
+        duplicate: boolean;
+        message: string;
+      };
       expect(data.memberId).toBe(5);
       expect(data.duplicate).toBe(true);
       expect(data.message).toContain('已存在');
@@ -931,11 +945,15 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
     });
 
     it('预览阶段应返回 preview 且不调用后端', async () => {
-      mockServiceClient.get.mockResolvedValue([
-        { id: 1, name: '白酒' },
-      ]);
+      mockServiceClient.get.mockResolvedValue([{ id: 1, name: '白酒' }]);
       const result = await createProduct.execute(
-        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, wholesalePrice: 38, confirm: false },
+        {
+          name: '红星二锅头 56度 500ml',
+          categoryName: '白酒',
+          retailPrice: 45,
+          wholesalePrice: 38,
+          confirm: false,
+        },
         mockContext,
       );
       expect(result.success).toBe(true);
@@ -944,9 +962,7 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
     });
 
     it('执行阶段应调用 POST /api/admin/products 并返回 skuId', async () => {
-      mockServiceClient.get.mockResolvedValue([
-        { id: 1, name: '白酒' },
-      ]);
+      mockServiceClient.get.mockResolvedValue([{ id: 1, name: '白酒' }]);
       mockServiceClient.post.mockResolvedValue({
         id: 100,
         spuId: 100,
@@ -954,7 +970,14 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
         spuCode: 'SPU_TEST',
       });
       const result = await createProduct.execute(
-        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, wholesalePrice: 38, boxRatio: 6, confirm: true },
+        {
+          name: '红星二锅头 56度 500ml',
+          categoryName: '白酒',
+          retailPrice: 45,
+          wholesalePrice: 38,
+          boxRatio: 6,
+          confirm: true,
+        },
         mockContext,
       );
       expect(result.success).toBe(true);
@@ -976,12 +999,21 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
         });
 
       const result = await createProduct.execute(
-        { name: '红星二锅头 56度 500ml', categoryName: '白酒', retailPrice: 45, confirm: true },
+        {
+          name: '红星二锅头 56度 500ml',
+          categoryName: '白酒',
+          retailPrice: 45,
+          confirm: true,
+        },
         mockContext,
       );
 
       expect(result.success).toBe(true);
-      const data = result.data as { spuId: number; duplicate: boolean; message: string };
+      const data = result.data as {
+        spuId: number;
+        duplicate: boolean;
+        message: string;
+      };
       expect(data.spuId).toBe(100);
       expect(data.duplicate).toBe(true);
       expect(data.message).toContain('已存在');

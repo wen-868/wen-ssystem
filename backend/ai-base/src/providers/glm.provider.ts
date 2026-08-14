@@ -134,10 +134,7 @@ export class GlmProvider implements IModelProvider {
       'GLM_BASE_URL',
       'https://open.bigmodel.cn/api/paas/v4',
     );
-    const model = this.configService.get<string>(
-      'GLM_MODEL',
-      'glm-4-flash',
-    );
+    const model = this.configService.get<string>('GLM_MODEL', 'glm-4-flash');
     const temperature = this.configService.get<number>(
       'DEFAULT_TEMPERATURE',
       0.3,
@@ -146,10 +143,7 @@ export class GlmProvider implements IModelProvider {
       'DEFAULT_MAX_TOKENS',
       2048,
     );
-    const timeoutMs = this.configService.get<number>(
-      'GLM_TIMEOUT_MS',
-      30000,
-    );
+    const timeoutMs = this.configService.get<number>('GLM_TIMEOUT_MS', 30000);
 
     this.config = {
       apiKey,
@@ -219,6 +213,7 @@ export class GlmProvider implements IModelProvider {
         },
       );
     } catch (err) {
+      if (err instanceof ProviderError) throw err;
       throw ProviderError.fromAxiosError(err, this.name);
     }
 
@@ -329,6 +324,7 @@ export class GlmProvider implements IModelProvider {
       if (options?.signal?.aborted) {
         this.logger.warn('GLM 流式调用已被取消');
       } else {
+        if (err instanceof ProviderError) throw err;
         throw ProviderError.fromAxiosError(err, this.name);
       }
     }
@@ -379,6 +375,7 @@ export class GlmProvider implements IModelProvider {
         },
       );
     } catch (err) {
+      if (err instanceof ProviderError) throw err;
       throw ProviderError.fromAxiosError(err, this.name);
     }
 

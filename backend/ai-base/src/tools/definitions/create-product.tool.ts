@@ -75,7 +75,8 @@ export class CreateProductTool implements ITool {
       },
       categoryName: {
         type: 'string',
-        description: '分类名称（可选，如"白酒"/"啤酒"/"其他"，用于自动匹配分类ID）',
+        description:
+          '分类名称（可选，如"白酒"/"啤酒"/"其他"，用于自动匹配分类ID）',
       },
       skuName: {
         type: 'string',
@@ -152,7 +153,8 @@ export class CreateProductTool implements ITool {
         return {
           success: false,
           error: `解析商品分类失败：${errorMsg}`,
-          suggestion: '请传入 categoryId 或 categoryName，或确认后端分类接口正常',
+          suggestion:
+            '请传入 categoryId 或 categoryName，或确认后端分类接口正常',
         };
       }
     }
@@ -186,7 +188,8 @@ export class CreateProductTool implements ITool {
         success: true,
         preview: {
           operation: '创建商品',
-          summary: `新建商品「${productArgs.name}」` +
+          summary:
+            `新建商品「${productArgs.name}」` +
             `（分类：${categoryName ?? categoryId}）` +
             (retailPrice > 0 ? `，零售价 ¥${retailPrice}` : '') +
             (wholesalePrice > 0 ? `，批发价 ¥${wholesalePrice}` : ''),
@@ -198,10 +201,7 @@ export class CreateProductTool implements ITool {
     // ── 执行阶段：调用后端创建商品 ──
     try {
       // ── 查重：同租户已存在同名商品则不重复创建，直接复用 ──
-      const existed = await this.findExistingProduct(
-        productArgs.name,
-        context,
-      );
+      const existed = await this.findExistingProduct(productArgs.name, context);
       if (existed) {
         this.logger.log(
           `商品「${productArgs.name}」已存在（spuId=${existed.id}），跳过创建`,

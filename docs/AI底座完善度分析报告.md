@@ -74,6 +74,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 1. ✅ ci.yml 新增 ai-base 门禁 job（pnpm 构建 + lint + 524 用例测试），本地实测 41 套件全过
 2. ✅ scripts/ai-base-e2e.mjs 端到端验收脚本（8 项检查 + docs/reports 报告输出）
 3. ⏳ 服务器执行端到端验收（需 DEEPSEEK_API_KEY）——脚本就绪待执行
+4. ✅ Ollama Provider 完善：占位 501 → 真实 OpenAI 兼容实现（流式/非流式含 function calling、embedding、连通性测试），8 个单元测试；同时修复 DeepSeek/GLM/Ollama 三处「业务错误被 catch 转 503」透传 bug；ai-base 全量 42 套件 / 532 用例通过
 
 ## 七、结论
 

@@ -133,7 +133,9 @@ export class DocumentLoaderService {
    */
   private async extractPdf(buffer: Buffer): Promise<string> {
     try {
-      if (typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'undefined') {
+      if (
+        typeof (globalThis as { DOMMatrix?: unknown }).DOMMatrix === 'undefined'
+      ) {
         try {
           const canvas = await import('@napi-rs/canvas');
           if (canvas && (canvas as { DOMMatrix?: unknown }).DOMMatrix) {

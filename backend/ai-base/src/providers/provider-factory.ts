@@ -88,9 +88,7 @@ export class ProviderFactory {
     if (this.providers.has(this.defaultType)) {
       return this.providers.get(this.defaultType)!;
     }
-    this.logger.warn(
-      `默认 Provider ${this.defaultType} 不可用，回退到 glm`,
-    );
+    this.logger.warn(`默认 Provider ${this.defaultType} 不可用，回退到 glm`);
     return this.providers.get('glm')!;
   }
 
