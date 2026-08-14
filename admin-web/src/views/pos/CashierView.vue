@@ -1834,6 +1834,8 @@ async function handleDeleteHoldOrder(holdNo: string) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 10px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 2px;
   align-content: start;
