@@ -72,14 +72,14 @@
         <el-form-item label="下载/详情地址">
           <el-input v-model="form.updateUrl" placeholder="客户端弹窗后跳转的地址" />
         </el-form-item>
-        <el-form-item label="x64 安装包（桌面x64/安卓x86）">
-          <el-input v-model="form.updateUrlX64" placeholder="桌面 exe 或安卓 x86 APK 直链" />
+        <el-form-item :label="archLabels[0]">
+          <el-input v-model="form.updateUrlX64" :placeholder="archPlaceholders[0]" />
         </el-form-item>
-        <el-form-item label="ARM64 安装包（桌面/安卓）">
-          <el-input v-model="form.updateUrlArm64" placeholder="桌面 exe 或安卓 arm64 APK 直链" />
+        <el-form-item :label="archLabels[2]">
+          <el-input v-model="form.updateUrlArm64" :placeholder="archPlaceholders[2]" />
         </el-form-item>
-        <el-form-item label="32位 安装包（桌面x86/安卓armv7）">
-          <el-input v-model="form.updateUrlIa32" placeholder="桌面 exe 或安卓 armeabi-v7a APK 直链" />
+        <el-form-item :label="archLabels[1]">
+          <el-input v-model="form.updateUrlIa32" :placeholder="archPlaceholders[1]" />
         </el-form-item>
         <el-form-item label="安装包/WGT 地址">
           <el-input v-model="form.packageUrl" placeholder="APP 热更新包(.wgt)或安装包直链" />
@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { listAppVersions, publishAppVersion, deleteAppVersion } from "../api";
 
@@ -122,6 +122,18 @@ const form = reactive({
   updateNote: "",
   enabled: true,
 });
+
+/** 下载槽位标签：手机端按平台（安卓/苹果/鸿蒙），桌面端按 CPU 架构 */
+const archLabels = computed(() =>
+  form.platform === "app_mobile"
+    ? ["安卓 APK 下载地址", "iOS 安装包地址", "鸿蒙安装包地址"]
+    : ["x64 安装包地址", "32位(x86) 安装包地址", "ARM64 安装包地址"]
+);
+const archPlaceholders = computed(() =>
+  form.platform === "app_mobile"
+    ? ["https://.../app-android.apk", "https://.../app-ios.ipa", "https://.../app-harmony.hap"]
+    : ["https://.../client-x64-setup.exe", "https://.../client-ia32-setup.exe", "https://.../client-arm64-setup.exe"]
+);
 
 async function loadList() {
   loading.value = true;

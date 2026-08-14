@@ -42,13 +42,23 @@ export async function getLatestVersion(platform: string, arch?: string) {
     [platform]
   );
   if (!row) return null;
-  // 按架构取安装包地址（优先分架构地址，回退通用 updateUrl）
-  // 兼容桌面(x64/ia32/arm64)与手机 ABI(arm64-v8a/armeabi-v7a/x86/x86_64)
-  const key =
-    arch === "x64" || arch === "x86_64" || arch === "x86" ? "x64"
-      : arch === "ia32" || arch === "armeabi-v7a" || arch === "armeabi" || arch === "armv7" ? "ia32"
-        : arch === "arm64" || arch === "arm64-v8a" ? "arm64"
-          : "";
+  // 下载槽位：三个地址字段按平台解释
+  // - 桌面端(admin_web/print_agent)：x64 / ia32(32位) / arm64（按 CPU 架构）
+  // - 手机端(app_mobile)：android / ios / harmony（按操作系统平台）
+  let key = "";
+  if (platform === "app_mobile") {
+    key =
+      arch === "android" || arch === "Android" ? "x64"
+        : arch === "ios" || arch === "iOS" || arch === "iphone" ? "ia32"
+          : arch === "harmony" || arch === "HarmonyOS" || arch === "harmonyos" ? "arm64"
+            : "";
+  } else {
+    key =
+      arch === "x64" || arch === "x86_64" || arch === "x86" ? "x64"
+        : arch === "ia32" || arch === "x86_32" ? "ia32"
+          : arch === "arm64" || arch === "arm64-v8a" ? "arm64"
+            : "";
+  }
   const archUrl =
     key === "x64" ? row.updateUrlX64
       : key === "ia32" ? row.updateUrlIa32

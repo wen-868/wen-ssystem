@@ -111,15 +111,14 @@ function handleAppUpdate(data: LatestAppVersion): void {
 /** 启动/回前台时调用：检查是否有新版本 */
 export function checkAppUpdate(): void {
   const base = resolveBase()
-  // 按设备架构请求对应安装包地址（arm64-v8a→arm64 / armeabi-v7a→ia32 / x86→x64）
+  // 按操作系统平台请求对应安装包地址（android / ios / harmony）
   let arch = ''
   // #ifdef APP-PLUS
   try {
-    const info = uni.getSystemInfoSync()
-    const abi: string = (info as any).abi || (info as any).platform || ''
-    if (abi.indexOf('arm64') >= 0) arch = 'arm64'
-    else if (abi.indexOf('x86_64') >= 0 || abi.indexOf('x86') >= 0) arch = 'x64'
-    else if (abi.indexOf('armeabi') >= 0 || abi.indexOf('armv7') >= 0) arch = 'ia32'
+    const osName: string = (plus.os as any)?.name || ''
+    if (osName.indexOf('Android') >= 0) arch = 'android'
+    else if (osName.indexOf('iOS') >= 0 || osName.indexOf('iPhone') >= 0) arch = 'ios'
+    else if (osName.indexOf('Harmony') >= 0 || osName.indexOf('鸿蒙') >= 0) arch = 'harmony'
   } catch { /* 忽略 */ }
   // #endif
   uni.request({
