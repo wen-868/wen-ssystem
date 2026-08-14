@@ -4,6 +4,7 @@ import { requirePlatformAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/async-handler";
 import { trackRequest, getMonitorStats } from "../controllers/platform/platform-monitor.controller";
 import * as adminMonitor from "../controllers/admin/monitor.controller";
+import { getSlowQueries } from "../middleware/slow-query-monitor";
 
 export const platformMonitorRouter = Router();
 
@@ -20,6 +21,11 @@ platformMonitorRouter.get("/db-status", adminMonitor.getDbStatusCtrl);
 
 // GET /api/platform/monitor/api-stats - API 调用统计
 platformMonitorRouter.get("/api-stats", adminMonitor.getApiStatsCtrl);
+
+// GET /api/platform/monitor/slow-queries - 最近慢查询（>100ms）
+platformMonitorRouter.get("/slow-queries", (_req, res) => {
+  res.json({ code: "0", msg: "成功", data: getSlowQueries() });
+});
 
 // GET /api/platform/monitor/expiring-tenants - 即将到期租户
 platformMonitorRouter.get("/expiring-tenants", adminMonitor.getExpiringTenantsCtrl);

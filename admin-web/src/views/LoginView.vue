@@ -564,7 +564,8 @@ async function handleDemoLogin() {
   margin: 10px 0 0;
   text-align: center;
   font-size: 12px;
-  color: var(--text-placeholder);
+  /* WCAG AA 修复：原 #cccccc 对比度 1.6:1 不达标，改 #595959（≥4.5:1） */
+  color: #595959;
 }
 
 .login-form :deep(.el-input__wrapper) {
@@ -575,7 +576,8 @@ async function handleDemoLogin() {
   text-align: center;
   margin-top: 24px;
   font-size: 13px;
-  color: var(--text-muted);
+  /* WCAG AA 修复：原 #999999 对比度 2.84:1 不达标，改 #595959（≥4.5:1） */
+  color: #595959;
 }
 
 .register-link {

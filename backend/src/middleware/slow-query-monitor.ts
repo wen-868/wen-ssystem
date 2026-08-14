@@ -5,8 +5,8 @@
 import type { Request, Response, NextFunction } from "express";
 import logger from "../shared/logger";
 
-/** 慢查询阈值（毫秒） */
-const SLOW_QUERY_THRESHOLD = 1000;
+/** 慢查询阈值（毫秒，验收标准：慢查询 < 100ms） */
+const SLOW_QUERY_THRESHOLD = 100;
 
 /** 最大保留慢查询记录数 */
 const MAX_RECORDS = 100;

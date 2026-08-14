@@ -3,9 +3,9 @@ import AxeBuilder from "@axe-core/playwright";
 
 /**
  * 无障碍自动化扫描（WCAG 2.1 AA，axe-core）
- * 验收基线（2026-08-15 实测）：登录页 1 处（color-contrast）、工作台 4 处
+ * 验收基线（2026-08-15 实测）：登录页已清零（color-contrast 修复）、工作台 4 处
  * （button-name/color-contrast/label/scrollable-region-focusable）。
- * 目标：逐轮修复并下调阈值至 0。
+ * 目标：逐轮修复工作台违规并下调阈值至 0。
  */
 
 test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
@@ -23,7 +23,7 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
       `[a11y] 登录页违规: total=${results.violations.length}, critical/serious=${criticalSerious.length}, ` +
       `types=${criticalSerious.map((v) => v.id).join(",")}`
     );
-    expect(criticalSerious.length).toBeLessThanOrEqual(5);
+    expect(criticalSerious.length).toBe(0);
   });
 
   test("登录后工作台无 critical/serious 违规", async ({ page }) => {

@@ -42,21 +42,21 @@ describe("slow-query-monitor", () => {
     });
 
     it("未超过阈值的查询不应记录", () => {
-      recordQueryExecution("SELECT * FROM t_user", [1], 500);
+      recordQueryExecution("SELECT * FROM t_user", [1], 50);
       expect(getSlowQueries()).toHaveLength(0);
       expect(loggerMock.warn).not.toHaveBeenCalled();
     });
 
     it("恰好等于阈值的不应记录", () => {
-      recordQueryExecution("SELECT 1", [], 1000);
+      recordQueryExecution("SELECT 1", [], 100);
       expect(getSlowQueries()).toHaveLength(0);
       expect(loggerMock.warn).not.toHaveBeenCalled();
     });
 
     it("记录多条慢查询", () => {
-      recordQueryExecution("SELECT 1", [1], 1100);
-      recordQueryExecution("SELECT 2", [2], 1200);
-      recordQueryExecution("SELECT 3", [3], 1300);
+      recordQueryExecution("SELECT 1", [1], 110);
+      recordQueryExecution("SELECT 2", [2], 120);
+      recordQueryExecution("SELECT 3", [3], 130);
       const queries = getSlowQueries();
       expect(queries).toHaveLength(3);
       expect(queries[0].sql).toBe("SELECT 1");
@@ -161,7 +161,7 @@ describe("slow-query-monitor", () => {
     it("请求耗时未超过阈值时不输出 warn 日志", () => {
       const dateSpy = vi.spyOn(Date, "now");
       dateSpy.mockReturnValueOnce(0); // 启动时间
-      dateSpy.mockReturnValueOnce(500); // finish 时间（仅 500ms）
+      dateSpy.mockReturnValueOnce(50); // finish 时间（仅 50ms，低于 100ms 阈值）
 
       const req = { method: "GET", url: "/fast-request" } as unknown as Request;
       let finishCallback: (() => void) | null = null;
