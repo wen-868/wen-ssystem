@@ -4,11 +4,12 @@ import { verifyPassword, validatePassword, hashPassword } from "../../shared/pas
 import { AppError } from "../../shared/app-error";
 import { generateCsrfToken } from "../../middleware/csrf";
 import { env } from "../../config/env";
+import { signMfaToken } from "../../middleware/mfa-token";
 
 // ==================== 类型定义 ====================
 
-/** 系统用户登录信息行 */
-interface SysUserRow {
+/** 系统用户登录信息行（含 MFA 字段） */
+export interface SysUserLoginRow {
   id: number;
   username: string;
   password_hash: string;
@@ -18,6 +19,8 @@ interface SysUserRow {
   tenant_id: string;
   login_fail_count: number;
   locked_until: Date | string | null;
+  mfa_secret?: string | null;
+  mfa_enabled?: number;
 }
 
 /** 角色权限行 */
@@ -105,8 +108,8 @@ async function getUserPermissions(userId: number, tenantId: string): Promise<str
 }
 
 export async function login(username: string, password: string) {
-  const account = await queryOne<SysUserRow>(
-    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
+  const account = await queryOne<SysUserLoginRow>(
+    "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until, mfa_secret, mfa_enabled FROM t_sys_user WHERE username = ? LIMIT 1",
     [username]
   );
 
@@ -149,6 +152,25 @@ export async function login(username: string, password: string) {
     [account.id]
   );
 
+  // 双因素认证：账号启用 MFA 时，第一步仅返回挑战令牌，需动态码二次验证
+  if (Number(account.mfa_enabled) === 1) {
+    return {
+      mfaRequired: true,
+      mfaToken: signMfaToken({
+        id: account.id,
+        username: account.username,
+        tenantId: account.tenant_id || "default",
+      }),
+    };
+  }
+
+  return issueLoginResult(account);
+}
+
+/**
+ * 根据已通过密码校验的账号签发完整登录结果（登录/MFA 二次验证共用）
+ */
+export async function issueLoginResult(account: SysUserLoginRow) {
   const resolvedTenantId = account.tenant_id || 'default';
   const roles = await query<RoleCodeRow>(
     `SELECT r.role_code
@@ -280,7 +302,7 @@ export async function demoLogin() {
   const DEMO_USERNAME = "demo";
   const DEMO_TENANT = "default";
 
-  let account = await queryOne<SysUserRow>(
+  let account = await queryOne<SysUserLoginRow>(
     "SELECT id, username, password_hash, real_name, store_id, status, tenant_id, login_fail_count, locked_until FROM t_sys_user WHERE username = ? LIMIT 1",
     [DEMO_USERNAME]
   );

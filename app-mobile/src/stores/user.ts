@@ -22,6 +22,11 @@ export const useUserStore = defineStore('user', () => {
 
   async function login(username: string, password: string) {
     const result = await authApi.login({ username, password })
+    applyLoginResult(result)
+  }
+
+  /** 应用登录结果（正常登录 / MFA 二次验证共用） */
+  function applyLoginResult(result: LoginResult) {
     token.value = result.token
     setToken(result.token)
 
@@ -96,6 +101,7 @@ export const useUserStore = defineStore('user', () => {
     storeId,
     storeName,
     login,
+    applyLoginResult,
     fetchProfile,
     init,
     logout

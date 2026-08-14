@@ -175,6 +175,8 @@ app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
 // 演示账号登录：免密，受同一限流器保护
 app.post("/api/admin/auth/demo-login", adminLoginLimiter, authController.demoLogin);
 app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
+// MFA 登录二次验证（无鉴权，凭短时效挑战令牌 + 动态码，独立限流防爆破）
+app.post("/api/admin/auth/mfa/verify", storeLoginLimiter, authController.verifyMfa);
 // 服务账号换发 JWT（运营系统适配层调用，服务端专用；无需 CSRF，由凭证 + 限流保护）
 app.post("/api/admin/auth/service-token", adminLoginLimiter, authController.serviceToken);
 // 运营系统挂车转化推单受理（服务账号 JWT 鉴权；真实建单待订单业务模块接入）

@@ -19,6 +19,9 @@ export interface LoginResult {
     tenantId: string
     permissions?: string[]
   }
+  /** 双因素认证：账号启用 MFA 时，第一步登录仅返回挑战令牌 */
+  mfaRequired?: boolean
+  mfaToken?: string
 }
 
 export interface ProfileResult {
@@ -72,6 +75,31 @@ const authApi = {
   /** 发送注册短信验证码 */
   sendSmsCode(params: SendSmsCodeParams): Promise<any> {
     return post('/store/members/sms-code', params)
+  },
+
+  /** 双因素认证：登录二次验证（MFA 挑战令牌 + 动态码 → 完整登录结果） */
+  verifyMfa(mfaToken: string, code: string): Promise<LoginResult> {
+    return post('/admin/auth/mfa/verify', { mfaToken, code })
+  },
+
+  /** 获取当前用户 MFA 状态 */
+  getMfaStatus(): Promise<{ enabled: boolean; hasSecret: boolean }> {
+    return get('/admin/auth/mfa/status')
+  },
+
+  /** 发起 MFA 绑定（返回 secret 与 otpauth 地址） */
+  setupMfa(): Promise<{ secret: string; otpauthUrl: string; enabled: boolean }> {
+    return post('/admin/auth/mfa/setup', {})
+  },
+
+  /** 确认 MFA 绑定 */
+  confirmMfa(code: string): Promise<{ enabled: boolean }> {
+    return post('/admin/auth/mfa/confirm', { code })
+  },
+
+  /** 关闭 MFA */
+  disableMfa(code: string): Promise<{ enabled: boolean }> {
+    return post('/admin/auth/mfa/disable', { code })
   },
 
   /** 租户注册申请 */

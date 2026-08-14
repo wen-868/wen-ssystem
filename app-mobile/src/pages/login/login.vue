@@ -49,6 +49,34 @@
           <text class="error-text">{{ errorMsg }}</text>
         </view>
 
+        <!-- 双因素认证：账号启用 MFA 时的动态码输入 -->
+        <view class="mfa-section" v-if="mfaRequired">
+          <view class="mfa-tip">
+            <text class="mfa-tip-text">该账号已开启双因素认证，请输入动态验证码</text>
+          </view>
+          <view class="form-item">
+            <view class="input-icon">&#xe605;</view>
+            <input
+              class="form-input"
+              v-model="mfaCode"
+              type="number"
+              maxlength="6"
+              placeholder="6 位动态验证码"
+              placeholder-class="input-placeholder"
+            />
+          </view>
+          <button
+            class="login-btn"
+            :class="{ 'login-btn--loading': mfaVerifying }"
+            :disabled="mfaVerifying"
+            @tap="handleMfaVerify"
+          >
+            <text v-if="mfaVerifying" class="btn-text">验证中...</text>
+            <text v-else class="btn-text">验证并登录</text>
+          </button>
+        </view>
+
+        <template v-if="!mfaRequired">
         <button
           class="login-btn"
           :class="{ 'login-btn--loading': loading }"
@@ -58,6 +86,7 @@
           <text v-if="loading" class="btn-text">登录中...</text>
           <text v-else class="btn-text">登 录</text>
         </button>
+        </template>
 
         <!-- 演示账号一键登录 -->
         <view class="demo-divider">
@@ -97,6 +126,7 @@ import { ref, reactive } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { authApi } from '@/api/modules/auth'
 
 const userStore = useUserStore()
 
@@ -111,6 +141,10 @@ onShow(() => {
 const showPassword = ref(false)
 const loading = ref(false)
 const demoLoading = ref(false)
+const mfaRequired = ref(false)
+const mfaToken = ref('')
+const mfaCode = ref('')
+const mfaVerifying = ref(false)
 const errorMsg = ref('')
 
 const loginForm = reactive({
@@ -137,13 +171,40 @@ async function handleLogin() {
 
   loading.value = true
   try {
-    await userStore.login(loginForm.username.trim(), loginForm.password)
-    uni.showToast({ title: '登录成功', icon: 'success' })
-    goHome()
+    const result = await authApi.login({ username: loginForm.username.trim(), password: loginForm.password })
+    if (result.mfaRequired) {
+      mfaRequired.value = true
+      mfaToken.value = result.mfaToken || ''
+      errorMsg.value = ''
+    } else {
+      userStore.applyLoginResult(result)
+      uni.showToast({ title: '登录成功', icon: 'success' })
+      goHome()
+    }
   } catch (err: any) {
     errorMsg.value = err?.message || '登录失败，请重试'
   } finally {
     loading.value = false
+  }
+}
+
+/** MFA 二次验证 */
+async function handleMfaVerify() {
+  if (!/^\d{6}$/.test(mfaCode.value)) {
+    errorMsg.value = '请输入 6 位动态验证码'
+    return
+  }
+  mfaVerifying.value = true
+  errorMsg.value = ''
+  try {
+    const result = await authApi.verifyMfa(mfaToken.value, mfaCode.value)
+    userStore.applyLoginResult(result)
+    uni.showToast({ title: '登录成功', icon: 'success' })
+    goHome()
+  } catch (err: any) {
+    errorMsg.value = err?.message || '验证码错误，请重试'
+  } finally {
+    mfaVerifying.value = false
   }
 }
 
@@ -284,6 +345,16 @@ function goRegister() {
 
 .field-error {
   padding: 8rpx 8rpx 0;
+}
+.mfa-section {
+  margin-top: 8rpx;
+}
+.mfa-tip {
+  padding: 0 8rpx 16rpx;
+}
+.mfa-tip-text {
+  font-size: 24rpx;
+  color: $uni-color-primary;
 }
 
 .login-error {

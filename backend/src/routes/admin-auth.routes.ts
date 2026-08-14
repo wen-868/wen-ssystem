@@ -6,6 +6,10 @@ import {
   getSettings,
   updateSettings,
   changePassword,
+  getMfaStatus,
+  setupMfa,
+  confirmMfa,
+  disableMfa,
 } from "../controllers/admin/auth.controller";
 
 export const adminAuthRouter = Router();
@@ -16,6 +20,10 @@ adminAuthRouter.get("/me", asyncHandler(getMe));
 adminAuthRouter.get("/settings", asyncHandler(getSettings));
 adminAuthRouter.put("/settings", asyncHandler(updateSettings));
 adminAuthRouter.post("/change-password", asyncHandler(changePassword));
+adminAuthRouter.get("/mfa/status", asyncHandler(getMfaStatus));
+adminAuthRouter.post("/mfa/setup", asyncHandler(setupMfa));
+adminAuthRouter.post("/mfa/confirm", asyncHandler(confirmMfa));
+adminAuthRouter.post("/mfa/disable", asyncHandler(disableMfa));
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/admin/auth",

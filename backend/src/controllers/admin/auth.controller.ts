@@ -2,6 +2,7 @@ import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as authService from "../../services/admin/auth.service";
+import * as mfaService from "../../services/admin/mfa.service";
 
 export const login = asyncHandler(async (req, res) => {
   const body = z.object({ username: z.string(), password: z.string() }).parse(req.body);
@@ -59,4 +60,37 @@ export const updateSettings = asyncHandler(async (req, res) => {
   }).parse(req.body);
   const result = await authService.updateSettings(req.user!.id, body.defaultHomepage || null, req.tenantId!);
   res.json(ok(result));
+});
+
+// ==================== 双因素认证（MFA，顶级商业软件验收-认证检查项） ====================
+
+/** 获取当前用户 MFA 状态 */
+export const getMfaStatus = asyncHandler(async (req, res) => {
+  res.json(ok(await mfaService.getMfaStatus(req.user!.id)));
+});
+
+/** 发起绑定：返回 Secret 与 otpauth 二维码地址 */
+export const setupMfa = asyncHandler(async (req, res) => {
+  res.json(ok(await mfaService.setupMfa(req.user!.id)));
+});
+
+/** 确认绑定：校验动态码后启用 */
+export const confirmMfa = asyncHandler(async (req, res) => {
+  const body = z.object({ code: z.string().trim().regex(/^\d{6}$/, "验证码为 6 位数字") }).parse(req.body);
+  res.json(ok(await mfaService.confirmMfa(req.user!.id, body.code)));
+});
+
+/** 关闭双因素认证 */
+export const disableMfa = asyncHandler(async (req, res) => {
+  const body = z.object({ code: z.string().trim().regex(/^\d{6}$/, "验证码为 6 位数字") }).parse(req.body);
+  res.json(ok(await mfaService.disableMfa(req.user!.id, body.code)));
+});
+
+/** 登录二次验证（MFA 挑战令牌 + 动态码 → 完整登录结果；无鉴权，由 server.ts 注册） */
+export const verifyMfa = asyncHandler(async (req, res) => {
+  const body = z.object({
+    mfaToken: z.string().min(1),
+    code: z.string().trim().regex(/^\d{6}$/, "验证码为 6 位数字"),
+  }).parse(req.body);
+  res.json(ok(await mfaService.verifyMfaChallenge(body.mfaToken, body.code)));
 });

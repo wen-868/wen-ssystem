@@ -86,6 +86,59 @@
           </view>
         </view>
       </view>
+
+      <!-- 账号安全（双因素认证） -->
+      <view v-if="activeTab === 'security'" class="section">
+        <view class="section-title">
+          <text class="title-text">账号安全</text>
+          <text class="title-tip">开启后登录需输入动态验证码（TOTP，支持主流验证器 App）</text>
+        </view>
+        <view class="form-card">
+          <view class="mfa-status-row">
+            <text class="mfa-status-label">双因素认证</text>
+            <text class="mfa-status-value" :class="mfa.enabled ? 'on' : 'off'">
+              {{ mfa.enabled ? '已开启' : '未开启' }}
+            </text>
+          </view>
+
+          <!-- 未开启：绑定流程 -->
+          <template v-if="!mfa.enabled">
+            <view class="mfa-secret-box" v-if="mfa.setupData">
+              <text class="mfa-secret-title">1. 在验证器 App 中添加密钥</text>
+              <text class="mfa-secret-key" selectable>{{ mfa.setupData.secret }}</text>
+              <text class="mfa-secret-hint">或使用验证器扫码（otpauth 地址）</text>
+              <text class="mfa-secret-hint">{{ mfa.setupData.otpauthUrl }}</text>
+              <text class="mfa-secret-title">2. 输入 App 生成的 6 位验证码确认</text>
+              <input
+                class="form-input mfa-code-input"
+                v-model="mfaCode"
+                type="number"
+                maxlength="6"
+                placeholder="6 位动态验证码"
+                placeholder-class="form-placeholder"
+              />
+              <button class="save-btn mfa-btn" :loading="mfaBusy" @tap="confirmMfa">确认开启</button>
+            </view>
+            <button v-else class="save-btn mfa-btn" :loading="mfaBusy" @tap="startSetup">开启双因素认证</button>
+          </template>
+
+          <!-- 已开启：关闭流程 -->
+          <template v-else>
+            <view class="mfa-secret-box">
+              <text class="mfa-secret-title">关闭需输入当前动态验证码</text>
+              <input
+                class="form-input mfa-code-input"
+                v-model="mfaCode"
+                type="number"
+                maxlength="6"
+                placeholder="6 位动态验证码"
+                placeholder-class="form-placeholder"
+              />
+              <button class="save-btn mfa-btn mfa-btn--danger" :loading="mfaBusy" @tap="closeMfa">关闭双因素认证</button>
+            </view>
+          </template>
+        </view>
+      </view>
     </view>
 
     <view class="safe-bottom"></view>
@@ -95,11 +148,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { sysConfigApi, type SysConfigItem } from '@/api/modules/sys-config'
+import { authApi } from '@/api/modules/auth'
 
 const tabs = [
   { label: '公司信息', value: 'company' },
   { label: '基本设置', value: 'basic' },
   { label: '通知设置', value: 'notification' },
+  { label: '账号安全', value: 'security' },
   { label: '关于系统', value: 'about' },
 ]
 
@@ -113,6 +168,12 @@ const configFields = [
 ]
 const configValues = reactive<Record<string, string>>({})
 const saving = ref(false)
+const mfa = reactive<{ enabled: boolean; setupData: { secret: string; otpauthUrl: string } | null }>({
+  enabled: false,
+  setupData: null,
+})
+const mfaCode = ref('')
+const mfaBusy = ref(false)
 
 const version = '1.0.0'
 const versionNote = ref('已是最新版本')
@@ -175,6 +236,71 @@ async function saveConfigs() {
   }
 }
 
+async function loadMfaStatus() {
+  try {
+    const res = await authApi.getMfaStatus()
+    mfa.enabled = res.enabled
+  } catch (err) {
+    console.error('加载 MFA 状态失败:', err)
+  }
+}
+
+async function startSetup() {
+  mfaBusy.value = true
+  try {
+    const res = await authApi.setupMfa()
+    mfa.setupData = { secret: res.secret, otpauthUrl: res.otpauthUrl }
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '开启失败', icon: 'none' })
+  } finally {
+    mfaBusy.value = false
+  }
+}
+
+async function confirmMfa() {
+  if (!/^\d{6}$/.test(mfaCode.value)) {
+    uni.showToast({ title: '请输入 6 位验证码', icon: 'none' })
+    return
+  }
+  mfaBusy.value = true
+  try {
+    await authApi.confirmMfa(mfaCode.value)
+    mfa.enabled = true
+    mfa.setupData = null
+    mfaCode.value = ''
+    uni.showToast({ title: '双因素认证已开启', icon: 'success' })
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '验证失败', icon: 'none' })
+  } finally {
+    mfaBusy.value = false
+  }
+}
+
+async function closeMfa() {
+  if (!/^\d{6}$/.test(mfaCode.value)) {
+    uni.showToast({ title: '请输入 6 位验证码', icon: 'none' })
+    return
+  }
+  uni.showModal({
+    title: '关闭双因素认证',
+    content: '关闭后账号仅凭密码登录，安全性降低，确认关闭？',
+    success: async (res) => {
+      if (!res.confirm) return
+      mfaBusy.value = true
+      try {
+        await authApi.disableMfa(mfaCode.value)
+        mfa.enabled = false
+        mfaCode.value = ''
+        uni.showToast({ title: '已关闭', icon: 'success' })
+      } catch (err: any) {
+        uni.showToast({ title: err?.message || '关闭失败', icon: 'none' })
+      } finally {
+        mfaBusy.value = false
+      }
+    },
+  })
+}
+
 onMounted(() => {
   const pages = getCurrentPages()
   const current = pages[pages.length - 1] as any
@@ -184,6 +310,7 @@ onMounted(() => {
   }
   loadCompanyInfo()
   loadConfigs()
+  loadMfaStatus()
 })
 </script>
 
@@ -305,6 +432,58 @@ onMounted(() => {
   color: $uni-text-color-inverse;
   background: $uni-color-warning;
   border-radius: 38rpx;
+}
+.mfa-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid $uni-bg-color-page;
+}
+.mfa-status-label {
+  font-size: 26rpx;
+  color: $uni-gray-700;
+}
+.mfa-status-value {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+.mfa-status-value.on {
+  color: $uni-color-success;
+}
+.mfa-status-value.off {
+  color: $uni-gray-400;
+}
+.mfa-secret-box {
+  padding: 20rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.mfa-secret-title {
+  font-size: 24rpx;
+  color: $uni-gray-700;
+  margin-top: 8rpx;
+}
+.mfa-secret-key {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $uni-color-primary;
+  letter-spacing: 2rpx;
+}
+.mfa-secret-hint {
+  font-size: 20rpx;
+  color: $uni-gray-400;
+  word-break: break-all;
+}
+.mfa-code-input {
+  margin-top: 8rpx;
+}
+.mfa-btn {
+  margin-top: 8rpx;
+}
+.mfa-btn--danger {
+  background: $uni-color-error;
 }
 .empty-state {
   padding: 80rpx 0;
