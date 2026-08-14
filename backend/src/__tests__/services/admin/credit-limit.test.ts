@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端授信额度 service 单元测试
  * 被测文件：src/services/admin/credit-limit.service.ts
  * 覆盖全部 8 个导出函数，目标覆盖率 100%

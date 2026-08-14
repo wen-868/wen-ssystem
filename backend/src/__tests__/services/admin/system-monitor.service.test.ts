@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 系统资源监控服务单元测试
  * 被测文件：src/services/admin/system-monitor.service.ts
  */

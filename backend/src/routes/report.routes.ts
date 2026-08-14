@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as salesReportController from "../controllers/admin/report/sales-report.controller";

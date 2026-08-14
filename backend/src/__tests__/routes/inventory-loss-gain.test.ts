@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { routeConfig } from "../../routes/inventory-loss-gain.routes";
 
 describe("routes/inventory-loss-gain", () => {

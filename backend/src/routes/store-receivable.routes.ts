@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as otherController from "../controllers/store/other.controller";
 import * as receivableController from "../controllers/store/receivable.controller";

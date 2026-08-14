@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as transferOrderController from "../controllers/admin/transfer-order.controller";
 import * as adminTransferExecutionController from "../controllers/admin/transfer-execution.controller";

@@ -1,4 +1,4 @@
-﻿import { query, transaction } from "../../shared/db";
+import { query, transaction } from "../../shared/db";
 
 /** 报表权限矩阵行 */
 interface ReportPermissionRow {

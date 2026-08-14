@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as customerPriceService from "../../services/admin/customer-price.service";

@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { routeConfig, tenantRegisterRouter } from "../../routes/tenant-register.routes";
 
 describe("routes/tenant-register", () => {

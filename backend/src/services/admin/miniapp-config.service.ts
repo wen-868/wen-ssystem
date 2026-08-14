@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 import { MiniappPackageService } from "./miniapp-package.service";
 import { MiniappUploadService } from "./miniapp-upload.service";
 import { MiniappPublishService, type PublishInput } from "./miniapp-publish.service";

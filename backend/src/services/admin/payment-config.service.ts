@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
 /** 支付渠道配置数据（保存渠道配置用） */
 interface ChannelConfigData {

@@ -26,6 +26,23 @@ jobs:
       - name: Backend unit tests
         run: npm --workspace backend test
 
+      - name: Backend lint gate (zero error)
+        run: npm --workspace backend run lint
+
+      - name: Backend coverage gate (baseline 2026-08-15)
+        run: npm --workspace backend run test -- --coverage
+
+      - name: Dependency audit (non-blocking, baseline recorded)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 30
+
       - name: Build backend
         run: npm --workspace backend run build
 

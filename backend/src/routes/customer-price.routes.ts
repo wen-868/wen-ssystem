@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as customerPriceController from "../controllers/admin/customer-price.controller";

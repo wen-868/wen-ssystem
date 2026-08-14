@@ -1,4 +1,4 @@
-﻿import https from "node:https";
+import https from "node:https";
 import { URL } from "node:url";
 import logger from "./logger";
 import { env } from "./env";

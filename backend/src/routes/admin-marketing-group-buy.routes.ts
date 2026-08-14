@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as groupBuyController from "../controllers/admin/marketing-group-buy.controller";
 import type { RouteConfig } from "../shared/auto-routes";

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/**
+/**
  * 即时零售平台适配器抽象基类
  * Abstract Base Adapter for Instant Retail Platforms
  *

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端快捷入口 controller 单元测试
  * 被测文件：src/controllers/admin/quick-entry.controller.ts
  */

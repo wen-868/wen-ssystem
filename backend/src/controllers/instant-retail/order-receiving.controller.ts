@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok, fail } from "../../shared/response";
 import * as orderReceivingService from "../../services/instant-retail/order-receiving.service";
 

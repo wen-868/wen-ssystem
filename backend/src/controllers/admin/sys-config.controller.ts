@@ -1,7 +1,8 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/sys-config.service";
 import { z } from "zod";
+import fs from "node:fs";
 
 export const getAllConfigs = asyncHandler(async (req, res) => {
   const result = await service.getAllConfigs(req.tenantId!);
@@ -68,7 +69,6 @@ export const downloadBackup = asyncHandler(async (req, res) => {
     res.status(400).json({ success: false, code: "400", message: "非法备份文件名" });
     return;
   }
-  const fs = require("fs");
   if (!fs.existsSync(full)) {
     res.status(404).json({ success: false, code: "404", message: "备份文件不存在" });
     return;

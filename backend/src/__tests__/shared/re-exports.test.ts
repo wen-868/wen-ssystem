@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 
 // 测试 re-export 文件，确保每个 re-export 路径都能正确导入
 import { env } from "../../shared/env";

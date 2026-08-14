@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端通知中心 controller 单元测试
  * 被测文件：src/controllers/admin/notification-center.controller.ts
  */

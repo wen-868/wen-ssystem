@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import * as couponController from "../controllers/admin/marketing-coupon.controller";
 import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller";
 import * as pointsController from "../controllers/admin/marketing-points.controller";

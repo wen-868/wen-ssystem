@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import * as permissionModule from "../../shared/permission";
 import type { AuthUser } from "../../shared/auth";
 

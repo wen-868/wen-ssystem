@@ -1,4 +1,4 @@
-﻿﻿/**
+/**
 * 美团即时零售平台适配器
 * Meituan Instant Retail Platform Adapter
 *

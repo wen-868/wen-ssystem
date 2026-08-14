@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as stockWarningController from "../controllers/admin/stock-warning.controller";

@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as calculationController from "../controllers/admin/marketing-calculation.controller";
 import type { RouteConfig } from "../shared/auto-routes";

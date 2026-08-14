@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { routeConfigs } from "../../routes/trace.routes";
 
 describe("routes/trace", () => {

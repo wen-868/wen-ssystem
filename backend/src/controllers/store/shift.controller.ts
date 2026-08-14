@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as shiftService from "../../services/store/shift.service";
 

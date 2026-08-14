@@ -1,1 +1,1 @@
-﻿export * from "../config/wechat-pay";
+export * from "../config/wechat-pay";

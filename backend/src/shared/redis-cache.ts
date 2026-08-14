@@ -1,1 +1,1 @@
-﻿export * from "../config/redis";
+export * from "../config/redis";

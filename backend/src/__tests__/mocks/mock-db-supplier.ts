@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 供应商/采购 mock handlers: suppliers, supplierContacts, purchaseOrders, purchaseOrderItems,
  *   purchaseInStocks, purchaseInStockItems, purchaseReturns, purchaseReturnItems, purchasePayments,
  *   saleReturns, saleReturnItems, customerStatements, customerPayments

@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import * as receiptService from "../../services/admin/receipt.service";
 

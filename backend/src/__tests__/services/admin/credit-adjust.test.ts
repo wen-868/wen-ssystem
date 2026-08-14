@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端信用调整 service 单元测试
  * 被测文件：src/services/admin/credit-adjust.service.ts
  * 覆盖 CreditAdjustService 全部 3 个方法，目标覆盖率 100%

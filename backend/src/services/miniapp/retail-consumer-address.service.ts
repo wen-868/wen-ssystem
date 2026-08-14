@@ -1,4 +1,4 @@
-﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 import type { ResultSetHeader } from "mysql2";
 
 interface InsertResult extends ResultSetHeader { }

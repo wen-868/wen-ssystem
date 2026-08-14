@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, executeWithTenant } from "../../shared/db";
 
 /** COUNT(*) AS total 通用返回 */
 interface CountTotalRow {

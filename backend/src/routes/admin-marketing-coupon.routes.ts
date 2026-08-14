@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as couponController from "../controllers/admin/marketing-coupon.controller";
 import type { RouteConfig } from "../shared/auto-routes";

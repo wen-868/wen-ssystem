@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** t_retail_review 全字段行 */
 interface RetailReviewRow {

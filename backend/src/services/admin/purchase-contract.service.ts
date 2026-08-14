@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 import type { ResultSetHeader } from "mysql2/promise";
 

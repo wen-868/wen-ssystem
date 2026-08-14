@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端购物车 controller 单元测试
  * 被测文件：src/controllers/admin/cart.controller.ts
  */

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 
 /** SKU 阶梯价存在性检查行（conn.execute SELECT 用） */

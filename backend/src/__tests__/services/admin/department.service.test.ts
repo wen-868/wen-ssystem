@@ -1,4 +1,4 @@
-﻿﻿/**
+/**
 * 管理端部门 service 单元测试
 * 被测文件：src/services/admin/department.service.ts
 */

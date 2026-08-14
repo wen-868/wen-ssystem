@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端批量调价 controller 单元测试
  * 被测文件：src/controllers/admin/batch-price.controller.ts
  */

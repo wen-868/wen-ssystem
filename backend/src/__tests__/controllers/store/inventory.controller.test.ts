@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import { ZodError } from "zod";
 
 vi.mock("../../../services/store/inventory.service", () => ({

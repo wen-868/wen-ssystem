@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as retailAdminController from "../controllers/admin/instant-retail.controller";
 import * as retailExtController from "../controllers/admin/instant-retail-ext.controller";

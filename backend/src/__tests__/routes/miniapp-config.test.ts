@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 import request from "supertest";
 import path from "node:path";
 import { createTestApp } from "../fixtures/create-test-app";

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端价格管理 controller 单元测试
  * 被测文件：src/controllers/admin/price-management.controller.ts
  */

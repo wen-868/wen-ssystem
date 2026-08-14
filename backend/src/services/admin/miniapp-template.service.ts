@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** t_miniapp_template 表行（部分字段带别名） */
 interface MiniappTemplateRow {

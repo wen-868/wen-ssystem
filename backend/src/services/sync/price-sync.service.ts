@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿import { queryWithTenant } from "../../shared/db";
+import { queryWithTenant } from "../../shared/db";
 
 // ==================== 数据库行接口定义 ====================
 

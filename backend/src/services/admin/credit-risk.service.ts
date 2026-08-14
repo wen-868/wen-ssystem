@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import type { ServiceContext, PageResult } from "../../types/index";
 
 /** t_customer_credit 风险客户查询行（queryWithTenant 用，驼峰别名，含 JOIN） */

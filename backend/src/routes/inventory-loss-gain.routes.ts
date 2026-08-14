@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as inventoryLossGainController from "../controllers/admin/inventory-loss-gain.controller";

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端批量价格调整 service 单元测试
  * 被测文件：src/services/admin/batch-price.service.ts
  */

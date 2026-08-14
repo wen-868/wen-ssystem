@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端错误日志 service 单元测试
  * 被测文件：src/services/admin/error-log.service.ts
  */

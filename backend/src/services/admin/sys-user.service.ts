@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import bcrypt from "bcryptjs";
 import { validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";

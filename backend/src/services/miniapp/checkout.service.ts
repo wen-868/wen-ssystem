@@ -1,4 +1,4 @@
-﻿import mysql from "mysql2/promise";
+import mysql from "mysql2/promise";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";

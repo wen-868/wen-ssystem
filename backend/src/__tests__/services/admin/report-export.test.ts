@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端报表导出 service 单元测试
  * 被测文件：src/services/admin/report-export.service.ts
  * 覆盖 exportReport + generateCsv + generateExcel，9 种报表类型，目标覆盖率 100%

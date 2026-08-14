@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import type { ServiceContext, PageResult } from "../../types/index";
 
 /** 客户授信列表行（t_customer_credit JOIN t_member） */

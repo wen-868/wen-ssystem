@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端提成管理 controller 单元测试
  * 被测文件：src/controllers/admin/commission.controller.ts
  */

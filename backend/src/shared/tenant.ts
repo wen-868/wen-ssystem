@@ -1,1 +1,1 @@
-﻿export * from "../middleware/tenant";
+export * from "../middleware/tenant";

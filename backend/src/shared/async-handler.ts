@@ -1,1 +1,1 @@
-﻿export * from "../middleware/async-handler";
+export * from "../middleware/async-handler";

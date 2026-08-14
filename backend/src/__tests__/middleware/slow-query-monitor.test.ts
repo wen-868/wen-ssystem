@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 慢查询监控中间件单元测试
  * 被测文件：src/middleware/slow-query-monitor.ts
  */

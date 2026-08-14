@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { batchDeductStock, batchRestoreStock } from "./inventory-deduction.service";
 
 interface OrderItem { product_id: number; quantity: number; }

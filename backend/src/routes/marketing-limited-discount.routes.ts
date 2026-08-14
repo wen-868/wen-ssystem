@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 
 import * as limitedDiscountController from "../controllers/admin/marketing-limited-discount.controller";

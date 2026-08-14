@@ -1,4 +1,4 @@
-﻿﻿/**
+/**
 * 京东秒送平台适配器
 * JD Instant Delivery (京东秒送) Platform Adapter
 *

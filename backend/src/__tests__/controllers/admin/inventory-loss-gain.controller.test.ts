@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端库存报损报溢 controller 单元测试
  * 被测文件：src/controllers/admin/inventory-loss-gain.controller.ts
  */

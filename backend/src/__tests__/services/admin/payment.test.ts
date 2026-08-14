@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端微信支付 service 单元测试
  * 被测文件：src/services/admin/payment.service.ts
  * 覆盖全部 5 个导出函数，目标覆盖率 100%

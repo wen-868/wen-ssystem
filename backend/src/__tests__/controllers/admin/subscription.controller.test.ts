@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端订阅 controller 单元测试
  * 被测文件：src/controllers/admin/subscription.controller.ts
  */

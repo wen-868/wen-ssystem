@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端菜单权限 controller 单元测试
  * 被测文件：src/controllers/admin/menu-permission.controller.ts
  */

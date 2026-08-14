@@ -1,4 +1,4 @@
-﻿import { pool } from "../shared/db";
+import { pool } from "../shared/db";
 import type { Pool } from "mysql2/promise";
 
 export interface SendNotificationParams {

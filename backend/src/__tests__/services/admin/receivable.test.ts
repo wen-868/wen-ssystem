@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端应收应付 service 单元测试
  * 被测文件：src/services/admin/receivable.service.ts
  * 覆盖全部 6 个导出函数，目标覆盖率 100%

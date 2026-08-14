@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端日结 controller 单元测试
  * 被测文件：src/controllers/admin/daily-settlement.controller.ts
  */

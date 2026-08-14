@@ -1,4 +1,4 @@
-﻿import cron from "node-cron";
+import cron from "node-cron";
 import logger from "../shared/logger";
 import { queryWithTenant, queryOneWithTenant } from "../shared/db";
 

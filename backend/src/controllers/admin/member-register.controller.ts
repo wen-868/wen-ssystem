@@ -1,4 +1,4 @@
-﻿import { ok } from "../../shared/response";
+import { ok } from "../../shared/response";
 import { selfRegisterMember, sendRegisterSmsCode } from "../../services/admin/member.service";
 
 export async function sendSmsCode(req: any, res: any) {

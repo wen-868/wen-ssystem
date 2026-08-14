@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端历史单据归档 service 单元测试
  * 被测文件：src/services/admin/archive.service.ts
  */

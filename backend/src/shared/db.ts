@@ -1,4 +1,4 @@
-﻿export * from "../config/database";
+export * from "../config/database";
 
 import type mysql from "mysql2/promise";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";

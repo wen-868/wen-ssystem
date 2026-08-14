@@ -1,4 +1,4 @@
-﻿import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../shared/db";
+import { queryWithTenant, queryOneWithTenant, transaction, connExecute } from "../shared/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 import { makeBizNo } from "../shared/id";
 

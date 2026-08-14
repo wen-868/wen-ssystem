@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const { mockQueryOneWithTenant, mockFail, mockLogger } = vi.hoisted(() => ({
   mockQueryOneWithTenant: vi.fn(),

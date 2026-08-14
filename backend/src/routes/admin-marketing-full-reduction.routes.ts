@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as fullReductionController from "../controllers/admin/marketing-full-reduction.controller";
 import type { RouteConfig } from "../shared/auto-routes";

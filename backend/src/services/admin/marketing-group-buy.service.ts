@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
+import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 
 // ==================== 类型定义 ====================

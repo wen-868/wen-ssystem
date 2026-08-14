@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../../middleware/async-handler";
+import { asyncHandler } from "../../../middleware/async-handler";
 import { ok } from "../../../shared/response";
 import * as financeReportService from "../../../services/admin/report/finance-report.service";
 

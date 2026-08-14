@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端客户收款 service 单元测试
  * 被测文件：src/services/admin/customer-payment.service.ts
  * 覆盖全部 4 个导出函数，目标覆盖率 100%

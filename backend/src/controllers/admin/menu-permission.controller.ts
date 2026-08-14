@@ -1,4 +1,4 @@
-﻿import { asyncHandler } from "../../middleware/async-handler";
+import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
 import { z } from "zod";
 import * as menuPermissionService from "../../services/admin/menu-permission.service";

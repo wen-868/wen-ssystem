@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端付款 controller 单元测试
  * 被测文件：src/controllers/admin/payment-new.controller.ts
  */

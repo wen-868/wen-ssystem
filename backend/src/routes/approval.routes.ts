@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as approvalFlowController from "../controllers/admin/approval-flow.controller";
 import * as approvalRecordsController from "../controllers/admin/approval-records.controller";

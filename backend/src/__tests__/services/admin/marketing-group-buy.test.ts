@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端营销拼团活动 service 单元测试
  * 被测文件：src/services/admin/marketing-group-buy.service.ts
  * 覆盖全部 11 个导出函数，目标覆盖率 100%

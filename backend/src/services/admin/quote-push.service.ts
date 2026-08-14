@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/**
+/**
  * 一键报价推送服务
  *
  * 功能：
@@ -639,9 +639,10 @@ export async function pushQuote(
             // 短信内容：【XX酒行】尊敬的客户，您有新的报价单，点击查看：{shareUrl}
             channels.push("sms");
           }
-        }
+      }
         break;
       case "miniapp":
+      {
         const miniappConfig = await queryOne<SysConfigRow>(
           `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_miniapp_enabled' AND tenant_id = ?`,
           [tenantId]
@@ -651,7 +652,9 @@ export async function pushQuote(
           channels.push("miniapp");
         }
         break;
+      }
       case "email":
+      {
         const emailConfig = await queryOne<SysConfigRow>(
           `SELECT config_value AS configValue FROM t_sys_config WHERE config_key = 'push_email_provider' AND tenant_id = ?`,
           [tenantId]
@@ -661,6 +664,7 @@ export async function pushQuote(
           channels.push("email");
         }
         break;
+      }
     }
   }
 

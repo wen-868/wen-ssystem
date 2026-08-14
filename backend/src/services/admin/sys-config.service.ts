@@ -1,4 +1,5 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
+import path from "node:path";
 
 // ==================== 类型定义 ====================
 
@@ -188,7 +189,6 @@ export async function listBackups(): Promise<Array<{ name: string; size: number;
 
 /** 解析备份文件绝对路径（防路径穿越） */
 export function resolveBackupPath(name: string): string | null {
-  const path = require("path");
   const safe = path.basename(name);
   const full = path.join(BACKUP_DIR, safe);
   return full.startsWith(path.resolve(BACKUP_DIR)) ? full : null;

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端系统监控 controller 单元测试
  * 被测文件：src/controllers/admin/monitor.controller.ts
  */

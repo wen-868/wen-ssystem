@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端支付配置 service 单元测试
  * 被测文件：src/services/admin/payment-config.service.ts
  * 覆盖 PaymentConfigService 全部 10 个静态方法 + 1 个独立函数，目标覆盖率 100%

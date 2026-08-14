@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/**
+/**
  * 即时零售统一 Service 层
  * 整合 webhook 处理、平台配置管理、订单接单、履约操作
  * 底层委托给 services/instant-retail/ 下的子服务模块

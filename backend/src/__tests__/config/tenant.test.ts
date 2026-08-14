@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { tenantConfig } from "../../config/tenant";
 
 describe("config/tenant", () => {

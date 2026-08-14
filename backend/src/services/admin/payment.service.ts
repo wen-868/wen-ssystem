@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne, transaction } from "../../shared/db";
 import type { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { makeBizNo } from "../../shared/id";
 import { env } from "../../shared/env";

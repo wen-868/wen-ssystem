@@ -1,4 +1,4 @@
-﻿import { query, transaction } from "../../shared/db";
+import { query, transaction } from "../../shared/db";
 import logger from "../../shared/logger";
 
 /** 租户ID行 */

@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as stackRuleController from "../controllers/admin/marketing-stack-rule.controller";
 import type { RouteConfig } from "../shared/auto-routes";

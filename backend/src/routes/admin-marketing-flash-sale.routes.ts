@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as flashSaleController from "../controllers/admin/marketing-flash-sale.controller";
 import type { RouteConfig } from "../shared/auto-routes";

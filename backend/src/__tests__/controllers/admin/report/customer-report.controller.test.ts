@@ -1,4 +1,4 @@
-﻿import { vi, describe, it, beforeEach, expect } from "vitest";
+import { vi, describe, it, beforeEach, expect } from "vitest";
 
 vi.mock("../../../../services/admin/report/customer-report.service", () => ({
   getCustomerContribution: vi.fn(),

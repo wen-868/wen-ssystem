@@ -1,4 +1,4 @@
-﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import type {
   RetailShopConfigInput,
   RetailCategoryInput,

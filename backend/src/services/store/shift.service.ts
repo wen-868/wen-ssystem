@@ -1,4 +1,4 @@
-﻿import { query, queryOne } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 // ─── 类型定义 ─────────────────────────────────────────────────

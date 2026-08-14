@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 即时零售平台适配器注册表
  * Instant Retail Platform Adapter Registry
  *

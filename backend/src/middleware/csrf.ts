@@ -1,4 +1,4 @@
-﻿import type { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { createHmac } from "crypto";
 import { env } from "../shared/env";
 import { fail } from "../shared/response";

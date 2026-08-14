@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { ok } from "../../shared/response";
 import * as service from "../../services/admin/report-permission.service";
 

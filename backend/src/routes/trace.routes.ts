@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 
 import * as traceConfigController from "../controllers/admin/trace-config.controller";
 import * as traceRecordsController from "../controllers/admin/trace-records.controller";

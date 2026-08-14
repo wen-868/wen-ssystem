@@ -1,4 +1,4 @@
-﻿﻿/**
+/**
 * 饿了么即时零售平台适配器
 * Eleme Instant Retail Platform Adapter
 *

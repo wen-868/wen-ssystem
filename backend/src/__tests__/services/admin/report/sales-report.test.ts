@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端销售报表 service 单元测试
  * 被测文件：src/services/admin/report/sales-report.service.ts
  * 覆盖全部 4 个导出函数，目标覆盖率 100%

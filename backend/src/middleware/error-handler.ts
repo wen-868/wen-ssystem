@@ -1,4 +1,4 @@
-﻿import type { ErrorRequestHandler } from "express";
+import type { ErrorRequestHandler } from "express";
 import { ZodError, type ZodIssue } from "zod";
 import logger from "../shared/logger";
 import { fail } from "../shared/response";

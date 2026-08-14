@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { hashPassword, validatePassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";
 import logger from "../../shared/logger";

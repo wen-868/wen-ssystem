@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { RouteConfig } from "../shared/auto-routes";
 import * as productTagController from "../controllers/admin/product-marketing-tag.controller";
 

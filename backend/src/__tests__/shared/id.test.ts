@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "vitest";
 import { makeBizNo, makeToken } from "../../shared/id";
 
 describe("makeBizNo", () => {

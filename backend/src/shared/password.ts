@@ -1,4 +1,4 @@
-﻿import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 // 密码哈希强度轮数（提升到 12 增强安全性）
 const SALT_ROUNDS = 12;

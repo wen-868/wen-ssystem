@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 /** 价格等级完整行（updatedAt 在部分查询中不返回，设为可选） */
 interface PriceLevelRow {

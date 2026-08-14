@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 即时零售平台适配器统一入口
  * Instant Retail Platform Adapters Entry Point
  *

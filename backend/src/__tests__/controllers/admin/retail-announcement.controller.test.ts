@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 即时零售公告控制器测试
  * 被测文件：src/controllers/admin/retail-announcement.controller.ts
  *

@@ -1,1 +1,1 @@
-﻿export * from "../middleware/response-tracker";
+export * from "../middleware/response-tracker";

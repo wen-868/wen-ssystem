@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 管理端客户 service 单元测试
  * 被测文件：src/services/admin/customer.service.ts
  * 覆盖全部 12 个导出函数，目标覆盖率 100%
