@@ -1,0 +1,7 @@
+# 代码审查责任人（顶级商业软件验收-代码审查检查项）
+# 规则：以下目录/文件的 PR 需要对应负责人审批
+
+*                    @wen-868
+backend/src/services  @wen-868
+backend/src/controllers @wen-868
+docs/migrations/      @wen-868

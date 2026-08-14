@@ -14,3 +14,6 @@ store-terminal/.env.production
 tsconfig.tsbuildinfo
 backend/storage/
 miniapp/template-dist/
+test-results/
+e2e-report/
+playwright-report/

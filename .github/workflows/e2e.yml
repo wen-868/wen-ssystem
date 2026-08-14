@@ -1,0 +1,49 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build backend
+        run: npm --workspace backend run build
+
+      - name: Start mock backend
+        run: |
+          USE_MOCK_DB=true NODE_ENV=development JWT_SECRET=e2e-secret PORT=8080 npm --workspace backend run start > /tmp/backend.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:8080/health
+
+      - name: Start admin-web dev server
+        run: |
+          VITE_API_BASE=/api npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:5173
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run E2E tests
+        run: npx playwright test
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report/
+          retention-days: 30
