@@ -60,13 +60,9 @@
         {
           "target": "nsis",
           "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
+            "x64",
+            "ia32",
+            "arm64"
           ]
         }
       ],
@@ -77,7 +73,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "智享全链管理系统"
+      "shortcutName": "智享全链管理系统",
+      "artifactName": "${productName}-${version}-${arch}-setup.${ext}"
     },
     "mac": {
       "target": "dmg",

@@ -8,17 +8,14 @@ files:
   - package.json
 asar: true
 win:
+  icon: build/icon.ico
   target:
     - target: nsis
-      arch: [x64]
-    - target: portable
-      arch: [x64]
+      arch: [x64, ia32, arm64]
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: 智享打印助手
-  artifactName: "${productName}-${version}-setup.${ext}"
-portable:
-  artifactName: "${productName}-${version}-portable.${ext}"
+  artifactName: "${productName}-${version}-${arch}-setup.${ext}"

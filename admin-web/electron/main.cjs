@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require("electron");
 const path = require("path");
+const printService = require("./print-service.cjs");
 
 // 后端 API 地址（桌面版直连远程服务器；api.onepan.cn 解析到生产服务器 IP：159.75.153.59）
 const API_BASE = "https://api.onepan.cn/api";
@@ -52,7 +53,13 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // 启动内置打印服务（打印/钱箱/串口，127.0.0.1:5178，前端无感）
+  printService.startPrintService(5178);
   createWindow();
+  // 延迟检查桌面客户端新版本（不阻塞启动）
+  setTimeout(() => {
+    printService.checkDesktopUpdate().catch(() => {});
+  }, 6000);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -61,6 +68,10 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("before-quit", () => {
+  printService.stopPrintService();
 });
 
 // IPC 通信：提供 API 基础地址
