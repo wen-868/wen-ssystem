@@ -21,6 +21,8 @@ import { startStoreControlScheduler } from "./shared/store-control-scheduler";
 import { startOrderTimeoutScanner } from "./services/admin/order-timeout.service";
 import { startOverdueScanner } from "./services/overdue-scanner.service";
 import { startSubscriptionExpiryScanner } from "./services/subscription-expiry.service";
+import expressStatic from "express";
+import { avatarDir } from "./controllers/admin/avatar.controller";
 import "./jobs/report-aggregation.job.js";
 import "./jobs/auto-backup.job.js";
 import { insertErrorLog, cleanupOldLogs } from "./services/admin/error-log.service";
@@ -150,6 +152,8 @@ const allowedOrigins = env.CORS_ORIGINS
   : true; // 生产环境配置CORS_ORIGINS环境变量；默认允许所有来源
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
+// 头像等静态文件（/uploads/avatar/xxx，nginx /uploads 反代到本服务）
+app.use("/uploads", expressStatic.static(avatarDir()));
 app.use(responseTimeTracker);
 app.use(errorResponseInterceptor);
 

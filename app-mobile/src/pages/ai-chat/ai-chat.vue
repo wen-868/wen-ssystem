@@ -436,6 +436,8 @@ let recorderManager: ReturnType<typeof uni.getRecorderManager> | null = null
 /** H5 端 MediaRecorder 实例与分片 */
 let h5Recorder: MediaRecorder | null = null
 let h5Chunks: Blob[] = []
+/** H5 端语音识别实例（Web SpeechRecognition） */
+let h5Recognition: any = null
 
 function toggleRecording() {
   if (recording.value) {
@@ -489,6 +491,30 @@ function startH5Recording(): boolean {
     return false
   }
   h5Chunks = []
+  // 语音转文字：Web SpeechRecognition（Chrome/Edge 支持中文）
+  const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+  if (SR) {
+    h5Recognition = new SR()
+    h5Recognition.lang = 'zh-CN'
+    h5Recognition.interimResults = false
+    h5Recognition.continuous = false
+    h5Recognition.onresult = (e: any) => {
+      const text = Array.from(e.results)
+        .map((r: any) => r[0]?.transcript || '')
+        .join('')
+        .trim()
+      if (text) {
+        inputText.value = text
+        uni.showToast({ title: '已识别语音', icon: 'success' })
+      }
+    }
+    h5Recognition.onerror = () => { /* 识别失败静默，不影响录音 */ }
+    try {
+      h5Recognition.start()
+    } catch {
+      h5Recognition = null
+    }
+  }
   navigator.mediaDevices
     .getUserMedia({ audio: true })
     .then((stream) => {
@@ -521,6 +547,10 @@ function stopH5Recording(): void {
     h5Recorder.stream.getTracks().forEach((track) => track.stop())
   }
   h5Recorder = null
+  if (h5Recognition) {
+    try { h5Recognition.stop() } catch { /* 忽略 */ }
+    h5Recognition = null
+  }
 }
 
 /** 非 H5 端：uni.getRecorderManager 录音（输出临时文件路径） */
@@ -534,6 +564,24 @@ function startNativeRecording(): boolean {
     uni.showToast({ title: '录音失败', icon: 'none' })
   })
   recorderManager.start({ duration: 60000, format: 'mp3' })
+  // #ifdef APP-PLUS
+  // 原生语音识别（Android 需系统语音引擎；识别失败/无引擎时静默，不影响录音）
+  try {
+    ;(plus as any).speech.startRecognize(
+      { lang: 'zh-CN', continuous: false },
+      (text: string) => {
+        const t = String(text || '').trim()
+        if (t) {
+          inputText.value = t
+          uni.showToast({ title: '已识别语音', icon: 'success' })
+        }
+      },
+      () => { /* 识别失败静默 */ }
+    )
+  } catch {
+    /* 无语音引擎时忽略 */
+  }
+  // #endif
   return true
 }
 
@@ -554,9 +602,12 @@ function stopNativeRecording(): void {
  *     待接口就绪后在此上传录音数据，取回识别文本填入 inputText
  */
 function handleRecordComplete(data: string) {
-  // R94-01：语音转文字对接点（见上方注释，后端 ASR 接口缺失前保留提示）
-  console.log('[ai-chat] 录音完成，待转写数据:', data ? data.slice(0, 80) : '空')
-  uni.showToast({ title: '语音转文字功能开发中', icon: 'none' })
+  // 录音数据回调：语音识别已在录音过程中进行（H5 Web Speech / APP 原生识别），
+  // 识别结果已填入 inputText；此处仅兜底提示
+  console.log('[ai-chat] 录音完成:', data ? data.slice(0, 80) : '空')
+  if (!inputText.value.trim()) {
+    uni.showToast({ title: '未识别到语音，请重试', icon: 'none' })
+  }
 }
 
 // ====================== 页面卸载清理 ======================

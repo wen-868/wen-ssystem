@@ -145,11 +145,20 @@ function chooseAvatar() {
     count: 1,
     sizeType: ['compressed'],
     sourceType: ['album', 'camera'],
-    success: (res) => {
+    success: async (res) => {
       if (res.tempFilePaths && res.tempFilePaths.length > 0) {
-        form.avatar = res.tempFilePaths[0]
+        uni.showLoading({ title: '上传头像...' })
+        try {
+          const up = await profileApi.uploadAvatar(res.tempFilePaths[0])
+          form.avatar = up.avatar
+          uni.hideLoading()
+          uni.showToast({ title: '头像已上传', icon: 'success' })
+        } catch (err: any) {
+          uni.hideLoading()
+          uni.showToast({ title: err?.message || '头像上传失败', icon: 'none' })
+        }
       }
-    }
+    },
   })
 }
 

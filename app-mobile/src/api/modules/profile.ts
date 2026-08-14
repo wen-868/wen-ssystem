@@ -29,8 +29,38 @@ export const profileApi = {
     return post('/admin/auth/change-password', { oldPassword, newPassword })
   },
 
-  async uploadAvatar(file: File): Promise<{ avatar: string }> {
-    // 后端暂无头像上传接口：明确报错，不返回模拟数据（避免假数据混入）
-    throw new Error('头像上传功能暂未开放，敬请期待')
+  async uploadAvatar(filePath: string): Promise<{ avatar: string }> {
+    // 真实上传：POST /api/admin/auth/avatar（multer 单文件 avatar，返回完整头像 URL）
+    const base = (() => {
+      // #ifdef H5
+      return import.meta.env.VITE_API_BASE || '/api'
+      // #endif
+      // #ifndef H5
+      return 'https://api.onepan.cn/api'
+      // #endif
+    })()
+    return new Promise((resolve, reject) => {
+      const token = uni.getStorageSync('merchant_token') || ''
+      const csrf = uni.getStorageSync('merchant_csrf_token') || ''
+      const header: Record<string, string> = {}
+      if (token) header.Authorization = `Bearer ${token}`
+      if (csrf) header['x-csrf-token'] = csrf
+      uni.uploadFile({
+        url: `${base}/admin/auth/avatar`,
+        filePath,
+        name: 'avatar',
+        header,
+        success: (res) => {
+          try {
+            const data = JSON.parse(res.data)
+            if (res.statusCode === 200 && data.data) resolve(data.data)
+            else reject(new Error(data.msg || `上传失败(${res.statusCode})`))
+          } catch {
+            reject(new Error('上传响应异常'))
+          }
+        },
+        fail: (err) => reject(new Error(err.errMsg || '上传失败')),
+      })
+    })
   }
 }

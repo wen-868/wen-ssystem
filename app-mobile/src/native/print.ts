@@ -16,7 +16,7 @@
  *     - 商品明细（名称、数量、单价、小计）
  *     - 合计、优惠、应付、支付方式、实付
  *     - 会员积分、二维码、切刀指令（走纸）
- *  4. 打印成功/失败均调用后端 POST /api/admin/print/records 保存打印记录（R51-03 阿坚开发中）
+ *  4. 打印成功/失败均调用后端 POST /api/admin/print/records 保存打印记录（R51-03 已实现）
  *     - 对外暴露 savePrintRecord(record): Promise<void> 接口
  *  5. 错误处理（对齐任务"修复方向 #4"）：蓝牙未开启 / 设备未找到 / 连接失败 / 打印超时 / 缺纸
  *
@@ -140,7 +140,7 @@ export type PrintRecordStatus = 'SUCCESS' | 'FAILED' | 'PENDING'
  * 打印记录保存入参（对齐后端 POST /api/admin/print/records 入参）
  *
  * 用于 savePrintRecord(record): Promise<void> 接口。
- * API 路径和参数以 R51-03 任务定义为标准（阿坚开发中，本接口先定义占位，API ready 后对接）。
+ * API 路径和参数对齐后端 POST /api/admin/print/records（R51-03 已实现）。
  */
 export interface PrintRecordData {
     /** 单据类型 */
@@ -642,8 +642,7 @@ export async function savePrintRecord(record: PrintRecordData): Promise<void> {
     try {
         await post<unknown>(PRINT_RECORD_API, record)
     } catch {
-        // 打印记录保存失败不影响主流程，静默处理
-        // 后端 API 未就绪时（R51-03 开发中）会走这里，等 API ready 后自动对接
+        // 打印记录保存失败不影响主流程，静默处理（仅审计留痕丢失）
     }
 }
 
