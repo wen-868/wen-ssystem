@@ -36,7 +36,7 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
 
 ### 批次进度（2026-08-16 更新）
 - ✅ **Batch 1 已完成并验收通过**：trace-config（10 例）/ approval-records（18 例）/ quote-push（13 例）= 41 例，覆盖率 66.17%（Codex 已确认，验收总览报告第 33 项）。
-- ⏳ **Batch 2 待执行**：custom-report.service、trace-records.service、marketing-flash-sale/group-buy/stack-rule/limited-discount/points-mall/asset.service（trace-config/quote-push 已被 Batch 1 覆盖，跳过）。
+- ✅ **Batch 2 已完成并验收通过**：custom-report（27 例，stmts 97.51%）/ trace-records（34 例，stmts 88.83%）= 61 例，全量 529 文件 / 5610 用例，覆盖率 statements 67.41%（高于上批 66.17%），门槛全过（Codex 已确认，验收总览报告第 34/35 项）。注：marketing-flash-sale/group-buy/stack-rule/limited-discount/points-mall/asset 六服务测试此前已在仓库内（已提交），本次 Batch 2 实质新增为 custom-report 与 trace-records 两服务 0%→高覆盖；全量回归确认这六服务测试仍全部通过。
 - ⏳ **Batch 3 / Batch 4 待执行**。
 
 ### P1：生产证据类（需服务器，脚本已就绪）
