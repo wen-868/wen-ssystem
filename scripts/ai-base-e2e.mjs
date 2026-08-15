@@ -15,6 +15,7 @@
  *   8. 审计日志（admin 鉴权后可查）
  *   9. WebSocket 推送通道（/api/ai/ws 端点已挂载）
  *  10. 用量统计接口（/api/admin/usage/tenants 返回 200）
+ *  11. 外部模型接口（/api/admin/ai-config/external-models 非 404：无 token 时 401，有 token 时 200）
  *
  * 输出：docs/reports/ai-base-e2e-{时间戳}.md
  */
@@ -159,6 +160,16 @@ async function run() {
     "用量统计接口",
     usage.status === 200,
     `HTTP ${usage.status} 租户数=${usageList.length}（t_ai_usage_daily 汇总）`
+  );
+
+  // 11. 外部大模型接口（多模型接入可达性：无 token 应 401，非 404 即端点已挂载）
+  const ext = await req(AI_BASE, "/api/admin/ai-config/external-models", {
+    headers: auth,
+  });
+  record(
+    "外部大模型接口",
+    ext.status !== 404 && ext.status !== 0,
+    `HTTP ${ext.status}${token ? ` 模型数=${Array.isArray(ext.data) ? ext.data.length : "?"}` : "（未登录，401 预期）"}`
   );
 
   const passed = results.filter((r) => r.pass).length;
