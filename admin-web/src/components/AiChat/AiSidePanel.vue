@@ -7,8 +7,20 @@
         <span v-show="!collapsed">经营助手</span>
       </div>
       <div v-show="!collapsed" class="ai-header-status">
-        <span class="status-dot"></span>
-        <span>本地模型</span>
+        <el-select
+          v-if="models.length > 0"
+          v-model="selectedModel"
+          size="small"
+          style="width: 150px;"
+        >
+          <el-option
+            v-for="m in models"
+            :key="m.value"
+            :label="m.label"
+            :value="m.value"
+          />
+        </el-select>
+        <span v-else class="status-dot"></span>
       </div>
       <el-button
         class="ai-collapse-btn"
@@ -79,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { MagicStick, Promotion } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
@@ -87,8 +99,10 @@ import { createMessageId, type AiChatMessage } from "./types";
 import {
   cancelAiOperation,
   confirmAiOperation,
+  fetchAiModels,
   revokeAiOperation,
   sendChatMessage,
+  type AiModelOption,
 } from "../../api/ai";
 
 const input = ref("");
@@ -99,6 +113,8 @@ const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
 /** 折叠状态：列表页可收起 AI 面板，给数据区腾空间 */
 const collapsed = ref(false);
+const models = ref<AiModelOption[]>([]);
+const selectedModel = ref("");
 
 const suggestions = [
   "创建销售单：给红星商行送10箱五粮液",
@@ -198,6 +214,7 @@ async function sendMessage(): Promise<void> {
         },
       },
       abortController.value.signal,
+      selectedModel.value || undefined,
     );
   } catch (err) {
     streaming.value = false;
@@ -272,6 +289,18 @@ watch(messages, () => scrollToBottom(), { deep: true });
 
 onBeforeUnmount(() => {
   abortCurrent();
+});
+
+onMounted(() => {
+  // 加载可用模型（内置 + 外部模型），默认选中租户/平台默认
+  fetchAiModels()
+    .then((data) => {
+      models.value = data.models;
+      selectedModel.value = data.default;
+    })
+    .catch(() => {
+      // 模型列表加载失败不阻塞对话，静默降级
+    });
 });
 </script>
 

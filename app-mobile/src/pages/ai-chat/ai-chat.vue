@@ -9,6 +9,18 @@
         <text class="ai-top-title">AI 助手</text>
         <text class="ai-top-sub">有什么可以帮你的？</text>
       </view>
+      <picker
+        v-if="models.length > 0"
+        mode="selector"
+        :range="modelLabels"
+        :value="modelIndex"
+        @change="onModelChange"
+      >
+        <view class="ai-model-picker">
+          <text class="ai-model-picker-text">{{ selectedModelLabel }}</text>
+          <text class="ai-model-picker-arrow">▾</text>
+        </view>
+      </picker>
     </view>
 
     <!-- 消息列表 -->
@@ -167,6 +179,7 @@ import { ref, computed, onUnmounted } from 'vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   aiApi,
+  type AiModelOption,
   type AiToolPreview,
   type AiChatToolResultEvent
 } from '@/api/modules/ai'
@@ -195,8 +208,45 @@ const messages = ref<ChatMessage[]>([])
 const inputText = ref('')
 const sending = ref(false)
 const conversationId = ref('')
+const models = ref<AiModelOption[]>([])
+const selectedModel = ref('')
 let messageSeq = 0
 let abortController: AbortController | null = null
+
+// 加载可用模型（内置 + 外部模型），默认选中租户/平台默认
+aiApi
+  .fetchModels()
+  .then((data) => {
+    models.value = data.models
+    selectedModel.value = data.default
+  })
+  .catch(() => {
+    // 模型列表加载失败不阻塞对话，静默降级
+  })
+
+/** 模型选择器标签列表（picker 用） */
+const modelLabels = computed(() => models.value.map((m) => m.label))
+
+/** 当前选中模型索引 */
+const modelIndex = computed(() =>
+  Math.max(
+    0,
+    models.value.findIndex((m) => m.value === selectedModel.value)
+  )
+)
+
+/** 当前选中模型展示名 */
+const selectedModelLabel = computed(
+  () => models.value.find((m) => m.value === selectedModel.value)?.label ?? '默认模型'
+)
+
+/** 模型切换 */
+function onModelChange(e: { detail: { value: number } }) {
+  const index = e.detail.value
+  if (models.value[index]) {
+    selectedModel.value = models.value[index].value
+  }
+}
 
 /** 欢迎页快捷示例 */
 const welcomeTips = [
@@ -249,8 +299,8 @@ async function sendMessage() {
   abortController = new AbortController()
 
   const params = conversationId.value
-    ? { message: text, conversationId: conversationId.value }
-    : { message: text }
+    ? { message: text, conversationId: conversationId.value, ...(selectedModel.value ? { model: selectedModel.value } : {}) }
+    : { message: text, ...(selectedModel.value ? { model: selectedModel.value } : {}) }
 
   try {
     await aiApi.streamChat(
@@ -688,6 +738,30 @@ onUnmounted(() => {
   font-size: 22rpx;
   color: $uni-gray-400;
   margin-top: 4rpx;
+}
+
+.ai-model-picker {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  max-width: 240rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.05);
+  margin-left: auto;
+}
+
+.ai-model-picker-text {
+  font-size: 22rpx;
+  color: $uni-gray-700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-model-picker-arrow {
+  font-size: 20rpx;
+  color: $uni-gray-500;
 }
 
 /* ====================== 快捷指令 ====================== */

@@ -107,6 +107,8 @@ export type AiChatEvent =
 export interface AiChatParams {
   message: string
   conversationId?: string
+  /** 对话级模型标识（可选；内置/外部模型名，覆盖租户默认） */
+  model?: string
 }
 
 /** SSE 事件回调集合 */
@@ -245,7 +247,8 @@ function streamChatLegacy(params: AiChatParams, handlers: AiChatHandlers): Promi
       method: 'POST',
       data: {
         message: params.message,
-        ...(params.conversationId ? { conversationId: params.conversationId } : {})
+        ...(params.conversationId ? { conversationId: params.conversationId } : {}),
+        ...(params.model ? { model: params.model } : {})
       },
       header: buildHeaders(),
       success: (res) => {
@@ -295,6 +298,45 @@ export function streamChat(
     return streamChatLegacy(params, handlers)
     // #endif
   })()
+}
+
+// ====================== 模型列表（对话级模型切换） ======================
+
+/** 可用模型选项 */
+export interface AiModelOption {
+  value: string
+  label: string
+  type: 'builtin' | 'external'
+}
+
+/** 模型列表响应 */
+export interface AiModelsResponse {
+  default: string
+  models: AiModelOption[]
+}
+
+/**
+ * 获取当前租户可用模型列表（内置 + 启用外部模型）与默认模型
+ * 平台自适应：H5 用 fetch，其他端用 uni.request
+ */
+export function fetchAiModels(): Promise<AiModelsResponse> {
+  return new Promise((resolve, reject) => {
+    // #ifdef H5
+    fetch(`${AI_BASE_URL}/api/chat/models`, { headers: buildHeaders() })
+      .then((r) => r.json() as Promise<AiModelsResponse>)
+      .then(resolve)
+      .catch(reject)
+    // #endif
+    // #ifndef H5
+    uni.request({
+      url: `${AI_BASE_URL}/api/chat/models`,
+      method: 'GET',
+      header: buildHeaders(),
+      success: (res) => resolve(res.data as AiModelsResponse),
+      fail: reject
+    })
+    // #endif
+  })
 }
 
 // ====================== 写操作确认 / 取消 ======================
@@ -352,6 +394,7 @@ export function cancelAiOperation(confirmationId: string): Promise<AiConfirmResu
 /** AI 助手 API 集合 */
 export const aiApi = {
   streamChat,
+  fetchModels: fetchAiModels,
   confirm: confirmAiOperation,
   cancel: cancelAiOperation
 }
