@@ -85,6 +85,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 12. ✅ 生产 502 根因修复：服务器 AI 底座循环崩溃（↺ 234 次）——根因是模块循环依赖（ExternalModelService import ai-config-admin.service 的 maskApiKey，形成 ai-config → external-model → ai-config-admin → ai-config 循环，导致 Nest 启动 UndefinedDependencyException）；修复：maskApiKey 提取到独立 api-key-mask.ts 切断循环；本地验证应用启动不再崩溃（DI 通过）；ai-base 全量 50 套件 / 583 用例通过，lint 0 errors
 13. ✅ 生产恢复验证（2026-08-15）：服务器重新部署后——健康检查 ok（database/redis 连通）、外部模型接口 200、模型列表接口 200（glm/deepseek/ollama + 外部）、WS 实时推送公网握手通过（无 token 返回 4401 认证拒绝）；期间修复：①迁移 154 SQL 文件头注释导致建表被自动迁移丢弃（注释移到文件末尾，对齐 139/140/141 修复）；②生效 nginx 配置（sites-enabled/zhixiang.conf）缺 WebSocket 三要素（proxy_http_version 1.1/Upgrade/Connection），补齐后通道通；③部署脚本改为从 sites-enabled 解析实际生效文件 + 对所有 /ai-api/ 块补齐；剩余配置项：EMBEDDING_MODEL（RAG 预置知识）、DEEPSEEK_API_KEY（LLM 端到端验收）
 14. ✅ 管理系统 AI 底座完善 P0–P3 完成（2026-08-15，详见 docs/ai-base/管理系统AI底座完善计划.md）：P0 全量基础（graph 模式+Checkpointer 断点续跑、多 Agent 协作白名单、人工确认闸对接审核、工具风险分级、C9 自适应路由、C10 证据验证、总台注册表→工具生成「功能即技能」）；P1 长期记忆 LT（档案/情节/归档三表+检索注入）；P2 自主学习 LN（反馈吸收+经验回流+提示+采纳评估）；P3 自主进化 SE 门控（proposed→review→gray→rolled_out/回滚，prompt/newtool 自动应用，快照回滚）；新增迁移 157–160（文件头无注释规范）；ai-base 全量 60 套件 640 用例通过，lint 0 errors；剩余为运营复制（管理系统稳定后）
+15. ✅ 管理系统生产全接口验证（2026-08-16）：公网 11/11 接口 200——health / tools / providers / proactive jobs / usage / external-models / chat/models / ltm（长期记忆）/ learning（自主学习）/ evolution（进化门控）/ api-catalog（功能即技能）；修复 ToolsModule 未导出 ToolGeneratorService 导致 P0-8+ 启动崩溃的 502；新增 scripts/check-ai-base-start.mjs 容器装配回归门禁（本地启动检查 DI）；saas-admin 认知层管理页（记忆/学习/进化门控操作）就绪
 
 ## 七、结论
 
