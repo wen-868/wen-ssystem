@@ -146,31 +146,45 @@ fi
 # 幂等：已存在 /ai-api/ 则跳过；修改前备份；nginx -t 校验失败自动回滚，绝不破坏现有配置
 echo "==> [AI底座] 检查 nginx /ai-api/ 反代配置"
 NGINX_SITE=""
-for f in /etc/nginx/sites-available/*; do
-  if [ -f "${f}" ] && grep -q "server_name.*admin.onepan.cn" "${f}" 2>/dev/null; then
-    NGINX_SITE="${f}"
+# 优先从 sites-enabled 解析实际生效文件（readlink -f 指向 sites-available 真实文件）
+for f in /etc/nginx/sites-enabled/*; do
+  REAL_FILE="$(readlink -f "${f}" 2>/dev/null || echo "${f}")"
+  if [ -f "${REAL_FILE}" ] && grep -q "server_name.*admin.onepan.cn" "${REAL_FILE}" 2>/dev/null; then
+    NGINX_SITE="${REAL_FILE}"
     break
   fi
 done
+if [ -z "${NGINX_SITE}" ]; then
+  # 兜底：回退到 sites-available 全量扫描
+  for f in /etc/nginx/sites-available/*; do
+    if [ -f "${f}" ] && grep -q "server_name.*admin.onepan.cn" "${f}" 2>/dev/null; then
+      NGINX_SITE="${f}"
+      break
+    fi
+  done
+fi
 
 if [ -z "${NGINX_SITE}" ]; then
   echo "==> [AI底座] 未找到 admin.onepan.cn 的 nginx 配置文件（跳过；请手动配置 /ai-api/ 反代，模板见 deploy/nginx-production.conf）"
 elif grep -q "location /ai-api/" "${NGINX_SITE}"; then
+  AI_BLOCKS=$(grep -c "location /ai-api/" "${NGINX_SITE}")
   HAS_HTTP11=$(grep -c "proxy_http_version 1.1" "${NGINX_SITE}")
   HAS_UPGRADE=$(grep -c "proxy_set_header Upgrade" "${NGINX_SITE}")
   HAS_CONN=$(grep -c 'proxy_set_header Connection "upgrade"' "${NGINX_SITE}")
-  if [ "${HAS_HTTP11}" -gt 0 ] && [ "${HAS_UPGRADE}" -gt 0 ] && [ "${HAS_CONN}" -gt 0 ]; then
+  # 每个 /ai-api/ 块都须含三要素才算完整
+  if [ "${HAS_HTTP11}" -ge "${AI_BLOCKS}" ] && [ "${HAS_UPGRADE}" -ge "${AI_BLOCKS}" ] && [ "${HAS_CONN}" -ge "${AI_BLOCKS}" ]; then
     echo "==> [AI底座] /ai-api/ 反代已完整（proxy_http_version 1.1 + Upgrade + Connection），跳过"
   else
     cp "${NGINX_SITE}" "${NGINX_SITE}.bak-ai-api"
     awk '
+      # 对所有 /ai-api/ 块补齐 WebSocket 三要素（幂等：块内已有则跳过）
       /location \/ai-api\/ \{/ { in_ai=1 }
       in_ai && /^\s*\}/ {
         # 块结束前检查三项是否齐全，缺失则补齐（幂等）
         if (!seen_http11) print "        proxy_http_version 1.1;"
         if (!seen_upgrade) print "        proxy_set_header Upgrade $http_upgrade;"
         if (!seen_conn) print "        proxy_set_header Connection \"upgrade\";"
-        in_ai=0
+        in_ai=0; seen_http11=0; seen_upgrade=0; seen_conn=0
       }
       in_ai && /proxy_http_version 1.1/ { seen_http11=1 }
       in_ai && /proxy_set_header Upgrade/ { seen_upgrade=1 }
