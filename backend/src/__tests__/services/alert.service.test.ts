@@ -84,6 +84,37 @@ describe("alert.service - runAllAlertChecks", () => {
     expect(res.overstock).toBe(1);
   });
 
+  it("覆盖各 check 的 CRITICAL 等级判定与 creditLimit<=0 跳过分支", async () => {
+    mocks.queryOneWithTenant.mockImplementation(async (sql: string) => {
+      if (sql.includes("rule_code = 'STOCK_LOW'")) return { id: 1, rule_type: "STOCK_LOW", threshold_value: 10, enabled: 1 };
+      if (sql.includes("rule_code = 'CREDIT_LIMIT'")) return { id: 2, rule_type: "CREDIT", threshold_value: 80, enabled: 1 };
+      if (sql.includes("rule_code = 'PAYMENT_OVERDUE'")) return { id: 3, rule_type: "OVERDUE", threshold_value: 0, enabled: 1 };
+      if (sql.includes("rule_code = 'STOCK_OVERSTOCK'")) return { id: 4, rule_type: "STOCK_OVERSTOCK", threshold_value: 30, enabled: 1 };
+      return null;
+    });
+    mocks.queryWithTenant.mockImplementation(async (sql: string) => {
+      if (sql.includes("rule_type = 'EXPIRY'") && sql.includes("t_alert_rule")) return [{ id: 5, rule_type: "EXPIRY", threshold_value: 7, enabled: 1 }];
+      // safetyStock=0 -> max(safetyStock*0.3, 1) = 1 -> availableQty<=1 -> CRITICAL
+      if (sql.includes("t_inventory_balance ib")) return [{ storeId: 1, skuId: 101, skuName: "A", availableQty: 1, safetyStock: 0 }];
+      // remainingDays=10 >= 7 -> CRITICAL
+      if (sql.includes("remainingDays")) return [{ skuId: 102, skuName: "B", batchNo: "BN", expiryDate: "2026-09-01", qty: 5, remainingDays: 10 }];
+      if (sql.includes("ageDays")) return [{ skuId: 103, skuName: "C", batchNo: "BN", qty: 8, inStockDate: "2026-01-01", ageDays: 60 }];
+      // first record totalDebt=0 -> creditLimit<=0 -> 跳过；second 触发 CRITICAL
+      if (sql.includes("totalDebt")) return [
+        { customerId: 201, customerName: "X", totalDebt: 0 },
+        { customerId: 202, customerName: "Y", totalDebt: 2000 },
+      ];
+      // overdueDays=30 >= 30 -> CRITICAL
+      if (sql.includes("overdueDays")) return [{ billNo: "B1", customerId: 301, customerName: "Z", receivableAmount: 500, receivedAmount: 0, unreceivedAmount: 500, dueDate: "2026-01-01", overdueDays: 30 }];
+      return [];
+    });
+
+    const res = await runAllAlertChecks("t1");
+    expect(res.total).toBeGreaterThan(0);
+    expect(res.credit).toBe(1); // 仅第二条 credit 记录生成预警
+    expect(res.overdue).toBe(1);
+  });
+
   it("无租户参数时遍历所有活跃租户（覆盖 getAllActiveTenants）", async () => {
     mocks.query.mockResolvedValue([{ tenant_id: "t1" }, { tenant_id: "t2" }]);
     mocks.queryOneWithTenant.mockResolvedValue(null);
@@ -242,10 +273,21 @@ describe("alert.service - runCheck", () => {
 });
 
 describe("alert.service - startAlertScheduler", () => {
-  it("启动定时检查不抛异常", () => {
+  it("定时回调执行检查并覆盖回调内分支", () => {
     vi.useFakeTimers();
-    mocks.query.mockResolvedValue([]);
+    mocks.query.mockResolvedValue([{ tenant_id: "t1" }]);
+    mocks.queryOneWithTenant.mockImplementation(async (sql: string) => {
+      if (sql.includes("rule_code = 'STOCK_LOW'")) return { id: 1, rule_type: "STOCK_LOW", threshold_value: 10, enabled: 1 };
+      return null;
+    });
+    mocks.queryWithTenant.mockResolvedValue([]);
+    mocks.transaction.mockImplementation(async (cb: (c: typeof mockConn) => Promise<unknown>) => cb(mockConn));
+
     expect(() => startAlertScheduler()).not.toThrow();
+    // 触发首轮 setTimeout(30s) 与 setInterval(1h) 回调
+    vi.advanceTimersByTime(31 * 1000);
+    vi.advanceTimersByTime(61 * 60 * 1000);
     vi.useRealTimers();
+    expect(mocks.query).toHaveBeenCalled();
   });
 });

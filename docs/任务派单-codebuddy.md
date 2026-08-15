@@ -37,7 +37,7 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
 ### 批次进度（2026-08-16 更新）
 - ✅ **Batch 1 已完成并验收通过**：trace-config（10 例）/ approval-records（18 例）/ quote-push（13 例）= 41 例，覆盖率 66.17%（Codex 已确认，验收总览报告第 33 项）。
 - ✅ **Batch 2 已完成并验收通过**：custom-report（27 例，stmts 97.51%）/ trace-records（34 例，stmts 88.83%）= 61 例，全量 529 文件 / 5610 用例，覆盖率 statements 67.41%（高于上批 66.17%），门槛全过（Codex 已确认，验收总览报告第 34/35 项）。注：marketing-flash-sale/group-buy/stack-rule/limited-discount/points-mall/asset 六服务测试此前已在仓库内（已提交），本次 Batch 2 实质新增为 custom-report 与 trace-records 两服务 0%→高覆盖；全量回归确认这六服务测试仍全部通过。
-- ⏳ **Batch 3 / Batch 4 待执行**。
+- ✅ **Batch 3 已由 CodeBuddy 交付（待 Codex 验收）**：notification/alert/inventory-loss-order/profit-loss-stats 四服务测试全绿。本次实质补全 alert.service 测试（分支覆盖率由 67.64% 提升至 71.56%，19 例），另三服务测试此前已提交在仓库内、回归仍全通过。全量 531 文件 / 5648 用例通过，覆盖率 statements 68.33%（高于 Batch 2 的 67.41%），门槛全过（lint 0 / build 通过）。待 Codex 按同一门槛验收并更新总览报告。⏳ **Batch 4 待执行**。
 
 ### P1：生产证据类（需服务器，脚本已就绪）
 
