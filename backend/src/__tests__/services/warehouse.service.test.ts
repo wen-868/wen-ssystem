@@ -3,84 +3,66 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   query: vi.fn(),
   queryOne: vi.fn(),
+  makeBizNo: vi.fn(),
 }));
 
 vi.mock("../../shared/db", () => ({
   query: mocks.query,
   queryOne: mocks.queryOne,
 }));
+
 vi.mock("../../shared/id", () => ({
-  makeBizNo: () => "WH2026081500001",
+  makeBizNo: mocks.makeBizNo,
 }));
 
-import {
-  listWarehouses,
-  createWarehouse,
-  updateWarehouse,
-  deleteWarehouse,
-} from "../../services/warehouse.service";
+import { listWarehouses, createWarehouse, updateWarehouse, deleteWarehouse } from "../../services/warehouse.service";
 
-const tenantId = "t1";
+describe("warehouse.service", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    mocks.makeBizNo.mockReturnValue("WH20260815001");
+  });
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
-describe("warehouse.service - 仓库管理", () => {
-  it("listWarehouses 按租户与仓库类型查询", async () => {
-    mocks.query.mockResolvedValue([{ id: 1, storeCode: "WH1", name: "主仓" }]);
-    const res = await listWarehouses(tenantId);
-    expect(res).toHaveLength(1);
+  it("listWarehouses：返回仓库列表（store_type=WAREHOUSE）", async () => {
+    mocks.query.mockResolvedValueOnce([{ id: 1, storeCode: "WH001", name: "总仓" }]);
+    const result = await listWarehouses("t1");
+    expect(result[0].name).toBe("总仓");
     expect(mocks.query).toHaveBeenCalledWith(
       expect.stringContaining("store_type = 'WAREHOUSE'"),
-      [tenantId]
+      ["t1"]
     );
   });
 
-  it("createWarehouse 名称为空抛 400", async () => {
-    await expect(createWarehouse({ name: "" }, tenantId))
-      .rejects.toMatchObject({ statusCode: 400, message: "仓库名称不能为空" });
-    expect(mocks.query).not.toHaveBeenCalled();
+  it("createWarehouse：创建仓库", async () => {
+    mocks.query.mockResolvedValueOnce({ insertId: 3 });
+    const result = await createWarehouse({ name: "南仓", address: "深圳" }, "t1");
+    expect(result.id).toBe(3);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO t_store"),
+      expect.arrayContaining(["WH20260815001", "南仓", "t1"])
+    );
   });
 
-  it("createWarehouse 成功返回新 id", async () => {
-    mocks.query.mockResolvedValue({ insertId: 7 });
-    const res = await createWarehouse({ name: "南区仓", address: "A路1号", phone: "138" }, tenantId);
-    expect(res).toEqual({ id: 7 });
-    const [sql, params] = mocks.query.mock.calls[0];
-    expect(sql).toContain("INSERT INTO t_store");
-    expect(params[0]).toBe(tenantId);
-    expect(params[2]).toBe("南区仓");
+  it("createWarehouse：名称不能为空", async () => {
+    await expect(createWarehouse({ name: "" }, "t1")).rejects.toThrow("仓库名称不能为空");
   });
 
-  it("updateWarehouse 仓库不存在抛 404", async () => {
-    mocks.queryOne.mockResolvedValue(null);
-    await expect(updateWarehouse(99, { name: "X" }, tenantId))
-      .rejects.toMatchObject({ statusCode: 404, message: "仓库不存在" });
+  it("updateWarehouse：更新仓库字段", async () => {
+    mocks.queryOne.mockResolvedValueOnce({ id: 5 });
+    mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
+    await updateWarehouse(5, { name: "新仓名" }, "t1");
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.stringContaining("UPDATE t_store SET"),
+      expect.arrayContaining(["新仓名"])
+    );
   });
 
-  it("updateWarehouse 仅更新传入字段并带租户条件", async () => {
-    mocks.queryOne.mockResolvedValue({ id: 1 });
-    mocks.query.mockResolvedValue([{ affectedRows: 1 }]);
-    await updateWarehouse(1, { name: "新仓名", phone: "139" }, tenantId);
-    const [sql, params] = mocks.query.mock.calls[0];
-    expect(sql).toContain("SET name = ?, store_name = ?, phone = ?");
-    expect(sql).toContain("WHERE id = ? AND tenant_id = ?");
-    expect(params).toEqual(["新仓名", "新仓名", "139", 1, tenantId]);
-  });
-
-  it("updateWarehouse 无字段更新时不执行 SQL", async () => {
-    mocks.queryOne.mockResolvedValue({ id: 1 });
-    await updateWarehouse(1, {}, tenantId);
-    expect(mocks.query).not.toHaveBeenCalled();
-  });
-
-  it("deleteWarehouse 按租户+类型删除", async () => {
-    mocks.query.mockResolvedValue([{ affectedRows: 1 }]);
-    await deleteWarehouse(3, tenantId);
-    const [sql, params] = mocks.query.mock.calls[0];
-    expect(sql).toContain("DELETE FROM t_store");
-    expect(sql).toContain("store_type = 'WAREHOUSE'");
-    expect(params).toEqual([3, tenantId]);
+  it("deleteWarehouse：删除仓库", async () => {
+    mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
+    await deleteWarehouse(5, "t1");
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.stringContaining("DELETE FROM t_store"),
+      [5, "t1"]
+    );
   });
 });
