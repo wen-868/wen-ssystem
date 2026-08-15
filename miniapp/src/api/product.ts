@@ -51,12 +51,44 @@ export interface AddCartResponse {
   totalCount: number
 }
 
-export const getProductDetail = (id: number): Promise<ProductDetail> => {
-  return get(`/customer/products/${id}`)
+export const getProductDetail = async (id: number): Promise<ProductDetail> => {
+  // 后端 miniapp 路由：GET /api/miniapp/products/:id（返回 spuId/mainImage/imageUrls/skus[skuId/skuName/price/availableQty]）
+  const res: any = await get(`/miniapp/products/${id}`)
+  const raw = res?.result ?? res ?? {}
+  const skus: ProductSku[] = (raw.skus || []).map((s: any) => ({
+    id: s.skuId,
+    name: s.skuName || s.skuCode || '',
+    skuCode: s.skuCode || '',
+    price: Number(s.price ?? s.miniappPrice ?? s.retailPrice ?? 0),
+    originalPrice: Number(s.retailPrice ?? s.price ?? 0),
+    stock: Number(s.availableQty ?? 0),
+    image: s.image,
+    specs: s.specs || {},
+  }))
+  const images = Array.isArray(raw.imageUrls) ? raw.imageUrls : raw.mainImage ? [raw.mainImage] : []
+  return {
+    id: raw.spuId ?? id,
+    name: raw.name ?? '',
+    subtitle: raw.description,
+    price: skus[0]?.price ?? 0,
+    originalPrice: skus[0]?.originalPrice ?? skus[0]?.price ?? 0,
+    sales: 0,
+    stock: skus.reduce((sum, s) => sum + s.stock, 0),
+    images,
+    detailImages: images,
+    specs: raw.specs || [],
+    skus,
+    params: [],
+    description: raw.description,
+    categoryId: raw.categoryId,
+    categoryName: raw.categoryName,
+    brand: raw.brandName,
+  }
 }
 
 export const addToCart = (data: AddCartRequest): Promise<AddCartResponse> => {
-  return post('/customer/cart/add', data as unknown as Record<string, unknown>)
+  // 后端 miniapp 路由：POST /api/miniapp/cart/add
+  return post('/miniapp/cart/add', data as unknown as Record<string, unknown>)
 }
 
 export const getProductList = (params?: {
@@ -72,5 +104,6 @@ export const getProductList = (params?: {
   page: number
   pageSize: number
 }> => {
-  return get('/customer/products', params)
+  // 后端 miniapp 路由：GET /api/miniapp/products
+  return get('/miniapp/products', params)
 }
