@@ -133,11 +133,12 @@ async function run() {
 
   // 6. LLM 连接
   const conn = await req(AI_BASE, "/api/admin/test-connection");
-  const connOk = conn.data?.data?.success === true;
+  const connData = conn.data?.data ?? conn.data;
+  const connOk = connData?.success === true;
   record(
     "LLM 连接",
     conn.status === 200 && connOk,
-    `HTTP ${conn.status} success=${conn.data?.data?.success} msg=${String(conn.data?.data?.message || "").slice(0, 60)}`
+    `HTTP ${conn.status} success=${connData?.success} msg=${String(connData?.message || "").slice(0, 60)}`
   );
 
   // 7. 对话链路（chat 端点；无 Key 时返回明确配置缺失而非 500）
