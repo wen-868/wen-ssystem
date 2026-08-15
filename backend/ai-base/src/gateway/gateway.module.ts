@@ -23,6 +23,7 @@ import { ReviewController } from './review.controller';
 import { ApiCatalogController } from './api-catalog.controller';
 import { LearningController } from './learning.controller';
 import { EvolutionController } from './evolution.controller';
+import { LtmController } from './ltm.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -67,6 +68,7 @@ import { PushGatewayService } from './push-gateway.service';
     ApiCatalogController,
     LearningController,
     EvolutionController,
+    LtmController,
   ],
   providers: [PushGatewayService],
   exports: [PushGatewayService],

@@ -226,6 +226,12 @@ const router = createRouter({
           component: () => import('../views/ai-config/AiBillingConfig.vue'),
           meta: { title: 'AI配置 · 计费套餐' },
         },
+        {
+          path: 'ai-config/cognition',
+          name: 'AiCognitionView',
+          component: () => import('../views/ai-config/AiCognitionView.vue'),
+          meta: { title: 'AI配置 · 认知层（记忆/学习/进化）' },
+        },
       ],
     },
   ],

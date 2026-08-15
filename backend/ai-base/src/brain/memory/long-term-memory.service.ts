@@ -167,6 +167,20 @@ export class LongTermMemoryService {
     });
   }
 
+  /**
+   * 租户归档列表（倒序）
+   */
+  async listArchival(
+    tenantId: string,
+    limit = 20,
+  ): Promise<AiLtmArchivalEntity[]> {
+    return this.archivalRepo.find({
+      where: { tenantId },
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+  }
+
   // ── 归档 archival ────────────────────────────────────────────
 
   /**

@@ -318,3 +318,108 @@ export function testExternalModelById(id: number) {
     `/api/admin/ai-config/external-models/test/${id}`
   );
 }
+
+// ==================== AI 认知层管理（长期记忆/学习/进化） ====================
+
+/** 长期记忆总览 */
+export interface LtmOverview {
+  tenantId: string;
+  profiles: Array<{ k: string; v: unknown }>;
+  episodes: Array<{
+    id: number;
+    summary: string | null;
+    what: string | null;
+    outcome: string | null;
+    createdAt: string;
+  }>;
+  archivals: Array<{ id: number; title: string; source: string | null; createdAt: string }>;
+  counts: { profiles: number; episodes: number; archivals: number };
+}
+
+/** 学习回流记录 */
+export interface LearningLogItem {
+  id: number;
+  tenantId: string;
+  expId: number | null;
+  hintKey: string | null;
+  effect: string | null;
+  note: string | null;
+  appliedAt: string;
+}
+
+/** 学习提示 */
+export interface LearningHints {
+  toolSelect: Array<{ tool: string; note: string }>;
+  routing: Array<{ key: string; note: string }>;
+}
+
+/** 进化版本 */
+export interface EvolutionItem {
+  id: number;
+  tenantId: string;
+  target: string;
+  version: number;
+  status: string;
+  rationale: string | null;
+  reviewId: number | null;
+  grayPercent: number;
+  proposedBy: string | null;
+  createdAt: string;
+}
+
+/** 长期记忆总览 */
+export function getLtmOverview(tenantId = "default") {
+  return aiRequest.get<unknown, LtmOverview>("/api/admin/ltm", { params: { tenantId } });
+}
+
+/** 学习回流记录 */
+export function getLearningLogs(tenantId = "default", limit = 50) {
+  return aiRequest.get<unknown, LearningLogItem[]>("/api/admin/learning", {
+    params: { tenantId, limit },
+  });
+}
+
+/** 学习提示 */
+export function getLearningHints(tenantId = "default") {
+  return aiRequest.get<unknown, LearningHints>("/api/admin/learning/hints", {
+    params: { tenantId },
+  });
+}
+
+/** 进化版本列表 */
+export function getEvolutionList(tenantId = "default", status?: string) {
+  return aiRequest.get<unknown, EvolutionItem[]>("/api/admin/evolution", {
+    params: { tenantId, ...(status ? { status } : {}) },
+  });
+}
+
+/** 进化提案（prompt 文本或 newtool JSON） */
+export function proposeEvolution(payload: {
+  tenantId: string;
+  target: string;
+  proposed: string;
+  rationale?: string;
+  proposedBy?: string;
+}) {
+  return aiRequest.post<unknown, EvolutionItem>("/api/admin/evolution", payload);
+}
+
+/** 审核通过 → 灰度 */
+export function approveEvolution(id: number) {
+  return aiRequest.post<unknown, EvolutionItem>(`/api/admin/evolution/${id}/approve`, {});
+}
+
+/** 审核驳回 */
+export function rejectEvolution(id: number, reason: string) {
+  return aiRequest.post<unknown, EvolutionItem>(`/api/admin/evolution/${id}/reject`, { reason });
+}
+
+/** 灰度转正式生效 */
+export function rolloutEvolution(id: number) {
+  return aiRequest.post<unknown, EvolutionItem>(`/api/admin/evolution/${id}/rollout`, {});
+}
+
+/** 一键回滚 */
+export function rollbackEvolution(id: number) {
+  return aiRequest.post<unknown, EvolutionItem>(`/api/admin/evolution/${id}/rollback`, {});
+}
