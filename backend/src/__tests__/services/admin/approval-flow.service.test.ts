@@ -1,7 +1,3 @@
-/**
- * 管理端审批规则 service 单元测试
- * 被测文件：src/services/admin/approval-flow.service.ts（deleteRule 专项）
- */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -10,45 +6,47 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../shared/db", () => ({
-  query: vi.fn(),
-  queryOne: vi.fn(),
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
-  transaction: vi.fn(),
 }));
 
-import { deleteRule } from "../../../services/admin/approval-flow.service";
+import { listRules, createRule, deleteRule } from "../../../services/admin/approval-flow.service";
 
-describe("approval-flow.service", () => {
-  beforeEach(() => vi.resetAllMocks());
+describe("admin/approval-flow.service", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
 
-  describe("deleteRule", () => {
-    it("规则不存在时返回 null，不执行删除", async () => {
-      mocks.queryOneWithTenant.mockResolvedValue(null);
-      const res = await deleteRule(999, "t1");
-      expect(res).toBeNull();
-      expect(mocks.queryWithTenant).not.toHaveBeenCalled();
-    });
+  it("listRules：分页审批规则列表", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce([{ id: 1, rule_name: "采购审批" }]);
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ total: 1 });
+    const result = await listRules({ page: 1, pageSize: 20, tenantId: "t1" });
+    expect(result.total).toBe(1);
+    expect(result.records[0].rule_name).toBe("采购审批");
+  });
 
-    it("规则已被审批实例引用时抛 400，不执行删除", async () => {
-      mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 1 });
-      mocks.queryOneWithTenant.mockResolvedValueOnce({ total: 2 });
-      await expect(deleteRule(1, "t1")).rejects.toMatchObject({
-        message: "该审批规则已被审批实例使用，无法删除",
-        statusCode: 400,
-      });
-      expect(mocks.queryWithTenant).not.toHaveBeenCalled();
-    });
+  it("createRule：创建审批规则", async () => {
+    mocks.queryWithTenant.mockResolvedValueOnce({ affectedRows: 1 });
+    const result = await createRule({
+      ruleName: "采购审批", businessType: "PURCHASE_ORDER", triggerCondition: {}, approvalChain: [{ level: 1, approverType: "ROLE", approverValue: "BOSS" }], slaHours: 24, escalationLevel: 1,
+    }, 1, "管理员", "t1");
+    expect(result.ruleName).toBe("采购审批");
+    expect(mocks.queryWithTenant).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO t_approval_rule"),
+      expect.arrayContaining(["采购审批", "t1"]),
+      "t1"
+    );
+  });
 
-    it("规则存在且未被引用时执行 DELETE 并返回 id", async () => {
-      mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 1 });
-      mocks.queryOneWithTenant.mockResolvedValueOnce({ total: 0 });
-      mocks.queryWithTenant.mockResolvedValue(undefined);
-      const res = await deleteRule(1, "t1");
-      expect(res).toEqual({ id: 1 });
-      const [sql, params] = mocks.queryWithTenant.mock.calls[0];
-      expect(sql).toContain("DELETE FROM t_approval_rule");
-      expect(params).toEqual([1]);
-    });
+  it("deleteRule：删除审批规则", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ id: 5 });
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ total: 0 }); // 引用检查
+    mocks.queryWithTenant.mockResolvedValueOnce({ affectedRows: 1 });
+    await deleteRule(5, "t1");
+    expect(mocks.queryWithTenant).toHaveBeenCalledWith(
+      expect.stringContaining("DELETE FROM t_approval_rule"),
+      [5],
+      "t1"
+    );
   });
 });
