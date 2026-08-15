@@ -283,6 +283,51 @@ export const payNotify = async (req: any, res: any) => {
   }
 };
 
+// ========== 储值卡 ==========
+
+export const getStoredCardInfo = asyncHandler(async (req, res) => {
+  const { getMyStoredCard } = await import("../../services/miniapp/stored-card.service");
+  const memberId = getCustomerId(req);
+  const result = await getMyStoredCard(memberId, req.tenantId!);
+  res.json(ok(result ?? { cardNo: null, balance: 0, totalRecharge: 0, totalConsume: 0 }));
+});
+
+export const getStoredCardRecords = asyncHandler(async (req, res) => {
+  const { getMyStoredRecords } = await import("../../services/miniapp/stored-card.service");
+  const memberId = getCustomerId(req);
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const type = req.query.type as string | undefined;
+  const result = await getMyStoredRecords(memberId, req.tenantId!, page, pageSize, type);
+  res.json(ok(result));
+});
+
+export const getStoredRechargeOptions = asyncHandler(async (_req, res) => {
+  const { getRechargeOptions } = await import("../../services/miniapp/stored-card.service");
+  res.json(ok(await getRechargeOptions()));
+});
+
+export const rechargeStoredCard = asyncHandler(async (req, res) => {
+  const { createRecharge } = await import("../../services/miniapp/stored-card.service");
+  const body = z.object({
+    amount: z.number().positive().max(50000),
+    payMethod: z.enum(["WECHAT"]),
+  }).parse(req.body);
+  const memberId = getCustomerId(req);
+  const openid = await miniappService.getOrderPayerOpenidByCustomer(memberId, req.tenantId!);
+  if (!openid) {
+    res.status(400).json(fail("用户缺少微信 openid，无法发起微信支付"));
+    return;
+  }
+  const result = await createRecharge({
+    customerId: memberId,
+    tenantId: req.tenantId!,
+    amount: body.amount,
+    openid,
+  });
+  res.json(ok(result));
+});
+
 // ========== 用户模块 ==========
 
 export const getProfile = asyncHandler(async (req, res) => {

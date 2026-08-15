@@ -494,6 +494,15 @@ export async function getOrderPayerOpenid(orderNo: string, tenantId: string): Pr
   return row?.openid ?? null;
 }
 
+/** 按客户 ID 获取微信 openid（储值卡充值等） */
+export async function getOrderPayerOpenidByCustomer(customerId: number, tenantId: string): Promise<string | null> {
+  const row = await queryOne<{ openid: string | null }>(
+    `SELECT openid FROM t_member WHERE id = ? AND tenant_id = ?`,
+    [customerId, tenantId]
+  );
+  return row?.openid ?? null;
+}
+
 // ========== 对账单列表 ==========
 export async function getStatements(tenantId: string, anonymousMemberId: string, page: number, pageSize: number) {
   const offset = (page - 1) * pageSize;

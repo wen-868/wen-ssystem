@@ -34,6 +34,12 @@ miniappRouter.get("/orders/:id/pay-result", requireAuthWithTenant, ctrl.queryPay
 // 微信支付回调（无登录态，微信服务器直调）
 miniappRouter.post("/pay/notify", ctrl.payNotify);
 
+// ========== 储值卡 ==========
+miniappRouter.get("/stored-card", requireAuthWithTenant, ctrl.getStoredCardInfo);
+miniappRouter.get("/stored-card/records", requireAuthWithTenant, ctrl.getStoredCardRecords);
+miniappRouter.get("/stored-card/recharge-options", requireAuthWithTenant, ctrl.getStoredRechargeOptions);
+miniappRouter.post("/stored-card/recharge", requireAuthWithTenant, ctrl.rechargeStoredCard);
+
 // ========== 用户模块 ==========
 miniappRouter.get("/user/profile", requireAuthWithTenant, ctrl.getProfile);
 miniappRouter.put("/user/profile", requireAuthWithTenant, ctrl.updateProfile);

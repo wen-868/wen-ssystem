@@ -219,6 +219,12 @@ export async function handlePayNotify(params: {
   if (!outTradeNo || tradeState !== "SUCCESS") {
     return { code: "SUCCESS", message: "非成功交易，忽略" };
   }
+  // 储值卡充值单（CV 前缀）：更新卡余额与交易记录
+  if (outTradeNo.startsWith("CV")) {
+    const { completeRecharge } = await import("./miniapp/stored-card.service");
+    await completeRecharge(outTradeNo, matchedTenant);
+    return { code: "SUCCESS" };
+  }
   const { markOrderPaid } = await import("./miniapp.service");
   await markOrderPaid(outTradeNo, matchedTenant);
   return { code: "SUCCESS" };
