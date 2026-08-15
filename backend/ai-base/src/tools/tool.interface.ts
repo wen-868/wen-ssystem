@@ -106,6 +106,8 @@ export interface ToolResult {
     summary: string;
     /** 结构化明细（客户/商品/数量/单价/合计/价格来源/库存状态等），供前端渲染表格 */
     details: Record<string, unknown>;
+    /** 是否需人工审核（true 时前端预览卡标记审核中，P0-4 人工确认闸） */
+    reviewRequired?: boolean;
   };
 }
 

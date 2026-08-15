@@ -82,6 +82,11 @@ export const API_ENDPOINTS = {
   RECEIVABLES: '/api/admin/receivables',
   RECONCILIATION: '/api/admin/reconciliation',
   EXPENSES: '/api/admin/expenses',
+  // 营销管理（admin-marketing-*.routes.ts prefix: /api/admin/marketing）
+  MARKETING_COUPONS: '/api/admin/marketing/coupons/templates',
+  MARKETING_FLASH_SALES: '/api/admin/marketing/flash-sales',
+  // 客户信用（credit.routes.ts prefix: /api/admin/credits）
+  CREDITS: '/api/admin/credits',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）
   REPORTS: '/api/admin/reports',
   DASHBOARD: '/api/admin/dashboard',

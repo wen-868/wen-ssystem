@@ -38,6 +38,13 @@ import { CreatePaymentReconciliationTool } from './definitions/create-payment-re
 import { SalesReportTool } from './definitions/sales-report.tool';
 import { InventoryReportTool } from './definitions/inventory-report.tool';
 import { ProfitReportTool } from './definitions/profit-report.tool';
+// R70 完善度 P1: 营销/采购计划/信用 6 个精调写操作工具（清单第一批 P0）
+import { CreateCouponTemplateTool } from './definitions/create-coupon-template.tool';
+import { SetCouponStatusTool } from './definitions/set-coupon-status.tool';
+import { CreateFlashSaleTool } from './definitions/create-flash-sale.tool';
+import { CreatePurchasePlanTool } from './definitions/create-purchase-plan.tool';
+import { ConvertPurchasePlanTool } from './definitions/convert-purchase-plan.tool';
+import { AdjustCreditLimitTool } from './definitions/adjust-credit-limit.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -112,6 +119,13 @@ import { BridgeModule } from '../bridge/bridge.module';
     SalesReportTool,
     InventoryReportTool,
     ProfitReportTool,
+    // R70 完善度 P1: 营销/采购计划/信用 6 个精调写操作工具
+    CreateCouponTemplateTool,
+    SetCouponStatusTool,
+    CreateFlashSaleTool,
+    CreatePurchasePlanTool,
+    ConvertPurchasePlanTool,
+    AdjustCreditLimitTool,
   ],
   exports: [ToolRegistry, ToolExecutor, ToolGeneratorService],
 })

@@ -30,6 +30,13 @@ import { CreatePaymentReconciliationTool } from './definitions/create-payment-re
 import { SalesReportTool } from './definitions/sales-report.tool';
 import { InventoryReportTool } from './definitions/inventory-report.tool';
 import { ProfitReportTool } from './definitions/profit-report.tool';
+// R70 完善度 P1: 营销/采购计划/信用 6 个精调写操作工具（清单第一批 P0）
+import { CreateCouponTemplateTool } from './definitions/create-coupon-template.tool';
+import { SetCouponStatusTool } from './definitions/set-coupon-status.tool';
+import { CreateFlashSaleTool } from './definitions/create-flash-sale.tool';
+import { CreatePurchasePlanTool } from './definitions/create-purchase-plan.tool';
+import { ConvertPurchasePlanTool } from './definitions/convert-purchase-plan.tool';
+import { AdjustCreditLimitTool } from './definitions/adjust-credit-limit.tool';
 import { ToolGeneratorService } from './catalog/tool-generator.service';
 
 /**
@@ -102,6 +109,12 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly salesReportTool: SalesReportTool,
     private readonly inventoryReportTool: InventoryReportTool,
     private readonly profitReportTool: ProfitReportTool,
+    private readonly createCouponTemplateTool: CreateCouponTemplateTool,
+    private readonly setCouponStatusTool: SetCouponStatusTool,
+    private readonly createFlashSaleTool: CreateFlashSaleTool,
+    private readonly createPurchasePlanTool: CreatePurchasePlanTool,
+    private readonly convertPurchasePlanTool: ConvertPurchasePlanTool,
+    private readonly adjustCreditLimitTool: AdjustCreditLimitTool,
     private readonly toolGenerator: ToolGeneratorService,
   ) {}
 
@@ -143,6 +156,13 @@ export class ToolBootstrap implements OnModuleInit {
       this.salesReportTool,
       this.inventoryReportTool,
       this.profitReportTool,
+      // R70 完善度 P1: 营销/采购计划/信用 6 个精调写操作工具
+      this.createCouponTemplateTool,
+      this.setCouponStatusTool,
+      this.createFlashSaleTool,
+      this.createPurchasePlanTool,
+      this.convertPurchasePlanTool,
+      this.adjustCreditLimitTool,
     ]);
 
     // P0-8 功能即技能：开关开启时自动注册 API 目录工具（总台注册表 → AI 技能）
