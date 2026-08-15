@@ -10,6 +10,7 @@ import { TenantContext } from './tenant-context';
 import { CryptoService } from './crypto.service';
 import { TenantAiConfigEntity } from '../database/entities/tenant-ai-config.entity';
 import { PlatformAiConfigEntity } from '../database/entities/platform-ai-config.entity';
+import { ExternalModelService } from './external-model.service';
 
 const ENCRYPTION_KEY =
   '14804bc70a2fcff7125aca977139aa5a92e3bff867e5aa1c5ebf1c3219db7359';
@@ -36,17 +37,22 @@ describe('AiConfigService', () => {
   let platformRepo: jest.Mocked<Repository<PlatformAiConfigEntity>>;
   let tenantContext: TenantContext;
   let crypto: CryptoService;
+  let externalModelService: { getRuntimeConfig: jest.Mock };
 
   beforeEach(() => {
     tenantRepo = createMockRepo<TenantAiConfigEntity>();
     platformRepo = createMockRepo<PlatformAiConfigEntity>();
     tenantContext = new TenantContext();
     crypto = new CryptoService(createConfigService());
+    externalModelService = {
+      getRuntimeConfig: jest.fn().mockResolvedValue(null),
+    };
     service = new AiConfigService(
       tenantRepo,
       platformRepo,
       tenantContext,
       crypto,
+      externalModelService as unknown as ExternalModelService,
     );
   });
 
@@ -209,6 +215,31 @@ describe('AiConfigService', () => {
       expect(result.provider).toBe('deepseek');
       expect(result.config.apiKey).toBe('sk-platform-default');
       expect(result.config.model).toBe('deepseek-chat');
+    });
+
+    it('getProviderConfig 选择外部模型时用外部库补全 baseUrl/apiKey', async () => {
+      tenantRepo.findOne.mockResolvedValue(null);
+      platformRepo.findOne.mockResolvedValue({
+        ...makePlatformConfig({
+          defaultProvider: 'custom_kimi',
+          defaultApiKey: null,
+          defaultEndpoint: null,
+        }),
+      });
+      externalModelService.getRuntimeConfig.mockResolvedValue({
+        baseUrl: 'https://api.moonshot.cn/v1',
+        apiKey: 'sk-kimi-real',
+        model: 'moonshot-v1-8k',
+      });
+
+      const result = await tenantContext.run({ tenantId: 'tenant-001' }, () =>
+        service.getProviderConfig(),
+      );
+
+      expect(result.provider).toBe('custom_kimi');
+      expect(result.config.baseUrl).toBe('https://api.moonshot.cn/v1');
+      expect(result.config.apiKey).toBe('sk-kimi-real');
+      expect(result.config.model).toBe('moonshot-v1-8k');
     });
 
     it('getSystemPrompt 应返回系统提示词', async () => {

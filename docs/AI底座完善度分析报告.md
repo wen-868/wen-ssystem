@@ -80,6 +80,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 7. ✅ RAG 预置知识库：knowledge/ 新增 4 份真实运营文档（单据编号规则 XS2026081211515、库存管理规则、系统功能说明、客户类型与等级）；RagSeedService 启动自动加载（知识库为空且 embedding 已配置时，幂等、单文档失败跳过）；4 个种子单测；e2e 验收脚本扩至 9 项（RAG 预置内容 + WebSocket 端点）；ai-base 全量 45 套件 / 550 用例通过，lint 0 errors，admin-web 构建通过
 8. ✅ 运营闭环：新增 OpsModule——①UsageStatsService 用量统计（GET /api/admin/usage/{daily,totals,tenants} 三端点，直查 t_ai_usage_daily，租户/日期过滤+SUM 汇总）；②UsageAlertService 用量阈值告警（USAGE_DAILY_ALERT_COST/TOKENS 环境变量，每小时巡检当日超限租户，同日去重，推送走 ProactivePushService 落库+WebSocket 广播）；③HealthMonitorService 健康监控告警（每 5 分钟自检 MySQL+后端，健康→异常状态翻转推送 urgent 告警，HEALTH_MONITOR_ENABLED 开关）；④e2e 扩至 10 项（用量接口）；14 个新单测；ai-base 全量 48 套件 / 564 用例通过，lint 0 errors
 9. ✅ 生产公网实测（2026-08-15）：经 admin.onepan.cn/ai-api 实测——健康检查 ok（database/redis 连通）、工具列表 29 个、Provider 3 家、主动巡检 9 项、用量统计接口 200（72 天真实数据：37 对话/128 工具调用/1.32M tokens）、RAG 知识库接口 200（预置内容待 EMBEDDING_MODEL 配置后加载）；同时修复生产入口错误：前端默认 AI 地址 api.onepan.cn/ai-api（未配反代 404）改 admin.onepan.cn/ai-api（实测 200），nginx-production.conf 补回 3 处 location /ai-api/（上一提交脚本缺陷导致 location 行丢失）
+10. ✅ 外部大模型接入：新增 t_ai_external_model 表（迁移 154）+ OpenAICompatProvider 通用 OpenAI 兼容实现（流式/非流式含 function calling、testConnection）+ ProviderFactory 动态注册/注销 + ExternalModelService（CRUD、apiKey 加密存储、启动注册、停用注销、按 ID 测试）+ 6 个管理端点 + saas-admin 平台配置页外部模型管理（表格/添加/编辑/删除/测试连接、服务商下拉动态含外部模型）；AiConfigService 选择外部模型时自动补全 baseUrl/apiKey；14 个新单测；ai-base 全量 49 套件 / 577 用例通过，lint 0 errors，saas-admin 构建通过
 
 ## 七、结论
 

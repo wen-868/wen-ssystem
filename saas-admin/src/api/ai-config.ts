@@ -195,6 +195,46 @@ export interface UpdateTenantBillingPayload {
   enabled?: number;
 }
 
+/** 外部模型对外视图（apiKey 脱敏） */
+export interface ExternalModelView {
+  id: number;
+  name: string;
+  displayName: string;
+  providerBaseUrl: string;
+  modelName: string;
+  enabled: number;
+  sortOrder: number;
+  apiKeySet: boolean;
+  apiKeyMasked: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** 外部模型选项（配置页下拉） */
+export interface ExternalModelOption {
+  name: string;
+  displayName: string;
+  modelName: string;
+}
+
+/** 外部模型创建/更新载荷（apiKey 更新时留空表示不修改） */
+export interface ExternalModelPayload {
+  name: string;
+  displayName: string;
+  providerBaseUrl: string;
+  apiKey?: string;
+  modelName: string;
+  enabled?: number;
+  sortOrder?: number;
+}
+
+/** 连通性测试载荷 */
+export interface TestExternalModelPayload {
+  providerBaseUrl: string;
+  apiKey: string;
+  modelName: string;
+}
+
 // ==================== API 函数 ====================
 
 /** 获取平台默认 AI 配置 */
@@ -235,4 +275,46 @@ export function listAiBillings(params: { tenantId?: string; page?: number; pageS
 /** 更新租户计费套餐（不存在则创建） */
 export function updateTenantAiBilling(tenantId: string, payload: UpdateTenantBillingPayload) {
   return aiRequest.put<unknown, TenantBillingItem>(`/api/admin/ai-config/billing/${encodeURIComponent(tenantId)}`, payload);
+}
+
+// ==================== 外部大模型管理（完善度-外部模型接入） ====================
+
+/** 外部模型列表（apiKey 脱敏） */
+export function listExternalModels() {
+  return aiRequest.get<unknown, ExternalModelView[]>("/api/admin/ai-config/external-models");
+}
+
+/** 启用外部模型选项（配置页下拉） */
+export function listExternalModelOptions() {
+  return aiRequest.get<unknown, ExternalModelOption[]>("/api/admin/ai-config/external-models/options");
+}
+
+/** 添加外部模型（apiKey 加密存储并注册到运行时） */
+export function createExternalModel(payload: ExternalModelPayload) {
+  return aiRequest.post<unknown, ExternalModelView>("/api/admin/ai-config/external-models", payload);
+}
+
+/** 更新外部模型（apiKey 留空不修改；停用即注销运行时） */
+export function updateExternalModel(id: number, payload: ExternalModelPayload) {
+  return aiRequest.put<unknown, ExternalModelView>(`/api/admin/ai-config/external-models/${id}`, payload);
+}
+
+/** 删除外部模型（同步注销运行时） */
+export function deleteExternalModel(id: number) {
+  return aiRequest.delete<unknown, { success: boolean }>(`/api/admin/ai-config/external-models/${id}`);
+}
+
+/** 连通性测试（不落库，直接发起调用验证 baseUrl/apiKey/model） */
+export function testExternalModel(payload: TestExternalModelPayload) {
+  return aiRequest.post<unknown, { success: boolean; message: string; latencyMs: number }>(
+    "/api/admin/ai-config/external-models/test",
+    payload
+  );
+}
+
+/** 按 ID 测试已保存模型（后端解密密钥执行，前端不接触明文） */
+export function testExternalModelById(id: number) {
+  return aiRequest.post<unknown, { success: boolean; message: string; latencyMs: number }>(
+    `/api/admin/ai-config/external-models/test/${id}`
+  );
 }

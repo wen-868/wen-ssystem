@@ -24,6 +24,7 @@ import { PlatformAiConfigEntity } from '../database/entities/platform-ai-config.
 import { ProviderConfig } from '../providers/provider.interface';
 import { TenantContext } from './tenant-context';
 import { CryptoService } from './crypto.service';
+import { ExternalModelService } from './external-model.service';
 
 /**
  * 解析后的租户 AI 配置（包含 Provider 所需的全部信息）
@@ -56,6 +57,7 @@ export class AiConfigService {
     private readonly platformRepo: Repository<PlatformAiConfigEntity>,
     private readonly tenantContext: TenantContext,
     private readonly crypto: CryptoService,
+    private readonly externalModelService: ExternalModelService,
   ) {}
 
   /**
@@ -98,6 +100,26 @@ export class AiConfigService {
     config: ProviderConfig;
   }> {
     const resolved = await this.getResolvedConfig();
+
+    // 外部大模型：平台/租户配置选择外部模型时，用外部模型库补全 baseUrl/apiKey
+    //（外部模型的密钥只存在 t_ai_external_model，配置项中 apiKey/endpoint 可为空）
+    const external = await this.externalModelService.getRuntimeConfig(
+      resolved.provider,
+    );
+    if (external) {
+      return {
+        provider: resolved.provider,
+        config: {
+          apiKey: resolved.providerConfig.apiKey || external.apiKey,
+          baseUrl: resolved.providerConfig.baseUrl || external.baseUrl,
+          // 外部模型的模型名以外部模型库配置为准（管理入口统一维护）
+          model: external.model,
+          temperature: resolved.temperature,
+          max_tokens: resolved.maxTokens,
+        },
+      };
+    }
+
     return {
       provider: resolved.provider,
       config: resolved.providerConfig,

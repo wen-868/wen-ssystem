@@ -18,6 +18,7 @@ import { Module } from '@nestjs/common';
 import { ChatController } from './chat.controller';
 import { AdminController } from './admin.controller';
 import { AiConfigController } from './ai-config.controller';
+import { ExternalModelController } from './external-model.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -53,7 +54,12 @@ import { PushGatewayService } from './push-gateway.service';
     ToolsModule,
     BridgeModule,
   ],
-  controllers: [ChatController, AdminController, AiConfigController],
+  controllers: [
+    ChatController,
+    AdminController,
+    AiConfigController,
+    ExternalModelController,
+  ],
   providers: [PushGatewayService],
   exports: [PushGatewayService],
 })

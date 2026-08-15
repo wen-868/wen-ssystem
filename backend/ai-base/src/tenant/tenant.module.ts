@@ -28,7 +28,9 @@ import { TenantAiConfigEntity } from '../database/entities/tenant-ai-config.enti
 import { PlatformAiConfigEntity } from '../database/entities/platform-ai-config.entity';
 import { AiUsageDailyEntity } from '../database/entities/ai-usage-daily.entity';
 import { TenantAiBillingEntity } from '../database/entities/tenant-ai-billing.entity';
+import { AiExternalModelEntity } from '../database/entities/ai-external-model.entity';
 import { CommonModule } from '../common/common.module';
+import { ProvidersModule } from '../providers/providers.module';
 import { RateLimiterMiddleware } from '../common/rate-limiter.middleware';
 import { RequestLoggingMiddleware } from '../common/request-logging.middleware';
 import { TenantContext } from './tenant-context';
@@ -36,15 +38,18 @@ import { CryptoService } from './crypto.service';
 import { AiConfigService } from './ai-config.service';
 import { AiConfigAdminService } from './ai-config-admin.service';
 import { TenantMiddleware } from './tenant.middleware';
+import { ExternalModelService } from './external-model.service';
 
 @Module({
   imports: [
     CommonModule,
+    ProvidersModule,
     TypeOrmModule.forFeature([
       TenantAiConfigEntity,
       PlatformAiConfigEntity,
       AiUsageDailyEntity,
       TenantAiBillingEntity,
+      AiExternalModelEntity,
     ]),
   ],
   providers: [
@@ -55,12 +60,14 @@ import { TenantMiddleware } from './tenant.middleware';
     TenantMiddleware,
     RateLimiterMiddleware,
     RequestLoggingMiddleware,
+    ExternalModelService,
   ],
   exports: [
     TenantContext,
     CryptoService,
     AiConfigService,
     AiConfigAdminService,
+    ExternalModelService,
   ],
 })
 export class TenantModule implements NestModule {

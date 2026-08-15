@@ -5,6 +5,7 @@ import { GlmProvider } from './glm.provider';
 import { DeepSeekProvider } from './deepseek.provider';
 import { OllamaProvider } from './ollama.provider';
 import { ProviderError } from './provider-error';
+import { OpenAICompatProvider } from './openai-compat.provider';
 
 /**
  * Provider 工厂（SimpleFactory 模式）
@@ -77,6 +78,42 @@ export class ProviderFactory {
       provider.configure(config);
     }
     return provider;
+  }
+
+  /**
+   * 动态注册外部 OpenAI 兼容大模型（完善度-外部模型接入）
+   *
+   * 由 ExternalModelService 在启动/配置变更时调用：
+   * - 同名注册视为更新（覆盖旧的通用实例）
+   * - 注册后 create(name) / 平台/租户配置选择该模型即可直接使用
+   *
+   * @param name   外部模型唯一标识（如 custom_kimi）
+   * @param config OpenAI 兼容 Provider 运行时配置
+   */
+  registerExternal(name: string, config: ProviderConfig): void {
+    const provider = new OpenAICompatProvider(name, config);
+    this.providers.set(name, provider);
+    this.logger.log(
+      `外部模型已注册：${name}（model=${config.model}, baseUrl=${config.baseUrl ?? '(默认)'}）`,
+    );
+  }
+
+  /**
+   * 注销外部模型（删除配置时调用，避免残留无效 Provider）
+   *
+   * @param name 外部模型唯一标识
+   */
+  unregisterExternal(name: string): void {
+    if (this.providers.delete(name)) {
+      this.logger.log(`外部模型已注销：${name}`);
+    }
+  }
+
+  /**
+   * 判断指定 Provider 类型是否已注册
+   */
+  isRegistered(type: string): boolean {
+    return this.providers.has(type);
   }
 
   /**
