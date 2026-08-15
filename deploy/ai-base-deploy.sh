@@ -156,7 +156,31 @@ done
 if [ -z "${NGINX_SITE}" ]; then
   echo "==> [AI底座] 未找到 admin.onepan.cn 的 nginx 配置文件（跳过；请手动配置 /ai-api/ 反代，模板见 deploy/nginx-production.conf）"
 elif grep -q "location /ai-api/" "${NGINX_SITE}"; then
-  echo "==> [AI底座] /ai-api/ 反代已存在（${NGINX_SITE}），跳过"
+  if grep -q "proxy_set_header Upgrade" "${NGINX_SITE}"; then
+    echo "==> [AI底座] /ai-api/ 反代已存在且含 WebSocket Upgrade 头（${NGINX_SITE}），跳过"
+  else
+    cp "${NGINX_SITE}" "${NGINX_SITE}.bak-ai-api"
+    awk '
+      /location \/ai-api\/ \{/ { in_ai=1 }
+      in_ai && /proxy_set_header X-Forwarded-Proto/ {
+        print
+        print "        proxy_http_version 1.1;"
+        print "        proxy_set_header Upgrade $http_upgrade;"
+        print "        proxy_set_header Connection \"upgrade\";"
+        in_ai=0
+        next
+      }
+      { print }
+    ' "${NGINX_SITE}" > "${NGINX_SITE}.ai-api.tmp"
+    if nginx -t >/dev/null 2>&1; then
+      mv "${NGINX_SITE}.ai-api.tmp" "${NGINX_SITE}"
+      systemctl reload nginx >/dev/null 2>&1 || nginx -s reload >/dev/null 2>&1 || true
+      echo "==> [AI底座] /ai-api/ 反代已补 WebSocket Upgrade 头并通过 nginx -t，已 reload（备份：${NGINX_SITE}.bak-ai-api）"
+    else
+      rm -f "${NGINX_SITE}.ai-api.tmp"
+      echo "==> [AI底座] nginx -t 校验失败，已保留原配置（请手动检查 ${NGINX_SITE}）"
+    fi
+  fi
 else
   cp "${NGINX_SITE}" "${NGINX_SITE}.bak-ai-api"
   awk '
