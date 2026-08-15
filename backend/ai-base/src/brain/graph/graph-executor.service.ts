@@ -27,6 +27,7 @@ import type {
 import type { ToolContext, ToolResult } from '../../tools/tool.interface';
 import { CheckpointerService } from './checkpointer.service';
 import { ReviewTaskService } from '../review/review-task.service';
+import { EvidenceLedgerService } from '../evidence/evidence-ledger.service';
 import { BUILTIN_GRAPHS, GraphDefinition } from './graph.types';
 
 /** 图执行安全上限（防死循环） */
@@ -64,6 +65,7 @@ export class GraphExecutorService {
     private readonly checkpointer: CheckpointerService,
     private readonly registry: ToolRegistry,
     private readonly reviewTaskService: ReviewTaskService,
+    private readonly evidence: EvidenceLedgerService,
   ) {}
 
   /**
@@ -236,6 +238,21 @@ export class GraphExecutorService {
               toolCall,
               toolContext,
             );
+            // C10 证据优先（P0-7）：写操作账本 + 呈现前核查
+            if (node.tool) {
+              this.evidence.recordWrite(
+                toolContext,
+                node.tool,
+                node.args ?? {},
+                result,
+              );
+              const verification = this.evidence.verify(result);
+              if (!verification.ok) {
+                this.logger.warn(
+                  `图节点 ${node.id} 证据核查：${verification.issues.join('；')}`,
+                );
+              }
+            }
             state.results[node.id] = result.data;
             state.history.push({
               nodeId: node.id,

@@ -28,6 +28,8 @@ import { RollbackExecutorService } from './rollback-executor.service';
 import { CheckpointerService } from './graph/checkpointer.service';
 import { GraphExecutorService } from './graph/graph-executor.service';
 import { ReviewTaskService } from './review/review-task.service';
+import { ProviderRouterService } from './router/provider-router.service';
+import { EvidenceLedgerService } from './evidence/evidence-ledger.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
 
@@ -49,6 +51,8 @@ import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
     CheckpointerService,
     GraphExecutorService,
     ReviewTaskService,
+    ProviderRouterService,
+    EvidenceLedgerService,
   ],
   exports: [
     Orchestrator,
@@ -58,6 +62,8 @@ import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
     CheckpointerService,
     GraphExecutorService,
     ReviewTaskService,
+    ProviderRouterService,
+    EvidenceLedgerService,
   ],
 })
 export class BrainModule {}

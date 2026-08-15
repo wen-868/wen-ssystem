@@ -31,7 +31,6 @@
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
 import { Injectable, Logger } from '@nestjs/common';
-import { ProviderFactory } from '../providers/provider-factory';
 import { ToolExecutor } from '../tools/tool-executor';
 import { ToolRegistry } from '../tools/tool-registry';
 import { AuditLogger } from '../bridge/audit-logger';
@@ -43,6 +42,7 @@ import { ConfirmationService } from './confirmation.service';
 import type { ChatMessage, ChatResult } from '../providers/provider.interface';
 import type { ToolContext, ToolResult } from '../tools/tool.interface';
 import { GraphExecutorService } from './graph/graph-executor.service';
+import { ProviderRouterService } from './router/provider-router.service';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -133,7 +133,6 @@ export class Orchestrator {
   private readonly logger = new Logger(Orchestrator.name);
 
   constructor(
-    private readonly factory: ProviderFactory,
     private readonly executor: ToolExecutor,
     private readonly registry: ToolRegistry,
     private readonly auditLogger: AuditLogger,
@@ -143,6 +142,7 @@ export class Orchestrator {
     private readonly memoryManager: MemoryManager,
     private readonly confirmationService: ConfirmationService,
     private readonly graphExecutor: GraphExecutorService,
+    private readonly router: ProviderRouterService,
   ) {}
 
   /**
@@ -190,27 +190,17 @@ export class Orchestrator {
       modelName = resolvedConfig.model;
       systemPrompt = resolvedConfig.systemPrompt;
 
-      // 对话级模型切换：用户指定已注册模型（内置/外部）时覆盖默认
-      const requestedModel = params.model?.trim();
-      if (requestedModel && this.factory.isRegistered(requestedModel)) {
-        providerName = requestedModel;
-        this.logger.log(
-          `对话使用指定模型：${requestedModel}（覆盖默认 ${resolvedConfig.provider}）`,
-        );
-      }
-
+      // C9 自适应路由（P0-6）：用户指定模型 > 租户/平台配置 > 内置默认
+      const routed = this.router.route({
+        requestedModel: params.model,
+        resolved: resolvedConfig,
+        systemScope: this.router.getSystemScope(),
+      });
+      providerName = routed.providerName;
+      const provider = routed.provider;
       this.logger.log(
-        `租户 ${tenantId} AI 配置：provider=${providerName} model=${modelName} source=${resolvedConfig.source}`,
+        `C9 路由：${routed.reason}；租户 ${tenantId} model=${modelName} source=${resolvedConfig.source}`,
       );
-
-      // 创建 Provider
-      const provider =
-        requestedModel && this.factory.isRegistered(requestedModel)
-          ? this.factory.create(requestedModel)
-          : this.factory.create(
-              resolvedConfig.provider,
-              resolvedConfig.providerConfig,
-            );
 
       // ── 3. 加载对话历史 ──
       const history = await this.memoryManager.loadHistory(
