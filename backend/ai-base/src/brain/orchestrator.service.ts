@@ -42,6 +42,7 @@ import { MemoryManager } from './memory-manager.service';
 import { ConfirmationService } from './confirmation.service';
 import type { ChatMessage, ChatResult } from '../providers/provider.interface';
 import type { ToolContext, ToolResult } from '../tools/tool.interface';
+import { GraphExecutorService } from './graph/graph-executor.service';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -59,7 +60,14 @@ function toText(value: unknown, fallback = ''): string {
  *
  * ChatController 将此转为 SSE 格式发送给前端。
  */
-export type OrchestratorEvent =
+/** 有状态图事件（P0-1 graph 模式，SSE 前端渲染步骤流） */
+export type GraphOrchestratorEvent =
+  | { type: 'node_start'; nodeId: string; label: string }
+  | { type: 'node_end'; nodeId: string; label: string; success: boolean }
+  | { type: 'graph_done'; graphId: string };
+
+/** 基础事件（react 模式 + 公共事件） */
+export type OrchestratorBaseEvent =
   | { type: 'text'; content: string }
   | { type: 'tool_start'; tool: string }
   | {
@@ -86,6 +94,9 @@ export type OrchestratorEvent =
     }
   | { type: 'error'; message: string };
 
+/** Orchestrator 产出事件（react + graph） */
+export type OrchestratorEvent = OrchestratorBaseEvent | GraphOrchestratorEvent;
+
 /**
  * Orchestrator 执行参数
  */
@@ -104,6 +115,10 @@ export interface OrchestratorParams {
   authToken?: string;
   /** 对话级模型标识（可选；已注册的内置/外部模型名，覆盖租户/平台默认） */
   model?: string;
+  /** 执行模式：react（单 Agent 循环，默认）/ graph（有状态图） */
+  mode?: 'react' | 'graph';
+  /** graph 模式下：图 ID（如 sale_create_graph） */
+  graphId?: string;
 }
 
 @Injectable()
@@ -120,6 +135,7 @@ export class Orchestrator {
     private readonly contextBuilder: ContextBuilder,
     private readonly memoryManager: MemoryManager,
     private readonly confirmationService: ConfirmationService,
+    private readonly graphExecutor: GraphExecutorService,
   ) {}
 
   /**
@@ -223,6 +239,49 @@ export class Orchestrator {
         role,
         authToken,
       };
+
+      // ── 4.5 有状态图模式（P0-1）：按图执行工具/条件/Agent 节点，Checkpointer 持久化 ──
+      if (params.mode === 'graph') {
+        if (!params.graphId) {
+          yield { type: 'error', message: 'graph 模式必须指定 graphId' };
+          return;
+        }
+        const graph = this.graphExecutor.getGraph(params.graphId);
+        if (!graph) {
+          yield {
+            type: 'error',
+            message: `未知图：${params.graphId}（可用：${this.graphExecutor
+              .listGraphs()
+              .map((g) => g.id)
+              .join(', ')}）`,
+          };
+          return;
+        }
+        this.logger.log(
+          `graph 模式启动：graph=${graph.id} tenant=${tenantId} session=${conversationId}`,
+        );
+        const graphStartTime = Date.now();
+        for await (const event of this.graphExecutor.execute(
+          graph,
+          conversationId,
+          toolContext,
+          provider,
+        )) {
+          yield event;
+        }
+        yield {
+          type: 'done',
+          conversationId,
+          usage: {
+            promptTokens: 0,
+            completionTokens: 0,
+            totalTokens: 0,
+            latencyMs: Date.now() - graphStartTime,
+            iterations: 0,
+          },
+        };
+        return;
+      }
 
       // ── 5. Agent Loop ──
       const startTime = Date.now();

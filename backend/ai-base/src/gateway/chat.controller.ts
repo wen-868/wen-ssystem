@@ -153,6 +153,8 @@ export class ChatController {
         role: ctxData?.role ?? dto.role,
         authToken: ctxData?.authToken,
         model: dto.model,
+        mode: dto.mode,
+        graphId: dto.graphId,
       })) {
         this.sendSse(res, event);
       }

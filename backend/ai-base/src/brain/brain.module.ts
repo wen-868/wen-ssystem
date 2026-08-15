@@ -25,6 +25,8 @@ import { MemoryManager } from './memory-manager.service';
 import { Orchestrator } from './orchestrator.service';
 import { ConfirmationService } from './confirmation.service';
 import { RollbackExecutorService } from './rollback-executor.service';
+import { CheckpointerService } from './graph/checkpointer.service';
+import { GraphExecutorService } from './graph/graph-executor.service';
 
 @Module({
   imports: [
@@ -40,12 +42,16 @@ import { RollbackExecutorService } from './rollback-executor.service';
     Orchestrator,
     ConfirmationService,
     RollbackExecutorService,
+    CheckpointerService,
+    GraphExecutorService,
   ],
   exports: [
     Orchestrator,
     MemoryManager,
     ConfirmationService,
     RollbackExecutorService,
+    CheckpointerService,
+    GraphExecutorService,
   ],
 })
 export class BrainModule {}

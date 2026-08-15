@@ -8,7 +8,13 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsOptional,
+  IsString,
+  IsNotEmpty,
+  MaxLength,
+} from 'class-validator';
 
 export class ChatDto {
   /** 用户消息内容（必填，最长 4000 字符） */
@@ -54,4 +60,15 @@ export class ChatDto {
   @IsString()
   @MaxLength(64, { message: 'model 不能超过 64 字符' })
   model?: string;
+
+  /** 执行模式（可选）：react=单 Agent 循环（默认）/ graph=有状态图 */
+  @IsOptional()
+  @IsIn(['react', 'graph'], { message: 'mode 仅支持 react 或 graph' })
+  mode?: 'react' | 'graph';
+
+  /** graph 模式下：图 ID（如 sale_create_graph） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64, { message: 'graphId 不能超过 64 字符' })
+  graphId?: string;
 }
