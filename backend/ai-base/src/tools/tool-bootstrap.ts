@@ -37,6 +37,15 @@ import { CreateFlashSaleTool } from './definitions/create-flash-sale.tool';
 import { CreatePurchasePlanTool } from './definitions/create-purchase-plan.tool';
 import { ConvertPurchasePlanTool } from './definitions/convert-purchase-plan.tool';
 import { AdjustCreditLimitTool } from './definitions/adjust-credit-limit.tool';
+// R70 完善度 P1: 营销/采购/费用 8 个精调写操作工具（清单第一批 P1）
+import { CreateFullReductionTool } from './definitions/create-full-reduction.tool';
+import { CreateGroupBuyTool } from './definitions/create-group-buy.tool';
+import { CreateGiftRuleTool } from './definitions/create-gift-rule.tool';
+import { SetMarketingActivityStatusTool } from './definitions/set-marketing-activity-status.tool';
+import { CreatePurchasePaymentTool } from './definitions/create-purchase-payment.tool';
+import { CreatePurchaseReturnTool } from './definitions/create-purchase-return.tool';
+import { CreatePurchaseContractTool } from './definitions/create-purchase-contract.tool';
+import { CreateExpenseTool } from './definitions/create-expense.tool';
 import { ToolGeneratorService } from './catalog/tool-generator.service';
 
 /**
@@ -115,6 +124,14 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly createPurchasePlanTool: CreatePurchasePlanTool,
     private readonly convertPurchasePlanTool: ConvertPurchasePlanTool,
     private readonly adjustCreditLimitTool: AdjustCreditLimitTool,
+    private readonly createFullReductionTool: CreateFullReductionTool,
+    private readonly createGroupBuyTool: CreateGroupBuyTool,
+    private readonly createGiftRuleTool: CreateGiftRuleTool,
+    private readonly setMarketingActivityStatusTool: SetMarketingActivityStatusTool,
+    private readonly createPurchasePaymentTool: CreatePurchasePaymentTool,
+    private readonly createPurchaseReturnTool: CreatePurchaseReturnTool,
+    private readonly createPurchaseContractTool: CreatePurchaseContractTool,
+    private readonly createExpenseTool: CreateExpenseTool,
     private readonly toolGenerator: ToolGeneratorService,
   ) {}
 
@@ -163,6 +180,15 @@ export class ToolBootstrap implements OnModuleInit {
       this.createPurchasePlanTool,
       this.convertPurchasePlanTool,
       this.adjustCreditLimitTool,
+      // R70 完善度 P1: 营销/采购/费用 8 个精调写操作工具
+      this.createFullReductionTool,
+      this.createGroupBuyTool,
+      this.createGiftRuleTool,
+      this.setMarketingActivityStatusTool,
+      this.createPurchasePaymentTool,
+      this.createPurchaseReturnTool,
+      this.createPurchaseContractTool,
+      this.createExpenseTool,
     ]);
 
     // P0-8 功能即技能：开关开启时自动注册 API 目录工具（总台注册表 → AI 技能）

@@ -85,6 +85,13 @@ export const API_ENDPOINTS = {
   // 营销管理（admin-marketing-*.routes.ts prefix: /api/admin/marketing）
   MARKETING_COUPONS: '/api/admin/marketing/coupons/templates',
   MARKETING_FLASH_SALES: '/api/admin/marketing/flash-sales',
+  MARKETING_FULL_REDUCTIONS: '/api/admin/marketing/full-reductions',
+  MARKETING_GROUP_BUYS: '/api/admin/marketing/group-buys',
+  MARKETING_GIFT_RULES: '/api/admin/marketing/gift-rules',
+  MARKETING_LIMITED_DISCOUNTS: '/api/admin/marketing/limited-discounts',
+  // 采购付款/退货/合同
+  PURCHASE_PAYMENTS: '/api/admin/purchase-payments',
+  PURCHASE_CONTRACTS: '/api/admin/purchase-contracts',
   // 客户信用（credit.routes.ts prefix: /api/admin/credits）
   CREDITS: '/api/admin/credits',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）

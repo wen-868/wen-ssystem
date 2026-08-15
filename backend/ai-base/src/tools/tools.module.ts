@@ -45,6 +45,15 @@ import { CreateFlashSaleTool } from './definitions/create-flash-sale.tool';
 import { CreatePurchasePlanTool } from './definitions/create-purchase-plan.tool';
 import { ConvertPurchasePlanTool } from './definitions/convert-purchase-plan.tool';
 import { AdjustCreditLimitTool } from './definitions/adjust-credit-limit.tool';
+// R70 完善度 P1: 营销/采购/费用 8 个精调写操作工具（清单第一批 P1）
+import { CreateFullReductionTool } from './definitions/create-full-reduction.tool';
+import { CreateGroupBuyTool } from './definitions/create-group-buy.tool';
+import { CreateGiftRuleTool } from './definitions/create-gift-rule.tool';
+import { SetMarketingActivityStatusTool } from './definitions/set-marketing-activity-status.tool';
+import { CreatePurchasePaymentTool } from './definitions/create-purchase-payment.tool';
+import { CreatePurchaseReturnTool } from './definitions/create-purchase-return.tool';
+import { CreatePurchaseContractTool } from './definitions/create-purchase-contract.tool';
+import { CreateExpenseTool } from './definitions/create-expense.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -126,6 +135,15 @@ import { BridgeModule } from '../bridge/bridge.module';
     CreatePurchasePlanTool,
     ConvertPurchasePlanTool,
     AdjustCreditLimitTool,
+    // R70 完善度 P1: 营销/采购/费用 8 个精调写操作工具
+    CreateFullReductionTool,
+    CreateGroupBuyTool,
+    CreateGiftRuleTool,
+    SetMarketingActivityStatusTool,
+    CreatePurchasePaymentTool,
+    CreatePurchaseReturnTool,
+    CreatePurchaseContractTool,
+    CreateExpenseTool,
   ],
   exports: [ToolRegistry, ToolExecutor, ToolGeneratorService],
 })
