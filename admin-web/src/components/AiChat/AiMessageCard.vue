@@ -14,6 +14,23 @@
       <div v-else class="ai-text">{{ message.content }}</div>
     </div>
 
+    <!-- AI 主动推送卡片（巡检预警/每日简报等） -->
+    <div v-else-if="message.kind === 'proactive'" class="proactive-card">
+      <div class="proactive-head">
+        <el-icon class="proactive-icon"><Bell /></el-icon>
+        <span class="proactive-title">{{ message.title || "AI 主动提醒" }}</span>
+        <el-tag
+          v-if="message.priority"
+          :type="priorityTagType(message.priority)"
+          size="small"
+          effect="light"
+        >
+          {{ priorityLabel(message.priority) }}
+        </el-tag>
+      </div>
+      <div class="proactive-content">{{ message.content }}</div>
+    </div>
+
     <!-- 工具调用 / 写操作预览 -->
     <div v-else-if="message.kind === 'tool' || message.kind === 'preview'" class="tool-card">
       <div class="tool-head">
@@ -62,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { Loading, CircleCheck, CircleClose, WarningFilled } from "@element-plus/icons-vue";
+import { Loading, CircleCheck, CircleClose, WarningFilled, Bell } from "@element-plus/icons-vue";
 import AiPreviewCard from "./AiPreviewCard.vue";
 import type { AiChatMessage } from "./types";
 
@@ -116,6 +133,25 @@ function tagText(status?: string): string {
   if (status === "success") return "执行成功";
   if (status === "error") return "执行失败";
   return "执行中";
+}
+
+/** 推送优先级 → 中文标签 */
+function priorityLabel(priority: string): string {
+  const map: Record<string, string> = {
+    urgent: "紧急",
+    important: "重要",
+    reminder: "提醒",
+    suggestion: "建议",
+  };
+  return map[priority] || "通知";
+}
+
+/** 推送优先级 → 标签颜色 */
+function priorityTagType(priority: string): "danger" | "warning" | "info" | "primary" {
+  if (priority === "urgent") return "danger";
+  if (priority === "important") return "warning";
+  if (priority === "suggestion") return "info";
+  return "primary";
 }
 
 /** 工具返回数据的摘要文本（成功且无预览时展示） */
@@ -187,6 +223,45 @@ function toolSummary(message: AiChatMessage): string {
 }
 
 .ai-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.proactive-card {
+  max-width: 85%;
+  border: 1px solid var(--color-primary-soft, #dbeafe);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--gray-50, #f9fafb);
+  overflow: hidden;
+}
+
+.proactive-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--gray-100);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.proactive-icon {
+  color: var(--color-primary);
+  font-size: 14px;
+}
+
+.proactive-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.proactive-content {
+  padding: 8px 10px;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary, #374151);
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -6,13 +6,14 @@
  *
  * 检查项：
  *   1. health（database/redis 连通性）
- *   2. 工具列表（≥28 个业务工具）
+ *   2. 工具列表（≥29 个业务工具）
  *   3. Provider 列表（deepseek/glm/ollama）
  *   4. 主动巡检任务（9 项）
- *   5. RAG 知识库（可达性）
+ *   5. RAG 知识库（可达性 + 默认租户预置文档 ≥1 份）
  *   6. LLM 连接（配置了 DEEPSEEK_API_KEY 时 test-connection success=true）
  *   7. 对话链路（chat 端点可达；无 Key 时应返回明确配置缺失错误而非 500）
  *   8. 审计日志（admin 鉴权后可查）
+ *   9. WebSocket 推送通道（/api/ai/ws 端点已挂载）
  *
  * 输出：docs/reports/ai-base-e2e-{时间戳}.md
  */
@@ -78,7 +79,7 @@ async function run() {
   const toolCount = tools.data?.data?.total ?? tools.data?.tools?.length ?? 0;
   record(
     "工具列表",
-    tools.status === 200 && toolCount >= 20,
+    tools.status === 200 && toolCount >= 29,
     `HTTP ${tools.status} 工具数=${toolCount}`
   );
 
@@ -102,12 +103,15 @@ async function run() {
     `HTTP ${jobs.status} 任务数=${jobCount}`
   );
 
-  // 5. RAG 知识库
+  // 5. RAG 知识库（默认租户应含预置运营文档，如单据编号/库存规则）
   const rag = await req(AI_BASE, "/api/rag/knowledge");
+  const ragDocs = Array.isArray(rag.data?.knowledge)
+    ? rag.data.knowledge.length
+    : 0;
   record(
-    "RAG 知识库可达",
-    rag.status === 200,
-    `HTTP ${rag.status}`
+    "RAG 知识库（预置内容）",
+    rag.status === 200 && ragDocs >= 1,
+    `HTTP ${rag.status} 文档数=${ragDocs}（需配置 EMBEDDING_MODEL 且预置种子已加载）`
   );
 
   // 6. LLM 连接
@@ -139,6 +143,14 @@ async function run() {
     `HTTP ${audit.status}${token ? "" : "（未登录，401 预期）"}`
   );
 
+  // 9. WebSocket 推送通道（HTTP 方式探测端点已挂载：应返回 4xx 而非 404）
+  const wsProbe = await req(AI_BASE, "/api/ai/ws");
+  record(
+    "WebSocket 推送通道",
+    wsProbe.status !== 404 && wsProbe.status !== 0,
+    `HTTP ${wsProbe.status}（非 404 = 端点已挂载，浏览器可用 ws:// 连接）`
+  );
+
   const passed = results.filter((r) => r.pass).length;
   const dir = join(ROOT, "docs", "reports");
   mkdirSync(dir, { recursive: true });
@@ -153,7 +165,7 @@ async function run() {
     "",
     `**通过 ${passed}/${results.length}**`,
     "",
-    `> 由 \`node scripts/ai-base-e2e.mjs\` 生成；LLM 连接项需服务器配置 DEEPSEEK_API_KEY 后为 true。`,
+    `> 由 \`node scripts/ai-base-e2e.mjs\` 生成；LLM 连接项需服务器配置 DEEPSEEK_API_KEY 后为 true；RAG 预置内容需配置 EMBEDDING_MODEL。`,
   ].join("\n"), "utf8");
   console.log(`\n通过 ${passed}/${results.length}；报告：${mdPath}`);
   process.exit(passed === results.length ? 0 : 1);

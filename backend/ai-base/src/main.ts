@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import type { Server as HttpServer } from 'http';
 import { AppModule } from './app.module';
+import { PushGatewayService } from './gateway/push-gateway.service';
 
 /**
  * 智享AI底座 — 应用入口
@@ -36,6 +38,9 @@ async function bootstrap() {
     origin: true,
     credentials: true,
   });
+
+  // 初始化 AI 主动推送 WebSocket 通道（/api/ai/ws，JWT 认证 + 按租户广播）
+  app.get(PushGatewayService).init(app.getHttpServer() as HttpServer);
 
   await app.listen(port);
 

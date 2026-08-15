@@ -256,3 +256,100 @@ export async function revokeAiOperation(operationId: string): Promise<void> {
   );
   if (!resp.ok) throw await readError(resp, `撤销失败（HTTP ${resp.status}）`);
 }
+
+// ==================== AI 主动推送 WebSocket ====================
+
+/** AI 主动推送载荷（对齐 ai-base PushPayload / ProactivePush） */
+export interface AiProactivePayload {
+  /** 推送标题（如"⚠️ 库存预警"） */
+  title: string;
+  /** 推送内容（markdown 表格，卡片内按纯文本展示） */
+  content: string;
+  /** 推送类型（system/order/inventory/marketing） */
+  type: string;
+  /** 优先级（urgent/important/reminder/suggestion） */
+  priority: string;
+  /** 附加数据（任务名、数量等） */
+  extras?: Record<string, unknown>;
+  /** 服务端落库时间（ISO 字符串） */
+  pushedAt: string;
+}
+
+/** 推送连接回调集合 */
+export interface AiPushHandlers {
+  /** 收到一条 AI 主动推送 */
+  onMessage: (payload: AiProactivePayload) => void;
+  /** 连接状态变化（重连/断开时触发） */
+  onStatusChange?: (connected: boolean) => void;
+}
+
+/** 断线自动重连间隔（毫秒） */
+const PUSH_RECONNECT_DELAY_MS = 5_000;
+
+/**
+ * 连接 AI 主动推送 WebSocket（/api/ai/ws?token=xxx）
+ *
+ * - 携带当前登录 JWT 认证，服务端按租户广播巡检推送
+ * - 断线后自动重连（5 秒），调用返回的断开函数可彻底关闭
+ * - 仅处理 event=ai_proactive_push 帧，其余帧忽略
+ *
+ * @returns 断开函数（组件卸载时调用）
+ */
+export function connectAiPushSocket(handlers: AiPushHandlers): () => void {
+  let socket: WebSocket | null = null;
+  let closed = false;
+  let reconnectTimer: number | undefined;
+
+  const teardown = (): void => {
+    if (reconnectTimer !== undefined) {
+      window.clearTimeout(reconnectTimer);
+      reconnectTimer = undefined;
+    }
+    socket?.close();
+    socket = null;
+  };
+
+  const connect = (): void => {
+    if (closed) return;
+    const token = getAiAuthToken();
+    if (!token) {
+      handlers.onStatusChange?.(false);
+      return;
+    }
+
+    const wsBase = AI_BASE_URL.replace(/^http/, "ws");
+    const url = `${wsBase}/api/ai/ws?token=${encodeURIComponent(token)}`;
+    socket = new WebSocket(url);
+
+    socket.onopen = () => handlers.onStatusChange?.(true);
+    socket.onmessage = (event) => {
+      try {
+        const frame = JSON.parse(String(event.data)) as {
+          event?: string;
+          data?: AiProactivePayload;
+        };
+        if (frame.event === "ai_proactive_push" && frame.data) {
+          handlers.onMessage(frame.data);
+        }
+      } catch {
+        // 忽略非 JSON 帧（心跳等）
+      }
+    };
+    socket.onclose = () => {
+      handlers.onStatusChange?.(false);
+      socket = null;
+      // 自动重连（已手动关闭则跳过）
+      if (!closed) {
+        reconnectTimer = window.setTimeout(connect, PUSH_RECONNECT_DELAY_MS);
+      }
+    };
+    socket.onerror = () => socket?.close();
+  };
+
+  connect();
+
+  return (): void => {
+    closed = true;
+    teardown();
+  };
+}

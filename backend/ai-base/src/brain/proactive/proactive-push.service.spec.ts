@@ -1,12 +1,13 @@
 /**
  * ProactivePushService 单元测试
  *
- * 覆盖：t_push_log 落库成功 / 落库失败不审计 / 审计留痕调用
+ * 覆盖：t_push_log 落库成功 / 落库失败不审计 / 审计留痕调用 / WebSocket 实时广播
  *
  * 负责人: 阿坚 | 创建日期: 2026-08-02
  */
 import type { DataSource } from 'typeorm';
 import { AuditLogger } from '../../bridge/audit-logger';
+import { PushGatewayService } from '../../gateway/push-gateway.service';
 import { ProactivePushService } from './proactive-push.service';
 import { ProactivePush } from './proactive.types';
 
@@ -14,6 +15,7 @@ describe('ProactivePushService', () => {
   let service: ProactivePushService;
   let dataSource: { query: jest.Mock };
   let auditLogger: { logAiCall: jest.Mock };
+  let pushGateway: { broadcast: jest.Mock };
 
   const push: ProactivePush = {
     title: '⚠️ 库存预警',
@@ -25,9 +27,11 @@ describe('ProactivePushService', () => {
   beforeEach(() => {
     dataSource = { query: jest.fn().mockResolvedValue(undefined) };
     auditLogger = { logAiCall: jest.fn() };
+    pushGateway = { broadcast: jest.fn() };
     service = new ProactivePushService(
       dataSource as unknown as DataSource,
       auditLogger as unknown as AuditLogger,
+      pushGateway as unknown as PushGatewayService,
     );
   });
 
@@ -49,6 +53,27 @@ describe('ProactivePushService', () => {
           completionTokens: 0,
         }),
       );
+      expect(pushGateway.broadcast).toHaveBeenCalledWith(
+        'tenant-1',
+        expect.objectContaining({
+          title: '⚠️ 库存预警',
+          content: '五粮液库存不足',
+          type: 'inventory',
+          priority: 'urgent',
+          pushedAt: expect.any(String) as string,
+        }),
+      );
+    });
+
+    it('WebSocket 广播失败不影响落库结果', async () => {
+      pushGateway.broadcast.mockImplementationOnce(() => {
+        throw new Error('连接已关闭');
+      });
+
+      const result = await service.push('tenant-1', 'inventory_warning', push);
+
+      expect(result).toBe(true);
+      expect(dataSource.query).toHaveBeenCalled();
     });
 
     it('超长内容在审计中截断为 500 字符', async () => {

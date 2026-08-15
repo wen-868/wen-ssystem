@@ -24,6 +24,7 @@ import { BridgeModule } from '../bridge/bridge.module';
 import { TenantModule } from '../tenant/tenant.module';
 import { BrainModule } from '../brain/brain.module';
 import { DatabaseModule } from '../database/database.module';
+import { PushGatewayService } from './push-gateway.service';
 
 /**
  * Gateway 模块 — 对外接口层
@@ -53,5 +54,7 @@ import { DatabaseModule } from '../database/database.module';
     BridgeModule,
   ],
   controllers: [ChatController, AdminController, AiConfigController],
+  providers: [PushGatewayService],
+  exports: [PushGatewayService],
 })
 export class GatewayModule {}

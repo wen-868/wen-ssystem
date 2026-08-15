@@ -20,6 +20,7 @@
 import { Module } from '@nestjs/common';
 import { BridgeModule } from '../../bridge/bridge.module';
 import { DatabaseModule } from '../../database/database.module';
+import { GatewayModule } from '../../gateway/gateway.module';
 import { ProactiveController } from './proactive.controller';
 import { ProactivePushService } from './proactive-push.service';
 import { ProactiveService } from './proactive.service';
@@ -34,7 +35,7 @@ import { CustomerChurnService } from './customer-churn.service';
 import { GrossMarginAnomalyService } from './gross-margin-anomaly.service';
 
 @Module({
-  imports: [BridgeModule, DatabaseModule],
+  imports: [BridgeModule, DatabaseModule, GatewayModule],
   providers: [
     ProactivePushService,
     InventoryWarningService,

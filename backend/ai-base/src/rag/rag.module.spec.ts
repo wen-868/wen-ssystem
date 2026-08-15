@@ -4,7 +4,7 @@
  * 验证模块元数据配置正确（不实例化 Nest 容器，避免 TypeOrmModule 触发真实数据库连接）：
  * - imports（DatabaseModule）
  * - controllers（RagController）
- * - providers（loader/splitter/embedding/vector-store/retriever 5 个服务）
+ * - providers（loader/splitter/embedding/vector-store/retriever/rag-seed 6 个服务）
  * - exports（RetrieverService / EmbeddingService / VectorStoreService）
  *
  * 负责人: 阿坚 | 创建日期: 2026-08-02
@@ -20,6 +20,7 @@ import { TextSplitterService } from './text-splitter.service';
 import { EmbeddingService } from './embedding.service';
 import { VectorStoreService } from './vector-store.service';
 import { RetrieverService } from './retriever.service';
+import { RagSeedService } from './rag-seed.service';
 
 /** 读取 Nest 模块元数据（类型安全） */
 function getModuleMetadata(
@@ -34,7 +35,7 @@ describe('R70-21 RagModule', () => {
     expect(imports).toEqual(expect.arrayContaining([DatabaseModule]));
   });
 
-  it('注册 RagController 与 5 个核心服务', () => {
+  it('注册 RagController 与 6 个核心服务', () => {
     const controllers = getModuleMetadata('controllers');
     const providers = getModuleMetadata('providers');
     expect(controllers).toEqual([RagController]);
@@ -44,6 +45,7 @@ describe('R70-21 RagModule', () => {
       EmbeddingService,
       VectorStoreService,
       RetrieverService,
+      RagSeedService,
     ]);
   });
 

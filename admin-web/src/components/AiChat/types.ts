@@ -4,7 +4,7 @@
 import type { AiPreviewPayload } from "../../api/ai";
 
 /** 消息展示类型 */
-export type AiMessageKind = "text" | "tool" | "preview" | "error";
+export type AiMessageKind = "text" | "tool" | "preview" | "error" | "proactive";
 
 /** 工具调用状态 */
 export type AiToolStatus = "running" | "success" | "error";
@@ -37,6 +37,12 @@ export interface AiChatMessage {
   cancelled?: boolean;
   /** 已撤销标记 */
   revoked?: boolean;
+  /** 主动推送标题（kind=proactive） */
+  title?: string;
+  /** 主动推送优先级（urgent/important/reminder/suggestion） */
+  priority?: string;
+  /** 主动推送类型（system/order/inventory/marketing） */
+  proactiveType?: string;
   /** 错误描述 */
   error?: string;
   /** 创建时间戳 */

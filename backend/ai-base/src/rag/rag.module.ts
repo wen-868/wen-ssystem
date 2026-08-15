@@ -28,6 +28,7 @@ import { EmbeddingService } from './embedding.service';
 import { VectorStoreService } from './vector-store.service';
 import { RetrieverService } from './retriever.service';
 import { RagController } from './rag.controller';
+import { RagSeedService } from './rag-seed.service';
 
 @Module({
   imports: [DatabaseModule],
@@ -38,6 +39,7 @@ import { RagController } from './rag.controller';
     EmbeddingService,
     VectorStoreService,
     RetrieverService,
+    RagSeedService,
   ],
   exports: [RetrieverService, EmbeddingService, VectorStoreService],
 })

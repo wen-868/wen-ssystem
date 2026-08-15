@@ -23,6 +23,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { AuditLogger } from '../../bridge/audit-logger';
+import { PushGatewayService } from '../../gateway/push-gateway.service';
 import { ProactivePush } from './proactive.types';
 
 @Injectable()
@@ -32,6 +33,7 @@ export class ProactivePushService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly auditLogger: AuditLogger,
+    private readonly pushGateway: PushGatewayService,
   ) {}
 
   /**
@@ -84,6 +86,24 @@ export class ProactivePushService {
       completionTokens: 0,
       success: true,
     });
+
+    // ── 3. WebSocket 实时推送（R70 完善度 P1）：推送给该租户在线前端，失败不影响落库 ──
+    try {
+      this.pushGateway.broadcast(tenantId, {
+        title: push.title,
+        content: push.content,
+        type: push.type,
+        priority: push.priority,
+        extras: push.extras,
+        pushedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      this.logger.warn(
+        `AI 主动推送实时广播失败（task=${taskName}, tenant=${tenantId}）：${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
 
     this.logger.debug(
       `AI 主动推送成功：task=${taskName} tenant=${tenantId} title=${push.title}`,

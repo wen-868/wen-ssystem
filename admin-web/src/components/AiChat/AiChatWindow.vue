@@ -20,6 +20,11 @@
           <div class="ai-header-title">
             <el-icon class="header-logo"><MagicStick /></el-icon>
             <span>智享AI助手</span>
+            <span
+              class="push-indicator"
+              :class="{ connected: pushConnected }"
+              :title="pushConnected ? '实时推送已连接' : '实时推送未连接'"
+            />
           </div>
           <div class="ai-header-actions">
             <el-tooltip content="清空对话" placement="bottom">
@@ -87,16 +92,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { ElMessage } from "element-plus";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { ElMessage, ElNotification } from "element-plus";
 import { Close, Delete, MagicStick } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
   cancelAiOperation,
   confirmAiOperation,
+  connectAiPushSocket,
   revokeAiOperation,
   sendChatMessage,
+  type AiProactivePayload,
 } from "../../api/ai";
 
 const open = ref(false);
@@ -107,6 +114,8 @@ const messages = ref<AiChatMessage[]>([]);
 const abortController = ref<AbortController | null>(null);
 const unreadCount = ref(0);
 const listEl = ref<HTMLElement | null>(null);
+const pushConnected = ref(false);
+let disconnectPush: (() => void) | null = null;
 
 /** 空状态引导示例（点击直接发送） */
 const suggestions = [
@@ -273,12 +282,51 @@ async function scrollToBottom(): Promise<void> {
   if (el) el.scrollTop = el.scrollHeight;
 }
 
+/** 收到 AI 主动推送：窗口打开直接入列，未打开计数 + 桌面通知 */
+function handleProactivePush(payload: AiProactivePayload): void {
+  pushMessage({
+    role: "assistant",
+    kind: "proactive",
+    content: payload.content,
+    title: payload.title,
+    priority: payload.priority,
+    proactiveType: payload.type,
+  });
+
+  if (!open.value) {
+    unreadCount.value += 1;
+    ElNotification({
+      title: payload.title,
+      message: payload.content.slice(0, 80),
+      type: "info",
+      position: "bottom-right",
+      duration: 6000,
+      onClick: () => {
+        open.value = true;
+        unreadCount.value = 0;
+      },
+    });
+  }
+}
+
+onMounted(() => {
+  // 连接 AI 主动推送实时通道（断线自动重连，卸载时断开）
+  disconnectPush = connectAiPushSocket({
+    onMessage: handleProactivePush,
+    onStatusChange: (connected) => {
+      pushConnected.value = connected;
+    },
+  });
+});
+
 watch(messages, () => {
   if (open.value) scrollToBottom();
 }, { deep: true });
 
 onBeforeUnmount(() => {
   abortCurrent();
+  disconnectPush?.();
+  disconnectPush = null;
 });
 </script>
 
@@ -364,6 +412,19 @@ onBeforeUnmount(() => {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
+}
+
+.push-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-300, #d1d5db);
+  display: inline-block;
+  transition: background-color 0.3s;
+}
+
+.push-indicator.connected {
+  background: #22c55e;
 }
 
 .header-logo {
