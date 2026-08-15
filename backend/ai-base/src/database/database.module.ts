@@ -20,6 +20,7 @@ import { PlatformAiConfigEntity } from './entities/platform-ai-config.entity';
 import { TenantAiConfigEntity } from './entities/tenant-ai-config.entity';
 import { TenantAiBillingEntity } from './entities/tenant-ai-billing.entity';
 import { AiExternalModelEntity } from './entities/ai-external-model.entity';
+import { AiReviewTaskEntity } from './entities/ai-review-task.entity';
 
 /**
  * 所有 AI 底座 Entity 列表
@@ -33,6 +34,7 @@ export const AI_ENTITIES = [
   TenantAiConfigEntity,
   TenantAiBillingEntity,
   AiExternalModelEntity,
+  AiReviewTaskEntity,
 ];
 
 @Module({

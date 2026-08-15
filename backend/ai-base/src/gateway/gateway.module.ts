@@ -19,6 +19,7 @@ import { ChatController } from './chat.controller';
 import { AdminController } from './admin.controller';
 import { AiConfigController } from './ai-config.controller';
 import { ExternalModelController } from './external-model.controller';
+import { ReviewController } from './review.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -59,6 +60,7 @@ import { PushGatewayService } from './push-gateway.service';
     AdminController,
     AiConfigController,
     ExternalModelController,
+    ReviewController,
   ],
   providers: [PushGatewayService],
   exports: [PushGatewayService],

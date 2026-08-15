@@ -64,6 +64,13 @@ function toText(value: unknown, fallback = ''): string {
 export type GraphOrchestratorEvent =
   | { type: 'node_start'; nodeId: string; label: string }
   | { type: 'node_end'; nodeId: string; label: string; success: boolean }
+  | {
+      type: 'review_required';
+      reviewId: number;
+      tool: string;
+      note: string;
+      payload?: Record<string, unknown>;
+    }
   | { type: 'graph_done'; graphId: string };
 
 /** 基础事件（react 模式 + 公共事件） */

@@ -43,6 +43,8 @@ export interface GraphNode {
   needsReview?: boolean;
   /** 人工闸说明（SSE 展示确认点） */
   reviewNote?: string;
+  /** 人工闸审核载荷（提交给工单的说明/明细） */
+  reviewPayload?: Record<string, unknown>;
 }
 
 /** 图定义 */
@@ -74,6 +76,8 @@ export interface GraphState {
   history: Array<{ nodeId: string; label: string; success: boolean }>;
   /** 错误信息 */
   error?: string;
+  /** 暂停等待的待审工单 ID（P0-4 人工闸） */
+  pendingReviewId?: number;
   /** 更新时间戳 */
   updatedAt: number;
 }

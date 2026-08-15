@@ -33,7 +33,7 @@
 
 ## 三、分阶段计划（P0 → P3 → 运营复制）
 
-> **进度**：P0-1 / P0-2 / P0-3 ✅ 已完成（2026-08-15）——Orchestrator graph 模式 + Checkpointer + 多 Agent 协作（域 Agent 节点带工具白名单）
+> **进度**：P0-1 ~ P0-5 ✅ 已完成（2026-08-15）——graph 模式 + Checkpointer + 多 Agent 协作 + 人工确认闸（审核工单）+ 工具风险分级
 
 ### P0 — 全量基础（Orchestrator 图 + 人工闸 + 路由/验证）【4–6 周】
 

@@ -27,9 +27,13 @@ import { ConfirmationService } from './confirmation.service';
 import { RollbackExecutorService } from './rollback-executor.service';
 import { CheckpointerService } from './graph/checkpointer.service';
 import { GraphExecutorService } from './graph/graph-executor.service';
+import { ReviewTaskService } from './review/review-task.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([AiReviewTaskEntity]),
     ProvidersModule,
     ToolsModule,
     BridgeModule,
@@ -44,6 +48,7 @@ import { GraphExecutorService } from './graph/graph-executor.service';
     RollbackExecutorService,
     CheckpointerService,
     GraphExecutorService,
+    ReviewTaskService,
   ],
   exports: [
     Orchestrator,
@@ -52,6 +57,7 @@ import { GraphExecutorService } from './graph/graph-executor.service';
     RollbackExecutorService,
     CheckpointerService,
     GraphExecutorService,
+    ReviewTaskService,
   ],
 })
 export class BrainModule {}

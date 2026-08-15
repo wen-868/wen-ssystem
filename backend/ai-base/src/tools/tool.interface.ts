@@ -37,6 +37,15 @@ export type ToolCategory =
   | 'utility'; // 工具类（如 echo 测试工具）
 
 /**
+ * 工具风险分级（P0-5，完善度-人工确认闸）
+ *
+ * - low：只读/查询、无副作用
+ * - medium：生成草稿/本地计算，可撤回
+ * - high：对外发布/资金/不可逆写/涉客诉，命中审核点须人工确认
+ */
+export type ToolRisk = 'low' | 'medium' | 'high';
+
+/**
  * 工具执行上下文
  *
  * 由 Brain Engine / Gateway 在调用 Tool 前组装并注入。
@@ -128,6 +137,10 @@ export interface ITool {
   readonly category: ToolCategory;
   /** 是否为写操作（true 时需配合确认机制） */
   readonly isWriteOperation: boolean;
+  /** 风险分级（P0-5，默认 low；high 时图执行命中人工闸） */
+  readonly risk?: ToolRisk;
+  /** 是否强制人工审核（true 时即使 risk 非 high 也进闸） */
+  readonly needsReview?: boolean;
   /** 前置工具依赖（可选，供 Brain Engine 编排复合工具调用） */
   readonly requiredTools?: string[];
 
@@ -166,6 +179,10 @@ export interface ToolMeta {
   category: ToolCategory;
   /** 是否为写操作 */
   isWriteOperation: boolean;
+  /** 风险分级 */
+  risk: ToolRisk;
+  /** 是否强制人工审核 */
+  needsReview: boolean;
   /** 前置工具依赖 */
   requiredTools?: string[];
   /** 参数 JSON Schema */

@@ -175,6 +175,8 @@ export class ToolRegistry {
       description: tool.description,
       category: tool.category,
       isWriteOperation: tool.isWriteOperation,
+      risk: tool.risk ?? 'low',
+      needsReview: tool.needsReview ?? tool.risk === 'high',
       requiredTools: tool.requiredTools,
       parameters: tool.parameters,
     };

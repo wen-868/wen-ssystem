@@ -11,6 +11,7 @@ import type { ToolContext } from '../../tools/tool.interface';
 import { CheckpointerService } from './checkpointer.service';
 import { GraphExecutorService } from './graph-executor.service';
 import { GraphDefinition, GraphState } from './graph.types';
+import { ReviewTaskService } from '../review/review-task.service';
 
 /** 内存版 Checkpointer（模拟 Redis 持久化，便于断点测试） */
 function makeCheckpointer() {
@@ -142,17 +143,31 @@ function makeRegistryMock() {
     has: jest.fn((name: string) =>
       ['searchCustomer', 'querySaleBills'].includes(name),
     ),
+    get: jest.fn((name: string) =>
+      name === 'searchCustomer' || name === 'querySaleBills'
+        ? { name, risk: 'low', needsReview: false }
+        : undefined,
+    ),
   };
 }
 
 function makeExecutor(
   executorMock: { executeToolCall?: jest.Mock; executeToolCalls?: jest.Mock },
   checkpointer: ReturnType<typeof makeCheckpointer>,
+  reviewMock?: {
+    create?: jest.Mock;
+    get?: jest.Mock;
+  },
 ) {
+  const review = reviewMock ?? {
+    create: jest.fn(),
+    get: jest.fn().mockResolvedValue(null),
+  };
   return new GraphExecutorService(
     executorMock as unknown as ToolExecutor,
     checkpointer as unknown as CheckpointerService,
     makeRegistryMock() as unknown as ToolRegistry,
+    review as unknown as ReviewTaskService,
   );
 }
 
@@ -358,5 +373,129 @@ describe('GraphExecutorService', () => {
     ).toBe(true);
     // 完成后检查点清除（不残留脏状态）
     expect(checkpointer.clear).toHaveBeenCalled();
+  });
+
+  it('高危工具节点触发人工闸：生成工单并暂停图', async () => {
+    const highRiskGraph: GraphDefinition = {
+      id: 'test_high',
+      name: '高危图',
+      entry: 'publish',
+      nodes: [
+        {
+          id: 'publish',
+          label: '发布（高危）',
+          type: 'tool',
+          tool: 'searchCustomer',
+          needsReview: true,
+          reviewNote: '发布需人工审核',
+          next: 'end',
+        },
+        { id: 'end', label: '完成', type: 'end' },
+      ],
+    };
+    const reviewMock = {
+      create: jest.fn().mockResolvedValue({
+        id: 99,
+        payload: { nodeLabel: '发布（高危）' },
+      }),
+      get: jest.fn().mockResolvedValue({ status: 'pending' }),
+    };
+    const checkpointer = makeCheckpointer();
+    const executor = makeExecutor({}, checkpointer, reviewMock);
+
+    const events: Array<{ type: string; [k: string]: unknown }> = [];
+    for await (const e of executor.execute(highRiskGraph, 's1', makeCtx())) {
+      events.push(e);
+    }
+
+    const reviewEvent = events.find((e) => e.type === 'review_required');
+    expect(reviewEvent).toBeDefined();
+    expect(reviewEvent?.reviewId).toBe(99);
+    expect(reviewMock.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toolName: 'searchCustomer',
+        nodeId: 'publish',
+      }),
+    );
+    // 状态暂停
+    const state = await checkpointer.load('t1', 's1');
+    expect(state?.status).toBe('paused');
+    expect(state?.pendingReviewId).toBe(99);
+  });
+
+  it('暂停态审核通过后续跑，pending 则继续等待', async () => {
+    const graph: GraphDefinition = {
+      id: 'test_resume',
+      name: '续跑图',
+      entry: 'step1',
+      nodes: [
+        {
+          id: 'step1',
+          label: '第一步',
+          type: 'tool',
+          tool: 'searchCustomer',
+          next: 'end',
+        },
+        { id: 'end', label: '完成', type: 'end' },
+      ],
+    };
+    // pending：返回等待，不执行节点
+    const pendingReview = {
+      create: jest.fn(),
+      get: jest.fn().mockResolvedValue({ status: 'pending' }),
+    };
+    const checkpointer = makeCheckpointer();
+    await checkpointer.save({
+      graphId: 'test_resume',
+      tenantId: 't1',
+      sessionId: 's1',
+      currentNodeId: 'step1',
+      status: 'paused',
+      results: {},
+      nodeOrder: ['step1'],
+      history: [],
+      pendingReviewId: 7,
+      updatedAt: 0,
+    });
+    const executorPending = makeExecutor({}, checkpointer, pendingReview);
+    const events1: Array<{ type: string }> = [];
+    for await (const e of executorPending.execute(graph, 's1', makeCtx())) {
+      events1.push(e);
+    }
+    expect(events1.some((e) => e.type === 'review_required')).toBe(true);
+    expect(events1.some((e) => e.type === 'graph_done')).toBe(false);
+
+    // approved：继续执行
+    const approvedReview = {
+      create: jest.fn(),
+      get: jest.fn().mockResolvedValue({ status: 'approved' }),
+    };
+    const checkpointer2 = makeCheckpointer();
+    await checkpointer2.save({
+      graphId: 'test_resume',
+      tenantId: 't1',
+      sessionId: 's1',
+      currentNodeId: 'step1',
+      status: 'paused',
+      results: {},
+      nodeOrder: ['step1'],
+      history: [],
+      pendingReviewId: 7,
+      updatedAt: 0,
+    });
+    const executorApproved = makeExecutor(
+      {
+        executeToolCall: jest
+          .fn()
+          .mockResolvedValue({ success: true, data: {} }),
+      },
+      checkpointer2,
+      approvedReview,
+    );
+    const events2: Array<{ type: string }> = [];
+    for await (const e of executorApproved.execute(graph, 's1', makeCtx())) {
+      events2.push(e);
+    }
+    expect(events2.some((e) => e.type === 'graph_done')).toBe(true);
   });
 });

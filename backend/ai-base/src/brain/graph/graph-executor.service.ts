@@ -26,6 +26,7 @@ import type {
 } from '../../providers/provider.interface';
 import type { ToolContext, ToolResult } from '../../tools/tool.interface';
 import { CheckpointerService } from './checkpointer.service';
+import { ReviewTaskService } from '../review/review-task.service';
 import { BUILTIN_GRAPHS, GraphDefinition } from './graph.types';
 
 /** 图执行安全上限（防死循环） */
@@ -44,6 +45,13 @@ export type GraphRunEvent =
       error?: string;
     }
   | { type: 'text'; content: string }
+  | {
+      type: 'review_required';
+      reviewId: number;
+      tool: string;
+      note: string;
+      payload?: Record<string, unknown>;
+    }
   | { type: 'graph_done'; graphId: string }
   | { type: 'error'; message: string };
 
@@ -55,6 +63,7 @@ export class GraphExecutorService {
     private readonly executor: ToolExecutor,
     private readonly checkpointer: CheckpointerService,
     private readonly registry: ToolRegistry,
+    private readonly reviewTaskService: ReviewTaskService,
   ) {}
 
   /**
@@ -104,6 +113,37 @@ export class GraphExecutorService {
       this.logger.log(
         `图 ${graph.id} 从断点续跑：session=${sessionId} node=${state.currentNodeId}`,
       );
+      // P0-4：暂停态先查审核结果（approved 续跑 / pending 等待 / rejected 终止）
+      if (state.status === 'paused' && state.pendingReviewId) {
+        let review;
+        try {
+          review = await this.reviewTaskService.get(state.pendingReviewId);
+        } catch {
+          review = null;
+        }
+        if (!review || review.status === 'pending') {
+          yield {
+            type: 'review_required',
+            reviewId: state.pendingReviewId,
+            tool: '待审工单',
+            note: '等待人工审核，请审批后重试',
+          };
+          return;
+        }
+        if (review.status === 'rejected') {
+          state.status = 'error';
+          state.error = `人工审核已驳回：${review.rejectReason ?? '未说明原因'}`;
+          await this.checkpointer.save(state);
+          yield { type: 'error', message: state.error };
+          return;
+        }
+        // approved：恢复运行
+        state.status = 'running';
+        state.pendingReviewId = undefined;
+        this.logger.log(
+          `图 ${graph.id} 人工审核通过，继续执行：node=${state.currentNodeId}`,
+        );
+      }
     }
 
     let steps = 0;
@@ -146,6 +186,42 @@ export class GraphExecutorService {
           case 'tool': {
             if (!node.tool) {
               throw new Error(`工具节点缺少 tool 名：${node.id}`);
+            }
+            // P0-5/P0-4：工具风险 high 或节点显式 needsReview → 人工闸
+            const tool = this.registry.get(node.tool);
+            const toolRisk = tool?.risk ?? 'low';
+            const needsReview =
+              node.needsReview || tool?.needsReview || toolRisk === 'high';
+            if (needsReview) {
+              const review = await this.reviewTaskService.create({
+                tenantId: toolContext.tenantId,
+                sessionId,
+                graphId: graph.id,
+                nodeId: node.id,
+                toolName: node.tool,
+                payload: node.reviewPayload ?? {
+                  nodeLabel: node.label,
+                  args: node.args ?? {},
+                  reviewNote: node.reviewNote,
+                },
+                createdBy: toolContext.userId,
+              });
+              state.status = 'paused';
+              state.pendingReviewId = review.id;
+              state.history.push({
+                nodeId: node.id,
+                label: node.label,
+                success: true,
+              });
+              await this.checkpointer.save(state);
+              yield {
+                type: 'review_required',
+                reviewId: review.id,
+                tool: node.tool,
+                note: node.reviewNote ?? `「${node.label}」需要人工审核`,
+                payload: review.payload ?? undefined,
+              };
+              return;
             }
             const toolCall: ToolCall = {
               id: `graph_${node.id}_${Date.now()}`,
