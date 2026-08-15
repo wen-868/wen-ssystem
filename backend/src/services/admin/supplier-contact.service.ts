@@ -47,6 +47,26 @@ export async function getById(id: number, tenantId: string) {
     );
 }
 
+/** 设置联系人为主联系人（同供应商其他联系人取消主标识） */
+export async function setPrimary(id: number, tenantId: string) {
+    const contact = await getById(id, tenantId);
+    if (!contact) {
+        throw Object.assign(new Error("联系人不存在"), { statusCode: 404 });
+    }
+    // 事务内：清除同供应商其他主联系人 + 设置当前为主
+    await query(
+        "UPDATE t_supplier_contact SET is_primary = 0 WHERE supplier_id = ? AND tenant_id = ?",
+        [contact.supplier_id, tenantId],
+        tenantId
+    );
+    await query(
+        "UPDATE t_supplier_contact SET is_primary = 1 WHERE id = ? AND tenant_id = ?",
+        [id, tenantId],
+        tenantId
+    );
+    return getById(id, tenantId);
+}
+
 /** 检查供应商是否存在 */
 async function supplierExists(supplierId: number, tenantId: string): Promise<boolean> {
     const row = await queryOneWithTenant<SupplierIdRow>(

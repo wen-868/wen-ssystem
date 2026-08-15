@@ -62,3 +62,9 @@ export async function deleteContact(req: any, res: any) {
     const result = await service.remove(Number(req.params.id), req.tenantId!);
     res.json(ok(result));
 }
+
+/** 设置联系人为主联系人 */
+export async function setPrimaryContact(req: any, res: any) {
+    const result = await service.setPrimary(Number(req.params.id), req.tenantId!);
+    res.json(ok(result));
+}

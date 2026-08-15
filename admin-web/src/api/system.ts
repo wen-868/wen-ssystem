@@ -63,7 +63,8 @@ export async function toggleEmployeeStatus(id: number, status: number) {
 }
 
 export async function resetEmployeePassword(id: number, payload: { newPassword: string }) {
-  const { data } = await api.post(`/admin/system/employees/${id}/reset-password`, payload);
+  // 后端 sys-user 路由：POST /api/admin/sys-users/:id/reset-password
+  const { data } = await api.post(`/admin/sys-users/${id}/reset-password`, payload);
   return data.data;
 }
 

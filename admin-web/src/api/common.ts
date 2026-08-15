@@ -147,11 +147,12 @@ export function updateStore(id: number, data: {
 }
 
 export function updateStoreStatus(id: number, status: string) {
-  return api.patch(`/admin/system/stores/${id}/status`, { status })
+  // 后端 updateStore 支持 status（number），无独立 PATCH status 路由
+  return api.put(`/admin/system/stores/${id}`, { status: Number(status) })
 }
 
 export function fetchWxInfo(storeId: number) {
-  return api.post(`/admin/system/stores/${storeId}/wx-fetch`)
+  return api.get(`/admin/system/stores/${storeId}/wechat-info`)
 }
 
 export async function updateProductPrice(skuId: number, payload: { retailPrice?: number; wholesalePrice?: number; miniappPrice?: number; storePrice?: number; costPrice?: number }) {

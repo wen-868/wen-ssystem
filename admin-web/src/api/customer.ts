@@ -107,7 +107,7 @@ export async function createCollectionLink(billNo: string, payload: { amount: nu
 
 // ==================== Credit Management APIs ====================
 export async function fetchCredits(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
-  const { data } = await api.get("/admin/credits/credits", { params });
+  const { data } = await api.get("/admin/credits", { params });
   return data.data;
 }
 export async function fetchCreditDetail(customerId: number) {
@@ -402,5 +402,4 @@ export async function deleteCustomerType(id: number) {
   const { data } = await api.delete(`/admin/customer-types/${id}`);
   return data.data;
 }
-
 

@@ -16,6 +16,8 @@ supplierContactRouter.post("/supplier/:supplierId", asyncHandler(controller.crea
 supplierContactRouter.put("/:id", asyncHandler(controller.updateContact));
 // 删除供应商联系人
 supplierContactRouter.delete("/:id", asyncHandler(controller.deleteContact));
+// 设置主联系人
+supplierContactRouter.post("/:id/set-primary", asyncHandler(controller.setPrimaryContact));
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
