@@ -65,15 +65,15 @@ export const cartApi = {
   },
 
   addToCart: (skuId: number, quantity: number): Promise<void> => {
-    return post('/miniapp/cart', { skuId, quantity })
+    return post('/miniapp/cart/add', { skuId, quantity })
   },
 
   updateCartItem: (id: number, quantity: number): Promise<void> => {
-    return put(`/miniapp/cart/${id}`, { quantity })
+    return put(`/miniapp/cart/items/${id}`, { quantity })
   },
 
   removeCartItem: (id: number): Promise<void> => {
-    return del(`/miniapp/cart/${id}`)
+    return del(`/miniapp/cart/items/${id}`)
   },
 
   clearCart: (): Promise<void> => {

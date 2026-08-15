@@ -79,7 +79,8 @@ export const userApi = {
     oldPassword: string
     newPassword: string
   }): Promise<{ message: string }> => {
-    return put('/miniapp/user/password', data)
+    // 后端 miniapp 路由：POST /api/miniapp/user/change-password
+    return post('/miniapp/user/change-password', data as unknown as Record<string, unknown>)
   },
 
   // 获取收货地址列表
@@ -114,7 +115,8 @@ export const userApi = {
     growthValue: number
     benefits: MemberBenefit[]
   }> => {
-    return get('/miniapp/user/member-level')
+    // 后端 miniapp 路由：GET /api/miniapp/member/levels
+    return get('/miniapp/member/levels')
   },
 
   // 获取成长值明细
@@ -128,6 +130,7 @@ export const userApi = {
     pageSize: number
     records: GrowthRecord[]
   }> => {
-    return get('/miniapp/user/growth-records', params as Record<string, unknown>)
+    // 后端 miniapp 路由：GET /api/miniapp/member/growth
+    return get('/miniapp/member/growth', params as Record<string, unknown>)
   }
 }

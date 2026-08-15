@@ -34,7 +34,8 @@ export const POINTS_TYPE_TEXT: Record<string, string> = {
 
 export const pointsApi = {
   getPointsInfo: (): Promise<PointsInfo> => {
-    return get('/miniapp/points')
+    // 后端 miniapp 路由：GET /api/miniapp/member/points
+    return get('/miniapp/member/points')
   },
 
   getPointsRecords: (params?: PointsRecordParams): Promise<{
@@ -43,6 +44,7 @@ export const pointsApi = {
     pageSize: number
     records: PointsRecord[]
   }> => {
-    return get('/miniapp/points/records', params as Record<string, unknown>)
+    // 后端 marketing-miniapp 路由：GET /api/miniapp/marketing/points/my-records
+    return get('/miniapp/marketing/points/my-records', params as Record<string, unknown>)
   }
 }

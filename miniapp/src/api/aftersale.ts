@@ -77,18 +77,20 @@ export const AFTERSALE_STATUS_COLOR: Record<AftersaleStatus, string> = {
 
 export const aftersaleApi = {
   applyAftersale: (data: AftersaleApplyRequest): Promise<{ id: number }> => {
-    return post('/miniapp/aftersale/apply', data as unknown as Record<string, unknown>)
+    // 后端 aftersale 路由（复数）：POST /api/miniapp/aftersales
+    return post('/miniapp/aftersales', data as unknown as Record<string, unknown>)
   },
 
   getAftersaleList: (params: AftersaleListParams): Promise<PageResponse<AftersaleInfo>> => {
-    return get('/miniapp/aftersale', params as unknown as Record<string, unknown>)
+    // 后端 aftersale 路由：GET /api/miniapp/aftersales/mine
+    return get('/miniapp/aftersales/mine', params as unknown as Record<string, unknown>)
   },
 
   getAftersaleDetail: (id: number): Promise<AftersaleInfo> => {
-    return get(`/miniapp/aftersale/${id}`)
+    return get(`/miniapp/aftersales/${id}`)
   },
 
   cancelAftersale: (id: number): Promise<void> => {
-    return post(`/miniapp/aftersale/${id}/cancel`)
+    return post(`/miniapp/aftersales/${id}/cancel`)
   }
 }

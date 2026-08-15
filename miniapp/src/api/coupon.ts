@@ -38,7 +38,8 @@ export const couponApi = {
   },
 
   claimCoupon: (templateId: number): Promise<ClaimResponse> => {
-    return post(`/miniapp/marketing/coupons/${templateId}/claim`)
+    // 后端 marketing-miniapp 路由：POST /api/miniapp/marketing/coupons/claim（body 传 templateId）
+    return post('/miniapp/marketing/coupons/claim', { templateId } as unknown as Record<string, unknown>)
   },
 
   getMyCoupons: (params?: { page?: number; pageSize?: number; status?: string }): Promise<{
@@ -47,6 +48,7 @@ export const couponApi = {
     pageSize: number
     records: UserCoupon[]
   }> => {
-    return get('/miniapp/marketing/coupons/mine', params)
+    // 后端 marketing-miniapp 路由：GET /api/miniapp/marketing/coupons/my
+    return get('/miniapp/marketing/coupons/my', params)
   }
 }

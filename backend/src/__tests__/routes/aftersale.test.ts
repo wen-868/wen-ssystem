@@ -10,7 +10,8 @@ describe("routes/aftersale", () => {
   it("小程序售后路由配置应正确", () => {
     const miniappConfig = routeConfigs[0];
     expect(miniappConfig).toBeDefined();
-    expect(miniappConfig.prefix).toBe("/api/miniapp/aftersales");
+    // 路由路径已含 /aftersales 段，prefix 只到 /api/miniapp（避免重复段）
+    expect(miniappConfig.prefix).toBe("/api/miniapp");
     expect(miniappConfig.router).toBeDefined();
     expect(miniappConfig.auth).toBe("none");
   });
@@ -18,7 +19,7 @@ describe("routes/aftersale", () => {
   it("工作台售后路由配置应正确", () => {
     const adminConfig = routeConfigs[1];
     expect(adminConfig).toBeDefined();
-    expect(adminConfig.prefix).toBe("/api/admin/aftersales");
+    expect(adminConfig.prefix).toBe("/api/admin");
     expect(adminConfig.router).toBeDefined();
     expect(adminConfig.auth).toBe("requireAuthWithTenant");
   });

@@ -57,6 +57,6 @@ adminAftersaleRouter.post("/aftersales/:id/complete", asyncHandler(async (req, r
 }));
 
 export const routeConfigs: RouteConfig[] = [
-  { prefix: "/api/miniapp/aftersales", router: miniappAftersaleRouter, auth: "none" },
-  { prefix: "/api/admin/aftersales", router: adminAftersaleRouter, auth: "requireAuthWithTenant" },
+  { prefix: "/api/miniapp", router: miniappAftersaleRouter, auth: "none" },
+  { prefix: "/api/admin", router: adminAftersaleRouter, auth: "requireAuthWithTenant" },
 ];

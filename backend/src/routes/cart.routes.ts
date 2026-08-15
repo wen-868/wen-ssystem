@@ -8,12 +8,12 @@ import * as cartController from "../controllers/admin/cart.controller";
 export const miniappCartRouter = Router();
 
 // 购物车 CRUD
-miniappCartRouter.get("/cart", cartController.getCartList);
-miniappCartRouter.post("/cart/add", cartController.addToCart);
-miniappCartRouter.put("/cart/items/:skuId", cartController.updateCartItemQuantity);
-miniappCartRouter.delete("/cart/items/:skuId", cartController.deleteCartItem);
-miniappCartRouter.post("/cart/clear", cartController.clearCart);
-miniappCartRouter.get("/cart/count", cartController.getCartCount);
+miniappCartRouter.get("/", cartController.getCartList);
+miniappCartRouter.post("/add", cartController.addToCart);
+miniappCartRouter.put("/items/:skuId", cartController.updateCartItemQuantity);
+miniappCartRouter.delete("/items/:skuId", cartController.deleteCartItem);
+miniappCartRouter.post("/clear", cartController.clearCart);
+miniappCartRouter.get("/count", cartController.getCartCount);
 
 // 结算
 miniappCartRouter.post("/checkout/preview", cartController.checkoutPreview);
