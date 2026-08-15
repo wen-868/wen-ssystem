@@ -1,8 +1,3 @@
--- ============================================================================
--- 154: AI 底座 — 平台级外部大模型库
--- 支持平台添加任意 OpenAI 兼容外部大模型（自定义 base_url + api_key + 模型名）
--- 幂等：CREATE TABLE IF NOT EXISTS，可重复执行
--- ============================================================================
 CREATE TABLE IF NOT EXISTS t_ai_external_model (
   id int NOT NULL AUTO_INCREMENT,
   name varchar(64) NOT NULL COMMENT '唯一标识（provider 类型名，如 custom_kimi）',
@@ -17,3 +12,8 @@ CREATE TABLE IF NOT EXISTS t_ai_external_model (
   PRIMARY KEY (id),
   UNIQUE KEY uk_external_model_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='AI底座外部大模型配置';
+
+-- 编号: 154, 描述: AI 底座平台级外部大模型库（支持添加任意 OpenAI 兼容外部大模型）
+-- 创建人: 凌舟(AI协助), 日期: 2026-08-15
+-- 注意: 文件头不写注释（自动迁移按分号拆分，注释会污染首条语句被丢弃），说明放文件末尾。
+-- 幂等: CREATE TABLE IF NOT EXISTS + UNIQUE KEY，可重复执行。
