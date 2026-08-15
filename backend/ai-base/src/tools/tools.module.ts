@@ -113,6 +113,6 @@ import { BridgeModule } from '../bridge/bridge.module';
     InventoryReportTool,
     ProfitReportTool,
   ],
-  exports: [ToolRegistry, ToolExecutor],
+  exports: [ToolRegistry, ToolExecutor, ToolGeneratorService],
 })
 export class ToolsModule {}
