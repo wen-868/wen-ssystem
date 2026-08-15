@@ -142,4 +142,64 @@ if [ "${READY}" != "1" ]; then
   echo "==> [AI底座] 健康检查未通过，查看日志：tail -50 ${LOG_DIR}/ai-base.log"
 fi
 
+# ---- 7. nginx /ai-api/ 反代自动配置（SSE 流式对话 + WebSocket 实时推送） ----
+# 幂等：已存在 /ai-api/ 则跳过；修改前备份；nginx -t 校验失败自动回滚，绝不破坏现有配置
+echo "==> [AI底座] 检查 nginx /ai-api/ 反代配置"
+NGINX_SITE=""
+for f in /etc/nginx/sites-available/*; do
+  if [ -f "${f}" ] && grep -q "server_name.*admin.onepan.cn" "${f}" 2>/dev/null; then
+    NGINX_SITE="${f}"
+    break
+  fi
+done
+
+if [ -z "${NGINX_SITE}" ]; then
+  echo "==> [AI底座] 未找到 admin.onepan.cn 的 nginx 配置文件（跳过；请手动配置 /ai-api/ 反代，模板见 deploy/nginx-production.conf）"
+elif grep -q "location /ai-api/" "${NGINX_SITE}"; then
+  echo "==> [AI底座] /ai-api/ 反代已存在（${NGINX_SITE}），跳过"
+else
+  cp "${NGINX_SITE}" "${NGINX_SITE}.bak-ai-api"
+  awk '
+    /location \/api\/ \{/ { in_api=1 }
+    in_api && /^    \}$/ {
+      print
+      print "    # AI 底座（SSE 流式对话 + WebSocket 实时推送）：/ai-api/* → 服务器 3016（保留 /api 前缀）"
+      print "    location /ai-api/ {"
+      print "        proxy_pass http://127.0.0.1:3016/;"
+      print "        proxy_http_version 1.1;"
+      print "        proxy_set_header Host $host;"
+      print "        proxy_set_header X-Real-IP $remote_addr;"
+      print "        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"
+      print "        proxy_set_header X-Forwarded-Proto $scheme;"
+      print "        proxy_set_header Upgrade $http_upgrade;"
+      print "        proxy_set_header Connection \"upgrade\";"
+      print "        proxy_buffering off;"
+      print "        proxy_cache off;"
+      print "        proxy_read_timeout 300s;"
+      print "        proxy_send_timeout 300s;"
+      print "    }"
+      in_api=0
+      next
+    }
+    { print }
+  ' "${NGINX_SITE}" > "${NGINX_SITE}.ai-api.tmp"
+
+  if nginx -t >/dev/null 2>&1; then
+    mv "${NGINX_SITE}.ai-api.tmp" "${NGINX_SITE}"
+    systemctl reload nginx >/dev/null 2>&1 || nginx -s reload >/dev/null 2>&1 || true
+    echo "==> [AI底座] /ai-api/ 反代已写入并通过 nginx -t，已 reload（备份：${NGINX_SITE}.bak-ai-api）"
+  else
+    rm -f "${NGINX_SITE}.ai-api.tmp"
+    echo "==> [AI底座] nginx -t 校验失败，已保留原配置（请手动检查 ${NGINX_SITE}）"
+  fi
+fi
+
+# ---- 8. 配置项提示（RAG 预置知识 / LLM 端到端验收前置） ----
+if [ -z "$(grep '^EMBEDDING_MODEL=' .env 2>/dev/null | cut -d= -f2-)" ]; then
+  echo "==> [AI底座] 提示：EMBEDDING_MODEL 未配置，RAG 预置知识库不会加载（配置如 nomic-embed-text 后重启生效）"
+fi
+if [ -z "$(grep '^DEEPSEEK_API_KEY=' .env 2>/dev/null | cut -d= -f2-)" ]; then
+  echo "==> [AI底座] 提示：DEEPSEEK_API_KEY 未配置，端到端验收 LLM 项需配置后执行 node scripts/ai-base-e2e.mjs"
+fi
+
 echo "==> [AI底座] 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
