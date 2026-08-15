@@ -17,9 +17,14 @@
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ToolExecutor } from '../../tools/tool-executor';
+import { ToolRegistry } from '../../tools/tool-registry';
 import type { ToolCall } from '../../providers/provider.interface';
-import type { IModelProvider } from '../../providers/provider.interface';
-import type { ToolContext } from '../../tools/tool.interface';
+import type {
+  ChatMessage,
+  IModelProvider,
+  ToolDefinition,
+} from '../../providers/provider.interface';
+import type { ToolContext, ToolResult } from '../../tools/tool.interface';
 import { CheckpointerService } from './checkpointer.service';
 import { BUILTIN_GRAPHS, GraphDefinition } from './graph.types';
 
@@ -49,6 +54,7 @@ export class GraphExecutorService {
   constructor(
     private readonly executor: ToolExecutor,
     private readonly checkpointer: CheckpointerService,
+    private readonly registry: ToolRegistry,
   ) {}
 
   /**
@@ -202,7 +208,7 @@ export class GraphExecutorService {
           }
 
           case 'agent': {
-            // P0 骨架：agent 节点 = LLM 单轮生成；多 Agent 协作后续扩展
+            // P0-3 多 Agent 协作：域 Agent 节点 = 带工具白名单的小型 Agent Loop
             if (!provider) {
               state.currentNodeId = node.next ?? 'end';
               yield {
@@ -213,23 +219,111 @@ export class GraphExecutorService {
               };
               break;
             }
-            const result = await provider.chatSync([
+
+            // 1. 组装系统提示（域 Agent 职责 + 当前图状态产物）
+            const systemPrompt =
+              node.agent?.systemPrompt ??
+              node.prompt ??
+              `你是「${node.label}」域的专家 Agent。`;
+            const agentMessages: ChatMessage[] = [
               {
                 role: 'system',
-                content: node.prompt ?? `你是「${node.label}」域的专家 Agent。`,
+                content: systemPrompt,
               },
               {
                 role: 'user',
-                content: `请基于当前图状态产物完成本节点任务：${JSON.stringify(state.results).slice(0, 2000)}`,
+                content: `请基于当前图状态产物完成本节点任务：${JSON.stringify(
+                  state.results,
+                ).slice(0, 2000)}`,
               },
-            ]);
-            state.results[node.id] = result.content;
+            ];
+
+            // 2. 工具白名单定义（agent.tools 未配置则仅文本生成）
+            let agentTools: ToolDefinition[] | undefined;
+            if (node.agent?.tools && node.agent.tools.length > 0) {
+              agentTools = this.registry
+                .toToolDefinitions()
+                .filter((d) => node.agent!.tools!.includes(d.function.name));
+              const unknown = node.agent.tools.filter(
+                (name) => !this.registry.has(name),
+              );
+              if (unknown.length > 0) {
+                this.logger.warn(
+                  `agent 节点 ${node.id} 工具白名单包含未注册工具：${unknown.join(', ')}`,
+                );
+              }
+            }
+
+            // 3. 节点内 Agent Loop（≤ maxToolRounds 轮）
+            const maxRounds = node.agent?.maxToolRounds ?? 3;
+            let agentText = '';
+            const nodeToolResults: ToolResult[] = [];
+            for (let round = 0; round < maxRounds; round += 1) {
+              const generator = provider.chat(agentMessages, {
+                tools: agentTools,
+              });
+              let roundText = '';
+              let chatResult:
+                | { tool_calls?: ChatMessage['tool_calls']; content?: string }
+                | undefined;
+              // 手动迭代：done=true 时 value 为 ChatResult（含 tool_calls/usage）
+              for (;;) {
+                const { value, done } = await generator.next();
+                if (done) {
+                  chatResult = value;
+                  break;
+                }
+                roundText += value;
+                yield { type: 'text', content: value };
+              }
+              agentText += roundText;
+
+              if (chatResult?.content) {
+                agentText = chatResult.content;
+              }
+              if (
+                !chatResult?.tool_calls ||
+                chatResult.tool_calls.length === 0
+              ) {
+                break;
+              }
+
+              // 4. 执行工具调用并追加结果到上下文
+              const toolMessages = await this.executor.executeToolCalls(
+                chatResult.tool_calls,
+                toolContext,
+              );
+              for (const m of toolMessages) {
+                const parsed = this.tryParseToolMessage(m);
+                if (parsed) nodeToolResults.push(parsed);
+                yield {
+                  type: 'tool_result',
+                  tool: m.tool_call_id ?? 'agent_tool',
+                  success: parsed?.success ?? true,
+                  data: parsed?.data,
+                  error: parsed?.error,
+                };
+              }
+              agentMessages.push(
+                {
+                  role: 'assistant',
+                  content: '',
+                  tool_calls: chatResult.tool_calls,
+                },
+                ...toolMessages,
+              );
+            }
+
+            // 5. 产物入状态（文本 + 工具结果）
+            state.results[node.id] = {
+              text: agentText,
+              toolResults: nodeToolResults,
+            };
             state.history.push({
               nodeId: node.id,
               label: node.label,
               success: true,
             });
-            yield { type: 'text', content: result.content };
             yield {
               type: 'node_end',
               nodeId: node.id,
@@ -261,5 +355,15 @@ export class GraphExecutorService {
     state.error = `图执行超过 ${MAX_NODE_STEPS} 步（疑似死循环）`;
     await this.checkpointer.save(state);
     yield { type: 'error', message: state.error };
+  }
+
+  /** 解析 tool 角色消息中的 ToolResult（供事件与产物收集） */
+  private tryParseToolMessage(message: ChatMessage): ToolResult | null {
+    if (message.role !== 'tool' || !message.content) return null;
+    try {
+      return JSON.parse(message.content) as ToolResult;
+    } catch {
+      return null;
+    }
   }
 }

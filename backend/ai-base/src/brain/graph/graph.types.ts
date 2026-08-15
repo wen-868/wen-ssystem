@@ -26,6 +26,15 @@ export interface GraphNode {
   args?: Record<string, unknown>;
   /** type=agent 时：节点指令（追加到系统提示，引导该域 Agent） */
   prompt?: string;
+  /** type=agent 时：域 Agent 配置（P0-3 多 Agent 协作） */
+  agent?: {
+    /** Agent 系统提示（覆盖 prompt，体现域职责） */
+    systemPrompt?: string;
+    /** 该 Agent 可调用的工具白名单（工具名列表；不填则仅文本生成） */
+    tools?: string[];
+    /** 节点内最大工具循环轮数（默认 3） */
+    maxToolRounds?: number;
+  };
   /** 默认下一节点 ID（end 节点可省略） */
   next?: string;
   /** type=condition 时：条件流转，返回下一节点 ID；返回 undefined 走 next */

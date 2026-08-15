@@ -6,6 +6,7 @@
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-15
  */
 import { ToolExecutor } from '../../tools/tool-executor';
+import { ToolRegistry } from '../../tools/tool-registry';
 import type { ToolContext } from '../../tools/tool.interface';
 import { CheckpointerService } from './checkpointer.service';
 import { GraphExecutorService } from './graph-executor.service';
@@ -97,6 +98,64 @@ const BRANCH_GRAPH: GraphDefinition = {
   ],
 };
 
+/** 域 Agent 图（P0-3）：agent 节点带工具白名单 */
+const AGENT_GRAPH: GraphDefinition = {
+  id: 'test_agent',
+  name: '域Agent测试图',
+  entry: 'agent1',
+  nodes: [
+    {
+      id: 'agent1',
+      label: '客服域Agent',
+      type: 'agent',
+      agent: {
+        systemPrompt: '你是客服域 Agent，可查询订单与客户。',
+        tools: ['searchCustomer', 'querySaleBills'],
+        maxToolRounds: 2,
+      },
+      next: 'end',
+    },
+    { id: 'end', label: '完成', type: 'end' },
+  ],
+};
+
+function makeRegistryMock() {
+  return {
+    toToolDefinitions: jest.fn(() => [
+      {
+        type: 'function',
+        function: {
+          name: 'searchCustomer',
+          description: '搜索客户',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'querySaleBills',
+          description: '查询销售单',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+    ]),
+    has: jest.fn((name: string) =>
+      ['searchCustomer', 'querySaleBills'].includes(name),
+    ),
+  };
+}
+
+function makeExecutor(
+  executorMock: { executeToolCall?: jest.Mock; executeToolCalls?: jest.Mock },
+  checkpointer: ReturnType<typeof makeCheckpointer>,
+) {
+  return new GraphExecutorService(
+    executorMock as unknown as ToolExecutor,
+    checkpointer as unknown as CheckpointerService,
+    makeRegistryMock() as unknown as ToolRegistry,
+  );
+}
+
 async function collectEvents(
   executor: GraphExecutorService,
   graph: GraphDefinition,
@@ -118,10 +177,7 @@ describe('GraphExecutorService', () => {
       }),
     };
     const checkpointer = makeCheckpointer();
-    const executor = new GraphExecutorService(
-      executorMock as unknown as ToolExecutor,
-      checkpointer as unknown as CheckpointerService,
-    );
+    const executor = makeExecutor(executorMock, checkpointer);
 
     const events = await collectEvents(executor, LINEAR_GRAPH, makeCtx());
 
@@ -147,10 +203,7 @@ describe('GraphExecutorService', () => {
         .mockResolvedValue({ success: true, data: 'ok' }),
     };
     const checkpointer = makeCheckpointer();
-    const executor = new GraphExecutorService(
-      executorMock as unknown as ToolExecutor,
-      checkpointer as unknown as CheckpointerService,
-    );
+    const executor = makeExecutor(executorMock, checkpointer);
     // 预置 step1 结果驱动条件
     const ctx = makeCtx();
     await checkpointer.save({
@@ -182,10 +235,7 @@ describe('GraphExecutorService', () => {
       }),
     };
     const checkpointer = makeCheckpointer();
-    const executor = new GraphExecutorService(
-      executorMock as unknown as ToolExecutor,
-      checkpointer as unknown as CheckpointerService,
-    );
+    const executor = makeExecutor(executorMock, checkpointer);
 
     const events = await collectEvents(executor, LINEAR_GRAPH, makeCtx());
     const errorEvent = events.find((e) => e.type === 'error');
@@ -203,10 +253,7 @@ describe('GraphExecutorService', () => {
         .mockResolvedValue({ success: true, data: { done: true } }),
     };
     const checkpointer = makeCheckpointer();
-    const executor = new GraphExecutorService(
-      executorMock as unknown as ToolExecutor,
-      checkpointer as unknown as CheckpointerService,
-    );
+    const executor = makeExecutor(executorMock, checkpointer);
     // 断点：已完成 step1，从 step2 续跑
     await checkpointer.save({
       graphId: 'test_linear',
@@ -230,12 +277,86 @@ describe('GraphExecutorService', () => {
   });
 
   it('getGraph 未知图返回 null，listGraphs 含内置图', () => {
-    const executor = new GraphExecutorService(
-      {} as ToolExecutor,
-      makeCheckpointer() as unknown as CheckpointerService,
-    );
+    const executor = makeExecutor({}, makeCheckpointer());
     expect(executor.getGraph('sale_create_graph')).not.toBeNull();
     expect(executor.getGraph('not_exist')).toBeNull();
     expect(executor.listGraphs().length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('域 Agent 节点：调用白名单工具后生成最终文本（P0-3）', async () => {
+    // 构造单次 done 的 AsyncGenerator（value = ChatResult）
+    function makeChatResult(value: unknown) {
+      return {
+        next: () => Promise.resolve({ done: true as const, value }),
+        [Symbol.asyncIterator]() {
+          return this;
+        },
+      };
+    }
+    // provider.chat：第一轮返回 tool_calls，第二轮返回纯文本
+    const chatMock = jest.fn();
+    chatMock
+      .mockImplementationOnce(() =>
+        makeChatResult({
+          content: '',
+          tool_calls: [
+            {
+              id: 'call_1',
+              type: 'function' as const,
+              function: {
+                name: 'searchCustomer',
+                arguments: '{"name":"红星商行"}',
+              },
+            },
+          ],
+          prompt_tokens: 10,
+          completion_tokens: 5,
+        }),
+      )
+      .mockImplementationOnce(() =>
+        makeChatResult({
+          content: '已查询到客户红星商行',
+          prompt_tokens: 10,
+          completion_tokens: 5,
+        }),
+      );
+    const provider = { chat: chatMock } as unknown as {
+      chat: (messages: unknown[], opts?: unknown) => AsyncGenerator<string>;
+    };
+    const executorMock = {
+      executeToolCalls: jest.fn().mockResolvedValue([
+        {
+          role: 'tool' as const,
+          tool_call_id: 'call_1',
+          content: JSON.stringify({
+            success: true,
+            data: { id: 1, name: '红星商行' },
+          }),
+        },
+      ]),
+    };
+    const checkpointer = makeCheckpointer();
+    const executor = makeExecutor(executorMock, checkpointer);
+
+    const events: Array<{ type: string; [k: string]: unknown }> = [];
+    for await (const e of executor.execute(
+      AGENT_GRAPH,
+      's1',
+      makeCtx(),
+      provider as never,
+    )) {
+      events.push(e);
+    }
+
+    expect(executorMock.executeToolCalls).toHaveBeenCalledTimes(1);
+    const toolResultEvent = events.find(
+      (e) => e.type === 'tool_result' && e.tool === 'call_1',
+    );
+    expect(toolResultEvent).toBeDefined();
+    expect(
+      events.some((e) => e.type === 'node_end' && e.nodeId === 'agent1'),
+    ).toBe(true);
+    // 完成后检查点清除（不残留脏状态）
+    expect(checkpointer.clear).toHaveBeenCalled();
   });
 });
