@@ -101,6 +101,8 @@ export const API_ENDPOINTS = {
   CUSTOMER_VISITS: '/api/admin/customer-visits',
   // 佣金（commission.routes.ts prefix: /api/admin/commission）
   COMMISSION: '/api/admin/commission',
+  // 审批流（approval.routes.ts prefix: /api/admin/approval）
+  APPROVAL: '/api/admin/approval',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）
   REPORTS: '/api/admin/reports',
   DASHBOARD: '/api/admin/dashboard',

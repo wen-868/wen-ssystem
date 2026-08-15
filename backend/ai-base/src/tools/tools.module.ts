@@ -61,6 +61,8 @@ import { CreateCustomerVisitTool } from './definitions/create-customer-visit.too
 import { CalculateCommissionTool } from './definitions/calculate-commission.tool';
 import { AutoGenerateCollectionsTool } from './definitions/auto-generate-collections.tool';
 import { CreateLimitedDiscountTool } from './definitions/create-limited-discount.tool';
+// R70 完善度 P1: 审批处理（第二批，高危强制审核）
+import { HandleApprovalTool } from './definitions/handle-approval.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -158,6 +160,8 @@ import { BridgeModule } from '../bridge/bridge.module';
     CalculateCommissionTool,
     AutoGenerateCollectionsTool,
     CreateLimitedDiscountTool,
+    // R70 完善度 P1: 审批处理（高危）
+    HandleApprovalTool,
   ],
   exports: [ToolRegistry, ToolExecutor, ToolGeneratorService],
 })

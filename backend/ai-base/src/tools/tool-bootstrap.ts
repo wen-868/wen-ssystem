@@ -53,6 +53,8 @@ import { CreateCustomerVisitTool } from './definitions/create-customer-visit.too
 import { CalculateCommissionTool } from './definitions/calculate-commission.tool';
 import { AutoGenerateCollectionsTool } from './definitions/auto-generate-collections.tool';
 import { CreateLimitedDiscountTool } from './definitions/create-limited-discount.tool';
+// R70 完善度 P1: 审批处理（第二批，高危强制审核）
+import { HandleApprovalTool } from './definitions/handle-approval.tool';
 import { ToolGeneratorService } from './catalog/tool-generator.service';
 
 /**
@@ -145,6 +147,7 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly calculateCommissionTool: CalculateCommissionTool,
     private readonly autoGenerateCollectionsTool: AutoGenerateCollectionsTool,
     private readonly createLimitedDiscountTool: CreateLimitedDiscountTool,
+    private readonly handleApprovalTool: HandleApprovalTool,
     private readonly toolGenerator: ToolGeneratorService,
   ) {}
 
@@ -209,6 +212,8 @@ export class ToolBootstrap implements OnModuleInit {
       this.calculateCommissionTool,
       this.autoGenerateCollectionsTool,
       this.createLimitedDiscountTool,
+      // R70 完善度 P1: 审批处理（高危）
+      this.handleApprovalTool,
     ]);
 
     // P0-8 功能即技能：开关开启时自动注册 API 目录工具（总台注册表 → AI 技能）

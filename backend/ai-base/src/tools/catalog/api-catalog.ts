@@ -646,4 +646,221 @@ export const API_CATALOG: ApiRouteDef[] = [
     isWriteOperation: false,
     risk: 'low',
   },
+  // ── 第二批查询类（库存深度/审批/异常，2026-08-16 清单 #52~#62） ──
+  {
+    name: 'api_query_inventory_batches',
+    description:
+      '查询库存批次列表（批次号/生产日期/到期日/数量）。入参：skuId(可选)、storeId(可选)、status(可选)、page、pageSize。出参：批次列表。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory-batch/batches',
+    parameters: {
+      type: 'object',
+      properties: {
+        skuId: { type: 'number', description: 'SKU ID（可选）' },
+        storeId: { type: 'number', description: '门店ID（可选）' },
+        status: { type: 'string', description: '批次状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_expiry_alerts',
+    description:
+      '查询库存到期预警列表（临期商品批次）。入参：storeId(可选)、page、pageSize。出参：到期预警列表。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory-batch/expiry-alerts',
+    parameters: {
+      type: 'object',
+      properties: {
+        storeId: { type: 'number', description: '门店ID（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_inventory_cost',
+    description:
+      '查询库存成本详情。入参：startDate(开始日期,可选)、endDate(结束日期,可选)。出参：成本数据。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory/cost-detail',
+    parameters: {
+      type: 'object',
+      properties: {
+        startDate: { type: 'string', description: '开始日期（可选）' },
+        endDate: { type: 'string', description: '结束日期（可选）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_inventory_loss_gains',
+    description:
+      '查询库存损溢记录（报损/报溢）。入参：storeId(可选)、type(可选)、page、pageSize。出参：损溢记录列表。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory/loss-gains',
+    parameters: {
+      type: 'object',
+      properties: {
+        storeId: { type: 'number', description: '门店ID（可选）' },
+        type: { type: 'string', description: '损溢类型（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_inventory_profit_loss',
+    description:
+      '查询库存盈亏统计（损耗单/盈利单汇总）。入参：storeId(可选)、startDate/endDate(可选)。出参：盈亏统计。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory/profit-loss/stats',
+    parameters: {
+      type: 'object',
+      properties: {
+        storeId: { type: 'number', description: '门店ID（可选）' },
+        startDate: { type: 'string', description: '开始日期（可选）' },
+        endDate: { type: 'string', description: '结束日期（可选）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_stock_warnings',
+    description:
+      '查询库存预警列表（低于安全库存/高于库存上限）。入参：storeId(可选)。出参：预警商品列表。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/stock-warnings',
+    parameters: {
+      type: 'object',
+      properties: {
+        storeId: { type: 'number', description: '门店ID（可选）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_inventory_share_products',
+    description:
+      '查询共享库存商品列表。入参：keyword(商品名,可选)、categoryId(分类,可选)、status(可选)、page、pageSize。出参：共享商品列表。',
+    category: 'inventory',
+    method: 'GET',
+    path: '/api/admin/inventory-share/products',
+    parameters: {
+      type: 'object',
+      properties: {
+        keyword: { type: 'string', description: '商品关键词（可选）' },
+        categoryId: { type: 'number', description: '分类ID（可选）' },
+        status: { type: 'number', description: '状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_order_exceptions',
+    description:
+      '查询订单异常列表（支付异常/超时未处理等）。入参：status(可选)、page、pageSize。出参：异常订单列表。',
+    category: 'order',
+    method: 'GET',
+    path: '/api/admin/order-exceptions',
+    parameters: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', description: '异常状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_order_timeouts',
+    description:
+      '查询订单超时处理日志。入参：page、pageSize。出参：超时日志列表。',
+    category: 'order',
+    method: 'GET',
+    path: '/api/admin/order-timeout/logs',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_approval_tasks',
+    description:
+      '查询我的审批任务（待办）。入参：page、pageSize。出参：审批任务列表。',
+    category: 'system',
+    method: 'GET',
+    path: '/api/admin/approval/tasks',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_approval_instances',
+    description:
+      '查询审批实例列表（我发起的/全部）。入参：page、pageSize。出参：审批实例列表。',
+    category: 'system',
+    method: 'GET',
+    path: '/api/admin/approval/instances',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
+  {
+    name: 'api_query_operation_logs',
+    description:
+      '查询操作日志列表。入参：module(模块,可选)、action(动作,可选)、page、pageSize。出参：操作日志列表。',
+    category: 'system',
+    method: 'GET',
+    path: '/api/admin/operation-logs',
+    parameters: {
+      type: 'object',
+      properties: {
+        module: { type: 'string', description: '模块（可选）' },
+        action: { type: 'string', description: '动作（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+  },
 ];
