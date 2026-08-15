@@ -234,15 +234,20 @@ export const payOrder = asyncHandler(async (req, res) => {
     return;
   }
 
-  // 生成支付参数（模拟微信支付）
-  const payParams = {
+  // 真实微信 JSAPI 支付（API v3 下单，RSA 签名）
+  const openid = await miniappService.getOrderPayerOpenid(orderNo, tenantId);
+  if (!openid) {
+    res.status(400).json(fail("订单用户缺少微信 openid，无法发起微信支付"));
+    return;
+  }
+  const { createJsapiPayment } = await import("../../services/wechat-pay.service");
+  const payParams = await createJsapiPayment({
+    tenantId,
+    openid,
     orderNo: order.orderNo,
-    amount: order.payableAmount,
-    paymentMethod: body.paymentMethod,
-    payUrl: `https://api.weixin.qq.com/pay/unifiedorder?order=${order.orderNo}`,
-    timestamp: Date.now(),
-    nonceStr: Math.random().toString(36).substr(2, 15)
-  };
+    amountYuan: Number(order.payableAmount),
+    description: `智享酒水订单${order.orderNo}`,
+  });
 
   res.json(ok(payParams));
 });

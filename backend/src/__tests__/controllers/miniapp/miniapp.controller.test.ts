@@ -5,6 +5,20 @@ vi.mock("../../../services/miniapp.service", () => ({
   getOrders: vi.fn(),
   getOrderDetail: vi.fn(),
   getProfile: vi.fn(),
+  getOrderPayerOpenid: vi.fn(),
+}));
+
+// 真实微信支付（动态 import）：mock 下单返回 JSAPI 参数
+vi.mock("../../../services/wechat-pay.service", () => ({
+  createJsapiPayment: vi.fn().mockResolvedValue({
+    appId: "wx123",
+    timeStamp: "1700000000",
+    nonceStr: "nonce",
+    package: "prepay_id=wxprepay123",
+    signType: "RSA",
+    paySign: "signed",
+    prepayId: "wxprepay123",
+  }),
 }));
 
 vi.mock("../../../services/miniapp/cart.service", () => ({
@@ -526,13 +540,14 @@ describe("miniapp/miniapp.controller", () => {
   describe("payOrder", () => {
     it("未支付订单应返回支付参数", async () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD001", payStatus: "UNPAID", payableAmount: 100 });
+      (miniappService.getOrderPayerOpenid as any).mockResolvedValue("openid_abc");
       const req = mockReq({ params: { id: "DD001" }, body: { paymentMethod: "WECHAT_PAY" } });
       const res = mockRes();
       await payOrder(req as any, res as any, vi.fn());
       expect(ok).toHaveBeenCalled();
       const okArg = (ok as any).mock.calls[0][0];
-      expect(okArg.orderNo).toBe("DD001");
-      expect(okArg.paymentMethod).toBe("WECHAT_PAY");
+      expect(okArg.prepayId).toBe("wxprepay123");
+      expect(okArg.paySign).toBe("signed");
     });
 
     it("已支付订单应返回 400", async () => {
@@ -546,12 +561,12 @@ describe("miniapp/miniapp.controller", () => {
 
     it("BALANCE 支付方式也应返回支付参数", async () => {
       (miniappService.getOrderDetail as any).mockResolvedValue({ orderNo: "DD002", payStatus: "UNPAID", payableAmount: 200 });
+      (miniappService.getOrderPayerOpenid as any).mockResolvedValue("openid_abc");
       const req = mockReq({ params: { id: "DD002" }, body: { paymentMethod: "BALANCE" } });
       const res = mockRes();
       await payOrder(req as any, res as any, vi.fn());
       const okArg = (ok as any).mock.calls[0][0];
-      expect(okArg.paymentMethod).toBe("BALANCE");
-      expect(okArg.amount).toBe(200);
+      expect(okArg.prepayId).toBe("wxprepay123");
     });
   });
 

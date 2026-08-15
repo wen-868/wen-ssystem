@@ -95,6 +95,7 @@ interface MiniappOrderCancelRow extends RowDataPacket {
 /** 支付结果查询行 */
 interface PayStatusRow {
   payStatus: string;
+  orderStatus?: string;
 }
 
 interface StatementOrderRow {
@@ -438,17 +439,54 @@ export async function cancelOrder(orderNo: string, tenantId: string, reason?: st
   });
 }
 
-// ========== 查询订单支付结果 ==========
+// ========== 查询订单支付结果（真实查微信 + 同步状态） ==========
 export async function queryPayResult(orderNo: string, tenantId: string) {
   const row = await queryOne<PayStatusRow>(
-    `SELECT pay_status AS payStatus FROM t_miniapp_order
+    `SELECT pay_status AS payStatus, order_status AS orderStatus FROM t_miniapp_order
      WHERE order_no = ? AND tenant_id = ?`,
     [orderNo, tenantId]
   );
   if (!row) {
     throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
   }
-  return { paid: row.payStatus === "PAID" };
+  if (row.payStatus === "PAID") {
+    return { paid: true, orderStatus: row.orderStatus };
+  }
+  // 调微信查单，成功则同步状态（前端支付成功轮询即闭环）
+  try {
+    const { queryWechatPayOrder } = await import("./wechat-pay.service");
+    const result = await queryWechatPayOrder(tenantId, orderNo);
+    if (result.trade_state === "SUCCESS") {
+      await query(
+        `UPDATE t_miniapp_order SET pay_status = 'PAID', paid_at = NOW(),
+                order_status = CASE WHEN order_status = 'PENDING_PAYMENT' THEN 'PENDING_SHIP' ELSE order_status END,
+                updated_at = NOW()
+         WHERE order_no = ? AND tenant_id = ?`,
+        [orderNo, tenantId]
+      );
+      const updated = await queryOne<PayStatusRow>(
+        `SELECT pay_status AS payStatus, order_status AS orderStatus FROM t_miniapp_order
+         WHERE order_no = ? AND tenant_id = ?`,
+        [orderNo, tenantId]
+      );
+      return { paid: true, orderStatus: updated?.orderStatus };
+    }
+    return { paid: false, orderStatus: row.orderStatus };
+  } catch {
+    // 微信查单失败不阻塞：返回本地状态（前端可稍后重试）
+    return { paid: false, orderStatus: row.orderStatus };
+  }
+}
+
+/** 获取订单支付人微信 openid（JSAPI 支付必需） */
+export async function getOrderPayerOpenid(orderNo: string, tenantId: string): Promise<string | null> {
+  const row = await queryOne<{ openid: string | null }>(
+    `SELECT m.openid FROM t_miniapp_order o
+     JOIN t_member m ON m.id = o.member_id AND m.tenant_id = o.tenant_id
+     WHERE o.order_no = ? AND o.tenant_id = ?`,
+    [orderNo, tenantId]
+  );
+  return row?.openid ?? null;
 }
 
 // ========== 对账单列表 ==========
