@@ -30,6 +30,7 @@ import { CreatePaymentReconciliationTool } from './definitions/create-payment-re
 import { SalesReportTool } from './definitions/sales-report.tool';
 import { InventoryReportTool } from './definitions/inventory-report.tool';
 import { ProfitReportTool } from './definitions/profit-report.tool';
+import { ToolGeneratorService } from './catalog/tool-generator.service';
 
 /**
  * Tool 注册引导器
@@ -101,6 +102,7 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly salesReportTool: SalesReportTool,
     private readonly inventoryReportTool: InventoryReportTool,
     private readonly profitReportTool: ProfitReportTool,
+    private readonly toolGenerator: ToolGeneratorService,
   ) {}
 
   onModuleInit(): void {
@@ -142,5 +144,10 @@ export class ToolBootstrap implements OnModuleInit {
       this.inventoryReportTool,
       this.profitReportTool,
     ]);
+
+    // P0-8 功能即技能：开关开启时自动注册 API 目录工具（总台注册表 → AI 技能）
+    if (this.toolGenerator.isEnabled()) {
+      this.toolGenerator.generateAndRegister(this.registry);
+    }
   }
 }

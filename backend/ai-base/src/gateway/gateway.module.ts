@@ -20,6 +20,7 @@ import { AdminController } from './admin.controller';
 import { AiConfigController } from './ai-config.controller';
 import { ExternalModelController } from './external-model.controller';
 import { ReviewController } from './review.controller';
+import { ApiCatalogController } from './api-catalog.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -61,6 +62,7 @@ import { PushGatewayService } from './push-gateway.service';
     AiConfigController,
     ExternalModelController,
     ReviewController,
+    ApiCatalogController,
   ],
   providers: [PushGatewayService],
   exports: [PushGatewayService],
