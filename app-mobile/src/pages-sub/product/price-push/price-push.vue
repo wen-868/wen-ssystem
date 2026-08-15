@@ -195,7 +195,8 @@ async function resendQuote(item: any) {
 
 async function loadQuoteHistory() {
   try {
-    const res = await get('/admin/quote-push/history', { page: 1, pageSize: 10 })
+    // 后端 quote-push 路由：GET /api/admin/quote-push（分页查询列表）
+    const res = await get('/admin/quote-push', { page: 1, pageSize: 10 })
     quoteList.value = res?.list || res?.records || []
   } catch (err) {
     console.error('加载报价历史失败:', err)
