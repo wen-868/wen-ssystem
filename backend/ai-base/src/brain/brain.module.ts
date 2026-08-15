@@ -36,6 +36,8 @@ import { AiLtmProfileEntity } from '../database/entities/ai-ltm-profile.entity';
 import { AiLtmEpisodicEntity } from '../database/entities/ai-ltm-episodic.entity';
 import { AiLtmArchivalEntity } from '../database/entities/ai-ltm-archival.entity';
 import { LongTermMemoryService } from './memory/long-term-memory.service';
+import { AiLearningLogEntity } from '../database/entities/ai-learning-log.entity';
+import { LearningService } from './learning/learning.service';
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { LongTermMemoryService } from './memory/long-term-memory.service';
       AiLtmProfileEntity,
       AiLtmEpisodicEntity,
       AiLtmArchivalEntity,
+      AiLearningLogEntity,
     ]),
     ProvidersModule,
     ToolsModule,
@@ -63,6 +66,7 @@ import { LongTermMemoryService } from './memory/long-term-memory.service';
     ProviderRouterService,
     EvidenceLedgerService,
     LongTermMemoryService,
+    LearningService,
   ],
   exports: [
     Orchestrator,
@@ -75,6 +79,7 @@ import { LongTermMemoryService } from './memory/long-term-memory.service';
     ProviderRouterService,
     EvidenceLedgerService,
     LongTermMemoryService,
+    LearningService,
   ],
 })
 export class BrainModule {}

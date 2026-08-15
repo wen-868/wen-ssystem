@@ -43,6 +43,7 @@ import type { ChatMessage, ChatResult } from '../providers/provider.interface';
 import type { ToolContext, ToolResult } from '../tools/tool.interface';
 import { GraphExecutorService } from './graph/graph-executor.service';
 import { ProviderRouterService } from './router/provider-router.service';
+import { LearningService } from './learning/learning.service';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -143,6 +144,7 @@ export class Orchestrator {
     private readonly confirmationService: ConfirmationService,
     private readonly graphExecutor: GraphExecutorService,
     private readonly router: ProviderRouterService,
+    private readonly learning: LearningService,
   ) {}
 
   /**
@@ -460,6 +462,27 @@ export class Orchestrator {
         conversationId,
         newMessagesToSave,
       );
+
+      // ── 6.5 P2 自主学习：基于工具结果吸收反馈（失败/成功经验回流，不阻塞主流程） ──
+      try {
+        if (toolResults.length > 0) {
+          const failed = toolResults.find((r) => !r.success);
+          await this.learning.absorb(
+            tenantId,
+            {
+              taskName: '对话任务',
+              success: !failed,
+              error: failed?.error,
+              tool: failed?.tool,
+            },
+            userId,
+          );
+        }
+      } catch (err) {
+        this.logger.debug(
+          `学习吸收失败（忽略）：${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
 
       // ── 7. 发送 done 事件 ──
       const latencyMs = Date.now() - startTime;

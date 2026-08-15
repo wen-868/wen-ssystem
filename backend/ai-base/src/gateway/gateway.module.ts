@@ -21,6 +21,7 @@ import { AiConfigController } from './ai-config.controller';
 import { ExternalModelController } from './external-model.controller';
 import { ReviewController } from './review.controller';
 import { ApiCatalogController } from './api-catalog.controller';
+import { LearningController } from './learning.controller';
 import { ProvidersModule } from '../providers/providers.module';
 import { ToolsModule } from '../tools/tools.module';
 import { BridgeModule } from '../bridge/bridge.module';
@@ -63,6 +64,7 @@ import { PushGatewayService } from './push-gateway.service';
     ExternalModelController,
     ReviewController,
     ApiCatalogController,
+    LearningController,
   ],
   providers: [PushGatewayService],
   exports: [PushGatewayService],
