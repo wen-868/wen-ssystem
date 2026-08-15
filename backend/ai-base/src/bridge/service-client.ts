@@ -94,6 +94,13 @@ export const API_ENDPOINTS = {
   PURCHASE_CONTRACTS: '/api/admin/purchase-contracts',
   // 客户信用（credit.routes.ts prefix: /api/admin/credits）
   CREDITS: '/api/admin/credits',
+  CREDIT_COLLECTIONS: '/api/admin/credits/collections',
+  // 客户分群/关怀/拜访
+  MEMBER_SEGMENTS: '/api/admin/members/segments',
+  CARE_RULES: '/api/admin/members/care/rules',
+  CUSTOMER_VISITS: '/api/admin/customer-visits',
+  // 佣金（commission.routes.ts prefix: /api/admin/commission）
+  COMMISSION: '/api/admin/commission',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）
   REPORTS: '/api/admin/reports',
   DASHBOARD: '/api/admin/dashboard',

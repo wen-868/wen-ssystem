@@ -54,6 +54,13 @@ import { CreatePurchasePaymentTool } from './definitions/create-purchase-payment
 import { CreatePurchaseReturnTool } from './definitions/create-purchase-return.tool';
 import { CreatePurchaseContractTool } from './definitions/create-purchase-contract.tool';
 import { CreateExpenseTool } from './definitions/create-expense.tool';
+// R70 完善度 P1: 客户/佣金/催收/限量折扣 6 个精调写操作工具（清单第一批收口）
+import { CreateCustomerSegmentTool } from './definitions/create-customer-segment.tool';
+import { ExecuteCareRuleTool } from './definitions/execute-care-rule.tool';
+import { CreateCustomerVisitTool } from './definitions/create-customer-visit.tool';
+import { CalculateCommissionTool } from './definitions/calculate-commission.tool';
+import { AutoGenerateCollectionsTool } from './definitions/auto-generate-collections.tool';
+import { CreateLimitedDiscountTool } from './definitions/create-limited-discount.tool';
 import { BridgeModule } from '../bridge/bridge.module';
 
 /**
@@ -144,6 +151,13 @@ import { BridgeModule } from '../bridge/bridge.module';
     CreatePurchaseReturnTool,
     CreatePurchaseContractTool,
     CreateExpenseTool,
+    // R70 完善度 P1: 客户/佣金/催收/限量折扣 6 个精调写操作工具
+    CreateCustomerSegmentTool,
+    ExecuteCareRuleTool,
+    CreateCustomerVisitTool,
+    CalculateCommissionTool,
+    AutoGenerateCollectionsTool,
+    CreateLimitedDiscountTool,
   ],
   exports: [ToolRegistry, ToolExecutor, ToolGeneratorService],
 })
