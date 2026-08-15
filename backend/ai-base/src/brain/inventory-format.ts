@@ -33,7 +33,9 @@ export function formatInventoryQty(
   if (qty === null || qty === undefined) return '';
   const n = Number(qty);
   if (!Number.isFinite(n)) {
-    return String(qty);
+    return typeof qty === 'string' || typeof qty === 'number'
+      ? String(qty)
+      : '';
   }
   const baseUnit =
     typeof unit?.baseUnit === 'string' ? unit.baseUnit.trim() : '';

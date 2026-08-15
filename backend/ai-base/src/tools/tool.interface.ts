@@ -33,6 +33,8 @@ export type ToolCategory =
   | 'delivery' // 配送管理
   | 'finance' // 财务管理
   | 'report' // 报表分析
+  | 'marketing' // 营销管理
+  | 'platform' // 总台/平台管理
   | 'system' // 系统管理
   | 'utility'; // 工具类（如 echo 测试工具）
 

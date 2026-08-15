@@ -45,6 +45,7 @@ import { GraphExecutorService } from './graph/graph-executor.service';
 import { ProviderRouterService } from './router/provider-router.service';
 import { LearningService } from './learning/learning.service';
 import { formatInventoryQty } from './inventory-format';
+import { buildApiToolSummary } from './api-summary';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -685,7 +686,12 @@ export class Orchestrator {
           break;
         }
         default: {
-          parts.push(`「${tr.tool}」执行完成。`);
+          if (tr.tool.startsWith('api_')) {
+            // 目录生成工具：从返回数据提取可读结论，避免空话
+            parts.push(buildApiToolSummary(tr.tool, d));
+          } else {
+            parts.push(`「${tr.tool}」执行完成。`);
+          }
         }
       }
     }

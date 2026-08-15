@@ -107,6 +107,16 @@ if [ -f ".env" ]; then
   fi
 fi
 
+# ---- 2.6 启用 API 目录工具（功能即技能：目录登记即成为 AI 技能；当前目录均为 low 风险查询） ----
+if [ -f ".env" ]; then
+  if grep -q '^ENABLE_API_CATALOG_TOOLS=' ".env"; then
+    echo "==> [AI底座] ENABLE_API_CATALOG_TOOLS 已配置，保留现有值"
+  else
+    echo "ENABLE_API_CATALOG_TOOLS=true" >> ".env"
+    echo "==> [AI底座] 已启用 ENABLE_API_CATALOG_TOOLS=true（API 目录工具注册）"
+  fi
+fi
+
 # ---- 3. 安装依赖（需执行原生脚本以编译 @napi-rs/canvas） ----
 echo "==> [AI底座] pnpm install"
 pnpm install --no-frozen-lockfile 2>&1 | tail -8 || { echo "==> [AI底座] pnpm install 失败，跳过 AI 底座部署"; exit 0; }
