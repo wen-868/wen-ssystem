@@ -5,6 +5,7 @@ import * as productController from "../controllers/store/product.controller";
 import * as tagController from "../controllers/admin/tag.controller";
 import * as batchController from "../controllers/inventory-batch.controller";
 import * as memberController from "../controllers/store/member.controller";
+import * as homeController from "../controllers/store/home.controller";
 
 export const storeRouter = Router();
 
@@ -29,6 +30,12 @@ storeRouter.get("/tags", tagController.listTags);
 storeRouter.get("/tag-groups", tagController.listGroups);
 storeRouter.get("/batches/:id", batchController.getBatchDetail);
 storeRouter.get("/batches/:id/trace", batchController.getTraceChain);
+
+// 小程序首页（banner/分类/活动/热搜）
+storeRouter.get("/banners", homeController.getHomeBanners);
+storeRouter.get("/categories", homeController.getHomeCategories);
+storeRouter.get("/activities", homeController.getHomeActivities);
+storeRouter.get("/search/hot", homeController.getHotSearches);
 
 export const routeConfig: RouteConfig = {
   prefix: "/api/store",
