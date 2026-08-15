@@ -38,6 +38,10 @@ interface InventoryBalanceItem {
   physicalQty: number;
   availableQty: number;
   lockedQty: number;
+  /** 组合单位换算信息（boxRatio=每箱数量，boxUnit=箱单位，baseUnit=基础单位） */
+  boxRatio?: number | null;
+  boxUnit?: string | null;
+  baseUnit?: string | null;
 }
 
 /** 后端返回的分页结构（records 字段，与后端对齐） */
@@ -156,6 +160,9 @@ export class QueryInventoryTool implements ITool {
         physicalQty: item.physicalQty,
         availableQty: item.availableQty,
         lockedQty: item.lockedQty,
+        boxRatio: item.boxRatio ?? null,
+        boxUnit: item.boxUnit ?? null,
+        baseUnit: item.baseUnit ?? null,
         stockStatus: this.getStockStatus(item.availableQty),
       }));
 

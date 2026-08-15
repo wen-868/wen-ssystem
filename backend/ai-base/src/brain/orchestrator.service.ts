@@ -44,6 +44,7 @@ import type { ToolContext, ToolResult } from '../tools/tool.interface';
 import { GraphExecutorService } from './graph/graph-executor.service';
 import { ProviderRouterService } from './router/provider-router.service';
 import { LearningService } from './learning/learning.service';
+import { formatInventoryQty } from './inventory-format';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -627,7 +628,11 @@ export class Orchestrator {
           } else {
             for (const it of list) {
               const name = toText(it.skuName) || '商品';
-              const qty = toText(it.availableQty ?? it.totalQty);
+              const qty = formatInventoryQty(it.availableQty ?? it.totalQty, {
+                boxRatio: it.boxRatio,
+                boxUnit: it.boxUnit,
+                baseUnit: it.baseUnit,
+              });
               const store = toText(it.storeName);
               parts.push(
                 store
@@ -651,8 +656,13 @@ export class Orchestrator {
           } else {
             for (const it of list) {
               const name = toText(it.skuName) || '商品';
-              const qty = toText(
+              const qty = formatInventoryQty(
                 it.availableQty ?? it.physicalQty ?? it.totalQty,
+                {
+                  boxRatio: it.boxRatio,
+                  boxUnit: it.boxUnit,
+                  baseUnit: it.baseUnit,
+                },
               );
               const store = toText(it.storeName);
               parts.push(

@@ -385,6 +385,9 @@ describe('R70-10 库存工具', () => {
             physicalQty: 7,
             availableQty: 5,
             lockedQty: 2,
+            boxRatio: 6,
+            boxUnit: '箱',
+            baseUnit: '瓶',
           },
           {
             storeId: 1,
@@ -414,12 +417,22 @@ describe('R70-10 库存工具', () => {
       );
 
       const data = result.data as {
-        list: Array<{ skuName: string; stockStatus: string }>;
+        list: Array<{
+          skuName: string;
+          stockStatus: string;
+          boxRatio: number;
+          boxUnit: string;
+          baseUnit: string;
+        }>;
         summary: { totalAvailable: number; storeCount: number };
       };
       expect(data.list).toHaveLength(2);
       expect(data.list[0].stockStatus).toBe('库存不足'); // 5 < 10
       expect(data.list[1].stockStatus).toBe('库存充足'); // 200 >= 50
+      // 规格换算信息应透传给 LLM（用于箱/瓶换算展示）
+      expect(data.list[0].boxRatio).toBe(6);
+      expect(data.list[0].boxUnit).toBe('箱');
+      expect(data.list[0].baseUnit).toBe('瓶');
       expect(data.summary.totalAvailable).toBe(205); // 5 + 200
       expect(data.summary.storeCount).toBe(1);
     });
@@ -518,6 +531,9 @@ describe('R70-10 库存工具', () => {
             physicalQty: 7,
             availableQty: 5,
             lockedQty: 2,
+            boxRatio: 6,
+            boxUnit: '箱',
+            baseUnit: '瓶',
           },
         ],
       });
@@ -529,12 +545,21 @@ describe('R70-10 库存工具', () => {
 
       expect(result.success).toBe(true);
       const data = result.data as {
-        list: Array<{ skuName: string; stockStatus: string }>;
+        list: Array<{
+          skuName: string;
+          stockStatus: string;
+          boxRatio: number;
+          boxUnit: string;
+          baseUnit: string;
+        }>;
         total: number;
       };
       expect(data.list).toHaveLength(1);
       expect(data.list[0].skuName).toBe('五粮液 500ml');
       expect(data.list[0].stockStatus).toBe('库存不足');
+      expect(data.list[0].boxRatio).toBe(6);
+      expect(data.list[0].boxUnit).toBe('箱');
+      expect(data.list[0].baseUnit).toBe('瓶');
       expect(data.total).toBe(1);
     });
 

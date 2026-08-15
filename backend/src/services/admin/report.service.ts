@@ -63,6 +63,10 @@ interface InventoryBalanceRow {
   physicalQty: number | string;
   availableQty: number | string;
   lockedQty: number | string;
+  /** 组合单位换算信息（箱/瓶规格，供 AI 库存展示自动换算） */
+  boxRatio: number | null;
+  boxUnit: string | null;
+  baseUnit: string | null;
 }
 
 /** 库存日志行 */
@@ -310,7 +314,8 @@ export async function listInventoryBalance(
     `SELECT ib.store_id AS storeId, s.name AS storeName, ib.sku_id AS skuId,
             ps.sku_name AS skuName, ps.barcode, ib.stock_type AS stockType,
             ib.physical_qty AS physicalQty, ib.available_qty AS availableQty,
-            ib.locked_qty AS lockedQty
+            ib.locked_qty AS lockedQty,
+            ps.box_ratio AS boxRatio, ps.box_unit AS boxUnit, ps.base_unit AS baseUnit
      FROM t_inventory_balance ib
      LEFT JOIN t_store s ON s.id = ib.store_id
      LEFT JOIN t_product_sku ps ON ps.id = ib.sku_id

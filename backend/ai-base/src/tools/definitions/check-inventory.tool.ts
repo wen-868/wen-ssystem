@@ -27,6 +27,10 @@ interface InventoryBalanceItem {
   lockedQty: number;
   totalQty: number;
   storeName: string | null;
+  /** 组合单位换算信息（boxRatio=每箱数量，boxUnit=箱单位，baseUnit=基础单位） */
+  boxRatio?: number | null;
+  boxUnit?: string | null;
+  baseUnit?: string | null;
 }
 
 /**
@@ -125,6 +129,9 @@ export class CheckInventoryTool implements ITool {
         lockedQty: item.lockedQty,
         totalQty: item.totalQty,
         storeName: item.storeName,
+        boxRatio: item.boxRatio ?? null,
+        boxUnit: item.boxUnit ?? null,
+        baseUnit: item.baseUnit ?? null,
         stockStatus: this.getStockStatus(item.availableQty),
       }));
 
