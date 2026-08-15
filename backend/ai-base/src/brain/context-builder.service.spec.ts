@@ -11,6 +11,7 @@
  * 负责人: 阿坚 | 创建日期: 2026-08-02
  */
 import { RetrieverService } from '../rag/retriever.service';
+import { LongTermMemoryService } from './memory/long-term-memory.service';
 import {
   ContextBuilder,
   DEFAULT_SYSTEM_PROMPT,
@@ -20,6 +21,10 @@ import type { ToolRegistry } from '../tools/tool-registry';
 describe('R70-21 ContextBuilder', () => {
   const retriever = {
     search: jest.fn(),
+  };
+  const ltm = {
+    getProfiles: jest.fn().mockResolvedValue([]),
+    search: jest.fn().mockResolvedValue([]),
   };
 
   let builder: ContextBuilder;
@@ -41,7 +46,10 @@ describe('R70-21 ContextBuilder', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    builder = new ContextBuilder(retriever as unknown as RetrieverService);
+    builder = new ContextBuilder(
+      retriever as unknown as RetrieverService,
+      ltm as unknown as LongTermMemoryService,
+    );
   });
 
   describe('build（RAG 注入）', () => {

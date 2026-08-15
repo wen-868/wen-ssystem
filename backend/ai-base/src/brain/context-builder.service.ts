@@ -22,6 +22,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ChatMessage } from '../providers/provider.interface';
 import type { ToolRegistry } from '../tools/tool-registry';
 import { RetrieverService } from '../rag/retriever.service';
+import { LongTermMemoryService } from './memory/long-term-memory.service';
 
 /** ContextBuilder 构建参数 */
 export interface BuildContextParams {
@@ -39,6 +40,8 @@ export interface BuildContextParams {
   systemPrompt?: string;
   /** RAG 知识库参考内容（由 build() 内部检索注入；embedding 未配置时跳过） */
   ragContext?: string;
+  /** 长期记忆参考（由 build() 内部检索注入：租户档案 + 相关历史经验） */
+  ltmContext?: string;
 }
 
 /**
@@ -72,7 +75,10 @@ export const DEFAULT_SYSTEM_PROMPT = `你是"智享AI助手"，一个为酒水�
 export class ContextBuilder {
   private readonly logger = new Logger(ContextBuilder.name);
 
-  constructor(private readonly retriever: RetrieverService) {}
+  constructor(
+    private readonly retriever: RetrieverService,
+    private readonly ltm: LongTermMemoryService,
+  ) {}
 
   /**
    * 构建完整的对话上下文
@@ -92,8 +98,9 @@ export class ContextBuilder {
     registry: ToolRegistry,
   ): Promise<ChatMessage[]> {
     const ragContext = await this.buildRagContext(params);
+    const ltmContext = await this.buildLtmContext(params);
     const systemPrompt = this.buildSystemPrompt(
-      { ...params, ragContext },
+      { ...params, ragContext, ltmContext },
       registry,
     );
     const messages: ChatMessage[] = [{ role: 'system', content: systemPrompt }];
@@ -109,6 +116,44 @@ export class ContextBuilder {
     messages.push({ role: 'user', content: params.userMessage });
 
     return messages;
+  }
+
+  /**
+   * 长期记忆检索（P1）：租户档案 + 相关历史经验（降级安全）
+   */
+  private async buildLtmContext(
+    params: BuildContextParams,
+  ): Promise<string | undefined> {
+    try {
+      const [profiles, hits] = await Promise.all([
+        this.ltm.getProfiles(params.tenantId, params.userId),
+        this.ltm.search(params.tenantId, params.userMessage, 3),
+      ]);
+      if (profiles.length === 0 && hits.length === 0) return undefined;
+      const parts: string[] = [];
+      if (profiles.length > 0) {
+        parts.push(
+          `## 租户档案（该租户的稳定偏好/事实）\n${profiles
+            .map((p) => `- ${p.k}：${JSON.stringify(p.v)}`)
+            .join('\n')}`,
+        );
+      }
+      if (hits.length > 0) {
+        parts.push(
+          `## 相关历史经验（该租户过去交互沉淀，可参考）\n${hits
+            .map((h) => `- ${h.text}`)
+            .join('\n')}`,
+        );
+      }
+      return parts.join('\n\n');
+    } catch (err) {
+      this.logger.warn(
+        `长期记忆检索失败（跳过注入）：${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+      return undefined;
+    }
   }
 
   /**
@@ -187,6 +232,11 @@ export class ContextBuilder {
     // R70-21：追加 RAG 知识库参考（检索到相关知识时注入，优先采信）
     if (params.ragContext && params.ragContext.trim().length > 0) {
       prompt += `\n\n## 知识库参考（以下为检索到的内部知识，回答相关问题时优先采信）\n${params.ragContext}`;
+    }
+
+    // P1：追加长期记忆参考（租户档案 + 相关历史经验）
+    if (params.ltmContext && params.ltmContext.trim().length > 0) {
+      prompt += `\n\n## 长期记忆参考（以下为该租户的档案与历史经验，回答时贴合这些背景）\n${params.ltmContext}`;
     }
 
     // 无论租户使用默认提示词还是自定义提示词，都追加"缺失数据自动创建流程"规则，

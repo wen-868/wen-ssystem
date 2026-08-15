@@ -21,6 +21,9 @@ import { TenantAiConfigEntity } from './entities/tenant-ai-config.entity';
 import { TenantAiBillingEntity } from './entities/tenant-ai-billing.entity';
 import { AiExternalModelEntity } from './entities/ai-external-model.entity';
 import { AiReviewTaskEntity } from './entities/ai-review-task.entity';
+import { AiLtmProfileEntity } from './entities/ai-ltm-profile.entity';
+import { AiLtmEpisodicEntity } from './entities/ai-ltm-episodic.entity';
+import { AiLtmArchivalEntity } from './entities/ai-ltm-archival.entity';
 
 /**
  * 所有 AI 底座 Entity 列表
@@ -35,6 +38,9 @@ export const AI_ENTITIES = [
   TenantAiBillingEntity,
   AiExternalModelEntity,
   AiReviewTaskEntity,
+  AiLtmProfileEntity,
+  AiLtmEpisodicEntity,
+  AiLtmArchivalEntity,
 ];
 
 @Module({

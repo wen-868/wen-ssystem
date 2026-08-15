@@ -32,10 +32,19 @@ import { ProviderRouterService } from './router/provider-router.service';
 import { EvidenceLedgerService } from './evidence/evidence-ledger.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
+import { AiLtmProfileEntity } from '../database/entities/ai-ltm-profile.entity';
+import { AiLtmEpisodicEntity } from '../database/entities/ai-ltm-episodic.entity';
+import { AiLtmArchivalEntity } from '../database/entities/ai-ltm-archival.entity';
+import { LongTermMemoryService } from './memory/long-term-memory.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AiReviewTaskEntity]),
+    TypeOrmModule.forFeature([
+      AiReviewTaskEntity,
+      AiLtmProfileEntity,
+      AiLtmEpisodicEntity,
+      AiLtmArchivalEntity,
+    ]),
     ProvidersModule,
     ToolsModule,
     BridgeModule,
@@ -53,6 +62,7 @@ import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
     ReviewTaskService,
     ProviderRouterService,
     EvidenceLedgerService,
+    LongTermMemoryService,
   ],
   exports: [
     Orchestrator,
@@ -64,6 +74,7 @@ import { AiReviewTaskEntity } from '../database/entities/ai-review-task.entity';
     ReviewTaskService,
     ProviderRouterService,
     EvidenceLedgerService,
+    LongTermMemoryService,
   ],
 })
 export class BrainModule {}
