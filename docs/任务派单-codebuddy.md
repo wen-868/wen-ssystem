@@ -34,6 +34,11 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
 - **批次 4（store/shared 收尾）**：coupon-verify.service、inventory.service、sale-bill.service 剩余、shared 的 seed-data/store-control-scheduler/pagination/db。
 - 每批：CodeBuddy 执行并推送 → Codex 验收（跑全量 + lint + build + 覆盖率对比）→ 通过则 Codex 更新验收总览报告，未过则打回。
 
+### 批次进度（2026-08-16 更新）
+- ✅ **Batch 1 已完成并验收通过**：trace-config（10 例）/ approval-records（18 例）/ quote-push（13 例）= 41 例，覆盖率 66.17%（Codex 已确认，验收总览报告第 33 项）。
+- ⏳ **Batch 2 待执行**：custom-report.service、trace-records.service、marketing-flash-sale/group-buy/stack-rule/limited-discount/points-mall/asset.service（trace-config/quote-push 已被 Batch 1 覆盖，跳过）。
+- ⏳ **Batch 3 / Batch 4 待执行**。
+
 ### P1：生产证据类（需服务器，脚本已就绪）
 
 服务器（root@VM-0-5-ubuntu，仓库 /opt/zhixiang/liquor-inventory-system）执行并在 docs/验收总览报告.md 回填证据：
