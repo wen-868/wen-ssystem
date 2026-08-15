@@ -44,4 +44,14 @@ export class ChatDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  /** 模型标识（可选，对话级模型切换）
+   *
+   * 传入已注册的模型标识（内置 glm/deepseek/ollama 或外部模型名）时，
+   * 本轮对话使用指定模型；不传则使用租户/平台默认配置。
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64, { message: 'model 不能超过 64 字符' })
+  model?: string;
 }

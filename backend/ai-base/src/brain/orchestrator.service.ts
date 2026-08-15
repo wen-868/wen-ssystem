@@ -102,6 +102,8 @@ export interface OrchestratorParams {
   role?: string;
   /** JWT auth token（透传给 ServiceClient） */
   authToken?: string;
+  /** 对话级模型标识（可选；已注册的内置/外部模型名，覆盖租户/平台默认） */
+  model?: string;
 }
 
 @Injectable()
@@ -165,15 +167,27 @@ export class Orchestrator {
       modelName = resolvedConfig.model;
       systemPrompt = resolvedConfig.systemPrompt;
 
+      // 对话级模型切换：用户指定已注册模型（内置/外部）时覆盖默认
+      const requestedModel = params.model?.trim();
+      if (requestedModel && this.factory.isRegistered(requestedModel)) {
+        providerName = requestedModel;
+        this.logger.log(
+          `对话使用指定模型：${requestedModel}（覆盖默认 ${resolvedConfig.provider}）`,
+        );
+      }
+
       this.logger.log(
         `租户 ${tenantId} AI 配置：provider=${providerName} model=${modelName} source=${resolvedConfig.source}`,
       );
 
       // 创建 Provider
-      const provider = this.factory.create(
-        resolvedConfig.provider,
-        resolvedConfig.providerConfig,
-      );
+      const provider =
+        requestedModel && this.factory.isRegistered(requestedModel)
+          ? this.factory.create(requestedModel)
+          : this.factory.create(
+              resolvedConfig.provider,
+              resolvedConfig.providerConfig,
+            );
 
       // ── 3. 加载对话历史 ──
       const history = await this.memoryManager.loadHistory(

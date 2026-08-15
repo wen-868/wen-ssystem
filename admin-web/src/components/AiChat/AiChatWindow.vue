@@ -27,6 +27,20 @@
             />
           </div>
           <div class="ai-header-actions">
+            <el-select
+              v-if="models.length > 0"
+              v-model="selectedModel"
+              size="small"
+              style="width: 170px;"
+              :title="'当前模型：' + selectedModelLabel"
+            >
+              <el-option
+                v-for="m in models"
+                :key="m.value"
+                :label="m.label"
+                :value="m.value"
+              />
+            </el-select>
             <el-tooltip content="清空对话" placement="bottom">
               <el-button :icon="Delete" size="small" text @click="clearChat" />
             </el-tooltip>
@@ -103,7 +117,9 @@ import {
   connectAiPushSocket,
   revokeAiOperation,
   sendChatMessage,
+  fetchAiModels,
   type AiProactivePayload,
+  type AiModelOption,
 } from "../../api/ai";
 
 const open = ref(false);
@@ -116,6 +132,8 @@ const unreadCount = ref(0);
 const listEl = ref<HTMLElement | null>(null);
 const pushConnected = ref(false);
 let disconnectPush: (() => void) | null = null;
+const models = ref<AiModelOption[]>([]);
+const selectedModel = ref("");
 
 /** 空状态引导示例（点击直接发送） */
 const suggestions = [
@@ -125,6 +143,14 @@ const suggestions = [
 ];
 
 const canSend = computed(() => input.value.trim().length > 0 && !streaming.value);
+
+/** 当前模型展示名 */
+const selectedModelLabel = computed(
+  () =>
+    models.value.find((m) => m.value === selectedModel.value)?.label ??
+    selectedModel.value ??
+    "",
+);
 
 const statusText = computed(() => {
   if (streaming.value) return "AI 正在生成回复...";
@@ -207,6 +233,7 @@ async function sendMessage(): Promise<void> {
         },
       },
       abortController.value.signal,
+      selectedModel.value || undefined,
     );
   } catch (err) {
     streaming.value = false;
@@ -310,6 +337,15 @@ function handleProactivePush(payload: AiProactivePayload): void {
 }
 
 onMounted(() => {
+  // 加载可用模型列表（内置 + 外部模型），默认选中租户/平台默认
+  fetchAiModels()
+    .then((data) => {
+      models.value = data.models;
+      selectedModel.value = data.default;
+    })
+    .catch(() => {
+      // 模型列表加载失败不阻塞对话（使用默认配置），静默降级
+    });
   // 连接 AI 主动推送实时通道（断线自动重连，卸载时断开）
   disconnectPush = connectAiPushSocket({
     onMessage: handleProactivePush,

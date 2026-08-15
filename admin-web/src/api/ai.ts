@@ -153,13 +153,18 @@ export async function sendChatMessage(
   conversationId: string | undefined,
   handlers: AiSseHandlers,
   signal?: AbortSignal,
+  model?: string,
 ): Promise<void> {
   let resp: Response;
   try {
     resp = await fetch(`${AI_BASE_URL}/api/chat`, {
       method: "POST",
       headers: aiHeaders(),
-      body: JSON.stringify({ message, conversationId }),
+      body: JSON.stringify({
+        message,
+        conversationId,
+        ...(model ? { model } : {}),
+      }),
       signal,
     });
   } catch (err) {
@@ -187,6 +192,30 @@ export async function sendChatMessage(
   } finally {
     reader.releaseLock();
   }
+}
+
+// ==================== 对话级模型切换 ====================
+
+/** 可用模型选项 */
+export interface AiModelOption {
+  value: string;
+  label: string;
+  type: "builtin" | "external";
+}
+
+/** 模型列表响应 */
+export interface AiModelsResponse {
+  default: string;
+  models: AiModelOption[];
+}
+
+/** 获取当前租户可用模型列表（内置 + 启用外部模型）与默认模型 */
+export async function fetchAiModels(): Promise<AiModelsResponse> {
+  const resp = await fetch(`${AI_BASE_URL}/api/chat/models`, {
+    headers: aiHeaders(),
+  });
+  if (!resp.ok) throw await readError(resp, `获取模型列表失败（HTTP ${resp.status}）`);
+  return (await resp.json()) as AiModelsResponse;
 }
 
 // ==================== 工具列表 / 待确认 / 确认 / 取消 / 撤销 ====================

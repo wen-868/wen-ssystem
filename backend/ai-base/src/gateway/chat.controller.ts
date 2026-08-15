@@ -31,6 +31,8 @@ import { Orchestrator } from '../brain/orchestrator.service';
 import { ConfirmationService } from '../brain/confirmation.service';
 import { RollbackExecutorService } from '../brain/rollback-executor.service';
 import { TenantContext } from '../tenant/tenant-context';
+import { ExternalModelService } from '../tenant/external-model.service';
+import { AiConfigService } from '../tenant/ai-config.service';
 import { ToolExecutor } from '../tools/tool-executor';
 import type { ToolCall } from '../providers/provider.interface';
 import type { ToolContext } from '../tools/tool.interface';
@@ -52,7 +54,55 @@ export class ChatController {
     private readonly confirmationService: ConfirmationService,
     private readonly executor: ToolExecutor,
     private readonly rollbackExecutor: RollbackExecutorService,
+    private readonly externalModelService: ExternalModelService,
+    private readonly aiConfigService: AiConfigService,
   ) {}
+
+  /**
+   * 当前租户可用模型列表（对话级模型切换下拉数据源）
+   *
+   * GET /api/chat/models
+   * 返回：内置模型 + 启用外部模型 + 当前默认模型标识
+   */
+  @Get('models')
+  async listModels(): Promise<{
+    default: string;
+    models: Array<{
+      value: string;
+      label: string;
+      type: 'builtin' | 'external';
+    }>;
+  }> {
+    const tenantId = this.getTenantId();
+    const external = await this.externalModelService.options();
+    const builtin = [
+      { value: 'glm', label: '智谱 GLM（免费）', type: 'builtin' as const },
+      { value: 'deepseek', label: 'DeepSeek', type: 'builtin' as const },
+      { value: 'ollama', label: '本地 Ollama', type: 'builtin' as const },
+    ];
+
+    let defaultModel = 'glm';
+    if (tenantId) {
+      try {
+        const resolved = await this.aiConfigService.getResolvedConfig();
+        defaultModel = resolved.provider;
+      } catch {
+        // 无配置时保持内置默认
+      }
+    }
+
+    return {
+      default: defaultModel,
+      models: [
+        ...builtin,
+        ...external.map((m) => ({
+          value: m.name,
+          label: `${m.displayName}（外部模型）`,
+          type: 'external' as const,
+        })),
+      ],
+    };
+  }
 
   /**
    * SSE 流式对话
@@ -102,6 +152,7 @@ export class ChatController {
         userId: ctxData?.userId ?? dto.userId,
         role: ctxData?.role ?? dto.role,
         authToken: ctxData?.authToken,
+        model: dto.model,
       })) {
         this.sendSse(res, event);
       }
