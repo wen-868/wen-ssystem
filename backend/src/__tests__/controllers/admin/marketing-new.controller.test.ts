@@ -82,7 +82,7 @@ describe("admin marketing-new.controller", () => {
       const req = mockReq({ query: { page: "1", pageSize: "10", status: "ACTIVE", type: "AMOUNT" } });
       const res = mockRes();
       await listCouponTemplates(req, res, vi.fn());
-      expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 10, "t1", "ACTIVE", "AMOUNT");
+      expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 10, "t1", "ACTIVE", "AMOUNT", undefined);
       expect(res.json).toHaveBeenCalled();
     });
 
@@ -91,7 +91,7 @@ describe("admin marketing-new.controller", () => {
       const req = mockReq();
       const res = mockRes();
       await listCouponTemplates(req, res, vi.fn());
-      expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined);
+      expect(mocks.listCouponTemplates).toHaveBeenCalledWith(1, 20, "t1", undefined, undefined, undefined);
     });
 
     it("getCouponTemplate - 应返回优惠券模板详情", async () => {

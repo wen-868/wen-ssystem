@@ -49,13 +49,29 @@ export async function fetchPointsMallStats() {
 }
 
 // ==================== Marketing - Coupon Template APIs ====================
+/** 新服务字段（totalQuantity/issuedQuantity/usedQuantity/validStart/validEnd）→ 前端旧字段映射 */
+function mapCouponTemplate(r: Record<string, any>): Record<string, any> {
+  return {
+    ...r,
+    totalCount: r.totalCount ?? r.totalQuantity,
+    claimedCount: r.claimedCount ?? r.issuedQuantity,
+    usedCount: r.usedCount ?? r.usedQuantity,
+    startTime: r.startTime ?? r.validStart,
+    endTime: r.endTime ?? r.validEnd,
+  };
+}
+
 export async function fetchCouponTemplates(params?: { page?: number; pageSize?: number; status?: string; type?: string; keyword?: string }) {
   const { data } = await api.get("/admin/marketing/coupons/templates", { params });
-  return data.data;
+  const result = data.data;
+  return {
+    ...result,
+    records: (result?.records ?? []).map(mapCouponTemplate),
+  };
 }
 export async function fetchCouponTemplateDetail(id: number) {
   const { data } = await api.get(`/admin/marketing/coupons/templates/${id}`);
-  return data.data;
+  return mapCouponTemplate(data.data ?? {});
 }
 export async function createCouponTemplate(payload: unknown) {
   const { data } = await api.post("/admin/marketing/coupons/templates", payload);

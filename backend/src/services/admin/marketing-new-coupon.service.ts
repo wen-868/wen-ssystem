@@ -446,3 +446,78 @@ export async function listUserCoupons(
     records
   };
 }
+
+/** 删除优惠券模板（旧服务同表不同列名，统一到新服务列名） */
+export async function deleteCouponTemplate(templateId: number, tenantId: string) {
+  const existing = await queryOneWithTenant<CouponTemplateIdStatusRow>(
+    "SELECT id, status FROM t_coupon_template WHERE id = ?",
+    [templateId],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+  }
+  if (existing.status !== "DRAFT") {
+    throw Object.assign(new Error("仅草稿状态的优惠券可删除"), { statusCode: 400 });
+  }
+  await queryWithTenant("DELETE FROM t_coupon_template WHERE id = ?", [templateId], tenantId);
+  return { id: templateId, deleted: true };
+}
+
+/** 激活优惠券模板 */
+export async function activateCouponTemplate(templateId: number, tenantId: string) {
+  const existing = await queryOneWithTenant<CouponTemplateIdStatusRow>(
+    "SELECT id, status FROM t_coupon_template WHERE id = ?",
+    [templateId],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+  }
+  if (!["DRAFT", "PAUSED"].includes(existing.status)) {
+    throw Object.assign(new Error("仅草稿或暂停状态的优惠券可激活"), { statusCode: 400 });
+  }
+  await queryWithTenant("UPDATE t_coupon_template SET status = 'ACTIVE', updated_at = NOW() WHERE id = ?", [templateId], tenantId);
+  return { id: templateId, status: "ACTIVE" };
+}
+
+/** 暂停优惠券模板 */
+export async function pauseCouponTemplate(templateId: number, tenantId: string) {
+  const existing = await queryOneWithTenant<CouponTemplateIdStatusRow>(
+    "SELECT id, status FROM t_coupon_template WHERE id = ?",
+    [templateId],
+    tenantId
+  );
+  if (!existing) {
+    throw Object.assign(new Error("优惠券模板不存在"), { statusCode: 404 });
+  }
+  if (existing.status !== "ACTIVE") {
+    throw Object.assign(new Error("仅激活状态的优惠券可暂停"), { statusCode: 400 });
+  }
+  await queryWithTenant("UPDATE t_coupon_template SET status = 'PAUSED', updated_at = NOW() WHERE id = ?", [templateId], tenantId);
+  return { id: templateId, status: "PAUSED" };
+}
+
+/** 优惠券模板统计（列名与真实表一致） */
+export async function getCouponStatistics(tenantId: string) {
+  const overall = await queryOneWithTenant<Record<string, number | null>>(
+    `SELECT COUNT(*) AS totalTemplates,
+            COALESCE(SUM(total_quantity), 0) AS totalIssued,
+            COALESCE(SUM(issued_quantity), 0) AS totalClaimed,
+            COALESCE(SUM(used_quantity), 0) AS totalUsed
+     FROM t_coupon_template`,
+    [],
+    tenantId
+  );
+  const totalIssued = Number(overall?.totalIssued ?? 0);
+  const totalClaimed = Number(overall?.totalClaimed ?? 0);
+  return {
+    overall: {
+      totalTemplates: Number(overall?.totalTemplates ?? 0),
+      totalIssued,
+      totalClaimed,
+      totalUsed: Number(overall?.totalUsed ?? 0),
+      claimRate: totalIssued > 0 ? `${((totalClaimed / totalIssued) * 100).toFixed(2)}%` : "0%",
+    },
+  };
+}

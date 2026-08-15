@@ -5,14 +5,15 @@ import * as couponService from "../../services/admin/marketing-new-coupon.servic
 import * as promotionService from "../../services/admin/marketing-new-promotion.service";
 
 export const listCouponTemplates = asyncHandler(async (req, res) => {
-  const { status, type, page = 1, pageSize = 20 } = req.query;
+  const { status, type, keyword, page = 1, pageSize = 20 } = req.query;
 
   const result = await couponService.listCouponTemplates(
     Number(page),
     Number(pageSize),
     req.tenantId!,
     status as string | undefined,
-    type as string | undefined
+    type as string | undefined,
+    keyword as string | undefined
   );
 
   res.json(ok(result));
@@ -111,6 +112,25 @@ export const listUserCoupons = asyncHandler(async (req, res) => {
   );
 
   res.json(ok(result));
+});
+
+export const deleteCouponTemplate = asyncHandler(async (req, res) => {
+  const templateId = Number(req.params.templateId);
+  res.json(ok(await couponService.deleteCouponTemplate(templateId, req.tenantId!)));
+});
+
+export const activateCouponTemplate = asyncHandler(async (req, res) => {
+  const templateId = Number(req.params.templateId);
+  res.json(ok(await couponService.activateCouponTemplate(templateId, req.tenantId!)));
+});
+
+export const pauseCouponTemplate = asyncHandler(async (req, res) => {
+  const templateId = Number(req.params.templateId);
+  res.json(ok(await couponService.pauseCouponTemplate(templateId, req.tenantId!)));
+});
+
+export const getCouponStatistics = asyncHandler(async (req, res) => {
+  res.json(ok(await couponService.getCouponStatistics(req.tenantId!)));
 });
 
 export const listPromotions = asyncHandler(async (req, res) => {
