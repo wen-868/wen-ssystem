@@ -82,6 +82,7 @@ P2 前端+完善 ✅ 100% 完成（7/7 任务，R70-17 状态表"待开始"系�
 9. ✅ 生产公网实测（2026-08-15）：经 admin.onepan.cn/ai-api 实测——健康检查 ok（database/redis 连通）、工具列表 29 个、Provider 3 家、主动巡检 9 项、用量统计接口 200（72 天真实数据：37 对话/128 工具调用/1.32M tokens）、RAG 知识库接口 200（预置内容待 EMBEDDING_MODEL 配置后加载）；同时修复生产入口错误：前端默认 AI 地址 api.onepan.cn/ai-api（未配反代 404）改 admin.onepan.cn/ai-api（实测 200），nginx-production.conf 补回 3 处 location /ai-api/（上一提交脚本缺陷导致 location 行丢失）
 10. ✅ 外部大模型接入：新增 t_ai_external_model 表（迁移 154）+ OpenAICompatProvider 通用 OpenAI 兼容实现（流式/非流式含 function calling、testConnection）+ ProviderFactory 动态注册/注销 + ExternalModelService（CRUD、apiKey 加密存储、启动注册、停用注销、按 ID 测试）+ 6 个管理端点 + saas-admin 平台配置页外部模型管理（表格/添加/编辑/删除/测试连接、服务商下拉动态含外部模型）；AiConfigService 选择外部模型时自动补全 baseUrl/apiKey；14 个新单测；ai-base 全量 49 套件 / 577 用例通过，lint 0 errors，saas-admin 构建通过
 11. ✅ 多模型并存与对话级自由切换（三端前端全覆盖）：多个外部模型可同时保存启用（t_ai_external_model 多条 + Factory 多实例并存）；新增 GET /api/chat/models（当前租户可用模型：内置 3 个 + 启用外部模型 + 默认标识）；ChatDto 支持 model 字段，Orchestrator 检测已注册模型标识即切换本轮对话 Provider（内置/外部均可，覆盖租户/平台默认）；前端模型选择器：admin-web AI 窗口（AiChatWindow）+ 列表页侧边 AI 面板（AiSidePanel）+ app-mobile AI 聊天页（picker），均加载可用模型、默认选中租户默认、发送携带 model；6 个 Factory 动态注册单测；ai-base 全量 50 套件 / 583 用例通过，lint 0 errors，admin-web / saas-admin / app-mobile 三端构建通过
+12. ✅ 生产 502 根因修复：服务器 AI 底座循环崩溃（↺ 234 次）——根因是模块循环依赖（ExternalModelService import ai-config-admin.service 的 maskApiKey，形成 ai-config → external-model → ai-config-admin → ai-config 循环，导致 Nest 启动 UndefinedDependencyException）；修复：maskApiKey 提取到独立 api-key-mask.ts 切断循环；本地验证应用启动不再崩溃（DI 通过）；ai-base 全量 50 套件 / 583 用例通过，lint 0 errors
 
 ## 七、结论
 

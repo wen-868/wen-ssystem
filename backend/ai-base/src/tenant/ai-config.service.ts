@@ -16,7 +16,7 @@
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-01
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TenantAiConfigEntity } from '../database/entities/tenant-ai-config.entity';
@@ -57,6 +57,8 @@ export class AiConfigService {
     private readonly platformRepo: Repository<PlatformAiConfigEntity>,
     private readonly tenantContext: TenantContext,
     private readonly crypto: CryptoService,
+    // 显式 @Inject：避免 Nest 反射解析歧义（同模块 provider，本地容器复现 undefined dependency）
+    @Inject(ExternalModelService)
     private readonly externalModelService: ExternalModelService,
   ) {}
 

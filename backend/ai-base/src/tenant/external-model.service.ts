@@ -28,7 +28,7 @@ import { ProviderConfig } from '../providers/provider.interface';
 import { ProviderFactory } from '../providers/provider-factory';
 import { OpenAICompatProvider } from '../providers/openai-compat.provider';
 import { CryptoService } from './crypto.service';
-import { maskApiKey } from './ai-config-admin.service';
+import { maskApiKey } from './api-key-mask';
 
 /** 外部模型创建/更新载荷（class 供 Nest ValidationPipe 使用） */
 export class ExternalModelInput {

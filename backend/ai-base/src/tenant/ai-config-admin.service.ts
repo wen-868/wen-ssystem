@@ -39,6 +39,7 @@ import { AiUsageDailyEntity } from '../database/entities/ai-usage-daily.entity';
 import { TenantAiBillingEntity } from '../database/entities/tenant-ai-billing.entity';
 import { CryptoService } from './crypto.service';
 import { AiConfigService } from './ai-config.service';
+import { maskApiKey } from './api-key-mask';
 
 /** 平台配置对外视图（apiKey 脱敏） */
 export interface PlatformConfigView {
@@ -78,16 +79,6 @@ export interface UsageSummary {
   toolCallCount: number;
   totalTokens: number;
   totalCost: number;
-}
-
-/**
- * 对 API Key 脱敏：保留前后 4 位，中间打码
- */
-export function maskApiKey(key: string): string {
-  if (key.length <= 8) {
-    return '****';
-  }
-  return `${key.slice(0, 4)}****${key.slice(-4)}`;
 }
 
 @Injectable()

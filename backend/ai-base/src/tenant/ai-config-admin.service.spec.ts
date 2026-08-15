@@ -11,7 +11,8 @@
  */
 import { ObjectLiteral, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { AiConfigAdminService, maskApiKey } from './ai-config-admin.service';
+import { AiConfigAdminService } from './ai-config-admin.service';
+import { maskApiKey } from './api-key-mask';
 import { CryptoService } from './crypto.service';
 import { AiConfigService } from './ai-config.service';
 import { PlatformAiConfigEntity } from '../database/entities/platform-ai-config.entity';
