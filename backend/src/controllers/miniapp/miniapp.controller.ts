@@ -247,6 +247,25 @@ export const payOrder = asyncHandler(async (req, res) => {
   res.json(ok(payParams));
 });
 
+// 取消订单（释放预留库存）
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const body = z.object({ reason: z.string().max(255).optional() }).parse(req.body ?? {});
+  const result = await miniappService.cancelOrder(req.params.id, req.tenantId!, body.reason);
+  res.json(ok(result));
+});
+
+// 确认收货
+export const confirmReceipt = asyncHandler(async (req, res) => {
+  const result = await miniappService.confirmReceipt(req.params.id, req.tenantId!);
+  res.json(ok(result));
+});
+
+// 查询订单支付结果
+export const queryPayResult = asyncHandler(async (req, res) => {
+  const result = await miniappService.queryPayResult(req.params.id, req.tenantId!);
+  res.json(ok(result));
+});
+
 // ========== 用户模块 ==========
 
 export const getProfile = asyncHandler(async (req, res) => {

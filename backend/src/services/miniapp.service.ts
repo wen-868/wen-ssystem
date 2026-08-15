@@ -86,6 +86,17 @@ interface OrderItemSkuIdRow extends RowDataPacket {
   sku_id: number;
 }
 
+/** 取消订单时查询的订单行 */
+interface MiniappOrderCancelRow extends RowDataPacket {
+  order_no: string;
+  store_id: number;
+}
+
+/** 支付结果查询行 */
+interface PayStatusRow {
+  payStatus: string;
+}
+
 interface StatementOrderRow {
   orderNo: string;
   amount: number;
@@ -384,6 +395,60 @@ export async function confirmReceipt(orderNo: string, tenantId: string) {
     return deliveryResult;
   });
   return result;
+}
+
+// ========== 取消订单（释放预留库存） ==========
+export async function cancelOrder(orderNo: string, tenantId: string, reason?: string) {
+  return transaction(async (conn) => {
+    const [orders] = await conn.query<MiniappOrderCancelRow[]>(
+      `SELECT order_no, store_id FROM t_miniapp_order
+       WHERE order_no = ? AND tenant_id = ?
+         AND order_status IN ('PENDING_PAYMENT', 'PENDING_SHIP', 'WAIT_DELIVERY')
+       FOR UPDATE`,
+      [orderNo, tenantId]
+    );
+    const order = orders[0];
+    if (!order) {
+      throw Object.assign(new Error("订单不存在或当前状态不可取消"), { statusCode: 400 });
+    }
+
+    // 释放预留库存（locked_qty 回退，不扣 physical_qty）
+    const [items] = await conn.query<OrderItemSkuIdRow[]>(
+      `SELECT sku_id, reserved_qty FROM t_miniapp_order_item
+       WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, tenantId]
+    );
+    for (const item of items) {
+      const reserved = Number((item as unknown as { reserved_qty?: number | string }).reserved_qty ?? 0);
+      if (reserved <= 0) continue;
+      await conn.execute(
+        `UPDATE t_inventory_balance
+         SET locked_qty = GREATEST(locked_qty - ?, 0), updated_at = NOW()
+         WHERE store_id = ? AND sku_id = ? AND stock_type = 'ONLINE'`,
+        [reserved, order.store_id, item.sku_id]
+      );
+    }
+
+    await conn.execute(
+      `UPDATE t_miniapp_order SET order_status = 'CANCELLED', updated_at = NOW()
+       WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, tenantId]
+    );
+    return { orderNo, status: "CANCELLED" };
+  });
+}
+
+// ========== 查询订单支付结果 ==========
+export async function queryPayResult(orderNo: string, tenantId: string) {
+  const row = await queryOne<PayStatusRow>(
+    `SELECT pay_status AS payStatus FROM t_miniapp_order
+     WHERE order_no = ? AND tenant_id = ?`,
+    [orderNo, tenantId]
+  );
+  if (!row) {
+    throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
+  }
+  return { paid: row.payStatus === "PAID" };
 }
 
 // ========== 对账单列表 ==========

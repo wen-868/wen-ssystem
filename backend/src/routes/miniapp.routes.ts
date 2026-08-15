@@ -27,6 +27,9 @@ miniappRouter.post("/orders", requireAuthWithTenant, ctrl.createOrder);
 miniappRouter.get("/orders", requireAuthWithTenant, ctrl.getOrders);
 miniappRouter.get("/orders/:id", requireAuthWithTenant, ctrl.getOrderDetail);
 miniappRouter.post("/orders/:id/pay", requireAuthWithTenant, ctrl.payOrder);
+miniappRouter.post("/orders/:id/cancel", requireAuthWithTenant, ctrl.cancelOrder);
+miniappRouter.post("/orders/:id/confirm-receive", requireAuthWithTenant, ctrl.confirmReceipt);
+miniappRouter.get("/orders/:id/pay-result", requireAuthWithTenant, ctrl.queryPayResult);
 
 // ========== 用户模块 ==========
 miniappRouter.get("/user/profile", requireAuthWithTenant, ctrl.getProfile);

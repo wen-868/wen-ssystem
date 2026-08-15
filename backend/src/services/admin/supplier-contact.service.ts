@@ -56,13 +56,11 @@ export async function setPrimary(id: number, tenantId: string) {
     // 事务内：清除同供应商其他主联系人 + 设置当前为主
     await query(
         "UPDATE t_supplier_contact SET is_primary = 0 WHERE supplier_id = ? AND tenant_id = ?",
-        [contact.supplier_id, tenantId],
-        tenantId
+        [contact.supplier_id, tenantId]
     );
     await query(
         "UPDATE t_supplier_contact SET is_primary = 1 WHERE id = ? AND tenant_id = ?",
-        [id, tenantId],
-        tenantId
+        [id, tenantId]
     );
     return getById(id, tenantId);
 }
