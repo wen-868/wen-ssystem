@@ -14,6 +14,7 @@
  *   7. 对话链路（chat 端点可达；无 Key 时应返回明确配置缺失错误而非 500）
  *   8. 审计日志（admin 鉴权后可查）
  *   9. WebSocket 推送通道（/api/ai/ws 端点已挂载）
+ *  10. 用量统计接口（/api/admin/usage/tenants 返回 200）
  *
  * 输出：docs/reports/ai-base-e2e-{时间戳}.md
  */
@@ -149,6 +150,15 @@ async function run() {
     "WebSocket 推送通道",
     wsProbe.status !== 404 && wsProbe.status !== 0,
     `HTTP ${wsProbe.status}（非 404 = 端点已挂载，浏览器可用 ws:// 连接）`
+  );
+
+  // 10. 用量统计接口（计费闭环可达性）
+  const usage = await req(AI_BASE, "/api/admin/usage/tenants");
+  const usageList = Array.isArray(usage.data?.list) ? usage.data.list : [];
+  record(
+    "用量统计接口",
+    usage.status === 200,
+    `HTTP ${usage.status} 租户数=${usageList.length}（t_ai_usage_daily 汇总）`
   );
 
   const passed = results.filter((r) => r.pass).length;

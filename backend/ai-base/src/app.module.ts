@@ -12,6 +12,7 @@ import { GatewayModule } from './gateway/gateway.module';
 import { TenantModule } from './tenant/tenant.module';
 import { ProactiveModule } from './brain/proactive/proactive.module';
 import { RagModule } from './rag/rag.module';
+import { OpsModule } from './ops/ops.module';
 
 /**
  * 应用根模块
@@ -54,6 +55,8 @@ import { RagModule } from './rag/rag.module';
     ProactiveModule,
     // RAG 知识库引擎（文档加载/分块/向量化/检索 + ContextBuilder 增强）✅ R70-21 已接入
     RagModule,
+    // 运营闭环（用量统计 + 阈值告警 + 健康监控告警）✅ 完善度 P2 已接入
+    OpsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -50,6 +50,6 @@ import { GrossMarginAnomalyService } from './gross-margin-anomaly.service';
     ProactiveService,
   ],
   controllers: [ProactiveController],
-  exports: [ProactiveService],
+  exports: [ProactiveService, ProactivePushService],
 })
 export class ProactiveModule {}

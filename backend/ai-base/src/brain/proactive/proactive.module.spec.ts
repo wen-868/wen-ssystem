@@ -56,10 +56,10 @@ describe('ProactiveModule', () => {
     expect(providers).toHaveLength(11);
   });
 
-  it('注册 ProactiveController 并导出 ProactiveService', () => {
+  it('注册 ProactiveController 并导出 ProactiveService / ProactivePushService', () => {
     const controllers = getModuleMetadata('controllers');
     const exportsList = getModuleMetadata('exports');
     expect(controllers).toEqual([ProactiveController]);
-    expect(exportsList).toEqual([ProactiveService]);
+    expect(exportsList).toEqual([ProactiveService, ProactivePushService]);
   });
 });
