@@ -1099,3 +1099,168 @@ export async function getWholesaleOrderDetail(
     }))
   };
 }
+
+// ========== 批发高级操作 ==========
+
+/** 计算阶梯价（优先 t_sku_price 档位，无则回退批发价） */
+export async function calculateTierPrice(skuId: number, quantity: number, tenantId: string) {
+  const tier = await queryOneWithTenant<{ price: number | string }>(
+    `SELECT price FROM t_sku_price
+     WHERE sku_id = ? AND min_qty <= ? AND status = 1 AND tenant_id = ?
+     ORDER BY min_qty DESC LIMIT 1`,
+    [skuId, quantity, tenantId],
+    tenantId
+  );
+  if (tier) {
+    const unitPrice = Number(tier.price);
+    return { unitPrice, subtotal: Number((unitPrice * quantity).toFixed(2)), tier: true };
+  }
+  const wholesale = await queryOneWithTenant<{ wholesale_price: number | string }>(
+    `SELECT wholesale_price FROM t_product_price WHERE sku_id = ? AND tenant_id = ? AND wholesale_price > 0 LIMIT 1`,
+    [skuId, tenantId],
+    tenantId
+  );
+  const unitPrice = Number(wholesale?.wholesale_price ?? 0);
+  return { unitPrice, subtotal: Number((unitPrice * quantity).toFixed(2)), tier: false };
+}
+
+/** 批量删除购物车商品 */
+export async function deleteWholesaleCartItems(memberId: number, itemIds: number[], tenantId: string) {
+  if (!itemIds || itemIds.length === 0) return;
+  const placeholders = itemIds.map(() => "?").join(",");
+  await queryWithTenant(
+    `DELETE FROM t_wholesale_cart WHERE member_id = ? AND id IN (${placeholders}) AND tenant_id = ?`,
+    [memberId, ...itemIds, tenantId],
+    tenantId
+  );
+}
+
+/** 单项选中/取消选中 */
+export async function toggleWholesaleCartSelect(memberId: number, itemId: number, selected: boolean, tenantId: string) {
+  await queryWithTenant(
+    `UPDATE t_wholesale_cart SET selected = ?, updated_at = NOW() WHERE id = ? AND member_id = ? AND tenant_id = ?`,
+    [selected ? 1 : 0, itemId, memberId, tenantId],
+    tenantId
+  );
+}
+
+/** 全选/取消全选 */
+export async function toggleWholesaleCartSelectAll(memberId: number, selected: boolean, tenantId: string) {
+  await queryWithTenant(
+    `UPDATE t_wholesale_cart SET selected = ?, updated_at = NOW() WHERE member_id = ? AND tenant_id = ?`,
+    [selected ? 1 : 0, memberId, tenantId],
+    tenantId
+  );
+}
+
+/** 取消批发订单（仅待付款可取消，释放占用库存） */
+export async function cancelWholesaleOrder(orderNo: string, memberId: number, reason: string | undefined, tenantId: string) {
+  return transaction(async (conn) => {
+    const [orders] = await connExecute<Array<RowDataPacket & { order_no: string }>>(
+      conn,
+      `SELECT order_no FROM t_wholesale_order
+       WHERE order_no = ? AND member_id = ? AND tenant_id = ? AND order_status = 'PENDING' AND pay_status = 'UNPAID'
+       LIMIT 1`,
+      [orderNo, memberId, tenantId]
+    );
+    if (!orders[0]) {
+      throw new AppError("订单不存在或当前状态不可取消（仅待付款可取消）", 400);
+    }
+    // 释放批发库存
+    const [items] = await connExecute<Array<RowDataPacket & { sku_id: number; quantity: number }>>(
+      conn,
+      `SELECT sku_id, quantity FROM t_wholesale_order_item WHERE order_no = ? AND tenant_id = ?`,
+      [orderNo, tenantId]
+    );
+    for (const item of items) {
+      await connExecute(
+        conn,
+        `UPDATE t_inventory_balance
+         SET available_qty = available_qty + ?, locked_qty = GREATEST(locked_qty - ?, 0), updated_at = NOW()
+         WHERE sku_id = ? AND stock_type = 'WHOLESALE' AND tenant_id = ?`,
+        [item.quantity, item.quantity, item.sku_id, tenantId]
+      );
+    }
+    await connExecute(
+      conn,
+      `UPDATE t_wholesale_order SET order_status = 'CANCELLED', cancelled_at = NOW(), cancel_reason = ?, updated_at = NOW()
+       WHERE order_no = ? AND tenant_id = ?`,
+      [reason || null, orderNo, tenantId]
+    );
+    return { orderNo, orderStatus: "CANCELLED" };
+  });
+}
+
+/** 确认收货（待收货 → 已完成） */
+export async function confirmWholesaleReceive(orderNo: string, memberId: number, tenantId: string) {
+  const result = await queryWithTenant<ResultSetHeader>(
+    `UPDATE t_wholesale_order SET order_status = 'COMPLETED', completed_at = NOW(), updated_at = NOW()
+     WHERE order_no = ? AND member_id = ? AND tenant_id = ? AND order_status = 'PENDING_RECEIVE'`,
+    [orderNo, memberId, tenantId],
+    tenantId
+  );
+  if (Number((result as unknown as { affectedRows?: number })?.affectedRows ?? 0) === 0) {
+    throw new AppError("订单不存在或当前状态不可确认收货", 400);
+  }
+  return { orderNo, orderStatus: "COMPLETED" };
+}
+
+/** 结算预览（购物车选中项 + 默认地址 + 金额） */
+export async function getWholesaleOrderConfirm(memberId: number, cartItemIds: number[], tenantId: string) {
+  if (!cartItemIds || cartItemIds.length === 0) {
+    throw new AppError("请选择要结算的商品", 400);
+  }
+  const placeholders = cartItemIds.map(() => "?").join(",");
+  const items = await queryWithTenant<{
+    spuId: number; skuId: number; skuName: string; skuImage: string | null;
+    quantity: number; unitPrice: number; subtotal: number;
+  }>(
+    `SELECT p.id AS spuId, s.id AS skuId, s.sku_name AS skuName, p.main_image AS skuImage,
+            wc.quantity, pp.wholesale_price AS unitPrice, (pp.wholesale_price * wc.quantity) AS subtotal
+     FROM t_wholesale_cart wc
+     JOIN t_product_sku s ON s.id = wc.sku_id
+     JOIN t_product_spu p ON p.id = s.spu_id
+     JOIN t_product_price pp ON pp.sku_id = s.id AND pp.wholesale_price > 0
+     WHERE wc.member_id = ? AND wc.id IN (${placeholders}) AND wc.selected = 1 AND wc.tenant_id = ?
+     ORDER BY wc.id`,
+    [memberId, ...cartItemIds, tenantId],
+    tenantId
+  );
+  if (items.length === 0) {
+    throw new AppError("结算商品为空或未选中", 400);
+  }
+  const address = await queryOneWithTenant<{
+    name: string; mobile: string; province: string; city: string; district: string; detail: string;
+  }>(
+    `SELECT name, mobile, province, city, district, detail
+     FROM t_retail_consumer_address WHERE user_id = ? AND tenant_id = ? AND is_default = 1 LIMIT 1`,
+    [memberId, tenantId],
+    tenantId
+  );
+  const goodsAmount = Number(items.reduce((sum, it) => sum + Number(it.subtotal), 0).toFixed(2));
+  const discountAmount = 0;
+  const shippingFee = 0;
+  const totalAmount = Number((goodsAmount - discountAmount + shippingFee).toFixed(2));
+  return {
+    items: items.map((it) => ({
+      spuId: it.spuId, skuId: it.skuId, skuName: it.skuName, skuImage: it.skuImage,
+      quantity: it.quantity, unitPrice: Number(it.unitPrice), subtotal: Number(it.subtotal),
+    })),
+    address: address ? {
+      name: address.name, mobile: address.mobile, province: address.province,
+      city: address.city, district: address.district, detail: address.detail,
+    } : null,
+    goodsAmount, discountAmount, shippingFee, totalAmount,
+  };
+}
+
+/** 立即购买（商品详情直接下单） */
+export async function buyWholesaleNow(memberId: number, tenantId: string, body: {
+  skuId: number; quantity: number; addressId?: number; remark?: string;
+}) {
+  return createWholesaleOrder(memberId, tenantId, {
+    items: [{ skuId: body.skuId, quantity: body.quantity }],
+    addressId: body.addressId,
+    remark: body.remark,
+  });
+}

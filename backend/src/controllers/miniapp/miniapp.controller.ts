@@ -328,6 +328,75 @@ export const rechargeStoredCard = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+// ========== 批发高级操作 ==========
+
+export const calculateWholesaleTierPrice = asyncHandler(async (req, res) => {
+  const { calculateTierPrice } = await import("../../services/miniapp/wholesale.service");
+  const skuId = Number(req.query.skuId);
+  const quantity = Number(req.query.quantity || 1);
+  if (!skuId || quantity <= 0) {
+    res.status(400).json(fail("缺少 skuId 或 quantity 无效"));
+    return;
+  }
+  res.json(ok(await calculateTierPrice(skuId, quantity, req.tenantId!)));
+});
+
+export const deleteWholesaleCartItems = asyncHandler(async (req, res) => {
+  const { deleteWholesaleCartItems: svc } = await import("../../services/miniapp/wholesale.service");
+  const body = z.object({ itemIds: z.array(z.number()).min(1) }).parse(req.body);
+  await svc(getCustomerId(req), body.itemIds, req.tenantId!);
+  res.json(ok({ success: true }));
+});
+
+export const toggleWholesaleCartSelect = asyncHandler(async (req, res) => {
+  const { toggleWholesaleCartSelect: svc } = await import("../../services/miniapp/wholesale.service");
+  const body = z.object({ selected: z.boolean() }).parse(req.body);
+  await svc(getCustomerId(req), Number(req.params.itemId), body.selected, req.tenantId!);
+  res.json(ok({ success: true }));
+});
+
+export const toggleWholesaleCartSelectAll = asyncHandler(async (req, res) => {
+  const { toggleWholesaleCartSelectAll: svc } = await import("../../services/miniapp/wholesale.service");
+  const body = z.object({ selected: z.boolean() }).parse(req.body);
+  await svc(getCustomerId(req), body.selected, req.tenantId!);
+  res.json(ok({ success: true }));
+});
+
+export const cancelWholesaleOrder = asyncHandler(async (req, res) => {
+  const { cancelWholesaleOrder: svc } = await import("../../services/miniapp/wholesale.service");
+  const body = z.object({ reason: z.string().max(255).optional() }).parse(req.body ?? {});
+  const result = await svc(req.params.orderId, getCustomerId(req), body.reason, req.tenantId!);
+  res.json(ok(result));
+});
+
+export const confirmWholesaleReceive = asyncHandler(async (req, res) => {
+  const { confirmWholesaleReceive: svc } = await import("../../services/miniapp/wholesale.service");
+  const result = await svc(req.params.orderId, getCustomerId(req), req.tenantId!);
+  res.json(ok(result));
+});
+
+export const wholesaleOrderConfirmPreview = asyncHandler(async (req, res) => {
+  const { getWholesaleOrderConfirm } = await import("../../services/miniapp/wholesale.service");
+  const cartItemIds = String(req.query.cartItemIds || "")
+    .split(",")
+    .map(Number)
+    .filter(Boolean);
+  const result = await getWholesaleOrderConfirm(getCustomerId(req), cartItemIds, req.tenantId!);
+  res.json(ok(result));
+});
+
+export const buyWholesaleNow = asyncHandler(async (req, res) => {
+  const { buyWholesaleNow: svc } = await import("../../services/miniapp/wholesale.service");
+  const body = z.object({
+    skuId: z.number(),
+    quantity: z.number().positive(),
+    addressId: z.number().optional(),
+    remark: z.string().max(255).optional(),
+  }).parse(req.body);
+  const result = await svc(getCustomerId(req), req.tenantId!, body);
+  res.json(ok(result));
+});
+
 // ========== 用户模块 ==========
 
 export const getProfile = asyncHandler(async (req, res) => {

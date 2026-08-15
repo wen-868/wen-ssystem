@@ -77,6 +77,14 @@ miniappRouter.delete("/wholesale/cart/:id", requireAuthWithTenant, ctrl.deleteWh
 miniappRouter.post("/wholesale/orders", requireAuthWithTenant, ctrl.createWholesaleOrder);
 miniappRouter.get("/wholesale/orders", requireAuthWithTenant, ctrl.getWholesaleOrders);
 miniappRouter.get("/wholesale/orders/:id", requireAuthWithTenant, ctrl.getWholesaleOrderDetail);
+miniappRouter.get("/wholesale/calculate-price", requireAuthWithTenant, ctrl.calculateWholesaleTierPrice);
+miniappRouter.post("/wholesale/cart/delete", requireAuthWithTenant, ctrl.deleteWholesaleCartItems);
+miniappRouter.put("/wholesale/cart/:itemId/select", requireAuthWithTenant, ctrl.toggleWholesaleCartSelect);
+miniappRouter.put("/wholesale/cart/select-all", requireAuthWithTenant, ctrl.toggleWholesaleCartSelectAll);
+miniappRouter.post("/wholesale/orders/:orderId/cancel", requireAuthWithTenant, ctrl.cancelWholesaleOrder);
+miniappRouter.post("/wholesale/orders/:orderId/confirm-receive", requireAuthWithTenant, ctrl.confirmWholesaleReceive);
+miniappRouter.get("/wholesale/orders/confirm/preview", requireAuthWithTenant, ctrl.wholesaleOrderConfirmPreview);
+miniappRouter.post("/wholesale/orders/buy-now", requireAuthWithTenant, ctrl.buyWholesaleNow);
 
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
