@@ -156,26 +156,31 @@ done
 if [ -z "${NGINX_SITE}" ]; then
   echo "==> [AI底座] 未找到 admin.onepan.cn 的 nginx 配置文件（跳过；请手动配置 /ai-api/ 反代，模板见 deploy/nginx-production.conf）"
 elif grep -q "location /ai-api/" "${NGINX_SITE}"; then
-  if grep -q "proxy_set_header Upgrade" "${NGINX_SITE}"; then
-    echo "==> [AI底座] /ai-api/ 反代已存在且含 WebSocket Upgrade 头（${NGINX_SITE}），跳过"
+  HAS_HTTP11=$(grep -c "proxy_http_version 1.1" "${NGINX_SITE}")
+  HAS_UPGRADE=$(grep -c "proxy_set_header Upgrade" "${NGINX_SITE}")
+  HAS_CONN=$(grep -c 'proxy_set_header Connection "upgrade"' "${NGINX_SITE}")
+  if [ "${HAS_HTTP11}" -gt 0 ] && [ "${HAS_UPGRADE}" -gt 0 ] && [ "${HAS_CONN}" -gt 0 ]; then
+    echo "==> [AI底座] /ai-api/ 反代已完整（proxy_http_version 1.1 + Upgrade + Connection），跳过"
   else
     cp "${NGINX_SITE}" "${NGINX_SITE}.bak-ai-api"
     awk '
       /location \/ai-api\/ \{/ { in_ai=1 }
-      in_ai && /proxy_set_header X-Forwarded-Proto/ {
-        print
-        print "        proxy_http_version 1.1;"
-        print "        proxy_set_header Upgrade $http_upgrade;"
-        print "        proxy_set_header Connection \"upgrade\";"
+      in_ai && /^\s*\}/ {
+        # 块结束前检查三项是否齐全，缺失则补齐（幂等）
+        if (!seen_http11) print "        proxy_http_version 1.1;"
+        if (!seen_upgrade) print "        proxy_set_header Upgrade $http_upgrade;"
+        if (!seen_conn) print "        proxy_set_header Connection \"upgrade\";"
         in_ai=0
-        next
       }
+      in_ai && /proxy_http_version 1.1/ { seen_http11=1 }
+      in_ai && /proxy_set_header Upgrade/ { seen_upgrade=1 }
+      in_ai && /proxy_set_header Connection/ { seen_conn=1 }
       { print }
     ' "${NGINX_SITE}" > "${NGINX_SITE}.ai-api.tmp"
     if nginx -t >/dev/null 2>&1; then
       mv "${NGINX_SITE}.ai-api.tmp" "${NGINX_SITE}"
       systemctl reload nginx >/dev/null 2>&1 || nginx -s reload >/dev/null 2>&1 || true
-      echo "==> [AI底座] /ai-api/ 反代已补 WebSocket Upgrade 头并通过 nginx -t，已 reload（备份：${NGINX_SITE}.bak-ai-api）"
+      echo "==> [AI底座] /ai-api/ 反代已补齐 WebSocket 三要素（proxy_http_version 1.1/Upgrade/Connection）并通过 nginx -t，已 reload（备份：${NGINX_SITE}.bak-ai-api）"
     else
       rm -f "${NGINX_SITE}.ai-api.tmp"
       echo "==> [AI底座] nginx -t 校验失败，已保留原配置（请手动检查 ${NGINX_SITE}）"
