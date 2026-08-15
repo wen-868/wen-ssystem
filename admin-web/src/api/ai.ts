@@ -26,6 +26,8 @@ function resolveAiBase(): string {
   }
   const configured = import.meta.env.VITE_AI_BASE_URL;
   if (configured) return configured.replace(/\/+$/, "");
+  // 生产构建默认指向 api.onepan.cn 的 AI 底座反代（与 nginx /ai-api/ 一致，SSE+WS 同源承载）
+  if (import.meta.env.PROD) return "https://api.onepan.cn/ai-api";
   return "http://localhost:3016";
 }
 
