@@ -30,6 +30,8 @@ miniappRouter.post("/orders/:id/pay", requireAuthWithTenant, ctrl.payOrder);
 miniappRouter.post("/orders/:id/cancel", requireAuthWithTenant, ctrl.cancelOrder);
 miniappRouter.post("/orders/:id/confirm-receive", requireAuthWithTenant, ctrl.confirmReceipt);
 miniappRouter.get("/orders/:id/pay-result", requireAuthWithTenant, ctrl.queryPayResult);
+miniappRouter.get("/orders/:id/logistics", requireAuthWithTenant, ctrl.getOrderLogistics);
+miniappRouter.put("/orders/:id/delete", requireAuthWithTenant, ctrl.deleteMiniappOrder);
 
 // 微信支付回调（无登录态，微信服务器直调）
 miniappRouter.post("/pay/notify", ctrl.payNotify);

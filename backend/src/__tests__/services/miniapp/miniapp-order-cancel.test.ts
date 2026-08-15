@@ -12,7 +12,7 @@ vi.mock("../../../shared/db", () => ({
   transaction: mocks.transaction,
 }));
 
-import { cancelOrder, queryPayResult } from "../../../services/miniapp.service";
+import { cancelOrder, queryPayResult, getOrderLogistics, deleteOrder } from "../../../services/miniapp.service";
 
 describe("miniapp order cancel/pay-result", () => {
   beforeEach(() => {
@@ -56,5 +56,35 @@ describe("miniapp order cancel/pay-result", () => {
     mocks.queryOne.mockResolvedValueOnce({ payStatus: "UNPAID" });
     const result = await queryPayResult("DD001", "t1");
     expect(result.paid).toBe(false);
+  });
+
+  it("getOrderLogistics：从订单字段推导轨迹", async () => {
+    mocks.queryOne.mockResolvedValueOnce({
+      order_status: "COMPLETED",
+      delivery_status: "COMPLETED",
+      created_at: "2026-08-01 10:00:00",
+      paid_at: "2026-08-01 10:05:00",
+      completed_at: "2026-08-01 18:00:00",
+      cancelled_at: null,
+    });
+    const result = await getOrderLogistics("DD001", "t1");
+    expect(result.status).toBe("COMPLETED");
+    expect(result.traces.length).toBeGreaterThanOrEqual(3);
+    expect(result.traces[0].desc).toBe("订单已提交");
+  });
+
+  it("deleteOrder：已取消订单可软删", async () => {
+    mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
+    const result = await deleteOrder("DD001", "t1");
+    expect(result.deleted).toBe(true);
+    expect(mocks.query).toHaveBeenCalledWith(
+      expect.stringContaining("SET deleted_at = NOW()"),
+      ["DD001", "t1"]
+    );
+  });
+
+  it("deleteOrder：状态不可删时抛错", async () => {
+    mocks.query.mockResolvedValueOnce({ affectedRows: 0 });
+    await expect(deleteOrder("DD001", "t1")).rejects.toThrow("不可删除");
   });
 });

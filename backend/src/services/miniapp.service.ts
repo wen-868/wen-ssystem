@@ -3,7 +3,7 @@ import { query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../shared/trace-code";
-import type { RowDataPacket } from "mysql2";
+import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 // ========== 类型定义 ==========
 
@@ -338,14 +338,14 @@ export async function getOrders(tenantId: string, anonymousMemberId: string, pag
             receiver_name AS receiverName, receiver_mobile AS receiverMobile, receiver_address AS receiverAddress,
             created_at AS createdAt
      FROM t_miniapp_order
-     WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)
+     WHERE tenant_id = ? AND deleted_at IS NULL AND (? = '' OR remark LIKE ?)
      ORDER BY id DESC
      LIMIT ? OFFSET ?`,
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`, pageSize, offset]
   );
 
   const total = await queryOne<CountTotalRow>(
-    "SELECT COUNT(*) AS total FROM t_miniapp_order WHERE tenant_id = ? AND (? = '' OR remark LIKE ?)",
+    "SELECT COUNT(*) AS total FROM t_miniapp_order WHERE tenant_id = ? AND deleted_at IS NULL AND (? = '' OR remark LIKE ?)",
     [tenantId, anonymousMemberId, `[anon:${anonymousMemberId}]%`]
   );
 
@@ -501,6 +501,56 @@ export async function getOrderPayerOpenidByCustomer(customerId: number, tenantId
     [customerId, tenantId]
   );
   return row?.openid ?? null;
+}
+
+// ========== 订单物流（真实配送状态推导，无第三方物流则返回订单履约轨迹） ==========
+export async function getOrderLogistics(orderNo: string, tenantId: string) {
+  const order = await queryOne<{
+    order_status: string;
+    delivery_status: string | null;
+    created_at: string | Date;
+    paid_at: string | Date | null;
+    completed_at: string | Date | null;
+    cancelled_at: string | Date | null;
+  }>(
+    `SELECT order_status, delivery_status, created_at, paid_at, completed_at, cancelled_at
+     FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ? AND deleted_at IS NULL`,
+    [orderNo, tenantId]
+  );
+  if (!order) {
+    throw Object.assign(new Error("订单不存在"), { statusCode: 404 });
+  }
+  // 从真实订单字段推导轨迹节点（不虚构第三方物流单号）
+  const traces: Array<{ time: string | Date; desc: string }> = [
+    { time: order.created_at, desc: "订单已提交" },
+  ];
+  if (order.paid_at) traces.push({ time: order.paid_at, desc: "订单已支付" });
+  if (order.order_status === "COMPLETED" && order.completed_at) {
+    traces.push({ time: order.completed_at, desc: "订单已完成" });
+  }
+  if (order.order_status === "CANCELLED" && order.cancelled_at) {
+    traces.push({ time: order.cancelled_at, desc: "订单已取消" });
+  }
+  const status = order.delivery_status || order.order_status;
+  return {
+    company: "",
+    trackingNo: "",
+    status,
+    traces,
+  };
+}
+
+// ========== 删除订单（软删，仅已取消/已完成） ==========
+export async function deleteOrder(orderNo: string, tenantId: string) {
+  const result = await query<ResultSetHeader>(
+    `UPDATE t_miniapp_order SET deleted_at = NOW(), updated_at = NOW()
+     WHERE order_no = ? AND tenant_id = ? AND order_status IN ('CANCELLED', 'COMPLETED')`,
+    [orderNo, tenantId]
+  );
+  if (Number((result as unknown as { affectedRows?: number })?.affectedRows ?? 0) === 0) {
+    throw Object.assign(new Error("订单不存在或当前状态不可删除（仅已取消/已完成）"), { statusCode: 400 });
+  }
+  return { orderNo, deleted: true };
 }
 
 // ========== 对账单列表 ==========

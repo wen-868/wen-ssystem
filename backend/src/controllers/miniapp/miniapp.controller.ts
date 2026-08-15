@@ -397,6 +397,18 @@ export const buyWholesaleNow = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+// ========== 订单物流 / 删除 ==========
+
+export const getOrderLogistics = asyncHandler(async (req, res) => {
+  const result = await miniappService.getOrderLogistics(req.params.id, req.tenantId!);
+  res.json(ok(result));
+});
+
+export const deleteMiniappOrder = asyncHandler(async (req, res) => {
+  const result = await miniappService.deleteOrder(req.params.id, req.tenantId!);
+  res.json(ok(result));
+});
+
 // ========== 用户模块 ==========
 
 export const getProfile = asyncHandler(async (req, res) => {
