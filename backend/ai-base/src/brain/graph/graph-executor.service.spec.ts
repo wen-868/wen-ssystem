@@ -12,6 +12,7 @@ import { CheckpointerService } from './checkpointer.service';
 import { GraphExecutorService } from './graph-executor.service';
 import { GraphDefinition, GraphState } from './graph.types';
 import { ReviewTaskService } from '../review/review-task.service';
+import { EvidenceLedgerService } from '../evidence/evidence-ledger.service';
 
 /** 内存版 Checkpointer（模拟 Redis 持久化，便于断点测试） */
 function makeCheckpointer() {
@@ -163,11 +164,16 @@ function makeExecutor(
     create: jest.fn(),
     get: jest.fn().mockResolvedValue(null),
   };
+  const evidence = {
+    recordWrite: jest.fn(),
+    verify: jest.fn().mockReturnValue({ ok: true, issues: [] }),
+  };
   return new GraphExecutorService(
     executorMock as unknown as ToolExecutor,
     checkpointer as unknown as CheckpointerService,
     makeRegistryMock() as unknown as ToolRegistry,
     review as unknown as ReviewTaskService,
+    evidence as unknown as EvidenceLedgerService,
   );
 }
 
