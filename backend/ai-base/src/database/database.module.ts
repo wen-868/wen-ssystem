@@ -25,6 +25,7 @@ import { AiLtmProfileEntity } from './entities/ai-ltm-profile.entity';
 import { AiLtmEpisodicEntity } from './entities/ai-ltm-episodic.entity';
 import { AiLtmArchivalEntity } from './entities/ai-ltm-archival.entity';
 import { AiLearningLogEntity } from './entities/ai-learning-log.entity';
+import { AiEvolutionEntity } from './entities/ai-evolution.entity';
 
 /**
  * 所有 AI 底座 Entity 列表
@@ -43,6 +44,7 @@ export const AI_ENTITIES = [
   AiLtmEpisodicEntity,
   AiLtmArchivalEntity,
   AiLearningLogEntity,
+  AiEvolutionEntity,
 ];
 
 @Module({

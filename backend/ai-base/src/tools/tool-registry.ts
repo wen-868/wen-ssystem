@@ -85,6 +85,15 @@ export class ToolRegistry {
   }
 
   /**
+   * 注销工具（P3 进化回滚 / 动态工具移除）
+   *
+   * @returns 是否存在并移除
+   */
+  unregister(name: string): boolean {
+    return this.tools.delete(name);
+  }
+
+  /**
    * 列出所有已注册工具的元信息（不含 execute 函数，可安全序列化到 JSON 响应）
    */
   list(): ToolMeta[] {
