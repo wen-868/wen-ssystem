@@ -31,6 +31,9 @@ miniappRouter.post("/orders/:id/cancel", requireAuthWithTenant, ctrl.cancelOrder
 miniappRouter.post("/orders/:id/confirm-receive", requireAuthWithTenant, ctrl.confirmReceipt);
 miniappRouter.get("/orders/:id/pay-result", requireAuthWithTenant, ctrl.queryPayResult);
 
+// 微信支付回调（无登录态，微信服务器直调）
+miniappRouter.post("/pay/notify", ctrl.payNotify);
+
 // ========== 用户模块 ==========
 miniappRouter.get("/user/profile", requireAuthWithTenant, ctrl.getProfile);
 miniappRouter.put("/user/profile", requireAuthWithTenant, ctrl.updateProfile);

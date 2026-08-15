@@ -1,18 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync, createCipheriv, randomBytes } from "node:crypto";
 
 const mocks = vi.hoisted(() => ({
   queryOne: vi.fn(),
+  query: vi.fn(),
   fetch: vi.fn(),
 }));
 
 vi.mock("../../shared/db", () => ({
   queryOneWithTenant: mocks.queryOne,
+  query: mocks.query,
+}));
+
+vi.mock("../../services/miniapp.service", () => ({
+  markOrderPaid: vi.fn(),
 }));
 
 vi.stubGlobal("fetch", mocks.fetch);
 
-import { createJsapiPayment, getWechatPayConfig } from "../../services/wechat-pay.service";
+import { createJsapiPayment, getWechatPayConfig, handlePayNotify } from "../../services/wechat-pay.service";
+import { markOrderPaid } from "../../services/miniapp.service";
 
 const { privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -28,6 +35,23 @@ const mockConfig = {
   notify_url: "https://api.onepan.cn/api/miniapp/pay/notify",
   enabled: 1,
 };
+
+const V3_KEY = "0123456789abcdef0123456789abcdef"; // 32 字节 APIv3 密钥
+
+/** 用 APIv3 密钥构造微信回调 resource 密文 */
+function buildNotifyResource(payload: Record<string, unknown>): { ciphertext: string; nonce: string; associated_data: string } {
+  const aad = "transaction";
+  const nonce = randomBytes(12).toString("utf8");
+  const cipher = createCipheriv("aes-256-gcm", Buffer.from(V3_KEY, "utf8"), Buffer.from(nonce, "utf8"));
+  cipher.setAAD(Buffer.from(aad, "utf8"));
+  const enc = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return {
+    ciphertext: Buffer.concat([enc, authTag]).toString("base64"),
+    nonce,
+    associated_data: aad,
+  };
+}
 
 describe("wechat-pay.service", () => {
   beforeEach(() => {
@@ -89,5 +113,30 @@ describe("wechat-pay.service", () => {
       amountYuan: 1,
       description: "测试",
     })).rejects.toThrow("微信支付下单失败");
+  });
+
+  it("handlePayNotify：解密成功且 SUCCESS 时调用 markOrderPaid", async () => {
+    mocks.queryOne.mockResolvedValueOnce({ ...mockConfig, api_v3_key: V3_KEY });
+    mocks.query.mockResolvedValueOnce([
+      { tenant_id: "t1", api_v3_key: V3_KEY },
+      { tenant_id: "t2", api_v3_key: "other-key-other-key-other-key!!" },
+    ]);
+    const resource = buildNotifyResource({
+      out_trade_no: "DD20260815001",
+      trade_state: "SUCCESS",
+      amount: { total: 100 },
+    });
+
+    const result = await handlePayNotify({
+      body: { event_type: "TRANSACTION.SUCCESS", resource },
+    });
+
+    expect(result.code).toBe("SUCCESS");
+    expect(markOrderPaid).toHaveBeenCalledWith("DD20260815001", "t1");
+  });
+
+  it("handlePayNotify：无租户配置时拒绝", async () => {
+    mocks.query.mockResolvedValueOnce([]);
+    await expect(handlePayNotify({ body: { resource: { ciphertext: "x", nonce: "y" } } })).rejects.toThrow("无启用微信支付的租户配置");
   });
 });

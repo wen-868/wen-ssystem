@@ -271,6 +271,18 @@ export const queryPayResult = asyncHandler(async (req, res) => {
   res.json(ok(result));
 });
 
+// 微信支付回调（API v3 通知，微信服务器调用，无登录态）
+export const payNotify = async (req: any, res: any) => {
+  try {
+    const { handlePayNotify } = await import("../../services/wechat-pay.service");
+    const result = await handlePayNotify({ body: req.body || {} });
+    res.json(result);
+  } catch (e) {
+    // 未受理 → 返回 500 让微信重试
+    res.status(500).json({ code: "FAIL", message: e instanceof Error ? e.message : "回调处理失败" });
+  }
+};
+
 // ========== 用户模块 ==========
 
 export const getProfile = asyncHandler(async (req, res) => {

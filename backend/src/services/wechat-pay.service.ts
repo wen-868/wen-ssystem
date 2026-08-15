@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { queryOneWithTenant } from "../shared/db";
+import { query, queryOneWithTenant } from "../shared/db";
 
 /** 微信支付配置（t_payment_config provider=wechat） */
 interface WechatPayConfig {
@@ -154,4 +154,72 @@ export async function queryWechatPayOrder(tenantId: string, orderNo: string): Pr
     throw new Error(`微信查单失败：${data.message || data.code || `HTTP ${resp.status}`}`);
   }
   return { trade_state: String(data.trade_state || "UNKNOWN") };
+}
+
+/** AES-256-GCM 解密微信支付回调 resource（key = APIv3 密钥） */
+function decryptResource(
+  apiV3Key: string,
+  resource: { ciphertext: string; nonce: string; associated_data?: string }
+): Record<string, unknown> {
+  const key = Buffer.from(apiV3Key, "utf8");
+  const nonce = Buffer.from(resource.nonce, "utf8");
+  const ciphertext = Buffer.from(resource.ciphertext, "base64");
+  const aad = Buffer.from(resource.associated_data || "", "utf8");
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, nonce);
+  decipher.setAAD(aad);
+  const authTag = ciphertext.subarray(ciphertext.length - 16);
+  const data = ciphertext.subarray(0, ciphertext.length - 16);
+  decipher.setAuthTag(authTag);
+  const plain = Buffer.concat([decipher.update(data), decipher.final()]).toString("utf8");
+  return JSON.parse(plain);
+}
+
+/**
+ * 微信支付回调处理（API v3 通知）
+ * 微信回调不携带租户头，resource 密文用商户 api_v3_key 加密——轮询所有启用微信支付的租户密钥尝试解密，
+ * 解密成功即定位订单所属租户（解密失败 = 密钥不符，来源不可信）。
+ * 返回 { code: "SUCCESS" } 表示已受理（微信停止重试）；其他抛错返回 500 触发重试。
+ */
+export async function handlePayNotify(params: {
+  body: Record<string, unknown>;
+}): Promise<{ code: string; message?: string }> {
+  const resource = (params.body as { resource?: { ciphertext?: string; nonce?: string; associated_data?: string } }).resource;
+  if (!resource?.ciphertext || !resource.nonce) {
+    throw new Error("回调缺少 resource 密文");
+  }
+  const tenants = await query<{ tenant_id: string; api_v3_key: string }>(
+    `SELECT tenant_id, api_v3_key FROM t_payment_config
+     WHERE provider = 'wechat' AND enabled = 1 AND api_v3_key <> ''`
+  );
+  if (!tenants || tenants.length === 0) {
+    throw new Error("无启用微信支付的租户配置，拒绝回调");
+  }
+
+  let decrypted: Record<string, unknown> | null = null;
+  let matchedTenant = "";
+  for (const t of tenants) {
+    try {
+      decrypted = decryptResource(t.api_v3_key, {
+        ciphertext: resource.ciphertext,
+        nonce: resource.nonce,
+        associated_data: resource.associated_data,
+      });
+      matchedTenant = t.tenant_id;
+      break;
+    } catch {
+      // 密钥不符，尝试下一个租户
+    }
+  }
+  if (!decrypted) {
+    throw new Error("微信回调解密失败（api_v3_key 不匹配或来源不可信）");
+  }
+
+  const outTradeNo = String(decrypted.out_trade_no || "");
+  const tradeState = String(decrypted.trade_state || "");
+  if (!outTradeNo || tradeState !== "SUCCESS") {
+    return { code: "SUCCESS", message: "非成功交易，忽略" };
+  }
+  const { markOrderPaid } = await import("./miniapp.service");
+  await markOrderPaid(outTradeNo, matchedTenant);
+  return { code: "SUCCESS" };
 }

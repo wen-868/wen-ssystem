@@ -457,13 +457,7 @@ export async function queryPayResult(orderNo: string, tenantId: string) {
     const { queryWechatPayOrder } = await import("./wechat-pay.service");
     const result = await queryWechatPayOrder(tenantId, orderNo);
     if (result.trade_state === "SUCCESS") {
-      await query(
-        `UPDATE t_miniapp_order SET pay_status = 'PAID', paid_at = NOW(),
-                order_status = CASE WHEN order_status = 'PENDING_PAYMENT' THEN 'PENDING_SHIP' ELSE order_status END,
-                updated_at = NOW()
-         WHERE order_no = ? AND tenant_id = ?`,
-        [orderNo, tenantId]
-      );
+      await markOrderPaid(orderNo, tenantId);
       const updated = await queryOne<PayStatusRow>(
         `SELECT pay_status AS payStatus, order_status AS orderStatus FROM t_miniapp_order
          WHERE order_no = ? AND tenant_id = ?`,
@@ -476,6 +470,17 @@ export async function queryPayResult(orderNo: string, tenantId: string) {
     // 微信查单失败不阻塞：返回本地状态（前端可稍后重试）
     return { paid: false, orderStatus: row.orderStatus };
   }
+}
+
+/** 标记订单支付成功（幂等：仅 PENDING_PAYMENT → PAID 推进状态） */
+export async function markOrderPaid(orderNo: string, tenantId: string) {
+  await query(
+    `UPDATE t_miniapp_order SET pay_status = 'PAID', paid_at = NOW(),
+            order_status = CASE WHEN order_status = 'PENDING_PAYMENT' THEN 'PENDING_SHIP' ELSE order_status END,
+            updated_at = NOW()
+     WHERE order_no = ? AND tenant_id = ? AND pay_status <> 'PAID'`,
+    [orderNo, tenantId]
+  );
 }
 
 /** 获取订单支付人微信 openid（JSAPI 支付必需） */
