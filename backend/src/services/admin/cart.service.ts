@@ -32,15 +32,15 @@ interface CartExistingRow {
 /** t_user_coupon 用户优惠券查询行 */
 interface UserCouponRow {
   id: number | string;
-  coupon_template_id: number | string;
+  template_id: number | string;
   status: string;
-  expire_at: string | Date;
+  valid_end: string | Date;
 }
 
 /** t_coupon_template 优惠券模板查询行 */
 interface CouponTemplateRow {
-  discount_value: number | string;
-  discount_type: string;
+  coupon_value: number | string;
+  coupon_type: string;
 }
 
 /** t_full_reduction 满减活动查询行 */
@@ -189,18 +189,18 @@ async function calcMarketingDiscount(
   // 优惠券
   if (couponId) {
     const userCoupon = await doQueryOne<UserCouponRow>(
-      `SELECT uc.id, uc.coupon_template_id, uc.status, uc.expire_at
-       FROM t_user_coupon uc WHERE uc.id = ? AND uc.customer_id = ? AND uc.status = 'AVAILABLE' AND uc.expire_at > NOW()`,
+      `SELECT uc.id, uc.template_id, uc.status, uc.valid_end
+       FROM t_user_coupon uc WHERE uc.id = ? AND uc.user_id = ? AND uc.status = 'UNUSED' AND uc.valid_end > NOW()`,
       [couponId, customerId]
     );
     if (userCoupon) {
       const template = await doQueryOne<CouponTemplateRow>(
-        `SELECT discount_value, discount_type FROM t_coupon_template WHERE id = ?`,
-        [userCoupon.coupon_template_id]
+        `SELECT coupon_value, coupon_type FROM t_coupon_template WHERE id = ?`,
+        [userCoupon.template_id]
       );
       if (template) {
-        discountAmount += Number(template.discount_value);
-        discountDesc += `优惠券减${template.discount_value}`;
+        discountAmount += Number(template.coupon_value);
+        discountDesc += `优惠券减${template.coupon_value}`;
       }
     }
   }

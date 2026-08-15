@@ -55,18 +55,18 @@ async function calcMarketingDiscount(
 
   if (couponId) {
     const userCoupon = await doQueryOne(
-      `SELECT uc.id, uc.coupon_template_id, uc.status, uc.expire_at
-       FROM t_user_coupon uc WHERE uc.id = ? AND uc.customer_id = ? AND uc.status = 'AVAILABLE' AND uc.expire_at > NOW()`,
+      `SELECT uc.id, uc.template_id, uc.status, uc.valid_end
+       FROM t_user_coupon uc WHERE uc.id = ? AND uc.user_id = ? AND uc.status = 'UNUSED' AND uc.valid_end > NOW()`,
       [couponId, customerId]
     );
     if (userCoupon) {
       const template = await doQueryOne(
-        `SELECT discount_value, discount_type FROM t_coupon_template WHERE id = ?`,
-        [userCoupon.coupon_template_id]
+        `SELECT coupon_value, coupon_type FROM t_coupon_template WHERE id = ?`,
+        [userCoupon.template_id]
       );
       if (template) {
-        discountAmount += Number(template.discount_value);
-        discountDesc += (discountDesc ? " + " : "") + `优惠券减${template.discount_value}`;
+        discountAmount += Number(template.coupon_value);
+        discountDesc += (discountDesc ? " + " : "") + `优惠券减${template.coupon_value}`;
       }
     }
   }
