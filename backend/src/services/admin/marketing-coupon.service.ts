@@ -431,13 +431,14 @@ export async function getCouponStatistics(tenantId: string) {
 export async function listAvailableCoupons(tenantId: string) {
   const now = new Date().toISOString();
   const records = await queryWithTenant<AvailableCouponRow>(
-    `SELECT id, name, type, value, min_amount AS minAmount, max_discount AS maxDiscount,
-            applicable_scope AS applicableScope, total_count AS totalCount,
-            claimed_count AS claimedCount,
-            start_time AS startTime, end_time AS endTime, description
+    `SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+            min_purchase AS minAmount, max_discount AS maxDiscount,
+            applicable_scope AS applicableScope, total_quantity AS totalCount,
+            issued_quantity AS claimedCount,
+            valid_start AS startTime, valid_end AS endTime, description
      FROM t_coupon_template
-     WHERE status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
-       AND (total_count = 0 OR claimed_count < total_count)
+     WHERE status = 'ACTIVE' AND valid_start <= ? AND valid_end >= ?
+       AND (total_quantity = 0 OR issued_quantity < total_quantity)
      ORDER BY created_at DESC`,
     [now, now],
     tenantId
@@ -451,10 +452,11 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
 
   await transaction(async (conn) => {
     const [templateRows] = await conn.execute<ClaimTemplateRow[]>(
-      `SELECT id, name, type, value, min_amount, max_discount, total_count, claimed_count,
-              end_time, status
+      `SELECT id, template_name AS name, coupon_type AS type, coupon_value AS value,
+              min_purchase AS min_amount, max_discount, total_quantity AS total_count,
+              issued_quantity AS claimed_count, valid_end AS end_time, status
        FROM t_coupon_template
-       WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND start_time <= ? AND end_time >= ?
+       WHERE id = ? AND tenant_id = ? AND status = 'ACTIVE' AND valid_start <= ? AND valid_end >= ?
        FOR UPDATE`,
       [templateId, tenantId, now, now]
     );
@@ -471,7 +473,7 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
     const [existingRows] = await conn.execute<ClaimExistingRow[]>(
       `SELECT uc.id FROM t_user_coupon uc
        JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
-       WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'AVAILABLE'`,
+       WHERE uc.template_id = ? AND uc.user_id = ? AND uc.status = 'UNUSED'`,
       [tenantId, templateId, userId]
     );
 
@@ -482,23 +484,32 @@ export async function claimCoupon(templateId: number, userId: number, tenantId: 
     const endTime = new Date(String(template.end_time));
     const expiresAt = endTime.toISOString();
 
+    const couponNo = `C${Date.now()}${Math.floor(Math.random() * 100000)}`;
     await conn.execute(
-      `INSERT INTO t_user_coupon (template_id, user_id, status, expires_at, tenant_id)
-       VALUES (?, ?, 'AVAILABLE', ?, ?)`,
-      [templateId, userId, expiresAt, tenantId]
+      `INSERT INTO t_user_coupon (
+         coupon_no, template_id, user_id, coupon_type, coupon_name, coupon_value,
+         min_purchase, applicable_scope, status, valid_start, valid_end, tenant_id
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'UNUSED', ?, ?, ?)`,
+      [
+        couponNo, templateId, userId,
+        String(template.type ?? ""), String(template.name ?? ""),
+        Number(template.value ?? 0), Number(template.min_amount ?? 0),
+        "ALL", new Date().toISOString().slice(0, 10), expiresAt, tenantId,
+      ]
     );
 
     await conn.execute(
-      `UPDATE t_coupon_template SET claimed_count = claimed_count + 1 WHERE id = ? AND tenant_id = ?`,
+      `UPDATE t_coupon_template SET issued_quantity = issued_quantity + 1 WHERE id = ? AND tenant_id = ?`,
       [templateId, tenantId]
     );
   });
 
   const record = await queryOneWithTenant<UserCouponDetailRow>(
     `SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId,
-            uc.status, uc.claimed_at AS claimedAt, uc.expires_at AS expiresAt,
-            ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
-            ct.min_amount AS minAmount, ct.applicable_scope AS applicableScope
+            uc.status, uc.created_at AS claimedAt, uc.valid_end AS expiresAt,
+            ct.template_name AS templateName, ct.coupon_type AS couponType,
+            ct.coupon_value AS couponValue, ct.min_purchase AS minAmount,
+            ct.applicable_scope AS applicableScope
      FROM t_user_coupon uc
      JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      WHERE uc.template_id = ? AND uc.user_id = ?
@@ -530,15 +541,16 @@ export async function listMyCoupons(
 
   const records = await queryWithTenant<UserCouponListRow>(
     `SELECT uc.id, uc.template_id AS templateId, uc.user_id AS userId,
-            uc.order_id AS orderId, uc.status, uc.claimed_at AS claimedAt,
-            uc.used_at AS usedAt, uc.expires_at AS expiresAt,
-            ct.name AS templateName, ct.type AS couponType, ct.value AS couponValue,
-            ct.min_amount AS minAmount, ct.max_discount AS maxDiscount,
+            uc.used_order_no AS orderId, uc.status, uc.created_at AS claimedAt,
+            uc.used_at AS usedAt, uc.valid_end AS expiresAt,
+            ct.template_name AS templateName, ct.coupon_type AS couponType,
+            ct.coupon_value AS couponValue, ct.min_purchase AS minAmount,
+            ct.max_discount AS maxDiscount,
             ct.applicable_scope AS applicableScope, ct.description
      FROM t_user_coupon uc
      JOIN t_coupon_template ct ON ct.id = uc.template_id AND ct.tenant_id = ?
      WHERE ${where}
-     ORDER BY uc.claimed_at DESC
+     ORDER BY uc.created_at DESC
      LIMIT ? OFFSET ?`,
     [tenantId, ...params, pageSize, offset],
     tenantId
