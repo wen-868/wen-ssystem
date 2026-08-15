@@ -27,6 +27,8 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import http from "node:http";
+import https from "node:https";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -91,9 +93,14 @@ async function run() {
 
   // 3. Provider 列表
   const providers = await req(AI_BASE, "/api/admin/providers");
-  const providerNames = Array.isArray(providers.data?.data)
-    ? providers.data.data.map((p) => p?.name || p?.type || "").join(",")
-    : JSON.stringify(providers.data?.data || "").slice(0, 80);
+  const providerList = Array.isArray(providers.data?.providers)
+    ? providers.data.providers
+    : Array.isArray(providers.data?.data)
+      ? providers.data.data
+      : [];
+  const providerNames = providerList
+    .map((p) => p?.name || p?.type || "")
+    .join(",");
   record(
     "Provider 列表",
     providers.status === 200,
@@ -102,7 +109,11 @@ async function run() {
 
   // 4. 主动巡检任务
   const jobs = await req(AI_BASE, "/api/admin/proactive/jobs");
-  const jobCount = Array.isArray(jobs.data?.data) ? jobs.data.data.length : 0;
+  const jobCount = Array.isArray(jobs.data?.jobs)
+    ? jobs.data.jobs.length
+    : typeof jobs.data?.total === "number"
+      ? jobs.data.total
+      : 0;
   record(
     "主动巡检任务",
     jobs.status === 200 && jobCount >= 9,
@@ -149,12 +160,51 @@ async function run() {
     `HTTP ${audit.status}${token ? "" : "（未登录，401 预期）"}`
   );
 
-  // 9. WebSocket 推送通道（HTTP 方式探测端点已挂载：应返回 4xx 而非 404）
-  const wsProbe = await req(AI_BASE, "/api/ai/ws");
+  // 9. WebSocket 推送通道（带 Upgrade 头握手探测：101/400/4401 均视为已挂载，404 视为未挂载）
+  const wsProbe = await new Promise((resolve) => {
+    const url = new URL(`${AI_BASE}/api/ai/ws`);
+    const httpMod = url.protocol === "https:" ? https : http;
+    let settled = false;
+    const settle = (status) => {
+      if (!settled) {
+        settled = true;
+        resolve({ status, data: "" });
+      }
+    };
+    const reqObj = httpMod.request(
+      {
+        hostname: url.hostname,
+        port: url.port || (url.protocol === "https:" ? 443 : 80),
+        path: url.pathname + url.search,
+        method: "GET",
+        headers: {
+          Connection: "Upgrade",
+          Upgrade: "websocket",
+          "Sec-WebSocket-Version": "13",
+          "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+        },
+        timeout: 10000,
+      },
+      (res) => settle(res.statusCode)
+    );
+    // 101 切换协议：WebSocket 握手成功（服务端随后可能 4401 关闭 = JWT 校验生效）
+    reqObj.on("upgrade", () => settle(101));
+    reqObj.on("error", (err) => settle(0));
+    // 超时兜底（socket 超时不会自动结束请求，需销毁）
+    reqObj.on("timeout", () => {
+      settle(0);
+      reqObj.destroy();
+    });
+    reqObj.end();
+  });
+  const wsOk =
+    wsProbe.status === 101 ||
+    wsProbe.status === 400 ||
+    wsProbe.status === 4401;
   record(
     "WebSocket 推送通道",
-    wsProbe.status !== 404 && wsProbe.status !== 0,
-    `HTTP ${wsProbe.status}（非 404 = 端点已挂载，浏览器可用 ws:// 连接）`
+    wsOk && wsProbe.status !== 0,
+    `握手 HTTP ${wsProbe.status}（101/400/4401 = 通道已挂载且 JWT 校验生效）`
   );
 
   // 10. 用量统计接口（计费闭环可达性）
