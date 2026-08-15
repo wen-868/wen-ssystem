@@ -580,7 +580,8 @@ const storeApi = {
 
   /** 完成订单 */
   async completeOrder(orderNo: string): Promise<any> {
-    return post(`/store/orders/${orderNo}/complete`, {})
+    // 后端 store-order 路由：POST /api/store/orders/:orderNo/complete-delivery
+    return post(`/store/orders/${orderNo}/complete-delivery`, {})
   },
 
   // ---------- 挂单 ----------

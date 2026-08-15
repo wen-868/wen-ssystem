@@ -10,6 +10,7 @@ saleReturnRouter.get("/", asyncHandler(controller.listSaleReturns));
 saleReturnRouter.get("/:returnNo", asyncHandler(controller.getSaleReturnDetail));
 saleReturnRouter.post("/", asyncHandler(controller.createSaleReturn));
 saleReturnRouter.post("/:returnNo/approve", asyncHandler(controller.approveSaleReturn));
+saleReturnRouter.post("/:returnNo/reject", asyncHandler(controller.rejectSaleReturn));
 saleReturnRouter.post("/:returnNo/refund", asyncHandler(controller.refundSaleReturn));
 saleReturnRouter.get("/sale-bills/:billNo", asyncHandler(controller.getSaleBillForReturn));
 

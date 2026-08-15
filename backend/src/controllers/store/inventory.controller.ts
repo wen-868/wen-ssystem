@@ -49,3 +49,10 @@ export const listInventoryAlerts = asyncHandler(async (req, res) => {
   );
   res.json(ok(result));
 });
+
+export const updateAlertThreshold = asyncHandler(async (req, res) => {
+  const skuId = Number(req.params.skuId);
+  const threshold = Number(req.body?.threshold);
+  const result = await inventoryService.updateAlertThreshold(skuId, threshold, req.tenantId!);
+  res.json(ok(result));
+});

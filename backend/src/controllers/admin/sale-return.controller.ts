@@ -79,6 +79,16 @@ export async function approveSaleReturn(req: any, res: any) {
   res.json(ok(result));
 }
 
+export async function rejectSaleReturn(req: any, res: any) {
+  const { returnNo } = req.params;
+  const ctx = getServiceContext(req);
+  const result = await saleReturnService.reject(returnNo, ctx);
+  if (!result) {
+    throw new AppError("退货单不存在", 404);
+  }
+  res.json(ok(result));
+}
+
 /** 退货退款 */
 export async function refundSaleReturn(req: any, res: any) {
   const { returnNo } = req.params;

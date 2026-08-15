@@ -118,3 +118,19 @@ export async function listInventoryAlerts(storeId: number | null, tenantId: stri
     tenantId
   );
 }
+
+/** 更新 SKU 库存预警阈值（t_product_sku.warning_threshold） */
+export async function updateAlertThreshold(skuId: number, threshold: number, tenantId: string) {
+  if (!Number.isFinite(threshold) || threshold < 0) {
+    throw Object.assign(new Error("预警阈值无效"), { statusCode: 400 });
+  }
+  const result = await queryWithTenant<{ affectedRows: number }>(
+    "UPDATE t_product_sku SET warning_threshold = ?, updated_at = NOW() WHERE id = ? AND tenant_id = ?",
+    [threshold, skuId, tenantId],
+    tenantId
+  );
+  if (Number((result as unknown as { affectedRows?: number })?.affectedRows ?? 0) === 0) {
+    throw Object.assign(new Error("SKU 不存在"), { statusCode: 404 });
+  }
+  return { skuId, threshold };
+}

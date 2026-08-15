@@ -57,11 +57,12 @@ const expenseApi = {
   },
 
   async approve(id: number): Promise<void> {
-    await post(`/admin/expenses/${id}/approval`, { status: 'APPROVED' })
+    // 后端 expense 路由：POST /api/admin/expenses/:expenseNo/approve
+    await post(`/admin/expenses/${id}/approve`, { status: 'APPROVED' })
   },
 
   async reject(id: number, reason: string): Promise<void> {
-    await post(`/admin/expenses/${id}/approval`, { status: 'REJECTED', reason })
+    await post(`/admin/expenses/${id}/approve`, { status: 'REJECTED', reason })
   },
 
   async getTypes(): Promise<ExpenseType[]> {

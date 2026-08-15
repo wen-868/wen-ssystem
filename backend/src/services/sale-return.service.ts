@@ -360,6 +360,25 @@ class SaleReturnService {
     return { returnNo };
   }
 
+  /** 驳回退货单（待审核 → 已驳回，记录审核人/时间） */
+  async reject(returnNo: string, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
+    const returnOrder = await queryOneWithTenant<SaleReturn>(
+      "SELECT return_no, return_status FROM t_sale_return WHERE return_no = ? AND tenant_id = ?",
+      [returnNo, ctx.tenantId],
+      ctx.tenantId
+    );
+    if (!returnOrder) return null;
+    if (returnOrder.return_status !== "PENDING") {
+      throw new Error("只有待审核状态的退货单可以驳回");
+    }
+    await queryWithTenant(
+      "UPDATE t_sale_return SET return_status = 'REJECTED', auditor_id = ?, audited_at = NOW() WHERE return_no = ? AND tenant_id = ?",
+      [ctx.userId, returnNo, ctx.tenantId],
+      ctx.tenantId
+    );
+    return { returnNo };
+  }
+
   async refund(returnNo: string, dto: RefundDTO, ctx: ServiceContext): Promise<{ returnNo: string } | null> {
     const returnOrder = await queryOneWithTenant<SaleReturn>(
       "SELECT * FROM t_sale_return WHERE return_no = ? AND tenant_id = ?",
