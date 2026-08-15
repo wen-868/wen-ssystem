@@ -614,8 +614,54 @@ export class Orchestrator {
           break;
         }
         case 'checkInventory': {
-          const list = Array.isArray(d.list) ? d.list : [];
-          parts.push(`库存查询完成，共 ${list.length} 条记录。`);
+          // 直接给出库存结论（不展示过程）：现在{商品}的库存有{N}
+          const list = (
+            Array.isArray(d.records)
+              ? d.records
+              : Array.isArray(d.list)
+                ? d.list
+                : []
+          ) as Array<Record<string, unknown>>;
+          if (list.length === 0) {
+            parts.push('未查询到相关库存记录。');
+          } else {
+            for (const it of list) {
+              const name = toText(it.skuName) || '商品';
+              const qty = toText(it.availableQty ?? it.totalQty);
+              const store = toText(it.storeName);
+              parts.push(
+                store
+                  ? `现在${name}的库存有${qty}（${store}）`
+                  : `现在${name}的库存有${qty}`,
+              );
+            }
+          }
+          break;
+        }
+        case 'queryInventory': {
+          const list = (
+            Array.isArray(d.records)
+              ? d.records
+              : Array.isArray(d.list)
+                ? d.list
+                : []
+          ) as Array<Record<string, unknown>>;
+          if (list.length === 0) {
+            parts.push('未查询到相关库存记录。');
+          } else {
+            for (const it of list) {
+              const name = toText(it.skuName) || '商品';
+              const qty = toText(
+                it.availableQty ?? it.physicalQty ?? it.totalQty,
+              );
+              const store = toText(it.storeName);
+              parts.push(
+                store
+                  ? `现在${name}的库存有${qty}（${store}）`
+                  : `现在${name}的库存有${qty}`,
+              );
+            }
+          }
           break;
         }
         case 'queryReceivables': {

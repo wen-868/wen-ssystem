@@ -175,25 +175,13 @@ async function sendMessage(): Promise<void> {
         onText: (content) => {
           assistant.content = (assistant.content || "") + content;
         },
-        onToolStart: (tool) => {
-          pushMessage({ role: "assistant", kind: "tool", tool, toolStatus: "running" });
+        // 只读工具过程不展示（用户只需最终结果），写操作预览仍出确认卡
+        onToolStart: () => {
+          /* 静默：不展示工具过程卡片 */
         },
         onToolResult: (payload) => {
-          const target = messages.value.find(
-            (m) => m.kind === "tool" && m.tool === payload.tool && m.toolStatus === "running",
-          );
-          if (target) {
-            target.toolStatus = payload.success ? "success" : "error";
-            target.data = payload.data;
-            if (!payload.success && payload.data && typeof payload.data === "object") {
-              const errObj = payload.data as { error?: string; message?: string };
-              target.error = errObj.error || errObj.message || undefined;
-            }
-            if (payload.preview) {
-              target.preview = payload.preview;
-              target.confirmationId = payload.confirmationId;
-            }
-          } else if (payload.preview) {
+          // 仅写操作预览（需人工确认）出卡片；只读结果由最终 AI 文本直接呈现
+          if (payload.preview) {
             pushMessage({
               role: "assistant",
               kind: "preview",
