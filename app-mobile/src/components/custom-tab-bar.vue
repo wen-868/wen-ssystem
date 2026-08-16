@@ -8,8 +8,11 @@
         @tap="switchTab('/pages/home/home')"
       >
         <view class="tab-icon icon-home">
-          <view class="icon-home__roof"></view>
-          <view class="icon-home__body"></view>
+          <image
+            class="tab-icon-img"
+            :src="current === 'home' ? '/static/tabbar/home-active.svg' : '/static/tabbar/home.svg'"
+            mode="aspectFit"
+          />
         </view>
         <text class="tab-text">首页</text>
       </view>
@@ -21,8 +24,11 @@
         @tap="switchTab('/pages/products/products')"
       >
         <view class="tab-icon icon-box">
-          <view class="icon-box__lid"></view>
-          <view class="icon-box__body"></view>
+          <image
+            class="tab-icon-img"
+            :src="current === 'products' ? '/static/tabbar/product-active.svg' : '/static/tabbar/product.svg'"
+            mode="aspectFit"
+          />
         </view>
         <text class="tab-text">商品</text>
       </view>
@@ -34,7 +40,7 @@
         @tap="switchTab('/pages/ai-chat/ai-chat')"
       >
         <view class="ai-btn">
-          <text class="ai-btn-text">AI</text>
+          <image class="ai-btn-img" src="/static/tabbar/ai.svg" mode="aspectFit" />
         </view>
       </view>
 
@@ -45,10 +51,11 @@
         @tap="switchTab('/pages/functions/functions')"
       >
         <view class="tab-icon icon-grid">
-          <view class="icon-grid__cell"></view>
-          <view class="icon-grid__cell"></view>
-          <view class="icon-grid__cell"></view>
-          <view class="icon-grid__cell"></view>
+          <image
+            class="tab-icon-img"
+            :src="current === 'functions' ? '/static/tabbar/functions-active.svg' : '/static/tabbar/functions.svg'"
+            mode="aspectFit"
+          />
         </view>
         <text class="tab-text">功能</text>
       </view>
@@ -60,8 +67,11 @@
         @tap="switchTab('/pages/profile/profile')"
       >
         <view class="tab-icon icon-user">
-          <view class="icon-user__head"></view>
-          <view class="icon-user__body"></view>
+          <image
+            class="tab-icon-img"
+            :src="current === 'profile' ? '/static/tabbar/user-active.svg' : '/static/tabbar/user.svg'"
+            mode="aspectFit"
+          />
         </view>
         <text class="tab-text">我的</text>
       </view>
@@ -150,124 +160,14 @@ function switchTab(url: string) {
   position: relative;
   width: 44rpx;
   height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 首页：屋顶 + 房身 */
-.icon-home__roof {
-  position: absolute;
-  top: 4rpx;
-  left: 6rpx;
-  width: 32rpx;
-  height: 24rpx;
-  border: 3rpx solid $uni-gray-400;
-  border-bottom: none;
-  border-top-left-radius: 4rpx;
-  border-top-right-radius: 4rpx;
-  transform: skew(-10deg);
-  transition: border-color 0.25s ease;
-}
-
-.icon-home__body {
-  position: absolute;
-  bottom: 3rpx;
-  left: 9rpx;
-  width: 26rpx;
-  height: 20rpx;
-  border: 3rpx solid $uni-gray-400;
-  border-bottom: none;
-  border-radius: 2rpx;
-  transition: border-color 0.25s ease;
-}
-
-.tab-item--active .icon-home__roof,
-.tab-item--active .icon-home__body {
-  border-color: $uni-color-primary;
-}
-
-/* 商品：盒盖 + 盒身 */
-.icon-box__lid {
-  position: absolute;
-  top: 8rpx;
-  left: 6rpx;
-  width: 32rpx;
-  height: 8rpx;
-  background: $uni-gray-400;
-  border-radius: 2rpx;
-  transition: background 0.25s ease;
-}
-
-.icon-box__body {
-  position: absolute;
-  top: 16rpx;
-  left: 10rpx;
-  width: 24rpx;
-  height: 20rpx;
-  border: 3rpx solid $uni-gray-400;
-  border-top: none;
-  border-bottom-left-radius: 4rpx;
-  border-bottom-right-radius: 4rpx;
-  transition: border-color 0.25s ease;
-}
-
-.tab-item--active .icon-box__lid {
-  background: $uni-color-primary;
-}
-
-.tab-item--active .icon-box__body {
-  border-color: $uni-color-primary;
-}
-
-/* 功能：四宫格 */
-.icon-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 16rpx);
-  grid-template-rows: repeat(2, 16rpx);
-  gap: 6rpx;
-  place-content: center;
-}
-
-.icon-grid__cell {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 4rpx;
-  background: $uni-gray-400;
-  transition: background 0.25s ease;
-}
-
-.tab-item--active .icon-grid__cell {
-  background: $uni-color-primary;
-}
-
-/* 我的：人形 */
-.icon-user__head {
-  position: absolute;
-  top: 2rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16rpx;
-  height: 16rpx;
-  border: 3rpx solid $uni-gray-400;
-  border-radius: 50%;
-  transition: border-color 0.25s ease;
-}
-
-.icon-user__body {
-  position: absolute;
-  bottom: 2rpx;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28rpx;
-  height: 16rpx;
-  border: 3rpx solid $uni-gray-400;
-  border-bottom: none;
-  border-top-left-radius: 14rpx;
-  border-top-right-radius: 14rpx;
-  transition: border-color 0.25s ease;
-}
-
-.tab-item--active .icon-user__head,
-.tab-item--active .icon-user__body {
-  border-color: $uni-color-primary;
+.tab-icon-img {
+  width: 44rpx;
+  height: 44rpx;
 }
 
 /* ─── AI 凸起按钮 ─── */
@@ -291,6 +191,12 @@ function switchTab(url: string) {
   transform: translateY(-30rpx);
   box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.25);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.ai-btn-img {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
 }
 
 .tab-ai:active .ai-btn {

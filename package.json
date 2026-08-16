@@ -52,5 +52,8 @@
     "vue": "3.4.21",
     "wait-on": "^9.0.10",
     "webpack": "5.87.0"
+  },
+  "dependencies": {
+    "@vue/shared": "3.4.21"
   }
 }

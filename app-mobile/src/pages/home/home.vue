@@ -301,6 +301,7 @@ onMounted(() => {
 .home-page {
   min-height: 100vh;
   background: $uni-bg-color-page;
+  padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 

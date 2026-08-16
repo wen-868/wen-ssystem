@@ -230,6 +230,7 @@ function handleLogout() {
   background: $uni-gradient-blue;
   border-radius: 32rpx;
   padding: 36rpx 32rpx;
+  padding-top: calc(36rpx + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.25);

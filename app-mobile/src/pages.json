@@ -23,9 +23,7 @@
         {
             "path": "pages/home/home",
             "style": {
-                "navigationBarTitleText": "智享全链",
-                "navigationBarBackgroundColor": "#1677FF",
-                "navigationBarTextStyle": "white"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -49,7 +47,7 @@
         {
             "path": "pages/products/products",
             "style": {
-                "navigationBarTitleText": "商品管理"
+                "navigationStyle": "custom"
             }
         },
         {
@@ -61,19 +59,19 @@
         {
             "path": "pages/functions/functions",
             "style": {
-                "navigationBarTitleText": "功能中心"
+                "navigationStyle": "custom"
             }
         },
         {
             "path": "pages/profile/profile",
             "style": {
-                "navigationBarTitleText": "我的"
+                "navigationStyle": "custom"
             }
         },
         {
             "path": "pages/ai-chat/ai-chat",
             "style": {
-                "navigationBarTitleText": "AI助手"
+                "navigationStyle": "custom"
             }
         },
         {

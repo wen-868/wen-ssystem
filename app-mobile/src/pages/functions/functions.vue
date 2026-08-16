@@ -119,6 +119,7 @@ function doSearch() {
   align-items: center;
   gap: 20rpx;
   padding: 28rpx 32rpx 12rpx;
+  padding-top: calc(28rpx + env(safe-area-inset-top));
 }
 
 .func-logo {
