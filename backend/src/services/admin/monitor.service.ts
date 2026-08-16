@@ -174,14 +174,14 @@ export async function notifyExpiringTenants(tenantIds: string[]): Promise<number
 
       const companyName = tenant?.company_name || "您的店铺";
       const expireAt = tenant?.expire_at;
-      const expireText = expireAt
-        ? String(expireAt).slice(0, 10)
-        : "即将到期";
+      const content = expireAt
+        ? `${companyName} 的系统服务将于 ${String(expireAt).slice(0, 10)} 到期，请及时续费以免影响正常使用。`
+        : `${companyName} 的系统服务即将到期，请及时续费以免影响正常使用。`;
       await sendNotification(pool, {
         recipientId: adminUser.id,
         recipientType: "ADMIN",
         title: "订阅即将到期提醒",
-        content: `${companyName} 的系统服务将于 ${expireText} 到期，请及时续费以免影响正常使用。`,
+        content,
         type: "SYSTEM",
         tenantId,
       });
