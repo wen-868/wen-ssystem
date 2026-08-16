@@ -117,3 +117,97 @@ describe("coupon-verify.service - 手动核销", () => {
       .rejects.toMatchObject({ statusCode: 400 });
   });
 });
+
+describe("coupon-verify.service - 状态/模板分支", () => {
+  it("已锁定券抛 400", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce(mockCoupon({ status: "LOCKED" }));
+    await expect(verifyCouponByCode({ tenantId, code: "C0001" }))
+      .rejects.toMatchObject({ statusCode: 400, message: "优惠券已锁定" });
+  });
+
+  it("模板不存在时仍核销成功（不更新 used_quantity）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon())
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 150 });
+    expect(res.status).toBe("USED");
+    expect(mockConn.execute).toHaveBeenCalledTimes(1); // 仅更新用户券，无模板更新
+  });
+});
+
+describe("coupon-verify.service - calcDiscount 分支", () => {
+  it("DISCOUNT 券：9 折上限 10 → 优惠 10", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon({ coupon_type: "DISCOUNT", coupon_value: 0.9, max_discount: 10 }))
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 100 });
+    expect(res.discountAmount).toBe(10);
+  });
+
+  it("DISCOUNT 券：折扣率 >1 截断为 1 → 优惠 0", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon({ coupon_type: "DISCOUNT", coupon_value: 1.5, max_discount: null }))
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 100 });
+    expect(res.discountAmount).toBe(0);
+  });
+
+  it("DISCOUNT 券：折扣率 <0 截断为 0 → 优惠订单全额", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon({ coupon_type: "DISCOUNT", coupon_value: -0.5, max_discount: null }))
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 100 });
+    expect(res.discountAmount).toBe(100);
+  });
+
+  it("DISCOUNT 券：优惠超 max_discount 时截断", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon({ coupon_type: "DISCOUNT", coupon_value: 0.8, max_discount: 5 }))
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 100 });
+    expect(res.discountAmount).toBe(5);
+  });
+
+  it("GIFT 券无现金优惠 → 0", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon({ coupon_type: "GIFT" }))
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001", orderNo: "X1", orderAmount: 100 });
+    expect(res.discountAmount).toBe(0);
+  });
+
+  it("无订单金额时按券面值核销（AMOUNT 分支）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon())
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await verifyCouponByCode({ tenantId, code: "C0001" });
+    expect(res.discountAmount).toBe(20);
+  });
+});
+
+describe("coupon-verify.service - 手动核销分支", () => {
+  it("无手机号时直接核销成功（跳过归属校验）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon())
+      .mockResolvedValueOnce(mockCoupon())
+      .mockResolvedValueOnce({ id: 10 })
+      .mockResolvedValueOnce({ name: "张三", mobile: "13800000000" });
+    const res = await manualVerifyCoupon({ tenantId, couponCode: "C0001", saleBillNo: "X1" });
+    expect(res.status).toBe("USED");
+  });
+
+  it("有手机号但会员不存在 → 400", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce(mockCoupon())
+      .mockResolvedValueOnce(null);
+    await expect(manualVerifyCoupon({ tenantId, couponCode: "C0001", mobile: "13800000000" }))
+      .rejects.toMatchObject({ statusCode: 400 });
+  });
+});

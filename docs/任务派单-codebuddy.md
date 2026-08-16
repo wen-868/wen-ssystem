@@ -37,7 +37,16 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
 ### 批次进度（2026-08-16 更新）
 - ✅ **Batch 1 已完成并验收通过**：trace-config（10 例）/ approval-records（18 例）/ quote-push（13 例）= 41 例，覆盖率 66.17%（Codex 已确认，验收总览报告第 33 项）。
 - ✅ **Batch 2 已完成并验收通过**：custom-report（27 例，stmts 97.51%）/ trace-records（34 例，stmts 88.83%）= 61 例，全量 529 文件 / 5610 用例，覆盖率 statements 67.41%（高于上批 66.17%），门槛全过（Codex 已确认，验收总览报告第 34/35 项）。注：marketing-flash-sale/group-buy/stack-rule/limited-discount/points-mall/asset 六服务测试此前已在仓库内（已提交），本次 Batch 2 实质新增为 custom-report 与 trace-records 两服务 0%→高覆盖；全量回归确认这六服务测试仍全部通过。
-- ✅ **Batch 3 已完成并验收通过**：Codex 独立复核——全量 531 文件 / 5648 用例通过、lint 0 error、构建通过、覆盖率 statements 68.29%（CodeBuddy 自测 68.33%，实测 68.29%，均远高于门槛）、branches 55.95%（门槛 51）、functions 67.06%（门槛 62）、lines 70.1%（门槛 64）、services/admin 64.37%；alert.service（19 例，分支 71.56%）与 notification.service 质量抽查合格；inventory-loss-order/profit-loss-stats 回归全过（验收总览报告第 36 项）。⏳ **Batch 4 待执行**（coupon-verify、inventory、sale-bill 剩余、shared 收尾）。
+- ✅ **Batch 3 已完成并验收通过**：Codex 独立复核——全量 531 文件 / 5648 用例通过、lint 0 error、构建通过、覆盖率 statements 68.29%（CodeBuddy 自测 68.33%，实测 68.29%，均远高于门槛）、branches 55.95%（门槛 51）、functions 67.06%（门槛 62）、lines 70.1%（门槛 64）、services/admin 64.37%；alert.service（19 例，分支 71.56%）与 notification.service 质量抽查合格；inventory-loss-order/profit-loss-stats 回归全过（验收总览报告第 36 项）。
+- ✅ **Batch 4 已完成并交付（待 Codex 验收）**：coupon-verify / inventory / sale-bill.service 剩余 / shared 收尾 四组。本次实质新增/补全：
+  - inventory.service：新增 12 例，覆盖 listInventory/adjustInventory/listInventoryLogs/listInventoryAlerts/updateAlertThreshold 全部方法+分支（由 ~0%→全覆盖）；
+  - shared/pagination：纯函数全覆盖（+13 例）；
+  - shared/db：connExecute/connQuery/connQueryOne 全覆盖（+3 例）；
+  - shared/seed-data：seedData 全分支（全空插入/已有数据跳过/DUP 静默跳过/其他错误记日志/表不存在 catch，+5 例）；
+  - shared/store-control-scheduler：补全 runStoreControlCheck 全分支（自动开门/关门/订单数上限/金额上限/内层 false，+4 例；原仅覆盖 startStoreControlScheduler）；
+  - coupon-verify.service：补全 LOCKED 状态、模板为空、calcDiscount DISCOUNT 折扣率截断与封顶/GIFT/无订单金额、manualVerifyCoupon 无手机号与会员不存在等分支（+9 例）；
+  - sale-bill.service 剩余：经核 `src/__tests__/services/admin/sale-bill.test.ts`（22KB）已覆盖该服务全部 11 个方法，实际已完成，无需补测。
+  全量 535 文件 / 5695 用例通过（较 Batch 3 的 5648 +47），覆盖率 statements 68.95%、branches 56.61%、functions 67.38%、lines 70.8%（均高于 Batch 3 的 68.33%/56.03%/67.12%/70.14%，且高于全局门槛 63/51/62/64），lint 0 error、构建通过。待 Codex 按同一门槛验收并更新验收总览报告。
 
 ### P1：生产证据类（需服务器，脚本已就绪）
 
