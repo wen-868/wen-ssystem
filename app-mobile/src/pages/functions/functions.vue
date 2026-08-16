@@ -1,15 +1,6 @@
 <template>
   <view class="func-page">
-    <!-- 头部 -->
-    <view class="func-hd">
-      <view class="func-logo">
-        <image class="func-logo-img" src="/static/logo.png" mode="aspectFit" />
-      </view>
-      <text class="func-hd-title">功能中心</text>
-      <text class="func-hd-search" @tap="focusSearch">&#xe614;</text>
-    </view>
-
-    <!-- 搜索栏 -->
+    <!-- 搜索栏（UI1.2 打磨：头部区块删除，safe-area 移至顶部） -->
     <view class="func-search">
       <view class="search-bar">
         <text class="search-icon">&#xe614;</text>
@@ -17,9 +8,9 @@
       </view>
     </view>
 
-    <!-- 高频宫格 -->
-    <view class="func-grid">
-      <view class="func-grid-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
+    <!-- 高频宫格（真实搜索过滤） -->
+    <view class="func-grid" v-if="filteredHotActions.length > 0">
+      <view class="func-grid-item" v-for="item in filteredHotActions" :key="item.label" @tap="goto(item.path)">
         <view class="fg-ico" :style="{ background: item.bg }">
           <image v-if="item.icon.startsWith('/static')" class="fg-ico-img" :src="item.icon" mode="aspectFit" />
           <text v-else class="fg-ico-text">{{ item.icon }}</text>
@@ -28,11 +19,16 @@
       </view>
     </view>
 
+    <!-- 搜索无结果空态 -->
+    <view class="func-empty" v-if="keyword && !hasResults">
+      <text class="func-empty-text">未找到「{{ keyword }}」相关功能</text>
+    </view>
+
     <!-- 数据工具 -->
-    <view class="func-section">
+    <view class="func-section" v-if="filteredDataTools.length > 0">
       <text class="func-section-title">数据 · 工具</text>
       <view class="func-list">
-        <view class="list-item" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
+        <view class="list-item" v-for="item in filteredDataTools" :key="item.label" @tap="goto(item.path)">
           <view class="li-ico" :style="{ background: item.bg, color: item.color }">
             <text class="li-ico-text">{{ item.icon }}</text>
           </view>
@@ -51,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   AI_BG_SOFT,
@@ -92,15 +88,25 @@ const dataTools = [
   { icon: '排', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '溯', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '供', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_DANGER_SOFT, color: AI_DANGER },
-  { icon: '设', label: '系统设置', sub: '打印、权限、通知设置', path: '/pages-sub/admin/settings/settings', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
-function focusSearch() {
-  uni.showToast({ title: '输入关键词搜索', icon: 'none' })
-}
+/** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */
+const filteredHotActions = computed(() => {
+  const k = keyword.value.trim().toLowerCase()
+  if (!k) return hotActions
+  return hotActions.filter((a) => a.label.toLowerCase().includes(k))
+})
+
+const filteredDataTools = computed(() => {
+  const k = keyword.value.trim().toLowerCase()
+  if (!k) return dataTools
+  return dataTools.filter((a) => a.label.toLowerCase().includes(k) || a.sub.toLowerCase().includes(k))
+})
+
+const hasResults = computed(() => filteredHotActions.value.length > 0 || filteredDataTools.value.length > 0)
 
 function doSearch() {
-  uni.showToast({ title: `搜索：${keyword.value || '全部'}`, icon: 'none' })
+  // 确认搜索：结果由 computed 实时渲染，无需额外处理
 }
 </script>
 
@@ -113,48 +119,10 @@ function doSearch() {
   padding-bottom: calc(136rpx + env(safe-area-inset-bottom));
 }
 
-/* 头部 */
-.func-hd {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 28rpx 32rpx 12rpx;
-  padding-top: calc(28rpx + env(safe-area-inset-top));
-}
-
-.func-logo {
-  width: 76rpx;
-  height: 76rpx;
-  border-radius: 24rpx;
-  background: $uni-bg-color;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
-}
-
-.func-logo-img {
-  width: 56rpx;
-  height: 56rpx;
-}
-
-.func-hd-title {
-  flex: 1;
-  font-size: 36rpx;
-  font-weight: 700;
-  color: $uni-text-color;
-  letter-spacing: -0.5rpx;
-}
-
-.func-hd-search {
-  font-size: 40rpx;
-  color: $uni-gray-600;
-  padding: 12rpx;
-}
-
-/* 搜索栏 */
+/* 搜索栏（顶部承接状态栏 safe-area） */
 .func-search {
-  padding: 12rpx 28rpx 20rpx;
+  padding: 24rpx 28rpx 20rpx;
+  padding-top: calc(24rpx + env(safe-area-inset-top));
 }
 
 .search-bar {
@@ -227,6 +195,22 @@ function doSearch() {
   font-size: 22rpx;
   color: $uni-gray-600;
   font-weight: 500;
+}
+
+/* 搜索无结果空态 */
+.func-empty {
+  margin: 40rpx 28rpx 0;
+  padding: 80rpx 24rpx;
+  background: $uni-bg-color;
+  border-radius: 32rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  text-align: center;
+}
+
+.func-empty-text {
+  font-size: 26rpx;
+  color: $uni-gray-500;
 }
 
 /* 数据工具 */

@@ -72,11 +72,12 @@ img{display:block;max-width:100%}
 /* ========== Bottom Nav ========== */
 .bnav{flex-shrink:0;height:58px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(0,0,0,.04);
-  display:flex;align-items:flex-end;padding-bottom:4px;position:relative;z-index:20}
+  display:flex;align-items:flex-end;padding-bottom:calc(4px + env(safe-area-inset-bottom));position:relative;z-index:20}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:8px 0 4px;transition:all .25s ease;position:relative}
-.bnav-item svg{width:22px;height:22px;color:var(--c-400);transition:all .25s ease}
-.bnav-item span{font-size:10px;color:var(--c-400);transition:all .25s ease;font-weight:400;letter-spacing:.2px}
+  padding:8px 0 4px;transition:all .25s ease;position:relative;cursor:pointer}
+.bnav-item svg{width:22px;height:22px;color:var(--c-500);transition:all .25s ease}
+.bnav-item span{font-size:11px;color:var(--c-500);transition:all .25s ease;font-weight:400;letter-spacing:.2px}
+.bnav-item:active svg{transform:scale(.86)}
 .bnav-item.active svg{color:var(--c-blue)}
 .bnav-item.active span{color:var(--c-blue);font-weight:600}
 
@@ -96,10 +97,10 @@ img{display:block;max-width:100%}
 /* ========== Common Components ========== */
 .pg-hd{padding:18px 20px 0;display:flex;align-items:center;gap:12px;background:var(--bg-card)}
 .pg-hd h1{font-size:20px;font-weight:700;flex:1;letter-spacing:-.3px}
-.pg-hd .ico{width:22px;height:22px;color:var(--c-700);cursor:pointer}
-/* 「我的」页顶部：整行上移并在顶部栏内上下居中（仅本页生效） */
-#pg-profile .pg-hd{padding:10px 20px}
-.back-btn{width:22px;height:22px;color:var(--c-700);cursor:pointer;flex-shrink:0}
+/* 返回键：视觉 22px，热区扩至 44px（spec12 触摸目标） */
+.back-btn{width:44px;height:44px;padding:11px;margin-left:-11px;color:var(--c-700);cursor:pointer;flex-shrink:0;
+  transition:transform .15s ease,color .15s ease}
+.back-btn:active{transform:scale(.88);color:var(--c-blue)}
 
 .search-bar{margin:10px 14px 0;height:42px;background:var(--bg-card);border:1px solid rgba(0,0,0,.06);
   border-radius:var(--r-full);display:flex;align-items:center;padding:0 16px;gap:10px;
@@ -108,22 +109,29 @@ img{display:block;max-width:100%}
 .search-bar svg{width:16px;height:16px;color:var(--c-400);flex-shrink:0;transition:color .2s ease}
 .search-bar:focus-within>svg:first-child{color:var(--c-blue)}
 .search-bar input{flex:1;font-size:13px;color:var(--t1);letter-spacing:-.1px}
-.search-bar input::placeholder{color:var(--c-400);font-weight:400}
-.search-bar .s-actions{display:flex;gap:8px;align-items:center}
+.search-bar input::placeholder{color:var(--c-500);font-weight:400}
+.search-bar .s-actions{display:flex;gap:2px;align-items:center}
 .search-bar .s-actions svg{width:18px;height:18px;color:var(--c-500);transition:color .2s ease;cursor:pointer}
 .search-bar .s-actions svg:active{color:var(--c-blue)}
+/* 图标按钮：视觉 18px，热区 40px（spec12 触摸目标） */
+.icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;cursor:pointer;transition:background .15s ease,transform .15s ease;flex-shrink:0}
+.icon-btn:active{background:rgba(0,0,0,.05);transform:scale(.9)}
+.icon-btn svg{width:18px;height:18px;color:var(--c-500);transition:color .2s ease}
+.icon-btn:active svg{color:var(--c-blue)}
 
 .card{background:var(--bg-card);border-radius:var(--r4);padding:18px;margin:0 14px 14px;
   box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
 .card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;
   justify-content:space-between;letter-spacing:-.2px}
-.card-title .more{font-size:12px;color:var(--c-400);font-weight:400}
+.card-title .more{font-size:12px;color:var(--c-500);font-weight:400}
 
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--r-full);
   font-size:11px;font-weight:600;letter-spacing:.2px}
-.badge-green{background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,.1)}
-.badge-orange{background:#fffbeb;color:#d97706;border:1px solid rgba(217,119,6,.1)}
-.badge-red{background:#fef2f2;color:#dc2626;border:1px solid rgba(220,38,38,.1)}
+/* 徽章文字加深至 4.5:1 对比度（spec12） */
+.badge-green{background:#ecfdf5;color:#047857;border:1px solid rgba(5,150,105,.1)}
+.badge-orange{background:#fffbeb;color:#b45309;border:1px solid rgba(217,119,6,.1)}
+.badge-red{background:#fef2f2;color:#b91c1c;border:1px solid rgba(220,38,38,.1)}
 .badge-gray{background:var(--c-100);color:var(--c-600)}
 
 .btn-primary{height:48px;background:var(--c-blue);color:#fff;border-radius:var(--r3);
@@ -131,7 +139,7 @@ img{display:block;max-width:100%}
   margin:0 12px;transition:all .2s ease;box-shadow:0 2px 8px rgba(37,99,235,.2)}
 .btn-primary:active{opacity:.85;transform:scale(.98)}
 
-.section-title{font-size:12px;font-weight:600;color:var(--t3);padding:18px 14px 10px;
+.section-title{font-size:12px;font-weight:600;color:var(--c-500);padding:18px 14px 10px;
   text-transform:uppercase;letter-spacing:.8px}
 
 .list-item{display:flex;align-items:center;padding:15px 18px;background:var(--bg-card);gap:14px;
@@ -144,14 +152,15 @@ img{display:block;max-width:100%}
 .list-item .li-ico svg{width:18px;height:18px;color:var(--c-blue)}
 .list-item .li-body{flex:1;min-width:0}
 .list-item .li-title{font-size:14px;font-weight:600;letter-spacing:-.1px}
-.list-item .li-desc{font-size:12px;color:var(--t3);margin-top:3px;
+.list-item .li-desc{font-size:12px;color:var(--c-500);margin-top:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list-item .li-right{font-size:13px;color:var(--t2);flex-shrink:0;display:flex;align-items:center;gap:4px}
 .list-item .li-right svg{width:14px;height:14px;color:var(--c-300)}
 
 .tab-bar{display:flex;padding:0 18px;gap:0;border-bottom:1px solid rgba(0,0,0,.05);background:var(--bg-card)}
-.tab-bar .tab{padding:14px 0;margin-right:28px;font-size:14px;color:var(--c-400);
+.tab-bar .tab{padding:14px 0;margin-right:28px;font-size:14px;color:var(--c-500);
   position:relative;cursor:pointer;white-space:nowrap;transition:color .2s;font-weight:400}
+.tab-bar .tab:active{opacity:.55}
 .tab-bar .tab.active{color:var(--c-900);font-weight:600}
 .tab-bar .tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;
   height:2.5px;background:var(--c-blue);border-radius:2px}
@@ -168,7 +177,7 @@ img{display:block;max-width:100%}
 .home-logo::before{display:none}
 .home-info{flex:1}
 .home-info h2{font-size:17px;font-weight:700;letter-spacing:0}
-.home-info p{font-size:12px;color:var(--t3);margin-top:3px;display:flex;align-items:center;gap:6px}
+.home-info p{font-size:12px;color:var(--c-500);margin-top:3px;display:flex;align-items:center;gap:6px}
 .home-info p::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--c-success);
   animation:pulse-dot 2s infinite}
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
@@ -199,8 +208,8 @@ img{display:block;max-width:100%}
 .home-data-item .val{font-size:32px;font-weight:800;margin-top:8px;font-family:var(--mono);
   letter-spacing:-.5px;color:var(--c-blue);line-height:1}
 .home-data-item .trend{font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px;
-  color:var(--c-400);font-weight:500}
-.home-data-item .trend.up{color:#059669}
+  color:var(--c-500);font-weight:500}
+.home-data-item .trend.up{color:#047857}
 .home-data-item .trend.down{color:var(--c-danger)}
 .home-data-div{height:1px;margin:18px 0;position:relative;z-index:1;
   background:linear-gradient(90deg,transparent,rgba(37,99,235,.08) 20%,rgba(37,99,235,.08) 80%,transparent)}
@@ -208,7 +217,7 @@ img{display:block;max-width:100%}
 .home-data-bot .db-item{flex:1;text-align:center;position:relative}
 .home-data-bot .db-item:not(:last-child)::after{content:'';position:absolute;right:0;top:6px;bottom:6px;
   width:1px;background:linear-gradient(180deg,transparent,rgba(37,99,235,.08),transparent)}
-.home-data-bot .db-label{font-size:10px;color:var(--c-400);letter-spacing:0;font-weight:500}
+.home-data-bot .db-label{font-size:11px;color:var(--c-500);letter-spacing:0;font-weight:500}
 .home-data-bot .db-val{font-size:18px;font-weight:800;margin-top:5px;font-family:var(--mono);color:var(--c-blue);letter-spacing:-.3px}
 
 .home-progress{margin:16px 14px 0;background:var(--bg-card);border-radius:var(--r4);
@@ -225,7 +234,7 @@ img{display:block;max-width:100%}
   display:flex;align-items:center;justify-content:center}
 .hp-item .hp-ico svg{width:14px;height:14px}
 .hp-item .hp-num{font-size:22px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px;line-height:1}
-.hp-item .hp-label{font-size:10px;color:var(--t3);margin-top:6px;font-weight:500;letter-spacing:0}
+.hp-item .hp-label{font-size:11px;color:var(--c-500);margin-top:6px;font-weight:500;letter-spacing:0}
 .hp-item:nth-child(1){background:rgba(200,128,58,.04);border-color:rgba(200,128,58,.08)}
 .hp-item:nth-child(1) .hp-num{color:var(--c-warning)}
 .hp-item:nth-child(1) .hp-ico{background:rgba(200,128,58,.1)}
@@ -248,29 +257,30 @@ img{display:block;max-width:100%}
 .home-orders h3{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;
   align-items:center;justify-content:space-between;letter-spacing:0}
 .home-orders h3 .more{font-size:12px;color:var(--c-400);font-weight:400;cursor:pointer}
-.ho-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.03)}
+.ho-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid rgba(0,0,0,.03);cursor:pointer}
+.ho-item:active{opacity:.6}
 .ho-item:last-child{border:none}
 .ho-info{flex:1}
 .ho-name{font-size:13px;font-weight:600;letter-spacing:-.1px}
-.ho-meta{font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--mono);opacity:.8}
+.ho-meta{font-size:11px;color:var(--c-500);margin-top:3px;font-family:var(--mono)}
 .ho-amount{font-size:15px;font-weight:800;font-family:var(--mono);margin-right:10px;letter-spacing:-.3px}
 .ho-status{font-size:11px}
+/* 渠道标签（此前无样式定义，修复为浅灰底小标签） */
+.ho-channel{display:inline-block;font-size:11px;font-weight:500;color:var(--c-500);
+  background:var(--c-100);padding:1px 6px;border-radius:var(--s1);margin-left:6px;vertical-align:1px;line-height:1.5}
 
 .home-chart{margin:16px 14px 0;background:var(--bg-card);border-radius:var(--r4);
   padding:20px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
 .home-chart h3{font-size:14px;font-weight:700;margin-bottom:6px;letter-spacing:0;
   display:flex;align-items:center;justify-content:space-between}
-.home-chart .chart-subtitle{font-size:11px;color:var(--t3);font-weight:400;margin-bottom:14px;
+.home-chart .chart-subtitle{font-size:11px;color:var(--c-500);font-weight:400;margin-bottom:14px;
   display:flex;align-items:center;gap:6px}
 .home-chart .chart-subtitle::before{content:'';width:8px;height:8px;border-radius:50%;
   background:var(--c-blue);opacity:.5}
 .chart-wrap{width:100%;height:150px;position:relative}
 .chart-wrap svg{width:100%;height:100%}
 .chart-labels{display:flex;justify-content:space-between;margin-top:10px;padding:0 2px}
-.chart-labels span{font-size:10px;color:var(--t3);font-weight:500}
-.chart-avg-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(37,99,235,.15);pointer-events:none}
-.chart-avg-label{position:absolute;right:2px;font-size:9px;color:rgba(37,99,235,.5);font-weight:600;
-  font-family:var(--mono);transform:translateY(-100%);padding-top:2px}
+.chart-labels span{font-size:11px;color:var(--c-500);font-weight:500}
 </style>
 </head>
 <body>
@@ -297,9 +307,9 @@ img{display:block;max-width:100%}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
     <input placeholder="搜索商品、订单、客户名称" readonly>
     <div class="s-actions">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3M14 12h3M7 17h3"/></svg>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;cursor:pointer" onclick="goSub('pg-messages')"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg>
+      <span class="icon-btn" role="button" aria-label="扫一扫" onclick="goSub('pg-quick-order')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+      <span class="icon-btn" role="button" aria-label="订单" onclick="goSub('pg-orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3M14 12h3M7 17h3"/></svg></span>
+      <span class="icon-btn" role="button" aria-label="消息通知" onclick="goSub('pg-messages')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg></span>
     </div>
   </div>
 
@@ -358,7 +368,7 @@ img{display:block;max-width:100%}
     <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;letter-spacing:-.2px">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       今日待办
-      <span style="font-size:11px;color:var(--c-400);font-weight:400;margin-left:auto">3项需处理</span>
+      <span style="font-size:11px;color:var(--c-500);font-weight:400;margin-left:auto">3项需处理</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t2)">
@@ -414,7 +424,7 @@ img{display:block;max-width:100%}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
     <input placeholder="搜索商品名/条码/品牌" readonly>
     <div class="s-actions">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:relative;cursor:pointer" onclick="goSub('pg-messages')"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg>
+      <span class="icon-btn" role="button" aria-label="消息通知" onclick="goSub('pg-messages')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="4" r="3" fill="#c45050" stroke="none"/></svg></span>
     </div>
   </div>
   <div class="prod-body">
@@ -439,7 +449,7 @@ img{display:block;max-width:100%}
         <div class="ai-top-sub">有什么可以帮你的？</div>
       </div>
     </div>
-    <div class="ai-top-right" onclick="alert('扫一扫：请打开摄像头扫描商品条码或二维码')">
+    <div class="ai-top-right" aria-label="扫一扫" role="button" onclick="alert('扫一扫：请打开摄像头扫描商品条码或二维码')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
     </div>
   </div>
@@ -467,6 +477,11 @@ img{display:block;max-width:100%}
         <div class="ai-msg-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg></div>
         <div class="ai-msg-bubble">⚠️ 3件商品低于安全库存：<br><br>📦 金龙鱼食用油 — 剩余5件<br>📦 蓝月亮洗衣液 — 剩余8件<br>📦 旺旺雪饼 — 剩余12件<br><br>要帮你生成采购单吗？</div>
       </div>
+      <!-- 正在输入指示器（加载态样式演示） -->
+      <div class="ai-msg assistant">
+        <div class="ai-msg-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2H22l-6 4.5 2.3 7.3L12 16.5l-6.3 4.5 2.3-7.3-6-4.5h7.6L12 2z"/></svg></div>
+        <div class="ai-msg-bubble"><div class="typing" aria-label="正在输入"><span></span><span></span><span></span></div></div>
+      </div>
     </div>
   </div>
 
@@ -479,12 +494,12 @@ img{display:block;max-width:100%}
       <span class="ai-tag" onclick="this.closest('.ai-bottom-bar').querySelector('.ai-input').value='帮我快速开单'">快速开单</span>
     </div>
     <div class="ai-input-bar">
-      <div class="ai-voice-btn">
+      <div class="ai-voice-btn" role="button" aria-label="语音输入" onclick="alert('演示：按住说话，松开发送')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         <div class="voice-ripple"></div>
       </div>
       <input class="ai-input" placeholder="输入你的问题..." readonly>
-      <div class="ai-send-btn">
+      <div class="ai-send-btn" role="button" aria-label="发送" onclick="alert('演示：发送消息，AI 将流式回复')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </div>
     </div>
@@ -497,11 +512,11 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-quick-order">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>快速开单</h1>
   </div>
   <!-- 客户选择 -->
-  <div class="qo-customer" style="margin:12px 16px 0">
+  <div class="qo-customer" style="margin:12px 16px 0" onclick="alert('演示：选择客户（散客/会员）')">
     <div><div class="qc-label">客户</div><div class="qc-name">散客</div></div>
     <svg class="qc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
   </div>
@@ -511,11 +526,11 @@ img{display:block;max-width:100%}
     <div style="display:flex;gap:10px">
       <div class="qo-action-btn" onclick="alert('扫码添加：请打开摄像头扫描商品条码')" style="flex:1;display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--c-blue-light);border-radius:var(--r2);border:1px solid rgba(37,99,235,.15);cursor:pointer;transition:transform .15s ease">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        <div><div style="font-size:13px;font-weight:600;color:var(--c-blue)">扫码添加</div><div style="font-size:11px;color:var(--t3)">扫描商品条码</div></div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--c-blue)">扫码添加</div><div style="font-size:11px;color:var(--c-500)">扫描商品条码</div></div>
       </div>
       <div class="qo-action-btn" onclick="alert('手动添加：请在搜索框输入商品名称')" style="flex:1;display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--bg-card);border-radius:var(--r2);border:1px solid var(--bd);cursor:pointer;transition:transform .15s ease">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        <div><div style="font-size:13px;font-weight:600;color:var(--t1)">手动添加</div><div style="font-size:11px;color:var(--t3)">搜索商品名称</div></div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--t1)">手动添加</div><div style="font-size:11px;color:var(--c-500)">搜索商品名称</div></div>
       </div>
     </div>
   </div>
@@ -523,44 +538,44 @@ img{display:block;max-width:100%}
   <div style="padding:4px 16px 8px;font-size:13px;font-weight:600;color:var(--t2)">已选商品 (3)</div>
   <div class="qo-items">
     <!-- 商品1：已扫码录入追溯码 -->
-    <div class="qo-item" style="flex-wrap:wrap;padding-bottom:0">
+    <div class="qo-item" data-unit="3" style="flex-wrap:wrap;padding-bottom:0">
       <div class="prod-thumb"><span class="t-letter">可</span></div>
-      <div class="qo-item-name"><div style="font-weight:500">可口可乐 330ml</div><div style="font-size:11px;color:var(--t3)">¥3.00/罐</div></div>
-      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">20</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">可口可乐 330ml</div><div style="font-size:11px;color:var(--c-500)">¥3.00/罐</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn" data-op="minus">−</span><span class="qo-qty-num">20</span><span class="qo-qty-btn" data-op="plus">+</span></div>
       <div class="qo-item-price">¥60</div>
       <div style="width:100%;display:flex;align-items:center;gap:6px;padding:8px 0 10px;margin-top:4px;border-top:1px dashed var(--bd-l)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <div style="flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--c-blue-light);border-radius:var(--s2);border:1px solid rgba(37,99,235,.15)">
           <span style="font-size:12px;color:var(--c-blue);font-weight:500">6901234567890</span>
-          <span style="font-size:10px;color:var(--c-success);background:rgba(58,157,92,.08);padding:1px 6px;border-radius:var(--s1)">已关联</span>
+          <span style="font-size:11px;color:#047857;background:rgba(58,157,92,.08);padding:1px 6px;border-radius:var(--s1)">已关联</span>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       </div>
     </div>
     <!-- 商品2：已手动录入追溯码 -->
-    <div class="qo-item" style="flex-wrap:wrap;padding-bottom:0">
+    <div class="qo-item" data-unit="7.5" style="flex-wrap:wrap;padding-bottom:0">
       <div class="prod-thumb"><span class="t-letter">乐</span></div>
-      <div class="qo-item-name"><div style="font-weight:500">乐事薯片 原味</div><div style="font-size:11px;color:var(--t3)">¥7.50/袋</div></div>
-      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">10</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">乐事薯片 原味</div><div style="font-size:11px;color:var(--c-500)">¥7.50/袋</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn" data-op="minus">−</span><span class="qo-qty-num">10</span><span class="qo-qty-btn" data-op="plus">+</span></div>
       <div class="qo-item-price">¥75</div>
       <div style="width:100%;display:flex;align-items:center;gap:6px;padding:8px 0 10px;margin-top:4px;border-top:1px dashed var(--bd-l)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <div style="flex:1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--c-blue-light);border-radius:var(--s2);border:1px solid rgba(37,99,235,.15)">
           <span style="font-size:12px;color:var(--c-blue);font-weight:500">6909876543210</span>
-          <span style="font-size:10px;color:var(--c-success);background:rgba(58,157,92,.08);padding:1px 6px;border-radius:var(--s1)">已关联</span>
+          <span style="font-size:11px;color:#047857;background:rgba(58,157,92,.08);padding:1px 6px;border-radius:var(--s1)">已关联</span>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       </div>
     </div>
     <!-- 商品3：待录入追溯码 -->
-    <div class="qo-item" style="flex-wrap:wrap;padding-bottom:0">
+    <div class="qo-item" data-unit="9.9" style="flex-wrap:wrap;padding-bottom:0">
       <div class="prod-thumb"><span class="t-letter">海</span></div>
-      <div class="qo-item-name"><div style="font-weight:500">海天酱油 500ml</div><div style="font-size:11px;color:var(--t3)">¥9.90/瓶</div></div>
-      <div class="qo-item-qty"><span class="qo-qty-btn">−</span><span class="qo-qty-num">15</span><span class="qo-qty-btn">+</span></div>
+      <div class="qo-item-name"><div style="font-weight:500">海天酱油 500ml</div><div style="font-size:11px;color:var(--c-500)">¥9.90/瓶</div></div>
+      <div class="qo-item-qty"><span class="qo-qty-btn" data-op="minus">−</span><span class="qo-qty-num">15</span><span class="qo-qty-btn" data-op="plus">+</span></div>
       <div class="qo-item-price">¥148.5</div>
       <div style="width:100%;display:flex;align-items:center;gap:6px;padding:8px 0 10px;margin-top:4px;border-top:1px dashed var(--bd-l)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        <input placeholder="点击录入追溯码" readonly style="flex:1;font-size:12px;padding:6px 10px;background:var(--c-50);border-radius:var(--s2);color:var(--t3)">
+        <input placeholder="点击录入追溯码" readonly style="flex:1;font-size:12px;padding:6px 10px;background:var(--c-50);border-radius:var(--s2);color:var(--c-500)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;flex-shrink:0"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       </div>
     </div>
@@ -580,11 +595,7 @@ img{display:block;max-width:100%}
 <!-- ============ PAGE: FUNCTIONS ============ -->
 <div class="pg" id="pg-functions">
 <div class="pg-inner">
-  <div class="func-hd">
-    <div class="func-logo">智</div>
-    <h2>功能中心</h2>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
-  </div>
+
   <div class="search-bar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.5"/><path d="M20.5 20.5l-4-4"/></svg>
     <input placeholder="搜索功能、订单、客户" readonly>
@@ -596,9 +607,9 @@ img{display:block;max-width:100%}
     <div class="func-grid-item" onclick="goSub('pg-inventory')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><span>进货入库</span></div>
     <div class="func-grid-item" onclick="goSub('pg-inventory')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span>盘点调拨</span></div>
     <div class="func-grid-item" onclick="goSub('pg-reports')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span>收银对账</span></div>
-    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span>门店管理</span></div>
-    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
-    <div class="func-grid-item"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg></div><span>更多</span></div>
+    <div class="func-grid-item" onclick="alert('演示：门店信息、员工与营业时间管理')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span>门店管理</span></div>
+    <div class="func-grid-item" onclick="alert('演示：选择订单打印小票或送货单')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
+    <div class="func-grid-item" onclick="alert('演示：更多功能敬请期待')"><div class="fg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg></div><span>更多</span></div>
   </div>
 
   <div class="func-section">
@@ -614,19 +625,14 @@ img{display:block;max-width:100%}
         <div class="li-body"><div class="li-title">销售排行</div><div class="li-desc">商品销量TOP排行</div></div>
         <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
       </div>
-      <div class="list-item">
+      <div class="list-item" onclick="alert('演示：按批次追溯商品来源与流向')">
         <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
         <div class="li-body"><div class="li-title">溯源查询</div><div class="li-desc">商品来源与批次追踪</div></div>
         <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
       </div>
-      <div class="list-item">
+      <div class="list-item" onclick="alert('演示：查看与管理合作供应商')">
         <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div>
         <div class="li-body"><div class="li-title">供应商管理</div><div class="li-desc">12家合作供应商</div></div>
-        <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
-      </div>
-      <div class="list-item">
-        <div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
-        <div class="li-body"><div class="li-title">系统设置</div><div class="li-desc">打印、权限、通知设置</div></div>
         <div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
       </div>
     </div>
@@ -638,10 +644,6 @@ img{display:block;max-width:100%}
 <!-- ============ PAGE: PROFILE ============ -->
 <div class="pg" id="pg-profile">
 <div class="pg-inner">
-  <div class="pg-hd">
-    <h1>我的</h1>
-    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-  </div>
 
   <div class="prof-card">
     <div class="prof-avatar">陈</div>
@@ -655,31 +657,32 @@ img{display:block;max-width:100%}
   </div>
 
   <div class="prof-shortcuts">
-    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span>工作记录</span></div>
-    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><span>库存预警</span></div>
-    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span>对账</span></div>
-    <div class="prof-sc-item"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
+    <div class="prof-sc-item" onclick="alert('演示：查看每日开单与操作日志')"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span>工作记录</span></div>
+    <div class="prof-sc-item" onclick="goSub('pg-inventory')"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><span>库存预警</span></div>
+    <div class="prof-sc-item" onclick="goSub('pg-reports')"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><span>对账</span></div>
+    <div class="prof-sc-item" onclick="alert('演示：选择订单打印小票或送货单')"><div class="ps-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></div><span>单据打印</span></div>
   </div>
 
   <div class="prof-section">
     <h3>门店管理</h3>
     <div class="prof-list">
-      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/></svg></div><div class="li-body"><div class="li-title">门店信息</div><div class="li-desc">鑫达批发 · 旗舰店</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
-      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="li-body"><div class="li-title">员工管理</div><div class="li-desc">8名在职员工</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
-      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="li-body"><div class="li-title">营业时间</div><div class="li-desc">08:00 - 22:00</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item" onclick="alert('演示：查看与编辑门店信息')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2V9.5z"/></svg></div><div class="li-body"><div class="li-title">门店信息</div><div class="li-desc">鑫达批发 · 旗舰店</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item" onclick="alert('演示：管理在职员工与角色')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="li-body"><div class="li-title">员工管理</div><div class="li-desc">8名在职员工</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item" onclick="alert('演示：设置门店营业时间')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="li-body"><div class="li-title">营业时间</div><div class="li-desc">08:00 - 22:00</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
     </div>
   </div>
 
   <div class="prof-section">
     <h3>系统</h3>
     <div class="prof-list">
+      <div class="list-item" onclick="alert('演示：打印、权限、通知设置')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div><div class="li-body"><div class="li-title">系统设置</div><div class="li-desc">打印、权限、通知设置</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
       <div class="list-item" onclick="goSub('pg-messages')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div class="li-body"><div class="li-title">消息推送</div><div class="li-desc">已开启</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
-      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="li-body"><div class="li-title">客服帮助</div><div class="li-desc">在线客服 · 帮助中心</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
-      <div class="list-item"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div class="li-body"><div class="li-title">关于</div><div class="li-desc">智享全链 v3.2.1</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item" onclick="alert('演示：在线客服与帮助中心')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="li-body"><div class="li-title">客服帮助</div><div class="li-desc">在线客服 · 帮助中心</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
+      <div class="list-item" onclick="alert('智享全链 v3.2.1（演示）')"><div class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div class="li-body"><div class="li-title">关于</div><div class="li-desc">智享全链 v3.2.1</div></div><div class="li-right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div></div>
     </div>
   </div>
 
-  <div style="margin:16px 12px;padding:16px;text-align:center;background:var(--bg-card);border-radius:var(--r3);font-size:14px;font-weight:500;color:var(--c-danger);box-shadow:var(--sh2);cursor:pointer;border:1px solid rgba(0,0,0,.03)">退出登录</div>
+  <div style="margin:16px 12px;padding:16px;text-align:center;background:var(--bg-card);border-radius:var(--r3);font-size:14px;font-weight:500;color:var(--c-danger);box-shadow:var(--sh2);cursor:pointer;border:1px solid rgba(0,0,0,.03)" onclick="alert('演示：退出登录需二次确认')">退出登录</div>
   <div style="height:20px"></div>
 </div>
 </div>
@@ -688,42 +691,42 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-orders">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>订单管理</h1>
   </div>
   <div class="tab-bar" id="ordTabs">
-    <div class="tab active" data-tab="all">全部 <span style="font-size:11px;color:var(--t3)">156</span></div>
-    <div class="tab" data-tab="pending">待付款 <span style="font-size:11px;color:var(--t3)">12</span></div>
-    <div class="tab" data-tab="ship">待发货 <span style="font-size:11px;color:var(--t3)">8</span></div>
-    <div class="tab" data-tab="done">已完成 <span style="font-size:11px;color:var(--t3)">128</span></div>
-    <div class="tab" data-tab="refund">退款 <span style="font-size:11px;color:var(--t3)">8</span></div>
+    <div class="tab active" data-tab="all">全部 <span style="font-size:11px;color:var(--c-500)">156</span></div>
+    <div class="tab" data-tab="pending">待付款 <span style="font-size:11px;color:var(--c-500)">12</span></div>
+    <div class="tab" data-tab="ship">待发货 <span style="font-size:11px;color:var(--c-500)">8</span></div>
+    <div class="tab" data-tab="done">已完成 <span style="font-size:11px;color:var(--c-500)">128</span></div>
+    <div class="tab" data-tab="refund">退款 <span style="font-size:11px;color:var(--c-500)">0</span></div>
   </div>
   <div id="ordList">
-    <div class="ord-card">
+    <div class="ord-card" data-status="待配送">
       <div class="ord-hd"><span class="ord-no">DD20250116001</span><span class="ord-status badge badge-orange">待配送</span></div>
       <div class="ord-items">可口可乐×20 乐事薯片×10 海天酱油×5</div>
       <div class="ord-ft"><span class="ord-time">张建国 · 小程序 · 10:32</span><span class="ord-amount">¥286.00</span></div>
       <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action primary">配送</button></div>
     </div>
-    <div class="ord-card">
+    <div class="ord-card" data-status="待付款">
       <div class="ord-hd"><span class="ord-no">DD20250116002</span><span class="ord-status badge badge-red">待付款</span></div>
       <div class="ord-items">金龙鱼食用油×40</div>
       <div class="ord-ft"><span class="ord-time">李美华 · 门店 · 09:45</span><span class="ord-amount">¥1,280.00</span></div>
       <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action primary">确认收款</button></div>
     </div>
-    <div class="ord-card">
+    <div class="ord-card" data-status="已完成">
       <div class="ord-hd"><span class="ord-no">DD20250116003</span><span class="ord-status badge badge-green">已完成</span></div>
       <div class="ord-items">维达抽纸×3 蓝月亮洗衣液×1</div>
       <div class="ord-ft"><span class="ord-time">王大明 · 即时零售 · 09:18</span><span class="ord-amount">¥56.00</span></div>
       <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action">再来一单</button></div>
     </div>
-    <div class="ord-card">
+    <div class="ord-card" data-status="已完成">
       <div class="ord-hd"><span class="ord-no">DD20250115018</span><span class="ord-status badge badge-green">已完成</span></div>
       <div class="ord-items">农夫山泉×50 可口可乐×30 旺旺雪饼×20</div>
       <div class="ord-ft"><span class="ord-time">赵晓红 · 小程序 · 昨日 16:40</span><span class="ord-amount">¥432.00</span></div>
       <div class="ord-actions"><button class="ord-action">详情</button><button class="ord-action">再来一单</button></div>
     </div>
-    <div class="ord-card">
+    <div class="ord-card" data-status="待取货">
       <div class="ord-hd"><span class="ord-no">DD20250115016</span><span class="ord-status badge badge-orange">待取货</span></div>
       <div class="ord-items">海天酱油×10 金龙鱼×5</div>
       <div class="ord-ft"><span class="ord-time">刘大伟 · 门店 · 昨日 14:22</span><span class="ord-amount">¥258.50</span></div>
@@ -737,18 +740,18 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-inventory">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>库存管理</h1>
   </div>
   <div class="inv-stats">
     <div class="inv-stat"><div class="is-val">1,286</div><div class="is-label">总SKU数</div></div>
-    <div class="inv-stat"><div class="is-val">¥85.6w</div><div class="is-label">库存价值</div></div>
+    <div class="inv-stat"><div class="is-val">¥85.6万</div><div class="is-label">库存价值</div></div>
     <div class="inv-stat warn"><div class="is-val">12</div><div class="is-label">预警商品</div></div>
   </div>
   <div class="inv-actions">
-    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>入库</span></div>
-    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg><span>出库</span></div>
-    <div class="inv-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>盘点</span></div>
+    <div class="inv-act" onclick="alert('演示：进货入库')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>入库</span></div>
+    <div class="inv-act" onclick="alert('演示：销售出库')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg><span>出库</span></div>
+    <div class="inv-act" onclick="alert('演示：库存盘点')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>盘点</span></div>
   </div>
   <div class="section-title">库存预警</div>
   <div style="background:var(--bg-card);border-radius:var(--r4);margin:0 12px;overflow:hidden;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)">
@@ -766,7 +769,7 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-members">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>会员管理</h1>
   </div>
   <div class="mem-stats">
@@ -795,7 +798,7 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-messages">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>消息中心</h1>
   </div>
   <div class="tab-bar" id="msgTabs">
@@ -807,11 +810,11 @@ img{display:block;max-width:100%}
   <div>
     <div class="msg-item">
       <div class="msg-ico stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-      <div class="msg-body"><div class="msg-title">库存预警 <span class="msg-time">10分钟前</span></div><div class="msg-preview">金龙鱼食用油 1.8L 库存仅剩5件，低于安全库存(20)，请尽快补货</div></div>
+      <div class="msg-body"><div class="msg-title"><span style="display:flex;align-items:center;gap:6px"><span class="unread-dot"></span>库存预警</span><span class="msg-time">10分钟前</span></div><div class="msg-preview">金龙鱼食用油 1.8L 库存仅剩5件，低于安全库存(20)，请尽快补货</div></div>
     </div>
     <div class="msg-item">
       <div class="msg-ico order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
-      <div class="msg-body"><div class="msg-title">新订单提醒 <span class="msg-time">32分钟前</span></div><div class="msg-preview">张建国 通过小程序下单 ¥286.00，请尽快处理</div></div>
+      <div class="msg-body"><div class="msg-title"><span style="display:flex;align-items:center;gap:6px"><span class="unread-dot"></span>新订单提醒</span><span class="msg-time">32分钟前</span></div><div class="msg-preview">张建国 通过小程序下单 ¥286.00，请尽快处理</div></div>
     </div>
     <div class="msg-item">
       <div class="msg-ico order"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
@@ -837,7 +840,7 @@ img{display:block;max-width:100%}
 <div class="pg sub" id="pg-reports">
 <div class="pg-inner">
   <div class="pg-hd">
-    <svg class="back-btn" onclick="goBack()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <svg class="back-btn" onclick="goBack()" aria-label="返回" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     <h1>数据报表</h1>
   </div>
   <div class="rpt-period">
@@ -922,15 +925,16 @@ img{display:block;max-width:100%}
   width:3px;height:20px;background:var(--c-blue);border-radius:0 3px 3px 0}
 
 .prod-main{flex:1;overflow-y:auto;padding:12px 14px}
-.prod-alert{background:#fffbeb;border-radius:var(--r3);padding:12px 14px;margin-bottom:14px;
-  display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;color:#92400e;
-  border:1px solid rgba(217,119,6,.1);box-shadow:0 2px 8px rgba(217,119,6,.06)}
-.prod-alert svg{width:16px;height:16px;flex-shrink:0}
-.prod-batch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.prod-batch span{font-size:12px;color:var(--t2);font-weight:500}
-.prod-batch .batch-btn{font-size:12px;color:var(--c-900);font-weight:500;
-  padding:6px 14px;border:1px solid var(--bd);border-radius:var(--r-full);transition:all .15s}
-.prod-batch .batch-btn:active{background:rgba(0,0,0,.03)}
+/* 操作行：建议核价 / 批量调价 / 价格异常（与系统 products.vue 对齐） */
+.action-row{display:flex;gap:8px;margin-bottom:12px}
+.action-card{flex:1;background:var(--bg-card);border-radius:var(--r2);padding:13px 8px;
+  text-align:center;box-shadow:var(--sh1);border:1px solid rgba(0,0,0,.03);cursor:pointer;
+  transition:transform .15s ease}
+.action-card:active{transform:scale(.95)}
+.action-card .action-card-title{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:-.1px}
+.action-card .action-card-sub{font-size:11px;color:var(--c-500);margin-top:4px}
+.action-card.danger{background:#fef2f2;border-color:rgba(220,38,38,.08)}
+.action-card.danger .action-card-title{color:#b91c1c}
 
 .prod-card{display:flex;gap:12px;padding:14px;background:var(--bg-card);border-radius:var(--r3);
   margin-bottom:10px;box-shadow:var(--sh1);cursor:pointer;transition:all .2s ease;
@@ -941,13 +945,13 @@ img{display:block;max-width:100%}
 .prod-thumb .t-letter{font-size:16px;font-weight:800;color:var(--c-400)}
 .prod-info{flex:1;min-width:0}
 .prod-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
-.prod-spec{font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--mono)}
+.prod-spec{font-size:11px;color:var(--c-500);margin-top:3px;font-family:var(--mono)}
 .prod-price-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .prod-wholesale{font-size:16px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px;
   color:var(--c-blue);line-height:1}
-.prod-retail{font-size:11px;color:var(--t3);font-family:var(--mono);text-decoration:line-through;
+.prod-retail{font-size:11px;color:var(--c-500);font-family:var(--mono);text-decoration:line-through;
   text-decoration-color:var(--c-300)}
-.prod-stock-tag{font-size:11px;color:var(--t3);font-family:var(--mono);display:flex;align-items:center;gap:3px}
+.prod-stock-tag{font-size:11px;color:var(--c-500);font-family:var(--mono);display:flex;align-items:center;gap:3px}
 .prod-stock-tag::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--c-400);flex-shrink:0}
 .prod-stock-tag.low-stock{color:var(--c-danger);font-weight:700}
 .prod-stock-tag.low-stock::before{background:var(--c-danger)}
@@ -955,7 +959,7 @@ img{display:block;max-width:100%}
 
 /* ========== Page 3: Quick Order ========== */
 .qo-customer{margin:14px 14px;padding:16px;background:var(--bg-card);border-radius:var(--r3);
-  display:flex;align-items:center;gap:12px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
+  display:flex;align-items:center;gap:12px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03);cursor:pointer}
 .qo-customer .qc-label{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
 .qo-customer .qc-name{font-size:16px;font-weight:700;flex:1;margin-top:2px}
 .qo-customer .qc-arrow{color:var(--c-400)}
@@ -966,8 +970,9 @@ img{display:block;max-width:100%}
 .qo-item-qty{display:flex;align-items:center;gap:8px}
 .qo-qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--bd);
   display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--c-600);
-  transition:all .15s}
+  transition:all .15s;cursor:pointer;user-select:none}
 .qo-qty-btn:active{background:rgba(0,0,0,.04)}
+.qo-qty-btn.disabled{opacity:.35;cursor:not-allowed}
 .qo-qty-num{font-size:14px;font-weight:700;width:24px;text-align:center;font-family:var(--mono)}
 .qo-item-price{font-size:14px;font-weight:800;font-family:var(--mono);width:64px;text-align:right;letter-spacing:-.2px}
 .qo-summary{margin:16px 14px;padding:18px;background:var(--bg-card);border-radius:var(--r4);box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
@@ -976,7 +981,7 @@ img{display:block;max-width:100%}
   border-top:1px solid rgba(0,0,0,.05)}
 .qo-total .label{font-size:14px;font-weight:600}
 .qo-total .amount{font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-.5px}
-.qo-actions{display:flex;gap:12px;margin:16px 14px 20px}
+.qo-actions{display:flex;gap:12px;margin:16px 14px calc(20px + env(safe-area-inset-bottom))}
 .qo-btn-sec{flex:1;height:48px;border:1px solid var(--bd);border-radius:var(--r3);
   font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;
   transition:all .15s}
@@ -985,18 +990,15 @@ img{display:block;max-width:100%}
   font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 12px rgba(37,99,235,.2);transition:all .15s}
 .qo-btn-pri:active{opacity:.85;transform:scale(.98)}
+/* 主按钮禁用/加载态（spec02 六态） */
+.btn-primary.disabled,.qo-btn-pri.disabled{opacity:.4;pointer-events:none}
+.btn-primary.loading,.qo-btn-pri.loading{color:transparent;pointer-events:none}
+.btn-primary.loading::after,.qo-btn-pri.loading::after{content:'';width:18px;height:18px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;position:absolute;
+  animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ========== Page 4: Functions ========== */
-.func-hd{padding:18px 20px 14px;display:flex;align-items:center;gap:12px;background:var(--bg-card);
-  border-bottom:1px solid rgba(0,0,0,.03)}
-.func-logo{width:38px;height:38px;border-radius:var(--r2);
-  background:var(--c-blue);
-  display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;
-  box-shadow:0 4px 12px rgba(37,99,235,.15);position:relative;overflow:hidden}
-.func-logo::before{display:none}
-.func-hd h2{flex:1;font-size:18px;font-weight:700;letter-spacing:-.2px}
-.func-hd svg{width:22px;height:22px;color:var(--c-700);cursor:pointer}
-
 .func-grid{margin:14px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;
   background:var(--bg-card);border-radius:var(--r4);padding:20px 10px;box-shadow:var(--sh2);
   border:1px solid rgba(0,0,0,.03)}
@@ -1009,7 +1011,7 @@ img{display:block;max-width:100%}
 .func-grid-item span{font-size:11px;color:var(--c-600);font-weight:500}
 
 .func-section{margin:4px 14px 14px}
-.func-section h3{font-size:12px;font-weight:600;color:var(--t3);margin-bottom:10px;padding-left:4px;
+.func-section h3{font-size:12px;font-weight:600;color:var(--c-500);margin-bottom:10px;padding-left:4px;
   text-transform:uppercase;letter-spacing:.5px}
 .func-list{background:var(--bg-card);border-radius:var(--r4);overflow:hidden;box-shadow:var(--sh2);
   border:1px solid rgba(0,0,0,.03)}
@@ -1023,13 +1025,13 @@ img{display:block;max-width:100%}
   box-shadow:0 4px 12px rgba(37,99,235,.1)}
 .prof-info{flex:1}
 .prof-name{font-size:18px;font-weight:700;letter-spacing:-.2px}
-.prof-role{font-size:12px;color:var(--t3);margin-top:3px;font-weight:500}
-.prof-store{font-size:12px;color:var(--t3);margin-top:1px}
-.prof-id{font-size:11px;color:var(--t4);margin-top:3px;font-family:var(--mono)}
+.prof-role{font-size:12px;color:var(--c-500);margin-top:3px;font-weight:500}
+.prof-store{font-size:12px;color:var(--c-500);margin-top:1px}
+.prof-id{font-size:11px;color:var(--c-500);margin-top:3px;font-family:var(--mono)}
 .prof-status{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;
-  border-radius:var(--r-full);font-size:11px;font-weight:600;background:#ecfdf5;color:#059669;
+  border-radius:var(--r-full);font-size:11px;font-weight:600;background:#ecfdf5;color:#047857;
   border:1px solid rgba(5,150,105,.1)}
-.prof-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#059669;
+.prof-status::before{content:'';width:6px;height:6px;border-radius:50%;background:#047857;
   animation:pulse-dot 2s infinite}
 
 .prof-shortcuts{display:flex;margin:0 14px 16px;gap:0;background:var(--bg-card);
@@ -1043,7 +1045,7 @@ img{display:block;max-width:100%}
 .prof-sc-item span{font-size:11px;color:var(--c-600);font-weight:500}
 
 .prof-section{margin:4px 14px 14px}
-.prof-section h3{font-size:12px;font-weight:600;color:var(--t3);padding:0 4px 10px;text-transform:uppercase;letter-spacing:.5px}
+.prof-section h3{font-size:12px;font-weight:600;color:var(--c-500);padding:0 4px 10px;text-transform:uppercase;letter-spacing:.5px}
 .prof-list{background:var(--bg-card);border-radius:var(--r4);overflow:hidden;box-shadow:var(--sh2);
   border:1px solid rgba(0,0,0,.03)}
 
@@ -1052,12 +1054,12 @@ img{display:block;max-width:100%}
   box-shadow:var(--sh2);cursor:pointer;transition:all .15s;border:1px solid rgba(0,0,0,.03)}
 .ord-card:active{transform:scale(.98)}
 .ord-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.ord-no{font-size:12px;color:var(--t3);font-family:var(--mono);font-weight:500}
+.ord-no{font-size:12px;color:var(--c-500);font-family:var(--mono);font-weight:500}
 .ord-status{font-size:12px;font-weight:500}
 .ord-items{font-size:13px;color:var(--t2);margin-bottom:10px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ord-ft{display:flex;justify-content:space-between;align-items:center}
-.ord-time{font-size:11px;color:var(--t3)}
+.ord-time{font-size:11px;color:var(--c-500)}
 .ord-amount{font-size:18px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px}
 .ord-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;
   border-top:1px solid rgba(0,0,0,.04)}
@@ -1094,11 +1096,11 @@ img{display:block;max-width:100%}
 .inv-item:last-child{border-bottom:none}
 .inv-item-info{flex:1}
 .inv-item-name{font-size:13px;font-weight:600}
-.inv-item-sku{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:3px}
+.inv-item-sku{font-size:11px;color:var(--c-500);font-family:var(--mono);margin-top:3px}
 .inv-item-stock{text-align:right}
 .inv-item-stock .num{font-size:16px;font-weight:800;font-family:var(--mono)}
 .inv-item-stock .num.danger{color:var(--c-danger)}
-.inv-item-stock .label{font-size:10px;color:var(--t3)}
+.inv-item-stock .label{font-size:11px;color:var(--c-500)}
 
 /* ========== Page 8: Members ========== */
 .mem-stats{display:flex;margin:14px 14px;gap:10px}
@@ -1110,20 +1112,20 @@ img{display:block;max-width:100%}
 .mem-stat .ms-label{font-size:11px;color:var(--t2);margin-top:4px;font-weight:500}
 
 .mem-card{display:flex;align-items:center;padding:16px 18px;background:var(--bg-card);
-  border-bottom:1px solid rgba(0,0,0,.03);gap:14px}
+  border-bottom:1px solid rgba(0,0,0,.03);gap:14px;cursor:pointer}
 .mem-card:last-child{border-bottom:none}
 .mem-avatar{width:42px;height:42px;border-radius:50%;
   background:linear-gradient(135deg,var(--c-100),var(--c-50));
   display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--c-500);flex-shrink:0}
 .mem-info{flex:1}
 .mem-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
-.mem-level{font-size:10px;padding:2px 8px;border-radius:var(--r-full);background:var(--c-100);color:var(--c-600);font-weight:600}
+.mem-level{font-size:11px;padding:2px 8px;border-radius:var(--r-full);background:var(--c-100);color:var(--c-600);font-weight:600}
 .mem-level.vip3{background:#fef3c7;color:#92400e;border:1px solid rgba(217,119,6,.15)}
 .mem-level.vip2{background:var(--c-blue-light);color:var(--c-blue);border:1px solid rgba(37,99,235,.1)}
-.mem-meta{font-size:11px;color:var(--t3);margin-top:4px}
+.mem-meta{font-size:11px;color:var(--c-500);margin-top:4px}
 .mem-spend{text-align:right;flex-shrink:0}
 .mem-spend .amount{font-size:16px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px}
-.mem-spend .label{font-size:10px;color:var(--t3)}
+.mem-spend .label{font-size:11px;color:var(--c-500)}
 
 /* ========== Page 9: Messages ========== */
 .msg-item{display:flex;padding:16px 18px;background:var(--bg-card);border-bottom:1px solid rgba(0,0,0,.03);gap:14px;cursor:pointer;
@@ -1140,15 +1142,18 @@ img{display:block;max-width:100%}
 .msg-ico svg{width:18px;height:18px}
 .msg-body{flex:1;min-width:0}
 .msg-title{font-size:13px;font-weight:600;display:flex;justify-content:space-between}
-.msg-time{font-size:11px;color:var(--t3);font-weight:400;flex-shrink:0}
-.msg-preview{font-size:12px;color:var(--t3);margin-top:4px;overflow:hidden;
+.msg-time{font-size:11px;color:var(--c-500);font-weight:400;flex-shrink:0}
+.msg-preview{font-size:12px;color:var(--c-500);margin-top:4px;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;line-height:1.5}
+/* 未读蓝点 */
+.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--c-blue);display:inline-block;flex-shrink:0}
 
 /* ========== Page 10: Reports ========== */
 .rpt-period{display:flex;margin:14px 16px;background:var(--bg-card);border-radius:var(--r-full);
   padding:4px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)}
 .rpt-period .rp-item{flex:1;text-align:center;padding:9px 0;border-radius:var(--r-full);
   font-size:13px;color:var(--t2);cursor:pointer;transition:all .25s ease;font-weight:500}
+.rpt-period .rp-item:active{transform:scale(.96)}
 .rpt-period .rp-item.active{background:var(--c-blue);color:#fff;font-weight:600;
   box-shadow:0 2px 8px rgba(37,99,235,.2)}
 
@@ -1159,7 +1164,7 @@ img{display:block;max-width:100%}
 .rpt-metric .rm-label{font-size:12px;color:var(--t2);font-weight:500}
 .rpt-metric .rm-val{font-size:24px;font-weight:800;font-family:var(--mono);margin-top:6px;color:var(--c-900);letter-spacing:-.5px}
 .rpt-metric .rm-trend{font-size:11px;margin-top:4px;font-weight:500}
-.rpt-metric .rm-trend.up{color:var(--c-success)}
+.rpt-metric .rm-trend.up{color:#047857}
 .rpt-metric .rm-trend.down{color:var(--c-danger)}
 
 .rpt-chart{margin:14px 14px;background:var(--bg-card);border-radius:var(--r4);
@@ -1196,7 +1201,7 @@ img{display:block;max-width:100%}
   box-shadow:0 2px 10px rgba(79,70,229,.2)}
 .ai-top-icon svg{width:18px;height:18px;color:#fff}
 .ai-top-title{font-size:17px;font-weight:700;color:var(--c-900);letter-spacing:-.3px}
-.ai-top-sub{font-size:12px;color:var(--t3);margin-top:2px;font-weight:400}
+.ai-top-sub{font-size:12px;color:var(--c-500);margin-top:2px;font-weight:400}
 
 .ai-chat-area{flex:1;overflow-y:auto;padding:16px 0;-webkit-overflow-scrolling:touch}
 .ai-chat-messages{padding:0 16px}
@@ -1241,7 +1246,7 @@ img{display:block;max-width:100%}
   border-radius:var(--r-full);padding:0 18px;font-size:13px;color:var(--t1);
   transition:all .25s ease}
 .ai-input:focus{background:var(--bg-card);border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.08)}
-.ai-input::placeholder{color:var(--c-400)}
+.ai-input::placeholder{color:var(--c-500)}
 .ai-send-btn{width:42px;height:42px;border-radius:50%;
   background:var(--c-blue);
   display:flex;align-items:center;justify-content:center;
@@ -1283,20 +1288,19 @@ img{display:block;max-width:100%}
 
 /* ========== Animations ========== */
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.fade-up{animation:fadeUp .5s cubic-bezier(.4,0,.2,1) both}
-@keyframes countUp{from{opacity:0}to{opacity:1}}
+.fade-up{animation:fadeUp .4s cubic-bezier(.4,0,.2,1) both}
 
 
 /* ========== Micro-interactions ========== */
-.home-data-item .val{animation:valFadeIn .6s cubic-bezier(.4,0,.2,1) both}
+.home-data-item .val{animation:valFadeIn .4s cubic-bezier(.4,0,.2,1) both}
 .home-data-item:nth-child(2) .val{animation-delay:.1s}
-.home-data-bot .db-val{animation:valFadeIn .6s cubic-bezier(.4,0,.2,1) both}
+.home-data-bot .db-val{animation:valFadeIn .4s cubic-bezier(.4,0,.2,1) both}
 .home-data-bot .db-item:nth-child(1) .db-val{animation-delay:.2s}
 .home-data-bot .db-item:nth-child(2) .db-val{animation-delay:.3s}
 .home-data-bot .db-item:nth-child(3) .db-val{animation-delay:.4s}
 @keyframes valFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-.hp-item{animation:fadeUp .5s cubic-bezier(.4,0,.2,1) both}
+.hp-item{animation:fadeUp .4s cubic-bezier(.4,0,.2,1) both}
 .hp-item:nth-child(1){animation-delay:.15s}
 .hp-item:nth-child(2){animation-delay:.2s}
 .hp-item:nth-child(3){animation-delay:.25s}
@@ -1325,10 +1329,39 @@ img{display:block;max-width:100%}
   .hp-item .hp-num{font-size:20px}
   .rpt-metric .rm-val{font-size:20px}
   .ai-top-title{font-size:15px}
+  .s-actions .icon-btn:nth-child(2){display:none}
 }
 
 /* Quick order action buttons active state */
 .qo-action-btn:active{transform:scale(.96)!important;opacity:.9}
+
+/* ========== Empty & Skeleton States（spec09 状态设计） ========== */
+.empty-state{padding:48px 24px;text-align:center}
+.empty-state .es-ico{width:64px;height:64px;border-radius:50%;background:var(--c-100);
+  margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.empty-state .es-ico svg{width:28px;height:28px;color:var(--c-300)}
+.empty-state .es-title{font-size:14px;font-weight:600;color:var(--t2);letter-spacing:-.2px}
+.empty-state .es-desc{font-size:12px;color:var(--c-500);margin-top:6px;line-height:1.6}
+.empty-state .es-btn{display:inline-flex;align-items:center;justify-content:center;height:36px;
+  padding:0 20px;margin-top:16px;border-radius:var(--r-full);background:var(--c-blue-light);
+  color:var(--c-blue);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s ease}
+.empty-state .es-btn:active{transform:scale(.96)}
+
+.skeleton{position:relative;overflow:hidden;background:var(--c-100);border-radius:var(--s2)}
+.skeleton::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+  animation:shimmer 1.5s infinite}
+@keyframes shimmer{to{transform:translateX(100%)}}
+.sk-line{height:12px;margin-bottom:10px}
+.sk-line.w80{width:80%}
+.sk-line.w60{width:60%}
+.sk-line.w40{width:40%}
+
+/* ========== Reduced Motion（spec06/12 无障碍降级） ========== */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+}
 </style>
 
 <script>
@@ -1430,13 +1463,24 @@ function renderProducts(cat) {
     '<div class="prod-side-item'+((cat===0&&i===0)||(cat===i)?' active':'')+'" data-cat="'+i+'">'+c+'</div>'
   ).join('');
 
-  const filtered = cat === 0 ? products : products.filter(p => p.cat === cat || cat === 0);
-  const list = cat === 0 ? products : filtered;
+  var list = (cat === 0) ? products : products.filter(function(p){ return p.cat === cat; });
 
-  main.innerHTML = '<div class="prod-alert">' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
-    '<span>3件商品核价异常，建议及时调整</span></div>' +
-    '<div class="prod-batch"><span>共 ' + list.length + ' 件商品</span><div class="batch-btn">批量调价</div></div>' +
+  if (list.length === 0) {
+    // 空态（spec09：图标不抢眼 + 简洁文案 + 下一步操作）
+    main.innerHTML = '<div style="background:var(--bg-card);border-radius:var(--r4);padding:12px 0;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)">' +
+      '<div class="empty-state">' +
+      '<div class="es-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>' +
+      '<div class="es-title">该分类暂无商品</div>' +
+      '<div class="es-desc">可以从进货入库开始补充该分类的商品</div>' +
+      '<div class="es-btn" onclick="alert(\'演示：前往进货入库\')">去进货入库</div>' +
+      '</div></div>';
+  } else {
+    main.innerHTML = '<div class="action-row">' +
+    '<div class="action-card" onclick="alert(\'演示：按市场价格变动发起核价\')"><div class="action-card-title">建议核价</div><div class="action-card-sub">市场价格变动</div></div>' +
+    '<div class="action-card" onclick="alert(\'演示：批量调价\')"><div class="action-card-title">批量调价</div><div class="action-card-sub">按分类调整</div></div>' +
+    '<div class="action-card danger" onclick="alert(\'演示：价格异常商品列表\')"><div class="action-card-title">价格异常</div><div class="action-card-sub">待处理</div></div>' +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--c-500);margin-bottom:10px;font-weight:500">共 ' + list.length + ' 件商品</div>' +
     list.map(function(p) {
       var stockClass = p.stock < 20 ? ' low-stock' : '';
       return '<div class="prod-card">' +
@@ -1451,6 +1495,7 @@ function renderProducts(cat) {
           '</div>' +
         '</div></div>';
     }).join('');
+  }
 
   side.querySelectorAll('.prod-side-item').forEach(function(item) {
     item.addEventListener('click', function() {
@@ -1462,6 +1507,10 @@ function renderProducts(cat) {
 renderProducts(0);
 
 // ========== SVG Charts ==========
+// 金额中文缩写：≥1万用「万」，以下千分位（spec13 一致性）
+function fmtCn(v) {
+  return v >= 10000 ? '¥' + (v/10000).toFixed(2) + '万' : '¥' + Math.round(v).toLocaleString();
+}
 function drawChart(containerId, data, color) {
   var container = document.getElementById(containerId);
   if (!container) return;
@@ -1516,6 +1565,8 @@ function drawChart(containerId, data, color) {
   var avg = data.reduce(function(a,b){return a+b},0) / data.length;
   var avgY = pad.t + uh - ((avg - min) / range) * uh;
   gridLines += '<line x1="' + pad.l + '" y1="' + avgY.toFixed(1) + '" x2="' + (w-pad.r) + '" y2="' + avgY.toFixed(1) + '" stroke="' + color + '" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.15"/>';
+  // 均线数值标签
+  gridLines += '<text x="' + (w - pad.r) + '" y="' + (avgY - 5).toFixed(1) + '" text-anchor="end" font-size="11" font-weight="600" fill="' + color + '" opacity=".55">均 ' + fmtCn(avg) + '</text>';
 
   var dotHtml = points.map(function(p, i) {
     var isLast = i === points.length - 1;
@@ -1529,7 +1580,7 @@ function drawChart(containerId, data, color) {
       dot += '<animate attributeName="r" values="10;16;10" dur="2.5s" repeatCount="indefinite"/>';
       dot += '</circle>';
       // Value label for last point
-      var label = p.val >= 10000 ? '¥' + (p.val/10000).toFixed(1) + 'w' : '¥' + (p.val/1000).toFixed(1) + 'k';
+      var label = fmtCn(p.val);
       dot += '<text x="' + p.x.toFixed(1) + '" y="' + (p.y - 12).toFixed(1) + '" text-anchor="middle" fill="' + color + '" font-size="10" font-weight="700" font-family="var(--mono)">' + label + '</text>';
     } else if (!isFirst) {
       dot += '/>';
@@ -1576,7 +1627,7 @@ function animateCountUp() {
   document.querySelectorAll('.home-data-item .val[data-count]').forEach(function(el) {
     var target = parseInt(el.dataset.count);
     var isPrice = el.textContent.includes('¥');
-    var duration = 1200;
+    var duration = 500; // spec06：数字递增 500ms
     var start = performance.now();
     function update(now) {
       var elapsed = now - start;
@@ -1597,6 +1648,112 @@ function animateCountUp() {
 
 // Run count-up when home page is visible
 setTimeout(animateCountUp, 300);
+
+// ========== Quick Order: 数量加减 / 汇总 / 收款 loading ==========
+function fmtPrice(v){ var s = v.toFixed(2).replace(/\.?0+$/,''); return '¥' + s; }
+function updateQoSummary(){
+  var items = document.querySelectorAll('.qo-item');
+  if (!items.length) return;
+  var pieces = 0, total = 0, kinds = 0;
+  items.forEach(function(it){
+    var qty = parseInt(it.querySelector('.qo-qty-num').textContent) || 0;
+    var unit = parseFloat(it.dataset.unit) || 0;
+    pieces += qty; total += qty * unit; kinds++;
+    it.querySelector('.qo-item-price').textContent = fmtPrice(qty * unit);
+    var minus = it.querySelector('.qo-qty-btn[data-op="minus"]');
+    if (minus) minus.classList.toggle('disabled', qty <= 1);
+  });
+  var countEl = document.querySelector('.qo-summary .qo-row span:last-child');
+  if (countEl) countEl.textContent = kinds + ' 种 / ' + pieces + ' 件';
+  var amtEl = document.querySelector('.qo-total .amount');
+  if (amtEl) amtEl.textContent = '¥' + total.toFixed(2);
+}
+document.querySelectorAll('.qo-qty-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    if (btn.classList.contains('disabled')) return;
+    var num = btn.parentElement.querySelector('.qo-qty-num');
+    var q = parseInt(num.textContent) || 1;
+    q = btn.dataset.op === 'plus' ? Math.min(q + 1, 999) : Math.max(q - 1, 1);
+    num.textContent = q;
+    updateQoSummary();
+  });
+});
+updateQoSummary();
+
+// 收款按钮 loading 态演示（spec02 按钮六态）
+document.querySelectorAll('.qo-btn-pri').forEach(function(b){
+  b.addEventListener('click', function(){
+    if (b.classList.contains('loading') || b.classList.contains('disabled')) return;
+    b.classList.add('loading');
+    setTimeout(function(){ b.classList.remove('loading'); alert('演示：收款流程完成'); }, 900);
+  });
+});
+
+// 追溯码扫码入口
+document.querySelectorAll('.qo-item svg[stroke="var(--c-blue)"]').forEach(function(s){
+  s.addEventListener('click', function(){ alert('演示：扫码录入追溯码'); });
+});
+
+// ========== Orders: tab 过滤 + 空态演示（spec09） ==========
+var ordList = document.getElementById('ordList');
+var ordCards = null;
+function showAllOrders(){ var t = document.querySelector('#ordTabs .tab[data-tab="all"]'); if (t) t.click(); }
+function filterOrders(tab){
+  if (!ordList) return;
+  if (!ordCards) ordCards = Array.prototype.slice.call(ordList.querySelectorAll('.ord-card'));
+  var show = ordCards.filter(function(c){
+    var s = c.dataset.status;
+    if (tab === 'all') return true;
+    if (tab === 'pending') return s === '待付款';
+    if (tab === 'ship') return s === '待配送' || s === '待取货';
+    if (tab === 'done') return s === '已完成';
+    return false; // refund：演示空态
+  });
+  if (show.length === 0) {
+    ordList.innerHTML = '<div style="background:var(--bg-card);border-radius:var(--r4);margin:12px 14px;box-shadow:var(--sh2);border:1px solid rgba(0,0,0,.03)">' +
+      '<div class="empty-state">' +
+      '<div class="es-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>' +
+      '<div class="es-title">' + (tab === 'refund' ? '暂无退款订单' : '暂无相关订单') + '</div>' +
+      '<div class="es-desc">新的动态会在这里展示，可切换其他状态查看</div>' +
+      '<div class="es-btn" onclick="showAllOrders()">查看全部订单</div>' +
+      '</div></div>';
+  } else {
+    ordList.innerHTML = '';
+    show.forEach(function(c){ ordList.appendChild(c); });
+  }
+}
+document.querySelectorAll('#ordTabs .tab').forEach(function(tab){
+  tab.addEventListener('click', function(){ filterOrders(tab.dataset.tab); });
+});
+
+// ========== Reports: 周期切换骨架屏演示（spec09） ==========
+(function(){
+  var metrics = document.querySelector('.rpt-metrics');
+  if (!metrics) return;
+  var original = metrics.innerHTML;
+  var skCard = '<div class="rpt-metric">' +
+    '<div class="sk-line w40"></div>' +
+    '<div class="sk-line w60" style="height:22px;margin-top:8px"></div>' +
+    '<div class="sk-line w40" style="margin-bottom:0"></div></div>';
+  document.querySelectorAll('.rpt-period .rp-item').forEach(function(item){
+    item.addEventListener('click', function(){
+      if (item.classList.contains('active')) return;
+      metrics.innerHTML = skCard + skCard + skCard + skCard;
+      setTimeout(function(){ metrics.innerHTML = original; }, 600);
+    });
+  });
+})();
+
+// ========== 演示交互接线 ==========
+document.querySelectorAll('.ord-action').forEach(function(b){
+  b.addEventListener('click', function(){ alert('演示操作：' + b.textContent.trim()); });
+});
+document.querySelectorAll('.mem-card').forEach(function(m){
+  m.addEventListener('click', function(){ alert('演示：查看会员详情'); });
+});
+document.querySelectorAll('.msg-item').forEach(function(m){
+  m.addEventListener('click', function(){ alert('演示：查看消息详情'); });
+});
 
 // ========== Camera button haptic feedback ==========
 document.querySelectorAll('.ai-cam-btn').forEach(function(btn) {

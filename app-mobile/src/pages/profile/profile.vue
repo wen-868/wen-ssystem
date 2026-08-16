@@ -68,13 +68,21 @@
     <view class="prof-section">
       <text class="prof-section-title">系统</text>
       <view class="prof-list">
-        <view class="list-item">
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/settings/settings')">
+          <view class="li-ico li-ico--dark"><text class="li-ico-text">设</text></view>
+          <view class="li-body">
+            <text class="li-title">系统设置</text>
+            <text class="li-desc">打印、权限、通知设置</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages/notifications/notifications')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-consume.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">消息推送</text>
-            <text class="li-desc">接收订单、库存、系统消息推送</text>
+            <text class="li-desc">订单、库存、系统消息中心</text>
           </view>
-          <switch :checked="pushEnabled" color="#6366F1" @change="onPushToggle" style="transform:scale(.8)" />
+          <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="showCustomerService">
           <view class="li-ico li-ico--blue"><text class="li-ico-text">客</text></view>
@@ -88,7 +96,7 @@
           <view class="li-ico li-ico--ai"><text class="li-ico-text ai">AI</text></view>
           <view class="li-body">
             <text class="li-title">AI 设置</text>
-            <text class="li-desc">AI 助手配置</text>
+            <text class="li-desc">AI 助手模型与参数配置</text>
           </view>
           <text class="li-arrow">›</text>
         </view>
@@ -116,9 +124,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+import { storesApi } from '@/api/modules/stores'
+import { sysConfigApi, type TenantInfo } from '@/api/modules/sys-config'
+import manifest from '@/manifest.json'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -160,25 +171,44 @@ const shortcuts = [
   { icon: '印', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
-const pushEnabled = ref(true)
+/** 真实数据：门店营业时间 / 租户联系方式 / 应用版本 */
+const businessHours = ref('')
+const tenantContact = ref<TenantInfo | null>(null)
+const appVersion = (manifest as any)?.versionName || ''
 
-function onPushToggle(e: any) {
-  pushEnabled.value = !!e.detail?.value
-  uni.showToast({ title: pushEnabled.value ? '已开启消息推送' : '已关闭消息推送', icon: 'none' })
+async function loadProfileExtras() {
+  if (userStore.storeId) {
+    try {
+      const store = await storesApi.detail(userStore.storeId)
+      businessHours.value = (store as any)?.businessHours || ''
+    } catch {
+      businessHours.value = ''
+    }
+  }
+  try {
+    tenantContact.value = await sysConfigApi.getTenantInfo()
+  } catch {
+    tenantContact.value = null
+  }
 }
 
 function showBusinessHours() {
   uni.showModal({
     title: '营业时间',
-    content: '门店营业时间：08:00 - 22:00（可在门店管理中调整）',
+    content: businessHours.value
+      ? `门店营业时间：${businessHours.value}（可在门店管理中调整）`
+      : '暂未设置营业时间，可在门店管理中维护',
     showCancel: false,
   })
 }
 
 function showCustomerService() {
+  const t = tenantContact.value
   uni.showModal({
     title: '客服帮助',
-    content: '在线客服：13410954557\n帮助中心：https://www.onepan.cn',
+    content: t?.contactMobile
+      ? `联系人：${t.contactPerson || '—'}\n电话：${t.contactMobile}\n帮助中心：https://www.onepan.cn`
+      : '帮助中心：https://www.onepan.cn（联系方式可在系统设置中维护）',
     showCancel: false,
   })
 }
@@ -195,12 +225,13 @@ function goto(path: string) {
   }
 }
 
+/** AI 设置：跳转 AI 助手页（顶部模型选择/参数配置为真实功能） */
 function openAiSettings() {
-  uni.showToast({ title: 'AI 设置即将上线', icon: 'none' })
+  navigateTo('/pages/ai-chat/ai-chat')
 }
 
 function showAbout() {
-  uni.showModal({ title: '关于', content: '智享全链管理系统 v1.0', showCancel: false })
+  uni.showModal({ title: '关于', content: `智享全链管理系统 v${appVersion}`, showCancel: false })
 }
 
 function handleLogout() {
@@ -214,6 +245,10 @@ function handleLogout() {
     }
   })
 }
+
+onMounted(() => {
+  loadProfileExtras()
+})
 
 </script>
 

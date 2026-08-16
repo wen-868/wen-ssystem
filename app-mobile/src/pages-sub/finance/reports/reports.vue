@@ -38,7 +38,14 @@
 
     <view class="stats-section">
       <view class="section-title">核心数据</view>
-      <view class="stats-grid">
+      <!-- 切换周期加载态：骨架屏（spec09） -->
+      <view class="stats-grid" v-if="loading">
+        <view class="stats-card" v-for="n in 4" :key="'sk' + n">
+          <view class="sk-line sk-w60"></view>
+          <view class="sk-line sk-w40 sk-mt"></view>
+        </view>
+      </view>
+      <view class="stats-grid" v-else>
         <view class="stats-card stats-card--primary">
           <text class="stats-value">¥{{ summary.totalSales }}</text>
           <text class="stats-label">营业额</text>
@@ -406,7 +413,31 @@ onMounted(() => {
 .stats-card--primary .stats-label { color: $uni-text-color-inverse; }
 .stats-card--primary .stats-trend { color: rgba(255,255,255,0.85); }
 .stats-value { font-size: 36rpx; font-weight: 700; color: $uni-gray-700; }
-.stats-label { font-size: 22rpx; color: $uni-gray-400; }
+.stats-label { font-size: 22rpx; color: $uni-gray-500; }
+
+/* 骨架屏（spec09：切换周期加载态，shimmer 1.5s） */
+.sk-line {
+  height: 24rpx;
+  border-radius: 8rpx;
+  background: #F0F0F0;
+  position: relative;
+  overflow: hidden;
+}
+.sk-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: sk-shimmer 1.5s infinite;
+}
+@keyframes sk-shimmer { to { transform: translateX(100%); } }
+.sk-w60 { width: 60%; }
+.sk-w40 { width: 40%; }
+.sk-mt { margin-top: 16rpx; }
 .stats-trend { font-size: 20rpx; margin-top: 4rpx; }
 .stats-trend--up { color: $uni-color-success; }
 .report-entries { padding: 0 24rpx 24rpx; }

@@ -520,8 +520,8 @@ onMounted(() => {
 
 .action-card-sub {
   display: block;
-  font-size: 20rpx;
-  color: $ai-text-sub;
+  font-size: 22rpx;
+  color: $ai-text-mid;
   margin-top: 6rpx;
 }
 

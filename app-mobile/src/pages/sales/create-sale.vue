@@ -40,7 +40,7 @@
             <text class="item-price">¥{{ (item.price ?? 0).toFixed(2) }} / {{ item.unit || '件' }}</text>
           </view>
           <view class="item-quantity">
-            <view class="qty-btn" @tap="decreaseQty(index)">-</view>
+            <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap="decreaseQty(index)">-</view>
             <input
               class="qty-input"
               :value="item.quantity"
@@ -61,7 +61,7 @@
             <text class="add-text">添加商品</text>
           </view>
           <view class="add-item-btn add-item-btn--scan" @tap="handleScanAdd">
-            <text class="add-icon">📷</text>
+            <image class="add-icon-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
             <text class="add-text">扫码添加</text>
           </view>
         </view>
@@ -773,6 +773,11 @@ async function handleSubmit() {
   color: $uni-color-primary;
 }
 
+/* 数量为 1 时减号禁用态（spec02） */
+.qty-btn--disabled {
+  opacity: 0.35;
+}
+
 .qty-input {
   width: 72rpx;
   height: 48rpx;
@@ -832,6 +837,13 @@ async function handleSubmit() {
 .add-icon {
   font-size: 36rpx;
   color: $uni-color-primary;
+  margin-right: 8rpx;
+}
+
+/* 扫码图标（替换 emoji，规范禁 emoji 图标） */
+.add-icon-img {
+  width: 34rpx;
+  height: 34rpx;
   margin-right: 8rpx;
 }
 

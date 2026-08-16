@@ -1,9 +1,21 @@
 <template>
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
-    <!-- 搜索栏 -->
+    <!-- 搜索栏（UI1.2：扫码/订单/消息三入口，40px 热区） -->
     <view class="search-bar" @tap="navigateTo('/pages/products/products')">
       <text class="search-bar-icon">&#xe614;</text>
       <text class="search-bar-placeholder">搜索商品、订单、客户名称</text>
+      <view class="search-actions">
+        <view class="icon-btn" @tap.stop="navigateTo('/pages/sales/create-sale')">
+          <image class="icon-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
+        </view>
+        <view class="icon-btn" @tap.stop="navigateTo('/pages/orders/orders')">
+          <image class="icon-btn-img" src="/static/icons/hd-order.svg" mode="aspectFit" />
+        </view>
+        <view class="icon-btn" @tap.stop="navigateTo('/pages/notifications/notifications')">
+          <image class="icon-btn-img" src="/static/icons/hd-bell.svg" mode="aspectFit" />
+          <view class="icon-btn-dot" v-if="unreadCount > 0"></view>
+        </view>
+      </view>
     </view>
 
     <!-- 数据卡（今日营业额 / 今日订单 + 环比） -->
@@ -11,7 +23,7 @@
       <view class="home-data-top">
         <view class="home-data-item">
           <text class="home-data-label">今日营业额</text>
-          <text class="home-data-val">¥{{ formatAmount(stats.todaySales) }}</text>
+          <text class="home-data-val">¥{{ formatFull(stats.todaySales) }}</text>
           <view class="home-data-trend up">
             <text class="trend-arrow">▲</text>
             <text class="trend-text">{{ stats.todaySales > 0 ? '实时' : '—' }}</text>
@@ -30,7 +42,7 @@
       <view class="home-data-bot">
         <view class="db-item">
           <text class="db-label">本月营业额</text>
-          <text class="db-val">¥{{ formatAmount(stats.monthSales) }}</text>
+          <text class="db-val">¥{{ formatFull(stats.monthSales) }}</text>
         </view>
         <view class="db-item">
           <text class="db-label">本月订单</text>
@@ -38,7 +50,7 @@
         </view>
         <view class="db-item">
           <text class="db-label">本月毛利</text>
-          <text class="db-val">¥{{ formatAmount(stats.monthProfit) }}</text>
+          <text class="db-val">¥{{ formatFull(stats.monthProfit) }}</text>
         </view>
       </view>
     </view>
@@ -115,7 +127,7 @@
           <view class="ho-meta">{{ order.orderNo }} · {{ order.time }}</view>
         </view>
         <view class="ho-right">
-          <view class="ho-amount">¥{{ formatAmount(order.amount) }}</view>
+          <view class="ho-amount">¥{{ formatFull(order.amount) }}</view>
           <text class="ho-status badge" :class="statusBadgeClass(order.status)">{{ order.statusText }}</text>
         </view>
       </view>
@@ -128,11 +140,11 @@
           <view class="title-bar-line"></view>
           <text class="section-title">7日趋势</text>
         </view>
-        <text class="chart-daily" v-if="trendList.length > 0">日均 ¥{{ formatAmount(averageDaily) }}</text>
+        <text class="chart-daily" v-if="trendList.length > 0">日均 ¥{{ formatFull(averageDaily) }}</text>
       </view>
       <view class="chart-wrap" v-if="trendList.length > 0">
         <view class="chart-bar-col" v-for="(item, idx) in trendList" :key="idx">
-          <text class="chart-bar-val">{{ formatAmount(item.amount) }}</text>
+          <text class="chart-bar-val">{{ formatCn(item.amount) }}</text>
           <view class="chart-bar" :style="{ height: barHeight(item.amount) }"></view>
           <text class="chart-bar-label">{{ item.date }}</text>
         </view>
@@ -151,6 +163,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { dashboardApi, type TodoItem, type SalesTrend } from '@/api/modules/dashboard'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
+import { notificationsApi } from '@/api/modules/notifications'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 interface DashboardData {
@@ -191,6 +204,7 @@ const todos = ref<TodoItem[]>([])
 const recentOrders = ref<HomeOrder[]>([])
 const trendList = ref<SalesTrend[]>([])
 const refresherTriggered = ref(false)
+const unreadCount = ref(0)
 
 const averageDaily = computed(() => {
   if (trendList.value.length === 0) return 0
@@ -203,11 +217,15 @@ const maxTrendAmount = computed(() => {
   return Math.max(...trendList.value.map((item) => item.amount), 1)
 })
 
-function formatAmount(amount: number): string {
-  if (amount >= 10000) {
-    return (amount / 10000).toFixed(1) + '万'
-  }
-  return amount.toFixed(2)
+/** 千分位整数金额：12,680（数据卡主数字/订单金额） */
+function formatFull(amount: number): string {
+  return Math.round(amount || 0).toLocaleString()
+}
+
+/** 中文缩写金额：≥1万用「万」（图表数值标签，spec13 一致性） */
+function formatCn(amount: number): string {
+  const v = amount || 0
+  return v >= 10000 ? (v / 10000).toFixed(2) + '万' : Math.round(v).toLocaleString()
 }
 
 function barHeight(amount: number): string {
@@ -248,12 +266,14 @@ function formatTrendDate(d: string): string {
 
 async function loadData() {
   try {
-    const [statsData, todosData, trendData, orderResult] = await Promise.all([
+    const [statsData, todosData, trendData, orderResult, unreadResult] = await Promise.all([
       dashboardApi.getStats(),
       dashboardApi.getTodos(),
       dashboardApi.getSalesTrend(7),
-      ordersApi.list({ page: 1, pageSize: 4 }).catch(() => null)
+      ordersApi.list({ page: 1, pageSize: 4 }).catch(() => null),
+      notificationsApi.getUnreadCount().catch(() => null)
     ])
+    unreadCount.value = unreadResult?.total ?? 0
     const s = statsData as any
     stats.value = {
       todaySales: s.todaySales || 0,
@@ -325,8 +345,48 @@ onMounted(() => {
 }
 
 .search-bar-placeholder {
+  flex: 1;
   font-size: 26rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
+}
+
+/* 三入口图标按钮：视觉 36rpx，热区 72rpx（spec12 触摸目标） */
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.icon-btn {
+  width: 72rpx;
+  height: 72rpx;
+  margin: -8rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.88);
+}
+
+.icon-btn-img {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.icon-btn-dot {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: $uni-color-error;
+  border: 3rpx solid $uni-bg-color;
 }
 
 /* 数据卡 */
@@ -402,7 +462,7 @@ onMounted(() => {
 }
 
 .db-label {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: $uni-gray-500;
 }
 
@@ -445,7 +505,7 @@ onMounted(() => {
 
 .section-more {
   font-size: 24rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
 }
 
 /* 订单进度 */
@@ -533,16 +593,20 @@ onMounted(() => {
   color: $uni-text-color;
 }
 
+/* 渠道标签：浅灰底小标签（UI1.2 修复，此前无底色） */
 .ho-channel {
-  font-size: 20rpx;
-  color: $uni-gray-400;
+  font-size: 22rpx;
+  color: $uni-gray-600;
+  background: $uni-bg-color-grey;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
   margin-left: 12rpx;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .ho-meta {
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
   margin-top: 6rpx;
 }
 
@@ -563,14 +627,15 @@ onMounted(() => {
   align-items: center;
   padding: 4rpx 16rpx;
   border-radius: $uni-border-radius-pill;
-  font-size: 20rpx;
+  font-size: 22rpx;
   font-weight: 600;
   margin-top: 8rpx;
 }
 
-.badge-green { background: $uni-color-success-soft; color: $uni-color-success; }
-.badge-orange { background: $uni-color-warning-soft; color: $uni-color-warning; }
-.badge-red { background: $uni-color-error-soft; color: $uni-color-error; }
+/* 徽章文字加深至 4.5:1 对比度（spec12） */
+.badge-green { background: $uni-color-success-soft; color: #047857; }
+.badge-orange { background: $uni-color-warning-soft; color: #B45309; }
+.badge-red { background: $uni-color-error-soft; color: #B91C1C; }
 .badge-gray { background: #f0f0f0; color: #909399; }
 
 /* 7 日趋势 */
@@ -585,7 +650,7 @@ onMounted(() => {
 
 .chart-daily {
   font-size: 24rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
 }
 
 .chart-wrap {
@@ -607,8 +672,8 @@ onMounted(() => {
 }
 
 .chart-bar-val {
-  font-size: 18rpx;
-  color: $uni-gray-400;
+  font-size: 22rpx;
+  color: $uni-gray-500;
 }
 
 .chart-bar {
@@ -619,7 +684,7 @@ onMounted(() => {
 }
 
 .chart-bar-label {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: $uni-gray-500;
 }
 
@@ -673,6 +738,6 @@ onMounted(() => {
 
 .todo-date {
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
 }
 </style>
