@@ -143,7 +143,9 @@ export class GlmProvider implements IModelProvider {
       'DEFAULT_MAX_TOKENS',
       2048,
     );
-    const timeoutMs = this.configService.get<number>('GLM_TIMEOUT_MS', 30000);
+    // 默认 90s：GLM-4-Flash 处理大 prompt（工具定义+历史+RAG 可达 5-8 万 tokens）
+    // 需要 30-60s，30s 默认值会频繁触发 LLM 超时（表现为前端一直"正在思考"）
+    const timeoutMs = this.configService.get<number>('GLM_TIMEOUT_MS', 90000);
 
     this.config = {
       apiKey,
