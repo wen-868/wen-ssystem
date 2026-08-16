@@ -33,14 +33,14 @@
         <text class="tab-text">商品</text>
       </view>
 
-      <!-- AI 圆形按钮 -->
+      <!-- AI 圆形凸起按钮（设计稿：蓝渐变 + AI 文字，非图片） -->
       <view
         class="tab-ai"
         :class="{ 'tab-ai--active': current === 'ai' }"
         @tap="switchTab('/pages/ai-chat/ai-chat')"
       >
         <view class="ai-btn">
-          <image class="ai-btn-img" src="/static/tabbar/ai.svg" mode="aspectFit" />
+          <text class="ai-btn-text">AI</text>
         </view>
       </view>
 
@@ -125,27 +125,13 @@ function switchTab(url: string) {
   position: relative;
 }
 
-.tab-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 4rpx;
-  background: $uni-color-primary;
-  border-radius: 0 0 4rpx 4rpx;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.tab-item--active::before {
-  opacity: 1;
+.tab-item:active .tab-icon-img {
+  transform: scale(0.86);
 }
 
 .tab-text {
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
   line-height: 1;
   transition: all 0.25s ease;
 }
@@ -168,6 +154,7 @@ function switchTab(url: string) {
 .tab-icon-img {
   width: 44rpx;
   height: 44rpx;
+  transition: transform 0.2s ease;
 }
 
 /* ─── AI 凸起按钮 ─── */
@@ -193,12 +180,6 @@ function switchTab(url: string) {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
 }
 
-.ai-btn-img {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
-}
-
 .tab-ai:active .ai-btn {
   transform: translateY(-30rpx) scale(0.92);
   box-shadow: 0 4rpx 24rpx rgba(37, 99, 235, 0.2);
@@ -209,22 +190,11 @@ function switchTab(url: string) {
   transform: translateY(-30rpx) scale(1.05);
 }
 
-.tab-ai--active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40rpx;
-  height: 4rpx;
-  background: $uni-color-primary;
-  border-radius: 0 0 4rpx 4rpx;
-}
-
 .ai-btn-text {
-  font-size: 34rpx;
-  font-weight: 700;
+  font-size: 40rpx;
+  font-weight: 800;
   color: #ffffff;
-  letter-spacing: 1rpx;
+  letter-spacing: 2rpx;
+  line-height: 1;
 }
 </style>

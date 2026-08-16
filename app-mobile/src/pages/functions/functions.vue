@@ -84,10 +84,10 @@ const hotActions = [
 ]
 
 const dataTools = [
-  { icon: '报', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '排', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '溯', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '供', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_DANGER_SOFT, color: AI_DANGER },
+  { icon: '/static/icons/fn-report.svg', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-rank.svg', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { icon: '/static/icons/fn-trace.svg', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_DANGER_SOFT, color: AI_DANGER },
 ]
 
 /** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */

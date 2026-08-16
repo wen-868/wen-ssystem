@@ -54,7 +54,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="showBusinessHours">
-          <view class="li-ico li-ico--dark"><text class="li-ico-text">时</text></view>
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-clock.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">营业时间</text>
             <text class="li-desc">门店营业时间</text>
@@ -69,7 +69,7 @@
       <text class="prof-section-title">系统</text>
       <view class="prof-list">
         <view class="list-item" @tap="navigateTo('/pages-sub/admin/settings/settings')">
-          <view class="li-ico li-ico--dark"><text class="li-ico-text">设</text></view>
+          <view class="li-ico li-ico--blue"><image class="li-ico-img" src="/static/icons/prf-setting.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">系统设置</text>
             <text class="li-desc">打印、权限、通知设置</text>
@@ -85,7 +85,7 @@
           <text class="li-arrow">›</text>
         </view>
         <view class="list-item" @tap="showCustomerService">
-          <view class="li-ico li-ico--blue"><text class="li-ico-text">客</text></view>
+          <view class="li-ico li-ico--blue"><image class="li-ico-img" src="/static/icons/prf-service.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">客服帮助</text>
             <text class="li-desc">在线客服 · 帮助中心</text>
@@ -167,8 +167,8 @@ const roleText = computed(() => {
 const shortcuts = [
   { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_DANGER_SOFT, color: AI_DANGER },
-  { icon: '账', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '印', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '/static/icons/prf-recon.svg', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { icon: '/static/icons/prf-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
 /** 真实数据：门店营业时间 / 租户联系方式 / 应用版本 */

@@ -1,22 +1,6 @@
 <template>
   <view class="products-page">
-    <!-- 页头 -->
-    <view class="prod-hd">
-      <view class="prod-hd-left">
-        <view class="prod-status-row">
-          <view class="prod-status-dot"></view>
-          <text class="prod-status-text">营业中</text>
-        </view>
-        <text class="prod-hd-title">商品</text>
-        <text class="prod-count" v-if="totalCount > 0">共 {{ totalCount }} 件商品</text>
-      </view>
-      <view class="prod-hd-icons">
-        <text class="prod-hd-icon" @tap="goNotifications">&#xe642;</text>
-        <text class="prod-hd-icon" @tap="focusSearch">&#xe614;</text>
-      </view>
-    </view>
-
-    <!-- 搜索栏 -->
+    <!-- 搜索栏（UI1.2：无页头，铃铛并入搜索栏，顶部承接 safe-area） -->
     <view class="search-bar">
       <view class="search-input-wrap">
         <text class="search-icon">&#xe614;</text>
@@ -29,6 +13,9 @@
           @confirm="onSearch"
         />
         <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+        <view class="icon-btn" @tap.stop="goNotifications">
+          <image class="icon-btn-img" src="/static/icons/hd-bell.svg" mode="aspectFit" />
+        </view>
       </view>
     </view>
 
@@ -70,6 +57,9 @@
             <text class="action-card-sub action-card-sub--danger">待处理</text>
           </view>
         </view>
+
+        <!-- 商品计数（原页头信息迁移） -->
+        <view class="prod-count-line" v-if="totalCount > 0">共 {{ totalCount }} 件商品</view>
 
         <!-- 虚拟滚动商品列表 -->
         <virtual-list
@@ -280,14 +270,6 @@ function goNotifications() {
   uni.navigateTo({ url: '/pages/notifications/notifications' })
 }
 
-function focusSearch() {
-  // 聚焦搜索输入框
-  const query = uni.createSelectorQuery()
-  query.select('.search-input').node((node: any) => {
-    if (node && node.focus) node.focus()
-  }).exec()
-}
-
 /** 操作卡入口：建议核价/批量调价/价格异常均接入真实页面 */
 function onAction(type: 'suggest' | 'batch' | 'anomaly') {
   if (type === 'batch') {
@@ -325,80 +307,10 @@ onMounted(() => {
   height: 100vh;
 }
 
-/* 页头 */
-.prod-hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 28rpx 8rpx;
-  padding-top: calc(20rpx + env(safe-area-inset-top));
-}
-
-.prod-hd-left {
-  flex: 1;
-}
-
-.prod-status-row {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.prod-status-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: $uni-color-success;
-  animation: pulse-dot 2s infinite;
-}
-
-.prod-status-text {
-  font-size: 20rpx;
-  color: $uni-color-success;
-  font-weight: 600;
-}
-
-.prod-hd-title {
-  display: block;
-  font-size: 40rpx;
-  font-weight: 800;
-  color: $uni-text-color;
-  margin-top: 4rpx;
-  letter-spacing: -0.5rpx;
-}
-
-.prod-count {
-  font-size: 20rpx;
-  color: $uni-gray-400;
-  margin-top: 4rpx;
-  display: block;
-}
-
-.prod-hd-icons {
-  display: flex;
-  gap: 8rpx;
-}
-
-.prod-hd-icon {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 50%;
-  background: $uni-bg-color;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34rpx;
-  color: $uni-gray-600;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-
+/* 搜索栏（顶部承接状态栏 safe-area，原页头已删除） */
 .search-bar {
   padding: 16rpx 24rpx;
+  padding-top: calc(16rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -409,6 +321,35 @@ onMounted(() => {
   background: $uni-bg-color-page;
   border-radius: 36rpx;
   padding: 0 24rpx;
+}
+
+/* 搜索栏铃铛入口：热区 72rpx（spec12 触摸目标） */
+.icon-btn {
+  width: 72rpx;
+  height: 72rpx;
+  margin-right: -24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.88);
+}
+
+.icon-btn-img {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 商品计数行（原页头信息迁移） */
+.prod-count-line {
+  font-size: 24rpx;
+  color: $uni-gray-500;
+  font-weight: 500;
+  margin-bottom: 12rpx;
 }
 
 .search-icon {
