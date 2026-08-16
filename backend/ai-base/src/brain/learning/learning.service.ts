@@ -116,6 +116,31 @@ export class LearningService {
   }
 
   /**
+   * 对话级经验沉淀：纯咨询对话（无工具调用）也记录情节经验，
+   * 让「总结经验」覆盖所有交互，而非仅工具调用轮次。
+   *
+   * @param tenantId  租户 ID
+   * @param userMessage 用户提问
+   * @param reply     AI 回复（截断保存）
+   */
+  async noteConversation(
+    tenantId: string,
+    userMessage: string,
+    reply: string,
+  ): Promise<void> {
+    const what = `用户咨询「${userMessage.slice(0, 100)}」，助手回复：${reply.slice(0, 150)}`;
+    await this.ltm.saveEpisodic(tenantId, {
+      what,
+      outcome: 'good',
+      why: undefined,
+      summary: what.slice(0, 200),
+    });
+    this.logger.debug(
+      `对话经验沉淀：tenant=${tenantId} 用户消息=${userMessage.slice(0, 40)}...`,
+    );
+  }
+
+  /**
    * 记录经验应用 + 采纳评估（positive/negative）
    */
   async recordApplication(

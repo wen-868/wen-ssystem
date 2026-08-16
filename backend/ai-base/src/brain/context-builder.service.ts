@@ -23,6 +23,7 @@ import type { ChatMessage } from '../providers/provider.interface';
 import type { ToolRegistry } from '../tools/tool-registry';
 import { RetrieverService } from '../rag/retriever.service';
 import { LongTermMemoryService } from './memory/long-term-memory.service';
+import { LearningService } from './learning/learning.service';
 
 /** ContextBuilder 构建参数 */
 export interface BuildContextParams {
@@ -78,6 +79,7 @@ export class ContextBuilder {
   constructor(
     private readonly retriever: RetrieverService,
     private readonly ltm: LongTermMemoryService,
+    private readonly learning: LearningService,
   ) {}
 
   /**
@@ -125,11 +127,15 @@ export class ContextBuilder {
     params: BuildContextParams,
   ): Promise<string | undefined> {
     try {
-      const [profiles, hits] = await Promise.all([
+      const [profiles, hits, hints] = await Promise.all([
         this.ltm.getProfiles(params.tenantId, params.userId),
         this.ltm.search(params.tenantId, params.userMessage, 3),
+        this.learning.getHints(params.tenantId, params.userId),
       ]);
-      if (profiles.length === 0 && hits.length === 0) return undefined;
+      const hasHints = hints.toolSelect.length > 0 || hints.routing.length > 0;
+      if (profiles.length === 0 && hits.length === 0 && !hasHints) {
+        return undefined;
+      }
       const parts: string[] = [];
       if (profiles.length > 0) {
         parts.push(
@@ -143,6 +149,24 @@ export class ContextBuilder {
           `## 相关历史经验（该租户过去交互沉淀，可参考）\n${hits
             .map((h) => `- ${h.text}`)
             .join('\n')}`,
+        );
+      }
+      if (hasHints) {
+        const hintParts: string[] = [];
+        if (hints.toolSelect.length > 0) {
+          hintParts.push(
+            `工具选择提示：\n${hints.toolSelect
+              .map((h) => `- ${h.tool}：${h.note}`)
+              .join('\n')}`,
+          );
+        }
+        if (hints.routing.length > 0) {
+          hintParts.push(
+            `流程提示：\n${hints.routing.map((h) => `- ${h.note}`).join('\n')}`,
+          );
+        }
+        parts.push(
+          `## 学习经验提示（该租户过往任务的已知问题，规避踩坑）\n${hintParts.join('\n')}`,
         );
       }
       return parts.join('\n\n');
