@@ -24,6 +24,7 @@ import {
   API_ENDPOINTS,
   BridgeError,
 } from '../../bridge/service-client';
+import { normalizeProductKeyword } from '../../nlp/nl-parser';
 
 /** 后端返回的商品列表项 */
 interface ProductListItem {
@@ -120,12 +121,21 @@ export class SearchProductTool implements ITool {
     args: Record<string, unknown>,
     context: ToolContext,
   ): Promise<ToolResult> {
-    const keyword = args.keyword;
-    if (typeof keyword !== 'string' || keyword.length === 0) {
+    const rawKeyword = args.keyword;
+    if (typeof rawKeyword !== 'string' || rawKeyword.length === 0) {
       return {
         success: false,
         error: '参数 keyword 必须为非空字符串',
         suggestion: '请传入商品名称作为搜索关键词',
+      };
+    }
+    // 精准度优化：剥离动作/数量/问句前缀，只保留商品名（如"给我来10箱五粮液"→"五粮液"）
+    const keyword = normalizeProductKeyword(rawKeyword);
+    if (!keyword) {
+      return {
+        success: false,
+        error: `无法从「${rawKeyword}」识别商品名称`,
+        suggestion: '请直接提供商品名称，如"五粮液"',
       };
     }
 

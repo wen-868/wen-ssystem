@@ -43,4 +43,20 @@ describe('detectIntentCategories（意图驱动工具减负）', () => {
   it('空消息回退 undefined', () => {
     expect(detectIntentCategories('  ')).toBeUndefined();
   });
+
+  it('口语化库存说法（有没有货/还剩）命中 inventory', () => {
+    expect(detectIntentCategories('五粮液还有没有货')).toContain('inventory');
+    expect(detectIntentCategories('仓库里还剩多少五粮液')).toContain(
+      'inventory',
+    );
+  });
+
+  it('口语化开单（来点/拿几）命中 order', () => {
+    expect(detectIntentCategories('来点五粮液')).toContain('order');
+    expect(detectIntentCategories('拿几箱茅台')).toContain('order');
+  });
+
+  it('业绩口语（这月卖了）命中 report', () => {
+    expect(detectIntentCategories('这月卖了多少钱')).toContain('report');
+  });
 });

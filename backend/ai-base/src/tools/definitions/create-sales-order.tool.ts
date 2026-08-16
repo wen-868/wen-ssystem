@@ -31,6 +31,7 @@ import {
 } from '../../bridge/service-client';
 import { PriceEngineService, ProductPriceInfo } from '../price-engine.service';
 import { UnitConverterService } from '../unit-converter.service';
+import { toPositiveInt } from '../../nlp/param-coercer';
 
 /** 创建销售单的参数 */
 interface CreateSalesOrderArgs {
@@ -533,23 +534,27 @@ export class CreateSalesOrderTool implements ITool {
     // 校验每个 item
     for (let i = 0; i < items.length; i++) {
       const item = items[i] as Record<string, unknown>;
-      if (typeof item.skuId !== 'number' || item.skuId <= 0) {
+      // 宽松解析：LLM 可能传字符串数字，自纠错后校验
+      const skuId = toPositiveInt(item.skuId);
+      if (skuId === undefined) {
         return {
           valid: false,
           error: `第 ${i + 1} 个商品的 skuId 必须为正整数`,
           suggestion: '请先调用 searchProduct 获取商品的 skuId',
         };
       }
-      if (
-        (typeof item.boxQty !== 'number' || item.boxQty <= 0) &&
-        (typeof item.bottleQty !== 'number' || item.bottleQty <= 0)
-      ) {
+      item.skuId = skuId;
+      const boxQty = toPositiveInt(item.boxQty);
+      const bottleQty = toPositiveInt(item.bottleQty);
+      if (boxQty === undefined && bottleQty === undefined) {
         return {
           valid: false,
           error: `第 ${i + 1} 个商品必须指定 boxQty 或 bottleQty（至少一个大于0）`,
           suggestion: '请传入箱数(boxQty)或瓶数(bottleQty)',
         };
       }
+      if (boxQty !== undefined) item.boxQty = boxQty;
+      if (bottleQty !== undefined) item.bottleQty = bottleQty;
     }
 
     return {
