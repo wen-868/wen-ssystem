@@ -27,7 +27,10 @@ export class VoiceController {
     }
     const result = await this.voice.tts(text);
     if (!result) {
-      return { code: '500', msg: '语音合成失败，请稍后重试' };
+      return {
+        code: '501',
+        msg: '语音合成服务未配置或暂时不可用（已切换系统语音播报）',
+      };
     }
     return {
       code: '0',
