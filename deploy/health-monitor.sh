@@ -20,6 +20,7 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 API_BASE="${HEALTH_API_BASE:-http://127.0.0.1:8080}"
+AI_BASE="${HEALTH_AI_BASE:-http://127.0.0.1:3016}"
 FEISHU_WEBHOOK="${FEISHU_WEBHOOK_URL:-}"
 
 check() {
@@ -47,7 +48,7 @@ alert() {
 
 FAILED=0
 check "后端健康" "${API_BASE}/health" || FAILED=1
-check "API健康" "${API_BASE}/api/health" || FAILED=$((FAILED + 1))
+check "AI底座健康" "${AI_BASE}/api/health" || FAILED=$((FAILED + 1))
 
 if [[ "${FAILED}" -gt 0 ]]; then
   # 连续失败才告警（避免单次抖动误报）：首次失败写入状态文件，累计 2 次以上再发
