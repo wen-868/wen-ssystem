@@ -46,6 +46,7 @@
 
     <!-- 输入区 -->
     <div v-show="!collapsed" class="ai-input-area">
+      <!-- 第一段：文本输入 + 发送（发送按钮悬浮于输入框右下角） -->
       <div class="ai-input-box">
         <el-input
           v-model="input"
@@ -57,14 +58,20 @@
           @keydown.enter.exact.prevent="sendMessage"
         />
         <el-button
-          class="ai-image-btn"
+          type="primary"
           circle
-          :disabled="streaming"
-          title="上传图片（AI 识别）"
-          @click="pickImage"
+          class="ai-send-btn"
+          :loading="streaming"
+          :disabled="!canSend"
+          title="发送"
+          @click="sendMessage"
         >
-          <el-icon><Picture /></el-icon>
+          <el-icon v-if="!streaming"><Promotion /></el-icon>
+          <span v-else class="ai-send-dots">···</span>
         </el-button>
+      </div>
+      <!-- 第二段：操作栏（图片预览 / 图片 / 语音 / 提示） -->
+      <div class="ai-input-actions">
         <div v-if="pendingImage" class="ai-image-preview">
           <img :src="pendingImage" alt="待发送图片" />
           <el-button
@@ -77,6 +84,15 @@
             <el-icon><Close /></el-icon>
           </el-button>
         </div>
+        <el-button
+          class="ai-image-btn"
+          circle
+          :disabled="streaming"
+          title="上传图片（AI 识别）"
+          @click="pickImage"
+        >
+          <el-icon><Picture /></el-icon>
+        </el-button>
         <el-button
           class="ai-voice-btn"
           circle
@@ -93,20 +109,8 @@
         >
           <el-icon><Microphone v-if="!listening" /><Loading v-else class="is-loading" /></el-icon>
         </el-button>
-        <el-button
-          type="primary"
-          circle
-          class="ai-send-btn"
-          :loading="streaming"
-          :disabled="!canSend"
-          title="发送"
-          @click="sendMessage"
-        >
-          <el-icon v-if="!streaming"><Promotion /></el-icon>
-          <span v-else class="ai-send-dots">···</span>
-        </el-button>
+        <span class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</span>
       </div>
-      <div class="ai-input-hint">{{ statusText || "Enter 发送 · Shift+Enter 换行 · 数据不出店" }}</div>
     </div>
   </aside>
 </template>
@@ -528,9 +532,57 @@ onBeforeUnmount(() => {
 }
 
 .ai-input-hint {
-  margin-top: 6px;
+  flex: 1;
+  margin-left: 8px;
   font-size: 11px;
   color: #595959; /* WCAG AA */
-  text-align: center;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 第二段操作栏：图片预览 / 图片 / 语音 / 提示 一行排列 */
+.ai-input-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  padding-left: 2px;
+  min-height: 30px;
+}
+
+.ai-input-actions .ai-image-btn,
+.ai-input-actions .ai-voice-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-right: 6px;
+}
+
+/* 待发送图片缩略图（内联小卡 + 移除角标） */
+.ai-image-preview {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-right: 8px;
+  border-radius: 8px;
+  overflow: visible;
+  flex-shrink: 0;
+}
+.ai-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+.ai-image-preview .ai-image-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-size: 10px;
 }
 </style>
