@@ -63,12 +63,12 @@ const dashboardApi = {
   },
 
   async getSalesTrend(days?: number): Promise<SalesTrend[]> {
-    // R94-03：原 /store/dashboard/sales-trend 不存在，改为 /admin/dashboard/sales-trend（dashboard.routes.ts）
-    const res: any = await get('/admin/dashboard/sales-trend', { days: days ?? 7 })
+    // UI v1.2 首页为「7日趋势」按天展示：后端按天接口为 sales-trend-daily（sales-trend 为按月聚合）
+    const res: any = await get('/admin/dashboard/sales-trend-daily', { days: days ?? 7 })
     const rows: any[] = res?.list ?? res?.records ?? (Array.isArray(res) ? res : [])
     return rows.map((r: any) => ({
       date: r.date ?? r.day ?? r.month ?? '',
-      amount: Number(r.amount ?? r.salesAmount ?? r.totalAmount ?? 0),
+      amount: Number(r.salesAmount ?? r.amount ?? r.totalAmount ?? 0),
       orderCount: Number(r.orderCount ?? r.count ?? 0),
     }))
   },

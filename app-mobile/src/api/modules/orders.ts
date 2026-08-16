@@ -123,24 +123,47 @@ const ordersApi = {
   }
 }
 
+/** 订单状态中文映射（后端返回英文 order_status） */
+const ORDER_STATUS_LABEL: Record<string, string> = {
+  PENDING_PAYMENT: '待付款',
+  PENDING: '待处理',
+  ACCEPTED: '待配送',
+  DELIVERING: '配送中',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消',
+  REFUNDED: '已退款',
+  UNPAID: '未支付',
+  PAID: '已支付',
+}
+
 function mapOrder(r: any): OrderInfo {
+  const status = r.orderStatus ?? r.status ?? ''
+  const fulfillmentType = r.fulfillmentType ?? r.fulfillment_type ?? ''
+  const customerType = r.customerType ?? r.customer_type ?? ''
+  const channel = r.channel
+    ?? (fulfillmentType.includes('MINIAPP') ? '小程序'
+      : fulfillmentType.includes('INSTANT') ? '即时零售'
+      : fulfillmentType.includes('PICKUP') || fulfillmentType.includes('STORE') ? '门店'
+      : customerType.includes('WHOLESALE') ? '批发'
+      : customerType.includes('RETAIL') ? '零售'
+      : (fulfillmentType || '门店'))
   return {
     orderNo: r.orderNo ?? r.order_no ?? '',
-    customerName: r.customerName ?? r.customer_name ?? r.memberName ?? '',
-    customerMobile: r.customerMobile ?? r.customer_mobile ?? r.mobile,
+    customerName: r.customerName ?? r.customer_name ?? r.receiverName ?? r.receiver_name ?? r.memberName ?? '',
+    customerMobile: r.customerMobile ?? r.customer_mobile ?? r.receiverMobile ?? r.receiver_mobile ?? r.mobile,
     customerAddress: r.customerAddress ?? r.address,
     remark: r.remark,
-    status: r.orderStatus ?? r.status ?? '',
-    statusLabel: r.statusLabel ?? r.status_label ?? (r.orderStatus ?? r.status ?? ''),
-    totalAmount: Number(r.totalAmount ?? r.total_amount ?? 0),
+    status,
+    statusLabel: r.statusLabel ?? r.status_label ?? ORDER_STATUS_LABEL[status] ?? status,
+    totalAmount: Number(r.totalAmount ?? r.total_amount ?? r.payableAmount ?? r.payable_amount ?? 0),
     paidAmount: Number(r.paidAmount ?? r.paid_amount ?? r.receivedAmount ?? 0),
-    receivableAmount: Number(r.receivableAmount ?? r.receivable_amount ?? r.totalAmount ?? 0),
+    receivableAmount: Number(r.receivableAmount ?? r.receivable_amount ?? r.totalAmount ?? r.payableAmount ?? 0),
     items: Array.isArray(r.items) ? r.items : [],
     logs: Array.isArray(r.logs) ? r.logs : undefined,
     createdAt: r.createdAt ?? r.created_at ?? r.createTime ?? '',
     logisticsInfo: r.logisticsInfo ?? r.logistics,
     itemCount: r.itemCount,
-    channel: r.channel,
+    channel,
     createTime: r.createTime,
   }
 }

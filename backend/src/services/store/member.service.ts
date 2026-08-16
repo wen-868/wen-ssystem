@@ -70,6 +70,82 @@ export async function getMemberDetail(tenantId: string, id: number) {
   };
 }
 
+/** 会员管理列表（设计稿 UI v1.2：总会员/本月新增/活跃率 + 会员列表等级/最近消费/累计消费） */
+export async function listMemberManage(
+  tenantId: string,
+  page: number,
+  pageSize: number,
+  keyword = ""
+) {
+  const stats = await queryOneWithTenant<{
+    total: number | string;
+    monthNew: number | string;
+    active30d: number | string;
+  }>(
+    `SELECT COUNT(*) AS total,
+            COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN 1 ELSE 0 END), 0) AS monthNew,
+            COALESCE(SUM(CASE WHEN last_order_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END), 0) AS active30d
+     FROM t_member
+     WHERE tenant_id = ? AND status = 1`,
+    [tenantId],
+    tenantId
+  );
+
+  const offset = (page - 1) * pageSize;
+  const records = await queryWithTenant<{
+    id: number;
+    name: string | null;
+    nickname: string | null;
+    mobile: string;
+    levelCode: string | null;
+    levelName: string | null;
+    points: number | string;
+    lastOrderAt: Date | string | null;
+    createdAt: Date | string;
+    totalConsume: number | string;
+  }>(
+    `SELECT m.id, m.name, m.nickname, m.mobile,
+            m.level_code AS levelCode, ml.level_name AS levelName, m.points,
+            m.last_order_at AS lastOrderAt, m.created_at AS createdAt,
+            COALESCE((SELECT SUM(o.payable_amount) FROM t_miniapp_order o
+                      WHERE o.member_id = m.id AND o.order_status NOT IN ('CANCELLED', 'CLOSED')), 0) AS totalConsume
+     FROM t_member m
+     LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
+     WHERE m.tenant_id = ? AND m.status = 1
+       AND (? = '' OR m.name LIKE ? OR m.nickname LIKE ? OR m.mobile LIKE ?)
+     ORDER BY m.id DESC
+     LIMIT ? OFFSET ?`,
+    [tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`, pageSize, offset],
+    tenantId
+  );
+
+  const totalRow = await queryOneWithTenant<{ total: number | string }>(
+    `SELECT COUNT(*) AS total FROM t_member WHERE tenant_id = ? AND status = 1
+       AND (? = '' OR name LIKE ? OR nickname LIKE ? OR mobile LIKE ?)`,
+    [tenantId, keyword, `%${keyword}%`, `%${keyword}%`, `%${keyword}%`],
+    tenantId
+  );
+
+  const total = Number(totalRow?.total ?? 0);
+  const totalMembers = Number(stats?.total ?? 0);
+  const active30d = Number(stats?.active30d ?? 0);
+  return {
+    total,
+    page,
+    pageSize,
+    records: records.map((r) => ({
+      ...r,
+      name: r.name || r.nickname || "会员",
+      totalConsume: Number(r.totalConsume ?? 0),
+    })),
+    stats: {
+      totalMembers,
+      monthNew: Number(stats?.monthNew ?? 0),
+      activeRate: totalMembers > 0 ? Number(((active30d / totalMembers) * 100).toFixed(1)) : 0,
+    },
+  };
+}
+
 /** 会员积分（可用/累计/冻结） */
 export async function getMemberPoints(tenantId: string, id: number) {
   const member = await queryOneWithTenant<{ points: number | string }>(

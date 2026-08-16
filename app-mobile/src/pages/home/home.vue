@@ -217,9 +217,11 @@ function barHeight(amount: number): string {
 }
 
 function statusBadgeClass(status: string): string {
-  if (status === 'done' || status === 'COMPLETED' || status === '已完成') return 'badge-green'
-  if (status === 'pending' || status === 'PENDING' || status === '待付款') return 'badge-red'
-  if (status === 'delivering' || status === 'DELIVERING' || status === '待配送') return 'badge-orange'
+  const s = String(status || '').toUpperCase()
+  if (s === 'DONE' || s === 'COMPLETED' || s === '已完成' || s === '已支付') return 'badge-green'
+  if (s === 'PENDING_PAYMENT' || s === 'PENDING' || s === 'UNPAID' || s === '待付款' || s === '待处理') return 'badge-red'
+  if (s === 'ACCEPTED' || s === 'DELIVERING' || s === '待配送' || s === '配送中') return 'badge-orange'
+  if (s === 'CANCELLED' || s === 'REFUNDED' || s === '已取消') return 'badge-gray'
   return 'badge-green'
 }
 
@@ -234,6 +236,14 @@ function formatOrderTime(createdAt?: string): string {
   const hh = String(date.getHours()).padStart(2, '0')
   const mm = String(date.getMinutes()).padStart(2, '0')
   return `${hh}:${mm}`
+}
+
+/** 趋势日期格式化为 M/D（设计稿 chart-labels：1/10、1/11…） */
+function formatTrendDate(d: string): string {
+  if (!d) return ''
+  const m = d.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (m) return `${Number(m[2])}/${Number(m[3])}`
+  return d
 }
 
 async function loadData() {
@@ -257,7 +267,7 @@ async function loadData() {
       completedToday: s.completedToday || 0
     }
     todos.value = todosData.slice(0, 4)
-    trendList.value = trendData.slice(0, 7)
+    trendList.value = trendData.slice(0, 7).map((t) => ({ ...t, date: formatTrendDate(t.date) }))
     const rows = orderResult?.list ?? []
     recentOrders.value = (rows as OrderInfo[]).slice(0, 4).map((o) => ({
       orderNo: o.orderNo || '',
@@ -560,6 +570,7 @@ onMounted(() => {
 .badge-green { background: $uni-color-success-soft; color: $uni-color-success; }
 .badge-orange { background: $uni-color-warning-soft; color: $uni-color-warning; }
 .badge-red { background: $uni-color-error-soft; color: $uni-color-error; }
+.badge-gray { background: #f0f0f0; color: #909399; }
 
 /* 7 日趋势 */
 .home-chart {

@@ -55,9 +55,15 @@
           </view>
         </view>
 
-        <view class="add-item-btn" @tap="openProductPicker">
-          <text class="add-icon">+</text>
-          <text class="add-text">添加商品</text>
+        <view class="add-item-row">
+          <view class="add-item-btn" @tap="openProductPicker">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加商品</text>
+          </view>
+          <view class="add-item-btn add-item-btn--scan" @tap="handleScanAdd">
+            <text class="add-icon">📷</text>
+            <text class="add-text">扫码添加</text>
+          </view>
         </view>
         <view class="field-error" v-if="errors.saleItems">
           <text class="error-text">{{ errors.saleItems }}</text>
@@ -462,6 +468,29 @@ function addProduct(product: ProductInfo) {
   uni.showToast({ title: '已添加', icon: 'none' })
 }
 
+/** 扫码添加商品（设计稿 UI v1.2：扫码添加/扫描商品条码） */
+async function handleScanAdd() {
+  try {
+    const { scanCode } = await import('@/native/scan')
+    const result = await scanCode()
+    const code = result?.code
+    if (!code) return
+    uni.showLoading({ title: '查询商品...' })
+    const res = await productsApi.list({ keyword: code, page: 1, pageSize: 10 })
+    uni.hideLoading()
+    const rows = res?.list ?? []
+    const matched = rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
+    if (matched) {
+      addProduct(matched)
+    } else {
+      uni.showToast({ title: '未找到该条码商品', icon: 'none' })
+    }
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: (err as Error)?.message || '扫码失败', icon: 'none' })
+  }
+}
+
 // ========== 商品明细操作 ==========
 function decreaseQty(index: number) {
   const item = saleItems[index]!
@@ -785,6 +814,19 @@ async function handleSubmit() {
   border: 2rpx dashed $uni-gray-300;
   border-radius: 12rpx;
   margin-top: 16rpx;
+}
+.add-item-row {
+  display: flex;
+  gap: 16rpx;
+}
+.add-item-row .add-item-btn {
+  flex: 1;
+  margin-top: 16rpx;
+}
+.add-item-btn--scan {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #6366f1;
 }
 
 .add-icon {

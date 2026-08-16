@@ -4,6 +4,15 @@ import * as memberService from "../../services/store/member.service";
 
 const tenant = (req: any) => req.tenantId as string;
 
+/** 会员管理列表（统计 + 分页） */
+export const listMemberManage = asyncHandler(async (req, res) => {
+  const page = Number(req.query.page || 1);
+  const pageSize = Number(req.query.pageSize || 20);
+  const keyword = req.query.keyword ? String(req.query.keyword) : "";
+  const result = await memberService.listMemberManage(tenant(req), page, pageSize, keyword);
+  res.json(ok(result));
+});
+
 /** 会员详情 */
 export const getMemberDetail = asyncHandler(async (req, res) => {
   const result = await memberService.getMemberDetail(tenant(req), Number(req.params.id));
