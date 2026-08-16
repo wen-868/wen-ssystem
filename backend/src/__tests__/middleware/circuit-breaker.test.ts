@@ -54,6 +54,47 @@ describe("circuit-breaker - 状态机", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  it("低流量失败数达 minFailures 即熔断（请求数不足 minRequests 时按失败数触发）", async () => {
+    // 默认 minRequests=10，但窗口内仅 5 次请求且全部失败 → 失败数 ≥ minFailures(5) 触发熔断
+    const mw = circuitBreaker({ key: "test-api", minRequests: 10, minFailures: 5 });
+    for (let i = 0; i < 5; i++) {
+      const res = mockRes();
+      await callMw(mw, res, "500");
+    }
+    const resOpen = mockRes();
+    const next = vi.fn();
+    await mw(mockReq() as any, resOpen as any, next);
+    expect(resOpen.status).toHaveBeenCalledWith(503);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("失败数不足 minFailures 且请求数不足 minRequests 时保持 CLOSED", async () => {
+    const mw = circuitBreaker({ key: "test-api", minRequests: 10, minFailures: 5 });
+    // 3 次失败（total=3 < 10 且 failures=3 < 5）→ 不熔断
+    for (let i = 0; i < 3; i++) {
+      const res = mockRes();
+      await callMw(mw, res, "500");
+    }
+    const resOk = mockRes();
+    const next = vi.fn();
+    await mw(mockReq() as any, resOk as any, next);
+    expect(resOk.status).not.toHaveBeenCalledWith(503);
+    expect(next).toHaveBeenCalled();
+  });
+
+  it("自定义 minFailures 生效（minFailures=2 时 2 次失败即熔断）", async () => {
+    const mw = circuitBreaker({ key: "test-api", minRequests: 10, minFailures: 2 });
+    for (let i = 0; i < 2; i++) {
+      const res = mockRes();
+      await callMw(mw, res, "500");
+    }
+    const resOpen = mockRes();
+    const next = vi.fn();
+    await mw(mockReq() as any, resOpen as any, next);
+    expect(resOpen.status).toHaveBeenCalledWith(503);
+    expect(next).not.toHaveBeenCalled();
+  });
+
   it("熔断打开后经 openMs 进入 HALF_OPEN，试探成功恢复 CLOSED", async () => {
     vi.useFakeTimers();
     const mw = circuitBreaker({ key: "test-api", minRequests: 2, failureThreshold: 0.5, openMs: 30_000 });

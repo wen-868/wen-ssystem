@@ -34,6 +34,8 @@ interface CircuitBreakerOptions {
   openMs?: number;
   /** 触发熔断的最少请求数（防冷启动误判），默认 10 */
   minRequests?: number;
+  /** 触发熔断的最少失败数（覆盖低流量场景：窗口内请求数不足 minRequests 时按失败数触发），默认 5 */
+  minFailures?: number;
   /** 熔断降级回调：可返回缓存数据；未提供时返回 503 */
   fallback?: (req: Request, res: Response) => void | Promise<void>;
 }
@@ -62,6 +64,7 @@ export function circuitBreaker(options: CircuitBreakerOptions) {
     windowMs = 60_000,
     openMs = 30_000,
     minRequests = 10,
+    minFailures = 5,
     fallback,
   } = options;
 
@@ -102,11 +105,16 @@ export function circuitBreaker(options: CircuitBreakerOptions) {
           state.failures = 0;
           state.total = 0;
         }
-      } else if (state.total >= minRequests
-        && state.failures / state.total >= failureThreshold) {
+      } else if ((state.total >= minRequests
+        && state.failures / state.total >= failureThreshold)
+        || state.failures >= minFailures) {
         state.state = "OPEN";
         state.openedAt = Date.now();
-        logger.warn(`[circuit-breaker] ${key} 熔断打开（失败率 ${(state.failures / state.total * 100).toFixed(1)}%）`);
+        if (state.failures >= minFailures) {
+          logger.warn(`[circuit-breaker] ${key} 熔断打开（失败数 ${state.failures} ≥ ${minFailures}）`);
+        } else {
+          logger.warn(`[circuit-breaker] ${key} 熔断打开（失败率 ${(state.failures / state.total * 100).toFixed(1)}%）`);
+        }
       }
       return originalJson(body);
     }) as Response["json"];
@@ -119,11 +127,12 @@ export function circuitBreaker(options: CircuitBreakerOptions) {
         if (state.state === "HALF_OPEN") {
           state.state = "OPEN";
           state.openedAt = Date.now();
-        } else if (state.total >= minRequests
-          && state.failures / state.total >= failureThreshold) {
+        } else if ((state.total >= minRequests
+          && state.failures / state.total >= failureThreshold)
+          || state.failures >= minFailures) {
           state.state = "OPEN";
           state.openedAt = Date.now();
-          logger.warn(`[circuit-breaker] ${key} 熔断打开（HTTP ${res.statusCode}）`);
+          logger.warn(`[circuit-breaker] ${key} 熔断打开（HTTP ${res.statusCode}，失败数 ${state.failures}）`);
         }
       }
     });
