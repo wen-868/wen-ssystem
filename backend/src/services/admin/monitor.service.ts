@@ -1,7 +1,8 @@
-import { query, queryOne } from "../../shared/db";
+import { query, queryOne, pool } from "../../shared/db";
 import type { RowDataPacket } from "mysql2/promise";
 import { getStats } from "../../middleware/response-tracker";
 import logger from "../../shared/logger";
+import { sendNotification } from "../../shared/notification-sender";
 
 interface StatusCodeRow extends RowDataPacket {
   status_code: number;
@@ -147,12 +148,51 @@ export async function getExpiringTenants(days: number = 7): Promise<ExpiringTena
   return Array.isArray(result) ? result : [];
 }
 
-export async function notifyExpiringTenants(tenantIds: number[]): Promise<number> {
+export async function notifyExpiringTenants(tenantIds: string[]): Promise<number> {
   if (tenantIds.length === 0) return 0;
 
+  let sent = 0;
   for (const tenantId of tenantIds) {
-    logger.info(`[monitor] 发送到期通知给租户: ${tenantId}`);
+    try {
+      // 查租户公司名与到期时间（t_tenant.id 为 varchar）
+      const tenant = await queryOne<{ company_name?: string; expire_at?: string | Date }>(
+        `SELECT company_name, expire_at FROM t_tenant WHERE id = ?`,
+        [tenantId]
+      );
+      // 查租户管理员（优先 admin / tenant_admin）
+      const adminUser = await queryOne<{ id: number }>(
+        `SELECT id FROM t_sys_user
+         WHERE tenant_id = ? AND username IN ('admin', 'tenant_admin')
+         ORDER BY FIELD(username, 'admin', 'tenant_admin')
+         LIMIT 1`,
+        [tenantId]
+      );
+      if (!adminUser) {
+        logger.warn(`[monitor] 租户 ${tenantId} 无管理员用户，跳过发送到期通知`);
+        continue;
+      }
+
+      const companyName = tenant?.company_name || "您的店铺";
+      const expireAt = tenant?.expire_at;
+      const expireText = expireAt
+        ? String(expireAt).slice(0, 10)
+        : "即将到期";
+      await sendNotification(pool, {
+        recipientId: adminUser.id,
+        recipientType: "ADMIN",
+        title: "订阅即将到期提醒",
+        content: `${companyName} 的系统服务将于 ${expireText} 到期，请及时续费以免影响正常使用。`,
+        type: "SYSTEM",
+        tenantId,
+      });
+      sent++;
+      logger.info(`[monitor] 已向租户 ${tenantId} 写入到期系统通知（接收人 ${adminUser.id}）`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      logger.warn(`[monitor] 发送到期通知失败 tenant=${tenantId}: ${msg}`);
+    }
   }
 
-  return tenantIds.length;
+  logger.info(`[monitor] 到期通知发送完成：${sent}/${tenantIds.length} 个租户`);
+  return sent;
 }
