@@ -71,4 +71,13 @@ export class ChatDto {
   @IsString()
   @MaxLength(64, { message: 'graphId 不能超过 64 字符' })
   graphId?: string;
+
+  /** 工具作用域（可选）：mgmt=管理系统租户域（默认）/ platform=总台域
+   *
+   * 总台对话传 platform 时暴露总台工具（api_platform_*，requirePlatformAuth）；
+   * 租户侧默认 mgmt，绝不暴露 platform 工具。
+   */
+  @IsOptional()
+  @IsIn(['mgmt', 'platform'], { message: 'scope 仅支持 mgmt 或 platform' })
+  scope?: 'mgmt' | 'platform';
 }

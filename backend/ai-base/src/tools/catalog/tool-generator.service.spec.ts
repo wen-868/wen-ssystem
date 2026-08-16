@@ -34,7 +34,9 @@ describe('ToolGeneratorService', () => {
     const second = generator.generateAndRegister(registry);
     expect(first).toBe(API_CATALOG.length);
     expect(second).toBe(0); // 幂等
-    expect(registry.list()).toHaveLength(API_CATALOG.length);
+    // list() 默认排除 platform 工具；platform scope 包含全部目录工具
+    expect(registry.list('platform')).toHaveLength(API_CATALOG.length);
+    expect(registry.size()).toBe(API_CATALOG.length);
   });
 
   it('开关关闭时 isEnabled 返回 false，开启返回 true', () => {

@@ -48,6 +48,14 @@ export type ToolCategory =
 export type ToolRisk = 'low' | 'medium' | 'high';
 
 /**
+ * 工具作用域（第三批：总台级工具仅 platform 场景暴露）
+ *
+ * - mgmt：管理系统租户域（默认），租户对话可见
+ * - platform：总台/平台域（requirePlatformAuth），仅 scope=platform 的对话可见，租户侧绝不暴露
+ */
+export type ToolScope = 'mgmt' | 'platform';
+
+/**
  * 工具执行上下文
  *
  * 由 Brain Engine / Gateway 在调用 Tool 前组装并注入。
@@ -147,6 +155,8 @@ export interface ITool {
   readonly needsReview?: boolean;
   /** 前置工具依赖（可选，供 Brain Engine 编排复合工具调用） */
   readonly requiredTools?: string[];
+  /** 工具作用域（可选，默认 mgmt；platform 仅总台对话暴露） */
+  readonly scope?: ToolScope;
 
   /**
    * 执行工具
@@ -189,6 +199,8 @@ export interface ToolMeta {
   needsReview: boolean;
   /** 前置工具依赖 */
   requiredTools?: string[];
+  /** 工具作用域（mgmt 默认 / platform 仅总台） */
+  scope: ToolScope;
   /** 参数 JSON Schema */
   parameters: object;
 }

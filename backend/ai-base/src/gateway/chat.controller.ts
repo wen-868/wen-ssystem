@@ -155,6 +155,7 @@ export class ChatController {
         model: dto.model,
         mode: dto.mode,
         graphId: dto.graphId,
+        scope: dto.scope,
       })) {
         this.sendSse(res, event);
       }

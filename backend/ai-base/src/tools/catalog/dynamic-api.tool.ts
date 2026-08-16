@@ -14,6 +14,7 @@ import {
   ToolContext,
   ToolResult,
   ToolRisk,
+  ToolScope,
 } from '../tool.interface';
 import type { ApiRouteDef } from './api-catalog';
 
@@ -28,6 +29,7 @@ export class DynamicApiTool implements ITool {
   readonly isWriteOperation: boolean;
   readonly risk: ToolRisk;
   readonly needsReview?: boolean;
+  readonly scope?: ToolScope;
 
   constructor(
     private readonly serviceClient: ServiceClient,
@@ -41,6 +43,7 @@ export class DynamicApiTool implements ITool {
     this.isWriteOperation = def.isWriteOperation;
     this.risk = def.risk;
     this.needsReview = def.needsReview;
+    this.scope = def.scope ?? 'mgmt';
   }
 
   async execute(

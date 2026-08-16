@@ -55,6 +55,9 @@ import { AutoGenerateCollectionsTool } from './definitions/auto-generate-collect
 import { CreateLimitedDiscountTool } from './definitions/create-limited-discount.tool';
 // R70 完善度 P1: 审批处理（第二批，高危强制审核）
 import { HandleApprovalTool } from './definitions/handle-approval.tool';
+// R70 完善度 P1: 总平台级 2 个精调写操作工具（第三批，scope=platform）
+import { CreatePlatformAnnouncementTool } from './definitions/create-platform-announcement.tool';
+import { HandleSubscriptionApplyTool } from './definitions/handle-subscription-apply.tool';
 import { ToolGeneratorService } from './catalog/tool-generator.service';
 
 /**
@@ -148,6 +151,8 @@ export class ToolBootstrap implements OnModuleInit {
     private readonly autoGenerateCollectionsTool: AutoGenerateCollectionsTool,
     private readonly createLimitedDiscountTool: CreateLimitedDiscountTool,
     private readonly handleApprovalTool: HandleApprovalTool,
+    private readonly createPlatformAnnouncementTool: CreatePlatformAnnouncementTool,
+    private readonly handleSubscriptionApplyTool: HandleSubscriptionApplyTool,
     private readonly toolGenerator: ToolGeneratorService,
   ) {}
 
@@ -214,6 +219,9 @@ export class ToolBootstrap implements OnModuleInit {
       this.createLimitedDiscountTool,
       // R70 完善度 P1: 审批处理（高危）
       this.handleApprovalTool,
+      // R70 完善度 P1: 总平台级写操作（scope=platform）
+      this.createPlatformAnnouncementTool,
+      this.handleSubscriptionApplyTool,
     ]);
 
     // P0-8 功能即技能：开关开启时自动注册 API 目录工具（总台注册表 → AI 技能）

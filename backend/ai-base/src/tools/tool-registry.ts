@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { ToolDefinition } from '../providers/provider.interface';
-import { ITool, ToolCategory, ToolMeta } from './tool.interface';
+import { ITool, ToolCategory, ToolMeta, ToolScope } from './tool.interface';
 
 /**
  * Tool 注册中心
@@ -94,43 +94,68 @@ export class ToolRegistry {
   }
 
   /**
-   * 列出所有已注册工具的元信息（不含 execute 函数，可安全序列化到 JSON 响应）
+   * 列出已注册工具的元信息（不含 execute 函数，可安全序列化到 JSON 响应）
+   *
+   * @param scope 工具作用域过滤：传 'platform' 时包含总台工具；
+   *              不传或传 'mgmt' 时排除 platform 工具（租户侧安全默认）
    */
-  list(): ToolMeta[] {
-    return Array.from(this.tools.values()).map((tool) => this.toMeta(tool));
+  list(scope?: ToolScope): ToolMeta[] {
+    return Array.from(this.tools.values())
+      .filter((tool) => this.isVisibleInScope(tool, scope))
+      .map((tool) => this.toMeta(tool));
   }
 
   /**
    * 列出指定业务域的工具元信息
    */
   listByCategory(category: ToolCategory): ToolMeta[] {
-    return Array.from(this.tools.values())
-      .filter((tool) => tool.category === category)
-      .map((tool) => this.toMeta(tool));
+    return this.list().filter((tool) => tool.category === category);
   }
 
   /**
-   * 列出指定租户可用的工具元信息（按租户过滤禁用清单）
+   * 列出指定租户可用的工具元信息（按租户过滤禁用清单，且排除 platform 工具）
    */
   listForTenant(tenantId: string): ToolMeta[] {
+    const base = this.list();
     const disabled = this.disabledToolsByTenant.get(tenantId);
     if (!disabled || disabled.size === 0) {
-      return this.list();
+      return base;
     }
-    return Array.from(this.tools.values())
-      .filter((tool) => !disabled.has(tool.name))
-      .map((tool) => this.toMeta(tool));
+    return base.filter((tool) => !disabled.has(tool.name));
   }
 
   /**
-   * 生成所有工具的 OpenAI Function Calling 定义（喂给 LLM）
+   * 生成工具的 OpenAI Function Calling 定义（喂给 LLM）
    *
-   * 直接作为 ChatOptions.tools 传入 Provider.chatSync(messages, { tools: defs })。
+   * @param scope 工具作用域过滤：不传/传 'mgmt' 时排除 platform 工具（租户侧安全默认）；
+   *              传 'platform' 时包含全部工具（总台对话）
    */
-  toToolDefinitions(): ToolDefinition[] {
-    return Array.from(this.tools.values()).map((tool) =>
-      this.toDefinition(tool),
-    );
+  toToolDefinitions(scope?: ToolScope): ToolDefinition[] {
+    return Array.from(this.tools.values())
+      .filter((tool) => this.isVisibleInScope(tool, scope))
+      .map((tool) => this.toDefinition(tool));
+  }
+
+  /**
+   * 生成指定作用域的工具定义（显式入口，总台对话使用 scope='platform'）
+   *
+   * platform 场景包含租户工具 + 总台工具（总台运营需跨域操作）；
+   * mgmt 场景只含租户工具。
+   */
+  toToolDefinitionsForScope(scope: ToolScope): ToolDefinition[] {
+    return this.toToolDefinitions(scope);
+  }
+
+  /**
+   * 工具是否在当前作用域可见
+   *
+   * - platform 场景（总台）：包含全部工具（租户工具 + 总台工具，总台需跨域操作）
+   * - mgmt 场景（租户，默认）：仅租户工具，platform 工具绝不暴露
+   */
+  private isVisibleInScope(tool: ITool, scope?: ToolScope): boolean {
+    const s = scope ?? 'mgmt';
+    if (s === 'platform') return true;
+    return (tool.scope ?? 'mgmt') === 'mgmt';
   }
 
   /**
@@ -187,6 +212,7 @@ export class ToolRegistry {
       risk: tool.risk ?? 'low',
       needsReview: tool.needsReview ?? tool.risk === 'high',
       requiredTools: tool.requiredTools,
+      scope: tool.scope ?? 'mgmt',
       parameters: tool.parameters,
     };
   }

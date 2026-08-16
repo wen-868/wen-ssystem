@@ -9,7 +9,7 @@
  * 命名约定：工具名 api_ 前缀（如 api_query_sale_bills），与现有业务工具（如 searchProduct）
  * 区分；查询类 low 风险，写操作类按实际标注 medium/high。
  */
-import { ToolCategory, ToolRisk } from '../tool.interface';
+import { ToolCategory, ToolRisk, ToolScope } from '../tool.interface';
 
 /** API 路由定义（注册表条目） */
 export interface ApiRouteDef {
@@ -31,6 +31,8 @@ export interface ApiRouteDef {
   risk: ToolRisk;
   /** 强制人工审核 */
   needsReview?: boolean;
+  /** 工具作用域（可选，默认 mgmt；platform 仅总台对话暴露） */
+  scope?: ToolScope;
 }
 
 /**
@@ -862,5 +864,161 @@ export const API_CATALOG: ApiRouteDef[] = [
     },
     isWriteOperation: false,
     risk: 'low',
+  },
+  // ── 第三批查询类（总平台级，仅 scope=platform 总台对话暴露，不给租户用） ──
+  {
+    name: 'api_platform_query_tenants',
+    description:
+      '查询平台租户列表（总台）。入参：keyword(租户名,可选)、status(状态,可选)、page、pageSize。出参：租户列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/tenants',
+    parameters: {
+      type: 'object',
+      properties: {
+        keyword: { type: 'string', description: '租户名称关键词（可选）' },
+        status: { type: 'string', description: '租户状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_tenant_detail',
+    description:
+      '查询平台租户详情（总台）。入参：id(租户ID,必填)。出参：租户详情。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/tenants/{id}',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', description: '租户ID（必填）' },
+      },
+      required: ['id'],
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_announcements',
+    description:
+      '查询平台公告列表（总台）。入参：type(类型,可选)、status(状态,可选)、page、pageSize。出参：公告列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/announcements',
+    parameters: {
+      type: 'object',
+      properties: {
+        type: { type: 'string', description: '公告类型（可选）' },
+        status: { type: 'number', description: '状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_subscription_applies',
+    description:
+      '查询平台订阅申请列表（总台）。入参：status(状态,可选)、page、pageSize。出参：申请列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/subscription-applies',
+    parameters: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', description: '申请状态（可选）' },
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_settlements',
+    description:
+      '查询平台结算单列表（总台）。入参：page、pageSize。出参：结算单列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/settlements',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_audit_logs',
+    description:
+      '查询平台审计日志列表（总台）。入参：page、pageSize。出参：审计日志列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/audit-logs',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_error_logs',
+    description:
+      '查询平台错误日志列表（总台）。入参：page、pageSize。出参：错误日志列表。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/error-logs',
+    parameters: {
+      type: 'object',
+      properties: {
+        page: { type: 'number', description: '页码（默认 1）' },
+        pageSize: { type: 'number', description: '每页条数（默认 20）' },
+      },
+    },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_monitor',
+    description:
+      '查询平台运行监控统计（总台）：服务状态/数据库/API 统计。无入参。出参：监控数据。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/monitor',
+    parameters: { type: 'object', properties: {} },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
+  },
+  {
+    name: 'api_platform_query_config',
+    description:
+      '查询平台配置（总台）：基础配置/系统配置。无入参。出参：配置数据。',
+    category: 'platform',
+    method: 'GET',
+    path: '/api/platform/config',
+    parameters: { type: 'object', properties: {} },
+    isWriteOperation: false,
+    risk: 'low',
+    scope: 'platform',
   },
 ];

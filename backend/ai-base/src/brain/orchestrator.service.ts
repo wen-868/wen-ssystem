@@ -129,6 +129,8 @@ export interface OrchestratorParams {
   mode?: 'react' | 'graph';
   /** graph 模式下：图 ID（如 sale_create_graph） */
   graphId?: string;
+  /** 工具作用域（可选）：mgmt=租户域（默认）/ platform=总台域（暴露 api_platform_*） */
+  scope?: 'mgmt' | 'platform';
 }
 
 @Injectable()
@@ -229,8 +231,8 @@ export class Orchestrator {
         this.registry,
       );
 
-      // 工具定义（供 LLM function calling）
-      const toolDefinitions = this.registry.toToolDefinitions();
+      // 工具定义（供 LLM function calling）：按作用域过滤，platform 工具仅总台对话暴露
+      const toolDefinitions = this.registry.toToolDefinitions(params.scope);
 
       // 构造工具执行上下文
       const toolContext: ToolContext = {

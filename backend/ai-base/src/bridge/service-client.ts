@@ -103,6 +103,15 @@ export const API_ENDPOINTS = {
   COMMISSION: '/api/admin/commission',
   // 审批流（approval.routes.ts prefix: /api/admin/approval）
   APPROVAL: '/api/admin/approval',
+  // 总台/平台域（requirePlatformAuth，仅 scope=platform 对话可用）
+  PLATFORM_TENANTS: '/api/platform/tenants',
+  PLATFORM_ANNOUNCEMENTS: '/api/platform/announcements',
+  PLATFORM_SUBSCRIPTION_APPLIES: '/api/platform/subscription-applies',
+  PLATFORM_SETTLEMENTS: '/api/platform/settlements',
+  PLATFORM_AUDIT_LOGS: '/api/platform/audit-logs',
+  PLATFORM_ERROR_LOGS: '/api/platform/error-logs',
+  PLATFORM_MONITOR: '/api/platform/monitor',
+  PLATFORM_CONFIG: '/api/platform/config',
   // 报表分析（report.routes.ts prefix: /api/admin/reports）
   REPORTS: '/api/admin/reports',
   DASHBOARD: '/api/admin/dashboard',
