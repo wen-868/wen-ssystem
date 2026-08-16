@@ -117,7 +117,7 @@ async function run() {
     p50Ms: p(0.5).toFixed(1),
     p95Ms: p(0.95).toFixed(1),
     p99Ms: p(0.99).toFixed(1),
-    maxMs: latencies.length ? Math.max(...latencies).toFixed(1) : "0",
+    maxMs: latencies.length ? latencies.reduce((a, b) => Math.max(a, b), 0).toFixed(1) : "0",
     errorSamples: errs.slice(0, 5).map((e) => ({ status: e.status, error: e.error })),
   };
 
