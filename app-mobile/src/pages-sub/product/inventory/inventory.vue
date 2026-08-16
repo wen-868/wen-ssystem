@@ -48,7 +48,7 @@
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
         <view class="search-input-wrap">
-          <text class="search-icon">&#xe614;</text>
+          <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
           <input
             class="search-input"
             v-model="searchForm.keyword"
@@ -57,7 +57,7 @@
             placeholder-class="search-placeholder"
             @confirm="onSearch"
           />
-          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+          <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
         </view>
       </view>
     </form>
@@ -68,7 +68,7 @@
           <view class="product-image-wrap">
             <image v-if="item.productImage" class="product-image" :src="item.productImage" mode="aspectFill" />
             <view v-else class="product-image-placeholder">
-              <text class="placeholder-icon">&#xe630;</text>
+              <image class="placeholder-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
             </view>
           </view>
         </view>
@@ -107,7 +107,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无库存数据</text>
     </view>
 

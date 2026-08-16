@@ -14,7 +14,7 @@
         <text class="stat-label">今日收入</text>
         <text class="stat-value">¥{{ formatAmount(incomeStats.todayIncome) }}</text>
         <view class="stat-trend">
-          <text class="trend-icon">&#xe606;</text>
+          <image class="trend-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
           <text class="trend-text">本月 ¥{{ formatAmount(incomeStats.monthIncome) }}</text>
         </view>
       </view>
@@ -23,7 +23,7 @@
         <text class="stat-label">今日支出</text>
         <text class="stat-value">¥{{ formatAmount(expenseStats.todayExpense) }}</text>
         <view class="stat-trend">
-          <text class="trend-icon">&#xe607;</text>
+          <image class="trend-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
           <text class="trend-text">本月 ¥{{ formatAmount(expenseStats.monthExpense) }}</text>
         </view>
       </view>
@@ -32,7 +32,7 @@
         <text class="stat-label">毛利</text>
         <text class="stat-value">¥{{ formatAmount(profitStats.grossProfit) }}</text>
         <view class="stat-trend">
-          <text class="trend-icon">&#xe608;</text>
+          <image class="trend-icon ic" src="/static/icons/ic/users.svg" mode="aspectFit"/>
           <text class="trend-text">毛利率 {{ profitStats.grossMargin }}%</text>
         </view>
       </view>
@@ -41,7 +41,7 @@
         <text class="stat-label">净利润</text>
         <text class="stat-value">¥{{ formatAmount(profitStats.netProfit) }}</text>
         <view class="stat-trend">
-          <text class="trend-icon">&#xe609;</text>
+          <image class="trend-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
           <text class="trend-text">净利率 {{ profitStats.netMargin }}%</text>
         </view>
       </view>

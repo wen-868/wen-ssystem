@@ -108,7 +108,7 @@
               <picker v-if="isEdit" :range="typeOptions" :range-key="'label'" @change="onTypeChange">
                 <view class="picker-value">
                   <text>{{ typeLabel }}</text>
-                  <text class="picker-arrow">&#xe612;</text>
+                  <image class="picker-arrow ic" src="/static/icons/ic/chevron-down.svg" mode="aspectFit"/>
                 </view>
               </picker>
               <text v-else>{{ typeLabel }}</text>

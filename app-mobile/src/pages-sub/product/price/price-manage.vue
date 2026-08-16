@@ -26,7 +26,7 @@
     <view class="action-row">
       <view class="action-card" @tap="goBatchAdjust">
         <view class="action-icon-wrap action-icon-wrap--blue">
-          <text class="action-icon">&#xe611;</text>
+          <image class="action-icon ic" src="/static/icons/ic/pen.svg" mode="aspectFit"/>
         </view>
         <view class="action-info">
           <text class="action-title">批量调价</text>
@@ -78,7 +78,7 @@
     </view>
 
     <view class="empty-state" v-else-if="!loading">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无价格体系</text>
     </view>
 

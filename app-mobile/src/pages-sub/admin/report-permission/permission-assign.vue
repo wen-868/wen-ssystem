@@ -3,7 +3,7 @@
     <!-- 顶部操作栏 -->
     <view class="top-bar">
       <view class="bar-left" @tap="goBack">
-        <text class="back-icon">&#xe601;</text>
+        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
         <text class="bar-title">权限分配</text>
       </view>
     </view>
@@ -11,7 +11,7 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe605;</text>
+        <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
         <input
           class="search-input"
           type="text"
@@ -38,7 +38,7 @@
               <text class="meta-store" v-if="user.storeName">{{ user.storeName }}</text>
             </view>
           </view>
-          <view class="user-arrow">&#xe600;</view>
+          <view class="user-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
         </view>
       </view>
 
@@ -83,7 +83,7 @@
             @tap="toggleRole(role.id)"
           >
             <view class="checkbox" :class="{ checked: selectedRoleIds.includes(role.id) }">
-              <text class="check-icon" v-if="selectedRoleIds.includes(role.id)">&#xe603;</text>
+              <image class="check-icon ic" v-if="selectedRoleIds.includes(role.id)" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
             </view>
             <view class="role-info">
               <text class="role-name">{{ role.name }}</text>
@@ -107,7 +107,7 @@
             @tap="toggleExtraPerm(perm.value)"
           >
             <view class="checkbox" :class="{ checked: selectedExtraPerms.includes(perm.value) }">
-              <text class="check-icon" v-if="selectedExtraPerms.includes(perm.value)">&#xe603;</text>
+              <image class="check-icon ic" v-if="selectedExtraPerms.includes(perm.value)" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
             </view>
             <view class="perm-info">
               <text class="perm-name">{{ perm.label }}</text>

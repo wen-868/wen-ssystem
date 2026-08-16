@@ -6,7 +6,7 @@
 
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="keyword"
@@ -16,7 +16,7 @@
           confirm-type="search"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -87,7 +87,7 @@
     </scroll-view>
 
     <view class="empty-state" v-if="!loading && list.length === 0">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无价格异常商品</text>
     </view>
 

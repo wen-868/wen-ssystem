@@ -82,7 +82,7 @@
         <view class="info-title">物流信息</view>
         <view class="logistics-header" v-if="order.logisticsInfo.logisticsNo">
           <view class="logistics-company">
-            <text class="logistics-icon">&#xe625;</text>
+            <image class="logistics-icon ic" src="/static/icons/ic/truck.svg" mode="aspectFit"/>
             <text class="logistics-company-name">{{ order.logisticsInfo.logisticsCompany || '未知物流' }}</text>
           </view>
           <view class="logistics-status" :class="'logistics-status-' + (order.logisticsInfo.logisticsStatus || 'unknown')">

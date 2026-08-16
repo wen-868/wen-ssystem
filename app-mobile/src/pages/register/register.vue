@@ -13,7 +13,7 @@
     <view class="form-section">
       <view class="form-card">
         <view class="form-item">
-          <view class="input-icon">&#xe601;</view>
+          <view class="input-icon"><image class="ic" src="/static/icons/ic/user.svg" mode="aspectFit"/></view>
           <input
             class="form-input"
             v-model="registerForm.mobile"
@@ -29,7 +29,7 @@
         </view>
 
         <view class="form-item">
-          <view class="input-icon">&#xe602;</view>
+          <view class="input-icon"><image class="ic" src="/static/icons/ic/lock.svg" mode="aspectFit"/></view>
           <input
             class="form-input"
             v-model="registerForm.password"
@@ -39,7 +39,7 @@
             @input="clearError('password')"
           />
           <view class="password-toggle" @tap="showPassword = !showPassword">
-            <text class="toggle-icon">{{ showPassword ? '&#xe603;' : '&#xe604;' }}</text>
+            <image class="toggle-icon ic" :src="showPassword ? '/static/icons/ic/eyeoff.svg' : '/static/icons/ic/eye.svg'" mode="aspectFit" />
           </view>
         </view>
         <view class="field-error" v-if="errors.password">
@@ -58,7 +58,7 @@
         </view>
 
         <view class="form-item">
-          <view class="input-icon">&#xe602;</view>
+          <view class="input-icon"><image class="ic" src="/static/icons/ic/lock.svg" mode="aspectFit"/></view>
           <input
             class="form-input"
             v-model="registerForm.confirmPassword"
@@ -68,7 +68,7 @@
             @input="clearError('confirmPassword')"
           />
           <view class="password-toggle" @tap="showConfirmPassword = !showConfirmPassword">
-            <text class="toggle-icon">{{ showConfirmPassword ? '&#xe603;' : '&#xe604;' }}</text>
+            <image class="toggle-icon ic" :src="showConfirmPassword ? '/static/icons/ic/eyeoff.svg' : '/static/icons/ic/eye.svg'" mode="aspectFit" />
           </view>
         </view>
         <view class="field-error" v-if="errors.confirmPassword">
@@ -76,7 +76,7 @@
         </view>
 
         <view class="form-item">
-          <view class="input-icon">&#xe605;</view>
+          <view class="input-icon"><image class="ic" src="/static/icons/ic/shield.svg" mode="aspectFit"/></view>
           <input
             class="form-input"
             v-model="registerForm.name"
@@ -88,7 +88,7 @@
 
         <view class="agreement-item" @tap="registerForm.agreement = !registerForm.agreement">
           <view :class="['checkbox', { 'checkbox--checked': registerForm.agreement }]">
-            <text v-if="registerForm.agreement" class="checkbox-icon">&#xe607;</text>
+            <image v-if="registerForm.agreement" class="checkbox-icon ic" src="/static/icons/ic/check.svg" mode="aspectFit"/>
           </view>
           <text class="agreement-text">我已阅读并同意</text>
           <text class="agreement-link">《用户服务协议》</text>

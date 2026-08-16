@@ -3,7 +3,7 @@
     <!-- 顶部 -->
     <view class="top-bar">
       <view class="bar-left" @tap="goBack">
-        <text class="back-icon">&#xe601;</text>
+        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
         <text class="bar-title">操作日志详情</text>
       </view>
     </view>

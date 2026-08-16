@@ -5,7 +5,7 @@
       <view class="avatar-wrap" @tap="chooseAvatar">
         <image v-if="form.avatar" class="avatar-img" :src="form.avatar" mode="aspectFill" />
         <view v-else class="avatar-placeholder">
-          <text class="avatar-icon">&#xe611;</text>
+          <image class="avatar-icon ic" src="/static/icons/ic/camera.svg" mode="aspectFit"/>
         </view>
         <view class="avatar-edit-mask">
           <text class="edit-text">更换</text>
@@ -101,7 +101,7 @@
     <view class="action-list">
       <view class="action-item" @tap="goChangePassword">
         <text class="action-text">修改密码</text>
-        <text class="action-arrow">&#xe612;</text>
+        <image class="action-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
     </view>
 

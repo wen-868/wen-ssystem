@@ -2,7 +2,7 @@
   <view class="records-page">
     <view class="page-header">
       <view class="back-btn" @tap="goBack">
-        <text class="back-icon">&#xe605;</text>
+        <image class="back-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
       </view>
       <text class="page-title">消费记录</text>
       <view class="header-right"></view>
@@ -30,7 +30,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无消费记录</text>
     </view>
 

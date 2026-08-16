@@ -11,7 +11,7 @@
     <!-- 搜索 -->
     <view class="tr-search">
       <view class="search-bar">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="traceCode"
@@ -21,7 +21,7 @@
           confirm-type="search"
           @confirm="onQuery"
         />
-        <text class="search-clear" v-if="traceCode" @tap="clearCode">&#xe615;</text>
+        <image class="search-clear ic" v-if="traceCode" @tap="clearCode" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
       <view class="tr-query-btn" :class="{ 'tr-query-btn--disabled': querying }" @tap="onQuery">
         <text class="tr-query-text">{{ querying ? '查询中...' : '查询' }}</text>
@@ -30,13 +30,13 @@
 
     <!-- 初始空态 -->
     <view class="empty-state" v-if="!chain && !notFound && !querying">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">输入追溯码查询商品来源与批次追踪</text>
     </view>
 
     <!-- 未找到 -->
     <view class="empty-state" v-else-if="notFound && !querying">
-      <text class="empty-icon">&#xe614;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
       <text class="empty-text">未查询到该追溯码</text>
       <text class="empty-sub">请核实追溯码后重试</text>
     </view>

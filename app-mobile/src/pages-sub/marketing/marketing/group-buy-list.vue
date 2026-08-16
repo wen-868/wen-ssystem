@@ -3,7 +3,7 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="searchForm.keyword"
@@ -12,7 +12,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -59,7 +59,7 @@
         </view>
         <view class="card-footer">
           <view class="time-info">
-            <text class="time-icon">&#xe617;</text>
+            <image class="time-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
             <text class="time-text">{{ formatDate(item.startTime) }} ~ {{ formatDate(item.endTime) }}</text>
           </view>
           <view class="status-tag" :class="'tag-' + item.status">

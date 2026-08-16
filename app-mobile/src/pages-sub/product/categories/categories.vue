@@ -6,7 +6,7 @@
 
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="keyword"
@@ -15,7 +15,7 @@
           placeholder-class="search-placeholder"
           @confirm="loadCategories"
         />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -28,9 +28,12 @@
           :style="{ paddingLeft: (32 + node.level * 32) + 'rpx' }"
         >
           <view class="node-content" @tap="toggleExpand(node)">
-            <text class="expand-icon" v-if="node.children && node.children.length > 0">
-              {{ node.expanded ? '&#xe617;' : '&#xe618;' }}
-            </text>
+            <image
+              class="expand-icon ic"
+              v-if="node.children && node.children.length > 0"
+              :src="node.expanded ? '/static/icons/ic/chevron-down.svg' : '/static/icons/ic/chevron-right.svg'"
+              mode="aspectFit"
+            />
             <text class="expand-icon expand-icon--leaf" v-else></text>
             <text class="node-name">{{ node.name }}</text>
             <view class="offline-badge" v-if="node.allowOnlineSale === 0">
@@ -51,7 +54,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else-if="!loading">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无分类数据</text>
     </view>
 

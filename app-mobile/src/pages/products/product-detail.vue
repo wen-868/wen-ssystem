@@ -91,7 +91,7 @@
             <picker :range="adjustTypeOptions" :range-key="'label'" @change="onAdjustTypeChange">
               <view class="picker-value">
                 <text>{{ adjustTypeLabel }}</text>
-                <text class="picker-arrow">&#xe612;</text>
+                <image class="picker-arrow ic" src="/static/icons/ic/chevron-down.svg" mode="aspectFit"/>
               </view>
             </picker>
           </view>

@@ -30,7 +30,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe617;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无待办事项</text>
     </view>
 

@@ -8,7 +8,7 @@
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
         <view class="search-input-wrap">
-          <text class="search-icon">&#xe614;</text>
+          <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
           <input
             class="search-input"
             v-model="searchForm.keyword"
@@ -17,7 +17,7 @@
             placeholder-class="search-placeholder"
             @confirm="onSearch"
           />
-          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+          <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
         </view>
       </view>
     </form>
@@ -38,19 +38,19 @@
     <!-- 活动类型快捷入口 -->
     <view class="quick-entry">
       <view class="entry-item" @tap="goCreate('coupon')">
-        <view class="entry-icon entry-icon--coupon">&#xe623;</view>
+        <view class="entry-icon entry-icon--coupon"><image class="ic" src="/static/icons/ic/ticket.svg" mode="aspectFit"/></view>
         <text class="entry-text">优惠券</text>
       </view>
       <view class="entry-item" @tap="goCreate('flashsale')">
-        <view class="entry-icon entry-icon--flash">&#xe624;</view>
+        <view class="entry-icon entry-icon--flash"><image class="ic" src="/static/icons/ic/zap.svg" mode="aspectFit"/></view>
         <text class="entry-text">限时秒杀</text>
       </view>
       <view class="entry-item" @tap="goCreate('fullreduction')">
-        <view class="entry-icon entry-icon--full">&#xe625;</view>
+        <view class="entry-icon entry-icon--full"><image class="ic" src="/static/icons/ic/gift.svg" mode="aspectFit"/></view>
         <text class="entry-text">满减活动</text>
       </view>
       <view class="entry-item" @tap="goCreate('discount')">
-        <view class="entry-icon entry-icon--discount">&#xe626;</view>
+        <view class="entry-icon entry-icon--discount"><image class="ic" src="/static/icons/ic/percent.svg" mode="aspectFit"/></view>
         <text class="entry-text">折扣活动</text>
       </view>
     </view>
@@ -95,7 +95,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无营销活动</text>
     </view>
 

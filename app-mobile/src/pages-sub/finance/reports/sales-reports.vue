@@ -31,7 +31,7 @@
           >
             <view class="filter-picker">
               <text class="picker-text">{{ filterForm.storeName || '全部门店' }}</text>
-              <text class="picker-arrow">&#xe612;</text>
+              <image class="picker-arrow ic" src="/static/icons/ic/chevron-down.svg" mode="aspectFit"/>
             </view>
           </picker>
         </view>
@@ -45,7 +45,7 @@
           >
             <view class="filter-picker">
               <text class="picker-text">{{ filterForm.salesmanName || '全部' }}</text>
-              <text class="picker-arrow">&#xe612;</text>
+              <image class="picker-arrow ic" src="/static/icons/ic/chevron-down.svg" mode="aspectFit"/>
             </view>
           </picker>
         </view>
@@ -95,7 +95,7 @@
     <view class="chart-section">
       <view class="section-title">日销售趋势</view>
       <view class="chart-placeholder">
-        <text class="chart-icon">&#xe627;</text>
+        <image class="chart-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
         <text class="chart-text">图表加载中...</text>
       </view>
     </view>
@@ -122,7 +122,7 @@
     <!-- 导出按钮 -->
     <view class="export-section">
       <button class="export-btn" @tap="onExport">
-        <text class="export-icon">&#xe618;</text>
+        <image class="export-icon ic" src="/static/icons/ic/download.svg" mode="aspectFit"/>
         <text>导出报表</text>
       </button>
     </view>

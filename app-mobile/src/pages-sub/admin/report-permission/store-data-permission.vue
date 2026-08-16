@@ -3,7 +3,7 @@
     <!-- 顶部操作栏 -->
     <view class="top-bar">
       <view class="bar-left" @tap="goBack">
-        <text class="back-icon">&#xe601;</text>
+        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
         <text class="bar-title">门店数据权限</text>
       </view>
       <view class="save-btn" @tap="onSave">
@@ -101,7 +101,7 @@
           @tap="toggleStore(store.id)"
         >
           <view class="store-checkbox" :class="{ checked: selectedStoreIds.includes(store.id) }">
-            <text class="check-icon" v-if="selectedStoreIds.includes(store.id)">&#xe603;</text>
+            <image class="check-icon ic" v-if="selectedStoreIds.includes(store.id)" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
           </view>
           <view class="store-info">
             <text class="store-name">{{ store.name }}</text>

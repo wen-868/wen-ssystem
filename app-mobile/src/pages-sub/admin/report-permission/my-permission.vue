@@ -34,7 +34,7 @@
       </view>
       <view class="scope-card">
         <view class="scope-icon">
-          <text class="icon-text">&#xe623;</text>
+          <image class="icon-text ic" src="/static/icons/ic/trash.svg" mode="aspectFit"/>
         </view>
         <view class="scope-info">
           <text class="scope-name">{{ scopeText }}</text>

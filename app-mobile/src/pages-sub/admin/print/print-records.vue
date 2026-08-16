@@ -62,7 +62,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" v-else-if="!loading">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无打印记录</text>
     </view>
 

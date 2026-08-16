@@ -6,7 +6,7 @@
 
     <!-- 扫码命中提示条 -->
     <view v-if="libraryHit" class="library-hit-bar">
-      <text class="hit-icon">&#xe642;</text>
+      <image class="hit-icon ic" src="/static/icons/ic/check.svg" mode="aspectFit"/>
       <text class="hit-text">已匹配平台商品库，表单已自动填充（分类需手动选择）</text>
     </view>
 
@@ -17,7 +17,7 @@
         <view class="image-upload" @tap="onChooseImage">
           <image v-if="form.mainImage" class="main-image" :src="form.mainImage" mode="aspectFill" />
           <view v-else class="image-placeholder">
-            <text class="upload-icon">&#xe619;</text>
+            <image class="upload-icon ic" src="/static/icons/ic/upload.svg" mode="aspectFit"/>
             <text class="upload-text">点击上传主图</text>
           </view>
         </view>
@@ -73,7 +73,7 @@
             <text :class="form.categoryName ? 'picker-value' : 'picker-placeholder'">
               {{ form.categoryName || '请选择分类' }}
             </text>
-            <text class="picker-arrow">&#xe612;</text>
+            <image class="picker-arrow ic" src="/static/icons/ic/chevron-down.svg" mode="aspectFit"/>
           </view>
         </view>
       </view>
@@ -137,7 +137,7 @@
               placeholder-class="input-placeholder"
             />
             <view class="scan-btn" @tap="onScanBarcode">
-              <text class="scan-icon">&#xe634;</text>
+              <image class="scan-icon ic" src="/static/icons/ic/scan.svg" mode="aspectFit"/>
             </view>
           </view>
         </view>

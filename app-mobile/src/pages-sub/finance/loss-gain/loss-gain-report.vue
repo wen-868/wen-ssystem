@@ -171,7 +171,7 @@
     <!-- 导出按钮 -->
     <view class="export-bar">
       <view class="export-btn" @tap="onExport">
-        <text class="export-icon">&#xe62d;</text>
+        <image class="export-icon ic" src="/static/icons/ic/download.svg" mode="aspectFit"/>
         <text class="export-text">导出报表</text>
       </view>
     </view>

@@ -20,7 +20,7 @@
             <text class="customer-phone" v-if="selectedCustomer.phone">{{ selectedCustomer.phone }}</text>
           </view>
           <text class="customer-placeholder" v-else>请选择客户</text>
-          <text class="customer-arrow">&#xe616;</text>
+          <image class="customer-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
         </view>
         <view class="field-error" v-if="errors.selectedCustomer">
           <text class="error-text">{{ errors.selectedCustomer }}</text>
@@ -125,7 +125,7 @@
         </view>
         <view class="picker-search">
           <view class="search-input-wrap">
-            <text class="search-icon">&#xe614;</text>
+            <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
             <input
               class="search-input"
               v-model="customerSearchKeyword"
@@ -177,7 +177,7 @@
         </view>
         <view class="picker-search">
           <view class="search-input-wrap">
-            <text class="search-icon">&#xe614;</text>
+            <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
             <input
               class="search-input"
               v-model="productSearchKeyword"

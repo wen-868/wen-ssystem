@@ -10,7 +10,7 @@
 
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="searchForm.keyword"
@@ -19,7 +19,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -41,18 +41,18 @@
         <text class="filter-label">客户</text>
         <text class="filter-value" v-if="selectedCustomer">{{ selectedCustomer }}</text>
         <text class="filter-value filter-value--placeholder" v-else>全部客户</text>
-        <text class="filter-arrow">&#xe616;</text>
+        <image class="filter-arrow ic" src="/static/icons/ic/funnel.svg" mode="aspectFit"/>
       </view>
       <view class="filter-divider"></view>
       <view class="filter-item" @tap="showDatePicker = true">
         <text class="filter-label">时间</text>
         <text class="filter-value" v-if="dateRangeText">{{ dateRangeText }}</text>
         <text class="filter-value filter-value--placeholder" v-else>选择时间</text>
-        <text class="filter-arrow">&#xe616;</text>
+        <image class="filter-arrow ic" src="/static/icons/ic/funnel.svg" mode="aspectFit"/>
       </view>
       <view class="filter-divider"></view>
       <view class="filter-item filter-item--action" @tap="handleExport">
-        <text class="filter-icon">&#xe624;</text>
+        <image class="filter-icon ic" src="/static/icons/ic/download.svg" mode="aspectFit"/>
         <text class="filter-label">导出</text>
       </view>
     </view>

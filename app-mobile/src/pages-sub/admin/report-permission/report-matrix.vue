@@ -3,7 +3,7 @@
     <!-- 顶部操作栏 -->
     <view class="top-bar">
       <view class="bar-left" @tap="goBack">
-        <text class="back-icon">&#xe601;</text>
+        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
         <text class="bar-title">报表权限矩阵</text>
       </view>
       <view class="bar-right">
@@ -105,7 +105,7 @@
       <view class="batch-content" @tap.stop>
         <view class="batch-header">
           <text class="batch-title">批量设置权限</text>
-          <text class="batch-close" @tap="showBatchPanel = false">&#xe602;</text>
+          <image class="batch-close ic" @tap="showBatchPanel = false" src="/static/icons/ic/lock.svg" mode="aspectFit"/>
         </view>
 
         <view class="batch-section">
@@ -114,7 +114,7 @@
             <view
               class="checkbox-item" v-for="role in roles" :key="role.id" @tap="toggleBatchRole(role.id)">
               <view class="checkbox" :class="{ checked: batchRoleIds.includes(role.id) }">
-                <text class="check-icon" v-if="batchRoleIds.includes(role.id)">&#xe603;</text>
+                <image class="check-icon ic" v-if="batchRoleIds.includes(role.id)" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
               </view>
               <text class="checkbox-label">{{ role.name }}</text>
             </view>
@@ -131,7 +131,7 @@
               @tap="toggleBatchReport(report.id)"
             >
               <view class="checkbox" :class="{ checked: batchReportIds.includes(report.id) }">
-                <text class="check-icon" v-if="batchReportIds.includes(report.id)">&#xe603;</text>
+                <image class="check-icon ic" v-if="batchReportIds.includes(report.id)" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
               </view>
               <text class="checkbox-label">{{ report.name }}</text>
             </view>
@@ -143,13 +143,13 @@
           <view class="permission-options">
             <view class="perm-option" @tap="batchCanView = !batchCanView">
               <view class="checkbox" :class="{ checked: batchCanView }">
-                <text class="check-icon" v-if="batchCanView">&#xe603;</text>
+                <image class="check-icon ic" v-if="batchCanView" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
               </view>
               <text class="perm-label">查看权限</text>
             </view>
             <view class="perm-option" @tap="batchCanExport = !batchCanExport">
               <view class="checkbox" :class="{ checked: batchCanExport }">
-                <text class="check-icon" v-if="batchCanExport">&#xe603;</text>
+                <image class="check-icon ic" v-if="batchCanExport" src="/static/icons/ic/eye.svg" mode="aspectFit"/>
               </view>
               <text class="perm-label">导出权限</text>
             </view>

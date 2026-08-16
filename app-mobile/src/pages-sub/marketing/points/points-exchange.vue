@@ -2,7 +2,7 @@
   <view class="exchange-page">
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="searchForm.keyword"
@@ -11,7 +11,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -20,7 +20,7 @@
         <view class="item-image-wrap">
           <image v-if="item.image" class="item-image" :src="item.image" mode="aspectFill" />
           <view v-else class="item-image-placeholder">
-            <text class="placeholder-icon">&#xe630;</text>
+            <image class="placeholder-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
           </view>
         </view>
         <view class="item-info">
@@ -43,7 +43,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无兑换商品</text>
     </view>
 

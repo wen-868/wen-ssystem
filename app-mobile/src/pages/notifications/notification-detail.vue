@@ -51,7 +51,7 @@
 
     <!-- 加载失败 -->
     <view class="error-wrap" v-if="!loading && !detail">
-      <text class="error-icon">&#xe617;</text>
+      <image class="error-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="error-text">加载失败</text>
       <text class="retry-btn" @tap="loadDetail">点击重试</text>
     </view>

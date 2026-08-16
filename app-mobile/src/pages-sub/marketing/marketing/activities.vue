@@ -2,7 +2,7 @@
   <view class="activity-page">
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="searchForm.keyword"
@@ -11,7 +11,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -42,7 +42,7 @@
         </view>
         <view class="item-body">
           <view class="time-info">
-            <text class="time-icon">&#xe617;</text>
+            <image class="time-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
             <text class="time-text">{{ formatTime(item.startTime) }} ~ {{ formatTime(item.endTime) }}</text>
           </view>
           <text class="activity-desc" v-if="item.description">{{ item.description }}</text>
@@ -68,7 +68,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无营销活动</text>
     </view>
 

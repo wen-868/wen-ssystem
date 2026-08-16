@@ -86,7 +86,7 @@
                   lazy-load
                 />
                 <view v-else class="product-image-placeholder">
-                  <text class="placeholder-icon">&#xe630;</text>
+                  <image class="placeholder-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
                 </view>
                 <view class="offline-tag" v-if="isOfflineProduct(item)">
                   <text class="offline-tag-text">仅线下</text>
@@ -107,7 +107,7 @@
         </virtual-list>
 
         <view class="empty-state" v-if="!loading && productList.length === 0">
-          <text class="empty-icon">&#xe631;</text>
+          <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
           <text class="empty-text">暂无商品数据</text>
         </view>
 

@@ -7,12 +7,12 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe623;</text>
+        <image class="search-icon ic" src="/static/icons/ic/trash.svg" mode="aspectFit"/>
         <input class="search-input" v-model="keyword" placeholder="搜索单号/原因" @confirm="onSearch" />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe647;</text>
+        <image class="search-clear ic" v-if="keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
       <view class="filter-btn" @tap="showFilter = !showFilter">
-        <text class="filter-icon">&#xe642;</text>
+        <image class="filter-icon ic" src="/static/icons/ic/funnel.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -100,7 +100,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else-if="!loading">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无报损单</text>
     </view>
 

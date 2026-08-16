@@ -42,7 +42,7 @@
     <view class="section">
       <view class="section-title">客户增长趋势</view>
       <view class="chart-placeholder">
-        <text class="chart-icon">&#xe627;</text>
+        <image class="chart-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
         <text class="chart-text">图表加载中...</text>
       </view>
     </view>

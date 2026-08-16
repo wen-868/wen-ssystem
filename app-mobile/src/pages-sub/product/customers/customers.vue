@@ -27,7 +27,7 @@
 
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="searchForm.keyword"
@@ -36,7 +36,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -85,11 +85,11 @@
             </text>
           </view>
         </view>
-        <text class="card-arrow">&#xe616;</text>
+        <image class="card-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
 
       <view class="empty-state" v-if="!loading && list.length === 0">
-        <text class="empty-icon">&#xe608;</text>
+        <image class="empty-icon ic" src="/static/icons/ic/users.svg" mode="aspectFit"/>
         <text class="empty-text">暂无客户数据</text>
         <text class="empty-hint">点击右上角添加客户</text>
       </view>
@@ -99,7 +99,7 @@
 
     <view class="add-btn-wrap">
       <button class="add-btn" @tap="goAdd">
-        <text class="add-icon">&#xe609;</text>
+        <image class="add-icon ic" src="/static/icons/ic/plus.svg" mode="aspectFit"/>
       </button>
     </view>
   </view>

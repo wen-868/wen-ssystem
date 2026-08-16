@@ -3,7 +3,7 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe605;</text>
+        <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
         <input class="search-input" placeholder="搜索费用单号/备注" v-model="keyword" @confirm="onSearch" />
       </view>
       <view class="search-btn" @tap="onSearch">搜索</view>
@@ -71,7 +71,7 @@
 
     <!-- 新增按钮 -->
     <view class="fab-btn" @tap="goCreate">
-      <text class="fab-icon">&#xe600;</text>
+      <image class="fab-icon ic" src="/static/icons/ic/plus.svg" mode="aspectFit"/>
     </view>
 
     <!-- 驳回弹窗 -->

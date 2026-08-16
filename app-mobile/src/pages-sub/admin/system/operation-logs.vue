@@ -3,7 +3,7 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe605;</text>
+        <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
         <input class="search-input" placeholder="搜索操作内容" v-model="keyword" @confirm="onSearch" />
       </view>
       <view class="search-btn" @tap="onSearch">搜索</view>
@@ -41,7 +41,7 @@
       <view class="log-card" v-for="item in logList" :key="item.id" @tap="goDetail(item.id)">
         <view class="log-header">
           <view class="log-operator">
-            <text class="operator-icon">&#xe606;</text>
+            <image class="operator-icon ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/>
             <text class="operator-name">{{ item.operator }}</text>
           </view>
           <text class="log-time">{{ formatTime(item.createdAt) }}</text>

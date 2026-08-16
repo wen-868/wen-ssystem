@@ -3,7 +3,7 @@
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe605;</text>
+        <image class="search-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
         <input
           class="search-input"
           placeholder="搜索操作内容"
@@ -77,7 +77,7 @@
         </view>
 
         <view class="log-arrow">
-          <text class="arrow-icon">&#xe600;</text>
+          <image class="arrow-icon ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
         </view>
       </view>
 

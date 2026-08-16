@@ -7,48 +7,48 @@
 
     <view class="permission-menu">
       <view class="menu-card" @tap="goReportMatrix">
-        <view class="menu-icon menu-icon--matrix">&#xe622;</view>
+        <view class="menu-icon menu-icon--matrix"><image class="ic" src="/static/icons/ic/pen.svg" mode="aspectFit"/></view>
         <view class="menu-content">
           <text class="menu-title">报表权限矩阵</text>
           <text class="menu-desc">配置角色对各报表的查看、导出权限</text>
         </view>
-        <view class="menu-arrow">&#xe600;</view>
+        <view class="menu-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
       </view>
 
       <view class="menu-card" @tap="goStoreDataPermission">
-        <view class="menu-icon menu-icon--store">&#xe623;</view>
+        <view class="menu-icon menu-icon--store"><image class="ic" src="/static/icons/ic/trash.svg" mode="aspectFit"/></view>
         <view class="menu-content">
           <text class="menu-title">门店数据权限</text>
           <text class="menu-desc">设置角色可查看的门店数据范围</text>
         </view>
-        <view class="menu-arrow">&#xe600;</view>
+        <view class="menu-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
       </view>
 
       <view class="menu-card" @tap="goPermissionAssign">
-        <view class="menu-icon menu-icon--user">&#xe606;</view>
+        <view class="menu-icon menu-icon--user"><image class="ic" src="/static/icons/ic/chart.svg" mode="aspectFit"/></view>
         <view class="menu-content">
           <text class="menu-title">权限分配</text>
           <text class="menu-desc">为用户分配角色和额外权限</text>
         </view>
-        <view class="menu-arrow">&#xe600;</view>
+        <view class="menu-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
       </view>
 
       <view class="menu-card" @tap="goAuditLogs">
-        <view class="menu-icon menu-icon--log">&#xe619;</view>
+        <view class="menu-icon menu-icon--log"><image class="ic" src="/static/icons/ic/users.svg" mode="aspectFit"/></view>
         <view class="menu-content">
           <text class="menu-title">权限审计日志</text>
           <text class="menu-desc">查看权限变更操作记录</text>
         </view>
-        <view class="menu-arrow">&#xe600;</view>
+        <view class="menu-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
       </view>
 
       <view class="menu-card" @tap="goMyPermission">
-        <view class="menu-icon menu-icon--my">&#xe624;</view>
+        <view class="menu-icon menu-icon--my"><image class="ic" src="/static/icons/ic/zap.svg" mode="aspectFit"/></view>
         <view class="menu-content">
           <text class="menu-title">我的权限</text>
           <text class="menu-desc">查看当前用户拥有的权限</text>
         </view>
-        <view class="menu-arrow">&#xe600;</view>
+        <view class="menu-arrow"><image class="ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/></view>
       </view>
     </view>
 

@@ -7,7 +7,7 @@
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
         <view class="search-input-wrap">
-          <text class="search-icon">&#xe614;</text>
+          <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
           <input
             class="search-input"
             v-model="searchForm.keyword"
@@ -16,26 +16,26 @@
             placeholder-class="search-placeholder"
             @confirm="onSearch"
           />
-          <text class="search-clear" v-if="searchForm.keyword" @tap="clearSearch">&#xe615;</text>
+          <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
         </view>
       </view>
     </form>
 
     <view class="quick-actions">
       <view class="action-item" @tap="goTo('employees')">
-        <view class="action-icon action-icon--user">&#xe616;</view>
+        <view class="action-icon action-icon--user"><image class="ic" src="/static/icons/ic/user.svg" mode="aspectFit"/></view>
         <text class="action-text">员工管理</text>
       </view>
       <view class="action-item" @tap="goTo('roles')">
-        <view class="action-icon action-icon--role">&#xe619;</view>
+        <view class="action-icon action-icon--role"><image class="ic" src="/static/icons/ic/users.svg" mode="aspectFit"/></view>
         <text class="action-text">角色权限</text>
       </view>
       <view class="action-item" @tap="goTo('stores')">
-        <view class="action-icon action-icon--store">&#xe61a;</view>
+        <view class="action-icon action-icon--store"><image class="ic" src="/static/icons/ic/store.svg" mode="aspectFit"/></view>
         <text class="action-text">门店管理</text>
       </view>
       <view class="action-item" @tap="goTo('settings')">
-        <view class="action-icon action-icon--setting">&#xe61b;</view>
+        <view class="action-icon action-icon--setting"><image class="ic" src="/static/icons/ic/gear.svg" mode="aspectFit"/></view>
         <text class="action-text">系统设置</text>
       </view>
     </view>
@@ -64,31 +64,31 @@
     <view class="setting-list">
       <view class="setting-item" @tap="goTo('basic')">
         <view class="setting-left">
-          <view class="setting-icon setting-icon--basic">&#xe61c;</view>
+          <view class="setting-icon setting-icon--basic"><image class="ic" src="/static/icons/ic/sliders.svg" mode="aspectFit"/></view>
           <text class="setting-text">基本设置</text>
         </view>
-        <text class="setting-arrow">&#xe612;</text>
+        <image class="setting-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
       <view class="setting-item" @tap="goTo('notification')">
         <view class="setting-left">
-          <view class="setting-icon setting-icon--notify">&#xe61d;</view>
+          <view class="setting-icon setting-icon--notify"><image class="ic" src="/static/icons/ic/bell.svg" mode="aspectFit"/></view>
           <text class="setting-text">通知设置</text>
         </view>
-        <text class="setting-arrow">&#xe612;</text>
+        <image class="setting-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
       <view class="setting-item" @tap="goTo('logs')">
         <view class="setting-left">
-          <view class="setting-icon setting-icon--log">&#xe61e;</view>
+          <view class="setting-icon setting-icon--log"><image class="ic" src="/static/icons/ic/file.svg" mode="aspectFit"/></view>
           <text class="setting-text">操作日志</text>
         </view>
-        <text class="setting-arrow">&#xe612;</text>
+        <image class="setting-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
       <view class="setting-item" @tap="goTo('about')">
         <view class="setting-left">
-          <view class="setting-icon setting-icon--about">&#xe61f;</view>
+          <view class="setting-icon setting-icon--about"><image class="ic" src="/static/icons/ic/info.svg" mode="aspectFit"/></view>
           <text class="setting-text">关于系统</text>
         </view>
-        <text class="setting-arrow">&#xe612;</text>
+        <image class="setting-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
       </view>
     </view>
 

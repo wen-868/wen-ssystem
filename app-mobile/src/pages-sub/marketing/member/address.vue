@@ -33,11 +33,11 @@
           </view>
           <view class="action-right">
             <view class="action-item" @tap="editAddress(item)">
-              <text class="action-icon">&#xe622;</text>
+              <image class="action-icon ic" src="/static/icons/ic/pen.svg" mode="aspectFit"/>
               <text class="action-text">编辑</text>
             </view>
             <view class="action-item action-item--danger" @tap="deleteAddress(item)">
-              <text class="action-icon">&#xe623;</text>
+              <image class="action-icon ic" src="/static/icons/ic/trash.svg" mode="aspectFit"/>
               <text class="action-text">删除</text>
             </view>
           </view>
@@ -46,7 +46,7 @@
     </view>
 
     <view class="empty-state" v-else-if="!loading">
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">暂无收货地址</text>
       <text class="empty-desc">点击下方按钮添加收货地址</text>
     </view>

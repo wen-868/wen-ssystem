@@ -26,7 +26,7 @@
         <picker mode="date" :value="formData.date" @change="onDateChange">
           <view class="picker-value">
             <text class="picker-text">{{ formData.date || '请选择日期' }}</text>
-            <text class="picker-arrow">&#xe601;</text>
+            <image class="picker-arrow ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
           </view>
         </picker>
       </view>

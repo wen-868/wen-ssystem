@@ -24,7 +24,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">&#xe631;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">{{ emptyText }}</text>
     </view>
 

@@ -29,6 +29,12 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
+/* 线框图标（iconfont 字符全面替换后统一尺寸：跟随所在类名字号） */
+image.ic {
+  width: 1em;
+  height: 1em;
+}
+
 /* 无障碍：用户开启「减少动态效果」时全局降级动画与过渡（spec06/12） */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -119,7 +119,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" v-if="!loading && list.length === 0">
-      <text class="empty-icon">&#xe617;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">{{ emptyText }}</text>
     </view>
 

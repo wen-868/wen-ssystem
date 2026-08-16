@@ -7,7 +7,7 @@
     <!-- 商品搜索 -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
         <input
           class="search-input"
           v-model="keyword"
@@ -17,7 +17,7 @@
           confirm-type="search"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear ic" v-if="keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
     </view>
 
@@ -87,7 +87,7 @@
     </view>
 
     <view class="empty-state" v-else-if="!searching">
-      <text class="empty-icon">&#xe630;</text>
+      <image class="empty-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
       <text class="empty-text">搜索并选择需要核价的商品</text>
     </view>
 

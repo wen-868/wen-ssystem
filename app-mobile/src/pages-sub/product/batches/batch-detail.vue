@@ -2,7 +2,7 @@
   <view class="batch-detail-page">
     <view class="page-header">
       <view class="back-btn" @tap="goBack">
-        <text class="back-icon">&#xe605;</text>
+        <image class="back-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
       </view>
       <text class="page-title">批次详情</text>
       <view class="header-right"></view>
@@ -18,7 +18,7 @@
             <view class="product-image-wrap">
               <image v-if="detail.productImage" class="product-image" :src="detail.productImage" mode="aspectFill" />
               <view v-else class="product-image-placeholder">
-                <text class="placeholder-icon">&#xe630;</text>
+                <image class="placeholder-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
               </view>
             </view>
             <view class="product-info">
