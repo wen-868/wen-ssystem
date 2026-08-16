@@ -169,12 +169,11 @@ app.get("/health", (_req: any, res: any) => {
   res.json(ok({ service: "zhixiang-backend" }));
 });
 
-// 登录接口（无需认证，但受 Rate Limiting 保护）
-// admin/store 登录由 server.ts 手动注册（带限流），其他 /api/admin/auth/* 路由（me/settings/change-password）由 admin-auth.routes.ts 自动注册
-app.post("/api/admin/auth/login", adminLoginLimiter, authController.login);
-// 演示账号登录：免密，受同一限流器保护
-app.post("/api/admin/auth/demo-login", adminLoginLimiter, authController.demoLogin);
-app.post("/api/store/auth/login", storeLoginLimiter, authController.login);
+// 登录接口（无需认证；应用户要求不限流——演示登录/多设备共享IP场景不再触发429）
+// admin/store 登录由 server.ts 手动注册，其他 /api/admin/auth/* 路由（me/settings/change-password）由 admin-auth.routes.ts 自动注册
+app.post("/api/admin/auth/login", authController.login);
+app.post("/api/admin/auth/demo-login", authController.demoLogin);
+app.post("/api/store/auth/login", authController.login);
 // MFA 登录二次验证（无鉴权，凭短时效挑战令牌 + 动态码，独立限流防爆破）
 app.post("/api/admin/auth/mfa/verify", storeLoginLimiter, authController.verifyMfa);
 // 服务账号换发 JWT（运营系统适配层调用，服务端专用；无需 CSRF，由凭证 + 限流保护）
