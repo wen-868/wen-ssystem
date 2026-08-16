@@ -48,7 +48,7 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
   - sale-bill.service 剩余：经核 `src/__tests__/services/admin/sale-bill.test.ts`（22KB）已覆盖该服务全部 11 个方法，实际已完成，无需补测。
   全量 535 文件 / 5695 用例通过（较 Batch 3 的 5648 +47），覆盖率 statements 68.95%、branches 56.61%、functions 67.38%、lines 70.8%（均高于 Batch 3 且高于全局门槛 63/51/62/64），lint 0 error、构建通过。Codex 独立复核全量/lint/build/覆盖率与质量抽查（pagination 边界、db 兜底、inventory 全方法）一致通过。**P0 覆盖率路线图批次全部完成。**
 
-- ✅ **Batch 5 已完成（提交 2cb99a89，待凌舟按同门槛验收，验收总览报告第 38、39 项）**：低覆盖服务补测八组。本次实质新增/补全：
+- ✅ **Batch 5 已验收通过（提交 2cb99a89，凌舟独立复核一致通过，验收总览报告第 38、39、40 项）**：低覆盖服务补测八组。本次实质新增/补全：
   - purchase.service：新增 20 例，覆盖 getPageList/getDetail/createOrder/updateOrder/delete/submit/approve/cancel/inStock 与金额计算（goods_amount=120、payable=132 含税）、400/404 分支（0.57%→stmts 80.34%）；
   - transfer-order.service：扩展至 17 例，覆盖 createTransferOrder（同店报错）/updateTransferOrder（DRAFT 可改/非 DRAFT/不存在）/getTransferTrend/submit/approve/reject 状态机（30.84%→stmts 95.32%）；
   - admin/marketing-points.service：扩展至 13 例，覆盖 listMyPointsRecords/getPointsRecords/createPointsRedeem（redeemRatio 100→redeemAmount=2）/getPointsStats 四项统计（41.11%→stmts 91.11%）；
@@ -57,7 +57,7 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
   - miniapp/checkout.service：新增 7 例，覆盖 checkoutPreview（购物车/拼团价/绑定价）/createCheckoutOrder（空购物车/库存不足）/completeDelivery（75.22% stmts，分支 58.1%）；
   - sync/price-sync.service：新增 8 例，覆盖 getChangesSince/getPricesByIds/syncPrices/getSyncStatus/getLastSyncTime（0%→stmts 100%）；
   - sync/product-sync.service：新增 3 例，覆盖 syncProducts（可在线销售跳过 vs 同步）（0%→stmts 100%）。
-  全量 541 文件 / 5773 用例通过（较 Batch 4 的 5695 +78），覆盖率 statements 70.53%、branches 57.92%、functions 68.97%、lines 72.36%（均高于 Batch 4 且高于全局门槛 63/51/62/64，突破 70% 目标；services/admin 专项阈值 54，本次触及 admin 服务均远高于此），lint 0 error、构建通过。质量抽查（purchase 金额计算、payment-box 签名回调分支、checkout 库存与拼团价、transfer-order 状态机）断言真实（SQL 参数/返回值/错误分支），非凑数。
+  全量 541 文件 / 5773 用例通过（较 Batch 4 的 5695 +78），覆盖率 statements 70.53%、branches 57.92%、functions 68.97%、lines 72.36%（均高于 Batch 4 且高于全局门槛 63/51/62/64，突破 70% 目标；services/admin 专项阈值 54，本次触及 admin 服务均远高于此），lint 0 error、构建通过。质量抽查（purchase 金额计算、payment-box 签名回调分支、checkout 库存与拼团价、transfer-order 状态机）断言真实（SQL 参数/返回值/错误分支），非凑数。Codex/凌舟独立复核（全量 5773 用例、lint、构建、覆盖率与八服务质量抽查）一致通过。
 
 ### P1：生产证据类（需服务器，脚本已就绪）
 
