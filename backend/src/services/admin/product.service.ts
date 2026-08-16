@@ -190,7 +190,9 @@ interface ProductPriceRow {
 export async function listProducts(keyword: string, page: number, pageSize: number, tenantId: string) {
   // 有搜索关键词时不使用缓存
   if (keyword) {
-    const like = `%${keyword}%`;
+    // 归一化：去首尾空格；条码/编码匹配用原值精确判断
+    const kw = keyword.trim();
+    const like = `%${kw}%`;
     const offset = (page - 1) * pageSize;
     const records = await queryWithTenant<ProductListRow>(
       `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,
@@ -214,18 +216,25 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
        LEFT JOIN t_product_category pc ON pc.id = p.category_id
        LEFT JOIN t_brand b ON b.id = p.brand_id
        LEFT JOIN t_inventory_balance ib ON ib.sku_id = s.id AND ib.stock_type = 'OFFLINE'
-       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
-       ORDER BY p.id DESC, s.id DESC
+       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)
+       ORDER BY CASE
+         WHEN s.barcode = ? THEN 0
+         WHEN s.sku_code = ? THEN 1
+         WHEN p.name = ? THEN 2
+         WHEN s.sku_name = ? THEN 3
+         WHEN p.name LIKE ? THEN 4
+         WHEN s.sku_name LIKE ? THEN 5
+         ELSE 6 END, p.id DESC, s.id DESC
        LIMIT ? OFFSET ?`,
-      [tenantId, like, like, like, pageSize, offset],
+      [tenantId, like, like, like, like, kw, kw, kw, kw, like, like, pageSize, offset],
       tenantId
     );
     const totalRow = await queryOneWithTenant<CountTotalRow>(
       `SELECT COUNT(*) AS total
        FROM t_product_sku s
        JOIN t_product_spu p ON p.id = s.spu_id
-       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
-      [tenantId, like, like, like],
+       WHERE p.tenant_id = ? AND (p.name LIKE ? OR s.sku_name LIKE ? OR s.sku_code LIKE ? OR s.barcode LIKE ?)`,
+      [tenantId, like, like, like, like],
       tenantId
     );
     return { total: totalRow?.total ?? 0, page, pageSize, records };

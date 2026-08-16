@@ -57,6 +57,8 @@ export interface PriceResolution {
 export interface SalesPriceInput {
   /** 用户指定价（最高优先级，可选） */
   userUnitPrice?: number;
+  /** 购买总数量（瓶，可选）：用于判断用户给的是单价还是总价 */
+  totalQty?: number;
   /** 合同价（次优先级，可选） */
   contractPrice?: number;
   /** 客户类型（WHOLESALE/CASH/VIP，决定价格等级） */
@@ -96,6 +98,28 @@ export class PriceEngineService {
     // ── 1. 用户指定价优先 ──
     if (input.userUnitPrice !== undefined) {
       if (this.isValidPositivePrice(input.userUnitPrice)) {
+        // 价格语义判断：用户给的价格明显是"总价"（>= 系统单价×数量×0.7）时自动折算为单价
+        const totalQty = input.totalQty;
+        const systemUnit =
+          input.productInfo?.retailPrice ??
+          input.productInfo?.wholesalePrice ??
+          input.productInfo?.storePrice;
+        if (
+          totalQty !== undefined &&
+          totalQty > 1 &&
+          systemUnit !== undefined &&
+          systemUnit > 0 &&
+          input.userUnitPrice >= systemUnit * totalQty * 0.7
+        ) {
+          const derivedUnit = input.userUnitPrice / totalQty;
+          return this.buildResolution({
+            unitPrice: derivedUnit,
+            priceSource: '用户总价÷数量',
+            input,
+            skuName,
+            warning: `识别为总价 ${input.userUnitPrice} 元，按 ${totalQty} 瓶折算单价 ${derivedUnit.toFixed(2)} 元/瓶`,
+          });
+        }
         return this.buildResolution({
           unitPrice: input.userUnitPrice,
           priceSource: '用户指定价',
@@ -278,8 +302,9 @@ export class PriceEngineService {
     priceSource: string;
     input: SalesPriceInput | PurchasePriceInput;
     skuName: string;
+    warning?: string;
   }): PriceResolution {
-    const { unitPrice, priceSource, input, skuName } = options;
+    const { unitPrice, priceSource, input, skuName, warning } = options;
 
     // 零价格：阻止执行（金额不能为0）
     if (unitPrice <= 0) {
@@ -295,6 +320,7 @@ export class PriceEngineService {
       unitPrice,
       priceSource,
       blocked: false,
+      warning,
     };
 
     // 低于进价 → 警告（不拦截）

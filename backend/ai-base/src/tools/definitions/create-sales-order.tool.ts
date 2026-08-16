@@ -614,6 +614,7 @@ export class CreateSalesOrderTool implements ITool {
       customerType,
       productInfo,
       skuName: item.skuName ?? `SKU-${item.skuId}`,
+      totalQty: totalBottleQty,
     });
 
     if (resolution.blocked) {

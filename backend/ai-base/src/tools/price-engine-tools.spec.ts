@@ -290,3 +290,36 @@ describe('R70-14 智能价格填充引擎', () => {
     });
   });
 });
+describe('PriceEngineService（智能价格填充）', () => {
+  let engine: PriceEngineService;
+
+  beforeEach(() => {
+    engine = new PriceEngineService();
+  });
+
+  it('用户价格明显为总价时自动折算为单价', () => {
+    const res = engine.resolveSalesPrice({
+      userUnitPrice: 11490,
+      totalQty: 60,
+      customerType: 'CASH',
+      productInfo: { retailPrice: 191.5, boxRatio: 6 },
+      skuName: '五粮液',
+    });
+    // 11490 = 191.5 * 60 → 视为总价 → 单价 191.5
+    expect(res.priceSource).toBe('用户总价÷数量');
+    expect(res.unitPrice).toBeCloseTo(191.5, 1);
+    expect(res.warning).toContain('总价');
+  });
+
+  it('单价在合理范围时不误判（保持用户指定价）', () => {
+    const res = engine.resolveSalesPrice({
+      userUnitPrice: 200,
+      totalQty: 60,
+      customerType: 'CASH',
+      productInfo: { retailPrice: 191.5 },
+      skuName: '五粮液',
+    });
+    expect(res.priceSource).toBe('用户指定价');
+    expect(res.unitPrice).toBe(200);
+  });
+});

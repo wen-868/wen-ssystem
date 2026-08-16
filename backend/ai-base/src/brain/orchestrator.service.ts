@@ -48,6 +48,7 @@ import { formatInventoryQty } from './inventory-format';
 import { buildApiToolSummary } from './api-summary';
 import { buildWriteSummary } from './write-summary';
 import { detectIntentCategories } from './intent-detector';
+import { resolveReference } from '../nlp/reference-resolver';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -219,6 +220,16 @@ export class Orchestrator {
         this.logger.debug(`加载对话历史：${history.length} 条消息`);
       }
 
+      // 多轮指代消解：检测"上一单/那个客户/它"并从历史提取上下文提示
+      let userMessage = params.message;
+      const reference = resolveReference(params.message, history);
+      if (reference.hasReference && reference.context) {
+        userMessage = `${reference.context}\n用户消息：${params.message}`;
+        this.logger.debug(
+          `指代消解注入上下文：${reference.context.slice(0, 60)}`,
+        );
+      }
+
       // ── 4. 构建上下文 ──
       // R70-21：build 已升级为异步（内部做 RAG 知识库检索注入，embedding 未配置时自动跳过）
       const messages = await this.contextBuilder.build(
@@ -226,7 +237,7 @@ export class Orchestrator {
           tenantId,
           userId,
           role,
-          userMessage: params.message,
+          userMessage,
           history,
           systemPrompt: systemPrompt ?? undefined,
         },
