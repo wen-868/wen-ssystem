@@ -47,6 +47,7 @@ import { LearningService } from './learning/learning.service';
 import { formatInventoryQty } from './inventory-format';
 import { buildApiToolSummary } from './api-summary';
 import { buildWriteSummary } from './write-summary';
+import { detectIntentCategories } from './intent-detector';
 
 /** Agent Loop 最大迭代次数（防止死循环） */
 const MAX_ITERATIONS = 10;
@@ -232,8 +233,14 @@ export class Orchestrator {
         this.registry,
       );
 
-      // 工具定义（供 LLM function calling）：按作用域过滤，platform 工具仅总台对话暴露
-      const toolDefinitions = this.registry.toToolDefinitions(params.scope);
+      // 工具定义（供 LLM function calling）：意图驱动减负（只带相关域工具）+ scope 隔离
+      const toolDefinitions = this.registry.toToolDefinitionsForCategories(
+        detectIntentCategories(params.message),
+        params.scope,
+      );
+      this.logger.debug(
+        `意图工具集：${toolDefinitions.length} 个（消息「${params.message.slice(0, 20)}」）`,
+      );
 
       // 构造工具执行上下文
       const toolContext: ToolContext = {

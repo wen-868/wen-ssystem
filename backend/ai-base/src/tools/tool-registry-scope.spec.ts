@@ -10,18 +10,22 @@
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-16
  */
 import { ToolRegistry } from './tool-registry';
-import type { ITool } from './tool.interface';
+import type { ITool, ToolCategory } from './tool.interface';
 
-function makeTool(name: string, scope?: 'mgmt' | 'platform'): ITool {
+function makeTool(
+  name: string,
+  scope?: 'mgmt' | 'platform',
+  category: ToolCategory = 'system',
+): ITool {
   return {
     name,
     description: `工具 ${name}`,
-    category: 'system',
+    category,
     parameters: { type: 'object', properties: {} },
     isWriteOperation: false,
     scope,
     execute: jest.fn().mockResolvedValue({ success: true, data: {} }),
-  } as unknown as ITool;
+  };
 }
 
 describe('ToolRegistry scope 隔离', () => {
@@ -83,5 +87,20 @@ describe('ToolRegistry scope 隔离', () => {
     expect(
       metas.find((m) => m.name === 'api_platform_query_tenants')?.scope,
     ).toBe('platform');
+  });
+
+  it('toToolDefinitionsForCategories 只返回指定分类工具', () => {
+    registry.register(makeTool('queryInventory', 'mgmt', 'inventory'));
+    const defs = registry.toToolDefinitionsForCategories(['inventory']);
+    const names = defs.map((d) => d.function.name);
+    expect(names).toContain('queryInventory');
+    expect(names).not.toContain('querySaleBills');
+  });
+
+  it('toToolDefinitionsForCategories 空分类回退全量', () => {
+    const defs = registry.toToolDefinitionsForCategories(undefined);
+    const names = defs.map((d) => d.function.name);
+    expect(names).toContain('querySaleBills');
+    expect(names).not.toContain('api_platform_query_tenants');
   });
 });

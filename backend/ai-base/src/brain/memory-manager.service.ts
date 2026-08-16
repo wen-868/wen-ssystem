@@ -27,6 +27,8 @@ const MEMORY_ROUNDS = 10;
 
 /** 每轮 2 条消息，保留 20 条 */
 const MAX_MESSAGES = MEMORY_ROUNDS * 2;
+/** 单条历史消息最大长度（字符）：工具结果 JSON 可能很大，超长截断防止 prompt 膨胀 */
+const MAX_MESSAGE_LENGTH = 800;
 
 /** TTL 1 小时（秒） */
 const TTL_SECONDS = 3600;
@@ -127,6 +129,15 @@ export class MemoryManager implements OnModuleInit {
       if (!Array.isArray(messages)) {
         this.logger.warn(`对话历史格式异常（非数组），返回空：key=${key}`);
         return [];
+      }
+      // prompt 减负：单条历史消息超长截断（工具结果 JSON 是大头）
+      for (const msg of messages) {
+        if (
+          typeof msg.content === 'string' &&
+          msg.content.length > MAX_MESSAGE_LENGTH
+        ) {
+          msg.content = `${msg.content.slice(0, MAX_MESSAGE_LENGTH)}…[已截断]`;
+        }
       }
       return messages;
     } catch (err) {

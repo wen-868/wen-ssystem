@@ -137,6 +137,30 @@ export class ToolRegistry {
   }
 
   /**
+   * 按业务分类生成工具定义（意图驱动减负：只喂给 LLM 相关域的工具）
+   *
+   * categories 为空或包含 'all' 时回退全量（无法判断意图时保守兜底）。
+   * platform 工具仍遵循 scope 隔离。
+   */
+  toToolDefinitionsForCategories(
+    categories: ToolCategory[] | undefined,
+    scope?: ToolScope,
+  ): ToolDefinition[] {
+    if (
+      !categories ||
+      categories.length === 0 ||
+      categories.includes('all' as ToolCategory)
+    ) {
+      return this.toToolDefinitions(scope);
+    }
+    const set = new Set(categories);
+    return Array.from(this.tools.values())
+      .filter((tool) => this.isVisibleInScope(tool, scope))
+      .filter((tool) => set.has(tool.category))
+      .map((tool) => this.toDefinition(tool));
+  }
+
+  /**
    * 生成指定作用域的工具定义（显式入口，总台对话使用 scope='platform'）
    *
    * platform 场景包含租户工具 + 总台工具（总台运营需跨域操作）；
