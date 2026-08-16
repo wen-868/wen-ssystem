@@ -1,7 +1,9 @@
 <template>
   <view class="login-page">
-    <!-- 品牌区 -->
+    <!-- 品牌区（Atlas 蓝渐变 + 装饰光斑） -->
     <view class="brand-section">
+      <view class="brand-glow brand-glow--a"></view>
+      <view class="brand-glow brand-glow--b"></view>
       <view class="brand-logo-wrap">
         <image class="brand-logo" src="/static/logo.png" mode="aspectFit" />
       </view>
@@ -9,9 +11,14 @@
       <text class="brand-subtitle">酒水经营一体化工作台</text>
     </view>
 
-    <!-- 登录表单 -->
+    <!-- 登录表单（悬浮白卡） -->
     <view class="form-section">
       <view class="form-card">
+        <view class="card-head">
+          <text class="card-title">登录</text>
+          <text class="card-sub">欢迎回来，请登录继续经营</text>
+        </view>
+
         <view class="form-item">
           <view class="input-icon">&#xe601;</view>
           <input
@@ -88,35 +95,34 @@
         </button>
         </template>
 
-        <!-- 演示账号一键登录 -->
         <view class="demo-divider">
           <view class="divider-line"></view>
           <text class="divider-text">或</text>
           <view class="divider-line"></view>
         </view>
 
-        <button
-          class="demo-btn"
-          :class="{ 'login-btn--loading': demoLoading }"
-          :disabled="demoLoading"
-          @tap="handleDemoLogin"
-        >
-          <text v-if="demoLoading" class="demo-btn-text">正在进入演示环境...</text>
-          <text v-else class="demo-btn-text">&#xe608; 演示账号一键体验</text>
-        </button>
-        <text class="demo-tip">无需注册，直接体验全部功能</text>
+        <!-- 注册 / 演示登录 双入口 -->
+        <view class="action-row">
+          <button class="ghost-btn" @tap="goRegister">
+            <text class="ghost-btn-text">注 册</text>
+          </button>
+          <button
+            class="demo-btn"
+            :class="{ 'login-btn--loading': demoLoading }"
+            :disabled="demoLoading"
+            @tap="handleDemoLogin"
+          >
+            <text v-if="demoLoading" class="demo-btn-text">进入中...</text>
+            <text v-else class="demo-btn-text">演示登录</text>
+          </button>
+        </view>
+        <text class="demo-tip">演示登录无需注册，直接体验全部功能</text>
       </view>
-    </view>
-
-    <!-- 注册入口 -->
-    <view class="register-link">
-      <text class="link-text">还没有账号？</text>
-      <text class="link-btn" @tap="goRegister">立即注册</text>
     </view>
 
     <!-- 底部 -->
     <view class="footer-section">
-      <text class="footer-text">v1.0.0 · 粤ICP备2026103101号-1</text>
+      <text class="footer-text">v{{ appVersion }} · 粤ICP备2026103101号-1</text>
     </view>
   </view>
 </template>
@@ -127,8 +133,12 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/stores/user'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { authApi } from '@/api/modules/auth'
+import manifest from '@/manifest.json'
 
 const userStore = useUserStore()
+
+/** 版本号读 manifest（与「关于」一致，不硬编码） */
+const appVersion = (manifest as any)?.versionName || ''
 
 // 已登录（如跳转失败后刷新/重新显示本页）时自动进入系统
 onLoad(() => {
@@ -240,12 +250,12 @@ function goRegister() {
 </script>
 
 <style lang="scss" scoped>
+/* ── 登录页（UI1.2 设计语言：蓝渐变品牌区 + 悬浮白卡） ── */
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, $uni-color-primary-active 0%, $uni-color-primary 52%, $uni-color-primary-soft 100%);
+  background: #F0F5FF;
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
@@ -253,23 +263,48 @@ function goRegister() {
 
 /* ── 品牌区 ── */
 .brand-section {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 110rpx;
-  padding-bottom: 56rpx;
+  padding: 100rpx 0 130rpx;
+  background: linear-gradient(160deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%);
+  border-radius: 0 0 44rpx 44rpx;
+  overflow: hidden;
+}
+
+/* 装饰光斑 */
+.brand-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.brand-glow--a {
+  width: 340rpx;
+  height: 340rpx;
+  top: -120rpx;
+  right: -100rpx;
+}
+
+.brand-glow--b {
+  width: 240rpx;
+  height: 240rpx;
+  bottom: -80rpx;
+  left: -70rpx;
 }
 
 .brand-logo-wrap {
-  width: 132rpx;
-  height: 132rpx;
-  border-radius: 32rpx;
+  position: relative;
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 36rpx;
   background: $uni-bg-color;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28rpx;
-  box-shadow: 0 12rpx 40rpx rgba(13, 44, 124, 0.35);
+  margin-bottom: 30rpx;
+  box-shadow: 0 16rpx 44rpx rgba(15, 23, 42, 0.28);
 }
 
 .brand-logo {
@@ -278,42 +313,75 @@ function goRegister() {
 }
 
 .brand-title {
-  font-size: 44rpx;
+  position: relative;
+  font-size: 46rpx;
   font-weight: $uni-font-bold;
   color: $uni-text-color-inverse;
   letter-spacing: 6rpx;
-  margin-bottom: 12rpx;
+  margin-bottom: 14rpx;
 }
 
 .brand-subtitle {
+  position: relative;
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.85);
   letter-spacing: 2rpx;
 }
 
-/* ── 表单区 ── */
+/* ── 表单区（悬浮卡） ── */
 .form-section {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  padding: 0 64rpx;
+  padding: 0 48rpx;
+  margin-top: -72rpx;
   box-sizing: border-box;
 }
 
 .form-card {
   background: $uni-bg-color;
-  border-radius: $uni-border-radius-xl;
-  padding: 48rpx 40rpx 36rpx;
-  box-shadow: 0 20rpx 64rpx rgba(13, 44, 124, 0.18);
+  border-radius: 36rpx;
+  padding: 44rpx 40rpx 34rpx;
+  box-shadow: 0 20rpx 60rpx rgba(29, 78, 216, 0.16), 0 4rpx 16rpx rgba(29, 78, 216, 0.06);
 }
 
+.card-head {
+  margin-bottom: 34rpx;
+}
+
+.card-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: $uni-font-bold;
+  color: $uni-text-color;
+  letter-spacing: 2rpx;
+}
+
+.card-sub {
+  display: block;
+  font-size: 25rpx;
+  color: $uni-text-color-placeholder;
+  margin-top: 10rpx;
+}
+
+/* 输入框（spec08：默认灰底，聚焦蓝边+外发光） */
 .form-item {
   position: relative;
   display: flex;
   align-items: center;
   height: 96rpx;
   background: $uni-bg-color-page;
-  border-radius: $uni-border-radius-sm;
+  border: 2rpx solid transparent;
+  border-radius: 20rpx;
   padding: 0 28rpx;
   margin-bottom: 8rpx;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-item:focus-within {
+  background: $uni-bg-color;
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 0 0 6rpx rgba(37, 99, 235, 0.08);
 }
 
 .input-icon {
@@ -324,7 +392,7 @@ function goRegister() {
 
 .form-input {
   flex: 1;
-  height: 96rpx;
+  height: 92rpx;
   font-size: 30rpx;
   color: $uni-text-color;
 }
@@ -335,7 +403,7 @@ function goRegister() {
 }
 
 .password-toggle {
-  padding: 8rpx;
+  padding: 12rpx;
 }
 
 .toggle-icon {
@@ -369,6 +437,7 @@ function goRegister() {
   color: $uni-color-error;
 }
 
+/* 登录主按钮 */
 .login-btn {
   width: 100%;
   height: 96rpx;
@@ -378,7 +447,7 @@ function goRegister() {
   align-items: center;
   justify-content: center;
   border: none;
-  margin-top: 28rpx;
+  margin-top: 32rpx;
   box-shadow: 0 10rpx 28rpx rgba(37, 99, 235, 0.35);
 }
 
@@ -397,11 +466,11 @@ function goRegister() {
   letter-spacing: 10rpx;
 }
 
-/* ── 演示账号 ── */
+/* ── 分隔线 ── */
 .demo-divider {
   display: flex;
   align-items: center;
-  margin: 34rpx 0 26rpx;
+  margin: 32rpx 0 26rpx;
 }
 
 .divider-line {
@@ -416,25 +485,68 @@ function goRegister() {
   padding: 0 20rpx;
 }
 
-.demo-btn {
-  width: 100%;
-  height: 92rpx;
-  background: $uni-color-primary-soft;
+/* ── 注册 / 演示登录 双入口 ── */
+.action-row {
+  display: flex;
+  gap: 24rpx;
+}
+
+.ghost-btn {
+  flex: 1;
+  height: 88rpx;
+  background: $uni-bg-color;
   border: 2rpx solid rgba(37, 99, 235, 0.35);
   border-radius: $uni-border-radius-pill;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.ghost-btn::after {
+  border: none;
+}
+
+.ghost-btn:active {
+  background: $uni-color-primary-soft;
+}
+
+.ghost-btn-text {
+  font-size: 30rpx;
+  font-weight: $uni-font-medium;
+  color: $uni-color-primary;
+  letter-spacing: 4rpx;
+  line-height: 1;
+}
+
+.demo-btn {
+  flex: 1;
+  height: 88rpx;
+  background: $uni-color-primary-soft;
+  border-radius: $uni-border-radius-pill;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
 }
 
 .demo-btn::after {
   border: none;
 }
 
+.demo-btn:active {
+  opacity: 0.85;
+}
+
 .demo-btn-text {
   font-size: 30rpx;
   font-weight: $uni-font-medium;
   color: $uni-color-primary;
+  letter-spacing: 4rpx;
+  line-height: 1;
 }
 
 .demo-tip {
@@ -445,37 +557,17 @@ function goRegister() {
   margin-top: 14rpx;
 }
 
-/* ── 注册入口 ── */
-.register-link {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 36rpx;
-}
-
-.link-text {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.link-btn {
-  font-size: 28rpx;
-  color: $uni-text-color-inverse;
-  font-weight: $uni-font-semibold;
-  margin-left: 8rpx;
-}
-
 /* ── 底部 ── */
 .footer-section {
   flex: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 32rpx;
+  padding: 40rpx 0 28rpx;
 }
 
 .footer-text {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.65);
+  color: $uni-gray-500;
 }
 </style>
