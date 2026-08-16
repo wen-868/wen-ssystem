@@ -21,7 +21,7 @@
     <!-- 数据卡（今日营业额 / 今日订单 + 环比） -->
     <view class="home-data">
       <view class="home-data-top">
-        <view class="home-data-item">
+        <view class="home-data-item home-data-item--main">
           <text class="home-data-label">今日营业额</text>
           <text class="home-data-val">¥{{ formatFull(stats.todaySales) }}</text>
           <view class="home-data-trend up">
@@ -29,7 +29,7 @@
             <text class="trend-text">{{ stats.todaySales > 0 ? '实时' : '—' }}</text>
           </view>
         </view>
-        <view class="home-data-item">
+        <view class="home-data-item home-data-item--sub">
           <text class="home-data-label">今日订单</text>
           <text class="home-data-val">{{ stats.todayOrders }}</text>
           <view class="home-data-trend up">
@@ -404,11 +404,21 @@ onMounted(() => {
 
 .home-data-top {
   display: flex;
-  gap: 48rpx;
+  gap: 0;
 }
 
 .home-data-item {
   flex: 1;
+}
+
+/* 设计稿 v1.2：营业额占 2/3，订单占 1/3 居中 */
+.home-data-item--main {
+  flex: 2;
+}
+
+.home-data-item--sub {
+  flex: 1;
+  text-align: center;
 }
 
 .home-data-label {
@@ -458,8 +468,21 @@ onMounted(() => {
   display: flex;
 }
 
+/* 三项等分居中 + 渐变竖分隔线（设计稿 v1.2） */
 .db-item {
   flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.db-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 12rpx;
+  bottom: 12rpx;
+  width: 1rpx;
+  background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.08), transparent);
 }
 
 .db-label {
