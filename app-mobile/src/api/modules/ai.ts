@@ -391,10 +391,35 @@ export function cancelAiOperation(confirmationId: string): Promise<AiConfirmResu
   return requestConfirmation(confirmationId, 'cancel')
 }
 
+/**
+ * 文本转语音（TTS）：调 AI 底座 /api/voice/tts（微软 Edge TTS，返回 mp3 base64）
+ * 手机端语音对话「语音输入 → AI 回复 → 语音播报」闭环的输出环节。
+ */
+export async function voiceTts(text: string): Promise<{
+  code: string
+  msg: string
+  data?: { audio: string; format: string }
+} | null> {
+  if (!text.trim()) return null
+  try {
+    const res = await uni.request({
+      url: `${AI_BASE_URL}/api/voice/tts`,
+      method: 'POST',
+      header: buildHeaders(),
+      data: { text },
+      timeout: 20000
+    })
+    return (res.data as { code: string; msg: string; data?: { audio: string; format: string } }) || null
+  } catch {
+    return null
+  }
+}
+
 /** AI 助手 API 集合 */
 export const aiApi = {
   streamChat,
   fetchModels: fetchAiModels,
   confirm: confirmAiOperation,
-  cancel: cancelAiOperation
+  cancel: cancelAiOperation,
+  voiceTts
 }

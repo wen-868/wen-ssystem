@@ -21,6 +21,13 @@
           <text class="ai-model-picker-arrow">▾</text>
         </view>
       </picker>
+      <view
+        class="ai-voice-mode"
+        :class="{ 'ai-voice-mode--on': voiceMode }"
+        @tap="voiceMode = !voiceMode"
+      >
+        <text class="ai-voice-mode-text">{{ voiceMode ? '语音' : '文字' }}</text>
+      </view>
     </view>
 
     <!-- 消息列表 -->
@@ -63,6 +70,13 @@
                 <text class="bubble-text">{{ msg.content }}</text>
                 <view v-if="msg.streaming && !msg.content" class="typing">
                   <view class="typing-dot" v-for="n in 3" :key="n"></view>
+                </view>
+                <view
+                  v-if="!msg.streaming && msg.content && !msg.preview"
+                  class="ai-speak-btn"
+                  @tap="speakText(msg.content)"
+                >
+                  <text class="ai-speak-btn-text">🔊 播报</text>
                 </view>
               </view>
 
@@ -183,6 +197,7 @@ import {
   type AiToolPreview,
   type AiChatToolResultEvent
 } from '@/api/modules/ai'
+import { voiceTts } from '@/api/modules/ai'
 
 /** 对话消息 */
 interface ChatMessage {
@@ -208,6 +223,8 @@ const messages = ref<ChatMessage[]>([])
 const inputText = ref('')
 const sending = ref(false)
 const conversationId = ref('')
+/** 语音模式：开启后 AI 回复自动语音播报 */
+const voiceMode = ref(false)
 const models = ref<AiModelOption[]>([])
 const selectedModel = ref('')
 let messageSeq = 0
@@ -317,6 +334,10 @@ async function sendMessage() {
         },
         onDone: (id) => {
           conversationId.value = id
+          // 语音模式：AI 回复自动语音播报（文字对话输出文字，语音对话输出语音）
+          if (voiceMode.value && aiMsg.content && aiMsg.content.trim()) {
+            speakText(aiMsg.content)
+          }
         },
         onError: (message) => {
           aiMsg.content = aiMsg.content || '抱歉，请求出错了'
@@ -477,6 +498,100 @@ function formatDetailItem(item: unknown): string {
 }
 
 // ====================== 语音输入（H5 Web Speech / APP 原生识别，真实对接） ======================
+
+/**
+ * 语音播报（输出·说）：
+ * 1) 后端 TTS（微软 Edge TTS，统一音质，mp3 base64）→ H5 data URL 播放 / App 写临时文件播放
+ * 2) 失败降级：H5 speechSynthesis / APP plus.speech.startSpeak（系统 TTS）
+ */
+let speakingAudio: any = null
+
+async function speakText(text: string) {
+  if (!text || !text.trim()) return
+  stopSpeak()
+  const clean = text.replace(/\[CHART\][\s\S]*?\[\/CHART\]/g, '').trim()
+  if (!clean) return
+
+  // 1. 后端 TTS（统一音色）
+  try {
+    const res = await voiceTts(clean.slice(0, 500))
+    if (res && res.code === '0' && res.data?.audio) {
+      const base64 = res.data.audio
+      // #ifdef H5
+      const audio = new Audio(`data:audio/mp3;base64,${base64}`)
+      speakingAudio = audio
+      audio.play().catch(() => { /* 自动播放受限时静默 */ })
+      // #endif
+      // #ifndef H5
+      const fs = uni.getFileSystemManager()
+      const tmpPath = `${wx.env.USER_DATA_PATH || ''}/ai_speak_${Date.now()}.mp3`
+      fs.writeFile({
+        filePath: tmpPath,
+        data: base64,
+        encoding: 'base64',
+        success: () => {
+          const inner = uni.createInnerAudioContext()
+          speakingAudio = inner
+          inner.src = tmpPath
+          inner.play()
+          inner.onEnded(() => inner.destroy())
+          inner.onError(() => {
+            inner.destroy()
+            speakSystem(clean)
+          })
+        },
+        fail: () => speakSystem(clean)
+      })
+      // #endif
+      return
+    }
+  } catch { /* 降级 */ }
+
+  speakSystem(clean)
+}
+
+/** 系统级 TTS 兜底（H5 浏览器 / APP 原生语音） */
+function speakSystem(text: string) {
+  // #ifdef H5
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = 'zh-CN'
+    window.speechSynthesis.speak(u)
+    return
+  }
+  // #endif
+  // #ifdef APP-PLUS
+  try {
+    ;(plus as any).speech.startSpeak(
+      { text, lang: 'zh-CN' },
+      () => {},
+      () => {}
+    )
+  } catch { /* 忽略 */ }
+  // #endif
+}
+
+function stopSpeak() {
+  if (speakingAudio) {
+    try {
+      speakingAudio.stop?.()
+      speakingAudio.destroy?.()
+      speakingAudio.pause?.()
+    } catch { /* 忽略 */ }
+    speakingAudio = null
+  }
+  // #ifdef H5
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel()
+  }
+  // #endif
+  // #ifdef APP-PLUS
+  try {
+    ;(plus as any).speech.stopSpeak?.()
+  } catch { /* 忽略 */ }
+  // #endif
+}
 
 const recording = ref(false)
 const recordingTime = ref(0)
@@ -660,6 +775,7 @@ function handleRecordComplete(data: string) {
 // ====================== 页面卸载清理 ======================
 
 onUnmounted(() => {
+  stopSpeak()
   if (recordingTimer) {
     clearInterval(recordingTimer)
     recordingTimer = null
@@ -762,6 +878,38 @@ onUnmounted(() => {
 .ai-model-picker-arrow {
   font-size: 20rpx;
   color: $uni-gray-500;
+}
+
+/* 语音模式开关 */
+.ai-voice-mode {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.05);
+  margin-left: 12rpx;
+}
+.ai-voice-mode--on {
+  background: $uni-gradient-blue;
+}
+.ai-voice-mode-text {
+  font-size: 22rpx;
+  color: $uni-gray-700;
+}
+.ai-voice-mode--on .ai-voice-mode-text {
+  color: $uni-text-color-inverse;
+}
+
+/* AI 回复播报按钮 */
+.ai-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(37, 99, 235, 0.08);
+}
+.ai-speak-btn-text {
+  font-size: 22rpx;
+  color: $uni-color-primary;
 }
 
 /* ====================== 快捷指令 ====================== */
