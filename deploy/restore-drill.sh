@@ -43,7 +43,7 @@ gzip -t "${BACKUP_FILE}"
 echo "gzip 校验通过" | tee -a "${REPORT}"
 
 echo "==> 校验备份头部（应为 mysqldump 产物）" | tee -a "${REPORT}"
-HEAD=$(zcat "${BACKUP_FILE}" 2>/dev/null | head -c 200)
+HEAD=$(zcat "${BACKUP_FILE}" 2>/dev/null | head -c 200 || true)
 if [[ "${HEAD}" != *"SQL"* ]] && [[ "${HEAD}" != *"mysqldump"* ]]; then
   echo "警告：备份内容不含 mysqldump 特征，继续尝试" | tee -a "${REPORT}"
 fi
