@@ -1,0 +1,17 @@
+{
+  "scenario": "health",
+  "base": "http://127.0.0.1:8080",
+  "concurrency": 20,
+  "durationSec": 30,
+  "totalRequests": 80258,
+  "success": 80258,
+  "failed": 0,
+  "successRate": "100.00%",
+  "qps": "2667.1",
+  "targetQps": "max",
+  "p50Ms": "5.4",
+  "p95Ms": "16.5",
+  "p99Ms": "25.6",
+  "maxMs": "56.0",
+  "errorSamples": []
+}

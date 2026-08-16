@@ -1,0 +1,38 @@
+{
+  "scenario": "login",
+  "base": "http://127.0.0.1:8080",
+  "concurrency": 3,
+  "durationSec": 10,
+  "totalRequests": 10666,
+  "success": 18,
+  "failed": 10648,
+  "successRate": "0.17%",
+  "qps": "1031.3",
+  "targetQps": "max",
+  "p50Ms": "991.4",
+  "p95Ms": "1023.3",
+  "p99Ms": "1023.3",
+  "maxMs": "1023.3",
+  "errorSamples": [
+    {
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "status": 0,
+      "error": "fetch failed"
+    }
+  ]
+}
