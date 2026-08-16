@@ -22,6 +22,11 @@ fi
 set -a; source "${ENV_FILE}"; set +a
 : "${DB_HOST:?缺少 DB_HOST}" "${DB_PORT:?缺少 DB_PORT}" "${DB_USER:?缺少 DB_USER}" "${DB_PASSWORD:?缺少 DB_PASSWORD}" "${DB_NAME:?缺少 DB_NAME}"
 
+# 管理员账号（创建/删除临时库与恢复数据需要建库权限；默认与业务账号相同，
+# 业务账号无建库权限时通过 DB_ADMIN_USER / DB_ADMIN_PASSWORD 传入高权限账号）
+DB_USER="${DB_ADMIN_USER:-$DB_USER}"
+DB_PASSWORD="${DB_ADMIN_PASSWORD:-$DB_PASSWORD}"
+
 BACKUP_FILE="${1:-}"
 if [[ -z "${BACKUP_FILE}" ]]; then
   BACKUP_FILE="$(ls -t "${BACKUP_DIR}"/${DB_NAME}_*.sql.gz 2>/dev/null | head -1 || echo "")"
