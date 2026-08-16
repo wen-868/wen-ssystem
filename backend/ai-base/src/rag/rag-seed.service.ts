@@ -79,14 +79,13 @@ export class RagSeedService implements OnModuleInit {
    * @returns 成功加载的文档数
    */
   async seedFromDir(dir: string): Promise<number> {
-    // 知识库已有内容则不重复加载（幂等）
+    // 文档级幂等：跳过已入库的同名文档，新增/更新文档正常加载
     const existing = this.vectorStore.listKnowledge(DEFAULT_TENANT_ID);
-    if (existing.length > 0) {
-      this.logger.log(
-        `默认租户知识库已存在 ${existing.length} 份文档，跳过预置加载`,
-      );
-      return 0;
-    }
+    const existingNames = new Set(
+      existing
+        .map((doc) => doc.docName)
+        .filter((name): name is string => !!name),
+    );
 
     let files: string[];
     try {
@@ -108,6 +107,10 @@ export class RagSeedService implements OnModuleInit {
 
     let loaded = 0;
     for (const file of files) {
+      if (existingNames.has(file)) {
+        this.logger.log(`预置知识文档已存在（跳过）：${file}`);
+        continue;
+      }
       try {
         const text = await this.loader.loadFromFile(join(dir, file));
         const chunks = this.splitter.split(text);

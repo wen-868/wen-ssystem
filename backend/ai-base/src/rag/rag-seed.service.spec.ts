@@ -56,13 +56,29 @@ describe('RagSeedService', () => {
     expect(vectorStore.addChunks).not.toHaveBeenCalled();
   });
 
-  it('知识库已有内容时跳过预置加载', async () => {
+  it('知识库已有同名文档时跳过，新增文档仍加载（文档级幂等）', async () => {
     vectorStore.listKnowledge.mockReturnValue([
       { docName: '已有文档.md', chunkCount: 3 },
     ]);
+    await writeFile(
+      join(tempDir, '已有文档.md'),
+      '已有内容。\n'.repeat(20),
+      'utf8',
+    );
+    await writeFile(
+      join(tempDir, '新增文档.md'),
+      '新增规则：营销活动创建后需激活。\n'.repeat(20),
+      'utf8',
+    );
     const loaded = await service.seedFromDir(tempDir);
-    expect(loaded).toBe(0);
-    expect(vectorStore.addChunks).not.toHaveBeenCalled();
+    // 已有文档跳过，仅加载新增文档
+    expect(loaded).toBe(1);
+    expect(vectorStore.addChunks).toHaveBeenCalledTimes(1);
+    const calls = vectorStore.addChunks.mock.calls as unknown as Array<
+      [string, string, unknown[]]
+    >;
+    const docName = calls[0][1];
+    expect(docName).toBe('新增文档.md');
   });
 
   it('知识库为空时加载目录下全部 markdown 文档', async () => {
