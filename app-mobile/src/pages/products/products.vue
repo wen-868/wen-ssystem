@@ -3,7 +3,7 @@
     <!-- 搜索栏（UI1.2：无页头，铃铛并入搜索栏，顶部承接 safe-area） -->
     <view class="search-bar">
       <view class="search-input-wrap">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
         <input
           class="search-input"
           v-model="keyword"
@@ -12,7 +12,7 @@
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
-        <text class="search-clear" v-if="keyword" @tap="clearSearch">&#xe615;</text>
+        <image class="search-clear" v-if="keyword" src="/static/icons/sc-clear.svg" mode="aspectFit" @tap="clearSearch" />
         <view class="icon-btn" @tap.stop="goNotifications">
           <image class="icon-btn-img" src="/static/icons/hd-bell.svg" mode="aspectFit" />
         </view>
@@ -353,9 +353,10 @@ onMounted(() => {
 }
 
 .search-icon {
-  font-size: 32rpx;
-  color: $uni-gray-400;
+  width: 32rpx;
+  height: 32rpx;
   margin-right: 12rpx;
+  flex-shrink: 0;
 }
 
 .search-input {
@@ -370,9 +371,10 @@ onMounted(() => {
 }
 
 .search-clear {
-  font-size: 32rpx;
-  color: $uni-gray-300;
+  width: 34rpx;
+  height: 34rpx;
   padding: 4rpx;
+  flex-shrink: 0;
 }
 
 /* ─── 商品主体：左分类 + 右列表 ─── */

@@ -2,7 +2,7 @@
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 搜索栏（UI1.2：扫码/订单/消息三入口，40px 热区） -->
     <view class="search-bar" @tap="navigateTo('/pages/products/products')">
-      <text class="search-bar-icon">&#xe614;</text>
+      <image class="search-bar-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
       <text class="search-bar-placeholder">搜索商品、订单、客户名称</text>
       <view class="search-actions">
         <view class="icon-btn" @tap.stop="navigateTo('/pages/sales/create-sale')">
@@ -340,8 +340,9 @@ onMounted(() => {
 }
 
 .search-bar-icon {
-  font-size: 30rpx;
-  color: $uni-gray-400;
+  width: 34rpx;
+  height: 34rpx;
+  flex-shrink: 0;
 }
 
 .search-bar-placeholder {

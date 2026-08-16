@@ -20,7 +20,7 @@
         </view>
 
         <view class="form-item">
-          <view class="input-icon">&#xe601;</view>
+          <view class="input-icon"><image class="input-icon-img" src="/static/icons/ld-user.svg" mode="aspectFit" /></view>
           <input
             class="form-input"
             v-model="loginForm.username"
@@ -35,7 +35,7 @@
         </view>
 
         <view class="form-item">
-          <view class="input-icon">&#xe602;</view>
+          <view class="input-icon"><image class="input-icon-img" src="/static/icons/ld-lock.svg" mode="aspectFit" /></view>
           <input
             class="form-input"
             v-model="loginForm.password"
@@ -45,7 +45,7 @@
             @input="clearError('password')"
           />
           <view class="password-toggle" @tap="showPassword = !showPassword">
-            <text class="toggle-icon">{{ showPassword ? '&#xe603;' : '&#xe604;' }}</text>
+            <image class="toggle-img" :src="showPassword ? '/static/icons/ld-eyeoff.svg' : '/static/icons/ld-eye.svg'" mode="aspectFit" />
           </view>
         </view>
         <view class="field-error" v-if="errors.password">
@@ -62,7 +62,7 @@
             <text class="mfa-tip-text">该账号已开启双因素认证，请输入动态验证码</text>
           </view>
           <view class="form-item">
-            <view class="input-icon">&#xe605;</view>
+            <view class="input-icon"><image class="input-icon-img" src="/static/icons/ld-shield.svg" mode="aspectFit" /></view>
             <input
               class="form-input"
               v-model="mfaCode"
@@ -385,9 +385,18 @@ function goRegister() {
 }
 
 .input-icon {
-  font-size: 34rpx;
-  color: $uni-color-primary;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 18rpx;
+  flex-shrink: 0;
+}
+
+.input-icon-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .form-input {
@@ -406,9 +415,10 @@ function goRegister() {
   padding: 12rpx;
 }
 
-.toggle-icon {
-  font-size: 36rpx;
-  color: $uni-gray-400;
+.toggle-img {
+  width: 38rpx;
+  height: 38rpx;
+  display: block;
 }
 
 .field-error {

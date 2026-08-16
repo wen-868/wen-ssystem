@@ -114,7 +114,7 @@
     </virtual-list>
 
     <view class="empty-state" v-if="!loading && orderList.length === 0">
-      <text class="empty-icon">&#xe617;</text>
+      <image class="empty-icon" src="/static/icons/od-empty.svg" mode="aspectFit" />
       <text class="empty-text">暂无订单数据</text>
     </view>
 
@@ -872,8 +872,8 @@ onMounted(() => {
 }
 
 .empty-icon {
-  font-size: 80rpx;
-  color: $uni-gray-300;
+  width: 120rpx;
+  height: 120rpx;
   margin-bottom: 20rpx;
 }
 

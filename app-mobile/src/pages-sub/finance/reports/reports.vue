@@ -81,27 +81,27 @@
       <view class="section-title">报表分类</view>
       <view class="entries-grid">
         <view class="entry-card" @tap="goReport('sales')">
-          <view class="entry-icon entry-icon--sales">&#xe620;</view>
+          <view class="entry-icon entry-icon--sales"><image class="entry-icon-img" src="/static/icons/rp-sales.svg" mode="aspectFit" /></view>
           <text class="entry-title">销售报表</text>
           <text class="entry-desc">销售额、订单、客单价</text>
         </view>
         <view class="entry-card" @tap="goReport('inventory')">
-          <view class="entry-icon entry-icon--inventory">&#xe621;</view>
+          <view class="entry-icon entry-icon--inventory"><image class="entry-icon-img" src="/static/icons/rp-inventory.svg" mode="aspectFit" /></view>
           <text class="entry-title">库存报表</text>
           <text class="entry-desc">库存周转、出入库明细</text>
         </view>
         <view class="entry-card" @tap="goReport('purchase')">
-          <view class="entry-icon entry-icon--purchase">&#xe617;</view>
+          <view class="entry-icon entry-icon--purchase"><image class="entry-icon-img" src="/static/icons/rp-purchase.svg" mode="aspectFit" /></view>
           <text class="entry-title">采购报表</text>
           <text class="entry-desc">采购金额、供应商分析</text>
         </view>
         <view class="entry-card" @tap="goReport('customer')">
-          <view class="entry-icon entry-icon--customer">&#xe616;</view>
+          <view class="entry-icon entry-icon--customer"><image class="entry-icon-img" src="/static/icons/rp-customer.svg" mode="aspectFit" /></view>
           <text class="entry-title">客户报表</text>
           <text class="entry-desc">客户消费、等级分布</text>
         </view>
         <view class="entry-card" @tap="goReport('finance')">
-          <view class="entry-icon entry-icon--finance">&#xe618;</view>
+          <view class="entry-icon entry-icon--finance"><image class="entry-icon-img" src="/static/icons/rp-finance.svg" mode="aspectFit" /></view>
           <text class="entry-title">财务报表</text>
           <text class="entry-desc">收支统计、利润分析</text>
         </view>
@@ -460,8 +460,11 @@ onMounted(() => {
   width: 64rpx; height: 64rpx;
   border-radius: 16rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: 32rpx; color: $uni-text-color-inverse;
   margin-bottom: 8rpx;
+}
+.entry-icon-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 .entry-icon--sales { background: linear-gradient(135deg, $uni-color-error, $uni-color-warning); }
 .entry-icon--inventory { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }

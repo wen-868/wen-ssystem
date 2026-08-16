@@ -3,7 +3,7 @@
     <!-- 搜索栏（UI1.2 打磨：头部区块删除，safe-area 移至顶部） -->
     <view class="func-search">
       <view class="search-bar">
-        <text class="search-icon">&#xe614;</text>
+        <image class="search-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
         <input class="search-input" v-model="keyword" placeholder="搜索功能、订单、客户" placeholder-class="search-placeholder" @confirm="doSearch" />
       </view>
     </view>
@@ -138,8 +138,9 @@ function doSearch() {
 }
 
 .search-icon {
-  font-size: 30rpx;
-  color: $uni-gray-400;
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
 }
 
 .search-input {
