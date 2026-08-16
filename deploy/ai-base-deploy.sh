@@ -248,8 +248,18 @@ else
 fi
 
 # ---- 8. 配置项提示（RAG 预置知识 / LLM 端到端验收前置） ----
-if [ -z "$(grep '^EMBEDDING_MODEL=' .env 2>/dev/null | cut -d= -f2-)" ]; then
+EMBED_MODEL=$(grep '^EMBEDDING_MODEL=' .env 2>/dev/null | cut -d= -f2-)
+if [ -z "${EMBED_MODEL}" ]; then
   echo "==> [AI底座] 提示：EMBEDDING_MODEL 未配置，RAG 预置知识库不会加载（配置如 nomic-embed-text 后重启生效）"
+else
+  EMBED_BASE=$(grep '^EMBEDDING_BASE_URL=' .env 2>/dev/null | cut -d= -f2-)
+  EMBED_BASE="${EMBED_BASE:-http://127.0.0.1:11434/v1}"
+  OLLAMA_HOST="${EMBED_BASE%/v1}"
+  if curl -s --max-time 3 "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+    echo "==> [AI底座] RAG 已配置：EMBEDDING_MODEL=${EMBED_MODEL}，Ollama 连通正常（${OLLAMA_HOST}）"
+  else
+    echo "==> [AI底座] 提示：EMBEDDING_MODEL 已配置但 ${OLLAMA_HOST} 不可达——请确认 Ollama 已启动，且已执行 ollama pull ${EMBED_MODEL}"
+  fi
 fi
 if [ -z "$(grep '^DEEPSEEK_API_KEY=' .env 2>/dev/null | cut -d= -f2-)" ]; then
   echo "==> [AI底座] 提示：DEEPSEEK_API_KEY 未配置，端到端验收 LLM 项需配置后执行 node scripts/ai-base-e2e.mjs"

@@ -24,18 +24,24 @@ describe('总平台级工具', () => {
   let mockClient: {
     instance: ServiceClient & { post: jest.Mock; put: jest.Mock };
   };
+  let post: jest.Mock;
+  let put: jest.Mock;
   let announcement: CreatePlatformAnnouncementTool;
   let subscription: HandleSubscriptionApplyTool;
 
   beforeAll(async () => {
+    const postMock = jest.fn().mockResolvedValue({ id: 1 });
+    const putMock = jest.fn().mockResolvedValue({ id: 1 });
     mockClient = {
       instance: {
         get: jest.fn(),
-        post: jest.fn().mockResolvedValue({ id: 1 }),
-        put: jest.fn().mockResolvedValue({ id: 1 }),
+        post: postMock,
+        put: putMock,
         delete: jest.fn(),
       } as unknown as ServiceClient & { post: jest.Mock; put: jest.Mock },
     };
+    post = postMock;
+    put = putMock;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -69,7 +75,7 @@ describe('总平台级工具', () => {
     );
     expect(res.success).toBe(true);
     expect(res.preview?.summary).toContain('系统维护通知');
-    expect(mockClient.instance.post).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
   });
 
   it('创建公告 confirm=true 调用平台端点', async () => {
@@ -83,7 +89,7 @@ describe('总平台级工具', () => {
       },
       mockContext,
     );
-    expect(mockClient.instance.post).toHaveBeenCalledWith(
+    expect(post).toHaveBeenCalledWith(
       '/api/platform/announcements',
       expect.objectContaining({ title: '系统维护通知', isTop: 1 }),
       mockContext,
@@ -102,7 +108,7 @@ describe('总平台级工具', () => {
     );
     expect(res.success).toBe(true);
     expect(res.preview?.reviewRequired).toBe(true);
-    expect(mockClient.instance.put).not.toHaveBeenCalled();
+    expect(put).not.toHaveBeenCalled();
   });
 
   it('订阅审核 confirm=true 调用审核端点', async () => {
@@ -115,7 +121,7 @@ describe('总平台级工具', () => {
       },
       mockContext,
     );
-    expect(mockClient.instance.put).toHaveBeenCalledWith(
+    expect(put).toHaveBeenCalledWith(
       '/api/platform/subscription-applies/7/audit',
       { action: 'APPROVED', auditRemark: '资料齐全' },
       mockContext,
