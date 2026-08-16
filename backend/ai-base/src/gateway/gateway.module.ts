@@ -32,6 +32,8 @@ import { BrainModule } from '../brain/brain.module';
 import { DatabaseModule } from '../database/database.module';
 import { PushGatewayService } from './push-gateway.service';
 import { VisionService } from '../providers/vision.service';
+import { VoiceService } from '../providers/voice.service';
+import { VoiceController } from './voice.controller';
 
 /**
  * Gateway 模块 — 对外接口层
@@ -70,8 +72,9 @@ import { VisionService } from '../providers/vision.service';
     LearningController,
     EvolutionController,
     LtmController,
+    VoiceController,
   ],
-  providers: [PushGatewayService, VisionService],
+  providers: [PushGatewayService, VisionService, VoiceService],
   exports: [PushGatewayService],
 })
 export class GatewayModule {}
