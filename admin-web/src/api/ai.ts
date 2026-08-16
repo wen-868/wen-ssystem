@@ -154,6 +154,7 @@ export async function sendChatMessage(
   handlers: AiSseHandlers,
   signal?: AbortSignal,
   model?: string,
+  image?: string,
 ): Promise<void> {
   let resp: Response;
   try {
@@ -164,6 +165,7 @@ export async function sendChatMessage(
         message,
         conversationId,
         ...(model ? { model } : {}),
+        ...(image ? { image } : {}),
       }),
       signal,
     });

@@ -11,7 +11,22 @@
         <span class="dot" />
         正在思考...
       </div>
-      <div v-else class="ai-text">{{ message.content }}</div>
+      <div v-else class="ai-text">
+        <template v-for="(seg, i) in contentSegments" :key="i">
+          <span v-if="seg.type === 'text'" class="ai-text-seg">{{ seg.value }}</span>
+          <AiChart v-else-if="seg.type === 'chart'" :content="seg.value" />
+        </template>
+        <el-button
+          v-if="canSpeak"
+          class="ai-speak-btn"
+          size="small"
+          text
+          :icon="speaking ? 'Loading' : 'Bell'"
+          @click="toggleSpeak"
+        >
+          {{ speaking ? "停止播报" : "播报" }}
+        </el-button>
+      </div>
     </div>
 
     <!-- AI 主动推送卡片（巡检预警/每日简报等） -->
@@ -80,7 +95,9 @@
 
 <script setup lang="ts">
 import { Loading, CircleCheck, CircleClose, WarningFilled, Bell } from "@element-plus/icons-vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import AiPreviewCard from "./AiPreviewCard.vue";
+import AiChart from "./AiChart.vue";
 import type { AiChatMessage } from "./types";
 
 const props = defineProps<{ message: AiChatMessage }>();
@@ -90,6 +107,59 @@ const emit = defineEmits<{
   (e: "cancel", messageId: string, confirmationId: string): void;
   (e: "revoke", messageId: string, operationId: string): void;
 }>();
+
+/** 将 AI 文本拆分为普通文本段与图表段（[CHART] 标记） */
+const contentSegments = computed(() => {
+  const content = props.message.content ?? "";
+  const segments: Array<{ type: "text" | "chart"; value: string }> = [];
+  const re = /\[CHART\][\s\S]*?\[\/CHART\]/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(content)) !== null) {
+    if (match.index > last) {
+      segments.push({ type: "text", value: content.slice(last, match.index) });
+    }
+    segments.push({ type: "chart", value: match[0] });
+    last = match.index + match[0].length;
+  }
+  if (last < content.length) {
+    segments.push({ type: "text", value: content.slice(last) });
+  }
+  return segments.length > 0 ? segments : [{ type: "text", value: content }];
+});
+
+/** 语音播报（浏览器 speechSynthesis，中文） */
+const speaking = ref(false);
+const canSpeak =
+  typeof window !== "undefined" && "speechSynthesis" in window;
+
+function toggleSpeak() {
+  if (!canSpeak) return;
+  if (speaking.value) {
+    window.speechSynthesis.cancel();
+    speaking.value = false;
+    return;
+  }
+  const text = (props.message.content ?? "")
+    .replace(/\[CHART\][\s\S]*?\[\/CHART\]/g, "")
+    .slice(0, 500);
+  if (!text.trim()) return;
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "zh-CN";
+  utterance.onend = () => {
+    speaking.value = false;
+  };
+  utterance.onerror = () => {
+    speaking.value = false;
+  };
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utterance);
+  speaking.value = true;
+}
+
+onBeforeUnmount(() => {
+  if (canSpeak) window.speechSynthesis.cancel();
+});
 
 /** 工具名 → 中文展示（未知工具名回退原样） */
 function toolLabel(tool?: string): string {

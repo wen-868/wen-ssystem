@@ -73,6 +73,43 @@
           @keydown.enter.exact.prevent="sendMessage"
         />
         <el-button
+          class="ai-image-btn"
+          circle
+          :disabled="streaming"
+          title="上传图片（AI 识别）"
+          @click="pickImage"
+        >
+          <el-icon><Picture /></el-icon>
+        </el-button>
+        <div v-if="pendingImage" class="ai-image-preview">
+          <img :src="pendingImage" alt="待发送图片" />
+          <el-button
+            class="ai-image-remove"
+            circle
+            size="small"
+            type="danger"
+            @click="pendingImage = null"
+          >
+            <el-icon><Close /></el-icon>
+          </el-button>
+        </div>
+        <el-button
+          class="ai-voice-btn"
+          circle
+          :type="listening ? 'danger' : 'default'"
+          :disabled="streaming || !speechSupported"
+          :title="
+            speechSupported
+              ? listening
+                ? '点击停止录音'
+                : '语音输入'
+              : '当前浏览器不支持语音输入（请用 Chrome/Edge）'
+          "
+          @click="toggleVoice"
+        >
+          <el-icon><Microphone v-if="!listening" /><Loading v-else class="is-loading" /></el-icon>
+        </el-button>
+        <el-button
           type="primary"
           circle
           class="ai-send-btn"
@@ -93,7 +130,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
-import { MagicStick, Promotion } from "@element-plus/icons-vue";
+import { MagicStick, Promotion, Microphone, Loading, Picture, Close } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
 import { createMessageId, type AiChatMessage } from "./types";
 import {
@@ -113,6 +150,90 @@ const abortController = ref<AbortController | null>(null);
 const listEl = ref<HTMLElement | null>(null);
 /** 折叠状态：列表页可收起 AI 面板，给数据区腾空间 */
 const collapsed = ref(false);
+
+/** 语音输入（Web Speech API：浏览器原生中文识别，Chrome/Edge 支持） */
+const speechSupported =
+  typeof window !== "undefined" &&
+  Boolean(
+    (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: unknown })
+        .webkitSpeechRecognition,
+  );
+const listening = ref(false);
+/** 待发送图片（data URL，AI 视觉识别） */
+const pendingImage = ref<string | null>(null);
+
+function pickImage() {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.onchange = () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      ElMessage.warning("图片不能超过 10MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      pendingImage.value = String(reader.result ?? "");
+    };
+    reader.readAsDataURL(file);
+  };
+  fileInput.click();
+}
+let recognition: {
+  start: () => void;
+  stop: () => void;
+  lang?: string;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+} | null = null;
+
+function getRecognition() {
+  if (recognition) return recognition;
+  const w = window as unknown as {
+    SpeechRecognition?: new () => typeof recognition;
+    webkitSpeechRecognition?: new () => typeof recognition;
+  };
+  const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
+  if (!Ctor) return null;
+  recognition = new Ctor();
+  recognition.lang = "zh-CN";
+  return recognition;
+}
+
+function toggleVoice() {
+  if (listening.value) {
+    recognition?.stop();
+    listening.value = false;
+    return;
+  }
+  const rec = getRecognition();
+  if (!rec) {
+    ElMessage.warning("当前浏览器不支持语音输入，请使用 Chrome/Edge");
+    return;
+  }
+  rec.onresult = (e) => {
+    const text = e.results[0]?.[0]?.transcript ?? "";
+    if (text) input.value = text;
+  };
+  rec.onend = () => {
+    listening.value = false;
+  };
+  rec.onerror = () => {
+    listening.value = false;
+    ElMessage.warning("语音识别失败，请重试或手动输入");
+  };
+  try {
+    rec.start();
+    listening.value = true;
+  } catch {
+    listening.value = false;
+    ElMessage.warning("无法启动语音识别，请重试");
+  }
+}
 const models = ref<AiModelOption[]>([]);
 const selectedModel = ref("");
 
@@ -160,9 +281,15 @@ function scrollToBottom(): void {
 
 async function sendMessage(): Promise<void> {
   const text = input.value.trim();
-  if (!text || streaming.value) return;
+  if ((!text && !pendingImage.value) || streaming.value) return;
+  const image = pendingImage.value;
+  pendingImage.value = null;
   input.value = "";
-  pushMessage({ role: "user", kind: "text", content: text });
+  pushMessage({
+    role: "user",
+    kind: "text",
+    content: text || (image ? "[图片]" : ""),
+  });
   const assistant = pushMessage({ role: "assistant", kind: "text", content: "" });
   streaming.value = true;
   abortController.value = new AbortController();
@@ -203,6 +330,7 @@ async function sendMessage(): Promise<void> {
       },
       abortController.value.signal,
       selectedModel.value || undefined,
+      image ?? undefined,
     );
   } catch (err) {
     streaming.value = false;
