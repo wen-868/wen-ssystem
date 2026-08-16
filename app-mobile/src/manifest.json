@@ -41,7 +41,16 @@
                 "dSYMs" : false
             },
             "sdkConfigs" : {},
-            "plugins" : {},
+            "plugins" : {
+                "PrintManager" : {
+                    "version" : "1.0.0",
+                    "provider" : "阿澈"
+                },
+                "ZXing-Scanner" : {
+                    "version" : "1.0.0",
+                    "provider" : "阿澈"
+                }
+            },
             "safeguard" : true
         },
         "networkTimeout" : {
