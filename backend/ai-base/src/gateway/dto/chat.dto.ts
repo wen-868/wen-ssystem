@@ -80,4 +80,14 @@ export class ChatDto {
   @IsOptional()
   @IsIn(['mgmt', 'platform'], { message: 'scope 仅支持 mgmt 或 platform' })
   scope?: 'mgmt' | 'platform';
+
+  /** 图片（可选，感知·看）：base64 或 data URL，最大约 15MB
+   *
+   * 传入时后端调用视觉模型（glm-4v-flash）生成内容描述并入对话上下文；
+   * 视觉服务不可用时降级为纯文本对话（图片描述缺失）。
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15728640, { message: 'image 数据过大（上限 15MB）' })
+  image?: string;
 }

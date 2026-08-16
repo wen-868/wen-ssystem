@@ -34,6 +34,7 @@ import { TenantContext } from '../tenant/tenant-context';
 import { ExternalModelService } from '../tenant/external-model.service';
 import { AiConfigService } from '../tenant/ai-config.service';
 import { ToolExecutor } from '../tools/tool-executor';
+import { VisionService } from '../providers/vision.service';
 import type { ToolCall } from '../providers/provider.interface';
 import type { ToolContext } from '../tools/tool.interface';
 import { ChatDto } from './dto/chat.dto';
@@ -56,6 +57,7 @@ export class ChatController {
     private readonly rollbackExecutor: RollbackExecutorService,
     private readonly externalModelService: ExternalModelService,
     private readonly aiConfigService: AiConfigService,
+    private readonly visionService: VisionService,
   ) {}
 
   /**
@@ -136,6 +138,24 @@ export class ChatController {
       `收到对话请求：tenant=${tenantId} user=${ctxData?.userId ?? dto.userId ?? 'anonymous'} msg="${dto.message.slice(0, 50)}..."`,
     );
 
+    // 感知·看：图片 → 视觉模型生成描述并入对话上下文（失败降级纯文本）
+    let message = dto.message;
+    if (dto.image && dto.image.length > 0) {
+      try {
+        const description = await this.visionService.describeImage(dto.image);
+        if (description) {
+          message = `${message}\n\n[用户上传了一张图片，识别内容：${description}]`;
+          this.logger.log(
+            `图片已识别并入对话（描述 ${description.length} 字）`,
+          );
+        }
+      } catch (err) {
+        this.logger.warn(
+          `图片理解降级（忽略）：${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+
     // 设置 SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -146,7 +166,7 @@ export class ChatController {
     try {
       // ── 委托 Orchestrator 执行 Agent Loop，逐事件转 SSE ──
       for await (const event of this.orchestrator.run({
-        message: dto.message,
+        message,
         conversationId: dto.conversationId,
         tenantId,
         userId: ctxData?.userId ?? dto.userId,

@@ -31,6 +31,7 @@ import { TenantModule } from '../tenant/tenant.module';
 import { BrainModule } from '../brain/brain.module';
 import { DatabaseModule } from '../database/database.module';
 import { PushGatewayService } from './push-gateway.service';
+import { VisionService } from '../providers/vision.service';
 
 /**
  * Gateway 模块 — 对外接口层
@@ -70,7 +71,7 @@ import { PushGatewayService } from './push-gateway.service';
     EvolutionController,
     LtmController,
   ],
-  providers: [PushGatewayService],
+  providers: [PushGatewayService, VisionService],
   exports: [PushGatewayService],
 })
 export class GatewayModule {}

@@ -119,4 +119,160 @@ export const BUILTIN_GRAPHS: Record<string, GraphDefinition> = {
       { id: 'end', label: '完成', type: 'end' },
     ],
   },
+  // 采购闭环图：补货分析 → 生成采购计划 → 结果总结（agent 节点带工具白名单）
+  purchase_plan_graph: {
+    id: 'purchase_plan_graph',
+    name: '采购计划图',
+    entry: 'analyze',
+    nodes: [
+      {
+        id: 'analyze',
+        label: '补货分析',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是补货分析 Agent。根据用户需求调用 api_suggest_purchase_plan 获取智能补货建议，' +
+            '分析后输出建议摘要（商品、建议量、原因）。',
+          tools: ['api_suggest_purchase_plan'],
+          maxToolRounds: 2,
+        },
+        next: 'plan',
+      },
+      {
+        id: 'plan',
+        label: '生成采购计划',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是采购计划生成 Agent。基于补货建议整理采购明细，' +
+            '调用 api_create_purchase_plan 创建采购计划（先 confirm=false 预览，向用户确认后再 confirm=true 执行）。',
+          tools: ['api_create_purchase_plan', 'api_query_purchase_plans'],
+          maxToolRounds: 4,
+        },
+        needsReview: true,
+        reviewNote: '采购计划创建涉及采购资金，需人工确认',
+        next: 'summarize',
+      },
+      {
+        id: 'summarize',
+        label: '结果总结',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是结果总结 Agent。汇总采购计划结果，用简洁中文向用户说明：计划单号、商品数、建议总量、下一步操作。',
+        },
+        next: 'end',
+      },
+      { id: 'end', label: '完成', type: 'end' },
+    ],
+  },
+  // 营销活动配置图：解析意图 → 创建活动 → 激活 → 总结
+  marketing_create_graph: {
+    id: 'marketing_create_graph',
+    name: '营销活动配置图',
+    entry: 'understand',
+    nodes: [
+      {
+        id: 'understand',
+        label: '活动意图理解',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是营销活动 Agent。理解用户想创建的活动类型（优惠券/秒杀/满减/拼团/赠品/限量折扣），' +
+            '调用对应创建工具（api_create_coupon_template / api_create_flash_sale / api_create_full_reduction / ' +
+            'api_create_group_buy / api_create_gift_rule / api_create_limited_discount），' +
+            '先 confirm=false 预览，向用户确认后再 confirm=true 创建。',
+          tools: [
+            'api_create_coupon_template',
+            'api_create_flash_sale',
+            'api_create_full_reduction',
+            'api_create_group_buy',
+            'api_create_gift_rule',
+            'api_create_limited_discount',
+            'api_query_coupon_templates',
+            'api_query_flash_sales',
+            'api_query_marketing_overview',
+          ],
+          maxToolRounds: 6,
+        },
+        needsReview: true,
+        reviewNote: '营销活动创建涉及对外优惠，需人工确认',
+        next: 'activate',
+      },
+      {
+        id: 'activate',
+        label: '活动激活建议',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是活动运营 Agent。活动创建后询问用户是否激活，确认后调用 ' +
+            'api_set_marketing_activity_status 激活活动。',
+          tools: ['api_set_marketing_activity_status'],
+          maxToolRounds: 3,
+        },
+        next: 'summarize',
+      },
+      {
+        id: 'summarize',
+        label: '结果总结',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是结果总结 Agent。汇总营销活动配置结果：活动名称、类型、状态、生效时间，用简洁中文向用户说明。',
+        },
+        next: 'end',
+      },
+      { id: 'end', label: '完成', type: 'end' },
+    ],
+  },
+  // 库存盘点图：库存分析 → 创建盘点 → 差异处理建议
+  stock_check_graph: {
+    id: 'stock_check_graph',
+    name: '库存盘点图',
+    entry: 'analyze',
+    nodes: [
+      {
+        id: 'analyze',
+        label: '库存分析',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是库存分析 Agent。调用 api_query_stock_warnings / api_query_inventory_batches 了解库存与预警，' +
+            '分析需要盘点的门店与重点商品。',
+          tools: [
+            'api_query_stock_warnings',
+            'api_query_inventory_batches',
+            'api_query_inventory',
+          ],
+          maxToolRounds: 3,
+        },
+        next: 'check',
+      },
+      {
+        id: 'check',
+        label: '创建盘点',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是盘点执行 Agent。调用 stockCheck 创建盘点单（先 confirm=false 预览，确认后 confirm=true 执行）。',
+          tools: ['stockCheck'],
+          maxToolRounds: 3,
+        },
+        needsReview: true,
+        reviewNote: '库存盘点影响账面库存，需人工确认',
+        next: 'summarize',
+      },
+      {
+        id: 'summarize',
+        label: '差异总结',
+        type: 'agent',
+        agent: {
+          systemPrompt:
+            '你是盘点总结 Agent。汇总盘点结果与差异处理建议，用简洁中文向用户说明。',
+        },
+        next: 'end',
+      },
+      { id: 'end', label: '完成', type: 'end' },
+    ],
+  },
 };
