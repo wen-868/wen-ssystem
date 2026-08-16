@@ -3,9 +3,9 @@
     <el-card style="margin-bottom: 16px;">
       <div class="page-title">
         <div>
-          <h2 style="margin: 0; font-size: 18px;">平台默认 AI 配置</h2>
+          <h2 style="margin: 0; font-size: 18px;">模型配置</h2>
           <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-            所有租户的默认 AI 设置，租户未单独配置时按此兜底；API Key 加密存储，读取时脱敏
+            配置平台默认模型与参数，租户未单独配置时按此兜底；模型服务商已接入，无需在此配置 API Key
           </div>
         </div>
         <el-tag v-if="configLoaded" :type="form.apiKeySet ? 'success' : 'info'" size="small">
@@ -33,24 +33,6 @@
           >
             <el-option v-for="m in MODEL_OPTIONS" :key="m" :label="m" :value="m" />
           </el-select>
-        </el-form-item>
-
-        <el-form-item label="默认 API Key">
-          <el-input
-            v-model="form.apiKey"
-            type="password"
-            show-password
-            :placeholder="apiKeyPlaceholder"
-            autocomplete="new-password"
-            style="width: 100%;"
-          />
-          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-            留空表示不修改；输入新 Key 后加密存储，保存后不再展示明文
-          </div>
-        </el-form-item>
-
-        <el-form-item label="自定义 Endpoint">
-          <el-input v-model="form.defaultEndpoint" placeholder="选填，如 https://api.deepseek.com/v1" clearable style="width: 100%;" />
         </el-form-item>
 
         <el-form-item label="默认温度" prop="defaultTemperature">
@@ -255,11 +237,6 @@ const rules: FormRules = {
   defaultProvider: [{ required: true, message: "请选择默认 AI 服务商", trigger: "change" }],
   defaultModel: [{ required: true, message: "请填写默认模型", trigger: "change" }],
 };
-
-const apiKeyPlaceholder = computed(() => {
-  if (form.apiKeySet) return `已设置（${form.apiKeyMasked ?? "****"}），留空表示不修改`;
-  return "请输入默认 API Key（选填）";
-});
 
 /** 加载平台默认配置 */
 async function loadConfig() {
