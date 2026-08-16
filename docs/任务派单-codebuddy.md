@@ -61,16 +61,25 @@ CodeBuddy 按下列批次执行；Codex 每批验收并更新报告。
 
 ### P1：生产证据类（需服务器，脚本已就绪）
 
-服务器（root@VM-0-5-ubuntu，仓库 /opt/zhixiang/liquor-inventory-system）执行并在 docs/验收总览报告.md 回填证据：
+服务器（root@VM-0-5-ubuntu，仓库 /opt/zhixiang/liquor-inventory-system）执行并在 docs/验收总览报告.md 回填证据。
 
-- [ ] 生产压测/吞吐量：`scripts/load-test.mjs` 跑峰值，记录 QPS/TP99。
-- [ ] SLA 可用性统计：部署 `deploy/health-monitor.sh` + 外部 uptime 服务，月度统计。
-- [ ] 故障演练/降级：演练 circuit-breaker 与依赖故障（MySQL/Redis/微信 API 断连）。
-- [ ] 灾备恢复演练：执行 `deploy/restore-drill.sh` 产出报告。
-- [ ] 内存曲线/缓存命中率：生产监控周期采样。
-- [ ] 可用性测试/响应速度：生产环境 Lighthouse + 真实用户采样。
-- [ ] 生产部署验收：迁移 151-156 实库执行验证 + 微信支付真实下单/回调联调 + 三端线上冒烟。
-- [ ] 移动端客户端更新链路验证：Electron 打包三架构（x64/ia32/arm64）上传与更新提示。
+**P1 执行手册**：`docs/reports/P1-生产证据采集手册.md`（含 8 项命令/预期产出/回填格式 + 本地已完成公网侧证据 5 项）。
+
+> 2026-08-16 CodeBuddy 已通过公网采集 5 项证据（无需服务器）：
+> - 生产部署验收接口层 PASS（`acceptance-production.mjs`：admin/api 200、登录、商品列表）
+> - 可用性/响应采样（api.onepan.cn/health 10 次：p50=327ms / min=183ms / max=1223ms）
+> - 三端线上可达（admin/m/www/saas/onepan 均 200；store.onepan.cn 见排查项 §8）
+> - Electron 三架构打包产物就绪（print-agent/release，2026-08-14）
+> - 仓库 main 与 origin/main 一致（迁移 151~156 就绪）
+
+- [ ] 生产压测/吞吐量：`scripts/load-test.mjs` 跑峰值，记录 QPS/TP99。（**需服务器 SSH**）
+- [ ] SLA 可用性统计：部署 `deploy/health-monitor.sh` + 外部 uptime 服务，月度统计。（**需服务器 SSH + 外部 uptime 账号**）
+- [ ] 故障演练/降级：演练 circuit-breaker 与依赖故障（MySQL/Redis/微信 API 断连）。（**需服务器 SSH + 维护窗口**）
+- [ ] 灾备恢复演练：执行 `deploy/restore-drill.sh` 产出报告。（**需服务器 SSH**）
+- [ ] 内存曲线/缓存命中率：生产监控周期采样。（**需服务器 SSH**）
+- [ ] 可用性测试/响应速度：生产环境 Lighthouse + 真实用户采样。（API 采样已完，Lighthouse/RUM 待执行）
+- [ ] 生产部署验收：迁移 151-156 实库执行验证 + 微信支付真实下单/回调联调 + 三端线上冒烟。（接口层已 PASS，实库/支付/页面待执行）
+- [ ] 移动端客户端更新链路验证：Electron 打包三架构（x64/ia32/arm64）上传与更新提示。（三架构打包产物已就绪，上传与更新提示待执行）
 
 ### P2：缺失项（需第三方）
 
