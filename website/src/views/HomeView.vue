@@ -10,6 +10,7 @@
         <nav class="nav" :class="{ open: menuOpen }">
           <a href="#features" @click="closeMenu">产品功能</a>
           <a href="#solutions" @click="closeMenu">解决方案</a>
+          <a href="#download" @click="closeMenu">客户端下载</a>
           <a href="#about" @click="closeMenu">关于我们</a>
           <a href="#contact" @click="closeMenu">联系我们</a>
         </nav>
@@ -66,6 +67,35 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- 客户端下载 -->
+    <section id="download" class="section download-section">
+      <div class="container">
+        <h2 class="section-title">电脑客户端下载</h2>
+        <p class="section-subtitle">智享全链管理系统电脑客户端，集成工作台、收银台与打印能力，支持 Windows 全平台架构</p>
+        <div class="download-grid">
+          <a :href="downloads.x64" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">🖥️</div>
+            <h3>Windows 64 位</h3>
+            <p>适用绝大多数台式机与笔记本（x64）</p>
+            <span class="btn btn-primary">下载安装包</span>
+          </a>
+          <a :href="downloads.ia32" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">💻</div>
+            <h3>Windows 32 位</h3>
+            <p>适用较老配置的电脑（x86）</p>
+            <span class="btn btn-primary">下载安装包</span>
+          </a>
+          <a :href="downloads.arm64" class="download-card" target="_blank" rel="noopener">
+            <div class="download-icon">📱</div>
+            <h3>Windows ARM64</h3>
+            <p>适用骁龙/麒麟等 ARM 架构设备</p>
+            <span class="btn btn-primary">下载安装包</span>
+          </a>
+        </div>
+        <p class="download-tip">安装包约 100MB+，请根据电脑系统架构选择对应版本下载安装</p>
       </div>
     </section>
 
@@ -166,5 +196,11 @@ const solutions = [
   { icon: "🏪", title: "连锁零售门店", desc: "多门店统一管理，库存实时同步，门店终端收银开单，总部统一采购调配", bg: "linear-gradient(135deg, #dbeafe, #bfdbfe)" },
   { icon: "📱", title: "社区团购 / 线上零售", desc: "微信小程序商城，即时零售平台对接，订单自动处理，库存实时同步", bg: "linear-gradient(135deg, #ede9fe, #ddd6fe)" },
 ];
+
+const downloads = {
+  x64: "/downloads/zhixiang-client-0.1.0-x64-setup.exe",
+  ia32: "/downloads/zhixiang-client-0.1.0-ia32-setup.exe",
+  arm64: "/downloads/zhixiang-client-0.1.0-arm64-setup.exe",
+};
 
 </script>

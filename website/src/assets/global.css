@@ -100,6 +100,20 @@ img { max-width: 100%; display: block; }
 .solution-body h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 8px; }
 .solution-body p { font-size: .9rem; color: var(--text-secondary); line-height: 1.7; }
 
+/* 客户端下载 */
+.download-section { background: #fff; }
+.download-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 960px; margin: 0 auto; }
+.download-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 40px 24px; border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--bg); box-shadow: var(--shadow); transition: all .25s; color: var(--text);
+}
+.download-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+.download-icon { font-size: 2.6rem; margin-bottom: 12px; }
+.download-card h3 { font-size: 1.25rem; margin-bottom: 8px; }
+.download-card p { color: var(--text-secondary); font-size: .95rem; margin-bottom: 20px; }
+.download-tip { text-align: center; color: var(--text-secondary); font-size: .9rem; margin-top: 28px; }
+
 /* CTA */
 .cta { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: #fff; text-align: center; }
 .cta .section-title { color: #fff; }
@@ -129,6 +143,7 @@ img { max-width: 100%; display: block; }
   .hero-visual { display: none; }
   .features-grid { grid-template-columns: 1fr; }
   .solutions-grid { grid-template-columns: 1fr; }
+  .download-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .nav { display: none; }
   .menu-btn { display: block; }
