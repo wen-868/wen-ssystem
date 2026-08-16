@@ -149,7 +149,7 @@ const typeLabel = computed(() => {
   const t = member.value?.customerType || ''
   if (t === 'WHOLESALE') return '批发会员'
   if (t === 'RETAIL') return '零售会员'
-  return t || '会员'
+  return '会员'
 })
 
 function goBack() {
