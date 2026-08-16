@@ -6,22 +6,6 @@
         <el-icon class="header-logo"><MagicStick /></el-icon>
         <span v-show="!collapsed">经营助手</span>
       </div>
-      <div v-show="!collapsed" class="ai-header-status">
-        <el-select
-          v-if="models.length > 0"
-          v-model="selectedModel"
-          size="small"
-          style="width: 150px;"
-        >
-          <el-option
-            v-for="m in models"
-            :key="m.value"
-            :label="m.label"
-            :value="m.value"
-          />
-        </el-select>
-        <span v-else class="status-dot"></span>
-      </div>
       <el-button
         class="ai-collapse-btn"
         aria-label="折叠或展开智能助手"
@@ -128,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { MagicStick, Promotion, Microphone, Loading, Picture, Close } from "@element-plus/icons-vue";
 import AiMessageCard from "./AiMessageCard.vue";
@@ -136,10 +120,8 @@ import { createMessageId, type AiChatMessage } from "./types";
 import {
   cancelAiOperation,
   confirmAiOperation,
-  fetchAiModels,
   revokeAiOperation,
   sendChatMessage,
-  type AiModelOption,
 } from "../../api/ai";
 
 const input = ref("");
@@ -234,9 +216,6 @@ function toggleVoice() {
     ElMessage.warning("无法启动语音识别，请重试");
   }
 }
-const models = ref<AiModelOption[]>([]);
-const selectedModel = ref("");
-
 const suggestions = [
   "创建销售单：给红星商行送10箱五粮液",
   "查询一下五粮液的库存",
@@ -329,7 +308,7 @@ async function sendMessage(): Promise<void> {
         },
       },
       abortController.value.signal,
-      selectedModel.value || undefined,
+      undefined, // 模型参数：已移除模型选择，使用租户/平台默认
       image ?? undefined,
     );
   } catch (err) {
@@ -407,17 +386,6 @@ onBeforeUnmount(() => {
   abortCurrent();
 });
 
-onMounted(() => {
-  // 加载可用模型（内置 + 外部模型），默认选中租户/平台默认
-  fetchAiModels()
-    .then((data) => {
-      models.value = data.models;
-      selectedModel.value = data.default;
-    })
-    .catch(() => {
-      // 模型列表加载失败不阻塞对话，静默降级
-    });
-});
 </script>
 
 <style scoped>
@@ -465,22 +433,6 @@ onMounted(() => {
 .header-logo {
   color: var(--color-primary);
   font-size: 17px;
-}
-
-.ai-header-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  /* WCAG AA：原 #0ea879 对比度不足 */
-  color: #0f5132;
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-success);
 }
 
 .ai-messages {
