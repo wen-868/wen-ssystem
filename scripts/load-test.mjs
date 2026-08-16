@@ -36,7 +36,13 @@ const WORKER_INTERVAL_MS = TARGET_QPS > 0 ? Math.max(1, (CONCURRENCY / TARGET_QP
 async function timedFetch(url, options = {}) {
   const start = performance.now();
   try {
-    const res = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+    // 模拟真实多客户端分布：每次请求随机客户端 IP，避免全站按单一 IP 计数触发限流(429)
+    const randIp = () => `${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
+    const res = await fetch(url, {
+      ...options,
+      headers: { "X-Forwarded-For": randIp(), "X-Real-IP": randIp(), ...(options.headers || {}) },
+      signal: AbortSignal.timeout(15000),
+    });
     const elapsed = Math.round((performance.now() - start) * 100) / 100;
     const rawBody = await res.text();
     return { ok: res.ok, status: res.status, elapsed, rawBody, error: null };
