@@ -1,104 +1,19 @@
 /**
- * VoiceService — 语音合成（输出·说，手机端语音对话必备）
+ * VoiceService — 语音合成网关（输出·说，手机端语音对话必备）
  *
- * TTS：微软 Edge TTS WebSocket 协议直连（免费、无需 Key、无第三方依赖，复用 ws），
- *      中文晓晓音色，输出 mp3；文本上限 1000 字（超出截断），单次合成超时兜底。
+ * TTS 提供商（TTS_PROVIDER）：
+ * - xunfei：讯飞在线语音合成（国内稳定，有免费额度），需配置
+ *   XF_APP_ID / XF_API_KEY / XF_API_SECRET / XF_VOICE（默认 xiaoyan）
+ * - none（默认）：未配置时返回 null，前端自动降级系统语音（H5 speechSynthesis / App plus.speech）
+ *
  * ASR：网关预留（讯飞/阿里等云端识别需配置），当前手机端用系统/浏览器原生识别。
- *
- * 环境变量：TTS_VOICE（可选，默认 zh-CN-XiaoxiaoNeural）、TTS_TIMEOUT_MS
  *
  * 负责人: 凌舟(AI协助) | 创建日期: 2026-08-16
  */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import WebSocket from 'ws';
-import { randomUUID } from 'crypto';
-
-/** Edge TTS WebSocket 端点（TrustedClientToken 为 Edge 公开常量） */
-const EDGE_TTS_WSS =
-  'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1' +
-  '?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&ConnectionId=';
-const DEFAULT_VOICE = 'zh-CN-XiaoxiaoNeural';
-
-/** 转义 SSML 特殊字符 */
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-/** 构建 SSML 消息 */
-function buildSsml(text: string, voice: string): string {
-  return (
-    `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='zh-CN'>` +
-    `<voice name='${voice}'><prosody pitch='+0Hz' rate='+0%' volume='+0%'>` +
-    `${escapeXml(text)}</prosody></voice></speak>`
-  );
-}
-
-/**
- * Edge TTS 合成（WebSocket 协议）
- *
- * @returns mp3 音频 Buffer；超时/失败抛错
- */
-function edgeTts(
-  text: string,
-  voice: string,
-  timeoutMs: number,
-): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`${EDGE_TTS_WSS}${randomUUID()}`, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-          '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0',
-        Origin: 'chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold',
-      },
-    });
-    const chunks: Buffer[] = [];
-    const timer = setTimeout(() => {
-      ws.close();
-      reject(new Error('TTS 合成超时'));
-    }, timeoutMs);
-
-    ws.on('open', () => {
-      // 1. speech.config（输出格式 mp3）
-      ws.send(
-        `X-Timestamp:${new Date().toISOString()}\r\n` +
-          'Content-Type:application/json; charset=utf-8\r\n' +
-          'Path:speech.config\r\n\r\n' +
-          '{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"true"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}',
-      );
-      // 2. ssml 合成请求
-      ws.send(
-        `X-RequestId:${randomUUID()}\r\n` +
-          'Content-Type:application/ssml+xml\r\n' +
-          `X-Timestamp:${new Date().toISOString()}Z\r\n` +
-          `Path:ssml\r\n\r\n${buildSsml(text, voice)}`,
-      );
-    });
-
-    ws.on('message', (data, isBinary) => {
-      if (isBinary) {
-        chunks.push(Buffer.from(data as Buffer));
-      }
-    });
-
-    ws.on('error', (err) => {
-      clearTimeout(timer);
-      ws.close();
-      reject(err);
-    });
-
-    ws.on('close', () => {
-      clearTimeout(timer);
-      resolve(Buffer.concat(chunks));
-    });
-  });
-}
+import crypto from 'crypto';
+import axios from 'axios';
 
 @Injectable()
 export class VoiceService {
@@ -110,7 +25,7 @@ export class VoiceService {
    * 文本转语音（mp3 base64）
    *
    * @param text 待合成文本（≤1000 字）
-   * @returns { audioBase64, format }；失败返回 null
+   * @returns { audioBase64, format }；失败/未配置返回 null（前端降级系统语音）
    */
   async tts(
     text: string,
@@ -118,21 +33,89 @@ export class VoiceService {
     const trimmed = text.trim();
     if (!trimmed) return null;
     const payload = trimmed.slice(0, 1000);
-    const timeoutMs = this.config.get<number>('TTS_TIMEOUT_MS', 20000);
-    const voice = this.config.get<string>('TTS_VOICE', DEFAULT_VOICE);
 
-    try {
-      const audio = await edgeTts(payload, voice, timeoutMs);
-      if (audio.length === 0) {
-        this.logger.warn('TTS 合成结果为空');
+    const provider = this.config.get<string>('TTS_PROVIDER', 'none');
+    switch (provider) {
+      case 'xunfei':
+        return this.xunfeiTts(payload);
+      default:
+        this.logger.debug(
+          'TTS_PROVIDER 未配置（none），降级为前端系统语音播报',
+        );
         return null;
-      }
-      return { audioBase64: audio.toString('base64'), format: 'mp3' };
-    } catch (err) {
+    }
+  }
+
+  /** 讯飞在线语音合成（WebAPI v2，输出 mp3） */
+  private async xunfeiTts(
+    text: string,
+  ): Promise<{ audioBase64: string; format: 'mp3' } | null> {
+    const appId = this.config.get<string>('XF_APP_ID', '');
+    const apiKey = this.config.get<string>('XF_API_KEY', '');
+    const apiSecret = this.config.get<string>('XF_API_SECRET', '');
+    if (!appId || !apiKey || !apiSecret) {
       this.logger.warn(
-        `TTS 合成失败：${err instanceof Error ? err.message : String(err)}`,
+        '讯飞 TTS 未配置完整（XF_APP_ID/XF_API_KEY/XF_API_SECRET）',
       );
       return null;
     }
+    const voice = this.config.get<string>('XF_VOICE', 'xiaoyan');
+    const timeoutMs = this.config.get<number>('TTS_TIMEOUT_MS', 15000);
+
+    try {
+      const url = this.buildXunfeiUrl(apiKey, apiSecret);
+      const response = await axios.post<{
+        code: number;
+        message?: string;
+        data?: { audio?: string; status?: number };
+      }>(
+        url,
+        {
+          common: { app_id: appId },
+          business: {
+            aue: 'lame',
+            sfl: 1,
+            vcn: voice,
+            tte: 'UTF8',
+            speed: 50,
+          },
+          data: {
+            status: 2,
+            text: Buffer.from(text, 'utf8').toString('base64'),
+          },
+        },
+        { timeout: timeoutMs },
+      );
+
+      const body = response.data;
+      if (body.code !== 0 || !body.data?.audio) {
+        this.logger.warn(
+          `讯飞 TTS 返回错误：${body.code} ${body.message ?? ''}`,
+        );
+        return null;
+      }
+      return { audioBase64: body.data.audio, format: 'mp3' };
+    } catch (err) {
+      this.logger.warn(
+        `讯飞 TTS 合成失败：${err instanceof Error ? err.message : String(err)}`,
+      );
+      return null;
+    }
+  }
+
+  /** 讯飞鉴权 URL（HMAC-SHA256 签名） */
+  private buildXunfeiUrl(apiKey: string, apiSecret: string): string {
+    const host = 'tts-api.xfyun.cn';
+    const date = new Date().toUTCString();
+    const signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v2/tts HTTP/1.1`;
+    const signature = crypto
+      .createHmac('sha256', apiSecret)
+      .update(signatureOrigin)
+      .digest('base64');
+    const authorizationOrigin = `api_key="${apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`;
+    const authorization = Buffer.from(authorizationOrigin).toString('base64');
+    return `https://${host}/v2/tts?authorization=${encodeURIComponent(
+      authorization,
+    )}&date=${encodeURIComponent(date)}&host=${host}`;
   }
 }
