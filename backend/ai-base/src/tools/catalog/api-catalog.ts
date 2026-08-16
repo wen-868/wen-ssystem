@@ -163,7 +163,7 @@ export const API_CATALOG: ApiRouteDef[] = [
       '查询库存列表。入参：productName(商品名,可选)、warehouseId(仓库,可选)、page、pageSize。出参：库存列表。',
     category: 'inventory',
     method: 'GET',
-    path: '/api/admin/inventory',
+    path: '/api/admin/inventory-balance',
     parameters: {
       type: 'object',
       properties: {

@@ -128,7 +128,7 @@ export class QueryInventoryTool implements ITool {
 
     try {
       const result = await this.serviceClient.get<InventoryBalancePage>(
-        `${API_ENDPOINTS.INVENTORY}-balance?${queryString}`,
+        `${API_ENDPOINTS.INVENTORY}?${queryString}`,
         context,
       );
 

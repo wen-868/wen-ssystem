@@ -456,7 +456,12 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
       });
 
       const result = await createCustomer.execute(
-        { name: '兴旺超市', creditLimit: 8000, confirm: true },
+        {
+          name: '兴旺超市',
+          phone: '13800000000',
+          creditLimit: 8000,
+          confirm: true,
+        },
         mockContext,
       );
 
@@ -546,7 +551,7 @@ describe('R70-11 商品管理 + 客户管理工具', () => {
       );
 
       const result = await createCustomer.execute(
-        { name: '兴旺超市', confirm: true },
+        { name: '兴旺超市', phone: '13800000000', confirm: true },
         mockContext,
       );
 

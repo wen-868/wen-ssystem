@@ -72,12 +72,12 @@ export const API_ENDPOINTS = {
   // 供应商管理（supplier.routes.ts prefix: /api/admin/suppliers）
   SUPPLIERS: '/api/admin/suppliers',
   // 库存管理
-  INVENTORY: '/api/admin/inventory',
+  // 库存余额列表（admin-inventory.routes.ts /inventory-balance；旧值 /api/admin/inventory 404）
+  INVENTORY: '/api/admin/inventory-balance',
   TRANSFER_ORDERS: '/api/admin/transfer-orders',
   STOCK_CHECKS: '/api/admin/stock-checks',
   // 配送管理（store-order.routes.ts prefix: /api/store，订单列表/详情/开始配送/完成配送）
   STORE_ORDERS: '/api/store/orders',
-  DELIVERIES: '/api/admin/deliveries',
   // 财务管理
   RECEIVABLES: '/api/admin/receivables',
   RECONCILIATION: '/api/admin/reconciliation',

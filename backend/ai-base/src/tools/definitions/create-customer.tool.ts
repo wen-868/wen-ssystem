@@ -100,7 +100,7 @@ export class CreateCustomerTool implements ITool {
       },
       phone: {
         type: 'string',
-        description: '联系电话/手机号（可选）',
+        description: '联系电话/手机号（必填，t_member 唯一键约束）',
       },
       customerType: {
         type: 'string',
@@ -225,12 +225,15 @@ export class CreateCustomerTool implements ITool {
         };
       }
 
-      // t_member.mobile 有全局唯一键 uk_member_mobile：未提供手机号时不能插入空串（第二次会撞键），
-      // 生成唯一占位号（139 + 8 位随机数），客户创建后可到客户管理页修改为真实手机号。
-      const mobile =
-        customerArgs.phone && customerArgs.phone.trim()
-          ? customerArgs.phone.trim()
-          : `139${String(Math.floor(10000000 + Math.random() * 89999999))}`;
+      // t_member.mobile 必填且有全局唯一键：未提供手机号时不伪造，明确要求用户补充（真实商用，不造假数据）
+      if (!customerArgs.phone || !customerArgs.phone.trim()) {
+        return {
+          success: false,
+          error: '创建客户必须提供手机号',
+          suggestion: '请向用户确认客户手机号后再创建客户',
+        };
+      }
+      const mobile = customerArgs.phone.trim();
 
       // 对齐后端 createCustomer 支持字段（creditLimit 后端不支持，不发送）
       const requestBody = {
@@ -266,10 +269,6 @@ export class CreateCustomerTool implements ITool {
           settlementType: result.settlementType,
           remark: result.remark,
           message: `客户「${result.name}」创建成功，客户ID=${result.memberId}`,
-          phoneNote:
-            customerArgs.phone && customerArgs.phone.trim()
-              ? undefined
-              : '客户未提供手机号，已生成占位号，请到客户管理页修改为真实手机号',
           note:
             customerArgs.creditLimit !== undefined
               ? '信用额度已提示但未写入，请到客户管理页人工设置'

@@ -102,7 +102,7 @@ export class CheckInventoryTool implements ITool {
       const result = await this.serviceClient.get<
         PaginatedResult<InventoryBalanceItem>
       >(
-        `${API_ENDPOINTS.INVENTORY}-balance?keyword=${encodeURIComponent(keyword)}&page=${page}&pageSize=${pageSize}`,
+        `${API_ENDPOINTS.INVENTORY}?keyword=${encodeURIComponent(keyword)}&page=${page}&pageSize=${pageSize}`,
         context,
       );
 
