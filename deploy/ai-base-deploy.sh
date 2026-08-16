@@ -247,18 +247,35 @@ else
   fi
 fi
 
-# ---- 8. 配置项提示（RAG 预置知识 / LLM 端到端验收前置） ----
+# ---- 8. RAG embedding 自动配置 + 检测（复用智谱 GLM_API_KEY，零手工） ----
 EMBED_MODEL=$(grep '^EMBEDDING_MODEL=' .env 2>/dev/null | cut -d= -f2-)
 if [ -z "${EMBED_MODEL}" ]; then
-  echo "==> [AI底座] 提示：EMBEDDING_MODEL 未配置，RAG 预置知识库不会加载（配置如 nomic-embed-text 后重启生效）"
-else
+  GLM_KEY=$(grep '^GLM_API_KEY=' .env 2>/dev/null | head -1 | cut -d= -f2-)
+  if [ -n "${GLM_KEY}" ]; then
+    sed -i '/^EMBEDDING_BASE_URL=/d; /^EMBEDDING_API_KEY=/d; /^EMBEDDING_MODEL=/d' .env
+    {
+      echo "EMBEDDING_BASE_URL=https://open.bigmodel.cn/api/paas/v4"
+      echo "EMBEDDING_API_KEY=${GLM_KEY}"
+      echo "EMBEDDING_MODEL=embedding-3"
+    } >> .env
+    EMBED_MODEL="embedding-3"
+    echo "==> [AI底座] RAG 已自动配置：智谱 embedding-3（复用 GLM_API_KEY，服务器零负载）"
+  else
+    echo "==> [AI底座] 提示：EMBEDDING_MODEL 未配置且无 GLM_API_KEY，RAG 预置知识库不会加载（配置 embedding 模型后重启生效）"
+  fi
+fi
+if [ -n "${EMBED_MODEL}" ]; then
   EMBED_BASE=$(grep '^EMBEDDING_BASE_URL=' .env 2>/dev/null | cut -d= -f2-)
   EMBED_BASE="${EMBED_BASE:-http://127.0.0.1:11434/v1}"
-  OLLAMA_HOST="${EMBED_BASE%/v1}"
-  if curl -s --max-time 3 "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
-    echo "==> [AI底座] RAG 已配置：EMBEDDING_MODEL=${EMBED_MODEL}，Ollama 连通正常（${OLLAMA_HOST}）"
+  if echo "${EMBED_BASE}" | grep -q '11434'; then
+    OLLAMA_HOST="${EMBED_BASE%/v1}"
+    if curl -s --max-time 3 "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+      echo "==> [AI底座] RAG 已配置：EMBEDDING_MODEL=${EMBED_MODEL}，Ollama 连通正常（${OLLAMA_HOST}）"
+    else
+      echo "==> [AI底座] 提示：EMBEDDING_MODEL 已配置但 ${OLLAMA_HOST} 不可达——请确认 Ollama 已启动，且已执行 ollama pull ${EMBED_MODEL}"
+    fi
   else
-    echo "==> [AI底座] 提示：EMBEDDING_MODEL 已配置但 ${OLLAMA_HOST} 不可达——请确认 Ollama 已启动，且已执行 ollama pull ${EMBED_MODEL}"
+    echo "==> [AI底座] RAG embedding 指向云端服务：${EMBED_BASE}（EMBEDDING_MODEL=${EMBED_MODEL}）"
   fi
 fi
 if [ -z "$(grep '^DEEPSEEK_API_KEY=' .env 2>/dev/null | cut -d= -f2-)" ]; then
