@@ -148,7 +148,8 @@ function clearChat(): void {
 function pushMessage(partial: Omit<AiChatMessage, "id" | "createdAt">): AiChatMessage {
   const msg: AiChatMessage = { ...partial, id: createMessageId(), createdAt: Date.now() };
   messages.value.push(msg);
-  return msg;
+  // 关键：返回数组中的响应式代理引用（直接返回原始对象会导致流式文本不触发渲染）
+  return messages.value[messages.value.length - 1];
 }
 
 function findMessage(id: string): AiChatMessage | undefined {
