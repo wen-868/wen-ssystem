@@ -73,8 +73,8 @@
       <!-- 金额汇总 -->
       <view class="form-section" v-if="saleItems.length > 0">
         <view class="amount-row">
-          <text class="amount-label">商品数量</text>
-          <text class="amount-value">{{ totalQty }}件</text>
+          <text class="amount-label">商品数</text>
+          <text class="amount-value">{{ saleItems.length }}种 / {{ totalQty }}件</text>
         </view>
         <view class="amount-row amount-row--total">
           <text class="amount-label">合计金额</text>

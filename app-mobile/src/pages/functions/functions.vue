@@ -78,16 +78,12 @@ const goto = (path: string) => navigate(path)
 
 const hotActions = [
   { icon: '/static/icons/fn-open.svg', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '单', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '/static/icons/fn-member.svg', label: '会员管理', path: '/pages-sub/marketing/member/member-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_DANGER_SOFT, color: AI_DANGER },
   { icon: '/static/icons/fn-check.svg', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '/static/icons/fn-store.svg', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '/static/icons/fn-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
-  { icon: '员', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '库', label: '库存管理', path: '/pages-sub/product/inventory/inventory', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '供', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '/static/icons/fn-more.svg', label: '更多', path: '/pages-sub/admin/more/more-functions', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 

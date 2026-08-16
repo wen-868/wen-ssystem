@@ -362,6 +362,18 @@
                     }
                 },
                 {
+                    "path": "member/member-list",
+                    "style": {
+                        "navigationBarTitleText": "会员管理"
+                    }
+                },
+                {
+                    "path": "member/member-detail",
+                    "style": {
+                        "navigationBarTitleText": "会员详情"
+                    }
+                },
+                {
                     "path": "member/address",
                     "style": {
                         "navigationBarTitleText": "收货地址"

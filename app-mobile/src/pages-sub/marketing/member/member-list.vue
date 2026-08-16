@@ -111,8 +111,7 @@ function goBack() {
 }
 
 function goDetail(id: number) {
-  // 会员详情接口已就绪（/store/members/:id），详情页待后续补齐
-  uni.showToast({ title: `会员 #${id} 详情开发中`, icon: 'none' })
+  uni.navigateTo({ url: `/pages-sub/marketing/member/member-detail?id=${id}` })
 }
 
 function formatAmount(v: number): string {

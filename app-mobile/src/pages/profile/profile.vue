@@ -2,7 +2,7 @@
   <scroll-view class="profile-page" scroll-y>
     <!-- 用户卡 -->
     <view class="prof-card">
-      <view class="prof-avatar">
+      <view class="prof-avatar" @tap="navigateTo('/pages/profile/edit')">
         <image v-if="userStore.user?.avatar" class="avatar-img" :src="userStore.user.avatar" mode="aspectFill" />
         <view v-else class="avatar-placeholder">
           <text class="avatar-text">{{ initialChar }}</text>
@@ -37,36 +37,11 @@
     <view class="prof-section">
       <text class="prof-section-title">门店管理</text>
       <view class="prof-list">
-        <view class="list-item" @tap="navigateTo('/pages/profile/edit')">
-          <view class="li-ico li-ico--blue"><image class="li-ico-img" src="/static/icons/prf-work.svg" mode="aspectFit" /></view>
-          <view class="li-body">
-            <text class="li-title">编辑资料</text>
-            <text class="li-desc">姓名、头像、门店信息</text>
-          </view>
-          <text class="li-arrow">›</text>
-        </view>
-        <view class="list-item" @tap="navigateTo('/pages/notifications/notifications')">
-          <view class="li-ico li-ico--orange"><image class="li-ico-img" src="/static/icons/prf-consume.svg" mode="aspectFit" /></view>
-          <view class="li-body">
-            <text class="li-title">消息通知</text>
-            <text class="li-desc">订单、库存、系统消息</text>
-          </view>
-          <view class="menu-badge" v-if="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</view>
-          <text class="li-arrow">›</text>
-        </view>
-        <view class="list-item" @tap="navigateTo('/pages/todos/todos')">
-          <view class="li-ico li-ico--purple"><image class="li-ico-img" src="/static/icons/prf-todo.svg" mode="aspectFit" /></view>
-          <view class="li-body">
-            <text class="li-title">待办事项</text>
-            <text class="li-desc">库存预警、订单待处理</text>
-          </view>
-          <text class="li-arrow">›</text>
-        </view>
         <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')" v-if="userStore.isAdmin">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-store.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">门店信息</text>
-            <text class="li-desc">门店设置与管理</text>
+            <text class="li-desc">{{ storeName || '门店设置与管理' }}</text>
           </view>
           <text class="li-arrow">›</text>
         </view>
@@ -143,7 +118,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { notificationsApi } from '@/api/modules/notifications'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   AI_BG_SOFT,
@@ -152,12 +126,13 @@ import {
   AI_SUCCESS,
   AI_WARNING_SOFT,
   AI_WARNING,
+  AI_DANGER_SOFT,
+  AI_DANGER,
   AI_BG_GAP,
   AI_TEXT_MID,
 } from '@/constants/colors'
 
 const userStore = useUserStore()
-const unreadCount = ref(0)
 
 const userName = computed(() => userStore.user?.realName || userStore.user?.name || '未登录')
 const storeName = computed(() => userStore.user?.storeName || '')
@@ -183,7 +158,6 @@ const shortcuts = [
   { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_DANGER_SOFT, color: AI_DANGER },
   { icon: '账', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '印', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
-  { icon: '店', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
 ]
 
 const pushEnabled = ref(true)
@@ -241,17 +215,6 @@ function handleLogout() {
   })
 }
 
-async function loadUnread() {
-  try {
-    const res: any = await notificationsApi.list({ page: 1, pageSize: 1 })
-    const rows = res?.list ?? res?.records ?? []
-    unreadCount.value = res?.unread ?? (Array.isArray(rows) ? rows.filter((r: any) => !r.read).length : 0)
-  } catch (err) {
-    // 静默失败，不阻断页面
-  }
-}
-
-loadUnread()
 </script>
 
 <style lang="scss" scoped>

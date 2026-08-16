@@ -81,6 +81,22 @@
       </view>
     </view>
 
+    <!-- 今日待办 -->
+    <view class="home-todos" v-if="todos.length > 0">
+      <view class="section-head">
+        <view class="section-title-wrap">
+          <view class="title-bar-line"></view>
+          <text class="section-title">今日待办</text>
+        </view>
+        <text class="section-more" @tap="navigateTo('/pages/todos/todos')">全部 ›</text>
+      </view>
+      <view class="todo-item" v-for="item in todos" :key="item.id">
+        <view class="todo-dot" :class="item.status === 'done' ? 'todo-dot--done' : 'todo-dot--pending'"></view>
+        <text class="todo-title">{{ item.title }}</text>
+        <text class="todo-date" v-if="item.deadline">{{ item.deadline }}</text>
+      </view>
+    </view>
+
     <!-- 最新订单 -->
     <view class="home-orders" v-if="recentOrders.length > 0">
       <view class="section-head">
@@ -123,22 +139,6 @@
       </view>
       <view class="chart-empty" v-else>
         <text class="chart-empty-text">暂无趋势数据</text>
-      </view>
-    </view>
-
-    <!-- 待办提醒 -->
-    <view class="home-todos" v-if="todos.length > 0">
-      <view class="section-head">
-        <view class="section-title-wrap">
-          <view class="title-bar-line"></view>
-          <text class="section-title">待办提醒</text>
-        </view>
-        <text class="section-more" @tap="navigateTo('/pages/todos/todos')">全部 ›</text>
-      </view>
-      <view class="todo-item" v-for="item in todos" :key="item.id">
-        <view class="todo-dot" :class="item.status === 'done' ? 'todo-dot--done' : 'todo-dot--pending'"></view>
-        <text class="todo-title">{{ item.title }}</text>
-        <text class="todo-date" v-if="item.deadline">{{ item.deadline }}</text>
       </view>
     </view>
 
