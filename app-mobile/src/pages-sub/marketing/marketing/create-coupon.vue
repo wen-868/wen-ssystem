@@ -35,7 +35,7 @@
               :class="{ 'type-option--active': form.type === item.value }"
               @tap="form.type = item.value"
             >
-              <text class="option-icon">{{ item.icon }}</text>
+              <image class="option-icon-img" :src="item.icon" mode="aspectFit"/>
               <text class="option-label">{{ item.label }}</text>
             </view>
           </view>
@@ -196,9 +196,9 @@ const form = reactive({
 })
 
 const couponTypes: { value: 'full' | 'discount' | 'shipping'; label: string; icon: string }[] = [
-  { value: 'full', label: '满减券', icon: '¥' },
-  { value: 'discount', label: '折扣券', icon: '%' },
-  { value: 'shipping', label: '包邮券', icon: '邮' },
+  { value: 'full', label: '满减券', icon: '/static/icons/ic/yen.svg' },
+  { value: 'discount', label: '折扣券', icon: '/static/icons/ic/percent.svg' },
+  { value: 'shipping', label: '包邮券', icon: '/static/icons/ic/truck.svg' },
 ]
 
 const rules: Rules = {
@@ -374,10 +374,9 @@ async function onSubmit() {
   background: $uni-color-error-soft;
   border-color: $uni-color-error;
 }
-.option-icon {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: $uni-color-error;
+.option-icon-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 .option-label {
   font-size: 26rpx;

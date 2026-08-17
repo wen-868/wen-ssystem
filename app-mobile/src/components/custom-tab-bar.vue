@@ -42,6 +42,7 @@
         <view class="ai-btn">
           <text class="ai-btn-text">AI</text>
         </view>
+        <text class="tab-text" :class="{ 'tab-text--active': current === 'ai' }">AI</text>
       </view>
 
       <!-- 功能 -->
@@ -161,40 +162,38 @@ function switchTab(url: string) {
 .tab-ai {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 1;
+  gap: 4rpx;
+  padding-top: 8rpx;
 }
 
 .ai-btn {
-  width: 104rpx;
-  height: 104rpx;
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: translateY(-30rpx);
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.25);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
-}
-
-.tab-ai:active .ai-btn {
-  transform: translateY(-30rpx) scale(0.92);
-  box-shadow: 0 4rpx 24rpx rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4rpx 14rpx rgba(37, 99, 235, 0.22);
 }
 
 .tab-ai--active .ai-btn {
-  box-shadow: 0 8rpx 40rpx rgba(37, 99, 235, 0.35), 0 0 0 4rpx rgba(37, 99, 235, 0.15);
-  transform: translateY(-30rpx) scale(1.05);
+  box-shadow: 0 4rpx 18rpx rgba(37, 99, 235, 0.35), 0 0 0 4rpx rgba(37, 99, 235, 0.15);
 }
 
 .ai-btn-text {
-  font-size: 40rpx;
-  font-weight: 800;
+  font-size: 24rpx;
+  font-weight: 700;
   color: #ffffff;
-  letter-spacing: 2rpx;
+  letter-spacing: 0.5rpx;
   line-height: 1;
+}
+
+.tab-text--active {
+  color: $uni-color-primary;
+  font-weight: 600;
 }
 </style>

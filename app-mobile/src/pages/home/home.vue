@@ -418,7 +418,11 @@ onMounted(() => {
 
 .home-data-item--sub {
   flex: 1;
-  text-align: right;
+  text-align: center;
+}
+
+.home-data-item--sub .home-data-trend {
+  justify-content: center;
 }
 
 .home-data-label {

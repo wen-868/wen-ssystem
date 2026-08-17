@@ -25,7 +25,7 @@
         :class="{ active: activeCategory === tab.value }"
         @tap="switchCategory(tab.value)"
       >
-        <text class="tab-icon">{{ tab.icon }}</text>
+        <image class="tab-icon-img" :src="tab.icon" mode="aspectFit"/>
         <text class="tab-label">{{ tab.label }}</text>
       </view>
     </view>
@@ -53,7 +53,7 @@
       >
         <view class="card-image-wrap">
           <view class="card-image-placeholder">
-            <text class="placeholder-icon">{{ getCategoryIcon(item.type) }}</text>
+            <image class="placeholder-icon-img" :src="getCategoryIcon(item.type)" mode="aspectFit"/>
           </view>
           <view class="card-type-badge" :class="'badge-' + item.type">
             <text>{{ getTypeLabel(item.type) }}</text>
@@ -114,9 +114,9 @@ const searchForm = reactive({
 })
 
 const categoryTabs = [
-  { label: '拼团', value: 'group_buy', icon: '👥' },
-  { label: '砍价', value: 'bargain', icon: '🔪' },
-  { label: '秒杀', value: 'seckill', icon: '⚡' },
+  { label: '拼团', value: 'group_buy', icon: '/static/icons/ic/users.svg' },
+  { label: '砍价', value: 'bargain', icon: '/static/icons/ic/gift.svg' },
+  { label: '秒杀', value: 'seckill', icon: '/static/icons/ic/zap.svg' },
 ]
 
 const statusTabs = [
@@ -190,11 +190,11 @@ const filteredList = computed<ActivityItem[]>(() => {
 
 function getCategoryIcon(type: string): string {
   const map: Record<string, string> = {
-    group_buy: '👥',
-    bargain: '🔪',
-    seckill: '⚡',
+    group_buy: '/static/icons/ic/users.svg',
+    bargain: '/static/icons/ic/gift.svg',
+    seckill: '/static/icons/ic/zap.svg',
   }
-  return map[type] || '🎁'
+  return map[type] || '/static/icons/ic/gift.svg'
 }
 
 function getTypeLabel(type: string): string {
@@ -382,8 +382,9 @@ onMounted(() => {
   border-radius: 2rpx;
 }
 
-.tab-icon {
-  font-size: 40rpx;
+.tab-icon-img {
+  width: 44rpx;
+  height: 44rpx;
   margin-bottom: 8rpx;
 }
 
@@ -461,8 +462,9 @@ onMounted(() => {
   justify-content: center;
 }
 
-.placeholder-icon {
-  font-size: 60rpx;
+.placeholder-icon-img {
+  width: 72rpx;
+  height: 72rpx;
 }
 
 .card-type-badge {
