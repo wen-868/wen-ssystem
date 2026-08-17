@@ -40,15 +40,15 @@
       </view>
       <view class="home-data-div"></view>
       <view class="home-data-bot">
-        <view class="db-item">
+        <view class="db-item db-item--left">
           <text class="db-label">本月营业额</text>
           <text class="db-val">¥{{ formatFull(stats.monthSales) }}</text>
         </view>
-        <view class="db-item">
+        <view class="db-item db-item--mid">
           <text class="db-label">本月订单</text>
           <text class="db-val">{{ stats.monthOrders }}</text>
         </view>
-        <view class="db-item">
+        <view class="db-item db-item--right">
           <text class="db-label">本月毛利</text>
           <text class="db-val">¥{{ formatFull(stats.monthProfit) }}</text>
         </view>
@@ -468,12 +468,15 @@ onMounted(() => {
   display: flex;
 }
 
-/* 三项等分居中 + 渐变竖分隔线（设计稿 v1.2） */
+/* 三项：左靠左、右靠右、中间居中，与上方数据卡对齐 */
 .db-item {
   flex: 1;
-  text-align: center;
   position: relative;
 }
+
+.db-item--left { text-align: left; }
+.db-item--mid  { text-align: center; }
+.db-item--right { text-align: right; }
 
 .db-item:not(:last-child)::after {
   content: '';
