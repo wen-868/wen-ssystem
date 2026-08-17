@@ -111,7 +111,7 @@ function switchTab(url: string) {
   display: flex;
   align-items: center;
   height: 136rpx;
-  padding: 0 12rpx;
+  padding: 0 28rpx;
 }
 
 .tab-item {

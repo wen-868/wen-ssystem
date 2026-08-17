@@ -418,7 +418,7 @@ onMounted(() => {
 
 .home-data-item--sub {
   flex: 1;
-  text-align: center;
+  text-align: right;
 }
 
 .home-data-label {
