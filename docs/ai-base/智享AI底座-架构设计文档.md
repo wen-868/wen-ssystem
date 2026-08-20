@@ -1318,7 +1318,7 @@ curl -X PUT http://localhost:3016/api/platform/ai/tenant-config/t_001 \
 
 ## 十四、第三方 AI 办公软件对接（MCP 接口）
 
-> **定位**：智享AI底座通过标准 MCP（Model Context Protocol）接口对外暴露能力，第三方AI办公软件（如 WorkBuddy）直接通过 MCP 调用智享系统的业务工具，无需开发定制对接。
+> **定位**：智享AI底座通过标准 MCP（Model Context Protocol）接口对外暴露能力，第三方AI办公软件（如 第三方AI办公软件）直接通过 MCP 调用智享系统的业务工具，无需开发定制对接。
 
 ### 14.1 对接架构
 
@@ -1344,7 +1344,7 @@ curl -X PUT http://localhost:3016/api/platform/ai/tenant-config/t_001 \
           ┌─────────┼─────────┐
           │         │         │
    ┌──────┴──┐ ┌───┴────┐ ┌──┴──────┐
-   │WorkBuddy│ │ 其他AI │ │ 自建AI  │
+   │第三方AI办公软件│ │ 其他AI │ │ 自建AI  │
    │         │ │ 客户端  │ │ 工具    │
    └─────────┘ └────────┘ └─────────┘
 
@@ -1395,7 +1395,7 @@ CREATE TABLE t_mcp_token (
   id          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
   tenant_id   VARCHAR(36) NOT NULL COMMENT '绑定的租户ID',
   token       VARCHAR(128) NOT NULL UNIQUE COMMENT 'MCP Token',
-  name        VARCHAR(64) COMMENT '标识名称（如"WorkBuddy对接"）',
+  name        VARCHAR(64) COMMENT '标识名称（如"第三方AI办公软件对接"）',
   enabled     TINYINT(1) DEFAULT 1 COMMENT '是否启用',
   expires_at  DATETIME COMMENT '过期时间（NULL=永不过期）',
   created_at  DATETIME DEFAULT NOW() COMMENT '创建时间',
@@ -1404,27 +1404,27 @@ CREATE TABLE t_mcp_token (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP对接Token表';
 ```
 
-### 14.5 WorkBuddy 对接示例
+### 14.5 第三方AI办公软件 对接示例
 
 ```
 1. 总台配置:
    生成MCP Token → token: mcp_a1b2c3d4
    绑定租户 → tenant_id: t_001（红星商行）
-   交付给WorkBuddy
+   交付给第三方AI办公软件
 
-2. WorkBuddy配置MCP Server:
+2. 第三方AI办公软件配置MCP Server:
    URL: https://api.zhixiang.com/api/platform/ai/mcp
    Token: mcp_a1b2c3d4
 
-3. 用户在WorkBuddy中说:
+3. 用户在第三方AI办公软件中说:
    "帮我查一下红星商行还欠多少钱"
 
-4. WorkBuddy通过MCP调用智享Tool:
+4. 第三方AI办公软件通过MCP调用智享Tool:
    → MCP Tool: queryReceivables({ customerName: "红星商行" })
    → 智享底座处理（自动注入tenantId）
    → 返回: { 未收: 25400, 逾期: 0 }
 
-5. WorkBuddy展示给用户:
+5. 第三方AI办公软件展示给用户:
    💰 红星商行应收账款
    未收：¥25,400 | 逾期：¥0
 ```

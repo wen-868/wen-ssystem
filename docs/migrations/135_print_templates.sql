@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS t_print_template (
   KEY idx_print_template_tenant_type (tenant_id, bill_type) COMMENT '租户+单据类型索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='打印模板表（小票/针式/A4/标签，模板可自定义）';
 
--- 编号: 135, 描述: 打印模板表, 创建人: Codex, 日期: 2026-08-12
+-- 编号: 135, 描述: 打印模板表, 创建人: 系统, 日期: 2026-08-12
 -- 说明: 默认模板种子由后端 print.service 首次访问时写入（内容含分号，避免 SQL 拆分问题）
 -- 说明: 打印机/纸张/份数等设备配置走客户端本地配置（localStorage），不存服务端。
 -- 说明: 文件头不写注释；CREATE TABLE IF NOT EXISTS 幂等可重复执行。

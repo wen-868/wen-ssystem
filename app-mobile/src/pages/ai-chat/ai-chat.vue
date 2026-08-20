@@ -1,26 +1,13 @@
 <template>
   <view class="ai-chat-page">
-    <!-- 顶部：AI 助手 -->
+    <!-- 顶部：AI · 实时对话（设计 R95-02：单行简洁，去除模型下拉） -->
     <view class="ai-top-bar">
       <view class="ai-top-icon">
         <text class="ai-top-icon-text">✦</text>
       </view>
       <view class="ai-top-info">
-        <text class="ai-top-title">AI 助手</text>
-        <text class="ai-top-sub">有什么可以帮你的？</text>
+        <text class="ai-top-title">AI<text class="ai-top-dot">·</text>实时对话</text>
       </view>
-      <picker
-        v-if="models.length > 0"
-        mode="selector"
-        :range="modelLabels"
-        :value="modelIndex"
-        @change="onModelChange"
-      >
-        <view class="ai-model-picker">
-          <text class="ai-model-picker-text">{{ selectedModelLabel }}</text>
-          <text class="ai-model-picker-arrow">▾</text>
-        </view>
-      </picker>
       <view
         class="ai-voice-mode"
         :class="{ 'ai-voice-mode--on': voiceMode }"
@@ -240,30 +227,6 @@ aiApi
   .catch(() => {
     // 模型列表加载失败不阻塞对话，静默降级
   })
-
-/** 模型选择器标签列表（picker 用） */
-const modelLabels = computed(() => models.value.map((m) => m.label))
-
-/** 当前选中模型索引 */
-const modelIndex = computed(() =>
-  Math.max(
-    0,
-    models.value.findIndex((m) => m.value === selectedModel.value)
-  )
-)
-
-/** 当前选中模型展示名 */
-const selectedModelLabel = computed(
-  () => models.value.find((m) => m.value === selectedModel.value)?.label ?? '默认模型'
-)
-
-/** 模型切换 */
-function onModelChange(e: { detail: { value: number } }) {
-  const index = e.detail.value
-  if (models.value[index]) {
-    selectedModel.value = models.value[index].value
-  }
-}
 
 /** 欢迎页快捷示例 */
 const welcomeTips = [
@@ -814,8 +777,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 24rpx 32rpx 16rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  padding: 12rpx 32rpx 12rpx;
+  padding-top: calc(12rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
@@ -856,28 +819,11 @@ onUnmounted(() => {
   margin-top: 4rpx;
 }
 
-.ai-model-picker {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-  max-width: 240rpx;
-  padding: 8rpx 14rpx;
-  border-radius: 999rpx;
-  background: rgba(0, 0, 0, 0.05);
-  margin-left: auto;
-}
-
-.ai-model-picker-text {
-  font-size: 22rpx;
-  color: $uni-gray-700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ai-model-picker-arrow {
-  font-size: 20rpx;
-  color: $uni-gray-500;
+.ai-top-dot {
+  display: inline-block;
+  margin: 0 8rpx;
+  color: $uni-color-primary;
+  font-weight: 800;
 }
 
 /* 语音模式开关 */

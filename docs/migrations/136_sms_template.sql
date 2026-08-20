@@ -1,4 +1,4 @@
--- 编号: 136, 描述: 短信模板表（真实短信模板管理）, 创建人: Codex, 日期: 2026-08-13
+-- 编号: 136, 描述: 短信模板表（真实短信模板管理）, 创建人: 系统, 日期: 2026-08-13
 CREATE TABLE IF NOT EXISTS t_sms_template (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '模板ID',
   tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',

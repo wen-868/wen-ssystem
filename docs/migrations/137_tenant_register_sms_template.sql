@@ -1,4 +1,4 @@
--- 编号: 137, 描述: 租户注册短信模板种子（注册验证码 + 审核结果通知）, 创建人: Codex, 日期: 2026-08-14
+-- 编号: 137, 描述: 租户注册短信模板种子（注册验证码 + 审核结果通知）, 创建人: 系统, 日期: 2026-08-14
 
 -- 注册验证码模板（用途 TENANT_REGISTER）
 INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status)

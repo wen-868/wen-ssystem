@@ -30,6 +30,6 @@ ALTER TABLE t_collection_link ADD COLUMN store_id BIGINT DEFAULT NULL COMMENT '�
 ALTER TABLE t_collection_link ADD INDEX idx_collection_link_store (store_id);
 
 -- 编号: 153, 描述: SELECT 查询列审计补列——10 张表补齐服务 SELECT/WHERE/JOIN 引用的缺失列, 修复结算取协议价/成本价/库存预警/采购计划/角色报表/平台审计/分享收款报表等真实库必 500 缺陷
--- 创建人: Codex, 日期: 2026-08-15
+-- 创建人: 系统, 日期: 2026-08-15
 -- 背景: 在 152 迁移(INSERT/UPDATE 列审计)基础上, 进一步审计服务 SELECT/WHERE/JOIN 的 alias.col 引用, 发现 10 张表存在查询列在真实表不存在。核心: t_customer_price_binding(结算取协议价 cpb.price/cpb.sku_id)、t_product_sku(cost_price 成本价/safety_stock 安全库存/name/image/unit)、t_platform_audit_log(ip_address/module)、t_collection_link(store_id 报表筛选)。
 -- 注意: 文件头不写注释(自动迁移按分号拆分,注释污染首条语句被丢弃),说明放文件末尾。幂等: migration.ts safeExec 对 ER_DUP_FIELDNAME/ER_DUP_KEYNAME 做模式匹配跳过。

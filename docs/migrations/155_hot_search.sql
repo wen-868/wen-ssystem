@@ -15,5 +15,5 @@ SELECT '茅台', 1, 1, 'default'
 WHERE NOT EXISTS (SELECT 1 FROM t_hot_search WHERE tenant_id = 'default');
 
 -- 编号: 155, 描述: 小程序热搜词表（首页搜索推荐）
--- 创建人: Codex, 日期: 2026-08-15
+-- 创建人: 系统, 日期: 2026-08-15
 -- 注意: 文件头不写注释(自动迁移按分号拆分,注释污染首条语句被丢弃),说明放文件末尾。

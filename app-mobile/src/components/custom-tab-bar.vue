@@ -33,14 +33,17 @@
         <text class="tab-text">商品</text>
       </view>
 
-      <!-- AI 圆形凸起按钮（设计稿：蓝渐变 + AI 文字，非图片） -->
+      <!-- AI 圆形按钮（设计：紫色渐变 + 呼吸光环 + 水平垂直居中） -->
       <view
         class="tab-ai"
         :class="{ 'tab-ai--active': current === 'ai' }"
         @tap="switchTab('/pages/ai-chat/ai-chat')"
       >
-        <view class="ai-btn">
-          <text class="ai-btn-text">AI</text>
+        <view class="ai-btn-wrap">
+          <view class="ai-ring"></view>
+          <view class="ai-btn">
+            <text class="ai-btn-text">AI</text>
+          </view>
         </view>
         <text class="tab-text" :class="{ 'tab-text--active': current === 'ai' }">AI</text>
       </view>
@@ -92,27 +95,27 @@ function switchTab(url: string) {
 </script>
 
 <style lang="scss" scoped>
-/* ─── 自定义 tabBar：中间 AI 圆形按钮 + 毛玻璃底栏（R95-01 v1.0 设计） ─── */
+/* ─── 自定义 tabBar：悬浮胶囊 + 中间紫色 AI 圆 + 呼吸光环（R95-02 v2 设计） ─── */
 .custom-tab-bar {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: calc(20rpx + env(safe-area-inset-bottom));
   z-index: 999;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -16rpx 64rpx rgba(0, 0, 0, 0.06), 0 -4rpx 16rpx rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(48rpx) saturate(1.5);
+  -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
+  border-radius: 48rpx;
+  border: 2rpx solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.14), 0 -2rpx 4rpx rgba(0, 0, 0, 0.02);
+  padding: 6rpx 0 calc(6rpx + env(safe-area-inset-bottom));
 }
 
 .tab-bar-inner {
   position: relative;
   display: flex;
   align-items: center;
-  height: 136rpx;
-  padding: 0 28rpx;
+  height: 96rpx;
 }
 
 .tab-item {
@@ -142,7 +145,7 @@ function switchTab(url: string) {
   font-weight: 600;
 }
 
-/* ─── 图标（纯 CSS，双端一致） ─── */
+/* ─── 图标（外置 SVG，与各 tab 一致） ─── */
 .tab-icon {
   position: relative;
   width: 44rpx;
@@ -158,7 +161,7 @@ function switchTab(url: string) {
   transition: transform 0.2s ease;
 }
 
-/* ─── AI 凸起按钮 ─── */
+/* ─── AI 圆形按钮（紫色渐变 + 呼吸光环，居中） ─── */
 .tab-ai {
   flex: 1;
   display: flex;
@@ -169,24 +172,51 @@ function switchTab(url: string) {
   padding-top: 8rpx;
 }
 
-.ai-btn {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+.ai-btn-wrap {
+  position: relative;
+  width: 88rpx;
+  height: 88rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 14rpx rgba(37, 99, 235, 0.22);
+}
+
+/* 呼吸光环：以圆钮圆心同心扩散 */
+.ai-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(168, 85, 247, 0.55);
+  transform: translate(-50%, -50%);
+  animation: aiRing 2.6s ease-out infinite;
+  pointer-events: none;
+}
+
+.ai-btn {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 55%, #a855f7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.32);
+  animation: aiBreathe 2.6s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
 }
 
 .tab-ai--active .ai-btn {
-  box-shadow: 0 4rpx 18rpx rgba(37, 99, 235, 0.35), 0 0 0 4rpx rgba(37, 99, 235, 0.15);
+  box-shadow: 0 8rpx 44rpx rgba(168, 85, 247, 0.65), 0 0 0 4rpx rgba(168, 85, 247, 0.18);
+  transform: scale(1.05);
 }
 
 .ai-btn-text {
-  font-size: 24rpx;
-  font-weight: 700;
+  font-size: 30rpx;
+  font-weight: 800;
   color: #ffffff;
   letter-spacing: 0.5rpx;
   line-height: 1;
@@ -195,5 +225,31 @@ function switchTab(url: string) {
 .tab-text--active {
   color: $uni-color-primary;
   font-weight: 600;
+}
+
+/* ─── 呼吸动效 ─── */
+@keyframes aiBreathe {
+  0%,
+  100% {
+    box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.32);
+  }
+  50% {
+    box-shadow: 0 12rpx 56rpx rgba(168, 85, 247, 0.6);
+  }
+}
+
+@keyframes aiRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.88);
+    opacity: 0.85;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.38);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.38);
+    opacity: 0;
+  }
 }
 </style>

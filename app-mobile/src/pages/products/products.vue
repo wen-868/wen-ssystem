@@ -13,8 +13,8 @@
           @confirm="onSearch"
         />
         <image class="search-clear" v-if="keyword" src="/static/icons/sc-clear.svg" mode="aspectFit" @tap="clearSearch" />
-        <view class="icon-btn" @tap.stop="goNotifications">
-          <image class="icon-btn-img" src="/static/icons/hd-bell.svg" mode="aspectFit" />
+        <view class="icon-btn" @tap.stop="onScan">
+          <image class="icon-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
         </view>
       </view>
     </view>
@@ -270,6 +270,30 @@ function goNotifications() {
   uni.navigateTo({ url: '/pages/notifications/notifications' })
 }
 
+/** 扫码查商品：扫条码 → 按条码搜索 → 进入商品详情 */
+async function onScan() {
+  try {
+    const { scanCode } = await import('@/native/scan')
+    const result = await scanCode()
+    const code = result?.code
+    if (!code) return
+    uni.showLoading({ title: '查询商品...' })
+    const res = await productsApi.list({ keyword: code, page: 1, pageSize: 10 })
+    uni.hideLoading()
+    const rows = res?.list ?? []
+    const matched =
+      rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
+    if (matched) {
+      goDetail(matched.id)
+    } else {
+      uni.showToast({ title: '未找到该条码商品', icon: 'none' })
+    }
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: (err as Error)?.message || '扫码失败', icon: 'none' })
+  }
+}
+
 /** 操作卡入口：建议核价/批量调价/价格异常均接入真实页面 */
 function onAction(type: 'suggest' | 'batch' | 'anomaly') {
   if (type === 'batch') {
@@ -390,6 +414,7 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.015);
   flex-shrink: 0;
   height: 100%;
+  padding-top: 4rpx;
 }
 
 .prod-side-item {

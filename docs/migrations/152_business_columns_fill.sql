@@ -96,7 +96,7 @@ ALTER TABLE t_collection_link ADD COLUMN last_pay_time DATETIME DEFAULT NULL COM
 ALTER TABLE t_bank_account ADD COLUMN bank_branch VARCHAR(128) DEFAULT NULL COMMENT '支行名称(与branch_name同义)';
 
 -- 编号: 152, 描述: 全业务模块表列名审计补列——23 张表补齐服务 INSERT/UPDATE 引用的缺失列(与既有列同义), 修复采购/销售退货/供应商/调拨/盘点/对账/租户/员工/仓库/小程序订单/平台配置等模块真实库必 500 缺陷
--- 创建人: Codex, 日期: 2026-08-15
+-- 创建人: 系统, 日期: 2026-08-15
 -- 背景: 全量审计(274 张表结构合并 init_database + migrations + migration.ts 动态建表/加列 + TENANT_TABLES tenant_id) 对比 384 个服务文件 INSERT/UPDATE 列引用, 发现 23 张表存在服务列在真实表不存在的缺陷。本迁移幂等补齐(所有列追加表尾, 不使用 AFTER 避免依赖列缺失; migration.ts safeExec 对 ER_DUP_FIELDNAME 做模式匹配跳过, 可重复执行)。
 -- 核心: t_operation_log 12 个核心业务服务写入(user_id/user_name/target_id/target_type/detail/log_no/remark/target/category); t_sys_user 员工/总台建管理员; t_store 仓库管理; t_miniapp_order 运费; t_transfer_order 调拨单; t_tenant 总台建租户; 其余为对账/盘点/平台配置等。
 -- 注意: 文件头不写注释(自动迁移按分号拆分,注释污染首条语句被丢弃),说明放文件末尾。
