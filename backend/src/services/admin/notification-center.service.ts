@@ -108,7 +108,8 @@ export async function getTypeStats(tenantId: string) {
     stats[key] = 0;
   }
   for (const row of rows) {
-    stats[row.type] = Number(row.count);
+    // 数据库 type 为大写（ORDER/PAYMENT），统一转小写与 typeMap 对齐
+    stats[String(row.type).toLowerCase()] = Number(row.count);
   }
 
   return Object.entries(typeMap).map(([type, label]) => ({

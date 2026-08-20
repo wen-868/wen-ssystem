@@ -131,7 +131,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import {
   Bell, Warning, Document, Money, ShoppingCart, CreditCard, CircleClose
 } from "@element-plus/icons-vue";
-import axios from "axios";
+import { api } from "../../api";
 import { formatDate } from "../../utils/format";
 
 const loading = ref(false);
@@ -192,18 +192,19 @@ function getMsgTagType(type: string) {
 
 async function loadUnreadCount() {
   try {
-    const { data: res } = await axios.get("/api/admin/wb-notifications/unread-count");
+    const { data: res } = await api.get("/admin/wb-notifications/unread-count");
     const data = res.data || res;
-    totalUnread.value = typeof data === "object" ? (data.total || 0) : (data || 0);
+    totalUnread.value = typeof data === "object" ? (data.count ?? data.total ?? 0) : (data || 0);
   } catch { /* ignore */ }
 }
 
 async function loadTypeStats() {
   try {
-    const { data: res } = await axios.get("/api/admin/wb-notifications/type-stats");
-    const stats = res.data || res || {};
+    const { data: res } = await api.get("/admin/wb-notifications/type-stats");
+    const stats: Array<{ type: string; count: number }> = res.data || res || [];
     typeMenus.value.forEach(menu => {
-      menu.unread = stats[menu.type] || 0;
+      const s = stats.find((x) => String(x.type).toUpperCase() === menu.type);
+      menu.unread = s ? Number(s.count ?? 0) : 0;
     });
   } catch { /* ignore */ }
 }
@@ -211,7 +212,7 @@ async function loadTypeStats() {
 async function search() {
   loading.value = true;
   try {
-    const { data: res } = await axios.get("/api/admin/wb-notifications", {
+    const { data: res } = await api.get("/admin/wb-notifications", {
       params: {
         page: page.value,
         pageSize: pageSize.value,
@@ -242,7 +243,7 @@ function handleTypeSelect(type: string) {
 async function handleClickMsg(msg: any) {
   if (!msg.isRead) {
     try {
-      await axios.put(`/api/admin/wb-notifications/${msg.id}/read`);
+      await api.put(`/admin/wb-notifications/${msg.id}/read`);
       msg.isRead = true;
       await loadUnreadCount();
       await loadTypeStats();
@@ -255,7 +256,7 @@ async function handleClickMsg(msg: any) {
 async function handleMarkAllRead() {
   try {
     await ElMessageBox.confirm("确认将所有消息标记为已读？", "提示", { type: "info" });
-    await axios.post("/api/admin/wb-notifications/read-all");
+    await api.post("/admin/wb-notifications/read-all");
     ElMessage.success("已全部标为已读");
     await loadData();
   } catch { /* cancelled */ }
@@ -264,7 +265,7 @@ async function handleMarkAllRead() {
 async function handleDeleteMsg(msg: any) {
   try {
     await ElMessageBox.confirm("确认删除该消息？", "提示", { type: "warning" });
-    await axios.delete(`/api/admin/wb-notifications/${msg.id}`);
+    await api.delete(`/admin/wb-notifications/${msg.id}`);
     ElMessage.success("删除成功");
     await loadData();
   } catch { /* cancelled */ }
