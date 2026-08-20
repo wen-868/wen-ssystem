@@ -7,6 +7,8 @@ export * from "./api/common";
 export * from "./api/aftersale";
 // alert 模块
 export * from "./api/alert";
+// bills 模块（历史单据/单据管理）
+export * from "./api/bills";
 // customer 模块
 export * from "./api/customer";
 // export 模块

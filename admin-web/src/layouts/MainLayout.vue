@@ -199,6 +199,7 @@
             <div class="nav-sub-item" :class="{ active: isActive('/finance/reconciliation') }" @click="navTo('/finance/reconciliation')">财务对账</div>
             <div class="nav-sub-item" :class="{ active: isActive('/finance/profit') }" @click="navTo('/finance/profit')">利润核算</div>
             <div class="nav-sub-item" :class="{ active: isActive('/fund-report') }" @click="navTo('/fund-report')">资金报表</div>
+            <div class="nav-sub-item" :class="{ active: isActive('/history-bills') }" @click="navTo('/history-bills')">单据管理</div>
           </div>
         </div>
 
@@ -453,7 +454,7 @@ onMounted(() => {
   // 5. 客户会员
   if (path.startsWith('/customers') || path.startsWith('/member') || path.startsWith('/store-value') || path.startsWith('/credit') || path.startsWith('/points') || path.startsWith('/level') || path.startsWith('/customer-')) openGroups.customers = true;
   // 6. 财务中心
-  if (path.startsWith('/finance') || path.startsWith('/payments') || path.startsWith('/customer-statements') || path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management')) openGroups.finance = true;
+  if (path.startsWith('/finance') || path.startsWith('/payments') || path.startsWith('/customer-statements') || path.startsWith('/bank-accounts') || path.startsWith('/fund-report') || path.startsWith('/bill-management') || path.startsWith('/history-bills')) openGroups.finance = true;
   // 7. 采购管理
   if (path.startsWith('/purchase') || path.startsWith('/suppliers')) openGroups.purchase = true;
   // 8. 即时零售
@@ -629,6 +630,7 @@ const pageTitle = computed(() => {
     "/bank-accounts": "银行账户管理",
     "/fund-report": "资金报表",
     "/bill-management": "票据管理",
+    "/history-bills": "单据管理",
     // 10. 数据报表
     "/reports": "销售统计",
     "/reports/sales-analysis": "销售分析",

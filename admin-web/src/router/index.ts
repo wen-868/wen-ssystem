@@ -202,6 +202,7 @@ const routes = [
       { path: "bank-accounts", name: "bank-accounts", component: () => import("../views/finance/BankAccounts.vue"), meta: { roles: ["SUPER_ADMIN"], title: "银行账户", icon: CreditCard } },
       { path: "fund-report", name: "fund-report", component: () => import("../views/finance/FinanceReport.vue"), meta: { roles: ["SUPER_ADMIN"], title: "资金报表", icon: TrendCharts } },
       { path: "bill-management", name: "bill-management", component: () => import("../views/finance/BillManagement.vue"), meta: { roles: ["SUPER_ADMIN"], title: "票据管理", icon: Ticket } },
+      { path: "history-bills", name: "history-bills", component: () => import("../views/finance/HistoryBills.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "单据管理", icon: Files } },
       // 10. 数据报表
       { path: "reports", name: "reports", component: () => import("../views/report/Reports.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "报表中心", icon: Files } },
       { path: "reports/purchase", name: "purchase-reports", component: () => import("../views/report/PurchaseReports.vue"), meta: { roles: ["SUPER_ADMIN", "STORE_MANAGER"], title: "采购报表", icon: ShoppingCart } },
