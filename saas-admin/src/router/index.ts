@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { title: '平台登录', requiresAuth: false },
     },
     {
+      path: '/register',
+      name: 'Register',
+      component: () => import('../views/login/PlatformRegister.vue'),
+      meta: { title: '商户注册', requiresAuth: false },
+    },
+    {
       path: '/',
       component: () => import('../layouts/PlatformLayout.vue'),
       redirect: '/dashboard',

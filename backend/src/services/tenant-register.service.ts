@@ -91,12 +91,17 @@ interface TenantRegisterAppRawRow {
 }
 
 export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ applicationId: number }> {
-  const companyName = body.company_name;
-  const contactMobile = body.contact_mobile;
-  const adminUsername = body.admin_username;
-  const adminPassword = body.admin_password;
-  const contactPerson = body.contact_person;
-  const adminRealName = body.admin_real_name;
+  // 兼容 camelCase / snake_case 字段（移动端与总台注册均传 camelCase）
+  const anyBody = body as unknown as Record<string, unknown>;
+  const companyName = (body.company_name || anyBody.companyName || "") as string;
+  const contactMobile = (body.contact_mobile || anyBody.contactMobile) as string;
+  const adminUsername = (body.admin_username || anyBody.adminUsername) as string;
+  const adminPassword = (body.admin_password || anyBody.adminPassword) as string;
+  const contactPerson = (body.contact_person || anyBody.contactPerson || contactMobile || "") as string;
+  const adminRealName = (body.admin_real_name || anyBody.adminRealName || contactMobile || "") as string;
+
+  // 公司名称非必填：未填时以手机号兜底，保证可注册
+  const finalCompanyName = companyName.trim() || `${contactMobile || "新"}商户`;
 
   // 手机短信验证码校验（总台开关开启时必填，防止恶意注册；关闭时无需验证码）
   if (!contactMobile) {
@@ -116,7 +121,7 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
 
   const existingCompany = await queryOne<IdRow>(
     "SELECT id FROM t_tenant_register_application WHERE company_name = ?",
-    [companyName]
+    [finalCompanyName]
   );
   if (existingCompany) {
     throw new AppError("该公司名称已提交过注册申请", 400);
@@ -155,14 +160,14 @@ export async function applyTenantRegister(body: TenantRegisterInput): Promise<{ 
       industry, company_scale, admin_username, admin_password_hash, admin_real_name
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      companyName, body.company_short_name || "", contactMobile, contactPerson, body.contact_email || "",
+      finalCompanyName, body.company_short_name || anyBody.companyShortName || "", contactMobile, contactPerson, body.contact_email || anyBody.contactEmail || "",
       body.province || "", body.city || "", body.district || "", body.address || "", body.business_license || "",
-      body.legal_person || "", body.industry || "", body.company_scale || "", adminUsername, passwordHash, adminRealName
+      body.legal_person || anyBody.legalPerson || "", body.industry || "", body.company_scale || anyBody.companyScale || "", adminUsername, passwordHash, adminRealName
     ]
   );
 
   const applicationId = (result as unknown as { insertId: number }).insertId;
-  logger.info(`[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${companyName}`);
+  logger.info(`[租户注册] 申请提交成功 applicationId=${applicationId} companyName=${finalCompanyName}`);
 
   return { applicationId };
 }

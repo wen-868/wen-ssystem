@@ -75,17 +75,6 @@
           <text class="error-text">{{ errors.confirmPassword }}</text>
         </view>
 
-        <view class="form-item">
-          <view class="input-icon"><image class="ic" src="/static/icons/ic/shield.svg" mode="aspectFit"/></view>
-          <input
-            class="form-input"
-            v-model="registerForm.name"
-            type="text"
-            placeholder="企业 / 门店名称（选填）"
-            placeholder-class="input-placeholder"
-          />
-        </view>
-
         <view class="agreement-item" @tap="registerForm.agreement = !registerForm.agreement">
           <view :class="['checkbox', { 'checkbox--checked': registerForm.agreement }]">
             <image v-if="registerForm.agreement" class="checkbox-icon ic" src="/static/icons/ic/check.svg" mode="aspectFit"/>
@@ -145,7 +134,6 @@ const registerForm = reactive({
   mobile: '',
   password: '',
   confirmPassword: '',
-  name: '',
   agreement: false
 })
 
@@ -218,12 +206,12 @@ async function handleRegister() {
   try {
     // 租户注册申请（平台审核制，无需短信验证码）
     await authApi.register({
-      companyName: registerForm.name || registerForm.mobile,
-      contactPerson: registerForm.name || '管理员',
+      companyName: registerForm.mobile,
+      contactPerson: registerForm.mobile,
       contactMobile: registerForm.mobile,
       adminUsername: registerForm.mobile,
       adminPassword: registerForm.password,
-      adminRealName: registerForm.name || '管理员',
+      adminRealName: registerForm.mobile,
     })
 
     uni.showToast({ title: '注册申请已提交，等待审核', icon: 'success' })

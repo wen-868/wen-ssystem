@@ -13,6 +13,10 @@
           <el-button type="primary" :loading="loading" style="width: 100%" @click="handleLogin">登录</el-button>
         </el-form-item>
       </el-form>
+      <div class="register-link">
+        <span>还没有账号？</span>
+        <el-link type="primary" @click="goRegister">立即注册</el-link>
+      </div>
     </el-card>
   </div>
 </template>
@@ -46,10 +50,15 @@ async function handleLogin() {
     loading.value = false
   }
 }
+
+function goRegister() {
+  router.push('/register')
+}
 </script>
 
 <style scoped>
 .login-wrapper { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f0f2f5; }
 .login-card { width: 400px; }
 .login-card h2 { text-align: center; margin-bottom: 24px; color: #303133; }
+.register-link { text-align: center; margin-top: 4px; color: #606266; font-size: 14px; }
 </style>
