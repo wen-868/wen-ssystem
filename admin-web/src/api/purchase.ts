@@ -27,8 +27,8 @@ export async function createPurchaseOrder(payload: unknown) {
   return data.data;
 }
 
-export async function fetchPurchaseOrderDetail(id: number) {
-  const { data } = await api.get(`/admin/purchase-orders/${id}`);
+export async function fetchPurchaseOrderDetail(orderNo: string) {
+  const { data } = await api.get(`/admin/purchase-orders/${orderNo}`);
   return data.data;
 }
 
@@ -49,6 +49,11 @@ export async function purchaseInStock(payload: unknown) {
 
 export async function fetchPurchaseInStocks(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
   const { data } = await api.get("/admin/purchase-in-stocks", { params: { page: 1, pageSize: 20, ...params } });
+  return data.data;
+}
+
+export async function fetchPurchaseInStockDetail(stockNo: string) {
+  const { data } = await api.get(`/admin/purchase-in-stocks/${stockNo}`);
   return data.data;
 }
 

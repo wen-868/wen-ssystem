@@ -43,7 +43,7 @@
     </div>
 
     <div class="table-card">
-      <el-table :data="billList" v-loading="loading" stripe empty-text="暂无历史单据">
+      <el-table :data="billList" v-loading="loading" stripe empty-text="暂无历史单据" @row-click="handleRowClick">
         <el-table-column prop="billNo" label="单据号" min-width="180" />
         <el-table-column prop="billType" label="单据类型" width="120">
           <template #default="{ row }">
@@ -70,6 +70,11 @@
             {{ formatTime(row.createdAt) }}
           </template>
         </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" link type="primary" @click.stop="handleRowClick(row)">详情</el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
       <div class="table-card-footer">
@@ -89,9 +94,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { fetchHistoryBills } from "../../api";
 
+const router = useRouter();
 const loading = ref(false);
 const billList = ref<any[]>([]);
 const total = ref(0);
@@ -196,6 +203,27 @@ function handleSizeChange(size: number) {
 function handlePageChange(p: number) {
   page.value = p;
   loadBills();
+}
+
+/** 行点击/详情：跳转到对应单据详情页或列表页自动打开详情 */
+function handleRowClick(row: any) {
+  const t = row.billType;
+  if (t === "sale_bill") {
+    router.push(`/sale-bills/${encodeURIComponent(row.billNo)}`);
+    return;
+  }
+  if (t === "sale_order") {
+    router.push({ path: "/orders", query: { orderNo: row.billNo } });
+    return;
+  }
+  if (t === "purchase_order") {
+    router.push({ path: "/purchase-orders", query: { orderNo: row.billNo } });
+    return;
+  }
+  if (t === "purchase_in_stock") {
+    router.push({ path: "/purchase-in-stocks", query: { stockNo: row.billNo } });
+    return;
+  }
 }
 
 onMounted(loadBills);

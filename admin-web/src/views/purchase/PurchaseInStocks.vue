@@ -192,10 +192,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { purchaseInStock, fetchPurchaseInStocks, fetchSuppliers, fetchStores } from "../../api";
+import { purchaseInStock, fetchPurchaseInStocks, fetchPurchaseInStockDetail, fetchSuppliers, fetchStores } from "../../api";
 import FormFooter from "../../components/FormFooter.vue";
 
 const loading = ref(false);
@@ -288,9 +289,14 @@ function removeItem(index: number) {
   }
 }
 
-function viewDetail(row: any) {
-  currentInStock.value = row;
-  detailVisible.value = true;
+async function viewDetail(row: any) {
+  try {
+    const detail = await fetchPurchaseInStockDetail(row.inStockNo);
+    currentInStock.value = { ...row, ...detail };
+    detailVisible.value = true;
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.msg || "加载详情失败");
+  }
 }
 
 async function handleConfirm(row: any) {
@@ -342,10 +348,14 @@ async function handleCreate() {
   }
 }
 
-onMounted(() => {
-  loadInStocks();
-  loadSuppliers();
-  loadStores();
+onMounted(async () => {
+  await Promise.all([loadInStocks(), loadSuppliers(), loadStores()]);
+  // 单据管理跳转：自动打开对应入库单详情
+  const stockNo = useRoute().query.stockNo as string | undefined;
+  if (stockNo) {
+    const row = inStocks.value.find((o) => String(o.inStockNo) === String(stockNo));
+    if (row) viewDetail(row);
+  }
 });
 </script>
 

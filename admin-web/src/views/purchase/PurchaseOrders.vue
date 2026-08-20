@@ -202,6 +202,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import { fmtStatus } from "../../utils/enums";
 import { ElMessage, ElMessageBox, type FormRules } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
@@ -301,7 +302,7 @@ function removeItem(index: number) {
 
 async function viewDetail(row: any) {
   try {
-    currentOrder.value = await fetchPurchaseOrderDetail(row.id);
+    currentOrder.value = await fetchPurchaseOrderDetail(row.orderNo);
     detailVisible.value = true;
   } catch (e: any) {
     ElMessage.error(e.response?.data?.msg || "加载详情失败");
@@ -359,9 +360,14 @@ async function handleCreate() {
   }
 }
 
-onMounted(() => {
-  loadOrders();
-  loadSuppliers();
+onMounted(async () => {
+  await Promise.all([loadOrders(), loadSuppliers()]);
+  // 单据管理跳转：自动打开对应采购订单详情
+  const orderNo = useRoute().query.orderNo as string | undefined;
+  if (orderNo) {
+    const row = orders.value.find((o) => String(o.orderNo) === String(orderNo));
+    if (row) viewDetail(row);
+  }
 });
 </script>
 

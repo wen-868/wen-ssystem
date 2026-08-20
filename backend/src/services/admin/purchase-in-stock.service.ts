@@ -176,7 +176,14 @@ export async function list(params: {
   const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
   const stocks = await query<PurchaseInStockRawRow>(
-    `SELECT * FROM t_purchase_in_stock WHERE 1=1${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+    `SELECT p.id, p.stock_no AS inStockNo, p.order_no AS relatedOrderNo, p.supplier_id AS supplierId,
+            p.supplier_name AS supplierName, p.store_id AS storeId, st.name AS storeName,
+            p.stock_status AS status, p.goods_amount AS goodsAmount, p.tax_amount AS taxAmount,
+            p.total_amount AS totalAmount, p.operator_id AS operatorId, p.auditor_id AS auditorId,
+            p.audited_at AS auditedAt, p.remark, p.created_at AS createTime, p.updated_at AS updatedAt
+     FROM t_purchase_in_stock p
+     LEFT JOIN t_store st ON st.id = p.store_id AND st.tenant_id = p.tenant_id
+     WHERE 1=1${whereClause} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`,
     [tenantId, ...queryParams, pageSize, offset]
   );
   return stocks;
@@ -184,12 +191,23 @@ export async function list(params: {
 
 export async function getDetail(stockNo: string, tenantId: string) {
   const stock = await queryOne<PurchaseInStockRawRow>(
-    "SELECT * FROM t_purchase_in_stock WHERE stock_no = ? AND tenant_id = ?",
+    `SELECT p.id, p.stock_no AS inStockNo, p.order_no AS relatedOrderNo, p.supplier_id AS supplierId,
+            p.supplier_name AS supplierName, p.store_id AS storeId, st.name AS storeName,
+            p.stock_status AS status, p.goods_amount AS goodsAmount, p.tax_amount AS taxAmount,
+            p.total_amount AS totalAmount, p.operator_id AS operatorId, p.auditor_id AS auditorId,
+            p.audited_at AS auditedAt, p.remark, p.created_at AS createTime, p.updated_at AS updatedAt
+     FROM t_purchase_in_stock p
+     LEFT JOIN t_store st ON st.id = p.store_id AND st.tenant_id = p.tenant_id
+     WHERE p.stock_no = ? AND p.tenant_id = ?`,
     [stockNo, tenantId]
   );
   if (!stock) throw Object.assign(new Error("入库单不存在"), { statusCode: 404 });
   const items = await query<PurchaseInStockItemRawRow>(
-    "SELECT * FROM t_purchase_in_stock_item WHERE stock_no = ? ORDER BY id ASC",
+    `SELECT id, sku_id AS skuId, sku_name AS skuName, box_qty AS boxQty, bottle_qty AS bottleQty,
+            total_bottle_qty AS totalBottleQty, unit_price AS unitPrice, tax_rate AS taxRate,
+            subtotal_amount AS subtotalAmount, tax_amount AS taxAmount, total_amount AS totalAmount,
+            batch_no AS batchNo, production_date AS productionDate, expiry_date AS expiryDate, remark
+     FROM t_purchase_in_stock_item WHERE stock_no = ? ORDER BY id ASC`,
     [stockNo]
   );
   return { ...stock, items };

@@ -160,6 +160,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { Refresh } from "@element-plus/icons-vue";
 import TableSkeleton from "../../components/TableSkeleton.vue";
@@ -169,6 +170,7 @@ import { fmtStatus, fmtCustomerType } from "../../utils/enums";
 
 const loading = ref(false);
 const orders = ref<any[]>([]);
+const route = useRoute();
 
 /** 订单统计条（按状态计数，对标设计稿 p04） */
 const orderStats = computed(() => {
@@ -229,8 +231,14 @@ async function viewDetail(row: any) {
   }
 }
 
-onMounted(() => {
-  loadOrders();
+onMounted(async () => {
+  await loadOrders();
+  // 单据管理跳转：自动打开对应订单详情
+  const orderNo = route.query.orderNo as string | undefined;
+  if (orderNo) {
+    const row = orders.value.find((o) => String(o.orderNo) === String(orderNo));
+    if (row) viewDetail(row);
+  }
 });
 </script>
 
