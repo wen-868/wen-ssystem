@@ -29,6 +29,11 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
+/* 隐藏 H5 端原生 tabBar（custom:true 时仍渲染占位，避免与自定义悬浮胶囊形成双栏） */
+uni-tabbar {
+  display: none !important;
+}
+
 /* 线框图标（iconfont 字符全面替换后统一尺寸：跟随所在类名字号） */
 image.ic {
   width: 1em;

@@ -45,7 +45,6 @@
             <text class="ai-btn-text">AI</text>
           </view>
         </view>
-        <text class="tab-text" :class="{ 'tab-text--active': current === 'ai' }">AI</text>
       </view>
 
       <!-- 功能 -->
@@ -165,11 +164,8 @@ function switchTab(url: string) {
 .tab-ai {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
-  padding-top: 8rpx;
 }
 
 .ai-btn-wrap {
