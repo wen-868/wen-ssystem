@@ -31,8 +31,10 @@ echo "==> 构建前端（相对路径 /api；AI 底座走 /ai-api nginx 代理 �
 VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace admin-web run build
 VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace saas-admin run build
 
-echo "==> 构建商户端 H5"
-VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace app-mobile run build:h5 || echo "==> [部署] app-mobile 构建失败（请查看上方错误输出）"
+echo "==> 商户端 H5（跳过服务器构建）"
+# 移动端 H5 由本地构建产物手动部署（dist 上传 /var/www/app-mobile），
+# 避免服务器 npm 构建环境与本地差异导致产物异常（图标/样式丢失）覆盖线上。
+# 如需服务器构建请手动执行：VITE_API_BASE=/api VITE_AI_BASE_URL=/ai-api npm --workspace app-mobile run build:h5
 
 echo "==> 构建官网"
 npm --workspace website run build
@@ -48,12 +50,7 @@ rm -rf /var/www/saas-admin
 mkdir -p /var/www/saas-admin
 cp -r "${PROJECT_DIR}/saas-admin/dist/"* /var/www/saas-admin/
 
-# app-mobile → m.onepan.cn
-if [ -d "${PROJECT_DIR}/app-mobile/dist/build/h5" ]; then
-  rm -rf /var/www/app-mobile
-  mkdir -p /var/www/app-mobile
-  cp -r "${PROJECT_DIR}/app-mobile/dist/build/h5/"* /var/www/app-mobile/
-fi
+# app-mobile → m.onepan.cn（跳过：移动端 H5 由本地构建产物手动部署，避免自动覆盖）
 
 # 官网 → www.onepan.cn
 rm -rf /var/www/website
