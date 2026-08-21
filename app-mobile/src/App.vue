@@ -29,6 +29,14 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
+/* 全局隐藏 H5 滚动条（原稿 reset：::-webkit-scrollbar display:none） */
+::-webkit-scrollbar,
+uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* 隐藏 H5 端原生 tabBar（custom:true 时仍渲染占位，避免与自定义悬浮胶囊形成双栏） */
 uni-tabbar {
   display: none !important;
