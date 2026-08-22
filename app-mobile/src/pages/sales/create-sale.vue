@@ -1490,7 +1490,7 @@ async function handleSubmit() {
 }
 
 .picker-content--product {
-  padding: 0 24rpx;
+  padding: 0;
 }
 
 /* 客户列表项 */
@@ -1578,7 +1578,7 @@ async function handleSubmit() {
 .product-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
+  padding: 20rpx 24rpx;
   border-bottom: 1rpx solid $uni-bg-color-grey;
   gap: 16rpx;
 }
@@ -1636,6 +1636,9 @@ async function handleSubmit() {
 
 .product-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 加载更多 */
