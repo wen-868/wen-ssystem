@@ -33,7 +33,7 @@
       <view class="link-section" v-if="detail.linkUrl">
         <view class="link-card" @tap="handleLinkClick">
           <view class="link-icon">
-            <text class="link-icon-text">链</text>
+            <image class="link-icon-img" src="/static/icons/ic/link.svg" mode="aspectFit" />
           </view>
           <view class="link-info">
             <text class="link-text">{{ detail.linkText || '查看相关内容' }}</text>
@@ -424,5 +424,6 @@ onMounted(() => {
 .safe-bottom {
   height: env(safe-area-inset-bottom);
 }
-</style>
 
+.link-icon-img{width:64rpx;height:64rpx;border-radius:50%}
+</style>

@@ -5,7 +5,7 @@
       <view class="product-section">
         <view class="product-image-wrap">
           <view class="product-image">
-            <text class="image-icon">🍷</text>
+            <image class="image-icon-img" src="/static/icons/ic/wine.svg" mode="aspectFit" />
           </view>
           <view class="group-badge">拼团</view>
         </view>
@@ -616,4 +616,7 @@ onMounted(() => {
   color: $uni-gray-400;
   font-size: 28rpx;
 }
+
+.image-icon-img{width:120rpx;height:120rpx}
+.empty-icon-img{width:96rpx;height:96rpx}
 </style>
