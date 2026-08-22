@@ -187,17 +187,13 @@
 
     <!-- 底部提交 -->
     <view class="bottom-bar">
-        <view class="bottom-total" v-if="saleItems.length > 0">
-          <text class="total-label">应收金额：</text>
-          <text class="total-value">¥{{ receivable.toFixed(2) }}</text>
-        </view>
       <button
         class="submit-btn"
         :disabled="!canSubmit || submitting"
         :class="{ 'submit-btn--disabled': !canSubmit }"
         @tap="handleSubmit"
       >
-        {{ submitting ? '提交中...' : '收款' }}
+        {{ submitting ? '转销售单中...' : '转销售单' }}
       </button>
       <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
         {{ isSaved ? '修改' : '保存' }}
@@ -846,7 +842,7 @@ async function handleSubmit() {
       })),
       remark: remark.value || undefined
     })
-    uni.showToast({ title: '开单成功', icon: 'success' })
+    uni.showToast({ title: '已转销售单', icon: 'success' })
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
@@ -977,25 +973,25 @@ async function handleSubmit() {
 .qc-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16rpx;
+  gap: 10rpx;
 }
 
 .qc-cell {
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  gap: 4rpx;
   background: $uni-bg-color-page;
   border-radius: 12rpx;
-  padding: 16rpx 20rpx;
+  padding: 10rpx 16rpx;
 }
 
 .qc-label {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: $uni-gray-400;
 }
 
 .qc-val {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: $uni-gray-700;
   font-weight: 500;
   display: flex;
