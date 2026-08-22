@@ -58,9 +58,6 @@
           </view>
         </view>
 
-        <!-- 商品计数（原页头信息迁移） -->
-        <view class="prod-count-line" v-if="totalCount > 0">共 {{ totalCount }} 件商品</view>
-
         <!-- 虚拟滚动商品列表 -->
         <virtual-list
           v-if="productList.length > 0"
@@ -86,7 +83,7 @@
                   lazy-load
                 />
                 <view v-else class="product-image-placeholder">
-                  <image class="placeholder-icon ic" src="/static/icons/ic/image.svg" mode="aspectFit"/>
+                  <text class="placeholder-letter">{{ (item.name || '')[0] }}</text>
                 </view>
                 <view class="offline-tag" v-if="isOfflineProduct(item)">
                   <text class="offline-tag-text">仅线下</text>
@@ -142,7 +139,7 @@ const noMore = ref(false)
 const totalCount = ref(0)
 
 /** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
-const itemSize = ref(200)
+const itemSize = ref(94)
 
 function switchCategory(categoryId: number) {
   activeCategory.value = categoryId
@@ -311,11 +308,11 @@ function onAction(type: 'suggest' | 'batch' | 'anomaly') {
 }
 
 onMounted(() => {
-  // 200rpx 转 px（依赖屏幕宽度）
+  // 行高 = 卡高(缩略图112rpx+上下内距28rpx×2) + 卡间距20rpx = 188rpx
   try {
-    itemSize.value = uni.upx2px(200)
+    itemSize.value = uni.upx2px(188)
   } catch (err) {
-    itemSize.value = 100
+    itemSize.value = 94
   }
   loadCategories()
   loadProducts()
@@ -331,23 +328,26 @@ onMounted(() => {
   height: 100vh;
 }
 
-/* 搜索栏（顶部承接状态栏 safe-area，原页头已删除） */
+/* 搜索栏（原稿 margin 10px 14px 0，高 42px，灰底页面浮白条） */
 .search-bar {
-  padding: 16rpx 24rpx;
-  padding-top: calc(16rpx + env(safe-area-inset-top));
-  background: $uni-bg-color;
+  padding: 20rpx 28rpx 0;
+  padding-top: calc(20rpx + env(safe-area-inset-top));
+  background: $uni-bg-color-grey;
 }
 
 .search-input-wrap {
   display: flex;
   align-items: center;
-  height: 72rpx;
-  background: $uni-bg-color-page;
-  border-radius: 36rpx;
-  padding: 0 24rpx;
+  height: 84rpx;
+  background: $uni-bg-color;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border-radius: 999rpx;
+  padding: 0 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  gap: 16rpx;
 }
 
-/* 搜索栏铃铛入口：热区 72rpx（spec12 触摸目标） */
+/* 搜索栏扫码入口：热区 80rpx（原稿 icon-btn 40px） */
 .icon-btn {
   width: 72rpx;
   height: 72rpx;
@@ -366,14 +366,6 @@ onMounted(() => {
 .icon-btn-img {
   width: 36rpx;
   height: 36rpx;
-}
-
-/* 商品计数行（原页头信息迁移） */
-.prod-count-line {
-  font-size: 24rpx;
-  color: $uni-gray-500;
-  font-weight: 500;
-  margin-bottom: 12rpx;
 }
 
 .search-icon {
@@ -406,19 +398,18 @@ onMounted(() => {
   flex: 1;
   display: flex;
   min-height: 0;
-  margin-top: 16rpx;
 }
 
 .prod-side {
-  width: 160rpx;
+  width: 152rpx;
   background: rgba(0, 0, 0, 0.015);
   flex-shrink: 0;
   height: 100%;
-  padding-top: 4rpx;
+  padding-top: 24rpx;
 }
 
 .prod-side-item {
-  padding: 28rpx 16rpx;
+  padding: 32rpx 16rpx;
   text-align: center;
   font-size: 24rpx;
   color: $uni-gray-500;
@@ -459,24 +450,24 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 0 20rpx;
+  padding: 24rpx 28rpx;
 }
 
 /* ─── 操作卡：建议核价 / 批量调价 / 价格异常 ─── */
 .action-row {
   display: flex;
   gap: 16rpx;
-  padding: 4rpx 0 16rpx;
-  background: $uni-bg-color-grey;
+  margin-bottom: 24rpx;
 }
 
 .action-card {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 18rpx 8rpx;
+  border-radius: 24rpx;
+  padding: 26rpx 16rpx;
   text-align: center;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
 .action-card-title {
@@ -515,8 +506,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 24rpx;
-  padding: 20rpx;
+  border-radius: 32rpx;
+  padding: 28rpx;
   margin-bottom: 20rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -525,14 +516,14 @@ onMounted(() => {
 }
 
 .product-image-wrap {
-  width: 140rpx;
-  height: 140rpx;
-  background: $uni-bg-color-page;
-  border-radius: 20rpx;
+  width: 112rpx;
+  height: 112rpx;
+  background: $uni-bg-color-grey;
+  border-radius: 24rpx;
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  margin-right: 20rpx;
+  margin-right: 24rpx;
 }
 
 .offline-tag {
@@ -571,12 +562,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft);
+  background: $uni-bg-color-grey;
 }
 
-.placeholder-icon {
-  font-size: 64rpx;
-  color: $uni-gray-300;
+/* 原稿 t-letter：无图时商品名首字占位 */
+.placeholder-letter {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: $uni-gray-400;
 }
 
 .product-info {
@@ -585,53 +578,81 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8rpx;
-}
-
-.product-name {
-  font-size: 28rpx;
-  color: $uni-text-color;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.4;
+  gap: 0;
 }
 
 .product-spec {
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
+  margin-top: 6rpx;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .product-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4rpx;
+  margin-top: 20rpx;
+}
+
+.product-name {
+  font-size: 26rpx;
+  color: $uni-text-color;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+  letter-spacing: -0.2rpx;
 }
 
 .product-price {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 800;
   color: $uni-color-primary;
+  letter-spacing: -0.6rpx;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .product-stock {
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+/* 原稿：库存前置小圆点，低库存红色 */
+.product-stock::before {
+  content: '';
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: $uni-gray-400;
+  flex-shrink: 0;
 }
 
 .stock-low {
   color: $ai-warning;
+  font-weight: 700;
+}
+
+.stock-low::before {
+  background: $uni-color-error;
 }
 
 .stock-out {
   color: $ai-danger;
+  font-weight: 700;
+}
+
+.stock-out::before {
+  background: $uni-color-error;
 }
 
 .stock-ok {
-  color: $ai-success;
+  color: $uni-gray-500;
 }
 
 /* 门店状态条 */

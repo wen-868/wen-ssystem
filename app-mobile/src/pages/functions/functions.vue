@@ -30,7 +30,7 @@
       <view class="func-list">
         <view class="list-item" v-for="item in filteredDataTools" :key="item.label" @tap="goto(item.path)">
           <view class="li-ico" :style="{ background: item.bg, color: item.color }">
-            <text class="li-ico-text">{{ item.icon }}</text>
+            <image class="li-ico-img" :src="item.icon" mode="aspectFit" />
           </view>
           <view class="li-body">
             <text class="li-title">{{ item.label }}</text>
@@ -72,22 +72,23 @@ const navigate = (path: string) => {
 
 const goto = (path: string) => navigate(path)
 
+/* 原稿：宫格图标统一蓝底浅蓝（更多为灰底） */
 const hotActions = [
   { icon: '/static/icons/fn-open.svg', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-member.svg', label: '会员管理', path: '/pages-sub/marketing/member/member-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_DANGER_SOFT, color: AI_DANGER },
+  { icon: '/static/icons/fn-member.svg', label: '会员管理', path: '/pages-sub/marketing/member/member-list', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-check.svg', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-store.svg', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-store.svg', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-more.svg', label: '更多', path: '/pages-sub/admin/more/more-functions', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
 const dataTools = [
   { icon: '/static/icons/fn-report.svg', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-rank.svg', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-trace.svg', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_DANGER_SOFT, color: AI_DANGER },
+  { icon: '/static/icons/fn-rank.svg', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-trace.svg', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
 ]
 
 /** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */
@@ -155,12 +156,12 @@ function doSearch() {
 
 /* 高频宫格 */
 .func-grid {
-  margin: 8rpx 28rpx 0;
+  margin: 28rpx 28rpx 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 24rpx 12rpx;
+  border-radius: 40rpx;
+  padding: 40rpx 20rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -169,8 +170,8 @@ function doSearch() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  padding: 20rpx 0;
+  gap: 20rpx;
+  padding: 24rpx 0;
   transition: transform 0.15s;
 }
 
@@ -179,8 +180,8 @@ function doSearch() {
 }
 
 .fg-ico {
-  width: 80rpx;
-  height: 80rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
@@ -188,8 +189,8 @@ function doSearch() {
 }
 
 .fg-ico-img {
-  width: 44rpx;
-  height: 44rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .fg-label {
@@ -216,21 +217,22 @@ function doSearch() {
 
 /* 数据工具 */
 .func-section {
-  margin: 36rpx 28rpx 0;
+  margin: 36rpx 28rpx 28rpx;
 }
 
 .func-section-title {
   display: block;
   font-size: 24rpx;
   font-weight: 600;
-  color: $uni-gray-400;
-  padding: 0 8rpx 16rpx;
+  color: $uni-gray-500;
+  padding: 0 8rpx 20rpx;
   letter-spacing: 1rpx;
+  text-transform: uppercase;
 }
 
 .func-list {
   background: $uni-bg-color;
-  border-radius: 32rpx;
+  border-radius: 40rpx;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -239,9 +241,9 @@ function doSearch() {
 .list-item {
   display: flex;
   align-items: center;
-  padding: 28rpx 24rpx;
-  gap: 24rpx;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  padding: 30rpx 36rpx;
+  gap: 28rpx;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
 .list-item:last-child {
@@ -253,8 +255,8 @@ function doSearch() {
 }
 
 .li-ico {
-  width: 72rpx;
-  height: 72rpx;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
@@ -262,9 +264,9 @@ function doSearch() {
   flex-shrink: 0;
 }
 
-.li-ico-text {
-  font-size: 28rpx;
-  font-weight: 700;
+.li-ico-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .li-body {
@@ -282,8 +284,11 @@ function doSearch() {
 .li-desc {
   display: block;
   font-size: 22rpx;
-  color: $uni-gray-400;
+  color: $uni-gray-500;
   margin-top: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .li-arrow {

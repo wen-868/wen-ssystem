@@ -166,9 +166,9 @@ const roleText = computed(() => {
 
 const shortcuts = [
   { icon: '/static/icons/prf-work.svg', label: '工作记录', path: '/pages/todos/todos', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_DANGER_SOFT, color: AI_DANGER },
-  { icon: '/static/icons/prf-recon.svg', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/prf-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
+  { icon: '/static/icons/prf-todo.svg', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/prf-recon.svg', label: '对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { icon: '/static/icons/prf-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
 ]
 
 /** 真实数据：门店营业时间 / 租户联系方式 / 应用版本 */
@@ -260,31 +260,35 @@ onMounted(() => {
 }
 
 /* 用户卡 */
+/* 用户卡（原稿：白卡 + 渐变蓝头像 + 深色文字 + 绿色营业徽章） */
 .prof-card {
   margin: 28rpx 28rpx 0;
-  background: $uni-gradient-blue;
-  border-radius: 32rpx;
-  padding: 36rpx 32rpx;
-  padding-top: calc(36rpx + env(safe-area-inset-top));
+  background: $uni-bg-color;
+  border-radius: 48rpx;
+  padding: 44rpx;
+  padding-top: calc(44rpx + env(safe-area-inset-top));
   display: flex;
   align-items: center;
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.25);
+  gap: 32rpx;
+  box-shadow: $uni-shadow-card;
+  border: 1rpx solid rgba(0, 0, 0, 0.03);
   position: relative;
   overflow: hidden;
 }
 
 .prof-avatar {
-  width: 112rpx;
-  height: 112rpx;
+  width: 108rpx;
+  height: 108rpx;
   border-radius: 50%;
   overflow: hidden;
-  border: 4rpx solid rgba(255, 255, 255, 0.4);
-  margin-right: 24rpx;
+  border: none;
+  margin-right: 0;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, $uni-color-primary-light, #E0E7FF);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.1);
 }
 
 .avatar-img {
@@ -293,9 +297,9 @@ onMounted(() => {
 }
 
 .avatar-text {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: $uni-text-color-inverse;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: $uni-color-primary;
 }
 
 .prof-info {
@@ -306,7 +310,8 @@ onMounted(() => {
 .prof-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: $uni-text-color-inverse;
+  color: $uni-text-color;
+  letter-spacing: -0.4rpx;
   display: block;
 }
 
@@ -319,31 +324,32 @@ onMounted(() => {
 
 .prof-role {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.2);
-  padding: 4rpx 16rpx;
-  border-radius: 8rpx;
+  color: $uni-gray-500;
+  font-weight: 500;
 }
 
 .prof-id {
-  font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 22rpx;
+  color: $uni-gray-500;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .prof-store {
   display: block;
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.85);
-  margin-top: 10rpx;
+  color: $uni-gray-500;
+  margin-top: 4rpx;
 }
 
+/* 营业中徽章（原稿：绿色 pill + 脉冲点） */
 .prof-status {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  background: rgba(255, 255, 255, 0.2);
+  gap: 10rpx;
+  background: #ECFDF5;
+  border: 1rpx solid rgba(5, 150, 105, 0.1);
   border-radius: 999rpx;
-  padding: 8rpx 20rpx;
+  padding: 8rpx 24rpx;
   flex-shrink: 0;
 }
 
@@ -351,13 +357,13 @@ onMounted(() => {
   width: 12rpx;
   height: 12rpx;
   border-radius: 50%;
-  background: #4ADE80;
+  background: #047857;
   animation: pulse-dot 2s infinite;
 }
 
 .prof-status-text {
   font-size: 22rpx;
-  color: $uni-text-color-inverse;
+  color: #047857;
   font-weight: 600;
 }
 
@@ -366,14 +372,14 @@ onMounted(() => {
   50% { opacity: 0.3; }
 }
 
-/* 快捷入口 */
+/* 快捷入口（原稿：统一蓝底浅蓝图标） */
 .prof-shortcuts {
   margin: 28rpx 28rpx 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx 12rpx;
+  border-radius: 40rpx;
+  padding: 36rpx 16rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -382,7 +388,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: 16rpx;
 }
 
 .prof-sc-item:active {
@@ -390,8 +396,8 @@ onMounted(() => {
 }
 
 .ps-ico {
-  width: 80rpx;
-  height: 80rpx;
+  width: 76rpx;
+  height: 76rpx;
   border-radius: 24rpx;
   display: flex;
   align-items: center;
@@ -414,7 +420,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* 分区 */
+/* 分区（原稿：标题 12px 灰 + 大写间距，列表 20px 圆角） */
 .prof-section {
   margin: 36rpx 28rpx 0;
 }
@@ -423,14 +429,15 @@ onMounted(() => {
   display: block;
   font-size: 24rpx;
   font-weight: 600;
-  color: $uni-gray-400;
-  padding: 0 8rpx 16rpx;
+  color: $uni-gray-500;
+  padding: 0 8rpx 20rpx;
   letter-spacing: 1rpx;
+  text-transform: uppercase;
 }
 
 .prof-list {
   background: $uni-bg-color;
-  border-radius: 32rpx;
+  border-radius: 40rpx;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);

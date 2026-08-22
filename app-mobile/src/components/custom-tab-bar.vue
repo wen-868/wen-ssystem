@@ -97,8 +97,8 @@ function switchTab(url: string) {
 /* ─── 自定义 tabBar：悬浮胶囊 + 中间紫色 AI 圆 + 呼吸光环（R95-02 v2 设计） ─── */
 .custom-tab-bar {
   position: fixed;
-  left: 28rpx;
-  right: 28rpx;
+  left: 24rpx;
+  right: 24rpx;
   bottom: calc(20rpx + env(safe-area-inset-bottom));
   z-index: 999;
   background: rgba(255, 255, 255, 0.88);
@@ -114,7 +114,7 @@ function switchTab(url: string) {
   position: relative;
   display: flex;
   align-items: center;
-  height: 96rpx;
+  height: 112rpx;
 }
 
 .tab-item {
@@ -170,8 +170,8 @@ function switchTab(url: string) {
 
 .ai-btn-wrap {
   position: relative;
-  width: 88rpx;
-  height: 88rpx;
+  width: 104rpx;
+  height: 104rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,24 +182,24 @@ function switchTab(url: string) {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 88rpx;
-  height: 88rpx;
+  width: 104rpx;
+  height: 104rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(168, 85, 247, 0.55);
+  border: 4rpx solid rgba(168, 85, 247, 0.55);
   transform: translate(-50%, -50%);
   animation: aiRing 2.6s ease-out infinite;
   pointer-events: none;
 }
 
 .ai-btn {
-  width: 88rpx;
-  height: 88rpx;
+  width: 104rpx;
+  height: 104rpx;
   border-radius: 50%;
   background: linear-gradient(135deg, #7c3aed 0%, #9333ea 55%, #a855f7 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.32);
+  box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.35);
   animation: aiBreathe 2.6s ease-in-out infinite;
   position: relative;
   z-index: 2;
