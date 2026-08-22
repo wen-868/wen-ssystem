@@ -25,11 +25,11 @@
       </view>
     </view>
 
-    <!-- 表单三件套：ref + :model + :rules -->
-    <form ref="formRef" :model="saleForm" :rules="saleRules" class="sale-form-scroll">
+    <!-- 单据表单容器 -->
+    <view class="sale-form-scroll">
       <scroll-view class="sale-form" scroll-y>
-      <!-- 关联销售单（退货 / 收款单需选择源销售单） -->
-      <view class="form-section" v-if="docSub === '退货' || docSub === '收款单'">
+      <!-- 关联销售单（收款单：前端反查客户与金额，按 Receipt 契约提交） -->
+      <view class="form-section" v-if="docConfig.showSourceBill">
         <view class="section-title">关联销售单</view>
         <picker
           class="qc-cell"
@@ -41,30 +41,82 @@
           <view class="qc-val">{{ sourceBillLabel }} <text class="qc-chev">▾</text></view>
         </picker>
       </view>
-      <!-- 客户 / 配送方式 / 日期 / 门店仓库 2x2 选择（原稿 qo-customer） -->
-      <view class="form-section qo-customer">
+
+      <!-- 供应商（进货单：真实供应商接口，非客户） -->
+      <view class="form-section" v-if="docConfig.showSupplier">
+        <view class="section-title">供应商</view>
+        <picker
+          class="qc-cell"
+          mode="selector"
+          :range="supplierOptions"
+          range-key="name"
+          @change="onSupplierChange"
+        >
+          <view class="qc-val">{{ supplierLabel }} <text class="qc-chev">▾</text></view>
+        </picker>
+      </view>
+
+      <!-- 入库仓库（进货单：复用 stores 真实门店列表作为仓库） -->
+      <view class="form-section" v-if="docConfig.showWarehouse">
+        <view class="section-title">入库仓库</view>
+        <picker
+          class="qc-cell"
+          mode="selector"
+          :range="warehouseOptions"
+          range-key="name"
+          @change="onWarehouseChange"
+        >
+          <view class="qc-val">{{ warehouseLabel }} <text class="qc-chev">▾</text></view>
+        </picker>
+      </view>
+
+      <!-- 收款金额（收款单） -->
+      <view class="form-section" v-if="docConfig.showAmount">
+        <view class="section-title">收款金额</view>
+        <view class="amount-input-row">
+          <text class="price-unit">¥</text>
+          <input
+            class="discount-input"
+            :value="receiptAmount"
+            type="digit"
+            @input="onReceiptAmountChange"
+            placeholder="请输入收款金额"
+          />
+        </view>
+      </view>
+
+      <!-- 收款方式（收款单） -->
+      <view class="form-section" v-if="docConfig.showPayment">
+        <view class="section-title">收款方式</view>
+        <picker
+          class="qc-cell"
+          mode="selector"
+          :range="paymentOptions"
+          @change="onPaymentChange"
+        >
+          <view class="qc-val">{{ paymentMethod }} <text class="qc-chev">▾</text></view>
+        </picker>
+      </view>
+      <!-- 客户 / 配送方式 / 日期 / 门店 选择（按单据差异显隐，原稿 qo-customer） -->
+      <view class="form-section qo-customer" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showStore || docConfig.showOrderDate">
         <view class="qc-grid">
-          <view class="qc-cell" @tap="openCustomerPicker">
+          <view class="qc-cell" v-if="docConfig.showCustomer" @tap="openCustomerPicker">
             <text class="qc-label">客户</text>
             <view class="qc-val">{{ selectedCustomer?.name || '散客' }} <text class="qc-chev">▾</text></view>
           </view>
-          <picker class="qc-cell" mode="selector" :range="deliveryOptions" @change="onDeliveryChange">
+          <picker v-if="docConfig.showDelivery" class="qc-cell" mode="selector" :range="deliveryOptions" @change="onDeliveryChange">
             <text class="qc-label">配送方式</text>
             <view class="qc-val">{{ deliveryMethod }} <text class="qc-chev">▾</text></view>
           </picker>
-          <picker class="qc-cell" mode="date" :value="orderDate" @change="onDateChange">
+          <picker v-if="docConfig.showOrderDate" class="qc-cell" mode="date" :value="orderDate" @change="onDateChange">
             <text class="qc-label">日期</text>
             <view class="qc-val">{{ orderDate.slice(5) }} <text class="qc-chev">▾</text></view>
-          </picker>
-          <picker class="qc-cell" mode="selector" :range="storeOptions" @change="onStoreChange">
-            <text class="qc-label">门店/仓库</text>
-            <view class="qc-val">{{ storeName }} <text class="qc-chev">▾</text></view>
           </picker>
         </view>
       </view>
 
-      <!-- 商品列表 -->
-      <view class="form-section">
+      <!-- 商品列表（订单 / 进货 共用） -->
+      <view class="form-section" v-if="docConfig.showProducts">
         <view class="section-title">
           <text>已选商品 ({{ saleItems.length }})</text>
         </view>
@@ -141,13 +193,10 @@
             <text class="add-text">扫码添加</text>
           </view>
         </view>
-        <view class="field-error" v-if="errors.saleItems">
-          <text class="error-text">{{ errors.saleItems }}</text>
-        </view>
       </view>
 
-      <!-- 金额汇总 -->
-      <view class="form-section" v-if="saleItems.length > 0">
+      <!-- 金额汇总（仅订单） -->
+      <view class="form-section" v-if="docKey === 'order' && saleItems.length > 0">
         <view class="amount-row">
           <text class="amount-label">商品数</text>
           <text class="amount-value">{{ saleItems.length }}种 / {{ totalQty }}件</text>
@@ -171,7 +220,7 @@
       </view>
 
       <!-- 备注 -->
-      <view class="form-section">
+      <view class="form-section" v-if="docConfig.showRemark">
         <view class="section-title">备注</view>
         <textarea
           class="remark-input"
@@ -181,25 +230,26 @@
         />
       </view>
 
+      <!-- 出货占位（后端接口待开放） -->
+      <view class="form-section doc-placeholder" v-if="docConfig.placeholder">
+        <view class="placeholder-icon">🚚</view>
+        <text class="placeholder-text">{{ docConfig.placeholder }}</text>
+      </view>
+
       <view class="safe-bottom"></view>
     </scroll-view>
-    </form>
+    </view>
 
-    <!-- 底部提交 -->
+    <!-- 底部提交（按单据配置渲染动作） -->
     <view class="bottom-bar">
       <button
-        class="submit-btn"
-        :disabled="!canSubmit || submitting"
-        :class="{ 'submit-btn--disabled': !canSubmit }"
-        @tap="handleSubmit"
+        v-for="(act, i) in docConfig.actions"
+        :key="act.label"
+        :class="['submit-btn', act.variant === 'ghost' ? 'draft-btn' : '', act.variant === 'ghost' ? 'share-btn' : '', { 'submit-btn--disabled': submitting }]"
+        :disabled="submitting"
+        @tap="act.handler"
       >
-        {{ submitting ? '转销售单中...' : '转销售单' }}
-      </button>
-      <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
-        {{ isSaved ? '修改' : '保存' }}
-      </button>
-      <button class="share-btn" :disabled="submitting" @tap="handleShare">
-        分享
+        {{ submitting && act.variant === 'primary' ? (act.loadingText || '提交中...') : act.label }}
       </button>
     </view>
 
@@ -346,55 +396,166 @@ import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
 import { storeApi } from '@/api/modules/store'
-import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { purchaseApi } from '@/api/modules/purchase'
+import { receiptApi } from '@/api/modules/receipts'
+import { supplierApi, type Supplier } from '@/api/modules/suppliers'
+import { storesApi } from '@/api/modules/stores'
 
-// ========== 表单三件套 ==========
-const formRef = ref<any>(null)
-const saleForm = reactive({
-  selectedCustomer: null as CustomerInfo | null,
-  saleItems: [] as SaleItem[],
-  remark: '',
-})
-
-const saleRules: Rules = {
-  // 散客为默认客户（原稿：客户字段默认显示「散客」），故不强制选择
-  saleItems: [{ required: true, message: '请至少添加一个商品' }],
-}
-
-const { errors, validate, clearError } = useFormValidation(saleForm, saleRules)
-
-// 兼容原有变量名
-const selectedCustomer = computed(() => saleForm.selectedCustomer)
-const saleItems = saleForm.saleItems
-const remark = computed({
-  get: () => saleForm.remark,
-  set: (v) => saleForm.remark = v,
-})
+// ===================================================================
+// 单据框架：四种单据各自独立字段 / 底部动作 / 提交接口
+// 公共能力（商品选择 / 客户搜索 / 扫码 / 数量编辑 / 分享 / 暂存 / 校验）只实现一次，按单据差异复用
+// ===================================================================
 
 const submitting = ref(false)
+const isSaved = ref(false)
+const todayStr = (): string => {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
 
-// 单据类型分段导航（原稿：销售/采购 + 订单/出货/退货/收款单）
+// ---------- 单据类型分段导航（原稿：销售/采购 + 子段） ----------
 const docMain = ref<'sale' | 'purchase'>('sale')
-const docSub = ref('订单')
-// 销售→出货 / 采购→进货
 const docSubs = computed(() =>
-  docMain.value === 'sale' ? ['订单', '出货', '退货', '收款单'] : ['订单', '进货', '退货', '收款单']
+  docMain.value === 'sale'
+    ? ['订单', '出货', '退货', '收款单']
+    : ['订单', '进货', '退货', '收款单']
 )
-
-// 主段切换时重置子段
+const docSub = ref('订单')
 function switchDocMain(v: 'sale' | 'purchase') {
   docMain.value = v
   docSub.value = '订单'
+  resetDoc()
 }
 
-// 单据是否已保存（未保存显示「保存」，已保存显示「修改」）
-const isSaved = ref(false)
+// 当前单据业务类型（采购段"订单"复用销售订单逻辑）
+const docKey = computed(() => {
+  if (docMain.value === 'purchase' && docSub.value === '进货') return 'purchase-in'
+  if (docSub.value === '收款单') return 'receipt'
+  if (docSub.value === '出货') return 'ship'
+  return 'order'
+})
 
-// 关联销售单（退货 / 收款单）
-const sourceBills = ref<{ label: string; billNo: string }[]>([])
+// ---------- 每种单据配置：字段显隐 + 底部动作 ----------
+interface DocAction {
+  label: string
+  variant: 'primary' | 'ghost'
+  handler: () => void
+  loadingText?: string
+}
+const docConfig = computed<{
+  showCustomer: boolean
+  showSupplier: boolean
+  showProducts: boolean
+  showWarehouse: boolean
+  showDelivery: boolean
+  showOrderDate: boolean
+  showStore: boolean
+  showSourceBill: boolean
+  showAmount: boolean
+  showPayment: boolean
+  showRemark: boolean
+  actions: DocAction[]
+  placeholder?: string
+}>(() => {
+  switch (docKey.value) {
+    case 'purchase-in':
+      return {
+        showCustomer: false, showSupplier: true, showProducts: true, showWarehouse: true,
+        showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: false,
+        showAmount: false, showPayment: false, showRemark: true,
+        actions: [
+          { label: '保存', variant: 'ghost', handler: handleDraft },
+          { label: '确认入库', variant: 'primary', handler: submitPurchaseIn, loadingText: '入库中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'receipt':
+      return {
+        showCustomer: false, showSupplier: false, showProducts: false, showWarehouse: false,
+        showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: true,
+        showAmount: true, showPayment: true, showRemark: true,
+        actions: [
+          { label: '保存', variant: 'ghost', handler: handleDraft },
+          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'ship':
+      return {
+        showCustomer: false, showSupplier: false, showProducts: false, showWarehouse: false,
+        showDelivery: false, showOrderDate: false, showStore: false, showSourceBill: false,
+        showAmount: false, showPayment: false, showRemark: false,
+        placeholder: '出货（销售-出货）功能后端接口待开放，暂不可用。',
+        actions: [],
+      }
+    default: // order
+      return {
+        showCustomer: true, showSupplier: false, showProducts: true, showWarehouse: false,
+        showDelivery: true, showOrderDate: true, showStore: true, showSourceBill: false,
+        showAmount: false, showPayment: false, showRemark: true,
+        actions: [
+          { label: '保存', variant: 'ghost', handler: handleDraft },
+          { label: '转销售单', variant: 'primary', handler: submitOrder, loadingText: '转销售单中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+  }
+})
+
+// ---------- 公共：商品明细状态（订单 / 进货 共用） ----------
+const saleItems = reactive<SaleItem[]>([])
+const remark = ref('')
+const selectedCustomer = ref<CustomerInfo | null>(null)
+
+// 配送方式 / 日期（订单）
+const deliveryOptions = ['送货上门', '到店自提', '快递寄送']
+const deliveryMethod = ref('送货上门')
+function onDeliveryChange(e: any) {
+  deliveryMethod.value = deliveryOptions[Number(e.detail.value)] ?? deliveryMethod.value
+}
+const orderDate = ref(todayStr())
+function onDateChange(e: any) {
+  orderDate.value = e.detail.value
+}
+
+// ---------- 供应商（进货单） ----------
+const supplierOptions = ref<Supplier[]>([])
+const selectedSupplierId = ref<number | null>(null)
+const supplierLabel = computed(() => supplierOptions.value.find(s => s.id === selectedSupplierId.value)?.name || '请选择供应商')
+async function loadSuppliers() {
+  try {
+    const res = await supplierApi.getList({ page: 1, pageSize: 100 })
+    supplierOptions.value = res.list || []
+  } catch { supplierOptions.value = [] }
+}
+function onSupplierChange(e: any) {
+  selectedSupplierId.value = supplierOptions.value[Number(e.detail.value)]?.id ?? null
+}
+
+// ---------- 入库仓库（进货单）：复用 stores 真实门店列表作为仓库候选（门店即仓库） ----------
+// 映射：StoreInfo.id → warehouseId，StoreInfo.name → warehouseName
+// 说明：移动端无独立 warehouse 列表接口，createInStock 需要 warehouseId/warehouseName，
+// 故以门店列表充当仓库数据源，不臆造字符串。
+const warehouseOptions = ref<{ id: number; name: string }[]>([])
+const selectedWarehouseId = ref<number | null>(null)
+const warehouseLabel = computed(() => warehouseOptions.value.find(w => w.id === selectedWarehouseId.value)?.name || '请选择入库仓库')
+async function loadWarehouses() {
+  try {
+    const res = await storesApi.list({ page: 1, pageSize: 100 })
+    warehouseOptions.value = (res.list || []).map(s => ({ id: s.id, name: s.name }))
+  } catch { warehouseOptions.value = [] }
+}
+function onWarehouseChange(e: any) {
+  selectedWarehouseId.value = warehouseOptions.value[Number(e.detail.value)]?.id ?? null
+}
+
+// ---------- 关联销售单（收款单：仅前端反查客户与金额，按 Receipt 契约提交，不臆造源单字段） ----------
+const sourceBills = ref<{ label: string; billNo: string; customerName: string; totalAmount: number }[]>([])
 const selectedSourceBill = ref('')
+const receiptCustomerName = ref('')
 const sourceBillLabel = computed(() => selectedSourceBill.value || '请选择销售单')
-
 async function loadSourceBills() {
   try {
     const result = await salesApi.list({ page: 1, pageSize: 20 })
@@ -402,25 +563,61 @@ async function loadSourceBills() {
     sourceBills.value = list.map((b: any) => ({
       label: `${b.billNo} ¥${Number(b.totalAmount ?? 0).toFixed(2)}`,
       billNo: b.billNo,
+      customerName: b.customerName || '',
+      totalAmount: Number(b.totalAmount ?? 0),
     }))
-  } catch {
-    sourceBills.value = []
+  } catch { sourceBills.value = [] }
+}
+function onSourceBillChange(e: any) {
+  const bill = sourceBills.value[Number(e.detail.value)]
+  if (bill) {
+    selectedSourceBill.value = bill.billNo
+    receiptCustomerName.value = bill.customerName
+    if (!receiptAmount.value) receiptAmount.value = bill.totalAmount
   }
 }
 
-function onSourceBillChange(e: any) {
-  selectedSourceBill.value = sourceBills.value[Number(e.detail.value)]?.billNo || ''
+// 收款单：金额 + 收款方式
+const receiptAmount = ref(0)
+function onReceiptAmountChange(e: any) { receiptAmount.value = Math.max(0, Number(e.detail.value) || 0) }
+const paymentOptions = ['现金', '微信', '支付宝', '银行卡', '其他']
+const paymentMethod = ref('现金')
+function onPaymentChange(e: any) { paymentMethod.value = paymentOptions[Number(e.detail.value)] ?? paymentMethod.value }
+
+// ---------- 切换单据时重置状态 ----------
+function resetDoc() {
+  saleItems.splice(0, saleItems.length)
+  remark.value = ''
+  selectedCustomer.value = null
+  selectedSupplierId.value = null
+  selectedWarehouseId.value = null
+  selectedSourceBill.value = ''
+  receiptCustomerName.value = ''
+  receiptAmount.value = 0
+  paymentMethod.value = '现金'
+  deliveryMethod.value = '送货上门'
+  orderDate.value = todayStr()
+  discount.value = 0
+  isSaved.value = false
+  swipeOpenIndex.value = -1
+  if (docKey.value === 'purchase-in') { loadSuppliers(); loadWarehouses() }
 }
 
-// 已选商品：支持修改单价
+// ---------- 进入页面时懒加载公共数据 ----------
+function ensurePurchaseData() {
+  if (docKey.value === 'purchase-in') {
+    if (supplierOptions.value.length === 0) loadSuppliers()
+    if (warehouseOptions.value.length === 0) loadWarehouses()
+  }
+}
+
+// 已选商品：支持修改单价（订单）
 function onPriceChange(index: number, e: any) {
   const item = saleItems[index]
   if (!item) return
-  // 输入过程仅更新单价（不强制两位小数），点击空白(blur)确认后重算金额
   item.price = Number(e.detail.value) || 0
   item.unitPrice = item.price
 }
-
 function onPriceConfirm(index: number) {
   const item = saleItems[index]
   if (!item) return
@@ -434,7 +631,6 @@ const swipeOpenIndex = ref(-1)
 let swipeStartX = 0
 function onSwipeStart(index: number) {
   swipeStartX = 0
-  // 点开另一个时先关闭当前
 }
 function onSwipeMove(index: number, e: any) {
   const touch = e.touches?.[0] || e.changedTouches?.[0]
@@ -448,47 +644,18 @@ function onSwipeEnd(index: number) {
   swipeStartX = 0
 }
 
-// 配送方式 / 日期 / 门店仓库（原稿 qo-customer 2x2 选择）
-const deliveryOptions = ['送货上门', '到店自提', '快递寄送']
-const deliveryMethod = ref('送货上门')
-function onDeliveryChange(e: any) {
-  deliveryMethod.value = deliveryOptions[Number(e.detail.value)] ?? deliveryMethod.value
-}
-function todayStr(): string {
-  const d = new Date()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${m}-${day}`
-}
-const orderDate = ref(todayStr())
-function onDateChange(e: any) {
-  orderDate.value = e.detail.value
-}
-const storeOptions = ['总仓', '一分仓', '二分仓']
-const storeName = ref('总仓')
-function onStoreChange(e: any) {
-  storeName.value = storeOptions[Number(e.detail.value)] ?? storeName.value
-}
 // 商品首字缩略图（原稿 prod-thumb）
 function firstChar(name?: string): string {
   return (name || '').trim().charAt(0) || '商'
 }
 
 // ========== 计算属性 ==========
-const totalAmount = computed(() => {
-  return saleItems.reduce((sum, item) => sum + (item.total ?? 0), 0)
-})
+const totalAmount = computed(() => saleItems.reduce((sum, item) => sum + (item.total ?? 0), 0))
+const totalQty = computed(() => saleItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0))
+// 提交前置：订单 / 进货需有商品；收款单需金额>0（在各 submit 内单独校验）
+const canSubmit = computed(() => !submitting.value)
 
-const totalQty = computed(() => {
-  return saleItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
-})
-
-// 散客为默认客户，提交无需强制选择会员
-const canSubmit = computed(() => {
-  return saleItems.length > 0 && !submitting.value
-})
-
-// 优惠（原稿汇总含「优惠」行，应收 = 合计 - 优惠）
+// 优惠（仅订单汇总使用）
 const discount = ref(0)
 function onDiscountChange(e: any) {
   discount.value = Math.max(0, Number(e.detail.value) || 0)
@@ -506,7 +673,6 @@ const customerPageSize = 20
 const customerNoMore = ref(false)
 
 function openCustomerPicker() {
-  clearError('selectedCustomer')
   showCustomerPicker.value = true
   customerPage.value = 1
   customerNoMore.value = false
@@ -558,7 +724,7 @@ async function loadMoreCustomers() {
 }
 
 function selectCustomer(customer: CustomerInfo) {
-  saleForm.selectedCustomer = customer
+  selectedCustomer.value = customer
   showCustomerPicker.value = false
 }
 
@@ -790,41 +956,40 @@ function handleShare() {
   uni.showToast({ title: '已生成开单分享卡片', icon: 'none' })
 }
 
+/** 保存（暂存草稿）：订单/进货走真实暂存接口，收款单仅前端标记 */
 async function handleDraft() {
-  if (saleItems.length === 0) {
+  if ((docKey.value === 'order' || docKey.value === 'purchase-in') && saleItems.length === 0) {
     uni.showToast({ title: '请先添加商品', icon: 'none' })
     return
   }
   try {
-    const result = await storeApi.createHoldOrder({
-      customerName: selectedCustomer.value?.name || '散户',
-      customerMobile: selectedCustomer.value?.phone || '',
-      amount: totalAmount.value,
-      remark: saleForm.remark || '移动端开单暂存',
-      items: saleItems.map((item) => ({
-        skuId: Number(item.productId || 0),
-        skuName: item.productName || '',
-        quantity: Number(item.quantity || 1),
-        unitPrice: Number(item.price ?? item.unitPrice ?? 0),
-        subtotalAmount: Number(item.total ?? item.subtotalAmount ?? 0),
-      })),
-    })
-    uni.showToast({ title: `已暂存（${result.holdNo}）`, icon: 'success' })
+    if (docKey.value === 'order' || docKey.value === 'purchase-in') {
+      const result = await storeApi.createHoldOrder({
+        customerName: selectedCustomer.value?.name || '散户',
+        customerMobile: selectedCustomer.value?.phone || '',
+        amount: totalAmount.value,
+        remark: remark.value || '移动端开单暂存',
+        items: saleItems.map((item) => ({
+          skuId: Number(item.productId || 0),
+          skuName: item.productName || '',
+          quantity: Number(item.quantity || 1),
+          unitPrice: Number(item.price ?? item.unitPrice ?? 0),
+          subtotalAmount: Number(item.total ?? item.subtotalAmount ?? 0),
+        })),
+      })
+      uni.showToast({ title: `已暂存（${result.holdNo}）`, icon: 'success' })
+    } else {
+      uni.showToast({ title: '已暂存草稿', icon: 'success' })
+    }
     isSaved.value = true
   } catch (err: any) {
     uni.showToast({ title: err?.message || '暂存失败，请重试', icon: 'none' })
   }
 }
 
-onMounted(() => {
-  loadSourceBills()
-})
-
-// ========== 提交 ==========
-async function handleSubmit() {
-  // 表单校验
-  if (!validate()) return
-  if (!canSubmit.value) return
+// ========== 各单据提交 ==========
+async function submitOrder() {
+  if (saleItems.length === 0) { uni.showToast({ title: '请至少添加一个商品', icon: 'none' }); return }
   submitting.value = true
   try {
     const customer = selectedCustomer.value
@@ -838,20 +1003,71 @@ async function handleSubmit() {
         boxQty: item.boxQty,
         bottleQty: item.bottleQty,
         unitPrice: item.unitPrice,
-        subtotalAmount: item.subtotalAmount
+        subtotalAmount: item.subtotalAmount,
       })),
-      remark: remark.value || undefined
+      remark: remark.value || undefined,
     })
     uni.showToast({ title: '已转销售单', icon: 'success' })
-    setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
+    setTimeout(() => uni.navigateBack(), 1500)
   } catch (err) {
     uni.showToast({ title: '提交失败', icon: 'none' })
-  } finally {
-    submitting.value = false
-  }
+  } finally { submitting.value = false }
 }
+
+async function submitPurchaseIn() {
+  if (saleItems.length === 0) { uni.showToast({ title: '请至少添加一个商品', icon: 'none' }); return }
+  if (selectedSupplierId.value == null) { uni.showToast({ title: '请选择供应商', icon: 'none' }); return }
+  if (selectedWarehouseId.value == null) { uni.showToast({ title: '请选择入库仓库', icon: 'none' }); return }
+  submitting.value = true
+  try {
+    const supplier = supplierOptions.value.find(s => s.id === selectedSupplierId.value)
+    const warehouse = warehouseOptions.value.find(w => w.id === selectedWarehouseId.value)
+    await purchaseApi.createInStock({
+      supplierId: selectedSupplierId.value,
+      supplierName: supplier?.name || '',
+      warehouseId: selectedWarehouseId.value,
+      warehouseName: warehouse?.name || '',
+      inStockDate: orderDate.value,
+      remark: remark.value || '',
+      items: saleItems.map(item => ({
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unit: item.unit || '件',
+        unitPrice: item.unitPrice ?? item.price ?? 0,
+        subtotal: (item.unitPrice ?? item.price ?? 0) * (item.quantity ?? 0),
+        remark: '',
+      })),
+    } as any)
+    uni.showToast({ title: '已确认入库', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 1500)
+  } catch (err) {
+    uni.showToast({ title: '入库失败', icon: 'none' })
+  } finally { submitting.value = false }
+}
+
+async function submitReceipt() {
+  if (receiptAmount.value <= 0) { uni.showToast({ title: '请输入收款金额', icon: 'none' }); return }
+  submitting.value = true
+  try {
+    await receiptApi.create({
+      customerName: receiptCustomerName.value || '散客',
+      receiptDate: orderDate.value,
+      receiptAmount: receiptAmount.value,
+      paymentMethod: paymentMethod.value,
+      remark: remark.value || '',
+    } as any)
+    uni.showToast({ title: '已确认收款', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 1500)
+  } catch (err) {
+    uni.showToast({ title: '收款失败', icon: 'none' })
+  } finally { submitting.value = false }
+}
+
+onMounted(() => {
+  loadSourceBills()
+  ensurePurchaseData()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -1492,6 +1708,38 @@ async function handleSubmit() {
 .error-text {
   font-size: 24rpx;
   color: $uni-color-error;
+}
+
+/* 出货占位（后端接口待开放） */
+.doc-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 80rpx 32rpx;
+}
+.placeholder-icon {
+  font-size: 80rpx;
+  line-height: 1;
+}
+.placeholder-text {
+  font-size: 28rpx;
+  color: $uni-gray-500;
+  text-align: center;
+}
+
+/* 收款金额输入行 */
+.amount-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.amount-input-row .discount-input {
+  flex: 1;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: $uni-text-color;
 }
 
 /* ========== 弹窗样式 ========== */
