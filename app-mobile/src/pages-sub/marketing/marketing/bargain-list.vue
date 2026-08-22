@@ -40,7 +40,7 @@
         <view class="card-header">
           <view class="product-image-wrap">
             <view class="product-image-placeholder">
-              <text class="image-icon">🍷</text>
+              <image class="image-icon-img" src="/static/icons/ic/wine.svg" mode="aspectFit" />
             </view>
             <view class="bargain-badge">砍价</view>
           </view>
@@ -76,7 +76,7 @@
     </scroll-view>
 
     <view class="empty-state" v-else>
-      <text class="empty-icon">🔪</text>
+      <image class="empty-icon-img" src="/static/icons/ic/tag.svg" mode="aspectFit" />
       <text class="empty-text">暂无砍价活动</text>
     </view>
 
@@ -398,4 +398,7 @@ onMounted(() => {
 .safe-bottom {
   height: env(safe-area-inset-bottom);
 }
+
+.image-icon-img{width:120rpx;height:120rpx}
+.empty-icon-img{width:96rpx;height:96rpx}
 </style>

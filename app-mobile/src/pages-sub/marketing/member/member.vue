@@ -39,7 +39,7 @@
     <view class="menu-section">
       <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/points/points-detail')">
         <view class="menu-left">
-          <text class="menu-icon">★</text>
+          <image class="menu-icon-img" src="/static/icons/ic/star.svg" mode="aspectFit" />
           <text class="menu-text">我的积分</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -47,7 +47,7 @@
 
       <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/stored-cards/stored-cards')">
         <view class="menu-left">
-          <text class="menu-icon">💰</text>
+          <image class="menu-icon-img" src="/static/icons/ic/wallet.svg" mode="aspectFit" />
           <text class="menu-text">我的储值</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -55,7 +55,7 @@
 
       <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/marketing/coupons')">
         <view class="menu-left">
-          <text class="menu-icon">🎫</text>
+          <image class="menu-icon-img" src="/static/icons/ic/ticket.svg" mode="aspectFit" />
           <text class="menu-text">我的优惠券</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -63,7 +63,7 @@
 
       <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/member-levels/member-levels')">
         <view class="menu-left">
-          <text class="menu-icon">👑</text>
+          <image class="menu-icon-img" src="/static/icons/ic/crown.svg" mode="aspectFit" />
           <text class="menu-text">我的等级</text>
         </view>
         <view class="menu-right">
@@ -74,7 +74,7 @@
 
       <view class="menu-item" @tap="navigateTo('/pages-sub/marketing/member/address')">
         <view class="menu-left">
-          <text class="menu-icon">📍</text>
+          <image class="menu-icon-img" src="/static/icons/ic/location.svg" mode="aspectFit" />
           <text class="menu-text">收货地址</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -82,7 +82,7 @@
 
       <view class="menu-item" @tap="navigateTo('/pages/profile/edit')">
         <view class="menu-left">
-          <text class="menu-icon">⚙</text>
+          <image class="menu-icon-img" src="/static/icons/ic/gear.svg" mode="aspectFit" />
           <text class="menu-text">我的资料</text>
         </view>
         <text class="menu-arrow">›</text>
@@ -256,6 +256,11 @@ onMounted(() => {
 
 .menu-icon {
   font-size: 36rpx;
+}
+
+.menu-icon-img {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .menu-text {
