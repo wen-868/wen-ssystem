@@ -187,7 +187,7 @@
         {{ submitting ? '提交中...' : '收款' }}
       </button>
       <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
-        修改
+        {{ isSaved ? '修改' : '保存' }}
       </button>
       <button class="share-btn" :disabled="submitting" @tap="handleShare">
         分享
@@ -324,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
@@ -360,6 +360,42 @@ const submitting = ref(false)
 const docMain = ref<'sale' | 'purchase'>('sale')
 const docSub = ref('订单')
 const docSubs = ['订单', '出货', '退货', '收款单']
+
+// 单据是否已保存（未保存显示「保存」，已保存显示「修改」）
+const isSaved = ref(false)
+
+// 关联销售单（退货 / 收款单）
+const sourceBills = ref<{ label: string; billNo: string }[]>([])
+const selectedSourceBill = ref('')
+const sourceBillLabel = computed(() => selectedSourceBill.value || '请选择销售单')
+
+async function loadSourceBills() {
+  try {
+    const result = await salesApi.list({ page: 1, pageSize: 20 })
+    const list = result.list || []
+    sourceBills.value = list.map((b: any) => ({
+      label: `${b.billNo} ¥${Number(b.totalAmount ?? 0).toFixed(2)}`,
+      billNo: b.billNo,
+    }))
+  } catch {
+    sourceBills.value = []
+  }
+}
+
+function onSourceBillChange(e: any) {
+  selectedSourceBill.value = sourceBills.value[Number(e.detail.value)]?.billNo || ''
+}
+
+// 已选商品：支持修改单价
+function onPriceChange(index: number, e: any) {
+  const item = saleItems[index]
+  if (!item) return
+  const price = Math.max(0, Number(e.detail.value) || 0)
+  item.price = price
+  item.unitPrice = price
+  item.total = price * (item.quantity ?? 0)
+  item.subtotalAmount = item.total
+}
 
 // 配送方式 / 日期 / 门店仓库（原稿 qo-customer 2x2 选择）
 const deliveryOptions = ['送货上门', '到店自提', '快递寄送']
@@ -706,10 +742,15 @@ async function handleDraft() {
       })),
     })
     uni.showToast({ title: `已暂存（${result.holdNo}）`, icon: 'success' })
+    isSaved.value = true
   } catch (err: any) {
     uni.showToast({ title: err?.message || '暂存失败，请重试', icon: 'none' })
   }
 }
+
+onMounted(() => {
+  loadSourceBills()
+})
 
 // ========== 提交 ==========
 async function handleSubmit() {
@@ -979,8 +1020,29 @@ async function handleSubmit() {
   margin-bottom: 4rpx;
 }
 
-.item-price {
-  font-size: 24rpx;
+.item-price-wrap {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.price-unit {
+  font-size: 22rpx;
+  color: $uni-color-primary;
+  font-weight: 700;
+}
+
+.item-price-input {
+  font-size: 26rpx;
+  color: $uni-color-primary;
+  font-weight: 700;
+  width: 100rpx;
+  padding: 0 4rpx;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.price-append {
+  font-size: 20rpx;
   color: $uni-gray-400;
 }
 
