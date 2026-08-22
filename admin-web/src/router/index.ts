@@ -288,7 +288,7 @@ router.beforeEach((to, _from, next) => {
   const token = auth.token;
   const expired = auth.isTokenExpired();
 
-  if (expired) {
+  if (expired && token) {
     auth.clearAuth();
     if (to.path !== "/login") {
       next("/login");
