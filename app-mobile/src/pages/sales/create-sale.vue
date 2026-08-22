@@ -11,8 +11,8 @@
     <!-- 单据类型分段导航（原稿：主段 销售/采购 + 子段 订单/出货/退货/收款单） -->
     <view class="doc-nav">
       <view class="doc-nav-main">
-        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="docMain = 'sale'">销售</view>
-        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'purchase' }" @tap="docMain = 'purchase'">采购</view>
+        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="switchDocMain('sale')">销售</view>
+        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'purchase' }" @tap="switchDocMain('purchase')">采购</view>
       </view>
       <view class="doc-nav-sub">
         <view
@@ -68,35 +68,46 @@
         <view class="section-title">
           <text>已选商品 ({{ saleItems.length }})</text>
         </view>
-        <view class="item-row" v-for="(item, index) in saleItems" :key="index">
-          <view class="prod-thumb"><text class="t-letter">{{ firstChar(item.productName) }}</text></view>
-          <view class="item-info">
-            <text class="item-name">{{ item.productName }}</text>
-            <text class="item-spec" v-if="item.specs">{{ item.specs }}</text>
-            <view class="item-price-wrap">
-              <text class="price-unit">¥</text>
-              <input
-                class="item-price-input"
-                :value="Number(item.price ?? 0).toFixed(2)"
-                type="digit"
-                @input="onPriceChange(index, $event)"
-              />
-              <text class="price-append">/ {{ item.unit || '件' }}</text>
+        <view
+          class="swipe-item"
+          v-for="(item, index) in saleItems"
+          :key="index"
+          :class="{ 'swipe-item--open': swipeOpenIndex === index }"
+          @touchstart="onSwipeStart(index)"
+          @touchmove.prevent="onSwipeMove(index, $event)"
+          @touchend="onSwipeEnd(index)"
+        >
+          <view class="swipe-content">
+          <view class="item-row">
+            <view class="prod-thumb"><text class="t-letter">{{ firstChar(item.productName) }}</text></view>
+            <view class="item-info">
+              <text class="item-name">{{ item.productName }}</text>
+              <text class="item-spec" v-if="item.specs">{{ item.specs }}</text>
+              <view class="item-price-wrap">
+                <text class="price-unit">¥</text>
+                <input
+                  class="item-price-input"
+                  :value="item.price"
+                  type="digit"
+                  @input="onPriceChange(index, $event)"
+                  @blur="onPriceConfirm(index)"
+                />
+                <text class="price-append">/ {{ item.unit || '件' }}</text>
+              </view>
             </view>
-          </view>
-          <view class="item-quantity">
-            <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap="decreaseQty(index)">-</view>
-            <input
-              class="qty-input"
-              :value="item.quantity"
-              type="number"
-              @input="onQtyChange(index, $event)"
-            />
-            <view class="qty-btn qty-btn--add" @tap="increaseQty(index)">+</view>
-          </view>
-          <view class="item-right">
-            <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
-            <view class="item-delete" @tap="removeItem(index)">删除</view>
+            <view class="item-quantity">
+              <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap="decreaseQty(index)">-</view>
+              <input
+                class="qty-input"
+                :value="item.quantity"
+                type="number"
+                @input="onQtyChange(index, $event)"
+              />
+              <view class="qty-btn qty-btn--add" @tap="increaseQty(index)">+</view>
+            </view>
+            <view class="item-right">
+              <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
+            </view>
           </view>
           <!-- 追溯码（原稿：每件商品下方追溯码行，已录入显示「已关联」） -->
           <view class="item-trace">
@@ -116,6 +127,8 @@
             </view>
             <image class="trace-scan" src="/static/icons/ic/scan.svg" mode="aspectFit" @tap="handleScanTrace(index)" />
           </view>
+          </view>
+          <view class="swipe-del" @tap="removeItem(index)">删除</view>
         </view>
 
         <view class="add-item-row">
@@ -359,7 +372,16 @@ const submitting = ref(false)
 // 单据类型分段导航（原稿：销售/采购 + 订单/出货/退货/收款单）
 const docMain = ref<'sale' | 'purchase'>('sale')
 const docSub = ref('订单')
-const docSubs = ['订单', '出货', '退货', '收款单']
+// 销售→出货 / 采购→进货
+const docSubs = computed(() =>
+  docMain.value === 'sale' ? ['订单', '出货', '退货', '收款单'] : ['订单', '进货', '退货', '收款单']
+)
+
+// 主段切换时重置子段
+function switchDocMain(v: 'sale' | 'purchase') {
+  docMain.value = v
+  docSub.value = '订单'
+}
 
 // 单据是否已保存（未保存显示「保存」，已保存显示「修改」）
 const isSaved = ref(false)
@@ -390,11 +412,36 @@ function onSourceBillChange(e: any) {
 function onPriceChange(index: number, e: any) {
   const item = saleItems[index]
   if (!item) return
-  const price = Math.max(0, Number(e.detail.value) || 0)
-  item.price = price
-  item.unitPrice = price
-  item.total = price * (item.quantity ?? 0)
+  // 输入过程仅更新单价（不强制两位小数），点击空白(blur)确认后重算金额
+  item.price = Number(e.detail.value) || 0
+  item.unitPrice = item.price
+}
+
+function onPriceConfirm(index: number) {
+  const item = saleItems[index]
+  if (!item) return
+  item.total = (item.price ?? 0) * (item.quantity ?? 0)
   item.subtotalAmount = item.total
+  item.unitPrice = item.price
+}
+
+// 左滑显示删除
+const swipeOpenIndex = ref(-1)
+let swipeStartX = 0
+function onSwipeStart(index: number) {
+  swipeStartX = 0
+  // 点开另一个时先关闭当前
+}
+function onSwipeMove(index: number, e: any) {
+  const touch = e.touches?.[0] || e.changedTouches?.[0]
+  if (!touch) return
+  const dx = touch.clientX - swipeStartX
+  if (swipeStartX === 0) { swipeStartX = touch.clientX; return }
+  if (dx < -40) swipeOpenIndex.value = index
+  else if (dx > 40) swipeOpenIndex.value = -1
+}
+function onSwipeEnd(index: number) {
+  swipeStartX = 0
 }
 
 // 配送方式 / 日期 / 门店仓库（原稿 qo-customer 2x2 选择）
@@ -1049,6 +1096,40 @@ async function handleSubmit() {
 .item-quantity {
   display: flex;
   align-items: center;
+}
+
+/* 左滑删除 */
+.swipe-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16rpx;
+}
+
+.swipe-content {
+  position: relative;
+  background: $uni-bg-color;
+  transition: transform 0.2s ease;
+  z-index: 1;
+}
+
+.swipe-item--open .swipe-content {
+  transform: translateX(-120rpx);
+}
+
+.swipe-del {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 120rpx;
+  background: $uni-color-error;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 16rpx 16rpx 0;
 }
 
 .qty-btn {
