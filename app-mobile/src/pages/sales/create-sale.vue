@@ -308,6 +308,7 @@
             class="product-item"
             v-for="product in productList"
             :key="product.id"
+            @tap="addProduct(product, getPickQty(product.id))"
           >
             <image class="product-image" :src="product.image || '/static/tabbar/product.svg'" mode="aspectFill" />
             <view class="product-info">
@@ -319,7 +320,14 @@
               </view>
             </view>
             <view class="product-actions">
-              <view class="qty-btn qty-btn--add" @tap="addProduct(product)">+</view>
+              <view class="qty-btn pick-qty" @tap.stop="decPick(product.id)">-</view>
+              <input
+                class="pick-qty-input"
+                :value="getPickQty(product.id)"
+                type="number"
+                @input="onPickQtyInput(product.id, $event)"
+              />
+              <view class="qty-btn pick-qty" @tap.stop="incPick(product.id)">+</view>
             </view>
           </view>
           <view class="load-more" v-if="productList.length > 0">
@@ -562,6 +570,20 @@ function selectCustomer(customer: CustomerInfo) {
 const showProductPicker = ref(false)
 const productSearchKeyword = ref('')
 const productList = ref<ProductInfo[]>([])
+// 商品选择弹窗：每个商品的待选数量（默认 1）
+const pickQty = reactive<Record<number, number>>({})
+function getPickQty(id: number): number {
+  return pickQty[id] || 1
+}
+function incPick(id: number) {
+  pickQty[id] = getPickQty(id) + 1
+}
+function decPick(id: number) {
+  pickQty[id] = Math.max(1, getPickQty(id) - 1)
+}
+function onPickQtyInput(id: number, e: any) {
+  pickQty[id] = Math.max(1, Number(e.detail.value) || 1)
+}
 const categoryList = ref<CategoryInfo[]>([])
 const selectedCategoryId = ref<number>(0)
 const productLoading = ref(false)
@@ -639,14 +661,17 @@ async function loadMoreProducts() {
   await loadProducts()
 }
 
-function addProduct(product: ProductInfo, traceCode = '') {
+function addProduct(product: ProductInfo, qty = 1, traceCode = '') {
+  const safeQty = Math.max(1, Number(qty) || 1)
   // 检查是否已添加
   const existingIndex = saleItems.findIndex(item => item.productId === product.id)
   if (existingIndex >= 0) {
-    // 已存在，数量+1
+    // 已存在，数量累加
     const item = saleItems[existingIndex]!
-    item.quantity = (item.quantity ?? 0) + 1
+    item.quantity = (item.quantity ?? 0) + safeQty
     item.total = (item.price ?? 0) * (item.quantity ?? 0)
+    item.subtotalAmount = item.total
+    item.bottleQty = item.quantity
     uni.showToast({ title: '已添加', icon: 'none' })
     return
   }
@@ -655,12 +680,12 @@ function addProduct(product: ProductInfo, traceCode = '') {
     productId: product.id,
     productName: product.name,
     price: product.price,
-    quantity: 1,
-    total: product.price,
+    quantity: safeQty,
+    total: product.price * safeQty,
     boxQty: 0,
-    bottleQty: 1,
+    bottleQty: safeQty,
     unitPrice: product.price,
-    subtotalAmount: product.price,
+    subtotalAmount: product.price * safeQty,
     unit: product.unit,
     specs: product.specs,
     traceCode,
@@ -1720,6 +1745,28 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8rpx;
+}
+
+.pick-qty {
+  width: 44rpx;
+  height: 44rpx;
+  background: $uni-bg-color-page;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: $uni-color-primary;
+  font-weight: 700;
+}
+
+.pick-qty-input {
+  width: 60rpx;
+  height: 44rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: $uni-gray-700;
 }
 
 /* 加载更多 */
