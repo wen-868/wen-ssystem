@@ -145,12 +145,12 @@
           :class="{ 'mic-btn--recording': recording }"
           @tap="toggleRecording"
         >
-          <text class="mic-btn-text">{{ recording ? '停' : '音' }}</text>
+          <image class="mic-btn-img" src="/static/icons/ic/mic.svg" mode="aspectFit" />
         </view>
         <input
           class="chat-input"
           v-model="inputText"
-          placeholder="例如：给红星商行送10箱五粮液"
+          placeholder="输入你的问题..."
           placeholder-class="chat-input-placeholder"
           confirm-type="send"
           :disabled="sending"
@@ -161,7 +161,7 @@
           :class="{ 'send-btn--disabled': sending || !inputText.trim() }"
           @tap="sendMessage"
         >
-          <text class="send-btn-text">{{ sending ? '…' : '发送' }}</text>
+          <image class="send-btn-img" src="/static/icons/ic/send.svg" mode="aspectFit" />
         </view>
       </view>
       <view v-if="recording" class="recording-hint">
@@ -777,21 +777,21 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 12rpx 32rpx 12rpx;
-  padding-top: calc(12rpx + env(safe-area-inset-top));
+  padding: 22rpx 32rpx;
+  padding-top: calc(22rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
 .ai-top-icon {
-  width: 76rpx;
-  height: 76rpx;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 24rpx;
   background: $uni-gradient-blue;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4rpx 20rpx rgba(37, 99, 235, 0.2);
 }
 
 .ai-top-icon-text {
@@ -806,10 +806,10 @@ onUnmounted(() => {
 
 .ai-top-title {
   display: block;
-  font-size: 36rpx;
+  font-size: 30rpx;
   font-weight: 700;
   color: $uni-text-color;
-  letter-spacing: -0.5rpx;
+  letter-spacing: -0.6rpx;
 }
 
 .ai-top-sub {
@@ -868,16 +868,21 @@ onUnmounted(() => {
 .ai-tag {
   display: inline-flex;
   align-items: center;
-  padding: 10rpx 24rpx;
+  padding: 12rpx 28rpx;
   border-radius: 999rpx;
-  background: $uni-bg-color;
-  border: 1rpx solid $uni-border-color;
-  margin-right: 12rpx;
+  background: transparent;
+  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  margin-right: 16rpx;
+  transition: all 0.2s ease;
 }
 
 .ai-tag:active {
-  background: $uni-color-primary-soft;
-  border-color: $uni-color-primary-soft;
+  background: #EDE9FE;
+  border-color: rgba(91, 33, 185, 0.1);
+}
+
+.ai-tag:active .ai-tag-text {
+  color: #5B21B6;
 }
 
 .ai-tag-text {
@@ -933,25 +938,29 @@ onUnmounted(() => {
 }
 
 .bubble {
-  padding: 20rpx 24rpx;
-  border-radius: 20rpx;
-  font-size: 28rpx;
-  line-height: 1.6;
+  padding: 24rpx 32rpx;
+  border-radius: 36rpx;
+  font-size: 26rpx;
+  line-height: 1.75;
+  letter-spacing: -0.2rpx;
   word-break: break-all;
 }
 
+/* 原稿：AI 气泡白底描边小阴影，用户气泡蓝底白字 */
 .bubble--ai {
-  background: $ai-bg-gap;
+  background: $uni-bg-color;
   color: $ai-text-body;
-  border-top-left-radius: 8rpx;
-  box-shadow: none;
+  border-bottom-left-radius: 12rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
 }
 
 .bubble--user {
-  background: $uni-bg-color;
-  color: $ai-text-body;
-  border: 2rpx solid $ai-border;
-  border-top-right-radius: 8rpx;
+  background: $uni-color-primary;
+  color: #FFFFFF;
+  border-bottom-right-radius: 12rpx;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.18);
 }
 
 .bubble-text {
@@ -1214,63 +1223,78 @@ onUnmounted(() => {
 }
 
 .mic-btn {
-  width: 72rpx;
-  height: 72rpx;
+  width: 84rpx;
+  height: 84rpx;
   border-radius: 50%;
-  background: $uni-bg-color-page;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16rpx;
+  margin-right: 20rpx;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.mic-btn:active {
+  transform: scale(0.88);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.mic-btn-img {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .mic-btn--recording {
-  background: $uni-color-error;
-}
-
-.mic-btn-text {
-  font-size: 24rpx;
-  color: $uni-gray-500;
-}
-
-.mic-btn--recording .mic-btn-text {
-  color: $uni-text-color-inverse;
+  background: $uni-color-primary;
 }
 
 .chat-input {
   flex: 1;
-  height: 72rpx;
+  height: 84rpx;
   background: $uni-bg-color-page;
-  border-radius: 40rpx;
-  padding: 0 28rpx;
-  font-size: 28rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border-radius: 999rpx;
+  padding: 0 36rpx;
+  font-size: 26rpx;
   color: $uni-gray-900;
+  transition: all 0.25s ease;
+}
+
+.chat-input:focus {
+  background: $uni-bg-color;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 6rpx rgba(124, 58, 237, 0.08);
 }
 
 .chat-input-placeholder {
-  color: $uni-gray-300;
+  color: $uni-gray-500;
 }
 
 .send-btn {
-  margin-left: 16rpx;
-  height: 72rpx;
-  padding: 0 32rpx;
-  border-radius: 40rpx;
-  background: linear-gradient(135deg, $ai-tab-active, $ai-primary);
+  margin-left: 20rpx;
+  width: 84rpx;
+  height: 84rpx;
+  border-radius: 50%;
+  background: $uni-color-primary;
+  box-shadow: 0 6rpx 24rpx rgba(37, 99, 235, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.send-btn:active {
+  transform: scale(0.9);
+}
+
+.send-btn-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .send-btn--disabled {
   opacity: 0.5;
-}
-
-.send-btn-text {
-  font-size: 28rpx;
-  color: $uni-text-color-inverse;
 }
 
 .recording-hint {

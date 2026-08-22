@@ -78,7 +78,7 @@
         </view>
         <view class="hq-item" @tap="navigateTo('/pages-sub/finance/purchase/in-stock')">
           <view class="hq-ico">
-            <image class="hq-ico-img" src="/static/icons/fn-stockin.svg" mode="aspectFit" />
+            <image class="hq-ico-img" src="/static/icons/ic/scan.svg" mode="aspectFit" />
           </view>
           <text class="hq-label">扫码入库</text>
         </view>
@@ -131,19 +131,23 @@
       </view>
     </view>
 
-    <!-- 今日待办 -->
-    <view class="home-todos" v-if="todos.length > 0">
-      <view class="section-head">
-        <view class="section-title-wrap">
-          <view class="title-bar-line"></view>
-          <text class="section-title">今日待办</text>
+    <!-- 今日待办（原稿：色点 + 计数行，真实数据：订单状态 + 库存预警） -->
+    <view class="home-todos" v-if="todoRows.length > 0">
+      <view class="todo-head">
+        <view class="todo-head-title">
+          <image class="todo-check-ic" src="/static/icons/ic/check.svg" mode="aspectFit" />
+          <text class="todo-title-main">今日待办</text>
         </view>
-        <text class="section-more" @tap="navigateTo('/pages/todos/todos')">全部 ›</text>
+        <text class="todo-count">{{ todoTotal }}项需处理</text>
       </view>
-      <view class="todo-item" v-for="item in todos" :key="item.id">
-        <view class="todo-dot" :class="item.status === 'done' ? 'todo-dot--done' : 'todo-dot--pending'"></view>
-        <text class="todo-title">{{ item.title }}</text>
-        <text class="todo-date" v-if="item.deadline">{{ item.deadline }}</text>
+      <view class="todo-rows">
+        <view class="todo-row" v-for="row in todoRows" :key="row.label">
+          <view class="todo-row-dot" :style="{ background: row.color }"></view>
+          <text class="todo-row-text">
+            <text class="todo-row-num" :style="{ color: row.color }">{{ row.count }}</text>
+            {{ row.label }}
+          </text>
+        </view>
       </view>
     </view>
 
@@ -219,6 +223,7 @@ import { dashboardApi, type TodoItem, type SalesTrend } from '@/api/modules/dash
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 import { notificationsApi } from '@/api/modules/notifications'
 import { reportsApi } from '@/api/modules/reports'
+import { inventoryApi } from '@/api/modules/inventory'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 interface DashboardData {
@@ -258,10 +263,23 @@ const stats = ref<DashboardData>({
 })
 
 const todos = ref<TodoItem[]>([])
+const alertCount = ref(0)
 const recentOrders = ref<HomeOrder[]>([])
 const trendList = ref<SalesTrend[]>([])
 const refresherTriggered = ref(false)
 const unreadCount = ref(0)
+
+/** 原稿今日待办行：真实数据（待配送/库存预警/待收款） */
+const todoRows = computed(() => {
+  const rows = [
+    { count: stats.value.pendingDelivery, label: '单待配送', color: '#C8803A' },
+    { count: alertCount.value, label: '件库存预警商品', color: '#C45050' },
+    { count: stats.value.pendingPayment, label: '笔待收款', color: '#2563EB' }
+  ]
+  return rows.filter((r) => r.count > 0)
+})
+
+const todoTotal = computed(() => todoRows.value.reduce((acc, r) => acc + r.count, 0))
 
 const averageDaily = computed(() => {
   if (trendList.value.length === 0) return 0
@@ -370,15 +388,17 @@ function formatTrendDate(d: string): string {
 
 async function loadData() {
   try {
-    const [statsData, todosData, trendData, orderResult, unreadResult, summaryResult] = await Promise.all([
+    const [statsData, todosData, trendData, orderResult, unreadResult, summaryResult, alertResult] = await Promise.all([
       dashboardApi.getStats(),
       dashboardApi.getTodos(),
       dashboardApi.getSalesTrend(7),
       ordersApi.list({ page: 1, pageSize: 4 }).catch(() => null),
       notificationsApi.getUnreadCount().catch(() => null),
-      reportsApi.getSalesSummary().catch(() => null)
+      reportsApi.getSalesSummary().catch(() => null),
+      inventoryApi.alerts().catch(() => [] as never[])
     ])
     unreadCount.value = unreadResult?.total ?? 0
+    alertCount.value = Array.isArray(alertResult) ? alertResult.length : 0
     const s = statsData as any
     stats.value = {
       todaySales: s.todaySales || 0,
@@ -1005,6 +1025,66 @@ uni-scroll-view ::-webkit-scrollbar {
   align-items: center;
   padding: 22rpx 0;
   gap: 16rpx;
+}
+
+/* 原稿今日待办：标题行 + 色点计数行 */
+.todo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.todo-head-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.todo-check-ic {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.todo-title-main {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+  letter-spacing: -0.4rpx;
+}
+
+.todo-count {
+  font-size: 22rpx;
+  color: $uni-gray-500;
+  font-weight: 400;
+}
+
+.todo-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.todo-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.todo-row-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.todo-row-text {
+  font-size: 24rpx;
+  color: $uni-text-color-secondary;
+}
+
+.todo-row-num {
+  font-weight: 700;
 }
 
 .todo-dot {
