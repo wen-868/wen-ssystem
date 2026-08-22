@@ -14,7 +14,7 @@
         />
         <image class="search-clear" v-if="keyword" src="/static/icons/sc-clear.svg" mode="aspectFit" @tap="clearSearch" />
         <view class="icon-btn" @tap.stop="onScan">
-          <image class="icon-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
+          <view class="icon-btn-svg"></view>
         </view>
       </view>
     </view>
@@ -93,9 +93,12 @@
                 <text class="product-name">{{ item.name }}</text>
                 <text class="product-spec">{{ item.spec || '标准规格' }}</text>
                 <view class="product-meta">
-                  <text class="product-price">¥{{ item.price.toFixed(2) }}</text>
+                  <view class="price-line">
+                    <text class="price-tag price-tag--ws">批 ¥{{ (item.wholesalePrice ?? item.price ?? 0).toFixed(2) }}</text>
+                    <text class="price-tag price-tag--rt">零 ¥{{ (item.retailPrice ?? item.price ?? 0).toFixed(2) }}</text>
+                  </view>
                   <text class="product-stock" :class="stockClass(item.stock)">
-                    库存 {{ item.stock }}
+                    库 {{ item.stock }}
                   </text>
                 </view>
               </view>
@@ -139,7 +142,7 @@ const noMore = ref(false)
 const totalCount = ref(0)
 
 /** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
-const itemSize = ref(94)
+const itemSize = ref(82)
 
 function switchCategory(categoryId: number) {
   activeCategory.value = categoryId
@@ -308,11 +311,11 @@ function onAction(type: 'suggest' | 'batch' | 'anomaly') {
 }
 
 onMounted(() => {
-  // 行高 = 卡高(缩略图112rpx+上下内距28rpx×2) + 卡间距20rpx = 188rpx
+  // 行高 = 卡体高(max(缩略图,信息区) + 内距) + 卡间距，取 252rpx 确保卡片不重叠、间距可见
   try {
-    itemSize.value = uni.upx2px(188)
+    itemSize.value = uni.upx2px(164)
   } catch (err) {
-    itemSize.value = 94
+    itemSize.value = 82
   }
   loadCategories()
   loadProducts()
@@ -366,6 +369,16 @@ onMounted(() => {
 .icon-btn-img {
   width: 36rpx;
   height: 36rpx;
+}
+
+/* 扫码图标：CSS 背景方式加载 SVG（避免 H5 端 image 组件对 SVG 渲染为空） */
+.icon-btn-svg {
+  width: 36rpx;
+  height: 36rpx;
+  background-image: url('/static/icons/hd-scan.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .search-icon {
@@ -507,12 +520,12 @@ onMounted(() => {
   align-items: center;
   background: $uni-bg-color;
   border-radius: 32rpx;
-  padding: 28rpx;
+  padding: 16rpx;
   margin-bottom: 20rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   box-sizing: border-box;
-  height: 100%;
+  height: 144rpx;
 }
 
 .product-image-wrap {
@@ -523,7 +536,7 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  margin-right: 24rpx;
+  margin-right: 16rpx;
 }
 
 .offline-tag {
@@ -582,9 +595,9 @@ onMounted(() => {
 }
 
 .product-spec {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: $uni-gray-500;
-  margin-top: 6rpx;
+  margin-top: 4rpx;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
@@ -592,11 +605,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20rpx;
+  margin-top: 10rpx;
 }
 
 .product-name {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: $uni-text-color;
   font-weight: 600;
   overflow: hidden;
@@ -614,8 +627,30 @@ onMounted(() => {
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
+.price-line {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.price-tag {
+  font-size: 20rpx;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.2;
+}
+
+.price-tag--ws {
+  color: $uni-color-primary;
+}
+
+.price-tag--rt {
+  color: $uni-gray-400;
+  text-decoration: line-through;
+}
+
 .product-stock {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: $uni-gray-500;
   font-family: 'SF Mono', 'Fira Code', monospace;
   display: flex;
