@@ -32,6 +32,7 @@
         @tap="switchTab(tab.value)"
       >
         <text class="tab-text">{{ tab.label }}</text>
+        <text class="tab-count" v-if="tabCounts[tab.value] !== undefined">{{ tabCounts[tab.value] }}</text>
       </view>
     </scroll-view>
 
@@ -204,14 +205,28 @@ import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import VirtualList from '@/components/virtual-list.vue'
 
+// 原稿 tab：全部/待付款/待发货/已完成/退款；value 对齐后端 order_status 枚举（精确匹配）
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待确认', value: 'pending' },
-  { label: '待处理', value: 'processing' },
-  { label: '配送中', value: 'delivering' },
-  { label: '已完成', value: 'completed' },
-  { label: '已取消', value: 'cancelled' }
+  { label: '待付款', value: 'PENDING_PAYMENT' },
+  { label: '待发货', value: 'ACCEPTED' },
+  { label: '已完成', value: 'COMPLETED' },
+  { label: '退款', value: 'REFUNDED' }
 ]
+
+// 标签数量角标（原稿 tab 带计数；用真实接口统计，失败不阻塞页面）
+const tabCounts = reactive<Record<string, number>>({})
+
+async function loadTabCounts() {
+  try {
+    await Promise.all(tabs.map(async (t) => {
+      const res = await ordersApi.list({ status: t.value || undefined, pageSize: 1, page: 1 })
+      tabCounts[t.value] = res.total ?? 0
+    }))
+  } catch (err) {
+    console.error('加载订单标签计数失败:', err)
+  }
+}
 
 const searchForm = reactive({
   keyword: '',
@@ -350,17 +365,18 @@ function orderItemsSummary(order: OrderInfo): string {
 
 function statusClass(status: string): string {
   const s = (status || '').toUpperCase()
-  if (s === 'COMPLETED' || s === 'DONE' || s === 'ACCEPTED') return 'status-success'
-  if (s === 'PENDING' || s === 'WAIT_PAY') return 'status-danger'
-  if (s === 'DELIVERING' || s === 'PROCESSING') return 'status-warning'
-  if (s === 'CANCELLED' || s === 'REJECTED') return 'status-gray'
+  // 待付款=红，待配送/配送中=橙，已完成=绿，退款/已取消=灰
+  if (s === 'PENDING_PAYMENT' || s === 'UNPAID' || s === 'WAIT_PAY') return 'status-danger'
+  if (s === 'PENDING' || s === 'ACCEPTED' || s === 'DELIVERING' || s === 'PROCESSING') return 'status-warning'
+  if (s === 'COMPLETED' || s === 'DONE' || s === 'PAID') return 'status-success'
+  if (s === 'CANCELLED' || s === 'REJECTED' || s === 'REFUNDED') return 'status-gray'
   return 'status-warning'
 }
 
 function primaryAction(order: OrderInfo): string {
   const s = (order.status || '').toUpperCase()
-  if (s === 'PENDING') return '确认收款'
-  if (s === 'PROCESSING') return '配送'
+  // 待付款→确认收款；待发货/待配送(ACCEPTED)→配送
+  if (s === 'PENDING_PAYMENT' || s === 'UNPAID' || s === 'PENDING') return '确认收款'
   if (s === 'ACCEPTED') return '配送'
   return ''
 }
@@ -531,6 +547,7 @@ onMounted(() => {
   }
   loadCustomers()
   loadOrders()
+  loadTabCounts()
 })
 </script>
 
@@ -640,6 +657,17 @@ onMounted(() => {
 .tab-item--active .tab-text {
   color: $uni-text-color;
   font-weight: 600;
+}
+
+.tab-count {
+  font-size: 20rpx;
+  color: $uni-gray-400;
+  font-weight: 400;
+  margin-left: 6rpx;
+}
+
+.tab-item--active .tab-count {
+  color: $uni-color-primary;
 }
 
 .tab-item::after {
@@ -771,9 +799,9 @@ onMounted(() => {
 }
 
 .order-no {
-  font-size: 26rpx;
-  color: $uni-text-color;
-  font-weight: 600;
+  font-size: 24rpx;
+  color: $uni-gray-500;
+  font-weight: 500;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
@@ -807,7 +835,7 @@ onMounted(() => {
 }
 
 .order-amount {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 800;
   color: $uni-text-color;
   font-family: 'SF Mono', 'Fira Code', monospace;
@@ -834,7 +862,7 @@ onMounted(() => {
 }
 
 .ord-action {
-  padding: 12rpx 36rpx;
+  padding: 10rpx 32rpx;
   border-radius: 999rpx;
   border: 1rpx solid $uni-border-color;
 }
