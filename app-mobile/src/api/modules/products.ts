@@ -22,6 +22,8 @@ export interface ProductInfo {
   categoryId?: number
   categoryName?: string
   price: number
+  wholesalePrice?: number
+  retailPrice?: number
   stock: number
   unit: string
   image?: string
@@ -127,6 +129,8 @@ const productsApi = {
       categoryId: r.categoryId,
       categoryName: r.categoryName,
       price: Number(r.retailPrice ?? r.price ?? 0),
+      wholesalePrice: r.wholesalePrice != null ? Number(r.wholesalePrice) : Number(r.price ?? 0),
+      retailPrice: r.retailPrice != null ? Number(r.retailPrice) : Number(r.price ?? 0),
       stock: Number(r.availableQty ?? r.stock ?? 0),
       unit: r.unit ?? '',
       image: r.mainImage ?? r.image,
