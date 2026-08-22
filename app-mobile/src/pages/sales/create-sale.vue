@@ -32,11 +32,11 @@
       <view class="form-section">
         <view class="section-title">选择客户</view>
         <view class="customer-select" @tap="openCustomerPicker">
-          <view class="customer-info" v-if="selectedCustomer">
-            <text class="customer-name">{{ selectedCustomer.name }}</text>
-            <text class="customer-phone" v-if="selectedCustomer.phone">{{ selectedCustomer.phone }}</text>
-          </view>
-          <text class="customer-placeholder" v-else>请选择客户</text>
+        <view class="customer-info" v-if="selectedCustomer">
+          <text class="customer-name">{{ selectedCustomer.name }}</text>
+          <text class="customer-phone" v-if="selectedCustomer.phone">{{ selectedCustomer.phone }}</text>
+        </view>
+        <text class="customer-name" v-else>散客</text>
           <image class="customer-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
         </view>
         <view class="field-error" v-if="errors.selectedCustomer">
@@ -70,6 +70,24 @@
             <text class="item-total">¥{{ (item.total ?? 0).toFixed(2) }}</text>
             <view class="item-delete" @tap="removeItem(index)">删除</view>
           </view>
+          <!-- 追溯码（原稿：每件商品下方追溯码行，已录入显示「已关联」） -->
+          <view class="item-trace">
+            <image class="trace-icon" src="/static/icons/fn-trace.svg" mode="aspectFit" />
+            <input
+              v-if="!item.traceCode"
+              class="trace-input"
+              :value="item.traceCode"
+              type="text"
+              placeholder="点击录入追溯码"
+              placeholder-class="trace-placeholder"
+              @input="onTraceChange(index, $event)"
+            />
+            <view v-else class="trace-code-wrap">
+              <text class="trace-code">{{ item.traceCode }}</text>
+              <text class="trace-linked">已关联</text>
+            </view>
+            <image class="trace-scan" src="/static/icons/ic/scan.svg" mode="aspectFit" @tap="handleScanTrace(index)" />
+          </view>
         </view>
 
         <view class="add-item-row">
@@ -93,9 +111,21 @@
           <text class="amount-label">商品数</text>
           <text class="amount-value">{{ saleItems.length }}种 / {{ totalQty }}件</text>
         </view>
+        <view class="amount-row">
+          <text class="amount-label">优惠</text>
+          <view class="discount-edit">
+            <text class="discount-prefix">-¥</text>
+            <input
+              class="discount-input"
+              :value="discount"
+              type="digit"
+              @input="onDiscountChange"
+            />
+          </view>
+        </view>
         <view class="amount-row amount-row--total">
-          <text class="amount-label">合计金额</text>
-          <text class="amount-value amount-value--total">¥{{ totalAmount.toFixed(2) }}</text>
+          <text class="amount-label">应收金额</text>
+          <text class="amount-value amount-value--total">¥{{ receivable.toFixed(2) }}</text>
         </view>
       </view>
 
@@ -116,10 +146,10 @@
 
     <!-- 底部提交 -->
     <view class="bottom-bar">
-      <view class="bottom-total" v-if="saleItems.length > 0">
-        <text class="total-label">应收金额：</text>
-        <text class="total-value">¥{{ totalAmount.toFixed(2) }}</text>
-      </view>
+        <view class="bottom-total" v-if="saleItems.length > 0">
+          <text class="total-label">应收金额：</text>
+          <text class="total-value">¥{{ receivable.toFixed(2) }}</text>
+        </view>
       <button class="share-btn" :disabled="submitting" @tap="handleShare">
         分享
       </button>
@@ -282,7 +312,7 @@ const saleForm = reactive({
 })
 
 const saleRules: Rules = {
-  selectedCustomer: [{ required: true, message: '请选择客户' }],
+  // 散客为默认客户（原稿：客户字段默认显示「散客」），故不强制选择
   saleItems: [{ required: true, message: '请至少添加一个商品' }],
 }
 
@@ -312,9 +342,17 @@ const totalQty = computed(() => {
   return saleItems.reduce((sum, item) => sum + (item.quantity ?? 0), 0)
 })
 
+// 散客为默认客户，提交无需强制选择会员
 const canSubmit = computed(() => {
-  return saleForm.selectedCustomer !== null && saleItems.length > 0 && !submitting.value
+  return saleItems.length > 0 && !submitting.value
 })
+
+// 优惠（原稿汇总含「优惠」行，应收 = 合计 - 优惠）
+const discount = ref(0)
+function onDiscountChange(e: any) {
+  discount.value = Math.max(0, Number(e.detail.value) || 0)
+}
+const receivable = computed(() => Math.max(0, totalAmount.value - discount.value))
 
 // ========== 客户选择弹窗 ==========
 const showCustomerPicker = ref(false)
@@ -464,7 +502,7 @@ async function loadMoreProducts() {
   await loadProducts()
 }
 
-function addProduct(product: ProductInfo) {
+function addProduct(product: ProductInfo, traceCode = '') {
   // 检查是否已添加
   const existingIndex = saleItems.findIndex(item => item.productId === product.id)
   if (existingIndex >= 0) {
@@ -488,6 +526,7 @@ function addProduct(product: ProductInfo) {
     subtotalAmount: product.price,
     unit: product.unit,
     specs: product.specs,
+    traceCode,
   } as any
   saleItems.push(newItem)
   uni.showToast({ title: '已添加', icon: 'none' })
@@ -506,7 +545,9 @@ async function handleScanAdd() {
     const rows = res?.list ?? []
     const matched = rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
     if (matched) {
-      addProduct(matched)
+      // 条码已关联：扫码所得条码写入该商品追溯码
+      addProduct(matched, code)
+      uni.showToast({ title: '条码已关联', icon: 'none' })
     } else {
       uni.showToast({ title: '未找到该条码商品', icon: 'none' })
     }
@@ -556,6 +597,27 @@ function removeItem(index: number) {
   })
 }
 
+// 手动录入追溯码
+function onTraceChange(index: number, e: any) {
+  const item = saleItems[index]!
+  item.traceCode = e.detail.value || ''
+}
+
+// 扫码关联追溯码（原稿：条码已关联）
+async function handleScanTrace(index: number) {
+  try {
+    const { scanCode } = await import('@/native/scan')
+    const result = await scanCode()
+    const code = result?.code
+    if (!code) return
+    const item = saleItems[index]!
+    item.traceCode = code
+    uni.showToast({ title: '条码已关联', icon: 'none' })
+  } catch (err) {
+    uni.showToast({ title: (err as Error)?.message || '扫码失败', icon: 'none' })
+  }
+}
+
 function goBack() {
   const pages = getCurrentPages()
   if (pages.length > 1) {
@@ -602,10 +664,11 @@ async function handleSubmit() {
   if (!canSubmit.value) return
   submitting.value = true
   try {
+    const customer = selectedCustomer.value
     await salesApi.createSale({
-      customerId: selectedCustomer.value!.id,
-      customerName: selectedCustomer.value!.name,
-      customerMobile: selectedCustomer.value!.phone,
+      customerId: customer?.id,
+      customerName: customer?.name || '散客',
+      customerMobile: customer?.phone || '',
       items: saleItems.map(item => ({
         productId: item.productId,
         productName: item.productName,
@@ -786,6 +849,7 @@ async function handleSubmit() {
 .item-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   padding: 20rpx 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
   gap: 12rpx;
@@ -883,6 +947,69 @@ async function handleSubmit() {
   padding: 4rpx 8rpx;
 }
 
+/* 追溯码（原稿：每件商品下方追溯码行，已录入显示「已关联」） */
+.item-trace {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed $uni-border-color;
+}
+
+.trace-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+}
+
+.trace-input {
+  flex: 1;
+  font-size: 24rpx;
+  padding: 10rpx 16rpx;
+  background: $uni-bg-color-page;
+  border-radius: 8rpx;
+  color: $uni-gray-500;
+}
+
+.trace-placeholder {
+  color: $uni-gray-300;
+  font-size: 24rpx;
+}
+
+.trace-code-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 10rpx 16rpx;
+  background: $uni-color-primary-soft;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(37, 99, 235, 0.15);
+}
+
+.trace-code {
+  flex: 1;
+  font-size: 24rpx;
+  color: $uni-color-primary;
+  font-weight: 500;
+}
+
+.trace-linked {
+  font-size: 20rpx;
+  color: $uni-color-success;
+  background: $uni-color-success-soft;
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.trace-scan {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+}
+
 .add-item-btn {
   display: flex;
   align-items: center;
@@ -953,6 +1080,27 @@ async function handleSubmit() {
   font-size: 36rpx;
   font-weight: 700;
   color: $uni-color-primary;
+}
+
+/* 优惠（原稿：汇总含「优惠」行，可编辑） */
+.discount-edit {
+  display: flex;
+  align-items: center;
+}
+
+.discount-prefix {
+  font-size: 28rpx;
+  color: $uni-gray-700;
+  font-weight: 500;
+  margin-right: 4rpx;
+}
+
+.discount-input {
+  width: 160rpx;
+  text-align: right;
+  font-size: 28rpx;
+  color: $uni-gray-700;
+  font-weight: 500;
 }
 
 /* 备注 */
