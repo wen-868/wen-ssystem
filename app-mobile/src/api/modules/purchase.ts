@@ -54,8 +54,6 @@ export interface InStockRecord {
   storeName?: string
   inStockDate: string
   stockDate?: string
-  warehouseId: number
-  warehouseName: string
   totalAmount: number
   status: string
   statusLabel?: string
@@ -63,6 +61,22 @@ export interface InStockRecord {
   remark: string
   items: InStockItem[]
   createdAt: string
+}
+
+/** 创建采购入库单载荷（严格对齐后端 purchase-in-stock.service.ts#create，snake_case） */
+export interface CreatePurchaseInStockPayload {
+  supplier_id: number
+  supplier_name: string
+  store_id: number
+  remark?: string
+  items: Array<{
+    sku_id: number
+    sku_name: string
+    box_qty?: number
+    bottle_qty?: number
+    unit_price: number
+    tax_rate?: number
+  }>
 }
 
 export interface InStockItem {
@@ -147,8 +161,8 @@ export const purchaseApi = {
     return get(`/admin/purchase-in-stocks/${id}`)
   },
 
-  async createInStock(data: Partial<InStockRecord>): Promise<InStockRecord> {
-    // R94-03：路径同步改为 /admin/purchase-in-stocks
+  async createInStock(data: CreatePurchaseInStockPayload): Promise<InStockRecord> {
+    // R94-03：路径同步改为 /admin/purchase-in-stocks；载荷为 snake_case，严格对齐后端契约
     return post('/admin/purchase-in-stocks', data)
   }
 }

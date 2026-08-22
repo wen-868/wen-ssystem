@@ -5,12 +5,24 @@ export interface Receipt {
   receiptNo: string
   customerId: number
   customerName: string
-  receiptDate: string
-  receiptAmount: number
+  receiptType: string
+  amount: number
   paymentMethod: string
+  receivedDate: string
   status: string
   remark: string
   createdAt: string
+}
+
+/** 创建收款单载荷（严格对齐后端 receipt.controller.ts#createReceipt） */
+export interface CreateReceiptPayload {
+  customerId: number
+  customerName?: string
+  receiptType: string
+  amount: number
+  paymentMethod?: string
+  receivedDate?: string
+  remark?: string
 }
 
 export interface ReceiptQuery {
@@ -38,7 +50,7 @@ export const receiptApi = {
     return get(`/admin/receipts/${id}`)
   },
 
-  async create(data: Partial<Receipt>): Promise<Receipt> {
+  async create(data: CreateReceiptPayload): Promise<Receipt> {
     return post('/admin/receipts', data)
   },
 
