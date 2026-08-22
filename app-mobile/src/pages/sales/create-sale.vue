@@ -28,33 +28,61 @@
     <!-- 表单三件套：ref + :model + :rules -->
     <form ref="formRef" :model="saleForm" :rules="saleRules" class="sale-form-scroll">
       <scroll-view class="sale-form" scroll-y>
-      <!-- 客户选择 -->
-      <view class="form-section">
-        <view class="section-title">选择客户</view>
-        <view class="customer-select" @tap="openCustomerPicker">
-        <view class="customer-info" v-if="selectedCustomer">
-          <text class="customer-name">{{ selectedCustomer.name }}</text>
-          <text class="customer-phone" v-if="selectedCustomer.phone">{{ selectedCustomer.phone }}</text>
-        </view>
-        <text class="customer-name" v-else>散客</text>
-          <image class="customer-arrow ic" src="/static/icons/ic/chevron-right.svg" mode="aspectFit"/>
-        </view>
-        <view class="field-error" v-if="errors.selectedCustomer">
-          <text class="error-text">{{ errors.selectedCustomer }}</text>
+      <!-- 关联销售单（退货 / 收款单需选择源销售单） -->
+      <view class="form-section" v-if="docSub === '退货' || docSub === '收款单'">
+        <view class="section-title">关联销售单</view>
+        <picker
+          class="qc-cell"
+          mode="selector"
+          :range="sourceBills"
+          range-key="label"
+          @change="onSourceBillChange"
+        >
+          <view class="qc-val">{{ sourceBillLabel }} <text class="qc-chev">▾</text></view>
+        </picker>
+      </view>
+      <!-- 客户 / 配送方式 / 日期 / 门店仓库 2x2 选择（原稿 qo-customer） -->
+      <view class="form-section qo-customer">
+        <view class="qc-grid">
+          <view class="qc-cell" @tap="openCustomerPicker">
+            <text class="qc-label">客户</text>
+            <view class="qc-val">{{ selectedCustomer?.name || '散客' }} <text class="qc-chev">▾</text></view>
+          </view>
+          <picker class="qc-cell" mode="selector" :range="deliveryOptions" @change="onDeliveryChange">
+            <text class="qc-label">配送方式</text>
+            <view class="qc-val">{{ deliveryMethod }} <text class="qc-chev">▾</text></view>
+          </picker>
+          <picker class="qc-cell" mode="date" :value="orderDate" @change="onDateChange">
+            <text class="qc-label">日期</text>
+            <view class="qc-val">{{ orderDate.slice(5) }} <text class="qc-chev">▾</text></view>
+          </picker>
+          <picker class="qc-cell" mode="selector" :range="storeOptions" @change="onStoreChange">
+            <text class="qc-label">门店/仓库</text>
+            <view class="qc-val">{{ storeName }} <text class="qc-chev">▾</text></view>
+          </picker>
         </view>
       </view>
 
       <!-- 商品列表 -->
       <view class="form-section">
         <view class="section-title">
-          <text>商品明细</text>
-          <text class="item-count">共{{ saleItems.length }}件</text>
+          <text>已选商品 ({{ saleItems.length }})</text>
         </view>
         <view class="item-row" v-for="(item, index) in saleItems" :key="index">
+          <view class="prod-thumb"><text class="t-letter">{{ firstChar(item.productName) }}</text></view>
           <view class="item-info">
             <text class="item-name">{{ item.productName }}</text>
             <text class="item-spec" v-if="item.specs">{{ item.specs }}</text>
-            <text class="item-price">¥{{ (item.price ?? 0).toFixed(2) }} / {{ item.unit || '件' }}</text>
+            <view class="item-price-wrap">
+              <text class="price-unit">¥</text>
+              <input
+                class="item-price-input"
+                :value="Number(item.price ?? 0).toFixed(2)"
+                type="digit"
+                @input="onPriceChange(index, $event)"
+              />
+              <text class="price-append">/ {{ item.unit || '件' }}</text>
+            </view>
           </view>
           <view class="item-quantity">
             <view class="qty-btn" :class="{ 'qty-btn--disabled': (item.quantity ?? 0) <= 1 }" @tap="decreaseQty(index)">-</view>
@@ -150,19 +178,19 @@
           <text class="total-label">应收金额：</text>
           <text class="total-value">¥{{ receivable.toFixed(2) }}</text>
         </view>
-      <button class="share-btn" :disabled="submitting" @tap="handleShare">
-        分享
-      </button>
-      <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
-        暂存
-      </button>
       <button
         class="submit-btn"
         :disabled="!canSubmit || submitting"
         :class="{ 'submit-btn--disabled': !canSubmit }"
         @tap="handleSubmit"
       >
-        {{ submitting ? '提交中...' : '结算收款' }}
+        {{ submitting ? '提交中...' : '收款' }}
+      </button>
+      <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
+        修改
+      </button>
+      <button class="share-btn" :disabled="submitting" @tap="handleShare">
+        分享
       </button>
     </view>
 
@@ -332,6 +360,32 @@ const submitting = ref(false)
 const docMain = ref<'sale' | 'purchase'>('sale')
 const docSub = ref('订单')
 const docSubs = ['订单', '出货', '退货', '收款单']
+
+// 配送方式 / 日期 / 门店仓库（原稿 qo-customer 2x2 选择）
+const deliveryOptions = ['送货上门', '到店自提', '快递寄送']
+const deliveryMethod = ref('送货上门')
+function onDeliveryChange(e: any) {
+  deliveryMethod.value = deliveryOptions[Number(e.detail.value)] ?? deliveryMethod.value
+}
+function todayStr(): string {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+const orderDate = ref(todayStr())
+function onDateChange(e: any) {
+  orderDate.value = e.detail.value
+}
+const storeOptions = ['总仓', '一分仓', '二分仓']
+const storeName = ref('总仓')
+function onStoreChange(e: any) {
+  storeName.value = storeOptions[Number(e.detail.value)] ?? storeName.value
+}
+// 商品首字缩略图（原稿 prod-thumb）
+function firstChar(name?: string): string {
+  return (name || '').trim().charAt(0) || '商'
+}
 
 // ========== 计算属性 ==========
 const totalAmount = computed(() => {
@@ -806,14 +860,40 @@ async function handleSubmit() {
   color: $uni-gray-400;
 }
 
-/* 客户选择 */
-.customer-select {
+/* 客户 / 配送方式 / 日期 / 门店仓库 2x2 网格（原稿 qo-customer） */
+.qc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.qc-cell {
   display: flex;
-  align-items: center;
-  height: 80rpx;
+  flex-direction: column;
+  gap: 6rpx;
   background: $uni-bg-color-page;
   border-radius: 12rpx;
-  padding: 0 24rpx;
+  padding: 16rpx 20rpx;
+}
+
+.qc-label {
+  font-size: 22rpx;
+  color: $uni-gray-400;
+}
+
+.qc-val {
+  font-size: 28rpx;
+  color: $uni-gray-700;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.qc-chev {
+  font-size: 22rpx;
+  color: $uni-gray-300;
+  margin-left: 8rpx;
 }
 
 .customer-info {
@@ -873,6 +953,24 @@ async function handleSubmit() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 商品首字缩略图（原稿 prod-thumb） */
+.prod-thumb {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  background: $uni-color-primary-soft;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.t-letter {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: $uni-color-primary;
 }
 
 .item-spec {
