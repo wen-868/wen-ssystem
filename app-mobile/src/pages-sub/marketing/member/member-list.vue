@@ -41,6 +41,8 @@
       </view>
     </view>
 
+    <view class="section-title">会员列表</view>
+
     <!-- 会员列表 -->
     <view class="loading-overlay" v-if="loading && list.length === 0">
       <view class="loading-spinner"></view>
@@ -55,8 +57,7 @@
         <view class="member-info">
           <view class="member-name-row">
             <text class="member-name">{{ m.name || '会员' }}</text>
-            <text class="level-tag" v-if="m.levelName">{{ m.levelName }}</text>
-            <text class="level-tag level-tag--plain" v-else>普通</text>
+            <text class="level-tag" :class="levelClass(m.levelName)">{{ m.levelName || '普通' }}</text>
           </view>
           <view class="member-meta">
             <text class="meta-text">最近消费：{{ formatDate(m.lastOrderAt) || '—' }}</text>
@@ -122,6 +123,15 @@ function formatAmount(v: number): string {
 function formatDate(d: string | null): string {
   if (!d) return ''
   return String(d).slice(0, 10)
+}
+
+// 会员等级标签配色（对齐原稿：VIP3 琥珀 / VIP2 蓝 / VIP1·普通 灰）
+function levelClass(name?: string): string {
+  const n = (name || '').toUpperCase()
+  if (n.includes('VIP3')) return 'level-tag--vip3'
+  if (n.includes('VIP2')) return 'level-tag--vip2'
+  if (n.includes('VIP1')) return 'level-tag--vip1'
+  return 'level-tag--plain'
 }
 
 async function load(reset = false) {
@@ -203,21 +213,34 @@ onMounted(() => load(true))
 }
 .stats-card {
   flex: 1;
-  background: #fff;
+  background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 28rpx 20rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: $uni-color-primary;
 }
 .stats-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: $uni-color-primary;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  letter-spacing: -1rpx;
 }
 .stats-value--up {
-  color: #10b981;
+  color: $uni-color-primary;
 }
 .stats-label {
   margin-top: 8rpx;
@@ -227,6 +250,13 @@ onMounted(() => load(true))
 
 .search-bar {
   padding: 0 24rpx 16rpx;
+}
+
+.section-title {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: $uni-gray-500;
+  padding: 24rpx 28rpx 12rpx;
 }
 .search-input-wrap {
   display: flex;
@@ -265,16 +295,16 @@ onMounted(() => load(true))
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #DBEAFE, #EFF6FF);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .avatar-letter {
-  color: #fff;
+  color: $uni-color-primary;
   font-size: 30rpx;
-  font-weight: 600;
+  font-weight: 700;
 }
 .member-info {
   flex: 1;
@@ -292,15 +322,30 @@ onMounted(() => load(true))
   color: #1f2937;
 }
 .level-tag {
-  font-size: 20rpx;
-  color: #7c3aed;
-  background: #ede9fe;
-  border-radius: 8rpx;
-  padding: 2rpx 10rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: $uni-gray-500;
+  background: $uni-bg-color-soft;
+  border-radius: $uni-border-radius-pill;
+  padding: 2rpx 12rpx;
+}
+.level-tag--vip3 {
+  color: #92400e;
+  background: #fef3c7;
+  border: 1rpx solid rgba(217, 119, 6, 0.15);
+}
+.level-tag--vip2 {
+  color: $uni-color-primary;
+  background: $uni-color-primary-soft;
+  border: 1rpx solid rgba(37, 99, 235, 0.1);
+}
+.level-tag--vip1 {
+  color: $uni-gray-500;
+  background: $uni-bg-color-soft;
 }
 .level-tag--plain {
-  color: #6b7280;
-  background: #f3f4f6;
+  color: $uni-gray-500;
+  background: $uni-bg-color-soft;
 }
 .member-meta {
   margin-top: 8rpx;
@@ -322,8 +367,9 @@ onMounted(() => load(true))
 .consume-value {
   margin-top: 6rpx;
   font-size: 28rpx;
-  font-weight: 700;
-  color: #ef4444;
+  font-weight: 800;
+  color: $uni-text-color;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .empty-state {

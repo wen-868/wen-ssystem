@@ -275,7 +275,7 @@ onLoad((query: any) => {
   width: 108rpx;
   height: 108rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: $uni-gradient-blue;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,7 +308,7 @@ onLoad((query: any) => {
 .level-tag {
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
-  background: #eef2ff;
+  background: $uni-color-primary-soft;
 }
 
 .level-tag--plain {
@@ -317,7 +317,7 @@ onLoad((query: any) => {
 
 .level-tag-text {
   font-size: 20rpx;
-  color: #6366f1;
+  color: $uni-color-primary;
 }
 
 .level-tag--plain .level-tag-text {
@@ -413,7 +413,7 @@ onLoad((query: any) => {
 }
 
 .info-value--link {
-  color: #6366f1;
+  color: $uni-color-primary;
 }
 
 /* 最近订单 */
@@ -445,12 +445,12 @@ onLoad((query: any) => {
 .order-status {
   padding: 4rpx 14rpx;
   border-radius: 999rpx;
-  background: #eef2ff;
+  background: $uni-color-primary-soft;
 }
 
 .status-text {
   font-size: 20rpx;
-  color: #6366f1;
+  color: $uni-color-primary;
 }
 
 .order-card-footer {
@@ -495,7 +495,7 @@ onLoad((query: any) => {
   width: 48rpx;
   height: 48rpx;
   border: 4rpx solid #e5e7eb;
-  border-top-color: #6366f1;
+  border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

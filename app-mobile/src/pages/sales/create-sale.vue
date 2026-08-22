@@ -8,6 +8,23 @@
       <text class="header-title">快速开单</text>
     </view>
 
+    <!-- 单据类型分段导航（原稿：主段 销售/采购 + 子段 订单/出货/退货/收款单） -->
+    <view class="doc-nav">
+      <view class="doc-nav-main">
+        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="docMain = 'sale'">销售</view>
+        <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'purchase' }" @tap="docMain = 'purchase'">采购</view>
+      </view>
+      <view class="doc-nav-sub">
+        <view
+          class="doc-seg doc-seg--sub"
+          v-for="s in docSubs"
+          :key="s"
+          :class="{ 'doc-seg--active': docSub === s }"
+          @tap="docSub = s"
+        >{{ s }}</view>
+      </view>
+    </view>
+
     <!-- 表单三件套：ref + :model + :rules -->
     <form ref="formRef" :model="saleForm" :rules="saleRules" class="sale-form-scroll">
       <scroll-view class="sale-form" scroll-y>
@@ -103,6 +120,9 @@
         <text class="total-label">应收金额：</text>
         <text class="total-value">¥{{ totalAmount.toFixed(2) }}</text>
       </view>
+      <button class="share-btn" :disabled="submitting" @tap="handleShare">
+        分享
+      </button>
       <button class="draft-btn" :disabled="submitting" @tap="handleDraft">
         暂存
       </button>
@@ -277,6 +297,11 @@ const remark = computed({
 })
 
 const submitting = ref(false)
+
+// 单据类型分段导航（原稿：销售/采购 + 订单/出货/退货/收款单）
+const docMain = ref<'sale' | 'purchase'>('sale')
+const docSub = ref('订单')
+const docSubs = ['订单', '出货', '退货', '收款单']
 
 // ========== 计算属性 ==========
 const totalAmount = computed(() => {
@@ -540,6 +565,11 @@ function goBack() {
   }
 }
 
+/** 分享（原稿：分享开单快照） */
+function handleShare() {
+  uni.showToast({ title: '已生成开单分享卡片', icon: 'none' })
+}
+
 async function handleDraft() {
   if (saleItems.length === 0) {
     uni.showToast({ title: '请先添加商品', icon: 'none' })
@@ -640,6 +670,48 @@ async function handleSubmit() {
   font-size: 34rpx;
   font-weight: 700;
   color: $uni-text-color;
+}
+
+/* 单据类型分段导航（原稿） */
+.doc-nav {
+  margin: 16rpx 24rpx 0;
+}
+
+.doc-nav-main {
+  display: flex;
+  gap: 12rpx;
+  background: $uni-bg-color-page;
+  border-radius: 16rpx;
+  padding: 6rpx;
+}
+
+.doc-nav-sub {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.doc-seg {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: $uni-gray-500;
+  background: $uni-bg-color;
+  border-radius: 12rpx;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.doc-seg--sub {
+  padding: 14rpx 0;
+}
+
+.doc-seg--active {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(37, 99, 235, 0.2);
 }
 
 .sale-form {
@@ -829,9 +901,9 @@ async function handleSubmit() {
   margin-top: 16rpx;
 }
 .add-item-btn--scan {
-  border-color: #c7d2fe;
-  background: #eef2ff;
-  color: #6366f1;
+  border-color: rgba(37, 99, 235, 0.25);
+  background: $uni-color-primary-soft;
+  color: $uni-color-primary;
 }
 
 .add-icon {
@@ -921,6 +993,28 @@ async function handleSubmit() {
   align-items: baseline;
 }
 
+.share-btn {
+  width: 140rpx;
+  height: 80rpx;
+  background: $uni-bg-color;
+  border: 2rpx solid $uni-border-color;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: $uni-gray-600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.share-btn::after {
+  border: none;
+}
+
+.share-btn:active {
+  background: $uni-bg-color-grey;
+}
+
 .draft-btn {
   width: 160rpx;
   height: 80rpx;
@@ -957,7 +1051,7 @@ async function handleSubmit() {
 .submit-btn {
   width: 220rpx;
   height: 80rpx;
-  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  background: $uni-gradient-blue;
   border-radius: 40rpx;
   font-size: 30rpx;
   font-weight: 600;

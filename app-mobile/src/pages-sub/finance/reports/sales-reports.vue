@@ -4,6 +4,17 @@
       <text class="header-title">销售报表</text>
     </view>
 
+    <!-- 周期快捷选择（原稿：今日/本周/本月/本年） -->
+    <view class="period-tabs">
+      <view
+        v-for="t in periodTabs"
+        :key="t.value"
+        class="period-tab"
+        :class="{ 'period-tab--active': period === t.value }"
+        @tap="onPeriodChange(t.value)"
+      >{{ t.label }}</view>
+    </view>
+
     <!-- 筛选表单：ref + :model + :rules -->
     <form ref="formRef" :model="filterForm" class="filter-form">
       <view class="filter-row">
@@ -119,6 +130,21 @@
       </view>
     </view>
 
+    <!-- 销售排行（原稿：销售排行 + Top 商品） -->
+    <view class="rank-section">
+      <view class="section-title">销售排行</view>
+      <view class="rank-list">
+        <view class="rank-item" v-for="(item, idx) in rankList" :key="item.id">
+          <text class="rank-no" :class="idx < 3 ? 'rank-no--top' : 'rank-no--normal'">{{ idx + 1 }}</text>
+          <view class="rank-info">
+            <text class="rank-name">{{ item.name }}</text>
+            <text class="rank-spec" v-if="item.spec">{{ item.spec }}</text>
+          </view>
+          <text class="rank-val">¥{{ item.salesAmount }}</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 导出按钮 -->
     <view class="export-section">
       <button class="export-btn" @tap="onExport">
@@ -151,6 +177,50 @@ const filterRules: Rules = {
   endDate: [{ required: false }],
 }
 const { errors, validate, clearError } = useFormValidation(filterForm, filterRules)
+
+// 周期快捷选择（原稿：今日/本周/本月/本年）
+type PeriodKey = 'today' | 'week' | 'month' | 'year'
+const period = ref<PeriodKey>('week')
+const periodTabs = [
+  { label: '今日', value: 'today' as PeriodKey },
+  { label: '本周', value: 'week' as PeriodKey },
+  { label: '本月', value: 'month' as PeriodKey },
+  { label: '本年', value: 'year' as PeriodKey },
+]
+function fmtDate(dt: Date): string {
+  const p2 = (n: number) => String(n).padStart(2, '0')
+  return `${dt.getFullYear()}-${p2(dt.getMonth() + 1)}-${p2(dt.getDate())}`
+}
+function computePeriodDates(p: PeriodKey): { start: string; end: string } {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()
+  const d = now.getDate()
+  let start: Date
+  let end: Date
+  if (p === 'today') {
+    start = new Date(y, m, d, 0, 0, 0)
+    end = new Date(y, m, d, 23, 59, 59)
+  } else if (p === 'week') {
+    const day = now.getDay() || 7
+    start = new Date(y, m, d - day + 1, 0, 0, 0)
+    end = new Date(y, m, d + (7 - day), 23, 59, 59)
+  } else if (p === 'month') {
+    start = new Date(y, m, 1, 0, 0, 0)
+    end = new Date(y, m + 1, 0, 23, 59, 59)
+  } else {
+    start = new Date(y, 0, 1, 0, 0, 0)
+    end = new Date(y, 11, 31, 23, 59, 59)
+  }
+  return { start: fmtDate(start), end: fmtDate(end) }
+}
+function onPeriodChange(p: PeriodKey) {
+  period.value = p
+  const { start, end } = computePeriodDates(p)
+  filterForm.startDate = start
+  filterForm.endDate = end
+  loadReportData()
+}
 
 const storeOptions = ref<any[]>([])
 const staffOptions = ref<any[]>([])
@@ -317,13 +387,16 @@ async function loadReportData() {
 }
 
 onMounted(() => {
+  const { start, end } = computePeriodDates(period.value)
+  filterForm.startDate = start
+  filterForm.endDate = end
   loadReportData()
   loadFilterOptions()
 })
 </script>
 
 <style lang="scss" scoped>
-.sales-reports-page { min-height: 100vh; background: $uni-color-primary-soft; }
+.sales-reports-page { min-height: 100vh; background: $uni-bg-color-page; }
 .page-header {
   padding: 24rpx 32rpx;
   padding-top: calc(24rpx + env(safe-area-inset-top));
@@ -361,7 +434,7 @@ onMounted(() => {
 .query-btn {
   width: 100%;
   height: 72rpx;
-  background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
+  background: $uni-gradient-blue;
   border-radius: 36rpx;
   font-size: 26rpx;
   font-weight: 600;
@@ -376,6 +449,17 @@ onMounted(() => {
   border-radius: 16rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+}
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: $uni-color-primary;
 }
 .summary-row {
   display: flex;
@@ -450,7 +534,7 @@ onMounted(() => {
 }
 .category-bar {
   height: 100%;
-  background: linear-gradient(90deg, $uni-color-primary, $uni-color-primary);
+  background: $uni-gradient-blue;
   border-radius: 6rpx;
   min-width: 20rpx;
 }
@@ -480,4 +564,83 @@ onMounted(() => {
 .export-btn::after { border: none; }
 .export-icon { font-size: 28rpx; }
 .safe-bottom { height: 40rpx; }
+
+/* 周期快捷选择（对齐原稿 rpt-period） */
+.period-tabs {
+  display: flex;
+  margin: 16rpx 24rpx;
+  background: $uni-bg-color;
+  border-radius: $uni-border-radius-pill;
+  padding: 6rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+.period-tab {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  border-radius: $uni-border-radius-pill;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: $uni-gray-500;
+}
+.period-tab--active {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+  font-weight: 600;
+}
+
+/* 销售排行（对齐原稿 rpt-rank） */
+.rank-section { padding: 0 24rpx 24rpx; }
+.rank-list {
+  background: $uni-bg-color;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-no {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 40rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  background: $uni-bg-color-soft;
+  color: $uni-gray-500;
+  flex-shrink: 0;
+}
+.rank-no--top {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+}
+.rank-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  overflow: hidden;
+}
+.rank-name {
+  font-size: 26rpx;
+  color: $uni-gray-700;
+  font-weight: 500;
+}
+.rank-spec {
+  font-size: 22rpx;
+  color: $uni-gray-400;
+}
+.rank-val {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
 </style>
