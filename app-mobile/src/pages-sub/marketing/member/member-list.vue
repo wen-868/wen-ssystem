@@ -191,19 +191,19 @@ onMounted(() => load(true))
   align-items: center;
   height: 88rpx;
   padding: 0 24rpx;
-  background: #fff;
+  background: $uni-bg-color;
 }
 .header-back {
   padding: 8rpx 16rpx 8rpx 0;
 }
 .header-back-icon {
   font-size: 44rpx;
-  color: #333;
+  color: $uni-gray-600;
 }
 .header-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #1f2937;
+  color: $uni-text-color;
 }
 
 .stats-grid {
@@ -245,7 +245,7 @@ onMounted(() => load(true))
 .stats-label {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #9ca3af;
+  color: $uni-gray-400;
 }
 
 .search-bar {
@@ -261,13 +261,13 @@ onMounted(() => load(true))
 .search-input-wrap {
   display: flex;
   align-items: center;
-  background: #f3f4f6;
+  background: $uni-bg-color-page;
   border-radius: 40rpx;
   padding: 0 24rpx;
   height: 68rpx;
 }
 .search-icon {
-  color: #9ca3af;
+  color: $uni-gray-400;
   margin-right: 12rpx;
 }
 .search-input {
@@ -275,7 +275,7 @@ onMounted(() => load(true))
   font-size: 26rpx;
 }
 .search-clear {
-  color: #9ca3af;
+  color: $uni-gray-400;
 }
 
 .member-scroll {
@@ -295,7 +295,7 @@ onMounted(() => load(true))
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #DBEAFE, #EFF6FF);
+  background: $uni-color-primary-soft;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -319,7 +319,7 @@ onMounted(() => load(true))
 .member-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #1f2937;
+  color: $uni-text-color;
 }
 .level-tag {
   font-size: 22rpx;
@@ -352,7 +352,7 @@ onMounted(() => load(true))
 }
 .meta-text {
   font-size: 22rpx;
-  color: #9ca3af;
+  color: $uni-gray-400;
 }
 .member-right {
   display: flex;
@@ -362,7 +362,7 @@ onMounted(() => load(true))
 }
 .consume-label {
   font-size: 20rpx;
-  color: #9ca3af;
+  color: $uni-gray-400;
 }
 .consume-value {
   margin-top: 6rpx;
@@ -377,7 +377,7 @@ onMounted(() => load(true))
   text-align: center;
 }
 .empty-text {
-  color: #9ca3af;
+  color: $uni-gray-300;
   font-size: 26rpx;
 }
 .load-more {

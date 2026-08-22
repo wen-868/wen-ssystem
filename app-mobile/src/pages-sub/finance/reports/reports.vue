@@ -419,7 +419,7 @@ onMounted(() => {
 .sk-line {
   height: 24rpx;
   border-radius: 8rpx;
-  background: #F0F0F0;
+  background: $uni-gray-100;
   position: relative;
   overflow: hidden;
 }

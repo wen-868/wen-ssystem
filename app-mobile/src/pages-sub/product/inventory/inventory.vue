@@ -44,6 +44,13 @@
       </view>
     </view>
 
+    <!-- 库存预警（原稿分区标题；点击进入预警明细） -->
+    <view class="section-title section-title--clickable" @tap="goto('/pages-sub/product/stock-warning/stock-warning')">
+      <text class="st-text">库存预警</text>
+      <text class="st-count" v-if="warnCount > 0">{{ warnCount }}</text>
+      <text class="st-arrow">›</text>
+    </view>
+
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">
@@ -61,6 +68,12 @@
         </view>
       </view>
     </form>
+
+    <!-- 库存列表分区标题 -->
+    <view class="section-title">
+      <text class="st-text">库存列表</text>
+      <text class="st-sub">共 {{ totalSku }} 个SKU</text>
+    </view>
 
     <scroll-view class="inventory-list" scroll-y v-if="list.length > 0">
       <view class="inventory-card" v-for="item in list" :key="item.id">
@@ -326,11 +339,55 @@ onMounted(() => {
   font-weight: 500;
 }
 
+/* 分区标题（原稿 section-title 风格） */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 32rpx 32rpx 8rpx;
+}
+
+.section-title--clickable:active {
+  opacity: 0.7;
+}
+
+.st-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+}
+
+.st-count {
+  min-width: 32rpx;
+  height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  background: $uni-color-error;
+  color: #fff;
+  font-size: 20rpx;
+  line-height: 32rpx;
+  text-align: center;
+  font-weight: 600;
+}
+
+.st-sub {
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  font-weight: 400;
+}
+
+.st-arrow {
+  margin-left: auto;
+  font-size: 32rpx;
+  color: $uni-gray-300;
+  line-height: 1;
+}
+
 /* 搜索栏 */
 .search-bar {
   padding: 16rpx 24rpx;
   background: $uni-bg-color;
-  margin-top: 28rpx;
+  margin-top: 12rpx;
 }
 
 .search-input-wrap {
