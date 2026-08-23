@@ -1441,6 +1441,7 @@ onUnmounted(() => {
   height: 72rpx;
   min-height: 0;
   max-height: 72rpx;
+  overflow: hidden;
   box-sizing: border-box;
   line-height: 72rpx;
   background: $uni-bg-color-page;
