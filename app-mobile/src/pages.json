@@ -29,7 +29,8 @@
         {
             "path": "pages/orders/orders",
             "style": {
-                "navigationBarTitleText": "订单管理"
+                "navigationBarTitleText": "订单管理",
+                "navigationStyle": "custom"
             }
         },
         {
@@ -156,13 +157,15 @@
                 {
                     "path": "inventory/inventory",
                     "style": {
-                        "navigationBarTitleText": "库存管理"
+                        "navigationBarTitleText": "库存管理",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
                     "path": "customers/customers",
                     "style": {
-                        "navigationBarTitleText": "客户管理"
+                        "navigationBarTitleText": "客户管理",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
@@ -292,7 +295,8 @@
                 {
                     "path": "trace/trace-query",
                     "style": {
-                        "navigationBarTitleText": "溯源查询"
+                        "navigationBarTitleText": "溯源查询",
+                        "navigationStyle": "custom"
                     }
                 }
             ]
@@ -463,7 +467,8 @@
                 {
                     "path": "finance/finance-dashboard",
                     "style": {
-                        "navigationBarTitleText": "财务看板"
+                        "navigationBarTitleText": "财务看板",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
@@ -686,7 +691,8 @@
                 {
                     "path": "system/operation-log-detail",
                     "style": {
-                        "navigationBarTitleText": "操作日志详情"
+                        "navigationBarTitleText": "操作日志详情",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
@@ -699,19 +705,22 @@
                 {
                     "path": "report-permission/report-matrix",
                     "style": {
-                        "navigationBarTitleText": "报表权限矩阵"
+                        "navigationBarTitleText": "报表权限矩阵",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
                     "path": "report-permission/store-data-permission",
                     "style": {
-                        "navigationBarTitleText": "门店数据权限"
+                        "navigationBarTitleText": "门店数据权限",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
                     "path": "report-permission/permission-assign",
                     "style": {
-                        "navigationBarTitleText": "权限分配"
+                        "navigationBarTitleText": "权限分配",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
@@ -723,7 +732,8 @@
                 {
                     "path": "report-permission/audit-detail",
                     "style": {
-                        "navigationBarTitleText": "日志详情"
+                        "navigationBarTitleText": "日志详情",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
@@ -735,19 +745,22 @@
                 {
                     "path": "print/print-records",
                     "style": {
-                        "navigationBarTitleText": "单据打印"
+                        "navigationBarTitleText": "单据打印",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
                     "path": "settings/settings",
                     "style": {
-                        "navigationBarTitleText": "系统设置"
+                        "navigationBarTitleText": "系统设置",
+                        "navigationStyle": "custom"
                     }
                 },
                 {
                     "path": "more/more-functions",
                     "style": {
-                        "navigationBarTitleText": "全部功能"
+                        "navigationBarTitleText": "全部功能",
+                        "navigationStyle": "custom"
                     }
                 }
             ]

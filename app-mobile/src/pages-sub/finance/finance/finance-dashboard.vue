@@ -2,6 +2,9 @@
   <scroll-view class="finance-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 顶部 Header -->
     <view class="finance-header">
+      <view class="header-back" @tap="goBack">
+        <text class="header-back-icon">‹</text>
+      </view>
       <view class="header-content">
         <text class="header-title">财务看板</text>
         <text class="header-date">{{ currentDate }}</text>
@@ -101,6 +104,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { financeApi, type IncomeStats, type ExpenseStats, type ProfitStats, type IncomeTrendItem, type ExpenseTrendItem, type CategoryExpense } from '@/api/modules/finance'
+
+function goBack() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) uni.navigateBack()
+  else uni.switchTab({ url: '/pages/functions/functions' })
+}
 
 const incomeStats = ref<IncomeStats>({
   todayIncome: 0,
@@ -205,6 +214,25 @@ onMounted(() => {
   padding: 60rpx 32rpx 40rpx;
   padding-top: calc(60rpx + env(safe-area-inset-top));
   border-radius: 0 0 40rpx 40rpx;
+  position: relative;
+}
+
+.finance-header .header-back {
+  position: absolute;
+  left: 20rpx;
+  top: calc(24rpx + env(safe-area-inset-top));
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.finance-header .header-back-icon {
+  color: #fff;
+  font-size: 40rpx;
+  line-height: 1;
 }
 
 .header-content {
