@@ -281,9 +281,9 @@ onMounted(() => load(true))
   display: flex;
   align-items: center;
   background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: 20rpx;
+  padding: 26rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.03);
 }
 .member-avatar {
@@ -303,7 +303,9 @@ onMounted(() => load(true))
 }
 .member-info {
   flex: 1;
-  margin-left: 20rpx;
+  min-width: 0;
+  margin-left: 24rpx;
+  margin-right: 14rpx;
   overflow: hidden;
 }
 .member-name-row {
@@ -353,9 +355,14 @@ onMounted(() => load(true))
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  justify-content: flex-end;
+  align-self: flex-end;
   flex-shrink: 0;
+  margin-left: 14rpx;
+  padding-bottom: 2rpx;
 }
 .consume-label {
+  white-space: nowrap;
   font-size: 20rpx;
   color: $uni-gray-400;
 }
