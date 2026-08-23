@@ -4,6 +4,7 @@ import path from 'node:path'
 
 const BASE = 'https://m.onepan.cn'
 const OUT = process.env.SHOT_OUT || path.resolve('./shots')
+const VIEWPORT = (process.env.SHOT_VIEWPORT || '390x844').split('x').map(Number)
 const TOKEN = process.env.MERCHANT_TOKEN || ''
 const TENANT = process.env.MERCHANT_TENANT || 'default'
 const LOGIN_USERNAME = process.env.LOGIN_USERNAME || ''
@@ -29,7 +30,7 @@ routes = routes.map((r) => r.replace(/^\//, ''))
 
 const browser = await chromium.launch()
 const ctx = await browser.newContext({
-  viewport: { width: 390, height: 844 },
+  viewport: { width: VIEWPORT[0] || 390, height: VIEWPORT[1] || 844 },
   deviceScaleFactor: 2,
   isMobile: true,
   hasTouch: true,
