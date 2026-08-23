@@ -2,6 +2,7 @@
   <view class="batch-price-page">
     <!-- 顶部栏 -->
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">批量调价</text>
     </view>
 
@@ -138,6 +139,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { priceApi } from '@/api/modules/price'

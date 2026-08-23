@@ -72,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
 

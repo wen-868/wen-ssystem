@@ -1,6 +1,7 @@
 ﻿<template>
   <view class="product-edit-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">{{ isEdit ? '编辑商品' : '新建商品' }}</text>
     </view>
 
@@ -257,6 +258,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { consumeLibraryFillData, scanForNewProduct } from '@/native/scan'

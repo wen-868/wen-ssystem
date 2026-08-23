@@ -1,6 +1,7 @@
 <template>
   <view class="retail-products-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">商品上架管理</text>
     </view>
 
@@ -88,6 +89,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, computed } from 'vue'
 import { instantRetailApi, type RetailProduct } from '@/api/modules/instant-retail'
 

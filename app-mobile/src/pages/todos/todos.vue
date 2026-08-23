@@ -3,6 +3,7 @@
   <view class="todos-page">
     <!-- 顶部栏 -->
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">待办事项</text>
     </view>
 
@@ -39,6 +40,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, onMounted } from 'vue'
 import { dashboardApi, type TodoItem } from '@/api/modules/dashboard'
 

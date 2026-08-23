@@ -1,6 +1,7 @@
 <template>
   <view class="detail-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">{{ order?.type === 'GAIN' ? '报溢详情' : '报损详情' }}</text>
     </view>
 
@@ -154,6 +155,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { inventoryLossGainApi, type LossGainOrder, type LossGainType } from '@/api/modules/inventory-loss-gain'

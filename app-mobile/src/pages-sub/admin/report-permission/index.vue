@@ -1,6 +1,7 @@
 <template>
   <view class="permission-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">权限管理</text>
       <text class="header-subtitle">报表权限与数据权限配置</text>
     </view>
@@ -57,6 +58,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 function goReportMatrix() {
   uni.navigateTo({ url: '/pages-sub/admin/report-permission/report-matrix' })
 }

@@ -1,6 +1,7 @@
 <template>
   <view class="category-edit-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">{{ isEdit ? '编辑分类' : '新建分类' }}</text>
     </view>
 
@@ -74,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'

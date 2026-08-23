@@ -1,6 +1,7 @@
 <template>
   <view class="review-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">建议核价</text>
     </view>
 
@@ -96,6 +97,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, computed, onMounted } from 'vue'
 import { productsApi, type ProductInfo } from '@/api/modules/products'
 import { priceApi } from '@/api/modules/price'

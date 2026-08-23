@@ -1,6 +1,7 @@
 <template>
   <view class="in-stock-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">采购入库</text>
     </view>
 
@@ -110,6 +111,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { purchaseApi } from '@/api/modules/purchase'

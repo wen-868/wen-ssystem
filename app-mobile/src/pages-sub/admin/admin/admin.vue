@@ -1,6 +1,7 @@
 <template>
   <view class="admin-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">工作台</text>
     </view>
 
@@ -97,6 +98,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { employeeApi, type Employee } from '@/api/modules/employees'

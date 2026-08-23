@@ -1,6 +1,7 @@
 <template>
   <view class="check-detail-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">盘点详情</text>
     </view>
 
@@ -109,6 +110,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { stockCheckApi, type StockCheck, type StockCheckItem } from '@/api/modules/stock-check'

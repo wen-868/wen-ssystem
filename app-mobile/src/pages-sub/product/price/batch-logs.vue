@@ -1,6 +1,7 @@
 <template>
   <view class="batch-logs-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">调价记录</text>
     </view>
 
@@ -50,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, onMounted } from 'vue'
 import { priceApi } from '@/api/modules/price'
 

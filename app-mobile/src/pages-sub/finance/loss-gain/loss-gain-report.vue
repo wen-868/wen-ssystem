@@ -1,6 +1,7 @@
 <template>
   <view class="report-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">损益统计</text>
     </view>
 
@@ -181,6 +182,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, computed, onMounted } from 'vue'
 import { inventoryLossGainApi, type LossGainStatistics } from '@/api/modules/inventory-loss-gain'
 import { reportsApi } from '@/api/modules/reports'

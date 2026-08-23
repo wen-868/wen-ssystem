@@ -1,6 +1,7 @@
 <template>
   <view class="store-edit-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">{{ isEdit ? '编辑门店' : '新建门店' }}</text>
     </view>
 
@@ -51,6 +52,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { COLOR_PRIMARY } from '@/constants/colors'
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'

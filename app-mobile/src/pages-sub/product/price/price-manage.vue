@@ -1,6 +1,7 @@
 <template>
   <view class="price-manage-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">价格管理</text>
     </view>
 
@@ -90,6 +91,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, computed, onMounted } from 'vue'
 import { priceApi, type PriceLevel } from '@/api/modules/price'
 

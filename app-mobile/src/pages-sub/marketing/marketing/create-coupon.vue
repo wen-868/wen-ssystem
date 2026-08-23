@@ -1,6 +1,7 @@
 <template>
   <view class="create-coupon-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">新建优惠券</text>
     </view>
 
@@ -176,6 +177,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { couponsApi } from '@/api/modules/coupons'

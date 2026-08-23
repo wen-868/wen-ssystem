@@ -1,6 +1,7 @@
 <template>
   <view class="role-edit-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">{{ isEdit ? '编辑角色' : '新建角色' }}</text>
     </view>
 
@@ -71,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { COLOR_PRIMARY } from '@/constants/colors'
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'

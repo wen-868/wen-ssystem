@@ -1,6 +1,7 @@
 <template>
   <view class="loss-list-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">报损管理</text>
     </view>
 
@@ -111,6 +112,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, onMounted } from 'vue'
 import { inventoryLossGainApi, type LossGainOrder } from '@/api/modules/inventory-loss-gain'
 

@@ -1,6 +1,7 @@
 <template>
   <view class="stock-warning-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">库存预警</text>
     </view>
 
@@ -81,6 +82,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref } from 'vue'
 import { stockWarningApi, type StockWarningItem, type WarningConfig } from '@/api/modules/stock-warning'
 

@@ -1,6 +1,7 @@
 <template>
   <view class="receipts-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">财务往来</text>
     </view>
 
@@ -86,6 +87,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
 import { receiptApi } from '@/api/modules/receipts'

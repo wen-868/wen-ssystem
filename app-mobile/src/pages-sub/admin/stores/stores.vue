@@ -1,6 +1,7 @@
 <template>
   <view class="stores-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">门店管理</text>
     </view>
 
@@ -63,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref } from 'vue'
 import { storesApi, type StoreInfo } from '@/api/modules/stores'
 

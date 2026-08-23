@@ -1,6 +1,7 @@
 <template>
   <view class="roles-page">
     <view class="page-header">
+            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
       <text class="header-title">角色权限</text>
     </view>
 
@@ -50,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+function goBack(){ uni.navigateBack() }
+
 import { ref } from 'vue'
 import { rolesApi, type RoleInfo } from '@/api/modules/roles'
 
