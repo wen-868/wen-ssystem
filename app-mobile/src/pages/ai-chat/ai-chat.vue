@@ -129,7 +129,7 @@
     </scroll-view>
 
     <!-- 底部输入栏 -->
-    <view class="chat-footer">
+    <view class="chat-footer" :style="footerBottomStyle">
       <view class="input-bar">
         <view
           class="mic-btn"
@@ -146,6 +146,7 @@
           confirm-type="send"
           :disabled="sending"
           @confirm="sendMessage"
+          @keyboardheightchange="onKeyboardHeightChange"
         />
         <view
           class="send-btn"
@@ -160,7 +161,6 @@
         <text class="recording-hint-text">录音中 {{ recordingTime }}s，再点一次结束</text>
       </view>
     </view>
-    <view class="tabbar-placeholder"></view>
     <custom-tab-bar :current="'ai'" />
   </view>
 </template>
@@ -206,6 +206,16 @@ const models = ref<AiModelOption[]>([])
 const selectedModel = ref('')
 let messageSeq = 0
 let abortController: AbortController | null = null
+
+// 手机键盘高度（输入栏 fixed 定位时动态上移，避免被键盘遮挡）
+const keyboardHeight = ref(0)
+const footerBaseBottomPx = uni.upx2px(150)
+const footerBottomStyle = computed(() => ({
+  bottom: `calc(${keyboardHeight.value + footerBaseBottomPx}px + env(safe-area-inset-bottom))`,
+}))
+function onKeyboardHeightChange(e: any) {
+  keyboardHeight.value = Math.max(0, Number(e?.detail?.height || 0))
+}
 
 // 加载可用模型（内置 + 外部模型），默认选中租户/平台默认
 aiApi
@@ -788,6 +798,11 @@ onUnmounted(() => {
   padding-top: calc(22rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
 }
 
 .ai-top-icon {
@@ -899,6 +914,8 @@ onUnmounted(() => {
 .chat-body {
   flex: 1;
   overflow: hidden;
+  padding-top: calc(110rpx + env(safe-area-inset-top));
+  padding-bottom: calc(260rpx + env(safe-area-inset-bottom));
 }
 
 .chat-list {
@@ -1217,11 +1234,10 @@ onUnmounted(() => {
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(48rpx) saturate(1.5);
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
-}
-
-.tabbar-placeholder {
-  height: calc(150rpx + env(safe-area-inset-bottom));
-  background: transparent;
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  z-index: 20;
 }
 
 /* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
