@@ -468,11 +468,11 @@ onMounted(() => {
 .entry-icon--finance { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
 .entry-title { font-size: 28rpx; color: $uni-gray-700; font-weight: 600; }
 .entry-desc { font-size: 22rpx; color: $uni-gray-400; }
-.rank-section { padding: 0 24rpx 24rpx; }
+.rank-section { padding: 0 32rpx 24rpx; }
 .rank-list {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .rank-item {

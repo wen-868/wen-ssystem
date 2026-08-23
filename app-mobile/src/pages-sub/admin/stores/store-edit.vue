@@ -135,7 +135,7 @@ onLoad((options: any) => {
 .store-edit-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 140rpx; }
 .page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.form-section { background: $uni-bg-color; margin: 16rpx 24rpx; border-radius: 16rpx; padding: 8rpx 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.form-section { background: $uni-bg-color; margin: 16rpx 24rpx; border-radius: 16rpx; padding: 8rpx 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .form-item { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-child { border-bottom: none; }
 .form-item--textarea { flex-direction: column; align-items: stretch; }

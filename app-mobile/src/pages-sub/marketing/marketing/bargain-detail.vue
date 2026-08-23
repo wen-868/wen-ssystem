@@ -511,7 +511,7 @@ onMounted(() => {
 
 .bargain-progress-card {
   background: linear-gradient(135deg, $uni-color-error-soft, $uni-color-warning-soft);
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   padding: 24rpx;
 }
 

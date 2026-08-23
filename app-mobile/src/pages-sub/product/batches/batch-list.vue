@@ -165,14 +165,14 @@ onMounted(() => {
 }
 
 .batch-list {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .batch-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 

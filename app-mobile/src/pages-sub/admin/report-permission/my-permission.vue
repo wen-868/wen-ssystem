@@ -341,7 +341,7 @@ onMounted(() => {
 }
 
 .store-list-wrap {
-  padding: 0 24rpx 24rpx;
+  padding: 0 32rpx 24rpx;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -414,7 +414,7 @@ onMounted(() => {
 
 .category-list {
   display: inline-flex;
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
   gap: 12rpx;
 }
 

@@ -283,10 +283,10 @@ onLoad((options: any) => {
 .btn--success { background: $uni-color-success; color: $uni-text-color-inverse; }
 .btn--danger { background: $uni-text-color-inverse; color: $uni-color-error; border: 1rpx solid $uni-color-error; }
 .btn--block { width: 100%; }
-.items-section { padding: 0 24rpx; }
+.items-section { padding: 0 32rpx; }
 .section-title { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 0 16rpx; font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .section-count { font-size: 24rpx; color: $uni-gray-400; font-weight: 400; }
-.item-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.item-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .item-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .item-sku { font-size: 22rpx; color: $uni-gray-400; }

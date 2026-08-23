@@ -168,12 +168,12 @@ onMounted(() => { loadStatements() })
 .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
-.statement-list { padding: 16rpx 24rpx; }
+.statement-list { padding: 16rpx 32rpx; }
 .statement-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {

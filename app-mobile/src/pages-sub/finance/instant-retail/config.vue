@@ -234,8 +234,8 @@ loadConfigs()
 .platform-status--on { background: rgba(82,196,26,0.1); }
 .platform-status-text { font-size: 20rpx; color: $uni-gray-400; }
 .platform-status--on .platform-status-text { color: $uni-color-success; }
-.config-list-section { padding: 0 24rpx 24rpx; }
-.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.config-list-section { padding: 0 32rpx 24rpx; }
+.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .config-platform { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }

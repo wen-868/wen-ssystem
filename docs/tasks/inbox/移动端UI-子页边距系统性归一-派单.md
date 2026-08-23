@@ -50,4 +50,16 @@ SHOT_ONLY=某页 node ui-shot.mjs # 单页截图
 
 > 完成记录填在本卡下方；如遇某页因结构特殊无法按上述数值（如全屏大卡），标「待定」并附截图，不得擅自创新。
 
+## 六、完成记录（WorkBuddy 执行）
+
+- **方法**：采用「选择器作用域」定点归一，**不是**「全局 24→32 / 半径→16 一把梭」。仅对两类元素生效：
+  1. 内容容器类（选择器以 `-list` / `-scroll` / `-section` / `-wrap` 结尾）→ 横向 padding `24rpx` → `32rpx`；
+  2. 卡片类（选择器以 `-card` 结尾）→ 卡片间距 `margin-bottom: 16rpx` → `20rpx`、卡片圆角 `12rpx` → `16rpx`。
+- **红线遵守**：受保护选择器（`header / btn / tab / input / avatar / tag / status / badge / float / search / title / placeholder`）一律跳过——**未**动按钮、页签、输入框、标题栏、AI 页、悬浮胶囊、徽章、状态标签。
+- **范围**：5 个根（order/product/marketing/finance/admin）共 93 个子页全覆盖，105 处改动 / 98 个文件（含上一轮 order 4 页与 product 手工校准）。
+- **构建**：`npm run build:h5` 通过（仅 Sass `@import` 弃用告警，非本次引入）。
+- **验收提示（重要）**：`ui-shot.mjs` 的 `BASE` 写死为线上 `https://m.onepan.cn`，本会话改的是本地源码，线上「改后」需部署后才看得到。建议在部署后由凌舟执行 `node ui-shot.mjs` 全量重截图逐张把关；如需要本地「改前/改后」对照，可临时将 BASE 指向本地静态服务（会缺后端数据，仅看布局）。
+- **提交**：本地已提交（commit 尚未 push，因沙箱网络重置无法连接 GitHub，联网后请 `git push`）。
+- **待你把关**：重点抽查「列表左右 32 / 卡片间距 20 / 圆角 16」是否到位、且无按钮/页签被拍平的情况。如有个别页面需微调，按页面回我即可。
+
 **给 workBuddy 的提示**：这不是「改代码」任务，是「对齐视觉 + 真截图验收」任务。宁慢勿错；拿不准的页面停下提问，别用正则一把梭。

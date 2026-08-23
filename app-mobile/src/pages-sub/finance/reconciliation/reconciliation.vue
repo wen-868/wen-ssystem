@@ -282,8 +282,8 @@ loadCustomer()
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
-.content-scroll { flex: 1; padding: 0 24rpx; }
-.recon-card { position: relative; background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; margin-top: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.content-scroll { flex: 1; padding: 0 32rpx; }
+.recon-card { position: relative; background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; margin-top: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }

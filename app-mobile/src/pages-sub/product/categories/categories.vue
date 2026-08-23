@@ -231,7 +231,7 @@ onMounted(() => {
 .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
-.tree-scroll { flex: 1; padding: 16rpx 24rpx; }
+.tree-scroll { flex: 1; padding: 16rpx 32rpx; }
 .tree-list { background: $uni-bg-color; border-radius: 16rpx; overflow: hidden; }
 .tree-node {
   border-bottom: 1rpx solid $uni-bg-color-grey;

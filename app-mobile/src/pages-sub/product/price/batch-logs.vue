@@ -123,12 +123,12 @@ onMounted(() => {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.log-list { padding: 16rpx 24rpx 0; }
+.log-list { padding: 16rpx 32rpx 0; }
 .log-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 .log-header {

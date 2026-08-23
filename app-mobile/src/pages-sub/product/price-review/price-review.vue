@@ -231,8 +231,8 @@ onMounted(() => {
   justify-content: space-between;
   padding: 20rpx;
   background: $uni-color-primary-soft;
-  border-radius: 12rpx;
-  margin-bottom: 16rpx;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
 }
 .selected-info { display: flex; flex-direction: column; gap: 6rpx; flex: 1; margin-right: 16rpx; }
 .selected-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }

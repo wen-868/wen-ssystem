@@ -208,7 +208,7 @@ onMounted(() => { loadEmployees() })
 .action-icon--store { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
 .action-icon--setting { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .action-text { font-size: 22rpx; color: $uni-gray-700; }
-.employee-section { padding: 0 24rpx 24rpx; }
+.employee-section { padding: 0 32rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;

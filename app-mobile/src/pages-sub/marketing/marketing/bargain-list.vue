@@ -237,14 +237,14 @@ onMounted(() => {
 }
 
 .bargain-list {
-  padding: 0 24rpx 24rpx;
+  padding: 0 32rpx 24rpx;
   height: calc(100vh - 220rpx);
 }
 
 .bargain-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }

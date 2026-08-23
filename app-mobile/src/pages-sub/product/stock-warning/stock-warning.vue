@@ -202,8 +202,8 @@ loadWarningList()
 .tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: $uni-gray-500; position: relative; }
 .tab-item--active { color: $uni-color-primary; font-weight: 600; }
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
-.content-scroll { flex: 1; padding: 16rpx 24rpx; padding-bottom: 120rpx; }
-.warning-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.content-scroll { flex: 1; padding: 16rpx 32rpx; padding-bottom: 120rpx; }
+.warning-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .product-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .shortage-tag { background: rgba(255,77,79,0.1); padding: 4rpx 16rpx; border-radius: 8rpx; }
@@ -216,7 +216,7 @@ loadWarningList()
 .text-primary { color: $uni-color-primary; }
 .card-category { margin-top: 8rpx; }
 .category-text { font-size: 22rpx; color: $uni-gray-400; }
-.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .config-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .config-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }

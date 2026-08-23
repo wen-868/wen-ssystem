@@ -222,7 +222,7 @@ onMounted(() => { loadCoupons() })
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .create-section {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
   display: flex;
   gap: 16rpx;
 }
@@ -244,11 +244,11 @@ onMounted(() => { loadCoupons() })
   border: none;
 }
 .verify-entry-btn::after { border: none; }
-.coupon-list { padding: 0 24rpx 24rpx; }
+.coupon-list { padding: 0 32rpx 24rpx; }
 .coupon-card {
   display: flex; background: $uni-bg-color;
   border-radius: 16rpx; overflow: hidden;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .coupon-left {

@@ -414,7 +414,7 @@ onMounted(() => {
 
 /* 库存列表 */
 .inventory-list {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .inventory-card {
@@ -422,7 +422,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 20rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 

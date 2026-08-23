@@ -443,7 +443,7 @@ onMounted(() => {
   border: none;
 }
 .query-btn::after { border: none; }
-.summary-section { padding: 0 24rpx 24rpx; }
+.summary-section { padding: 0 32rpx 24rpx; }
 .summary-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
@@ -484,7 +484,7 @@ onMounted(() => {
   width: 1rpx; height: 48rpx;
   background: $uni-gray-100;
 }
-.chart-section { padding: 0 24rpx 24rpx; }
+.chart-section { padding: 0 32rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
@@ -504,11 +504,11 @@ onMounted(() => {
 }
 .chart-icon { font-size: 64rpx; color: $uni-gray-300; }
 .chart-text { font-size: 26rpx; color: $uni-gray-300; }
-.category-section { padding: 0 24rpx 24rpx; }
+.category-section { padding: 0 32rpx 24rpx; }
 .category-list {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .category-item {
@@ -546,7 +546,7 @@ onMounted(() => {
 }
 .category-amount { font-size: 26rpx; color: $uni-color-error; font-weight: 600; }
 .category-percent { font-size: 22rpx; color: $uni-gray-400; }
-.export-section { padding: 0 24rpx; }
+.export-section { padding: 0 32rpx; }
 .export-btn {
   width: 100%;
   height: 80rpx;
@@ -590,11 +590,11 @@ onMounted(() => {
 }
 
 /* 销售排行（对齐原稿 rpt-rank） */
-.rank-section { padding: 0 24rpx 24rpx; }
+.rank-section { padding: 0 32rpx 24rpx; }
 .rank-list {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 .rank-item {

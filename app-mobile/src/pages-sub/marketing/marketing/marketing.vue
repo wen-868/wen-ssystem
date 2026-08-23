@@ -255,10 +255,10 @@ onMounted(() => { loadActivities() })
 .entry-icon--full { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .entry-icon--discount { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
 .entry-text { font-size: 22rpx; color: $uni-gray-700; }
-.activity-list { padding: 0 24rpx 24rpx; }
+.activity-list { padding: 0 32rpx 24rpx; }
 .activity-card {
   background: $uni-bg-color; border-radius: 16rpx;
-  padding: 24rpx; margin-bottom: 16rpx;
+  padding: 24rpx; margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {

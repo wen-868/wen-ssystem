@@ -248,7 +248,7 @@ onMounted(() => { loadReportData() })
   border: none;
 }
 .query-btn::after { border: none; }
-.summary-section { padding: 0 24rpx 24rpx; }
+.summary-section { padding: 0 32rpx 24rpx; }
 .summary-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
@@ -283,7 +283,7 @@ onMounted(() => { loadReportData() })
   width: 1rpx; height: 48rpx;
   background: $uni-gray-100;
 }
-.section { padding: 0 24rpx 24rpx; }
+.section { padding: 0 32rpx 24rpx; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
@@ -310,7 +310,7 @@ onMounted(() => { loadReportData() })
 .category-list {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .category-item {
@@ -355,7 +355,7 @@ onMounted(() => { loadReportData() })
 .cash-flow-list {
   background: $uni-bg-color;
   border-radius: 16rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .cash-flow-item {

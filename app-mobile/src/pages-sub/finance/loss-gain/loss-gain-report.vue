@@ -343,7 +343,7 @@ onMounted(() => {
 
 /* 总览卡片 */
 .overview-section {
-  padding: 20rpx 24rpx;
+  padding: 20rpx 32rpx;
   display: flex;
   flex-direction: column;
   gap: 16rpx;

@@ -196,7 +196,7 @@ onMounted(() => {
   display: flex;
   padding: 16rpx;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
 }
 
 .product-image-wrap {

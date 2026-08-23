@@ -352,7 +352,7 @@ onMounted(() => {
 /* 记录列表 */
 .pr-list {
   height: calc(100vh - 260rpx - env(safe-area-inset-top));
-  padding: 8rpx 24rpx 0;
+  padding: 8rpx 32rpx 0;
   box-sizing: border-box;
 }
 

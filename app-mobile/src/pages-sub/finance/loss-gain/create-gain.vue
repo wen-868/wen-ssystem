@@ -508,7 +508,7 @@ async function onSubmit() {
 .picker-list {
   flex: 1;
   max-height: 50vh;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
 }
 
 .picker-item {

@@ -274,8 +274,8 @@ onMounted(() => {
 .status-item { display: inline-flex; padding: 12rpx 28rpx; margin: 0 8rpx; border-radius: 32rpx; background: $uni-bg-color-page; font-size: 26rpx; color: $uni-gray-500; }
 .status-item--active { background: $uni-color-primary; color: $uni-text-color-inverse; font-weight: 600; }
 
-.order-scroll { flex: 1; padding: 16rpx 24rpx; }
-.order-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.order-scroll { flex: 1; padding: 16rpx 32rpx; }
+.order-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .order-no { font-size: 26rpx; color: $uni-gray-400; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }

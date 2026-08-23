@@ -584,7 +584,7 @@ onMounted(() => {
 }
 
 .batch-section {
-  padding: 24rpx 32rpx;
+  padding: 32rpx 32rpx;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 

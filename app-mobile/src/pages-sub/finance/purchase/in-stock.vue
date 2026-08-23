@@ -275,12 +275,12 @@ onMounted(() => {
   margin-top: 20rpx;
 }
 .submit-btn::after { border: none; }
-.history-section { padding: 0 24rpx; }
+.history-section { padding: 0 32rpx; }
 .history-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .history-header {

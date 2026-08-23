@@ -224,10 +224,10 @@ onMounted(() => {
 .action-desc { font-size: 24rpx; color: $uni-gray-400; margin-top: 4rpx; }
 .section-header { padding: 24rpx 32rpx 12rpx; }
 .section-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
-.level-list { padding: 0 24rpx; }
+.level-list { padding: 0 32rpx; }
 .level-card {
   background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx;
-  margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .level-name-wrap { display: flex; align-items: center; gap: 12rpx; }

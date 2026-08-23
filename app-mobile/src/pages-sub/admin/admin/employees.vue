@@ -248,7 +248,7 @@ onMounted(() => { loadEmployees() })
 .filter-item--active { background: $uni-color-primary; }
 .filter-item--active .filter-text { color: $uni-text-color-inverse; }
 .filter-text { font-size: 24rpx; color: $uni-gray-500; }
-.add-section { padding: 16rpx 24rpx; }
+.add-section { padding: 16rpx 32rpx; }
 .add-btn {
   width: 100%;
   height: 80rpx;
@@ -260,12 +260,12 @@ onMounted(() => { loadEmployees() })
   border: none;
 }
 .add-btn::after { border: none; }
-.employee-list { padding: 0 24rpx 24rpx; }
+.employee-list { padding: 0 32rpx 24rpx; }
 .employee-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {

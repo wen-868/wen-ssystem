@@ -263,7 +263,7 @@ onMounted(() => {
 }
 
 .activity-list {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .activity-item {

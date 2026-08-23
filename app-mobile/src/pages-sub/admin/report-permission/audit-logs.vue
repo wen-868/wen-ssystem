@@ -284,7 +284,7 @@ onMounted(() => {
 
 .type-list {
   display: inline-flex;
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .type-item {
@@ -313,14 +313,14 @@ onMounted(() => {
 /* 日志列表 */
 .log-list {
   height: calc(100vh - 360rpx - env(safe-area-inset-bottom));
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .log-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 

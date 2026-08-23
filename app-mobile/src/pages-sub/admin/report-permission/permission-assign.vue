@@ -407,7 +407,7 @@ onMounted(() => {
 
 .user-scroll {
   flex: 1;
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .user-list {
@@ -682,7 +682,7 @@ onMounted(() => {
 }
 
 .store-select-wrap {
-  padding: 0 24rpx 24rpx;
+  padding: 0 32rpx 24rpx;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 

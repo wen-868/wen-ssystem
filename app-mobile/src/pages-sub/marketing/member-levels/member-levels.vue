@@ -235,7 +235,7 @@ onMounted(() => {
 }
 
 .level-list {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .level-item {

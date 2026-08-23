@@ -244,10 +244,10 @@ onMounted(() => { loadOrders() })
   display: flex; align-items: center; justify-content: center;
   padding: 0 8rpx;
 }
-.order-list { padding: 16rpx 24rpx 24rpx; }
+.order-list { padding: 16rpx 32rpx 24rpx; }
 .order-card {
   background: $uni-bg-color; border-radius: 16rpx;
-  margin-bottom: 16rpx; overflow: hidden;
+  margin-bottom: 20rpx; overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {

@@ -378,7 +378,7 @@ onLoad((query: any) => {
 .orders-section {
   background: $uni-bg-color;
   border-radius: 24rpx;
-  padding: 8rpx 24rpx;
+  padding: 8rpx 32rpx;
   box-shadow: $uni-shadow-card;
 }
 

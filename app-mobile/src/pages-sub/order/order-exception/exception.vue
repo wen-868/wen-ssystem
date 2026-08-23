@@ -241,12 +241,12 @@ function onLoadMore() {
 .tab-item--active { background: $uni-color-error; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.exception-list { padding: 16rpx 24rpx; height: calc(100vh - 340rpx); }
+.exception-list { padding: 16rpx 32rpx; height: calc(100vh - 340rpx); }
 .exception-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
   border-left: 6rpx solid $uni-color-error;
 }

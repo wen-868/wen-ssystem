@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .customer-list {
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
   height: calc(100vh - 300rpx);
 }
 

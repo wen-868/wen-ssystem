@@ -228,12 +228,12 @@ loadReceivables()
 .tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 26rpx; color: $uni-gray-500; position: relative; }
 .tab-item--active { color: $uni-color-primary; font-weight: 600; }
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 25%; right: 25%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
-.content-scroll { flex: 1; padding: 16rpx 24rpx; }
+.content-scroll { flex: 1; padding: 16rpx 32rpx; }
 .summary-row { padding: 8rpx 0 16rpx; }
 .summary-card { background: linear-gradient(135deg, $uni-color-warning-soft, $uni-bg-color); border-radius: 16rpx; padding: 28rpx 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .summary-label { font-size: 24rpx; color: $uni-gray-400; display: block; margin-bottom: 8rpx; }
 .summary-value { font-size: 40rpx; font-weight: 700; }
-.item-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.item-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .party-phone { font-size: 24rpx; color: $uni-gray-400; }

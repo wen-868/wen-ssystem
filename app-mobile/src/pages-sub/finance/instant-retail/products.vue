@@ -257,8 +257,8 @@ loadList()
 .search-input { flex: 1; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
 .status-filter { background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 24rpx; display: flex; align-items: center; }
 .filter-text { font-size: 24rpx; color: $uni-gray-500; }
-.product-scroll { flex: 1; padding: 16rpx 24rpx; }
-.product-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.product-scroll { flex: 1; padding: 16rpx 32rpx; }
+.product-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-top { display: flex; gap: 16rpx; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .product-img { width: 100rpx; height: 100rpx; border-radius: 12rpx; flex-shrink: 0; }
 .product-img-placeholder { width: 100rpx; height: 100rpx; border-radius: 12rpx; background: $uni-gray-100; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }

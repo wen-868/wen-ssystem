@@ -213,12 +213,12 @@ onMounted(() => {
 .type-tab--active { background: $uni-color-primary; }
 .type-tab--active .type-tab-text { color: $uni-text-color-inverse; }
 .type-tab-text { font-size: 24rpx; color: $uni-gray-500; }
-.anomaly-list { padding: 16rpx 24rpx; height: calc(100vh - 340rpx); }
+.anomaly-list { padding: 16rpx 32rpx; height: calc(100vh - 340rpx); }
 .anomaly-card {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 24rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
 }
 .card-header {

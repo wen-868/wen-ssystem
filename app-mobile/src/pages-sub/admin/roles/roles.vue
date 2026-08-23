@@ -134,8 +134,8 @@ loadList()
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
-.role-scroll { flex: 1; padding: 16rpx 24rpx; }
-.role-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.role-scroll { flex: 1; padding: 16rpx 32rpx; }
+.role-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .role-info { display: flex; flex-direction: column; gap: 4rpx; }
 .role-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }

@@ -255,7 +255,7 @@ onMounted(() => {
 
 .type-list {
   display: inline-flex;
-  padding: 16rpx 24rpx;
+  padding: 16rpx 32rpx;
 }
 
 .type-item {
