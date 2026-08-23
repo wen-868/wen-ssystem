@@ -231,7 +231,11 @@ function openAiSettings() {
 }
 
 function showAbout() {
-  uni.showModal({ title: '关于', content: `智享全链管理系统 v${appVersion}`, showCancel: false })
+  uni.showModal({
+    title: '关于',
+    content: `智享全链管理系统 v${appVersion}\n粤ICP备2026103101号-2A\n粤公网安备44030002015715号`,
+    showCancel: false,
+  })
 }
 
 function handleLogout() {

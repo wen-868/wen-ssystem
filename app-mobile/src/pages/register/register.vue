@@ -110,14 +110,6 @@
       <text class="link-btn" @tap="goLogin">立即登录</text>
     </view>
 
-    <!-- 底部 -->
-    <view class="footer-section">
-      <text class="footer-text">v1.0.0 · 粤ICP备2026103101号-2A</text>
-      <view class="footer-beian">
-        <image class="beian-icon" src="/static/gongan.png" mode="aspectFit" />
-        <text class="beian-text">粤公网安备44030002015715号</text>
-      </view>
-    </view>
   </view>
 </template>
 

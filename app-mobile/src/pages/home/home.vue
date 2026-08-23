@@ -213,13 +213,6 @@
     </view>
 
     <view class="safe-bottom"></view>
-    <view class="beian-footer">
-      <text class="beian-footer-text">粤ICP备2026103101号-2A</text>
-      <view class="beian-row">
-        <image class="beian-icon" src="/static/gongan.png" mode="aspectFit" />
-        <text class="beian-footer-text">粤公网安备44030002015715号</text>
-      </view>
-    </view>
     <custom-tab-bar :current="'home'" />
   </scroll-view>
 </template>
@@ -1116,26 +1109,5 @@ uni-scroll-view ::-webkit-scrollbar {
 .todo-date {
   font-size: 22rpx;
   color: $uni-gray-500;
-}
-
-.beian-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-  padding: 16rpx 0 8rpx;
-}
-.beian-row {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-}
-.beian-footer-text {
-  font-size: 22rpx;
-  color: $uni-gray-500;
-}
-.beian-icon {
-  width: 26rpx;
-  height: 26rpx;
 }
 </style>

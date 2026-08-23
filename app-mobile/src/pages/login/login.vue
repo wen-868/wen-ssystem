@@ -120,14 +120,6 @@
       </view>
     </view>
 
-    <!-- 底部 -->
-    <view class="footer-section">
-      <text class="footer-text">v{{ appVersion }} · 粤ICP备2026103101号-2A</text>
-      <view class="footer-beian">
-        <image class="beian-icon" src="/static/gongan.png" mode="aspectFit" />
-        <text class="beian-text">粤公网安备44030002015715号</text>
-      </view>
-    </view>
   </view>
 </template>
 
@@ -140,9 +132,6 @@ import { authApi } from '@/api/modules/auth'
 import manifest from '@/manifest.json'
 
 const userStore = useUserStore()
-
-/** 版本号读 manifest（与「关于」一致，不硬编码） */
-const appVersion = (manifest as any)?.versionName || ''
 
 // 已登录（如跳转失败后刷新/重新显示本页）时自动进入系统
 onLoad(() => {
