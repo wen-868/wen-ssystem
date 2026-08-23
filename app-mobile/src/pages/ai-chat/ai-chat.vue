@@ -787,8 +787,15 @@ onUnmounted(() => {
   gap: 20rpx;
   padding: 22rpx 32rpx;
   padding-top: calc(22rpx + env(safe-area-inset-top));
-  background: $uni-bg-color;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  margin: 12rpx 24rpx 0;
+  border-radius: 40rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(48rpx) saturate(1.5);
+  -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
+  position: relative;
+  z-index: 10;
 }
 
 .ai-top-icon {
@@ -1211,16 +1218,19 @@ onUnmounted(() => {
 
 /* ====================== 底部输入栏 ====================== */
 .chat-footer {
-  background: $uni-bg-color;
-  padding: 16rpx 24rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.92);
+  margin: 0 24rpx;
+  border-radius: 40rpx;
+  padding: 16rpx 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(48rpx) saturate(1.5);
+  -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
 }
 
 /* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
 .tabbar-placeholder {
-  height: calc(156rpx + env(safe-area-inset-bottom));
-  background: $uni-bg-color;
+  height: calc(140rpx + env(safe-area-inset-bottom));
+  background: transparent;
 }
 
 .input-bar {
