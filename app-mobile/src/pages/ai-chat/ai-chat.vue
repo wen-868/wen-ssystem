@@ -138,16 +138,18 @@
         >
           <image class="mic-btn-img" src="/static/icons/ic/mic.svg" mode="aspectFit" />
         </view>
-        <input
+        <textarea
           class="chat-input"
           v-model="inputText"
           placeholder="输入你的问题..."
           placeholder-class="chat-input-placeholder"
+          auto-height
           confirm-type="send"
+          :maxlength="1000"
           :disabled="sending"
           @confirm="sendMessage"
           @keyboardheightchange="onKeyboardHeightChange"
-        />
+        ></textarea>
         <view
           class="send-btn"
           :class="{ 'send-btn--disabled': sending || !inputText.trim() }"
@@ -1275,11 +1277,14 @@ onUnmounted(() => {
 
 .chat-input {
   flex: 1;
-  height: 84rpx;
+  min-height: 84rpx;
+  max-height: 240rpx;
+  box-sizing: border-box;
+  line-height: 1.5;
   background: $uni-bg-color-page;
   border: 1rpx solid rgba(0, 0, 0, 0.06);
-  border-radius: 999rpx;
-  padding: 0 36rpx;
+  border-radius: 28rpx;
+  padding: 22rpx 32rpx;
   font-size: 26rpx;
   color: $uni-gray-900;
   transition: all 0.25s ease;
