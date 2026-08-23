@@ -37,7 +37,7 @@
     <view class="prof-section">
       <text class="prof-section-title">门店管理</text>
       <view class="prof-list">
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')" v-if="userStore.isAdmin">
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-store.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">门店信息</text>
@@ -45,7 +45,7 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/admin/employees')" v-if="userStore.isAdmin">
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/admin/employees')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">员工管理</text>
