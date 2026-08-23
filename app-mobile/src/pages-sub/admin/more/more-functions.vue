@@ -65,9 +65,6 @@ const hotActions = [
   { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_DANGER_SOFT, color: AI_DANGER },
   { icon: '/static/icons/fn-check.svg', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-store.svg', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_GAP, color: AI_TEXT_MID },
-  { icon: '/static/icons/prf-staff.svg', label: '员工管理', path: '/pages-sub/admin/admin/employees', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-inventory.svg', label: '库存管理', path: '/pages-sub/product/inventory/inventory', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', bg: AI_WARNING_SOFT, color: AI_WARNING },
   { icon: '/static/icons/fn-trace.svg', label: '溯源查询', path: '/pages-sub/product/trace/trace-query', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
@@ -81,7 +78,6 @@ const dataTools = [
   { icon: '/static/icons/fn-price.svg', label: '价格管理', sub: '零售/批发价与调价', path: '/pages-sub/product/price/price-manage', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
   { icon: '/static/icons/fn-batch-price.svg', label: '批量调价', sub: '按分类批量调整价格', path: '/pages-sub/product/price/batch-price', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
   { icon: '/static/icons/fn-sales-report.svg', label: '销售报表', sub: '销售数据明细分析', path: '/pages-sub/finance/reports/sales-reports', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/prf-setting.svg', label: '系统设置', sub: '打印、权限、通知设置', path: '/pages-sub/admin/settings/settings', bg: AI_BG_GAP, color: AI_TEXT_MID },
 ]
 
 function goBack() {
