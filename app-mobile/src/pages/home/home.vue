@@ -537,7 +537,7 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 设计稿 v1.2：营业额占 2/3，订单占 1/3 居中 */
 .home-data-item--main {
-  flex: 2;
+  flex: 1;
   text-align: center;
 }
 
@@ -576,6 +576,7 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .home-data-item--main .home-data-label {
+  justify-content: center;
   padding-left: 0;
 }
 
