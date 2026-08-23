@@ -109,6 +109,14 @@ export interface AiChatParams {
   conversationId?: string
   /** 对话级模型标识（可选；内置/外部模型名，覆盖租户默认） */
   model?: string
+  /** 执行模式（可选）：react=单Agent循环（默认）/ graph=有状态图 */
+  mode?: 'react' | 'graph'
+  /** graph 模式下的图 ID（如 sale_create_graph） */
+  graphId?: string
+  /** 工具作用域（可选）：mgmt=管理系统租户域（默认）/ platform=总台域 */
+  scope?: 'mgmt' | 'platform'
+  /** 图片（可选）：base64 或 data URL，后端视觉模型生成描述并入上下文 */
+  image?: string
 }
 
 /** SSE 事件回调集合 */
@@ -248,7 +256,11 @@ function streamChatLegacy(params: AiChatParams, handlers: AiChatHandlers): Promi
       data: {
         message: params.message,
         ...(params.conversationId ? { conversationId: params.conversationId } : {}),
-        ...(params.model ? { model: params.model } : {})
+        ...(params.model ? { model: params.model } : {}),
+        ...(params.mode ? { mode: params.mode } : {}),
+        ...(params.graphId ? { graphId: params.graphId } : {}),
+        ...(params.scope ? { scope: params.scope } : {}),
+        ...(params.image ? { image: params.image } : {})
       },
       header: buildHeaders(),
       success: (res) => {

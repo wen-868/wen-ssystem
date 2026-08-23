@@ -130,6 +130,12 @@
 
     <!-- 底部输入栏（隐藏导航栏：沉浸式，宽度与导航栏一栏宽） -->
     <view class="chat-footer" :style="footerBottomStyle">
+      <view v-if="attachmentImage" class="attach-preview">
+        <image class="attach-preview-img" :src="attachmentImage" mode="aspectFill" />
+        <view class="attach-preview-remove" @tap="removeAttachmentImage">
+          <text class="attach-preview-remove-text">✕</text>
+        </view>
+      </view>
       <view class="input-bar">
         <view class="camera-btn" @tap="handleCameraForAi">
           <image class="camera-btn-img" src="/static/icons/ic/camera.svg" mode="aspectFit" />
@@ -194,13 +200,11 @@
         </scroll-view>
       </view>
     </view>
-    <custom-tab-bar :current="'ai'" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import CustomTabBar from '@/components/custom-tab-bar.vue'
 import {
   aiApi,
   type AiModelOption,
@@ -233,6 +237,8 @@ const messages = ref<ChatMessage[]>([])
 const inputText = ref('')
 const sending = ref(false)
 const conversationId = ref('')
+/** 待发送图片（base64/dataURL，后端视觉模型识别） */
+const attachmentImage = ref('')
 /** 语音模式：开启后 AI 回复自动语音播报 */
 const voiceMode = ref(false)
 const models = ref<AiModelOption[]>([])
@@ -366,16 +372,53 @@ function onVoiceOrSend() {
   }
 }
 
-/** 拍照/相册：当前后端未支持图片输入，选择后明确告知，不虚构已处理 */
+/** 拍照/相册：选择图片 → 转 base64 dataURL → 随消息发送给后端视觉模型 */
+function fileToDataUrl(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // #ifdef H5
+    fetch(filePath)
+      .then((r) => r.blob())
+      .then((blob) => {
+        const fr = new FileReader()
+        fr.onload = () => resolve(String(fr.result || ''))
+        fr.onerror = () => reject(new Error('读取图片失败'))
+        fr.readAsDataURL(blob)
+      })
+      .catch(() => reject(new Error('读取图片失败')))
+    // #endif
+    // #ifndef H5
+    const fs = uni.getFileSystemManager()
+    fs.readFile({
+      filePath,
+      encoding: 'base64',
+      success: (res: any) => resolve(`data:image/jpeg;base64,${res.data}`),
+      fail: () => reject(new Error('读取图片失败'))
+    })
+    // #endif
+  })
+}
+
 function handleCameraForAi() {
   uni.chooseImage({
     count: 1,
     sourceType: ['camera', 'album'],
-    success: () => {
-      uni.showToast({ title: '图片识别功能暂未开放，请用文字描述', icon: 'none' })
+    sizeType: ['compressed'],
+    success: (res: any) => {
+      const p = res.tempFilePaths && res.tempFilePaths[0]
+      if (!p) return
+      fileToDataUrl(p)
+        .then((durl) => {
+          attachmentImage.value = durl
+          uni.showToast({ title: '已添加图片', icon: 'none' })
+        })
+        .catch(() => uni.showToast({ title: '图片读取失败', icon: 'none' }))
     },
     fail: () => {}
   })
+}
+
+function removeAttachmentImage() {
+  attachmentImage.value = ''
 }
 
 // 初始化会话
@@ -383,7 +426,7 @@ loadConversations()
 
 // 手机键盘高度（输入栏 fixed 定位时动态上移，避免被键盘遮挡）
 const keyboardHeight = ref(0)
-const footerBaseBottomPx = uni.upx2px(150)
+const footerBaseBottomPx = uni.upx2px(20)
 const footerBottomStyle = computed(() => ({
   bottom: `calc(${keyboardHeight.value + footerBaseBottomPx}px + env(safe-area-inset-bottom))`,
 }))
@@ -441,6 +484,8 @@ async function sendMessage() {
 
   inputText.value = ''
   messages.value.push({ id: nextId(), role: 'user', content: text })
+  const imagePayload = attachmentImage.value || undefined
+  attachmentImage.value = ''
 
   const aiMsg: ChatMessage = {
     id: nextId(),
@@ -453,8 +498,19 @@ async function sendMessage() {
   abortController = new AbortController()
 
   const params = conversationId.value
-    ? { message: text, conversationId: conversationId.value, ...(selectedModel.value ? { model: selectedModel.value } : {}) }
-    : { message: text, ...(selectedModel.value ? { model: selectedModel.value } : {}) }
+    ? {
+        message: text,
+        conversationId: conversationId.value,
+        scope: 'mgmt',
+        ...(selectedModel.value ? { model: selectedModel.value } : {}),
+        ...(imagePayload ? { image: imagePayload } : {})
+      }
+    : {
+        message: text,
+        scope: 'mgmt',
+        ...(selectedModel.value ? { model: selectedModel.value } : {}),
+        ...(imagePayload ? { image: imagePayload } : {})
+      }
 
   try {
     await aiApi.streamChat(
@@ -1082,7 +1138,7 @@ onUnmounted(() => {
   flex: 1;
   overflow: hidden;
   padding-top: calc(120rpx + env(safe-area-inset-top));
-  padding-bottom: calc(260rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(170rpx + env(safe-area-inset-bottom));
 }
 
 .chat-list {
@@ -1157,7 +1213,7 @@ onUnmounted(() => {
 }
 
 .bubble-text--user {
-  color: $ai-text-body;
+  color: #FFFFFF;
 }
 
 /* 打字动画 */
@@ -1414,6 +1470,38 @@ onUnmounted(() => {
   align-items: center;
 }
 
+/* 待发送图片预览 */
+.attach-preview {
+  position: relative;
+  width: 168rpx;
+  height: 168rpx;
+  margin-bottom: 14rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+}
+.attach-preview-img {
+  width: 100%;
+  height: 100%;
+}
+.attach-preview-remove {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.attach-preview-remove-text {
+  color: #ffffff;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
 .camera-btn {
   width: 72rpx;
   height: 72rpx;
@@ -1542,23 +1630,25 @@ onUnmounted(() => {
   z-index: 100;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .conv-panel {
-  width: 100%;
-  height: 50vh;
+  width: 56vw;
+  height: 100%;
   background: #ffffff;
-  border-radius: 32rpx 32rpx 0 0;
+  border-radius: 0 32rpx 32rpx 0;
   padding: 24rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  animation: conv-up 0.25s ease;
+  box-shadow: 8rpx 0 40rpx rgba(0, 0, 0, 0.12);
+  animation: conv-left 0.25s ease;
 }
 
-@keyframes conv-up {
-  from { transform: translateY(100%); opacity: 0.6; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes conv-left {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .conv-panel-head {
