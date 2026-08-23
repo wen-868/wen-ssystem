@@ -1,10 +1,7 @@
 <template>
   <view class="member-page">
     <!-- 顶部栏 -->
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">会员中心</text>
-    </view>
+    <page-header title="会员中心" @back="goBack" />
 
     <!-- 会员信息卡片 -->
     <view class="member-card">

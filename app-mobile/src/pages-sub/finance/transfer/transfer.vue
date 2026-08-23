@@ -1,9 +1,6 @@
 <template>
   <view class="transfer-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">库存调拨</text>
-    </view>
+    <page-header title="库存调拨" @back="goBack" />
 
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">

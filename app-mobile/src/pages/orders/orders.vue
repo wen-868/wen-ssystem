@@ -1,12 +1,7 @@
 <template>
   <view class="orders-page">
     <!-- 页头 -->
-    <view class="ord-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">订单管理</text>
-    </view>
+    <page-header title="订单管理" @back="goBack" />
 
     <view class="search-bar">
       <view class="search-input-wrap">

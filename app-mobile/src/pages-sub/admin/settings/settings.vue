@@ -1,12 +1,7 @@
 <template>
   <view class="settings-page">
     <!-- 页头 -->
-    <view class="st-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">系统设置</text>
-    </view>
+    <page-header title="系统设置" @back="goBack" />
 
     <!-- 配置分组 -->
     <scroll-view class="st-body" scroll-y v-if="groups.length > 0">

@@ -1,9 +1,6 @@
 ﻿<template>
   <view class="sales-reports-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">销售报表</text>
-    </view>
+    <page-header title="销售报表" @back="goBack" />
 
     <!-- 周期快捷选择（原稿：今日/本周/本月/本年） -->
     <view class="period-tabs">

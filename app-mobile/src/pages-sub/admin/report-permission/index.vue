@@ -1,10 +1,6 @@
 <template>
   <view class="permission-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">权限管理</text>
-      <text class="header-subtitle">报表权限与数据权限配置</text>
-    </view>
+    <page-header title="权限管理" subtitle="报表权限与数据权限配置" @back="goBack" />
 
     <view class="permission-menu">
       <view class="menu-card" @tap="goReportMatrix">

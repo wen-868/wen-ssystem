@@ -2,17 +2,11 @@
   <!-- 无表单交互，无需三件套（纯展示消息列表页） -->
   <view class="notifications-page">
     <!-- 顶部栏 -->
-    <view class="page-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">消息中心</text>
-      <view class="header-actions">
-        <text class="header-action" @tap="toggleEditMode" v-if="list.length > 0 || editMode">
-          {{ editMode ? '取消' : '管理' }}
-        </text>
-      </view>
-    </view>
+    <page-header title="消息中心" @back="goBack">
+      <template #right>
+        <text class="header-action" @tap="toggleEditMode" v-if="list.length > 0 || editMode">{{ editMode ? '取消' : '管理' }}</text>
+      </template>
+    </page-header>
 
     <!-- 分类 Tab -->
     <scroll-view class="tab-bar" scroll-x :show-scrollbar="false">

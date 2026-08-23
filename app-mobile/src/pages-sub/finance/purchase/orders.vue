@@ -1,9 +1,6 @@
 <template>
   <view class="purchase-orders-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">采购订单</text>
-    </view>
+    <page-header title="采购订单" @back="goBack" />
 
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">

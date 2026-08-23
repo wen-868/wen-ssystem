@@ -1,9 +1,6 @@
 <template>
   <view class="aftersale-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">售后管理</text>
-    </view>
+    <page-header title="售后管理" @back="goBack" />
 
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">

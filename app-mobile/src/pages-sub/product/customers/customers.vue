@@ -1,13 +1,11 @@
 <template>
   <view class="customers-page">
     <!-- 页头 -->
-    <view class="mem-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">会员管理</text>
-      <text class="header-add" @tap="goAdd">＋</text>
-    </view>
+    <page-header title="会员管理" @back="goBack">
+      <template #right>
+        <text class="header-add" @tap="goAdd">＋</text>
+      </template>
+    </page-header>
 
     <!-- 统计 -->
     <view class="mem-stats">

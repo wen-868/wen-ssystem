@@ -1,9 +1,6 @@
 <template>
   <view class="coupons-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">优惠券</text>
-    </view>
+    <page-header title="优惠券" @back="goBack" />
 
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">

@@ -1,20 +1,16 @@
 <template>
   <view class="matrix-page">
     <!-- 顶部操作栏 -->
-    <view class="top-bar">
-      <view class="bar-left" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
-        <text class="bar-title">报表权限矩阵</text>
-      </view>
-      <view class="bar-right">
+    <page-header title="报表权限矩阵" @back="goBack">
+      <template #right>
         <view class="batch-btn" @tap="showBatchPanel = true">
           <text class="batch-text">批量设置</text>
         </view>
         <view class="save-btn" @tap="onSave">
           <text class="save-text">保存</text>
         </view>
-      </view>
-    </view>
+      </template>
+    </page-header>
 
     <!-- 角色 Tab -->
     <scroll-view class="role-tabs" scroll-x>

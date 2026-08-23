@@ -1,15 +1,7 @@
 <template>
   <scroll-view class="finance-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
     <!-- 顶部 Header -->
-    <view class="finance-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <view class="header-content">
-        <text class="header-title">财务看板</text>
-        <text class="header-date">{{ currentDate }}</text>
-      </view>
-    </view>
+    <page-header title="财务看板" :subtitle="currentDate" @back="goBack" />
 
     <!-- 指标卡片 -->
     <view class="stats-grid">

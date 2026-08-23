@@ -1,9 +1,6 @@
 <template>
   <view class="inventory-reports-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">库存报表</text>
-    </view>
+    <page-header title="库存报表" @back="goBack" />
 
     <form ref="formRef" :model="filterForm" class="filter-form">
       <view class="filter-row">

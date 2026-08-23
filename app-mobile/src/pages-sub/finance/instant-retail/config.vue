@@ -1,9 +1,6 @@
 <template>
   <view class="retail-config-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">即时零售配置</text>
-    </view>
+    <page-header title="即时零售配置" @back="goBack" />
 
     <view class="platform-section">
       <text class="section-title">支持平台</text>

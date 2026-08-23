@@ -1,9 +1,6 @@
 <template>
   <view class="statements-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">客户对账</text>
-    </view>
+    <page-header title="客户对账" @back="goBack" />
 
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">

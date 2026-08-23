@@ -1,9 +1,6 @@
 <template>
   <view class="in-stock-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">采购入库</text>
-    </view>
+    <page-header title="采购入库" @back="goBack" />
 
     <!-- 表单三件套：ref + :model + :rules -->
     <form ref="formRef" :model="stockForm" :rules="stockRules" class="stock-form" @submit="handleSubmit">

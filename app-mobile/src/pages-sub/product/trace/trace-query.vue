@@ -1,12 +1,7 @@
 <template>
   <view class="trace-page">
     <!-- 页头 -->
-    <view class="tr-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">溯源查询</text>
-    </view>
+    <page-header title="溯源查询" @back="goBack" />
 
     <!-- 搜索 -->
     <view class="tr-search">

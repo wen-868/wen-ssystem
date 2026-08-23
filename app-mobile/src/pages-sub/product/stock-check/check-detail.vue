@@ -1,9 +1,6 @@
 <template>
   <view class="check-detail-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">盘点详情</text>
-    </view>
+    <page-header title="盘点详情" @back="goBack" />
 
     <view v-if="check" class="info-card">
       <view class="card-row">

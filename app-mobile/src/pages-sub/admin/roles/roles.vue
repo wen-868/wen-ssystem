@@ -1,9 +1,6 @@
 <template>
   <view class="roles-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">角色权限</text>
-    </view>
+    <page-header title="角色权限" @back="goBack" />
 
     <view class="search-bar">
       <input class="search-input" type="text" v-model="keyword" placeholder="搜索角色名称" @confirm="onSearch" />

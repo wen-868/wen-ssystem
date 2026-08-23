@@ -1,9 +1,6 @@
 <template>
   <view class="detail-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">{{ order?.type === 'GAIN' ? '报溢详情' : '报损详情' }}</text>
-    </view>
+    <page-header :title="order?.type === 'GAIN' ? '报溢详情' : '报损详情'" @back="goBack" />
 
     <!-- 状态头 -->
     <view class="status-header" v-if="order">

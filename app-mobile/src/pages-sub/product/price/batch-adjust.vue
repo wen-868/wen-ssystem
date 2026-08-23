@@ -1,9 +1,6 @@
 <template>
   <view class="batch-adjust-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">批量调价</text>
-    </view>
+    <page-header title="批量调价" @back="goBack" />
 
     <form ref="formRef" :model="form" class="adjust-form">
       <!-- 调价范围 -->

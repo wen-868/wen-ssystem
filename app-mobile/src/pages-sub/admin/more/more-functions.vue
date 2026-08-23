@@ -1,12 +1,7 @@
 <template>
   <view class="more-page">
     <!-- 页头 -->
-    <view class="mf-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">全部功能</text>
-    </view>
+    <page-header title="全部功能" @back="goBack" />
 
     <!-- 高频功能 -->
     <view class="mf-section">

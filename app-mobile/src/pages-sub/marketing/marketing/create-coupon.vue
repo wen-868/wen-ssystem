@@ -1,9 +1,6 @@
 <template>
   <view class="create-coupon-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">新建优惠券</text>
-    </view>
+    <page-header title="新建优惠券" @back="goBack" />
 
     <form ref="formRef" :model="form" class="coupon-form">
       <view class="form-section">

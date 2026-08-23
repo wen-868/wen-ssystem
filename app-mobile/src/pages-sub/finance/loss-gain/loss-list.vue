@@ -1,9 +1,6 @@
 <template>
   <view class="loss-list-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">报损管理</text>
-    </view>
+    <page-header title="报损管理" @back="goBack" />
 
     <!-- 搜索栏 -->
     <view class="search-bar">

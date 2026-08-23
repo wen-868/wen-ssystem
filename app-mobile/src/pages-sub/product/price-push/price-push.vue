@@ -1,10 +1,7 @@
 <template>
   <view class="price-push-page">
     <!-- 顶部栏 -->
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">报价推送</text>
-    </view>
+    <page-header title="报价推送" @back="goBack" />
 
     <!-- 表单三件套：ref + :model + :rules -->
     <form ref="formRef" :model="pushForm" :rules="pushRules" class="push-form" @submit="handlePush">

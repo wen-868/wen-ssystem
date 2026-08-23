@@ -1,13 +1,12 @@
 <template>
   <view class="level-page">
-    <view class="page-header">
-      <view class="header-left">
-        <text class="page-title">会员等级管理</text>
-      </view>
-      <view class="add-btn" @tap="goAdd">
-        <text>+ 新增</text>
-      </view>
-    </view>
+    <page-header title="会员等级管理" :show-back="false">
+      <template #right>
+        <view class="add-btn" @tap="goAdd">
+          <text>+ 新增</text>
+        </view>
+      </template>
+    </page-header>
 
     <view class="search-bar">
       <view class="search-input-wrap">

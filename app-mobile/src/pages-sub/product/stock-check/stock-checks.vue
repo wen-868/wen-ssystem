@@ -1,9 +1,6 @@
 <template>
   <view class="stock-checks-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">库存盘点</text>
-    </view>
+    <page-header title="库存盘点" @back="goBack" />
 
     <!-- 统计卡片 -->
     <view class="stats-row">

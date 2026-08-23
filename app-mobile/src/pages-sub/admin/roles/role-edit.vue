@@ -1,9 +1,6 @@
 <template>
   <view class="role-edit-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">{{ isEdit ? '编辑角色' : '新建角色' }}</text>
-    </view>
+    <page-header :title="isEdit ? '编辑角色' : '新建角色'" @back="goBack" />
 
     <view class="form-section">
       <view class="form-item">

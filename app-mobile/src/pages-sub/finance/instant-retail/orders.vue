@@ -1,9 +1,6 @@
 <template>
   <view class="instant-retail-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">即时零售订单</text>
-    </view>
+    <page-header title="即时零售订单" @back="goBack" />
 
     <!-- 搜索表单：ref + :model + :rules -->
     <form ref="formRef" :model="searchForm" class="search-form">

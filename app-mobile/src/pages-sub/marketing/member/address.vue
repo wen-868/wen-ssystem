@@ -1,9 +1,6 @@
 <template>
   <view class="address-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">收货地址</text>
-    </view>
+    <page-header title="收货地址" @back="goBack" />
 
     <view class="address-list" v-if="addressList.length > 0">
       <view

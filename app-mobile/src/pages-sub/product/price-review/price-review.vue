@@ -1,9 +1,6 @@
 <template>
   <view class="review-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">建议核价</text>
-    </view>
+    <page-header title="建议核价" @back="goBack" />
 
     <!-- 商品搜索 -->
     <view class="search-bar">

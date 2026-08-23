@@ -1,15 +1,13 @@
 <template>
   <view class="store-permission-page">
     <!-- 顶部操作栏 -->
-    <view class="top-bar">
-      <view class="bar-left" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
-        <text class="bar-title">门店数据权限</text>
-      </view>
-      <view class="save-btn" @tap="onSave">
-        <text class="save-text">保存</text>
-      </view>
-    </view>
+    <page-header title="门店数据权限" @back="goBack">
+      <template #right>
+        <view class="save-btn" @tap="onSave">
+          <text class="save-text">保存</text>
+        </view>
+      </template>
+    </page-header>
 
     <!-- 角色选择 -->
     <view class="section">

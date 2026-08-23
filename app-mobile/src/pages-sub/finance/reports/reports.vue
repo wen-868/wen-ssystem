@@ -1,11 +1,6 @@
 <template>
   <view class="reports-page">
-    <view class="page-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">数据报表</text>
-    </view>
+    <page-header title="数据报表" @back="goBack" />
 
     <view class="filter-form">
       <view class="filter-row">

@@ -1,10 +1,7 @@
 <template>
   <view class="batch-price-page">
     <!-- 顶部栏 -->
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">批量调价</text>
-    </view>
+    <page-header title="批量调价" @back="goBack" />
 
     <!-- 表单三件套：ref + :model + :rules -->
     <form ref="formRef" :model="priceForm" :rules="priceRules" class="price-form" @submit="handlePreview">

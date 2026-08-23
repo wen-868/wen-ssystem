@@ -1,9 +1,6 @@
 <template>
   <view class="category-edit-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">{{ isEdit ? '编辑分类' : '新建分类' }}</text>
-    </view>
+    <page-header :title="isEdit ? '编辑分类' : '新建分类'" @back="goBack" />
 
     <form ref="formRef" :model="form" class="category-form">
       <view class="form-section">

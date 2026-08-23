@@ -1,9 +1,6 @@
 <template>
   <view class="stores-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">门店管理</text>
-    </view>
+    <page-header title="门店管理" @back="goBack" />
 
     <view class="search-bar">
       <input class="search-input" type="text" v-model="keyword" placeholder="搜索门店名称" @confirm="onSearch" />

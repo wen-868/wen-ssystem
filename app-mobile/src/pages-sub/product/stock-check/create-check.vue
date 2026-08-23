@@ -1,9 +1,6 @@
 <template>
   <view class="create-check-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">新建盘点单</text>
-    </view>
+    <page-header title="新建盘点单" @back="goBack" />
 
     <form ref="formRef" :model="form" class="check-form">
       <view class="form-section">

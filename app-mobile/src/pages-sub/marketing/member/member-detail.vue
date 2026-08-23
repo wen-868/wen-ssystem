@@ -1,11 +1,6 @@
 <template>
   <view class="member-detail-page">
-    <view class="page-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">会员详情</text>
-    </view>
+    <page-header title="会员详情" @back="goBack" />
 
     <view class="loading-overlay" v-if="loading">
       <view class="loading-spinner"></view>

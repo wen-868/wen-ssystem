@@ -1,12 +1,6 @@
 <template>
   <view class="config-page">
-    <view class="page-header">
-      <view class="back-btn" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
-      </view>
-      <text class="page-title">{{ isEdit ? '编辑等级' : '新增等级' }}</text>
-      <view class="header-right"></view>
-    </view>
+    <page-header :title="isEdit ? '编辑等级' : '新增等级'" @back="goBack" />
 
     <scroll-view class="form-content" scroll-y>
       <view class="form-card">

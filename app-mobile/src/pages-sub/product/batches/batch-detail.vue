@@ -1,12 +1,6 @@
 <template>
   <view class="batch-detail-page">
-    <view class="page-header">
-      <view class="back-btn" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
-      </view>
-      <text class="page-title">批次详情</text>
-      <view class="header-right"></view>
-    </view>
+    <page-header title="批次详情" @back="goBack" />
 
     <scroll-view class="detail-content" scroll-y>
       <view class="detail-card" v-if="detail">

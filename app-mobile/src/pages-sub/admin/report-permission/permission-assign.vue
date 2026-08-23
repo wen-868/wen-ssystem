@@ -1,12 +1,7 @@
 <template>
   <view class="permission-assign-page">
     <!-- 顶部操作栏 -->
-    <view class="top-bar">
-      <view class="bar-left" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
-        <text class="bar-title">权限分配</text>
-      </view>
-    </view>
+    <page-header title="权限分配" @back="goBack" />
 
     <!-- 搜索栏 -->
     <view class="search-bar">

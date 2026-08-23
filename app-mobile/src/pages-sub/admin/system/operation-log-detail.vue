@@ -1,12 +1,7 @@
 <template>
   <view class="log-detail-page">
     <!-- 顶部 -->
-    <view class="top-bar">
-      <view class="bar-left" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/user.svg" mode="aspectFit"/>
-        <text class="bar-title">操作日志详情</text>
-      </view>
-    </view>
+    <page-header title="操作日志详情" @back="goBack" />
 
     <view class="detail-content" v-if="logDetail">
       <!-- 操作类型 -->

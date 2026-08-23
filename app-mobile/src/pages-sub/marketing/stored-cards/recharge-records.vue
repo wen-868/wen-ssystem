@@ -1,12 +1,6 @@
 <template>
   <view class="records-page">
-    <view class="page-header">
-      <view class="back-btn" @tap="goBack">
-        <image class="back-icon ic" src="/static/icons/ic/chevron-left.svg" mode="aspectFit"/>
-      </view>
-      <text class="page-title">充值记录</text>
-      <view class="header-right"></view>
-    </view>
+    <page-header title="充值记录" @back="goBack" />
 
     <scroll-view class="records-list" scroll-y v-if="rechargeList.length > 0">
       <view class="record-item" v-for="item in rechargeList" :key="item.id">

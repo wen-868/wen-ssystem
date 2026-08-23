@@ -1,12 +1,7 @@
 <template>
   <view class="create-sale-page">
     <!-- 顶部栏 -->
-    <view class="page-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">快速开单</text>
-    </view>
+    <page-header title="快速开单" @back="goBack" />
 
     <!-- 单据类型分段导航（原稿：主段 销售/采购 + 子段 订单/出货/退货/收款单） -->
     <view class="doc-nav">

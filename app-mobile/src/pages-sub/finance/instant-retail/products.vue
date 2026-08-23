@@ -1,9 +1,6 @@
 <template>
   <view class="retail-products-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">商品上架管理</text>
-    </view>
+    <page-header title="商品上架管理" @back="goBack" />
 
     <view class="filter-bar">
       <input class="search-input" type="text" v-model="keyword" placeholder="搜索商品名称" @confirm="onSearch" />

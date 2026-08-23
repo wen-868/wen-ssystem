@@ -1,9 +1,6 @@
 <template>
   <view class="anomaly-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">价格异常</text>
-    </view>
+    <page-header title="价格异常" @back="goBack" />
 
     <view class="search-bar">
       <view class="search-input-wrap">

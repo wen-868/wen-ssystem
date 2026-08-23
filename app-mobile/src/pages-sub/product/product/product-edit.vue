@@ -1,9 +1,6 @@
 ﻿<template>
   <view class="product-edit-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">{{ isEdit ? '编辑商品' : '新建商品' }}</text>
-    </view>
+    <page-header :title="isEdit ? '编辑商品' : '新建商品'" @back="goBack" />
 
     <!-- 扫码命中提示条 -->
     <view v-if="libraryHit" class="library-hit-bar">

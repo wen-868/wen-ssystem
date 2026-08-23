@@ -1,9 +1,6 @@
 <template>
   <view class="categories-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">商品分类</text>
-    </view>
+    <page-header title="商品分类" @back="goBack" />
 
     <view class="search-bar">
       <view class="search-input-wrap">

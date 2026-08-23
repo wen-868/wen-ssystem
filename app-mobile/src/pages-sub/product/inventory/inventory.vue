@@ -1,12 +1,7 @@
 <template>
   <view class="inventory-page">
     <!-- 页头 -->
-    <view class="inv-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">库存管理</text>
-    </view>
+    <page-header title="库存管理" @back="goBack" />
 
     <!-- 统计 -->
     <view class="inv-stats">

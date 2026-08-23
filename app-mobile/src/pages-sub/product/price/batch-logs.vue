@@ -1,9 +1,6 @@
 <template>
   <view class="batch-logs-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">调价记录</text>
-    </view>
+    <page-header title="调价记录" @back="goBack" />
 
     <!-- 记录列表（R94-01：接入真实 listBatchLogs 接口） -->
     <view class="log-list" v-if="logList.length > 0">

@@ -1,12 +1,7 @@
 <template>
   <view class="print-page">
     <!-- 页头 -->
-    <view class="pr-hd">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">单据打印</text>
-    </view>
+    <page-header title="单据打印" @back="goBack" />
 
     <!-- 状态筛选 tab -->
     <view class="pr-tabs">

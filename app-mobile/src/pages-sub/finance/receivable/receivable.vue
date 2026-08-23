@@ -1,9 +1,6 @@
 <template>
   <view class="receivable-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">应收应付</text>
-    </view>
+    <page-header title="应收应付" @back="goBack" />
 
     <view class="tab-bar">
       <view class="tab-item" :class="{ 'tab-item--active': activeTab === 'receivable' }" @tap="switchTab('receivable')">

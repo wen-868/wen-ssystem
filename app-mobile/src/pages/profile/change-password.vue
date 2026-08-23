@@ -1,9 +1,6 @@
 <template>
   <view class="change-password-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">修改密码</text>
-    </view>
+    <page-header title="修改密码" @back="goBack" />
 
     <form ref="formRef" :model="form" class="password-form">
       <view class="form-group">

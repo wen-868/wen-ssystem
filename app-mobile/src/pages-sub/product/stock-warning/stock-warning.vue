@@ -1,9 +1,6 @@
 <template>
   <view class="stock-warning-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">库存预警</text>
-    </view>
+    <page-header title="库存预警" @back="goBack" />
 
     <view class="tab-bar">
       <view class="tab-item" :class="{ 'tab-item--active': activeTab === 'warning' }" @tap="switchTab('warning')">

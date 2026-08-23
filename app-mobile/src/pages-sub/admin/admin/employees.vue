@@ -1,9 +1,6 @@
 <template>
   <view class="employees-page">
-    <view class="page-header">
-            <view class="header-back" @tap="goBack"><text class="header-back-icon">‹</text></view>
-      <text class="header-title">员工管理</text>
-    </view>
+    <page-header title="员工管理" @back="goBack" />
 
     <form ref="formRef" :model="searchForm" class="search-form">
       <view class="search-bar">

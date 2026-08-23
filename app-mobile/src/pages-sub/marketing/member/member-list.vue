@@ -1,12 +1,7 @@
 <template>
   <view class="member-list-page">
     <!-- 页头 -->
-    <view class="page-header">
-      <view class="header-back" @tap="goBack">
-        <text class="header-back-icon">‹</text>
-      </view>
-      <text class="header-title">会员管理</text>
-    </view>
+    <page-header title="会员管理" @back="goBack" />
 
     <!-- 统计卡 -->
     <view class="stats-grid">
