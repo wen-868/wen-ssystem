@@ -173,7 +173,7 @@ export async function list(params: {
     queryParams.push(dateEnd);
   }
 
-  const whereClause = " AND tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
+  const whereClause = " AND p.tenant_id = ?" + (conditions.length > 0 ? " AND " + conditions.join(" AND ") : "");
   const offset = (page - 1) * pageSize;
   const stocks = await query<PurchaseInStockRawRow>(
     `SELECT p.id, p.stock_no AS inStockNo, p.order_no AS relatedOrderNo, p.supplier_id AS supplierId,
