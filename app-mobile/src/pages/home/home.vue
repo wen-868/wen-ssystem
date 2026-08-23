@@ -101,30 +101,18 @@
       </view>
       <view class="hp-row">
         <view class="hp-item hp-item--warning" @tap="navigateTo('/pages/orders/orders')">
-          <view class="hp-ico hp-ico--orange">
-            <image class="hp-ico-img" src="/static/icons/hp-deliver.svg" mode="aspectFit" />
-          </view>
           <text class="hp-num">{{ stats.pendingDelivery }}</text>
           <text class="hp-label">待配送</text>
         </view>
         <view class="hp-item hp-item--primary" @tap="navigateTo('/pages/orders/orders')">
-          <view class="hp-ico hp-ico--blue">
-            <image class="hp-ico-img" src="/static/icons/hp-pickup.svg" mode="aspectFit" />
-          </view>
           <text class="hp-num">{{ stats.pendingPickup }}</text>
           <text class="hp-label">待取货</text>
         </view>
         <view class="hp-item hp-item--purple" @tap="navigateTo('/pages/orders/orders')">
-          <view class="hp-ico hp-ico--purple">
-            <image class="hp-ico-img" src="/static/icons/hp-payment.svg" mode="aspectFit" />
-          </view>
           <text class="hp-num">{{ stats.pendingPayment }}</text>
           <text class="hp-label">待收款</text>
         </view>
         <view class="hp-item hp-item--success" @tap="navigateTo('/pages/orders/orders')">
-          <view class="hp-ico hp-ico--green">
-            <image class="hp-ico-img" src="/static/icons/hp-complete.svg" mode="aspectFit" />
-          </view>
           <text class="hp-num">{{ stats.completedToday }}</text>
           <text class="hp-label">已完成</text>
         </view>
@@ -582,15 +570,15 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .home-data-item--main .home-data-label {
-  padding-left: 52rpx;
+  padding-left: 0;
 }
 
 .home-data-item--main .home-data-val {
-  padding-left: 10rpx;
+  padding-left: 0;
 }
 
 .home-data-item--main .home-data-trend {
-  padding-left: 66rpx;
+  padding-left: 0;
 }
 
 .home-data-item--sub .home-data-label {
@@ -640,11 +628,11 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 原稿主项错落缩进：val 缩 5px、trend 缩 33px */
 .home-data-item--main .home-data-val {
-  padding-left: 10rpx;
+  padding-left: 0;
 }
 
 .home-data-item--main .home-data-trend {
-  padding-left: 66rpx;
+  padding-left: 0;
 }
 
 .home-data-bot {
