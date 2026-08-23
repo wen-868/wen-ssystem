@@ -44,7 +44,7 @@
 
       <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
       <view class="form-section" v-if="docConfig.showReceiptCustomer">
-        <view class="section-title">收款客户</view>
+        <view class="section-title">{{ docKey === 'sale-return' ? '客户' : '收款客户' }}</view>
         <view class="qc-cell" @tap="openCustomerPicker">
           <view class="qc-val">{{ receiptCustomerName || '请选择客户' }} <text class="qc-chev">▾</text></view>
         </view>
@@ -66,7 +66,7 @@
 
       <!-- 入库门店（进货单：后端入库场所为 store_id，无 warehouse 维度，复用 stores 真实门店列表） -->
       <view class="form-section" v-if="docConfig.showStore">
-        <view class="section-title">入库门店</view>
+        <view class="section-title">{{ storeSectionTitle }}</view>
         <picker
           class="qc-cell"
           mode="selector"
@@ -106,7 +106,7 @@
         </picker>
       </view>
       <!-- 客户 / 配送方式 / 日期 / 门店 选择（按单据差异显隐，原稿 qo-customer） -->
-      <view class="form-section qo-customer" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showStore || docConfig.showOrderDate">
+      <view class="form-section qo-customer" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showOrderDate">
         <view class="qc-grid">
           <view class="qc-cell" v-if="docConfig.showCustomer" @tap="openCustomerPicker">
             <text class="qc-label">客户</text>
@@ -408,6 +408,7 @@ import { purchaseApi } from '@/api/modules/purchase'
 import { receiptApi } from '@/api/modules/receipts'
 import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 import { storesApi } from '@/api/modules/stores'
+import { saleReturnApi, purchaseReturnApi } from '@/api/modules/returns'
 
 // ===================================================================
 // 单据框架：四种单据各自独立字段 / 底部动作 / 提交接口
@@ -442,6 +443,8 @@ const docKey = computed(() => {
   if (docMain.value === 'purchase' && docSub.value === '进货') return 'purchase-in'
   if (docSub.value === '收款单') return 'receipt'
   if (docSub.value === '出货') return 'ship'
+  if (docMain.value === 'sale' && docSub.value === '退货') return 'sale-return'
+  if (docMain.value === 'purchase' && docSub.value === '退货') return 'purchase-return'
   return 'order'
 })
 
@@ -498,6 +501,26 @@ const docConfig = computed<{
         placeholder: '出货（销售-出货）功能后端接口待开放，暂不可用。',
         actions: [],
       }
+    case 'sale-return':
+      return {
+        showCustomer: false, showSupplier: false, showProducts: true,
+        showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: true,
+        showReceiptCustomer: true, showAmount: false, showPayment: false, showRemark: true,
+        actions: [
+          { label: '提交退货', variant: 'primary', handler: submitSaleReturn, loadingText: '提交中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'purchase-return':
+      return {
+        showCustomer: false, showSupplier: true, showProducts: true,
+        showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: false,
+        showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        actions: [
+          { label: '提交退货', variant: 'primary', handler: submitPurchaseReturn, loadingText: '提交中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
     default: // order
       return {
         showCustomer: true, showSupplier: false, showProducts: true,
@@ -546,7 +569,13 @@ function onSupplierChange(e: any) {
 // 直接复用 storesApi.list 真实门店列表，提交 store_id，杜绝"以门店冒充仓库"的维度错误。
 const storeOptions = ref<{ id: number; name: string }[]>([])
 const selectedStoreId = ref<number | null>(null)
-const storeLabel = computed(() => storeOptions.value.find(s => s.id === selectedStoreId.value)?.name || '请选择入库门店')
+const storeSectionTitle = computed(() =>
+  docKey.value === 'purchase-in' ? '入库门店'
+    : (docKey.value === 'sale-return' || docKey.value === 'purchase-return') ? '退货门店'
+    : '门店'
+)
+const storeLabel = computed(() => storeOptions.value.find(s => s.id === selectedStoreId.value)?.name
+  || (docKey.value === 'purchase-in' ? '请选择入库门店' : '请选择门店'))
 async function loadStores() {
   try {
     const res = await storesApi.list({ page: 1, pageSize: 100 })
@@ -607,15 +636,22 @@ function resetDoc() {
   discount.value = 0
   isSaved.value = false
   swipeOpenIndex.value = -1
-  if (docKey.value === 'purchase-in') { loadSuppliers(); loadStores() }
+  const k = docKey.value
+  if (k === 'purchase-in' || k === 'purchase-return') { loadSuppliers(); loadStores() }
+  if (k === 'sale-return' || k === 'receipt') { loadStores() }
+  if (k === 'sale-return') loadSourceBills()
 }
 
 // ---------- 进入页面时懒加载公共数据 ----------
 function ensurePurchaseData() {
-  if (docKey.value === 'purchase-in') {
+  const k = docKey.value
+  if (k === 'purchase-in' || k === 'purchase-return') {
     if (supplierOptions.value.length === 0) loadSuppliers()
+  }
+  if (k === 'purchase-in' || k === 'purchase-return' || k === 'sale-return' || k === 'receipt') {
     if (storeOptions.value.length === 0) loadStores()
   }
+  if (k === 'sale-return') loadSourceBills()
 }
 
 // 已选商品：支持修改单价（订单）
@@ -852,7 +888,7 @@ function addProduct(product: ProductInfo, qty = 1, traceCode = '') {
   // 新增
   const newItem: SaleItem = {
     productId: product.id,
-    skuId: Number(product.skuId),
+    skuId: product.skuId ? Number(product.skuId) : undefined,
     productName: product.name,
     price: product.price,
     quantity: safeQty,
@@ -1105,6 +1141,62 @@ async function submitReceipt() {
     setTimeout(() => uni.navigateBack(), 1500)
   } catch (err: any) {
     uni.showToast({ title: err?.message || '收款失败', icon: 'none' })
+  } finally { submitting.value = false }
+}
+
+// ---------- 销售退货（POST /store/sale-returns，camelCase 契约） ----------
+async function submitSaleReturn() {
+  if (saleItems.length === 0) { uni.showToast({ title: '请至少添加一个商品', icon: 'none' }); return }
+  if (selectedStoreId.value == null) { uni.showToast({ title: '请选择门店', icon: 'none' }); return }
+  submitting.value = true
+  try {
+    const store = storeOptions.value.find(s => s.id === selectedStoreId.value)
+    await saleReturnApi.create({
+      sourceBillNo: selectedSourceBill.value || undefined,
+      storeId: selectedStoreId.value,
+      customerId: receiptCustomerId.value ?? undefined,
+      customerName: receiptCustomerName.value || '散客',
+      remark: remark.value || '',
+      items: saleItems.map(item => ({
+        skuId: item.skuId ?? Number(item.productId),
+        skuName: item.productName || '',
+        boxQty: item.boxQty ?? 0,
+        bottleQty: item.bottleQty ?? item.quantity ?? 0,
+        unitPrice: Number(item.unitPrice ?? item.price ?? 0),
+      })),
+    } as any)
+    uni.showToast({ title: '已提交退货', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 1500)
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '提交失败', icon: 'none' })
+  } finally { submitting.value = false }
+}
+
+// ---------- 采购退货（POST /admin/purchase-returns，snake_case 契约） ----------
+async function submitPurchaseReturn() {
+  if (saleItems.length === 0) { uni.showToast({ title: '请至少添加一个商品', icon: 'none' }); return }
+  if (selectedSupplierId.value == null) { uni.showToast({ title: '请选择供应商', icon: 'none' }); return }
+  if (selectedStoreId.value == null) { uni.showToast({ title: '请选择门店', icon: 'none' }); return }
+  submitting.value = true
+  try {
+    const supplier = supplierOptions.value.find(s => s.id === selectedSupplierId.value)
+    await purchaseReturnApi.create({
+      supplier_id: selectedSupplierId.value,
+      supplier_name: supplier?.name || '',
+      store_id: selectedStoreId.value,
+      remark: remark.value || '',
+      items: saleItems.map(item => ({
+        sku_id: item.skuId ?? Number(item.productId),
+        sku_name: item.productName || '',
+        box_qty: item.boxQty ?? 0,
+        bottle_qty: item.bottleQty ?? item.quantity ?? 0,
+        unit_price: Number(item.unitPrice ?? item.price ?? 0),
+      })),
+    } as any)
+    uni.showToast({ title: '已提交退货', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 1500)
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '提交失败', icon: 'none' })
   } finally { submitting.value = false }
 }
 
