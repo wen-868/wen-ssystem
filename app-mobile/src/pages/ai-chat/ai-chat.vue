@@ -1,5 +1,9 @@
 <template>
-  <view class="ai-chat-page">
+  <view
+    class="ai-chat-page"
+    @touchstart="onTouchStart"
+    @touchend="onTouchEnd"
+  >
     <!-- 顶部：沉浸式悬浮操作栏（隐藏导航栏） -->
     <view class="ai-top-bar">
       <view class="ai-top-icon" @tap="openConversationPanel">
@@ -419,6 +423,36 @@ function handleCameraForAi() {
 
 function removeAttachmentImage() {
   attachmentImage.value = ''
+}
+
+// ====================== 全屏右滑 → 滑出多对话抽屉 ======================
+interface TouchPoint { x: number; y: number; t: number }
+let touchStartPoint: TouchPoint | null = null
+
+function onTouchStart(e: any) {
+  const t = e.touches?.[0] || e.changedTouches?.[0]
+  if (!t) return
+  touchStartPoint = { x: t.clientX, y: t.clientY, t: Date.now() }
+}
+
+function onTouchEnd(e: any) {
+  if (!touchStartPoint) return
+  const t = e.changedTouches?.[0]
+  const start = touchStartPoint
+  touchStartPoint = null
+  if (!t) return
+  const dx = t.clientX - start.x
+  const dy = t.clientY - start.y
+  const dt = Date.now() - start.t
+  // 右滑打开多对话抽屉：横向>阈值、横向明显大于纵向、速度不拖沓、抽屉未开
+  const isRightSwipe =
+    dx > 70 &&
+    Math.abs(dx) > Math.abs(dy) * 1.4 &&
+    dt < 1200 &&
+    !showConversationPanel.value
+  if (isRightSwipe) {
+    openConversationPanel()
+  }
 }
 
 // 初始化会话
