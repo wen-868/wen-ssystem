@@ -1,15 +1,15 @@
 <template>
   <view class="ai-chat-page">
-    <!-- 顶部：AI · 实时对话（设计 R95-02：单行简洁，去除模型下拉） -->
+    <!-- 顶部：沉浸式悬浮操作栏（隐藏导航栏） -->
     <view class="ai-top-bar">
-      <view class="ai-top-icon">
-        <text class="ai-top-icon-text">✦</text>
+      <view class="ai-top-icon" @tap="openConversationPanel">
+        <text class="ai-top-icon-text">☰</text>
       </view>
       <view class="ai-top-info">
         <text class="ai-top-title">AI<text class="ai-top-dot">·</text>实时对话</text>
       </view>
-      <view class="ai-scan-btn" @tap="handleScanForAi">
-        <image class="ai-scan-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
+      <view class="ai-close-btn" @tap="closeAi">
+        <text class="ai-close-icon">✕</text>
       </view>
     </view>
 
@@ -128,39 +128,70 @@
       </view>
     </scroll-view>
 
-    <!-- 底部输入栏 -->
+    <!-- 底部输入栏（隐藏导航栏：沉浸式，宽度与导航栏一栏宽） -->
     <view class="chat-footer" :style="footerBottomStyle">
       <view class="input-bar">
-        <view
-          class="mic-btn"
-          :class="{ 'mic-btn--recording': recording }"
-          @tap="toggleRecording"
-        >
-          <image class="mic-btn-img" src="/static/icons/ic/mic.svg" mode="aspectFit" />
+        <view class="camera-btn" @tap="handleCameraForAi">
+          <image class="camera-btn-img" src="/static/icons/ic/camera.svg" mode="aspectFit" />
         </view>
         <textarea
           class="chat-input"
           v-model="inputText"
           placeholder="输入你的问题..."
           placeholder-class="chat-input-placeholder"
-          auto-height
-          confirm-type="send"
+          :auto-height="false"
           :maxlength="1000"
           :disabled="sending"
+          confirm-type="send"
           @confirm="sendMessage"
           @keyboardheightchange="onKeyboardHeightChange"
         ></textarea>
         <view
-          class="send-btn"
-          :class="{ 'send-btn--disabled': sending || !inputText.trim() }"
-          @tap="sendMessage"
+          class="voice-send-btn"
+          :class="{
+            'voice-send-btn--voice': !inputText.trim(),
+            'voice-send-btn--recording': recording,
+            'voice-send-btn--disabled': sending && !inputText.trim()
+          }"
+          @tap="onVoiceOrSend"
         >
-          <image class="send-btn-img" src="/static/icons/ic/send.svg" mode="aspectFit" />
+          <image
+            v-if="!inputText.trim()"
+            class="voice-send-btn-img"
+            src="/static/icons/ic/mic.svg"
+            mode="aspectFit"
+          />
+          <image v-else class="voice-send-btn-img" src="/static/icons/ic/send.svg" mode="aspectFit" />
         </view>
       </view>
       <view v-if="recording" class="recording-hint">
         <view class="recording-dot"></view>
         <text class="recording-hint-text">录音中 {{ recordingTime }}s，再点一次结束</text>
+      </view>
+    </view>
+
+    <!-- 多对话选择弹窗（半屏） -->
+    <view v-if="showConversationPanel" class="conv-mask" @tap="showConversationPanel = false">
+      <view class="conv-panel" @tap.stop>
+        <view class="conv-panel-head">
+          <text class="conv-panel-title">对话列表</text>
+          <view class="conv-new-btn" @tap="newConversation">
+            <text class="conv-new-text">＋ 新建对话</text>
+          </view>
+        </view>
+        <scroll-view class="conv-list" scroll-y>
+          <view
+            v-for="c in conversations"
+            :key="c.id"
+            class="conv-item"
+            :class="{ 'conv-item--active': c.id === activeConvoId }"
+            @tap="switchConversation(c.id)"
+          >
+            <text class="conv-item-title">{{ c.title }}</text>
+            <text class="conv-item-time">{{ formatTime(c.updatedAt) }}</text>
+          </view>
+          <view v-if="conversations.length === 0" class="conv-empty">暂无对话</view>
+        </scroll-view>
       </view>
     </view>
     <custom-tab-bar :current="'ai'" />
@@ -209,6 +240,147 @@ const selectedModel = ref('')
 let messageSeq = 0
 let abortController: AbortController | null = null
 
+// ====================== 多会话（本地会话管理，跨端仅本机） ======================
+interface LocalConversation {
+  id: number
+  title: string
+  messages: ChatMessage[]
+  serverConversationId: string
+  updatedAt: number
+}
+const conversations = ref<LocalConversation[]>([])
+const activeConvoId = ref<number | null>(null)
+const showConversationPanel = ref(false)
+let convoSeq = 0
+
+function snapshotActiveConversation() {
+  const idx = conversations.value.findIndex((c) => c.id === activeConvoId.value)
+  if (idx >= 0) {
+    const c = conversations.value[idx]
+    c.messages = [...messages.value]
+    c.serverConversationId = conversationId.value
+    const firstUser = messages.value.find((m) => m.role === 'user')
+    if (firstUser) c.title = firstUser.content.slice(0, 20)
+    c.updatedAt = Date.now()
+  }
+}
+
+function persistConversations() {
+  try {
+    uni.setStorageSync('ai_conversations', conversations.value)
+  } catch {}
+}
+
+function loadConversations() {
+  let saved: LocalConversation[] = []
+  try {
+    const s = uni.getStorageSync('ai_conversations')
+    if (Array.isArray(s) && s.length) saved = s
+  } catch {}
+  if (saved.length) {
+    conversations.value = saved
+    convoSeq = saved.reduce((m, c) => Math.max(m, c.id), 0)
+    const active = saved[0]
+    activeConvoId.value = active.id
+    messages.value = (active.messages || []) as ChatMessage[]
+    conversationId.value = active.serverConversationId || ''
+  } else {
+    convoSeq += 1
+    const fresh: LocalConversation = {
+      id: convoSeq,
+      title: '新对话',
+      messages: [],
+      serverConversationId: '',
+      updatedAt: Date.now()
+    }
+    conversations.value = [fresh]
+    activeConvoId.value = fresh.id
+  }
+}
+
+function openConversationPanel() {
+  snapshotActiveConversation()
+  persistConversations()
+  showConversationPanel.value = true
+}
+
+function switchConversation(id: number) {
+  if (id === activeConvoId.value) {
+    showConversationPanel.value = false
+    return
+  }
+  snapshotActiveConversation()
+  persistConversations()
+  const target = conversations.value.find((c) => c.id === id)
+  if (target) {
+    activeConvoId.value = target.id
+    messages.value = [...(target.messages || [])]
+    conversationId.value = target.serverConversationId || ''
+  }
+  showConversationPanel.value = false
+}
+
+function newConversation() {
+  snapshotActiveConversation()
+  persistConversations()
+  convoSeq += 1
+  const fresh: LocalConversation = {
+    id: convoSeq,
+    title: '新对话',
+    messages: [],
+    serverConversationId: '',
+    updatedAt: Date.now()
+  }
+  conversations.value = [fresh, ...conversations.value]
+  activeConvoId.value = fresh.id
+  messages.value = []
+  conversationId.value = ''
+  inputText.value = ''
+  showConversationPanel.value = false
+}
+
+function formatTime(ts: number) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getMonth() + 1}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+function closeAi() {
+  snapshotActiveConversation()
+  persistConversations()
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack()
+  } else {
+    uni.switchTab({ url: '/pages/home/home' })
+  }
+}
+
+/** 输入区：文本非空 → 发送；为空 → 语音识别 */
+function onVoiceOrSend() {
+  if (inputText.value.trim()) {
+    sendMessage()
+  } else {
+    toggleRecording()
+  }
+}
+
+/** 拍照/相册：当前后端未支持图片输入，选择后明确告知，不虚构已处理 */
+function handleCameraForAi() {
+  uni.chooseImage({
+    count: 1,
+    sourceType: ['camera', 'album'],
+    success: () => {
+      uni.showToast({ title: '图片识别功能暂未开放，请用文字描述', icon: 'none' })
+    },
+    fail: () => {}
+  })
+}
+
+// 初始化会话
+loadConversations()
+
 // 手机键盘高度（输入栏 fixed 定位时动态上移，避免被键盘遮挡）
 const keyboardHeight = ref(0)
 const footerBaseBottomPx = uni.upx2px(150)
@@ -254,23 +426,6 @@ function nextId(): number {
 function quickSend(text: string) {
   inputText.value = text
   sendMessage()
-}
-
-/** 顶部扫一扫：扫码后让 AI 查该商品/条码（App 端扫码，H5 降级提示） */
-function handleScanForAi() {
-  try {
-    uni.scanCode({
-      scanType: ['barCode', 'qrCode'],
-      success: (res: any) => {
-        quickSend(`查一下商品：${res.result || ''}`)
-      },
-      fail: () => {
-        uni.showToast({ title: '已取消扫码', icon: 'none' })
-      },
-    })
-  } catch (e) {
-    uni.showToast({ title: '扫码需在 App 端使用', icon: 'none' })
-  }
 }
 
 /** 发送消息：追加用户消息 → 创建 AI 流式消息 → 发起 SSE 对话 */
@@ -343,6 +498,8 @@ async function sendMessage() {
     aiMsg.currentTool = ''
     sending.value = false
     abortController = null
+    snapshotActiveConversation()
+    persistConversations()
   }
 }
 
@@ -796,10 +953,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 22rpx 32rpx;
+  padding: 22rpx 28rpx;
   padding-top: calc(22rpx + env(safe-area-inset-top));
-  background: $uni-bg-color;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  background: rgba(247, 248, 250, 0.55);
+  backdrop-filter: blur(24rpx) saturate(1.4);
+  -webkit-backdrop-filter: blur(24rpx) saturate(1.4);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.02);
   position: fixed;
   top: 0;
   left: 0;
@@ -850,20 +1009,26 @@ onUnmounted(() => {
   font-weight: 800;
 }
 
-/* 顶部扫一扫按钮 */
-.ai-scan-btn {
+/* 顶部关闭按钮 */
+.ai-close-btn {
   width: 64rpx;
   height: 64rpx;
-  border-radius: 999rpx;
-  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
   margin-left: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease;
 }
-.ai-scan-btn-img {
-  width: 36rpx;
-  height: 36rpx;
+.ai-close-btn:active {
+  transform: scale(0.88);
+  background: rgba(0, 0, 0, 0.12);
+}
+.ai-close-icon {
+  font-size: 30rpx;
+  line-height: 1;
+  color: $uni-gray-700;
 }
 
 /* AI 回复播报按钮 */
@@ -916,7 +1081,7 @@ onUnmounted(() => {
 .chat-body {
   flex: 1;
   overflow: hidden;
-  padding-top: calc(110rpx + env(safe-area-inset-top));
+  padding-top: calc(120rpx + env(safe-area-inset-top));
   padding-bottom: calc(260rpx + env(safe-area-inset-bottom));
 }
 
@@ -1230,15 +1395,15 @@ onUnmounted(() => {
 /* ====================== 底部输入栏 ====================== */
 .chat-footer {
   background: rgba(255, 255, 255, 0.92);
-  margin: 0 24rpx;
+  margin: 0 16rpx;
   border-radius: 40rpx;
-  padding: 16rpx 20rpx;
+  padding: 16rpx 18rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(48rpx) saturate(1.5);
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
   position: fixed;
-  left: 24rpx;
-  right: 24rpx;
+  left: 16rpx;
+  right: 16rpx;
   z-index: 20;
 }
 
@@ -1249,42 +1414,39 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.mic-btn {
-  width: 84rpx;
-  height: 84rpx;
+.camera-btn {
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
+  background: rgba(37, 99, 235, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
+  margin-right: 16rpx;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
-.mic-btn:active {
+.camera-btn:active {
   transform: scale(0.88);
-  background: rgba(37, 99, 235, 0.08);
 }
 
-.mic-btn-img {
+.camera-btn-img {
   width: 40rpx;
   height: 40rpx;
 }
 
-.mic-btn--recording {
-  background: $uni-color-primary;
-}
-
 .chat-input {
   flex: 1;
-  min-height: 84rpx;
-  max-height: 240rpx;
+  height: 72rpx;
+  min-height: 0;
+  max-height: 72rpx;
   box-sizing: border-box;
-  line-height: 1.5;
+  line-height: 72rpx;
   background: $uni-bg-color-page;
   border: 1rpx solid rgba(0, 0, 0, 0.06);
   border-radius: 28rpx;
-  padding: 22rpx 32rpx;
+  padding: 0 28rpx;
   font-size: 26rpx;
   color: $uni-gray-900;
   transition: all 0.25s ease;
@@ -1300,10 +1462,10 @@ onUnmounted(() => {
   color: $uni-gray-500;
 }
 
-.send-btn {
-  margin-left: 20rpx;
-  width: 84rpx;
-  height: 84rpx;
+.voice-send-btn {
+  margin-left: 16rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
   background: $uni-color-primary;
   box-shadow: 0 6rpx 24rpx rgba(37, 99, 235, 0.2);
@@ -1314,17 +1476,33 @@ onUnmounted(() => {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.send-btn:active {
+.voice-send-btn:active {
   transform: scale(0.9);
 }
 
-.send-btn-img {
+.voice-send-btn-img {
   width: 36rpx;
   height: 36rpx;
 }
 
-.send-btn--disabled {
+.voice-send-btn--voice {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: none;
+}
+
+.voice-send-btn--recording {
+  background: $uni-color-error;
+  box-shadow: 0 6rpx 24rpx rgba(245, 108, 108, 0.3);
+  animation: recording-pulse 1.2s infinite ease-in-out;
+}
+
+.voice-send-btn--disabled {
   opacity: 0.5;
+}
+
+@keyframes recording-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
 .recording-hint {
@@ -1351,5 +1529,102 @@ onUnmounted(() => {
 .recording-hint-text {
   font-size: 22rpx;
   color: $uni-color-error;
+}
+
+/* ====================== 多对话选择弹窗（半屏） ====================== */
+.conv-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-end;
+}
+
+.conv-panel {
+  width: 100%;
+  height: 50vh;
+  background: #ffffff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 24rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  animation: conv-up 0.25s ease;
+}
+
+@keyframes conv-up {
+  from { transform: translateY(100%); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.conv-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.conv-panel-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: $uni-gray-900;
+}
+
+.conv-new-btn {
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: 999rpx;
+  padding: 10rpx 24rpx;
+}
+
+.conv-new-text {
+  font-size: 24rpx;
+  color: $uni-color-primary;
+}
+
+.conv-list {
+  flex: 1;
+  min-height: 0;
+}
+
+.conv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 20rpx;
+  border-radius: 16rpx;
+  margin-bottom: 8rpx;
+  background: $uni-bg-color-page;
+  border: 1rpx solid transparent;
+}
+
+.conv-item--active {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.conv-item-title {
+  flex: 1;
+  margin-right: 16rpx;
+  font-size: 26rpx;
+  color: $uni-gray-900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-item-time {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: $uni-gray-400;
+}
+
+.conv-empty {
+  text-align: center;
+  color: $uni-gray-400;
+  padding: 60rpx 0;
+  font-size: 24rpx;
 }
 </style>
