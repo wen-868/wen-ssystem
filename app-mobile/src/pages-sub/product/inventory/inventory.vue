@@ -19,22 +19,22 @@
       </view>
     </view>
 
-    <!-- 快捷操作 -->
+    <!-- 快捷操作（原稿线框 SVG 图标） -->
     <view class="inv-actions">
       <view class="inv-act" @tap="goto('/pages-sub/finance/purchase/in-stock')">
-        <view class="inv-act-ico inv-act-ico--blue"><text class="inv-act-text">入</text></view>
+        <view class="inv-act-ico"><image class="inv-act-icon ic" src="/static/icons/fn-stockin.svg" mode="aspectFit" /></view>
         <text class="inv-act-label">入库</text>
       </view>
       <view class="inv-act" @tap="goto('/pages-sub/finance/loss-gain/create-loss')">
-        <view class="inv-act-ico inv-act-ico--orange"><text class="inv-act-text">出</text></view>
+        <view class="inv-act-ico"><image class="inv-act-icon ic" src="/static/icons/ic/truck.svg" mode="aspectFit" /></view>
         <text class="inv-act-label">出库</text>
       </view>
       <view class="inv-act" @tap="goto('/pages-sub/product/stock-check/stock-checks')">
-        <view class="inv-act-ico inv-act-ico--green"><text class="inv-act-text">盘</text></view>
+        <view class="inv-act-ico"><image class="inv-act-icon ic" src="/static/icons/fn-check.svg" mode="aspectFit" /></view>
         <text class="inv-act-label">盘点</text>
       </view>
       <view class="inv-act" @tap="goto('/pages-sub/product/stock-warning/stock-warning')">
-        <view class="inv-act-ico inv-act-ico--red"><text class="inv-act-text">警</text></view>
+        <view class="inv-act-ico"><image class="inv-act-icon ic" src="/static/icons/fn-alert.svg" mode="aspectFit" /></view>
         <text class="inv-act-label">库存预警</text>
       </view>
     </view>
@@ -312,26 +312,21 @@ onMounted(() => {
   width: 80rpx;
   height: 80rpx;
   border-radius: 24rpx;
+  background: $uni-color-primary-soft;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.inv-act-ico--blue { background: $uni-color-primary-soft; }
-.inv-act-ico--orange { background: $uni-color-warning-soft; }
-.inv-act-ico--green { background: $uni-color-success-soft; }
-.inv-act-ico--red { background: $uni-color-error-soft; }
-
-.inv-act-text {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: $uni-gray-600;
+.inv-act-icon {
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .inv-act-label {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: $uni-gray-600;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* 分区标题（原稿 section-title 风格） */

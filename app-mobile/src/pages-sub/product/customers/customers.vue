@@ -30,12 +30,18 @@
           class="search-input"
           v-model="searchForm.keyword"
           type="text"
-          placeholder="搜索客户名称 / 电话"
+          placeholder="搜索会员姓名 / 手机号"
           placeholder-class="search-placeholder"
           @confirm="onSearch"
         />
         <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
+    </view>
+
+    <!-- 会员列表（原稿分区标题） -->
+    <view class="section-title">
+      <text class="st-text">会员列表</text>
+      <text class="st-sub">共 {{ totalCount }} 人</text>
     </view>
 
     <scroll-view
@@ -67,7 +73,7 @@
         <view class="card-right">
           <view class="customer-header">
             <text class="customer-name">{{ customer.name }}</text>
-            <view class="customer-type-tag" v-if="customer.level || customer.typeLabel">
+            <view class="customer-type-tag" :class="vipClass(customer.level)" v-if="customer.level || customer.typeLabel">
               <text class="type-text">{{ customer.level || customer.typeLabel }}</text>
             </view>
           </view>
@@ -183,6 +189,14 @@ function formatDate(dateStr?: string): string {
   return `${y}-${m}-${d}`
 }
 
+function vipClass(level?: string): string {
+  if (!level) return ''
+  const l = level.toUpperCase()
+  if (l.includes('3')) return 'vip3'
+  if (l.includes('2')) return 'vip2'
+  return ''
+}
+
 function formatAmount(amount: number | string): string {
   const num = Number(amount ?? 0)
   return num.toFixed(2)
@@ -238,6 +252,26 @@ onMounted(() => {
   color: $uni-color-primary;
   padding: 12rpx;
   font-weight: 500;
+}
+
+/* 分区标题（原稿 section-title 风格） */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 32rpx 32rpx 8rpx;
+}
+
+.st-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+}
+
+.st-sub {
+  font-size: 22rpx;
+  color: $uni-gray-400;
+  font-weight: 400;
 }
 
 /* 统计 */
@@ -401,12 +435,28 @@ onMounted(() => {
 
 .customer-type-tag {
   padding: 4rpx 14rpx;
-  background: $uni-color-primary-soft;
+  background: $uni-gray-100;
   border-radius: 8rpx;
+}
+
+.customer-type-tag.vip3 {
+  background: #fef3c7;
+}
+
+.customer-type-tag.vip2 {
+  background: $uni-color-primary-soft;
 }
 
 .type-text {
   font-size: 22rpx;
+  color: $uni-gray-600;
+}
+
+.customer-type-tag.vip3 .type-text {
+  color: #92400e;
+}
+
+.customer-type-tag.vip2 .type-text {
   color: $uni-color-primary;
 }
 
@@ -446,7 +496,7 @@ onMounted(() => {
 .debt-amount {
   font-size: 28rpx;
   font-weight: 700;
-  color: $uni-color-error;
+  color: $uni-text-color;
 }
 
 .debt-zero {

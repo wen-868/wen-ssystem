@@ -46,3 +46,15 @@
 3. 达标→通过；不达标→列出具体差距→打回继续，直至通过
 
 > 完成记录填在本卡下方；下次按「订单→库存→会员→消息→报表→快速开单→打印」顺序继续下一批。
+
+## 六、完成记录（workBuddy 执行）
+
+- 执行日期：2026-08-24 ｜ 提交信息中文 ｜ 仅改 UI 层，未动后端/接口/提交逻辑，无假数据。
+- 改动文件（3 个）：
+  1. `src/pages-sub/product/inventory/inventory.vue` —— 快捷入口「入/出/盘/警」文字图标改为线框 SVG（`fn-stockin` / `ic/truck` / `fn-check` / `fn-alert`），图标容器统一为蓝柔底（`$uni-color-primary-soft`）+ 蓝色图标，对齐原稿 `.inv-act svg` 蓝色线框风格；删除 `inv-act-ico--blue/orange/green/red` 与 `inv-act-text`。
+  2. `src/pages-sub/product/customers/customers.vue` —— 新增「会员列表」分区标题（原稿 `section-title`）；VIP 等级按原稿配色差异化（`vip3` 金 / `vip2` 蓝 / 其余灰），新增 `vipClass()`；「累计消费」金额由红色（误读为欠款）改为正文深色；搜索占位文案改为「搜索会员姓名 / 手机号」。
+  3. `docs/tasks/inbox/移动端UI-功能子页第一批-派单.md` —— 本完成记录。
+- 未改动：`src/pages/orders/orders.vue`（经比对已与原稿结构/间距/色彩/字体/图标一致，Tabs+订单卡+空态齐全，故未做无谓改动）。
+- 红线核对：未改后端/接口契约；未引入假数据（库存价值/本月新增/活跃率无字段处仍显示「—」）；SVG 均取自 `/static/icons/**` 线框；真实接口提交/跳转逻辑未破坏（入库/出库/盘点/预警路由、会员详情/新增、订单状态流转均保留）。
+- 构建：`npm run build:h5` ✅ 通过，无新增告警/错误（仅既有 Sass `@import` 弃用提示）；已验证新 SVG 随包发布、编译产物含 `vip3`/`会员列表`、旧文字图标已清除。
+- 待验收：凌舟 `build:h5` + 手机视口逐页截图对比原稿（订单/库存/会员）。
