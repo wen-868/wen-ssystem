@@ -240,19 +240,23 @@ onMounted(() => {
 .tree-node:last-child { border-bottom: none; }
 .node-content {
   display: flex; align-items: center; margin-bottom: 12rpx;
+  padding-right: 8rpx;
 }
 .expand-icon {
   font-size: 28rpx; color: $uni-color-primary; width: 40rpx;
   display: inline-block; text-align: center;
 }
 .expand-icon--leaf { width: 40rpx; }
-.node-name { font-size: 30rpx; color: $uni-gray-700; font-weight: 500; flex: 1; }
+.node-name {
+  font-size: 30rpx; color: $uni-gray-700; font-weight: 500;
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .offline-badge {
   padding: 2rpx 12rpx; background: rgba(255,77,79,0.1);
-  border-radius: 6rpx; margin-left: 12rpx;
+  border-radius: 6rpx; margin-left: 12rpx; flex-shrink: 0;
 }
 .offline-badge-text { font-size: 20rpx; color: $uni-color-error; }
-.node-sort { font-size: 22rpx; color: $uni-gray-300; margin-left: 12rpx; }
+.node-sort { font-size: 22rpx; color: $uni-gray-300; margin-left: 16rpx; flex-shrink: 0; }
 .node-actions { display: flex; gap: 20rpx; padding-left: 40rpx; }
 .action-text { font-size: 24rpx; }
 .action-text.edit { color: $uni-color-primary; }
