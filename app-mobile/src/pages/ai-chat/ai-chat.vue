@@ -8,12 +8,8 @@
       <view class="ai-top-info">
         <text class="ai-top-title">AI<text class="ai-top-dot">·</text>实时对话</text>
       </view>
-      <view
-        class="ai-voice-mode"
-        :class="{ 'ai-voice-mode--on': voiceMode }"
-        @tap="voiceMode = !voiceMode"
-      >
-        <text class="ai-voice-mode-text">{{ voiceMode ? '语音' : '文字' }}</text>
+      <view class="ai-scan-btn" @tap="handleScanForAi">
+        <image class="ai-scan-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
       </view>
     </view>
 
@@ -134,11 +130,6 @@
 
     <!-- 底部输入栏 -->
     <view class="chat-footer">
-      <scroll-view class="ai-quick-tags" scroll-x :show-scrollbar="false">
-        <view class="ai-tag" v-for="tip in welcomeTips" :key="tip" @tap="quickSend(tip)">
-          <text class="ai-tag-text">{{ tip }}</text>
-        </view>
-      </scroll-view>
       <view class="input-bar">
         <view
           class="mic-btn"
@@ -252,6 +243,23 @@ function nextId(): number {
 function quickSend(text: string) {
   inputText.value = text
   sendMessage()
+}
+
+/** 顶部扫一扫：扫码后让 AI 查该商品/条码（App 端扫码，H5 降级提示） */
+function handleScanForAi() {
+  try {
+    uni.scanCode({
+      scanType: ['barCode', 'qrCode'],
+      success: (res: any) => {
+        quickSend(`查一下商品：${res.result || ''}`)
+      },
+      fail: () => {
+        uni.showToast({ title: '已取消扫码', icon: 'none' })
+      },
+    })
+  } catch (e) {
+    uni.showToast({ title: '扫码需在 App 端使用', icon: 'none' })
+  }
 }
 
 /** 发送消息：追加用户消息 → 创建 AI 流式消息 → 发起 SSE 对话 */
@@ -826,22 +834,20 @@ onUnmounted(() => {
   font-weight: 800;
 }
 
-/* 语音模式开关 */
-.ai-voice-mode {
-  padding: 8rpx 18rpx;
+/* 顶部扫一扫按钮 */
+.ai-scan-btn {
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 999rpx;
   background: rgba(0, 0, 0, 0.05);
   margin-left: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.ai-voice-mode--on {
-  background: $uni-gradient-blue;
-}
-.ai-voice-mode-text {
-  font-size: 22rpx;
-  color: $uni-gray-700;
-}
-.ai-voice-mode--on .ai-voice-mode-text {
-  color: $uni-text-color-inverse;
+.ai-scan-btn-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 /* AI 回复播报按钮 */
@@ -932,7 +938,7 @@ onUnmounted(() => {
 }
 
 .bubble-wrap {
-  max-width: 78%;
+  max-width: calc(100% - 96rpx);
   display: flex;
   flex-direction: column;
 }
@@ -1213,7 +1219,7 @@ onUnmounted(() => {
 
 /* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
 .tabbar-placeholder {
-  height: calc(108rpx + env(safe-area-inset-bottom));
+  height: calc(156rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
 }
 
