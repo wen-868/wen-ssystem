@@ -42,6 +42,18 @@
         </picker>
       </view>
 
+      <!-- 出货：对接销售单（只读展示发货对象，不新建发货单/出库单） -->
+      <view class="form-section" v-if="docConfig.showShipSummary">
+        <view class="section-title">出货（对接销售单）</view>
+        <view class="ship-summary">
+          <view class="ship-row"><text class="ship-lab">销售单号</text><text class="ship-val">{{ shipBill?.billNo || '—' }}</text></view>
+          <view class="ship-row"><text class="ship-lab">客户</text><text class="ship-val">{{ shipBill?.customerName || '—' }}</text></view>
+          <view class="ship-row"><text class="ship-lab">商品数</text><text class="ship-val">{{ shipBill?.itemCount ?? '—' }}</text></view>
+          <view class="ship-row"><text class="ship-lab">金额</text><text class="ship-val">¥{{ Number(shipBill?.totalAmount ?? 0).toFixed(2) }}</text></view>
+        </view>
+        <view class="ship-tip">选择上方"关联销售单"即完成出货对接；发货/送货由销售单流程推进。</view>
+      </view>
+
       <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
       <view class="form-section" v-if="docConfig.showReceiptCustomer">
         <view class="section-title">{{ docKey === 'sale-return' ? '客户' : '收款客户' }}</view>
@@ -467,6 +479,7 @@ const docConfig = computed<{
   showAmount: boolean
   showPayment: boolean
   showRemark: boolean
+  showShipSummary: boolean
   actions: DocAction[]
   placeholder?: string
 }>(() => {
@@ -476,6 +489,7 @@ const docConfig = computed<{
         showCustomer: false, showSupplier: true, showProducts: true,
         showDelivery: false, showOrderDate: true, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
           { label: '确认入库', variant: 'primary', handler: submitPurchaseIn, loadingText: '入库中...' },
@@ -487,6 +501,7 @@ const docConfig = computed<{
         showCustomer: false, showSupplier: false, showProducts: false,
         showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: true,
         showReceiptCustomer: true, showAmount: true, showPayment: true, showRemark: true,
+        showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
           { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...' },
@@ -496,16 +511,19 @@ const docConfig = computed<{
     case 'ship':
       return {
         showCustomer: false, showSupplier: false, showProducts: false,
-        showDelivery: false, showOrderDate: false, showStore: false, showSourceBill: false,
+        showDelivery: false, showOrderDate: false, showStore: false, showSourceBill: true,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: false,
-        placeholder: '出货（销售-出货）功能后端接口待开放，暂不可用。',
-        actions: [],
+        showShipSummary: true,
+        actions: [
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
       }
     case 'sale-return':
       return {
         showCustomer: false, showSupplier: false, showProducts: true,
         showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: true,
         showReceiptCustomer: true, showAmount: false, showPayment: false, showRemark: true,
+        showShipSummary: false,
         actions: [
           { label: '提交退货', variant: 'primary', handler: submitSaleReturn, loadingText: '提交中...' },
           { label: '分享', variant: 'ghost', handler: handleShare },
@@ -516,6 +534,7 @@ const docConfig = computed<{
         showCustomer: false, showSupplier: true, showProducts: true,
         showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showShipSummary: false,
         actions: [
           { label: '提交退货', variant: 'primary', handler: submitPurchaseReturn, loadingText: '提交中...' },
           { label: '分享', variant: 'ghost', handler: handleShare },
@@ -526,6 +545,7 @@ const docConfig = computed<{
         showCustomer: true, showSupplier: false, showProducts: true,
         showDelivery: true, showOrderDate: true, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
           { label: '转销售单', variant: 'primary', handler: submitOrder, loadingText: '转销售单中...' },
@@ -592,6 +612,8 @@ const selectedSourceBill = ref('')
 const receiptCustomerId = ref<number | null>(null)
 const receiptCustomerName = ref('')
 const sourceBillLabel = computed(() => selectedSourceBill.value || '请选择销售单')
+// 出货：对接销售单（只读展示发货对象）
+const shipBill = ref<{ billNo: string; customerName: string; totalAmount: number; itemCount: number } | null>(null)
 async function loadSourceBills() {
   try {
     const result = await salesApi.list({ page: 1, pageSize: 20 })
@@ -610,6 +632,21 @@ function onSourceBillChange(e: any) {
     selectedSourceBill.value = bill.billNo
     receiptCustomerName.value = bill.customerName
     if (!receiptAmount.value) receiptAmount.value = bill.totalAmount
+    if (docKey.value === 'ship') loadShipBill(bill.billNo)
+  }
+}
+async function loadShipBill(billNo: string) {
+  try {
+    const res: any = await salesApi.detail(billNo)
+    const bill = res?.bill ?? res
+    shipBill.value = {
+      billNo: bill?.billNo ?? billNo,
+      customerName: bill?.customerName || '',
+      totalAmount: Number(bill?.totalAmount ?? bill?.receivableAmount ?? 0),
+      itemCount: (bill?.items || []).length,
+    }
+  } catch {
+    shipBill.value = { billNo, customerName: '', totalAmount: 0, itemCount: 0 }
   }
 }
 
@@ -2212,5 +2249,32 @@ onMounted(() => {
 .empty-text {
   font-size: 26rpx;
   color: $uni-gray-300;
+}
+
+/* 出货：对接销售单只读摘要 */
+.ship-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding: 12rpx 0;
+}
+.ship-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ship-lab {
+  color: $uni-gray-600;
+  font-size: 26rpx;
+}
+.ship-val {
+  color: $uni-text-color;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+.ship-tip {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: $uni-gray-400;
 }
 </style>
