@@ -160,7 +160,6 @@
         <text class="recording-hint-text">录音中 {{ recordingTime }}s，再点一次结束</text>
       </view>
     </view>
-    <!-- 自定义 tabBar 占位 + AI 凸起按钮 -->
     <view class="tabbar-placeholder"></view>
     <custom-tab-bar :current="'ai'" />
   </view>
@@ -787,15 +786,8 @@ onUnmounted(() => {
   gap: 20rpx;
   padding: 22rpx 32rpx;
   padding-top: calc(22rpx + env(safe-area-inset-top));
-  margin: 12rpx 24rpx 0;
-  border-radius: 40rpx;
-  background: rgba(255, 255, 255, 0.92);
-  border: none;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(48rpx) saturate(1.5);
-  -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
-  position: relative;
-  z-index: 10;
+  background: $uni-bg-color;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
 .ai-top-icon {
@@ -1227,11 +1219,12 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
 }
 
-/* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
 .tabbar-placeholder {
-  height: calc(140rpx + env(safe-area-inset-bottom));
+  height: calc(150rpx + env(safe-area-inset-bottom));
   background: transparent;
 }
+
+/* 自定义 tabBar 占位：让输入栏不被底部导航遮挡 */
 
 .input-bar {
   display: flex;
