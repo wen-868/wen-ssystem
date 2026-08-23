@@ -2,6 +2,7 @@ import { get, post } from '../request'
 
 export interface SaleItem {
   productId: number
+  skuId?: number
   productName: string
   price?: number
   quantity?: number
@@ -63,7 +64,7 @@ const salesApi = {
       remark: params.remark,
       saleType: 'CASH',
       items: params.items.map((it) => ({
-        skuId: it.productId,
+        skuId: it.skuId ?? it.productId,
         boxQty: it.boxQty ?? 0,
         bottleQty: it.bottleQty ?? 0,
         quantity: (it.bottleQty ?? 0) + (it.boxQty ?? 0),

@@ -852,6 +852,7 @@ function addProduct(product: ProductInfo, qty = 1, traceCode = '') {
   // 新增
   const newItem: SaleItem = {
     productId: product.id,
+    skuId: Number(product.skuId),
     productName: product.name,
     price: product.price,
     quantity: safeQty,
@@ -982,7 +983,7 @@ async function handleDraft() {
         amount: totalAmount.value,
         remark: remark.value || '移动端开单暂存',
         items: saleItems.map((item) => ({
-          skuId: Number(item.productId || 0),
+          skuId: item.skuId ?? Number(item.productId || 0),
           skuName: item.productName || '',
           quantity: Number(item.quantity || 1),
           unitPrice: Number(item.price ?? item.unitPrice ?? 0),
@@ -1069,7 +1070,7 @@ async function submitPurchaseIn() {
       store_id: selectedStoreId.value,
       remark: remark.value || '',
       items: saleItems.map(item => ({
-        sku_id: Number(item.productId),
+        sku_id: item.skuId ?? Number(item.productId),
         sku_name: item.productName || '',
         box_qty: item.boxQty ?? 0,
         bottle_qty: item.bottleQty ?? item.quantity ?? 0,
