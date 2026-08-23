@@ -235,12 +235,11 @@ onMounted(() => {
 .tree-list { background: $uni-bg-color; border-radius: 16rpx; overflow: hidden; }
 .tree-node {
   border-bottom: 1rpx solid $uni-bg-color-grey;
-  padding: 20rpx 24rpx;
+  padding: 20rpx 32rpx;
 }
 .tree-node:last-child { border-bottom: none; }
 .node-content {
   display: flex; align-items: center; margin-bottom: 12rpx;
-  padding-right: 8rpx;
 }
 .expand-icon {
   font-size: 28rpx; color: $uni-color-primary; width: 40rpx;
