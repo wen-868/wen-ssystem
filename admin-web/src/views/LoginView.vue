@@ -131,6 +131,12 @@
             粤ICP备2026103101号-1
           </a>
         </div>
+        <div class="icp-line">
+          <a href="https://beian.mps.gov.cn/" target="_blank" rel="nofollow noopener">
+            <img src="/gongan.png" alt="粤公网安备" class="beian-icon" />
+            <span>粤公网安备44030002015715号</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -594,5 +600,11 @@ async function handleDemoLogin() {
 .icp-line a {
   color: var(--text-placeholder);
   text-decoration: none;
+}
+.icp-line a .beian-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+  margin-right: 4px;
 }
 </style>

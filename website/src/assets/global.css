@@ -131,6 +131,10 @@ img { max-width: 100%; display: block; }
 .footer-col a:hover { color: #fff; }
 .footer-col .footer-contact { font-size: .9rem; line-height: 1.7; margin: 0 0 8px; }
 .footer-bottom { border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: .85rem; }
+.footer-bottom .footer-beian { margin-top: 8px; }
+.footer-beian a { display: inline-flex; align-items: center; gap: 6px; color: #94a3b8; }
+.footer-beian a:hover { color: #fff; }
+.beian-icon { width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
 
 /* Mobile menu */
 .menu-btn { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }

@@ -149,6 +149,12 @@
           <p>&copy; {{ year }} 智享全链管理系统 onepan.cn. All rights reserved.</p>
           <p>运营主体：深圳市宝安区智享全链软件工作室</p>
           <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">粤ICP备2026103101号-1</a></p>
+          <p class="footer-beian">
+            <a href="https://beian.mps.gov.cn/" target="_blank" rel="nofollow noopener">
+              <img src="/gongan.png" alt="粤公网安备" class="beian-icon" />
+              粤公网安备44030002015715号
+            </a>
+          </p>
         </div>
       </div>
     </footer>

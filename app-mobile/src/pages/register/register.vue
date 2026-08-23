@@ -112,7 +112,11 @@
 
     <!-- 底部 -->
     <view class="footer-section">
-      <text class="footer-text">v1.0.0 · 粤ICP备2026103101号-1</text>
+      <text class="footer-text">v1.0.0 · 粤ICP备2026103101号-2A</text>
+      <view class="footer-beian">
+        <image class="beian-icon" src="/static/gongan.png" mode="aspectFit" />
+        <text class="beian-text">粤公网安备44030002015715号</text>
+      </view>
     </view>
   </view>
 </template>
@@ -494,6 +498,21 @@ function goLogin() {
 }
 
 .footer-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.65);
+}
+.footer-beian {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+.beian-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+.beian-text {
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.65);
 }
