@@ -48,7 +48,7 @@ WHERE u.username = 'admin' AND u.tenant_id = 'default'
 
 INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
 SELECT u.id, r.id, 'default'
-FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'STORE_MANAGER' AND r.tenant_id = 'default'
+FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN' AND r.tenant_id = 'default'
 WHERE u.username = 'store_manager' AND u.tenant_id = 'default'
   AND NOT EXISTS (SELECT 1 FROM t_sys_user_role ur WHERE ur.user_id = u.id AND ur.role_id = r.id AND ur.tenant_id = 'default');
 

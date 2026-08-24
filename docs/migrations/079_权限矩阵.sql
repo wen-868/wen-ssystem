@@ -7,9 +7,10 @@
 -- ============================================================
 -- 第1步：删除旧表（如果存在）
 -- ============================================================
-DROP TABLE IF EXISTS t_sys_field_permission;
-DROP TABLE IF EXISTS t_sys_data_permission;
-DROP TABLE IF EXISTS t_sys_menu;
+-- 破坏性重建已改为幂等：表已存在则保留，避免每次启动重建导致数据丢失（R-权限稳定化）
+-- DROP TABLE IF EXISTS t_sys_field_permission;
+-- DROP TABLE IF EXISTS t_sys_data_permission;
+-- DROP TABLE IF EXISTS t_sys_menu;
 
 -- ============================================================
 -- 第2步：新建菜单权限表
@@ -75,9 +76,10 @@ CREATE TABLE t_sys_field_permission (
 -- ============================================================
 
 -- 清理旧角色
-DELETE FROM t_sys_role_permission WHERE tenant_id = 'default';
-DELETE FROM t_sys_user_role WHERE tenant_id = 'default';
-DELETE FROM t_sys_role WHERE tenant_id = 'default';
+-- 不再删除角色/用户角色绑定（角色由 128 幂等补全，删除会导致 role_id 每次启动漂移）
+-- DELETE FROM t_sys_role_permission WHERE tenant_id = 'default';
+-- DELETE FROM t_sys_user_role WHERE tenant_id = 'default';
+-- DELETE FROM t_sys_role WHERE tenant_id = 'default';
 
 -- 插入8角色（status 字段为 TINYINT，使用 1 而非 'ACTIVE'）
 INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES

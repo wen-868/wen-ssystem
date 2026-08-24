@@ -18,7 +18,7 @@ ON DUPLICATE KEY UPDATE
 
 -- 2) 绑定角色（幂等）
 INSERT INTO t_sys_user_role (user_id, role_id)
-SELECT u.id, r.id FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'STORE_MANAGER'
+SELECT u.id, r.id FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN'
 WHERE u.username = 'store_manager'
 ON DUPLICATE KEY UPDATE user_id = VALUES(user_id);
 
