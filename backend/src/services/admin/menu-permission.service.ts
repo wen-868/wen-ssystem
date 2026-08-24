@@ -76,8 +76,8 @@ export async function getRoleMenuCodes(roleId: number, tenantId: string): Promis
     `SELECT m.menu_code AS menuCode
      FROM t_sys_role_menu rm
      JOIN t_sys_menu m ON m.id = rm.menu_id
-     WHERE rm.role_id = ?`,
-    [roleId],
+     WHERE rm.role_id = ? AND m.tenant_id = ?`,
+    [roleId, tenantId],
     tenantId
   );
 
@@ -90,8 +90,8 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
     `SELECT r.id AS roleId, r.role_code AS roleCode
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 'ACTIVE'`,
-    [userId],
+     WHERE ur.user_id = ? AND r.status = 'ACTIVE' AND r.tenant_id = ?`,
+    [userId, tenantId],
     tenantId
   );
 
@@ -124,9 +124,9 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
               m.menu_type AS menuType, m.path, m.icon, m.sort_no AS sortNo, m.status
        FROM t_sys_role_menu rm
        JOIN t_sys_menu m ON m.id = rm.menu_id
-       WHERE rm.role_id IN (${placeholders})
+       WHERE rm.role_id IN (${placeholders}) AND m.tenant_id = ?
        ORDER BY m.sort_no ASC`,
-      roleIds,
+      [...roleIds, tenantId],
       tenantId
     );
   }
