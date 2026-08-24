@@ -1,21 +1,45 @@
 #!/usr/bin/env bash
 # ============================================================================
-# AI 底座(NestJS backend/ai-base)服务器部署脚本
+# AI 底座(NestJS)服务器部署脚本
 # 由 auto-deploy.sh 在 git pull 后调用；容错设计：失败仅跳过 AI 底座，
 # 不阻断主后端/前端部署。
+# 源码来源：独立仓库 ZXQL-AI（wen-868/ZXQL-AI），部署时检出到 /opt/zhixiang/ai-base；
+# 若独立仓库不可用，自动回退到管理系统内嵌的 backend/ai-base（保证旧 AI 不停）。
 # 作者：凌舟 | 日期：2026-08-03 | 用途：R73-02 AI 底座部署阻塞项
 # ============================================================================
 set -uo pipefail
 
 PROJECT_DIR="/opt/zhixiang/liquor-inventory-system"
-AI_DIR="${PROJECT_DIR}/backend/ai-base"
+# 独立仓库（单源化）：AI 底座源码来自 ZXQL-AI 仓库
+AI_REPO_URL="https://github.com/wen-868/ZXQL-AI.git"
+AI_TARGET_DIR="/opt/zhixiang/ai-base"
+# 回退点：内嵌于管理系统的旧源码（阶段 C/D 验证通过后删除）
+AI_LEGACY_DIR="${PROJECT_DIR}/backend/ai-base"
+# 实际使用的源码目录（优先独立仓库，回退内嵌）
+AI_DIR=""
 BACKEND_ENV="${PROJECT_DIR}/backend/.env"
 LOG_DIR="${PROJECT_DIR}/logs"
 
 echo "==> [AI底座] 开始部署 $(date '+%Y-%m-%d %H:%M:%S')"
 
-if [ ! -d "${AI_DIR}" ]; then
-  echo "==> [AI底座] 目录不存在(${AI_DIR})，跳过"
+# ---- 0. 解析 AI 源码目录（单源化：优先独立仓库 ZXQL-AI，回退内嵌 backend/ai-base） ----
+if [ -d "${AI_TARGET_DIR}/.git" ]; then
+  echo "==> [AI底座] 更新独立仓库 ${AI_TARGET_DIR}"
+  git -C "${AI_TARGET_DIR}" fetch origin main 2>&1 | tail -3 || true
+  git -C "${AI_TARGET_DIR}" reset --hard origin/main 2>&1 | tail -3 || true
+else
+  echo "==> [AI底座] 从独立仓库检出 ZXQL-AI 到 ${AI_TARGET_DIR}"
+  git clone "${AI_REPO_URL}" "${AI_TARGET_DIR}" 2>&1 | tail -5 || true
+fi
+
+if [ -f "${AI_TARGET_DIR}/package.json" ]; then
+  AI_DIR="${AI_TARGET_DIR}"
+  echo "==> [AI底座] 使用独立仓库源码：${AI_DIR}"
+elif [ -f "${AI_LEGACY_DIR}/package.json" ]; then
+  AI_DIR="${AI_LEGACY_DIR}"
+  echo "==> [AI底座] 独立仓库不可用，回退到内嵌源码：${AI_DIR}（旧 AI 不停）"
+else
+  echo "==> [AI底座] 独立仓库与内嵌源码均不可用，跳过"
   exit 0
 fi
 
