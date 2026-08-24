@@ -37,6 +37,19 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
   height: 0;
 }
 
+/* 全局根治：长值文本允许换行+收缩，避免右侧溢出裁剪（uni-app <text> 为行内 uni-text，
+   需 min-width:0 + word-break 才能在 flex row 内收缩，否则长值贴右溢出） */
+.info-value,
+.filter-value,
+.picker-text,
+.mf-li-desc,
+.li-desc,
+.info-value text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* 隐藏 H5 端原生 tabBar（custom:true 时仍渲染占位，避免与自定义悬浮胶囊形成双栏） */
 uni-tabbar {
   display: none !important;
