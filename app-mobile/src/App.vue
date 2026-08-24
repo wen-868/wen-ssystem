@@ -29,6 +29,22 @@ page {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 
+/* 根治：uni-app H5 大量容器用 width:100% + 水平 padding 但未设 box-sizing，
+   默认 content-box 导致 宽度+padding 超出视口、右边距/右缘被裁。全局补 border-box，
+   让所有 padding 计入 width（绝大多数页都预期 border-box 语义）。 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 根治：uni-app H5 把 <form> 编译成 <uni-form>（未知自定义元素），
+   浏览器默认 display:inline，导致其内部块级子元素突破容器、左右 padding/边距失效、
+   内容满宽贴边并与上方元素重叠。补 display:block 恢复原生 <form> 的盒模型语义。 */
+uni-form {
+  display: block;
+}
+
 /* 全局隐藏 H5 滚动条（原稿 reset：::-webkit-scrollbar display:none） */
 ::-webkit-scrollbar,
 uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
