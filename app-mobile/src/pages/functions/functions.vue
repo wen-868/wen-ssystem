@@ -11,7 +11,7 @@
     <!-- 高频宫格（真实搜索过滤） -->
     <view class="func-grid" v-if="filteredHotActions.length > 0">
       <view class="func-grid-item" v-for="item in filteredHotActions" :key="item.label" @tap="goto(item.path)">
-        <view class="fg-ico" :style="{ background: item.bg }">
+        <view class="fg-ico" :style="{ background: itemBg(item) }">
           <image v-if="item.icon.startsWith('/static')" class="fg-ico-img" :src="item.icon" mode="aspectFit" />
           <text v-else class="fg-ico-text">{{ item.icon }}</text>
         </view>
@@ -28,8 +28,8 @@
     <view class="func-section" v-if="filteredDataTools.length > 0">
       <text class="func-section-title">数据 · 工具</text>
       <view class="func-list">
-        <view class="list-item" v-for="item in filteredDataTools" :key="item.label" @tap="goto(item.path)">
-          <view class="li-ico" :style="{ background: item.bg, color: item.color }">
+        <view class="list-item" v-for="(item, idx) in filteredDataTools" :key="item.code" @tap="goto(item.path)">
+          <view class="li-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
             <image class="li-ico-img" :src="item.icon" mode="aspectFit" />
           </view>
           <view class="li-body">
@@ -37,6 +37,26 @@
             <text class="li-desc">{{ item.sub }}</text>
           </view>
           <text class="li-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 全部功能（数据驱动，自动排列系统全部功能） -->
+    <view class="func-section" v-if="filteredGroups.length > 0">
+      <text class="func-section-title">全部功能</text>
+      <view class="func-group" v-for="g in filteredGroups" :key="g.id">
+        <text class="func-group-title">{{ g.title }}</text>
+        <view class="func-list">
+          <view class="list-item" v-for="item in g.items" :key="item.code" @tap="goto(item.path)">
+            <view class="li-ico" :style="{ background: itemBg(item), color: itemColor(item) }">
+              <image class="li-ico-img" :src="item.icon" mode="aspectFit" />
+            </view>
+            <view class="li-body">
+              <text class="li-title">{{ item.label }}</text>
+              <text class="li-desc" v-if="item.sub">{{ item.sub }}</text>
+            </view>
+            <text class="li-arrow">›</text>
+          </view>
         </view>
       </view>
     </view>
@@ -49,18 +69,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
-import {
-  AI_BG_SOFT,
-  AI_TAB_ACTIVE,
-  AI_SUCCESS,
-  AI_SUCCESS_SOFT,
-  AI_WARNING,
-  AI_WARNING_SOFT,
-  AI_DANGER,
-  AI_DANGER_SOFT,
-  AI_BG_GAP,
-  AI_TEXT_MID,
-} from '@/constants/colors'
+import { hotActions, dataTools, searchFunctions, type FunctionItem } from '@/config/function-menu'
+import { AI_BG_SOFT, AI_TAB_ACTIVE } from '@/constants/colors'
 
 const keyword = ref('')
 
@@ -71,25 +81,6 @@ const navigate = (path: string) => {
 }
 
 const goto = (path: string) => navigate(path)
-
-/* 原稿：宫格图标统一蓝底浅蓝（更多为灰底） */
-const hotActions = [
-  { icon: '/static/icons/fn-open.svg', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-member.svg', label: '会员管理', path: '/pages-sub/marketing/member/member-list', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-check.svg', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-store.svg', label: '门店管理', path: '/pages-sub/admin/stores/stores', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-print.svg', label: '单据打印', path: '/pages-sub/admin/print/print-records', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-more.svg', label: '更多', path: '/pages-sub/admin/more/more-functions', bg: AI_BG_GAP, color: AI_TEXT_MID },
-]
-
-const dataTools = [
-  { icon: '/static/icons/fn-report.svg', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-rank.svg', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-trace.svg', label: '溯源查询', sub: '商品来源与批次追踪', path: '/pages-sub/product/trace/trace-query', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', sub: '12家合作供应商', path: '/pages-sub/product/suppliers/suppliers', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-]
 
 /** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */
 const filteredHotActions = computed(() => {
@@ -104,7 +95,22 @@ const filteredDataTools = computed(() => {
   return dataTools.filter((a) => a.label.toLowerCase().includes(k) || a.sub.toLowerCase().includes(k))
 })
 
-const hasResults = computed(() => filteredHotActions.value.length > 0 || filteredDataTools.value.length > 0)
+const filteredGroups = computed(() => searchFunctions(keyword.value).groups)
+
+const hasResults = computed(
+  () =>
+    filteredHotActions.value.length > 0 ||
+    filteredDataTools.value.length > 0 ||
+    filteredGroups.value.length > 0
+)
+
+/** 宫格/列表图标配色（沿用原稿：蓝底浅蓝） */
+function itemBg(_item: FunctionItem, _idx?: number) {
+  return AI_BG_SOFT
+}
+function itemColor(_item: FunctionItem, _idx?: number) {
+  return AI_TAB_ACTIVE
+}
 
 function doSearch() {
   // 确认搜索：结果由 computed 实时渲染，无需额外处理
@@ -228,6 +234,18 @@ function doSearch() {
   padding: 0 8rpx 20rpx;
   letter-spacing: 1rpx;
   text-transform: uppercase;
+}
+
+.func-group {
+  margin-top: 8rpx;
+}
+
+.func-group-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: $uni-gray-600;
+  padding: 16rpx 8rpx 8rpx;
 }
 
 .func-list {

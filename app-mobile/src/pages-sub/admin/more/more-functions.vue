@@ -7,8 +7,8 @@
     <view class="mf-section">
       <text class="mf-section-title">高频功能</text>
       <view class="mf-grid">
-        <view class="mf-grid-item" v-for="item in hotActions" :key="item.label" @tap="goto(item.path)">
-          <view class="mf-ico" :style="{ background: item.bg, color: item.color }">
+        <view class="mf-grid-item" v-for="(item, idx) in hotActions" :key="item.code" @tap="goto(item.path)">
+          <view class="mf-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
             <image v-if="item.icon.startsWith('/static')" class="mf-ico-img" :src="item.icon" mode="aspectFit" />
             <text v-else class="mf-ico-text">{{ item.icon }}</text>
           </view>
@@ -21,8 +21,8 @@
     <view class="mf-section">
       <text class="mf-section-title">数据 · 工具</text>
       <view class="mf-list">
-        <view class="mf-list-item" v-for="item in dataTools" :key="item.label" @tap="goto(item.path)">
-          <view class="mf-li-ico" :style="{ background: item.bg, color: item.color }">
+        <view class="mf-list-item" v-for="(item, idx) in dataTools" :key="item.code" @tap="goto(item.path)">
+          <view class="mf-li-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
             <image v-if="item.icon.startsWith('/static')" class="mf-li-ico-img" :src="item.icon" mode="aspectFit" />
             <text v-else class="mf-li-ico-text">{{ item.icon }}</text>
           </view>
@@ -35,11 +35,35 @@
       </view>
     </view>
 
+    <!-- 全部功能（数据驱动，按模块分组） -->
+    <view class="mf-section" v-for="g in allGroups" :key="g.id">
+      <text class="mf-section-title">{{ g.title }}</text>
+      <view class="mf-list">
+        <view class="mf-list-item" v-for="(item, idx) in g.items" :key="item.code" @tap="goto(item.path)">
+          <view class="mf-li-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
+            <image v-if="item.icon.startsWith('/static')" class="mf-li-ico-img" :src="item.icon" mode="aspectFit" />
+            <text v-else class="mf-li-ico-text">{{ item.icon }}</text>
+          </view>
+          <view class="mf-li-body">
+            <text class="mf-li-title">{{ item.label }}</text>
+            <text class="mf-li-desc" v-if="item.sub">{{ item.sub }}</text>
+          </view>
+          <text class="mf-li-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
     <view class="safe-bottom"></view>
   </view>
 </template>
 
 <script setup lang="ts">
+import {
+  hotActions,
+  dataTools,
+  allGroups,
+  type FunctionItem,
+} from '@/config/function-menu'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -49,31 +73,21 @@ import {
   AI_WARNING_SOFT,
   AI_DANGER,
   AI_DANGER_SOFT,
-  AI_BG_GAP,
-  AI_TEXT_MID,
 } from '@/constants/colors'
 
-const hotActions = [
-  { icon: '/static/icons/fn-open.svg', label: '开单收银', path: '/pages/sales/create-sale', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-order.svg', label: '订单管理', path: '/pages/orders/orders', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-member.svg', label: '会员管理', path: '/pages-sub/marketing/member/member-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-stockin.svg', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', bg: AI_DANGER_SOFT, color: AI_DANGER },
-  { icon: '/static/icons/fn-check.svg', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-settle.svg', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-inventory.svg', label: '库存管理', path: '/pages-sub/product/inventory/inventory', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-supplier.svg', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-trace.svg', label: '溯源查询', path: '/pages-sub/product/trace/trace-query', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+/** 图标配色：按序循环蓝/绿/橙/红软底（沿用原稿观感） */
+const PALETTE = [
+  { bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
+  { bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
+  { bg: AI_WARNING_SOFT, color: AI_WARNING },
+  { bg: AI_DANGER_SOFT, color: AI_DANGER },
 ]
-
-const dataTools = [
-  { icon: '/static/icons/fn-report.svg', label: '经营报表', sub: '营业额、利润、趋势分析', path: '/pages-sub/finance/reports/reports', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-rank.svg', label: '销售排行', sub: '商品销量TOP排行', path: '/pages-sub/finance/reports/sales-reports', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-batch.svg', label: '批次管理', sub: '库存批次与出入库明细', path: '/pages-sub/product/batches/batch-list', bg: AI_WARNING_SOFT, color: AI_WARNING },
-  { icon: '/static/icons/fn-alert.svg', label: '库存预警', sub: '低库存与临期提醒', path: '/pages-sub/product/stock-warning/stock-warning', bg: AI_DANGER_SOFT, color: AI_DANGER },
-  { icon: '/static/icons/fn-price.svg', label: '价格管理', sub: '零售/批发价与调价', path: '/pages-sub/product/price/price-manage', bg: AI_BG_SOFT, color: AI_TAB_ACTIVE },
-  { icon: '/static/icons/fn-batch-price.svg', label: '批量调价', sub: '按分类批量调整价格', path: '/pages-sub/product/price/batch-price', bg: AI_SUCCESS_SOFT, color: AI_SUCCESS },
-  { icon: '/static/icons/fn-sales-report.svg', label: '销售报表', sub: '销售数据明细分析', path: '/pages-sub/finance/reports/sales-reports', bg: AI_WARNING_SOFT, color: AI_WARNING },
-]
+function itemBg(_item: FunctionItem, idx: number) {
+  return PALETTE[idx % PALETTE.length].bg
+}
+function itemColor(_item: FunctionItem, idx: number) {
+  return PALETTE[idx % PALETTE.length].color
+}
 
 function goBack() {
   const pages = getCurrentPages()
