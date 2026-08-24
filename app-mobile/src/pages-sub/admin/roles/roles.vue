@@ -134,8 +134,8 @@ loadList()
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
-.role-scroll { flex: 1; padding: 16rpx 32rpx; }
-.role-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.role-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; }
+.role-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .role-info { display: flex; flex-direction: column; gap: 4rpx; }
 .role-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
@@ -146,15 +146,15 @@ loadList()
 .status-tag-text { font-size: 22rpx; }
 .status-tag--on .status-tag-text { color: $uni-color-success; }
 .status-tag--off .status-tag-text { color: $uni-color-error; }
-.card-body { margin-bottom: 16rpx; }
-.role-remark { font-size: 26rpx; color: $uni-gray-500; display: block; margin-bottom: 8rpx; }
-.role-meta { display: flex; gap: 24rpx; }
+.card-body { margin-bottom: $uni-spacing-sm; }
+.role-remark { font-size: 26rpx; color: $uni-gray-500; display: block; margin-bottom: $uni-spacing-xs; }
+.role-meta { display: flex; gap: $uni-spacing-base; }
 .meta-text { font-size: 22rpx; color: $uni-gray-400; }
-.card-actions { display: flex; gap: 16rpx; justify-content: flex-end; padding-top: 12rpx; border-top: 1rpx solid $uni-gray-100; }
+.card-actions { display: flex; gap: $uni-spacing-sm; justify-content: flex-end; padding-top: $uni-spacing-sm; border-top: 1rpx solid $uni-gray-100; }
 .btn-sm { font-size: 24rpx; padding: 8rpx 24rpx; border-radius: 8rpx; border: none; line-height: 1.8; }
 .btn-sm--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn-sm--danger { background: $uni-text-color-inverse; color: $uni-color-error; border: 1rpx solid $uni-color-error; }
-.load-more { text-align: center; padding: 24rpx 0; }
+.load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 200rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }

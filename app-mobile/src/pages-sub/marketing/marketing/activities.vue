@@ -263,14 +263,14 @@ onMounted(() => {
 }
 
 .activity-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .activity-item {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -318,19 +318,19 @@ onMounted(() => {
 .status-ended { background: $uni-gray-100; color: $uni-gray-300; }
 
 .item-body {
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .time-info {
   display: flex;
   align-items: center;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .time-icon {
   font-size: 26rpx;
   color: $uni-color-primary;
-  margin-right: 8rpx;
+  margin-right: $uni-spacing-xs;
 }
 
 .time-text {
@@ -346,8 +346,8 @@ onMounted(() => {
 
 .item-footer {
   display: flex;
-  gap: 16rpx;
-  padding-top: 16rpx;
+  gap: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -378,7 +378,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

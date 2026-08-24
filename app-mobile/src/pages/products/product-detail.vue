@@ -243,24 +243,24 @@ onLoad((options: any) => {
 }
 .offline-badge-text { font-size: 22rpx; color: $uni-text-color-inverse; font-weight: 500; }
 .info-value--danger { color: $uni-color-error; font-weight: 600; }
-.info-section { padding: 24rpx; }
+.info-section { padding: $uni-spacing-base; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .info-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .info-row:last-child { border-bottom: none; }
@@ -271,14 +271,14 @@ onLoad((options: any) => {
 .info-value--stock { color: $uni-color-primary; font-weight: 600; }
 .adjust-form {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .form-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .form-item:last-of-type { border-bottom: none; }
@@ -300,7 +300,7 @@ onLoad((options: any) => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .picker-value text { font-size: 26rpx; color: $uni-gray-700; }
 .picker-arrow { font-size: 24rpx; color: $uni-gray-400; }
@@ -308,7 +308,7 @@ onLoad((options: any) => {
   display: block;
   font-size: 22rpx;
   color: $uni-color-error;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   text-align: right;
 }
 .submit-btn {

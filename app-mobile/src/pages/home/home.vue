@@ -516,10 +516,10 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 数据卡 */
 .home-data {
-  margin: 32rpx 28rpx 0;
+  margin: $uni-spacing-lg $uni-spacing-base 0;
   background: #F0F5FF;
-  border-radius: 40rpx;
-  padding: 48rpx 44rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: $uni-spacing-xl 44rpx;
   position: relative;
   overflow: hidden;
   box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.06), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
@@ -562,7 +562,7 @@ uni-scroll-view ::-webkit-scrollbar {
   letter-spacing: 1rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 /* 原稿：标签前置 14×1px 蓝色短横线 */
@@ -596,7 +596,7 @@ uni-scroll-view ::-webkit-scrollbar {
   display: block;
   font-size: 64rpx;
   font-weight: 800;
-  margin-top: 16rpx;
+  margin-top: $uni-spacing-sm;
   color: $uni-color-primary;
   line-height: 1.1;
   letter-spacing: -1rpx;
@@ -606,8 +606,8 @@ uni-scroll-view ::-webkit-scrollbar {
 .home-data-trend {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-  margin-top: 12rpx;
+  gap: $uni-spacing-xs;
+  margin-top: $uni-spacing-sm;
 }
 
 .home-data-trend.up {
@@ -629,8 +629,8 @@ uni-scroll-view ::-webkit-scrollbar {
 
 .home-data-div {
   height: 1rpx;
-  background: rgba(37, 99, 235, 0.12);
-  margin: 36rpx 0 28rpx;
+  background: $uni-color-primary-soft;
+  margin: 36rpx 0 $uni-spacing-base;
 }
 
 /* 原稿主项错落缩进：val 缩 5px、trend 缩 33px */
@@ -680,10 +680,10 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 快捷入口（原稿 home-quick：白卡 + 4 宫格 + 蓝色线框图标） */
 .home-quick {
-  margin: 32rpx 28rpx 0;
+  margin: $uni-spacing-lg $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 40rpx;
-  padding: 36rpx 32rpx 16rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: 36rpx $uni-spacing-lg $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -694,22 +694,22 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .home-quick .section-head {
-  margin-bottom: 28rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .hq-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .hq-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
-  padding: 12rpx 8rpx 20rpx;
-  border-radius: 24rpx;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-sm $uni-spacing-xs $uni-spacing-md;
+  border-radius: $uni-border-radius-sm;
 }
 
 .hq-item:active {
@@ -741,13 +741,13 @@ uni-scroll-view ::-webkit-scrollbar {
   align-items: center;
   justify-content: space-between;
   padding: 0 4rpx;
-  margin-bottom: 32rpx;
+  margin-bottom: $uni-spacing-lg;
 }
 
 .section-title-wrap {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .title-bar-line {
@@ -771,9 +771,9 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 订单进度（原稿：白色卡片包裹标题 + 四色 tint 宫格） */
 .home-progress {
-  margin: 32rpx 28rpx 0;
+  margin: $uni-spacing-lg $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 40rpx;
+  border-radius: $uni-border-radius-lg;
   padding: 40rpx 36rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -782,15 +782,15 @@ uni-scroll-view ::-webkit-scrollbar {
 .hp-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .hp-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 28rpx 16rpx;
-  border-radius: 32rpx;
+  padding: $uni-spacing-base $uni-spacing-sm;
+  border-radius: $uni-border-radius-base;
   background: rgba(0, 0, 0, 0.015);
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -826,7 +826,7 @@ uni-scroll-view ::-webkit-scrollbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .hp-ico--orange { background: rgba(200, 128, 58, 0.1); }
@@ -855,16 +855,16 @@ uni-scroll-view ::-webkit-scrollbar {
 .hp-label {
   font-size: 22rpx;
   color: $uni-gray-500;
-  margin-top: 12rpx;
+  margin-top: $uni-spacing-sm;
   font-weight: 500;
 }
 
 /* 最新订单（原稿尺寸：name 13px / meta 11px mono / amount 15px mono） */
 .home-orders {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 40rpx;
-  padding: 40rpx 36rpx 24rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: 40rpx 36rpx $uni-spacing-base;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -872,7 +872,7 @@ uni-scroll-view ::-webkit-scrollbar {
 .ho-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
@@ -897,9 +897,9 @@ uni-scroll-view ::-webkit-scrollbar {
   font-size: 22rpx;
   color: $uni-gray-600;
   background: $uni-bg-color-grey;
-  padding: 2rpx 12rpx;
+  padding: 2rpx $uni-spacing-sm;
   border-radius: 8rpx;
-  margin-left: 12rpx;
+  margin-left: $uni-spacing-sm;
   font-weight: 500;
 }
 
@@ -942,9 +942,9 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 7 日趋势（原稿：SVG 平滑折线 + 底部日期行） */
 .home-chart {
-  margin: 32rpx 28rpx 0;
+  margin: $uni-spacing-lg $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 40rpx;
+  border-radius: $uni-border-radius-lg;
   padding: 40rpx 36rpx;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -980,7 +980,7 @@ uni-scroll-view ::-webkit-scrollbar {
 .chart-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
   padding: 0 4rpx;
 }
 
@@ -1004,10 +1004,10 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 待办提醒（原稿：左侧 3px 蓝色竖线卡片） */
 .home-todos {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 32rpx 36rpx 24rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-lg 36rpx $uni-spacing-base;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   border-left: 6rpx solid $uni-color-primary;
@@ -1017,7 +1017,7 @@ uni-scroll-view ::-webkit-scrollbar {
   display: flex;
   align-items: center;
   padding: 22rpx 0;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 /* 原稿今日待办：标题行 + 色点计数行 */
@@ -1025,13 +1025,13 @@ uni-scroll-view ::-webkit-scrollbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .todo-head-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .todo-check-ic {
@@ -1055,13 +1055,13 @@ uni-scroll-view ::-webkit-scrollbar {
 .todo-rows {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .todo-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .todo-row-dot {

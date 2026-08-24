@@ -202,22 +202,22 @@ loadWarningList()
 .tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 28rpx; color: $uni-gray-500; position: relative; }
 .tab-item--active { color: $uni-color-primary; font-weight: 600; }
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
-.content-scroll { flex: 1; padding: 16rpx 32rpx; padding-bottom: 120rpx; }
-.warning-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.content-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; padding-bottom: 120rpx; }
+.warning-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; }
 .product-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .shortage-tag { background: rgba(255,77,79,0.1); padding: 4rpx 16rpx; border-radius: 8rpx; }
 .shortage-text { font-size: 22rpx; color: $uni-color-error; }
-.card-info { display: flex; gap: 24rpx; padding: 16rpx 0; border-top: 1rpx solid $uni-gray-100; }
+.card-info { display: flex; gap: $uni-spacing-base; padding: $uni-spacing-sm 0; border-top: 1rpx solid $uni-gray-100; }
 .info-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 8rpx; }
+.info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: $uni-spacing-xs; }
 .info-value { font-size: 32rpx; font-weight: 600; color: $uni-gray-700; }
 .text-danger { color: $uni-color-error; }
 .text-primary { color: $uni-color-primary; }
-.card-category { margin-top: 8rpx; }
+.card-category { margin-top: $uni-spacing-xs; }
 .category-text { font-size: 22rpx; color: $uni-gray-400; }
-.config-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.config-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
+.config-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
+.config-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; }
 .config-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }
 .config-status--on { background: rgba(82,196,26,0.1); }
@@ -228,7 +228,7 @@ loadWarningList()
 .config-row { display: flex; justify-content: space-between; align-items: center; }
 .config-label { font-size: 26rpx; color: $uni-gray-500; }
 .config-input { width: 200rpx; height: 60rpx; border: 1rpx solid $uni-gray-300; border-radius: 8rpx; text-align: center; font-size: 28rpx; }
-.load-more { text-align: center; padding: 24rpx 0; }
+.load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 200rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }

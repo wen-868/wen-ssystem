@@ -265,7 +265,7 @@ onMounted(() => {
 .filter-item {
   flex: 1;
   text-align: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
   border-radius: 8rpx;
 }
 
@@ -286,10 +286,10 @@ onMounted(() => {
 }
 
 .expense-card {
-  margin: 20rpx 24rpx;
+  margin: $uni-spacing-md $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -327,7 +327,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .expense-info {
@@ -344,7 +344,7 @@ onMounted(() => {
 .expense-date {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-left: 16rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .expense-amount {
@@ -357,7 +357,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16rpx;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -373,8 +373,8 @@ onMounted(() => {
 
 .card-actions {
   display: flex;
-  margin-top: 20rpx;
-  padding-top: 20rpx;
+  margin-top: $uni-spacing-md;
+  padding-top: $uni-spacing-md;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -389,7 +389,7 @@ onMounted(() => {
 
 .action-btn--reject {
   background: $uni-color-error-soft;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .action-btn--reject .action-text { color: $uni-color-error; }
@@ -416,7 +416,7 @@ onMounted(() => {
 }
 
 .load-more {
-  padding: 30rpx 0;
+  padding: $uni-spacing-lg 0;
   text-align: center;
 }
 
@@ -461,7 +461,7 @@ onMounted(() => {
 .modal-content {
   width: 600rpx;
   background: $uni-bg-color;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   padding: 40rpx;
 }
 
@@ -470,15 +470,15 @@ onMounted(() => {
   font-weight: 600;
   color: $uni-gray-700;
   text-align: center;
-  margin-bottom: 30rpx;
+  margin-bottom: $uni-spacing-lg;
 }
 
 .modal-textarea {
   width: 100%;
   height: 200rpx;
   background: $uni-bg-color-grey;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
   font-size: 28rpx;
 }
 
@@ -498,7 +498,7 @@ onMounted(() => {
 
 .modal-btn--cancel {
   background: $uni-bg-color-grey;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
 }
 
 .modal-btn--cancel text { color: $uni-gray-500; }

@@ -200,35 +200,35 @@ onMounted(() => {
   color: $uni-gray-700;
 }
 .stock-form {
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
 }
 .form-section {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
+  box-shadow: $uni-shadow-card-sm;
 }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 .form-item {
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 .form-label {
   font-size: 26rpx;
   color: $uni-gray-500;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 .form-input {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -237,8 +237,8 @@ onMounted(() => {
   width: 100%;
   height: 160rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -247,8 +247,8 @@ onMounted(() => {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -258,7 +258,7 @@ onMounted(() => {
 }
 .picker-arrow { font-size: 32rpx; color: $uni-gray-300; }
 .input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
-.field-error { margin-top: 8rpx; padding: 6rpx 0; }
+.field-error { margin-top: $uni-spacing-xs; padding: 6rpx 0; }
 .error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
   width: 100%;
@@ -275,13 +275,13 @@ onMounted(() => {
   margin-top: 20rpx;
 }
 .submit-btn::after { border: none; }
-.history-section { padding: 0 32rpx; }
+.history-section { padding: 0 $uni-spacing-lg; }
 .history-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .history-header {
   display: flex;
@@ -296,7 +296,7 @@ onMounted(() => {
 .status-confirmed { background: $uni-color-success-soft; }
 .status-confirmed .status-text { color: $uni-color-success; }
 .status-text { font-size: 22rpx; }
-.history-body { display: flex; flex-direction: column; gap: 8rpx; }
+.history-body { display: flex; flex-direction: column; gap: $uni-spacing-xs; }
 .history-info { font-size: 24rpx; color: $uni-gray-500; }
 .safe-bottom { height: 40rpx; }
 </style>

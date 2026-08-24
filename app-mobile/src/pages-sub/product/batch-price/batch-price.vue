@@ -225,14 +225,14 @@ onMounted(() => {
 }
 
 .price-form {
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
 }
 
 .form-section {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -240,7 +240,7 @@ onMounted(() => {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .mode-tabs {
@@ -294,21 +294,21 @@ onMounted(() => {
 }
 
 .form-item {
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .form-label {
   font-size: 26rpx;
   color: $uni-gray-500;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .form-input {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -318,8 +318,8 @@ onMounted(() => {
   width: 100%;
   height: 160rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -329,8 +329,8 @@ onMounted(() => {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -350,7 +350,7 @@ onMounted(() => {
 }
 
 .field-error {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   padding: 6rpx 0;
 }
 
@@ -379,14 +379,14 @@ onMounted(() => {
 }
 
 .history-section {
-  padding: 0 32rpx;
+  padding: 0 $uni-spacing-lg;
 }
 
 .history-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -410,7 +410,7 @@ onMounted(() => {
 
 .history-body {
   display: flex;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 
 .history-info {

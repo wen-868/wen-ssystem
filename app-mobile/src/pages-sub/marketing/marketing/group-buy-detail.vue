@@ -240,10 +240,10 @@ onMounted(() => {
 
 .product-section {
   background: $uni-bg-color;
-  padding: 24rpx;
+  padding: $uni-spacing-base;
   display: flex;
-  gap: 24rpx;
-  margin-bottom: 16rpx;
+  gap: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-image-wrap {
@@ -251,7 +251,7 @@ onMounted(() => {
   height: 200rpx;
   flex-shrink: 0;
   position: relative;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
 
@@ -320,7 +320,7 @@ onMounted(() => {
   font-size: 24rpx;
   color: $uni-gray-300;
   text-decoration: line-through;
-  margin-left: 12rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .group-stats {
@@ -328,7 +328,7 @@ onMounted(() => {
   align-items: center;
   background: $uni-gray-50;
   border-radius: 8rpx;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .stat-item {
@@ -358,8 +358,8 @@ onMounted(() => {
 
 .section {
   background: $uni-bg-color;
-  margin-bottom: 16rpx;
-  padding: 24rpx;
+  margin-bottom: $uni-spacing-sm;
+  padding: $uni-spacing-base;
 }
 
 .section-header {
@@ -385,13 +385,13 @@ onMounted(() => {
 .rule-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .rule-item {
   display: flex;
   align-items: flex-start;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .rule-dot {
@@ -410,7 +410,7 @@ onMounted(() => {
 .time-info {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .time-row {
@@ -432,16 +432,16 @@ onMounted(() => {
 .team-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .team-item {
   display: flex;
   align-items: center;
-  padding: 16rpx;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  gap: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  gap: $uni-spacing-sm;
 }
 
 .team-avatars {
@@ -477,7 +477,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: -12rpx;
+  margin-left: -$uni-spacing-sm;
   border: 2rpx solid $uni-bg-color;
 }
 
@@ -491,13 +491,13 @@ onMounted(() => {
   color: $uni-gray-700;
   font-weight: 500;
   display: block;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .team-progress {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .progress-bar {

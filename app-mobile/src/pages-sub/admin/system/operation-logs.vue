@@ -232,7 +232,7 @@ onMounted(() => {
 .filter-item {
   flex: 1;
   text-align: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .filter-text {
@@ -243,7 +243,7 @@ onMounted(() => {
 .filter-divider {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin: 0 16rpx;
+  margin: 0 $uni-spacing-sm;
 }
 
 /* --- 操作类型筛选 --- */
@@ -255,14 +255,14 @@ onMounted(() => {
 
 .type-list {
   display: inline-flex;
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .type-item {
-  padding: 12rpx 24rpx;
-  margin-right: 16rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
+  margin-right: $uni-spacing-sm;
   background: $uni-bg-color-grey;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
 }
 
 .type-item.active {
@@ -282,10 +282,10 @@ onMounted(() => {
 }
 
 .log-card {
-  margin: 20rpx 24rpx;
+  margin: $uni-spacing-md $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -304,7 +304,7 @@ onMounted(() => {
 .operator-icon {
   font-size: 32rpx;
   color: $uni-color-primary;
-  margin-right: 12rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .operator-name {
@@ -319,13 +319,13 @@ onMounted(() => {
 }
 
 .log-body {
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .log-type {
   display: flex;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .type-tag {
@@ -339,7 +339,7 @@ onMounted(() => {
 .module-name {
   font-size: 24rpx;
   color: $uni-gray-500;
-  margin-left: 12rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .log-content {
@@ -349,7 +349,7 @@ onMounted(() => {
 }
 
 .log-footer {
-  padding-top: 16rpx;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -369,7 +369,7 @@ onMounted(() => {
 }
 
 .load-more {
-  padding: 30rpx 0;
+  padding: $uni-spacing-lg 0;
   text-align: center;
 }
 

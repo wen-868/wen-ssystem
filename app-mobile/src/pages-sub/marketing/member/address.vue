@@ -369,26 +369,26 @@ onMounted(() => {
 }
 
 .address-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .address-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
 .address-main {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .address-top {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .address-name {
@@ -414,7 +414,7 @@ onMounted(() => {
 }
 
 .address-detail {
-  padding-right: 16rpx;
+  padding-right: $uni-spacing-sm;
 }
 
 .detail-text {
@@ -427,7 +427,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -435,13 +435,13 @@ onMounted(() => {
 .action-right {
   display: flex;
   align-items: center;
-  gap: 32rpx;
+  gap: $uni-spacing-lg;
 }
 
 .action-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .action-item--danger .action-text {
@@ -493,13 +493,13 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
   font-size: 28rpx;
   color: $uni-gray-300;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .empty-desc {
@@ -530,7 +530,7 @@ onMounted(() => {
 .loading-text {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
 }
 
 .bottom-bar {
@@ -592,7 +592,7 @@ onMounted(() => {
 .edit-popup {
   width: 100%;
   background: $uni-bg-color;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -625,11 +625,11 @@ onMounted(() => {
 }
 
 .edit-form {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .form-item {
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .form-item--switch {
@@ -641,7 +641,7 @@ onMounted(() => {
 .form-label {
   font-size: 26rpx;
   color: $uni-gray-500;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 
@@ -657,7 +657,7 @@ onMounted(() => {
 
 .form-row {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .form-control--third {
@@ -668,8 +668,8 @@ onMounted(() => {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -679,8 +679,8 @@ onMounted(() => {
   width: 100%;
   height: 160rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -721,7 +721,7 @@ onMounted(() => {
 }
 
 .field-error {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .error-text {
@@ -730,8 +730,8 @@ onMounted(() => {
 }
 
 .edit-footer {
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: $uni-spacing-md $uni-spacing-base;
+  padding-bottom: calc($uni-spacing-md + env(safe-area-inset-bottom));
   border-top: 1rpx solid $uni-bg-color-grey;
   flex-shrink: 0;
 }

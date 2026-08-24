@@ -80,16 +80,16 @@ onMounted(() => {
 }
 
 .todo-list {
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
 }
 
 .todo-item {
   display: flex;
   align-items: flex-start;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -104,7 +104,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
   margin-top: 4rpx;
   flex-shrink: 0;
 }
@@ -149,9 +149,9 @@ onMounted(() => {
 
 .todo-status-text {
   font-size: 22rpx;
-  padding: 2rpx 12rpx;
+  padding: 2rpx $uni-spacing-sm;
   border-radius: 6rpx;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .status-text-pending { background: $uni-color-primary-soft; color: $uni-color-primary; }
@@ -173,7 +173,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

@@ -103,16 +103,16 @@ onMounted(() => {
 }
 
 .records-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .record-item {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 12rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .record-icon {
@@ -123,7 +123,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .icon-consume {
@@ -194,7 +194,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

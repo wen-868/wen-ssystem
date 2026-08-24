@@ -307,11 +307,11 @@ onMounted(() => {
 .tab-item--active { background: $uni-color-warning; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.bill-list { padding: 16rpx 32rpx; }
+.bill-list { padding: $uni-spacing-sm $uni-spacing-lg; }
 .bill-card {
-  background: $uni-bg-color; border-radius: 16rpx;
-  padding: 24rpx; margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base; margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
   box-sizing: border-box;
 }
 .card-header {
@@ -351,7 +351,7 @@ onMounted(() => {
   border-top-color: $uni-color-warning;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 26rpx; color: $uni-gray-400; }
@@ -359,11 +359,11 @@ onMounted(() => {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .load-more {
   display: flex; align-items: center; justify-content: center;
-  padding: 24rpx 0; gap: 12rpx;
+  padding: $uni-spacing-base 0; gap: $uni-spacing-sm;
 }
 .loading-more-spinner {
   width: 32rpx; height: 32rpx;

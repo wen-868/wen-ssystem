@@ -204,31 +204,31 @@ onLoad((options) => {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.category-form { padding: 16rpx 24rpx; }
+.category-form { padding: $uni-spacing-sm $uni-spacing-base; }
 .form-section {
-  background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx;
-  margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm;
 }
-.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: 20rpx; }
-.form-item { margin-bottom: 20rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
+.form-item { margin-bottom: $uni-spacing-md; }
 .form-item--row {
   display: flex; justify-content: space-between; align-items: center;
 }
-.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: 8rpx; display: block; }
+.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: $uni-spacing-xs; display: block; }
 .form-hint { font-size: 22rpx; color: $uni-gray-300; display: block; }
 .row-left { flex: 1; }
 .form-control { position: relative; }
 .form-input {
-  width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: 12rpx;
-  padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box;
+  width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box;
 }
 .form-value {
   display: block; height: 80rpx; line-height: 80rpx; background: $uni-bg-color-page;
-  border-radius: 12rpx; padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700;
+  border-radius: $uni-border-radius-xs; padding: 0 $uni-spacing-base; font-size: 28rpx; color: $uni-gray-700;
 }
 .form-value--placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
-.field-error { margin-top: 8rpx; }
+.field-error { margin-top: $uni-spacing-xs; }
 .error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
   width: 100%; height: 88rpx; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);

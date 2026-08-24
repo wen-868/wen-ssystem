@@ -248,29 +248,29 @@ onMounted(() => {
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-  padding: 24rpx;
-  margin-top: -20rpx;
+  gap: $uni-spacing-md;
+  padding: $uni-spacing-base;
+  margin-top: -$uni-spacing-md;
 }
 
 .stat-card {
   background: $uni-bg-color;
-  border-radius: 20rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
 .stat-label {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 
 .stat-value {
   font-size: 36rpx;
   font-weight: 700;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
   display: block;
 }
 
@@ -326,10 +326,10 @@ onMounted(() => {
 
 /* --- 趋势图表 --- */
 .chart-card {
-  margin: 20rpx 24rpx;
+  margin: $uni-spacing-md $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 20rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -384,15 +384,15 @@ onMounted(() => {
 .bar-label {
   font-size: 22rpx;
   color: $uni-gray-400;
-  margin-top: 12rpx;
+  margin-top: $uni-spacing-sm;
 }
 
 /* --- 支出分类 --- */
 .section-card {
-  margin: 20rpx 24rpx;
+  margin: $uni-spacing-md $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 20rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -414,7 +414,7 @@ onMounted(() => {
 .category-item {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -444,7 +444,7 @@ onMounted(() => {
   height: 12rpx;
   background: $uni-bg-color-grey;
   border-radius: 6rpx;
-  margin: 0 16rpx;
+  margin: 0 $uni-spacing-sm;
   overflow: hidden;
 }
 

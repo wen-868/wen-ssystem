@@ -200,22 +200,22 @@ onMounted(() => {
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .overview-card {
-  display: flex; align-items: center; margin: 20rpx 24rpx;
-  background: $uni-bg-color; border-radius: 20rpx; padding: 28rpx 0;
+  display: flex; align-items: center; margin: $uni-spacing-md $uni-spacing-base;
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base 0;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
 }
 .overview-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .overview-value { font-size: 40rpx; font-weight: 700; color: $uni-color-primary; }
-.overview-label { font-size: 24rpx; color: $uni-gray-400; margin-top: 8rpx; }
+.overview-label { font-size: 24rpx; color: $uni-gray-400; margin-top: $uni-spacing-xs; }
 .overview-divider { width: 1rpx; height: 60rpx; background: $uni-gray-100; }
-.action-row { margin: 0 24rpx; }
+.action-row { margin: 0 $uni-spacing-base; }
 .action-card {
-  display: flex; align-items: center; background: $uni-bg-color; border-radius: 20rpx;
-  padding: 24rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
+  display: flex; align-items: center; background: $uni-bg-color; border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
 }
 .action-icon-wrap {
-  width: 80rpx; height: 80rpx; border-radius: 20rpx;
-  display: flex; align-items: center; justify-content: center; margin-right: 20rpx;
+  width: 80rpx; height: 80rpx; border-radius: $uni-border-radius-xs;
+  display: flex; align-items: center; justify-content: center; margin-right: $uni-spacing-md;
 }
 .action-icon-wrap--blue { background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft); }
 .action-icon { font-size: 40rpx; color: $uni-color-primary; }
@@ -224,24 +224,24 @@ onMounted(() => {
 .action-desc { font-size: 24rpx; color: $uni-gray-400; margin-top: 4rpx; }
 .section-header { padding: 24rpx 32rpx 12rpx; }
 .section-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
-.level-list { padding: 0 32rpx; }
+.level-list { padding: 0 $uni-spacing-lg; }
 .level-card {
-  background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx;
-  margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm;
 }
 .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
-.level-name-wrap { display: flex; align-items: center; gap: 12rpx; }
+.level-name-wrap { display: flex; align-items: center; gap: $uni-spacing-sm; }
 .level-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .level-badge { padding: 2rpx 12rpx; background: rgba(22,119,255,0.1); border-radius: 6rpx; }
 .level-badge--disabled { background: rgba(0,0,0,0.05); }
 .level-badge-text { font-size: 20rpx; color: $uni-color-primary; }
 .level-badge--disabled .level-badge-text { color: $uni-gray-400; }
 .level-code { font-size: 24rpx; color: $uni-gray-400; }
-.level-body { display: flex; flex-direction: column; gap: 10rpx; margin-bottom: 16rpx; }
+.level-body { display: flex; flex-direction: column; gap: 10rpx; margin-bottom: $uni-spacing-sm; }
 .info-row { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
-.level-actions { display: flex; gap: 16rpx; }
+.level-actions { display: flex; gap: $uni-spacing-sm; }
 .action-btn {
   flex: 1; height: 64rpx; border-radius: 32rpx; font-size: 26rpx;
   display: flex; align-items: center; justify-content: center; border: none;
@@ -250,7 +250,7 @@ onMounted(() => {
 .action-btn--ghost { background: $uni-bg-color-grey; color: $uni-gray-700; }
 .action-btn::after { border: none; }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 180rpx 0; }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .fab-btn {
   position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom));

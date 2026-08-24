@@ -418,11 +418,11 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.015);
   flex-shrink: 0;
   height: 100%;
-  padding-top: 24rpx;
+  padding-top: $uni-spacing-base;
 }
 
 .prod-side-item {
-  padding: 32rpx 16rpx;
+  padding: $uni-spacing-lg $uni-spacing-sm;
   text-align: center;
   font-size: 24rpx;
   color: $uni-gray-500;
@@ -432,7 +432,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .prod-side-item--active {
@@ -463,21 +463,21 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 24rpx 28rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
 }
 
 /* ─── 操作卡：建议核价 / 批量调价 / 价格异常 ─── */
 .action-row {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-base;
 }
 
 .action-card {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 24rpx;
-  padding: 26rpx 16rpx;
+  border-radius: $uni-border-radius-sm;
+  padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -519,9 +519,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   box-sizing: border-box;
@@ -532,11 +532,11 @@ onMounted(() => {
   width: 112rpx;
   height: 112rpx;
   background: $uni-bg-color-grey;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .offline-tag {
@@ -560,7 +560,7 @@ onMounted(() => {
   height: 12rpx;
   background: $uni-color-error;
   border-radius: 50%;
-  margin-left: 8rpx;
+  margin-left: $uni-spacing-xs;
   vertical-align: middle;
 }
 
@@ -701,7 +701,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -711,7 +711,7 @@ onMounted(() => {
 
 .load-more {
   text-align: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
 }
 
 .load-more-text {

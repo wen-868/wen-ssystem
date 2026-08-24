@@ -123,12 +123,12 @@ onMounted(() => {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.log-list { padding: 16rpx 32rpx 0; }
+.log-list { padding: $uni-spacing-sm $uni-spacing-lg 0; }
 .log-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 .log-header {
@@ -142,7 +142,7 @@ onMounted(() => {
 .log-info-row {
   display: flex;
   align-items: center;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   font-size: 26rpx;
 }
 .info-label { color: $uni-gray-400; width: 140rpx; flex-shrink: 0; }
@@ -150,14 +150,14 @@ onMounted(() => {
 .info-value--up { color: $uni-color-error; }
 .info-value--down { color: $uni-color-success; }
 .info-value--reason { color: $uni-gray-500; }
-.load-more { padding: 20rpx 0 10rpx; text-align: center; }
+.load-more { padding: $uni-spacing-md 0 10rpx; text-align: center; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-400; }
 .empty-state {
   padding: 120rpx 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .empty-icon { font-size: 72rpx; color: $uni-gray-300; }
 .empty-text { font-size: 26rpx; color: $uni-gray-400; }

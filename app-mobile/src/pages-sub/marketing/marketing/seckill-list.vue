@@ -290,14 +290,14 @@ onUnmounted(() => {
 }
 
 .seckill-list {
-  padding: 0 32rpx 24rpx;
+  padding: 0 $uni-spacing-lg $uni-spacing-base;
   height: calc(100vh - 220rpx);
 }
 
 .seckill-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-md;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -313,7 +313,7 @@ onUnmounted(() => {
   height: 180rpx;
   flex-shrink: 0;
   position: relative;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
 
@@ -363,7 +363,7 @@ onUnmounted(() => {
 .price-row {
   display: flex;
   align-items: baseline;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .seckill-price {
@@ -415,7 +415,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 20rpx;
+  padding: $uni-spacing-sm $uni-spacing-md;
   border-top: 1rpx solid $uni-bg-color-grey;
   background: $uni-gray-50;
 }
@@ -423,7 +423,7 @@ onUnmounted(() => {
 .countdown-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .countdown-label {
@@ -442,7 +442,7 @@ onUnmounted(() => {
   color: $uni-text-color-inverse;
   font-size: 22rpx;
   font-weight: 600;
-  padding: 4rpx 8rpx;
+  padding: 4rpx $uni-spacing-xs;
   border-radius: 6rpx;
   min-width: 36rpx;
   text-align: center;
@@ -479,7 +479,7 @@ onUnmounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
   opacity: 0.5;
 }
 

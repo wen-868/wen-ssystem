@@ -281,9 +281,9 @@ async function onSubmit() {
 
 .form-section {
   background: $uni-bg-color;
-  margin: 20rpx 24rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  margin: $uni-spacing-md $uni-spacing-base;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
 }
 
 .section-header {
@@ -297,7 +297,7 @@ async function onSubmit() {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .section-header .section-title {
@@ -317,13 +317,13 @@ async function onSubmit() {
 .reason-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .reason-item {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
   background: $uni-bg-color-page;
-  border-radius: 32rpx;
+  border-radius: $uni-border-radius-base;
   border: 2rpx solid transparent;
 }
 
@@ -346,20 +346,20 @@ async function onSubmit() {
 .goods-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .goods-item {
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
 }
 
 .goods-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .goods-name {
@@ -372,7 +372,7 @@ async function onSubmit() {
 .goods-remove {
   font-size: 24rpx;
   color: $uni-color-error;
-  padding: 0 8rpx;
+  padding: 0 $uni-spacing-xs;
 }
 
 .goods-qty-row {
@@ -423,14 +423,14 @@ async function onSubmit() {
   align-items: center;
   padding: 60rpx 0;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   border: 2rpx dashed $uni-gray-300;
 }
 
 .empty-icon {
   font-size: 48rpx;
   color: $uni-gray-300;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .empty-text {
@@ -442,14 +442,14 @@ async function onSubmit() {
 .upload-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .upload-item {
   position: relative;
   width: 160rpx;
   height: 160rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
 
@@ -470,14 +470,14 @@ async function onSubmit() {
   align-items: center;
   justify-content: center;
   font-size: 28rpx;
-  border-bottom-left-radius: 12rpx;
+  border-bottom-left-radius: $uni-border-radius-xs;
 }
 
 .upload-add {
   width: 160rpx;
   height: 160rpx;
   border: 2rpx dashed $uni-gray-300;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -488,7 +488,7 @@ async function onSubmit() {
 .upload-icon {
   font-size: 48rpx;
   color: $uni-gray-300;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .upload-text {
@@ -501,8 +501,8 @@ async function onSubmit() {
   width: 100%;
   height: 200rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
   font-size: 28rpx;
   box-sizing: border-box;
 }
@@ -512,7 +512,7 @@ async function onSubmit() {
   text-align: right;
   font-size: 22rpx;
   color: $uni-gray-400;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 /* 底部按钮 */
@@ -563,7 +563,7 @@ async function onSubmit() {
   width: 100%;
   max-height: 80vh;
   background: $uni-bg-color;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
   display: flex;
   flex-direction: column;
 }
@@ -585,7 +585,7 @@ async function onSubmit() {
 .picker-close {
   font-size: 40rpx;
   color: $uni-gray-400;
-  padding: 0 16rpx;
+  padding: 0 $uni-spacing-sm;
 }
 
 .picker-search {
@@ -595,21 +595,21 @@ async function onSubmit() {
 .picker-search-input {
   height: 72rpx;
   background: $uni-bg-color-page;
-  border-radius: 36rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
 }
 
 .picker-list {
   flex: 1;
   max-height: 50vh;
-  padding: 0 32rpx;
+  padding: 0 $uni-spacing-lg;
 }
 
 .picker-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -618,7 +618,7 @@ async function onSubmit() {
   height: 44rpx;
   border: 2rpx solid $uni-gray-300;
   border-radius: 50%;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -652,8 +652,8 @@ async function onSubmit() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: $uni-spacing-md $uni-spacing-base;
+  padding-bottom: calc($uni-spacing-md + env(safe-area-inset-bottom));
   border-top: 1rpx solid $uni-gray-100;
 }
 
@@ -663,9 +663,9 @@ async function onSubmit() {
 }
 
 .picker-confirm {
-  padding: 16rpx 48rpx;
+  padding: $uni-spacing-sm $uni-spacing-xl;
   background: $uni-color-primary;
-  border-radius: 32rpx;
+  border-radius: $uni-border-radius-base;
   color: $uni-text-color-inverse;
   font-size: 28rpx;
   font-weight: 500;

@@ -290,9 +290,9 @@ onMounted(() => {
 .pr-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
+  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -352,15 +352,15 @@ onMounted(() => {
 /* 记录列表 */
 .pr-list {
   height: calc(100vh - 260rpx - env(safe-area-inset-top));
-  padding: 8rpx 32rpx 0;
+  padding: $uni-spacing-xs $uni-spacing-lg 0;
   box-sizing: border-box;
 }
 
 .pr-card {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-base;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -369,7 +369,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .pr-bill-type {
@@ -415,8 +415,8 @@ onMounted(() => {
 .pr-bill-no {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 12rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .pr-bill-no-label {
@@ -434,7 +434,7 @@ onMounted(() => {
 .pr-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx 24rpx;
+  gap: $uni-spacing-sm $uni-spacing-base;
   margin-bottom: 10rpx;
 }
 
@@ -446,14 +446,14 @@ onMounted(() => {
 .pr-time {
   font-size: 22rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .pr-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 20rpx;
-  padding-top: 20rpx;
+  gap: $uni-spacing-md;
+  padding-top: $uni-spacing-md;
   border-top: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
@@ -483,7 +483,7 @@ onMounted(() => {
 /* 加载更多 */
 .pr-load-more {
   text-align: center;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
 }
 
 .pr-load-text {
@@ -505,8 +505,8 @@ onMounted(() => {
   width: 100%;
   max-height: 75vh;
   background: $uni-bg-color;
-  border-radius: 40rpx 40rpx 0 0;
-  padding: 32rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  border-radius: $uni-border-radius-lg $uni-border-radius-lg 0 0;
+  padding: $uni-spacing-lg $uni-spacing-lg calc($uni-spacing-lg + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -514,7 +514,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .pr-detail-title {
@@ -526,7 +526,7 @@ onMounted(() => {
 .pr-detail-close {
   font-size: 44rpx;
   color: $uni-gray-400;
-  padding: 8rpx;
+  padding: $uni-spacing-xs;
   line-height: 1;
 }
 
@@ -538,7 +538,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
   padding: 18rpx 0;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
@@ -561,12 +561,12 @@ onMounted(() => {
 }
 
 .pr-detail-block {
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
 }
 
 .pr-detail-block .pr-detail-label {
   display: block;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .pr-detail-content {
@@ -577,7 +577,7 @@ onMounted(() => {
   word-break: break-all;
   background: $uni-bg-color-page;
   border-radius: $uni-border-radius-sm;
-  padding: 20rpx;
+  padding: $uni-spacing-md;
   display: block;
 }
 
@@ -592,7 +592,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

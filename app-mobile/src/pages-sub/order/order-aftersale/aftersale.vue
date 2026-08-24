@@ -183,11 +183,11 @@ onMounted(() => { loadAftersales() })
 .tab-item--active { background: $uni-color-purple; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.aftersale-list { padding: 16rpx 32rpx; }
+.aftersale-list { padding: $uni-spacing-sm $uni-spacing-lg; }
 .aftersale-card {
-  background: $uni-bg-color; border-radius: 16rpx;
-  padding: 24rpx; margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base; margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -196,7 +196,7 @@ onMounted(() => { loadAftersales() })
 }
 .header-left { display: flex; align-items: center; gap: 12rpx; }
 .aftersale-type {
-  padding: 4rpx 14rpx; border-radius: 8rpx; font-size: 22rpx;
+  padding: 4rpx $uni-spacing-sm; border-radius: 8rpx; font-size: 22rpx;
 }
 .type-return { background: $uni-color-warning-soft; color: $uni-color-warning; }
 .type-exchange { background: $uni-color-primary-soft; color: $uni-color-primary; }
@@ -218,9 +218,9 @@ onMounted(() => { loadAftersales() })
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .info-value--refund { color: $uni-color-error; font-weight: 600; }
 .card-actions {
-  margin-top: 16rpx; padding-top: 16rpx;
+  margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
-  display: flex; gap: 16rpx;
+  display: flex; gap: $uni-spacing-sm;
 }
 .action-btn {
   flex: 1; height: 64rpx; border-radius: 32rpx;
@@ -235,7 +235,7 @@ onMounted(() => { loadAftersales() })
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

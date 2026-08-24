@@ -244,14 +244,14 @@ onMounted(() => {
 }
 
 .card-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .card-item {
   background: linear-gradient(135deg, $uni-bg-color, $uni-gray-50);
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   border: 1rpx solid $uni-color-primary-soft;
 }
@@ -286,7 +286,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .member-info {
@@ -298,7 +298,7 @@ onMounted(() => {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .member-mobile {
@@ -325,7 +325,7 @@ onMounted(() => {
 
 .card-footer {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .footer-btn {
@@ -354,7 +354,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

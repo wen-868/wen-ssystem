@@ -219,48 +219,48 @@ async function onExecute() {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.adjust-form { padding: 16rpx 24rpx; }
+.adjust-form { padding: $uni-spacing-sm $uni-spacing-base; }
 .form-section {
-  background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx;
-  margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm;
 }
-.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: 20rpx; }
-.form-item { margin-bottom: 20rpx; }
-.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: 12rpx; display: block; }
+.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
+.form-item { margin-bottom: $uni-spacing-md; }
+.form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: $uni-spacing-sm; display: block; }
 .form-control { position: relative; }
 .form-input {
-  width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: 12rpx;
-  padding: 0 24rpx; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box;
+  width: 100%; height: 80rpx; background: $uni-bg-color-page; border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base; font-size: 28rpx; color: $uni-gray-700; box-sizing: border-box;
 }
 .input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
-.field-error { margin-top: 8rpx; }
+.field-error { margin-top: $uni-spacing-xs; }
 .error-text { font-size: 24rpx; color: $uni-color-error; }
-.scope-options { display: flex; gap: 16rpx; }
+.scope-options { display: flex; gap: $uni-spacing-sm; }
 .scope-option {
-  flex: 1; height: 72rpx; background: $uni-bg-color-page; border-radius: 12rpx;
+  flex: 1; height: 72rpx; background: $uni-bg-color-page; border-radius: $uni-border-radius-xs;
   display: flex; align-items: center; justify-content: center;
   font-size: 26rpx; color: $uni-gray-500; border: 2rpx solid transparent;
 }
 .scope-option--active { background: $uni-color-primary-soft; border-color: $uni-color-primary; color: $uni-color-primary; }
-.type-row { display: flex; flex-direction: column; gap: 12rpx; }
+.type-row { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .type-option {
-  display: flex; flex-direction: column; padding: 16rpx 24rpx;
-  background: $uni-bg-color-page; border-radius: 12rpx; border: 2rpx solid transparent;
+  display: flex; flex-direction: column; padding: $uni-spacing-sm $uni-spacing-base;
+  background: $uni-bg-color-page; border-radius: $uni-border-radius-xs; border: 2rpx solid transparent;
 }
 .type-option--active { background: $uni-color-primary-soft; border-color: $uni-color-primary; }
 .type-label { font-size: 28rpx; font-weight: 500; color: $uni-gray-700; }
 .type-desc { font-size: 22rpx; color: $uni-gray-400; margin-top: 4rpx; }
-.preview-list { display: flex; flex-direction: column; gap: 12rpx; }
+.preview-list { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .preview-item {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 16rpx; background: $uni-color-primary-soft; border-radius: 8rpx;
+  padding: $uni-spacing-sm; background: $uni-color-primary-soft; border-radius: 8rpx;
 }
 .preview-name { font-size: 26rpx; color: $uni-gray-700; flex: 1; }
-.preview-prices { display: flex; align-items: center; gap: 8rpx; }
+.preview-prices { display: flex; align-items: center; gap: $uni-spacing-xs; }
 .price-old { font-size: 24rpx; color: $uni-gray-400; }
 .price-arrow { font-size: 22rpx; color: $uni-gray-300; }
 .price-new { font-size: 28rpx; font-weight: 600; color: $uni-color-primary; }
-.price-diff { font-size: 22rpx; color: $uni-gray-400; margin-left: 8rpx; }
+.price-diff { font-size: 22rpx; color: $uni-gray-400; margin-left: $uni-spacing-xs; }
 .price-diff--up { color: $uni-color-error; }
 .price-diff--down { color: $uni-color-success; }
 .preview-btn {

@@ -514,42 +514,42 @@ onMounted(() => {
 .hit-icon { font-size: 28rpx; color: $uni-color-primary; }
 .hit-text { font-size: 24rpx; color: $uni-color-primary-active; line-height: 1.5; flex: 1; }
 
-.edit-form { padding: 0 0 32rpx; }
+.edit-form { padding: 0 0 $uni-spacing-lg; }
 .form-section {
-  margin: 16rpx 24rpx 0;
+  margin: $uni-spacing-sm $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
-  padding-left: 12rpx;
+  margin-bottom: $uni-spacing-md;
+  padding-left: $uni-spacing-sm;
   border-left: 6rpx solid $uni-color-primary;
 }
-.form-item { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
+.form-item { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-child { border-bottom: none; }
 .form-row {
   display: flex;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 .form-item--half { flex: 1; border-bottom: none; }
 .form-label {
   display: block;
   font-size: 24rpx;
   color: $uni-gray-500;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .required { color: $uni-color-error; margin-right: 4rpx; }
 .form-input {
   width: 100%;
   height: 72rpx;
-  padding: 0 20rpx;
+  padding: 0 $uni-spacing-md;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   font-size: 26rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -559,9 +559,9 @@ onMounted(() => {
 .form-textarea {
   width: 100%;
   min-height: 200rpx;
-  padding: 20rpx;
+  padding: $uni-spacing-md;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   font-size: 26rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -571,9 +571,9 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   height: 72rpx;
-  padding: 0 20rpx;
+  padding: 0 $uni-spacing-md;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 .picker-value { font-size: 26rpx; color: $uni-gray-700; }
 .picker-placeholder { font-size: 26rpx; color: $uni-gray-300; }
@@ -599,7 +599,7 @@ onMounted(() => {
 .image-upload {
   width: 200rpx;
   height: 200rpx;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   background: $uni-bg-color-page;
 }
@@ -611,15 +611,15 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
   border: 2rpx dashed $uni-gray-300;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   box-sizing: border-box;
 }
 .upload-icon { font-size: 48rpx; color: $uni-gray-300; }
 .upload-text { font-size: 22rpx; color: $uni-gray-300; }
 
-.submit-section { padding: 32rpx 48rpx 0; }
+.submit-section { padding: $uni-spacing-lg $uni-spacing-xl 0; }
 .submit-btn {
   width: 100%;
   height: 88rpx;
@@ -650,7 +650,7 @@ onMounted(() => {
   width: 100%;
   max-height: 70vh;
   background: $uni-bg-color;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
   display: flex;
   flex-direction: column;
 }
@@ -668,13 +668,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 32rpx;
+  padding: $uni-spacing-base $uni-spacing-lg;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .category-item-name { font-size: 28rpx; color: $uni-gray-700; }
 .category-item-check { font-size: 28rpx; color: $uni-color-primary; }
 .category-empty {
-  padding: 60rpx 32rpx;
+  padding: 60rpx $uni-spacing-lg;
   text-align: center;
   font-size: 26rpx;
   color: $uni-gray-400;

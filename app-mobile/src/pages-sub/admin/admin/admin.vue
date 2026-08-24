@@ -184,19 +184,19 @@ onMounted(() => { loadEmployees() })
 .quick-actions {
   display: flex;
   justify-content: space-around;
-  padding: 24rpx;
+  padding: $uni-spacing-base;
   background: $uni-bg-color;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .action-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 .action-icon {
   width: 80rpx; height: 80rpx;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,12 +208,12 @@ onMounted(() => { loadEmployees() })
 .action-icon--store { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
 .action-icon--setting { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .action-text { font-size: 22rpx; color: $uni-gray-700; }
-.employee-section { padding: 0 32rpx 24rpx; }
+.employee-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -221,21 +221,21 @@ onMounted(() => { loadEmployees() })
 .title-add { font-size: 24rpx; color: $uni-color-primary; font-weight: 400; }
 .employee-list {
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: $uni-shadow-card-sm;
 }
 .employee-card {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 24rpx;
+  gap: $uni-spacing-md;
+  padding: $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .employee-card:last-child { border-bottom: none; }
 .employee-avatar {
   width: 72rpx; height: 72rpx;
-  border-radius: 36rpx;
+  border-radius: $uni-border-radius-lg;
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
@@ -263,24 +263,24 @@ onMounted(() => { loadEmployees() })
 .status-inactive .status-text { color: $uni-gray-400; }
 .status-text { font-size: 20rpx; }
 .setting-list {
-  margin: 0 24rpx;
+  margin: 0 $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: $uni-shadow-card-sm;
 }
 .setting-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 24rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .setting-item:last-child { border-bottom: none; }
 .setting-left {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: $uni-spacing-md;
 }
 .setting-icon {
   width: 56rpx; height: 56rpx;

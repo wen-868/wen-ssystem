@@ -209,17 +209,17 @@ onMounted(() => {
 
 .detail-content {
   background: $uni-bg-color;
-  margin: 24rpx;
-  border-radius: 16rpx;
-  padding: 32rpx;
+  margin: $uni-spacing-base;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-lg;
 }
 
 /* 类型标签 */
 .type-tag-wrap {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-base;
 }
 
 .type-tag {
@@ -252,7 +252,7 @@ onMounted(() => {
   font-weight: 700;
   color: $uni-gray-700;
   line-height: 1.5;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 
@@ -260,7 +260,7 @@ onMounted(() => {
 .detail-time {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
   display: block;
 }
 
@@ -268,7 +268,7 @@ onMounted(() => {
 .divider {
   height: 1rpx;
   background: $uni-gray-100;
-  margin: 24rpx 0;
+  margin: $uni-spacing-base 0;
 }
 
 /* 内容 */
@@ -288,15 +288,15 @@ onMounted(() => {
 
 /* 相关链接 */
 .link-section {
-  margin-top: 32rpx;
+  margin-top: $uni-spacing-lg;
 }
 
 .link-card {
   display: flex;
   align-items: center;
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   border: 1rpx solid $uni-gray-100;
 }
 
@@ -308,7 +308,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
   flex-shrink: 0;
 }
 
@@ -350,7 +350,7 @@ onMounted(() => {
   border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 @keyframes spin {
@@ -373,13 +373,13 @@ onMounted(() => {
 .error-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .error-text {
   font-size: 28rpx;
   color: $uni-gray-300;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .retry-btn {

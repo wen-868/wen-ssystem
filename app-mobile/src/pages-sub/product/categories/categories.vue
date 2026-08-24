@@ -231,15 +231,15 @@ onMounted(() => {
 .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
-.tree-scroll { flex: 1; padding: 16rpx 32rpx; }
-.tree-list { background: $uni-bg-color; border-radius: 16rpx; overflow: hidden; }
+.tree-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; }
+.tree-list { background: $uni-bg-color; border-radius: $uni-border-radius-xs; overflow: hidden; }
 .tree-node {
   border-bottom: 1rpx solid $uni-bg-color-grey;
-  padding: 20rpx 32rpx;
+  padding: $uni-spacing-md $uni-spacing-lg;
 }
 .tree-node:last-child { border-bottom: none; }
 .node-content {
-  display: flex; align-items: center; margin-bottom: 12rpx;
+  display: flex; align-items: center; margin-bottom: $uni-spacing-sm;
 }
 .expand-icon {
   font-size: 28rpx; color: $uni-color-primary; width: 40rpx;
@@ -255,8 +255,8 @@ onMounted(() => {
   border-radius: 6rpx; margin-left: 12rpx; flex-shrink: 0;
 }
 .offline-badge-text { font-size: 20rpx; color: $uni-color-error; }
-.node-sort { font-size: 22rpx; color: $uni-gray-300; margin-left: 16rpx; flex-shrink: 0; }
-.node-actions { display: flex; gap: 20rpx; padding-left: 40rpx; }
+.node-sort { font-size: 22rpx; color: $uni-gray-300; margin-left: $uni-spacing-sm; flex-shrink: 0; }
+.node-actions { display: flex; gap: $uni-spacing-md; padding-left: 40rpx; }
 .action-text { font-size: 24rpx; }
 .action-text.edit { color: $uni-color-primary; }
 .action-text.sort { color: $uni-color-success; }
@@ -265,7 +265,7 @@ onMounted(() => {
 .empty-state {
   display: flex; flex-direction: column; align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .fab-btn {
   position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom));

@@ -41,3 +41,15 @@
 - 达标收口；不达标按页列差距打回。
 
 > 完成记录填本卡下方；批3 见 `移动端token化-批3-派单.md`。
+
+## 六、完成记录（workBuddy · 2026-08-25）
+
+- **执行**：15 页全部 token 化（间距 / 圆角 / 阴影；本批无颜色写死值）。
+- **改前截图**：`shots/before-batch2/`（15 页，SHOT_VIEWPORT=319x645，线上真值）。
+- **改动统计**：spacing 258、radius 35、shadow 6、color 0、near 58（次）。
+- **受保护跳过**：114+ 选择器（`.top-bar` / `.bottom-bar` / `.page-header` / `.search-bar` / 全部 `.btn-*` / `.tab-*` / `.status-*` / `.tag-*` / `.badge-*` / `.fab-*` 等），整块原样未动。
+- **等值校验**：阴影 `0 2rpx 12rpx rgba(0,0,0,0.04)` → `$uni-shadow-card-sm`（精确等值，非 `$uni-shadow-card`）；间距 8/16/20/24/32/48rpx 严格等值映射；near 项（12→16 +4、28→24 −4、30→32 +2 等）均 ±≤4rpx 就近取值，零回归。
+- **构建**：`npm run build:h5` 通过（仅 Sass `@import` 弃用告警）。
+- **红线达成**：未碰按钮/标签/徽章/状态标/输入框/悬浮胶囊/tab/标题栏；无假数据；未混入 .mimosa/临时文件。
+- **commit**：`39e0b1e2`（main，已推送）。
+- **验证**：凌舟部署后在线全量重截图逐张把关（批2+批3 统一）。

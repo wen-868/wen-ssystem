@@ -50,3 +50,16 @@
 - 达标收口；不达标按页列差距打回。
 
 > 完成记录填本卡下方。
+
+## 六、完成记录（workBuddy · 2026-08-25）
+
+- **执行**：83 页清单中 **ai-chat 整页跳过**（AI 对话页红线：不碰 AI 页大圆角/悬浮/标题栏/tab，宁保守），实际 token 化 **82 页**；分 4 组推进（顶层14 / order+product25 / marketing18 / finance+admin25），每组 `build:h5` 通过 + 自查无回归后推进下一组。
+- **改前截图**：`shots/before-batch3/`（82 页，SHOT_VIEWPORT=319x645，线上真值）。
+- **改动统计**：spacing 1159、radius 239、shadow 56、color 6、near 270（次）。
+- **受保护跳过**：每组正确跳过标题栏/搜索栏/tab/按钮/状态标/徽章/悬浮胶囊（`.page-header` / `.search-bar` / `.tab-bar` / `.tab-item` / `.finance-header` / `.order-header` / `.card-header` / `.section-header` / `.chart-header` / `.progress-bar` / 全部 `.btn-*` / `.tag-*` / `.badge-*` / `.status-*` / `.fab-*` 等）。
+- **等值校验**：阴影 → `$uni-shadow-card-sm`（56 处精确等值）；间距 8/16/20/24/32/48rpx 严格等值；颜色 `#2563EB→$uni-color-primary`、`#1D4ED8→$uni-color-primary-active`、`rgba(37,99,235,0.12)→$uni-color-primary-soft` 等均为等值；near 项（12→16 +4、28→24 −4、36→40 +4、30→32 +2、14→16 +2 等）均 ±≤4rpx 就近取值，零回归。
+- **构建**：整批 `npm run build:h5` 通过（仅 Sass `@import` 弃用告警）。
+- **红线达成**：未碰按钮/标签/徽章/状态标/输入框/悬浮胶囊/tab/标题栏；ai-chat 整页保持原样；无假数据；未混入 .mimosa/临时文件。
+- **与批2合计**：97 页，spacing 1417、radius 274、shadow 62、color 6、near 328。
+- **commit**：本卡 + 批2卡完成记录 + 82 页改动，统一 commit（main）。
+- **验证**：凌舟部署后在线 `ui-shot.mjs`（SHOT_VIEWPORT=319x645）全量重截图，逐张核对无回归/无拍平；达标收口，不达标按页列差距打回。

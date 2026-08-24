@@ -235,19 +235,19 @@ onMounted(() => {
 }
 
 .level-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .level-item {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
 
 .level-main {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .level-header {
@@ -266,7 +266,7 @@ onMounted(() => {
   font-size: 32rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-right: 12rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .status-tag {
@@ -285,15 +285,15 @@ onMounted(() => {
 
 .level-info {
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-sm;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .info-row:last-child {
@@ -347,7 +347,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

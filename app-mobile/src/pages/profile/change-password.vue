@@ -136,16 +136,16 @@ async function onSubmit() {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.password-form { padding: 24rpx; }
+.password-form { padding: $uni-spacing-base; }
 .form-group {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  margin-bottom: 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
+  margin-bottom: $uni-spacing-lg;
+  box-shadow: $uni-shadow-card-sm;
 }
 .form-item {
-  padding: 28rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .form-item--last { border-bottom: none; }
@@ -153,7 +153,7 @@ async function onSubmit() {
   font-size: 28rpx;
   color: $uni-gray-700;
   font-weight: 500;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 .form-control { position: relative; }
@@ -161,14 +161,14 @@ async function onSubmit() {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
 }
 .input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
-.field-error { margin-top: 8rpx; }
+.field-error { margin-top: $uni-spacing-xs; }
 .error-text { font-size: 24rpx; color: $uni-color-error; }
 .submit-btn {
   width: 100%;

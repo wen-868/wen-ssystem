@@ -164,18 +164,18 @@ onMounted(() => {
 }
 
 .detail-content {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .detail-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .card-section {
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .card-section:last-child {
@@ -194,19 +194,19 @@ onMounted(() => {
 
 .product-card {
   display: flex;
-  padding: 16rpx;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .product-image-wrap {
   width: 140rpx;
   height: 140rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   background: $uni-bg-color;
   flex-shrink: 0;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
 }
 
 .product-image {
@@ -239,13 +239,13 @@ onMounted(() => {
   font-size: 32rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-sku {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .batch-no {
@@ -256,21 +256,21 @@ onMounted(() => {
 .info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
+  gap: $uni-spacing-md;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  padding: 16rpx;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .info-label {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .info-value {
@@ -300,16 +300,16 @@ onMounted(() => {
 .status-expired { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .time-info {
-  padding: 16rpx;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .time-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .time-row:last-child {
@@ -327,15 +327,15 @@ onMounted(() => {
 }
 
 .record-list {
-  padding-top: 8rpx;
+  padding-top: $uni-spacing-xs;
 }
 
 .record-item {
   display: flex;
-  padding: 16rpx;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  margin-bottom: 12rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .record-item:last-child {
@@ -350,7 +350,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .icon-in {

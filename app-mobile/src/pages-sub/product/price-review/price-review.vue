@@ -208,43 +208,43 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   background: $uni-bg-color;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
-  margin-bottom: 12rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
 }
-.result-info { display: flex; flex-direction: column; gap: 6rpx; flex: 1; margin-right: 16rpx; }
+.result-info { display: flex; flex-direction: column; gap: 6rpx; flex: 1; margin-right: $uni-spacing-sm; }
 .result-name { font-size: 26rpx; color: $uni-gray-700; }
 .result-spec { font-size: 22rpx; color: $uni-gray-400; }
 .result-price { font-size: 28rpx; font-weight: 600; color: $uni-color-primary; }
 .search-empty { padding: 60rpx 0; text-align: center; }
 .search-empty-text { font-size: 26rpx; color: $uni-gray-400; }
 .form-section {
-  margin: 16rpx 24rpx 0;
+  margin: $uni-spacing-sm $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .selected-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx;
+  padding: $uni-spacing-md;
   background: $uni-color-primary-soft;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-md;
 }
-.selected-info { display: flex; flex-direction: column; gap: 6rpx; flex: 1; margin-right: 16rpx; }
+.selected-info { display: flex; flex-direction: column; gap: 6rpx; flex: 1; margin-right: $uni-spacing-sm; }
 .selected-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .selected-spec { font-size: 22rpx; color: $uni-gray-400; }
 .selected-close { font-size: 24rpx; color: $uni-color-primary; }
-.form-item { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
+.form-item { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-of-type { border-bottom: none; }
 .form-label {
   display: block;
   font-size: 24rpx;
   color: $uni-gray-500;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .required { color: $uni-color-error; margin-right: 4rpx; }
 .current-price { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
@@ -252,19 +252,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 72rpx;
-  padding: 0 20rpx;
+  padding: 0 $uni-spacing-md;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
-.price-prefix { font-size: 28rpx; color: $uni-gray-400; margin-right: 8rpx; }
+.price-prefix { font-size: 28rpx; color: $uni-gray-400; margin-right: $uni-spacing-xs; }
 .price-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .input-placeholder { color: $uni-gray-300; }
 .reason-textarea {
   width: 100%;
   min-height: 160rpx;
-  padding: 20rpx;
+  padding: $uni-spacing-md;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   font-size: 26rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -286,6 +286,6 @@ onMounted(() => {
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-200; margin-bottom: 16rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-200; margin-bottom: $uni-spacing-sm; }
 .empty-text { font-size: 26rpx; color: $uni-gray-400; }
 </style>

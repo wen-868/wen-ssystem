@@ -241,14 +241,14 @@ onMounted(() => { loadEmployees() })
   gap: 16rpx;
 }
 .filter-item {
-  padding: 8rpx 24rpx;
+  padding: $uni-spacing-xs $uni-spacing-base;
   background: $uni-bg-color-page;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
 }
 .filter-item--active { background: $uni-color-primary; }
 .filter-item--active .filter-text { color: $uni-text-color-inverse; }
 .filter-text { font-size: 24rpx; color: $uni-gray-500; }
-.add-section { padding: 16rpx 32rpx; }
+.add-section { padding: $uni-spacing-sm $uni-spacing-lg; }
 .add-btn {
   width: 100%;
   height: 80rpx;
@@ -260,13 +260,13 @@ onMounted(() => { loadEmployees() })
   border: none;
 }
 .add-btn::after { border: none; }
-.employee-list { padding: 0 32rpx 24rpx; }
+.employee-list { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .employee-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex;
@@ -278,7 +278,7 @@ onMounted(() => { loadEmployees() })
 }
 .employee-avatar {
   width: 80rpx; height: 80rpx;
-  border-radius: 40rpx;
+  border-radius: $uni-border-radius-lg;
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex;
   align-items: center;
@@ -306,8 +306,8 @@ onMounted(() => { loadEmployees() })
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-md;
 }
 .info-row {
   display: flex;
@@ -317,8 +317,8 @@ onMounted(() => { loadEmployees() })
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .card-actions {
   display: flex;
-  gap: 16rpx;
-  padding-top: 20rpx;
+  gap: $uni-spacing-sm;
+  padding-top: $uni-spacing-md;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 .mini-btn {
@@ -341,7 +341,7 @@ onMounted(() => { loadEmployees() })
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

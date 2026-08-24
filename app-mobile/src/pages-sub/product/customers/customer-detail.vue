@@ -305,7 +305,7 @@ onLoad((options: any) => {
 .loading-text {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
 }
 
 .customer-header {
@@ -318,18 +318,18 @@ onLoad((options: any) => {
 
 .customer-avatar {
   width: 96rpx; height: 96rpx;
-  border-radius: 48rpx;
+  border-radius: $uni-border-radius-xl;
   background: rgba(255,255,255,0.2);
   display: flex; align-items: center; justify-content: center;
 }
 
 .avatar-text { font-size: 40rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
-.customer-info { flex: 1; display: flex; flex-direction: column; gap: 8rpx; }
+.customer-info { flex: 1; display: flex; flex-direction: column; gap: $uni-spacing-xs; }
 
 .customer-name { font-size: 34rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
-.customer-tag-row { display: flex; align-items: center; gap: 16rpx; }
+.customer-tag-row { display: flex; align-items: center; gap: $uni-spacing-sm; }
 
 .customer-tag { padding: 4rpx 16rpx; border-radius: 16rpx; background: rgba(255,255,255,0.2); }
 
@@ -344,18 +344,18 @@ onLoad((options: any) => {
 .stats-row {
   display: flex; align-items: center;
   background: $uni-bg-color;
-  margin: -24rpx 24rpx 0;
-  border-radius: 16rpx;
-  padding: 24rpx 0;
+  margin: -$uni-spacing-base $uni-spacing-base 0;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base 0;
   position: relative;
   z-index: 1;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: $uni-shadow-card-sm;
 }
 
 .stat-item {
   flex: 1;
   display: flex; flex-direction: column;
-  align-items: center; gap: 8rpx;
+  align-items: center; gap: $uni-spacing-xs;
 }
 
 .stat-value { font-size: 32rpx; color: $uni-gray-700; font-weight: 700; }
@@ -367,7 +367,7 @@ onLoad((options: any) => {
   background: $uni-gray-100;
 }
 
-.info-section { padding: 24rpx; }
+.info-section { padding: $uni-spacing-base; }
 
 .section-header {
   display: flex;
@@ -389,16 +389,16 @@ onLoad((options: any) => {
 
 .info-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -414,15 +414,15 @@ onLoad((options: any) => {
 
 .edit-form {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 
 .form-item {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -458,7 +458,7 @@ onLoad((options: any) => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .picker-value text { font-size: 26rpx; color: $uni-gray-700; }
@@ -469,7 +469,7 @@ onLoad((options: any) => {
   display: block;
   font-size: 22rpx;
   color: $uni-color-error;
-  margin-top: 12rpx;
+  margin-top: $uni-spacing-sm;
   text-align: right;
 }
 

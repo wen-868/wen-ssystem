@@ -202,12 +202,12 @@ onShow(() => {
 
 /* 高频宫格 */
 .func-grid {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
-  border-radius: 40rpx;
-  padding: 40rpx 20rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: 40rpx $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -216,8 +216,8 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20rpx;
-  padding: 24rpx 0;
+  gap: $uni-spacing-md;
+  padding: $uni-spacing-base 0;
   transition: transform 0.15s;
 }
 
@@ -228,7 +228,7 @@ onShow(() => {
 .fg-ico {
   width: 88rpx;
   height: 88rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -247,10 +247,10 @@ onShow(() => {
 
 /* 搜索无结果空态 */
 .func-empty {
-  margin: 40rpx 28rpx 0;
-  padding: 80rpx 24rpx;
+  margin: 40rpx $uni-spacing-base 0;
+  padding: 80rpx $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 32rpx;
+  border-radius: $uni-border-radius-base;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   text-align: center;
@@ -263,7 +263,7 @@ onShow(() => {
 
 /* 数据工具 */
 .func-section {
-  margin: 36rpx 28rpx 28rpx;
+  margin: 36rpx $uni-spacing-base $uni-spacing-base;
 }
 
 .func-section-title {
@@ -271,13 +271,13 @@ onShow(() => {
   font-size: 24rpx;
   font-weight: 600;
   color: $uni-gray-500;
-  padding: 0 8rpx 20rpx;
+  padding: 0 $uni-spacing-xs $uni-spacing-md;
   letter-spacing: 1rpx;
   text-transform: uppercase;
 }
 
 .func-group {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .func-group-title {
@@ -285,12 +285,12 @@ onShow(() => {
   font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-600;
-  padding: 16rpx 8rpx 8rpx;
+  padding: $uni-spacing-sm $uni-spacing-xs $uni-spacing-xs;
 }
 
 .func-list {
   background: $uni-bg-color;
-  border-radius: 40rpx;
+  border-radius: $uni-border-radius-lg;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -299,8 +299,8 @@ onShow(() => {
 .list-item {
   display: flex;
   align-items: center;
-  padding: 30rpx 36rpx;
-  gap: 28rpx;
+  padding: $uni-spacing-lg 36rpx;
+  gap: $uni-spacing-base;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.03);
 }
 
@@ -315,7 +315,7 @@ onShow(() => {
 .li-ico {
   width: 76rpx;
   height: 76rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -362,9 +362,9 @@ onMounted(() => {
 /* 信息卡片 */
 .info-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin: 16rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin: $uni-spacing-sm $uni-spacing-base;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -372,8 +372,8 @@ onMounted(() => {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
-  padding-bottom: 16rpx;
+  margin-bottom: $uni-spacing-md;
+  padding-bottom: $uni-spacing-sm;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -381,7 +381,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .info-label {
@@ -406,7 +406,7 @@ onMounted(() => {
 .item-row {
   display: flex;
   align-items: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-gray-50;
 }
 
@@ -434,7 +434,7 @@ onMounted(() => {
 .item-price {
   font-size: 26rpx;
   color: $uni-gray-500;
-  margin: 0 20rpx;
+  margin: 0 $uni-spacing-md;
 }
 
 .item-total {
@@ -447,15 +447,15 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-top: 20rpx;
+  padding-top: $uni-spacing-md;
   border-top: 1rpx solid $uni-bg-color-grey;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .summary-label {
   font-size: 28rpx;
   color: $uni-gray-700;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .summary-value {
@@ -477,7 +477,7 @@ onMounted(() => {
 .logistics-company {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .logistics-icon {
@@ -514,7 +514,7 @@ onMounted(() => {
 
 .logistics-no {
   display: flex;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .logistics-no-text {
@@ -525,12 +525,12 @@ onMounted(() => {
 
 /* 物流追踪 */
 .tracking-steps {
-  padding-top: 16rpx;
+  padding-top: $uni-spacing-sm;
 }
 
 .tracking-item {
   display: flex;
-  padding-bottom: 24rpx;
+  padding-bottom: $uni-spacing-base;
   position: relative;
 }
 
@@ -539,7 +539,7 @@ onMounted(() => {
   height: 16rpx;
   border-radius: 50%;
   background: $uni-gray-300;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   flex-shrink: 0;
 }
 
@@ -558,7 +558,7 @@ onMounted(() => {
 
 .tracking-content {
   flex: 1;
-  margin-left: 16rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .tracking-status {
@@ -598,12 +598,12 @@ onMounted(() => {
 
 /* 订单跟踪时间线 */
 .timeline {
-  padding-top: 8rpx;
+  padding-top: $uni-spacing-xs;
 }
 
 .timeline-item {
   display: flex;
-  padding-bottom: 24rpx;
+  padding-bottom: $uni-spacing-base;
   position: relative;
 }
 
@@ -631,7 +631,7 @@ onMounted(() => {
 
 .timeline-content {
   flex: 1;
-  margin-left: 16rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .timeline-header {
@@ -682,11 +682,11 @@ onMounted(() => {
   left: 0;
   right: 0;
   display: flex;
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: $uni-spacing-md $uni-spacing-base;
+  padding-bottom: calc($uni-spacing-md + env(safe-area-inset-bottom));
   background: $uni-bg-color;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
-  gap: 20rpx;
+  gap: $uni-spacing-md;
 }
 
 .action-btn {

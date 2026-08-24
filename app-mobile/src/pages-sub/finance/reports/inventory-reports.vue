@@ -177,21 +177,21 @@ onMounted(() => { loadReportData() })
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .filter-form {
-  margin: 16rpx 24rpx;
+  margin: $uni-spacing-sm $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 20rpx 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .filter-row {
   display: flex;
-  gap: 24rpx;
-  padding: 12rpx 0;
+  gap: $uni-spacing-base;
+  padding: $uni-spacing-sm 0;
 }
 .filter-item {
   flex: 1;
   display: flex; flex-direction: column;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .filter-label { font-size: 22rpx; color: $uni-gray-400; }
 .filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
@@ -207,12 +207,12 @@ onMounted(() => { loadReportData() })
   border: none;
 }
 .query-btn::after { border: none; }
-.summary-section { padding: 0 32rpx 24rpx; }
+.summary-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .summary-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .summary-row {
   display: flex;
@@ -222,7 +222,7 @@ onMounted(() => { loadReportData() })
   flex: 1;
   display: flex; flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .summary-value { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
 .summary-label { font-size: 22rpx; color: $uni-gray-400; }
@@ -230,12 +230,12 @@ onMounted(() => { loadReportData() })
   width: 1rpx; height: 48rpx;
   background: $uni-gray-100;
 }
-.section { padding: 0 32rpx 24rpx; }
+.section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -243,34 +243,34 @@ onMounted(() => { loadReportData() })
 .title-more { font-size: 24rpx; color: $uni-color-primary; font-weight: 400; }
 .chart-placeholder {
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   height: 360rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  gap: $uni-spacing-sm;
+  box-shadow: $uni-shadow-card-sm;
 }
 .chart-icon { font-size: 64rpx; color: $uni-gray-300; }
 .chart-text { font-size: 26rpx; color: $uni-gray-300; }
 .rank-list {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-lg;
+  box-shadow: $uni-shadow-card-sm;
 }
 .rank-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 20rpx 0;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-md 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .rank-item:last-child { border-bottom: none; }
 .rank-num {
   width: 40rpx; height: 40rpx;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex; align-items: center; justify-content: center;
   font-size: 22rpx;
   font-weight: 600;
@@ -305,28 +305,28 @@ onMounted(() => { loadReportData() })
 .rank-value { font-size: 26rpx; color: $uni-color-primary; font-weight: 600; }
 .detail-list {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-lg;
+  box-shadow: $uni-shadow-card-sm;
 }
 .detail-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .detail-item:last-child { border-bottom: none; }
 .detail-left {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
   flex: 1;
   min-width: 0;
 }
 .detail-type {
-  padding: 4rpx 12rpx;
-  border-radius: 12rpx;
+  padding: 4rpx $uni-spacing-sm;
+  border-radius: $uni-border-radius-xs;
   font-size: 20rpx;
   flex-shrink: 0;
 }

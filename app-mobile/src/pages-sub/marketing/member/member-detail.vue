@@ -280,7 +280,7 @@ onLoad((query: any) => {
 .avatar-text {
   font-size: 44rpx;
   font-weight: 700;
-  color: #fff;
+  color: $uni-gray-0;
 }
 
 .member-info {
@@ -291,7 +291,7 @@ onLoad((query: any) => {
 .member-name-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .member-name {
@@ -330,8 +330,8 @@ onLoad((query: any) => {
 .stats-row {
   display: flex;
   align-items: center;
-  margin: 24rpx 28rpx 0;
-  padding: 28rpx 24rpx;
+  margin: $uni-spacing-base $uni-spacing-base 0;
+  padding: $uni-spacing-base $uni-spacing-base;
   background: $uni-bg-color;
   border-radius: 28rpx;
   box-shadow: $uni-shadow-card;
@@ -342,7 +342,7 @@ onLoad((query: any) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .stat-value {
@@ -364,28 +364,28 @@ onLoad((query: any) => {
 
 /* 信息卡片 */
 .info-section {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
 }
 
 .section-title {
   font-size: 28rpx;
   font-weight: 700;
   color: $uni-text-color;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .info-card,
 .orders-section {
   background: $uni-bg-color;
-  border-radius: 24rpx;
-  padding: 8rpx 32rpx;
+  border-radius: $uni-border-radius-sm;
+  padding: $uni-spacing-xs $uni-spacing-lg;
   box-shadow: $uni-shadow-card;
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid #f3f4f6;
 }
 
@@ -413,11 +413,11 @@ onLoad((query: any) => {
 
 /* 最近订单 */
 .orders-section {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
 }
 
 .order-card {
-  padding: 20rpx 4rpx;
+  padding: $uni-spacing-md 4rpx;
   border-bottom: 1rpx solid #f3f4f6;
 }
 
@@ -483,7 +483,7 @@ onLoad((query: any) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .loading-spinner {

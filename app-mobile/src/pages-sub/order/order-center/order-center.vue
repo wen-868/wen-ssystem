@@ -201,13 +201,13 @@ onMounted(() => { loadOrders() })
 .tab-item--active { background: $uni-color-primary; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 24rpx; color: $uni-gray-500; white-space: nowrap; }
-.order-list { padding: 16rpx 32rpx; }
+.order-list { padding: $uni-spacing-sm $uni-spacing-lg; }
 .order-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .order-header {
   display: flex;
@@ -230,12 +230,12 @@ onMounted(() => { loadOrders() })
 .status-aftersale { background: $uni-color-error-soft; }
 .status-aftersale .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
-.order-body { display: flex; flex-direction: column; gap: 12rpx; }
+.order-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .order-info { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .info-value--price { color: $uni-color-primary; font-weight: 600; }
-.order-actions { margin-top: 16rpx; display: flex; gap: 16rpx; }
+.order-actions { margin-top: $uni-spacing-sm; display: flex; gap: $uni-spacing-sm; }
 .action-btn {
   flex: 1;
   height: 64rpx;
@@ -255,7 +255,7 @@ onMounted(() => { loadOrders() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

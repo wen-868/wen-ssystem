@@ -241,13 +241,13 @@ function onLoadMore() {
 .tab-item--active { background: $uni-color-error; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
-.exception-list { padding: 16rpx 32rpx; height: calc(100vh - 340rpx); }
+.exception-list { padding: $uni-spacing-sm $uni-spacing-lg; height: calc(100vh - 340rpx); }
 .exception-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
   border-left: 6rpx solid $uni-color-error;
 }
 .card-header {
@@ -260,7 +260,7 @@ function onLoadMore() {
 }
 .header-left { display: flex; align-items: center; gap: 12rpx; }
 .exception-type {
-  padding: 4rpx 14rpx;
+  padding: 4rpx $uni-spacing-sm;
   border-radius: 8rpx;
   font-size: 22rpx;
 }
@@ -275,16 +275,16 @@ function onLoadMore() {
 .status-resolved { background: $uni-color-success-soft; }
 .status-resolved .status-text { color: $uni-color-success; }
 .status-text { font-size: 22rpx; }
-.card-body { display: flex; flex-direction: column; gap: 12rpx; }
+.card-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .info-row { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; flex: 1; text-align: right; }
 .card-actions {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .action-btn {
   flex: 1;
@@ -305,7 +305,7 @@ function onLoadMore() {
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

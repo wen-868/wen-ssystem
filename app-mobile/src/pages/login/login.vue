@@ -261,7 +261,7 @@ function goRegister() {
   flex-direction: column;
   align-items: center;
   padding: 100rpx 0 130rpx;
-  background: linear-gradient(160deg, #1D4ED8 0%, #2563EB 55%, #3B82F6 100%);
+  background: linear-gradient(160deg, $uni-color-primary-active 0%, $uni-color-primary 55%, #3B82F6 100%);
   border-radius: 0 0 44rpx 44rpx;
   overflow: hidden;
 }
@@ -291,12 +291,12 @@ function goRegister() {
   position: relative;
   width: 136rpx;
   height: 136rpx;
-  border-radius: 36rpx;
+  border-radius: $uni-border-radius-lg;
   background: $uni-bg-color;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 30rpx;
+  margin-bottom: $uni-spacing-lg;
   box-shadow: 0 16rpx 44rpx rgba(15, 23, 42, 0.28);
 }
 
@@ -311,7 +311,7 @@ function goRegister() {
   font-weight: $uni-font-bold;
   color: $uni-text-color-inverse;
   letter-spacing: 6rpx;
-  margin-bottom: 14rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .brand-subtitle {
@@ -326,14 +326,14 @@ function goRegister() {
   position: relative;
   z-index: 2;
   width: 100%;
-  padding: 0 48rpx;
+  padding: 0 $uni-spacing-xl;
   margin-top: -72rpx;
   box-sizing: border-box;
 }
 
 .form-card {
   background: $uni-bg-color;
-  border-radius: 36rpx;
+  border-radius: $uni-border-radius-lg;
   padding: 44rpx 40rpx 34rpx;
   box-shadow: 0 20rpx 60rpx rgba(29, 78, 216, 0.16), 0 4rpx 16rpx rgba(29, 78, 216, 0.06);
 }
@@ -365,9 +365,9 @@ function goRegister() {
   height: 96rpx;
   background: $uni-bg-color-page;
   border: 2rpx solid transparent;
-  border-radius: 20rpx;
-  padding: 0 28rpx;
-  margin-bottom: 8rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
+  margin-bottom: $uni-spacing-xs;
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -405,7 +405,7 @@ function goRegister() {
 }
 
 .password-toggle {
-  padding: 12rpx;
+  padding: $uni-spacing-sm;
 }
 
 .toggle-img {
@@ -415,13 +415,13 @@ function goRegister() {
 }
 
 .field-error {
-  padding: 8rpx 8rpx 0;
+  padding: $uni-spacing-xs $uni-spacing-xs 0;
 }
 .mfa-section {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 .mfa-tip {
-  padding: 0 8rpx 16rpx;
+  padding: 0 $uni-spacing-xs $uni-spacing-sm;
 }
 .mfa-tip-text {
   font-size: 24rpx;
@@ -429,8 +429,8 @@ function goRegister() {
 }
 
 .login-error {
-  margin-top: 12rpx;
-  padding: 14rpx 20rpx;
+  margin-top: $uni-spacing-sm;
+  padding: $uni-spacing-sm $uni-spacing-md;
   background: $uni-color-error-soft;
   border-radius: $uni-border-radius-xs;
 }
@@ -473,7 +473,7 @@ function goRegister() {
 .demo-divider {
   display: flex;
   align-items: center;
-  margin: 32rpx 0 26rpx;
+  margin: $uni-spacing-lg 0 $uni-spacing-base;
 }
 
 .divider-line {
@@ -485,13 +485,13 @@ function goRegister() {
 .divider-text {
   font-size: 24rpx;
   color: $uni-text-color-placeholder;
-  padding: 0 20rpx;
+  padding: 0 $uni-spacing-md;
 }
 
 /* ── 注册 / 演示登录 双入口 ── */
 .action-row {
   display: flex;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 
 .ghost-btn {
@@ -557,7 +557,7 @@ function goRegister() {
   text-align: center;
   font-size: 22rpx;
   color: $uni-text-color-placeholder;
-  margin-top: 14rpx;
+  margin-top: $uni-spacing-sm;
 }
 
 /* ── 底部 ── */
@@ -566,7 +566,7 @@ function goRegister() {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 40rpx 0 28rpx;
+  padding: 40rpx 0 $uni-spacing-base;
 }
 
 .footer-text {
@@ -577,7 +577,7 @@ function goRegister() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   margin-top: 10rpx;
 }
 .beian-icon {

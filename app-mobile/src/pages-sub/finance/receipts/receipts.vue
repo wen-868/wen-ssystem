@@ -199,13 +199,13 @@ onMounted(() => { loadReceipts() })
 .tab-item--active { background: $uni-color-success; }
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 24rpx; color: $uni-gray-500; }
-.receipt-list { padding: 16rpx 32rpx; }
+.receipt-list { padding: $uni-spacing-sm $uni-spacing-lg; }
 .receipt-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex;
@@ -216,7 +216,7 @@ onMounted(() => { loadReceipts() })
   border-bottom: 1rpx solid $uni-gray-100;
 }
 .receipt-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
-.receipt-type { padding: 4rpx 16rpx; border-radius: 20rpx; }
+.receipt-type { padding: 4rpx $uni-spacing-sm; border-radius: $uni-border-radius-xs; }
 .type-online { background: $uni-color-primary-soft; }
 .type-online .type-text { color: $uni-color-primary; }
 .type-offline { background: $uni-color-success-soft; }
@@ -224,14 +224,14 @@ onMounted(() => { loadReceipts() })
 .type-voided { background: $uni-color-error-soft; }
 .type-voided .type-text { color: $uni-color-error; }
 .type-text { font-size: 22rpx; }
-.card-body { display: flex; flex-direction: column; gap: 12rpx; }
+.card-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .info-row { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .info-value--amount { color: $uni-color-success; font-weight: 600; font-size: 30rpx; }
 .card-actions {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
   display: flex;
 }
@@ -253,7 +253,7 @@ onMounted(() => { loadReceipts() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

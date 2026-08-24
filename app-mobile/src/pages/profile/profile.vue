@@ -266,14 +266,14 @@ onMounted(() => {
 /* 用户卡 */
 /* 用户卡（原稿：白卡 + 渐变蓝头像 + 深色文字 + 绿色营业徽章） */
 .prof-card {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 48rpx;
+  border-radius: $uni-border-radius-xl;
   padding: 44rpx;
   padding-top: calc(44rpx + env(safe-area-inset-top));
   display: flex;
   align-items: center;
-  gap: 32rpx;
+  gap: $uni-spacing-lg;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   position: relative;
@@ -322,8 +322,8 @@ onMounted(() => {
 .prof-role-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-top: 8rpx;
+  gap: $uni-spacing-sm;
+  margin-top: $uni-spacing-xs;
 }
 
 .prof-role {
@@ -378,12 +378,12 @@ onMounted(() => {
 
 /* 快捷入口（原稿：统一蓝底浅蓝图标） */
 .prof-shortcuts {
-  margin: 28rpx 28rpx 0;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
-  border-radius: 40rpx;
-  padding: 36rpx 16rpx;
+  border-radius: $uni-border-radius-lg;
+  padding: 36rpx $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -392,7 +392,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .prof-sc-item:active {
@@ -402,7 +402,7 @@ onMounted(() => {
 .ps-ico {
   width: 76rpx;
   height: 76rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -426,7 +426,7 @@ onMounted(() => {
 
 /* 分区（原稿：标题 12px 灰 + 大写间距，列表 20px 圆角） */
 .prof-section {
-  margin: 36rpx 28rpx 0;
+  margin: 36rpx $uni-spacing-base 0;
 }
 
 .prof-section-title {
@@ -434,14 +434,14 @@ onMounted(() => {
   font-size: 24rpx;
   font-weight: 600;
   color: $uni-gray-500;
-  padding: 0 8rpx 20rpx;
+  padding: 0 $uni-spacing-xs $uni-spacing-md;
   letter-spacing: 1rpx;
   text-transform: uppercase;
 }
 
 .prof-list {
   background: $uni-bg-color;
-  border-radius: 40rpx;
+  border-radius: $uni-border-radius-lg;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -450,8 +450,8 @@ onMounted(() => {
 .list-item {
   display: flex;
   align-items: center;
-  padding: 28rpx 24rpx;
-  gap: 20rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
+  gap: $uni-spacing-md;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
@@ -466,7 +466,7 @@ onMounted(() => {
 .li-ico {
   width: 72rpx;
   height: 72rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -535,7 +535,7 @@ onMounted(() => {
 
 /* 退出登录 */
 .logout-section {
-  margin: 40rpx 28rpx 0;
+  margin: 40rpx $uni-spacing-base 0;
 }
 
 .logout-btn {

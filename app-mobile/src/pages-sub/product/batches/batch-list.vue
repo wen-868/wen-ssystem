@@ -165,14 +165,14 @@ onMounted(() => {
 }
 
 .batch-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .batch-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -193,7 +193,7 @@ onMounted(() => {
 .batch-no-label {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-right: 8rpx;
+  margin-right: $uni-spacing-xs;
 }
 
 .batch-no {
@@ -213,22 +213,22 @@ onMounted(() => {
 .status-expired { background: $uni-color-error-soft; color: $uni-color-error; }
 
 .card-body {
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-info {
   display: flex;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-image-wrap {
   width: 100rpx;
   height: 100rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   background: $uni-bg-color-page;
   flex-shrink: 0;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .product-image {
@@ -261,7 +261,7 @@ onMounted(() => {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .product-sku {
@@ -271,15 +271,15 @@ onMounted(() => {
 
 .batch-info {
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-sm;
 }
 
 .info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .info-row:last-child {
@@ -321,7 +321,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

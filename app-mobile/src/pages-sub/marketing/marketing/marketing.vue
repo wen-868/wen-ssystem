@@ -239,34 +239,34 @@ onMounted(() => { loadActivities() })
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .quick-entry {
   display: flex; justify-content: space-around;
-  padding: 24rpx; background: $uni-bg-color;
-  margin-bottom: 16rpx;
+  padding: $uni-spacing-base; background: $uni-bg-color;
+  margin-bottom: $uni-spacing-sm;
 }
 .entry-item { display: flex; flex-direction: column; align-items: center; }
 .entry-icon {
   width: 80rpx; height: 80rpx;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex; align-items: center; justify-content: center;
   font-size: 36rpx; color: $uni-text-color-inverse;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .entry-icon--coupon { background: linear-gradient(135deg, $uni-color-error, $uni-color-warning); }
 .entry-icon--flash { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }
 .entry-icon--full { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .entry-icon--discount { background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); }
 .entry-text { font-size: 22rpx; color: $uni-gray-700; }
-.activity-list { padding: 0 32rpx 24rpx; }
+.activity-list { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .activity-card {
-  background: $uni-bg-color; border-radius: 16rpx;
-  padding: 24rpx; margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base; margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 16rpx; padding-bottom: 16rpx;
   border-bottom: 1rpx solid $uni-gray-100;
 }
-.activity-title-wrap { display: flex; flex-direction: column; gap: 8rpx; flex: 1; }
+.activity-title-wrap { display: flex; flex-direction: column; gap: $uni-spacing-xs; flex: 1; }
 .activity-title { font-size: 28rpx; color: $uni-gray-700; font-weight: 600; }
 .activity-type-tag { display: inline-block; padding: 2rpx 12rpx; border-radius: 16rpx; align-self: flex-start; }
 .tag-coupon { background: $uni-color-error-soft; }
@@ -292,9 +292,9 @@ onMounted(() => { loadActivities() })
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .info-value--highlight { color: $uni-color-error; font-weight: 600; }
 .card-actions {
-  margin-top: 16rpx; padding-top: 16rpx;
+  margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
-  display: flex; gap: 16rpx;
+  display: flex; gap: $uni-spacing-sm;
 }
 .action-btn {
   flex: 1; height: 64rpx; border-radius: 32rpx;
@@ -309,7 +309,7 @@ onMounted(() => { loadActivities() })
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

@@ -144,13 +144,13 @@ onMounted(() => {
 }
 
 .member-card {
-  margin: 24rpx;
-  padding: 32rpx;
+  margin: $uni-spacing-base;
+  padding: $uni-spacing-lg;
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 
 .member-avatar {
@@ -183,7 +183,7 @@ onMounted(() => {
   font-size: 32rpx;
   font-weight: 700;
   color: $uni-text-color-inverse;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
   display: block;
 }
 
@@ -201,19 +201,19 @@ onMounted(() => {
 
 .asset-grid {
   display: flex;
-  margin: 0 24rpx 24rpx;
-  gap: 16rpx;
+  margin: 0 $uni-spacing-base $uni-spacing-base;
+  gap: $uni-spacing-sm;
 }
 
 .asset-item {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base $uni-spacing-sm;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -229,9 +229,9 @@ onMounted(() => {
 }
 
 .menu-section {
-  margin: 0 24rpx;
+  margin: 0 $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -240,7 +240,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 24rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -251,7 +251,7 @@ onMounted(() => {
 .menu-left {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .menu-icon {
@@ -271,7 +271,7 @@ onMounted(() => {
 .menu-right {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .level-progress-text {

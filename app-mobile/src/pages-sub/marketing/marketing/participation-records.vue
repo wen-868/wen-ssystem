@@ -129,14 +129,14 @@ onMounted(() => {
 }
 
 .record-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .record-item {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -159,13 +159,13 @@ onMounted(() => {
 }
 
 .record-body {
-  padding-top: 16rpx;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
 .record-info {
   display: flex;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .info-label {
@@ -192,7 +192,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -201,7 +201,7 @@ onMounted(() => {
 }
 
 .load-more {
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
   text-align: center;
 }
 

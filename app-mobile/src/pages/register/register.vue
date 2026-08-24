@@ -254,7 +254,7 @@ function goLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
   box-shadow: 0 12rpx 40rpx rgba(13, 44, 124, 0.35);
 }
 
@@ -285,7 +285,7 @@ function goLogin() {
 .form-card {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xl;
-  padding: 40rpx 36rpx 32rpx;
+  padding: 40rpx 36rpx $uni-spacing-lg;
   box-shadow: 0 20rpx 64rpx rgba(13, 44, 124, 0.18);
 }
 
@@ -296,8 +296,8 @@ function goLogin() {
   height: 92rpx;
   background: $uni-bg-color-page;
   border-radius: $uni-border-radius-sm;
-  padding: 0 26rpx;
-  margin-bottom: 8rpx;
+  padding: 0 $uni-spacing-base;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .input-icon {
@@ -319,7 +319,7 @@ function goLogin() {
 }
 
 .password-toggle {
-  padding: 8rpx;
+  padding: $uni-spacing-xs;
 }
 
 .toggle-icon {
@@ -328,12 +328,12 @@ function goLogin() {
 }
 
 .field-error {
-  padding: 8rpx 8rpx 0;
+  padding: $uni-spacing-xs $uni-spacing-xs 0;
 }
 
 .register-error {
-  margin-top: 12rpx;
-  padding: 14rpx 20rpx;
+  margin-top: $uni-spacing-sm;
+  padding: $uni-spacing-sm $uni-spacing-md;
   background: $uni-color-error-soft;
   border-radius: $uni-border-radius-xs;
 }
@@ -391,7 +391,7 @@ function goLogin() {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 24rpx;
+  margin-top: $uni-spacing-base;
   padding: 0 4rpx;
 }
 
@@ -459,14 +459,14 @@ function goLogin() {
   text-align: center;
   font-size: 22rpx;
   color: $uni-text-color-placeholder;
-  margin-top: 16rpx;
+  margin-top: $uni-spacing-sm;
 }
 
 .login-link {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 32rpx;
+  margin-top: $uni-spacing-lg;
 }
 
 .link-text {
@@ -486,7 +486,7 @@ function goLogin() {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 32rpx;
+  padding-bottom: $uni-spacing-lg;
 }
 
 .footer-text {
@@ -497,7 +497,7 @@ function goLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   margin-top: 10rpx;
 }
 .beian-icon {

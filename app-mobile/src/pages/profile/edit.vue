@@ -214,7 +214,7 @@ onLoad(() => {
 .profile-edit-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .avatar-section {
   display: flex; justify-content: center;
-  padding: 48rpx 0 32rpx;
+  padding: $uni-spacing-xl 0 $uni-spacing-lg;
   background: $uni-bg-color;
 }
 .avatar-wrap {
@@ -239,18 +239,18 @@ onLoad(() => {
   display: flex; align-items: center; justify-content: center;
 }
 .edit-text { font-size: 20rpx; color: $uni-text-color-inverse; }
-.edit-form { padding: 24rpx; }
+.edit-form { padding: $uni-spacing-base; }
 .form-group {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 24rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
+  margin-bottom: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .form-item {
   display: flex;
   align-items: center;
-  padding: 28rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .form-item--last { border-bottom: none; }
@@ -274,9 +274,9 @@ onLoad(() => {
   display: block;
   font-size: 24rpx;
   color: $uni-color-error;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   text-align: right;
-  padding-right: 24rpx;
+  padding-right: $uni-spacing-base;
 }
 .submit-btn {
   width: 100%;
@@ -291,17 +291,17 @@ onLoad(() => {
 }
 .submit-btn::after { border: none; }
 .action-list {
-  margin: 0 24rpx;
+  margin: 0 $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: $uni-shadow-card-sm;
 }
 .action-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 24rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .action-item:last-child { border-bottom: none; }

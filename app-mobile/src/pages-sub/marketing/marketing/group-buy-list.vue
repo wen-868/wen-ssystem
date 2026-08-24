@@ -236,14 +236,14 @@ onMounted(() => {
 }
 
 .group-list {
-  padding: 0 32rpx 24rpx;
+  padding: 0 $uni-spacing-lg $uni-spacing-base;
   height: calc(100vh - 220rpx);
 }
 
 .group-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-md;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -259,7 +259,7 @@ onMounted(() => {
   height: 180rpx;
   flex-shrink: 0;
   position: relative;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
 
@@ -309,7 +309,7 @@ onMounted(() => {
 .price-row {
   display: flex;
   align-items: baseline;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .group-price {
@@ -327,7 +327,7 @@ onMounted(() => {
 .group-info {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .info-text {
@@ -344,7 +344,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 20rpx;
+  padding: $uni-spacing-sm $uni-spacing-md;
   border-top: 1rpx solid $uni-bg-color-grey;
   background: $uni-gray-50;
 }
@@ -384,7 +384,7 @@ onMounted(() => {
 
 .empty-icon {
   font-size: 80rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
   opacity: 0.5;
 }
 

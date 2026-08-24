@@ -217,9 +217,9 @@ onMounted(() => {
 .mem-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
+  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -258,8 +258,8 @@ onMounted(() => {
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin: 32rpx 32rpx 8rpx;
+  gap: $uni-spacing-sm;
+  margin: $uni-spacing-lg $uni-spacing-lg $uni-spacing-xs;
 }
 
 .st-text {
@@ -277,15 +277,15 @@ onMounted(() => {
 /* 统计 */
 .mem-stats {
   display: flex;
-  gap: 20rpx;
-  margin: 28rpx 28rpx 0;
+  gap: $uni-spacing-md;
+  margin: $uni-spacing-base $uni-spacing-base 0;
 }
 
 .mem-stat {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx 16rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -303,7 +303,7 @@ onMounted(() => {
   display: block;
   font-size: 22rpx;
   color: $uni-gray-400;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .search-bar {
@@ -345,7 +345,7 @@ onMounted(() => {
 }
 
 .customer-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
   height: calc(100vh - 300rpx);
 }
 
@@ -373,16 +373,16 @@ onMounted(() => {
 .loading-text {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
 }
 
 .customer-card {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
@@ -395,7 +395,7 @@ onMounted(() => {
 }
 
 .card-left {
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
   flex-shrink: 0;
 }
 
@@ -463,7 +463,7 @@ onMounted(() => {
 .customer-info {
   display: flex;
   flex-direction: column;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .customer-phone {
@@ -484,7 +484,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12rpx;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -506,7 +506,7 @@ onMounted(() => {
 .card-arrow {
   font-size: 28rpx;
   color: $uni-gray-300;
-  margin-left: 16rpx;
+  margin-left: $uni-spacing-sm;
   flex-shrink: 0;
 }
 
@@ -520,7 +520,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -531,7 +531,7 @@ onMounted(() => {
 .empty-hint {
   font-size: 24rpx;
   color: $uni-gray-300;
-  margin-top: 12rpx;
+  margin-top: $uni-spacing-sm;
 }
 
 .add-btn-wrap {

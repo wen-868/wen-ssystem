@@ -630,7 +630,7 @@ onMounted(() => {
 .action-left {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .action-text {
@@ -641,7 +641,7 @@ onMounted(() => {
 .action-right {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 
 .action-btn {
@@ -682,7 +682,7 @@ onMounted(() => {
 /* 消息列表 */
 .notification-list {
   flex: 1;
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
 }
 
 .loading-overlay {
@@ -699,7 +699,7 @@ onMounted(() => {
   border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 @keyframes spin {
@@ -715,9 +715,9 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
   position: relative;
   transition: all 0.2s ease;
@@ -734,13 +734,13 @@ onMounted(() => {
 }
 
 .select-checkbox {
-  margin-right: 16rpx;
-  padding-top: 20rpx;
+  margin-right: $uni-spacing-sm;
+  padding-top: $uni-spacing-md;
 }
 
 .notification-icon-wrap {
   position: relative;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
   flex-shrink: 0;
 }
 
@@ -796,7 +796,7 @@ onMounted(() => {
   color: $uni-gray-700;
   font-weight: 600;
   flex: 1;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -816,7 +816,7 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .notification-footer {
@@ -865,7 +865,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -878,8 +878,8 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32rpx 0;
-  gap: 16rpx;
+  padding: $uni-spacing-lg 0;
+  gap: $uni-spacing-sm;
 }
 
 .loading-more-spinner {

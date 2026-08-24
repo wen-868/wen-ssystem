@@ -104,23 +104,23 @@ function goMyPermission() {
 }
 
 .permission-menu {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .menu-card {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 28rpx 24rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .menu-icon {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +151,7 @@ function goMyPermission() {
 
 .menu-content {
   flex: 1;
-  margin-left: 20rpx;
+  margin-left: $uni-spacing-md;
   display: flex;
   flex-direction: column;
   gap: 6rpx;

@@ -153,26 +153,26 @@ onMounted(() => {
 }
 
 .exchange-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .exchange-item {
   display: flex;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
+  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .item-image-wrap {
   width: 140rpx;
   height: 140rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   background: $uni-bg-color-page;
   flex-shrink: 0;
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
 }
 
 .item-image {
@@ -226,7 +226,7 @@ onMounted(() => {
 .points-label {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin-right: 8rpx;
+  margin-right: $uni-spacing-xs;
 }
 
 .points-value {
@@ -268,7 +268,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

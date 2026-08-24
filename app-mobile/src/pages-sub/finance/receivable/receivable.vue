@@ -228,37 +228,37 @@ loadReceivables()
 .tab-item { flex: 1; text-align: center; padding: 24rpx 0; font-size: 26rpx; color: $uni-gray-500; position: relative; }
 .tab-item--active { color: $uni-color-primary; font-weight: 600; }
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 25%; right: 25%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
-.content-scroll { flex: 1; padding: 16rpx 32rpx; }
-.summary-row { padding: 8rpx 0 16rpx; }
-.summary-card { background: linear-gradient(135deg, $uni-color-warning-soft, $uni-bg-color); border-radius: 16rpx; padding: 28rpx 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.summary-label { font-size: 24rpx; color: $uni-gray-400; display: block; margin-bottom: 8rpx; }
+.content-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; }
+.summary-row { padding: $uni-spacing-xs 0 $uni-spacing-sm; }
+.summary-card { background: linear-gradient(135deg, $uni-color-warning-soft, $uni-bg-color); border-radius: $uni-border-radius-xs; padding: $uni-spacing-base $uni-spacing-lg; box-shadow: $uni-shadow-card-sm; }
+.summary-label { font-size: 24rpx; color: $uni-gray-400; display: block; margin-bottom: $uni-spacing-xs; }
 .summary-value { font-size: 40rpx; font-weight: 700; }
-.item-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
+.item-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; padding-bottom: $uni-spacing-sm; border-bottom: 1rpx solid $uni-gray-100; }
 .party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .party-phone { font-size: 24rpx; color: $uni-gray-400; }
-.card-body { display: flex; flex-direction: column; gap: 12rpx; }
-.amount-row { display: flex; gap: 16rpx; }
+.card-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
+.amount-row { display: flex; gap: $uni-spacing-sm; }
 .amount-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .amount-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 6rpx; }
 .amount-value { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; }
 .text-danger { color: $uni-color-error; }
 .text-success { color: $uni-color-success; }
-.overdue-row { padding-top: 8rpx; }
+.overdue-row { padding-top: $uni-spacing-xs; }
 .overdue-text { font-size: 24rpx; color: $uni-color-error; }
 .date-row { }
 .date-text { font-size: 22rpx; color: $uni-gray-400; }
-.aging-section { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.aging-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; display: block; margin-bottom: 16rpx; }
-.aging-card { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
-.aging-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
+.aging-section { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm; }
+.aging-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; display: block; margin-bottom: $uni-spacing-sm; }
+.aging-card { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
+.aging-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-xs; }
 .aging-range { font-size: 26rpx; color: $uni-gray-700; }
 .aging-amount { font-size: 28rpx; font-weight: 600; color: $uni-color-primary; }
 .aging-bar { height: 8rpx; background: $uni-gray-100; border-radius: 4rpx; overflow: hidden; margin: 8rpx 0; }
 .aging-bar-fill { height: 100%; background: $uni-color-primary; border-radius: 4rpx; }
 .aging-bar-fill--payable { background: $uni-color-warning; }
 .aging-prop { font-size: 22rpx; color: $uni-gray-400; }
-.load-more { text-align: center; padding: 24rpx 0; }
+.load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 100rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }

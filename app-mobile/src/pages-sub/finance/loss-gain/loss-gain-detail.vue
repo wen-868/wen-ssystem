@@ -275,18 +275,18 @@ onLoad((options: any) => {
 
 .info-card {
   background: $uni-bg-color;
-  margin: 16rpx 24rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin: $uni-spacing-sm $uni-spacing-base;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
-  padding-bottom: 16rpx;
+  margin-bottom: $uni-spacing-md;
+  padding-bottom: $uni-spacing-sm;
   border-bottom: 1rpx solid $uni-gray-100;
 }
 
@@ -294,7 +294,7 @@ onLoad((options: any) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 .info-label { font-size: 26rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
@@ -302,16 +302,16 @@ onLoad((options: any) => {
 /* 商品明细 */
 .goods-item {
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
+  margin-bottom: $uni-spacing-sm;
 }
 .goods-item:last-child { margin-bottom: 0; }
 .goods-header { margin-bottom: 16rpx; }
 .goods-name { font-size: 28rpx; font-weight: 500; color: $uni-gray-700; }
-.goods-body { display: flex; gap: 24rpx; }
+.goods-body { display: flex; gap: $uni-spacing-base; }
 .goods-info { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.goods-info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 8rpx; }
+.goods-info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: $uni-spacing-xs; }
 .goods-info-value { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
 
 .text-danger { color: $uni-color-error; }
@@ -321,12 +321,12 @@ onLoad((options: any) => {
 .photo-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .photo-item {
   width: 160rpx;
   height: 160rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 /* 备注 */
@@ -339,11 +339,11 @@ onLoad((options: any) => {
 /* 审核记录时间线 */
 .timeline {
   position: relative;
-  padding-left: 32rpx;
+  padding-left: $uni-spacing-lg;
 }
 .timeline-item {
   position: relative;
-  padding-bottom: 24rpx;
+  padding-bottom: $uni-spacing-base;
 }
 .timeline-item:last-child { padding-bottom: 0; }
 .timeline-dot {
@@ -368,8 +368,8 @@ onLoad((options: any) => {
 .timeline-item:last-child::before { display: none; }
 .timeline-content {
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-sm $uni-spacing-md;
 }
 .timeline-header {
   display: flex;
@@ -385,20 +385,20 @@ onLoad((options: any) => {
 /* 合计卡片 */
 .total-card {
   background: $uni-bg-color;
-  margin: 16rpx 24rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin: $uni-spacing-sm $uni-spacing-base;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .total-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8rpx 0;
+  padding: $uni-spacing-xs 0;
 }
 .total-row--main {
-  padding-top: 16rpx;
-  margin-top: 8rpx;
+  padding-top: $uni-spacing-sm;
+  margin-top: $uni-spacing-xs;
   border-top: 1rpx solid $uni-gray-100;
 }
 .total-label { font-size: 26rpx; color: $uni-gray-500; }
@@ -455,29 +455,29 @@ onLoad((options: any) => {
 .modal-content {
   width: 600rpx;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 32rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-lg;
 }
 .modal-title {
   font-size: 32rpx;
   font-weight: 600;
   color: $uni-gray-700;
   text-align: center;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 .modal-textarea {
   width: 100%;
   height: 200rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
   font-size: 28rpx;
   box-sizing: border-box;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 .modal-actions {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .modal-btn {
   flex: 1;

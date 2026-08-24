@@ -168,13 +168,13 @@ onMounted(() => { loadStatements() })
 .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
-.statement-list { padding: 16rpx 32rpx; }
+.statement-list { padding: $uni-spacing-sm $uni-spacing-lg; }
 .statement-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex;
@@ -193,11 +193,11 @@ onMounted(() => { loadStatements() })
 .status-disputed { background: $uni-color-error-soft; }
 .status-disputed .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
-.card-body { display: flex; flex-direction: column; gap: 12rpx; }
+.card-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .info-row { display: flex; justify-content: space-between; }
 .info-row--total {
-  margin-top: 8rpx;
-  padding-top: 12rpx;
+  margin-top: $uni-spacing-xs;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx dashed $uni-gray-100;
 }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
@@ -206,11 +206,11 @@ onMounted(() => { loadStatements() })
 .info-value--paid { color: $uni-color-success; font-weight: 600; }
 .info-value--unpaid { color: $uni-color-error; font-weight: 600; font-size: 30rpx; }
 .card-actions {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .action-btn {
   flex: 1;
@@ -231,7 +231,7 @@ onMounted(() => { loadStatements() })
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

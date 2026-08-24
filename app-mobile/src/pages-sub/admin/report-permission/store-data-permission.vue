@@ -229,7 +229,7 @@ onMounted(() => {
 .bar-left {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .back-icon {
@@ -255,9 +255,9 @@ onMounted(() => {
 }
 
 .section {
-  margin: 24rpx;
+  margin: $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -277,7 +277,7 @@ onMounted(() => {
 }
 
 .select-all {
-  padding: 8rpx 16rpx;
+  padding: $uni-spacing-xs $uni-spacing-sm;
 }
 
 .select-all-text {
@@ -287,15 +287,15 @@ onMounted(() => {
 
 .role-list,
 .scope-list {
-  padding: 8rpx 0;
+  padding: $uni-spacing-xs 0;
 }
 
 .role-item,
 .scope-item {
   display: flex;
   align-items: center;
-  padding: 24rpx;
-  gap: 16rpx;
+  padding: $uni-spacing-base;
+  gap: $uni-spacing-sm;
 }
 
 .role-radio,
@@ -355,8 +355,8 @@ onMounted(() => {
 .store-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx;
-  gap: 16rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
+  gap: $uni-spacing-sm;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -413,7 +413,7 @@ onMounted(() => {
 }
 
 .selected-count {
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   border-top: 1rpx solid $uni-bg-color-grey;
   text-align: center;
 }

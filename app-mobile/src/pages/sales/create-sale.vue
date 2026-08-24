@@ -1289,32 +1289,32 @@ onMounted(() => {
 
 .doc-nav-main {
   display: flex;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
   background: $uni-bg-color-page;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   padding: 6rpx;
 }
 
 .doc-nav-sub {
   display: flex;
-  gap: 12rpx;
-  margin-top: 12rpx;
+  gap: $uni-spacing-sm;
+  margin-top: $uni-spacing-sm;
 }
 
 .doc-seg {
   flex: 1;
   text-align: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
   font-size: 26rpx;
   color: $uni-gray-500;
   background: $uni-bg-color;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .doc-seg--sub {
-  padding: 14rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .doc-seg--active {
@@ -1331,9 +1331,9 @@ onMounted(() => {
 
 .form-section {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin: 16rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin: $uni-spacing-sm $uni-spacing-base;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -1341,7 +1341,7 @@ onMounted(() => {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1365,8 +1365,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 4rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 10rpx 16rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 10rpx $uni-spacing-sm;
 }
 
 .qc-label {
@@ -1386,14 +1386,14 @@ onMounted(() => {
 .qc-chev {
   font-size: 22rpx;
   color: $uni-gray-300;
-  margin-left: 8rpx;
+  margin-left: $uni-spacing-xs;
 }
 
 .customer-info {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .customer-name {
@@ -1423,9 +1423,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .item-row:last-child {
@@ -1452,7 +1452,7 @@ onMounted(() => {
 .prod-thumb {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   background: $uni-color-primary-soft;
   display: flex;
   align-items: center;
@@ -1475,7 +1475,7 @@ onMounted(() => {
 .item-price-wrap {
   display: flex;
   align-items: center;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .price-unit {
@@ -1507,7 +1507,7 @@ onMounted(() => {
 .swipe-item {
   position: relative;
   overflow: hidden;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .swipe-content {
@@ -1528,13 +1528,13 @@ onMounted(() => {
   bottom: 0;
   width: 120rpx;
   background: $uni-color-error;
-  color: #fff;
+  color: $uni-gray-0;
   font-size: 26rpx;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 16rpx 16rpx 0;
+  border-radius: 0 $uni-border-radius-xs $uni-border-radius-xs 0;
 }
 
 .qty-btn {
@@ -1566,7 +1566,7 @@ onMounted(() => {
   text-align: center;
   font-size: 28rpx;
   color: $uni-gray-700;
-  margin: 0 8rpx;
+  margin: 0 $uni-spacing-xs;
   background: $uni-bg-color-page;
   border-radius: 8rpx;
 }
@@ -1575,7 +1575,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   flex-shrink: 0;
 }
 
@@ -1590,7 +1590,7 @@ onMounted(() => {
 .item-delete {
   font-size: 22rpx;
   color: $uni-color-error;
-  padding: 4rpx 8rpx;
+  padding: 4rpx $uni-spacing-xs;
 }
 
 /* 追溯码（原稿：每件商品下方追溯码行，已录入显示「已关联」） */
@@ -1598,9 +1598,9 @@ onMounted(() => {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-top: 12rpx;
-  padding-top: 12rpx;
+  gap: $uni-spacing-sm;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx dashed $uni-border-color;
 }
 
@@ -1613,7 +1613,7 @@ onMounted(() => {
 .trace-input {
   flex: 1;
   font-size: 24rpx;
-  padding: 10rpx 16rpx;
+  padding: 10rpx $uni-spacing-sm;
   background: $uni-bg-color-page;
   border-radius: 8rpx;
   color: $uni-gray-500;
@@ -1628,11 +1628,11 @@ onMounted(() => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 10rpx 16rpx;
+  gap: $uni-spacing-sm;
+  padding: 10rpx $uni-spacing-sm;
   background: $uni-color-primary-soft;
   border-radius: 8rpx;
-  border: 1rpx solid rgba(37, 99, 235, 0.15);
+  border: 1rpx solid $uni-color-primary-soft;
 }
 
 .trace-code {
@@ -1646,7 +1646,7 @@ onMounted(() => {
   font-size: 20rpx;
   color: $uni-color-success;
   background: $uni-color-success-soft;
-  padding: 2rpx 12rpx;
+  padding: 2rpx $uni-spacing-sm;
   border-radius: 6rpx;
 }
 
@@ -1667,7 +1667,7 @@ onMounted(() => {
 }
 .add-item-row {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .add-item-row .add-item-btn {
   flex: 1;
@@ -1682,14 +1682,14 @@ onMounted(() => {
 .add-icon {
   font-size: 36rpx;
   color: $uni-color-primary;
-  margin-right: 8rpx;
+  margin-right: $uni-spacing-xs;
 }
 
 /* 扫码图标（替换 emoji，规范禁 emoji 图标） */
 .add-icon-img {
   width: 34rpx;
   height: 34rpx;
-  margin-right: 8rpx;
+  margin-right: $uni-spacing-xs;
 }
 
 .add-text {
@@ -1702,11 +1702,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .amount-row--total {
-  padding-top: 16rpx;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
   margin-top: 4rpx;
 }
@@ -1754,8 +1754,8 @@ onMounted(() => {
   width: 100%;
   height: 160rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
@@ -1869,7 +1869,7 @@ onMounted(() => {
 }
 
 .field-error {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   padding: 6rpx 0;
 }
 
@@ -1884,8 +1884,8 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  padding: 80rpx 32rpx;
+  gap: $uni-spacing-sm;
+  padding: 80rpx $uni-spacing-lg;
 }
 .placeholder-icon {
   font-size: 80rpx;
@@ -1901,7 +1901,7 @@ onMounted(() => {
 .amount-input-row {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .amount-input-row .discount-input {
   flex: 1;
@@ -1930,7 +1930,7 @@ onMounted(() => {
 .picker-popup {
   width: 100%;
   background: $uni-bg-color;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -1942,7 +1942,7 @@ onMounted(() => {
 
 .picker-popup--product {
   max-height: 90vh;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
 }
 
 .picker-header {
@@ -2016,7 +2016,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 28rpx 32rpx;
+  padding: $uni-spacing-base $uni-spacing-lg;
   border-bottom: 1rpx solid $uni-gray-50;
 }
 
@@ -2046,9 +2046,9 @@ onMounted(() => {
   font-size: 22rpx;
   color: $uni-color-primary;
   background: $uni-color-primary-soft;
-  padding: 4rpx 12rpx;
+  padding: 4rpx $uni-spacing-sm;
   border-radius: 8rpx;
-  margin-right: 16rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .picker-item--active .customer-item-name {
@@ -2072,10 +2072,10 @@ onMounted(() => {
 
 .category-item {
   display: inline-block;
-  padding: 12rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   background: $uni-bg-color-page;
-  border-radius: 24rpx;
-  margin-right: 12rpx;
+  border-radius: $uni-border-radius-sm;
+  margin-right: $uni-spacing-sm;
 }
 
 .category-item--active {
@@ -2096,9 +2096,9 @@ onMounted(() => {
 .product-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 24rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .product-item:last-child {
@@ -2108,7 +2108,7 @@ onMounted(() => {
 .product-image {
   width: 96rpx;
   height: 96rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   background: $uni-bg-color-grey;
   flex-shrink: 0;
 }
@@ -2138,7 +2138,7 @@ onMounted(() => {
 .product-bottom {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .product-price {
@@ -2157,7 +2157,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .pick-qty {
@@ -2186,8 +2186,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24rpx 0;
-  gap: 12rpx;
+  padding: $uni-spacing-base 0;
+  gap: $uni-spacing-sm;
 }
 
 .loading-more-spinner {
@@ -2230,7 +2230,7 @@ onMounted(() => {
 .loading-text {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
 }
 
 /* 空状态 */
@@ -2250,8 +2250,8 @@ onMounted(() => {
 .ship-summary {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  padding: 12rpx 0;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-sm 0;
 }
 .ship-row {
   display: flex;
@@ -2268,7 +2268,7 @@ onMounted(() => {
   font-weight: 500;
 }
 .ship-tip {
-  margin-top: 12rpx;
+  margin-top: $uni-spacing-sm;
   font-size: 24rpx;
   color: $uni-gray-400;
 }

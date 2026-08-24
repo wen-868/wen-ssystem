@@ -267,9 +267,9 @@ async function onVerify() {
 .tr-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
+  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -367,18 +367,18 @@ async function onVerify() {
 /* 结果区 */
 .tr-result {
   height: calc(100vh - 240rpx - env(safe-area-inset-top));
-  padding: 8rpx 28rpx 40rpx;
+  padding: $uni-spacing-xs $uni-spacing-base 40rpx;
   box-sizing: border-box;
 }
 
 /* 防伪验证结果横幅 */
 .tr-verify-banner {
   border-radius: $uni-border-radius-base;
-  padding: 24rpx 28rpx;
-  margin-bottom: 20rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .tr-verify--success {
@@ -429,8 +429,8 @@ async function onVerify() {
 .tr-card {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-base;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -439,7 +439,7 @@ async function onVerify() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .tr-card-title {
@@ -452,8 +452,8 @@ async function onVerify() {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24rpx;
-  padding: 14rpx 0;
+  gap: $uni-spacing-base;
+  padding: $uni-spacing-sm 0;
 }
 
 .tr-label {
@@ -548,7 +548,7 @@ async function onVerify() {
 
 .tr-tl-item {
   display: flex;
-  gap: 20rpx;
+  gap: $uni-spacing-md;
 }
 
 .tr-tl-left {
@@ -582,14 +582,14 @@ async function onVerify() {
 
 .tr-tl-body {
   flex: 1;
-  padding-bottom: 28rpx;
+  padding-bottom: $uni-spacing-base;
 }
 
 .tr-tl-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .tr-tl-type {
@@ -614,8 +614,8 @@ async function onVerify() {
 .tr-tl-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8rpx 20rpx;
-  margin-top: 8rpx;
+  gap: $uni-spacing-xs $uni-spacing-md;
+  margin-top: $uni-spacing-xs;
 }
 
 .tr-tl-meta-item {
@@ -634,7 +634,7 @@ async function onVerify() {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -645,6 +645,6 @@ async function onVerify() {
 .empty-sub {
   font-size: 24rpx;
   color: $uni-gray-200;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 </style>

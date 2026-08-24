@@ -217,18 +217,18 @@ onMounted(() => {
 }
 
 .form-content {
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .form-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .form-item {
-  margin-bottom: 32rpx;
+  margin-bottom: $uni-spacing-lg;
 }
 
 .form-item:last-child {
@@ -239,7 +239,7 @@ onMounted(() => {
   font-size: 28rpx;
   color: $uni-gray-700;
   font-weight: 600;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 
@@ -251,8 +251,8 @@ onMounted(() => {
   width: 100%;
   height: 88rpx;
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 30rpx;
   color: $uni-gray-700;
 }
@@ -280,8 +280,8 @@ onMounted(() => {
   width: 100%;
   height: 160rpx;
   background: $uni-gray-50;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
   font-size: 30rpx;
   color: $uni-gray-700;
 }

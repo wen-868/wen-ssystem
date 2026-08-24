@@ -213,13 +213,13 @@ onMounted(() => {
 .type-tab--active { background: $uni-color-primary; }
 .type-tab--active .type-tab-text { color: $uni-text-color-inverse; }
 .type-tab-text { font-size: 24rpx; color: $uni-gray-500; }
-.anomaly-list { padding: 16rpx 32rpx; height: calc(100vh - 340rpx); }
+.anomaly-list { padding: $uni-spacing-sm $uni-spacing-lg; height: calc(100vh - 340rpx); }
 .anomaly-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex;
@@ -229,7 +229,7 @@ onMounted(() => {
 }
 .header-left { display: flex; align-items: center; gap: 12rpx; flex: 1; }
 .product-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; flex: 1; }
-.anomaly-type { padding: 4rpx 14rpx; border-radius: 8rpx; font-size: 22rpx; flex-shrink: 0; }
+.anomaly-type { padding: 4rpx $uni-spacing-sm; border-radius: 8rpx; font-size: 22rpx; flex-shrink: 0; }
 .type-below { background: $uni-color-error-soft; color: $uni-color-error; }
 .type-zero { background: $uni-color-warning-soft; color: $uni-color-warning; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
@@ -238,15 +238,15 @@ onMounted(() => {
 .info-value { font-size: 24rpx; color: $uni-gray-600; }
 .price-row {
   display: flex;
-  margin-top: 12rpx;
-  padding-top: 16rpx;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 .price-cell { flex: 1; display: flex; flex-direction: column; gap: 6rpx; align-items: center; }
 .price-label { font-size: 22rpx; color: $uni-gray-400; }
 .price-value { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; }
 .price-danger { color: $uni-color-error; }
-.load-more { padding: 20rpx 0; text-align: center; }
+.load-more { padding: $uni-spacing-md 0; text-align: center; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state {
   display: flex;
@@ -254,6 +254,6 @@ onMounted(() => {
   align-items: center;
   padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-200; margin-bottom: 16rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-200; margin-bottom: $uni-spacing-sm; }
 .empty-text { font-size: 26rpx; color: $uni-gray-400; }
 </style>

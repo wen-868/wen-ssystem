@@ -135,13 +135,13 @@ onLoad((options: any) => {
 .store-edit-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 140rpx; }
 .page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.form-section { background: $uni-bg-color; margin: 16rpx 24rpx; border-radius: 16rpx; padding: 8rpx 32rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.form-item { display: flex; align-items: center; padding: 24rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
+.form-section { background: $uni-bg-color; margin: $uni-spacing-sm $uni-spacing-base; border-radius: $uni-border-radius-xs; padding: $uni-spacing-xs $uni-spacing-lg; box-shadow: $uni-shadow-card-sm; }
+.form-item { display: flex; align-items: center; padding: $uni-spacing-base 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .form-item:last-child { border-bottom: none; }
 .form-item--textarea { flex-direction: column; align-items: stretch; }
-.form-item--switch { gap: 16rpx; }
+.form-item--switch { gap: $uni-spacing-sm; }
 .form-label { font-size: 28rpx; color: $uni-gray-700; width: 160rpx; flex-shrink: 0; }
-.form-item--textarea .form-label { margin-bottom: 16rpx; width: auto; }
+.form-item--textarea .form-label { margin-bottom: $uni-spacing-sm; width: auto; }
 .form-input { flex: 1; height: 60rpx; font-size: 28rpx; color: $uni-gray-700; }
 .form-textarea { width: 100%; min-height: 120rpx; font-size: 28rpx; color: $uni-gray-700; }
 .switch-text { font-size: 26rpx; color: $uni-gray-400; }
