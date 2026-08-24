@@ -110,7 +110,7 @@ const filteredDataTools = computed(() => {
 })
 
 const filteredGroups = computed(() => {
-  const base = filterGroupsByModules(allowedModules.value)
+  const base = filterGroupsByModules(allowedModules.value, false)
   const k = keyword.value.trim().toLowerCase()
   if (!k) return base
   return base

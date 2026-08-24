@@ -24,6 +24,8 @@ export interface FunctionGroup {
   id: string
   title: string
   items: FunctionItem[]
+  /** 门店/系统管理等后台类分组：功能中心(功能tab 全部功能)不展示，归「我的」页 */
+  admin?: boolean
 }
 
 const DEFAULT_ICON = '/static/icons/fn-more.svg'
@@ -111,6 +113,7 @@ export const functionMenu: FunctionGroup[] = [
   {
     id: 'store',
     title: '门店组织',
+    admin: true,
     items: [
       { code: 'store:list', label: '门店管理', path: '/pages-sub/admin/stores/stores', icon: '/static/icons/fn-store.svg', hot: true, inProfile: true },
       { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg', inProfile: true },
@@ -120,6 +123,7 @@ export const functionMenu: FunctionGroup[] = [
   {
     id: 'system',
     title: '系统设置',
+    admin: true,
     items: [
       { code: 'system:print', label: '单据打印', path: '/pages-sub/admin/print/print-records', icon: '/static/icons/fn-print.svg', hot: true, inProfile: true },
       { code: 'system:config', label: '系统设置', path: '/pages-sub/admin/settings/settings', icon: '/static/icons/fn-setting.svg', inProfile: true },
@@ -161,15 +165,20 @@ export const allGroups: FunctionGroup[] = homeGroups
  * 若 allowedModules 为空/未传 → 回退全量（避免误隐藏）。
  */
 export function filterGroupsByModules(
-  allowedModules: Set<string> | null | undefined
+  allowedModules: Set<string> | null | undefined,
+  includeAdmin = true
 ): FunctionGroup[] {
-  if (!allowedModules || allowedModules.size === 0) return allGroups
-  return allGroups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((it) => allowedModules.has(it.code.split(':')[0])),
-    }))
-    .filter((g) => g.items.length > 0)
+  let base = allGroups
+  if (allowedModules && allowedModules.size > 0) {
+    base = allGroups
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((it) => allowedModules.has(it.code.split(':')[0])),
+      }))
+      .filter((g) => g.items.length > 0)
+  }
+  if (!includeAdmin) base = base.filter((g) => !g.admin)
+  return base
 }
 
 /** 按模块前缀过滤单个条目列表（高频宫格/数据工具） */

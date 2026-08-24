@@ -76,6 +76,14 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/more/more-functions')">
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-more.svg" mode="aspectFit" /></view>
+          <view class="li-body">
+            <text class="li-title">更多功能</text>
+            <text class="li-desc">角色、日志、报表权限等全部功能</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
         <view class="list-item" @tap="navigateTo('/pages/notifications/notifications')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-consume.svg" mode="aspectFit" /></view>
           <view class="li-body">
