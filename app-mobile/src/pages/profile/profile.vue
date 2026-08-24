@@ -76,11 +76,27 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/more/more-functions')">
-          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-more.svg" mode="aspectFit" /></view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/roles/roles')">
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
           <view class="li-body">
-            <text class="li-title">更多功能</text>
-            <text class="li-desc">角色、日志、报表权限等全部功能</text>
+            <text class="li-title">角色管理</text>
+            <text class="li-desc">角色与权限分配</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/system/operation-logs')">
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-consume.svg" mode="aspectFit" /></view>
+          <view class="li-body">
+            <text class="li-title">操作日志</text>
+            <text class="li-desc">系统操作记录</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/report-permission/index')">
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-setting.svg" mode="aspectFit" /></view>
+          <view class="li-body">
+            <text class="li-title">报表权限</text>
+            <text class="li-desc">报表数据权限配置</text>
           </view>
           <text class="li-arrow">›</text>
         </view>

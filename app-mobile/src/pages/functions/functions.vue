@@ -239,11 +239,13 @@ onShow(() => {
   height: 40rpx;
 }
 
-.fg-label {
-  font-size: 22rpx;
-  color: $uni-gray-600;
-  font-weight: 500;
-}
+  .fg-label {
+    font-size: 28rpx;
+    color: $uni-text-color;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+  }
 
 /* 搜索无结果空态 */
 .func-empty {
