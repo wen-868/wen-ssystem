@@ -16,6 +16,8 @@ export interface FunctionItem {
   sub?: string
   hot?: boolean
   tool?: boolean
+  /** 已放入「我的」页：功能中心隐藏展示（仅调整显示位置，不删数据源） */
+  inProfile?: boolean
 }
 
 export interface FunctionGroup {
@@ -44,7 +46,7 @@ export const functionMenu: FunctionGroup[] = [
       { code: 'goods:price', label: '价格管理', path: '/pages-sub/product/price/price-manage', icon: '/static/icons/fn-price.svg' },
       { code: 'goods:batch', label: '批次管理', path: '/pages-sub/product/batches/batch-list', icon: '/static/icons/fn-batch.svg' },
       { code: 'goods:inventory', label: '库存管理', path: '/pages-sub/product/inventory/inventory', icon: '/static/icons/fn-stockin.svg', hot: true },
-      { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg' },
+      { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg', inProfile: true },
       { code: 'goods:stock-check', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', icon: '/static/icons/fn-check.svg', hot: true },
       { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-loss-gain.svg' },
     ],
@@ -87,7 +89,7 @@ export const functionMenu: FunctionGroup[] = [
     items: [
       { code: 'finance:receipt', label: '收款管理', path: '/pages-sub/finance/receipts/receipts', icon: '/static/icons/fn-settle.svg' },
       { code: 'finance:receivable', label: '应收账款', path: '/pages-sub/finance/receivable/receivable', icon: '/static/icons/fn-receivable.svg' },
-      { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true },
+      { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true, inProfile: true },
       { code: 'finance:expenses', label: '费用支出', path: '/pages-sub/finance/finance/expenses', icon: '/static/icons/fn-expense.svg' },
       { code: 'finance:statement', label: '对账单', path: '/pages-sub/finance/statements/statements', icon: '/static/icons/fn-statement.svg' },
       { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-transfer.svg' },
@@ -110,8 +112,8 @@ export const functionMenu: FunctionGroup[] = [
     id: 'store',
     title: '门店组织',
     items: [
-      { code: 'store:list', label: '门店管理', path: '/pages-sub/admin/stores/stores', icon: '/static/icons/fn-store.svg', hot: true },
-      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg' },
+      { code: 'store:list', label: '门店管理', path: '/pages-sub/admin/stores/stores', icon: '/static/icons/fn-store.svg', hot: true, inProfile: true },
+      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg', inProfile: true },
       { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-role.svg' },
     ],
   },
@@ -119,8 +121,8 @@ export const functionMenu: FunctionGroup[] = [
     id: 'system',
     title: '系统设置',
     items: [
-      { code: 'system:print', label: '单据打印', path: '/pages-sub/admin/print/print-records', icon: '/static/icons/fn-print.svg', hot: true },
-      { code: 'system:config', label: '系统设置', path: '/pages-sub/admin/settings/settings', icon: '/static/icons/fn-setting.svg' },
+      { code: 'system:print', label: '单据打印', path: '/pages-sub/admin/print/print-records', icon: '/static/icons/fn-print.svg', hot: true, inProfile: true },
+      { code: 'system:config', label: '系统设置', path: '/pages-sub/admin/settings/settings', icon: '/static/icons/fn-setting.svg', inProfile: true },
       { code: 'system:operation-log', label: '操作日志', path: '/pages-sub/admin/system/operation-logs', icon: '/static/icons/fn-log.svg' },
       { code: 'system:permission', label: '报表权限', path: '/pages-sub/admin/report-permission/index', icon: '/static/icons/fn-permission.svg' },
       { code: 'system:more', label: '更多功能', path: '/pages-sub/admin/more/more-functions', icon: '/static/icons/fn-more.svg' },
@@ -128,10 +130,15 @@ export const functionMenu: FunctionGroup[] = [
   },
 ]
 
+/** 功能中心展示用分组（剔除已放入「我的」页的 inProfile 项；空分组一并去掉） */
+const homeGroups: FunctionGroup[] = functionMenu
+  .map((g) => ({ ...g, items: g.items.filter((it) => !it.inProfile) }))
+  .filter((g) => g.items.length > 0)
+
 /** 高频宫格（首页「功能」tab 顶部）：只取 hot 项，最多若干 */
 export const hotActions: FunctionItem[] = (() => {
   const hot: FunctionItem[] = []
-  for (const g of functionMenu) {
+  for (const g of homeGroups) {
     for (const it of g.items) if (it.hot) hot.push(it)
   }
   return hot.slice(0, 8)
@@ -140,14 +147,14 @@ export const hotActions: FunctionItem[] = (() => {
 /** 数据 · 工具（带 sub 副标题的分类） */
 export const dataTools: FunctionItem[] = (() => {
   const tools: FunctionItem[] = []
-  for (const g of functionMenu) {
+  for (const g of homeGroups) {
     for (const it of g.items) if (it.tool) tools.push(it)
   }
   return tools
 })()
 
 /** 全部功能（分组的完整列表，供「更多」页与搜索用） */
-export const allGroups: FunctionGroup[] = functionMenu
+export const allGroups: FunctionGroup[] = homeGroups
 
 /**
  * 按「允许的模块前缀」过滤注册表（角色过滤）。
