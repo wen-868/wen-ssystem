@@ -31,7 +31,9 @@ function onBack() {
 
 <style lang="scss" scoped>
 .zx-page-header {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   width: 100%;
   padding-top: env(safe-area-inset-top);
   background: #ffffff;
