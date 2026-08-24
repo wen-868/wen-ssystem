@@ -68,11 +68,23 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
-import { hotActions, dataTools, searchFunctions, type FunctionItem } from '@/config/function-menu'
+import {
+  hotActions,
+  dataTools,
+  filterGroupsByModules,
+  filterItemsByModules,
+  type FunctionItem,
+} from '@/config/function-menu'
+import { getUserMenus, toAllowedModules } from '@/api/modules/menu'
 import { AI_BG_SOFT, AI_TAB_ACTIVE } from '@/constants/colors'
 
 const keyword = ref('')
+const allowedModules = ref<Set<string> | undefined>(undefined)
+/** 按角色过滤后的高频 / 数据工具 */
+const roleHotActions = computed(() => filterItemsByModules(hotActions, allowedModules.value))
+const roleDataTools = computed(() => filterItemsByModules(dataTools, allowedModules.value))
 
 const navigate = (path: string) => {
   if (path) {
@@ -85,17 +97,31 @@ const goto = (path: string) => navigate(path)
 /** 真实搜索：按关键词过滤宫格与工具列表，无匹配显示空态 */
 const filteredHotActions = computed(() => {
   const k = keyword.value.trim().toLowerCase()
-  if (!k) return hotActions
-  return hotActions.filter((a) => a.label.toLowerCase().includes(k))
+  if (!k) return roleHotActions.value
+  return roleHotActions.value.filter((a) => a.label.toLowerCase().includes(k))
 })
 
 const filteredDataTools = computed(() => {
   const k = keyword.value.trim().toLowerCase()
-  if (!k) return dataTools
-  return dataTools.filter((a) => a.label.toLowerCase().includes(k) || a.sub.toLowerCase().includes(k))
+  if (!k) return roleDataTools.value
+  return roleDataTools.value.filter(
+    (a) => a.label.toLowerCase().includes(k) || a.sub!.toLowerCase().includes(k)
+  )
 })
 
-const filteredGroups = computed(() => searchFunctions(keyword.value).groups)
+const filteredGroups = computed(() => {
+  const base = filterGroupsByModules(allowedModules.value)
+  const k = keyword.value.trim().toLowerCase()
+  if (!k) return base
+  return base
+    .map((g) => ({
+      ...g,
+      items: g.items.filter(
+        (it) => it.label.toLowerCase().includes(k) || (it.sub || '').toLowerCase().includes(k)
+      ),
+    }))
+    .filter((g) => g.items.length > 0)
+})
 
 const hasResults = computed(
   () =>
@@ -115,6 +141,20 @@ function itemColor(_item: FunctionItem, _idx?: number) {
 function doSearch() {
   // 确认搜索：结果由 computed 实时渲染，无需额外处理
 }
+
+/** 角色过滤：拉取当前用户可见菜单 → 模块前缀集合；失败空则回退全量 */
+async function loadRoleMenus() {
+  try {
+    const menus = await getUserMenus()
+    allowedModules.value = toAllowedModules(menus)
+  } catch {
+    allowedModules.value = undefined
+  }
+}
+
+onShow(() => {
+  loadRoleMenus()
+})
 </script>
 
 <style lang="scss" scoped>

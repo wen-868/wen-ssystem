@@ -7,7 +7,7 @@
     <view class="mf-section">
       <text class="mf-section-title">高频功能</text>
       <view class="mf-grid">
-        <view class="mf-grid-item" v-for="(item, idx) in hotActions" :key="item.code" @tap="goto(item.path)">
+        <view class="mf-grid-item" v-for="(item, idx) in roleHotActions" :key="item.code" @tap="goto(item.path)">
           <view class="mf-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
             <image v-if="item.icon.startsWith('/static')" class="mf-ico-img" :src="item.icon" mode="aspectFit" />
             <text v-else class="mf-ico-text">{{ item.icon }}</text>
@@ -21,7 +21,7 @@
     <view class="mf-section">
       <text class="mf-section-title">数据 · 工具</text>
       <view class="mf-list">
-        <view class="mf-list-item" v-for="(item, idx) in dataTools" :key="item.code" @tap="goto(item.path)">
+        <view class="mf-list-item" v-for="(item, idx) in roleDataTools" :key="item.code" @tap="goto(item.path)">
           <view class="mf-li-ico" :style="{ background: itemBg(item, idx), color: itemColor(item, idx) }">
             <image v-if="item.icon.startsWith('/static')" class="mf-li-ico-img" :src="item.icon" mode="aspectFit" />
             <text v-else class="mf-li-ico-text">{{ item.icon }}</text>
@@ -36,7 +36,7 @@
     </view>
 
     <!-- 全部功能（数据驱动，按模块分组） -->
-    <view class="mf-section" v-for="g in allGroups" :key="g.id">
+    <view class="mf-section" v-for="g in filteredGroups" :key="g.id">
       <text class="mf-section-title">{{ g.title }}</text>
       <view class="mf-list">
         <view class="mf-list-item" v-for="(item, idx) in g.items" :key="item.code" @tap="goto(item.path)">
@@ -58,12 +58,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import {
   hotActions,
   dataTools,
-  allGroups,
+  filterGroupsByModules,
+  filterItemsByModules,
   type FunctionItem,
 } from '@/config/function-menu'
+import { getUserMenus, toAllowedModules } from '@/api/modules/menu'
 import {
   AI_BG_SOFT,
   AI_TAB_ACTIVE,
@@ -74,6 +78,11 @@ import {
   AI_DANGER,
   AI_DANGER_SOFT,
 } from '@/constants/colors'
+
+const allowedModules = ref<Set<string> | undefined>(undefined)
+const roleHotActions = computed(() => filterItemsByModules(hotActions, allowedModules.value))
+const roleDataTools = computed(() => filterItemsByModules(dataTools, allowedModules.value))
+const filteredGroups = computed(() => filterGroupsByModules(allowedModules.value))
 
 /** 图标配色：按序循环蓝/绿/橙/红软底（沿用原稿观感） */
 const PALETTE = [
@@ -103,6 +112,20 @@ function goto(path: string) {
     uni.navigateTo({ url: path })
   }
 }
+
+/** 角色过滤：拉取当前用户可见菜单 → 模块前缀集合；失败空则回退全量 */
+async function loadRoleMenus() {
+  try {
+    const menus = await getUserMenus()
+    allowedModules.value = toAllowedModules(menus)
+  } catch {
+    allowedModules.value = undefined
+  }
+}
+
+onShow(() => {
+  loadRoleMenus()
+})
 </script>
 
 <style lang="scss" scoped>

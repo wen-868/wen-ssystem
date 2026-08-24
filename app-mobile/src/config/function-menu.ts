@@ -39,21 +39,21 @@ export const functionMenu: FunctionGroup[] = [
     id: 'goods',
     title: '商品库存',
     items: [
-      { code: 'goods:list', label: '商品列表', path: '/pages/products/products', icon: '/static/icons/fn-inventory.svg' },
-      { code: 'goods:category', label: '商品分类', path: '/pages-sub/product/categories/categories', icon: '/static/icons/fn-batch.svg' },
+      { code: 'goods:list', label: '商品列表', path: '/pages/products/products', icon: '/static/icons/fn-product.svg' },
+      { code: 'goods:category', label: '商品分类', path: '/pages-sub/product/categories/categories', icon: '/static/icons/fn-category.svg' },
       { code: 'goods:price', label: '价格管理', path: '/pages-sub/product/price/price-manage', icon: '/static/icons/fn-price.svg' },
       { code: 'goods:batch', label: '批次管理', path: '/pages-sub/product/batches/batch-list', icon: '/static/icons/fn-batch.svg' },
       { code: 'goods:inventory', label: '库存管理', path: '/pages-sub/product/inventory/inventory', icon: '/static/icons/fn-stockin.svg', hot: true },
       { code: 'goods:stock-warning', label: '库存预警', path: '/pages-sub/product/stock-warning/stock-warning', icon: '/static/icons/fn-alert.svg' },
       { code: 'goods:stock-check', label: '盘点调拨', path: '/pages-sub/product/stock-check/stock-checks', icon: '/static/icons/fn-check.svg', hot: true },
-      { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-batch.svg' },
+      { code: 'goods:loss-gain', label: '报损报益', path: '/pages-sub/finance/loss-gain/loss-gain-report', icon: '/static/icons/fn-loss-gain.svg' },
     ],
   },
   {
     id: 'purchase',
     title: '采购供应商',
     items: [
-      { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-stockin.svg' },
+      { code: 'purchase:order', label: '采购订单', path: '/pages-sub/finance/purchase/orders', icon: '/static/icons/fn-purchase-order.svg' },
       { code: 'purchase:inbound', label: '进货入库', path: '/pages-sub/finance/purchase/in-stock', icon: '/static/icons/fn-stockin.svg', hot: true },
       { code: 'purchase:supplier', label: '供应商管理', path: '/pages-sub/product/suppliers/suppliers', icon: '/static/icons/fn-supplier.svg' },
     ],
@@ -63,22 +63,22 @@ export const functionMenu: FunctionGroup[] = [
     title: '客户会员',
     items: [
       { code: 'customer:list', label: '会员管理', path: '/pages-sub/marketing/member/member-list', icon: '/static/icons/fn-member.svg', hot: true },
-      { code: 'customer:level', label: '会员等级', path: '/pages-sub/marketing/member-levels/member-levels', icon: '/static/icons/fn-member.svg' },
-      { code: 'customer:points', label: '积分管理', path: '/pages-sub/marketing/points/points-detail', icon: '/static/icons/fn-member.svg' },
-      { code: 'customer:stored-card', label: '储值卡', path: '/pages-sub/marketing/stored-cards/stored-cards', icon: '/static/icons/fn-member.svg' },
-      { code: 'customer:address', label: '收货地址', path: '/pages-sub/marketing/member/address', icon: '/static/icons/fn-member.svg' },
+      { code: 'customer:level', label: '会员等级', path: '/pages-sub/marketing/member-levels/member-levels', icon: '/static/icons/fn-level.svg' },
+      { code: 'customer:points', label: '积分管理', path: '/pages-sub/marketing/points/points-detail', icon: '/static/icons/fn-points.svg' },
+      { code: 'customer:stored-card', label: '储值卡', path: '/pages-sub/marketing/stored-cards/stored-cards', icon: '/static/icons/fn-stored-card.svg' },
+      { code: 'customer:address', label: '收货地址', path: '/pages-sub/marketing/member/address', icon: '/static/icons/fn-address.svg' },
     ],
   },
   {
     id: 'marketing',
     title: '营销活动',
     items: [
-      { code: 'marketing:coupon', label: '优惠券', path: '/pages-sub/marketing/marketing/coupons', icon: '/static/icons/fn-batch.svg' },
-      { code: 'marketing:activities', label: '营销活动', path: '/pages-sub/marketing/marketing/activities', icon: '/static/icons/fn-batch.svg' },
-      { code: 'marketing:seckill', label: '秒杀活动', path: '/pages-sub/marketing/marketing/seckill-list', icon: '/static/icons/fn-batch.svg' },
-      { code: 'marketing:group-buy', label: '拼团活动', path: '/pages-sub/marketing/marketing/group-buy-list', icon: '/static/icons/fn-batch.svg' },
-      { code: 'marketing:bargain', label: '砍价活动', path: '/pages-sub/marketing/marketing/bargain-list', icon: '/static/icons/fn-batch.svg' },
-      { code: 'marketing:community', label: '社区营销', path: '/pages-sub/marketing/marketing/community-activities', icon: '/static/icons/fn-batch.svg' },
+      { code: 'marketing:coupon', label: '优惠券', path: '/pages-sub/marketing/marketing/coupons', icon: '/static/icons/fn-coupon.svg' },
+      { code: 'marketing:activities', label: '营销活动', path: '/pages-sub/marketing/marketing/activities', icon: '/static/icons/fn-activity.svg' },
+      { code: 'marketing:seckill', label: '秒杀活动', path: '/pages-sub/marketing/marketing/seckill-list', icon: '/static/icons/fn-flash.svg' },
+      { code: 'marketing:group-buy', label: '拼团活动', path: '/pages-sub/marketing/marketing/group-buy-list', icon: '/static/icons/fn-group-buy.svg' },
+      { code: 'marketing:bargain', label: '砍价活动', path: '/pages-sub/marketing/marketing/bargain-list', icon: '/static/icons/fn-bargain.svg' },
+      { code: 'marketing:community', label: '社区营销', path: '/pages-sub/marketing/marketing/community-activities', icon: '/static/icons/fn-community.svg' },
     ],
   },
   {
@@ -86,11 +86,11 @@ export const functionMenu: FunctionGroup[] = [
     title: '财务对账',
     items: [
       { code: 'finance:receipt', label: '收款管理', path: '/pages-sub/finance/receipts/receipts', icon: '/static/icons/fn-settle.svg' },
-      { code: 'finance:receivable', label: '应收账款', path: '/pages-sub/finance/receivable/receivable', icon: '/static/icons/fn-settle.svg' },
+      { code: 'finance:receivable', label: '应收账款', path: '/pages-sub/finance/receivable/receivable', icon: '/static/icons/fn-receivable.svg' },
       { code: 'finance:reconciliation', label: '收银对账', path: '/pages-sub/finance/reconciliation/reconciliation', icon: '/static/icons/fn-settle.svg', hot: true },
-      { code: 'finance:expenses', label: '费用支出', path: '/pages-sub/finance/finance/expenses', icon: '/static/icons/fn-settle.svg' },
-      { code: 'finance:statement', label: '对账单', path: '/pages-sub/finance/statements/statements', icon: '/static/icons/fn-settle.svg' },
-      { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-check.svg' },
+      { code: 'finance:expenses', label: '费用支出', path: '/pages-sub/finance/finance/expenses', icon: '/static/icons/fn-expense.svg' },
+      { code: 'finance:statement', label: '对账单', path: '/pages-sub/finance/statements/statements', icon: '/static/icons/fn-statement.svg' },
+      { code: 'finance:transfer', label: '门店调拨', path: '/pages-sub/finance/transfer/transfer', icon: '/static/icons/fn-transfer.svg' },
     ],
   },
   {
@@ -111,8 +111,8 @@ export const functionMenu: FunctionGroup[] = [
     title: '门店组织',
     items: [
       { code: 'store:list', label: '门店管理', path: '/pages-sub/admin/stores/stores', icon: '/static/icons/fn-store.svg', hot: true },
-      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-store.svg' },
-      { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-store.svg' },
+      { code: 'store:employees', label: '员工管理', path: '/pages-sub/admin/admin/employees', icon: '/static/icons/fn-staff.svg' },
+      { code: 'store:roles', label: '角色管理', path: '/pages-sub/admin/roles/roles', icon: '/static/icons/fn-role.svg' },
     ],
   },
   {
@@ -120,9 +120,9 @@ export const functionMenu: FunctionGroup[] = [
     title: '系统设置',
     items: [
       { code: 'system:print', label: '单据打印', path: '/pages-sub/admin/print/print-records', icon: '/static/icons/fn-print.svg', hot: true },
-      { code: 'system:config', label: '系统设置', path: '/pages-sub/admin/settings/settings', icon: '/static/icons/fn-more.svg' },
-      { code: 'system:operation-log', label: '操作日志', path: '/pages-sub/admin/system/operation-logs', icon: '/static/icons/fn-more.svg' },
-      { code: 'system:permission', label: '报表权限', path: '/pages-sub/admin/report-permission/index', icon: '/static/icons/fn-more.svg' },
+      { code: 'system:config', label: '系统设置', path: '/pages-sub/admin/settings/settings', icon: '/static/icons/fn-setting.svg' },
+      { code: 'system:operation-log', label: '操作日志', path: '/pages-sub/admin/system/operation-logs', icon: '/static/icons/fn-log.svg' },
+      { code: 'system:permission', label: '报表权限', path: '/pages-sub/admin/report-permission/index', icon: '/static/icons/fn-permission.svg' },
       { code: 'system:more', label: '更多功能', path: '/pages-sub/admin/more/more-functions', icon: '/static/icons/fn-more.svg' },
     ],
   },
@@ -148,6 +148,31 @@ export const dataTools: FunctionItem[] = (() => {
 
 /** 全部功能（分组的完整列表，供「更多」页与搜索用） */
 export const allGroups: FunctionGroup[] = functionMenu
+
+/**
+ * 按「允许的模块前缀」过滤注册表（角色过滤）。
+ * 若 allowedModules 为空/未传 → 回退全量（避免误隐藏）。
+ */
+export function filterGroupsByModules(
+  allowedModules: Set<string> | null | undefined
+): FunctionGroup[] {
+  if (!allowedModules || allowedModules.size === 0) return allGroups
+  return allGroups
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((it) => allowedModules.has(it.code.split(':')[0])),
+    }))
+    .filter((g) => g.items.length > 0)
+}
+
+/** 按模块前缀过滤单个条目列表（高频宫格/数据工具） */
+export function filterItemsByModules(
+  items: FunctionItem[],
+  allowedModules: Set<string> | null | undefined
+): FunctionItem[] {
+  if (!allowedModules || allowedModules.size === 0) return items
+  return items.filter((it) => allowedModules.has(it.code.split(':')[0]))
+}
 
 /** 搜索：按 label / sub 过滤所有分组项 */
 export function searchFunctions(keyword: string): { groups: FunctionGroup[]; total: number } {
