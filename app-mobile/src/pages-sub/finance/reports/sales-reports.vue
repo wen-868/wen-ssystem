@@ -404,23 +404,23 @@ onMounted(() => {
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .filter-form {
-  margin: 16rpx 24rpx;
+  margin: $uni-spacing-sm $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 20rpx 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .filter-row {
   display: flex;
-  gap: 24rpx;
-  padding: 12rpx 0;
+  gap: $uni-spacing-base;
+  padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .filter-row:last-of-type { border-bottom: none; }
 .filter-item {
   flex: 1;
   display: flex; flex-direction: column;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .filter-label { font-size: 22rpx; color: $uni-gray-400; }
 .filter-value { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
@@ -443,12 +443,12 @@ onMounted(() => {
   border: none;
 }
 .query-btn::after { border: none; }
-.summary-section { padding: 0 32rpx 24rpx; }
+.summary-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .summary-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
   position: relative;
   overflow: hidden;
 }
@@ -464,18 +464,18 @@ onMounted(() => {
 .summary-row {
   display: flex;
   align-items: center;
-  padding: 8rpx 0;
+  padding: $uni-spacing-xs 0;
 }
 .summary-row--second {
   border-top: 1rpx dashed $uni-gray-100;
-  margin-top: 16rpx;
-  padding-top: 24rpx;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-base;
 }
 .summary-item {
   flex: 1;
   display: flex; flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .summary-value { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
 .summary-value--profit { color: $uni-color-success; }
@@ -484,12 +484,12 @@ onMounted(() => {
   width: 1rpx; height: 48rpx;
   background: $uni-gray-100;
 }
-.chart-section { padding: 0 32rpx 24rpx; }
+.chart-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .chart-placeholder {
   background: $uni-bg-color;
@@ -504,26 +504,26 @@ onMounted(() => {
 }
 .chart-icon { font-size: 64rpx; color: $uni-gray-300; }
 .chart-text { font-size: 26rpx; color: $uni-gray-300; }
-.category-section { padding: 0 32rpx 24rpx; }
+.category-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .category-list {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 32rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-lg;
+  box-shadow: $uni-shadow-card-sm;
 }
 .category-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .category-item:last-child { border-bottom: none; }
 .category-info {
   flex: 1;
   display: flex; flex-direction: column;
-  gap: 12rpx;
-  margin-right: 24rpx;
+  gap: $uni-spacing-sm;
+  margin-right: $uni-spacing-base;
 }
 .category-name { font-size: 26rpx; color: $uni-gray-700; font-weight: 500; }
 .category-bar-wrap {
@@ -546,7 +546,7 @@ onMounted(() => {
 }
 .category-amount { font-size: 26rpx; color: $uni-color-error; font-weight: 600; }
 .category-percent { font-size: 22rpx; color: $uni-gray-400; }
-.export-section { padding: 0 32rpx; }
+.export-section { padding: 0 $uni-spacing-lg; }
 .export-btn {
   width: 100%;
   height: 80rpx;
@@ -590,18 +590,18 @@ onMounted(() => {
 }
 
 /* 销售排行（对齐原稿 rpt-rank） */
-.rank-section { padding: 0 32rpx 24rpx; }
+.rank-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .rank-list {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 0 32rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-lg;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 .rank-item {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 24rpx 0;
+  gap: $uni-spacing-md;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 .rank-item:last-child { border-bottom: none; }

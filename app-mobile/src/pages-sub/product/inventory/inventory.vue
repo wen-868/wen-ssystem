@@ -219,8 +219,8 @@ onMounted(() => {
 .inv-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
   padding-top: calc(24rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
@@ -251,15 +251,15 @@ onMounted(() => {
 /* 统计 */
 .inv-stats {
   display: flex;
-  gap: 20rpx;
-  margin: 28rpx 28rpx 0;
+  gap: $uni-spacing-md;
+  margin: $uni-spacing-base $uni-spacing-base 0;
 }
 
 .inv-stat {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx 16rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
@@ -281,17 +281,17 @@ onMounted(() => {
   display: block;
   font-size: 22rpx;
   color: $uni-gray-400;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 /* 快捷操作 */
 .inv-actions {
   display: flex;
-  gap: 20rpx;
-  margin: 28rpx 28rpx 0;
+  gap: $uni-spacing-md;
+  margin: $uni-spacing-base $uni-spacing-base 0;
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx 16rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-base $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -301,7 +301,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .inv-act:active {
@@ -311,7 +311,7 @@ onMounted(() => {
 .inv-act-ico {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   background: $uni-color-primary-soft;
   display: flex;
   align-items: center;
@@ -333,8 +333,8 @@ onMounted(() => {
 .section-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin: 32rpx 32rpx 8rpx;
+  gap: $uni-spacing-sm;
+  margin: $uni-spacing-lg $uni-spacing-lg $uni-spacing-xs;
 }
 
 .section-title--clickable:active {
@@ -350,10 +350,10 @@ onMounted(() => {
 .st-count {
   min-width: 32rpx;
   height: 32rpx;
-  padding: 0 8rpx;
-  border-radius: 16rpx;
+  padding: 0 $uni-spacing-xs;
+  border-radius: $uni-border-radius-xs;
   background: $uni-color-error;
-  color: #fff;
+  color: $uni-text-color-inverse;
   font-size: 20rpx;
   line-height: 32rpx;
   text-align: center;
@@ -414,27 +414,27 @@ onMounted(() => {
 
 /* 库存列表 */
 .inventory-list {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .inventory-card {
   display: flex;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-md;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
 .card-left {
-  margin-right: 20rpx;
+  margin-right: $uni-spacing-md;
   flex-shrink: 0;
 }
 
 .product-image-wrap {
   width: 120rpx;
   height: 120rpx;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   background: $uni-bg-color-page;
 }
@@ -474,7 +474,7 @@ onMounted(() => {
   font-weight: 600;
   color: $uni-gray-700;
   flex: 1;
-  margin-right: 12rpx;
+  margin-right: $uni-spacing-sm;
 }
 
 .stock-status {
@@ -494,13 +494,13 @@ onMounted(() => {
 .status-danger .status-text { color: $uni-color-error; }
 
 .stock-info {
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .stock-row {
   display: flex;
   align-items: center;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
 }
 
 .stock-label {
@@ -558,7 +558,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

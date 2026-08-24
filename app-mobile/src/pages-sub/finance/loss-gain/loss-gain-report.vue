@@ -343,25 +343,25 @@ onMounted(() => {
 
 /* 总览卡片 */
 .overview-section {
-  padding: 20rpx 32rpx;
+  padding: $uni-spacing-md $uni-spacing-lg;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .overview-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 28rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   display: flex;
   align-items: center;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: $uni-shadow-card-sm;
 }
 .overview-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .overview-value {
   font-size: 40rpx;
@@ -382,16 +382,16 @@ onMounted(() => {
 /* 区块卡片 */
 .section-card {
   background: $uni-bg-color;
-  margin: 0 24rpx 20rpx;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  margin: 0 $uni-spacing-base $uni-spacing-md;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-title {
   font-size: 30rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 24rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 /* 状态统计 */
@@ -420,21 +420,21 @@ onMounted(() => {
 .status-stat-value { font-size: 32rpx; font-weight: 600; color: $uni-gray-700; }
 
 /* 条形图 */
-.bar-chart { display: flex; flex-direction: column; gap: 20rpx; }
+.bar-chart { display: flex; flex-direction: column; gap: $uni-spacing-md; }
 .bar-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .bar-label { width: 100rpx; font-size: 24rpx; color: $uni-gray-500; flex-shrink: 0; }
 .bar-track {
   flex: 1;
   height: 24rpx;
   background: $uni-bg-color-grey;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
-.bar-fill { height: 100%; border-radius: 12rpx; transition: width 0.3s; }
+.bar-fill { height: 100%; border-radius: $uni-border-radius-xs; transition: width 0.3s; }
 .bar-fill--warning { background: linear-gradient(90deg, $uni-color-warning, $uni-color-warning); }
 .bar-fill--success { background: linear-gradient(90deg, $uni-color-success, $uni-color-success); }
 .bar-fill--danger { background: linear-gradient(90deg, $uni-color-error, $uni-color-error); }
@@ -446,14 +446,14 @@ onMounted(() => {
   justify-content: space-around;
   align-items: flex-end;
   height: 300rpx;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
 }
 .trend-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 .trend-bars {
   display: flex;
@@ -479,12 +479,12 @@ onMounted(() => {
 .trend-legend {
   display: flex;
   justify-content: center;
-  gap: 32rpx;
-  margin-top: 16rpx;
-  padding-top: 16rpx;
+  gap: $uni-spacing-lg;
+  margin-top: $uni-spacing-sm;
+  padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
 }
-.legend-item { display: flex; align-items: center; gap: 8rpx; }
+.legend-item { display: flex; align-items: center; gap: $uni-spacing-xs; }
 .legend-dot { width: 16rpx; height: 16rpx; border-radius: 4rpx; }
 .legend-dot--danger { background: $uni-color-error; }
 .legend-dot--success { background: $uni-color-success; }
@@ -514,11 +514,11 @@ onMounted(() => {
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
 }
 
-.reason-list { display: flex; flex-direction: column; gap: 20rpx; }
+.reason-list { display: flex; flex-direction: column; gap: $uni-spacing-md; }
 .reason-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .reason-info { width: 120rpx; flex-shrink: 0; }
 .reason-name { font-size: 26rpx; color: $uni-gray-700; display: block; }
@@ -536,14 +536,14 @@ onMounted(() => {
 .reason-amount { width: 120rpx; font-size: 24rpx; color: $uni-gray-700; text-align: right; flex-shrink: 0; }
 
 /* 商品排行 */
-.product-list { display: flex; flex-direction: column; gap: 20rpx; }
+.product-list { display: flex; flex-direction: column; gap: $uni-spacing-md; }
 .product-item {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 16rpx;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 .product-rank {
   width: 40rpx;
@@ -578,7 +578,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 24rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
   box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);

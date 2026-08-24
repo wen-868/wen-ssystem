@@ -108,6 +108,8 @@ $uni-shadow-sm: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 6rpx rgba(0, 0, 0, 0.03
 $uni-shadow-base: 0 16rpx 60rpx rgba(0, 0, 0, 0.06), 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
 $uni-shadow-lg: 0 24rpx 80rpx rgba(0, 0, 0, 0.08), 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
 $uni-shadow-card: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 6rpx rgba(0, 0, 0, 0.03);
+/* 精确等值 token：原硬编码卡片阴影 0 2rpx 12rpx rgba(0,0,0,0.04) 的 token 化映射，保证零回归 */
+$uni-shadow-card-sm: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 $uni-shadow-focus: 0 0 0 6rpx rgba(37, 99, 235, 0.15);
 
 /* Motion */

@@ -260,13 +260,13 @@ onMounted(() => {
 .filter-btn { width: 64rpx; height: 64rpx; display: flex; align-items: center; justify-content: center; background: $uni-bg-color-page; border-radius: 50%; }
 .filter-icon { font-size: 28rpx; color: $uni-gray-500; }
 
-.filter-panel { background: $uni-bg-color; padding: 20rpx 24rpx; border-bottom: 1rpx solid $uni-gray-100; }
-.filter-row { display: flex; align-items: center; margin-bottom: 20rpx; }
+.filter-panel { background: $uni-bg-color; padding: $uni-spacing-md $uni-spacing-base; border-bottom: 1rpx solid $uni-gray-100; }
+.filter-row { display: flex; align-items: center; margin-bottom: $uni-spacing-md; }
 .filter-label { font-size: 26rpx; color: $uni-gray-500; width: 140rpx; flex-shrink: 0; }
 .filter-values { flex: 1; display: flex; align-items: center; }
-.date-picker { flex: 1; height: 64rpx; line-height: 64rpx; background: $uni-bg-color-page; border-radius: 12rpx; text-align: center; font-size: 26rpx; color: $uni-gray-700; }
-.date-sep { margin: 0 16rpx; font-size: 26rpx; color: $uni-gray-400; }
-.filter-actions { display: flex; gap: 16rpx; margin-top: 24rpx; }
+.date-picker { flex: 1; height: 64rpx; line-height: 64rpx; background: $uni-bg-color-page; border-radius: $uni-border-radius-xs; text-align: center; font-size: 26rpx; color: $uni-gray-700; }
+.date-sep { margin: 0 $uni-spacing-sm; font-size: 26rpx; color: $uni-gray-400; }
+.filter-actions { display: flex; gap: $uni-spacing-sm; margin-top: $uni-spacing-base; }
 .filter-btn-reset { flex: 1; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; font-size: 28rpx; background: $uni-bg-color-page; color: $uni-gray-500; border: none; }
 .filter-btn-confirm { flex: 1; height: 72rpx; line-height: 72rpx; border-radius: 36rpx; font-size: 28rpx; background: $uni-color-primary; color: $uni-text-color-inverse; border: none; }
 
@@ -274,8 +274,8 @@ onMounted(() => {
 .status-item { display: inline-flex; padding: 12rpx 28rpx; margin: 0 8rpx; border-radius: 32rpx; background: $uni-bg-color-page; font-size: 26rpx; color: $uni-gray-500; }
 .status-item--active { background: $uni-color-primary; color: $uni-text-color-inverse; font-weight: 600; }
 
-.order-scroll { flex: 1; padding: 16rpx 32rpx; }
-.order-card { background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
+.order-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; }
+.order-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .order-no { font-size: 26rpx; color: $uni-gray-400; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
@@ -287,17 +287,17 @@ onMounted(() => {
 .status-tag--approved .status-tag-text { color: $uni-color-success; }
 .status-tag--rejected .status-tag-text { color: $uni-color-error; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
-.goods-info { margin-bottom: 8rpx; }
+.goods-info { margin-bottom: $uni-spacing-xs; }
 .goods-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
-.goods-more { font-size: 24rpx; color: $uni-gray-400; font-weight: 400; margin-left: 8rpx; }
+.goods-more { font-size: 24rpx; color: $uni-gray-400; font-weight: 400; margin-left: $uni-spacing-xs; }
 .info-row { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
 .info-value--danger { color: $uni-color-error; font-weight: 600; }
-.load-more { text-align: center; padding: 24rpx 0; }
+.load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 200rpx 0; }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.4); }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }

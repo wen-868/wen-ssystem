@@ -282,9 +282,9 @@ loadCustomer()
 .tab-item--active::after { content: ''; position: absolute; bottom: 0; left: 30%; right: 30%; height: 4rpx; background: $uni-color-primary; border-radius: 2rpx; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
-.content-scroll { flex: 1; padding: 0 32rpx; }
-.recon-card { position: relative; background: $uni-bg-color; border-radius: 16rpx; padding: 24rpx; margin-bottom: 20rpx; margin-top: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); }
-.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
+.content-scroll { flex: 1; padding: 0 $uni-spacing-lg; }
+.recon-card { position: relative; background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; margin-top: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm; }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; padding-bottom: $uni-spacing-sm; border-bottom: 1rpx solid $uni-gray-100; }
 .party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
 .status-tag--pending { background: rgba(250,173,20,0.1); }
@@ -295,7 +295,7 @@ loadCustomer()
 .status-tag--confirmed .status-tag-text { color: $uni-color-success; }
 .status-tag--disputed .status-tag-text { color: $uni-color-error; }
 .card-body { }
-.amount-row { display: flex; gap: 16rpx; }
+.amount-row { display: flex; gap: $uni-spacing-sm; }
 .amount-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .amount-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: 6rpx; }
 .amount-value { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; }
@@ -303,32 +303,32 @@ loadCustomer()
 .text-success { color: $uni-color-success; }
 .card-arrow { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); }
 .arrow-icon { font-size: 28rpx; color: $uni-gray-300; }
-.load-more { text-align: center; padding: 24rpx 0; }
+.load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 100rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 .detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: flex-end; }
-.detail-content { width: 100%; max-height: 80vh; background: $uni-bg-color; border-radius: 24rpx 24rpx 0 0; display: flex; flex-direction: column; }
+.detail-content { width: 100%; max-height: 80vh; background: $uni-bg-color; border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0; display: flex; flex-direction: column; }
 .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .detail-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .close-btn { font-size: 32rpx; color: $uni-gray-400; padding: 8rpx 16rpx; }
-.detail-scroll { flex: 1; max-height: 50vh; padding: 16rpx 32rpx; }
-.detail-info { padding: 16rpx 0; border-bottom: 1rpx solid $uni-gray-100; }
-.detail-row { display: flex; justify-content: space-between; padding: 8rpx 0; }
+.detail-scroll { flex: 1; max-height: 50vh; padding: $uni-spacing-sm $uni-spacing-lg; }
+.detail-info { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-gray-100; }
+.detail-row { display: flex; justify-content: space-between; padding: $uni-spacing-xs 0; }
 .detail-label { font-size: 26rpx; color: $uni-gray-400; }
 .detail-value { font-size: 28rpx; color: $uni-gray-700; font-weight: 500; }
-.records-section { padding: 16rpx 0; }
-.records-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; display: block; margin-bottom: 12rpx; }
-.record-item { padding: 16rpx 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
-.record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }
+.records-section { padding: $uni-spacing-sm 0; }
+.records-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; display: block; margin-bottom: $uni-spacing-sm; }
+.record-item { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
+.record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-xs; }
 .record-no { font-size: 26rpx; color: $uni-gray-700; }
-.record-type { font-size: 22rpx; color: $uni-color-primary; background: rgba(22,119,255,0.08); padding: 2rpx 12rpx; border-radius: 6rpx; }
+.record-type { font-size: 22rpx; color: $uni-color-primary; background: rgba(22,119,255,0.08); padding: 2rpx $uni-spacing-sm; border-radius: 6rpx; }
 .record-info { display: flex; justify-content: space-between; }
 .record-amount { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .record-date { font-size: 22rpx; color: $uni-gray-400; }
 .record-remark { font-size: 22rpx; color: $uni-gray-400; margin-top: 4rpx; }
-.detail-bottom { padding: 16rpx 32rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid $uni-gray-100; }
+.detail-bottom { padding: $uni-spacing-sm $uni-spacing-lg; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid $uni-gray-100; }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
 .btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }

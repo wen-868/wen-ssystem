@@ -558,8 +558,8 @@ onMounted(() => {
 .ord-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
   padding-top: calc(24rpx + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
@@ -686,7 +686,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -695,7 +695,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .filter-item--action {
@@ -738,7 +738,7 @@ onMounted(() => {
 
 .order-list {
   flex: 1;
-  padding: 20rpx 28rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
 }
 
 .loading-overlay {
@@ -765,14 +765,14 @@ onMounted(() => {
 .loading-text {
   font-size: 26rpx;
   color: $uni-gray-400;
-  margin-top: 20rpx;
+  margin-top: $uni-spacing-md;
 }
 
 .order-card {
   background: $uni-bg-color;
-  border-radius: 32rpx;
-  padding: 28rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-base;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
   transition: all 0.2s ease;
@@ -817,7 +817,7 @@ onMounted(() => {
 .status-gray .status-text { color: $uni-gray-500; }
 
 .order-card-body {
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .order-items {
@@ -840,7 +840,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 20rpx;
+  padding-bottom: $uni-spacing-md;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
@@ -852,12 +852,12 @@ onMounted(() => {
 .order-card-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 16rpx;
-  padding-top: 20rpx;
+  gap: $uni-spacing-sm;
+  padding-top: $uni-spacing-md;
 }
 
 .ord-action {
-  padding: 10rpx 32rpx;
+  padding: 10rpx $uni-spacing-lg;
   border-radius: 999rpx;
   border: 1rpx solid $uni-border-color;
 }
@@ -897,7 +897,7 @@ onMounted(() => {
 .empty-icon {
   width: 120rpx;
   height: 120rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {
@@ -909,8 +909,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24rpx 0;
-  gap: 12rpx;
+  padding: $uni-spacing-base 0;
+  gap: $uni-spacing-sm;
 }
 
 .loading-more-spinner {
@@ -979,7 +979,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 28rpx 32rpx;
+  padding: $uni-spacing-base $uni-spacing-lg;
   border-bottom: 1rpx solid $uni-gray-50;
 }
 
@@ -1000,14 +1000,14 @@ onMounted(() => {
 
 /* 日期选择弹窗 */
 .date-picker-content {
-  padding: 24rpx 32rpx;
+  padding: $uni-spacing-base $uni-spacing-lg;
 }
 
 .date-picker-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -1019,7 +1019,7 @@ onMounted(() => {
 .date-picker-value {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   font-size: 28rpx;
   color: $uni-gray-700;
 }
@@ -1031,8 +1031,8 @@ onMounted(() => {
 
 .date-quick-options {
   display: flex;
-  gap: 16rpx;
-  padding: 24rpx 0;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base 0;
 }
 
 .quick-btn {
@@ -1052,8 +1052,8 @@ onMounted(() => {
 
 .date-picker-actions {
   display: flex;
-  gap: 24rpx;
-  padding-top: 16rpx;
+  gap: $uni-spacing-base;
+  padding-top: $uni-spacing-sm;
 }
 
 .picker-cancel-btn,

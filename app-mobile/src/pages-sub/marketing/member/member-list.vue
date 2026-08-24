@@ -203,14 +203,14 @@ onMounted(() => load(true))
 
 .stats-grid {
   display: flex;
-  gap: 20rpx;
-  padding: 20rpx 24rpx;
+  gap: $uni-spacing-md;
+  padding: $uni-spacing-md $uni-spacing-base;
 }
 .stats-card {
   flex: 1;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 28rpx 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base $uni-spacing-md;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -238,7 +238,7 @@ onMounted(() => load(true))
   color: $uni-color-primary;
 }
 .stats-label {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
   font-size: 22rpx;
   color: $uni-gray-400;
 }
@@ -251,7 +251,7 @@ onMounted(() => load(true))
   font-size: 24rpx;
   font-weight: 600;
   color: $uni-gray-500;
-  padding: 24rpx 28rpx 12rpx;
+  padding: $uni-spacing-base $uni-spacing-base $uni-spacing-sm;
 }
 .search-input-wrap {
   display: flex;
@@ -275,15 +275,15 @@ onMounted(() => load(true))
 
 .member-scroll {
   flex: 1;
-  padding: 0 32rpx;
+  padding: 0 $uni-spacing-lg;
 }
 .member-item {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 26rpx;
-  margin-bottom: 20rpx;
+  background: $uni-gray-0;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.03);
 }
 .member-avatar {
@@ -304,8 +304,8 @@ onMounted(() => load(true))
 .member-info {
   flex: 1;
   min-width: 0;
-  margin-left: 24rpx;
-  margin-right: 14rpx;
+  margin-left: $uni-spacing-base;
+  margin-right: $uni-spacing-sm;
   overflow: hidden;
 }
 .member-name-row {
@@ -345,7 +345,7 @@ onMounted(() => load(true))
   background: $uni-bg-color-soft;
 }
 .member-meta {
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 .meta-text {
   font-size: 22rpx;
@@ -358,7 +358,7 @@ onMounted(() => load(true))
   justify-content: flex-end;
   align-self: flex-end;
   flex-shrink: 0;
-  margin-left: 14rpx;
+  margin-left: $uni-spacing-sm;
   padding-bottom: 2rpx;
 }
 .consume-label {
@@ -384,7 +384,7 @@ onMounted(() => load(true))
 }
 .load-more {
   text-align: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 .load-more-text {
   color: #9ca3af;
