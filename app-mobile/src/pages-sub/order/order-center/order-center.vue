@@ -43,26 +43,26 @@
           </view>
         </view>
         <view class="order-body">
-          <view class="order-info">
-            <text class="info-label">客户</text>
-            <text class="info-value">{{ item.customerName }}</text>
-          </view>
-          <view class="order-info">
-            <text class="info-label">商品数</text>
-            <text class="info-value">{{ item.itemCount }} 种</text>
-          </view>
-          <view class="order-info">
-            <text class="info-label">订单金额</text>
-            <text class="info-value info-value--price">¥{{ item.totalAmount }}</text>
-          </view>
-          <view class="order-info" v-if="item.channel">
-            <text class="info-label">渠道</text>
-            <text class="info-value">{{ item.channel }}</text>
-          </view>
-          <view class="order-info">
-            <text class="info-label">下单时间</text>
-            <text class="info-value">{{ item.createTime }}</text>
-          </view>
+<view class="order-info">
+  <text class="info-label">客户</text>
+  <view class="info-value"><text>{{ item.customerName }}</text></view>
+</view>
+<view class="order-info">
+  <text class="info-label">商品数</text>
+  <view class="info-value"><text>{{ item.itemCount }} 种</text></view>
+</view>
+<view class="order-info">
+  <text class="info-label">订单金额</text>
+  <view class="info-value info-value--price"><text>¥{{ item.totalAmount }}</text></view>
+</view>
+<view class="order-info" v-if="item.channel">
+  <text class="info-label">渠道</text>
+  <view class="info-value"><text>{{ item.channel }}</text></view>
+</view>
+<view class="order-info">
+  <text class="info-label">下单时间</text>
+  <view class="info-value"><text>{{ item.createTime }}</text></view>
+</view>
         </view>
         <view class="order-actions">
           <button class="action-btn detail-btn" @tap="goDetail(item)">详情</button>
@@ -233,8 +233,9 @@ onMounted(() => { loadOrders() })
 .order-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
 .order-info { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; min-width: 0; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; flex-shrink: 0; }
-.info-value { font-size: 26rpx; color: $uni-gray-700; flex: 1; min-width: 0; display: block; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.info-value--price { color: $uni-color-primary; font-weight: 600; }
+.info-value { flex: 1; min-width: 0; display: flex; justify-content: flex-end; align-items: center; overflow: hidden; }
+.info-value text { display: block; font-size: 26rpx; color: $uni-gray-700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-value--price text { color: $uni-color-primary; font-weight: 600; }
 .order-actions { margin-top: $uni-spacing-sm; display: flex; gap: $uni-spacing-sm; }
 .action-btn {
   flex: 1;
