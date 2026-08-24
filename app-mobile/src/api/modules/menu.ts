@@ -1,4 +1,4 @@
-import { get } from '../request'
+import { request } from '../request'
 
 /** 后端 GET /admin/menus/user 返回的菜单节点（t_sys_menu） */
 export interface MenuItem {
@@ -16,7 +16,8 @@ export interface MenuItem {
 
 /** 当前用户可见菜单（按角色过滤；超管全量；失败不阻断回退全量） */
 export async function getUserMenus(): Promise<MenuItem[]> {
-  return get<MenuItem[]>('/admin/menus/user')
+  // silent：接口未就绪/网络异常时静默失败，调用方回退全量，不弹「资源不存在」等丑 toast
+  return request<MenuItem[]>({ url: '/admin/menus/user', method: 'GET', silent: true })
 }
 
 /** 拍平菜单树 → 取模块前缀集合（如 goods / sale / finance） */
