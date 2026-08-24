@@ -411,7 +411,8 @@ onMounted(() => {
   box-shadow: $uni-shadow-card-sm;
 }
 .filter-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: $uni-spacing-base;
   padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;

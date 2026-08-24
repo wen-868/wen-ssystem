@@ -170,7 +170,8 @@ onMounted(() => { loadReportData() })
   box-shadow: $uni-shadow-card-sm;
 }
 .filter-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: $uni-spacing-base;
   padding: $uni-spacing-sm 0;
 }
