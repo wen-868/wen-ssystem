@@ -329,17 +329,17 @@ onUnmounted(() => {
 
 .product-section {
   background: $uni-bg-color;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-image-wrap {
   width: 100%;
   height: 400rpx;
   position: relative;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .product-image {
@@ -408,7 +408,7 @@ onUnmounted(() => {
 }
 
 .product-info {
-  padding: 0 8rpx;
+  padding: 0 $uni-spacing-xs;
 }
 
 .product-name {
@@ -416,14 +416,14 @@ onUnmounted(() => {
   font-weight: 600;
   color: $uni-gray-700;
   line-height: 1.4;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .price-row {
   display: flex;
   align-items: baseline;
-  gap: 8rpx;
-  margin-bottom: 20rpx;
+  gap: $uni-spacing-xs;
+  margin-bottom: $uni-spacing-md;
 }
 
 .seckill-price-symbol {
@@ -442,7 +442,7 @@ onUnmounted(() => {
   font-size: 26rpx;
   color: $uni-gray-300;
   text-decoration: line-through;
-  margin-left: 12rpx;
+  margin-left: $uni-spacing-sm;
 }
 
 .discount-tag {
@@ -462,7 +462,7 @@ onUnmounted(() => {
   display: flex;
   background: $uni-gray-50;
   border-radius: 8rpx;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .stock-item {
@@ -495,8 +495,8 @@ onUnmounted(() => {
 
 .stock-progress-section {
   background: $uni-bg-color;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .progress-header {
@@ -540,8 +540,8 @@ onUnmounted(() => {
 
 .section {
   background: $uni-bg-color;
-  margin-bottom: 16rpx;
-  padding: 24rpx;
+  margin-bottom: $uni-spacing-sm;
+  padding: $uni-spacing-base;
 }
 
 .section-header {
@@ -567,7 +567,7 @@ onUnmounted(() => {
 .time-info {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .time-row {
@@ -589,13 +589,13 @@ onUnmounted(() => {
 .rule-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .rule-item {
   display: flex;
   align-items: flex-start;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .rule-dot {
@@ -614,14 +614,14 @@ onUnmounted(() => {
 .product-detail {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 16rpx;
+  padding-bottom: $uni-spacing-sm;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 

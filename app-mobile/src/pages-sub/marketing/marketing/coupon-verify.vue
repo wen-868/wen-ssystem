@@ -177,7 +177,7 @@ async function doVerify() {
 .verify-page {
   min-height: 100vh;
   background: $uni-color-primary-soft;
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 .mode-tabs {
   display: flex;
@@ -206,8 +206,8 @@ async function doVerify() {
 }
 .form-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 12rpx 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-sm $uni-spacing-base;
 }
 .form-row {
   display: flex;
@@ -226,8 +226,8 @@ async function doVerify() {
   font-size: 26rpx;
   color: $uni-gray-700;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-md;
 }
 .form-placeholder {
   color: $uni-gray-300;
@@ -243,10 +243,10 @@ async function doVerify() {
   border-radius: 40rpx;
 }
 .result-card {
-  margin-top: 24rpx;
+  margin-top: $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
 }
 .result-header {
   padding: 16rpx 0 24rpx;
@@ -281,7 +281,7 @@ async function doVerify() {
 }
 .result-msg {
   display: block;
-  padding: 24rpx 0 8rpx;
+  padding: $uni-spacing-base 0 $uni-spacing-xs;
   font-size: 26rpx;
   color: $uni-color-error;
 }

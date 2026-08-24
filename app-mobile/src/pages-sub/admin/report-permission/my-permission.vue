@@ -242,9 +242,9 @@ onMounted(() => {
 }
 
 .section {
-  margin: 24rpx;
+  margin: $uni-spacing-base;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -291,7 +291,7 @@ onMounted(() => {
 .role-empty {
   width: 100%;
   text-align: center;
-  padding: 20rpx 0;
+  padding: $uni-spacing-md 0;
 }
 
 .empty-text {
@@ -302,14 +302,14 @@ onMounted(() => {
 .scope-card {
   display: flex;
   align-items: center;
-  padding: 24rpx;
-  gap: 20rpx;
+  padding: $uni-spacing-base;
+  gap: $uni-spacing-md;
 }
 
 .scope-icon {
   width: 72rpx;
   height: 72rpx;
-  border-radius: 20rpx;
+  border-radius: $uni-border-radius-xs;
   background: linear-gradient(135deg, $uni-color-success, $uni-color-success);
   display: flex;
   align-items: center;
@@ -341,7 +341,7 @@ onMounted(() => {
 }
 
 .store-list-wrap {
-  padding: 0 32rpx 24rpx;
+  padding: 0 $uni-spacing-lg $uni-spacing-base;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -349,7 +349,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .title-text {
@@ -366,17 +366,17 @@ onMounted(() => {
 .store-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .store-item {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   width: calc(50% - 6rpx);
-  padding: 12rpx 16rpx;
+  padding: $uni-spacing-sm $uni-spacing-sm;
   background: $uni-gray-50;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .store-dot {
@@ -414,14 +414,14 @@ onMounted(() => {
 
 .category-list {
   display: inline-flex;
-  padding: 16rpx 32rpx;
-  gap: 12rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
+  gap: $uni-spacing-sm;
 }
 
 .category-item {
-  padding: 10rpx 24rpx;
+  padding: 10rpx $uni-spacing-base;
   background: $uni-bg-color-grey;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
 }
 
 .category-item.active {
@@ -438,14 +438,14 @@ onMounted(() => {
 }
 
 .perm-list {
-  padding: 8rpx 0;
+  padding: $uni-spacing-xs 0;
 }
 
 .perm-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20rpx 24rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 

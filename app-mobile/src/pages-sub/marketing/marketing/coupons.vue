@@ -222,9 +222,9 @@ onMounted(() => { loadCoupons() })
 .tab-item--active .tab-text { color: $uni-text-color-inverse; }
 .tab-text { font-size: 22rpx; color: $uni-gray-500; }
 .create-section {
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .create-btn {
   flex: 1; height: 80rpx;
@@ -244,18 +244,18 @@ onMounted(() => { loadCoupons() })
   border: none;
 }
 .verify-entry-btn::after { border: none; }
-.coupon-list { padding: 0 32rpx 24rpx; }
+.coupon-list { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .coupon-card {
   display: flex; background: $uni-bg-color;
-  border-radius: 16rpx; overflow: hidden;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs; overflow: hidden;
+  margin-bottom: $uni-spacing-md;
+  box-shadow: $uni-shadow-card-sm;
 }
 .coupon-left {
   width: 200rpx;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 24rpx 16rpx;
+  padding: $uni-spacing-base $uni-spacing-sm;
   position: relative;
 }
 .coupon-left::after {
@@ -271,13 +271,13 @@ onMounted(() => { loadCoupons() })
 .coupon-shipping { background: linear-gradient(135deg, $uni-color-success, $uni-color-success); }
 .coupon-amount {
   display: flex; align-items: baseline;
-  color: $uni-text-color-inverse; margin-bottom: 8rpx;
+  color: $uni-text-color-inverse; margin-bottom: $uni-spacing-xs;
 }
 .amount-symbol { font-size: 24rpx; margin-right: 4rpx; }
 .amount-value { font-size: 48rpx; font-weight: 700; }
 .coupon-condition { font-size: 20rpx; color: rgba(255,255,255,0.85); }
 .coupon-right {
-  flex: 1; padding: 20rpx 24rpx;
+  flex: 1; padding: $uni-spacing-md $uni-spacing-base;
   display: flex; flex-direction: column;
   justify-content: space-between;
 }
@@ -287,13 +287,13 @@ onMounted(() => { loadCoupons() })
 .coupon-meta { margin-top: 4rpx; }
 .meta-text { font-size: 22rpx; color: $uni-gray-400; }
 .coupon-stats {
-  display: flex; gap: 24rpx;
-  margin-top: 8rpx;
+  display: flex; gap: $uni-spacing-base;
+  margin-top: $uni-spacing-xs;
 }
 .stat-item { font-size: 22rpx; color: $uni-gray-500; }
 .coupon-actions {
-  display: flex; gap: 12rpx;
-  margin-top: 12rpx;
+  display: flex; gap: $uni-spacing-sm;
+  margin-top: $uni-spacing-sm;
 }
 .mini-btn {
   height: 48rpx; padding: 0 20rpx;
@@ -308,7 +308,7 @@ onMounted(() => { loadCoupons() })
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

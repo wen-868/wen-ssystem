@@ -357,10 +357,10 @@ onMounted(() => {
 
 .product-section {
   background: $uni-bg-color;
-  padding: 24rpx;
+  padding: $uni-spacing-base;
   display: flex;
-  gap: 24rpx;
-  margin-bottom: 16rpx;
+  gap: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .product-image-wrap {
@@ -368,7 +368,7 @@ onMounted(() => {
   height: 200rpx;
   flex-shrink: 0;
   position: relative;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
 }
 
@@ -418,7 +418,7 @@ onMounted(() => {
 .price-row {
   display: flex;
   align-items: flex-end;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 
 .price-main {
@@ -455,7 +455,7 @@ onMounted(() => {
   align-items: center;
   background: $uni-gray-50;
   border-radius: 8rpx;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .stat-item {
@@ -485,8 +485,8 @@ onMounted(() => {
 
 .section {
   background: $uni-bg-color;
-  margin-bottom: 16rpx;
-  padding: 24rpx;
+  margin-bottom: $uni-spacing-sm;
+  padding: $uni-spacing-base;
 }
 
 .section-header {
@@ -511,8 +511,8 @@ onMounted(() => {
 
 .bargain-progress-card {
   background: linear-gradient(135deg, $uni-color-error-soft, $uni-color-warning-soft);
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
 }
 
 .progress-header {
@@ -534,7 +534,7 @@ onMounted(() => {
 }
 
 .progress-bar-wrap {
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .progress-bar {
@@ -554,7 +554,7 @@ onMounted(() => {
 .progress-info {
   display: flex;
   justify-content: space-between;
-  margin-top: 8rpx;
+  margin-top: $uni-spacing-xs;
 }
 
 .progress-start,
@@ -567,7 +567,7 @@ onMounted(() => {
   text-align: center;
   font-size: 24rpx;
   color: $uni-gray-500;
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .progress-status {
@@ -597,13 +597,13 @@ onMounted(() => {
 .rule-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .rule-item {
   display: flex;
   align-items: flex-start;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 
 .rule-dot {
@@ -622,7 +622,7 @@ onMounted(() => {
 .time-info {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .time-row {
@@ -644,15 +644,15 @@ onMounted(() => {
 .help-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .help-item {
   display: flex;
   align-items: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
   border-bottom: 1rpx solid $uni-bg-color-grey;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .help-item:last-child {

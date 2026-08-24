@@ -218,7 +218,7 @@ onMounted(() => { loadOrders() })
   padding: 0 16rpx 16rpx; gap: 8rpx;
 }
 .platform-item {
-  height: 56rpx; padding: 0 24rpx;
+  height: 56rpx; padding: 0 $uni-spacing-base;
   display: flex; align-items: center; justify-content: center;
   background: $uni-bg-color-page; border-radius: 28rpx;
 }
@@ -244,11 +244,11 @@ onMounted(() => { loadOrders() })
   display: flex; align-items: center; justify-content: center;
   padding: 0 8rpx;
 }
-.order-list { padding: 16rpx 32rpx 24rpx; }
+.order-list { padding: $uni-spacing-sm $uni-spacing-lg $uni-spacing-base; }
 .order-card {
-  background: $uni-bg-color; border-radius: 16rpx;
-  margin-bottom: 20rpx; overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  background: $uni-bg-color; border-radius: $uni-border-radius-xs;
+  margin-bottom: $uni-spacing-md; overflow: hidden;
+  box-shadow: $uni-shadow-card-sm;
 }
 .card-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -268,15 +268,15 @@ onMounted(() => { loadOrders() })
 .status-accepted { color: $uni-color-primary; }
 .status-shipping { color: $uni-color-success; }
 .status-completed { color: $uni-gray-400; }
-.card-body { padding: 20rpx 24rpx; }
+.card-body { padding: $uni-spacing-md $uni-spacing-base; }
 .order-no-row {
   display: flex; justify-content: space-between;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 .order-no { font-size: 24rpx; color: $uni-gray-500; }
 .order-time { font-size: 22rpx; color: $uni-gray-400; }
-.goods-list { display: flex; flex-direction: column; gap: 16rpx; }
-.goods-item { display: flex; align-items: center; gap: 16rpx; }
+.goods-list { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
+.goods-item { display: flex; align-items: center; gap: $uni-spacing-sm; }
 .goods-img {
   width: 80rpx; height: 80rpx;
   border-radius: 8rpx; background: $uni-bg-color-grey;
@@ -293,27 +293,27 @@ onMounted(() => { loadOrders() })
 .order-summary {
   display: flex; justify-content: space-between;
   align-items: center;
-  margin-top: 16rpx; padding-top: 16rpx;
+  margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm;
   border-top: 1rpx dashed $uni-gray-100;
 }
 .summary-text { font-size: 24rpx; color: $uni-gray-400; }
 .summary-total { font-size: 24rpx; color: $uni-gray-500; }
 .total-price { font-size: 30rpx; color: $uni-color-error; font-weight: 700; }
 .card-footer {
-  padding: 16rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   background: $uni-gray-50;
   display: flex; flex-direction: column;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
 }
 .delivery-info {
   font-size: 24rpx; color: $uni-gray-700;
-  display: flex; align-items: center; gap: 8rpx;
+  display: flex; align-items: center; gap: $uni-spacing-xs;
 }
 .delivery-icon { font-size: 24rpx; color: $uni-color-primary; }
 .delivery-address { font-size: 22rpx; color: $uni-gray-400; line-height: 1.4; }
 .card-actions {
-  padding: 16rpx 24rpx;
-  display: flex; justify-content: flex-end; gap: 16rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
+  display: flex; justify-content: flex-end; gap: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
 }
 .action-btn {
@@ -330,7 +330,7 @@ onMounted(() => { loadOrders() })
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
-.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: 20rpx; }
+.empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>

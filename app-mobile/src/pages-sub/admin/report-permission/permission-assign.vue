@@ -347,7 +347,7 @@ onMounted(() => {
 .bar-left {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .back-icon {
@@ -407,21 +407,21 @@ onMounted(() => {
 
 .user-scroll {
   flex: 1;
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .user-list {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .user-card {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -444,7 +444,7 @@ onMounted(() => {
 
 .user-info {
   flex: 1;
-  margin-left: 20rpx;
+  margin-left: $uni-spacing-md;
   display: flex;
   flex-direction: column;
   gap: 6rpx;
@@ -465,7 +465,7 @@ onMounted(() => {
 .user-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
   margin-top: 4rpx;
 }
 
@@ -481,7 +481,7 @@ onMounted(() => {
   font-size: 20rpx;
   color: $uni-gray-500;
   background: $uni-bg-color-grey;
-  padding: 4rpx 12rpx;
+  padding: 4rpx $uni-spacing-sm;
   border-radius: 8rpx;
 }
 
@@ -500,8 +500,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   background: $uni-bg-color;
-  padding: 32rpx 24rpx;
-  margin-bottom: 16rpx;
+  padding: $uni-spacing-lg $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
   border-bottom: 1rpx solid $uni-gray-100;
 }
 
@@ -524,7 +524,7 @@ onMounted(() => {
 
 .user-info-detail {
   flex: 1;
-  margin-left: 20rpx;
+  margin-left: $uni-spacing-md;
   display: flex;
   flex-direction: column;
   gap: 6rpx;
@@ -548,9 +548,9 @@ onMounted(() => {
 }
 
 .change-user {
-  padding: 12rpx 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
   border: 1rpx solid $uni-color-primary;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
   flex-shrink: 0;
 }
 
@@ -560,9 +560,9 @@ onMounted(() => {
 }
 
 .section {
-  margin: 0 24rpx 16rpx;
+  margin: 0 $uni-spacing-base $uni-spacing-sm;
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -588,15 +588,15 @@ onMounted(() => {
 
 .role-checkbox-list,
 .extra-perm-list {
-  padding: 8rpx 0;
+  padding: $uni-spacing-xs 0;
 }
 
 .role-checkbox-item,
 .extra-perm-item {
   display: flex;
   align-items: flex-start;
-  padding: 20rpx 24rpx;
-  gap: 16rpx;
+  padding: $uni-spacing-md $uni-spacing-base;
+  gap: $uni-spacing-sm;
 }
 
 .checkbox {
@@ -644,14 +644,14 @@ onMounted(() => {
 
 .scope-options {
   display: flex;
-  padding: 16rpx 24rpx;
-  gap: 24rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
+  gap: $uni-spacing-base;
 }
 
 .scope-option {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .radio {
@@ -682,7 +682,7 @@ onMounted(() => {
 }
 
 .store-select-wrap {
-  padding: 0 32rpx 24rpx;
+  padding: 0 $uni-spacing-lg $uni-spacing-base;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -745,7 +745,7 @@ onMounted(() => {
 
 .load-more {
   text-align: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
 }
 
 .load-more-text {

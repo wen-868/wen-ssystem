@@ -350,7 +350,7 @@ onMounted(() => {
 .bar-left {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .back-icon {
@@ -366,7 +366,7 @@ onMounted(() => {
 
 .bar-right {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .batch-btn {
@@ -437,14 +437,14 @@ onMounted(() => {
 
 .category-list {
   display: inline-flex;
-  padding: 12rpx 16rpx;
-  gap: 12rpx;
+  padding: $uni-spacing-sm $uni-spacing-sm;
+  gap: $uni-spacing-sm;
 }
 
 .category-item {
-  padding: 10rpx 24rpx;
+  padding: 10rpx $uni-spacing-base;
   background: $uni-bg-color-grey;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
 }
 
 .category-item.active {
@@ -462,12 +462,12 @@ onMounted(() => {
 
 .matrix-scroll {
   flex: 1;
-  padding: 24rpx;
+  padding: $uni-spacing-base;
 }
 
 .matrix-table {
   background: $uni-bg-color;
-  border-radius: 16rpx;
+  border-radius: $uni-border-radius-xs;
   overflow: hidden;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
@@ -501,7 +501,7 @@ onMounted(() => {
 
 .col-report {
   flex: 1;
-  padding: 24rpx 20rpx;
+  padding: $uni-spacing-base $uni-spacing-md;
   display: flex;
   flex-direction: column;
   gap: 6rpx;
@@ -524,7 +524,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24rpx 0;
+  padding: $uni-spacing-base 0;
 }
 
 .table-header .col-permission {
@@ -559,7 +559,7 @@ onMounted(() => {
   width: 100%;
   max-height: 80vh;
   background: $uni-bg-color;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0;
   display: flex;
   flex-direction: column;
 }
@@ -584,7 +584,7 @@ onMounted(() => {
 }
 
 .batch-section {
-  padding: 32rpx 32rpx;
+  padding: $uni-spacing-lg $uni-spacing-lg;
   border-bottom: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -592,22 +592,22 @@ onMounted(() => {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 16rpx;
+  margin-bottom: $uni-spacing-sm;
   display: block;
 }
 
 .checkbox-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 
 .checkbox-item {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
   width: calc(50% - 8rpx);
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
 }
 
 .checkbox {
@@ -638,13 +638,13 @@ onMounted(() => {
 
 .permission-options {
   display: flex;
-  gap: 48rpx;
+  gap: $uni-spacing-xl;
 }
 
 .perm-option {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .perm-label {
@@ -654,9 +654,9 @@ onMounted(() => {
 
 .batch-actions {
   display: flex;
-  gap: 24rpx;
-  padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  gap: $uni-spacing-base;
+  padding: $uni-spacing-base $uni-spacing-lg;
+  padding-bottom: calc($uni-spacing-base + env(safe-area-inset-bottom));
 }
 
 .btn-cancel,

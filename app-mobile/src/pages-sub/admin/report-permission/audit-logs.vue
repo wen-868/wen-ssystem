@@ -259,9 +259,9 @@ onMounted(() => {
 .filter-item {
   flex: 1;
   text-align: center;
-  padding: 12rpx 0;
+  padding: $uni-spacing-sm 0;
   background: $uni-bg-color-grey;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
 }
 
 .filter-text {
@@ -272,7 +272,7 @@ onMounted(() => {
 .filter-divider {
   font-size: 24rpx;
   color: $uni-gray-400;
-  margin: 0 16rpx;
+  margin: 0 $uni-spacing-sm;
 }
 
 /* 操作类型筛选 */
@@ -284,14 +284,14 @@ onMounted(() => {
 
 .type-list {
   display: inline-flex;
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .type-item {
-  padding: 12rpx 24rpx;
-  margin-right: 16rpx;
+  padding: $uni-spacing-sm $uni-spacing-base;
+  margin-right: $uni-spacing-sm;
   background: $uni-bg-color-grey;
-  border-radius: 24rpx;
+  border-radius: $uni-border-radius-sm;
 }
 
 .type-item.active {
@@ -313,14 +313,14 @@ onMounted(() => {
 /* 日志列表 */
 .log-list {
   height: calc(100vh - 360rpx - env(safe-area-inset-bottom));
-  padding: 16rpx 32rpx;
+  padding: $uni-spacing-sm $uni-spacing-lg;
 }
 
 .log-card {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-md;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
@@ -334,7 +334,7 @@ onMounted(() => {
 .log-operator {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 
 .operator-avatar {
@@ -376,15 +376,15 @@ onMounted(() => {
 }
 
 .log-body {
-  margin-bottom: 12rpx;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .log-type-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
+  gap: $uni-spacing-sm;
+  margin-bottom: $uni-spacing-sm;
 }
 
 .type-tag {
@@ -436,7 +436,7 @@ onMounted(() => {
 
 .log-arrow {
   text-align: right;
-  padding-top: 8rpx;
+  padding-top: $uni-spacing-xs;
   border-top: 1rpx solid $uni-bg-color-grey;
 }
 
@@ -456,7 +456,7 @@ onMounted(() => {
 }
 
 .load-more {
-  padding: 30rpx 0;
+  padding: $uni-spacing-lg 0;
   text-align: center;
 }
 

@@ -191,9 +191,9 @@ onMounted(() => {
 .st-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
+  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -223,19 +223,19 @@ onMounted(() => {
 /* 分组 */
 .st-body {
   height: calc(100vh - 220rpx - env(safe-area-inset-top));
-  padding: 20rpx 28rpx 0;
+  padding: $uni-spacing-md $uni-spacing-base 0;
   box-sizing: border-box;
 }
 
 .st-group {
-  margin-bottom: 28rpx;
+  margin-bottom: $uni-spacing-base;
 }
 
 .st-group-hd {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8rpx 14rpx;
+  padding: 0 $uni-spacing-xs $uni-spacing-sm;
 }
 
 .st-group-title {
@@ -261,8 +261,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24rpx;
-  padding: 24rpx;
+  gap: $uni-spacing-base;
+  padding: $uni-spacing-base;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
@@ -301,7 +301,7 @@ onMounted(() => {
   height: 68rpx;
   background: $uni-bg-color-page;
   border-radius: $uni-border-radius-xs;
-  padding: 0 20rpx;
+  padding: 0 $uni-spacing-md;
   font-size: 26rpx;
   color: $uni-gray-700;
   text-align: right;
@@ -319,7 +319,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 16rpx 28rpx calc(16rpx + env(safe-area-inset-bottom));
+  padding: $uni-spacing-sm $uni-spacing-base calc($uni-spacing-sm + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   border-top: 1rpx solid rgba(0, 0, 0, 0.05);
@@ -361,7 +361,7 @@ onMounted(() => {
 .empty-icon {
   font-size: 80rpx;
   color: $uni-gray-300;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 
 .empty-text {

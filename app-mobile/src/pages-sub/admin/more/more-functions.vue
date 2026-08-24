@@ -139,9 +139,9 @@ onShow(() => {
 .mf-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  padding: 24rpx 32rpx 8rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
+  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
   background: $uni-bg-color;
 }
 
@@ -170,7 +170,7 @@ onShow(() => {
 
 /* 区块 */
 .mf-section {
-  margin: 32rpx 28rpx 0;
+  margin: $uni-spacing-lg $uni-spacing-base 0;
 }
 
 .mf-section-title {
@@ -178,7 +178,7 @@ onShow(() => {
   font-size: 24rpx;
   font-weight: 600;
   color: $uni-gray-400;
-  padding: 0 8rpx 16rpx;
+  padding: 0 $uni-spacing-xs $uni-spacing-sm;
   letter-spacing: 1rpx;
 }
 
@@ -188,7 +188,7 @@ onShow(() => {
   grid-template-columns: repeat(4, 1fr);
   background: $uni-bg-color;
   border-radius: $uni-border-radius-base;
-  padding: 24rpx 12rpx;
+  padding: $uni-spacing-base $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
   border: 1rpx solid rgba(0, 0, 0, 0.03);
 }
@@ -197,8 +197,8 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  padding: 20rpx 0;
+  gap: $uni-spacing-sm;
+  padding: $uni-spacing-md 0;
 }
 
 .mf-grid-item:active {
@@ -242,8 +242,8 @@ onShow(() => {
 .mf-list-item {
   display: flex;
   align-items: center;
-  padding: 28rpx 24rpx;
-  gap: 24rpx;
+  padding: $uni-spacing-base $uni-spacing-base;
+  gap: $uni-spacing-base;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 

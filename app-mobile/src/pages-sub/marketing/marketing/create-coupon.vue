@@ -313,32 +313,32 @@ async function onSubmit() {
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
-.coupon-form { padding: 16rpx 24rpx; }
+.coupon-form { padding: $uni-spacing-sm $uni-spacing-base; }
 .form-section {
   background: $uni-bg-color;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  border-radius: $uni-border-radius-xs;
+  padding: $uni-spacing-base;
+  margin-bottom: $uni-spacing-sm;
+  box-shadow: $uni-shadow-card-sm;
 }
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-gray-700;
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 .form-item {
-  margin-bottom: 20rpx;
+  margin-bottom: $uni-spacing-md;
 }
 .form-item--half { flex: 1; }
 .form-row {
   display: flex;
-  gap: 24rpx;
+  gap: $uni-spacing-base;
 }
 .form-label {
   font-size: 26rpx;
   color: $uni-gray-500;
-  margin-bottom: 8rpx;
+  margin-bottom: $uni-spacing-xs;
   display: block;
 }
 .form-control { position: relative; }
@@ -346,28 +346,28 @@ async function onSubmit() {
   width: 100%;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-base;
   font-size: 28rpx;
   color: $uni-gray-700;
   box-sizing: border-box;
 }
 .input-placeholder { color: $uni-gray-300; font-size: 26rpx; }
-.field-error { margin-top: 8rpx; }
+.field-error { margin-top: $uni-spacing-xs; }
 .error-text { font-size: 24rpx; color: $uni-color-error; }
 .type-options {
   display: flex;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .type-option {
   flex: 1;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
+  gap: $uni-spacing-xs;
   border: 2rpx solid transparent;
 }
 .type-option--active {
@@ -385,13 +385,13 @@ async function onSubmit() {
 .time-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: $uni-spacing-sm;
 }
 .time-item {
   flex: 1;
   height: 80rpx;
   background: $uni-bg-color-page;
-  border-radius: 12rpx;
+  border-radius: $uni-border-radius-xs;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -406,13 +406,13 @@ async function onSubmit() {
 }
 .scope-row {
   display: flex;
-  gap: 12rpx;
+  gap: $uni-spacing-sm;
 }
 .scope-option {
   flex: 1;
   height: 64rpx;
   background: $uni-bg-color-page;
-  border-radius: 32rpx;
+  border-radius: $uni-border-radius-base;
   display: flex;
   align-items: center;
   justify-content: center;
