@@ -231,9 +231,9 @@ onMounted(() => { loadOrders() })
 .status-aftersale .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .order-body { display: flex; flex-direction: column; gap: $uni-spacing-sm; }
-.order-info { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: $uni-gray-400; }
-.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.order-info { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; min-width: 0; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; flex-shrink: 0; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; flex: 1; min-width: 0; display: block; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .info-value--price { color: $uni-color-primary; font-weight: 600; }
 .order-actions { margin-top: $uni-spacing-sm; display: flex; gap: $uni-spacing-sm; }
 .action-btn {
