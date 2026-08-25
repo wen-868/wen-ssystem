@@ -1847,7 +1847,7 @@ onMounted(() => {
   height: 80rpx;
   background: $uni-gradient-blue;
   border-radius: 40rpx;
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: $uni-text-color-inverse;
   display: flex;
@@ -1858,6 +1858,15 @@ onMounted(() => {
 
 .submit-btn::after {
   border: none;
+}
+
+/* 次要按钮（ghost：保存/分享）：覆盖主按钮蓝底，白底描边、灰字，与主操作分层 */
+.submit-btn.draft-btn,
+.submit-btn.share-btn {
+  background: $uni-bg-color;
+  border: 2rpx solid $uni-border-color;
+  color: $uni-gray-600;
+  font-weight: 500;
 }
 
 .submit-btn--disabled {
