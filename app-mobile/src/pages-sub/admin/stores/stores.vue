@@ -1,6 +1,29 @@
 <template>
   <view class="stores-page">
-    <page-header title="门店管理" @back="goBack" />
+    <page-header title="企业信息" @back="goBack" />
+
+    <!-- 企业信息卡 -->
+    <view class="ent-card">
+      <text class="ent-card-title">企业信息</text>
+      <view class="ent-row">
+        <text class="info-label">企业名称</text>
+        <text class="info-value">{{ company.companyName || '—' }}</text>
+      </view>
+      <view class="ent-row">
+        <text class="info-label">联系人</text>
+        <text class="info-value">{{ company.contactPerson || '—' }}</text>
+      </view>
+      <view class="ent-row">
+        <text class="info-label">联系电话</text>
+        <text class="info-value">{{ company.contactMobile || '—' }}</text>
+      </view>
+      <view class="ent-row">
+        <text class="info-label">营业执照</text>
+        <text class="info-value">{{ company.businessLicense || '—' }}</text>
+      </view>
+    </view>
+
+    <text class="section-title">门店 / 仓库</text>
 
     <view class="search-bar">
       <input class="search-input" type="text" v-model="keyword" placeholder="搜索门店名称" @confirm="onSearch" />
@@ -65,14 +88,25 @@ function goBack(){ uni.navigateBack() }
 
 import { ref } from 'vue'
 import { storesApi, type StoreInfo } from '@/api/modules/stores'
+import { sysConfigApi } from '@/api/modules/sys-config'
 
 const loading = ref(false)
 const loadingMore = ref(false)
 const list = ref<StoreInfo[]>([])
+const company = ref<{ companyName?: string; contactPerson?: string; contactMobile?: string; businessLicense?: string }>({})
 const keyword = ref('')
 const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
+
+async function loadCompany() {
+  try {
+    const info = await sysConfigApi.getTenantInfo()
+    company.value = info ?? {}
+  } catch {
+    company.value = {}
+  }
+}
 
 async function loadList() {
   if (loading.value) return
@@ -140,6 +174,7 @@ async function toggleStatus(store: StoreInfo) {
   })
 }
 
+loadCompany()
 loadList()
 </script>
 
@@ -147,6 +182,10 @@ loadList()
 .stores-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
 .page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
+.ent-card { margin: $uni-spacing-base $uni-spacing-lg $uni-spacing-sm; padding: $uni-spacing-base; background: $uni-bg-color; border-radius: $uni-border-radius-base; box-shadow: $uni-shadow-card-sm; }
+.ent-card-title { display: block; font-size: 30rpx; font-weight: 700; color: $uni-text-color; margin-bottom: $uni-spacing-sm; }
+.ent-row { display: flex; justify-content: space-between; gap: $uni-spacing-base; padding: $uni-spacing-xs 0; }
+.section-title { display: block; padding: 0 $uni-spacing-lg; margin: $uni-spacing-sm 0 0; font-size: 26rpx; font-weight: 700; color: $uni-gray-500; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }
 .store-scroll { flex: 1; padding: $uni-spacing-sm $uni-spacing-lg; }

@@ -40,8 +40,8 @@
         <view class="list-item" @tap="navigateTo('/pages-sub/admin/stores/stores')">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-store.svg" mode="aspectFit" /></view>
           <view class="li-body">
-            <text class="li-title">门店信息</text>
-            <text class="li-desc">{{ storeName || '门店设置与管理' }}</text>
+            <text class="li-title">企业信息</text>
+            <text class="li-desc">{{ storeName || '企业资料、门店与仓库' }}</text>
           </view>
           <text class="li-arrow">›</text>
         </view>
