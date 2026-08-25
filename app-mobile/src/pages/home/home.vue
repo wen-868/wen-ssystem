@@ -717,16 +717,16 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .hq-ico {
-  width: 96rpx;
-  height: 96rpx;
+  width: 76rpx;
+  height: 76rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .hq-ico-img {
-  width: 68rpx;
-  height: 68rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .hq-label {
