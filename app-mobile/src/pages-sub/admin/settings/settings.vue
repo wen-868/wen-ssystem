@@ -342,8 +342,8 @@ onMounted(() => {
 }
 .st-row-label {
   display: block;
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 500;
   color: $uni-text-color;
 }
 .st-row-key {

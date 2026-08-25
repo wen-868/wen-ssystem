@@ -240,9 +240,9 @@ onShow(() => {
 }
 
   .fg-label {
-    font-size: 26rpx;
+    font-size: 24rpx;
     color: $uni-text-color;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
     text-align: center;
   }
@@ -336,8 +336,8 @@ onShow(() => {
 
 .li-title {
   display: block;
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 500;
   color: $uni-text-color;
 }
 
