@@ -136,6 +136,14 @@ const FEATURE_SECTIONS: FeatureSection[] = [
       { key: 'print', label: '单据打印', desc: '小票、采购、盘点打印设置', control: 'link', link: '/pages-sub/admin/print/print-records' },
     ],
   },
+  {
+    id: 'sys',
+    title: '系统管理',
+    items: [
+      { key: 'oplog', label: '操作日志', desc: '系统操作记录', control: 'link', link: '/pages-sub/admin/system/operation-logs' },
+      { key: 'report_perm', label: '报表权限', desc: '报表数据权限配置', control: 'link', link: '/pages-sub/admin/report-permission/index' },
+    ],
+  },
 ]
 
 const DEFAULTS: Record<string, string> = {
