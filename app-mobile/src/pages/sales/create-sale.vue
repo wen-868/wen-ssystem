@@ -39,14 +39,14 @@
 
       <!-- 出货：对接销售单（只读展示发货对象，不新建发货单/出库单） -->
       <view class="form-section" v-if="docConfig.showShipSummary">
-        <view class="section-title">出货（对接销售单）</view>
+        <view class="section-title">销售单（发货对接）</view>
         <view class="ship-summary">
           <view class="ship-row"><text class="ship-lab">销售单号</text><text class="ship-val">{{ shipBill?.billNo || '—' }}</text></view>
           <view class="ship-row"><text class="ship-lab">客户</text><text class="ship-val">{{ shipBill?.customerName || '—' }}</text></view>
           <view class="ship-row"><text class="ship-lab">商品数</text><text class="ship-val">{{ shipBill?.itemCount ?? '—' }}</text></view>
           <view class="ship-row"><text class="ship-lab">金额</text><text class="ship-val">¥{{ Number(shipBill?.totalAmount ?? 0).toFixed(2) }}</text></view>
         </view>
-        <view class="ship-tip">选择上方"关联销售单"即完成出货对接；发货/送货由销售单流程推进。</view>
+        <view class="ship-tip">选择上方"关联销售单"即完成销售单对接；发货/送货由销售单流程推进。</view>
       </view>
 
       <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
@@ -435,8 +435,8 @@ const todayStr = (): string => {
 const docMain = ref<'sale' | 'purchase'>('sale')
 const docSubs = computed(() =>
   docMain.value === 'sale'
-    ? ['订单', '出货', '退货', '收款单']
-    : ['订单', '进货', '退货', '收款单']
+    ? ['订单', '销售单', '退货', '收款单']
+    : ['订单', '采购单', '退货', '收款单']
 )
 const docSub = ref('订单')
 function switchDocMain(v: 'sale' | 'purchase') {
@@ -447,9 +447,9 @@ function switchDocMain(v: 'sale' | 'purchase') {
 
 // 当前单据业务类型（采购段"订单"复用销售订单逻辑）
 const docKey = computed(() => {
-  if (docMain.value === 'purchase' && docSub.value === '进货') return 'purchase-in'
+  if (docMain.value === 'purchase' && docSub.value === '采购单') return 'purchase-in'
   if (docSub.value === '收款单') return 'receipt'
-  if (docSub.value === '出货') return 'ship'
+  if (docSub.value === '销售单') return 'ship'
   if (docMain.value === 'sale' && docSub.value === '退货') return 'sale-return'
   if (docMain.value === 'purchase' && docSub.value === '退货') return 'purchase-return'
   return 'order'
