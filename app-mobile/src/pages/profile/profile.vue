@@ -53,6 +53,14 @@
           </view>
           <text class="li-arrow">›</text>
         </view>
+        <view class="list-item" @tap="navigateTo('/pages-sub/admin/roles/roles')">
+          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
+          <view class="li-body">
+            <text class="li-title">角色管理</text>
+            <text class="li-desc">角色与权限分配</text>
+          </view>
+          <text class="li-arrow">›</text>
+        </view>
         <view class="list-item" @tap="showBusinessHours">
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-clock.svg" mode="aspectFit" /></view>
           <view class="li-body">
@@ -73,14 +81,6 @@
           <view class="li-body">
             <text class="li-title">系统设置</text>
             <text class="li-desc">打印、权限、通知设置</text>
-          </view>
-          <text class="li-arrow">›</text>
-        </view>
-        <view class="list-item" @tap="navigateTo('/pages-sub/admin/roles/roles')">
-          <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-staff.svg" mode="aspectFit" /></view>
-          <view class="li-body">
-            <text class="li-title">角色管理</text>
-            <text class="li-desc">角色与权限分配</text>
           </view>
           <text class="li-arrow">›</text>
         </view>

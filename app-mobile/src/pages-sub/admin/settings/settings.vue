@@ -6,11 +6,14 @@
     <!-- 配置分组 -->
     <scroll-view class="st-body" scroll-y v-if="groups.length > 0">
       <view class="st-group" v-for="group in groups" :key="group.key">
-        <view class="st-group-hd">
+        <view class="st-group-hd" @tap="toggleGroup(group.key)">
           <text class="st-group-title">{{ groupLabel(group.key) }}</text>
-          <text class="st-group-count">{{ group.items.length }} 项</text>
+          <view class="st-group-hd-right">
+            <text class="st-group-count">{{ group.items.length }} 项</text>
+            <text class="st-group-chevron" :class="{ 'st-group-chevron--open': expanded[group.key] }">›</text>
+          </view>
         </view>
-        <view class="st-group-card">
+        <view class="st-group-card" v-if="expanded[group.key]">
           <view class="st-row" v-for="row in group.items" :key="row.key">
             <view class="st-row-info">
               <text class="st-row-label">{{ row.description || row.key }}</text>
@@ -88,6 +91,12 @@ const GROUP_LABEL_MAP: Record<string, string> = {
 const groups = ref<ConfigGroup[]>([])
 const loading = ref(false)
 const saving = ref(false)
+/** 分组展开状态（默认收起，点标题展开） */
+const expanded = ref<Record<string, boolean>>({})
+
+function toggleGroup(key: string) {
+  expanded.value[key] = !expanded.value[key]
+}
 
 const changedRows = computed(() => {
   const changed: ConfigRow[] = []
@@ -231,23 +240,41 @@ onMounted(() => {
   margin-bottom: $uni-spacing-base;
 }
 
-.st-group-hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 $uni-spacing-xs $uni-spacing-sm;
-}
-
-.st-group-title {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: $uni-gray-700;
+  .st-group-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 $uni-spacing-xs $uni-spacing-sm;
+    cursor: pointer;
+  }
+  .st-group-hd:active {
+    opacity: 0.7;
+  }
+  .st-group-hd-right {
+    display: flex;
+    align-items: center;
+    gap: $uni-spacing-sm;
+  }
+  
+  .st-group-title {
+    font-size: 26rpx;
+    font-weight: 700;
+    color: $uni-gray-700;
 }
 
 .st-group-count {
-  font-size: 22rpx;
-  color: $uni-gray-300;
-}
+    font-size: 22rpx;
+    color: $uni-gray-300;
+  }
+  .st-group-chevron {
+    font-size: 28rpx;
+    color: $uni-gray-300;
+    transition: transform 0.2s ease;
+    transform: rotate(0deg);
+  }
+  .st-group-chevron--open {
+    transform: rotate(90deg);
+  }
 
 .st-group-card {
   background: $uni-bg-color;
