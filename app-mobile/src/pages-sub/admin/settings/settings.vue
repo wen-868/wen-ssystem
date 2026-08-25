@@ -292,7 +292,7 @@ onMounted(() => {
 }
 
 .st-group-title {
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 700;
   color: $uni-gray-700;
 }
@@ -342,7 +342,7 @@ onMounted(() => {
 }
 .st-row-label {
   display: block;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-text-color;
 }

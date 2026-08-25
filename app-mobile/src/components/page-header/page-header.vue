@@ -75,7 +75,7 @@ function onBack() {
 
 .zx-page-header__title {
   max-width: 100%;
-  font-size: 34rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1a1a1a;
   line-height: 1.25;

@@ -368,7 +368,7 @@ onLoad((query: any) => {
 }
 
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 700;
   color: $uni-text-color;
   margin-bottom: $uni-spacing-sm;
@@ -518,3 +518,4 @@ onLoad((query: any) => {
   color: $uni-gray-400;
 }
 </style>
+

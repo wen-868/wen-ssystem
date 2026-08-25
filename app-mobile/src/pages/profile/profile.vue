@@ -511,7 +511,7 @@ onMounted(() => {
 
 .li-title {
   display: block;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-text-color;
 }

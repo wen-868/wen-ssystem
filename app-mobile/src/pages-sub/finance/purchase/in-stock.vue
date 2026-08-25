@@ -210,7 +210,7 @@ onMounted(() => {
   box-shadow: $uni-shadow-card-sm;
 }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-md;

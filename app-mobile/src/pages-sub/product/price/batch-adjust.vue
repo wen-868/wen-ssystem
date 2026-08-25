@@ -224,7 +224,7 @@ async function onExecute() {
   background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm;
 }
-.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
+.section-title { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
 .form-item { margin-bottom: $uni-spacing-md; }
 .form-label { font-size: 26rpx; color: $uni-gray-500; margin-bottom: $uni-spacing-sm; display: block; }
 .form-control { position: relative; }
@@ -279,3 +279,4 @@ async function onExecute() {
 .submit-btn[disabled] { opacity: 0.5; }
 .safe-bottom { height: 40rpx; }
 </style>
+

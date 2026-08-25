@@ -690,7 +690,7 @@ uni-scroll-view ::-webkit-scrollbar {
 
 /* 快捷入口标题 14px、间距对齐原稿 h3 */
 .home-quick .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
 }
 
 .home-quick .section-head {
@@ -758,8 +758,8 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .section-title {
-  font-size: 28rpx;
-  font-weight: 700;
+  font-size: 26rpx;
+  font-weight: 600;
   color: $uni-text-color;
   letter-spacing: -0.5rpx;
 }

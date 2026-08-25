@@ -210,7 +210,7 @@ onMounted(() => { loadEmployees() })
 .action-text { font-size: 22rpx; color: $uni-gray-700; }
 .employee-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-sm;
@@ -299,3 +299,4 @@ onMounted(() => { loadEmployees() })
 .setting-arrow { font-size: 24rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
 </style>
+

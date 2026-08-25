@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="product-edit-page">
     <page-header :title="isEdit ? '编辑商品' : '新建商品'" @back="goBack" />
 
@@ -523,7 +523,7 @@ onMounted(() => {
   box-shadow: $uni-shadow-card-sm;
 }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-md;
@@ -680,3 +680,4 @@ onMounted(() => {
   color: $uni-gray-400;
 }
 </style>
+

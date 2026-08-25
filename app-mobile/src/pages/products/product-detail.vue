@@ -245,7 +245,7 @@ onLoad((options: any) => {
 .info-value--danger { color: $uni-color-error; font-weight: 600; }
 .info-section { padding: $uni-spacing-base; }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-sm;
@@ -325,3 +325,4 @@ onLoad((options: any) => {
 .submit-btn::after { border: none; }
 .safe-bottom { height: 40rpx; }
 </style>
+

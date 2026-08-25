@@ -240,7 +240,7 @@ onShow(() => {
 }
 
   .fg-label {
-    font-size: 28rpx;
+    font-size: 26rpx;
     color: $uni-text-color;
     font-weight: 600;
     line-height: 1.2;
@@ -270,7 +270,7 @@ onShow(() => {
 
 .func-section-title {
   display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 600;
   color: $uni-gray-500;
   padding: 0 $uni-spacing-xs $uni-spacing-md;
@@ -284,7 +284,7 @@ onShow(() => {
 
 .func-group-title {
   display: block;
-  font-size: 26rpx;
+  font-size: 24rpx;
   font-weight: 600;
   color: $uni-gray-600;
   padding: $uni-spacing-sm $uni-spacing-xs $uni-spacing-xs;
@@ -336,7 +336,7 @@ onShow(() => {
 
 .li-title {
   display: block;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-text-color;
 }

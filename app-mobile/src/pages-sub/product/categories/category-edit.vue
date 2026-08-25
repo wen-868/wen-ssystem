@@ -209,7 +209,7 @@ onLoad((options) => {
   background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-sm; box-shadow: $uni-shadow-card-sm;
 }
-.section-title { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
+.section-title { font-size: 26rpx; font-weight: 600; color: $uni-gray-700; margin-bottom: $uni-spacing-md; }
 .form-item { margin-bottom: $uni-spacing-md; }
 .form-item--row {
   display: flex; justify-content: space-between; align-items: center;
@@ -237,3 +237,4 @@ onLoad((options) => {
 .submit-btn::after { border: none; }
 .safe-bottom { height: 40rpx; }
 </style>
+

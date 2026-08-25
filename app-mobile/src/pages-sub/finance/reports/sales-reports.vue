@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <view class="sales-reports-page">
     <page-header title="销售报表" @back="goBack" />
 
@@ -487,7 +487,7 @@ onMounted(() => {
 }
 .chart-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-sm;
@@ -645,3 +645,4 @@ onMounted(() => {
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 </style>
+

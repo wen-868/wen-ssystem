@@ -219,7 +219,7 @@ onMounted(() => { loadReportData() })
 }
 .section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
 .section-title {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 600;
   color: $uni-gray-700;
   margin-bottom: $uni-spacing-sm;
@@ -375,3 +375,4 @@ onMounted(() => { loadReportData() })
 }
 .safe-bottom { height: 40rpx; }
 </style>
+
