@@ -1,40 +1,67 @@
 <template>
   <view class="settings-page">
-    <!-- 页头 -->
     <page-header title="系统设置" @back="goBack" />
 
-    <!-- 配置分组 -->
-    <scroll-view class="st-body" scroll-y v-if="groups.length > 0">
-      <view class="st-group" v-for="group in groups" :key="group.key">
-        <view class="st-group-hd" @tap="toggleGroup(group.key)">
-          <text class="st-group-title">{{ groupLabel(group.key) }}</text>
+    <scroll-view class="st-body" scroll-y>
+      <view class="st-group" v-for="sec in FEATURE_SECTIONS" :key="sec.id">
+        <view class="st-group-hd" @tap="toggleSection(sec.id)">
+          <text class="st-group-title">{{ sec.title }}</text>
           <view class="st-group-hd-right">
-            <text class="st-group-count">{{ group.items.length }} 项</text>
-            <text class="st-group-chevron" :class="{ 'st-group-chevron--open': expanded[group.key] }">›</text>
+            <text class="st-group-count">{{ sec.items.length }} 项</text>
+            <text class="st-group-chevron" :class="{ 'st-group-chevron--open': expanded[sec.id] }">›</text>
           </view>
         </view>
-        <view class="st-group-card" v-if="expanded[group.key]">
-          <view class="st-row" v-for="row in group.items" :key="row.key">
+        <view class="st-group-card" v-if="expanded[sec.id]">
+          <view
+            class="st-row"
+            v-for="item in sec.items"
+            :key="item.key"
+            :class="{ 'st-row--link': item.control === 'link' }"
+            @tap="onRowTap(item)"
+          >
             <view class="st-row-info">
-              <text class="st-row-label">{{ row.description || row.key }}</text>
-              <text class="st-row-key">{{ row.key }}</text>
+              <text class="st-row-label">{{ item.label }}</text>
+              <text class="st-row-key" v-if="item.desc && item.control !== 'link'">{{ item.desc }}</text>
             </view>
             <view class="st-row-control">
               <switch
-                v-if="isBooleanValue(row.original)"
-                :checked="isOn(row.value)"
+                v-if="item.control === 'switch'"
+                :checked="isOn(values[item.key])"
                 :color="COLOR_PRIMARY"
-                @change="(e: any) => onToggle(row, e)"
+                @change="(e: any) => onSwitch(item.key, e)"
               />
+              <picker
+                v-else-if="item.control === 'select'"
+                :range="item.options || []"
+                :value="(item.options || []).indexOf(values[item.key] || '')"
+                @change="(e: any) => onSelect(item.key, e, item)"
+              >
+                <view class="st-picker">
+                  <text>{{ optionLabel(item, values[item.key]) }}</text>
+                  <text class="st-picker-arrow">›</text>
+                </view>
+              </picker>
+              <picker
+                v-else-if="item.control === 'time'"
+                mode="time"
+                :value="values[item.key] || '00:00'"
+                @change="(e: any) => onTime(item.key, e)"
+              >
+                <view class="st-picker">
+                  <text>{{ values[item.key] || '00:00' }}</text>
+                  <text class="st-picker-arrow">›</text>
+                </view>
+              </picker>
               <input
-                v-else
+                v-else-if="item.control === 'number'"
                 class="st-input"
-                :value="row.value"
-                type="text"
-                :placeholder="row.original || '请输入'"
+                :value="values[item.key]"
+                type="number"
+                placeholder="请输入"
                 placeholder-class="st-input-placeholder"
-                @input="(e: any) => onInput(row, e)"
+                @input="(e: any) => onInput(item.key, e)"
               />
+              <text v-else-if="item.control === 'link'" class="st-row-arrow">›</text>
             </view>
           </view>
         </view>
@@ -42,14 +69,7 @@
       <view class="safe-bottom"></view>
     </scroll-view>
 
-    <!-- 空状态 -->
-    <view class="empty-state" v-else-if="!loading">
-      <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
-      <text class="empty-text">暂无系统配置</text>
-    </view>
-
-    <!-- 保存栏 -->
-    <view class="st-footer" v-if="groups.length > 0">
+    <view class="st-footer">
       <view class="st-footer-btn" :class="{ 'st-footer-btn--disabled': changedRows.length === 0 || saving }" @tap="onSave">
         <text class="st-footer-text">
           {{ saving ? '保存中...' : changedRows.length > 0 ? `保存 ${changedRows.length} 项修改` : '保存' }}
@@ -61,106 +81,151 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { sysConfigApi, type SysConfigItem } from '@/api/modules/sys-config'
+import { sysConfigApi } from '@/api/modules/sys-config'
 import { COLOR_PRIMARY } from '@/constants/colors'
 
-interface ConfigRow {
+type ControlType = 'switch' | 'select' | 'time' | 'number' | 'link'
+
+interface FeatureItem {
   key: string
-  group: string
-  description: string
-  original: string
-  value: string
+  label: string
+  desc?: string
+  control: ControlType
+  options?: string[]
+  optionLabels?: string[]
+  link?: string
 }
 
-interface ConfigGroup {
-  key: string
-  items: ConfigRow[]
+interface FeatureSection {
+  id: string
+  title: string
+  items: FeatureItem[]
 }
 
-const GROUP_LABEL_MAP: Record<string, string> = {
-  system: '系统',
-  wechat: '微信',
-  payment: '支付',
-  enterprise: '企业信息',
-  print: '打印',
-  permission: '权限',
-  notification: '通知',
-  other: '其他',
+/** 策展式功能配置：只呈现商家会设置的项，技术性/平台级配置不在此暴露 */
+const FEATURE_SECTIONS: FeatureSection[] = [
+  {
+    id: 'notify',
+    title: '通知提醒',
+    items: [
+      { key: 'notify_sms', label: '短信通知', desc: '订单、审批、库存变动短信提醒', control: 'switch' },
+      { key: 'notify_push', label: 'App 消息推送', desc: '订单、库存、系统消息推送', control: 'switch' },
+    ],
+  },
+  {
+    id: 'backup',
+    title: '数据与备份',
+    items: [
+      { key: 'backup_auto', label: '自动备份', desc: '按周期自动备份数据', control: 'switch' },
+      {
+        key: 'backup_frequency',
+        label: '备份周期',
+        control: 'select',
+        options: ['daily', 'weekly', 'monthly'],
+        optionLabels: ['每日', '每周', '每月'],
+      },
+      { key: 'backup_time', label: '备份时间点', control: 'time' },
+      { key: 'backup_retention_days', label: '保留天数', control: 'number' },
+    ],
+  },
+  {
+    id: 'biz',
+    title: '业务流程',
+    items: [
+      { key: 'approval_enabled', label: '单据审批', desc: '采购、销售、盘点单据需审批', control: 'switch' },
+      { key: 'print', label: '单据打印', desc: '小票、采购、盘点打印设置', control: 'link', link: '/pages-sub/admin/print/print-records' },
+    ],
+  },
+]
+
+const DEFAULTS: Record<string, string> = {
+  notify_sms: '1',
+  notify_push: '1',
+  backup_auto: '0',
+  backup_frequency: 'daily',
+  backup_time: '02:00',
+  backup_retention_days: '30',
+  approval_enabled: '0',
 }
 
-const groups = ref<ConfigGroup[]>([])
 const loading = ref(false)
 const saving = ref(false)
-/** 分组展开状态（默认收起，点标题展开） */
 const expanded = ref<Record<string, boolean>>({})
+const values = ref<Record<string, string>>({})
+const originals = ref<Record<string, string>>({})
 
-function toggleGroup(key: string) {
-  expanded.value[key] = !expanded.value[key]
+function toggleSection(id: string) {
+  expanded.value[id] = !expanded.value[id]
 }
 
-const changedRows = computed(() => {
-  const changed: ConfigRow[] = []
-  for (const group of groups.value) {
-    for (const row of group.items) {
-      if (row.value !== row.original) changed.push(row)
-    }
-  }
-  return changed
-})
-
-function groupLabel(key: string): string {
-  return GROUP_LABEL_MAP[key] || key
-}
-
-function isBooleanValue(value: string): boolean {
-  return /^(0|1|true|false)$/i.test(value.trim())
-}
-
-function isOn(value: string): boolean {
-  const v = value.trim().toLowerCase()
+function isOn(v?: string): boolean {
   return v === '1' || v === 'true'
 }
 
-function onInput(row: ConfigRow, e: any) {
-  row.value = e.detail.value ?? ''
+function optionLabel(item: FeatureItem, v?: string): string {
+  const i = (item.options || []).indexOf(v || '')
+  if (i >= 0) return item.optionLabels?.[i] ?? v ?? ''
+  return (item.options?.[0] ?? v ?? '')
 }
 
-function onToggle(row: ConfigRow, e: any) {
-  row.value = e.detail.value ? '1' : '0'
+function onSwitch(key: string, e: any) {
+  values.value[key] = e.detail.value ? '1' : '0'
 }
-
-function toRows(items: SysConfigItem[]): ConfigRow[] {
-  return items.map((item) => ({
-    key: item.configKey,
-    group: item.configGroup,
-    description: item.description || '',
-    original: item.configValue ?? '',
-    value: item.configValue ?? '',
-  }))
+function onSelect(key: string, e: any, item: FeatureItem) {
+  values.value[key] = (item.options || [])[Number(e.detail.value)]
+}
+function onTime(key: string, e: any) {
+  values.value[key] = e.detail.value ?? ''
+}
+function onInput(key: string, e: any) {
+  values.value[key] = e.detail.value ?? ''
+}
+function onRowTap(item: FeatureItem) {
+  if (item.control === 'link' && item.link) uni.navigateTo({ url: item.link })
 }
 
 function goBack() {
   const pages = getCurrentPages()
-  if (pages.length > 1) {
-    uni.navigateBack()
-  } else {
-    uni.reLaunch({ url: '/pages/functions/functions' })
-  }
+  if (pages.length > 1) uni.navigateBack()
+  else uni.reLaunch({ url: '/pages/functions/functions' })
 }
+
+const changedRows = computed(() => {
+  const out: Array<{ config_key: string; config_value: string }> = []
+  for (const s of FEATURE_SECTIONS) {
+    for (const it of s.items) {
+      if (it.control === 'link') continue
+      if (values.value[it.key] !== originals.value[it.key]) {
+        out.push({ config_key: it.key, config_value: values.value[it.key] })
+      }
+    }
+  }
+  return out
+})
 
 async function loadConfigs() {
   loading.value = true
   try {
     const result = await sysConfigApi.getAll()
     const grouped = result?.grouped ?? {}
-    const groupKeys = Object.keys(grouped)
-    groups.value = groupKeys.map((key) => ({
-      key,
-      items: toRows(grouped[key] ?? []),
-    }))
+    const map: Record<string, string> = {}
+    for (const rows of Object.values(grouped) as Array<Array<{ configKey?: string; configValue?: string }>>) {
+      for (const row of rows) if (row?.configKey != null) map[row.configKey] = row.configValue ?? ''
+    }
+    const v: Record<string, string> = {}
+    const o: Record<string, string> = {}
+    for (const s of FEATURE_SECTIONS) {
+      for (const it of s.items) {
+        if (it.control === 'link') continue
+        const base = map[it.key] ?? DEFAULTS[it.key] ?? ''
+        v[it.key] = base
+        o[it.key] = base
+      }
+    }
+    values.value = v
+    originals.value = o
   } catch (err) {
     console.error('加载系统配置失败:', err)
-    groups.value = []
   } finally {
     loading.value = false
   }
@@ -170,11 +235,7 @@ async function onSave() {
   if (changedRows.value.length === 0 || saving.value) return
   saving.value = true
   try {
-    const items = changedRows.value.map((row) => ({
-      config_key: row.key,
-      config_value: row.value,
-    }))
-    await sysConfigApi.updateBatch(items)
+    await sysConfigApi.updateBatch(changedRows.value)
     uni.showToast({ title: '保存成功', icon: 'success' })
     await loadConfigs()
   } catch (err) {
@@ -196,40 +257,6 @@ onMounted(() => {
   padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
 
-/* 页头 */
-.st-hd {
-  display: flex;
-  align-items: center;
-  gap: $uni-spacing-sm;
-  padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
-  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
-  background: $uni-bg-color;
-}
-
-.header-back {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: $uni-bg-color-page;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-back-icon {
-  font-size: 44rpx;
-  color: $uni-gray-600;
-  line-height: 1;
-  margin-top: -4rpx;
-}
-
-.header-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: $uni-text-color;
-}
-
-/* 分组 */
 .st-body {
   height: calc(100vh - 220rpx - env(safe-area-inset-top));
   padding: $uni-spacing-md $uni-spacing-base 0;
@@ -240,41 +267,40 @@ onMounted(() => {
   margin-bottom: $uni-spacing-base;
 }
 
-  .st-group-hd {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 $uni-spacing-xs $uni-spacing-sm;
-    cursor: pointer;
-  }
-  .st-group-hd:active {
-    opacity: 0.7;
-  }
-  .st-group-hd-right {
-    display: flex;
-    align-items: center;
-    gap: $uni-spacing-sm;
-  }
-  
-  .st-group-title {
-    font-size: 26rpx;
-    font-weight: 700;
-    color: $uni-gray-700;
+.st-group-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $uni-spacing-xs $uni-spacing-sm;
+  cursor: pointer;
+}
+.st-group-hd:active {
+  opacity: 0.7;
+}
+.st-group-hd-right {
+  display: flex;
+  align-items: center;
+  gap: $uni-spacing-sm;
 }
 
+.st-group-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: $uni-gray-700;
+}
 .st-group-count {
-    font-size: 22rpx;
-    color: $uni-gray-300;
-  }
-  .st-group-chevron {
-    font-size: 28rpx;
-    color: $uni-gray-300;
-    transition: transform 0.2s ease;
-    transform: rotate(0deg);
-  }
-  .st-group-chevron--open {
-    transform: rotate(90deg);
-  }
+  font-size: 22rpx;
+  color: $uni-gray-300;
+}
+.st-group-chevron {
+  font-size: 28rpx;
+  color: $uni-gray-300;
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+}
+.st-group-chevron--open {
+  transform: rotate(90deg);
+}
 
 .st-group-card {
   background: $uni-bg-color;
@@ -292,29 +318,31 @@ onMounted(() => {
   padding: $uni-spacing-base;
   border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
 }
-
 .st-row:last-child {
   border-bottom: none;
+}
+.st-row--link {
+  cursor: pointer;
+}
+.st-row--link:active {
+  background: $uni-bg-color-page;
 }
 
 .st-row-info {
   flex: 1;
   min-width: 0;
 }
-
 .st-row-label {
   display: block;
   font-size: 28rpx;
   font-weight: 600;
   color: $uni-text-color;
 }
-
 .st-row-key {
   display: block;
   font-size: 22rpx;
-  color: $uni-gray-300;
+  color: $uni-gray-500;
   margin-top: 6rpx;
-  font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
 .st-row-control {
@@ -324,7 +352,7 @@ onMounted(() => {
 }
 
 .st-input {
-  width: 300rpx;
+  width: 260rpx;
   height: 68rpx;
   background: $uni-bg-color-page;
   border-radius: $uni-border-radius-xs;
@@ -334,13 +362,35 @@ onMounted(() => {
   text-align: right;
   box-sizing: border-box;
 }
-
 .st-input-placeholder {
   color: $uni-gray-300;
   font-size: 24rpx;
 }
 
-/* 保存栏 */
+.st-picker {
+  min-width: 200rpx;
+  height: 68rpx;
+  background: $uni-bg-color-page;
+  border-radius: $uni-border-radius-xs;
+  padding: 0 $uni-spacing-md;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $uni-spacing-xs;
+  font-size: 26rpx;
+  color: $uni-gray-700;
+  box-sizing: border-box;
+}
+.st-picker-arrow {
+  font-size: 28rpx;
+  color: $uni-gray-300;
+}
+
+.st-row-arrow {
+  font-size: 34rpx;
+  color: $uni-gray-300;
+}
+
 .st-footer {
   position: fixed;
   left: 0;
@@ -351,7 +401,6 @@ onMounted(() => {
   backdrop-filter: blur(20px);
   border-top: 1rpx solid rgba(0, 0, 0, 0.05);
 }
-
 .st-footer-btn {
   height: 88rpx;
   background: $uni-gradient-blue;
@@ -361,39 +410,17 @@ onMounted(() => {
   justify-content: center;
   box-shadow: 0 12rpx 28rpx rgba(37, 99, 235, 0.28);
 }
-
 .st-footer-btn:active {
   transform: scale(0.98);
 }
-
 .st-footer-btn--disabled {
   opacity: 0.5;
   box-shadow: none;
 }
-
 .st-footer-text {
   font-size: 30rpx;
   font-weight: 700;
   color: $uni-text-color-inverse;
-}
-
-/* 空状态 */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 200rpx 0;
-}
-
-.empty-icon {
-  font-size: 80rpx;
-  color: $uni-gray-300;
-  margin-bottom: $uni-spacing-md;
-}
-
-.empty-text {
-  font-size: 28rpx;
-  color: $uni-gray-300;
 }
 
 .safe-bottom {
