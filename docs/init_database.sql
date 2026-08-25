@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS t_sys_config (
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uk_config_key (config_key),
+  UNIQUE KEY uk_config_key_tenant (config_key, tenant_id),
   KEY idx_config_group (config_group)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统配置表';
 

@@ -329,6 +329,18 @@ export async function runMigrations(): Promise<void> {
     }
 
     // ============================================================
+    // 第2.5步：t_sys_config 唯一键改为按租户隔离 (config_key, tenant_id)
+    // 原 uk_config_key 仅对 config_key 全局唯一，多租户同配置键会冲突；
+    // 后端读写均为 config_key + tenant_id（batchUpdateConfigs/platform-msg-config）。
+    // 幂等：DROP 不存在/ADD 已存在均由 safeExec 跳过。
+    // ============================================================
+    logger.info("[migration] 修复 t_sys_config 唯一键为 (config_key, tenant_id)...");
+    await safeExec(conn,
+      "ALTER TABLE t_sys_config DROP INDEX uk_config_key, ADD UNIQUE KEY uk_config_key_tenant (config_key, tenant_id)",
+      "t_sys_config.uk_config_key_tenant"
+    );
+
+    // ============================================================
     // 第3步：更新已有数据的 tenant_id
     // ============================================================
     await safeExec(conn,
