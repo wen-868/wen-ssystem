@@ -2,8 +2,13 @@
   <view class="create-sale-page">
     <!-- 顶部栏 -->
     <page-header title="快速开单" @back="goBack" />
+    <!-- 单据状态徽标（对齐 HTML .hd-status：草稿 / 已保存） -->
+    <view class="doc-status" :class="isSaved ? 'doc-status--saved' : 'doc-status--draft'">
+      <text class="ds-dot"></text>
+      <text class="ds-text">{{ isSaved ? '已保存' : '草稿' }}</text>
+    </view>
 
-    <!-- 单据类型分段导航（原稿：主段 销售/采购 + 子段 订单/出货/退货/收款单） -->
+    <!-- 单据类型分段导航（主段 销售/采购 + 子段 订单/销售单/退货/收款单） -->
     <view class="doc-nav">
       <view class="doc-nav-main">
         <view class="doc-seg" :class="{ 'doc-seg--active': docMain === 'sale' }" @tap="switchDocMain('sale')">销售</view>
@@ -15,7 +20,7 @@
           v-for="s in docSubs"
           :key="s"
           :class="{ 'doc-seg--active': docSub === s }"
-          @tap="docSub = s"
+          @tap="selectDocSub(s)"
         >{{ s }}</view>
       </view>
     </view>
@@ -35,18 +40,6 @@
         >
           <view class="qc-val">{{ sourceBillLabel }} <text class="qc-chev">▾</text></view>
         </picker>
-      </view>
-
-      <!-- 出货：对接销售单（只读展示发货对象，不新建发货单/出库单） -->
-      <view class="form-section" v-if="docConfig.showShipSummary">
-        <view class="section-title">销售单（发货对接）</view>
-        <view class="ship-summary">
-          <view class="ship-row"><text class="ship-lab">销售单号</text><text class="ship-val">{{ shipBill?.billNo || '—' }}</text></view>
-          <view class="ship-row"><text class="ship-lab">客户</text><text class="ship-val">{{ shipBill?.customerName || '—' }}</text></view>
-          <view class="ship-row"><text class="ship-lab">商品数</text><text class="ship-val">{{ shipBill?.itemCount ?? '—' }}</text></view>
-          <view class="ship-row"><text class="ship-lab">金额</text><text class="ship-val">¥{{ Number(shipBill?.totalAmount ?? 0).toFixed(2) }}</text></view>
-        </view>
-        <view class="ship-tip">选择上方"关联销售单"即完成销售单对接；发货/送货由销售单流程推进。</view>
       </view>
 
       <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
@@ -100,18 +93,28 @@
         </view>
       </view>
 
-      <!-- 收款方式（收款单） -->
+      <!-- 收款方式（收款单）：对齐 HTML .chip 胶囊选择 -->
       <view class="form-section" v-if="docConfig.showPayment">
         <view class="section-title">收款方式</view>
-        <picker
-          class="qc-cell"
-          mode="selector"
-          :range="paymentOptions"
-          @change="onPaymentChange"
-        >
-          <view class="qc-val">{{ paymentMethod }} <text class="qc-chev">▾</text></view>
-        </picker>
+        <view class="chip-row">
+          <view
+            v-for="m in paymentOptions"
+            :key="m"
+            class="chip"
+            :class="{ 'chip--active': paymentMethod === m }"
+            @tap="selectPayment(m)"
+          >{{ m }}</view>
+        </view>
       </view>
+      <!-- 金额汇总（收款单：实收金额，对齐 HTML summary-card） -->
+      <view class="form-section amount-summary" v-if="docKey === 'sale_receipt'">
+        <view class="section-title">金额汇总</view>
+        <view class="amount-row">
+          <text class="amount-label">实收金额</text>
+          <text class="amount-value amount-value--total">¥{{ Number(receiptAmount || 0).toFixed(2) }}</text>
+        </view>
+      </view>
+
       <!-- 客户 / 配送方式 / 日期 / 门店 选择（按单据差异显隐，原稿 qo-customer） -->
       <view class="form-section qo-customer" v-if="docConfig.showCustomer || docConfig.showDelivery || docConfig.showOrderDate">
         <view class="qc-grid">
@@ -133,7 +136,8 @@
       <!-- 商品列表（订单 / 进货 共用） -->
       <view class="form-section" v-if="docConfig.showProducts">
         <view class="section-title">
-          <text>已选商品 ({{ saleItems.length }})</text>
+          <text>已选商品</text>
+          <text class="ct-badge">{{ saleItems.length }} 种</text>
         </view>
         <view
           class="swipe-item"
@@ -211,7 +215,7 @@
       </view>
 
       <!-- 金额汇总（仅订单） -->
-      <view class="form-section" v-if="docKey === 'order' && saleItems.length > 0">
+      <view class="form-section" v-if="docKey === 'sale_order' && saleItems.length > 0">
         <view class="amount-row">
           <text class="amount-label">商品数</text>
           <text class="amount-value">{{ saleItems.length }}种 / {{ totalQty }}件</text>
@@ -436,23 +440,34 @@ const docMain = ref<'sale' | 'purchase'>('sale')
 const docSubs = computed(() =>
   docMain.value === 'sale'
     ? ['订单', '销售单', '退货', '收款单']
-    : ['订单', '采购单', '退货', '收款单']
+    : ['采购订单', '采购入库', '采购退货', '付款单']
 )
 const docSub = ref('订单')
 function switchDocMain(v: 'sale' | 'purchase') {
   docMain.value = v
-  docSub.value = '订单'
+  docSub.value = v === 'sale' ? '订单' : '采购订单'
+  resetDoc()
+}
+// 子段切换：对齐 HTML 各单据独立状态（切换即重置当前单据数据）
+function selectDocSub(s: string) {
+  if (docSub.value === s) return
+  docSub.value = s
   resetDoc()
 }
 
-// 当前单据业务类型（采购段"订单"复用销售订单逻辑）
-const docKey = computed(() => {
-  if (docMain.value === 'purchase' && docSub.value === '采购单') return 'purchase-in'
-  if (docSub.value === '收款单') return 'receipt'
-  if (docSub.value === '销售单') return 'ship'
-  if (docMain.value === 'sale' && docSub.value === '退货') return 'sale-return'
-  if (docMain.value === 'purchase' && docSub.value === '退货') return 'purchase-return'
-  return 'order'
+// 当前单据业务类型：对齐 HTML 8 单据 id（销售订单/销售单/销售退货/收款单 + 采购订单/采购入库/采购退货/付款单）
+const docKey = computed<'sale_order' | 'sale_ticket' | 'sale_return' | 'sale_receipt' | 'pur_order' | 'pur_inbound' | 'pur_return' | 'pur_payment'>(() => {
+  if (docMain.value === 'sale') {
+    if (docSub.value === '订单') return 'sale_order'
+    if (docSub.value === '销售单') return 'sale_ticket'
+    if (docSub.value === '退货') return 'sale_return'
+    return 'sale_receipt' // 收款单
+  } else {
+    if (docSub.value === '采购订单') return 'pur_order'
+    if (docSub.value === '采购入库') return 'pur_inbound'
+    if (docSub.value === '采购退货') return 'pur_return'
+    return 'pur_payment' // 付款单
+  }
 })
 
 // ---------- 每种单据配置：字段显隐 + 底部动作 ----------
@@ -474,72 +489,120 @@ const docConfig = computed<{
   showAmount: boolean
   showPayment: boolean
   showRemark: boolean
+  showDeposit: boolean
+  showRound: boolean
+  showLogistics: boolean
+  showTax: boolean
+  showBatch: boolean
+  showReason: boolean
+  showVerify: boolean
+  showOrderStatus: boolean
   showShipSummary: boolean
   actions: DocAction[]
   placeholder?: string
 }>(() => {
   switch (docKey.value) {
-    case 'purchase-in':
+    case 'sale_ticket':
       return {
-        showCustomer: false, showSupplier: true, showProducts: true,
-        showDelivery: false, showOrderDate: true, showStore: true, showSourceBill: false,
+        showCustomer: true, showSupplier: false, showProducts: true,
+        showDelivery: true, showOrderDate: true, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: false, showRound: true, showLogistics: true, showTax: false,
+        showBatch: false, showReason: false, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '确认入库', variant: 'primary', handler: submitPurchaseIn, loadingText: '入库中...' },
+          { label: '转收款单', variant: 'primary', handler: () => convertDoc('sale_receipt'), loadingText: '转收款单中...' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
-    case 'receipt':
-      return {
-        showCustomer: false, showSupplier: false, showProducts: false,
-        showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: true,
-        showReceiptCustomer: true, showAmount: true, showPayment: true, showRemark: true,
-        showShipSummary: false,
-        actions: [
-          { label: '保存', variant: 'ghost', handler: handleDraft },
-          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...' },
-          { label: '分享', variant: 'ghost', handler: handleShare },
-        ],
-      }
-    case 'ship':
-      return {
-        showCustomer: false, showSupplier: false, showProducts: false,
-        showDelivery: false, showOrderDate: false, showStore: false, showSourceBill: true,
-        showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: false,
-        showShipSummary: true,
-        actions: [
-          { label: '分享', variant: 'ghost', handler: handleShare },
-        ],
-      }
-    case 'sale-return':
+    case 'sale_return':
       return {
         showCustomer: false, showSupplier: false, showProducts: true,
         showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: true,
         showReceiptCustomer: true, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: false, showRound: false, showLogistics: false, showTax: false,
+        showBatch: false, showReason: true, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
           { label: '提交退货', variant: 'primary', handler: submitSaleReturn, loadingText: '提交中...' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
-    case 'purchase-return':
+    case 'sale_receipt':
+      return {
+        showCustomer: false, showSupplier: false, showProducts: false,
+        showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: true,
+        showReceiptCustomer: true, showAmount: true, showPayment: true, showRemark: true,
+        showDeposit: false, showRound: false, showLogistics: false, showTax: false,
+        showBatch: false, showReason: false, showVerify: true, showOrderStatus: false,
+        showShipSummary: false,
+        actions: [
+          { label: '确认收款', variant: 'primary', handler: submitReceipt, loadingText: '收款中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'pur_order':
+      return {
+        showCustomer: true, showSupplier: true, showProducts: true,
+        showDelivery: false, showOrderDate: true, showStore: true, showSourceBill: false,
+        showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: true, showRound: false, showLogistics: false, showTax: true,
+        showBatch: false, showReason: false, showVerify: false, showOrderStatus: true,
+        showShipSummary: false,
+        actions: [
+          { label: '保存', variant: 'ghost', handler: handleDraft },
+          { label: '转入库单', variant: 'primary', handler: () => convertDoc('pur_inbound'), loadingText: '转入库单中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'pur_inbound':
+      return {
+        showCustomer: false, showSupplier: true, showProducts: true,
+        showDelivery: false, showOrderDate: true, showStore: true, showSourceBill: false,
+        showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: false, showRound: false, showLogistics: false, showTax: true,
+        showBatch: true, showReason: false, showVerify: false, showOrderStatus: false,
+        showShipSummary: false,
+        actions: [
+          { label: '保存', variant: 'ghost', handler: handleDraft },
+          { label: '转付款单', variant: 'primary', handler: () => convertDoc('pur_payment'), loadingText: '转付款单中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    case 'pur_return':
       return {
         showCustomer: false, showSupplier: true, showProducts: true,
         showDelivery: false, showOrderDate: false, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: false, showRound: false, showLogistics: false, showTax: false,
+        showBatch: false, showReason: true, showVerify: false, showOrderStatus: false,
         showShipSummary: false,
         actions: [
           { label: '提交退货', variant: 'primary', handler: submitPurchaseReturn, loadingText: '提交中...' },
           { label: '分享', variant: 'ghost', handler: handleShare },
         ],
       }
-    default: // order
+    case 'pur_payment':
+      return {
+        showCustomer: false, showSupplier: true, showProducts: false,
+        showDelivery: false, showOrderDate: true, showStore: false, showSourceBill: true,
+        showReceiptCustomer: false, showAmount: true, showPayment: true, showRemark: true,
+        showDeposit: false, showRound: false, showLogistics: false, showTax: false,
+        showBatch: false, showReason: false, showVerify: true, showOrderStatus: false,
+        showShipSummary: false,
+        actions: [
+          { label: '确认付款', variant: 'primary', handler: submitPayment, loadingText: '付款中...' },
+          { label: '分享', variant: 'ghost', handler: handleShare },
+        ],
+      }
+    default: // sale_order
       return {
         showCustomer: true, showSupplier: false, showProducts: true,
         showDelivery: true, showOrderDate: true, showStore: true, showSourceBill: false,
         showReceiptCustomer: false, showAmount: false, showPayment: false, showRemark: true,
+        showDeposit: true, showRound: false, showLogistics: false, showTax: false,
+        showBatch: false, showReason: false, showVerify: false, showOrderStatus: true,
         showShipSummary: false,
         actions: [
           { label: '保存', variant: 'ghost', handler: handleDraft },
@@ -556,7 +619,7 @@ const remark = ref('')
 const selectedCustomer = ref<CustomerInfo | null>(null)
 
 // 配送方式 / 日期（订单）
-const deliveryOptions = ['送货上门', '到店自提', '快递寄送']
+const deliveryOptions = ['送货上门', '到店自提', '物流发货']
 const deliveryMethod = ref('送货上门')
 function onDeliveryChange(e: any) {
   deliveryMethod.value = deliveryOptions[Number(e.detail.value)] ?? deliveryMethod.value
@@ -564,6 +627,124 @@ function onDeliveryChange(e: any) {
 const orderDate = ref(todayStr())
 function onDateChange(e: any) {
   orderDate.value = e.detail.value
+}
+// 交货/到货日期（订单类：销售订单=交货，采购订单=到货）
+const deliveryDate = ref('')
+
+// ===== 扩展字段（对齐 HTML 8 单据：定金/抹零/物流/税率/批次/退货/核销/预付款） =====
+const roundMode = ref<'none' | 'fen' | 'jiao' | 'both'>('none')
+function selectRoundMode(m: 'none' | 'fen' | 'jiao' | 'both') { roundMode.value = m }
+
+const taxRate = ref(0) // 百分比数值（如 13 表示 13%）
+const taxRateOptions = [0, 3, 6, 9, 13, 16]
+function onTaxRateChange(e: any) { taxRate.value = taxRateOptions[Number(e.detail.value)] ?? 0 }
+const taxIncluded = ref(false)
+function toggleTaxIncluded() { taxIncluded.value = !taxIncluded.value }
+
+const batchNo = ref('')
+function onBatchChange(e: any) { batchNo.value = e.detail.value || '' }
+const expiryDate = ref('')
+function onExpiryChange(e: any) { expiryDate.value = e.detail.value || '' }
+const invoiceStatus = ref<'pending' | 'received'>('pending')
+function toggleInvoiceStatus() { invoiceStatus.value = invoiceStatus.value === 'received' ? 'pending' : 'received' }
+
+const returnReason = ref('')
+const returnReasonOptions = ['质量问题', '规格不符', '临期商品', '客户取消', '运输损坏', '其他原因']
+function selectReturnReason(r: string) { returnReason.value = r }
+const originalDoc = ref('') // 关联原单号
+function onOriginalDocChange(e: any) { originalDoc.value = e.detail.value || '' }
+const returnWarehouseId = ref<number | null>(null)
+const returnWarehouseLabel = computed(() => storeOptions.value.find(s => s.id === returnWarehouseId.value)?.name || '请选择退货仓库')
+function onReturnWarehouseChange(e: any) {
+  returnWarehouseId.value = storeOptions.value[Number(e.detail.value)]?.id ?? null
+}
+
+const orderStatus = ref<string | null>(null)
+const refundStatus = ref('')
+
+// 待核销单据（收款单 / 付款单）
+interface VerifiedDoc { no: string; amount: number; checked: boolean; verifyAmount: number }
+const verifiedDocs = reactive<VerifiedDoc[]>([])
+function toggleVerify(i: number) {
+  const d = verifiedDocs[i]
+  if (!d) return
+  d.checked = !d.checked
+  if (d.checked && !d.verifyAmount) d.verifyAmount = d.amount
+}
+function onVerifyAmountChange(i: number, e: any) {
+  const d = verifiedDocs[i]
+  if (d) d.verifyAmount = Math.max(0, Number(e.detail.value) || 0)
+}
+const prepaymentDeduct = ref(0)
+function onPrepayChange(e: any) { prepaymentDeduct.value = Math.max(0, Number(e.detail.value) || 0) }
+
+// 物流单号（销售单：配送方式=物流发货 时录入/扫码）
+const logisticsNo = ref('')
+function onLogisticsChange(e: any) { logisticsNo.value = e.detail.value || '' }
+async function scanLogistics() {
+  try {
+    const { scanCode } = await import('@/native/scan')
+    const result = await scanCode()
+    const code = result?.code
+    if (code) { logisticsNo.value = code; uni.showToast({ title: '已扫描物流单号', icon: 'none' }) }
+  } catch (err) {
+    uni.showToast({ title: (err as Error)?.message || '扫码失败', icon: 'none' })
+  }
+}
+
+// 定金（订单类：销售订单/采购订单）/ 配送费·运费分摊（销售单/采购入库）
+const deposit = ref(0)
+function onDepositChange(e: any) { deposit.value = Math.max(0, Number(e.detail.value) || 0) }
+const shipping = ref(0)
+function onShippingChange(e: any) { shipping.value = Math.max(0, Number(e.detail.value) || 0) }
+
+// 抹零计算（对齐 HTML roundOff）
+function roundOff(base: number, mode: 'none' | 'fen' | 'jiao' | 'both'): number {
+  if (!mode || mode === 'none') return 0
+  const yuan = Math.floor(base)
+  const frac = +(base - yuan).toFixed(2)
+  if (mode === 'fen') { const jiao = Math.floor(frac * 10) / 10; return +(frac - jiao).toFixed(2) }
+  if (mode === 'jiao' || mode === 'both') { return frac }
+  return 0
+}
+
+// 各单据初始默认值（对齐 HTML initDocState）
+function shiftDate(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+function applyDocDefaults(k: string) {
+  const isOrder = k === 'sale_order' || k === 'pur_order'
+  const isInbound = k === 'pur_inbound'
+  const isReturn = k.includes('return')
+  const isReceipt = k === 'sale_receipt'
+  const isPayment = k === 'pur_payment'
+  const isTicket = k === 'sale_ticket'
+  roundMode.value = isTicket ? 'both' : 'none'
+  deposit.value = isOrder ? 200 : 0
+  taxRate.value = (isInbound || k === 'pur_order') ? 13 : 0
+  taxIncluded.value = !!(isInbound || k === 'pur_order')
+  batchNo.value = isInbound ? 'B' + todayStr().replace(/-/g, '') + '01' : ''
+  expiryDate.value = isInbound ? shiftDate(365) : ''
+  invoiceStatus.value = 'pending'
+  returnReason.value = isReturn ? '质量问题' : ''
+  originalDoc.value = isReturn ? (k === 'sale_return' ? 'XSTH20260826001' : 'CGTH20260826001') : ''
+  refundStatus.value = isReturn ? 'pending' : ''
+  orderStatus.value = k === 'sale_order' ? 'confirmed' : (k === 'pur_order' ? 'pending' : null)
+  prepaymentDeduct.value = isPayment ? 500 : 0
+  logisticsNo.value = ''
+  shipping.value = 0
+  deliveryDate.value = isOrder ? shiftDate(7) : ''
+  verifiedDocs.splice(0, verifiedDocs.length)
+  if (isReceipt || isPayment) {
+    verifiedDocs.push(
+      { no: isReceipt ? 'XS20260823005' : 'CG20260822001', amount: isReceipt ? 1560 : 3200, checked: true, verifyAmount: isReceipt ? 1560 : 3200 },
+      { no: isReceipt ? 'XS20260824012' : 'CG20260823008', amount: isReceipt ? 890 : 1800, checked: false, verifyAmount: 0 },
+    )
+  }
 }
 
 // ---------- 供应商（进货单） ----------
@@ -585,12 +766,12 @@ function onSupplierChange(e: any) {
 const storeOptions = ref<{ id: number; name: string }[]>([])
 const selectedStoreId = ref<number | null>(null)
 const storeSectionTitle = computed(() =>
-  docKey.value === 'purchase-in' ? '入库门店'
-    : (docKey.value === 'sale-return' || docKey.value === 'purchase-return') ? '退货门店'
+  docKey.value === 'pur_inbound' ? '入库门店'
+    : (docKey.value === 'sale_return' || docKey.value === 'pur_return') ? '退货门店'
     : '门店'
 )
 const storeLabel = computed(() => storeOptions.value.find(s => s.id === selectedStoreId.value)?.name
-  || (docKey.value === 'purchase-in' ? '请选择入库门店' : '请选择门店'))
+  || (docKey.value === 'pur_inbound' ? '请选择入库门店' : '请选择门店'))
 async function loadStores() {
   try {
     const res = await storesApi.list({ page: 1, pageSize: 100 })
@@ -607,8 +788,6 @@ const selectedSourceBill = ref('')
 const receiptCustomerId = ref<number | null>(null)
 const receiptCustomerName = ref('')
 const sourceBillLabel = computed(() => selectedSourceBill.value || '请选择销售单')
-// 出货：对接销售单（只读展示发货对象）
-const shipBill = ref<{ billNo: string; customerName: string; totalAmount: number; itemCount: number } | null>(null)
 async function loadSourceBills() {
   try {
     const result = await salesApi.list({ page: 1, pageSize: 20 })
@@ -627,21 +806,6 @@ function onSourceBillChange(e: any) {
     selectedSourceBill.value = bill.billNo
     receiptCustomerName.value = bill.customerName
     if (!receiptAmount.value) receiptAmount.value = bill.totalAmount
-    if (docKey.value === 'ship') loadShipBill(bill.billNo)
-  }
-}
-async function loadShipBill(billNo: string) {
-  try {
-    const res: any = await salesApi.detail(billNo)
-    const bill = res?.bill ?? res
-    shipBill.value = {
-      billNo: bill?.billNo ?? billNo,
-      customerName: bill?.customerName || '',
-      totalAmount: Number(bill?.totalAmount ?? bill?.receivableAmount ?? 0),
-      itemCount: (bill?.items || []).length,
-    }
-  } catch {
-    shipBill.value = { billNo, customerName: '', totalAmount: 0, itemCount: 0 }
   }
 }
 
@@ -651,6 +815,8 @@ function onReceiptAmountChange(e: any) { receiptAmount.value = Math.max(0, Numbe
 const paymentOptions = ['现金', '微信', '支付宝', '银行卡', '其他']
 const paymentMethod = ref('现金')
 function onPaymentChange(e: any) { paymentMethod.value = paymentOptions[Number(e.detail.value)] ?? paymentMethod.value }
+// 收款方式胶囊点击（对齐 HTML .chip 选择）
+function selectPayment(m: string) { paymentMethod.value = m }
 
 // ---------- 切换单据时重置状态 ----------
 function resetDoc() {
@@ -662,28 +828,48 @@ function resetDoc() {
   selectedSourceBill.value = ''
   receiptCustomerName.value = ''
   receiptAmount.value = 0
+  receiptCustomerId.value = null
   paymentMethod.value = '现金'
   deliveryMethod.value = '送货上门'
   orderDate.value = todayStr()
   discount.value = 0
   isSaved.value = false
   swipeOpenIndex.value = -1
+  // 扩展字段复位
+  deliveryDate.value = ''
+  roundMode.value = 'none'
+  taxRate.value = 0
+  taxIncluded.value = false
+  batchNo.value = ''
+  expiryDate.value = ''
+  invoiceStatus.value = 'pending'
+  returnReason.value = ''
+  originalDoc.value = ''
+  returnWarehouseId.value = null
+  orderStatus.value = null
+  refundStatus.value = ''
+  prepaymentDeduct.value = 0
+  logisticsNo.value = ''
+  deposit.value = 0
+  shipping.value = 0
+  verifiedDocs.splice(0, verifiedDocs.length)
   const k = docKey.value
-  if (k === 'purchase-in' || k === 'purchase-return') { loadSuppliers(); loadStores() }
-  if (k === 'sale-return' || k === 'receipt') { loadStores() }
-  if (k === 'sale-return') loadSourceBills()
+  applyDocDefaults(k)
+  if (k === 'pur_inbound' || k === 'pur_return') { loadSuppliers(); loadStores() }
+  if (k === 'sale_return' || k === 'sale_receipt' || k === 'pur_payment') loadStores()
+  if (k === 'sale_return') loadSourceBills()
 }
 
 // ---------- 进入页面时懒加载公共数据 ----------
 function ensurePurchaseData() {
   const k = docKey.value
-  if (k === 'purchase-in' || k === 'purchase-return') {
+  if (k === 'pur_inbound' || k === 'pur_return') {
     if (supplierOptions.value.length === 0) loadSuppliers()
   }
-  if (k === 'purchase-in' || k === 'purchase-return' || k === 'sale-return' || k === 'receipt') {
+  if (k === 'pur_inbound' || k === 'pur_return' || k === 'sale_return' || k === 'sale_receipt' || k === 'pur_payment') {
     if (storeOptions.value.length === 0) loadStores()
   }
-  if (k === 'sale-return') loadSourceBills()
+  if (k === 'sale_return') loadSourceBills()
 }
 
 // 已选商品：支持修改单价（订单）
@@ -801,7 +987,7 @@ async function loadMoreCustomers() {
 function selectCustomer(customer: CustomerInfo) {
   selectedCustomer.value = customer
   // 收款单需要 customerId 提交给后端（createReceipt 必填）
-  if (docKey.value === 'receipt') {
+  if (docKey.value === 'sale_receipt') {
     receiptCustomerId.value = customer.id ?? null
     receiptCustomerName.value = customer.name || ''
   }
@@ -1039,12 +1225,12 @@ function handleShare() {
 
 /** 保存（暂存草稿）：订单/进货走真实暂存接口，收款单仅前端标记 */
 async function handleDraft() {
-  if ((docKey.value === 'order' || docKey.value === 'purchase-in') && saleItems.length === 0) {
+  if ((docKey.value === 'sale_order' || docKey.value === 'pur_inbound') && saleItems.length === 0) {
     uni.showToast({ title: '请先添加商品', icon: 'none' })
     return
   }
   try {
-    if (docKey.value === 'order' || docKey.value === 'purchase-in') {
+    if (docKey.value === 'sale_order' || docKey.value === 'pur_inbound') {
       const result = await storeApi.createHoldOrder({
         customerName: selectedCustomer.value?.name || '散户',
         customerMobile: selectedCustomer.value?.phone || '',
@@ -1845,7 +2031,7 @@ onMounted(() => {
 .submit-btn {
   width: 220rpx;
   height: 80rpx;
-  background: $uni-gradient-blue;
+  background: $uni-color-primary;
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 600;
@@ -2281,5 +2467,59 @@ onMounted(() => {
   font-size: 24rpx;
   color: $uni-gray-400;
 }
-</style>
 
+/* ========== 对齐 HTML 打磨版新增的视觉元素 ========== */
+/* 单据状态徽标（HTML .hd-status draft / saved） */
+.doc-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8rpx;
+  padding: 10rpx 32rpx 0;
+}
+.ds-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+}
+.ds-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+.doc-status--draft .ds-dot { background: $uni-gray-400; }
+.doc-status--draft .ds-text { color: $uni-gray-500; }
+.doc-status--saved .ds-dot { background: $uni-color-success; }
+.doc-status--saved .ds-text { color: $uni-color-success; }
+
+/* 卡片标题徽标（HTML .ct-badge：商品 N 种 / 待核销 N/M） */
+.ct-badge {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: $uni-color-primary;
+  background: $uni-color-primary-soft;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+}
+
+/* 收款方式胶囊（HTML .chip / .chip-row） */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+.chip {
+  padding: 14rpx 28rpx;
+  background: $uni-bg-color-page;
+  border: 1rpx solid $uni-border-color;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: $uni-gray-600;
+  transition: all 0.15s ease;
+}
+.chip--active {
+  background: $uni-color-primary;
+  border-color: $uni-color-primary;
+  color: $uni-text-color-inverse;
+  font-weight: 600;
+}
+</style>
