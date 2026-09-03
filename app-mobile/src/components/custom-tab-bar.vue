@@ -10,7 +10,7 @@
         <view class="tab-icon icon-home">
           <image
             class="tab-icon-img"
-            :src="current === 'home' ? '/static/tabbar/home-active.svg' : '/static/tabbar/home.svg'"
+            :src="current === 'home' ? '/static/tabbar/home-active.png' : '/static/tabbar/home.png'"
             mode="aspectFit"
           />
         </view>
@@ -26,7 +26,7 @@
         <view class="tab-icon icon-box">
           <image
             class="tab-icon-img"
-            :src="current === 'products' ? '/static/tabbar/product-active.svg' : '/static/tabbar/product.svg'"
+            :src="current === 'products' ? '/static/tabbar/product-active.png' : '/static/tabbar/product.png'"
             mode="aspectFit"
           />
         </view>
@@ -56,7 +56,7 @@
         <view class="tab-icon icon-grid">
           <image
             class="tab-icon-img"
-            :src="current === 'functions' ? '/static/tabbar/functions-active.svg' : '/static/tabbar/functions.svg'"
+            :src="current === 'functions' ? '/static/tabbar/functions-active.png' : '/static/tabbar/functions.png'"
             mode="aspectFit"
           />
         </view>
@@ -72,7 +72,7 @@
         <view class="tab-icon icon-user">
           <image
             class="tab-icon-img"
-            :src="current === 'profile' ? '/static/tabbar/user-active.svg' : '/static/tabbar/user.svg'"
+            :src="current === 'profile' ? '/static/tabbar/user-active.png' : '/static/tabbar/user.png'"
             mode="aspectFit"
           />
         </view>

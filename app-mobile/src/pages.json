@@ -841,32 +841,32 @@
       {
         "pagePath": "pages/home/home",
         "text": "首页",
-        "iconPath": "static/tabbar/home.svg",
-        "selectedIconPath": "static/tabbar/home-active.svg"
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
       },
       {
         "pagePath": "pages/products/products",
         "text": "商品",
-        "iconPath": "static/tabbar/product.svg",
-        "selectedIconPath": "static/tabbar/product-active.svg"
+        "iconPath": "static/tabbar/product.png",
+        "selectedIconPath": "static/tabbar/product-active.png"
       },
       {
         "pagePath": "pages/ai-chat/ai-chat",
         "text": "AI",
-        "iconPath": "static/tabbar/ai.svg",
-        "selectedIconPath": "static/tabbar/ai-active.svg"
+        "iconPath": "static/tabbar/ai.png",
+        "selectedIconPath": "static/tabbar/ai-active.png"
       },
       {
         "pagePath": "pages/functions/functions",
         "text": "功能",
-        "iconPath": "static/tabbar/functions.svg",
-        "selectedIconPath": "static/tabbar/functions-active.svg"
+        "iconPath": "static/tabbar/functions.png",
+        "selectedIconPath": "static/tabbar/functions-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
         "text": "我的",
-        "iconPath": "static/tabbar/user.svg",
-        "selectedIconPath": "static/tabbar/user-active.svg"
+        "iconPath": "static/tabbar/user.png",
+        "selectedIconPath": "static/tabbar/user-active.png"
       }
     ]
   }
