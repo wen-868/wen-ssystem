@@ -149,6 +149,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { sysConfigApi, type SysConfigItem } from '@/api/modules/sys-config'
 import { authApi } from '@/api/modules/auth'
+import { API_BASE_H5, API_BASE_NATIVE } from '@/config/env'
 
 const tabs = [
   { label: '公司信息', value: 'company' },
@@ -179,10 +180,10 @@ const version = '1.0.0'
 const versionNote = ref('已是最新版本')
 const apiBase = (() => {
   // #ifdef H5
-  return import.meta.env.VITE_API_BASE || '/api'
+  return API_BASE_H5
   // #endif
   // #ifndef H5
-  return 'https://api.onepan.cn/api'
+  return API_BASE_NATIVE
   // #endif
 })()
 

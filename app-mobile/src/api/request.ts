@@ -3,15 +3,17 @@
  * 封装 uni.request，提供统一拦截、Token注入、错误处理
  */
 
-// uni-app 条件编译：H5 使用 Vite 环境变量，其他平台（App）使用生产 API 域名
+import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
+
+// uni-app 条件编译：H5 使用 Vite 环境变量（默认 /api 代理），其他平台（App）使用生产 API 域名
 // 使用 IIFE 包裹避免 vue-tsc 误报重复声明（uni-app 编译器会按平台去除无用分支）
 const BASE_URL: string = (() => {
   // #ifdef H5
-  return import.meta.env.VITE_API_BASE || '/api'
+  return API_BASE_H5
   // #endif
   // #ifndef H5
   // APP 端必须带 /api 路径前缀（nginx 仅反代 /api/* 到后端），否则所有请求 404 导致无法登录
-  return 'https://api.onepan.cn/api'
+  return API_BASE_NATIVE
   // #endif
 })()
 

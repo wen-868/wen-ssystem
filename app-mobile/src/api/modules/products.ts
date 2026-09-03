@@ -1,12 +1,13 @@
 ﻿import { get, post, put, del } from '../request'
+import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 /** API 基础地址（与 request.ts 保持一致） */
 const API_BASE: string = (() => {
   // #ifdef H5
-  return (import.meta.env.VITE_API_BASE as string | undefined) || '/api'
+  return API_BASE_H5
   // #endif
   // #ifndef H5
-  return 'https://api.onepan.cn/api'
+  return API_BASE_NATIVE
   // #endif
 })()
 

@@ -4,6 +4,7 @@
  * - APP 端：发布 .wgt 热更新包 → 下载安装后重启；无 wgt 包 → 提示去下载新安装包
  * - H5 端：提示刷新页面
  */
+import { API_BASE_H5, API_BASE_NATIVE } from '../config/env'
 
 // 与 app-mobile/package.json 同步，发版时更新（APP 端实际以 plus.runtime.version 为准）
 const H5_LOCAL_VERSION = "1.0.0"
@@ -18,10 +19,10 @@ interface LatestAppVersion {
 
 function resolveBase(): string {
   // #ifdef H5
-  return import.meta.env.VITE_API_BASE || '/api'
+  return API_BASE_H5
   // #endif
   // #ifndef H5
-  return 'https://api.onepan.cn/api'
+  return API_BASE_NATIVE
   // #endif
 }
 

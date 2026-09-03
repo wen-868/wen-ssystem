@@ -1,4 +1,5 @@
 import { get, post, put } from '../request'
+import { API_BASE_H5, API_BASE_NATIVE } from '../../config/env'
 
 export interface UserProfile {
   id: number
@@ -33,10 +34,10 @@ export const profileApi = {
     // 真实上传：POST /api/admin/auth/avatar（multer 单文件 avatar，返回完整头像 URL）
     const base = (() => {
       // #ifdef H5
-      return import.meta.env.VITE_API_BASE || '/api'
+      return API_BASE_H5
       // #endif
       // #ifndef H5
-      return 'https://api.onepan.cn/api'
+      return API_BASE_NATIVE
       // #endif
     })()
     return new Promise((resolve, reject) => {
