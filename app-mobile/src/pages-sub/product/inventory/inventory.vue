@@ -262,7 +262,7 @@ onMounted(() => {
   padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .is-val {
@@ -293,7 +293,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-base;
   padding: $uni-spacing-base $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .inv-act {
@@ -423,7 +423,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-md;
   margin-bottom: $uni-spacing-md;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .card-left {

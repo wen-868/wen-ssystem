@@ -1,5 +1,6 @@
 <template>
   <view class="exchange-page">
+    <page-header title="积分兑换" @back="goBack" />
     <view class="search-bar">
       <view class="search-input-wrap">
         <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
@@ -52,6 +53,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, onMounted } from 'vue'
 import { pointsApi, type ExchangeItem } from '@/api/modules/points'
 
@@ -162,7 +168,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-md;
   margin-bottom: $uni-spacing-sm;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .item-image-wrap {

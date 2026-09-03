@@ -19,8 +19,8 @@
       </view>
     </view>
 
-    <!-- 搜索结果 -->
-    <scroll-view class="search-results" scroll-y v-if="searching && !selected">
+    <!-- 搜索结果（uni-app H5 scroll-view 不内部滚动，整页文档滚动，见踩坑日志[38]） -->
+    <view class="search-results" v-if="searching && !selected">
       <view
         class="result-item"
         v-for="item in searchResults"
@@ -36,7 +36,7 @@
       <view class="search-empty" v-if="!searchLoading && searchResults.length === 0">
         <text class="search-empty-text">未找到相关商品</text>
       </view>
-    </scroll-view>
+    </view>
 
     <!-- 已选商品 + 核价表单 -->
     <view class="form-section" v-if="selected">
@@ -48,22 +48,24 @@
         <text class="selected-close" @tap="selected = null">换一个</text>
       </view>
 
-      <view class="form-item">
-        <text class="form-label">当前零售价</text>
-        <view class="current-price">¥{{ currentPrice.toFixed(2) }}</view>
-      </view>
-
-      <view class="form-item">
-        <text class="form-label"><text class="required">*</text>建议售价</text>
-        <view class="price-input-wrap">
-          <text class="price-prefix">¥</text>
-          <input
-            class="price-input"
-            v-model="suggestedPrice"
-            type="digit"
-            placeholder="0.00"
-            placeholder-class="input-placeholder"
-          />
+      <!-- 五档系统价格（成本/零售/批发/门店/小程序）均可分别核价；成本价无权限时如实显示 ¥— 不可核 -->
+      <view class="price-rows">
+        <view class="price-row" v-for="p in priceTypes" :key="p.key">
+          <view class="price-row-head">
+            <text class="price-row-name">{{ p.label }}</text>
+            <text class="price-row-current">当前价 <text class="current-num">{{ currentText(p) }}</text></text>
+          </view>
+          <view class="price-input-wrap" :class="{ 'price-input-wrap--disabled': !editable(p) }">
+            <text class="price-prefix">¥</text>
+            <input
+              class="price-input"
+              v-model="suggestions[p.key]"
+              type="digit"
+              placeholder="建议价 0.00"
+              placeholder-class="input-placeholder"
+              :disabled="!editable(p)"
+            />
+          </view>
         </view>
       </view>
 
@@ -96,7 +98,7 @@
 <script setup lang="ts">
 function goBack(){ uni.navigateBack() }
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { productsApi, type ProductInfo } from '@/api/modules/products'
 import { priceApi } from '@/api/modules/price'
 
@@ -105,11 +107,40 @@ const searching = ref(false)
 const searchLoading = ref(false)
 const searchResults = ref<ProductInfo[]>([])
 const selected = ref<ProductInfo | null>(null)
-const suggestedPrice = ref('')
 const reason = ref('')
 const submitting = ref(false)
 
-const currentPrice = computed(() => selected.value?.price ?? 0)
+/**
+ * 五档系统价格（与 t_product_price 列一一对应）：核价页每档一行，
+ * 当前价 + 建议价输入，均可独立核价（用户要求：系统内定义的价格都要能核价）
+ */
+const priceTypes = [
+  { key: 'COST', label: '成本价', field: 'costPrice' as const },
+  { key: 'RETAIL', label: '零售价', field: 'retailPrice' as const },
+  { key: 'WHOLESALE', label: '批发价', field: 'wholesalePrice' as const },
+  { key: 'STORE', label: '门店价', field: 'storePrice' as const },
+  { key: 'MINIAPP', label: '小程序价', field: 'miniappPrice' as const },
+]
+
+/** 每档的建议价输入（键为 priceType，值为输入字符串） */
+const suggestions = reactive<Record<string, string>>({})
+
+/** 当前价文本：无该档价格时如实显示 ¥—（不造假） */
+function currentText(p: (typeof priceTypes)[number]): string {
+  const v = selected.value?.[p.field]
+  return v != null ? `¥${Number(v).toFixed(2)}` : '¥—'
+}
+
+/** 成本价受权限控制，无权限（null/undefined）时该档不可核价 */
+function editable(p: (typeof priceTypes)[number]): boolean {
+  return selected.value?.[p.field] != null
+}
+
+function resetSuggestions() {
+  for (const p of priceTypes) {
+    suggestions[p.key] = ''
+  }
+}
 
 async function onSearch() {
   searching.value = true
@@ -134,26 +165,32 @@ function clearSearch() {
 
 function selectProduct(item: ProductInfo) {
   selected.value = item
-  suggestedPrice.value = ''
+  resetSuggestions()
   reason.value = ''
   searching.value = false
 }
 
 async function onSubmit() {
   if (!selected.value) return
-  const price = Number(suggestedPrice.value)
-  if (!Number.isFinite(price) || price <= 0) {
-    uni.showToast({ title: '请输入大于 0 的建议售价', icon: 'none' })
+  // 只提交填写了建议价（>0）的档位，空值档位不参与核价
+  const items = priceTypes
+    .filter((p) => editable(p) && suggestions[p.key] && Number(suggestions[p.key]) > 0)
+    .map((p) => ({ priceType: p.key, suggestedPrice: Number(suggestions[p.key]) }))
+  if (items.length === 0) {
+    uni.showToast({ title: '请至少填写一个价格档位的建议价', icon: 'none' })
     return
   }
   submitting.value = true
   try {
-    await priceApi.submitReview({
-      skuId: Number(selected.value.skuId),
-      suggestedPrice: price,
-      reason: reason.value || undefined,
-    })
-    uni.showToast({ title: '核价提交成功', icon: 'success' })
+    for (const it of items) {
+      await priceApi.submitReview({
+        skuId: Number(selected.value.skuId),
+        suggestedPrice: it.suggestedPrice,
+        priceType: it.priceType as any,
+        reason: reason.value || undefined,
+      })
+    }
+    uni.showToast({ title: `核价提交成功（${items.length} 档）`, icon: 'success' })
     setTimeout(() => uni.navigateBack(), 800)
   } catch (err) {
     console.error('提交核价失败:', err)
@@ -199,8 +236,8 @@ onMounted(() => {
 .search-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .search-placeholder { color: $uni-gray-300; font-size: 26rpx; }
 .search-clear { font-size: 32rpx; color: $uni-gray-300; padding: 4rpx; }
+/* 结果列表随整页文档滚动（不设 max-height，避免列表被截断看不到后面的商品） */
 .search-results {
-  max-height: 40vh;
   padding: 8rpx 24rpx;
 }
 .result-item {
@@ -247,7 +284,22 @@ onMounted(() => {
   margin-bottom: $uni-spacing-sm;
 }
 .required { color: $uni-color-error; margin-right: 4rpx; }
-.current-price { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
+/* 五档价格行：每档 当前价 + 建议价输入 */
+.price-rows { padding: $uni-spacing-xs 0; }
+.price-row {
+  padding: $uni-spacing-sm 0;
+  border-bottom: 1rpx solid $uni-bg-color-grey;
+}
+.price-row:last-of-type { border-bottom: none; }
+.price-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $uni-spacing-sm;
+}
+.price-row-name { font-size: 24rpx; color: $uni-gray-500; }
+.price-row-current { font-size: 24rpx; color: $uni-gray-400; }
+.current-num { font-size: 32rpx; font-weight: 700; color: $uni-gray-700; }
 .price-input-wrap {
   display: flex;
   align-items: center;
@@ -256,6 +308,7 @@ onMounted(() => {
   background: $uni-bg-color-page;
   border-radius: $uni-border-radius-xs;
 }
+.price-input-wrap--disabled { opacity: 0.45; }
 .price-prefix { font-size: 28rpx; color: $uni-gray-400; margin-right: $uni-spacing-xs; }
 .price-input { flex: 1; font-size: 28rpx; color: $uni-gray-700; }
 .input-placeholder { color: $uni-gray-300; }

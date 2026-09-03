@@ -89,6 +89,9 @@ interface ProductSpuRow {
   sortNo: number;
   isNew: number;
   isRecommend: number;
+  enabled: number;
+  shelfLifeOn: number;
+  batchOn: number;
   description: string | null;
   marketingTags: unknown;
   status: string;
@@ -289,6 +292,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,
             p.is_new AS isNew, p.is_recommend AS isRecommend,
+            p.enabled, p.shelf_life_on AS shelfLifeOn, p.batch_on,
             p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
      FROM t_product_spu p
      LEFT JOIN t_product_category pc ON pc.id = p.category_id
@@ -462,6 +466,7 @@ export async function updateProduct(spuId: number, body: {
   name?: string;
   barcode?: string;
   category?: string;
+  brand?: string;
   brandId?: number;
   unit?: string;
   boxRatio?: number;
@@ -476,17 +481,54 @@ export async function updateProduct(spuId: number, body: {
   sortNo?: number;
   isNew?: boolean;
   isRecommend?: boolean;
+  enabled?: boolean;
+  shelfLifeOn?: boolean;
+  batchOn?: boolean;
   description?: string;
 }, tenantId: string) {
   const existing = await queryOneWithTenant<ProductSpuFullRow>("SELECT * FROM t_product_spu WHERE id = ? AND tenant_id = ?", [spuId, tenantId], tenantId);
   if (!existing) {
     return null;
   }
+
+  // 品牌/分类契约：controller zod 只收字符串名（brand/category），落库前解析为对应 id。
+  // 原实现把 category 字符串直写 int 外键列 category_id、brand 字符串被整体丢弃，均为缺陷，此处修正。
+  let categoryId: number | undefined;
+  if (body.category !== undefined) {
+    const cat = await queryOneWithTenant<{ id: number }>(
+      `SELECT id FROM t_product_category WHERE name = ? AND tenant_id = ? AND status = 1 LIMIT 1`,
+      [body.category, tenantId], tenantId
+    );
+    if (cat) categoryId = cat.id; // 非库内分类不改动原值，避免写入无效 id
+  }
+  const brandName = body.brand !== undefined ? (body.brand || "").trim() : undefined;
+  let brandId: number | null | undefined;
+  if (brandName !== undefined) {
+    if (brandName) {
+      let brand = await queryOneWithTenant<{ id: number }>(
+        `SELECT id FROM t_brand WHERE name = ? AND tenant_id = ? LIMIT 1`,
+        [brandName, tenantId], tenantId
+      );
+      if (!brand) {
+        // 自定义品牌名：自动沉淀进租户品牌库（对齐原稿 f-drop-custom 语义）
+        const ins = await queryWithTenant<{ insertId: number }>(
+          `INSERT INTO t_brand (name, sort_no, tenant_id) VALUES (?, 0, ?)`,
+          [brandName, tenantId], tenantId
+        );
+        brand = { id: (ins as unknown as { insertId: number }).insertId };
+      }
+      brandId = brand.id;
+    } else {
+      brandId = null; // 传空串视为清空品牌
+    }
+  }
+
   const sets: string[] = [];
   const params: unknown[] = [];
   if (body.name !== undefined) { sets.push("name = ?"); params.push(body.name); }
-  if (body.category !== undefined) { sets.push("category_id = ?"); params.push(body.category); }
-  if (body.brandId !== undefined) { sets.push("brand_id = ?"); params.push(body.brandId); }
+  if (categoryId !== undefined) { sets.push("category_id = ?"); params.push(categoryId); }
+  if (body.brand !== undefined) { sets.push("brand_id = ?"); params.push(brandId); sets.push("brand = ?"); params.push(brandName ?? null); }
+  else if (body.brandId !== undefined) { sets.push("brand_id = ?"); params.push(body.brandId); }
   if (body.unit !== undefined) { sets.push("unit = ?"); params.push(body.unit); }
   if (body.specs !== undefined) { sets.push("specs = ?"); params.push(body.specs); }
   if (body.mainImage !== undefined) { sets.push("main_image = ?"); params.push(body.mainImage); }
@@ -505,6 +547,9 @@ export async function updateProduct(spuId: number, body: {
   if (body.sortNo !== undefined) { sets.push("sort_no = ?"); params.push(body.sortNo); }
   if (body.isNew !== undefined) { sets.push("is_new = ?"); params.push(body.isNew ? 1 : 0); }
   if (body.isRecommend !== undefined) { sets.push("is_recommend = ?"); params.push(body.isRecommend ? 1 : 0); }
+  if (body.enabled !== undefined) { sets.push("enabled = ?"); params.push(body.enabled ? 1 : 0); }
+  if (body.shelfLifeOn !== undefined) { sets.push("shelf_life_on = ?"); params.push(body.shelfLifeOn ? 1 : 0); }
+  if (body.batchOn !== undefined) { sets.push("batch_on = ?"); params.push(body.batchOn ? 1 : 0); }
   if (body.description !== undefined) { sets.push("description = ?"); params.push(body.description); }
   if (sets.length === 0) { return { spuId }; }
   sets.push("updated_at = NOW()");
@@ -520,10 +565,14 @@ export async function updateProduct(spuId: number, body: {
 
   const changedFields = detectChangedFields<Record<string, unknown>>(body, {
     name: existing.name,
-    category: existing.category_id,
-    brandId: existing.brand_id,
+    category: categoryId ?? existing.category_id,
+    brand: brandName ?? existing.brand,
+    brandId: brandId ?? existing.brand_id,
     unit: existing.unit,
-    status: existing.status
+    status: existing.status,
+    enabled: !!existing.enabled,
+    shelfLifeOn: !!existing.shelfLifeOn,
+    batchOn: !!existing.batchOn
   });
   if (changedFields.length > 0) {
     syncChangedFields("product_spu", spuId, changedFields, tenantId).catch(err => {

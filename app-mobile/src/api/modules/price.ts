@@ -11,33 +11,54 @@ export interface PriceLevel {
   remark?: string
 }
 
-/** 批量调价参数 */
+/** 批量调价参数（对齐后端契约） */
 export interface BatchAdjustParams {
-  productIds?: number[]
-  categoryIds?: number[]
-  adjustType: 'percent' | 'fixed' | 'set'
-  adjustValue: number
-  priceType?: string
-  remark?: string
+  filter?: {
+    categoryId?: number
+    brand?: string
+    supplierId?: number
+    priceLevelId?: number
+    keyword?: string
+    minPrice?: number
+    maxPrice?: number
+    skuIds?: number[]
+  }
+  adjustment: {
+    field: 'retail_price' | 'wholesale_price' | 'cost_price' | 'miniapp_price' | 'store_price'
+    method: 'FIXED' | 'PERCENTAGE'
+    value: number
+    direction: 'INCREASE' | 'DECREASE'
+  }
+  reason?: string
 }
 
-/** 批量调价预览结果 */
+/** 批量调价预览结果（对齐后端） */
 export interface BatchPreviewResult {
-  totalProducts: number
-  previewList: Array<{
-    productId: number
-    productName: string
-    originalPrice: number
+  totalCount: number
+  affectedCount: number
+  skippedCount: number
+  totalOldAmount: number
+  totalNewAmount: number
+  totalChangeAmount: number
+  items: Array<{
+    skuId: number
+    skuName: string
+    skuCode: string
+    oldPrice: number
     newPrice: number
-    diff: number
+    changeAmount: number
+    changePercent: number
   }>
 }
 
-/** 批量调价执行结果 */
+/** 批量调价执行结果（对齐后端） */
 export interface BatchExecuteResult {
-  batchNo: string
-  successCount: number
-  failCount: number
+  success: boolean
+  totalCount: number
+  updatedCount: number
+  failedCount: number
+  changeLogs?: number
+  batchNo?: string
 }
 
 function mapLevel(r: any): PriceLevel {
@@ -89,10 +110,11 @@ const priceApi = {
     return res?.result ?? res
   },
 
-  /** 提交建议核价单（后端 POST /admin/prices/review） */
+  /** 提交建议核价单（后端 POST /admin/prices/review，priceType 可选，默认 RETAIL 零售价） */
   async submitReview(data: {
     skuId: number
     suggestedPrice: number
+    priceType?: 'COST' | 'RETAIL' | 'WHOLESALE' | 'MINIAPP' | 'STORE'
     reason?: string
   }): Promise<{ id: number; reviewNo: string; status: string }> {
     const res: any = await post('/admin/prices/review', data)

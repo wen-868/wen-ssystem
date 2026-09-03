@@ -20,20 +20,8 @@
       </view>
     </view>
 
-    <!-- 操作入口 -->
-    <view class="action-row">
-      <view class="action-card" @tap="goBatchAdjust">
-        <view class="action-icon-wrap action-icon-wrap--blue">
-          <image class="action-icon ic" src="/static/icons/ic/pen.svg" mode="aspectFit"/>
-        </view>
-        <view class="action-info">
-          <text class="action-title">批量调价</text>
-          <text class="action-desc">按比例/固定额调整商品价格</text>
-        </view>
-      </view>
-    </view>
-
     <!-- 价格体系列表 -->
+    <!-- 批量调价入口已去重：唯一入口在商品页操作卡（batch-price） -->
     <view class="section-header">
       <text class="section-title">价格体系</text>
     </view>
@@ -170,10 +158,6 @@ async function onToggleLevel(level: PriceLevel) {
   }
 }
 
-function goBatchAdjust() {
-  uni.navigateTo({ url: '/pages-sub/product/price/batch-adjust' })
-}
-
 /** 调价记录（R94-01：接入真实记录页 batch-logs；R94-03：进入前先探测权限，403 时提示） */
 function goBatchLogs() {
   priceApi
@@ -202,26 +186,12 @@ onMounted(() => {
 .overview-card {
   display: flex; align-items: center; margin: $uni-spacing-md $uni-spacing-base;
   background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base 0;
-  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 .overview-item { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .overview-value { font-size: 40rpx; font-weight: 700; color: $uni-color-primary; }
 .overview-label { font-size: 24rpx; color: $uni-gray-400; margin-top: $uni-spacing-xs; }
 .overview-divider { width: 1rpx; height: 60rpx; background: $uni-gray-100; }
-.action-row { margin: 0 $uni-spacing-base; }
-.action-card {
-  display: flex; align-items: center; background: $uni-bg-color; border-radius: $uni-border-radius-xs;
-  padding: $uni-spacing-base; box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.04);
-}
-.action-icon-wrap {
-  width: 80rpx; height: 80rpx; border-radius: $uni-border-radius-xs;
-  display: flex; align-items: center; justify-content: center; margin-right: $uni-spacing-md;
-}
-.action-icon-wrap--blue { background: linear-gradient(135deg, $uni-color-primary-soft, $uni-color-primary-soft); }
-.action-icon { font-size: 40rpx; color: $uni-color-primary; }
-.action-info { flex: 1; display: flex; flex-direction: column; }
-.action-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
-.action-desc { font-size: 24rpx; color: $uni-gray-400; margin-top: 4rpx; }
 .section-header { padding: 24rpx 32rpx 12rpx; }
 .section-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .level-list { padding: 0 $uni-spacing-lg; }
@@ -232,8 +202,8 @@ onMounted(() => {
 .level-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; }
 .level-name-wrap { display: flex; align-items: center; gap: $uni-spacing-sm; }
 .level-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
-.level-badge { padding: 2rpx 12rpx; background: rgba(22,119,255,0.1); border-radius: 6rpx; }
-.level-badge--disabled { background: rgba(0,0,0,0.05); }
+.level-badge { padding: 2rpx 12rpx; background: $zx-antblue-100; border-radius: 6rpx; }
+.level-badge--disabled { background: $zx-black-50; }
 .level-badge-text { font-size: 20rpx; color: $uni-color-primary; }
 .level-badge--disabled .level-badge-text { color: $uni-gray-400; }
 .level-code { font-size: 24rpx; color: $uni-gray-400; }
@@ -257,7 +227,7 @@ onMounted(() => {
   width: 100rpx; height: 100rpx; border-radius: 50%;
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.4);
+  box-shadow: 0 8rpx 24rpx $zx-antblue-400;
 }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }

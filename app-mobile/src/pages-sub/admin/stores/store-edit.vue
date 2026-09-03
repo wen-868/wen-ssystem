@@ -145,7 +145,7 @@ onLoad((options: any) => {
 .form-input { flex: 1; height: 60rpx; font-size: 28rpx; color: $uni-gray-700; }
 .form-textarea { width: 100%; min-height: 120rpx; font-size: 28rpx; color: $uni-gray-700; }
 .switch-text { font-size: 26rpx; color: $uni-gray-400; }
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx $zx-black-60; }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
 .btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }

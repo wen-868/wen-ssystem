@@ -287,9 +287,9 @@ loadCustomer()
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; padding-bottom: $uni-spacing-sm; border-bottom: 1rpx solid $uni-gray-100; }
 .party-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.status-tag--pending { background: rgba(250,173,20,0.1); }
-.status-tag--confirmed { background: rgba(82,196,26,0.1); }
-.status-tag--disputed { background: rgba(255,77,79,0.1); }
+.status-tag--pending { background: $zx-orange2-100; }
+.status-tag--confirmed { background: $zx-antgreen-100; }
+.status-tag--disputed { background: $zx-antred-100; }
 .status-tag-text { font-size: 22rpx; }
 .status-tag--pending .status-tag-text { color: $uni-color-warning; }
 .status-tag--confirmed .status-tag-text { color: $uni-color-success; }
@@ -308,7 +308,7 @@ loadCustomer()
 .empty-state { display: flex; justify-content: center; padding: 100rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .safe-bottom { height: 40rpx; }
-.detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: flex-end; }
+.detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: $zx-black-500; z-index: 999; display: flex; align-items: flex-end; }
 .detail-content { width: 100%; max-height: 80vh; background: $uni-bg-color; border-radius: $uni-border-radius-sm $uni-border-radius-sm 0 0; display: flex; flex-direction: column; }
 .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .detail-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
@@ -323,7 +323,7 @@ loadCustomer()
 .record-item { padding: $uni-spacing-sm 0; border-bottom: 1rpx solid $uni-bg-color-grey; }
 .record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-xs; }
 .record-no { font-size: 26rpx; color: $uni-gray-700; }
-.record-type { font-size: 22rpx; color: $uni-color-primary; background: rgba(22,119,255,0.08); padding: 2rpx $uni-spacing-sm; border-radius: 6rpx; }
+.record-type { font-size: 22rpx; color: $uni-color-primary; background: $zx-antblue-80; padding: 2rpx $uni-spacing-sm; border-radius: 6rpx; }
 .record-info { display: flex; justify-content: space-between; }
 .record-amount { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .record-date { font-size: 22rpx; color: $uni-gray-400; }

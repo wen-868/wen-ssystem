@@ -1,5 +1,6 @@
 <template>
   <view class="seckill-page">
+    <page-header title="秒杀活动" @back="goBack" />
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
@@ -94,6 +95,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { communityMarketingApi, type SeckillActivity } from '@/api/modules/community-marketing'
 
@@ -299,7 +305,7 @@ onUnmounted(() => {
   border-radius: $uni-border-radius-xs;
   margin-bottom: $uni-spacing-md;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .card-header {

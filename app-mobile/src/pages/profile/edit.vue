@@ -1,5 +1,6 @@
 <template>
   <view class="profile-edit-page">
+    <page-header title="编辑资料" @back="goBack" />
     <!-- 头像区域 -->
     <view class="avatar-section">
       <view class="avatar-wrap" @tap="chooseAvatar">
@@ -110,6 +111,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
@@ -235,7 +241,7 @@ onLoad(() => {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 40rpx;
-  background: rgba(0,0,0,0.5);
+  background: $zx-black-500;
   display: flex; align-items: center; justify-content: center;
 }
 .edit-text { font-size: 20rpx; color: $uni-text-color-inverse; }

@@ -310,7 +310,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 .trend-chart {
   display: flex;
@@ -406,7 +406,7 @@ onMounted(() => {
 }
 .stats-card--primary .stats-value,
 .stats-card--primary .stats-label { color: $uni-text-color-inverse; }
-.stats-card--primary .stats-trend { color: rgba(255,255,255,0.85); }
+.stats-card--primary .stats-trend { color: $zx-white-850; }
 .stats-value { font-size: 36rpx; font-weight: 700; color: $uni-gray-700; }
 .stats-label { font-size: 22rpx; color: $uni-gray-500; }
 
@@ -426,7 +426,7 @@ onMounted(() => {
   top: 0;
   bottom: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  background: linear-gradient(90deg, transparent, $zx-white-650, transparent);
   animation: sk-shimmer 1.5s infinite;
 }
 @keyframes sk-shimmer { to { transform: translateX(100%); } }

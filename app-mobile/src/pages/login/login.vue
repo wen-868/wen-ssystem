@@ -246,7 +246,7 @@ function goRegister() {
 /* ── 登录页（UI1.2 设计语言：蓝渐变品牌区 + 悬浮白卡） ── */
 .login-page {
   min-height: 100vh;
-  background: #F0F5FF;
+  background: $zx-blue-50;
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
@@ -261,7 +261,7 @@ function goRegister() {
   flex-direction: column;
   align-items: center;
   padding: 100rpx 0 130rpx;
-  background: linear-gradient(160deg, $uni-color-primary-active 0%, $uni-color-primary 55%, #3B82F6 100%);
+  background: linear-gradient(160deg, $uni-color-primary-active 0%, $uni-color-primary 55%, $zx-blue-500 100%);
   border-radius: 0 0 44rpx 44rpx;
   overflow: hidden;
 }
@@ -270,7 +270,7 @@ function goRegister() {
 .brand-glow {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
+  background: $zx-white-70;
 }
 
 .brand-glow--a {
@@ -297,7 +297,7 @@ function goRegister() {
   align-items: center;
   justify-content: center;
   margin-bottom: $uni-spacing-lg;
-  box-shadow: 0 16rpx 44rpx rgba(15, 23, 42, 0.28);
+  box-shadow: 0 16rpx 44rpx $zx-slate-280;
 }
 
 .brand-logo {
@@ -317,7 +317,7 @@ function goRegister() {
 .brand-subtitle {
   position: relative;
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $zx-white-850;
   letter-spacing: 2rpx;
 }
 
@@ -335,7 +335,7 @@ function goRegister() {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-lg;
   padding: 44rpx 40rpx 34rpx;
-  box-shadow: 0 20rpx 60rpx rgba(29, 78, 216, 0.16), 0 4rpx 16rpx rgba(29, 78, 216, 0.06);
+  box-shadow: 0 20rpx 60rpx $zx-primaryact-160, 0 4rpx 16rpx $zx-primaryact-60;
 }
 
 .card-head {
@@ -373,8 +373,8 @@ function goRegister() {
 
 .form-item:focus-within {
   background: $uni-bg-color;
-  border-color: rgba(37, 99, 235, 0.35);
-  box-shadow: 0 0 0 6rpx rgba(37, 99, 235, 0.08);
+  border-color: $zx-primary-350;
+  box-shadow: 0 0 0 6rpx $zx-primary-80;
 }
 
 .input-icon {
@@ -451,7 +451,7 @@ function goRegister() {
   justify-content: center;
   border: none;
   margin-top: 32rpx;
-  box-shadow: 0 10rpx 28rpx rgba(37, 99, 235, 0.35);
+  box-shadow: 0 10rpx 28rpx $zx-primary-350;
 }
 
 .login-btn::after {
@@ -498,7 +498,7 @@ function goRegister() {
   flex: 1;
   height: 88rpx;
   background: $uni-bg-color;
-  border: 2rpx solid rgba(37, 99, 235, 0.35);
+  border: 2rpx solid $zx-primary-350;
   border-radius: $uni-border-radius-pill;
   display: flex;
   align-items: center;

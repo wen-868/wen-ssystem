@@ -1,5 +1,6 @@
 <template>
   <view class="seckill-detail-page">
+    <page-header title="秒杀详情" @back="goBack" />
     <scroll-view class="detail-scroll" scroll-y v-if="activity">
       <!-- 商品信息 -->
       <view class="product-section">
@@ -163,6 +164,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { communityMarketingApi, type SeckillActivity } from '@/api/modules/community-marketing'
 
@@ -371,7 +377,7 @@ onUnmounted(() => {
   position: absolute;
   top: 20rpx;
   right: 20rpx;
-  background: rgba(0, 0, 0, 0.6);
+  background: $zx-black-600;
   color: $uni-text-color-inverse;
   padding: 8rpx 16rpx;
   border-radius: 8rpx;
@@ -660,7 +666,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0 24rpx;
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2rpx 12rpx $zx-black-60;
   gap: 16rpx;
 }
 

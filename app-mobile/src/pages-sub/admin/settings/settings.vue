@@ -315,7 +315,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-base;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .st-row {
@@ -324,7 +324,7 @@ onMounted(() => {
   justify-content: space-between;
   gap: $uni-spacing-base;
   padding: $uni-spacing-base;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid $zx-black-40;
 }
 .st-row:last-child {
   border-bottom: none;
@@ -405,9 +405,9 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   padding: $uni-spacing-sm $uni-spacing-base calc($uni-spacing-sm + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.92);
+  background: $zx-white-920;
   backdrop-filter: blur(20px);
-  border-top: 1rpx solid rgba(0, 0, 0, 0.05);
+  border-top: 1rpx solid $zx-black-50;
 }
 .st-footer-btn {
   height: 88rpx;
@@ -416,7 +416,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12rpx 28rpx rgba(37, 99, 235, 0.28);
+  box-shadow: 0 12rpx 28rpx $zx-primary-280;
 }
 .st-footer-btn:active {
   transform: scale(0.98);

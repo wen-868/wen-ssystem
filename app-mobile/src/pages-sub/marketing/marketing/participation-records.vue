@@ -1,5 +1,6 @@
 <template>
   <view class="records-page">
+    <page-header title="参与记录" @back="goBack" />
     <scroll-view class="record-list" scroll-y v-if="list.length > 0" @scrolltolower="onLoadMore">
       <view class="record-item" v-for="item in list" :key="item.id">
         <view class="record-header">
@@ -37,6 +38,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, onMounted } from 'vue'
 import { activityApi, type ParticipationRecord } from '@/api/modules/marketing-activities'
 
@@ -137,7 +143,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-sm;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .record-header {

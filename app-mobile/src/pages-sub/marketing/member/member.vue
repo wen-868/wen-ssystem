@@ -157,7 +157,7 @@ onMounted(() => {
   width: 96rpx;
   height: 96rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: $zx-white-300;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -193,7 +193,7 @@ onMounted(() => {
 
 .level-badge {
   padding: 4rpx 20rpx;
-  background: rgba(255, 255, 255, 0.25);
+  background: $zx-white-250;
   border-radius: 20rpx;
   font-size: 22rpx;
   color: $uni-text-color-inverse;
@@ -214,7 +214,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: $uni-spacing-xs;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .asset-value {
@@ -233,7 +233,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .menu-item {

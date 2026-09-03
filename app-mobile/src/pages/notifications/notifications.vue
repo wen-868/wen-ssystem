@@ -718,7 +718,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-sm;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
   position: relative;
   transition: all 0.2s ease;
   box-sizing: border-box;

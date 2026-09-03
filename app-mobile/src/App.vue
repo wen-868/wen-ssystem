@@ -25,7 +25,7 @@ onHide(() => {
 @import '@/uni.scss';
 
 page {
-  background-color: #F5F5F5;
+  background-color: $zx-bg-f5;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
 }
 

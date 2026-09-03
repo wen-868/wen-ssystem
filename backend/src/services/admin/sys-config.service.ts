@@ -70,20 +70,60 @@ export async function batchUpdateConfigs(items: Array<{ config_key: string; conf
   return { updated: items.length };
 }
 
-/** 当前租户信息（公司名称/负责人/联系电话/营业执照） */
+/** 当前租户信息（公司名称/简称/负责人/联系电话/邮箱/法人/地址/营业执照） */
 export async function getTenantInfo(tenantId: string) {
   const row = await queryOne<{
     companyName: string;
+    companyShortName: string | null;
     contactPerson: string;
     contactMobile: string;
-    businessLicense: string;
+    contactEmail: string | null;
+    legalPerson: string | null;
+    address: string | null;
+    businessLicense: string | null;
   }>(
-    `SELECT company_name AS companyName, contact_person AS contactPerson,
-            contact_mobile AS contactMobile, business_license AS businessLicense
+    `SELECT company_name AS companyName, company_short_name AS companyShortName,
+            contact_person AS contactPerson, contact_mobile AS contactMobile,
+            contact_email AS contactEmail, legal_person AS legalPerson,
+            address, business_license AS businessLicense, tax_no AS taxNo
      FROM t_tenant WHERE id = ?`,
     [tenantId]
   );
   return row || null;
+}
+
+/** 更新当前租户企业信息（企业信息维护页使用） */
+export async function updateTenantInfo(
+  tenantId: string,
+  body: {
+    companyName: string;
+    companyShortName?: string | null;
+    contactPerson?: string;
+    contactMobile?: string;
+    contactEmail?: string | null;
+    legalPerson?: string | null;
+    address?: string | null;
+    businessLicense?: string;
+    taxNo?: string | null;
+  }
+) {
+  await query(
+    `UPDATE t_tenant SET company_name = ?, company_short_name = ?, contact_person = ?,
+            contact_mobile = ?, contact_email = ?, legal_person = ?, address = ?, business_license = ?, tax_no = ?
+     WHERE id = ?`,
+    [
+      body.companyName,
+      body.companyShortName ?? null,
+      body.contactPerson ?? null,
+      body.contactMobile ?? null,
+      body.contactEmail ?? null,
+      body.legalPerson ?? null,
+      body.address ?? null,
+      body.businessLicense ?? null,
+      body.taxNo ?? null,
+      tenantId,
+    ]
+  );
 }
 
 export async function createConfig(body: {

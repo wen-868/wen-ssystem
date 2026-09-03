@@ -17,3 +17,17 @@ miniapp/template-dist/
 test-results/
 e2e-report/
 playwright-report/
+
+# --- 构建/工作产物（非源码，2026-09-04 增补）---
+.mimosa/
+dist.bak*/
+dist_build_bak/
+dist.old*/
+shots/
+preview/
+*.patch
+*.bundle
+design.mjs
+.workbuddy/
+.playwright-cli/
+*.bak*

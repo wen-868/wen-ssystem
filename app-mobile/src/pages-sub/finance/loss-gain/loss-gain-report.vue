@@ -511,7 +511,7 @@ onMounted(() => {
   background: $uni-bg-color;
   color: $uni-color-primary;
   font-weight: 500;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
+  box-shadow: 0 2rpx 8rpx $zx-black-60;
 }
 
 .reason-list { display: flex; flex-direction: column; gap: $uni-spacing-md; }
@@ -557,9 +557,9 @@ onMounted(() => {
   color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
-.product-rank--1 { background: linear-gradient(135deg, #ffd700, #ffb800); }
-.product-rank--2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); }
-.product-rank--3 { background: linear-gradient(135deg, #cd7f32, #b87333); }
+.product-rank--1 { background: linear-gradient(135deg, $zx-chart-gold2, $zx-chart-gold); }
+.product-rank--2 { background: linear-gradient(135deg, $zx-chart-silver, $zx-chart-gray); }
+.product-rank--3 { background: linear-gradient(135deg, $zx-chart-bronze, $zx-chart-copper); }
 .product-rank--4, .product-rank--5 { background: $uni-gray-400; }
 
 .product-info { flex: 1; }
@@ -581,7 +581,7 @@ onMounted(() => {
   padding: $uni-spacing-md $uni-spacing-base;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
-  box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
+  box-shadow: 0 -2rpx 12rpx $zx-black-60;
 }
 .export-btn {
   height: 88rpx;

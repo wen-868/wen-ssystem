@@ -1,5 +1,6 @@
 <template>
   <view class="expenses-page">
+    <page-header title="费用管理" @back="goBack" />
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
@@ -89,6 +90,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, onMounted } from 'vue'
 import { expenseApi, type Expense } from '@/api/modules/expenses'
 
@@ -290,7 +296,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .card-header {
@@ -437,7 +443,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 30rpx rgba(24, 144, 255, 0.4);
+  box-shadow: 0 8rpx 30rpx $zx-antblue2-400;
 }
 
 .fab-icon {
@@ -452,7 +458,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: $zx-black-500;
   display: flex;
   align-items: center;
   justify-content: center;

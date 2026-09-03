@@ -13,6 +13,10 @@ export interface SaleItem {
   subtotalAmount: number
   unit?: string
   specs?: string
+  /** 追溯码（可多个；后端 store-sale-bill item schema 支持 traceCodes: string[]） */
+  traceCodes?: string[]
+  /** 追溯码录入草稿（输入框中间态，提交时按 traceCodes 数组） */
+  draftTrace?: string
 }
 
 export interface CreateSaleParams {
@@ -69,6 +73,7 @@ const salesApi = {
         bottleQty: it.bottleQty ?? 0,
         quantity: (it.bottleQty ?? 0) + (it.boxQty ?? 0),
         unitPrice: it.unitPrice ?? 0,
+        traceCodes: it.traceCodes?.length ? it.traceCodes : undefined,
       })),
     })
     return (res?.result ?? res) as SaleBillInfo

@@ -279,9 +279,9 @@ onMounted(() => {
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .order-no { font-size: 26rpx; color: $uni-gray-400; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.status-tag--pending { background: rgba(250,173,20,0.1); }
-.status-tag--approved { background: rgba(82,196,26,0.1); }
-.status-tag--rejected { background: rgba(255,77,79,0.1); }
+.status-tag--pending { background: $zx-orange2-100; }
+.status-tag--approved { background: $zx-antgreen-100; }
+.status-tag--rejected { background: $zx-antred-100; }
 .status-tag-text { font-size: 22rpx; }
 .status-tag--pending .status-tag-text { color: $uni-color-warning; }
 .status-tag--approved .status-tag-text { color: $uni-color-success; }
@@ -299,7 +299,7 @@ onMounted(() => {
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 200rpx 0; }
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.4); }
+.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx $zx-antblue-400; }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }
 </style>

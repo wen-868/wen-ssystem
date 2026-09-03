@@ -1,5 +1,6 @@
 <template>
   <view class="customer-detail-page">
+    <page-header title="客户详情" @back="goBack" />
     <view class="loading-overlay" v-if="loading">
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
@@ -150,6 +151,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
@@ -319,7 +325,7 @@ onLoad((options: any) => {
 .customer-avatar {
   width: 96rpx; height: 96rpx;
   border-radius: $uni-border-radius-xl;
-  background: rgba(255,255,255,0.2);
+  background: $zx-white-200;
   display: flex; align-items: center; justify-content: center;
 }
 
@@ -331,15 +337,15 @@ onLoad((options: any) => {
 
 .customer-tag-row { display: flex; align-items: center; gap: $uni-spacing-sm; }
 
-.customer-tag { padding: 4rpx 16rpx; border-radius: 16rpx; background: rgba(255,255,255,0.2); }
+.customer-tag { padding: 4rpx 16rpx; border-radius: 16rpx; background: $zx-white-200; }
 
-.tag-RETAIL { background: rgba(255,255,255,0.25); }
+.tag-RETAIL { background: $zx-white-250; }
 
-.tag-WHOLESALE { background: rgba(82,196,26,0.3); }
+.tag-WHOLESALE { background: $zx-antgreen-300; }
 
 .tag-text { font-size: 20rpx; color: $uni-text-color-inverse; }
 
-.customer-phone { font-size: 24rpx; color: rgba(255,255,255,0.85); }
+.customer-phone { font-size: 24rpx; color: $zx-white-850; }
 
 .stats-row {
   display: flex; align-items: center;

@@ -109,7 +109,25 @@ export interface InStockListResponse {
 
 export const purchaseApi = {
   async getOrderList(query: PurchaseOrderQuery): Promise<PurchaseOrderListResponse> {
-    return get('/admin/purchase-orders', query)
+    // 归一化：后端返回 {records:[...]}（mock 层还会透出 snake_case 原始键），统一映射为 {list,total}
+    const res: any = await get('/admin/purchase-orders', query)
+    const raw = res?.result ?? res
+    const rows: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: rows.map((r: any) => ({
+        ...r,
+        orderNo: r.orderNo ?? r.order_no ?? '',
+        supplierId: r.supplierId ?? r.supplier_id,
+        supplierName: r.supplierName ?? r.supplier_name ?? '',
+        status: r.status ?? r.order_status ?? '',
+        // 订单日期：优先 orderDate，mock/部分实现只有 createdAt
+        orderDate: r.orderDate ?? r.order_date ?? r.createdAt ?? r.created_at ?? '',
+        // 金额：价税合计语义（stats.totalAmount=SUM(payable_amount)），无 totalAmount 时取 payableAmount
+        totalAmount: Number(r.totalAmount ?? r.total_amount ?? r.payableAmount ?? r.payable_amount ?? 0),
+        createdAt: r.createdAt ?? r.created_at ?? '',
+      })),
+      total: Number(raw?.total ?? raw?.count ?? rows.length),
+    }
   },
 
   async getOrderById(id: number): Promise<PurchaseOrder> {

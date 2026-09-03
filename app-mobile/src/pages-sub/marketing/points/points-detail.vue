@@ -1,5 +1,6 @@
 <template>
   <view class="points-page">
+    <page-header title="积分明细" @back="goBack" />
     <view class="search-bar">
       <view class="search-input-wrap">
         <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
@@ -61,6 +62,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, onMounted } from 'vue'
 import { pointsApi, type PointsRecord } from '@/api/modules/points'
 

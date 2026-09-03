@@ -176,20 +176,20 @@
         <!-- 原稿 drawChart：平滑贝塞尔折线 + 渐变面积 + 三条网格线 + 均值虚线 + 末点脉冲 -->
         <svg class="chart-svg" viewBox="0 0 340 140" preserveAspectRatio="none">
           <defs>
-            <linearGradient id="chartArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#2563EB" stop-opacity="0.15" />
-              <stop offset="50%" stop-color="#2563EB" stop-opacity="0.05" />
-              <stop offset="100%" stop-color="#2563EB" stop-opacity="0" />
-            </linearGradient>
-          </defs>
-          <line v-for="(gy, i) in chartMeta.gridYs" :key="'g' + i" x1="10" :y1="gy" x2="330" :y2="gy" stroke="rgba(0,0,0,0.03)" stroke-width="1" />
-          <line x1="10" :y1="chartMeta.avgY" x2="330" :y2="chartMeta.avgY" stroke="#2563EB" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.15" />
-          <text :x="330" :y="chartMeta.avgY - 5" text-anchor="end" font-size="11" font-weight="600" fill="#2563EB" opacity="0.55">均 {{ formatCn(averageDaily) }}</text>
-          <path :d="chartMeta.area" fill="url(#chartArea)" />
-          <path :d="chartMeta.line" fill="none" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-          <circle v-for="(p, i) in chartMeta.dots" :key="'d' + i" :cx="p.x" :cy="p.y" :r="p.r" fill="#fff" stroke="#2563EB" stroke-width="2" />
-          <circle :cx="chartMeta.lastDot.x" :cy="chartMeta.lastDot.y" r="10" fill="#2563EB" opacity="0.06" class="chart-pulse" />
-          <text :x="chartMeta.lastDot.x" :y="chartMeta.lastDot.y - 12" text-anchor="middle" fill="#2563EB" font-size="10" font-weight="700">{{ formatCn(chartMeta.lastVal) }}</text>
+          <linearGradient id="chartArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" :stop-color="COLOR_PRIMARY" stop-opacity="0.15" />
+            <stop offset="50%" :stop-color="COLOR_PRIMARY" stop-opacity="0.05" />
+            <stop offset="100%" :stop-color="COLOR_PRIMARY" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <line v-for="(gy, i) in chartMeta.gridYs" :key="'g' + i" x1="10" :y1="gy" x2="330" :y2="gy" :stroke="COLOR_BLACK_03" stroke-width="1" />
+        <line x1="10" :y1="chartMeta.avgY" x2="330" :y2="chartMeta.avgY" :stroke="COLOR_PRIMARY" stroke-width="0.8" stroke-dasharray="4,4" opacity="0.15" />
+        <text :x="330" :y="chartMeta.avgY - 5" text-anchor="end" font-size="11" font-weight="600" :fill="COLOR_PRIMARY" opacity="0.55">均 {{ formatCn(averageDaily) }}</text>
+        <path :d="chartMeta.area" fill="url(#chartArea)" />
+        <path :d="chartMeta.line" fill="none" :stroke="COLOR_PRIMARY" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        <circle v-for="(p, i) in chartMeta.dots" :key="'d' + i" :cx="p.x" :cy="p.y" :r="p.r" :fill="COLOR_WHITE" :stroke="COLOR_PRIMARY" stroke-width="2" />
+        <circle :cx="chartMeta.lastDot.x" :cy="chartMeta.lastDot.y" r="10" :fill="COLOR_PRIMARY" opacity="0.06" class="chart-pulse" />
+        <text :x="chartMeta.lastDot.x" :y="chartMeta.lastDot.y - 12" text-anchor="middle" :fill="COLOR_PRIMARY" font-size="10" font-weight="700">{{ formatCn(chartMeta.lastVal) }}</text>
         </svg>
       </view>
       <view class="chart-labels" v-if="trendList.length > 0">
@@ -213,6 +213,7 @@ import { notificationsApi } from '@/api/modules/notifications'
 import { reportsApi } from '@/api/modules/reports'
 import { inventoryApi } from '@/api/modules/inventory'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
+import { COLOR_PRIMARY, COLOR_WHITE, COLOR_WARNING, COLOR_ERROR, COLOR_BLACK_03 } from '@/constants/colors'
 
 interface DashboardData {
   todaySales: number
@@ -260,9 +261,9 @@ const unreadCount = ref(0)
 /** 原稿今日待办行：真实数据（待配送/库存预警/待收款） */
 const todoRows = computed(() => {
   const rows = [
-    { count: stats.value.pendingDelivery, label: '单待配送', color: '#C8803A' },
-    { count: alertCount.value, label: '件库存预警商品', color: '#C45050' },
-    { count: stats.value.pendingPayment, label: '笔待收款', color: '#2563EB' }
+    { count: stats.value.pendingDelivery, label: '单待配送', color: COLOR_WARNING },
+    { count: alertCount.value, label: '件库存预警商品', color: COLOR_ERROR },
+    { count: stats.value.pendingPayment, label: '笔待收款', color: COLOR_PRIMARY }
   ]
   return rows.filter((r) => r.count > 0)
 })
@@ -453,13 +454,13 @@ uni-scroll-view ::-webkit-scrollbar {
   margin: 20rpx 28rpx 0;
   height: 84rpx;
   background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
   border-radius: $uni-border-radius-pill;
   display: flex;
   align-items: center;
   padding: 0 32rpx;
   gap: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2rpx 8rpx $zx-black-30;
 }
 
 .search-bar-icon {
@@ -517,13 +518,13 @@ uni-scroll-view ::-webkit-scrollbar {
 /* 数据卡 */
 .home-data {
   margin: $uni-spacing-lg $uni-spacing-base 0;
-  background: #F0F5FF;
+  background: $zx-blue-50;
   border-radius: $uni-border-radius-lg;
   padding: $uni-spacing-xl 44rpx;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.06), 0 2rpx 6rpx rgba(0, 0, 0, 0.04);
-  border: 1rpx solid rgba(37, 99, 235, 0.08);
+  box-shadow: 0 8rpx 32rpx $zx-primary-60, 0 2rpx 6rpx $zx-black-40;
+  border: 1rpx solid $zx-primary-80;
 }
 
 .home-data-top {
@@ -571,7 +572,7 @@ uni-scroll-view ::-webkit-scrollbar {
   width: 28rpx;
   height: 2rpx;
   border-radius: 2rpx;
-  background: rgba(37, 99, 235, 0.2);
+  background: $zx-primary-200;
   flex-shrink: 0;
 }
 
@@ -611,11 +612,11 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .home-data-trend.up {
-  color: #047857;
+  color: $zx-success-text;
 }
 
 .home-data-trend.up .trend-text {
-  color: #047857;
+  color: $zx-success-text;
 }
 
 .trend-arrow {
@@ -660,7 +661,7 @@ uni-scroll-view ::-webkit-scrollbar {
   top: 12rpx;
   bottom: 12rpx;
   width: 1rpx;
-  background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.08), transparent);
+  background: linear-gradient(180deg, transparent, $zx-primary-80, transparent);
 }
 
 .db-label {
@@ -685,7 +686,7 @@ uni-scroll-view ::-webkit-scrollbar {
   border-radius: $uni-border-radius-lg;
   padding: 36rpx $uni-spacing-lg $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 /* 快捷入口标题 14px、间距对齐原稿 h3 */
@@ -713,7 +714,7 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .hq-item:active {
-  background: rgba(0, 0, 0, 0.03);
+  background: $zx-black-30;
 }
 
 .hq-ico {
@@ -776,7 +777,7 @@ uni-scroll-view ::-webkit-scrollbar {
   border-radius: $uni-border-radius-lg;
   padding: 40rpx 36rpx;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .hp-row {
@@ -791,8 +792,8 @@ uni-scroll-view ::-webkit-scrollbar {
   align-items: center;
   padding: $uni-spacing-base $uni-spacing-sm;
   border-radius: $uni-border-radius-base;
-  background: rgba(0, 0, 0, 0.015);
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  background: $zx-black-15;
+  border: 1rpx solid $zx-black-30;
 }
 
 .hp-item:active {
@@ -800,23 +801,23 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 .hp-item--warning {
-  background: rgba(200, 128, 58, 0.04);
-  border-color: rgba(200, 128, 58, 0.08);
+  background: $zx-warning2-40;
+  border-color: $zx-warning2-80;
 }
 
 .hp-item--primary {
-  background: rgba(37, 99, 235, 0.03);
-  border-color: rgba(37, 99, 235, 0.06);
+  background: $zx-primary-30;
+  border-color: $zx-primary-60;
 }
 
 .hp-item--purple {
-  background: rgba(124, 58, 237, 0.03);
-  border-color: rgba(124, 58, 237, 0.06);
+  background: $zx-violet2-30;
+  border-color: $zx-violet2-60;
 }
 
 .hp-item--success {
-  background: rgba(58, 157, 92, 0.03);
-  border-color: rgba(58, 157, 92, 0.06);
+  background: $zx-success2-30;
+  border-color: $zx-success2-60;
 }
 
 .hp-ico {
@@ -829,10 +830,10 @@ uni-scroll-view ::-webkit-scrollbar {
   margin-bottom: $uni-spacing-sm;
 }
 
-.hp-ico--orange { background: rgba(200, 128, 58, 0.1); }
-.hp-ico--blue { background: rgba(37, 99, 235, 0.08); }
-.hp-ico--purple { background: rgba(124, 58, 237, 0.08); }
-.hp-ico--green { background: rgba(58, 157, 92, 0.08); }
+.hp-ico--orange { background: $zx-warning2-100; }
+.hp-ico--blue { background: $zx-primary-80; }
+.hp-ico--purple { background: $zx-violet2-80; }
+.hp-ico--green { background: $zx-success-chip-bg; }
 
 .hp-ico-img {
   width: 28rpx;
@@ -841,7 +842,7 @@ uni-scroll-view ::-webkit-scrollbar {
 
 .hp-item--warning .hp-num { color: $uni-color-warning; }
 .hp-item--primary .hp-num { color: $uni-color-primary; }
-.hp-item--purple .hp-num { color: #7C3AED; }
+.hp-item--purple .hp-num { color: $zx-violet-600; }
 .hp-item--success .hp-num { color: $uni-color-success; }
 
 .hp-num {
@@ -866,14 +867,14 @@ uni-scroll-view ::-webkit-scrollbar {
   border-radius: $uni-border-radius-lg;
   padding: 40rpx 36rpx $uni-spacing-base;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .ho-item {
   display: flex;
   align-items: center;
   padding: $uni-spacing-base 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid $zx-black-40;
 }
 
 .ho-item:last-child {
@@ -935,10 +936,10 @@ uni-scroll-view ::-webkit-scrollbar {
 }
 
 /* 徽章文字加深至 4.5:1 对比度（spec12） */
-.badge-green { background: $uni-color-success-soft; color: #047857; }
-.badge-orange { background: $uni-color-warning-soft; color: #B45309; }
-.badge-red { background: $uni-color-error-soft; color: #B91C1C; }
-.badge-gray { background: #f0f0f0; color: #909399; }
+.badge-green { background: $uni-color-success-soft; color: $zx-success-text; }
+.badge-orange { background: $uni-color-warning-soft; color: $zx-amber-700; }
+.badge-red { background: $uni-color-error-soft; color: $zx-red-700; }
+.badge-gray { background: $uni-border-color-light; color: $zx-ant-gray-500; }
 
 /* 7 日趋势（原稿：SVG 平滑折线 + 底部日期行） */
 .home-chart {
@@ -947,7 +948,7 @@ uni-scroll-view ::-webkit-scrollbar {
   border-radius: $uni-border-radius-lg;
   padding: 40rpx 36rpx;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .chart-daily {
@@ -1009,7 +1010,7 @@ uni-scroll-view ::-webkit-scrollbar {
   border-radius: $uni-border-radius-base;
   padding: $uni-spacing-lg 36rpx $uni-spacing-base;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
   border-left: 6rpx solid $uni-color-primary;
 }
 

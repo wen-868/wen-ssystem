@@ -265,11 +265,11 @@ onLoad((options: any) => {
 .status-badge {
   padding: 8rpx 24rpx;
   border-radius: 24rpx;
-  background: rgba(255,255,255,0.2);
+  background: $zx-white-200;
 }
-.status-badge--pending { background: rgba(250,173,20,0.3); }
-.status-badge--approved { background: rgba(82,196,26,0.3); }
-.status-badge--rejected { background: rgba(255,77,79,0.3); }
+.status-badge--pending { background: $zx-orange2-300; }
+.status-badge--approved { background: $zx-antgreen-300; }
+.status-badge--rejected { background: $zx-antred-300; }
 .status-badge-text { font-size: 24rpx; color: $uni-text-color-inverse; font-weight: 500; }
 .order-no { font-size: 28rpx; color: $uni-text-color-inverse; font-weight: 600; }
 
@@ -416,7 +416,7 @@ onLoad((options: any) => {
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
-  box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
+  box-shadow: 0 -2rpx 12rpx $zx-black-60;
 }
 .btn {
   flex: 1;
@@ -446,7 +446,7 @@ onLoad((options: any) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: $zx-black-500;
   z-index: 1000;
   display: flex;
   align-items: center;

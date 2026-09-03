@@ -24,6 +24,8 @@ interface RequestOptions {
   responseType?: 'text' | 'json' | 'arraybuffer' | 'blob'
   /** 静默失败：出错不弹 toast、不跳转，仅 reject（用于非关键/兜底请求） */
   silent?: boolean
+  /** 内部标记：401 防误杀重试，只重试一次 */
+  _retried401?: boolean
 }
 
 interface RequestResponse<T = any> {
@@ -82,6 +84,16 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
 
         // 401: 未认证，清除登录态并跳转登录页
         if (statusCode === 401) {
+          // 防误杀：本地仍能读到 token 时先静默重试一次。
+          // 页面刷新后的最初几百毫秒内，存储读取链路偶发返回空（时序问题），
+          // 导致本应带 token 的请求裸奔 401；重试时读取已恢复，可直接成功。
+          const retryToken = getToken()
+          if (retryToken && !(options as any)._retried401) {
+            request({ ...options, _retried401: true } as RequestOptions)
+              .then(resolve)
+              .catch(reject)
+            return
+          }
           uni.removeStorageSync('merchant_token')
           uni.removeStorageSync('merchant_user')
           uni.removeStorageSync('merchant_tenant_id')

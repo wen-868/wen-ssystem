@@ -5,7 +5,7 @@
  *  1. 封装 uni.requireNativePlugin('ZXing-Scanner') 为 Promise 接口
  *  2. 实现 ScanResult 类型识别（barcode / qrcode / trace_code）
  *  3. 实现 handleScanResult 路由分发：
- *     - 追溯码 → 跳转 /pages/admin/trace-query?code=xxx
+ *     - 追溯码 → 跳转 /pages-sub/product/trace/trace-query?code=xxx
  *     - 商品条码 → 优先本地 SQLite（R51-04 完成后接入），未命中走网络 /admin/products?keyword=xxx
  *     - 未知码 → toast 提示 + 可选手动录入
  *  4. 支持连续扫码（盘点场景），间隔可配置（默认 1s）
@@ -145,7 +145,7 @@ const QRCODE_FORMATS: ReadonlySet<string> = new Set<string>([
 ])
 
 /** 追溯查询页路径 */
-const TRACE_QUERY_PAGE = '/pages/admin/trace-query'
+const TRACE_QUERY_PAGE = '/pages-sub/product/trace/trace-query'
 
 /** 商品创建/编辑页路径（R64-L10 新建商品流程扫码命中时跳转） */
 const PRODUCT_CREATE_PAGE = '/pages-sub/product/product/product-edit'
@@ -632,7 +632,7 @@ function mapDeltaToProductInfo(delta: ProductDeltaData): ProductInfo {
  * 处理扫码结果 - 路由分发
  *
  * 分发逻辑：
- *  1. 追溯码（TRC- 前缀）→ 调用后端查询追溯链 + 跳转 /pages/admin/trace-query?code=xxx
+ *  1. 追溯码（TRC- 前缀）→ 调用后端查询追溯链 + 跳转 /pages-sub/product/trace/trace-query?code=xxx
  *  2. 商品条码 → 优先查本地 SQLite（R51-04 完成后），未命中走网络 /admin/products?keyword=xxx
  *  3. 未知码 / 二维码 → toast 提示
  *
@@ -659,7 +659,7 @@ export async function handleScanResult(result: ScanResult): Promise<ScanHandleRe
     if (result.type === 'trace_code' || isTraceCode(code)) {
         try {
             const traceData = await queryTraceChain(code)
-            // 跳转到追溯查询页（页面尚待新建，路径以 R51 方案 2.1 节为准）
+            // 跳转到追溯查询页（已注册页面：pages-sub/product/trace/trace-query）
             uni.navigateTo({
                 url: `${ TRACE_QUERY_PAGE }?code = ${ encodeURIComponent(code) } `,
             })

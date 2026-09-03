@@ -1,5 +1,6 @@
 <template>
   <view class="audit-logs-page">
+    <page-header title="权限审计日志" @back="goBack" />
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
@@ -97,6 +98,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, onMounted } from 'vue'
 import {
   reportPermissionApi,
@@ -321,7 +327,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-md;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .log-header {
@@ -395,32 +401,32 @@ onMounted(() => {
 
 .type-ROLE_PERMISSION_CHANGE {
   color: $uni-color-primary;
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
 }
 
 .type-DATA_SCOPE_CHANGE {
   color: $uni-color-success;
-  background: rgba(82, 196, 26, 0.1);
+  background: $zx-antgreen-100;
 }
 
 .type-USER_ROLE_ASSIGN {
   color: $uni-color-purple;
-  background: rgba(114, 46, 209, 0.1);
+  background: $zx-purple-soft-10;
 }
 
 .type-USER_PERMISSION_CHANGE {
   color: $uni-color-warning;
-  background: rgba(250, 140, 22, 0.1);
+  background: $zx-antorange-100;
 }
 
 .type-ROLE_CREATE {
   color: $uni-color-cyan;
-  background: rgba(19, 194, 194, 0.1);
+  background: $zx-cyan-soft-10;
 }
 
 .type-ROLE_DELETE {
   color: $uni-color-error;
-  background: rgba(255, 77, 79, 0.1);
+  background: $zx-antred-100;
 }
 
 .target-text {

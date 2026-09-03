@@ -10,6 +10,10 @@ export interface StoreInfo {
   contactName?: string
   status?: number
   businessHours?: string
+  /** 门店类型：store 门店 / warehouse 仓库（后端未返回时回退 'store'） */
+  type?: 'store' | 'warehouse' | string
+  /** 是否默认（开单默认选中） */
+  isDefault?: boolean
   longitude?: number
   latitude?: number
   createdAt?: string
@@ -39,6 +43,8 @@ function mapStore(r: any): StoreInfo {
     contactName: r.contactName ?? r.contact_name,
     status: r.status != null ? Number(r.status) : 1,
     businessHours: r.businessHours ?? r.business_hours,
+    type: r.type ?? r.storeType ?? r.store_type ?? 'store',
+    isDefault: r.isDefault ?? r.is_default ?? false,
     longitude: r.longitude != null ? Number(r.longitude) : undefined,
     latitude: r.latitude != null ? Number(r.latitude) : undefined,
     createdAt: r.createdAt ?? r.created_at,
@@ -78,4 +84,35 @@ const storesApi = {
   },
 }
 
-export { storesApi }
+/** 公司收款银行账户（后端 t_bank_account，GET /admin/bank-accounts） */
+export interface CompanyBankAccount {
+  id: number
+  accountName: string
+  bankName: string
+  accountNo: string
+  accountType?: string | null
+  balance?: number
+  status?: string
+}
+
+const bankAccountsApi = {
+  /** 收款银行卡列表（按创建时间倒序） */
+  async list(params?: { page?: number; pageSize?: number; status?: string }): Promise<{ list: CompanyBankAccount[]; total: number }> {
+    const res: any = await get('/admin/bank-accounts', params)
+    const rows: any[] = res?.records ?? res?.list ?? (Array.isArray(res) ? res : [])
+    return {
+      list: rows.map((r) => ({
+        id: r.id,
+        accountName: r.accountName ?? r.account_name ?? '',
+        bankName: r.bankName ?? r.bank_name ?? '',
+        accountNo: r.accountNo ?? r.account_no ?? '',
+        accountType: r.accountType ?? r.account_type ?? null,
+        balance: r.balance != null ? Number(r.balance) : undefined,
+        status: r.status,
+      })),
+      total: res?.total ?? rows.length,
+    }
+  },
+}
+
+export { storesApi, bankAccountsApi }

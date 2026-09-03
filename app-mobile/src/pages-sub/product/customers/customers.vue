@@ -288,7 +288,7 @@ onMounted(() => {
   padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .ms-val {
@@ -384,7 +384,7 @@ onMounted(() => {
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
   transition: all 0.2s ease;
 }
 
@@ -440,7 +440,7 @@ onMounted(() => {
 }
 
 .customer-type-tag.vip3 {
-  background: #fef3c7;
+  background: $zx-amber-100;
 }
 
 .customer-type-tag.vip2 {
@@ -453,7 +453,7 @@ onMounted(() => {
 }
 
 .customer-type-tag.vip3 .type-text {
-  color: #92400e;
+  color: $zx-amber-900;
 }
 
 .customer-type-tag.vip2 .type-text {
@@ -549,7 +549,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.35);
+  box-shadow: 0 8rpx 24rpx $zx-antblue-350;
   border: none;
 }
 

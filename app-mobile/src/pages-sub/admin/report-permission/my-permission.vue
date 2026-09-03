@@ -1,5 +1,6 @@
 <template>
   <view class="my-permission-page">
+    <page-header title="我的权限" @back="goBack" />
     <!-- 顶部用户信息 -->
     <view class="user-header">
       <view class="user-avatar">
@@ -114,6 +115,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, computed, onMounted } from 'vue'
 import { reportPermissionApi, type MyPermission } from '@/api/modules/report-permission'
 import { getUser } from '@/api/storage'
@@ -211,7 +217,7 @@ onMounted(() => {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: $zx-white-200;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,7 +244,7 @@ onMounted(() => {
 
 .user-account {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: $zx-white-800;
 }
 
 .section {
@@ -246,7 +252,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .section-header {
@@ -277,9 +283,9 @@ onMounted(() => {
 
 .role-tag {
   padding: 12rpx 28rpx;
-  background: linear-gradient(135deg, rgba(22, 119, 255, 0.1), rgba(64, 150, 255, 0.1));
+  background: linear-gradient(135deg, $zx-antblue-100, $zx-antblue3-100);
   border-radius: 32rpx;
-  border: 1rpx solid rgba(22, 119, 255, 0.2);
+  border: 1rpx solid $zx-antblue-200;
 }
 
 .role-tag-text {
@@ -477,7 +483,7 @@ onMounted(() => {
 }
 
 .status-tag.active {
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
 }
 
 .status-tag.disabled {

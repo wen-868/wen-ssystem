@@ -1,5 +1,6 @@
 <template>
   <view class="activity-page">
+    <page-header title="营销活动" @back="goBack" />
     <view class="search-bar">
       <view class="search-input-wrap">
         <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
@@ -77,6 +78,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, onMounted } from 'vue'
 import { activityApi, type Activity } from '@/api/modules/marketing-activities'
 
@@ -271,7 +277,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-sm;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .item-header {

@@ -2,6 +2,18 @@ import { state, Row } from "./mock-db-state";
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
   (s, params) => {
+    // 会员管理列表汇总：SQL 含 wholesaleCount 时一并返回批发/零售家数
+    if (s.includes("count(*) as total from t_member") && s.includes("wholesalecount")) {
+      const actives = state.members.filter((m) => Number(m.status) === 1);
+      const wholesale = actives.filter((m) => String(m.customer_type || "").toUpperCase() === "WHOLESALE").length;
+      return [{
+        total: actives.length,
+        monthNew: 0,
+        active30d: 0,
+        wholesaleCount: wholesale,
+        retailCount: actives.length - wholesale,
+      }];
+    }
     if (s.includes("count(*) as total from t_member")) return [{ total: state.members.length }];
     // 兼容无别名（WHERE id = ?）与带别名（WHERE m.id = ?）两种查询形态，
     // 避免详情类查询回落到"from t_member"分支返回全表第一行（R71 脚本测试暴露）

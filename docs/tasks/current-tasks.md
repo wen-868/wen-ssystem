@@ -57,6 +57,18 @@
 
 ---
 
+## 移动端商品详情页「其他设置」后端缺口（2026-09-01 凌舟登记，**同日已实现**）
+
+> 来源：商品详情页对齐原稿时调查后端。用户指示"全部更新到位"，三个缺失字段已于当日真实落库（非摆设）。
+
+| 缺口 | 原现状 | 状态（2026-09-01 实现） |
+| --- | --- | --- |
+| 商品级「启用/停用」开关 | t_product_spu 无 enabled 列 | ✅ migration.ts Step 5.5.4 spuColumns 幂等补列 `enabled` TINYINT DEFAULT 1；updateProduct 支持 enabled 字段；前端其他设置开关+停用确认 |
+| 商品级「保质期」字段 | 无 shelf_life 列/接口 | ✅ 同上补列 `shelf_life_on` TINYINT DEFAULT 1；updateProduct 支持 shelfLifeOn |
+| 商品级「批次开关」 | 无 batch_on 开关 | ✅ 同上补列 `batch_on` TINYINT DEFAULT 0；updateProduct 支持 batchOn |
+
+> 「上架销售」与状态 chips 同源（后端仅 status ON_SALE/OFF_SALE 一个字段，前端双向联动）；「当前库存」仍只读（后端无直改库存接口，库存走单据，不造假）。运行时迁移自动生效（后端重启即补列），无需手工脚本。商品详情页全量对齐详情见记忆 product-detail-alignment-status。
+
 ## R70 — AI底座开发（大脑引擎+工具系统+记忆系统） [进行中 — 凌舟 2026-08-01]
 
 > **日期**：2026-07-31（规划）/ 2026-08-01（启动）

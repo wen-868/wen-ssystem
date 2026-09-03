@@ -1,5 +1,6 @@
 <template>
   <view class="create-gain-page">
+    <page-header title="创建报溢单" @back="goBack" />
     <!-- 报溢原因 -->
     <view class="form-section">
       <view class="section-title">报溢原因 <text class="required">*</text></view>
@@ -105,6 +106,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, computed, onMounted } from 'vue'
 import { inventoryLossGainApi, GAIN_REASONS } from '@/api/modules/inventory-loss-gain'
 import { productsApi } from '@/api/modules/products'
@@ -429,7 +435,7 @@ async function onSubmit() {
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
-  box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06);
+  box-shadow: 0 -2rpx 12rpx $zx-black-60;
 }
 
 .submit-btn {
@@ -458,7 +464,7 @@ async function onSubmit() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: $zx-black-500;
   z-index: 1000;
   display: flex;
   align-items: flex-end;

@@ -177,11 +177,11 @@ onShow(() => {
   align-items: center;
   height: 80rpx;
   background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
   border-radius: $uni-border-radius-pill;
   padding: 0 28rpx;
   gap: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2rpx 8rpx $zx-black-30;
 }
 
 .search-icon {
@@ -209,7 +209,7 @@ onShow(() => {
   border-radius: $uni-border-radius-lg;
   padding: 40rpx $uni-spacing-md;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .func-grid-item {
@@ -254,7 +254,7 @@ onShow(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-base;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
   text-align: center;
 }
 
@@ -295,7 +295,7 @@ onShow(() => {
   border-radius: $uni-border-radius-lg;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .list-item {
@@ -303,7 +303,7 @@ onShow(() => {
   align-items: center;
   padding: $uni-spacing-lg 36rpx;
   gap: $uni-spacing-base;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1rpx solid $zx-black-30;
 }
 
 .list-item:last-child {

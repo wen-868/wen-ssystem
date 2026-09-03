@@ -216,13 +216,13 @@ onMounted(() => {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
+  background: $zx-white-180;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .finance-header .header-back-icon {
-  color: #fff;
+  color: $ai-bg-page;
   font-size: 40rpx;
   line-height: 1;
 }
@@ -241,7 +241,7 @@ onMounted(() => {
 
 .header-date {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $zx-white-850;
 }
 
 /* --- 指标卡片 --- */
@@ -257,7 +257,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .stat-label {
@@ -302,7 +302,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: 16rpx;
   padding: 8rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .tab-item {
@@ -330,7 +330,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .chart-header {
@@ -393,7 +393,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .section-header {

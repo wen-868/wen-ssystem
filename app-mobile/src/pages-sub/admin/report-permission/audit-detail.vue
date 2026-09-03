@@ -164,27 +164,27 @@ onMounted(() => {
 }
 
 .type-ROLE_PERMISSION_CHANGE {
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
 }
 
 .type-DATA_SCOPE_CHANGE {
-  background: rgba(82, 196, 26, 0.1);
+  background: $zx-antgreen-100;
 }
 
 .type-USER_ROLE_ASSIGN {
-  background: rgba(114, 46, 209, 0.1);
+  background: $zx-purple-soft-10;
 }
 
 .type-USER_PERMISSION_CHANGE {
-  background: rgba(250, 140, 22, 0.1);
+  background: $zx-antorange-100;
 }
 
 .type-ROLE_CREATE {
-  background: rgba(19, 194, 194, 0.1);
+  background: $zx-cyan-soft-10;
 }
 
 .type-ROLE_DELETE {
-  background: rgba(255, 77, 79, 0.1);
+  background: $zx-antred-100;
 }
 
 .badge-text {
@@ -228,7 +228,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   margin-bottom: $uni-spacing-md;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .info-row {

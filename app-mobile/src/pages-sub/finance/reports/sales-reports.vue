@@ -501,7 +501,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 .chart-icon { font-size: 64rpx; color: $uni-gray-300; }
 .chart-text { font-size: 26rpx; color: $uni-gray-300; }
@@ -573,7 +573,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-pill;
   padding: 6rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 .period-tab {
   flex: 1;
@@ -596,7 +596,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: 0 $uni-spacing-lg;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 .rank-item {
   display: flex;

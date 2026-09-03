@@ -1045,10 +1045,10 @@ onUnmounted(() => {
   gap: 20rpx;
   padding: 22rpx 28rpx;
   padding-top: calc(22rpx + env(safe-area-inset-top));
-  background: rgba(247, 248, 250, 0.55);
+  background: $zx-grayf7-550;
   backdrop-filter: blur(24rpx) saturate(1.4);
   -webkit-backdrop-filter: blur(24rpx) saturate(1.4);
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.02);
+  border-bottom: 1rpx solid $zx-black-20;
   position: fixed;
   top: 0;
   left: 0;
@@ -1064,7 +1064,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4rpx 20rpx $zx-primary-200;
 }
 
 .ai-top-icon-text {
@@ -1104,7 +1104,7 @@ onUnmounted(() => {
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.06);
+  background: $zx-black-60;
   margin-left: 12rpx;
   display: flex;
   align-items: center;
@@ -1113,7 +1113,7 @@ onUnmounted(() => {
 }
 .ai-close-btn:active {
   transform: scale(0.88);
-  background: rgba(0, 0, 0, 0.12);
+  background: $zx-black-120;
 }
 .ai-close-icon {
   font-size: 30rpx;
@@ -1128,7 +1128,7 @@ onUnmounted(() => {
   margin-top: 12rpx;
   padding: 6rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(37, 99, 235, 0.08);
+  background: $zx-primary-80;
 }
 .ai-speak-btn-text {
   font-size: 22rpx;
@@ -1148,18 +1148,18 @@ onUnmounted(() => {
   padding: 12rpx 28rpx;
   border-radius: 999rpx;
   background: transparent;
-  border: 1rpx solid rgba(0, 0, 0, 0.08);
+  border: 1rpx solid $zx-black-80;
   margin-right: 16rpx;
   transition: all 0.2s ease;
 }
 
 .ai-tag:active {
-  background: #EDE9FE;
-  border-color: rgba(91, 33, 185, 0.1);
+  background: $zx-violet-100;
+  border-color: $zx-violet4-100;
 }
 
 .ai-tag:active .ai-tag-text {
-  color: #5B21B6;
+  color: $zx-violet-800;
 }
 
 .ai-tag-text {
@@ -1230,16 +1230,16 @@ onUnmounted(() => {
   background: $uni-bg-color;
   color: $ai-text-body;
   border-bottom-left-radius: 12rpx;
-  border: 1rpx solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-50;
+  box-shadow: 0 2rpx 8rpx $zx-black-30;
 }
 
 .bubble--user {
   background: $uni-color-primary;
-  color: #FFFFFF;
+  color: $ai-bg-page;
   border-bottom-right-radius: 12rpx;
   border: none;
-  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.18);
+  box-shadow: 0 4rpx 16rpx $zx-primary-180;
 }
 
 .bubble-text {
@@ -1247,7 +1247,7 @@ onUnmounted(() => {
 }
 
 .bubble-text--user {
-  color: #FFFFFF;
+  color: $ai-bg-page;
 }
 
 /* 打字动画 */
@@ -1484,11 +1484,11 @@ onUnmounted(() => {
 
 /* ====================== 底部输入栏 ====================== */
 .chat-footer {
-  background: rgba(255, 255, 255, 0.92);
+  background: $zx-white-920;
   margin: 0 16rpx;
   border-radius: 40rpx;
   padding: 16rpx 18rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4rpx 20rpx $zx-black-80;
   backdrop-filter: blur(48rpx) saturate(1.5);
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
   position: fixed;
@@ -1512,7 +1512,7 @@ onUnmounted(() => {
   margin-bottom: 14rpx;
   border-radius: 20rpx;
   overflow: hidden;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
 }
 .attach-preview-img {
   width: 100%;
@@ -1525,13 +1525,13 @@ onUnmounted(() => {
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
+  background: $zx-black-550;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .attach-preview-remove-text {
-  color: #ffffff;
+  color: $ai-bg-page;
   font-size: 24rpx;
   line-height: 1;
 }
@@ -1540,7 +1540,7 @@ onUnmounted(() => {
   width: 72rpx;
   height: 72rpx;
   border-radius: 50%;
-  background: rgba(37, 99, 235, 0.08);
+  background: $zx-primary-80;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1567,7 +1567,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   line-height: 72rpx;
   background: $uni-bg-color-page;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
   border-radius: 28rpx;
   padding: 0 28rpx;
   font-size: 26rpx;
@@ -1577,8 +1577,8 @@ onUnmounted(() => {
 
 .chat-input:focus {
   background: $uni-bg-color;
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 6rpx rgba(124, 58, 237, 0.08);
+  border-color: $zx-violet-600;
+  box-shadow: 0 0 0 6rpx $zx-violet2-80;
 }
 
 .chat-input-placeholder {
@@ -1591,7 +1591,7 @@ onUnmounted(() => {
   height: 72rpx;
   border-radius: 50%;
   background: $uni-color-primary;
-  box-shadow: 0 6rpx 24rpx rgba(37, 99, 235, 0.2);
+  box-shadow: 0 6rpx 24rpx $zx-primary-200;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1609,13 +1609,13 @@ onUnmounted(() => {
 }
 
 .voice-send-btn--voice {
-  background: rgba(0, 0, 0, 0.06);
+  background: $zx-black-60;
   box-shadow: none;
 }
 
 .voice-send-btn--recording {
   background: $uni-color-error;
-  box-shadow: 0 6rpx 24rpx rgba(245, 108, 108, 0.3);
+  box-shadow: 0 6rpx 24rpx $zx-red2-300;
   animation: recording-pulse 1.2s infinite ease-in-out;
 }
 
@@ -1662,7 +1662,7 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.4);
+  background: $zx-black-400;
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
@@ -1671,12 +1671,12 @@ onUnmounted(() => {
 .conv-panel {
   width: 56vw;
   height: 100%;
-  background: #ffffff;
+  background: $ai-bg-page;
   border-radius: 0 32rpx 32rpx 0;
   padding: 24rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  box-shadow: 8rpx 0 40rpx rgba(0, 0, 0, 0.12);
+  box-shadow: 8rpx 0 40rpx $zx-black-120;
   animation: conv-left 0.25s ease;
 }
 
@@ -1699,7 +1699,7 @@ onUnmounted(() => {
 }
 
 .conv-new-btn {
-  background: rgba(37, 99, 235, 0.08);
+  background: $zx-primary-80;
   border-radius: 999rpx;
   padding: 10rpx 24rpx;
 }
@@ -1726,8 +1726,8 @@ onUnmounted(() => {
 }
 
 .conv-item--active {
-  background: rgba(37, 99, 235, 0.08);
-  border-color: rgba(37, 99, 235, 0.2);
+  background: $zx-primary-80;
+  border-color: $zx-primary-200;
 }
 
 .conv-item-title {

@@ -6,6 +6,38 @@ import { state, result, Row } from "./mock-db-state";
 // ==================== mockQuery handlers ====================
 
 export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
+  // t_tenant（getTenantInfo：SELECT ... FROM t_tenant WHERE id = ? → /admin/sys-config/tenant-info）
+  (s, params) => {
+    if ((s.includes("from t_tenant where id = ?") || s.includes("from tenant where id = ?")) && !s.includes("tenant_code")) {
+      return state.tenants.filter((t: Row) => String(t.id) === String(params[0]));
+    }
+    return null;
+  },
+
+  // t_bank_account 合计余额（GET /admin/bank-accounts/total/balance）
+  (s, params) => {
+    if (s.includes("from t_bank_account") && s.includes("sum(balance)")) {
+      const total = state.bankAccounts
+        .filter((b: Row) => b.status === "ACTIVE")
+        .reduce((sum: number, b: Row) => sum + Number(b.balance || 0), 0);
+      return [{ totalBalance: total }];
+    }
+    return null;
+  },
+
+  // t_bank_account 列表 / 计数（/admin/bank-accounts）
+  (s, params) => {
+    if (s.includes("from t_bank_account") && s.includes("count(*)")) {
+      return [{ total: state.bankAccounts.length }];
+    }
+    if (s.includes("from t_bank_account")) {
+      return [...state.bankAccounts].sort((a: Row, b: Row) =>
+        String(b.created_at).localeCompare(String(a.created_at))
+      );
+    }
+    return null;
+  },
+
   // sys_user / t_sys_user（兼容两种表名格式）
   (s, params) => {
     if (s.includes("from t_sys_user where username") || s.includes("from t_sys_user where username")) {
@@ -251,6 +283,52 @@ export const queryHandlers: Array<(s: string, params: unknown[]) => Row[] | null
 // ==================== mockExecute handlers ====================
 
 export const executeHandlers: Array<(s: string, params: unknown[]) => Row[] | null> = [
+  // t_tenant UPDATE（PUT /admin/sys-config/tenant-info：企业信息维护）
+  (s, params) => {
+    if (s.includes("update t_tenant set") || s.includes("update tenant set")) {
+      const id = params[params.length - 1];
+      const t = state.tenants.find((x: Row) => x.id === id);
+      if (t) {
+        // params 顺序与 service.updateTenantInfo 的 SQL 绑定一致：
+        // company_name, company_short_name, contact_person, contact_mobile,
+        // contact_email, legal_person, address, business_license, tax_no
+        t.company_name = params[0];
+        if (params[1] !== undefined) t.company_short_name = params[1];
+        if (params[2] !== undefined) t.contact_person = params[2];
+        if (params[3] !== undefined) t.contact_mobile = params[3];
+        if (params[4] !== undefined) t.contact_email = params[4];
+        if (params[5] !== undefined) t.legal_person = params[5];
+        if (params[6] !== undefined) t.address = params[6];
+        if (params[7] !== undefined) t.business_license = params[7];
+        if (params[8] !== undefined) t.tax_no = params[8];
+        t.updated_at = new Date().toISOString();
+      }
+      return [{ affectedRows: t ? 1 : 0, insertId: Date.now() }];
+    }
+    return null;
+  },
+
+  // t_bank_account INSERT（POST /admin/bank-accounts）
+  (s, params) => {
+    if (s.includes("insert into t_bank_account") || s.includes("insert into bank_account")) {
+      const id = Math.max(0, ...state.bankAccounts.map((b: Row) => Number(b.id) || 0)) + 1;
+      state.bankAccounts.push({
+        id,
+        account_name: params[0],
+        bank_name: params[1],
+        account_no: params[2],
+        account_type: params[3] ?? "GENERAL",
+        balance: params[4] ?? 0,
+        status: "ACTIVE",
+        tenant_id: params[5],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+      return [{ insertId: id, affectedRows: 1 }];
+    }
+    return null;
+  },
+
   // notifications DELETE（单条 / 批量）
   (s, params) => {
     if (s.includes("delete from t_notification") && s.includes("in (")) {

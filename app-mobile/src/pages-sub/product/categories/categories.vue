@@ -251,7 +251,7 @@ onMounted(() => {
   flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .offline-badge {
-  padding: 2rpx 12rpx; background: rgba(255,77,79,0.1);
+  padding: 2rpx 12rpx; background: $zx-antred-100;
   border-radius: 6rpx; margin-left: 12rpx; flex-shrink: 0;
 }
 .offline-badge-text { font-size: 20rpx; color: $uni-color-error; }
@@ -272,7 +272,7 @@ onMounted(() => {
   width: 100rpx; height: 100rpx; border-radius: 50%;
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(22, 119, 255, 0.4);
+  box-shadow: 0 8rpx 24rpx $zx-antblue-400;
 }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }

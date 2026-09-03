@@ -53,15 +53,32 @@ export interface RetailOrder {
   remark?: string
 }
 
+/** 解析平台订单明细（t_platform_order.order_data_json，平台原始 webhook body） */
+function parseOrderBlob(r: any): any {
+  let raw = r.orderDataJson ?? r.order_data_json
+  if (raw == null) return {}
+  if (typeof raw === 'string') {
+    try { raw = JSON.parse(raw) } catch (e) { return {} }
+  }
+  return raw && typeof raw === 'object' ? raw : {}
+}
+
 function mapOrder(r: any): RetailOrder {
+  const blob = parseOrderBlob(r)
   return {
     id: r.id,
     orderNo: r.orderNo ?? r.order_no ?? r.platformOrderId ?? '',
     platform: r.platform ?? '',
     platformText: r.platformText ?? r.platform_name,
-    customerName: r.customerName ?? r.customer_name,
-    customerPhone: r.customerPhone ?? r.customer_phone,
-    totalAmount: Number(r.totalAmount ?? r.total_amount ?? r.payAmount ?? 0),
+    customerName: r.customerName ?? r.customer_name
+      ?? blob.receiverName ?? blob.receiver_name
+      ?? blob.address?.name ?? blob.address?.receiverName ?? '',
+    customerPhone: r.customerPhone ?? r.customer_phone
+      ?? blob.receiverMobile ?? blob.receiver_mobile
+      ?? blob.address?.phone ?? blob.address?.mobile ?? '',
+    totalAmount: Number(r.totalAmount ?? r.total_amount ?? r.payAmount
+      ?? blob.totalAmount ?? blob.total_amount ?? blob.payAmount ?? blob.pay_amount
+      ?? blob.actualPrice ?? blob.actual_price ?? 0),
     status: r.status ?? '',
     statusText: r.statusText ?? r.status_text,
     createdAt: r.createdAt ?? r.created_at ?? r.createTime ?? '',
@@ -70,9 +87,13 @@ function mapOrder(r: any): RetailOrder {
       name: it.name ?? it.productName ?? '',
       qty: Number(it.qty ?? it.quantity ?? 0),
       price: Number(it.price ?? 0),
+    })) : Array.isArray(blob.items ?? blob.products) ? (blob.items ?? blob.products).map((it: any) => ({
+      name: it.name ?? it.skuName ?? it.productName ?? '',
+      qty: Number(it.qty ?? it.quantity ?? it.num ?? 0),
+      price: Number(it.unitPrice ?? it.price ?? 0),
     })) : undefined,
-    address: r.address,
-    remark: r.remark,
+    address: r.address ?? blob.address,
+    remark: r.remark ?? blob.remark ?? blob.note ?? blob.comment,
   }
 }
 

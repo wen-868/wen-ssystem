@@ -255,7 +255,7 @@ function goLogin() {
   align-items: center;
   justify-content: center;
   margin-bottom: $uni-spacing-base;
-  box-shadow: 0 12rpx 40rpx rgba(13, 44, 124, 0.35);
+  box-shadow: 0 12rpx 40rpx $zx-deepblue-350;
 }
 
 .brand-logo {
@@ -273,7 +273,7 @@ function goLogin() {
 
 .brand-subtitle {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $zx-white-850;
 }
 
 .form-section {
@@ -286,7 +286,7 @@ function goLogin() {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xl;
   padding: 40rpx 36rpx $uni-spacing-lg;
-  box-shadow: 0 20rpx 64rpx rgba(13, 44, 124, 0.18);
+  box-shadow: 0 20rpx 64rpx $zx-deepblue-180;
 }
 
 .form-item {
@@ -436,7 +436,7 @@ function goLogin() {
   justify-content: center;
   border: none;
   margin-top: 28rpx;
-  box-shadow: 0 10rpx 28rpx rgba(37, 99, 235, 0.35);
+  box-shadow: 0 10rpx 28rpx $zx-primary-350;
 }
 
 .register-btn::after {
@@ -471,7 +471,7 @@ function goLogin() {
 
 .link-text {
   font-size: 27rpx;
-  color: rgba(255, 255, 255, 0.9);
+  color: $zx-white-900;
 }
 
 .link-btn {
@@ -491,7 +491,7 @@ function goLogin() {
 
 .footer-text {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.65);
+  color: $zx-white-650;
 }
 .footer-beian {
   display: flex;
@@ -506,6 +506,6 @@ function goLogin() {
 }
 .beian-text {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.65);
+  color: $zx-white-650;
 }
 </style>

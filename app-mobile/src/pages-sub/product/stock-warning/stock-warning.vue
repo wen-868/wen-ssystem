@@ -206,7 +206,7 @@ loadWarningList()
 .warning-card { background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base; margin-bottom: $uni-spacing-md; box-shadow: $uni-shadow-card-sm; }
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; }
 .product-name { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
-.shortage-tag { background: rgba(255,77,79,0.1); padding: 4rpx 16rpx; border-radius: 8rpx; }
+.shortage-tag { background: $zx-antred-100; padding: 4rpx 16rpx; border-radius: 8rpx; }
 .shortage-text { font-size: 22rpx; color: $uni-color-error; }
 .card-info { display: flex; gap: $uni-spacing-base; padding: $uni-spacing-sm 0; border-top: 1rpx solid $uni-gray-100; }
 .info-block { flex: 1; display: flex; flex-direction: column; align-items: center; }
@@ -220,8 +220,8 @@ loadWarningList()
 .config-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: $uni-spacing-sm; }
 .config-name { font-size: 28rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.config-status--on { background: rgba(82,196,26,0.1); }
-.config-status--off { background: rgba(0,0,0,0.05); }
+.config-status--on { background: $zx-antgreen-100; }
+.config-status--off { background: $zx-black-50; }
 .config-status-text { font-size: 22rpx; }
 .config-status--on .config-status-text { color: $uni-color-success; }
 .config-status--off .config-status-text { color: $uni-gray-400; }
@@ -232,7 +232,7 @@ loadWarningList()
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; justify-content: center; padding: 200rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx $zx-black-60; }
 .btn { height: 80rpx; line-height: 80rpx; border-radius: 12rpx; font-size: 28rpx; text-align: center; border: none; }
 .btn--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .btn--block { width: 100%; }

@@ -1,5 +1,6 @@
 <template>
   <view class="group-detail-page">
+    <page-header title="拼团详情" @back="goBack" />
     <scroll-view class="detail-scroll" scroll-y v-if="activity">
       <!-- 商品信息 -->
       <view class="product-section">
@@ -139,6 +140,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, onMounted } from 'vue'
 import { communityMarketingApi, type GroupBuyActivity } from '@/api/modules/community-marketing'
 
@@ -564,7 +570,7 @@ onMounted(() => {
   align-items: center;
   padding: 0 24rpx;
   padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -2rpx 12rpx $zx-black-60;
   gap: 20rpx;
 }
 

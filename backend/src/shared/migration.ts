@@ -509,6 +509,9 @@ export async function runMigrations(): Promise<void> {
           sort_no INT NOT NULL DEFAULT 0 COMMENT '排序号',
           is_new TINYINT NOT NULL DEFAULT 0 COMMENT '新品标记 1=是 0=否',
           is_recommend TINYINT NOT NULL DEFAULT 0 COMMENT '推荐标记 1=是 0=否',
+          enabled TINYINT NOT NULL DEFAULT 1 COMMENT '商品启用 1=启用 0=停用（停用后开单/采购不可选）',
+          shelf_life_on TINYINT NOT NULL DEFAULT 1 COMMENT '保质期开关 1=开单需录入生产日期与保质期',
+          batch_on TINYINT NOT NULL DEFAULT 0 COMMENT '批次开关 1=开单需选择商品批次',
           description VARCHAR(512) DEFAULT NULL COMMENT '商品简介',
           marketing_tags JSON DEFAULT NULL COMMENT '营销标签(JSON)',
           status VARCHAR(32) NOT NULL DEFAULT 'DRAFT' COMMENT '状态 DRAFT/ON_SALE/OFF_SALE/DELETED',
@@ -650,6 +653,9 @@ export async function runMigrations(): Promise<void> {
       { name: "sale_channels", def: "JSON DEFAULT NULL COMMENT '销售渠道(JSON)'" },
       { name: "description", def: "VARCHAR(512) DEFAULT NULL COMMENT '商品简介'" },
       { name: "marketing_tags", def: "JSON DEFAULT NULL COMMENT '营销标签(JSON)'" },
+      { name: "enabled", def: "TINYINT NOT NULL DEFAULT 1 COMMENT '商品启用 1=启用 0=停用（停用后开单/采购不可选）'" },
+      { name: "shelf_life_on", def: "TINYINT NOT NULL DEFAULT 1 COMMENT '保质期开关 1=开单需录入生产日期与保质期'" },
+      { name: "batch_on", def: "TINYINT NOT NULL DEFAULT 0 COMMENT '批次开关 1=开单需选择商品批次'" },
     ];
     for (const col of spuColumns) {
       await safeExec(conn,

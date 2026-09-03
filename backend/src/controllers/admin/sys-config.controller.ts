@@ -21,6 +21,26 @@ export const getTenantInfo = asyncHandler(async (req, res) => {
   res.json(ok(row || {}));
 });
 
+/** 更新当前租户企业信息（企业名称/简称/联系人/联系电话/邮箱/法人/地址/营业执照） */
+export const updateTenantInfo = asyncHandler(async (req, res) => {
+  const body = z
+    .object({
+      companyName: z.string().min(1).max(128),
+      companyShortName: z.string().max(64).optional(),
+      contactPerson: z.string().max(64).optional(),
+      contactMobile: z.string().max(20).optional(),
+      contactEmail: z.string().max(128).optional(),
+      legalPerson: z.string().max(64).optional(),
+      address: z.string().max(255).optional(),
+      businessLicense: z.string().max(128).optional(),
+      taxNo: z.string().max(64).optional(),
+    })
+    .parse(req.body);
+  await service.updateTenantInfo(req.tenantId!, body);
+  const row = await service.getTenantInfo(req.tenantId!);
+  res.json(ok(row || {}));
+});
+
 export const batchUpdateConfigs = asyncHandler(async (req, res) => {
   const body = z.array(z.object({
     config_key: z.string().min(1),

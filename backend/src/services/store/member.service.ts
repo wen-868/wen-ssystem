@@ -81,10 +81,14 @@ export async function listMemberManage(
     total: number | string;
     monthNew: number | string;
     active30d: number | string;
+    wholesaleCount: number | string;
+    retailCount: number | string;
   }>(
     `SELECT COUNT(*) AS total,
             COALESCE(SUM(CASE WHEN created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') THEN 1 ELSE 0 END), 0) AS monthNew,
-            COALESCE(SUM(CASE WHEN last_order_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END), 0) AS active30d
+            COALESCE(SUM(CASE WHEN last_order_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END), 0) AS active30d,
+            COALESCE(SUM(CASE WHEN UPPER(customer_type) = 'WHOLESALE' THEN 1 ELSE 0 END), 0) AS wholesaleCount,
+            COALESCE(SUM(CASE WHEN UPPER(customer_type) <> 'WHOLESALE' THEN 1 ELSE 0 END), 0) AS retailCount
      FROM t_member
      WHERE tenant_id = ? AND status = 1`,
     [tenantId],
@@ -97,6 +101,7 @@ export async function listMemberManage(
     name: string | null;
     nickname: string | null;
     mobile: string;
+    customerType: string | null;
     levelCode: string | null;
     levelName: string | null;
     points: number | string;
@@ -105,6 +110,7 @@ export async function listMemberManage(
     totalConsume: number | string;
   }>(
     `SELECT m.id, m.name, m.nickname, m.mobile,
+            m.customer_type AS customerType,
             m.level_code AS levelCode, ml.level_name AS levelName, m.points,
             m.last_order_at AS lastOrderAt, m.created_at AS createdAt,
             COALESCE((SELECT SUM(o.payable_amount) FROM t_miniapp_order o
@@ -142,6 +148,9 @@ export async function listMemberManage(
       totalMembers,
       monthNew: Number(stats?.monthNew ?? 0),
       activeRate: totalMembers > 0 ? Number(((active30d / totalMembers) * 100).toFixed(1)) : 0,
+      /** 客户类型分布（批发 / 零售），对齐移动端会员管理汇总卡 */
+      wholesaleCount: Number(stats?.wholesaleCount ?? 0),
+      retailCount: Number(stats?.retailCount ?? 0),
     },
   };
 }

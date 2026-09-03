@@ -123,6 +123,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
     sortNo: z.number().optional(),
     isNew: z.boolean().optional(),
     isRecommend: z.boolean().optional(),
+    enabled: z.boolean().optional(),
+    shelfLifeOn: z.boolean().optional(),
+    batchOn: z.boolean().optional(),
     description: z.string().optional()
   }).parse(req.body);
   const result = await productService.updateProduct(spuId, body, tenantId);

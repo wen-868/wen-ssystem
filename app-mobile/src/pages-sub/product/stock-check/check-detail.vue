@@ -268,10 +268,10 @@ onLoad((options: any) => {
 .text-danger { color: $uni-color-error; }
 .text-success { color: $uni-color-success; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.status-tag--draft { background: rgba(0,0,0,0.05); }
-.status-tag--progress { background: rgba(250,173,20,0.1); }
-.status-tag--success { background: rgba(82,196,26,0.1); }
-.status-tag--cancel { background: rgba(255,77,79,0.1); }
+.status-tag--draft { background: $zx-black-50; }
+.status-tag--progress { background: $zx-orange2-100; }
+.status-tag--success { background: $zx-antgreen-100; }
+.status-tag--cancel { background: $zx-antred-100; }
 .status-tag-text { font-size: 22rpx; }
 .status-tag--draft .status-tag-text { color: $uni-gray-400; }
 .status-tag--progress .status-tag-text { color: $uni-color-warning; }
@@ -300,6 +300,6 @@ onLoad((options: any) => {
 .radio-item { display: inline-flex; align-items: center; margin-right: $uni-spacing-lg; font-size: 26rpx; }
 .empty-state { display: flex; justify-content: center; padding: 100rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,0.06); }
+.bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 16rpx 24rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); background: $uni-bg-color; box-shadow: 0 -2rpx 12rpx $zx-black-60; }
 .safe-bottom { height: 40rpx; }
 </style>

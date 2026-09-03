@@ -226,12 +226,12 @@ loadConfigs()
 .platform-grid { display: flex; flex-wrap: wrap; gap: $uni-spacing-sm; }
 .platform-card { width: calc(33.33% - 12rpx); background: $uni-bg-color; border-radius: $uni-border-radius-xs; padding: $uni-spacing-base $uni-spacing-sm; display: flex; flex-direction: column; align-items: center; box-shadow: $uni-shadow-card-sm; }
 .platform-icon { width: 80rpx; height: 80rpx; border-radius: 50%; background: $uni-gray-100; display: flex; align-items: center; justify-content: center; margin-bottom: $uni-spacing-sm; }
-.platform-icon--active { background: rgba(22,119,255,0.1); }
+.platform-icon--active { background: $zx-antblue-100; }
 .platform-icon-text { font-size: 32rpx; font-weight: 700; color: $uni-gray-400; }
 .platform-icon--active .platform-icon-text { color: $uni-color-primary; }
 .platform-name { font-size: 24rpx; color: $uni-gray-700; margin-bottom: $uni-spacing-xs; }
-.platform-status { padding: 2rpx 12rpx; border-radius: 6rpx; background: rgba(0,0,0,0.05); }
-.platform-status--on { background: rgba(82,196,26,0.1); }
+.platform-status { padding: 2rpx 12rpx; border-radius: 6rpx; background: $zx-black-50; }
+.platform-status--on { background: $zx-antgreen-100; }
 .platform-status-text { font-size: 20rpx; color: $uni-gray-400; }
 .platform-status--on .platform-status-text { color: $uni-color-success; }
 .config-list-section { padding: 0 $uni-spacing-lg $uni-spacing-base; }
@@ -239,8 +239,8 @@ loadConfigs()
 .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .config-platform { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }
 .config-status { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.config-status--on { background: rgba(82,196,26,0.1); }
-.config-status--off { background: rgba(255,77,79,0.1); }
+.config-status--on { background: $zx-antgreen-100; }
+.config-status--off { background: $zx-antred-100; }
 .config-status-text { font-size: 22rpx; }
 .config-status--on .config-status-text { color: $uni-color-success; }
 .config-status--off .config-status-text { color: $uni-color-error; }
@@ -251,11 +251,11 @@ loadConfigs()
 .config-actions { display: flex; flex-wrap: wrap; gap: $uni-spacing-sm; margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm; border-top: 1rpx solid $uni-gray-100; }
 .btn-sm { font-size: 24rpx; padding: 8rpx 20rpx; border-radius: 8rpx; border: none; line-height: 1.8; }
 .btn-sm--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
-.btn-sm--warning { background: rgba(250,173,20,0.1); color: $uni-color-warning; }
+.btn-sm--warning { background: $zx-orange2-100; color: $uni-color-warning; }
 .btn-sm--danger { background: $uni-text-color-inverse; color: $uni-color-error; border: 1rpx solid $uni-color-error; }
 .empty-state { display: flex; justify-content: center; padding: 80rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.config-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.config-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: $zx-black-500; z-index: 999; display: flex; align-items: center; justify-content: center; }
 .modal-content { width: 90%; max-width: 600rpx; background: $uni-bg-color; border-radius: $uni-border-radius-sm; display: flex; flex-direction: column; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .modal-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }

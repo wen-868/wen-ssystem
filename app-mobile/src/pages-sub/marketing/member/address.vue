@@ -376,7 +376,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   margin-bottom: $uni-spacing-md;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
   overflow: hidden;
 }
 
@@ -541,7 +541,7 @@ onMounted(() => {
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   background: $uni-bg-color;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4rpx 20rpx $zx-black-60;
 }
 
 .add-btn {
@@ -583,7 +583,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: $zx-black-500;
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -713,7 +713,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: 50%;
   transition: left 0.2s;
-  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2rpx 6rpx $zx-black-150;
 }
 
 .switch-btn--on .switch-dot {

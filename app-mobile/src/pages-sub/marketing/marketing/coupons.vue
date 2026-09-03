@@ -275,7 +275,7 @@ onMounted(() => { loadCoupons() })
 }
 .amount-symbol { font-size: 24rpx; margin-right: 4rpx; }
 .amount-value { font-size: 48rpx; font-weight: 700; }
-.coupon-condition { font-size: 20rpx; color: rgba(255,255,255,0.85); }
+.coupon-condition { font-size: 20rpx; color: $zx-white-850; }
 .coupon-right {
   flex: 1; padding: $uni-spacing-md $uni-spacing-base;
   display: flex; flex-direction: column;

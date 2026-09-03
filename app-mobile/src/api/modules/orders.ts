@@ -169,3 +169,76 @@ function mapOrder(r: any): OrderInfo {
 }
 
 export { ordersApi }
+
+// ========== 历史单据统一查询（后端 admin-bill-history.routes：/api/admin/bills/history） ==========
+
+/** 历史单据记录（聚合：销售单/销售订单/采购订单/采购入库） */
+export interface BillHistoryItem {
+  /** sale_bill | sale_order | purchase_order | purchase_in_stock */
+  billType: string
+  billNo: string
+  /** 客户/供应商名称 */
+  partyName: string
+  amount: number
+  /** 各单据状态原文（collection_status / order_status / stock_status） */
+  status: string
+  createdAt: string
+  /** 客户类型 RETAIL/WHOLESALE（仅销售单有值，渠道来源区分 门店零售/门店批发） */
+  customerType?: string | null
+}
+
+export interface BillHistoryParams {
+  billType?: string
+  startDate?: string
+  endDate?: string
+  keyword?: string
+  page?: number
+  pageSize?: number
+}
+
+export const billHistoryApi = {
+  async list(params?: BillHistoryParams): Promise<{ list: BillHistoryItem[]; total: number }> {
+    const res: any = await get('/admin/bills/history', params)
+    const raw: any = res?.result ?? res
+    const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: records.map((r) => ({
+        billType: r.billType ?? '',
+        billNo: r.billNo ?? '',
+        partyName: r.partyName ?? '',
+        amount: Number(r.amount ?? 0),
+        status: r.status ?? '',
+        createdAt: r.createdAt ?? '',
+        customerType: r.customerType ?? null,
+      })),
+      total: Number(raw?.total ?? records.length),
+    }
+  },
+}
+
+export const storeSaleBillsApi = {
+  /**
+   * 门店销售单列表（GET /store/sale-bills，store-sale-bill.routes.ts）。
+   * 比 bills/history 多返回 customerType，供渠道来源区分 门店零售/门店批发。
+   */
+  async list(params?: { page?: number; pageSize?: number; keyword?: string }): Promise<{
+    list: BillHistoryItem[]
+    total: number
+  }> {
+    const res: any = await get('/store/sale-bills', params)
+    const raw: any = res?.result ?? res
+    const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
+    return {
+      list: records.map((r) => ({
+        billType: 'sale_bill',
+        billNo: r.billNo ?? '',
+        partyName: r.customerName ?? '',
+        amount: Number(r.receivableAmount ?? 0),
+        status: r.collectionStatus ?? '',
+        createdAt: r.createdAt ?? '',
+        customerType: r.customerType ?? null,
+      })),
+      total: Number(raw?.total ?? records.length),
+    }
+  },
+}

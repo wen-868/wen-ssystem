@@ -128,11 +128,22 @@ export async function listPriceAnomalies(tenantId: string, params: {
 interface SubmitReviewBody {
   skuId: number;
   suggestedPrice: number;
+  /** 核价价格档位：COST/RETAIL/WHOLESALE/MINIAPP/STORE，默认 RETAIL（零售价） */
+  priceType?: "COST" | "RETAIL" | "WHOLESALE" | "MINIAPP" | "STORE";
   reason?: string;
 }
 
+/** priceType → t_product_price 价格列名 */
+const PRICE_COLUMN: Record<NonNullable<SubmitReviewBody["priceType"]>, string> = {
+  COST: "cost_price",
+  RETAIL: "retail_price",
+  WHOLESALE: "wholesale_price",
+  MINIAPP: "miniapp_price",
+  STORE: "store_price",
+};
+
 /**
- * 提交建议核价单：校验商品存在与建议价合法，记录当前售价
+ * 提交建议核价单：校验商品存在与建议价合法，按 priceType 记录对应档位的当前价
  */
 export async function submitPriceReview(tenantId: string, user: { id?: number; name?: string }, body: SubmitReviewBody) {
   if (!body.skuId) throw new Error("请选择商品");
@@ -140,6 +151,8 @@ export async function submitPriceReview(tenantId: string, user: { id?: number; n
   if (!Number.isFinite(price) || price <= 0) {
     throw new Error("建议售价必须大于 0");
   }
+  const priceType = body.priceType ?? "RETAIL";
+  const priceColumn = PRICE_COLUMN[priceType] ?? "retail_price";
   const row = await queryOneWithTenant<{
     skuId: number;
     spuId: number;
@@ -149,7 +162,7 @@ export async function submitPriceReview(tenantId: string, user: { id?: number; n
     currentPrice: number | string;
   }>(
     `SELECT sku.id AS skuId, spu.id AS spuId, spu.name AS productName, sku.sku_name AS skuName,
-            spu.specs AS spec, p.retail_price AS currentPrice
+            spu.specs AS spec, p.${priceColumn} AS currentPrice
      FROM t_product_sku sku
      JOIN t_product_spu spu ON spu.id = sku.spu_id
      LEFT JOIN t_product_price p ON p.sku_id = sku.id
@@ -163,8 +176,8 @@ export async function submitPriceReview(tenantId: string, user: { id?: number; n
   const reviewNo = makeBizNo("PR");
   const insert = (await query(
     `INSERT INTO t_price_review
-      (tenant_id, review_no, sku_id, spu_id, product_name, sku_name, spec, current_price, suggested_price, reason, created_by, created_by_name)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (tenant_id, review_no, sku_id, spu_id, product_name, sku_name, spec, price_type, current_price, suggested_price, reason, created_by, created_by_name)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       tenantId,
       reviewNo,
@@ -173,6 +186,7 @@ export async function submitPriceReview(tenantId: string, user: { id?: number; n
       row.productName,
       row.skuName || null,
       row.spec || null,
+      priceType,
       toNum(row.currentPrice),
       price,
       body.reason || null,

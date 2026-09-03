@@ -98,7 +98,7 @@ function goMyPermission() {
 
 .header-subtitle {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.8);
+  color: $zx-white-800;
   margin-top: 8rpx;
   display: block;
 }
@@ -114,7 +114,7 @@ function goMyPermission() {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base $uni-spacing-base;
   margin-bottom: $uni-spacing-md;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .menu-icon {

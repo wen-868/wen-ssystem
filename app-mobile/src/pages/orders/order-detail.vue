@@ -1,5 +1,6 @@
 <template>
   <scroll-view class="order-detail-page" scroll-y>
+    <page-header title="订单详情" @back="goBack" />
     <view class="detail-loading" v-if="loading">
       <text class="loading-text">加载中...</text>
     </view>
@@ -176,6 +177,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, computed, onMounted } from 'vue'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 
@@ -334,7 +340,7 @@ onMounted(() => {
   width: 100rpx;
   height: 100rpx;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: $zx-white-250;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -356,7 +362,7 @@ onMounted(() => {
 
 .status-desc {
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $zx-white-850;
 }
 
 /* 信息卡片 */
@@ -365,7 +371,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
   margin: $uni-spacing-sm $uni-spacing-base;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .info-title {
@@ -685,7 +691,7 @@ onMounted(() => {
   padding: $uni-spacing-md $uni-spacing-base;
   padding-bottom: calc($uni-spacing-md + env(safe-area-inset-bottom));
   background: $uni-bg-color;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4rpx 20rpx $zx-black-60;
   gap: $uni-spacing-md;
 }
 

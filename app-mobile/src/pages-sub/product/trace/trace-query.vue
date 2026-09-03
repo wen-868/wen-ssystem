@@ -310,11 +310,11 @@ async function onVerify() {
   align-items: center;
   height: 80rpx;
   background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
   border-radius: $uni-border-radius-pill;
   padding: 0 28rpx;
   gap: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2rpx 8rpx $zx-black-30;
 }
 
 .search-icon {
@@ -347,7 +347,7 @@ async function onVerify() {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+  box-shadow: 0 8rpx 20rpx $zx-primary-250;
 }
 
 .tr-query-btn:active {
@@ -432,7 +432,7 @@ async function onVerify() {
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .tr-card-hd {
@@ -524,7 +524,7 @@ async function onVerify() {
   align-items: center;
   justify-content: center;
   margin-bottom: 20rpx;
-  box-shadow: 0 12rpx 28rpx rgba(37, 99, 235, 0.28);
+  box-shadow: 0 12rpx 28rpx $zx-primary-280;
 }
 
 .tr-verify-btn:active {

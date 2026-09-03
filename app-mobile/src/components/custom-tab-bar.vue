@@ -101,13 +101,15 @@ function switchTab(url: string) {
   right: 24rpx;
   bottom: calc(20rpx + env(safe-area-inset-bottom));
   z-index: 999;
-  background: rgba(255, 255, 255, 0.88);
+  background: $zx-white-880;
   backdrop-filter: blur(48rpx) saturate(1.5);
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
   border-radius: 48rpx;
-  border: 2rpx solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.14), 0 -2rpx 4rpx rgba(0, 0, 0, 0.02);
+  border: 2rpx solid $zx-black-50;
+  box-shadow: 0 20rpx 60rpx $zx-black-140, 0 -2rpx 4rpx $zx-black-20;
   padding: 6rpx 0 calc(6rpx + env(safe-area-inset-bottom));
+  /* 裁剪 AI 呼吸光环/圆钮溢出胶囊下缘的部分（溢出会在页面底部形成紫色条） */
+  overflow: hidden;
 }
 
 .tab-bar-inner {
@@ -185,7 +187,7 @@ function switchTab(url: string) {
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(168, 85, 247, 0.55);
+  border: 4rpx solid $zx-violet3-550;
   transform: translate(-50%, -50%);
   animation: aiRing 2.6s ease-out infinite;
   pointer-events: none;
@@ -195,25 +197,25 @@ function switchTab(url: string) {
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 55%, #a855f7 100%);
+  background: linear-gradient(135deg, $zx-violet-600 0%, $zx-purple-600 55%, $zx-purple-500 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.35);
+  box-shadow: 0 8rpx 32rpx $zx-violet2-350;
   animation: aiBreathe 2.6s ease-in-out infinite;
   position: relative;
   z-index: 2;
 }
 
 .tab-ai--active .ai-btn {
-  box-shadow: 0 8rpx 44rpx rgba(168, 85, 247, 0.65), 0 0 0 4rpx rgba(168, 85, 247, 0.18);
+  box-shadow: 0 8rpx 44rpx $zx-violet3-650, 0 0 0 4rpx $zx-violet3-180;
   transform: scale(1.05);
 }
 
 .ai-btn-text {
   font-size: 30rpx;
   font-weight: 800;
-  color: #ffffff;
+  color: $ai-bg-page;
   letter-spacing: 0.5rpx;
   line-height: 1;
 }
@@ -227,10 +229,10 @@ function switchTab(url: string) {
 @keyframes aiBreathe {
   0%,
   100% {
-    box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.32);
+    box-shadow: 0 8rpx 32rpx $zx-violet2-320;
   }
   50% {
-    box-shadow: 0 12rpx 56rpx rgba(168, 85, 247, 0.6);
+    box-shadow: 0 12rpx 56rpx $zx-violet3-600;
   }
 }
 

@@ -111,14 +111,13 @@
           <text class="empty-text">暂无商品数据</text>
         </view>
 
-        <view class="load-more" v-if="productList.length > 0">
-          <text class="load-more-text" v-if="loadingMore">加载中...</text>
-          <text class="load-more-text" v-else-if="noMore">-- 没有更多了 --</text>
+        <!-- 翻页加载中反馈；"没有更多了"常驻条用户已要求去掉，列表直接止于胶囊上方 -->
+        <view class="load-more" v-if="loadingMore">
+          <text class="load-more-text">加载中...</text>
         </view>
       </view>
     </view>
 
-    <view class="safe-bottom"></view>
     <custom-tab-bar :current="'products'" />
   </view>
 </template>
@@ -343,10 +342,10 @@ onMounted(() => {
   align-items: center;
   height: 84rpx;
   background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  border: 1rpx solid $zx-black-60;
   border-radius: 999rpx;
   padding: 0 32rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2rpx 8rpx $zx-black-30;
   gap: 16rpx;
 }
 
@@ -415,7 +414,7 @@ onMounted(() => {
 
 .prod-side {
   width: 152rpx;
-  background: rgba(0, 0, 0, 0.015);
+  background: $zx-black-15;
   flex-shrink: 0;
   height: 100%;
   padding-top: $uni-spacing-base;
@@ -463,7 +462,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: $uni-spacing-base $uni-spacing-base;
+  /* 底部留白=悬浮胶囊高度+下缘偏移（124rpx+20rpx+2×safe-area），列表滚到胶囊顶即止，其下不留灰底条 */
+  padding: $uni-spacing-base $uni-spacing-base calc(148rpx + 2 * env(safe-area-inset-bottom));
 }
 
 /* ─── 操作卡：建议核价 / 批量调价 / 价格异常 ─── */
@@ -479,8 +479,8 @@ onMounted(() => {
   border-radius: $uni-border-radius-sm;
   padding: $uni-spacing-base $uni-spacing-sm;
   text-align: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2rpx 8rpx $zx-black-40;
+  border: 1rpx solid $zx-black-30;
 }
 
 .action-card-title {
@@ -523,7 +523,7 @@ onMounted(() => {
   padding: $uni-spacing-sm;
   margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
   box-sizing: border-box;
   height: 144rpx;
 }
@@ -544,7 +544,7 @@ onMounted(() => {
   top: 8rpx;
   left: 8rpx;
   padding: 4rpx 12rpx;
-  background: rgba(255, 77, 79, 0.9);
+  background: $zx-antred-900;
   border-radius: 6rpx;
 }
 
@@ -717,9 +717,5 @@ onMounted(() => {
 .load-more-text {
   font-size: 24rpx;
   color: $uni-gray-300;
-}
-
-.safe-bottom {
-  height: calc(108rpx + env(safe-area-inset-bottom));
 }
 </style>

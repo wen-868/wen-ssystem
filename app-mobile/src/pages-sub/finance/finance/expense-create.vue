@@ -1,5 +1,6 @@
 <template>
   <view class="expense-create-page">
+    <page-header title="费用录入" @back="goBack" />
     <view class="form-container">
       <!-- 费用类型 -->
       <view class="form-item">
@@ -46,6 +47,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, reactive, computed, onMounted } from 'vue'
 import { expenseApi, type ExpenseType } from '@/api/modules/expenses'
 

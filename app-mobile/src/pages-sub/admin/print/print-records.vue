@@ -330,7 +330,7 @@ onMounted(() => {
   padding: 12rpx 28rpx;
   border-radius: $uni-border-radius-pill;
   background: $uni-bg-color;
-  border: 1rpx solid rgba(0, 0, 0, 0.04);
+  border: 1rpx solid $zx-black-40;
 }
 
 .pr-tab--active {
@@ -362,7 +362,7 @@ onMounted(() => {
   padding: $uni-spacing-base;
   margin-bottom: $uni-spacing-md;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .pr-card-top {
@@ -454,7 +454,7 @@ onMounted(() => {
   justify-content: flex-end;
   gap: $uni-spacing-md;
   padding-top: $uni-spacing-md;
-  border-top: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-top: 1rpx solid $zx-black-40;
 }
 
 .pr-btn {
@@ -477,7 +477,7 @@ onMounted(() => {
 .pr-btn--primary {
   background: $uni-gradient-blue;
   color: $uni-text-color-inverse;
-  box-shadow: 0 8rpx 20rpx rgba(37, 99, 235, 0.25);
+  box-shadow: 0 8rpx 20rpx $zx-primary-250;
 }
 
 /* 加载更多 */
@@ -495,7 +495,7 @@ onMounted(() => {
 .pr-mask {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: $uni-mask-bg;
   z-index: 99;
   display: flex;
   align-items: flex-end;
@@ -540,7 +540,7 @@ onMounted(() => {
   align-items: flex-start;
   gap: $uni-spacing-base;
   padding: 18rpx 0;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid $zx-black-40;
 }
 
 .pr-detail-label {

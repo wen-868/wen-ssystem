@@ -36,8 +36,8 @@ function onBack() {
   z-index: 100;
   width: 100%;
   padding-top: env(safe-area-inset-top);
-  background: #ffffff;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.06);
+  background: $ai-bg-page;
+  border-bottom: 1rpx solid $zx-black-60;
 }
 
 .zx-page-header__bar {
@@ -46,7 +46,7 @@ function onBack() {
   flex-direction: row;
   align-items: center;
   height: 88rpx;
-  padding: 0 24rpx;
+  padding: 0 32rpx;
 }
 
 .zx-page-header__back {
@@ -61,7 +61,7 @@ function onBack() {
 .zx-page-header__back-icon {
   font-size: 44rpx;
   line-height: 1;
-  color: #323233;
+  color: $zx-gray-323;
 }
 
 .zx-page-header__title-wrap {
@@ -77,7 +77,7 @@ function onBack() {
   max-width: 100%;
   font-size: 30rpx;
   font-weight: 600;
-  color: #1a1a1a;
+  color: $zx-gray-1a;
   line-height: 1.25;
   text-align: center;
   overflow: hidden;
@@ -88,7 +88,7 @@ function onBack() {
 .zx-page-header__subtitle {
   margin-top: 2rpx;
   font-size: 22rpx;
-  color: #969799;
+  color: $zx-gray-969;
   line-height: 1.2;
   text-align: center;
 }

@@ -1,111 +1,206 @@
 <template>
   <view class="member-detail-page">
-    <page-header title="会员详情" @back="goBack" />
+    <page-header :title="member?.name || '会员详情'" @back="goBack" />
 
-    <view class="loading-overlay" v-if="loading">
+    <view v-if="loading" class="loading-overlay">
       <view class="loading-spinner"></view>
       <text class="loading-text">加载中...</text>
     </view>
 
-    <view v-else-if="member">
-      <!-- 会员卡头 -->
-      <view class="member-header">
-        <view class="member-avatar">
-          <text class="avatar-text">{{ (member.name || '会').charAt(0) }}</text>
-        </view>
-        <view class="member-info">
-          <view class="member-name-row">
-            <text class="member-name">{{ member.name || '会员' }}</text>
-            <view class="level-tag" :class="member.levelName ? '' : 'level-tag--plain'">
-              <text class="level-tag-text">{{ member.levelName || '普通' }}</text>
+    <view v-else-if="member" class="detail-body">
+      <!-- 1. 概览 -->
+      <view class="pd-group">
+        <view class="ov-head">
+          <view class="ov-ava">{{ avatarText }}</view>
+          <view class="ov-info">
+            <view class="ov-name">
+              <text class="ov-name-text">{{ member.name || '会员' }}</text>
+              <text class="lv-badge">{{ currentLevelName }}</text>
+            </view>
+            <view class="ov-meta">
+              <text class="ty-badge" :class="isWholesale ? 'ty-wholesale' : 'ty-retail'">{{ typeLabel }}</text>
+              <text v-if="member.cardNo" class="ov-code">{{ member.cardNo }}</text>
+              <text class="st-badge" :class="member.status === 1 ? 'st-on' : 'st-off'">{{ member.status === 1 ? '正常' : '已冻结' }}</text>
             </view>
           </view>
-          <text class="member-phone">{{ member.mobile || '未留手机号' }}</text>
         </view>
-      </view>
-
-      <!-- 统计 -->
-      <view class="stats-row">
-        <view class="stat-item">
-          <text class="stat-value">{{ member.points ?? 0 }}</text>
-          <text class="stat-label">可用积分</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">¥{{ formatAmount(member.totalSpent) }}</text>
-          <text class="stat-label">累计消费</text>
-        </view>
-        <view class="stat-divider"></view>
-        <view class="stat-item">
-          <text class="stat-value">¥{{ formatAmount(member.balance) }}</text>
-          <text class="stat-label">余额</text>
-        </view>
-      </view>
-
-      <!-- 基本信息 -->
-      <view class="info-section">
-        <view class="section-title">基本信息</view>
-        <view class="info-card">
-          <view class="info-row">
-            <text class="info-label">会员等级</text>
-            <text class="info-value">{{ member.levelName || '普通' }}</text>
+        <view class="ov-stats">
+          <view class="ov-si">
+            <text class="ov-sl">可用积分</text>
+            <text class="ov-sv ov-sv--gold">{{ pointBase }}</text>
           </view>
-          <view class="info-row">
-            <text class="info-label">联系电话</text>
-            <text class="info-value info-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
+          <view class="ov-si">
+            <text class="ov-sl">储值余额</text>
+            <text class="ov-sv ov-sv--blue">¥{{ fmt(balance) }}</text>
           </view>
-          <view class="info-row">
-            <text class="info-label">客户类型</text>
-            <text class="info-value">{{ typeLabel }}</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">积分账户</text>
-            <text class="info-value">{{ member.totalPoints ?? member.points ?? 0 }}（冻结 {{ member.frozenPoints ?? 0 }}）</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">最近消费</text>
-            <text class="info-value">{{ formatDate(member.lastConsumeAt) || '—' }}</text>
-          </view>
-          <view class="info-row info-row--last">
-            <text class="info-label">加入时间</text>
-            <text class="info-value">{{ formatDate(member.createdAt) || '—' }}</text>
+          <view class="ov-si">
+            <text class="ov-sl">累计消费</text>
+            <text class="ov-sv">¥{{ fmt(totalSpent) }}</text>
           </view>
         </view>
       </view>
 
-      <!-- 最近订单 -->
-      <view class="orders-section">
-        <view class="section-title">最近订单</view>
-        <view class="order-card" v-for="order in orders" :key="order.billNo">
-          <view class="order-card-header">
-            <text class="order-no">{{ order.billNo }}</text>
-            <view class="order-status">
-              <text class="status-text">{{ orderStatusLabel(order) }}</text>
+      <!-- 2. 客户类型 -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>客户类型</text></view>
+        <view class="chips-row">
+          <text class="chip" :class="isWholesale ? 'chip--on' : ''">批发客户</text>
+          <text class="chip" :class="!isWholesale ? 'chip--on' : ''">零售客户</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">注册日期</text>
+          <text class="f-value">{{ regDate }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">最近消费</text>
+          <text class="f-value" :class="member.lastConsumeAt ? '' : 'ph'">{{ lastConsumeText }}</text>
+        </view>
+      </view>
+
+      <!-- 3. 会员等级（autoRetailLevel，真实数据驱动） -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>会员等级</text></view>
+        <view class="lv-box">
+          <view class="lv-top">
+            <text class="lv-cur">{{ currentLevelName }}</text>
+            <text class="lv-auto">{{ isWholesale ? '不分级' : '积分自动提升' }}</text>
+          </view>
+
+          <block v-if="!isWholesale">
+            <view class="lv-prog-wrap">
+              <view class="lv-prog" :style="{ width: levelProgress.percent + '%' }"></view>
             </view>
+            <text class="lv-tip" v-if="nextLevel">
+              累计积分 <text class="lv-strong">{{ pointBase }}</text>，距「{{ nextLevelName }}」还需
+              <text class="lv-strong">{{ remain }}</text> 积分（{{ nextMin }} 起）
+            </text>
+            <text class="lv-tip" v-else>
+              累计积分已达 <text class="lv-strong">{{ pointBase }}</text>，当前为最高等级「{{ currentLevelName }}」
+            </text>
+            <view class="lv-rule">升级规则（累计积分）：{{ ruleText }}</view>
+          </block>
+
+          <text v-else class="lv-tip">批发客户统一为「批发客户」，不区分金/银/铜牌；价格与账期在「客户类型」中体现。</text>
+        </view>
+      </view>
+
+      <!-- 4. 基本信息 -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>基本信息</text></view>
+        <view class="f-row" v-if="member.cardNo">
+          <text class="f-label">会员卡号</text>
+          <text class="f-value">{{ member.cardNo }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">客户名称</text>
+          <text class="f-value">{{ member.name || '—' }}</text>
+        </view>
+        <view class="f-row" v-if="member.contactPerson">
+          <text class="f-label">联系人</text>
+          <text class="f-value">{{ member.contactPerson }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">手机号</text>
+          <text class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
+        </view>
+        <view class="f-row" v-if="member.birthday">
+          <text class="f-label">生日</text>
+          <text class="f-value">{{ member.birthday }}</text>
+        </view>
+      </view>
+
+      <!-- 5. 地址信息 -->
+      <view class="pd-group" v-if="hasAddr">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
+        <view class="f-row" v-if="member.province"><text class="f-label">省份</text><text class="f-value">{{ member.province }}</text></view>
+        <view class="f-row" v-if="member.city"><text class="f-label">城市</text><text class="f-value">{{ member.city }}</text></view>
+        <view class="f-row" v-if="member.district"><text class="f-label">区/县</text><text class="f-value">{{ member.district }}</text></view>
+        <view class="f-row" v-if="member.address"><text class="f-label">详细地址</text><text class="f-value">{{ member.address }}</text></view>
+      </view>
+
+      <!-- 6. 账户信息 -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>账户信息</text></view>
+        <view class="f-row">
+          <text class="f-label">可用积分</text>
+          <text class="f-value f-value--gold">{{ pointBase }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">储值余额</text>
+          <text class="f-value f-value--blue">¥{{ fmt(balance) }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">累计消费</text>
+          <text class="f-value">¥{{ fmt(totalSpent) }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">消费次数</text>
+          <text class="f-value">{{ orders.length }} 次</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">客单价</text>
+          <text class="f-value">¥{{ fmt(avgOrder) }}</text>
+        </view>
+      </view>
+
+      <!-- 7. 状态设置 -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>状态设置</text></view>
+        <view class="f-row f-row--static">
+          <view class="f-flex">
+            <text class="f-label f-label--auto">账户正常</text>
+            <text class="f-hint">关闭后该客户无法享受积分与储值消费</text>
           </view>
-          <view class="order-card-footer">
-            <text class="order-time">{{ formatDate(order.createdAt) }}</text>
-            <text class="order-amount">¥{{ formatAmount(order.receivableAmount) }}</text>
+          <view class="sw" :class="member.status === 1 ? 'sw--on' : ''" @tap="toggleStatus"></view>
+        </view>
+      </view>
+
+      <!-- 8. 历史单据 -->
+      <view class="pd-group">
+        <view class="pd-gtitle">
+          <view class="gt-bar"></view>
+          <text>历史单据<text v-if="docRows.length">（{{ docRows.length }}）</text></text>
+        </view>
+        <view v-if="docRows.length">
+          <view class="doc-row" v-for="d in docRows" :key="d.no" @tap="openDoc">
+            <view class="doc-main">
+              <text class="doc-no">{{ d.no }}</text>
+              <view class="doc-sub">
+                <text class="dt-type" :class="d.statusType === 'success' ? 'dt-sale' : 'dt-refund'">{{ d.sub }}</text>
+                <text v-if="d.date">{{ d.date }}</text>
+              </view>
+            </view>
+            <text class="doc-amt">¥{{ fmt(d.amount) }}</text>
+            <text class="doc-che">›</text>
           </view>
         </view>
-        <view class="empty-tip" v-if="!loadingOrders && orders.length === 0">
-          <text class="empty-tip-text">暂无消费订单</text>
-        </view>
+        <view v-else class="empty">暂无历史单据</view>
       </view>
     </view>
 
-    <view class="empty-state" v-else>
+    <view v-else class="empty-state">
       <text class="empty-text">会员不存在或已失效</text>
     </view>
 
     <view class="safe-bottom"></view>
+
+    <!-- 账户操作 -->
+    <view class="action-bar" v-if="member">
+      <view class="ab-btn ab-ghost" @tap="goRecharge"><text>充值</text></view>
+      <view class="ab-btn ab-primary" @tap="goPoints"><text>积分明细</text></view>
+    </view>
+
+    <!-- 历史单据覆盖式子页 -->
+    <DocPage v-model="docVisible" title="销售单据" :docs="docRows" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { get } from '@/api/request'
+import { get, put } from '@/api/request'
+import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
+import DocPage, { type DocRow } from '@/components/DocPage.vue'
 
 interface MemberDetail {
   id: number
@@ -122,6 +217,13 @@ interface MemberDetail {
   totalSpent: number
   lastConsumeAt: string | null
   createdAt: string | null
+  cardNo?: string
+  contactPerson?: string
+  birthday?: string
+  province?: string
+  city?: string
+  district?: string
+  address?: string
 }
 
 interface MemberOrder {
@@ -137,24 +239,117 @@ interface MemberOrder {
 const member = ref<MemberDetail | null>(null)
 const orders = ref<MemberOrder[]>([])
 const loading = ref(false)
-const loadingOrders = ref(false)
 const memberId = ref(0)
 
-const typeLabel = computed(() => {
-  const t = member.value?.customerType || ''
-  if (t === 'WHOLESALE') return '批发会员'
-  if (t === 'RETAIL') return '零售会员'
-  return '会员'
+// 会员等级自动晋级进度（autoRetailLevel，真实数据驱动，不造假）
+const levels = ref<MemberLevel[]>([])
+
+const sortedLevels = computed(() =>
+  [...levels.value].filter((l) => l.status === 'active').sort((a, b) => a.minPoints - b.minPoints)
+)
+
+// 晋级按累计积分计算（优先 totalPoints，回退 points）
+const pointBase = computed(() => {
+  const m = member.value
+  if (!m) return 0
+  return Number(m.totalPoints ?? m.points ?? 0)
 })
+
+const isWholesale = computed(() => (member.value?.customerType || '') === 'WHOLESALE')
+
+const currentLevel = computed<MemberLevel | null>(() => {
+  if (isWholesale.value) return null
+  const pts = pointBase.value
+  let cur: MemberLevel | null = null
+  for (const l of sortedLevels.value) {
+    if (pts >= l.minPoints) cur = l
+    else break
+  }
+  return cur
+})
+
+const nextLevel = computed<MemberLevel | null>(() => {
+  if (isWholesale.value) return null
+  const pts = pointBase.value
+  return sortedLevels.value.find((l) => pts < l.minPoints) ?? null
+})
+
+const currentLevelName = computed(() => {
+  if (isWholesale.value) return '批发客户'
+  return currentLevel.value?.name || member.value?.levelName || '普通会员'
+})
+
+const nextLevelName = computed(() => nextLevel.value?.name || '')
+const nextMin = computed(() => nextLevel.value?.minPoints ?? 0)
+
+const levelProgress = computed(() => {
+  const cur = currentLevel.value
+  const next = nextLevel.value
+  const base = pointBase.value
+  if (!next || !cur) return { percent: 100, remain: 0 }
+  const curMin = cur.minPoints
+  const span = next.minPoints - curMin
+  const done = base - curMin
+  const percent = span > 0 ? Math.max(0, Math.min(100, Math.round((done / span) * 100))) : 0
+  const remain = Math.max(0, next.minPoints - base)
+  return { percent, remain }
+})
+
+const ruleText = computed(() =>
+  sortedLevels.value.map((l) => `${l.name} ${l.minPoints}+`).join('　')
+)
+
+const typeLabel = computed(() => (isWholesale.value ? '批发客户' : '零售客户'))
+
+const avatarText = computed(() => (member.value?.name || '会').charAt(0))
+
+const balance = computed(() => member.value?.balance ?? 0)
+const totalSpent = computed(() => member.value?.totalSpent ?? 0)
+const avgOrder = computed(() => {
+  const t = totalSpent.value
+  return orders.value.length ? Math.round((t / orders.value.length) * 100) / 100 : 0
+})
+
+const regDate = computed(() => formatDate(member.value?.createdAt) || '—')
+const lastConsumeText = computed(() => formatDate(member.value?.lastConsumeAt) || '暂无')
+const hasAddr = computed(() => {
+  const m = member.value
+  if (!m) return false
+  return !!(m.province || m.city || m.district || m.address)
+})
+
+const docRows = computed<DocRow[]>(() =>
+  orders.value.map((o) => ({
+    no: o.billNo,
+    date: formatDate(o.createdAt),
+    amount: Number(o.receivableAmount || 0),
+    status: orderStatusLabel(o),
+    statusType: o.collectionStatus === 'PAID' ? 'success' : o.collectionStatus === 'PARTIAL' ? 'warning' : 'default',
+    sub: '销售单',
+  }))
+)
+
+const docVisible = ref(false)
+
+function openDoc() {
+  docVisible.value = true
+}
+
+function fmt(n: number): string {
+  const v = Number(n || 0)
+  return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function goRecharge() {
+  uni.navigateTo({ url: '/pages-sub/marketing/stored-cards/stored-cards' })
+}
+
+function goPoints() {
+  uni.navigateTo({ url: '/pages-sub/marketing/points/points-detail' })
+}
 
 function goBack() {
   uni.navigateBack({ delta: 1 })
-}
-
-function formatAmount(v: number | string | null | undefined): string {
-  const n = Number(v ?? 0)
-  if (n >= 10000) return (n / 10000).toFixed(1) + '万'
-  return n.toFixed(2)
 }
 
 function formatDate(d: string | null | undefined): string {
@@ -178,6 +373,20 @@ function callPhone() {
   }
 }
 
+async function toggleStatus() {
+  if (!member.value) return
+  const next = member.value.status === 1 ? 0 : 1
+  const prev = member.value.status
+  member.value = { ...member.value, status: next }
+  try {
+    await put(`/store/members/${memberId.value}`, { status: next })
+    uni.showToast({ title: next === 1 ? '账户已恢复正常' : '账户已冻结', icon: 'none' })
+  } catch (err) {
+    member.value = { ...member.value, status: prev }
+    uni.showToast({ title: '状态更新失败', icon: 'none' })
+  }
+}
+
 async function loadDetail() {
   if (!memberId.value) return
   loading.value = true
@@ -193,15 +402,21 @@ async function loadDetail() {
 
 async function loadOrders() {
   if (!memberId.value) return
-  loadingOrders.value = true
   try {
     const res: any = await get(`/store/members/${memberId.value}/orders`, { page: 1, pageSize: 10 })
     const data = res?.data ?? res ?? {}
     orders.value = data.records ?? []
   } catch (err) {
     console.error('加载会员订单失败:', err)
-  } finally {
-    loadingOrders.value = false
+  }
+}
+
+async function loadLevels() {
+  try {
+    const res = await memberLevelApi.list({ page: 1, pageSize: 100 })
+    levels.value = res.list ?? []
+  } catch (err) {
+    console.error('加载会员等级配置失败:', err)
   }
 }
 
@@ -209,6 +424,7 @@ onLoad((query: any) => {
   memberId.value = Number(query?.id ?? 0)
   loadDetail()
   loadOrders()
+  loadLevels()
 })
 </script>
 
@@ -218,266 +434,321 @@ onLoad((query: any) => {
 .member-detail-page {
   min-height: 100vh;
   background: $uni-bg-color-page;
-  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  padding: 0 24rpx;
+/* 分组卡片（对齐原稿 .pd-group） */
+.pd-group {
   background: $uni-bg-color;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.header-back {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-back-icon {
-  font-size: 44rpx;
-  color: $uni-text-color;
-}
-
-.header-title {
-  flex: 1;
-  text-align: center;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: $uni-text-color;
-  margin-right: 64rpx;
-}
-
-/* 会员卡头 */
-.member-header {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-  margin: 24rpx 28rpx 0;
-  padding: 32rpx;
-  background: $uni-bg-color;
-  border-radius: 28rpx;
+  border-radius: $uni-border-radius-base;
   box-shadow: $uni-shadow-card;
+  margin: $uni-spacing-base $uni-spacing-lg 0;
+  overflow: hidden;
+}
+.pd-gtitle {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 24rpx 32rpx 16rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: $uni-text-color-secondary;
+}
+.gt-bar {
+  width: 6rpx;
+  height: 24rpx;
+  border-radius: 4rpx;
+  background: $uni-color-primary;
+  flex-shrink: 0;
 }
 
-.member-avatar {
+/* 概览头（对齐原稿 .ov-head） */
+.ov-head {
+  display: flex;
+  gap: 24rpx;
+  padding: 28rpx 32rpx;
+  align-items: center;
+}
+.ov-ava {
   width: 108rpx;
   height: 108rpx;
   border-radius: 50%;
-  background: $uni-gradient-blue;
+  background: $uni-color-primary;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
-
-.avatar-text {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: $uni-gray-0;
-}
-
-.member-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.member-name-row {
+.ov-info { flex: 1; min-width: 0; }
+.ov-name {
   display: flex;
   align-items: center;
-  gap: $uni-spacing-sm;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
 }
-
-.member-name {
+.ov-name-text {
   font-size: 34rpx;
   font-weight: 700;
   color: $uni-text-color;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-.level-tag {
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
-  background: $uni-color-primary-soft;
-}
-
-.level-tag--plain {
-  background: #f3f4f6;
-}
-
-.level-tag-text {
+.lv-badge {
   font-size: 20rpx;
-  color: $uni-color-primary;
-}
-
-.level-tag--plain .level-tag-text {
-  color: $uni-gray-500;
-}
-
-.member-phone {
-  display: block;
-  margin-top: 10rpx;
-  font-size: 24rpx;
-  color: $uni-gray-500;
-}
-
-/* 统计 */
-.stats-row {
-  display: flex;
-  align-items: center;
-  margin: $uni-spacing-base $uni-spacing-base 0;
-  padding: $uni-spacing-base $uni-spacing-base;
-  background: $uni-bg-color;
-  border-radius: 28rpx;
-  box-shadow: $uni-shadow-card;
-}
-
-.stat-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $uni-spacing-xs;
-}
-
-.stat-value {
-  font-size: 30rpx;
   font-weight: 700;
-  color: $uni-text-color;
-}
-
-.stat-label {
-  font-size: 22rpx;
-  color: $uni-gray-400;
-}
-
-.stat-divider {
-  width: 1rpx;
-  height: 48rpx;
-  background: #e5e7eb;
-}
-
-/* 信息卡片 */
-.info-section {
-  margin: $uni-spacing-base $uni-spacing-base 0;
-}
-
-.section-title {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: $uni-text-color;
-  margin-bottom: $uni-spacing-sm;
-}
-
-.info-card,
-.orders-section {
-  background: $uni-bg-color;
-  border-radius: $uni-border-radius-sm;
-  padding: $uni-spacing-xs $uni-spacing-lg;
-  box-shadow: $uni-shadow-card;
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  padding: $uni-spacing-base 0;
-  border-bottom: 1rpx solid #f3f4f6;
-}
-
-.info-row--last {
-  border-bottom: none;
-}
-
-.info-label {
-  width: 160rpx;
-  font-size: 26rpx;
-  color: $uni-gray-400;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
   flex-shrink: 0;
 }
+.ov-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 24rpx;
+  color: $uni-gray-500;
+  flex-wrap: wrap;
+}
+.ov-code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: $uni-gray-400;
+}
+.ty-badge {
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
+  flex-shrink: 0;
+}
+.ty-wholesale { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.ty-retail { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.st-badge {
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
+  flex-shrink: 0;
+}
+.st-on { background: $zx-badge-success-bg; color: $zx-badge-success-strong; }
+.st-off { background: $zx-badge-danger-bg; color: $zx-badge-danger-strong; }
 
-.info-value {
+.ov-stats {
+  display: flex;
+  border-top: 1rpx solid $uni-border-color-light;
+  background: $uni-bg-color-soft;
+}
+.ov-si {
   flex: 1;
-  font-size: 26rpx;
+  padding: 20rpx 12rpx;
+  text-align: center;
+}
+.ov-si + .ov-si { border-left: 1rpx solid $uni-border-color-light; }
+.ov-sl {
+  font-size: 21rpx;
+  color: $uni-gray-500;
+  margin-bottom: 4rpx;
+  display: block;
+}
+.ov-sv {
+  font-size: 28rpx;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: $uni-text-color;
+}
+.ov-sv--gold { color: $zx-badge-warning-strong; }
+.ov-sv--blue { color: $uni-color-primary; }
+
+/* chips */
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding: 22rpx 32rpx;
+  border-bottom: 1rpx solid $uni-border-color-light;
+}
+.chip {
+  padding: 12rpx 26rpx;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-bg-color-soft;
+  font-size: 25rpx;
+  font-weight: 600;
+  color: $uni-gray-500;
+}
+.chip--on {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+}
+
+/* 字段行（对齐原稿 .f-row） */
+.f-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 22rpx 32rpx;
+  border-bottom: 1rpx solid $uni-border-color-light;
+}
+.f-row:last-child { border-bottom: none; }
+.f-row--static { align-items: center; }
+.f-label {
+  width: 164rpx;
+  font-size: 27rpx;
+  color: $uni-gray-500;
+  flex-shrink: 0;
+  padding-top: 1rpx;
+}
+.f-label--auto { width: auto; flex: 1; }
+.f-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 27rpx;
   color: $uni-text-color;
   text-align: right;
 }
-
-.info-value--link {
-  color: $uni-color-primary;
+.f-value.ph { color: $uni-gray-400; }
+.f-value--link { color: $uni-color-primary; }
+.f-value--gold { color: $zx-badge-warning-strong; font-weight: 700; }
+.f-value--blue { color: $uni-color-primary; font-weight: 700; }
+.f-flex { flex: 1; min-width: 0; }
+.f-hint {
+  font-size: 22rpx;
+  color: $uni-gray-500;
+  margin-top: 4rpx;
+  line-height: 1.4;
 }
 
-/* 最近订单 */
-.orders-section {
-  margin: $uni-spacing-base $uni-spacing-base 0;
+/* 开关（对齐原稿 .sw） */
+.sw {
+  width: 88rpx;
+  height: 52rpx;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-gray-200;
+  position: relative;
+  flex-shrink: 0;
+  transition: background $uni-transition-normal;
 }
-
-.order-card {
-  padding: $uni-spacing-md 4rpx;
-  border-bottom: 1rpx solid #f3f4f6;
+.sw::after {
+  content: '';
+  position: absolute;
+  top: 6rpx;
+  left: 6rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: $ai-bg-page;
+  box-shadow: 0 2rpx 6rpx $zx-black-200;
+  transition: transform $uni-transition-normal;
 }
+.sw--on { background: $uni-color-success; }
+.sw--on::after { transform: translateX(36rpx); }
 
-.order-card:last-child {
-  border-bottom: none;
-}
-
-.order-card-header {
+/* 会员等级盒（对齐原稿 .lv-box / .lv-prog） */
+.lv-box { padding: 24rpx 32rpx; }
+.lv-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
 }
-
-.order-no {
-  font-size: 26rpx;
-  font-weight: 600;
+.lv-cur {
+  font-size: 30rpx;
+  font-weight: 700;
+  flex: 1;
   color: $uni-text-color;
 }
-
-.order-status {
-  padding: 4rpx 14rpx;
-  border-radius: 999rpx;
+.lv-auto {
+  font-size: 21rpx;
+  font-weight: 700;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
   background: $uni-color-primary-soft;
-}
-
-.status-text {
-  font-size: 20rpx;
   color: $uni-color-primary;
+  flex-shrink: 0;
 }
-
-.order-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10rpx;
+.lv-prog-wrap {
+  height: 12rpx;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-gray-100;
+  overflow: hidden;
+  margin-bottom: 16rpx;
 }
-
-.order-time {
+.lv-prog {
+  height: 100%;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-color-primary;
+  transition: width $uni-transition-slow;
+}
+.lv-tip {
+  font-size: 23rpx;
+  color: $uni-gray-500;
+  line-height: 1.5;
+}
+.lv-strong { color: $zx-badge-warning-strong; font-weight: 700; }
+.lv-rule {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed $uni-border-color-light;
   font-size: 22rpx;
   color: $uni-gray-400;
+  line-height: 1.6;
 }
 
-.order-amount {
-  font-size: 26rpx;
+/* 历史单据（对齐原稿 .doc-row） */
+.doc-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid $uni-border-color-light;
+}
+.doc-row:last-child { border-bottom: none; }
+.doc-main { flex: 1; min-width: 0; }
+.doc-no {
+  font-size: 27rpx;
   font-weight: 700;
   color: $uni-text-color;
 }
-
-.empty-tip {
-  padding: 36rpx 0;
+.doc-sub {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 16rpx;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+  color: $uni-gray-500;
+}
+.dt-type {
+  font-size: 21rpx;
+  font-weight: 700;
+  padding: 4rpx 14rpx;
+  border-radius: $uni-border-radius-pill;
+  flex-shrink: 0;
+}
+.dt-sale { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.dt-refund { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.doc-amt {
+  font-size: 28rpx;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  flex-shrink: 0;
+}
+.doc-che {
+  font-size: 32rpx;
+  color: $uni-gray-300;
+  flex-shrink: 0;
 }
 
-.empty-tip-text {
-  font-size: 24rpx;
+.empty {
+  padding: 48rpx 40rpx;
+  text-align: center;
+  font-size: 26rpx;
   color: $uni-gray-400;
 }
 
+/* 加载 / 空态 */
 .loading-overlay {
   padding: 120rpx 0;
   display: flex;
@@ -485,37 +756,53 @@ onLoad((query: any) => {
   align-items: center;
   gap: $uni-spacing-sm;
 }
-
 .loading-spinner {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid #e5e7eb;
+  border: 4rpx solid $uni-gray-200;
   border-top-color: $uni-color-primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-text {
-  font-size: 24rpx;
-  color: $uni-gray-400;
-}
-
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 24rpx; color: $uni-gray-400; }
 .empty-state {
   padding: 160rpx 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.empty-text { font-size: 26rpx; color: $uni-gray-400; }
 
-.empty-text {
-  font-size: 26rpx;
-  color: $uni-gray-400;
+.safe-bottom { height: 40rpx; }
+
+/* 底部操作栏 */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  gap: 18rpx;
+  padding: 16rpx 32rpx calc(16rpx + env(safe-area-inset-bottom));
+  background: $uni-bg-color;
+  border-top: 1rpx solid $uni-border-color;
+}
+.ab-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: $uni-border-radius-sm;
+  font-size: 29rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ab-primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
+.ab-ghost {
+  background: $uni-bg-color;
+  color: $uni-gray-600;
+  border: 1rpx solid $uni-border-color;
 }
 </style>
-

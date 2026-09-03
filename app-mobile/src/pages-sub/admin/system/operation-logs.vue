@@ -1,5 +1,6 @@
 <template>
   <view class="logs-page">
+    <page-header title="操作日志" @back="goBack" />
     <!-- 搜索栏 -->
     <view class="search-bar">
       <view class="search-input-wrap">
@@ -74,6 +75,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref, onMounted } from 'vue'
 import { operationLogApi, type OperationLog, type OperationType } from '@/api/modules/operation-logs'
 
@@ -286,7 +292,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 20rpx $zx-black-40;
 }
 
 .log-header {

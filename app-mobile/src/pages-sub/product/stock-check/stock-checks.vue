@@ -213,10 +213,10 @@ onMounted(() => {
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16rpx; padding-bottom: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .check-no { font-size: 26rpx; color: $uni-gray-400; }
 .status-tag { padding: 4rpx 16rpx; border-radius: 8rpx; }
-.status-tag--draft { background: rgba(0,0,0,0.05); }
-.status-tag--progress { background: rgba(250,173,20,0.1); }
-.status-tag--success { background: rgba(82,196,26,0.1); }
-.status-tag--cancel { background: rgba(255,77,79,0.1); }
+.status-tag--draft { background: $zx-black-50; }
+.status-tag--progress { background: $zx-orange2-100; }
+.status-tag--success { background: $zx-antgreen-100; }
+.status-tag--cancel { background: $zx-antred-100; }
 .status-tag-text { font-size: 22rpx; }
 .status-tag--draft .status-tag-text { color: $uni-gray-400; }
 .status-tag--progress .status-tag-text { color: $uni-color-warning; }
@@ -233,7 +233,7 @@ onMounted(() => {
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 200rpx 0; }
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.4); }
+.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx $zx-antblue-400; }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }
 </style>

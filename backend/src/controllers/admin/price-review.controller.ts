@@ -22,6 +22,8 @@ export const submitPriceReview = asyncHandler(async (req, res) => {
   const body = z.object({
     skuId: z.number(),
     suggestedPrice: z.number(),
+    /** 核价价格档位（默认零售价）；缺失时按 RETAIL 兼容旧调用 */
+    priceType: z.enum(["COST", "RETAIL", "WHOLESALE", "MINIAPP", "STORE"]).optional(),
     reason: z.string().max(500).optional(),
   }).parse(req.body);
   const result = await priceReviewService.submitPriceReview(

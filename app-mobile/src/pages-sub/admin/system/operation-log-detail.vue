@@ -178,7 +178,7 @@ onMounted(() => {
 .type-badge {
   padding: 12rpx 32rpx;
   border-radius: 32rpx;
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
 }
 
 .badge-text {
@@ -198,7 +198,7 @@ onMounted(() => {
   border-radius: $uni-border-radius-xs;
   margin-bottom: $uni-spacing-md;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .info-row {

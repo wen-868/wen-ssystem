@@ -268,9 +268,9 @@ loadList()
 .product-category { font-size: 22rpx; color: $uni-gray-400; }
 .product-sku { font-size: 22rpx; color: $uni-gray-400; }
 .shelf-tag { padding: 4rpx 16rpx; border-radius: 8rpx; align-self: flex-start; }
-.shelf-tag--online { background: rgba(82,196,26,0.1); }
-.shelf-tag--offline { background: rgba(255,77,79,0.1); }
-.shelf-tag--pending { background: rgba(250,173,20,0.1); }
+.shelf-tag--online { background: $zx-antgreen-100; }
+.shelf-tag--offline { background: $zx-antred-100; }
+.shelf-tag--pending { background: $zx-orange2-100; }
 .shelf-tag-text { font-size: 22rpx; }
 .shelf-tag--online .shelf-tag-text { color: $uni-color-success; }
 .shelf-tag--offline .shelf-tag-text { color: $uni-color-error; }
@@ -282,16 +282,16 @@ loadList()
 .card-actions { display: flex; gap: $uni-spacing-sm; }
 .btn-sm { flex: 1; font-size: 24rpx; padding: 12rpx 0; border-radius: 8rpx; border: none; line-height: 1.6; }
 .btn-sm--primary { background: $uni-color-primary; color: $uni-text-color-inverse; }
-.btn-sm--warning { background: rgba(250,173,20,0.1); color: $uni-color-warning; }
+.btn-sm--warning { background: $zx-orange2-100; color: $uni-color-warning; }
 .btn-sm--danger { background: $uni-text-color-inverse; color: $uni-color-error; border: 1rpx solid $uni-color-error; }
 .load-more { text-align: center; padding: $uni-spacing-base 0; }
 .load-more-text { font-size: 24rpx; color: $uni-gray-300; }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 200rpx 0; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
-.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx rgba(22,119,255,0.4); }
+.fab-btn { position: fixed; right: 40rpx; bottom: calc(60rpx + env(safe-area-inset-bottom)); width: 100rpx; height: 100rpx; border-radius: 50%; background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 24rpx $zx-antblue-400; }
 .fab-icon { font-size: 56rpx; color: $uni-text-color-inverse; font-weight: 300; }
 .safe-bottom { height: 40rpx; }
-.edit-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center; }
+.edit-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: $zx-black-500; z-index: 999; display: flex; align-items: center; justify-content: center; }
 .edit-content { width: 90%; max-width: 600rpx; background: $uni-bg-color; border-radius: $uni-border-radius-sm; }
 .edit-header { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 32rpx; border-bottom: 1rpx solid $uni-gray-100; }
 .edit-title { font-size: 30rpx; font-weight: 600; color: $uni-gray-700; }

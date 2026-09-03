@@ -66,9 +66,13 @@ export const useUserStore = defineStore('user', () => {
         setCsrfToken(profile.csrfToken)
       }
       initialized.value = true
-    } catch (err) {
-      // 如果 token 失效，执行登出
-      logout()
+    } catch (err: any) {
+      // 仅后端确认 401（token 真失效）才登出。
+      // 限流 429 / 网络抖动 / 超时等错误不能误判为登录过期，否则会被反复踢回登录页。
+      const msg = String(err?.message || '')
+      if (msg.includes('登录已过期') || msg.includes('登录已失效') || msg.includes('未登录')) {
+        logout()
+      }
       throw err
     }
   }

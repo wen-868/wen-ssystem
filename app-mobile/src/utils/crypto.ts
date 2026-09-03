@@ -695,6 +695,32 @@ function randomBytes(length: number): Uint8Array {
  * 设备指纹不存储，每次运行时动态计算
  */
 export function getDeviceFingerprint(): string {
+    // H5：deviceId/brand 等字段随会话或浏览器环境变化（内嵌 webview、无痕窗口），
+    // 会导致派生密钥变化 → 已存的加密 token 解密失败 → 请求裸奔 401 → 被误判"登录已过期"。
+    // 因此 H5 端只用 localStorage 持久化的随机 ID 作为指纹，保证同一浏览器永远可解密。
+    // #ifdef H5
+    try {
+        const PERSIST_KEY = 'zx_persist_device_id'
+        let persisted = ''
+        try {
+            persisted = uni.getStorageSync(PERSIST_KEY) as string
+        } catch {
+            persisted = ''
+        }
+        if (!persisted) {
+            persisted = `h5-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
+            try {
+                uni.setStorageSync(PERSIST_KEY, persisted)
+            } catch {
+                // localStorage 完全不可用（极端环境）：退化为会话内稳定即可
+            }
+        }
+        const persistedHash = sha256(strToBytes(persisted))
+        return bytesToBase64(persistedHash)
+    } catch {
+        // fall through 到跨端逻辑
+    }
+    // #endif
     const info = uni.getSystemInfoSync()
     const raw = `${info.deviceId || ''}|${info.brand || ''}|${info.model || ''}|${info.system || ''}|${info.platform || ''}`
     const hash = sha256(strToBytes(raw))
@@ -778,6 +804,64 @@ function getKey(): DerivedKey {
     return cachedKey
 }
 
+// #ifdef H5
+/**
+ * H5 端：base64 轻混淆存取（直用原生 localStorage，绕开 uni storage 包装层）。
+ *
+ * 说明：此前 H5 复用「设备指纹派生密钥 + AES-GCM」方案，实测跨刷新解密不稳定
+ * （指纹派生链路任一环节波动 → 密钥变化 → token 解密失败 → 请求裸奔 401 →
+ * 被前端误判"登录已过期"反复踢回登录页）。H5 下 localStorage 与 JS 同源，
+ * 对称加密的密钥本就无法对同源脚本保密，混淆的主要价值是避免明文 key 名直读。
+ * App/小程序端（deviceId 稳定）继续走下方 AES-GCM 实现。
+ */
+function h5ls(): Storage | null {
+    try {
+        return window.localStorage
+    } catch {
+        return null
+    }
+}
+
+export function setSecureStorage(key: string, value: unknown): void {
+    const jsonStr = JSON.stringify(value)
+    // 用原生 btoa/atob：uni.arrayBufferToBase64/base64ToArrayBuffer 对带 padding 的
+    // 长 base64 解码会损坏尾部字节，导致真 token 校验失败被后端 401 拒绝
+    const bytes = new TextEncoder().encode(jsonStr)
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+    const ls = h5ls()
+    if (!ls) return
+    ls.setItem(`enc_${key}`, `b64:${btoa(bin)}`)
+}
+
+export function getSecureStorage(key: string): string {
+    const ls = h5ls()
+    if (!ls) return ''
+    const raw = ls.getItem(`enc_${key}`)
+    if (!raw || typeof raw !== 'string') return ''
+    // 新格式：b64: 前缀的 base64 混淆
+    if (raw.startsWith('b64:')) {
+        try {
+            const bin = atob(raw.slice(4))
+            const bytes = new Uint8Array(bin.length)
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+            return new TextDecoder().decode(bytes)
+        } catch {
+            return ''
+        }
+    }
+    // 旧 AES-GCM 数据（历史版本写入）：跨刷新不可靠，视为失效数据清空
+    try { ls.removeItem(`enc_${key}`) } catch { /* 忽略 */ }
+    return ''
+}
+
+export function removeSecureStorage(key: string): void {
+    const ls = h5ls()
+    if (ls) ls.removeItem(`enc_${key}`)
+}
+// #endif
+
+// #ifndef H5
 /**
  * 加密后存储为 enc_${key}
  * - value 先 JSON.stringify（如果是对象）再加密
@@ -823,3 +907,4 @@ export function getSecureStorage(key: string): string {
 export function removeSecureStorage(key: string): void {
     uni.removeStorageSync(`enc_${key}`)
 }
+// #endif

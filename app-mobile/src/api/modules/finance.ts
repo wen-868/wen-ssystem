@@ -1,4 +1,4 @@
-import { get } from '../request'
+import { get, post } from '../request'
 
 export interface IncomeStats {
   todayIncome: number
@@ -106,3 +106,29 @@ const financeApi = {
 }
 
 export { financeApi }
+
+// ========== 付款单（后端 payment-new.routes：/api/admin/payments-new） ==========
+
+/** 创建付款单契约：payment-new.controller.ts#createPayment */
+export interface CreatePaymentParams {
+  supplierId: number
+  supplierName?: string
+  /** 付款类型，后端默认 PURCHASE */
+  paymentType?: string
+  amount: number
+  paymentMethod?: string
+  bankAccountId?: number
+  /** 付款日期 YYYY-MM-DD */
+  paidDate?: string
+  remark?: string
+}
+
+export const paymentNewApi = {
+  async create(params: CreatePaymentParams): Promise<any> {
+    return post('/admin/payments-new', params)
+  },
+
+  async list(params?: { supplierId?: number; paymentType?: string; status?: string; page?: number; pageSize?: number }): Promise<any> {
+    return get('/admin/payments-new', params)
+  },
+}

@@ -1,814 +1,873 @@
 {
-    "easycom": {
-        "autoscan": true,
-        "custom": {
-            "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
-        }
-    },
-    "pages": [
-        {
-            "path": "pages/login/login",
-            "style": {
-                "navigationBarTitleText": "登录",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/register/register",
-            "style": {
-                "navigationBarTitleText": "注册",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/home/home",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/orders/orders",
-            "style": {
-                "navigationBarTitleText": "订单管理",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/orders/order-detail",
-            "style": {
-                "navigationBarTitleText": "订单详情"
-            }
-        },
-        {
-            "path": "pages/sales/create-sale",
-            "style": {
-                "navigationBarTitleText": "开单",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/products/products",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/products/product-detail",
-            "style": {
-                "navigationBarTitleText": "商品详情"
-            }
-        },
-        {
-            "path": "pages/functions/functions",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/profile/profile",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/ai-chat/ai-chat",
-            "style": {
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/profile/edit",
-            "style": {
-                "navigationBarTitleText": "编辑资料"
-            }
-        },
-        {
-            "path": "pages/profile/change-password",
-            "style": {
-                "navigationBarTitleText": "修改密码",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/notifications/notifications",
-            "style": {
-                "navigationBarTitleText": "消息通知",
-                "navigationStyle": "custom"
-            }
-        },
-        {
-            "path": "pages/notifications/notification-detail",
-            "style": {
-                "navigationBarTitleText": "消息详情"
-            }
-        },
-        {
-            "path": "pages/todos/todos",
-            "style": {
-                "navigationBarTitleText": "待办事项",
-                "navigationStyle": "custom"
-            }
-        }
-    ],
-    "subPackages": [
-        {
-            "root": "pages-sub/order",
-            "pages": [
-                {
-                    "path": "order-center/order-center",
-                    "style": {
-                        "navigationBarTitleText": "订单中心",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "order-exception/exception",
-                    "style": {
-                        "navigationBarTitleText": "异常订单",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "order-aftersale/aftersale",
-                    "style": {
-                        "navigationBarTitleText": "售后管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "sales/sale-bills",
-                    "style": {
-                        "navigationBarTitleText": "销售单",
-                        "navigationStyle": "custom"
-                    }
-                }
-            ]
-        },
-        {
-            "root": "pages-sub/product",
-            "pages": [
-                {
-                    "path": "product/product-edit",
-                    "style": {
-                        "navigationBarTitleText": "新建商品",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "inventory/inventory",
-                    "style": {
-                        "navigationBarTitleText": "库存管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "customers/customers",
-                    "style": {
-                        "navigationBarTitleText": "客户管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "customers/customer-detail",
-                    "style": {
-                        "navigationBarTitleText": "客户详情"
-                    }
-                },
-                {
-                    "path": "batches/batch-list",
-                    "style": {
-                        "navigationBarTitleText": "批次管理"
-                    }
-                },
-                {
-                    "path": "batches/batch-detail",
-                    "style": {
-                        "navigationBarTitleText": "批次详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "categories/categories",
-                    "style": {
-                        "navigationBarTitleText": "商品分类",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "categories/category-edit",
-                    "style": {
-                        "navigationBarTitleText": "分类编辑",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "suppliers/suppliers",
-                    "style": {
-                        "navigationBarTitleText": "供应商",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "batch-price/batch-price",
-                    "style": {
-                        "navigationBarTitleText": "批量调价",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price-review/price-review",
-                    "style": {
-                        "navigationBarTitleText": "建议核价",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price-anomaly/price-anomaly",
-                    "style": {
-                        "navigationBarTitleText": "价格异常",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price/price-manage",
-                    "style": {
-                        "navigationBarTitleText": "价格管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price/batch-adjust",
-                    "style": {
-                        "navigationBarTitleText": "批量调价",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price/batch-logs",
-                    "style": {
-                        "navigationBarTitleText": "调价记录",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "price-push/price-push",
-                    "style": {
-                        "navigationBarTitleText": "报价推送",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stock-check/stock-checks",
-                    "style": {
-                        "navigationBarTitleText": "盘点管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stock-check/create-check",
-                    "style": {
-                        "navigationBarTitleText": "创建盘点",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stock-check/check-detail",
-                    "style": {
-                        "navigationBarTitleText": "盘点详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stock-warning/stock-warning",
-                    "style": {
-                        "navigationBarTitleText": "库存预警",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "collection-link/collection-link",
-                    "style": {
-                        "navigationBarTitleText": "收款链接",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "trace/trace-query",
-                    "style": {
-                        "navigationBarTitleText": "溯源查询",
-                        "navigationStyle": "custom"
-                    }
-                }
-            ]
-        },
-        {
-            "root": "pages-sub/marketing",
-            "pages": [
-                {
-                    "path": "marketing/marketing",
-                    "style": {
-                        "navigationBarTitleText": "营销中心",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "marketing/coupons",
-                    "style": {
-                        "navigationBarTitleText": "优惠券",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "marketing/create-coupon",
-                    "style": {
-                        "navigationBarTitleText": "新建优惠券",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "marketing/coupon-verify",
-                    "style": {
-                        "navigationBarTitleText": "优惠券核销"
-                    }
-                },
-                {
-                    "path": "marketing/activities",
-                    "style": {
-                        "navigationBarTitleText": "营销活动"
-                    }
-                },
-                {
-                    "path": "marketing/participation-records",
-                    "style": {
-                        "navigationBarTitleText": "参与记录"
-                    }
-                },
-                {
-                    "path": "marketing/community-activities",
-                    "style": {
-                        "navigationBarTitleText": "社群营销"
-                    }
-                },
-                {
-                    "path": "marketing/group-buy-list",
-                    "style": {
-                        "navigationBarTitleText": "拼团活动"
-                    }
-                },
-                {
-                    "path": "marketing/group-buy-detail",
-                    "style": {
-                        "navigationBarTitleText": "拼团详情"
-                    }
-                },
-                {
-                    "path": "marketing/bargain-list",
-                    "style": {
-                        "navigationBarTitleText": "砍价活动"
-                    }
-                },
-                {
-                    "path": "marketing/bargain-detail",
-                    "style": {
-                        "navigationBarTitleText": "砍价详情"
-                    }
-                },
-                {
-                    "path": "marketing/seckill-list",
-                    "style": {
-                        "navigationBarTitleText": "秒杀活动"
-                    }
-                },
-                {
-                    "path": "marketing/seckill-detail",
-                    "style": {
-                        "navigationBarTitleText": "秒杀详情"
-                    }
-                },
-                {
-                    "path": "member/member",
-                    "style": {
-                        "navigationBarTitleText": "会员中心",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "member/member-list",
-                    "style": {
-                        "navigationBarTitleText": "会员管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "member/member-detail",
-                    "style": {
-                        "navigationBarTitleText": "会员详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "member/address",
-                    "style": {
-                        "navigationBarTitleText": "收货地址",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "member-levels/member-levels",
-                    "style": {
-                        "navigationBarTitleText": "会员等级",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "member-levels/level-config",
-                    "style": {
-                        "navigationBarTitleText": "等级配置",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "points/points-detail",
-                    "style": {
-                        "navigationBarTitleText": "积分明细"
-                    }
-                },
-                {
-                    "path": "points/points-exchange",
-                    "style": {
-                        "navigationBarTitleText": "积分兑换"
-                    }
-                },
-                {
-                    "path": "stored-cards/stored-cards",
-                    "style": {
-                        "navigationBarTitleText": "储值卡管理"
-                    }
-                },
-                {
-                    "path": "stored-cards/recharge-records",
-                    "style": {
-                        "navigationBarTitleText": "充值记录",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stored-cards/consume-records",
-                    "style": {
-                        "navigationBarTitleText": "消费记录",
-                        "navigationStyle": "custom"
-                    }
-                }
-            ]
-        },
-        {
-            "root": "pages-sub/finance",
-            "pages": [
-                {
-                    "path": "finance/finance-dashboard",
-                    "style": {
-                        "navigationBarTitleText": "财务看板",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "finance/expenses",
-                    "style": {
-                        "navigationBarTitleText": "费用管理"
-                    }
-                },
-                {
-                    "path": "finance/expense-create",
-                    "style": {
-                        "navigationBarTitleText": "费用录入"
-                    }
-                },
-                {
-                    "path": "reports/reports",
-                    "style": {
-                        "navigationBarTitleText": "数据报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reports/sales-reports",
-                    "style": {
-                        "navigationBarTitleText": "销售报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reports/inventory-reports",
-                    "style": {
-                        "navigationBarTitleText": "库存报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reports/purchase-reports",
-                    "style": {
-                        "navigationBarTitleText": "采购报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reports/customer-reports",
-                    "style": {
-                        "navigationBarTitleText": "客户报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reports/finance-reports",
-                    "style": {
-                        "navigationBarTitleText": "财务报表",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "receipts/receipts",
-                    "style": {
-                        "navigationBarTitleText": "财务往来",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "receivable/receivable",
-                    "style": {
-                        "navigationBarTitleText": "应收款",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "reconciliation/reconciliation",
-                    "style": {
-                        "navigationBarTitleText": "对账管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "statements/statements",
-                    "style": {
-                        "navigationBarTitleText": "客户对账",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "loss-gain/loss-list",
-                    "style": {
-                        "navigationBarTitleText": "报损管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "loss-gain/gain-list",
-                    "style": {
-                        "navigationBarTitleText": "报溢管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "loss-gain/create-loss",
-                    "style": {
-                        "navigationBarTitleText": "创建报损单"
-                    }
-                },
-                {
-                    "path": "loss-gain/create-gain",
-                    "style": {
-                        "navigationBarTitleText": "创建报溢单"
-                    }
-                },
-                {
-                    "path": "loss-gain/loss-gain-detail",
-                    "style": {
-                        "navigationBarTitleText": "单据详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "loss-gain/loss-gain-report",
-                    "style": {
-                        "navigationBarTitleText": "损益统计",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "transfer/transfer",
-                    "style": {
-                        "navigationBarTitleText": "库存调拨",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "purchase/orders",
-                    "style": {
-                        "navigationBarTitleText": "采购订单",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "purchase/in-stock",
-                    "style": {
-                        "navigationBarTitleText": "采购入库",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "instant-retail/orders",
-                    "style": {
-                        "navigationBarTitleText": "即时零售",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "instant-retail/config",
-                    "style": {
-                        "navigationBarTitleText": "即时零售配置",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "instant-retail/products",
-                    "style": {
-                        "navigationBarTitleText": "即时零售商品",
-                        "navigationStyle": "custom"
-                    }
-                }
-            ]
-        },
-        {
-            "root": "pages-sub/admin",
-            "pages": [
-                {
-                    "path": "admin/admin",
-                    "style": {
-                        "navigationBarTitleText": "工作台",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "admin/employees",
-                    "style": {
-                        "navigationBarTitleText": "员工管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "roles/roles",
-                    "style": {
-                        "navigationBarTitleText": "角色管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "roles/role-edit",
-                    "style": {
-                        "navigationBarTitleText": "角色编辑",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stores/stores",
-                    "style": {
-                        "navigationBarTitleText": "门店管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "stores/store-edit",
-                    "style": {
-                        "navigationBarTitleText": "门店编辑",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "system/operation-logs",
-                    "style": {
-                        "navigationBarTitleText": "操作日志"
-                    }
-                },
-                {
-                    "path": "system/operation-log-detail",
-                    "style": {
-                        "navigationBarTitleText": "操作日志详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/index",
-                    "style": {
-                        "navigationBarTitleText": "权限管理",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/report-matrix",
-                    "style": {
-                        "navigationBarTitleText": "报表权限矩阵",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/store-data-permission",
-                    "style": {
-                        "navigationBarTitleText": "门店数据权限",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/permission-assign",
-                    "style": {
-                        "navigationBarTitleText": "权限分配",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/audit-logs",
-                    "style": {
-                        "navigationBarTitleText": "权限审计日志"
-                    }
-                },
-                {
-                    "path": "report-permission/audit-detail",
-                    "style": {
-                        "navigationBarTitleText": "日志详情",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "report-permission/my-permission",
-                    "style": {
-                        "navigationBarTitleText": "我的权限"
-                    }
-                },
-                {
-                    "path": "print/print-records",
-                    "style": {
-                        "navigationBarTitleText": "单据打印",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "settings/settings",
-                    "style": {
-                        "navigationBarTitleText": "系统设置",
-                        "navigationStyle": "custom"
-                    }
-                },
-                {
-                    "path": "more/more-functions",
-                    "style": {
-                        "navigationBarTitleText": "全部功能",
-                        "navigationStyle": "custom"
-                    }
-                }
-            ]
-        }
-    ],
-    "globalStyle": {
-        "navigationBarTextStyle": "black",
-        "navigationBarTitleText": "智享全链",
-        "navigationBarBackgroundColor": "#FFFFFF",
-        "backgroundColor": "#F5F5F5"
-    },
-    "tabBar": {
-        "color": "#999999",
-        "selectedColor": "#2563EB",
-        "backgroundColor": "#FFFFFF",
-        "borderStyle": "white",
-        "custom": true,
-        "list": [
-            {
-                "pagePath": "pages/home/home",
-                "text": "首页",
-                "iconPath": "static/tabbar/home.svg",
-                "selectedIconPath": "static/tabbar/home-active.svg"
-            },
-            {
-                "pagePath": "pages/products/products",
-                "text": "商品",
-                "iconPath": "static/tabbar/product.svg",
-                "selectedIconPath": "static/tabbar/product-active.svg"
-            },
-            {
-                "pagePath": "pages/ai-chat/ai-chat",
-                "text": "AI",
-                "iconPath": "static/tabbar/ai.svg",
-                "selectedIconPath": "static/tabbar/ai-active.svg"
-            },
-            {
-                "pagePath": "pages/functions/functions",
-                "text": "功能",
-                "iconPath": "static/tabbar/functions.svg",
-                "selectedIconPath": "static/tabbar/functions-active.svg"
-            },
-            {
-                "pagePath": "pages/profile/profile",
-                "text": "我的",
-                "iconPath": "static/tabbar/user.svg",
-                "selectedIconPath": "static/tabbar/user-active.svg"
-            }
-        ]
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
     }
+  },
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/register/register",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/home",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/orders/orders",
+      "style": {
+        "navigationBarTitleText": "订单管理",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/orders/order-detail",
+      "style": {
+            "navigationStyle": "custom",
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/sales/create-sale",
+      "style": {
+        "navigationBarTitleText": "开单",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/products/products",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/products/product-detail",
+      "style": {
+        "navigationBarTitleText": "商品详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/functions/functions",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/ai-chat/ai-chat",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/edit",
+      "style": {
+            "navigationStyle": "custom",
+        "navigationBarTitleText": "编辑资料"
+      }
+    },
+    {
+      "path": "pages/profile/change-password",
+      "style": {
+        "navigationBarTitleText": "修改密码",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/notifications/notifications",
+      "style": {
+        "navigationBarTitleText": "消息通知",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/notifications/notification-detail",
+      "style": {
+            "navigationStyle": "custom",
+        "navigationBarTitleText": "消息详情"
+      }
+    },
+    {
+      "path": "pages/todos/todos",
+      "style": {
+        "navigationBarTitleText": "待办事项",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "subPackages": [
+    {
+      "root": "pages-sub/order",
+      "pages": [
+        {
+          "path": "order-center/order-center",
+          "style": {
+            "navigationBarTitleText": "订单中心",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "order-exception/exception",
+          "style": {
+            "navigationBarTitleText": "异常订单",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "order-aftersale/aftersale",
+          "style": {
+            "navigationBarTitleText": "售后管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "sales/sale-bills",
+          "style": {
+            "navigationBarTitleText": "销售单",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "sales/sale-detail",
+          "style": {
+            "navigationBarTitleText": "销售单详情",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-sub/product",
+      "pages": [
+        {
+          "path": "product/product-edit",
+          "style": {
+            "navigationBarTitleText": "新建商品",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "inventory/inventory",
+          "style": {
+            "navigationBarTitleText": "库存管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "customers/customers",
+          "style": {
+            "navigationBarTitleText": "客户管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "customers/customer-detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "客户详情"
+          }
+        },
+        {
+          "path": "batches/batch-list",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "批次管理"
+          }
+        },
+        {
+          "path": "batches/batch-detail",
+          "style": {
+            "navigationBarTitleText": "批次详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "categories/categories",
+          "style": {
+            "navigationBarTitleText": "商品分类",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "categories/category-edit",
+          "style": {
+            "navigationBarTitleText": "分类编辑",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "suppliers/suppliers",
+          "style": {
+            "navigationBarTitleText": "供应商",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "suppliers/detail",
+          "style": {
+            "navigationBarTitleText": "供应商详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "batch-price/batch-price",
+          "style": {
+            "navigationBarTitleText": "批量调价",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "price-review/price-review",
+          "style": {
+            "navigationBarTitleText": "建议核价",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "price-anomaly/price-anomaly",
+          "style": {
+            "navigationBarTitleText": "价格异常",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "price/price-manage",
+          "style": {
+            "navigationBarTitleText": "价格管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "price/batch-logs",
+          "style": {
+            "navigationBarTitleText": "调价记录",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "price-push/price-push",
+          "style": {
+            "navigationBarTitleText": "报价推送",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stock-check/stock-checks",
+          "style": {
+            "navigationBarTitleText": "盘点管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stock-check/create-check",
+          "style": {
+            "navigationBarTitleText": "创建盘点",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stock-check/check-detail",
+          "style": {
+            "navigationBarTitleText": "盘点详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stock-warning/stock-warning",
+          "style": {
+            "navigationBarTitleText": "库存预警",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "collection-link/collection-link",
+          "style": {
+            "navigationBarTitleText": "收款链接",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "trace/trace-query",
+          "style": {
+            "navigationBarTitleText": "溯源查询",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-sub/marketing",
+      "pages": [
+        {
+          "path": "marketing/marketing",
+          "style": {
+            "navigationBarTitleText": "营销中心",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "marketing/coupons",
+          "style": {
+            "navigationBarTitleText": "优惠券",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "marketing/create-coupon",
+          "style": {
+            "navigationBarTitleText": "新建优惠券",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "marketing/coupon-verify",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "优惠券核销"
+          }
+        },
+        {
+          "path": "marketing/activities",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "营销活动"
+          }
+        },
+        {
+          "path": "marketing/participation-records",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "参与记录"
+          }
+        },
+        {
+          "path": "marketing/community-activities",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "社群营销"
+          }
+        },
+        {
+          "path": "marketing/group-buy-list",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "拼团活动"
+          }
+        },
+        {
+          "path": "marketing/group-buy-detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "拼团详情"
+          }
+        },
+        {
+          "path": "marketing/bargain-list",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "砍价活动"
+          }
+        },
+        {
+          "path": "marketing/bargain-detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "砍价详情"
+          }
+        },
+        {
+          "path": "marketing/seckill-list",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "秒杀活动"
+          }
+        },
+        {
+          "path": "marketing/seckill-detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "秒杀详情"
+          }
+        },
+        {
+          "path": "member/member",
+          "style": {
+            "navigationBarTitleText": "会员中心",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "member/member-list",
+          "style": {
+            "navigationBarTitleText": "会员管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "member/member-detail",
+          "style": {
+            "navigationBarTitleText": "会员详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "member/address",
+          "style": {
+            "navigationBarTitleText": "收货地址",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "member-levels/member-levels",
+          "style": {
+            "navigationBarTitleText": "会员等级",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "member-levels/level-config",
+          "style": {
+            "navigationBarTitleText": "等级配置",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "points/points-detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "积分明细"
+          }
+        },
+        {
+          "path": "points/points-exchange",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "积分兑换"
+          }
+        },
+        {
+          "path": "stored-cards/stored-cards",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "储值卡管理"
+          }
+        },
+        {
+          "path": "stored-cards/recharge-records",
+          "style": {
+            "navigationBarTitleText": "充值记录",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stored-cards/consume-records",
+          "style": {
+            "navigationBarTitleText": "消费记录",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-sub/finance",
+      "pages": [
+        {
+          "path": "finance/finance-dashboard",
+          "style": {
+            "navigationBarTitleText": "财务看板",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "finance/expenses",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "费用管理"
+          }
+        },
+        {
+          "path": "finance/expense-create",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "费用录入"
+          }
+        },
+        {
+          "path": "finance/expense-detail",
+          "style": {
+            "navigationBarTitleText": "费用详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/reports",
+          "style": {
+            "navigationBarTitleText": "数据报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/sales-reports",
+          "style": {
+            "navigationBarTitleText": "销售报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/inventory-reports",
+          "style": {
+            "navigationBarTitleText": "库存报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/purchase-reports",
+          "style": {
+            "navigationBarTitleText": "采购报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/customer-reports",
+          "style": {
+            "navigationBarTitleText": "客户报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reports/finance-reports",
+          "style": {
+            "navigationBarTitleText": "财务报表",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "receipts/receipts",
+          "style": {
+            "navigationBarTitleText": "财务往来",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "receivable/receivable",
+          "style": {
+            "navigationBarTitleText": "应收款",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "reconciliation/reconciliation",
+          "style": {
+            "navigationBarTitleText": "对账管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "statements/statements",
+          "style": {
+            "navigationBarTitleText": "客户对账",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "loss-gain/loss-list",
+          "style": {
+            "navigationBarTitleText": "报损管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "loss-gain/gain-list",
+          "style": {
+            "navigationBarTitleText": "报溢管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "loss-gain/create-loss",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "创建报损单"
+          }
+        },
+        {
+          "path": "loss-gain/create-gain",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "创建报溢单"
+          }
+        },
+        {
+          "path": "loss-gain/loss-gain-detail",
+          "style": {
+            "navigationBarTitleText": "单据详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "loss-gain/loss-gain-report",
+          "style": {
+            "navigationBarTitleText": "损益统计",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "transfer/transfer",
+          "style": {
+            "navigationBarTitleText": "库存调拨",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "transfer/create",
+          "style": {
+            "navigationBarTitleText": "新建调拨单",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "purchase/orders",
+          "style": {
+            "navigationBarTitleText": "采购订单",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "purchase/in-stock",
+          "style": {
+            "navigationBarTitleText": "采购入库",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "instant-retail/orders",
+          "style": {
+            "navigationBarTitleText": "即时零售",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "instant-retail/config",
+          "style": {
+            "navigationBarTitleText": "即时零售配置",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "instant-retail/products",
+          "style": {
+            "navigationBarTitleText": "即时零售商品",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-sub/admin",
+      "pages": [
+        {
+          "path": "admin/admin",
+          "style": {
+            "navigationBarTitleText": "工作台",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "admin/employees",
+          "style": {
+            "navigationBarTitleText": "员工管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "roles/roles",
+          "style": {
+            "navigationBarTitleText": "角色管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "roles/role-edit",
+          "style": {
+            "navigationBarTitleText": "角色编辑",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stores/stores",
+          "style": {
+            "navigationBarTitleText": "门店管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "stores/store-edit",
+          "style": {
+            "navigationBarTitleText": "门店编辑",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "system/operation-logs",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "操作日志"
+          }
+        },
+        {
+          "path": "system/operation-log-detail",
+          "style": {
+            "navigationBarTitleText": "操作日志详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/index",
+          "style": {
+            "navigationBarTitleText": "权限管理",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/report-matrix",
+          "style": {
+            "navigationBarTitleText": "报表权限矩阵",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/store-data-permission",
+          "style": {
+            "navigationBarTitleText": "门店数据权限",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/permission-assign",
+          "style": {
+            "navigationBarTitleText": "权限分配",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/audit-logs",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "权限审计日志"
+          }
+        },
+        {
+          "path": "report-permission/audit-detail",
+          "style": {
+            "navigationBarTitleText": "日志详情",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "report-permission/my-permission",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTitleText": "我的权限"
+          }
+        },
+        {
+          "path": "print/print-records",
+          "style": {
+            "navigationBarTitleText": "单据打印",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "settings/settings",
+          "style": {
+            "navigationBarTitleText": "系统设置",
+            "navigationStyle": "custom"
+          }
+        },
+        {
+          "path": "more/more-functions",
+          "style": {
+            "navigationBarTitleText": "全部功能",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    },
+    {
+      "root": "pages-sub/settings",
+      "pages": [
+        {
+          "path": "settings",
+          "style": {
+            "navigationBarTitleText": "系统设置",
+            "navigationStyle": "custom"
+          }
+        }
+      ]
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "智享全链",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2563EB",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "custom": true,
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.svg",
+        "selectedIconPath": "static/tabbar/home-active.svg"
+      },
+      {
+        "pagePath": "pages/products/products",
+        "text": "商品",
+        "iconPath": "static/tabbar/product.svg",
+        "selectedIconPath": "static/tabbar/product-active.svg"
+      },
+      {
+        "pagePath": "pages/ai-chat/ai-chat",
+        "text": "AI",
+        "iconPath": "static/tabbar/ai.svg",
+        "selectedIconPath": "static/tabbar/ai-active.svg"
+      },
+      {
+        "pagePath": "pages/functions/functions",
+        "text": "功能",
+        "iconPath": "static/tabbar/functions.svg",
+        "selectedIconPath": "static/tabbar/functions-active.svg"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "static/tabbar/user.svg",
+        "selectedIconPath": "static/tabbar/user-active.svg"
+      }
+    ]
+  }
 }

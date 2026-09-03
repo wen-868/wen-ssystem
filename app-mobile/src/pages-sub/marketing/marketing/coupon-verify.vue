@@ -1,5 +1,6 @@
 <template>
   <view class="verify-page">
+    <page-header title="优惠券核销" @back="goBack" />
     <!-- 模式切换：扫码核销 / 手动核销 -->
     <view class="mode-tabs">
       <view
@@ -119,6 +120,11 @@
 </template>
 
 <script setup lang="ts">
+import pageHeader from '@/components/page-header/page-header.vue'
+
+function goBack() {
+  uni.navigateBack()
+}
 import { ref } from 'vue'
 import { storeApi } from '@/api/modules/store'
 

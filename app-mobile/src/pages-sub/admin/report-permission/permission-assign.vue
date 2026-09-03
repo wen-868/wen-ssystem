@@ -422,7 +422,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .user-avatar {
@@ -472,7 +472,7 @@ onMounted(() => {
 .meta-tag {
   font-size: 20rpx;
   color: $uni-color-primary;
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
 }
@@ -564,7 +564,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2rpx 12rpx $zx-black-40;
 }
 
 .section-header {
@@ -718,7 +718,7 @@ onMounted(() => {
 }
 
 .store-tag.active {
-  background: rgba(22, 119, 255, 0.1);
+  background: $zx-antblue-100;
   border-color: $uni-color-primary;
 }
 
@@ -761,7 +761,7 @@ onMounted(() => {
   background: $uni-bg-color;
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 -2rpx 12rpx $zx-black-40;
   z-index: 100;
 }
 

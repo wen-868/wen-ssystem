@@ -190,7 +190,7 @@ onShow(() => {
   border-radius: $uni-border-radius-base;
   padding: $uni-spacing-base $uni-spacing-sm;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .mf-grid-item {
@@ -236,7 +236,7 @@ onShow(() => {
   border-radius: $uni-border-radius-base;
   overflow: hidden;
   box-shadow: $uni-shadow-card;
-  border: 1rpx solid rgba(0, 0, 0, 0.03);
+  border: 1rpx solid $zx-black-30;
 }
 
 .mf-list-item {
@@ -244,7 +244,7 @@ onShow(() => {
   align-items: center;
   padding: $uni-spacing-base $uni-spacing-base;
   gap: $uni-spacing-base;
-  border-bottom: 1rpx solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid $zx-black-40;
 }
 
 .mf-list-item:last-child {
