@@ -92,32 +92,46 @@
           <text class="chip-chip-label">结算方式</text>
           <text
             class="chip"
-            v-for="opt in settleOptions"
+            v-for="opt in settleDisplayOptions"
             :key="opt.value"
-            :class="settlementType === opt.value ? 'chip--on' : ''"
-          >{{ opt.label }}</text>
+            :class="[settlementType === opt.value ? 'chip--on' : '', opt.pending ? 'chip--pending' : '']"
+          >{{ opt.label }}{{ opt.pending ? '·待后端' : '' }}</text>
         </view>
         <view class="f-row" v-if="settlementDayText">
           <text class="f-label">结算日</text>
           <text class="f-value">{{ settlementDayText }}</text>
         </view>
+        <!-- 账期(天)：设计稿字段(payTermDays)，后端 t_supplier 无该列 → 占位不造假；现结时按设计稿隐藏 -->
+        <view class="f-row" v-if="settlementType !== 'CASH'">
+          <text class="f-label">账期（天）</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
         <view class="f-row" v-if="taxRateText">
           <text class="f-label">税率</text>
           <text class="f-value">{{ taxRateText }}</text>
         </view>
+        <!-- 付款方式：设计稿有（银行转账/现金/承兑汇票/支付宝/微信），后端 t_supplier 无 payment_method 列 → 占位不造假 -->
+        <view class="f-row">
+          <text class="f-label">付款方式</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
+        <!-- 税号：设计稿有（统一社会信用代码），后端 t_supplier 无 tax_no 列 → 占位不造假 -->
+        <view class="f-row">
+          <text class="f-label">税号</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
 
-        <!-- 结算银行卡（子标题，嵌套于组内；数据存于供应商行 bankName/bankAccount/bankAccountName） -->
+        <!-- 结算银行卡：设计稿为「多张、可增删」；后端暂无按供应商归集的多卡接口，
+             故以 BanksCard 只读展示供应商行内主卡（真实数据），多卡能力待后端。 -->
         <view class="pd-gtitle pd-gtitle--sub"><view class="gt-bar"></view><text>结算银行卡</text></view>
-        <view v-if="bankRows.length">
-          <view class="bank-row" v-for="(b, i) in bankRows" :key="i">
-            <text class="bank-name">{{ b.bankName }}</text>
-            <text class="bank-no">{{ b.accountNo }}</text>
-            <text class="bank-owner" v-if="b.accountName">{{ b.accountName }}</text>
-          </view>
-        </view>
-        <view v-else class="bank-empty">
-          <text class="bank-empty-text">未登记结算银行卡</text>
-        </view>
+        <BanksCard
+          v-model="bankAccounts"
+          :editable="false"
+          :show-head="false"
+          title="结算银行卡"
+          :pending-backend="true"
+        />
+        <text class="bank-pending-tip">设计稿支持多张，后端多卡接口对接中，当前展示主卡</text>
       </view>
 
       <!-- 5. 地址信息 -->
@@ -282,6 +296,7 @@ import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 import { purchaseApi } from '@/api/modules/purchase'
 import { purchaseReturnApi } from '@/api/modules/returns'
 import DocPage, { type DocRow } from '@/components/DocPage.vue'
+import BanksCard, { type BankAccount } from '@/components/BanksCard.vue'
 
 const detail = ref<Supplier | null>(null)
 const supplierId = ref<number>(0)
@@ -302,6 +317,21 @@ const settleOptions = [
   { label: '季结', value: 'QUARTERLY' },
 ] as const
 
+/**
+ * 详情展示用（对齐设计稿）：货到付款/预付 后端 zod 校验仅支持 CASH/MONTHLY/QUARTERLY，
+ * 以禁用态「待后端」展示、不可选不造假；存量「季结」数据仍保留展示（设计稿去掉了它，但真实数据不能凭空消失）。
+ */
+const settleDisplayOptions = computed<{ label: string; value: string; pending?: boolean }[]>(() => {
+  const base: { label: string; value: string; pending?: boolean }[] = [
+    { label: '月结', value: 'MONTHLY' },
+    { label: '现结', value: 'CASH' },
+    { label: '货到付款', value: 'DELIVERY', pending: true },
+    { label: '预付', value: 'PREPAY', pending: true },
+  ]
+  if (settlementType.value === 'QUARTERLY') base.push({ label: '季结', value: 'QUARTERLY' })
+  return base
+})
+
 const isOn = computed(() => (detail.value?.status ?? 0) === 1)
 const settlementType = computed(() => detail.value?.settlementType || '')
 
@@ -321,15 +351,23 @@ const primaryContact = computed(() => {
   return list.find((c) => Number(c.isPrimary) === 1) || list[0] || null
 })
 
-/** 结算银行卡（存于供应商行本身，非独立 banks 接口） */
-const bankRows = computed(() => {
-  const d = detail.value
-  if (!d || (!d.bankName && !d.bankAccount)) return []
-  return [{
-    bankName: d.bankName || '—',
-    accountNo: d.bankAccount || '—',
-    accountName: d.bankAccountName || '',
-  }]
+/**
+ * 结算银行卡（真实数据：存于供应商行本身 bankName/bankAccount/bankAccountName）
+ * 设计稿要求「多张、可增删」，但后端暂无按供应商归集的多卡接口，
+ * 故此处以 BanksCard 只读展示主卡，不伪造多卡、不开放增删。
+ */
+const bankAccounts = computed<BankAccount[]>({
+  get() {
+    const d = detail.value
+    if (!d || (!d.bankName && !d.bankAccount)) return []
+    return [{
+      bankName: d.bankName || '—',
+      accountNo: d.bankAccount || '—',
+      accountName: d.bankAccountName || '',
+    }]
+  },
+  // 只读：多卡增删待后端接口，不接受组件回写，避免写入后端无法保存的数据
+  set() { /* noop */ },
 })
 
 /** 标签：以分类 supplyType 作为业务标签（后端无独立标签存储，不造假） */
@@ -739,6 +777,19 @@ onLoad((query: any) => {
   background: $uni-color-primary;
   color: $uni-text-color-inverse;
 }
+/* 设计稿有但后端未支持的选项：禁用占位态（虚线框+弱化，不可选不造假） */
+.chip--pending {
+  border: 1rpx dashed $uni-border-color;
+  background: transparent;
+  color: $uni-text-color-placeholder;
+}
+.bank-pending-tip {
+  display: block;
+  padding: 12rpx 32rpx 24rpx;
+  font-size: 22rpx;
+  color: $uni-text-color-placeholder;
+  line-height: 1.5;
+}
 
 /* 字段行（对齐原稿 .f-row） */
 .f-row {
@@ -768,6 +819,8 @@ onLoad((query: any) => {
 }
 .f-value.ph { color: $uni-gray-400; }
 .f-value--link { color: $uni-color-primary; }
+/* 后端字段未就绪时占位（不造假：明示对接中，不编造数据） */
+.f-value--pending { color: $uni-text-color-placeholder; }
 .f-flex { flex: 1; min-width: 0; }
 .f-hint {
   font-size: 22rpx;

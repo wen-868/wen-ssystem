@@ -103,9 +103,19 @@
           <text class="f-label">手机号</text>
           <text class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
         </view>
+        <!-- 性别：设计稿有，后端 t_member 无 gender 列（仅小程序档案表有）→ 占位不造假 -->
+        <view class="f-row">
+          <text class="f-label">性别</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
         <view class="f-row" v-if="member.birthday">
           <text class="f-label">生日</text>
           <text class="f-value">{{ member.birthday }}</text>
+        </view>
+        <!-- 标签：设计稿有，后端 t_customer_profile 标签体系未接入会员管理接口 → 占位不造假 -->
+        <view class="f-row">
+          <text class="f-label">标签</text>
+          <text class="f-value f-value--pending">后端对接中</text>
         </view>
       </view>
 
@@ -184,10 +194,64 @@
 
     <view class="safe-bottom"></view>
 
-    <!-- 账户操作 -->
+    <!-- 账户操作（对齐设计稿：充值/调整积分 弹窗式操作） -->
     <view class="action-bar" v-if="member">
-      <view class="ab-btn ab-ghost" @tap="goRecharge"><text>充值</text></view>
-      <view class="ab-btn ab-primary" @tap="goPoints"><text>积分明细</text></view>
+      <view class="ab-btn ab-ghost" @tap="openModal('recharge')"><text>充值</text></view>
+      <view class="ab-btn ab-primary" @tap="openModal('points')"><text>调整积分</text></view>
+    </view>
+
+    <!-- 客户充值 / 调整积分 弹窗（后端客户侧充值与积分调整接口均未开放 → 提交占位不造假） -->
+    <view v-if="modal" class="modal-mask" @tap="closeModal">
+      <view class="modal-sheet" @tap.stop>
+        <view class="modal-head">
+          <text class="modal-title">{{ modal === 'recharge' ? '客户充值' : '调整积分' }}</text>
+          <text class="modal-close" @tap="closeModal">✕</text>
+        </view>
+
+        <block v-if="modal === 'recharge'">
+          <view class="modal-row">
+            <text class="modal-label">储值余额</text>
+            <text class="modal-val">¥{{ fmt(balance) }}</text>
+          </view>
+          <view class="modal-row">
+            <text class="modal-label">充值金额</text>
+            <input class="modal-input" v-model="rechargeAmount" type="digit" placeholder="请输入充值金额" placeholder-class="modal-ph" />
+          </view>
+          <view class="modal-row">
+            <text class="modal-label">备注</text>
+            <input class="modal-input" v-model="rechargeRemark" placeholder="选填" placeholder-class="modal-ph" />
+          </view>
+          <text class="modal-link" @tap="goRecharge">查看储值卡管理 ›</text>
+        </block>
+
+        <block v-else>
+          <view class="modal-row">
+            <text class="modal-label">可用积分</text>
+            <text class="modal-val modal-val--gold">{{ pointBase }}</text>
+          </view>
+          <view class="modal-row">
+            <text class="modal-label">调整方向</text>
+            <view class="modal-chips">
+              <text class="modal-chip" :class="adjustDir === 'add' ? 'modal-chip--on' : ''" @tap="adjustDir = 'add'">增加</text>
+              <text class="modal-chip" :class="adjustDir === 'sub' ? 'modal-chip--on' : ''" @tap="adjustDir = 'sub'">扣减</text>
+            </view>
+          </view>
+          <view class="modal-row">
+            <text class="modal-label">积分数</text>
+            <input class="modal-input" v-model="adjustPoints" type="number" placeholder="请输入积分数" placeholder-class="modal-ph" />
+          </view>
+          <view class="modal-row">
+            <text class="modal-label">备注</text>
+            <input class="modal-input" v-model="adjustRemark" placeholder="选填" placeholder-class="modal-ph" />
+          </view>
+          <text class="modal-link" @tap="goPoints">查看积分明细 ›</text>
+        </block>
+
+        <view class="modal-submit" @tap="submitModal">
+          <text>{{ modal === 'recharge' ? '确认充值' : '确认调整' }}</text>
+        </view>
+        <text class="modal-tip">客户充值 / 积分调整接口后端对接中，暂不可提交</text>
+      </view>
     </view>
 
     <!-- 历史单据覆盖式子页 -->
@@ -611,6 +675,7 @@ onLoad((query: any) => {
 }
 .f-value.ph { color: $uni-gray-400; }
 .f-value--link { color: $uni-color-primary; }
+.f-value--pending { color: $uni-text-color-placeholder; }
 .f-value--gold { color: $zx-badge-warning-strong; font-weight: 700; }
 .f-value--blue { color: $uni-color-primary; font-weight: 700; }
 .f-flex { flex: 1; min-width: 0; }
@@ -804,5 +869,110 @@ onLoad((query: any) => {
   background: $uni-bg-color;
   color: $uni-gray-600;
   border: 1rpx solid $uni-border-color;
+}
+
+/* 充值 / 调整积分 弹窗（对齐设计稿 modal-sheet） */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: $zx-black-200;
+  display: flex;
+  align-items: flex-end;
+}
+.modal-sheet {
+  width: 100%;
+  background: $uni-bg-color;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 28rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+.modal-title {
+  flex: 1;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: $uni-text-color;
+}
+.modal-close {
+  font-size: 32rpx;
+  color: $uni-gray-400;
+  padding: 8rpx 12rpx;
+}
+.modal-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid $uni-border-color-light;
+}
+.modal-label {
+  width: 150rpx;
+  font-size: 26rpx;
+  color: $uni-gray-500;
+  flex-shrink: 0;
+}
+.modal-val {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: $uni-color-primary;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.modal-val--gold { color: $zx-badge-warning-strong; }
+.modal-input {
+  flex: 1;
+  text-align: right;
+  font-size: 28rpx;
+  color: $uni-text-color;
+}
+.modal-ph { color: $uni-gray-300; }
+.modal-chips {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+}
+.modal-chip {
+  padding: 10rpx 30rpx;
+  border-radius: $uni-border-radius-pill;
+  background: $uni-bg-color-soft;
+  font-size: 25rpx;
+  font-weight: 600;
+  color: $uni-gray-500;
+}
+.modal-chip--on {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+}
+.modal-link {
+  display: block;
+  padding: 20rpx 0 4rpx;
+  font-size: 24rpx;
+  color: $uni-color-primary;
+  text-align: right;
+}
+.modal-submit {
+  margin-top: 28rpx;
+  height: 88rpx;
+  border-radius: $uni-border-radius-sm;
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+  font-size: 29rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-tip {
+  display: block;
+  margin-top: 14rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: $uni-text-color-placeholder;
 }
 </style>
