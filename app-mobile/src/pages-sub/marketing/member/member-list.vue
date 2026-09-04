@@ -27,7 +27,7 @@
           class="search-input"
           v-model="keyword"
           type="text"
-          placeholder="搜索会员姓名 / 手机号 / 卡号"
+          placeholder="搜索客户名称 / 联系人 / 手机号 / 卡号"
           placeholder-class="search-placeholder"
           confirm-type="search"
           @confirm="reload"

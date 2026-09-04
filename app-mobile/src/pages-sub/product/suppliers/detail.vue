@@ -22,6 +22,8 @@
               <text class="st-badge" :class="isOn ? 'st-on' : 'st-off'">{{ isOn ? '合作中' : '已停用' }}</text>
             </view>
           </view>
+          <!-- 编辑状态徽标（对齐原稿详情头部 已保存 / 编辑中 / 未保存） -->
+          <text class="hd-status" :class="editStatusCls">{{ editStatusText }}</text>
         </view>
         <view class="ov-stats">
           <view class="ov-si">
@@ -139,7 +141,7 @@
         <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
         <view class="f-row" v-if="detail.province"><text class="f-label">省份</text><text class="f-value">{{ detail.province }}</text></view>
         <view class="f-row" v-if="detail.city"><text class="f-label">城市</text><text class="f-value">{{ detail.city }}</text></view>
-        <view class="f-row" v-if="detail.district"><text class="f-label">区/县</text><text class="f-value">{{ detail.district }}</text></view>
+        <view class="f-row" v-if="detail.district"><text class="f-label">区县</text><text class="f-value">{{ detail.district }}</text></view>
         <view class="f-row" v-if="addrDetail"><text class="f-label">详细地址</text><text class="f-value">{{ addrDetail }}</text></view>
       </view>
 
@@ -204,7 +206,7 @@
 
     <!-- 底部操作栏 -->
     <view class="action-bar" v-if="detail">
-      <view class="ab-btn ab-ghost" @tap="openEdit"><text>编辑</text></view>
+      <view class="ab-btn ab-ghost" @tap="openEdit"><text>修改</text></view>
       <view class="ab-btn ab-primary" @tap="toggleStatus">
         <text>{{ isOn ? '停用' : '启用' }}</text>
       </view>
@@ -285,12 +287,12 @@
     </view>
 
     <!-- 历史单据覆盖式子页 -->
-    <DocPage v-model="docVisible" title="历史单据" :docs="docRows" :pending-backend="docPending" />
+    <DocPage v-model="docVisible" title="单据明细" :docs="docRows" :pending-backend="docPending" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 import { purchaseApi } from '@/api/modules/purchase'
@@ -316,6 +318,19 @@ const settleOptions = [
   { label: '月结', value: 'MONTHLY' },
   { label: '季结', value: 'QUARTERLY' },
 ] as const
+
+/** 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） */
+const editDirty = ref(false)
+const editStatusText = computed(() => {
+  if (!showEdit.value) return '已保存'
+  return editDirty.value ? '未保存' : '编辑中'
+})
+const editStatusCls = computed(() => {
+  if (!showEdit.value) return 'hd-status--saved'
+  return editDirty.value ? 'hd-status--draft' : 'hd-status--draft'
+})
+// 表单任一字段变动即置为「未保存」（原稿 dirty 语义）
+watch(editForm, () => { editDirty.value = true }, { deep: true })
 
 /**
  * 详情展示用（对齐设计稿）：货到付款/预付 后端 zod 校验仅支持 CASH/MONTHLY/QUARTERLY，
@@ -405,13 +420,30 @@ function statusTypeOf(s?: string): DocRow['statusType'] {
   return 'default'
 }
 
+/** 单据状态中文表达（对齐原稿「已完成 / 已退货」等；仅翻译后端真实状态码，不造假） */
+function statusLabelOf(s?: string, kind?: 'po' | 'ret'): string {
+  if (!s) return ''
+  const v = String(s).toUpperCase()
+  if (kind === 'ret') {
+    if (/APPROV/.test(v)) return '已退货'
+    if (/VOID|CANCEL/.test(v)) return '已作废'
+    if (/PEND|WAIT|DRAFT/.test(v)) return '待审核'
+    return s
+  }
+  if (/DRAFT/.test(v)) return '暂存'
+  if (/APPROV|COMPLETED|RECEIVED|DONE/.test(v)) return '已完成'
+  if (/PARTIAL/.test(v)) return '部分入库'
+  if (/CANCEL|VOID/.test(v)) return '已取消'
+  return s
+}
+
 // —— 历史单据（合并采购单 / 采购退货，对齐原稿 .doc-row） ——
 const purchaseRows = computed<DocRow[]>(() => {
   const orders = purchaseOrders.value.map((o: any) => ({
     no: o.orderNo,
     date: formatDate(o.orderDate),
     amount: Number(o.totalAmount || 0),
-    status: o.status,
+    status: statusLabelOf(o.status),
     statusType: statusTypeOf(o.status),
     sub: '采购单',
   }))
@@ -419,7 +451,7 @@ const purchaseRows = computed<DocRow[]>(() => {
     no: s.inStockNo,
     date: formatDate(s.inStockDate),
     amount: Number(s.totalAmount || 0),
-    status: s.statusLabel || s.status,
+    status: statusLabelOf(s.statusLabel || s.status),
     statusType: statusTypeOf(s.status),
     sub: '采购入库',
   }))
@@ -434,7 +466,7 @@ const returnRows = computed<DocRow[]>(() => {
       no: r.return_no || r.returnNo || r.stock_no || r.stockNo || '',
       date: formatDate(r.createdAt || r.created_at),
       amount: Number(r.total_amount ?? r.totalAmount ?? 0),
-      status: r.status || '',
+      status: statusLabelOf(r.status || '', 'ret'),
       statusType: 'info' as const,
       sub: '退货单',
     }))
@@ -509,6 +541,7 @@ function openEdit() {
   editForm.address = d.address || ''
   editForm.remark = d.remark || ''
   showEdit.value = true
+  nextTick(() => { editDirty.value = false })
 }
 
 async function submitEdit() {
@@ -783,6 +816,16 @@ onLoad((query: any) => {
   background: transparent;
   color: $uni-text-color-placeholder;
 }
+/* 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） */
+.hd-status {
+  font-size: 21rpx;
+  font-weight: 700;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
+  flex-shrink: 0;
+}
+.hd-status--saved { background: $zx-badge-success-bg; color: $zx-badge-success-strong; }
+.hd-status--draft { background: $uni-color-warning-soft; color: $uni-color-warning; }
 .bank-pending-tip {
   display: block;
   padding: 12rpx 32rpx 24rpx;

@@ -217,7 +217,7 @@
         {
           "path": "suppliers/suppliers",
           "style": {
-            "navigationBarTitleText": "供应商",
+            "navigationBarTitleText": "供应商管理",
             "navigationStyle": "custom"
           }
         },

@@ -1,6 +1,6 @@
 <template>
   <view class="member-detail-page">
-    <page-header :title="member?.name || '会员详情'" @back="goBack" />
+    <page-header :title="member?.name || '客户详情'" @back="goBack" />
 
     <view v-if="loading" class="loading-overlay">
       <view class="loading-spinner"></view>
@@ -23,6 +23,8 @@
               <text class="st-badge" :class="member.status === 1 ? 'st-on' : 'st-off'">{{ member.status === 1 ? '正常' : '已冻结' }}</text>
             </view>
           </view>
+          <!-- 编辑状态徽标（对齐原稿详情头部 已保存 / 编辑中 / 未保存） -->
+          <text class="hd-status" :class="editStatusCls">{{ editStatusText }}</text>
         </view>
         <view class="ov-stats">
           <view class="ov-si">
@@ -112,11 +114,6 @@
           <text class="f-label">生日</text>
           <text class="f-value">{{ member.birthday }}</text>
         </view>
-        <!-- 标签：设计稿有，后端 t_customer_profile 标签体系未接入会员管理接口 → 占位不造假 -->
-        <view class="f-row">
-          <text class="f-label">标签</text>
-          <text class="f-value f-value--pending">后端对接中</text>
-        </view>
       </view>
 
       <!-- 5. 地址信息 -->
@@ -153,7 +150,20 @@
         </view>
       </view>
 
-      <!-- 7. 状态设置 -->
+      <!-- 7. 标签与备注（对齐原稿：标签可增删 + 备注；后端会员无标签/备注存储 → 占位不造假） -->
+      <view class="pd-group">
+        <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
+        <view class="f-row">
+          <text class="f-label">标签</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">备注</text>
+          <text class="f-value f-value--pending">后端对接中</text>
+        </view>
+      </view>
+
+      <!-- 8. 状态设置 -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>状态设置</text></view>
         <view class="f-row f-row--static">
@@ -264,12 +274,12 @@
     </view>
 
     <!-- 历史单据覆盖式子页 -->
-    <DocPage v-model="docVisible" title="销售单据" :docs="docRows" />
+    <DocPage v-model="docVisible" title="单据明细" :docs="docRows" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { get, put } from '@/api/request'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
@@ -421,6 +431,16 @@ function goPoints() {
   uni.navigateTo({ url: '/pages-sub/marketing/points/points-detail' })
 }
 
+/* ===== 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） ===== */
+const editDirty = ref(false)
+const editStatusText = computed(() => {
+  if (!editVisible.value) return '已保存'
+  return editDirty.value ? '未保存' : '编辑中'
+})
+const editStatusCls = computed(() => (editVisible.value ? 'hd-status--draft' : 'hd-status--saved'))
+// openEdit 填充表单不算改动；watcher 在异步 flush 中触发，故在 nextTick 复位
+watch(editForm, () => { editDirty.value = true }, { deep: true })
+
 /* ===== 充值 / 调整积分 弹窗（严格对齐设计稿：标题+当前值+单输入框+提示+取消/确认） =====
  * 后端：客户充值与积分调整接口均未开放（P3 文档 5.2-#3/#4），
  * 弹窗仅收集输入、提交占位提示，不伪造成功。 */
@@ -471,6 +491,7 @@ function openEdit() {
     address: m.address || '',
   }
   editVisible.value = true
+  nextTick(() => { editDirty.value = false })
 }
 
 function closeEdit() {
@@ -958,6 +979,17 @@ onLoad((query: any) => {
   color: $uni-gray-600;
   border: 1rpx solid $uni-border-color;
 }
+
+/* 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） */
+.hd-status {
+  font-size: 21rpx;
+  font-weight: 700;
+  padding: 4rpx 16rpx;
+  border-radius: $uni-border-radius-pill;
+  flex-shrink: 0;
+}
+.hd-status--saved { background: $zx-badge-success-bg; color: $zx-badge-success-strong; }
+.hd-status--draft { background: $uni-color-warning-soft; color: $uni-color-warning; }
 
 /* 充值 / 调整积分 / 修改 弹窗（严格对齐设计稿 dlg 居中对话框） */
 .dlg-mask {

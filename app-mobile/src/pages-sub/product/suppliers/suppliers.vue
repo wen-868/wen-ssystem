@@ -1,6 +1,6 @@
 <template>
   <view class="suppliers-page">
-    <page-header title="供应商" @back="goBack" />
+    <page-header title="供应商管理" @back="goBack" />
 
     <!-- 状态 Tab（对齐原稿：全部 / 合作中 / 已停用） -->
     <view class="status-tabs">
