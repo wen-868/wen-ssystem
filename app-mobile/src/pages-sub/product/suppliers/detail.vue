@@ -101,8 +101,8 @@
           <text class="f-label">结算日</text>
           <text class="f-value">{{ settlementDayText }}</text>
         </view>
-        <!-- 账期(天)：设计稿字段(payTermDays)，后端 t_supplier 无该列 → 占位不造假；现结时按设计稿隐藏 -->
-        <view class="f-row" v-if="settlementType !== 'CASH'">
+        <!-- 账期(天)：设计稿字段(payTermDays)，后端 t_supplier 无该列 → 占位不造假；设计稿规则：现结/预付时隐藏 -->
+        <view class="f-row" v-if="settlementType !== 'CASH' && settlementType !== 'PREPAY'">
           <text class="f-label">账期（天）</text>
           <text class="f-value f-value--pending">后端对接中</text>
         </view>

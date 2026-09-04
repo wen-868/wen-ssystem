@@ -194,63 +194,72 @@
 
     <view class="safe-bottom"></view>
 
-    <!-- 账户操作（对齐设计稿：充值/调整积分 弹窗式操作） -->
+    <!-- 账户操作（对齐设计稿：充值 / 调整积分 / 修改 三按钮） -->
     <view class="action-bar" v-if="member">
-      <view class="ab-btn ab-ghost" @tap="openModal('recharge')"><text>充值</text></view>
-      <view class="ab-btn ab-primary" @tap="openModal('points')"><text>调整积分</text></view>
+      <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
+      <view class="ab-btn ab-warn" @tap="openDlg('points')"><text>调整积分</text></view>
+      <view class="ab-btn ab-primary" @tap="openEdit"><text>修改</text></view>
     </view>
 
-    <!-- 客户充值 / 调整积分 弹窗（后端客户侧充值与积分调整接口均未开放 → 提交占位不造假） -->
-    <view v-if="modal" class="modal-mask" @tap="closeModal">
-      <view class="modal-sheet" @tap.stop>
-        <view class="modal-head">
-          <text class="modal-title">{{ modal === 'recharge' ? '客户充值' : '调整积分' }}</text>
-          <text class="modal-close" @tap="closeModal">✕</text>
+    <!-- 充值 / 调整积分 弹窗（严格按设计稿：标题 + 当前值 + 单输入框 + 提示 + 取消/确认；
+         后端客户充值与积分调整接口未开放 → 提交占位不造假） -->
+    <view v-if="dlg" class="dlg-mask" @tap="closeDlg">
+      <view class="dlg" @tap.stop>
+        <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
+        <text v-if="dlg === 'recharge'" class="dlg-d">{{ member.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
+        <text v-else class="dlg-d">{{ member.name }} · 当前积分 {{ pointBase }}</text>
+        <input
+          v-if="dlg === 'recharge'"
+          class="dlg-inp" v-model="dlgValue" type="digit" placeholder="0.00" placeholder-class="dlg-ph"
+        />
+        <input
+          v-else
+          class="dlg-inp" v-model="dlgValue" type="number" placeholder="0" placeholder-class="dlg-ph"
+        />
+        <text class="dlg-tip">{{ dlg === 'recharge' ? '输入充值金额，保存后余额实时更新' : '正数增加积分，负数扣减积分' }}</text>
+        <view class="dlg-btns">
+          <view class="dlg-b dlg-b--cancel" @tap="closeDlg"><text>取消</text></view>
+          <view class="dlg-b dlg-b--ok" @tap="confirmDlg">
+            <text>{{ dlg === 'recharge' ? '确认充值' : '确认调整' }}</text>
+          </view>
         </view>
+      </view>
+    </view>
 
-        <block v-if="modal === 'recharge'">
-          <view class="modal-row">
-            <text class="modal-label">储值余额</text>
-            <text class="modal-val">¥{{ fmt(balance) }}</text>
-          </view>
-          <view class="modal-row">
-            <text class="modal-label">充值金额</text>
-            <input class="modal-input" v-model="rechargeAmount" type="digit" placeholder="请输入充值金额" placeholder-class="modal-ph" />
-          </view>
-          <view class="modal-row">
-            <text class="modal-label">备注</text>
-            <input class="modal-input" v-model="rechargeRemark" placeholder="选填" placeholder-class="modal-ph" />
-          </view>
-          <text class="modal-link" @tap="goRecharge">查看储值卡管理 ›</text>
-        </block>
-
-        <block v-else>
-          <view class="modal-row">
-            <text class="modal-label">可用积分</text>
-            <text class="modal-val modal-val--gold">{{ pointBase }}</text>
-          </view>
-          <view class="modal-row">
-            <text class="modal-label">调整方向</text>
-            <view class="modal-chips">
-              <text class="modal-chip" :class="adjustDir === 'add' ? 'modal-chip--on' : ''" @tap="adjustDir = 'add'">增加</text>
-              <text class="modal-chip" :class="adjustDir === 'sub' ? 'modal-chip--on' : ''" @tap="adjustDir = 'sub'">扣减</text>
-            </view>
-          </view>
-          <view class="modal-row">
-            <text class="modal-label">积分数</text>
-            <input class="modal-input" v-model="adjustPoints" type="number" placeholder="请输入积分数" placeholder-class="modal-ph" />
-          </view>
-          <view class="modal-row">
-            <text class="modal-label">备注</text>
-            <input class="modal-input" v-model="adjustRemark" placeholder="选填" placeholder-class="modal-ph" />
-          </view>
-          <text class="modal-link" @tap="goPoints">查看积分明细 ›</text>
-        </block>
-
-        <view class="modal-submit" @tap="submitModal">
-          <text>{{ modal === 'recharge' ? '确认充值' : '确认调整' }}</text>
+    <!-- 修改客户弹层（对齐设计稿「修改」按钮；字段以会员更新接口真实能力为准，
+         性别/生日/标签 待后端支持后开放——见 P3 文档 5.2） -->
+    <view v-if="editVisible" class="dlg-mask" @tap="closeEdit">
+      <view class="dlg dlg--edit" @tap.stop>
+        <text class="dlg-t">修改客户</text>
+        <view class="dlg-row">
+          <text class="dlg-lb">客户名称</text>
+          <input class="dlg-inp--row" v-model="editForm.name" placeholder="批发为商号名称" placeholder-class="dlg-ph" />
         </view>
-        <text class="modal-tip">客户充值 / 积分调整接口后端对接中，暂不可提交</text>
+        <view class="dlg-row">
+          <text class="dlg-lb">手机号</text>
+          <input class="dlg-inp--row" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="dlg-ph" />
+        </view>
+        <view class="dlg-row">
+          <text class="dlg-lb">省份</text>
+          <input class="dlg-inp--row" v-model="editForm.province" placeholder="如 广东省" placeholder-class="dlg-ph" />
+        </view>
+        <view class="dlg-row">
+          <text class="dlg-lb">城市</text>
+          <input class="dlg-inp--row" v-model="editForm.city" placeholder="如 广州市" placeholder-class="dlg-ph" />
+        </view>
+        <view class="dlg-row">
+          <text class="dlg-lb">区/县</text>
+          <input class="dlg-inp--row" v-model="editForm.district" placeholder="如 白云区" placeholder-class="dlg-ph" />
+        </view>
+        <view class="dlg-row">
+          <text class="dlg-lb">详细地址</text>
+          <input class="dlg-inp--row" v-model="editForm.address" placeholder="街道、门牌号等" placeholder-class="dlg-ph" />
+        </view>
+        <text class="dlg-tip">性别 / 生日 / 标签 待后端支持后开放编辑（P3 文档 5.2）</text>
+        <view class="dlg-btns">
+          <view class="dlg-b dlg-b--cancel" @tap="closeEdit"><text>取消</text></view>
+          <view class="dlg-b dlg-b--ok" @tap="saveEdit"><text>保存</text></view>
+        </view>
       </view>
     </view>
 
@@ -410,6 +419,85 @@ function goRecharge() {
 
 function goPoints() {
   uni.navigateTo({ url: '/pages-sub/marketing/points/points-detail' })
+}
+
+/* ===== 充值 / 调整积分 弹窗（严格对齐设计稿：标题+当前值+单输入框+提示+取消/确认） =====
+ * 后端：客户充值与积分调整接口均未开放（P3 文档 5.2-#3/#4），
+ * 弹窗仅收集输入、提交占位提示，不伪造成功。 */
+const dlg = ref<'' | 'recharge' | 'points'>('')
+const dlgValue = ref('')
+
+function openDlg(which: 'recharge' | 'points') {
+  dlgValue.value = ''
+  dlg.value = which
+}
+
+function closeDlg() {
+  dlg.value = ''
+}
+
+function confirmDlg() {
+  const v = Number(dlgValue.value)
+  if (dlgValue.value === '' || isNaN(v)) {
+    uni.showToast({ title: '请输入有效数值', icon: 'none' })
+    return
+  }
+  if (dlg.value === 'recharge' && v < 0) {
+    uni.showToast({ title: '余额不能为负数', icon: 'none' })
+    return
+  }
+  if (dlg.value === 'points' && pointBase.value + v < 0) {
+    uni.showToast({ title: '积分不能为负数', icon: 'none' })
+    return
+  }
+  uni.showToast({ title: '后端接口对接中，暂不可提交', icon: 'none' })
+}
+
+/* ===== 修改客户弹层（对齐设计稿「修改」按钮） =====
+ * 保存走 PUT /store/members/:id；该接口后端暂缺失（P3 文档 5.2-#5），
+ * 失败时诚实提示，不做本地假保存。 */
+const editVisible = ref(false)
+const editForm = ref({ name: '', mobile: '', province: '', city: '', district: '', address: '' })
+
+function openEdit() {
+  const m = member.value
+  if (!m) return
+  editForm.value = {
+    name: m.name || '',
+    mobile: m.mobile || '',
+    province: m.province || '',
+    city: m.city || '',
+    district: m.district || '',
+    address: m.address || '',
+  }
+  editVisible.value = true
+}
+
+function closeEdit() {
+  editVisible.value = false
+}
+
+async function saveEdit() {
+  if (!member.value) return
+  if (!editForm.value.name.trim()) {
+    uni.showToast({ title: '请填写客户名称', icon: 'none' })
+    return
+  }
+  try {
+    await put(`/store/members/${memberId.value}`, {
+      name: editForm.value.name.trim(),
+      mobile: editForm.value.mobile,
+      province: editForm.value.province,
+      city: editForm.value.city,
+      district: editForm.value.district,
+      address: editForm.value.address,
+    })
+    editVisible.value = false
+    uni.showToast({ title: '已保存', icon: 'none' })
+    loadDetail()
+  } catch {
+    uni.showToast({ title: '会员更新接口后端对接中，暂不可保存', icon: 'none' })
+  }
 }
 
 function goBack() {
@@ -871,108 +959,107 @@ onLoad((query: any) => {
   border: 1rpx solid $uni-border-color;
 }
 
-/* 充值 / 调整积分 弹窗（对齐设计稿 modal-sheet） */
-.modal-mask {
+/* 充值 / 调整积分 / 修改 弹窗（严格对齐设计稿 dlg 居中对话框） */
+.dlg-mask {
   position: fixed;
   inset: 0;
   z-index: 100;
   background: $zx-black-200;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
+  padding: 0 60rpx;
 }
-.modal-sheet {
+.dlg {
   width: 100%;
   background: $uni-bg-color;
-  border-radius: 28rpx 28rpx 0 0;
-  padding: 28rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  border-radius: $uni-border-radius-lg;
+  padding: 32rpx;
 }
-.modal-head {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20rpx;
+.dlg--edit {
+  max-height: 80vh;
+  overflow-y: auto;
 }
-.modal-title {
-  flex: 1;
+.dlg-t {
+  display: block;
   font-size: 32rpx;
   font-weight: 700;
   color: $uni-text-color;
+  text-align: center;
 }
-.modal-close {
-  font-size: 32rpx;
+.dlg-d {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: $uni-gray-500;
+  text-align: center;
+}
+.dlg-inp {
+  margin-top: 24rpx;
+  width: 100%;
+  height: 80rpx;
+  border-radius: $uni-border-radius-sm;
+  background: $uni-bg-color-soft;
+  padding: 0 24rpx;
+  font-size: 29rpx;
+  color: $uni-text-color;
+  text-align: center;
+}
+.dlg-ph { color: $uni-gray-300; }
+.dlg-tip {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 22rpx;
   color: $uni-gray-400;
-  padding: 8rpx 12rpx;
+  text-align: center;
+  line-height: 1.5;
 }
-.modal-row {
+.dlg-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+.dlg-b {
+  flex: 1;
+  height: 80rpx;
+  border-radius: $uni-border-radius-sm;
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  padding: 22rpx 0;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.dlg-b--cancel {
+  background: $uni-bg-color-soft;
+  color: $uni-gray-600;
+}
+.dlg-b--ok {
+  background: $uni-color-primary;
+  color: $uni-text-color-inverse;
+}
+.dlg-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 18rpx 0;
   border-bottom: 1rpx solid $uni-border-color-light;
 }
-.modal-label {
+.dlg-row:last-of-type { border-bottom: none; }
+.dlg-lb {
   width: 150rpx;
   font-size: 26rpx;
   color: $uni-gray-500;
   flex-shrink: 0;
 }
-.modal-val {
+.dlg-inp--row {
   flex: 1;
-  text-align: right;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: $uni-color-primary;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-}
-.modal-val--gold { color: $zx-badge-warning-strong; }
-.modal-input {
-  flex: 1;
-  text-align: right;
-  font-size: 28rpx;
+  min-width: 0;
+  font-size: 27rpx;
   color: $uni-text-color;
-}
-.modal-ph { color: $uni-gray-300; }
-.modal-chips {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  gap: 16rpx;
-}
-.modal-chip {
-  padding: 10rpx 30rpx;
-  border-radius: $uni-border-radius-pill;
-  background: $uni-bg-color-soft;
-  font-size: 25rpx;
-  font-weight: 600;
-  color: $uni-gray-500;
-}
-.modal-chip--on {
-  background: $uni-color-primary;
-  color: $uni-text-color-inverse;
-}
-.modal-link {
-  display: block;
-  padding: 20rpx 0 4rpx;
-  font-size: 24rpx;
-  color: $uni-color-primary;
   text-align: right;
 }
-.modal-submit {
-  margin-top: 28rpx;
-  height: 88rpx;
-  border-radius: $uni-border-radius-sm;
-  background: $uni-color-primary;
-  color: $uni-text-color-inverse;
-  font-size: 29rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal-tip {
-  display: block;
-  margin-top: 14rpx;
-  text-align: center;
-  font-size: 22rpx;
-  color: $uni-text-color-placeholder;
+.ab-warn {
+  background: $uni-color-warning-soft;
+  color: $uni-color-warning;
 }
 </style>
