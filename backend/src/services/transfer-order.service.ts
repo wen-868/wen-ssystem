@@ -69,9 +69,10 @@ export async function createTransferOrder(params: CreateTransferOrderParams) {
       const subtotal = item.quantity * item.unitPrice;
       await connExecute<ResultSetHeader>(
         conn,
-        `INSERT INTO t_transfer_order_item (transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
+        // 兼容 094 老表型：明细表 transfer_no NOT NULL（163 已把新列补齐，但老列仍在），显式带上单号
+        `INSERT INTO t_transfer_order_item (transfer_no, transfer_order_id, sku_id, sku_name, quantity, unit_price, subtotal, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [transferNo, orderId, item.skuId, item.skuName, item.quantity, item.unitPrice, subtotal, tenantId]
       );
     }
 
