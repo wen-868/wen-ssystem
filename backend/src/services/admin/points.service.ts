@@ -97,9 +97,10 @@ export async function adjustCustomerPoints(params: { customerId: number; points:
   const { customerId, points, type, remark, tenantId } = params;
   let cp = await queryOneWithTenant<CustomerPointsAvailableRow>("SELECT id, available_points FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
   if (!cp) {
-    // 客户尚无积分账户（从未产生积分）→ 自动开户后调整，避免直接 500
+    // 客户尚无积分账户（从未产生积分）→ 自动开户后调整，避免直接 500。
+    // 不显式命名 frozen_points：线上库可能未跑 071 迁移，该列有 DEFAULT 0，缺席也能插入
     await queryWithTenant(
-      "INSERT INTO t_customer_points (customer_id, available_points, total_points, frozen_points, tenant_id) VALUES (?, 0, 0, 0, ?)",
+      "INSERT INTO t_customer_points (customer_id, available_points, total_points, tenant_id) VALUES (?, 0, 0, ?)",
       [customerId, tenantId], tenantId
     );
     cp = { id: 0, available_points: 0 };
