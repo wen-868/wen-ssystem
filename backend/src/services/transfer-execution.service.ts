@@ -135,8 +135,9 @@ export async function shipTransferOrder(id: number, tenantId: string, userId: nu
     const items = itemRows;
 
     for (const item of items) {
-      const shipQty = Number(item.quantity) - Number(item.transferred_qty);
-      if (shipQty <= 0) continue;
+      // 列缺失时 SELECT * 不含该键 → Number(undefined)=NaN 会穿透下方守卫并在 UPDATE 处报 1690, 先做有限性防御
+      const shipQty = Number(item.quantity ?? 0) - Number(item.transferred_qty ?? 0);
+      if (!Number.isFinite(shipQty) || shipQty <= 0) continue;
 
       const [invRows] = await connExecute<InventoryBalanceRow[]>(
         conn,
@@ -215,7 +216,11 @@ export async function receiveTransferOrder(id: number, tenantId: string, userId:
       const detail = itemRows[0];
       if (!detail) throw new Error("明细不存在");
 
-      const remaining = Number(detail.quantity) - Number(detail.received_qty);
+      // 同 shipQty：缺列时 NaN 会穿透守卫，先做有限性防御
+      const remaining = Number(detail.quantity ?? 0) - Number(detail.received_qty ?? 0);
+      if (!Number.isFinite(remaining) || remaining < 0) {
+        throw new Error(`SKU ${detail.sku_name} 待收数量异常，请稍后重试`);
+      }
       if (item.receivedQty > remaining) {
         throw new Error(`SKU ${detail.sku_name} 收货数量超出待收数量(剩余 ${remaining})`);
       }
