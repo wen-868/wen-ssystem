@@ -275,9 +275,17 @@ function snapshotActiveConversation() {
   }
 }
 
+/** 本地会话持久化上限：防止无限增长撑爆 Storage（uni 各端 Storage 上限不一，H5 约 5MB） */
+const MAX_PERSIST_CONVERSATIONS = 50
+const MAX_PERSIST_MESSAGES = 100
+
 function persistConversations() {
   try {
-    uni.setStorageSync('ai_conversations', conversations.value)
+    const trimmed = [...conversations.value]
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, MAX_PERSIST_CONVERSATIONS)
+      .map((c) => ({ ...c, messages: c.messages.slice(-MAX_PERSIST_MESSAGES) }))
+    uni.setStorageSync('ai_conversations', trimmed)
   } catch {}
 }
 
@@ -948,15 +956,21 @@ function stopH5Recording(): void {
 }
 
 /** 非 H5 端：uni.getRecorderManager 录音（输出临时文件路径） */
+let recorderBound = false
 function startNativeRecording(): boolean {
   recorderManager = recorderManager || uni.getRecorderManager()
-  recorderManager.onStart(() => {})
-  recorderManager.onStop((res: any) => {
-    handleRecordComplete(String(res?.tempFilePath || ''))
-  })
-  recorderManager.onError(() => {
-    uni.showToast({ title: '录音失败', icon: 'none' })
-  })
+  // recorderManager 是全局单例，回调只需注册一次；
+  // 每次录音都重复注册在不同实现下可能叠加监听，导致一次停止触发多次 handleRecordComplete
+  if (!recorderBound) {
+    recorderBound = true
+    recorderManager.onStart(() => {})
+    recorderManager.onStop((res: any) => {
+      handleRecordComplete(String(res?.tempFilePath || ''))
+    })
+    recorderManager.onError(() => {
+      uni.showToast({ title: '录音失败', icon: 'none' })
+    })
+  }
   recorderManager.start({ duration: 60000, format: 'mp3' })
   // #ifdef APP-PLUS
   // 原生语音识别（Android 需系统语音引擎；识别失败/无引擎时静默，不影响录音）

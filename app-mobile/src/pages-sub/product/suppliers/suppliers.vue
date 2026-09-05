@@ -202,20 +202,29 @@ function onSearch() { /* 客户端过滤，实时生效 */ }
 function clearSearch() { searchForm.keyword = '' }
 function goDetail(id: number) { uni.navigateTo({ url: `/pages-sub/product/suppliers/detail?id=${id}` }) }
 
+/**
+ * 本页搜索/状态 Tab 均为客户端过滤，需要一次性拉取全量供应商；
+ * 上限 500 条——超出该规模应改走后端关键字分页搜索，而不是继续调大。
+ * （此前硬编码 100 会静默截断列表，导致搜索/汇总失真）
+ */
+const LIST_PAGE_SIZE = 500
+
 async function loadSuppliers() {
+  if (loading.value) return
   loading.value = true
   try {
-    const res = await supplierApi.getList({ page: 1, pageSize: 100 })
+    const res = await supplierApi.getList({ page: 1, pageSize: LIST_PAGE_SIZE })
     list.value = res.records || []
   } catch (err) {
     console.error('加载供应商失败:', err)
+    uni.showToast({ title: '供应商列表加载失败，请重试', icon: 'none' })
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => { loadSuppliers() })
-// 新增/编辑保存后返回时刷新列表
+// 新增/编辑保存后返回时刷新列表；loading 守卫防止与 onMounted 首载并发重叠
 onShow(() => { if (list.value.length > 0) loadSuppliers() })
 </script>
 

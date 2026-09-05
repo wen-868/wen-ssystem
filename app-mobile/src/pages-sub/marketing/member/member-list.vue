@@ -224,6 +224,8 @@ async function load(reset = false) {
     if (data.stats) stats.value = { ...stats.value, ...data.stats }
   } catch (err) {
     console.error('加载会员列表失败:', err)
+    // 请求失败必须提示，否则用户会把失败误读为"没有会员"
+    uni.showToast({ title: '会员列表加载失败，请重试', icon: 'none' })
   } finally {
     loading.value = false
   }

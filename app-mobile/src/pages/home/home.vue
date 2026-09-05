@@ -193,7 +193,7 @@
         </svg>
       </view>
       <view class="chart-labels" v-if="trendList.length > 0">
-        <text class="chart-label" v-for="(item, idx) in trendList" :key="idx">{{ item.date }}</text>
+        <text class="chart-label" v-for="item in trendList" :key="item.date">{{ item.date }}</text>
       </view>
       <view class="chart-empty" v-else>
         <text class="chart-empty-text">暂无趋势数据</text>
@@ -418,11 +418,17 @@ async function loadData() {
   }
 }
 
+// 下拉刷新并发防护：refresh 触发期间再次下拉/切换可能叠加 loadData，
+// 造成重复请求与 refresher 状态错乱
+let refreshing = false
 async function onRefresh() {
+  if (refreshing) return
+  refreshing = true
   refresherTriggered.value = true
   try {
     await loadData()
   } finally {
+    refreshing = false
     refresherTriggered.value = false
   }
 }
