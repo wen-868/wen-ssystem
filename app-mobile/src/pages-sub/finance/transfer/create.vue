@@ -64,8 +64,8 @@
       </view>
     </view>
 
-    <view class="submit-btn" :class="{ disabled: !isValid }" @tap="onSubmit">
-      <text class="submit-text">提交调拨单</text>
+    <view class="submit-btn" :class="{ disabled: !isValid || submitting }" @tap="onSubmit">
+      <text class="submit-text">{{ submitting ? '提交中…' : '提交调拨单' }}</text>
     </view>
   </view>
 </template>
@@ -99,6 +99,7 @@ const items = ref<ItemRow[]>([{ productIndex: -1, skuId: 0, skuName: '', unitPri
 
 const expectedDate = ref('')
 const remark = ref('')
+const submitting = ref(false)
 
 const isValid = computed(() => {
   if (fromIndex.value < 0 || toIndex.value < 0) return false
@@ -118,7 +119,7 @@ function onProductChange(idx: number, e: any) {
   if (!p) return
   items.value[idx] = {
     productIndex: i,
-    skuId: p.skuId ?? p.id,
+    skuId: Number(p.skuId ?? p.id),
     skuName: p.name,
     unitPrice: Number(p.price ?? 0),
     unit: p.unit ?? '',
@@ -138,6 +139,7 @@ function onDateChange(e: any) {
 }
 
 async function onSubmit() {
+  if (submitting.value) return
   if (!isValid.value) {
     if (fromIndex.value === toIndex.value && fromIndex.value >= 0) {
       uni.showToast({ title: '调出与调入仓库不能相同', icon: 'none' })
@@ -158,12 +160,21 @@ async function onSubmit() {
     expectedDate: expectedDate.value || undefined,
     remark: remark.value || undefined,
   }
+  submitting.value = true
   try {
-    await transferApi.create(payload)
-    uni.showToast({ title: '提交成功', icon: 'success' })
+    // 后端流转：创建为 DRAFT，需再调 submit 进入待审核（与按钮"提交调拨单"语义一致）
+    const created = await transferApi.create(payload)
+    try {
+      await transferApi.submit(created.transferOrderId)
+      uni.showToast({ title: '已提交，待审核', icon: 'success' })
+    } catch {
+      uni.showToast({ title: '已存草稿，可在列表中重新提交', icon: 'none', duration: 2500 })
+    }
     setTimeout(() => uni.navigateBack(), 1200)
   } catch (err) {
-    uni.showToast({ title: '提交失败', icon: 'none' })
+    // request 层已 toast 具体原因
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -187,7 +198,9 @@ async function loadProducts() {
 onLoad(() => {
   loadStores()
   loadProducts()
-  expectedDate.value = new Date().toISOString().split('T')[0]
+  // 本地时区当天（toISOString 是 UTC，晚间会变成明天）
+  const now = new Date()
+  expectedDate.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 })
 </script>
 

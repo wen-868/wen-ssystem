@@ -2,25 +2,23 @@
   <view class="transfer-page">
     <page-header title="库存调拨" @back="goBack" />
 
-    <!-- 搜索表单：ref + :model + :rules -->
-    <form ref="formRef" :model="searchForm" class="search-form">
-      <view class="search-bar">
-        <view class="search-input-wrap">
-          <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
-          <input
-            class="search-input"
-            v-model="searchForm.keyword"
-            type="text"
-            placeholder="搜索调拨单号 / 商品名称"
-            placeholder-class="search-placeholder"
-            @confirm="onSearch"
-          />
-          <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
-        </view>
+    <!-- 搜索：后端列表无 keyword 参数，按单号/门店名对已加载记录做本地过滤 -->
+    <view class="search-bar">
+      <view class="search-input-wrap">
+        <image class="search-icon ic" src="/static/icons/ic/search.svg" mode="aspectFit"/>
+        <input
+          class="search-input"
+          v-model="searchForm.keyword"
+          type="text"
+          placeholder="搜索调拨单号 / 门店名称"
+          placeholder-class="search-placeholder"
+          @confirm="onSearch"
+        />
+        <image class="search-clear ic" v-if="searchForm.keyword" @tap="clearSearch" src="/static/icons/ic/clear.svg" mode="aspectFit"/>
       </view>
-    </form>
+    </view>
 
-    <!-- 状态筛选 -->
+    <!-- 状态筛选（与后端真实状态一一对应） -->
     <view class="tab-bar">
       <view
         v-for="tab in tabs"
@@ -41,49 +39,65 @@
     </view>
 
     <!-- 调拨单列表 -->
-    <scroll-view class="transfer-list" scroll-y v-if="list.length > 0">
-      <view class="transfer-card" v-for="item in list" :key="item.transferNo">
+    <scroll-view class="transfer-list" scroll-y @scrolltolower="onLoadMore" v-if="filteredList.length > 0">
+      <view class="transfer-card" v-for="item in filteredList" :key="item.id">
         <view class="card-header">
           <text class="transfer-no">{{ item.transferNo }}</text>
-          <view class="transfer-status" :class="'status-' + item.status">
+          <view class="transfer-status" :class="'st-' + item.status.toLowerCase()">
             <text class="status-text">{{ item.statusLabel }}</text>
           </view>
         </view>
         <view class="card-body">
           <view class="info-row">
-            <text class="info-label">调出仓库</text>
+            <text class="info-label">调出门店</text>
             <text class="info-value">{{ item.fromStore }}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">调入仓库</text>
+            <text class="info-label">调入门店</text>
             <text class="info-value">{{ item.toStore }}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">商品数</text>
+            <text class="info-label">商品种类</text>
             <text class="info-value">{{ item.itemCount }} 种</text>
           </view>
           <view class="info-row">
-            <text class="info-label">调拨数量</text>
-            <text class="info-value">{{ item.totalQty }} 件</text>
+            <text class="info-label">调拨金额</text>
+            <text class="info-value info-amount">¥{{ item.amountText }}</text>
+          </view>
+          <view class="info-row" v-if="item.expectedDate">
+            <text class="info-label">期望到货</text>
+            <text class="info-value">{{ item.expectedDate }}</text>
           </view>
           <view class="info-row">
             <text class="info-label">创建时间</text>
             <text class="info-value">{{ item.createTime }}</text>
           </view>
         </view>
-        <view class="card-actions" v-if="item.status === 'pending'">
-          <button class="action-btn approve-btn" @tap="handleApprove(item)">审核通过</button>
+        <!-- 状态流转动作（真实后端流转：DRAFT→PENDING→APPROVED→TRANSIT→RECEIVED） -->
+        <view class="card-actions" v-if="item.status === 'DRAFT'">
+          <button class="action-btn ghost-btn" @tap="handleCancel(item)">取消单据</button>
+          <button class="action-btn stock-btn" @tap="handleSubmit(item)">提交审核</button>
+        </view>
+        <view class="card-actions" v-else-if="item.status === 'PENDING'">
           <button class="action-btn reject-btn" @tap="handleReject(item)">驳回</button>
+          <button class="action-btn approve-btn" @tap="handleApprove(item)">审核通过</button>
         </view>
-        <view class="card-actions" v-else-if="item.status === 'approved'">
-          <button class="action-btn stock-btn" @tap="handleInStock(item)">确认入库</button>
+        <view class="card-actions" v-else-if="item.status === 'APPROVED'">
+          <button class="action-btn stock-btn" @tap="handleShip(item)">确认发货</button>
         </view>
+        <view class="card-actions" v-else-if="item.status === 'TRANSIT'">
+          <button class="action-btn stock-btn" @tap="handleReceive(item)">确认收货</button>
+        </view>
+      </view>
+      <view class="list-footer" v-if="list.length < total">
+        <text class="footer-text">{{ loading ? '加载中…' : '上拉加载更多' }}</text>
       </view>
     </scroll-view>
 
     <view class="empty-state" v-else>
       <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
-      <text class="empty-text">暂无调拨单</text>
+      <text class="empty-text">{{ searchForm.keyword ? '没有匹配的调拨单' : '暂无调拨单' }}</text>
+      <text class="empty-hint" v-if="!searchForm.keyword">点上方「+ 新建调拨单」创建第一笔调拨</text>
     </view>
 
     <view class="safe-bottom"></view>
@@ -93,74 +107,94 @@
 <script setup lang="ts">
 function goBack(){ uni.navigateBack() }
 
-import { ref, reactive, onMounted } from 'vue'
-import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { ref, reactive, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import {
+  transferApi,
+  TRANSFER_STATUS_LABEL,
+  type TransferStatus,
+  type TransferOrderRow,
+} from '@/api/modules/transfer'
 
-const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
-const searchRules: Rules = {
-  keyword: [{ minLength: 1, message: '输入至少1个字符', required: false }],
-}
-const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
 
+// Tab 与后端状态一一对应（驳回是打回草稿不是终态，故无"已驳回"tab，取消单在"已取消"）
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待审核', value: 'pending' },
-  { label: '已审核', value: 'approved' },
-  { label: '已完成', value: 'completed' },
-  { label: '已驳回', value: 'rejected' },
+  { label: '待审核', value: 'PENDING' },
+  { label: '调拨中', value: 'TRANSIT' },
+  { label: '已完成', value: 'RECEIVED' },
+  { label: '已取消', value: 'CANCELLED' },
 ]
 const activeTab = ref('')
-const list = ref<any[]>([])
+
+interface CardItem {
+  id: number
+  transferNo: string
+  fromStore: string
+  toStore: string
+  itemCount: number
+  amountText: string
+  expectedDate: string
+  createTime: string
+  status: TransferStatus
+  statusLabel: string
+}
+
+const list = ref<CardItem[]>([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = 20
 const loading = ref(false)
 
-function onSearch() { loadTransfers() }
-function clearSearch() { searchForm.keyword = ''; loadTransfers() }
-function switchTab(val: string) { activeTab.value = val; loadTransfers() }
-function goCreate() {
-  uni.navigateTo({ url: '/pages-sub/finance/transfer/create' })
+const filteredList = computed(() => {
+  const kw = searchForm.keyword.trim().toLowerCase()
+  if (!kw) return list.value
+  return list.value.filter((it) =>
+    it.transferNo.toLowerCase().includes(kw) ||
+    it.fromStore.toLowerCase().includes(kw) ||
+    it.toStore.toLowerCase().includes(kw)
+  )
+})
+
+function fmtDate(v: string | null): string {
+  if (!v) return ''
+  return String(v).slice(0, 16).replace('T', ' ')
 }
 
-function handleApprove(item: any) {
-  uni.showModal({
-    title: '审核通过',
-    content: '确认审核通过该调拨单？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '已通过', icon: 'success' })
-      }
-    }
-  })
+function fmtAmount(v: number | string): string {
+  const n = Number(v ?? 0)
+  return n % 1 === 0 ? String(n) : n.toFixed(2)
 }
 
-function handleReject(item: any) {
-  uni.showModal({
-    title: '驳回',
-    content: '确认驳回该调拨单？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '已驳回', icon: 'success' })
-      }
-    }
-  })
+function mapRow(r: TransferOrderRow): CardItem {
+  return {
+    id: r.id,
+    transferNo: r.transfer_no,
+    fromStore: r.from_store_name || `门店#${r.from_store_id}`,
+    toStore: r.to_store_name || `门店#${r.to_store_id}`,
+    itemCount: Number(r.total_items ?? 0),
+    amountText: fmtAmount(r.total_amount),
+    expectedDate: r.expected_date ? String(r.expected_date).slice(0, 10) : '',
+    createTime: fmtDate(r.created_at),
+    status: r.status,
+    statusLabel: TRANSFER_STATUS_LABEL[r.status] ?? r.status,
+  }
 }
 
-function handleInStock(item: any) {
-  uni.showModal({
-    title: '确认入库',
-    content: '确认商品已入库？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '已入库', icon: 'success' })
-      }
-    }
-  })
-}
-
-async function loadTransfers() {
+async function loadTransfers(reset = true) {
+  if (loading.value) return
   loading.value = true
   try {
-    list.value = []
+    if (reset) page.value = 1
+    const res = await transferApi.list({
+      page: page.value,
+      pageSize,
+      status: (activeTab.value || undefined) as TransferStatus | undefined,
+    })
+    const rows = (res?.records ?? []).map(mapRow)
+    list.value = reset ? rows : [...list.value, ...rows]
+    total.value = Number(res?.total ?? 0)
   } catch (err) {
     console.error('加载调拨单失败:', err)
   } finally {
@@ -168,7 +202,92 @@ async function loadTransfers() {
   }
 }
 
-onMounted(() => { loadTransfers() })
+function onLoadMore() {
+  if (loading.value || list.value.length >= total.value) return
+  page.value += 1
+  loadTransfers(false)
+}
+
+function onSearch() { loadTransfers() }
+function clearSearch() { searchForm.keyword = '' }
+function switchTab(val: string) { activeTab.value = val; loadTransfers() }
+function goCreate() {
+  uni.navigateTo({ url: '/pages-sub/finance/transfer/create' })
+}
+
+/** 统一动作确认框：确认后调接口，成功刷新列表 */
+function confirmAction(title: string, content: string, run: () => Promise<unknown>, successMsg: string) {
+  uni.showModal({
+    title,
+    content,
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        await run()
+        uni.showToast({ title: successMsg, icon: 'success' })
+        loadTransfers()
+      } catch (err: any) {
+        // request 层已 toast 具体失败原因，这里不重复弹
+        console.error(`${title}失败:`, err?.message || err)
+      }
+    },
+  })
+}
+
+function handleSubmit(item: CardItem) {
+  confirmAction('提交审核', `调拨单 ${item.transferNo} 提交后进入待审核，确认提交？`,
+    () => transferApi.submit(item.id), '已提交审核')
+}
+
+function handleApprove(item: CardItem) {
+  confirmAction('审核通过', `确认审核通过调拨单 ${item.transferNo}？`,
+    () => transferApi.approve(item.id), '已审核通过')
+}
+
+function handleReject(item: CardItem) {
+  confirmAction('驳回', `确认驳回调拨单 ${item.transferNo}？单据将打回草稿。`,
+    () => transferApi.reject(item.id), '已驳回')
+}
+
+function handleCancel(item: CardItem) {
+  confirmAction('取消单据', `确认取消调拨单 ${item.transferNo}？取消后不可恢复。`,
+    () => transferApi.cancel(item.id), '已取消')
+}
+
+function handleShip(item: CardItem) {
+  confirmAction('确认发货', `确认调拨单 ${item.transferNo} 已从调出门店发货？`,
+    () => transferApi.ship(item.id), '已发货，等待收货')
+}
+
+function handleReceive(item: CardItem) {
+  // 收货需明细行 itemId；按足额收货提交（实收=应收），后续差异收货再扩展
+  uni.showModal({
+    title: '确认收货',
+    content: `确认调拨单 ${item.transferNo} 商品已全部收到并入库？`,
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        const detail = await transferApi.detail(item.id)
+        const items = (detail?.items ?? []).map((it) => ({
+          itemId: it.id,
+          receivedQty: Number(it.quantity ?? 0),
+        }))
+        if (items.length === 0) {
+          uni.showToast({ title: '单据无明细，无法收货', icon: 'none' })
+          return
+        }
+        await transferApi.receive(item.id, items)
+        uni.showToast({ title: '收货成功', icon: 'success' })
+        loadTransfers()
+      } catch (err: any) {
+        console.error('确认收货失败:', err?.message || err)
+      }
+    },
+  })
+}
+
+// 返回/进入都刷新（新建、详情操作后回到列表保持最新）
+onShow(() => { loadTransfers() })
 </script>
 
 <style lang="scss" scoped>
@@ -224,19 +343,24 @@ onMounted(() => { loadTransfers() })
 }
 .transfer-no { font-size: 26rpx; color: $uni-gray-700; font-weight: 600; }
 .transfer-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: $uni-color-warning-soft; }
-.status-pending .status-text { color: $uni-color-warning; }
-.status-approved { background: $uni-color-primary-soft; }
-.status-approved .status-text { color: $uni-color-primary; }
-.status-completed { background: $uni-color-success-soft; }
-.status-completed .status-text { color: $uni-color-success; }
-.status-rejected { background: $uni-color-error-soft; }
-.status-rejected .status-text { color: $uni-color-error; }
+.st-draft { background: $uni-gray-100; }
+.st-draft .status-text { color: $uni-gray-500; }
+.st-pending { background: $uni-color-warning-soft; }
+.st-pending .status-text { color: $uni-color-warning; }
+.st-approved { background: $uni-color-primary-soft; }
+.st-approved .status-text { color: $uni-color-primary; }
+.st-transit { background: $uni-color-primary-soft; }
+.st-transit .status-text { color: $uni-color-primary; }
+.st-received { background: $uni-color-success-soft; }
+.st-received .status-text { color: $uni-color-success; }
+.st-cancelled { background: $uni-color-error-soft; }
+.st-cancelled .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
 .info-label { font-size: 24rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-amount { font-weight: 600; }
 .card-actions {
   margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
@@ -248,15 +372,19 @@ onMounted(() => { loadTransfers() })
   display: flex; align-items: center; justify-content: center;
   border: none;
 }
+.ghost-btn { background: $uni-bg-color-page; color: $uni-gray-500; }
 .approve-btn { background: $uni-color-success; color: $uni-text-color-inverse; }
 .reject-btn { background: $uni-color-error-soft; color: $uni-color-error; }
 .stock-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
 .action-btn::after { border: none; }
+.list-footer { display: flex; justify-content: center; padding: 20rpx 0 40rpx; }
+.footer-text { font-size: 24rpx; color: $uni-gray-400; }
 .empty-state {
   display: flex; flex-direction: column;
   align-items: center; padding: 200rpx 0;
 }
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
+.empty-hint { font-size: 24rpx; color: $uni-gray-400; margin-top: 12rpx; }
 .safe-bottom { height: 40rpx; }
 </style>
