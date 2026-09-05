@@ -20,10 +20,11 @@ interface MemberDetailRow {
 
 /** 会员详情（含等级名、累计消费、积分账户） */
 export async function getMemberDetail(tenantId: string, id: number) {
-  const row = await queryOneWithTenant<MemberDetailRow & { contact: string | null; address: string | null; remark: string | null }>(
+  const row = await queryOneWithTenant<MemberDetailRow & { contact: string | null; address: string | null; remark: string | null; card_no: string | null; gender: string | null; birthday: string | null; province: string | null; city: string | null; district: string | null; tags: string | null }>(
     `SELECT m.id, m.name, m.mobile, m.customer_type AS customerType, m.points,
             m.level_code AS levelCode, ml.level_name AS levelName, m.status,
-            m.contact, m.address, m.remark,
+            m.contact, m.address, m.remark, m.card_no, m.gender, m.birthday,
+            m.province, m.city, m.district, m.tags,
             m.last_order_at AS lastOrderAt, m.created_at AS createdAt
      FROM t_member m
      LEFT JOIN t_member_level ml ON ml.level_code = m.level_code AND ml.tenant_id = m.tenant_id
@@ -70,6 +71,13 @@ export async function getMemberDetail(tenantId: string, id: number) {
     contact: row.contact ?? null,
     address: row.address ?? null,
     remark: row.remark ?? null,
+    cardNo: row.card_no ?? null,
+    gender: row.gender ?? null,
+    birthday: row.birthday ?? null,
+    province: row.province ?? null,
+    city: row.city ?? null,
+    district: row.district ?? null,
+    tags: row.tags ?? null,
     points: available,
     totalPoints: Number(cp?.total_points ?? available),
     frozenPoints: Number(cp?.frozen_points ?? 0),
@@ -120,6 +128,9 @@ export async function listMemberManage(
     status: number;
     contact: string | null;
     address: string | null;
+    province: string | null;
+    city: string | null;
+    district: string | null;
     balance: number | string | null;
     lastOrderAt: Date | string | null;
     createdAt: Date | string;
@@ -128,7 +139,7 @@ export async function listMemberManage(
     `SELECT m.id, m.name, m.nickname, m.mobile,
             m.customer_type AS customerType,
             m.level_code AS levelCode, ml.level_name AS levelName, m.points,
-            m.status, m.contact, m.address,
+            m.status, m.contact, m.address, m.province, m.city, m.district,
             vc.balance,
             m.last_order_at AS lastOrderAt, m.created_at AS createdAt,
             COALESCE((SELECT SUM(o.payable_amount) FROM t_miniapp_order o
@@ -300,12 +311,21 @@ export async function getMemberOrders(tenantId: string, id: number, page: number
 /** 新增会员（会员管理页维护；字段以 t_member 真实列为准） */
 export async function createMemberManage(
   tenantId: string,
-  body: { name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; address?: string }
+  body: {
+    name: string; mobile: string; customerType: "RETAIL" | "WHOLESALE"; address?: string;
+    cardNo?: string; contact?: string; gender?: string; birthday?: string;
+    province?: string; city?: string; district?: string; tags?: string; remark?: string;
+  }
 ) {
   await executeWithTenant(
-    `INSERT INTO t_member (name, mobile, customer_type, address, points, level_code, status, tenant_id)
-     VALUES (?, ?, ?, ?, 0, NULL, 1, ?)`,
-    [body.name, body.mobile, body.customerType, body.address ?? null, tenantId],
+    `INSERT INTO t_member (name, mobile, customer_type, address, card_no, contact, gender, birthday, province, city, district, tags, remark, points, level_code, status, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, 1, ?)`,
+    [
+      body.name, body.mobile, body.customerType, body.address ?? null,
+      body.cardNo ?? null, body.contact ?? null, body.gender ?? null, body.birthday ?? null,
+      body.province ?? null, body.city ?? null, body.district ?? null, body.tags ?? null, body.remark ?? null,
+      tenantId
+    ],
     tenantId
   );
   const row = await queryOneWithTenant<{ id: number }>(
@@ -320,7 +340,11 @@ export async function createMemberManage(
 export async function updateMemberManage(
   tenantId: string,
   id: number,
-  body: { name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; address?: string; remark?: string }
+  body: {
+    name?: string; mobile?: string; customerType?: "RETAIL" | "WHOLESALE"; address?: string;
+    cardNo?: string; contact?: string; gender?: string; birthday?: string;
+    province?: string; city?: string; district?: string; tags?: string; remark?: string;
+  }
 ) {
   const exists = await queryOneWithTenant<{ id: number }>(
     `SELECT id FROM t_member WHERE id = ? AND tenant_id = ?`,
@@ -336,9 +360,22 @@ export async function updateMemberManage(
          mobile = COALESCE(?, mobile),
          customer_type = COALESCE(?, customer_type),
          address = COALESCE(?, address),
+         card_no = COALESCE(?, card_no),
+         contact = COALESCE(?, contact),
+         gender = COALESCE(?, gender),
+         birthday = COALESCE(?, birthday),
+         province = COALESCE(?, province),
+         city = COALESCE(?, city),
+         district = COALESCE(?, district),
+         tags = COALESCE(?, tags),
          remark = COALESCE(?, remark)
      WHERE id = ? AND tenant_id = ?`,
-    [body.name ?? null, body.mobile ?? null, body.customerType ?? null, body.address ?? null, body.remark ?? null, id, tenantId],
+    [
+      body.name ?? null, body.mobile ?? null, body.customerType ?? null, body.address ?? null,
+      body.cardNo ?? null, body.contact ?? null, body.gender ?? null, body.birthday ?? null,
+      body.province ?? null, body.city ?? null, body.district ?? null, body.tags ?? null, body.remark ?? null,
+      id, tenantId
+    ],
     tenantId
   );
 }

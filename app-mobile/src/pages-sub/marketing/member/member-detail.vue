@@ -1,6 +1,6 @@
 <template>
   <view class="member-detail-page">
-    <page-header :title="member?.name || '客户详情'" @back="goBack" />
+    <page-header :title="isNew ? '新增客户' : (member?.name || '客户详情')" @back="goBack" />
 
     <view v-if="loading" class="loading-overlay">
       <view class="loading-spinner"></view>
@@ -46,8 +46,8 @@
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>客户类型</text></view>
         <view class="chips-row">
-          <text class="chip" :class="isWholesale ? 'chip--on' : ''">批发客户</text>
-          <text class="chip" :class="!isWholesale ? 'chip--on' : ''">零售客户</text>
+          <text class="chip" :class="editForm.customerType === 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'WHOLESALE')">批发客户</text>
+          <text class="chip" :class="editForm.customerType !== 'WHOLESALE' ? 'chip--on' : ''" @tap="pickVal('customerType', 'RETAIL')">零售客户</text>
         </view>
         <view class="f-row">
           <text class="f-label">注册日期</text>
@@ -86,43 +86,69 @@
         </view>
       </view>
 
-      <!-- 4. 基本信息 -->
+      <!-- 4. 基本信息（对齐原稿：卡号/名称/联系人(批发)/手机/性别/生日） -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>基本信息</text></view>
-        <view class="f-row" v-if="member.cardNo">
+        <view class="f-row">
           <text class="f-label">会员卡号</text>
-          <text class="f-value">{{ member.cardNo }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.cardNo" placeholder="如 8801 2345 6789" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.cardNo }">{{ member.cardNo || '如 8801 2345 6789' }}</text>
         </view>
         <view class="f-row">
           <text class="f-label">客户名称</text>
-          <text class="f-value">{{ member.name || '—' }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.name" :placeholder="editForm.customerType === 'WHOLESALE' ? '商号名称，如 红星商行' : '请输入姓名'" placeholder-class="f-ph" />
+          <text v-else class="f-value">{{ member.name || '—' }}</text>
         </view>
-        <view class="f-row" v-if="member.contactPerson">
+        <view class="f-row" v-if="editForm.customerType === 'WHOLESALE'">
           <text class="f-label">联系人</text>
-          <text class="f-value">{{ member.contactPerson }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.contact" placeholder="对接人姓名" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.contact }">{{ member.contact || '对接人姓名' }}</text>
         </view>
         <view class="f-row">
           <text class="f-label">手机号</text>
-          <text class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="f-ph" />
+          <text v-else class="f-value f-value--link" @tap="callPhone">{{ member.mobile || '—' }}</text>
         </view>
-        <!-- 性别：设计稿有，后端 t_member 无 gender 列（仅小程序档案表有）→ 占位不造假 -->
+        <view class="chips-row">
+          <text class="chips-lb">性别</text>
+          <text
+            class="chip"
+            v-for="g in ['男', '女', '未填写']"
+            :key="g"
+            :class="(editMode ? editForm.gender : (member.gender || '未填写')) === g ? 'chip--on' : ''"
+            @tap="pickVal('gender', g)"
+          >{{ g }}</text>
+        </view>
         <view class="f-row">
-          <text class="f-label">性别</text>
-          <text class="f-value f-value--pending">后端对接中</text>
-        </view>
-        <view class="f-row" v-if="member.birthday">
           <text class="f-label">生日</text>
-          <text class="f-value">{{ member.birthday }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.birthday" placeholder="如 1990-01-01" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.birthday }">{{ member.birthday || '如 1990-01-01' }}</text>
         </view>
       </view>
 
       <!-- 5. 地址信息 -->
-      <view class="pd-group" v-if="hasAddr">
+      <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
-        <view class="f-row" v-if="member.province"><text class="f-label">省份</text><text class="f-value">{{ member.province }}</text></view>
-        <view class="f-row" v-if="member.city"><text class="f-label">城市</text><text class="f-value">{{ member.city }}</text></view>
-        <view class="f-row" v-if="member.district"><text class="f-label">区/县</text><text class="f-value">{{ member.district }}</text></view>
-        <view class="f-row" v-if="member.address"><text class="f-label">详细地址</text><text class="f-value">{{ member.address }}</text></view>
+        <view class="f-row">
+          <text class="f-label">省份</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.province" placeholder="如 广东省" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.province }">{{ member.province || '如 广东省' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">城市</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.city" placeholder="如 广州市" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.city }">{{ member.city || '如 广州市' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">区/县</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.district" placeholder="如 白云区" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.district }">{{ member.district || '如 白云区' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">详细地址</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.address" placeholder="街道、门牌号等" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.address }">{{ member.address || '街道、门牌号等' }}</text>
+        </view>
       </view>
 
       <!-- 6. 账户信息 -->
@@ -150,16 +176,29 @@
         </view>
       </view>
 
-      <!-- 7. 标签与备注（对齐原稿：标签可增删 + 备注；后端会员无标签存储 → 标签占位，备注走真实 t_member.remark） -->
+      <!-- 7. 标签与备注（对齐原稿：标签回车添加/点删 + 备注；167 迁移后 t_member 有 tags 列） -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
-        <view class="f-row">
-          <text class="f-label">标签</text>
-          <text class="f-value f-value--pending">后端对接中</text>
+        <view class="tag-box">
+          <view class="tag-list" v-if="tagList.length">
+            <view class="tag-item" v-for="(t, i) in tagList" :key="t" @tap="editMode && removeTag(i)">
+              <text>{{ t }}</text><text class="tag-rm" v-if="editMode">×</text>
+            </view>
+          </view>
+          <input
+            v-if="editMode"
+            class="tag-input"
+            v-model="tagInput"
+            placeholder="输入标签，回车添加"
+            confirm-type="done"
+            @confirm="addTag"
+          />
+          <text v-else-if="!tagList.length" class="tag-empty">暂无标签</text>
         </view>
         <view class="f-row">
           <text class="f-label">备注</text>
-          <text class="f-value">{{ member.remark || '—' }}</text>
+          <input v-if="editMode" class="f-inp" v-model="editForm.remark" placeholder="消费偏好、配送要求等" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'ph': !member.remark }">{{ member.remark || '消费偏好、配送要求等' }}</text>
         </view>
       </view>
 
@@ -204,15 +243,20 @@
 
     <view class="safe-bottom"></view>
 
-    <!-- 账户操作（对齐设计稿：充值 / 调整积分 / 修改 三按钮） -->
+    <!-- 账户操作（对齐原稿 act-bar：查看态=充值/调整积分/修改；编辑态=取消/保存） -->
     <view class="action-bar" v-if="member">
-      <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
-      <view class="ab-btn ab-warn" @tap="openDlg('points')"><text>调整积分</text></view>
-      <view class="ab-btn ab-primary" @tap="openEdit"><text>修改</text></view>
+      <block v-if="editMode">
+        <view class="ab-btn ab-ghost" @tap="cancelEdit"><text>取消</text></view>
+        <view class="ab-btn ab-primary" @tap="saveEdit"><text>保存</text></view>
+      </block>
+      <block v-else>
+        <view class="ab-btn ab-ghost" @tap="openDlg('recharge')"><text>充值</text></view>
+        <view class="ab-btn ab-warn" @tap="openDlg('points')"><text>调整积分</text></view>
+        <view class="ab-btn ab-primary" @tap="startEdit"><text>修改</text></view>
+      </block>
     </view>
 
-    <!-- 充值 / 调整积分 弹窗（严格按设计稿：标题 + 当前值 + 单输入框 + 提示 + 取消/确认；
-         后端客户充值与积分调整接口未开放 → 提交占位不造假） -->
+    <!-- 充值 / 调整积分 弹窗（原稿同为弹窗：标题 + 当前值 + 单输入框 + 提示 + 取消/确认） -->
     <view v-if="dlg" class="dlg-mask" @tap="closeDlg">
       <view class="dlg" @tap.stop>
         <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
@@ -232,41 +276,6 @@
           <view class="dlg-b dlg-b--ok" @tap="confirmDlg">
             <text>{{ dlg === 'recharge' ? '确认充值' : '确认调整' }}</text>
           </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 修改/新增客户弹层（字段以 t_member 真实列为准：名称/手机号/客户类型/地址） -->
-    <view v-if="editVisible" class="dlg-mask" @tap="closeEdit">
-      <view class="dlg dlg--edit" @tap.stop>
-        <text class="dlg-t">{{ isNew ? '新增客户' : '修改客户' }}</text>
-        <view class="dlg-row">
-          <text class="dlg-lb">客户名称</text>
-          <input class="dlg-inp--row" v-model="editForm.name" placeholder="批发为商号名称" placeholder-class="dlg-ph" />
-        </view>
-        <view class="dlg-row">
-          <text class="dlg-lb">手机号</text>
-          <input class="dlg-inp--row" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="dlg-ph" />
-        </view>
-        <view class="dlg-row">
-          <text class="dlg-lb">客户类型</text>
-          <view class="dlg-chips">
-            <view class="dlg-chip" :class="{ 'dlg-chip--on': editForm.customerType === 'RETAIL' }" @tap="editForm.customerType = 'RETAIL'"><text>零售客户</text></view>
-            <view class="dlg-chip" :class="{ 'dlg-chip--on': editForm.customerType === 'WHOLESALE' }" @tap="editForm.customerType = 'WHOLESALE'"><text>批发客户</text></view>
-          </view>
-        </view>
-        <view class="dlg-row">
-          <text class="dlg-lb">地址</text>
-          <input class="dlg-inp--row" v-model="editForm.address" placeholder="省市区、街道门牌号（选填）" placeholder-class="dlg-ph" />
-        </view>
-        <view class="dlg-row">
-          <text class="dlg-lb">备注</text>
-          <input class="dlg-inp--row" v-model="editForm.remark" placeholder="备注信息（选填）" placeholder-class="dlg-ph" />
-        </view>
-        <text class="dlg-tip">性别 / 生日 / 标签 待后端支持后开放编辑（P3 文档 5.2）</text>
-        <view class="dlg-btns">
-          <view class="dlg-b dlg-b--cancel" @tap="closeEdit"><text>取消</text></view>
-          <view class="dlg-b dlg-b--ok" @tap="saveEdit"><text>保存</text></view>
         </view>
       </view>
     </view>
@@ -307,6 +316,8 @@ interface MemberDetail {
   address?: string
   contact?: string | null
   remark?: string | null
+  gender?: string | null
+  tags?: string | null
 }
 
 interface MemberOrder {
@@ -433,16 +444,54 @@ function goPoints() {
   uni.navigateTo({ url: '/pages-sub/marketing/points/points-detail' })
 }
 
-/* ===== 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） ===== */
+/* ===== 行内编辑（对齐原稿：修改后字段原地变输入框，无弹窗） ===== */
 const editDirty = ref(false)
-const editForm = ref({ name: '', mobile: '', customerType: 'RETAIL' as string, address: '', remark: '' })
+const editMode = ref(false)
+const editForm = ref({
+  name: '', mobile: '', customerType: 'RETAIL' as string, address: '', remark: '',
+  cardNo: '', contact: '', gender: '未填写', birthday: '',
+  province: '', city: '', district: '', tags: '',
+})
 const editStatusText = computed(() => {
-  if (!editVisible.value) return '已保存'
+  if (!editMode.value) return '已保存'
   return editDirty.value ? '未保存' : '编辑中'
 })
-const editStatusCls = computed(() => (editVisible.value ? 'hd-status--draft' : 'hd-status--saved'))
-// openEdit 填充表单不算改动；watcher 在异步 flush 中触发，故在 nextTick 复位
-watch(editForm, () => { editDirty.value = true }, { deep: true })
+
+// 标签（t_member.tags 逗号分隔存储）
+const tagInput = ref('')
+const tagList = computed(() => {
+  const src = editMode.value ? editForm.value.tags : (member.value?.tags || '')
+  return (src || '').split(',').map((t) => t.trim()).filter(Boolean)
+})
+
+function addTag() {
+  const v = (tagInput.value || '').trim()
+  if (!v) return
+  const list = tagList.value
+  if (list.includes(v)) {
+    uni.showToast({ title: '标签已存在', icon: 'none' })
+    return
+  }
+  editForm.value.tags = [...list, v].join(',')
+  tagInput.value = ''
+}
+
+function removeTag(i: number) {
+  const list = [...tagList.value]
+  list.splice(i, 1)
+  editForm.value.tags = list.join(',')
+}
+
+function pickVal(k: 'customerType' | 'gender', v: string) {
+  if (!editMode.value) {
+    uni.showToast({ title: '当前为只读状态，请点「修改」', icon: 'none' })
+    return
+  }
+  ;(editForm.value as any)[k] = v
+}
+const editStatusCls = computed(() => (editMode.value ? 'hd-status--draft' : 'hd-status--saved'))
+// 进入编辑/加载填充表单不算改动；watcher 在异步 flush 中触发，故在 nextTick 复位
+watch(editForm, () => { if (editMode.value) editDirty.value = true }, { deep: true })
 
 /* ===== 充值 / 调整积分 弹窗（严格对齐设计稿：标题+当前值+单输入框+提示+取消/确认） =====
  * 充值走真实储值卡：无卡先开卡（首充金额），有卡直接 /admin/store-value-cards/:cardNo/recharge；
@@ -500,29 +549,47 @@ async function confirmDlg() {
   }
 }
 
-/* ===== 修改客户弹层（对齐设计稿「修改」按钮） =====
- * 保存走 PUT /store/members/:id；该接口后端暂缺失（P3 文档 5.2-#5），
- * 失败时诚实提示，不做本地假保存。 */
-const editVisible = ref(false)
+/* ===== 修改客户（对齐原稿：行内编辑，无弹窗） ===== */
 
-function openEdit() {
-  const m = member.value
-  if (!m) return
+function fillEditForm(m: MemberDetail) {
   editForm.value = {
     name: m.name || '',
     mobile: m.mobile || '',
     customerType: m.customerType || 'RETAIL',
     address: m.address || '',
     remark: m.remark || '',
+    cardNo: m.cardNo || '',
+    contact: m.contact || '',
+    gender: m.gender || '未填写',
+    birthday: m.birthday || '',
+    province: m.province || '',
+    city: m.city || '',
+    district: m.district || '',
+    tags: m.tags || '',
   }
-  editVisible.value = true
+}
+
+function startEdit() {
+  const m = member.value
+  if (!m) return
+  fillEditForm(m)
+  editMode.value = true
   nextTick(() => { editDirty.value = false })
 }
 
-function closeEdit() {
-  editVisible.value = false
-  // 新增模式下详情层无 member 数据（空壳），取消即返回列表，避免露出"会员不存在"空态
-  if (isNew.value) setTimeout(() => uni.navigateBack(), 120)
+function cancelEdit() {
+  if (isNew.value) {
+    // 新增模式取消 = 放弃新建，返回列表
+    setTimeout(() => uni.navigateBack(), 120)
+    return
+  }
+  if (member.value) fillEditForm(member.value)
+  editMode.value = false
+  dirtyReset()
+}
+
+function dirtyReset() {
+  editDirty.value = false
 }
 
 async function saveEdit() {
@@ -540,18 +607,25 @@ async function saveEdit() {
     customerType: editForm.value.customerType,
     address: editForm.value.address.trim(),
     remark: editForm.value.remark.trim(),
+    cardNo: editForm.value.cardNo.trim(),
+    contact: editForm.value.contact.trim(),
+    gender: editForm.value.gender || '未填写',
+    birthday: editForm.value.birthday.trim(),
+    province: editForm.value.province.trim(),
+    city: editForm.value.city.trim(),
+    district: editForm.value.district.trim(),
+    tags: tagList.value.join(','),
   }
   try {
     if (isNew.value) {
       await post('/store/members/manage', payload)
-      editVisible.value = false
       uni.showToast({ title: '新增成功', icon: 'none' })
       setTimeout(() => uni.navigateBack(), 600)
       return
     }
     if (!member.value) return
     await put(`/store/members/${memberId.value}`, payload)
-    editVisible.value = false
+    editMode.value = false
     uni.showToast({ title: '已保存', icon: 'none' })
     loadDetail()
   } catch (err: any) {
@@ -633,10 +707,17 @@ async function loadLevels() {
 
 onLoad((query: any) => {
   if (query?.new === '1') {
-    // 新增模式：主体数据为空，直接打开新增表单
+    // 新增模式（对齐原稿 openNew）：详情页直接以可编辑空表单呈现，无弹窗
     isNew.value = true
-    editForm.value = { name: '', mobile: '', customerType: 'RETAIL', address: '', remark: '' }
-    editVisible.value = true
+    member.value = {
+      id: 0, name: '', mobile: '', customerType: 'RETAIL', levelCode: '', levelName: '',
+      status: 1, points: 0, totalPoints: 0, frozenPoints: 0, balance: 0, totalSpent: 0,
+      lastConsumeAt: null, createdAt: null,
+    }
+    fillEditForm(member.value)
+    editMode.value = true
+    editDirty.value = false
+    loadLevels()
     return
   }
   memberId.value = Number(query?.id ?? 0)

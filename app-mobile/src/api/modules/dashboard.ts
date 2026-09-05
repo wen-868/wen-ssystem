@@ -3,6 +3,13 @@ import { get } from '../request'
 export interface DashboardStats {
   todaySales: number
   todayOrders: number
+  monthSales: number
+  monthOrders: number
+  monthProfit: number
+  pendingDelivery: number
+  pendingPickup: number
+  pendingPayment: number
+  completedToday: number
   totalCustomers: number
   stockAlerts: number
 }
@@ -42,8 +49,15 @@ const dashboardApi = {
   async getStats(): Promise<DashboardStats> {
     const res: any = await get('/store/dashboard')
     return {
-      todaySales: res?.todaySales ?? 0,
-      todayOrders: res?.todayOrders ?? 0,
+      todaySales: res?.todaySalesAmount ?? res?.todaySales ?? 0,
+      todayOrders: res?.todayOrderCount ?? res?.todayOrders ?? 0,
+      monthSales: res?.monthSalesAmount ?? res?.monthSales ?? 0,
+      monthOrders: res?.monthOrderCount ?? res?.monthOrders ?? 0,
+      monthProfit: res?.monthProfit ?? 0,
+      pendingDelivery: res?.pendingDeliveryCount ?? 0,
+      pendingPickup: res?.pendingPickupCount ?? 0,
+      pendingPayment: res?.pendingPaymentCount ?? 0,
+      completedToday: res?.completedTodayCount ?? 0,
       totalCustomers: res?.totalCustomers ?? 0,
       stockAlerts: res?.stockAlerts ?? 0
     }

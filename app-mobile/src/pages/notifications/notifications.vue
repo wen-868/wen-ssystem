@@ -133,12 +133,12 @@ import { ref, computed, onMounted } from 'vue'
 import { notificationsApi, type NotificationItem, type NotificationType } from '@/api/modules/notifications'
 import VirtualList from '@/components/virtual-list.vue'
 
-// 分类 Tab 配置（对齐原稿命名节奏：全部/系统/订单/库存/营销）
+// 分类 Tab 配置（对齐原稿顺序：全部/订单/库存/系统；营销为系统扩展分类置后）
 const tabs = [
   { value: 'all', label: '全部' },
-  { value: 'system', label: '系统' },
   { value: 'order', label: '订单' },
   { value: 'inventory', label: '库存' },
+  { value: 'system', label: '系统' },
   { value: 'marketing', label: '营销' }
 ]
 

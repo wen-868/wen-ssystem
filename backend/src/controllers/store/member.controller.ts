@@ -22,13 +22,22 @@ export const createMemberManage = asyncHandler(async (req, res) => {
       mobile: z.string().min(1).max(20),
       customerType: z.enum(["RETAIL", "WHOLESALE"]).default("RETAIL"),
       address: z.string().max(255).optional(),
+      cardNo: z.string().max(32).optional(),
+      contact: z.string().max(64).optional(),
+      gender: z.string().max(8).optional(),
+      birthday: z.string().max(20).optional(),
+      province: z.string().max(32).optional(),
+      city: z.string().max(32).optional(),
+      district: z.string().max(32).optional(),
+      tags: z.string().max(255).optional(),
+      remark: z.string().max(255).optional(),
     })
     .parse(req.body);
   const result = await memberService.createMemberManage(tenant(req), body);
   res.json(ok(result));
 });
 
-/** 更新会员（会员详情「修改」弹层） */
+/** 更新会员（会员详情「修改」） */
 export const updateMemberManage = asyncHandler(async (req, res) => {
   const body = z
     .object({
@@ -36,6 +45,14 @@ export const updateMemberManage = asyncHandler(async (req, res) => {
       mobile: z.string().min(1).max(20).optional(),
       customerType: z.enum(["RETAIL", "WHOLESALE"]).optional(),
       address: z.string().max(255).optional(),
+      cardNo: z.string().max(32).optional(),
+      contact: z.string().max(64).optional(),
+      gender: z.string().max(8).optional(),
+      birthday: z.string().max(20).optional(),
+      province: z.string().max(32).optional(),
+      city: z.string().max(32).optional(),
+      district: z.string().max(32).optional(),
+      tags: z.string().max(255).optional(),
       remark: z.string().max(255).optional(),
     })
     .parse(req.body);

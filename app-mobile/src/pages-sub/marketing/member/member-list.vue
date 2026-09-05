@@ -74,13 +74,11 @@
               <text v-if="m.contact">{{ m.contact }} · </text><text>{{ m.mobile || '—' }}</text>
             </view>
             <view class="mc-addr">
-              <text>{{ m.addressText || '—' }}</text>
+              <text>{{ m.addressText || '未填写地址' }}</text>
             </view>
             <view class="mc-tags">
               <text class="mc-tag">{{ typeName(m) }}</text>
               <text v-if="(m.balance || 0) > 0" class="mc-tag mc-tag--warn">余额 ¥{{ fmt(m.balance || 0) }}</text>
-              <text v-if="(m.balance || 0) > 0" class="mc-tag">储值会员</text>
-              <text v-if="isNewMember(m)" class="mc-tag">新会员</text>
             </view>
           </view>
         </view>
@@ -179,13 +177,6 @@ function levelName(m: MemberRow): string {
 function typeName(m: MemberRow): string {
   return isWholesale(m) ? '批发客户' : '零售客户'
 }
-/** 本月注册即「新会员」（与后端统计 monthNew 同口径） */
-function isNewMember(m: MemberRow): boolean {
-  if (!m.createdAt) return false
-  const d = new Date(m.createdAt)
-  const now = new Date()
-  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-}
 function fmt(n: number): string {
   const v = Number(n) || 0
   return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -279,7 +270,9 @@ onShow(() => {
   background: $uni-bg-color;
 }
 .top-tab {
-  padding: 12rpx 28rpx;
+  flex: 1;
+  padding: 14rpx 0;
+  text-align: center;
   border-radius: $uni-border-radius-pill;
   font-size: 26rpx;
   color: $uni-gray-500;

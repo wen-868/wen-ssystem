@@ -95,10 +95,6 @@
             <text class="sc-fv sc-fv--sm">{{ lastPurchaseText(item) }}</text>
           </view>
         </view>
-        <view class="sc-actions">
-          <button class="action-btn order-btn" @tap.stop="viewOrders(item)">采购订单</button>
-          <button class="action-btn statement-btn" @tap.stop="viewStatements(item)">对账单</button>
-        </view>
       </view>
     </scroll-view>
 
@@ -106,53 +102,6 @@
       <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">{{ list.length ? '没有符合条件的供应商' : '暂无供应商数据' }}</text>
       <text class="empty-hint" v-if="!list.length">点右上角「+ 新增」创建第一家供应商</text>
-    </view>
-
-    <!-- 新增供应商弹层 -->
-    <view class="overlay" v-if="showCreate" @tap="showCreate = false">
-      <view class="panel" @tap.stop>
-        <view class="panel-title"><text>新增供应商</text></view>
-        <scroll-view class="panel-body" scroll-y>
-          <view class="form-item">
-            <text class="form-label">供应商名称 <text class="required">*</text></text>
-            <input class="form-input" v-model="createForm.name" placeholder="请输入供应商名称" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">分类</text>
-            <input class="form-input" v-model="createForm.supplyType" placeholder="如 食品饮料 / 日用百货" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">联系人</text>
-            <input class="form-input" v-model="createForm.contactPerson" placeholder="请输入联系人姓名" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">联系电话</text>
-            <input class="form-input" v-model="createForm.contactMobile" type="number" placeholder="请输入联系电话" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">地址</text>
-            <input class="form-input" v-model="createForm.address" placeholder="请输入供应商地址（选填）" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">结算方式</text>
-            <view class="settle-chips">
-              <view
-                class="settle-chip"
-                v-for="opt in settleOptions"
-                :key="opt.value"
-                :class="{ 'settle-chip--on': createForm.settlementType === opt.value }"
-                @tap="createForm.settlementType = opt.value"
-              >
-                <text>{{ opt.label }}</text>
-              </view>
-            </view>
-          </view>
-        </scroll-view>
-        <view class="panel-ft">
-          <view class="m-btn m-btn--ghost" @tap="showCreate = false"><text>取消</text></view>
-          <view class="m-btn m-btn--primary" @tap="submitCreate"><text>保存</text></view>
-        </view>
-      </view>
     </view>
 
     <view class="safe-bottom"></view>
@@ -163,6 +112,7 @@
 function goBack(){ uni.navigateBack() }
 
 import { ref, reactive, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { supplierApi, type Supplier } from '@/api/modules/suppliers'
 
 const formRef = ref<any>(null)
@@ -242,68 +192,15 @@ function tagList(item: Supplier): { label: string; warn?: boolean }[] {
   return tags
 }
 
-// —— 新增供应商 ——
-const showCreate = ref(false)
-const settleOptions = [
-  { label: '现结', value: 'CASH' },
-  { label: '月结', value: 'MONTHLY' },
-  { label: '季结', value: 'QUARTERLY' },
-] as const
-const createForm = reactive({
-  name: '',
-  supplyType: '',
-  contactPerson: '',
-  contactMobile: '',
-  address: '',
-  settlementType: 'CASH' as 'CASH' | 'MONTHLY' | 'QUARTERLY',
-})
-
+// —— 新增供应商（对齐原稿 openNew：详情页承接编辑，保存走 POST） ——
 function openCreate() {
-  createForm.name = ''
-  createForm.supplyType = ''
-  createForm.contactPerson = ''
-  createForm.contactMobile = ''
-  createForm.address = ''
-  createForm.settlementType = 'CASH'
-  showCreate.value = true
-}
-
-async function submitCreate() {
-  const name = createForm.name.trim()
-  if (!name) {
-    uni.showToast({ title: '请输入供应商名称', icon: 'none' })
-    return
-  }
-  try {
-    await supplierApi.create({
-      name,
-      shortName: undefined,
-      supplyType: createForm.supplyType.trim() || undefined,
-      contactPerson: createForm.contactPerson.trim() || undefined,
-      contactMobile: createForm.contactMobile.trim() || undefined,
-      address: createForm.address.trim() || undefined,
-      settlementType: createForm.settlementType,
-    })
-    showCreate.value = false
-    uni.showToast({ title: '新增成功', icon: 'success' })
-    loadSuppliers()
-  } catch (err: any) {
-    uni.showToast({ title: err?.message || '新增失败', icon: 'none' })
-  }
+  uni.navigateTo({ url: '/pages-sub/product/suppliers/detail?id=new' })
 }
 
 function setTab(k: 'all' | 'on' | 'off') { activeTab.value = k }
 function onSearch() { /* 客户端过滤，实时生效 */ }
 function clearSearch() { searchForm.keyword = '' }
 function goDetail(id: number) { uni.navigateTo({ url: `/pages-sub/product/suppliers/detail?id=${id}` }) }
-
-function viewOrders(item: Supplier) {
-  uni.navigateTo({ url: `/pages-sub/finance/purchase/orders?supplierId=${item.id}` })
-}
-
-function viewStatements(item: Supplier) {
-  uni.navigateTo({ url: `/pages-sub/finance/statements/statements?supplierId=${item.id}` })
-}
 
 async function loadSuppliers() {
   loading.value = true
@@ -318,6 +215,8 @@ async function loadSuppliers() {
 }
 
 onMounted(() => { loadSuppliers() })
+// 新增/编辑保存后返回时刷新列表
+onShow(() => { if (list.value.length > 0) loadSuppliers() })
 </script>
 
 <style lang="scss" scoped>
@@ -432,25 +331,6 @@ onMounted(() => { loadSuppliers() })
 .sc-fv--sm { font-size: 23rpx; }
 
 /* 卡片操作（保留采购订单 / 对账单导航） */
-.sc-actions {
-  display: flex;
-  gap: 16rpx;
-  padding: 16rpx 24rpx;
-  border-top: 1rpx solid $uni-gray-100;
-}
-.action-btn {
-  flex: 1;
-  height: 64rpx;
-  border-radius: 32rpx;
-  font-size: 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-}
-.order-btn { background: $uni-color-primary; color: $uni-text-color-inverse; }
-.statement-btn { background: $uni-bg-color-grey; color: $uni-gray-700; }
-.action-btn::after { border: none; }
 
 /* 空态 */
 .empty-state {

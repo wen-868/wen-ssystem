@@ -30,7 +30,7 @@
           <view class="avatar avatar--ai">AI</view>
           <view class="bubble-wrap">
             <view class="bubble bubble--ai">
-              <text class="bubble-text">你好，我是智享 AI 助手。你可以让我帮你开单、查库存、看报表，试试下面这些：</text>
+              <text class="bubble-text">你好！我是你的 AI 经营助手 ✨ 你可以问我任何经营相关的问题，比如库存分析、销售预测、利润优化等。</text>
             </view>
             <view class="welcome-tips">
               <view class="tip-chip" v-for="tip in welcomeTips" :key="tip" @tap="quickSend(tip)">

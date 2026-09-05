@@ -49,8 +49,8 @@
           <text class="db-val">{{ stats.monthOrders }}</text>
         </view>
         <view class="db-item">
-          <text class="db-label">总客户数</text>
-          <text class="db-val">{{ formatFull(stats.customerCount) }}</text>
+          <text class="db-label">本月毛利</text>
+          <text class="db-val">¥{{ formatCn(stats.monthProfit) }}</text>
         </view>
       </view>
     </view>

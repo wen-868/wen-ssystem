@@ -83,6 +83,9 @@ export interface SupplierSaveParams {
   bankAccount?: string
   bankAccountName?: string
   remark?: string
+  province?: string
+  city?: string
+  district?: string
 }
 
 export const supplierApi = {

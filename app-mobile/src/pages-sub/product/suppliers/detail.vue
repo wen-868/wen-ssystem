@@ -1,6 +1,6 @@
 <template>
   <view class="supplier-detail-page">
-    <page-header :title="detail?.name || '供应商详情'" @back="goBack" />
+    <page-header :title="pageTitle" @back="goBack" />
 
     <view v-if="loading" class="loading-overlay">
       <view class="loading-spinner"></view>
@@ -44,21 +44,29 @@
       <!-- 2. 基本信息 -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>基本信息</text></view>
-        <view class="f-row" v-if="detail.supplierCode">
+        <view class="f-row">
           <text class="f-label">供应商编码</text>
-          <text class="f-value">{{ detail.supplierCode }}</text>
+          <text class="f-value" :class="{ 'f-value--ph': !detail.supplierCode }">{{ detail.supplierCode || '自动生成' }}</text>
         </view>
         <view class="f-row">
           <text class="f-label">供应商名称</text>
-          <text class="f-value">{{ detail.name || '—' }}</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.name" placeholder="请输入供应商名称" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.name }">{{ detail.name || '请输入供应商名称' }}</text>
         </view>
-        <view class="f-row" v-if="detail.shortName">
+        <view class="f-row">
           <text class="f-label">简称</text>
-          <text class="f-value">{{ detail.shortName }}</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.shortName" placeholder="用于开单快速选择" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.shortName }">{{ detail.shortName || '用于开单快速选择' }}</text>
         </view>
-        <view class="f-row" v-if="detail.supplyType">
-          <text class="f-label">分类</text>
-          <text class="f-value">{{ detail.supplyType }}</text>
+        <view class="chips-row">
+          <text class="chip-chip-label">分类</text>
+          <text
+            class="chip"
+            v-for="c in SUP_CATS"
+            :key="c"
+            :class="supplyTypeView === c ? 'chip--on' : ''"
+            @tap="showEdit && (editForm.supplyType = c)"
+          >{{ c }}</text>
         </view>
       </view>
 
@@ -67,21 +75,23 @@
         <view class="pd-gtitle"><view class="gt-bar"></view><text>联系人信息</text></view>
         <view class="f-row">
           <text class="f-label">联系人</text>
-          <text class="f-value">{{ detail.contactPerson || '—' }}</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.contactPerson" placeholder="姓名" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.contactPerson }">{{ detail.contactPerson || '姓名' }}</text>
         </view>
         <view class="f-row">
           <text class="f-label">手机号</text>
-          <text class="f-value f-value--link" @tap="callPhone">{{ detail.contactMobile || '—' }}</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.contactMobile" type="number" placeholder="11 位手机号" placeholder-class="f-ph" />
+          <text v-else class="f-value f-value--link" @tap="callPhone">{{ detail.contactMobile || '—' }}</text>
         </view>
-        <view class="f-row" v-if="primaryContact?.phone">
+        <view class="f-row" v-if="!showEdit && primaryContact?.phone">
           <text class="f-label">固定电话</text>
           <text class="f-value">{{ primaryContact.phone }}</text>
         </view>
-        <view class="f-row" v-if="primaryContact?.wechat">
+        <view class="f-row" v-if="!showEdit && primaryContact?.wechat">
           <text class="f-label">微信</text>
           <text class="f-value">{{ primaryContact.wechat }}</text>
         </view>
-        <view class="f-row" v-if="primaryContact?.email">
+        <view class="f-row" v-if="!showEdit && primaryContact?.email">
           <text class="f-label">邮箱</text>
           <text class="f-value">{{ primaryContact.email }}</text>
         </view>
@@ -97,16 +107,14 @@
             v-for="opt in settleDisplayOptions"
             :key="opt.value"
             :class="[settlementType === opt.value ? 'chip--on' : '', opt.pending ? 'chip--pending' : '']"
+            @tap="showEdit && !opt.pending && (editForm.settlementType = opt.value as any)"
           >{{ opt.label }}{{ opt.pending ? '·待后端' : '' }}</text>
         </view>
-        <view class="f-row" v-if="settlementDayText">
-          <text class="f-label">结算日</text>
-          <text class="f-value">{{ settlementDayText }}</text>
-        </view>
-        <!-- 账期(天)：设计稿字段(payTermDays)，后端 t_supplier 无该列 → 占位不造假；设计稿规则：现结/预付时隐藏 -->
+        <!-- 账期(天)：真实字段 settlement_day（原稿口径：月结/货到付款时显示账期天数；现结/预付隐藏） -->
         <view class="f-row" v-if="settlementType !== 'CASH' && settlementType !== 'PREPAY'">
           <text class="f-label">账期（天）</text>
-          <text class="f-value f-value--pending">后端对接中</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.settlementDay" type="number" placeholder="如 30 表示月结 30 天" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.settlementDay }">{{ detail.settlementDay ? `${detail.settlementDay} 天` : '未设置' }}</text>
         </view>
         <view class="f-row" v-if="taxRateText">
           <text class="f-label">税率</text>
@@ -137,15 +145,31 @@
       </view>
 
       <!-- 5. 地址信息 -->
-      <view class="pd-group" v-if="hasAddr">
+      <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>地址信息</text></view>
-        <view class="f-row" v-if="detail.province"><text class="f-label">省份</text><text class="f-value">{{ detail.province }}</text></view>
-        <view class="f-row" v-if="detail.city"><text class="f-label">城市</text><text class="f-value">{{ detail.city }}</text></view>
-        <view class="f-row" v-if="detail.district"><text class="f-label">区县</text><text class="f-value">{{ detail.district }}</text></view>
-        <view class="f-row" v-if="addrDetail"><text class="f-label">详细地址</text><text class="f-value">{{ addrDetail }}</text></view>
+        <view class="f-row">
+          <text class="f-label">省份</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.province" placeholder="如 广东省" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.province }">{{ detail.province || '如 广东省' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">城市</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.city" placeholder="如 广州市" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.city }">{{ detail.city || '如 广州市' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">区县</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.district" placeholder="如 天河区" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.district }">{{ detail.district || '如 天河区' }}</text>
+        </view>
+        <view class="f-row">
+          <text class="f-label">详细地址</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.address" placeholder="街道、门牌号" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !addrDetail }">{{ addrDetail || '街道、门牌号' }}</text>
+        </view>
       </view>
 
-      <!-- 6. 标签与备注（标签取分类 supplyType，备注取 remark，均为真实字段） -->
+      <!-- 6. 标签与备注（标签取分类 supplyType，备注真实字段；行内编辑） -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
         <view class="tag-box">
@@ -156,9 +180,10 @@
             <text class="bank-empty-text">暂无标签</text>
           </view>
         </view>
-        <view class="f-row" v-if="detail.remark">
+        <view class="f-row">
           <text class="f-label">备注</text>
-          <text class="f-value">{{ detail.remark }}</text>
+          <input v-if="showEdit" class="f-inp" v-model="editForm.remark" placeholder="合作约定、对账日、配送要求等" placeholder-class="f-ph" />
+          <text v-else class="f-value" :class="{ 'f-value--ph': !detail.remark }">{{ detail.remark || '合作约定、对账日、配送要求等' }}</text>
         </view>
       </view>
 
@@ -204,86 +229,15 @@
 
     <view class="safe-bottom"></view>
 
-    <!-- 底部操作栏 -->
+    <!-- 底部操作栏（对齐原稿：编辑态=取消/保存；删除暂不提供） -->
     <view class="action-bar" v-if="detail">
-      <view class="ab-btn ab-ghost" @tap="openEdit"><text>修改</text></view>
-      <view class="ab-btn ab-primary" @tap="toggleStatus">
-        <text>{{ isOn ? '停用' : '启用' }}</text>
-      </view>
-    </view>
-
-    <!-- 编辑弹层 -->
-    <view class="overlay" v-if="showEdit" @tap="showEdit = false">
-      <view class="panel" @tap.stop>
-        <view class="panel-title"><text>编辑供应商</text></view>
-        <scroll-view class="panel-body" scroll-y>
-          <view class="form-item">
-            <text class="form-label">供应商名称 <text class="required">*</text></text>
-            <input class="form-input" v-model="editForm.name" placeholder="请输入供应商名称" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">简称</text>
-            <input class="form-input" v-model="editForm.shortName" placeholder="用于开单快速选择" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">联系人</text>
-            <input class="form-input" v-model="editForm.contactPerson" placeholder="请输入联系人姓名" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">联系电话</text>
-            <input class="form-input" v-model="editForm.contactMobile" type="number" placeholder="请输入联系电话" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">结算方式</text>
-            <view class="settle-chips">
-              <view
-                class="settle-chip"
-                v-for="opt in settleOptions"
-                :key="opt.value"
-                :class="{ 'settle-chip--on': editForm.settlementType === opt.value }"
-                @tap="editForm.settlementType = opt.value"
-              >
-                <text>{{ opt.label }}</text>
-              </view>
-            </view>
-          </view>
-
-          <view class="form-item" v-if="editForm.settlementType !== 'CASH'">
-            <text class="form-label">结算日（每月）</text>
-            <input class="form-input" v-model="editForm.settlementDay" type="number" placeholder="如 5 表示每月 5 日" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">税率（%）</text>
-            <input class="form-input" v-model="editForm.taxRate" type="digit" placeholder="如 13 表示 13%" placeholder-class="form-ph" />
-          </view>
-
-          <view class="form-item">
-            <text class="form-label">开户银行</text>
-            <input class="form-input" v-model="editForm.bankName" placeholder="如 工商银行贵阳分行" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">银行账号</text>
-            <input class="form-input" v-model="editForm.bankAccount" placeholder="结算账户卡号" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">账户名称</text>
-            <input class="form-input" v-model="editForm.bankAccountName" placeholder="开户名（单位）" placeholder-class="form-ph" />
-          </view>
-
-          <view class="form-item">
-            <text class="form-label">详细地址</text>
-            <textarea class="form-area" v-model="editForm.address" placeholder="省 / 市 / 区 / 详细地址" placeholder-class="form-ph" />
-          </view>
-          <view class="form-item">
-            <text class="form-label">备注</text>
-            <textarea class="form-area" v-model="editForm.remark" placeholder="合作说明、账期等" placeholder-class="form-ph" />
-          </view>
-        </scroll-view>
-        <view class="panel-ft">
-          <view class="m-btn m-btn--ghost" @tap="showEdit = false"><text>取消</text></view>
-          <view class="m-btn m-btn--primary" @tap="submitEdit"><text>保存</text></view>
-        </view>
-      </view>
+      <block v-if="showEdit">
+        <view class="ab-btn ab-ghost" @tap="cancelEdit"><text>取消</text></view>
+        <view class="ab-btn ab-primary" @tap="submitEdit"><text>保存</text></view>
+      </block>
+      <block v-else>
+        <view class="ab-btn ab-primary" @tap="openEdit"><text>修改</text></view>
+      </block>
     </view>
 
     <!-- 历史单据覆盖式子页 -->
@@ -302,6 +256,12 @@ import BanksCard, { type BankAccount } from '@/components/BanksCard.vue'
 
 const detail = ref<Supplier | null>(null)
 const supplierId = ref<number>(0)
+// 新增模式（列表「新增」→ detail?id=new）：保存走 POST
+const isNewSupplier = ref(false)
+const pageTitle = computed(() => {
+  if (isNewSupplier.value) return '新增供应商'
+  return detail.value?.shortName || detail.value?.name || '供应商详情'
+})
 const loading = ref(false)
 
 /** 供应商统计（应付账款 = SUM(payable_amount)） */
@@ -327,7 +287,8 @@ const editStatusText = computed(() => {
 })
 const editStatusCls = computed(() => {
   if (!showEdit.value) return 'hd-status--saved'
-  return editDirty.value ? 'hd-status--draft' : 'hd-status--draft'
+  // 修复：此前三元两分支相同（死条件），「编辑中」与「未保存」无法区分
+  return editDirty.value ? 'hd-status--draft' : 'hd-status--editing'
 })
 // 表单任一字段变动即置为「未保存」（原稿 dirty 语义；editForm 声明必须在本 watch 之前，否则 TDZ 崩溃）
 const editForm = reactive<{
@@ -343,6 +304,10 @@ const editForm = reactive<{
   bankAccountName: string
   address: string
   remark: string
+  supplyType: string
+  province: string
+  city: string
+  district: string
 }>({
   name: '',
   shortName: '',
@@ -356,7 +321,14 @@ const editForm = reactive<{
   bankAccountName: '',
   address: '',
   remark: '',
+  supplyType: '',
+  province: '',
+  city: '',
+  district: '',
 })
+
+/** 原稿供应商分类 */
+const SUP_CATS = ['食品饮料', '日用百货', '生鲜果蔬', '粮油调味', '酒水饮品', '包装物料']
 watch(editForm, () => { editDirty.value = true }, { deep: true })
 
 /**
@@ -375,7 +347,8 @@ const settleDisplayOptions = computed<{ label: string; value: string; pending?: 
 })
 
 const isOn = computed(() => (detail.value?.status ?? 0) === 1)
-const settlementType = computed(() => detail.value?.settlementType || '')
+const settlementType = computed(() => (showEdit.value ? editForm.settlementType : detail.value?.settlementType) || '')
+const supplyTypeView = computed(() => (showEdit.value ? editForm.supplyType : detail.value?.supplyType) || '')
 
 const avatarText = computed(() => (detail.value?.name || '供').charAt(0))
 
@@ -420,11 +393,6 @@ const bankAccounts = computed<BankAccount[]>({
 const tags = computed(() => {
   const t = detail.value?.supplyType
   return t ? [t] : []
-})
-
-const settlementDayText = computed(() => {
-  const day = detail.value?.settlementDay
-  return day ? `每月 ${day} 日` : ''
 })
 
 const taxRateText = computed(() => {
@@ -526,8 +494,13 @@ function openDoc() {
   docVisible.value = true
 }
 
-// —— 编辑 ——
+// —— 编辑（对齐原稿：修改进入行内编辑，取消还原） ——
 const showEdit = ref(false)
+
+function cancelEdit() {
+  openEdit()
+  showEdit.value = false
+}
 
 function openEdit() {
   const d = detail.value
@@ -544,6 +517,10 @@ function openEdit() {
   editForm.bankAccountName = d.bankAccountName || ''
   editForm.address = d.address || ''
   editForm.remark = d.remark || ''
+  editForm.supplyType = d.supplyType || ''
+  editForm.province = d.province || ''
+  editForm.city = d.city || ''
+  editForm.district = d.district || ''
   showEdit.value = true
   nextTick(() => { editDirty.value = false })
 }
@@ -554,6 +531,24 @@ async function submitEdit() {
     return
   }
   try {
+    if (isNewSupplier.value) {
+      await supplierApi.create({
+        name: editForm.name.trim(),
+        shortName: editForm.shortName.trim() || undefined,
+        // 修复：此前硬编码 undefined，导致用户在「分类」chips 中的选择被静默丢弃
+        supplyType: editForm.supplyType.trim() || undefined,
+        contactPerson: editForm.contactPerson.trim() || undefined,
+        contactMobile: editForm.contactMobile.trim() || undefined,
+        settlementType: editForm.settlementType,
+        settlementDay: editForm.settlementDay ? Number(editForm.settlementDay) : undefined,
+        address: editForm.address.trim() || undefined,
+        remark: editForm.remark.trim() || undefined,
+      })
+      uni.showToast({ title: '新增成功', icon: 'success' })
+      showEdit.value = false
+      setTimeout(() => uni.navigateBack(), 700)
+      return
+    }
     await supplierApi.update(supplierId.value, {
       name: editForm.name.trim(),
       shortName: editForm.shortName.trim() || undefined,
@@ -567,6 +562,10 @@ async function submitEdit() {
       bankAccountName: editForm.bankAccountName.trim() || undefined,
       address: editForm.address.trim() || undefined,
       remark: editForm.remark.trim() || undefined,
+      supplyType: editForm.supplyType.trim() || undefined,
+      province: editForm.province.trim() || undefined,
+      city: editForm.city.trim() || undefined,
+      district: editForm.district.trim() || undefined,
     })
     showEdit.value = false
     uni.showToast({ title: '已保存', icon: 'success' })
@@ -647,6 +646,32 @@ async function loadReturns() {
 }
 
 onLoad((query: any) => {
+  if (query?.id === 'new') {
+    // 新增供应商（对齐原稿 openNew）：详情页承接空表单，直接进入编辑态，保存走 POST
+    isNewSupplier.value = true
+    detail.value = {
+      id: 0, supplierCode: '', name: '', status: 1, creditLevel: 'B',
+      contacts: [],
+    } as Supplier
+    showEdit.value = true
+    editForm.name = ''
+    editForm.shortName = ''
+    editForm.contactPerson = ''
+    editForm.contactMobile = ''
+    editForm.settlementType = 'MONTHLY'
+    editForm.settlementDay = ''
+    editForm.taxRate = ''
+    editForm.bankName = ''
+    editForm.bankAccount = ''
+    editForm.bankAccountName = ''
+    editForm.address = ''
+    editForm.remark = ''
+    editForm.supplyType = ''
+    editForm.province = ''
+    editForm.city = ''
+    editForm.district = ''
+    return
+  }
   supplierId.value = Number(query?.id ?? 0)
   if (supplierId.value) {
     loadDetail()
@@ -830,6 +855,7 @@ onLoad((query: any) => {
 }
 .hd-status--saved { background: $zx-badge-success-bg; color: $zx-badge-success-strong; }
 .hd-status--draft { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.hd-status--editing { background: $uni-color-primary-soft; color: $uni-color-primary; }
 .bank-pending-tip {
   display: block;
   padding: 12rpx 32rpx 24rpx;

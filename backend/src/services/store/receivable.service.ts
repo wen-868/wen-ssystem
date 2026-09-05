@@ -107,11 +107,54 @@ export async function getDashboard(params: {
   const pendingOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
   const todaySales = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
   const unreceived = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
+
+  // 月度 KPI + 订单进度（首页对齐 v1.2 原稿：本月营业额/本月订单/本月毛利 + 待配送/待取货/待收款/已完成）
+  const monthWhere = `${whereStore} AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')`;
+  const monthSales = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${monthWhere}`, p, tenantId);
+  const monthOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${monthWhere}`, p, tenantId);
+  const pendingDelivery = await queryOneWithTenant<CntRow>(
+    `SELECT COUNT(*) AS cnt FROM t_miniapp_order ${monthWhere} AND order_status IN ('PENDING_SHIP', 'WAIT_DELIVERY', 'ACCEPTED', 'DELIVERING')`, p, tenantId
+  );
+  const pendingPickup = await queryOneWithTenant<CntRow>(
+    `SELECT COUNT(*) AS cnt FROM t_miniapp_order ${monthWhere} AND order_status = 'CONFIRMED'`, p, tenantId
+  );
+  const pendingPayment = await queryOneWithTenant<CntRow>(
+    `SELECT COUNT(*) AS cnt FROM t_miniapp_order ${monthWhere} AND order_status IN ('UNPAID', 'PENDING_PAYMENT')`, p, tenantId
+  );
+  const completedToday = await queryOneWithTenant<CntRow>(
+    `SELECT COUNT(*) AS cnt FROM t_miniapp_order ${monthWhere} AND order_status = 'COMPLETED' AND DATE(updated_at) = CURDATE()`, p, tenantId
+  );
+  // 本月毛利（口径对齐 finance-report：收入 − 商品成本 − 销售退货）
+  const monthIncome = await queryOneWithTenant<TotalRow>(
+    `SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${monthWhere} AND business_status NOT IN ('DRAFT', 'VOIDED')`, p, tenantId
+  );
+  const monthCost = await queryOneWithTenant<TotalRow>(
+    `SELECT COALESCE(SUM(sbi.total_bottle_qty * pp.cost_price), 0) AS total
+     FROM t_sale_bill_item sbi
+     JOIN t_sale_bill sb ON sb.bill_no = sbi.bill_no AND sb.tenant_id = sbi.tenant_id
+     JOIN t_product_price pp ON pp.sku_id = sbi.sku_id AND pp.tenant_id = sbi.tenant_id
+     WHERE sb.tenant_id = ? AND sb.business_status NOT IN ('DRAFT', 'VOIDED')
+       AND sb.created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')`,
+    [tenantId], tenantId
+  );
+  const monthReturn = await queryOneWithTenant<TotalRow>(
+    `SELECT COALESCE(SUM(refund_amount), 0) AS total FROM t_sale_return WHERE tenant_id = ? AND return_status NOT IN ('VOIDED') AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')`,
+    [tenantId], tenantId
+  );
+  const monthProfit = Number(monthIncome?.total ?? 0) - Number(monthCost?.total ?? 0) - Number(monthReturn?.total ?? 0);
+
   return {
     todayOrderCount: todayOrders?.cnt ?? 0,
     pendingOrderCount: pendingOrders?.cnt ?? 0,
     todaySalesAmount: todaySales?.total ?? 0,
     unReceivedAmount: unreceived?.total ?? 0,
+    monthSalesAmount: monthSales?.total ?? 0,
+    monthOrderCount: monthOrders?.cnt ?? 0,
+    monthProfit,
+    pendingDeliveryCount: pendingDelivery?.cnt ?? 0,
+    pendingPickupCount: pendingPickup?.cnt ?? 0,
+    pendingPaymentCount: pendingPayment?.cnt ?? 0,
+    completedTodayCount: completedToday?.cnt ?? 0,
     storeId
   };
 }
