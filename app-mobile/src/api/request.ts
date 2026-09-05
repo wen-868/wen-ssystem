@@ -37,6 +37,15 @@ interface RequestResponse<T = any> {
   traceId: string
 }
 
+/**
+ * 并发 401 去重锁
+ *
+ * token 失效时，首屏往往有多个请求同时返回 401。若每个都独立执行
+ * 清存储 + toast + reLaunch，会造成重复弹窗与多次重定位（页面闪烁、登录页入栈多次）。
+ * 这里只让首个 401 执行跳转动作，其余仅 reject。
+ */
+let unauthorizedHandling = false
+
 function getToken(): string {
   return uni.getStorageSync('merchant_token') || ''
 }
@@ -99,9 +108,13 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
           uni.removeStorageSync('merchant_token')
           uni.removeStorageSync('merchant_user')
           uni.removeStorageSync('merchant_tenant_id')
-          if (!silent) {
+          if (!silent && !unauthorizedHandling) {
+            // 并发去重：仅首个 401 弹提示并跳转，避免重复 reLaunch 与重复弹窗
+            unauthorizedHandling = true
             uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
             uni.reLaunch({ url: '/pages/login/login' })
+            // 跳转完成后释放锁，保证下次真正过期时仍能正常触发
+            setTimeout(() => { unauthorizedHandling = false }, 1500)
           }
           reject(new Error('登录已过期，请重新登录'))
           return

@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ordersApi, billHistoryApi, storeSaleBillsApi, type BillHistoryItem } from '@/api/modules/orders'
 import { instantRetailApi, type RetailOrder } from '@/api/modules/instant-retail'
 import { saleReturnApi, purchaseReturnApi } from '@/api/modules/returns'
@@ -725,6 +725,13 @@ onMounted(() => {
   document.addEventListener('click', onDocClickForFilter)
   // #endif
 })
+
+// #ifdef H5
+// 修复内存泄漏：订单页离开后点击任意处仍会执行该回调并操作已卸载组件的筛选状态
+onUnmounted(() => {
+  document.removeEventListener('click', onDocClickForFilter)
+})
+// #endif
 </script>
 
 <style lang="scss" scoped>

@@ -762,7 +762,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watch } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
@@ -2269,6 +2269,15 @@ onMounted(() => {
   document.addEventListener('focusout', onDocFocus)
   // #endif
 })
+
+// #ifdef H5
+// 修复内存泄漏：页面卸载时解绑全局监听，否则监听与闭包持有的组件实例无法回收，
+// 且离开本页后任意输入框聚焦仍会误触发底部操作栏隐藏逻辑
+onUnmounted(() => {
+  document.removeEventListener('focusin', onDocFocus)
+  document.removeEventListener('focusout', onDocFocus)
+})
+// #endif
 
 // 输入框聚焦态（H5 键盘遮挡处理）
 const keyboardHideBar = ref(false)
