@@ -43,7 +43,6 @@ export const functionMenu: FunctionGroup[] = [
     id: 'goods',
     title: '商品库存',
     items: [
-      { code: 'goods:list', label: '商品列表', path: '/pages/products/products', icon: '/static/icons/fn-product.svg' },
       { code: 'goods:category', label: '商品分类', path: '/pages-sub/product/categories/categories', icon: '/static/icons/fn-category.svg' },
       { code: 'goods:price', label: '价格管理', path: '/pages-sub/product/price/price-manage', icon: '/static/icons/fn-price.svg' },
       { code: 'goods:batch', label: '批次管理', path: '/pages-sub/product/batches/batch-list', icon: '/static/icons/fn-batch.svg' },

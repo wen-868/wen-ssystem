@@ -74,7 +74,7 @@
             </view>
             <text class="lv-tip" v-if="nextLevel">
               累计积分 <text class="lv-strong">{{ pointBase }}</text>，距「{{ nextLevelName }}」还需
-              <text class="lv-strong">{{ remain }}</text> 积分（{{ nextMin }} 起）
+              <text class="lv-strong">{{ levelProgress.remain }}</text> 积分（{{ nextMin }} 起）
             </text>
             <text class="lv-tip" v-else>
               累计积分已达 <text class="lv-strong">{{ pointBase }}</text>，当前为最高等级「{{ currentLevelName }}」
@@ -150,7 +150,7 @@
         </view>
       </view>
 
-      <!-- 7. 标签与备注（对齐原稿：标签可增删 + 备注；后端会员无标签/备注存储 → 占位不造假） -->
+      <!-- 7. 标签与备注（对齐原稿：标签可增删 + 备注；后端会员无标签存储 → 标签占位，备注走真实 t_member.remark） -->
       <view class="pd-group">
         <view class="pd-gtitle"><view class="gt-bar"></view><text>标签与备注</text></view>
         <view class="f-row">
@@ -159,7 +159,7 @@
         </view>
         <view class="f-row">
           <text class="f-label">备注</text>
-          <text class="f-value f-value--pending">后端对接中</text>
+          <text class="f-value">{{ member.remark || '—' }}</text>
         </view>
       </view>
 
@@ -216,8 +216,8 @@
     <view v-if="dlg" class="dlg-mask" @tap="closeDlg">
       <view class="dlg" @tap.stop>
         <text class="dlg-t">{{ dlg === 'recharge' ? '客户充值' : '调整积分' }}</text>
-        <text v-if="dlg === 'recharge'" class="dlg-d">{{ member.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
-        <text v-else class="dlg-d">{{ member.name }} · 当前积分 {{ pointBase }}</text>
+        <text v-if="dlg === 'recharge'" class="dlg-d">{{ member?.name }} · 当前余额 ¥{{ fmt(balance) }}</text>
+        <text v-else class="dlg-d">{{ member?.name }} · 当前积分 {{ pointBase }}</text>
         <input
           v-if="dlg === 'recharge'"
           class="dlg-inp" v-model="dlgValue" type="digit" placeholder="0.00" placeholder-class="dlg-ph"
@@ -236,11 +236,10 @@
       </view>
     </view>
 
-    <!-- 修改客户弹层（对齐设计稿「修改」按钮；字段以会员更新接口真实能力为准，
-         性别/生日/标签 待后端支持后开放——见 P3 文档 5.2） -->
+    <!-- 修改/新增客户弹层（字段以 t_member 真实列为准：名称/手机号/客户类型/地址） -->
     <view v-if="editVisible" class="dlg-mask" @tap="closeEdit">
       <view class="dlg dlg--edit" @tap.stop>
-        <text class="dlg-t">修改客户</text>
+        <text class="dlg-t">{{ isNew ? '新增客户' : '修改客户' }}</text>
         <view class="dlg-row">
           <text class="dlg-lb">客户名称</text>
           <input class="dlg-inp--row" v-model="editForm.name" placeholder="批发为商号名称" placeholder-class="dlg-ph" />
@@ -250,20 +249,19 @@
           <input class="dlg-inp--row" v-model="editForm.mobile" type="number" placeholder="11 位手机号" placeholder-class="dlg-ph" />
         </view>
         <view class="dlg-row">
-          <text class="dlg-lb">省份</text>
-          <input class="dlg-inp--row" v-model="editForm.province" placeholder="如 广东省" placeholder-class="dlg-ph" />
+          <text class="dlg-lb">客户类型</text>
+          <view class="dlg-chips">
+            <view class="dlg-chip" :class="{ 'dlg-chip--on': editForm.customerType === 'RETAIL' }" @tap="editForm.customerType = 'RETAIL'"><text>零售客户</text></view>
+            <view class="dlg-chip" :class="{ 'dlg-chip--on': editForm.customerType === 'WHOLESALE' }" @tap="editForm.customerType = 'WHOLESALE'"><text>批发客户</text></view>
+          </view>
         </view>
         <view class="dlg-row">
-          <text class="dlg-lb">城市</text>
-          <input class="dlg-inp--row" v-model="editForm.city" placeholder="如 广州市" placeholder-class="dlg-ph" />
+          <text class="dlg-lb">地址</text>
+          <input class="dlg-inp--row" v-model="editForm.address" placeholder="省市区、街道门牌号（选填）" placeholder-class="dlg-ph" />
         </view>
         <view class="dlg-row">
-          <text class="dlg-lb">区/县</text>
-          <input class="dlg-inp--row" v-model="editForm.district" placeholder="如 白云区" placeholder-class="dlg-ph" />
-        </view>
-        <view class="dlg-row">
-          <text class="dlg-lb">详细地址</text>
-          <input class="dlg-inp--row" v-model="editForm.address" placeholder="街道、门牌号等" placeholder-class="dlg-ph" />
+          <text class="dlg-lb">备注</text>
+          <input class="dlg-inp--row" v-model="editForm.remark" placeholder="备注信息（选填）" placeholder-class="dlg-ph" />
         </view>
         <text class="dlg-tip">性别 / 生日 / 标签 待后端支持后开放编辑（P3 文档 5.2）</text>
         <view class="dlg-btns">
@@ -281,7 +279,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { get, put } from '@/api/request'
+import { get, put, post } from '@/api/request'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
 import DocPage, { type DocRow } from '@/components/DocPage.vue'
 
@@ -307,6 +305,8 @@ interface MemberDetail {
   city?: string
   district?: string
   address?: string
+  contact?: string | null
+  remark?: string | null
 }
 
 interface MemberOrder {
@@ -323,6 +323,8 @@ const member = ref<MemberDetail | null>(null)
 const orders = ref<MemberOrder[]>([])
 const loading = ref(false)
 const memberId = ref(0)
+// 新增模式（member-list FAB → ?new=1）：不加载详情，保存走 POST
+const isNew = ref(false)
 
 // 会员等级自动晋级进度（autoRetailLevel，真实数据驱动，不造假）
 const levels = ref<MemberLevel[]>([])
@@ -433,6 +435,7 @@ function goPoints() {
 
 /* ===== 编辑状态徽标（对齐原稿详情头部：已保存 / 编辑中 / 未保存） ===== */
 const editDirty = ref(false)
+const editForm = ref({ name: '', mobile: '', customerType: 'RETAIL' as string, address: '', remark: '' })
 const editStatusText = computed(() => {
   if (!editVisible.value) return '已保存'
   return editDirty.value ? '未保存' : '编辑中'
@@ -442,10 +445,11 @@ const editStatusCls = computed(() => (editVisible.value ? 'hd-status--draft' : '
 watch(editForm, () => { editDirty.value = true }, { deep: true })
 
 /* ===== 充值 / 调整积分 弹窗（严格对齐设计稿：标题+当前值+单输入框+提示+取消/确认） =====
- * 后端：客户充值与积分调整接口均未开放（P3 文档 5.2-#3/#4），
- * 弹窗仅收集输入、提交占位提示，不伪造成功。 */
+ * 充值走真实储值卡：无卡先开卡（首充金额），有卡直接 /admin/store-value-cards/:cardNo/recharge；
+ * 积分走 POST /admin/members/:id/points/adjust（正负调整，写 t_points_record）。 */
 const dlg = ref<'' | 'recharge' | 'points'>('')
 const dlgValue = ref('')
+const dlgSubmitting = ref(false)
 
 function openDlg(which: 'recharge' | 'points') {
   dlgValue.value = ''
@@ -456,28 +460,50 @@ function closeDlg() {
   dlg.value = ''
 }
 
-function confirmDlg() {
+async function confirmDlg() {
+  if (dlgSubmitting.value) return
   const v = Number(dlgValue.value)
   if (dlgValue.value === '' || isNaN(v)) {
     uni.showToast({ title: '请输入有效数值', icon: 'none' })
     return
   }
-  if (dlg.value === 'recharge' && v < 0) {
-    uni.showToast({ title: '余额不能为负数', icon: 'none' })
+  if (!member.value) return
+  if (dlg.value === 'recharge' && v <= 0) {
+    uni.showToast({ title: '充值金额需大于 0', icon: 'none' })
     return
   }
   if (dlg.value === 'points' && pointBase.value + v < 0) {
     uni.showToast({ title: '积分不能为负数', icon: 'none' })
     return
   }
-  uni.showToast({ title: '后端接口对接中，暂不可提交', icon: 'none' })
+  dlgSubmitting.value = true
+  try {
+    if (dlg.value === 'recharge') {
+      const list: any = await get('/admin/store-value-cards', { customerId: memberId.value, page: 1, pageSize: 1 })
+      const card = list?.records?.[0]
+      if (card?.cardNo) {
+        await post(`/admin/store-value-cards/${card.cardNo}/recharge`, { amount: v })
+      } else {
+        await post('/admin/store-value-cards', { customerId: memberId.value, customerName: member.value.name || '会员', initialAmount: v })
+      }
+      uni.showToast({ title: '充值成功', icon: 'success' })
+    } else if (dlg.value === 'points') {
+      await post(`/admin/members/${memberId.value}/points/adjust`, { points: v, type: 'ADJUST', remark: '会员管理手工调整' })
+      uni.showToast({ title: '积分已调整', icon: 'success' })
+    }
+    dlg.value = ''
+    loadDetail()
+  } catch (err: any) {
+    // request 层已 toast 具体失败原因
+  } finally {
+    dlgSubmitting.value = false
+  }
 }
 
 /* ===== 修改客户弹层（对齐设计稿「修改」按钮） =====
  * 保存走 PUT /store/members/:id；该接口后端暂缺失（P3 文档 5.2-#5），
  * 失败时诚实提示，不做本地假保存。 */
 const editVisible = ref(false)
-const editForm = ref({ name: '', mobile: '', province: '', city: '', district: '', address: '' })
 
 function openEdit() {
   const m = member.value
@@ -485,10 +511,9 @@ function openEdit() {
   editForm.value = {
     name: m.name || '',
     mobile: m.mobile || '',
-    province: m.province || '',
-    city: m.city || '',
-    district: m.district || '',
+    customerType: m.customerType || 'RETAIL',
     address: m.address || '',
+    remark: m.remark || '',
   }
   editVisible.value = true
   nextTick(() => { editDirty.value = false })
@@ -496,28 +521,41 @@ function openEdit() {
 
 function closeEdit() {
   editVisible.value = false
+  // 新增模式下详情层无 member 数据（空壳），取消即返回列表，避免露出"会员不存在"空态
+  if (isNew.value) setTimeout(() => uni.navigateBack(), 120)
 }
 
 async function saveEdit() {
-  if (!member.value) return
   if (!editForm.value.name.trim()) {
     uni.showToast({ title: '请填写客户名称', icon: 'none' })
     return
   }
+  if (!editForm.value.mobile.trim()) {
+    uni.showToast({ title: '请填写手机号', icon: 'none' })
+    return
+  }
+  const payload = {
+    name: editForm.value.name.trim(),
+    mobile: editForm.value.mobile.trim(),
+    customerType: editForm.value.customerType,
+    address: editForm.value.address.trim(),
+    remark: editForm.value.remark.trim(),
+  }
   try {
-    await put(`/store/members/${memberId.value}`, {
-      name: editForm.value.name.trim(),
-      mobile: editForm.value.mobile,
-      province: editForm.value.province,
-      city: editForm.value.city,
-      district: editForm.value.district,
-      address: editForm.value.address,
-    })
+    if (isNew.value) {
+      await post('/store/members/manage', payload)
+      editVisible.value = false
+      uni.showToast({ title: '新增成功', icon: 'none' })
+      setTimeout(() => uni.navigateBack(), 600)
+      return
+    }
+    if (!member.value) return
+    await put(`/store/members/${memberId.value}`, payload)
     editVisible.value = false
     uni.showToast({ title: '已保存', icon: 'none' })
     loadDetail()
-  } catch {
-    uni.showToast({ title: '会员更新接口后端对接中，暂不可保存', icon: 'none' })
+  } catch (err: any) {
+    uni.showToast({ title: err?.message || '保存失败，请稍后重试', icon: 'none' })
   }
 }
 
@@ -594,6 +632,13 @@ async function loadLevels() {
 }
 
 onLoad((query: any) => {
+  if (query?.new === '1') {
+    // 新增模式：主体数据为空，直接打开新增表单
+    isNew.value = true
+    editForm.value = { name: '', mobile: '', customerType: 'RETAIL', address: '', remark: '' }
+    editVisible.value = true
+    return
+  }
   memberId.value = Number(query?.id ?? 0)
   loadDetail()
   loadOrders()
@@ -1038,6 +1083,26 @@ onLoad((query: any) => {
   text-align: center;
 }
 .dlg-ph { color: $uni-gray-300; }
+/* 客户类型选择 chips（新增/编辑弹层） */
+.dlg-chips { display: flex; gap: 16rpx; flex: 1; }
+.dlg-chip {
+  flex: 1;
+  height: 72rpx;
+  background: $uni-bg-color-page;
+  border-radius: $uni-border-radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: $uni-gray-500;
+  border: 2rpx solid transparent;
+}
+.dlg-chip--on {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: $uni-color-primary;
+  color: $uni-color-primary;
+  font-weight: 600;
+}
 .dlg-tip {
   display: block;
   margin-top: 14rpx;

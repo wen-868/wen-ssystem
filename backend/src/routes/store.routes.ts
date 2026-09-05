@@ -21,6 +21,9 @@ storeRouter.get("/products/:spuId", productController.getProductDetail);
 storeRouter.get("/members", productController.listMembers);
 // 会员管理列表（统计 + 分页，设计稿 UI v1.2 会员管理页）
 storeRouter.get("/members/manage", memberController.listMemberManage);
+// 会员维护（新增 / 编辑，会员管理页）
+storeRouter.post("/members/manage", memberController.createMemberManage);
+storeRouter.put("/members/:id(\\d+)", memberController.updateMemberManage);
 // R100-04 会员详情/积分/明细/订单（/members/:id 需在 /members 之后注册）
 storeRouter.get("/members/:id(\\d+)", memberController.getMemberDetail);
 storeRouter.get("/members/:id(\\d+)/points", memberController.getMemberPoints);

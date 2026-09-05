@@ -1,5 +1,6 @@
 import { asyncHandler } from "../../middleware/async-handler";
 import { ok } from "../../shared/response";
+import { z } from "zod";
 import * as memberService from "../../services/store/member.service";
 
 const tenant = (req: any) => req.tenantId as string;
@@ -10,6 +11,36 @@ export const listMemberManage = asyncHandler(async (req, res) => {
   const pageSize = Number(req.query.pageSize || 20);
   const keyword = req.query.keyword ? String(req.query.keyword) : "";
   const result = await memberService.listMemberManage(tenant(req), page, pageSize, keyword);
+  res.json(ok(result));
+});
+
+/** 新增会员（会员管理页维护） */
+export const createMemberManage = asyncHandler(async (req, res) => {
+  const body = z
+    .object({
+      name: z.string().min(1).max(64),
+      mobile: z.string().min(1).max(20),
+      customerType: z.enum(["RETAIL", "WHOLESALE"]).default("RETAIL"),
+      address: z.string().max(255).optional(),
+    })
+    .parse(req.body);
+  const result = await memberService.createMemberManage(tenant(req), body);
+  res.json(ok(result));
+});
+
+/** 更新会员（会员详情「修改」弹层） */
+export const updateMemberManage = asyncHandler(async (req, res) => {
+  const body = z
+    .object({
+      name: z.string().min(1).max(64).optional(),
+      mobile: z.string().min(1).max(20).optional(),
+      customerType: z.enum(["RETAIL", "WHOLESALE"]).optional(),
+      address: z.string().max(255).optional(),
+      remark: z.string().max(255).optional(),
+    })
+    .parse(req.body);
+  await memberService.updateMemberManage(tenant(req), Number(req.params.id), body);
+  const result = await memberService.getMemberDetail(tenant(req), Number(req.params.id));
   res.json(ok(result));
 });
 

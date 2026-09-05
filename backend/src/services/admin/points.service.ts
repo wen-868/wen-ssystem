@@ -95,8 +95,15 @@ export async function updatePointsRule(id: number, params: { ruleName?: string; 
 // ===== 积分调整 =====
 export async function adjustCustomerPoints(params: { customerId: number; points: number; type: string; remark?: string; tenantId: string }) {
   const { customerId, points, type, remark, tenantId } = params;
-  const cp = await queryOneWithTenant<CustomerPointsAvailableRow>("SELECT id, available_points FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
-  if (!cp) throw new Error("客户积分账户不存在");
+  let cp = await queryOneWithTenant<CustomerPointsAvailableRow>("SELECT id, available_points FROM t_customer_points WHERE customer_id = ? AND tenant_id = ?", [customerId, tenantId], tenantId);
+  if (!cp) {
+    // 客户尚无积分账户（从未产生积分）→ 自动开户后调整，避免直接 500
+    await queryWithTenant(
+      "INSERT INTO t_customer_points (customer_id, available_points, total_points, frozen_points, tenant_id) VALUES (?, 0, 0, 0, ?)",
+      [customerId, tenantId], tenantId
+    );
+    cp = { id: 0, available_points: 0 };
+  }
   const newAvailable = Math.max(0, Number(cp.available_points) + points);
   const recordNo = makeBizNo("JF");
   await queryWithTenant(

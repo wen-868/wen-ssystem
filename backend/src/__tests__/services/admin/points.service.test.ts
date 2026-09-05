@@ -63,10 +63,14 @@ describe("points.service - 积分规则", () => {
 });
 
 describe("points.service - adjustCustomerPoints", () => {
-  it("积分账户不存在时抛错", async () => {
+  it("积分账户不存在时自动开户再调整（不再抛错）", async () => {
     mocks.queryOneWithTenant.mockResolvedValue(null);
-    await expect(adjustCustomerPoints({ customerId: 1, points: 10, type: "ADJUST", tenantId: "t1" }))
-      .rejects.toThrow("客户积分账户不存在");
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+    const res = await adjustCustomerPoints({ customerId: 1, points: 10, type: "ADJUST", tenantId: "t1" });
+    expect(res).toEqual({ recordNo: "JF202608060001", customerId: 1, points: 10, balanceAfter: 10 });
+    // 第一次 queryWithTenant 应为自动开户 INSERT
+    const insertSql = mocks.queryWithTenant.mock.calls[0][0] as string;
+    expect(insertSql).toContain("INSERT INTO t_customer_points");
   });
 
   it("扣减时余额不为负，total_points 只加正值", async () => {

@@ -48,7 +48,7 @@
       </view>
       <view class="sum-card">
         <text class="sum-lb">储值余额合计</text>
-        <text class="sum-vl sum-vl--plain">对接中</text>
+        <text class="sum-vl sum-vl--plain">{{ stats.balanceSum != null ? `¥${fmt(stats.balanceSum)}` : '对接中' }}</text>
       </view>
     </view>
 
@@ -71,13 +71,16 @@
               <text v-if="m.status === 0" class="st-badge st-badge--off">已冻结</text>
             </view>
             <view class="mc-mobile">
-              <text>{{ m.mobile || '—' }}</text>
+              <text v-if="m.contact">{{ m.contact }} · </text><text>{{ m.mobile || '—' }}</text>
             </view>
             <view class="mc-addr">
               <text>{{ m.addressText || '—' }}</text>
             </view>
-            <view class="mc-tags" v-if="typeName(m)">
+            <view class="mc-tags">
               <text class="mc-tag">{{ typeName(m) }}</text>
+              <text v-if="(m.balance || 0) > 0" class="mc-tag mc-tag--warn">余额 ¥{{ fmt(m.balance || 0) }}</text>
+              <text v-if="(m.balance || 0) > 0" class="mc-tag">储值会员</text>
+              <text v-if="isNewMember(m)" class="mc-tag">新会员</text>
             </view>
           </view>
         </view>
@@ -88,7 +91,7 @@
           </view>
           <view class="mc-fi">
             <text class="mc-fl">储值余额</text>
-            <text class="mc-fv">对接中</text>
+            <text class="mc-fv">{{ m.balance != null ? `¥${fmt(m.balance)}` : '对接中' }}</text>
           </view>
           <view class="mc-fi">
             <text class="mc-fl">累计消费</text>
@@ -112,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { get } from '@/api/request'
 import { memberLevelApi, type MemberLevel } from '@/api/modules/member-levels'
 
@@ -125,9 +129,12 @@ interface MemberRow {
   levelName?: string | null
   points: number
   status?: number
+  contact?: string | null
+  balance?: number | null
   lastOrderAt: string | null
   createdAt: string
   totalConsume: number
+  addressText?: string
 }
 
 const typeTabs = [
@@ -138,7 +145,8 @@ const typeTabs = [
 type TabKey = 'all' | 'WHOLESALE' | 'RETAIL'
 
 const list = ref<MemberRow[]>([])
-const stats = ref({ totalMembers: 0, monthNew: 0, activeRate: 0, wholesaleCount: 0, retailCount: 0 })
+// balanceSum 为 null 表示后端尚未返回该字段（未部署）→ 显示「对接中」
+const stats = ref({ totalMembers: 0, monthNew: 0, activeRate: 0, wholesaleCount: 0, retailCount: 0, balanceSum: null as number | null })
 const keyword = ref('')
 const activeTab = ref<TabKey>('all')
 const loading = ref(false)
@@ -170,6 +178,13 @@ function levelName(m: MemberRow): string {
 }
 function typeName(m: MemberRow): string {
   return isWholesale(m) ? '批发客户' : '零售客户'
+}
+/** 本月注册即「新会员」（与后端统计 monthNew 同口径） */
+function isNewMember(m: MemberRow): boolean {
+  if (!m.createdAt) return false
+  const d = new Date(m.createdAt)
+  const now = new Date()
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
 }
 function fmt(n: number): string {
   const v = Number(n) || 0
@@ -238,6 +253,10 @@ function onLoadMore() {
 }
 
 onMounted(() => { loadLevels(); load(true) })
+// 从详情/新增返回时刷新列表（新增/编辑保存后数据可能已变化）
+onShow(() => {
+  if (page.value > 1 || list.value.length > 0) load(true)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -375,6 +394,11 @@ onMounted(() => { loadLevels(); load(true) })
   background: $uni-bg-color-soft;
   border-radius: $uni-border-radius-pill;
   padding: 2rpx 12rpx;
+}
+.mc-tag--warn {
+  color: $uni-color-warning;
+  background: $uni-color-warning-soft;
+  font-weight: 600;
 }
 .mc-foot {
   display: flex;
