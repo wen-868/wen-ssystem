@@ -107,9 +107,9 @@ const sysConfigApi = {
 
   /**
    * 更新当前租户企业信息（企业信息维护）
-   * PUT /api/admin/sys-config/tenant-info
+   * PUT /api/admin/sys-config/tenant-info（后端 zod 各字段均可选，仅公司名称必填）
    */
-  async updateTenantInfo(data: TenantInfo): Promise<TenantInfo | null> {
+  async updateTenantInfo(data: Partial<TenantInfo> & { companyName: string }): Promise<TenantInfo | null> {
     return put('/admin/sys-config/tenant-info', data)
   },
 }

@@ -73,7 +73,8 @@ export const createStore = asyncHandler(async (req, res) => {
     lat: z.number().optional(),
     contact: z.string().optional(),
     phone: z.string().optional(),
-    deliveryRadius: z.number().default(3)
+    deliveryRadius: z.number().default(3),
+    storeType: z.enum(['STORE', 'WAREHOUSE']).optional()
   }).parse(req.body);
   const result = await employeeService.createStore(body, req.tenantId!);
   res.json(ok(result));
@@ -89,6 +90,10 @@ export const updateStore = asyncHandler(async (req, res) => {
     name: z.string().optional(),
     address: z.string().optional(),
     phone: z.string().optional(),
+    contact: z.string().optional(),
+    storeCode: z.string().optional(),
+    storeType: z.enum(['STORE', 'WAREHOUSE']).optional(),
+    isDefault: z.number().optional(),
     status: z.number().optional(),
     longitude: z.number().optional(),
     latitude: z.number().optional()

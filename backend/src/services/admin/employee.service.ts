@@ -247,12 +247,13 @@ export async function createStore(body: {
   contact?: string;
   phone?: string;
   deliveryRadius?: number;
+  storeType?: string;
 }, tenantId: string) {
   const storeCode = makeBizNo("MD");
   await queryWithTenant(
-    `INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, tenant_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [storeCode, body.name, body.address, body.lng ?? null, body.lat ?? null, body.contact ?? null, body.phone ?? null, body.deliveryRadius ?? 3, tenantId],
+    `INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, store_type, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [storeCode, body.name, body.address, body.lng ?? null, body.lat ?? null, body.contact ?? null, body.phone ?? null, body.deliveryRadius ?? 3, body.storeType === 'WAREHOUSE' ? 'WAREHOUSE' : 'STORE', tenantId],
     tenantId
   );
   const created = await queryOneWithTenant<StoreIdCodeNameRow>(
@@ -266,7 +267,7 @@ export async function createStore(body: {
 export async function getStore(id: number, tenantId: string) {
   const store = await queryOneWithTenant<StoreListRow>(
     `SELECT id, store_code AS storeCode, name, address, contact, phone, delivery_radius AS deliveryRadius,
-            business_status AS businessStatus, status,
+            business_status AS businessStatus, status, store_type AS storeType, is_default AS isDefault,
             miniapp_appid AS miniappAppid, wx_merchant_name AS wxMerchantName,
             wx_service_phone AS wxServicePhone, wx_head_img AS wxHeadImg, wx_qrcode_url AS wxQrcodeUrl
      FROM t_store WHERE id = ? AND tenant_id = ?`,
@@ -283,6 +284,10 @@ export async function updateStore(id: number, body: {
   name?: string;
   address?: string;
   phone?: string;
+  contact?: string;
+  storeCode?: string;
+  storeType?: string;
+  isDefault?: number;
   status?: number;
   longitude?: number;
   latitude?: number;
@@ -298,6 +303,10 @@ export async function updateStore(id: number, body: {
   if (body.name !== undefined) { updates.push("name = ?"); params.push(body.name); }
   if (body.address !== undefined) { updates.push("address = ?"); params.push(body.address); }
   if (body.phone !== undefined) { updates.push("phone = ?"); params.push(body.phone); }
+  if (body.contact !== undefined) { updates.push("contact = ?"); params.push(body.contact); }
+  if (body.storeCode !== undefined && body.storeCode !== "") { updates.push("store_code = ?"); params.push(body.storeCode); }
+  if (body.storeType !== undefined) { updates.push("store_type = ?"); params.push(body.storeType === 'WAREHOUSE' ? 'WAREHOUSE' : 'STORE'); }
+  if (body.isDefault !== undefined) { updates.push("is_default = ?"); params.push(body.isDefault ? 1 : 0); }
   if (body.status !== undefined) { updates.push("status = ?"); params.push(body.status); }
   if (body.longitude !== undefined) { updates.push("longitude = ?"); params.push(body.longitude); }
   if (body.latitude !== undefined) { updates.push("latitude = ?"); params.push(body.latitude); }

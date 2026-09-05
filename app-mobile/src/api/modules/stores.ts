@@ -29,6 +29,8 @@ export interface StoreForm {
   contactName?: string
   status?: number
   businessHours?: string
+  storeType?: 'STORE' | 'WAREHOUSE'
+  isDefault?: boolean
   longitude?: number
   latitude?: number
 }
@@ -43,7 +45,7 @@ function mapStore(r: any): StoreInfo {
     contactName: r.contactName ?? r.contact_name,
     status: r.status != null ? Number(r.status) : 1,
     businessHours: r.businessHours ?? r.business_hours,
-    type: r.type ?? r.storeType ?? r.store_type ?? 'store',
+    type: String(r.type ?? r.storeType ?? r.store_type ?? 'store').toLowerCase(),
     isDefault: r.isDefault ?? r.is_default ?? false,
     longitude: r.longitude != null ? Number(r.longitude) : undefined,
     latitude: r.latitude != null ? Number(r.latitude) : undefined,
@@ -70,12 +72,32 @@ const storesApi = {
 
   /** 新建门店 */
   async create(data: StoreForm): Promise<any> {
-    return post('/admin/system/stores', data)
+    // 键位对齐后端 zod：contactName→contact, storeType 新增
+    return post('/admin/system/stores', {
+      name: data.name,
+      address: data.address ?? '',
+      contact: data.contactName,
+      phone: data.phone,
+      storeType: data.storeType,
+      longitude: data.longitude,
+      latitude: data.latitude,
+    })
   },
 
   /** 更新门店 */
   async update(id: number, data: StoreForm): Promise<any> {
-    return put(`/admin/system/stores/${id}`, data)
+    return put(`/admin/system/stores/${id}`, {
+      name: data.name,
+      address: data.address,
+      contact: data.contactName,
+      phone: data.phone,
+      storeCode: data.code,
+      storeType: data.storeType,
+      isDefault: data.isDefault != null ? (data.isDefault ? 1 : 0) : undefined,
+      status: data.status,
+      longitude: data.longitude,
+      latitude: data.latitude,
+    })
   },
 
   /** 切换门店状态 */
@@ -112,6 +134,16 @@ const bankAccountsApi = {
       })),
       total: res?.total ?? rows.length,
     }
+  },
+
+  /** 新增收款银行卡 */
+  async create(data: { accountName?: string; bankName: string; accountNo: string; accountType?: string }): Promise<any> {
+    return post('/admin/bank-accounts', data)
+  },
+
+  /** 注销收款银行卡（后端无硬删除，close 即业务删除） */
+  async close(id: number): Promise<any> {
+    return post(`/admin/bank-accounts/${id}/close`)
   },
 }
 
