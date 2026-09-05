@@ -28,6 +28,10 @@ export interface Supplier {
   city?: string | null
   district?: string | null
   createdAt?: string
+  /** 采购聚合（后端列表 SQL 联 t_purchase_order 汇总） */
+  totalPurchase?: number
+  unpaidTotal?: number
+  lastPurchase?: string | null
   /** 结算信息 */
   settlementType?: 'CASH' | 'MONTHLY' | 'QUARTERLY' | string
   settlementDay?: number | null
@@ -55,9 +59,12 @@ export interface SupplierQuery {
   status?: string
 }
 
+/** 后端 GET /admin/suppliers 返回 { records, total, page, pageSize } */
 export interface SupplierListResponse {
-  list: Supplier[]
+  records: Supplier[]
   total: number
+  page?: number
+  pageSize?: number
 }
 
 /** 新增/编辑入参（对齐 createSupplier / updateSupplier zod 契约的字段集合） */

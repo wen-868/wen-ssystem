@@ -1,6 +1,12 @@
 <template>
   <view class="suppliers-page">
-    <page-header title="供应商管理" @back="goBack" />
+    <page-header title="供应商管理" @back="goBack">
+      <template #right>
+        <view class="hd-add" @tap="openCreate">
+          <text class="hd-add-text">+ 新增</text>
+        </view>
+      </template>
+    </page-header>
 
     <!-- 状态 Tab（对齐原稿：全部 / 合作中 / 已停用） -->
     <view class="status-tabs">
@@ -34,7 +40,7 @@
       </view>
     </form>
 
-    <!-- 汇总卡（合作中供应商家数真实；待付款合计列表接口未聚合，标注对接中，不造假） -->
+    <!-- 汇总卡（合作中供应商家数 + 待付款合计 = Σ unpaid_amount，均真实） -->
     <view class="sum-row">
       <view class="sum-card">
         <text class="sum-lb">合作中供应商</text>
@@ -57,21 +63,28 @@
               <text class="st-badge" :class="item.status === 1 ? 'st-on' : 'st-off'">{{ item.status === 1 ? '合作中' : '已停用' }}</text>
             </view>
             <view class="sc-sub">
-              <text>{{ item.contactPerson || '—' }}</text>
-              <text class="sc-dot">·</text>
-              <text>{{ item.contactMobile || '—' }}</text>
+              <text>{{ contactLine(item) }}</text>
             </view>
             <view class="sc-sub sc-sub--muted">
               <text class="sc-code">{{ item.supplierCode || '—' }}</text>
               <text class="sc-dot">·</text>
               <text>{{ item.supplyType || '未分类' }}</text>
             </view>
+            <!-- 标签行（对齐原稿：账期/信用；应付合计接口未提供不造假） -->
+            <view class="sc-tags" v-if="tagList(item).length">
+              <text
+                class="sc-tag"
+                v-for="(t, i) in tagList(item)"
+                :key="i"
+                :class="t.warn ? 'sc-tag--warn' : ''"
+              >{{ t.label }}</text>
+            </view>
           </view>
         </view>
         <view class="sc-foot">
           <view class="sc-fi">
             <text class="sc-fl">累计采购</text>
-            <text class="sc-fv">对接中</text>
+            <text class="sc-fv">{{ purchaseText(item) }}</text>
           </view>
           <view class="sc-fi">
             <text class="sc-fl">结算方式</text>
@@ -79,7 +92,7 @@
           </view>
           <view class="sc-fi">
             <text class="sc-fl">最近采购</text>
-            <text class="sc-fv">对接中</text>
+            <text class="sc-fv sc-fv--sm">{{ lastPurchaseText(item) }}</text>
           </view>
         </view>
         <view class="sc-actions">
@@ -92,12 +105,7 @@
     <view class="empty-state" v-else>
       <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
       <text class="empty-text">{{ list.length ? '没有符合条件的供应商' : '暂无供应商数据' }}</text>
-      <text class="empty-hint" v-if="!list.length">点右下角 + 新增第一家供应商</text>
-    </view>
-
-    <!-- 新增供应商 -->
-    <view class="fab-btn" @tap="openCreate">
-      <text class="fab-icon">+</text>
+      <text class="empty-hint" v-if="!list.length">点右上角「+ 新增」创建第一家供应商</text>
     </view>
 
     <!-- 新增供应商弹层 -->
@@ -170,10 +178,24 @@ const activeTab = ref<'all' | 'on' | 'off'>('all')
 const list = ref<Supplier[]>([])
 const loading = ref(false)
 
-// 列表接口仅返回名称/编码/分类/联系人/状态/结算方式等字段，不含 累计采购/最近采购/应付汇总；
-// 这些聚合值在列表接口未提供，按「不造假」原则显示「对接中」。
+// 列表接口已联 t_purchase_order 聚合：totalPurchase/unpaidTotal/lastPurchase 均为真实数据；
+// 后端未部署新字段时（undefined）优雅降级回「对接中」
 const onCount = computed(() => list.value.filter((s) => s.status === 1).length)
-const payableLabel = computed(() => '对接中')
+const hasAgg = computed(() => list.value.some((s) => s.unpaidTotal !== undefined))
+const payableSum = computed(() => list.value.reduce((sum, s) => sum + Number(s.unpaidTotal || 0), 0))
+const payableLabel = computed(() => (hasAgg.value ? `¥${fmtMoney(payableSum.value)}` : '对接中'))
+
+function fmtMoney(n: number): string {
+  const v = Number(n) || 0
+  return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+function purchaseText(item: Supplier): string {
+  return item.totalPurchase !== undefined ? `¥${fmtMoney(item.totalPurchase || 0)}` : '对接中'
+}
+function lastPurchaseText(item: Supplier): string {
+  if (item.lastPurchase === undefined) return '对接中'
+  return item.lastPurchase ? String(item.lastPurchase).slice(0, 10) : '—'
+}
 
 const filtered = computed<Supplier[]>(() => {
   let arr = list.value
@@ -197,10 +219,27 @@ function avatarText(item: Supplier): string {
   return (item.name || '供').trim().charAt(0) || '供'
 }
 
+/** 联系人行（对齐原稿「陈志明 · 13802345678」，缺省不显示占位符） */
+function contactLine(item: Supplier): string {
+  const parts = [item.contactPerson, item.contactMobile].filter(Boolean)
+  return parts.length ? parts.join(' · ') : '—'
+}
+
 const SETTLE_MAP: Record<string, string> = { CASH: '现结', MONTHLY: '月结', QUARTERLY: '季结' }
 function settleLabel(item: Supplier): string {
   const base = item.settlementType ? SETTLE_MAP[item.settlementType] || item.settlementType : '—'
   return item.settlementDay ? `${base}${item.settlementDay}天` : base
+}
+
+/** 标签行：账期（结算方式派生，非现结才显示）+ 信用等级 + 应付（未付合计>0 时橙色显示，均真实字段） */
+function tagList(item: Supplier): { label: string; warn?: boolean }[] {
+  const tags: { label: string; warn?: boolean }[] = []
+  if (item.settlementType && item.settlementType !== 'CASH') {
+    tags.push({ label: item.settlementDay ? `账期${item.settlementDay}天` : SETTLE_MAP[item.settlementType] || item.settlementType, warn: true })
+  }
+  if (item.creditLevel) tags.push({ label: `信用 ${item.creditLevel}` })
+  if (Number(item.unpaidTotal || 0) > 0) tags.push({ label: `应付 ¥${fmtMoney(item.unpaidTotal || 0)}`, warn: true })
+  return tags
 }
 
 // —— 新增供应商 ——
@@ -270,7 +309,7 @@ async function loadSuppliers() {
   loading.value = true
   try {
     const res = await supplierApi.getList({ page: 1, pageSize: 100 })
-    list.value = res.list || []
+    list.value = res.records || []
   } catch (err) {
     console.error('加载供应商失败:', err)
   } finally {
@@ -424,22 +463,20 @@ onMounted(() => { loadSuppliers() })
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
 .empty-hint { font-size: 24rpx; color: $uni-gray-300; margin-top: 8rpx; }
 
-/* 新增入口（FAB） */
-.fab-btn {
-  position: fixed;
-  right: 40rpx;
-  bottom: calc(60rpx + env(safe-area-inset-bottom));
-  width: 108rpx;
-  height: 108rpx;
-  border-radius: 50%;
-  background: $uni-color-primary;
-  box-shadow: $uni-shadow-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 30;
+/* 头部新增入口（对齐原稿：右上角 + 新增） */
+.hd-add { padding: 8rpx 20rpx; }
+.hd-add-text { font-size: 28rpx; color: $uni-color-primary; font-weight: 600; }
+
+/* 标签行 */
+.sc-tags { display: flex; gap: 10rpx; flex-wrap: wrap; margin-top: 10rpx; }
+.sc-tag {
+  font-size: 20rpx;
+  color: $uni-gray-500;
+  background: $uni-bg-color-page;
+  border-radius: $uni-border-radius-pill;
+  padding: 2rpx 12rpx;
 }
-.fab-icon { font-size: 56rpx; color: $ai-bg-page; line-height: 1; }
+.sc-tag--warn { color: $uni-color-warning; background: $uni-color-warning-soft; font-weight: 600; }
 
 /* 新增供应商弹层 */
 .overlay {

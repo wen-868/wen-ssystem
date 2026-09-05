@@ -147,6 +147,10 @@ export interface SupplierListVO {
   city: string | null;
   district: string | null;
   createdAt: string | Date;
+  /** 采购聚合（列表页展示：累计采购 / 待付款 / 最近采购） */
+  totalPurchase: number;
+  unpaidTotal: number;
+  lastPurchase: string | Date | null;
 }
 
 export interface SupplierDetailVO {
@@ -254,7 +258,7 @@ const SUPPLIER_FIELD_MAP: FieldMapping = {
   remark: "remark",
 };
 
-function mapSupplierRow(row: SupplierRow): SupplierListVO {
+function mapSupplierRow(row: SupplierRow & { total_purchase?: number | string | null; unpaid_total?: number | string | null; last_purchase?: string | Date | null }): SupplierListVO {
   return {
     id: row.id,
     supplierCode: row.supplier_code,
@@ -269,6 +273,10 @@ function mapSupplierRow(row: SupplierRow): SupplierListVO {
     city: row.city,
     district: row.district,
     createdAt: row.created_at,
+    /** 采购聚合（来自 t_purchase_order，移动端列表页展示） */
+    totalPurchase: Number(row.total_purchase ?? 0),
+    unpaidTotal: Number(row.unpaid_total ?? 0),
+    lastPurchase: row.last_purchase ?? null,
   };
 }
 
@@ -353,14 +361,24 @@ class SupplierService {
         params,
         ctx.tenantId
       ),
-      queryWithTenant<SupplierRow>(
-        `SELECT s.*, sc.name AS contact_person, sc.mobile AS contact_mobile
+      queryWithTenant<SupplierRow & { total_purchase: number | string | null; unpaid_total: number | string | null; last_purchase: string | Date | null }>(
+        `SELECT s.*, sc.name AS contact_person, sc.mobile AS contact_mobile,
+                po.total_purchase, po.unpaid_total, po.last_purchase
          FROM t_supplier s
          LEFT JOIN t_supplier_contact sc ON s.id = sc.supplier_id AND sc.is_primary = 1
+         LEFT JOIN (
+           SELECT supplier_id,
+                  SUM(payable_amount) AS total_purchase,
+                  SUM(unpaid_amount) AS unpaid_total,
+                  MAX(created_at) AS last_purchase
+           FROM t_purchase_order
+           WHERE tenant_id = ?
+           GROUP BY supplier_id
+         ) po ON po.supplier_id = s.id
          WHERE ${whereClause}
          ORDER BY s.id DESC
          LIMIT ? OFFSET ?`,
-        [...params, pageSize, offset],
+        [ctx.tenantId, ...params, pageSize, offset],
         ctx.tenantId
       ),
     ]);

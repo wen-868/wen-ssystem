@@ -1144,7 +1144,7 @@ const supplierLabel = computed(() => supplierOptions.value.find(s => s.id === se
 async function loadSuppliers() {
   try {
     const res = await supplierApi.getList({ page: 1, pageSize: 100 })
-    supplierOptions.value = res.list || []
+    supplierOptions.value = res.records || []
   } catch { supplierOptions.value = [] }
 }
 function onSupplierChange(e: any) {

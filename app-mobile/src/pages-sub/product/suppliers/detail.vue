@@ -123,17 +123,17 @@
           <text class="f-value f-value--pending">后端对接中</text>
         </view>
 
-        <!-- 结算银行卡：设计稿为「多张、可增删」；后端暂无按供应商归集的多卡接口，
-             故以 BanksCard 只读展示供应商行内主卡（真实数据），多卡能力待后端。 -->
+        <!-- 结算银行卡：设计稿为「多张、可增删」；后端仅供应商行内单卡（真实数据）。
+             有卡即展示真实主卡；无卡才显示对接中提示。 -->
         <view class="pd-gtitle pd-gtitle--sub"><view class="gt-bar"></view><text>结算银行卡</text></view>
         <BanksCard
           v-model="bankAccounts"
           :editable="false"
           :show-head="false"
           title="结算银行卡"
-          :pending-backend="true"
+          :pending-backend="!hasBank"
         />
-        <text class="bank-pending-tip">设计稿支持多张，后端多卡接口对接中，当前展示主卡</text>
+        <text class="bank-pending-tip" v-if="!hasBank">设计稿支持多张，后端多卡接口对接中，当前展示主卡</text>
       </view>
 
       <!-- 5. 地址信息 -->
@@ -329,7 +329,34 @@ const editStatusCls = computed(() => {
   if (!showEdit.value) return 'hd-status--saved'
   return editDirty.value ? 'hd-status--draft' : 'hd-status--draft'
 })
-// 表单任一字段变动即置为「未保存」（原稿 dirty 语义）
+// 表单任一字段变动即置为「未保存」（原稿 dirty 语义；editForm 声明必须在本 watch 之前，否则 TDZ 崩溃）
+const editForm = reactive<{
+  name: string
+  shortName: string
+  contactPerson: string
+  contactMobile: string
+  settlementType: 'CASH' | 'MONTHLY' | 'QUARTERLY'
+  settlementDay: string
+  taxRate: string
+  bankName: string
+  bankAccount: string
+  bankAccountName: string
+  address: string
+  remark: string
+}>({
+  name: '',
+  shortName: '',
+  contactPerson: '',
+  contactMobile: '',
+  settlementType: 'CASH',
+  settlementDay: '',
+  taxRate: '',
+  bankName: '',
+  bankAccount: '',
+  bankAccountName: '',
+  address: '',
+  remark: '',
+})
 watch(editForm, () => { editDirty.value = true }, { deep: true })
 
 /**
@@ -371,6 +398,10 @@ const primaryContact = computed(() => {
  * 设计稿要求「多张、可增删」，但后端暂无按供应商归集的多卡接口，
  * 故此处以 BanksCard 只读展示主卡，不伪造多卡、不开放增删。
  */
+const hasBank = computed(() => {
+  const d = detail.value
+  return !!(d && (d.bankName || d.bankAccount))
+})
 const bankAccounts = computed<BankAccount[]>({
   get() {
     const d = detail.value
@@ -497,33 +528,6 @@ function openDoc() {
 
 // —— 编辑 ——
 const showEdit = ref(false)
-const editForm = reactive<{
-  name: string
-  shortName: string
-  contactPerson: string
-  contactMobile: string
-  settlementType: 'CASH' | 'MONTHLY' | 'QUARTERLY'
-  settlementDay: string
-  taxRate: string
-  bankName: string
-  bankAccount: string
-  bankAccountName: string
-  address: string
-  remark: string
-}>({
-  name: '',
-  shortName: '',
-  contactPerson: '',
-  contactMobile: '',
-  settlementType: 'CASH',
-  settlementDay: '',
-  taxRate: '',
-  bankName: '',
-  bankAccount: '',
-  bankAccountName: '',
-  address: '',
-  remark: '',
-})
 
 function openEdit() {
   const d = detail.value
