@@ -42,16 +42,16 @@
             },
             "icons" : {
                 "android" : {
-                    "hdpi" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
-                    "xhdpi" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
-                    "xxhdpi" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
-                    "xxxhdpi" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png"
+                    "hdpi" : "static/icons/android/72.png",
+                    "xhdpi" : "static/icons/android/96.png",
+                    "xxhdpi" : "static/icons/android/144.png",
+                    "xxxhdpi" : "static/icons/android/192.png"
                 },
                 "ios" : {
-                    "appstore" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
+                    "appstore" : "static/icons/ios/appstore-1024.png",
                     "iphone" : {
-                        "app@2x" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
-                        "app@3x" : "D:/Users/ZXQL/SharePoint/logo-refine-a-v3.png",
+                        "app@2x" : "static/icons/ios/app-120.png",
+                        "app@3x" : "static/icons/ios/app-180.png",
                         "spotlight@2x" : "static/icons/ios/spotlight-80.png",
                         "spotlight@3x" : "static/icons/ios/spotlight-120.png"
                     }
