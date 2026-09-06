@@ -45,6 +45,8 @@ function onBack() {
   display: flex;
   flex-direction: row;
   align-items: center;
+  /* 标题已绝对定位居中，bar 内左侧=返回键、右侧=按钮区，两端对齐 */
+  justify-content: space-between;
   height: 88rpx;
   padding: 0 32rpx;
 }
@@ -64,9 +66,14 @@ function onBack() {
   color: $zx-gray-323;
 }
 
+/* 标题：宽度恒占整栏一半并居中于整栏（不受左侧返回键/右侧按钮挤压偏移），
+   四个主 tab 页与所有子页面标题位置完全统一 */
 .zx-page-header__title-wrap {
-  flex: 1;
-  min-width: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -96,6 +103,8 @@ function onBack() {
 .zx-page-header__right {
   flex-shrink: 0;
   min-width: 64rpx;
+  /* bar 仅剩右侧元素时（无返回键页面）也保证靠右 */
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;

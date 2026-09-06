@@ -124,7 +124,7 @@ function switchTab(url: string) {
   /* #endif */
   border-radius: 48rpx;
   border: 2rpx solid $zx-black-50;
-  box-shadow: 0 20rpx 60rpx $zx-black-140, 0 -2rpx 4rpx $zx-black-20;
+  box-shadow: 0 8rpx 24rpx $zx-black-140;
   padding: 6rpx 0 calc(6rpx + env(safe-area-inset-bottom));
   /* 裁剪 AI 呼吸光环/圆钮溢出胶囊下缘的部分（溢出会在页面底部形成紫色条） */
   overflow: hidden;

@@ -5,7 +5,7 @@
     <!-- 搜索栏（UI1.2：扫码/订单/消息三入口，40px 热区） -->
     <view class="search-bar" @tap="navigateTo('/pages/products/products')">
       <image class="search-bar-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
-      <text class="search-bar-placeholder">搜索商品、订单、客户名称</text>
+      <text class="search-bar-placeholder">搜索商品/订单/客户</text>
       <view class="search-actions">
         <view class="icon-btn" @tap.stop="navigateTo('/pages/sales/create-sale')">
           <image class="icon-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
@@ -539,10 +539,13 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .home-page {
-  min-height: 100vh;
+  /* scroll-view 必须固定高度：无高度时 App 端页面级滚动与 refresher 冲突，
+     表现为"滑下去就滑不上来"（下拉刷新手势锁死滚动）。
+     安全区由内部 page-header 自带的 padding-top 承接，这里不能重复加 */
+  height: 100vh;
   background: $uni-bg-color-page;
-  padding-top: var(--safe-top);
   padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
 }
 
 /* 隐藏 H5 滚动条（原稿 ::-webkit-scrollbar display:none，含 uni-scroll-view 内层容器） */
@@ -576,8 +579,12 @@ uni-scroll-view ::-webkit-scrollbar {
 
 .search-bar-placeholder {
   flex: 1;
+  min-width: 0;
   font-size: 26rpx;
   color: $uni-gray-500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 三入口图标按钮：视觉 36rpx，热区 72rpx（spec12 触摸目标） */

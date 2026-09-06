@@ -1,10 +1,12 @@
 <template>
   <view class="products-page">
-    <!-- 顶部标题栏（与子页面统一；右上角 + 号新增商品） -->
+    <!-- 顶部标题栏（与子页面统一；右上角 + 号新增商品，必须用 #right 具名插槽） -->
     <page-header title="商品" :show-back="false">
-      <view class="hd-add" @tap="goCreate">
-        <text class="hd-add-icon">+</text>
-      </view>
+      <template #right>
+        <view class="hd-add" @tap="goCreate">
+          <text class="hd-add-icon">+</text>
+        </view>
+      </template>
     </page-header>
     <!-- 搜索栏（UI1.2：铃铛并入搜索栏） -->
     <view class="search-bar">
@@ -64,62 +66,61 @@
           </view>
         </view>
 
-        <!-- 虚拟滚动商品列表 -->
-        <virtual-list
-          v-if="productList.length > 0"
+        <!-- 商品列表：分页渲染（弃用 virtual-list——其按 itemSize 强制锁高，卡片实际更高时
+             溢出部分被后续 item 透明容器覆盖，导致点击命中错乱"点卡无反应"） -->
+        <scroll-view
           class="product-scroll"
-          :data="productList"
-          :item-size="itemSize"
-          :height="0"
-          :buffer="5"
-          item-key="id"
+          scroll-y
+          :show-scrollbar="false"
           :refresher-enabled="true"
           :refresher-triggered="refresherTriggered"
-          @load-more="onLoadMore"
-          @refresh="onPullDownRefresh"
+          @scrolltolower="onLoadMore"
+          @refresherrefresh="onPullDownRefresh"
         >
-          <template #default="{ item }">
-            <view class="product-card" @tap="goDetail(item.id)">
-              <view class="product-image-wrap">
-                <image
-                  v-if="item.image"
-                  class="product-image"
-                  :src="item.image"
-                  mode="aspectFill"
-                  lazy-load
-                />
-                <view v-else class="product-image-placeholder">
-                  <text class="placeholder-letter">{{ (item.name || '')[0] }}</text>
-                </view>
-                <view class="offline-tag" v-if="isOfflineProduct(item)">
-                  <text class="offline-tag-text">仅线下</text>
-                </view>
+          <view
+            class="product-card"
+            v-for="item in productList"
+            :key="item.id"
+            @tap="goDetail(item.id)"
+          >
+            <view class="product-image-wrap">
+              <image
+                v-if="item.image"
+                class="product-image"
+                :src="item.image"
+                mode="aspectFill"
+                lazy-load
+              />
+              <view v-else class="product-image-placeholder">
+                <text class="placeholder-letter">{{ (item.name || '')[0] }}</text>
               </view>
-              <view class="product-info">
-                <text class="product-name">{{ item.name }}</text>
-                <text class="product-spec">{{ item.spec || '标准规格' }}</text>
-                <view class="product-meta">
-                  <view class="price-line">
-                    <text class="price-tag price-tag--ws">批 ¥{{ (item.wholesalePrice ?? item.price ?? 0).toFixed(2) }}</text>
-                    <text class="price-tag price-tag--rt">零 ¥{{ (item.retailPrice ?? item.price ?? 0).toFixed(2) }}</text>
-                  </view>
-                  <text class="product-stock" :class="stockClass(item.stock)">
-                    库 {{ item.stock }}
-                  </text>
-                </view>
+              <view class="offline-tag" v-if="isOfflineProduct(item)">
+                <text class="offline-tag-text">仅线下</text>
               </view>
             </view>
-          </template>
-        </virtual-list>
+            <view class="product-info">
+              <text class="product-name">{{ item.name }}</text>
+              <text class="product-spec">{{ item.spec || '标准规格' }}</text>
+              <view class="product-meta">
+                <view class="price-line">
+                  <text class="price-tag price-tag--ws">批 ¥{{ (item.wholesalePrice ?? item.price ?? 0).toFixed(2) }}</text>
+                  <text class="price-tag price-tag--rt">零 ¥{{ (item.retailPrice ?? item.price ?? 0).toFixed(2) }}</text>
+                </view>
+                <text class="product-stock" :class="stockClass(item.stock)">
+                  库 {{ item.stock }}
+                </text>
+              </view>
+            </view>
+          </view>
+
+          <view class="load-more" v-if="loadingMore">
+            <text class="load-more-text">加载中...</text>
+          </view>
+        </scroll-view>
 
         <view class="empty-state" v-if="!loading && productList.length === 0">
           <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
           <text class="empty-text">暂无商品数据</text>
-        </view>
-
-        <!-- 翻页加载中反馈；"没有更多了"常驻条用户已要求去掉，列表直接止于胶囊上方 -->
-        <view class="load-more" v-if="loadingMore">
-          <text class="load-more-text">加载中...</text>
         </view>
       </view>
     </view>
@@ -131,7 +132,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
-import VirtualList from '@/components/virtual-list.vue'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 
 const keyword = ref('')
@@ -145,9 +145,6 @@ const page = ref(1)
 const pageSize = 20
 const noMore = ref(false)
 const totalCount = ref(0)
-
-/** 单行高度（px），onMounted 时按 rpx 转 px 计算 */
-const itemSize = ref(82)
 
 function switchCategory(categoryId: number) {
   activeCategory.value = categoryId
@@ -321,12 +318,6 @@ function onAction(type: 'suggest' | 'batch' | 'anomaly') {
 }
 
 onMounted(() => {
-  // 行高 = 卡体高(max(缩略图,信息区) + 内距) + 卡间距，取 252rpx 确保卡片不重叠、间距可见
-  try {
-    itemSize.value = uni.upx2px(164)
-  } catch (err) {
-    itemSize.value = 82
-  }
   loadCategories()
   loadProducts()
 })
@@ -544,7 +535,7 @@ onMounted(() => {
 
 .product-scroll {
   flex: 1;
-  min-height: 0;
+  height: 0;
 }
 
 /* 单行商品卡片（横向布局） */
