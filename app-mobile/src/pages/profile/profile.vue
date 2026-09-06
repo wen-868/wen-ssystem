@@ -1,5 +1,7 @@
 <template>
   <scroll-view class="profile-page" scroll-y>
+    <!-- 顶部标题栏（与子页面统一：page-header 组件，主 tab 页无返回键） -->
+    <page-header title="我的" :show-back="false" />
     <!-- 用户卡 -->
     <view class="prof-card">
       <view class="prof-avatar" @tap="navigateTo('/pages/profile/edit')">

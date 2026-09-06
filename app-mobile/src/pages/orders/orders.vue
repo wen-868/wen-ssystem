@@ -666,15 +666,19 @@ function formatTime(dateStr: string): string {
   return `${d.getMonth() + 1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-// ===== 动作（销售订单保留详情/确认收款；其他单据类型暂无移动端详情页，不做假入口） =====
+// ===== 动作：点击卡片进详情（订单→订单详情；销售单→销售单详情；其余类型详情页陆续接入） =====
 function onCardTap(item: BillHistoryItem) {
-  // 销售订单跳详情；其余单据类型（sale_bill/purchase_* 等）后端尚无对应详情页，
-  // 明确提示而不是点击无响应（占位不造假）
   if (item.billType === 'sale_order') {
+    // 小程序订单：订单详情页（含确认收款/配送流转操作）
     goDetail(item.billNo)
-  } else {
-    uni.showToast({ title: '该单据类型详情页暂未开放', icon: 'none' })
+    return
   }
+  if (item.billType === 'sale_bill') {
+    // 门店销售单：销售单详情页（真实详情接口 salesApi.detail）
+    uni.navigateTo({ url: `/pages-sub/order/sales/sale-detail?billNo=${item.billNo}` })
+    return
+  }
+  uni.showToast({ title: '该单据类型详情页即将开放', icon: 'none' })
 }
 
 function goBack() {

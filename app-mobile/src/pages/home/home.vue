@@ -1,5 +1,7 @@
 <template>
   <scroll-view class="home-page" scroll-y :refresher-enabled="true" :refresher-triggered="refresherTriggered" @refresherrefresh="onRefresh">
+    <!-- 顶部标题栏（与子页面统一：page-header 组件，主 tab 页无返回键） -->
+    <page-header title="首页" :show-back="false" />
     <!-- 搜索栏（UI1.2：扫码/订单/消息三入口，40px 热区） -->
     <view class="search-bar" @tap="navigateTo('/pages/products/products')">
       <image class="search-bar-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
@@ -498,7 +500,8 @@ async function loadData() {
       completedToday: s.completedToday || 0
     }
     todos.value = todosData.slice(0, 4)
-    trendList.value = trendData.slice(0, 7).map((t) => ({ ...t, date: formatTrendDate(t.date) }))
+    // 取最近 7 天（接口按日期升序返回；补零后恒为 7 条，slice(-7) 防上游多返回丢掉今天）
+    trendList.value = trendData.slice(-7).map((t) => ({ ...t, date: formatTrendDate(t.date) }))
     const rows = orderResult?.list ?? []
     recentOrders.value = (rows as OrderInfo[]).slice(0, 4).map((o) => ({
       orderNo: o.orderNo || '',

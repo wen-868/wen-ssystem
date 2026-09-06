@@ -1,5 +1,7 @@
 <template>
   <view class="func-page">
+    <!-- 顶部标题栏（与子页面统一：page-header 组件，主 tab 页无返回键） -->
+    <page-header title="功能" :show-back="false" />
     <!-- 搜索栏（UI1.2 打磨：头部区块删除，safe-area 移至顶部） -->
     <view class="func-search">
       <view class="search-bar">
@@ -169,7 +171,6 @@ onShow(() => {
 /* 搜索栏（顶部承接状态栏 safe-area） */
 .func-search {
   padding: 24rpx 28rpx 20rpx;
-  padding-top: calc(24rpx + var(--safe-top));
 }
 
 .search-bar {

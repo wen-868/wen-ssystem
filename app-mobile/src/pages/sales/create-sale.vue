@@ -564,7 +564,7 @@
       <button
         v-for="(act, i) in docConfig.actions"
         :key="act.label"
-        :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting || (act.needsSaved && !isSaved) }]"
+        :class="['submit-btn', act.label === '分享' ? 'share-btn' : (act.variant === 'ghost' ? 'draft-btn' : ''), { 'submit-btn--disabled': submitting }]"
         :disabled="submitting"
         @tap="onActionTap(act)"
       >
@@ -847,7 +847,7 @@ interface DocAction {
   variant: 'primary' | 'ghost'
   handler: () => void
   loadingText?: string
-  /** 转单类主按钮：需先保存（草稿态置灰，原稿 convBtn dis） */
+  /** 转单类主按钮：转单内部自动保存（先创建当前单据再切换），草稿态不再置灰 */
   needsSaved?: boolean
 }
 const docConfig = computed<{
@@ -2209,11 +2209,8 @@ function onActionTap(act: { label: string; variant: string; needsSaved?: boolean
     act.handler()
     return
   }
-  // 转单需先保存（原稿 convertDoc：if(!isSaved()) showToast('请先保存单据，再进行转单'))
-  if (act.needsSaved && !isSaved.value) {
-    uni.showToast({ title: '请先保存单据，再进行转单', icon: 'none' })
-    return
-  }
+  // 转单/提交即真实创建单据：转销售单(submitOrder)、转收款单/转入库单/转付款单(convertDoc)
+  // 内部都会先创建当前单据再切换 —— 自动保存语义，不再拦截"请先保存再转单"
   act.handler()
 }
 

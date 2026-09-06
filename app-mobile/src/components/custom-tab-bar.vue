@@ -113,8 +113,15 @@ function switchTab(url: string) {
   bottom: calc(20rpx + env(safe-area-inset-bottom));
   z-index: 999;
   background: $zx-white-880;
+  /* 毛玻璃：App 端 webview 每帧重算全宽 blur 导致滚动卡死（"滑下去滑不上来"的根因），仅 H5/小程序开启 */
+  /* #ifndef APP-PLUS */
   backdrop-filter: blur(48rpx) saturate(1.5);
   -webkit-backdrop-filter: blur(48rpx) saturate(1.5);
+  /* #endif */
+  /* #ifdef APP-PLUS */
+  /* 无毛玻璃时给实底，避免半透明白透出滚动内容 */
+  background: $uni-bg-color;
+  /* #endif */
   border-radius: 48rpx;
   border: 2rpx solid $zx-black-50;
   box-shadow: 0 20rpx 60rpx $zx-black-140, 0 -2rpx 4rpx $zx-black-20;

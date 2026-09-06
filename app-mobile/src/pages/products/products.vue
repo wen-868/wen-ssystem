@@ -1,6 +1,12 @@
 <template>
   <view class="products-page">
-    <!-- 搜索栏（UI1.2：无页头，铃铛并入搜索栏，顶部承接 safe-area） -->
+    <!-- 顶部标题栏（与子页面统一；右上角 + 号新增商品） -->
+    <page-header title="商品" :show-back="false">
+      <view class="hd-add" @tap="goCreate">
+        <text class="hd-add-icon">+</text>
+      </view>
+    </page-header>
+    <!-- 搜索栏（UI1.2：铃铛并入搜索栏） -->
     <view class="search-bar">
       <view class="search-input-wrap">
         <image class="search-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
@@ -265,6 +271,11 @@ function goDetail(id: number) {
   uni.navigateTo({ url: `/pages/products/product-detail?id=${id}` })
 }
 
+/** 标题栏右上角 + 号新增商品 */
+function goCreate() {
+  uni.navigateTo({ url: '/pages-sub/product/product/product-edit' })
+}
+
 function goNotifications() {
   uni.navigateTo({ url: '/pages/notifications/notifications' })
 }
@@ -333,8 +344,30 @@ onMounted(() => {
 /* 搜索栏（原稿 margin 10px 14px 0，高 42px，灰底页面浮白条） */
 .search-bar {
   padding: 20rpx 28rpx 0;
-  padding-top: calc(20rpx + var(--safe-top));
   background: $uni-bg-color-grey;
+}
+
+/* 标题栏右上角 + 号新增商品：40px 热区圆形主色按钮 */
+.hd-add {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $uni-color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx $zx-primary-250;
+}
+
+.hd-add:active {
+  transform: scale(0.9);
+}
+
+.hd-add-icon {
+  font-size: 44rpx;
+  line-height: 1;
+  font-weight: 600;
+  color: $uni-text-color-inverse;
 }
 
 .search-input-wrap {
