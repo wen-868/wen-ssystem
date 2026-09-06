@@ -292,7 +292,7 @@ onMounted(() => {
   align-items: center;
   gap: $uni-spacing-sm;
   padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
-  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
+  padding-top: calc($uni-spacing-base + var(--safe-top));
   background: $uni-bg-color;
 }
 
@@ -351,7 +351,7 @@ onMounted(() => {
 
 /* 记录列表 */
 .pr-list {
-  height: calc(100vh - 260rpx - env(safe-area-inset-top));
+  height: calc(100vh - 260rpx - var(--safe-top));
   padding: $uni-spacing-xs $uni-spacing-lg 0;
   box-sizing: border-box;
 }

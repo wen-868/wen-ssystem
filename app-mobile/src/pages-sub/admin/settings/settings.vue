@@ -266,7 +266,7 @@ onMounted(() => {
 }
 
 .st-body {
-  height: calc(100vh - 220rpx - env(safe-area-inset-top));
+  height: calc(100vh - 220rpx - var(--safe-top));
   padding: $uni-spacing-md $uni-spacing-base 0;
   box-sizing: border-box;
 }

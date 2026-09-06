@@ -208,7 +208,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 48rpx 32rpx;
-  padding-top: calc(48rpx + env(safe-area-inset-top));
+  padding-top: calc(48rpx + var(--safe-top));
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
   gap: 24rpx;
 }

@@ -1058,7 +1058,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 20rpx;
   padding: 22rpx 28rpx;
-  padding-top: calc(22rpx + env(safe-area-inset-top));
+  padding-top: calc(22rpx + var(--safe-top));
   background: $zx-grayf7-550;
   backdrop-filter: blur(24rpx) saturate(1.4);
   -webkit-backdrop-filter: blur(24rpx) saturate(1.4);
@@ -1185,7 +1185,7 @@ onUnmounted(() => {
 .chat-body {
   flex: 1;
   overflow: hidden;
-  padding-top: calc(120rpx + env(safe-area-inset-top));
+  padding-top: calc(120rpx + var(--safe-top));
   padding-bottom: calc(170rpx + env(safe-area-inset-bottom));
 }
 

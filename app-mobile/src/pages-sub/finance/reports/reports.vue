@@ -284,7 +284,7 @@ onMounted(() => {
   align-items: center;
   gap: 16rpx;
   padding: 24rpx 32rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  padding-top: calc(24rpx + var(--safe-top));
   background: $uni-bg-color;
 }
 .header-back {

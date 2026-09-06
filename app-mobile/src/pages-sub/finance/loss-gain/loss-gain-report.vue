@@ -338,7 +338,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .report-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 120rpx; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 
 /* 总览卡片 */

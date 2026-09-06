@@ -130,7 +130,7 @@ loadList()
 
 <style lang="scss" scoped>
 .roles-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .search-bar { padding: 16rpx 24rpx; background: $uni-bg-color; }
 .search-input { width: 100%; height: 64rpx; background: $uni-bg-color-page; border-radius: 32rpx; padding: 0 32rpx; font-size: 26rpx; }

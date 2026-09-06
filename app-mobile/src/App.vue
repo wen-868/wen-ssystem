@@ -32,7 +32,16 @@ onHide(() => {
 page {
   background-color: $zx-bg-f5;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  /* 安全区统一变量：H5/浏览器用 env；App webview 中 env 恒为 0，
+     导致页头顶进系统信号栏，App 端改用 uni 内置 --status-bar-height */
+  --safe-top: var(--safe-top);
 }
+
+/* #ifdef APP-PLUS */
+page {
+  --safe-top: var(--status-bar-height);
+}
+/* #endif */
 
 /* 根治：uni-app H5 大量容器用 width:100% + 水平 padding 但未设 box-sizing，
    默认 content-box 导致 宽度+padding 超出视口、右边距/右缘被裁。全局补 border-box，

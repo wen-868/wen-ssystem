@@ -309,7 +309,7 @@ async function onSubmit() {
 .create-coupon-page { min-height: 100vh; background: $uni-color-primary-soft; }
 .page-header {
   padding: 24rpx 32rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  padding-top: calc(24rpx + var(--safe-top));
   background: $uni-bg-color;
 }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }

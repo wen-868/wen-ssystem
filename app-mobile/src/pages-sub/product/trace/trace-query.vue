@@ -269,7 +269,7 @@ async function onVerify() {
   align-items: center;
   gap: $uni-spacing-sm;
   padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
-  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
+  padding-top: calc($uni-spacing-base + var(--safe-top));
   background: $uni-bg-color;
 }
 
@@ -366,7 +366,7 @@ async function onVerify() {
 
 /* 结果区 */
 .tr-result {
-  height: calc(100vh - 240rpx - env(safe-area-inset-top));
+  height: calc(100vh - 240rpx - var(--safe-top));
   padding: $uni-spacing-xs $uni-spacing-base 40rpx;
   box-sizing: border-box;
 }

@@ -318,7 +318,7 @@ onLoad((options: any) => {
   display: flex; align-items: center;
   gap: 24rpx;
   padding: 32rpx;
-  padding-top: calc(32rpx + env(safe-area-inset-top));
+  padding-top: calc(32rpx + var(--safe-top));
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary);
 }
 

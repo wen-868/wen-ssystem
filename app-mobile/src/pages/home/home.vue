@@ -174,6 +174,7 @@
       </view>
       <view class="chart-wrap" v-if="trendList.length > 0">
         <!-- 原稿 drawChart：平滑贝塞尔折线 + 渐变面积 + 三条网格线 + 均值虚线 + 末点脉冲 -->
+        <!-- #ifdef H5 -->
         <svg class="chart-svg" viewBox="0 0 340 140" preserveAspectRatio="none">
           <defs>
           <linearGradient id="chartArea" x1="0" y1="0" x2="0" y2="1">
@@ -191,6 +192,11 @@
         <circle :cx="chartMeta.lastDot.x" :cy="chartMeta.lastDot.y" r="10" :fill="COLOR_PRIMARY" opacity="0.06" class="chart-pulse" />
         <text :x="chartMeta.lastDot.x" :y="chartMeta.lastDot.y - 12" text-anchor="middle" :fill="COLOR_PRIMARY" font-size="10" font-weight="700">{{ formatCn(chartMeta.lastVal) }}</text>
         </svg>
+        <!-- #endif -->
+        <!-- #ifndef H5 -->
+        <!-- App/小程序端模板不支持内联 SVG，用 canvas 2d 绘制同款趋势图 -->
+        <canvas id="trendCanvas" type="2d" class="chart-canvas" @tap="noop"></canvas>
+        <!-- #endif -->
       </view>
       <view class="chart-labels" v-if="trendList.length > 0">
         <text class="chart-label" v-for="item in trendList" :key="item.date">{{ item.date }}</text>
@@ -206,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { dashboardApi, type TodoItem, type SalesTrend } from '@/api/modules/dashboard'
 import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 import { notificationsApi } from '@/api/modules/notifications'
@@ -332,6 +338,96 @@ function formatFull(amount: number): string {
   return Math.round(amount || 0).toLocaleString()
 }
 
+// #ifndef H5
+/** App/小程序端：模板内联 SVG 不渲染，用 canvas 2d 绘制同款 7 日趋势图 */
+function drawTrendChart() {
+  const data = trendList.value.map((t) => t.amount)
+  if (data.length < 2) return
+  uni.createSelectorQuery()
+    .select('#trendCanvas')
+    .fields({ node: true, size: true }, (res: any) => {
+      if (!res || !res.node) return
+      const canvas: any = res.node
+      const dpr: number = (uni.getSystemInfoSync().pixelRatio as number) || 2
+      canvas.width = res.width * dpr
+      canvas.height = res.height * dpr
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.scale(dpr, dpr)
+      renderTrendChart(ctx, res.width, res.height, data)
+    })
+    .exec()
+}
+
+function renderTrendChart(ctx: any, w: number, h: number, data: number[]) {
+  const pad = { t: 20, b: 20, l: 10, r: 10 }
+  const uw = w - pad.l - pad.r
+  const uh = h - pad.t - pad.b
+  const max = Math.max(...data) * 1.06
+  const min = Math.min(...data) * 0.88
+  const range = max - min || 1
+  const n = data.length
+  const px = (i: number) => pad.l + (uw * i) / (n - 1)
+  const py = (v: number) => pad.t + uh - ((v - min) / range) * uh
+  // 网格（三条）
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)'
+  ctx.lineWidth = 1
+  for (let g = 0; g < 3; g++) {
+    const y = pad.t + (uh / 3) * g
+    ctx.beginPath()
+    ctx.moveTo(pad.l, y)
+    ctx.lineTo(w - pad.r, y)
+    ctx.stroke()
+  }
+  // 渐变面积（用固定透明度近似 SVG 渐变）
+  const pts = data.map((v, i) => [px(i), py(v)] as [number, number])
+  ctx.beginPath()
+  ctx.moveTo(pts[0][0], h - pad.b)
+  pts.forEach((p) => ctx.lineTo(p[0], p[1]))
+  ctx.lineTo(pts[n - 1][0], h - pad.b)
+  ctx.closePath()
+  ctx.fillStyle = 'rgba(37,99,235,0.10)'
+  ctx.fill()
+  // 折线
+  ctx.beginPath()
+  pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1])))
+  ctx.strokeStyle = COLOR_PRIMARY
+  ctx.lineWidth = 2.5
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  ctx.stroke()
+  // 均值虚线
+  const avg = data.reduce((a, b) => a + b, 0) / n
+  ctx.setLineDash([4, 4])
+  ctx.beginPath()
+  ctx.moveTo(pad.l, py(avg))
+  ctx.lineTo(w - pad.r, py(avg))
+  ctx.strokeStyle = 'rgba(37,99,235,0.35)'
+  ctx.lineWidth = 1
+  ctx.stroke()
+  ctx.setLineDash([])
+  // 数据点（白底蓝边圆点）
+  pts.forEach((p) => {
+    ctx.beginPath()
+    ctx.arc(p[0], p[1], 3.5, 0, Math.PI * 2)
+    ctx.fillStyle = COLOR_WHITE
+    ctx.fill()
+    ctx.strokeStyle = COLOR_PRIMARY
+    ctx.lineWidth = 2
+    ctx.stroke()
+  })
+  // 末点数值标签
+  ctx.fillStyle = COLOR_PRIMARY
+  ctx.font = 'bold 11px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText(formatCn(data[n - 1]), pts[n - 1][0], Math.max(pts[n - 1][1] - 10, 12))
+}
+
+watch(trendList, () => {
+  nextTick(() => setTimeout(drawTrendChart, 80))
+})
+// #endif
+
 /** 中文缩写金额：≥1万用「万」（图表数值标签，spec13 一致性） */
 function formatCn(amount: number): string {
   const v = amount || 0
@@ -442,7 +538,7 @@ onMounted(() => {
 .home-page {
   min-height: 100vh;
   background: $uni-bg-color-page;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -972,9 +1068,17 @@ uni-scroll-view ::-webkit-scrollbar {
   overflow: visible;
 }
 
-/* 末点脉冲光圈（原稿 animate r 10→16） */
+/* App/小程序 canvas 趋势图，与 SVG 版同尺寸 */
+.chart-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* 末点脉冲光圈（原稿 animate r 10→16）；App 端关闭以消除持续重绘卡顿 */
 .chart-pulse {
+  /* #ifndef APP-PLUS */
   animation: chartPulse 2.5s ease-in-out infinite;
+  /* #endif */
   transform-box: fill-box;
   transform-origin: center;
 }

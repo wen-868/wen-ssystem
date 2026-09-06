@@ -339,7 +339,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16rpx 24rpx;
-  padding-top: calc(16rpx + env(safe-area-inset-top));
+  padding-top: calc(16rpx + var(--safe-top));
   background: $uni-bg-color;
   border-bottom: 1rpx solid $uni-gray-100;
 }

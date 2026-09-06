@@ -200,7 +200,10 @@ function switchTab(url: string) {
   border-radius: 50%;
   border: 4rpx solid $zx-violet3-550;
   transform: translate(-50%, -50%);
+  /* App 端低端机 webview 上持续动画造成全局卡顿，装饰性动效仅 H5/小程序开启 */
+  /* #ifndef APP-PLUS */
   animation: aiRing 2.6s ease-out infinite;
+  /* #endif */
   pointer-events: none;
 }
 
@@ -213,7 +216,9 @@ function switchTab(url: string) {
   align-items: center;
   justify-content: center;
   box-shadow: 0 8rpx 32rpx $zx-violet2-350;
+  /* #ifndef APP-PLUS */
   animation: aiBreathe 2.6s ease-in-out infinite;
+  /* #endif */
   position: relative;
   z-index: 2;
 }

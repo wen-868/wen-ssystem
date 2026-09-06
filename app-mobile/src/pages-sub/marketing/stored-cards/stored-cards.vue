@@ -181,7 +181,7 @@ onMounted(() => {
 .search-bar {
   padding: 16rpx 24rpx;
   background: $uni-bg-color;
-  padding-top: calc(16rpx + env(safe-area-inset-top));
+  padding-top: calc(16rpx + var(--safe-top));
 }
 
 .search-input-wrap {

@@ -221,7 +221,7 @@ onMounted(() => {
   align-items: center;
   gap: $uni-spacing-sm;
   padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  padding-top: calc(24rpx + var(--safe-top));
   background: $uni-bg-color;
 }
 

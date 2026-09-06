@@ -1527,8 +1527,8 @@ onHide(() => closeScanner())
   display: flex;
   align-items: center;
   gap: 24rpx;
-  height: calc(88rpx + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) 32rpx 0;
+  height: calc(88rpx + var(--safe-top));
+  padding: var(--safe-top) 32rpx 0;
   background: $uni-bg-color;
   box-shadow: 0 2rpx 8rpx $zx-black-40;
   position: sticky;

@@ -278,7 +278,7 @@ onMounted(() => {
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xl;
   padding: 44rpx;
-  padding-top: calc(44rpx + env(safe-area-inset-top));
+  padding-top: calc(44rpx + var(--safe-top));
   display: flex;
   align-items: center;
   gap: $uni-spacing-lg;

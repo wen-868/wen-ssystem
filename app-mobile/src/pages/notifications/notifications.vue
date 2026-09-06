@@ -75,6 +75,7 @@
           @tap="handleItemClick(item)"
           @longpress="onLongPress(item)"
         >
+          <view class="notification-card">
           <!-- 编辑模式选择框 -->
           <view class="select-checkbox" v-if="editMode" @tap.stop="toggleSelect(item.id)">
             <view class="checkbox" :class="{ 'checkbox--checked': selectedIds.includes(item.id) }">
@@ -106,6 +107,7 @@
           <!-- 删除按钮 -->
           <view class="delete-btn" v-if="editMode" @tap.stop="handleDelete(item.id)">
             <text class="delete-text">删除</text>
+          </view>
           </view>
         </view>
       </template>
@@ -526,7 +528,7 @@ onMounted(() => {
   align-items: center;
   gap: 16rpx;
   padding: 24rpx 32rpx;
-  padding-top: calc(24rpx + env(safe-area-inset-top));
+  padding-top: calc(24rpx + var(--safe-top));
   background: $uni-bg-color;
 }
 
@@ -713,23 +715,31 @@ onMounted(() => {
 
 .notification-item {
   display: flex;
+  align-items: stretch;
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  /* 虚拟列表定高容器内 margin 会被裁剪，卡片间距用容器 padding 实现 */
+  padding: 0 0 16rpx 0;
+}
+
+.notification-card {
+  flex: 1;
+  display: flex;
   align-items: flex-start;
   background: $uni-bg-color;
   border-radius: $uni-border-radius-xs;
   padding: $uni-spacing-base;
-  margin-bottom: $uni-spacing-sm;
   box-shadow: 0 2rpx 12rpx $zx-black-40;
   position: relative;
   transition: all 0.2s ease;
-  box-sizing: border-box;
-  height: 100%;
 }
 
-.notification-item--unread {
+.notification-item--unread .notification-card {
   background: $uni-color-primary-soft;
 }
 
-.notification-item--selected {
+.notification-item--selected .notification-card {
   background: $uni-color-primary-soft;
 }
 

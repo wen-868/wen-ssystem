@@ -204,7 +204,7 @@ onMounted(() => {
 .finance-header {
   background: linear-gradient(135deg, $uni-color-primary, $uni-color-primary-active);
   padding: 60rpx 32rpx 40rpx;
-  padding-top: calc(60rpx + env(safe-area-inset-top));
+  padding-top: calc(60rpx + var(--safe-top));
   border-radius: 0 0 40rpx 40rpx;
   position: relative;
 }
@@ -212,7 +212,7 @@ onMounted(() => {
 .finance-header .header-back {
   position: absolute;
   left: 20rpx;
-  top: calc(24rpx + env(safe-area-inset-top));
+  top: calc(24rpx + var(--safe-top));
   width: 64rpx;
   height: 64rpx;
   border-radius: 50%;

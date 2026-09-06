@@ -249,7 +249,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .gain-list-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 
 .search-bar { display: flex; align-items: center; padding: 16rpx 24rpx; background: $uni-bg-color; gap: 16rpx; border-bottom: 1rpx solid $uni-gray-100; }

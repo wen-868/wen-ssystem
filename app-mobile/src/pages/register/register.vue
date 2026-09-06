@@ -233,7 +233,7 @@ function goLogin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
 }

@@ -192,7 +192,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .stock-checks-page { min-height: 100vh; background: $uni-color-primary-soft; display: flex; flex-direction: column; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .stats-row { display: flex; padding: $uni-spacing-md $uni-spacing-base; gap: $uni-spacing-sm; }
 .stat-card {

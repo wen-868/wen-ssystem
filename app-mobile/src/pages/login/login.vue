@@ -249,7 +249,7 @@ function goRegister() {
   background: $zx-blue-50;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
 }

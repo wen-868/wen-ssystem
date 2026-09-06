@@ -668,7 +668,13 @@ function formatTime(dateStr: string): string {
 
 // ===== 动作（销售订单保留详情/确认收款；其他单据类型暂无移动端详情页，不做假入口） =====
 function onCardTap(item: BillHistoryItem) {
-  if (item.billType === 'sale_order') goDetail(item.billNo)
+  // 销售订单跳详情；其余单据类型（sale_bill/purchase_* 等）后端尚无对应详情页，
+  // 明确提示而不是点击无响应（占位不造假）
+  if (item.billType === 'sale_order') {
+    goDetail(item.billNo)
+  } else {
+    uni.showToast({ title: '该单据类型详情页暂未开放', icon: 'none' })
+  }
 }
 
 function goBack() {
@@ -748,8 +754,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 24rpx;
-  height: calc(88rpx + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) 32rpx 0;
+  height: calc(88rpx + var(--safe-top));
+  padding: var(--safe-top) 32rpx 0;
   background: $uni-bg-color;
   box-shadow: 0 2rpx 8rpx $zx-black-40;
   position: sticky;

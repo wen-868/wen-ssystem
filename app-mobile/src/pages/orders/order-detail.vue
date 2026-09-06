@@ -327,7 +327,7 @@ onMounted(() => {
 .status-card {
   padding: 48rpx 32rpx;
   text-align: center;
-  padding-top: calc(48rpx + env(safe-area-inset-top));
+  padding-top: calc(48rpx + var(--safe-top));
 }
 
 .status-bg-pending { background: linear-gradient(135deg, $uni-color-warning, $uni-color-warning); }

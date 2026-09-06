@@ -141,7 +141,7 @@ onShow(() => {
   align-items: center;
   gap: $uni-spacing-sm;
   padding: $uni-spacing-base $uni-spacing-lg $uni-spacing-xs;
-  padding-top: calc($uni-spacing-base + env(safe-area-inset-top));
+  padding-top: calc($uni-spacing-base + var(--safe-top));
   background: $uni-bg-color;
 }
 

@@ -333,7 +333,7 @@ onMounted(() => {
 /* 搜索栏（原稿 margin 10px 14px 0，高 42px，灰底页面浮白条） */
 .search-bar {
   padding: 20rpx 28rpx 0;
-  padding-top: calc(20rpx + env(safe-area-inset-top));
+  padding-top: calc(20rpx + var(--safe-top));
   background: $uni-bg-color-grey;
 }
 

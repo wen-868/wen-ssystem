@@ -243,7 +243,7 @@ onLoad((options: any) => {
 
 <style lang="scss" scoped>
 .role-edit-page { min-height: 100vh; background: $uni-color-primary-soft; padding-bottom: 140rpx; }
-.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + env(safe-area-inset-top)); background: $uni-bg-color; }
+.page-header { padding: 24rpx 32rpx; padding-top: calc(24rpx + var(--safe-top)); background: $uni-bg-color; }
 .header-title { font-size: 34rpx; font-weight: 700; color: $uni-gray-700; }
 .form-section { background: $uni-bg-color; margin: $uni-spacing-sm $uni-spacing-base; border-radius: $uni-border-radius-xs; padding: $uni-spacing-xs $uni-spacing-lg; box-shadow: $uni-shadow-card-sm; }
 .form-item { display: flex; align-items: center; padding: $uni-spacing-base 0; border-bottom: 1rpx solid $uni-bg-color-grey; }

@@ -35,7 +35,7 @@ function onBack() {
   top: 0;
   z-index: 100;
   width: 100%;
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
   background: $ai-bg-page;
   border-bottom: 1rpx solid $zx-black-60;
 }

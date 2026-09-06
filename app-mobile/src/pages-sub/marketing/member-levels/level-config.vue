@@ -190,7 +190,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 20rpx 24rpx;
   background: $uni-bg-color;
-  padding-top: calc(20rpx + env(safe-area-inset-top));
+  padding-top: calc(20rpx + var(--safe-top));
 }
 
 .back-btn {
