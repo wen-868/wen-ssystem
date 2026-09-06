@@ -416,8 +416,12 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { onLoad, onUnload, onHide } from '@dcloudio/uni-app'
+// 注意：不要从 @dcloudio/uni-app 导入 onUnload —— 当前版本类型与运行时均未稳定导出该成员，
+// 导入后调用会让页面 setup 阶段抛 TypeError，表现为"点商品卡片打不开详情页"（白屏）。
+// 释放摄像头统一用 onHide 覆盖（切后台/离开页面同样需要释放）。
+import { onLoad, onHide } from '@dcloudio/uni-app'
 import {
+  createProduct,
   getProductDetail,
   updateProduct,
   updateSkuPrice,
@@ -952,10 +956,51 @@ async function onMainAction() {
 }
 
 async function save() {
-  if (!spuId.value) return
   if (!form.name.trim()) { uni.showToast({ title: '请填写商品名称', icon: 'none' }); return }
   uni.showLoading({ title: '保存中...' })
   try {
+    // ===== 新增商品（列表标题栏 + 号进入的空白详情页，spuId 为 0）=====
+    if (!spuId.value) {
+      if (!form.categoryId) {
+        uni.hideLoading()
+        uni.showToast({ title: '请选择商品分类', icon: 'none' })
+        return
+      }
+      const created: any = await createProduct({
+        name: form.name.trim(),
+        categoryId: Number(form.categoryId),
+        brand: form.brandName.trim() || undefined,
+        unit: form.unit.trim() || undefined,
+        specs: form.specs.trim() || undefined,
+        mainImage: form.mainImage || undefined,
+        saleChannels: form.saleChannels?.length ? form.saleChannels : ['STORE'],
+        alcoholContent: form.alcoholContent ? Number(form.alcoholContent) : undefined,
+        origin: form.origin.trim() || undefined,
+        isNew: form.isNew,
+        isRecommend: form.isRecommend,
+        skus: [{
+          skuName: form.name.trim(),
+          barcode: form.barcode.trim() || undefined,
+          baseUnit: form.unit.trim() || undefined,
+          boxRatio: 1,
+          traceEnabled: !!traceEnabled.value,
+          warningThreshold: Number(warningThreshold.value) || 0,
+          costPrice: Number(priceForm.costPrice) || 0,
+          retailPrice: Number(priceForm.retailPrice) || 0,
+          wholesalePrice: Number(priceForm.wholesalePrice) || 0,
+        }],
+      })
+      uni.hideLoading()
+      const newId = Number(created?.id ?? created?.spuId ?? 0)
+      if (newId > 0) {
+        spuId.value = newId
+        uni.showToast({ title: '已创建', icon: 'success' })
+        await loadDetail(newId)
+      } else {
+        uni.showToast({ title: '已提交，请返回列表刷新查看', icon: 'none' })
+      }
+      return
+    }
     // 严格按后端契约（product.service.ts#updateProduct）：仅 SPU 字段，价格/单位数组不在该接口
     await updateProduct(spuId.value, {
       name: form.name.trim(),
@@ -1505,11 +1550,13 @@ onLoad((options: any) => {
   const id = options?.id ? Number(options.id) : 0
   if (id > 0) {
     loadDetail(id)
+  } else {
+    // 新增商品（商品列表标题栏 + 号）：无 id → 空白详情页，直接进入可编辑态
+    editable.value = true
   }
 })
 
 // 离开页面/切后台释放摄像头（原稿 stopScan 语义：切商品、关弹层、离开都释放）
-onUnload(() => closeScanner())
 onHide(() => closeScanner())
 </script>
 

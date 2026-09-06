@@ -265,12 +265,31 @@ async function onPullDownRefresh() {
 }
 
 function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages/products/product-detail?id=${id}` })
+  // 兜底诊断：页面不存在/编译缺失时给出可见提示，避免"点了没反应"无法定位
+  uni.navigateTo({
+    url: `/pages/products/product-detail?id=${id}`,
+    fail: (e: any) => {
+      uni.showToast({
+        title: `打开商品详情失败：${e?.errMsg || e?.message || '页面不存在'}`,
+        icon: 'none',
+        duration: 3000,
+      })
+    },
+  })
 }
 
-/** 标题栏右上角 + 号新增商品 */
+/** 标题栏右上角 + 号新增商品：进入空白的商品详情页（无 id = 新增可编辑态），不再跳独立表单页 */
 function goCreate() {
-  uni.navigateTo({ url: '/pages-sub/product/product/product-edit' })
+  uni.navigateTo({
+    url: '/pages/products/product-detail',
+    fail: (e: any) => {
+      uni.showToast({
+        title: `打开新增商品失败：${e?.errMsg || e?.message || '页面不存在'}`,
+        icon: 'none',
+        duration: 3000,
+      })
+    },
+  })
 }
 
 function goNotifications() {

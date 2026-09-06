@@ -435,39 +435,77 @@ export function scanCode(options?: Omit<ScanOptions, 'continuous'>): Promise<Sca
     // #endif
 
     // #ifndef HARMONYOS
-    const scanner = getScanner()
-    if (!scanner) {
-        uni.showToast({ title: '扫码功能仅在 App 端可用', icon: 'none' })
-        return Promise.reject(new Error('扫码功能仅在 App 端可用'))
-    }
+    // 首选 uni-app 内置扫码（App 端走原生相机，云打包无需勾选任何原生插件）。
+    // 旧实现强依赖 ZXing-Scanner 原生插件：未集成该插件时 requireNativePlugin 返回 null，
+    // 直接提示"扫码功能仅在 App 端可用"——这是线上扫码不可用的根因。
+    return scanWithUniApi(options).catch((uniErr: any) => {
+        const scanner = getScanner()
+        if (!scanner) {
+            const raw = String(uniErr?.errMsg || uniErr?.message || '')
+            const msg = raw.includes('cancel') ? '已取消扫码' : (raw || '扫码失败')
+            uni.showToast({ title: msg, icon: 'none' })
+            return Promise.reject<ScanResult>(uniErr instanceof Error ? uniErr : new Error(msg))
+        }
+        return scanWithNativePlugin(scanner, options)
+    })
+    // #endif
+}
 
+/** uni-app 内置扫码（首选路径，无需原生插件） */
+function scanWithUniApi(options?: Omit<ScanOptions, 'continuous'>): Promise<ScanResult> {
+    return new Promise<ScanResult>((resolve, reject) => {
+        uni.scanCode({
+            onlyFromCamera: true,
+            scanType: ['barCode', 'qrCode'],
+            success: (res: any) => {
+                const code = res?.result ?? res?.code
+                if (!code) {
+                    reject(new Error('扫码未识别到内容'))
+                    return
+                }
+                resolve({
+                    code,
+                    type: identifyScanType(code, res?.scanType),
+                    format: res?.scanType,
+                    timestamp: Date.now(),
+                })
+            },
+            fail: (err: any) => {
+                reject(err instanceof Error ? err : new Error(err?.errMsg || '扫码失败'))
+            },
+        } as any)
+    })
+}
+
+/** ZXing-Scanner 原生插件扫码（可选增强路径，插件已集成时才会走到） */
+function scanWithNativePlugin(
+    scanner: ScannerUnifiedModule,
+    options?: Omit<ScanOptions, 'continuous'>
+): Promise<ScanResult> {
     const scanOptions: ScanOptions = {
         continuous: false,
-        title: '扫一扫',
+        title: options?.title || '扫一扫',
         ...options,
     }
 
     return new Promise<ScanResult>((resolve, reject) => {
         try {
-            // 条件编译指令会干扰 vue-tsc 控制流分析，使用非空断言（上方已 null 检查）
-            scanner!.scan(scanOptions, (res: NativeScanResult) => {
+            scanner.scan(scanOptions, (res: NativeScanResult) => {
                 if (!res || !res.code) {
                     reject(new Error('扫码未识别到内容'))
                     return
                 }
-                const result: ScanResult = {
+                resolve({
                     code: res.code,
                     type: identifyScanType(res.code, res.format),
                     format: res.format,
                     timestamp: Date.now(),
-                }
-                resolve(result)
+                })
             })
         } catch (err) {
             reject(err instanceof Error ? err : new Error('扫码调用失败'))
         }
     })
-    // #endif
 }
 
 /**

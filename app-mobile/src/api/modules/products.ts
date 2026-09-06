@@ -275,7 +275,7 @@ const productsApi = {
     const raw = res?.result ?? res
     // 后端返回 records 数组，统一映射为前端 ProductInfo 结构
     const records: any[] = raw?.records ?? raw?.list ?? (Array.isArray(raw) ? raw : [])
-    const list: ProductInfo[] = records.map((r: any) => ({
+    const mapped: ProductInfo[] = records.map((r: any) => ({
       id: r.spuId ?? r.id,
       skuId: r.skuId ?? r.skuCode ?? '',
       name: r.name ?? '',
@@ -302,6 +302,19 @@ const productsApi = {
       // 分类级 allow_online_sale：0 = 该分类商品仅线下销售
       allowOnlineSale: r.allowOnlineSale,
     }))
+    // 后端列表 SQL 从 t_product_sku 出发 JOIN t_product_spu：同一 SPU 有多个 SKU 时会返回多行。
+    // 商品列表以 SPU 为卡片维度，按 id 合并（库存累加），避免重复卡片与重复的 :key
+    // ——重复 key 会让 Vue 复用错误节点，表现为"点卡片进不了详情/点错行"。
+    const merged = new Map<number, ProductInfo>()
+    for (const item of mapped) {
+      const exist = merged.get(item.id)
+      if (!exist) {
+        merged.set(item.id, { ...item })
+        continue
+      }
+      exist.stock = Number(exist.stock ?? 0) + Number(item.stock ?? 0)
+    }
+    const list = Array.from(merged.values())
     return {
       list,
       total: raw?.total ?? list.length,

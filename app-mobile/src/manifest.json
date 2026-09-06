@@ -16,7 +16,10 @@
             "autoclose" : true,
             "delay" : 0
         },
-        "modules" : {},
+        "modules" : {
+            "Barcode" : {},
+            "Speech" : {}
+        },
         "distribute" : {
             "android" : {
                 "permissions" : [
@@ -57,7 +60,10 @@
                     }
                 }
             },
-            "sdkConfigs" : {},
+            "sdkConfigs" : {
+                "share" : {},
+                "speech" : {}
+            },
             "plugins" : {
                 "PrintManager" : {
                     "version" : "1.0.0",
@@ -68,7 +74,10 @@
                     "provider" : "阿澈"
                 }
             },
-            "safeguard" : true
+            "safeguard" : true,
+            "splashscreen" : {
+                "useOriginalMsgbox" : true
+            }
         },
         "networkTimeout" : {
             "request" : 30000,

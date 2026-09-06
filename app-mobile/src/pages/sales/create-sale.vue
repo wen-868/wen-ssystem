@@ -1890,16 +1890,29 @@ function goBack() {
   }
 }
 
+/** 分享文案：单据标题 + 商品明细 + 合计 */
+function buildShareText(): string {
+  const lines = [`【智享全链】${docTitle.value}`]
+  if (saleItems.length) {
+    lines.push('商品明细：')
+    saleItems.forEach((it, i) => {
+      lines.push(`${i + 1}. ${it.productName || '商品'} × ${it.quantity ?? 0}　${fmt((it.price ?? 0) * (it.quantity ?? 0))}`)
+    })
+  }
+  lines.push(`合计：${fmt(docTotal.value)}`)
+  return lines.join('\n')
+}
+
 /** 分享（原稿 shareDoc：系统分享 / 复制链接） */
 function handleShare() {
+  const text = buildShareText()
   // #ifdef H5
   const nav = navigator as any
-  const text = `${docTitle.value} 合计 ${fmt(docTotal.value)}`
   if (nav.share) {
     nav.share({ title: '智享全链 · ' + docTitle.value, text }).catch(() => {})
   } else if (nav.clipboard) {
-    nav.clipboard.writeText(location.href).then(
-      () => uni.showToast({ title: '已复制分享链接', icon: 'none' }),
+    nav.clipboard.writeText(text).then(
+      () => uni.showToast({ title: '已复制分享内容', icon: 'none' }),
       () => uni.showToast({ title: '分享失败，请重试', icon: 'none' })
     )
   } else {
@@ -1907,7 +1920,25 @@ function handleShare() {
   }
   // #endif
   // #ifndef H5
-  uni.showToast({ title: '已生成开单分享卡片', icon: 'none' })
+  // App 端：调起系统分享面板（plus.share.sendWithSystem）。
+  // 旧实现只弹一句"已生成开单分享卡片"，并未真正唤起任何分享——这是"分享不能调起系统分享"的根因。
+  const plus = (globalThis as any).plus
+  const fallbackCopy = () => {
+    uni.setClipboardData({
+      data: text,
+      success: () => uni.showToast({ title: '已复制分享内容', icon: 'none' }),
+      fail: () => uni.showToast({ title: '分享失败，请重试', icon: 'none' }),
+    })
+  }
+  if (plus?.share?.sendWithSystem) {
+    plus.share.sendWithSystem(
+      { type: 'text', title: '智享全链 · ' + docTitle.value, content: text },
+      () => {},
+      () => fallbackCopy()
+    )
+  } else {
+    fallbackCopy()
+  }
   // #endif
 }
 

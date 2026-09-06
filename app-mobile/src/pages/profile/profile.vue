@@ -18,9 +18,9 @@
         </view>
         <text class="prof-store">{{ storeName }}</text>
       </view>
-      <view class="prof-status">
+      <view class="prof-status" :class="{ 'prof-status--closed': !isOpenNow }">
         <text class="prof-status-dot"></text>
-        <text class="prof-status-text">营业中</text>
+        <text class="prof-status-text">{{ businessStatusText }}</text>
       </view>
     </view>
 
@@ -67,7 +67,7 @@
           <view class="li-ico li-ico--dark"><image class="li-ico-img" src="/static/icons/prf-clock.svg" mode="aspectFit" /></view>
           <view class="li-body">
             <text class="li-title">营业时间</text>
-            <text class="li-desc">门店营业时间</text>
+            <text class="li-desc">{{ businessHours || '暂未设置营业时间' }}</text>
           </view>
           <text class="li-arrow">›</text>
         </view>
@@ -183,6 +183,30 @@ const shortcuts = [
 
 /** 真实数据：门店营业时间 / 租户联系方式 / 应用版本 */
 const businessHours = ref('')
+
+/** 解析营业时间文本 → [开始分钟数, 结束分钟数]；兼容 09:00-22:00 / 9:00~22:00 / 09:00 至 22:00 */
+function parseBusinessHours(text: string): [number, number] | null {
+  if (!text) return null
+  const m = text.match(/(\d{1,2})\s*[:：]\s*(\d{2})\s*[-~—至到]\s*(\d{1,2})\s*[:：]\s*(\d{2})/)
+  if (!m) return null
+  return [Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])]
+}
+
+/** 是否正在营业：未设置或无法解析时按"休息中"处理，不再硬编码营业中 */
+const isOpenNow = computed(() => {
+  const range = parseBusinessHours(businessHours.value)
+  if (!range) return false
+  const now = new Date()
+  const cur = now.getHours() * 60 + now.getMinutes()
+  const [start, end] = range
+  // 跨夜班次（如 20:00-06:00）：结束早于开始则视为跨天
+  return end > start ? cur >= start && cur < end : cur >= start || cur < end
+})
+
+const businessStatusText = computed(() => {
+  if (!businessHours.value) return '未设置'
+  return isOpenNow.value ? '营业中' : '休息中'
+})
 const tenantContact = ref<TenantInfo | null>(null)
 const appVersion = (manifest as any)?.versionName || ''
 
@@ -365,6 +389,18 @@ onMounted(() => {
   border-radius: 999rpx;
   padding: 8rpx 24rpx;
   flex-shrink: 0;
+}
+
+/* 休息中/未设置：徽章转为中性灰，避免与"营业中"同为绿色造成误读 */
+.prof-status--closed {
+  background: $uni-bg-color-grey;
+  border-color: $uni-gray-300;
+}
+.prof-status--closed .prof-status-dot {
+  background: $uni-gray-500;
+}
+.prof-status--closed .prof-status-text {
+  color: $uni-gray-500;
 }
 
 .prof-status-dot {

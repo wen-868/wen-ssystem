@@ -7,7 +7,7 @@
       <image class="search-bar-icon" src="/static/icons/sc-search.svg" mode="aspectFit" />
       <text class="search-bar-placeholder">搜索商品/订单/客户</text>
       <view class="search-actions">
-        <view class="icon-btn" @tap.stop="navigateTo('/pages/sales/create-sale')">
+        <view class="icon-btn" @tap.stop="onScan">
           <image class="icon-btn-img" src="/static/icons/hd-scan.svg" mode="aspectFit" />
         </view>
         <view class="icon-btn" @tap.stop="navigateTo('/pages/orders/orders')">
@@ -220,6 +220,7 @@ import { ordersApi, type OrderInfo } from '@/api/modules/orders'
 import { notificationsApi } from '@/api/modules/notifications'
 import { reportsApi } from '@/api/modules/reports'
 import { inventoryApi } from '@/api/modules/inventory'
+import { productsApi } from '@/api/modules/products'
 import CustomTabBar from '@/components/custom-tab-bar.vue'
 import { COLOR_PRIMARY, COLOR_WHITE, COLOR_WARNING, COLOR_ERROR, COLOR_BLACK_03 } from '@/constants/colors'
 
@@ -454,6 +455,29 @@ function statusBadgeClass(status: string): string {
 
 function navigateTo(url: string) {
   uni.navigateTo({ url })
+}
+
+/** 搜索栏扫码入口：扫条码 → 按条码查商品 → 进商品详情（与商品页扫码逻辑一致） */
+async function onScan() {
+  try {
+    const { scanCode } = await import('@/native/scan')
+    const result = await scanCode()
+    const code = result?.code
+    if (!code) return
+    uni.showLoading({ title: '查询商品...' })
+    const res = await productsApi.list({ keyword: code, page: 1, pageSize: 10 })
+    uni.hideLoading()
+    const rows = res?.list ?? []
+    const matched = rows.find((p) => String(p.skuId) === code || (p.name || '').includes(code)) ?? rows[0]
+    if (matched) {
+      uni.navigateTo({ url: `/pages/products/product-detail?id=${matched.id}` })
+    } else {
+      uni.showToast({ title: '未找到该条码商品', icon: 'none' })
+    }
+  } catch (err) {
+    uni.hideLoading()
+    uni.showToast({ title: (err as Error)?.message || '扫码失败', icon: 'none' })
+  }
 }
 
 function formatOrderTime(createdAt?: string): string {
