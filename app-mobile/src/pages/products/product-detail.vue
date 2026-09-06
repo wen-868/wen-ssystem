@@ -416,9 +416,11 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-// 注意：不要从 @dcloudio/uni-app 导入 onUnload —— 当前版本类型与运行时均未稳定导出该成员，
-// 导入后调用会让页面 setup 阶段抛 TypeError，表现为"点商品卡片打不开详情页"（白屏）。
-// 释放摄像头统一用 onHide 覆盖（切后台/离开页面同样需要释放）。
+// ⚠️ 禁止从 @dcloudio/uni-app 导入 onUnload（实测结论，勿按 TS 报错猜测回滚）：
+// App 端运行时（@dcloudio/uni-app-plus 的 uni.runtime.esm.js）不导出 onUnload，
+// import 得到 undefined，setup 执行 onUnload(...) 抛 TypeError → 页面 render 中止 →
+// 白屏（onLoad 回调先注册故请求仍发出，nginx 可见 200，极具迷惑性）。
+// H5 运行时（uni-app.es.js）虽有导出，但跨端统一只用 onHide（覆盖切后台+离开两场景）。
 import { onLoad, onHide } from '@dcloudio/uni-app'
 import {
   createProduct,

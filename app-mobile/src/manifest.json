@@ -87,7 +87,12 @@
         }
     },
     "h5" : {
-        "title" : "智享全链"
+        "title" : "智享全链",
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : false
+            }
+        }
     },
     "mp-weixin" : {
         "appid" : "wx3ea76428aa15cec7",
