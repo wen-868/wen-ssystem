@@ -699,11 +699,31 @@ export async function getSalesTrendByDay(tenantId: string, days: number = 7) {
     [tenantId, days]
   );
 
-  return records.map((r) => ({
-    date: r.date,
-    salesAmount: Number(r.salesAmount),
-    orderCount: Number(r.orderCount),
-  }));
+  // 补零成完整连续的最近 N 天：无销售的日期 salesAmount/orderCount 为 0，
+  // 避免 GROUP BY 只返回有单日期导致前端曲线缺点、错位
+  const keyOf = (v: unknown): string => {
+    if (v instanceof Date) {
+      const p = (n: number) => String(n).padStart(2, "0");
+      return `${v.getFullYear()}-${p(v.getMonth() + 1)}-${p(v.getDate())}`;
+    }
+    return String(v).slice(0, 10);
+  };
+  const byDate = new Map(records.map((r) => [keyOf(r.date), r]));
+  const result: Array<{ date: string; salesAmount: number; orderCount: number }> = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+    const hit = byDate.get(key);
+    result.push({
+      date: key,
+      salesAmount: hit ? Number(hit.salesAmount) : 0,
+      orderCount: hit ? Number(hit.orderCount) : 0,
+    });
+  }
+  return result;
 }
 
 // ========== 库存分析 ==========

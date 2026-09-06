@@ -240,11 +240,22 @@ describe("dashboard.service", () => {
   });
 
   describe("getSalesTrendByDay", () => {
-    it("返回按日趋势", async () => {
-      mocks.query.mockResolvedValue([{ date: "2026-01-01", salesAmount: "500", orderCount: "5" }]);
+    it("返回最近7天且无销售日补零", async () => {
+      const p = (n: number) => String(n).padStart(2, "0");
+      const keyOf = (d: Date) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterday = keyOf(new Date(today.getTime() - 24 * 60 * 60 * 1000));
+      mocks.query.mockResolvedValue([{ date: yesterday, salesAmount: "500", orderCount: "5" }]);
       const res = await getSalesTrendByDay("t1", 7);
-      expect(res[0].salesAmount).toBe(500);
-      expect(res[0].orderCount).toBe(5);
+      expect(res).toHaveLength(7);
+      // 末位为今天（无销售 → 补零）
+      expect(res[res.length - 1].date).toBe(keyOf(today));
+      expect(res[res.length - 1].salesAmount).toBe(0);
+      // 有销售的那天正常带出
+      const yRow = res.find((r) => r.date === yesterday)!;
+      expect(yRow.salesAmount).toBe(500);
+      expect(yRow.orderCount).toBe(5);
       const [, params] = mocks.query.mock.calls[0];
       expect(params).toEqual(["t1", 7]);
     });
