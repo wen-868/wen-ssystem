@@ -103,9 +103,10 @@ export async function getDashboard(params: {
   const { storeId, tenantId } = params;
   const whereStore = storeId ? "WHERE tenant_id = ? AND store_id = ?" : "WHERE tenant_id = ?";
   const p = storeId ? [tenantId, storeId] : [tenantId];
-  const todayOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore}`, p, tenantId);
+  // 「今日」口径必须带当天过滤，否则返回的是全量累计值，与「本月」KPI 出现 今日>本月 的矛盾
+  const todayOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND created_at >= CURDATE()`, p, tenantId);
   const pendingOrders = await queryOneWithTenant<CntRow>(`SELECT COUNT(*) AS cnt FROM t_miniapp_order ${whereStore} AND order_status = 'PENDING_PAYMENT'`, p, tenantId);
-  const todaySales = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
+  const todaySales = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(receivable_amount), 0) AS total FROM t_sale_bill ${whereStore} AND created_at >= CURDATE()`, p, tenantId);
   const unreceived = await queryOneWithTenant<TotalRow>(`SELECT COALESCE(SUM(unreceived_amount), 0) AS total FROM t_sale_bill ${whereStore}`, p, tenantId);
 
   // 月度 KPI + 订单进度（首页对齐 v1.2 原稿：本月营业额/本月订单/本月毛利 + 待配送/待取货/待收款/已完成）

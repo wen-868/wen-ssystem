@@ -83,10 +83,21 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 defineProps<{
   /** 当前 tab：home / products / functions / profile / ai */
   current: 'home' | 'products' | 'functions' | 'profile' | 'ai'
 }>()
+
+// App 端不支持 tabBar 的 custom:true（该属性仅微信小程序支持），
+// 原生 tabBar 会与自绘 custom-tab-bar 叠成双栏；挂载时隐藏原生栏，
+// tabBar 配置保留，uni.switchTab 跳转不受影响
+// #ifdef APP-PLUS
+onMounted(() => {
+  try { uni.hideTabBar({ animation: false }) } catch { /* 未就绪时忽略 */ }
+})
+// #endif
 
 function switchTab(url: string) {
   uni.switchTab({ url })

@@ -5,6 +5,11 @@ import { checkAppUpdate } from '@/utils/update'
 onLaunch(() => {
   // 启动检查更新（有新版本及时提示）
   checkAppUpdate()
+  // #ifdef APP-PLUS
+  // App 端不支持 tabBar 的 custom:true（仅微信小程序支持），原生 tabBar 会与自绘
+  // custom-tab-bar 叠成双栏；启动即隐藏原生栏（页面组件挂载后还会兜底隐藏一次）
+  try { uni.hideTabBar({ animation: false }) } catch { /* tabBar 未就绪时忽略 */ }
+  // #endif
   // 检查登录状态
   const token = uni.getStorageSync('merchant_token')
   if (!token) {
