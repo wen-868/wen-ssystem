@@ -222,7 +222,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
       conn,
       `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
        SELECT ?, id, ? FROM t_sys_role
-       WHERE role_code = 'SUPER_ADMIN' AND status = 'ACTIVE'
+       WHERE role_code = 'SUPER_ADMIN' AND (status = 'ACTIVE' OR status = 1 OR status = '1')
        ORDER BY CASE WHEN tenant_id = ? THEN 0 ELSE 1 END
        LIMIT 1`,
       [userId, tenantId, tenantId]

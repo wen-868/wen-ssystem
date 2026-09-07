@@ -90,7 +90,7 @@ export async function getUserMenus(userId: number, tenantId: string): Promise<Me
     `SELECT r.id AS roleId, r.role_code AS roleCode
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id
-     WHERE ur.user_id = ? AND r.status = 'ACTIVE' AND r.tenant_id = ?`,
+     WHERE ur.user_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1') AND r.tenant_id = ?`,
     [userId, tenantId],
     tenantId
   );

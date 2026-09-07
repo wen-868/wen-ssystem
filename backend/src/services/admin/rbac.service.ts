@@ -262,7 +262,7 @@ export async function checkUserPermission(userId: number, tenantId: number, perm
     `SELECT r.permissions
      FROM t_sys_user_role ur
      JOIN t_sys_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id
-     WHERE ur.user_id = ? AND ur.tenant_id = ? AND r.status = 'ACTIVE'`,
+     WHERE ur.user_id = ? AND ur.tenant_id = ? AND (r.status = 'ACTIVE' OR r.status = 1 OR r.status = '1')`,
     [userId, tenantId]
   );
 
