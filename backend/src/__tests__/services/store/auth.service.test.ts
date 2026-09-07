@@ -71,4 +71,18 @@ describe("store/auth.service login", () => {
     });
     await expect(login("admin", "admin123")).rejects.toThrow("账号已锁定");
   });
+
+  it("账号不存在但存在待审注册申请 → 提示审核中而非密码错误", async () => {
+    mocks.queryOne
+      .mockResolvedValueOnce(null) // t_sys_user 查无账号
+      .mockResolvedValueOnce({ id: 8 }); // t_tenant_register_application PENDING
+    await expect(login("13410954557", "Any#pwd1")).rejects.toThrow("注册申请正在审核中");
+  });
+
+  it("账号不存在且无待审申请 → 统一报账号或密码错误", async () => {
+    mocks.queryOne
+      .mockResolvedValueOnce(null) // t_sys_user 查无账号
+      .mockResolvedValueOnce(null); // 无 PENDING 申请
+    await expect(login("nobody", "x")).rejects.toThrow("账号或密码错误");
+  });
 });

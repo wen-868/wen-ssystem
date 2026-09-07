@@ -195,7 +195,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
         province, city, district, address,
         business_license, legal_person, industry, company_scale,
         source, status, review_status, reviewed_at, reviewed_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 'ACTIVE', 'APPROVED', NOW(), ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 1, 'APPROVED', NOW(), ?)`,
       [
         tenantId, tenantCode, application.company_name, application.company_short_name || "",
         application.contact_person, application.contact_mobile, application.contact_email || "",

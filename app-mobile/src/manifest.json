@@ -40,7 +40,7 @@
                 "packagename" : "com.zhixiang.app",
                 "minSdkVersion" : 21,
                 "targetSdkVersion" : 33,
-                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ]
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a" ]
             },
             "ios" : {
                 "appid" : "com.zhixiang.app",

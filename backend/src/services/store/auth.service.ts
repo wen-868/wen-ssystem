@@ -47,6 +47,16 @@ export async function login(username: string, password: string) {
   );
 
   if (!account) {
+    // 注册是平台审核制：审核通过才写入 t_sys_user。账号不存在时先查是否有待审申请，
+    // 避免把"还没审核"误报成"账号或密码错误"（2026-09-08 生产实证：8 条申请全 PENDING，
+    // 用户注册后登录被误报密码错误）
+    const pendingApplication = await queryOne<{ id: number }>(
+      "SELECT id FROM t_tenant_register_application WHERE admin_username = ? AND status = 'PENDING' LIMIT 1",
+      [username]
+    );
+    if (pendingApplication) {
+      throw new AppError("注册申请正在审核中，审核通过后即可登录", 403);
+    }
     throw new AppError("账号或密码错误", 400);
   }
 
