@@ -256,8 +256,8 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     await connExecute<ResultSetHeader>(
       conn,
       `INSERT INTO t_price_level (tenant_id, level_code, level_name, discount_rate, min_order_amount, description, sort_order)
-       VALUES (?, 'RETAIL', '零售价', 100.00, 0, '默认零售价格', 1),
-              (?, 'WHOLESALE', '批发价', 90.00, 0, '默认批发价格', 2)`,
+       VALUES (?, 'RETAIL', '零售价', 1.0000, 0, '默认零售价格', 1),
+              (?, 'WHOLESALE', '批发价', 0.9000, 0, '默认批发价格', 2)`,
       [tenantId, tenantId]
     );
     await connExecute<ResultSetHeader>(
