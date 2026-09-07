@@ -174,7 +174,15 @@ export async function request<T = any>(options: RequestOptions): Promise<T> {
 }
 
 export function get<T = any>(url: string, params?: Record<string, any>, options?: { responseType?: 'text' | 'json' | 'arraybuffer' | 'blob' }): Promise<T> {
-  return request<T>({ url, method: 'GET', data: params, ...options })
+  // 过滤空值参数：uni.request 会把 undefined/null/'' 序列化成 `key=` 空串，
+  // 后端 Zod 枚举校验（如盘点列表 status）收到 '' 会直接 400 参数校验失败。
+  // 缺参数与空字符串在后端语义一致（均为"不筛选"），故统一丢弃更安全。
+  const cleanParams = params
+    ? Object.fromEntries(
+        Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
+      )
+    : params
+  return request<T>({ url, method: 'GET', data: cleanParams, ...options })
 }
 
 export function post<T = any>(url: string, data?: any): Promise<T> {
