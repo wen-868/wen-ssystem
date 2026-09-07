@@ -109,7 +109,7 @@
 
       <!-- 客户（收款单：后端 createReceipt 必填 customerId，须从客户选择器获取，不能仅用源单反查名字） -->
       <view class="form-section" v-if="docConfig.showReceiptCustomer">
-        <view class="section-title">{{ docKey === 'sale-return' ? '客户' : '收款客户' }}</view>
+        <view class="section-title">{{ docKey === 'sale_return' ? '客户' : '收款客户' }}</view>
         <view class="qc-cell" @tap="openCustomerPicker">
           <view class="qc-val">{{ receiptCustomerName || '请选择客户' }} <text class="qc-chev">▾</text></view>
         </view>
@@ -763,6 +763,9 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
+// R96-02: 小程序端转发钩子。小程序没有 plus.share，转发只能走右上角菜单，
+// 必须注册 onShareAppMessage 后右上角「··· → 转发」才可用（此前全项目未注册，导致小程序端分享完全不可用）。
+import { onShareAppMessage } from '@dcloudio/uni-app'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
@@ -1302,7 +1305,7 @@ function onPriceConfirm(index: number) {
   if (!item) return
   item.total = (item.price ?? 0) * (item.quantity ?? 0)
   item.subtotalAmount = item.total
-  item.unitPrice = item.price
+  item.unitPrice = item.price ?? 0
 }
 
 // 左滑显示删除
@@ -1906,41 +1909,78 @@ function buildShareText(): string {
 /** 分享（原稿 shareDoc：系统分享 / 复制链接） */
 function handleShare() {
   const text = buildShareText()
-  // #ifdef H5
-  const nav = navigator as any
-  if (nav.share) {
-    nav.share({ title: '智享全链 · ' + docTitle.value, text }).catch(() => {})
-  } else if (nav.clipboard) {
-    nav.clipboard.writeText(text).then(
-      () => uni.showToast({ title: '已复制分享内容', icon: 'none' }),
-      () => uni.showToast({ title: '分享失败，请重试', icon: 'none' })
-    )
-  } else {
-    uni.showToast({ title: '当前环境不支持系统分享', icon: 'none' })
-  }
-  // #endif
-  // #ifndef H5
-  // App 端：调起系统分享面板（plus.share.sendWithSystem）。
-  // 旧实现只弹一句"已生成开单分享卡片"，并未真正唤起任何分享——这是"分享不能调起系统分享"的根因。
-  const plus = (globalThis as any).plus
-  const fallbackCopy = () => {
+  const shareTitle = '智享全链 · ' + docTitle.value
+
+  /** 兜底：复制到剪贴板（三端通用，保证任何情况下用户都能拿到内容） */
+  const fallbackCopy = (tip: string) => {
     uni.setClipboardData({
       data: text,
-      success: () => uni.showToast({ title: '已复制分享内容', icon: 'none' }),
+      success: () => uni.showToast({ title: tip, icon: 'none' }),
       fail: () => uni.showToast({ title: '分享失败，请重试', icon: 'none' }),
     })
   }
-  if (plus?.share?.sendWithSystem) {
-    plus.share.sendWithSystem(
-      { type: 'text', title: '智享全链 · ' + docTitle.value, content: text },
-      () => {},
-      () => fallbackCopy()
-    )
-  } else {
-    fallbackCopy()
+
+  // #ifdef H5
+  // Web Share API：仅 HTTPS + 用户手势下可用（http 环境 navigator.share 不存在）
+  const nav = navigator as any
+  if (typeof nav.share === 'function') {
+    nav.share({ title: shareTitle, text }).catch((err: any) => {
+      // 用户在系统面板主动取消会抛 AbortError，此时不该降级复制（否则取消后还弹提示，体验很差）
+      if (err?.name === 'AbortError') return
+      fallbackCopy('系统分享不可用，已复制内容')
+    })
+    return
   }
+  // 旧实现此处只 toast「当前环境不支持」就结束了，用户什么都拿不到；改为复制兜底
+  fallbackCopy('当前浏览器不支持，已复制内容')
+  return
+  // #endif
+
+  // #ifdef MP-WEIXIN
+  // 小程序端没有 plus.share，转发只能走右上角菜单（本页已在下方注册 onShareAppMessage）。
+  // 旧实现用 #ifndef H5 把小程序也归到 plus 分支，plus 恒为 undefined → 永远只复制文本。
+  fallbackCopy('已复制内容，点右上角「···」可转发')
+  return
+  // #endif
+
+  // #ifdef APP-PLUS
+  // 系统分享面板。依赖 manifest.json → app-plus.modules 声明 Share 模块；
+  // 未声明时 plus.share 为 undefined，这正是此前「点了分享却只复制文本、拉不起面板」的根因。
+  const invokeShare = () => {
+    const plus = (globalThis as any).plus
+    if (!plus?.share?.sendWithSystem) {
+      // 模块未打包进引擎：明确告警 + 复制兜底，避免静默失败让人以为功能坏了
+      console.warn('[share] plus.share 不可用，请确认 manifest.json 的 app-plus.modules 已声明 Share 模块')
+      fallbackCopy('未集成分享模块，已复制内容')
+      return
+    }
+    plus.share.sendWithSystem(
+      // type='text' 时 content 为分享正文，title 部分 ROM 会用作标题
+      { type: 'text', title: shareTitle, content: text },
+      () => {},
+      (err: any) => {
+        console.warn('[share] sendWithSystem 失败', err?.code, err?.message)
+        fallbackCopy('调起分享失败，已复制内容')
+      }
+    )
+  }
+  // 冷启动后极早期点击时 plus 可能尚未注入，按 HTML5+ 标准写法等 plusready
+  if ((globalThis as any).plus) {
+    invokeShare()
+  } else {
+    document.addEventListener('plusready', invokeShare, { once: true })
+  }
+  return
   // #endif
 }
+
+// #ifdef MP-WEIXIN
+// 注册转发：不注册则小程序右上角「···」里没有「转发」项，分享功能完全不可用。
+onShareAppMessage(() => ({
+  title: `智享全链 · ${docTitle.value}`,
+  path: `/pages/sales/create-sale?docKey=${docKey.value}`,
+}))
+// #endif
 
 /** 保存（暂存草稿）：订单/进货走真实暂存接口，收款单仅前端标记 */
 async function handleDraft() {

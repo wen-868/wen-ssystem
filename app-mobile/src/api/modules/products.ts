@@ -27,13 +27,14 @@ export async function updateProduct(spuId: number, data: ProductUpdateParams): P
   return put(`/admin/products/${spuId}`, data)
 }
 
-/** SKU 五档价格更新契约（product.controller.ts#updateProductPrice，zod 校验） */
+/** SKU 五档价格更新契约（product.controller.ts#updateProductPrice，zod 校验）
+ *  miniappPrice / storePrice 允许传 null（前端清空该档价格时即传 null，后端已接受） */
 export interface SkuPriceParams {
   costPrice?: number
   retailPrice?: number
   wholesalePrice?: number
-  miniappPrice?: number
-  storePrice?: number
+  miniappPrice?: number | null
+  storePrice?: number | null
 }
 
 /** 更新 SKU 价格（PUT /admin/products/:skuId/price） */
@@ -270,6 +271,16 @@ export interface LibraryLookupResult {
 }
 
 const productsApi = {
+  /**
+   * 创建商品（POST /admin/products）
+   * R96-04：本模块顶层原本就有独立导出的 createProduct()，但 productsApi 对象漏收，
+   * create-sale.vue 快速添加商品调 productsApi.createProduct(...) 拿到 undefined，
+   * 一点保存即 TypeError「createProduct is not a function」。此处收编修复。
+   */
+  async createProduct(data: Record<string, any>): Promise<any> {
+    return createProduct(data)
+  },
+
   async list(params?: ProductListParams): Promise<ProductListResult> {
     const res = (await get('/admin/products', params)) as any
     const raw = res?.result ?? res

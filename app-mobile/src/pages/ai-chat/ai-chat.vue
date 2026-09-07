@@ -213,7 +213,8 @@ import {
   aiApi,
   type AiModelOption,
   type AiToolPreview,
-  type AiChatToolResultEvent
+  type AiChatToolResultEvent,
+  type AiChatParams
 } from '@/api/modules/ai'
 import { voiceTts } from '@/api/modules/ai'
 
@@ -539,7 +540,9 @@ async function sendMessage() {
   sending.value = true
   abortController = new AbortController()
 
-  const params = conversationId.value
+  // 显式标注 AiChatParams：三元两个分支的对象字面量在联合推导时会把 scope: 'mgmt'
+  // 拓宽为 string，与 AiChatParams.scope（'mgmt'|'platform'）不兼容（TS2345）
+  const params: AiChatParams = conversationId.value
     ? {
         message: text,
         conversationId: conversationId.value,
@@ -759,7 +762,8 @@ async function speakText(text: string) {
       speakingAudio = audio
       audio.play().catch(() => { /* 自动播放受限时静默 */ })
       // #endif
-      // #ifndef H5
+      // #ifdef MP-WEIXIN
+      // 小程序：FileSystemManager 写临时文件后播放（wx.env.USER_DATA_PATH 为小程序专属）
       const fs = uni.getFileSystemManager()
       const tmpPath = `${wx.env.USER_DATA_PATH || ''}/ai_speak_${Date.now()}.mp3`
       fs.writeFile({
@@ -779,6 +783,35 @@ async function speakText(text: string) {
         },
         fail: () => speakSystem(clean)
       })
+      // #endif
+      // #ifdef APP-PLUS
+      // R96-04：原实现用 #ifndef H5 把 App 端也归到小程序分支，但 uni.getFileSystemManager
+      // 与 wx.env 均为小程序专属 API，App 端 undefined → TypeError 被外层 catch 吞掉，
+      // 后端 TTS 在 App 端从未生效过（永远静默降级到系统 TTS）。
+      // App 端 InnerAudioContext 不支持 base64 data URI，须用 plus.io 写临时文件再播放。
+      ;(() => {
+        const plus = (globalThis as any).plus
+        if (!plus?.io) { speakSystem(clean); return }
+        const bytes = uni.base64ToArrayBuffer(base64)
+        const failToFile = () => speakSystem(clean)
+        plus.io.resolveLocalFileSystemURL('_doc/', (dir: any) => {
+          dir.getFile(`ai_speak_${Date.now()}.mp3`, { create: true }, (entry: any) => {
+            entry.createWriter((writer: any) => {
+              writer.onwrite = () => {
+                const inner = uni.createInnerAudioContext()
+                speakingAudio = inner
+                // 原生播放器需要绝对路径：convertLocalFileSystemURL 把 _doc/xxx 转为设备绝对路径
+                inner.src = plus.io.convertLocalFileSystemURL(entry.fullPath)
+                inner.play()
+                inner.onEnded(() => inner.destroy())
+                inner.onError(() => { inner.destroy(); speakSystem(clean) })
+              }
+              writer.onerror = failToFile
+              writer.write(new Blob([bytes]))
+            }, failToFile)
+          }, failToFile)
+        }, failToFile)
+      })()
       // #endif
       return
     }

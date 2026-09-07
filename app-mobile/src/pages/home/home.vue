@@ -196,8 +196,8 @@
         </svg>
         <!-- #endif -->
         <!-- #ifndef H5 -->
-        <!-- App/小程序端模板不支持内联 SVG，用 canvas 2d 绘制同款趋势图 -->
-        <canvas id="trendCanvas" type="2d" class="chart-canvas" @tap="noop"></canvas>
+<!-- App/小程序端模板不支持内联 SVG，用 canvas 2d 绘制同款趋势图 -->
+<canvas id="trendCanvas" type="2d" class="chart-canvas"></canvas>
         <!-- #endif -->
       </view>
       <view class="chart-labels" v-if="trendList.length > 0">

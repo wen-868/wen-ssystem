@@ -1,15 +1,13 @@
 /**
  * uni-app 生命周期钩子类型补充
- * @dcloudio/uni-app 的类型定义中未导出部分生命周期钩子，
- * vue-tsc 检测时无法解析，但 uni-app 编译器会在运行时正确注入。
- * 此文件补充类型声明以消除 TypeScript 编译错误。
+ *
+ * R96-03：原文件在此处有一个 declare module '@dcloudio/uni-app' 的本地声明
+ * （仅手写了 onLaunch/onShow/onHide/onLoad 四个函数），是早期官方类型不全时的补丁。
+ * 当前版本（3.0.0-5020320260806002）的官方 uni-app.d.ts 已导出全部生命周期钩子
+ * 与 onShareAppMessage 等 20+ 成员；本地 ambient 声明会遮蔽官方完整类型，
+ * 导致 import { onShareAppMessage } 报 TS2305「no exported member」。
+ * 故删除该声明块，直接使用官方类型。下方 SQLite 类型补充仍保留（@dcloudio/types 未覆盖）。
  */
-declare module '@dcloudio/uni-app' {
-  export function onLaunch(callback: () => void): void
-  export function onShow(callback: () => void): void
-  export function onHide(callback: () => void): void
-  export function onLoad(callback: (options?: any) => void): void
-}
 
 /**
  * uni-app SQLite API 类型补充

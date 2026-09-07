@@ -18,7 +18,10 @@
         },
         "modules" : {
             "Barcode" : {},
-            "Speech" : {}
+            "Speech" : {},
+            "Share" : {
+                "description" : "分享"
+            }
         },
         "distribute" : {
             "android" : {

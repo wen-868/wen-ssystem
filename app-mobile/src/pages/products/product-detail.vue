@@ -670,7 +670,9 @@ function syncUnitPricesFrom(key: string, v: string) {
 }
 
 // 价格表格行（基础单位列 = 可编辑 priceForm；辅单位列由模板读 units 冗余展示）
-const priceRows = computed(() => [
+// R96-04: key 显式为五档价的字面量联合 —— 否则模板 priceForm[row.key] 因 string 索引报 TS7053
+type PriceKey = 'costPrice' | 'wholesalePrice' | 'retailPrice' | 'miniappPrice' | 'storePrice'
+const priceRows = computed<Array<{ key: PriceKey; label: string }>>(() => [
   { key: 'costPrice', label: '进货价' },
   { key: 'wholesalePrice', label: '批发价' },
   { key: 'retailPrice', label: '零售价' },

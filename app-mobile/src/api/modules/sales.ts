@@ -4,6 +4,8 @@ export interface SaleItem {
   productId: number
   skuId?: number
   productName: string
+  /** 后端单据明细可能返回 skuName（详情页按 productName || skuName 兜底展示） */
+  skuName?: string
   price?: number
   quantity?: number
   total?: number

@@ -259,6 +259,12 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+/* R96-04: 此处必须保持静态导入。App 端产物是单文件 iife（app-service.js），不支持
+   code-splitting：当 scan.ts 的所有调用方都改为动态导入时，rollup 会将其拆为独立
+   chunk，构建直接失败 —— Invalid value "iife" for output.format ... code-splitting。
+   正因本页静态引用把 scan.ts "钉"在主 chunk，其余页面的动态导入才得以兼容 App 端
+   （构建日志的 "(!) dynamic import will not move module into another chunk" 是
+   正常且必要的信息性提示，勿按标准 rollup 语义去"修"它）。 */
 import { consumeLibraryFillData, scanForNewProduct } from '@/native/scan'
 import { productsApi, createProduct, uploadImage, type CategoryInfo } from '@/api/modules/products'
 

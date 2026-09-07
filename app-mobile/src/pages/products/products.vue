@@ -100,7 +100,7 @@
             </view>
             <view class="product-info">
               <text class="product-name">{{ item.name }}</text>
-              <text class="product-spec">{{ item.spec || '标准规格' }}</text>
+              <text class="product-spec">{{ item.specs || '标准规格' }}</text>
               <view class="product-meta">
                 <view class="price-line">
                   <text class="price-tag price-tag--ws">批 ¥{{ (item.wholesalePrice ?? item.price ?? 0).toFixed(2) }}</text>

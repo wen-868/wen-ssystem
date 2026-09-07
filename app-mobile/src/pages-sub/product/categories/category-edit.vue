@@ -184,7 +184,7 @@ async function onSubmit() {
   }
 }
 
-onLoad((options) => {
+onLoad((options?: Record<string, string | undefined>) => {
   if (options?.id) {
     isEdit.value = true
     editId.value = Number(options.id)
