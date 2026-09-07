@@ -348,8 +348,8 @@ export async function joinGroupBuy(
             gb.name AS activityName, gb.group_price AS groupPrice
      FROM t_group_buy_team gbt
      JOIN t_group_buy gb ON gb.id = gbt.activity_id
-     WHERE gbt.id = ?`,
-    [teamId],
+     WHERE gbt.id = ? AND gbt.tenant_id = ?`,
+    [teamId, tenantId],
     tenantId
   );
 
@@ -587,8 +587,10 @@ export async function listSeckillActivities(
   status?: string
 ) {
   const offset = (page - 1) * pageSize;
-  const conditions: string[] = [];
-  const params: unknown[] = [];
+  // sp.tenant_id = ? 必须显式写：本 SQL 两表 JOIN 均含 tenant_id 列，
+  // 依赖 queryWithTenant 自动注入裸 `tenant_id = ?` 会报 "Column 'tenant_id' is ambiguous" 500
+  const conditions: string[] = ["sp.tenant_id = ?"];
+  const params: unknown[] = [tenantId];
 
   if (status) {
     conditions.push("sp.status = ?");
@@ -636,8 +638,8 @@ export async function getSeckillActivity(tenantId: string, id: number) {
             p.name AS productName
      FROM t_seckill_product sp
      LEFT JOIN t_product_spu p ON p.id = sp.product_id
-     WHERE sp.id = ?`,
-    [id],
+     WHERE sp.id = ? AND sp.tenant_id = ?`,
+    [id, tenantId],
     tenantId
   );
   if (!record) {
