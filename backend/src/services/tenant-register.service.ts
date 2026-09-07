@@ -184,20 +184,22 @@ export async function approveTenantApplication(applicationId: number, reviewerId
 
   const tenantId = randomUUID();
   const tenantCode = makeBizNo("T");
+  // 租户展示名：t_tenant.name 为 NOT NULL 必填列（2026-09-08 生产实证缺列报错），取简称兜底全称
+  const displayName = application.company_short_name || application.company_name;
 
   await transaction(async (conn) => {
-    // 1) 创建租户（id 为 UUID，status 为 ACTIVE）
+    // 1) 创建租户（id 为 UUID，status 为 tinyint：1=启用）
     await connExecute<ResultSetHeader>(
       conn,
       `INSERT INTO t_tenant (
-        id, tenant_code, company_name, company_short_name,
+        id, tenant_code, name, company_name, company_short_name,
         contact_person, contact_mobile, contact_email,
         province, city, district, address,
         business_license, legal_person, industry, company_scale,
         source, status, review_status, reviewed_at, reviewed_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 1, 'APPROVED', NOW(), ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'SELF_REGISTER', 1, 'APPROVED', NOW(), ?)`,
       [
-        tenantId, tenantCode, application.company_name, application.company_short_name || "",
+        tenantId, tenantCode, displayName, application.company_name, application.company_short_name || "",
         application.contact_person, application.contact_mobile, application.contact_email || "",
         application.province || "", application.city || "", application.district || "", application.address || "",
         application.business_license || "", application.legal_person || "",
@@ -242,7 +244,6 @@ export async function approveTenantApplication(applicationId: number, reviewerId
     );
 
     // 6) 初始化租户默认数据（门店/价格等级/支付方式），保证审核通过即可使用
-    const storeName = application.company_short_name || application.company_name;
     await connExecute<ResultSetHeader>(
       conn,
       `INSERT INTO t_store (
@@ -250,7 +251,7 @@ export async function approveTenantApplication(applicationId: number, reviewerId
          delivery_radius, business_status, status,
          fulfillment_delivery_enabled, fulfillment_pickup_enabled
        ) VALUES (?, 'S001', ?, '', ?, ?, 5.00, 'OPEN', 'OPEN', 1, 1)`,
-      [tenantId, storeName, application.contact_person, application.contact_mobile]
+      [tenantId, displayName, application.contact_person, application.contact_mobile]
     );
     await connExecute<ResultSetHeader>(
       conn,
