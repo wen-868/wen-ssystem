@@ -728,7 +728,7 @@ onLoad((query: any) => {
 </script>
 
 <style lang="scss" scoped>
-@import '@/uni.scss';
+/* R96-01: 已删除冗余的 @import '@/uni.scss' —— uni-app 会自动把 uni.scss 全文注入每个 scss 文件 */
 
 .member-detail-page {
   min-height: 100vh;

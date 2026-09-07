@@ -56,4 +56,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // R96-01: 静默 Dart Sass 的 legacy-js-api 弃用警告。
+        // 根因：@dcloudio/uni-cli-shared 的 CSS 插件（dist/vite/plugins/vitejs/plugins/css.js）
+        // 内部调用的是 sass.render() —— Dart Sass 旧版 JS API，1.79+ 起弃用、2.0.0 将移除。
+        // 该调用位于 node_modules 三方框架代码中，本项目无法直接修改；
+        // 升级 @dcloudio/* 大版本风险过高（会牵动 113 个页面的编译行为），
+        // 因此采用官方推荐的 silenceDeprecations 选项在编译期静默该框架级警告。
+        // 影响范围：仅抑制日志输出，不改变任何编译行为与产物；待 uni-app 官方改用 modern API 后可移除。
+        silenceDeprecations: ['legacy-js-api'],
+      },
+    },
+  },
 })

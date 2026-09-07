@@ -27,7 +27,12 @@ onHide(() => {
 
 <style lang="scss">
 /* 全局样式 */
-@import '@/uni.scss';
+/* R96-01: 此处原为 @import '@/uni.scss'; 已删除。
+   原因：@dcloudio/vite-plugin-uni 会把 src/uni.scss 全文作为 additionalData
+   前置注入到每一个 scss 文件（见 vite-plugin-uni/dist/config/css.js 的 resolveAdditionalData），
+   uni.scss 的变量与样式类本就全局可用，该 @import 纯属冗余；
+   且它会导致 uni.scss 的 30 个 CSS 类在每个组件里被重复输出一遍，
+   同时触发 Dart Sass 的 @import 弃用警告（Dart Sass 3.0.0 将移除该规则）。 */
 
 page {
   background-color: $zx-bg-f5;
