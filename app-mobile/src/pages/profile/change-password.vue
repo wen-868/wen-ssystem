@@ -68,6 +68,7 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, reactive } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { authApi } from '@/api/modules/auth'
 
 const formRef = ref<any>(null)
 const form = reactive({
@@ -105,23 +106,34 @@ const rules: Rules = {
 
 const { errors, validate, clearError } = useFormValidation(form, rules)
 
+const submitting = ref(false)
+
 async function onSubmit() {
   const valid = await validate()
   if (!valid) return
+  if (submitting.value) return
 
   uni.showModal({
     title: '确认修改',
     content: '确认修改密码？修改后需重新登录',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showLoading({ title: '修改中...' })
+    success: async (res) => {
+      if (!res.confirm) return
+      submitting.value = true
+      uni.showLoading({ title: '修改中...' })
+      try {
+        await authApi.changePassword(form.oldPassword, form.newPassword)
+        uni.hideLoading()
+        uni.showToast({ title: '修改成功，请重新登录', icon: 'none' })
+        // 改密成功后旧 token 已失效/应失效，回到登录页重新认证
         setTimeout(() => {
-          uni.hideLoading()
-          uni.showToast({ title: '修改成功', icon: 'success' })
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 1500)
-        }, 1000)
+          uni.reLaunch({ url: '/pages/login/login' })
+        }, 1500)
+      } catch (err: any) {
+        uni.hideLoading()
+        const msg = err?.message || err?.msg || '修改失败，请确认旧密码是否正确'
+        uni.showToast({ title: msg, icon: 'none' })
+      } finally {
+        submitting.value = false
       }
     }
   })

@@ -202,6 +202,11 @@ const instantRetailApi = {
     return post(`/admin/instant-retail/orders/${orderNo}/status`, { status: 'CONFIRMED' })
   },
 
+  /** 通用状态更新（如 SHIPPING 发货） */
+  async updateOrderStatus(orderNo: string, status: string, reason?: string): Promise<any> {
+    return post(`/admin/instant-retail/orders/${orderNo}/status`, reason ? { status, reason } : { status })
+  },
+
   /** 取消订单 */
   async cancelOrder(orderNo: string, reason?: string): Promise<any> {
     return post(`/admin/instant-retail/orders/${orderNo}/status`, { status: 'CANCELLED', reason })

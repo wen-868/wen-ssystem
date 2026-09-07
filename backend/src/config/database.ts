@@ -231,8 +231,17 @@ function injectSelectTenant(sql: string, params: unknown[], tenantId: string): {
       const modifiedSql = sql + ' WHERE tenant_id = ?';
       return { modifiedSql, modifiedParams: [...params, tenantId] };
     }
-    const modifiedSql = sql.substring(0, clauseMatch) + ' WHERE tenant_id = ? ' + sql.substring(clauseMatch);
-    return { modifiedSql, modifiedParams: [...params, tenantId] };
+    // 占位符插在 clauseMatch 之前，tenantId 必须插到参数序列的同一位置。
+    // 修复：R95-03 版本曾把 tenantId 追加到 params 末尾，导致占位符之后的
+    // LIMIT ?/OFFSET ? 系列参数整体左移一位，OFFSET 拿到 tenantId（'default'）
+    // 报 "near ''default''" SQL 语法 500（波及营销/审批/客户拜访等全部无条件列表查询）。
+    const beforeClause = sql.substring(0, clauseMatch);
+    const placeholderCount = (beforeClause.match(/\?/g) || []).length;
+    const modifiedSql = beforeClause + ' WHERE tenant_id = ? ' + sql.substring(clauseMatch);
+    return {
+      modifiedSql,
+      modifiedParams: [...params.slice(0, placeholderCount), tenantId, ...params.slice(placeholderCount)],
+    };
   }
 }
 

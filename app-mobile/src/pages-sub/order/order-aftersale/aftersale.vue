@@ -35,14 +35,14 @@
 
     <!-- 售后列表 -->
     <scroll-view class="aftersale-list" scroll-y v-if="list.length > 0">
-      <view class="aftersale-card" v-for="item in list" :key="item.aftersaleNo">
+      <view class="aftersale-card" v-for="item in list" :key="item.id">
         <view class="card-header">
           <view class="header-left">
-            <text class="aftersale-type" :class="'type-' + item.type">{{ item.typeLabel }}</text>
+            <text class="aftersale-type" :class="'type--' + typeClass(item.aftersaleType)">{{ item.aftersaleTypeLabel || item.aftersaleType }}</text>
             <text class="aftersale-no">{{ item.aftersaleNo }}</text>
           </view>
-          <view class="aftersale-status" :class="'status-' + item.status">
-            <text class="status-text">{{ item.statusLabel }}</text>
+          <view class="aftersale-status" :class="'status--' + String(item.status || '').toLowerCase()">
+            <text class="status-text">{{ item.statusLabel || item.status }}</text>
           </view>
         </view>
         <view class="card-body">
@@ -51,36 +51,33 @@
             <text class="info-value">{{ item.orderNo }}</text>
           </view>
           <view class="info-row">
-            <text class="info-label">客户</text>
-            <text class="info-value">{{ item.customerName }}</text>
-          </view>
-          <view class="info-row">
-            <text class="info-label">商品</text>
-            <text class="info-value">{{ item.productName }} × {{ item.qty }}</text>
-          </view>
-          <view class="info-row">
             <text class="info-label">退款金额</text>
-            <text class="info-value info-value--refund">¥{{ item.refundAmount }}</text>
+            <text class="info-value info-value--refund">¥{{ Number(item.refundAmount || 0).toFixed(2) }}</text>
           </view>
           <view class="info-row">
             <text class="info-label">申请原因</text>
-            <text class="info-value">{{ item.reason }}</text>
+            <text class="info-value info-value--reason">{{ item.reason || '—' }}</text>
+          </view>
+          <view class="info-row" v-if="item.returnLogisticsNo">
+            <text class="info-label">退货物流</text>
+            <text class="info-value">{{ item.returnLogisticsCompany || '' }} {{ item.returnLogisticsNo }}</text>
           </view>
           <view class="info-row">
             <text class="info-label">申请时间</text>
-            <text class="info-value">{{ item.createTime }}</text>
+            <text class="info-value">{{ formatDate(item.createdAt) }}</text>
           </view>
         </view>
-        <view class="card-actions" v-if="item.status === 'pending'">
-          <button class="action-btn approve-btn" @tap="handleApprove(item)">同意</button>
-          <button class="action-btn reject-btn" @tap="handleReject(item)">拒绝</button>
+        <view class="card-actions" v-if="item.status === 'PENDING'">
+          <button class="action-btn approve-btn" :disabled="acting" @tap="handleApprove(item)">同意</button>
+          <button class="action-btn reject-btn" :disabled="acting" @tap="handleReject(item)">拒绝</button>
         </view>
       </view>
     </scroll-view>
 
-    <view class="empty-state" v-else>
+    <view class="empty-state" v-else-if="!loading">
       <image class="empty-icon ic" src="/static/icons/ic/empty.svg" mode="aspectFit"/>
-      <text class="empty-text">暂无售后申请</text>
+      <text class="empty-text">{{ loadError || '暂无售后申请' }}</text>
+      <button class="empty-retry" v-if="loadError" @tap="loadAftersales">点击重试</button>
     </view>
 
     <view class="safe-bottom"></view>
@@ -92,6 +89,7 @@ function goBack(){ uni.navigateBack() }
 
 import { ref, reactive, onMounted } from 'vue'
 import { useFormValidation, type Rules } from '@/composables/useFormValidation'
+import { aftersaleApi, type AftersaleRecord } from '@/api/modules/aftersale'
 
 const formRef = ref<any>(null)
 const searchForm = reactive({ keyword: '' })
@@ -100,40 +98,92 @@ const searchRules: Rules = {
 }
 const { errors, validate, clearError } = useFormValidation(searchForm, searchRules)
 
+// tab value 与后端售后状态枚举一致（大写），'' = 全部
 const tabs = [
   { label: '全部', value: '' },
-  { label: '待处理', value: 'pending' },
-  { label: '处理中', value: 'processing' },
-  { label: '已完成', value: 'completed' },
-  { label: '已拒绝', value: 'rejected' },
+  { label: '待审核', value: 'PENDING' },
+  { label: '已通过', value: 'APPROVED' },
+  { label: '已完成', value: 'COMPLETED' },
+  { label: '已拒绝', value: 'REJECTED' },
 ]
 const activeTab = ref('')
-const list = ref<any[]>([])
+const list = ref<AftersaleRecord[]>([])
 const loading = ref(false)
+const loadError = ref('')
+const acting = ref(false)
 
 function onSearch() { loadAftersales() }
 function clearSearch() { searchForm.keyword = ''; loadAftersales() }
 function switchTab(val: string) { activeTab.value = val; loadAftersales() }
 
-function handleApprove(item: any) {
+/** 后端售后类型 → 卡片配色 class */
+function typeClass(type: string): string {
+  const map: Record<string, string> = {
+    REFUND_ONLY: 'refund',
+    RETURN_REFUND: 'return',
+    EXCHANGE: 'exchange',
+    REPAIR: 'repair',
+  }
+  return map[type] ?? 'other'
+}
+
+function formatDate(date?: string): string {
+  if (!date) return '—'
+  return String(date).replace('T', ' ').slice(0, 16)
+}
+
+async function handleApprove(item: AftersaleRecord) {
   uni.showModal({
     title: '同意售后',
-    content: '确认同意该售后申请？',
-    success: (res) => {
-      if (res.confirm) {
+    content: `确认同意售后单 ${item.aftersaleNo} 的申请？`,
+    success: async (res) => {
+      if (!res.confirm) return
+      acting.value = true
+      uni.showLoading({ title: '提交中...' })
+      try {
+        await aftersaleApi.approve(item.id, '同意售后申请', (item as any).version)
+        uni.hideLoading()
         uni.showToast({ title: '已同意', icon: 'success' })
+        loadAftersales()
+      } catch (err: any) {
+        uni.hideLoading()
+        uni.showToast({ title: err?.message || '操作失败', icon: 'none' })
+      } finally {
+        acting.value = false
       }
     }
   })
 }
 
-function handleReject(item: any) {
+async function handleReject(item: AftersaleRecord) {
   uni.showModal({
     title: '拒绝售后',
-    content: '确认拒绝该售后申请？',
-    success: (res) => {
-      if (res.confirm) {
+    content: `确认拒绝售后单 ${item.aftersaleNo}？请填写拒绝原因`,
+    editable: true,
+    placeholderText: '请输入拒绝原因（必填）',
+    success: async (res) => {
+      if (!res.confirm) return
+      // editable 为 H5/小程序 2.17.1+ / 新版 App 才支持的输入能力：
+      // 不支持时 res.content 为 undefined（视为无需填写，用默认原因）；
+      // 支持但用户留空则拦截，避免无理由拒绝。
+      const hasInput = typeof (res as any).content === 'string'
+      const remark = hasInput ? ((res as any).content || '').trim() : ''
+      if (hasInput && !remark) {
+        uni.showToast({ title: '请填写拒绝原因', icon: 'none' })
+        return
+      }
+      acting.value = true
+      uni.showLoading({ title: '提交中...' })
+      try {
+        await aftersaleApi.reject(item.id, remark || '商家拒绝售后申请', (item as any).version)
+        uni.hideLoading()
         uni.showToast({ title: '已拒绝', icon: 'success' })
+        loadAftersales()
+      } catch (err: any) {
+        uni.hideLoading()
+        uni.showToast({ title: err?.message || '操作失败', icon: 'none' })
+      } finally {
+        acting.value = false
       }
     }
   })
@@ -141,10 +191,18 @@ function handleReject(item: any) {
 
 async function loadAftersales() {
   loading.value = true
+  loadError.value = ''
   try {
-    list.value = []
-  } catch (err) {
+    const { records } = await aftersaleApi.list({
+      status: activeTab.value || undefined,
+      keyword: searchForm.keyword.trim() || undefined,
+      page: 1,
+      pageSize: 50,
+    })
+    list.value = records
+  } catch (err: any) {
     console.error('加载售后列表失败:', err)
+    loadError.value = '加载失败，请检查网络后重试'
   } finally {
     loading.value = false
   }
@@ -198,25 +256,30 @@ onMounted(() => { loadAftersales() })
 .aftersale-type {
   padding: 4rpx $uni-spacing-sm; border-radius: 8rpx; font-size: 22rpx;
 }
-.type-return { background: $uni-color-warning-soft; color: $uni-color-warning; }
-.type-exchange { background: $uni-color-primary-soft; color: $uni-color-primary; }
-.type-refund { background: $uni-color-error-soft; color: $uni-color-error; }
+.type--return { background: $uni-color-warning-soft; color: $uni-color-warning; }
+.type--exchange { background: $uni-color-primary-soft; color: $uni-color-primary; }
+.type--refund { background: $uni-color-error-soft; color: $uni-color-error; }
+.type--repair { background: $uni-color-success-soft; color: $uni-color-success; }
+.type--other { background: $uni-bg-color-grey; color: $uni-gray-500; }
 .aftersale-no { font-size: 24rpx; color: $uni-gray-400; }
 .aftersale-status { padding: 4rpx 16rpx; border-radius: 20rpx; }
-.status-pending { background: $uni-color-warning-soft; }
-.status-pending .status-text { color: $uni-color-warning; }
-.status-processing { background: $uni-color-primary-soft; }
-.status-processing .status-text { color: $uni-color-primary; }
-.status-completed { background: $uni-color-success-soft; }
-.status-completed .status-text { color: $uni-color-success; }
-.status-rejected { background: $uni-color-error-soft; }
-.status-rejected .status-text { color: $uni-color-error; }
+.status--pending { background: $uni-color-warning-soft; }
+.status--pending .status-text { color: $uni-color-warning; }
+.status--approved { background: $uni-color-primary-soft; }
+.status--approved .status-text { color: $uni-color-primary; }
+.status--returning, .status--received, .status--inspecting { background: $uni-color-primary-soft; }
+.status--returning .status-text, .status--received .status-text, .status--inspecting .status-text { color: $uni-color-primary; }
+.status--completed { background: $uni-color-success-soft; }
+.status--completed .status-text { color: $uni-color-success; }
+.status--rejected, .status--cancelled { background: $uni-color-error-soft; }
+.status--rejected .status-text, .status--cancelled .status-text { color: $uni-color-error; }
 .status-text { font-size: 22rpx; }
 .card-body { display: flex; flex-direction: column; gap: 10rpx; }
 .info-row { display: flex; justify-content: space-between; }
-.info-label { font-size: 24rpx; color: $uni-gray-400; }
-.info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-label { font-size: 24rpx; color: $uni-gray-400; flex-shrink: 0; margin-right: $uni-spacing-base; }
+.info-value { font-size: 26rpx; color: $uni-gray-700; text-align: right; }
 .info-value--refund { color: $uni-color-error; font-weight: 600; }
+.info-value--reason { max-width: 440rpx; }
 .card-actions {
   margin-top: $uni-spacing-sm; padding-top: $uni-spacing-sm;
   border-top: 1rpx solid $uni-gray-100;
@@ -237,5 +300,12 @@ onMounted(() => { loadAftersales() })
 }
 .empty-icon { font-size: 80rpx; color: $uni-gray-300; margin-bottom: $uni-spacing-md; }
 .empty-text { font-size: 28rpx; color: $uni-gray-300; }
+.empty-retry {
+  margin-top: $uni-spacing-md; padding: 0 $uni-spacing-lg; height: 64rpx; line-height: 64rpx;
+  border-radius: 32rpx; font-size: 26rpx;
+  background: $uni-bg-color; color: $uni-color-primary;
+  border: 1rpx solid $uni-color-primary;
+}
+.empty-retry::after { border: none; }
 .safe-bottom { height: 40rpx; }
 </style>

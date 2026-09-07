@@ -36,6 +36,15 @@
       <button class="btn btn--primary" @tap="onCollect">确认收款</button>
     </view>
 
+    <!-- 加载中 / 加载失败 / 缺少单号：避免无参或接口失败时整页空白 -->
+    <view class="state-wrap" v-if="!bill">
+      <text class="state-text" v-if="loading">加载中…</text>
+      <template v-else>
+        <text class="state-text">{{ loadError || '未指定销售单号' }}</text>
+        <button class="state-retry" v-if="billNo" @tap="retry">点击重试</button>
+      </template>
+    </view>
+
     <view class="safe-bottom"></view>
   </view>
 </template>
@@ -48,6 +57,9 @@ import { onLoad } from '@dcloudio/uni-app'
 import { salesApi, type SaleBillInfo } from '@/api/modules/sales'
 
 const bill = ref<SaleBillInfo | null>(null)
+const billNo = ref('')
+const loading = ref(false)
+const loadError = ref('')
 
 const statusMap: Record<string, string> = {
   PENDING: '待收款',
@@ -87,14 +99,22 @@ function formatDate(date?: string): string {
   return String(date).split('T')[0]
 }
 
-async function loadDetail(billNo: string) {
+async function loadDetail(no: string) {
+  loading.value = true
+  loadError.value = ''
   try {
-    const data = await salesApi.detail(billNo)
+    const data = await salesApi.detail(no)
     bill.value = data
-  } catch (err) {
+  } catch (err: any) {
     console.error('加载销售单详情失败:', err)
-    uni.showToast({ title: '加载失败', icon: 'none' })
+    loadError.value = '加载失败，请检查网络后重试'
+  } finally {
+    loading.value = false
   }
+}
+
+function retry() {
+  if (billNo.value) loadDetail(billNo.value)
 }
 
 async function onCollect() {
@@ -119,7 +139,8 @@ async function onCollect() {
 }
 
 onLoad((options: any) => {
-  if (options.billNo) loadDetail(options.billNo)
+  billNo.value = options?.billNo ?? ''
+  if (billNo.value) loadDetail(billNo.value)
 })
 </script>
 
@@ -175,5 +196,19 @@ onLoad((options: any) => {
   text-align: center; border: none;
 }
 .btn--primary { background: $uni-color-success; color: $uni-text-color-inverse; }
+
+.state-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 200rpx 0; gap: $uni-spacing-md;
+}
+.state-text { font-size: 28rpx; color: $uni-gray-300; }
+.state-retry {
+  padding: 0 $uni-spacing-lg; height: 64rpx; line-height: 64rpx;
+  border-radius: 32rpx; font-size: 26rpx;
+  background: $uni-bg-color; color: $uni-color-primary;
+  border: 1rpx solid $uni-color-primary;
+}
+.state-retry::after { border: none; }
+
 .safe-bottom { height: 40rpx; }
 </style>

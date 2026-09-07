@@ -54,7 +54,10 @@ export async function listPriceAnomalies(tenantId: string, params: {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(1, params.pageSize || 20));
   const offset = (page - 1) * pageSize;
+  // p.tenant_id = ? 必须显式写在 WHERE：本 SQL 三表 JOIN 均含 tenant_id 列，
+  // 若依赖 queryWithTenant 自动注入裸 `tenant_id = ?` 会报 "Column 'tenant_id' is ambiguous" 500
   const where: string[] = [
+    "p.tenant_id = ?",
     "p.cost_price > 0",
     "sku.status = 1",
     "spu.status <> 'DRAFT'",
@@ -71,7 +74,7 @@ export async function listPriceAnomalies(tenantId: string, params: {
       )
     )`,
   ];
-  const args: unknown[] = [];
+  const args: unknown[] = [tenantId];
   if (params.keyword) {
     where.push("(spu.name LIKE ? OR sku.sku_name LIKE ? OR sku.barcode LIKE ?)");
     const kw = `%${params.keyword}%`;
