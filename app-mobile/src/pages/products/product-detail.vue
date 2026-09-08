@@ -1551,7 +1551,15 @@ function reindexAfterRemove(removedIdx: number) {
 }
 
 onLoad((options: any) => {
-  const id = options?.id ? Number(options.id) : 0
+  const raw = options?.id
+  const id = raw ? Number(raw) : 0
+  // R96-06 诊断：明确带了 id 却解析不出有效数字时（如 id=undefined/NaN），
+  // 不再静默进入空白新增态（易被误判为"白屏"），显式提示后返回上一页
+  if (raw && !(id > 0)) {
+    uni.showToast({ title: `商品 ID 无效：${raw}`, icon: 'none', duration: 3000 })
+    setTimeout(() => uni.navigateBack(), 1500)
+    return
+  }
   if (id > 0) {
     loadDetail(id)
   } else {

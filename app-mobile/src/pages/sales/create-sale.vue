@@ -765,7 +765,7 @@
 import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue'
 // R96-02: 小程序端转发钩子。小程序没有 plus.share，转发只能走右上角菜单，
 // 必须注册 onShareAppMessage 后右上角「··· → 转发」才可用（此前全项目未注册，导致小程序端分享完全不可用）。
-import { onShareAppMessage } from '@dcloudio/uni-app'
+import { onShow, onShareAppMessage } from '@dcloudio/uni-app'
 import { salesApi, type SaleItem } from '@/api/modules/sales'
 import { customersApi, type CustomerInfo } from '@/api/modules/customers'
 import { productsApi, type ProductInfo, type CategoryInfo } from '@/api/modules/products'
@@ -1696,15 +1696,35 @@ const quickAddShow = ref(false)
 const quickAddForm = reactive({ name: '', spec: '', unit: '件', wholesalePrice: '', retailPrice: '', stock: '' })
 const quickAddSaving = ref(false)
 
+// R96-06：+ 号改为进入空白商品详情页新增（无 id = 新增态，与商品列表标题栏 + 号一致）。
+// 原先只是打开本页内简易弹层，字段不全（无分类/图片/多单位/渠道），且新增后无法在待选列表立即看到。
+const pendingRefreshPicker = ref(false)
+
 function openQuickAdd() {
-  quickAddForm.name = ''
-  quickAddForm.spec = ''
-  quickAddForm.unit = '件'
-  quickAddForm.wholesalePrice = ''
-  quickAddForm.retailPrice = ''
-  quickAddForm.stock = ''
-  quickAddShow.value = true
+  pendingRefreshPicker.value = true
+  uni.navigateTo({
+    url: '/pages/products/product-detail',
+    fail: (e: any) => {
+      pendingRefreshPicker.value = false
+      uni.showToast({
+        title: `打开新增商品失败：${e?.errMsg || e?.message || '页面不存在'}`,
+        icon: 'none',
+        duration: 3000,
+      })
+    },
+  })
 }
+
+// 从商品详情页返回后刷新待选列表，使刚新建的商品立即可选
+onShow(() => {
+  if (!pendingRefreshPicker.value) return
+  pendingRefreshPicker.value = false
+  if (!showProductPicker.value) return
+  productPage.value = 1
+  productNoMore.value = false
+  productList.value = []
+  loadProducts()
+})
 
 function closeQuickAdd() {
   quickAddShow.value = false
