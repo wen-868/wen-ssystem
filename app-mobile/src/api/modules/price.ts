@@ -11,6 +11,17 @@ export interface PriceLevel {
   remark?: string
 }
 
+/** 价格等级创建/更新参数（对齐后端 Zod 契约字段，R96-07） */
+export type PriceLevelUpsert = Partial<{
+  levelCode: string
+  levelName: string
+  discountRate: number
+  minOrderAmount: number
+  description: string
+  sortOrder: number
+  status: number
+}>
+
 /** 批量调价参数（对齐后端契约） */
 export interface BatchAdjustParams {
   filter?: {
@@ -82,13 +93,13 @@ const priceApi = {
     return rows.map(mapLevel)
   },
 
-  /** 新建价格等级 */
-  async createLevel(data: Partial<PriceLevel>): Promise<any> {
+  /** 新建价格等级（对齐后端 Zod 契约：levelCode/levelName/discountRate 等，R96-07） */
+  async createLevel(data: PriceLevelUpsert): Promise<any> {
     return post('/admin/prices/levels', data)
   },
 
   /** 更新价格等级 */
-  async updateLevel(id: number, data: Partial<PriceLevel>): Promise<any> {
+  async updateLevel(id: number, data: PriceLevelUpsert): Promise<any> {
     return put(`/admin/prices/levels/${id}`, data)
   },
 

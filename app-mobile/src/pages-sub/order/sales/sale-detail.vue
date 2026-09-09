@@ -10,25 +10,42 @@
     </view>
 
     <view class="info-card" v-if="bill">
-      <view class="card-title">订单信息</view>
+      <view class="card-title">单据信息</view>
+      <view class="info-row"><text class="info-label">单据编号</text><text class="info-value">{{ bill.billNo }}</text></view>
+      <view class="info-row"><text class="info-label">单据类型</text><text class="info-value">{{ saleTypeText }}</text></view>
       <view class="info-row"><text class="info-label">客户</text><text class="info-value">{{ bill.customerName || '散客' }}</text></view>
       <view class="info-row" v-if="bill.customerMobile"><text class="info-label">联系电话</text><text class="info-value">{{ bill.customerMobile }}</text></view>
-      <view class="info-row"><text class="info-label">总金额</text><text class="info-value amount">¥{{ formatAmount(bill.totalAmount) }}</text></view>
-      <view class="info-row"><text class="info-label">应收金额</text><text class="info-value">¥{{ formatAmount(bill.receivableAmount) }}</text></view>
+      <view class="info-row" v-if="bill.salesmanName"><text class="info-label">业务员</text><text class="info-value">{{ bill.salesmanName }}</text></view>
+      <view class="info-row" v-if="bill.operatorName"><text class="info-label">经手人</text><text class="info-value">{{ bill.operatorName }}</text></view>
+      <view class="info-row" v-if="bill.dueDate"><text class="info-label">赊销到期日</text><text class="info-value">{{ formatDate(bill.dueDate) }}</text></view>
+      <view class="info-row"><text class="info-label">开单时间</text><text class="info-value">{{ formatDate(bill.createdAt) }}</text></view>
+      <view class="info-row" v-if="bill.remark"><text class="info-label">备注</text><text class="info-value info-value--wrap">{{ bill.remark }}</text></view>
+    </view>
+
+    <view class="info-card" v-if="bill">
+      <view class="card-title">金额信息</view>
+      <view class="info-row"><text class="info-label">商品合计</text><text class="info-value">¥{{ formatAmount(bill.goodsAmount ?? 0) }}</text></view>
+      <view class="info-row" v-if="Number(bill.discountAmount) > 0"><text class="info-label">优惠</text><text class="info-value">-¥{{ formatAmount(bill.discountAmount ?? 0) }}</text></view>
+      <view class="info-row" v-if="Number(bill.roundingAmount) != 0"><text class="info-label">抹零</text><text class="info-value">-¥{{ formatAmount(bill.roundingAmount ?? 0) }}</text></view>
+      <view class="info-row"><text class="info-label">应收金额</text><text class="info-value amount">¥{{ formatAmount(bill.receivableAmount) }}</text></view>
       <view class="info-row"><text class="info-label">已收金额</text><text class="info-value">¥{{ formatAmount(bill.receivedAmount) }}</text></view>
-      <view class="info-row"><text class="info-label">状态</text><text class="info-value">{{ statusText }}</text></view>
-      <view class="info-row"><text class="info-label">创建时间</text><text class="info-value">{{ formatDate(bill.createdAt) }}</text></view>
+      <view class="info-row" v-if="Number(bill.unreceivedAmount) > 0"><text class="info-label">未收金额</text><text class="info-value amount">¥{{ formatAmount(bill.unreceivedAmount ?? 0) }}</text></view>
+      <view class="info-row"><text class="info-label">收款状态</text><text class="info-value">{{ statusText }}</text></view>
     </view>
 
     <view class="info-card" v-if="bill && bill.items && bill.items.length">
       <view class="card-title">商品明细</view>
       <view class="goods-item" v-for="(item, idx) in bill.items" :key="idx">
-        <view class="goods-header"><text class="goods-name">{{ item.productName || item.skuName || '商品' }}</text></view>
+        <view class="goods-header">
+          <text class="goods-name">{{ item.productName || item.skuName || '商品' }}</text>
+          <text class="goods-spec" v-if="item.skuSpec || item.specs">{{ item.skuSpec || item.specs }}</text>
+        </view>
         <view class="goods-body">
+          <view class="goods-info"><text class="goods-info-label">数量</text><text class="goods-info-value">{{ qtyText(item) }}</text></view>
           <view class="goods-info"><text class="goods-info-label">单价</text><text class="goods-info-value">¥{{ formatAmount(item.unitPrice ?? 0) }}</text></view>
-          <view class="goods-info"><text class="goods-info-label">数量</text><text class="goods-info-value">{{ (item.boxQty ?? 0) + (item.bottleQty ?? 0) }} {{ item.unit || '' }}</text></view>
           <view class="goods-info"><text class="goods-info-label">小计</text><text class="goods-info-value">¥{{ formatAmount(item.subtotalAmount ?? 0) }}</text></view>
         </view>
+        <view class="goods-remark" v-if="item.remark">备注：{{ item.remark }}</view>
       </view>
     </view>
 
@@ -62,28 +79,53 @@ const loading = ref(false)
 const loadError = ref('')
 
 const statusMap: Record<string, string> = {
-  PENDING: '待收款',
-  PAID: '已结清',
+  UNPAID: '待收款',
   PARTIAL: '部分收款',
+  PAID: '已结清',
+  OVERDUE: '已逾期',
   CANCELLED: '已取消',
   COMPLETED: '已完成',
 }
 const statusClassMap: Record<string, string> = {
-  PENDING: 'status-badge--pending',
-  PAID: 'status-badge--approved',
+  UNPAID: 'status-badge--pending',
   PARTIAL: 'status-badge--pending',
+  OVERDUE: 'status-badge--rejected',
+  PAID: 'status-badge--approved',
   CANCELLED: 'status-badge--rejected',
   COMPLETED: 'status-badge--approved',
 }
 
+/** 收款状态优先 collectionStatus（R96-07 对齐后端真实字段，原 status 后端不返回） */
 const statusText = computed(() => {
   if (!bill.value) return ''
-  return statusMap[bill.value.status] ?? bill.value.status ?? '—'
+  const s = bill.value.collectionStatus || bill.value.status || ''
+  return statusMap[s] ?? s ?? '—'
 })
 const statusClass = computed(() => {
   if (!bill.value) return ''
-  return statusClassMap[bill.value.status] ?? ''
+  const s = bill.value.collectionStatus || bill.value.status || ''
+  return statusClassMap[s] ?? ''
 })
+
+/** CASH 现金单 / CREDIT 赊销单 */
+const saleTypeText = computed(() => {
+  if (!bill.value) return '—'
+  return bill.value.saleType === 'CREDIT' ? '赊销单' : '现金单'
+})
+
+/** 数量展示：箱/瓶分开（原 boxQty+bottleQty 直接相加语义错误），如 "2箱5瓶" 或 "5瓶" */
+function qtyText(item: any): string {
+  const box = Number(item?.boxQty ?? 0)
+  const bottle = Number(item?.bottleQty ?? 0)
+  const unit = item?.unit || '瓶'
+  const parts: string[] = []
+  if (box > 0) parts.push(`${box}箱`)
+  if (bottle > 0) parts.push(`${bottle}${unit}`)
+  if (!parts.length) parts.push(`0${unit}`)
+  const total = Number(item?.totalBottleQty ?? 0)
+  const base = parts.join(' + ')
+  return total > 0 ? `${base}（共${total}${unit}）` : base
+}
 const needCollect = computed(() => {
   if (!bill.value) return false
   const receivable = Number(bill.value.receivableAmount ?? 0)
@@ -172,6 +214,7 @@ onLoad((options: any) => {
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: $uni-spacing-sm 0; }
 .info-label { font-size: 26rpx; color: $uni-gray-400; }
 .info-value { font-size: 26rpx; color: $uni-gray-700; }
+.info-value--wrap { flex: 1; margin-left: 24rpx; text-align: right; word-break: break-all; }
 .amount { color: $uni-color-error; font-weight: 600; }
 
 .goods-item {
@@ -179,8 +222,10 @@ onLoad((options: any) => {
   padding: $uni-spacing-md; margin-bottom: $uni-spacing-sm;
 }
 .goods-item:last-child { margin-bottom: 0; }
-.goods-header { margin-bottom: 16rpx; }
+.goods-header { margin-bottom: 16rpx; display: flex; flex-direction: column; gap: 6rpx; }
 .goods-name { font-size: 28rpx; font-weight: 500; color: $uni-gray-700; }
+.goods-spec { font-size: 22rpx; color: $uni-gray-400; }
+.goods-remark { margin-top: 12rpx; font-size: 22rpx; color: $uni-gray-400; }
 .goods-body { display: flex; gap: $uni-spacing-base; }
 .goods-info { flex: 1; display: flex; flex-direction: column; align-items: center; }
 .goods-info-label { font-size: 22rpx; color: $uni-gray-400; margin-bottom: $uni-spacing-xs; }

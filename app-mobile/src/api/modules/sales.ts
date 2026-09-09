@@ -6,19 +6,67 @@ export interface SaleItem {
   productName: string
   /** 后端单据明细可能返回 skuName（详情页按 productName || skuName 兜底展示） */
   skuName?: string
+  /** 后端明细快照：规格（如 "500ml 瓶装"） */
+  skuSpec?: string
   price?: number
   quantity?: number
   total?: number
   boxQty: number
   bottleQty: number
+  /** 后端明细快照：总瓶数（箱×换算+散瓶） */
+  totalBottleQty?: number
   unitPrice: number
   subtotalAmount: number
   unit?: string
   specs?: string
+  /** 后端明细快照：行备注 */
+  remark?: string
+  /** 后端明细快照：行优惠金额 */
+  itemDiscount?: number
+  barcode?: string
   /** 追溯码（可多个；后端 store-sale-bill item schema 支持 traceCodes: string[]） */
   traceCodes?: string[]
   /** 追溯码录入草稿（输入框中间态，提交时按 traceCodes 数组） */
   draftTrace?: string
+}
+
+/**
+ * 销售单详情（R96-07 对齐后端 getSaleBillDetail 真实返回：
+ * t_sale_bill 行 + items 明细快照；原 totalAmount/status 字段后端不存在）
+ */
+export interface SaleBillInfo {
+  billNo: string
+  customerName: string
+  customerMobile?: string
+  /** RETAIL/WHOLESALE 等 */
+  customerType?: string
+  /** CASH 现金 / CREDIT 赊销 */
+  saleType?: string
+  /** 业务状态：CREATED 等 */
+  businessStatus?: string
+  /** 收款状态：UNPAID/PARTIAL/PAID */
+  collectionStatus?: string
+  /** 商品合计 */
+  goodsAmount?: number
+  /** 整单优惠 */
+  discountAmount?: number
+  /** 抹零 */
+  roundingAmount?: number
+  receivableAmount: number
+  receivedAmount: number
+  /** 未收金额 */
+  unreceivedAmount?: number
+  /** 赊销到期日 */
+  dueDate?: string
+  remark?: string
+  operatorName?: string
+  auditorName?: string
+  salesmanName?: string
+  /** 旧字段（列表等场景仍引用；详情接口不返回，详情页勿用） */
+  totalAmount?: number
+  status?: string
+  items: SaleItem[]
+  createdAt: string
 }
 
 export interface CreateSaleParams {
@@ -29,18 +77,6 @@ export interface CreateSaleParams {
   taxEnabled?: boolean
   taxRate?: number
   remark?: string
-}
-
-export interface SaleBillInfo {
-  billNo: string
-  customerName: string
-  customerMobile?: string
-  totalAmount: number
-  receivableAmount: number
-  receivedAmount: number
-  status: string
-  items: SaleItem[]
-  createdAt: string
 }
 
 export interface SaleBillListParams {
