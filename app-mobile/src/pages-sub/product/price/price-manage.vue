@@ -43,7 +43,8 @@
         <view class="level-body">
           <view class="info-row" v-if="level.discount != null">
             <text class="info-label">折扣</text>
-            <text class="info-value">{{ level.discount }}%</text>
+            <!-- discountRate 为折扣系数（0.9=九折、1.0=无折扣），×10 换算为「折」展示 -->
+            <text class="info-value">{{ (level.discount * 10).toFixed(1) }} 折</text>
           </view>
           <view class="info-row" v-if="level.levelType">
             <text class="info-label">类型</text>
@@ -91,8 +92,9 @@ async function loadLevels() {
   loading.value = true
   try {
     levelList.value = await priceApi.listLevels()
-  } catch (err) {
-    console.error('加载价格体系失败:', err)
+  } catch (err: any) {
+    // R96-07：不再静默吞错，列表加载失败给出可见提示
+    uni.showToast({ title: err?.message || '加载价格体系失败', icon: 'none' })
   } finally {
     loading.value = false
   }
@@ -116,11 +118,20 @@ function onAddLevel() {
     success: async (res) => {
       if (res.confirm && res.content) {
         try {
-          await priceApi.createLevel({ name: res.content, code: res.content, status: 1 })
+          // R96-07 修复：后端 Zod 要求 levelCode/levelName（此前发 name/code 被 400 静默拒绝，
+          // 用户看到无反应，库里无记录）。code 自动生成保证唯一，名称用用户输入
+          await priceApi.createLevel({
+            levelCode: `LV${Date.now()}`,
+            levelName: res.content,
+            discountRate: 1.0,
+            minOrderAmount: 0,
+            description: '',
+            sortOrder: 0,
+          })
           uni.showToast({ title: '创建成功', icon: 'success' })
           loadLevels()
-        } catch (err) {
-          console.error('创建失败:', err)
+        } catch (err: any) {
+          uni.showToast({ title: err?.message || '创建失败', icon: 'none' })
         }
       }
     },
@@ -136,11 +147,11 @@ function onEditLevel(level: PriceLevel) {
     success: async (res) => {
       if (res.confirm && res.content) {
         try {
-          await priceApi.updateLevel(level.id, { name: res.content })
+          await priceApi.updateLevel(level.id, { levelName: res.content })
           uni.showToast({ title: '修改成功', icon: 'success' })
           loadLevels()
-        } catch (err) {
-          console.error('修改失败:', err)
+        } catch (err: any) {
+          uni.showToast({ title: err?.message || '修改失败', icon: 'none' })
         }
       }
     },

@@ -103,16 +103,18 @@ export async function invalidateTenantCache(tenantId: number): Promise<void> {
  * 缓存键生成工具
  */
 export const CacheKeys = {
+  // tenantId 为 UUID 字符串（t_tenant.id），禁止 Number() 转换——Number(UUID)=NaN
+  // 会让所有租户共享 tenant:NaN:* 缓存键，造成跨租户数据污染（R96-07 实证）
   /** Dashboard 统计 */
-  dashboard: (tenantId: number) => `tenant:${tenantId}:dashboard`,
+  dashboard: (tenantId: number | string) => `tenant:${tenantId}:dashboard`,
   /** 商品列表 */
-  products: (tenantId: number, page: number, pageSize: number) => `tenant:${tenantId}:products:${page}:${pageSize}`,
+  products: (tenantId: number | string, page: number, pageSize: number) => `tenant:${tenantId}:products:${page}:${pageSize}`,
   /** 单个商品 */
-  product: (tenantId: number, productId: number) => `tenant:${tenantId}:product:${productId}`,
+  product: (tenantId: number | string, productId: number) => `tenant:${tenantId}:product:${productId}`,
   /** 价格阶梯 */
-  priceTiers: (tenantId: number, productId: number) => `tenant:${tenantId}:price_tiers:${productId}`,
+  priceTiers: (tenantId: number | string, productId: number) => `tenant:${tenantId}:price_tiers:${productId}`,
   /** 客户列表 */
-  customers: (tenantId: number, page: number, pageSize: number) => `tenant:${tenantId}:customers:${page}:${pageSize}`,
+  customers: (tenantId: number | string, page: number, pageSize: number) => `tenant:${tenantId}:customers:${page}:${pageSize}`,
   /** 信用评分 */
-  creditScore: (tenantId: number, customerId: number) => `tenant:${tenantId}:credit_score:${customerId}`,
+  creditScore: (tenantId: number | string, customerId: number) => `tenant:${tenantId}:credit_score:${customerId}`,
 };

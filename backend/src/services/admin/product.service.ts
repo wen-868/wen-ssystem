@@ -244,7 +244,7 @@ export async function listProducts(keyword: string, page: number, pageSize: numb
   }
 
   // 无搜索关键词时使用缓存
-  return cacheGet(CacheKeys.products(Number(tenantId), page, pageSize), async () => {
+  return cacheGet(CacheKeys.products(tenantId, page, pageSize), async () => {
     const offset = (page - 1) * pageSize;
     const records = await queryWithTenant<ProductListRow>(
       `SELECT p.id AS spuId, p.spu_code AS spuCode, p.name, p.category_id AS categoryId,

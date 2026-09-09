@@ -261,7 +261,7 @@ interface TopEmployeeRow {
 }
 
 export async function getOverview(tenantId: string) {
-  return cacheGet(CacheKeys.dashboard(Number(tenantId)), async () => {
+  return cacheGet(CacheKeys.dashboard(tenantId), async () => {
     const today = new Date().toISOString().slice(0, 10);
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
