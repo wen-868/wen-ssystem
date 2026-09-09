@@ -292,7 +292,7 @@ export async function getProductDetail(spuId: number, tenantId: string) {
             p.main_image AS mainImage, p.image_urls AS imageUrls, p.detail,
             p.sale_channels AS saleChannels, p.sort_no AS sortNo,
             p.is_new AS isNew, p.is_recommend AS isRecommend,
-            p.enabled, p.shelf_life_on AS shelfLifeOn, p.batch_on,
+            p.enabled, p.shelf_life_on AS shelfLifeOn, p.batch_on AS batchOn,
             p.description, p.marketing_tags AS marketingTags, p.status, p.created_at AS createdAt, p.updated_at AS updatedAt
      FROM t_product_spu p
      LEFT JOIN t_product_category pc ON pc.id = p.category_id

@@ -167,7 +167,7 @@
             <text class="rt-name">{{ u.unitName }}</text>
             <view class="rt-eq">
               <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'a')" placeholder="1" @input="onSubRatio(i, 'a', $event)" @blur="onSubRatioBlur(i, 'a', $event)" />
-              <text class="rt-bu">{{ units[i - 1].unitName }}</text>
+              <text class="rt-bu">{{ units[i - 1]?.unitName }}</text>
               <text class="rt-eqsign">=</text>
               <input class="rt-in" type="digit" :disabled="!editable" :value="abValue(i, 'b')" placeholder="1" @input="onSubRatio(i, 'b', $event)" @blur="onSubRatioBlur(i, 'b', $event)" />
               <text class="rt-bu">{{ u.unitName }}</text>
