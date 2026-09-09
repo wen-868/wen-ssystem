@@ -112,7 +112,10 @@ const filteredDataTools = computed(() => {
 })
 
 const filteredGroups = computed(() => {
+  // 排除 tool 项：「数据 · 工具」区块已单独展示（R96-07 去重复排列），避免同一功能两处出现
   const base = filterGroupsByModules(allowedModules.value, false)
+    .map((g) => ({ ...g, items: g.items.filter((it) => !it.tool) }))
+    .filter((g) => g.items.length > 0)
   const k = keyword.value.trim().toLowerCase()
   if (!k) return base
   return base
