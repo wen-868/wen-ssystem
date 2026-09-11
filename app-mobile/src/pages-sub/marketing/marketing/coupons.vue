@@ -148,7 +148,10 @@ function stopCoupon(item: CouponTemplate) {
           uni.showToast({ title: '已停用', icon: 'success' })
           loadCoupons()
         } catch (err) {
+          // R102-02：原先仅 console.error，用户看不到任何反馈（假成功温床），补可见提示
           console.error('停用优惠券失败:', err)
+          const msg = (err as any)?.message || '停用失败，请重试'
+          uni.showToast({ title: msg, icon: 'none' })
         }
       }
     }
@@ -165,7 +168,11 @@ async function loadCoupons() {
       page: page.value,
       pageSize,
     })
-    const dataList = result.list || []
+    // R102-02：「已结束」在后端无对应 status 枚举（t_coupon_template 仅 DRAFT/ACTIVE/PAUSED，
+    // 是否结束由有效期推导），因此列表仍按展示状态本地过滤一层，保证各 Tab 结果准确
+    const dataList = (result.list || []).filter(
+      (c) => !activeTab.value || c.status === activeTab.value
+    )
     if (page.value === 1) {
       list.value = dataList
     } else {

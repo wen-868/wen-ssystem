@@ -295,7 +295,11 @@ async function onSubmit() {
           }, 1500)
         } catch (err) {
           uni.hideLoading()
+          // R102-02：原先仅 console.error，用户点"发布"后转圈消失、无任何提示（误以为成功）；
+          // 契约字段错配（缺 validType 等必填项）会 400，必须让用户看到失败原因
           console.error('发布优惠券失败:', err)
+          const msg = (err as any)?.message || '发布失败，请检查填写内容'
+          uni.showToast({ title: msg, icon: 'none' })
         } finally {
           submitting.value = false
         }

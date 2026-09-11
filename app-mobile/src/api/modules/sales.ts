@@ -15,6 +15,8 @@ export interface SaleItem {
   bottleQty: number
   /** 后端明细快照：总瓶数（箱×换算+散瓶） */
   totalBottleQty?: number
+  /** 每箱换算瓶数（箱规，如 24 瓶/箱）；用于把整箱数量换算为总瓶数 */
+  boxRatio?: number
   unitPrice: number
   subtotalAmount: number
   unit?: string
@@ -105,14 +107,29 @@ const salesApi = {
       customerMobile: params.customerMobile,
       remark: params.remark,
       saleType: 'CASH',
-      items: params.items.map((it) => ({
-        skuId: it.skuId ?? it.productId,
-        boxQty: it.boxQty ?? 0,
-        bottleQty: it.bottleQty ?? 0,
-        quantity: (it.bottleQty ?? 0) + (it.boxQty ?? 0),
-        unitPrice: it.unitPrice ?? 0,
-        traceCodes: it.traceCodes?.length ? it.traceCodes : undefined,
-      })),
+      items: params.items.map((it) => {
+        const boxQty = Number(it.boxQty ?? 0)
+        const bottleQty = Number(it.bottleQty ?? 0)
+        const boxRatio = Number(it.boxRatio ?? 0)
+        // R102-07：后端 schemas/store-sale-bill.ts 的 transform 用 `totalBottleQty ?? quantity`
+        // 作为「总瓶数」，并据此按 unitPrice 重算金额、扣减库存。
+        // 原实现发送 quantity = 箱数 + 瓶数（量纲混加），一旦录入整箱会把 2箱(24瓶/箱)+5瓶 记成 7 瓶。
+        // 这里统一换算为总瓶数，且保留 quantity 字段保证向后兼容。
+        const totalBottleQty = Number(
+          it.totalBottleQty != null
+            ? it.totalBottleQty
+            : (boxRatio > 0 ? boxQty * boxRatio + bottleQty : bottleQty)
+        )
+        return {
+          skuId: it.skuId ?? it.productId,
+          boxQty,
+          bottleQty,
+          quantity: totalBottleQty,
+          totalBottleQty,
+          unitPrice: it.unitPrice ?? 0,
+          traceCodes: it.traceCodes?.length ? it.traceCodes : undefined,
+        }
+      }),
     })
     return (res?.result ?? res) as SaleBillInfo
   },

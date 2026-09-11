@@ -31,7 +31,13 @@ interface OrderDetailRow {
   fulfillmentType: string;
   orderStatus: string;
   payStatus: string;
+  /** 商品金额（t_miniapp_order.goods_amount） */
+  goodsAmount: number | string;
+  /** 优惠金额（t_miniapp_order.discount_amount） */
+  discountAmount: number | string;
   payableAmount: number | string;
+  /** 已付金额（t_miniapp_order.paid_amount）——R102-08 补返回，此前缺失导致前端"已付恒 ¥0.00" */
+  paidAmount: number | string;
   receiverName: string;
   receiverMobile: string;
   receiverAddress: string | null;
@@ -206,7 +212,9 @@ export async function getOrderDetail(orderNo: string, tenantId: string) {
   const order = await queryOneWithTenant<OrderDetailRow>(
     `SELECT order_no AS orderNo, store_id AS storeId, customer_type AS customerType,
             fulfillment_type AS fulfillmentType, order_status AS orderStatus,
-            pay_status AS payStatus, payable_amount AS payableAmount,
+            pay_status AS payStatus,
+            goods_amount AS goodsAmount, discount_amount AS discountAmount,
+            payable_amount AS payableAmount, paid_amount AS paidAmount,
             receiver_name AS receiverName, receiver_mobile AS receiverMobile,
             receiver_address AS receiverAddress, created_at AS createdAt
      FROM t_miniapp_order WHERE order_no = ? AND tenant_id = ?`,

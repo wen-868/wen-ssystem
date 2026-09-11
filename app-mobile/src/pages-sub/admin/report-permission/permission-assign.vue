@@ -23,7 +23,8 @@
       <view class="user-list">
         <view class="user-card" v-for="user in userList" :key="user.id" @tap="selectUser(user)">
           <view class="user-avatar">
-            <text class="avatar-text">{{ user.name.charAt(0) }}</text>
+            <!-- R102-05：name 可能为空，裸 charAt 抛 TypeError → App 端白屏 -->
+            <text class="avatar-text">{{ (user.name || '员').charAt(0) }}</text>
           </view>
           <view class="user-info">
             <text class="user-name">{{ user.name }}</text>
@@ -52,7 +53,7 @@
       <!-- 用户信息 -->
       <view class="user-card-detail">
         <view class="user-avatar-lg">
-          <text class="avatar-text-lg">{{ selectedUser.name.charAt(0) }}</text>
+          <text class="avatar-text-lg">{{ (selectedUser.name || '员').charAt(0) }}</text>
         </view>
         <view class="user-info-detail">
           <text class="user-name-detail">{{ selectedUser.name }}</text>

@@ -130,7 +130,8 @@
         <view class="help-list" v-if="helpList.length > 0">
           <view class="help-item" v-for="help in helpList" :key="help.id">
             <view class="help-avatar">
-              <text>{{ help.name.charAt(0) }}</text>
+              <!-- R102-05：name 可能为空，裸 charAt 抛 TypeError → App 端白屏 -->
+              <text>{{ (help.name || '友').charAt(0) }}</text>
             </view>
             <view class="help-info">
               <text class="help-name">{{ help.name }}</text>

@@ -7,7 +7,8 @@
       <view class="platform-grid">
         <view class="platform-card" v-for="p in platforms" :key="p.code" @tap="onPlatformTap(p)">
           <view class="platform-icon" :class="{ 'platform-icon--active': isConfigured(p.code) }">
-            <text class="platform-icon-text">{{ p.name.charAt(0) }}</text>
+            <!-- R102-05：name 可能为空，裸 charAt 抛 TypeError → App 端白屏 -->
+            <text class="platform-icon-text">{{ (p.name || '平').charAt(0) }}</text>
           </view>
           <text class="platform-name">{{ p.name }}</text>
           <view class="platform-status" :class="isConfigured(p.code) ? 'platform-status--on' : ''">

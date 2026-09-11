@@ -48,8 +48,11 @@ export const useUserStore = defineStore('user', () => {
     setUser(user.value)
 
     // 从登录结果构造 tenant 信息
+    // R102-06：tenantId 是 UUID 字符串，原先 Number(...)||0 会得到 NaN→0，
+    // 并把 merchant_tenant_id 落库为 "0"、请求头下发 X-Tenant-Id: 0（与 R96-07 缓存键 NaN 同源）。
+    // 直接保留字符串 UUID。
     if (result.user.tenantId) {
-      tenant.value = { id: Number(result.user.tenantId) || 0, name: '', code: result.user.tenantId }
+      tenant.value = { id: result.user.tenantId, name: '', code: result.user.tenantId }
       setTenant(tenant.value)
     }
 

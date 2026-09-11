@@ -1131,6 +1131,16 @@ const scannerLabel = computed(() =>
 
 function openScanner(type: 'base' | 'unit', index = -1) {
   if (!editable.value) { needEdit(); return }
+  // #ifdef APP-PLUS
+  // R102-04：App 端原先没有分支，会继续执行到函数尾部的 setTimeout(startScan, 320)，
+  // 而 startScan 定义在 #ifdef H5 块内、App 产物中已被剥离 → 运行时 ReferenceError，
+  // 表现为"点扫码无任何反应"。App 端改用原生扫码（manifest 已声明 Barcode 模块 + CAMERA 权限）。
+  uni.scanCode({
+    success: (res) => applyScanned(type, index, res.result || ''),
+    fail: () => {},
+  })
+  return
+  // #endif
   // #ifdef MP-WEIXIN
   uni.scanCode({
     success: (res) => applyScanned(type, index, res.result || ''),
@@ -1144,11 +1154,13 @@ function openScanner(type: 'base' | 'unit', index = -1) {
     uni.showToast({ title: '当前环境不支持扫码，请手动输入', icon: 'none' })
     return
   }
-  // #endif
+  // 以下为 H5 扫码面板逻辑：仅在 H5 编译，App/小程序走上方原生 uni.scanCode 后已 return。
+  // （若不加条件编译，App 产物中该段位于 return 之后成为不可达代码，会触发 rollup ASI 告警）
   scanner.type = type
   scanner.index = index
   scanner.open = true
   setTimeout(startScan, 320)
+  // #endif
 }
 
 // #ifdef H5

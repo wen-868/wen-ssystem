@@ -53,7 +53,12 @@ export interface UserInfo {
 }
 
 export interface TenantInfo {
-  id: number
+  /**
+   * 租户标识（R102-06）
+   * 后端 tenantId 为 UUID 字符串（如 f0cbfe78-9f74-4966-9d1e-95aff8402d1c），
+   * 不能用 Number() 转换（会得到 NaN → 落库为 0），故此处放宽为 number | string。
+   */
+  id: number | string
   name: string
   code: string
 }

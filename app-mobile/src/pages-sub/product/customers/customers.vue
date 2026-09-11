@@ -67,7 +67,8 @@
       >
         <view class="card-left">
           <view class="avatar-circle">
-            <text class="avatar-text">{{ customer.name.charAt(0) }}</text>
+            <!-- R102-05：name 可能为空，裸 charAt 抛 TypeError → App 端白屏 -->
+            <text class="avatar-text">{{ (customer.name || '客').charAt(0) }}</text>
           </view>
         </view>
         <view class="card-right">

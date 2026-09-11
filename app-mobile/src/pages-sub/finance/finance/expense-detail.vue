@@ -87,9 +87,9 @@ function formatDate(date?: string): string {
   return String(date).split('T')[0]
 }
 
-async function loadDetail(id: number) {
+async function loadDetail(expenseNo: string) {
   try {
-    const data = await expenseApi.getDetail(id)
+    const data = await expenseApi.getDetail(expenseNo)
     expense.value = data
   } catch (err) {
     console.error('加载费用详情失败:', err)
@@ -138,7 +138,8 @@ async function confirmReject() {
 }
 
 onLoad((options: any) => {
-  if (options.id) loadDetail(Number(options.id))
+  // R102-03：id 参数实为 expenseNo（后端路径参数为 :expenseNo），不能再 Number() 转换
+  if (options.id) loadDetail(options.id)
 })
 </script>
 

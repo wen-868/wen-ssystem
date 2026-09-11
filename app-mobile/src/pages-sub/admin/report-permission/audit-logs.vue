@@ -58,7 +58,8 @@
         <view class="log-header">
           <view class="log-operator">
             <view class="operator-avatar">
-              <text class="avatar-text">{{ item.operator.charAt(0) }}</text>
+              <!-- R102-05：operator 可能为空（LEFT JOIN 未命中），裸 charAt 会抛 TypeError → App 端白屏 -->
+              <text class="avatar-text">{{ (item.operator || '员').charAt(0) }}</text>
             </view>
             <view class="operator-info">
               <text class="operator-name">{{ item.operator }}</text>

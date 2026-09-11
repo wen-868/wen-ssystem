@@ -108,10 +108,13 @@ const loading = ref(false)
 
 const showRejectModal = ref(false)
 const rejectReason = ref('')
-const currentRejectId = ref<number | null>(null)
+// 后端以 expense_no 作为路径参数（routes/expense.routes.ts 的 /:expenseNo），故用字符串标识
+const currentRejectId = ref<string | null>(null)
 
-function formatAmount(amount: number): string {
-  return amount.toFixed(2)
+function formatAmount(amount: number | string): string {
+  // R102-03：amount 来自后端 DECIMAL，可能是字符串（"123.45"），必须 Number() 归一，
+  // 否则 App 端模板渲染抛 TypeError → 整页白屏
+  return Number(amount || 0).toFixed(2)
 }
 
 function formatDate(date: string): string {
@@ -155,8 +158,10 @@ function loadMore() {
   loadExpenses()
 }
 
-function goDetail(id: number) {
-  uni.navigateTo({ url: `/pages-sub/finance/finance/expense-detail?id=${id}` })
+function goDetail(expenseNo: string) {
+  // R102-03：原先传 item.id，但后端列表不返回自增 id（item.id 恒 undefined），
+  // 详情页收到 Number(undefined)=NaN 必然"费用不存在"，改为传 expenseNo
+  uni.navigateTo({ url: `/pages-sub/finance/finance/expense-detail?id=${expenseNo}` })
 }
 
 function goCreate() {
