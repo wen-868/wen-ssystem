@@ -1,18 +1,29 @@
 /* ═══════════════════════════════════════════════════════════════
-   Design Tokens v4.0 — Atlas 灰阶体系
-   核心原则：白底黑字中间灰，颜色仅出现在按钮和状态标签
-   适用：saas-admin 超级后台
+   Design Tokens v5.0 — 智享全链总后台设计系统（对齐设计稿 v1.6）
+   色板来源：docs/智享全链_总后台UI设计稿_v1.6.html §设计系统速查
+   适用：saas-admin 平台总后台
+   ───────────────────────────────────────────────────────────────
+   变更说明（R101-S1-00）：
+   1. 主色由 Atlas Blue #5B6ABF 切换为设计稿 v1.6 主色 #2563eb
+   2. 状态色切换为设计稿语义色板（绿=正常/橙=欠费预警/红=冻结故障/紫=自定义）
+   3. 新增设计稿中性色 --ink / --g0~--g7，既有 Atlas 灰阶保留不动（避免影响存量页面）
+   4. 框架尺寸：侧边栏 206px、顶栏 50px
+   5. 圆角：卡片 12px、大容器 16px
+   6. 字体：PingFang SC 优先
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Primary / Brand Color — Atlas Blue
+     Primary / Brand Color — 设计稿 v1.6 主色
+     来源：设计稿 :root --blue / --blue-d / --blue-l / --blue-b
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --color-primary: #5B6ABF;
-  --color-primary-hover: #6B7BCF;
-  --color-primary-active: #4A5AA8;
-  --color-primary-soft: rgba(91, 106, 191, 0.12);
-  --color-primary-bg: rgba(91, 106, 191, 0.06);
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  /* active 态设计稿未直接给出，取设计稿中实际使用的品牌渐变深端 #1e40af
+     （见设计稿 .brand .lg / .sh-brand .lg 的 linear-gradient(135deg,#2563eb,#1e40af)） */
+  --color-primary-active: #1e40af;
+  --color-primary-soft: #dbeafe;
+  --color-primary-bg: #eff6ff;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
@@ -30,31 +41,51 @@
   --gray-900: #111111;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Semantic — Status Colors（仅标签/状态使用）
+     设计稿 v1.6 中性色（新增段）
+     来源：设计稿 :root --ink / --g0~--g7
+     用途：--ink 用于侧边栏底色与标题；--g0 为画布底；其余为正文/描边层级
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --color-success: #0EA879;
-  --color-success-soft: rgba(14, 168, 121, 0.12);
-  --color-warning: #D48B3A;
-  --color-warning-soft: rgba(212, 139, 58, 0.12);
-  --color-danger: #C0392B;
-  --color-danger-soft: rgba(192, 57, 43, 0.12);
-  --color-info: #5B6ABF;
-  --color-info-soft: rgba(91, 106, 191, 0.12);
+  --ink: #171717;
+  --g7: #404040;
+  --g6: #525252;
+  --g5: #737373;
+  --g4: #a3a3a3;
+  --g3: #d4d4d4;
+  --g2: #e5e5e5;
+  --g1: #f0f0f0;
+  --g0: #f7f7f7;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Semantic — Status Colors
+     设计稿口径：绿=正常 · 橙=欠费/预警 · 红=冻结/故障 · 紫=自定义
+     来源：设计稿 :root --green/--orange/--red 与 .tag-p（#7c3aed）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --color-success: #16a34a;
+  --color-success-soft: #f0fdf4;
+  --color-warning: #ea580c;
+  --color-warning-soft: #fff7ed;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-soft: #eff6ff;
+  /* 紫=自定义（设计稿 .tag-p{background:#faf5ff;color:#7c3aed}） */
+  --color-purple: #7c3aed;
+  --color-purple-soft: #faf5ff;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart Colors — 图表色（可全彩）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --chart-1: #5B6ABF;
-  --chart-2: #0EA879;
-  --chart-3: #D48B3A;
-  --chart-4: #C0392B;
-  --chart-5: #8B5CF6;
+  --chart-1: #2563eb;
+  --chart-2: #16a34a;
+  --chart-3: #ea580c;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
   --chart-6: #06B6D4;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Frosted Glass — 磨砂半透明
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --frost-sidebar: rgba(17, 17, 17, 0.85);
+  --frost-sidebar: rgba(23, 23, 23, 0.85);
   --frost-sidebar-blur: blur(16px);
   --frost-topbar: rgba(255, 255, 255, 0.80);
   --frost-topbar-blur: blur(16px);
@@ -71,22 +102,29 @@
   --text-muted: #999999;
   --text-placeholder: #CCCCCC;
   --text-inverse: #FFFFFF;
-  --text-link: #5B6ABF;
+  --text-link: #2563eb;
 
-  /* 侧边栏深色文字 */
+  /* 侧边栏深色文字（侧边栏底色 --bg-sidebar 为 #171717） */
   --sidebar-text-primary: rgba(255, 255, 255, 0.92);
   --sidebar-text-secondary: rgba(255, 255, 255, 0.60);
   --sidebar-text-muted: rgba(255, 255, 255, 0.38);
   --sidebar-text-active: #FFFFFF;
+  /* 侧边栏深色体系专用（设计稿：左侧深色导航 206px，底色 #171717） */
+  --sidebar-bg: #171717;
+  --sidebar-brand-border: rgba(255, 255, 255, 0.10);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.08);
+  --sidebar-hover-text: #FFFFFF;
+  --sidebar-active-bg: #2563eb;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Background — 灰+白搭配
+     画布底 #f7f7f7（设计稿 --g0）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --bg-page: #F5F5F5;
+  --bg-page: #f7f7f7;
   --bg-card: #FFFFFF;
-  --bg-soft: #F0F0F0;
+  --bg-soft: #f0f0f0;
   --bg-elevated: #FFFFFF;
-  --bg-sidebar: #FAFAFA;
+  --bg-sidebar: #171717;
   --bg-overlay: rgba(0, 0, 0, 0.45);
   --bg-mask: rgba(0, 0, 0, 0.55);
 
@@ -95,8 +133,8 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --border-normal: #E2E2E2;
   --border-light: #F0F0F0;
-  --border-focus: #5B6ABF;
-  --border-error: #C0392B;
+  --border-focus: #2563eb;
+  --border-error: #dc2626;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Radius
@@ -113,7 +151,8 @@
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Typography
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  /* 设计稿 v1.6 指定 PingFang SC 为首选中文字体 */
+  --font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
 
   /* Font Size Scale */
@@ -164,8 +203,8 @@
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-focus: 0 0 0 3px rgba(91, 106, 191, 0.18);
-  --shadow-error: 0 0 0 3px rgba(192, 57, 43, 0.14);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  --shadow-error: 0 0 0 3px rgba(220, 38, 38, 0.14);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Motion / Transition
@@ -177,18 +216,29 @@
   --transition-modal: 200ms ease;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     Nav — 胶囊导航
+     Nav — 侧边栏导航（尺寸取自设计稿 v1.6 .sh-nav / .sh-top）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --nav-item-radius: 20px;
-  --nav-item-gap: 2px;
-  --nav-item-padding: 8px 12px;
+  --nav-item-radius: 9px;
+  --nav-item-gap: 9px;
+  --nav-item-padding: 7px 9px;
+  --nav-item-margin-y: 1px;
+  --nav-item-font-size: 12.5px;
+  --nav-icon-size: 13px;
+  --nav-group-font-size: 10.5px;
+  --nav-group-padding: 11px 8px 5px;
+  --nav-group-letter-spacing: 1px;
+  --nav-padding: 10px 10px 12px;
+  --sidebar-brand-padding: 15px 16px 13px;
+  --sidebar-footer-padding: 11px 16px;
+  --sidebar-footer-font-size: 10.5px;
+  --topbar-padding-x: 18px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Layout Dimensions
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-  --sidebar-width: 240px;
+  --sidebar-width: 206px;
   --sidebar-width-collapsed: 64px;
-  --topbar-height: 48px;
+  --topbar-height: 50px;
   --bottombar-height: 56px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -206,8 +256,8 @@
   --input-radius: 6px;
   --input-border: #CCCCCC;
   --input-bg: #FFFFFF;
-  --input-focus-border: #5B6ABF;
-  --input-focus-shadow: 0 0 0 3px rgba(91, 106, 191, 0.12);
+  --input-focus-border: #2563eb;
+  --input-focus-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 
   --btn-height: 36px;
   --btn-height-sm: 28px;
@@ -219,8 +269,38 @@
   --tag-radius: 4px;
   --tag-padding: 2px 10px;
 
-  --card-radius: 8px;
+  /* 设计稿 v1.6：圆角 12px（卡片）/ 16px（大容器） */
+  --card-radius: 12px;
+  --container-radius: 16px;
   --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     公共组件令牌（尺寸取自设计稿 v1.6 .kpi / .tag / .bar / .sla / .drawer / .panel）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 指标卡 StatCard */
+  --kpi-padding: 12px 13px;
+  --kpi-title-size: 11.5px;
+  --kpi-value-size: 19px;
+  --kpi-delta-size: 10.5px;
+  /* 状态标签 StatusTag */
+  --tag-font-size: 10.5px;
+  --tag-padding: 3px 8px;
+  --tag-dot-size: 5px;
+  --tag-gap: 4px;
+  /* 进度条 / SLA 条 */
+  --bar-height: 6px;
+  --sla-height: 4px;
+  /* 详情抽屉 DetailDrawer */
+  --drawer-width: 436px;
+  --drawer-shadow: -16px 0 40px rgba(0, 0, 0, 0.2);
+  /* 面板 Panel */
+  --panel-header-padding: 11px 14px;
+  --panel-body-padding: 14px;
+  --panel-title-size: 13px;
+  /* 键值对 KeyValueList */
+  --kv-label-size: 11.5px;
+  --kv-value-size: 13px;
+  --kv-gap: 10px;
 
   --tooltip-bg: #2A2A2A;
   --tooltip-text: #FFFFFF;

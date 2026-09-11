@@ -1,138 +1,90 @@
 <template>
-  <el-container class="platform-layout">
-    <el-aside width="220px">
-      <div class="logo">智享 · 平台总后台</div>
-      <el-menu :default-active="activeMenu" router>
-        <el-menu-item index="/dashboard">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>平台看板</span>
-        </el-menu-item>
-        <el-menu-item index="/applications">
-          <el-icon><Check /></el-icon>
-          <span>注册审核</span>
-        </el-menu-item>
-        <el-menu-item index="/tenants">
-          <el-icon><OfficeBuilding /></el-icon>
-          <span>租户管理</span>
-        </el-menu-item>
-        <el-menu-item index="/tenant-usage">
-          <el-icon><DataLine /></el-icon>
-          <span>租户使用统计</span>
-        </el-menu-item>
-        <el-menu-item index="/packages">
-          <el-icon><Box /></el-icon>
-          <span>套餐管理</span>
-        </el-menu-item>
-        <el-menu-item index="/subscriptions">
-          <el-icon><CreditCard /></el-icon>
-          <span>订阅管理</span>
-        </el-menu-item>
-        <el-menu-item index="/subscription-applies">
-          <el-icon><Tickets /></el-icon>
-          <span>订阅申请</span>
-        </el-menu-item>
-        <el-menu-item index="/reconciliation">
-          <el-icon><Money /></el-icon>
-          <span>财务结算</span>
-        </el-menu-item>
-        <el-menu-item index="/announcements">
-          <el-icon><ChatDotSquare /></el-icon>
-          <span>平台公告</span>
-        </el-menu-item>
-        <el-menu-item index="/reviews">
-          <el-icon><Star /></el-icon>
-          <span>平台评价</span>
-        </el-menu-item>
-        <el-menu-item index="/monitor">
-          <el-icon><Monitor /></el-icon>
-          <span>系统监控</span>
-        </el-menu-item>
-        <el-menu-item index="/audit-logs">
-          <el-icon><Document /></el-icon>
-          <span>操作日志</span>
-        </el-menu-item>
-        <el-menu-item index="/error-logs">
-          <el-icon><Warning /></el-icon>
-          <span>错误日志</span>
-        </el-menu-item>
-        <el-menu-item index="/app-versions">
-          <el-icon><Promotion /></el-icon>
-          <span>版本发布</span>
-        </el-menu-item>
-        <el-menu-item index="/settings">
-          <el-icon><Setting /></el-icon>
-          <span>平台配置</span>
-        </el-menu-item>
-        <el-menu-item index="/message-config">
-          <el-icon><Message /></el-icon>
-          <span>消息配置</span>
-        </el-menu-item>
-        <el-sub-menu index="library">
-          <template #title>
-            <el-icon><Goods /></el-icon>
-            <span>商品库</span>
+  <div class="platform-layout">
+    <!-- 左侧深色导航 206px -->
+    <aside class="pf-aside">
+      <div class="pf-brand">
+        <span class="pf-brand-logo">智</span>
+        <span>
+          <b class="pf-brand-name">智享全链</b>
+          <i class="pf-brand-sub">平台总后台</i>
+        </span>
+      </div>
+
+      <nav class="pf-nav">
+        <template v-for="g in platformMenus" :key="g.group">
+          <div class="pf-nav-group">{{ g.group }}</div>
+          <router-link
+            v-for="item in g.items"
+            :key="item.path"
+            :to="item.path"
+            class="pf-nav-item"
+            :class="{ 'is-active': isActive(item.path) }"
+          >
+            <span class="pf-nav-icon"><el-icon><component :is="item.icon" /></el-icon></span>
+            <span>{{ item.title }}</span>
+          </router-link>
+        </template>
+      </nav>
+
+      <div class="pf-side-footer">
+        <span class="pf-side-dot"></span>
+        <span>生产环境</span>
+      </div>
+    </aside>
+
+    <!-- 右侧主区 -->
+    <div class="pf-body">
+      <header class="pf-topbar">
+        <div class="pf-crumb">
+          <template v-if="currentMenu">
+            {{ currentMenu.group }} / <b>{{ currentMenu.title }}</b>
           </template>
-          <el-menu-item index="/library/spus">SPU 管理</el-menu-item>
-          <el-menu-item index="/library/brands">品牌管理</el-menu-item>
-          <el-menu-item index="/library/reviews">审核列表</el-menu-item>
-          <el-menu-item index="/library/import">批量导入</el-menu-item>
-          <el-menu-item index="/library/api-keys">API Key 管理</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="ai-config">
-          <template #title>
-            <el-icon><Cpu /></el-icon>
-            <span>AI 配置</span>
+          <template v-else>
+            <b>{{ route.meta.title || '平台总后台' }}</b>
           </template>
-          <el-menu-item index="/ai-config/platform">平台默认</el-menu-item>
-          <el-menu-item index="/ai-config/tenants">租户配置</el-menu-item>
-          <el-menu-item index="/ai-config/usage">用量统计</el-menu-item>
-          <el-menu-item index="/ai-config/billing">计费套餐</el-menu-item>
-        </el-sub-menu>
-        <el-menu-item index="/mobile-preview">
-          <el-icon><Cellphone /></el-icon>
-          <span>移动端预览</span>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-    <el-container>
-      <el-header>
-        <div class="header-right">
-          <span class="username">{{ authStore.adminInfo?.realName || authStore.adminInfo?.username }}</span>
+        </div>
+        <div class="pf-topbar-right">
+          <span class="pf-username">{{ authStore.adminInfo?.realName || authStore.adminInfo?.username }}</span>
           <el-button text @click="handleLogout">退出</el-button>
         </div>
-      </el-header>
-      <el-main>
+      </header>
+
+      <main class="pf-main">
         <router-view />
-      </el-main>
-    </el-container>
-  </el-container>
+      </main>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { OfficeBuilding, Monitor, DataAnalysis, Box, CreditCard, Setting, Check, DataLine, Money, ChatDotSquare, Star, Document, Warning, Goods, Cellphone, Cpu, Tickets, Message, Promotion } from '@element-plus/icons-vue'
+import { platformMenus, findMenuTitleByPath } from '../config/platform-menu'
 import { useAuthStore } from '../stores/auth'
+import '../styles/layout.css'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const activeMenu = computed(() => route.path)
+/**
+ * 选中判定：先精确匹配，再前缀匹配（覆盖 /tenants/:id、/packages/:id/edit 等详情/编辑页），
+ * 前缀匹配取最长路径，避免 /tenants 与 /tenant-usage 互相误命中。
+ */
+function isActive(path: string): boolean {
+  const cur = route.path
+  if (cur === path) return true
+  if (!cur.startsWith(path + '/')) return false
+  const longer = platformMenus
+    .flatMap((g) => g.items.map((i) => i.path))
+    .filter((p) => p !== path && cur.startsWith(p + '/') && p.length > path.length)
+  return longer.length === 0
+}
+
+const currentMenu = computed(() => findMenuTitleByPath(route.path))
 
 function handleLogout() {
   authStore.logout()
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.platform-layout { height: 100vh; }
-.el-aside { background: #304156; color: #fff; overflow-y: auto; }
-.el-aside::-webkit-scrollbar { width: 4px; }
-.el-aside::-webkit-scrollbar-thumb { background: #4a5a6e; border-radius: 2px; }
-.logo { padding: 20px; font-size: 16px; font-weight: 700; text-align: center; border-bottom: 1px solid #3a4a5e; position: sticky; top: 0; background: #304156; z-index: 1; }
-.el-header { background: #fff; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; justify-content: flex-end; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.username { color: #606266; }
-</style>

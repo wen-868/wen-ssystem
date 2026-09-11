@@ -1012,31 +1012,6 @@ onMounted(() => {
 
 // 1000+ 真实热销商品数据库 - 包含完整商品信息
 const largeProductDatabase = [
-
-      // 批量创建 SKU
-      if (skus.length > 0) {
-        await batchCreateSkusApi(created.id, skus)
-        ElMessage.success(`为 ${spu.name} 创建 ${skuCount} 条 SKU 成功`)
-      }
-
-    } catch (e: any) {
-      ElMessage.error(`创建失败: ${spu.name} - ${e?.message || ''}`)
-    }
-  }
-
-  // 重新加载列表
-  fetchList()
-  ElMessage.success(`填充完成！共处理 ${spus.length} 条 SPU 数据，包含真实品牌信息`)
-}
-
-// 重置表单时也同步更新 brandOptions
-onMounted(() => {
-  fetchBrands()
-  fetchList()
-})
-
-// 1000+ 真实热销商品数据库 - 包含完整商品信息
-const largeProductDatabase = [
   // 白酒类 - 300条 (使用真实品牌数据)
   ...Array(100).fill(0).map((_, i) => ({
     id: 1000 + i,

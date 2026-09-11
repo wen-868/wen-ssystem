@@ -1,0 +1,206 @@
+/* ═══════════════════════════════════════════════════════════════
+   平台总后台框架布局 — 对齐设计稿 v1.6
+   ───────────────────────────────────────────────────────────────
+   设计稿依据：docs/智享全链_总后台UI设计稿_v1.6.html
+     .sh-side  → width:206px（左侧深色导航）
+     .sh-top   → height:50px（顶栏）
+     .sh-brand → padding:15px 16px 13px
+     .sh-nav .ni   → font-size:12.5px; padding:7px 9px; border-radius:9px
+     .sh-nav .ni.on → background:#2563eb; color:#fff; font-weight:600
+     .sh-nav .ng   → font-size:10.5px; padding:11px 8px 5px; letter-spacing:1px
+   ───────────────────────────────────────────────────────────────
+   约束：所有颜色/尺寸一律引用 tokens.css 变量，禁止在此文件写死字面量。
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 框架容器 ─────────────── */
+.platform-layout {
+  height: 100vh;
+  background: var(--bg-page);
+  font-family: var(--font-family);
+}
+
+/* ─────────────── 侧边栏（深色 206px） ─────────────── */
+.platform-layout .pf-aside {
+  flex: none;
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 品牌区 */
+.platform-layout .pf-brand {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--nav-item-gap);
+  padding: var(--sidebar-brand-padding);
+  border-bottom: 1px solid var(--sidebar-brand-border);
+}
+.platform-layout .pf-brand-logo {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-active));
+  color: var(--text-inverse);
+  display: grid;
+  place-items: center;
+  font-weight: var(--font-bold);
+  font-size: var(--text-md);
+}
+.platform-layout .pf-brand-name {
+  color: var(--text-inverse);
+  font-size: var(--text-md);
+  letter-spacing: 0.5px;
+  line-height: var(--leading-tight);
+  display: block;
+}
+.platform-layout .pf-brand-sub {
+  font-style: normal;
+  font-size: var(--nav-group-font-size);
+  color: var(--sidebar-text-secondary);
+  line-height: var(--leading-tight);
+  display: block;
+}
+
+/* 导航滚动区 */
+.platform-layout .pf-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--nav-padding);
+}
+.platform-layout .pf-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.platform-layout .pf-nav::-webkit-scrollbar-thumb {
+  background: var(--sidebar-hover-bg);
+  border-radius: var(--radius-xs);
+}
+
+/* 分组标题 */
+.platform-layout .pf-nav-group {
+  font-size: var(--nav-group-font-size);
+  color: var(--sidebar-text-muted);
+  padding: var(--nav-group-padding);
+  letter-spacing: var(--nav-group-letter-spacing);
+}
+
+/* 菜单项 */
+.platform-layout .pf-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--nav-item-gap);
+  font-size: var(--nav-item-font-size);
+  color: var(--sidebar-text-primary);
+  padding: var(--nav-item-padding);
+  border-radius: var(--nav-item-radius);
+  margin: var(--nav-item-margin-y) 0;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.platform-layout .pf-nav-item > .pf-nav-icon {
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--nav-icon-size);
+  opacity: 0.85;
+}
+.platform-layout .pf-nav-item:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-hover-text);
+}
+/* 选中态：主色实底 + 白色加粗（设计稿 .ni.on） */
+.platform-layout .pf-nav-item.is-active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
+  font-weight: var(--font-semibold);
+}
+.platform-layout .pf-nav-item.is-active > .pf-nav-icon {
+  opacity: 1;
+}
+
+/* 侧边栏底部环境信息 */
+.platform-layout .pf-side-footer {
+  flex: none;
+  padding: var(--sidebar-footer-padding);
+  border-top: 1px solid var(--sidebar-brand-border);
+  font-size: var(--sidebar-footer-font-size);
+  color: var(--sidebar-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.platform-layout .pf-side-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+}
+
+/* ─────────────── 右侧主区 ─────────────── */
+.platform-layout .pf-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶栏 50px */
+.platform-layout .pf-topbar {
+  flex: none;
+  height: var(--topbar-height);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--topbar-padding-x);
+  gap: var(--space-4);
+}
+.platform-layout .pf-crumb {
+  font-size: var(--text-base);
+  color: var(--g6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.platform-layout .pf-crumb b {
+  color: var(--ink);
+  font-weight: var(--font-semibold);
+}
+.platform-layout .pf-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: none;
+}
+.platform-layout .pf-username {
+  color: var(--g6);
+  font-size: var(--text-base);
+}
+
+/* 内容区：画布底 #f7f7f7 */
+.platform-layout .pf-main {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg-page);
+  padding: var(--space-page-padding);
+}
+
+/* ─────────────── 大容器 / 卡片圆角（12 / 16） ─────────────── */
+.platform-layout .pf-main .el-card {
+  border-radius: var(--card-radius);
+}
+.platform-layout .pf-main > .pf-container {
+  border-radius: var(--container-radius);
+}
