@@ -23,13 +23,13 @@ const form = JSON.parse(fs.readFileSync(formPath, 'utf8'));
 const design = JSON.parse(fs.readFileSync(designPath, 'utf8'));
 
 const agentLabel = {
-  workbuddy: 'WorkBuddy（阿坚·兼设计对齐）',
+  linxi: '林夕（UI/UX 设计）',
   zcode: 'ZCode',
   codex: 'Codex（凌舟）',
 };
 
-/** 第 1 步（界面成型）由 WorkBuddy 承接，同时接手原林夕的设计对齐职责（2026-09-12 用户指定） */
-const DESIGN_DUTY = '设计对齐：本卡执行方自检并出具对照结论（承接原林夕职责，凌舟复核）';
+/** 第 1 步（界面成型）由林夕（UI/UX 设计）承接并负责设计对齐自检（2026-09-12 用户指定，替代 WorkBuddy） */
+const DESIGN_DUTY = '设计与对齐：林夕负责界面实现与设计稿逐项对齐自检，凌舟复核';
 const DESIGN_DELIVERABLE =
   '设计对齐自检：逐项对照设计稿 v1.6（区块构成 / 间距 / 字号 / 颜色 / 圆角 / 图标 / 文案），产出「设计稿 vs 实现」逐项对照结论（含截图）';
 const DESIGN_ACCEPTANCE = '设计对齐自检结论随卡回传（逐项对照，不接受“已对齐”一句话结论）';
@@ -144,8 +144,8 @@ readme.push(`重新生成：\`node scripts/r101-gen-cards.mjs\``);
 readme.push('');
 readme.push('## 转发说明');
 readme.push('');
-readme.push(`- **WorkBuddy**：第 1 步 ${form.summary.byAgent.workbuddy} 张卡，一次转一张；必须等前一张验收通过再转下一张（接口设计可能随验收意见调整）。`);
-readme.push('- **分工调整（2026-09-12 用户指定）**：WorkBuddy 承接原林夕的设计对齐职责——第 1 步每张卡除实现界面外，须回传「设计稿 v1.6 vs 实现」逐项对照结论（区块/间距/字号/颜色/圆角/图标/文案，含截图），凌舟据此核对验收。');
+readme.push(`- **林夕（UI/UX 设计）**：第 1 步 ${form.summary.byAgent.linxi} 张卡，一次转一张；必须等前一张验收通过再转下一张（接口设计可能随验收意见调整）。`);
+readme.push('- **分工（2026-09-12 用户指定）**：第 1 步界面任务由林夕（UI/UX 设计）承接，替代 WorkBuddy——每张卡除实现界面外，须回传「设计稿 v1.6 vs 实现」逐项对照结论（区块/间距/字号/颜色/圆角/图标/文案，含截图），凌舟据此核对验收。');
 readme.push(`- **ZCode**：第 2、3 步共 ${form.summary.byAgent.zcode} 张卡；每张卡开工前先确认对应 S1 界面已验收。`);
 readme.push('- 执行方回传交付说明后，由凌舟按本卡第五节逐条复核，通过后更新 `docs/tasks/current-tasks.md` 进度总表状态与证据列。');
 readme.push('');

@@ -36,29 +36,6 @@
     "跨租户越权测试通过"
   ],
   "assignment": {
-    "workbuddy": {
-      "scope": "第 1 步 界面成型（17 板块 UI + 视觉底座）",
-      "taskIds": [
-        "R101-S1-00",
-        "R101-S1-01",
-        "R101-S1-02",
-        "R101-S1-03",
-        "R101-S1-04",
-        "R101-S1-05",
-        "R101-S1-06",
-        "R101-S1-07",
-        "R101-S1-08",
-        "R101-S1-09",
-        "R101-S1-10",
-        "R101-S1-11",
-        "R101-S1-12",
-        "R101-S1-13",
-        "R101-S1-14",
-        "R101-S1-15",
-        "R101-S1-16",
-        "R101-S1-17"
-      ]
-    },
     "zcode": {
       "scope": "第 2 步 真实环境对接 + 第 3 步 后端功能补齐",
       "taskIds": [
@@ -79,6 +56,29 @@
     "codex": {
       "scope": "规划、契约与迁移清单维护、派单与验收复核（不代写业务代码）",
       "taskIds": []
+    },
+    "linxi": {
+      "scope": "第 1 步 界面成型（视觉底座 + 17 板块 UI，含设计对齐自检）",
+      "taskIds": [
+        "R101-S1-00",
+        "R101-S1-01",
+        "R101-S1-02",
+        "R101-S1-03",
+        "R101-S1-04",
+        "R101-S1-05",
+        "R101-S1-06",
+        "R101-S1-07",
+        "R101-S1-08",
+        "R101-S1-09",
+        "R101-S1-10",
+        "R101-S1-11",
+        "R101-S1-12",
+        "R101-S1-13",
+        "R101-S1-14",
+        "R101-S1-15",
+        "R101-S1-16",
+        "R101-S1-17"
+      ]
     }
   },
   "summary": {
@@ -89,10 +89,11 @@
       "S3": 8
     },
     "byAgent": {
-      "workbuddy": 18,
-      "zcode": 12
+      "zcode": 12,
+      "linxi": 18
     },
-    "totalDays": 101
+    "totalDays": 101,
+    "roleChange": "2026-09-12 用户指令：第 1 步界面任务改由林夕（UI/UX 设计）承接，替代 WorkBuddy"
   },
   "tasks": [
     {
@@ -100,7 +101,7 @@
       "title": "设计系统与框架落地",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 1,
       "deps": [],
@@ -126,7 +127,7 @@
       "title": "01 运营大盘界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 2,
       "deps": [
@@ -156,7 +157,7 @@
       "title": "02 租户管理界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -187,7 +188,7 @@
       "title": "03 套餐管理界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -216,7 +217,7 @@
       "title": "04 账单计费界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -247,7 +248,7 @@
       "title": "05 AI 计费界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -277,7 +278,7 @@
       "title": "06 营销渠道界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -305,7 +306,7 @@
       "title": "07 管理员权限界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -333,7 +334,7 @@
       "title": "08 系统配置界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -360,7 +361,7 @@
       "title": "09 模板中心界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -390,7 +391,7 @@
       "title": "10 运维监控界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -420,7 +421,7 @@
       "title": "11 公告管理界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 2,
       "deps": [
@@ -448,7 +449,7 @@
       "title": "12 工单系统界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 4,
       "deps": [
@@ -477,7 +478,7 @@
       "title": "13 版本发布界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -504,7 +505,7 @@
       "title": "14 开放平台界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 3,
       "deps": [
@@ -531,7 +532,7 @@
       "title": "15 登录页改版",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 1,
       "deps": [
@@ -557,7 +558,7 @@
       "title": "16 代理商管理界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 4,
       "deps": [
@@ -584,7 +585,7 @@
       "title": "17 商品库界面",
       "step": "S1",
       "stepName": "界面成型",
-      "agent": "workbuddy",
+      "agent": "linxi",
       "priority": "P0",
       "estimateDays": 4,
       "deps": [
