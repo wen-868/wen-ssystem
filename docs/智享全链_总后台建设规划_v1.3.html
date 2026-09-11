@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智享全链 SaaS进销存平台【总后台】建设规划 V1.3</title>
+<style>
+:root{--primary:#2563eb;--primary-dark:#1e40af;--primary-mid:#3b82f6;--primary-light:#dbeafe;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--bg:#f1f5f9;}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',Arial,sans-serif;color:var(--text);background:var(--bg);font-size:14px;line-height:1.75;}
+a{color:var(--primary);text-decoration:none;}
+/* 封面 */
+.cover{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%);color:#fff;padding:52px 48px 44px;}
+.cover .kicker{font-size:13px;letter-spacing:3px;opacity:.85;margin-bottom:10px;}
+.cover h1{margin:0 0 8px;font-size:30px;letter-spacing:1px;}
+.cover .sub{font-size:15px;opacity:.92;margin-bottom:22px;}
+.cover .meta{display:flex;flex-wrap:wrap;gap:10px;}
+.cover .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 16px;font-size:13px;}
+/* 布局 */
+.layout{display:flex;align-items:flex-start;}
+nav.toc{position:sticky;top:0;width:252px;flex-shrink:0;height:100vh;overflow-y:auto;background:#fff;border-right:1px solid var(--border);padding:22px 12px 40px;}
+nav.toc .toc-title{font-weight:700;font-size:14px;color:var(--primary-dark);padding:0 10px 10px;border-bottom:2px solid var(--primary-light);margin-bottom:10px;}
+nav.toc a{display:block;padding:6px 10px;color:#475569;border-radius:6px;font-size:13px;line-height:1.5;}
+nav.toc a:hover{background:var(--primary-light);color:var(--primary-dark);}
+nav.toc a.lv2{padding-left:24px;font-size:12.5px;color:#64748b;}
+main{flex:1;margin-left:0;padding:30px 38px 90px;max-width:1100px;min-width:0;}
+section.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 34px;margin-bottom:26px;box-shadow:0 1px 3px rgba(15,23,42,.05);}
+/* 标题 */
+h2.sec{font-size:21px;margin:0 0 6px;color:var(--primary-dark);border-left:5px solid var(--primary);padding-left:12px;letter-spacing:.5px;}
+h2.sec .en{font-size:12px;color:#94a3b8;font-weight:400;margin-left:10px;letter-spacing:1px;}
+.sec-desc{color:var(--muted);font-size:13px;margin:0 0 20px;padding-left:17px;}
+h3.sub{font-size:16.5px;margin:26px 0 10px;color:#1e3a8a;padding-bottom:6px;border-bottom:1px dashed #c7d7f5;}
+h4.mini{font-size:14.5px;margin:18px 0 8px;color:#334155;}
+p{margin:8px 0;}
+ul,ol{margin:6px 0 12px;padding-left:22px;}
+li{margin:4px 0;}
+/* 表格 */
+table{width:100%;border-collapse:collapse;margin:12px 0 20px;font-size:13px;background:#fff;}
+th{background:var(--primary);color:#fff;padding:9px 10px;text-align:left;font-weight:600;border:1px solid #2f5fd0;line-height:1.5;}
+td{border:1px solid var(--border);padding:8px 10px;vertical-align:top;line-height:1.65;}
+tbody tr:nth-child(even) td{background:#f8fafc;}
+tbody tr:hover td{background:#eff6ff;}
+td.c,th.c{text-align:center;}
+table.small{font-size:12.5px;}
+/* 徽标 */
+.badge{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;}
+.p0{background:#fee2e2;color:#b91c1c;}
+.p1{background:#fef3c7;color:#b45309;}
+.p2{background:#e2e8f0;color:#475569;}
+.tag-new{background:#dcfce7;color:#15803d;}
+.tag-core{background:var(--primary-light);color:var(--primary-dark);}
+.tag-opt{background:#f1f5f9;color:#64748b;}
+.v11{background:#1d4ed8;color:#fff;letter-spacing:.4px;}
+.v12{background:#0f766e;color:#fff;letter-spacing:.4px;}
+.v13{background:#7c3aed;color:#fff;letter-spacing:.4px;}
+.yes{color:#16a34a;font-weight:700;}
+.no{color:#cbd5e1;font-weight:700;}
+/* 提示框 */
+.callout{border-left:4px solid var(--primary);background:#eff6ff;border-radius:6px;padding:10px 16px;margin:12px 0;font-size:13px;}
+.callout.warn{border-color:#f59e0b;background:#fffbeb;}
+.callout.ok{border-color:#22c55e;background:#f0fdf4;}
+.callout b.t{display:block;margin-bottom:2px;}
+/* 流程/状态机 */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:10px 0 16px;}
+.flow .node{border:1.5px solid var(--primary);border-radius:6px;padding:4px 12px;font-size:12.5px;color:var(--primary-dark);background:#fff;white-space:nowrap;}
+.flow .node.gray{border-color:#cbd5e1;color:#64748b;}
+.flow .arr{color:#94a3b8;font-weight:700;}
+/* 架构图 */
+.arch{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:18px 16px;margin:14px 0 20px;}
+.arch-title{text-align:center;font-weight:700;color:#334155;font-size:13px;margin-bottom:10px;letter-spacing:1px;}
+.arch-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;}
+.arch-box{background:#fff;border:1.5px solid var(--primary);color:var(--primary-dark);border-radius:8px;padding:8px 10px;text-align:center;font-size:12.5px;flex:1;min-width:110px;line-height:1.5;}
+.arch-box b{display:block;font-size:13px;}
+.arch-box .d{font-size:11px;color:#64748b;}
+.arch-group{border:1.5px dashed #93c5fd;border-radius:10px;padding:12px 10px;flex:1;background:#fff;min-width:220px;}
+.arch-group>h5{margin:0 0 10px;color:var(--primary-dark);font-size:13px;text-align:center;letter-spacing:1px;}
+.arch-group .arch-row{gap:8px;}
+.arch-group .arch-box{min-width:0;padding:7px 6px;font-size:12px;}
+.arch-arrow{text-align:center;color:#94a3b8;font-size:15px;margin:7px 0;line-height:1;}
+.arch-band-label{text-align:center;font-size:12px;color:#94a3b8;margin-bottom:6px;letter-spacing:2px;}
+.arch-box.infra{border-color:#94a3b8;color:#334155;}
+.arch-box.infra b{color:#334155;}
+/* 路线图 */
+.phases{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0;}
+.phase{flex:1;min-width:290px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;}
+.phase header{padding:10px 16px;color:#fff;font-weight:700;font-size:14.5px;}
+.phase .p0h{background:#2563eb;}
+.phase .p1h{background:#0ea5e9;}
+.phase .p2h{background:#6366f1;}
+.phase .bd{padding:12px 16px 16px;font-size:13px;}
+.phase .bd h6{margin:10px 0 4px;font-size:13px;color:var(--primary-dark);}
+.phase .bd ul{margin:2px 0 8px;padding-left:18px;}
+.phase .bd li{margin:2px 0;}
+/* 其他 */
+.two-col{display:flex;gap:20px;flex-wrap:wrap;}
+.two-col>div{flex:1;min-width:300px;}
+.toc-back{font-size:12px;margin-top:-14px;margin-bottom:14px;}
+.toc-back a{color:#94a3b8;}
+footer{color:#94a3b8;font-size:12.5px;text-align:center;padding:26px 0 10px;}
+@media (max-width:900px){nav.toc{display:none;}main{padding:20px 16px 60px;}}
+@media print{
+nav.toc{display:none;}main{margin:0;padding:0;max-width:100%;}
+body{background:#fff;}
+section.card{box-shadow:none;border:none;padding:10px 0;page-break-inside:avoid;}
+.cover{padding:30px;}
+}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">智享全链 · ZHIXIANG QUANLIAN</div>
+  <h1>SaaS进销存平台【总后台】建设规划</h1>
+  <div class="sub">面向中小批零商户的 ToB SaaS 全链管理平台 —— 平台运营中枢建设蓝图（租户管理 · 套餐模板引擎 · 大模型计费 · 积分抵扣 Token · 代理商体系 · 全局配置 · 运营监控 · 增长开放 · AI 管控）</div>
+  <div class="meta">
+    <span class="chip">版本：V1.2</span>
+    <span class="chip">日期：2026-09-10（V1.1：2026-09-09 · V1.0：2026-09-08）</span>
+    <span class="chip">密级：内部资料</span>
+    <span class="chip">适用：架构评审 / 研发排期 / 商业化筹备</span>
+  </div>
+</div>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">目 录</div>
+  <a href="#sec1">一、文档概述</a>
+  <a href="#sec2">二、系统定位与边界</a>
+  <a href="#sec3">三、总体架构</a>
+  <a href="#sec4">四、模块详细规划</a>
+  <a href="#m1" class="lv2">4.1 租户（商户）管理</a>
+  <a href="#m2" class="lv2">4.2 平台账号与权限</a>
+  <a href="#m3" class="lv2">4.3 全局系统配置</a>
+  <a href="#m4" class="lv2">4.4 租户初始化与模板</a>
+  <a href="#m5" class="lv2">4.5 平台数据统计</a>
+  <a href="#m6" class="lv2">4.6 系统运维与监控</a>
+  <a href="#m7" class="lv2">4.7 客服工单系统</a>
+  <a href="#m8" class="lv2">4.8 版本与更新管理</a>
+  <a href="#m9" class="lv2">4.9 运营营销模块 <span class="badge tag-new">新增</span></a>
+  <a href="#m10" class="lv2">4.10 开放平台模块 <span class="badge tag-new">新增</span></a>
+  <a href="#m11" class="lv2">4.11 AI 能力管控模块 <span class="badge tag-new">新增</span></a>
+  <a href="#m12" class="lv2">4.12 大模型计费体系 <span class="badge v11">v1.1 新增</span></a>
+  <a href="#m13" class="lv2">4.13 积分抵扣 Token 机制 <span class="badge v11">v1.1 新增</span></a>
+  <a href="#m14" class="lv2">4.14 代理商体系（配置 + 分润） <span class="badge v12">v1.2 新增</span></a>
+  <a href="#m15" class="lv2">4.15 商品库（平台公共商品数据中枢） <span class="badge v13">v1.3 新增</span></a>
+  <a href="#m16" class="lv2">4.16 租户订阅审核（开通工作流） <span class="badge v13">v1.3 新增</span></a>
+  <a href="#sec5">五、套餐体系与商业衔接（套餐模板引擎） <span class="badge v11">v1.1 重构</span></a>
+  <a href="#sec6">六、非功能规划</a>
+  <a href="#sec7">七、实施路线图</a>
+  <a href="#sec8">八、风险与决策点</a>
+  <a href="#appendix">附录、功能清单覆盖对照</a>
+</nav>
+
+<main>
+
+<!-- ================= 第一部分 ================= -->
+<section id="sec1" class="card">
+<h2 class="sec">一、文档概述<span class="en">DOCUMENT OVERVIEW</span></h2>
+<p class="sec-desc">明确本规划从何而来、为谁而写、与功能清单的输入输出关系。</p>
+
+<h3 class="sub">1.1 规划依据</h3>
+<p>本规划以《SaaS进销存平台【总后台】功能清单》（V1.0，下称"功能清单"）为直接输入，并结合以下产品级背景展开深化：</p>
+<table>
+<thead><tr><th style="width:22%">依据项</th><th>内容说明</th></tr></thead>
+<tbody>
+<tr><td><b>产品定位</b></td><td>智享全链 —— 面向中小批零商户的 ToB SaaS 全链管理平台，覆盖进销存 + 线下零售批发 + 线上小程序商城 + 即时零售四大场景。</td></tr>
+<tr><td><b>端架构约定</b></td><td>PC（商家后台）= 全局 + 重决策中枢；手机端 = 高频轻作业；小程序 = C 端客户触点；总后台 = 平台运营中枢。</td></tr>
+<tr><td><b>定价体系</b></td><td>已敲定四档：免费版（永久免费）/ 基础版 4800 元/年 / 标准版 9800 元/年 / 旗舰版 19800 元/年；老带新奖励 20%，积分年度上限 60k。<span class="badge v11">v1.1</span> 四档调整为套餐模板引擎的出厂预置模板（示例而非硬编码），平台管理员可自主创建任意数量套餐（见 5.1）；积分新增"抵扣 AI Token"出口，汇率为管理员手动配置项（见 4.13）。</td></tr>
+<tr><td><b>单据核心规则</b></td><td>租户业务单据遵循"待审核/已审核可作废删除；已作废仅可删"的既定规则（属商家后台业务逻辑，总后台只做状态管控，不触碰单据数据）。</td></tr>
+<tr><td><b>AI 底座</b></td><td>平台已具备 AI 能力底座（AI 知识库 / 大模型 API），总后台负责租户 AI 调用额度的管控、计量与账单关联。</td></tr>
+<tr><td><b>目标客群与节奏</b></td><td>中小型批零商户；先在自家门店跑通 MVP，验证闭环后再对外招商收费。</td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">1.2 适用范围</h3>
+<ul>
+<li><b>适用系统范围：</b>仅限【总后台】（平台超级管理员后台）。商户商家后台、商户移动端、客户端小程序的功能规划另行成文，本文仅在边界章节做对照说明。</li>
+<li><b>适用读者：</b>创始人 / 产品负责人（决策点拍板）、架构师与研发负责人（方案与排期）、财务（计费与对账）、运营与客服（流程与工具）。</li>
+<li><b>适用阶段：</b>覆盖 P0 MVP 期 → P1 商业化期 → P2 规模化期的完整建设节奏。</li>
+</ul>
+
+<h3 class="sub">1.3 与功能清单的关系：清单是输入，规划是深化</h3>
+<p>功能清单回答的是"<b>要建什么</b>"（9 大模块条目 + 架构关键点 + 边界划分）；本规划回答的是"<b>怎么建、建多深、何时建、如何与商业闭环衔接</b>"。二者关系如下：</p>
+<table>
+<thead><tr><th style="width:18%">维度</th><th style="width:38%">功能清单（输入）</th><th>本建设规划（深化输出）</th></tr></thead>
+<tbody>
+<tr><td>粒度</td><td>功能条目式罗列</td><td>每模块展开为：模块目标 → 功能点明细（含优先级/依赖）→ 页面规划 → 关键业务规则</td></tr>
+<tr><td>模块数量</td><td>9 大章节（其中第 9 章为边界说明，实际功能模块 8 个）</td><td>8 个既有模块全部深化 + <b>新增 3 个扩展模块</b>（运营营销 / 开放平台 / AI 能力管控），共 11 个模块</td></tr>
+<tr><td>商业衔接</td><td>提及套餐/账单概念</td><td>对齐真实定价（免费/4800/9800/19800），给出功能开关矩阵、配额、增值计费、欠费策略、老带新落地实现</td></tr>
+<tr><td>技术方案</td><td>提出"数据隔离/配额管控"关键点</td><td>给出多租户隔离三方案对比与推荐结论、配额硬拦截机制、审计与备份规范</td></tr>
+<tr><td>落地节奏</td><td>无分期</td><td>P0/P1/P2 三期路线图，每期含目标、模块清单与里程碑判定标准</td></tr>
+</tbody>
+</table>
+<div class="callout"><b class="t">深化而非照抄的三个标志性动作</b>① 所有功能点标注 P0/P1/P2 优先级与依赖关系；② 补齐清单未覆盖的增长与智能化模块（4.9~4.11）；③ 把"总后台不碰业务"的边界原则转化为可执行的流程规则（如代登录五步审计法）。</div>
+
+<h3 class="sub">1.4 版本信息与编制说明</h3>
+<table class="small">
+<thead><tr><th style="width:10%">版本</th><th style="width:16%">日期</th><th style="width:18%">编制</th><th style="width:16%">状态</th><th>变更说明</th></tr></thead>
+<tbody>
+<tr><td class="c">V1.0</td><td>2026-09-08</td><td>智享全链产品组</td><td class="c">评审稿</td><td>基于功能清单 V1.0 深化形成首版建设规划；新增运营营销、开放平台、AI 能力管控三个模块规划；对齐四档定价与老带新规则；形成三期路线图与 9 项待拍板决策点。</td></tr>
+<tr><td class="c">V1.1</td><td>2026-09-09</td><td>智享全链产品组</td><td class="c">修订稿</td><td>三大修订：① 套餐体系重构为"套餐模板引擎"（5.1），套餐从固定四档改为平台管理员自主创建/编辑/复制/停用的可配置对象，四档转为出厂预置模板；② 新增 4.12 大模型计费体系：Token 计量（输入/输出分开计价）、A 预付费额度包 / B 后付费月结 / C 订阅含量+超额加价三种租户计费模式、定价 = 成本单价 × 加成倍率；③ 新增 4.13 积分抵扣 Token 机制：口径为"抵扣而非兑换"，汇率（1 积分 = X Token）为管理员手动配置项（系统不内置固定汇率，未配置时功能置灰），确立积分优先的四级扣减顺序，免费版锁定自定义模型、仅可用积分 + 赠送额度使用平台公共模型；联动更新 D3/D10 决策点与 P1 路线图。</td></tr>
+<tr><td class="c">V1.2</td><td>2026-09-10</td><td>智享全链产品组</td><td class="c">修订稿</td><td>新增 4.14 代理商体系（配置 + 分润）：① 代理商模型——面向同行批零商家的 B 端分销伙伴，与老带新构成双轨渠道体系；层级模型（一级 / 二级代理，权益维度：可售套餐范围关联 5.1 套餐模板引擎勾选、拿货折扣区间、是否允许发展下级）、代理商档案与状态机（待审核 → 正常 → 冻结 / 终止）、归因规则（推广码注册终身归属，与老带新同时存在时代理商优先）；② 分润引擎——比例矩阵手动配置不内置定死（未配置时计提阻断并提示，与 4.13 汇率同一设计原则）、新签 / 续费 / 增值三模式独立开关、计算基数 = 订单实收现金（积分抵扣与平台券部分不计入）、月结 / 季结与提现门槛、退款冲回（未结算扣减 / 已结算负挂账结转）、防套利（自购自推关联校验、比例变更留痕）；③ 与 5.1 / 账单计费 / 4.13 积分抵扣 / 4.9 老带新 / 管理员权限（双人复核呼应 D10）的咬合关系；新增决策点 D11（分润比例配置化 + 增值收入初期关闭 + 层级自定义命名）；同步更新目录导航、4.9 双轨口径、附录覆盖对照与评审签署表。</td></tr>
+<tr><td class="c">V1.3</td><td>2026-09-12</td><td>智享全链产品组</td><td class="c">修订稿</td><td>新增两大模块（与总后台 UI 设计稿 v1.6 同源对齐）：① 4.15 商品库（平台公共商品数据中枢）——平台维护标准化商品主数据（GS1 条码 / 平台编码 / 类目路径 / 品牌 / SKU 规格 / 图库 / 参考价 / 状态 / 来源 / 调取热度 / 版本号），三类来源（平台运营录入 / AI 采集 / 供应商提交 + 资质校验）经审核队列（通过 / 驳回原因留痕）发布上架；租户复制式调取生成私有 SPU/SKU 档案（结构对齐商家后台商品中心：SPU / SKU / 品类树 / 品牌，接口 /api/v1/spu、/api/v1/categories/tree、/api/v1/brands），平台更新不强制覆盖、租户侧提示"有新版本可同步"，调取计入租户商品配额（配额引擎硬拦截）；在线检索计入 API 额度（开关可配、建议默认计费）、AI 采集消耗大模型计费（呼应 4.12）、开放平台新增商品数据查询 API（呼应 4.10）；套餐分档策略为决策点 D12（免费版建议限量 50 条/月作转化钩子，基础 500 / 标准 2000 / 旗舰不限量，以拍板为准）。② 4.16 租户订阅审核（开通工作流）——三来源申请（官网自注册 / 代理商邀请 / 销售代开）统一进入审核工作台核验资质与付款凭证，通过后自动执行"开通租户 + 绑定套餐 + 配额初始化 + 套用初始化模板"四动作（呼应 4.4 / 5.1 / 3.4），驳回必填原因留痕；代理商邀请申请通过时绑定推广码终身归属（呼应 4.14，优先于老带新）；待审核超 24 小时标红、已审记录完整留痕、申请单关联账单首期；4.1 租户管理补衔接标注"租户开通入口 = 4.16"。决策点新增 D12；同步更新目录导航与附录覆盖对照。</td></tr>
+</tbody>
+</table>
+<p style="color:#64748b;font-size:12.5px;">编制说明：本文档中"总后台"均指平台超级管理员后台；"租户"与"商户"为同义语；P0/P1/P2 分别对应第七章 MVP 期 / 商业化期 / 规模化期。文中定价、奖励比例等商业参数以创始人已敲定口径为准，改动需同步更新第五章。</p>
+</section>
+
+<!-- ================= 第二部分 ================= -->
+<section id="sec2" class="card">
+<h2 class="sec">二、系统定位与边界<span class="en">POSITIONING &amp; BOUNDARY</span></h2>
+<p class="sec-desc">先划清"总后台是什么、不是什么"，这是全部模块设计的地基。</p>
+
+<h3 class="sub">2.1 四端职责矩阵</h3>
+<p>智享全链采用"一平台四端"架构。总后台是其中唯一的<b>平台侧系统</b>，其余三端均为商户/客户侧系统。</p>
+<table>
+<thead><tr><th style="width:13%">端</th><th style="width:15%">载体</th><th style="width:18%">核心定位</th><th style="width:34%">核心能力</th><th>与总后台的关系</th></tr></thead>
+<tbody>
+<tr><td><b>总后台</b><br><span class="badge tag-core">平台侧</span></td><td>PC Web</td><td>平台运营中枢：全局管控 + 重决策</td><td>租户全生命周期管理、套餐计费、全局配置与模板、平台聚合统计、运维监控、工单公告、运营营销、开放平台、AI 额度管控</td><td>本规划主体；管理租户的<b>状态、配额、套餐</b>等元数据</td></tr>
+<tr><td><b>商家后台</b></td><td>PC Web</td><td>商户全局 + 重决策中枢</td><td>采购/销售/退货/出入库单据、商品/客户/供应商、库存盘点与成本核算、财务报表、员工账号与权限、会员营销、小程序配置</td><td>总后台的服务对象；总后台<b>只读概况、只控状态</b>，不操作单据</td></tr>
+<tr><td><b>商户移动端</b></td><td>App / H5</td><td>高频轻作业</td><td>扫码盘点、库存速查、单据移动审批、销售速报、消息提醒、快速开单</td><td>服务对象；数据归属租户空间，总后台只见聚合值</td></tr>
+<tr><td><b>客户端小程序</b></td><td>微信小程序等</td><td>C 端客户触点</td><td>线上选品下单、订单跟踪、会员权益与积分、优惠券领取核销、即时零售入口</td><td>触点端；订单流入租户空间，总后台仅统计平台侧交易聚合值</td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">2.2 总后台的"三不"边界</h3>
+<p>"三不"边界不是宣传口号，而是要落成<b>权限配置 + 代码拦截 + 流程规则</b>三道硬约束。</p>
+<table>
+<thead><tr><th style="width:16%">边界原则</th><th style="width:38%">含义与落地方式</th><th>例外通道（唯一合法路径）</th></tr></thead>
+<tbody>
+<tr><td><b>一不：不改业务数据</b></td><td>总后台不直接对租户的采购单、销售单、库存、会员等业务表做任何增删改。接口层不做业务表写通道，权限系统不提供业务写权限项。</td><td>无例外。唯一可写的租户侧字段是<b>元数据</b>：租户状态、配额、套餐开关。</td></tr>
+<tr><td><b>二不：不看业务明细</b></td><td>不逐笔查看某租户的销售单、客户名单、成本毛利。平台大盘只展示<b>聚合统计</b>（总量/总额/趋势），不提供下钻到单条业务记录的入口。</td><td>仅两条：① 租户在商家后台<b>主动授权</b>（如提交问题单据协查，授权范围+时限）；② 平台<b>代登录</b>（申请→审批→限时→留痕→可回放，见 4.1 与 6.1）。</td></tr>
+<tr><td><b>三不：不干预商户内部权限</b></td><td>租户内部员工账号、角色、审批流由商户自行管理。总后台不提供"替商户改员工权限"的功能。</td><td>仅<b>租户级整体管控</b>：禁用/冻结/注销作用于整个租户空间（登录阻断），而非篡改其内部角色配置。</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><b class="t">边界与单据规则的衔接</b>租户单据遵循"待审核/已审核可作废删除；已作废仅可删"的既定规则，该状态机完全由商家后台实现与维护。总后台在代登录、数据协查、数据重置等场景中，同样必须以该状态机为前提：不得通过平台侧通道变更单据审核状态，数据重置仅按"作废→删除"的合法链路批量执行并留痕。</div>
+
+<h3 class="sub">2.3 数据隔离原则（五条铁律）</h3>
+<ol>
+<li><b>存储隔离：</b>全部租户业务数据行级携带 tenant_id；总控库（租户元数据/账单/日志/配置）与租户业务数据物理或逻辑分离。</li>
+<li><b>访问隔离：</b>租户业务接口强制携带租户上下文（ORM 层自动注入 tenant_id 过滤）；总后台管理员账号不在任何业务接口的白名单内。</li>
+<li><b>展示隔离：</b>总后台页面只呈现租户概况的<b>聚合数值</b>（商品数、订单量、活跃度分级），数据结构上杜绝"按租户查业务明细"的查询能力。</li>
+<li><b>导出隔离：</b>涉及租户业务数据的导出，必须经"租户授权（或工单依据）+ 平台双人审批 + 水印加密"三重控制，全程审计。</li>
+<li><b>删除隔离：</b>租户注销走"申请→7 天冷静期→备份→清除"流程；总控元数据仅归档不物理删除，满足对账与争议追溯。</li>
+</ol>
+</section>
+
+<!-- ================= 第三部分 ================= -->
+<section id="sec3" class="card">
+<h2 class="sec">三、总体架构<span class="en">ARCHITECTURE</span></h2>
+<p class="sec-desc">一个中枢、四个域、十一个模块：功能清单 8 个既有模块全部保留深化，规划新增运营营销、开放平台、AI 能力管控 3 个模块。</p>
+
+<h3 class="sub">3.1 模块架构图</h3>
+<div class="arch">
+  <div class="arch-band-label">访 问 层</div>
+  <div class="arch-row">
+    <div class="arch-box"><b>总后台 PC Web</b><div class="d">平台管理员使用</div></div>
+    <div class="arch-box infra"><b>API 网关</b><div class="d">认证 / 限流 / 计量</div></div>
+    <div class="arch-box infra"><b>租户侧各端</b><div class="d">商家后台 · 移动端 · 小程序（服务对象）</div></div>
+  </div>
+  <div class="arch-arrow">▼</div>
+  <div class="arch-band-label">统 一 支 撑</div>
+  <div class="arch-row">
+    <div class="arch-box infra"><b>统一登录认证</b><div class="d">SSO / 2FA</div></div>
+    <div class="arch-box infra"><b>RBAC 权限中心</b><div class="d">菜单/按钮/数据权限</div></div>
+    <div class="arch-box infra"><b>操作日志中心</b><div class="d">全量留痕 / 回放</div></div>
+    <div class="arch-box infra"><b>消息通知</b><div class="d">短信 / 邮件 / 站内</div></div>
+    <div class="arch-box infra"><b>配额计量引擎</b><div class="d">存储/API/AI 硬拦截</div></div>
+  </div>
+  <div class="arch-arrow">▼</div>
+  <div class="arch-band-label">应 用 模 块 层（4 域 11 模块）</div>
+  <div class="arch-row">
+    <div class="arch-group">
+      <h5>① 租户服务域</h5>
+      <div class="arch-row" style="flex-direction:column;">
+        <div class="arch-box"><b>01 租户管理</b><div class="d">全生命周期 / 代登录</div></div>
+        <div class="arch-box"><b>02 套餐与计费</b><div class="d">套餐模板引擎 / 账单对账 <span class="badge v11">v1.1</span></div></div>
+        <div class="arch-box"><b>03 初始化与模板</b><div class="d">一键开店 / 打印模板</div></div>
+      </div>
+    </div>
+    <div class="arch-group">
+      <h5>② 平台运营域</h5>
+      <div class="arch-row" style="flex-direction:column;">
+        <div class="arch-box"><b>04 平台数据统计</b><div class="d">运营大盘 / 聚合报表</div></div>
+        <div class="arch-box"><b>05 运维与监控</b><div class="d">API/存储监控 / 日志</div></div>
+        <div class="arch-box"><b>06 客服工单</b><div class="d">受理 / 流转 / SLA</div></div>
+        <div class="arch-box"><b>07 版本与更新</b><div class="d">灰度发布 / 功能开关</div></div>
+      </div>
+    </div>
+    <div class="arch-group">
+      <h5>③ 增长与开放域 <span class="badge tag-new">新增</span></h5>
+      <div class="arch-row" style="flex-direction:column;">
+        <div class="arch-box"><b>08 运营营销</b><div class="d">渠道码 / 老带新 / 线索</div></div>
+        <div class="arch-box"><b>09 开放平台</b><div class="d">OpenAPI / Webhook / 密钥</div></div>
+      </div>
+    </div>
+    <div class="arch-group">
+      <h5>④ 智能与支撑域</h5>
+      <div class="arch-row" style="flex-direction:column;">
+        <div class="arch-box"><b>10 AI 能力管控</b><div class="d">额度 / 计量 / 开关 / 大模型计费 · 积分抵扣 <span class="badge v11">v1.1</span></div></div>
+        <div class="arch-box"><b>11 全局系统配置</b><div class="d">基础设置 / 字典 / 开关</div></div>
+        <div class="arch-box"><b>12 平台账号权限</b><div class="d">管理员 / 角色 / 审计</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="arch-arrow">▼</div>
+  <div class="arch-band-label">数 据 与 资 源 层</div>
+  <div class="arch-row">
+    <div class="arch-box infra"><b>总控库</b><div class="d">租户元数据 / 账单 / 日志</div></div>
+    <div class="arch-box infra"><b>租户业务库</b><div class="d">tenant_id 行级隔离</div></div>
+    <div class="arch-box infra"><b>对象存储</b><div class="d">COS/OBS 按租户配额</div></div>
+    <div class="arch-box infra"><b>大模型资源池</b><div class="d">AI 知识库 / LLM API</div></div>
+  </div>
+</div>
+<p style="font-size:12.5px;color:#64748b;">图注：应用模块层共 11 个业务模块，按四个域分组展示；统一支撑层是全部模块的公共底座，配额计量引擎为第五章商业策略提供技术硬拦截。总后台只与总控库及业务库的<b>聚合视图/元数据</b>交互，不直连租户业务明细表。</p>
+
+<h3 class="sub">3.2 模块总览与建设优先级</h3>
+<table>
+<thead><tr><th style="width:6%">编号</th><th style="width:17%">模块</th><th style="width:33%">一句话定位</th><th style="width:14%">来源</th><th style="width:11%">首发优先级</th><th>对应清单章节</th></tr></thead>
+<tbody>
+<tr><td class="c">01</td><td>租户（商户）管理</td><td>租户从注册到注销的全生命周期驾驶舱</td><td>清单原有</td><td class="c"><span class="badge p0">P0</span></td><td>清单·一</td></tr>
+<tr><td class="c">02</td><td>平台账号与权限</td><td>总后台自身的 RBAC 与审计底座</td><td>清单原有</td><td class="c"><span class="badge p0">P0</span></td><td>清单·二</td></tr>
+<tr><td class="c">03</td><td>全局系统配置</td><td>平台级参数、字典与第三方通道的唯一配置源</td><td>清单原有</td><td class="c"><span class="badge p0">P0</span></td><td>清单·三</td></tr>
+<tr><td class="c">04</td><td>租户初始化与模板</td><td>让新商户"一键开店"即有完整基础配置</td><td>清单原有</td><td class="c"><span class="badge p0">P0</span></td><td>清单·四</td></tr>
+<tr><td class="c">05</td><td>平台数据统计</td><td>只做聚合、不做下钻的平台运营大盘</td><td>清单原有</td><td class="c"><span class="badge p1">P1</span></td><td>清单·五</td></tr>
+<tr><td class="c">06</td><td>系统运维与监控</td><td>API/存储/日志/公告的平台级运维阵地</td><td>清单原有</td><td class="c"><span class="badge p0">P0*</span></td><td>清单·六</td></tr>
+<tr><td class="c">07</td><td>客服工单系统</td><td>租户问题受理、流转与 SLA 管理闭环</td><td>清单原有（可选）</td><td class="c"><span class="badge p1">P1</span></td><td>清单·七</td></tr>
+<tr><td class="c">08</td><td>版本与更新管理</td><td>SaaS 灰度发布与功能开关的发布中枢</td><td>清单原有</td><td class="c"><span class="badge p1">P1</span></td><td>清单·八</td></tr>
+<tr><td class="c">09</td><td>运营营销</td><td>渠道推广、老带新激励、招商线索的增长引擎</td><td><span class="badge tag-new">规划新增</span></td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td class="c">10</td><td>开放平台</td><td>API/Webhook 开放与租户密钥治理</td><td><span class="badge tag-new">规划新增</span></td><td class="c"><span class="badge p2">P2</span></td><td>—</td></tr>
+<tr><td class="c">11</td><td>AI 能力管控</td><td>大模型资源池与租户 AI 额度的总闸门</td><td><span class="badge tag-new">规划新增</span></td><td class="c"><span class="badge p1">P1</span></td><td>清单·三（3.4）延伸</td></tr>
+</tbody>
+</table>
+<p style="font-size:12.5px;color:#64748b;">* 运维监控模块中的"管理员操作日志"为 P0 必备，API/存储监控随商业化节奏在 P1 补齐。</p>
+
+<h3 class="sub">3.3 平台角色体系与权限矩阵</h3>
+<p>总后台内置四类角色，采用 RBAC 模型（菜单权限 + 按钮级操作权限 + 数据范围权限）。图例：<b>●</b> 完全管理（含删除/配置）　<b>◐</b> 可编辑（增改，不可删关键数据）　<b>○</b> 只读　<b>—</b> 无权限。</p>
+<table>
+<thead><tr><th style="width:20%">功能域 / 菜单</th><th class="c">超级管理员</th><th class="c">运营</th><th class="c">财务</th><th class="c">客服</th></tr></thead>
+<tbody>
+<tr><td>租户管理（列表/状态/配额调整）</td><td class="c">●</td><td class="c">◐</td><td class="c">○（仅账单概况）</td><td class="c">○</td></tr>
+<tr><td>代登录（申请/审批/执行）</td><td class="c">●</td><td class="c">◐ 申请</td><td class="c">—</td><td class="c">◐ 申请</td></tr>
+<tr><td>套餐与计费（套餐配置/价格/账单）</td><td class="c">●</td><td class="c">○</td><td class="c">●</td><td class="c">○（账单查询）</td></tr>
+<tr><td>全局系统配置</td><td class="c">●</td><td class="c">◐</td><td class="c">—</td><td class="c">—</td></tr>
+<tr><td>初始化与模板管理</td><td class="c">●</td><td class="c">◐</td><td class="c">—</td><td class="c">○</td></tr>
+<tr><td>平台数据统计（大盘/报表导出）</td><td class="c">●</td><td class="c">○</td><td class="c">○</td><td class="c">—</td></tr>
+<tr><td>运维监控（API/存储/日志中心）</td><td class="c">●</td><td class="c">○</td><td class="c">○</td><td class="c">○</td></tr>
+<tr><td>客服工单（受理/流转/关闭）</td><td class="c">●</td><td class="c">◐</td><td class="c">◐（账单类）</td><td class="c">●</td></tr>
+<tr><td>公告消息（发布/撤回）</td><td class="c">●</td><td class="c">◐</td><td class="c">◐（欠费催缴类）</td><td class="c">◐（服务类）</td></tr>
+<tr><td>版本与更新（发布计划/灰度）</td><td class="c">●</td><td class="c">◐</td><td class="c">—</td><td class="c">○</td></tr>
+<tr><td>运营营销（渠道码/奖励/线索）</td><td class="c">●</td><td class="c">◐</td><td class="c">◐（奖励发放/提现审批）</td><td class="c">○</td></tr>
+<tr><td>开放平台（密钥/接口管理）</td><td class="c">●</td><td class="c">◐</td><td class="c">—</td><td class="c">—</td></tr>
+<tr><td>AI 能力管控（资源池/额度）</td><td class="c">●</td><td class="c">◐</td><td class="c">○（消耗账单）</td><td class="c">—</td></tr>
+<tr><td>平台管理员账号与角色</td><td class="c">●</td><td class="c">—</td><td class="c">—</td><td class="c">—</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><b class="t">权限红线</b>"平台管理员账号与角色"仅超级管理员可操作；财务与运营互不为对方上级；任何角色执行"删除租户""修改套餐价格""吊销密钥"类高危操作时触发二次确认 + 操作留痕（见 6.1）。</div>
+
+<h3 class="sub">3.4 多租户技术架构：数据隔离方案对比与推荐</h3>
+<p>三种主流隔离方案对比（评估基准：中小批零商户、预期 3 年内千级租户、平台需做跨租户聚合统计）：</p>
+<table>
+<thead><tr><th style="width:13%">方案</th><th style="width:25%">说明</th><th class="c">成本</th><th class="c">隔离强度</th><th class="c">跨租户聚合统计</th><th class="c">单租户备份/恢复</th><th class="c">运维复杂度</th></tr></thead>
+<tbody>
+<tr><td><b>独立库</b><br>每租户一个数据库</td><td>租户数据物理完全隔离，最彻底；连接数与实例数随租户线性增长</td><td class="c"><span class="badge p0">高</span></td><td class="c">★★★★★</td><td class="c">难，需跨库汇聚</td><td class="c">天然支持</td><td class="c">高</td></tr>
+<tr><td><b>共享库 + Schema</b><br>每租户一个 Schema</td><td>逻辑隔离较强；Schema 数量受限（通常数千级），DDL 变更需批量执行</td><td class="c"><span class="badge p1">中</span></td><td class="c">★★★★</td><td class="c">较难，跨 Schema 汇聚</td><td class="c">可按 Schema 导出</td><td class="c">中高</td></tr>
+<tr><td><b>共享库 + tenant_id</b><br>行级隔离</td><td>所有租户同表共存，行级携带租户标识，依赖 ORM 拦截器强制过滤</td><td class="c"><span class="badge p2">低</span></td><td class="c">★★★（依赖代码纪律）</td><td class="c">容易，天然支持</td><td class="c">需按租户条件导出</td><td class="c">低</td></tr>
+</tbody>
+</table>
+<div class="callout ok"><b class="t">推荐结论：主方案 = 共享库 + 租户 ID 字段 + 行级隔离</b><br>理由：① 智享全链目标客群为<b>中小批零商户</b>，数量多、单体数据量小，行级隔离的边际成本最低，与免费版"零成本承载海量小租户"的商业漏斗最匹配；② 平台大盘、套餐分布、AI 消耗等统计天然需要跨租户汇聚，同表结构使聚合查询与 ETL 大幅简化；③ 通过"ORM 层全局租户拦截器 + 新增接口强制检查清单 + 自动化隔离测试用例 + 季度渗透抽测"四道防线弥补隔离强度短板。<br><b>升级保留：</b>对有合规/定制需求的旗舰大客户，提供"<b>独立逻辑库</b>"增值方案（按租户独立建库，收费另议），并预留数据迁移工具。建议触发条件：单租户月单据量 &gt; 10 万笔，或客户明确提出数据物理隔离合规诉求。</div>
+<h4 class="mini">行级隔离的四道落地防线</h4>
+<ol>
+<li><b>ORM 全局拦截器：</b>所有业务表 Model 强制继承租户基类，查询/写入自动注入 tenant_id；禁用裸 SQL 直查业务表，纳入代码评审门禁。</li>
+<li><b>上下文强制校验：</b>网关层校验 Token 租户身份，管理端 Token 与租户端 Token 完全隔离，杜绝越权字段注入。</li>
+<li><b>自动化隔离测试：</b>CI 中内置"跨租户越权"用例集（A 租户 Token 访问 B 租户数据必须 403/空集），每次发版必跑。</li>
+<li><b>季度渗透抽测：</b>对代登录、数据导出、AI 网关、Webhook 回调四个高危面定期做渗透测试与整改。</li>
+</ol>
+</section>
+
+<!-- ================= 第四部分 ================= -->
+<section id="sec4" class="card">
+<h2 class="sec">四、模块详细规划<span class="en">MODULE DESIGN</span></h2>
+<p class="sec-desc">文档主体。每个模块按"模块目标 → 功能点明细表 → 页面规划 → 关键业务规则"四段式展开；功能点优先级 P0=MVP 期必达、P1=商业化期必达、P2=规模化期。</p>
+
+<!-- 4.1 租户管理 -->
+<div id="m1">
+<h3 class="sub">4.1 租户（商户）管理模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>建立租户从<b>创建 → 使用 → 欠费 → 冻结 → 注销</b>的全生命周期驾驶舱，是配额管控、套餐生效、代登录审计的元数据总源。总后台在这里管理的是租户的"档案与阀门"，永远不是租户的业务数据。</p>
+
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>租户列表查询</td><td>按名称/联系人/手机号/套餐版本/状态/到期时间多维筛选，支持分页与列表导出；列表列含：名称、联系人、手机号、套餐、到期时间、创建时间、状态</td><td class="c"><span class="badge p0">P0</span></td><td>平台账号权限（02）</td></tr>
+<tr><td>租户创建</td><td>平台手动开户（录入基础信息+选择初始化模板+分配套餐）；P1 支持官网注册自助开户走审核流</td><td class="c"><span class="badge p0">P0</span></td><td>初始化模板（04）</td></tr>
+<tr><td>租户信息编辑</td><td>名称、联系人、手机号、地址、行业标签等基础信息维护，关键字段变更加密留痕</td><td class="c"><span class="badge p0">P0</span></td><td>—</td></tr>
+<tr><td>状态管理</td><td>禁用/启用、冻结/解冻、注销（走冷静期流程）；每个状态变更必须填写原因并留痕</td><td class="c"><span class="badge p0">P0</span></td><td>消息通知</td></tr>
+<tr><td>租户概况查看</td><td>聚合展示：商品数量、订单量、账号数、成员数、近 7/30 天活跃度分级；<b>仅聚合数值，无明细下钻入口</b></td><td class="c"><span class="badge p0">P0</span></td><td>数据统计（05）</td></tr>
+<tr><td>配额查看与调整</td><td>账号数/商品上限/仓库数/API 额度/存储容量/AI 额度的已用-剩余视图；支持临时扩容（带有效期）与永久调整（走审批）</td><td class="c"><span class="badge p1">P1</span></td><td>配额计量引擎、套餐（02）</td></tr>
+<tr><td>租户登录模拟（代登录）</td><td>进入租户商家后台协助排查：申请（填事由+时限）→ 审批 → 限时会话（默认 30 分钟）→ 全程留痕可回放 → 到期自动登出</td><td class="c"><span class="badge p1">P1</span></td><td>审计日志、RBAC（02）</td></tr>
+<tr><td>租户数据重置</td><td>按租户清空业务数据（演示转正式场景）；二次确认 + 短信验证码 + 双人复核；重置前强制自动备份</td><td class="c"><span class="badge p1">P1</span></td><td>备份服务、审计</td></tr>
+<tr><td>租户数据导出</td><td>元数据（档案/配额/账单）随时可导；业务数据导出需租户授权或工单依据，双人审批，文件水印加密</td><td class="c"><span class="badge p1">P1</span></td><td>审计、对象存储</td></tr>
+<tr><td>到期提醒策略</td><td>到期前 30/15/7/1 天自动短信+站内提醒；阈值与文案可配置</td><td class="c"><span class="badge p0">P0</span></td><td>消息通知、计费（02）</td></tr>
+<tr><td>批量操作</td><td>按筛选结果批量禁用/批量发公告/批量延期（仅超管，用于重大故障应急）</td><td class="c"><span class="badge p2">P2</span></td><td>公告（06）</td></tr>
+<tr><td>标签与分组</td><td>给租户打运营标签（内测/标杆/重点/灰度组），供灰度发布与公告定向圈选复用</td><td class="c"><span class="badge p2">P2</span></td><td>版本管理（08）</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>租户列表页：</b>顶部筛选区（状态/套餐/到期分段/关键词）+ 表格 + 行内快捷操作（启用/冻结/续费提醒）。</li>
+<li><b>租户详情页：</b>Tab 结构——① 概况（聚合指标卡）② 套餐与配额（用量进度条 + 调整入口）③ 登录与活跃记录 ④ 账单摘要 ⑤ 代登录与操作留痕。</li>
+<li><b>新建/编辑租户抽屉：</b>基本信息 → 套餐选择 → 初始化模板选择 → 配额确认，四步式表单。</li>
+<li><b>代登录弹窗：</b>事由必填、时限选择（15/30/60 分钟）、审批状态跟踪条、执行时页面顶部悬挂橙色"代登录会话"横幅。</li>
+</ul>
+
+<h4 class="mini">关键业务规则</h4>
+<div class="flow">
+<span class="node">待激活</span><span class="arr">→</span><span class="node">正常</span><span class="arr">→</span><span class="node">欠费</span><span class="arr">→</span><span class="node">已冻结</span><span class="arr">→</span><span class="node">注销中（7天冷静期）</span><span class="arr">→</span><span class="node gray">已注销</span>
+</div>
+<ul>
+<li><b>状态机语义区分：</b>禁用=平台主动停权（违规/风险，登录阻断）；冻结=欠费/客户申请的临时保护态（登录后仅可导出自己的数据）；注销=终态，先冷静期再清数据。</li>
+<li><b>注销流程：</b>申请（租户侧或平台侧）→ 二次确认 → 7 天冷静期（可撤回恢复）→ 自动备份包留存 30 天 → 物理清除业务数据、归档总控元数据。</li>
+<li><b>代登录三重约束：</b>必须有事由与审批；会话内所有页面操作记录可逐屏回放；支付配置、密钥等敏感页在代登录态下强制脱敏不可改。</li>
+<li><b>与单据规则衔接：</b>代登录/数据重置均不得绕过租户"待审核/已审核可作废删除、已作废仅可删"的单据状态机，平台侧批量处理同样按该链路执行。</li>
+</ul>
+
+<div class="callout"><b class="t"><span class="badge v13">v1.3 衔接标注</span> 租户开通入口</b>租户开通入口 = <b>4.16 租户订阅审核工作流</b>：官网自注册 / 代理商邀请 / 销售代开三类申请统一进入审核工作台，审核通过后自动执行"开通租户 + 绑定套餐 + 配额初始化 + 套用初始化模板"（详见 4.16）。本节原有"租户创建"手动开户能力保留为平台兜底通道，状态机与配额体系不变。</div>
+</div>
+
+<!-- 4.2 平台账号与权限 -->
+<div id="m2">
+<h3 class="sub">4.2 平台账号与权限模块（总后台自身管理员）</h3>
+<h4 class="mini">模块目标</h4>
+<p>为总后台自身提供账号、角色、审计的治理底座。<b>注意区分：</b>本模块只管"平台管理员"；商户内部员工账号与角色属于商家后台，总后台不干预（对应清单第九章边界）。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>管理员账号管理</td><td>超级管理员/运营/财务/客服账号的增删改查、启用停用、强制下线</td><td class="c"><span class="badge p0">P0</span></td><td>—</td></tr>
+<tr><td>密码重置与策略</td><td>管理员密码重置（验证码确认）；强制首次登录改密、90 天改密提醒</td><td class="c"><span class="badge p0">P0</span></td><td>消息通知</td></tr>
+<tr><td>内置角色初始化</td><td>预置四类内置角色（不可删除，仅超管可调权限），按 3.3 权限矩阵出厂配置</td><td class="c"><span class="badge p0">P0</span></td><td>—</td></tr>
+<tr><td>自定义角色</td><td>支持新建自定义角色并勾选权限树（菜单→页面→按钮三级）</td><td class="c"><span class="badge p1">P1</span></td><td>RBAC 权限中心</td></tr>
+<tr><td>数据范围权限</td><td>按租户标签/分组限定可见租户范围（如客服仅看自己跟进组的租户）</td><td class="c"><span class="badge p2">P2</span></td><td>租户标签（01）</td></tr>
+<tr><td>操作日志</td><td>记录所有总后台操作：谁、什么时间、从哪个 IP、做了什么、结果如何；保留 ≥180 天，支持导出</td><td class="c"><span class="badge p0">P0</span></td><td>日志中心（06）</td></tr>
+<tr><td>登录安全</td><td>连续 5 次失败锁定 15 分钟；P2 支持 2FA（TOTP）与管理端 IP 允许名单</td><td class="c"><span class="badge p0">P0</span>/<span class="badge p2">P2</span></td><td>—</td></tr>
+<tr><td>账号交接</td><td>员工离职停用账号时，一键转移其名下工单、线索、代登录申请</td><td class="c"><span class="badge p1">P1</span></td><td>工单（07）、线索（09）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>账号列表页：</b>姓名/账号/角色/状态/最近登录时间；行内"重置密码/停用/日志"。</li>
+<li><b>角色与权限页：</b>左侧角色列表，右侧三级权限树（菜单/按钮/数据范围），变更需超管二次确认。</li>
+<li><b>我的操作日志页：</b>全员可见本人日志；超管可查全员日志。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li>密码策略：长度 ≥ 8 位且含大小写/数字/特殊字符至少三类；不得与最近 3 次历史密码重复（完整策略见 6.1）。</li>
+<li>内置角色权限调整必须由超级管理员操作，且自动生成权限变更快照（变更前后对比存档）。</li>
+<li>超级管理员账号固定 1~2 个，支持"双超管互备"，避免单点失能。</li>
+</ul>
+</div>
+
+<!-- 4.3 全局系统配置 -->
+<div id="m3">
+<h3 class="sub">4.3 全局系统配置模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>成为全平台参数、字典、第三方通道的<b>唯一配置源</b>：平台侧配置一次，租户侧按套餐与开关继承；同时开放"租户自带密钥"通道，平衡统一管控与个性化需求。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>平台基础设置</td><td>平台名称、Logo、版权信息、备案号、登录页横幅与公告位配置</td><td class="c"><span class="badge p0">P0</span></td><td>对象存储</td></tr>
+<tr><td>短信全局通道</td><td>平台统一短信签名与模板（验证码/通知/营销三类模板分开管理）；支持"租户自有签名密钥"模式</td><td class="c"><span class="badge p0">P0</span></td><td>短信服务商</td></tr>
+<tr><td>邮件全局通道</td><td>平台 SMTP 配置、发信频率与白名单控制，供账单/告警/公告发信</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>对象存储配置</td><td>COS/OBS 桶配置、目录规范（按租户分目录）、租户存储上限默认值与超额策略</td><td class="c"><span class="badge p0">P0</span></td><td>配额计量引擎</td></tr>
+<tr><td>全局功能开关</td><td>多仓库/多单位/会员/小程序/API 接口/报表模块等全局启停；配置"新租户默认启用项"</td><td class="c"><span class="badge p0">P0</span></td><td>套餐开关矩阵（02）</td></tr>
+<tr><td>全局数据字典</td><td>计量单位、商品分类模板、支付渠道、单据类型四类字典；支持预置模板并随租户初始化复制</td><td class="c"><span class="badge p0">P0</span></td><td>初始化模板（04）</td></tr>
+<tr><td>支付网关配置</td><td>微信/支付宝/聚合支付商户号与密钥配置，轮询密钥变更，生效留痕</td><td class="c"><span class="badge p1">P1</span></td><td>审计</td></tr>
+<tr><td>AI 全局密钥</td><td>AI 知识库/大模型 API 的平台级密钥托管（SaaS 共享大模型资源池），密钥加密存储、按租户转发调用</td><td class="c"><span class="badge p1">P1</span></td><td>AI 管控（11）</td></tr>
+<tr><td>小程序发布配置</td><td>小程序主体、类目、审核提交的全局参数；租户模板消息统一配置</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>配置变更审计</td><td>所有配置项变更记录：变更前/后值快照、操作人、时间；敏感项（支付/AI 密钥）变更需二次验证</td><td class="c"><span class="badge p0">P0</span></td><td>审计（02）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>配置中心首页：</b>按"基础信息 / 消息通道 / 存储 / 功能开关 / 字典 / 第三方对接"分组 Tab；敏感项以盾牌图标标识。</li>
+<li><b>字典管理页：</b>左树右表（字典类型 → 字典项），支持拖拽排序、预置模板标记、引用租户数统计。</li>
+<li><b>功能开关页：</b>开关矩阵 + "新租户默认配置"卡片，开关变更即时生效并提示影响面。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>字典快照原则：</b>字典项修改不影响租户已生成单据上的历史值（单据保存时快照字典项），仅影响新增数据。</li>
+<li><b>开关叠加原则：</b>租户实际可用功能 = 全局开关 ∩ 套餐开关 ∩ 租户级开关；全局关闭对存量租户仅告警不强制切断（重大风险除外）。</li>
+<li><b>密钥安全：</b>支付/AI/短信密钥展示脱敏（仅显前 4 后 4 位），修改需密码+验证码双因子，禁止明文导出。</li>
+</ul>
+</div>
+
+<!-- 4.4 初始化与模板 -->
+<div id="m4">
+<h3 class="sub">4.4 租户初始化与模板能力模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>用模板机制把"新商户开张"从数小时配置压缩到<b>一键开店</b>：套用编号规则、单位换算、打印模板与导入模板，让商户开业即可录单出货。这是清单架构关键点"模板机制"的完整落地。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>初始化模板管理</td><td>模板内容：默认单据编号规则（前缀/流水位数/重置周期）、默认单位换算规则、默认打印模板、默认仓库与账户体系</td><td class="c"><span class="badge p0">P0</span></td><td>字典（03）</td></tr>
+<tr><td>一键套用模板</td><td>创建租户时选择模板，系统复制生成租户私有配置；支持"不套用"（空白开户）</td><td class="c"><span class="badge p0">P0</span></td><td>租户创建（01）</td></tr>
+<tr><td>平台公共打印模板</td><td>销售单/采购单/出库单/送货单等平台级模板，租户可选用或另存修改；支持预览与变量标签说明</td><td class="c"><span class="badge p0">P0</span></td><td>打印引擎（租户侧）</td></tr>
+<tr><td>导入导出模板维护</td><td>商品导入、客户导入、供应商导入、期初库存导入等 Excel 模板统一维护与版本更新；含字段校验说明页签</td><td class="c"><span class="badge p0">P0</span></td><td>—</td></tr>
+<tr><td>模板分类与启用</td><td>按行业（批零/生鲜/服装等）维护多套模板，标注"推荐"供开户时快速选择</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>模板版本管理</td><td>模板修改产生新版本，已开户租户停留在创建时版本，升级需租户侧确认</td><td class="c"><span class="badge p2">P2</span></td><td>—</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>模板列表页：</b>模板名/适用行业/包含配置项数/被引用租户数/更新时间。</li>
+<li><b>模板编辑页：</b>分区编辑（编号规则/换算规则/打印模板/默认项），右侧实时预览单据编号示例与打印版式。</li>
+<li><b>开户联动：</b>租户新建表单中嵌入"选择初始化模板"步骤，展示模板内容摘要。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>复制而非引用：</b>模板套用是值复制，模板后续修改不回写已开户租户，保证商户配置稳定性。</li>
+<li><b>编号规则唯一性：</b>同租户内单据编号规则冲突（前缀重复/位数不足）在套用时即时校验并给出调整建议。</li>
+<li><b>导入模板兼容：</b>导入模板升级后，旧格式文件保留解析兼容期 ≥ 2 个版本，并提示商户下载新模板。</li>
+</ul>
+</div>
+
+<!-- 4.5 平台数据统计 -->
+<div id="m5">
+<h3 class="sub">4.5 平台数据统计模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>建立"只聚合、不下钻"的平台运营视角：回答平台有多少租户、生意有多大、资源消耗有多少，<b>而不提供任何查看租户内部单据明细的能力</b>——这是清单第五章边界原则的产品化。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>平台运营大盘</td><td>租户总数、有效租户、过期租户、新增租户趋势（日/周/月）；活跃租户（近 7 日登录）占比</td><td class="c"><span class="badge p1">P1</span></td><td>租户元数据（01）</td></tr>
+<tr><td>聚合业务指标</td><td>全平台订单总量、商品总量、交易总额（聚合口径）；支持按套餐/行业标签切片对比</td><td class="c"><span class="badge p1">P1</span></td><td>ETL 汇聚任务</td></tr>
+<tr><td>套餐分布统计</td><td>四档套餐租户数与收入占比、版本升降级流向（升级/降级漏斗）</td><td class="c"><span class="badge p1">P1</span></td><td>计费（02）</td></tr>
+<tr><td>资源占用统计</td><td>全平台与 TOP 租户的存储占用、API 调用总量、AI 调用总消耗（按模型分列）</td><td class="c"><span class="badge p1">P1</span></td><td>计量引擎、AI（11）</td></tr>
+<tr><td>转化漏斗</td><td>注册→激活→首单→付费→续费的全链漏斗（与运营营销模块打通），定位免费版升级卡点</td><td class="c"><span class="badge p2">P2</span></td><td>运营营销（09）</td></tr>
+<tr><td>报表中心与导出</td><td>租户财务报表（计费口径：套餐收入/增值扣费/欠费）、资源消耗报表；定时邮件推送与 Excel 导出</td><td class="c"><span class="badge p1">P1</span></td><td>账单（02）</td></tr>
+<tr><td>数据大屏</td><td>对外展示/晨会用的平台大屏模式（只读、自动轮播）</td><td class="c"><span class="badge p2">P2</span></td><td>大盘</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>运营大盘页：</b>顶部 KPI 卡（租户/收入/订单/资源四组）+ 中部趋势图（新增租户、交易额）+ 底部 TOP 榜（存储/API/AI 消耗 TOP10，<b>仅展示租户名称与聚合值</b>）。</li>
+<li><b>报表中心页：</b>报表模板列表 + 参数选择（时间段/套餐/标签）+ 导出任务记录（谁在何时导出了什么）。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>口径声明：</b>大盘所有指标页脚展示统计口径与时点（如"交易总额=已审核销售单金额，T+1"），避免对外汇报口径争议。</li>
+<li><b>数据时效：</b>大盘默认 T+1；核心付费指标（当日新增付费租户、当日收入）可配准实时（5 分钟级），见 6.2。</li>
+<li><b>反下钻约束：</b>任何图表不支持点击进入租户业务明细；TOP 榜仅到"租户+聚合值"一层。</li>
+</ul>
+</div>
+
+<!-- 4.6 运维监控 -->
+<div id="m6">
+<h3 class="sub">4.6 系统运维与监控模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>把平台健康度与租户资源异常纳入统一视野：API 与存储的量化监控、三类日志的集中检索、公告触达租户的官方通道。清单架构关键点"日志留痕"在此集中收口。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>平台管理员操作日志</td><td>总后台全部写操作留痕（与 02 联动），支持按人/模块/时间检索，保留 ≥180 天</td><td class="c"><span class="badge p0">P0</span></td><td>RBAC（02）</td></tr>
+<tr><td>租户登录日志</td><td>租户账号登录/登出/失败记录（时间、IP、设备、端口），支持按租户检索；异常登录（异地/高频失败）标红</td><td class="c"><span class="badge p1">P1</span></td><td>租户元数据</td></tr>
+<tr><td>系统异常错误日志</td><td>按服务聚合的错误日志，错误率突增自动告警；支持关键字检索与堆栈查看</td><td class="c"><span class="badge p1">P1</span></td><td>监控告警通道</td></tr>
+<tr><td>API 监控</td><td>全平台接口请求量/错误率/P95 耗时大盘；慢接口 TOP；分租户 API 调用量统计与超限告警</td><td class="c"><span class="badge p1">P1</span></td><td>API 网关、计量引擎</td></tr>
+<tr><td>文件与存储监控</td><td>各租户存储占用排行、超额预警（80%/95%/100% 三档）、清理建议（孤儿文件扫描）</td><td class="c"><span class="badge p1">P1</span></td><td>对象存储、配额</td></tr>
+<tr><td>告警通道配置</td><td>告警分级（P0 电话/短信、P1 群机器人、P2 邮件日报），值班路由与升级策略</td><td class="c"><span class="badge p1">P1</span></td><td>短信/邮件通道（03）</td></tr>
+<tr><td>公告消息</td><td>向全部/部分租户后台推送公告：版本更新、维护通知、欠费提醒；支持定时发布、撤回、已读统计、按标签/套餐圈选</td><td class="c"><span class="badge p1">P1</span></td><td>租户标签（01）</td></tr>
+<tr><td>公告模板</td><td>维护公告/催缴/升级引导等消息模板，变量占位（租户名/到期日/欠费额）</td><td class="c"><span class="badge p2">P2</span></td><td>公告</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>监控总览页：</b>服务健康灯（各服务 UP/DOWN）+ 今日 API 概览 + 错误率曲线 + 活跃告警列表。</li>
+<li><b>日志中心页：</b>三 Tab（管理员操作/租户登录/系统错误）+ 高级筛选 + 导出；管理员操作日志支持查看"变更前后值"。</li>
+<li><b>公告管理页：</b>公告列表（草稿/定时/已发/已撤回）+ 新建公告（圈选对象、渠道：站内+短信可勾选、预览）+ 已读明细。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>告警即工单：</b>P0 级告警自动创建故障工单（联动 07），处理闭环后归档复盘。</li>
+<li><b>公告强制预览：</b>群发公告必须先预览目标租户数与样例渲染，超过全量租户 50% 时需二次确认。</li>
+<li><b>日志不可删改：</b>三类日志仅追加，任何角色（含超管）无删除权限，满足审计取证要求。</li>
+</ul>
+</div>
+
+<!-- 4.7 工单 -->
+<div id="m7">
+<h3 class="sub">4.7 客服工单系统模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>为付费租户提供有 SLA 的服务闭环：从受理、分派、处理到回访评价全流程线上化，沉淀服务记录以支撑续费与口碑。清单中标注"可选"，本规划建议 P1 商业化期上线（MVP 期以微信群+公告兜底，见决策点 D4）。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>工单提交（租户侧入口）</td><td>商家后台内嵌提交入口，自动携带租户、套餐、版本、浏览器环境信息</td><td class="c"><span class="badge p1">P1</span></td><td>商家后台（对接）</td></tr>
+<tr><td>工单分类</td><td>功能问题/账单问题/故障反馈/使用咨询/数据服务五类，类目可配置</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>状态流转</td><td>待受理→处理中→待租户回复→已解决→已关闭；支持重开（关闭后 7 天内）</td><td class="c"><span class="badge p1">P1</span></td><td>消息通知</td></tr>
+<tr><td>分派与认领</td><td>按分类自动路由（账单类→财务组），支持手动改派、协作人</td><td class="c"><span class="badge p1">P1</span></td><td>RBAC（02）</td></tr>
+<tr><td>回复与附件</td><td>站内回复（租户可见）+ 内部备注（租户不可见）；附件上传</td><td class="c"><span class="badge p1">P1</span></td><td>对象存储</td></tr>
+<tr><td>SLA 计时</td><td>故障类首响 2h/解决 8h，功能类首响 8h/解决 3 个工作日；超时升级提醒主管（阈值可配）</td><td class="c"><span class="badge p2">P2</span></td><td>告警通道</td></tr>
+<tr><td>满意度评价</td><td>关闭时租户评分（1~5 星+标签），月度服务报表</td><td class="c"><span class="badge p2">P2</span></td><td>—</td></tr>
+<tr><td>知识库联动</td><td>常见问题沉淀知识库，工单回复可引用知识条目；接入 AI 知识库辅助客服生成答复草稿</td><td class="c"><span class="badge p2">P2</span></td><td>AI 管控（11）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>工单工作台：</b>我的待办/组内待办/今日超时预警三栏；卡片展示分类徽标、租户套餐、SLA 剩余时间条。</li>
+<li><b>工单详情页：</b>左侧对话流（公开回复/内部备注分色），右侧租户档案摘要（概况+套餐+近期账单，只读）。</li>
+<li><b>服务报表页：</b>工单量/首响时长/解决率/满意度趋势。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>权限联动：</b>账单类工单的处理详情仅财务角色可见完整账单字段；客服可见脱敏摘要。</li>
+<li><b>免费版服务边界：</b>免费版仅可提交"故障反馈"类工单（每周 ≤2 个），付费版不限——用服务差异反哺付费转化。</li>
+<li><b>数据留痕：</b>工单关闭后 180 天内可重开，全部往来记录与租户档案关联存档。</li>
+</ul>
+</div>
+
+<!-- 4.8 版本与更新 -->
+<div id="m8">
+<h3 class="sub">4.8 版本与更新管理模块</h3>
+<h4 class="mini">模块目标</h4>
+<p>让 SaaS 迭代"灰度可控、公告同步、可回滚"：以功能开关（Feature Flag）+ 租户分组实现部分租户优先体验，重大变更先打内测租户（自家门店）再放量。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>发布计划</td><td>版本号、发布说明、目标范围、发布窗口登记；发布记录归档可追溯</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>灰度发布</td><td>按租户标签（内测组）/按套餐（旗舰先行）/按比例（5%→20%→100%）三档策略，逐批放量</td><td class="c"><span class="badge p2">P2</span></td><td>租户标签（01）</td></tr>
+<tr><td>功能开关（租户级）</td><td>新功能以开关形式上线，支持按租户/按套餐实时开关，用于灰度与线上故障一键降级</td><td class="c"><span class="badge p2">P2</span></td><td>全局配置（03）</td></tr>
+<tr><td>更新公告联动</td><td>发布完成自动生成更新公告推送（联动 06 公告），租户后台展示"新功能引导"浮层</td><td class="c"><span class="badge p1">P1</span></td><td>公告（06）</td></tr>
+<tr><td>回滚机制</td><td>发布异常一键回退上一版本；灰度批次内错误率超阈值自动暂停放量并告警</td><td class="c"><span class="badge p2">P2</span></td><td>监控（06）</td></tr>
+<tr><td>发布健康看板</td><td>各灰度批次的功能采纳率、错误率、客诉量对比，辅助放量决策</td><td class="c"><span class="badge p2">P2</span></td><td>数据统计（05）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>发布计划列表：</b>版本/状态（待发布/灰度中/全量/已回滚）/批次进度条。</li>
+<li><b>灰度控制台：</b>批次卡片（内测组→旗舰组→按比例），每批次展示健康指标与"暂停/继续/回滚"按钮。</li>
+<li><b>功能开关面板：</b>开关搜索、按租户/套餐批量设置、变更审计记录。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>内测租户先行：</b>任何灰度批次第一站必须是内测标签租户（含自家门店租户），运行 ≥48h 且无 P0/P1 告警方可进入下一批。</li>
+<li><b>重大更新提前公告：</b>涉及商家操作习惯变更的功能，全量前 3 天推送预告公告。</li>
+<li><b>开关不是删除：</b>功能开关关闭仅隐藏入口与逻辑分支，不做数据清理，保证可随时恢复。</li>
+</ul>
+</div>
+
+<!-- 4.9 运营营销（新增） -->
+<div id="m9">
+<h3 class="sub">4.9 运营营销模块 <span class="badge tag-new">规划新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>补齐功能清单在"增长侧"的空白：让<b>渠道推广有归属、老带新有台账、优惠有管控、招商线索有沉淀</b>。本模块直接承接已敲定的商业政策——老带新奖励 20%、积分年度上限 60k——是平台从"能用"走向"能卖"的关键增量。<span class="badge v12">v1.2</span> 渠道推广升级为双轨体系：B 端代理商分销（现金分润，见 4.14）与 C 端老带新裂变（积分奖励）并行互补。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>渠道推广码</td><td>生成渠道维度的注册推广码/落地链接（市场渠道、异业合作、地推人员），注册自动归因渠道来源</td><td class="c"><span class="badge p1">P1</span></td><td>租户注册（01）</td></tr>
+<tr><td>邀请码（老带新载体）</td><td>每个付费租户生成专属邀请码/邀请海报；被邀请方注册即建立归属关系，不可更改</td><td class="c"><span class="badge p1">P1</span></td><td>渠道码引擎</td></tr>
+<tr><td>老带新奖励规则配置</td><td>奖励比例（默认 20%）、计奖基数（被邀租户实付年费）、冷静期（7 天无退款后计奖）、年度上限（默认 60,000 积分/推荐人/自然年）</td><td class="c"><span class="badge p1">P1</span></td><td>计费（02）</td></tr>
+<tr><td>积分台账</td><td>推荐人积分账户：可用/累计获得/冻结中；明细含来源（关联账单号）、时间、类型（获得/消费/冻结/解冻/过期）</td><td class="c"><span class="badge p1">P1</span></td><td>奖励规则</td></tr>
+<tr><td>奖励发放引擎</td><td>被邀租户付费且过冷静期后自动计奖；年度上限触达自动停止发放并站内提示；退款/注销自动冲回奖励</td><td class="c"><span class="badge p1">P1</span></td><td>积分台账、账单</td></tr>
+<tr><td>提现与抵扣</td><td>积分两条出口：① 续费抵扣（1 积分 = 1 元，下单时直接抵扣）；② 提现（申请→财务审核→打款，见 5.7）</td><td class="c"><span class="badge p2">P2</span></td><td>财务审批流</td></tr>
+<tr><td>优惠码管理</td><td>满减/折扣/加赠时长三类优惠码：批量生成、有效期、适用套餐、每码限用次数、核销记录</td><td class="c"><span class="badge p1">P1</span></td><td>计费（02）</td></tr>
+<tr><td>租户线索管理</td><td>招商线索录入（名称/联系人/需求/来源渠道）、状态推进：待联系→已联系→有意向→试用中→已成交/已流失；跟进记录时间线</td><td class="c"><span class="badge p1">P1</span></td><td>—</td></tr>
+<tr><td>线索转租户</td><td>成交线索一键开户，自动带出线索来源、推荐人、约定的优惠码；形成渠道转化闭环报表</td><td class="c"><span class="badge p1">P1</span></td><td>租户创建（01）</td></tr>
+<tr><td>渠道效果报表</td><td>按渠道/邀请人统计：注册数→开户数→付费数→付费金额，识别优质渠道与"僵尸渠道"</td><td class="c"><span class="badge p2">P2</span></td><td>数据统计（05）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>渠道与推广页：</b>推广码/邀请码列表（渠道、注册数、转化数）+ 生成弹窗 + 二维码/海报下载。</li>
+<li><b>老带新中心：</b>顶部规则卡（20% / 60k 上限 / 冷静期）+ 积分账户总览 + 发放明细表 + 提现审批队列（财务视角）。</li>
+<li><b>线索看板：</b>按状态分列的看板视图 + 列表视图切换；跟进时间线侧滑；转化按钮直通开户表单。</li>
+<li><b>优惠码页：</b>码批次管理 + 单码核销明细 + 防刷配置（同手机号/同支付账号限领）。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>计奖公式：</b>奖励积分 = 被邀租户实付金额（扣除优惠码抵扣部分）× 20%，四舍五入到元；年度累计发放 ≤ 60,000 积分/推荐人，超出部分自动截断不补发。</li>
+<li><b>归属唯一：</b>邀请码与渠道码同时出现时按"后触点优先"一次性归因，注册后 24 小时内可申诉改绑，之后锁定。<span class="badge v12">v1.2 补充</span> 老带新邀请码与代理商推广码同时出现时，代理商归因优先（B 端结算主体优先，见 4.14.3）。</li>
+<li><b>反刷风控：</b>推荐人与被邀租户同手机号/同设备指纹/同支付账号判定为关联单，奖励冻结转人工审核；确认作弊全数追回并停用邀请资格。</li>
+<li><b>冲回机制：</b>被邀租户在冷静期内全额退款、或 12 个月内注销，已发奖励按原路冲回（从可用积分扣减，不足记负）。积分自获得日起 24 个月有效，过期清零并提前 30 天提醒。</li>
+</ul>
+</div>
+
+<!-- 4.10 开放平台（新增） -->
+<div id="m10">
+<h3 class="sub">4.10 开放平台模块 <span class="badge tag-new">规划新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>为 P2 规模化期储备生态能力：让商户的 ERP 代运营、外送平台对接、BI 工具等第三方需求通过受控的 API/Webhook 接入，同时保证<b>调用可计量（计入套餐 API 额度）、密钥可治理、文档可版本化</b>。</p>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>开放接口目录</td><td>按域维护 OpenAPI 清单：商品/库存/销售单/采购单/客户供应商/会员/对账，标注鉴权方式、限流档位、字段说明</td><td class="c"><span class="badge p2">P2</span></td><td>API 网关</td></tr>
+<tr><td>接口版本管理</td><td>v1/v2 并行机制；接口废弃需提前 ≥90 天公告并返回 410 引导；文档按版本归档快照</td><td class="c"><span class="badge p2">P2</span></td><td>公告（06）</td></tr>
+<tr><td>API 密钥签发</td><td>为租户签发 AppKey/AppSecret：选择权限范围（只读/读写、按域勾选）、限流档位（对齐套餐 API 额度）</td><td class="c"><span class="badge p2">P2</span></td><td>配额计量引擎</td></tr>
+<tr><td>密钥治理</td><td>启用/停用/吊销/轮换（新旧并行 7 天）；Secret 仅签发时可见，遗失只能重置；全部操作留痕</td><td class="c"><span class="badge p2">P2</span></td><td>审计（02）</td></tr>
+<tr><td>调用计量与限流</td><td>按 Key 统计调用量、错误率；超出套餐 API 额度触发告警→限流（联动 5.5 增值计费）</td><td class="c"><span class="badge p2">P2</span></td><td>计量引擎、计费</td></tr>
+<tr><td>Webhook 事件订阅</td><td>事件目录：单据创建/审核通过、库存变动低于阈值、租户状态变更等；租户配置回调地址+签名密钥</td><td class="c"><span class="badge p2">P2</span></td><td>开放接口目录</td></tr>
+<tr><td>Webhook 推送保障</td><td>失败重试 3 次（指数退避：1min/5min/30min），推送日志可查；连续失败自动暂停订阅并通知租户</td><td class="c"><span class="badge p2">P2</span></td><td>消息通知</td></tr>
+<tr><td>开发者控制台（租户侧）</td><td>商家后台内嵌：密钥管理、调用量图表、Webhook 配置、调试台（在线发测试请求）</td><td class="c"><span class="badge p2">P2</span></td><td>商家后台（对接）</td></tr>
+<tr><td>沙箱环境</td><td>独立沙箱租户与测试 Key，接口行为与生产一致、数据隔离，供第三方联调</td><td class="c"><span class="badge p2">P2</span></td><td>密钥签发</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>接口目录页：</b>域分组卡片 + 接口表格（路径/方法/版本/限流/文档入口），版本切换器。</li>
+<li><b>密钥管理页：</b>租户密钥列表（Key 前四位掩码、权限范围、近 7 日调用量、状态）；签发弹窗一次性展示 Secret 并强制"我已保存"勾选。</li>
+<li><b>Webhook 管理页：</b>事件订阅表 + 推送成功率与最近失败原因 + 手动重推按钮。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>额度共享：</b>开放 API 调用与商家后台内部 API 共用套餐 API 额度，月度重置；免费版/基础版默认不开放（对齐 5.2 矩阵）。</li>
+<li><b>最小权限默认：</b>新签 Key 默认只读+基础域，扩权需租户管理员确认+平台侧留痕。</li>
+<li><b>签名与防重放：</b>请求签名（HMAC-SHA256）+ 时间戳 ±5 分钟校验；Webhook 回调带签名头，租户侧须验签。</li>
+</ul>
+</div>
+
+<!-- 4.11 AI 管控（新增） -->
+<div id="m11">
+<h3 class="sub">4.11 AI 能力管控模块 <span class="badge tag-new">规划新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>平台已建 AI 底座（AI 知识库 / 大模型 API）。本模块是租户侧 AI 用量的<b>总闸门</b>：统一托管模型密钥、按套餐分配租户额度、计量到账单，确保"AI 能卖得出去、成本算得清楚、用量控得住"。</p>
+<div class="callout"><b class="t"><span class="badge v11">v1.1</span> 修订指引</b>v1.1 在本模块"管额度、管计量"的基础上，将"算钱"独立深化为两个新节：<b>4.12 大模型计费体系</b>（Token 计量 · 三种租户计费模式 · 成本加成定价 · 对账）与 <b>4.13 积分抵扣 Token 机制</b>（抵扣而非兑换 · 手动配置汇率 · 扣减顺序 · 风控）。本节保留作为 AI 管控的功能底座，三者共用 AI 网关与计量流水。</div>
+<h4 class="mini">功能点明细</h4>
+<table>
+<thead><tr><th style="width:17%">功能点</th><th style="width:47%">说明</th><th style="width:9%">优先级</th><th style="width:27%">依赖</th></tr></thead>
+<tbody>
+<tr><td>大模型资源池管理</td><td>接入多模型（文本对话/Embedding/视觉理解）统一登记：供应商、平台级密钥（加密托管）、成本单价、限流与并发上限</td><td class="c"><span class="badge p1">P1</span></td><td>AI 全局密钥（03）</td></tr>
+<tr><td>模型路由与降级</td><td>按功能配置默认模型与备用模型；主模型限流/故障时自动切备用，保障租户侧体验</td><td class="c"><span class="badge p2">P2</span></td><td>资源池</td></tr>
+<tr><td>租户 AI 额度分配</td><td>按套餐初始化额度（次/月，见 5.3 配额表），支持租户级手动调整与临时扩容（带有效期）</td><td class="c"><span class="badge p1">P1</span></td><td>套餐（02）</td></tr>
+<tr><td>额度用尽策略</td><td>三选一可配（平台级默认+租户级覆盖）：① 停用提示升级 ② 降级到低成本基础模型 ③ 超额计费；见决策点 D3</td><td class="c"><span class="badge p1">P1</span></td><td>计费（02）</td></tr>
+<tr><td>AI 功能开关</td><td>租户级开关矩阵：AI 知识库问答/智能找货/智能报表解读/客服辅助；开关关闭即时生效</td><td class="c"><span class="badge p1">P1</span></td><td>功能开关体系</td></tr>
+<tr><td>调用计量</td><td>AI 网关统一计量：租户/功能/模型/Token 数/调用次数，实时扣减额度，明细可追溯到单次会话</td><td class="c"><span class="badge p1">P1</span></td><td>计量引擎</td></tr>
+<tr><td>账单关联</td><td>月度 AI 消耗汇入增值服务账单（联动 5.5）；超额部分按单价出账，明细可导出供租户核对</td><td class="c"><span class="badge p1">P1</span></td><td>账单（02）</td></tr>
+<tr><td>成本与异常监控</td><td>平台级 AI 成本日耗监控、单租户异常用量识别（突增 10 倍告警）、模型故障率监控</td><td class="c"><span class="badge p2">P2</span></td><td>监控（06）</td></tr>
+<tr><td>内容安全</td><td>租户上传知识库内容的合规扫描与敏感词拦截，调用日志留存 ≥90 天</td><td class="c"><span class="badge p2">P2</span></td><td>日志（06）</td></tr>
+<tr><td>Prompt 模板管理</td><td>平台级提示词模板维护（如报表解读、导购话术），版本化并可灰度</td><td class="c"><span class="badge p2">P2</span></td><td>版本管理（08）</td></tr>
+</tbody>
+</table>
+<h4 class="mini">页面规划</h4>
+<ul>
+<li><b>资源池页：</b>模型卡片（名称/供应商/密钥掩码/今日调用/今日成本/健康度）+ 新增模型向导。</li>
+<li><b>额度管理页：</b>租户额度列表（套餐默认额度/已用进度条/剩余）+ 批量调整 + 用尽策略选择器。</li>
+<li><b>计量账单页：</b>按月聚合的消耗矩阵（租户 × 模型），支持下钻到日，导出与账单对账。</li>
+</ul>
+<h4 class="mini">关键业务规则</h4>
+<ul>
+<li><b>密钥不落地：</b>租户侧永不接触平台模型密钥，所有 AI 请求经平台 AI 网关转发，天然具备计量与拦截位。</li>
+<li><b>额度月度重置：</b>每月 1 日 0 点重置月度额度；临时扩容到期自动回收，回收前 3 天提醒租户。</li>
+<li><b>计量优先于响应：</b>额度不足的请求在网关层直接拒绝并返回升级引导，不产生模型成本。</li>
+<li><b>免费版体验策略：</b>免费版给少量 AI 体验额度（<span class="badge v11">v1.1</span> 细化：按 Token 计量、每月赠送小额额度、仅限平台公共模型，见 4.12），让租户"尝到甜头"，用尽后走升级引导；免费租户另可用积分抵扣公共模型用量（见 4.13），但按设计稿规则<b>免费客户不支持自定义模型，只有付费用户才支持</b>——AI 额度同时是获客钩子与付费点。</li>
+</ul>
+</div>
+
+<!-- v1.1 新增 4.12 大模型计费体系 -->
+<div id="m12">
+<h3 class="sub">4.12 大模型计费体系 <span class="badge tag-new">v1.1 新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>4.11 解决"额度给多少、用了多少"；本节在其上深化"钱怎么算"：以 <b>Token 为计量原子</b>，平台网关统一代理采集，形成"<b>成本单价 → 加成定价 → 三种租户计费模式 → 账单对账</b>"的完整大模型计费体系。三个验收口径：成本算得清（逐 Token 可追溯到单次调用）、价格定得准（成本加成、按套餐差异倍率、旗舰最优）、模式选得活（预付 / 后付 / 订阅含量按套餐组合启用）。</p>
+
+<h4 class="mini">4.12.1 计量层：Token 计量与网关采集</h4>
+<ul>
+<li><b>计量原子：</b>输入 Token 与输出 Token <b>分开计量、分开计价</b>（输入单价低于输出单价，按各模型实际牌价维护）；封装型 AI 功能（如智能报表解读、客服辅助）支持"按次计量"，按次折算为 Token 入账。</li>
+<li><b>采集位置：</b>全部模型调用经平台 AI 网关统一代理（租户侧永不接触模型密钥，同 4.11），网关在响应返回时落计量流水。</li>
+<li><b>计费豁免：</b>供应商侧失败的请求不计费；网关自动重试成功仅计一次；命中缓存的部分按缓存价（可配，默认半价）计量。</li>
+</ul>
+<table class="small">
+<thead><tr><th style="width:20%">计量流水字段</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>flow_id / tenant_id</td><td>流水号（全局唯一）/ 租户 ID</td></tr>
+<tr><td>model / supplier</td><td>模型标识 / 供应商（多模型各自计价）</td></tr>
+<tr><td>tokens_in / tokens_out</td><td>输入 Token / 输出 Token（分开记录，分开计价）</td></tr>
+<tr><td>cost_amount</td><td>成本金额 = 输入单价 × tokens_in + 输出单价 × tokens_out（按调用时点成本单价表计算）</td></tr>
+<tr><td>billed_amount</td><td>计费金额 = 成本金额 × 加成倍率（按套餐，见 4.12.3）</td></tr>
+<tr><td>deduct_source</td><td>冲抵来源标签：积分抵扣 / 套餐内含额度 / 额度包 / 超额计费（扣减顺序见 4.13.2）</td></tr>
+<tr><td>scene / latency / status</td><td>调用来源功能 / 耗时（ms）/ 成败（失败不计费）</td></tr>
+<tr><td>rate_snapshot</td><td>积分抵扣时的汇率快照（见 4.13.4）</td></tr>
+</tbody>
+</table>
+<p><b>模型成本单价表（可维护）：</b>按模型登记供应商、输入/输出成本单价（元/千 Token）、生效时间、状态；多模型各自定价，调价生成新版本，历史流水按调用时点单价留存，<b>不追溯</b>。</p>
+
+<h4 class="mini">4.12.2 三种租户计费模式（对比）</h4>
+<table>
+<thead><tr><th style="width:13%">模式</th><th style="width:24%">机制</th><th style="width:16%">适用场景</th><th style="width:10%">现金流</th><th style="width:12%">欠费风险</th><th style="width:10%">租户接受度</th><th>平台运营成本</th></tr></thead>
+<tbody>
+<tr><td><b>A 预付费额度包</b></td><td>买断 Token 额度（如 100 万 / 500 万 / 1000 万 Token 包，按套餐定价），用完再购；低额预警（余 20% / 10% 两级提醒）</td><td>用量波动大、不愿月度承诺的中小商户；突发用量兜底</td><td class="c"><span class="yes">最优</span>（先款后用）</td><td class="c"><span class="yes">≈0</span></td><td class="c">中（需预估用量）</td><td>低（商品化售卖，自动到账）</td></tr>
+<tr><td><b>B 后付费月结</b></td><td>先用后付，设<b>信用额度上限</b>（按套餐档位 + 历史信用分级），达上限即停并转预付；月度出账</td><td>用量稳定、资信良好的中大客户（建议旗舰 + 年付白名单）</td><td class="c"><span class="no">垫资</span></td><td class="c"><span class="no">最高</span>（需信用管控 + 催收）</td><td class="c"><span class="yes">最高</span></td><td>高（信用管理 / 出账催收）</td></tr>
+<tr><td><b>C 订阅含量 + 超额加价</b></td><td>套餐内含月度 Token 额度（套餐模板配额项，见 5.1），超出部分按"成本单价 × 加成倍率"进增值账单</td><td>绝大多数订阅制商户（默认模式）</td><td class="c"><span class="yes">稳定</span>（随订阅）</td><td class="c">低（超额小额）</td><td class="c"><span class="yes">高</span>（可预期）</td><td>中（账单联动自动化）</td></tr>
+</tbody>
+</table>
+<div class="callout"><b class="t">启用组合建议（详见决策点 D3）</b>C 为全量默认模式；A 作为增值商品全量开放（覆盖突增用量）；B 仅对旗舰版且年付、信用良好租户白名单开放。三种模式可在套餐模板（5.1）中按套餐组合勾选。</div>
+
+<h4 class="mini">4.12.3 定价模型：成本加成与差异倍率</h4>
+<ul>
+<li><b>定价公式：</b>平台售价 = 模型成本单价 × 加成倍率；倍率默认 1.5，按套餐差异化配置（示例：基础版 1.6 / 标准版 1.5 / 旗舰版 1.3，<b>旗舰最优</b>——用量大既享低倍率，也可对接模型厂商阶梯采购价双重让利）。</li>
+<li><b>调价规则：</b>倍率与单价调整仅对新产生的用量生效，历史流水不追溯；调价需双人确认并留痕（联动 6.1）。</li>
+<li><b>免费版口径：</b>每月赠送小额 AI 额度（按 Token 计量，出厂示例 5 万 Token/月，可配），<b>仅限平台公共模型</b>；赠送额度用尽后免费版不可购额度包，走升级引导——AI 额度同时是获客钩子与付费点（延续 4.11 口径）。</li>
+</ul>
+
+<h4 class="mini">4.12.4 结算联动与对账</h4>
+<div class="flow">
+<span class="node">计量流水（逐调用）</span><span class="arr">→</span><span class="node">日汇总（租户 × 模型 × 日）</span><span class="arr">→</span><span class="node">月账单（增值服务）</span><span class="arr">→</span><span class="node">租户账单模块（联动 5.4/5.5）</span>
+</div>
+<table>
+<thead><tr><th style="width:16%">环节</th><th style="width:52%">规则</th><th>联动</th></tr></thead>
+<tbody>
+<tr><td>日汇总</td><td>T+1 生成"租户 × 模型 × 日"聚合（Token 量、成本、计费、抵扣占比），支撑用量看板与预警</td><td>4.5 数据统计 / 4.12 用量看板</td></tr>
+<tr><td>月账单</td><td>按计费周期出账：套餐内含额度内部分不计费，超出部分按超额单价出账；积分抵扣明细单独列示（见 4.13.6）</td><td>5.4 增值计费</td></tr>
+<tr><td>欠费三档策略</td><td>AI 额度用尽 / 欠费时按套餐可配执行（平台级默认 + 租户级覆盖）：① 停用（提示升级 / 购额度包）② 降级小模型（低成本模型承接）③ 透支后付费（进入后付账单，受信用额度约束）</td><td>决策点 D3 / 5.5</td></tr>
+<tr><td>双向对账</td><td>平台侧"厂商账单"（供应商出具的用量与金额）vs 租户侧"计量汇总"（售价口径）双向勾兑；成本侧差异 &gt; 2% 触发排查（采集丢失 / 重试重复计费）；售价侧同源流水差异必须为 0，非 0 即熔断出账并告警</td><td>4.6 监控告警 / R4</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.12.5 管理界面功能点清单</h4>
+<table>
+<thead><tr><th style="width:18%">功能点</th><th style="width:52%">说明</th><th style="width:9%">优先级</th><th>依赖</th></tr></thead>
+<tbody>
+<tr><td>模型接入管理</td><td>多模型登记（供应商 / 密钥加密托管 / 限流并发），启用停用、健康度展示（承接 4.11 资源池）</td><td class="c"><span class="badge p1">P1</span></td><td>AI 网关</td></tr>
+<tr><td>成本单价维护</td><td>输入 / 输出单价（元 / 千 Token）按模型维护，版本化生效，历史不追溯</td><td class="c"><span class="badge p1">P1</span></td><td>模型接入</td></tr>
+<tr><td>加成倍率配置</td><td>平台默认倍率 + 按套餐差异倍率（旗舰最优），调价双人确认留痕</td><td class="c"><span class="badge p1">P1</span></td><td>套餐（5.1）</td></tr>
+<tr><td>额度包商品管理</td><td>A 模式商品：Token 包规格 / 定价 / 适用套餐 / 上下架，购买后自动到账</td><td class="c"><span class="badge p1">P1</span></td><td>计费（02）</td></tr>
+<tr><td>计量流水查询</td><td>逐调用流水（租户 / 模型 / Token / 金额 / 冲抵来源 / 成败），可导出，支撑争议核查</td><td class="c"><span class="badge p1">P1</span></td><td>AI 网关</td></tr>
+<tr><td>用量看板</td><td>租户 × 模型用量矩阵、成本 / 毛利 / 抵扣占比视图，下钻到日</td><td class="c"><span class="badge p2">P2</span></td><td>日汇总</td></tr>
+<tr><td>预警配置</td><td>低额预警（20% / 10%）、突增告警（10 倍）、成本日耗阈值，多渠道通知</td><td class="c"><span class="badge p1">P1</span></td><td>消息通知</td></tr>
+<tr><td>对账中心</td><td>厂商账单导入 / 勾兑 / 差异清单与处理记录（成本差异 &gt; 2% 告警，售价差异非 0 熔断）</td><td class="c"><span class="badge p2">P2</span></td><td>月账单</td></tr>
+<tr><td>积分抵扣页签</td><td>汇率配置 / 抵扣范围矩阵 / 扣减顺序 / 抵扣流水（详见 4.13.8）</td><td class="c"><span class="badge p1">P1</span></td><td>4.13</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- v1.1 新增 4.13 积分抵扣 Token 机制 -->
+<div id="m13">
+<h3 class="sub">4.13 积分抵扣 Token 机制 <span class="badge tag-new">v1.1 新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>把 4.9 运营营销发放的积分（老带新奖励）与 4.12 大模型计费打通，为积分提供一条<b>高频、刚需、自闭环</b>的消耗出口：商户用 AI 的意愿越强，积分消化越快，老带新激励的边际成本越低。</p>
+<div class="callout warn"><b class="t">机制口径（必须准确）：抵扣，而非兑换</b><b>积分抵扣 Token，不是积分兑换 Token。</b>Token 始终按实际用量计量（4.12 计量流水），扣减时积分按管理员配置的汇率<b>冲抵</b>当次应计用量——积分是支付抵扣手段，不发生"积分资产 → Token 资产"的转换：没有固定兑换池、不产生新资产科目、不存在"先换后用"。例如客户有 10 万积分，按当前配置汇率可冲抵对应的 Token 用量；调用发生才扣，不调用不扣，扣多少记多少。</div>
+
+<h4 class="mini">4.13.1 核心映射：积分 → 可抵扣 Token（汇率为手动配置项）</h4>
+<ul>
+<li><b>汇率手动配置：</b>映射比例按"1 积分 = X Token"定义，X 为<b>平台管理员手动配置项，系统不内置固定汇率</b>；首次启用积分抵扣前必须先完成汇率配置，未配置时抵扣功能整体置灰不可用（平台侧启用开关与商户端入口同步禁用）。</li>
+<li><b>示例值声明：</b>下文与示例表中的 X = 50（即 1 积分 = 50 Token、10 万积分 ≈ 500 万 Token 抵扣力）仅为文档示意，<b>实际以管理员配置为准</b>。</li>
+<li><b>金额等值展示：</b>金额等值 = 可抵扣 Token ÷ 1000 ×（模型成本单价 × 加成倍率），随倍率与模型结构动态计算，仅作展示参考，实际以逐笔计量为准。</li>
+<li><b>管理位置：</b>汇率与加成倍率同在「AI 计费管理」模块维护（见 4.13.4 汇率治理、4.13.8 界面落点）。</li>
+</ul>
+<table class="small">
+<thead><tr><th class="c" style="width:20%">积分余额</th><th class="c" style="width:27%">可抵扣 Token（示例 X=50）</th><th class="c" style="width:27%">金额等值（示例售价 0.012 元/千 Token）</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td class="c">10,000</td><td class="c">50 万</td><td class="c">≈ 6 元</td><td>单次推荐成交的典型奖励量级</td></tr>
+<tr><td class="c">60,000</td><td class="c">300 万</td><td class="c">≈ 36 元</td><td>老带新奖励年度上限（60k 积分）</td></tr>
+<tr><td class="c">120,000</td><td class="c">600 万</td><td class="c">≈ 72 元</td><td>Day 翻倍活动年度上限（120k 积分）</td></tr>
+</tbody>
+</table>
+<p style="color:#64748b;font-size:12.5px;">注：表中抵扣力与金额等值均按<b>示例汇率 X = 50、示例综合售价 0.012 元/千 Token</b> 测算，仅作示意；实际以管理员配置的实时汇率与在售模型计价为准。</p>
+
+<h4 class="mini">4.13.2 扣减顺序（关键规则）</h4>
+<div class="flow">
+<span class="node">AI 调用计量</span><span class="arr">→</span><span class="node">① 积分优先</span><span class="arr">→</span><span class="node">② 套餐内含额度</span><span class="arr">→</span><span class="node">③ 额度包</span><span class="arr">→</span><span class="node">④ 超额计费</span>
+</div>
+<table>
+<thead><tr><th style="width:7%">顺序</th><th style="width:18%">资产</th><th style="width:38%">规则</th><th>平台成本逻辑（为何积分优先）</th></tr></thead>
+<tbody>
+<tr><td class="c">①</td><td><b>积分</b>（营销资产）</td><td>优先按管理员配置的汇率冲抵本次用量；逐笔锁定汇率快照</td><td>积分成本已在老带新获客费用中计提，属"已确认的营销预算"，先消耗不增加边际现金成本；出口越顺，激励越有效（D10）</td></tr>
+<tr><td class="c">②</td><td>套餐内含额度</td><td>订阅费已含，按月重置（5.1 配置域）</td><td>保护客户已付费资源：若先扣额度，等于变相缩短已购订阅的使用周期，易引发客诉</td></tr>
+<tr><td class="c">③</td><td>额度包（预付费）</td><td>真金白银买断的 Token 包，次优先消耗</td><td>同上——已收现金的资源必须足额兑现</td></tr>
+<tr><td class="c">④</td><td>超额计费</td><td>以上耗尽后按"成本单价 × 加成倍率"进增值账单</td><td>最后才产生现金账单，对租户最公平，对平台是纯增量收入</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.13.3 适用范围：与"免费版不支持自定义模型"形成体系</h4>
+<table>
+<thead><tr><th style="width:13%">租户类型</th><th style="width:20%">平台公共模型</th><th style="width:19%">自定义模型（BYOM）</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><b>免费版</b></td><td>赠送额度 + <b>积分抵扣</b> 可用</td><td class="c"><span class="no">✗</span> 不可用</td><td>设计稿规则：<b>免费客户不支持自定义模型，只有付费用户才支持</b>（功能点级开关锁定，见 5.1/5.2）；免费租户靠"积分 + 赠送额度"使用 AI，全部落在公共模型上</td></tr>
+<tr><td><b>付费套餐</b></td><td>内含额度 / 额度包 / 超额计费 + <b>积分抵扣</b> 可用</td><td class="c"><span class="yes">✓</span> 可开（开关矩阵）</td><td><b>自定义模型不可用积分抵扣</b>：积分仅冲抵平台公共模型产出（自定义模型走租户自有密钥，平台不产生模型成本，无从冲抵）</td></tr>
+</tbody>
+</table>
+<div class="callout ok"><b class="t">体系自洽</b>"积分只能抵公共模型" + "免费版只能用公共模型"两条规则拼合 → 免费租户的每一分 AI 用量都发生在平台公共模型上（成本、计量、风控全部在平台视线内）；付费解锁自定义模型 + 更大内含额度，构成清晰的升级梯度。</div>
+
+<h4 class="mini">4.13.4 汇率治理（手动配置 + 变更留痕）</h4>
+<ul>
+<li><b>配置方式：</b>汇率由平台管理员在「AI 计费管理 · 积分抵扣」页签手动录入（1 积分 = X Token），系统不预置固定值；启用积分抵扣的前提是汇率已配置且开关打开。</li>
+<li><b>消耗时锁定汇率：</b>每笔抵扣流水记录调用时点汇率快照；汇率调整<b>不追溯</b>历史用量，仅对新调用生效；已出账单不变。</li>
+<li><b>变更留痕与复核：</b>汇率每次修改记录<b>修改人 / 修改时间 / 修改前后值</b>，生成版本流水可回查；建议双人复核后生效（是否强制双人复核，并入决策点 D10 一并拍板）。</li>
+<li><b>统一管理位：</b>汇率与 4.12.3 的加成倍率同在 AI 计费模块维护，变更均需留痕（联动 6.1 审计）；汇率变更后，商户端"可抵扣 Token"展示同步刷新。</li>
+</ul>
+
+<h4 class="mini">4.13.5 防套利与风控</h4>
+<table>
+<thead><tr><th style="width:18%">风险点</th><th>规则</th></tr></thead>
+<tbody>
+<tr><td>套现通道</td><td><b>不退、不转、不提现</b>：积分不可退款、不可转赠、不可提现（延续 4.9 出口纪律）；Token 消耗型出口天然规避"囤积分—变现"套利</td></tr>
+<tr><td>敞口失控</td><td><b>获取上限天然封顶</b>：老带新奖励年度上限 60,000 积分、Day 翻倍活动上限 120,000 积分，单账户积分存量有硬上限，抵扣敞口可测算、可控</td></tr>
+<tr><td>退款冲回</td><td><b>冲回规则</b>：原奖励被冲回时，若对应积分已被抵扣消耗，从该账户<b>后续获取积分中扣减</b>（不足记负，同 4.9 冲回机制）</td></tr>
+<tr><td>异常放量</td><td><b>可选日抵扣上限</b>：平台可配单租户每日抵扣 Token 上限（默认不启用），应对盗号 / 恶意放量；叠加 4.11 突增 10 倍告警</td></tr>
+<tr><td>口径舞弊</td><td>全链路文案统一"抵扣"，禁用"兑换"；对外协议、商户端、账单表述一致，避免被解读为"预付资产"引发合规争议</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.13.6 账务联动</h4>
+<table>
+<thead><tr><th style="width:18%">系统对象</th><th>变更点</th></tr></thead>
+<tbody>
+<tr><td>积分台账（4.9）</td><td>消耗类型新增 <b>"AI 用量抵扣"</b>（类型枚举：获得 / 消费 / 冻结 / 解冻 / 过期 / AI 用量抵扣）；台账明细展示抵扣 Token 数与汇率快照</td></tr>
+<tr><td>计量流水（4.12）</td><td>被冲抵部分打<b>来源标签：积分抵扣</b>，与套餐内含额度 / 额度包 / 超额计费四类来源互斥、可区分</td></tr>
+<tr><td>用量看板（4.12）</td><td>新增"<b>抵扣占比</b>"指标（积分抵扣 Token ÷ 总 Token），平台侧与租户侧双视图</td></tr>
+<tr><td>月账单（5.4）</td><td>抵扣明细单列（汇率快照 / 抵扣 Token / 折算金额），与现金部分分列，供租户核对与财务对账</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.13.7 商户端展示（商家后台侧）</h4>
+<ul>
+<li><b>映射展示：</b>AI 页固定卡片"当前积分可抵扣约 XX 万 Token"（积分余额 × 管理员配置的汇率，实时折算；汇率未配置或抵扣未启用时不展示该卡片）。</li>
+<li><b>调用留痕：</b>每次 AI 调用展示预估与实扣（本次用量、积分冲抵了多少、套餐额度消耗了多少），账单页可回查逐笔明细。</li>
+<li><b>文案口径：</b>统一使用"抵扣"，禁止出现"兑换 / 转换"表述。</li>
+</ul>
+
+<h4 class="mini">4.13.8 界面落点清单</h4>
+<table>
+<thead><tr><th style="width:24%">落点</th><th style="width:50%">内容</th><th>联动</th></tr></thead>
+<tbody>
+<tr><td>AI 计费管理 ·「积分抵扣」页签</td><td>汇率配置表单（X 值输入框 + 保存；启用开关联动：未配置汇率时开关禁用置灰）/ 抵扣范围矩阵（套餐 × 模型勾选）/ 扣减顺序配置与预览 / 抵扣流水查询 / 汇率变更留痕查询（修改人 / 时间 / 前后值）</td><td>4.12 计费管理</td></tr>
+<tr><td>积分台账（4.9）</td><td>类型筛选新增"AI 用量抵扣"，明细含 Token 数与汇率快照</td><td>4.13.6</td></tr>
+<tr><td>用量看板（4.12）</td><td>新增抵扣占比视图（平台 / 租户）</td><td>4.13.6</td></tr>
+<tr><td>租户账单（5.4）</td><td>增值账单增"积分抵扣明细"分节（汇率快照 / 抵扣 Token / 折算金额）</td><td>4.13.6</td></tr>
+<tr><td>商家后台 AI 页（商户侧）</td><td>"当前积分可抵扣约 XX 万 Token"卡片 + 调用明细回查</td><td>4.13.7</td></tr>
+</tbody>
+</table>
+</div>
+<!-- v1.2 新增 4.14 代理商体系（配置 + 分润） -->
+<div id="m14">
+<h3 class="sub">4.14 代理商体系（配置 + 分润） <span class="badge v12">v1.2 新增</span></h3>
+<h4 class="mini">模块目标</h4>
+<p>面向<b>同行批零商家</b>的 B 端分销伙伴：让"卖软件的人"从平台直销延伸到渠道合伙。代理商体系与商户侧老带新（C 端裂变积分奖励，见 4.9 / 5.6）构成<b>双轨渠道体系</b>——B 端代理商走"现金分润"的重激励，C 端老带新走"积分奖励"的轻激励。本节回答四件事：代理商怎么进（档案与状态机）、业绩算谁的（归因规则）、佣金怎么分（分润引擎）、钱怎么结（结算与冲回）。三个验收口径：<b>层级配得活</b>（支持自定义命名与扩展）、<b>比例定得清</b>（矩阵手动配置、不内置定死）、<b>佣金算得准</b>（基数口径唯一、冲回有账可对）。</p>
+<div class="callout"><b class="t">双轨渠道体系口径（B 端 × C 端）</b>B 端代理商：同行批零商家 / SaaS 渠道从业者，签约审核后以专属推广码获客，报酬为<b>现金分润</b>；C 端老带新：已付费商户自发推荐，报酬为<b>积分奖励</b>（实付 × 20%、年度上限 60k，见 4.9 / 5.6）。两轨服务不同增长对象、互不替代，可并存但<b>归因唯一</b>：同一商户全生命周期只归属一个渠道主体，代理商邀请与老带新邀请同时出现时<b>代理商优先</b>（见 4.14.3）。</div>
+
+<h4 class="mini">4.14.1 代理商定义与层级模型</h4>
+<ul>
+<li><b>代理商定义：</b>与平台签约的 B 端分销伙伴（主体为同行批零商家或 SaaS 渠道商），独立签约、独立结算、独立提现；区别于 4.9 的"市场渠道推广码"——渠道码仅做归因统计、不结算，代理商是<b>结算主体</b>。</li>
+<li><b>与直销的关系：</b>代理商是渠道增量而非替代——无码注册仍归平台直销；代理商覆盖的是平台销售触达不到的"同行圈层"（同行更懂同行）。</li>
+<li><b>层级模型：</b>一级代理 / 二级代理（出厂预置，<b>支持后期自定义层级命名与扩展</b>，见决策点 D11）；各层级权益由"可售套餐范围 × 拿货折扣区间 × 是否允许发展下级"三个维度定义，见下表。</li>
+</ul>
+<table>
+<thead><tr><th style="width:12%">层级</th><th style="width:24%">可售套餐范围</th><th style="width:20%">拿货折扣区间</th><th style="width:14%">是否允许发展下级</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><b>一级代理</b></td><td>从套餐库勾选（默认覆盖全部"上架"态套餐）</td><td>管理员按层级配置折扣区间（出厂为空，不内置定死）</td><td class="c"><span class="yes">✓</span> 可发展二级代理</td><td>直接与平台签约结算；折扣与分润示例均为文档示意，实际以签约与管理员配置为准</td></tr>
+<tr><td><b>二级代理</b></td><td>从一级代理可售范围内再勾选（不得超出上级范围）</td><td>低于一级代理（按矩阵配置）</td><td class="c"><span class="no">✗</span> 默认不可（可按层级配置放开）</td><td>归属上级代理或平台直签（签约时二选一）；分润按层级矩阵取值，默认封顶两级防多层级失控</td></tr>
+</tbody>
+</table>
+<ul>
+<li><b>可售套餐范围（关联 5.1）：</b>从 5.1 套餐模板引擎的套餐库中勾选，仅可勾选"上架"状态套餐；套餐调价 / 新版本上架 / 停售时，代理商可售范围与分润基数联动更新（见 4.14.8）。</li>
+<li><b>拿货折扣区间：</b>实际拿货价 = 套餐定价 × 折扣；折扣与分润是渠道让利的两种形式，同一笔订单若同时适用，保存时强校验<b>"折扣率 + 分润比例 ≤ 100%"</b>，超限阻断并提示（防渠道总让利击穿毛利）。</li>
+<li><b>是否允许发展下级：</b>按层级配置；二级代理默认不可再发展下级，如需放开三级及以上走决策点 D11 拍板。</li>
+</ul>
+
+<h4 class="mini">4.14.2 代理商档案与状态机</h4>
+<table class="small">
+<thead><tr><th style="width:14%">档案分组</th><th style="width:36%">字段</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>基本信息</td><td>主体名称 / 统一社会信用代码 / 法人 / 联系人 / 手机号 / 邮箱</td><td>主体信息用于签约与防套利关联校验（见 4.14.7）</td></tr>
+<tr><td>授权区域</td><td>省 / 市 / 区（可多选，可"不限区域"）</td><td>区域授权做市场秩序约束与报表维度，<b>不做归因硬拦截</b>；跨区注册仍按推广码归因，窜货率进风控报表</td></tr>
+<tr><td>专属推广码</td><td>推广码 / 推广链接 / 海报素材</td><td>按代理商生成专属推广码，注册链路携带即完成归因；支持停用 / 重置</td></tr>
+<tr><td>签约有效期</td><td>签约日期 / 到期日期 / 签约附件（折扣条款）</td><td>到期前 30 天提醒续签；到期未续签自动转"冻结"（停止新归因，存量归属与结算不受影响）</td></tr>
+<tr><td>结算账户</td><td>收款主体 / 开户行 / 银行账号 / 结算方式</td><td>提现打款依据；账户变更需双人复核并留痕（联动 6.1）</td></tr>
+<tr><td>状态</td><td>待审核 / 正常 / 冻结 / 终止</td><td>状态机见下；状态变更全部留痕</td></tr>
+</tbody>
+</table>
+<div class="flow">
+<span class="node gray">待审核</span><span class="arr">→</span><span class="node">正常</span><span class="arr">→</span><span class="node">冻结（可恢复）</span><span class="arr">→</span><span class="node gray">终止（不可逆）</span>
+</div>
+<table>
+<thead><tr><th style="width:10%">状态</th><th style="width:13%">新归因</th><th style="width:20%">分润计提</th><th style="width:14%">提现打款</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><b>待审核</b></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td>资料审核中；审核人 ≠ 提交人（联动 4.2 权限体系）</td></tr>
+<tr><td><b>正常</b></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td>正常推广、计提与结算</td></tr>
+<tr><td><b>冻结</b></td><td class="c"><span class="no">✗</span>（推广码停用）</td><td class="c"><span class="yes">✓</span>（存量归属订单继续计提）</td><td class="c"><span class="no">✗</span>（暂缓打款）</td><td>违规调查 / 到期未续签 / 风控触发；解除后自动恢复</td></tr>
+<tr><td><b>终止</b></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span>（终止后新订单不计提）</td><td class="c"><span class="yes">✓</span>（结清存量后关闭）</td><td>解约归档；未结算分润结清后账户关闭，档案只读留档</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.14.3 归因规则（与老带新的优先级）</h4>
+<div class="flow">
+<span class="node">代理商分享专属推广码</span><span class="arr">→</span><span class="node">商户注册（携带推广码）</span><span class="arr">→</span><span class="node">归因绑定（终身归属）</span><span class="arr">→</span><span class="node">商户付费</span><span class="arr">→</span><span class="node">分润计提</span>
+</div>
+<table>
+<thead><tr><th style="width:22%">场景</th><th>规则</th></tr></thead>
+<tbody>
+<tr><td><b>常态归因</b></td><td>商户注册链路携带代理商推广码 → <b>终身归属该代理商</b>；归属关系写入租户元数据（agent_id），后续续费、增值购买默认沿用归属</td></tr>
+<tr><td><b>与老带新同时存在</b></td><td><b>代理商邀请优先</b> <span class="badge v12">v1.2</span>：代理商推广码与老带新邀请码同时出现时，按代理商归因（B 端结算主体优先于 C 端积分激励）；4.9"后触点优先"规则仅在市场渠道码之间适用</td></tr>
+<tr><td>与市场渠道码同时出现</td><td>代理商码优先（代理商为结算主体，市场渠道码仅做统计归因）</td></tr>
+<tr><td>无码注册</td><td>归属平台直销，不产生分润</td></tr>
+<tr><td>申诉改绑</td><td>注册后 24 小时内可申诉改绑（纠错场景），逾期锁定；改绑需平台审批并留痕（原推广码 / 新推广码 / 审批人）</td></tr>
+<tr><td>代理商终止后</td><td>存量商户归属保留原代理商档案（分润按 4.14.2 终止规则处理），<b>不自动转移</b>给其他代理商</td></tr>
+</tbody>
+</table>
+<div class="callout ok"><b class="t">归因唯一是分润可信的前提</b>一个商户全生命周期只归属一个渠道主体；所有改绑必须审批留痕，杜绝"抢单改绑"纠纷。代理商报表与老带新报表分列统计，防止双轨重复计激励。</div>
+
+<h4 class="mini">4.14.4 分润比例矩阵（手动配置，不内置定死）</h4>
+<ul>
+<li><b>矩阵定义：</b>行 = 代理商层级，列 = 套餐档位（跟随 5.1 套餐库动态生成列）；交叉单元格 = 分润比例（%）。</li>
+<li><b>手动配置原则：</b>比例<b>不内置定死</b>，由平台管理员在「代理商管理 · 分润配置」逐格录入并保存——与 4.13 积分抵扣汇率"手动配置、系统不定死"为<b>同一设计原则</b>；系统出厂为空表。</li>
+<li><b>未配置即阻断：</b>某"层级 × 档位"未配置比例时，该组合订单的<b>分润计提流程阻断并提示</b>"分润比例未配置，请先完成配置"——订单与商户侧不受影响，仅分润暂缓入账，配置完成后自动补提。</li>
+<li><b>校验规则：</b>比例取值 0–100%；同一订单维度"折扣率 + 分润比例"合计 ≤ 100%，超限保存阻断。</li>
+<li><b>变更留痕：</b>每次修改记录<b>修改人 / 时间 / 前后值</b>，版本流水可回查；变更仅对新产生的分润订单生效，历史计提不追溯（与 4.12 单价调价同口径）。</li>
+</ul>
+<table class="small">
+<thead><tr><th style="width:22%">层级 \ 套餐档位</th><th class="c">基础版</th><th class="c">标准版</th><th class="c">旗舰版</th><th class="c">增值收入（额度包 / AI 计费）</th></tr></thead>
+<tbody>
+<tr><td><b>一级代理</b></td><td class="c">示例 20%</td><td class="c">示例 18%</td><td class="c">示例 15%</td><td class="c">示例 10%（初期关闭，见 D11）</td></tr>
+<tr><td><b>二级代理</b></td><td class="c">示例 10%</td><td class="c">示例 9%</td><td class="c">示例 8%</td><td class="c">—（初期关闭）</td></tr>
+</tbody>
+</table>
+<p style="color:#64748b;font-size:12.5px;">注：表内数值<b>全部为文档示意</b>，系统出厂为空表，实际以管理员配置为准；增值收入列是否参与分润见决策点 D11。</p>
+<div class="callout"><b class="t">与积分汇率同一设计纪律</b>4.13 的积分抵扣汇率"系统不内置固定汇率，未配置时功能置灰"；4.14 的分润比例矩阵同款设计——"系统不内置比例，未配置时计提阻断"。商业参数配置化、不定死，是 v1.1 → v1.2 一以贯之的设计纪律。</div>
+
+<h4 class="mini">4.14.5 分润模式与计算基数口径</h4>
+<table>
+<thead><tr><th style="width:16%">分润模式</th><th style="width:11%">开关</th><th style="width:17%">默认</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><b>新签订单分润</b></td><td class="c">独立开关</td><td class="c"><b>开</b></td><td>商户首次购买套餐订单产生分润；渠道主链路默认启用</td></tr>
+<tr><td><b>续费订单分润</b></td><td class="c">独立开关</td><td class="c">开（可关）</td><td>续费订单产生分润；关闭后仅新签分润——是调节渠道激励强度与平台毛利的阀门</td></tr>
+<tr><td><b>增值收入分润</b></td><td class="c">独立开关</td><td class="c"><b>关</b>（建议初期关闭，见 D11）</td><td>额度包 / AI 计费等增值收入产生分润；初期关闭原因：增值成本与毛利口径尚在跑合，避免平台贴本分佣，跑稳后再开放</td></tr>
+</tbody>
+</table>
+<p><b>计算基数口径（唯一口径）：</b>分润基数 = <b>订单实收现金金额</b>。积分抵扣部分、平台券部分<b>不计入</b>分润基数——与 4.13 积分抵扣机制咬合：<b>积分抵扣只影响商户应付，不影响渠道分佣</b>（积分是营销资产，其成本已在获客侧计提；若计入基数将出现"刷积分—套分润"套利通道）。</p>
+<table>
+<thead><tr><th style="width:26%">订单金额构成</th><th class="c" style="width:14%">计入分润基数</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>套餐现金支付部分</td><td class="c"><span class="yes">✓</span> 计入</td><td>实收现金 × 该层级该档位分润比例</td></tr>
+<tr><td>积分抵扣部分（4.13）</td><td class="c"><span class="no">✗</span> 不计入</td><td>积分只降低商户应付；抵扣部分不产生分润，防循环套利</td></tr>
+<tr><td>平台券 / 优惠码抵扣部分</td><td class="c"><span class="no">✗</span> 不计入</td><td>平台承担的让利不产生分润（代理商自建优惠暂不开放）</td></tr>
+<tr><td>拿货折扣部分</td><td class="c">—</td><td>折扣价拿货时让利已前置为渠道成本，不再重复分润（"折扣 + 分润 ≤ 100%"校验兜底）</td></tr>
+<tr><td>退款 / 作废订单</td><td class="c">冲回</td><td>按 4.14.6 冲回规则处理</td></tr>
+</tbody>
+</table>
+<div class="callout"><b class="t">计算示例（比例值为示意）</b>标准版 9800 元/年新签、一级代理比例 18%：① 全现金支付 → 分润 = 9800 × 18% = 1764 元；② 客户用 800 元积分抵扣 → 实收现金 9000 元 → 分润 = 9000 × 18% = 1620 元（积分抵扣的 800 元不计入基数）。<b>基数只看现金实收，口径唯一。</b></div>
+
+<h4 class="mini">4.14.6 结算规则与冲回规则</h4>
+<ul>
+<li><b>账期：</b>月结 / 季结可选（平台级默认 + 代理商级覆盖）；<b>结算单按账期自动生成</b>。</li>
+<li><b>提现门槛：</b>最低提现金额可配（出厂示例 500 元，与 5.6 老带新提现门槛对齐）；未达门槛余额滚存下期。</li>
+<li><b>结算方式：</b>对公转账（预留第三方分账扩展）；打款前财务核对结算单与分润台账。</li>
+<li><b>打款权限：</b>结算打款需<b>较高权限角色</b>（财务 / 超管），支持<b>双人复核</b>（可配，呼应 D10 思路），全程审计留痕（联动 6.1）。</li>
+</ul>
+<div class="flow">
+<span class="node">分润台账（逐笔计提 / 冲回）</span><span class="arr">→</span><span class="node">账期汇总生成结算单</span><span class="arr">→</span><span class="node">财务审核（双人复核可选）</span><span class="arr">→</span><span class="node">打款登记</span><span class="arr">→</span><span class="node gray">结算单关闭归档</span>
+</div>
+<table class="small">
+<thead><tr><th style="width:22%">结算单核心字段</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>settle_id / agent_id</td><td>结算单号 / 代理商</td></tr>
+<tr><td>period</td><td>账期（月结如 2026-09 / 季结如 2026-Q3）</td></tr>
+<tr><td>gross_amount</td><td>本期计提总额（按新签 / 续费 / 增值分列，仅统计已启用模式）</td></tr>
+<tr><td>clawback_amount</td><td>本期冲回总额（退款 / 作废引发）</td></tr>
+<tr><td>net_amount</td><td>本期净额 = 计提 − 冲回</td></tr>
+<tr><td>carry_amount</td><td>上期滚存 / 本期滚存（未达提现门槛）</td></tr>
+<tr><td>status</td><td>待审核 / 待打款 / 已打款 / 已关闭</td></tr>
+<tr><td>audit_by / paid_at</td><td>审核人与双人复核记录 / 打款时间与凭证号</td></tr>
+</tbody>
+</table>
+<ul>
+<li><b>冲回规则（退款 / 作废联动）：</b>商户退款或订单作废时——<b>未结算分润直接扣减</b>（当期计提中扣减，未过账计提记录直接作废）；<b>已结算分润从后续分润账中扣减</b>（记负挂账，后续账期计提优先抵扣，不足累计结转，同 4.9 / 4.13"不足记负"口径）。欺诈 / 套利确认的当期清零并冻结账户，负挂账全额追偿（可从待打款结算款中扣回）。</li>
+</ul>
+<div class="flow">
+<span class="node">退款 / 作废事件</span><span class="arr">→</span><span class="node">定位原分润计提记录</span><span class="arr">→</span><span class="node">未结算：当期扣减</span><span class="arr">→</span><span class="node">已结算：负挂账结转</span><span class="arr">→</span><span class="node">结算单展示冲回明细</span>
+</div>
+
+<h4 class="mini">4.14.7 防套利与风控</h4>
+<table>
+<thead><tr><th style="width:20%">风险点</th><th>规则</th></tr></thead>
+<tbody>
+<tr><td>自购自推</td><td><b>代理商不得自购自推</b>：发展商户与代理商进行<b>法人 / 统一社会信用代码 / 手机号 / 支付账号 / 设备指纹</b>关联校验，命中判定关联单，分润冻结转人工审核；确认自购的订单不分润并追回已发分润</td></tr>
+<tr><td>比例变更套利</td><td>比例矩阵每次变更留痕（修改人 / 时间 / 前后值），仅对新订单生效不追溯；高频变更触发审计告警（联动 6.1）</td></tr>
+<tr><td>双重让利</td><td>"折扣率 + 分润比例 ≤ 100%"保存强校验，超限阻断</td></tr>
+<tr><td>异常提现</td><td>新签约即大额提现、高频提现触发风控审核；单代理商单月提现次数与金额上限可配</td></tr>
+<tr><td>区域窜货</td><td>授权区域外的归因不硬拦截但打标，窜货率进入代理商考核报表；恶意窜货可冻结账户</td></tr>
+<tr><td>归属抢单</td><td>改绑仅限 24h 申诉窗口 + 平台审批留痕；批量改绑自动触发审计</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.14.8 与其他模块的咬合关系</h4>
+<table>
+<thead><tr><th style="width:22%">关联模块</th><th>咬合点</th></tr></thead>
+<tbody>
+<tr><td><b>套餐模板引擎（5.1）</b></td><td>代理商可售套餐从套餐库勾选（仅"上架"态）；<b>套餐价格调整时分润基数联动</b>——新订单按新价实收计基数，存量订单按已购版本不变；套餐停售时代理商可售范围同步置灰</td></tr>
+<tr><td><b>账单计费（4.1 / 5.4）</b></td><td><b>分润台账挂接订单流水</b>（订单号级关联）；<b>结算单与账单系统对账</b>：结算单净额 = 关联订单实收现金合计 × 比例 − 冲回，同源差异必须为 0，非 0 熔断出账并告警（同 4.12 对账纪律）</td></tr>
+<tr><td><b>积分抵扣（4.13）</b></td><td><b>抵扣部分不入分润基数</b>：积分抵扣只影响商户应付，不影响渠道分佣；分润台账"现金基数 / 抵扣金额"两列分列展示，便于与账单勾稽</td></tr>
+<tr><td><b>老带新（4.9 / 5.6）</b></td><td>双轨并存、归因互斥：同一商户只能归属一轨；代理商优先级高于老带新（见 4.14.3）；两轨激励报表分列，防重复计激励</td></tr>
+<tr><td><b>管理员权限（4.2 / 3.3）</b></td><td>分润比例配置、结算打款需<b>较高权限角色</b>（财务 / 超管）；比例变更与打款支持<b>双人复核（可配，呼应 D10 思路）</b>，全程审计留痕（联动 6.1）</td></tr>
+<tr><td><b>平台数据统计（4.5）</b></td><td>渠道大盘新增代理商维度：注册数 → 归因数 → 付费数 → 现金流水 → 分润支出，支撑渠道 ROI 核算与优质代理商识别</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.14.9 管理界面功能点清单</h4>
+<table>
+<thead><tr><th style="width:18%">功能点</th><th style="width:46%">说明</th><th style="width:9%">优先级</th><th>依赖</th></tr></thead>
+<tbody>
+<tr><td>代理商管理</td><td>档案 CRUD、待审核队列、状态机操作（冻结 / 终止需审批留痕）、专属推广码生成 / 停用 / 重置</td><td class="c"><span class="badge p2">P2</span></td><td>租户注册（01）</td></tr>
+<tr><td>层级与权益配置</td><td>层级增删与自定义命名（D11）、可售套餐勾选（联动 5.1）、拿货折扣区间配置</td><td class="c"><span class="badge p2">P2</span></td><td>套餐模板引擎（5.1）</td></tr>
+<tr><td>分润比例矩阵</td><td>矩阵在线编辑保存、未配置阻断提示、折扣 + 比例合计校验、变更留痕查询</td><td class="c"><span class="badge p2">P2</span></td><td>层级与权益配置</td></tr>
+<tr><td>分润模式开关</td><td>新签 / 续费 / 增值三模式独立开关（平台级）</td><td class="c"><span class="badge p2">P2</span></td><td>分润比例矩阵</td></tr>
+<tr><td>分润台账</td><td>逐笔计提 / 冲回流水（订单号、层级、比例、现金基数、金额、抵扣金额），可导出，支撑争议核查</td><td class="c"><span class="badge p2">P2</span></td><td>账单流水</td></tr>
+<tr><td>结算单管理</td><td>按账期自动生成、财务审核队列、双人复核（可选）、打款登记与凭证归档</td><td class="c"><span class="badge p2">P2</span></td><td>分润台账</td></tr>
+<tr><td>提现审核</td><td>提现申请、门槛校验、风控标记、打款核销</td><td class="c"><span class="badge p2">P2</span></td><td>结算单管理</td></tr>
+<tr><td>防套利风控</td><td>关联单识别（法人 / 信用代码 / 手机号 / 支付账号 / 设备）、人工审核队列、追回操作</td><td class="c"><span class="badge p2">P2</span></td><td>风控规则</td></tr>
+<tr><td>代理商报表</td><td>渠道 ROI 视图：归因数 / 付费数 / 现金流水 / 分润支出 / 窜货率，按层级与区域下钻</td><td class="c"><span class="badge p2">P2</span></td><td>数据统计（4.5）</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- v1.3 新增 4.15 商品库（平台公共商品数据中枢） -->
+<div id="m15">
+<h3 class="sub">4.15 商品库（平台公共商品数据中枢） <span class="badge v13">v1.3 新增</span></h3>
+<p>建设平台级<b>标准化商品主数据库</b>：由平台统一维护类目、品牌、条码、规格、图片与参考价，供全体租户在线检索与一键调取，调取后生成租户私有商品档案——把商户"新建商品"从逐项手填变成"检索 → 调取 → 改价上架"，用公共数据中枢降低商户上线门槛。本模块与总后台 UI 设计稿 v1.6 的「商品库」版块<b>同源对齐</b>：统计卡口径、五个子 Tab 与界面要素保持一致。</p>
+
+<h4 class="mini">4.15.1 定位与边界（先讲边界，再讲功能）</h4>
+<div class="callout warn"><b class="t">边界铁律：平台管"公共主数据"，不碰"租户私有明细"</b>商品库全部能力围绕<b>平台公共商品主数据</b>展开；总后台不提供查看、检索、导出任何租户私有商品档案（进价、销量、供应商、毛利）的入口——2.2"三不"边界与 3.4 数据隔离原则在商品域同样成立。调取的本质是<b>租户主动发起的单向数据复制</b>（公共主数据 → 租户私有档案），落库即隔离。</div>
+<ul>
+<li><b>与商家后台商品中心的衔接：</b>租户调取后按现有系统商品中心结构生成租户侧档案——SPU / SKU / 品类树 / 品牌（对应商家后台既有接口体系：/api/v1/spu、/api/v1/sku、/api/v1/categories/tree、/api/v1/brands），字段结构一一映射，避免商户重复录入；调取落库后即可在商家后台正常编辑、上下架、配置价格。</li>
+<li><b>类目与品牌映射：</b>平台公共类目树 / 品牌库与租户侧品类树 / 品牌管理结构对齐；调取时租户侧已有同名类目 / 品牌则自动关联映射，无同名则按公共数据自动创建，映射关系留痕可查。</li>
+<li><b>定位澄清：</b>公共主数据是"半成品原料"（标准描述 + 参考价），不是"成品货架"——平台不向 C 端提供任何商品展示与交易能力，商品库只服务于总后台与商家后台之间。</li>
+</ul>
+
+<h4 class="mini">4.15.2 平台商品主数据模型</h4>
+<table>
+<thead><tr><th style="width:24%">字段</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>标准条码 / 平台编码</td><td>GS1 标准条码（有码商品）+ 平台统一编码（双键查重依据；无码商品由平台编码规则生成）</td></tr>
+<tr><td>标准名称</td><td>平台规范化商品名称；AI 采集数据经清洗后统一命名口径</td></tr>
+<tr><td>类目路径</td><td>完整类目链路（一级 → 末级），与租户侧品类树结构对齐</td></tr>
+<tr><td>品牌</td><td>关联品牌库（见 4.15.7 品牌子 Tab），含品牌资质信息</td></tr>
+<tr><td>SKU 规格</td><td>规格维度与 SKU 明细（规格名 / 条码 / 单位 / 参考重量），结构对齐租户侧 SKU</td></tr>
+<tr><td>主图与图库</td><td>主图 + 辅图图库（对象存储引用）；采集图片经合规审核后入库</td></tr>
+<tr><td>参考进价 / 参考售价</td><td>平台维护的市场参考价，仅作商户定价参考，不等于任何租户实际价格</td></tr>
+<tr><td>状态</td><td>已发布 / 审核中 / 已下架（三态）</td></tr>
+<tr><td>数据来源</td><td>平台运营录入 / AI 采集 / 供应商提交（三来源，见 4.15.3）</td></tr>
+<tr><td>调取热度计数</td><td>被租户调取的累计次数（聚合计数，不含租户身份明细），支撑热度排行与运营选品</td></tr>
+<tr><td>版本号</td><td>主数据字段变更即版本 +1，历史版本留痕（呼应 6.1 审计），支撑租户侧"有新版本可同步"提示与差异预览（见 4.15.4）</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.15.3 数据来源与审核流</h4>
+<div class="flow">
+<span class="node">三类来源提交</span><span class="arr">→</span><span class="node">审核队列</span><span class="arr">→</span><span class="node">通过 / 驳回（原因留痕）</span><span class="arr">→</span><span class="node">发布上架</span>
+</div>
+<table>
+<thead><tr><th style="width:16%">来源</th><th style="width:50%">说明</th><th>关键约束</th></tr></thead>
+<tbody>
+<tr><td>平台运营录入</td><td>运营逐条录入或批量导入（Excel 模板），经审核队列发布上架</td><td>批量导入走字段校验 + 查重预检</td></tr>
+<tr><td>AI 采集</td><td>从公开渠道采集商品信息，AI 清洗（名称归一 / 图片识别 / 字段补全）后进入审核队列</td><td>采集与清洗消耗大模型计费（见 4.15.5）；采集源白名单管控</td></tr>
+<tr><td>供应商提交</td><td>品牌方 / 供应商经开放入口自助提交商品数据</td><td><b>先资质校验后提交</b>：营业执照、品牌授权、质检报告核验通过方可提交</td></tr>
+</tbody>
+</table>
+<ul>
+<li><b>审核规则：</b>通过后自动发布上架；驳回<b>必填原因</b>并留痕，退回提交方修改后可重新提交；审核操作全程留痕（联动 6.1）。</li>
+<li><b>查重与合并：</b>以"GS1 条码 + 平台编码"双键查重；疑似重复标记人工确认，支持合并（合并留痕、热度计数累加）。</li>
+<li><b>下架不追溯：</b>商品下架后不再可被检索与调取，但已被租户调取的私有档案不受影响（复制式调取，见 4.15.4）。</li>
+</ul>
+
+<h4 class="mini">4.15.4 租户调取机制（复制式调取，单向复制）</h4>
+<div class="flow">
+<span class="node">租户侧检索公共库</span><span class="arr">→</span><span class="node">选中商品（支持批量）</span><span class="arr">→</span><span class="node">复制式调取</span><span class="arr">→</span><span class="node">生成租户私有 SPU/SKU 档案</span>
+</div>
+<ul>
+<li><b>复制式而非引用式：</b>调取即将公共主数据<b>复制</b>为租户私有档案，此后租户可自行修改（改价、改图、增删 SKU），与公共库无运行时耦合——租户业务数据永远留在租户侧，边界铁律不破坏。</li>
+<li><b>平台更新不强制覆盖：</b>公共主数据后续更新（版本 +1）时<b>不自动改动</b>租户已调取档案；租户侧展示"有新版本可同步"提示，点开可预览字段级差异，由租户自行决定同步或忽略。</li>
+<li><b>调取计入商品配额：</b>每次调取生成一条租户私有商品，计入套餐商品上限，由配额计量引擎硬拦截（见 3.4 / 5.1）；配额不足时阻断调取并提示升级，分档策略见 4.15.6（决策点 D12）。</li>
+<li><b>批量调取：</b>支持勾选批量调取与按类目整包调取；批量执行前预检商品配额余量，不足部分跳过并汇总提示。</li>
+</ul>
+
+<h4 class="mini">4.15.5 计量与计费联动（三处挂钩）</h4>
+<table>
+<thead><tr><th style="width:16%">挂钩点</th><th style="width:54%">口径</th><th>联动模块</th></tr></thead>
+<tbody>
+<tr><td>在线检索接口</td><td>租户侧检索公共库的调用计入租户 API 调用额度；是否计费由平台开关配置，<b>建议默认计费</b>防脚本滥用刷量（随决策点 D12 附带子项拍板）</td><td>配额计量引擎（3.4）</td></tr>
+<tr><td>AI 采集与清洗</td><td>采集、识别、清洗消耗大模型 Token，走 4.12 计量流水正常计费（成本与计费主体均为平台侧，不转嫁租户）</td><td>4.12 大模型计费</td></tr>
+<tr><td>开放平台 API</td><td>新增"商品数据查询 API"（按条码 / 名称 / 类目检索公共主数据），供生态 ISV 与代理商工具调用，走开放平台既有鉴权、限流与计费体系</td><td>4.10 开放平台</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">4.15.6 套餐分档策略（决策点 D12）</h4>
+<p>商品库调取按套餐分档放开：免费版<b>限量调取</b>作转化钩子——先让免费商户"尝到甜头"，触及上限后引导升级；付费版按档位逐步放开。建议档位如下（<b>全部为建议值，以决策点 D12 拍板为准</b>；档位作为配额项配置在 5.1 套餐模板引擎中，不硬编码，管理员可随时调整）：</p>
+<table>
+<thead><tr><th style="width:22%">套餐</th><th style="width:24%">建议调取配额</th><th>策略说明</th></tr></thead>
+<tbody>
+<tr><td>免费版</td><td class="c">50 条 / 月</td><td>转化钩子：成本可控的尝鲜额度，用尽走升级引导（与免费版 AI 赠送额度同一获客逻辑）</td></tr>
+<tr><td>基础版（4800 元/年）</td><td class="c">500 条 / 月</td><td>满足单店常规建品需求</td></tr>
+<tr><td>标准版（9800 元/年）</td><td class="c">2000 条 / 月</td><td>满足多店 / 批发商户批量建品需求</td></tr>
+<tr><td>旗舰版（19800 元/年）</td><td class="c">不限量</td><td>不限量但保留平台侧风控熔断（异常批量调取触发人工核查）</td></tr>
+</tbody>
+</table>
+<div class="callout"><b class="t">决策点 D12（详见第八章 8.1）</b>三个子项：① 免费版限量口径；② 各付费档放开幅度；③ 检索接口是否默认计入 API 额度。产品建议：免费 50 条/月、基础 500、标准 2000、旗舰不限量 + 风控熔断；检索默认计费防滥用。</div>
+
+<h4 class="mini">4.15.7 管理界面功能点清单（与 UI 设计稿 v1.6 同源）</h4>
+<p>总后台「商品库」版块顶部为统计卡区，下方为商品主数据列表与五个子 Tab：</p>
+<ul>
+<li><b>统计卡（5 张）：</b>商品总量（设计稿示意 12.68 万）/ 类目数 / 品牌数 / 本月调取次数（设计稿示意 8.4 万次）/ 待审核数（点击直达审核队列）。</li>
+<li><b>商品主数据列表：</b>列 = 条码 / 名称 / 类目 / 品牌 / SKU 数 / 参考价 / 状态 / 来源 / 调取热度 / 操作（查看 / 编辑 / 下架 / 版本记录）；支持条码精确检索与关键词模糊检索。</li>
+<li><b>五个子 Tab：</b>① 商品主数据 ② 类目管理（公共类目树维护，结构对齐租户侧 /api/v1/categories/tree）③ 品牌库 ④ 调取统计（按租户 / 类目 / 时段聚合调取热度与排行，仅聚合数值）⑤ 审核队列。</li>
+</ul>
+<table>
+<thead><tr><th style="width:18%">功能点</th><th style="width:46%">说明</th><th style="width:9%">优先级</th><th>依赖</th></tr></thead>
+<tbody>
+<tr><td>商品主数据管理</td><td>列表 / 检索 / 编辑 / 下架 / 版本记录留痕；双键查重与合并</td><td class="c"><span class="badge p1">P1</span></td><td>对象存储、审计（6.1）</td></tr>
+<tr><td>类目管理</td><td>公共类目树维护（增删改 / 排序 / 启停），与租户侧品类树结构对齐与映射</td><td class="c"><span class="badge p1">P1</span></td><td>商家后台品类树</td></tr>
+<tr><td>品牌库</td><td>品牌维护与资质归档，支撑供应商提交校验</td><td class="c"><span class="badge p1">P1</span></td><td>类目管理</td></tr>
+<tr><td>调取统计</td><td>调取热度 / 排行 / 趋势（仅聚合数值），支撑运营选品与套餐策略评估</td><td class="c"><span class="badge p1">P1</span></td><td>数据统计（4.5）</td></tr>
+<tr><td>审核队列</td><td>三来源审核 / 驳回原因留痕 / 供应商资质核验</td><td class="c"><span class="badge p1">P1</span></td><td>4.15.3 审核流</td></tr>
+<tr><td>租户调取服务</td><td>租户侧检索 / 调取 / 新版本同步提示 API，配额硬拦截</td><td class="c"><span class="badge p1">P1</span></td><td>配额引擎（3.4）/ 商品中心</td></tr>
+<tr><td>批量导入</td><td>Excel 模板批量导入 + 字段校验 + 查重预检</td><td class="c"><span class="badge p2">P2</span></td><td>商品主数据管理</td></tr>
+<tr><td>AI 采集管道</td><td>采集源白名单 / AI 清洗 / 采集成本计量（联动 4.12）</td><td class="c"><span class="badge p2">P2</span></td><td>4.12 大模型计费</td></tr>
+<tr><td>商品数据查询 API</td><td>开放平台对外商品检索 API（鉴权 / 限流 / 计费）</td><td class="c"><span class="badge p2">P2</span></td><td>4.10 开放平台</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- v1.3 新增 4.16 租户订阅审核（开通工作流） -->
+<div id="m16">
+<h3 class="sub">4.16 租户订阅审核（开通工作流） <span class="badge v13">v1.3 新增</span></h3>
+<p>把"开通一个租户"从人工分散操作升级为<b>标准化审核工作流</b>：所有来源的开通申请统一进入审核工作台，核验资质与付款凭证后，由系统自动执行开通动作链——既守住资质与付款的合规关口，又以自动化消除人工开户的漏步骤风险。与 4.1 的关系：<b>4.16 是租户开通的唯一正式入口</b>，4.1 的手动开户保留为平台兜底通道（见 4.16.5；4.1 章节已同步补衔接标注）。</p>
+
+<h4 class="mini">4.16.1 订阅申请与三种来源</h4>
+<table>
+<thead><tr><th style="width:16%">来源</th><th style="width:50%">说明</th><th>关键点</th></tr></thead>
+<tbody>
+<tr><td>官网自注册</td><td>商户在官网 / 落地页自助提交（选套餐、填企业信息、上传凭证）</td><td>P1 随官网开放同步上线；即 4.1 预留"P1 官网注册自助开户走审核流"的落地形态</td></tr>
+<tr><td>代理商邀请</td><td>经代理商专属推广码注册的申请，自动携带推广码与代理商 ID</td><td>归因绑定见 4.16.3，人工不可改</td></tr>
+<tr><td>销售代开</td><td>销售 / 运营人员代客户提交申请，录入客户信息与凭证</td><td>走同一审核流，<b>不跳过资质与付款核验</b></td></tr>
+</tbody>
+</table>
+<p>申请单字段：企业信息（名称 / 统一社会信用代码 / 联系人）、意向套餐、初始化模板偏好、付款凭证（付费套餐必填）、来源与推广码自动埋点。</p>
+
+<h4 class="mini">4.16.2 审核工作台与自动开通动作链</h4>
+<div class="flow">
+<span class="node">申请提交（三来源）</span><span class="arr">→</span><span class="node">审核工作台（资质 + 付款凭证核验）</span><span class="arr">→</span><span class="node">通过 → 自动执行开通四动作</span>
+</div>
+<ul>
+<li><b>审核动作：</b>核验营业执照等资质材料、核验付款凭证与申请套餐的匹配性；支持转办与加签（多角色协同，权限见 4.2）。</li>
+<li><b>通过后自动执行四动作（一次通过、链式完成，无需人工再操作系统）：</b>① <b>开通租户</b>（生成租户空间，状态置"正常"）② <b>绑定套餐</b>（关联 5.1 套餐模板，生效期起算）③ <b>配额初始化</b>（按套餐配额项写入配额计量引擎）④ <b>套用初始化模板</b>（按申请选择的模板复制初始化数据，呼应 4.4 模板中心）。任一环节失败自动回滚并告警，单据停留"开通中"待人工处理。</li>
+<li><b>驳回：</b>必填驳回原因（资质不全 / 凭证不符 / 重复申请 / 其他），留痕并通知申请人；修改后可重新提交，新单关联原单号。</li>
+</ul>
+
+<h4 class="mini">4.16.3 代理商归因联动（呼应 4.14）</h4>
+<ul>
+<li><b>通过时绑定终身归属：</b>来源为"代理商邀请"的申请，在审核<b>通过时</b>（而非提交时）绑定推广码<b>终身归属</b>，与 4.14.3 归因规则一致；代理商归因<b>优先于老带新</b>（B 端结算主体优先）。</li>
+<li><b>防归因作弊：</b>推广码在申请单上自动埋点、界面不可编辑；确需修改归因走平台审批并留痕。</li>
+<li><b>分润衔接：</b>归因绑定后自动进入 4.14 分润引擎计提范围（新签首单按比例矩阵计提，基数 = 订单实收现金）；驳回单不产生任何归因绑定。</li>
+</ul>
+
+<h4 class="mini">4.16.4 运营规则与留痕</h4>
+<ul>
+<li><b>超时标红：</b>待审核超过 24 小时的申请单在工作台<b>标红提醒</b>，支持按超时时长排序督办。</li>
+<li><b>完整留痕：</b>已审记录子 Tab 展示审核人 / 审核时间 / 审核结论 / 驳回原因，记录不可删改（联动 6.1 审计）。</li>
+<li><b>账单关联：</b>申请单关联账单首期——付费套餐审核通过即生成首期账单，申请单与账单双向可溯，支撑对账与争议核查（联动 5.4）。</li>
+<li><b>通知闭环：</b>审核结论自动通知申请人（站内 + 短信）；驳回单附带原因与重新提交入口。</li>
+</ul>
+
+<h4 class="mini">4.16.5 与 4.1 租户管理的衔接</h4>
+<ul>
+<li>4.1 租户管理章节已补衔接标注（v1.3）：<b>租户开通入口 = 4.16 租户订阅审核工作流</b>；工作流开通的租户自动进入 4.1 全生命周期管理（状态机 / 配额 / 代登录 / 注销流程全部沿用）。</li>
+<li>4.1 的"租户创建"（平台手动开户，P0）保留为兜底通道；手动开户同样要求补录付款凭证并留痕，<b>不产生代理商归因绑定</b>。</li>
+<li>开通后若套餐 / 配额需要调整，走 4.1 配额调整与第五章套餐变更既有流程，本工作流不重复建设。</li>
+</ul>
+
+<h4 class="mini">4.16.6 管理界面功能点清单</h4>
+<table>
+<thead><tr><th style="width:18%">功能点</th><th style="width:46%">说明</th><th style="width:9%">优先级</th><th>依赖</th></tr></thead>
+<tbody>
+<tr><td>订阅申请单列表</td><td>三来源 / 状态筛选、超 24 小时标红、关键词检索、导出</td><td class="c"><span class="badge p1">P1</span></td><td>消息通知</td></tr>
+<tr><td>审核工作台</td><td>资质与付款凭证核验、通过 / 驳回（原因必填）、转办加签</td><td class="c"><span class="badge p1">P1</span></td><td>权限（4.2）/ 审计（6.1）</td></tr>
+<tr><td>自动开通动作链</td><td>开通租户 + 绑定套餐 + 配额初始化 + 模板套用，失败回滚与告警</td><td class="c"><span class="badge p1">P1</span></td><td>5.1 套餐模板 / 4.4 模板中心 / 3.4 配额引擎</td></tr>
+<tr><td>归因绑定</td><td>推广码自动埋点、通过时终身归属绑定、归因修改审批留痕</td><td class="c"><span class="badge p1">P1</span></td><td>4.14 代理商体系</td></tr>
+<tr><td>已审记录</td><td>审核人 / 时间 / 结论 / 原因留痕查询与导出，不可删改</td><td class="c"><span class="badge p1">P1</span></td><td>审计（6.1）</td></tr>
+<tr><td>账单关联</td><td>首期账单自动生成、申请单与账单双向溯源</td><td class="c"><span class="badge p1">P1</span></td><td>账单计费（5.4）</td></tr>
+</tbody>
+</table>
+</div>
+
+</section>
+
+<!-- ================= 第五部分 ================= -->
+<section id="sec5" class="card">
+<h2 class="sec">五、套餐体系与商业衔接<span class="en">PRICING &amp; MONETIZATION</span></h2>
+<p class="sec-desc">把"功能开关 + 配额拦截 + 计费扣款 + 欠费降级 + 老带新奖励"串成一条能收钱的闭环。所有价格对齐已敲定口径：免费版永久免费 / 基础版 4800 / 标准版 9800 / 旗舰版 19800。</p>
+
+<h3 class="sub">5.1 套餐模板引擎：套餐是可配置对象，不是硬编码档位 <span class="badge v11">v1.1 重构</span></h3>
+<div class="callout"><b class="t">v1.1 重构背景（创始人决策）</b>v1.0 将套餐视为四个固定档位（免费/基础/标准/旗舰）。创始人明确："套餐定价不能内置固定的，我需要后期自主创建"。v1.1 据此将套餐体系重构为<b>套餐模板引擎</b>：四档定价与既定商业规则全部不变，但四档从"代码常量"降级为"引擎的出厂预置模板"（可修改、可停用、可扩写），平台管理员可随时自主创建任意数量的新套餐（如"区域专供版""季度体验版""行业定制版"），全程无需发版。</div>
+
+<h4 class="mini">引擎核心能力</h4>
+<table>
+<thead><tr><th style="width:15%">能力</th><th style="width:46%">说明</th><th>备注</th></tr></thead>
+<tbody>
+<tr><td>创建套餐</td><td>平台管理员填写基本信息 + 定价 + 开关矩阵 + 配额 + 升降级规则，保存为"草稿"，确认后"上架"可售</td><td>数量不限；支持月 / 季 / 年 / 自定义天数等任意计费周期</td></tr>
+<tr><td>编辑套餐</td><td>草稿态任意修改；上架态修改生成新版本号，仅影响新购与续费（存量租户按已购版本继续生效）</td><td>改价不改存量，避免追溯纠纷（同 5.6 规则版本思想）</td></tr>
+<tr><td>复制套餐</td><td>一键复制现有套餐为草稿（含全部配置），微调后上架，用于快速衍生新档位</td><td>复制体与源套餐互不影响</td></tr>
+<tr><td>停用 / 停售</td><td>上架 → 停售：不可新购，<b>存量租户不受影响</b>，续费行为按该套餐的"续费策略"执行（见下表）</td><td>有存量租户的套餐禁止物理删除，仅可停售归档</td></tr>
+<tr><td>预置模板维护</td><td>免费版 / 基础 4800 / 标准 9800 / 旗舰 19800 作为初始化示例写入引擎，可改可停用</td><td>免费版建议保留（获客漏斗第一格，见 5.3）</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">套餐可配置项（每个套餐一份完整配置）</h4>
+<table class="small">
+<thead><tr><th style="width:15%">配置域</th><th style="width:30%">配置项</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td rowspan="2">基本信息</td><td>名称 / 编码 / 描述 / 排序 / 标签</td><td>编码唯一（如 plan_std_quarterly）；标签用于官网展示、内部灰度等</td></tr>
+<tr><td>状态</td><td>草稿 / 上架 / 停售（生命周期见下表）</td></tr>
+<tr><td>定价</td><td>定价金额 + 币种 + 计费周期</td><td>金额支持任意币种（默认 CNY）；计费周期可选月 / 季 / 年 / 自定义天数（如 90 天体验价）；同套餐可叠"活动价"（见促销能力）</td></tr>
+<tr><td>功能开关矩阵</td><td>模块级开关 + 功能点级开关</td><td>模块级：采购 / 销售 / 库存 / 商城 / 开放平台等整模块开关；功能点级：模块内细粒度（如"自定义 AI 模型接入""审批流"）；<b>对齐设计稿规则：免费版模板锁定"自定义 AI 模型接入 = 关"且不可开（仅付费套餐可开）</b></td></tr>
+<tr><td>资源配额</td><td>账号数 / 商品上限 / 仓库数 / 附件存储 / API 额度 / AI 额度（Token）</td><td>与配额计量引擎对接硬拦截；AI 额度单位从"次"细化为 Token（联动 4.12），存量"次/月"口径按折算系数迁移</td></tr>
+<tr><td>AI 计费配置</td><td>套餐内含月度 Token 额度 / 超额策略 / 加成倍率档</td><td>联动 4.12：超额策略三选一（停用 / 降级小模型 / 透支后付费），倍率按套餐差异化（旗舰最优）</td></tr>
+<tr><td>升降级规则</td><td>生效模式：立即生效按天折算 / 周期结束生效</td><td>每套餐可配：升级默认支持"立即生效 + 按天折算差价"，降级默认"周期结束生效"；两模式均可在套餐内调整</td></tr>
+<tr><td>续费策略</td><td>停售后续费行为</td><td>① 允许续原套餐（保底，推荐默认）② 强制迁移：到期引导切换至平台指定的在售套餐</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">套餐生命周期</h4>
+<div class="flow">
+<span class="node">草稿</span><span class="arr">→</span><span class="node">上架（可售）</span><span class="arr">→</span><span class="node">停售（存量不受影响）</span><span class="arr">→</span><span class="node gray">归档（不可删除）</span>
+</div>
+<table>
+<thead><tr><th style="width:11%">状态</th><th style="width:15%">新租户购买</th><th style="width:33%">存量租户影响</th><th>续费策略（可配）</th></tr></thead>
+<tbody>
+<tr><td><b>草稿</b></td><td class="c"><span class="no">✗</span></td><td>无（尚未对外）</td><td>—（可任意编辑）</td></tr>
+<tr><td><b>上架</b></td><td class="c"><span class="yes">✓</span></td><td>正常</td><td>按套餐原价 / 续费优惠价续费</td></tr>
+<tr><td><b>停售</b></td><td class="c"><span class="no">✗</span></td><td><b>不受影响</b>：功能、配额、AI 额度按已购版本继续生效至周期结束</td><td>① 允许续原套餐（保底）② 强制迁移至指定在售套餐（到期前 30 天开始引导）</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">出厂预置模板（初始化示例，非硬编码）</h4>
+<p>以下四档在系统初始化时写入引擎作为示例模板，<b>定价与规则对齐已敲定口径</b>；平台管理员可在上线后修改其配置、调整价格，或直接停用 / 替换——引擎不限制"只能有这四档"。</p>
+<table>
+<thead><tr><th style="width:16%">项目</th><th class="c" style="width:21%">免费版</th><th class="c" style="width:21%">基础版</th><th class="c" style="width:21%">标准版</th><th class="c">旗舰版</th></tr></thead>
+<tbody>
+<tr><td><b>定价</b></td><td class="c"><b>0 元 · 永久免费</b></td><td class="c"><b>4800 元/年</b></td><td class="c"><b>9800 元/年</b></td><td class="c"><b>19800 元/年</b></td></tr>
+<tr><td>目标客群</td><td class="c">试用/微商户（获客漏斗入口）</td><td class="c">小型零售门店</td><td class="c">中小批零一体商户</td><td class="c">中型批发/多仓连锁</td></tr>
+<tr><td>账号数</td><td class="c">1</td><td class="c">3</td><td class="c">10</td><td class="c">30</td></tr>
+<tr><td>商品上限</td><td class="c">100</td><td class="c">2,000</td><td class="c">20,000</td><td class="c">100,000</td></tr>
+<tr><td>仓库数</td><td class="c">1</td><td class="c">2</td><td class="c">5</td><td class="c">20（可扩）</td></tr>
+<tr><td>月单据量</td><td class="c">500 张</td><td class="c">5,000 张</td><td class="c">30,000 张</td><td class="c">不限（公平使用）</td></tr>
+<tr><td>附件存储</td><td class="c">1 GB</td><td class="c">5 GB</td><td class="c">20 GB</td><td class="c">100 GB</td></tr>
+<tr><td>API 调用额度</td><td class="c">不开放</td><td class="c">1 万次/月</td><td class="c">10 万次/月</td><td class="c">100 万次/月</td></tr>
+<tr><td>AI 额度 <span class="badge v11">v1.1</span></td><td class="c">赠送 Token 额度/月（仅公共模型）+ 积分抵扣</td><td class="c">内含月度 Token 额度</td><td class="c">内含月度 Token 额度（更高配额档）</td><td class="c">内含月度 Token 额度 + 自定义模型接入</td></tr>
+<tr><td>开放平台（OpenAPI/Webhook）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span> + 定制支持</td></tr>
+<tr><td>客户小程序商城</td><td class="c"><span class="no">✗</span>（决策点 D2）</td><td class="c">基础版商城</td><td class="c"><span class="yes">✓</span> 完整</td><td class="c"><span class="yes">✓</span> 完整 + 即时零售</td></tr>
+<tr><td>服务支持</td><td class="c">社区/帮助中心</td><td class="c">工单</td><td class="c">工单 + 服务群</td><td class="c">专属客服 + SLA 保障</td></tr>
+</tbody>
+</table>
+<p style="color:#64748b;font-size:12.5px;">注：v1.0 的"AI 调用次数（50 / 500 / 3000 / 10000 次/月）"口径在 v1.1 统一细化为 Token 额度（联动 4.12），迁移系数由 AI 计费模块配置（如按历史平均每次 ≈ 2000 Token 折算），仅用于初始化示例，可调。</p>
+
+<h4 class="mini">促销能力（引擎内置营销组件）</h4>
+<table class="small">
+<thead><tr><th style="width:15%">促销类型</th><th style="width:46%">机制</th><th>与套餐的关系</th></tr></thead>
+<tbody>
+<tr><td>优惠码</td><td>三类：抵扣券（立减 X 元）/ 折扣码（按比例折扣）/ 延期码（延长 N 天周期）；批量生成、有效期、限用次数、核销记录（联动 4.9 优惠码管理）</td><td>绑定到套餐对象：限定适用套餐范围与周期</td></tr>
+<tr><td>限时活动价</td><td>在套餐上叠加活动价与起止时间，到期自动回落原价；购买页倒计时展示</td><td>同一套餐可有多个互斥活动价，取最优</td></tr>
+<tr><td>首充优惠</td><td>仅首次付费生效（如首年 8 折 / 首充送 Token 额度包）</td><td>按租户维度判定"首次"，同主体限一次（防重复薅）</td></tr>
+<tr><td>续费优惠</td><td>到期前续费享折扣或加赠天数，提升续费率</td><td>可与老带新积分抵扣叠加（抵扣顺序见 4.13）</td></tr>
+</tbody>
+</table>
+
+<h4 class="mini">套餐对象数据结构（核心字段）</h4>
+<table class="small">
+<thead><tr><th style="width:24%">字段</th><th style="width:16%">类型</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>plan_id / plan_code</td><td>UUID / string</td><td>套餐主键 / 唯一编码（对外展示用编码）</td></tr>
+<tr><td>name / description</td><td>string</td><td>套餐名称 / 描述（官网与购买页展示）</td></tr>
+<tr><td>price</td><td>decimal(12,2)</td><td>定价金额（支持两位小数）</td></tr>
+<tr><td>currency</td><td>string(3)</td><td>币种（ISO 4217，默认 CNY）</td></tr>
+<tr><td>billing_cycle</td><td>enum</td><td>计费周期：month / quarter / year / custom</td></tr>
+<tr><td>cycle_days</td><td>int</td><td>自定义周期的天数（billing_cycle = custom 时生效）</td></tr>
+<tr><td>feature_matrix</td><td>JSON</td><td>功能开关矩阵：模块级 + 功能点级两级结构（含"自定义 AI 模型接入"等 AI 功能点）</td></tr>
+<tr><td>quota</td><td>JSON</td><td>资源配额：账号数 / 商品上限 / 仓库数 / 存储（GB）/ API 次/月</td></tr>
+<tr><td>ai_token_quota</td><td>bigint</td><td>套餐内含月度 AI Token 额度（联动 4.12；0 表示不含）</td></tr>
+<tr><td>ai_overage_mode</td><td>enum</td><td>AI 超额策略：stop（停用）/ downgrade（降级小模型）/ postpaid（透支后付费）</td></tr>
+<tr><td>ai_markup_rate</td><td>decimal(5,2)</td><td>本套餐 AI 加成倍率（空 = 用平台默认，旗舰最优）</td></tr>
+<tr><td>upgrade_mode</td><td>enum</td><td>升降级规则：immediate_prorated（立即生效按天折算）/ cycle_end（周期结束生效）</td></tr>
+<tr><td>renewal_policy</td><td>enum</td><td>停售后续费策略：keep（允许续原套餐）/ migrate（强制迁移 + 指向 plan_id）</td></tr>
+<tr><td>status</td><td>enum</td><td>draft / online / retired（草稿 / 上架 / 停售）</td></tr>
+<tr><td>version</td><td>int</td><td>配置版本号，上架态每次修改 +1，存量租户绑定已购版本</td></tr>
+<tr><td>promotions</td><td>关联表</td><td>促销配置（优惠码 / 活动价 / 首充 / 续费优惠），独立表按套餐关联</td></tr>
+<tr><td>created_by / created_at / updated_at</td><td>—</td><td>操作留痕字段，全部变更进审计日志（联动 6.1）</td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">5.2 功能开关矩阵（模块 × 套餐）</h3>
+<p class="small" style="color:#64748b;">该矩阵同时落为总后台"套餐权限配置"的配置项：勾选即售，改矩阵即改商品。<span class="badge v11">v1.1</span> 在套餐模板引擎下，本矩阵是每个套餐"功能开关矩阵"配置域的默认参照（模块级 + 功能点级两级粒度，见 5.1）；并新增"自定义 AI 模型接入"功能点级行（免费版锁定）。</p>
+<table class="small">
+<thead><tr><th style="width:30%">功能模块（商家后台侧）</th><th class="c">免费版</th><th class="c">基础版 4800</th><th class="c">标准版 9800</th><th class="c">旗舰版 19800</th></tr></thead>
+<tbody>
+<tr><td>采购管理（采购单/退货/入库）</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>销售管理（销售单/退货/出库/送货）</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>库存管理（盘点/调拨/成本核算）</td><td class="c">基础</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>多仓库 / 多计量单位</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>批发价体系（多级批发价/客户等级价）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>会员管理 / 储值积分</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>审批流（单据多级审核）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>报表中心（经营分析/毛利报表）</td><td class="c">基础报表</td><td class="c">标准报表</td><td class="c"><span class="yes">✓</span> 高级</td><td class="c"><span class="yes">✓</span> 高级 + 自定义</td></tr>
+<tr><td>客户小程序商城（下单/会员/优惠券）</td><td class="c"><span class="no">✗</span></td><td class="c">基础版</td><td class="c"><span class="yes">✓</span> 完整</td><td class="c"><span class="yes">✓</span> 完整</td></tr>
+<tr><td>即时零售对接（外卖平台/同城配送）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>AI 助手（智能问答/报表解读）</td><td class="c">体验额度</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span> 增强</td><td class="c"><span class="yes">✓</span> 增强</td></tr>
+<tr><td>自定义 AI 模型接入（BYOM）<span class="badge v11">v1.1</span></td><td class="c"><span class="no">✗</span> 锁定（设计稿规则）</td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span> 优先支持</td></tr>
+<tr><td>开放平台（API / Webhook）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+<tr><td>数据导出（批量导出业务数据）</td><td class="c"><span class="no">✗</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td><td class="c"><span class="yes">✓</span></td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">5.3 免费版的商业逻辑：获客漏斗的第一格</h3>
+<div class="callout"><b class="t">定位：免费版不是公益，是漏斗</b>免费版承担"让商户低成本把店搬进来"的获客任务，其配额经过<b>刻意收紧</b>：1 个账号 / 100 个商品 / 1 个仓库 / 500 张月单据。这组数字的用意是覆盖"夫妻小店真实起步形态"，同时保证商户一旦生意起量（雇第 2 个人、上第 2 个仓、商品破百）必然触顶。</div>
+<ul>
+<li><b>触顶即引导：</b>配额达 80% 时商家后台出现温和提醒；达 100% 硬拦截（无法新建商品/账号），拦截弹窗直接给出"升级基础版"入口与价签——升级动机由商户自己的业务增长产生，而非销售话术。</li>
+<li><b>数据无缝升级：</b>免费版升付费版数据完全保留、即时生效；付费降免费则功能关闭但数据保留 90 天（超过进入 5.6 欠费流程）。</li>
+<li><b>免费版反滥用：</b>同手机号/同主体仅可开 1 个免费租户；30 天零登录的免费租户进入"沉睡名单"做召回触达，不占用客服资源。</li>
+<li><b>转化观测：</b>运营大盘的转化漏斗（4.5）重点监控"免费触顶率→升级率"，作为定价校准依据。</li>
+<li><b>免费版 AI 使用口径 <span class="badge v11">v1.1</span>：</b>免费客户不支持自定义模型（设计稿规则，仅付费用户支持）；免费租户的 AI 用量 = 每月赠送的小额 Token 额度（仅平台公共模型，见 4.12）+ 积分抵扣（仅公共模型，见 4.13）——免费租户"尝到甜头"的每一分 AI 用量都发生在平台公共模型上，为升级付费（解锁自定义模型 + 更大内含额度）留出清晰梯度。</li>
+</ul>
+
+<h3 class="sub">5.4 增值服务计费</h3>
+<table>
+<thead><tr><th style="width:16%">计费项</th><th style="width:22%">计价（建议）</th><th style="width:20%">计量方式</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>存储超额</td><td>10 元 / GB / 月</td><td>按日峰值取整计费</td><td>达套餐上限后上传硬拦截，购买扩容包或自动转按量；月初出账</td></tr>
+<tr><td>API 超额</td><td>50 元 / 10 万次（标准版及以上）</td><td>按月累计调用次数</td><td>超限后不直接断服：先限流（QPS 降档）+ 通知，避免商户线上业务中断引发客诉</td></tr>
+<tr><td>AI 超额 / Token 超额 <span class="badge v11">v1.1</span></td><td>按超额 Token 单价计价：模型成本单价 × 套餐加成倍率（见 4.12，平台可维护）</td><td>AI 网关按 Token 计量（输入 / 输出分开计价），封装型功能按次折算</td><td>仅"透支后付费 / 订阅含量+超额加价"模式下产生；积分抵扣优先于超额计费（扣减顺序见 4.13）；月度并入增值账单</td></tr>
+<tr><td>账号加购</td><td>600 元 / 账号 / 年</td><td>按年</td><td>超出套餐账号数时加购；上限不超过上一档套餐账号数</td></tr>
+<tr><td>仓库加购</td><td>500 元 / 仓库 / 年</td><td>按年</td><td>同上</td></tr>
+<tr><td>短信包</td><td>0.05 元 / 条 起</td><td>按条</td><td>租户自有签名密钥模式不自算，平台代充模式计费</td></tr>
+</tbody>
+</table>
+<p style="font-size:12.5px;color:#64748b;">注：以上单价为规划建议值，正式对外前由创始人核定；计费引擎按"套餐费 + 增值费"分列出账，增值明细必须逐笔可查（谁、何时、用了什么、扣了多少）。</p>
+
+<h3 class="sub">5.5 欠费处理策略：从提醒到注销的时间线</h3>
+<div class="flow">
+<span class="node">到期前 30/15/7 天</span><span class="arr">→</span><span class="node">到期日</span><span class="arr">→</span><span class="node">宽限期 15 天（全功能）</span><span class="arr">→</span><span class="node">功能降级（只读）</span><span class="arr">→</span><span class="node">冻结（仅可导出）</span><span class="arr">→</span><span class="node gray">注销（数据清除）</span>
+</div>
+<table>
+<thead><tr><th style="width:14%">阶段</th><th style="width:16%">时间窗</th><th style="width:38%">租户侧状态</th><th>平台侧动作</th></tr></thead>
+<tbody>
+<tr><td><b>续费提醒</b></td><td>到期前 30/15/7/1 天</td><td>全功能正常，站内横幅+短信提醒</td><td>自动多渠道提醒；高价值租户（旗舰）触发客服跟进任务</td></tr>
+<tr><td><b>宽限期</b></td><td>到期后 D+1 ~ D+15</td><td>全功能可用，每日强提醒"宽限期还剩 N 天"</td><td>保留完整服务；记录宽限期开始时间</td></tr>
+<tr><td><b>功能降级</b></td><td>D+16 ~ D+30</td><td>只读模式：可查询/导出已有单据，<b>不可新建/审核/作废</b>；小程序商城暂停接单；API 与 AI 调用停止</td><td>配额引擎自动执行降级；通知渠道：短信+公告+登录弹窗</td></tr>
+<tr><td><b>冻结</b></td><td>D+31 ~ D+60</td><td>仅可登录并导出自己的数据（一次性打包下载）</td><td>标记冻结状态；客服外呼挽留（续费享宽限价可选）</td></tr>
+<tr><td><b>数据保留期</b></td><td>D+61 ~ D+90</td><td>无法登录；可联系客服申请恢复（补缴后 24h 内恢复）</td><td>数据封存不动；每 15 天最后一次提醒</td></tr>
+<tr><td><b>注销清除</b></td><td>D+90 之后</td><td>—</td><td>生成最终备份包留存 30 天后物理清除业务数据；元数据归档；老带新关联单自动冲回奖励（4.9）</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><b class="t">设计取舍</b>降级采用"只读"而非"逐功能关闭"：对进销存商户，能查不能开单的痛感最强、误会最少，也避免"半开半关"状态下数据不一致（决策点 D9 确认）。</div>
+<div class="callout warn"><b class="t">AI 额度欠费联动 <span class="badge v11">v1.1</span></b>套餐周期内 AI 额度（Token）用尽或欠费时，不适用本节的"只读降级"时间线，而是按套餐可配的三档策略独立执行：<b>停用（提示升级 / 购额度包）/ 降级小模型 / 透支后付费</b>，策略配置与定价见 4.12，积分抵扣冲减顺序见 4.13。</div>
+
+<h3 class="sub">5.6 老带新奖励在总后台的落地实现</h3>
+<h4 class="mini">规则链路</h4>
+<div class="flow">
+<span class="node">老租户分享邀请码/海报</span><span class="arr">→</span><span class="node">新租户注册（归属绑定）</span><span class="arr">→</span><span class="node">新租户付费 4800/9800/19800</span><span class="arr">→</span><span class="node">7 天冷静期通过</span><span class="arr">→</span><span class="node">发放奖励 = 实付 × 20%</span><span class="arr">→</span><span class="node">进入积分台账</span>
+</div>
+<table>
+<thead><tr><th style="width:16%">环节</th><th style="width:44%">实现要点（总后台）</th><th>关联模块</th></tr></thead>
+<tbody>
+<tr><td>归属绑定</td><td>注册链路携带邀请码/渠道码参数，落库归属关系（推荐人、渠道、时间）；注册后 24h 内可申诉改绑，逾期锁定</td><td>运营营销（4.9）</td></tr>
+<tr><td>奖励计算</td><td>监听账单"已支付"事件 + 冷静期定时器，到期自动计算：实付金额（剔除优惠码抵扣）× 20%；受 60k 年度上限截断</td><td>计费（4.1/02）</td></tr>
+<tr><td>积分台账</td><td>每笔奖励生成流水（来源账单号、被邀租户、金额、积分、状态），台账三栏：可用/累计/冻结；年度上限进度条对推荐人可见</td><td>积分台账</td></tr>
+<tr><td>续费抵扣</td><td>续费下单页展示可用积分，1 积分抵 1 元，抵扣部分不计入推荐人的再计奖基数（防止循环套利）</td><td>计费</td></tr>
+<tr><td>积分抵扣 AI Token <span class="badge v11">v1.1</span></td><td>积分新增第三条出口：AI 调用时按管理员配置汇率（1 积分 = X Token，手动配置、系统不内置死值）<b>冲抵</b>平台公共模型用量——抵扣而非兑换，积分优先于套餐额度 / 额度包消耗（扣减顺序见 4.13）；抵扣部分同样不计入再计奖基数（防循环套利）</td><td>AI 计费（4.12/4.13）</td></tr>
+<tr><td>提现流程</td><td>推荐人发起提现 → 对应积分冻结 → 财务在总后台审核（核对流水与风控标记）→ 打款 → 台账核销；单月提现 ≤ 2 次，单次 ≥ 500 元</td><td>财务审批</td></tr>
+<tr><td>风控与冲回</td><td>关联单识别（同设备/同支付账号）→ 冻结转人工；退款/注销/欺诈 → 奖励冲回，负余额从后续奖励中抵扣</td><td>风控规则</td></tr>
+</tbody>
+</table>
+<div class="callout ok"><b class="t">口径备忘</b>老带新奖励 20%、年度上限 60,000 积分、积分有效期 24 个月——以上三项为已敲定政策，写入奖励规则引擎的出厂默认值；调整需走"规则版本"管理（旧单按旧规则、新单按新规则），避免追溯纠纷。</div>
+</section>
+
+<!-- ================= 第六部分 ================= -->
+<section id="sec6" class="card">
+<h2 class="sec">六、非功能规划<span class="en">NON-FUNCTIONAL</span></h2>
+<p class="sec-desc">安全审计、性能可用性、备份与导出：总后台管的是"平台的钥匙"，非功能要求按平台级标准设定。</p>
+
+<h3 class="sub">6.1 安全审计</h3>
+<h4 class="mini">① 代登录审计五步法</h4>
+<div class="flow">
+<span class="node">1 申请</span><span class="arr">→</span><span class="node">2 审批</span><span class="arr">→</span><span class="node">3 限时会话</span><span class="arr">→</span><span class="node">4 全程留痕</span><span class="arr">→</span><span class="node">5 回放与抽检</span>
+</div>
+<table>
+<thead><tr><th style="width:12%">步骤</th><th style="width:52%">规则</th><th>控制点</th></tr></thead>
+<tbody>
+<tr><td>申请</td><td>填写目标租户、事由（关联工单号必填）、时长（15/30/60 分钟），提交人自动记录</td><td>无工单依据不可发起</td></tr>
+<tr><td>审批</td><td>运营主管审批（P1）；旗舰租户、涉支付/涉密场景强制双人审批（决策点 D1）</td><td>审批人 ≠ 申请人</td></tr>
+<tr><td>限时会话</td><td>签发一次性临时 Token，默认 30 分钟自动登出；会话横幅全程明示"平台协助模式"</td><td>Token 不可续期，需重新走流程</td></tr>
+<tr><td>留痕</td><td>页面级操作日志 + 关键操作录屏；敏感页（支付配置/密钥）强制脱敏且禁改</td><td>日志 ≥180 天，不可删改</td></tr>
+<tr><td>回放</td><td>审计可按会话回放操作序列；每月抽检 ≥10% 会话，异常代登录（无工单/超频）自动告警</td><td>抽检记录归档</td></tr>
+</tbody>
+</table>
+<h4 class="mini">② 敏感操作二次确认清单</h4>
+<table class="small">
+<thead><tr><th style="width:30%">操作</th><th style="width:32%">确认方式</th><th>附加要求</th></tr></thead>
+<tbody>
+<tr><td>租户注销 / 数据重置</td><td>输入租户全名 + 短信验证码</td><td>双人复核（操作人+复核人）</td></tr>
+<tr><td>套餐价格调整 / 套餐矩阵变更</td><td>密码二次输入</td><td>新旧价格快照留档，仅财务与超管可操作</td></tr>
+<tr><td>配额临时扩容（有效期 &gt; 30 天）</td><td>审批流</td><td>到期自动回收</td></tr>
+<tr><td>AI / 支付 / 短信密钥变更</td><td>密码 + 验证码双因子</td><td>变更通知全员超管</td></tr>
+<tr><td>批量公告（&gt;50% 租户）</td><td>预览确认 + 二次点击</td><td>支持 10 分钟内一键撤回</td></tr>
+<tr><td>API 密钥吊销（租户在用）</td><td>审批流</td><td>提前通知租户，给 7 天缓冲</td></tr>
+</tbody>
+</table>
+<h4 class="mini">③ 密码与账号策略</h4>
+<ul>
+<li>长度 ≥ 8 位，必须包含大小写字母、数字、特殊字符中至少三类；不得与最近 3 次历史密码重复。</li>
+<li>首次登录强制改密；90 天未改密登录时提醒，120 天强制改密；连续 5 次失败锁定 15 分钟并通知超管。</li>
+<li>会话空闲 30 分钟自动登出；总后台登录 IP 允许名单为可选增强项（P2）。</li>
+</ul>
+
+<h3 class="sub">6.2 性能与可用性目标</h3>
+<table>
+<thead><tr><th style="width:28%">指标</th><th style="width:26%">目标</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td>总后台页面响应</td><td>首屏 P95 &lt; 2s，列表查询 P95 &lt; 1s</td><td>列表默认分页 20 条；大字段懒加载</td></tr>
+<tr><td>平台大盘数据时效</td><td>常规指标 T+1；核心收入/新增付费指标准实时（5 分钟级）</td><td>准实时走消息队列聚合，避免直查业务库</td></tr>
+<tr><td>平台可用性</td><td>99.9%（全年不可用 ≤ 8.76h）</td><td>总后台与租户核心链路（登录/开单）分级保障</td></tr>
+<tr><td>配额拦截准确性</td><td>100% 硬拦截，误拦截率 &lt; 0.1%</td><td>拦截判定走计量引擎缓存，异步对账兜底</td></tr>
+<tr><td>计费准确性</td><td>账单与流水差异 &lt; 0.1%，日对账自动校验</td><td>差异告警至财务群</td></tr>
+<tr><td>告警触达</td><td>P0 告警 5 分钟内触达值班人</td><td>短信+电话双通道</td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">6.3 数据备份与租户数据导出规范</h3>
+<ul>
+<li><b>备份策略：</b>总控库每日全量 + binlog 实时增量；租户业务库每日全量 + 实时增量；备份跨可用区/异地存放；RPO ≤ 15 分钟，RTO ≤ 1 小时；每半年一次恢复演练。</li>
+<li><b>备份保留：</b>每日备份保留 30 天，月末备份保留 12 个月，年度归档保留 3 年。</li>
+<li><b>租户数据导出规范：</b>① 元数据（档案/配额/账单）：Excel/CSV，租户详情页一键导出；② 业务数据：仅经租户授权或工单依据、双人审批后生成导出任务；文件带水印（导出人/时间）并加密传输，链接 24 小时有效；③ 注销场景：系统自动生成租户完整数据包（含打印模板与期初数据说明）供下载，留存 30 天。</li>
+<li><b>导出审计：</b>全部导出行为入日志中心，月度审计报表提交超管。</li>
+</ul>
+</section>
+
+<!-- ================= 第七部分 ================= -->
+<section id="sec7" class="card">
+<h2 class="sec">七、实施路线图<span class="en">ROADMAP</span></h2>
+<p class="sec-desc">三期推进，每期有明确"完成判据"。P0 服务于自家门店跑通 MVP，P1 支撑对外招商收费，P2 支撑规模化与生态。</p>
+
+<div class="phases">
+<div class="phase">
+<header class="p0h">P0 · MVP 期（第 1–2 个月）｜配自家店跑通</header>
+<div class="bd">
+<h6>目标</h6>
+<ul><li>自家门店以真实商户身份入驻，进销存 + 小程序订单全链路可用；平台侧具备最小管理能力。</li></ul>
+<h6>模块清单（最小可用）</h6>
+<ul>
+<li>租户管理简化版：创建/禁用/启用/基础信息/配额静态展示</li>
+<li>平台管理员账号：超管 + 运营两类角色、登录安全、基础 RBAC</li>
+<li>基础配置：平台信息、功能开关、数据字典、短信通道</li>
+<li>初始化模板（简化版）：单据编号规则 + 商品/客户导入模板</li>
+<li>基础日志：管理员操作日志 + 租户登录日志</li>
+<li>套餐模板引擎最小版 <span class="badge v11">v1.1</span>：预置"免费版 + 内部版"两个出厂模板，不开放购买；P0 不含大模型计费与积分抵扣（AI 用量以手动台账 + 月度报表过渡，M3 起进 P1 交付）</li>
+</ul>
+<h6>里程碑判定标准</h6>
+<ul>
+<li>✅ 自家店租户完成开户→导商品→开单→出入库→小程序下单全流程，连续运行 14 天无阻断</li>
+<li>✅ 平台管理员可完成开户、配置、停用全部动作且操作日志完整可查</li>
+<li>✅ 无任何跨租户数据越权（隔离测试用例全绿）</li>
+</ul>
+</div>
+</div>
+
+<div class="phase">
+<header class="p1h">P1 · 商业化期（第 3–5 个月）｜对外招商前必达</header>
+<div class="bd">
+<h6>目标</h6>
+<ul><li>平台"能收费、能对账、能服务"：四档套餐上线，配额硬拦截，运营与服务阵地齐备。</li></ul>
+<h6>模块清单</h6>
+<ul>
+<li>完整套餐计费：四档套餐/开关矩阵/配额引擎/变更续费/过期自动处理</li>
+<li>账单与对账：账单流水、增值扣费、欠费筛选与冻结策略、财务对账导出</li>
+<li>运营大盘 + 报表中心；公告系统；工单系统</li>
+<li>配额硬拦截（账号/商品/仓库/存储/API）</li>
+<li>代登录全流程审计；租户初始化模板完整版（打印模板/行业模板）</li>
+<li>运营营销基础版：邀请码注册归因 + 招商线索管理；AI 额度管控第一版（按套餐分配+计量）</li>
+<li><span class="badge v11">v1.1</span> 大模型计费第一版：Token 计量（输入/输出分计）+ 成本单价 / 加成倍率维护 + 三种计费模式（默认 C 订阅含量+超额加价，A 额度包上线）+ 积分抵扣（手动配置汇率 / 扣减顺序 / 抵扣流水）</li>
+</ul>
+<h6>里程碑判定标准</h6>
+<ul>
+<li>✅ 首个外部租户完成线上支付（4800/9800 任一档），账单自动生成且与流水对平（差异&lt;0.1%）</li>
+<li>✅ 欠费→降级→冻结流程在测试租户上自动、准确执行</li>
+<li>✅ <span class="badge v11">v1.1</span> 大模型计费流水可追溯到单次调用；AI 月度出账与增值账单对平（差异 ≤ 0.1%）；积分抵扣流水与积分台账逐笔勾稽一致</li>
+<li>✅ 10 家种子付费租户稳定运行满 1 个月，月度工单响应达标</li>
+</ul>
+</div>
+</div>
+
+<div class="phase">
+<header class="p2h">P2 · 规模化期（第 6 个月起）｜生态与效率</header>
+<div class="bd">
+<h6>目标</h6>
+<ul><li>支撑租户规模上量与生态开放：发布可控、接口开放、AI 深耕、增长自动化。</li></ul>
+<h6>模块清单</h6>
+<ul>
+<li>灰度发布 + 租户级功能开关 + 回滚机制</li>
+<li>开放平台：OpenAPI 目录/密钥治理/Webhook 订阅/开发者控制台/沙箱</li>
+<li>AI 管控深化：多模型资源池、模型路由降级、AI 账单关联、内容安全 <span class="badge v11">v1.1</span> 增加：B 后付费月结与信用额度管理、平台—厂商双向对账差异处理、抵扣占比与成本毛利看板</li>
+<li>老带新自动化：奖励自动计发、积分台账、提现抵扣闭环</li>
+<li>数据大屏、渠道效果报表、转化漏斗</li>
+<li>旗舰大客户独立库方案与迁移工具</li>
+</ul>
+<h6>里程碑判定标准</h6>
+<ul>
+<li>✅ 活跃付费租户 ≥ 100 家，支撑体系（工单/公告/监控）无积压</li>
+<li>✅ 开放 API 有 ≥ 10 个第三方对接在生产运行，计量入账准确</li>
+<li>✅ AI 月度消耗 100% 出账并与增值账单对平；灰度发布连续 3 次零事故</li>
+<li>✅ 老带新奖励全自动发放，人工介入仅限风控审核</li>
+</ul>
+</div>
+</div>
+</div>
+
+<table>
+<thead><tr><th style="width:10%">分期</th><th style="width:18%">时间窗</th><th style="width:40%">范围摘要</th><th>出口条件（Gate）</th></tr></thead>
+<tbody>
+<tr><td class="c"><span class="badge p0">P0</span></td><td>M1–M2</td><td>租户管理简化版 / 平台账号 / 基础配置 / 简化模板 / 基础日志</td><td>自家店全链路跑通 14 天 + 隔离测试全绿</td></tr>
+<tr><td class="c"><span class="badge p1">P1</span></td><td>M3–M5</td><td>套餐计费对账 / 大盘 / 公告 / 工单 / 配额硬拦截 / 代登录审计 / 线索管理 / AI 额度 V1 / 大模型计费 + 积分抵扣 <span class="badge v11">v1.1</span></td><td>首笔外部收费 + 欠费自动化 + 10 家种子租户满月</td></tr>
+<tr><td class="c"><span class="badge p2">P2</span></td><td>M6+</td><td>灰度 / 开放平台 / AI 深化 / 老带新自动化 / 大屏 / 独立库方案</td><td>100 家活跃付费租户 + API 生态 10+ + AI 出账闭环</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ================= 第八部分 ================= -->
+<section id="sec8" class="card">
+<h2 class="sec">八、风险与决策点<span class="en">RISKS &amp; DECISIONS</span></h2>
+<p class="sec-desc">需要创始人拍板的 12 个决策点（v1.1 新增 D10，v1.2 新增 D11，v1.3 新增 D12），以及对应的 8 项风险与缓解措施。</p>
+
+<h3 class="sub">8.1 待拍板决策点</h3>
+<table>
+<thead><tr><th style="width:6%">编号</th><th style="width:20%">决策项</th><th style="width:30%">背景与选项</th><th style="width:30%">产品建议</th><th>建议拍板时点</th></tr></thead>
+<tbody>
+<tr><td class="c"><b>D1</b></td><td>代登录是否需要双人审批</td><td>单人审批效率高但滥用风险大；双人审批更安全但响应慢（商户等不起）</td><td>常规代登录单人审批 + 限时 30 分钟 + 全留痕；旗舰租户及涉支付/涉密场景强制双人审批</td><td>P1 开发前</td></tr>
+<tr><td class="c"><b>D2</b></td><td>免费版是否开放小程序商城</td><td>开放可提升获客吸引力，但小程序有主体认证与运维成本；关闭则免费版竞争力弱</td><td>免费版不开放（保留进销存核心），将"小程序"作为基础版最强卖点；P2 视转化数据可试点"限时体验 30 天"</td><td>P0 定稿前</td></tr>
+<tr><td class="c"><b>D3</b></td><td>AI 额度策略：三种计费模式的启用组合与默认模式 <span class="badge v11">v1.1 扩展</span></td><td>v1.0 讨论的"停用 / 降级 / 超额计费"三档，v1.1 升维为三种租户计费模式（见 4.12）：A 预付费额度包 / B 后付费月结 / C 订阅含量+超额加价；需决策：哪些套餐启用哪些模式、默认模式选哪个、B 模式信用额度如何分级</td><td>全量启用 C（订阅含量+超额加价）为默认模式——与订阅制现金流匹配、超额透明；A（额度包）作为增值商品全量开放，覆盖用量突增；B（后付费月结）仅对旗舰版且年付、历史信用良好的租户开放（白名单制）；原三档（停用/降级小模型/透支后付费）保留为套餐内"额度用尽策略"选项</td><td>P1 AI 计费开发前</td></tr>
+<tr><td class="c"><b>D4</b></td><td>工单系统是否 P0 上线</td><td>清单标注"可选"；MVP 期用户仅自家门店，完整工单系统投入产出比低</td><td>P0 用"服务微信群 + 公告"兜底，工单系统按 P1 交付；免费版限故障类工单（见 4.7）</td><td>P0 排期时</td></tr>
+<tr><td class="c"><b>D5</b></td><td>套餐命名统一</td><td>功能清单旧稿为"免费/基础/专业/企业"，定价口径为"免费/基础/标准/旗舰"</td><td>全链路（合同/官网/后台/发票）统一为"标准版/旗舰版"，旧命名仅存档</td><td>P1 开发前</td></tr>
+<tr><td class="c"><b>D6</b></td><td>老带新奖励形式</td><td>纯积分抵扣（资金压力小）/ 可提现（吸引力强但有税务与资金合规问题）</td><td>双轨：默认积分抵扣续费；提现走财务审核（单月 ≤2 次、单次 ≥500 元、平台代扣个税）</td><td>P1 营销模块前</td></tr>
+<tr><td class="c"><b>D7</b></td><td>注销数据保留期</td><td>30 天成本低、90 天更稳妥（商户反悔/纠纷取证）</td><td>冻结后保留 90 天再清除，最终备份包再留 30 天；写入租户协议</td><td>P1 协议定稿前</td></tr>
+<tr><td class="c"><b>D8</b></td><td>大盘时效档位</td><td>T+1 成本低；准实时需消息队列与聚合服务，成本高约 20% 开发量</td><td>常规 T+1，仅"当日新增付费租户/当日收入"两个指标做 5 分钟级准实时</td><td>P1 排期时</td></tr>
+<tr><td class="c"><b>D9</b></td><td>欠费降级方式</td><td>整体只读（简单清晰）vs 逐功能降级（粒度细但状态复杂、易纠纷）</td><td>整体只读模式（见 5.5），协议中明示时间线</td><td>P1 计费开发前</td></tr>
+<tr><td class="c"><b>D10</b></td><td>积分抵扣 Token：对所有套餐开放 or 付费专属 <span class="badge v11">v1.1 新增</span></td><td>方案一：全套餐开放（含免费版）——积分消耗出口更顺，老带新激励更有效，但平台承担更多公共模型成本；方案二：付费套餐专属——控制成本，但削弱积分吸引力与免费租户转化路径；附带子项：汇率变更是否强制双人复核（见 4.13.4）</td><td>建议<b>全开放</b>（含免费版）：积分是营销资产而非现金，其成本已在老带新获客成本中计提，消耗出口越顺畅，"推荐 → 得积分 → 用 AI → 留存"的激励闭环越有效；且免费租户本就锁定公共模型（不支持自定义模型），成本敞口可控；辅以三道闸——汇率手动配置（不内置死值，未配置置灰）+ 获取上限天然封顶 + 可选日抵扣上限；汇率变更双人复核建议采纳</td><td>P1 AI 计费开发前</td></tr>
+<tr><td class="c"><b>D11</b></td><td>代理商分润：比例配置化 / 增值收入参与分润 / 层级自定义命名 <span class="badge v12">v1.2 新增</span></td><td>三个子项：① 分润比例若内置定死，招商政策调整需发版且易生追溯纠纷；若全配置化，需防配置缺漏与错误导致超付或漏提；② 增值收入（额度包 / AI 计费）是否参与分润——参与可提高代理商积极性，但增值成本与毛利口径尚在跑合，存在平台贴本分佣风险；③ 代理商层级是否支持自定义命名与扩展（超出"一级 / 二级"出厂预置）</td><td>① 分润比例矩阵<b>全配置化（不内置定死）</b>：管理员手动录入并保存，未配置时该"层级 × 档位"计提流程阻断并提示（与 4.13 积分抵扣汇率同一设计原则），变更留痕、仅对新订单生效不追溯；② 增值收入分润<b>建议初期关闭</b>——先跑通"新签 + 续费"现金分润主链路，增值毛利口径稳定后再开放（见 4.14.5）；③ 层级<b>建议支持自定义命名</b>：出厂预置"一级代理 / 二级代理"，管理员可改名、可扩展，建议上限三级（见 4.14.1）</td><td>P2 代理商体系开发前</td></tr>
+<tr><td class="c"><b>D12</b></td><td>商品库调取配额分档：免费版限量口径 / 付费档位放开幅度 / 检索接口计费 <span class="badge v13">v1.3 新增</span></td><td>三个子项：① 商品库（4.15）既是获客钩子又是成本中心（存储 / 带宽 / AI 采集成本），免费版若完全开放，公共库易被脚本批量调取、平台成本敞口大；若严格限量，则免费商户体验受限、转化钩子失效；② 各付费档位放开的调取量级——限量太紧削弱付费价值感知，太松则与不限量档无差异；③ 租户侧在线检索接口是否默认计入 API 调用额度——计入可防脚本滥用刷量，不计入则检索门槛更低、调取转化更顺</td><td>① 免费版<b>限量 50 条/月</b>（与积分同一营销资产逻辑：成本可控、先尝甜头再引导升级，用尽走升级引导）；② 基础版 500 条/月、标准版 2000 条/月、旗舰版不限量（保留平台风控熔断，异常批量调取触发人工核查）；③ 检索接口<b>建议默认计入 API 额度</b>（平台开关可配，防滥用）；档位作为配额项配置于 5.1 套餐模板引擎（不硬编码，管理员可调），由配额计量引擎硬拦截（见 4.15.6）</td><td>P1 商品库开发前</td></tr>
+</tbody>
+</table>
+
+<h3 class="sub">8.2 风险登记册</h3>
+<table>
+<thead><tr><th style="width:6%">编号</th><th style="width:22%">风险</th><th style="width:8%">等级</th><th style="width:26%">影响</th><th>缓解措施</th></tr></thead>
+<tbody>
+<tr><td class="c">R1</td><td>行级隔离失效导致跨租户数据串染</td><td class="c"><span class="badge p0">高</span></td><td>数据安全事故，直接摧毁 ToB 信任</td><td>ORM 全局拦截器 + CI 越权用例集必跑 + 季度渗透测试 + 业务表禁裸 SQL 门禁</td></tr>
+<tr><td class="c">R2</td><td>配额被并发绕过（瞬时多请求突破上限）</td><td class="c"><span class="badge p1">中</span></td><td>免费版/套餐配额形同虚设</td><td>配额校验放入事务 + 唯一约束兜底 + 异步对账任务日校差异</td></tr>
+<tr><td class="c">R3</td><td>代登录滥用（无依据进入租户环境）</td><td class="c"><span class="badge p0">高</span></td><td>违反"三不"边界，法律与商誉风险</td><td>工单关联必填 + 审批人分离 + 限时 Token + 录屏回放 + 月度抽检告警</td></tr>
+<tr><td class="c">R4</td><td>计费/扣费争议</td><td class="c"><span class="badge p1">中</span></td><td>客诉与退费纠纷，影响续费</td><td>增值扣费逐笔明细可查可导出 + 扣费前余额预警 + 日对账差异 &lt;0.1% 告警</td></tr>
+<tr><td class="c">R5</td><td>灰度/开关配置错误引发批量功能异常</td><td class="c"><span class="badge p1">中</span></td><td>大面积租户受影响</td><td>开关变更走审批 + 内测租户先行 48h + 错误率超阈值自动暂停 + 一键回滚</td></tr>
+<tr><td class="c">R6</td><td>AI 调用成本失控</td><td class="c"><span class="badge p1">中</span></td><td>平台毛利被侵蚀</td><td>密钥不落地全走网关 + 额度硬拦截 + 单租户用量突增告警 + 模型成本日监控</td></tr>
+<tr><td class="c">R7</td><td>聚合统计口径不一致（对内对外数字打架）</td><td class="c"><span class="badge p2">低</span></td><td>汇报口径混乱、决策失真</td><td>指标字典统一管理 + 大盘页脚强制展示口径与时间戳 + ETL 延迟监控</td></tr>
+<tr><td class="c">R8</td><td>老带新刷单套利</td><td class="c"><span class="badge p1">中</span></td><td>奖励资金损失、政策被滥用</td><td>关联单识别（设备/支付账号/手机号）+ 冷静期计奖 + 人工审核队列 + 奖励冲回机制</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ================= 附录 ================= -->
+<section id="appendix" class="card">
+<h2 class="sec">附录：功能清单覆盖对照表<span class="en">COVERAGE MAP</span></h2>
+<p class="sec-desc">逐条证明本规划对原功能清单的完整覆盖与深化位置，供评审核对。</p>
+<table class="small">
+<thead><tr><th style="width:26%">功能清单章节</th><th style="width:22%">本规划对应章节</th><th>深化要点（清单未展开的部分）</th></tr></thead>
+<tbody>
+<tr><td>一、租户管理（1.1 列表 / 1.2 套餐 / 1.3 账单计费）</td><td>4.1 + 4.1 配额/代登录深化 + 第五章</td><td>租户状态机与注销冷静期、配额调整审批、代登录五步审计；套餐/账单全部移入第五章按真实定价展开</td></tr>
+<tr><td>二、平台账号与权限</td><td>4.2 + 3.3 权限矩阵</td><td>四角色 × 14 功能域权限矩阵、密码策略、账号交接、权限变更快照</td></tr>
+<tr><td>三、全局系统配置（3.1–3.4）</td><td>4.3 + 4.11（AI 密钥延伸）</td><td>字典快照原则、开关叠加公式、密钥脱敏与双因子；AI 密钥升级为独立 AI 管控模块</td></tr>
+<tr><td>四、租户初始化与模板</td><td>4.4</td><td>复制而非引用规则、编号冲突校验、模板行业分类与版本管理</td></tr>
+<tr><td>五、平台数据统计</td><td>4.5</td><td>反下钻约束、口径声明制度、T+1 与准实时双档、转化漏斗</td></tr>
+<tr><td>六、系统运维与监控</td><td>4.6</td><td>三类日志不可删改、告警分级路由、公告圈选与强制预览、告警即工单</td></tr>
+<tr><td>七、客服工单（可选）</td><td>4.7</td><td>状态机与重开规则、SLA 阈值、免费版服务边界、AI 知识库联动；分期建议 P1</td></tr>
+<tr><td>八、版本与更新管理</td><td>4.8</td><td>三档灰度策略、内测租户先行规则、错误率自动熔断、开关与公告联动</td></tr>
+<tr><td>九、边界划分（不属于总后台）</td><td>2.1 四端矩阵 + 2.2 三不边界</td><td>把边界说明转化为权限配置/代码拦截/流程规则三道硬约束，并给出两条合法例外通道</td></tr>
+<tr><td>十、架构关键点（隔离/配额/模板/日志）</td><td>3.4 + 4.1 + 4.4 + 4.6 + 6.3</td><td>隔离三方案对比与推荐、配额计量引擎硬拦截、模板复制机制、日志留痕与备份导出规范</td></tr>
+<tr><td>—（清单未覆盖）</td><td>4.9 运营营销 / 4.10 开放平台 / 4.11 AI 能力管控</td><td>规划增量价值：渠道归因与老带新（20%/60k）、OpenAPI 与 Webhook 治理、大模型资源池与额度账单闭环</td></tr>
+<tr><td>—（v1.1 修订增量）</td><td>5.1 套餐模板引擎 / 4.12 大模型计费体系 / 4.13 积分抵扣 Token 机制 / D3·D10 / P1 路线图</td><td>套餐从固定四档重构为可配置模板引擎（自主创建/编辑/复制/停用 + 生命周期 + 促销组件 + 数据结构）；AI 计费深化为 Token 计量 + 三种租户计费模式 + 成本加成定价 + 双向对账；积分确立"抵扣而非兑换"口径（1 积分 = X Token，汇率手动配置、不内置死值），四级扣减顺序（积分→套餐额度→额度包→超额计费），免费版锁定自定义模型、仅靠赠送额度 + 积分抵扣使用公共模型</td></tr>
+<tr><td>—（v1.2 修订增量）</td><td>4.14 代理商体系（配置 + 分润）/ D11 / 4.9 双轨口径补充</td><td>代理商定义、层级模型（可售套餐关联 5.1 勾选 / 拿货折扣区间 / 发展下级权限）、档案与状态机、归因规则（推广码终身归属、代理商优先于老带新）；分润引擎：比例矩阵手动配置不内置定死（未配置阻断计提）、新签 / 续费 / 增值三模式独立开关、基数 = 订单实收现金（积分抵扣与平台券不计入）、月结 / 季结结算单、退款冲回双轨处理、自购自推防套利与比例变更留痕；与 5.1 套餐模板引擎、账单计费、4.13 积分抵扣、4.9 老带新、4.2 权限体系的咬合关系</td></tr>
+<tr><td>—（v1.3 修订增量）</td><td>4.15 商品库（平台公共商品数据中枢）/ 4.16 租户订阅审核（开通工作流）/ D12 / 4.1 开通入口衔接标注</td><td>平台商品主数据模型（GS1 条码 + 平台编码双键 / 类目路径 / 品牌 / SKU 规格 / 图库 / 参考价 / 三态状态 / 三类来源 / 调取热度 / 版本号），审核流（通过 / 驳回原因留痕、供应商先资质校验后提交），租户复制式调取与"有新版本可同步"差异预览、调取计入商品配额、检索计入 API 额度（建议默认计费）、AI 采集联动 4.12 大模型计费、开放平台商品数据查询 API 联动 4.10、套餐分档建议（免费 50 条/月转化钩子 + 基础 500 / 标准 2000 / 旗舰不限量，D12）；订阅审核三来源 → 核验资质与付款凭证 → 自动开通四动作（开通租户 / 绑定套餐 / 配额初始化 / 模板套用）、代理商推广码通过时终身归属联动 4.14（优先于老带新）、超 24 小时标红与已审记录完整留痕、申请单关联账单首期、4.1 手动开户保留为兜底通道</td></tr>
+</tbody>
+</table>
+
+<div class="callout"><b class="t">评审结论签署</b>
+<table class="small" style="margin:8px 0 0;">
+<thead><tr><th>评审角色</th><th>关注章节</th><th>结论（通过 / 修改后通过 / 驳回）</th><th>签署</th></tr></thead>
+<tbody>
+<tr><td>创始人 / 决策人</td><td>第五章、第八章（D1–D11）</td><td>　</td><td>　</td></tr>
+<tr><td>架构 / 研发负责人</td><td>第三章、第六章</td><td>　</td><td>　</td></tr>
+<tr><td>财务负责人</td><td>5.4 / 5.5 / 5.6 / 4.12 / 4.13 / 4.14 <span class="badge v11">v1.1</span> <span class="badge v12">v1.2</span></td><td>　</td><td>　</td></tr>
+<tr><td>运营 / 客服负责人</td><td>4.6 / 4.7 / 4.9</td><td>　</td><td>　</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<footer>智享全链 · SaaS进销存平台【总后台】建设规划 V1.3 · 2026-09-12 · 内部资料，请勿外传 · 基于《总后台功能清单 V1.0》深化编制（v1.1 融入套餐模板引擎 / 大模型计费 / 积分抵扣 Token 三大修订；v1.2 新增 4.14 代理商体系与决策点 D11；v1.3 新增 4.15 商品库、4.16 租户订阅审核与决策点 D12）</footer>
+</main>
+</div>
+</body>
+</html>

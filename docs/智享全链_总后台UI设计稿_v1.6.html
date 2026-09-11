@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>智享全链 总后台 UI/UX 界面设计稿 V1.5</title>
+<title>智享全链 总后台 UI/UX 界面设计稿 V1.6</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-b:#dbeafe;--ink:#171717;--g7:#404040;--g6:#525252;--g5:#737373;--g4:#a3a3a3;--g3:#d4d4d4;--g2:#e5e5e5;--g1:#f0f0f0;--g0:#f7f7f7;--green:#16a34a;--green-l:#f0fdf4;--orange:#ea580c;--orange-l:#fff7ed;--red:#dc2626;--red-l:#fef2f2;--r:12px;--rl:16px}
@@ -306,6 +306,11 @@ h1{font-size:30px;line-height:1.3;letter-spacing:.5px}
 .v13-tag.lt{background:var(--blue-l);color:var(--blue-d);border:1px solid var(--blue-b)}
 .v15-tag{display:inline-flex;align-items:center;font-size:9.5px;line-height:1;padding:2px 6px;border-radius:999px;background:var(--blue);color:#fff;font-weight:600;letter-spacing:.5px;vertical-align:2px;white-space:nowrap}
 .v15-tag.lt{background:var(--blue-l);color:var(--blue-d);border:1px solid var(--blue-b)}
+/* ============ v1.6 修订标注组件（商品库） ============ */
+.v16-tag{display:inline-flex;align-items:center;font-size:9.5px;line-height:1;padding:2px 6px;border-radius:999px;background:var(--blue);color:#fff;font-weight:600;letter-spacing:.5px;vertical-align:2px;white-space:nowrap}
+.v16-tag.lt{background:var(--blue-l);color:var(--blue-d);border:1px solid var(--blue-b)}
+.v16-thumb{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#93c5fd;font-size:10px;flex:none}
+
 .v13-dim{opacity:.55;filter:grayscale(.5)}
 .v13-zone-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;line-height:1;padding:3px 8px;border-radius:7px;background:var(--blue-l);border:1px solid var(--blue-b);color:var(--blue-d);white-space:nowrap}
 .v13-zone-tag b{font-weight:600}
@@ -359,16 +364,17 @@ h1{font-size:30px;line-height:1.3;letter-spacing:.5px}
 <a class="chip" href="#sec-open">开放平台</a>
 <a class="chip" href="#sec-login">登录</a>
 <a class="chip" href="#sec-agent">代理</a>
+<a class="chip" href="#sec-goods">商品库</a>
 </div>
 </nav>
 
 <!-- ================= 文档头 ================= -->
 <header class="hero">
-<span class="vh">改造对接施工图 · 16 个版块完整高保真界面</span>
+<span class="vh">改造对接施工图 · 17 个版块完整高保真界面</span>
 <h1>智享全链 总后台 UI/UX 界面设计稿</h1>
 <p class="sub">面向已建成的总后台系统的改造蓝图：每个版块均为可直接对照开发的完整 PC 后台界面（左侧导航 + 顶部工具栏 + 主内容区），所有功能全部融入界面元素呈现，无独立功能清单。视觉遵循智享全链蓝色体系。</p>
 <div class="meta">
-<span>版本 <b>V1.5</b></span>
+<span>版本 <b>V1.6</b></span>
 <span>编制 <b>智享全链产品组</b></span>
 <span>依据 <b>《总后台建设规划 V1.0》</b></span>
 <span>交付 <b>单文件 HTML · 零外部依赖</b></span>
@@ -378,6 +384,7 @@ h1{font-size:30px;line-height:1.3;letter-spacing:.5px}
 <div class="tipbar mt12"><span class="ic">v1.3</span><span><b>V1.3 定向修订：</b>新增「<b>代理商管理</b>」版块（第 16 版块，<b>代理商配置 + 代理商分润</b>两大区域）。修订落点：<b>① 代理商配置</b>——列表页（代理商名称 / 等级 / 授权区域 / 联系人 / 发展商户数 / 累计销售额 / 累计分润 / 状态）与右上角「开通代理商」入口；开通 / 编辑表单（基本信息、授权区域省市区多选、层级选择一级 / 二级、专属推广码自动生成、签约有效期、结算账户）；层级权益配置卡（可售套餐范围按套餐模板勾选、拿货折扣区间、是否允许发展下级代理开关）。<b>② 代理商分润</b>——分润比例矩阵（行 = 代理商层级、列 = 套餐档位、单元格可输入比例，<b>未配置完整时整体置灰并提示「请先配置分润比例」</b>，呼应平台「比例不内置定死、手动配置」原则）；分润模式开关行（新签订单开 / 续费订单关附比例 / 增值收入关）；计算基数说明（<b>分润基数 = 订单实收现金金额，积分抵扣部分与平台券部分不计入</b>，与 v1.2 积分抵扣机制咬合）；结算规则（账期月结 / 季结、提现门槛、结算方式）；分润台账（待结算 / 已结算 / 已冲回）；结算管理（待结算汇总、按账期生成结算单、提现申请审核）；冲退规则（商户退款或订单作废 → 分润自动冲回）。<b>③ 双轨归因</b>：老带新 = 商户侧积分奖励（营销成本线）、代理商分润 = 现金分佣（渠道成本线），两条线并存互不替代；同一商户同时存在两种归因时，<b>代理商邀请优先于老带新归属</b>。所有修订处均带 <b>v1.3</b> 角标，可对照 v1.2 逐处核验。</span></div>
 <div class="tipbar mt12"><span class="ic">v1.4</span><span><b>V1.4 定向修订：</b><b>导航侧边栏深色改浅色，统一界面配色</b>——16 个界面图外壳的左侧导航整体由深色系改为浅色，与白底蓝主色界面统一：侧边栏底色近黑（#171717）改为<b>白色</b>，与内容区浅灰底形成层次并以 <b>1px 浅灰分隔线</b>（#e5e7eb）区隔；菜单文字 #374151、分组标题 #9ca3af、图标块 #e5e7eb、底部边框 #e5e7eb / 文字 #6b7280；<b>hover 改为浅蓝底 #eff6ff + 主蓝文字 #2563eb</b>（与顶部锚点导航 hover 行为一致）；品牌区文字同步适配浅底。激活态保持<b>蓝底白字（#2563eb）</b>不变——主色非深色；logo 蓝渐变、登录页品牌区与图表色块中的深蓝（#1e40af / #1e3a8a）属设计元素不受影响。本次为纯视觉修订，<b>版块内容、结构、布局均未改动</b>。</span></div>
 <div class="tipbar mt12"><span class="ic">v1.5</span><span><b>V1.5 定向修订：</b><b>按《SaaS进销存平台【总后台】功能清单》逐条核对功能覆盖完整性，补齐全部遗漏页面</b>——16 版块顶层结构与既有内容零改动，仅在各版块内部以子 Tab / 区块 / 表格列 / 操作按钮 / 弹窗形态融入补齐，修订处均带 <b>v1.5</b> 角标。补齐项：<b>① 版块01 运营大盘</b>新增「报表导出」卡（租户财务报表 / 资源消耗报表 + 导出任务说明）；<b>② 版块02 租户管理</b>操作列新增「概况 / 数据导出 / 重置数据」入口，「代登录」按钮统一为「模拟登录」，并新增模拟登录确认（留痕 + 仅授权角色）、数据重置二次确认（红色警示 + 不可逆提示）、数据导出（异步任务 + 脱敏留痕）、租户概况（商品 / 订单 / 用户聚合）四个弹窗；<b>③ 版块04 账单计费</b>新增「增值扣费」Tab（存储超额 / API 超额 / 短信包扣费流水，与账单 ZD 单号一一对应）与「欠费处理策略（全局）」配置卡（宽限期天数 / 自动降级 / 自动冻结 / 欠费提醒推送）；<b>④ 版块07 管理员权限</b>权限矩阵明确补齐「数据权限」列（菜单 / 操作 / 数据三类维度）；<b>⑤ 版块08 系统配置</b>对象存储补租户存储上限与三档超额预警、短信 / 邮件通道补「允许租户配置自有密钥」开关；<b>⑥ 版块09 模板中心</b>新增「开户一键套用初始化模板」流程卡与商品 / 客户 / 销售单导出模板（补齐导出侧）；<b>⑦ 版块10 监控告警</b>新增「各租户 API 调用量统计 · 超限告警」区（80% / 95% / 100% 阈值可配，与增值扣费联动）；<b>⑧ 版块11 公告管理</b>发布表单补「公告类型」必选项。经复核已覆盖无需重做：管理员重置密码、字典管理四类、公告推送范围、API 趋势 / 错误监控、日志中心三 Tab、代登录审计等。</span></div>
+<div class="tipbar mt12"><span class="ic">v1.6</span><span><b>V1.6 定向修订：</b>新增「<b>商品库</b>」版块（第 17 版块，<b>平台公共商品数据中枢，供租户调取数据</b>）+ 原有 16 版块<b>融合性检查</b>——16 版块锚点、标题与全部内容零删改，仅同步导航 / 版本标识。商品库落点：<b>① 统计卡行</b>（商品总量 126,842 = 已发布 118,903 + 审核中 372 + 已下架 7,567 · 类目 1,847 · 品牌 3,265 · 本月租户调取 84,213 次 · 待审核 372）；<b>② 五个子 Tab</b>——商品主数据（标准条码 / 类目路径 / 品牌 / 规格 SKU / 参考价 / 状态 / 数据来源 / 调取热度 / 查看·编辑·下架·删除，批量导入 Excel 三重查重）、类目管理（三级树 + 增删改 + 拖拽排序 + 对租户可见开关 + 删除前置校验）、品牌库（商标图占位 + 授权状态 + 到期提醒）、调取统计（租户 Top10 脱敏排行 + 近 30 天趋势 + 按类目分布五条合计 100%）、审核队列（AI 采集 / 供应商提交待审 + 置信度快审 + 模板化驳回原因）；<b>③ 三弹窗</b>：商品详情（多图轮播占位 / SKU 规格条码表 / 类目属性 / 审核记录 / 累计被调取 / 近期调取租户脱敏列表）、驳回原因、批量导入 Excel；<b>④ 租户调取机制配置卡</b>：复制式调取（租户可自行修改）、平台更新不强制覆盖仅提示「有新版本可同步」、在线检索计入租户 API 额度（可开关）；<b>⑤ 联动角标</b>：开放平台商品数据查询 API（联动版块14）、AI 采集消耗大模型计费（联动版块05）。边界：总后台商品库仅承载平台公共主数据，租户自有商品 / 客户 / 供应商档案仍在商家后台维护。所有修订处均带 <b>v1.6</b> 角标。</span></div>
 <div class="spec">
 <div class="sp"><p class="sp-t">主色</p><div class="sw-row"><span class="sw" style="background:#2563eb"></span><span class="sw" style="background:#1d4ed8"></span><span class="sw" style="background:#eff6ff"></span></div><p class="tx mt8">#2563eb 主操作 / 选中态<br>#1d4ed8 hover · #eff6ff 浅底</p></div>
 <div class="sp"><p class="sp-t">灰色系</p><div class="sw-row"><span class="sw" style="background:#171717"></span><span class="sw" style="background:#525252"></span><span class="sw" style="background:#a3a3a3"></span><span class="sw" style="background:#e5e5e5"></span><span class="sw" style="background:#f7f7f7"></span></div><p class="tx mt8">#171717 标题/侧边栏<br>#f7f7f7 画布底 · 中间灰阶过渡</p></div>
@@ -2215,9 +2222,341 @@ h1{font-size:30px;line-height:1.3;letter-spacing:.5px}
 </figure>
 </section>
 
+<!-- ================= 17 商品库（v1.6 新增） ================= -->
+<section class="sec" id="sec-goods">
+<div class="sec-head">
+<div class="sec-no">17</div>
+<div>
+<h2>商品库 <span class="en">Product Data Hub</span> <span class="v16-tag lt">v1.6 新增</span></h2>
+<p class="desc">平台级公共商品数据中枢：平台运营维护一套<b>标准化商品主数据</b>（类目 / 品牌 / 条码 / 规格 / 图片 / 参考价），租户在商家后台检索公共库并<b>一键生成自有商品档案（复制式，可自行修改，平台更新不强制覆盖）</b>，避免千万级商户重复录品。五个子 Tab：<b>① 商品主数据 / ② 类目管理 / ③ 品牌库 / ④ 调取统计 / ⑤ 审核队列</b>。跨版块联动：开放平台提供<b>商品数据查询 API</b>（<span class="v16-tag lt">联动版块14</span>）；AI 采集 / 清洗商品数据消耗<b>大模型计费</b>（<span class="v16-tag lt">联动版块05</span>）。</p>
+</div>
+</div>
+<figure class="ui-figure">
+<figcaption class="ui-note"><span class="sw">⇄ 界面图可左右滑动查看</span><span class="st">五个子 Tab 纵向铺开 · 数字全链自洽（126,842 = 已发布 118,903 + 审核中 372 + 已下架 7,567；待审 372 = AI 采集 298 + 供应商提交 74；本月调取 84,213 = 五类目分布之和）</span><span class="v16-tag lt">v1.6</span></figcaption>
+<div class="ui-scroll">
+<div class="shell">
+<aside class="sh-side"><div class="sh-brand"><span class="lg">智</span><span><b>智享全链</b><i>平台总后台</i></span></div><nav class="sh-nav" data-active="goods"></nav><div class="sh-side-ft"><span class="dot-g"></span>生产环境 · v2.4.1</div></aside>
+<div class="sh-r">
+<header class="sh-top" data-crumb="平台 / <b>商品库</b>"></header>
+<div class="sh-main">
+<div class="pg-hd"><div><div class="pt4">商品库</div><p class="pd">平台公共主数据 · 租户侧只读检索 + 复制式调取 · 数据口径：调取次数为当月 1 日至今累计 · 更新于 2026-09-11 09:30</p></div><div class="pg-act"><span class="btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>导出主数据</span><span class="btn">批量导入 Excel</span><span class="btn btn-p">+ 录入商品</span></div></div>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+<div class="kpi"><div class="kt">商品总量</div><div class="kv">126,842</div><div class="kd">已发布 118,903 · 审核中 372 · 已下架 7,567</div></div>
+<div class="kpi"><div class="kt">类目数</div><div class="kv">1,847</div><div class="kd">一级 86 · 二级 512 · 三级 1,249</div></div>
+<div class="kpi"><div class="kt">品牌数</div><div class="kv">3,265</div><div class="kd">已授权 2,914 · 待授权 351</div></div>
+<div class="kpi"><div class="kt">本月租户调取</div><div class="kv">84,213 次</div><div class="kd">较上月 <span class="up">+18.6%</span> · Top10 占 24.3%</div></div>
+<div class="kpi"><div class="kt">待审核商品</div><div class="kv">372</div><div class="kd">AI 采集 298 · 供应商提交 74</div></div>
+</div>
+<div class="panel mt12">
+<div class="tabs">
+<span class="tab on">① 商品主数据</span><span class="tab">② 类目管理</span><span class="tab">③ 品牌库</span><span class="tab">④ 调取统计</span><span class="tab">⑤ 审核队列 <span class="v16-tag lt">v1.6</span></span>
+</div>
+<div class="p-bd">
+<div class="panel">
+<div class="p-hd" style="border-bottom:none;padding-bottom:4px"><span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 1</span>商品主数据</span><span class="ph-s">平台运营录入 / AI 采集 / 供应商提交三源归一 · 标准条码 GS1 优先，无 GS1 用平台编码（P-年份-流水）</span></div>
+<div class="p-bd">
+<div class="frow" style="margin-bottom:10px">
+<span class="fld" style="flex:1"><span>类目路径</span><span class="sel" style="justify-content:space-between">全部类目（1,847）<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:150px"><span>品牌</span><span class="sel" style="justify-content:space-between">全部品牌<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:130px"><span>状态</span><span class="sel" style="justify-content:space-between">全部状态<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:160px"><span>数据来源</span><span class="sel" style="justify-content:space-between">全部来源<b style="color:var(--g4)">▾</b></span></span>
+<span class="ipt" style="width:210px">搜索条码 / 商品名称 / 别名</span>
+<span class="btn">重置</span>
+</div>
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th>标准条码</th><th>主图</th><th>商品名称</th><th>类目路径</th><th>品牌</th><th>规格 / SKU</th><th>单位</th><th class="num">参考进价</th><th class="num">参考售价</th><th>状态</th><th>数据来源</th><th class="num">调取热度</th><th>操作</th></tr></thead>
+<tbody>
+<tr><td>6901234500017</td><td><span class="v16-thumb">图</span></td><td><b>农夫山泉饮用天然水 550ml×24</b></td><td>食品饮料 &gt; 饮料 &gt; 包装饮用水</td><td>农夫山泉</td><td>3 个 SKU</td><td>箱</td><td class="num">¥28.50</td><td class="num">¥36.00</td><td><span class="tag tag-g">已发布</span></td><td><span class="v11-src pub">平台运营录入</span></td><td class="num"><b>12,847</b></td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">下架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+<tr><td>6902766500011</td><td><span class="v16-thumb">图</span></td><td><b>乐事薯片原味 104g</b></td><td>休闲零食 &gt; 膨化食品 &gt; 薯片</td><td>乐事</td><td>2 个 SKU</td><td>袋</td><td class="num">¥3.20</td><td class="num">¥5.50</td><td><span class="tag tag-g">已发布</span></td><td><span class="v11-src pub">平台运营录入</span></td><td class="num">9,366</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">下架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+<tr><td>6920202888123</td><td><span class="v16-thumb">图</span></td><td><b>金龙鱼阳光葵花籽油 5L</b></td><td>粮油调味 &gt; 食用油 &gt; 葵花籽油</td><td>金龙鱼</td><td>1 个 SKU</td><td>桶</td><td class="num">¥62.00</td><td class="num">¥79.90</td><td><span class="tag tag-g">已发布</span></td><td><span class="v11-src cus">供应商提交</span></td><td class="num">7,881</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">下架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+<tr><td>P-2026-08871</td><td><span class="v16-thumb">图</span></td><td><b>散称山楂条 500g（平台编码）</b></td><td>休闲零食 &gt; 蜜饯果干 &gt; 山楂制品</td><td><span class="tag tag-gy">无品牌</span></td><td>1 个 SKU</td><td>kg</td><td class="num">¥6.80</td><td class="num">¥9.90</td><td><span class="tag tag-g">已发布</span></td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">4,120</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">下架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+<tr><td>6971234567890</td><td><span class="v16-thumb">图</span></td><td><b>立白洗洁精柠檬去油 1.5kg×6</b></td><td>家清日化 &gt; 洗涤用品 &gt; 洗洁精</td><td>立白</td><td>2 个 SKU</td><td>箱</td><td class="num">¥29.40</td><td class="num">¥38.80</td><td><span class="tag tag-g">已发布</span></td><td><span class="v11-src pub">平台运营录入</span></td><td class="num">3,057</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">下架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+<tr><td>6908888765432</td><td><span class="v16-thumb">图</span></td><td><b>心相印茶语经典卷纸 4层×10卷</b></td><td>家清日化 &gt; 家清纸品 &gt; 卷纸</td><td>心相印</td><td>1 个 SKU</td><td>提</td><td class="num">¥12.60</td><td class="num">¥16.90</td><td><span class="tag tag-o">审核中</span></td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">—</td><td><span class="btn-t">查看</span><span class="btn-t">转审核</span></td></tr>
+<tr><td>6945678901234</td><td><span class="v16-thumb">图</span></td><td><b>蒙牛纯牛奶 250ml×16盒</b></td><td>食品饮料 &gt; 乳制品 &gt; 纯牛奶</td><td>蒙牛</td><td>2 个 SKU</td><td>箱</td><td class="num">¥38.50</td><td class="num">¥49.00</td><td><span class="tag tag-o">审核中</span></td><td><span class="v11-src cus">供应商提交</span></td><td class="num">—</td><td><span class="btn-t">查看</span><span class="btn-t">转审核</span></td></tr>
+<tr><td>6901111222233</td><td><span class="v16-thumb">图</span></td><td><b>康师傅红烧牛肉面 5连包</b></td><td>方便速食 &gt; 方便面 &gt; 袋面</td><td>康师傅</td><td>1 个 SKU</td><td>组</td><td class="num">¥8.90</td><td class="num">¥12.50</td><td><span class="tag tag-gy">已下架</span></td><td><span class="v11-src pub">平台运营录入</span></td><td class="num">862</td><td><span class="btn-t">查看</span><span class="btn-t">重新上架</span><span class="btn-t" style="color:var(--red)">删除</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="tipbar mt8" style="padding:8px 11px"><span class="ic">i</span><span><b>批量导入 Excel</b>：模板与「版块09 模板中心 · 商品导出模板」同源；导入触发三重查重（GS1 条码 / 平台编码 / 名称+规格），重复行可选择<b>跳过 / 覆盖参考价</b>；导入结果异步通知，失败行可下载错误明细。删除为<b>软删除</b>，已下架且无租户调取记录才可物理删除。</span></div>
+</div>
+</div>
+<div class="panel mt12">
+<div class="p-hd" style="border-bottom:none;padding-bottom:4px"><span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 2</span>类目管理</span><span class="ph-s">三级树形结构 · 拖拽排序即租户侧展示顺序 · 「对租户可见」控制租户检索侧目录</span></div>
+<div class="p-bd" style="display:grid;grid-template-columns:360px 1fr;gap:12px;align-items:start">
+<div style="border:1px solid var(--g2);border-radius:10px;background:#fff">
+<div style="display:flex;align-items:center;gap:7px;padding:8px 12px;border-bottom:1px solid var(--g1);font-size:12.5px;font-weight:700"><span>类目树（1,847）</span><span class="btn-t" style="margin-left:auto">+ 新增一级类目</span></div>
+<div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--blue);background:var(--blue-l);border-radius:8px;font-size:12px"><span style="color:var(--g4)">⋮⋮</span><b>食品饮料</b><span class="tag tag-gy" style="font-size:9.5px">86 挂载</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span><span class="btn-t" style="color:var(--red)">删除</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px 6px 26px;border:1px solid var(--g2);border-radius:8px;font-size:12px;background:#fafafa"><span style="color:var(--g4)">⋮⋮</span><b>饮料</b><span class="tag tag-gy" style="font-size:9.5px">34 挂载</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px 6px 44px;border:1px solid var(--g2);border-radius:8px;font-size:12px"><span style="color:var(--g4)">⋮⋮</span>包装饮用水<span class="tag tag-gy" style="font-size:9.5px">128 商品</span><span style="font-size:10px;color:var(--g5)">对租户可见</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px 6px 44px;border:1px solid var(--g2);border-radius:8px;font-size:12px"><span style="color:var(--g4)">⋮⋮</span>碳酸饮料<span class="tag tag-gy" style="font-size:9.5px">96 商品</span><span style="font-size:10px;color:var(--g5)">对租户可见</span><span class="v12-tg off" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px 6px 26px;border:1px solid var(--g2);border-radius:8px;font-size:12px;background:#fafafa"><span style="color:var(--g4)">⋮⋮</span><b>乳制品</b><span class="tag tag-gy" style="font-size:9.5px">21 挂载</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px dashed var(--g3);border-radius:8px;font-size:12px;color:var(--g4)"><span style="color:var(--g4)">⋮⋮</span>休闲零食<span class="tag tag-gy" style="font-size:9.5px">78 挂载</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px dashed var(--g3);border-radius:8px;font-size:12px;color:var(--g4)"><span style="color:var(--g4)">⋮⋮</span>家清日化<span class="tag tag-gy" style="font-size:9.5px">52 挂载</span><span class="v12-tg off" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+<div style="display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px dashed var(--g3);border-radius:8px;font-size:12px;color:var(--g4)"><span style="color:var(--g4)">⋮⋮</span>粮油调味<span class="tag tag-gy" style="font-size:9.5px">47 挂载</span><span class="v12-tg" style="margin-left:auto"></span><span class="btn-t">编辑</span></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div class="panel" style="box-shadow:none">
+<div class="p-hd"><span class="pt">编辑类目 · 包装饮用水</span><span class="ph-s">三级类目 · 上级：食品饮料 / 饮料</span></div>
+<div class="p-bd" style="display:grid;gap:10px">
+<div class="frow">
+<span class="fld" style="flex:1"><span>类目名称 <i style="color:var(--red);font-style:normal">*</i></span><span class="ipt">包装饮用水</span></span>
+<span class="fld" style="width:140px"><span>类目编码</span><span class="ipt">CAT-03-012</span></span>
+<span class="fld" style="width:110px"><span>排序值</span><span class="ipt">30</span></span>
+</div>
+<div class="frow">
+<span class="fld" style="flex:1"><span>上级类目</span><span class="sel" style="justify-content:space-between">食品饮料 / 饮料<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:150px"><span>挂载商品数（只读）</span><span class="ipt">128</span></span>
+<span style="display:flex;align-items:center;gap:8px;padding-bottom:4px"><span class="v12-tg"></span><b style="font-size:12.5px;white-space:nowrap">对租户可见</b><span class="tag tag-g">已开启</span></span>
+</div>
+<div class="tipbar" style="padding:8px 11px"><span class="ic">i</span><span>删除前置校验：<b>存在挂载商品或租户已调取该类目下档案时禁止删除</b>（提示先迁移）；「对租户可见」关闭后租户检索侧隐藏该类目，平台数据保留不删。</span></div>
+<div class="frow" style="justify-content:flex-end"><span class="btn">取消</span><span class="btn btn-p">保存</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="panel mt12">
+<div class="p-hd" style="border-bottom:none;padding-bottom:4px"><span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 3</span>品牌库</span><span class="ph-s">商标图由平台运营上传 · 未授权品牌不在租户检索侧展示品牌词</span></div>
+<div class="p-bd">
+<div class="frow" style="margin-bottom:10px">
+<span class="fld" style="width:150px"><span>授权状态</span><span class="sel" style="justify-content:space-between">全部<b style="color:var(--g4)">▾</b></span></span>
+<span class="ipt" style="width:200px">搜索品牌名称 / 别名</span>
+<span class="btn btn-p" style="margin-left:auto">+ 新增品牌</span>
+</div>
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th>商标图</th><th>品牌名称</th><th>别名</th><th>授权状态</th><th>授权有效期</th><th class="num">关联商品数</th><th class="num">本月被调取</th><th>操作</th></tr></thead>
+<tbody>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px">标</span></td><td><b>农夫山泉</b></td><td>NONGFU SPRING</td><td><span class="tag tag-g">已授权</span></td><td>2027-12-31</td><td class="num">3,412</td><td class="num">21,046</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">上传授权书</span></td></tr>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px">标</span></td><td><b>乐事</b></td><td>Lay's</td><td><span class="tag tag-g">已授权</span></td><td>2027-06-30</td><td class="num">1,876</td><td class="num">15,233</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">上传授权书</span></td></tr>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px">标</span></td><td><b>金龙鱼</b></td><td>益海嘉里</td><td><span class="tag tag-o">待授权</span></td><td>—</td><td class="num">2,254</td><td class="num">12,877</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">上传授权书</span></td></tr>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px">标</span></td><td><b>蒙牛</b></td><td>MENGNIU</td><td><span class="tag tag-g">已授权</span></td><td>2028-03-31</td><td class="num">1,642</td><td class="num">9,514</td><td><span class="btn-t">查看</span><span class="btn-t">编辑</span><span class="btn-t">上传授权书</span></td></tr>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px;background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:var(--g5)">—</span></td><td><b>无品牌（通用）</b></td><td>Generic</td><td><span class="tag tag-gy">不适用</span></td><td>—</td><td class="num">8,930</td><td class="num">6,042</td><td><span class="btn-t">查看</span></td></tr>
+<tr><td><span class="v16-thumb" style="width:28px;height:28px">标</span></td><td><b>汇源</b></td><td>—</td><td><span class="tag tag-r">已过期</span></td><td>2026-08-31 已过期</td><td class="num">517</td><td class="num">1,208</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--red)">暂停使用</span><span class="btn-t">上传授权书</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="tipbar mt8" style="padding:8px 11px"><span class="ic">i</span><span>授权到期前 <b>30 / 7 天</b>提醒平台运营续期；<b>已过期品牌自动停止在租户检索侧展示</b>（存量租户档案不受影响）；疑似侵权商标接入审核流，风险品牌自动屏蔽。</span></div>
+</div>
+</div>
+<div class="panel mt12">
+<div class="p-hd" style="border-bottom:none;padding-bottom:4px"><span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 4</span>调取统计</span><span class="ph-s">本月累计 84,213 次 · 较上月 +18.6% · 租户名按脱敏规范展示</span></div>
+<div class="p-bd">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+<div class="panel" style="box-shadow:none">
+<div class="p-hd"><span class="pt">租户调取排行 Top10（本月）</span><span class="ph-s">Top10 合计 20,422 次 · 占 24.3%</span></div>
+<div class="p-bd">
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th style="width:44px">排名</th><th>租户（脱敏）</th><th class="num">本月调取</th><th>常用类目</th></tr></thead>
+<tbody>
+<tr><td><span class="tag tag-b">1</span></td><td><b>青云食品批发部</b></td><td class="num"><b>3,214</b></td><td>饮料 / 休闲零食</td></tr>
+<tr><td><span class="tag tag-b">2</span></td><td>恒**贸有限公司</td><td class="num">2,687</td><td>米面粮油</td></tr>
+<tr><td><span class="tag tag-b">3</span></td><td>华*商行</td><td class="num">2,431</td><td>饮料 / 乳制品</td></tr>
+<tr><td><span class="tag tag-b">4</span></td><td>兴盛批发行</td><td class="num">2,205</td><td>休闲零食</td></tr>
+<tr><td><span class="tag tag-b">5</span></td><td>宏*粮油</td><td class="num">1,978</td><td>米面粮油</td></tr>
+<tr><td><span class="tag tag-gy">6</span></td><td>顺捷百货商行</td><td class="num">1,842</td><td>家清日化</td></tr>
+<tr><td><span class="tag tag-gy">7</span></td><td>百*食品</td><td class="num">1,726</td><td>休闲零食 / 方便速食</td></tr>
+<tr><td><span class="tag tag-gy">8</span></td><td>永昌糖酒配送</td><td class="num">1,590</td><td>饮料 / 酒水</td></tr>
+<tr><td><span class="tag tag-gy">9</span></td><td>晨*文具批发</td><td class="num">1,448</td><td>日用百货</td></tr>
+<tr><td><span class="tag tag-gy">10</span></td><td>康泰医药耗材</td><td class="num">1,301</td><td>其他类目</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="panel" style="box-shadow:none">
+<div class="p-hd"><span class="pt">近 30 天调取趋势</span><span class="lg-row"><span><i style="background:#2563eb"></i>日调取次数</span></span></div>
+<div class="p-bd">
+<svg class="chart" viewBox="0 0 640 170" role="img" aria-label="近30天租户调取趋势折线图"><title>租户调取趋势</title><desc>近30天日调取次数在1900至3400次之间波动上行，8月14日与9月3日出现AI采集批次上线带来的调取小高峰</desc>
+<g stroke="#f0f0f0" stroke-width="1"><line x1="40" y1="18" x2="620" y2="18"/><line x1="40" y1="55" x2="620" y2="55"/><line x1="40" y1="92" x2="620" y2="92"/><line x1="40" y1="129" x2="620" y2="129"/></g>
+<g font-size="10" fill="#a3a3a3"><text x="6" y="22">3.4k</text><text x="6" y="59">2.9k</text><text x="6" y="96">2.4k</text><text x="6" y="133">1.9k</text><text x="42" y="164">08-13</text><text x="196" y="164">08-20</text><text x="350" y="164">08-27</text><text x="500" y="164">09-03</text><text x="596" y="164">09-10</text></g>
+<polyline fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="46,108 76,96 106,112 136,88 166,99 196,72 226,84 256,66 286,92 316,78 346,60 376,74 406,90 436,68 466,52 496,64 526,44 556,58 586,38 612,30"/>
+<g fill="#2563eb"><circle cx="196" cy="72" r="3.5"/><circle cx="496" cy="64" r="3.5"/></g>
+<g font-size="10" fill="#1d4ed8" font-weight="600"><text x="176" y="62">08-20 采集批次上线</text><text x="458" y="54">09-03 类目扩充</text></g>
+</svg>
+<div class="tipbar mt8" style="padding:8px 11px"><span class="ic">i</span><span>趋势含<b>在线检索 + 档案调取</b>两类动作；两次峰值分别来自 AI 采集批次上线与三级类目扩充（类目可见性放开后租户检索频次上升）。</span></div>
+</div>
+</div>
+</div>
+<div class="panel mt12" style="box-shadow:none">
+<div class="p-hd"><span class="pt">按类目分布（本月 84,213 次）</span><span class="ph-s">五类合计 100%</span></div>
+<div class="p-bd" style="display:grid;gap:8px">
+<div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:76px;flex:none;text-align:right;color:var(--g5)">饮料</span><div style="flex:1;height:16px;border-radius:8px;background:var(--g0);overflow:hidden"><div style="width:31.9%;height:100%;background:#2563eb;border-radius:8px"></div></div><b style="width:150px;flex:none">26,842 次 · 31.9%</b></div>
+<div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:76px;flex:none;text-align:right;color:var(--g5)">休闲零食</span><div style="flex:1;height:16px;border-radius:8px;background:var(--g0);overflow:hidden"><div style="width:25.3%;height:100%;background:#3b82f6;border-radius:8px"></div></div><b style="width:150px;flex:none">21,306 次 · 25.3%</b></div>
+<div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:76px;flex:none;text-align:right;color:var(--g5)">米面粮油</span><div style="flex:1;height:16px;border-radius:8px;background:var(--g0);overflow:hidden"><div style="width:17.3%;height:100%;background:#60a5fa;border-radius:8px"></div></div><b style="width:150px;flex:none">14,591 次 · 17.3%</b></div>
+<div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:76px;flex:none;text-align:right;color:var(--g5)">家清日化</span><div style="flex:1;height:16px;border-radius:8px;background:var(--g0);overflow:hidden"><div style="width:11.7%;height:100%;background:#93c5fd;border-radius:8px"></div></div><b style="width:150px;flex:none">9,842 次 · 11.7%</b></div>
+<div style="display:flex;align-items:center;gap:10px;font-size:12px"><span style="width:76px;flex:none;text-align:right;color:var(--g5)">其他类目</span><div style="flex:1;height:16px;border-radius:8px;background:var(--g0);overflow:hidden"><div style="width:13.8%;height:100%;background:#bfdbfe;border-radius:8px"></div></div><b style="width:150px;flex:none">11,632 次 · 13.8%</b></div>
+</div>
+</div>
+</div>
+</div>
+<div class="panel mt12">
+<div class="p-hd" style="border-bottom:none;padding-bottom:4px"><span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 5</span>审核队列 <span class="v16-tag lt">v1.6</span></span><span class="ph-s">AI 采集 + 供应商提交统一入队 · 通过即发布至租户检索侧</span></div>
+<div class="p-bd">
+<div class="frow" style="margin-bottom:10px">
+<span class="fld" style="width:160px"><span>来源</span><span class="sel" style="justify-content:space-between">全部（372）<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:170px"><span>类目</span><span class="sel" style="justify-content:space-between">全部类目<b style="color:var(--g4)">▾</b></span></span>
+<span class="fld" style="width:150px"><span>提交时间</span><span class="sel" style="justify-content:space-between">近 7 天<b style="color:var(--g4)">▾</b></span></span>
+<span class="btn">批量通过（置信度 ≥90%）</span>
+<span class="btn" style="margin-left:auto">导出待审清单</span>
+</div>
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th>提交时间</th><th>商品名称</th><th>标准条码</th><th>类目</th><th>来源</th><th class="num">AI 置信度</th><th>提交方</th><th>操作</th></tr></thead>
+<tbody>
+<tr><td>09-10 18:42</td><td><b>心相印茶语经典卷纸 4层×10卷</b></td><td>6908888765432</td><td>家清纸品 &gt; 卷纸</td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">96%</td><td>AI 采集任务 #A-0910-12</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+<tr><td>09-10 17:05</td><td><b>蒙牛纯牛奶 250ml×16盒</b></td><td>6945678901234</td><td>乳制品 &gt; 纯牛奶</td><td><span class="v11-src cus">供应商提交</span></td><td class="num">—</td><td>蒙牛经销 · 皖南分部</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+<tr><td>09-10 15:33</td><td><b>旺旺雪饼 84g×12</b></td><td>6903456700012</td><td>膨化食品 &gt; 雪米饼</td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">93%</td><td>AI 采集任务 #A-0910-12</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+<tr><td>09-10 14:21</td><td><b>清风原木纯品卷纸 3层×10卷</b></td><td>6920152700019</td><td>家清纸品 &gt; 卷纸</td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">88%</td><td>AI 采集任务 #A-0910-12</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+<tr><td>09-10 11:47</td><td><b>海天生抽酱油 1.28L×6</b></td><td>6902028700016</td><td>调味品 &gt; 酱油</td><td><span class="v11-src cus">供应商提交</span></td><td class="num">—</td><td>海天经销 · 粤西分部</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+<tr><td>09-09 16:18</td><td><b>雀巢咖啡1+2原味 15g×50条</b></td><td>6917958700014</td><td>饮料 &gt; 冲调饮品</td><td><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></td><td class="num">72%</td><td>AI 采集任务 #A-0909-08</td><td><span class="btn-t">查看</span><span class="btn-t" style="color:var(--green);font-weight:600">通过</span><span class="btn-t" style="color:var(--red)">驳回</span></td></tr>
+</tbody>
+</table>
+</div>
+<div class="frow mt8" style="justify-content:space-between;align-items:center">
+<span style="font-size:11.5px;color:var(--g5)">共 <b>372</b> 条 · 每页 20 条 · AI 采集 298 / 供应商提交 74 · 平均滞留 6.2 小时</span>
+<span class="frow" style="gap:6px"><span class="btn">上一页</span><span class="btn btn-p">1</span><span class="btn">2</span><span class="btn">3</span><span class="btn">…</span><span class="btn">19</span><span class="btn">下一页</span></span>
+</div>
+<div class="tipbar mt8" style="padding:8px 11px"><span class="ic">i</span><span>审核规则：<b>AI 置信度 ≥90%</b> 可批量快审，&lt;90% 逐条人工核验；供应商提交先过<b>入驻资质校验</b>；驳回必填模板化原因（条码无法核验 / 图片不合规 / 类目挂载错误 / 与现有商品重复），驳回记录留痕并回传提交方。AI 采集 / 清洗任务消耗大模型用量，计入「版块05 AI 中心」计量链路 <span class="v16-tag lt">联动版块05</span></span></div>
+</div>
+</div>
+<div class="panel mt12">
+<div class="p-hd"><span class="pt">租户调取机制（全局策略） <span class="v16-tag lt">v1.6</span></span><span class="ph-s">修改需超级管理员二次确认 · 配置变更全程留痕</span></div>
+<div class="p-bd" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+<div style="border:1px solid var(--g2);border-radius:10px;padding:11px 13px;background:#fff">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700"><span class="v12-tg"></span>允许租户调取<span class="tag tag-g">已开启</span></div>
+<p class="small mt6" style="color:var(--g5)">调取方式：租户在<b>商家后台检索公共库</b> → 选定商品 → 一键生成租户私有商品档案。<b>复制式调取</b>：生成后档案归租户所有，类目 / 品牌 / 条码带入，参考价仅作默认值，租户可自行修改进销价与库存策略。</p>
+</div>
+<div style="border:1px solid var(--g2);border-radius:10px;padding:11px 13px;background:#fff">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700"><span class="v12-tg"></span>更新不强制覆盖<span class="tag tag-g">已开启</span><span class="v12-tg off"></span>强制覆盖<span class="tag tag-gy">已关闭</span></div>
+<p class="small mt6" style="color:var(--g5)">平台商品主数据更新（图片 / 属性 / 参考价）时<b>不强制覆盖租户已调取档案</b>；仅在租户侧商品列表提示<b>「平台有新版本可同步」</b>，由租户自行决定是否同步（可逐字段勾选）。</p>
+</div>
+<div style="border:1px solid var(--g2);border-radius:10px;padding:11px 13px;background:#fff">
+<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700"><span class="v12-tg"></span>在线检索计入 API 额度<span class="tag tag-g">已开启</span></div>
+<p class="small mt6" style="color:var(--g5)">租户通过<b>接口在线检索公共库</b>（含小程序端扫码反查）计入套餐 <b>API 调用额度</b>，超限走增值扣费（与版块04 / 版块10 联动）；<b>调取生成档案动作本身不计费</b>；页面端人工检索不计额度。</p>
+</div>
+<div style="border:1px solid var(--g2);border-radius:10px;padding:11px 13px;background:#fff">
+<div style="font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px">发布角色与下架策略</div>
+<p class="small mt6" style="color:var(--g5)"><b>可发布</b>：平台运营（直接发布）· 供应商提交（资质校验 + 审核）· AI 采集（审核后发布）。<b>下架策略</b>：违规 / 侵权商品强制下架并通知已调取租户；存量租户档案保留，仅停止新增调取。<b>批量导入</b>：Excel 模板与版块09 模板中心同源，导入走三重查重。</p>
+</div>
+</div>
+</div>
+<div class="tipbar mt12"><span class="ic">i</span><span><b>跨版块联动：</b>① <b>开放平台</b>提供商品数据查询 API（<code style="font-family:inherit;background:var(--g1);padding:1px 5px;border-radius:4px">GET /v1/goods/search</code>、<code style="font-family:inherit;background:var(--g1);padding:1px 5px;border-radius:4px">GET /v1/goods/{barcode}</code>），密钥签发与轮换见<b>版块14 开放平台</b>，调用计入租户 API 额度 <span class="v16-tag lt">联动版块14</span>；② AI 采集 / 清洗商品数据消耗<b>大模型用量</b>，走<b>版块05 AI 中心</b>计量与积分抵扣链路，成本由平台侧承担 <span class="v16-tag lt">联动版块05</span>；③ 边界说明：租户<b>自有</b>商品 / 客户 / 供应商档案在商家后台维护，总后台商品库仅承载<b>平台公共主数据</b>，不含任何租户私有数据。</span></div>
+</div>
+</div>
+</div><!-- /sh-main -->
+</div><!-- /sh-r -->
+</div><!-- /shell -->
+</div><!-- /ui-scroll -->
+</figure>
+<figure class="ui-figure">
+<figcaption class="ui-note"><span class="sw">⇄ 界面图可左右滑动查看</span><span class="st">「商品详情 / 驳回原因 / 批量导入」三个弹窗并排静态展示（实际为叠加弹层）· 详情弹窗数字与主数据列表行一致（累计被调取 12,847 次）</span><span class="v16-tag lt">v1.6</span></figcaption>
+<div class="ui-scroll">
+<div class="shell">
+<aside class="sh-side"><div class="sh-brand"><span class="lg">智</span><span><b>智享全链</b><i>平台总后台</i></span></div><nav class="sh-nav" data-active="goods"></nav><div class="sh-side-ft"><span class="dot-g"></span>生产环境 · v2.4.1</div></aside>
+<div class="sh-r">
+<header class="sh-top" data-crumb="平台 / <b>商品库 · 弹窗</b>"></header>
+<div class="sh-main" style="display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:14px;padding:16px;align-items:start">
+<div class="modal" style="position:static;transform:none;width:auto;max-width:none;max-height:none;box-shadow:0 8px 26px rgba(23,23,23,.08)">
+<div class="m-hd"><span class="pt">商品详情 · 农夫山泉饮用天然水 550ml×24 <span class="v16-tag lt">v1.6</span></span><span class="d-x">✕</span></div>
+<div class="m-bd" style="display:grid;gap:11px">
+<div style="display:flex;gap:10px">
+<div style="width:96px;height:96px;border-radius:10px;background:linear-gradient(135deg,#eff6ff,#bfdbfe);display:grid;place-items:center;color:#60a5fa;font-size:11px;flex:none">主图</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-content:flex-start"><span class="v16-thumb" style="width:42px;height:42px">图1</span><span class="v16-thumb" style="width:42px;height:42px">图2</span><span class="v16-thumb" style="width:42px;height:42px">图3</span><span class="v16-thumb" style="width:42px;height:42px">图4</span><span class="v16-thumb" style="width:42px;height:42px">图5</span><span style="align-self:center;font-size:10.5px;color:var(--g4)">◂ 多图轮播 ▸（5 张）</span></div>
+</div>
+<div class="frow">
+<span class="fld" style="flex:1"><span>标准条码（GS1）</span><span class="ipt">6901234500017</span></span>
+<span class="fld" style="flex:1"><span>平台编码</span><span class="ipt">P-2026-00102</span></span>
+<span class="fld" style="width:110px"><span>状态</span><span class="sel" style="justify-content:center"><span class="tag tag-g">已发布</span></span></span>
+</div>
+<div class="frow">
+<span class="fld" style="flex:1.4"><span>类目路径</span><span class="ipt">食品饮料 &gt; 饮料 &gt; 包装饮用水</span></span>
+<span class="fld" style="flex:1"><span>品牌</span><span class="ipt">农夫山泉（已授权）</span></span>
+<span class="fld" style="width:90px"><span>单位</span><span class="ipt">箱</span></span>
+</div>
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th>SKU 规格</th><th>SKU 条码</th><th class="num">参考进价</th><th class="num">参考售价</th></tr></thead>
+<tbody>
+<tr><td>550ml×24瓶/箱</td><td>6901234500017</td><td class="num">¥28.50</td><td class="num">¥36.00</td></tr>
+<tr><td>550ml×12瓶/箱</td><td>6901234500024</td><td class="num">¥14.80</td><td class="num">¥18.90</td></tr>
+<tr><td>550ml 单瓶</td><td>6901234500031</td><td class="num">¥1.30</td><td class="num">¥2.00</td></tr>
+</tbody>
+</table>
+</div>
+<div class="frow">
+<span class="fld" style="flex:1"><span>属性：产地</span><span class="ipt">浙江杭州</span></span>
+<span class="fld" style="flex:1"><span>属性：保质期</span><span class="ipt">12 个月</span></span>
+<span class="fld" style="flex:1"><span>属性：储存条件</span><span class="ipt">常温避光</span></span>
+</div>
+<div style="border:1px solid var(--g2);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:12px;font-weight:700">审核记录</div>
+<div style="display:flex;gap:8px;font-size:11.5px;color:var(--g6)"><span class="tag tag-gy" style="flex:none">2026-03-12</span><span>平台运营 · 李婷 <b>审核通过</b>（复核 AI 预填字段 6 项，修正参考进价）</span></div>
+<div style="display:flex;gap:8px;font-size:11.5px;color:var(--g6)"><span class="tag tag-gy" style="flex:none">2026-03-12</span><span>AI 采集任务 #A-0312-03 <b>预填提交</b>（置信度 94%）</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;border:1px solid var(--blue-b);background:var(--blue-l);border-radius:10px;padding:9px 11px">
+<div style="flex:1"><div style="font-size:11px;color:var(--g5)">累计被调取</div><div style="font-size:19px;font-weight:800;color:var(--blue-d)">12,847 次</div></div>
+<div style="flex:1.6"><div style="font-size:11px;color:var(--g5);margin-bottom:4px">近期调取租户（脱敏）</div><div style="display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--g6)"><span>青云食品批发部 · 09-10 14:22</span><span>恒**贸有限公司 · 09-10 11:05</span><span>华*商行 · 09-09 17:48</span><span style="color:var(--g4)">共 1,206 家租户调取 ›</span></div></div>
+</div>
+</div>
+<div class="m-ft"><span class="btn btn-p">编辑商品</span><span class="btn btn-d">下架</span></div>
+</div>
+<div class="modal" style="position:static;transform:none;width:auto;max-width:none;max-height:none;box-shadow:0 8px 26px rgba(23,23,23,.08)">
+<div class="m-hd"><span class="pt">驳回原因 · 旺旺雪饼 84g×12 <span class="v16-tag lt">v1.6</span></span><span class="d-x">✕</span></div>
+<div class="m-bd" style="display:grid;gap:10px">
+<div class="frow">
+<span class="fld" style="flex:1"><span>来源</span><span class="sel" style="justify-content:center"><span class="v11-src cus" style="background:var(--blue-l)">AI 采集</span></span></span>
+<span class="fld" style="flex:1"><span>AI 置信度</span><span class="ipt">93%</span></span>
+</div>
+<div class="fld"><span>驳回原因（必选，可多选）<i style="color:var(--red);font-style:normal">*</i></span></div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--red);background:var(--red-l);border-radius:8px;padding:6px 9px"><span class="v12-tg off"></span>条码无法核验（GS1 库无匹配）</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--g2);border-radius:8px;padding:6px 9px"><span class="v12-tg"></span>图片不合规（含水印 / 分辨率不足）</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--g2);border-radius:8px;padding:6px 9px"><span class="v12-tg off"></span>类目挂载错误</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--g2);border-radius:8px;padding:6px 9px"><span class="v12-tg off"></span>与现有商品重复（疑似 6902766500011 变体）</div>
+</div>
+<div class="fld"><span>补充说明（回传提交方）</span><span class="ipt" style="min-height:52px">主图第 3 张含水印，请替换后重新提交；规格请拆分单袋 / 整箱两个 SKU。</span></div>
+<div class="tipbar" style="padding:8px 11px"><span class="ic">i</span><span>驳回后商品退回来源方：AI 采集任务自动进入<b>复核队列</b>，供应商提交回传至供应商后台并短信通知。</span></div>
+</div>
+<div class="m-ft"><span class="btn">取消</span><span class="btn btn-d">确认驳回</span></div>
+</div>
+<div class="modal" style="position:static;transform:none;width:auto;max-width:none;max-height:none;box-shadow:0 8px 26px rgba(23,23,23,.08)">
+<div class="m-hd"><span class="pt">批量导入 Excel <span class="v16-tag lt">v1.6</span></span><span class="d-x">✕</span></div>
+<div class="m-bd" style="display:grid;gap:10px">
+<div class="frow">
+<span class="btn" style="flex:1;justify-content:center">① 下载导入模板（与版块09 模板中心同源）</span>
+</div>
+<div class="fld"><span>② 上传文件</span><div style="border:1px dashed var(--g3);border-radius:10px;padding:14px;text-align:center;color:var(--g5);font-size:11.5px;background:var(--g0)">goods_import_20260911.xlsx（1,036 行）<br><span style="font-size:10.5px;color:var(--g4)">支持 .xlsx / .csv · 单次 ≤5,000 行</span></div></div>
+<div class="fld"><span>③ 校验结果（异步，完成后通知）</span></div>
+<div class="tblwrap">
+<table class="tbl">
+<thead><tr><th>校验项</th><th class="num">行数</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td><span class="tag tag-g">可导入</span></td><td class="num">1,025</td><td>字段完整 · 条码核验通过</td></tr>
+<tr><td><span class="tag tag-o">重复跳过</span></td><td class="num">8</td><td>与现有主数据重复 · 三重查重命中</td></tr>
+<tr><td><span class="tag tag-r">失败</span></td><td class="num">3</td><td>条码格式错误 · 可下载错误明细</td></tr>
+</tbody>
+</table>
+</div>
+<div class="fld"><span>重复行处理</span><span class="sel" style="justify-content:space-between">跳过（保留现有主数据）<b style="color:var(--g4)">▾</b></span></div>
+<div class="tipbar" style="padding:8px 11px"><span class="ic">!</span><span>覆盖参考价会影响租户侧「新版本可同步」提示，操作前请确认；导入动作记入<b>日志中心</b>。</span></div>
+</div>
+<div class="m-ft"><span class="btn">取消</span><span class="btn btn-p">开始导入</span></div>
+</div>
+</div>
+</div>
+</div><!-- /shell -->
+</div><!-- /ui-scroll -->
+</figure>
+</section>
+
 <footer class="doc-ft">
-<span>智享全链 总后台 UI/UX 界面设计稿 V1.3 · 2026-09-10 · 内部资料</span>
-<span>依据《智享全链_总后台建设规划_v1.0》绘制 · 16 版块 · 单文件零依赖 · 改造对接施工图</span>
+<span>智享全链 总后台 UI/UX 界面设计稿 V1.6 · 2026-09-11 · 内部资料</span>
+<span>依据《智享全链_总后台建设规划_v1.0》绘制 · 17 版块 · 单文件零依赖 · 改造对接施工图</span>
 </footer>
 
 </main><!-- /doc -->
@@ -2225,8 +2564,8 @@ h1{font-size:30px;line-height:1.3;letter-spacing:.5px}
 <script>
 (function(){
 'use strict';
-/* ---------- 侧边栏导航注入（保证 16 个界面图框架一致） ---------- */
-var NAVS=[["概览",[["dashboard","运营大盘"]]],["租户",[["tenant","租户管理"],["plan","套餐管理"],["bill","账单计费"]]],["营销",[["market","渠道推广"],["agent","代理商管理"],["coupon","优惠码"],["clue","招商线索"]]],["平台",[["admin","管理员权限"],["config","系统配置"],["tpl","模板中心"]]],["AI 中心",[["aim","模型接入"],["aib","计费管理"],["aiu","用量监控"]]],["运维",[["ops","监控告警"],["log","日志中心"],["ntc","公告管理"],["tkt","工单系统"],["rel","版本发布"]]],["开放平台",[["apikey","API 密钥"],["webhook","Webhook"]]]];
+/* ---------- 侧边栏导航注入（保证 17 个界面图框架一致） ---------- */
+var NAVS=[["概览",[["dashboard","运营大盘"]]],["租户",[["tenant","租户管理"],["plan","套餐管理"],["bill","账单计费"]]],["营销",[["market","渠道推广"],["agent","代理商管理"],["goods","商品库"],["coupon","优惠码"],["clue","招商线索"]]],["平台",[["admin","管理员权限"],["config","系统配置"],["tpl","模板中心"]]],["AI 中心",[["aim","模型接入"],["aib","计费管理"],["aiu","用量监控"]]],["运维",[["ops","监控告警"],["log","日志中心"],["ntc","公告管理"],["tkt","工单系统"],["rel","版本发布"]]],["开放平台",[["apikey","API 密钥"],["webhook","Webhook"]]]];
 document.querySelectorAll('.sh-nav').forEach(function(n){
   var act=n.getAttribute('data-active')||'';
   var html='';
