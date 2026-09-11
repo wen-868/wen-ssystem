@@ -1,0 +1,990 @@
+{
+  "schema": "zhixiang-r101-task-form/1.0",
+  "project": "智享全链 · 总后台 UI 设计稿 v1.6 对齐改造",
+  "round": "R101",
+  "generatedAt": "2026-09-12",
+  "reviewOwner": "凌舟（Codex）",
+  "sources": {
+    "design": "docs/智享全链_总后台UI设计稿_v1.6.html",
+    "plan": "docs/智享全链_总后台建设规划_v1.3.html",
+    "scheme": "docs/总后台UI设计稿v1.5-改造方案.md",
+    "taskBoard": "docs/tasks/current-tasks.md"
+  },
+  "mandatoryReads": [
+    "docs/项目规则.md",
+    "docs/项目统一标准.md",
+    "docs/tasks/current-tasks.md",
+    "docs/总后台UI设计稿v1.5-改造方案.md",
+    "docs/智享全链_总后台UI设计稿_v1.6.html",
+    "docs/智享全链_总后台建设规划_v1.3.html",
+    "docs/踩坑日志.md"
+  ],
+  "rules": {
+    "minimalChange": "只改有问题的地方，禁止顺手重构、禁止扩大范围",
+    "noFakeData": "第 1 步允许空态，禁止模拟数据；第 2 步起全部真实接口",
+    "configurable": "设计稿中的比例/汇率/阈值/开关一律做成后台配置界面，不写死默认值；未配置按设计稿置灰阻断",
+    "boundary": "严守三不边界（不改业务数据/不看业务明细/不干预租户内部权限）",
+    "dbChange": "新增表必须先写迁移脚本并登记 docs/数据库变更清单.md",
+    "apiContract": "新接口必须先更新 docs/API接口文档.md 契约",
+    "commits": "提交信息格式 type: 中文描述；只推 main 分支"
+  },
+  "acceptanceGates": [
+    "npm --workspace backend run build 与 cd saas-admin && npm run build 均 exit 0",
+    "cd backend && npx vitest run 全绿",
+    "页面区块/列名/按钮/弹窗与设计稿 §11 对照表逐项一致",
+    "关键操作具备二次确认与留痕",
+    "跨租户越权测试通过"
+  ],
+  "assignment": {
+    "workbuddy": {
+      "scope": "第 1 步 界面成型（17 板块 UI + 视觉底座）",
+      "taskIds": [
+        "R101-S1-00",
+        "R101-S1-01",
+        "R101-S1-02",
+        "R101-S1-03",
+        "R101-S1-04",
+        "R101-S1-05",
+        "R101-S1-06",
+        "R101-S1-07",
+        "R101-S1-08",
+        "R101-S1-09",
+        "R101-S1-10",
+        "R101-S1-11",
+        "R101-S1-12",
+        "R101-S1-13",
+        "R101-S1-14",
+        "R101-S1-15",
+        "R101-S1-16",
+        "R101-S1-17"
+      ]
+    },
+    "zcode": {
+      "scope": "第 2 步 真实环境对接 + 第 3 步 后端功能补齐",
+      "taskIds": [
+        "R101-S2-01",
+        "R101-S2-02",
+        "R101-S2-03",
+        "R101-S2-04",
+        "R101-S3-01",
+        "R101-S3-02",
+        "R101-S3-03",
+        "R101-S3-04",
+        "R101-S3-05",
+        "R101-S3-06",
+        "R101-S3-07",
+        "R101-S3-08"
+      ]
+    },
+    "codex": {
+      "scope": "规划、契约与迁移清单维护、派单与验收复核（不代写业务代码）",
+      "taskIds": []
+    }
+  },
+  "summary": {
+    "total": 30,
+    "byStep": {
+      "S1": 18,
+      "S2": 4,
+      "S3": 8
+    },
+    "byAgent": {
+      "workbuddy": 18,
+      "zcode": 12
+    },
+    "totalDays": 101
+  },
+  "tasks": [
+    {
+      "id": "R101-S1-00",
+      "title": "设计系统与框架落地",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 1,
+      "deps": [],
+      "files": [
+        "saas-admin/src/styles/*",
+        "saas-admin/src/layouts/PlatformLayout.vue"
+      ],
+      "deliverable": [
+        "设计 token 落 CSS 变量（主色 #2563eb/hover #1d4ed8/浅底 #eff6ff、灰系 #171717·#f7f7f7、状态色绿橙红紫、圆角 12/16px）",
+        "侧边栏深色 206px + 顶栏 50px",
+        "28 菜单按六组重排",
+        "抽公共组件 StatCard/StatusTag/DetailDrawer/SlaBar/KeyValueList"
+      ],
+      "acceptance": [
+        "npm run build exit 0",
+        "token 变量在全局样式可见"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-01",
+      "title": "01 运营大盘界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 2,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/Dashboard.vue"
+      ],
+      "deliverable": [
+        "口径声明 + 导出报表 + 周期选择",
+        "6 指标卡（租户总数/今日新增/有效租户/本月收入/平台订单总量/大模型消耗，含环比）",
+        "租户增长趋势（日新增+累计双轴）",
+        "套餐分布（环形+占比+升降级流向）",
+        "收入构成（套餐/增值分列）",
+        "右侧常驻：待办四类 + 系统健康",
+        "底部报表导出卡（类型多选/周期/格式/导出任务表）"
+      ],
+      "acceptance": [
+        "§11 对照表 01 行逐项一致",
+        "build exit 0"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-02",
+      "title": "02 租户管理界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/tenant/TenantList.vue",
+        "TenantDetail.vue"
+      ],
+      "deliverable": [
+        "状态 Tab（全部/正常/欠费/冻结/已注销，带数量）",
+        "筛选行（套餐/状态/到期时间/关键词）",
+        "表格（名称含标签/联系人/手机脱敏/套餐/到期/资源占用双进度条/状态/操作）",
+        "436px 详情抽屉（基础信息+6项配额进度+套餐时间线）",
+        "新建/编辑四步抽屉",
+        "四弹窗：模拟登录/数据重置/数据导出/租户概况"
+      ],
+      "acceptance": [
+        "行内 7 项操作齐全",
+        "四弹窗齐备且含二次确认",
+        "§11 02 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-03",
+      "title": "03 套餐管理界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/Packages.vue",
+        "PackageForm.vue"
+      ],
+      "deliverable": [
+        "引擎式提示条",
+        "套餐卡片（状态/价格周期/订阅数/配额摘要/编辑·复制·停售·配额详情）",
+        "滑出表单五分区（基本信息/定价与周期/28 项功能开关矩阵/资源配额/升降级规则）",
+        "升降级流向报表",
+        "改价二次确认 + 新旧价格快照展示"
+      ],
+      "acceptance": [
+        "28 项开关矩阵可见且可勾选",
+        "§11 03 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-04",
+      "title": "04 账单计费界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/billing/*",
+        "Reconciliation.vue"
+      ],
+      "deliverable": [
+        "总览 3 指标（本月总收入/待收金额/欠费租户数含分级）",
+        "Tab1 账单流水（表格+详情/开票）",
+        "Tab2 欠费管理（时间线+列表+批量催缴）",
+        "Tab3 对账中心（应收 vs 实收+差异来源）",
+        "Tab4 增值扣费（与 ZD 单号对应）",
+        "欠费处理策略配置卡（宽限期/降级/冻结/提醒）"
+      ],
+      "acceptance": [
+        "四 Tab 齐全",
+        "欠费策略配置卡可交互",
+        "§11 04 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-05",
+      "title": "05 AI 计费界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/ai-config/*"
+      ],
+      "deliverable": [
+        "Tab1 模型接入（公共/自定义双分区+输入输出单价+免费赠送）",
+        "Tab2 计费策略（套餐加成倍率+用尽策略三选一）",
+        "Tab3 额度包商品",
+        "Tab4 积分抵扣（启用开关+汇率配置+未配置置灰+四级扣减顺序+流水）",
+        "Tab5 计量流水（含扣减来源列）",
+        "Tab6 用量看板"
+      ],
+      "acceptance": [
+        "六 Tab 齐全",
+        "汇率未配置时总开关置灰并提示",
+        "§11 05 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-06",
+      "title": "06 营销渠道界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/marketing/*"
+      ],
+      "deliverable": [
+        "推广码列表（码值/来源/创建人/注册与转化/有效期/状态/二维码·数据·停用）",
+        "生成推广码弹窗",
+        "老带新台账（计奖基数/奖励积分/年度累计/冲回）",
+        "渠道效果报表",
+        "奖励规则配置区（比例/上限/冷静期/冲回）"
+      ],
+      "acceptance": [
+        "推广码与台账两区齐全",
+        "§11 06 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-07",
+      "title": "07 管理员权限界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/admin/*"
+      ],
+      "deliverable": [
+        "管理员列表（姓名/账号/角色/数据范围/最近登录 IP/状态/操作）",
+        "邀请管理员弹窗",
+        "RBAC 权限树（菜单/操作/数据三维度）",
+        "权限变更快照查看",
+        "账号安全说明（5 次锁定/首登改密/90 天提醒）"
+      ],
+      "acceptance": [
+        "权限树可勾选且三维度齐全",
+        "§11 07 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-08",
+      "title": "08 系统配置界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/Settings.vue"
+      ],
+      "deliverable": [
+        "分区1 平台基础信息（名称/客服电话/Logo 200×200 上传/横幅文案/版权/备案号）",
+        "分区2 全局功能开关（多仓库/多计量单位/会员营销/小程序商城/开放平台 API/报表中心 + 新租户默认值）",
+        "分区3 数据字典四类（计量单位/分类模板/支付渠道/单据类型 + 批量导入 + 引用租户数）",
+        "分区4 第三方对接（密钥脱敏 + 租户自有密钥开关 + 对象存储上限与三档预警）"
+      ],
+      "acceptance": [
+        "四分区锚点切换",
+        "§11 08 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-09",
+      "title": "09 模板中心界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/templates/*"
+      ],
+      "deliverable": [
+        "初始化模板卡片（行业/配置项数/编号规则/换算/打印模板数/被引用租户/版本）",
+        "新建四段式表单（编号规则/换算/打印模板/默认仓库账户）",
+        "版本记录",
+        "套用开户流程卡（值复制预览）",
+        "公共打印模板",
+        "导入 4 + 导出 3 模板"
+      ],
+      "acceptance": [
+        "四段式表单齐全",
+        "套用开户流程可见",
+        "§11 09 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-10",
+      "title": "10 运维监控界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/monitor/MonitorView.vue",
+        "views/AuditLogs.vue"
+      ],
+      "deliverable": [
+        "API 指标卡（请求量/成功率含 P95/活跃告警分级）",
+        "API 小时级趋势图（请求量+错误率）",
+        "存储监控 TOP5 + 孤儿文件扫描",
+        "各租户 API 调用量与三档阈值配置（80/95/100）",
+        "日志中心三 Tab（管理员操作/租户登录/系统错误，仅追加）",
+        "代登录审计 Tab（五步含回放）"
+      ],
+      "acceptance": [
+        "阈值配置可编辑",
+        "§11 10 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-11",
+      "title": "11 公告管理界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 2,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/Announcements.vue"
+      ],
+      "deliverable": [
+        "状态统计（草稿/定时/已发布/已撤回）+ 公告模板 6 个",
+        "列表（标题/类型/范围/渠道/发布时间/触达已读/状态/操作）",
+        "新建公告表单（类型必选/范围圈选/渠道勾选/定时/变量正文）",
+        "预览 + 超 50% 强制预览二次确认",
+        "已读明细与撤回"
+      ],
+      "acceptance": [
+        "类型必选项存在",
+        "§11 11 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-12",
+      "title": "12 工单系统界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 4,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/tickets/*"
+      ],
+      "deliverable": [
+        "三列看板（待处理/处理中/已解决，带数量）",
+        "工单卡片（分类徽标/套餐/标题/租户/单号/SLA 剩余条）",
+        "详情面板（对话时间线公开与内部分色+状态流转+关联代登录/知识库）",
+        "服务报表",
+        "SLA 与自动路由配置区",
+        "只看我的筛选"
+      ],
+      "acceptance": [
+        "SLA 剩余时间条可见",
+        "§11 12 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-13",
+      "title": "13 版本发布界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/AppVersions.vue"
+      ],
+      "deliverable": [
+        "版本列表（版本号/说明/灰度范围/批次进度/采纳率与错误率/状态/窗口/操作）",
+        "新建发布三步向导",
+        "功能开关面板（按租户/按套餐实时开关）",
+        "灰度三档与熔断阈值配置"
+      ],
+      "acceptance": [
+        "三步向导可完整走通",
+        "§11 13 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-14",
+      "title": "14 开放平台界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 3,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/open/*"
+      ],
+      "deliverable": [
+        "密钥 Tab（租户/AppKey 脱敏/权限范围/QPS/近7日调用/错误率/状态/操作）",
+        "Webhook Tab（事件类型/回调地址/签名密钥/重试策略/推送成功率/最近触发）",
+        "接口目录与版本（含商品数据查询 API）",
+        "签发密钥弹窗（Secret 一次性展示+强制确认）"
+      ],
+      "acceptance": [
+        "Secret 一次性展示交互到位",
+        "§11 14 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-15",
+      "title": "15 登录页改版",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 1,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/login/PlatformLogin.vue"
+      ],
+      "deliverable": [
+        "左侧品牌区（logo/slogan/三卖点/网格插画）",
+        "右侧表单（账号/密码/图形验证码/记住设备/忘记密码/登录）",
+        "安全协议与页脚版权备案"
+      ],
+      "acceptance": [
+        "与设计稿分栏版式一致",
+        "§11 15 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-16",
+      "title": "16 代理商管理界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 4,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/agents/*"
+      ],
+      "deliverable": [
+        "配置页指标卡（总数/层级分布/发展商户/本月分润/待结算）",
+        "代理商列表（名称含推广码/等级/区域/联系人/商户数/销售额/分润/状态/操作）",
+        "开通代理商抽屉（区域/层级权益/结算信息）",
+        "分润页：比例矩阵（未配全置灰）+ 三模式开关 + 台账/结算/冲回 + 基数口径说明"
+      ],
+      "acceptance": [
+        "比例矩阵未配全时置灰并提示",
+        "§11 16 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S1-17",
+      "title": "17 商品库界面",
+      "step": "S1",
+      "stepName": "界面成型",
+      "agent": "workbuddy",
+      "priority": "P0",
+      "estimateDays": 4,
+      "deps": [
+        "R101-S1-00"
+      ],
+      "files": [
+        "saas-admin/src/views/library/*"
+      ],
+      "deliverable": [
+        "指标卡行（商品总量/类目/品牌/本月调取/待审核）",
+        "Tab1 主数据（筛选+表格含条码/类目/品牌/参考价/来源/调取热度+批量导入三重查重）",
+        "Tab2 类目管理（三级树+拖拽+对租户可见+删除前置校验）",
+        "Tab3 品牌库（商标图+授权状态）",
+        "Tab4 调取统计（Top10+趋势+类目分布）",
+        "Tab5 审核队列（置信度快审+模板化驳回）",
+        "租户调取机制配置卡",
+        "三弹窗（详情/驳回/导入）"
+      ],
+      "acceptance": [
+        "五 Tab 齐全",
+        "调取机制配置卡可交互",
+        "§11 17 行逐项一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S2-01",
+      "title": "一期板块接口对接",
+      "step": "S2",
+      "stepName": "真实环境对接",
+      "agent": "zcode",
+      "priority": "P1",
+      "estimateDays": 3,
+      "deps": [
+        "S1 全部完成"
+      ],
+      "files": [
+        "backend/src/routes/platform-*.ts",
+        "saas-admin/src/api/*",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "大盘 6 指标与趋势/分布接口接通",
+        "租户列表/详情/状态变更/配额接通",
+        "套餐 CRUD 与升降级接通",
+        "系统配置读写接通",
+        "公告 CRUD 与推送接通",
+        "版本发布接通",
+        "登录鉴权与图形验证码接通"
+      ],
+      "acceptance": [
+        "各页面数据来自真实接口",
+        "接口 200 无 401/500"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S2-02",
+      "title": "28 项配置项落库与回显",
+      "step": "S2",
+      "stepName": "真实环境对接",
+      "agent": "zcode",
+      "priority": "P1",
+      "estimateDays": 3,
+      "deps": [
+        "S1 全部完成"
+      ],
+      "files": [
+        "backend/src/routes/platform-*.ts",
+        "saas-admin/src/api/*",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "套餐类（定价/周期/开关矩阵/配额/升降级/续费）",
+        "账单类（欠费策略/增值单价）",
+        "AI 类（模型单价/倍率/用尽策略/额度包/积分汇率）",
+        "系统类（功能开关默认值/字典/密钥/存储预警）",
+        "监控类（API 阈值/路由）",
+        "运营类（公告策略/奖励规则/归因）",
+        "发布类（灰度/熔断/开关）",
+        "开放平台类（QPS/权限/重试）",
+        "代理商类（层级权益/分润矩阵）",
+        "商品库类（调取机制/下架策略）"
+      ],
+      "acceptance": [
+        "保存写库并刷新回显",
+        "敏感项双因子 + 前后值快照",
+        "未配置项置灰阻断提示"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S2-03",
+      "title": "监控/日志/商品库数据对接",
+      "step": "S2",
+      "stepName": "真实环境对接",
+      "agent": "zcode",
+      "priority": "P1",
+      "estimateDays": 3,
+      "deps": [
+        "S1 全部完成"
+      ],
+      "files": [
+        "backend/src/routes/platform-*.ts",
+        "saas-admin/src/api/*",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "API 与存储指标真实数据",
+        "日志三 Tab 真实数据",
+        "代登录审计真实数据",
+        "商品库五 Tab 真实数据（含分页/筛选/排序/导出）"
+      ],
+      "acceptance": [
+        "无占位数据",
+        "空态展示正确"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S2-04",
+      "title": "全站空态清理与端到端联调",
+      "step": "S2",
+      "stepName": "真实环境对接",
+      "agent": "zcode",
+      "priority": "P1",
+      "estimateDays": 2,
+      "deps": [
+        "S1 全部完成"
+      ],
+      "files": [
+        "backend/src/routes/platform-*.ts",
+        "saas-admin/src/api/*",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "全站占位文案扫描清零",
+        "空态/加载态/错误态完整",
+        "主流程端到端脚本通过",
+        "控制台零 JS 错误"
+      ],
+      "acceptance": [
+        "grep 无占位文案",
+        "端到端脚本通过"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-01",
+      "title": "平台 RBAC + 模板中心",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 6,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_platform_role/_permission/_user_role 三表 + 迁移",
+        "t_init_template(_version) 两表 + 迁移",
+        "权限校验中间件 + 越权 403",
+        "模板 CRUD + 套用开户值复制接口"
+      ],
+      "acceptance": [
+        "越权 403 用例通过",
+        "模板套用后租户侧配置值复制成功",
+        "迁移登记数据库变更清单"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-02",
+      "title": "账单计费与增值扣费",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 4,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_tenant_bill/t_tenant_arrears 表 + 迁移",
+        "出账作业与日对账",
+        "欠费策略执行（宽限→降级→冻结）",
+        "增值扣费（存储/API/短信）出账接口"
+      ],
+      "acceptance": [
+        "对账差异 <0.1% 告警",
+        "欠费时序在测试租户上正确执行"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-03",
+      "title": "AI 计费与积分抵扣",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 5,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "模型单价/套餐倍率/额度包/积分汇率表",
+        "ai-base 网关逐次计量与扣减来源",
+        "额度不足网关层拒绝",
+        "积分抵扣流水与台账勾稽"
+      ],
+      "acceptance": [
+        "计量流水可追溯到单次调用",
+        "积分抵扣流水逐笔勾稽一致"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-04",
+      "title": "营销渠道与老带新",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 5,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_promo_code/t_referral_invite/t_referral_reward 表 + 迁移",
+        "归因逻辑（后触点优先、24h 改绑）",
+        "奖励计发与冲回",
+        "注册链路写入归因"
+      ],
+      "acceptance": [
+        "注册带码后归因落库",
+        "退款/注销触发冲回"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-05",
+      "title": "工单系统",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 5,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_ticket/t_ticket_message/t_ticket_sla_rule 表 + 迁移",
+        "状态机与 SLA 计时",
+        "自动路由规则",
+        "对话与流转接口"
+      ],
+      "acceptance": [
+        "SLA 倒计时准确",
+        "免费版限制生效"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-06",
+      "title": "开放平台（密钥 + Webhook）",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 5,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_open_api_key/t_open_webhook/t_open_webhook_delivery 表 + 迁移",
+        "签发/轮换/吊销 + 鉴权限流",
+        "Webhook 签名 + 退避重试 + 自动暂停",
+        "商品数据查询 API"
+      ],
+      "acceptance": [
+        "Secret 仅签发可见",
+        "重试与暂停逻辑按策略生效"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-07",
+      "title": "代理商配置与分润",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 6,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "t_agent/t_agent_region/t_agent_profit_matrix/t_agent_profit_ledger 表 + 迁移",
+        "归因优先级（代理商优先老带新）",
+        "分润计提（矩阵未配全阻断）+ 结算单",
+        "冲回与防套利校验"
+      ],
+      "acceptance": [
+        "矩阵未配全时计提阻断",
+        "分润基数=订单实收现金"
+      ],
+      "status": "pending",
+      "evidence": []
+    },
+    {
+      "id": "R101-S3-08",
+      "title": "AI 底座 MCP 接口",
+      "step": "S3",
+      "stepName": "补齐缺失功能",
+      "agent": "zcode",
+      "priority": "P2",
+      "estimateDays": 3,
+      "deps": [
+        "对应 S1 界面完成",
+        "S2 契约文档更新"
+      ],
+      "files": [
+        "backend/src/services/platform/*",
+        "backend/src/routes/platform-*.ts",
+        "docs/migrations/*.sql",
+        "saas-admin/src/views/*"
+      ],
+      "deliverable": [
+        "引入 MCP SDK",
+        "ToolRegistry 暴露为 MCP Tools（端点 /api/platform/ai/mcp，HTTP/SSE）",
+        "认证与租户映射（AppKey + 租户上下文）",
+        "工具白名单与调用审计"
+      ],
+      "acceptance": [
+        "任意 MCP 客户端 tools/list 成功",
+        "至少 1 个工具调用成功"
+      ],
+      "status": "pending",
+      "evidence": []
+    }
+  ]
+}

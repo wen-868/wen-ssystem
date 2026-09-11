@@ -1,0 +1,305 @@
+[
+  {
+    "id": "R101-S2-01",
+    "title": "一期板块接口对接",
+    "step": "S2",
+    "deps": [
+      "S1 全部完成"
+    ],
+    "files": [
+      "backend/src/routes/platform-*.ts",
+      "saas-admin/src/api/*",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "大盘 6 指标与趋势/分布接口接通",
+      "租户列表/详情/状态变更/配额接通",
+      "套餐 CRUD 与升降级接通",
+      "系统配置读写接通",
+      "公告 CRUD 与推送接通",
+      "版本发布接通",
+      "登录鉴权与图形验证码接通"
+    ],
+    "acceptance": [
+      "各页面数据来自真实接口",
+      "接口 200 无 401/500"
+    ]
+  },
+  {
+    "id": "R101-S2-02",
+    "title": "28 项配置项落库与回显",
+    "step": "S2",
+    "deps": [
+      "S1 全部完成"
+    ],
+    "files": [
+      "backend/src/routes/platform-*.ts",
+      "saas-admin/src/api/*",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "套餐类（定价/周期/开关矩阵/配额/升降级/续费）",
+      "账单类（欠费策略/增值单价）",
+      "AI 类（模型单价/倍率/用尽策略/额度包/积分汇率）",
+      "系统类（功能开关默认值/字典/密钥/存储预警）",
+      "监控类（API 阈值/路由）",
+      "运营类（公告策略/奖励规则/归因）",
+      "发布类（灰度/熔断/开关）",
+      "开放平台类（QPS/权限/重试）",
+      "代理商类（层级权益/分润矩阵）",
+      "商品库类（调取机制/下架策略）"
+    ],
+    "acceptance": [
+      "保存写库并刷新回显",
+      "敏感项双因子 + 前后值快照",
+      "未配置项置灰阻断提示"
+    ]
+  },
+  {
+    "id": "R101-S2-03",
+    "title": "监控/日志/商品库数据对接",
+    "step": "S2",
+    "deps": [
+      "S1 全部完成"
+    ],
+    "files": [
+      "backend/src/routes/platform-*.ts",
+      "saas-admin/src/api/*",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "API 与存储指标真实数据",
+      "日志三 Tab 真实数据",
+      "代登录审计真实数据",
+      "商品库五 Tab 真实数据（含分页/筛选/排序/导出）"
+    ],
+    "acceptance": [
+      "无占位数据",
+      "空态展示正确"
+    ]
+  },
+  {
+    "id": "R101-S2-04",
+    "title": "全站空态清理与端到端联调",
+    "step": "S2",
+    "deps": [
+      "S1 全部完成"
+    ],
+    "files": [
+      "backend/src/routes/platform-*.ts",
+      "saas-admin/src/api/*",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "全站占位文案扫描清零",
+      "空态/加载态/错误态完整",
+      "主流程端到端脚本通过",
+      "控制台零 JS 错误"
+    ],
+    "acceptance": [
+      "grep 无占位文案",
+      "端到端脚本通过"
+    ]
+  },
+  {
+    "id": "R101-S3-01",
+    "title": "平台 RBAC + 模板中心",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_platform_role/_permission/_user_role 三表 + 迁移",
+      "t_init_template(_version) 两表 + 迁移",
+      "权限校验中间件 + 越权 403",
+      "模板 CRUD + 套用开户值复制接口"
+    ],
+    "acceptance": [
+      "越权 403 用例通过",
+      "模板套用后租户侧配置值复制成功",
+      "迁移登记数据库变更清单"
+    ]
+  },
+  {
+    "id": "R101-S3-02",
+    "title": "账单计费与增值扣费",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_tenant_bill/t_tenant_arrears 表 + 迁移",
+      "出账作业与日对账",
+      "欠费策略执行（宽限→降级→冻结）",
+      "增值扣费（存储/API/短信）出账接口"
+    ],
+    "acceptance": [
+      "对账差异 <0.1% 告警",
+      "欠费时序在测试租户上正确执行"
+    ]
+  },
+  {
+    "id": "R101-S3-03",
+    "title": "AI 计费与积分抵扣",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "模型单价/套餐倍率/额度包/积分汇率表",
+      "ai-base 网关逐次计量与扣减来源",
+      "额度不足网关层拒绝",
+      "积分抵扣流水与台账勾稽"
+    ],
+    "acceptance": [
+      "计量流水可追溯到单次调用",
+      "积分抵扣流水逐笔勾稽一致"
+    ]
+  },
+  {
+    "id": "R101-S3-04",
+    "title": "营销渠道与老带新",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_promo_code/t_referral_invite/t_referral_reward 表 + 迁移",
+      "归因逻辑（后触点优先、24h 改绑）",
+      "奖励计发与冲回",
+      "注册链路写入归因"
+    ],
+    "acceptance": [
+      "注册带码后归因落库",
+      "退款/注销触发冲回"
+    ]
+  },
+  {
+    "id": "R101-S3-05",
+    "title": "工单系统",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_ticket/t_ticket_message/t_ticket_sla_rule 表 + 迁移",
+      "状态机与 SLA 计时",
+      "自动路由规则",
+      "对话与流转接口"
+    ],
+    "acceptance": [
+      "SLA 倒计时准确",
+      "免费版限制生效"
+    ]
+  },
+  {
+    "id": "R101-S3-06",
+    "title": "开放平台（密钥 + Webhook）",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_open_api_key/t_open_webhook/t_open_webhook_delivery 表 + 迁移",
+      "签发/轮换/吊销 + 鉴权限流",
+      "Webhook 签名 + 退避重试 + 自动暂停",
+      "商品数据查询 API"
+    ],
+    "acceptance": [
+      "Secret 仅签发可见",
+      "重试与暂停逻辑按策略生效"
+    ]
+  },
+  {
+    "id": "R101-S3-07",
+    "title": "代理商配置与分润",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "t_agent/t_agent_region/t_agent_profit_matrix/t_agent_profit_ledger 表 + 迁移",
+      "归因优先级（代理商优先老带新）",
+      "分润计提（矩阵未配全阻断）+ 结算单",
+      "冲回与防套利校验"
+    ],
+    "acceptance": [
+      "矩阵未配全时计提阻断",
+      "分润基数=订单实收现金"
+    ]
+  },
+  {
+    "id": "R101-S3-08",
+    "title": "AI 底座 MCP 接口",
+    "step": "S3",
+    "deps": [
+      "对应 S1 界面完成",
+      "S2 契约文档更新"
+    ],
+    "files": [
+      "backend/src/services/platform/*",
+      "backend/src/routes/platform-*.ts",
+      "docs/migrations/*.sql",
+      "saas-admin/src/views/*"
+    ],
+    "deliverable": [
+      "引入 MCP SDK",
+      "ToolRegistry 暴露为 MCP Tools（端点 /api/platform/ai/mcp，HTTP/SSE）",
+      "认证与租户映射（AppKey + 租户上下文）",
+      "工具白名单与调用审计"
+    ],
+    "acceptance": [
+      "任意 MCP 客户端 tools/list 成功",
+      "至少 1 个工具调用成功"
+    ]
+  }
+]
