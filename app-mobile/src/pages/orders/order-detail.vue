@@ -64,7 +64,9 @@
       <!-- 商品明细 -->
       <view class="info-card">
         <view class="info-title">商品明细</view>
-        <view class="item-row" v-for="item in order.items" :key="item.id">
+        <!-- R102-01：后端订单明细不返回 id，原 :key="item.id" 恒为 undefined 会导致 Vue 复用错行，
+             改为 skuId + 索引兜底，保证同一订单内多行明细可被正确区分 -->
+        <view class="item-row" v-for="(item, idx) in order.items" :key="`${item.skuId}-${idx}`">
           <view class="item-info">
             <text class="item-name">{{ item.productName || item.skuName }}</text>
             <text class="item-spec">x{{ item.quantity || item.totalBottleQty }}</text>

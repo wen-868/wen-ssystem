@@ -136,6 +136,33 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
   PAID: '已支付',
 }
 
+/**
+ * 订单明细映射（R102-01）
+ * 后端 t_miniapp_order_item 的 unit_price / subtotal_amount / qty 均为 DECIMAL，
+ * mysql2 默认按「字符串」返回（实测 `unit_price: "2899.00"`）。若原样进入视图层，
+ * 模板里的 `item.unitPrice.toFixed(2)` 会抛 TypeError → App 端整页白屏。
+ * 因此在映射层统一 Number() 归一，视图层可安全格式化。
+ * 注意：后端不返回明细 id，列表 key 由页面用 skuId + 索引兜底。
+ */
+function mapOrderItem(it: any): OrderItem {
+  const quantity = Number(it.quantity ?? it.qty ?? 0)
+  const totalPrice = it.totalPrice ?? it.total_price
+  return {
+    skuId: Number(it.skuId ?? it.sku_id ?? 0),
+    skuName: it.skuName ?? it.sku_name ?? '',
+    productName: it.productName ?? it.product_name,
+    boxQty: Number(it.boxQty ?? it.box_qty ?? 0),
+    bottleQty: Number(it.bottleQty ?? it.bottle_qty ?? quantity),
+    totalBottleQty: Number(it.totalBottleQty ?? it.total_bottle_qty ?? quantity),
+    quantity,
+    unitPrice: Number(it.unitPrice ?? it.unit_price ?? 0),
+    totalPrice: totalPrice != null ? Number(totalPrice) : undefined,
+    subtotalAmount: Number(
+      it.subtotalAmount ?? it.subtotal_amount ?? totalPrice ?? 0
+    ),
+  }
+}
+
 function mapOrder(r: any): OrderInfo {
   const status = r.orderStatus ?? r.status ?? ''
   const fulfillmentType = r.fulfillmentType ?? r.fulfillment_type ?? ''
@@ -158,7 +185,7 @@ function mapOrder(r: any): OrderInfo {
     totalAmount: Number(r.totalAmount ?? r.total_amount ?? r.payableAmount ?? r.payable_amount ?? 0),
     paidAmount: Number(r.paidAmount ?? r.paid_amount ?? r.receivedAmount ?? 0),
     receivableAmount: Number(r.receivableAmount ?? r.receivable_amount ?? r.totalAmount ?? r.payableAmount ?? 0),
-    items: Array.isArray(r.items) ? r.items : [],
+    items: Array.isArray(r.items) ? r.items.map(mapOrderItem) : [],
     logs: Array.isArray(r.logs) ? r.logs : undefined,
     createdAt: r.createdAt ?? r.created_at ?? r.createTime ?? '',
     logisticsInfo: r.logisticsInfo ?? r.logistics,
