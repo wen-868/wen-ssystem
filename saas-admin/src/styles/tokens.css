@@ -81,6 +81,15 @@
   --chart-4: #dc2626;
   --chart-5: #7c3aed;
   --chart-6: #06B6D4;
+  /* 设计稿图表同色系梯度（来源：sec-overview 折线/柱状/环形图实测）
+     #93c5fd=累计线浅蓝 · #60a5fa=柱状中蓝 · #1e40af=柱状深蓝 · #94a3b8=免费版中性灰 */
+  --chart-1-soft: #93c5fd;
+  --chart-1-mid: #60a5fa;
+  --chart-1-deep: #1e40af;
+  --chart-neutral: #94a3b8;
+  /* 图表坐标轴/网格/刻度（设计稿 SVG 内联色：网格 #f0f0f0 · 刻度 #a3a3a3） */
+  --chart-grid: #f0f0f0;
+  --chart-axis-text: #a3a3a3;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Frosted Glass — 磨砂半透明
@@ -104,17 +113,22 @@
   --text-inverse: #FFFFFF;
   --text-link: #2563eb;
 
-  /* 侧边栏深色文字（侧边栏底色 --bg-sidebar 为 #171717） */
-  --sidebar-text-primary: rgba(255, 255, 255, 0.92);
-  --sidebar-text-secondary: rgba(255, 255, 255, 0.60);
-  --sidebar-text-muted: rgba(255, 255, 255, 0.38);
+  /* 侧边栏（浅色体系）—— 依据设计稿 v1.6 .sh-side / .sh-nav / .sh-side-ft 实测值：
+     .sh-side{background:#fff;border-right:1px solid #e5e7eb;color:#374151}
+     .sh-nav .ni{color:#374151} :hover{background:#eff6ff;color:#2563eb} .on{background:var(--blue);color:#fff}
+     注：v1.4 修订说明已将侧边栏底色由 #171717 改为白色，v1.6 渲染结果一致为浅色。 */
+  --sidebar-bg: #FFFFFF;
+  --sidebar-text-primary: #374151;
+  --sidebar-text-secondary: #6B7280;
+  --sidebar-text-muted: #9CA3AF;
   --sidebar-text-active: #FFFFFF;
-  /* 侧边栏深色体系专用（设计稿：左侧深色导航 206px，底色 #171717） */
-  --sidebar-bg: #171717;
-  --sidebar-brand-border: rgba(255, 255, 255, 0.10);
-  --sidebar-hover-bg: rgba(255, 255, 255, 0.08);
-  --sidebar-hover-text: #FFFFFF;
+  --sidebar-brand-text: #111827;
+  --sidebar-brand-border: #E5E7EB;
+  --sidebar-hover-bg: #eff6ff;
+  --sidebar-hover-text: #2563eb;
   --sidebar-active-bg: #2563eb;
+  /* 设计稿框架分割线（Tailwind gray-200，与 --g2 #e5e5e5 略有差异，按设计稿取 #e5e7eb） */
+  --line-frame: #E5E7EB;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Background — 灰+白搭配
@@ -124,7 +138,7 @@
   --bg-card: #FFFFFF;
   --bg-soft: #f0f0f0;
   --bg-elevated: #FFFFFF;
-  --bg-sidebar: #171717;
+  --bg-sidebar: #FFFFFF;
   --bg-overlay: rgba(0, 0, 0, 0.45);
   --bg-mask: rgba(0, 0, 0, 0.55);
 
@@ -231,7 +245,21 @@
   --sidebar-brand-padding: 15px 16px 13px;
   --sidebar-footer-padding: 11px 16px;
   --sidebar-footer-font-size: 10.5px;
+  --brand-logo-size: 30px;
+  --nav-dot-size: 7px;
   --topbar-padding-x: 18px;
+  --topbar-gap: 14px;
+  --topbar-tools-gap: 12px;
+  /* 顶栏搜索框（设计稿 .sbox） */
+  --sbox-width: 220px;
+  --sbox-padding: 5px 11px;
+  --sbox-font-size: 11.5px;
+  --sbox-kbd-font-size: 10px;
+  /* 顶栏图标按钮（.bell / .ava） */
+  --icon-btn-size: 28px;
+  --badge-font-size: 9px;
+  /* 内容区（设计稿 .sh-main） */
+  --main-padding: 16px 18px 20px;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Layout Dimensions
@@ -302,12 +330,105 @@
   --kv-value-size: 13px;
   --kv-gap: 10px;
 
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     组件库令牌（设计稿 v1.6 通用组件段 第 83~241 行实测值）
+     用途：styles/components.css 全部引用此处，禁止在组件文件写死
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 控件（.btn / .ipt / .sel） */
+  --ctl-radius: 9px;
+  --ctl-font-size: 12px;
+  --ctl-btn-padding: 6px 13px;
+  --ctl-btn-gap: 5px;
+  --ctl-ipt-padding: 6px 10px;
+  --ctl-border: #d4d4d4;
+  /* 页头（.pg-hd） */
+  --pg-title-size: 16px;
+  --pg-desc-size: 11.5px;
+  --pg-hd-gap: 14px;
+  --pg-hd-margin: 14px;
+  /* 表格（.tbl） */
+  --tbl-font-size: 12px;
+  --tbl-th-font-size: 11.5px;
+  --tbl-th-padding: 8px 12px;
+  --tbl-td-padding: 9px 12px;
+  --tbl-head-color: #525252;
+  --tbl-cell-color: #404040;
+  --tbl-row-hover-bg: #fafbff;
+  --tbl-sub-size: 10.5px;
+  /* 页签（.tab） */
+  --tab-font-size: 12.5px;
+  --tab-padding: 9px 14px;
+  /* 看板卡片（.kcard） */
+  --kcard-radius: 10px;
+  /* 勾选矩阵（.mx） */
+  --mx-radius: 10px;
+  /* 进度条宽度（.mbar .bar） */
+  --bar-w-inline: 64px;
+  --bar-min-w: 56px;
+  --qrow-label-w: 62px;
+  --qrow-value-w: 88px;
+  /* 开关 / 勾选 / 单选 */
+  --tg-w: 34px;
+  --tg-h: 19px;
+  --tg-knob: 15px;
+  --ck-size: 14px;
+  --rd-size: 13px;
+  /* 时间线 */
+  --tl-line-w: 2px;
+  --tl-dot: 10px;
+  /* 步骤条 */
+  --step-no-size: 20px;
+  /* 分页 */
+  --pgbtn-size: 24px;
+  /* 矩阵输入宽（.v13-mtx .cell-in） */
+  --mtx-cell-w: 74px;
+  /* 待办行徽标宽（设计稿 sec-overview 待办事项 tag 固定 34px） */
+  --todo-badge-w: 34px;
+  /* 图表容器高度（对应设计稿 SVG viewBox 比例） */
+  --chart-h-line: 210px;
+  --chart-h-bar: 158px;
+  --chart-h-donut: 132px;
+  /* sec-overview 右侧待办栏固定宽（设计稿 grid-template-columns:1fr 272px） */
+  --dash-aside-w: 272px;
+  /* 系统健康状态左侧标签宽（设计稿 .qrow > span 覆盖为 92px） */
+  --health-label-w: 92px;
+  /* 小尺寸弹窗（设计稿 sec-market 生成推广码弹窗宽 470px） */
+  --modal-width-sm: 470px;
+  /* 管理员权限页 RBAC 双栏与矩阵列宽（设计稿 sec-admin：左栏 200px / 角色列 88px / 模块列 150px） */
+  --rbac-side-w: 200px;
+  --rbac-role-col-w: 88px;
+  --rbac-perm-col-w: 150px;
+  /* 模板中心（设计稿 sec-tpl：模板卡最小高 150px / 缩略图最小高 88px） */
+  --tpl-card-min-h: 150px;
+  --tpl-thumb-min-h: 88px;
+  /* 修订版本标记（设计稿 .v15-tag.lt 等，无圆点） */
+  --ver-tag-tracking: 0.5px;
+  --ver-tag-valign: 2px;
+
   --tooltip-bg: #2A2A2A;
   --tooltip-text: #FFFFFF;
   --tooltip-radius: 6px;
 
   --skeleton-bg: #F0F0F0;
   --skeleton-shine: #E2E2E2;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     组件层补充令牌
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 下拉箭头（设计稿 .sel::after 字号） */
+  --ctrl-caret-size: 10px;
+  /* 提示条描边/文字（设计稿 .tipbar.w / .tipbar.r 实测色） */
+  --warning-line: #fed7aa;
+  --warning-text: #9a3412;
+  --danger-line: #fecaca;
+  --danger-text: #991b1b;
+  /* 卡片悬浮投影（设计稿 .kcard:hover） */
+  --shadow-hover-primary: 0 3px 10px rgba(37, 99, 235, 0.08);
+  /* 抽屉/弹窗（设计稿 .drawer / .modal） */
+  --overlay-bg: rgba(23, 23, 23, 0.45);
+  --modal-width: 540px;
+  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  --shell-shadow: 0 10px 34px rgba(23, 23, 23, 0.06);
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Responsive Breakpoints

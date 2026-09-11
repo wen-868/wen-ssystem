@@ -1,0 +1,1153 @@
+/* ═══════════════════════════════════════════════════════════════
+   平台总后台通用组件层 — 逐类对齐设计稿 v1.6（第 83~241 行）
+   ───────────────────────────────────────────────────────────────
+   作用域：.pf-main（框架内容区）与 .zx-scope（弹窗/抽屉内容自行加类）
+   约束：所有色值/尺寸引用 tokens.css 变量，禁止写死字面量。
+   ═══════════════════════════════════════════════════════════════ */
+.pf-main,
+.zx-scope {
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* ─────────────── 页头（设计稿 .pg-hd） ─────────────── */
+.pf-main .pg-hd,
+.zx-scope .pg-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pg-hd-gap);
+  margin-bottom: var(--pg-hd-margin);
+  flex-wrap: wrap;
+}
+.pf-main .pg-hd .pt4,
+.zx-scope .pg-hd .pt4 {
+  font-size: var(--pg-title-size);
+  font-weight: var(--font-bold);
+}
+.pf-main .pg-hd .pd,
+.zx-scope .pg-hd .pd {
+  font-size: var(--pg-desc-size);
+  color: var(--g5);
+  margin-top: 2px;
+}
+.pf-main .pg-act,
+.zx-scope .pg-act {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ─────────────── 面板（设计稿 .panel / .p-hd / .p-bd） ─────────────── */
+.pf-main .panel,
+.zx-scope .panel {
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--card-radius);
+}
+.pf-main .p-hd,
+.zx-scope .p-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--panel-header-padding);
+  border-bottom: 1px solid var(--g1);
+  flex-wrap: wrap;
+}
+.pf-main .p-hd .pt,
+.zx-scope .p-hd .pt {
+  font-size: var(--panel-title-size);
+  font-weight: var(--font-semibold);
+}
+.pf-main .p-hd .ph-s,
+.zx-scope .p-hd .ph-s {
+  font-size: var(--text-xs);
+  color: var(--g4);
+}
+.pf-main .p-bd,
+.zx-scope .p-bd {
+  padding: var(--panel-body-padding);
+}
+
+/* ─────────────── 网格 ─────────────── */
+.pf-main .g2,
+.zx-scope .g2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+.pf-main .g3,
+.zx-scope .g3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+.pf-main .g4,
+.zx-scope .g4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+.pf-main .g6,
+.zx-scope .g6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-3);
+}
+
+/* ─────────────── 指标卡（设计稿 .kpi） ─────────────── */
+.pf-main .kpi,
+.zx-scope .kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--card-radius);
+  padding: var(--kpi-padding);
+  min-width: 0;
+}
+.pf-main .kpi .kt,
+.zx-scope .kpi .kt {
+  font-size: var(--kpi-title-size);
+  color: var(--g5);
+  white-space: nowrap;
+}
+.pf-main .kpi .kv,
+.zx-scope .kpi .kv {
+  font-size: var(--kpi-value-size);
+  font-weight: var(--font-bold);
+  margin-top: 3px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pf-main .kpi .kd,
+.zx-scope .kpi .kd {
+  font-size: var(--kpi-delta-size);
+  margin-top: 3px;
+  white-space: nowrap;
+  color: var(--g4);
+}
+.pf-main .kpi .up,
+.zx-scope .kpi .up {
+  color: var(--color-success);
+}
+.pf-main .kpi .dn,
+.zx-scope .kpi .dn {
+  color: var(--color-danger);
+}
+
+/* ─────────────── 状态标签（设计稿 .tag） ─────────────── */
+.pf-main .tag,
+.zx-scope .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tag-gap);
+  font-size: var(--tag-font-size);
+  line-height: 1;
+  padding: var(--tag-padding);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+}
+.pf-main .tag::before,
+.zx-scope .tag::before {
+  content: '';
+  width: var(--tag-dot-size);
+  height: var(--tag-dot-size);
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+.pf-main .tag-b,
+.zx-scope .tag-b {
+  background: var(--color-primary-bg);
+  color: var(--color-primary-hover);
+}
+.pf-main .tag-g,
+.zx-scope .tag-g {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+.pf-main .tag-o,
+.zx-scope .tag-o {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+.pf-main .tag-r,
+.zx-scope .tag-r {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.pf-main .tag-gy,
+.zx-scope .tag-gy {
+  background: var(--g1);
+  color: var(--g5);
+}
+.pf-main .tag-p,
+.zx-scope .tag-p {
+  background: var(--color-purple-soft);
+  color: var(--color-purple);
+}
+
+/* ─────────────── 按钮（设计稿 .btn） ─────────────── */
+.pf-main .btn,
+.zx-scope .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ctl-btn-gap);
+  font-size: var(--ctl-font-size);
+  padding: var(--ctl-btn-padding);
+  border-radius: var(--ctl-radius);
+  border: 1px solid var(--ctl-border);
+  background: var(--bg-card);
+  color: var(--g6);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pf-main .btn:hover,
+.zx-scope .btn:hover {
+  border-color: var(--g4);
+}
+.pf-main .btn-p,
+.zx-scope .btn-p {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
+  font-weight: var(--font-medium);
+}
+.pf-main .btn-p:hover,
+.zx-scope .btn-p:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+.pf-main .btn-s,
+.zx-scope .btn-s {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+.pf-main .btn-d,
+.zx-scope .btn-d {
+  color: var(--color-danger);
+  border-color: var(--color-danger-soft);
+  background: var(--bg-card);
+}
+.pf-main .btn-d:hover,
+.zx-scope .btn-d:hover {
+  border-color: var(--color-danger);
+}
+.pf-main .btn-t,
+.zx-scope .btn-t {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  padding: 0 var(--space-1);
+  font-size: var(--ctl-font-size);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pf-main .btn-t:hover,
+.zx-scope .btn-t:hover {
+  color: var(--color-primary-hover);
+}
+.pf-main .btn-t.warn,
+.zx-scope .btn-t.warn {
+  color: var(--color-warning);
+}
+.pf-main .btn-t.dgr,
+.zx-scope .btn-t.dgr {
+  color: var(--color-danger);
+}
+.pf-main .btn-t.gy,
+.zx-scope .btn-t.gy {
+  color: var(--g5);
+}
+.pf-main .lk,
+.zx-scope .lk {
+  color: var(--color-primary);
+  font-size: var(--ctl-font-size);
+}
+
+/* ─────────────── 表单控件（设计稿 .ipt / .sel / .fld / .frow） ─────────────── */
+.pf-main .ipt,
+.zx-scope .ipt {
+  border: 1px solid var(--ctl-border);
+  border-radius: var(--ctl-radius);
+  padding: var(--ctl-ipt-padding);
+  font-size: var(--ctl-font-size);
+  color: var(--ink);
+  background: var(--bg-card);
+  min-width: 0;
+  font-family: inherit;
+}
+.pf-main .ipt::placeholder,
+.zx-scope .ipt::placeholder {
+  color: var(--g4);
+}
+.pf-main .ipt:focus,
+.zx-scope .ipt:focus {
+  outline: 2px solid var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+.pf-main .fld,
+.zx-scope .fld {
+  display: block;
+}
+.pf-main .fld > span,
+.zx-scope .fld > span {
+  display: block;
+  font-size: var(--kv-label-size);
+  color: var(--g6);
+  margin-bottom: var(--space-1);
+}
+.pf-main .fld .ipt,
+.zx-scope .fld .ipt {
+  width: 100%;
+}
+.pf-main .sel,
+.zx-scope .sel {
+  border: 1px solid var(--ctl-border);
+  border-radius: var(--ctl-radius);
+  padding: var(--ctl-ipt-padding);
+  font-size: var(--ctl-font-size);
+  color: var(--ink);
+  background: var(--bg-card);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+.pf-main .sel::after,
+.zx-scope .sel::after {
+  content: '\25BE';
+  color: var(--g4);
+  font-size: var(--ctrl-caret-size);
+  margin-left: auto;
+}
+.pf-main .frow,
+.zx-scope .frow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+/* ─────────────── 页签（设计稿 .tabs / .tab） ─────────────── */
+.pf-main .tabs,
+.zx-scope .tabs {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--g2);
+  padding: 0 var(--space-2);
+  flex-wrap: wrap;
+}
+.pf-main .tab,
+.zx-scope .tab {
+  font-size: var(--tab-font-size);
+  color: var(--g5);
+  padding: var(--tab-padding);
+  position: relative;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pf-main .tab.on,
+.zx-scope .tab.on {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+.pf-main .tab.on::after,
+.zx-scope .tab.on::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.pf-main .tab .n,
+.zx-scope .tab .n {
+  font-size: var(--text-xs);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-radius: var(--radius-full);
+  padding: 1px 5px;
+  margin-left: var(--space-1);
+}
+
+/* ─────────────── 表格（设计稿 .tbl） ─────────────── */
+.pf-main .tblwrap,
+.zx-scope .tblwrap {
+  overflow-x: auto;
+}
+.pf-main .tbl,
+.zx-scope .tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tbl-font-size);
+}
+.pf-main .tbl th,
+.zx-scope .tbl th {
+  background: var(--g0);
+  color: var(--tbl-head-color);
+  font-weight: var(--font-medium);
+  text-align: left;
+  padding: var(--tbl-th-padding);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--g2);
+  font-size: var(--tbl-th-font-size);
+}
+.pf-main .tbl td,
+.zx-scope .tbl td {
+  padding: var(--tbl-td-padding);
+  border-bottom: 1px solid var(--g1);
+  color: var(--tbl-cell-color);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.pf-main .tbl tr:last-child td,
+.zx-scope .tbl tr:last-child td {
+  border-bottom: none;
+}
+.pf-main .tbl tbody tr:hover td,
+.zx-scope .tbl tbody tr:hover td {
+  background: var(--tbl-row-hover-bg);
+}
+.pf-main .tbl .num,
+.zx-scope .tbl .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.pf-main .tbl th.num,
+.zx-scope .tbl th.num {
+  text-align: right;
+}
+.pf-main .tbl b,
+.zx-scope .tbl b {
+  color: var(--ink);
+  font-weight: var(--font-semibold);
+}
+.pf-main .tbl .sub,
+.zx-scope .tbl .sub {
+  display: block;
+  font-size: var(--tbl-sub-size);
+  color: var(--g4);
+}
+
+/* ─────────────── 进度条 / 迷你条（设计稿 .bar / .mbar / .qrow） ─────────────── */
+.pf-main .bar,
+.zx-scope .bar {
+  height: var(--bar-height);
+  background: var(--g1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  min-width: var(--bar-min-w);
+}
+.pf-main .bar i,
+.zx-scope .bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+.pf-main .bar.o i,
+.zx-scope .bar.o i {
+  background: var(--color-warning);
+}
+.pf-main .bar.r i,
+.zx-scope .bar.r i {
+  background: var(--color-danger);
+}
+.pf-main .bar.g i,
+.zx-scope .bar.g i {
+  background: var(--color-success);
+}
+.pf-main .mbar,
+.zx-scope .mbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.pf-main .mbar .bar,
+.zx-scope .mbar .bar {
+  width: var(--bar-w-inline);
+  flex: none;
+}
+.pf-main .mbar em,
+.zx-scope .mbar em {
+  font-style: normal;
+  font-size: var(--kpi-delta-size);
+  color: var(--g5);
+  white-space: nowrap;
+}
+.pf-main .qrow,
+.zx-scope .qrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--kv-label-size);
+  margin: 7px 0;
+}
+.pf-main .qrow > span,
+.zx-scope .qrow > span {
+  width: var(--qrow-label-w);
+  flex: none;
+  color: var(--g6);
+}
+.pf-main .qrow .bar,
+.zx-scope .qrow .bar {
+  flex: 1;
+}
+.pf-main .qrow em,
+.zx-scope .qrow em {
+  font-style: normal;
+  color: var(--g5);
+  width: var(--qrow-value-w);
+  flex: none;
+  text-align: right;
+  font-size: var(--kpi-delta-size);
+  white-space: nowrap;
+}
+
+/* ─────────────── 开关 / 勾选 / 单选（设计稿 .tg / .ck / .rd） ─────────────── */
+.pf-main .tg,
+.zx-scope .tg {
+  width: var(--tg-w);
+  height: var(--tg-h);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+.pf-main .tg::after,
+.zx-scope .tg::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: var(--tg-knob);
+  height: var(--tg-knob);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-xs);
+}
+.pf-main .tg.off,
+.zx-scope .tg.off {
+  background: var(--g3);
+}
+.pf-main .tg.off::after,
+.zx-scope .tg.off::after {
+  right: auto;
+  left: 2px;
+}
+.pf-main .ck,
+.zx-scope .ck {
+  width: var(--ck-size);
+  height: var(--ck-size);
+  border-radius: 4px;
+  border: 1.5px solid var(--g4);
+  display: inline-block;
+  vertical-align: -2px;
+  flex: none;
+  position: relative;
+}
+.pf-main .ck.on,
+.zx-scope .ck.on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.pf-main .ck.on::after,
+.zx-scope .ck.on::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 7px;
+  border: solid var(--text-inverse);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+.pf-main .ck.half,
+.zx-scope .ck.half {
+  border-color: var(--color-primary);
+}
+.pf-main .ck.half::after,
+.zx-scope .ck.half::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 4.5px;
+  width: 8px;
+  height: 2.5px;
+  background: var(--color-primary);
+  border-radius: 2px;
+}
+.pf-main .rd,
+.zx-scope .rd {
+  width: var(--rd-size);
+  height: var(--rd-size);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--g4);
+  display: inline-block;
+  vertical-align: -2px;
+  position: relative;
+}
+.pf-main .rd.on,
+.zx-scope .rd.on {
+  border-color: var(--color-primary);
+}
+.pf-main .rd.on::after,
+.zx-scope .rd.on::after {
+  content: '';
+  position: absolute;
+  inset: 2.5px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+/* ─────────────── 提示条（设计稿 .tipbar） ─────────────── */
+.pf-main .tipbar,
+.zx-scope .tipbar {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: var(--card-radius);
+  padding: 10px 13px;
+  font-size: var(--text-sm);
+  color: var(--color-primary-active);
+}
+.pf-main .tipbar.w,
+.zx-scope .tipbar.w {
+  background: var(--color-warning-soft);
+  border-color: var(--warning-line);
+  color: var(--warning-text);
+}
+.pf-main .tipbar.r,
+.zx-scope .tipbar.r {
+  background: var(--color-danger-soft);
+  border-color: var(--danger-line);
+  color: var(--danger-text);
+}
+.pf-main .tipbar .ic,
+.zx-scope .tipbar .ic {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-size: var(--text-xs);
+  display: grid;
+  place-items: center;
+  font-weight: var(--font-bold);
+  margin-top: 2px;
+}
+.pf-main .tipbar.w .ic,
+.zx-scope .tipbar.w .ic {
+  background: var(--color-warning);
+}
+.pf-main .tipbar.r .ic,
+.zx-scope .tipbar.r .ic {
+  background: var(--color-danger);
+}
+
+/* ─────────────── 时间线（设计稿 .tl） ─────────────── */
+.pf-main .tl,
+.zx-scope .tl {
+  position: relative;
+  padding-left: var(--space-4);
+}
+.pf-main .tl::before,
+.zx-scope .tl::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
+  width: var(--tl-line-w);
+  background: var(--g2);
+  border-radius: 2px;
+}
+.pf-main .tl-i,
+.zx-scope .tl-i {
+  position: relative;
+  padding: 0 0 var(--space-3) 10px;
+  font-size: var(--kv-label-size);
+}
+.pf-main .tl-i:last-child,
+.zx-scope .tl-i:last-child {
+  padding-bottom: 0;
+}
+.pf-main .tl-i::before,
+.zx-scope .tl-i::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 4px;
+  width: var(--tl-dot);
+  height: var(--tl-dot);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 2.5px solid var(--color-primary);
+}
+.pf-main .tl-i.gray::before,
+.zx-scope .tl-i.gray::before {
+  border-color: var(--g3);
+}
+.pf-main .tl-i.green::before,
+.zx-scope .tl-i.green::before {
+  border-color: var(--color-success);
+}
+.pf-main .tl-i .tt,
+.zx-scope .tl-i .tt {
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+.pf-main .tl-i .tm,
+.zx-scope .tl-i .tm {
+  color: var(--g4);
+  font-size: var(--kpi-delta-size);
+  margin-left: var(--space-1);
+}
+.pf-main .tl-i p,
+.zx-scope .tl-i p {
+  color: var(--g5);
+  margin-top: 1px;
+}
+
+/* ─────────────── 步骤条（设计稿 .steps） ─────────────── */
+.pf-main .steps,
+.zx-scope .steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: var(--space-3);
+}
+.pf-main .step,
+.zx-scope .step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--kv-label-size);
+  color: var(--g4);
+  white-space: nowrap;
+}
+.pf-main .step .sn,
+.zx-scope .step .sn {
+  width: var(--step-no-size);
+  height: var(--step-no-size);
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--g3);
+  display: grid;
+  place-items: center;
+  font-size: var(--kpi-delta-size);
+  background: var(--bg-card);
+}
+.pf-main .step.on,
+.zx-scope .step.on {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+.pf-main .step.on .sn,
+.zx-scope .step.on .sn {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+.pf-main .step.done .sn,
+.zx-scope .step.done .sn {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+.pf-main .step-line,
+.zx-scope .step-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--g2);
+  margin: 0 var(--space-2);
+  min-width: 14px;
+}
+
+/* ─────────────── 看板（设计稿 .kan / .kcard / .sla） ─────────────── */
+.pf-main .kan,
+.zx-scope .kan {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+.pf-main .kan-col,
+.zx-scope .kan-col {
+  background: var(--g0);
+  border: 1px solid var(--g2);
+  border-radius: var(--card-radius);
+  padding: 10px;
+  min-width: 0;
+}
+.pf-main .kan-hd,
+.zx-scope .kan-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 9px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+.pf-main .kan-hd .cnt,
+.zx-scope .kan-hd .cnt {
+  font-size: var(--kpi-delta-size);
+  color: var(--g5);
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-full);
+  padding: 1px 8px;
+}
+.pf-main .kcard,
+.zx-scope .kcard {
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--kcard-radius);
+  padding: 10px 11px;
+  margin-bottom: var(--space-2);
+}
+.pf-main .kcard:hover,
+.zx-scope .kcard:hover {
+  border-color: var(--color-primary-soft);
+  box-shadow: var(--shadow-hover-primary);
+}
+.pf-main .kcard .kt,
+.zx-scope .kcard .kt {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  margin: 5px 0 3px;
+  line-height: 1.45;
+}
+.pf-main .kcard .kmeta,
+.zx-scope .kcard .kmeta {
+  font-size: var(--kpi-delta-size);
+  color: var(--g5);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.pf-main .sla,
+.zx-scope .sla {
+  height: var(--sla-height);
+  background: var(--g1);
+  border-radius: var(--radius-full);
+  margin-top: var(--space-2);
+  overflow: hidden;
+}
+.pf-main .sla i,
+.zx-scope .sla i {
+  display: block;
+  height: 100%;
+  background: var(--color-success);
+  border-radius: var(--radius-full);
+}
+.pf-main .sla.w i,
+.zx-scope .sla.w i {
+  background: var(--color-warning);
+}
+.pf-main .sla.r i,
+.zx-scope .sla.r i {
+  background: var(--color-danger);
+}
+
+/* ─────────────── 套餐卡片（设计稿 .plan） ─────────────── */
+.pf-main .plan,
+.zx-scope .plan {
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--container-radius);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+.pf-main .plan.hot,
+.zx-scope .plan.hot {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-hover-primary);
+}
+.pf-main .plan .ph,
+.zx-scope .plan .ph {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.pf-main .plan .pn,
+.zx-scope .plan .pn {
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
+}
+.pf-main .plan .pv,
+.zx-scope .plan .pv {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  margin-top: var(--space-1);
+}
+.pf-main .plan .pv i,
+.zx-scope .plan .pv i {
+  font-style: normal;
+  font-size: var(--text-xs);
+  color: var(--g5);
+  font-weight: var(--font-normal);
+}
+.pf-main .plan .pnum,
+.zx-scope .plan .pnum {
+  font-size: var(--text-xs);
+  color: var(--g5);
+  margin-top: 2px;
+}
+.pf-main .plan .pft,
+.zx-scope .plan .pft {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.pf-main .plan .badge,
+.zx-scope .plan .badge {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-size: var(--kpi-delta-size);
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+}
+
+/* ─────────────── 密钥打码（设计稿 .mask） ─────────────── */
+.pf-main .mask,
+.zx-scope .mask {
+  font-family: var(--font-mono);
+  font-size: var(--kv-label-size);
+  letter-spacing: 0.5px;
+  background: var(--g0);
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  color: var(--g6);
+}
+
+/* ─────────────── 勾选矩阵（设计稿 .mx） ─────────────── */
+.pf-main .mx,
+.zx-scope .mx {
+  border: 1px solid var(--g2);
+  border-radius: var(--mx-radius);
+  overflow: hidden;
+}
+.pf-main .mx-hd,
+.zx-scope .mx-hd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--g0);
+  padding: 7px 11px;
+  font-size: var(--kv-label-size);
+  font-weight: var(--font-semibold);
+  color: var(--g7);
+}
+.pf-main .mx-bd,
+.zx-scope .mx-bd {
+  padding: 6px 11px 9px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px var(--space-3);
+}
+.pf-main .mx-it,
+.zx-scope .mx-it {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--g6);
+}
+
+/* ─────────────── 分页（设计稿 .pagebar） ─────────────── */
+.pf-main .pagebar,
+.zx-scope .pagebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: var(--kv-label-size);
+  color: var(--g5);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.pf-main .pgbtns,
+.zx-scope .pgbtns {
+  display: flex;
+  gap: 5px;
+}
+.pf-main .pgbtns span,
+.zx-scope .pgbtns span {
+  min-width: var(--pgbtn-size);
+  height: var(--pgbtn-size);
+  border: 1px solid var(--g2);
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-xs);
+  color: var(--g6);
+  padding: 0 5px;
+  cursor: pointer;
+}
+.pf-main .pgbtns span.on,
+.zx-scope .pgbtns span.on {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--text-inverse);
+}
+
+/* ─────────────── 图例 / 图表（设计稿 .lg-row / .chart） ─────────────── */
+.pf-main .lg-row,
+.zx-scope .lg-row {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--g6);
+  align-items: center;
+}
+.pf-main .lg-row i,
+.zx-scope .lg-row i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.pf-main .chart,
+.zx-scope .chart {
+  width: 100%;
+  display: block;
+}
+
+/* ─────────────── 工具类（设计稿 .muted/.small/.b/.mt*） ─────────────── */
+.pf-main .muted,
+.zx-scope .muted {
+  color: var(--g5);
+}
+.pf-main .small,
+.zx-scope .small {
+  font-size: var(--text-xs);
+  color: var(--g4);
+}
+.pf-main .b,
+.zx-scope .b {
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+}
+.pf-main .mt6,
+.zx-scope .mt6 { margin-top: 6px; }
+.pf-main .mt8,
+.zx-scope .mt8 { margin-top: var(--space-2); }
+.pf-main .mt10,
+.zx-scope .mt10 { margin-top: 10px; }
+.pf-main .mt12,
+.zx-scope .mt12 { margin-top: var(--space-3); }
+.pf-main .mt14,
+.zx-scope .mt14 { margin-top: 14px; }
+.pf-main .mt16,
+.zx-scope .mt16 { margin-top: var(--space-4); }
+.pf-main .mt20,
+.zx-scope .mt20 { margin-top: var(--space-5); }
+
+/* ─────────────── 修订版本标记（设计稿 .v15-tag.lt 等，无圆点） ─────────────── */
+.pf-main .ver-tag,
+.zx-scope .ver-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--ctrl-caret-size);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-bg);
+  color: var(--color-primary-hover);
+  border: 1px solid var(--color-primary-soft);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--ver-tag-tracking);
+  white-space: nowrap;
+  vertical-align: var(--ver-tag-valign);
+}
+
+/* ─────────────── 待办行（设计稿 sec-overview 待办事项，可复用） ─────────────── */
+.pf-main .todo-row,
+.zx-scope .todo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: var(--nav-item-radius);
+}
+.pf-main .todo-row.is-alert,
+.zx-scope .todo-row.is-alert {
+  background: var(--color-warning-soft);
+}
+.pf-main .todo-row .todo-badge,
+.zx-scope .todo-row .todo-badge {
+  width: var(--todo-badge-w);
+  justify-content: center;
+}
+.pf-main .todo-row .todo-main,
+.zx-scope .todo-row .todo-main {
+  flex: 1;
+  min-width: 0;
+}
+.pf-main .todo-row .todo-title,
+.zx-scope .todo-row .todo-title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--ink);
+}
+.pf-main .todo-row .todo-count,
+.zx-scope .todo-row .todo-count {
+  font-size: 15px;
+  font-weight: var(--font-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────── 图表容器（设计稿 .chart 为内联 SVG；此处统一尺寸） ─────────────── */
+.pf-main .chart-box,
+.zx-scope .chart-box {
+  position: relative;
+  width: 100%;
+  height: var(--chart-h-line);
+}
+.pf-main .chart-box.is-bar,
+.zx-scope .chart-box.is-bar {
+  height: var(--chart-h-bar);
+}
+.pf-main .chart-box.is-donut,
+.zx-scope .chart-box.is-donut {
+  height: var(--chart-h-donut);
+  width: var(--chart-h-donut);
+  flex: none;
+}
+
+/* ─────────────── 空态（设计稿使用 .muted 文案，无独立类；此处统一） ─────────────── */
+.pf-main .empty,
+.zx-scope .empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  color: var(--g4);
+  font-size: var(--text-xs);
+  text-align: center;
+}

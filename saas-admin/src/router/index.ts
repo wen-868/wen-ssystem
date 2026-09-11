@@ -44,7 +44,60 @@ const router = createRouter({
           path: 'dashboard',
           name: 'Dashboard',
           component: () => import('../views/Dashboard.vue'),
-          meta: { title: '平台看板' },
+          meta: { title: '运营大盘' },
+        },
+        /* ── 06 营销 · 渠道推广（设计稿 sec-market） ── */
+        {
+          path: 'marketing/channels',
+          name: 'MarketingChannels',
+          component: () => import('../views/marketing/ChannelPromotion.vue'),
+          meta: { title: '渠道推广' },
+        },
+        /* ── 16 营销 · 代理商管理（设计稿 sec-agent） ── */
+        {
+          path: 'marketing/agents',
+          name: 'MarketingAgents',
+          component: () => import('../views/marketing/AgentManagement.vue'),
+          meta: { title: '代理商管理' },
+        },
+        /* ── 07 平台 · 管理员权限（设计稿 sec-admin） ── */
+        {
+          path: 'platform/admins',
+          name: 'PlatformAdmins',
+          component: () => import('../views/platform/AdminPermissions.vue'),
+          meta: { title: '管理员权限' },
+        },
+        /* ── 09 平台 · 模板中心（设计稿 sec-tpl） ── */
+        {
+          path: 'platform/templates',
+          name: 'PlatformTemplates',
+          component: () => import('../views/platform/TemplateCenter.vue'),
+          meta: { title: '模板中心' },
+        },
+        /* ── 12 运维 · 工单系统（设计稿 sec-ticket） ── */
+        {
+          path: 'ops/tickets',
+          name: 'OpsTickets',
+          component: () => import('../views/ops/TicketSystem.vue'),
+          meta: { title: '工单系统' },
+        },
+        /* ── 14 开放平台 · API 密钥 / Webhook（设计稿 sec-open） ── */
+        {
+          path: 'open/api-keys',
+          name: 'OpenApiKeys',
+          component: () => import('../views/open/ApiKeyList.vue'),
+          meta: { title: 'API 密钥' },
+        },
+        {
+          path: 'open/webhooks',
+          name: 'OpenWebhooks',
+          component: () => import('../views/open/WebhookList.vue'),
+          meta: { title: 'Webhook' },
+        },
+        /* 旧路径兼容：商品库 · API 密钥 → 开放平台 · API 密钥 */
+        {
+          path: 'library/api-keys',
+          redirect: '/open/api-keys',
         },
         {
           path: 'applications',
@@ -80,7 +133,7 @@ const router = createRouter({
           path: 'monitor',
           name: 'Monitor',
           component: () => import('../views/monitor/MonitorView.vue'),
-          meta: { title: '系统监控' },
+          meta: { title: '监控告警' },
         },
         {
           path: 'packages',
@@ -122,7 +175,7 @@ const router = createRouter({
           path: 'settings',
           name: 'Settings',
           component: () => import('../views/Settings.vue'),
-          meta: { title: '平台配置' },
+          meta: { title: '系统配置' },
         },
         {
           path: 'message-config',
@@ -134,7 +187,7 @@ const router = createRouter({
           path: 'announcements',
           name: 'Announcements',
           component: () => import('../views/Announcements.vue'),
-          meta: { title: '平台公告' },
+          meta: { title: '公告管理' },
         },
         {
           path: 'reviews',
@@ -146,7 +199,7 @@ const router = createRouter({
           path: 'reconciliation',
           name: 'Reconciliation',
           component: () => import('../views/Reconciliation.vue'),
-          meta: { title: '财务结算' },
+          meta: { title: '账单计费' },
         },
         {
           path: 'tenant-usage',
@@ -158,7 +211,7 @@ const router = createRouter({
           path: 'audit-logs',
           name: 'AuditLogs',
           component: () => import('../views/AuditLogs.vue'),
-          meta: { title: '操作日志' },
+          meta: { title: '日志中心' },
         },
         {
           path: 'error-logs',
@@ -197,12 +250,6 @@ const router = createRouter({
           meta: { title: '商品库 · 批量导入' },
         },
         {
-          path: 'library/api-keys',
-          name: 'LibraryApiKeys',
-          component: () => import('../views/library/LibraryApiKeys.vue'),
-          meta: { title: '商品库 · API密钥' },
-        },
-        {
           path: 'mobile-preview',
           name: 'MobilePreview',
           component: () => import('../views/MobilePreview.vue'),
@@ -212,7 +259,7 @@ const router = createRouter({
           path: 'ai-config/platform',
           name: 'PlatformAiConfig',
           component: () => import('../views/ai-config/PlatformAiConfig.vue'),
-          meta: { title: 'AI配置 · 平台默认' },
+          meta: { title: '模型接入' },
         },
         {
           path: 'ai-config/tenants',
@@ -224,13 +271,13 @@ const router = createRouter({
           path: 'ai-config/usage',
           name: 'AiUsageStats',
           component: () => import('../views/ai-config/AiUsageStats.vue'),
-          meta: { title: 'AI配置 · 用量统计' },
+          meta: { title: '用量监控' },
         },
         {
           path: 'ai-config/billing',
           name: 'AiBillingConfig',
           component: () => import('../views/ai-config/AiBillingConfig.vue'),
-          meta: { title: 'AI配置 · 计费套餐' },
+          meta: { title: '计费管理' },
         },
         {
           path: 'ai-config/cognition',
