@@ -24,7 +24,7 @@ const design = JSON.parse(fs.readFileSync(designPath, 'utf8'));
 
 const agentLabel = {
   linxi: '林夕（UI/UX 设计）',
-  zcode: 'ZCode',
+  ajian: '阿坚',
   codex: 'Codex（凌舟）',
 };
 
@@ -146,7 +146,7 @@ readme.push('## 转发说明');
 readme.push('');
 readme.push(`- **林夕（UI/UX 设计）**：第 1 步 ${form.summary.byAgent.linxi} 张卡，一次转一张；必须等前一张验收通过再转下一张（接口设计可能随验收意见调整）。`);
 readme.push('- **分工（2026-09-12 用户指定）**：第 1 步界面任务由林夕（UI/UX 设计）承接，替代 WorkBuddy——每张卡除实现界面外，须回传「设计稿 v1.6 vs 实现」逐项对照结论（区块/间距/字号/颜色/圆角/图标/文案，含截图），凌舟据此核对验收。');
-readme.push(`- **ZCode**：第 2、3 步共 ${form.summary.byAgent.zcode} 张卡；每张卡开工前先确认对应 S1 界面已验收。`);
+readme.push(`- **阿坚**：第 2、3 步共 ${form.summary.byAgent.ajian} 张卡；每张卡开工前先确认对应 S1 界面已验收。`);
 readme.push('- 执行方回传交付说明后，由凌舟按本卡第五节逐条复核，通过后更新 `docs/tasks/current-tasks.md` 进度总表状态与证据列。');
 readme.push('');
 

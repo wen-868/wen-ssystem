@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /**
- * R101 任务派单脚本（ZCode CLI 通道）
+ * R101 任务派单脚本（执行方：阿坚｜通道：ZCode CLI）
+ *
+ * 任务与执行方命名（2026-09-12 用户指定）：第 1 步界面 → 林夕（见 docs/tasks/cards/），
+ * 第 2/3 步接口与后端 → 阿坚（本脚本派发的就是这一批，任务卡里执行方已统一记为「阿坚」）。
  *
  * 用法：
  *   node scripts/r101-dispatch-zcode.mjs --list                 # 列出可派任务
@@ -20,7 +23,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const formPath = path.join(repoRoot, 'docs/tasks/r101-tasks.json');
 const form = JSON.parse(readFileSync(formPath, 'utf8'));
 
-/** ZCode CLI 入口（Windows 默认安装路径，可用 ZCODE_CLI 环境变量覆盖） */
+/** 通道入口：ZCode CLI（Windows 默认安装路径，可用 ZCODE_CLI 环境变量覆盖）——仅作执行通道，不参与任务命名 */
 const ZCODE_CLI =
   process.env.ZCODE_CLI || 'C:/Program Files (x86)/ZCode/resources/glm/zcode.cjs';
 
@@ -36,12 +39,12 @@ const taskFilter = getArg('--task');
 const dryRun = hasFlag('--dry-run');
 const listOnly = hasFlag('--list');
 
-let targets = form.tasks.filter((t) => t.agent === 'zcode');
+let targets = form.tasks.filter((t) => t.agent === 'ajian');
 if (stepFilter) targets = targets.filter((t) => t.step === stepFilter);
 if (taskFilter) targets = targets.filter((t) => t.id === taskFilter);
 
 if (listOnly) {
-  console.log(`R101 可派给 ZCode 的任务（共 ${targets.length} 项）：`);
+  console.log(`R101 可派给阿坚的任务（共 ${targets.length} 项）：`);
   for (const t of targets) {
     console.log(`  ${t.id}  ${t.title}  [${t.estimateDays}天]  依赖: ${t.deps.join(' / ') || '无'}`);
   }
@@ -89,7 +92,7 @@ function buildPrompt(task) {
   ].join('\n');
 }
 
-console.log(`准备派发 ${targets.length} 个任务给 ZCode${dryRun ? '（预览模式，不执行）' : ''}...\n`);
+console.log(`准备派发 ${targets.length} 个任务给阿坚${dryRun ? '（预览模式，不执行）' : ''}...\n`);
 
 for (const task of targets) {
   const prompt = buildPrompt(task);

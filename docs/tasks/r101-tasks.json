@@ -36,23 +36,6 @@
     "跨租户越权测试通过"
   ],
   "assignment": {
-    "zcode": {
-      "scope": "第 2 步 真实环境对接 + 第 3 步 后端功能补齐",
-      "taskIds": [
-        "R101-S2-01",
-        "R101-S2-02",
-        "R101-S2-03",
-        "R101-S2-04",
-        "R101-S3-01",
-        "R101-S3-02",
-        "R101-S3-03",
-        "R101-S3-04",
-        "R101-S3-05",
-        "R101-S3-06",
-        "R101-S3-07",
-        "R101-S3-08"
-      ]
-    },
     "codex": {
       "scope": "规划、契约与迁移清单维护、派单与验收复核（不代写业务代码）",
       "taskIds": []
@@ -79,6 +62,23 @@
         "R101-S1-16",
         "R101-S1-17"
       ]
+    },
+    "ajian": {
+      "scope": "第 2 步 真实环境对接 + 第 3 步 后端功能补齐（含迁移脚本与接口契约）",
+      "taskIds": [
+        "R101-S2-01",
+        "R101-S2-02",
+        "R101-S2-03",
+        "R101-S2-04",
+        "R101-S3-01",
+        "R101-S3-02",
+        "R101-S3-03",
+        "R101-S3-04",
+        "R101-S3-05",
+        "R101-S3-06",
+        "R101-S3-07",
+        "R101-S3-08"
+      ]
     }
   },
   "summary": {
@@ -89,11 +89,11 @@
       "S3": 8
     },
     "byAgent": {
-      "zcode": 12,
-      "linxi": 18
+      "linxi": 18,
+      "ajian": 12
     },
     "totalDays": 101,
-    "roleChange": "2026-09-12 用户指令：第 1 步界面任务改由林夕（UI/UX 设计）承接，替代 WorkBuddy"
+    "roleChange": "2026-09-12 用户指令：第 1 步界面任务由林夕承接（替代 WorkBuddy）；第 2/3 步执行方统一记为阿坚（不再使用 ZCode 命名）"
   },
   "tasks": [
     {
@@ -617,7 +617,7 @@
       "title": "一期板块接口对接",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -649,7 +649,7 @@
       "title": "28 项配置项落库与回显",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -685,7 +685,7 @@
       "title": "监控/日志/商品库数据对接",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -714,7 +714,7 @@
       "title": "全站空态清理与端到端联调",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P1",
       "estimateDays": 2,
       "deps": [
@@ -743,7 +743,7 @@
       "title": "平台 RBAC + 模板中心",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 6,
       "deps": [
@@ -775,7 +775,7 @@
       "title": "账单计费与增值扣费",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 4,
       "deps": [
@@ -806,7 +806,7 @@
       "title": "AI 计费与积分抵扣",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -837,7 +837,7 @@
       "title": "营销渠道与老带新",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -868,7 +868,7 @@
       "title": "工单系统",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -899,7 +899,7 @@
       "title": "开放平台（密钥 + Webhook）",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -930,7 +930,7 @@
       "title": "代理商配置与分润",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 6,
       "deps": [
@@ -961,7 +961,7 @@
       "title": "AI 底座 MCP 接口",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "zcode",
+      "agent": "ajian",
       "priority": "P2",
       "estimateDays": 3,
       "deps": [
