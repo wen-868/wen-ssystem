@@ -146,7 +146,7 @@
                       <td><span class="v11-src" :class="spuSourceClass(s.source)">{{ spuSourceLabel(s.source) }}</span></td>
                       <td class="num"><b>{{ s.hitCount ?? '—' }}</b></td>
                       <td>
-                        <span class="btn-t" @click="openSpuModal(s)">查看</span>
+                        <span class="btn-t" @click="openDetail(s)">查看</span>
                         <span class="btn-t" @click="openSpuModal(s)">编辑</span>
                         <span class="btn-t" v-if="s.status !== 'OFFLINE'" @click="todo('下架')">下架</span>
                         <span class="btn-t" v-else @click="todo('重新上架')">重新上架</span>
@@ -458,6 +458,121 @@
         <span class="btn btn-p" :class="{ 'is-loading': spuSaving }" @click="saveSpu">保存</span>
       </div>
     </div>
+
+    <!-- ════════ 商品详情弹窗（设计稿 sec-goods 第 2 figure · 商品详情） ════════ -->
+    <div v-if="detailModal" class="ov" @click.self="detailModal = false"></div>
+    <div v-if="detailModal" class="modal">
+      <div class="m-hd">
+        <span class="pt">商品详情 · {{ detailSpu?.name }} <span class="v16-tag lt">v1.6</span></span>
+        <span class="d-x" @click="detailModal = false">✕</span>
+      </div>
+      <div class="m-bd">
+        <div class="zx-scope">
+          <!-- 主图 + 缩略图 -->
+          <div style="display:flex;gap:var(--space-3)">
+            <div class="v16-thumb" style="width:96px;height:96px;font-size:var(--text-xl)">图</div>
+            <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;align-content:flex-start">
+              <span class="v16-thumb" style="width:42px;height:42px">图1</span>
+              <span class="v16-thumb" style="width:42px;height:42px">图2</span>
+              <span class="v16-thumb" style="width:42px;height:42px">图3</span>
+            </div>
+          </div>
+
+          <div class="frow">
+            <span class="fld" style="flex:1">
+              <span>标准条码（GS1）</span>
+              <span class="ipt">{{ detailSpu?.spuCode || '—' }}</span>
+            </span>
+            <span class="fld" style="flex:1">
+              <span>平台编码</span>
+              <span class="ipt">{{ detailSpu?.platformCode || '—' }}</span>
+            </span>
+            <span class="fld" style="width:110px">
+              <span>状态</span>
+              <span class="sel" style="justify-content:center">
+                <span class="tag" :class="spuStatusTag(detailSpu?.status)">{{ spuStatusLabel(detailSpu?.status) }}</span>
+              </span>
+            </span>
+          </div>
+
+          <div class="frow">
+            <span class="fld" style="flex:1.4">
+              <span>类目路径</span>
+              <span class="ipt">食品饮料 &gt; 饮料 &gt; 包装饮用水</span>
+            </span>
+            <span class="fld" style="flex:1">
+              <span>品牌</span>
+              <span class="ipt">{{ detailSpu?.brandName || '—' }}</span>
+            </span>
+            <span class="fld" style="width:90px">
+              <span>单位</span>
+              <span class="ipt">{{ detailSpu?.unit || '—' }}</span>
+            </span>
+          </div>
+
+          <div class="tblwrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>SKU 规格</th>
+                  <th>SKU 条码</th>
+                  <th class="num">参考进价</th>
+                  <th class="num">参考售价</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="!detailSkus.length">
+                  <td colspan="4" class="muted">—（暂无 SKU 明细，接口待接入）</td>
+                </tr>
+                <tr v-for="(k, i) in detailSkus" :key="i">
+                  <td>{{ k.specs }}</td>
+                  <td>{{ k.skuCode }}</td>
+                  <td class="num">¥{{ k.cost }}</td>
+                  <td class="num">¥{{ k.price }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="frow">
+            <span class="fld" style="flex:1">
+              <span>属性：产地</span>
+              <span class="ipt">—</span>
+            </span>
+            <span class="fld" style="flex:1">
+              <span>属性：保质期</span>
+              <span class="ipt">—</span>
+            </span>
+            <span class="fld" style="flex:1">
+              <span>属性：储存条件</span>
+              <span class="ipt">—</span>
+            </span>
+          </div>
+
+          <!-- 审核记录 -->
+          <div style="border:1px solid var(--g2);border-radius:var(--radius-md);padding:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
+            <div style="font-size:var(--text-sm);font-weight:var(--font-bold)">审核记录</div>
+            <div class="muted">—（审核流水接口待接入）</div>
+          </div>
+
+          <!-- 调取热度 -->
+          <div style="display:flex;align-items:center;gap:var(--space-3);border:1px solid var(--color-primary-soft);background:var(--color-primary-bg);border-radius:var(--radius-md);padding:var(--space-3)">
+            <div style="flex:1">
+              <div style="font-size:var(--text-xs);color:var(--g5)">累计被调取</div>
+              <div style="font-size:var(--text-xl);font-weight:var(--font-semibold);color:var(--color-primary)">{{ detailSpu?.hitCount ?? '—' }} 次</div>
+            </div>
+            <div style="flex:1.6">
+              <div style="font-size:var(--text-xs);color:var(--g5)">近期调取租户（脱敏）</div>
+              <div class="muted">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="m-ft">
+        <span class="btn btn-p" @click="openSpuModal(detailSpu)">编辑商品</span>
+        <span class="btn btn-d" @click="todo('下架')">下架</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -546,6 +661,17 @@ function spuSourceLabel(s: string) {
 }
 function spuSourceClass(s: string) {
   return (SPU_SOURCE[s] || { cls: 'pub' }).cls
+}
+
+/* ───────── 商品详情弹窗（设计稿 sec-goods 第 2 figure） ───────── */
+const detailModal = ref(false)
+const detailSpu = ref<SpuListItem | null>(null)
+const detailSkus = ref<any[]>([])
+// TODO: 待接入 GET /platform/library/spus/{id} 与 SKU 明细，当前用列表行数据 + 静态占位渲染
+function openDetail(s: SpuListItem) {
+  detailSpu.value = s
+  detailSkus.value = []
+  detailModal.value = true
 }
 
 /* ───────── 录入/编辑商品（沿用现有接口） ───────── */

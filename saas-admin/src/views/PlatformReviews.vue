@@ -8,7 +8,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-size: 13px; color: var(--text-secondary);">{{ stat.label }}</div>
-              <div style="font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--brand-primary);">
+              <div style="font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--color-primary);">
                 {{ stat.value }}
               </div>
             </div>
