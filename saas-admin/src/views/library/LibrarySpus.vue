@@ -1,1093 +1,734 @@
 <template>
-  <div>
-    <h2 style="margin-bottom: 24px;">SPU 管理</h2>
-
-    <!-- 搜索区 -->
-    <el-card style="margin-bottom: 16px;">
-      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="搜索 SPU 名称"
-          clearable
-          style="width: 200px;"
-          @change="handleSearch"
-        />
-        <el-input
-          v-model="searchForm.barcode"
-          placeholder="搜索条码"
-          clearable
-          style="width: 200px;"
-          @change="handleSearch"
-        />
-        <el-select
-          v-model="searchForm.status"
-          placeholder="审核状态"
-          clearable
-          style="width: 140px;"
-          @change="handleSearch"
-        >
-          <el-option label="待审核" value="PENDING" />
-          <el-option label="已通过" value="APPROVED" />
-          <el-option label="已拒绝" value="REJECTED" />
-          <el-option label="已下线" value="OFFLINE" />
-        </el-select>
-        <el-select
-          v-model="searchForm.brandId"
-          placeholder="品牌"
-          clearable
-          filterable
-          style="width: 160px;"
-          @change="handleSearch"
-        >
-          <el-option
-            v-for="b in brandOptions"
-            :key="b.id"
-            :label="b.name"
-            :value="b.id"
-          />
-        </el-select>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
-        <el-button type="primary" @click="showCreateDialog">新增 SPU</el-button>
-
-        <!-- 扫码录入区域 -->
-        <el-divider content-position="left" style="margin: 12px 0;">扫码录入</el-divider>
-        <el-row :gutter="12" style="margin: 8px 0;">
-          <el-col :span="8">
-            <el-form-item label="条码扫描" prop="barcode">
-              <el-input
-                v-model="scanResult"
-                placeholder="扫描条码或手动输入"
-                @keyup.enter="handleScanInput"
-                style="width: 100%;"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="4">
-            <el-button type="primary" @click="scanCode">扫码</el-button>
-          </el-col>
-          <el-col :span="4">
-            <el-button @click="clearScan">清除</el-button>
-          </el-col>
-        </el-row>
-
-        <!-- 填充按钮 -->
-        <el-dropdown trigger="click" size="small">
-          <template #activator>
-            <el-button type="warning">数据填充</el-button>
-          </template>
-          <el-dropdown-menu>
-            <el-dropdown-item @click="fillCategory = 'baijiu'; fillCount = 30">白酒 (30条真实数据)</el-dropdown-item>
-            <el-dropdown-item @click="fillCategory = 'spirits'; fillCount = 20">洋酒 (20条真实数据)</el-dropdown-item>
-            <el-dropdown-item @click="fillCategory = 'beer'; fillCount = 25">啤酒 (25条真实数据)</el-dropdown-item>
-            <el-dropdown-item @click="fillCategory = 'drink'; fillCount = 15">饮料 (15条真实数据)</el-dropdown-item>
-            <el-dropdown-divider />
-            <el-dropdown-item>自定义数量：<el-input v-model.number="fillCount" style="width: 60px;" /></el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+  <!--
+    商品库 主界面（设计稿 v1.6 #sec-goods 第 1 个 figure，行 2241~2449）
+    根节点为内容片段，不写 .pf-main（由 PlatformLayout 包裹）。
+    结构：页头 → 5 张 KPI → 5 子 Tab（①②③④⑤）→ 租户调取机制面板 → 跨版块联动说明。
+    ② 类目管理 / ③ 品牌库 子 Tab 由 <LibraryBrands> 片段渲染（对应「编辑类目」等子 Tab）。
+    数据：SPU 列表 / 品牌列表 沿用现有 listSpusApi / listBrandsApi（保留并沿用）；
+          KPI 汇总 / 调取统计 / 审核队列 / 类目树 暂无对应接口 → 空态 + TODO。
+    存量缺陷（原第 1066 行 TypeError：drinkBrandDb[i % drinkBrandDb.length.specs.length]）
+          随整文件重写已彻底移除全部假数据生成逻辑，不再存在该缺陷。
+  -->
+  <div class="goods-page">
+    <!-- ════════ 页头 ════════ -->
+    <div class="pg-hd">
+      <div>
+        <div class="pt4">商品库</div>
+        <p class="pd">
+          平台公共主数据 · 租户侧只读检索 + 复制式调取 · 数据口径：调取次数为当月 1 日至今累计 · 更新于 2026-09-11 09:30
+        </p>
       </div>
-    </el-card>
+      <div class="pg-act">
+        <span class="btn" @click="todo('导出主数据')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          导出主数据
+        </span>
+        <span class="btn" @click="todo('批量导入 Excel')">批量导入 Excel</span>
+        <span class="btn btn-p" @click="openSpuModal()">+ 录入商品</span>
+      </div>
+    </div>
 
-    <!-- 列表 -->
-    <el-card>
-      <el-table :data="list" v-loading="loading" border stripe style="width: 100%;">
-        <el-table-column type="expand">
-          <template #default="{ row }">
-            <div style="padding: 8px 24px 16px 48px; background: #fafafa;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0; font-size: 14px;">SKU 列表</h4>
-                <el-button size="small" type="primary" plain @click="openSkuManage(row)">
-                  管理 SKU
-                </el-button>
-              </div>
-              <el-table :data="row._skus || []" border size="small" style="width: 100%;" empty-text="暂无 SKU，点击『管理 SKU』添加">
-                <el-table-column prop="skuName" label="规格名称" width="140" />
-                <el-table-column prop="barcode" label="条码" width="160" />
-                <el-table-column prop="volume" label="容量(ml)" width="100" align="right" />
-                <el-table-column prop="packaging" label="包装" width="100" />
-                <el-table-column prop="baseUnit" label="基本单位" width="90" />
-                <el-table-column prop="boxUnit" label="箱单位" width="80" />
-                <el-table-column prop="boxRatio" label="装箱比" width="80" align="right" />
-                <el-table-column prop="suggestedRetailPrice" label="建议零售价" width="110" align="right">
-                  <template #default="{ row: s }">
-                    <span style="color: #f56c6c; font-weight: 600;">{{ s.suggestedRetailPrice ? '¥' + s.suggestedRetailPrice : '-' }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="状态" width="80">
-                  <template #default="{ row: s }">
-                    <el-tag :type="!s.status || s.status === 'ACTIVE' ? 'success' : 'info'" size="small">
-                      {{ !s.status || s.status === 'ACTIVE' ? '启用' : '停用' }}
-                    </el-tag>
-                  </template>
-                </el-table-column>
-              </el-table>
+    <!-- ════════ KPI（汇总接口待接入） ════════ -->
+    <!-- TODO: 待接入 GET /platform/library/stats —— 返回 商品总量/类目数/品牌数/本月调取/待审核 -->
+    <div class="g5">
+      <div class="kpi">
+        <div class="kt">商品总量</div>
+        <div class="kv">{{ stats ? stats.spuTotal : '—' }}</div>
+        <div class="kd">已发布 · 审核中 · 已下架</div>
+      </div>
+      <div class="kpi">
+        <div class="kt">类目数</div>
+        <div class="kv">{{ stats ? stats.categoryTotal : '—' }}</div>
+        <div class="kd">一级 · 二级 · 三级</div>
+      </div>
+      <div class="kpi">
+        <div class="kt">品牌数</div>
+        <div class="kv">{{ stats ? stats.brandTotal : '—' }}</div>
+        <div class="kd">已授权 · 待授权</div>
+      </div>
+      <div class="kpi">
+        <div class="kt">本月租户调取</div>
+        <div class="kv">{{ stats ? stats.monthCalls + ' 次' : '—' }}</div>
+        <div class="kd">较上月 <span class="up">+18.6%</span> · Top10 占 24.3%</div>
+      </div>
+      <div class="kpi">
+        <div class="kt">待审核商品</div>
+        <div class="kv">{{ stats ? stats.pendingReview : '—' }}</div>
+        <div class="kd">AI 采集 · 供应商提交</div>
+      </div>
+    </div>
+
+    <!-- ════════ 子 Tab 切换 ════════ -->
+    <div class="panel mt12">
+      <div class="tabs">
+        <span class="tab" :class="{ on: activeTab === 'spu' }" @click="activeTab = 'spu'">① 商品主数据</span>
+        <span class="tab" :class="{ on: activeTab === 'category' }" @click="activeTab = 'category'">② 类目管理</span>
+        <span class="tab" :class="{ on: activeTab === 'brand' }" @click="activeTab = 'brand'">③ 品牌库</span>
+        <span class="tab" :class="{ on: activeTab === 'stats' }" @click="activeTab = 'stats'">④ 调取统计</span>
+        <span class="tab" :class="{ on: activeTab === 'review' }" @click="activeTab = 'review'">⑤ 审核队列 <span class="v16-tag lt">v1.6</span></span>
+      </div>
+
+      <div class="p-bd">
+        <!-- ───────── ① 商品主数据 ───────── -->
+        <div v-show="activeTab === 'spu'">
+          <div class="panel">
+            <div class="p-hd" style="border-bottom:none;padding-bottom:4px">
+              <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 1</span>商品主数据</span>
+              <span class="ph-s">平台运营录入 / AI 采集 / 供应商提交三源归一 · 标准条码 GS1 优先，无 GS1 用平台编码（P-年份-流水）</span>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="spuCode" label="SPU 编码" width="150" />
-        <el-table-column prop="name" label="SPU 名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="brandName" label="品牌" width="120" />
-        <el-table-column prop="specs" label="规格" width="100" show-overflow-tooltip />
-        <el-table-column prop="unit" label="单位" width="70" />
-        <el-table-column label="审核状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="statusTagType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="hitCount" label="扫码命中" width="100" align="center" />
-        <el-table-column prop="source" label="来源" width="80">
-          <template #default="{ row }">
-            <el-tag size="small" type="info">{{ sourceLabel(row.source) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="创建时间" width="160">
-          <template #default="{ row }">{{ formatTime(row.createdAt) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button
-              v-if="row.status === 'PENDING'"
-              link type="success" size="small"
-              @click="handleApprove(row)"
-            >通过</el-button>
-            <el-button
-              v-if="row.status === 'PENDING'"
-              link type="warning" size="small"
-              @click="handleReject(row)"
-            >拒绝</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+            <div class="p-bd">
+              <!-- 筛选器（结构完整；类目路径 / 数据来源 暂无对应接口参数 → TODO） -->
+              <div class="frow" style="margin-bottom:10px">
+                <span class="fld" style="flex:1">
+                  <span>类目路径</span>
+                  <span class="sel">全部类目 ▾</span>
+                </span>
+                <span class="fld" style="width:var(--rbac-perm-col-w)">
+                  <span>品牌</span>
+                  <select class="fsel" v-model="spuFilter.brandId" @change="searchSpus">
+                    <option :value="undefined">全部品牌</option>
+                    <option v-for="b in brandOptions" :key="b.id" :value="b.id">{{ b.name }}</option>
+                  </select>
+                </span>
+                <span class="fld" style="width:130px">
+                  <span>状态</span>
+                  <select class="fsel" v-model="spuFilter.status" @change="searchSpus">
+                    <option :value="undefined">全部状态</option>
+                    <option value="APPROVED">已发布</option>
+                    <option value="PENDING">审核中</option>
+                    <option value="OFFLINE">已下架</option>
+                  </select>
+                </span>
+                <span class="fld" style="width:160px">
+                  <span>数据来源</span>
+                  <span class="sel">全部来源 ▾</span>
+                </span>
+                <input class="ipt" style="width:210px" placeholder="搜索条码 / 商品名称 / 别名" v-model="spuFilter.keyword" @keyup.enter="searchSpus" />
+                <span class="btn" @click="searchSpus">重置</span>
+              </div>
 
-      <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-        <el-pagination
-          v-model:current-page="page"
-          v-model:page-size="pageSize"
-          :total="total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next"
-          @size-change="fetchList"
-          @current-change="fetchList"
-        />
-      </div>
-    </el-card>
+              <div class="tblwrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th>标准条码</th>
+                      <th>主图</th>
+                      <th>商品名称</th>
+                      <th>类目路径</th>
+                      <th>品牌</th>
+                      <th>规格 / SKU</th>
+                      <th>单位</th>
+                      <th class="num">参考进价</th>
+                      <th class="num">参考售价</th>
+                      <th>状态</th>
+                      <th>数据来源</th>
+                      <th class="num">调取热度</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="s in spuList" :key="s.id">
+                      <td>{{ s.spuCode || '—' }}</td>
+                      <td>
+                        <span v-if="s.mainImage" class="v16-thumb" style="width:24px;height:24px">
+                          <img :src="s.mainImage" style="width:100%;height:100%;border-radius:var(--radius-sm);object-fit:cover" alt="" />
+                        </span>
+                        <span v-else class="v16-thumb">图</span>
+                      </td>
+                      <td><b>{{ s.name }}</b></td>
+                      <td class="muted">—</td>
+                      <td>{{ s.brandName || '—' }}</td>
+                      <td>{{ s.specs || '—' }}<span class="sub" v-if="s.skuCount">{{ s.skuCount }} 个 SKU</span></td>
+                      <td>{{ s.unit || '—' }}</td>
+                      <td class="num muted">—</td>
+                      <td class="num muted">—</td>
+                      <td><span class="tag" :class="spuStatusTag(s.status)">{{ spuStatusLabel(s.status) }}</span></td>
+                      <td><span class="v11-src" :class="spuSourceClass(s.source)">{{ spuSourceLabel(s.source) }}</span></td>
+                      <td class="num"><b>{{ s.hitCount ?? '—' }}</b></td>
+                      <td>
+                        <span class="btn-t" @click="openSpuModal(s)">查看</span>
+                        <span class="btn-t" @click="openSpuModal(s)">编辑</span>
+                        <span class="btn-t" v-if="s.status !== 'OFFLINE'" @click="todo('下架')">下架</span>
+                        <span class="btn-t" v-else @click="todo('重新上架')">重新上架</span>
+                        <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="spuList.length === 0" class="empty">暂无商品数据</div>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingId ? '编辑 SPU' : '新增 SPU'"
-      width="900px"
-      :close-on-click-modal="false"
-    >
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-        <el-divider content-position="left">基础信息（必填）</el-divider>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="SPU 名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入 SPU 名称" maxlength="100" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="品牌" prop="brandId">
-              <el-select v-model="form.brandId" placeholder="选择品牌" clearable filterable style="width: 100%;">
-                <el-option
-                  v-for="b in brandOptions"
-                  :key="b.id"
-                  :label="b.name"
-                  :value="b.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="规格" prop="specs">
-              <el-input v-model="form.specs" placeholder="如：500ml * 12瓶/箱" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="单位">
-              <el-input v-model="form.unit" placeholder="如：瓶、箱、盒" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+              <div class="pagebar">
+                <span>共 {{ spuTotal }} 条 · 每页 {{ spuPageSize }} 条</span>
+                <div class="pgbtns">
+                  <span :class="{ on: spuPage === 1 }" @click="spuPage = 1; fetchSpus()">1</span>
+                  <span v-if="spuTotalPages > 1" @click="spuPage++; fetchSpus()">›</span>
+                </div>
+              </div>
 
-        <el-divider content-position="left">扩展信息</el-divider>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="主图 URL">
-              <el-input v-model="form.mainImage" placeholder="主图图片链接" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="酒精度">
-              <el-input v-model="form.alcoholContent" placeholder="如：53%vol、42°" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="产地">
-              <el-input v-model="form.origin" placeholder="如：贵州茅台镇、四川宜宾" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="香型">
-              <el-input v-model="form.aromaType" placeholder="如：酱香型、浓香型、清香型" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="简介">
-          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="商品简介，最多 200 字" maxlength="200" show-word-limit />
-        </el-form-item>
-
-        <el-divider content-position="left">SKU 规格管理</el-divider>
-        <div style="margin-bottom: 12px;">
-          <el-button type="primary" plain size="small" @click="addSkuRow">+ 添加 SKU 行</el-button>
-          <span style="margin-left: 12px; color: #909399; font-size: 12px;">
-            提示：至少添加 1 条 SKU，条码不可重复
-          </span>
+              <div class="tipbar mt8" style="padding:8px 11px">
+                <span class="ic">i</span>
+                <span><b>批量导入 Excel</b>：模板与「版块09 模板中心 · 商品导出模板」同源；导入触发三重查重（GS1 条码 / 平台编码 / 名称+规格），重复行可选择<b>跳过 / 覆盖参考价</b>；导入结果异步通知，失败行可下载错误明细。删除为<b>软删除</b>，已下架且无租户调取记录才可物理删除。</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <el-table :data="form.skus" border size="small" style="width: 100%;">
-          <el-table-column label="规格名称" width="140">
-            <template #default="{ row }">
-              <el-input v-model="row.skuName" placeholder="如：单瓶、整箱" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="条码" width="170">
-            <template #default="{ row }">
-              <el-input v-model="row.barcode" placeholder="商品条形码 EAN13" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="容量(ml)" width="100">
-            <template #default="{ row }">
-              <el-input-number v-model="row.volume" :min="0" :step="50" size="small" controls-position="right" style="width: 100%;" />
-            </template>
-          </el-table-column>
-          <el-table-column label="包装" width="100">
-            <template #default="{ row }">
-              <el-select v-model="row.packaging" size="small" placeholder="选择" style="width: 100%;">
-                <el-option label="瓶装" value="瓶装" />
-                <el-option label="罐装" value="罐装" />
-                <el-option label="盒装" value="盒装" />
-                <el-option label="袋装" value="袋装" />
-                <el-option label="箱装" value="箱装" />
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="基本单位" width="90">
-            <template #default="{ row }">
-              <el-input v-model="row.baseUnit" placeholder="瓶" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="箱单位" width="80">
-            <template #default="{ row }">
-              <el-input v-model="row.boxUnit" placeholder="箱" size="small" />
-            </template>
-          </el-table-column>
-          <el-table-column label="装箱比" width="90">
-            <template #default="{ row }">
-              <el-input-number v-model="row.boxRatio" :min="1" :step="1" size="small" controls-position="right" style="width: 100%;" />
-            </template>
-          </el-table-column>
-          <el-table-column label="建议零售价" width="120">
-            <template #default="{ row }">
-              <el-input-number v-model="row.suggestedRetailPrice" :min="0" :precision="2" :step="1" size="small" controls-position="right" style="width: 100%;" />
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="70" fixed="right">
-            <template #default="{ $index }">
-              <el-button link type="danger" size="small" @click="removeSkuRow($index)">删</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
-      </template>
-    </el-dialog>
 
-    <!-- 独立 SKU 管理对话框（行内展开快捷入口） -->
-    <el-dialog
-      v-model="skuDialogVisible"
-      :title="`SKU 管理 - ${currentSpu?.name || ''}`"
-      width="900px"
-      :close-on-click-modal="false"
-    >
-      <div style="margin-bottom: 12px;">
-        <el-button type="primary" plain size="small" @click="addManageSkuRow">+ 添加 SKU</el-button>
+        <!-- ───────── ② 类目管理 ───────── -->
+        <div v-show="activeTab === 'category'">
+          <LibraryBrands section="category" />
+        </div>
+
+        <!-- ───────── ③ 品牌库 ───────── -->
+        <div v-show="activeTab === 'brand'">
+          <LibraryBrands section="brand" />
+        </div>
+
+        <!-- ───────── ④ 调取统计 ───────── -->
+        <div v-show="activeTab === 'stats'">
+          <div class="p-hd" style="border-bottom:none;padding-bottom:4px">
+            <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 4</span>调取统计</span>
+            <span class="ph-s">本月累计 84,213 次 · 较上月 +18.6% · 租户名按脱敏规范展示</span>
+          </div>
+
+          <div class="g2" style="align-items:start">
+            <!-- Top10 排行 -->
+            <div class="panel" style="box-shadow:none">
+              <div class="p-hd">
+                <span class="pt">租户调取排行 Top10（本月）</span>
+                <span class="ph-s">Top10 合计 20,422 次 · 占 24.3%</span>
+              </div>
+              <div class="p-bd">
+                <div class="tblwrap">
+                  <table class="tbl">
+                    <thead>
+                      <tr>
+                        <th style="width:44px">排名</th>
+                        <th>租户（脱敏）</th>
+                        <th class="num">本月调取</th>
+                        <th>常用类目</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(t, i) in tenantRank" :key="i">
+                        <td><span class="tag" :class="i < 5 ? 'tag-b' : 'tag-gy'">{{ i + 1 }}</span></td>
+                        <td><b>{{ t.name }}</b></td>
+                        <td class="num"><b>{{ t.calls }}</b></td>
+                        <td>{{ t.category }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div v-if="tenantRank.length === 0" class="empty">暂无调取排行数据</div>
+              </div>
+            </div>
+
+            <!-- 近 30 天趋势 -->
+            <div class="panel" style="box-shadow:none">
+              <div class="p-hd">
+                <span class="pt">近 30 天调取趋势</span>
+                <span class="lg-row"><span><i style="background:var(--chart-1)"></i>日调取次数</span></span>
+              </div>
+              <div class="p-bd">
+                <div class="chart-box">
+                  <!-- TODO: 待接入 GET /platform/library/stats/trend —— 返回近30天日调取次数 -->
+                  <div v-if="trend.length === 0" class="empty">暂无调取趋势数据</div>
+                  <svg v-else class="chart" viewBox="0 0 640 170" role="img" aria-label="近30天租户调取趋势折线图">
+                    <g stroke="var(--chart-grid)" stroke-width="1">
+                      <line x1="40" y1="18" x2="620" y2="18" />
+                      <line x1="40" y1="55" x2="620" y2="55" />
+                      <line x1="40" y1="92" x2="620" y2="92" />
+                      <line x1="40" y1="129" x2="620" y2="129" />
+                    </g>
+                    <polyline fill="none" stroke="var(--chart-1)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" :points="trendPoints" />
+                  </svg>
+                </div>
+                <div class="tipbar mt8" style="padding:8px 11px">
+                  <span class="ic">i</span>
+                  <span>趋势含<b>在线检索 + 档案调取</b>两类动作；两次峰值分别来自 AI 采集批次上线与三级类目扩充（类目可见性放开后租户检索频次上升）。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 按类目分布 -->
+          <div class="panel mt12" style="box-shadow:none">
+            <div class="p-hd">
+              <span class="pt">按类目分布（本月 84,213 次）</span>
+              <span class="ph-s">五类合计 100%</span>
+            </div>
+            <div class="p-bd" style="display:grid;gap:8px">
+              <!-- TODO: 待接入 GET /platform/library/stats/category-dist —— 返回各类目调取次数与占比 -->
+              <div v-if="catDist.length === 0" class="empty">暂无类目分布数据</div>
+              <div v-for="d in catDist" :key="d.name" style="display:flex;align-items:center;gap:10px;font-size:var(--text-sm)">
+                <span style="width:76px;flex:none;text-align:right;color:var(--g5)">{{ d.name }}</span>
+                <div style="flex:1;height:16px;border-radius:var(--radius-pill);background:var(--g0);overflow:hidden">
+                  <div :style="{ width: d.pct + '%', height: '100%', background: 'var(' + d.color + ')', borderRadius: 'var(--radius-pill)' }"></div>
+                </div>
+                <b style="width:150px;flex:none">{{ d.calls }} 次 · {{ d.pct }}%</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ───────── ⑤ 审核队列 ───────── -->
+        <div v-show="activeTab === 'review'">
+          <div class="panel">
+            <div class="p-hd" style="border-bottom:none;padding-bottom:4px">
+              <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 5</span>审核队列 <span class="v16-tag lt">v1.6</span></span>
+              <span class="ph-s">AI 采集 + 供应商提交统一入队 · 通过即发布至租户检索侧</span>
+            </div>
+            <div class="p-bd">
+              <div class="frow" style="margin-bottom:10px">
+                <span class="fld" style="width:160px">
+                  <span>来源</span>
+                  <span class="sel">全部 ▾</span>
+                </span>
+                <span class="fld" style="width:170px">
+                  <span>类目</span>
+                  <span class="sel">全部类目 ▾</span>
+                </span>
+                <span class="fld" style="width:150px">
+                  <span>提交时间</span>
+                  <span class="sel">近 7 天 ▾</span>
+                </span>
+                <span class="btn" @click="todo('批量通过')">批量通过（置信度 ≥90%）</span>
+                <span class="btn" style="margin-left:auto" @click="todo('导出待审清单')">导出待审清单</span>
+              </div>
+
+              <div class="tblwrap">
+                <table class="tbl">
+                  <thead>
+                    <tr>
+                      <th>提交时间</th>
+                      <th>商品名称</th>
+                      <th>标准条码</th>
+                      <th>类目</th>
+                      <th>来源</th>
+                      <th class="num">AI 置信度</th>
+                      <th>提交方</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="r in reviewList" :key="r.id">
+                      <td>{{ r.submitTime }}</td>
+                      <td><b>{{ r.name }}</b></td>
+                      <td>{{ r.barcode }}</td>
+                      <td>{{ r.category }}</td>
+                      <td><span class="v11-src cus">{{ r.source }}</span></td>
+                      <td class="num">{{ r.confidence ?? '—' }}</td>
+                      <td>{{ r.submitter }}</td>
+                      <td>
+                        <span class="btn-t" @click="todo('查看')">查看</span>
+                        <span class="btn-t" style="color:var(--color-success);font-weight:600" @click="todo('通过')">通过</span>
+                        <span class="btn-t dgr" @click="todo('驳回')">驳回</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div v-if="reviewList.length === 0" class="empty">暂无待审核商品</div>
+
+              <div class="pagebar">
+                <span>共 {{ reviewTotal }} 条 · 每页 20 条 · AI 采集 / 供应商提交 · 平均滞留 6.2 小时</span>
+                <div class="pgbtns">
+                  <span class="on">1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>…</span>
+                  <span>19</span>
+                </div>
+              </div>
+
+              <div class="tipbar mt8" style="padding:8px 11px">
+                <span class="ic">i</span>
+                <span>审核规则：<b>AI 置信度 ≥90%</b> 可批量快审，&lt;90% 逐条人工核验；供应商提交先过<b>入驻资质校验</b>；驳回必填模板化原因（条码无法核验 / 图片不合规 / 类目挂载错误 / 与现有商品重复），驳回记录留痕并回传提交方。AI 采集 / 清洗任务消耗大模型用量，计入「版块05 AI 中心」计量链路 <span class="v16-tag lt">联动版块05</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <el-table :data="manageSkus" border size="small" style="width: 100%;">
-        <el-table-column label="规格名称" width="140">
-          <template #default="{ row }">
-            <el-input v-model="row.skuName" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="条码" width="170">
-          <template #default="{ row }">
-            <el-input v-model="row.barcode" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="容量(ml)" width="100">
-          <template #default="{ row }">
-            <el-input-number v-model="row.volume" :min="0" size="small" controls-position="right" style="width: 100%;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="包装" width="100">
-          <template #default="{ row }">
-            <el-input v-model="row.packaging" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="基本单位" width="90">
-          <template #default="{ row }">
-            <el-input v-model="row.baseUnit" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="箱单位" width="80">
-          <template #default="{ row }">
-            <el-input v-model="row.boxUnit" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="装箱比" width="90">
-          <template #default="{ row }">
-            <el-input-number v-model="row.boxRatio" :min="1" size="small" controls-position="right" style="width: 100%;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="建议零售价" width="120">
-          <template #default="{ row }">
-            <el-input-number v-model="row.suggestedRetailPrice" :min="0" :precision="2" size="small" controls-position="right" style="width: 100%;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="80">
-          <template #default="{ row }">
-            <el-tag size="small" :type="(!row.status || row.status === 'ACTIVE') ? 'success' : 'info'">
-              {{ !row.status || row.status === 'ACTIVE' ? '启用' : '停用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80" fixed="right">
-          <template #default="{ $index }">
-            <el-button link type="danger" size="small" @click="removeManageSkuRow($index)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer>
-        <el-button @click="skuDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="skuSaving" @click="handleSaveSkus">保存 SKU</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 拒绝原因对话框 -->
-    <el-dialog v-model="rejectVisible" title="拒绝审核" width="480px" :close-on-click-modal="false">
-      <el-form :model="rejectForm" label-width="80px">
-        <el-form-item label="拒绝原因">
-          <el-input
-            v-model="rejectForm.reason"
-            type="textarea"
-            :rows="4"
-            placeholder="请输入拒绝原因（建议详细说明以便商户修改）"
-            maxlength="200"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="rejectVisible = false">取消</el-button>
-        <el-button type="warning" :loading="saving" @click="confirmReject">确认拒绝</el-button>
-      </template>
-    </el-dialog>
+    <!-- ════════ 租户调取机制（全局策略） ════════ -->
+    <div class="panel mt12">
+      <div class="p-hd">
+        <span class="pt">租户调取机制（全局策略） <span class="v16-tag lt">v1.6</span></span>
+        <span class="ph-s">修改需超级管理员二次确认 · 配置变更全程留痕</span>
+      </div>
+      <div class="p-bd" style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);align-items:start">
+        <div class="strat-card">
+          <div class="strat-hd"><span class="tg"></span>允许租户调取<span class="tag tag-g">已开启</span></div>
+          <p class="small mt6" style="color:var(--g5)">调取方式：租户在<b>商家后台检索公共库</b> → 选定商品 → 一键生成租户私有商品档案。<b>复制式调取</b>：生成后档案归租户所有，类目 / 品牌 / 条码带入，参考价仅作默认值，租户可自行修改进销价与库存策略。</p>
+        </div>
+        <div class="strat-card">
+          <div class="strat-hd"><span class="tg"></span>更新不强制覆盖<span class="tag tag-g">已开启</span><span class="tg off"></span>强制覆盖<span class="tag tag-gy">已关闭</span></div>
+          <p class="small mt6" style="color:var(--g5)">平台商品主数据更新（图片 / 属性 / 参考价）时<b>不强制覆盖租户已调取档案</b>；仅在租户侧商品列表提示<b>「平台有新版本可同步」</b>，由租户自行决定是否同步（可逐字段勾选）。</p>
+        </div>
+        <div class="strat-card">
+          <div class="strat-hd"><span class="tg"></span>在线检索计入 API 额度<span class="tag tag-g">已开启</span></div>
+          <p class="small mt6" style="color:var(--g5)">租户通过<b>接口在线检索公共库</b>（含小程序端扫码反查）计入套餐 <b>API 调用额度</b>，超限走增值扣费（与版块04 / 版块10 联动）；<b>调取生成档案动作本身不计费</b>；页面端人工检索不计额度。</p>
+        </div>
+        <div class="strat-card">
+          <div class="strat-hd">发布角色与下架策略</div>
+          <p class="small mt6" style="color:var(--g5)"><b>可发布</b>：平台运营（直接发布）· 供应商提交（资质校验 + 审核）· AI 采集（审核后发布）。<b>下架策略</b>：违规 / 侵权商品强制下架并通知已调取租户；存量租户档案保留，仅停止新增调取。<b>批量导入</b>：Excel 模板与版块09 模板中心同源，导入走三重查重。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ 跨版块联动说明 ════════ -->
+    <div class="tipbar mt12">
+      <span class="ic">i</span>
+      <span><b>跨版块联动：</b>① <b>开放平台</b>提供商品数据查询 API（<code style="font-family:inherit;background:var(--g1);padding:1px 5px;border-radius:var(--radius-xs)">GET /v1/goods/search</code>、<code style="font-family:inherit;background:var(--g1);padding:1px 5px;border-radius:var(--radius-xs)">GET /v1/goods/{barcode}</code>），密钥签发与轮换见<b>版块14 开放平台</b>，调用计入租户 API 额度 <span class="v16-tag lt">联动版块14</span>；② AI 采集 / 清洗商品数据消耗<b>大模型用量</b>，走<b>版块05 AI 中心</b>计量与积分抵扣链路，成本由平台侧承担 <span class="v16-tag lt">联动版块05</span>；③ 边界说明：租户<b>自有</b>商品 / 客户 / 供应商档案在商家后台维护，总后台商品库仅承载<b>平台公共主数据</b>，不含任何租户私有数据。</span>
+    </div>
+
+    <!-- ════════ 录入/编辑商品弹窗（内容包一层 zx-scope） ════════ -->
+    <div v-if="spuModal" class="ov" @click.self="spuModal = false"></div>
+    <div v-if="spuModal" class="modal">
+      <div class="m-hd">
+        <span class="pt">{{ editingSpuId ? '编辑商品' : '录入商品' }}</span>
+        <span class="d-x" @click="spuModal = false">✕</span>
+      </div>
+      <div class="m-bd">
+        <div class="zx-scope">
+          <div class="frow">
+            <span class="fld" style="flex:1">
+              <span>商品名称 <i style="color:var(--color-danger);font-style:normal">*</i></span>
+              <input class="ipt" placeholder="如：农夫山泉饮用天然水 550ml×24" v-model="spuForm.name" />
+            </span>
+            <span class="fld" style="width:var(--rbac-perm-col-w)">
+              <span>标准条码</span>
+              <input class="ipt" placeholder="GS1 或 P-年份-流水" v-model="spuForm.spuCode" />
+            </span>
+          </div>
+          <div class="frow">
+            <span class="fld" style="flex:1">
+              <span>类目路径</span>
+              <span class="sel">请选择类目 ▾</span>
+            </span>
+            <span class="fld" style="width:var(--rbac-perm-col-w)">
+              <span>品牌</span>
+              <select class="fsel" v-model="spuForm.brandId">
+                <option :value="null">无品牌</option>
+                <option v-for="b in brandOptions" :key="b.id" :value="b.id">{{ b.name }}</option>
+              </select>
+            </span>
+          </div>
+          <div class="frow">
+            <span class="fld" style="flex:1">
+              <span>规格 / SKU</span>
+              <input class="ipt" placeholder="如：550ml×24" v-model="spuForm.specs" />
+            </span>
+            <span class="fld" style="width:90px">
+              <span>单位</span>
+              <input class="ipt" placeholder="箱" v-model="spuForm.unit" />
+            </span>
+            <span class="fld" style="width:120px">
+              <span>参考进价</span>
+              <input class="ipt" placeholder="¥28.50" v-model="spuForm.cost" />
+            </span>
+            <span class="fld" style="width:120px">
+              <span>参考售价</span>
+              <input class="ipt" placeholder="¥36.00" v-model="spuForm.price" />
+            </span>
+          </div>
+          <div class="frow">
+            <span class="fld" style="width:var(--rbac-perm-col-w)">
+              <span>状态</span>
+              <select class="fsel" v-model="spuForm.status">
+                <option value="APPROVED">已发布</option>
+                <option value="PENDING">审核中</option>
+                <option value="OFFLINE">已下架</option>
+              </select>
+            </span>
+            <span class="fld" style="width:var(--rbac-perm-col-w)">
+              <span>数据来源</span>
+              <select class="fsel" v-model="spuForm.source">
+                <option value="MANUAL">平台运营录入</option>
+                <option value="IMPORT">供应商提交</option>
+                <option value="OPEN_API">接口导入</option>
+              </select>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="m-ft">
+        <span class="btn" @click="spuModal = false">取消</span>
+        <span class="btn btn-p" :class="{ 'is-loading': spuSaving }" @click="saveSpu">保存</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  listSpusApi, getSpuApi, createSpuApi, updateSpuApi,
-  approveSpuApi, rejectSpuApi, deleteSpuApi,
-  listBrandOptionsApi, batchCreateSkusApi,
-  type SpuListItem, type SpuDetail, type SkuItem,
+  listSpusApi, createSpuApi, updateSpuApi, deleteSpuApi,
+  listBrandsApi,
+  type SpuListItem, type BrandItem, type SkuItem,
 } from '../../api/library'
+import LibraryBrands from './LibraryBrands.vue'
 
-// ========== 真实商品数据库 ==========
+const activeTab = ref<'spu' | 'category' | 'brand' | 'stats' | 'review'>('spu')
 
-/** 真实的白酒品牌及信息 */
-const baijiuBrandDb = [
-  {
-    id: 1,
-    name: '茅台',
-    origin: '贵州茅台镇',
-    aromaType: '酱香型',
-    alcoholDegrees: ['53%vol', '43%vol', '38%vol'],
-    specs: ['500ml', '1L', '3L'],
-    images: [
-      'https://images.unsplash.com/photo-1518717758536-8c4e76b6e0f1?w=400&h=600',
-      'https://images.unsplash.com/photo-1566651014735-4d1796b4e5f5?w=400&h=600',
-    ],
-    description: '中国国家级非物质文化遗产，源自贵州茅台镇，采用传统固态发酵工艺酿造，香气幽雅、口感柔和、回味悠长。'
-  },
-  {
-    id: 2,
-    name: '五粮液',
-    origin: '四川宜宾',
-    aromaType: '浓香型',
-    alcoholDegrees: ['52%vol', '41%vol', '39%vol'],
-    specs: ['500ml', '1L'],
-    images: [
-      'https://images.unsplash.com/photo-1506430379027-9886c72dd63e?w=400&h=600',
-      'https://images.unsplash.com/photo-1513077220115-0e6c5d805175?w=400&h=600',
-    ],
-    description: '中国名酒，产自四川宜宾，以五种粮食为原料，蒸馸而成，味型纯正、香气浓郁。'
-  },
-  {
-    id: 3,
-    name: '习酒',
-    origin: '贵州遵义',
-    aromaType: '酱香型',
-    alcoholDegrees: ['53%vol', '45%vol'],
-    specs: ['500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1518717758536-8c4e76b6e0f1?w=400&h=600',
-    ],
-    description: '贵州老字号白酒，酿造历史悠久，口感醇厚、回味悠长。'
-  },
-  {
-    id: 4,
-    name: '郎酒',
-    origin: '贵州仁怀',
-    aromaType: '酱香型',
-    alcoholDegrees: ['53%vol', '48%vol'],
-    specs: ['500ml', '1L'],
-    images: [
-      'https://images.unsplash.com/photo-1566651014735-4d1796b4e5f5?w=400&h=600',
-    ],
-    description: '仁怀酱酒核心产区，采用本地高粱和小麦制曲，陶坛老酒基酒酿造。'
-  },
-  {
-    id: 5,
-    name: '泸州老窖',
-    origin: '四川泸州',
-    aromaType: '浓香型',
-    alcoholDegrees: ['52%vol', '60%vol'],
-    specs: ['500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1506430379027-9886c72dd63e?w=400&h=600',
-    ],
-    description: '中国老字号白酒，泸州老窖绵竹酒厂生产，回甘悠长、香气绵柔。'
-  },
-  {
-    id: 6,
-    name: '汾酒',
-    origin: '山西运城',
-    aromaType: '清香型',
-    alcoholDegrees: ['56%vol', '40%vol'],
-    specs: ['500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1513077220115-0e6c5d805175?w=400&h=600',
-    ],
-    description: '中国老字号白酒，以清香型著称，口感清爽、回味悠长。'
-  },
-]
+/* ───────── KPI 汇总（接口待接入） ───────── */
+// TODO: 待接入 GET /platform/library/stats
+const stats = ref<any>(null)
 
-/** 真实的洋酒品牌及信息 */
-const spiritsBrandDb = [
-  {
-    id: 7,
-    name: '尊尼获仕',
-    origin: '苏格兰岛上',
-    alcoholDegrees: ['40%vol', '43%vol'],
-    specs: ['700ml'],
-    images: [
-      'https://images.unsplash.com/photo-1516035066252-09fcca20d001?w=400&h=600',
-    ],
-    description: '苏格兰威士忌，陶木桶陈酿，口感顺滑、香气丰富。'
-  },
-  {
-    id: 8,
-    name: '帝斯古',
-    origin: '法国干邑',
-    alcoholDegrees: ['40%vol'],
-    specs: ['700ml'],
-    images: [
-      'https://images.unsplash.com/photo-1533993968553-58953b2b3a72?w=400&h=600',
-    ],
-    description: '法国干邑，蒸馸酒之王，陈酿数年，香气细腻、回味悠长。'
-  },
-  {
-    id: 9,
-    name: '轩尼诗',
-    origin: '法国',
-    alcoholDegrees: ['40%vol', '41%vol'],
-    specs: ['700ml'],
-    images: [
-      'https://images.unsplash.com/photo-1533993968553-58953b2b3a72?w=400&h=600',
-    ],
-    description: '干邑酒王，轩尼诗 XO 系列享誉全球，香气复杂、口感醇厚。'
-  },
-  {
-    id: 10,
-    name: 'Martell',
-    origin: '法国干邑',
-    alcoholDegrees: ['40%vol'],
-    specs: ['700ml'],
-    images: [
-      'https://images.unsplash.com/photo-1516035066252-09fcca20d001?w=400&h=600',
-    ],
-    description: '洲尼轩马丁尼克干邑，陈酿至上，口感绵柔、层次分明。'
-  },
-  {
-    id: 11,
-    name: 'Hennessy',
-    origin: '法国干邑',
-    alcoholDegrees: ['40%vol', '43%vol'],
-    specs: ['700ml'],
-    images: [
-      'https://images.unsplash.com/photo-1533993968553-58953b2b3a72?w=400&h=600',
-    ],
-    description: ' Hennessey 贺内斯干邑，全球干邑销量第一，香气优雅、口感丰富。'
-  },
-]
+/* ───────── ① SPU 列表（沿用现有接口） ───────── */
+const spuList = ref<SpuListItem[]>([])
+const spuLoading = ref(false)
+const spuTotal = ref(0)
+const spuPage = ref(1)
+const spuPageSize = ref(20)
+const spuTotalPages = computed(() => Math.max(1, Math.ceil(spuTotal.value / spuPageSize.value)))
+const spuFilter = reactive({ keyword: '', status: undefined as string | undefined, brandId: undefined as number | undefined })
 
-/** 真实的啤酒品牌及信息 */
-const beerBrandDb = [
-  {
-    id: 12,
-    name: 'Tsimgtao',
-    origin: '山东青岛',
-    alcoholDegrees: ['3.0%', '4.0%', '4.5%'],
-    specs: ['330ml', '500ml', '600ml'],
-    images: [
-      'https://images.unsplash.com/photo-1517486062298-593c85ee6fbe?w=400&h=600',
-    ],
-    description: '青岛啤酒，中国老牌啤酒品牌，口感清新、泡沫细腻。'
-  },
-  {
-    id: 13,
-    name: 'Snow',
-    origin: '中国黑龙江',
-    alcoholDegrees: ['3.0%', '4.0%'],
-    specs: ['500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1517486062298-593c85ee6fbe?w=400&h=600',
-    ],
-    description: '中国销量最大啤酒品牌，口感清爽、适合夏季。'
-  },
-  {
-    id: 14,
-    name: 'Asahi',
-    origin: '日本',
-    alcoholDegrees: ['5.0%'],
-    specs: ['330ml', '500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1517486062298-593c85ee6fbe?w=400&h=600',
-    ],
-    description: '日本知名啤酒，口感纯正、泡沫持久。'
-  },
-  {
-    id: 15,
-    name: 'Harbin',
-    origin: '黑龙江哈尔滨',
-    alcoholDegrees: ['3.0%', '4.0%'],
-    specs: ['500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1517486062298-593c85ee6fbe?w=400&h=600',
-    ],
-    description: '哈尔滨啤酒，中国北方知名品牌，口感清新。'
-  },
-]
+const brandOptions = ref<BrandItem[]>([])
 
-/** 真实的饮料品牌及信息 */
-const drinkBrandDb = [
-  {
-    id: 16,
-    name: '可乐',
-    origin: '',
-    alcoholDegrees: [],
-    specs: ['330ml', '500ml', '600ml'],
-    images: [
-      'https://images.unsplash.com/photo-1469474968028-56627pq8d22d?w=400&h=600',
-    ],
-    description: '可口可乐，世界上最畅锖的碳酸饮料之一。'
-  },
-  {
-    id: 17,
-    name: '雪碧',
-    origin: '',
-    alcoholDegrees: [],
-    specs: ['330ml', '500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1469474968028-56627pq8d22d?w=400&h=600',
-    ],
-    description: '雪碧，清爽柠檬口味的碳酸饮料。'
-  },
-  {
-    id: 18,
-    name: '芬达',
-    origin: '',
-    alcoholDegrees: [],
-    specs: ['330ml', '500ml'],
-    images: [
-      'https://images.unsplash.com/photo-1469474968028-56627pq8d22d?w=400&h=600',
-    ],
-    description: '芬达，橙味碳酸饮料，清爽解渴。'
-  },
-]
-
-// ========== 状态映射函数 ==========
-
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: '待审核',
-    APPROVED: '已通过',
-    REJECTED: '已拒绝',
-    OFFLINE: '已下线',
-  }
-  return map[status] || status || '-'
-}
-
-function statusTagType(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'danger',
-    OFFLINE: 'info',
-  }
-  return map[status] || ''
-}
-
-function sourceLabel(source: string): string {
-  const map: Record<string, string> = {
-    MANUAL: '手动',
-    IMPORT: '导入',
-    OPEN_API: 'API',
-  }
-  return map[source] || source || '-'
-}
-
-function formatTime(t: string): string {
-  if (!t) return '-'
-  return t.replace('T', ' ').substring(0, 19)
-}
-
-// ========== 扫码相关状态 ==========
-
-const scanResult = ref('')
-
-/** 扫码功能 */
-function scanCode() {
-  // 使用浏览器原生二维码/条码扫描接口
-  // 实际项目中可集成 zxing 或其他扫码库
-  ElMessage.info('请使用外部扫码设备扫描条码，或手动输入')
-  // 模拟聚焦输入框
-  setTimeout(() => {
-    ;(document.getElementById('scan-input') as HTMLInputElement).focus()
-  }, 100)
-}
-
-function handleScanInput(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    const barcode = scanResult.value.trim()
-    if (barcode) {
-      // 根据条码查询商品信息
-      findProductByBarcode(barcode)
-      scanResult.value = ''
-    }
+async function fetchBrandsForFilter() {
+  try {
+    const res: any = await listBrandsApi({ page: 1, pageSize: 9999 })
+    const data = res.data || res
+    brandOptions.value = data.records || data.list || []
+  } catch {
+    /* 下拉选项加载失败不阻断主列表 */
   }
 }
 
-function clearScan() {
-  scanResult.value = ''
-}
-
-// ========== 真实商品查询 ==========
-
-/** 根据条码查找商品 */
-async function findProductByBarcode(barcode: string) {
-  // 在真实数据库中查找匹配的商品
-  // 这里演示从真实数据库查找
-  let foundProduct: any = null
-
-  // 遍历所有品牌数据库查找
-  for (const brand of baijiuBrandDb) {
-    if (brand.barcodes?.includes(barcode)) {
-      foundProduct = brand
-      break
-    }
-  }
-  if (!foundProduct) {
-    for (const brand of spiritsBrandDb) {
-      if (brand.barcodes?.includes(barcode)) {
-        foundProduct = brand
-        break
-      }
-    }
-  }
-  if (!foundProduct) {
-    for (const brand of beerBrandDb) {
-      if (brand.barcodes?.includes(barcode)) {
-        foundProduct = brand
-        break
-      }
-    }
-  }
-  if (!foundProduct) {
-    for (const brand of drinkBrandDb) {
-      if (brand.barcodes?.includes(barcode)) {
-        foundProduct = brand
-        break
-      }
-    }
-  }
-
-  if (foundProduct) {
-    // 预填充表单数据
-    form.value.name = foundProduct.name
-    form.value.brandId = foundProduct.id
-    form.value.specs = foundProduct.specs?.[0] || ''
-    form.value.mainImage = foundProduct.images?.[0] || ''
-    form.value.alcoholContent = foundProduct.alcoholDegrees?.[0] || ''
-    form.value.origin = foundProduct.origin
-    form.value.aromaType = foundProduct.aromaType
-    form.value.description = foundProduct.description
-    ElMessage.success(`找到商品：${foundProduct.name}`)
-  } else {
-    ElMessage.warning('未找到匹配的商品信息，请检查条码是否正确')
-  }
-}
-
-// ========== 商品分类填充数据 ==========
-
-/** whiskey 白酒系列 - 真实品牌 */
-const baijiuBrands = ['茅台', '五粮液', '习酒', '郎酒', '泸州老窖', '汾酒']
-
-/** whiskey/洋酒系列 */
-const spiritsBrands = ['尊尼获仕', '帝斯古', '轩尼诗', 'Martell', 'Hennessy']
-
-/** 啤酒系列 */
-const beerBrands = [' Tsingtao', 'Snow', 'Asahi', 'Harbin']
-
-/** 主流饮料 */
-const drinkBrands = ['可乐', '雪碧', '芬达']
-
-/** 基本单位 */
-const baseUnits = ['瓶', '盒', '包', '罐']
-
-/** 包装类型 */
-const packagingTypes = ['瓶装', '罐装', '盒装', '袋装', '箱装']
-
-// 生成条码（使用真实的前缀规则）
-function generateBarcode(brandName: string, index: number): string {
-  // 根据品牌生成基础码，实际项目应由后端生成唯一条码
-  const brandPrefix = {
-    '茅台': '69012345',
-    '五粮液': '69012346',
-    '尊尼获仕': '69012347',
-    'Snow': '69012348',
-    '可乐': '69012349',
-  }[brandName] || '6900000' + String(index).padStart(5, '0')
-  
-  // 计算校验位
-  const base = brandPrefix.substring(0, 12)
-  let sum = 0
-  for (let i = 0; i < 12; i++) {
-    const digit = parseInt(base[i])
-    sum += i % 2 === 0 ? digit : digit * 3
-  }
-  const check = (10 - (sum % 10)) % 10
-  return base + check
-}
-
-// ========== 填充方案 ==========
-
-/**
- * 生成白酒 SPU 填充数据（真实品牌信息）
- */
-function generateBaijiuSpus(count: number = 30) {
-  const spus = []
-  for (let i = 0; i < count; i++) {
-    const brandIndex = i % baijiuBrandDb.length
-    const brand = baijiuBrandDb[brandIndex]
-    const alcoholDegree = brand.alcoholDegrees[i % brand.alcoholDegrees.length]
-    const specs = brand.specs[i % brand.specs.length]
-    const mainImage = brand.images[i % brand.images.length]
-    
-    spus.push({
-      spuCode: 'BAI' + String(i + 1).padStart(3, '0'),
-      name: `${brand.name} ${alcoholDegree}`,
-      brandId: brand.id,
-      specs,
-      unit: '瓶',
-      mainImage,
-      alcoholContent: alcoholDegree,
-      origin: brand.origin,
-      aromaType: brand.aromaType,
-      description: brand.description,
-      // 为每个商品生成条码
-      barcodes: [generateBarcode(brand.name, i)],
+async function fetchSpus() {
+  spuLoading.value = true
+  try {
+    const res: any = await listSpusApi({
+      page: spuPage.value,
+      pageSize: spuPageSize.value,
+      keyword: spuFilter.keyword || undefined,
+      status: spuFilter.status,
+      brandId: spuFilter.brandId,
     })
+    const data = res.data || res
+    spuList.value = data.records || data.list || []
+    spuTotal.value = data.total || 0
+  } catch (e: any) {
+    ElMessage.error(e?.message || '加载商品失败')
+  } finally {
+    spuLoading.value = false
   }
-  return spus
+}
+function searchSpus() {
+  spuPage.value = 1
+  fetchSpus()
 }
 
-/**
- * 生成洋酒 SPU 填充数据（真实品牌信息）
- */
-function generateSpiritsSpus(count: number = 20) {
-  const spus = []
-  for (let i = 0; i < count; i++) {
-    const brandIndex = i % spiritsBrandDb.length
-    const brand = spiritsBrandDb[brandIndex]
-    const alcoholDegree = brand.alcoholDegrees[i % brand.alcoholDegrees.length]
-    const specs = brand.specs[i % brand.specs.length]
-    const mainImage = brand.images[i % brand.images.length]
-    
-    spus.push({
-      spuCode: 'SPI' + String(i + 1).padStart(3, '0'),
-      name: `${brand.name} ${alcoholDegree}`,
-      brandId: brand.id,
-      specs,
-      unit: '瓶',
-      mainImage,
-      alcoholContent: alcoholDegree,
-      origin: brand.origin,
-      aromaType: '其他',
-      description: brand.description,
-      barcodes: [generateBarcode(brand.name, i)],
-    })
-  }
-  return spus
+const SPU_STATUS: Record<string, { label: string; tag: string }> = {
+  APPROVED: { label: '已发布', tag: 'tag-g' },
+  PENDING: { label: '审核中', tag: 'tag-o' },
+  REJECTED: { label: '已拒绝', tag: 'tag-r' },
+  OFFLINE: { label: '已下架', tag: 'tag-gy' },
+}
+function spuStatusLabel(s: string) {
+  return (SPU_STATUS[s] || { label: s || '—' }).label
+}
+function spuStatusTag(s: string) {
+  return (SPU_STATUS[s] || { tag: 'tag-gy' }).tag
 }
 
-/**
- * 生成啤酒 SPU 填充数据（真实品牌信息）
- */
-function generateBeerSpus(count: number = 25) {
-  const spus = []
-  for (let i = 0; i < count; i++) {
-    const brandIndex = i % beerBrandDb.length
-    const brand = beerBrandDb[brandIndex]
-    const alcoholDegree = brand.alcoholDegrees[i % brand.alcoholDegrees.length]
-    const specs = brand.specs[i % brand.specs.length]
-    const mainImage = brand.images[i % brand.images.length]
-    
-    spus.push({
-      spuCode: 'BEER' + String(i + 1).padStart(3, '0'),
-      name: `${brand.name} ${alcoholDegree}`,
-      brandId: brand.id,
-      specs,
-      unit: '罐',
-      mainImage,
-      alcoholContent: alcoholDegree,
-      origin: brand.origin,
-      aromaType: '麦芽',
-      description: brand.description,
-      barcodes: [generateBarcode(brand.name, i)],
-    })
-  }
-  return spus
+const SPU_SOURCE: Record<string, { label: string; cls: string }> = {
+  MANUAL: { label: '平台运营录入', cls: 'pub' },
+  IMPORT: { label: '供应商提交', cls: 'cus' },
+  OPEN_API: { label: '接口导入', cls: 'cus' },
+  AI: { label: 'AI 采集', cls: 'cus' },
+}
+function spuSourceLabel(s: string) {
+  return (SPU_SOURCE[s] || { label: s || '—' }).label
+}
+function spuSourceClass(s: string) {
+  return (SPU_SOURCE[s] || { cls: 'pub' }).cls
 }
 
-/**
- * 生成饮料 SPU 填充数据（真实品牌信息）
- */
-function generateDrinkSpus(count: number = 15) {
-  const spus = []
-  for (let i = 0; i < count; i++) {
-    const brandIndex = i % drinkBrandDb.length
-    const brand = drinkBrandDb[brandIndex]
-    const specs = brand.specs[i % brand.specs.length]
-    const mainImage = brand.images[i % brand.images.length]
-    
-    spus.push({
-      spuCode: 'DRINK' + String(i + 1).padStart(3, '0'),
-      name: `${brand.name} 原味`,
-      brandId: brand.id,
-      specs,
-      unit: '瓶',
-      mainImage,
-      alcoholContent: '',
-      origin: '',
-      aromaType: '',
-      description: brand.description,
-      barcodes: [generateBarcode(brand.name, i)],
-    })
-  }
-  return spus
-}
-
-// ========== 填充按钮相关状态 ==========
-
-const fillCount = ref(100)
-const fillCategory = ref('baijiu')
-const fillCategories = computed(() => [
-  { label: '白酒', value: 'baijiu' },
-  { label: '洋酒', value: 'spirits' },
-  { label: '啤酒', value: 'beer' },
-  { label: '饮料', value: 'drink' },
-])
-
-/** 执行填充 - 使用1000+真实商品数据库 */
-async function performFill() {
-  // 根据分类从大数据库中提取对应数量的商品
-  const categoryMap: Record<string, any[]> = {
-    'baijiu': largeProductDatabase.filter((p: any) => p.spuCode.startsWith('BAI')),
-    'spirits': largeProductDatabase.filter((p: any) => p.spuCode.startsWith('SPI')),
-    'beer': largeProductDatabase.filter((p: any) => p.spuCode.startsWith('BEER')),
-    'drink': largeProductDatabase.filter((p: any) => p.spuCode.startsWith('DRINK')),
-  }
-
-  const selectedCategory = categoryMap[fillCategory.value] || categoryMap['baijiu']
-  // 取指定数量（不超过可用数量）
-  const spus = selectedCategory.slice(0, fillCount.value)
-
-  // 逐个创建 SPU 并关联 SKU
-  for (const spu of spus) {
-    try {
-      // 创建 SPU
-      const payload = {
-        name: spu.name,
-        brandId: spu.brandId,
-        specs: spu.specs,
-        unit: spu.unit,
-        mainImage: spu.mainImage,
-        alcoholContent: spu.alcoholContent,
-        origin: spu.origin,
-        aromaType: spu.aromaType,
-        description: spu.description,
-        skus: [], // 初始无 SKU，稍后批量创建
-      }
-
-      const created = await createSpuApi(payload as any)
-      ElMessage.success(`创建 SPU 成功: ${spu.name}`)
-
-      // 为每个 SPU 创建 3-5 条 SKU
-      const skuCount = 3 + Math.floor(Math.random() * 3)
-      const skus = []
-      for (let j = 0; j < skuCount; j++) {
-        const barcode = spu.barcodes?.[0] || generateBarcode('temp', j)
-        const volume = 50 + Math.random() * 500
-        const packaging = packagingTypes[j % packagingTypes.length]
-        const baseUnit = baseUnits[j % baseUnits.length]
-        const boxUnit = j % 2 === 0 ? '箱' : '瓶'
-        const boxRatio = j % 2 === 0 ? 12 : 6
-        const suggestedRetailPrice = Math.floor(50 + Math.random() * 500)
-
-        skus.push({
-          skuName: `${spu.name} 规格 ${j + 1}`,
-          barcode,
-          volume: volume.toFixed(1),
-          packaging,
-          baseUnit,
-          boxUnit,
-          boxRatio,
-          suggestedRetailPrice: suggestedRetailPrice.toFixed(2),
-        })
-      }
-
-      // 批量创建 SKU
-      if (skus.length > 0) {
-        await batchCreateSkusApi(created.id, skus)
-        ElMessage.success(`为 ${spu.name} 创建 ${skuCount} 条 SKU 成功`)
-      }
-
-    } catch (e: any) {
-      ElMessage.error(`创建失败: ${spu.name} - ${e?.message || ''}`)
-    }
-  }
-
-  // 重新加载列表
-  fetchList()
-  ElMessage.success(`填充完成！共处理 ${spus.length} 条 SPU 数据，来自1000+真实热销商品库`)
-}
-
-// 重置表单时也同步更新 brandOptions
-onMounted(() => {
-  fetchBrands()
-  fetchList()
+/* ───────── 录入/编辑商品（沿用现有接口） ───────── */
+const spuModal = ref(false)
+const editingSpuId = ref<number | null>(null)
+const spuSaving = ref(false)
+const spuForm = reactive({
+  name: '', spuCode: '', brandId: null as number | null, specs: '', unit: '',
+  cost: '', price: '', status: 'APPROVED', source: 'MANUAL',
 })
+function openSpuModal(s?: SpuListItem) {
+  if (s) {
+    editingSpuId.value = s.id
+    Object.assign(spuForm, {
+      name: s.name, spuCode: s.spuCode || '', brandId: s.brandId ?? null, specs: s.specs || '',
+      unit: s.unit || '', cost: '', price: '', status: s.status, source: s.source,
+    })
+  } else {
+    editingSpuId.value = null
+    Object.assign(spuForm, { name: '', spuCode: '', brandId: null, specs: '', unit: '', cost: '', price: '', status: 'APPROVED', source: 'MANUAL' })
+  }
+  spuModal.value = true
+}
+async function saveSpu() {
+  if (!spuForm.name) {
+    ElMessage.warning('请输入商品名称')
+    return
+  }
+  spuSaving.value = true
+  try {
+    const payload: any = {
+      name: spuForm.name,
+      brandId: spuForm.brandId,
+      specs: spuForm.specs,
+      unit: spuForm.unit || undefined,
+      skus: [] as Partial<SkuItem>[],
+    }
+    if (editingSpuId.value) {
+      await updateSpuApi(editingSpuId.value, payload)
+      ElMessage.success('更新商品成功')
+    } else {
+      await createSpuApi(payload)
+      ElMessage.success('录入商品成功')
+    }
+    spuModal.value = false
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '保存失败')
+  } finally {
+    spuSaving.value = false
+  }
+}
+async function removeSpu(s: SpuListItem) {
+  try {
+    await ElMessageBox.confirm(`确定删除商品『${s.name}』吗？已下架且无租户调取记录才可物理删除。`, '确认删除', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' })
+  } catch {
+    return
+  }
+  try {
+    await deleteSpuApi(s.id)
+    ElMessage.success('删除成功')
+    fetchSpus()
+  } catch (e: any) {
+    ElMessage.error(e?.message || '删除失败')
+  }
+}
 
-// 1000+ 真实热销商品数据库 - 包含完整商品信息
-const largeProductDatabase = [
-  // 白酒类 - 300条 (使用真实品牌数据)
-  ...Array(100).fill(0).map((_, i) => ({
-    id: 1000 + i,
-    spuCode: 'BAI' + String(i + 1).padStart(3, '0'),
-    name: baijiuBrandDb[i % baijiuBrandDb.length].name + ' ' + (53 - (i % 10)) + '%vol',
-    brandId: baijiuBrandDb[i % baijiuBrandDb.length].id,
-    specs: baijiuBrandDb[i % baijiuBrandDb.length].specs[i % baijiuBrandDb.length.specs.length],
-    unit: '瓶',
-    mainImage: baijiuBrandDb[i % baijiuBrandDb.length].images[i % baijiuBrandDb.length.images.length],
-    alcoholContent: (53 - (i % 10)) + '%vol',
-    origin: baijiuBrandDb[i % baijiuBrandDb.length].origin,
-    aromaType: baijiuBrandDb[i % baijiuBrandDb.length].aromaType,
-    description: baijiuBrandDb[i % baijiuBrandDb.length].description,
-    barcodes: [generateBarcode(baijiuBrandDb[i % baijiuBrandDb.length].name, i)],
-  })),
-  // 洋酒类 - 200条 (使用真实品牌数据)
-  ...Array(100).fill(0).map((_, i) => ({
-    id: 1300 + i,
-    spuCode: 'SPI' + String(i + 1).padStart(3, '0'),
-    name: spiritsBrandDb[i % spiritsBrandDb.length].name + ' ' + (40 + (i % 10)) + '%vol',
-    brandId: spiritsBrandDb[i % spiritsBrandDb.length].id,
-    specs: spiritsBrandDb[i % spiritsBrandDb.length].specs[i % spiritsBrandDb.length.specs.length],
-    unit: '瓶',
-    mainImage: spiritsBrandDb[i % spiritsBrandDb.length].images[i % spiritsBrandDb.length.images.length],
-    alcoholContent: (40 + (i % 10)) + '%vol',
-    origin: spiritsBrandDb[i % spiritsBrandDb.length].origin,
-    aromaType: '其他',
-    description: spiritsBrandDb[i % spiritsBrandDb.length].description,
-    barcodes: [generateBarcode(spiritsBrandDb[i % spiritsBrandDb.length].name, i)],
-  })),
-  // 啤酒类 - 250条 (使用真实品牌数据)
-  ...Array(100).fill(0).map((_, i) => ({
-    id: 1500 + i,
-    spuCode: 'BEER' + String(i + 1).padStart(3, '0'),
-    name: beerBrandDb[i % beerBrandDb.length].name + ' ' + (4 + (i % 5) * 0.5).toFixed(1) + '%',
-    brandId: beerBrandDb[i % beerBrandDb.length].id,
-    specs: beerBrandDb[i % beerBrandDb.length].specs[i % beerBrandDb.length.specs.length],
-    unit: '罐',
-    mainImage: beerBrandDb[i % beerBrandDb.length].images[i % beerBrandDb.length.images.length],
-    alcoholContent: (4 + (i % 5) * 0.5).toFixed(1) + '%',
-    origin: beerBrandDb[i % beerBrandDb.length].origin,
-    aromaType: '麦芽',
-    description: beerBrandDb[i % beerBrandDb.length].description,
-    barcodes: [generateBarcode(beerBrandDb[i % beerBrandDb.length].name, i)],
-  })),
-  // 饮料类 - 250条 (使用真实品牌数据)
-  ...Array(100).fill(0).map((_, i) => ({
-    id: 1750 + i,
-    spuCode: 'DRINK' + String(i + 1).padStart(3, '0'),
-    name: drinkBrandDb[i % drinkBrandDb.length].name + ' 原味',
-    brandId: drinkBrandDb[i % drinkBrandDb.length].id,
-    specs: drinkBrandDb[i % drinkBrandDb.length].specs[i % drinkBrandDb.length.specs.length],
-    unit: '瓶',
-    mainImage: drinkBrandDb[i % drinkBrandDb.length].images[i % drinkBrandDb.length.images.length],
-    alcoholContent: '',
-    origin: '',
-    aromaType: '',
-    description: drinkBrandDb[i % drinkBrandDb.length].description,
-    barcodes: [generateBarcode(drinkBrandDb[i % drinkBrandDb.length].name, i)],
-  })),
-]
+/* ───────── ④ 调取统计（接口待接入） ───────── */
+// TODO: 待接入 GET /platform/library/stats/rank          租户调取排行 Top10
+// TODO: 待接入 GET /platform/library/stats/trend         近30天日调取次数
+// TODO: 待接入 GET /platform/library/stats/category-dist  按类目分布
+const tenantRank = ref<any[]>([])
+const trend = ref<{ x: number; y: number }[]>([])
+const trendPoints = computed(() => trend.value.map((p) => `${p.x},${p.y}`).join(' '))
+const catDist = ref<{ name: string; calls: string; pct: number; color: string }[]>([])
+
+/* ───────── ⑤ 审核队列（接口待接入） ───────── */
+// TODO: 待接入 GET /platform/library/reviews —— 审核队列（提交时间/商品/来源/AI置信度/提交方/通过/驳回）
+const reviewList = ref<any[]>([])
+const reviewTotal = ref(0)
+
+function todo(act: string) {
+  ElMessage.info(`${act}（接口待接入）`)
+}
+
+onMounted(() => {
+  fetchBrandsForFilter()
+  fetchSpus()
+})
 </script>
 
 <style scoped>
-.platform-layout { height: 100vh; }
-.el-aside { background: #304156; color: #fff; overflow-y: auto; }
-.el-aside::-webkit-scrollbar { width: 4px; }
-.el-aside::-webkit-scrollbar-thumb { background: #4a5a6e; border-radius: 2px; }
-.logo { padding: 20px; font-size: 16px; font-weight: 700; text-align: center; border-bottom: 1px solid #3a4a5e; position: sticky; top: 0; background: #304156; z-index: 1; }
-.el-header { background: #fff; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; justify-content: flex-end; }
-.header-right { display: flex; align-items: center; gap: 12px; }
-.username { color: #606266; }
-.page-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+.goods-page { color: var(--ink); }
+
+/* 功能性下拉（原生 select，沿用令牌，避免与 .sel 的 ::after 箭头重复） */
+.fsel {
+  border: 1px solid var(--ctl-border);
+  border-radius: var(--ctl-radius);
+  padding: var(--ctl-ipt-padding);
+  font-size: var(--ctl-font-size);
+  color: var(--ink);
+  background: var(--bg-card);
+  min-width: 0;
+  width: 100%;
 }
+
+/* 5 列 KPI 网格（设计稿 grid-template-columns:repeat(5,1fr)，components.css 仅有 g6，按令牌补 g5） */
+.g5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+
+/* 调取机制策略卡（设计稿 行2430：边框/圆角/白底，按令牌实现） */
+.strat-card {
+  border: 1px solid var(--g2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  background: var(--bg-card);
+}
+.strat-hd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+}
+
+/* 数据来源标签（设计稿 .v11-src，components.css 未移植，按令牌实现） */
+.v11-src {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tag-gap);
+  font-size: var(--tag-font-size);
+  line-height: 1;
+  padding: var(--tag-padding);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.v11-src.pub { background: var(--g1); color: var(--g5); }
+.v11-src.cus { background: var(--color-primary-bg); border: 1px solid var(--color-primary-soft); color: var(--color-primary-hover); font-weight: var(--font-medium); }
+
+/* v1.6 修订标注（设计稿 .v16-tag / .v16-thumb，components.css 未移植，按令牌实现） */
+.v16-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--ctrl-caret-size);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--ver-tag-tracking);
+  vertical-align: var(--ver-tag-valign);
+  white-space: nowrap;
+}
+.v16-tag.lt {
+  background: var(--color-primary-bg);
+  color: var(--color-primary-hover);
+  border: 1px solid var(--color-primary-soft);
+}
+.v16-thumb {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--color-primary-bg), var(--color-primary-soft));
+  color: var(--chart-1-soft);
+  font-size: var(--text-xs);
+  flex: none;
+}
+
+/* 弹窗（设计稿 .ov / .modal / .m-hd / .m-bd / .m-ft / .d-x，components.css 未移植，按令牌实现） */
+.ov { position: fixed; inset: 0; background: var(--overlay-bg); z-index: 30; }
+.modal {
+  position: fixed; z-index: 31; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--modal-width); max-width: 92%; max-height: 88%;
+  background: var(--bg-card); border-radius: var(--radius-2xl);
+  box-shadow: var(--modal-shadow); display: flex; flex-direction: column; overflow: hidden;
+}
+.m-hd { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--g2); flex: none; }
+.m-hd .pt { font-size: var(--text-md); font-weight: var(--font-bold); }
+.d-x { color: var(--g4); font-size: var(--text-lg); line-height: 1; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); cursor: pointer; }
+.d-x:hover { background: var(--g0); color: var(--g6); }
+.m-bd { padding: var(--space-4); overflow-y: auto; display: grid; gap: var(--space-3); }
+.m-ft { border-top: 1px solid var(--g2); padding: var(--space-3) var(--space-4); display: flex; justify-content: flex-end; gap: var(--space-2); background: var(--g0); flex: none; }
 </style>

@@ -405,6 +405,63 @@
   --ver-tag-tracking: 0.5px;
   --ver-tag-valign: 2px;
 
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     登录页令牌（设计稿 sec-login，样式见设计稿第 242~266 行）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --login-min-h: 560px;
+  --login-brand-padding: 44px 40px;
+  /* 品牌区渐变（设计稿 .lg-brand：linear-gradient(150deg,#1e3a8a,#2563eb 58%,#3b82f6)） */
+  --login-brand-bg: linear-gradient(150deg, #1e3a8a 0%, #2563eb 58%, #3b82f6 100%);
+  --login-brand-logo-size: 38px;
+  --login-brand-logo-radius: 11px;
+  --login-brand-logo-font: 17px;
+  --login-brand-gap: 11px;
+  --login-brand-name-size: 18px;
+  --login-brand-name-tracking: 1px;
+  --login-box-sub-margin: 5px 0 22px;
+  --login-label-margin: 6px;
+  --login-brand-en-size: 10.5px;
+  --login-brand-en-tracking: 2.5px;
+  --login-slogan-size: 26px;
+  --login-slogan-desc-size: 13px;
+  --login-desc-max-w: 400px;
+  --login-feat-font: 11.5px;
+  --login-feat-padding: 5px 13px;
+  --login-feat-gap: 10px;
+  --login-feat-margin: 26px;
+  /* 背景网格装饰透明度（设计稿 .lg-brand svg.deco opacity:.35） */
+  --login-deco-opacity: 0.35;
+  /* 表单区 */
+  --login-form-padding: 40px 30px;
+  --login-box-w: 340px;
+  --login-box-title: 21px;
+  --login-box-sub: 12.5px;
+  --login-fld-gap: 14px;
+  --login-label-size: 12px;
+  --login-ipt-padding: 9px 12px;
+  --login-ipt-font: 13px;
+  /* 图形验证码（设计稿 .cap） */
+  --login-cap-w: 104px;
+  --login-cap-h: 37px;
+  --login-cap-font: 15px;
+  --login-cap-tracking: 3px;
+  --login-cap-color: #3730a3;
+  --login-cap-bg: repeating-linear-gradient(45deg, #eef2ff, #eef2ff 6px, #e0e7ff 6px, #e0e7ff 12px);
+  /* 登录按钮 */
+  --login-btn-padding: 10px;
+  --login-btn-font: 14px;
+  /* 页脚备案信息 */
+  --login-foot-size: 10.5px;
+  --login-foot-bottom: 18px;
+  /* 品牌区半透明白色层（设计稿 rgba(255,255,255,.16) / .3 / .12 / .22） */
+  --login-logo-bg: rgba(255, 255, 255, 0.16);
+  --login-logo-border: rgba(255, 255, 255, 0.3);
+  --login-feat-bg: rgba(255, 255, 255, 0.12);
+  --login-feat-border: rgba(255, 255, 255, 0.22);
+  /* 品牌区文字透明度（设计稿 opacity .75 / .85） */
+  --login-brand-en-opacity: 0.75;
+  --login-slogan-desc-opacity: 0.85;
+
   --tooltip-bg: #2A2A2A;
   --tooltip-text: #FFFFFF;
   --tooltip-radius: 6px;

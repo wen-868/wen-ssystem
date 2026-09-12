@@ -1,200 +1,287 @@
 <template>
-  <div>
-    <el-card style="margin-bottom: 16px;">
-      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-          style="width: 280px;"
-        />
-        <el-input
-          v-model="tenantId"
-          placeholder="按租户 ID 过滤（选填）"
-          clearable
-          style="width: 220px;"
-          @keyup.enter="handleSearch"
-          @clear="handleSearch"
-        />
-        <el-button type="primary" @click="handleSearch">查询</el-button>
+  <!-- ═══════════════════════════════════════════════════════════════
+       05 AI 中心 · 用量监控（设计稿 v1.6 #sec-ai · 行 1092~1153，Tab ⑤⑥）
+       根节点直接是内容片段，外层由 PlatformLayout 的 <main class="pf-main"> 包裹。
+       消耗趋势 / KPI 复用现有 api/ai-config.getAiUsage；逐次计量流水暂无接口 → 空态 + TODO。
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="ai-usage">
+    <!-- ════════ 页头 ════════ -->
+    <div class="pg-hd">
+      <div>
+        <div class="pt4">用量监控</div>
+        <p class="pd">AI 网关逐次计量 · 单次会话可追溯 · 日志留存 ≥90 天 · 全平台消耗与租户排行实时看板</p>
       </div>
-    </el-card>
+      <div class="pg-act">
+        <span class="btn" @click="todo('导出用量报表')">导出报表</span>
+      </div>
+    </div>
 
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="6" v-for="stat in overviewStats" :key="stat.key">
-        <el-card shadow="hover">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <div style="font-size: 13px; color: var(--text-secondary);">{{ stat.label }}</div>
-              <div style="font-size: 24px; font-weight: 700; margin-top: 8px;" :style="{ color: stat.color }">
-                {{ stat.value }}
+    <!-- ════════ 子页签 ════════ -->
+    <div class="tabs">
+      <span class="tab" :class="{ on: usageTab === 'metering' }" @click="usageTab = 'metering'">⑤ 计量流水</span>
+      <span class="tab" :class="{ on: usageTab === 'dashboard' }" @click="usageTab = 'dashboard'">⑥ 用量看板</span>
+    </div>
+
+    <!-- ════════ Tab 计量流水（行 1092~1110） ════════ -->
+    <div v-show="usageTab === 'metering'">
+      <div class="panel mt12">
+        <div class="p-hd">
+          <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 5</span>计量流水 · AI 网关逐次计量</span>
+          <div class="frow">
+            <span class="sel">租户：全部 <span class="caret">▾</span></span>
+            <span class="sel">模型：全部 <span class="caret">▾</span></span>
+            <span class="sel">状态：全部 <span class="caret">▾</span></span>
+            <span class="btn" @click="todo('导出对账')">导出对账</span>
+          </div>
+        </div>
+        <div class="tblwrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>租户</th>
+                <th>功能场景</th>
+                <th>模型</th>
+                <th>扣减来源 <span class="ver-tag" style="margin-left:2px">v1.2</span></th>
+                <th class="num">输入 Token</th>
+                <th class="num">输出 Token</th>
+                <th class="num">费用（含倍率）</th>
+                <th>调用状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="m in metering" :key="m.id">
+                <td>{{ m.time }}</td>
+                <td><b>{{ m.tenant }}</b> <span class="small">{{ m.plan }}</span></td>
+                <td>{{ m.scene }}</td>
+                <td>{{ m.model }} <span class="tag tag-b">{{ m.modelType }}</span></td>
+                <td><span class="tag" :class="m.sourceClass">{{ m.source }}</span></td>
+                <td class="num">{{ m.inTokens }}</td>
+                <td class="num">{{ m.outTokens }}</td>
+                <td class="num">{{ m.cost }}</td>
+                <td><span class="tag" :class="m.statusClass">{{ m.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty" v-if="metering.length === 0">暂无计量流水</div>
+        <div class="pagebar">
+          <span>实时流水 · 单次会话可追溯 · 日志留存 ≥90 天 · <span class="ver-tag" style="margin-left:2px">v1.2</span> 扣减来源：套餐含量 / 额度包 / 积分抵扣 / 超额计费</span>
+          <div class="pgbtns">
+            <span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>…</span><span>›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ Tab 用量看板（行 1111~1153） ════════ -->
+    <div v-show="usageTab === 'dashboard'">
+      <div class="panel mt12">
+        <div class="p-hd">
+          <span class="pt"><span class="tag tag-b" style="margin-right:6px">Tab 6</span>用量看板</span>
+          <span class="sel">本月 <span class="caret">▾</span></span>
+        </div>
+        <div class="p-bd" style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px">
+          <!-- 左：趋势 + KPI -->
+          <div style="min-width:0">
+            <p class="b" style="font-size:12px;margin-bottom:6px">全平台消耗趋势（日消耗金额）</p>
+            <div class="chart-box" v-if="chartGeo">
+              <svg class="chart" viewBox="0 0 560 150" role="img" aria-label="全平台日消耗金额趋势">
+                <defs>
+                  <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" :style="{ stopColor: 'var(--chart-1)', stopOpacity: 0.25 }" />
+                    <stop offset="1" :style="{ stopColor: 'var(--chart-1)', stopOpacity: 0 }" />
+                  </linearGradient>
+                </defs>
+                <g :stroke="'var(--g1)'">
+                  <line x1="30" y1="15" x2="545" y2="15" />
+                  <line x1="30" y1="45" x2="545" y2="45" />
+                  <line x1="30" y1="75" x2="545" y2="75" />
+                  <line x1="30" y1="105" x2="545" y2="105" />
+                  <line x1="30" y1="135" x2="545" y2="135" />
+                </g>
+                <path :d="chartGeo.area" :style="{ fill: 'url(#gb)' }" />
+                <polyline :points="chartGeo.line" fill="none" :style="{ stroke: 'var(--chart-1)' }" stroke-width="2.5" stroke-linejoin="round" />
+                <g :fill="'var(--g4)'" font-size="9" text-anchor="middle">
+                  <text :x="chartGeo.x0" y="148">{{ chartGeo.firstDate }}</text>
+                  <text x="270" y="148">{{ chartGeo.midDate }}</text>
+                  <text :x="chartGeo.x1" y="148">{{ chartGeo.lastDate }}</text>
+                </g>
+              </svg>
+            </div>
+            <div class="empty" v-else>暂无消耗趋势数据</div>
+            <div class="g3 mt10">
+              <div class="kpi" style="padding:10px">
+                <div class="kt">本月消耗总额</div>
+                <div class="kv" style="font-size:16px">{{ money(summary.totalCost) }}</div>
+              </div>
+              <div class="kpi" style="padding:10px">
+                <div class="kt">总调用次数</div>
+                <div class="kv" style="font-size:16px">{{ formatNumber(summary.chatCount) }}</div>
+              </div>
+              <div class="kpi" style="padding:10px">
+                <div class="kt">异常用量租户</div>
+                <div class="kv" style="font-size:16px;color:var(--color-warning)">{{ abnormalCount }}</div>
+                <div class="kd">突增 ≥10 倍已告警</div>
               </div>
             </div>
-            <div style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;" :style="{ background: stat.bg }">
-              <el-icon :size="24" :color="stat.color"><component :is="stat.icon" /></el-icon>
-            </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
 
-    <el-card style="margin-bottom: 16px;">
-      <template #header><span>按日用量趋势</span></template>
-      <div ref="trendChartRef" style="height: 320px;" v-loading="loading"></div>
-      <el-empty v-if="!loading && list.length === 0" description="当前筛选条件下暂无用量数据" :image-size="80" />
-    </el-card>
+          <!-- 右：排行 + 占比 -->
+          <div style="min-width:0">
+            <p class="b" style="font-size:12px;margin-bottom:6px">TOP5 租户消耗排行</p>
+            <div v-if="tenantRank.length">
+              <div class="qrow" v-for="r in tenantRank" :key="r.tenant">
+                <span style="width:104px">{{ r.tenant }}</span>
+                <span class="bar"><i :style="{ width: r.pct + '%' }"></i></span>
+                <em>{{ r.amount }}</em>
+              </div>
+            </div>
+            <div class="empty" v-else>暂无租户消耗排行数据</div>
 
-    <el-card>
-      <template #header><span>用量明细（t_ai_usage_daily）</span></template>
-      <el-table :data="list" v-loading="loading" border stripe style="width: 100%">
-        <el-table-column prop="statDate" label="日期" width="110" />
-        <el-table-column prop="tenantId" label="租户 ID" min-width="130" show-overflow-tooltip />
-        <el-table-column prop="provider" label="服务商" width="110">
-          <template #default="{ row }">{{ row.provider || "-" }}</template>
-        </el-table-column>
-        <el-table-column prop="model" label="模型" min-width="130" show-overflow-tooltip />
-        <el-table-column prop="chatCount" label="对话次数" width="90" align="right" />
-        <el-table-column prop="toolCallCount" label="工具调用" width="90" align="right" />
-        <el-table-column prop="promptTokens" label="提示Token" width="110" align="right">
-          <template #default="{ row }"><span class="mono">{{ formatNumber(row.promptTokens) }}</span></template>
-        </el-table-column>
-        <el-table-column prop="completionTokens" label="完成Token" width="110" align="right">
-          <template #default="{ row }"><span class="mono">{{ formatNumber(row.completionTokens) }}</span></template>
-        </el-table-column>
-        <el-table-column prop="totalTokens" label="总Token" width="120" align="right">
-          <template #default="{ row }"><span class="mono">{{ formatNumber(row.totalTokens) }}</span></template>
-        </el-table-column>
-        <el-table-column label="总费用（元）" width="120" align="right">
-          <template #default="{ row }"><span class="mono">{{ formatCost(row.totalCost) }}</span></template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+            <p class="b" style="font-size:12px;margin:14px 0 6px">模型消耗占比</p>
+            <div v-if="modelShare.length">
+              <div class="qrow" v-for="r in modelShare" :key="r.model">
+                <span style="width:104px">{{ r.model }}</span>
+                <span class="bar"><i :style="{ width: r.pct + '%' }"></i></span>
+                <em>{{ r.pct }}%</em>
+              </div>
+            </div>
+            <div class="empty" v-else>暂无模型消耗占比数据</div>
+
+            <div class="points-share">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+                <b style="font-size:12px;color:var(--color-primary-active)">积分抵扣占比 <span class="ver-tag" style="margin-left:2px">v1.2</span></b>
+                <span style="font-size:17px;font-weight:800;color:var(--color-warning)">—</span>
+              </div>
+              <p class="small" style="margin:3px 0 7px">消耗来源结构（本月 · 按 Token 量）</p>
+              <div class="qrow"><span style="width:64px">套餐含量</span><span class="bar"><i style="width:55%"></i></span><em>55%</em></div>
+              <div class="qrow"><span style="width:64px">额度包</span><span class="bar"><i style="width:27%"></i></span><em>27%</em></div>
+              <div class="qrow"><span style="width:64px">积分抵扣</span><span class="bar o"><i style="width:18%"></i></span><em style="color:var(--color-warning)"><b>18%</b></em></div>
+              <div class="qrow"><span style="width:64px">超额计费</span><span class="bar"><i style="width:0%"></i></span><em>0%</em></div>
+            </div>
+            <p class="small mt10" style="border-top:1px dashed var(--g2);padding-top:8px">毛利校验：倍率加成后毛利率 — · 财务月度对账状态 —</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from "vue";
-import { ChatDotRound, Connection, Coin, TrendCharts } from "@element-plus/icons-vue";
-import * as echarts from "echarts";
-import { getAiUsage, type UsageDailyItem, type UsageSummary } from "../../api/ai-config";
+import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getAiUsage, type UsageDailyItem, type UsageSummary } from '../../api/ai-config'
 
-const loading = ref(false);
-const list = ref<UsageDailyItem[]>([]);
-const summary = reactive<UsageSummary>({ chatCount: 0, toolCallCount: 0, totalTokens: 0, totalCost: 0 });
+const usageTab = ref<'metering' | 'dashboard'>('metering')
+const loading = ref(false)
+const dailyList = ref<UsageDailyItem[]>([])
+const summary = reactive<UsageSummary>({ chatCount: 0, toolCallCount: 0, totalTokens: 0, totalCost: 0 })
 
-const dateRange = ref<string[]>([]);
-const tenantId = ref("");
-
-/** 默认查询最近 30 天 */
-function defaultRange(): [string, string] {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29);
-  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  return [fmt(start), fmt(end)];
+/** 计量流水：逐次计量暂无接口 → 空态 */
+// TODO: 待接入 GET /platform/ai/metering-log —— AI 网关逐次计量（时间/租户/场景/模型/扣减来源/Token/费用/状态）
+interface MeteringRow {
+  id: number
+  time: string
+  tenant: string
+  plan: string
+  scene: string
+  model: string
+  modelType: string
+  source: string
+  sourceClass: string
+  inTokens: string
+  outTokens: string
+  cost: string
+  status: string
+  statusClass: string
 }
+const metering = ref<MeteringRow[]>([])
 
-const overviewStats = computed(() => [
-  { key: "chatCount", label: "对话次数", value: formatNumber(summary.chatCount), icon: ChatDotRound, color: "#5B6ABF", bg: "rgba(91,106,191,0.10)" },
-  { key: "toolCallCount", label: "工具调用次数", value: formatNumber(summary.toolCallCount), icon: Connection, color: "#0EA879", bg: "rgba(14,168,121,0.10)" },
-  { key: "totalTokens", label: "Token 消耗", value: formatNumber(summary.totalTokens), icon: TrendCharts, color: "#D48B3A", bg: "rgba(212,139,58,0.12)" },
-  { key: "totalCost", label: "预估费用（元）", value: formatCost(summary.totalCost), icon: Coin, color: "#C0392B", bg: "rgba(192,57,43,0.10)" },
-]);
+/** 异常用量租户数（设计稿示例 2，接口暂无 → 占位） */
+// TODO: 待接入 GET /platform/ai/abnormal-tenants 异常用量租户计数
+const abnormalCount = ref<string>('—')
+
+/** 租户消耗排行 / 模型消耗占比：暂无接口 → 空态 */
+// TODO: 待接入 GET /platform/ai/tenant-rank 与 GET /platform/ai/model-share
+const tenantRank = ref<{ tenant: string; pct: number; amount: string }[]>([])
+const modelShare = ref<{ model: string; pct: number }[]>([])
 
 function formatNumber(n: number | null | undefined): string {
-  return Number(n ?? 0).toLocaleString();
+  return Number(n ?? 0).toLocaleString()
+}
+function money(n: number | null | undefined): string {
+  return '¥' + Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+}
+function todo(msg: string) {
+  ElMessage.info(`${msg}（接口待接入）`)
 }
 
-function formatCost(n: number | null | undefined): string {
-  return Number(n ?? 0).toFixed(4);
-}
-
-const trendChartRef = ref<HTMLDivElement>();
-let trendChart: echarts.ECharts | null = null;
-
-/** 渲染按日趋势图：总Token（柱状）+ 总费用（折线），双 Y 轴 */
-function renderTrendChart(rows: UsageDailyItem[]) {
-  if (!trendChartRef.value) return;
-  if (!trendChart) {
-    trendChart = echarts.init(trendChartRef.value);
+/** 由逐日消耗金额生成 SVG 面积图几何（设计稿 viewBox 0 0 560 150） */
+const chartGeo = computed(() => {
+  const rows = dailyList.value
+  if (!rows.length) return null
+  const costs = rows.map((r) => Number(r.totalCost ?? 0))
+  const max = Math.max(1, ...costs)
+  const padL = 30
+  const padR = 15
+  const top = 15
+  const bottom = 135
+  const w = 545 - padL
+  const step = rows.length > 1 ? w / (rows.length - 1) : 0
+  const pts = rows.map((r, i) => {
+    const x = padL + i * step
+    const y = bottom - (Number(r.totalCost ?? 0) / max) * (bottom - top)
+    return { x, y }
+  })
+  const line = pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  const area = `M${pts[0].x.toFixed(1)},${bottom} ` + line.replace(/ /g, ' L') + ` L${pts[pts.length - 1].x.toFixed(1)},${bottom} Z`
+  return {
+    line,
+    area,
+    x0: padL,
+    x1: 545,
+    firstDate: rows[0].statDate,
+    midDate: rows[Math.floor(rows.length / 2)].statDate,
+    lastDate: rows[rows.length - 1].statDate,
   }
-  const labels = rows.map((r) => r.statDate);
-  const tokens = rows.map((r) => Number(r.totalTokens ?? 0));
-  const costs = rows.map((r) => Number(r.totalCost ?? 0));
-  trendChart.setOption({
-    tooltip: { trigger: "axis" },
-    legend: { data: ["总Token", "费用（元）"] },
-    grid: { left: 60, right: 60, top: 40, bottom: 30 },
-    xAxis: { type: "category", data: labels, axisLabel: { fontSize: 12 } },
-    yAxis: [
-      { type: "value", name: "Token", minInterval: 1 },
-      { type: "value", name: "费用（元）", minInterval: 0.0001, axisLabel: { formatter: (v: number) => v.toFixed(4) } },
-    ],
-    series: [
-      {
-        name: "总Token",
-        type: "bar",
-        data: tokens,
-        itemStyle: { color: "#5B6ABF", borderRadius: [3, 3, 0, 0] },
-        barMaxWidth: 28,
-      },
-      {
-        name: "费用（元）",
-        type: "line",
-        yAxisIndex: 1,
-        data: costs,
-        smooth: true,
-        symbolSize: 6,
-        itemStyle: { color: "#C0392B" },
-        lineStyle: { width: 2 },
-      },
-    ],
-  });
-}
+})
 
 async function fetchUsage() {
-  loading.value = true;
+  loading.value = true
   try {
-    const res = await getAiUsage({
-      startDate: dateRange.value?.[0] || undefined,
-      endDate: dateRange.value?.[1] || undefined,
-      tenantId: tenantId.value || undefined,
-    });
-    list.value = res.list ?? [];
-    summary.chatCount = res.summary?.chatCount ?? 0;
-    summary.toolCallCount = res.summary?.toolCallCount ?? 0;
-    summary.totalTokens = res.summary?.totalTokens ?? 0;
-    summary.totalCost = res.summary?.totalCost ?? 0;
-    await nextTick();
-    renderTrendChart(list.value);
+    const res = await getAiUsage({})
+    dailyList.value = res.list ?? []
+    if (res.summary) {
+      summary.chatCount = res.summary.chatCount ?? 0
+      summary.toolCallCount = res.summary.toolCallCount ?? 0
+      summary.totalTokens = res.summary.totalTokens ?? 0
+      summary.totalCost = res.summary.totalCost ?? 0
+    }
   } catch {
-    // 错误提示已由请求拦截器统一处理
+    // 错误提示已由 ai-config 请求拦截器统一处理
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
-function handleSearch() {
-  fetchUsage();
-}
-
-function handleResize() {
-  trendChart?.resize();
-}
-
-onMounted(() => {
-  const [start, end] = defaultRange();
-  dateRange.value = [start, end];
-  window.addEventListener("resize", handleResize);
-  fetchUsage();
-});
-
-onUnmounted(() => {
-  window.removeEventListener("resize", handleResize);
-  trendChart?.dispose();
-  trendChart = null;
-});
+onMounted(fetchUsage)
 </script>
+
+<style scoped>
+.ai-usage {
+  /* 根容器作用域锚点 */
+}
+.caret {
+  color: var(--g4);
+  font-size: var(--ctrl-caret-size);
+  margin-left: auto;
+}
+.points-share {
+  border: 1px dashed var(--color-primary-soft);
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-lg);
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+</style>

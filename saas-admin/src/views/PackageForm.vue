@@ -1,156 +1,204 @@
 <template>
   <div>
-    <el-page-header @back="goBack" :content="isEdit ? '编辑套餐' : '新建套餐'" style="margin-bottom: 24px;" />
+    <!-- ============ 页头 ============ -->
+    <div class="pg-hd">
+      <div>
+        <div class="pt4">{{ isEdit ? "编辑套餐" : "新建套餐" }}</div>
+        <p class="pd">
+          {{ isEdit ? "改配置即改商品 · 价格类变更需超级管理员密码二次确认" : "复制自：旗舰版 · 五段式配置（定价 / 周期 / 功能开关矩阵 / 资源配额 / 升降级规则）" }}
+        </p>
+      </div>
+      <div class="pg-act">
+        <span class="btn" @click="goBack">返回列表</span>
+      </div>
+    </div>
 
-    <el-card v-loading="pageLoading">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="120px" style="max-width: 800px;">
-        <!-- 基本信息 -->
-        <el-divider content-position="left">基本信息</el-divider>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="套餐编码" prop="planCode">
-              <el-input v-model="form.planCode" placeholder="如 BASIC、PRO、ENTERPRISE" :disabled="isEdit" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="套餐名称" prop="planName">
-              <el-input v-model="form.planName" placeholder="如 基础版" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="套餐类型" prop="planType">
-              <el-select v-model="form.planType" style="width: 100%;">
-                <el-option label="月付" value="MONTHLY" />
-                <el-option label="年付" value="YEARLY" />
-                <el-option label="永久" value="PERMANENT" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-radio-group v-model="form.status">
-                <el-radio-button value="ACTIVE">启用</el-radio-button>
-                <el-radio-button value="INACTIVE">停用</el-radio-button>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="描述" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="套餐简要描述" />
-        </el-form-item>
+    <!-- ============ 滑出表单（设计稿 .drawer 486px 五段式） ============ -->
+    <div class="drawer-page" v-loading="pageLoading">
+      <div class="d-hd">
+        <span class="pt">{{ isEdit ? "编辑套餐" : "新建套餐" }}</span>
+        <span class="small">{{ isEdit ? `套餐编码：${form.planCode || "--"}` : "复制自：旗舰版" }}</span>
+        <span class="d-x" @click="goBack">✕</span>
+      </div>
 
-        <!-- 价格与期限 -->
-        <el-divider content-position="left">价格与期限</el-divider>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="售价" prop="price">
-              <el-input-number v-model="form.price" :min="0" :precision="2" :step="100" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="原价" prop="originalPrice">
-              <el-input-number v-model="form.originalPrice" :min="0" :precision="2" :step="100" placeholder="选填" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="有效期(天)" prop="durationDays">
-              <el-input-number v-model="form.durationDays" :min="1" :step="30" :disabled="form.planType === 'PERMANENT'" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="排序" prop="sortOrder">
-              <el-input-number v-model="form.sortOrder" :min="0" :step="1" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 资源限制 -->
-        <el-divider content-position="left">资源限制</el-divider>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="最大用户数" prop="maxUsers">
-              <el-input-number v-model="form.maxUsers" :min="1" :step="1" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="最大门店数" prop="maxStores">
-              <el-input-number v-model="form.maxStores" :min="1" :step="1" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="最大商品数" prop="maxProducts">
-              <el-input-number v-model="form.maxProducts" :min="1" :step="100" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="最大客户数" prop="maxCustomers">
-              <el-input-number v-model="form.maxCustomers" :min="1" :step="100" style="width: 100%;" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="最大存储(MB)" prop="maxStorageMb">
-          <el-input-number v-model="form.maxStorageMb" :min="1" :step="512" style="width: 240px;" />
-        </el-form-item>
-
-        <!-- 功能模块 -->
-        <el-divider content-position="left">功能模块</el-divider>
-        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-          <el-checkbox
-            v-for="mod in moduleOptions"
-            :key="mod.code"
-            :model-value="selectedModules.includes(mod.code)"
-            @change="(val: any) => toggleModule(mod.code, val)"
-            border
-          >
-            {{ mod.label }}
-          </el-checkbox>
+      <div class="d-bd">
+        <!-- ① 基本信息 -->
+        <div class="fld"><span>① 基本信息</span></div>
+        <div class="panel sec-panel">
+          <div class="p-bd sec-bd">
+            <div class="fld">
+              <span>套餐名称 <i class="req">*</i></span>
+              <input class="ipt" v-model="form.planName" placeholder="生鲜行业专供" />
+            </div>
+            <div class="fld">
+              <span>套餐描述</span>
+              <input class="ipt desc-ipt" v-model="form.description" placeholder="面向生鲜批零一体商户，含多仓与即时零售完整能力" />
+            </div>
+            <div class="frow">
+              <span class="fld grow-min">
+                <span>状态</span>
+                <span class="sel fill" @click="cycleStatus">{{ statusLabel }}</span>
+              </span>
+              <span class="fld grow-min">
+                <span>排序权重</span>
+                <input class="ipt" v-model.number="form.sortOrder" />
+              </span>
+            </div>
+          </div>
         </div>
 
-        <!-- 特色功能 -->
-        <el-divider content-position="left">特色功能</el-divider>
-        <el-form-item label="功能标签">
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <el-tag
-              v-for="(tag, idx) in form.features"
-              :key="idx"
-              closable
-              @close="removeFeature(idx)"
-            >{{ tag }}</el-tag>
-            <el-input
-              v-if="showFeatureInput"
-              ref="featureInputRef"
-              v-model="featureInputValue"
-              size="small"
-              style="width: 120px;"
-              placeholder="输入标签"
-              @keyup.enter="addFeature"
-              @blur="addFeature"
-            />
-            <el-button v-else size="small" @click="showFeatureInput = true">+ 添加标签</el-button>
+        <!-- ② 定价设置 -->
+        <div class="fld mt14"><span>② 定价设置</span></div>
+        <div class="panel sec-panel">
+          <div class="p-bd sec-bd">
+            <div class="frow">
+              <span class="fld grow-amount">
+                <span>金额（元）<i class="req">*</i></span>
+                <input class="ipt" v-model.number="form.price" />
+              </span>
+              <span class="fld grow-min">
+                <span>币种</span>
+                <span class="sel fill">CNY 人民币</span>
+              </span>
+            </div>
+            <div class="fld">
+              <span>计费周期</span>
+              <div class="chips">
+                <span
+                  v-for="c in cycleOptions"
+                  :key="c.key"
+                  class="btn"
+                  :class="{ 'btn-p': form.planType === c.key }"
+                  @click="form.planType = c.key"
+                >{{ c.label }}<span v-if="c.days" class="small">{{ c.days }}</span></span>
+              </div>
+            </div>
+            <div class="frow promo-row">
+              <span class="fld grow-min">
+                <span class="promo-label">限时活动价（可选）</span>
+                <input class="ipt" v-model.number="form.promoPrice" />
+              </span>
+              <span class="fld grow-min">
+                <span class="promo-label">活动开始</span>
+                <input class="ipt" v-model="form.promoStart" placeholder="2026-10-01" />
+              </span>
+              <span class="fld grow-min">
+                <span class="promo-label">活动结束</span>
+                <input class="ipt" v-model="form.promoEnd" placeholder="2026-10-31" />
+              </span>
+            </div>
           </div>
-        </el-form-item>
+        </div>
 
-        <el-form-item style="margin-top: 32px;">
-          <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-            {{ isEdit ? '保存修改' : '创建套餐' }}
-          </el-button>
-          <el-button @click="goBack">取消</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+        <!-- ③ 功能开关矩阵 -->
+        <div class="fld mt14">
+          <span>③ 功能开关矩阵 <i class="small inline-note">（勾选即售 · 租户实际可用 = 全局开关 ∩ 套餐开关 ∩ 租户级开关）</i></span>
+        </div>
+        <div class="mx-list">
+          <div v-for="g in featureGroups" :key="g.name" class="mx">
+            <div class="mx-hd" @click="toggleGroup(g)">
+              <span class="ck" :class="{ on: isGroupOn(g) }"></span>{{ g.name }}
+            </div>
+            <div class="mx-bd">
+              <span
+                v-for="it in g.items"
+                :key="it.name"
+                class="mx-it"
+                @click="toggleItem(it.name)"
+              >
+                <span class="ck" :class="{ on: checked[it.name] }"></span>{{ it.name }}
+                <span v-if="it.v11" class="v11-tag">v1.1</span>
+              </span>
+              <!-- 自定义AI模型接入 · 分套餐默认态（设计稿 v11-row / v11-note） -->
+              <template v-if="g.name === 'API / 报表 / AI'">
+                <div class="v11-row">
+                  <span class="small" style="color: var(--g5)">分套餐默认态：</span>
+                  <span class="v11-lock">
+                    <span class="lkic">
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    </span>免费版 · 锁定
+                    <span class="v11-onlypay">仅付费</span>
+                  </span>
+                  <span class="v11-ck"><span class="ck on"></span>基础版 · 默认开启</span>
+                  <span class="v11-ck"><span class="ck on"></span>标准版 · 默认开启</span>
+                  <span class="v11-ck"><span class="ck on"></span>旗舰版 · 默认开启</span>
+                </div>
+                <div class="v11-note">
+                  <span class="v11-tag lt" style="margin-top: 1px; flex: none">v1.1</span>
+                  <span><b>自定义模型：</b>租户接入自有大模型API密钥，免费版不可用（密钥平台加密托管，调用经 AI 网关统一计量）。</span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- ④ 资源配额 -->
+        <div class="fld mt14"><span>④ 资源配额</span></div>
+        <div class="panel sec-panel">
+          <div class="p-bd quota-grid">
+            <span class="fld"><span>账号数</span><span class="ipt">{{ form.maxUsers }} <b class="small unit">个</b></span></span>
+            <span class="fld"><span>商品上限</span><span class="ipt">{{ Number(form.maxProducts).toLocaleString() }} <b class="small unit">个</b></span></span>
+            <span class="fld"><span>仓库数</span><span class="ipt">{{ form.maxStores }} <b class="small unit">个</b></span></span>
+            <span class="fld"><span>存储容量</span><span class="ipt">{{ form.maxStorageGb }} <b class="small unit">GB</b></span></span>
+            <span class="fld"><span>API 日额度</span><span class="ipt">{{ Number(form.apiQuota).toLocaleString() }} <b class="small unit">次/日</b></span></span>
+            <span class="fld"><span>AI 额度</span><span class="ipt">{{ Number(form.aiQuota).toLocaleString() }} <b class="small unit">次/月</b></span></span>
+          </div>
+        </div>
+
+        <!-- ⑤ 升降级与续费规则 -->
+        <div class="fld mt14"><span>⑤ 升降级与续费规则</span></div>
+        <div class="panel sec-panel">
+          <div class="p-bd rule-bd">
+            <div>
+              <span class="small rule-title">升级生效方式</span>
+              <div class="rule-opts">
+                <span class="rule-opt" @click="form.upgradeMode = '立即'">
+                  <span class="rd" :class="{ on: form.upgradeMode === '立即' }"></span>立即生效，剩余天数按天折算补差价（推荐）
+                </span>
+                <span class="rule-opt" @click="form.upgradeMode = '周期结束'">
+                  <span class="rd" :class="{ on: form.upgradeMode === '周期结束' }"></span>当前周期结束后生效
+                </span>
+              </div>
+            </div>
+            <div>
+              <span class="small rule-title">降级生效方式</span>
+              <div class="chips">
+                <span class="btn" :class="{ 'btn-p': form.downgradeMode === '周期结束生效' }" @click="form.downgradeMode = '周期结束生效'">周期结束生效</span>
+                <span class="btn" :class="{ 'btn-p': form.downgradeMode === '立即生效·下期按新价' }" @click="form.downgradeMode = '立即生效·下期按新价'">立即生效·下期按新价</span>
+              </div>
+            </div>
+            <div>
+              <span class="small rule-title">停售后存量租户续费策略</span>
+              <div class="chips">
+                <span
+                  v-for="r in renewOptions"
+                  :key="r"
+                  class="btn"
+                  :class="{ 'btn-p': form.renewPolicy === r }"
+                  @click="form.renewPolicy = r"
+                >{{ r }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="small mt10">
+          提交后进入草稿；价格类变更需超级管理员密码二次确认，新旧配置自动生成快照存档。
+        </p>
+      </div>
+
+      <div class="d-ft">
+        <span class="btn" style="margin-right: auto" @click="submit(true)">存为草稿</span>
+        <span class="btn btn-p" @click="submit(false)">保存并上架</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ElMessage, type FormInstance, type FormRules } from "element-plus";
+import { ElMessage } from "element-plus";
 import { getPlanDetail, createPlan, updatePlan } from "../api";
 
 const route = useRoute();
@@ -159,108 +207,127 @@ const router = useRouter();
 const isEdit = computed(() => !!route.params.id);
 const planId = computed(() => Number(route.params.id));
 
-const formRef = ref<FormInstance>();
 const pageLoading = ref(false);
 const submitLoading = ref(false);
 
+/* ── 状态（设计稿下拉文案循环） ── */
+const statusCycle = ["草稿（仅平台可见）", "已上架", "停售"];
+const statusIdx = ref(0);
+const statusLabel = computed(() => statusCycle[statusIdx.value]);
+function cycleStatus() {
+  statusIdx.value = (statusIdx.value + 1) % statusCycle.length;
+}
+
+/* ── 计费周期（设计稿：月付 / 季付 / 年付 / 自定义天数 90天） ── */
+const cycleOptions = [
+  { key: "MONTHLY", label: "月付" },
+  { key: "QUARTERLY", label: "季付" },
+  { key: "YEARLY", label: "年付" },
+  { key: "CUSTOM", label: "自定义天数", days: "90天" },
+];
+
+/* ── 续费策略（设计稿三选一） ── */
+const renewOptions = ["禁止续费·引导升级", "允许续费最后一年", "自动转推荐套餐"];
+
+/* ── 表单状态 ── */
 const form = reactive({
   planCode: "",
   planName: "",
-  planType: "MONTHLY" as string,
-  price: 0,
-  originalPrice: null as number | null,
-  durationDays: 30,
-  maxUsers: 5,
-  maxStores: 1,
-  maxCustomers: 1000,
-  maxProducts: 500,
-  maxStorageMb: 1024,
-  features: [] as string[],
   description: "",
-  sortOrder: 0,
-  status: "ACTIVE" as string
+  planType: "YEARLY",
+  price: 15800,
+  sortOrder: 50,
+  promoPrice: 13800 as number | null,
+  promoStart: "",
+  promoEnd: "",
+  maxUsers: 20,
+  maxProducts: 50000,
+  maxStores: 10,
+  maxStorageGb: 60,
+  apiQuota: 30000,
+  aiQuota: 5000,
+  upgradeMode: "立即",
+  downgradeMode: "立即生效·下期按新价",
+  renewPolicy: "允许续费最后一年",
 });
 
-const moduleOptions = [
-  { code: "PRODUCT", label: "商品中心" },
-  { code: "PURCHASE", label: "采购管理" },
-  { code: "INVENTORY", label: "库存管理" },
-  { code: "SALE", label: "销售管理" },
-  { code: "CUSTOMER", label: "客户管理" },
-  { code: "MARKETING", label: "营销中心" },
-  { code: "FINANCE", label: "财务管理" },
-  { code: "REPORT", label: "经营分析" },
-  { code: "SYSTEM", label: "系统设置" }
+/* ── 功能开关矩阵（设计稿五组，默认全选，分销裂变除外） ── */
+interface FeatureItem {
+  name: string;
+  v11?: boolean;
+}
+interface FeatureGroup {
+  name: string;
+  items: FeatureItem[];
+}
+const featureGroups: FeatureGroup[] = [
+  { name: "进销存核心", items: [
+    { name: "采购管理" }, { name: "销售管理" }, { name: "库存/盘点/调拨" },
+    { name: "成本核算" }, { name: "审批流（多级审核）" }, { name: "送货单签收" },
+  ] },
+  { name: "多仓库 / 多计量单位", items: [
+    { name: "多仓库" }, { name: "多单位换算" }, { name: "多级批发价" }, { name: "客户等级价" },
+  ] },
+  { name: "会员营销", items: [
+    { name: "会员储值" }, { name: "积分体系" }, { name: "会员价/券" },
+  ] },
+  { name: "小程序商城", items: [
+    { name: "线上选品下单" }, { name: "优惠券领取核销" }, { name: "即时零售对接" }, { name: "分销裂变" },
+  ] },
+  { name: "API / 报表 / AI", items: [
+    { name: "开放平台 API" }, { name: "标准报表" }, { name: "自定义报表" },
+    { name: "AI 助手（增强）" }, { name: "数据批量导出" }, { name: "自定义AI模型接入", v11: true },
+  ] },
 ];
 
-const selectedModules = ref<string[]>([]);
+const checked = reactive<Record<string, boolean>>({});
+featureGroups.forEach((g) =>
+  g.items.forEach((it) => {
+    checked[it.name] = it.name !== "分销裂变";
+  })
+);
 
-function toggleModule(code: string, checked: boolean) {
-  if (checked) {
-    if (!selectedModules.value.includes(code)) {
-      selectedModules.value.push(code);
-    }
-  } else {
-    selectedModules.value = selectedModules.value.filter(m => m !== code);
-  }
+function toggleItem(name: string) {
+  checked[name] = !checked[name];
+}
+function isGroupOn(g: FeatureGroup) {
+  return g.items.every((it) => checked[it.name]);
+}
+function toggleGroup(g: FeatureGroup) {
+  const on = isGroupOn(g);
+  g.items.forEach((it) => {
+    checked[it.name] = !on;
+  });
 }
 
-const showFeatureInput = ref(false);
-const featureInputValue = ref("");
-const featureInputRef = ref<any>();
-
-function addFeature() {
-  const val = featureInputValue.value.trim();
-  if (val && !form.features.includes(val)) {
-    form.features.push(val);
-    featureInputValue.value = "";
-  }
-  showFeatureInput.value = false;
-}
-
-function removeFeature(idx: number) {
-  form.features.splice(idx, 1);
-}
-
-const rules: FormRules = {
-  planCode: [{ required: true, message: "请输入套餐编码", trigger: "blur" }],
-  planName: [{ required: true, message: "请输入套餐名称", trigger: "blur" }],
-  planType: [{ required: true, message: "请选择套餐类型", trigger: "change" }],
-  price: [{ required: true, type: "number", message: "请输入售价", trigger: "blur" }],
-  durationDays: [{ required: true, type: "number", message: "请输入有效期", trigger: "blur" }],
-  maxUsers: [{ required: true, type: "number", message: "请输入最大用户数", trigger: "blur" }]
-};
-
-function goBack() {
-  router.push("/packages");
-}
-
+/* ── 编辑态回填（保留 getPlanDetail 逻辑） ── */
 async function fetchDetail() {
   pageLoading.value = true;
   try {
     const res = await getPlanDetail(planId.value);
     const data = res.data?.data || (res as any).data || res;
-    const features = typeof data.features === "string" ? JSON.parse(data.features || "[]") : (data.features || []);
-    const moduleAccess: string[] = typeof data.moduleAccess === "string" ? JSON.parse(data.moduleAccess || "[]") : (data.moduleAccess || []);
-
+    const moduleAccess: string[] =
+      typeof data.moduleAccess === "string"
+        ? JSON.parse(data.moduleAccess || "[]")
+        : (data.moduleAccess || []);
     Object.assign(form, {
       planCode: data.planCode || "",
       planName: data.planName || "",
-      planType: data.planType || "MONTHLY",
-      price: data.price || 0,
-      originalPrice: data.originalPrice ?? null,
-      durationDays: data.durationDays || 30,
-      maxUsers: data.maxUsers ?? 5,
-      maxStores: data.maxStores ?? 1,
-      maxCustomers: data.maxCustomers ?? 1000,
-      maxProducts: data.maxProducts ?? 500,
-      maxStorageMb: data.maxStorageMb ?? 1024,
-      features,
       description: data.description || "",
-      sortOrder: data.sortOrder ?? 0,
-      status: data.status || "ACTIVE"
+      planType: data.planType || "YEARLY",
+      price: data.price || 0,
+      sortOrder: data.sortOrder ?? 50,
+      maxUsers: data.maxUsers ?? 20,
+      maxProducts: data.maxProducts ?? 50000,
+      maxStores: data.maxStores ?? 10,
+      maxStorageGb: Math.round((data.maxStorageMb ?? 61440) / 1024),
     });
-    selectedModules.value = [...moduleAccess];
+    statusIdx.value = data.status === "ACTIVE" ? 1 : 2;
+    featureGroups.forEach((g) =>
+      g.items.forEach((it) => {
+        if (moduleAccess.includes(it.name)) checked[it.name] = true;
+      })
+    );
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || "加载失败");
   } finally {
@@ -268,25 +335,35 @@ async function fetchDetail() {
   }
 }
 
-async function handleSubmit() {
-  try {
-    await formRef.value?.validate();
-  } catch { return; }
-
+/* ── 提交（存为草稿 / 保存并上架） ── */
+async function submit(isDraft: boolean) {
+  if (!String(form.planName).trim()) {
+    ElMessage.warning("请输入套餐名称");
+    return;
+  }
   submitLoading.value = true;
   try {
     const payload = {
-      ...form,
-      moduleAccess: selectedModules.value,
-      originalPrice: form.originalPrice ?? undefined
+      planCode: form.planCode || `PLAN${Date.now()}`,
+      planName: form.planName,
+      description: form.description,
+      planType: form.planType,
+      durationDays: form.planType === "CUSTOM" ? 90 : form.planType === "MONTHLY" ? 30 : form.planType === "QUARTERLY" ? 90 : 365,
+      price: Number(form.price) || 0,
+      maxUsers: form.maxUsers,
+      maxProducts: form.maxProducts,
+      maxStores: form.maxStores,
+      maxStorageMb: form.maxStorageGb * 1024,
+      sortOrder: form.sortOrder,
+      status: isDraft || statusIdx.value === 0 ? "INACTIVE" : statusIdx.value === 1 ? "ACTIVE" : "INACTIVE",
+      moduleAccess: featureGroups.flatMap((g) => g.items.filter((it) => checked[it.name]).map((it) => it.name)),
     };
-
     if (isEdit.value) {
       await updatePlan(planId.value, payload);
-      ElMessage.success("保存成功");
+      ElMessage.success(isDraft ? "已存为草稿" : "保存并上架成功");
     } else {
       await createPlan(payload);
-      ElMessage.success("创建成功");
+      ElMessage.success(isDraft ? "已存为草稿" : "保存并上架成功");
     }
     router.push("/packages");
   } catch (e: any) {
@@ -296,9 +373,267 @@ async function handleSubmit() {
   }
 }
 
+function goBack() {
+  router.push("/packages");
+}
+
 onMounted(() => {
   if (isEdit.value) {
     fetchDetail();
   }
 });
 </script>
+
+<style scoped>
+/* 抽屉式表单页（设计稿 .drawer 宽 486px 右滑；此处以页面内右对齐卡片呈现） */
+.drawer-page {
+  width: 486px;
+  max-width: 100%;
+  margin-left: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--g2);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shell-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.d-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 13px var(--space-4);
+  border-bottom: 1px solid var(--g2);
+  flex: none;
+}
+.d-hd .pt {
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
+}
+.d-x {
+  color: var(--g4);
+  font-size: var(--text-lg);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.d-x:hover {
+  background: var(--g0);
+  color: var(--g6);
+}
+.d-bd {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--panel-body-padding) var(--space-4);
+}
+.d-ft {
+  flex: none;
+  border-top: 1px solid var(--g2);
+  padding: 11px var(--space-4);
+  display: flex;
+  gap: var(--space-2);
+  background: var(--bg-card);
+}
+
+/* 分区标题（.fld > span 复用 kv-label 样式，加粗以作分区头） */
+.d-bd > .fld > span {
+  font-weight: var(--font-semibold);
+  color: var(--g7);
+}
+.inline-note {
+  font-style: normal;
+}
+
+/* 分区面板 */
+.sec-panel {
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-2);
+}
+.sec-bd {
+  display: grid;
+  gap: 10px;
+}
+
+/* 必填星标 */
+.req {
+  color: var(--color-danger);
+  font-style: normal;
+}
+
+/* 描述输入框加高（设计稿 height:44px） */
+.desc-ipt {
+  height: var(--input-height-lg);
+}
+
+/* 宽度工具 */
+.grow-min {
+  flex: 1;
+  min-width: 130px;
+}
+.grow-amount {
+  flex: 1.2;
+  min-width: 120px;
+}
+.fill {
+  width: 100%;
+}
+
+/* 选项组 */
+.chips {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+/* 限时活动价（设计稿橙色提示块） */
+.promo-row {
+  background: var(--color-warning-soft);
+  border: 1px solid var(--warning-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) 10px;
+}
+.promo-label {
+  color: var(--warning-text) !important;
+}
+
+/* 功能开关矩阵 */
+.mx-list {
+  display: grid;
+  gap: var(--space-2);
+}
+.mx-hd {
+  cursor: pointer;
+}
+.mx-it {
+  cursor: pointer;
+}
+.v11-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  border-top: 1px dashed var(--g2);
+  margin-top: 7px;
+  padding: 7px 0 2px;
+}
+
+/* v1.1 修订相关（设计稿 .v11-*，色值取自 tokens） */
+.v11-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9.5px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--ver-tag-tracking);
+  white-space: nowrap;
+}
+.v11-tag.lt {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+  border: 1px solid var(--color-primary-soft);
+}
+.v11-ck {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--tag-font-size);
+  padding: 2.5px 9px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-success-soft);
+  background: var(--color-success-soft);
+  color: var(--color-success);
+  white-space: nowrap;
+}
+.v11-ck .ck {
+  width: 10px;
+  height: 10px;
+}
+.v11-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--tag-font-size);
+  padding: 2.5px 9px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--g2);
+  background: var(--g0);
+  color: var(--g4);
+  white-space: nowrap;
+}
+.lkic {
+  display: inline-grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  border-radius: var(--radius-xs);
+  background: var(--g3);
+  color: var(--g6);
+  flex: none;
+}
+.v11-onlypay {
+  display: inline-flex;
+  align-items: center;
+  font-size: 8.5px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--color-warning-soft);
+  border: 1px solid var(--warning-line);
+  color: var(--color-warning);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--ver-tag-tracking);
+}
+.v11-note {
+  width: 100%;
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  font-size: var(--text-xs);
+  color: var(--g5);
+  background: var(--color-primary-bg);
+  border: 1px dashed var(--color-primary-soft);
+  border-radius: var(--radius-lg);
+  padding: 7px 11px;
+  line-height: var(--leading-normal);
+  margin-top: 7px;
+}
+
+/* 资源配额（设计稿三列网格） */
+.quota-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.unit {
+  font-weight: var(--font-normal);
+}
+
+/* 升降级规则 */
+.rule-bd {
+  display: grid;
+  gap: 11px;
+}
+.rule-title {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--g6);
+}
+.rule-opts {
+  display: grid;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--g6);
+}
+.rule-opt {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  cursor: pointer;
+}
+</style>
