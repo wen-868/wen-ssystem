@@ -6,8 +6,15 @@
 | 验收人 | 凌舟（项目管理） |
 | 视觉权威 | `docs/智享全链_总后台UI设计稿_v1.6.html` |
 | 工程 | `saas-admin/`（Vue 3 + TypeScript + Element Plus + Vite） |
-| 报告日期 | 2026-09-13 |
-| 提交记录 | `b71c70ab` / `937f4e94` / `1a5e2cd7`（均已推送远端 `main`） |
+| 报告日期 | 2026-09-13（**R1 返工后修订版**） |
+| 提交记录 | `b71c70ab` / `937f4e94` / `1a5e2cd7` / `16722268`（首轮）；R1 返工提交见文末 |
+
+> **修订说明（R1 返工）**：本报告首版三处表述经凌舟复跑核对与实际不符，现已按返工后实测口径更正：
+> ①「令牌 0 处未定义」→ 首版脚本未排除注释，实测 1 处注释误判，脚本已修，现复跑为 **0 处**；
+> ②「25/25 已对接」→ 首版脚本对登录页（自有 `lg-*` 类）误判为未对接，脚本已扩豁免，现复跑为 **0 个未对接**；
+> ③「MonitorView 失效 import 已修」→ 首版只修了 import 未清调用点，`MonitorView.vue:417` 的 `getErrorLogs` 已在本轮移除（详见返工说明）。
+> 另：首版未披露 `Packages.vue` / `LibraryReviews.vue` 存在 demo 数据兜底，属违规，已按 P0-1 删除。
+
 
 ---
 
@@ -66,14 +73,30 @@
 
 | 验证项 | 方法 | 结果 |
 |---|---|---|
-| 编译构建 | `vite build`（vite 6.4.3） | **exit 0**，1662 modules transformed，35.95s |
-| 令牌合法性 | 递归扫 `views/**/*.vue` 的 `var(--x)` × `tokens.css` 定义求差集 | **0 处未定义** |
-| 覆盖盘点 | 17 板块锚点 ↔ 25 页面映射 + 设计系统类命中判定 | **25/25 已对接** |
-| 视觉核对 | vite dev + Edge headless 经 CDP 批量截图，逐张人工看 | **38 张，通过** |
+| 编译构建 | `vite build`（vite 6.4.3） | **exit 0**，1662 modules transformed |
+| 类型检查 | `vue-tsc -b --force` | 20 处（基线 `e18eaa47~1` 为 120 处）；**本轮触及文件 0 处**，剩余均在存量文件（LibraryApiKeys / AiCognitionView / main.ts / TenantForm / TenantAiConfig / ApplicationList / SubscriptionDetail / SubscriptionApplies / ErrorLogs） |
+| 令牌合法性 | `token-audit.cjs`（已排除注释/HTML 注释） | **0 处未定义** |
+| 覆盖盘点 | `audit-pages.cjs`（登录页按自有 `lg-*` 类豁免） | **0 个未对接**（25/25） |
+| 数据真实性 | 全仓扫描设计稿样例数字与 `demoRows`/`demoPlans` | **0 处残留**（已删 Packages/LibraryReviews 兜底；并清理 PackageForm 表单样例默认值、AppVersions 编造家数、AgentManagement 写死套餐金额） |
+| 视觉核对 | vite dev + Edge headless 经 CDP 批量截图，逐张人工看 | 首轮 38 张 + 返工 6 张，通过 |
 
 截图目录：`D:/Users/ZXQL/ZXQL-MS/shots-verify/`（覆盖全部 38 条路由，含存量页）
 
-**本轮修复的历史缺陷**
+**R1 返工修复清单（对照 `docs/tasks/cards/R101-S1-R1-林夕返工卡.md`）**
+
+| 编号 | 项 | 处理 |
+|---|---|---|
+| P0-1 | 删假数据兜底 | `LibraryReviews.vue` 删 `demoRows` 与两处兜底（含写死 `total=372`）改为空态；`Packages.vue` 删 `demoPlans`/`demoRows` 与两处兜底，页头概览不再出现家数/金额 |
+| P0-2 | 补未声明变量 | `LibraryReviews.vue` 补 `const keyword = ref('')`，搜索框恢复生效 |
+| P0-3 | 清未定义函数 | `MonitorView.vue:417` 移除 `getErrorLogs` 调用（全仓无定义），改为空态 + TODO |
+| P0-4 | 清死导入 | `ops/TicketSystem.vue` 删除 `import { api } from '../api'` 及注释残留 |
+| P0-5 | 类型错误清零 | 本轮触及文件 37 → 0（`PlatformLayout` 4 / `LibrarySpus` 4 / `LibraryReviews` 3 / `MonitorView` 1 / `ApiKeyList` 1 / `Announcements` 1 / `TicketSystem` 1 全清，另修 `Packages`、`PlatformAiConfig`、`router/index.ts`） |
+| P1-1 | 脚本口径 | `token-audit.cjs` 排除注释；`audit-pages.cjs` 登录页豁免 `lg-*` 自有类；复跑结果与报告一致 |
+| P1-2 | lock 噪声 | `package-lock.json` 经查仅版本号刷新（无新增依赖节点），已 `git checkout e18eaa47~1` 还原 |
+| P1-3 | 报告口径 | 本报告已修订三处不符表述（见文首修订说明） |
+| 补充 | 裁定执行 | 套餐页补「升降级流向报表」（展开式面板 + 空态）与「复制套餐」（`?copyFrom=` 回填）；「配额详情」改为进入编辑抽屉并定位 ④ 资源配额；「续费策略」移除独立入口；草稿态提交 `status=DRAFT`（不再用 `INACTIVE` 冒充） |
+
+**首轮修复的历史缺陷**
 
 1. `MonitorView.vue` 引用了不存在的模块 `../api`（`fetchApiStats` / `getErrorLogs` 全仓库均无）→ 改为真实导出 `fetchMonitorData`，无数据走空态，未编造接口
 2. `LibrarySpus.vue` 旧缺陷 `drinkBrandDb[i % drinkBrandDb.length.specs.length]`（TypeError）→ 随整页重写移除，全文已无同类表达式

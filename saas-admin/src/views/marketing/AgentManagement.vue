@@ -132,11 +132,11 @@
                   <div>
                     <p class="b lv-label">可售套餐范围（从套餐模板勾选）</p>
                     <div class="mx">
-                      <div class="mx-hd">当前在售套餐模板 4 个 · 免费版不参与分销</div>
+                      <div class="mx-hd">套餐档位以「套餐管理」实时配置为准 · 免费版不参与分销</div>
                       <div class="mx-bd">
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.basic }"></span>基础版 ¥4,800/年</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.standard }"></span>标准版 ¥9,800/年</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.flagship }"></span>旗舰版 ¥19,800/年</span>
+                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.basic }"></span>基础版</span>
+                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.standard }"></span>标准版</span>
+                        <span class="mx-it"><span class="ck" :class="{ on: l1.tiers.flagship }"></span>旗舰版</span>
                         <span class="mx-it mx-locked"><span class="ck"></span>免费版（不可勾选）</span>
                       </div>
                     </div>
@@ -167,8 +167,8 @@
                     <div class="mx">
                       <div class="mx-hd">受上级一级代理可售范围约束（取交集）</div>
                       <div class="mx-bd">
-                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.basic }"></span>基础版 ¥4,800/年</span>
-                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.standard }"></span>标准版 ¥9,800/年</span>
+                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.basic }"></span>基础版</span>
+                        <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.standard }"></span>标准版</span>
                         <span class="mx-it"><span class="ck" :class="{ on: l2.tiers.flagship }"></span>旗舰版（未开放）</span>
                         <span class="mx-it mx-locked"><span class="ck"></span>免费版（不可勾选）</span>
                       </div>
@@ -227,9 +227,9 @@
                 <thead>
                   <tr>
                     <th>代理商层级 \ 套餐档位</th>
-                    <th>基础版（¥4,800/年）</th>
-                    <th>标准版（¥9,800/年）</th>
-                    <th>旗舰版（¥19,800/年）</th>
+                    <th>基础版</th>
+                    <th>标准版</th>
+                    <th>旗舰版</th>
                   </tr>
                 </thead>
                 <tbody>

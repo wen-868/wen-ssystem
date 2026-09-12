@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, unref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, Bell } from '@element-plus/icons-vue'
 import { platformMenus, findMenuTitleByPath } from '../config/platform-menu'
@@ -102,15 +102,18 @@ function isActive(path: string): boolean {
 
 const currentMenu = computed(() => findMenuTitleByPath(route.path))
 
+/** 登录管理员信息：store 中该字段类型为 Ref，用 unref 兼容「Ref / 已解包」两种形态 */
+const adminInfo = computed(() => unref(authStore.adminInfo))
+
 /** 头像首字（设计稿 .ava 显示姓氏） */
 const avatarChar = computed(() => {
-  const name = authStore.adminInfo?.realName || authStore.adminInfo?.username || ''
+  const name = adminInfo.value?.realName || adminInfo.value?.username || ''
   return name ? name.slice(0, 1) : '—'
 })
 
 /** 用户名 + 角色（设计稿 .uname：陈默 · 超级管理员） */
 const userLabel = computed(() => {
-  const info = authStore.adminInfo
+  const info = adminInfo.value
   if (!info) return '未登录'
   return `${info.realName || info.username} · 超级管理员`
 })

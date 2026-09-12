@@ -292,7 +292,7 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore();
-  const token = authStore.token;
+  const token = typeof authStore.token === 'string' ? authStore.token : (authStore.token as any)?.value;
   const expired = token && isTokenExpired(token);
 
   if (expired) {

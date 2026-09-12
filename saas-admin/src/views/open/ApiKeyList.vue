@@ -48,7 +48,7 @@
                 </td>
                 <td><span class="mask">{{ maskKey(row.appKey) }}</span></td>
                 <td>
-                  <span v-for="s in row.scopes" :key="s" class="tag" :class="s.readonly ? 'tag-gy' : 'tag-b'">{{ s.label }}</span>
+                  <span v-for="(s, i) in row.scopes" :key="i" class="tag" :class="s.readonly ? 'tag-gy' : 'tag-b'">{{ s.label }}</span>
                 </td>
                 <td>{{ row.qps }} 次/秒</td>
                 <td class="num">{{ row.calls7d }}</td>

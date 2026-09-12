@@ -214,7 +214,7 @@
         <div class="m-ft">
           <span class="btn" style="margin-right: auto" @click="saveDraft">存为草稿</span>
           <span class="btn" @click="handlePreview">预览效果</span>
-          <span class="btn btn-p" @click="submit">{{ editingId ? '保存' : '定时发布' }}</span>
+          <span class="btn btn-p" @click="() => submit()">{{ editingId ? '保存' : '定时发布' }}</span>
         </div>
       </div>
     </div>

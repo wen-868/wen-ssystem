@@ -76,7 +76,7 @@
             </tbody>
           </table>
         </div>
-        <div v-if="rows.length === 0" class="empty">暂无待审核商品</div>
+        <div v-if="rows.length === 0" class="empty">暂无待审核商品 · 待接入 GET /platform/library/reviews</div>
 
         <div class="pagebar">
           <span>共 {{ total }} 条 · 每页 20 条 · AI 采集 / 供应商提交 · 平均滞留 6.2 小时</span>
@@ -126,7 +126,7 @@
               :key="t"
               class="reason-row"
               :class="{ sel: rejectChecked.includes(t) }"
-              @click="toggleReason(t, i)"
+              @click="toggleReason(t)"
             >
               <span class="tg" :class="{ off: !rejectChecked.includes(t) }"></span>{{ t }}
             </div>
@@ -183,15 +183,8 @@ const rows = ref<ReviewRow[]>([])
 const page = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-
-const demoRows: ReviewRow[] = [
-  { id: -1, submitTime: '09-10 18:42', name: '心相印茶语经典卷纸 4层×10卷', barcode: '6908888765432', category: '家清纸品 > 卷纸', source: 'AI 采集', srcCls: 'cus', confidence: '96%', submitter: 'AI 采集任务 #A-0910-12' },
-  { id: -2, submitTime: '09-10 17:05', name: '蒙牛纯牛奶 250ml×16盒', barcode: '6945678901234', category: '乳制品 > 纯牛奶', source: '供应商提交', srcCls: 'cus', confidence: null, submitter: '蒙牛经销 · 皖南分部' },
-  { id: -3, submitTime: '09-10 15:33', name: '旺旺雪饼 84g×12', barcode: '6903456700012', category: '膨化食品 > 雪米饼', source: 'AI 采集', srcCls: 'cus', confidence: '93%', submitter: 'AI 采集任务 #A-0910-12' },
-  { id: -4, submitTime: '09-10 14:21', name: '清风原木纯品卷纸 3层×10卷', barcode: '6920152700019', category: '家清纸品 > 卷纸', source: 'AI 采集', srcCls: 'cus', confidence: '88%', submitter: 'AI 采集任务 #A-0910-12' },
-  { id: -5, submitTime: '09-10 11:47', name: '海天生抽酱油 1.28L×6', barcode: '6902028700016', category: '调味品 > 酱油', source: '供应商提交', srcCls: 'cus', confidence: null, submitter: '海天经销 · 粤西分部' },
-  { id: -6, submitTime: '09-09 16:18', name: '雀巢咖啡1+2原味 15g×50条', barcode: '6917958700014', category: '饮料 > 冲调饮品', source: 'AI 采集', srcCls: 'cus', confidence: '72%', submitter: 'AI 采集任务 #A-0909-08' },
-]
+/* 搜索关键字（模板 v-model="keyword" 与 fetchList 入参均引用此变量） */
+const keyword = ref('')
 
 function sourceText(s: string) {
   return ({ MANUAL: '平台运营录入', IMPORT: '批量导入', OPEN_API: 'API' } as Record<string, string>)[s] || s || '—'
@@ -226,23 +219,25 @@ async function fetchList() {
       }))
       total.value = data.total || records.length
     } else {
-      rows.value = demoRows
-      total.value = 372
+      // 禁模拟数据：无数据走空态，不得用编造记录兜底
+      rows.value = []
+      total.value = 0
     }
   } catch {
-    rows.value = demoRows
-    total.value = 372
+    // 禁模拟数据：接口失败同样走空态
+    rows.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
 /* ───────────────── 筛选器（功能性循环下拉） ───────────────── */
-const sourceCycle = ['全部（372）', 'AI 采集', '供应商提交']
+const sourceCycle = computed(() => [`全部（${total.value}）`, 'AI 采集', '供应商提交'])
 const sourceIdx = ref(0)
-const sourceLabel = computed(() => sourceCycle[sourceIdx.value])
+const sourceLabel = computed(() => sourceCycle.value[sourceIdx.value])
 function cycleSource() {
-  sourceIdx.value = (sourceIdx.value + 1) % sourceCycle.length
+  sourceIdx.value = (sourceIdx.value + 1) % sourceCycle.value.length
 }
 
 /* ───────────────── 分页 ───────────────── */

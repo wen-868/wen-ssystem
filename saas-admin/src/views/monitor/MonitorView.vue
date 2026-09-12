@@ -413,12 +413,9 @@ async function load() {
     // 存储 TOP5 / 租户 API / 异常接口 / 代登录审计 暂无对应接口，保持空态（不造假）
     // TODO: 待接入 GET /platform/monitor/storage/top5、/platform/monitor/tenant-api、
     //       /platform/error-logs、/platform/monitor/proxy-audit
-    try {
-      const el: any = await getErrorLogs({ pageSize: 20 })
-      errorTop.value = el?.data?.data?.records || []
-    } catch {
-      errorTop.value = []
-    }
+    // 错误日志 TOP：全仓库无 getErrorLogs 定义（原调用为未定义引用 TS2304），
+    // 已移除该调用；待后端提供 GET /platform/error-logs 后再接回，当前保持空态（不造假）
+    errorTop.value = []
   } catch {
     error.value = '监控数据加载失败（接口待对接，当前展示空态）'
   } finally {

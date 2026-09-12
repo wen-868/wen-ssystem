@@ -5,7 +5,7 @@
       <div>
         <div class="pt4">{{ isEdit ? "编辑套餐" : "新建套餐" }}</div>
         <p class="pd">
-          {{ isEdit ? "改配置即改商品 · 价格类变更需超级管理员密码二次确认" : "复制自：旗舰版 · 五段式配置（定价 / 周期 / 功能开关矩阵 / 资源配额 / 升降级规则）" }}
+          {{ isEdit ? "改配置即改商品 · 价格类变更需超级管理员密码二次确认" : (copiedFromName ? `复制自：${copiedFromName} · ` : "") + "五段式配置（定价 / 周期 / 功能开关矩阵 / 资源配额 / 升降级与续费规则）" }}
         </p>
       </div>
       <div class="pg-act">
@@ -17,7 +17,7 @@
     <div class="drawer-page" v-loading="pageLoading">
       <div class="d-hd">
         <span class="pt">{{ isEdit ? "编辑套餐" : "新建套餐" }}</span>
-        <span class="small">{{ isEdit ? `套餐编码：${form.planCode || "--"}` : "复制自：旗舰版" }}</span>
+        <span class="small">{{ isEdit ? `套餐编码：${form.planCode || "--"}` : copiedFromName ? `复制自：${copiedFromName}` : "新建套餐（可从列表页「复制」进入）" }}</span>
         <span class="d-x" @click="goBack">✕</span>
       </div>
 
@@ -28,11 +28,11 @@
           <div class="p-bd sec-bd">
             <div class="fld">
               <span>套餐名称 <i class="req">*</i></span>
-              <input class="ipt" v-model="form.planName" placeholder="生鲜行业专供" />
+              <input class="ipt" v-model="form.planName" placeholder="如：标准版" />
             </div>
             <div class="fld">
               <span>套餐描述</span>
-              <input class="ipt desc-ipt" v-model="form.description" placeholder="面向生鲜批零一体商户，含多仓与即时零售完整能力" />
+              <input class="ipt desc-ipt" v-model="form.description" placeholder="一句话描述该套餐的适用场景与能力边界" />
             </div>
             <div class="frow">
               <span class="fld grow-min">
@@ -80,11 +80,11 @@
               </span>
               <span class="fld grow-min">
                 <span class="promo-label">活动开始</span>
-                <input class="ipt" v-model="form.promoStart" placeholder="2026-10-01" />
+                <input class="ipt" v-model="form.promoStart" placeholder="YYYY-MM-DD" />
               </span>
               <span class="fld grow-min">
                 <span class="promo-label">活动结束</span>
-                <input class="ipt" v-model="form.promoEnd" placeholder="2026-10-31" />
+                <input class="ipt" v-model="form.promoEnd" placeholder="YYYY-MM-DD" />
               </span>
             </div>
           </div>
@@ -132,8 +132,8 @@
           </div>
         </div>
 
-        <!-- ④ 资源配额 -->
-        <div class="fld mt14"><span>④ 资源配额</span></div>
+<!-- ④ 资源配额 -->
+<div ref="quotaRef" class="fld mt14"><span>④ 资源配额</span></div>
         <div class="panel sec-panel">
           <div class="p-bd quota-grid">
             <span class="fld"><span>账号数</span><span class="ipt">{{ form.maxUsers }} <b class="small unit">个</b></span></span>
@@ -196,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { getPlanDetail, createPlan, updatePlan } from "../api";
@@ -209,6 +209,10 @@ const planId = computed(() => Number(route.params.id));
 
 const pageLoading = ref(false);
 const submitLoading = ref(false);
+/* 配额分区锚点（列表页「配额详情」进入时定位用） */
+const quotaRef = ref<HTMLElement | null>(null);
+/* 复制来源套餐名（用于页头提示，展示真实读取结果，不虚构） */
+const copiedFromName = ref("");
 
 /* ── 状态（设计稿下拉文案循环） ── */
 const statusCycle = ["草稿（仅平台可见）", "已上架", "停售"];
@@ -235,17 +239,17 @@ const form = reactive({
   planName: "",
   description: "",
   planType: "YEARLY",
-  price: 15800,
+  price: 0,
   sortOrder: 50,
-  promoPrice: 13800 as number | null,
+  promoPrice: null as number | null,
   promoStart: "",
   promoEnd: "",
-  maxUsers: 20,
-  maxProducts: 50000,
-  maxStores: 10,
-  maxStorageGb: 60,
-  apiQuota: 30000,
-  aiQuota: 5000,
+  maxUsers: 0,
+  maxProducts: 0,
+  maxStores: 0,
+  maxStorageGb: 0,
+  apiQuota: 0,
+  aiQuota: 0,
   upgradeMode: "立即",
   downgradeMode: "立即生效·下期按新价",
   renewPolicy: "允许续费最后一年",
@@ -316,13 +320,14 @@ async function fetchDetail() {
       description: data.description || "",
       planType: data.planType || "YEARLY",
       price: data.price || 0,
-      sortOrder: data.sortOrder ?? 50,
-      maxUsers: data.maxUsers ?? 20,
-      maxProducts: data.maxProducts ?? 50000,
-      maxStores: data.maxStores ?? 10,
-      maxStorageGb: Math.round((data.maxStorageMb ?? 61440) / 1024),
+      sortOrder: data.sortOrder ?? 0,
+      maxUsers: data.maxUsers ?? 0,
+      maxProducts: data.maxProducts ?? 0,
+      maxStores: data.maxStores ?? 0,
+      maxStorageGb: Math.round((data.maxStorageMb ?? 0) / 1024),
     });
-    statusIdx.value = data.status === "ACTIVE" ? 1 : 2;
+    // 草稿态前端保留（后端 DRAFT 枚举由阿坚 S2-02 补），其余按真实状态回填
+    statusIdx.value = data.status === "ACTIVE" ? 1 : data.status === "DRAFT" ? 0 : 2;
     featureGroups.forEach((g) =>
       g.items.forEach((it) => {
         if (moduleAccess.includes(it.name)) checked[it.name] = true;
@@ -355,7 +360,9 @@ async function submit(isDraft: boolean) {
       maxStores: form.maxStores,
       maxStorageMb: form.maxStorageGb * 1024,
       sortOrder: form.sortOrder,
-      status: isDraft || statusIdx.value === 0 ? "INACTIVE" : statusIdx.value === 1 ? "ACTIVE" : "INACTIVE",
+      // 凌舟裁定 R101-S1-R1：草稿态前端保留，提交 status 用 DRAFT；
+      // 后端 DRAFT 枚举由阿坚在 S2-02 补齐并登记 docs/数据库变更清单.md，本轮禁止用 INACTIVE 冒充草稿
+      status: isDraft ? "DRAFT" : statusIdx.value === 1 ? "ACTIVE" : "INACTIVE",
       moduleAccess: featureGroups.flatMap((g) => g.items.filter((it) => checked[it.name]).map((it) => it.name)),
     };
     if (isEdit.value) {
@@ -377,11 +384,58 @@ function goBack() {
   router.push("/packages");
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (isEdit.value) {
-    fetchDetail();
+    await fetchDetail();
+  } else if (route.query.copyFrom) {
+    // 复制套餐（设计稿第 717 行「复制自：旗舰版」）：载入源套餐配置作为新建初值，保存后生成新套餐
+    await copyFrom(Number(route.query.copyFrom));
+  }
+  // 凌舟裁定：配额详情不单独开页 → 从列表页带 ?section=quota 进来时定位到「④ 资源配额」分区
+  if (route.query.section === "quota") {
+    await nextTick();
+    quotaRef.value?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 });
+
+/* 复制套餐：读取源套餐详情回填表单（仅作初值，不落库） */
+async function copyFrom(sourceId: number) {
+  if (!sourceId) return;
+  pageLoading.value = true;
+  try {
+    const res = await getPlanDetail(sourceId);
+    const d = (res as any)?.data?.data || (res as any)?.data || {};
+    Object.assign(form, {
+      planName: `${d.planName || ""} 副本`.trim(),
+      planCode: "",
+      description: d.description || "",
+      planType: d.planType || "YEARLY",
+      price: d.price ?? 0,
+      maxUsers: d.maxUsers ?? 0,
+      maxProducts: d.maxProducts ?? 0,
+      maxStores: d.maxStores ?? 0,
+      maxStorageGb: d.maxStorageMb ? Math.round(d.maxStorageMb / 1024) : 0,
+      sortOrder: d.sortOrder ?? 0,
+    });
+    // 功能开关矩阵按源套餐回填
+    const srcModules: string[] = Array.isArray(d.moduleAccess)
+      ? d.moduleAccess
+      : typeof d.moduleAccess === "string"
+        ? JSON.parse(d.moduleAccess || "[]")
+        : [];
+    featureGroups.forEach((g) =>
+      g.items.forEach((it) => {
+        checked[it.name] = srcModules.includes(it.name);
+      })
+    );
+    copiedFromName.value = d.planName || "";
+    // TODO: 后端提供 POST /platform/plans/:id/copy 后改为服务端复制，当前为「读取源配置 + 新建」的等效实现
+  } catch {
+    ElMessage.warning("未能读取源套餐配置，请确认接口 GET /platform/plans/:id 可用");
+  } finally {
+    pageLoading.value = false;
+  }
+}
 </script>
 
 <style scoped>

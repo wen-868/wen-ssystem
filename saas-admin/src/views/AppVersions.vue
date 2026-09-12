@@ -263,7 +263,7 @@ const grayOptions = [
   {
     key: "spec",
     title: "指定租户 / 按套餐",
-    desc: "如：旗舰版全部 114 家先行体验",
+    desc: "如：指定套餐的租户先行体验",
     tag: "",
     tagCls: "",
     link: "选择 ›",

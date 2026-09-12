@@ -485,12 +485,12 @@
             </span>
             <span class="fld" style="flex:1">
               <span>平台编码</span>
-              <span class="ipt">{{ detailSpu?.platformCode || '—' }}</span>
+              <span class="ipt">{{ detailSpu?.spuCode || '—' }}</span>
             </span>
             <span class="fld" style="width:110px">
               <span>状态</span>
               <span class="sel" style="justify-content:center">
-                <span class="tag" :class="spuStatusTag(detailSpu?.status)">{{ spuStatusLabel(detailSpu?.status) }}</span>
+                <span class="tag" :class="spuStatusTag(detailSpu?.status || '')">{{ spuStatusLabel(detailSpu?.status || '') }}</span>
               </span>
             </span>
           </div>
@@ -569,7 +569,7 @@
         </div>
       </div>
       <div class="m-ft">
-        <span class="btn btn-p" @click="openSpuModal(detailSpu)">编辑商品</span>
+        <span class="btn btn-p" @click="detailSpu && openSpuModal(detailSpu)">编辑商品</span>
         <span class="btn btn-d" @click="todo('下架')">下架</span>
       </div>
     </div>

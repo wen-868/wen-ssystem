@@ -70,7 +70,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { api } from '../api'
 
 /* ── 类型：看板卡片（字段全部来自接口，当前不虚构任何示例值） ── */
 interface TicketCard {
@@ -152,7 +151,8 @@ async function load() {
   try {
     // TODO: 待接入 GET /platform/support/tickets（按状态分组返回 待处理/处理中/已解决）
     // 建议响应：{ pending: TicketCard[], processing: TicketCard[], resolved: TicketCard[], summary: {...} }
-    // const res = await api.get('/platform/support/tickets', { params: { onlyMine: onlyMine.value } })
+    // 对接时改用 src/api 层封装（原 `import { api } from '../api'` 指向不存在的 src/views/api，已删除）：
+    // const res = await request.get('/platform/support/tickets', { params: { onlyMine: onlyMine.value } })
     // const d = res?.data?.data || {}
     // columns.value = mapToColumns(d)
     // summary.value = { todayNew: d.summary?.todayNew ?? '--', ... }

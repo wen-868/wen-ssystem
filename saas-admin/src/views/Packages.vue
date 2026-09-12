@@ -20,6 +20,49 @@
       </div>
     </div>
 
+    <!-- ============ 升降级流向报表（设计稿 sec-plan 升级/降级流向，展开式面板） ============ -->
+    <div v-if="flowOpen" class="panel mt12">
+      <div class="p-hd">
+        <span class="pt">升降级流向报表</span>
+        <span class="ph-s">
+          区间：
+          <span
+            v-for="r in flowRanges"
+            :key="r"
+            class="btn-t"
+            :class="{ on: flowRange === r }"
+            @click="flowRange = r"
+          >{{ r }}</span>
+        </span>
+      </div>
+      <div class="p-bd tblwrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>流向类型</th>
+              <th>来源套餐</th>
+              <th>目标套餐</th>
+              <th class="num">租户数</th>
+              <th>发生时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="!flowRows.length">
+              <td colspan="5" class="muted">暂无流向数据 · 待接入 GET /platform/plans/upgrade-flow-report</td>
+            </tr>
+            <tr v-for="(f, i) in flowRows" :key="i">
+              <td><span class="tag" :class="f.dir === 'UP' ? 'tag-g' : 'tag-o'">{{ f.dir === 'UP' ? '升级' : '降级' }}</span></td>
+              <td>{{ f.fromName }}</td>
+              <td>{{ f.toName }}</td>
+              <td class="num">{{ f.tenantCount }}</td>
+              <td>{{ f.time }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="small mt8">口径：按订阅关系变更事件统计，升级含免费→付费；降级含付费→免费与高档→低档。数据来自真实接口，无数据时保持空态。</p>
+      </div>
+    </div>
+
     <!-- ============ 套餐卡片网格（设计稿 .g3 + .plan） ============ -->
     <div class="g3">
       <div
@@ -68,6 +111,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr v-if="!compareRows.length">
+              <td colspan="7" class="muted">暂无套餐数据 · 待接入 GET /platform/plans（不展示任何模拟业务数字）</td>
+            </tr>
             <tr v-for="r in compareRows" :key="r.name">
               <td><b>{{ r.name }}</b></td>
               <td><span class="tag" :class="r.srcCls">{{ r.src }}</span></td>
@@ -89,7 +135,7 @@
       </div>
     </div>
 
-    <!-- 空态（接口无数据且演示数据不可用时兜底） -->
+    <!-- 空态（接口无数据，禁模拟数据：不回落任何演示数据） -->
     <div v-if="!plans.length" class="empty mt12">
       暂无套餐数据，点击「+ 新建套餐」创建平台第一个套餐
     </div>
@@ -104,7 +150,7 @@ import { getPlans, updatePlan } from "../api";
 
 const router = useRouter();
 
-/* ── 数据状态：优先接口，无数据时回落到设计稿演示数据保证视觉完整 ── */
+/* ── 数据状态：仅取真实接口，无数据一律空态（禁模拟数据） ── */
 const loading = ref(false);
 const apiPlans = ref<any[]>([]);
 
@@ -128,70 +174,9 @@ interface PlanCard {
   actions: PlanAction[];
 }
 
-/* 设计稿第 688~693 行的 6 张套餐卡片（演示数据） */
-const demoPlans: PlanCard[] = [
-  {
-    name: "免费版", tagCls: "tag-g", tagText: "上架中", price: "0", unit: "永久免费",
-    line1: "已订阅 671 家 · 获客漏斗入口", line2: "账号 1 · 商品 100 · 仓库 1 · 存储 1GB",
-    actions: [
-      { key: "edit", label: "编辑" },
-      { key: "copy", label: "复制" },
-      { key: "offline", label: "停售", cls: "gy" },
-      { key: "quota", label: "配额详情" },
-    ],
-  },
-  {
-    name: "基础版", tagCls: "tag-g", tagText: "上架中", price: "4,800", unit: "年",
-    line1: "已订阅 310 家 · 本月新增付费 14", line2: "账号 3 · 商品 2,000 · 存储 5GB · AI 500次/月",
-    actions: [
-      { key: "edit", label: "编辑" },
-      { key: "copy", label: "复制" },
-      { key: "offline", label: "停售", cls: "gy" },
-    ],
-  },
-  {
-    name: "标准版", tagCls: "tag-g", tagText: "上架中", price: "9,800", unit: "年",
-    line1: "已订阅 191 家 · 本月新增付费 6", line2: "账号 10 · 商品 20,000 · API 10万次/月",
-    hot: true, badge: "主力套餐",
-    actions: [
-      { key: "edit", label: "编辑" },
-      { key: "copy", label: "复制" },
-      { key: "offline", label: "停售", cls: "gy" },
-    ],
-  },
-  {
-    name: "旗舰版", tagCls: "tag-g", tagText: "上架中", price: "19,800", unit: "年",
-    line1: "已订阅 114 家 · 含专属客服 SLA", line2: "账号 30 · 商品 100,000 · 存储 100GB",
-    actions: [
-      { key: "edit", label: "编辑" },
-      { key: "copy", label: "复制" },
-      { key: "offline", label: "停售", cls: "gy" },
-    ],
-  },
-  {
-    name: "批发专享版", tagCls: "tag-gy", tagText: "停售", price: "12,800", unit: "年",
-    line1: "已订阅 0 家 · 2026-06 自主创建", line2: "停售后存量租户：允许续费最后一年",
-    actions: [
-      { key: "edit", label: "编辑" },
-      { key: "online", label: "重新上架" },
-      { key: "renew", label: "续费策略" },
-    ],
-  },
-  {
-    name: "生鲜行业专供", tagCls: "tag-p", tagText: "草稿", price: "15,800", unit: "年",
-    line1: "复制自旗舰版 · 尚未发布", line2: "已配置：定价 ✓ 功能矩阵 ✓ 配额 ✓",
-    dashed: true,
-    actions: [
-      { key: "edit", label: "继续编辑" },
-      { key: "online", label: "发布上架" },
-      { key: "delete", label: "删除", cls: "dgr" },
-    ],
-  },
-];
-
-/* 接口数据 → 卡片结构（字段尽力映射，未覆盖的以 '-' 展示） */
+/* 接口数据 → 卡片结构（禁模拟数据：无接口数据时为空，页面走空态） */
 const plans = computed<PlanCard[]>(() => {
-  if (!apiPlans.value.length) return demoPlans;
+  if (!apiPlans.value.length) return [];
   return apiPlans.value.map((r) => ({
     id: r.id,
     name: r.planName || "-",
@@ -203,37 +188,34 @@ const plans = computed<PlanCard[]>(() => {
     line2: `账号 ${r.maxUsers ?? "-"} · 商品 ${Number(r.maxProducts || 0).toLocaleString()} · 门店 ${r.maxStores ?? "-"}`,
     actions: [
       { key: "edit", label: "编辑" },
+      { key: "copy", label: "复制" },
       r.status === "ACTIVE"
         ? { key: "offline", label: "停售", cls: "gy" }
         : { key: "online", label: "重新上架" },
+      // 凌舟裁定：配额详情不单独开页，进入编辑抽屉并定位到「④ 资源配额」分区
+      { key: "quota", label: "配额详情" },
     ],
   }));
 });
 
-/* 页头概览（接口未接入时沿用设计稿文案口径） */
+/* 页头概览（禁模拟数据：无接口数据时不通写任何家数/金额） */
 const headDesc = computed(() => {
   if (apiPlans.value.length) {
     const on = apiPlans.value.filter((p) => p.status === "ACTIVE").length;
-    return `共 ${apiPlans.value.length} 个套餐 · 上架中 ${on} · 停售 ${apiPlans.value.length - on} · 已订阅租户 --`;
+    const draft = apiPlans.value.filter((p) => p.status === "DRAFT").length;
+    return `共 ${apiPlans.value.length} 个套餐 · 上架中 ${on} · 停售 ${apiPlans.value.length - on - draft} · 草稿 ${draft} · 已订阅租户 --`;
   }
-  return "共 6 个套餐 · 上架中 4 · 停售 1 · 草稿 1 · 已订阅租户 1,286";
+  return "套餐数据待接入 GET /platform/plans（当前无真实数据）";
 });
 
-/* ── 对照表（设计稿第 701~705 行，演示数据） ── */
+/* ── 对照表（仅展示真实接口套餐，无数据走空态，不编造业务数字） ── */
 interface CompareRow {
   name: string; src: string; srcCls: string; price: string;
   switches: string; v11?: boolean; swNote?: string;
   quota: string; rule: string; stCls: string; stText: string;
 }
-const demoRows: CompareRow[] = [
-  { name: "免费版", src: "预置模板", srcCls: "tag-gy", price: "¥0 · 永久", switches: "7 / 28 项", v11: true, swNote: "不含自定义AI模型（锁定）", quota: "1 账号 · 100 商品 · 1GB", rule: "升级即时生效", stCls: "tag-g", stText: "上架" },
-  { name: "基础版", src: "预置模板", srcCls: "tag-gy", price: "¥4,800 / 年", switches: "16 / 28 项", quota: "3 账号 · 2,000 商品 · 5GB", rule: "升级即时生效·按天折算", stCls: "tag-g", stText: "上架" },
-  { name: "标准版", src: "预置模板", srcCls: "tag-gy", price: "¥9,800 / 年", switches: "24 / 28 项", quota: "10 账号 · 20,000 商品 · 20GB", rule: "支持自定义天数周期", stCls: "tag-g", stText: "上架" },
-  { name: "旗舰版", src: "预置模板", srcCls: "tag-gy", price: "¥19,800 / 年", switches: "28 / 28 项", quota: "30 账号 · 100,000 商品 · 100GB", rule: "全量功能 · 开放平台", stCls: "tag-g", stText: "上架" },
-  { name: "批发专享版", src: "自主创建", srcCls: "tag-p", price: "¥12,800 / 年", switches: "26 / 28 项", quota: "20 账号 · 50,000 商品 · 60GB", rule: "停售 · 存量允许续费一年", stCls: "tag-gy", stText: "停售" },
-];
 const compareRows = computed<CompareRow[]>(() =>
-  apiPlans.value.length ? buildRowsFromApi() : demoRows
+  apiPlans.value.length ? buildRowsFromApi() : []
 );
 
 function buildRowsFromApi(): CompareRow[] {
@@ -250,6 +232,16 @@ function buildRowsFromApi(): CompareRow[] {
   }));
 }
 
+/* ── 升降级流向报表（设计稿 sec-plan 升级/降级流向；真实接口，无数据走空态） ── */
+const flowOpen = ref(false);
+const flowRanges = ["本月", "近 3 月", "近 12 月"];
+const flowRange = ref("本月");
+const flowRows = ref<{ dir: string; fromName: string; toName: string; tenantCount: number; time: string }[]>([]);
+// TODO: 待接入 GET /platform/plans/upgrade-flow-report?range=，当前无接口故恒为空态（禁止编造流向数据）
+function openFlowReport() {
+  flowOpen.value = !flowOpen.value;
+}
+
 /* ── 列表加载：保留 getPlans 调用 ── */
 async function fetchList() {
   loading.value = true;
@@ -262,7 +254,7 @@ async function fetchList() {
       moduleAccess: typeof r.moduleAccess === "string" ? JSON.parse(r.moduleAccess || "[]") : (r.moduleAccess || []),
     }));
   } catch {
-    /* 接口异常时回落演示数据，不打断页面 */
+    /* 禁模拟数据：接口异常时保持空态，不回落任何演示数据 */
   } finally {
     loading.value = false;
   }
@@ -273,11 +265,6 @@ function goCreate() {
   router.push("/packages/create");
 }
 
-function openFlowReport() {
-  // TODO: 待接入升降级流向报表（建议 GET /platform/plans/upgrade-flow-report）
-  ElMessage.info("升降级流向报表：待接入报表接口");
-}
-
 function onPlanAction(key: string, p: PlanCard) {
   switch (key) {
     case "edit":
@@ -286,7 +273,7 @@ function onPlanAction(key: string, p: PlanCard) {
         router.push(key === "edit" ? `/packages/${p.id}/edit` : `/packages/create?copyFrom=${p.id}`);
       } else {
         // TODO: 复制套餐待接入（建议 POST /platform/plans/:id/copy）
-        ElMessage.info("演示数据：待接口对接后可编辑/复制");
+        ElMessage.info("暂无套餐数据：待接口接入后可编辑/复制");
       }
       break;
     case "offline":
@@ -294,11 +281,14 @@ function onPlanAction(key: string, p: PlanCard) {
       toggleStatus(p, key === "offline" ? "INACTIVE" : "ACTIVE");
       break;
     case "quota":
-      ElMessage.info("配额详情：待接入配额查询接口");
+      // 凌舟裁定：配额详情不单独开页 → 进入编辑抽屉并定位到「④ 资源配额」分区
+      if (p.id) {
+        router.push(`/packages/${p.id}/edit?section=quota`);
+      } else {
+        ElMessage.info("暂无套餐数据：待接口接入后可查看配额");
+      }
       break;
-    case "renew":
-      ElMessage.info("续费策略：待接入续费策略配置接口");
-      break;
+    // 凌舟裁定：续费策略属五段式第⑤段（设计稿第 748 行），移除独立入口，不再出现 case "renew"
     case "delete":
       handleDelete(p);
       break;
@@ -307,7 +297,7 @@ function onPlanAction(key: string, p: PlanCard) {
 
 async function toggleStatus(p: PlanCard, newStatus: string) {
   if (!p.id) {
-    ElMessage.info("演示数据：待接口对接后可变更状态");
+    ElMessage.info("暂无套餐数据：待接口接入后可变更状态");
     return;
   }
   const action = newStatus === "ACTIVE" ? "上架" : "停售";
@@ -329,7 +319,7 @@ async function toggleStatus(p: PlanCard, newStatus: string) {
 
 async function handleDelete(p: PlanCard) {
   if (!p.id) {
-    ElMessage.info("演示数据：待接口对接后可删除");
+    ElMessage.info("暂无套餐数据：待接口接入后可删除");
     return;
   }
   try {

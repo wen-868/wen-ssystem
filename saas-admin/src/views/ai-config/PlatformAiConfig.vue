@@ -353,7 +353,7 @@ async function handleTestDialog() {
   }
   testing.value = true
   try {
-    const result = await testExternalModel({ providerBaseUrl: modelForm.providerBaseUrl, apiKey: modelForm.apiKey, modelName: modelForm.modelName })
+    const result = await testExternalModel({ providerBaseUrl: modelForm.providerBaseUrl || '', apiKey: modelForm.apiKey || '', modelName: modelForm.modelName || '' })
     if (result.success) ElMessage.success(`连接成功（${result.latencyMs}ms）：${result.message}`)
     else ElMessage.error(`连接失败：${result.message}`)
   } catch {
