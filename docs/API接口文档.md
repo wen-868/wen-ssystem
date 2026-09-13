@@ -170,6 +170,7 @@
 | P32 | `PUT /api/platform/reconciliation/:id/settle` | 结算确认（置 SETTLED，R97-01，需 x-csrf-token） | — | {id,status:"SETTLED"} | platform-reconciliation.routes.ts + platform-settlement.service.updateSettlementStatus | saas-admin/src/views/Reconciliation.vue |
 | P33 | `GET /api/platform/tenants/usage-stats` | 租户使用统计（R97-01） | ?tenantId&metric&dateStart&dateEnd&period=day\|week\|month | {overview:{totalUsers,totalOrders,totalSales,totalProducts},trendData:[{period,value}],moduleUsage:[{moduleName,moduleCode,usageCount,percentage}]} | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
 | P34 | `GET /api/platform/tenants/rank` | 租户使用排行（R97-01） | ?sortBy=order_count\|sales_amount\|user_count\|activity&limit=10 | [{tenantName,planName,value,percentage,lastActive}] | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
+| P35 | `GET /api/platform/tenants/:id/quota` | 租户资源配额使用情况（R101-S2-01 批4） | 路径 `:id` | {tenantId,planName,quota:{accounts,products,stores,storage,apiDaily,aiMonthly},unavailable[]} | platform-tenant.routes.ts + services/platform/tenant-quota.service.ts | saas-admin/src/views/tenant/TenantDetail.vue |
 | P35 | `GET /api/platform/config/sys-config` | 平台系统设置（R97-01，对齐 Settings.vue） | — | {platformName,servicePhone,serviceEmail,trialDays,defaultPlanId,taxRate,maxUploadSizeMb,openRegister,registerNeedAudit,registerRequireMobile,registerRequireLicense,registerAgreementUrl,maintenanceMode,maintenanceTitle,maintenanceMessage,maintenanceWhitelist,announcements} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 | P36 | `PUT /api/platform/config/sys-config` | 保存平台系统设置（整包 JSON，R97-01，需 x-csrf-token） | 同 P35 字段对象 | {updated:true} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 | P37 | `GET /api/platform/subscription-applies` | 订阅申请列表（R98-01，PENDING 优先） | ?page&pageSize&status=PENDING\|APPROVED\|REJECTED | {list:[{id,planId,planName,company,contact,mobile,remark,status,auditRemark,auditedAt,createdAt}],total,page,pageSize} | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
@@ -2429,6 +2430,41 @@
 #### GET /api/platform/tenants/:id
 - **描述**：租户详情
 - **认证**：需要认证
+
+#### GET /api/platform/tenants/:id/quota
+- **描述**：租户「资源配额使用情况」只读聚合（R101-S2-01 批 4 · 凌舟裁定 4.3）——**仅对现有表做 COUNT/SUM，不新建任何表**
+- **认证**：需要认证（platform-admin）
+- **路径参数**：`:id` 租户 ID
+- **响应**：`{ tenantId, planName, quota, unavailable }`；`quota` 键固定为 6 个维度，值形如 `{ used, limit, unit }`，无数据源时为 `null`
+  - `quota.accounts`（账号数）：`used = COUNT(*) FROM t_sys_user WHERE tenant_id = ?`；`limit = 当前套餐 t_subscription_plan.max_users`；`unit = "个"`
+  - `quota.products`（商品上限）：`used = COUNT(*) FROM t_product_spu WHERE tenant_id = ?`；`limit = max_products`；`unit = "个"`
+  - `quota.stores`（仓库数）：`used = COUNT(*) FROM t_store WHERE tenant_id = ?`；`limit = max_stores`；`unit = "个"`
+  - `quota.storage`（存储容量）：`used = ROUND(SUM(file_size) FROM t_upload_file WHERE tenant_id = ? AND status = 1 / 1024^3, 2)`；`limit` 取 `t_tenant_config.storage_limit` 并按 `storage_limit_unit`（MB/GB）折算；**响应统一为 GB，`unit = "GB"`，保留 2 位小数**
+  - `quota.aiMonthly`（AI 额度）：`used = SUM(chat_count) FROM t_ai_usage_daily WHERE tenant_id = ? AND stat_date >= 本月 1 日`；`limit = t_tenant_ai_billing.monthly_chat_limit`；`unit = "次·月"`。**`monthly_chat_limit = 0` 表示不限量** → `limit: null` 且附加 `unlimited: true`
+  - `quota.apiDaily`（API 日额度）：**后端无 API 调用计数数据源 → 恒为 `null`**（登记 S3-21），前端显示「—」
+- **限额解析口径**：取该租户**最近一次 ACTIVE 订阅**的套餐 —— `t_subscription s JOIN t_subscription_plan p ON p.id = s.plan_id WHERE s.tenant_id = ? ORDER BY (s.status = 'ACTIVE') DESC, s.created_at DESC, s.id DESC LIMIT 1`。无订阅时 `planName = ""` 且各 `limit = null`
+- **无数据源维度约定（重要）**：值置 `null`，**不是 0**，并在 `unavailable` 数组给出 `{ key, reason }`；前端显示「—」+「待接入」，**严禁填 0 或编造**（禁模拟数据铁律）
+- **单位与精度**：`used` / `limit` 均为 number；`storage.unit` 恒 `"GB"`（2 位小数）；`aiMonthly.unit` 为 `"次·月"`；账号 / 商品 / 仓库 `unit` 为 `"个"`
+- **响应示例**：
+  ```json
+  {
+    "tenantId": "t-001",
+    "planName": "旗舰版",
+    "quota": {
+      "accounts":  { "used": 13,    "limit": 30,     "unit": "个" },
+      "products":  { "used": 26540, "limit": 100000, "unit": "个" },
+      "stores":    { "used": 8,     "limit": 20,     "unit": "个" },
+      "storage":   { "used": 31,    "limit": 100,    "unit": "GB" },
+      "apiDaily":  null,
+      "aiMonthly": { "used": 7420,  "limit": 10000,  "unit": "次·月" }
+    },
+    "unavailable": [
+      { "key": "apiDaily", "reason": "后端无 API 调用计数数据源（无调用计数表）" }
+    ]
+  }
+  ```
+- **后端**：`routes/platform-tenant.routes.ts` + `services/platform/tenant-quota.service.ts` + `controllers/platform/tenant-quota.controller.ts`
+- **前端**：`saas-admin/src/api/tenant.ts` + `views/tenant/TenantDetail.vue`（面板「资源配额使用情况」，设计稿 v1.6 第 586–593 行）
 
 #### POST /api/platform/tenants
 - **描述**：创建租户（开租户）——一键完成：创建租户schema+初始化数据库+创建默认管理员+分配套餐

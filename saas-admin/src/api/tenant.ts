@@ -18,6 +18,10 @@ export function getTenantApi(id: number) {
   return request.get(`/platform/tenants/${id}`)
 }
 
+export function getTenantQuotaApi(tenantId: number) {
+  return request.get(`/platform/tenants/${tenantId}/quota`)
+}
+
 export function createTenantApi(data: any) {
   return request.post('/platform/tenants', data)
 }

@@ -56,6 +56,31 @@
       </div>
     </div>
 
+    <!-- ════════ 资源配额使用情况面板（批 4：接真实数据 GET /platform/tenants/:id/quota） ════════ -->
+    <div class="panel">
+      <div class="p-hd">
+        <span class="pt">资源配额使用情况</span>
+        <span class="btn-t" @click="onExpandQuota">临时扩容</span>
+      </div>
+      <div class="p-bd">
+        <template v-if="quotaError">
+          <p class="small mt8 quota-err">加载失败，请稍后重试</p>
+        </template>
+        <template v-else-if="!quota">
+          <p class="small mt8">待接入</p>
+        </template>
+        <template v-else>
+          <div class="qrow" v-for="row in quotaRows" :key="row.key">
+            <span>{{ row.label }}</span>
+            <span class="bar" :class="{ o: row.over }"><i :style="{ width: row.pct + '%' }"></i></span>
+            <em>{{ row.text }}</em>
+          </div>
+          <p class="small mt8">API 日额度：后端无调用计数数据源 · 待接入（S3-21）</p>
+        </template>
+        <p class="small mt8 note">扩容走审批流（有效期&gt;30天）；配额达 100% 由计量引擎硬拦截。</p>
+      </div>
+    </div>
+
     <!-- ════════ 弹窗：模拟登录确认 ════════ -->
     <el-dialog v-model="proxyVisible" :show-header="false" :width="MODAL_W" :close-on-click-modal="true">
       <div class="zx-scope">
@@ -178,7 +203,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getTenantApi } from '../../api/tenant'
+import { getTenantApi, getTenantQuotaApi } from '../../api/tenant'
 
 const route = useRoute()
 const MODAL_W = 'var(--modal-width)'
@@ -277,7 +302,70 @@ function toast(msg: string) {
   ElMessage.info(msg)
 }
 
-onMounted(fetchDetail)
+/* ───────────────────────────────────────────────────────────
+   资源配额使用情况（批 4：接真实数据，禁止模拟数据上屏）
+   仅做「百分比用于画条」，数值换算/除法展示一律不在此处发生（后端已换算）
+   ─────────────────────────────────────────────────────────── */
+const quota = ref<any>(null)
+const quotaError = ref(false)
+
+interface QuotaMeta {
+  key: string
+  label: string
+  suffix?: string
+}
+
+const QUOTA_META: QuotaMeta[] = [
+  { key: 'accounts', label: '账号数' },
+  { key: 'products', label: '商品上限' },
+  { key: 'stores', label: '仓库数' },
+  { key: 'storage', label: '存储容量', suffix: ' GB' },
+  { key: 'apiDaily', label: 'API 日额度' },
+  { key: 'aiMonthly', label: 'AI 额度', suffix: ' 次·月' },
+]
+
+function fmtNum(n: unknown): string {
+  return Number(n ?? 0).toLocaleString('en-US')
+}
+
+const quotaRows = computed(() => {
+  if (!quota.value) return []
+  const q = quota.value.quota || {}
+  return QUOTA_META.map((m) => {
+    const dim = q[m.key]
+    // 无数据源维度（apiDaily 恒为 null）：显示「—」，进度条 0%
+    if (dim == null) {
+      return { key: m.key, label: m.label, pct: 0, over: false, text: '—' }
+    }
+    const used = Number(dim.used ?? 0)
+    const limit = dim.limit == null ? null : Number(dim.limit)
+    const pct = limit == null ? 0 : Math.min(100, (used / limit) * 100)
+    const over = limit != null && used / limit >= 0.8
+    const text = limit == null ? `${fmtNum(used)} / —` : `${fmtNum(used)} / ${fmtNum(limit)}${m.suffix || ''}`
+    return { key: m.key, label: m.label, pct, over, text }
+  })
+})
+
+async function fetchQuota() {
+  quotaError.value = false
+  try {
+    // 新客户端已自动 toast，页面层只做内容区错误态，不重复弹
+    const res: any = await getTenantQuotaApi(Number(route.params.id))
+    quota.value = res.data
+  } catch (e) {
+    quota.value = null
+    quotaError.value = true
+  }
+}
+
+function onExpandQuota() {
+  ElMessage.info('临时扩容：审批流接口待接入（S3）')
+}
+
+onMounted(() => {
+  fetchDetail()
+  fetchQuota()
+})
 </script>
 
 <style scoped>
@@ -364,6 +452,9 @@ onMounted(fetchDetail)
 .note {
   border-top: 1px dashed var(--g2);
   padding-top: var(--space-2);
+}
+.quota-err {
+  color: var(--color-danger);
 }
 
 /* ───── v1.5 修订标记（设计稿 .v15-tag.lt，components.css 未移植，按令牌实现） ───── */
