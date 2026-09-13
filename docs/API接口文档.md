@@ -131,11 +131,12 @@
 | A29 | `POST /api/admin/purchase-orders` | 新建采购单 | supplierId,items:[{skuId,qty,price}],remark,expectedDate | orderNo,totalAmount | purchase-order.service.ts create() | PurchaseOrderCreateView.vue |
 | A30 | `GET /api/admin/stock-batches` | 库存批次 | ?skuId&page&pageSize&warehouseId | {total,records:[{batchNo,skuId,skuName,qty,inPrice,inboundDate,expireDate,warehouseId}]} | stock-batch.service.ts list() + stock-batch.routes.ts | StockBatchListView.vue |
 
-### 二、PLATFORM 端点（24 个 + R97-01 新增 12 个 + R98-01 新增 3 个，共 39 个，/api/platform/*）
+### 二、PLATFORM 端点（24 个 + R97-01 新增 12 个 + R98-01 新增 3 个 + R101-S2-01 新增 1 个，共 40 个，/api/platform/*）
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
-| P1 | `POST /api/platform/auth/login` | 平台超级后台登录 | username:string✅, password:string✅ | token:string, user:{id,username,role} | platform-auth.routes.ts + auth.service.ts | saas-admin/src/api/auth.ts + PlatformLogin.vue |
+| P1 | `POST /api/platform/auth/login` | 平台超级后台登录 | username:string✅, password:string✅, captchaId:string✅, captcha:string✅ | token:string, admin:{id,username,realName}, csrfToken:string | platform-auth.routes.ts + services/platform/platform-auth.service.ts | saas-admin/src/api/auth.ts + views/login/PlatformLogin.vue |
+| P1b | `GET /api/platform/auth/captcha` | 图形验证码（R101-S2-01 新增） | — | {captchaId:string, image:dataURI, expiresIn:300} | platform-auth.routes.ts + services/platform/captcha.service.ts + middleware/captcha-guard.ts | saas-admin/src/api/auth.ts (getCaptchaApi) + views/login/PlatformLogin.vue |
 | P2 | `GET /api/platform/dashboard` | 平台概览 | — | {totalTenants,activeTenants,totalGMV,totalRevenue,newTenants7d} | platform-dashboard.routes.ts + service | saas-admin/src/views/Dashboard.vue |
 | P3 | `GET /api/platform/dashboard/tenants` | 租户统计 | ?granularity=day&days=30 | [{date,newCount,activeCount}] | platform-dashboard.routes.ts | saas-admin Dashboard |
 | P4 | `GET /api/platform/dashboard/revenue` | 收入统计 | ?granularity=month&months=12 | [{month,amount}] | platform-dashboard.routes.ts | saas-admin Dashboard |
@@ -2311,10 +2312,30 @@
 #### POST /api/platform/auth/login
 - **描述**：平台超级后台登录
 - **认证**：无需认证
-- **请求体**：`{ username: string, password: string }`
-- **响应**：`{ token: string, user: { id, username, realName, role: "platform-admin" } }`
-- **后端**：`platform-auth.routes.ts` + `auth.service.ts`
-- **前端**：`saas-admin/src/api/auth.ts` + `PlatformLogin.vue`
+- **请求体**：`{ username: string, password: string, captchaId: string, captcha: string }`
+  - `captchaId` / `captcha`：图形验证码标识与用户输入。R101-S2-01 起为**必填**，
+    由 `requireCaptcha` 中间件在业务处理前校验，不通过直接返回 400。
+- **响应**：`{ token: string, admin: { id, username, realName }, csrfToken: string }`
+  - 响应信封字段为 `msg`（非 `message`），格式 `{ code, msg, data, traceId }`
+  - 写操作需注入 `x-csrf-token` 请求头，取值来自响应中的 `csrfToken`
+- **后端**：`routes/platform-auth.routes.ts` + `services/platform/platform-auth.service.ts`
+- **前端**：`saas-admin/src/api/auth.ts` + `views/login/PlatformLogin.vue`
+
+#### GET /api/platform/auth/captcha
+- **描述**：获取登录图形验证码（R101-S2-01 裁定 4.1 新增）
+- **认证**：无需认证
+- **响应**：`{ captchaId: string, image: string, expiresIn: number }`
+  - `image` 为 `data:image/svg+xml;base64,...`，前端可直接放入 `<img src>`
+  - `expiresIn` 固定 `300`（5 分钟）
+- **存储与校验**：Redis 键 `platform:captcha:<captchaId>`，TTL 300s；
+  取值与删除由 Lua 脚本原子完成，**一次性**——无论校验成功与否本次验证码都作废，
+  校验失败后必须重新获取（前端登录失败会自动换图）。
+  Redis 不可用时降级为进程内存储（多实例部署需改共享存储，见 S3 登记）。
+- **错误响应**（均为 400）：`msg` 取值为
+  `请输入图形验证码` / `图形验证码错误` / `图形验证码已失效，请点击图片重新获取`
+- **后端**：`routes/platform-auth.routes.ts` + `services/platform/captcha.service.ts`
+  + `middleware/captcha-guard.ts`
+- **前端**：`saas-admin/src/api/auth.ts`（`getCaptchaApi`）+ `views/login/PlatformLogin.vue`
 
 ### 平台概览（看板）
 
