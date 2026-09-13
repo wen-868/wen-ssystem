@@ -117,8 +117,10 @@ const renderCard = (t) => {
 };
 
 fs.mkdirSync(outDir, { recursive: true });
+// 只清理本脚本生成的任务卡与索引；返工/补遗等人工文档（如 R101-S1-R1-*.md）不得删除
+const generated = /^R101-S[123]-\d{2}-.*\.md$/;
 for (const f of fs.readdirSync(outDir)) {
-  if (f.endsWith('.md')) fs.unlinkSync(path.join(outDir, f));
+  if (generated.test(f) || f === 'README.md') fs.unlinkSync(path.join(outDir, f));
 }
 
 for (const t of form.tasks) {
