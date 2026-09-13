@@ -72,7 +72,10 @@ export const updatePlan = asyncHandler(async (req, res) => {
 });
 
 export const deletePlan = asyncHandler(async (req, res) => {
-  const planId = Number(req.params.id);
+  // R101-S2-01 修复：本文件所有路由（platform-plans.routes.ts / subscription.routes.ts）
+  // 声明的参数名均为 :planId，此处原写 req.params.id → undefined → Number(undefined) = NaN，
+  // 导致「删除套餐」恒返回 404「套餐不存在」。兼容两种参数名，向后安全。
+  const planId = Number(req.params.planId ?? req.params.id);
   const result = await subscriptionPlanService.deletePlan(planId);
   if (!result) {
     res.status(404).json(fail("套餐不存在", "404"));
@@ -82,7 +85,8 @@ export const deletePlan = asyncHandler(async (req, res) => {
 });
 
 export const updatePlanFeatures = asyncHandler(async (req, res) => {
-  const planId = Number(req.params.id);
+  // R101-S2-01 修复：同上，路由参数名为 :planId，原 req.params.id 恒为 NaN
+  const planId = Number(req.params.planId ?? req.params.id);
   const body = z.object({
     features: z.any().optional(),
     moduleAccess: z.any().optional(),
