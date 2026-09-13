@@ -191,4 +191,27 @@ describe("tenant-quota.service · getTenantQuota（批 4）", () => {
     );
     expect(r.quota.apiDaily).toBeNull();
   });
+
+  it("storage 限额：storage_limit_unit='TB' → 折 GB（lim×1024）", async () => {
+    planRow = { planName: "旗舰版", maxUsers: 30, maxStores: 20, maxProducts: 100000, maxStorageMb: 102400 };
+    storageCfgRow = { storage_limit: 2, storage_limit_unit: "TB" };
+    const r = await getTenantQuota("t-001");
+
+    expect(r.quota.storage.limit).toBe(2048);
+  });
+
+  it("SQL 口径钉死：stores 仅计 store_type='WAREHOUSE'；storage 配置按 config_key='storage_limit' 定位", async () => {
+    planRow = { planName: "旗舰版", maxUsers: 30, maxStores: 20, maxProducts: 100000, maxStorageMb: 102400 };
+    storageCfgRow = { storage_limit: 512, storage_limit_unit: "GB" };
+    await getTenantQuota("t-001");
+
+    const sqls = mocks.queryOne.mock.calls.map((c) => String(c[0]));
+    const storeSql = sqls.find((s) => s.includes("t_store"));
+    expect(storeSql).toBeTruthy();
+    expect(storeSql).toContain("store_type = 'WAREHOUSE'");
+
+    const cfgSql = sqls.find((s) => s.includes("t_tenant_config"));
+    expect(cfgSql).toBeTruthy();
+    expect(cfgSql).toContain("config_key = 'storage_limit'");
+  });
 });

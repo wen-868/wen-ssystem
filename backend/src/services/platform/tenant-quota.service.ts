@@ -81,10 +81,10 @@ export async function getTenantQuota(tenantId: string): Promise<TenantQuotaResul
     [tenantId]
   );
 
-  // 租户级存储配额（key/value 表，取 storage_limit 有值的那一行）
+  // 租户级存储配额（key/value 表：按 config_key 精确定位，口径与 storage-guard.ts 一致）
   const storageCfgRow = await queryOne<StorageCfgRow>(
     `SELECT storage_limit, storage_limit_unit FROM t_tenant_config
-     WHERE tenant_id = ? AND storage_limit IS NOT NULL
+     WHERE tenant_id = ? AND config_key = 'storage_limit' AND storage_limit IS NOT NULL
      LIMIT 1`,
     [tenantId]
   );
@@ -99,7 +99,11 @@ export async function getTenantQuota(tenantId: string): Promise<TenantQuotaResul
   const [accountsRow, productsRow, storesRow, storageUsedRow, aiUsedRow] = await Promise.all([
     queryOne<CountRow>(`SELECT COUNT(*) AS total FROM t_sys_user WHERE tenant_id = ?`, [tenantId]),
     queryOne<CountRow>(`SELECT COUNT(*) AS total FROM t_product_spu WHERE tenant_id = ?`, [tenantId]),
-    queryOne<CountRow>(`SELECT COUNT(*) AS total FROM t_store WHERE tenant_id = ?`, [tenantId]),
+    // 仓库与门店同表（t_store），按 store_type='WAREHOUSE' 区分，口径与 warehouse.service.ts 一致
+    queryOne<CountRow>(
+      `SELECT COUNT(*) AS total FROM t_store WHERE tenant_id = ? AND store_type = 'WAREHOUSE'`,
+      [tenantId]
+    ),
     queryOne<CountRow>(
       `SELECT IFNULL(SUM(file_size),0) AS total FROM t_upload_file WHERE tenant_id = ? AND status = 1`,
       [tenantId]
@@ -138,8 +142,10 @@ export async function getTenantQuota(tenantId: string): Promise<TenantQuotaResul
       storageLimitGb = round2(lim / 1024);
     } else if (storageCfgRow.storage_limit_unit === "GB") {
       storageLimitGb = round2(lim);
+    } else if (storageCfgRow.storage_limit_unit === "TB") {
+      storageLimitGb = round2(lim * 1024);
     }
-    // 单位既不是 MB 也不是 GB 时，storageLimitGb 保持 null，走下面套餐回退
+    // 单位不在 MB/GB/TB 白名单内时，storageLimitGb 保持 null，走下面套餐回退
   }
   if (storageLimitGb == null) {
     // 回退套餐 max_storage_mb（单位为 MB，统一折算成响应单位 GB）

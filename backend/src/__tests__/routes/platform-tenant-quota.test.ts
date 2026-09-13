@@ -20,6 +20,7 @@ vi.mock("../../middleware/auth", () => ({
 import * as quotaService from "../../services/platform/tenant-quota.service";
 import { platformTenantRouter } from "../../routes/platform-tenant.routes";
 import { getTenantQuotaCtrl } from "../../controllers/platform/tenant-quota.controller";
+import { requirePlatformAuth } from "../../middleware/auth";
 
 const app = createTestApp({ prefix: "/api/platform/tenants", router: platformTenantRouter });
 
@@ -77,5 +78,12 @@ describe("routes/platform-tenant · GET /:id/quota", () => {
     (quotaService.getTenantQuota as any).mockRejectedValue(new Error("db error"));
     const res = await request(app).get("/api/platform/tenants/1/quota");
     expect(res.status).toBe(500);
+  });
+
+  it("路由挂载了 requirePlatformAuth 守卫（router 级 .use，覆盖 /:id/quota）", () => {
+    const guardLayer = (platformTenantRouter as any).stack.find(
+      (l: any) => l.handle === (requirePlatformAuth as any)
+    );
+    expect(guardLayer).toBeTruthy();
   });
 });
