@@ -81,8 +81,16 @@
               <el-form-item prop="captcha">
                 <el-input v-model="form.captcha" placeholder="请输入右侧验证码" />
               </el-form-item>
-              <!-- 验证码图：设计稿为斜纹底 + 删除线的示意字符，实际由后端下发图片 -->
-              <span class="cap" :title="'验证码（待接入后端图形验证码接口）'">{{ captchaText }}</span>
+              <!-- 验证码图：后端 GET /platform/auth/captcha 下发（5 分钟有效、一次性），点击可刷新 -->
+              <img
+                v-if="captchaImage"
+                class="cap cap-img"
+                :src="captchaImage"
+                alt="图形验证码"
+                title="点击刷新验证码"
+                @click="loadCaptcha"
+              />
+              <span v-else class="cap" title="点击加载验证码" @click="loadCaptcha">加载中…</span>
             </div>
           </div>
 
@@ -105,10 +113,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../../stores/auth'
+import { getCaptchaApi } from '../../api/auth'
 
 /* 装饰描边色：读设计令牌 --chart-1-soft，避免在组件内写死色值 */
 const decoStroke = getComputedStyle(document.documentElement).getPropertyValue('--chart-1-soft').trim()
@@ -119,7 +128,7 @@ const loading = ref(false)
 const remember = ref(false)
 const formRef = ref()
 
-const form = reactive({ username: '', password: '', captcha: '' })
+const form = reactive({ username: '', password: '', captcha: '', captchaId: '' })
 const rules = {
   username: [{ required: true, message: '请输入管理员账号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
@@ -127,20 +136,38 @@ const rules = {
 }
 
 /**
- * 图形验证码：后端尚未提供 GET /api/platform/auth/captcha，
- * 此处不伪造验证码，保留占位态并标注待接入。
+ * 图形验证码（R101-S2-01 裁定 4.1）
+ * 后端 GET /platform/auth/captcha 下发 { captchaId, image(SVG data URI), expiresIn }，
+ * 5 分钟有效、一次性；点击图片刷新。此处不伪造验证码，拉取失败即留空并提示。
  */
-const captchaText = ref('待接入')
+const captchaImage = ref('')
+
+async function loadCaptcha() {
+  try {
+    const res = await getCaptchaApi()
+    form.captchaId = res.data?.captchaId || ''
+    captchaImage.value = res.data?.image || ''
+  } catch {
+    // 拉取失败由请求拦截器统一提示；清空以免展示已失效的旧图
+    form.captchaId = ''
+    captchaImage.value = ''
+  }
+}
+
+onMounted(loadCaptcha)
 
 async function handleLogin() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
   loading.value = true
   try {
-    await authStore.login(form.username, form.password)
+    await authStore.login(form.username, form.password, form.captchaId, form.captcha)
     router.push('/')
   } catch {
     // 错误由请求拦截器统一提示
+    // 验证码一次性：本次登录失败后原图已被消耗，必须换新图，否则重试必然再失败
+    form.captcha = ''
+    await loadCaptcha()
   } finally {
     loading.value = false
   }
@@ -291,9 +318,14 @@ function onForgot() {
   font-weight: var(--font-bold);
   letter-spacing: var(--login-cap-tracking);
   color: var(--login-cap-color);
-  font-style: italic;
-  text-decoration: line-through;
   user-select: none;
+  cursor: pointer;
+}
+/* 验证码为后端下发的 SVG 图片：铺满容器、保持比例，点击刷新 */
+.cap-img {
+  display: block;
+  object-fit: contain;
+  padding: 0;
 }
 .lg-meta {
   display: flex;

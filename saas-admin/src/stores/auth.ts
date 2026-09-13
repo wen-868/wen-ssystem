@@ -8,8 +8,8 @@ export const useAuthStore = defineStore('auth', () => {
   const csrfToken = ref(localStorage.getItem('platform_csrf_token') || '')
   const adminInfo = ref<{ id: number; username: string; realName: string } | null>(null)
 
-  async function login(username: string, password: string) {
-    const res = await loginApi({ username, password })
+  async function login(username: string, password: string, captchaId: string, captcha: string) {
+    const res = await loginApi({ username, password, captchaId, captcha })
     token.value = res.data.token
     localStorage.setItem('platform_token', res.data.token)
     // 登录接口下发 csrfToken，持久化以供后续写操作注入

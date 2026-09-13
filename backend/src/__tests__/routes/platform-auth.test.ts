@@ -42,13 +42,43 @@ vi.mock("bcryptjs", () => ({
   hash: vi.fn(),
 }));
 
+// R101-S2-01 裁定 4.1：登录路由新增 requireCaptcha 中间件。
+// 本集成测试聚焦登录业务链路，验证码服务作为外部依赖在此 mock；
+// 其自身行为由 services/platform/captcha.service.test.ts 独立覆盖。
+const captchaMocks = vi.hoisted(() => ({
+  createCaptcha: vi.fn(),
+  verifyCaptcha: vi.fn(),
+}));
+
+vi.mock("../../services/platform/captcha.service", () => captchaMocks);
+
 import { queryOne } from "../../shared/db";
 import { platformAuthRouter } from "../../routes/platform-auth.routes";
 
 const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
 
 describe("routes/platform-auth 集成测试", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // 默认放行验证码，使既有登录用例继续聚焦账号密码逻辑
+    captchaMocks.verifyCaptcha.mockResolvedValue({ ok: true, reason: "ok" });
+    captchaMocks.createCaptcha.mockResolvedValue({
+      captchaId: "test-captcha-id",
+      image: "data:image/svg+xml;base64,PHN2Zy8+",
+      expiresIn: 300,
+    });
+  });
+
+  describe("GET /captcha", () => {
+    it("下发图形验证码（captchaId + 图片 + 有效期）", async () => {
+      const res = await request(app).get("/api/platform-auth/captcha");
+      expect(res.status).toBe(200);
+      expect(res.body.code).toBe("0");
+      expect(res.body.data.captchaId).toBe("test-captcha-id");
+      expect(res.body.data.expiresIn).toBe(300);
+      expect(String(res.body.data.image).startsWith("data:image/svg+xml;base64,")).toBe(true);
+    });
+  });
 
   describe("POST /login", () => {
     it("用户名或密码缺失时返回400", async () => {
@@ -88,6 +118,35 @@ describe("routes/platform-auth 集成测试", () => {
         .post("/api/platform-auth/login")
         .send({ username: "admin", password: "pass" });
       expect(res.status).toBe(500);
+    });
+
+    it("图形验证码错误时返回400，且不进入账号密码校验", async () => {
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: false, reason: "mismatch" });
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass", captchaId: "x", captcha: "ZZZZ" });
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe("400");
+      expect(res.body.msg).toBe("图形验证码错误");
+      expect(queryOne).not.toHaveBeenCalled();
+    });
+
+    it("图形验证码已失效时返回400并给出区分文案", async () => {
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: false, reason: "expired" });
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass", captchaId: "expired-id", captcha: "ABCD" });
+      expect(res.status).toBe(400);
+      expect(res.body.msg).toBe("图形验证码已失效，请点击图片重新获取");
+    });
+
+    it("未填写图形验证码时返回400", async () => {
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: false, reason: "missing" });
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass" });
+      expect(res.status).toBe(400);
+      expect(res.body.msg).toBe("请输入图形验证码");
     });
   });
 

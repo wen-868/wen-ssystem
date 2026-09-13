@@ -220,7 +220,7 @@ describe("routes/sale-return 集成测试", () => {
       mocks.saleReturnService.approve.mockResolvedValue(null);
       const res = await request(app).post("/api/admin/sale-returns/NOT_EXIST/approve");
       expect(res.status).toBe(404);
-      expect(res.body.message).toBe("退货单不存在");
+      expect(res.body.msg).toBe("退货单不存在");
     });
 
     it("service 抛错时返回500", async () => {
@@ -282,7 +282,7 @@ describe("routes/sale-return 集成测试", () => {
         .post("/api/admin/sale-returns/NOT_EXIST/refund")
         .send({ refundMethod: "CASH" });
       expect(res.status).toBe(404);
-      expect(res.body.message).toBe("退货单不存在");
+      expect(res.body.msg).toBe("退货单不存在");
     });
 
     it("service 抛错时返回500", async () => {

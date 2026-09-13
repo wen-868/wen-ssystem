@@ -10,8 +10,13 @@ import { env } from "./env";
 
 let redis: Redis | null = null;
 
-/** 获取 Redis 连接（懒加载） */
-function getRedis(): Redis {
+/**
+ * 获取 Redis 连接（懒加载）
+ *
+ * 导出供需要「非缓存语义」的场景复用（如平台登录图形验证码的一次性存储，
+ * 见 services/platform/captcha.service.ts）——复用同一连接，避免多开连接池。
+ */
+export function getRedis(): Redis {
   if (!redis) {
     redis = new Redis({
       host: env.REDIS_HOST || "127.0.0.1",
