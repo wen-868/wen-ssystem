@@ -48,8 +48,9 @@ request.interceptors.response.use(
   (response) => {
     const data = response.data
     if (data.code && data.code !== '0' && data.code !== 0) {
-      ElMessage.error(data.message || '请求失败')
-      return Promise.reject(new Error(data.message))
+      const backendMsg = data?.msg ?? data?.message ?? ''
+      ElMessage.error(backendMsg || '请求失败')
+      return Promise.reject(new Error(backendMsg || '请求失败'))
     }
     return data
   },
@@ -58,6 +59,7 @@ request.interceptors.response.use(
       const authStore = useAuthStore()
       authStore.logout()
       window.location.hash = '#/login'
+      return Promise.reject(error)
     }
 
     // 上报 HTTP 错误（状态码 >= 400）
