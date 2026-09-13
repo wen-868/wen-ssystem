@@ -2438,8 +2438,8 @@
 - **响应**：`{ tenantId, planName, quota, unavailable }`；`quota` 键固定为 6 个维度，值形如 `{ used, limit, unit }`，无数据源时为 `null`
   - `quota.accounts`（账号数）：`used = COUNT(*) FROM t_sys_user WHERE tenant_id = ?`；`limit = 当前套餐 t_subscription_plan.max_users`；`unit = "个"`
   - `quota.products`（商品上限）：`used = COUNT(*) FROM t_product_spu WHERE tenant_id = ?`；`limit = max_products`；`unit = "个"`
-  - `quota.stores`（仓库数）：`used = COUNT(*) FROM t_store WHERE tenant_id = ?`；`limit = max_stores`；`unit = "个"`
-  - `quota.storage`（存储容量）：`used = ROUND(SUM(file_size) FROM t_upload_file WHERE tenant_id = ? AND status = 1 / 1024^3, 2)`；`limit` 取 `t_tenant_config.storage_limit` 并按 `storage_limit_unit`（MB/GB）折算；**响应统一为 GB，`unit = "GB"`，保留 2 位小数**
+  - `quota.stores`（仓库数）：`used = COUNT(*) FROM t_store WHERE tenant_id = ? AND store_type = 'WAREHOUSE'`（仓库与门店同表，仅计仓库，口径与 `warehouse.service.ts` 一致）；`limit = max_stores`；`unit = "个"`
+  - `quota.storage`（存储容量）：`used = ROUND(SUM(file_size) FROM t_upload_file WHERE tenant_id = ? AND status = 1 / 1024^3, 2)`；`limit` 取 `t_tenant_config.storage_limit`（`WHERE tenant_id = ? AND config_key = 'storage_limit'`）并按 `storage_limit_unit`（MB/GB/TB）折算，取不到回退套餐 `max_storage_mb`（按 MB→GB）；**响应统一为 GB，`unit = "GB"`，保留 2 位小数**
   - `quota.aiMonthly`（AI 额度）：`used = SUM(chat_count) FROM t_ai_usage_daily WHERE tenant_id = ? AND stat_date >= 本月 1 日`；`limit = t_tenant_ai_billing.monthly_chat_limit`；`unit = "次·月"`。**`monthly_chat_limit = 0` 表示不限量** → `limit: null` 且附加 `unlimited: true`
   - `quota.apiDaily`（API 日额度）：**后端无 API 调用计数数据源 → 恒为 `null`**（登记 S3-21），前端显示「—」
 - **限额解析口径**：取该租户**最近一次 ACTIVE 订阅**的套餐 —— `t_subscription s JOIN t_subscription_plan p ON p.id = s.plan_id WHERE s.tenant_id = ? ORDER BY (s.status = 'ACTIVE') DESC, s.created_at DESC, s.id DESC LIMIT 1`。无订阅时 `planName = ""` 且各 `limit = null`

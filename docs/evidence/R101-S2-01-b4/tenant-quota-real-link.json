@@ -1,0 +1,83 @@
+{
+  "startedAt": "2026-09-13T23:06:17.759Z",
+  "steps": [
+    {
+      "step": "登录",
+      "status": 200,
+      "hasToken": true
+    },
+    {
+      "step": "租户列表",
+      "status": 200,
+      "total": 0,
+      "rowCount": 0,
+      "firstKeys": []
+    },
+    {
+      "step": "租户列表为空（本机无真库）→ 改用固定 id",
+      "tenantId": "t-001"
+    },
+    {
+      "step": "租户配额 GET /api/platform/tenants/:id/quota",
+      "status": 200,
+      "code": "0",
+      "body": {
+        "tenantId": "t-001",
+        "planName": "",
+        "quota": {
+          "accounts": {
+            "used": 0,
+            "limit": null,
+            "unit": "个"
+          },
+          "products": {
+            "used": 0,
+            "limit": null,
+            "unit": "个"
+          },
+          "stores": {
+            "used": 1,
+            "limit": null,
+            "unit": "个"
+          },
+          "storage": {
+            "used": 0,
+            "limit": null,
+            "unit": "GB"
+          },
+          "apiDaily": null,
+          "aiMonthly": {
+            "used": 0,
+            "limit": null,
+            "unit": "次·月"
+          }
+        },
+        "unavailable": [
+          {
+            "key": "apiDaily",
+            "reason": "后端无 API 调用计数数据源（无调用计数表）"
+          }
+        ]
+      }
+    },
+    {
+      "step": "不存在的租户 id（边界）",
+      "status": 200,
+      "code": "0",
+      "planName": "",
+      "accounts": {
+        "used": 0,
+        "limit": null,
+        "unit": "个"
+      },
+      "apiDaily": null
+    },
+    {
+      "step": "无鉴权访问（安全边界）",
+      "status": 401
+    }
+  ],
+  "mockDbNote": "USE_MOCK_DB 未播种租户数据（列表 total=0），故 used 全为 0、limit 全为 null；真实数值分支由路由级 mock 单测覆盖",
+  "finishedAt": "2026-09-13T23:06:18.749Z",
+  "result": "ALL ASSERTS PASSED"
+}

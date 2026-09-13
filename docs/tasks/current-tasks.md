@@ -182,6 +182,7 @@
 | S3-18 | 验证码 SVG → 位图（P3 可选加固） | 林夕（暂代） | 待估 | 待开始 | 凌舟裁定不立项，待出现自动化攻击证据再评估 | — |
 | S3-19 | 后端成功码契约统一 | 林夕（暂代） | 待估 | 待开始 | `instant-retail.service.ts:259`、`platform-integration.service.ts:55`（`"200"`）、`payment.service.ts:183`（`"SUCCESS"`）统一为 `code:"0"`，收缩前端白名单 | — |
 | S3-20 | 大盘趋势「累计（右轴）」累计值 | 林夕（暂代） | 待估 | 待开始 | 设计稿预留右轴累计，后端 `tenantTrend` 现只有 `newCount`，无累计数据源（批3 回传 §八） | — |
+| S3-21 | 租户「API 日额度」用量统计 | 林夕（暂代） | 待估 | 待开始 | 配额面板 `apiDaily` 维度需 API 调用计数数据源；全仓无任何调用计数表（`config/api-billing.ts` 为静态常量且 `ENABLED:false`），按裁定 4.3 返回 `null` + 前端「—」（批4 回传 §四） | — |
 
 > S3-09 来源：R101-S2-R1 前置修复卡 §三（P0-2）。原 `backend/src/services/admin/tenant-usage.service.ts` 的 `getModuleUsage()` 返回 8 条硬编码模块占比（属「禁模拟数据」违规），已按裁定改为返回 `[]`、前端走空态；真实统计需新建数据模型，故另立 S3 事项。
 
