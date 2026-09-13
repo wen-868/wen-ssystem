@@ -235,6 +235,17 @@ const updatedAt = ref('')
 /* 接口原始数据；字段缺失一律展示空态，不填充任何示例值 */
 const raw = ref<Record<string, any>>({})
 
+/**
+ * 千分位格式化。**只格式化，不做任何单位换算**——
+ * 按 R101-S2-01 裁定③，元↔万元的换算一律由后端完成（接口同时给 amount 与 amountWan），
+ * 前端若自己除 10000，会变成每个调用点各写一遍、四舍五入口径还可能不一致。
+ */
+function thousands(v: any): string {
+  const n = Number(v)
+  if (!Number.isFinite(n)) return String(v ?? '--')
+  return n.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
+}
+
 /* ── 六项指标（设计稿 .kpi 的 kt / kv / kd 三段结构） ── */
 const kpiCards = computed(() => {
   const d = raw.value || {}
@@ -246,9 +257,13 @@ const kpiCards = computed(() => {
     { key: 'total', title: '租户总数', value: d.totalTenants ?? '--', hint: '较上月', ...delta(d.tenantDelta) },
     { key: 'today', title: '今日新增租户', value: d.todayNewTenants ?? '--', hint: '其中付费', deltaText: d.todayNewPaid ?? '--', deltaTone: 'up' },
     { key: 'active', title: '有效租户', value: d.activeTenants ?? '--', hint: '近7日活跃', deltaText: d.activeRate ?? '--', deltaTone: 'muted' },
-    { key: 'income', title: '本月收入', value: d.monthIncome == null ? '--' : `¥${d.monthIncome}`, hint: '较上月', ...delta(d.incomeDelta, '%') },
+    // 本月收入：设计稿口径为「万元」（v1.6 第 418 行 `¥218.46万`），按裁定③取后端换算好的
+    // monthlyRevenueWan，前端只做千分位格式化、不做除法换算。
+    { key: 'income', title: '本月收入', value: d.monthlyRevenueWan == null ? '--' : `¥${thousands(d.monthlyRevenueWan)}万`, hint: '较上月', ...delta(d.incomeDelta, '%') },
     { key: 'orders', title: '平台订单总量', value: d.totalOrders ?? '--', hint: '今日', deltaText: d.todayOrders ?? '--', deltaTone: 'up' },
-    { key: 'ai', title: '大模型消耗总额', value: d.aiCost == null ? '--' : `¥${d.aiCost}`, hint: '本月 · Token', deltaText: d.aiTokens ?? '--', deltaTone: 'muted' },
+    // 大模型消耗：设计稿口径为「元 + 千分位」（v1.6 第 420 行 `¥86,420`）。后端暂无该数据源，
+    // 按裁定③留空态并登记 S3；此处只保留取数与格式化，不填充任何示例值。
+    { key: 'ai', title: '大模型消耗总额', value: d.aiCost == null ? '--' : `¥${thousands(d.aiCost)}`, hint: '本月 · Token', deltaText: d.aiTokens ?? '--', deltaTone: 'muted' },
   ]
 })
 
@@ -264,18 +279,15 @@ const hasIncome = computed(() => incomeComp.value.length > 0)
 const PLAN_COLORS = [COLOR.neutral, COLOR.primary, COLOR.primaryMid, COLOR.primaryDeep]
 const planRows = computed(() => {
   const list = planDist.value
-  if (!list.length) {
-    return ['免费版', '基础版', '标准版', '旗舰版'].map((label, i) => ({
-      key: label,
-      label,
-      color: PLAN_COLORS[i],
-      value: '-- 家 · --%',
-    }))
-  }
+  // 无数据即空态：**不列任何编造的套餐名**（此前这里写死「免费版/基础版/标准版/旗舰版」四个
+  // 套餐名，既非接口返回也非设计稿内容，属「禁模拟数据」违规，批 3 一并清除）。
+  if (!list.length) return []
   const total = list.reduce((s, x) => s + Number(x.count || 0), 0) || 1
+  // 字段名对齐后端：接口返回 [{ planName, count }]（platform-overview.service.ts），
+  // 此前前端读的是 x.name，属字段错配。
   return list.map((x, i) => ({
-    key: x.name || i,
-    label: x.name,
+    key: x.planName || i,
+    label: x.planName,
     color: PLAN_COLORS[i % PLAN_COLORS.length],
     value: `${x.count} 家 · ${Math.round((Number(x.count) / total) * 100)}%`,
   }))
@@ -385,7 +397,7 @@ function renderPlan() {
         radius: ['62%', '82%'],
         label: { show: false },
         data: planDist.value.map((x: any, i: number) => ({
-          name: x.name,
+          name: x.planName,
           value: x.count,
           itemStyle: { color: PLAN_COLORS[i % PLAN_COLORS.length] },
         })),
@@ -399,7 +411,9 @@ function renderIncome() {
   incomeChart = incomeChart || echarts.init(incomeRef.value)
   incomeChart.setOption({
     grid: { left: 34, right: 8, top: 16, bottom: 28 },
-    tooltip: { trigger: 'axis' },
+    // 面板标题标注「单位：万元」，故取值必须用后端换算好的 amountWan，
+    // 保证「标注单位 = 实际数值单位」一致（此前取 x.amount 与标注冲突）。
+    tooltip: { trigger: 'axis', valueFormatter: (v: any) => `${v} 万元` },
     xAxis: {
       type: 'category',
       data: incomeComp.value.map((x: any) => x.name),
@@ -413,7 +427,7 @@ function renderIncome() {
         type: 'bar',
         barWidth: 30,
         itemStyle: { color: COLOR.primary, borderRadius: [4, 4, 0, 0] },
-        data: incomeComp.value.map((x: any) => x.amount),
+        data: incomeComp.value.map((x: any) => x.amountWan),
       },
     ],
   })

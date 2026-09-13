@@ -165,7 +165,7 @@
 | P27 | `GET /api/platform/monitor/expiring-tenants` | 即将到期租户（R97-01） | ?days=7 | [{id,tenantCode,companyName,expireAt,daysLeft}] | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts fetchExpiringTenants |
 | P28 | `POST /api/platform/monitor/notify-expiring` | 通知即将到期租户（R97-01，需 x-csrf-token） | tenantIds:number[]✅ | {notifiedCount} | platform-monitor.routes.ts 复用 admin/monitor.controller | saas-admin/src/api.ts notifyExpiringTenants |
 | P29 | `GET /api/platform/error-logs` | 错误日志列表（全租户，R97-01） | ?page&pageSize&error_type&severity&source&keyword | {records:[{id,errorType,severity,message,stack,requestUrl,source,createdAt}],total} | platform-error-log.routes.ts + controllers/platform/error-log.controller.ts | saas-admin/src/views/ErrorLogs.vue |
-| P30 | `GET /api/platform/dashboard/overview` | 平台看板总览（R97-01，对齐 Dashboard.vue） | ?trendType=MONTHLY\|DAILY | {totalTenants,activeTenants,pendingTenants,monthlyRevenue,totalRevenue,incomeTrend:[{period,amount}],planDistribution:[{planName,count}],tenantStatus:[{status,count}],recentTenants:[{companyName,planName,status,createdAt}]} | platform-dashboard.routes.ts + platform-overview.service.ts | saas-admin/src/views/Dashboard.vue |
+| P30 | `GET /api/platform/dashboard/overview` | 平台看板总览（R97-01，对齐 Dashboard.vue） | ?trendType=MONTHLY\|DAILY | {totalTenants,activeTenants,pendingTenants,monthlyRevenue,monthlyRevenueWan,totalRevenue,totalRevenueWan,incomeTrend:[{period,amount}],tenantTrend:[{date,newCount}],incomeComposition:[{name,amount,amountWan}],planDistribution:[{planName,count}],tenantStatus:[{status,count}],recentTenants:[{companyName,planName,status,createdAt}]} | platform-dashboard.routes.ts + platform-overview.service.ts | saas-admin/src/views/Dashboard.vue |
 | P31 | `GET /api/platform/reconciliation/stats` | 财务结算统计（R97-01） | — | {monthlyRevenue,pendingAmount,settledAmount,totalCount} | platform-reconciliation.routes.ts + platform-settlement.service.getSettlementStats | saas-admin/src/views/Reconciliation.vue |
 | P32 | `PUT /api/platform/reconciliation/:id/settle` | 结算确认（置 SETTLED，R97-01，需 x-csrf-token） | — | {id,status:"SETTLED"} | platform-reconciliation.routes.ts + platform-settlement.service.updateSettlementStatus | saas-admin/src/views/Reconciliation.vue |
 | P33 | `GET /api/platform/tenants/usage-stats` | 租户使用统计（R97-01） | ?tenantId&metric&dateStart&dateEnd&period=day\|week\|month | {overview:{totalUsers,totalOrders,totalSales,totalProducts},trendData:[{period,value}],moduleUsage:[{moduleName,moduleCode,usageCount,percentage}]} | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
@@ -2365,6 +2365,43 @@
 - **认证**：需要认证
 - **Query参数**：granularity=month, months=12
 - **响应**：`[{month,subscription,commission,total}]`
+
+#### GET /api/platform/dashboard/overview
+
+- **描述**：平台看板总览（R97-01 新增；R101-S2-01 批 3 扩展 `tenantTrend` / `incomeComposition` 与金额单位字段）
+- **认证**：需要认证（platform-admin）
+- **后端**：`routes/platform-dashboard.routes.ts` + `controllers/platform/dashboard.controller.ts` + `services/platform/platform-overview.service.ts`
+- **前端**：`saas-admin/src/views/Dashboard.vue`（经旧客户端 `src/api.ts:211` 的 `getPlatformOverview()`）
+- **响应**：统一信封 `{ code, msg, data, traceId }`，`data` 结构如下：
+
+| 字段 | 类型 | 说明 |
+|:---|:---|:---|
+| `totalTenants` / `activeTenants` / `pendingTenants` | number | 租户总数 / 有效 / 待审核 |
+| `monthlyRevenue` / `monthlyRevenueWan` | number | 本月收入：**元** / **万元**（后端一次四舍五入 2 位） |
+| `totalRevenue` / `totalRevenueWan` | number | 累计收入：元 / 万元 |
+| `newTenantsWeek` / `activeSubscriptions` / `totalAdmins` | number | 近 7 天新增租户 / 有效订阅 / 平台管理员数 |
+| `incomeTrend` | [{period, amount}] | 近 6 个月收入趋势（**元**） |
+| `tenantTrend` | [{date, newCount}] | 近 30 天**每日新增租户**；**仅返回有新增的日期，不补零**（避免用 0 冒充真实数据点） |
+| `incomeComposition` | [{name, amount, amountWan}] | 收入构成（**本月**，按套餐聚合）：`amount` 元（精度不丢）、`amountWan` 万元 |
+| `planDistribution` | [{planName, count}] | 套餐分布（按有效订阅数）；**字段名是 `planName`，不是 `name`** |
+| `tenantStatus` | [{status, count}] | 租户状态分布 |
+| `recentTenants` | [{companyName, planName, status, createdAt}] | 最近开通的 10 家租户 |
+
+- **金额单位口径**（R101-S2-01 裁定③：**换算放后端，前端零换算**）：
+  - 所有金额字段**同时**提供「元」（`amount` / `xxxRevenue`，精度不丢）与「万元」（`amountWan` / `xxxRevenueWan`，
+    后端一次性 `Math.round(x / 10000 * 100) / 100`，即四舍五入 2 位）两种表示。
+  - **前端只做千分位格式化，禁止在前端做任何除法换算**——换算是业务口径，放前端会变成每个调用点各写一遍，
+    且四舍五入口径可能不一致。
+  - UI 标注「单位：万元」处一律取 `xxxWan` 字段；标注为元（或 `¥` + 千分位）处取元字段。
+- **大盘金额卡与设计稿口径对照**（批 3 核查结论，设计稿 v1.6）：
+
+| 卡片 | 设计稿写法 | 口径 | 应取字段 |
+|:---|:---|:---|:---|
+| 本月收入 | `¥218.46万`（第 418 行） | **万元**，带「万」字 | `monthlyRevenueWan` |
+| 大模型消耗总额 | `¥86,420`（第 420 行） | **元** + 千分位 | `aiCost`（后端暂无数据源，留空态，登记 S3） |
+
+  → **两张金额卡单位口径不同，不可一刀切**：本月收入后端有数据源（`monthlyRevenue`），
+  大模型消耗后端无数据源（按裁定③留空态 + 登记 S3）。
 
 ### 租户管理
 
