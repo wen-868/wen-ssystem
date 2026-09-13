@@ -147,10 +147,18 @@
                       <td class="num"><b>{{ s.hitCount ?? '—' }}</b></td>
                       <td>
                         <span class="btn-t" @click="openDetail(s)">查看</span>
-                        <span class="btn-t" @click="openSpuModal(s)">编辑</span>
-                        <span class="btn-t" v-if="s.status !== 'OFFLINE'" @click="todo('下架')">下架</span>
-                        <span class="btn-t" v-else @click="todo('重新上架')">重新上架</span>
-                        <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
+                        <template v-if="s.status === 'PENDING'">
+                          <span class="btn-t" @click="todo('转审核')">转审核</span>
+                        </template>
+                        <template v-else-if="s.status === 'OFFLINE'">
+                          <span class="btn-t" @click="todo('重新上架')">重新上架</span>
+                          <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
+                        </template>
+                        <template v-else>
+                          <span class="btn-t" @click="openSpuModal(s)">编辑</span>
+                          <span class="btn-t" @click="todo('下架')">下架</span>
+                          <span class="btn-t dgr" @click="removeSpu(s)">删除</span>
+                        </template>
                       </td>
                     </tr>
                   </tbody>

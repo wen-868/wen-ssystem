@@ -268,8 +268,13 @@
                   <td>{{ row.source || '--' }}</td>
                   <td><span class="tag" :class="reconStatusTag(row.status)">{{ row.statusText || '--' }}</span></td>
                   <td>
-                    <span class="btn-t" @click="handleReconStatement(row)">对账单</span>
-                    <span v-if="row.status === 'PENDING'" class="btn-t" @click="handleReReconcile(row)">重新对账</span>
+                    <template v-if="hasDiff(row)">
+                      <span class="btn-t" @click="handleReconDiff(row)">差异明细</span>
+                      <span class="btn-t" @click="handleReReconcile(row)">重新对账</span>
+                    </template>
+                    <template v-else>
+                      <span class="btn-t" @click="handleReconStatement(row)">对账单</span>
+                    </template>
                   </td>
                 </tr>
               </tbody>
@@ -572,6 +577,15 @@ function handleRecover(_row: any) {
 function handleReconStatement(_row: any) {
   // TODO: 待接入 GET /platform/billing/reconciliation-daily/:date/statement（对账单）
   ElMessage.info('对账单：待接入 GET /platform/billing/reconciliation-daily/:date/statement')
+}
+/** 有差异（diff ≠ 0）或状态待核查的行 → 差异明细 + 重新对账（设计稿 v1.6 第 849 行） */
+function hasDiff(row: any) {
+  if (row?.status === 'PENDING') return true
+  return row?.diff != null && Number(row.diff) !== 0
+}
+function handleReconDiff(row: any) {
+  // TODO: 待接入 GET /platform/billing/reconciliation-daily/:date/diff
+  ElMessage.info(`差异明细：待接入 GET /platform/billing/reconciliation-daily/${row?.date || ''}/diff`)
 }
 // 重新对账：沿用现有结算接口（待接入专用 /platform/billing/reconcile）
 async function handleReReconcile(row: any) {

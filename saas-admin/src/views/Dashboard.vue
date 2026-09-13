@@ -181,7 +181,15 @@
                 <td>{{ t.scope }}</td>
                 <td><span class="tag" :class="t.tagClass">{{ t.status }}</span></td>
                 <td>{{ t.createdAt }}</td>
-                <td><span class="btn-t">下载</span><span class="btn-t gy">任务日志</span></td>
+                <td>
+                  <template v-if="isGenerating(t)">
+                    <span class="btn-t gy" @click="onRefreshTask(t)">刷新</span>
+                  </template>
+                  <template v-else>
+                    <span class="btn-t" @click="onDownloadTask(t)">下载</span>
+                    <span class="btn-t gy" @click="onTaskLog(t)">任务日志</span>
+                  </template>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -314,6 +322,21 @@ const exportPeriod = ref('thisMonth')
 const exportFormat = ref('excel')
 const exportTasks = ref<any[]>([])
 const lastMonthLabel = computed(() => '上月')
+
+/** 生成中的任务只展示「刷新」（设计稿 v1.6 第 511 行） */
+function isGenerating(t: any) {
+  const s = String(t?.status || '')
+  return s.includes('生成中') || s.toUpperCase().includes('GENERATING')
+}
+function onRefreshTask(t: any) {
+  ElMessage.info(`刷新导出任务状态：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/status`)
+}
+function onDownloadTask(t: any) {
+  ElMessage.info(`下载：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/download`)
+}
+function onTaskLog(t: any) {
+  ElMessage.info(`任务日志：待接入 GET /api/platform/reports/export/${t?.id ?? ''}/logs`)
+}
 
 function handleExport() {
   // TODO: 待接入 POST /api/platform/reports/export（异步生成，完成后在下载中心取件）

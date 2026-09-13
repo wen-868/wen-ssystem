@@ -56,9 +56,19 @@
                 <td><span class="tag" :class="statusClass(row.status)">{{ row.statusText }}</span></td>
                 <td>{{ row.issuedAt }}</td>
                 <td>
-                  <span class="btn-t" @click="onRotate(row)">轮换</span>
-                  <span class="btn-t" @click="onCalls(row)">调用量</span>
-                  <span class="btn-t dgr" @click="onRevoke(row)">吊销</span>
+                  <template v-if="isRotating(row)">
+                    <span class="btn-t" @click="onFinishRotate(row)">完成轮换</span>
+                    <span class="btn-t" @click="onCalls(row)">调用量</span>
+                  </template>
+                  <template v-else-if="isDisabled(row)">
+                    <span class="btn-t" @click="onEnable(row)">启用</span>
+                    <span class="btn-t dgr" @click="onRevoke(row)">吊销</span>
+                  </template>
+                  <template v-else>
+                    <span class="btn-t" @click="onRotate(row)">轮换</span>
+                    <span class="btn-t" @click="onCalls(row)">调用量</span>
+                    <span class="btn-t dgr" @click="onRevoke(row)">吊销</span>
+                  </template>
                 </td>
               </tr>
             </tbody>
@@ -203,6 +213,23 @@ function download() {
 function onRotate(_r: OpenApiKey) { ElMessage.info('轮换：待接入 POST /platform/open/api-keys/:id/rotate') }
 function onCalls(_r: OpenApiKey) { ElMessage.info('调用量：待接入 GET /platform/open/api-keys/:id/stats') }
 function onRevoke(_r: OpenApiKey) { ElMessage.warning('吊销：需审批并提前 7 天通知租户（待接入）') }
+
+/** 轮换并行期（新旧密钥并存 7 天）→ 完成轮换 + 调用量（设计稿 v1.6 第 1840 行） */
+function isRotating(row: OpenApiKey) {
+  const s = String(row?.statusText || row?.status || '')
+  return s.includes('轮换') || String(row?.status || '').toUpperCase().includes('ROTAT')
+}
+/** 已停用 → 启用 + 吊销（设计稿 v1.6 第 1841 行） */
+function isDisabled(row: OpenApiKey) {
+  const s = String(row?.statusText || row?.status || '')
+  return s.includes('停用') || s.includes('禁用') || String(row?.status || '').toUpperCase().includes('DISABLE')
+}
+function onFinishRotate(row: OpenApiKey) {
+  ElMessage.info(`完成轮换：待接入 POST /platform/open/api-keys/${row?.id ?? ''}/rotate/complete`)
+}
+function onEnable(row: OpenApiKey) {
+  ElMessage.info(`启用：待接入 POST /platform/open/api-keys/${row?.id ?? ''}/enable`)
+}
 
 // ====== Tab 切换 ======
 function goWebhooks() { router.push('/open/webhooks') }

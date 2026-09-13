@@ -50,8 +50,18 @@
                 <td><span class="tag" :class="triggerClass(row.trigger)">{{ row.triggerText }}</span></td>
                 <td><span class="tag" :class="row.paused ? 'tag-r' : 'tag-g'">{{ row.paused ? '已暂停' : '生效中' }}</span></td>
                 <td>
-                  <span class="btn-t" @click="onTest(row)">测试推送</span>
-                  <span class="btn-t" @click="onLog(row)">日志</span>
+                  <template v-if="row.paused">
+                    <span class="btn-t warn" @click="onResume(row)">恢复订阅</span>
+                    <span class="btn-t" @click="onFailReason(row)">失败原因</span>
+                  </template>
+                  <template v-else-if="row.trigger === 'FAIL'">
+                    <span class="btn-t warn" @click="onRetry(row)">手动重推</span>
+                    <span class="btn-t" @click="onLog(row)">日志</span>
+                  </template>
+                  <template v-else>
+                    <span class="btn-t" @click="onTest(row)">测试推送</span>
+                    <span class="btn-t" @click="onLog(row)">日志</span>
+                  </template>
                 </td>
               </tr>
             </tbody>
@@ -153,6 +163,15 @@ function triggerClass(t: WebhookSub['trigger']): string {
 
 function onTest(_r: WebhookSub) { ElMessage.info('测试推送：待接入 POST /platform/open/webhooks/:id/test') }
 function onLog(_r: WebhookSub) { ElMessage.info('日志：待接入 GET /platform/open/webhooks/:id/logs') }
+function onRetry(row: WebhookSub) {
+  ElMessage.info(`手动重推：待接入 POST /platform/open/webhooks/${row?.id ?? ''}/redeliver`)
+}
+function onResume(row: WebhookSub) {
+  ElMessage.info(`恢复订阅：待接入 POST /platform/open/webhooks/${row?.id ?? ''}/resume`)
+}
+function onFailReason(row: WebhookSub) {
+  ElMessage.info(`失败原因：待接入 GET /platform/open/webhooks/${row?.id ?? ''}/failures`)
+}
 
 // ====== Tab 切换 ======
 function goApiKeys() { router.push('/open/api-keys') }

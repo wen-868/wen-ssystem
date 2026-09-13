@@ -178,7 +178,21 @@
               <th>操作</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            <tr v-for="r in errorTop" :key="r.id ?? r.api">
+              <td><span class="mask">{{ r.api }}</span></td>
+              <td>{{ r.service }}</td>
+              <td class="num">{{ r.calls }}</td>
+              <td class="num">{{ r.errRate }}</td>
+              <td class="num">{{ r.p95 }}</td>
+              <td>{{ r.lastErrAt }}</td>
+              <td>{{ r.summary }}</td>
+              <td>
+                <span class="btn-t" :class="{ dis: !r.id }" @click="onStack(r)">堆栈</span>
+                <span class="btn-t warn" :class="{ dis: !r.id }" @click="onCreateTicket(r)">创建工单</span>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <div v-if="!errorTop.length" class="empty">暂无{{ activeLogTab === 'errorApi' ? '异常接口' : '日志' }}数据 · 接口待对接</div>
@@ -223,7 +237,32 @@
                 <th>操作</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+              <tr v-for="r in auditRows" :key="r.id ?? r.ticketNo">
+                <td>{{ r.ticketNo }}</td>
+                <td>{{ r.operator }}</td>
+                <td>{{ r.tenant }}</td>
+                <td>{{ r.reason }}</td>
+                <td>{{ r.enterAt }}</td>
+                <td>
+                  <span v-if="auditOngoing(r)" class="tag tag-b">{{ auditExitText(r) }}</span>
+                  <template v-else>{{ auditExitText(r) }}</template>
+                </td>
+                <td class="num">{{ r.duration }}</td>
+                <td>{{ r.actionSummary }}</td>
+                <td>{{ r.approver }}</td>
+                <td>
+                  <template v-if="auditOngoing(r)">
+                    <span class="btn-t dgr" :class="{ dis: !r.id }" @click="onForceEnd(r)">强制结束</span>
+                    <span class="btn-t" :class="{ dis: !r.id }" @click="onLiveWatch(r)">实时监控</span>
+                  </template>
+                  <template v-else>
+                    <span class="btn-t" :class="{ dis: !r.id }" @click="onReplay(r)">回放</span>
+                    <span class="btn-t" :class="{ dis: !r.id }" @click="onAuditReport(r)">审计报告</span>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
         <div v-if="!auditRows.length" class="empty">暂无代登录审计记录 · 接口待对接</div>
@@ -375,6 +414,49 @@ const errorTop = ref<any[]>([])
 /* ── 代登录审计 ── */
 const auditRows = ref<any[]>([])
 
+/* 会话是否进行中：优先取行内 ongoing 标记，否则看退出时间列
+   ——退出时间为空 / 占位 / 含「进行中」即视为进行中（设计稿该列显示 tag「会话进行中 · 剩 12 分钟」） */
+function auditOngoing(r: any): boolean {
+  if (typeof r?.ongoing === 'boolean') return r.ongoing
+  const v = String(r?.exitAt ?? r?.endAt ?? '').trim()
+  return v === '' || v === '—' || /进行中/.test(v)
+}
+function auditExitText(r: any): string {
+  const v = String(r?.exitAt ?? r?.endAt ?? '').trim()
+  return v || '会话进行中'
+}
+
+/* 行操作前置校验：无主键的行无法定位资源，按钮置灰且不响应 */
+function rowDisabled(r: any): boolean {
+  return r?.id == null || r?.id === ''
+}
+
+/* ── 行操作：后端接口尚未提供，一律给出「待接入」诚实提示，不编造堆栈 / 工单 / 回放结果 ── */
+function onStack(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('堆栈详情：待接入 GET /platform/monitor/error-logs/{id}/stack')
+}
+function onCreateTicket(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('创建工单：待接入 POST /platform/support/tickets')
+}
+function onForceEnd(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('强制结束会话：待接入 POST /platform/monitor/proxy-audit/{id}/terminate')
+}
+function onLiveWatch(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('实时监控：待接入 GET /platform/monitor/proxy-audit/{id}/live')
+}
+function onReplay(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('会话回放：待接入 GET /platform/monitor/proxy-audit/{id}/replay')
+}
+function onAuditReport(r: any) {
+  if (rowDisabled(r)) return
+  ElMessage.info('审计报告：待接入 GET /platform/monitor/proxy-audit/{id}/report')
+}
+
 function onOrphanScan() {
   // TODO: 待接入孤儿文件扫描（建议 GET /platform/monitor/storage/orphan-scan）
   ElMessage.info('孤儿文件扫描接口待对接（GET /platform/monitor/storage/orphan-scan）')
@@ -457,6 +539,13 @@ onUnmounted(() => {
   display: flex;
   gap: var(--space-1);
   flex-wrap: wrap;
+}
+/* components.css 的 .btn-t 未定义禁用态，此处按 token 局部补齐：
+   置灰沿用 .btn-t.gy 的 --g5，并屏蔽 hover 变色与指针手势 */
+.btn-t.dis,
+.btn-t.dis:hover {
+  color: var(--g5);
+  cursor: not-allowed;
 }
 @media (max-width: 1180px) {
   .monitor-cols {

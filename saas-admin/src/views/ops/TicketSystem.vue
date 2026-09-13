@@ -64,6 +64,84 @@
         </template>
       </div>
     </div>
+
+    <!-- ③ 工单详情抽屉（设计稿「工单详情叠加」1722~1742 行：遮罩 + 472px 右侧抽屉） -->
+    <template v-if="detail">
+      <!-- 内容包一层 .zx-scope：复用 components.css 的 .panel/.p-bd/.tag/.btn/.small/.b 组件类 -->
+      <div class="ov" @click="closeDetail"></div>
+      <aside class="drawer zx-scope">
+        <!-- 标题 = 工单号 + 分类 tag，右侧 ✕ 关闭 -->
+        <div class="d-hd">
+          <span class="pt"
+            >{{ detail.code
+            }}<span class="tag" :class="detail.catTone">{{ detail.category }}</span></span
+          >
+          <span class="d-x" @click="closeDetail">✕</span>
+        </div>
+
+        <div class="d-bd">
+          <!-- 概况（设计稿 1728~1731 行）：两列网格，问题描述跨两列 -->
+          <div class="panel">
+            <div class="p-bd d-grid">
+              <div>
+                <span class="small">租户</span>
+                <div class="b">{{ detail.tenant }}</div>
+              </div>
+              <div>
+                <span class="small">套餐</span>
+                <div><span class="tag tag-b">{{ detail.plan }}</span> SLA 保障</div>
+              </div>
+              <div>
+                <span class="small">提交时间</span>
+                <div>{{ detail.time }}</div>
+              </div>
+              <div>
+                <span class="small">解决 SLA</span>
+                <div :class="{ 'd-danger': detail.slaTone === 'r' }">{{ detail.resolveSla }}</div>
+              </div>
+              <div class="d-span2">
+                <span class="small">问题描述</span>
+                <div>{{ detail.description }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关联入口：代登录 / 知识库（接口未接入 → 置灰禁用 + 诚实提示） -->
+          <div class="d-links mt8">
+            <span class="btn is-off" aria-disabled="true" @click="handleImpersonate"
+              >关联代登录</span
+            >
+            <span class="btn is-off" aria-disabled="true" @click="handleKnowledge">知识库</span>
+          </div>
+
+          <!-- 对话时间线（设计稿 1733~1738 行） -->
+          <p class="b mt12 tl-title">对话时间线</p>
+          <div class="mt8">
+            <!-- 时间线接口未接入：恒为空数组 → 空态，不虚构任何对话内容/处理人 -->
+            <div v-if="!timeline.length" class="empty tl-empty">
+              暂无对话记录 · 待接入 GET /platform/support/tickets/{id}/timeline
+            </div>
+            <div v-for="item in timeline" :key="item.id" class="tl-row">
+              <span class="ava" :class="item.avaTone">{{ item.avatarText }}</span>
+              <div class="tl-bub" :class="item.bubbleTone">
+                {{ item.content }}
+                <span class="small tl-meta">{{ item.meta }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部状态流转（设计稿 1740 行，文案照抄；接口未接入 → 置灰禁用 + 诚实提示） -->
+        <div class="d-ft">
+          <span class="btn btn-p is-off" aria-disabled="true" @click="handleReply">回复租户</span>
+          <span class="btn is-off" aria-disabled="true" @click="handleTransfer">转交 / 改派</span>
+          <span class="btn btn-s is-off" aria-disabled="true" @click="handleResolve">标记解决</span>
+          <span class="btn btn-d is-off" aria-disabled="true" @click="handleCloseTicket"
+            >关闭工单</span
+          >
+        </div>
+      </aside>
+    </template>
   </div>
 </template>
 
@@ -102,6 +180,40 @@ interface TicketColumn {
   cards: TicketCard[]
 }
 
+/* ── 类型：工单详情（字段一律取自被点击的看板卡片，取不到显示 —） ── */
+interface TicketDetail {
+  id: TicketCard['id']
+  /** 工单单号（设计稿 d-hd 标题） */
+  code: string
+  category: string
+  catTone: TicketCard['catTone']
+  tenant: string
+  plan: string
+  time: string
+  /** 解决 SLA 文案；详情接口应返回独立字段，当前回退到卡片 SLA 文案 */
+  resolveSla: string
+  slaTone: TicketCard['slaTone']
+  /** 问题描述；卡片暂无该字段，当前回退到卡片标题 */
+  description: string
+}
+
+/* ── 类型：对话时间线条目（字段全部来自接口，接入前数组为空） ── */
+interface TimelineItem {
+  id: string
+  /** 头像文字（取姓名首字），由接口下发 */
+  avatarText: string
+  /** 头像色板：租户=紫 / 客服=主色 / 内部记录=灰 */
+  avaTone: 'ava-p' | 'ava-gy' | ''
+  /** 气泡样式：租户=灰底 / 公开回复=蓝底蓝框 / 内部备注=橙底橙虚线框 */
+  bubbleTone: 'tl-ten' | 'tl-pub' | 'tl-int'
+  content: string
+  /** 署名时间（由接口下发，含角色 / 时间 / 可见范围） */
+  meta: string
+}
+
+/** 字段缺失占位符 */
+const dash = '—'
+
 /* ── 三列结构（列标题为设计稿结构，卡片初始为空数组 → 空态） ── */
 const columns = ref<TicketColumn[]>([
   { key: 'pending', title: '待处理', cards: [] },
@@ -137,11 +249,60 @@ function handleReport() {
   ElMessage.info('服务报表接口待对接（GET /platform/support/tickets/report）')
 }
 
+/* ── 详情抽屉状态 ── */
+const detail = ref<TicketDetail | null>(null)
+/** 对话时间线：接口未接入 → 恒为空数组，展示空态 */
+const timeline = ref<TimelineItem[]>([])
+
+/** 接口未接入的诚实提示：不模拟任何成功结果 */
+function notReady(action: string, method: string, path: string) {
+  ElMessage.info(`${action}：待接入 ${method} ${path}`)
+}
+
 function openDetail(card: TicketCard) {
-  // TODO: 点击卡片展开工单详情抽屉（设计稿交互态 .drawer）；详情接口待接入
-  // 当前卡片数据为空，交互态预留，不虚构内容
-  void card
-  ElMessage.info('工单详情接口待对接（GET /platform/support/tickets/:id）')
+  // 详情字段全部取自被点击的卡片（真实接口数据），取不到的以 — 占位
+  detail.value = {
+    id: card.id,
+    code: card.code || dash,
+    category: card.category || dash,
+    catTone: card.catTone,
+    tenant: card.tenant || dash,
+    plan: card.plan || dash,
+    time: card.time || dash,
+    resolveSla: card.slaText || dash,
+    slaTone: card.slaTone,
+    description: card.title || dash,
+  }
+  // TODO: 待接入 GET /platform/support/tickets/{id}/timeline，返回后填充 timeline
+  // （每条需标记 bubbleTone：公开回复=tl-pub / 内部备注=tl-int / 租户留言=tl-ten）
+  timeline.value = []
+}
+
+function closeDetail() {
+  detail.value = null
+  timeline.value = []
+}
+
+/* 底部状态流转（设计稿 1740 行）：待接口接入后改为真实 POST 并刷新看板 */
+function handleReply() {
+  notReady('回复租户', 'POST', '/platform/support/tickets/{id}/reply')
+}
+function handleTransfer() {
+  notReady('转交 / 改派', 'POST', '/platform/support/tickets/{id}/transfer')
+}
+function handleResolve() {
+  notReady('标记解决', 'POST', '/platform/support/tickets/{id}/resolve')
+}
+function handleCloseTicket() {
+  notReady('关闭工单', 'POST', '/platform/support/tickets/{id}/close')
+}
+
+/* 关联入口：代登录授权 / 知识库推荐 */
+function handleImpersonate() {
+  notReady('关联代登录', 'GET', '/platform/support/tickets/{id}/impersonation')
+}
+function handleKnowledge() {
+  notReady('知识库', 'GET', '/platform/support/tickets/{id}/kb-suggestions')
 }
 
 /* ── 数据加载：无对应接口时保留 loading/空态/错误处理骨架 ── */
@@ -175,5 +336,170 @@ onMounted(load)
 }
 .sla-note {
   margin-top: var(--space-1);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   工单详情抽屉（设计稿「工单详情叠加」1722~1742 行）
+   components.css 未移植 .ov/.drawer/.d-hd/.d-bd/.d-ft/.d-x/.ava，
+   故按 design token 在组件内局部实现（同 LibrarySpus.vue 弹窗局部实现写法）。
+   颜色/间距/字号/圆角一律引用 tokens.css 变量，不写死字面量。
+   抽屉宽度取设计稿 1725 行 inline width:472px（--drawer-width=436px 为通用值）。
+   ──────────────────────────────────────────────────────────── */
+.ov {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 30;
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 472px;
+  max-width: 92%;
+  background: var(--bg-card);
+  z-index: 31;
+  box-shadow: var(--drawer-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.d-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--g2);
+  flex: none;
+}
+.d-hd .pt {
+  font-size: var(--text-md);
+  font-weight: var(--font-bold);
+}
+.d-hd .tag {
+  margin-left: var(--space-1);
+}
+.d-x {
+  color: var(--g4);
+  font-size: var(--text-lg);
+  line-height: 1;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.d-x:hover {
+  background: var(--g0);
+  color: var(--g6);
+}
+.d-bd {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+}
+.d-ft {
+  flex: none;
+  border-top: 1px solid var(--g2);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--bg-card);
+}
+
+/* 概况两列网格（设计稿 1728 行 grid-template-columns:1fr 1fr; gap:8px 12px） */
+.d-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+.d-grid .small {
+  display: block;
+  margin-bottom: var(--space-1);
+}
+.d-span2 {
+  grid-column: 1 / -1;
+}
+/* 解决 SLA 超时（卡片 slaTone=r）用危险色，对齐设计稿 1730 行红色文案 */
+.d-danger {
+  color: var(--color-danger);
+}
+.d-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* 接口未接入 → 按钮置灰禁用（仍可点击，仅给出待接入提示） */
+.zx-scope .btn.is-off {
+  color: var(--g4);
+  background: var(--g0);
+  border-color: var(--g2);
+  cursor: not-allowed;
+}
+.zx-scope .btn.is-off:hover {
+  border-color: var(--g2);
+}
+
+/* 对话时间线（设计稿 1733~1738 行） */
+.tl-title {
+  font-size: var(--text-sm);
+}
+.zx-scope .tl-empty {
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--g2);
+  border-radius: var(--radius-lg);
+}
+.tl-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+/* 头像圆（设计稿 .ava 28px 圆形） */
+.ava {
+  width: var(--icon-btn-size);
+  height: var(--icon-btn-size);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  font-size: var(--text-sm);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.ava-p {
+  background: var(--color-purple);
+}
+.ava-gy {
+  background: var(--g1);
+  color: var(--g7);
+}
+.tl-bub {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+.tl-bub .tl-meta {
+  display: block;
+  margin-top: var(--space-1);
+}
+/* 租户留言：灰底（设计稿 --g0） */
+.tl-ten {
+  background: var(--g0);
+}
+/* 公开回复：蓝底蓝框（设计稿 --blue-l / --blue-b） */
+.tl-pub {
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-soft);
+}
+/* 内部备注：黄底橙色虚线框（设计稿 #fffbeb / #fcd34d / #92400e） */
+.tl-int {
+  background: var(--color-warning-soft);
+  border: 1px dashed var(--warning-line);
+  color: var(--warning-text);
 }
 </style>

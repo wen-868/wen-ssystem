@@ -137,14 +137,20 @@
                   </td>
                   <td><b>{{ b.name }}</b></td>
                   <td class="muted">—</td>
-                  <td><span class="tag" :class="b.status === 1 ? 'tag-g' : 'tag-gy'">{{ b.status === 1 ? '已授权' : '不适用' }}</span></td>
+                  <td><span class="tag" :class="brandAuthTag(b)">{{ brandAuthLabel(b) }}</span></td>
                   <td class="muted">—</td>
                   <td class="num">{{ b.spuCount || 0 }}</td>
                   <td class="num muted">—</td>
                   <td>
                     <span class="btn-t" @click="openBrandModal(b)">查看</span>
-                    <span class="btn-t" @click="openBrandModal(b)">编辑</span>
-                    <span class="btn-t" @click="uploadAuth(b)">上传授权书</span>
+                    <template v-if="brandAuth(b) === 'NONE'">
+                      <!-- 不适用（无品牌通用）仅「查看」（设计稿 v1.6 第 2337 行） -->
+                    </template>
+                    <template v-else>
+                      <span class="btn-t" @click="openBrandModal(b)">编辑</span>
+                      <span v-if="brandAuth(b) === 'EXPIRED'" class="btn-t dgr" @click="pauseBrand(b)">暂停使用</span>
+                      <span class="btn-t" @click="uploadAuth(b)">上传授权书</span>
+                    </template>
                   </td>
                 </tr>
               </tbody>
@@ -246,6 +252,22 @@ function saveCategory() {
 function uploadAuth(b: BrandItem) {
   // TODO: 待接入 POST /platform/library/brands/{id}/auth-letter —— 上传授权书
   ElMessage.info(`上传授权书：${b.name}（接口待接入）`)
+}
+/** 授权状态：已过期 > 已授权 > 不适用（设计稿 v1.6 第 2333~2338 行） */
+type BrandAuth = 'EXPIRED' | 'AUTHORIZED' | 'NONE'
+function brandAuth(b: any): BrandAuth {
+  const expiredAt = (b as any)?.authExpiredAt || (b as any)?.expiredAt
+  if (b?.status === 1 && expiredAt && new Date(expiredAt).getTime() < Date.now()) return 'EXPIRED'
+  return b?.status === 1 ? 'AUTHORIZED' : 'NONE'
+}
+function brandAuthLabel(b: any) {
+  return { EXPIRED: '已过期', AUTHORIZED: '已授权', NONE: '不适用' }[brandAuth(b)]
+}
+function brandAuthTag(b: any) {
+  return { EXPIRED: 'tag-r', AUTHORIZED: 'tag-g', NONE: 'tag-gy' }[brandAuth(b)]
+}
+function pauseBrand(b: any) {
+  ElMessage.info(`暂停使用：待接入 POST /platform/library/brands/${b?.id ?? ''}/pause`)
 }
 
 /* ───────── 品牌库（沿用现有接口） ───────── */
