@@ -144,24 +144,19 @@ export async function getTrend(params: TrendParams): Promise<TrendItem[]> {
   }));
 }
 
+/**
+ * 模块使用统计。
+ *
+ * R101-S2-R1（P0-2）：原实现返回 8 条**硬编码**的模块使用量与百分比，无任何 SQL，
+ * 经 `/api/platform/tenants/usage-stats` 的 moduleUsage 字段流到前端并画成饼图，
+ * 属「假数据以真实接口返回的身份出现在页面上」，违反「禁模拟数据」铁律。
+ * 已按验收裁定清除全部硬编码条目，改为返回空数组；前端走空态。
+ *
+ * 「模块使用统计接真实数据」需新建统计模型（记录各模块调用量），属 S3 范围，
+ * 已登记至 docs/tasks/current-tasks.md 的 S3 待办，本卡不做。
+ */
 export async function getModuleUsage(): Promise<ModuleUsageItem[]> {
-  const modules = [
-    { moduleName: "商品管理", moduleCode: "product", usageCount: 156 },
-    { moduleName: "订单管理", moduleCode: "order", usageCount: 243 },
-    { moduleName: "库存管理", moduleCode: "inventory", usageCount: 189 },
-    { moduleName: "会员管理", moduleCode: "member", usageCount: 134 },
-    { moduleName: "营销中心", moduleCode: "marketing", usageCount: 98 },
-    { moduleName: "财务管理", moduleCode: "finance", usageCount: 76 },
-    { moduleName: "报表统计", moduleCode: "report", usageCount: 112 },
-    { moduleName: "系统设置", moduleCode: "system", usageCount: 65 },
-  ];
-
-  const total = modules.reduce((sum, m) => sum + m.usageCount, 0);
-
-  return modules.map((m) => ({
-    ...m,
-    percentage: total > 0 ? Number(((m.usageCount / total) * 100).toFixed(2)) : 0,
-  }));
+  return [];
 }
 
 export async function getRanking(params: RankingParams) {

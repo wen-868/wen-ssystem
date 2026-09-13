@@ -28,7 +28,10 @@ describe("menu-permission.service - 菜单与权限", () => {
     mocks.queryWithTenant.mockResolvedValue([{ menuCode: "dashboard" }, { menuCode: "sale" }]);
     const codes = await getRoleMenuCodes(1, tenantId);
     expect(codes).toEqual(["dashboard", "sale"]);
-    expect(mocks.queryWithTenant.mock.calls[0][1]).toEqual([1]);
+    // R101-S2-R1（P0-1）：commit 0ecdfbe2 起 SQL 已显式带 `AND m.tenant_id = ?`（两个占位符），
+    // 而 config/database.ts injectSelectTenant() 在「SQL 已含 tenant_id」时**原样返回参数、不再补注入**，
+    // 故调用方必须自带 tenantId。断言锁住这一新约束。
+    expect(mocks.queryWithTenant.mock.calls[0][1]).toEqual([1, tenantId]);
   });
 
   it("getUserMenus 无角色返回空数组", async () => {
@@ -62,7 +65,9 @@ describe("menu-permission.service - 菜单与权限", () => {
     expect(menus).toHaveLength(1);
     const roleMenuCall = mocks.queryWithTenant.mock.calls[1][0];
     expect(String(roleMenuCall)).toContain("t_sys_role_menu");
-    expect(mocks.queryWithTenant.mock.calls[1][1]).toEqual([3]);
+    // R101-S2-R1（P0-1）：同上，角色分支 SQL 为 `WHERE rm.role_id IN (?) AND m.tenant_id = ?`，
+    // 参数为 [...roleIds, tenantId]。
+    expect(mocks.queryWithTenant.mock.calls[1][1]).toEqual([3, tenantId]);
   });
 
   it("getDataPermissions 返回角色数据权限", async () => {

@@ -81,7 +81,8 @@
       <el-col :span="8">
         <el-card style="margin-bottom: 20px;">
           <template #header><span>功能模块使用占比</span></template>
-          <div ref="moduleChartRef" style="height: 340px;"></div>
+          <div v-if="moduleEmpty" class="empty">暂无模块统计数据 · 待接入真实统计</div>
+          <div v-else ref="moduleChartRef" style="height: 340px;"></div>
         </el-card>
       </el-col>
     </el-row>
@@ -138,17 +139,29 @@ const tenantOptions = ref<any[]>([]);
 const rankList = ref<any[]>([]);
 const rankLoading = ref(false);
 
-const overviewStats = ref([
-  { key: "total_users", label: "总用户数", value: 0, change: 12.5, icon: "User", color: "#2563eb", bg: "#eff6ff" },
-  { key: "total_orders", label: "总订单数", value: 0, change: 8.3, icon: "ShoppingCart", color: "#10b981", bg: "#ecfdf5" },
-  { key: "total_sales", label: "总销售额", value: "¥0", change: 15.2, icon: "Money", color: "#f59e0b", bg: "#fffbeb" },
-  { key: "total_products", label: "商品总数", value: 0, change: -2.1, icon: "Box", color: "#8b5cf6", bg: "#f5f3ff" }
+/**
+ * 概览指标卡：数值来自 GET /api/platform/tenants/usage-stats 的 overview。
+ * change（环比「较上期」）后端当前**未提供**对应字段，故恒为 null，
+ * 模板 v-if 直接不渲染该行——绝不写死百分比冒充真实环比。
+ * （原 change: 12.5 / 8.3 / 15.2 / -2.1 为硬编码假数据，R101-S2-R1 P0-2 清除；
+ *  真实环比需后端补字段，属后续卡范围。）
+ */
+const overviewStats = ref<
+  Array<{ key: string; label: string; value: number | string; change: number | null; icon: string; color: string; bg: string }>
+>([
+  { key: "total_users", label: "总用户数", value: 0, change: null, icon: "User", color: "#2563eb", bg: "#eff6ff" },
+  { key: "total_orders", label: "总订单数", value: 0, change: null, icon: "ShoppingCart", color: "#10b981", bg: "#ecfdf5" },
+  { key: "total_sales", label: "总销售额", value: "¥0", change: null, icon: "Money", color: "#f59e0b", bg: "#fffbeb" },
+  { key: "total_products", label: "商品总数", value: 0, change: null, icon: "Box", color: "#8b5cf6", bg: "#f5f3ff" }
 ]);
 
 const trendChartRef = ref<HTMLDivElement>();
 const moduleChartRef = ref<HTMLDivElement>();
 let trendChart: echarts.ECharts | null = null;
 let moduleChart: echarts.ECharts | null = null;
+
+/** 模块使用占比为空（缺失/无条目）时显示空态，绝不回落到任何兜底假数据 */
+const moduleEmpty = ref(true);
 
 function formatValue(value: number | string): string {
   if (typeof value === "number") {
@@ -226,22 +239,34 @@ function renderTrendChart(trendData: any[]) {
 }
 
 function renderModuleChart(moduleData: any[]) {
-  if (!moduleChartRef.value) return;
-  if (!moduleChart) {
-    moduleChart = echarts.init(moduleChartRef.value);
+  const isEmpty = !moduleData || moduleData.length === 0;
+  moduleEmpty.value = isEmpty;
+
+  // 空态：销毁图表实例，避免悬空引用；空态文案由模板 .empty 渲染
+  if (isEmpty) {
+    moduleChart?.dispose();
+    moduleChart = null;
+    return;
   }
-  
-  moduleChart.setOption({
-    tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-    series: [{
-      type: "pie",
-      radius: ["50%", "75%"],
-      center: ["50%", "50%"],
-      avoidLabelOverlap: false,
-      itemStyle: { borderRadius: 4, borderColor: "#fff", borderWidth: 2 },
-      label: { show: true, formatter: "{b}\n{d}%" },
-      data: moduleData.length ? moduleData : [{ name: "暂无数据", value: 1 }]
-    }]
+
+  // 从非空切回时，图表容器经 v-if 重新挂载，需等 DOM 更新后再初始化
+  nextTick(() => {
+    if (!moduleChartRef.value) return;
+    if (!moduleChart) {
+      moduleChart = echarts.init(moduleChartRef.value);
+    }
+    moduleChart.setOption({
+      tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
+      series: [{
+        type: "pie",
+        radius: ["50%", "75%"],
+        center: ["50%", "50%"],
+        avoidLabelOverlap: false,
+        itemStyle: { borderRadius: 4, borderColor: "#fff", borderWidth: 2 },
+        label: { show: true, formatter: "{b}\n{d}%" },
+        data: moduleData
+      }]
+    });
   });
 }
 
