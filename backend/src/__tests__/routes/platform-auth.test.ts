@@ -54,12 +54,17 @@ vi.mock("../../services/platform/captcha.service", () => captchaMocks);
 
 import { queryOne } from "../../shared/db";
 import { platformAuthRouter } from "../../routes/platform-auth.routes";
+import { loginFailLimiters, LOGIN_FAIL_MAX, LOGIN_FAIL_MESSAGE } from "../../middleware/login-fail-limiter";
 
 const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
 
 describe("routes/platform-auth 集成测试", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 批 2.1：登录失败限流是**真实生效**的，而本文件内多个用例都会产生失败登录。
+    // 若不逐用例清空计数，前面的用例会消耗额度，导致后面的用例拿到 429 而非预期状态码。
+    // 这是被测行为的正确表现，不是缺陷——隔离责任在测试侧。
+    loginFailLimiters.reset();
     // 默认放行验证码，使既有登录用例继续聚焦账号密码逻辑
     captchaMocks.verifyCaptcha.mockResolvedValue({ ok: true, reason: "ok" });
     captchaMocks.createCaptcha.mockResolvedValue({
@@ -147,6 +152,47 @@ describe("routes/platform-auth 集成测试", () => {
         .send({ username: "admin", password: "pass" });
       expect(res.status).toBe(400);
       expect(res.body.msg).toBe("请输入图形验证码");
+    });
+
+    // 批 2.1：证明限流在**真实登录路由**上生效（而非仅在中间件单测里生效）。
+    // 阈值内的失败仍应拿到业务状态码（400/401），越过阈值才是 429。
+    it(`连续失败 ${LOGIN_FAIL_MAX} 次内仍返回业务码，第 ${LOGIN_FAIL_MAX + 1} 次起返回 429 与中文提示`, async () => {
+      (queryOne as any).mockResolvedValue(null); // 管理员不存在 → 401
+      for (let i = 0; i < LOGIN_FAIL_MAX; i++) {
+        const res = await request(app)
+          .post("/api/platform-auth/login")
+          .send({ username: "admin", password: "pass" });
+        expect(res.status).toBe(401);
+      }
+      const blocked = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass" });
+      expect(blocked.status).toBe(429);
+      expect(blocked.body.code).toBe("429");
+      expect(blocked.body.msg).toBe(LOGIN_FAIL_MESSAGE.msg);
+      expect(blocked.body.msg).toMatch(/[一-龥]/);
+    });
+
+    it("限流生效期间即便账号密码正确也被拒绝（真的锁住，不是只提示）", async () => {
+      (queryOne as any).mockResolvedValue(null);
+      for (let i = 0; i < LOGIN_FAIL_MAX; i++) {
+        await request(app)
+          .post("/api/platform-auth/login")
+          .send({ username: "admin", password: "pass" });
+      }
+      // 此时已超限；即便换成正确密码也不放行
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "admin",
+        password_hash: "hash",
+        real_name: "管理员",
+      });
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+      const res = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "right" });
+      expect(res.status).toBe(429);
     });
   });
 

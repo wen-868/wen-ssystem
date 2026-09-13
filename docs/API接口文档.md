@@ -135,7 +135,7 @@
 
 | # | 方法 & 路径 | 描述 | 请求体 (字段:类型 ✅必填) | 响应体 (关键字段:类型) | 后端文件 | 前端文件 |
 |:-:|:---|:---|:---|:---|:---|:---|
-| P1 | `POST /api/platform/auth/login` | 平台超级后台登录 | username:string✅, password:string✅, captchaId:string✅, captcha:string✅ | token:string, admin:{id,username,realName}, csrfToken:string | platform-auth.routes.ts + services/platform/platform-auth.service.ts | saas-admin/src/api/auth.ts + views/login/PlatformLogin.vue |
+| P1 | `POST /api/platform/auth/login` | 平台超级后台登录 | username:string✅, password:string✅, captchaId:string✅, captcha:string✅ | token:string, admin:{id,username,realName}, csrfToken:string | platform-auth.routes.ts + services/platform/platform-auth.service.ts + middleware/login-fail-limiter.ts（失败限流） | saas-admin/src/api/auth.ts + views/login/PlatformLogin.vue |
 | P1b | `GET /api/platform/auth/captcha` | 图形验证码（R101-S2-01 新增） | — | {captchaId:string, image:dataURI, expiresIn:300} | platform-auth.routes.ts + services/platform/captcha.service.ts + middleware/captcha-guard.ts | saas-admin/src/api/auth.ts (getCaptchaApi) + views/login/PlatformLogin.vue |
 | P2 | `GET /api/platform/dashboard` | 平台概览 | — | {totalTenants,activeTenants,totalGMV,totalRevenue,newTenants7d} | platform-dashboard.routes.ts + service | saas-admin/src/views/Dashboard.vue |
 | P3 | `GET /api/platform/dashboard/tenants` | 租户统计 | ?granularity=day&days=30 | [{date,newCount,activeCount}] | platform-dashboard.routes.ts | saas-admin Dashboard |
@@ -2317,6 +2317,7 @@
 - **响应**：`{ token: string, admin: { id, username, realName }, csrfToken: string }`
   - 响应信封字段为 `msg`（非 `message`），格式 `{ code, msg, data, traceId }`
   - 写操作需注入 `x-csrf-token` 请求头，取值来自响应中的 `csrfToken`
+- **登录失败限流**（R101-S2-01 批 2.1）：IP + 账号**双维度**，5 次失败 / 5 分钟；超限最长锁定 15 分钟。命中返回 HTTP `429`，`msg` 为「登录失败次数过多，已临时锁定，请稍后重试」。详见下方「登录失败限流」小节。
 - **后端**：`routes/platform-auth.routes.ts` + `services/platform/platform-auth.service.ts`
 - **前端**：`saas-admin/src/api/auth.ts` + `views/login/PlatformLogin.vue`
 
@@ -2330,6 +2331,19 @@
 - **错误响应**（均为 400）：`msg` 为 `请输入图形验证码` / `图形验证码错误` / `图形验证码已失效，请点击图片重新获取`
 - **后端**：`routes/platform-auth.routes.ts` + `services/platform/captcha.service.ts` + `middleware/captcha-guard.ts`
 - **前端**：`saas-admin/src/api/auth.ts`（`getCaptchaApi`）+ `views/login/PlatformLogin.vue`
+
+#### 登录失败限流（R101-S2-01 批 2.1）
+
+- **作用范围**：仅 `POST /api/platform/auth/login`（该端点此前**无任何限流**，`server.ts` 原注释「应用户要求不限流」）。
+- **双维度**：
+  - IP 维度：`req.ip` 经 `ipKeyGenerator` 归一化（IPv6 按 /56 归并，防同段轮换绕过；`::ffff:x.x.x.x` 还原为 IPv4）。
+  - 账号维度：`username` 去空格并转小写归一；请求未带账号时退回 IP 桶（键前缀 `anon:`），避免所有匿名请求共用一个桶。
+- **阈值**：**5 次失败 / 5 分钟**；并串联一个 15 分钟窗口同样 `max=5`。
+- **锁定语义（如实标注，不宣称精确）**：底层为 express-rate-limit **固定窗口**。短窗口保证「5 分钟内累计 5 次失败必触发」，长窗口保证触发后最长封锁到 15 分钟窗口结束；**实际封锁时长 = 两个窗口结束时间的较晚者（≤ 15 分钟）**，不是「命中时刻起算精确 15 分钟」。
+- **计数口径**：`skipSuccessfulRequests: true`——仅失败响应（4xx/5xx）计数；**登录成功不计数**，正常用户不受影响。图形验证码校验失败返回 400，同属一次登录尝试，**计次**。
+- **命中响应**：HTTP `429`，响应体为统一信封 `{ code: "429", msg: "登录失败次数过多，已临时锁定，请稍后重试", traceId: "" }`（字段为 `msg` 非 `message`），并附 `RateLimit-*` 标准响应头（`standardHeaders: true`，`legacyHeaders: false`）。
+- **存储**：express-rate-limit 默认 **MemoryStore**，**进程内计数、不建表**；与 `platform-miniapp.routes.ts` 现有限流范式一致。**已知局限**：多实例部署时各实例计数不共享（已登记 S3）。
+- **后端**：`middleware/login-fail-limiter.ts`；**单测**：`src/__tests__/middleware/login-fail-limiter.test.ts`（8 用例，覆盖阈值触发 / 中文文案 / 成功不计数 / IP 维度 / 账号维度 / 匿名归 IP 桶）。
 
 ### 平台概览（看板）
 
