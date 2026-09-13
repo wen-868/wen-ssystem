@@ -2313,8 +2313,7 @@
 - **描述**：平台超级后台登录
 - **认证**：无需认证
 - **请求体**：`{ username: string, password: string, captchaId: string, captcha: string }`
-  - `captchaId` / `captcha`：图形验证码标识与用户输入。R101-S2-01 起为**必填**，
-    由 `requireCaptcha` 中间件在业务处理前校验，不通过直接返回 400。
+  - `captchaId` / `captcha`：图形验证码标识与用户输入。R101-S2-01 起为**必填**，由 `requireCaptcha` 中间件在业务处理前校验，不通过直接返回 400。
 - **响应**：`{ token: string, admin: { id, username, realName }, csrfToken: string }`
   - 响应信封字段为 `msg`（非 `message`），格式 `{ code, msg, data, traceId }`
   - 写操作需注入 `x-csrf-token` 请求头，取值来自响应中的 `csrfToken`
@@ -2327,14 +2326,9 @@
 - **响应**：`{ captchaId: string, image: string, expiresIn: number }`
   - `image` 为 `data:image/svg+xml;base64,...`，前端可直接放入 `<img src>`
   - `expiresIn` 固定 `300`（5 分钟）
-- **存储与校验**：Redis 键 `platform:captcha:<captchaId>`，TTL 300s；
-  取值与删除由 Lua 脚本原子完成，**一次性**——无论校验成功与否本次验证码都作废，
-  校验失败后必须重新获取（前端登录失败会自动换图）。
-  Redis 不可用时降级为进程内存储（多实例部署需改共享存储，见 S3 登记）。
-- **错误响应**（均为 400）：`msg` 取值为
-  `请输入图形验证码` / `图形验证码错误` / `图形验证码已失效，请点击图片重新获取`
-- **后端**：`routes/platform-auth.routes.ts` + `services/platform/captcha.service.ts`
-  + `middleware/captcha-guard.ts`
+- **存储与校验**：Redis 键 `platform:captcha:<captchaId>`，TTL 300s；Lua 脚本原子 GET+DEL，**一次性**（无论校验成功与否本次验证码都作废）；Redis 不可用时降级进程内存储，多实例部署需改共享存储（已登记 S3）。
+- **错误响应**（均为 400）：`msg` 为 `请输入图形验证码` / `图形验证码错误` / `图形验证码已失效，请点击图片重新获取`
+- **后端**：`routes/platform-auth.routes.ts` + `services/platform/captcha.service.ts` + `middleware/captcha-guard.ts`
 - **前端**：`saas-admin/src/api/auth.ts`（`getCaptchaApi`）+ `views/login/PlatformLogin.vue`
 
 ### 平台概览（看板）
