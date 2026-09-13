@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
+// R101-S2-01 裁定 2：错误文案集中一处，与旧客户端 src/api.ts 共用同一份
+import { isBizFailure, resolveBizErrorText, resolveHttpErrorText } from './http-error'
 
 const request = axios.create({
   baseURL: '/api',
@@ -21,6 +23,8 @@ request.interceptors.request.use((config) => {
 
 // ==================== HTTP 错误上报 ====================
 let lastReportTime = 0
+/** 401 提示节流时间戳：并发请求同时 401 时只提示一次 */
+let lastAuthTipTime = 0
 
 function reportHttpError(payload: {
   error_type: string
@@ -47,15 +51,22 @@ function reportHttpError(payload: {
 request.interceptors.response.use(
   (response) => {
     const data = response.data
-    if (data.code && data.code !== '0' && data.code !== 0) {
-      const backendMsg = data?.msg ?? data?.message ?? ''
-      ElMessage.error(backendMsg || '请求失败')
-      return Promise.reject(new Error(backendMsg || '请求失败'))
+    // 业务码非 0：后端中文原因优先；后端未给中文则兜底，绝不直出英文原文
+    if (isBizFailure(data)) {
+      const text = resolveBizErrorText(data, '请求失败')
+      ElMessage.error(text)
+      return Promise.reject(new Error(text))
     }
     return data
   },
   (error) => {
     if (error.response?.status === 401) {
+      // 401 的真实原因对运营有意义（登录页是「用户名或密码错误」，普通页面是「未登录」），
+      // 不能静默踢走。先给中文提示再跳转；并发请求在 1.5s 内只提示一次，避免刷屏。
+      if (Date.now() - lastAuthTipTime > 1500) {
+        lastAuthTipTime = Date.now()
+        ElMessage.error(resolveHttpErrorText(error))
+      }
       const authStore = useAuthStore()
       authStore.logout()
       window.location.hash = '#/login'
@@ -73,7 +84,8 @@ request.interceptors.response.use(
       })
     }
 
-    ElMessage.error(error.message || '网络错误')
+    // 统一中文文案：覆盖 4xx/5xx/超时/断网，禁止 axios 英文原文上屏
+    ElMessage.error(resolveHttpErrorText(error))
     return Promise.reject(error)
   }
 )

@@ -1,4 +1,10 @@
 import axios from "axios";
+import { ElMessage } from "element-plus";
+// R101-S2-01 裁定 2：错误文案集中一处，与新客户端 src/utils/request.ts 共用同一份
+import { isBizFailure, resolveBizErrorText, resolveHttpErrorText } from "./utils/http-error";
+
+/** 401 提示节流时间戳：并发请求同时 401 时只提示一次 */
+let lastAuthTipTime = 0;
 
 function resolveApiBase() {
   const configured = import.meta.env.VITE_API_BASE;
@@ -27,14 +33,34 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // R101-S2-01 裁定 1：旧客户端此前不判业务码，后端 HTTP 200 但 code 非 0 时
+    // 调用方若不自行判断就是「静默失败」——页面毫无反应也看不出原因。
+    // 这里与新客户端同口径：非 0 → 中文提示 + reject。
+    // 成功路径仍原样返回 AxiosResponse，不改任何既有调用点的解包方式。
+    if (isBizFailure(response?.data)) {
+      const text = resolveBizErrorText(response.data, "请求失败");
+      ElMessage.error(text);
+      return Promise.reject(new Error(text));
+    }
+    return response;
+  },
   (error) => {
     if (error?.response?.status === 401) {
+      // 与新客户端同口径：401 的真实原因（「未登录」/「登录状态已失效」）要可见，
+      // 不能静默踢走。先给中文提示再跳转；1.5s 内只提示一次，避免并发请求刷屏。
+      if (Date.now() - lastAuthTipTime > 1500) {
+        lastAuthTipTime = Date.now();
+        ElMessage.error(resolveHttpErrorText(error));
+      }
       localStorage.removeItem("platform_token");
       if (typeof window !== "undefined") {
         window.location.hash = "#/login";
       }
+      return Promise.reject(error);
     }
+    // 统一中文文案：覆盖 4xx/5xx/超时/断网，禁止 axios 英文原文上屏
+    ElMessage.error(resolveHttpErrorText(error));
     return Promise.reject(error);
   }
 );
