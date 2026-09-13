@@ -97,6 +97,7 @@
 > **S2 前置修复（2026-09-13 林夕报备 3 项，凌舟已逐项独立核实 → 修复卡 `docs/tasks/cards/R101-S2-R1-前置修复卡.md`）**：① **门禁红灯**——`cd backend && npx vitest run` 实跑 `2 failed | 5776 passed`，失败在 `menu-permission.service.test.ts:31/65`（断言 `[1]`/`[3]`，实际 `[1,'t1']`/`[3,'t1']`）；根因是 `database.ts:214 injectSelectTenant()` 在 SQL 已含 `tenant_id` 时短路不再补参，而 `menu-permission.service` 已按提交 `0ecdfbe2` 改为显式带租户条件——**凌舟裁定：属测试断言过期，允许只改这 2 处断言**（不得扩大改动/放宽断言），改后须全量绿。② **假数据违规**——`services/admin/tenant-usage.service.ts:147-165 getModuleUsage()` 8 条硬编码模块占比、零 SQL，却经 `usage-stats` 以真实接口身份出现在 `TenantUsage.vue:191` 图表；**裁定：返回 `[]` + 前端空态**，真实统计另立 S3 事项。③ **路由死代码**——`/api/platform/announcements` 被注册两遍（`admin-platform-announcement.routes.ts` 完整 CRUD 排在前、先命中；`platform.routes.ts:18-23` 两个 handler 永不执行）；**裁定：删死代码 + 用真实请求验证 200 + 复查重复前缀计数**。三项完成并通过复验后，S2 才可进入验收
 > **S2 前置修复验收结论（2026-09-13 凌舟，独立复跑）：通过 ✅**（提交 `720ca66d`+`30e70dff`+`2577c036`，详见 `docs/R101-S2-R1-前置修复-凌舟验收结论.md`）。复跑：vitest **541 文件 / 5778 用例全绿**、backend build exit 0、saas-admin build exit 0、vue-tsc 20 处全在既有 9 文件（TenantUsage.vue 0 处）；截图 `docs/evidence/R101-S2-R1/tenant-usage-empty.png` 肉眼核对：模块占比为空态、四张概览卡已无「较上期」。**两处请裁已裁定**：① §四.3「重复计数 3→2」**指标作废并由凌舟认错**（auto-routes 按 *声明前缀的配置文件数* 计数，删 handler 不变；不授权前缀合并）；② §3.5 第二处假数据（概览卡写死 `change: 12.5/8.3/15.2/-2.1`）**认可清除不回滚**（同文件同性质、页面不在设计稿范围、删除后无 UI 倒退）。**追认**：`720ca66d` 套餐 controller `req.params.id`→`:planId` 恒 404 修复（我核了路由参数名确为 `:planId`）；**采纳其取证方法**：弃用注入令牌截图，改真实登录链路 + 页内断言 + 网络状态码自证（踩坑[52]）。**新增治理**：`R101-S2-R2 令牌审计卡`（saas-admin 硬编码色值/尺寸收敛，P2 存量治理）；趋势图 x 轴 `undefined` 属 `USE_MOCK_DB` 取证环境产物，列入 S2-03 观察点
 > **S2-01 三项岔路裁定（2026-09-14 凌舟，详见 `docs/R101-S2-01-凌舟裁定.md`）**：① **客户端策略＝乙**——只增强旧客户端 `saas-admin/src/api.ts`（1 文件，补业务码判定，与 `utils/request.ts` 同口径），9 文件迁移登记 **F5** 治理项；② **F1 并入 S2-01**，要求一份**共用的中文错误映射表**（401/403/404/409/422/429/500/502/503/超时/断网/业务码非 0），禁止英文 axios 原文上屏；③ 后端确无的 **9 项缺口＝留空态 + 逐项登记 S3**（不新建后端能力）；④ **图形验证码 / 大盘趋势与收入构成 / 配额 三项授权新建**，但限"**只读聚合 + 不新建业务表**"——验证码走 Redis（5 分钟一次性）、大盘扩展既有 `platform-overview.service`、配额仅做现有表 COUNT（无数据源维度返回 null 留空态登记 S3）；**红线**：若某项必须新建表 → 立即停下报备改走 S3。批次建议：批1 前端失败可见 → 批2 验证码 → 批3 大盘聚合 → 批4 配额 → 批5 其余对接
+> **批1/批2 验收结论（2026-09-14 凌舟复跑）：通过 ✅**（`7752d190` 前端失败可见、`e892c1f4` 图形验证码、`9fecefbc` 回传+契约；详见裁定文档"批 1 / 批 2 验收与追加裁定"节）。复跑：**542 文件 / 5793 用例全绿**、backend tsc+build exit 0、vue-tsc 20 处＝基线；`http-error.ts` 为唯一文案来源且两客户端共用；旧客户端已判业务码且**9 文件未迁移**（F5 保留）。**追加裁定**：① 页面级文案**分层**（客户端弹一次 toast，页面只做内容区错误态/空态）——S2-01 页面随批5 收敛，其余登记 **F6**；② 验证码**不立项位图化**（登记 S3-18 可选加固），改**授权批 2.1 登录失败限流**（IP+账号双维度、5 次/5 分钟、复用现有 rate limiter，安全核心）；③ 金额**换算放后端**（同时返回 `amount` 原值与 `amountWan` 万元展示值，前端零换算），批3 一并核查大盘金额卡单位标注与真实值是否一致；④ `planDistribution` 字段错配批3 由**前端适配** `planName`/`count`。**追认**：卡外 7 文件（captcha 必要文件，可单独 revert，但下不为例须先报备）、401 先提示再跳转+1.5s 节流、3 处非标准成功码白名单（已逐条注明来源，另立 S3-19 做后端契约统一）。**凌舟顺带修**：批2 把 `docs/API接口文档.md` 整体改写换行（5557 行噪声，实质仅 21 增 6 删），已恢复原混合换行并单列提交 `717f0cbc`
 
 ### 派单前核实（2026-09-12 凌舟执行）
 
@@ -169,6 +170,16 @@
 | S3-07 | 代理商配置与分润 | 林夕（暂代） | 6天 | 待开始 | 分润矩阵未配全阻断+结算冲回 | — |
 | S3-08 | AI 底座 MCP 接口 | 林夕（暂代） | 3天 | 待开始 | MCP tools/list 与工具调用成功 | — |
 | S3-09 | 模块使用统计接真实数据 | 林夕（暂代） | 待估 | 待开始 | 新建模块调用量统计模型，`getModuleUsage()` 返回真实数据（替换 R101-S2-R1 已清空的空数组），租户用量页图表不再走空态 | — |
+| S3-10 | 大盘其余 9 项指标 | 林夕（暂代） | 待估 | 待开始 | `todayNewTenants/todayNewPaid/tenantDelta/monthIncome/incomeDelta/totalOrders/aiCost/aiTokens/activeRate`（`Dashboard.vue:246-251`）后端确无 → 现留空态 | — |
+| S3-11 | 大盘待办 / 健康 / 最近告警 | 林夕（暂代） | 待估 | 待开始 | `todos` / `health` / `lastAlarm`（`Dashboard.vue:286-311`）后端确无 → 现留空态 | — |
+| S3-12 | 套餐升级流向 `planFlow` | 林夕（暂代） | 待估 | 待开始 | `Dashboard.vue:259`；后端无 → 空态 | — |
+| S3-13 | 租户审核接口 | 林夕（暂代） | 待估 | 待开始 | `POST /platform/tenants/:id/audit`（`api/tenant.ts:34`）后端无 handler | — |
+| S3-14 | 公告预览 / 模板 / 撤回 | 林夕（暂代） | 待估 | 待开始 | `Announcements.vue:387/391/447/451` 对应后端能力缺失 | — |
+| S3-15 | 版本发布回滚 / 草稿 / 功能开关 | 林夕（暂代） | 待估 | 待开始 | `AppVersions.vue:359/363/429` | — |
+| S3-16 | 报表导出接口 | 林夕（暂代） | 待估 | 待开始 | `POST /platform/reports/export`（`Dashboard.vue:341-343`） | — |
+| S3-17 | 验证码 Redis 降级 → 共享存储 | 林夕（暂代） | 待估 | 待开始 | 多实例部署下进程内 Map 不共享（批2 已知限制） | — |
+| S3-18 | 验证码 SVG → 位图（P3 可选加固） | 林夕（暂代） | 待估 | 待开始 | 凌舟裁定不立项，待出现自动化攻击证据再评估 | — |
+| S3-19 | 后端成功码契约统一 | 林夕（暂代） | 待估 | 待开始 | `instant-retail.service.ts:259`、`platform-integration.service.ts:55`（`"200"`）、`payment.service.ts:183`（`"SUCCESS"`）统一为 `code:"0"`，收缩前端白名单 | — |
 
 > S3-09 来源：R101-S2-R1 前置修复卡 §三（P0-2）。原 `backend/src/services/admin/tenant-usage.service.ts` 的 `getModuleUsage()` 返回 8 条硬编码模块占比（属「禁模拟数据」违规），已按裁定改为返回 `[]`、前端走空态；真实统计需新建数据模型，故另立 S3 事项。
 
