@@ -1,0 +1,57 @@
+{
+  "phase": "captcha",
+  "startedAt": "2026-09-13T22:06:43.875Z",
+  "steps": [
+    {
+      "step": "wrong-captcha #1",
+      "n": 1,
+      "status": 400,
+      "msg": "图形验证码错误",
+      "remaining": "4"
+    },
+    {
+      "step": "wrong-captcha #19",
+      "n": 19,
+      "status": 400,
+      "msg": "图形验证码错误",
+      "remaining": "4"
+    },
+    {
+      "step": "19 次验证码错误后使用正确验证码登录（证明不锁账号、不消耗凭据额度）",
+      "expect": "HTTP 200 + token",
+      "status": 200,
+      "hasToken": true,
+      "msg": "成功"
+    },
+    {
+      "step": "wrong-captcha #20（达到阈值，仍 400）",
+      "status": 400,
+      "msg": "图形验证码错误",
+      "remaining": "4"
+    },
+    {
+      "step": "wrong-captcha #21（超限 → 429 验证码通道文案）",
+      "status": 429,
+      "msg": "图形验证码错误次数过多（已达 20 次），请重新获取验证码，请约 5 分钟后重试",
+      "retryAfter": "299",
+      "remaining": "0"
+    },
+    {
+      "step": "超限后用正确验证码再试（短时拒绝，非账号锁定）",
+      "status": 429,
+      "msg": "图形验证码错误次数过多（已达 20 次），请重新获取验证码，请约 5 分钟后重试"
+    }
+  ],
+  "redisNotes": [],
+  "afterNWrongCaptcha": {
+    "n": 19,
+    "status": 400,
+    "msg": "图形验证码错误",
+    "remaining": "4"
+  },
+  "accountNotLocked": true,
+  "overLimitStatus": 429,
+  "overLimitMsg": "图形验证码错误次数过多（已达 20 次），请重新获取验证码，请约 5 分钟后重试",
+  "blockedEvenWithCorrectCaptcha": true,
+  "finishedAt": "2026-09-13T22:06:47.279Z"
+}

@@ -2317,7 +2317,7 @@
 - **响应**：`{ token: string, admin: { id, username, realName }, csrfToken: string }`
   - 响应信封字段为 `msg`（非 `message`），格式 `{ code, msg, data, traceId }`
   - 写操作需注入 `x-csrf-token` 请求头，取值来自响应中的 `csrfToken`
-- **登录失败限流**（R101-S2-01 批 2.1）：IP + 账号**双维度**，5 次失败 / 5 分钟；超限最长锁定 15 分钟。命中返回 HTTP `429`，`msg` 为「登录失败次数过多，已临时锁定，请稍后重试」。详见下方「登录失败限流」小节。
+- **登录限流**（R101-S2-01 批 2.2，按失败类型分流）：**凭据错误（401）** IP + 账号**双维度**，5 次 / 5 分钟 → 最长锁 15 分钟；**验证码错误（400）仅 IP 维度**，20 次 / 5 分钟，超限只拒绝并要求重新获取验证码，**不锁账号**。命中返回 HTTP `429`，`msg` 为**中文动态文案**（含已失败次数与剩余等待时间）。详见下方「登录限流」小节。
 - **后端**：`routes/platform-auth.routes.ts` + `services/platform/platform-auth.service.ts`
 - **前端**：`saas-admin/src/api/auth.ts` + `views/login/PlatformLogin.vue`
 
@@ -2329,21 +2329,28 @@
   - `expiresIn` 固定 `300`（5 分钟）
 - **存储与校验**：Redis 键 `platform:captcha:<captchaId>`，TTL 300s；Lua 脚本原子 GET+DEL，**一次性**（无论校验成功与否本次验证码都作废）；Redis 不可用时降级进程内存储，多实例部署需改共享存储（已登记 S3）。
 - **错误响应**（均为 400）：`msg` 为 `请输入图形验证码` / `图形验证码错误` / `图形验证码已失效，请点击图片重新获取`
+- **限流**：验证码校验失败（400）计入「验证码错误」IP 维度弱限流（20 次 / 5 分钟，超限只拒绝并要求重新获取验证码、**不锁账号**），详见下方「登录限流」小节。
 - **后端**：`routes/platform-auth.routes.ts` + `services/platform/captcha.service.ts` + `middleware/captcha-guard.ts`
 - **前端**：`saas-admin/src/api/auth.ts`（`getCaptchaApi`）+ `views/login/PlatformLogin.vue`
 
-#### 登录失败限流（R101-S2-01 批 2.1）
+#### 登录限流（R101-S2-01 批 2.2，按失败类型分流）
 
-- **作用范围**：仅 `POST /api/platform/auth/login`（该端点此前**无任何限流**，`server.ts` 原注释「应用户要求不限流」）。
-- **双维度**：
+- **作用范围**：仅 `POST /api/platform/auth/login`（该端点此前**无任何限流**，`server.ts` 原注释「应用户要求不限流」）。承接批 2.1，按批 2.2 裁定③ 拆为**两条互不干扰的独立通道**。
+- **分流原则（按响应状态码计数）**：判定「成功」用 `requestWasSuccessful(req, res)`（默认 `res.statusCode < 400`）；本实现重写为「响应码 ≠ 本通道关心的状态码」——于是**只有 401 计入凭据通道、只有 400 计入验证码通道**，其余响应（2xx / 5xx / 限流自身 429）净效果为 0。
+- **通道一 · 凭据错误（401）**（爆破特征，维持批 2.1 强度）：
+  - 维度：**IP + 账号双维度**，任一超限即拒绝。
   - IP 维度：`req.ip` 经 `ipKeyGenerator` 归一化（IPv6 按 /56 归并，防同段轮换绕过；`::ffff:x.x.x.x` 还原为 IPv4）。
   - 账号维度：`username` 去空格并转小写归一；请求未带账号时退回 IP 桶（键前缀 `anon:`），避免所有匿名请求共用一个桶。
-- **阈值**：**5 次失败 / 5 分钟**；并串联一个 15 分钟窗口同样 `max=5`。
-- **锁定语义（如实标注，不宣称精确）**：底层为 express-rate-limit **固定窗口**。短窗口保证「5 分钟内累计 5 次失败必触发」，长窗口保证触发后最长封锁到 15 分钟窗口结束；**实际封锁时长 = 两个窗口结束时间的较晚者（≤ 15 分钟）**，不是「命中时刻起算精确 15 分钟」。
-- **计数口径**：`skipSuccessfulRequests: true`——仅失败响应（4xx/5xx）计数；**登录成功不计数**，正常用户不受影响。图形验证码校验失败返回 400，同属一次登录尝试，**计次**。
-- **命中响应**：HTTP `429`，响应体为统一信封 `{ code: "429", msg: "登录失败次数过多，已临时锁定，请稍后重试", traceId: "" }`（字段为 `msg` 非 `message`），并附 `RateLimit-*` 标准响应头（`standardHeaders: true`，`legacyHeaders: false`）。
-- **存储**：express-rate-limit 默认 **MemoryStore**，**进程内计数、不建表**；与 `platform-miniapp.routes.ts` 现有限流范式一致。**已知局限**：多实例部署时各实例计数不共享（已登记 S3）。
-- **后端**：`middleware/login-fail-limiter.ts`；**单测**：`src/__tests__/middleware/login-fail-limiter.test.ts`（8 用例，覆盖阈值触发 / 中文文案 / 成功不计数 / IP 维度 / 账号维度 / 匿名归 IP 桶）。
+  - 阈值：**5 次 / 5 分钟**；并串联一个 15 分钟窗口同样 `max=5`。
+  - 锁定语义（如实标注，不宣称精确）：底层为 express-rate-limit **固定窗口**。短窗口保证「5 分钟内累计 5 次失败必触发」，长窗口保证触发后最长封锁到 15 分钟窗口结束；**实际封锁时长 = 两个窗口结束时间的较晚者（≤ 15 分钟）**，不是「命中时刻起算精确 15 分钟」。
+- **通道二 · 验证码错误（400）**（正常交互噪声，弱阈值、不锁账号；批 2.2 新增）：
+  - 维度：**仅 IP 维度**；`requireCaptcha` 返回的 400 **不进账号维度计数**，同一 IP 换任意账号共用同一桶。
+  - 阈值：**20 次 / 5 分钟**（较凭据通道放宽——用户看错一位验证码即计一次）。
+  - 超限行为：**只拒绝并要求重新获取验证码**；固定窗口语义下最多短时拒绝 5 分钟，**绝不锁定账号**——重新获取验证码并正确提交即可继续登录。
+- **计数口径**：两条通道均 `skipSuccessfulRequests: true` + 按状态码过滤——**登录成功不计数**（含验证码错误后重试成功），正常用户不受影响。
+- **命中响应**：两条通道均返回 HTTP `429` + 统一信封 `{ code: "429", msg, traceId: "" }`（字段为 `msg` 非 `message`），并附 `RateLimit-*` 标准响应头（`standardHeaders: true`，`legacyHeaders: false`）。`msg` 为**中文动态文案**，明确给出**已失败次数与剩余等待时间**，例：凭据通道「登录失败次数过多（已连续失败 5 次），该账号与来源 IP 已临时锁定，请约 14 分钟后重试」；验证码通道「图形验证码错误次数过多（已达 20 次），请重新获取验证码，请在 300 秒后重试」——不再只回一句「请求过于频繁」。
+- **存储**：express-rate-limit 默认 **MemoryStore**，**进程内计数、不建表**；与 `platform-miniapp.routes.ts` 现有限流范式一致。**已知局限**：多实例部署时各实例计数不共享（已登记 S3-17）。
+- **后端**：`middleware/login-fail-limiter.ts`（`createLoginFailLimiters` 凭据双维度 / `createCaptchaFailLimiters` 验证码仅 IP）；路由挂载顺序 `[...captchaFailLimiters.all, ...loginFailLimiters.all, requireCaptcha, handler]`。**单测**：`src/__tests__/middleware/login-fail-limiter.test.ts`（16 用例，覆盖两通道阈值触发 / 动态中文文案含失败次数与剩余时间 / 成功不计数 / IP 与账号维度 / 匿名归 IP 桶 / 两通道互不干扰）；**集成**：`src/__tests__/routes/platform-auth.test.ts`（含「连续 5 次验证码错误后该账号仍可正常登录」与「验证码错误超 20 次返回 429」）。
 
 ### 平台概览（看板）
 

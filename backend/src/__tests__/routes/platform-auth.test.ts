@@ -54,17 +54,23 @@ vi.mock("../../services/platform/captcha.service", () => captchaMocks);
 
 import { queryOne } from "../../shared/db";
 import { platformAuthRouter } from "../../routes/platform-auth.routes";
-import { loginFailLimiters, LOGIN_FAIL_MAX, LOGIN_FAIL_MESSAGE } from "../../middleware/login-fail-limiter";
+import {
+  loginFailLimiters,
+  captchaFailLimiters,
+  LOGIN_FAIL_MAX,
+  CAPTCHA_FAIL_MAX,
+} from "../../middleware/login-fail-limiter";
 
 const app = createTestApp({ prefix: "/api/platform-auth", router: platformAuthRouter });
 
 describe("routes/platform-auth 集成测试", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // 批 2.1：登录失败限流是**真实生效**的，而本文件内多个用例都会产生失败登录。
+    // 批 2.1/2.2：两条限流通道都是**真实生效**的，而本文件内多个用例都会产生失败登录/验证码错误。
     // 若不逐用例清空计数，前面的用例会消耗额度，导致后面的用例拿到 429 而非预期状态码。
     // 这是被测行为的正确表现，不是缺陷——隔离责任在测试侧。
     loginFailLimiters.reset();
+    captchaFailLimiters.reset();
     // 默认放行验证码，使既有登录用例继续聚焦账号密码逻辑
     captchaMocks.verifyCaptcha.mockResolvedValue({ ok: true, reason: "ok" });
     captchaMocks.createCaptcha.mockResolvedValue({
@@ -169,8 +175,53 @@ describe("routes/platform-auth 集成测试", () => {
         .send({ username: "admin", password: "pass" });
       expect(blocked.status).toBe(429);
       expect(blocked.body.code).toBe("429");
-      expect(blocked.body.msg).toBe(LOGIN_FAIL_MESSAGE.msg);
+      // 批 2.2：文案改为动态生成，含「失败次数 + 剩余时间」（裁定③ 要求说清第几次、还要等多久）
+      expect(blocked.body.msg).toMatch(/已连续失败\s*\d+\s*次/);
+      expect(blocked.body.msg).toMatch(/(分钟|秒)后重试/);
       expect(blocked.body.msg).toMatch(/[一-龥]/);
+    });
+
+    // 批 2.2 裁定③：验证码错误按 IP 弱阈值（20 次/5 分钟）单独计数，
+    // **不进账号维度、不锁账号**——连续填错验证码不得导致该账号无法登录。
+    it(`连续 ${LOGIN_FAIL_MAX} 次验证码错误后，该账号仍可正常登录（不锁账号）`, async () => {
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: false, reason: "mismatch" });
+      for (let i = 0; i < LOGIN_FAIL_MAX; i++) {
+        const res = await request(app)
+          .post("/api/platform-auth/login")
+          .send({ username: "admin", password: "pass", captchaId: "x", captcha: "ZZZZ" });
+        expect(res.status).toBe(400);
+      }
+
+      // 换成正确密码 + 通过验证码，应当能登录 —— 凭据额度从未被验证码错误消耗
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: true, reason: "ok" });
+      (queryOne as any).mockResolvedValue({
+        id: 1,
+        username: "admin",
+        password_hash: "hash",
+        real_name: "管理员",
+      });
+      const bcrypt = await import("bcryptjs");
+      (bcrypt.default.compare as any).mockResolvedValue(true);
+      const ok = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "right", captchaId: "ok", captcha: "ABCD" });
+      expect(ok.status).toBe(200);
+    });
+
+    it(`验证码错误超过 ${CAPTCHA_FAIL_MAX} 次时返回 429，文案要求重新获取验证码`, async () => {
+      captchaMocks.verifyCaptcha.mockResolvedValue({ ok: false, reason: "mismatch" });
+      // 放宽到阈值：逐次发请求（上限取常量，避免硬编码）
+      for (let i = 0; i < CAPTCHA_FAIL_MAX; i++) {
+        await request(app)
+          .post("/api/platform-auth/login")
+          .send({ username: "admin", password: "pass", captchaId: "x", captcha: "ZZZZ" });
+      }
+      const blocked = await request(app)
+        .post("/api/platform-auth/login")
+        .send({ username: "admin", password: "pass", captchaId: "x", captcha: "ZZZZ" });
+      expect(blocked.status).toBe(429);
+      expect(blocked.body.msg).toMatch(/验证码/);
+      expect(blocked.body.msg).toMatch(/重新获取/);
     });
 
     it("限流生效期间即便账号密码正确也被拒绝（真的锁住，不是只提示）", async () => {
