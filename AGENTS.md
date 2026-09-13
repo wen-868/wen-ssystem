@@ -33,9 +33,24 @@
 
 - 始终使用简体中文回复、交流、写注释与文档；代码变量名保持英文。
 - 结论先行，逐项推进，结构化表达。
-- 子代理任务获取：启动后若未收到任务正文，先读 `docs/tasks/current-tasks.md`，再查 `docs/tasks/inbox/<系统标识>.md`；仍未找到任务时明确报告"未收到任务正文"，不得编造任务。
-- 父代理派发任务时，将任务正文写入 `docs/tasks/inbox/<系统标识>.md`；子代理完成后将任务卡移动到 `docs/tasks/inbox/archive/` 并更新 `current-tasks.md`。
+- **★ 子代理开工第一步（无条件执行，2026-09-13 修订，最高优先级）**：spawn 之后的**第一个动作**是读 `docs/tasks/inbox/ACTIVE.md`。**不论是否收到消息正文**，只要该文件存在且非空，它就是本次派工任务，按卡执行。**禁止**在未读该文件之前回答"未收到任务""没有任务正文"。
+- **原因（实测证据）**：`spawn_agent` 与 `followup_task` 的消息正文**全量丢失**（子代理只收到环境上下文与工具说明，拿不到任务）。出站消息通道不可用；文件通道是唯一可靠路径。且环境**不注入 task_name**，子代理无法得知自己的"系统标识"，因此派工卡**不能**再按 `<系统标识>.md` 命名。
+- **inbox 铁律**：`docs/tasks/inbox/` 下**同时只允许一张活动任务卡**，固定文件名 `ACTIVE.md`；历史卡一律移入 `docs/tasks/inbox/archive/`。派单方有责任在派新卡前把旧卡归档。
+- **子代理回传**：完成后必须写 `docs/tasks/inbox/ACTIVE-回执.md`（改了什么 + 证据 + 阻塞点），并把 `ACTIVE.md` 移入 `docs/tasks/inbox/archive/` 后删除 `ACTIVE.md`，同时更新 `docs/tasks/current-tasks.md`。
 - 禁止在 inbox 之外创建任何专属任务文件。
+
+### 凌舟派本地子代理：已验证可用通道（2026-09-13，补充说明）
+
+- 上文 `ACTIVE.md` 文件协议是**内容可靠**的派工方式（子代理按 AGENTS.md 主动来读）。除此以外，凌舟另有一条**已实测跑通**的通道：
+
+  ```
+  Get-Content D:\Users\ZXQL\agents-tasks\<任务书>.md -Raw | codex exec -s <read-only|workspace-write> --skip-git-repo-check - 2>&1 |
+    Tee-Object D:\Users\ZXQL\agents-logs\<任务书>.log | Select-Object -Last 45
+  ```
+
+- 适用：任务边界清晰、可以一次跑完的活（核查、局部实现、脚本化验证）。
+- 硬性要求：① 任务书写清范围、允许动作（只读 / 可写哪些目录）、禁止项与输出格式；② 结果**先落盘再截尾**读回，主代理不看全量输出（保持上下文干净）；③ 写代码用 `workspace-write`，核查用 `read-only`；④ 子代理产出仍需凌舟按同一门槛复验。
+- 失效通道提醒：`spawn_agent` / `followup_task` / `send_message` 的**正文投递不可用**（根因：正文被写进 `encrypted_content` 但内容为明文，接收端解密失败回落空 `content`，见 `docs/踩坑日志.md` [50]），不要再用它们传任务正文。
 
 ## 验收与提交要求
 

@@ -41,7 +41,7 @@
       "taskIds": []
     },
     "linxi": {
-      "scope": "第 1 步 界面成型（视觉底座 + 17 板块 UI，含设计对齐自检）",
+      "scope": "第 1 步 界面成型（已完成）+ 第 2/3 步真实环境对接与后端功能补齐（暂代阿坚，用户 2026-09-13 指定）",
       "taskIds": [
         "R101-S1-00",
         "R101-S1-01",
@@ -60,12 +60,7 @@
         "R101-S1-14",
         "R101-S1-15",
         "R101-S1-16",
-        "R101-S1-17"
-      ]
-    },
-    "ajian": {
-      "scope": "第 2 步 真实环境对接 + 第 3 步 后端功能补齐（含迁移脚本与接口契约）",
-      "taskIds": [
+        "R101-S1-17",
         "R101-S2-01",
         "R101-S2-02",
         "R101-S2-03",
@@ -89,11 +84,10 @@
       "S3": 8
     },
     "byAgent": {
-      "linxi": 18,
-      "ajian": 12
+      "linxi": 30
     },
     "totalDays": 101,
-    "roleChange": "2026-09-12 用户指令：第 1 步界面任务由林夕承接（替代 WorkBuddy）；第 2/3 步执行方统一记为阿坚（不再使用 ZCode 命名）"
+    "roleChange": "2026-09-13 用户指令：第 2/3 步（原阿坚）任务暂时改由林夕执行；执行方统一以团队中文名记录，工具/通道名不进入派单口径"
   },
   "tasks": [
     {
@@ -617,7 +611,7 @@
       "title": "一期板块接口对接",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -636,21 +630,23 @@
         "公告 CRUD 与推送接通",
         "版本发布接通",
         "登录鉴权与图形验证码接通",
-        "接口接入后补拍 S1 收口证据截图（工单详情抽屉含对话时间线与状态流转 / 监控两表操作列 / 大盘·账单·开放平台·商品库新增操作列）——凌舟 2026-09-13 裁定"
+        "接口接入后补拍 S1 收口证据截图（工单详情抽屉含对话时间线与状态流转 / 监控两表操作列 / 大盘·账单·开放平台·商品库新增操作列）——凌舟 2026-09-13 裁定",
+        "收口项（凌舟 2026-09-13 独立复核发现）：① 异常接口 TOP 操作列需按行分变体——设计稿第 1579 行 AI 网关行是「堆栈＋路由配置」，现行实现全部行固定「堆栈＋创建工单」；② 日志中心四个 Tab 不能共用异常接口表体——设计稿第 1583 行明确「管理员操作日志/租户登录日志/系统错误日志」三 Tab 结构与「时间/对象/操作/结果/IP」列头，需按 activeLogTab 分支渲染"
       ],
       "acceptance": [
         "各页面数据来自真实接口",
         "接口 200 无 401/500"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S2-02",
       "title": "28 项配置项落库与回显",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -679,14 +675,15 @@
         "未配置项置灰阻断提示"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S2-03",
       "title": "监控/日志/商品库数据对接",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P1",
       "estimateDays": 3,
       "deps": [
@@ -708,14 +705,15 @@
         "空态展示正确"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S2-04",
       "title": "全站空态清理与端到端联调",
       "step": "S2",
       "stepName": "真实环境对接",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P1",
       "estimateDays": 2,
       "deps": [
@@ -737,14 +735,15 @@
         "端到端脚本通过"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-01",
       "title": "平台 RBAC + 模板中心",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 6,
       "deps": [
@@ -769,14 +768,15 @@
         "迁移登记数据库变更清单"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-02",
       "title": "账单计费与增值扣费",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 4,
       "deps": [
@@ -800,14 +800,15 @@
         "欠费时序在测试租户上正确执行"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-03",
       "title": "AI 计费与积分抵扣",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -831,14 +832,15 @@
         "积分抵扣流水逐笔勾稽一致"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-04",
       "title": "营销渠道与老带新",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -862,14 +864,15 @@
         "退款/注销触发冲回"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-05",
       "title": "工单系统",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -893,14 +896,15 @@
         "免费版限制生效"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-06",
       "title": "开放平台（密钥 + Webhook）",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 5,
       "deps": [
@@ -924,14 +928,15 @@
         "重试与暂停逻辑按策略生效"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-07",
       "title": "代理商配置与分润",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 6,
       "deps": [
@@ -955,14 +960,15 @@
         "分润基数=订单实收现金"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     },
     {
       "id": "R101-S3-08",
       "title": "AI 底座 MCP 接口",
       "step": "S3",
       "stepName": "补齐缺失功能",
-      "agent": "ajian",
+      "agent": "linxi",
       "priority": "P2",
       "estimateDays": 3,
       "deps": [
@@ -986,7 +992,8 @@
         "至少 1 个工具调用成功"
       ],
       "status": "pending",
-      "evidence": []
+      "evidence": [],
+      "roleNote": "暂代阿坚（用户 2026-09-13 指定）"
     }
   ]
 }

@@ -52,11 +52,13 @@ if (process.argv.includes('--check')) {
 }
 
 const renderCard = (t) => {
+  const who = agentLabel[t.agent] || t.agent;
+  const whoText = t.roleNote ? `${who}，${t.roleNote}` : who;
   const lines = [];
   lines.push(`# 任务卡 ${t.id} · ${slug(t)}`);
   lines.push('');
   lines.push(`> 项目：${form.project}｜所属步骤：第 ${t.step.slice(1)} 步 ${t.stepName}`);
-  lines.push(`> 执行方：${agentLabel[t.agent] || t.agent}｜优先级：${t.priority}｜预估：${t.estimateDays} 天｜状态：待开始`);
+  lines.push(`> 执行方：${whoText}｜优先级：${t.priority}｜预估：${t.estimateDays} 天｜状态：待开始`);
   lines.push(`> 前置依赖：${t.deps.length ? t.deps.join('、') : '无'}`);
   if (t.step === 'S1') lines.push(`> ${DESIGN_DUTY}`);
   lines.push(`> 仓库根目录：${repoRoot}`);
@@ -160,7 +162,7 @@ for (const s of steps) {
   readme.push('| --- | --- | --- | --- | --- | --- |');
   for (const t of list) {
     readme.push(
-      `| [${t.id} ${slug(t)}](${cardName(t)}) | ${agentLabel[t.agent] || t.agent} | ${t.priority} | ${t.estimateDays}天 | ${t.deps.length ? t.deps.join('、') : '—'} | ${t.files.length} 个 |`
+      `| [${t.id} ${slug(t)}](${cardName(t)}) | ${t.roleNote ? `${agentLabel[t.agent] || t.agent}（${t.roleNote}）` : agentLabel[t.agent] || t.agent} | ${t.priority} | ${t.estimateDays}天 | ${t.deps.length ? t.deps.join('、') : '—'} | ${t.files.length} 个 |`
     );
   }
   readme.push('');
