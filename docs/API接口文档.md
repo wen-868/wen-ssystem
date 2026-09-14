@@ -171,7 +171,7 @@
 | P33 | `GET /api/platform/tenants/usage-stats` | 租户使用统计（R97-01） | ?tenantId&metric&dateStart&dateEnd&period=day\|week\|month | {overview:{totalUsers,totalOrders,totalSales,totalProducts},trendData:[{period,value}],moduleUsage:[{moduleName,moduleCode,usageCount,percentage}]} | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
 | P34 | `GET /api/platform/tenants/rank` | 租户使用排行（R97-01） | ?sortBy=order_count\|sales_amount\|user_count\|activity&limit=10 | [{tenantName,planName,value,percentage,lastActive}] | platform-tenant.routes.ts + services/platform/tenant-usage.service.ts | saas-admin/src/views/TenantUsage.vue |
 | P35 | `GET /api/platform/tenants/:id/quota` | 租户资源配额使用情况（R101-S2-01 批4） | 路径 `:id` | {tenantId,planName,quota:{accounts,products,stores,storage,apiDaily,aiMonthly},unavailable[]} | platform-tenant.routes.ts + services/platform/tenant-quota.service.ts | saas-admin/src/views/tenant/TenantDetail.vue |
-| P35 | `GET /api/platform/config/sys-config` | 平台系统设置（R97-01，对齐 Settings.vue） | — | {platformName,servicePhone,serviceEmail,trialDays,defaultPlanId,taxRate,maxUploadSizeMb,openRegister,registerNeedAudit,registerRequireMobile,registerRequireLicense,registerAgreementUrl,maintenanceMode,maintenanceTitle,maintenanceMessage,maintenanceWhitelist,announcements} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
+| P35 | `GET /api/platform/config/sys-config` | 平台系统设置（R97-01，对齐 Settings.vue；R101-S2-02 组4① 增只读元字段） | — | {platformName,servicePhone,serviceEmail,trialDays,defaultPlanId,taxRate,maxUploadSizeMb,openRegister,registerNeedAudit,registerRequireMobile,registerRequireLicense,registerAgreementUrl,maintenanceMode,maintenanceTitle,maintenanceMessage,maintenanceWhitelist,announcements,switches,channels,_unconfigured:string[]} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 | P36 | `PUT /api/platform/config/sys-config` | 保存平台系统设置（整包 JSON，R97-01，需 x-csrf-token） | 同 P35 字段对象 | {updated:true} | platform-config.routes.ts + services/platform/platform-sys-config.service.ts | saas-admin/src/views/Settings.vue |
 | P37 | `GET /api/platform/subscription-applies` | 订阅申请列表（R98-01，PENDING 优先） | ?page&pageSize&status=PENDING\|APPROVED\|REJECTED | {list:[{id,planId,planName,company,contact,mobile,remark,status,auditRemark,auditedAt,createdAt}],total,page,pageSize} | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
 | P38 | `GET /api/platform/subscription-applies/:id` | 订阅申请详情（R98-01） | — | 同 P37 单条记录 | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
@@ -2494,15 +2494,60 @@
 #### POST /api/platform/plans
 - **描述**：创建套餐
 - **认证**：需要认证
-- **请求体**：`{ planCode, name, price, period, maxUsers, features, sort, status }`
+- **请求体**：`{ planCode, planName, planType, price, originalPrice?, durationDays, maxUsers?, maxStores?, maxCustomers?, maxProducts?, maxStorageMb?, features?, moduleAccess?, description?, sortOrder?, status? }`
+- **枚举取值表**（R101-S2-02 组1 契约，权威定义：`backend/src/schemas/plan.schema.ts`）：
+
+| 字段 | 取值 | 语义 |
+|---|---|---|
+| `planType` | `MONTHLY` / `QUARTERLY` / `YEARLY` / `PERMANENT` / `CUSTOM` | 计费周期：月付 / 季付 / 年付 / 永久 / 自定义天数（`CUSTOM` 时须有 `durationDays`） |
+| `status` | `DRAFT` / `ACTIVE` / `INACTIVE` | 草稿（仅平台可见，不对租户上架）/ 已上架 / 停售 |
+| 策略包 `upgrade.mode` | `IMMEDIATE` / `NEXT_CYCLE` | 升级：立即生效并按天折算补差 / 当前周期结束后生效 |
+| 策略包 `downgrade.mode` | `NEXT_CYCLE` / `IMMEDIATE_NEXT_PRICE` | 降级：周期结束生效 / 立即生效·下期按新价 |
+| 策略包 `renew.policy` | `FORBID_GUIDE_UPGRADE` / `ALLOW_LAST_YEAR` / `AUTO_RECOMMEND_PLAN` | 停售后存量租户：禁止续费引导升级 / 允许续费最后一年 / 自动转推荐套餐 |
+
+- **`features`（`t_subscription_plan.features`）**：**功能特性码数组**，例 `["basic_sales","basic_inventory","basic_report"]`。
+  ⚠️ 该字段由**公开**端点 `GET /api/platform-miniapp/plans`（auth: none）（`listPublicPlans()`）原样透出，
+  **禁止**承载内部配额 / 策略 / 密钥等未公开信息。
+
+- **策略包**（`quota` / `upgrade` / `downgrade` / `renew` / `promo`）不落 `features` 列，改由
+  `GET|PUT /api/platform/subscriptions-management/plans/:planId/policy` 读写（详见下节）。
+  护栏③：须带 `version`；**未配置子项一律省略**，前端据此区分「未配置」并置灰阻断：
+
+```json
+{ "version": 1,
+  "quota": { "apiDaily": 100000, "aiMonthly": 5000 },
+  "upgrade": { "mode": "IMMEDIATE" },
+  "downgrade": { "mode": "NEXT_CYCLE" },
+  "renew": { "policy": "ALLOW_LAST_YEAR" },
+  "promo": { "price": 199, "start": "2026-10-01", "end": "2026-10-07" } }
+```
+
+- **落库方式（零 DDL）**：资源配额有结构化列者（`maxUsers/maxStores/maxCustomers/maxProducts/maxStorageMb`）直接落列；`apiDaily`/`aiMonthly`、升降级/续费规则、限时活动**无对应列**，落策略包（`t_platform_config`，`config_key='plan_policy:<planId>'`，见下节），**不写 `features` 列**。`moduleAccess` 为功能开关矩阵（字符串数组，元素为开关文案）。**不新建表、不加列、不改索引。**
 
 #### PUT /api/platform/plans/:planId
 - **描述**：更新套餐
 - **认证**：需要认证
+- **请求体**：同 POST，全部字段可选（仅更新传入项）。策略类配置项不随本接口落库，须调用 `PUT .../:planId/policy`。
 
 #### DELETE /api/platform/plans/:planId
 - **描述**：删除套餐（未被引用时允许）
 - **认证**：需要认证
+
+#### GET /api/platform/subscriptions-management/plans/:planId/policy
+- **描述**：读取套餐策略配置（R101-S2-02 组1：升级 / 降级 / 续费 / 扩展额度 / 限时活动）
+- **认证**：`requirePlatformAuth`
+- **存储**：`t_platform_config`（`platform='SAAS'`、`tenant_id='platform'`、`config_key='plan_policy:<planId>'`、`category='plan'`）
+- **响应**：`{ code:"0", data:{ version:1, quota?, upgrade?, downgrade?, renew?, promo?, _unconfigured:string[], _configured:boolean } }`
+  - 未配置（库中无该行）时：`{ version:1, _unconfigured:["quota","upgrade","downgrade","renew","promo"], _configured:false }`
+  - `_unconfigured` / `_configured` 为**只读元字段**（`_` 前缀），前端据此置灰阻断，**不得回写**
+
+#### PUT /api/platform/subscriptions-management/plans/:planId/policy
+- **描述**：整包保存套餐策略配置
+- **认证**：`requirePlatformAuth`
+- **请求体**：策略包对象（见上）。`null` / `undefined` / `_` 前缀字段一律不落库；全部为空时写入 `{version:1}`，等价于「未配置」
+- **校验**：`planPolicySchema`（`backend/src/schemas/plan.schema.ts`）；越界枚举或负数额度返回 400
+- **留痕**：`updated_by` = 操作人账号，`updated_at` = `NOW()`
+- **响应**：`{ code:"0", data:{ updated:true } }`
 
 #### GET /api/platform/subscriptions-management
 - **描述**：订阅管理（租户-套餐关联）
