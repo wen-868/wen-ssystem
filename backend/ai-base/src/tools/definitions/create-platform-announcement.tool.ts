@@ -3,7 +3,7 @@
  *
  * 对应后端 API：POST /api/platform/announcements（requirePlatformAuth）
  * 后端校验（platform-announcement.controller.ts createAnnouncement zod schema）：
- * - title(必填)、type(必填)、content(必填)、isTop(默认0)、status(默认0)
+ * - title(必填)、type(必填)、content(必填)、isTop(默认0)、status(默认 DRAFT)
  *
  * scope = 'platform'：仅总台对话（scope=platform）暴露，租户侧绝不出现。
  *
@@ -43,7 +43,10 @@ export class CreatePlatformAnnouncementTool implements ITool {
       },
       content: { type: 'string', description: '公告内容（必填）' },
       isTop: { type: 'number', description: '是否置顶（可选，0/1）' },
-      status: { type: 'number', description: '状态（可选，0=草稿/1=发布）' },
+      status: {
+        type: 'string',
+        description: '状态（可选，DRAFT=草稿 / PUBLISHED=发布，默认 DRAFT）',
+      },
       confirm: {
         type: 'boolean',
         description: '是否确认执行（false=预览，true=创建，默认 false）',
