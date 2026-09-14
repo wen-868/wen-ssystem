@@ -58,8 +58,8 @@ export async function listTenants(page: number, pageSize: number, keyword?: stri
 
 // ============ 租户详情 ============
 export async function getTenantById(id: number): Promise<TenantRecord | null> {
-  return queryOne<TenantRecord>(
-    `SELECT id, tenant_name AS tenantName, contact_name AS contactName,
+  return     queryOne<TenantRecord>(
+    `SELECT id, tenant_code AS tenantCode, tenant_name AS tenantName, contact_name AS contactName,
             contact_mobile AS contactMobile, contact_email AS contactEmail,
             status, expire_at AS expireAt, created_at AS createdAt
      FROM t_tenant WHERE id = ?`,

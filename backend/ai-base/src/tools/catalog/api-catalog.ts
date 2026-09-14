@@ -915,7 +915,7 @@ export const API_CATALOG: ApiRouteDef[] = [
       type: 'object',
       properties: {
         type: { type: 'string', description: '公告类型（可选）' },
-        status: { type: 'number', description: '状态（可选）' },
+        status: { type: 'string', description: '状态（可选，DRAFT / PUBLISHED）' },
         page: { type: 'number', description: '页码（默认 1）' },
         pageSize: { type: 'number', description: '每页条数（默认 20）' },
       },

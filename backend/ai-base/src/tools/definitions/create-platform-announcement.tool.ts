@@ -83,7 +83,7 @@ export class CreatePlatformAnnouncementTool implements ITool {
       };
     }
     const isTop = args.isTop === undefined ? 0 : Number(args.isTop);
-    const status = args.status === undefined ? 0 : Number(args.status);
+    const status = args.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT';
     const confirm = args.confirm === true;
 
     if (!confirm) {

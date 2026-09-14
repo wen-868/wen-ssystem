@@ -5,7 +5,7 @@ export interface AnnouncementListParams {
   page: number;
   pageSize: number;
   type?: string;
-  status?: number;
+  status?: string;
   keyword?: string;
 }
 
@@ -15,7 +15,7 @@ export interface AnnouncementItem {
   type: string;
   content: string;
   isTop: number;
-  status: number;
+  status: string;
   publishAt: string;
   createdBy: string;
   createdAt: string;
@@ -27,7 +27,7 @@ export interface AnnouncementCreate {
   type: string;
   content: string;
   isTop: number;
-  status: number;
+  status: string;
 }
 
 export async function listAnnouncements(params: AnnouncementListParams) {
@@ -117,7 +117,7 @@ export async function deleteAnnouncement(id: number) {
 }
 
 export async function togglePublish(id: number) {
-  const announcement = await queryOne<{ status: number }>(
+  const announcement = await queryOne<{ status: string }>(
     "SELECT status FROM t_platform_announcement WHERE id = ?",
     [id]
   );
@@ -125,8 +125,8 @@ export async function togglePublish(id: number) {
     throw new Error("公告不存在");
   }
 
-  const newStatus = announcement.status === 1 ? 0 : 1;
-  const publishAt = newStatus === 1 ? "publish_at = NOW()," : "";
+  const newStatus = announcement.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+  const publishAt = newStatus === "PUBLISHED" ? "publish_at = NOW()," : "";
 
   await query(
     `UPDATE t_platform_announcement SET ${publishAt} status = ?, updated_at = NOW() WHERE id = ?`,
