@@ -2533,6 +2533,39 @@
 - **描述**：删除套餐（未被引用时允许）
 - **认证**：需要认证
 
+#### GET /api/platform/billing/arrears-policy
+- **描述**：读取欠费处理策略（全局）。R101-S2-02 组2：宽限期 / 降级后冻结间隔 / 冻结后保留期 / 提醒节点 / 推送通道 / 四个自动动作
+- **认证**：`requirePlatformAuth`
+- **存储**：`t_platform_config`（`platform='SAAS'`、`tenant_id='platform'`、`config_key='billing:arrears_policy'`、`category='billing'`）
+- **响应**：`{ code:"0", data:{ version:1, graceDays?, freezeAfterDays?, retainDays?, remindNodes?:number[], channels?:("IN_APP"|"SMS"|"EMAIL"|"WECHAT")[], autoDowngrade?, autoFreeze?, autoRemind?, autoCancel?, _unconfigured:string[], _configured:boolean } }`
+  - 未配置（库中无该行）时：`_configured:false` + `_unconfigured` 全量 9 键
+  - 全部字段 optional：`undefined`＝未配置 ≠ `false`＝已配置为关闭；系统**不内置任何预设值**
+
+#### PUT /api/platform/billing/arrears-policy
+- **描述**：整包保存欠费处理策略
+- **认证**：`requirePlatformAuth`
+- **请求体**：策略包对象（见上）。`null` / `undefined` / `_` 前缀字段一律不落库；全部为空时写入 `{version:1}`，等价于「未配置」
+- **校验**：`arrearsPolicySchema`（`backend/src/schemas/billing.schema.ts`）；`channels` 走白名单（越界 400），天数为 ≥0 整数（负数 400）
+- **留痕**：`updated_by` = 操作人账号，`updated_at` = `NOW()`
+- **响应**：`{ code:"0", data:{ updated:true } }`
+
+#### GET /api/platform/billing/addon-price
+- **描述**：读取增值服务单价。R101-S2-02 组2：存储超额 / API 超额 / 短信超量
+- **认证**：`requirePlatformAuth`
+- **存储**：`t_platform_config`（`config_key='billing:addon_price'`、`category='billing'`）
+- **响应**：`{ code:"0", data:{ version:1, storagePerGbMonth?, apiPer10k?, smsPerItem?, _unconfigured:string[], _configured:boolean } }`
+  - 未配置时前端 Tab4 口径文案显示「未配置」并追加「**单价未配置前不做增值出账**」
+  - 单位固定（元 / GB / 月、元 / 万次、元 / 条），仅数值可配置
+
+#### PUT /api/platform/billing/addon-price
+- **描述**：整包保存增值服务单价
+- **认证**：`requirePlatformAuth`
+- **请求体**：单价包对象（见上）。`null` / `undefined` / `_` 前缀字段一律不落库
+- **校验**：`addonPriceSchema`（`backend/src/schemas/billing.schema.ts`）；数值 <0 返回 400
+- **留痕**：`updated_by` = 操作人账号，`updated_at` = `NOW()`
+- **响应**：`{ code:"0", data:{ updated:true } }`
+
+> 注：AI 超额单价**不在此 key**（属组3 / S3-03）。四条路由由 `backend/src/routes/billing-config.routes.ts` 经 `auto-routes` 自动发现挂载，未改动 `server.ts`。
 #### GET /api/platform/subscriptions-management/plans/:planId/policy
 - **描述**：读取套餐策略配置（R101-S2-02 组1：升级 / 降级 / 续费 / 扩展额度 / 限时活动）
 - **认证**：`requirePlatformAuth`
