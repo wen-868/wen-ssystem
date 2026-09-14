@@ -2534,18 +2534,23 @@
 - **认证**：需要认证
 
 #### GET /api/platform/billing/arrears-policy
-- **描述**：读取欠费处理策略（全局）。R101-S2-02 组2：宽限期 / 降级后冻结间隔 / 冻结后保留期 / 提醒节点 / 推送通道 / 四个自动动作
+- **描述**：读取欠费处理策略（全局）。R101-S2-02 组2：4 段边界（宽限截止 / 降级截止 / 冻结截止 / 保留截止）+ 提醒节点 / 推送通道 / 四个自动动作
 - **认证**：`requirePlatformAuth`
 - **存储**：`t_platform_config`（`platform='SAAS'`、`tenant_id='platform'`、`config_key='billing:arrears_policy'`、`category='billing'`）
-- **响应**：`{ code:"0", data:{ version:1, graceDays?, freezeAfterDays?, retainDays?, remindNodes?:number[], channels?:("IN_APP"|"SMS"|"EMAIL"|"WECHAT")[], autoDowngrade?, autoFreeze?, autoRemind?, autoCancel?, _unconfigured:string[], _configured:boolean } }`
-  - 未配置（库中无该行）时：`_configured:false` + `_unconfigured` 全量 9 键
+- **响应**：`{ code:"0", data:{ version:1, graceEndDays?, degradeEndDays?, freezeEndDays?, retainEndDays?, remindNodes?:number[], channels?:("IN_APP"|"SMS"|"EMAIL"|"WECHAT")[], autoDowngrade?, autoFreeze?, autoRemind?, autoCancel?, _unconfigured:string[], _configured:boolean } }`
+  - 未配置（库中无该行）时：`_configured:false` + `_unconfigured` 全量 10 键
   - 全部字段 optional：`undefined`＝未配置 ≠ `false`＝已配置为关闭；系统**不内置任何预设值**
+  - **4 个边界字段**为自欠费起始日 `D+0` 起算的**绝对截止天数**（依据设计稿 v1.6 第 809 行的 4 段边界 15/30/60/90）：
+    - `graceEndDays`：宽限截止（`D+1` ~ 全功能）
+    - `degradeEndDays`：降级截止（功能降级·只读段结束日）
+    - `freezeEndDays`：冻结截止（冻结·仅可导出段结束日）
+    - `retainEndDays`：保留截止（`D+N` 后转人工注销）
 
 #### PUT /api/platform/billing/arrears-policy
 - **描述**：整包保存欠费处理策略
 - **认证**：`requirePlatformAuth`
 - **请求体**：策略包对象（见上）。`null` / `undefined` / `_` 前缀字段一律不落库；全部为空时写入 `{version:1}`，等价于「未配置」
-- **校验**：`arrearsPolicySchema`（`backend/src/schemas/billing.schema.ts`）；`channels` 走白名单（越界 400），天数为 ≥0 整数（负数 400）
+- **校验**：`arrearsPolicySchema`（`backend/src/schemas/billing.schema.ts`）；`channels` 走白名单（越界 400），天数为 ≥0 整数（负数 400）；**4 个边界必须严格递增**（宽限截止 < 降级截止 < 冻结截止 < 保留截止），仅当相邻两个值都已配置时才校验，违反返回 400 且 message 为中文（如 `时间线截止天数必须严格递增：宽限截止 30 必须小于 降级截止 20`）
 - **留痕**：`updated_by` = 操作人账号，`updated_at` = `NOW()`
 - **响应**：`{ code:"0", data:{ updated:true } }`
 
