@@ -116,7 +116,7 @@
           <div class="tipbar w">
             <span class="ic">!</span>
             <span>
-              欠费处理时间线：<b>宽限期 15 天（全功能）→ 功能降级·只读（D+16~30）→ 冻结·仅可导出（D+31~60）→ 保留期（D+61~90）→ 注销清除</b>。降级采用整体只读模式，由配额引擎自动执行。
+              欠费处理时间线：<b>{{ arrearsTimeline }}</b>。降级采用整体只读模式，由配额引擎自动执行。
             </span>
           </div>
 
@@ -178,59 +178,76 @@
               <span class="ph-s">保存需超级管理员确认 · 变更前后快照留痕 · 仅对后续新账单生效</span>
             </div>
             <div class="p-bd">
+              <!-- 未配置：置灰阻断并提示（护栏④：系统不内置任何预设值） -->
+              <div v-if="!arrearsConfigured" class="tipbar">
+                <span class="ic">i</span>
+                <span>
+                  欠费处理策略<b>尚未配置</b>：宽限期、降级后冻结间隔、冻结后保留期、提醒节点、推送通道与四个自动动作均未落库，
+                  <b>系统不内置任何预设值</b>。点击「配置」填写并保存后生效（仅对后续新账单生效）。
+                </span>
+              </div>
+
               <div class="g4">
                 <span class="fld">
                   <span>宽限期天数（全功能可用）</span>
-                  <span class="ipt">{{ arrearsPolicy.graceDays }} <b class="small" style="font-weight: var(--font-normal)">天</b></span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.graceDays" placeholder="如 15" />
                 </span>
                 <span class="fld">
-                  <span>冻结后保留期天数</span>
-                  <span class="ipt">{{ arrearsPolicy.retainDays }} <b class="small" style="font-weight: var(--font-normal)">天</b></span>
+                  <span>降级后冻结间隔天数</span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.freezeAfterDays" placeholder="如 30" />
                 </span>
                 <span class="fld">
-                  <span>到期前提醒节点</span>
-                  <span class="ipt">{{ arrearsPolicy.remindNodes }}</span>
+                  <span>到期前提醒节点（天）</span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" :value="arrearsPolicy.remindNodes?.join(' / ') || ''" @input="onRemindNodesInput" placeholder="如 7 / 3 / 1" />
                 </span>
                 <span class="fld">
                   <span>催缴推送通道</span>
-                  <span class="ipt">{{ arrearsPolicy.channels }}</span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <span v-else class="ipt">
+                    <span
+                      v-for="c in CHANNEL_OPTIONS"
+                      :key="c.code"
+                      class="btn"
+                      :class="{ 'btn-p': arrearsPolicy.channels?.includes(c.code) }"
+                      style="margin-right: var(--space-1)"
+                      @click="toggleChannel(c.code)"
+                    >{{ c.label }}</span>
+                  </span>
+                </span>
+                <span class="fld">
+                  <span>冻结后保留期天数</span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.retainDays" placeholder="如 90" />
                 </span>
               </div>
 
               <div class="mt10" style="border-top: 1px dashed var(--g2); padding-top: var(--space-2)">
-                <!-- TODO: 待接入 GET /platform/billing/arrears-policy（全局欠费策略配置） -->
-                <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--g1)">
-                  <span class="tg" :class="{ off: !arrearsPolicy.autoDowngrade }" @click="arrearsPolicy.autoDowngrade = !arrearsPolicy.autoDowngrade"></span>
+                <div
+                  v-for="s in arrearsSwitches"
+                  :key="s.key"
+                  style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--g1)"
+                >
+                  <span class="tg" :class="{ off: !arrearsPolicy[s.key] }" @click="toggleArrearsSwitch(s.key)"></span>
                   <div style="flex: 1">
-                    <div class="b">宽限期结束自动降级只读（D+16）</div>
-                    <div class="small">当前策略：开启 · 整体只读可查看可导出，由配额引擎自动执行</div>
+                    <div class="b">{{ s.title }}</div>
+                    <div class="small">{{ s.desc }}</div>
                   </div>
-                  <span class="tag tag-g">生效中</span>
+                  <span class="tag" :class="arrearsPolicy[s.key] === undefined ? 'tag-gy' : arrearsPolicy[s.key] ? 'tag-g' : 'tag-gy'">
+                    {{ arrearsPolicy[s.key] === undefined ? '未配置' : arrearsPolicy[s.key] ? '生效中' : '已关闭' }}
+                  </span>
                 </div>
-                <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--g1)">
-                  <span class="tg" :class="{ off: !arrearsPolicy.autoFreeze }" @click="arrearsPolicy.autoFreeze = !arrearsPolicy.autoFreeze"></span>
-                  <div style="flex: 1">
-                    <div class="b">降级 30 天后自动冻结（D+31）</div>
-                    <div class="small">当前策略：开启 · 冻结后仅可导出数据，暂停计费与登录</div>
-                  </div>
-                  <span class="tag tag-g">生效中</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--g1)">
-                  <span class="tg" :class="{ off: !arrearsPolicy.autoRemind }" @click="arrearsPolicy.autoRemind = !arrearsPolicy.autoRemind"></span>
-                  <div style="flex: 1">
-                    <div class="b">欠费提醒自动推送</div>
-                    <div class="small">进入宽限期即时推送 1 条 + 每周一 09:00 汇总提醒租户主管理员</div>
-                  </div>
-                  <span class="tag tag-g">生效中</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0">
-                  <span class="tg" :class="{ off: !arrearsPolicy.autoCancel }" @click="arrearsPolicy.autoCancel = !arrearsPolicy.autoCancel"></span>
-                  <div style="flex: 1">
-                    <div class="b">保留期结束自动注销</div>
-                    <div class="small">默认关闭：D+90 后转人工，需客服确认后执行「确认清除」</div>
-                  </div>
-                  <span class="tag tag-gy">人工确认</span>
-                </div>
+              </div>
+
+              <div class="mt10" style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap">
+                <span v-if="!arrearsConfigured" class="btn btn-p" @click="markArrearsTouched">配置</span>
+                <template v-else>
+                  <span class="btn btn-p" @click="saveArrearsPolicy">{{ arrearsSaving ? '保存中…' : '保存策略' }}</span>
+                  <span class="btn" @click="loadArrearsPolicy">重新读取</span>
+                </template>
+                <span class="small" style="color: var(--g5)">保存需超级管理员确认 · 变更前后快照留痕 · 仅对后续新账单生效</span>
               </div>
             </div>
           </div>
@@ -294,8 +311,48 @@
           <div class="tipbar">
             <span class="ic">i</span>
             <span>
-              <b>增值计费口径：</b>存储超额 <b>¥10 / GB / 月</b>（超出套餐配额部分按日出账）· API 超额阶梯单价（本例 ¥50 / 万次）· 短信超量 <b>¥0.10 / 条</b> · AI 超额见「AI 中心 · 计量流水」（按模型单价）。每日 00:05 日切汇总出账，扣费顺序：账户余额 → 欠费挂账；<b>本月增值扣费合计</b>对应运营大盘「收入构成 · 增值扣费」。
+              <b>增值计费口径：</b>存储超额
+              <b v-if="addonPrice.storagePerGbMonth !== null">¥{{ addonPrice.storagePerGbMonth }} / GB / 月</b>
+              <b v-else style="color: var(--warning-text)">未配置</b>
+              （超出套餐配额部分按日出账）· API 超额
+              <b v-if="addonPrice.apiPer10k !== null">¥{{ addonPrice.apiPer10k }} / 万次</b>
+              <b v-else style="color: var(--warning-text)">未配置</b>
+              · 短信超量
+              <b v-if="addonPrice.smsPerItem !== null">¥{{ addonPrice.smsPerItem }} / 条</b>
+              <b v-else style="color: var(--warning-text)">未配置</b>
+              · AI 超额见「AI 中心 · 计量流水」（按模型单价）。每日 00:05 日切汇总出账，扣费顺序：账户余额 → 欠费挂账；<b>本月增值扣费合计</b>对应运营大盘「收入构成 · 增值扣费」。
+              <span v-if="!addonConfigured" style="color: var(--warning-text)">单价未配置前不做增值出账。</span>
             </span>
+          </div>
+
+          <!-- 增值服务单价配置：原单价写死在上方口径文案中（¥10/GB/月 · ¥50/万次 · ¥0.10/条），
+               属写死业务值 → 改为后台可配置；未配置一律空值 + 提示，系统不内置预设单价。 -->
+          <div class="panel mt10" style="box-shadow: none">
+            <div class="p-hd">
+              <span class="pt">增值服务单价配置 <span class="ver-tag">v1.5</span></span>
+              <span class="ph-s">未配置时不出账 · 系统不内置任何预设单价</span>
+            </div>
+            <div class="p-bd">
+              <div class="g4">
+                <span class="fld">
+                  <span>存储超额（元 / GB / 月）</span>
+                  <input class="ipt" type="number" min="0" step="0.01" v-model.number="addonPrice.storagePerGbMonth" placeholder="未配置" />
+                </span>
+                <span class="fld">
+                  <span>API 超额（元 / 万次）</span>
+                  <input class="ipt" type="number" min="0" step="0.01" v-model.number="addonPrice.apiPer10k" placeholder="未配置" />
+                </span>
+                <span class="fld">
+                  <span>短信超量（元 / 条）</span>
+                  <input class="ipt" type="number" min="0" step="0.001" v-model.number="addonPrice.smsPerItem" placeholder="未配置" />
+                </span>
+              </div>
+              <div class="mt10" style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap">
+                <span class="btn btn-p" @click="saveAddonPrice">{{ addonSaving ? '保存中…' : '保存单价' }}</span>
+                <span class="btn" @click="loadAddonPrice">重新读取</span>
+                <span class="small" style="color: var(--g5)">留痕：updated_by / updated_at 由后端写入；全部留空并保存 = 回到未配置</span>
+              </div>
+            </div>
           </div>
 
           <div class="tblwrap mt10">
@@ -373,6 +430,10 @@ import {
   getPlatformReconciliationDetail,
   getReconciliationStats,
   settleReconciliation,
+  getArrearsPolicy,
+  updateArrearsPolicy,
+  getAddonPrice,
+  updateAddonPrice,
 } from '../api'
 
 const MODAL_W = 'var(--modal-width)'
@@ -420,17 +481,202 @@ const arrearsList = ref<any[]>([])
 const selectedArrears = ref<number[]>([])
 const arrearsCount = ref(0)
 
-// 欠费处理策略（全局配置，默认态；待接入独立策略接口）
+/* ── 欠费处理策略（全局配置）
+ * R101-S2-02 组2：原为硬编码业务值（宽限 15 天 / 保留 90 天 / 提醒节点 / 通道 / 四个开关），
+ * 属「禁模拟数据」违规 → 改为从 t_platform_config 读取；未配置一律 null / undefined + 置灰阻断，
+ * 系统不内置任何预设值（护栏④）。undefined = 未配置 ≠ false = 已配置为关闭。 */
 const arrearsPolicy = reactive({
-  graceDays: 15,
-  retainDays: 90,
-  remindNodes: '提前 7 / 3 / 1 天',
-  channels: '站内 + 短信',
-  autoDowngrade: true,
-  autoFreeze: true,
-  autoRemind: true,
-  autoCancel: false,
+  graceDays: null as number | null,
+  freezeAfterDays: null as number | null,
+  retainDays: null as number | null,
+  remindNodes: null as number[] | null,
+  channels: null as string[] | null,
+  autoDowngrade: undefined as boolean | undefined,
+  autoFreeze: undefined as boolean | undefined,
+  autoRemind: undefined as boolean | undefined,
+  autoCancel: undefined as boolean | undefined,
 })
+/** 是否已在库中配置（false = 未配置，整块置灰并提示，保存不回写） */
+const arrearsConfigured = ref(false)
+const arrearsSaving = ref(false)
+/** 点击开关即视为「配置意图」，此后方可上送（沿用 Settings.vue 范式） */
+function markArrearsTouched() {
+  arrearsConfigured.value = true
+}
+
+/** 催缴推送通道（白名单，与后端 billing.schema.ts 的 REMIND_CHANNELS 一致） */
+const CHANNEL_OPTIONS = [
+  { code: 'IN_APP', label: '站内' },
+  { code: 'SMS', label: '短信' },
+  { code: 'EMAIL', label: '邮件' },
+  { code: 'WECHAT', label: '微信' },
+] as const
+
+function toggleChannel(code: string) {
+  markArrearsTouched()
+  const cur = arrearsPolicy.channels || []
+  arrearsPolicy.channels = cur.includes(code) ? cur.filter((c) => c !== code) : [...cur, code]
+}
+
+function channelLabel(codes: string[] | null): string {
+  if (!codes?.length) return ''
+  return codes.map((c) => CHANNEL_OPTIONS.find((o) => o.code === c)?.label || c).join(' + ')
+}
+
+/** 提醒节点以「天」为单位，界面用逗号/斜杠分隔输入，保存前解析为数字数组 */
+function onRemindNodesInput(e: Event) {
+  markArrearsTouched()
+  const raw = (e.target as HTMLInputElement).value
+  const nums = raw
+    .split(/[^0-9]+/)
+    .filter((s) => s !== '')
+    .map((s) => Number(s))
+  arrearsPolicy.remindNodes = nums.length ? nums : null
+}
+
+/** 四个自动动作：标题与说明均由已配置值推导，不写死任何天数（原 D+16 / D+31 / D+90 为硬编码） */
+const arrearsSwitches = computed(() => [
+  {
+    key: 'autoDowngrade' as const,
+    title: '宽限期结束自动降级只读',
+    desc:
+      arrearsPolicy.graceDays === null
+        ? '需先配置「宽限期天数」，配置后在此显示生效日（D+N+1）'
+        : `D+${arrearsPolicy.graceDays + 1} 起整体只读：可查看可导出，由配额引擎自动执行`,
+  },
+  {
+    key: 'autoFreeze' as const,
+    title: '降级后自动冻结',
+    desc:
+      arrearsPolicy.graceDays === null || arrearsPolicy.freezeAfterDays === null
+        ? '需先配置「宽限期天数」与「降级后冻结间隔」，配置后在此显示生效日'
+        : `降级后第 ${arrearsPolicy.freezeAfterDays} 天（D+${arrearsPolicy.graceDays + arrearsPolicy.freezeAfterDays + 1}）冻结：仅可导出数据，暂停计费与登录`,
+  },
+  {
+    key: 'autoRemind' as const,
+    title: '欠费提醒自动推送',
+    desc:
+      arrearsPolicy.remindNodes?.length
+        ? `进入宽限期即时推送 1 条 + 提前 ${arrearsPolicy.remindNodes.join(' / ')} 天提醒，通道：${channelLabel(arrearsPolicy.channels) || '未配置'}`
+        : '需先配置「提醒节点」与「推送通道」',
+  },
+  {
+    key: 'autoCancel' as const,
+    title: '保留期结束自动注销',
+    desc:
+      arrearsPolicy.retainDays === null
+        ? '需先配置「冻结后保留期天数」；默认关闭，转人工需客服确认后执行「确认清除」'
+        : `D+${arrearsPolicy.retainDays} 后转人工，需客服确认后执行「确认清除」`,
+  },
+])
+
+/**
+ * 页顶「欠费处理时间线」：原为写死文案「宽限期 15 天 → D+16~30 → D+31~60 → D+61~90」，
+ * 其中的 15 / 30 / 60 / 90 全是硬编码业务值（属「禁模拟数据」违规）→ 改为由已配置值推导。
+ * 未配置（三要素任一为 null）时输出未配置提示，不回落任何默认天数。
+ */
+const arrearsTimeline = computed(() => {
+  const g = arrearsPolicy.graceDays
+  const f = arrearsPolicy.freezeAfterDays
+  const r = arrearsPolicy.retainDays
+  if (g === null || f === null || r === null) {
+    return '欠费处理时间线待配置：请先在「欠费处理策略」中配置宽限期天数、降级后冻结间隔与冻结后保留期天数，配置后此处按配置值生成。'
+  }
+  const freezeDay = g + f + 1
+  const segs: string[] = [`宽限期 ${g} 天（全功能）`]
+  if (f > 0) segs.push(`功能降级·只读（D+${g + 1}~${g + f}）`)
+  segs.push(`冻结·仅可导出（D+${freezeDay} 起）`)
+  if (r > freezeDay) segs.push(`保留期至 D+${r}`)
+  segs.push(`注销清除（D+${r} 后转人工确认）`)
+  return segs.join(' → ')
+})
+
+function toggleArrearsSwitch(key: 'autoDowngrade' | 'autoFreeze' | 'autoRemind' | 'autoCancel') {
+  markArrearsTouched()
+  arrearsPolicy[key] = !arrearsPolicy[key]
+}
+
+async function loadArrearsPolicy() {
+  try {
+    const res: any = await getArrearsPolicy()
+    const d = res?.data?.data || res?.data || {}
+    const unconf: string[] = Array.isArray(d._unconfigured) ? d._unconfigured : []
+    arrearsConfigured.value = !!d._configured
+    if (!d._configured) return
+    arrearsPolicy.graceDays = d.graceDays ?? null
+    arrearsPolicy.freezeAfterDays = d.freezeAfterDays ?? null
+    arrearsPolicy.retainDays = d.retainDays ?? null
+    arrearsPolicy.remindNodes = Array.isArray(d.remindNodes) ? d.remindNodes : null
+    arrearsPolicy.channels = Array.isArray(d.channels) ? d.channels : null
+    arrearsPolicy.autoDowngrade = d.autoDowngrade
+    arrearsPolicy.autoFreeze = d.autoFreeze
+    arrearsPolicy.autoRemind = d.autoRemind
+    arrearsPolicy.autoCancel = d.autoCancel
+    void unconf
+  } catch {
+    // 读取失败保持未配置态（空态），绝不回落为任何默认业务值
+  }
+}
+
+async function saveArrearsPolicy() {
+  if (!arrearsConfigured.value) return
+  arrearsSaving.value = true
+  try {
+    const payload: Record<string, unknown> = { version: 1 }
+    if (arrearsPolicy.graceDays !== null) payload.graceDays = Number(arrearsPolicy.graceDays)
+    if (arrearsPolicy.freezeAfterDays !== null) payload.freezeAfterDays = Number(arrearsPolicy.freezeAfterDays)
+    if (arrearsPolicy.retainDays !== null) payload.retainDays = Number(arrearsPolicy.retainDays)
+    if (arrearsPolicy.remindNodes?.length) payload.remindNodes = arrearsPolicy.remindNodes
+    if (arrearsPolicy.channels?.length) payload.channels = arrearsPolicy.channels
+    if (arrearsPolicy.autoDowngrade !== undefined) payload.autoDowngrade = arrearsPolicy.autoDowngrade
+    if (arrearsPolicy.autoFreeze !== undefined) payload.autoFreeze = arrearsPolicy.autoFreeze
+    if (arrearsPolicy.autoRemind !== undefined) payload.autoRemind = arrearsPolicy.autoRemind
+    if (arrearsPolicy.autoCancel !== undefined) payload.autoCancel = arrearsPolicy.autoCancel
+    await updateArrearsPolicy(payload)
+    ElMessage.success('欠费处理策略已保存')
+    await loadArrearsPolicy()
+  } finally {
+    arrearsSaving.value = false
+  }
+}
+
+/* ── 增值服务单价（原为写死文案 ¥10/GB/月 · ¥50/万次 · ¥0.10/条，同属写死业务值） ── */
+const addonPrice = reactive({
+  storagePerGbMonth: null as number | null,
+  apiPer10k: null as number | null,
+  smsPerItem: null as number | null,
+})
+const addonConfigured = ref(false)
+const addonSaving = ref(false)
+
+async function loadAddonPrice() {
+  try {
+    const res: any = await getAddonPrice()
+    const d = res?.data?.data || res?.data || {}
+    addonConfigured.value = !!d._configured
+    if (!d._configured) return
+    addonPrice.storagePerGbMonth = d.storagePerGbMonth ?? null
+    addonPrice.apiPer10k = d.apiPer10k ?? null
+    addonPrice.smsPerItem = d.smsPerItem ?? null
+  } catch {
+    // 保持未配置态
+  }
+}
+
+async function saveAddonPrice() {
+  addonSaving.value = true
+  try {
+    const payload: Record<string, unknown> = { version: 1 }
+    if (addonPrice.storagePerGbMonth !== null) payload.storagePerGbMonth = Number(addonPrice.storagePerGbMonth)
+    if (addonPrice.apiPer10k !== null) payload.apiPer10k = Number(addonPrice.apiPer10k)
+    if (addonPrice.smsPerItem !== null) payload.smsPerItem = Number(addonPrice.smsPerItem)
+    await updateAddonPrice(payload)
+    ElMessage.success('增值服务单价已保存')
+    await loadAddonPrice()
+  } finally {
+    addonSaving.value = false
+  }
+}
 function toggleArrears(id: number) {
   const i = selectedArrears.value.indexOf(id)
   if (i >= 0) selectedArrears.value.splice(i, 1)
@@ -596,5 +842,8 @@ async function handleReReconcile(row: any) {
 onMounted(() => {
   fetchStats()
   fetchBillList()
+  // R101-S2-02 组2：账单类配置读取（未配置时保持空态，不回落任何默认业务值）
+  loadArrearsPolicy()
+  loadAddonPrice()
 })
 </script>

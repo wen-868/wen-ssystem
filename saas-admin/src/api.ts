@@ -188,6 +188,27 @@ export function updatePlanPolicy(id: number, data: any) {
   );
 }
 
+/**
+ * R101-S2-02 组2：账单类配置（04 账单计费）
+ * 落 t_platform_config：config_key='billing:arrears_policy' / 'billing:addon_price'
+ * 未配置的子项不会出现在响应中；响应另含只读元字段 _unconfigured / _configured。
+ */
+export function getArrearsPolicy() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/billing/arrears-policy");
+}
+
+export function updateArrearsPolicy(data: any) {
+  return api.put<any, { data: ApiResult<any> }>("/platform/billing/arrears-policy", data);
+}
+
+export function getAddonPrice() {
+  return api.get<any, { data: ApiResult<any> }>("/platform/billing/addon-price");
+}
+
+export function updateAddonPrice(data: any) {
+  return api.put<any, { data: ApiResult<any> }>("/platform/billing/addon-price", data);
+}
+
 // ==================== 订阅管理 ====================
 export function getSubscriptions(params: {
   tenantId?: number;
