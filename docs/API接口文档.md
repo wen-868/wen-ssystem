@@ -2430,6 +2430,7 @@
 #### GET /api/platform/tenants/:id
 - **描述**：租户详情
 - **认证**：需要认证
+- **响应**：`{ id, tenantName, tenantCode, contactName, contactMobile, contactEmail, status, expireAt, createdAt }`（`tenantCode` 为本次修复补入 SELECT）
 
 #### GET /api/platform/tenants/:id/quota
 - **描述**：租户「资源配额使用情况」只读聚合（R101-S2-01 批 4 · 凌舟裁定 4.3）——**仅对现有表做 COUNT/SUM，不新建任何表**
@@ -2543,7 +2544,9 @@
 #### POST /api/platform/announcements
 - **描述**：发布公告（所有租户 / 指定租户 / 门店端三端区分）
 - **认证**：需要认证
-- **请求体**：`{ title, content, type, priority, status, publishRange: Array<"admin"|"store"|"miniapp"> }`
+- **请求体**：`{ title, type, content, isTop, status }`（与 `admin/platform-announcement.controller.ts` 实现一致；原文档所载 `priority`/`publishRange` 为历史遗留、非当前字段）
+- **status 取值**：字符串枚举 `DRAFT`（草稿）/ `PUBLISHED`（已发布）；`SCHEDULED`（定时发布）/ `RECALLED`（已撤回）为**预留、当前不支持**（见 S3-32）。
+- **暂不支持定时字段**：`startTime`/`endTime` 无后端字段（zod 静默丢弃），定时发布能力见 S3-32。
 
 ### 财务与对账
 
