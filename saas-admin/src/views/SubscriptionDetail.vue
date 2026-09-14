@@ -19,7 +19,7 @@
         <el-descriptions-item label="租户">{{ detail.tenantName }}</el-descriptions-item>
         <el-descriptions-item label="套餐">{{ detail.planName }}</el-descriptions-item>
         <el-descriptions-item label="金额">
-          <span style="font-weight: 600; color: #ef4444;">¥{{ formatPrice(detail.amount) }}</span>
+          <span style="font-weight: 600; color: #ef4444;">¥{{ formatPrice(detail.price) }}</span>
           <span v-if="detail.originalAmount" style="font-size: 12px; color: var(--text-secondary); text-decoration: line-through; margin-left: 6px;">¥{{ formatPrice(detail.originalAmount) }}</span>
         </el-descriptions-item>
         <el-descriptions-item label="订阅状态">
@@ -41,13 +41,13 @@
       <!-- 变更记录 -->
       <el-divider content-position="left">变更记录</el-divider>
       <el-table :data="detail.logs || []" border stripe style="width: 100%;">
-        <el-table-column prop="action" label="操作" width="120">
+        <el-table-column prop="operationType" label="操作" width="120">
           <template #default="{ row }">
-            <el-tag size="small">{{ actionLabel(row.action) }}</el-tag>
+            <el-tag size="small">{{ actionLabel(row.operationType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="detail" label="详情" min-width="200" />
-        <el-table-column prop="operator" label="操作人" width="120" />
+        <el-table-column prop="operatorName" label="操作人" width="120" />
         <el-table-column prop="createdAt" label="时间" width="180" />
         <el-table-column prop="remark" label="备注" width="150" />
       </el-table>
@@ -136,9 +136,7 @@ async function fetchDetail() {
   try {
     const res = await getSubscriptionDetail(id);
     detail.value = res.data?.data || (res as any).data || res;
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "加载失败");
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     loading.value = false;
   }
 }
@@ -149,7 +147,7 @@ const renewLoading = ref(false);
 const renewForm = reactive({ amount: 0, endDate: "" });
 
 function handleRenew() {
-  renewForm.amount = detail.value?.amount || 0;
+  renewForm.amount = detail.value?.price || 0;
   renewForm.endDate = "";
   showRenewDialog.value = true;
 }
@@ -162,9 +160,7 @@ async function doRenew() {
     ElMessage.success("续费成功");
     showRenewDialog.value = false;
     fetchDetail();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "续费失败");
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     renewLoading.value = false;
   }
 }
@@ -194,9 +190,7 @@ async function doChangePlan() {
     ElMessage.success("套餐变更成功");
     showChangeDialog.value = false;
     fetchDetail();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "变更失败");
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     changeLoading.value = false;
   }
 }
@@ -213,9 +207,7 @@ async function handleCancel() {
     await cancelSubscription(id, value || undefined);
     ElMessage.success("已取消");
     fetchDetail();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "取消失败");
-  }
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ }
 }
 
 // 支付
@@ -231,9 +223,7 @@ async function handlePay() {
     await paySubscription(id, { paymentMethod: "MANUAL" });
     ElMessage.success("支付确认成功");
     fetchDetail();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "支付确认失败");
-  }
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ }
 }
 
 onMounted(() => {

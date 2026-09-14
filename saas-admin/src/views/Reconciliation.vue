@@ -65,13 +65,13 @@
             </thead>
             <tbody>
               <tr v-for="row in billList" :key="row.id">
-                <td>{{ row.billNo || '--' }}</td>
+                <td>{{ row.reconciliationNo || '--' }}</td>
                 <td><b>{{ row.tenantName || '--' }}</b></td>
                 <td>
                   <span v-if="row.billType" class="tag" :class="billTypeTag(row.billType)">{{ row.billType }}</span>
                   <span v-else>--</span>
                 </td>
-                <td class="num"><b>{{ row.amount == null ? '--' : fmtMoney(row.amount) }}</b></td>
+                <td class="num"><b>{{ row.orderAmount == null ? '--' : fmtMoney(row.orderAmount) }}</b></td>
                 <td>{{ row.payMethod || '--' }}</td>
                 <td>
                   <span class="tag" :class="payStatus(row).cls">{{ payStatus(row).text }}</span>
@@ -344,10 +344,10 @@
     <el-dialog v-model="detailVisible" title="账单详情" :width="MODAL_W" :close-on-click-modal="false">
       <div v-if="currentDetail" class="zx-scope">
         <div class="g2">
-          <span class="fld"><span>账单编号</span><span class="ipt">{{ currentDetail.billNo || currentDetail.reconciliationNo || '--' }}</span></span>
+          <span class="fld"><span>账单编号</span><span class="ipt">{{ currentDetail.reconciliationNo || '--' }}</span></span>
           <span class="fld"><span>租户</span><span class="ipt">{{ currentDetail.tenantName || '--' }}</span></span>
           <span class="fld"><span>账单类型</span><span class="ipt">{{ currentDetail.billType || '--' }}</span></span>
-          <span class="fld"><span>金额</span><span class="ipt">{{ currentDetail.amount == null ? '--' : fmtMoney(currentDetail.amount) }}</span></span>
+          <span class="fld"><span>金额</span><span class="ipt">{{ currentDetail.orderAmount == null ? '--' : fmtMoney(currentDetail.orderAmount) }}</span></span>
           <span class="fld"><span>支付方式</span><span class="ipt">{{ currentDetail.payMethod || '--' }}</span></span>
           <span class="fld"><span>支付状态</span><span class="ipt">{{ payStatus(currentDetail).text }}</span></span>
           <span class="fld"><span>生成时间</span><span class="ipt">{{ currentDetail.createdAt || '--' }}</span></span>
@@ -512,8 +512,7 @@ async function fetchBillList() {
     const d = res?.data?.data || res?.data || res || {}
     billList.value = d.records || []
     total.value = d.total || 0
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || '账单流水加载失败')
+  } catch {
     billList.value = []
     total.value = 0
   } finally {
@@ -527,8 +526,7 @@ async function openDetail(row: any) {
   try {
     const res: any = await getPlatformReconciliationDetail(row.id)
     currentDetail.value = res?.data?.data || res?.data || res || row
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || '账单详情加载失败')
+  } catch {
     currentDetail.value = row
   }
 }
@@ -592,9 +590,7 @@ async function handleReReconcile(row: any) {
   try {
     await settleReconciliation(row.id)
     ElMessage.success('已提交重新对账（沿用结算接口，待接入专用 reconcile 端点）')
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || '重新对账失败')
-  }
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ }
 }
 
 onMounted(() => {

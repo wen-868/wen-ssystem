@@ -50,7 +50,7 @@
                 <b>{{ row.versionName }}</b>
                 <span v-if="row.subTitle" class="sub">{{ row.subTitle }}</span>
               </td>
-              <td>{{ row.releaseNote || '-' }}</td>
+              <td>{{ row.updateNote || '-' }}</td>
               <td>
                 <span v-if="row.grayTag" class="tag" :class="row.grayTagCls">{{ row.grayTag }}</span>
                 {{ row.grayRange || '-' }}
@@ -332,9 +332,8 @@ async function fetchList() {
     list.value = statusIdx.value === 0
       ? arr
       : arr.filter((r: any) => releaseStatusView(r).text === statusCycle[statusIdx.value]);
-  } catch (e: any) {
+  } catch {
     error.value = "版本列表加载失败";
-    ElMessage.error(e?.response?.data?.msg || e?.message || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -382,9 +381,7 @@ async function confirmPublish() {
     ElMessage.success("已发起发布");
     closeWizard();
     fetchList();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || e?.message || "发布失败");
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     saving.value = false;
   }
 }

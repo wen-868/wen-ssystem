@@ -264,7 +264,7 @@ function renderModuleChart(moduleData: any[]) {
         avoidLabelOverlap: false,
         itemStyle: { borderRadius: 4, borderColor: "#fff", borderWidth: 2 },
         label: { show: true, formatter: "{b}\n{d}%" },
-        data: moduleData
+        data: moduleData.map((d: any) => ({ name: d.moduleName ?? d.moduleCode ?? "", value: Number(d.usageCount ?? 0) })),
       }]
     });
   });
@@ -291,8 +291,7 @@ async function fetchRank() {
     });
     const data = res.data?.data || (res as any).data || res;
     rankList.value = data || [];
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "加载排行失败");
+  } catch {
     rankList.value = [];
   } finally {
     rankLoading.value = false;

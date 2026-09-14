@@ -190,8 +190,7 @@ async function fetchList() {
     list.value = res.data?.records || res.data?.list || []
     total.value = res.data?.total || 0
     // TODO: 待接入状态统计接口，回填 statusCounts
-  } catch (e) {
-    ElMessage.error('租户列表加载失败')
+  } catch {
     list.value = []
     total.value = 0
   } finally {
@@ -322,9 +321,8 @@ async function openDetail(row: any) {
   try {
     const res: any = await getTenantApi(row.id)
     detail.value = res.data
-  } catch (e) {
+  } catch {
     detail.value = null
-    ElMessage.error('租户详情加载失败')
   } finally {
     detailLoading.value = false
   }

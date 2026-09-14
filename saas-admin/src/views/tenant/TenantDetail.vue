@@ -72,7 +72,7 @@
         <template v-else>
           <div class="qrow" v-for="row in quotaRows" :key="row.key">
             <span>{{ row.label }}</span>
-            <span class="bar" :class="{ o: row.over }"><i :style="{ width: row.pct + '%' }"></i></span>
+            <span class="bar" v-if="row.hasLimit" :class="{ o: row.over }"><i :style="{ width: row.pct + '%' }"></i></span>
             <em>{{ row.text }}</em>
           </div>
           <p class="small mt8">API 日额度：后端无调用计数数据源 · 待接入（S3-21）</p>
@@ -333,16 +333,20 @@ const quotaRows = computed(() => {
   const q = quota.value.quota || {}
   return QUOTA_META.map((m) => {
     const dim = q[m.key]
-    // 无数据源维度（apiDaily 恒为 null）：显示「—」，进度条 0%
+    // 无数据源维度（apiDaily 恒为 null）：显示「—」，不画进度条
     if (dim == null) {
-      return { key: m.key, label: m.label, pct: 0, over: false, text: '—' }
+      return { key: m.key, label: m.label, pct: 0, over: false, text: '—', hasLimit: false }
     }
     const used = Number(dim.used ?? 0)
     const limit = dim.limit == null ? null : Number(dim.limit)
-    const pct = limit == null ? 0 : Math.min(100, (used / limit) * 100)
-    const over = limit != null && used / limit >= 0.8
-    const text = limit == null ? `${fmtNum(used)} / —` : `${fmtNum(used)} / ${fmtNum(limit)}${m.suffix || ''}`
-    return { key: m.key, label: m.label, pct, over, text }
+    // 上限未知或上限为 0 一律视为「无上限」：不画进度条、不判 over、显示 used / —
+    const hasLimit = limit != null && limit > 0
+    const pct = hasLimit ? Math.min(100, (used / limit) * 100) : 0
+    const over = hasLimit && used / limit >= 0.8
+    const text = hasLimit
+      ? `${fmtNum(used)} / ${fmtNum(limit)}${m.suffix || ''}`
+      : `${fmtNum(used)} / —`
+    return { key: m.key, label: m.label, pct, over, text, hasLimit }
   })
 })
 

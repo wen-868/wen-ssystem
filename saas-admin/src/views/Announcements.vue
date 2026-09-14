@@ -62,7 +62,7 @@
               </td>
               <td>{{ row.scope || '-' }}</td>
               <td>{{ row.channel || '-' }}</td>
-              <td>{{ row.publishTime || '-' }}</td>
+              <td>{{ row.publishAt || '-' }}</td>
               <td class="num">{{ row.reach || '-' }}</td>
               <td>
                 <span class="tag" :class="statusView(row).cls">{{ statusView(row).text }}</span>
@@ -359,9 +359,8 @@ async function fetchList() {
     const data = res?.data?.data || (res as any).data || res;
     list.value = data?.records || [];
     total.value = data?.total || 0;
-  } catch (e: any) {
+  } catch {
     error.value = "公告列表加载失败";
-    ElMessage.error(e?.response?.data?.message || "加载失败");
   } finally {
     loading.value = false;
   }
@@ -419,9 +418,7 @@ async function submit(isDraft = false) {
     }
     modalVisible.value = false;
     fetchList();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "保存失败");
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     saving.value = false;
   }
 }
@@ -467,9 +464,7 @@ async function handleDelete(row: any) {
     await deleteAnnouncement(row.id);
     ElMessage.success("删除成功");
     fetchList();
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || "删除失败");
-  }
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ }
 }
 
 onMounted(fetchList);

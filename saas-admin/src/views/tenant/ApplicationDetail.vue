@@ -235,9 +235,7 @@ async function loadData() {
   try {
     const res = await getApplication(id)
     application.value = res.data
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || '获取申请详情失败')
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     loading.value = false
   }
 }
@@ -292,9 +290,7 @@ function handleApprove() {
       await approveApplication(Number(route.params.id))
       ElMessage.success('审核通过')
       goBack()
-    } catch (e: any) {
-      ElMessage.error(e?.response?.data?.msg || '审核失败')
-    } finally {
+    } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
       approveLoading.value = false
     }
   })
@@ -318,9 +314,7 @@ async function confirmReject() {
     ElMessage.success('已驳回申请')
     showRejectDialog.value = false
     goBack()
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.msg || '驳回失败')
-  } finally {
+  } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ } finally {
     rejectLoading.value = false
   }
 }
