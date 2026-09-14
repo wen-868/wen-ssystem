@@ -249,7 +249,8 @@ const stats = reactive({
 });
 
 /* ── 筛选器 ── */
-const statusCycle = ["全部", "草稿", "定时发布", "已发布", "已撤回"];
+const statusCycle = ["全部", "草稿", "已发布"];
+const statusValues: (undefined | "DRAFT" | "PUBLISHED")[] = [undefined, "DRAFT", "PUBLISHED"];
 const scopeCycle = ["全部", "全部租户", "指定租户", "按标签圈选", "按套餐圈选"];
 const statusIdx = ref(0);
 const scopeIdx = ref(0);
@@ -275,7 +276,7 @@ const saving = ref(false);
 const typeOptions = ["版本更新", "维护通知", "欠费提醒", "营销活动", "运营通知"];
 const scopeOptions = ["全部租户", "指定租户", "按标签圈选", "按套餐圈选"];
 const channelOptions = ["站内", "短信"];
-const sendModeOptions = ["立即发送", "定时发送"];
+const sendModeOptions = ["立即发送"];
 
 const form = reactive({
   title: "",
@@ -297,7 +298,7 @@ function typeView(row: any) {
   const map: Record<string, { cls: string; text: string }> = {
     版本更新: { cls: "tag-p", text: "版本更新" },
     维护通知: { cls: "tag-b", text: "维护通知" },
-    欠费催缴: { cls: "tag-o", text: "欠费催缴" },
+    欠费提醒: { cls: "tag-o", text: "欠费催缴" },
     营销活动: { cls: "tag-b", text: "营销活动" },
     运营通知: { cls: "tag-gy", text: "运营通知" },
   };
@@ -306,7 +307,7 @@ function typeView(row: any) {
 function statusView(row: any) {
   const map: Record<string, { cls: string; text: string }> = {
     DRAFT: { cls: "tag-gy", text: "草稿" },
-    SCHEDULED: { cls: "tag-p", text: "定时发布" },
+    SCHEDULED: { cls: "tag-p", text: "定时发布" }, // 预留：后端暂不支持（S3-32）
     PUBLISHED: { cls: "tag-g", text: "已发布" },
     RECALLED: { cls: "tag-r", text: "已撤回" },
   };
@@ -314,7 +315,7 @@ function statusView(row: any) {
 }
 function actionsFor(row: any) {
   const map: Record<string, { key: string; label: string; cls: string }[]> = {
-    SCHEDULED: [
+    SCHEDULED: [ // 预留：后端暂不支持（S3-32）
       { key: "preview", label: "预览", cls: "" },
       { key: "edit", label: "编辑", cls: "" },
       { key: "recall", label: "撤销定时", cls: "dgr" },
@@ -354,7 +355,7 @@ async function fetchList() {
       page: page.value,
       pageSize: pageSize.value,
       keyword: searchForm.keyword || undefined,
-      status: statusIdx.value === 0 ? undefined : statusCycle[statusIdx.value],
+      status: statusValues[statusIdx.value],
     });
     const data = res?.data?.data || (res as any).data || res;
     list.value = data?.records || [];
@@ -405,9 +406,7 @@ async function submit(isDraft = false) {
       title: form.title,
       content: form.content,
       type: form.type,
-      status: isDraft ? "DRAFT" : form.sendMode === "定时发送" ? "SCHEDULED" : "PUBLISHED",
-      startTime: "",
-      endTime: "",
+      status: isDraft ? "DRAFT" : "PUBLISHED",
     };
     if (editingId.value) {
       await updateAnnouncement(editingId.value, payload);
