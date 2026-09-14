@@ -66,7 +66,7 @@ export async function listPlatformConfigs(
             category, description, updated_at AS updatedAt
      FROM t_platform_config
      WHERE ${where}
-     ORDER BY category, sort_order ASC`,
+     ORDER BY category, config_key ASC`,
     params
   );
 

@@ -157,9 +157,16 @@
                 </span>
                 <span class="btn btn-p" @click="todo('保存抵扣汇率')">保存配置</span>
                 <span style="display:flex;align-items:center;gap:8px;padding-bottom:4px;margin-left:auto;flex-wrap:wrap">
-                  <span class="tg" :class="{ off: !pointsEnabled }" @click="pointsEnabled = !pointsEnabled"></span>
+                  <span
+                    class="tg"
+                    :class="{ off: !pointsEnabled, locked: !pointsRateConfigured }"
+                    @click="onTogglePoints"
+                  ></span>
                   <b style="font-size:12.5px;white-space:nowrap">启用积分抵扣</b>
-                  <span class="tag" :class="pointsEnabled ? 'tag-g' : 'tag-gy'">{{ pointsEnabled ? '已开启' : '已关闭' }}</span>
+                  <span
+                    class="tag"
+                    :class="!pointsRateConfigured ? 'tag-gy' : pointsEnabled ? 'tag-g' : 'tag-gy'"
+                  >{{ !pointsRateConfigured ? '未配置' : pointsEnabled ? '已开启' : '已关闭' }}</span>
                 </span>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center">
@@ -189,11 +196,17 @@
               </div>
               <div class="p-bd" style="display:grid;gap:10px">
                 <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
-                  <span class="tg" :class="{ off: !pointsEnabled }" @click="pointsEnabled = !pointsEnabled"></span>
+                  <span
+                    class="tg"
+                    :class="{ off: !pointsEnabled, locked: !pointsRateConfigured }"
+                    @click="onTogglePoints"
+                  ></span>
                   <b style="font-size:12.5px">全局积分抵扣开关</b>
-                  <span class="small" style="margin-left:auto">关闭后全部租户暂停积分冲抵，仅按扣减顺序结算</span>
+                  <span class="small" style="margin-left:auto">
+                    {{ pointsRateConfigured ? '关闭后全部租户暂停积分冲抵，仅按扣减顺序结算' : '未配置汇率：请先在上方「抵扣汇率配置」保存汇率后再启用' }}
+                  </span>
                 </div>
-                <div class="tblwrap">
+                <div class="tblwrap" v-if="planColumns.length">
                   <table class="tbl">
                     <thead>
                       <tr>
@@ -210,6 +223,7 @@
                     </tbody>
                   </table>
                 </div>
+                <div class="empty" v-else>暂无套餐数据 · 接口未返回可售套餐（GET /platform/subscriptions-management/plans）</div>
               </div>
             </div>
             <div class="panel flush">
@@ -350,6 +364,15 @@ const rateText = computed(() => {
   if (pointsForm.points && pointsForm.tokens) return `${pointsForm.points} 积分 = ${pointsForm.tokens} token`
   return '—'
 })
+/** 汇率是否已配置：未配置则总开关置灰阻断并提示（设计稿要求，非固定值） */
+const pointsRateConfigured = computed(() => !!(pointsForm.points && pointsForm.tokens))
+function onTogglePoints() {
+  if (!pointsRateConfigured.value) {
+    ElMessage.warning('请先配置汇率')
+    return
+  }
+  pointsEnabled.value = !pointsEnabled.value
+}
 
 /** 积分抵扣流水：暂无接口 → 空态 */
 // TODO: 待接入 GET /platform/ai/points-deduction-log —— 积分抵扣逐次流水（时间/租户/套餐/模型/Token/积分/余额）
@@ -372,14 +395,18 @@ function todo(msg: string) {
 
 async function loadPlans() {
   try {
-    const res = await getPlans()
-    const list = (res as any)?.list ?? (res as any)?.records ?? []
-    const names = (list as any[]).map((p) => p.planName || p.name || p.planCode || '—')
-    planColumns.value = names.length ? names : ['免费版', '基础版', '标准版', '旗舰版']
+    const res: any = await getPlans()
+    /* 旧客户端（src/api.ts）成功路径返回 AxiosResponse：业务体在 res.data.data */
+    const data = res?.data?.data ?? res?.data ?? res
+    const list: any[] = Array.isArray(data) ? data : data?.records ?? data?.list ?? []
+    const names = (list as any[])
+      .map((p) => p.planName || p.name || p.planCode)
+      .filter((n): n is string => !!n)
+    planColumns.value = names
     names.forEach((n) => (rangeOn[n] = false))
   } catch {
-    // 失败回退到套餐枚举，避免页面空白
-    planColumns.value = ['免费版', '基础版', '标准版', '旗舰版']
+    /* 禁模拟数据：接口失败不回落任何写死的套餐名，保持空态 */
+    planColumns.value = []
   }
 }
 
@@ -392,6 +419,11 @@ onMounted(loadPlans)
 }
 .flush {
   box-shadow: none;
+}
+/* 未配置汇率时总开关置灰不可点（点击由 onTogglePoints 拦截并提示「请先配置汇率」） */
+.tg.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 .dashed {
   border-style: dashed;

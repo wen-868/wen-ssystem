@@ -72,6 +72,13 @@
             <span class="ph-s">关闭仅隐藏入口与逻辑分支，不做数据清理；对存量租户仅告警不强制切断</span>
           </div>
           <div class="p-bd">
+            <div v-if="!switchesConfigured" class="tipbar mt8">
+              <span class="ic">i</span>
+              <span>
+                全局功能开关尚未配置：开关与「新租户默认值」均按「未配置」展示（系统不内置任何预设值），
+                保存后生效；全平台启用统计依赖调用量统计接口，未接通前显示「—」。
+              </span>
+            </div>
             <div
               v-for="(s, i) in switchDefs"
               :key="s.key"
@@ -81,14 +88,17 @@
               <span
                 class="tg"
                 :class="{ off: !switches[s.key].enabled }"
-                @click="switches[s.key].enabled = !switches[s.key].enabled"
+                @click="toggleSwitchEnabled(s.key)"
               ></span>
               <div style="flex: 1; min-width: 0">
                 <div class="b" style="font-size: var(--text-sm)">{{ s.name }}</div>
-                <div class="small">{{ s.desc }}</div>
+                <div class="small">
+                  <template v-if="s.desc">{{ s.desc }} · </template>
+                  新租户默认：<span class="lk" @click="cycleNewTenantDefault(s.key)">{{ newTenantDefaultText(s.key) }}</span>
+                </div>
               </div>
               <span class="tag" :class="switches[s.key].enabled ? 'tag-g' : 'tag-gy'">
-                {{ switches[s.key].countLabel || '—' }}
+                {{ switchesConfigured ? switches[s.key].countLabel || '—' : '未配置' }}
               </span>
             </div>
           </div>
@@ -166,7 +176,7 @@
                 <span
                   class="tg"
                   :class="{ off: !channels.sms.tenantKey }"
-                  @click="channels.sms.tenantKey = !channels.sms.tenantKey"
+                  @click="toggleTenantKey('sms')"
                 ></span>
                 <div style="flex: 1; min-width: 0">
                   <div class="b" style="font-size: var(--text-xs)">
@@ -204,7 +214,7 @@
                 <span
                   class="tg"
                   :class="{ off: !channels.smtp.tenantKey }"
-                  @click="channels.smtp.tenantKey = !channels.smtp.tenantKey"
+                  @click="toggleTenantKey('smtp')"
                 ></span>
                 <div style="flex: 1; min-width: 0">
                   <div class="b" style="font-size: var(--text-xs)">
@@ -334,18 +344,57 @@ const config = reactive<any>({
   icpNumber: '',
 })
 
-/* 全局功能开关：结构来自设计稿；开关状态与租户计数均来自接口，缺省为空态 */
+/* 全局功能开关（§10.3）：每项含「全局开关」「新租户默认值」「全平台启用统计」，
+ * 三项均以接口为准；缺省为「未配置」——禁止用前端默认值冒充已生效配置（护栏④）。 */
 const switchDefs = [
-  { key: 'multiWarehouse', name: '多仓库', desc: '新租户默认：关闭' },
-  { key: 'multiUnit', name: '多计量单位', desc: '新租户默认：开启' },
-  { key: 'memberMarketing', name: '会员营销（储值/积分）', desc: '新租户默认：关闭' },
+  { key: 'multiWarehouse', name: '多仓库', desc: '' },
+  { key: 'multiUnit', name: '多计量单位', desc: '' },
+  { key: 'memberMarketing', name: '会员营销（储值/积分）', desc: '' },
   { key: 'miniProgram', name: '小程序商城', desc: '小程序主体/类目全局参数' },
   { key: 'openApi', name: '开放平台 API', desc: '计划随 P2 规模化期全量开放' },
-  { key: 'reportCenter', name: '报表中心', desc: '新租户默认：开启' },
+  { key: 'reportCenter', name: '报表中心', desc: '' },
 ]
-const switches = reactive<Record<string, { enabled: boolean; countLabel: string }>>(
+interface SwitchState {
+  enabled: boolean
+  /** 新租户默认值：undefined 表示「未配置」，与 false（已配置为关闭）语义不同，禁止混同 */
+  newTenantDefault?: boolean
+  countLabel: string
+}
+const switches = reactive<Record<string, SwitchState>>(
   Object.fromEntries(switchDefs.map((s) => [s.key, { enabled: false, countLabel: '' }]))
 )
+/** 该组配置是否已落库（后端 _unconfigured 不含 'switches'）；未落库前保存不回写、不冒充已配置 */
+const switchesConfigured = ref(false)
+/** 第三方通道（第三方密钥组）是否已落库；未落库前保存不回写前端默认对象（护栏④） */
+const channelsConfigured = ref(false)
+
+/** 切换「允许租户配置自有密钥」并标记该组已被触碰（触碰即视为配置意图，方可上送） */
+function toggleTenantKey(ch: 'sms' | 'smtp') {
+  channelsConfigured.value = true
+  channels[ch].tenantKey = !channels[ch].tenantKey
+}
+
+/** 新租户默认值文案：未配置即明确提示，不回落「关闭」 */
+function newTenantDefaultText(key: string): string {
+  const v = switches[key]?.newTenantDefault
+  if (v === undefined || v === null) return '未配置（点击配置）'
+  return v ? '开启' : '关闭'
+}
+function markSwitchesTouched() {
+  switchesConfigured.value = true
+}
+/** 点击循环：未配置 → 开启 → 关闭 → 未配置 */
+function cycleNewTenantDefault(key: string) {
+  markSwitchesTouched()
+  const cur = switches[key]?.newTenantDefault
+  const next = cur === undefined || cur === null ? true : cur === true ? false : undefined
+  if (next === undefined) delete switches[key].newTenantDefault
+  else switches[key].newTenantDefault = next
+}
+function toggleSwitchEnabled(key: string) {
+  markSwitchesTouched()
+  switches[key].enabled = !switches[key].enabled
+}
 
 /* 数据字典 */
 const dictTabs = [
@@ -396,11 +445,11 @@ function onUploadLogo() {
 async function saveConfig() {
   saving.value = true
   try {
-    await updatePlatformConfig({
-      ...config,
-      switches,
-      channels,
-    })
+    /* 未配置的组一律不上送：避免把「未配置」固化成默认值（护栏④） */
+    const payload: Record<string, unknown> = { ...config }
+    if (switchesConfigured.value) payload.switches = switches
+    if (channelsConfigured.value) payload.channels = channels
+    await updatePlatformConfig(payload)
     ElMessage.success('保存成功')
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || '保存失败')
@@ -417,9 +466,31 @@ async function load() {
     const res: any = await getPlatformConfig()
     const d = res?.data?.data || res?.data || {}
     if (d && typeof d === 'object') {
-      Object.assign(config, d)
-      if (d.switches) Object.assign(switches, d.switches)
-      if (d.channels) Object.assign(channels, d.channels)
+      const unconf: string[] = Array.isArray(d._unconfigured) ? d._unconfigured : []
+      for (const [k, v] of Object.entries(d)) {
+        if (k.startsWith('_') || k === 'switches' || k === 'channels') continue
+        ;(config as any)[k] = v
+      }
+      /* 未配置语义（护栏④）：后端 _unconfigured 含 'switches' 即视为该组尚未落库 */
+      switchesConfigured.value = !!d.switches && !unconf.includes('switches')
+      if (d.switches && typeof d.switches === 'object') {
+        for (const s of switchDefs) {
+          const src = (d.switches as Record<string, any>)[s.key]
+          if (!src || typeof src !== 'object') continue
+          const next: SwitchState = {
+            enabled: !!src.enabled,
+            countLabel: typeof src.countLabel === 'string' ? src.countLabel : '',
+          }
+          if (Object.prototype.hasOwnProperty.call(src, 'newTenantDefault') && src.newTenantDefault !== null) {
+            next.newTenantDefault = !!src.newTenantDefault
+          }
+          switches[s.key] = next
+        }
+      }
+      if (d.channels && typeof d.channels === 'object') {
+        channelsConfigured.value = true
+        Object.assign(channels, d.channels)
+      }
     }
   } catch {
     // 接口不可用时保持空态，不填充示例数据
