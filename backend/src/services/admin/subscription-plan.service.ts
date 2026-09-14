@@ -112,7 +112,7 @@ export async function createPlan(body: {
   sortOrder: number;
   status: string;
 }) {
-  await query(
+  const result = await query(
     `INSERT INTO t_subscription_plan (
       plan_code, plan_name, plan_type, price, original_price,
       duration_days, max_users, max_stores, max_customers, max_products,
@@ -129,7 +129,10 @@ export async function createPlan(body: {
     ]
   );
 
-  return { plan_code: body.planCode };
+  // R101-S2-02 组1：新增套餐后需拿主键才能保存策略包（t_platform_config）
+  // 补返回 id（新增字段，不破坏既有按 plan_code 取值的调用方）
+  const insertId = Number((result as { insertId?: number } | undefined)?.insertId ?? 0);
+  return { plan_code: body.planCode, id: insertId > 0 ? insertId : null };
 }
 
 export async function updatePlan(planId: number, body: {

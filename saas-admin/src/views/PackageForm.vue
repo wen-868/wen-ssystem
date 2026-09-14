@@ -22,6 +22,9 @@
       </div>
 
       <div class="d-bd">
+        <!-- 策略包保存失败提示（内容区错误态，避免与客户端统一提示重复弹窗） -->
+        <div v-if="policyError" class="policy-err">{{ policyError }}</div>
+
         <!-- ① 基本信息 -->
         <div class="fld"><span>① 基本信息</span></div>
         <div class="panel sec-panel">
@@ -65,12 +68,18 @@
               <span>计费周期</span>
               <div class="chips">
                 <span
-                  v-for="c in cycleOptions"
+                  v-for="c in PLAN_TYPE_OPTIONS"
                   :key="c.key"
                   class="btn"
                   :class="{ 'btn-p': form.planType === c.key }"
                   @click="form.planType = c.key"
-                >{{ c.label }}<span v-if="c.days" class="small">{{ c.days }}</span></span>
+                >{{ c.label }}<span v-if="c.key === 'CUSTOM' && form.durationDays" class="small">{{ form.durationDays }}天</span></span>
+              </div>
+              <div v-if="form.planType === 'CUSTOM'" class="frow mt10">
+                <span class="fld grow-min">
+                  <span>自定义天数（天）</span>
+                  <input class="ipt" v-model.number="form.durationDays" placeholder="未配置" />
+                </span>
               </div>
             </div>
             <div class="frow promo-row">
@@ -92,7 +101,7 @@
 
         <!-- ③ 功能开关矩阵 -->
         <div class="fld mt14">
-          <span>③ 功能开关矩阵 <i class="small inline-note">（勾选即售 · 租户实际可用 = 全局开关 ∩ 套餐开关 ∩ 租户级开关）</i></span>
+          <span>③ 功能开关矩阵 <i class="small inline-note">（已选 {{ checkedCount }} / {{ TOTAL_FEATURE_COUNT }} 项 · 勾选即售 · 租户实际可用 = 全局开关 ∩ 套餐开关 ∩ 租户级开关）</i></span>
         </div>
         <div class="mx-list">
           <div v-for="g in featureGroups" :key="g.name" class="mx">
@@ -133,51 +142,61 @@
         </div>
 
 <!-- ④ 资源配额 -->
-<div ref="quotaRef" class="fld mt14"><span>④ 资源配额</span></div>
+<div ref="quotaRef" class="fld mt14"><span>④ 资源配额 <i class="small inline-note">（留空 = 未配置，不上送、不落库；系统不内置预设值）</i></span></div>
         <div class="panel sec-panel">
           <div class="p-bd quota-grid">
-            <span class="fld"><span>账号数</span><span class="ipt">{{ form.maxUsers }} <b class="small unit">个</b></span></span>
-            <span class="fld"><span>商品上限</span><span class="ipt">{{ Number(form.maxProducts).toLocaleString() }} <b class="small unit">个</b></span></span>
-            <span class="fld"><span>仓库数</span><span class="ipt">{{ form.maxStores }} <b class="small unit">个</b></span></span>
-            <span class="fld"><span>存储容量</span><span class="ipt">{{ form.maxStorageGb }} <b class="small unit">GB</b></span></span>
-            <span class="fld"><span>API 日额度</span><span class="ipt">{{ Number(form.apiQuota).toLocaleString() }} <b class="small unit">次/日</b></span></span>
-            <span class="fld"><span>AI 额度</span><span class="ipt">{{ Number(form.aiQuota).toLocaleString() }} <b class="small unit">次/月</b></span></span>
+            <span class="fld"><span>账号数（个）</span><input class="ipt" v-model.number="form.maxUsers" placeholder="未配置" /></span>
+            <span class="fld"><span>商品上限（个）</span><input class="ipt" v-model.number="form.maxProducts" placeholder="未配置" /></span>
+            <span class="fld"><span>仓库数（个）</span><input class="ipt" v-model.number="form.maxStores" placeholder="未配置" /></span>
+            <span class="fld"><span>存储容量（GB）</span><input class="ipt" v-model.number="form.maxStorageGb" placeholder="未配置" /></span>
+            <span class="fld"><span>API 日额度（次/日）</span><input class="ipt" v-model.number="form.apiQuota" placeholder="未配置" /></span>
+            <span class="fld"><span>AI 额度（次/月）</span><input class="ipt" v-model.number="form.aiQuota" placeholder="未配置" /></span>
           </div>
         </div>
 
         <!-- ⑤ 升降级与续费规则 -->
-        <div class="fld mt14"><span>⑤ 升降级与续费规则</span></div>
+        <div class="fld mt14"><span>⑤ 升降级与续费规则 <i class="small inline-note">（未选 = 未配置，不上送；系统不内置预设规则）</i></span></div>
         <div class="panel sec-panel">
           <div class="p-bd rule-bd">
             <div>
               <span class="small rule-title">升级生效方式</span>
               <div class="rule-opts">
-                <span class="rule-opt" @click="form.upgradeMode = '立即'">
-                  <span class="rd" :class="{ on: form.upgradeMode === '立即' }"></span>立即生效，剩余天数按天折算补差价（推荐）
-                </span>
-                <span class="rule-opt" @click="form.upgradeMode = '周期结束'">
-                  <span class="rd" :class="{ on: form.upgradeMode === '周期结束' }"></span>当前周期结束后生效
+                <span
+                  v-for="o in UPGRADE_MODE_OPTIONS"
+                  :key="o.key"
+                  class="rule-opt"
+                  @click="form.upgradeMode = o.key"
+                >
+                  <span class="rd" :class="{ on: form.upgradeMode === o.key }"></span>{{ o.label }}
                 </span>
               </div>
+              <span v-if="!form.upgradeMode" class="small unset-note">未配置</span>
             </div>
             <div>
               <span class="small rule-title">降级生效方式</span>
               <div class="chips">
-                <span class="btn" :class="{ 'btn-p': form.downgradeMode === '周期结束生效' }" @click="form.downgradeMode = '周期结束生效'">周期结束生效</span>
-                <span class="btn" :class="{ 'btn-p': form.downgradeMode === '立即生效·下期按新价' }" @click="form.downgradeMode = '立即生效·下期按新价'">立即生效·下期按新价</span>
+                <span
+                  v-for="o in DOWNGRADE_MODE_OPTIONS"
+                  :key="o.key"
+                  class="btn"
+                  :class="{ 'btn-p': form.downgradeMode === o.key }"
+                  @click="form.downgradeMode = o.key"
+                >{{ o.label }}</span>
               </div>
+              <span v-if="!form.downgradeMode" class="small unset-note">未配置</span>
             </div>
             <div>
               <span class="small rule-title">停售后存量租户续费策略</span>
               <div class="chips">
                 <span
-                  v-for="r in renewOptions"
-                  :key="r"
+                  v-for="r in RENEW_POLICY_OPTIONS"
+                  :key="r.key"
                   class="btn"
-                  :class="{ 'btn-p': form.renewPolicy === r }"
-                  @click="form.renewPolicy = r"
-                >{{ r }}</span>
+                  :class="{ 'btn-p': form.renewPolicy === r.key }"
+                  @click="form.renewPolicy = r.key"
+                >{{ r.label }}</span>
               </div>
+              <span v-if="!form.renewPolicy" class="small unset-note">未配置</span>
             </div>
           </div>
         </div>
@@ -199,7 +218,25 @@
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
-import { getPlanDetail, createPlan, updatePlan } from "../api";
+import {
+  getPlanDetail,
+  createPlan,
+  updatePlan,
+  getPlanPolicy,
+  updatePlanPolicy,
+} from "../api";
+import {
+  PLAN_TYPE_OPTIONS,
+  PLAN_TYPE_DAYS,
+  PLAN_STATUS_OPTIONS,
+  UPGRADE_MODE_OPTIONS,
+  DOWNGRADE_MODE_OPTIONS,
+  RENEW_POLICY_OPTIONS,
+  FEATURE_GROUPS,
+  TOTAL_FEATURE_COUNT,
+  buildPlanPolicy,
+} from "../constants/plan-features";
+import type { FeatureGroup } from "../constants/plan-features";
 
 const route = useRoute();
 const router = useRouter();
@@ -213,83 +250,54 @@ const submitLoading = ref(false);
 const quotaRef = ref<HTMLElement | null>(null);
 /* 复制来源套餐名（用于页头提示，展示真实读取结果，不虚构） */
 const copiedFromName = ref("");
+/* 策略包保存失败的内容区错误态（不重复弹 toast，见「双 toast 收敛口径」） */
+const policyError = ref("");
 
-/* ── 状态（设计稿下拉文案循环） ── */
-const statusCycle = ["草稿（仅平台可见）", "已上架", "停售"];
+/* ── 状态（枚举取值表见 docs/API接口文档.md · P36/POST /api/platform/plans） ── */
+const statusCycle = PLAN_STATUS_OPTIONS;
 const statusIdx = ref(0);
-const statusLabel = computed(() => statusCycle[statusIdx.value]);
+const statusLabel = computed(() => statusCycle[statusIdx.value]?.label || "—");
 function cycleStatus() {
   statusIdx.value = (statusIdx.value + 1) % statusCycle.length;
 }
 
-/* ── 计费周期（设计稿：月付 / 季付 / 年付 / 自定义天数 90天） ── */
-const cycleOptions = [
-  { key: "MONTHLY", label: "月付" },
-  { key: "QUARTERLY", label: "季付" },
-  { key: "YEARLY", label: "年付" },
-  { key: "CUSTOM", label: "自定义天数", days: "90天" },
-];
-
-/* ── 续费策略（设计稿三选一） ── */
-const renewOptions = ["禁止续费·引导升级", "允许续费最后一年", "自动转推荐套餐"];
-
-/* ── 表单状态 ── */
+/* ── 表单状态 ──
+ * 未配置语义（护栏④）：额度/规则/活动价一律以 null、"" 表示「未配置」，
+ * 不预置任何数字或选项，提交时未配置项不上送、不落库。 */
 const form = reactive({
   planCode: "",
   planName: "",
   description: "",
-  planType: "YEARLY",
+  planType: "" as string,
+  durationDays: null as number | null,
   price: 0,
   sortOrder: 50,
   promoPrice: null as number | null,
   promoStart: "",
   promoEnd: "",
-  maxUsers: 0,
-  maxProducts: 0,
-  maxStores: 0,
-  maxStorageGb: 0,
-  apiQuota: 0,
-  aiQuota: 0,
-  upgradeMode: "立即",
-  downgradeMode: "立即生效·下期按新价",
-  renewPolicy: "允许续费最后一年",
+  maxUsers: null as number | null,
+  maxProducts: null as number | null,
+  maxStores: null as number | null,
+  maxStorageGb: null as number | null,
+  apiQuota: null as number | null,
+  aiQuota: null as number | null,
+  upgradeMode: "" as string,
+  downgradeMode: "" as string,
+  renewPolicy: "" as string,
 });
 
-/* ── 功能开关矩阵（设计稿五组，默认全选，分销裂变除外） ── */
-interface FeatureItem {
-  name: string;
-  v11?: boolean;
-}
-interface FeatureGroup {
-  name: string;
-  items: FeatureItem[];
-}
-const featureGroups: FeatureGroup[] = [
-  { name: "进销存核心", items: [
-    { name: "采购管理" }, { name: "销售管理" }, { name: "库存/盘点/调拨" },
-    { name: "成本核算" }, { name: "审批流（多级审核）" }, { name: "送货单签收" },
-  ] },
-  { name: "多仓库 / 多计量单位", items: [
-    { name: "多仓库" }, { name: "多单位换算" }, { name: "多级批发价" }, { name: "客户等级价" },
-  ] },
-  { name: "会员营销", items: [
-    { name: "会员储值" }, { name: "积分体系" }, { name: "会员价/券" },
-  ] },
-  { name: "小程序商城", items: [
-    { name: "线上选品下单" }, { name: "优惠券领取核销" }, { name: "即时零售对接" }, { name: "分销裂变" },
-  ] },
-  { name: "API / 报表 / AI", items: [
-    { name: "开放平台 API" }, { name: "标准报表" }, { name: "自定义报表" },
-    { name: "AI 助手（增强）" }, { name: "数据批量导出" }, { name: "自定义AI模型接入", v11: true },
-  ] },
-];
+/* ── 功能开关矩阵（唯一事实源：src/constants/plan-features.ts，总项数不写死） ── */
+const featureGroups = FEATURE_GROUPS;
 
 const checked = reactive<Record<string, boolean>>({});
-featureGroups.forEach((g) =>
-  g.items.forEach((it) => {
-    checked[it.name] = it.name !== "分销裂变";
-  })
-);
+/* 铁律：不预置任何勾选（未配置即未勾选）；禁止用前端默认值冒充「已配置」 */
+featureGroups.forEach((g) => g.items.forEach((it) => (checked[it.name] = false)));
+
+const checkedCount = computed(() => featureGroups.reduce((n, g) => n + g.items.filter((it) => checked[it.name]).length, 0));
+
+function resetChecked() {
+  featureGroups.forEach((g) => g.items.forEach((it) => (checked[it.name] = false)));
+}
 
 function toggleItem(name: string) {
   checked[name] = !checked[name];
@@ -304,6 +312,20 @@ function toggleGroup(g: FeatureGroup) {
   });
 }
 
+/* ── 套餐策略包读写（组1：无结构化列承载的配置项） ──
+ * 与套餐主记录分离存储：t_platform_config（config_key='plan_policy:<planId>'）。
+ * 读取失败一律返回空对象 = 全部「未配置」，绝不虚构值（禁模拟数据铁律）。 */
+async function loadPolicy(id: number): Promise<Record<string, any>> {
+  if (!id) return {};
+  try {
+    const res = await getPlanPolicy(id);
+    const d = (res as any)?.data?.data || (res as any)?.data || {};
+    return d && typeof d === "object" ? d : {};
+  } catch {
+    return {};
+  }
+}
+
 /* ── 编辑态回填（保留 getPlanDetail 逻辑） ── */
 async function fetchDetail() {
   pageLoading.value = true;
@@ -314,20 +336,35 @@ async function fetchDetail() {
       typeof data.moduleAccess === "string"
         ? JSON.parse(data.moduleAccess || "[]")
         : (data.moduleAccess || []);
+    /* 策略包（t_platform_config · config_key='plan_policy:<planId>'）：
+     * 未配置的子项一律回填为「未配置」语义（null / ""），不补默认值。
+     * 注意：这些项不写 t_subscription_plan.features（该列为功能特性码数组且对外透出）。 */
+    const policy: any = await loadPolicy(planId.value);
     Object.assign(form, {
       planCode: data.planCode || "",
       planName: data.planName || "",
       description: data.description || "",
-      planType: data.planType || "YEARLY",
-      price: data.price || 0,
+      planType: data.planType || "",
+      durationDays: data.durationDays ?? null,
+      price: data.price ?? 0,
       sortOrder: data.sortOrder ?? 0,
-      maxUsers: data.maxUsers ?? 0,
-      maxProducts: data.maxProducts ?? 0,
-      maxStores: data.maxStores ?? 0,
-      maxStorageGb: Math.round((data.maxStorageMb ?? 0) / 1024),
+      maxUsers: data.maxUsers ?? null,
+      maxProducts: data.maxProducts ?? null,
+      maxStores: data.maxStores ?? null,
+      maxStorageGb: data.maxStorageMb != null ? Math.round(data.maxStorageMb / 1024) : null,
+      apiQuota: policy?.quota?.apiDaily ?? null,
+      aiQuota: policy?.quota?.aiMonthly ?? null,
+      upgradeMode: policy?.upgrade?.mode ?? "",
+      downgradeMode: policy?.downgrade?.mode ?? "",
+      renewPolicy: policy?.renew?.policy ?? "",
+      promoPrice: policy?.promo?.price ?? null,
+      promoStart: policy?.promo?.start ?? "",
+      promoEnd: policy?.promo?.end ?? "",
     });
-    // 草稿态前端保留（后端 DRAFT 枚举由阿坚 S2-02 补），其余按真实状态回填
-    statusIdx.value = data.status === "ACTIVE" ? 1 : data.status === "DRAFT" ? 0 : 2;
+    // 状态按真实枚举回填（DRAFT / ACTIVE / INACTIVE）
+    const stIdx = statusCycle.findIndex((s) => s.key === data.status);
+    statusIdx.value = stIdx >= 0 ? stIdx : 0;
+    resetChecked();
     featureGroups.forEach((g) =>
       g.items.forEach((it) => {
         if (moduleAccess.includes(it.name)) checked[it.name] = true;
@@ -348,30 +385,69 @@ async function submit(isDraft: boolean) {
   }
   submitLoading.value = true;
   try {
-    const payload = {
+    /* durationDays：月/季/年取固定天数；自定义取表单值；未配置周期则不落天数 */
+    const durationDays =
+      form.planType === "CUSTOM"
+        ? form.durationDays
+        : PLAN_TYPE_DAYS[form.planType] ?? null;
+
+    const payload: Record<string, unknown> = {
       planCode: form.planCode || `PLAN${Date.now()}`,
       planName: form.planName,
       description: form.description,
-      planType: form.planType,
-      durationDays: form.planType === "CUSTOM" ? 90 : form.planType === "MONTHLY" ? 30 : form.planType === "QUARTERLY" ? 90 : 365,
       price: Number(form.price) || 0,
-      maxUsers: form.maxUsers,
-      maxProducts: form.maxProducts,
-      maxStores: form.maxStores,
-      maxStorageMb: form.maxStorageGb * 1024,
       sortOrder: form.sortOrder,
-      // 凌舟裁定 R101-S1-R1：草稿态前端保留，提交 status 用 DRAFT；
-      // 后端 DRAFT 枚举由阿坚在 S2-02 补齐并登记 docs/数据库变更清单.md，本轮禁止用 INACTIVE 冒充草稿
-      status: isDraft ? "DRAFT" : statusIdx.value === 1 ? "ACTIVE" : "INACTIVE",
+      status: isDraft ? "DRAFT" : statusCycle[statusIdx.value]?.key || "ACTIVE",
       moduleAccess: featureGroups.flatMap((g) => g.items.filter((it) => checked[it.name]).map((it) => it.name)),
     };
+    /* 未配置的结构化列一律不上送（不写占位值，护栏④） */
+    if (form.planType) payload.planType = form.planType;
+    if (durationDays !== null && durationDays !== undefined) payload.durationDays = durationDays;
+    if (form.maxUsers !== null && form.maxUsers !== undefined) payload.maxUsers = Number(form.maxUsers);
+    if (form.maxProducts !== null && form.maxProducts !== undefined) payload.maxProducts = Number(form.maxProducts);
+    if (form.maxStores !== null && form.maxStores !== undefined) payload.maxStores = Number(form.maxStores);
+    if (form.maxStorageGb !== null && form.maxStorageGb !== undefined) payload.maxStorageMb = Number(form.maxStorageGb) * 1024;
+
+    let targetId = 0;
     if (isEdit.value) {
       await updatePlan(planId.value, payload);
-      ElMessage.success(isDraft ? "已存为草稿" : "保存并上架成功");
+      targetId = planId.value;
     } else {
-      await createPlan(payload);
-      ElMessage.success(isDraft ? "已存为草稿" : "保存并上架成功");
+      const created: any = await createPlan(payload);
+      targetId = Number(created?.data?.data?.id ?? created?.data?.id ?? 0);
     }
+
+    /* 策略包单独保存（落 t_platform_config）：未配置的子项不出现在包里，
+     * 全部为空时写入 {version:1} = 未配置语义，不会把占位值固化。 */
+    if (targetId) {
+      try {
+        await updatePlanPolicy(
+          targetId,
+          buildPlanPolicy({
+            apiQuota: form.apiQuota,
+            aiQuota: form.aiQuota,
+            upgradeMode: form.upgradeMode,
+            downgradeMode: form.downgradeMode,
+            renewPolicy: form.renewPolicy,
+            promoPrice: form.promoPrice,
+            promoStart: form.promoStart,
+            promoEnd: form.promoEnd,
+          })
+        );
+        policyError.value = "";
+      } catch {
+        // 双 toast 收敛口径：错误提示由 HTTP 客户端统一弹出，此处只留内容区错误态
+        policyError.value =
+          "套餐主信息已保存，但策略配置（升级/降级/续费/额度/限时活动）保存失败，请重试";
+        return;
+      }
+    } else {
+      policyError.value =
+        "套餐已保存，但未能取得套餐 ID，策略配置（升级/降级/续费/额度/限时活动）未保存，请回到编辑页补充";
+      return;
+    }
+
+    ElMessage.success(isDraft ? "已存为草稿" : "保存并上架成功");
     router.push("/packages");
   } catch (e: any) {
     ElMessage.error(e?.response?.data?.message || "操作失败");
@@ -405,16 +481,27 @@ async function copyFrom(sourceId: number) {
   try {
     const res = await getPlanDetail(sourceId);
     const d = (res as any)?.data?.data || (res as any)?.data || {};
+    /* 源套餐策略包（t_platform_config）：仅作新建初值，不落库 */
+    const fea: any = await loadPolicy(sourceId);
     Object.assign(form, {
       planName: `${d.planName || ""} 副本`.trim(),
       planCode: "",
       description: d.description || "",
-      planType: d.planType || "YEARLY",
+      planType: d.planType || "",
+      durationDays: d.durationDays ?? null,
       price: d.price ?? 0,
-      maxUsers: d.maxUsers ?? 0,
-      maxProducts: d.maxProducts ?? 0,
-      maxStores: d.maxStores ?? 0,
-      maxStorageGb: d.maxStorageMb ? Math.round(d.maxStorageMb / 1024) : 0,
+      maxUsers: d.maxUsers ?? null,
+      maxProducts: d.maxProducts ?? null,
+      maxStores: d.maxStores ?? null,
+      maxStorageGb: d.maxStorageMb != null ? Math.round(d.maxStorageMb / 1024) : null,
+      apiQuota: fea?.quota?.apiDaily ?? null,
+      aiQuota: fea?.quota?.aiMonthly ?? null,
+      upgradeMode: fea?.upgrade?.mode ?? "",
+      downgradeMode: fea?.downgrade?.mode ?? "",
+      renewPolicy: fea?.renew?.policy ?? "",
+      promoPrice: fea?.promo?.price ?? null,
+      promoStart: fea?.promo?.start ?? "",
+      promoEnd: fea?.promo?.end ?? "",
       sortOrder: d.sortOrder ?? 0,
     });
     // 功能开关矩阵按源套餐回填
@@ -439,6 +526,18 @@ async function copyFrom(sourceId: number) {
 </script>
 
 <style scoped>
+/* 策略包保存失败提示（内容区错误态；颜色/间距全部取自设计令牌） */
+.policy-err {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--warning-line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--warning-text);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
 /* 抽屉式表单页（设计稿 .drawer 宽 486px 右滑；此处以页面内右对齐卡片呈现） */
 .drawer-page {
   width: 486px;
@@ -666,6 +765,12 @@ async function copyFrom(sourceId: number) {
 }
 .unit {
   font-weight: var(--font-normal);
+}
+/* 未配置提示（护栏④：未配置须显式可辨，不得静默套用默认值） */
+.unset-note {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--g4);
 }
 
 /* 升降级规则 */

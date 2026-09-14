@@ -172,6 +172,22 @@ export function updatePlan(id: number, data: any) {
   return api.put<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/plans/${id}`, data);
 }
 
+/**
+ * R101-S2-02 组1：套餐策略配置（升级/降级/续费/扩展额度/限时活动）
+ * 这些项在 t_subscription_plan 无对应列，落 t_platform_config（config_key='plan_policy:<id>'）。
+ * 未配置的子项不会出现在响应中，响应另含只读元字段 _unconfigured / _configured。
+ */
+export function getPlanPolicy(id: number) {
+  return api.get<any, { data: ApiResult<any> }>(`/platform/subscriptions-management/plans/${id}/policy`);
+}
+
+export function updatePlanPolicy(id: number, data: any) {
+  return api.put<any, { data: ApiResult<any> }>(
+    `/platform/subscriptions-management/plans/${id}/policy`,
+    data
+  );
+}
+
 // ==================== 订阅管理 ====================
 export function getSubscriptions(params: {
   tenantId?: number;

@@ -130,7 +130,7 @@
           </tbody>
         </table>
         <p class="small mt8">
-          <span class="v11-tag lt note-tag">v1.1</span>功能开关数按 28 项总目录统计；其中「<b>自定义AI模型接入</b>」为付费专属能力——基础版 / 标准版 / 旗舰版默认开启，免费版锁定不可选（规则详见下方新建套餐表单 · 功能开关矩阵）。
+          <span class="v11-tag lt note-tag">v1.1</span>功能开关数按 {{ TOTAL_FEATURE_COUNT }} 项总目录统计；其中「<b>自定义AI模型接入</b>」为付费专属能力——基础版 / 标准版 / 旗舰版默认开启，免费版锁定不可选（规则详见下方新建套餐表单 · 功能开关矩阵）。
         </p>
       </div>
     </div>
@@ -147,6 +147,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { getPlans, updatePlan } from "../api";
+import { TOTAL_FEATURE_COUNT } from "../constants/plan-features";
 
 const router = useRouter();
 
@@ -181,7 +182,7 @@ const plans = computed<PlanCard[]>(() => {
     id: r.id,
     name: r.planName || "-",
     tagCls: r.status === "ACTIVE" ? "tag-g" : "tag-gy",
-    tagText: r.status === "ACTIVE" ? "上架中" : "停售",
+    tagText: r.status === "ACTIVE" ? "上架中" : r.status === "DRAFT" ? "草稿" : "停售",
     price: Number(r.price || 0).toLocaleString(),
     unit: r.planType === "PERMANENT" ? "永久" : `${r.durationDays || 365}天`,
     line1: `已订阅 -- · ${r.description || ""}`,
@@ -191,7 +192,7 @@ const plans = computed<PlanCard[]>(() => {
       { key: "copy", label: "复制" },
       r.status === "ACTIVE"
         ? { key: "offline", label: "停售", cls: "gy" }
-        : { key: "online", label: "重新上架" },
+        : { key: "online", label: r.status === "DRAFT" ? "上架" : "重新上架" },
       // 凌舟裁定：配额详情不单独开页，进入编辑抽屉并定位到「④ 资源配额」分区
       { key: "quota", label: "配额详情" },
     ],
@@ -224,11 +225,11 @@ function buildRowsFromApi(): CompareRow[] {
     src: "自主创建",
     srcCls: "tag-p",
     price: `¥${Number(r.price || 0).toLocaleString()} / ${r.planType === "PERMANENT" ? "永久" : `${r.durationDays || 365}天`}`,
-    switches: `${(r.moduleAccess || []).length} / 28 项`,
+    switches: `${(r.moduleAccess || []).length} / ${TOTAL_FEATURE_COUNT} 项`,
     quota: `${r.maxUsers ?? "-"} 账号 · ${Number(r.maxProducts || 0).toLocaleString()} 商品`,
-    rule: r.status === "ACTIVE" ? "升级即时生效" : "停售 · 存量允许续费一年",
+    rule: r.status === "ACTIVE" ? "升级即时生效" : r.status === "DRAFT" ? "草稿 · 未上架" : "停售 · 存量允许续费一年",
     stCls: r.status === "ACTIVE" ? "tag-g" : "tag-gy",
-    stText: r.status === "ACTIVE" ? "上架" : "停售",
+    stText: r.status === "ACTIVE" ? "上架" : r.status === "DRAFT" ? "草稿" : "停售",
   }));
 }
 

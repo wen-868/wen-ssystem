@@ -26,6 +26,12 @@ platformPlansRouter.delete("/:planId", planController.deletePlan);
 // PUT /api/platform/plans/:planId/features - 套餐功能配置
 platformPlansRouter.put("/:planId/features", planController.updatePlanFeatures);
 
+// R101-S2-02 组1：GET /api/platform/plans/:planId/policy - 套餐策略配置（升降级/续费/额度/活动）
+platformPlansRouter.get("/:planId/policy", planController.getPlanPolicy);
+
+// R101-S2-02 组1：PUT /api/platform/plans/:planId/policy - 保存套餐策略配置
+platformPlansRouter.put("/:planId/policy", planController.updatePlanPolicy);
+
 // ========== 路由自动发现配置 ==========
 export const routeConfig: RouteConfig = {
   prefix: "/api/platform/plans",

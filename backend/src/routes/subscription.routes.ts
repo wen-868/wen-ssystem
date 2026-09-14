@@ -13,6 +13,11 @@ subscriptionRouter.get("/plans/:planId", subscriptionPlanController.getPlan);
 subscriptionRouter.post("/plans", requirePlatformAuth, subscriptionPlanController.createPlan);
 subscriptionRouter.put("/plans/:planId", requirePlatformAuth, subscriptionPlanController.updatePlan);
 
+// R101-S2-02 组1：套餐策略配置（升降级 / 续费 / 扩展额度 / 限时活动）
+// 落 t_platform_config: platform='SAAS', config_key='plan_policy:<planId>'（不新建表）
+subscriptionRouter.get("/plans/:planId/policy", requirePlatformAuth, subscriptionPlanController.getPlanPolicy);
+subscriptionRouter.put("/plans/:planId/policy", requirePlatformAuth, subscriptionPlanController.updatePlanPolicy);
+
 // ========== 订阅 ==========
 subscriptionRouter.get("/", requirePlatformAuth, subscriptionController.listSubscriptions);
 subscriptionRouter.get("/:subscriptionId", requirePlatformAuth, subscriptionController.getSubscription);
