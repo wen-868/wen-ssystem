@@ -200,6 +200,7 @@
 | S3-30 | tenantCode 端点家族不一致（A 已落地） | 林夕（暂代） | 待估 | 已落地 | `/api/platform/tenants/:id` **无** `tenantCode`（`platform-tenant.service.ts:61-67`）；另一家族 `/api/platform/tenants-management/:id` **有**（`admin/tenant.service.ts:136`）→ 需裁定「改端点」或「补字段」（批5 逐页核对） ｜**凌舟复裁（2026-09-14）**：选 A —— 批5 收尾在 `services/platform-tenant.service.ts` 的 `getTenantById` SELECT 补 `t.tenant_code AS tenantCode` + `TenantRecord` 加字段（1~2 行）；**不切端点家族**（B 改造面过大）。本行保留为口径记录。**已落地 8c66a0fd**：`TenantRecord` 增 `tenantCode`；`listTenants` 与 `getTenantById` 的 SELECT 均补 `tenant_code AS tenantCode` | — |
 | S3-31 | 死代码清理（P3） | 林夕（暂代） | 待估 | 待开始 | `controllers/platform/platform.controller.ts` + `services/platform/tenant-admin.service.ts` 无任何 route 引用（批5 复裁实测 grep 命中 0）；与 F2 存量治理同批清理 | — |
 | S3-32 | 公告「定时发布 / 已撤回」状态语义 | 林夕（暂代） | 待估 | 待开始 | 后端现仅 `{DRAFT, PUBLISHED}`；前端两态本轮摘除或标「待接入」，真支持需状态机 + 定时任务（批5 复裁）。**验收标准（凌舟 2026-09-14 复裁落地，全文见 `docs/R101-S2-01-凌舟裁定.md` §二）**：① 功能未实现前，该页**不得对外演示或承诺**「定时发布 / 一键撤回」；若客户可见该页，须在 `Announcements.vue:209` 提示后补「（待接入）」；② 落地时**三项同时收口**——概览 `--` 换真实计数 + 筛选器恢复「定时发布/已撤回」两态 + `:209` 承诺文案成真 | — |
+| S3-33 | 数据字典表与引用统计 | 林夕（暂代） | 待估 | 待开始 | 08 系统配置的「数据字典四类」无字典表，KV 无法做"引用租户数"统计（S2-02 报备 C 类） | — |
 
 > S3-09 来源：R101-S2-R1 前置修复卡 §三（P0-2）。原 `backend/src/services/admin/tenant-usage.service.ts` 的 `getModuleUsage()` 返回 8 条硬编码模块占比（属「禁模拟数据」违规），已按裁定改为返回 `[]`、前端走空态；真实统计需新建数据模型，故另立 S3 事项。
 
