@@ -184,8 +184,16 @@
 | S3-18 | 验证码 SVG → 位图（P3 可选加固） | 林夕（暂代） | 待估 | 待开始 | 凌舟裁定不立项，待出现自动化攻击证据再评估 | — |
 | S3-19 | 后端成功码契约统一 | 林夕（暂代） | 待估 | 待开始 | `instant-retail.service.ts:259`、`platform-integration.service.ts:55`（`"200"`）、`payment.service.ts:183`（`"SUCCESS"`）统一为 `code:"0"`，收缩前端白名单 | — |
 | S3-20 | 大盘趋势「累计（右轴）」累计值 | 林夕（暂代） | 待估 | 待开始 | 设计稿预留右轴累计，后端 `tenantTrend` 现只有 `newCount`，无累计数据源（批3 回传 §八） | — |
-| S3-21 | API 调用次数计数量表 | 林夕（暂代） | 待估 | 待开始 | `config/api-billing.ts` 为静态常量且 `ENABLED:false`，无调用计数表 → 租户配额面板「API 日额度」现返回 null 显示「—」（批4 实测） | — |
-| S3-21 | 租户「API 日额度」用量统计 | 林夕（暂代） | 待估 | 待开始 | 配额面板 `apiDaily` 维度需 API 调用计数数据源；全仓无任何调用计数表（`config/api-billing.ts` 为静态常量且 `ENABLED:false`），按裁定 4.3 返回 `null` + 前端「—」（批4 回传 §四） | — |
+| S3-21 | API 调用次数计数量表（无源·已合并重复编号） | 林夕（暂代） | 待估 | 待开始 | 全仓无 API 调用计数表（`backend/src/config/api-billing.ts` 为静态常量且 `ENABLED:false`）→ 租户配额面板「API 日额度」返回 `null` + 前端「—」（批4 实测；原批4 两条重复编号已并为一条） | — |
+| S3-22 | 系统配置项字段缺失（5 项） | 林夕（暂代） | 待估 | 待开始 | Settings.vue `loginBanner`(:53)、`copyrightInfo`(:58)、`icpNumber`(:62)、`switches`(:83/90/421)、`channels`(:155-278)；`platform-sys-config.service.ts:17-35` DEFAULTS 无这些键 → 现留空态（批5 逐页核对） | — |
+| S3-23 | 公告字段缺失（4 项） | 林夕（暂代） | 待估 | 待开始 | Announcements.vue `subTitle`(:58)、`scope`(:63)、`channel`(:64)、`reach`(:66)；`platform-announcement.service.ts:61-63` SELECT 无 → 现留空态（批5 逐页核对） | — |
+| S3-24 | 版本发布字段缺失（9 项） | 林夕（暂代） | 待估 | 待开始 | AppVersions.vue `subTitle`(:51)、`grayTag/grayTagCls`(:55)、`grayRange`(:56)、`barCls`(:60)、`progress`(:61)、`batchText`(:63)、`adoption`(:66)、`releaseStatus`(:68)、`releaseWindow`(:70)；`app-version.service.ts:85-88` 无（仅 `enabled`） → 现留空态（批5 逐页核对） | — |
+| S3-25 | 对账字段缺失 + 三张无接口表 | 林夕（暂代） | 待估 | 待开始 | Reconciliation.vue `billType`(:71/:349)、`payMethod`(:75/:351)、`stats.arrearsTenants`(:498/499)；`platform-reconciliation.controller.ts:33-43/86-91` 无；另 `arrearsList`(:419)、`reconList`(:445)、`addonList`(:448) 恒空、页面无 fetch → 现留空态（批5 逐页核对） | — |
+| S3-26 | 订阅字段缺失（3 项） | 林夕（暂代） | 待估 | 待开始 | Subscriptions.vue `originalAmount`(:29)、SubscriptionDetail.vue `originalAmount`(:23)、日志列 `detail`(:49)；`subscription.service.ts` 的 log SELECT(:184-194) 无 `detail` 列、行对象无 `originalAmount` → 现留空态（批5 逐页核对） | — |
+| S3-27 | 租户概况 / 统计端点缺失 | 林夕（暂代） | 待估 | 待开始 | `TenantDetail.vue:25` 待接入 `GET /platform/tenants/:id/overview`（9 键概况）；`TenantList.vue:171` 待接入 `GET /platform/tenants/stats`（`statusCounts`）——后端均无端点 → 现留空态（批5 逐页核对） | — |
+| S3-28 | 套餐促销 / 配额字段无表列（8 项） | 林夕（暂代） | 待估 | 待开始 | PackageForm.vue `promoPrice/promoStart/promoEnd/apiQuota/aiQuota/upgradeMode/downgradeMode/renewPolicy`；`t_subscription_plan` 无对应列，提交体也未带 → 现留空态（批5 逐页核对） | — |
+| S3-29 | 值域 / 请求契约不符（4 处，待裁定） | 林夕（暂代） | 待估 | 待开始 | ① 公告 `status`：后端 `z.coerce.number()`（`platform-announcement.controller.ts:10/29/42`）vs 前端中文/字符串（Announcements.vue:357/409）→ 筛选与新建**会 400**；② 套餐 `status:"DRAFT"`（PackageForm.vue:365）后端枚举仅 ACTIVE/INACTIVE；③ `planType:QUARTERLY/CUSTOM`(:228/230) 后端仅 MONTHLY/YEARLY/PERMANENT；④ 订阅写体 `amount/endDate`(Subscriptions.vue:282/312 等) 被后端 zod 静默丢弃（批5 逐页核对） | — |
+| S3-30 | tenantCode 端点家族不一致（待裁定） | 林夕（暂代） | 待估 | 待开始 | `/api/platform/tenants/:id` **无** `tenantCode`（`platform-tenant.service.ts:61-67`）；另一家族 `/api/platform/tenants-management/:id` **有**（`admin/tenant.service.ts:136`）→ 需裁定「改端点」或「补字段」（批5 逐页核对） | — |
 
 > S3-09 来源：R101-S2-R1 前置修复卡 §三（P0-2）。原 `backend/src/services/admin/tenant-usage.service.ts` 的 `getModuleUsage()` 返回 8 条硬编码模块占比（属「禁模拟数据」违规），已按裁定改为返回 `[]`、前端走空态；真实统计需新建数据模型，故另立 S3 事项。
 
