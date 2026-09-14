@@ -31,8 +31,8 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
     const p = await getArrearsPolicy();
     expect(p._configured).toBe(false);
     expect((p._unconfigured as string[]).length).toBeGreaterThan(0);
-    expect(p.graceDays).toBeUndefined();
-    expect(p.retainDays).toBeUndefined();
+    expect(p.graceEndDays).toBeUndefined();
+    expect(p.retainEndDays).toBeUndefined();
     const [, params] = mocks.queryOne.mock.calls[0] as [string, unknown[]];
     expect(params[0]).toBe("billing:arrears_policy");
     expect(params[1]).toBe("SAAS");
@@ -41,20 +41,20 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
   it("欠费策略已配置部分键：_unconfigured 只列未配置的键", async () => {
     mocks.queryOne.mockResolvedValueOnce({
       id: 1,
-      config_value: JSON.stringify({ version: 1, graceDays: 15 }),
+      config_value: JSON.stringify({ version: 1, graceEndDays: 15 }),
     });
     const p = await getArrearsPolicy();
     expect(p._configured).toBe(true);
-    expect(p._unconfigured).not.toContain("graceDays");
-    expect(p._unconfigured).toContain("retainDays");
-    expect(p.graceDays).toBe(15);
+    expect(p._unconfigured).not.toContain("graceEndDays");
+    expect(p._unconfigured).toContain("retainEndDays");
+    expect(p.graceEndDays).toBe(15);
   });
 
   it("保存欠费策略：落 billing:arrears_policy，写 updated_by 与 category=billing", async () => {
     mocks.queryOne.mockResolvedValueOnce(null); // 不存在 → INSERT
     mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
 
-    await updateArrearsPolicy({ graceDays: 15, channels: ["IN_APP"] }, "platform_admin");
+    await updateArrearsPolicy({ graceEndDays: 15, channels: ["IN_APP"] }, "platform_admin");
 
     const [sql, params] = mocks.query.mock.calls[0] as [string, unknown[]];
     expect(sql).toContain("INSERT INTO t_platform_config");
@@ -65,7 +65,7 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
     expect(params[6]).toBe("platform_admin");
     const json = JSON.parse(String(params[3]));
     expect(json.version).toBe(1);
-    expect(json.graceDays).toBe(15);
+    expect(json.graceEndDays).toBe(15);
   });
 
   it("护栏④：null 与 _ 前缀元字段不落库（清空即回到未配置语义）", async () => {
@@ -73,7 +73,7 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
     mocks.query.mockResolvedValueOnce({ affectedRows: 1 });
 
     await updateArrearsPolicy(
-      { graceDays: null, _unconfigured: ["graceDays"], _configured: false } as Record<
+      { graceEndDays: null, _unconfigured: ["graceEndDays"], _configured: false } as Record<
         string,
         unknown
       >,
@@ -82,7 +82,7 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
 
     const params = mocks.query.mock.calls[0][1] as unknown[];
     const json = JSON.parse(String(params[0]));
-    expect("graceDays" in json).toBe(false);
+    expect("graceEndDays" in json).toBe(false);
     expect("_unconfigured" in json).toBe(false);
     expect(json).toEqual({ version: 1 });
   });
@@ -91,6 +91,16 @@ describe("platform/billing-config.service（R101-S2-02 组2）", () => {
     await expect(
       updateArrearsPolicy({ channels: ["站内"] }, "platform_admin")
     ).rejects.toThrow();
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("护栏③：4 段边界非递增的包被 zod 校验拒绝，不落库", async () => {
+    await expect(
+      updateArrearsPolicy(
+        { version: 1, graceEndDays: 30, degradeEndDays: 20, freezeEndDays: 60, retainEndDays: 90 },
+        "admin"
+      )
+    ).rejects.toThrow(/时间线截止天数必须严格递增/);
     expect(mocks.query).not.toHaveBeenCalled();
   });
 

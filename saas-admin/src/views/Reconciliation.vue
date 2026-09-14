@@ -182,21 +182,31 @@
               <div v-if="!arrearsConfigured" class="tipbar">
                 <span class="ic">i</span>
                 <span>
-                  欠费处理策略<b>尚未配置</b>：宽限期、降级后冻结间隔、冻结后保留期、提醒节点、推送通道与四个自动动作均未落库，
+                  欠费处理策略<b>尚未配置</b>：宽限截止、降级截止、冻结截止、保留截止、提醒节点、推送通道与四个自动动作均未落库，
                   <b>系统不内置任何预设值</b>。点击「配置」填写并保存后生效（仅对后续新账单生效）。
                 </span>
               </div>
 
               <div class="g4">
                 <span class="fld">
-                  <span>宽限期天数（全功能可用）</span>
+                  <span>宽限截止（天）<span class="small">D+1 ~ N 全功能可用</span></span>
                   <span v-if="!arrearsConfigured" class="ipt">未配置</span>
-                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.graceDays" placeholder="如 15" />
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.graceEndDays" placeholder="如 15" />
                 </span>
                 <span class="fld">
-                  <span>降级后冻结间隔天数</span>
+                  <span>降级截止（天）<span class="small">只读段结束日</span></span>
                   <span v-if="!arrearsConfigured" class="ipt">未配置</span>
-                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.freezeAfterDays" placeholder="如 30" />
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.degradeEndDays" placeholder="如 30" />
+                </span>
+                <span class="fld">
+                  <span>冻结截止（天）<span class="small">仅可导出段结束日</span></span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.freezeEndDays" placeholder="如 60" />
+                </span>
+                <span class="fld">
+                  <span>保留截止（天）<span class="small">D+N 后转人工注销</span></span>
+                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
+                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.retainEndDays" placeholder="如 90" />
                 </span>
                 <span class="fld">
                   <span>到期前提醒节点（天）</span>
@@ -216,11 +226,6 @@
                       @click="toggleChannel(c.code)"
                     >{{ c.label }}</span>
                   </span>
-                </span>
-                <span class="fld">
-                  <span>冻结后保留期天数</span>
-                  <span v-if="!arrearsConfigured" class="ipt">未配置</span>
-                  <input v-else class="ipt" type="number" min="0" v-model.number="arrearsPolicy.retainDays" placeholder="如 90" />
                 </span>
               </div>
 
@@ -482,13 +487,16 @@ const selectedArrears = ref<number[]>([])
 const arrearsCount = ref(0)
 
 /* ── 欠费处理策略（全局配置）
- * R101-S2-02 组2：原为硬编码业务值（宽限 15 天 / 保留 90 天 / 提醒节点 / 通道 / 四个开关），
- * 属「禁模拟数据」违规 → 改为从 t_platform_config 读取；未配置一律 null / undefined + 置灰阻断，
- * 系统不内置任何预设值（护栏④）。undefined = 未配置 ≠ false = 已配置为关闭。 */
+ * 设计稿 v1.6 第 809 行：欠费处理按「4 段边界」建模 —— 宽限截止 / 降级截止 / 冻结截止 / 保留截止（D+N 递增）。
+ * 后端已删除旧间隔字段 graceDays / freezeAfterDays / retainDays（推不出设计稿的 D+31 / D+61），
+ * 改用 4 个边界字段：graceEndDays / degradeEndDays / freezeEndDays / retainEndDays。
+ * 未配置一律 null / undefined + 置灰阻断，系统不内置任何预设值（护栏④）。
+ * undefined = 未配置 ≠ false = 已配置为关闭。 */
 const arrearsPolicy = reactive({
-  graceDays: null as number | null,
-  freezeAfterDays: null as number | null,
-  retainDays: null as number | null,
+  graceEndDays: null as number | null,
+  degradeEndDays: null as number | null,
+  freezeEndDays: null as number | null,
+  retainEndDays: null as number | null,
   remindNodes: null as number[] | null,
   channels: null as string[] | null,
   autoDowngrade: undefined as boolean | undefined,
@@ -534,60 +542,63 @@ function onRemindNodesInput(e: Event) {
   arrearsPolicy.remindNodes = nums.length ? nums : null
 }
 
-/** 四个自动动作：标题与说明均由已配置值推导，不写死任何天数（原 D+16 / D+31 / D+90 为硬编码） */
+/** 四个自动动作：标题与说明均由已配置边界推导，不写死任何天数（原「降级 30 天后」等硬编码一律删除） */
 const arrearsSwitches = computed(() => [
   {
     key: 'autoDowngrade' as const,
     title: '宽限期结束自动降级只读',
     desc:
-      arrearsPolicy.graceDays === null
-        ? '需先配置「宽限期天数」，配置后在此显示生效日（D+N+1）'
-        : `D+${arrearsPolicy.graceDays + 1} 起整体只读：可查看可导出，由配额引擎自动执行`,
+      arrearsPolicy.graceEndDays === null
+        ? '需先配置「宽限截止」，配置后在此显示生效日（D+宽限截止+1）'
+        : `D+${arrearsPolicy.graceEndDays + 1} 起整体只读：可查看可导出，由配额引擎自动执行`,
   },
   {
     key: 'autoFreeze' as const,
     title: '降级后自动冻结',
     desc:
-      arrearsPolicy.graceDays === null || arrearsPolicy.freezeAfterDays === null
-        ? '需先配置「宽限期天数」与「降级后冻结间隔」，配置后在此显示生效日'
-        : `降级后第 ${arrearsPolicy.freezeAfterDays} 天（D+${arrearsPolicy.graceDays + arrearsPolicy.freezeAfterDays + 1}）冻结：仅可导出数据，暂停计费与登录`,
+      arrearsPolicy.degradeEndDays === null
+        ? '需先配置「降级截止」，配置后在此显示生效日'
+        : `D+${arrearsPolicy.degradeEndDays + 1} 冻结：仅可导出数据，暂停计费与登录`,
   },
   {
     key: 'autoRemind' as const,
     title: '欠费提醒自动推送',
     desc:
       arrearsPolicy.remindNodes?.length
-        ? `进入宽限期即时推送 1 条 + 提前 ${arrearsPolicy.remindNodes.join(' / ')} 天提醒，通道：${channelLabel(arrearsPolicy.channels) || '未配置'}`
+        ? `进入宽限期即时推送 + 提前 ${arrearsPolicy.remindNodes.join(' / ')} 天提醒，通道：${channelLabel(arrearsPolicy.channels) || '未配置'}`
         : '需先配置「提醒节点」与「推送通道」',
   },
   {
     key: 'autoCancel' as const,
     title: '保留期结束自动注销',
     desc:
-      arrearsPolicy.retainDays === null
-        ? '需先配置「冻结后保留期天数」；默认关闭，转人工需客服确认后执行「确认清除」'
-        : `D+${arrearsPolicy.retainDays} 后转人工，需客服确认后执行「确认清除」`,
+      arrearsPolicy.retainEndDays === null
+        ? '需先配置「保留截止」；未配置时不会自动注销，转人工需客服确认后执行「确认清除」'
+        : `D+${arrearsPolicy.retainEndDays} 后转人工，需客服确认后执行「确认清除」`,
   },
 ])
 
 /**
- * 页顶「欠费处理时间线」：原为写死文案「宽限期 15 天 → D+16~30 → D+31~60 → D+61~90」，
- * 其中的 15 / 30 / 60 / 90 全是硬编码业务值（属「禁模拟数据」违规）→ 改为由已配置值推导。
- * 未配置（三要素任一为 null）时输出未配置提示，不回落任何默认天数。
+ * 页顶「欠费处理时间线」：设计稿 v1.6 第 809 行按 4 段边界建模 ——
+ *   宽限期（D+1~graceEndDays）→ 功能降级·只读（D+graceEndDays+1~degradeEndDays）
+ *   → 冻结·仅可导出（D+degradeEndDays+1~freezeEndDays）→ 保留期（D+freezeEndDays+1~retainEndDays）→ 注销清除。
+ * 4 个边界任一为 null 时输出未配置提示，不回落任何默认天数、不出现任何写死数字。
  */
 const arrearsTimeline = computed(() => {
-  const g = arrearsPolicy.graceDays
-  const f = arrearsPolicy.freezeAfterDays
-  const r = arrearsPolicy.retainDays
-  if (g === null || f === null || r === null) {
-    return '欠费处理时间线待配置：请先在「欠费处理策略」中配置宽限期天数、降级后冻结间隔与冻结后保留期天数，配置后此处按配置值生成。'
+  const g = arrearsPolicy.graceEndDays
+  const d = arrearsPolicy.degradeEndDays
+  const f = arrearsPolicy.freezeEndDays
+  const r = arrearsPolicy.retainEndDays
+  if (g === null || d === null || f === null || r === null) {
+    return '欠费处理时间线待配置：请先在「欠费处理策略」中配置宽限截止、降级截止、冻结截止与保留截止四个边界天数，配置后此处按配置值生成。'
   }
-  const freezeDay = g + f + 1
-  const segs: string[] = [`宽限期 ${g} 天（全功能）`]
-  if (f > 0) segs.push(`功能降级·只读（D+${g + 1}~${g + f}）`)
-  segs.push(`冻结·仅可导出（D+${freezeDay} 起）`)
-  if (r > freezeDay) segs.push(`保留期至 D+${r}`)
-  segs.push(`注销清除（D+${r} 后转人工确认）`)
+  const segs: string[] = [
+    `宽限期 ${g} 天（全功能）`,
+    `功能降级·只读（D+${g + 1}~${d}）`,
+    `冻结·仅可导出（D+${d + 1}~${f}）`,
+    `保留期（D+${f + 1}~${r}）`,
+    '注销清除',
+  ]
   return segs.join(' → ')
 })
 
@@ -603,9 +614,10 @@ async function loadArrearsPolicy() {
     const unconf: string[] = Array.isArray(d._unconfigured) ? d._unconfigured : []
     arrearsConfigured.value = !!d._configured
     if (!d._configured) return
-    arrearsPolicy.graceDays = d.graceDays ?? null
-    arrearsPolicy.freezeAfterDays = d.freezeAfterDays ?? null
-    arrearsPolicy.retainDays = d.retainDays ?? null
+    arrearsPolicy.graceEndDays = d.graceEndDays ?? null
+    arrearsPolicy.degradeEndDays = d.degradeEndDays ?? null
+    arrearsPolicy.freezeEndDays = d.freezeEndDays ?? null
+    arrearsPolicy.retainEndDays = d.retainEndDays ?? null
     arrearsPolicy.remindNodes = Array.isArray(d.remindNodes) ? d.remindNodes : null
     arrearsPolicy.channels = Array.isArray(d.channels) ? d.channels : null
     arrearsPolicy.autoDowngrade = d.autoDowngrade
@@ -623,9 +635,10 @@ async function saveArrearsPolicy() {
   arrearsSaving.value = true
   try {
     const payload: Record<string, unknown> = { version: 1 }
-    if (arrearsPolicy.graceDays !== null) payload.graceDays = Number(arrearsPolicy.graceDays)
-    if (arrearsPolicy.freezeAfterDays !== null) payload.freezeAfterDays = Number(arrearsPolicy.freezeAfterDays)
-    if (arrearsPolicy.retainDays !== null) payload.retainDays = Number(arrearsPolicy.retainDays)
+    if (arrearsPolicy.graceEndDays !== null) payload.graceEndDays = Number(arrearsPolicy.graceEndDays)
+    if (arrearsPolicy.degradeEndDays !== null) payload.degradeEndDays = Number(arrearsPolicy.degradeEndDays)
+    if (arrearsPolicy.freezeEndDays !== null) payload.freezeEndDays = Number(arrearsPolicy.freezeEndDays)
+    if (arrearsPolicy.retainEndDays !== null) payload.retainEndDays = Number(arrearsPolicy.retainEndDays)
     if (arrearsPolicy.remindNodes?.length) payload.remindNodes = arrearsPolicy.remindNodes
     if (arrearsPolicy.channels?.length) payload.channels = arrearsPolicy.channels
     if (arrearsPolicy.autoDowngrade !== undefined) payload.autoDowngrade = arrearsPolicy.autoDowngrade
