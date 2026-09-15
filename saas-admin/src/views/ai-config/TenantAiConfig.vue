@@ -41,7 +41,7 @@
           <template #default="{ row }">
             <el-switch
               :model-value="row.enabled === 1"
-              @change="(val: string | number | boolean) => handleToggleEnabled(row, val)"
+              @change="(val: string | number | boolean) => handleToggleEnabled(row as TenantConfigView, val)"
             />
           </template>
         </el-table-column>
@@ -50,7 +50,7 @@
         </el-table-column>
         <el-table-column label="操作" width="90" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="openEdit(row)">编辑</el-button>
+            <el-button link type="primary" size="small" @click="openEdit(row as TenantConfigView)">编辑</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -89,8 +89,11 @@
             default-first-option
             style="width: 100%;"
           >
-            <el-option v-for="m in MODEL_OPTIONS" :key="m" :label="m" :value="m" />
+            <el-option v-for="m in modelOptions" :key="m.name" :label="m.displayName || m.name" :value="m.name" />
           </el-select>
+          <div v-if="modelOptions.length === 0" style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
+            模型选项接口未返回，可手动输入模型名称
+          </div>
         </el-form-item>
         <el-form-item label="API Key">
           <el-input
@@ -137,6 +140,8 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import {
   listTenantAiConfigs,
   updateTenantAiConfig,
+  listExternalModelOptions,
+  getPlatformAiConfig,
   type TenantConfigView,
   type UpdateTenantAiConfigPayload,
 } from "../../api/ai-config";
@@ -149,8 +154,11 @@ const PROVIDER_OPTIONS = [
   { value: "ollama", label: "本地 Ollama" },
 ];
 
-/** 常见模型名（可自由输入） */
-const MODEL_OPTIONS = ["deepseek-chat", "qwen-plus", "glm-4-flash", "qwen2.5:3b"];
+/**
+ * 模型选项：原写死 4 个模型名 → 改为从 listExternalModelOptions() 取（契约 §七 D）。
+ * 接口不可用 → 空数组（select 仍可 allow-create 手动输入），不回落写死数组。
+ */
+const modelOptions = ref<{ name: string; displayName?: string; modelName?: string }[]>([]);
 
 function providerLabel(provider: string): string {
   const found = PROVIDER_OPTIONS.find((p) => p.value === provider);
@@ -221,11 +229,14 @@ interface TenantEditForm {
   apiKey: string;
   apiEndpoint: string;
   temperature: number;
-  maxTokens: number;
+  maxTokens: number | null;
   systemPrompt: string;
   apiKeySet: boolean;
   apiKeyMasked: string | null;
 }
+
+/** 平台默认 maxTokens（t_platform_ai_config.default_max_tokens），用于租户未单独配置时回显；未配置则留空（契约 §七 D） */
+const platformDefaultMaxTokens = ref<number | null>(null);
 
 const editForm = reactive<TenantEditForm>({
   enabled: "1",
@@ -234,7 +245,7 @@ const editForm = reactive<TenantEditForm>({
   apiKey: "",
   apiEndpoint: "",
   temperature: 0.3,
-  maxTokens: 2048,
+  maxTokens: null,
   systemPrompt: "",
   apiKeySet: false,
   apiKeyMasked: null,
@@ -258,7 +269,8 @@ function openEdit(row: TenantConfigView) {
   editForm.apiKey = "";
   editForm.apiEndpoint = row.apiEndpoint ?? "";
   editForm.temperature = row.temperature;
-  editForm.maxTokens = row.maxTokens;
+  // 租户未单独配置 maxTokens 时回显平台默认；平台默认也未配置则留空（不写死 2048）
+  editForm.maxTokens = row.maxTokens != null ? row.maxTokens : platformDefaultMaxTokens.value ?? null;
   editForm.systemPrompt = row.systemPrompt ?? "";
   editForm.apiKeySet = row.apiKeySet;
   editForm.apiKeyMasked = row.apiKeyMasked;
@@ -279,9 +291,10 @@ async function handleSave() {
       model: editForm.model,
       apiEndpoint: editForm.apiEndpoint || undefined,
       temperature: editForm.temperature,
-      maxTokens: editForm.maxTokens,
       systemPrompt: editForm.systemPrompt || undefined,
     };
+    // maxTokens 未配置（null）时不上送该字段（对齐后端 dto：空表示不改动），不写死默认值
+    if (editForm.maxTokens != null) payload.maxTokens = editForm.maxTokens;
     // apiKey 留空表示不改动，不提交该字段（对齐后端 dto：空字符串表示不改动）
     if (editForm.apiKey) payload.apiKey = editForm.apiKey;
 
@@ -299,5 +312,32 @@ async function handleSave() {
   }
 }
 
-onMounted(fetchList);
+/** 加载模型下拉选项（替代写死 MODEL_OPTIONS）；失败保持空态，不回落写死数组 */
+async function loadModelOptions() {
+  try {
+    const res = await listExternalModelOptions();
+    const list = (res as any)?.data?.data ?? (res as any)?.data ?? res
+    modelOptions.value = Array.isArray(list) ? list : (list?.list ?? [])
+  } catch {
+    // 接口不可用 → 空态（select allow-create 仍可手动输入），不回落写死数组
+    modelOptions.value = []
+  }
+}
+
+/** 加载平台默认 maxTokens，用于租户未单独配置时回显 */
+async function loadPlatformConfig() {
+  try {
+    const res = await getPlatformAiConfig();
+    const d = (res as any)?.data?.data ?? (res as any)?.data ?? res
+    platformDefaultMaxTokens.value = d?.defaultMaxTokens != null ? Number(d.defaultMaxTokens) : null
+  } catch {
+    platformDefaultMaxTokens.value = null
+  }
+}
+
+onMounted(() => {
+  fetchList()
+  loadModelOptions()
+  loadPlatformConfig()
+});
 </script>

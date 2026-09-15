@@ -411,3 +411,33 @@ export function publishAppVersion(payload: {
 export function deleteAppVersion(id: number) {
   return api.delete<any, { data: ApiResult<any> }>(`/padmin/app-versions/${id}`);
 }
+
+// ==================== AI 计费管理配置（R101-S2-02 组3） ====================
+// 落 t_platform_config（config_key='ai:billing_strategy' | 'ai:free_grant' | 'ai:quota_pack' | 'ai:points_rate'）
+// 响应体统一 { code, data, message }，data 含只读元字段 _configured(boolean) / _unconfigured(string[])（契约 §三，不得回写）。
+// 端点契约唯一真相源：docs/R101-S2-02-组3-AI类配置契约.md §四（主后端 8080，requirePlatformAuth）。
+// 未配置 / 接口不可用 -> 调用方保持空态，绝不回落任何默认业务值（护栏④）。
+export function getAiBillingStrategy() {
+  return api.get('/platform/ai-billing/billing-strategy')
+}
+export function updateAiBillingStrategy(data: any) {
+  return api.put('/platform/ai-billing/billing-strategy', data)
+}
+export function getAiFreeGrant() {
+  return api.get('/platform/ai-billing/free-grant')
+}
+export function updateAiFreeGrant(data: any) {
+  return api.put('/platform/ai-billing/free-grant', data)
+}
+export function getAiQuotaPacks() {
+  return api.get('/platform/ai-billing/quota-packs')
+}
+export function updateAiQuotaPacks(data: any) {
+  return api.put('/platform/ai-billing/quota-packs', data)
+}
+export function getAiPointsRate() {
+  return api.get('/platform/ai-billing/points-rate')
+}
+export function updateAiPointsRate(data: any) {
+  return api.put('/platform/ai-billing/points-rate', data)
+}
