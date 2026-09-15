@@ -20,7 +20,7 @@
     "echarts": "^6.1.0",
     "element-plus": "^2.7.6",
     "pinia": "^3.0.4",
-    "vue": "^3.4.31",
+    "vue": "3.4.21",
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
