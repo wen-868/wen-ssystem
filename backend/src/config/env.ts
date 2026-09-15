@@ -19,6 +19,15 @@ export const env = {
   /** 服务端口号，默认 8080 */
   PORT: Number(process.env.PORT || 8080),
 
+  /**
+   * 服务监听地址，默认 127.0.0.1（仅回环）。
+   *
+   * 安全基线（S3-35）：Express 的 `app.listen(port)` 不传 host 时会监听 **0.0.0.0 全网卡**，
+   * 导致本应只由 nginx 反代（`proxy_pass http://127.0.0.1:8080`）访问的内部服务被公网直达。
+   * 默认收敛到回环；确需内网/外网直连时显式设置 `HOST=10.x.x.x` 或 `HOST=0.0.0.0`。
+   */
+  HOST: process.env.HOST || "127.0.0.1",
+
   /** 运行环境：development / production，默认 production */
   NODE_ENV: process.env.NODE_ENV || "production",
 

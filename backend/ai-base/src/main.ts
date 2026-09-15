@@ -20,6 +20,14 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3016);
   const env = configService.get<string>('NODE_ENV', 'development');
+  /**
+   * 监听地址，默认 127.0.0.1（仅回环）。
+   *
+   * 安全基线（S3-35）：NestJS 的 `app.listen(port)` 不传 host 时会监听 **0.0.0.0 全网卡**，
+   * 导致本应只由 nginx 反代（`proxy_pass http://127.0.0.1:3016`）访问的内部服务被公网直达。
+   * 默认收敛到回环；确需内网/外网直连时显式设置 `HOST=10.x.x.x` 或 `HOST=0.0.0.0`。
+   */
+  const host = configService.get<string>('HOST', '127.0.0.1');
 
   // 全局前缀（与项目统一标准对齐：/api/admin/*、/api/platform/*）
   app.setGlobalPrefix('api');
@@ -42,10 +50,10 @@ async function bootstrap() {
   // 初始化 AI 主动推送 WebSocket 通道（/api/ai/ws，JWT 认证 + 按租户广播）
   app.get(PushGatewayService).init(app.getHttpServer() as HttpServer);
 
-  await app.listen(port);
+  await app.listen(port, host);
 
   Logger.log(
-    `AI底座已启动: http://localhost:${port}（环境：${env}）`,
+    `AI底座已启动: http://${host}:${port}（环境：${env}）`,
     'Bootstrap',
   );
 }

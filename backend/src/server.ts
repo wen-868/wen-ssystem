@@ -196,8 +196,9 @@ async function start() {
     await runMigrations();
   }
 
-  app.listen(env.PORT, () => {
-    logger.info(`zhixiang-backend listening on http://localhost:${env.PORT}`);
+  /* S3-35：显式传 HOST，默认 127.0.0.1 仅回环；不传 host 会监听全网卡（公网直达暴露面） */
+  app.listen(env.PORT, env.HOST, () => {
+    logger.info(`zhixiang-backend listening on http://${env.HOST}:${env.PORT}`);
     // 启动预警定时检查
     startAlertScheduler();
     // 启动门店管控定时检查器
