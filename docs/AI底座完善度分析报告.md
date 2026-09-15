@@ -1,5 +1,15 @@
 # AI 底座完善度分析报告
 
+> ⚠️ **2026-09-16 更正（S3-36）—— 本报告有两处结论已失效，勿照搬**：
+> 1. **分析对象 `backend/ai-base` 不是部署副本**：它是无 `.git` 的旧分叉，生产部署自
+>    `wen-868/ZXQL-AI`（检出 `/opt/zhixiang/ai-base`）。该副本目录**已于 2026-09-16 物理删除**，
+>    源码归档在仓库外 `D:/Users/ZXQL/ZXQL-MS/ai-base-fork-archive-20260916`。
+> 2. **§三"ai-base CI 门禁 ✅ 已接入 ci.yml"已失效**：那个 job 测的正是上述副本，
+>    **属假门禁**（它绿了 ≠ 生产 OK），已随副本一并移除。
+>    **真实状态：AI 底座至今零 CI 门禁**，生产代码从未被 CI 覆盖 —— 需在 ZXQL-AI 自建（跨仓需 PAT）。
+>
+> 报告其余内容（功能完善度、工具池、e2e 脚本等）作为 2026-08 的历史快照仍可参考。
+
 > 分析日期：2026-08-15 ｜ 分析对象：backend/ai-base（NestJS 独立服务，端口 3016）
 > 依据：docs/ai-base/ 4 份规划文档 + docs/tasks/current-tasks.md R70 段落 + 源码实测 + coverage 报告
 

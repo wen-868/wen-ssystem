@@ -10,17 +10,35 @@
  *
  * 用法：node scripts/check-ai-base-start.mjs
  * 前置：cd backend/ai-base && pnpm run build
+ *
+ * ⚠️ 2026-09-16 起本脚本**在本仓已不可用**（S3-36）：
+ * `backend/ai-base` 是无 `.git` 的非部署旧分叉副本，已物理删除；
+ * AI 底座权威仓库为 `wen-868/ZXQL-AI`（本地 `D:/Users/ZXQL/ZXQL-AI`，生产 `/opt/zhixiang/ai-base`）。
+ * 本脚本保留仅为历史可追溯，执行会立即以明确提示退出，避免在别处再建副本。
+ * 需要该检查请到 ZXQL-AI 仓库内重建（或把下方 AI_BASE_ROOT 指向权威仓库路径）。
  */
 import { spawn } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
-const MAIN = join(ROOT, 'backend', 'ai-base', 'dist', 'main.js');
+const AI_BASE_ROOT = process.env.AI_BASE_ROOT || join(ROOT, 'backend', 'ai-base');
+const MAIN = join(AI_BASE_ROOT, 'dist', 'main.js');
+
+if (!existsSync(MAIN)) {
+  console.error(
+    '[check-ai-base-start] 找不到构建产物：' + MAIN + '\n' +
+    '原因：本仓的 backend/ai-base 是非部署副本，已于 2026-09-16 删除（S3-36）。\n' +
+    '请到权威仓库 wen-868/ZXQL-AI（本地 D:/Users/ZXQL/ZXQL-AI）执行，\n' +
+    '或设置环境变量 AI_BASE_ROOT=<ai-base 检出路径> 后重试（需已 pnpm run build）。',
+  );
+  process.exit(2);
+}
 
 const child = spawn('node', [MAIN], {
-  cwd: join(ROOT, 'backend', 'ai-base'),
+  cwd: AI_BASE_ROOT,
   env: { ...process.env },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
