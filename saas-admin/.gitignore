@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# S3-38：根 .gitignore 忽略 .env.production（防生产密钥入库，策略保留）。
+# 本子工程的 .env.production **仅含公开域名**（AI 底座入口 https://saas.onepan.cn/ai-api），
+# 无密钥，且生产构建依赖它注入 VITE_AI_BASE_URL，故在此局部解除忽略。
+# ⚠️ 若日后往该文件加入任何密钥，须立即删除下面这行并改用 CI 注入。
+!.env.production

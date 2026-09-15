@@ -2,10 +2,14 @@
  * AI 底座配置管理 API 封装（saas-admin 平台总后台）
  *
  * AI 底座为独立 NestJS 服务（默认端口 3016），通过环境变量 VITE_AI_BASE_URL 配置地址。
- * 端点契约唯一真相源（禁止凭空猜测）：
- *   - backend/ai-base/src/gateway/ai-config.controller.ts
- *   - backend/ai-base/src/tenant/ai-config-admin.service.ts
- *   - backend/ai-base/src/gateway/dto/ai-config.dto.ts
+ *
+ * ⚠️ 代码位置（2026-09-16 S3-36 更正）：AI 底座**不在本仓**。权威仓库为
+ * `wen-868/ZXQL-AI`（本地 D:/Users/ZXQL/ZXQL-AI，生产检出 /opt/zhixiang/ai-base）；
+ * 本仓原有的 `backend/ai-base` 是无 .git 的非部署副本，已删除。
+ * 端点契约唯一真相源（禁止凭空猜测）——**均在 ZXQL-AI 仓库内**：
+ *   - src/gateway/ai-config.controller.ts
+ *   - src/tenant/ai-config-admin.service.ts
+ *   - src/gateway/dto/ai-config.dto.ts
  *
  * 端点列表（底座全局前缀 /api）：
  *   - GET  /api/admin/ai-config/platform          获取平台默认配置
@@ -27,11 +31,36 @@ import { useAuthStore } from "../stores/auth";
 
 // ==================== AI 底座基础配置 ====================
 
-/** 解析 AI 底座服务地址：优先读 VITE_AI_BASE_URL，未配置时默认本地 3016 端口 */
+/** 开发环境回退地址（仅 dev 生效） */
+const AI_BASE_DEV_FALLBACK = "http://localhost:3016";
+
+/** 生产环境未注入时的提示，只弹一次，避免每个请求刷屏 */
+let aiBaseWarned = false;
+function warnAiBaseMissing(): string {
+  const msg =
+    "AI 服务地址未配置（VITE_AI_BASE_URL）。生产构建需注入该变量，例如 " +
+    "VITE_AI_BASE_URL=https://saas.onepan.cn/ai-api";
+  if (!aiBaseWarned) {
+    aiBaseWarned = true;
+    ElMessage.error(msg);
+  }
+  console.error("[ai-config] " + msg);
+  return msg;
+}
+
+/**
+ * 解析 AI 底座服务地址。
+ *
+ * ⚠️ 生产环境**禁止**回退 localhost：浏览器会把 http://localhost:3016 解析成
+ * 访问者自己的机器 → 请求必然失败且界面无任何提示（静默故障，极难排查）。
+ * 因此生产未注入时返回空串，由请求拦截器显式报错并阻止请求（S3-38）。
+ * 开发环境保留 localhost 回退（本地直连 ai-base 3016）。
+ */
 function resolveAiBase(): string {
   const configured = import.meta.env.VITE_AI_BASE_URL;
   if (configured) return configured.replace(/\/+$/, "");
-  return "http://localhost:3016";
+  if (import.meta.env.PROD) return "";
+  return AI_BASE_DEV_FALLBACK;
 }
 
 /**
@@ -44,6 +73,11 @@ const aiRequest = axios.create({
 });
 
 aiRequest.interceptors.request.use((config) => {
+  // 生产未注入 VITE_AI_BASE_URL 时 baseURL 为空串：
+  // 若不拦截，axios 会退化成同源相对请求，失败依旧无提示 —— 必须显式阻断。
+  if (!aiRequest.defaults.baseURL) {
+    return Promise.reject(new Error(warnAiBaseMissing()));
+  }
   const authStore = useAuthStore();
   if (authStore.token) {
     config.headers.Authorization = `Bearer ${authStore.token}`;
