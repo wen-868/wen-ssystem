@@ -209,6 +209,8 @@
 | S3-34 | `module_access` 语义冲突（跨服务） | 林夕（暂代） | 待估 | 待开始 | `subscription-renewal.service.ts:121-128` 与 `subscription.service.ts:263-266` 把 `mod` 同写 `module_code`/`module_name`；若存中文文案则 code 列被写中文 → 授权链路失配（组1 报备）。修复口径：规范为 module_code 数组 + 码表转换 + 白名单防御；**组2 前置：先出只读影响面评估** | — |
 | S3-35 | ai-base 鉴权与监听地址加固 | 林夕（暂代） | 待估 | 待开始 | **运维止血已完成（2026-09-16 凌舟）**：iptables 收敛 3016/8080 仅回环+内网（6 条规则存 `/etc/iptables.rules` + `/etc/rc.local` 开机恢复），公网实测双端口不可达、`22/80/443` 与四域名链路正常。**遗留③ 已关闭**：401 来源＝ai-base **自带** `src/tenant/admin-auth.guard.ts`（在 **ZXQL-AI** 仓库），非网关层/非缺失 → **不需要补 guard**。**待做**：① 主后端 HOST 改动（`828ea48f`）**需部署**才生效；② **ai-base 的 HOST 改动须改到 ZXQL-AI 仓库**（`828ea48f` 改的是非部署副本，对生产无效）；③ 云安全组收敛（控制台侧双保险） | — |
 | S3-36 | ai-base 副本权威性治理 | 林夕（暂代） | 待估 | 待开始 | 权威仓库＝`wen-868/ZXQL-AI`（生产 `/opt/zhixiang/ai-base` 检出该仓库，HEAD 4675065，自带 admin-auth.guard）；`wen-ssystem/backend/ai-base` 是**非部署副本**（无 .git）→ 加 README 标注或删除；**R101-S3-08（AI 底座 MCP 接口）执行仓库改为 ZXQL-AI**；产出「部署链路对照表」 | — |
+| S3-37 | ZXQL-AI 建自有 CI（AI 底座零门禁） | 林夕（暂代） | 待估 | 待开始 | 原 wen-ssystem 的 ai-base job 守护的是**非部署副本**（已随目录移除，`ci.yml:80-83` 留注释）→ **否决跨仓 checkout 方案**（需 PAT 且职责错位），改为在 `wen-868/ZXQL-AI` 建 CI（build+lint+test）；验收须含"故意制造失败验证门禁会红" | — |
+| S3-38 | saas-admin AI 地址注入 + 回退硬化 | 林夕（暂代） | 待估 | 待开始 | 补 `saas-admin/.env.production`（`VITE_AI_BASE_URL=https://saas.onepan.cn/ai-api`，nginx `/ai-api/` 已确认存在于 saas/api/admin/m 四 server 块）；并改掉 `src/api/ai-config.ts:32-34` 生产未注入时**静默回退 localhost:3016** 的行为（改显式提示，dev 保留回退） | — |
 
 > S3-09 来源：R101-S2-R1 前置修复卡 §三（P0-2）。原 `backend/src/services/admin/tenant-usage.service.ts` 的 `getModuleUsage()` 返回 8 条硬编码模块占比（属「禁模拟数据」违规），已按裁定改为返回 `[]`、前端走空态；真实统计需新建数据模型，故另立 S3 事项。
 
