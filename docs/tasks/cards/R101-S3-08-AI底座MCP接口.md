@@ -7,9 +7,10 @@
 > ## ⚠️ 执行仓库：`D:\Users\ZXQL\ZXQL-AI`（`wen-868/ZXQL-AI`）—— **不是 wen-ssystem**
 >
 > **2026-09-16 凌舟裁定（S3-36）**：AI 底座的权威源码在 ZXQL-AI，生产检出为 `/opt/zhixiang/ai-base`。
-> `wen-ssystem/backend/ai-base` 是**无 `.git` 的非部署副本**（旧分叉，已停止演进，见该目录 README），
-> 在此改 = **改了不生效**。2026-09-16 已发生过一次：listen 收敛改动误落副本（`828ea48f`），
-> 只得在权威仓库重做（`8884b8c`）。
+> 原因：2026-09-16 的 listen 收敛改动误落在 `wen-ssystem/backend/ai-base`
+> （无 `.git` 的非部署旧分叉，提交 `828ea48f`），**改了不生效**，只得在权威仓库重做（`8884b8c`）。
+> **该副本目录已于同日物理删除**（源码归档在仓库外 `D:/Users/ZXQL/ZXQL-MS/ai-base-fork-archive-20260916`），
+> 因此本卡中若仍见该路径引用，一律视为**已失效**。
 >
 > 本卡所有"涉及文件"**均为 ZXQL-AI 仓库内路径**；前端若需新增 MCP 配置界面，
 > 另在 wen-ssystem 单独提交，但**底座代码一律在 ZXQL-AI**。

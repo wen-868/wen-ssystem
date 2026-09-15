@@ -76,36 +76,18 @@ jobs:
       - name: Security smoke scan (basic DAST)
         run: node scripts/security-smoke.mjs
 
-  ai-base:
-    # AI 底座门禁（R70 完善度 P0-2）：构建 + lint + 单元测试，与主后端测试隔离（独立 pnpm 项目）
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Enable pnpm (corepack)
-        run: corepack enable && corepack prepare pnpm@latest --activate
-
-      - name: Install AI base dependencies
-        working-directory: backend/ai-base
-        run: pnpm install --frozen-lockfile
-
-      - name: Build AI base
-        working-directory: backend/ai-base
-        run: pnpm run build
-
-      - name: Lint AI base
-        working-directory: backend/ai-base
-        run: pnpm run lint
-
-      - name: Test AI base
-        working-directory: backend/ai-base
-        run: pnpm test -- --runInBand
+  # ---------------------------------------------------------------------------
+  # 原 `ai-base` job 已随 `backend/ai-base` 目录一并移除（2026-09-16，S3-36）。
+  #
+  # 移除原因：该 job 的门禁对象是 `backend/ai-base` —— 一个**无 .git、不参与部署
+  # 的旧分叉副本**（生产 ai-base 部署自 wen-868/ZXQL-AI，检出 /opt/zhixiang/ai-base）。
+  # 也就是说它一直是个**假门禁**：这里绿了并不代表生产代码没问题，生产代码从未被
+  # 任何 CI 覆盖。留着只会制造"AI 底座有门禁"的错觉，故随副本一并删除。
+  #
+  # ⚠️ 由此产生真实缺口：**AI 底座目前零 CI 门禁**（构建 / lint / 单测均无）。
+  # 正确做法是在权威仓库 `wen-868/ZXQL-AI` 内建自己的 CI（本仓跨仓 checkout 需 PAT，
+  # 默认 GITHUB_TOKEN 只能访问本仓）。此项已登记，待凌舟配置仓库密钥后实施。
+  # ---------------------------------------------------------------------------
 
   migration-check:
     # 数据库迁移纳入 CI：真实 MySQL 8 执行迁移脚本，验证关键表存在（验收项：迁移可前滚/纳入 CI）
