@@ -6,6 +6,9 @@
 # 源码来源：独立仓库 ZXQL-AI（wen-868/ZXQL-AI），部署时检出到 /opt/zhixiang/ai-base；
 # 若独立仓库不可用，自动回退到管理系统内嵌的 backend/ai-base（保证旧 AI 不停）。
 # 作者：凌舟 | 日期：2026-08-03 | 用途：R73-02 AI 底座部署阻塞项
+# S3-40（2026-09-16 凌舟）：失败一律输出统一标记 `❌ [AI底座] 部署失败：<原因>`，
+#   由 auto-deploy.sh 末尾汇总——容错不阻断主部署，但绝不"静默成功"
+#   （同"假 CI 门禁"一类：绿灯/成功码不等于真的部署了）。
 # ============================================================================
 set -uo pipefail
 
@@ -19,6 +22,13 @@ AI_LEGACY_DIR="${PROJECT_DIR}/backend/ai-base"
 AI_DIR=""
 BACKEND_ENV="${PROJECT_DIR}/backend/.env"
 LOG_DIR="${PROJECT_DIR}/logs"
+# S3-40：失败原因（软失败——健康检查等仍可继续的失败先记下，收尾统一出标记）
+AI_FAIL_REASON=""
+# S3-40：硬失败统一出口——打印统一标记后以 0 退出（不阻断主部署），由 auto-deploy.sh 汇总判定
+ai_fail() {  # $1 = 失败原因
+  echo "❌ [AI底座] 部署失败：$1" >&2
+  exit 0
+}
 
 echo "==> [AI底座] 开始部署 $(date '+%Y-%m-%d %H:%M:%S')"
 
@@ -39,15 +49,14 @@ elif [ -f "${AI_LEGACY_DIR}/package.json" ]; then
   AI_DIR="${AI_LEGACY_DIR}"
   echo "==> [AI底座] 独立仓库不可用，回退到内嵌源码：${AI_DIR}（旧 AI 不停）"
 else
-  echo "==> [AI底座] 独立仓库与内嵌源码均不可用，跳过"
-  exit 0
+  ai_fail "独立仓库与内嵌源码均不可用（${AI_TARGET_DIR} 与 ${AI_LEGACY_DIR} 均无 package.json）"
 fi
 
 # ---- 1. pnpm 检查（AI 底座为 pnpm 工程；服务器 Node 为 v20，必须用 pnpm@9，
 #          corepack 默认拉取 pnpm 11 需 Node 22，会报 ERR_UNKNOWN_BUILTIN_MODULE） ----
 if ! command -v pnpm >/dev/null 2>&1; then
   echo "==> [AI底座] 全局安装 pnpm@9（兼容 Node 20）"
-  npm install -g pnpm@9 >/dev/null 2>&1 || { echo "==> [AI底座] pnpm 安装失败，跳过"; exit 0; }
+  npm install -g pnpm@9 >/dev/null 2>&1 || ai_fail "pnpm@9 全局安装失败（npm install -g pnpm@9；AI 底座为 pnpm 工程，需 pnpm@9 兼容 Node 20）"
 else
   PNPM_VERSION=$(pnpm --version 2>/dev/null || echo "unknown")
   echo "==> [AI底座] 已有 pnpm ${PNPM_VERSION}"
@@ -143,11 +152,11 @@ fi
 
 # ---- 3. 安装依赖（需执行原生脚本以编译 @napi-rs/canvas） ----
 echo "==> [AI底座] pnpm install"
-pnpm install --frozen-lockfile 2>&1 | tail -8 || { echo "==> [AI底座] pnpm install 失败，跳过 AI 底座部署"; exit 0; }
+pnpm install --frozen-lockfile 2>&1 | tail -8 || ai_fail "pnpm install --frozen-lockfile 失败（多为 ZXQL-AI 的 pnpm-lock.yaml 与 package.json 不同步）"
 
 # ---- 4. 构建 ----
 echo "==> [AI底座] pnpm build"
-pnpm build 2>&1 | tail -8 || { echo "==> [AI底座] 构建失败，跳过 AI 底座部署"; exit 0; }
+pnpm build 2>&1 | tail -8 || ai_fail "pnpm build 失败（见上方构建日志）"
 
 # ---- 5. 启动 PM2 ----
 echo "==> [AI底座] pm2 启动 zhixiang-ai-base"
@@ -157,7 +166,7 @@ pm2 start dist/main.js \
   --cwd "${AI_DIR}" \
   --env production \
   --log "${LOG_DIR}/ai-base.log" \
-  --time || { echo "==> [AI底座] pm2 启动失败"; exit 0; }
+  --time || ai_fail "pm2 启动 zhixiang-ai-base 失败（见 pm2 logs）"
 pm2 save
 
 # ---- 6. 健康检查 ----
@@ -173,7 +182,8 @@ for i in {1..15}; do
   sleep 2
 done
 if [ "${READY}" != "1" ]; then
-  echo "==> [AI底座] 健康检查未通过，查看日志：tail -50 ${LOG_DIR}/ai-base.log"
+  # S3-40：软失败——nginx 反代等后续步骤仍照常执行，收尾统一出标记
+  AI_FAIL_REASON="健康检查未通过（15 次探测 http://127.0.0.1:3016/api/health 均失败），日志：${LOG_DIR}/ai-base.log"
 fi
 
 # ---- 7. nginx /ai-api/ 反代自动配置（SSE 流式对话 + WebSocket 实时推送） ----
@@ -306,7 +316,12 @@ if [ -z "$(grep '^DEEPSEEK_API_KEY=' .env 2>/dev/null | cut -d= -f2-)" ]; then
   echo "==> [AI底座] 提示：DEEPSEEK_API_KEY 未配置，端到端验收 LLM 项需配置后执行 node scripts/ai-base-e2e.mjs"
 fi
 
-echo "==> [AI底座] 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
+# S3-40：软失败在此收口——只有全程无失败才报"部署完成"
+if [ -n "${AI_FAIL_REASON}" ]; then
+  echo "❌ [AI底座] 部署失败：${AI_FAIL_REASON}" >&2
+else
+  echo "==> [AI底座] 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
+fi
 
 # ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
 echo "==> 工作区自检（AI 底座检出）"

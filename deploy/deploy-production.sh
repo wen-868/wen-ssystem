@@ -91,6 +91,8 @@ cd /root/liquor-inventory-system/backend
 # S3-39：本脚本是「产物打包式」部署——只拷贝 backend/package.json（**无 lock 文件**），
 # 因此无法使用 npm ci（npm ci 要求 lock 存在）。退而求其次用 --no-package-lock，
 # 同样达到「不重写 lockfile、不污染工作区」的目的。
+# ⚠️ 语义差异（凌舟 2026-09-16 裁定①）：--no-package-lock 是「不写 lock」，
+#    而非「严格按 lock 装」。若该路径将来引入 lock 文件，**必须立刻改回 npm ci**。
 npm install --production --no-package-lock 2>/dev/null || npm install --no-package-lock
 
 # 安装 PM2

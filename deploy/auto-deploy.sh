@@ -5,6 +5,8 @@ PROJECT_DIR="/opt/zhixiang/liquor-inventory-system"
 LOG_DIR="${PROJECT_DIR}/logs"
 cd "${PROJECT_DIR}"
 mkdir -p "${LOG_DIR}"
+# S3-40：AI 底座部署失败项汇总（末尾统一上报，不再"静默成功"）
+AI_FAILURES=()
 
 echo "==> 拉取最新代码"
 git fetch origin main
@@ -111,8 +113,19 @@ for i in {1..30}; do
   sleep 2
 done
 
-echo "==> 部署 AI 底座（容错：失败不阻断主部署）"
-bash "${PROJECT_DIR}/deploy/ai-base-deploy.sh" || echo "AI 底座部署跳过（见上方日志）"
+echo "==> 部署 AI 底座（容错：失败不阻断主部署，但失败项会被汇总上报 —— S3-40）"
+# S3-40：捕获 AI 底座输出，收集统一失败标记（❌ [AI底座] 部署失败：<原因>）。
+# 仍不阻断主部署（|| true），但失败项进末尾汇总——容错与"不撒谎"两者都保住。
+AI_LOG="$(mktemp)"
+bash "${PROJECT_DIR}/deploy/ai-base-deploy.sh" 2>&1 | tee "${AI_LOG}" || true
+if grep -qF '❌ [AI底座] 部署失败：' "${AI_LOG}"; then
+  while IFS= read -r _line; do AI_FAILURES+=("${_line}"); done < <(grep -F '❌ [AI底座] 部署失败：' "${AI_LOG}")
+fi
+rm -f "${AI_LOG}"
+if [ ${#AI_FAILURES[@]} -gt 0 ]; then
+  echo "⚠️  AI 底座存在失败项（详见上方日志）："
+  for _it in "${AI_FAILURES[@]}"; do echo "   ${_it}"; done
+fi
 
 echo "==> 运行冒烟测试"
 set -a && source "${PROJECT_DIR}/backend/.env" && set +a
@@ -131,4 +144,19 @@ elif [[ -n "$(git status --porcelain)" ]]; then
   echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
 else
   echo "工作区干净 ✅"
+fi
+
+# ---- 失败汇总（S3-40）：不阻断部署，但绝不"静默成功" ----
+if [ ${#AI_FAILURES[@]} -gt 0 ]; then
+  echo "" >&2
+  echo "❌ 部署结束，但存在失败项（共 ${#AI_FAILURES[@]} 项）：" >&2
+  for _it in "${AI_FAILURES[@]}"; do echo "   ${_it}" >&2; done
+  echo "   → AI 底座未部署成功；主后端/前端不受影响（容错设计）。" >&2
+  echo "   → 请按上方原因排查后单独重跑：bash deploy/ai-base-deploy.sh" >&2
+  # 非交互（cron/CI 等自动化）或显式 DEPLOY_STRICT=1 时，以非零退出码结束，供上层流水线判定
+  if [ "${DEPLOY_STRICT:-0}" = "1" ] || [ ! -t 0 ]; then
+    echo "   → 自动化调用：以退出码 1 结束（非零 = 存在失败项）。" >&2
+    exit 1
+  fi
+  echo "   → 交互式调用：本次以退出码 0 结束（仅告警，不阻断）。" >&2
 fi
