@@ -1,98 +1,37 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# ⚠️ 非部署副本 —— 请勿在此修改
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> 原文件是 `nest-cli` 生成的默认模板（无任何项目信息），已替换为副本权威性说明。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**本目录不是 ai-base（智享 AI 底座）的权威源码，也不参与任何部署。**
 
-## Description
+| 项 | 位置 |
+|---|---|
+| **权威仓库** | `wen-868/ZXQL-AI`（本地检出 `D:/Users/ZXQL/ZXQL-AI`） |
+| **生产检出** | `/opt/zhixiang/ai-base`（origin 指向 ZXQL-AI） |
+| **本目录** | wen-ssystem 仓库内的**无 `.git` 旧分叉副本**，已停止演进 |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 为什么不能改这里
 
-## Project setup
+1. **改了不生效**：本副本不参与部署，任何改动都不会到达生产环境。
+2. **会得出错误结论**：本副本**没有** `src/tenant/admin-auth.guard.ts` 等鉴权实现（权威仓库有），
+   因此**不能据本副本判断"ai-base 是否零鉴权"** —— 生产 `/api/admin/*` 的 401
+   来自权威仓库自带的 guard，不是网关层，也不是"没入仓"。
+3. **无法安全合并**：与权威仓库的代码差异没有账本，人工比对成本高且易错。
 
-```bash
-$ pnpm install
-```
+## 历史教训（2026-09-16 · S3-35）
 
-## Compile and run the project
+listen 安全收敛的 HOST 改动**误落在本副本**（wen-ssystem 提交 `828ea48f`），对生产无效，
+不得不在权威仓库 ZXQL-AI 重做（`8884b8c`）。根因是副本分叉未标注，导致"改错地方"。
 
-```bash
-# development
-$ pnpm run start
+同类问题已第二次出现（另见踩坑 [47]：本机 4 个 wen-ssystem 副本），
+故升级为结构性治理项 **S3-36（副本权威性治理）**。
 
-# watch mode
-$ pnpm run start:dev
+## 需要改 ai-base 时
 
-# production mode
-$ pnpm run start:prod
-```
+请到 **`D:/Users/ZXQL/ZXQL-AI`** 仓库操作，不要在 wen-ssystem 下改本目录。
 
-## Run tests
+涉及 AI 底座的任务卡（如 `R101-S3-08 AI 底座 MCP 接口`）执行仓库一律为 ZXQL-AI。
 
-```bash
-# unit tests
-$ pnpm run test
+---
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+相关：`docs/部署链路对照表.md`（各服务部署自哪个仓库/检出目录的权威对照）

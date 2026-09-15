@@ -3,7 +3,16 @@
 > 项目：智享全链 · 总后台 UI 设计稿 v1.6 对齐改造｜所属步骤：第 3 步 补齐缺失功能
 > 执行方：林夕（UI/UX 设计），暂代阿坚（用户 2026-09-13 指定）｜优先级：P2｜预估：3 天｜状态：待开始
 > 前置依赖：对应 S1 界面完成、S2 契约文档更新
-> 仓库根目录：D:\Users\ZXQL\ZXQL-MS\wen-ssystem
+
+> ## ⚠️ 执行仓库：`D:\Users\ZXQL\ZXQL-AI`（`wen-868/ZXQL-AI`）—— **不是 wen-ssystem**
+>
+> **2026-09-16 凌舟裁定（S3-36）**：AI 底座的权威源码在 ZXQL-AI，生产检出为 `/opt/zhixiang/ai-base`。
+> `wen-ssystem/backend/ai-base` 是**无 `.git` 的非部署副本**（旧分叉，已停止演进，见该目录 README），
+> 在此改 = **改了不生效**。2026-09-16 已发生过一次：listen 收敛改动误落副本（`828ea48f`），
+> 只得在权威仓库重做（`8884b8c`）。
+>
+> 本卡所有"涉及文件"**均为 ZXQL-AI 仓库内路径**；前端若需新增 MCP 配置界面，
+> 另在 wen-ssystem 单独提交，但**底座代码一律在 ZXQL-AI**。
 
 ## 一、开工前必读（逐份读完再动手，禁止跳读）
 
@@ -28,12 +37,15 @@
 
 按设计文档 §14 实现 AI 底座 MCP Server：端点 /api/platform/ai/mcp（MCP over HTTP/SSE）；ToolRegistry 全部工具暴露为 MCP Tools；认证与租户映射（AppKey + 租户上下文）；工具白名单与调用审计；任意 MCP 客户端零定制接入验证。
 
-## 四、涉及文件
+## 四、涉及文件（**均为 ZXQL-AI 仓库内路径**）
 
-- `backend/src/services/platform/*`
-- `backend/src/routes/platform-*.ts`
-- `docs/migrations/*.sql`
-- `saas-admin/src/views/*`
+- `src/mcp/*`（新增 MCP 模块：Server / Tools 暴露 / 认证与租户映射 / 工具白名单与调用审计）
+- `src/tools/*`（ToolRegistry，改造为同时暴露为 MCP Tools）
+- `migrations/*.sql`（**ZXQL-AI 仓库根目录**，不是 `wen-ssystem/docs/migrations`）
+- ZXQL-AI 仓库内对应的 `*.spec.ts`
+
+⚠️ 禁止写入以下位置（均不生效）：
+`wen-ssystem/backend/src/services/platform/*`、`wen-ssystem/backend/ai-base/src/*`。
 
 仅允许改动以上文件及为实现本卡目标必须新增的文件；不得顺手改动其他模块。
 
@@ -43,8 +55,9 @@
 - [ ] 至少 1 个工具调用成功
 
 统一门禁（凌舟复核时逐条核对）：
-- [ ] npm --workspace backend run build 与 cd saas-admin && npm run build 均 exit 0
-- [ ] cd backend && npx vitest run 全绿
+- [ ] **ZXQL-AI 仓库**：build exit 0 且全量测试全绿（该仓库基线见其提交记录，如 103 套件 986 用例）
+- [ ] wen-ssystem（**仅当本卡同时改了前端**）：`backend` build 与 `saas-admin` build 均 exit 0
+- [ ] ZXQL-AI 新增迁移须幂等，并登记该仓库的迁移账本 / 变更记录
 - [ ] 页面区块/列名/按钮/弹窗与设计稿 §11 对照表逐项一致
 - [ ] 关键操作具备二次确认与留痕
 - [ ] 跨租户越权测试通过
