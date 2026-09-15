@@ -56,3 +56,21 @@ S2-01 交付项「接口接入后补拍 S1 收口证据截图」尚未落地。�
 ## 六、回传
 
 写 `docs/tasks/inbox/ACTIVE-回执.md`（分组逐项：改了什么 / 证据 / 阻塞点），本卡移入 `docs/tasks/inbox/archive/`，并同步 `docs/tasks/current-tasks.md` 看板状态；无源项逐项登记 S3。
+
+## 【追加派工·2026-09-16 凌舟】组4② 备案号与公司信息（登录页页脚占位符）
+
+### 背景（凌舟已定位）
+- 占位符位置：`saas-admin/src/views/login/PlatformLogin.vue:110` —— `© 2026 智享全链 · 京ICP备2026XXXXXX号 · 京公网安备 XXXXXXXXXXXXX号`；**该行是从设计稿第 1941 行原样抄来的占位**（设计稿本身写的北京占位，与本项目真实主体不符）。
+- **项目里已有真实备案信息**（3 端在用）：`admin-web/src/views/LoginView.vue:131/137` = `粤ICP备2026103101号-1` + `粤公网安备44030002015715号`（且带 miit/mps 跳转与外链图标）；`app-mobile/src/pages/profile/profile.vue:270` = `粤ICP备2026103101号-2A` + 同公网安备号；`landing-page/index.html:2168` = `粤ICP备2026103101号-1`。
+- **系统配置里本就有字段**：`saas-admin/src/views/Settings.vue:58/61-62` 的 `copyrightInfo`（© 2026 智享全链）与 `icpNumber`（备案号），但**后端未落库**（已登记 S3-22），所以现在配了也不生效；且**没有公网安备字段**。
+
+### 本卡要做（结构性修复，不写死）
+1. **配置项补齐并落库**：公司信息补 `copyrightInfo` / `icpNumber` / `gonganNumber`（新增公网安备项）三项，按口径 X 落 `t_platform_config`（JSON 包，零 DDL），契约登记表登记 key/值结构/未配置行为；含 `updated_by` 留痕。
+2. **登录页页脚改为读配置**：`PlatformLogin.vue` 页脚由配置渲染；**未配置则隐藏该段，不得显示占位符**；备案号按 `admin-web` 的做法带 `https://beian.miit.gov.cn/` 跳转，公网安备带图标 + `https://beian.mps.gov.cn/` 跳转（链接样式对齐设计稿版式）。
+3. **真实值由用户提供后写入配置**（凌舟负责向用户索取）：在真值到位前，**页面走"未配置即隐藏"**，不许再上占位符、也不许猜序号——**总后台域名的备案序号（-1 / -2A / 其他）与公网安备号是否同主体，必须由用户确认**。
+4. 其他端（admin-web / app-mobile / landing-page）的写死备案号本轮**不动**，登记为治理项（统一读配置需先定"各端读哪份配置"）。
+
+### 边界
+- 只改 `saas-admin/src/views/login/PlatformLogin.vue`、`Settings.vue`、公司信息相关配置读写链路；不动其他端。
+- 不写死任何备案号；不臆造序号；未配置一律隐藏。
+- 契约先行 + 门禁同 S2-02 口径（全量 vitest / vue-tsc 不新增 / build exit 0）。
