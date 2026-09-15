@@ -36,8 +36,11 @@ else
   git -c http.version=HTTP/1.1 pull origin main
 fi
 
-echo "安装依赖"
-npm install
+# S3-39：改用 npm ci —— 严格按 package-lock.json 安装，不重写 lockfile。
+# 原 npm install 会按当前 registry（服务器为镜像源）重写 lock 的 resolved 字段，
+# 导致「每次部署都把生产检出改脏」，与下次 git pull 冲突（非人为）。
+echo "安装依赖（npm ci，不重写 lockfile）"
+npm ci
 
 echo "构建后端和前端"
 npm --workspace backend run build
@@ -97,3 +100,16 @@ API_BASE="http://127.0.0.1:${PORT}/api" npm run test:qa
 
 echo "部署完成"
 echo "日志：${LOG_DIR}/backend.log"
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（部署不应产生脏改动）"
+if [[ ! -d .git ]]; then
+  echo "跳过：当前目录不是 git 检出（$(pwd)）"
+elif [[ -n "$(git status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后工作区非空，被改动的文件：" >&2
+  git status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 说明仍有脚本在用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi

@@ -76,7 +76,7 @@ bash deploy/03-deploy.sh
 
 ```text
 git pull origin main
-npm install
+npm ci          # 严格按 package-lock.json 安装，不重写 lock（S3-39）
 构建后端、工作台、门店端
 启动后端
 运行 MySQL smoke test

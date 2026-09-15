@@ -33,7 +33,8 @@ git fetch origin main
 git checkout --force "${TARGET}" -- .
 
 echo "==> 安装依赖（跳过大型二进制 postinstall）"
-npm install --ignore-scripts --legacy-peer-deps
+# S3-39：npm ci 严格按 lock 安装且不重写 lockfile（回滚同样不应污染工作区）
+npm ci --ignore-scripts --legacy-peer-deps
 npm --workspace backend rebuild 2>/dev/null || true
 
 echo "==> 构建后端"
@@ -64,3 +65,16 @@ sleep 3
 curl -s http://127.0.0.1:8080/health || { echo "健康检查失败，请查看 pm2 logs zhixiang-api" >&2; exit 1; }
 
 echo "==> 回滚完成（目标 ${TARGET}）。当前 HEAD=$(git rev-parse --short HEAD)"
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（部署不应产生脏改动）"
+if [[ ! -d .git ]]; then
+  echo "跳过：当前目录不是 git 检出（$(pwd)）"
+elif [[ -n "$(git status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后工作区非空，被改动的文件：" >&2
+  git status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 说明仍有脚本在用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi

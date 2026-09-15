@@ -88,7 +88,10 @@ cp /tmp/deploy/backend/package.json /root/liquor-inventory-system/backend/
 cp /root/.env.production /root/liquor-inventory-system/backend/.env 2>/dev/null || true
 
 cd /root/liquor-inventory-system/backend
-npm install --production 2>/dev/null || npm install
+# S3-39：本脚本是「产物打包式」部署——只拷贝 backend/package.json（**无 lock 文件**），
+# 因此无法使用 npm ci（npm ci 要求 lock 存在）。退而求其次用 --no-package-lock，
+# 同样达到「不重写 lockfile、不污染工作区」的目的。
+npm install --production --no-package-lock 2>/dev/null || npm install --no-package-lock
 
 # 安装 PM2
 if ! command -v pm2 &> /dev/null; then
@@ -293,3 +296,16 @@ echo "  3. 配置 DNS 解析（如未完成）"
 echo "  4. 申请 SSL 证书（如未完成）: certbot --nginx -d www.onepan.cn -d onepan.cn -d api.onepan.cn -d admin.onepan.cn -d m.onepan.cn"
 echo "  5. 填写微信小程序 AppID 和支付配置"
 echo ""
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（生产检出）"
+if [[ ! -d "/root/liquor-inventory-system/.git" ]]; then
+  echo "跳过：/root/liquor-inventory-system 不是 git 检出"
+elif [[ -n "$(git -C "/root/liquor-inventory-system" status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后 生产检出非空，被改动的文件：" >&2
+  git -C "/root/liquor-inventory-system" status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 仍有脚本用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi

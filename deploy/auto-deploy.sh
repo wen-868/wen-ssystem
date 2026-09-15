@@ -11,7 +11,8 @@ git fetch origin main
 git reset --hard origin/main
 
 echo "==> 安装依赖（跳过 electron 等大型二进制 postinstall）"
-npm install --ignore-scripts --legacy-peer-deps
+# S3-39：npm ci 严格按 lock 安装且不重写 lockfile（原 npm install 会按镜像源重写 resolved）
+npm ci --ignore-scripts --legacy-peer-deps
 echo "==> 重建后端原生模块"
 npm --workspace backend rebuild 2>/dev/null || true
 
@@ -118,3 +119,16 @@ set -a && source "${PROJECT_DIR}/backend/.env" && set +a
 npm run test:mysql 2>/dev/null || echo "冒烟测试跳过"
 
 echo "==> 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（部署不应产生脏改动）"
+if [[ ! -d .git ]]; then
+  echo "跳过：当前目录不是 git 检出（$(pwd)）"
+elif [[ -n "$(git status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后工作区非空，被改动的文件：" >&2
+  git status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 说明仍有脚本在用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi

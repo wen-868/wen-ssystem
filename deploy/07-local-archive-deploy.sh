@@ -23,8 +23,9 @@ if ! command -v node >/dev/null 2>&1 || [[ "$(node -v | sed 's/^v//' | cut -d. -
   sudo apt-get install -y nodejs
 fi
 
-echo "==> 安装 npm 依赖"
-npm install
+echo "==> 安装 npm 依赖（npm ci，不重写 lockfile）"
+# S3-39：npm ci 严格按 lock 安装且不重写 lock 的 resolved
+npm ci
 
 DB_PASSWORD="$(openssl rand -base64 24 | tr -d '\n')"
 JWT_SECRET="$(openssl rand -base64 32 | tr -d '\n')"
@@ -99,3 +100,16 @@ echo "API:   https://api.${DOMAIN}"
 echo "后台:  https://admin.${DOMAIN}"
 echo "门店:  https://store.${DOMAIN}"
 echo "日志:  ${PROJECT_DIR}/logs/backend.log"
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（部署不应产生脏改动）"
+if [[ ! -d .git ]]; then
+  echo "跳过：当前目录不是 git 检出（$(pwd)）"
+elif [[ -n "$(git status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后工作区非空，被改动的文件：" >&2
+  git status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 说明仍有脚本在用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi

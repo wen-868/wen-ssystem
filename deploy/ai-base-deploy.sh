@@ -143,7 +143,7 @@ fi
 
 # ---- 3. 安装依赖（需执行原生脚本以编译 @napi-rs/canvas） ----
 echo "==> [AI底座] pnpm install"
-pnpm install --no-frozen-lockfile 2>&1 | tail -8 || { echo "==> [AI底座] pnpm install 失败，跳过 AI 底座部署"; exit 0; }
+pnpm install --frozen-lockfile 2>&1 | tail -8 || { echo "==> [AI底座] pnpm install 失败，跳过 AI 底座部署"; exit 0; }
 
 # ---- 4. 构建 ----
 echo "==> [AI底座] pnpm build"
@@ -307,3 +307,16 @@ if [ -z "$(grep '^DEEPSEEK_API_KEY=' .env 2>/dev/null | cut -d= -f2-)" ]; then
 fi
 
 echo "==> [AI底座] 部署完成 $(date '+%Y-%m-%d %H:%M:%S')"
+
+# ---- 工作区自检（S3-39）：部署不应产生脏改动 ----
+echo "==> 工作区自检（AI 底座检出）"
+if [[ ! -d "${AI_DIR}/.git" ]]; then
+  echo "跳过：${AI_DIR} 不是 git 检出"
+elif [[ -n "$(git -C "${AI_DIR}" status --porcelain)" ]]; then
+  echo "⚠️  警告：部署后 AI 底座检出非空，被改动的文件：" >&2
+  git -C "${AI_DIR}" status --porcelain >&2
+  echo "⚠️  大范围 lock 的 resolved 差异 → 仍有脚本用 npm install，应改 npm ci（S3-39）。" >&2
+  echo "⚠️  不要提交这类改动，也不要只 revert 了事——改部署脚本才是根治。" >&2
+else
+  echo "工作区干净 ✅"
+fi
