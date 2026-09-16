@@ -23,14 +23,21 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      # S3-46：本步骤**前置于所有代码门禁**，并加 `if: always()`（双重保险）。
+      #   原位置在 `Backend lint gate` 之后 → lint 一红（曾因 `login-fail-limiter.test.ts:58`
+      #   的 `\-` 多余转义）本步骤就被 **skipped**，部署脚本语法**实际没检成**
+      #   —— 与踩坑 [78]「前置失败永久掩蔽后置缺陷」同一形状。
+      #   → 前置：不再被任何代码门禁掩蔽（它是全 CI 最便宜的检查，理应最先跑）。
+      #   → always()：即便 `npm ci` 等前置步骤失败，也仍把脚本语法结论打出来。
+      - name: Shell script syntax check (deploy/scripts)
+        if: always()
+        run: bash -n deploy/*.sh scripts/*.sh
+
       - name: Backend unit tests
         run: npm --workspace backend test
 
       - name: Backend lint gate (zero error)
         run: npm --workspace backend run lint
-
-      - name: Shell script syntax check (deploy/scripts)
-        run: bash -n deploy/*.sh scripts/*.sh
 
       - name: Backend coverage gate (baseline 2026-08-15)
         run: npm --workspace backend run test -- --coverage

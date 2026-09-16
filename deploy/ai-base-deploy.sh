@@ -17,7 +17,18 @@
 #   现：① fetch 失败即 ai_fail（不再 reset）；② 只用 FETCH_HEAD，且仅在 fetch 成功分支内 reset；
 #   ③ 日志打印实际拉到的 commit（自动覆盖"部署的是哪个提交"这条判据）；
 #   ④ ai_fail 文案区分"拉取失败"与"lock 失同步"；⑤ 远端改用 SSH（服务器 HTTPS 抖过，SSH 实测稳定）。
-#   ⚠️ 前置条件：服务器需有对 wen-868/ZXQL-AI 有读权限的 deploy key，且 known_hosts 已含 github.com。
+#   ⚠️ 前置条件（新服务器上线必须逐条核，缺一即 SSH 拉取失败）：
+#      1. 服务器有对 wen-868/ZXQL-AI **有读权限的 deploy key**；
+#      2. `known_hosts` 已预置 GitHub 主机条目。
+#         🔑 排障要点（凌舟真机注入实证，2026-09-16）：
+#         - 实际连的是 **ssh.github.com:443**，不是 github.com:22 ——
+#           本机 `/root/.ssh/config` 里有 `Host github.com → HostName ssh.github.com / Port 443`，
+#           改 SSH 远端时**别照着"github.com"去排查**（他第一次把 github.com 指到不可达地址，故障没生效）。
+#         - `known_hosts` 常开 **HashKnownHosts**（条目是哈希的）→
+#           `grep github.com ~/.ssh/known_hosts` **匹配不到是假阴性**，不代表没有该条目。
+#           正确查法：`ssh-keygen -F ssh.github.com -f ~/.ssh/known_hosts`（按主机名查，能解哈希）。
+#         - 没有条目时又开着 BatchMode → SSH **不会**交互询问是否信任主机，直接失败退出
+#           （这是有意为之：绝不让部署挂在无人应答的提问上）。
 # ============================================================================
 set -uo pipefail
 

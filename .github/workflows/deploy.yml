@@ -1,8 +1,25 @@
 name: Auto Deploy to Server
 
 on:
+  # S3-44：纯文档提交不应触发完整生产部署（含前端重建/pm2 重启），故加路径过滤。
+  #   ⚠️ 只排文档/工作流配置，**不排 `deploy/**`**：部署脚本改动必须仍然必部署。
+  #   ⚠️ 判据是"提交里**只要有一个**文件不在忽略名单内就触发" → 混合提交（文档+代码）照样部署。
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".github/**"
+  # S3-44：paths-ignore 会堵死"只想把已推的文档/配置再部署一次"这条路，
+  #   因此**必须**保留手动入口（否则只能上服务器手跑 auto-deploy.sh，反而增加人为操作）。
+  #   ⚠️ 本文件自身位于 `.github/**` → 改本文件不会自动部署，这符合预期。
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 手动触发原因（便于事后追溯为什么跑了一次部署）
+        required: false
+        type: string
+        default: 手动触发
 
 jobs:
   deploy:

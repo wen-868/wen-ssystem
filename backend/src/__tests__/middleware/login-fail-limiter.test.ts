@@ -55,7 +55,8 @@ describe("middleware/login-fail-limiter（批 2.2 分流）", () => {
       for (const m of [LOGIN_FAIL_MESSAGE, CAPTCHA_FAIL_MESSAGE]) {
         expect(m.code).toBe("429");
         expect(m.msg).toMatch(/[一-龥]/);
-        expect(m.msg).not.toMatch(/^[A-Za-z0-9\s.,:;'"()\-]+$/);
+        // eslint no-useless-escape：字符类末尾的 `-` 无需转义（S3-46；语义等价，仅去掉 `\`）
+        expect(m.msg).not.toMatch(/^[A-Za-z0-9\s.,:;'"()-]+$/);
       }
     });
   });
