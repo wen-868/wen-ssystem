@@ -57,6 +57,19 @@ jobs:
           fi
           [ "${fail}" -eq 0 ] || exit 1
 
+      # S3-53：对比度矩阵门禁（WCAG AA 4.5:1）。
+      #   纯 node、不依赖 node_modules，故置于 npm ci 之前也能跑；并加 `if: always()`，
+      #   沿用上方 Shell script syntax check 的教训——不被任何前置步骤（如 `npm ci`、
+      #   backend 单测）的失败掩蔽，本步骤本身失败也会把结论打出来。
+      #   ⚠️ 逐文件调用（见 Shell script syntax check 注释）：此处只有单个脚本，
+      #   写全路径 `node scripts/contrast-check.cjs`，**不要**用 `node scripts/*.cjs` 通配，
+      #   否则只处理字母序第一个、其余被当参数静默吞掉（假绿灯）。
+      #   脚本读取 saas-admin/src/styles/tokens.css 与 admin-web/src/styles/theme.ts 的
+      #   **真实取值**构建 token×surface 矩阵；任一 token 改回不达标值 → 本步骤必红（exit 1）。
+      - name: Contrast / a11y token gate (WCAG AA)
+        if: always()
+        run: node scripts/contrast-check.cjs
+
       - name: Backend unit tests
         run: npm --workspace backend test
 

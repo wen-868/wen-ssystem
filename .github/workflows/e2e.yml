@@ -8,6 +8,18 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    # S3-53：双端矩阵（admin-web + saas-admin），两个端都跑 a11y 门禁。
+    #   - admin-web：既有 Playwright + axe 浏览器扫描（登录页 + 工作台），断言不变（criticalSerious.length).toBe(0)。
+    #   - saas-admin：dev server 在 5174（见 saas-admin/vite.config.ts），但登录页带**一次性图形验证码**
+    #     （GET /platform/auth/captcha），自动化无法绕过 → 浏览器 axe 暂不能自动进场。
+    #     → 按 S3-53 裁定采用降级方案：saas-admin 这一路只跑「对比度矩阵门禁」
+    #       （scripts/contrast-check.cjs，纯计算、不依赖浏览器，覆盖 token×surface + canvas 图表色），
+    #       浏览器 axe 扫描作为「待登录验证码进场脚本就绪」项保留（见 e2e/a11y.saas-admin.spec.ts，默认 skip），
+    #       当前由对比度矩阵兜底。详见 docs/tasks/cards/R101-S3-53-林夕门禁回传.md。
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [admin-web, saas-admin]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,20 +42,35 @@ jobs:
           npx wait-on -t 90000 http://127.0.0.1:8080/health
 
       - name: Start admin-web dev server
+        if: matrix.app == 'admin-web'
         run: |
           VITE_API_BASE=/api npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
           npx wait-on -t 90000 http://127.0.0.1:5173
 
+      - name: Start saas-admin dev server
+        if: matrix.app == 'saas-admin'
+        run: |
+          npm --workspace saas-admin run dev > /tmp/saas-admin.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:5174
+
       - name: Install Playwright browsers
+        if: matrix.app == 'admin-web'
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Run E2E tests
+      - name: Run E2E a11y tests (admin-web, Playwright + axe)
+        if: matrix.app == 'admin-web'
         run: npx playwright test
+
+      - name: saas-admin a11y gate (contrast matrix)
+        if: matrix.app == 'saas-admin'
+        # 纯计算、不依赖浏览器：读取 tokens.css / theme.ts 真实取值，构建 token×surface 矩阵，
+        # 任一 token 不达标即 exit 1。这是 saas-admin 当前的 a11y 门禁（浏览器 axe 待进场脚本就绪）。
+        run: node scripts/contrast-check.cjs
 
       - name: Upload E2E report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-report
+          name: e2e-report-${{ matrix.app }}
           path: e2e-report/
           retention-days: 30
