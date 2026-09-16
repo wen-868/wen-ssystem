@@ -77,28 +77,63 @@ export const SKIP_PATTERNS = [
   "procedure",
 ];
 
-/** 给 SQL 语句中的表名加 t_ 前缀 */
+/**
+ * S3-52：表名前缀匹配模式（具名清单，便于一眼看出"还缺谁"）
+ *
+ * 为什么具名化：本次缺陷的本质是"漏一个模式"——原实现把 10 个匿名正则塞进一个数组，
+ * 新增/排查都要人肉比对，漏掉 REFERENCES 直到 CI 在全新 MySQL 8 上跑挂才被发现。
+ * 凌舟裁定：只补 REFERENCES 不改结构，下次还会漏。故改为 {name, regex, note} 具名清单，
+ * 并依据对 docs/migrations/*.sql（170 个文件）的全量扫描结果反推清单，只纳入
+ * "实际出现且确实是表名上下文"的关键字（见回传卡扫描统计表）：
+ *   - REFERENCES（扫描 29 次，原漏 → 主修复点）
+ *   - CREATE INDEX ... ON <tbl>（扫描 5 次，表名在 ON 之后，索引名不当表名）
+ * 其余被点名考虑但扫描出现次数为 0 的关键字（REPLACE INTO / TRUNCATE / LOCK TABLES /
+ * UNION / DROP INDEX ... ON / CREATE VIEW / DROP VIEW / CREATE TEMPORARY TABLE）一律不凭经验硬补，
+ * 列入回传卡"未纳入及理由"，后续若扫描发现再按需加入。
+ *
+ * 标识符捕获组统一兼容可选反引号（`tbl`）：替换时保留反引号，并对已带 t_ 的前缀名
+ * 先去反引号再判断 startsWith，避免双前缀 t_t_。
+ * 注意：不加入 ON 这类高歧义关键字（会把 ON DELETE CASCADE 里的东西当表名）。
+ */
+export interface TableNamePattern {
+  name: string;
+  regex: RegExp;
+  note: string;
+}
+
+export const TABLE_NAME_PATTERNS: TableNamePattern[] = [
+  { name: "CREATE_TABLE",    regex: /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([`a-z_][`a-z0-9_]*)/gi, note: "建表：CREATE TABLE [IF NOT EXISTS] <tbl>" },
+  { name: "ALTER_TABLE",     regex: /(ALTER\s+TABLE\s+)([`a-z_][`a-z0-9_]*)/gi, note: "改表：ALTER TABLE <tbl>" },
+  { name: "INSERT_INTO",     regex: /(INSERT\s+(?:IGNORE\s+)?INTO\s+)([`a-z_][`a-z0-9_]*)/gi, note: "插入：INSERT [IGNORE] INTO <tbl>" },
+  // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
+  { name: "UPDATE",          regex: /((?:^|\n)\s*UPDATE\s+)([`a-z_][`a-z0-9_]*)/gim, note: "更新：仅语句开头 UPDATE <tbl>，防误伤 ON UPDATE / ON DUPLICATE KEY UPDATE" },
+  { name: "DELETE_FROM",     regex: /(DELETE\s+FROM\s+)([`a-z_][a-z0-9_]*)/gi, note: "删除：DELETE FROM <tbl>" },
+  { name: "FROM",            regex: /(\bFROM\s+)([`a-z_][`a-z0-9_]*)/gi, note: "查询来源：FROM <tbl>（含子查询）" },
+  { name: "JOIN",            regex: /(\b(?:LEFT|RIGHT|INNER|OUTER|FULL|CROSS\s+)?JOIN\s+)([`a-z_][`a-z0-9_]*)/gi, note: "连接：[(LEFT|RIGHT|INNER...) ]JOIN <tbl>" },
+  { name: "INTO",            regex: /(\bINTO\s+)([`a-z_][`a-z0-9_]*)/gi, note: "INTO <tbl>（覆盖 INSERT/REPLACE 之外的 INTO 上下文）" },
+  // S3-52 主修复点：外键引用。原漏此模式 → 全新库 FOREIGN KEY (x) REFERENCES tenant(id) 里的 tenant 未加 t_ 前缀 → MySQL 报 Failed to open the referenced table 'tenant'
+  { name: "REFERENCES",      regex: /(REFERENCES\s+)([`a-z_][`a-z0-9_]*)/gi, note: "外键引用：REFERENCES <tbl>(col) —— S3-52 主修复点（原漏 → 27 条外键迁移失败）" },
+  // S3-52 第二修复点：建索引的表名在 ON 之后，索引名不当表名；已带 t_ 的表名由下方跳过逻辑保护（如 163_ 已写 t_transfer_order）
+  { name: "CREATE_INDEX_ON", regex: /(CREATE\s+(?:UNIQUE\s+|FULLTEXT\s+|SPATIAL\s+)?INDEX\s+[`a-z_][`a-z0-9_]*\s+ON\s+)([`a-z_][`a-z0-9_]*)/gi, note: "建索引：CREATE [UNIQUE] INDEX <idx> ON <tbl>（扫描 5 次，仅前缀 ON 后的表名）" },
+  { name: "RENAME_TABLE",    regex: /(RENAME\s+TABLE\s+)([`a-z_][`a-z0-9_]*)/gi, note: "改名：RENAME TABLE <tbl>（仅首表，TO 后目标表扫描 0 次未单独处理）" },
+  { name: "DROP_TABLE",      regex: /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)([`a-z_][`a-z0-9_]*)/gi, note: "删表：DROP TABLE [IF EXISTS] <tbl>" },
+];
+
+/** 给 SQL 语句中的表名加 t_ 前缀（按 TABLE_NAME_PATTERNS 具名清单逐模式替换） */
 export function addTablePrefix(sql: string): string {
   let result = sql;
-  const patterns = [
-    /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
-    /(ALTER\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
-    /(INSERT\s+INTO\s+)([a-z_][a-z0-9_]*)/gi,
-    // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
-    /((?:^|\n)\s*UPDATE\s+)([a-z_][a-z0-9_]*)/gim,
-    /(DELETE\s+FROM\s+)([a-z_][a-z0-9_]*)/gi,
-    /(FROM\s+)([a-z_][a-z0-9_]*)/gi,
-    /(JOIN\s+)([a-z_][a-z0-9_]*)/gi,
-    /(INTO\s+)([a-z_][a-z0-9_]*)/gi,
-    /(RENAME\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
-    /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
-  ];
-  for (const pattern of patterns) {
-    result = result.replace(pattern, (match, prefix, tableName) => {
-      if (tableName.startsWith("t_") || tableName.startsWith("information_schema") || tableName.startsWith("mysql")) {
+  for (const { regex } of TABLE_NAME_PATTERNS) {
+    result = result.replace(regex, (match, prefix: string, tableName: string) => {
+      // S3-52：兼容反引号标识符，先去反引号再判断跳过，避免双前缀 t_t_
+      const bare = tableName.replace(/`/g, "");
+      if (bare.startsWith("t_") || bare.startsWith("information_schema") || bare.startsWith("mysql")) {
         return match;
       }
-      return prefix + "t_" + tableName;
+      // 保留原始反引号形态（有则加回，无则不添加）
+      if (tableName.startsWith("`")) {
+        return `${prefix}\`t_${bare}\``;
+      }
+      return prefix + "t_" + bare;
     });
   }
   return result;
