@@ -104,6 +104,29 @@ export function addTablePrefix(sql: string): string {
   return result;
 }
 
+/**
+ * S3-51 + 踩坑[63]：把整段 SQL 拆成可逐条执行的语句数组（按 `;` 切块）。
+ *
+ * 为什么：此前 migration.ts:908-912（旧 909-912 过滤处）在按 `;` 切块后，用
+ *   .filter((s) => s.length > 0 && !s.startsWith("--"))
+ * 过滤，会把“以注释开头的整块语句”连同其后的首条建表语句一起丢弃——
+ * 例如 031 首行是注释、紧跟 CREATE TABLE t_subscription，直到第一个 `;`
+ * 之间没有别的分号 → 整块被当作注释丢弃 → t_subscription 从未建
+ * （CI run 35126291300 全新 MySQL 8 容器起服务即报 ER_NO_SUCH_TABLE）。
+ *
+ * 修复：先剥离 chunk 开头的整行注释（只剥开头，语句中间/末尾的 `--` 一律不动，
+ * 保守起见不做行内 `--` 解析），再按 length>0 判断；剥离后为空的纯注释块仍然丢弃。
+ * 调用方需先移除 USE / DELIMITER 行（见各调用点的 cleaned 步骤）。
+ */
+export function splitSqlStatements(sql: string): string[] {
+  return sql
+    .split(";")
+    .map((s) => s.trim())
+    // 先剥离 chunk 开头的整行注释，再判断是否为空，避免把首条建表语句一起丢
+    .map((s) => s.replace(/^(\s*--[^\n]*\n)+/, "").trim())
+    .filter((s) => s.length > 0);
+}
+
 export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
   try {
     await conn.query(sql);
@@ -767,10 +790,8 @@ export async function runMigrations(): Promise<void> {
         })
         .join("\n");
       // 拆分语句块并逐条执行（addTablePrefix 对已带 t_ 前缀的表名跳过，安全）
-      const aiStatements = aiCleaned
-        .split(";")
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+      // S3-51 + 踩坑[63]：改用 splitSqlStatements 统一修复"注释开头整块被丢"的缺陷
+      const aiStatements = splitSqlStatements(aiCleaned);
       for (const stmt of aiStatements) {
         if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
           continue;
@@ -906,10 +927,9 @@ export async function runMigrations(): Promise<void> {
           .join("\n");
 
         // 拆分语句块 — 先按分号分，再处理 $$ 块
-        const statements = cleaned
-          .split(";")
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0 && !s.startsWith("--"));
+        // S3-51 + 踩坑[63]：改用 splitSqlStatements，剥离 chunk 开头的整行注释后再判断，
+        // 避免"以注释开头的整块语句"把首条建表语句一起丢弃（见 splitSqlStatements 注释）。
+        const statements = splitSqlStatements(cleaned);
 
         for (const stmt of statements) {
           // 跳过存储过程定义（$$ 块内的内容）
