@@ -115,6 +115,8 @@ async function run() {
     "> 由 `node scripts/security-smoke.mjs` 生成（基础 DAST 冒烟，非第三方渗透）",
   ].join("\n"), "utf8");
   console.log(`\n通过 ${passed}/${results.length}；报告：${mdPath}`);
+  // S3-50 反向红测注入：强制新增一条失败记录，使 passed < total → 退出码=1
+  record("S3-50 反向红测注入", false, "injected for reverse test");
   process.exit(passed === results.length ? 0 : 1);
 }
 
