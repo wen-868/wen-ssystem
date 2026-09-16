@@ -31,6 +31,7 @@ const TOKENS_CSS = path.join(ROOT, 'saas-admin', 'src', 'styles', 'tokens.css');
 const THEME_TS = path.join(ROOT, 'admin-web', 'src', 'styles', 'theme.ts');
 
 const TEXT_THRESHOLD = 4.5; // WCAG AA 普通文本
+const NON_TEXT_THRESHOLD = 3.0; // WCAG 1.4.11 非文本（UI 组件及其状态）
 const FAIL = 'FAIL';
 const PASS = 'PASS';
 
@@ -108,11 +109,18 @@ const TEXT_TOKENS = [
   { name: 'text-link', surfaces: ['white', 'g0', 'soft'] },
 ];
 
+// ── 非文本 UI token × surface 矩阵（WCAG 1.4.11 3:1）──────
+// 说明：axe 扫不到伪元素（::-webkit-scrollbar-thumb），属工具盲区，由本矩阵替代核查。
+const NON_TEXT_TOKENS = [
+  { name: 'gray-300', surfaces: ['white', 'g0', 'soft'], note: '滚动条滑块·默认态' },
+  { name: 'gray-400', surfaces: ['white', 'g0', 'soft'], note: '滚动条滑块·hover 态' },
+];
+
 const rows = [];
 const failures = [];
 
 // saas-admin 文本 token
-const tokenNames = TEXT_TOKENS.map((t) => t.name);
+const tokenNames = [...TEXT_TOKENS.map((t) => t.name), ...NON_TEXT_TOKENS.map((t) => t.name)];
 const { found: tok, missing: tokMissing } = parseTokensCss(TOKENS_CSS, tokenNames);
 
 for (const t of TEXT_TOKENS) {
@@ -173,8 +181,34 @@ for (const c of CHART_TEXT) {
   }
 }
 
+
+// 非文本 UI 组件（1.4.11 3:1；伪元素为 axe 盲区，本矩阵替代核查）
+for (const t of NON_TEXT_TOKENS) {
+  const fg = tok[t.name];
+  if (!fg) continue; // 缺失由下方统一报错
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= NON_TEXT_THRESHOLD;
+    rows.push({
+      group: 'saas-admin 非文本 UI (1.4.11)',
+      label: `--${t.name} (${t.note}) ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: NON_TEXT_THRESHOLD,
+      ok,
+    });
+    if (!ok) {
+      failures.push({
+        file: 'saas-admin/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} (${t.note}) × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${NON_TEXT_THRESHOLD} (WCAG 1.4.11 非文本；axe 扫不到伪元素，须本矩阵兜底)`,
+      });
+    }
+  }
+}
+
 // ── 输出 ───────────────────────────────────────────
-console.log('| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5) | 结论 |');
+console.log('| 分组 | 前景 token | surface 背景 | 比值 | 阈值(文本4.5/非文本3.0) | 结论 |');
 console.log('|---|---|---|---|---|---|');
 for (const x of rows) {
   console.log(`| ${x.group} | ${x.label} | ${x.surface} | ${fmt(x.r)}:1 | ${x.threshold} | ${x.ok ? PASS : FAIL} |`);
@@ -190,10 +224,10 @@ for (const name of tokMissing) {
 
 console.log('');
 if (failures.length === 0) {
-  console.log(`✅ 对比度矩阵全部达标：共 ${rows.length} 个 token×surface 组合，均 ≥ WCAG AA 4.5:1`);
+  console.log(`✅ 对比度矩阵全部达标：共 ${rows.length} 个 token×surface 组合（文本 ≥ 4.5:1，非文本 UI ≥ 3:1）`);
   process.exit(0);
 } else {
-  console.log(`❌ 对比度矩阵存在 ${failures.length} 个不达标项（WCAG AA 4.5:1）：`);
+  console.log(`❌ 对比度矩阵存在 ${failures.length} 个不达标项（文本需 ≥ 4.5:1，非文本 UI 需 ≥ 3:1）：`);
   for (const f of failures) {
     console.log(`::error file=${f.file}::${f.msg}`);
     console.log(`  - [${f.file}] ${f.msg}`);
