@@ -78,3 +78,6 @@ elif [[ -n "$(git status --porcelain)" ]]; then
 else
   echo "工作区干净 ✅"
 fi
+
+# S3-46 反向验证（凌舟）：故意制造语法错误，验证 CI 语法检查步骤会红
+if [ 1 -eq 1 ]; then
