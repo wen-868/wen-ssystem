@@ -78,3 +78,7 @@ elif [[ -n "$(git status --porcelain)" ]]; then
 else
   echo "工作区干净 ✅"
 fi
+
+# S3-49 反测：故意未闭合的 if（用于证明语法检查会红）
+if [ -f /tmp/never-exists ]; then
+  echo "missing fi"
