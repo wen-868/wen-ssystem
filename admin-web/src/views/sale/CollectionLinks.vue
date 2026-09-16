@@ -115,7 +115,7 @@
         </el-form-item>
         <el-form-item label="收款金额">
           <el-input-number v-model="batchForm.amount" :min="0" :precision="2" style="width: 100%" placeholder="0=全额收款" />
-          <span style="color: #999999; font-size: 12px; margin-left: 8px">0表示收全部未收金额</span>
+          <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px">0表示收全部未收金额</span>
         </el-form-item>
         <el-form-item label="有效期(小时)">
           <el-input-number v-model="batchForm.expireHours" :min="1" :max="720" style="width: 100%" />

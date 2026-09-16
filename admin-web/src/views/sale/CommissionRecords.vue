@@ -86,7 +86,7 @@
             style="width: 100%"
           />
         </el-form-item>
-        <p style="color: #999999; font-size: 13px">系统将根据当前生效中的提成规则，自动计算所选日期范围内已结清销售单的提成金额。</p>
+        <p style="color: var(--text-muted); font-size: 13px">系统将根据当前生效中的提成规则，自动计算所选日期范围内已结清销售单的提成金额。</p>
       </el-form>
       <template #footer>
         <el-button @click="calcVisible = false">取消</el-button>

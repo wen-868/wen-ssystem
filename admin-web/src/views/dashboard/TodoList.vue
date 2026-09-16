@@ -188,7 +188,7 @@ const typeColorMap: Record<string, string> = {
 };
 
 function getTypeLabel(type: string) { return typeMap[type] || type; }
-function getTypeColor(type: string) { return typeColorMap[type] || "#999999"; }
+function getTypeColor(type: string) { return typeColorMap[type] || "#6D6D6D"; }
 
 function getPriorityLabel(p: string) {
   if (p === "HIGH") return "高";

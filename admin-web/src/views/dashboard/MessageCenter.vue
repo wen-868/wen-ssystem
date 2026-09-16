@@ -175,12 +175,12 @@ const typeIconColorMap: Record<string, string> = {
   PAYMENT: "#D48B3A",
   ALERT: "#C0392B",
   CREDIT: "#722ED1",
-  RECALL: "#999999"
+  RECALL: "#6D6D6D"
 };
 
 function getMsgTypeLabel(type: string) { return typeLabelMap[type] || type; }
 function getMsgIcon(type: string) { return typeIconMap[type] || Bell; }
-function getMsgIconColor(type: string) { return typeIconColorMap[type] || "#999999"; }
+function getMsgIconColor(type: string) { return typeIconColorMap[type] || "#6D6D6D"; }
 function getMsgTagType(type: string) {
   if (type === "ALERT") return "danger";
   if (type === "PAYMENT") return "warning";

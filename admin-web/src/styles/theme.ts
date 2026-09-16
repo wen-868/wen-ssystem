@@ -14,6 +14,6 @@ export const CHART_COLORS = {
   cyan: "#06B6D4",
   gray100: "#F0F0F0",
   info: "#909399",
-  textMuted: "#999999",
+  textMuted: "#6D6D6D", // S3-47：原 #999999 白底 2.85:1 不达标（图表文字需 4.5:1、图形需 3:1）；#6D6D6D 白底=5.17:1 双达标。设计稿图表文字为 --g4 #a3a3a3（2.52:1）同样不达标
   textSecondary: "#444444",
 };
