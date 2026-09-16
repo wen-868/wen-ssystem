@@ -9,12 +9,27 @@
 # S3-40（2026-09-16 凌舟）：失败一律输出统一标记 `❌ [AI底座] 部署失败：<原因>`，
 #   由 auto-deploy.sh 末尾汇总——容错不阻断主部署，但绝不"静默成功"
 #   （同"假 CI 门禁"一类：绿灯/成功码不等于真的部署了）。
+# S3-45（2026-09-16 凌舟登记 / 林夕实施）：拉取必须"显式成功或显式失败"。
+#   原实现 `git fetch ... || true` 吞掉失败后**仍** `reset --hard origin/main` → 落到
+#   **本地已过期的 origin/main 引用**、拿旧代码继续跑，而下游把网络失败误报成
+#   "pnpm-lock.yaml 与 package.json 不同步"——**不只是沉默，而是归错因**，
+#   会把排查推向错误方向（实测：一次 GnuTLS recv error (-110) 被报成 lock 失同步）。
+#   现：① fetch 失败即 ai_fail（不再 reset）；② 只用 FETCH_HEAD，且仅在 fetch 成功分支内 reset；
+#   ③ 日志打印实际拉到的 commit（自动覆盖"部署的是哪个提交"这条判据）；
+#   ④ ai_fail 文案区分"拉取失败"与"lock 失同步"；⑤ 远端改用 SSH（服务器 HTTPS 抖过，SSH 实测稳定）。
+#   ⚠️ 前置条件：服务器需有对 wen-868/ZXQL-AI 有读权限的 deploy key，且 known_hosts 已含 github.com。
 # ============================================================================
 set -uo pipefail
 
 PROJECT_DIR="/opt/zhixiang/liquor-inventory-system"
 # 独立仓库（单源化）：AI 底座源码来自 ZXQL-AI 仓库
-AI_REPO_URL="https://github.com/wen-868/ZXQL-AI.git"
+# S3-45⑤：远端改用 SSH（服务器 HTTPS 曾抖过：GnuTLS recv error (-110)；SSH 实测稳定）。
+#   可用环境变量 AI_REPO_URL 覆盖，便于临时切回 HTTPS 排障。
+AI_REPO_URL="${AI_REPO_URL:-git@github.com:wen-868/ZXQL-AI.git}"
+# S3-45⑤（配套，必要）：SSH 在自动化里必须"快速失败"而非"等输入"——
+#   BatchMode=yes 禁止任何交互式提问（无人应答会挂死整条部署），
+#   ConnectTimeout=15 限制连接阶段挂死。
+export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes -o ConnectTimeout=15}"
 AI_TARGET_DIR="/opt/zhixiang/ai-base"
 # 回退点：内嵌于管理系统的旧源码（阶段 C/D 验证通过后删除）
 AI_LEGACY_DIR="${PROJECT_DIR}/backend/ai-base"
@@ -35,11 +50,39 @@ echo "==> [AI底座] 开始部署 $(date '+%Y-%m-%d %H:%M:%S')"
 # ---- 0. 解析 AI 源码目录（单源化：优先独立仓库 ZXQL-AI，回退内嵌 backend/ai-base） ----
 if [ -d "${AI_TARGET_DIR}/.git" ]; then
   echo "==> [AI底座] 更新独立仓库 ${AI_TARGET_DIR}"
-  git -C "${AI_TARGET_DIR}" fetch origin main 2>&1 | tail -3 || true
-  git -C "${AI_TARGET_DIR}" reset --hard origin/main 2>&1 | tail -3 || true
+  # S3-45⑤：历史检出是 HTTPS 克隆的；只改 AI_REPO_URL 不会影响已存在 remote 的 URL，
+  #   必须显式 set-url，否则"把远端切到 SSH"这一步等于没做。
+  git -C "${AI_TARGET_DIR}" remote set-url origin "${AI_REPO_URL}" 2>/dev/null || true
+  echo "==> [AI底座] 远端 origin = $(git -C "${AI_TARGET_DIR}" remote get-url origin 2>/dev/null)"
+  # S3-45①②：fetch 失败必须**显式失败**，且**失败后不得 reset**。
+  #   旧写法 `git fetch ... || true` + `git reset --hard origin/main` 的致命处在于：
+  #   fetch 一失败就静默回退到**本地已过期的 origin/main 引用** → 拿旧代码继续跑。
+  #   现在只用 FETCH_HEAD，且 reset 只在 fetch 成功的分支内执行。
+  FETCH_LOG="$(mktemp)"
+  if git -C "${AI_TARGET_DIR}" fetch origin main >"${FETCH_LOG}" 2>&1; then
+    tail -3 "${FETCH_LOG}"
+    git -C "${AI_TARGET_DIR}" reset --hard FETCH_HEAD 2>&1 | tail -2
+    # S3-45③：打印实际拉到的 commit，让"部署的是哪个提交"全程可见（可日志取证）
+    echo "==> [AI底座] 已重置到 $(git -C "${AI_TARGET_DIR}" log --oneline -1)"
+    rm -f "${FETCH_LOG}"
+  else
+    FETCH_ERR="$(tail -5 "${FETCH_LOG}" | tr '\n' ' ')"
+    rm -f "${FETCH_LOG}"
+    # S3-45①④：显式失败，且文案明确指向"拉取失败"——绝不与"lock 失同步"混同
+    ai_fail "拉取 ZXQL-AI 失败（git fetch origin main 未成功；已保留现有代码、未做 reset）：${FETCH_ERR}"
+  fi
 else
-  echo "==> [AI底座] 从独立仓库检出 ZXQL-AI 到 ${AI_TARGET_DIR}"
-  git clone "${AI_REPO_URL}" "${AI_TARGET_DIR}" 2>&1 | tail -5 || true
+  echo "==> [AI底座] 从独立仓库检出 ZXQL-AI 到 ${AI_TARGET_DIR}（${AI_REPO_URL}）"
+  CLONE_LOG="$(mktemp)"
+  if git clone "${AI_REPO_URL}" "${AI_TARGET_DIR}" >"${CLONE_LOG}" 2>&1; then
+    tail -5 "${CLONE_LOG}"
+    echo "==> [AI底座] 已检出 $(git -C "${AI_TARGET_DIR}" log --oneline -1)"
+    rm -f "${CLONE_LOG}"
+  else
+    CLONE_ERR="$(tail -5 "${CLONE_LOG}" | tr '\n' ' ')"
+    rm -f "${CLONE_LOG}"
+    ai_fail "检出 ZXQL-AI 失败（git clone ${AI_REPO_URL} 未成功）：${CLONE_ERR}"
+  fi
 fi
 
 if [ -f "${AI_TARGET_DIR}/package.json" ]; then
@@ -152,7 +195,10 @@ fi
 
 # ---- 3. 安装依赖（需执行原生脚本以编译 @napi-rs/canvas） ----
 echo "==> [AI底座] pnpm install"
-pnpm install --frozen-lockfile 2>&1 | tail -8 || ai_fail "pnpm install --frozen-lockfile 失败（多为 ZXQL-AI 的 pnpm-lock.yaml 与 package.json 不同步）"
+# S3-45④：文案与"拉取失败"严格区分。锁不一致的排查要点（S3-43 实测）：
+#   本底座受 Node 20 限制固定用 pnpm 9，而 pnpm 9 **只读 package.json#pnpm.overrides**、
+#   不读 pnpm-workspace.yaml#overrides（后者是 pnpm 10+ 的位置）→ 两处必须同步。
+pnpm install --frozen-lockfile 2>&1 | tail -8 || ai_fail "pnpm install --frozen-lockfile 失败（lock 与 package.json 的 overrides 不一致；本底座用 pnpm 9，overrides 必须写在 package.json#pnpm.overrides，pnpm-workspace.yaml 里的 pnpm 9 不读）"
 
 # ---- 4. 构建 ----
 echo "==> [AI底座] pnpm build"
