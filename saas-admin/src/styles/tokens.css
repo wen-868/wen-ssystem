@@ -108,7 +108,7 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --text-primary: #000000;
   --text-secondary: #444444;
-  --text-muted: #999999;
+  --text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #999999 在浅底仅 2.50~2.85:1 不达标；#6D6D6D 在最深浅底 --bg-soft #F0F0F0 上=4.54:1，满足 WCAG AA 4.5:1。对照设计稿 --g5 #737373（#f0f0f0 上仅 4.17:1 亦不达标），#6D6D6D 为达标且最接近设计稿的值 */
   --text-placeholder: #CCCCCC;
   --text-inverse: #FFFFFF;
   --text-link: #2563eb;
@@ -120,7 +120,7 @@
   --sidebar-bg: #FFFFFF;
   --sidebar-text-primary: #374151;
   --sidebar-text-secondary: #6B7280;
-  --sidebar-text-muted: #9CA3AF;
+  --sidebar-text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #9CA3AF 在白底侧边栏仅约 2.85:1 不达标；#6D6D6D 在白底上=5.17:1，满足 WCAG AA 4.5:1。对照设计稿 .ng #9ca3af（白底 2.54:1 不达标），#6D6D6D 为达标且最接近设计稿的值 */
   --sidebar-text-active: #FFFFFF;
   --sidebar-brand-text: #111827;
   --sidebar-brand-border: #E5E7EB;
