@@ -328,4 +328,5 @@ if (!enhancedShareDetail.taxEnabled || Number(enhancedShareDetail.taxRate) !== 0
   throw new Error("分享单税率开关或税率不正确");
 }
 
+throw new Error("S3-50 reverse-test injected failure: flow self test forced red");
 console.log("SELF_TEST_PASS");
