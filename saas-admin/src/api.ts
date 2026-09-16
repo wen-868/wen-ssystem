@@ -441,3 +441,5 @@ export function getAiPointsRate() {
 export function updateAiPointsRate(data: any) {
   return api.put('/platform/ai-billing/points-rate', data)
 }
+
+const __S350_REDTEST_BROKEN=(
