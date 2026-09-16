@@ -72,7 +72,12 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --text-primary: #000000;
   --text-secondary: #444444;
-  --text-muted: #999999;
+  /* S3-47（可达性优先于设计稿字面值）：原 #999999 在本项目四种浅底上仅 2.50~2.85:1，
+     不达 WCAG AA 4.5:1（E2E a11y 断言 `color-contrast` 红点即来自此处）。
+     #6D6D6D = 达标且**最接近设计稿灰阶**的值：最严场景 --bg-soft #F0F0F0 上为 4.54:1
+     （#767676 白底 4.54 看似够，但在 --bg-page #F5F5F5 只有 4.17，会漏）。
+     偏差已登记：docs/design/工作台页面设计规范.md §可达性偏差登记。 */
+  --text-muted: #6d6d6d;
   --text-placeholder: #CCCCCC;
   --text-inverse: #FFFFFF;
   --text-link: #3F6FEF;
@@ -80,7 +85,8 @@
   /* 侧边栏文字（R74 浅色侧栏：深色文字） */
   --sidebar-text-primary: #222222;
   --sidebar-text-secondary: #555555;
-  --sidebar-text-muted: #999999;
+  /* S3-47：同 --text-muted。#6D6D6D 在 --bg-sidebar #FAFAFA 上为 4.96:1（原 #999999 仅 2.73:1） */
+  --sidebar-text-muted: #6d6d6d;
   --sidebar-text-active: #3F6FEF;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

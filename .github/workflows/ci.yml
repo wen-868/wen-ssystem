@@ -31,7 +31,31 @@ jobs:
       #   → always()：即便 `npm ci` 等前置步骤失败，也仍把脚本语法结论打出来。
       - name: Shell script syntax check (deploy/scripts)
         if: always()
-        run: bash -n deploy/*.sh scripts/*.sh
+        # S3-49：⚠️ `bash -n` / `node --check` 这类命令**只处理第一个参数**，
+        #   其余会被当作脚本的**位置参数** → 旧写法 `bash -n deploy/*.sh scripts/*.sh`
+        #   **实际只检了字母序第一个** `02-mysql-backup.sh`，12 个部署脚本里 **11 个从未被检**
+        #   （含我们反复加固的 `auto-deploy.sh`、`ai-base-deploy.sh`）；
+        #   而 `scripts/*.sh` 当前无匹配，字面量被当参数传进去、静默无意义。
+        #   → 必须**逐文件**循环。反测已证实：坏一个排在末尾的脚本，旧写法 exit 0（假绿灯）、新写法 exit 1。
+        run: |
+          set -uo pipefail
+          checked=0
+          fail=0
+          for f in deploy/*.sh scripts/*.sh; do
+            [ -e "$f" ] || continue          # 空 glob 兜底（scripts/ 下当前无 .sh）
+            checked=$((checked + 1))
+            if ! bash -n "$f"; then
+              echo "::error file=${f}::shell 语法错误"
+              fail=1
+            fi
+          done
+          # 数量本身就是判据：若这里长期是 1，说明又退化成"只检第一个"了
+          echo "已语法检查 ${checked} 个 shell 脚本"
+          if [ "${checked}" -lt 1 ]; then
+            echo "::error::未匹配到任何待检脚本（glob 可能写错或目录已空）"
+            exit 1
+          fi
+          [ "${fail}" -eq 0 ] || exit 1
 
       - name: Backend unit tests
         run: npm --workspace backend test
@@ -107,13 +131,17 @@ jobs:
           MYSQL_DATABASE: liquor_inventory
         ports:
           - 3306:3306
+        # S3-48：⚠️ `options:` 只接受 **docker create 的参数**，不是 mysqld 参数。
+        #   原写法把 `--character-set-server` / `--collation-server` 塞在这里 →
+        #   `unknown flag`，exit code 125 → **本 job 从没真正跑过**（假门禁）。
+        #   现直接去掉：mysql:8.0 默认即 utf8mb4 / utf8mb4_0900_ai_ci，
+        #   且 `docs/migrations/001_phase1_schema.sql` 等本就显式声明 utf8mb4_0900_ai_ci
+        #   （170 个迁移里 117 个已显式声明，其余继承默认同值）→ 去掉反而**更贴近生产实际**。
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=20
-          --character-set-server=utf8mb4
-          --collation-server=utf8mb4_unicode_ci
+            --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+            --health-interval=5s
+            --health-timeout=5s
+            --health-retries=20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

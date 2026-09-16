@@ -37,7 +37,9 @@
   --el-border-color-light: #F0F0F0;
   --el-text-color-primary: #000000;
   --el-text-color-regular: #444444;
-  --el-text-color-secondary: #999999;
+  /* S3-47：同 tokens.css 的 --text-muted（Element Plus 的 secondary 文本/占位/辅助文字
+     同样受 color-contrast 约束）。#999999 → #6D6D6D，4.5:1 达标且最接近设计稿灰阶。 */
+  --el-text-color-secondary: #6d6d6d;
   --el-bg-color: #FFFFFF;
   --el-bg-color-page: #F8F8F8;
   --el-fill-color-blank: #FFFFFF;
