@@ -56,6 +56,12 @@ function ratio(fg, bg) {
 }
 function fmt(n) { return n.toFixed(2); }
 
+// 把字符串安全地放入 RegExp：转义所有正则元字符（含反斜杠）
+// CodeQL js/incomplete-sanitization 要求不只是转义 `-`。
+function escapeForRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\// ── 解析（读取真实文件取值）─────────────────────────");
+}
+
 // ── 解析（读取真实文件取值）─────────────────────────
 function parseTokensCss(filePath, names) {
   const src = fs.readFileSync(filePath, 'utf8');
@@ -63,7 +69,9 @@ function parseTokensCss(filePath, names) {
   const missing = [];
   for (const name of names) {
     // 匹配 `--name: #rrggbb`（容忍行尾注释）
-    const re = new RegExp('--' + name.replace(/[-]/g, '\\-') + ':\\s*#([0-9a-fA-F]{6})');
+    // CodeQL（js/incomplete-sanitization）：拼接 RegExp 必须转义正则元字符，
+    // 仅转义 `-` 而不转义 `\` 会被判定为不完整的转义/编码。
+    const re = new RegExp('--' + escapeForRegExp(name) + ':\\s*#([0-9a-fA-F]{6})');
     const m = src.match(re);
     if (m) found[name] = '#' + m[1].toUpperCase();
     else missing.push(name);
