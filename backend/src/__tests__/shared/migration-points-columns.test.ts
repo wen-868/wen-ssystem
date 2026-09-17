@@ -41,7 +41,7 @@ describe("151_points_columns_fill.sql", () => {
 
   it("t_points_rule 补齐营销积分规则列", () => {
     expect(sql).toContain("ADD COLUMN earn_ratio DECIMAL(6,4)");
-    expect(sql).toContain("ADD COLUMN redeem_ratio DECIMAL(6,4)");
+    expect(sql).toContain("ADD COLUMN redeem_ratio DECIMAL(8,4)");
     expect(sql).toContain("ADD COLUMN min_redeem_amount DECIMAL(10,2)");
     expect(sql).toContain("ADD COLUMN max_redeem_ratio DECIMAL(6,4)");
     expect(sql).toContain("ADD COLUMN expire_days INT");

@@ -67,7 +67,7 @@ describe("addTablePrefix 逐模式：表名被加 t_ 前缀", () => {
     expect(out).toContain("JOIN t_tenant");
   });
 
-  it("INTO: REPLACE INTO tenant → t_tenant（INTO 模式顺带覆盖 REPLACE INTO，扫描 0 次但安全）", () => {
+  it("REPLACE_INTO: REPLACE INTO tenant → t_tenant（S3-55B 收窄后由 REPLACE_INTO 模式覆盖）", () => {
     const out = addTablePrefix("REPLACE INTO tenant (id) VALUES (1)");
     expect(out).toContain("INTO t_tenant");
   });
