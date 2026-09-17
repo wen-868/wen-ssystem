@@ -9,7 +9,7 @@ ALTER TABLE t_points_record ADD INDEX idx_points_record_user (user_id);
 ALTER TABLE t_points_record ADD INDEX idx_points_record_member (member_id);
 
 ALTER TABLE t_points_rule ADD COLUMN earn_ratio DECIMAL(6,4) DEFAULT 0 COMMENT '消费积分比例(营销积分设计)' AFTER earn_rate;
-ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(6,4) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio;
+ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(8,4) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio;
 ALTER TABLE t_points_rule ADD COLUMN min_redeem_amount DECIMAL(10,2) DEFAULT 0 COMMENT '最低兑换金额(营销积分设计)' AFTER redeem_ratio;
 ALTER TABLE t_points_rule ADD COLUMN max_redeem_ratio DECIMAL(6,4) DEFAULT 0.5 COMMENT '最高抵扣比例(营销积分设计)' AFTER min_redeem_amount;
 ALTER TABLE t_points_rule ADD COLUMN expire_days INT NOT NULL DEFAULT 365 COMMENT '积分有效天数(营销积分设计)' AFTER max_redeem_ratio;

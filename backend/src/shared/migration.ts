@@ -105,12 +105,15 @@ export const TABLE_NAME_PATTERNS: TableNamePattern[] = [
   { name: "CREATE_TABLE",    regex: /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([`a-z_][`a-z0-9_]*)/gi, note: "建表：CREATE TABLE [IF NOT EXISTS] <tbl>" },
   { name: "ALTER_TABLE",     regex: /(ALTER\s+TABLE\s+)([`a-z_][`a-z0-9_]*)/gi, note: "改表：ALTER TABLE <tbl>" },
   { name: "INSERT_INTO",     regex: /(INSERT\s+(?:IGNORE\s+)?INTO\s+)([`a-z_][`a-z0-9_]*)/gi, note: "插入：INSERT [IGNORE] INTO <tbl>" },
+  // S3-55B：收窄 INTO 上下文。原通用 INTO 模式把 `SELECT COUNT(*) INTO col_count`（092 存储过程体内）
+  // 误当成表名加前缀成 t_col_count，导致 MySQL 报 Undeclared variable。改为仅匹配 REPLACE INTO，
+  // 与上方 INSERT_INTO 互补覆盖所有"真实表名 INTO"场景；SELECT/SET ... INTO 变量赋值不再被加前缀。
+  { name: "REPLACE_INTO",    regex: /(REPLACE\s+INTO\s+)([`a-z_][`a-z0-9_]*)/gi, note: "替换插入：REPLACE INTO <tbl>（S3-55B 收窄：原误用通用 INTO 把 SELECT...INTO 变量当表名）" },
   // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
   { name: "UPDATE",          regex: /((?:^|\n)\s*UPDATE\s+)([`a-z_][`a-z0-9_]*)/gim, note: "更新：仅语句开头 UPDATE <tbl>，防误伤 ON UPDATE / ON DUPLICATE KEY UPDATE" },
   { name: "DELETE_FROM",     regex: /(DELETE\s+FROM\s+)([`a-z_][a-z0-9_]*)/gi, note: "删除：DELETE FROM <tbl>" },
   { name: "FROM",            regex: /(\bFROM\s+)([`a-z_][`a-z0-9_]*)/gi, note: "查询来源：FROM <tbl>（含子查询）" },
   { name: "JOIN",            regex: /(\b(?:LEFT|RIGHT|INNER|OUTER|FULL|CROSS\s+)?JOIN\s+)([`a-z_][`a-z0-9_]*)/gi, note: "连接：[(LEFT|RIGHT|INNER...) ]JOIN <tbl>" },
-  { name: "INTO",            regex: /(\bINTO\s+)([`a-z_][`a-z0-9_]*)/gi, note: "INTO <tbl>（覆盖 INSERT/REPLACE 之外的 INTO 上下文）" },
   // S3-52 主修复点：外键引用。原漏此模式 → 全新库 FOREIGN KEY (x) REFERENCES tenant(id) 里的 tenant 未加 t_ 前缀 → MySQL 报 Failed to open the referenced table 'tenant'
   { name: "REFERENCES",      regex: /(REFERENCES\s+)([`a-z_][`a-z0-9_]*)/gi, note: "外键引用：REFERENCES <tbl>(col) —— S3-52 主修复点（原漏 → 27 条外键迁移失败）" },
   // S3-52 第二修复点：建索引的表名在 ON 之后，索引名不当表名；已带 t_ 的表名由下方跳过逻辑保护（如 163_ 已写 t_transfer_order）
@@ -119,14 +122,65 @@ export const TABLE_NAME_PATTERNS: TableNamePattern[] = [
   { name: "DROP_TABLE",      regex: /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)([`a-z_][`a-z0-9_]*)/gi, note: "删表：DROP TABLE [IF EXISTS] <tbl>" },
 ];
 
-/** 给 SQL 语句中的表名加 t_ 前缀（按 TABLE_NAME_PATTERNS 具名清单逐模式替换） */
+/**
+ * S3-55B 误伤清单（MISFIRE_GUARDS）："看起来像表名上下文、但绝不能加 t_ 前缀"的写法，显式列出来。
+ *
+ * 凌舟裁定：S3-52 是"漏模式"方向出事、S3-55B 是"过宽模式"方向出事——两个方向都要防住。
+ * 故在覆盖清单 TABLE_NAME_PATTERNS 之外，再维护一份具名误伤清单，每条对应一个真实踩坑或全量扫描结论，
+ * 并在 tests/migration-prefix-guards.test.ts 中逐条钉死单测（覆盖清单每项一条 + 误伤清单每项一条）。
+ *
+ * 生效方式：addTablePrefix 在每次替换前先过一遍本清单（isMisfire），命中任一即原样返回，不再加前缀。
+ *   - ALREADY_T_PREFIXED / SYSTEM_SCHEMA：按"表名本身"判定的运行时守卫，能在任意模式下拦住双前缀/系统库；
+ *   - SELECT_INTO_ASSIGNMENT：SELECT/SET ... INTO <变量> 是赋值目标不是表名（092 实际案例 col_count/idx_count）；
+ *     本守卫对 prefix==="INTO " 的情形一律拦截，与下方"INTO 仅来自 INSERT/REPLACE"的结构性约束互为兜底。
+ *   - ON_UPDATE / ON_DUPLICATE_KEY_UPDATE：UPDATE 不在语句开头（由 UPDATE 模式仅匹配语句开头保证），
+ *     这两类是列定义/子句的片段，绝不可能是表名；此处显式列出并钉死单测，防未来再加回宽泛模式时漏掉。
+ */
+export interface MisfireGuard {
+  name: string;
+  note: string;
+  test: (prefix: string, bare: string) => boolean;
+}
+
+export const MISFIRE_GUARDS: MisfireGuard[] = [
+  {
+    name: "ALREADY_T_PREFIXED",
+    note: "已带 t_ 前缀的表名不能变 t_t_x（如 t_tenant 不能成 t_t_tenant）",
+    test: (_prefix, bare) => bare.startsWith("t_"),
+  },
+  {
+    name: "SYSTEM_SCHEMA",
+    note: "information_schema.x / mysql.x 系统库不能加前缀",
+    test: (_prefix, bare) => bare.startsWith("information_schema") || bare.startsWith("mysql"),
+  },
+  {
+    name: "SELECT_INTO_ASSIGNMENT",
+    note: "SELECT COUNT(*) INTO col_count（092 实际案例）：INTO 后是变量/赋值目标，不是表名",
+    test: (prefix) => prefix.trim().toUpperCase() === "INTO",
+  },
+  {
+    name: "ON_UPDATE",
+    note: "ON UPDATE CURRENT_TIMESTAMP：UPDATE 不在语句开头，是列定义的默认值片段",
+    test: (prefix) => /(^|\s)ON\s+UPDATE\b/i.test(prefix),
+  },
+  {
+    name: "ON_DUPLICATE_KEY_UPDATE",
+    note: "ON DUPLICATE KEY UPDATE col：同上，是 INSERT 子句片段，不是表名",
+    test: (prefix) => /ON\s+DUPLICATE\s+KEY\s+UPDATE\b/i.test(prefix),
+  },
+];
+
+/** 给 SQL 语句中的表名加 t_ 前缀（按 TABLE_NAME_PATTERNS 具名清单逐模式替换，并经 MISFIRE_GUARDS 误伤拦截） */
 export function addTablePrefix(sql: string): string {
   let result = sql;
   for (const { regex } of TABLE_NAME_PATTERNS) {
     result = result.replace(regex, (match, prefix: string, tableName: string) => {
-      // S3-52：兼容反引号标识符，先去反引号再判断跳过，避免双前缀 t_t_
+      // S3-52：兼容反引号标识符，先去反引号得到裸名
       const bare = tableName.replace(/`/g, "");
-      if (bare.startsWith("t_") || bare.startsWith("information_schema") || bare.startsWith("mysql")) {
+      // S3-55B：先过误伤清单 MISFIRE_GUARDS——覆盖清单只管"加什么"，误伤清单管"什么不加"。
+      // 用 prefix+bare 同时判断：已带 t_ / 系统库 为运行时拦截；
+      // SELECT...INTO 赋值 / ON UPDATE / ON DUPLICATE KEY UPDATE 为上下文拦截（见 MISFIRE_GUARDS 注释）。
+      if (MISFIRE_GUARDS.some((g) => g.test(prefix, bare))) {
         return match;
       }
       // 保留原始反引号形态（有则加回，无则不添加）
