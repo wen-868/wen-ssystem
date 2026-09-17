@@ -77,3 +77,11 @@
 2. **发现同一缺陷在多处出现时，必须全量扫描影响面并给出数字**（"已修 N 处 / 仍受影响 M 处"），不允许只修碰到的那一处。
 3. **门禁被修复后首次真跑，要当作"新发现的信号源"**：新冒出来的红点很可能不是新问题，而是**被掩盖已久的存量问题**——按 P0 对待并评估影响面，不得为转绿而降级检查。
 4. **修复根因优先于文件级绕过**；确需绕过时，必须在同一提交里写明"根因、绕过范围、未覆盖范围、后续根治任务编号"。
+
+## ★ 分支保护与 required checks 注意事项（2026-09-17 凌舟启用，全员须知）
+
+现状：`main` 已启用分支保护，**required status checks = `build-and-test`、`e2e (admin-web)`、`e2e (saas-admin)`**；未要求 PR 审查（直接推送仍可用）；已禁用 force push 与分支删除；`migration-check`、`CodeQL` **暂不设为 required**（前者当前红、后者只增量不阻断），待转绿/评估后再纳入。
+
+1. **矩阵 job 的 required check 名必须写具体组合名**（`e2e (admin-web)` 这种），**不能写父名 `e2e`**——写父名会"永远等不到上报"，把**所有 PR 永久堵死**（凌舟本次先踩了一次，已改）。矩阵维度改名时**必须同步更新分支保护的 required checks**。
+2. **只把"已验证会红"的真门禁设为 required**：假门禁进 required 等于把人挡住而检不出问题；当前红但真跑的门禁（如 migration-check）也不宜立刻 required——会把主干锁死。
+3. **分支保护本身也要反测**：构造/利用一个 required check 失败的 PR，确认 `mergeStateStatus = BLOCKED`（本次用 PR #16 免费验证：`mergeable=MERGEABLE` 但 `mergeState=BLOCKED`）。
