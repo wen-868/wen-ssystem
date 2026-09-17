@@ -16,11 +16,14 @@
  *   - admin-web CHART_COLORS.textMuted / textSecondary：canvas/ECharts 文字，axe 扫不到，
  *     由本矩阵替代核查（S3-53 要求 3）——在图表白底上判定 4.5:1
  *
- * 不纳入「失败判定」的项（已在 docs/design 工作台页面设计规范.md §八 登记为可接受偏差/待定）：
- *   - --text-placeholder(#CCCCCC，占位提示文本，浅色为设计意图)
- *   - --gray-400(#999999，滚动条等非文本 UI，适用 1.4.11 非文本 3:1，按 §八 登记为待定)
+ * 不纳入「失败判定」的项（仍在 docs/design 工作台页面设计规范.md §八 登记为可接受偏差/待定）：
  *   - CHART_COLORS 系列填充色（primary/success/warning/...）：图形填充，属「图表配色设计变更」，
  *     不在本门禁的失败集合内（部分在白底上 < 3:1，改动需凌舟裁定，单列待定）。
+ *
+ * S3-54 裁定已转正（原 §八 待裁定项，现已纳入下方「S3-54 裁定锁定」矩阵）：
+ *   - --text-placeholder 占位提示文本 → 白底输入框内，WCAG AA 文本 ≥4.5:1
+ *   - --input-border / --ctl-border 输入框/控件边框 → WCAG 1.4.11 非文本 ≥3:1
+ *   三项动态读取 saas-admin/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
  */
 
 const fs = require('fs');
@@ -124,11 +127,27 @@ const NON_TEXT_TOKENS = [
   { name: 'gray-400', surfaces: ['white', 'g0', 'soft'], note: '滚动条滑块·hover 态' },
 ];
 
+// ── S3-54 裁定锁定（验收人裁定：占位符文本 ≥4.5:1；输入框/控件边框 ≥3:1）──
+// 动态读取 saas-admin/src/styles/tokens.css 真实取值，改回坏值必红（非写死期望值）。
+// 真实相邻色：
+//   - text-placeholder：占位提示文本落在白底输入框内(--input-bg #FFFFFF) → 文本 4.5:1，白底即最严面；
+//   - input-border / ctl-border：边框对比「最严边界」#f0f0f0(--bg-soft)（项目门禁既定最严面，
+//     通过它即保证白底(#FFFFFF)/#f7f7f7 也 ≥3:1，故只测 soft 即覆盖真实相邻面，无需重复组合）。
+const S3_54_TOKENS = [
+  { name: 'text-placeholder', surfaces: ['white'], threshold: TEXT_THRESHOLD, kind: 'text', note: 'S3-54 占位提示文本(白底输入框内)≥4.5:1' },
+  { name: 'input-border', surfaces: ['soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54 输入框边框(1.4.11 最严边界 #f0f0f0)≥3:1' },
+  { name: 'ctl-border', surfaces: ['soft'], threshold: NON_TEXT_THRESHOLD, kind: 'non-text', note: 'S3-54 控件边框 .btn/.ipt/.sel(1.4.11 最严边界)≥3:1' },
+];
+
 const rows = [];
 const failures = [];
 
 // saas-admin 文本 token
-const tokenNames = [...TEXT_TOKENS.map((t) => t.name), ...NON_TEXT_TOKENS.map((t) => t.name)];
+const tokenNames = [
+  ...TEXT_TOKENS.map((t) => t.name),
+  ...NON_TEXT_TOKENS.map((t) => t.name),
+  ...S3_54_TOKENS.map((t) => t.name),
+];
 const { found: tok, missing: tokMissing } = parseTokensCss(TOKENS_CSS, tokenNames);
 
 for (const t of TEXT_TOKENS) {
@@ -210,6 +229,31 @@ for (const t of NON_TEXT_TOKENS) {
       failures.push({
         file: 'saas-admin/src/styles/tokens.css',
         msg: `--${t.name} ${fg} (${t.note}) × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${NON_TEXT_THRESHOLD} (WCAG 1.4.11 非文本；axe 扫不到伪元素，须本矩阵兜底)`,
+      });
+    }
+  }
+}
+
+// ── S3-54 裁定锁定项（动态读 token，门禁兜底）────────────
+for (const t of S3_54_TOKENS) {
+  const fg = tok[t.name];
+  if (!fg) continue; // 缺失由下方统一报错
+  for (const s of t.surfaces) {
+    const bg = SURFACES[s];
+    const r = ratio(fg, bg);
+    const ok = r >= t.threshold;
+    rows.push({
+      group: 'saas-admin token (S3-54 裁定锁定)',
+      label: `--${t.name} (${t.note}) ${fg}`,
+      surface: SURFACE_LABEL[s],
+      r,
+      threshold: t.threshold,
+      ok,
+    });
+    if (!ok) {
+      failures.push({
+        file: 'saas-admin/src/styles/tokens.css',
+        msg: `--${t.name} ${fg} (${t.note}) × ${SURFACE_LABEL[s]} = ${fmt(r)}:1 < ${t.threshold} (${t.kind === 'text' ? 'WCAG AA 文本；S3-54 裁定锁定' : 'WCAG 1.4.11 非文本；S3-54 裁定锁定'})`,
       });
     }
   }
