@@ -28,6 +28,7 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
         console.log(
           `[a11y] 登录页 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
         );
+        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
       });
     }
 
@@ -58,6 +59,7 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
         console.log(
           `[a11y] 工作台 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
         );
+        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
       });
     }
 
