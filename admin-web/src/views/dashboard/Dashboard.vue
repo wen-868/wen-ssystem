@@ -913,8 +913,8 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
 }
 .metric-num--accent {
-  /* WCAG AA：原 #3f6fef 对比度 4.43:1 略低于 4.5 */
-  color: #2f5fd0;
+  /* S3-64（A-8）：前景收编为 token --metric-accent（tokens.css），在 --bg-soft #F0F0F0 上 = 5.02:1 ≥ 4.5 */
+  color: var(--metric-accent);
 }
 .side-sub {
   font-size: 12px;

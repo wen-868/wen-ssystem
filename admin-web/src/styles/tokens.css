@@ -215,6 +215,12 @@
   --metric-value-size: 28px;
   --metric-label-size: 13px;
   --metric-change-size: 12px;
+  /* S3-64（A-8，墨）：工作台「今日经营」指标条强调数字（.metric-num--accent）前景。
+     原硬编码字面量 #2F5FD0（d796afe4 由 #406cd4/4.27:1 修正而来）收编为 token，消除硬编码。
+     在真实底色 --bg-soft #F0F0F0 上 = 5.02:1 ≥ 4.5（18px/700 普通文本），达标且留 0.5 余量。
+     取舍：保持原验证通过色相，不改用 --color-primary(#3F6FEF, 仅 3.90:1 不达标) 或
+     --color-primary-active(#2F5BD6, 5.14:1，虽达标但改动了识别色相)，避免破坏品牌主色观感。 */
+  --metric-accent: #2F5FD0;
 
   /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      Chart — 图表网格/轴线（R99-01 精致图表）
