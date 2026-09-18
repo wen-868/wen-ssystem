@@ -22,6 +22,16 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
       `[a11y] 登录页违规: total=${results.violations.length}, critical/serious=${criticalSerious.length}, ` +
       `types=${criticalSerious.map((v) => v.id).join(",")}`
     );
+    if (criticalSerious.length > 0) {
+      criticalSerious.forEach((v) => {
+        const targets = v.nodes.slice(0, 5).map((n) => n.target.join(" ")).join(" | ");
+        console.log(
+          `[a11y] 登录页 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
+        );
+        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
+      });
+    }
+
     expect(criticalSerious.length).toBe(0);
   });
 
@@ -43,6 +53,16 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
       `[a11y] 工作台违规: total=${results.violations.length}, critical/serious=${criticalSerious.length}, ` +
       `types=${criticalSerious.map((v) => v.id).join(",")}`
     );
+    if (criticalSerious.length > 0) {
+      criticalSerious.forEach((v) => {
+        const targets = v.nodes.slice(0, 5).map((n) => n.target.join(" ")).join(" | ");
+        console.log(
+          `[a11y] 工作台 nodes target: type=${v.id}, count=${v.nodes.length}, first5=${targets}`
+        );
+        console.log(`[a11y] axe data: ${JSON.stringify(v.nodes.slice(0, 3).map((n) => n.any?.[0]?.data ?? null))}`);
+      });
+    }
+
     expect(criticalSerious.length).toBe(0);
   });
 });

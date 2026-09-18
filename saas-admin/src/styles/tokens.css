@@ -32,8 +32,8 @@
   --gray-50: #F8F8F8;
   --gray-100: #F0F0F0;
   --gray-200: #E2E2E2;
-  --gray-300: #CCCCCC;
-  --gray-400: #999999;
+  --gray-300: #888888; /* S3-53（可达性优先）：滚动条滑块默认态。原 #CCCCCC 在最严表面 --bg-soft #F0F0F0 上仅 1.41:1，远低于 WCAG 1.4.11 非文本 3:1；#888888 = 3.11:1（白底 3.54:1）。本 token 在 saas-admin 中仅被 ::-webkit-scrollbar-thumb 引用，改动无外溢 */
+  --gray-400: #6D6D6D; /* S3-53（可达性优先）：滚动条滑块 hover 态。原 #999999 最严表面仅 2.50:1；#6D6D6D = 3.99:1 满足 1.4.11 3:1，且与默认态 #888888 有明确明暗差以表达 hover 状态 */
   --gray-500: #666666;
   --gray-600: #444444;
   --gray-700: #333333;
@@ -108,7 +108,7 @@
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --text-primary: #000000;
   --text-secondary: #444444;
-  --text-muted: #999999;
+  --text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #999999 在浅底仅 2.50~2.85:1 不达标；#6D6D6D 在最深浅底 --bg-soft #F0F0F0 上=4.54:1，满足 WCAG AA 4.5:1。对照设计稿 --g5 #737373（#f0f0f0 上仅 4.17:1 亦不达标），#6D6D6D 为达标且最接近设计稿的值 */
   --text-placeholder: #CCCCCC;
   --text-inverse: #FFFFFF;
   --text-link: #2563eb;
@@ -120,7 +120,7 @@
   --sidebar-bg: #FFFFFF;
   --sidebar-text-primary: #374151;
   --sidebar-text-secondary: #6B7280;
-  --sidebar-text-muted: #9CA3AF;
+  --sidebar-text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #9CA3AF 在白底侧边栏仅约 2.85:1 不达标；#6D6D6D 在白底上=5.17:1，满足 WCAG AA 4.5:1。对照设计稿 .ng #9ca3af（白底 2.54:1 不达标），#6D6D6D 为达标且最接近设计稿的值 */
   --sidebar-text-active: #FFFFFF;
   --sidebar-brand-text: #111827;
   --sidebar-brand-border: #E5E7EB;

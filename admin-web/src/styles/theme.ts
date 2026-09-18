@@ -14,6 +14,6 @@ export const CHART_COLORS = {
   cyan: "#06B6D4",
   gray100: "#F0F0F0",
   info: "#909399",
-  textMuted: "#999999",
+  textMuted: "#6D6D6D", // S3-47/S3-53（可达性优先）：原 #999999 白底图表 2.85:1 不达标；#6D6D6D=5.17:1 满足 WCAG AA 4.5:1。axe 扫不到 canvas 内文字，此值由 scripts/contrast-check.cjs 的 token×surface 矩阵替代核查（见 docs/design 工作台页面设计规范.md §八）
   textSecondary: "#444444",
 };

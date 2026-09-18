@@ -8,6 +8,89 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    # ─────────────────────────────────────────────────────────────
+    # 2026-09-18 凌舟裁定：取消 e2e 的 matrix 拆分，改回单一 job。
+    #   背景：分支保护 required 配的是矩阵子 job 名 `e2e (admin-web)` / `e2e (saas-admin)`，
+    #   而 main 的 job 名是父名 `e2e` —— 名字随分支漂移，永远有一套对不上，
+    #   于是 #16 被矩阵腿挡住、#15/#18 上报父名永远等不到 required → 双向死锁。
+    #   裁定：required 名只能等于 main 当前 job 名（`e2e`）；省那几分钟并行不值得。
+    #   → admin-web 与 saas-admin 改为在同一个 job 内**顺序**执行（先 axe，后对比度矩阵）。
+    #   → a11y 单独抽成观察期 job（见下方 `a11y`），非 required，不阻断。
+    #
+    #   ⚠️ 本 job 内的检查命令与阈值一律保持原样，不得为转绿放宽或跳过
+    #      （这是铁律：不得降级检查）。
+    #
+    # S3-53：双端 a11y 门禁，两端都在本 job 内跑到。
+    #   - admin-web：既有 Playwright + axe 浏览器扫描（登录页 + 工作台），断言不变（criticalSerious.length).toBe(0)。
+    #   - saas-admin：dev server 在 5174（见 saas-admin/vite.config.ts），但登录页带**一次性图形验证码**
+    #     （GET /platform/auth/captcha），自动化无法绕过 → 浏览器 axe 暂不能自动进场。
+    #     → 按 S3-53 裁定采用降级方案：saas-admin 这一路只跑「对比度矩阵门禁」
+    #       （scripts/contrast-check.cjs，纯计算、不依赖浏览器，覆盖 token×surface + canvas 图表色），
+    #       浏览器 axe 扫描作为「待登录验证码进场脚本就绪」项保留（见 e2e/a11y.saas-admin.spec.ts，默认 skip），
+    #       当前由对比度矩阵兜底。详见 docs/tasks/cards/R101-S3-53-林夕门禁回传.md。
+    # ─────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build backend
+        run: npm --workspace backend run build
+
+      - name: Start mock backend
+        run: |
+          USE_MOCK_DB=true NODE_ENV=development JWT_SECRET=e2e-secret PORT=8080 npm --workspace backend run start > /tmp/backend.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:8080/health
+
+      - name: Start admin-web dev server
+        run: |
+          VITE_API_BASE=/api npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:5173
+
+      - name: Start saas-admin dev server
+        run: |
+          npm --workspace saas-admin run dev > /tmp/saas-admin.log 2>&1 &
+          npx wait-on -t 90000 http://127.0.0.1:5174
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox
+
+      - name: Run E2E a11y tests (admin-web, Playwright + axe)
+        run: npx playwright test
+
+      - name: saas-admin a11y gate (contrast matrix)
+        # 纯计算、不依赖浏览器：读取 tokens.css / theme.ts 真实取值，构建 token×surface 矩阵，
+        # 任一 token 不达标即 exit 1。这是 saas-admin 当前的 a11y 门禁（浏览器 axe 待进场脚本就绪）。
+        run: node scripts/contrast-check.cjs
+
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: e2e-report/
+          retention-days: 30
+
+  # ─────────────────────────────────────────────────────────────
+  # a11y 观察期 job（2026-09-18 凌舟裁定）
+  #   • **非 required，永不阻断合并**（job 级 continue-on-error: true）
+  #   • 目的：观察漂移。今天是 3/8 间歇（见 S3-60：.feed-card--trend > .el-card__body
+  #     触发 scrollable-region-focusable），把漂移的东西设成 required 就是「每个 PR 随机被堵」。
+  #   • 约定：**连续 10 次无漂移后再并进 e2e**。达标前不得改 e2e 的 required 集合。
+  #   • 每次取样都要求输出 nodes target（带元素身份）——否则无法核对，等于不可定位
+  #     （这是 S3-59 缺陷三，也是当初 S3-47 归因被撤回的原因）。
+  # ─────────────────────────────────────────────────────────────
+  a11y:
+    runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,13 +120,30 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Run E2E tests
-        run: npx playwright test
+      - name: a11y sampling x3 (observation only, never blocks)
+        # 三次取样，每次独立跑完并打印命中明细（含 nodes target）。
+        # continue-on-error 保证三次都跑完，不会因为第一次失败就跳过后面两次 ——
+        # 观察漂移要看的是「每次结果分别是多少」，不是「有没有失败过一次」。
+        continue-on-error: true
+        run: |
+          for i in 1 2 3; do
+            echo "===== a11y sample $i / 3 ====="
+            set +e
+            npx playwright test --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
+            code=${PIPESTATUS[0]}
+            set -e
+            echo "[sample $i] playwright exit=$code (PIPESTATUS[0]，排除 tee 干扰)"
+          done
+          echo "===== 三次取样汇总 ====="
+          for i in 1 2 3; do
+            echo "--- sample $i ---"
+            grep -E "\[a11y\]" "/tmp/a11y-sample-$i.txt" || echo "  (无 [a11y] 输出)"
+          done
 
-      - name: Upload E2E report
+      - name: Upload a11y observation samples
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-report
-          path: e2e-report/
+          name: a11y-observation-samples
+          path: /tmp/a11y-sample-*.txt
           retention-days: 30
