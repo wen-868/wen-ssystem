@@ -33,12 +33,23 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    // 本地预览临时代理：对接线上 API（验证后还原）
+    // ─────────────────────────────────────────────────────────────
+    // S3-59.1 密闭性（凌舟 2026-09-19 派单 A-1）
+    //   旧状：target 硬编码生产域名 + secure:false。CI 注入 VITE_API_BASE=/api 后，
+    //   那个 USE_MOCK_DB=true 的 mock 后端形同虚设 —— job 时间窗内在生产 nginx
+    //   access.log 留下 751 条访问（凌舟 2026-09-19 取证）。密闭性被彻底破坏。
+    //
+    //   🔴 修法（fail-safe）：**默认值只能是 127.0.0.1:8080**。
+    //      任何"忘了配"的路径都不可能碰到生产；要连远端必须**显式**给值。
+    //      本地如确需临时代理到远端环境，在 admin-web/.env.local（已被 .gitignore 忽略）
+    //      写入 VITE_API_PROXY_TARGET=<远端地址> —— 值不入库，这正是本单要消除的东西。
+    //   🔴 TLS 校验默认开启（secure 默认 true）；关校验须显式 VITE_API_PROXY_SECURE=false。
+    // ─────────────────────────────────────────────────────────────
     proxy: {
       "/api": {
-        target: "https://api.onepan.cn",
+        target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8080",
         changeOrigin: true,
-        secure: false
+        secure: process.env.VITE_API_PROXY_SECURE !== "false"
       }
     }
   },
