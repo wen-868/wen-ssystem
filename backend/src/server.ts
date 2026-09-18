@@ -134,6 +134,22 @@ function createRateLimiter(options: NonNullable<Parameters<typeof rateLimit>[0]>
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// S3-59.1 密闭性取证（凌舟 2026-09-19 派单 A-1）
+//   🔴 只在 USE_MOCK_DB=true（CI / 本地 mock 联调）下挂载 —— 生产永不执行。
+//   用途：派单 A-1 验收①要求「mock 后端请求日志出现 /api/admin/auth/login」，
+//   而后端此前**没有任何请求日志**（无 morgan / accessLog），该证据根本无从取得。
+//   挂载在最前面，连被限流/被拒的请求也留得下痕迹。
+//   用 process.stdout.write 而非 console.log：backend/.eslintrc.cjs 的
+//   no-console 只放行 warn/error，console.log 会新增告警。
+// ─────────────────────────────────────────────────────────────
+if (env.USE_MOCK_DB) {
+  app.use((req, _res, next) => {
+    process.stdout.write("[mock-request] " + req.method + " " + req.originalUrl + "\n");
+    next();
+  });
+}
+
 // 全局限流：生产环境 100 次/分钟/IP；非生产（开发/本地）放宽到 1000，避免脚本测试频繁触发 429
 if (process.env.NODE_ENV !== "test") {
   // 全局 Rate Limiting：每IP每分钟600请求（商用标准，避免正常浏览多页面触发429）
@@ -161,12 +177,18 @@ app.use(responseTimeTracker);
 app.use(errorResponseInterceptor);
 
 // 公开健康检查（无需认证，供外部监控使用）
+// 🔴 S3-59.1 密闭性标记（派单 A-1 验收①）：**仅 mock 模式**附带 mode 字段。
+//    生产响应结构一字不动（空对象展开 ⇒ 无新增键），所以生产永远不会吐出
+//    "mode":"mock-db"。CI 只要看到这个串，就证明该请求落在 USE_MOCK_DB=true 的后端上，
+//    没有回落生产 —— 这是「可区分的 mock 响应」，比只回 healthy 有判别力。
+const mockSealMarker: Record<string, string> = env.USE_MOCK_DB ? { mode: "mock-db" } : {};
+
 app.get("/api/platform/health", (_req, res) => {
-  res.json(ok({ status: "healthy", timestamp: new Date().toISOString() }));
+  res.json(ok({ status: "healthy", timestamp: new Date().toISOString(), ...mockSealMarker }));
 });
 
 app.get("/health", (_req: any, res: any) => {
-  res.json(ok({ service: "zhixiang-backend" }));
+  res.json(ok({ service: "zhixiang-backend", ...mockSealMarker }));
 });
 
 // 登录接口（无需认证；应用户要求不限流——演示登录/多设备共享IP场景不再触发429）

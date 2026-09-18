@@ -52,13 +52,42 @@ jobs:
 
       - name: Start admin-web dev server
         run: |
-          VITE_API_BASE=/api npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
+          VITE_API_BASE=/api VITE_API_PROXY_TARGET=http://127.0.0.1:8080 npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
           npx wait-on -t 90000 http://127.0.0.1:5173
 
       - name: Start saas-admin dev server
         run: |
           npm --workspace saas-admin run dev > /tmp/saas-admin.log 2>&1 &
           npx wait-on -t 90000 http://127.0.0.1:5174
+
+      - name: 密闭性取证（S3-59.1）：/api 必须打到 mock，不得回落生产
+        # ─────────────────────────────────────────────────────────────
+        # 派单 A-1 验收①：CI 内给出「确实打到 mock」的正向证据。
+        #   证据一：dev server 的 /api 代理指向 127.0.0.1:8080，故经代理的
+        #     /api/platform/health 必须带上 mock 专属标记 "mode":"mock-db"
+        #     （生产响应永不吐该字段，见 backend/src/server.ts 的 mockSealMarker）。
+        #     ⚠️ 不能用派单原文的 `/api/health` —— 后端没有这个路径（只有 /health 与
+        #     /api/platform/health），会 404；也不能只断言 status:healthy，生产同样返回。
+        #   证据二：经代理发一次登录探针，mock 后端日志须留下
+        #     [mock-request] POST /api/admin/auth/login（该日志仅 USE_MOCK_DB 下挂载）。
+        # 🔴 本步**没有** continue-on-error —— 密闭性被破坏必须红。
+        # ─────────────────────────────────────────────────────────────
+        run: |
+          echo "===== 证据一：/api 响应须带 mock 专属标记 ====="
+          DIRECT=$(curl -s http://127.0.0.1:8080/api/platform/health)
+          PROXIED=$(curl -s http://127.0.0.1:5173/api/platform/health)
+          echo "direct  : $DIRECT"
+          echo "proxied : $PROXIED"
+          echo "$DIRECT" | grep -q '"mode":"mock-db"' || { echo "❌ 直连 mock 未带 mock 标记"; exit 1; }
+          echo "$PROXIED" | grep -q '"mode":"mock-db"' || { echo "❌ 经 dev server 代理未带 mock 标记 —— /api 未打到 mock"; exit 1; }
+          echo "===== 证据二：登录请求落到 mock 后端日志 ====="
+          curl -s -o /dev/null -X POST http://127.0.0.1:5173/api/admin/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"ci-seal-probe","password":"ci-seal-probe"}'
+          sleep 2
+          grep -n "\[mock-request\] POST /api/admin/auth/login" /tmp/backend.log || { echo "❌ mock 后端日志未见登录请求"; exit 1; }
+          echo "mock-request 日志总数: $(grep -c '\[mock-request\]' /tmp/backend.log)"
+          echo "✅ 密闭性取证通过：/api 打到本地 mock 后端，未回落生产"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
@@ -129,7 +158,7 @@ jobs:
 
       - name: Start admin-web dev server
         run: |
-          VITE_API_BASE=/api npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
+          VITE_API_BASE=/api VITE_API_PROXY_TARGET=http://127.0.0.1:8080 npm --workspace admin-web run dev > /tmp/admin-web.log 2>&1 &
           npx wait-on -t 90000 http://127.0.0.1:5173
 
       - name: Install Playwright browsers
