@@ -63,8 +63,16 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Run E2E a11y tests (admin-web, Playwright + axe)
-        run: npx playwright test
+      - name: Run E2E tests (admin-web, Playwright + axe) —— 排除 @a11y 漂移用例
+        # 🔴 S3-61 分层（凌舟 2026-09-19 裁定「甲」）：本 job 是 **required**，
+        #    而 e2e/a11y.spec.ts 的两个用例正在漂移（工作台 56 个 color-contrast 节点，
+        #    根因＝App.vue 的 page-fade 淡入中间帧被 axe 采样，见 S3-61 卡 §4.1–4.3）。
+        #    铁律：**漂移中的检查不得进 required** —— 否则每个 PR 被随机堵。
+        #    实证：PR #19 只改 saas-admin 3 个 token，却被本 job 挡住（e2e failure）。
+        #    ⇒ `--grep-invert @a11y` 把漂移用例交给观察期 a11y job。
+        #    🔴 断言仍然只有一份、阈值一行未动 —— 分层是**放对位置**，不是让红变绿。
+        #       稳定化落地 + 连续 10 次无漂移后再并回 required。
+        run: npx playwright test --grep-invert @a11y
 
       - name: saas-admin a11y gate (contrast matrix)
         # 纯计算、不依赖浏览器：读取 tokens.css / theme.ts 真实取值，构建 token×surface 矩阵，
@@ -87,10 +95,17 @@ jobs:
   #   • 约定：**连续 10 次无漂移后再并进 e2e**。达标前不得改 e2e 的 required 集合。
   #   • 每次取样都要求输出 nodes target（带元素身份）——否则无法核对，等于不可定位
   #     （这是 S3-59 缺陷三，也是当初 S3-47 归因被撤回的原因）。
+  #
+  # 🔴 2026-09-19 修正（凌舟裁定）：本 job **去掉 job 级 `continue-on-error`**。
+  #    原因：job 级 continue-on-error 会把失败**洗成绿** —— PR #19 里本 job 显示 pass，
+  #    但它的命令实际是失败的。这正是我们一直在收拾的「绿灯信息 ≠ 真实状态」。
+  #    正确做法：**红就是红**，靠「非 required」保证不阻断，而不是把失败洗成绿。
+  #    否则「观察 10 次无漂移」这个判据**本身就是假的**。
+  #    ⇒ 保留**采样步骤级** continue-on-error（保证 3 次取样都跑完）；
+  #      末尾新增汇总步骤（**无** continue-on-error）如实判定：任一取样非零 → exit 1。
   # ─────────────────────────────────────────────────────────────
   a11y:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,21 +139,43 @@ jobs:
         # 三次取样，每次独立跑完并打印命中明细（含 nodes target）。
         # continue-on-error 保证三次都跑完，不会因为第一次失败就跳过后面两次 ——
         # 观察漂移要看的是「每次结果分别是多少」，不是「有没有失败过一次」。
+        #
+        # `--grep @a11y`：只跑被 required e2e 排除出去的那两个漂移用例（分层，S3-61）。
+        # `--retries=0`：**必须**。观察期的目的是**计量漂移**，带重试会把漂移洗掉
+        #   （PR #19 那次 retry #1 也红所以看不出来，下次就不一定了）。
         continue-on-error: true
         run: |
           for i in 1 2 3; do
             echo "===== a11y sample $i / 3 ====="
             set +e
-            npx playwright test --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
+            npx playwright test --grep @a11y --retries=0 --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
             code=${PIPESTATUS[0]}
             set -e
             echo "[sample $i] playwright exit=$code (PIPESTATUS[0]，排除 tee 干扰)"
+            echo "$code" > "/tmp/a11y-exit-$i.txt"
           done
           echo "===== 三次取样汇总 ====="
           for i in 1 2 3; do
             echo "--- sample $i ---"
             grep -E "\[a11y\]" "/tmp/a11y-sample-$i.txt" || echo "  (无 [a11y] 输出)"
           done
+
+      - name: a11y sampling verdict (如实判定，红就是红)
+        # 🔴 本步骤**没有** continue-on-error —— 红就是红。
+        #    不阻断靠的是「本 job 非 required」，不是把失败洗成绿。
+        #    洗绿会让「连续 10 次无漂移」这个判据本身变成假的。
+        run: |
+          fail=0
+          for i in 1 2 3; do
+            code=$(cat "/tmp/a11y-exit-$i.txt" 2>/dev/null || echo MISSING)
+            echo "[sample $i] exit=$code"
+            if [ "$code" != "0" ]; then fail=1; fi
+          done
+          if [ "$fail" = "1" ]; then
+            echo "❌ a11y 观察期：至少一次取样非零 —— 真实信号（本 job 非 required，不阻断合并）"
+            exit 1
+          fi
+          echo "✅ a11y 观察期：三次取样均为 0"
 
       - name: Upload a11y observation samples
         if: always()
