@@ -78,10 +78,21 @@
 3. **门禁被修复后首次真跑，要当作"新发现的信号源"**：新冒出来的红点很可能不是新问题，而是**被掩盖已久的存量问题**——按 P0 对待并评估影响面，不得为转绿而降级检查。
 4. **修复根因优先于文件级绕过**；确需绕过时，必须在同一提交里写明"根因、绕过范围、未覆盖范围、后续根治任务编号"。
 
-## ★ 分支保护与 required checks 注意事项（2026-09-17 凌舟启用，全员须知）
+## ★ 分支保护与 required checks（2026-09-19 凌舟更正，全员须知）
 
-现状：`main` 已启用分支保护，**required status checks = `build-and-test`、`e2e (admin-web)`、`e2e (saas-admin)`**；未要求 PR 审查（直接推送仍可用）；已禁用 force push 与分支删除；`migration-check`、`CodeQL` **暂不设为 required**（前者当前红、后者只增量不阻断），待转绿/评估后再纳入。
+现状：`main` 已启用分支保护，**required status checks = `build-and-test`、`e2e`**；未要求 PR 审查（直接推送仍可用）；已禁用 force push 与分支删除；`migration-check`、`CodeQL`、`a11y` **暂不设为 required**。
 
-1. **矩阵 job 的 required check 名必须写具体组合名**（`e2e (admin-web)` 这种），**不能写父名 `e2e`**——写父名会"永远等不到上报"，把**所有 PR 永久堵死**（凌舟本次先踩了一次，已改）。矩阵维度改名时**必须同步更新分支保护的 required checks**。
-2. **只把"已验证会红"的真门禁设为 required**：假门禁进 required 等于把人挡住而检不出问题；当前红但真跑的门禁（如 migration-check）也不宜立刻 required——会把主干锁死。
-3. **分支保护本身也要反测**：构造/利用一个 required check 失败的 PR，确认 `mergeStateStatus = BLOCKED`（本次用 PR #16 免费验证：`mergeable=MERGEABLE` 但 `mergeState=BLOCKED`）。
+1. **required check 名必须等于 `main` 上当前存在的 job 名**。**禁止**用 matrix 维度名（`e2e (admin-web)`）做 required——矩阵只在含该 workflow 的分支上存在，名字随分支漂移，会造成**双向死锁**：老分支上报父名 `e2e` 等不到，新分支上报子名又对不上 required（实测：#15/#18 被矩阵名永久堵死，#16 在改回父名后被反堵）。2026-09-18 已按此取消 e2e 的 matrix 拆分，两端在同一 job 内**顺序**执行。
+2. **改 workflow 的 job 名时，必须同一时间同步分支保护的 required 集合**；顺序必须是"先让 main 上的 job 名确定，再改 required"，**先配名字后落 workflow 必然死锁**。
+3. **只把"已验证会红"的真门禁设为 required**：假门禁进 required 等于把人挡住而检不出问题；当前红但真跑的门禁（如 migration-check）也不宜立刻 required——会把主干锁死。
+4. **漂移中的检查不得进 required**：新门禁先进**观察期 job（非 required）**，连续 10 次无漂移后再考虑并入。观察期 job **不得用 job 级 `continue-on-error` 把失败洗成绿**——红就是红，不阻断靠"非 required"，否则"观察 10 次无漂移"这个判据本身是假的。
+5. **分支保护本身也要反测**：构造/利用一个 required check 失败的 PR，确认 `mergeStateStatus = BLOCKED`（PR #16 已免费验证：`mergeable=MERGEABLE` 但 `mergeState=BLOCKED`）。
+6. **部署串行规则（S3-62 落地前强制）**：`deploy.yml` 尚无 `concurrency:`，**一次只允许合并一个会触发部署的 PR**，等 Auto Deploy 绿了再合下一个；不得连续推两笔非文档提交。
+
+## ★ 派单规范：固定格式 + 必须建卡（2026-09-19 用户指令，强制执行）
+
+1. 任何需要中转给同事的工作安排，必须**同时**：① 按 `docs/tasks/派单规范.md` 的**七栏固定格式**发出；② 把**完全相同的七栏内容**写入任务卡（`docs/tasks/cards/`）。
+2. **规则栏不得省略**：红线与验收标准必须逐条写出；写"同上/按惯例/注意安全"等泛指一律视为**无效派单**。卡里写"详见聊天"同样无效。
+3. **一单一卡**：每个派单编号对应一张卡；口径变化时**先改卡**并留变更记录，聊天旧版自动失效。
+4. **回传只接受可复跑证据**（命令 + 原始输出 + 行号 / run id），不接受"已通过/已修复"的自述。
+5. 派给本地子代理时，把该卡七栏**整段**写入 `docs/tasks/inbox/ACTIVE.md`（子代理开工第一步读它），回执写 `ACTIVE-回执.md`。
