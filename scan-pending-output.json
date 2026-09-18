@@ -1,0 +1,4367 @@
+{
+  "stats": {
+    "totalFiles": 170,
+    "rawNewOnly": 457,
+    "executedNewOnly": 435,
+    "skippedDueToProcOrDrop": 22,
+    "firstBlockCommentWithStmt": 125
+  },
+  "idemCount": {
+    "幂等": 287,
+    "数据变更": 58,
+    "会报错但无害": 89,
+    "不可逆": 1
+  },
+  "blocks": [
+    {
+      "file": "001_phase1_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE DATABASE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CREATE DATABASE IF NOT EXISTS liquor_inventory\r\n  DEFAULT CHARACTER SET utf8mb4\r\n  DEFAULT COLLATE utf8mb4_0900_ai_ci"
+    },
+    {
+      "file": "002_phase1_seed.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_user",
+      "finalSql": "INSERT INTO t_sys_user (id, username, password_hash, real_name, mobile, store_id, status)\r\nVALUES\r\n  (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系统管理员', '13800000 …(截断)"
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET FOREIGN_KEY_CHECKS = 0"
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET FOREIGN_KEY_CHECKS = 0"
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_alert_rule",
+      "finalSql": "INSERT INTO t_alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES\r\n('STOCK_LOW', '安全库存预警', 'STOCK_LOW', 1, 0, 'BOTTLES', '{\"use_war …(截断)"
+    },
+    {
+      "file": "005_phase3_sys_config.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_config",
+      "finalSql": "INSERT INTO t_sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES\r\n('enterprise_name', '智享酒水', 'enterprise', 0, '企业名称'),\r\n('enterprise_logo', '', 'enterprise', 0, '企业 …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET FOREIGN_KEY_CHECKS = 0"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_price_level",
+      "finalSql": "INSERT IGNORE INTO t_price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order) VALUES\r\n('RETAIL', '零售价', 1.0000, 0, '面向终端消费者的标准零售价格', 1),\r\n('WHOLESALE_L1', '批发一级', …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 17,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_trace_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_trace_config (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  config_no VARCHAR(32) NOT NULL UNIQUE,\r\n  config_level ENUM('CATEGORY','SKU','GLOBAL') NOT NULL,\r\n  target_id INT N …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 18,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_trace_code",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_trace_code (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  trace_code VARCHAR(32) NOT NULL UNIQUE,\r\n  sku_id INT NOT NULL,\r\n  sku_name VARCHAR(128) DEFAULT '',\r\n  batch_no VARC …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 19,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_trace_event_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_trace_event_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  trace_code VARCHAR(32) NOT NULL,\r\n  event_type VARCHAR(32) NOT NULL,\r\n  from_status VARCHAR(32) DEFAULT NULL,\r\n  …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 20,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_trace_scan_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_trace_scan_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  trace_code VARCHAR(32) NOT NULL,\r\n  scan_type ENUM('CONSUMER','BUSINESS','PDA','ADMIN') NOT NULL,\r\n  user_id INT  …(截断)"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "blockIndex": 21,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_recall_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_recall_record (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  recall_no VARCHAR(32) NOT NULL UNIQUE,\r\n  recall_type ENUM('BATCH','CATEGORY','SKU','SUPPLIER','GLOBAL') NOT NULL, …(截断)"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET FOREIGN_KEY_CHECKS = 0"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_expiry_alert_config",
+      "finalSql": "INSERT IGNORE INTO t_expiry_alert_config (alert_level, level_name, days_before_expiry, action, color, enabled, description) VALUES\r\n(1, '一级预警', 30, 'REMIND', '#10B981', 1, '距过期30天，提醒关注'),\r\n(2, '二级预警', …(截断)"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "blockIndex": 13,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET FOREIGN_KEY_CHECKS = 1"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_payment",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_payment (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  payment_no VARCHAR(30) NOT NULL UNIQUE,\r\n  purchase_order_id BIGINT NOT NULL,\r\n  supplier_id BIGINT NOT NULL …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_supplier_statement",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_supplier_statement (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  statement_no VARCHAR(30) NOT NULL UNIQUE,\r\n  supplier_id BIGINT NOT NULL,\r\n  period_start DATE NOT NULL,\r\n …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_supplier_statement_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_supplier_statement_item (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  statement_id BIGINT NOT NULL,\r\n  purchase_order_id BIGINT NOT NULL,\r\n  purchase_amount DECIMAL(12,2)  …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_role (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  role_name VARCHAR(50) NOT NULL UNIQUE,\r\n  role_code VARCHAR(50) NOT NULL UNIQUE,\r\n  description VARCHAR(200) DEFAULT NU …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_user_role",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_user_role (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT NOT NULL,\r\n  role_id BIGINT NOT NULL,\r\n  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_notification",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_notification (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  recipient_id BIGINT NOT NULL,\r\n  recipient_type ENUM('ADMIN','MERCHANT','CONSUMER') NOT NULL DEFAULT 'ADMIN',\r\n  …(截断)"
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "INSERT IGNORE INTO t_sys_role (role_name, role_code, description, status, permissions, data_scope)\r\nVALUES ('超级管理员', 'SUPER_ADMIN', '拥有系统所有权限', 'ACTIVE', '[\"*\"]', 'ALL')"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_rule",
+      "finalSql": "CREATE TABLE t_approval_rule (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则ID',\r\n  rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',\r\n  business_type VARCHAR(32) NOT NULL COMMENT '业务类型：PURC …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_instance",
+      "finalSql": "CREATE TABLE t_approval_instance (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '实例ID',\r\n  instance_no VARCHAR(64) NOT NULL COMMENT '审批实例编号',\r\n  rule_id BIGINT UNSIGNED NOT NULL COMMENT '关联规则 …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_task",
+      "finalSql": "CREATE TABLE t_approval_task (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '任务ID',\r\n  instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',\r\n  approval_level INT NOT NULL COMMENT '审批层级',\r\n  …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_log",
+      "finalSql": "CREATE TABLE t_approval_log (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',\r\n  instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',\r\n  task_id BIGINT UNSIGNED DEFAULT NULL COMMENT '关 …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_approver",
+      "finalSql": "CREATE TABLE t_approval_approver (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',\r\n  approver_type VARCHAR(32) NOT NULL COMMENT '审批人类型：ROLE/USER/DEPARTMENT',\r\n  approver_value VARCHAR(6 …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_approval_notification",
+      "finalSql": "CREATE TABLE t_approval_notification (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '通知ID',\r\n  instance_id BIGINT UNSIGNED NOT NULL COMMENT '关联实例ID',\r\n  task_id BIGINT UNSIGNED DEFAULT NULL C …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_approval_rule",
+      "finalSql": "INSERT INTO t_approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level) VALUES\r\n('采购订单审批-5000元以上', 'PURCHASE_ORDER', '{\"amount_threshold\": 5000}', '[{\"le …(截断)"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_approval_approver",
+      "finalSql": "INSERT INTO t_approval_approver (approver_type, approver_value, approver_name) VALUES\r\n('ROLE', 'PURCHASE_MANAGER', '采购经理'),\r\n('ROLE', 'FINANCE_MANAGER', '财务经理'),\r\n('ROLE', 'STORE_MANAGER', '门店经理'),\r\n …(截断)"
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_customer_credit",
+      "finalSql": "ALTER TABLE t_customer_credit\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER version"
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_credit_operation_log",
+      "finalSql": "ALTER TABLE t_credit_operation_log\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER remark"
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_collection_record",
+      "finalSql": "ALTER TABLE t_collection_record\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER created_at"
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "ALTER TABLE t_member\r\n  ADD COLUMN address VARCHAR(255) DEFAULT NULL COMMENT '客户地址' AFTER mobile,\r\n  ADD COLUMN remark VARCHAR(500) DEFAULT NULL COMMENT '备注' AFTER address"
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "ALTER TABLE t_member\r\n  ADD KEY idx_member_address (address(50))"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_price_level",
+      "finalSql": "ALTER TABLE t_price_level\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER status"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sku_price",
+      "finalSql": "ALTER TABLE t_sku_price\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER status"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_customer_price_binding",
+      "finalSql": "ALTER TABLE t_customer_price_binding\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER expire_at"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_price_change_log",
+      "finalSql": "ALTER TABLE t_price_change_log\r\nADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER changed_by"
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_sku",
+      "finalSql": "ALTER TABLE t_product_sku\r\n  ADD COLUMN alcohol_degree DECIMAL(5,2) DEFAULT NULL COMMENT '酒精度(%)' AFTER sku_name,\r\n  ADD COLUMN origin VARCHAR(128) DEFAULT NULL COMMENT '产地' AFTER alcohol_degree"
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_sku",
+      "finalSql": "ALTER TABLE t_product_sku\r\n  ADD KEY idx_product_sku_origin (origin)"
+    },
+    {
+      "file": "015_phase8_customer_visit.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_visit",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_visit (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拜访记录ID',\r\n  visit_no VARCHAR(64) NOT NULL COMMENT '拜访单号',\r\n  customer_id BIGINT UNSIGNED NOT NULL C …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant (\r\n  id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）',\r\n  tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',\r\n  company_name VARCHAR(128) NOT NU …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_plan",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription_plan (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  plan_code VARCHAR(32) NOT NULL UNIQUE COMMENT '套餐编码（如：BASIC/STANDARD/PROFESSIONAL）',\r\n  plan_name VARCHAR(64)  …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',\r\n  tenant_id VARCHAR(36) NOT NULL COM …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_module_access",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_module_access (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id INT NOT NULL COMMENT '租户ID',\r\n  module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/i …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  subscription_id INT NOT NULL COMMENT '订阅ID',\r\n  operation_type VARCHAR(32) NOT NULL COMMENT '操作类型（CRE …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_admin",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_admin (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id INT NOT NULL COMMENT '租户ID',\r\n  user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',\r\n  role VARCHAR(32) NOT  …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_subscription_plan",
+      "finalSql": "INSERT INTO t_subscription_plan (plan_code, plan_name, plan_type, price, original_price, duration_days, max_users, max_stores, max_customers, max_products, max_storage_mb, features, module_access, des …(截断)"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_tenant",
+      "finalSql": "INSERT INTO t_tenant (tenant_code, company_name, contact_person, contact_mobile, status, expire_at) VALUES\r\n('DEFAULT', '系统默认租户', '系统管理员', '13800000000', 'ACTIVE', '2099-12-31 23:59:59')"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_tenant_module_access",
+      "finalSql": "INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by) VALUES\r\n(1, 'dashboard', '工作台', 1, 'MANUAL'),\r\n(1, 'sales', '销售管理', 1, 'MANUAL'),\r\n(1, 'purchase', '采购管理', …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_shop_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_shop_config (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  shop_name VARCHAR(128) NOT NULL COMMENT '店铺名称',\r\n  shop_logo VARCHAR(255) COMMENT '店铺Logo',\r\n  shop_descri …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_category",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_category (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  category_name VARCHAR(64) NOT NULL COMMENT '分类名称',\r\n  category_icon VARCHAR(255) COMMENT '分类图标',\r\n  parent_id …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_banner",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_banner (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  banner_title VARCHAR(128) NOT NULL COMMENT '轮播图标题',\r\n  banner_image VARCHAR(255) NOT NULL COMMENT '轮播图URL',\r\n  lin …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_product (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  product_id BIGINT NOT NULL COMMENT '关联商品ID（product_sku表）',\r\n  category_id BIGINT COMMENT '分类ID',\r\n  retail_pri …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_order (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  order_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订单编号',\r\n  user_id BIGINT NOT NULL COMMENT '用户ID',\r\n  user_name VAR …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_order_item (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  order_id INT NOT NULL COMMENT '订单ID',\r\n  product_id INT NOT NULL COMMENT '商品ID',\r\n  product_name VARCHAR(128)  …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_delivery_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_delivery_config (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  config_name VARCHAR(64) NOT NULL COMMENT '配置名称',\r\n  delivery_type VARCHAR(16) NOT NULL COMMENT '配送类型（SELF/PLATFO …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_delivery_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_delivery_record (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  order_id INT NOT NULL COMMENT '订单ID',\r\n  delivery_no VARCHAR(32) COMMENT '配送单号',\r\n  delivery_type VARCHAR(16) NO …(截断)"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  module VARCHAR(32) NOT NULL COMMENT '模块（shop/category/product/order/delivery）',\r\n  action VARCHAR(32) NOT N …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_coupon_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_coupon_template (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',\r\n  template_name VARCHAR(128) NOT NULL COMMENT '模板名称', …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_user_coupon",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_user_coupon (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  coupon_no VARCHAR(32) NOT NULL UNIQUE COMMENT '优惠券编号',\r\n  template_id INT NOT NULL COMMENT '模板ID',\r\n  user_id INT NO …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_promotion_activity",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_promotion_activity (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_code VARCHAR(32) NOT NULL UNIQUE COMMENT '活动编码',\r\n  activity_name VARCHAR(128) NOT NULL COMMENT '活动名 …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_full_reduction_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_full_reduction_rule (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  threshold_amount DECIMAL(10,2) NOT NULL COMMENT '满足金额阈值',\r\n  red …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_seckill_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_seckill_product (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  product_id INT NOT NULL COMMENT '商品ID',\r\n  seckill_price DECIMAL(10, …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_activity",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_activity (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  group_size INT NOT NULL COMMENT '成团人数',\r\n  group_price DECIMAL(10 …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_record (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  group_no VARCHAR(32) NOT NULL UNIQUE COMMENT '团号',\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  product_id IN …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_participant",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_participant (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  group_id INT NOT NULL COMMENT '拼团记录ID',\r\n  user_id INT NOT NULL COMMENT '用户ID',\r\n  order_no VARCHAR(64) CO …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_promotion_stack_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_promotion_stack_rule (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',\r\n  priority INT NOT NULL DEFAULT 0 COMMENT '优先级',\r\n  stack_ …(截断)"
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_marketing_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_marketing_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  module VARCHAR(32) NOT NULL COMMENT '模块（coupon/promotion/seckill/group_buy）',\r\n  action VARCHAR(32) NOT  …(截断)"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET NAMES utf8mb4"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "ALTER TABLE t_sys_role ADD COLUMN description VARCHAR(200) DEFAULT NULL COMMENT '角色描述' AFTER role_name"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "ALTER TABLE t_sys_role ADD COLUMN permissions JSON DEFAULT NULL COMMENT '权限列表（JSON格式）' AFTER data_scope"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE SET DEFAULT",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "ALTER TABLE t_sys_role ALTER COLUMN data_scope SET DEFAULT 'SELF'"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "ALTER TABLE t_member ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'CASH' COMMENT '结算方式：CASH/ACCOUNT' AFTER customer_type"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_supplier",
+      "finalSql": "ALTER TABLE t_supplier ADD COLUMN settlement_type VARCHAR(32) NOT NULL DEFAULT 'MONTHLY' COMMENT '结算方式：CASH/MONTHLY' AFTER credit_level"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_payment_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_payment_config (\r\n  id            INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id     VARCHAR(64)  NOT NULL,\r\n  provider      VARCHAR(20)  NOT NULL COMMENT 'wechat/alipay/uni …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_payment_config",
+      "finalSql": "INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES\r\n('DEFAULT', 'wechat', 'enabled', '0', 0, '是否启用', 1),\r\n('DEFAULT', 'wechat',  …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_payment_config",
+      "finalSql": "INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES\r\n('DEFAULT', 'alipay', 'enabled', '0', 0, '是否启用', 1),\r\n('DEFAULT', 'alipay',  …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bank_account",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_bank_account (\r\n  id            BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id     VARCHAR(64)  NOT NULL,\r\n  bank_name     VARCHAR(64)  NOT NULL COMMENT '银行名称',\r\n  branch …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_miniapp_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_miniapp_config (\r\n  id              INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id       VARCHAR(64)  NOT NULL,\r\n  platform        VARCHAR(20)  NOT NULL COMMENT 'WECHAT/ALIP …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_miniapp_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_miniapp_template (\r\n  id           INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id    VARCHAR(64)  NOT NULL DEFAULT 'DEFAULT' COMMENT '租户ID（DEFAULT=全局模板）',\r\n  name         VA …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_miniapp_template",
+      "finalSql": "INSERT INTO t_miniapp_template (tenant_id, name, description, style_config, page_config, sort_order, status) VALUES\r\n('DEFAULT',\r\n  '经典蓝白',\r\n  '蓝白配色，简洁大方，适合大多数酒水商家',\r\n  '{\"primaryColor\":\"#1677FF\",\"sec …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_miniapp_publish_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_miniapp_publish_log (\r\n  id          INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id   VARCHAR(64)  NOT NULL,\r\n  platform    VARCHAR(20)  NOT NULL DEFAULT 'WECHAT',\r\n  templa …(截断)"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_price_change_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_price_change_log (\r\n  id          BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id   VARCHAR(64)  NOT NULL,\r\n  product_id  INT          NOT NULL,\r\n  old_price   DECIMAL(10, …(截断)"
+    },
+    {
+      "file": "029_add_tenant.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant (\r\n  id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）',\r\n  tenant_code VARCHAR(32) NOT NULL UNIQUE COMMENT '租户编码（如：T20260623001）',\r\n  company_name VARCHAR(128) NOT NU …(截断)"
+    },
+    {
+      "file": "030_add_subscription_plan.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_plan",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription_plan (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  plan_code VARCHAR(32) NOT NULL UNIQUE COMMENT '套餐编码（如：BASIC/STANDARD/PROFESSIONAL）',\r\n  plan_name VARCHAR(64)  …(截断)"
+    },
+    {
+      "file": "031_add_subscription.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  subscription_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订阅编号（如：SUB20260623001）',\r\n  tenant_id VARCHAR(36) NOT NULL COM …(截断)"
+    },
+    {
+      "file": "032_add_tenant_module_access.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_module_access",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_module_access (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id INT NOT NULL COMMENT '租户ID',\r\n  module_code VARCHAR(64) NOT NULL COMMENT '模块编码（如：sales/purchase/i …(截断)"
+    },
+    {
+      "file": "033_add_subscription_operation_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_subscription_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  subscription_id INT NOT NULL COMMENT '订阅ID',\r\n  operation_type VARCHAR(32) NOT NULL COMMENT '操作类型（CRE …(截断)"
+    },
+    {
+      "file": "034_add_tenant_admin.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_admin",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_admin (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id INT NOT NULL COMMENT '租户ID',\r\n  user_id INT NOT NULL COMMENT '用户ID（关联sys_user）',\r\n  role VARCHAR(32) NOT  …(截断)"
+    },
+    {
+      "file": "035_add_coupon_template.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_coupon_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_coupon_template (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  template_code VARCHAR(32) NOT NULL UNIQUE COMMENT '模板编码',\r\n  template_name VARCHAR(128) NOT NULL COMMENT '模板名称', …(截断)"
+    },
+    {
+      "file": "036_add_user_coupon.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_user_coupon",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_user_coupon (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  coupon_no VARCHAR(32) NOT NULL UNIQUE COMMENT '优惠券编号',\r\n  template_id INT NOT NULL COMMENT '模板ID',\r\n  user_id INT NO …(截断)"
+    },
+    {
+      "file": "037_add_promotion_activity.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_promotion_activity",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_promotion_activity (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_code VARCHAR(32) NOT NULL UNIQUE COMMENT '活动编码',\r\n  activity_name VARCHAR(128) NOT NULL COMMENT '活动名 …(截断)"
+    },
+    {
+      "file": "038_add_full_reduction_rule.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_full_reduction_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_full_reduction_rule (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  threshold_amount DECIMAL(10,2) NOT NULL COMMENT '满足金额阈值',\r\n  red …(截断)"
+    },
+    {
+      "file": "039_add_seckill_product.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_seckill_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_seckill_product (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  product_id INT NOT NULL COMMENT '商品ID',\r\n  seckill_price DECIMAL(10, …(截断)"
+    },
+    {
+      "file": "040_add_group_buy_activity.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_activity",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_activity (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  group_size INT NOT NULL COMMENT '成团人数',\r\n  group_price DECIMAL(10 …(截断)"
+    },
+    {
+      "file": "041_add_group_buy_record.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_record (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  group_no VARCHAR(32) NOT NULL UNIQUE COMMENT '团号',\r\n  activity_id INT NOT NULL COMMENT '活动ID',\r\n  product_id IN …(截断)"
+    },
+    {
+      "file": "042_add_group_buy_participant.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_participant",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_participant (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  group_id INT NOT NULL COMMENT '拼团记录ID',\r\n  user_id INT NOT NULL COMMENT '用户ID',\r\n  order_no VARCHAR(64) CO …(截断)"
+    },
+    {
+      "file": "043_add_promotion_stack_rule.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_promotion_stack_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_promotion_stack_rule (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  rule_name VARCHAR(128) NOT NULL COMMENT '规则名称',\r\n  priority INT NOT NULL DEFAULT 0 COMMENT '优先级',\r\n  stack_ …(截断)"
+    },
+    {
+      "file": "044_add_marketing_operation_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_marketing_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_marketing_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  module VARCHAR(32) NOT NULL COMMENT '模块（coupon/promotion/seckill/group_buy）',\r\n  action VARCHAR(32) NOT  …(截断)"
+    },
+    {
+      "file": "045_add_delivery_config.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_delivery_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_delivery_config (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  config_name VARCHAR(64) NOT NULL COMMENT '配置名称',\r\n  delivery_type VARCHAR(16) NOT NULL COMMENT '配送类型（SELF/PLATFO …(截断)"
+    },
+    {
+      "file": "046_add_delivery_record.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_delivery_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_delivery_record (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  order_id BIGINT NOT NULL COMMENT '订单ID',\r\n  delivery_no VARCHAR(32) COMMENT '配送单号',\r\n  delivery_type VARCHAR(16) …(截断)"
+    },
+    {
+      "file": "047_add_retail_operation_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_operation_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_operation_log (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  module VARCHAR(32) NOT NULL COMMENT '模块（shop/category/product/order/delivery）',\r\n  action VARCHAR(32) NOT N …(截断)"
+    },
+    {
+      "file": "048_add_customer_visit.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_visit",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_visit (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拜访记录ID',\r\n  visit_no VARCHAR(64) NOT NULL COMMENT '拜访单号',\r\n  customer_id BIGINT UNSIGNED NOT NULL C …(截断)"
+    },
+    {
+      "file": "049_add_order_sync_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_miniapp_order_sync_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_miniapp_order_sync_log (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  order_no VARCHAR(64) NOT NULL COMMENT '订单号',\r\n  platform VARCHAR(32) NOT NULL COMMENT '平台',\r\n …(截断)"
+    },
+    {
+      "file": "050_add_platform_reconciliation.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_reconciliation",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_reconciliation (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  platform VARCHAR(32) NOT NULL COMMENT '平台',\r\n  reconciliation_date DATE NOT NULL COMMENT '对账 …(截断)"
+    },
+    {
+      "file": "051_add_platform_review.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_review",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_review (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  platform VARCHAR(32) NOT NULL COMMENT '平台',\r\n  platform_review_id VARCHAR(128) DEFAULT NULL COMMENT  …(截断)"
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_announcement",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_announcement (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',\r\n  store_id BIGINT UNSIGNED NOT …(截断)"
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_retail_announcement",
+      "finalSql": "ALTER TABLE t_retail_announcement ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+    },
+    {
+      "file": "053_add_retail_cart.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_cart",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_cart (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n  store_id BIGINT UNSIGNED NOT NULL COMMENT '门店ID',\r\n  …(截断)"
+    },
+    {
+      "file": "054_add_retail_consumer_address.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_consumer_address",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_retail_consumer_address (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n  name VARCHAR(64) NOT NULL COMMENT '收货人姓名 …(截断)"
+    },
+    {
+      "file": "055_add_points_mall_item.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_mall_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_points_mall_item (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(128) NOT NULL COMMENT '商品名称',\r\n  image VARCHAR(255) DEFAULT NULL COMMENT '商品图片',\r\n  po …(截断)"
+    },
+    {
+      "file": "056_add_points_mall_order.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_mall_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_points_mall_order (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  order_no VARCHAR(64) NOT NULL COMMENT '订单号',\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n …(截断)"
+    },
+    {
+      "file": "057_add_marketing_asset.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_marketing_asset",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_marketing_asset (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(128) NOT NULL COMMENT '素材名称',\r\n  type VARCHAR(32) NOT NULL COMMENT '类型：IMAGE/VIDEO/COPY …(截断)"
+    },
+    {
+      "file": "058_add_sys_department.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_department",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_department (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父部门ID',\r\n  name VARCHAR(64) NOT NULL COMMENT '部门名称',\r …(截断)"
+    },
+    {
+      "file": "059_add_user_session.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_user_session",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_user_session (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n  token VARCHAR(512) NOT NULL COMMENT '会话令牌',\r\n  devi …(截断)"
+    },
+    {
+      "file": "060_add_custom_report_template.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_custom_report_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_custom_report_template (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(128) NOT NULL COMMENT '模板名称',\r\n  type VARCHAR(32) NOT NULL COMMENT '报表类型：SALES/I …(截断)"
+    },
+    {
+      "file": "061_add_custom_report_schedule.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_custom_report_schedule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_custom_report_schedule (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  template_id BIGINT UNSIGNED NOT NULL COMMENT '模板ID',\r\n  name VARCHAR(128) NOT NULL COMMENT '任 …(截断)"
+    },
+    {
+      "file": "062_add_report_permission_matrix.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_permission_matrix",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_report_permission_matrix (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',\r\n  report_code VARCHAR(64) NOT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "063_add_verification_code.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_verification_code",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_verification_code (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  mobile VARCHAR(20) NOT NULL COMMENT '手机号',\r\n  code VARCHAR(10) NOT NULL COMMENT '验证码',\r\n  type VAR …(截断)"
+    },
+    {
+      "file": "064_add_push_config.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_push_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_push_config (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n  push_type VARCHAR(32) NOT NULL COMMENT '推送类型：ORDER/C …(截断)"
+    },
+    {
+      "file": "065_add_push_template.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_push_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_push_template (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  code VARCHAR(64) NOT NULL COMMENT '模板编码',\r\n  name VARCHAR(128) NOT NULL COMMENT '模板名称',\r\n  push_type V …(截断)"
+    },
+    {
+      "file": "066_add_push_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_push_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_push_log (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',\r\n  template_id BIGINT UNSIGNED DEFAULT NULL COMMENT '模板ID' …(截断)"
+    },
+    {
+      "file": "067_add_unit_group.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_unit_group",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_unit_group (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(64) NOT NULL COMMENT '单位组名称',\r\n  tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租 …(截断)"
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bank_account",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_bank_account (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  account_name VARCHAR(100) NOT NULL COMMENT '账户名称',\r\n  bank_name VARCHAR(100) NOT NULL COMMENT '银行名称',\r\n  account …(截断)"
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_expense",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_expense (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  expense_no VARCHAR(32) NOT NULL COMMENT '费用编号',\r\n  expense_type VARCHAR(20) NOT NULL DEFAULT 'DAILY' COMMENT '类型: DAI …(截断)"
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_invoice",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_invoice (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  invoice_no VARCHAR(50) NOT NULL COMMENT '发票号',\r\n  invoice_type VARCHAR(10) NOT NULL COMMENT '类型: IN/OUT',\r\n  related_ …(截断)"
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu\r\n  ADD COLUMN brand_id BIGINT UNSIGNED DEFAULT NULL COMMENT '品牌ID' AFTER brand"
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "UPDATE",
+      "idem": "数据变更",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_product_spu",
+      "finalSql": "UPDATE t_product_spu p\r\n  JOIN t_brand b ON b.name = p.brand AND b.tenant_id = p.tenant_id\r\n  SET p.brand_id = b.id\r\n  WHERE p.brand IS NOT NULL AND p.brand != ''"
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu\r\n  ADD CONSTRAINT fk_product_spu_brand FOREIGN KEY (brand_id) REFERENCES t_brand(id) ON DELETE SET NULL"
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu\r\n  ADD INDEX idx_product_spu_brand_id (brand_id)"
+    },
+    {
+      "file": "070_品牌表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_brand",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_brand (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(64) NOT NULL COMMENT '品牌名称',\r\n  logo VARCHAR(512) DEFAULT NULL COMMENT '品牌Logo',\r\n  description V …(截断)"
+    },
+    {
+      "file": "071_客户积分.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_points",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_points (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  total_points INT DEFAULT 0 COMMENT '累计积分',\r\n  available_points …(截断)"
+    },
+    {
+      "file": "071_客户积分.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_points_record (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  record_no VARCHAR(32) NOT NULL COMMENT '记录编号',\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  type VARCHAR(2 …(截断)"
+    },
+    {
+      "file": "071_客户积分.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_points_rule (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',\r\n  earn_type VARCHAR(20) NOT NULL COMMENT '获取方式: PURCHASE/SIGN_IN …(截断)"
+    },
+    {
+      "file": "071_客户积分.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_level",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_level (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  level_name VARCHAR(20) NOT NULL DEFAULT 'VIP1' COMMENT '等级名称',\r …(截断)"
+    },
+    {
+      "file": "071_客户积分.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_level_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_level_config (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  level_name VARCHAR(20) NOT NULL COMMENT '等级名称',\r\n  min_points INT NOT NULL DEFAULT 0 COMMENT '最低积分',\r\n  max_poin …(截断)"
+    },
+    {
+      "file": "072_客户价格.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_price",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_price (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  sku_id BIGINT NOT NULL COMMENT 'SKU ID',\r\n  custom_price DECIMA …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_tag",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_tag (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  tag_name VARCHAR(50) NOT NULL COMMENT '标签名称',\r\n  tag_type VARCHAR(20) NOT NULL DEFAULT 'MANUAL' COMMENT '类型: MAN …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_tag_relation",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_tag_relation (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  tag_id BIGINT NOT NULL COMMENT '标签ID',\r\n  tenant_id VARC …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_profile",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_profile (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  age_group VARCHAR(20) DEFAULT NULL COMMENT '年龄段',\r\n  gender V …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_care_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_care_rule (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',\r\n  trigger_type VARCHAR(20) NOT NULL COMMENT '触发类型: BIRTHD …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_care_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_care_log (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  rule_id BIGINT NOT NULL COMMENT '关怀规则ID',\r\n  trigger_type VA …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_segment",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_segment (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  segment_name VARCHAR(100) NOT NULL COMMENT '分群名称',\r\n  conditions JSON NOT NULL COMMENT '分群条件',\r\n  member_cou …(截断)"
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_customer_segment_member",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_customer_segment_member (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  segment_id BIGINT NOT NULL COMMENT '分群ID',\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  tenant_i …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_platform_config` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `platform` VARCHAR(20) NOT NULL COMMENT '平台: JD/MEITUAN/ELEME',\r\n  `store_id` BIGINT DEFAULT NULL COMMENT …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_platform_order` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `platform_order_id` VARCHAR(64) NOT NULL COMMENT '平台订单号',\r\n  `platform` VARCHAR(20) NOT NULL COMMENT '平台:  …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_product_map",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_platform_product_map` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `platform` VARCHAR(20) NOT NULL COMMENT '平台: JD/MEITUAN/ELEME',\r\n  `store_id` BIGINT NOT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_shop_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_shop_config` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n  `shop_name` VARCHAR(100) NOT NULL COMMENT '店铺名称',\r\n  `sh …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_category",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_category` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `category_name` VARCHAR(100) NOT NULL COMMENT '分类名称',\r\n  `category_icon` VARCHAR(500) DEFAULT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_product` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `product_id` BIGINT NOT NULL COMMENT '本地商品ID',\r\n  `sku_id` BIGINT DEFAULT NULL COMMENT '本地SKU ID',\r\n  `cat …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_order` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `order_no` VARCHAR(32) NOT NULL COMMENT '订单号',\r\n  `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',\r\n  `store_id …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_order_item` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `order_id` BIGINT NOT NULL COMMENT '订单ID',\r\n  `product_id` BIGINT NOT NULL COMMENT '商品ID',\r\n  `sku_id`  …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_banner",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_banner` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `banner_title` VARCHAR(100) DEFAULT NULL COMMENT 'Banner标题',\r\n  `banner_image` VARCHAR(500) NOT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_retail_review",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_retail_review` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `order_id` BIGINT NOT NULL COMMENT '订单ID',\r\n  `user_id` BIGINT NOT NULL COMMENT '用户ID',\r\n  `product_id` BIG …(截断)"
+    },
+    {
+      "file": "075_reset_admin_password_bcrypt.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "UPDATE",
+      "idem": "数据变更",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_sys_user",
+      "finalSql": "UPDATE t_sys_user\r\nSET password_hash = 'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq',\r\n    login_fail_count = 0,\r\n    locked_until = NULL,\r\n    updated_at = NOW()\r\nWHERE username I …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_limited_discount",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_limited_discount` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `activity_code` VARCHAR(32) NOT NULL COMMENT '活动编码',\r\n  `activity_name` VARCHAR(100) NOT NULL COMMENT '活 …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_limited_discount_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_limited_discount_product` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `discount_id` BIGINT NOT NULL COMMENT '活动ID',\r\n  `product_id` BIGINT NOT NULL COMMENT '商品ID',\r\n  …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_gift_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_gift_rule` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `rule_code` VARCHAR(32) NOT NULL COMMENT '规则编码',\r\n  `rule_name` VARCHAR(100) NOT NULL COMMENT '规则名称',\r\n  `rule_ …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_gift_rule_level",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_gift_rule_level` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `rule_id` BIGINT NOT NULL COMMENT '规则ID',\r\n  `threshold_amount` DECIMAL(10,2) DEFAULT NULL COMMENT '门槛金额' …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_points_product` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `product_code` VARCHAR(32) NOT NULL COMMENT '商品编码',\r\n  `product_name` VARCHAR(100) NOT NULL COMMENT '商品名称' …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_exchange_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_points_exchange_record` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `record_no` VARCHAR(32) NOT NULL COMMENT '兑换编号',\r\n  `product_id` BIGINT NOT NULL COMMENT '商品ID',\r\n …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_marketing_material",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_marketing_material` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `material_code` VARCHAR(32) NOT NULL COMMENT '素材编码',\r\n  `material_name` VARCHAR(100) NOT NULL COMMENT  …(截断)"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_material_category",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_material_category` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `name` VARCHAR(50) NOT NULL COMMENT '分类名称',\r\n  `parent_id` BIGINT DEFAULT NULL COMMENT '父分类ID',\r\n  `sor …(截断)"
+    },
+    {
+      "file": "077_营销标签.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD COLUMN marketing_tags JSON DEFAULT NULL COMMENT '营销标签：[\"NEW\",\"HOT\",\"RECOMMEND\",\"LIMITED\",\"CLEARANCE\"]'"
+    },
+    {
+      "file": "078_性能索引.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD INDEX idx_product_spu_brand (brand)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_menu",
+      "finalSql": "CREATE TABLE t_sys_menu (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '菜单ID',\r\n  parent_id BIGINT UNSIGNED DEFAULT NULL COMMENT '父菜单ID，NULL=顶级菜单',\r\n  menu_code VARCHAR(64) NOT NULL COMMENT ' …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_data_permission",
+      "finalSql": "CREATE TABLE t_sys_data_permission (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',\r\n  table_name VARCHAR(64) NOT NULL COMMENT '表名',\r\n  …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_field_permission",
+      "finalSql": "CREATE TABLE t_sys_field_permission (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  role_id BIGINT UNSIGNED NOT NULL COMMENT '角色ID',\r\n  table_name VARCHAR(64) NOT NULL COMMENT '表名',\r\n …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_role",
+      "finalSql": "INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES\r\n(1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '[\"*\"]', 1, 'default'),\r\n(2 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 10,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(1,  NULL, 'dashboard',      '仪表盘',   'CATALOG', '/dashboard',      'dashboard',     1,  …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(1, 1, 'dashboard:workbench', '工作台', 'MENU', '/dashboard/workbench', NULL, 1, 'default')"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 12,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(10, 10, 'goods:list',      '商品列表', 'MENU', '/goods/list',      NULL, 1, 'default'),\r\n(1 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 13,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(20, 20, 'sale:bill',       '销售开单', 'MENU', '/sale/bill',       NULL, 1, 'default'),\r\n(2 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 14,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(30, 30, 'purchase:order',  '采购订单', 'MENU', '/purchase/order',  NULL, 1, 'default'),\r\n(3 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 15,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(40, 40, 'customer:list',      '客户列表', 'MENU', '/customer/list',      NULL, 1, 'default' …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 16,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(50, 50, 'finance:receipt',    '收款管理', 'MENU', '/finance/receipt',    NULL, 1, 'default' …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 17,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(60, 60, 'marketing:coupon',     '优惠券',   'MENU', '/marketing/coupon',     NULL, 1, 'def …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 18,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(70, 70, 'store:list',     '门店列表', 'MENU', '/store/list',     NULL, 1, 'default'),\r\n(71, …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 19,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(80, 80, 'trace:config',  '追溯配置', 'MENU', '/trace/config',  NULL, 1, 'default'),\r\n(81, 8 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 20,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(90, 90, 'report:sales',    '销售报表', 'MENU', '/report/sales',    NULL, 1, 'default'),\r\n(9 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 21,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES\r\n(100, 100, 'system:user',         '用户管理', 'MENU', '/system/user',         NULL, 1, 'defa …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 22,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_menu",
+      "finalSql": "INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, tenant_id) VALUES\r\n(200, 10,  'goods:create', '新增商品', 'BUTTON', 1, 'default'),\r\n(201, 10,  'goods:edit',   '编辑商品', 'BUT …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 23,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_data_permission",
+      "finalSql": "INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES\r\n(2, 'sale_bill', 'store_id', 'OWN', 'current_user.store_id', '门店店长只 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 24,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_data_permission",
+      "finalSql": "INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES\r\n(3, 'sale_bill', 'operator_id', 'OWN', 'current_user.id', '销售员只能查看自 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 25,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_data_permission",
+      "finalSql": "INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES\r\n(5, 'inventory_balance', 'store_id', 'OWN', 'current_user.store_id' …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 26,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_data_permission",
+      "finalSql": "INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES\r\n(7, 'member', 'store_id', 'OWN', 'current_user.store_id', '客服只能查看本门 …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 27,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_field_permission",
+      "finalSql": "INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES\r\n(3, 'product_price', 'wholesale_price', 'HIDDEN', '销售员不可见批发价', 'default'),\r\n(3, 'p …(截断)"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 28,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_field_permission",
+      "finalSql": "INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES\r\n(8, '*', '*', 'READONLY', '只读用户不可编辑任何数据', 'default')"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 29,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_field_permission",
+      "finalSql": "INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES\r\n(3, 'sale_bill', 'internal_remark', 'HIDDEN', '销售员不可见内部备注', 'default')"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "blockIndex": 30,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_field_permission",
+      "finalSql": "INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES\r\n(2, 'report', 'other_store_sales', 'HIDDEN', '门店店长不可见其他门店销售数据', 'default')"
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_admin",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_admin (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  username VARCHAR(64) NOT NULL UNIQUE COMMENT '登录账号',\r\n  password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt 密码哈希' …(截断)"
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_audit_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_audit_log (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  admin_id INT NOT NULL COMMENT '操作人ID',\r\n  admin_name VARCHAR(64) NOT NULL COMMENT '操作人姓名',\r\n  action VARCH …(截断)"
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_admin",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_admin (\r\n  id INT AUTO_INCREMENT PRIMARY KEY,\r\n  username VARCHAR(64) NOT NULL UNIQUE COMMENT '登录账号',\r\n  password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt 密码哈希' …(截断)"
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_platform_admin' AND COLUMN_NAME = 'last_login_at')"
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_platform_admin' AND COLUMN_NAME = 'created_by')"
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_platform_admin",
+      "finalSql": "INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role, status)\r\nVALUES (\r\n  'admin',\r\n  'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq',\r\n  '平台超级管理员',\r …(截断)"
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "blockIndex": 12,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT id, username, LEFT(password_hash, 10) AS hash_prefix, role, status, last_login_at, created_by FROM t_platform_admin"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_tag_group",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_product_tag_group (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(64) NOT NULL COMMENT '标签组名称',\r\n  code VARCHAR(64) NOT NULL COMMENT '标签组编码',\r\n  sort_n …(截断)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_tag",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_product_tag (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  group_id BIGINT UNSIGNED NOT NULL COMMENT '标签组ID',\r\n  name VARCHAR(64) NOT NULL COMMENT '标签名称',\r\n  sort_ …(截断)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_tag_relation",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_product_tag_relation (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  spu_id BIGINT UNSIGNED NOT NULL COMMENT '商品ID',\r\n  tag_id BIGINT UNSIGNED NOT NULL COMMENT '标签I …(截断)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_tag_group",
+      "finalSql": "INSERT INTO t_product_tag_group (name, code, sort_no, is_multiple) VALUES\r\n  ('香型', 'aroma_type', 1, 0),\r\n  ('产区', 'region', 2, 1),\r\n  ('适用场景', 'scene', 3, 1),\r\n  ('年份', 'vintage', 4, 0)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_tag",
+      "finalSql": "INSERT INTO t_product_tag (group_id, name, sort_no) VALUES\r\n  (1, '酱香型', 1), (1, '浓香型', 2), (1, '清香型', 3),\r\n  (1, '米香型', 4), (1, '兼香型', 5), (1, '凤香型', 6)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_tag",
+      "finalSql": "INSERT INTO t_product_tag (group_id, name, sort_no) VALUES\r\n  (2, '茅台镇', 1), (2, '宜宾', 2), (2, '泸州', 3),\r\n  (2, '汾阳', 4), (2, '宿迁', 5), (2, '亳州', 6)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_tag",
+      "finalSql": "INSERT INTO t_product_tag (group_id, name, sort_no) VALUES\r\n  (3, '自饮', 1), (3, '宴请', 2), (3, '送礼', 3),\r\n  (3, '收藏', 4), (3, '商务', 5)"
+    },
+    {
+      "file": "082_商品标签.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_tag",
+      "finalSql": "INSERT INTO t_product_tag (group_id, name, sort_no) VALUES\r\n  (4, '2025', 1), (4, '2024', 2), (4, '2023', 3),\r\n  (4, '2020', 4), (4, '老年份', 5)"
+    },
+    {
+      "file": "083_采购合同.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_contract",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_contract (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  contract_no VARCHAR(32) NOT NULL COMMENT '合同编号',\r\n  supplier_id BIGINT NOT NULL COMMENT '供应商ID',\r\n  contrac …(截断)"
+    },
+    {
+      "file": "084_采购计划.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_plan",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_plan (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  plan_no VARCHAR(32) NOT NULL COMMENT '计划编号',\r\n  supplier_id BIGINT NOT NULL COMMENT '供应商ID',\r\n  store_id BIGINT …(截断)"
+    },
+    {
+      "file": "084_采购计划.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_plan_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_plan_item (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  plan_no VARCHAR(32) NOT NULL COMMENT '计划编号',\r\n  sku_id BIGINT NOT NULL COMMENT 'SKU ID',\r\n  suggest_qty IN …(截断)"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_customer_quote_item",
+      "finalSql": "CREATE TABLE t_customer_quote_item (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '明细ID',\r\n  quote_id BIGINT UNSIGNED NOT NULL COMMENT '报价单ID',\r\n  sku_id BIGINT UNSIGNED NOT NULL COMMENT 'SKU …(截断)"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_customer_quote_push_log",
+      "finalSql": "CREATE TABLE t_customer_quote_push_log (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',\r\n  quote_id BIGINT UNSIGNED NOT NULL COMMENT '报价单ID',\r\n  channel VARCHAR(20) NOT NULL COMMENT '推送 …(截断)"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (\r\n  SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = DATABASE()\r\n    AND TABLE_NAME = 'product_price_log'\r\n    AND COLUMN_NAME = 'batch_no'\r\n)"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col2_exists = (\r\n  SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = DATABASE()\r\n    AND TABLE_NAME = 'product_price_log'\r\n    AND COLUMN_NAME = 'change_reason'\r\n)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_receipt",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_receipt (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  receipt_no VARCHAR(32) NOT NULL COMMENT '收款单号',\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  customer_name VARCH …(截断)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_receipt_writeoff",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_receipt_writeoff (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  receipt_id BIGINT NOT NULL COMMENT '收款单ID',\r\n  receivable_id BIGINT NOT NULL COMMENT '应收记录ID',\r\n  writeoff_a …(截断)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_payment",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_payment (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  payment_no VARCHAR(32) NOT NULL COMMENT '付款单号',\r\n  supplier_id BIGINT NOT NULL COMMENT '供应商ID',\r\n  supplier_name VARC …(截断)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_payment_writeoff",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_payment_writeoff (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  payment_id BIGINT NOT NULL COMMENT '付款单ID',\r\n  payable_id BIGINT NOT NULL COMMENT '应付记录ID',\r\n  writeoff_amou …(截断)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_receivable",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_receivable (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  customer_name VARCHAR(100) DEFAULT NULL COMMENT '客户名称',\r\n  source_t …(截断)"
+    },
+    {
+      "file": "086_收款支付.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_payable",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_payable (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  supplier_id BIGINT NOT NULL COMMENT '供应商ID',\r\n  supplier_name VARCHAR(100) DEFAULT NULL COMMENT '供应商名称',\r\n  source_ty …(截断)"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_sales_daily",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_sales_daily` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n  `rep …(截断)"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_collection_stats",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_collection_stats` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n  …(截断)"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_product_sales",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_product_sales` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n  `r …(截断)"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_customer_stats",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_customer_stats` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n  ` …(截断)"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_inventory_daily",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_inventory_daily` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `tenant_id` VARCHAR(32) NOT NULL COMMENT '租户ID',\r\n  `store_id` BIGINT NOT NULL COMMENT '门店ID',\r\n   …(截断)"
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sales_commission_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sales_commission_rule (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',\r\n  rule_type VARCHAR(20) NOT NULL COMMENT '规则类型: FIXED_ …(截断)"
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sales_commission_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sales_commission_record (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  record_no VARCHAR(32) NOT NULL COMMENT '记录编号',\r\n  bill_no VARCHAR(32) NOT NULL COMMENT '销售单号',\r\n  sta …(截断)"
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_stock_check",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_stock_check (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  check_no VARCHAR(32) NOT NULL COMMENT '盘点编号',\r\n  store_id BIGINT NOT NULL COMMENT '门店ID',\r\n  check_status VARCHAR …(截断)"
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_stock_check_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_stock_check_item (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  check_no VARCHAR(32) NOT NULL COMMENT '盘点编号',\r\n  sku_id BIGINT NOT NULL COMMENT 'SKU ID',\r\n  book_qty INT NO …(截断)"
+    },
+    {
+      "file": "090_库存预警配置.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_stock_warning_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_stock_warning_config (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  store_id BIGINT NOT NULL COMMENT '门店ID',\r\n  sku_id BIGINT NOT NULL COMMENT 'SKU ID',\r\n  min_qty INT NOT  …(截断)"
+    },
+    {
+      "file": "091_储值卡.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_store_value_card",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_store_value_card (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  card_no VARCHAR(32) NOT NULL COMMENT '卡号',\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID',\r\n  customer_name V …(截断)"
+    },
+    {
+      "file": "091_储值卡.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_store_value_transaction",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_store_value_transaction (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  trans_no VARCHAR(32) NOT NULL COMMENT '交易编号',\r\n  card_no VARCHAR(32) NOT NULL COMMENT '卡号',\r\n  custom …(截断)"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 18,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('sys_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 24,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 25,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_product_category', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 30,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_supplier', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 32,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 35,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_inventory_balance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 38,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_price_level', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 40,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_alert_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 44,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_trace_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 49,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_store_control_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 51,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_sale_bill', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 56,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_purchase_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 63,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_supplier_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 68,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 71,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 73,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_collection_link', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 76,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_credit_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 77,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 78,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 80,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_approval_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 86,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_daily_settlement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 87,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)')"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 156,
+      "isFirstBlock": false,
+      "type": "UPDATE",
+      "idem": "数据变更",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_sys_user",
+      "finalSql": "UPDATE t_sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "blockIndex": 157,
+      "isFirstBlock": false,
+      "type": "UPDATE",
+      "idem": "数据变更",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_store",
+      "finalSql": "UPDATE t_store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''"
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_inventory_balance",
+      "finalSql": "ALTER TABLE t_inventory_balance ADD COLUMN tenant_id VARCHAR(64) NOT NULL DEFAULT '' AFTER id"
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE INDEX",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CREATE INDEX idx_tenant_ib ON t_inventory_balance(tenant_id)"
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_loss_gain",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_inventory_loss_gain (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  lg_no VARCHAR(32) NOT NULL COMMENT '损益编号',\r\n  store_id BIGINT NOT NULL COMMENT '门店ID',\r\n  type VARCHAR(10 …(截断)"
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_transfer_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_transfer_order (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  transfer_no VARCHAR(32) NOT NULL COMMENT '调拨编号',\r\n  from_store_id BIGINT NOT NULL COMMENT '调出门店ID',\r\n  to_stor …(截断)"
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_transfer_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_transfer_order_item (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  transfer_no VARCHAR(32) NOT NULL COMMENT '调拨编号',\r\n  sku_id BIGINT NOT NULL COMMENT 'SKU ID',\r\n  box_qty I …(截断)"
+    },
+    {
+      "file": "095_单位表.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_unit",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_unit (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  name VARCHAR(32) NOT NULL COMMENT '单位名称（瓶/箱/件/桶）',\r\n  code VARCHAR(32) NOT NULL COMMENT '单位编码',\r\n  type VARCHAR …(截断)"
+    },
+    {
+      "file": "096_用户设置.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_user",
+      "finalSql": "ALTER TABLE t_sys_user\r\nADD COLUMN default_homepage VARCHAR(32) DEFAULT NULL COMMENT '用户默认首页：/admin 工作台，/cashier 收银台'"
+    },
+    {
+      "file": "096_用户设置.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sys_user",
+      "finalSql": "ALTER TABLE t_sys_user\r\nADD KEY idx_sys_user_default_homepage (default_homepage)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET NAMES utf8mb4"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_user",
+      "finalSql": "INSERT IGNORE INTO t_sys_user (id, username, password_hash, real_name, mobile, store_id, status) VALUES\r\n(1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', '13800000 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_role",
+      "finalSql": "INSERT IGNORE INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status) VALUES\r\n(1, 'SUPER_ADMIN', '超级管理员', '拥有系统所有权限', 'ALL', '[\"*\"]', 'ACTIVE'),\r\n(2, 'OPERATION_ADMIN' …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_user_role",
+      "finalSql": "INSERT IGNORE INTO t_sys_user_role (user_id, role_id) VALUES\r\n(1, 1),  -- admin -> 超级管理员\r\n(2, 3),  -- store_manager -> 门店管理员\r\n(3, 4),  -- operator01 -> 业务员\r\n(4, 4)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_store",
+      "finalSql": "INSERT IGNORE INTO t_store (id, store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES\r\n(1, 'STORE0001', '智享酒业旗舰店', '北京市朝阳区建国路88号智享大厦1楼', 116.473669, 39. …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_category",
+      "finalSql": "INSERT IGNORE INTO t_product_category (id, parent_id, name, sort_no, status) VALUES\r\n(1, NULL, '白酒', 1, 1),\r\n(2, NULL, '啤酒', 2, 1),\r\n(3, NULL, '葡萄酒', 3, 1),\r\n(4, NULL, '洋酒', 4, 1),\r\n(5, NULL, '其他', 5, …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "INSERT IGNORE INTO t_product_spu (id, spu_code, name, category_id, main_image, sale_channels, status) VALUES\r\n-- 白酒\r\n(1, 'SPU-BJ-001', '茅台飞天 53度 500ml', 1, NULL, '[\"MINIAPP\",\"STORE\"]', 'ON_SALE'),\r\n(2 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_sku",
+      "finalSql": "INSERT IGNORE INTO t_product_sku (id, spu_id, sku_code, barcode, sku_name, base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, status) VALUES\r\n-- 白酒\r\n(1,  1,  'SKU-BJ-001',  …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_price",
+      "finalSql": "INSERT IGNORE INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price) VALUES\r\n-- 白酒\r\n(1,  1480.00, 1899.00, 1680.00, 1799.00, 1899.00),  -- 茅台\r\n(2,  680.00 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_price_level",
+      "finalSql": "INSERT IGNORE INTO t_price_level (id, level_code, level_name, discount_rate, min_order_amount, description, sort_order, status) VALUES\r\n(1, 'RETAIL',      '零售价',     1.0000, 0,    '面向终端消费者的标准零售价格', 1, …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 10,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_alert_rule",
+      "finalSql": "INSERT IGNORE INTO t_alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES\r\n('STOCK_LOW',        '安全库存预警',     'STOCK_LOW',       1,  …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_expiry_alert_config",
+      "finalSql": "INSERT IGNORE INTO t_expiry_alert_config (alert_level, level_name, days_before_expiry, action, color, enabled, description) VALUES\r\n(1, '一级预警', 30, 'REMIND',   '#10B981', 1, '距过期30天，提醒关注'),\r\n(2, '二级预警 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 12,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_config",
+      "finalSql": "INSERT IGNORE INTO t_sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES\r\n-- 企业信息\r\n('enterprise_name',    '智享酒业有限公司', 'enterprise', 0, '企业名称'),\r\n('enterprise_logo',   …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 13,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "INSERT IGNORE INTO t_member (id, mobile, name, customer_type, settlement_type, staff_id, points, level_code, status) VALUES\r\n(1, '13900000001', '王先生（散客）',   'RETAIL',    'CASH',    NULL, 0,    NULL, 1 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 14,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_supplier",
+      "finalSql": "INSERT IGNORE INTO t_supplier (id, supplier_code, name, short_name, category, province, city, district, address, credit_level, settlement_type, tax_rate, bank_name, bank_account, bank_account_name, st …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 15,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_supplier_contact",
+      "finalSql": "INSERT IGNORE INTO t_supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position) VALUES\r\n(1, '赵经理', '13800001001', '0851-22330001', 'zhao@moutai.com', 'zhao_moutai', 1, '大 …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 16,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_balance",
+      "finalSql": "INSERT IGNORE INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty) VALUES\r\n-- 门店1 线上库存\r\n(1, 1,  'ONLINE',  20, 0, 20),\r\n(1, 2,  'ONLINE',  30, 0, 30),\r\n(1,  …(截断)"
+    },
+    {
+      "file": "099_seed_data.sql",
+      "blockIndex": 17,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sku_price",
+      "finalSql": "INSERT IGNORE INTO t_sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, status) VALUES\r\n-- 茅台\r\n(1, 2, 1,  1680.00, 1480.00, 1899.00, 1),\r\n(1, 3, 6,  1650.00, 1480.0 …(截断)"
+    },
+    {
+      "file": "101_tobacco_category_online_sale.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_category",
+      "finalSql": "INSERT IGNORE INTO t_product_category (id, tenant_id, parent_id, name, sort_no, status, allow_online_sale, code) VALUES\r\n(100, 'system', NULL, '烟草', 6, 1, 0, 'TOBACCO'),\r\n(101, 'system', 100,  '卷烟', 1 …(截断)"
+    },
+    {
+      "file": "103_member_register.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_member_sms_code",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_member_sms_code (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  mobile VARCHAR(20) NOT NULL COMMENT '手机号',\r\n  code VARCHAR(8) NOT NULL COMMENT '验证码',\r\n  purpose VARCHAR(32)  …(截断)"
+    },
+    {
+      "file": "104_platform_announcement.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_announcement",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_announcement (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  title VARCHAR(200) NOT NULL COMMENT '公告标题',\r\n  content TEXT NOT NULL COMMENT '公告内容',\r\n  type V …(截断)"
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_marketing_tag",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_product_marketing_tag (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  tag_code VARCHAR(32) NOT NULL COMMENT '标签编码（如 NEW/HOT/RECOMMEND）',\r\n  tag_name VARCHAR(64) NOT …(截断)"
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_product_marketing_tag",
+      "finalSql": "INSERT INTO t_product_marketing_tag (tag_code, tag_name, color, sort_no, status, tenant_id) VALUES\r\n  ('NEW', '新品', '#67C23A', 1, 1, ''),\r\n  ('HOT', '爆款', '#F56C6C', 2, 1, ''),\r\n  ('RECOMMEND', '推荐',  …(截断)"
+    },
+    {
+      "file": "106_data_permission.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_data_permission",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_data_permission (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  permission_name VARCHAR(128) NOT NULL COMMENT '权限名 …(截断)"
+    },
+    {
+      "file": "106_data_permission.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_role_data_permission",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_role_data_permission (\r\n  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  role_id BIGINT UNSIGNED NOT NULL COMMENT '角色I …(截断)"
+    },
+    {
+      "file": "106_data_permission.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_data_permission",
+      "finalSql": "INSERT INTO t_data_permission (tenant_id, permission_name, permission_code, permission_type, description, status, sort_no) VALUES\r\n  ('', '全部数据', 'DATA_ALL', 'ALL', '可以查看所有数据', 1, 1),\r\n  ('', '按部门', ' …(截断)"
+    },
+    {
+      "file": "107_sys_position.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_position",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_position (\r\n  id BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  position_name VARCHAR(100) NOT NULL COMMENT '岗位名称',\r\n  position_code VARCHAR(50) DEFAULT NULL COMMENT '岗位编码',\r\n  …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_member_level",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_member_level (\r\n  id INT AUTO_INCREMENT PRIMARY KEY COMMENT '等级ID',\r\n  level_code VARCHAR(32) NOT NULL UNIQUE COMMENT '等级编码',\r\n  level_name VARCHAR(64) NOT NULL COMMENT '等 …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_points_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_points_record (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '记录ID',\r\n  member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID',\r\n  type VARCHAR(16) NOT NULL COMMENT '类 …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_growth_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_growth_record (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '记录ID',\r\n  member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID',\r\n  type VARCHAR(16) NOT NULL COMMENT '类 …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_wholesale_cart",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_wholesale_cart (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '购物车ID',\r\n  member_id BIGINT UNSIGNED NOT NULL COMMENT '会员ID',\r\n  sku_id BIGINT UNSIGNED NOT NULL CO …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_wholesale_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_wholesale_order (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',\r\n  order_no VARCHAR(32) NOT NULL UNIQUE COMMENT '订单编号',\r\n  member_id BIGINT UNSIGNED NOT NU …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_wholesale_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_wholesale_order_item (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单项ID',\r\n  order_no VARCHAR(32) NOT NULL COMMENT '订单编号',\r\n  spu_id BIGINT UNSIGNED NOT NULL C …(截断)"
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_member_level",
+      "finalSql": "INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id)\r\nSELECT 'VIP1', '普通会员', 0, 0, 100.00, 1, '注册即享', 1, 1,  …(截断)"
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_custom_report",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_custom_report` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `report_name` VARCHAR(128) NOT NULL COMMENT '报表名称',\r\n  `report_type` VARCHAR(32) NOT NULL COMMENT  …(截断)"
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_custom_report_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_custom_report_log` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `report_id` BIGINT UNSIGNED NOT NULL COMMENT '报表ID',\r\n  `generated_by` BIGINT DEFAULT NULL COM …(截断)"
+    },
+    {
+      "file": "110_p2_product_review.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_review",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_product_review` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `review_no` VARCHAR(32) NOT NULL UNIQUE COMMENT '审核单号',\r\n  `product_id` BIGINT NOT NULL COMMENT ' …(截断)"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bargain_activity",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_bargain_activity` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `activity_name` VARCHAR(200) NOT NULL COMMENT '活动名称',\r\n  `activity_desc` VARCHAR(500) DEFAULT N …(截断)"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bargain_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_bargain_record` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `activity_id` BIGINT UNSIGNED NOT NULL COMMENT '活动ID',\r\n  `initiator_id` BIGINT NOT NULL COMMENT  …(截断)"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bargain_help",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_bargain_help` (\r\n  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,\r\n  `record_id` BIGINT UNSIGNED NOT NULL COMMENT '砍价记录ID',\r\n  `helper_id` BIGINT NOT NULL COMMENT '帮砍人用 …(截断)"
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_order_timeout_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_order_timeout_config` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `order_type` VARCHAR(20) NOT NULL COMMENT '订单类型：SALE=销售单 PURCHASE=采购单',\r\n  `timeout_type` VARCHAR(30) NOT  …(截断)"
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_order_timeout_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_order_timeout_log` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `order_id` INT NOT NULL COMMENT '订单ID',\r\n  `order_type` VARCHAR(20) NOT NULL COMMENT '订单类型',\r\n  `timeout_type …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_bundle",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_product_bundle` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `bundle_no` VARCHAR(32) NOT NULL COMMENT '套装编号',\r\n  `bundle_name` VARCHAR(128) NOT NULL COMMENT '套装名称',\r\n  `cate …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_product_bundle_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_product_bundle_item` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `bundle_id` INT NOT NULL COMMENT '套装ID',\r\n  `sku_id` INT NOT NULL COMMENT '商品SKU ID',\r\n  `sku_name` VARCHAR …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_combo_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_combo_product` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `combo_no` VARCHAR(32) NOT NULL COMMENT '组合品编号',\r\n  `combo_name` VARCHAR(128) NOT NULL COMMENT '组合品名称',\r\n  `combo …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_combo_product_option",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_combo_product_option` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `combo_id` INT NOT NULL COMMENT '组合品ID',\r\n  `group_name` VARCHAR(64) NOT NULL COMMENT '选项组名称',\r\n  `sku_id` …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_loss_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_loss_order` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `loss_no` VARCHAR(32) NOT NULL COMMENT '报损单号',\r\n  `store_id` INT NOT NULL COMMENT '仓库/门店ID',\r\n  `store_nam …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_loss_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_loss_order_item` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `loss_order_id` INT NOT NULL COMMENT '报损单ID',\r\n  `loss_no` VARCHAR(32) NOT NULL COMMENT '报损单号',\r\n  `s …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_profit_order",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_profit_order` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `profit_no` VARCHAR(32) NOT NULL COMMENT '报溢单号',\r\n  `store_id` INT NOT NULL COMMENT '仓库/门店ID',\r\n  `store …(截断)"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_profit_order_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_profit_order_item` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `profit_order_id` INT NOT NULL COMMENT '报溢单ID',\r\n  `profit_no` VARCHAR(32) NOT NULL COMMENT '报溢单号', …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_transfer_order",
+      "finalSql": "ALTER TABLE t_transfer_order\r\n  ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态：DRAFT=草稿 PENDING=待审核 APPROVED=已审核 TRANSIT=运输中 RECEIVED=已完成 CANCELLED=已取消' AFTER `to_store_id`,\r\n  A …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_transfer_order_item",
+      "finalSql": "ALTER TABLE t_transfer_order_item\r\n  ADD COLUMN `transfer_order_id` BIGINT NOT NULL DEFAULT 0 COMMENT '调拨单ID' AFTER `id`,\r\n  ADD COLUMN `sku_name` VARCHAR(128) NOT NULL DEFAULT '' COMMENT 'SKU名称' AFTE …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_share_setting",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_share_setting` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `share_enabled` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否启用库存共享：0=否 1=是',\r\n  `auto_transfer` TINYINT(1) …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_inventory_share_product",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_inventory_share_product` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `spu_id` INT NOT NULL COMMENT 'SPU ID',\r\n  `spu_name` VARCHAR(128) NOT NULL COMMENT 'SPU名称',\r\n  `sku_id …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_report_permission_matrix",
+      "finalSql": "ALTER TABLE t_report_permission_matrix\r\n  ADD COLUMN `can_view` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否可查看：0=否 1=是' AFTER `store_scope`,\r\n  ADD COLUMN `can_export` TINYINT(1) NOT NULL DEFAULT 0 COMM …(截断)"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_report_permission_audit_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_report_permission_audit_log` (\r\n  `id` BIGINT NOT NULL AUTO_INCREMENT,\r\n  `operator_id` BIGINT DEFAULT NULL COMMENT '操作人ID',\r\n  `operator_name` VARCHAR(64) DEFAULT NULL C …(截断)"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_quick_entries",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_quick_entries` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `name` VARCHAR(64) NOT NULL COMMENT '入口名称',\r\n  `icon` VARCHAR(255) DEFAULT NULL COMMENT '图标URL或CSS类名',\r\n  `route` …(截断)"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_tenant_config` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `tenant_id` VARCHAR(64) NOT NULL COMMENT '租户ID',\r\n  `config_key` VARCHAR(128) NOT NULL COMMENT '配置键名（如 storage_li …(截断)"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_upload_file",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_upload_file` (\r\n  `id` INT NOT NULL AUTO_INCREMENT,\r\n  `tenant_id` VARCHAR(64) NOT NULL COMMENT '租户ID',\r\n  `file_name` VARCHAR(255) NOT NULL COMMENT '原始文件名',\r\n  `file_pat …(截断)"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_library_spu",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_library_spu` (\r\n  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',\r\n  `spu_code` VARCHAR(32) NOT NULL COMMENT 'SPU 编码（如 SPU20260728001）',\r\n  `name` VARCHAR(256) …(截断)"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_library_sku",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_library_sku` (\r\n  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',\r\n  `spu_id` BIGINT UNSIGNED NOT NULL COMMENT '所属 SPU ID（关联 t_library_spu）',\r\n  `sku_code` VAR …(截断)"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_library_api_key",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_library_api_key` (\r\n  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',\r\n  `app_name` VARCHAR(128) NOT NULL COMMENT '应用名称（如\"某某ERP对接\"）',\r\n  `api_key` VARCHAR(64)  …(截断)"
+    },
+    {
+      "file": "118_library_brand.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_library_brand",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_library_brand` (\r\n  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键',\r\n  `name` VARCHAR(128) NOT NULL COMMENT '品牌名称（如\"茅台集团\"）',\r\n  `logo` VARCHAR(512) DEFAULT NUL …(截断)"
+    },
+    {
+      "file": "118_library_brand.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_library_brand",
+      "finalSql": "INSERT INTO `t_library_brand` (`id`, `name`, `origin_country`, `sort_no`, `description`) VALUES\r\n  (1,  '茅台集团',   '中国', 1,  '贵州茅台酒股份有限公司，酱香型白酒代表'),\r\n  (2,  '五粮液',     '中国', 2,  '四川省宜宾五粮液集团有限公司，浓香型白酒代表 …(截断)"
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_library_brand",
+      "finalSql": "INSERT INTO `t_library_brand` (`id`, `name`, `origin_country`, `sort_no`, `description`) VALUES\r\n  (11, '汉酱',       '中国', 11, '贵州茅台酒股份有限公司旗下酱香系列品牌'),\r\n  (12, '赖茅',       '中国', 12, '贵州茅台酒股份有限公司旗下酱香系列品牌 …(截断)"
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_library_spu",
+      "finalSql": "INSERT INTO `t_library_spu` (`spu_code`, `name`, `brand_id`, `specs`, `unit`, `properties`, `description`, `suggested_retail_price`, `status`, `source`) VALUES\r\n-- ==================================== …(截断)"
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_library_sku",
+      "finalSql": "INSERT INTO `t_library_sku` (`spu_id`, `sku_code`, `barcode`, `sku_name`, `volume`, `packaging`, `base_unit`, `box_unit`, `box_ratio`, `status`) VALUES\r\n-- 茅台核心系列（SPU001-011）\r\n((SELECT id FROM t_libra …(截断)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_stock_warning",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_stock_warning (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '预警ID',\r\n  tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',\r\n  sku_id BIGINT UNSIGNED …(截断)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (\r\n  SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = DATABASE()\r\n    AND TABLE_NAME = 't_stock_warning'\r\n    AND COLUMN_NAME = 'warning_threshold'\r\n)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists2 = (\r\n  SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = DATABASE()\r\n    AND TABLE_NAME = 't_stock_warning'\r\n    AND COLUMN_NAME = 'store_name'\r\n)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @sku_not_null = (\r\n  SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = DATABASE()\r\n    AND TABLE_NAME = 't_stock_warning'\r\n    AND COLUMN_NAME = 'sku_id'\r\n    AND IS_NULLABLE …(截断)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 16,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT\r\n  COUNT(*)                                                    AS total_columns,\r\n  GROUP_CONCAT(COLUMN_NAME ORDER BY ORDINAL_POSITION SEPARATOR ',') AS columns_list\r\nFROM information_schema.CO …(截断)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 17,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_COMMENT\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't_stock_warning'\r\n  AND COLUMN_NAME IN  …(截断)"
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "blockIndex": 18,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT INDEX_NAME, GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX SEPARATOR ',') AS cols\r\nFROM information_schema.STATISTICS\r\nWHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't_stock_warning'\r\nGROUP  …(截断)"
+    },
+    {
+      "file": "120a_合规凭证字段.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('sale_bill_item', 'unit', \"VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照（瓶/箱）'\")"
+    },
+    {
+      "file": "120b_商品SPU扩展字段.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD COLUMN brand VARCHAR(128) DEFAULT NULL COMMENT '品牌'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD INDEX idx_product_spu_status_category (status, category_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD FULLTEXT INDEX ft_product_spu_name (name)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_price",
+      "finalSql": "ALTER TABLE t_product_price ADD INDEX idx_product_price_sku_level (sku_id, price_level_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_sku",
+      "finalSql": "ALTER TABLE t_product_sku ADD INDEX idx_product_sku_spu_id (spu_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sale_bill",
+      "finalSql": "ALTER TABLE t_sale_bill ADD INDEX idx_sale_bill_status (status)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 13,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sale_bill_item",
+      "finalSql": "ALTER TABLE t_sale_bill_item ADD INDEX idx_sale_bill_item_bill_no (bill_no)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 15,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_miniapp_order",
+      "finalSql": "ALTER TABLE t_miniapp_order ADD INDEX idx_miniapp_order_status (status)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 19,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_miniapp_order_item",
+      "finalSql": "ALTER TABLE t_miniapp_order_item ADD INDEX idx_miniapp_order_item_order_no (order_no)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 21,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "ALTER TABLE t_member ADD INDEX idx_member_customer_type (customer_type)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 25,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_member",
+      "finalSql": "ALTER TABLE t_member ADD INDEX idx_member_mobile (mobile)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 26,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_customer_payment",
+      "finalSql": "ALTER TABLE t_customer_payment ADD INDEX idx_customer_payment_customer (customer_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 29,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_inventory",
+      "finalSql": "ALTER TABLE t_inventory ADD INDEX idx_inventory_sku_id (sku_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 33,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_inventory_batch",
+      "finalSql": "ALTER TABLE t_inventory_batch ADD INDEX idx_inventory_batch_sku_id (sku_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 36,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_purchase_order",
+      "finalSql": "ALTER TABLE t_purchase_order ADD INDEX idx_purchase_order_status (status)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 39,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_purchase_in_stock",
+      "finalSql": "ALTER TABLE t_purchase_in_stock ADD INDEX idx_purchase_in_stock_order_no (order_no)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 41,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_sale_bill",
+      "finalSql": "ALTER TABLE t_sale_bill ADD INDEX idx_sale_bill_date_range (created_at, tenant_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 43,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_receivable",
+      "finalSql": "ALTER TABLE t_receivable ADD INDEX idx_receivable_customer_id (customer_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 46,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_coupon_template",
+      "finalSql": "ALTER TABLE t_coupon_template ADD INDEX idx_coupon_template_status (status)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 49,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_user_coupon",
+      "finalSql": "ALTER TABLE t_user_coupon ADD INDEX idx_user_coupon_customer (customer_id)"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "blockIndex": 52,
+      "isFirstBlock": false,
+      "type": "ALTER TABLE ADD COLUMN",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "t_product_spu",
+      "finalSql": "ALTER TABLE t_product_spu ADD INDEX idx_product_spu_tenant_status (tenant_id, status)"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_sys_role' AND COLUMN_NAME = 'data_scope')"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_sys_role' AND COLUMN_NAME = 'permissions')"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 10,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_role",
+      "finalSql": "INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id)\r\nVALUES\r\n  (1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '[\"*\"]', 1, 'default'),\r …(截断)"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_user_role",
+      "finalSql": "INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id)\r\nVALUES (1, 1, 'default')"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 12,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_plan",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_subscription_plan` (\r\n  `id` INT AUTO_INCREMENT PRIMARY KEY,\r\n  `plan_code` VARCHAR(32) NOT NULL UNIQUE COMMENT '套餐编码（如：BASIC/STANDARD/PROFESSIONAL）',\r\n  `plan_name` VARC …(截断)"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 14,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription_plan",
+      "finalSql": "INSERT IGNORE INTO `t_subscription_plan` (`id`, `plan_code`, `plan_name`, `plan_type`, `price`, `duration_days`, `max_users`, `max_stores`, `status`, `sort_order`)\r\nVALUES\r\n  (1, 'BASIC', '基础版', 'MONT …(截断)"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 15,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_subscription",
+      "finalSql": "INSERT IGNORE INTO `t_subscription` (`subscription_no`, `tenant_id`, `plan_id`, `plan_name`, `plan_type`, `start_date`, `end_date`, `duration_days`, `price`, `payment_status`, `status`)\r\nVALUES ('SUB2 …(截断)"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 16,
+      "isFirstBlock": false,
+      "type": "SET 会话变量/开关",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SET @col_nullable = (SELECT IS_NULLABLE FROM information_schema.COLUMNS\r\n  WHERE TABLE_SCHEMA = 'liquor_inventory' AND TABLE_NAME = 't_error_logs' AND COLUMN_NAME = 'tenant_id')"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "blockIndex": 21,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_error_logs",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_error_logs` (\r\n  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,\r\n  `error_type` VARCHAR(64) NOT NULL COMMENT '错误类型',\r\n  `severity` VARCHAR(16) NOT NULL DEFAULT 'ERROR' COMMENT ' …(截断)"
+    },
+    {
+      "file": "120e_transfer_stock_log.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_transfer_stock_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS `t_transfer_stock_log` (\r\n  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,\r\n  `transfer_order_id` BIGINT UNSIGNED NOT NULL COMMENT '调拨单ID',\r\n  `item_id` BIGINT UNSIGNED NOT N …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_ai_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_ai_config (\r\n  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  default_provider    VARCHAR(32) NOT NULL DEFAULT 'deepseek' COMMENT  …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_ai_config",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_ai_config (\r\n  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id       VARCHAR(36) NOT NULL COMMENT '租户ID（关联 t_tenant.id）',\r\n  en …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_ai_audit_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_ai_audit_log (\r\n  id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id         VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  user_id            …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_ai_usage_daily",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_ai_usage_daily (\r\n  id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id         VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  stat_date        …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_tenant_ai_billing",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_tenant_ai_billing (\r\n  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id           VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  plan_type …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "INSERT IGNORE",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_ai_config",
+      "finalSql": "INSERT IGNORE INTO t_platform_ai_config\r\n  (default_provider, default_model, default_api_key, default_endpoint, default_temperature, default_max_tokens, default_system_prompt)\r\nSELECT\r\n  'deepseek',\r\n …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT TABLE_NAME, TABLE_COMMENT\r\nFROM information_schema.TABLES\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND TABLE_NAME IN ('t_platform_ai_config', 't_tenant_ai_config', 't_ai_audit_log', 't_ai_usage_dail …(截断)"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT id, default_provider, default_model, default_temperature, default_max_tokens, created_at\r\nFROM t_platform_ai_config"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT TABLE_NAME, COUNT(*) AS column_count\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND TABLE_NAME IN ('t_platform_ai_config', 't_tenant_ai_config', 't_ai_audit_log', 't_a …(截断)"
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_ai_knowledge_chunks",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_ai_knowledge_chunks (\r\n  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id   VARCHAR(36) NOT NULL COMMENT '租户ID（知识库按租户隔离）',\r\n  doc_name    V …(截断)"
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT TABLE_NAME, TABLE_COMMENT\r\nFROM information_schema.TABLES\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND TABLE_NAME = 't_ai_knowledge_chunks'"
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT COLUMN_NAME, COLUMN_TYPE, COLUMN_COMMENT\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND TABLE_NAME = 't_ai_knowledge_chunks'\r\nORDER BY ORDINAL_POSITION"
+    },
+    {
+      "file": "123_member_contact.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_member', 'contact', \"VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name\")"
+    },
+    {
+      "file": "123_member_contact.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_COMMENT\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 't_member' AND COLUMN_NAME = 'contact'"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_aftersale",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_aftersale (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '售后单ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  aftersale_no VARCHAR(64) NOT NULL COMMENT ' …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_audit_log",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_audit_log (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  user_id BIGINT DEFAULT NULL COMMENT '操作人ID', …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 2,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_cart_item",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_cart_item (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '购物车项ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  customer_id BIGINT NOT NULL COMMENT '客户ID' …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_cash_flow",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_cash_flow (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '流水ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  transaction_type VARCHAR(32) NOT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_daily_settlement",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_daily_settlement (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '结算ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  settle_date DATE NOT NULL COMMENT '结算 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 5,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_order_coupon",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_order_coupon (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  coupon_id BIGINT NOT NULL COMMENT '优惠券ID（t_ …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_settlement",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_settlement (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '结算ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  tenant_name VARCHAR(128) DEFAULT N …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_full_reduction",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_full_reduction (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '活动ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  name VARCHAR(128) NOT NULL COMMENT '活动名 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_flash_sale",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_flash_sale (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '活动ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  name VARCHAR(128) NOT NULL COMMENT '活动名称',\r …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 9,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_flash_sale_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_flash_sale_record (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '记录ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  flash_sale_id BIGINT NOT NULL COMMEN …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 10,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拼团ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  activity_id BIGINT DEFAULT NULL COMMENT '关联活 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 11,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_member",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_member (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '成员ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  team_id BIGINT NOT NULL COMMENT '拼团组I …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 12,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_group_buy_team",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_group_buy_team (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '拼团组ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  activity_id BIGINT NOT NULL COMMENT '拼 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 13,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_promo_stack_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_promo_stack_rule (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  name VARCHAR(128) NOT NULL COMMENT '规 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 14,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_payment_method",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_payment_method (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  method_code VARCHAR(32) NOT NULL COMMENT  …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 15,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_todos",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_todos (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '待办ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  title VARCHAR(200) NOT NULL COMMENT '标题',\r\n  typ …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 16,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sync_cache",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sync_cache (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '缓存ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  sync_type VARCHAR(32) NOT NULL COMMENT '同步类 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 17,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_user_points",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_user_points (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  user_id BIGINT NOT NULL COMMENT '用户ID',\r\n  p …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 18,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_wx_user",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_wx_user (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '用户ID',\r\n  openid VARCHAR(64) NOT NULL COMMENT '微信openid',\r\n  unionid VARCHAR(64) DEFAULT NULL COMMENT '微信u …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 19,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_user_binding",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_user_binding (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '绑定ID',\r\n  wx_user_id BIGINT NOT NULL COMMENT '微信用户ID（t_wx_user.id）',\r\n  system_user_id BIGINT NOT NUL …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 20,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_user_login",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_user_login (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  user_id BIGINT DEFAULT NULL COMMENT '用户 …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 21,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sys_role_menu",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sys_role_menu (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  role_id BIGINT NOT NULL COMMENT '角色ID',\r\n  …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 22,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sale_bill_archive",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sale_bill_archive (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '销售单ID（归档）',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  bill_no VARCHAR(64) NOT NULL CO …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 23,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sale_bill_item_archive",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sale_bill_item_archive (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  bill_no VARCHAR(64) NOT NULL COMMENT '销售单号',\r\n …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 24,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_order_archive",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_order_archive (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '采购订单ID（归档）',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  order_no VARCHAR(64) NOT  …(截断)"
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "blockIndex": 25,
+      "isFirstBlock": false,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_purchase_order_item_archive",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_purchase_order_item_archive (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  order_no VARCHAR(64) NOT NULL COMMENT '采购 …(截断)"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "blockIndex": 6,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "blockIndex": 8,
+      "isFirstBlock": false,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('t_delivery_record', 'rider_id', \"BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone\")"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "blockIndex": 10,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_COMMENT\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND (\r\n    (TABLE_NAME = 't_miniapp_order_ …(截断)"
+    },
+    {
+      "file": "126_bills.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_bill",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_bill (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '票据ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  bill_no VARCHAR(64) NOT NULL COMMENT '票据号',\r\n  bi …(截断)"
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "ALTER TABLE MODIFY COLLATE",
+      "idem": "不可逆",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_delivery_record",
+      "finalSql": "ALTER TABLE t_delivery_record MODIFY COLUMN tenant_id VARCHAR(36) NOT NULL COLLATE utf8mb4_0900_ai_ci"
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "blockIndex": 7,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT TABLE_NAME, COLLATION_NAME\r\nFROM information_schema.COLUMNS\r\nWHERE TABLE_SCHEMA = DATABASE()\r\n  AND COLUMN_NAME = 'tenant_id'\r\n  AND COLLATION_NAME != 'utf8mb4_0900_ai_ci'\r\n  AND (TABLE_NAME LI …(截断)"
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_user",
+      "finalSql": "INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at)\r\nVALUES\r\n  ('default', 'store_manager', 'v2$$2b$12$onxTslZGnbLqxNBA0GExa.I/UCHf …(截断)"
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sys_user_role",
+      "finalSql": "INSERT INTO t_sys_user_role (user_id, role_id)\r\nSELECT u.id, r.id FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN'\r\nWHERE u.username = 'store_manager'\r\nON DUPLICATE KEY UPDATE user_i …(截断)"
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "blockIndex": 3,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT username, LEFT(password_hash, 8) AS hash_prefix, store_id, status\r\nFROM t_sys_user\r\nWHERE username IN ('store_manager', 'store_operator')"
+    },
+    {
+      "file": "127_order_routing_exception.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_order_routing_rule",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_order_routing_rule (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '规则ID',\r\n  tenant_id VARCHAR(36) NOT NULL COMMENT '租户ID',\r\n  rule_name VARCHAR(128) NOT NULL COM …(截断)"
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "UPDATE",
+      "idem": "数据变更",
+      "risk": "需凌舟单独批准",
+      "targetTable": "t_miniapp_template",
+      "finalSql": "UPDATE t_miniapp_template\r\n   SET status = 'inactive', updated_at = NOW()\r\n WHERE tenant_id = 'DEFAULT'\r\n   AND name IN ('经典蓝白', '暖橙商务', '深色臻品')\r\n   AND status = 'active'"
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_miniapp_template",
+      "finalSql": "INSERT INTO t_miniapp_template\r\n  (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order)\r\nSELECT 'DEFAULT',\r\n       '商务经典 · 深海蓝',\r\n       '深海蓝主 …(截断)"
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "blockIndex": 4,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT name, status, JSON_EXTRACT(style_config, '$.theme') AS theme\r\n  FROM t_miniapp_template\r\n WHERE tenant_id = 'DEFAULT'\r\n ORDER BY sort_order ASC"
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_platform_subscription_apply",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_platform_subscription_apply (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  openid VARCHAR(64) NOT NULL DEFAULT '' COMMENT '微信 openid（MVP 先用设备标识，R98-02  …(截断)"
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "SELECT 只读校验",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "SELECT COUNT(*) AS table_exists FROM information_schema.tables\r\n WHERE table_schema = DATABASE() AND table_name = 't_platform_subscription_apply'"
+    },
+    {
+      "file": "136_sms_template.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_sms_template",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_sms_template (\r\n  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '模板ID',\r\n  tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',\r\n  name VARCHAR(64) NOT NU …(截断)"
+    },
+    {
+      "file": "136_sms_template.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sms_template",
+      "finalSql": "INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status)\r\nVALUES ('default', '注册验证码', 'SMS_REGISTER_CODE', '您的注册验证码为${code}，5分钟内有效，请勿泄露。', 'REGISTER', 'ENABLED')\r\nON DUPLICATE KEY  …(截断)"
+    },
+    {
+      "file": "137_sys_user_dept_position.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('sys_user', 'department_id', \"BIGINT DEFAULT NULL COMMENT '所属部门ID' AFTER store_id\")"
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sms_template",
+      "finalSql": "INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status)\r\nVALUES ('default', '租户注册验证码', 'SMS_TENANT_REGISTER_CODE', '您的注册验证码为${code}，5分钟内有效，请勿泄露。', 'TENANT_REGISTER', 'ENABLED')\r\nO …(截断)"
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "blockIndex": 1,
+      "isFirstBlock": false,
+      "type": "INSERT",
+      "idem": "数据变更",
+      "risk": "中",
+      "targetTable": "t_sms_template",
+      "finalSql": "INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status)\r\nVALUES ('default', '租户注册审核结果', 'SMS_TENANT_REGISTER_RESULT', '尊敬的${companyName}，您的注册申请已${status}，请使用注册账号登录工作台。', 'TENANT_R …(截断)"
+    },
+    {
+      "file": "138_approval_business_link.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CALL 存储过程",
+      "idem": "会报错但无害",
+      "risk": "低",
+      "targetTable": "",
+      "finalSql": "CALL add_column_if_not_exists('purchase_order', 'approval_instance_no', \"VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER order_status\")"
+    },
+    {
+      "file": "20260720_print_record.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_print_record",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_print_record (\r\n  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id     VARCHAR(64) NOT NULL COMMENT '租户ID（多租户隔离）',\r\n  store_id      BIGIN …(截断)"
+    },
+    {
+      "file": "20260720_push_token.sql",
+      "blockIndex": 0,
+      "isFirstBlock": true,
+      "type": "CREATE TABLE IF NOT EXISTS",
+      "idem": "幂等",
+      "risk": "低",
+      "targetTable": "t_push_token",
+      "finalSql": "CREATE TABLE IF NOT EXISTS t_push_token (\r\n  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',\r\n  tenant_id       VARCHAR(64) NOT NULL COMMENT '租户ID（多租户隔离）',\r\n  user_id         B …(截断)"
+    }
+  ]
+}
