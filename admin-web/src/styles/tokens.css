@@ -73,12 +73,21 @@
   --text-primary: #000000;
   --text-secondary: #444444;
   /* S3-47（可达性优先于设计稿字面值）：原 #999999 在本项目四种浅底上仅 2.50~2.85:1，
-     不达 WCAG AA 4.5:1（E2E a11y 断言 `color-contrast` 红点即来自此处）。
+     不达 WCAG AA 4.5:1（本 token 与工作台 56 个 color-contrast 节点无关；真正相关的是 .icp-line a / .demo-divider-text，见 S3-54 ①-b；该 56 节点已另立 S3-61 跟踪）。
      #6D6D6D = 达标且**最接近设计稿灰阶**的值：最严场景 --bg-soft #F0F0F0 上为 4.54:1
      （#767676 白底 4.54 看似够，但在 --bg-page #F5F5F5 只有 4.17，会漏）。
      偏差已登记：docs/design/工作台页面设计规范.md §可达性偏差登记。 */
   --text-muted: #6d6d6d;
-  --text-placeholder: #CCCCCC;
+  /* S3-54 ①-b（凌舟 2026-09-18 批准，附前置条件：不许照抄 saas-admin 的 #767676）
+     原 #CCCCCC 在最严面 --bg-soft #F0F0F0 上仅 1.41:1，远不达 WCAG 1.4.3 4.5:1。
+     #767676 白底 4.54 看似够，但在 #F7F7F7/#F5F5F5/#F0F0F0 分别只有 4.24/4.17/3.99 —— 全挂，
+     故按 5 处引用点的真实相邻面反推。#6D6D6D = 逐面验证全部达标的最浅灰：
+     #FFFFFF 5.174 / #F7F7F7 4.830 / #F5F5F5 4.746 / #F0F0F0 4.540 / #FAFAFA 4.957。
+     （再浅一档 #6E6E6E 在最严面 4.474，差 0.026 不达标。）
+     测量表：docs/tasks/cards/R101-S3-54-林夕改前测量表.md
+     ⚠️ 同胞项 --input-border 未改：打包产物中 EP 规则排在我们的规则之后且同特异性，
+        该 token 实际被覆盖为 --el-border-color #E2E2E2，单改值无效果 —— 挂起待裁定。 */
+  --text-placeholder: #6D6D6D;
   --text-inverse: #FFFFFF;
   --text-link: #3F6FEF;
 
