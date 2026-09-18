@@ -109,7 +109,7 @@
   --text-primary: #000000;
   --text-secondary: #444444;
   --text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #999999 在浅底仅 2.50~2.85:1 不达标；#6D6D6D 在最深浅底 --bg-soft #F0F0F0 上=4.54:1，满足 WCAG AA 4.5:1。对照设计稿 --g5 #737373（#f0f0f0 上仅 4.17:1 亦不达标），#6D6D6D 为达标且最接近设计稿的值 */
-  --text-placeholder: #CCCCCC;
+  --text-placeholder: #767676; /* S3-54（可达性优先·最小视觉变化达标）：占位提示文本，落在白底输入框内(--input-bg #FFFFFF)。原 #CCCCCC 白底仅 1.61:1，远低于 WCAG AA 文本 4.5:1；#767676 白底 = 4.54:1 达标，且为「从原值往深走第一个满足 4.5:1 的灰度」(候选：#777777=4.47 仍不达标，#767676=4.54 达标)，尽量贴近原浅灰阶、同时保留占位符轻于正文(#444)的层级 */
   --text-inverse: #FFFFFF;
   --text-link: #2563eb;
 
@@ -282,7 +282,7 @@
   --input-height: 36px;
   --input-height-lg: 44px;
   --input-radius: 6px;
-  --input-border: #CCCCCC;
+  --input-border: #888888; /* S3-54（可达性优先·最小视觉变化达标）：输入框边框，属 WCAG 1.4.11 非文本对比度 ≥3:1（识别控件所必需）。原 #CCCCCC 在「最严边界」#f0f0f0(--bg-soft) 上仅 1.41:1；#888888 = 3.11:1 达标（白底 3.45:1 / #f7f7f7 3.22:1 同样达标）。#888888 即设计系统既有 --gray-300(3:1 非文本灰阶)，与 S3-53 滚动条边框同源，避免引入一次性灰值；其「从原值往深走第一个满足 3:1 的灰度」为 #8A8A8A(3.03:1)，此处取 #888888 留安全余量。本 token 在 saas-admin 内无引用（保留定义待收编），改动零外溢 */
   --input-bg: #FFFFFF;
   --input-focus-border: #2563eb;
   --input-focus-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
@@ -340,7 +340,7 @@
   --ctl-btn-padding: 6px 13px;
   --ctl-btn-gap: 5px;
   --ctl-ipt-padding: 6px 10px;
-  --ctl-border: #d4d4d4;
+  --ctl-border: #888888; /* S3-54（可达性优先·最小视觉变化达标）：控件边框(.btn/.ipt/.sel)，属 WCAG 1.4.11 非文本对比度 ≥3:1。原 #D4D4D4 在 #f0f0f0 上仅 1.30:1；#888888 = 3.11:1 达标（白底 3.45:1 / #f7f7f7 3.22:1）。与 --input-border 同源取 #888888(见上方注释)，「第一个满足 3:1 的灰度」为 #8A8A8A(3.03:1)。本 token 在 saas-admin 被 4 处引用(.btn/.ipt/.sel×3 + LibrarySpus.vue×1)，均为白底控件边框，改深属预期可达性提升，外溢可控 */
   /* 页头（.pg-hd） */
   --pg-title-size: 16px;
   --pg-desc-size: 11.5px;
