@@ -101,7 +101,14 @@
           <div v-if="salesTrendData.length === 0" class="chart-empty">
             <el-empty description="暂无销售数据" :image-size="80" />
           </div>
-          <div v-else ref="salesTrendChartRef" class="trend-chart" />
+          <div
+            v-else
+            ref="salesTrendChartRef"
+            class="trend-chart"
+            tabindex="0"
+            role="region"
+            aria-label="本月销售趋势图表"
+          />
         </el-card>
       </el-col>
 
