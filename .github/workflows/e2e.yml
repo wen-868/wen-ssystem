@@ -164,9 +164,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: a11y sampling x3 (observation only, never blocks)
-        # 三次取样，每次独立跑完并打印命中明细（含 nodes target）。
-        # continue-on-error 保证三次都跑完，不会因为第一次失败就跳过后面两次 ——
+      - name: a11y sampling x10 (observation only, never blocks)
+        # 十次取样，每次独立跑完并打印命中明细（含 nodes target）。
+        # continue-on-error 保证十次都跑完，不会因为第一次失败就跳过后面九次 ——
         # 观察漂移要看的是「每次结果分别是多少」，不是「有没有失败过一次」。
         #
         # `--grep @a11y`：只跑被 required e2e 排除出去的那两个漂移用例（分层，S3-61）。
@@ -174,8 +174,8 @@ jobs:
         #   （PR #19 那次 retry #1 也红所以看不出来，下次就不一定了）。
         continue-on-error: true
         run: |
-          for i in 1 2 3; do
-            echo "===== a11y sample $i / 3 ====="
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            echo "===== a11y sample $i / 10 ====="
             set +e
             npx playwright test --grep @a11y --retries=0 --reporter=list 2>&1 | tee "/tmp/a11y-sample-$i.txt"
             code=${PIPESTATUS[0]}
@@ -183,8 +183,8 @@ jobs:
             echo "[sample $i] playwright exit=$code (PIPESTATUS[0]，排除 tee 干扰)"
             echo "$code" > "/tmp/a11y-exit-$i.txt"
           done
-          echo "===== 三次取样汇总 ====="
-          for i in 1 2 3; do
+          echo "===== 十次取样汇总 ====="
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             echo "--- sample $i ---"
             grep -E "\[a11y\]" "/tmp/a11y-sample-$i.txt" || echo "  (无 [a11y] 输出)"
           done
@@ -195,7 +195,7 @@ jobs:
         #    洗绿会让「连续 10 次无漂移」这个判据本身变成假的。
         run: |
           fail=0
-          for i in 1 2 3; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
             code=$(cat "/tmp/a11y-exit-$i.txt" 2>/dev/null || echo MISSING)
             echo "[sample $i] exit=$code"
             if [ "$code" != "0" ]; then fail=1; fi
@@ -204,7 +204,7 @@ jobs:
             echo "❌ a11y 观察期：至少一次取样非零 —— 真实信号（本 job 非 required，不阻断合并）"
             exit 1
           fi
-          echo "✅ a11y 观察期：三次取样均为 0"
+          echo "✅ a11y 观察期：十次取样均为 0"
 
       - name: Upload a11y observation samples
         if: always()
