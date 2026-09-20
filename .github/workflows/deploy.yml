@@ -48,7 +48,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           echo "非 main 分支：只占位，不触发任何生产部署"
-          sleep 60
+          sleep 120
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         if: github.ref == 'refs/heads/main'
