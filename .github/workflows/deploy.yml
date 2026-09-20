@@ -9,7 +9,7 @@ on:
   #   ⚠️ 退路：workflow_dispatch 手动入口仍在（S3-44 已补），「改完测试想顺带部署」有路可走。
   #   ⚠️ 复看条件：若日后 e2e/ 下放了影响生产运行时的东西，本条须重评。
   push:
-    branches: [main]
+    branches: [main, fix/c2-deploy-concurrency]  # ⚠️ 临时：C-2 反测窗口，验证后还原为 [main]
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -43,8 +43,15 @@ jobs:
     # 托管 runner：自托管 Windows runner 因本机网络访问 codeload 下载 actions 404 暂时不可用
     runs-on: ubuntu-latest
     steps:
+      # ⚠️ 临时：C-2 反测窗口的占位步骤。非 main 分支只占位，不连服务器、不部署任何东西。
+      - name: "[临时·反测] 占位 60s（不部署，仅用于观察并发排队）"
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "非 main 分支：只占位，不触发任何生产部署"
+          sleep 60
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        if: github.ref == 'refs/heads/main'
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
