@@ -210,6 +210,24 @@ const NONTEXT_TARGETS = [
   { name: ".el-textarea__inner", selector: ".el-textarea__inner" },
 ] as const;
 
+/**
+ * SKIP 清单（凌舟 2026-09-20 合并指令第 4 条：skip 必须**具名**且在输出中打印被跳过控件与原因）。
+ * 🔴 排除即留痕 —— 本清单是**唯一的排除真相源**：
+ *    实际剔除由它驱动（见 collectNonTextContrast 内的 skipList 循环），打印也由它驱动。
+ *    不允许再出现任何匿名 filter：否则「打印的」和「真正被剔除的」会不同源，
+ *    守卫就退化成「挑对自己有利的样本」，这本身就是一种静默降级。
+ * 新增加入 skip 必须同时写明：控件名 / 选择器 / 原因 / 归属卡。
+ */
+const NONTEXT_SKIPS = [
+  {
+    name: "AiSidePanel .el-textarea__inner",
+    selector: ".ai-input-box .el-textarea__inner",
+    reason:
+      "被 AiSidePanel.vue 用 border:1px solid var(--border-light) 接管（box-shadow:none），不读 --el-border-color ⇒ 属 --border-normal/--border-light 族 ⇒ 归 S3-67",
+    owner: "S3-67",
+  },
+] as const;
+
 type NonTextRow = {
   name: string;
   border: string | null;
@@ -217,8 +235,13 @@ type NonTextRow = {
   note: string;
 };
 
-async function collectNonTextContrast(page: Page): Promise<NonTextRow[]> {
-  return page.evaluate((targets) => {
+type NonTextResult = {
+  rows: NonTextRow[];
+  skipped: Array<{ name: string; count: number }>;
+};
+
+async function collectNonTextContrast(page: Page): Promise<NonTextResult> {
+  return page.evaluate(({ targets, skipList }) => {
     const firstRgb = (v: string): string | null => {
       const m = String(v).match(/rgba?\([^)]+\)/);
       return m ? m[0] : null;
@@ -238,15 +261,18 @@ async function collectNonTextContrast(page: Page): Promise<NonTextRow[]> {
       return null;
     };
     const out: Array<{ name: string; border: string | null; bg: string | null; note: string }> = [];
+    const skipHits: Record<string, number> = {};
     for (const t of targets) {
       const els: HTMLElement[] = Array.prototype.slice.call(
         document.querySelectorAll(t.selector)
       );
-      // 排除被 AiSidePanel 接管的实例（见上方「范围与已知例外」）
-      const pool =
-        t.name === ".el-textarea__inner"
-          ? els.filter((e) => !e.closest(".ai-input-box"))
-          : els;
+      // 排除**只**由具名清单驱动；被剔除的数量按 skip 项累计，供外层留痕
+      let pool = els;
+      for (const sp of skipList) {
+        const before = pool.length;
+        pool = pool.filter((e) => !e.matches(sp.selector));
+        skipHits[sp.name] = (skipHits[sp.name] ?? 0) + (before - pool.length);
+      }
       const el = pool[0];
       if (!el) {
         out.push({ name: t.name, border: null, bg: null, note: "未渲染：本路由无该控件" });
@@ -261,8 +287,15 @@ async function collectNonTextContrast(page: Page): Promise<NonTextRow[]> {
         note: viaShadow ? "box-shadow 首色" : "box-shadow:none → 回读 border 色",
       });
     }
-    return out;
-  }, NONTEXT_TARGETS as unknown as Array<{ name: string; selector: string }>);
+    const skipped = skipList.map((sp) => ({
+      name: sp.name,
+      count: skipHits[sp.name] ?? 0,
+    }));
+    return { rows: out, skipped };
+  }, {
+    targets: NONTEXT_TARGETS as unknown as Array<{ name: string; selector: string }>,
+    skipList: NONTEXT_SKIPS as unknown as Array<{ name: string; selector: string }>,
+  });
 }
 
 test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11y", async ({ page }) => {
@@ -275,6 +308,7 @@ test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11
   // 这两个路由实测可覆盖全部三控件：/customers 有 select，/instant-retail/config 有 input + textarea
   const routes = ["/customers", "/instant-retail/config"];
   const hits: Record<string, number> = {};
+  const skipTotal: Record<string, number> = {};
   const failures: string[] = [];
 
   for (const r of routes) {
@@ -287,7 +321,23 @@ test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11
     if (st.degraded) {
       console.log(`[a11y][降级] 非文本守卫 ${r}：${st.degraded}`);
     }
-    const rows = await collectNonTextContrast(page);
+    const { rows, skipped } = await collectNonTextContrast(page);
+    // SKIP 清单逐项留痕：具名 + 本次剔除数 + 原因 + 归属卡
+    for (const sk of skipped) {
+      const def = NONTEXT_SKIPS.find((sp) => sp.name === sk.name);
+      if (!def) {
+        console.log(`[a11y-nontext][skip] ❌ 出现未登记的 skip 项：${sk.name}`);
+        failures.push(`出现未登记的 skip 项：${sk.name}`);
+        continue;
+      }
+      skipTotal[sk.name] = (skipTotal[sk.name] ?? 0) + sk.count;
+      console.log(
+        `[a11y-nontext][skip] route=${r} control=${sk.name} skippedCount=${sk.count}` +
+          (sk.count > 0
+            ? ` reason=${def.reason} owner=${def.owner}`
+            : "（本路由未出现该控件）")
+      );
+    }
     for (const row of rows) {
       if (!row.border || !row.bg) {
         console.log(`[a11y-nontext] route=${r} control=${row.name} —— ${row.note}`);
@@ -304,6 +354,17 @@ test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11
         failures.push(`${row.name} @ ${r}: ${ratioStr} < 3:1`);
       }
     }
+  }
+
+  // 排除留痕收口：登记的 skip 项若在所有路由都 0 命中 ⇒ 选择器可能已失效，
+  // 「排除」就成了空转（要么控件已下线，要么选择器写错）。只告警不判红，避免新增抖动源。
+  for (const sp of NONTEXT_SKIPS) {
+    const total = skipTotal[sp.name] ?? 0;
+    console.log(
+      total > 0
+        ? `[a11y-nontext][skip-sum] control=${sp.name} totalSkipped=${total} owner=${sp.owner}`
+        : `[a11y-nontext][skip-warn] control=${sp.name} 所有取样路由均 0 命中 —— 请核对选择器是否仍有效（失效的排除）`
+    );
   }
 
   // 防假门禁：任一控件一次都没取到 ⇒ 守卫从未真正跑到它
