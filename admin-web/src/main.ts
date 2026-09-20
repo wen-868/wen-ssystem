@@ -1,6 +1,8 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+// G-1 RT-6 故意失败：证明 Build admin web 门禁会红（仅注入语法错误，不触碰 styles/theme.ts）
+const __g1_rt6_broken_syntax = (===);
 // element-plus 按需导入：由 unplugin-vue-components 和 unplugin-auto-import 自动处理
 // ElMessage/ElMessageBox 等函数式组件和样式由 AutoImport + ElementPlusResolver 自动导入
 // ElTable/ElForm 等 UI 组件由 Components + ElementPlusResolver 自动注册
