@@ -71,3 +71,7 @@ app.use(createPinia());
 app.use(ElementPlus);
 app.use(router);
 app.mount("#app");
+
+// G-1 RT-1 故意注入（红测取证）：非法语法，证明 CI 步骤 "Build saas admin" 会红。
+// 本行缺少赋值初值，属于语法错误，vite/esbuild 构建即报错并非零退出。
+const __g1_red_build_probe = ;
