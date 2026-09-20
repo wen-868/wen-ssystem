@@ -212,7 +212,17 @@ export async function setStaffStatus(id: number, status: number, tenantId: strin
   if (!existing) {
     throw Object.assign(new Error("员工不存在"), { statusCode: 404 });
   }
-  await queryWithTenant("UPDATE t_sys_user SET status = ? WHERE id = ?", [status, id], tenantId);
+  // S3-65 档 1（#10）：必须校验受影响行数。修复前租户条件注入挤位时 UPDATE 静默命中 0 行，
+  // 接口仍返回 200「设置成功」——生产表现为"停用/离职不生效，账号仍可登录"（安全后果）。
+  const updateRows = await queryWithTenant<{ affectedRows: number }>(
+    "UPDATE t_sys_user SET status = ? WHERE id = ?",
+    [status, id],
+    tenantId
+  );
+  const affectedRows = Array.isArray(updateRows) ? Number(updateRows[0]?.affectedRows ?? 0) : 0;
+  if (affectedRows === 0) {
+    throw new AppError("员工状态更新失败：未更新任何记录（员工不存在、租户不匹配或记录已被删除）", 500);
+  }
   return { staffId: id, username: existing.username, status };
 }
 
