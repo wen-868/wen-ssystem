@@ -9,7 +9,7 @@ on:
   #   ⚠️ 退路：workflow_dispatch 手动入口仍在（S3-44 已补），「改完测试想顺带部署」有路可走。
   #   ⚠️ 复看条件：若日后 e2e/ 下放了影响生产运行时的东西，本条须重评。
   push:
-    branches: [main]
+    branches: [main, test/d1-concurrency-proof]  # ⚠️ 临时：D-1 反测窗口，验证后还原为 [main]
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -43,8 +43,16 @@ jobs:
     # 托管 runner：自托管 Windows runner 因本机网络访问 codeload 下载 actions 404 暂时不可用
     runs-on: ubuntu-latest
     steps:
+      - name: "[D-1临时] 并发观察占位 90s（不部署、不改生产）"
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "[D-1] workflow=${GITHUB_WORKFLOW} ref=${GITHUB_REF} run_id=${GITHUB_RUN_ID}"
+          echo "[D-1] placeholder_start=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          sleep 90
+          echo "[D-1] placeholder_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        if: github.ref == 'refs/heads/main'  # ⚠️ 临时：D-1 反测期，非 main 分支绝不连服务器
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}

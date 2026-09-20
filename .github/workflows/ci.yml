@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, test/d1-concurrency-proof]  # ⚠️ 临时：D-1 反测窗口，验证后还原为 [main]
   pull_request:
 
 jobs:
@@ -11,6 +11,13 @@ jobs:
     # actions 持续 404 而失败，先切回托管；本机网络修复后再切回 self-hosted
     runs-on: ubuntu-latest
     steps:
+      - name: "[D-1临时] 并发观察占位 90s（不部署、不改生产）"
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "[D-1] workflow=${GITHUB_WORKFLOW} ref=${GITHUB_REF} run_id=${GITHUB_RUN_ID}"
+          echo "[D-1] placeholder_start=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          sleep 90
+          echo "[D-1] placeholder_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
       - name: Checkout
         uses: actions/checkout@v4
 

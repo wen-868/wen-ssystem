@@ -1,0 +1,5 @@
+D-1 反测探针（验证后删除）
+
+用途：deploy.yml 的 paths-ignore 含 .github/**，只改 workflow 不会触发它；
+故本提交带一个 deploy/ 下的探针文件，使同一次 push 同时触发 deploy.yml 与 ci.yml，
+用于观察两个 workflow 的执行区间是否重叠（重叠＝当前确实会并发）。
