@@ -200,6 +200,21 @@ jobs:
             echo "[sample $i] exit=$code"
             if [ "$code" != "0" ]; then fail=1; fi
           done
+
+          # ─── 稳定化降级统计（凌舟 2026-09-20 最终裁定③-b：A-5 兜底不得静默放行）───
+          # e2e/a11y.spec.ts 在走到 getAnimations 兜底时会打固定标记 [a11y][降级]，
+          # 正常路径打 [a11y][稳定化-正常]。此处把降级次数统计出来，
+          # 使"稳定化到底有没有真的生效"在汇总里可见（原来三处兜底都是静默 return true）。
+          # 🔴 只统计、不改变红绿判定 —— 红仍由上面的 exit code 决定，不新增抖动源。
+          echo "===== 稳定化降级统计 ====="
+          deg=0
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            n=$(grep -c "\\[a11y]\\[降级]" "/tmp/a11y-sample-$i.txt" 2>/dev/null) || n=0
+            echo "[sample $i] 降级标记数=$n"
+            deg=$((deg + n))
+          done
+          echo "降级标记总数=$deg（>0 表示有采样未取得「已静止」保证，须人工核查；不改变本次红绿判定）"
+
           if [ "$fail" = "1" ]; then
             echo "❌ a11y 观察期：至少一次取样非零 —— 真实信号（本 job 非 required，不阻断合并）"
             exit 1

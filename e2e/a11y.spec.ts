@@ -36,27 +36,55 @@ import AxeBuilder from "@axe-core/playwright";
  *   3) 再等两帧（requestAnimationFrame），确保样式生效、布局稳定。
  *   之后调用方才执行 analyze()，保证只读静止终态。
  */
-async function waitForVisualSettled(page: Page): Promise<void> {
+/**
+ * ─── 兜底留痕（凌舟 2026-09-20 最终裁定③-b：A-5 兜底不得静默放行）───
+ * 原实现三处兜底（getAnimations 不存在 / 抛错 / 等待超时）都**静默 return true**，
+ * 于是「稳定化到底生效了没有」在日志里完全不可见 —— 这是「静默降级假绿」的第四种变体。
+ * 现在：走到兜底就打 `[a11y][降级]` 固定标记（CI 可 grep 计数），
+ * 正常路径打 `[a11y][稳定化-正常]`，二者互斥 —— 据此能分辨「真等到了静止」还是「没等到就走了」。
+ * 🔴 只留痕、不因此判红：红仍只由 axe 违规断言决定，不新增抖动源。
+ */
+type SettleStatus = { degraded: string | null };
+
+async function waitForVisualSettled(page: Page): Promise<SettleStatus> {
+  // 0) 先探环境能力，让「兜底触发」可区分、可留痕
+  const cap = await page.evaluate(() => {
+    const doc = document as Document & { getAnimations?: () => Animation[] };
+    if (typeof doc.getAnimations !== "function") return "unsupported";
+    try {
+      const anims = doc.getAnimations();
+      const n = anims.filter((a) => a.playState === "running").length;
+      return n > 0 ? `running=${n}` : "idle";
+    } catch {
+      return "throw";
+    }
+  });
+
+  let degraded: string | null = null;
+
   // 1) 等动画全部结束（无 running）
-  try {
-    await page.waitForFunction(
-      () => {
-        // getAnimations 较新 API：某些运行环境可能不存在或抛错 → 兜底放行
-        const doc = document as Document & { getAnimations?: () => Animation[] };
-        const getAnims = doc.getAnimations;
-        if (typeof getAnims !== "function") return true; // 兜底：不支持就放行
-        try {
-          const anims = getAnims.call(doc);
-          return !anims.some((a) => a.playState === "running");
-        } catch {
-          return true; // 兜底：抛错就放行
-        }
-      },
-      undefined,
-      { timeout: 5_000, polling: 50 }
-    );
-  } catch {
-    // 兜底：等待超时（仍可能有 running）也继续；第 2 步注入会把它掐断
+  if (cap === "unsupported" || cap === "throw") {
+    degraded = cap === "unsupported" ? "getAnimations 在当前环境不可用" : "getAnimations 调用抛错";
+  } else {
+    try {
+      await page.waitForFunction(
+        () => {
+          const doc = document as Document & { getAnimations?: () => Animation[] };
+          const getAnims = doc.getAnimations;
+          if (typeof getAnims !== "function") return true;
+          try {
+            const anims = getAnims.call(doc);
+            return !anims.some((a) => a.playState === "running");
+          } catch {
+            return true;
+          }
+        },
+        undefined,
+        { timeout: 5_000, polling: 50 }
+      );
+    } catch {
+      degraded = `等待动画静止超时（探测时 ${cap}）`;
+    }
   }
 
   // 2) 注入：禁用一切过渡与动画，掐断中间帧
@@ -78,6 +106,8 @@ async function waitForVisualSettled(page: Page): Promise<void> {
         requestAnimationFrame(step);
       })
   );
+
+  return { degraded };
 }
 
 /**
@@ -150,14 +180,159 @@ async function logAccentContrast(page: Page): Promise<void> {
   );
 }
 
+/**
+ * ─── 非文本对比度守卫（S3-63 / 凌舟 2026-09-20 最终裁定③）───
+ * WCAG 1.4.11 非文本对比度 ≥3:1：控件边界必须可识别。
+ *
+ * 🔴 R8.1（新规则）：层叠/覆盖问题**只用浏览器 computed 值定论**，
+ *    禁止用源码声明值或打包产物里的规则先后顺序推理 —— 同题已三次翻车。
+ *    ⇒ 本守卫读的是运行期 computed，不是 CSS 文件里的声明。
+ *
+ * 取样口径：
+ *   - EP 用 **inset box-shadow** 画控件边框（不是 border），故取 box-shadow 首色；
+ *     box-shadow:none 的（被业务样式接管的特例）才回读 borderTopColor。
+ *   - 比值 = 边框色 vs **最近的不透明祖先背景**（WCAG 1.4.11 的相邻面对比）。
+ *   - 门槛 ≥3:1；**每个控件必须至少命中一次**，0 命中按失败处理
+ *     （否则就是「从未真正取到控件」的假门禁）。
+ *
+ * 范围与已知例外（如实登记）：
+ *   - AI 侧边栏的 .el-textarea__inner 被 AiSidePanel.vue 用
+ *     `border:1px solid var(--border-light)` 接管（box-shadow:none），
+ *     不读 --el-border-color，属 --border-normal/--border-light 族 ⇒ 归 **S3-67**，
+ *     不在本守卫范围，取样时排除 .ai-input-box 内的实例。
+ *
+ * 反测约定：把 admin-web/src/styles.css:36 改回 #E2E2E2 时，
+ *   三控件 computed 应回到 rgb(226,226,226) → 比值约 1.30:1 → 本用例**必须红**。
+ */
+const NONTEXT_TARGETS = [
+  { name: ".el-input__wrapper", selector: ".el-form-item__content .el-input__wrapper" },
+  { name: ".el-select__wrapper", selector: ".el-select__wrapper" },
+  { name: ".el-textarea__inner", selector: ".el-textarea__inner" },
+] as const;
+
+type NonTextRow = {
+  name: string;
+  border: string | null;
+  bg: string | null;
+  note: string;
+};
+
+async function collectNonTextContrast(page: Page): Promise<NonTextRow[]> {
+  return page.evaluate((targets) => {
+    const firstRgb = (v: string): string | null => {
+      const m = String(v).match(/rgba?\([^)]+\)/);
+      return m ? m[0] : null;
+    };
+    const nearestOpaqueBg = (el: Element): string | null => {
+      let node: Element | null = el.parentElement;
+      while (node) {
+        const b = getComputedStyle(node).backgroundColor;
+        const m = b.match(/rgba?\(([^)]+)\)/);
+        if (m) {
+          const p = m[1].split(",").map((s) => parseFloat(s.trim()));
+          const alpha = p.length >= 4 ? p[3] : 1;
+          if (alpha >= 1) return b;
+        }
+        node = node.parentElement;
+      }
+      return null;
+    };
+    const out: Array<{ name: string; border: string | null; bg: string | null; note: string }> = [];
+    for (const t of targets) {
+      const els: HTMLElement[] = Array.prototype.slice.call(
+        document.querySelectorAll(t.selector)
+      );
+      // 排除被 AiSidePanel 接管的实例（见上方「范围与已知例外」）
+      const pool =
+        t.name === ".el-textarea__inner"
+          ? els.filter((e) => !e.closest(".ai-input-box"))
+          : els;
+      const el = pool[0];
+      if (!el) {
+        out.push({ name: t.name, border: null, bg: null, note: "未渲染：本路由无该控件" });
+        continue;
+      }
+      const cs = getComputedStyle(el);
+      const viaShadow = cs.boxShadow && cs.boxShadow !== "none";
+      out.push({
+        name: t.name,
+        border: viaShadow ? firstRgb(cs.boxShadow) : firstRgb(cs.borderTopColor),
+        bg: nearestOpaqueBg(el),
+        note: viaShadow ? "box-shadow 首色" : "box-shadow:none → 回读 border 色",
+      });
+    }
+    return out;
+  }, NONTEXT_TARGETS as unknown as Array<{ name: string; selector: string }>);
+}
+
+test("非文本对比度守卫：三控件 computed 边框 ≥3:1（S3-63）@a11y", async ({ page }) => {
+  await page.goto("/");
+  await page.getByPlaceholder("账号").fill("admin");
+  await page.getByPlaceholder("密码").fill("admin123");
+  await page.getByRole("button", { name: "立即登录" }).click();
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 20_000 });
+
+  // 这两个路由实测可覆盖全部三控件：/customers 有 select，/instant-retail/config 有 input + textarea
+  const routes = ["/customers", "/instant-retail/config"];
+  const hits: Record<string, number> = {};
+  const failures: string[] = [];
+
+  for (const r of routes) {
+    await page.goto(r);
+    // SPA 路由切换后需等真实渲染，否则会取到"未渲染"的空结果（本机实测：不加等待三控件全落空）
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(3_000);
+    console.log(`[a11y-nontext] route=${r} url=${page.url()}`);
+    const st = await waitForVisualSettled(page);
+    if (st.degraded) {
+      console.log(`[a11y][降级] 非文本守卫 ${r}：${st.degraded}`);
+    }
+    const rows = await collectNonTextContrast(page);
+    for (const row of rows) {
+      if (!row.border || !row.bg) {
+        console.log(`[a11y-nontext] route=${r} control=${row.name} —— ${row.note}`);
+        continue;
+      }
+      const ratio = wcagRatio(row.border, row.bg);
+      const ratioStr = ratio === null ? "N/A" : `${ratio.toFixed(2)}:1`;
+      console.log(
+        `[a11y-nontext] route=${r} control=${row.name} border=${row.border} ` +
+          `bg=${row.bg} ratio=${ratioStr} (${row.note})`
+      );
+      hits[row.name] = (hits[row.name] ?? 0) + 1;
+      if (ratio !== null && ratio < 3) {
+        failures.push(`${row.name} @ ${r}: ${ratioStr} < 3:1`);
+      }
+    }
+  }
+
+  // 防假门禁：任一控件一次都没取到 ⇒ 守卫从未真正跑到它
+  for (const t of NONTEXT_TARGETS) {
+    if (!hits[t.name]) {
+      failures.push(`${t.name} 在所有取样路由均未渲染 —— 守卫从未真正取到该控件（假门禁）`);
+    }
+  }
+
+  if (failures.length > 0) {
+    console.log(`[a11y-nontext] ❌ 不达标/未命中：${failures.join(" | ")}`);
+  } else {
+    console.log("[a11y-nontext] ✅ 三控件均命中且比值 ≥3:1");
+  }
+  expect(failures).toEqual([]);
+});
+
 test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
   test("登录页无 critical/serious 违规 @a11y", async ({ page }) => {
     await page.goto("/");
     await page.getByPlaceholder("账号").waitFor();
 
     // S3-61 稳定化：采样前等页面静止并禁用过渡/动画
-    await waitForVisualSettled(page);
-    console.log("[a11y] 稳定化已生效（登录页）：静止等待 + 过渡/动画禁用");
+    const st1 = await waitForVisualSettled(page);
+    console.log(
+      st1.degraded
+        ? `[a11y][降级] 登录页：${st1.degraded} —— 本次采样未取得「已静止」保证`
+        : "[a11y][稳定化-正常] 登录页：已确认无 running 动画 + 过渡/动画已禁用"
+    );
     await logAccentContrast(page);
 
     const results = await new AxeBuilder({ page })
@@ -192,8 +367,12 @@ test.describe("无障碍扫描（WCAG 2.1 AA）", () => {
     await page.getByText("工作台", { exact: false }).first().waitFor({ timeout: 20_000 });
 
     // S3-61 稳定化：采样前等页面静止并禁用过渡/动画
-    await waitForVisualSettled(page);
-    console.log("[a11y] 稳定化已生效（工作台）：静止等待 + 过渡/动画禁用");
+    const st2 = await waitForVisualSettled(page);
+    console.log(
+      st2.degraded
+        ? `[a11y][降级] 工作台：${st2.degraded} —— 本次采样未取得「已静止」保证`
+        : "[a11y][稳定化-正常] 工作台：已确认无 running 动画 + 过渡/动画已禁用"
+    );
     await logAccentContrast(page);
 
     const results = await new AxeBuilder({ page })
