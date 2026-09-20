@@ -290,7 +290,18 @@ export async function changePassword(userId: number, oldPassword: string, newPas
   }
 
   const hashed = await hashPassword(newPassword);
-  await queryWithTenant("UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?", [hashed, userId], tenantId);
+  // S3-65：必须校验受影响行数。UPDATE 未命中任何行时（用户不存在 / 租户不匹配 / 记录已被删除 /
+  // 租户条件注入后 WHERE 不成立）绝不能返回"密码修改成功"——生产实测过这种"假成功"：
+  // 接口返回 code 0，但库内 password_hash 未变、新口令登录 400、旧口令登录 200。
+  const updateRows = await queryWithTenant<{ affectedRows: number }>(
+    "UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?",
+    [hashed, userId],
+    tenantId
+  );
+  const affectedRows = Array.isArray(updateRows) ? Number(updateRows[0]?.affectedRows ?? 0) : 0;
+  if (affectedRows === 0) {
+    throw new AppError("密码修改失败：未更新任何记录（用户不存在、租户不匹配或记录已被删除）", 500);
+  }
   return { message: "密码修改成功" };
 }
 
