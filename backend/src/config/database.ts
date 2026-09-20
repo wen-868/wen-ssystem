@@ -278,7 +278,20 @@ function injectUpdateTenant(sql: string, params: unknown[], tenantId: string): {
   if (lowerSql.includes('where')) {
     const insertIndex = lowerSql.indexOf('where') + 5;
     const modifiedSql = sql.substring(0, insertIndex) + ` tenant_id = ? AND ` + sql.substring(insertIndex);
-    return { modifiedSql, modifiedParams: [tenantId, ...params] };
+    // S3-65 修复：注入的 `tenant_id = ?` 位于 WHERE 处，而 MySQL 按"占位符在 SQL 文本中的顺序"取值，
+    // 因此 tenantId 必须插在"WHERE 之前的占位符个数"这个位置，不能无脑前置。
+    // 原实现 `[tenantId, ...params]` 会把 SET 子句里的占位符整体挤位：
+    //   UPDATE t_sys_user SET password_hash = ?, updated_at = NOW() WHERE id = ?
+    //   → SET password_hash = 'default'（拿到 tenantId）、WHERE tenant_id = '$2a$12$…'（拿到密码哈希）
+    //   → WHERE 永不成立 → 0 行受影响 → 改密接口返回"成功"但数据未变（生产 P0 假成功）。
+    // 与 R95-03 在 injectSelectTenant 中的修法（按占位符个数插入）保持一致。
+    const placeholdersBeforeWhere = (sql.substring(0, insertIndex).match(/\?/g) || []).length;
+    const modifiedParams = [
+      ...params.slice(0, placeholdersBeforeWhere),
+      tenantId,
+      ...params.slice(placeholdersBeforeWhere),
+    ];
+    return { modifiedSql, modifiedParams };
   } else {
     const modifiedSql = sql + ' WHERE tenant_id = ?';
     return { modifiedSql, modifiedParams: [...params, tenantId] };

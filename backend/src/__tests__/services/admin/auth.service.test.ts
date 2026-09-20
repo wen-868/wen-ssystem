@@ -267,7 +267,8 @@ describe("auth.service", () => {
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
       mocks.hashPassword.mockResolvedValue("new_hash");
-      mocks.queryWithTenant.mockResolvedValue(undefined);
+      // S3-65：UPDATE 现在必须返回受影响行数，命中 1 行才算成功
+      mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
       const res = await changePassword(1, "old", "new", "t1");
       expect(res.message).toBe("密码修改成功");
       const [sql, params] = mocks.queryWithTenant.mock.calls[0];
@@ -280,6 +281,31 @@ describe("auth.service", () => {
       mocks.verifyPassword.mockResolvedValue(true);
       mocks.validatePassword.mockReturnValue({ valid: false, errors: ["密码长度至少8位", "密码必须包含字母"] });
       await expect(changePassword(1, "old", "123456", "t1")).rejects.toThrow("密码不符合要求");
+    });
+
+    // ============ S3-65 改密接口"假成功"（返回成功但 password_hash 未变） ============
+    it("UPDATE 命中 0 行时必须抛错，不得返回「密码修改成功」", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.verifyPassword.mockResolvedValue(true);
+      mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
+      mocks.hashPassword.mockResolvedValue("new_hash");
+      mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 0 }]);
+      await expect(changePassword(1, "old", "new", "t1")).rejects.toThrow("未更新任何记录");
+    });
+
+    it("UPDATE 返回非受影响行数结构（undefined）时也必须抛错，按 0 行处理", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 1, passwordHash: "h" });
+      mocks.verifyPassword.mockResolvedValue(true);
+      mocks.validatePassword.mockReturnValue({ valid: true, errors: [] });
+      mocks.hashPassword.mockResolvedValue("new_hash");
+      mocks.queryWithTenant.mockResolvedValue(undefined as any);
+      await expect(changePassword(1, "old", "new", "t1")).rejects.toThrow("未更新任何记录");
+    });
+
+    it("跨租户上下文（token 租户 ≠ 目标行租户）：SELECT 被租户过滤 → 报错且不执行 UPDATE", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue(null);
+      await expect(changePassword(1, "old", "new", "t2")).rejects.toThrow("用户不存在");
+      expect(mocks.queryWithTenant).not.toHaveBeenCalled();
     });
   });
 });
