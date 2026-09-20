@@ -85,7 +85,7 @@
      #FFFFFF 5.174 / #F7F7F7 4.830 / #F5F5F5 4.746 / #F0F0F0 4.540 / #FAFAFA 4.957。
      （再浅一档 #6E6E6E 在最严面 4.474，差 0.026 不达标。）
      测量表：docs/tasks/cards/R101-S3-54-林夕改前测量表.md
-     ⚠️ S3-63 更正：--input-border 在 admin-web **不是死代码**（有 2 处真实引用：styles.css:762 与 :781）——
+    ⚠️ S3-63 更正：--input-border 在 admin-web **不是死代码**（有 2 处真实引用：styles.css:762 与 :781），但在当前层叠下**被 EP 覆盖**（零视觉增量，仅层叠变化时生效）——见 :280 的完整说明。
         2026-09-20 逐控件渲染值矩阵实测：.el-input__wrapper / .el-select__wrapper / .el-textarea__inner 三者的 computed 边框色均随 --el-border-color 变化（EP 同特异性后置规则覆盖了我们这两条），故本 token 当前在渲染上为被覆盖态；裁定仍将其同值化为 #888888 作分层防御。 */
   --text-placeholder: #6D6D6D;
   --text-inverse: #FFFFFF;
@@ -277,7 +277,7 @@
   --input-height: 36px;
   --input-height-lg: 44px;
   --input-radius: 6px;
-  --input-border: #888888; /* S3-63：与 --el-border-color 同值化（#888888）。引用点仅 styles.css:762(.el-input__wrapper,.el-select__wrapper) 与 :781(.el-textarea__inner)，EP 同特异性后置规则会覆盖这两条，故本值当前在渲染上处于被覆盖态；仍按裁定同值化，保证任一规则层胜出时都 ≥3:1，且不再出现「改了一半」 */
+  --input-border: #888888; /* S3-63（凌舟 2026-09-20 最终裁定·取 A）：与 --el-border-color 同值化为 #888888。⚠️ 本值当前处于【被 EP 覆盖态】——引用点 styles.css:762（.el-input__wrapper,.el-select__wrapper）与 :781（.el-textarea__inner）均被 EP 同特异性后置规则覆盖，三控件实际渲染读的是 --el-border-color，故本改动【零视觉增量】，且【仅在 EP 层叠顺序发生变化、我们自己的规则胜出时才生效】。它是分层防御值，不是"修复 select/textarea"——修好 select/textarea 的是 styles.css:36 的 --el-border-color。取值依据＝反测态 computed 矩阵（三控件渲染值 = rgb(226,226,226)），见 R101-派单-20260919-A.md 与踩坑 [88]/R8.1 */
   --input-bg: #FFFFFF;
   --input-focus-border: #3F6FEF;
   --input-focus-shadow: 0 0 0 3px rgba(63, 111, 239, 0.12);
