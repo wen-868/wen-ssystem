@@ -37,6 +37,7 @@ import {
   createStaff,
   updateStaff,
   disableStaff,
+  setStaffStatus,
   listStores,
   createStore,
   getStore,
@@ -119,6 +120,27 @@ describe("employee.service", () => {
       expect(res).toEqual({ staffId: 1, username: "u" });
       const [sql] = mocks.queryWithTenant.mock.calls[0];
       expect(sql).toContain("status = 0");
+    });
+  });
+
+  describe("setStaffStatus（S3-65 档 1 · #10）", () => {
+    it("UPDATE 命中 1 行：正常返回状态", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 3, username: "u3", status: 1 });
+      mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]);
+      const res = await setStaffStatus(3, 0, "t1");
+      expect(res).toEqual({ staffId: 3, username: "u3", status: 0 });
+      const [sql, params] = mocks.queryWithTenant.mock.calls[0];
+      expect(sql).toContain("UPDATE t_sys_user SET status = ?");
+      expect(params).toEqual([0, 3]);
+    });
+
+    it("UPDATE 命中 0 行：必须抛 500，不得静默返回成功", async () => {
+      mocks.queryOneWithTenant.mockResolvedValue({ id: 3, username: "u3", status: 1 });
+      mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 0 }]);
+      await expect(setStaffStatus(3, 0, "t1")).rejects.toMatchObject({
+        message: "员工状态更新失败：未更新任何记录（员工不存在、租户不匹配或记录已被删除）",
+        statusCode: 500,
+      });
     });
   });
 

@@ -135,6 +135,7 @@ describe("marketing-points.service - 积分兑换", () => {
   it("createPointsRedeem 余额充足 → 扣减并返回兑换额", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce({ userId: 9, points: 500 });
     mocks.queryOneWithTenant.mockResolvedValueOnce({ redeemRatio: 100 });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 1 }]); // 扣减 UPDATE 命中 1 行（S3-65 起校验）
     const res = await createPointsRedeem({ tenantId, userId: 9, points: 200, remark: "换券" });
     expect(res.points).toBe(200);
     expect(res.redeemAmount).toBe(2); // floor(200/100)
@@ -152,6 +153,20 @@ describe("marketing-points.service - 积分兑换", () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce({ userId: 9, points: 100 });
     mocks.queryOneWithTenant.mockResolvedValueOnce({ redeemRatio: 100 });
     await expect(createPointsRedeem({ tenantId, userId: 9, points: 200 })).rejects.toThrow("积分不足");
+  });
+
+  it("createPointsRedeem 扣减 UPDATE 命中 0 行 → 抛 500 且不写流水（S3-65 档 1 · #19）", async () => {
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ userId: 9, points: 500 });
+    mocks.queryOneWithTenant.mockResolvedValueOnce({ redeemRatio: 100 });
+    mocks.queryWithTenant.mockResolvedValue([{ affectedRows: 0 }]);
+    await expect(createPointsRedeem({ tenantId, userId: 9, points: 200 })).rejects.toMatchObject({
+      message: "积分兑换失败：未扣减任何积分（账户不存在、租户不匹配或记录已被删除）",
+      statusCode: 500,
+    });
+    const wroteRecord = mocks.queryWithTenant.mock.calls.some((c) =>
+      String(c[0]).includes("INSERT INTO t_points_record")
+    );
+    expect(wroteRecord).toBe(false);
   });
 });
 

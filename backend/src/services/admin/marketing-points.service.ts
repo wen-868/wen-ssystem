@@ -1,4 +1,5 @@
 import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { AppError } from "../../shared/app-error";
 
 /** COUNT(*) AS total / COALESCE(SUM(...),0) AS total 通用返回 */
 interface CountTotalRow {
@@ -289,13 +290,21 @@ export async function createPointsRedeem(params: {
 
   // 扣减积分
   const newBalance = Number(userPoints.points) - points;
-  await queryWithTenant(
+  // S3-65 档 1（#19）：必须校验受影响行数。修复前 UPDATE 静默命中 0 行（租户条件注入挤位），
+  // 而紧随其后的 `t_points_record` INSERT 自带 tenant_id 会写入成功
+  // ⇒ "流水已记、余额未扣"的矛盾数据（资金等价 + 持续放大存量脏数据）。
+  // 命中 0 行时立即抛错，流水 INSERT 自然不执行。
+  const updateRows = await queryWithTenant<{ affectedRows: number }>(
     `UPDATE t_user_points 
      SET points = ?, total_spent = total_spent + ? 
      WHERE user_id = ?`,
     [newBalance, points, userId],
     tenantId
   );
+  const affectedRows = Array.isArray(updateRows) ? Number(updateRows[0]?.affectedRows ?? 0) : 0;
+  if (affectedRows === 0) {
+    throw new AppError("积分兑换失败：未扣减任何积分（账户不存在、租户不匹配或记录已被删除）", 500);
+  }
 
   // 记录积分变动
   await queryWithTenant(
