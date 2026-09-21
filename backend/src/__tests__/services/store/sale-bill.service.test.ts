@@ -27,8 +27,10 @@ vi.mock("../../../shared/id", () => ({
   makeToken: vi.fn(() => "token"),
 }));
 
-vi.mock("../../notification.service", () => ({
-  sendNotification: vi.fn(),
+// S3-78：通知入口已收敛到「落库 + 推送」版（原 ../notification.service 重复写入器已删除）
+vi.mock("../../../services/admin/notification-sender.service", () => ({
+  sendNotificationWithPush: vi.fn().mockResolvedValue({ notificationId: 1, pushResults: [] }),
+  sendNotification: vi.fn().mockResolvedValue(1),
 }));
 
 import { listSaleBills, getSaleBillDetail } from "../../../services/store/sale-bill.service";

@@ -10,6 +10,7 @@ import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../s
 import { getAdapter, parsePlatformType, parseUnifiedOrder } from "../instant-retail/adapters/index";
 import type { PlatformType } from "../instant-retail/types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "../instant-retail/common.service";
+import { warnIfStockShortage } from "../instant-retail/shortage-handler.service";
 
 // ========== 类型定义 ==========
 
@@ -607,7 +608,28 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
       tenantId
     );
   }
-  return { found: true, configFound: true, platformOrderId, success, status: "ACCEPTED" };
+  // S3-79（业主裁定"仅告警"）：接单成功后校验库存，缺货只告警、**不拒单**；告警链路异常不影响接单
+  let stockWarnings: Array<{ productId: number; stock: number }> = [];
+  if (success) {
+    try {
+      const orderRow = await queryOneWithTenant<{ orderDataJson: string | null }>(
+        `SELECT order_data_json AS orderDataJson FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
+        [platformOrderId],
+        tenantId
+      );
+      const warned = await warnIfStockShortage({
+        orderNo: platformOrderId,
+        platform,
+        storeId: Number(row.storeId ?? 0),
+        orderDataJson: orderRow?.orderDataJson ?? null,
+        tenantId,
+      });
+      stockWarnings = warned.shortages;
+    } catch (e) {
+      logger.warn(`[instant-retail] 缺货告警执行失败（不影响接单）: ${(e as Error).message}`);
+    }
+  }
+  return { found: true, configFound: true, platformOrderId, success, status: "ACCEPTED", stockWarnings };
 }
 
 export async function startDelivery(platformOrderId: string, body: DeliveryBody, tenantId: string) {

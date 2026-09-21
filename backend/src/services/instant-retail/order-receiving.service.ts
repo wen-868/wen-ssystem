@@ -3,6 +3,8 @@ import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import { parsePlatformType } from "./adapters/index";
 import { getAdapter } from "./adapters/index";
 import { getPlatformConfigWithTenant } from "./common.service";
+import { warnIfStockShortage } from "./shortage-handler.service";
+import logger from "../../shared/logger";
 
 // ==================== 类型定义 ====================
 
@@ -102,7 +104,28 @@ export async function confirmOrder(platformOrderId: string, tenantId: string) {
       tenantId
     );
   }
-  return { found: true, configFound: true, platformOrderId, success, status: "ACCEPTED" };
+  // S3-79（业主裁定"仅告警"）：接单成功后校验库存，缺货只告警、**不拒单**；告警链路异常不影响接单
+  let stockWarnings: Array<{ productId: number; stock: number }> = [];
+  if (success) {
+    try {
+      const orderRow = await queryOneWithTenant<{ orderDataJson: string | null }>(
+        `SELECT order_data_json AS orderDataJson FROM t_platform_order WHERE platform_order_id = ? LIMIT 1`,
+        [platformOrderId],
+        tenantId
+      );
+      const warned = await warnIfStockShortage({
+        orderNo: platformOrderId,
+        platform,
+        storeId: Number(row.storeId ?? 0),
+        orderDataJson: orderRow?.orderDataJson ?? null,
+        tenantId,
+      });
+      stockWarnings = warned.shortages;
+    } catch (e) {
+      logger.warn(`[order-receiving] 缺货告警执行失败（不影响接单）: ${(e as Error).message}`);
+    }
+  }
+  return { found: true, configFound: true, platformOrderId, success, status: "ACCEPTED", stockWarnings };
 }
 
 export async function cancelOrder(platformOrderId: string, reason: string | undefined, tenantId: string) {

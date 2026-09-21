@@ -2,7 +2,8 @@ import { queryWithTenant, queryOneWithTenant, transaction, pool } from "../../sh
 import { makeBizNo, makeToken } from "../../shared/id";
 import { computeSellingPrice, getPriceType, type CustomerType } from "../../shared/fulfillment";
 import { updateTraceCodesBySkuList, verifyTraceCode } from "../../shared/trace-code";
-import { sendNotification } from "../notification.service";
+// S3-78：切到「落库 + 推送」入口（原来是只落库的重复写入器；无推送凭据时推送分支自动降级为 no-op）
+import { sendNotificationWithPush } from "../admin/notification-sender.service";
 import logger from "../../shared/logger";
 import type { RowDataPacket } from "mysql2";
 
@@ -353,7 +354,7 @@ export async function createSaleBill(params: {
 
     // 销售单创建通知（真实数据源，供工作台消息中心展示）
     try {
-      await sendNotification(pool, {
+      await sendNotificationWithPush({
         recipientId: userId,
         recipientType: "ADMIN",
         title: "销售单已创建",
