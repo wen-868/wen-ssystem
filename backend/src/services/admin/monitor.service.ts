@@ -2,7 +2,8 @@ import { query, queryOne, pool } from "../../shared/db";
 import type { RowDataPacket } from "mysql2/promise";
 import { getStats } from "../../middleware/response-tracker";
 import logger from "../../shared/logger";
-import { sendNotification } from "../../shared/notification-sender";
+// S3-78：切到「落库 + 推送」入口（无推送凭据时推送分支自动降级为 no-op + 日志，不影响记录写入）
+import { sendNotificationWithPush } from "./notification-sender.service";
 
 interface StatusCodeRow extends RowDataPacket {
   status_code: number;
@@ -177,7 +178,7 @@ export async function notifyExpiringTenants(tenantIds: string[]): Promise<number
       const content = expireAt
         ? `${companyName} 的系统服务将于 ${String(expireAt).slice(0, 10)} 到期，请及时续费以免影响正常使用。`
         : `${companyName} 的系统服务即将到期，请及时续费以免影响正常使用。`;
-      await sendNotification(pool, {
+      await sendNotificationWithPush({
         recipientId: adminUser.id,
         recipientType: "ADMIN",
         title: "订阅即将到期提醒",
