@@ -1,0 +1,1598 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>R101-H2 视觉基准页（阶段1·现值冻结 + 建议值对照）</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; background: #e9edf5; color: #1a1a1a; padding: 24px; }
+h1 { font-size: 20px; margin: 0 0 4px; } .sub { color: #555; font-size: 13px; margin-bottom: 18px; }
+h2 { font-size: 16px; margin: 0 0 12px; } .endid { color: #999; font-weight: 400; font-size: 13px; }
+section, .panel { background: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.panel h2 { border-left: 4px solid #3F6FEF; padding-left: 10px; }
+.cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.cat { border: 1px solid #e3e3e3; border-radius: 10px; overflow: hidden; }
+.cat-title { font-size: 12px; font-weight: 600; padding: 8px 10px; background: #f6f7f9; color: #333; }
+.cat-title code { color: #888; font-weight: 400; }
+.cat-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 220px; }
+.hei-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.hei-col { border: 1px solid #e3e3e3; border-radius: 10px; padding: 12px; background: #fff; }
+.hei-token { font-size: 12px; color: #666; margin-bottom: 8px; } .hei-token code { color: #3F6FEF; }
+.hei-specimen { font-size: 22px; line-height: 1.5; border: 1px solid #eee; padding: 10px; border-radius: 6px; min-height: 60px; }
+.hei-meta { font-size: 12px; color: #555; margin-top: 8px; }
+.dark-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.dark-col { border: 1px solid #e3e3e3; border-radius: 10px; overflow: hidden; }
+.dark-col .cat-body { min-height: 160px; }
+.rtbl { border-collapse: collapse; width: 100%; font-size: 12px; }
+.rtbl th, .rtbl td { border: 1px solid #e3e3e3; padding: 5px 8px; text-align: left; }
+.rtbl th { background: #f6f7f9; }
+.rtbl .ok { color: #0a7d33; font-weight: 600; } .rtbl .bad { color: #c0392b; font-weight: 600; } .rtbl .ex { color: #b8860b; }
+code { font-family: ui-monospace, Consolas, monospace; }
+.muted { color: #888; }
+@media (max-width: 1100px){ .cats, .hei-grid, .dark-grid { grid-template-columns: repeat(2,1fr); } }
+
+.end-admin-web .btn-demo{display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border:none;border-radius:8px;
+  background:var(--color-primary);color:var(--text-inverse,#fff);font-size:14px;font-weight:600;cursor:pointer;}
+.end-admin-web .tag-demo{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;
+  background:var(--color-primary-soft);color:var(--color-primary);}
+.end-admin-web .border-demo{height:0;border-top:2px solid var(--border-normal);margin:10px 0;}
+.end-admin-web .tbl-demo{width:100%;border-collapse:collapse;font-size:13px;}
+.end-admin-web .tbl-demo th{background:var(--table-header-bg);color:var(--table-header-text);text-align:left;padding:6px 10px;}
+.end-admin-web .tbl-demo td{padding:6px 10px;border-top:1px solid var(--table-border);}
+.end-admin-web .inp-demo{display:block;width:220px;padding:7px 10px;border-radius:6px;font-size:13px;
+  background:var(--input-bg,#fff);border:1px solid var(--input-border);color:#222;}
+.end-admin-web .inp-demo::placeholder{color:#999;}
+
+.end-saas-admin .btn-demo{display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border:none;border-radius:8px;
+  background:var(--color-primary);color:var(--text-inverse,#fff);font-size:14px;font-weight:600;cursor:pointer;}
+.end-saas-admin .tag-demo{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;
+  background:var(--color-primary-soft);color:var(--color-primary);}
+.end-saas-admin .border-demo{height:0;border-top:2px solid var(--border-normal);margin:10px 0;}
+.end-saas-admin .tbl-demo{width:100%;border-collapse:collapse;font-size:13px;}
+.end-saas-admin .tbl-demo th{background:var(--table-header-bg);color:var(--table-header-text);text-align:left;padding:6px 10px;}
+.end-saas-admin .tbl-demo td{padding:6px 10px;border-top:1px solid var(--table-border);}
+.end-saas-admin .inp-demo{display:block;width:220px;padding:7px 10px;border-radius:6px;font-size:13px;
+  background:var(--input-bg,#fff);border:1px solid var(--input-border);color:#222;}
+.end-saas-admin .inp-demo::placeholder{color:#999;}
+
+.end-app-mobile .btn-demo{display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border:none;border-radius:8px;
+  background:var(--uni-color-primary);color:var(--uni-text-color-inverse,#fff);font-size:14px;font-weight:600;cursor:pointer;}
+.end-app-mobile .tag-demo{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;
+  background:var(--uni-color-primary-soft);color:var(--uni-color-primary);}
+.end-app-mobile .border-demo{height:0;border-top:2px solid var(--uni-border-color);margin:10px 0;}
+.end-app-mobile .tbl-demo{width:100%;border-collapse:collapse;font-size:13px;}
+.end-app-mobile .tbl-demo th{background:var(--color-primary-soft);color:var(--uni-text-color);text-align:left;padding:6px 10px;}
+.end-app-mobile .tbl-demo td{padding:6px 10px;border-top:1px solid var(--uni-border-color);}
+.end-app-mobile .inp-demo{display:block;width:220px;padding:7px 10px;border-radius:6px;font-size:13px;
+  background:var(--uni-bg-color,#fff);border:1px solid var(--uni-border-color);color:#222;}
+.end-app-mobile .inp-demo::placeholder{color:#999;}
+
+.end-website .btn-demo{display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border:none;border-radius:8px;
+  background:var(--primary);color:var(#FFFFFF,#fff);font-size:14px;font-weight:600;cursor:pointer;}
+.end-website .tag-demo{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;
+  background:var(--primary-light);color:var(--primary);}
+.end-website .border-demo{height:0;border-top:2px solid var(--border);margin:10px 0;}
+.end-website .tbl-demo{width:100%;border-collapse:collapse;font-size:13px;}
+.end-website .tbl-demo th{background:var(--bg-alt);color:var(--text);text-align:left;padding:6px 10px;}
+.end-website .tbl-demo td{padding:6px 10px;border-top:1px solid var(--border);}
+.end-website .inp-demo{display:block;width:220px;padding:7px 10px;border-radius:6px;font-size:13px;
+  background:var(#FFFFFF,#fff);border:1px solid var(--border);color:#222;}
+.end-website .inp-demo::placeholder{color:#999;}
+</style><style>.end-admin-web {
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Primary / Brand Color — Atlas Blue（R74 收敛为纯蓝，去紫调）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --color-primary: #3F6FEF;
+  --color-primary-hover: #5A83F2;
+  --color-primary-active: #2F5BD6;
+  --color-primary-soft: rgba(63, 111, 239, 0.12);
+  --color-primary-bg: rgba(63, 111, 239, 0.06);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #CCCCCC;
+  --gray-400: #999999;
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #222222;
+  --gray-900: #111111;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Semantic — Status Colors（仅标签/状态使用）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --color-success: #0EA879;
+  --color-success-soft: rgba(14, 168, 121, 0.12);
+  --color-warning: #D48B3A;
+  --color-warning-soft: rgba(212, 139, 58, 0.12);
+  --color-danger: #C0392B;
+  --color-danger-soft: rgba(192, 57, 43, 0.12);
+  --color-info: #3F6FEF;
+  --color-info-soft: rgba(63, 111, 239, 0.12);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Chart Colors — 图表色（可全彩）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --chart-1: #3F6FEF;
+  --chart-2: #0EA879;
+  --chart-3: #D48B3A;
+  --chart-4: #C0392B;
+  --chart-5: #8B5CF6;
+  --chart-6: #06B6D4;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Surface — R74 去磨砂：侧边栏浅色、顶栏纯白（商业后台风格）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --frost-sidebar: #F7F8FA;
+  --frost-sidebar-blur: none;
+  --frost-topbar: #FFFFFF;
+  --frost-topbar-blur: none;
+  --frost-modal: rgba(0, 0, 0, 0.35);
+  --frost-modal-blur: none;
+  --frost-bottom: #FFFFFF;
+  --frost-bottom-blur: none;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Text — 唯一可以用纯黑的地方
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  /* S3-47（可达性优先于设计稿字面值）：原 #999999 在本项目四种浅底上仅 2.50~2.85:1，
+     不达 WCAG AA 4.5:1（本 token 与工作台 56 个 color-contrast 节点无关；真正相关的是 .icp-line a / .demo-divider-text，见 S3-54 ①-b；该 56 节点已另立 S3-61 跟踪）。
+     #6D6D6D = 达标且**最接近设计稿灰阶**的值：最严场景 --bg-soft #F0F0F0 上为 4.54:1
+     （#767676 白底 4.54 看似够，但在 --bg-page #F5F5F5 只有 4.17，会漏）。
+     偏差已登记：docs/design/工作台页面设计规范.md §可达性偏差登记。 */
+  --text-muted: #6d6d6d;
+  /* S3-54 ①-b（凌舟 2026-09-18 批准，附前置条件：不许照抄 saas-admin 的 #767676）
+     原 #CCCCCC 在最严面 --bg-soft #F0F0F0 上仅 1.41:1，远不达 WCAG 1.4.3 4.5:1。
+     #767676 白底 4.54 看似够，但在 #F7F7F7/#F5F5F5/#F0F0F0 分别只有 4.24/4.17/3.99 —— 全挂，
+     故按 5 处引用点的真实相邻面反推。#6D6D6D = 逐面验证全部达标的最浅灰：
+     #FFFFFF 5.174 / #F7F7F7 4.830 / #F5F5F5 4.746 / #F0F0F0 4.540 / #FAFAFA 4.957。
+     （再浅一档 #6E6E6E 在最严面 4.474，差 0.026 不达标。）
+     测量表：docs/tasks/cards/R101-S3-54-林夕改前测量表.md
+    ⚠️ S3-63 更正：--input-border 在 admin-web **不是死代码**（有 2 处真实引用：styles.css:762 与 :781），但在当前层叠下**被 EP 覆盖**（零视觉增量，仅层叠变化时生效）——见 :280 的完整说明。
+        2026-09-20 逐控件渲染值矩阵实测：.el-input__wrapper / .el-select__wrapper / .el-textarea__inner 三者的 computed 边框色均随 --el-border-color 变化（EP 同特异性后置规则覆盖了我们这两条），故本 token 当前在渲染上为被覆盖态；裁定仍将其同值化为 #888888 作分层防御。 */
+  --text-placeholder: #6D6D6D;
+  --text-inverse: #FFFFFF;
+  --text-link: #3F6FEF;
+
+  /* 侧边栏文字（R74 浅色侧栏：深色文字） */
+  --sidebar-text-primary: #222222;
+  --sidebar-text-secondary: #555555;
+  /* S3-47：同 --text-muted。#6D6D6D 在 --bg-sidebar #FAFAFA 上为 4.96:1（原 #999999 仅 2.73:1） */
+  --sidebar-text-muted: #6d6d6d;
+  --sidebar-text-active: #3F6FEF;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Background — 灰+白搭配
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bg-page: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-soft: #F0F0F0;
+  --bg-elevated: #FFFFFF;
+  --bg-sidebar: #FAFAFA;
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+  --bg-mask: rgba(0, 0, 0, 0.55);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Border — 全部灰色，不用黑色
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --border-normal: #E2E2E2;
+  --border-light: #F0F0F0;
+  --border-focus: #3F6FEF;
+  --border-error: #C0392B;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Radius
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-pill: 20px;
+  --radius-full: 9999px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Typography
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
+
+  /* Font Size Scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 28px;
+
+  /* 语义字号（R99-01 补齐：styles.css 已引用但未定义的 token） */
+  --text-page-title: 20px;   /* 页头大标题 */
+  --text-caption: 12px;      /* 辅助说明 */
+  --text-hint: 11px;         /* 最小辅助文字 */
+  --text-body: 13px;         /* 表格/正文默认字号 */
+  --text-regular: 14px;      /* 常规正文 */
+  --text-amount-lg: 26px;    /* 指标卡大数字（紧凑） */
+  --text-amount-xl: 32px;    /* 指标卡大数字（Hero，参考图 28-32px/700） */
+
+  /* Font Weight */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Line Height */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Spacing — 4px 基准，8 级递增
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* 工作区边距：自适应屏宽（clamp 最小/自适应/最大），1280px 视口约 15px */
+  --space-page-padding: clamp(12px, 1.2vw, 24px);
+  --space-card-padding: 16px;
+  --space-card-gap: 16px;
+  --space-section-gap: 24px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Shadows — 柔和阴影三档（R99-01 对齐参考图分层）
+     卡片(静态) / 悬浮(hover) / 弹窗(浮层)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 16px -4px rgba(16, 24, 40, 0.10);
+  --shadow-lg: 0 8px 16px -4px rgba(16, 24, 40, 0.10), 0 16px 24px -8px rgba(16, 24, 40, 0.08);
+  --shadow-xl: 0 24px 48px -12px rgba(16, 24, 40, 0.18), 0 8px 16px -8px rgba(16, 24, 40, 0.10);
+  /* 三档规范名（推荐直接使用） */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-hover: 0 4px 8px -2px rgba(16, 24, 40, 0.08), 0 8px 16px -4px rgba(16, 24, 40, 0.10);
+  --shadow-modal: 0 24px 48px -12px rgba(16, 24, 40, 0.18), 0 8px 16px -8px rgba(16, 24, 40, 0.10);
+  --shadow-focus: 0 0 0 3px rgba(63, 111, 239, 0.18);
+  --shadow-error: 0 0 0 3px rgba(192, 57, 43, 0.14);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Status Tag — 状态标签规范（R99-01）
+     浅底彩字：底 = 语义色 12% 透明，字 = 语义色
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --tag-radius: 6px;
+  --tag-padding: 3px 10px;
+  --tag-font-size: 12px;
+  --tag-font-weight: 500;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Metric Card — 指标卡大数字（R99-01）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --metric-value-size: 28px;
+  --metric-label-size: 13px;
+  --metric-change-size: 12px;
+  /* S3-64（A-8，墨）：工作台「今日经营」指标条强调数字（.metric-num--accent）前景。
+     历史：原用 var(--color-primary)(#3F6FEF)，在真实底 --bg-soft #F0F0F0 上仅 3.90:1 不达标；
+     前序 d796afe4(2026-08-15) 将其加深为字面量 #2F5FD0（5.02:1 达标），对比度修复由该提交完成。
+     本单（578234d4 之上）仅将该字面量收编为 token，消除硬编码；取值不变（复算 5.02:1≥4.5）。
+     重要更正：派单 A-8 依据的「#406cd4 / 4.27:1」在源码任意历史中均不存在（git -S 仅于派单卡文本与本单注释命中，
+     系对 d796afe4 真实值 #3F6FEF 的讹传）；本元素从未以 #406cd4 渲染。
+     取舍：保持已验证达标色相，不改用 --color-primary(#3F6FEF, 3.90:1 不达标) 或
+     --color-primary-active(#2F5BD6, 5.14:1 达标但改动识别色相)，避免破坏品牌主色观感。 */
+  --metric-accent: #2F5FD0;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Chart — 图表网格/轴线（R99-01 精致图表）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --chart-grid: #EEF0F3;
+  --chart-axis: #CCCCCC;
+  --chart-gradient-primary: linear-gradient(180deg, rgba(63, 111, 239, 0.32) 0%, rgba(63, 111, 239, 0) 100%);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Motion / Transition
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 250ms ease-out;
+  --transition-spring: 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-modal: 200ms ease;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Nav — 胶囊导航
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --nav-item-radius: 8px;
+  --nav-item-gap: 2px;
+  --nav-item-padding: 8px 12px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Layout Dimensions
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 侧栏宽度自适应（clamp 最小/自适应/最大）：1280~1366px 屏约 180px */
+  --sidebar-width: clamp(176px, 14vw, 192px);
+  --sidebar-width-collapsed: clamp(56px, 4.5vw, 64px);
+  --topbar-height: 48px;
+  --bottombar-height: 56px;
+  --fab-size: 56px;
+
+  /* Terminal 固定尺寸 */
+  --terminal-width: 1024px;
+  --terminal-height: 768px;
+  --terminal-nav-width: 80px;
+  --terminal-cart-width: 280px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Component Tokens
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --table-header-bg: #F8F8F8;
+  --table-header-text: #444444;
+  --table-row-hover: #F8F8F8;
+  --table-stripe: #FAFAFA;
+  --table-border: #E2E2E2;
+  --table-row-height: 48px;
+
+  --input-height: 36px;
+  --input-height-lg: 44px;
+  --input-radius: 6px;
+  --input-border: #888888; /* S3-63（凌舟 2026-09-20 最终裁定·取 A）：与 --el-border-color 同值化为 #888888。⚠️ 本值当前处于【被 EP 覆盖态】——引用点 styles.css:762（.el-input__wrapper,.el-select__wrapper）与 :781（.el-textarea__inner）均被 EP 同特异性后置规则覆盖，三控件实际渲染读的是 --el-border-color，故本改动【零视觉增量】，且【仅在 EP 层叠顺序发生变化、我们自己的规则胜出时才生效】。它是分层防御值，不是"修复 select/textarea"——修好 select/textarea 的是 styles.css:36 的 --el-border-color。取值依据＝反测态 computed 矩阵（三控件渲染值 = rgb(226,226,226)），见 R101-派单-20260919-A.md 与踩坑 [88]/R8.1 */
+  --input-bg: #FFFFFF;
+  --input-focus-border: #3F6FEF;
+  --input-focus-shadow: 0 0 0 3px rgba(63, 111, 239, 0.12);
+
+  --btn-height: 36px;
+  --btn-height-sm: 28px;
+  --btn-height-lg: 44px;
+  --btn-radius: 6px;
+  --btn-padding: 0 16px;
+  --btn-active-scale: 0.97;
+
+  --tag-radius: 6px;
+  --tag-padding: 3px 10px;
+
+  --card-radius: 10px;
+  --card-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --card-radius-lg: 12px;
+
+  --tooltip-bg: #2A2A2A;
+  --tooltip-text: #FFFFFF;
+  --tooltip-radius: 6px;
+
+  --skeleton-bg: #F0F0F0;
+  --skeleton-shine: #E2E2E2;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Responsive Breakpoints
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bp-xs: 576px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+
+.end-admin-web.end-admin-web {
+  --el-color-primary: #3F6FEF;
+  --el-color-primary-light-3: #5A83F2;
+  --el-color-primary-light-5: rgba(63, 111, 239, 0.12);
+  --el-color-primary-light-7: rgba(63, 111, 239, 0.20);
+  --el-color-primary-light-8: rgba(63, 111, 239, 0.30);
+  --el-color-primary-light-9: rgba(63, 111, 239, 0.06);
+  --el-color-primary-dark-2: #2F5BD6;
+  --el-color-success: #0EA879;
+  --el-color-warning: #D48B3A;
+  --el-color-danger: #C0392B;
+  --el-border-color: #888888;
+  --el-border-color-light: #F0F0F0;
+  --el-text-color-primary: #000000;
+  --el-text-color-regular: #444444;
+  /* S3-47：同 tokens.css 的 --text-muted（Element Plus 的 secondary 文本/占位/辅助文字
+     同样受 color-contrast 约束）。#999999 → #6D6D6D，4.5:1 达标且最接近设计稿灰阶。 */
+  --el-text-color-secondary: #6d6d6d;
+  --el-bg-color: #FFFFFF;
+  --el-bg-color-page: #F8F8F8;
+  --el-fill-color-blank: #FFFFFF;
+  --el-fill-color-light: #F0F0F0;
+  --el-border-radius-base: 6px;
+  --el-border-radius-small: 4px;
+  --el-font-size-base: 14px;
+}
+.end-admin-web.end-admin-web 提特异性，防按需注入顺序覆盖） ── */
+.end-admin-web.end-admin-web {
+  --el-color-info: #3F6FEF;
+  --el-color-info-light-3: #5A83F2;
+  --el-color-info-light-5: rgba(63, 111, 239, 0.12);
+  --el-color-info-light-7: rgba(63, 111, 239, 0.20);
+  --el-color-info-light-8: rgba(63, 111, 239, 0.30);
+  --el-color-info-light-9: rgba(63, 111, 239, 0.06);
+  --el-color-info-dark-2: #2F5BD6;
+  --el-border-radius-base: 6px;
+  --el-border-radius-small: 4px;
+  --el-border-radius-round: 20px;
+  --el-box-shadow-light: var(--shadow-card);
+  --el-box-shadow: var(--shadow-md);
+  --el-box-shadow-dark: var(--shadow-modal);
+  --el-font-size-base: 13px;
+  --el-font-size-small: 12px;
+  --el-component-size: 32px;
+  --el-component-size-small: 28px;
+  --el-component-size-large: 40px;
+  --el-table-header-bg-color: var(--table-header-bg);
+  --el-table-row-hover-bg-color: #F5F7FA;
+  --el-table-border-color: var(--table-border);
+}
+.end-admin-web.end-admin-web {
+  --bg-page: #F2F5FC;
+  --table-header-bg: #F4F7FF;
+  --table-header-text: #333333;
+  --table-row-hover: #F7FAFF;
+}
+
+.end-saas-admin {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+.end-saas-admin {
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Primary / Brand Color — 设计稿 v1.6 主色
+     来源：设计稿 :root --blue / --blue-d / --blue-l / --blue-b
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  /* active 态设计稿未直接给出，取设计稿中实际使用的品牌渐变深端 #1e40af
+     （见设计稿 .brand .lg / .sh-brand .lg 的 linear-gradient(135deg,#2563eb,#1e40af)） */
+  --color-primary-active: #1e40af;
+  --color-primary-soft: #dbeafe;
+  --color-primary-bg: #eff6ff;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Neutral Gray Scale — 11级灰阶（#FFFFFF 到 #111111）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --gray-0: #FFFFFF;
+  --gray-50: #F8F8F8;
+  --gray-100: #F0F0F0;
+  --gray-200: #E2E2E2;
+  --gray-300: #888888; /* S3-53（可达性优先）：滚动条滑块默认态。原 #CCCCCC 在最严表面 --bg-soft #F0F0F0 上仅 1.41:1，远低于 WCAG 1.4.11 非文本 3:1；#888888 = 3.11:1（白底 3.54:1）。本 token 在 saas-admin 中仅被 ::-webkit-scrollbar-thumb 引用，改动无外溢 */
+  --gray-400: #6D6D6D; /* S3-53（可达性优先）：滚动条滑块 hover 态。原 #999999 最严表面仅 2.50:1；#6D6D6D = 3.99:1 满足 1.4.11 3:1，且与默认态 #888888 有明确明暗差以表达 hover 状态 */
+  --gray-500: #666666;
+  --gray-600: #444444;
+  --gray-700: #333333;
+  --gray-800: #222222;
+  --gray-900: #111111;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     设计稿 v1.6 中性色（新增段）
+     来源：设计稿 :root --ink / --g0~--g7
+     用途：--ink 用于侧边栏底色与标题；--g0 为画布底；其余为正文/描边层级
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --ink: #171717;
+  --g7: #404040;
+  --g6: #525252;
+  --g5: #737373;
+  --g4: #a3a3a3;
+  --g3: #d4d4d4;
+  --g2: #e5e5e5;
+  --g1: #f0f0f0;
+  --g0: #f7f7f7;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Semantic — Status Colors
+     设计稿口径：绿=正常 · 橙=欠费/预警 · 红=冻结/故障 · 紫=自定义
+     来源：设计稿 :root --green/--orange/--red 与 .tag-p（#7c3aed）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --color-success: #16a34a;
+  --color-success-soft: #f0fdf4;
+  --color-warning: #ea580c;
+  --color-warning-soft: #fff7ed;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-info: #2563eb;
+  --color-info-soft: #eff6ff;
+  /* 紫=自定义（设计稿 .tag-p{background:#faf5ff;color:#7c3aed}） */
+  --color-purple: #7c3aed;
+  --color-purple-soft: #faf5ff;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Chart Colors — 图表色（可全彩）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --chart-1: #2563eb;
+  --chart-2: #16a34a;
+  --chart-3: #ea580c;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
+  --chart-6: #06B6D4;
+  /* 设计稿图表同色系梯度（来源：sec-overview 折线/柱状/环形图实测）
+     #93c5fd=累计线浅蓝 · #60a5fa=柱状中蓝 · #1e40af=柱状深蓝 · #94a3b8=免费版中性灰 */
+  --chart-1-soft: #93c5fd;
+  --chart-1-mid: #60a5fa;
+  --chart-1-deep: #1e40af;
+  --chart-neutral: #94a3b8;
+  /* 图表坐标轴/网格/刻度（设计稿 SVG 内联色：网格 #f0f0f0 · 刻度 #a3a3a3） */
+  --chart-grid: #f0f0f0;
+  --chart-axis-text: #a3a3a3;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Frosted Glass — 磨砂半透明
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --frost-sidebar: rgba(23, 23, 23, 0.85);
+  --frost-sidebar-blur: blur(16px);
+  --frost-topbar: rgba(255, 255, 255, 0.80);
+  --frost-topbar-blur: blur(16px);
+  --frost-modal: rgba(0, 0, 0, 0.35);
+  --frost-modal-blur: blur(8px);
+  --frost-bottom: rgba(255, 255, 255, 0.85);
+  --frost-bottom-blur: blur(16px);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Text — 唯一可以用纯黑的地方
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --text-primary: #000000;
+  --text-secondary: #444444;
+  --text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #999999 在浅底仅 2.50~2.85:1 不达标；#6D6D6D 在最深浅底 --bg-soft #F0F0F0 上=4.54:1，满足 WCAG AA 4.5:1。对照设计稿 --g5 #737373（#f0f0f0 上仅 4.17:1 亦不达标），#6D6D6D 为达标且最接近设计稿的值 */
+  --text-placeholder: #767676; /* S3-54（可达性优先·最小视觉变化达标）：占位提示文本，落在白底输入框内(--input-bg #FFFFFF)。原 #CCCCCC 白底仅 1.61:1，远低于 WCAG AA 文本 4.5:1；#767676 白底 = 4.54:1 达标，且为「从原值往深走第一个满足 4.5:1 的灰度」(候选：#777777=4.47 仍不达标，#767676=4.54 达标)，尽量贴近原浅灰阶、同时保留占位符轻于正文(#444)的层级 */
+  --text-inverse: #FFFFFF;
+  --text-link: #2563eb;
+
+  /* 侧边栏（浅色体系）—— 依据设计稿 v1.6 .sh-side / .sh-nav / .sh-side-ft 实测值：
+     .sh-side{background:#fff;border-right:1px solid #e5e7eb;color:#374151}
+     .sh-nav .ni{color:#374151} :hover{background:#eff6ff;color:#2563eb} .on{background:var(--blue);color:#fff}
+     注：v1.4 修订说明已将侧边栏底色由 #171717 改为白色，v1.6 渲染结果一致为浅色。 */
+  --sidebar-bg: #FFFFFF;
+  --sidebar-text-primary: #374151;
+  --sidebar-text-secondary: #6B7280;
+  --sidebar-text-muted: #6D6D6D; /* S3-47（可达性优先）：原 #9CA3AF 在白底侧边栏仅约 2.85:1 不达标；#6D6D6D 在白底上=5.17:1，满足 WCAG AA 4.5:1。对照设计稿 .ng #9ca3af（白底 2.54:1 不达标），#6D6D6D 为达标且最接近设计稿的值 */
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-brand-text: #111827;
+  --sidebar-brand-border: #E5E7EB;
+  --sidebar-hover-bg: #eff6ff;
+  --sidebar-hover-text: #2563eb;
+  --sidebar-active-bg: #2563eb;
+  /* 设计稿框架分割线（Tailwind gray-200，与 --g2 #e5e5e5 略有差异，按设计稿取 #e5e7eb） */
+  --line-frame: #E5E7EB;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Background — 灰+白搭配
+     画布底 #f7f7f7（设计稿 --g0）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bg-page: #f7f7f7;
+  --bg-card: #FFFFFF;
+  --bg-soft: #f0f0f0;
+  --bg-elevated: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-overlay: rgba(0, 0, 0, 0.45);
+  --bg-mask: rgba(0, 0, 0, 0.55);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Border — 全部灰色，不用黑色
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --border-normal: #E2E2E2;
+  --border-light: #F0F0F0;
+  --border-focus: #2563eb;
+  --border-error: #dc2626;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Radius
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-pill: 20px;
+  --radius-full: 9999px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Typography
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 设计稿 v1.6 指定 PingFang SC 为首选中文字体 */
+  --font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
+
+  /* Font Size Scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 28px;
+
+  /* Font Weight */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Line Height */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Spacing — 4px 基准，8 级递增
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --space-page-padding: 24px;
+  --space-card-padding: 16px;
+  --space-card-gap: 16px;
+  --space-section-gap: 24px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Shadows
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.07);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  --shadow-error: 0 0 0 3px rgba(220, 38, 38, 0.14);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Motion / Transition
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 250ms ease-out;
+  --transition-spring: 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-modal: 200ms ease;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Nav — 侧边栏导航（尺寸取自设计稿 v1.6 .sh-nav / .sh-top）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --nav-item-radius: 9px;
+  --nav-item-gap: 9px;
+  --nav-item-padding: 7px 9px;
+  --nav-item-margin-y: 1px;
+  --nav-item-font-size: 12.5px;
+  --nav-icon-size: 13px;
+  --nav-group-font-size: 10.5px;
+  --nav-group-padding: 11px 8px 5px;
+  --nav-group-letter-spacing: 1px;
+  --nav-padding: 10px 10px 12px;
+  --sidebar-brand-padding: 15px 16px 13px;
+  --sidebar-footer-padding: 11px 16px;
+  --sidebar-footer-font-size: 10.5px;
+  --brand-logo-size: 30px;
+  --nav-dot-size: 7px;
+  --topbar-padding-x: 18px;
+  --topbar-gap: 14px;
+  --topbar-tools-gap: 12px;
+  /* 顶栏搜索框（设计稿 .sbox） */
+  --sbox-width: 220px;
+  --sbox-padding: 5px 11px;
+  --sbox-font-size: 11.5px;
+  --sbox-kbd-font-size: 10px;
+  /* 顶栏图标按钮（.bell / .ava） */
+  --icon-btn-size: 28px;
+  --badge-font-size: 9px;
+  /* 内容区（设计稿 .sh-main） */
+  --main-padding: 16px 18px 20px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Layout Dimensions
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --sidebar-width: 206px;
+  --sidebar-width-collapsed: 64px;
+  --topbar-height: 50px;
+  --bottombar-height: 56px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Component Tokens
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --table-header-bg: #F8F8F8;
+  --table-header-text: #444444;
+  --table-row-hover: #F8F8F8;
+  --table-stripe: #FAFAFA;
+  --table-border: #E2E2E2;
+  --table-row-height: 48px;
+
+  --input-height: 36px;
+  --input-height-lg: 44px;
+  --input-radius: 6px;
+  --input-border: #888888; /* S3-54（可达性优先·最小视觉变化达标）：输入框边框，属 WCAG 1.4.11 非文本对比度 ≥3:1（识别控件所必需）。原 #CCCCCC 在「最严边界」#f0f0f0(--bg-soft) 上仅 1.41:1；#888888 = 3.11:1 达标（白底 3.45:1 / #f7f7f7 3.22:1 同样达标）。#888888 即设计系统既有 --gray-300(3:1 非文本灰阶)，与 S3-53 滚动条边框同源，避免引入一次性灰值；其「从原值往深走第一个满足 3:1 的灰度」为 #8A8A8A(3.03:1)，此处取 #888888 留安全余量。本 token 在 saas-admin 内无引用（保留定义待收编），改动零外溢 */
+  --input-bg: #FFFFFF;
+  --input-focus-border: #2563eb;
+  --input-focus-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+
+  --btn-height: 36px;
+  --btn-height-sm: 28px;
+  --btn-height-lg: 44px;
+  --btn-radius: 6px;
+  --btn-padding: 0 16px;
+  --btn-active-scale: 0.97;
+
+  --tag-radius: 4px;
+  --tag-padding: 2px 10px;
+
+  /* 设计稿 v1.6：圆角 12px（卡片）/ 16px（大容器） */
+  --card-radius: 12px;
+  --container-radius: 16px;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     公共组件令牌（尺寸取自设计稿 v1.6 .kpi / .tag / .bar / .sla / .drawer / .panel）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 指标卡 StatCard */
+  --kpi-padding: 12px 13px;
+  --kpi-title-size: 11.5px;
+  --kpi-value-size: 19px;
+  --kpi-delta-size: 10.5px;
+  /* 状态标签 StatusTag */
+  --tag-font-size: 10.5px;
+  --tag-padding: 3px 8px;
+  --tag-dot-size: 5px;
+  --tag-gap: 4px;
+  /* 进度条 / SLA 条 */
+  --bar-height: 6px;
+  --sla-height: 4px;
+  /* 详情抽屉 DetailDrawer */
+  --drawer-width: 436px;
+  --drawer-shadow: -16px 0 40px rgba(0, 0, 0, 0.2);
+  /* 面板 Panel */
+  --panel-header-padding: 11px 14px;
+  --panel-body-padding: 14px;
+  --panel-title-size: 13px;
+  /* 键值对 KeyValueList */
+  --kv-label-size: 11.5px;
+  --kv-value-size: 13px;
+  --kv-gap: 10px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     组件库令牌（设计稿 v1.6 通用组件段 第 83~241 行实测值）
+     用途：styles/components.css 全部引用此处，禁止在组件文件写死
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 控件（.btn / .ipt / .sel） */
+  --ctl-radius: 9px;
+  --ctl-font-size: 12px;
+  --ctl-btn-padding: 6px 13px;
+  --ctl-btn-gap: 5px;
+  --ctl-ipt-padding: 6px 10px;
+  --ctl-border: #888888; /* S3-54（可达性优先·最小视觉变化达标）：控件边框(.btn/.ipt/.sel)，属 WCAG 1.4.11 非文本对比度 ≥3:1。原 #D4D4D4 在 #f0f0f0 上仅 1.30:1；#888888 = 3.11:1 达标（白底 3.45:1 / #f7f7f7 3.22:1）。与 --input-border 同源取 #888888(见上方注释)，「第一个满足 3:1 的灰度」为 #8A8A8A(3.03:1)。本 token 在 saas-admin 被 4 处引用(.btn/.ipt/.sel×3 + LibrarySpus.vue×1)，均为白底控件边框，改深属预期可达性提升，外溢可控 */
+  /* 页头（.pg-hd） */
+  --pg-title-size: 16px;
+  --pg-desc-size: 11.5px;
+  --pg-hd-gap: 14px;
+  --pg-hd-margin: 14px;
+  /* 表格（.tbl） */
+  --tbl-font-size: 12px;
+  --tbl-th-font-size: 11.5px;
+  --tbl-th-padding: 8px 12px;
+  --tbl-td-padding: 9px 12px;
+  --tbl-head-color: #525252;
+  --tbl-cell-color: #404040;
+  --tbl-row-hover-bg: #fafbff;
+  --tbl-sub-size: 10.5px;
+  /* 页签（.tab） */
+  --tab-font-size: 12.5px;
+  --tab-padding: 9px 14px;
+  /* 看板卡片（.kcard） */
+  --kcard-radius: 10px;
+  /* 勾选矩阵（.mx） */
+  --mx-radius: 10px;
+  /* 进度条宽度（.mbar .bar） */
+  --bar-w-inline: 64px;
+  --bar-min-w: 56px;
+  --qrow-label-w: 62px;
+  --qrow-value-w: 88px;
+  /* 开关 / 勾选 / 单选 */
+  --tg-w: 34px;
+  --tg-h: 19px;
+  --tg-knob: 15px;
+  --ck-size: 14px;
+  --rd-size: 13px;
+  /* 时间线 */
+  --tl-line-w: 2px;
+  --tl-dot: 10px;
+  /* 步骤条 */
+  --step-no-size: 20px;
+  /* 分页 */
+  --pgbtn-size: 24px;
+  /* 矩阵输入宽（.v13-mtx .cell-in） */
+  --mtx-cell-w: 74px;
+  /* 待办行徽标宽（设计稿 sec-overview 待办事项 tag 固定 34px） */
+  --todo-badge-w: 34px;
+  /* 图表容器高度（对应设计稿 SVG viewBox 比例） */
+  --chart-h-line: 210px;
+  --chart-h-bar: 158px;
+  --chart-h-donut: 132px;
+  /* sec-overview 右侧待办栏固定宽（设计稿 grid-template-columns:1fr 272px） */
+  --dash-aside-w: 272px;
+  /* 系统健康状态左侧标签宽（设计稿 .qrow > span 覆盖为 92px） */
+  --health-label-w: 92px;
+  /* 小尺寸弹窗（设计稿 sec-market 生成推广码弹窗宽 470px） */
+  --modal-width-sm: 470px;
+  /* 管理员权限页 RBAC 双栏与矩阵列宽（设计稿 sec-admin：左栏 200px / 角色列 88px / 模块列 150px） */
+  --rbac-side-w: 200px;
+  --rbac-role-col-w: 88px;
+  --rbac-perm-col-w: 150px;
+  /* 模板中心（设计稿 sec-tpl：模板卡最小高 150px / 缩略图最小高 88px） */
+  --tpl-card-min-h: 150px;
+  --tpl-thumb-min-h: 88px;
+  /* 修订版本标记（设计稿 .v15-tag.lt 等，无圆点） */
+  --ver-tag-tracking: 0.5px;
+  --ver-tag-valign: 2px;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     登录页令牌（设计稿 sec-login，样式见设计稿第 242~266 行）
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --login-min-h: 560px;
+  --login-brand-padding: 44px 40px;
+  /* 品牌区渐变（设计稿 .lg-brand：linear-gradient(150deg,#1e3a8a,#2563eb 58%,#3b82f6)） */
+  --login-brand-bg: linear-gradient(150deg, #1e3a8a 0%, #2563eb 58%, #3b82f6 100%);
+  --login-brand-logo-size: 38px;
+  --login-brand-logo-radius: 11px;
+  --login-brand-logo-font: 17px;
+  --login-brand-gap: 11px;
+  --login-brand-name-size: 18px;
+  --login-brand-name-tracking: 1px;
+  --login-box-sub-margin: 5px 0 22px;
+  --login-label-margin: 6px;
+  --login-brand-en-size: 10.5px;
+  --login-brand-en-tracking: 2.5px;
+  --login-slogan-size: 26px;
+  --login-slogan-desc-size: 13px;
+  --login-desc-max-w: 400px;
+  --login-feat-font: 11.5px;
+  --login-feat-padding: 5px 13px;
+  --login-feat-gap: 10px;
+  --login-feat-margin: 26px;
+  /* 背景网格装饰透明度（设计稿 .lg-brand svg.deco opacity:.35） */
+  --login-deco-opacity: 0.35;
+  /* 表单区 */
+  --login-form-padding: 40px 30px;
+  --login-box-w: 340px;
+  --login-box-title: 21px;
+  --login-box-sub: 12.5px;
+  --login-fld-gap: 14px;
+  --login-label-size: 12px;
+  --login-ipt-padding: 9px 12px;
+  --login-ipt-font: 13px;
+  /* 图形验证码（设计稿 .cap） */
+  --login-cap-w: 104px;
+  --login-cap-h: 37px;
+  --login-cap-font: 15px;
+  --login-cap-tracking: 3px;
+  --login-cap-color: #3730a3;
+  --login-cap-bg: repeating-linear-gradient(45deg, #eef2ff, #eef2ff 6px, #e0e7ff 6px, #e0e7ff 12px);
+  /* 登录按钮 */
+  --login-btn-padding: 10px;
+  --login-btn-font: 14px;
+  /* 页脚备案信息 */
+  --login-foot-size: 10.5px;
+  --login-foot-bottom: 18px;
+  /* 品牌区半透明白色层（设计稿 rgba(255,255,255,.16) / .3 / .12 / .22） */
+  --login-logo-bg: rgba(255, 255, 255, 0.16);
+  --login-logo-border: rgba(255, 255, 255, 0.3);
+  --login-feat-bg: rgba(255, 255, 255, 0.12);
+  --login-feat-border: rgba(255, 255, 255, 0.22);
+  /* 品牌区文字透明度（设计稿 opacity .75 / .85） */
+  --login-brand-en-opacity: 0.75;
+  --login-slogan-desc-opacity: 0.85;
+
+  --tooltip-bg: #2A2A2A;
+  --tooltip-text: #FFFFFF;
+  --tooltip-radius: 6px;
+
+  --skeleton-bg: #F0F0F0;
+  --skeleton-shine: #E2E2E2;
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     组件层补充令牌
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  /* 下拉箭头（设计稿 .sel::after 字号） */
+  --ctrl-caret-size: 10px;
+  /* 提示条描边/文字（设计稿 .tipbar.w / .tipbar.r 实测色） */
+  --warning-line: #fed7aa;
+  --warning-text: #9a3412;
+  --danger-line: #fecaca;
+  --danger-text: #991b1b;
+  /* 卡片悬浮投影（设计稿 .kcard:hover） */
+  --shadow-hover-primary: 0 3px 10px rgba(37, 99, 235, 0.08);
+  /* 抽屉/弹窗（设计稿 .drawer / .modal） */
+  --overlay-bg: rgba(23, 23, 23, 0.45);
+  --modal-width: 540px;
+  --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  --shell-shadow: 0 10px 34px rgba(23, 23, 23, 0.06);
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Responsive Breakpoints
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  --bp-xs: 576px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+}
+
+
+
+
+
+.end-app-mobile {
+--uni-color-primary: #2563EB;
+--uni-color-primary-hover: #3B76F0;
+--uni-color-primary-active: #1D4ED8;
+--uni-color-primary-soft: rgba(37, 99, 235, 0.12);
+--uni-gradient-blue: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+--uni-color-success: #3A9D5C;
+--uni-color-success-soft: rgba(58, 157, 92, 0.12);
+--uni-color-warning: #C8803A;
+--uni-color-warning-soft: rgba(200, 128, 58, 0.12);
+--uni-color-error: #C45050;
+--uni-color-error-soft: rgba(196, 80, 80, 0.12);
+--uni-color-info: #2563EB;
+--uni-color-info-soft: rgba(37, 99, 235, 0.12);
+--uni-color-primary-light: #60A5FA;
+--uni-color-purple: #722ED1;
+--uni-color-purple-light: #9254DE;
+--uni-color-purple-soft: rgba(114, 46, 209, 0.12);
+--uni-color-pink: #EB2F96;
+--uni-color-pink-light: #F759AB;
+--uni-color-cyan: #13C2C2;
+--uni-color-cyan-soft: rgba(19, 194, 194, 0.12);
+--zx-badge-success-strong: #059669;
+--zx-badge-success-bg: #ECFDF5;
+--zx-badge-warning-strong: #D97706;
+--zx-badge-warning-bg: #FFFBEB;
+--zx-badge-danger-strong: #DC2626;
+--zx-badge-danger-bg: #FEF2F2;
+--zx-badge-draft-strong: #EA580C;
+--zx-badge-draft-bg: #FFF7ED;
+--zx-success-text: #047857;
+--zx-success-chip-bg: rgba(58, 157, 92, 0.08);
+--zx-store: #EA580C;
+--zx-store-soft: rgba(234, 88, 12, 0.12);
+--zx-warehouse: #0D9488;
+--zx-warehouse-soft: rgba(13, 148, 136, 0.12);
+--uni-gray-0: #FFFFFF;
+--uni-gray-50: #F8F8F8;
+--uni-gray-100: #F0F0F0;
+--uni-gray-200: #E5E5E5;
+--uni-gray-300: #D4D4D4;
+--uni-gray-400: #A3A3A3;
+--uni-gray-500: #737373;
+--uni-gray-600: #525252;
+--uni-gray-700: #404040;
+--uni-gray-800: #262626;
+--uni-gray-900: #171717;
+--uni-text-color: #171717;
+--uni-text-color-secondary: #525252;
+--uni-text-color-grey: #737373;
+--uni-text-color-placeholder: #A3A3A3;
+--uni-text-color-light: #A3A3A3;
+--uni-text-color-inverse: #FFFFFF;
+--uni-text-color-link: #2563EB;
+--uni-bg-color: #FFFFFF;
+--uni-bg-color-grey: #F5F5F7;
+--uni-bg-color-page: #F5F5F7;
+--uni-bg-color-soft: #F0F0F0;
+--uni-bg-color-hover: #F0F0F0;
+--uni-border-color: #E5E5E5;
+--uni-border-color-light: #F0F0F0;
+--uni-border-color-focus: #2563EB;
+--uni-border-color-error: #C45050;
+--uni-border-radius-xs: 16rpx;
+--uni-border-radius-sm: 24rpx;
+--uni-border-radius-base: 32rpx;
+--uni-border-radius-lg: 40rpx;
+--uni-border-radius-xl: 48rpx;
+--uni-border-radius-pill: 40rpx;
+--uni-border-radius-circle: 50%;
+--uni-spacing-xs: 8rpx;
+--uni-spacing-sm: 16rpx;
+--uni-spacing-md: 20rpx;
+--uni-spacing-base: 24rpx;
+--uni-spacing-lg: 32rpx;
+--uni-spacing-xl: 48rpx;
+--uni-font-size-xs: 22rpx;
+--uni-font-size-sm: 24rpx;
+--uni-font-size-base: 28rpx;
+--uni-font-size-md: 28rpx;
+--uni-font-size-lg: 32rpx;
+--uni-font-size-xl: 36rpx;
+--uni-font-size-xxl: 44rpx;
+--uni-font-normal: 400;
+--uni-font-medium: 500;
+--uni-font-semibold: 600;
+--uni-font-bold: 700;
+--uni-line-height-base: 1.5;
+--uni-line-height-lg: 1.8;
+--uni-shadow-xs: 0 2rpx 6rpx rgba(0, 0, 0, 0.03), 0 2rpx 4rpx rgba(0, 0, 0, 0.02);
+--uni-shadow-sm: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 6rpx rgba(0, 0, 0, 0.03);
+--uni-shadow-base: 0 16rpx 60rpx rgba(0, 0, 0, 0.06), 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
+--uni-shadow-lg: 0 24rpx 80rpx rgba(0, 0, 0, 0.08), 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
+--uni-shadow-card: 0 8rpx 24rpx rgba(0, 0, 0, 0.04), 0 2rpx 6rpx rgba(0, 0, 0, 0.03);
+--uni-shadow-card-sm: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+--uni-shadow-focus: 0 0 0 6rpx rgba(37, 99, 235, 0.15);
+--uni-mask-bg: rgba(0, 0, 0, 0.45);
+--uni-shadow-knob: 0 2rpx 6rpx rgba(0, 0, 0, 0.2);
+--uni-shadow-primary-sm: 0 4rpx 12rpx rgba(37, 99, 235, 0.25);
+--uni-shadow-primary: 0 8rpx 24rpx rgba(37, 99, 235, 0.4);
+--uni-transition-fast: 150ms ease;
+--uni-transition-normal: 200ms ease;
+--uni-transition-slow: 250ms ease-out;
+--ai-gradient-start: #2563EB;
+--ai-gradient-end: #1D4ED8;
+--ai-tab-active: #2563EB;
+--ai-tab-inactive: #C5C7CB;
+--ai-primary: #2563EB;
+--ai-bg-page: #FFFFFF;
+--ai-bg-gap: #F5F5F7;
+--ai-bg-soft: #EFF6FF;
+--ai-border: #E5E5E5;
+--ai-text-main: #171717;
+--ai-text-body: #404040;
+--ai-text-sub: #A3A3A3;
+--ai-text-mid: #737373;
+--ai-success: #3A9D5C;
+--ai-warning: #C8803A;
+--ai-danger: #C45050;
+--ai-info: #737373;
+--ai-success-bg: #EDF7F0;
+--ai-warning-bg: #FBF3EA;
+--ai-danger-bg: #FBF0F0;
+--ai-fs-h1: 56rpx;
+--ai-fs-h2: 40rpx;
+--ai-fs-h3: 32rpx;
+--ai-fs-body: 28rpx;
+--ai-fs-caption: 24rpx;
+--ai-fs-micro: 20rpx;
+--ai-space-page: 32rpx;
+--ai-space-module: 24rpx;
+--ai-space-card: 32rpx;
+--ai-radius-lg: 24rpx;
+--ai-radius-sm: 16rpx;
+--zx-amber-100: #fef3c7;
+--zx-amber-150: rgba(217,119,6,0.15);
+--zx-amber-300: #fcd34d;
+--zx-amber-700: #b45309;
+--zx-amber-900: #92400e;
+--zx-ant-gray-500: #909399;
+--zx-antblue-100: rgba(22,119,255,0.1);
+--zx-antblue-200: rgba(22,119,255,0.2);
+--zx-antblue-350: rgba(22,119,255,0.35);
+--zx-antblue-400: rgba(22,119,255,0.4);
+--zx-antblue-80: rgba(22,119,255,0.08);
+--zx-antblue2-400: rgba(24,144,255,0.4);
+--zx-antblue3-100: rgba(64,150,255,0.1);
+--zx-antgreen-100: rgba(82,196,26,0.1);
+--zx-antgreen-300: rgba(82,196,26,0.3);
+--zx-antgreen-400: rgba(82,196,26,0.4);
+--zx-antorange-100: rgba(250,140,22,0.1);
+--zx-antred-100: rgba(255,77,79,0.1);
+--zx-antred-300: rgba(255,77,79,0.3);
+--zx-antred-900: rgba(255,77,79,0.9);
+--zx-bg-f5: #f5f5f5;
+--zx-black-120: rgba(0,0,0,0.12);
+--zx-black-140: rgba(0,0,0,0.14);
+--zx-black-15: rgba(0,0,0,0.015);
+--zx-black-150: rgba(0,0,0,0.15);
+--zx-black-160: rgba(0,0,0,0.16);
+--zx-black-180: rgba(0,0,0,0.18);
+--zx-black-20: rgba(0,0,0,0.02);
+--zx-black-200: rgba(0,0,0,0.2);
+--zx-black-30: rgba(0,0,0,0.03);
+--zx-black-40: rgba(0,0,0,0.04);
+--zx-black-400: rgba(0,0,0,0.4);
+--zx-black-50: rgba(0,0,0,0.05);
+--zx-black-500: rgba(0,0,0,0.5);
+--zx-black-550: rgba(0,0,0,0.55);
+--zx-black-60: rgba(0,0,0,0.06);
+--zx-black-600: rgba(0,0,0,0.6);
+--zx-black-70: rgba(0,0,0,0.07);
+--zx-black-80: rgba(0,0,0,0.08);
+--zx-black-90: rgba(0,0,0,0.09);
+--zx-blue-50: #f0f5ff;
+--zx-blue-500: #3b82f6;
+--zx-chart-bronze: #cd7f32;
+--zx-chart-copper: #b87333;
+--zx-chart-gold: #ffb800;
+--zx-chart-gold2: #ffd700;
+--zx-chart-gray: #a0a0a0;
+--zx-chart-silver: #c0c0c0;
+--zx-cyan-soft-10: rgba(19,194,194,0.1);
+--zx-deepblue-180: rgba(13,44,124,0.18);
+--zx-deepblue-350: rgba(13,44,124,0.35);
+--zx-emerald-soft-10: rgba(5,150,105,0.1);
+--zx-gray-1a: #1a1a1a;
+--zx-gray-323: #323233;
+--zx-gray-400: #9ca3af;
+--zx-gray-969: #969799;
+--zx-grayf7-550: rgba(247,248,250,0.55);
+--zx-green-100: #dcfce7;
+--zx-green-600: #16a34a;
+--zx-green-700: #15803d;
+--zx-indigo-100: #e0e7ff;
+--zx-nearblack: #0b0b0c;
+--zx-orange2-100: rgba(250,173,20,0.1);
+--zx-orange2-300: rgba(250,173,20,0.3);
+--zx-primary-100: rgba(37,99,235,0.1);
+--zx-primary-150: rgba(37,99,235,0.15);
+--zx-primary-180: rgba(37,99,235,0.18);
+--zx-primary-200: rgba(37,99,235,0.2);
+--zx-primary-220: rgba(37,99,235,0.22);
+--zx-primary-250: rgba(37,99,235,0.25);
+--zx-primary-280: rgba(37,99,235,0.28);
+--zx-primary-30: rgba(37,99,235,0.03);
+--zx-primary-350: rgba(37,99,235,0.35);
+--zx-primary-60: rgba(37,99,235,0.06);
+--zx-primary-600: rgba(37,99,235,0.6);
+--zx-primary-80: rgba(37,99,235,0.08);
+--zx-primaryact-160: rgba(29,78,216,0.16);
+--zx-primaryact-60: rgba(29,78,216,0.06);
+--zx-purple-500: #a855f7;
+--zx-purple-600: #9333ea;
+--zx-purple-soft-10: rgba(114,46,209,0.1);
+--zx-red-100: #fecaca;
+--zx-red-50: #fee2e2;
+--zx-red-50b: #fff5f5;
+--zx-red-700: #b91c1c;
+--zx-red2-300: rgba(245,108,108,0.3);
+--zx-slate-280: rgba(15,23,42,0.28);
+--zx-success2-30: rgba(58,157,92,0.03);
+--zx-success2-60: rgba(58,157,92,0.06);
+--zx-violet-100: #ede9fe;
+--zx-violet-600: #7c3aed;
+--zx-violet-800: #5b21b6;
+--zx-violet2-30: rgba(124,58,237,0.03);
+--zx-violet2-320: rgba(124,58,237,0.32);
+--zx-violet2-350: rgba(124,58,237,0.35);
+--zx-violet2-60: rgba(124,58,237,0.06);
+--zx-violet2-80: rgba(124,58,237,0.08);
+--zx-violet3-180: rgba(168,85,247,0.18);
+--zx-violet3-550: rgba(168,85,247,0.55);
+--zx-violet3-600: rgba(168,85,247,0.6);
+--zx-violet3-650: rgba(168,85,247,0.65);
+--zx-violet4-100: rgba(91,33,185,0.1);
+--zx-warning2-100: rgba(200,128,58,0.1);
+--zx-warning2-40: rgba(200,128,58,0.04);
+--zx-warning2-80: rgba(200,128,58,0.08);
+--zx-white-180: rgba(255,255,255,0.18);
+--zx-white-200: rgba(255,255,255,0.2);
+--zx-white-250: rgba(255,255,255,0.25);
+--zx-white-300: rgba(255,255,255,0.3);
+--zx-white-650: rgba(255,255,255,0.65);
+--zx-white-70: rgba(255,255,255,0.07);
+--zx-white-700: rgba(255,255,255,0.7);
+--zx-white-800: rgba(255,255,255,0.8);
+--zx-white-850: rgba(255,255,255,0.85);
+--zx-white-880: rgba(255,255,255,0.88);
+--zx-white-900: rgba(255,255,255,0.9);
+--zx-white-920: rgba(255,255,255,0.92);
+--zx-lv-wholesale: #0891b2;
+--zx-lv-basic: #64748b;
+--zx-lv-silver: #94a3b8;
+}
+
+.end-website {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --primary-light: #e8f0fe;
+  --accent: #0ea5e9;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --bg: #ffffff;
+  --bg-alt: #f8fafc;
+  --bg-dark: #0f172a;
+  --border: #e5e7eb;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 40px rgba(0,0,0,.08);
+  --max-width: 1200px;
+}</style></head>
+<body>
+<h1>R101-H2 全局统一色板 · 视觉基准页</h1>
+<div class="sub">阶段1 只冻结「现值」口径，不改任何颜色。所有颜色来自各端 token 的 getComputedStyle 实测。下方含「黑字四端对比」「组件样例(白底/中浅灰/状态色)」「附·深底反白」「建议值 vs 现值对照」「底+字替代方案」。</div>
+
+<div class="panel"><h2>黑字 · 四端正文主色并排对比（同一白底）</h2>
+  <p class="muted">一屏看出四端「黑字」不是同一个黑：$	extcolor 各异，距纯黑 #000000 均有偏差。</p>
+  <div class="hei-grid"><div class="hei-col"><div class="hei-token">admin-web<br><code>--text-primary</code></div>
+      <div class="hei-specimen" style="color:#000000">智享全链 正文主色 Aa 永</div>
+      <div class="hei-meta">现值 <b>#000000</b><br>白底对比 <b>21:1</b></div></div><div class="hei-col"><div class="hei-token">saas-admin<br><code>--text-primary</code></div>
+      <div class="hei-specimen" style="color:#000000">智享全链 正文主色 Aa 永</div>
+      <div class="hei-meta">现值 <b>#000000</b><br>白底对比 <b>21:1</b></div></div><div class="hei-col"><div class="hei-token">app-mobile<br><code>--uni-text-color</code></div>
+      <div class="hei-specimen" style="color:#171717">智享全链 正文主色 Aa 永</div>
+      <div class="hei-meta">现值 <b>#171717</b><br>白底对比 <b>17.93:1</b></div></div><div class="hei-col"><div class="hei-token">website<br><code>--text</code></div>
+      <div class="hei-specimen" style="color:#1f2937">智享全链 正文主色 Aa 永</div>
+      <div class="hei-meta">现值 <b>#1f2937</b><br>白底对比 <b>14.68:1</b></div></div></div></div>
+
+<section class="end-admin-web" id="end-sec-admin-web"><h2>admin-web 工作台 <span class="endid">(admin-web)</span></h2>
+      <div class="cats"><div class="cat"><div class="cat-title">白底 <code>#FFFFFF</code></div>
+        <div class="cat-body" style="background:#FFFFFF">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">中浅灰 <code>--bg-soft</code></div>
+        <div class="cat-body" style="background:var(--bg-soft)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">状态色 <code>--color-primary</code></div>
+        <div class="cat-body" style="background:var(--color-primary)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div></div></section>
+<section class="end-saas-admin" id="end-sec-saas-admin"><h2>saas-admin 租户后台 <span class="endid">(saas-admin)</span></h2>
+      <div class="cats"><div class="cat"><div class="cat-title">白底 <code>#FFFFFF</code></div>
+        <div class="cat-body" style="background:#FFFFFF">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">中浅灰 <code>--bg-soft</code></div>
+        <div class="cat-body" style="background:var(--bg-soft)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">状态色 <code>--color-primary</code></div>
+        <div class="cat-body" style="background:var(--color-primary)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div></div></section>
+<section class="end-app-mobile" id="end-sec-app-mobile"><h2>app-mobile 商户端 <span class="endid">(app-mobile)</span></h2>
+      <div class="cats"><div class="cat"><div class="cat-title">白底 <code>#FFFFFF</code></div>
+        <div class="cat-body" style="background:#FFFFFF">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">中浅灰 <code>--uni-bg-color-soft</code></div>
+        <div class="cat-body" style="background:var(--uni-bg-color-soft)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">状态色 <code>--uni-color-primary</code></div>
+        <div class="cat-body" style="background:var(--uni-color-primary)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div></div></section>
+<section class="end-website" id="end-sec-website"><h2>website 官网 <span class="endid">(website)</span></h2>
+      <div class="cats"><div class="cat"><div class="cat-title">白底 <code>#FFFFFF</code></div>
+        <div class="cat-body" style="background:#FFFFFF">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">中浅灰 <code>--bg-alt</code></div>
+        <div class="cat-body" style="background:var(--bg-alt)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div><div class="cat"><div class="cat-title">状态色 <code>--primary</code></div>
+        <div class="cat-body" style="background:var(--primary)">
+          <button class="btn-demo">按钮·底+字</button><span class="tag-demo">标签 Tag</span>
+          <div class="border-demo"></div>
+          <table class="tbl-demo"><thead><tr><th>表头单元格</th></tr></thead><tbody><tr><td>表格分隔线行</td></tr></tbody></table>
+          <input class="inp-demo" placeholder="输入框 placeholder"></div></div></div></section>
+
+<div class="panel"><h2>附 · 深底反白（深色背景上的反白文字/组件）</h2>
+  <div class="dark-grid"><div class="end-admin-web dark-col"><div class="cat-title">admin-web<br><code>--gray-900</code></div>
+      <div class="cat-body" style="background:var(--gray-900)">
+        <div style="color:var(--text-inverse,#fff);font-size:14px;">反白文字 Aa</div>
+        <button class="btn-demo">按钮·白字</button><span class="tag-demo">标签</span>
+        <input class="inp-demo" placeholder="输入框"></div></div><div class="end-saas-admin dark-col"><div class="cat-title">saas-admin<br><code>--gray-900</code></div>
+      <div class="cat-body" style="background:var(--gray-900)">
+        <div style="color:var(--text-inverse,#fff);font-size:14px;">反白文字 Aa</div>
+        <button class="btn-demo">按钮·白字</button><span class="tag-demo">标签</span>
+        <input class="inp-demo" placeholder="输入框"></div></div><div class="end-app-mobile dark-col"><div class="cat-title">app-mobile<br><code>--uni-gray-900</code></div>
+      <div class="cat-body" style="background:var(--uni-gray-900)">
+        <div style="color:var(--uni-text-color-inverse,#fff);font-size:14px;">反白文字 Aa</div>
+        <button class="btn-demo">按钮·白字</button><span class="tag-demo">标签</span>
+        <input class="inp-demo" placeholder="输入框"></div></div><div class="end-website dark-col"><div class="cat-title">website<br><code>--bg-dark</code></div>
+      <div class="cat-body" style="background:var(--bg-dark)">
+        <div style="color:var(#FFFFFF,#fff);font-size:14px;">反白文字 Aa</div>
+        <button class="btn-demo">按钮·白字</button><span class="tag-demo">标签</span>
+        <input class="inp-demo" placeholder="输入框"></div></div></div></div>
+
+<div class="panel"><h2>建议值 vs 现值 对照（统一提案）</h2><table class="rtbl"><thead><tr><th>端</th><th>token</th><th>类</th><th>现值</th><th>建议值</th>
+      <th>现比值</th><th>建议后</th><th>门槛</th><th>结论</th></tr></thead><tbody><tr><td><code>admin-web</code></td><td><code>--bg-page</code></td><td>面</td>
+        <td>#f2f5fc</td><td><b>#F7F7F7</b></td>
+        <td>16.43</td><td><b>16.73</b></td>
+        <td>≥4.5</td><td class="ok">16.73 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--bg-sidebar</code></td><td>面</td>
+        <td>#fafafa</td><td><b>#FFFFFF</b></td>
+        <td>17.18</td><td><b>17.93</b></td>
+        <td>≥4.5</td><td class="ok">17.93 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--table-header-bg</code></td><td>面</td>
+        <td>#f4f7ff</td><td><b>#F8F8F8</b></td>
+        <td>16.73</td><td><b>16.88</b></td>
+        <td>≥4.5</td><td class="ok">16.88 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--table-row-hover</code></td><td>面</td>
+        <td>#f7faff</td><td><b>#F8F8F8</b></td>
+        <td>17.14</td><td><b>16.88</b></td>
+        <td>≥4.5</td><td class="ok">16.88 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--text-primary</code></td><td>前景</td>
+        <td>#000000</td><td><b>#171717</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--text-secondary</code></td><td>前景</td>
+        <td>#444444</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--text-muted</code></td><td>前景</td>
+        <td>#6d6d6d</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--text-placeholder</code></td><td>前景</td>
+        <td>#6d6d6d</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--text-link</code></td><td>前景</td>
+        <td>#3f6fef</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--color-primary</code></td><td>前景</td>
+        <td>#3f6fef</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--color-success</code></td><td>前景</td>
+        <td>#0ea879</td><td><b>#0A7655</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--color-warning</code></td><td>前景</td>
+        <td>#d48b3a</td><td><b>#8E5D27</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--color-danger</code></td><td>前景</td>
+        <td>#c0392b</td><td><b>#C0392B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--color-info</code></td><td>前景</td>
+        <td>#3f6fef</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--border-normal</code></td><td>结构</td>
+        <td>?</td><td><b>#E5E5E5</b></td>
+        <td>19.6</td><td><b>1.18</b></td>
+        <td>≥3</td><td class="ex">1.18 装饰豁免</td></tr><tr><td><code>admin-web</code></td><td><code>--table-border</code></td><td>结构</td>
+        <td>?</td><td><b>#E5E5E5</b></td>
+        <td>19.6</td><td><b>1.18</b></td>
+        <td>≥3</td><td class="ex">1.18 装饰豁免</td></tr><tr><td><code>admin-web</code></td><td><code>--input-border</code></td><td>结构</td>
+        <td>?</td><td><b>#888888</b></td>
+        <td>19.6</td><td><b>3.31</b></td>
+        <td>≥3</td><td class="ok">3.31 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--border-focus</code></td><td>结构</td>
+        <td>?</td><td><b>#365FCE</b></td>
+        <td>19.6</td><td><b>5.32</b></td>
+        <td>≥3</td><td class="ok">5.32 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--gray-300</code></td><td>结构</td>
+        <td>?</td><td><b>#D4D4D4</b></td>
+        <td>19.6</td><td><b>1.38</b></td>
+        <td>≥3</td><td class="ex">1.38 装饰豁免</td></tr><tr><td><code>admin-web</code></td><td><code>--gray-400</code></td><td>结构</td>
+        <td>?</td><td><b>#A3A3A3</b></td>
+        <td>19.6</td><td><b>2.35</b></td>
+        <td>≥3</td><td class="ex">2.35 装饰豁免</td></tr><tr><td><code>admin-web</code></td><td><code>--gray-500</code></td><td>结构</td>
+        <td>?</td><td><b>#737373</b></td>
+        <td>19.6</td><td><b>4.43</b></td>
+        <td>≥3</td><td class="ok">4.43 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--gray-600</code></td><td>结构</td>
+        <td>?</td><td><b>#525252</b></td>
+        <td>19.6</td><td><b>7.29</b></td>
+        <td>≥3</td><td class="ok">7.29 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--gray-700</code></td><td>结构</td>
+        <td>?</td><td><b>#404040</b></td>
+        <td>19.6</td><td><b>9.68</b></td>
+        <td>≥3</td><td class="ok">9.68 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--color-primary-hover</code></td><td>面</td>
+        <td>#5a83f2</td><td><b>#1D4ED8</b></td>
+        <td>3.52</td><td><b>6.7</b></td>
+        <td>≥4.5</td><td class="ok">6.7 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--color-primary-active</code></td><td>面</td>
+        <td>#2f5bd6</td><td><b>#1E40AF</b></td>
+        <td>5.85</td><td><b>8.72</b></td>
+        <td>≥4.5</td><td class="ok">8.72 达标</td></tr><tr><td><code>admin-web</code></td><td><code>--sidebar-text-muted</code></td><td>前景</td>
+        <td>#6d6d6d</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--sidebar-text-active</code></td><td>前景</td>
+        <td>#3f6fef</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>admin-web</code></td><td><code>--table-header-text</code></td><td>前景</td>
+        <td>#333333</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--bg-page</code></td><td>面</td>
+        <td>#f7f7f7</td><td><b>#F7F7F7</b></td>
+        <td>16.73</td><td><b>16.73</b></td>
+        <td>≥4.5</td><td class="ok">16.73 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--sidebar-bg</code></td><td>面</td>
+        <td>#ffffff</td><td><b>#FFFFFF</b></td>
+        <td>17.93</td><td><b>17.93</b></td>
+        <td>≥4.5</td><td class="ok">17.93 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--table-header-bg</code></td><td>面</td>
+        <td>#f8f8f8</td><td><b>#F8F8F8</b></td>
+        <td>16.88</td><td><b>16.88</b></td>
+        <td>≥4.5</td><td class="ok">16.88 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--table-row-hover</code></td><td>面</td>
+        <td>#f8f8f8</td><td><b>#F8F8F8</b></td>
+        <td>16.88</td><td><b>16.88</b></td>
+        <td>≥4.5</td><td class="ok">16.88 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--text-primary</code></td><td>前景</td>
+        <td>#000000</td><td><b>#171717</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--text-secondary</code></td><td>前景</td>
+        <td>#444444</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--text-muted</code></td><td>前景</td>
+        <td>#6d6d6d</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--text-placeholder</code></td><td>前景</td>
+        <td>#767676</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--text-link</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-primary</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-success</code></td><td>前景</td>
+        <td>#16a34a</td><td><b>#0A7655</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-warning</code></td><td>前景</td>
+        <td>#ea580c</td><td><b>#8E5D27</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-danger</code></td><td>前景</td>
+        <td>#dc2626</td><td><b>#C0392B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-info</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--border-normal</code></td><td>结构</td>
+        <td>?</td><td><b>#E5E5E5</b></td>
+        <td>19.6</td><td><b>1.18</b></td>
+        <td>≥3</td><td class="ex">1.18 装饰豁免</td></tr><tr><td><code>saas-admin</code></td><td><code>--table-border</code></td><td>结构</td>
+        <td>?</td><td><b>#E5E5E5</b></td>
+        <td>19.6</td><td><b>1.18</b></td>
+        <td>≥3</td><td class="ex">1.18 装饰豁免</td></tr><tr><td><code>saas-admin</code></td><td><code>--input-border</code></td><td>结构</td>
+        <td>?</td><td><b>#888888</b></td>
+        <td>19.6</td><td><b>3.31</b></td>
+        <td>≥3</td><td class="ok">3.31 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--border-focus</code></td><td>结构</td>
+        <td>?</td><td><b>#365FCE</b></td>
+        <td>19.6</td><td><b>5.32</b></td>
+        <td>≥3</td><td class="ok">5.32 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--gray-300</code></td><td>结构</td>
+        <td>?</td><td><b>#D4D4D4</b></td>
+        <td>19.6</td><td><b>1.38</b></td>
+        <td>≥3</td><td class="ex">1.38 装饰豁免</td></tr><tr><td><code>saas-admin</code></td><td><code>--gray-400</code></td><td>结构</td>
+        <td>?</td><td><b>#A3A3A3</b></td>
+        <td>19.6</td><td><b>2.35</b></td>
+        <td>≥3</td><td class="ex">2.35 装饰豁免</td></tr><tr><td><code>saas-admin</code></td><td><code>--gray-500</code></td><td>结构</td>
+        <td>?</td><td><b>#737373</b></td>
+        <td>19.6</td><td><b>4.43</b></td>
+        <td>≥3</td><td class="ok">4.43 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--gray-600</code></td><td>结构</td>
+        <td>?</td><td><b>#525252</b></td>
+        <td>19.6</td><td><b>7.29</b></td>
+        <td>≥3</td><td class="ok">7.29 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--gray-700</code></td><td>结构</td>
+        <td>?</td><td><b>#404040</b></td>
+        <td>19.6</td><td><b>9.68</b></td>
+        <td>≥3</td><td class="ok">9.68 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-primary-hover</code></td><td>面</td>
+        <td>#1d4ed8</td><td><b>#1D4ED8</b></td>
+        <td>6.7</td><td><b>6.7</b></td>
+        <td>≥4.5</td><td class="ok">6.7 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--color-primary-active</code></td><td>面</td>
+        <td>#1e40af</td><td><b>#1E40AF</b></td>
+        <td>8.72</td><td><b>8.72</b></td>
+        <td>≥4.5</td><td class="ok">8.72 达标</td></tr><tr><td><code>saas-admin</code></td><td><code>--sidebar-text-muted</code></td><td>前景</td>
+        <td>#6d6d6d</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--sidebar-text-secondary</code></td><td>前景</td>
+        <td>#6b7280</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--sidebar-text-primary</code></td><td>前景</td>
+        <td>#374151</td><td><b>#171717</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>saas-admin</code></td><td><code>--table-header-text</code></td><td>前景</td>
+        <td>#444444</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-bg-color-page</code></td><td>面</td>
+        <td>#f5f5f7</td><td><b>#F7F7F7</b></td>
+        <td>16.47</td><td><b>16.73</b></td>
+        <td>≥4.5</td><td class="ok">16.73 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-text-color</code></td><td>前景</td>
+        <td>#171717</td><td><b>#171717</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-text-color-secondary</code></td><td>前景</td>
+        <td>#525252</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-text-color-grey</code></td><td>前景</td>
+        <td>#737373</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-text-color-placeholder</code></td><td>前景</td>
+        <td>#a3a3a3</td><td><b>#6B6B6B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-text-color-link</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-primary</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-success</code></td><td>前景</td>
+        <td>#3a9d5c</td><td><b>#0A7655</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-warning</code></td><td>前景</td>
+        <td>#c8803a</td><td><b>#8E5D27</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-error</code></td><td>前景</td>
+        <td>#c45050</td><td><b>#C0392B</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-info</code></td><td>前景</td>
+        <td>#2563eb</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥3</td><td class="bad">见前景 未达</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-border-color</code></td><td>结构</td>
+        <td>?</td><td><b>#E5E5E5</b></td>
+        <td>19.6</td><td><b>1.18</b></td>
+        <td>≥3</td><td class="ex">1.18 装饰豁免</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-border-color-focus</code></td><td>结构</td>
+        <td>?</td><td><b>#365FCE</b></td>
+        <td>19.6</td><td><b>5.32</b></td>
+        <td>≥3</td><td class="ok">5.32 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-gray-300</code></td><td>结构</td>
+        <td>?</td><td><b>#D4D4D4</b></td>
+        <td>19.6</td><td><b>1.38</b></td>
+        <td>≥3</td><td class="ex">1.38 装饰豁免</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-gray-400</code></td><td>结构</td>
+        <td>?</td><td><b>#A3A3A3</b></td>
+        <td>19.6</td><td><b>2.35</b></td>
+        <td>≥3</td><td class="ex">2.35 装饰豁免</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-gray-500</code></td><td>结构</td>
+        <td>?</td><td><b>#737373</b></td>
+        <td>19.6</td><td><b>4.43</b></td>
+        <td>≥3</td><td class="ok">4.43 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-gray-600</code></td><td>结构</td>
+        <td>?</td><td><b>#525252</b></td>
+        <td>19.6</td><td><b>7.29</b></td>
+        <td>≥3</td><td class="ok">7.29 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-gray-700</code></td><td>结构</td>
+        <td>?</td><td><b>#404040</b></td>
+        <td>19.6</td><td><b>9.68</b></td>
+        <td>≥3</td><td class="ok">9.68 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-primary-hover</code></td><td>面</td>
+        <td>#3b76f0</td><td><b>#1D4ED8</b></td>
+        <td>4.17</td><td><b>6.7</b></td>
+        <td>≥4.5</td><td class="ok">6.7 达标</td></tr><tr><td><code>app-mobile</code></td><td><code>--uni-color-primary-active</code></td><td>面</td>
+        <td>#1d4ed8</td><td><b>#1E40AF</b></td>
+        <td>6.7</td><td><b>8.72</b></td>
+        <td>≥4.5</td><td class="ok">8.72 达标</td></tr><tr><td><code>website</code></td><td><code>--text</code></td><td>前景</td>
+        <td>#1f2937</td><td><b>#171717</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>website</code></td><td><code>--text-secondary</code></td><td>前景</td>
+        <td>#6b7280</td><td><b>#525252</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>website</code></td><td><code>--primary</code></td><td>前景</td>
+        <td>#1a73e8</td><td><b>#365FCE</b></td>
+        <td>见前景</td><td><b>见前景</b></td>
+        <td>≥4.5</td><td class="bad">见前景 未达</td></tr><tr><td><code>website</code></td><td><code>--border</code></td><td>面</td>
+        <td>#e5e7eb</td><td><b>#E5E5E5</b></td>
+        <td>1.24</td><td><b>1.26</b></td>
+        <td>≥3</td><td class="ex">1.26 装饰豁免</td></tr></tbody></table></div>
+
+<div class="panel"><h2>底+字 组合：白字压状态实底（派单要求补的一类）</h2><table class="rtbl"><thead><tr><th>端</th><th>白×primary</th><th>白×success</th><th>白×warning（含深字替代）</th><th>白×danger</th></tr></thead><tbody><tr><td><code>admin-web</code></td>
+        <td>-</td>
+        <td>-</td>
+        <td>白字 - → 建议 -<br>替代(深字#171717压现warning) -</td>
+        <td>-</td></tr><tr><td><code>saas-admin</code></td>
+        <td>-</td>
+        <td>-</td>
+        <td>白字 - → 建议 -<br>替代(深字#171717压现warning) -</td>
+        <td>-</td></tr><tr><td><code>app-mobile</code></td>
+        <td>-</td>
+        <td>-</td>
+        <td>白字 - → 建议 -<br>替代(深字#171717压现warning) -</td>
+        <td>-</td></tr><tr><td><code>website</code></td>
+        <td>-</td>
+        <td>-</td>
+        <td>白字 - → 建议 -<br>替代(深字#171717压现warning) -</td>
+        <td>-</td></tr></tbody></table></div>
+</body></html>
