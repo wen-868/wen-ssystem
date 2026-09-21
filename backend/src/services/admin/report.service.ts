@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 // ========== 数据库行类型定义 ==========
 /** 仪表盘销售汇总行（amount + count） */

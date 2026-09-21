@@ -1,4 +1,4 @@
-import { query, queryOne, queryWithTenant } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
 
 /**

@@ -17,11 +17,11 @@ vi.mock("../shared/db", () => ({
 }));
 
 import { listErrorLogs } from "../services/admin/error-log.service";
-import { confirmReceipt } from "../services/miniapp.service";
+
 import { supplierService } from "../services/supplier.service";
 import { getPurchaseOrderDetail } from "../services/admin/purchase-order.service";
 import { saleReturnService } from "../services/sale-return.service";
-import { buySeckill } from "../services/marketing/community-marketing.service";
+
 
 describe("租户隔离专项测试", () => {
   beforeEach(() => {

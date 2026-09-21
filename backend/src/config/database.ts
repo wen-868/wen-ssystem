@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import logger from "../shared/logger";
 import { env } from "./env";

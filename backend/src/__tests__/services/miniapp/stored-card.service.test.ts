@@ -22,7 +22,6 @@ vi.mock("../../../services/wechat-pay.service", () => ({
 
 import {
   getMyStoredCard,
-  getMyStoredRecords,
   getRechargeOptions,
   createRecharge,
   completeRecharge,

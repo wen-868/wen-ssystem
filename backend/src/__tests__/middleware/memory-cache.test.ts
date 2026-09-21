@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { memoryCache, cacheManager } from "../../middleware/memory-cache";
+import { describe, it, expect, beforeEach } from "vitest";
+import { cacheManager } from "../../middleware/memory-cache";
 
 describe("memory-cache 失效验证测试", () => {
   beforeEach(() => {

@@ -1,4 +1,4 @@
-import { query, queryOne, transaction, connQuery, connExecute } from "../../shared/db";
+import { query, queryOne, transaction, connExecute } from "../../shared/db";
 import { AppError } from "../../shared/app-error";
 import type { AuthUser } from "../../middleware/auth";
 import type { ResultSetHeader } from "mysql2";

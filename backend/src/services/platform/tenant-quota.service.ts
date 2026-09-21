@@ -1,4 +1,4 @@
-import { query, queryOne } from "../../shared/db";
+import { queryOne } from "../../shared/db";
 
 /**
  * R101-S2-01 批 4 · 租户「资源配额使用情况」只读聚合

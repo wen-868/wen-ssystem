@@ -1,4 +1,4 @@
-import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+import { query, transaction, queryWithTenant, queryOneWithTenant } from "../../shared/db";
 import logger from "../../shared/logger";
 
 /** t_order_timeout_config 配置行（带别名） */
