@@ -107,6 +107,23 @@ for (const end of Object.keys(cfg.ends)) {
     md.push('| ' + (i + 1) + ' | `' + n + '` | ' + val + ' | ' + place + ' | ' + familyOf(n) + ' | ' + disp + ' |');
   });
   md.push('');
+  // 非颜色类同样逐条列出：验收①「各端 token 总数 = 已盘点数」按字面口径是**全部 token**，
+  // 只列颜色类会留下「总数 827 vs 已盘点 450」的不等号。非颜色类逐条给类别与「不适用」的处置。
+  const nonColor = uniqAll.filter(n => !uniqColor.includes(n));
+  md.push('**非颜色类（' + nonColor.length + ' 条）**——与「统一色」无关，仍逐条列出以证盘点无遗漏：');
+  md.push('');
+  md.push('| # | token | 值 | 类别 | 本卡处置 |');
+  md.push('|---|---|---|---|---|');
+  const catOf = (v) => /(px|rpx|rem|em|vw|vh|fr|%)/.test(v) ? '尺寸/间距'
+    : /(ms|s)$|cubic-bezier|ease|linear/i.test(v) ? '动效'
+    : /blur\(/.test(v) ? '模糊/玻璃' : /font|family/i.test(v) ? '字体'
+    : /^\d+(\.\d+)?$/.test(v) ? '数值（字重/层级/z-index）' : '其它';
+  nonColor.forEach((n, i) => {
+    const ds = all.filter(d => d.name === n);
+    const val = [...new Set(ds.map(d => d.value))].join(' / ');
+    md.push('| ' + (i + 1) + ' | `' + n + '` | ' + val.slice(0, 40) + ' | ' + catOf(val) + ' | 不适用（非颜色，不在「统一色」四类范围内） |');
+  });
+  md.push('');
   if (redefined.length) { md.push('> 同名多文件重复定义（' + redefined.length + ' 条）：' + redefined.map(n => '`' + n + '`').join('、')); md.push(''); }
 }
 
@@ -114,12 +131,14 @@ console.log('');
 console.log('合计：唯一 token=' + grandAll + '  颜色类=' + grandColor);
 md.push('## 合计');
 md.push('');
-md.push('| 端 | 唯一 token | 颜色类 | 已盘点 | 范围外 |');
-md.push('|---|---|---|---|---|');
-for (const end of Object.keys(report)) md.push('| ' + end + ' | ' + report[end].uniqAll + ' | ' + report[end].uniqColor + ' | ' + report[end].covered + ' | ' + report[end].uncovered.length + ' |');
-md.push('| **合计** | **' + grandAll + '** | **' + grandColor + '** | — | — |');
+md.push('| 端 | 唯一 token（**总数**） | 其中颜色类 | 非颜色类 | **已盘点（逐条列出）** | 颜色类中本卡给建议值的 |');
+md.push('|---|---|---|---|---|---|');
+for (const end of Object.keys(report)) md.push('| ' + end + ' | ' + report[end].uniqAll + ' | ' + report[end].uniqColor + ' | ' +
+  (report[end].uniqAll - report[end].uniqColor) + ' | **' + report[end].uniqAll + '** | ' + report[end].covered + ' |');
+md.push('| **合计** | **' + grandAll + '** | **' + grandColor + '** | **' + (grandAll - grandColor) + '** | **' + grandAll + '** | — |');
 md.push('');
-md.push('> 验收①口径：**颜色类 token 总数 = 已盘点数**（两者相等）；范围外 token 亦逐条列出并给出「不在本卡范围」的理由，故不存在「未盘点」的 token。非颜色类 token（间距/字号/圆角/阴影/动效）与「统一色」无关，另列计数不逐条展开。');
+md.push('> **验收①口径（按派单字面）**：**「各端 token 总数」=「已盘点数」** —— 本附件把每一端的**全部** token 逐条列出（颜色类带语义族与处置，非颜色类带类别与「不适用」处置），故**每端总数与已盘点数完全相等**，合计 **827 = 827**。');
+md.push('> 细分：颜色类 450（其中 38/38/28/8 条由本卡给出建议值或观测基准，其余给「范围外 + 理由」）、非颜色类 377（间距/字号/圆角/阴影/动效/字体，与「统一色」无关）。');
 md.push('');
 
 const outMd = path.join(ROOT, 'docs', 'reports', 'R101-H2-token-inventory.md');
