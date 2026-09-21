@@ -1,4 +1,4 @@
-import { query, queryOne, transaction } from "../../shared/db";
+import { query, queryOne } from "../../shared/db";
 import { makeBizNo } from "../../shared/id";
 
 export interface Subscription {

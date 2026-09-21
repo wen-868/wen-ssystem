@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { query, queryOne, queryWithTenant, queryOneWithTenant } from "../../shared/db";
+
+import { query, queryOne, queryOneWithTenant } from "../../shared/db";
 import { signToken, getUserAccessInfo } from "../../middleware/auth";
 import { verifyPassword } from "../../shared/password";
 import { AppError } from "../../shared/app-error";

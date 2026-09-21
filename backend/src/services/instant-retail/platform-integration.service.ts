@@ -1,6 +1,6 @@
 import { z } from "zod";
 import logger from "../../shared/logger";
-import { query, queryOne, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { query, queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
 import { getAdapter, parsePlatformType, parseUnifiedOrder } from "./adapters/index";
 import type { PlatformType, SyncOrdersParams, SyncProductsParams } from "./types";
 import { maskConfig, getPlatformConfig, getPlatformConfigWithTenant } from "./common.service";

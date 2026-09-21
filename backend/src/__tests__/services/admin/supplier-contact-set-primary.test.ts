@@ -11,7 +11,7 @@ vi.mock("../../../shared/db", () => ({
   query: mocks.query,
 }));
 
-import { setPrimary, getById } from "../../../services/admin/supplier-contact.service";
+import { setPrimary } from "../../../services/admin/supplier-contact.service";
 
 describe("supplier-contact setPrimary", () => {
   beforeEach(() => {

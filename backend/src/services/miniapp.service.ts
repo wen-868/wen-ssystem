@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { query, queryOne, transaction } from "../shared/db";
 import { makeBizNo } from "../shared/id";
-import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, computeSellingPrice, type CustomerType } from "../shared/fulfillment";
+import { calcReservation, getInitialMiniappOrderState, completeOrderDelivery, getMemberLevelLabel, shouldReserveStock, type CustomerType } from "../shared/fulfillment";
 import { updateTraceCodesBySkuList } from "../shared/trace-code";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 

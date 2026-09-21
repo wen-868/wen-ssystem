@@ -1,7 +1,7 @@
 import { query, queryOne, transaction, queryWithTenant, queryOneWithTenant } from "../shared/db";
 import { makeBizNo } from "../shared/id";
 import type { ResultSetHeader } from "mysql2/promise";
-import type { ServiceContext, PageResult, PageParams } from "../types/index";
+import type { ServiceContext, PageResult } from "../types/index";
 
 // ========== 数据库行接口定义 ==========
 

@@ -21,7 +21,6 @@ vi.mock("../../../shared/id", () => ({
 import {
   calculateTierPrice,
   deleteWholesaleCartItems,
-  toggleWholesaleCartSelect,
   toggleWholesaleCartSelectAll,
   cancelWholesaleOrder,
   confirmWholesaleReceive,

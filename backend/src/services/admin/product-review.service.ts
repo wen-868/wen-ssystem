@@ -1,4 +1,4 @@
-import { queryWithTenant, queryOneWithTenant, transaction } from "../../shared/db";
+import { queryWithTenant, queryOneWithTenant } from "../../shared/db";
 
 export interface ProductReviewListParams {
   page: number;
