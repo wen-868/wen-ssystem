@@ -644,7 +644,7 @@ async function handleSubmit(print = false) {
 }
 .money-text {
   font-weight: 600;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   font-variant-numeric: tabular-nums;
 }
 .barcode-text {

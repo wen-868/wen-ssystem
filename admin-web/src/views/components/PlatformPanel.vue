@@ -373,7 +373,7 @@ function handleSyncProducts() {
   margin-left: 4px;
 }
 .info-value.expire-warning {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
   font-weight: 500;
 }
 .section-card {

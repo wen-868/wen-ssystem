@@ -383,11 +383,11 @@ onMounted(() => {
 .balance-amount {
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 
 .income {
-  color: var(--color-success);
+  color: var(--color-success-text);
   font-weight: 600;
 }
 

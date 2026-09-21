@@ -846,7 +846,7 @@ onMounted(() => {
 }
 .batch-tip {
   font-size: 13px;
-  color: var(--el-color-primary);
+  color: var(--color-primary-text);
   font-weight: 500;
 }
 .product-info {

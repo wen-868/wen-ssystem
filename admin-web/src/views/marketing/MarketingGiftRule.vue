@@ -531,7 +531,7 @@ async function loadGiftProducts() {
 .preview-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-success);
+  color: var(--color-success-text);
   margin-bottom: 8px;
 }
 
@@ -559,7 +559,7 @@ async function loadGiftProducts() {
 }
 
 .preview-product {
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   font-weight: 500;
 }
 </style>

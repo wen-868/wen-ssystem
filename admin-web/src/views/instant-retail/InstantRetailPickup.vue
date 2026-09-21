@@ -1121,7 +1121,7 @@ onBeforeUnmount(() => {
   color: var(--gray-700);
 }
 .detail-value.success {
-  color: var(--color-success);
+  color: var(--color-success-text);
 }
 .detail-value.danger {
   color: var(--color-danger);

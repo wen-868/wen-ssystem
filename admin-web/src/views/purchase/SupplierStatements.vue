@@ -296,6 +296,6 @@ onMounted(() => { loadList(); });
 .summary-value.green { color: var(--color-success); }
 .summary-value.orange { color: var(--color-warning); }
 .summary-value.red { color: var(--color-danger); }
-.balance-positive { color: var(--color-warning); font-weight: 600; }
-.balance-negative { color: var(--color-success); font-weight: 600; }
+.balance-positive { color: var(--color-warning-text); font-weight: 600; }
+.balance-negative { color: var(--color-success-text); font-weight: 600; }
 </style>
