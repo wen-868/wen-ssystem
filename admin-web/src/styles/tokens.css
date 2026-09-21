@@ -13,6 +13,7 @@
      Primary / Brand Color — Atlas Blue（R74 收敛为纯蓝，去紫调）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-primary: #3F6FEF;
+  --color-primary-text: #365FCE; /* S3-66.1 / H-1：AA 达标**文本**专用变体，仅用于普通字号文字，不得用于 background/border/box-shadow */
   --color-primary-hover: #5A83F2;
   --color-primary-active: #2F5BD6;
   --color-primary-soft: rgba(63, 111, 239, 0.12);
@@ -37,8 +38,10 @@
      Semantic — Status Colors（仅标签/状态使用）
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   --color-success: #0EA879;
+  --color-success-text: #0A7655; /* S3-66.1 / H-1：AA 达标**文本**专用变体，仅用于普通字号文字，不得用于 background/border/box-shadow */
   --color-success-soft: rgba(14, 168, 121, 0.12);
   --color-warning: #D48B3A;
+  --color-warning-text: #8E5D27; /* S3-66.1 / H-1：AA 达标**文本**专用变体，仅用于普通字号文字，不得用于 background/border/box-shadow */
   --color-warning-soft: rgba(212, 139, 58, 0.12);
   --color-danger: #C0392B;
   --color-danger-soft: rgba(192, 57, 43, 0.12);

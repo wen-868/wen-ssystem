@@ -233,5 +233,5 @@ onMounted(() => {
 .stat-card.pending { border-left-color: var(--color-warning); }
 .stat-value { font-size: 28px; font-weight: 700; color: var(--gray-700); }
 .stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
-.commission-amount { color: var(--color-warning); font-weight: 600; }
+.commission-amount { color: var(--color-warning-text); font-weight: 600; }
 </style>

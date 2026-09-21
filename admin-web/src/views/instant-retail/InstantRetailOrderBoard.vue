@@ -867,7 +867,7 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 .remark-text {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
   background: var(--color-warning-soft);
   padding: 4px 8px;
   border-radius: 4px;

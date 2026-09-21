@@ -944,7 +944,7 @@ onUnmounted(() => {
   border-bottom: none;
 }
 .order-item:hover .order-no {
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 .order-main {
   display: flex;
@@ -1025,7 +1025,7 @@ onUnmounted(() => {
   border-bottom: none;
 }
 .todo-item:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 .todo-dot {
   width: 8px;
@@ -1069,7 +1069,7 @@ onUnmounted(() => {
 }
 .quick-cell:hover {
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   background: var(--color-primary-bg);
 }
 

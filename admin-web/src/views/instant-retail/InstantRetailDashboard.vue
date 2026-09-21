@@ -437,7 +437,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .trend-up {
-  color: var(--el-color-success);
+  color: var(--color-success-text);
   font-weight: 500;
 }
 .trend-down {

@@ -2494,7 +2494,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
   background: var(--color-success-soft);
   border-radius: var(--radius-md);
   font-size: 13px;
-  color: var(--color-success);
+  color: var(--color-success-text);
 }
 .pay-change-value {
   font-size: 18px;
@@ -2670,7 +2670,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
 .pay-code-channel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-success);
+  color: var(--color-success-text);
   background: var(--color-success-soft, #e8f8ee);
   padding: 2px 8px;
   border-radius: 10px;
@@ -2740,7 +2740,7 @@ async function handleDeleteHoldOrder(holdNo: string) {
 }
 .trace-count {
   font-size: 12px;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   background: var(--color-primary-bg);
   border-radius: 10px;
   padding: 1px 8px;

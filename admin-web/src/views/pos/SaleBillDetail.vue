@@ -296,7 +296,7 @@ onMounted(() => {
 .summary-label { font-size: 13px; color: var(--text-secondary, #909399); }
 .summary-value { font-size: 15px; font-weight: 600; }
 .summary-total { font-size: 24px; font-weight: 700; color: var(--color-primary, #409eff); }
-.money-text { font-weight: 600; color: var(--color-primary, #409eff); }
+.money-text { font-weight: 600; color: var(--color-primary-text); }
 .bill-remark { margin-top: 16px; }
 .print-header {
   display: flex;

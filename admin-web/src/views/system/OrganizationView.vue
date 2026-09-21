@@ -545,7 +545,7 @@ onMounted(() => {
 }
 .boss-tip {
   font-size: 12px;
-  color: var(--color-warning);
+  color: var(--color-warning-text);
   margin-top: 4px;
 }
 .mini-toolbar {
