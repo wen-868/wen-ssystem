@@ -137,7 +137,7 @@ describe("routes/platform-reconciliation 集成测试", () => {
       const res = await request(app)
         .post("/api/platform-reconciliation")
         .send({ platformNo: "P001", platformName: "JD", type: 0, amount: 100 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(reconciliationService.createReconciliation).not.toHaveBeenCalled();
     });
   });

@@ -86,11 +86,11 @@ describe("routes/custom-report 集成测试", () => {
       );
     });
 
-    it("zod 校验失败时返回500（缺少 name）", async () => {
+    it("zod 校验失败时返回400（缺少 name）", async () => {
       const res = await request(app)
         .post("/api/custom-report/templates")
         .send({ type: "SALES", config: {} });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -116,11 +116,11 @@ describe("routes/custom-report 集成测试", () => {
       );
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app)
         .put("/api/custom-report/templates/abc")
         .send({ name: "更新" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -140,9 +140,9 @@ describe("routes/custom-report 集成测试", () => {
       expect(reportService.deleteTemplate).toHaveBeenCalledWith("test-tenant", 1);
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app).delete("/api/custom-report/templates/abc");
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -166,11 +166,11 @@ describe("routes/custom-report 集成测试", () => {
       );
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app)
         .post("/api/custom-report/templates/abc/execute")
         .send({});
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -225,11 +225,11 @@ describe("routes/custom-report 集成测试", () => {
       );
     });
 
-    it("zod 校验失败时返回500（缺少 name）", async () => {
+    it("zod 校验失败时返回400（缺少 name）", async () => {
       const res = await request(app)
         .post("/api/custom-report/schedules")
         .send({ templateId: 1, cronExpression: "0 0 * * *", exportFormat: "XLSX" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -255,11 +255,11 @@ describe("routes/custom-report 集成测试", () => {
       );
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app)
         .put("/api/custom-report/schedules/abc")
         .send({ name: "更新" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -279,9 +279,9 @@ describe("routes/custom-report 集成测试", () => {
       expect(reportService.deleteSchedule).toHaveBeenCalledWith("test-tenant", 1);
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app).delete("/api/custom-report/schedules/abc");
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -301,11 +301,11 @@ describe("routes/custom-report 集成测试", () => {
       expect(reportService.toggleSchedule).toHaveBeenCalledWith("test-tenant", 1, "active");
     });
 
-    it("zod 校验失败时返回500（status 非法值）", async () => {
+    it("zod 校验失败时返回400（status 非法值）", async () => {
       const res = await request(app)
         .put("/api/custom-report/schedules/1/toggle")
         .send({ status: "invalid" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {
@@ -325,9 +325,9 @@ describe("routes/custom-report 集成测试", () => {
       expect(reportService.runSchedule).toHaveBeenCalledWith("test-tenant", 1);
     });
 
-    it("zod 校验失败时返回500（id 非数字）", async () => {
+    it("zod 校验失败时返回400（id 非数字）", async () => {
       const res = await request(app).post("/api/custom-report/schedules/abc/run");
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     });
 
     it("service 抛错时返回500", async () => {

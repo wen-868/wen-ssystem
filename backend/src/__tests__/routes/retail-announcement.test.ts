@@ -112,11 +112,11 @@ describe("routes/retail-announcement 集成测试", () => {
       );
     });
 
-    it("缺少必填字段时 zod 校验失败返回500", async () => {
+    it("缺少必填字段时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/retail-announcement/admin/retail-announcements?storeId=1")
         .send({ title: "新公告" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(announcementService.createAnnouncement).not.toHaveBeenCalled();
     });
 

@@ -91,7 +91,7 @@ describe("routes/miniapp-config 集成测试", () => {
       const res = await request(app)
         .put("/api/miniapp-config/configs/WECHAT")
         .send({ appSecret: "secret" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(MiniappConfigService.saveConfig).not.toHaveBeenCalled();
     });
 
@@ -158,7 +158,7 @@ describe("routes/miniapp-config 集成测试", () => {
       const res = await request(app)
         .post("/api/miniapp-config/packages")
         .send({ templateId: 1, appId: "wx123" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(MiniappConfigService.generatePackage).not.toHaveBeenCalled();
     });
 

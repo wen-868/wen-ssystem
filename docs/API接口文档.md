@@ -3247,3 +3247,88 @@
 - **描述**：离线单批量提交（幂等）
 - **认证**：需要认证
 - **状态**：**已有实现**（引入提交 `e07796c4a`）；其**幂等是否真的成立**（同一幂等键提交两次是否只落一单）属 **B-2** 的核验项，尚未取反测证据。
+
+---
+
+## 模板中心（平台总后台，前缀 /api/platform/templates，C2-0 新增）
+
+> 依据：`docs/tasks/cards/R101-C2-0-凌舟裁定.md`（12 端点 + 4 张新表）。
+> 后端：`backend/src/routes/platform-templates.routes.ts` + `backend/src/controllers/platform/platform-template.controller.ts`。
+> 认证：全部端点需平台总后台令牌（`routeConfig.auth = "requirePlatformAuth"`，无令牌 401）。
+> 空态契约：无数据一律返回 `{ code: "0", data: { records: [], total: 0 } }`，**不造种子数据**。
+> 统一响应信封：`{ code, msg, data, traceId }`（下载端点除外，见 #10）。
+
+### GET /api/platform/templates/init
+- **描述**：初始化模板列表（四段式：编号规则 / 换算规则 / 打印模板 / 默认仓库账户）
+- **认证**：平台总后台令牌
+- **响应 data**：`{ records: [...], total }`；每项含 `id/code/name/applicable/codeRule/convertRule/printRef/defaultWhAccount/configJson/freeAvailable/recommended/version/refCount/status/createdAt/updatedAt`，并附 `copyConfigs`（"将复制的配置"，元素 `{ label, public }`，取 `configJson.copyConfigs`，无则 `[]`）
+
+### POST /api/platform/templates/init
+- **描述**：新建初始化模板并写入 `version=1` 版本快照（主表与快照同一事务）
+- **认证**：平台总后台令牌
+- **请求体**：`{ code✅, name✅, applicable?, codeRule?, convertRule?, printRef?, defaultWhAccount?, configJson?, freeAvailable?, recommended?, changeNote? }`
+- **响应**：201；`{ id, code, name, version: 1, copyConfigs }`
+- **错误**：编码重复 → 409（`模板编码已存在：<code>`）；参数缺失 → 400
+
+### PUT /api/platform/templates/init/:id
+- **描述**：编辑初始化模板（`version+1` 并写入版本快照；未传字段保持不变）
+- **认证**：平台总后台令牌
+- **请求体**：`POST` 的字段全集（可为部分），另可传 `status`（0/1）
+- **响应**：`{ id, version, changedFields, copyConfigs }`
+- **错误**：`:id` 非正整数 → 400；模板不存在 → 404；改 `code` 撞已有编码 → 409；无任何可更新字段 → 400
+
+### GET /api/platform/templates/init/:id/versions
+- **描述**：初始化模板版本记录（按 `version` 倒序）
+- **认证**：平台总后台令牌
+- **响应 data**：`{ records: [{ id, templateId, version, configJson, copyConfigs, changeNote, createdBy, createdAt }], total, templateId }`（无记录 → `records: []`）
+- **错误**：`:id` 非正整数 → 400
+
+### GET /api/platform/templates/print?billType=
+- **描述**：平台公共打印模板列表（表 `t_platform_print_template`，与租户表 `t_print_template` 解耦）
+- **认证**：平台总后台令牌
+- **Query参数**：`billType` 可选；取值必须是 `SALE_RECEIPT / SALE_BILL / SALE_RETURN / PURCHASE_ORDER / REPORT / LABEL / SHIFT / DAILY_SETTLE` 之一；传空或 `ALL` 表示全部；**其它值 → 400**
+- **响应 data**：`{ records: [{ id, name, billType, paperType, spec, content, public, version, status, createdAt, updatedAt }], total, billType }`；`public` 为布尔（对应 `is_public=1`）
+
+### POST /api/platform/templates/print/upload
+- **描述**：上传（新建）平台公共打印模板，落库 `is_public=1`
+- **认证**：平台总后台令牌
+- **请求体**：`{ name✅, billType✅, content✅, paperType?, spec? }`；`paperType` 取值 `RECEIPT_58/RECEIPT_80/RECEIPT_110/A4/DOT_1UP/DOT_2UP/DOT_3UP/LABEL_60X40/LABEL_CUSTOM`（缺省 `RECEIPT_80`）
+- **响应**：201；`{ id, name, billType, paperType, public: true, version: 1 }`
+- **错误**：`billType`/`paperType` 不在枚举内、缺必填 → 400
+
+### POST /api/platform/templates/print/:id/public
+- **描述**：设为公共模板（幂等；模板创建时已置 1）
+- **认证**：平台总后台令牌
+- **响应**：`{ id, public: true, changed }`
+- **错误**：`:id` 非正整数 → 400；模板不存在 → 404
+
+### GET /api/platform/templates/import-export?direction=
+- **描述**：导入 / 导出模板清单（表 `t_platform_io_template`）
+- **认证**：平台总后台令牌
+- **Query参数**：`direction` 可选；取值 `IMPORT / EXPORT`；传空或 `ALL` 表示全部；**其它值 → 400**
+- **响应 data**：`{ records: [{ id, name, direction, version, fieldCount, compat, fieldDesc, fileName, hasFile, createdAt, updatedAt }], total, direction }`（无数据 → `records: []`）
+
+### POST /api/platform/templates/import-export
+- **描述**：新增导入 / 导出模板（列表与下载端点的数据来源）
+- **认证**：平台总后台令牌
+- **请求体**：`{ name✅, direction✅, version?, fieldCount?, compat?, fieldDesc?, fileName?, fileContent? }`
+- **响应**：201；`{ id, name, direction, version, hasFile }`
+- **错误**：`direction` 非 IMPORT/EXPORT、缺必填 → 400
+
+### GET /api/platform/templates/import-export/:id/download
+- **描述**：模板文件下载
+- **认证**：平台总后台令牌
+- **响应**：200 + 原始文件内容，响应头 `Content-Disposition: attachment; filename="<ASCII 回退名>"; filename*=UTF-8''<URL 编码文件名>`、`Content-Type: application/octet-stream`（**不走 `{code,msg,data}` 信封**）
+- **错误**：`:id` 非正整数 → 400；模板不存在或该模板无 `file_content` → 404（`模板「<名称>」未上传文件内容，无法下载`）
+
+### GET /api/platform/announcements/templates
+- **描述**：公告模板清单（0 DDL：复用 `t_platform_config`，`platform='SAAS'`、`tenant_id='platform'`、`config_key='announcement:templates'`、`category='announcement'`）
+- **认证**：平台总后台令牌
+- **响应 data**：`{ records: [{ code, name, content }], total }`（未配置 → `records: []`，**不返回内置默认模板**）
+- **后端**：`admin-platform-announcement.routes.ts` + `backend/src/services/platform/announcement-template.service.ts`（该端点注册在 `GET /:id` 之前）
+
+### PUT /api/platform/announcements/templates
+- **描述**：保存公告模板清单（整包覆盖；传 `[]` 即清空，语义等价于未配置）
+- **认证**：平台总后台令牌
+- **请求体**：`{ records: [{ code✅, name✅, content✅ }] }`（最多 50 项；`records` 非数组、模板缺字段、`code` 重复 → 400）
+- **响应**：`{ saved: true, total, records }`

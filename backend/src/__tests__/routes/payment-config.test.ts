@@ -75,7 +75,7 @@ describe("routes/payment-config 集成测试", () => {
       const res = await request(app)
         .put("/api/payment-config/configs/WECHAT")
         .send({ appSecret: "secret" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(PaymentConfigService.saveChannelConfig).not.toHaveBeenCalled();
     });
 
@@ -154,7 +154,7 @@ describe("routes/payment-config 集成测试", () => {
       const res = await request(app)
         .post("/api/payment-config/bank-accounts")
         .send({ accountName: "公司", accountNumber: "1234" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(PaymentConfigService.createBankAccount).not.toHaveBeenCalled();
     });
 

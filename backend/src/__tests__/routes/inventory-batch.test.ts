@@ -85,7 +85,7 @@ describe("routes/inventory-batch 集成测试", () => {
 
       it("expiryStatus 非法时 zod 校验失败", async () => {
         const res = await request(app).get("/api/admin/inventory-batch/batches?expiryStatus=invalid");
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.listBatches).not.toHaveBeenCalled();
       });
 
@@ -160,7 +160,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/batches")
           .send({ storeId: 1, skuId: 1, quantity: 100 });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.createBatch).not.toHaveBeenCalled();
       });
 
@@ -168,7 +168,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/batches")
           .send({ ...validBody, quantity: 0 });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.createBatch).not.toHaveBeenCalled();
       });
 
@@ -198,7 +198,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .put("/api/admin/inventory-batch/batches/1")
           .send({ quantity: -1 });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.updateBatch).not.toHaveBeenCalled();
       });
 
@@ -228,7 +228,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/batches/1/split")
           .send({ newBatchNo: "B002" });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.splitBatch).not.toHaveBeenCalled();
       });
 
@@ -236,7 +236,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/batches/1/split")
           .send({ splitQuantity: 50, newBatchNo: "" });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.splitBatch).not.toHaveBeenCalled();
       });
 
@@ -339,7 +339,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/expiry-configs")
           .send({ ...validBody, action: "INVALID" });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.createExpiryConfig).not.toHaveBeenCalled();
       });
 
@@ -347,7 +347,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .post("/api/admin/inventory-batch/expiry-configs")
           .send({ ...validBody, daysBeforeExpiry: 0 });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.createExpiryConfig).not.toHaveBeenCalled();
       });
 
@@ -377,7 +377,7 @@ describe("routes/inventory-batch 集成测试", () => {
         const res = await request(app)
           .put("/api/admin/inventory-batch/expiry-configs/1")
           .send({ action: "BAD" });
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.updateExpiryConfig).not.toHaveBeenCalled();
       });
 
@@ -434,7 +434,7 @@ describe("routes/inventory-batch 集成测试", () => {
 
       it("status 非法时 zod 校验失败", async () => {
         const res = await request(app).get("/api/admin/inventory-batch/expiry-alerts?status=INVALID");
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(400);
         expect(service.listExpiryAlerts).not.toHaveBeenCalled();
       });
 
