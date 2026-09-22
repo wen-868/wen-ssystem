@@ -1,0 +1,34 @@
+diff --git a/backend/src/__tests__/routes/platform-templates.test.ts b/backend/src/__tests__/routes/platform-templates.test.ts
+index c6abe55..1506934 100644
+--- a/backend/src/__tests__/routes/platform-templates.test.ts
++++ b/backend/src/__tests__/routes/platform-templates.test.ts
+@@ -457,7 +457,7 @@ describe("C2-0 #10 GET /api/platform/templates/import-export/:id/download", () =
+ 
+     expect(res.status).toBe(200);
+     expect(String(res.headers["content-disposition"])).toContain("attachment");
+-    expect(res.text).toBe("{\"columns\":[]}");
++    expect(res.body.toString()).toBe("{\"columns\":[]}");
+     expect(mocks.downloadIoTemplate).toHaveBeenCalledWith(6);
+   });
+ 
+diff --git a/backend/src/__tests__/services/platform/platform-template.service.test.ts b/backend/src/__tests__/services/platform/platform-template.service.test.ts
+index 25d0c66..eaeea1c 100644
+--- a/backend/src/__tests__/services/platform/platform-template.service.test.ts
++++ b/backend/src/__tests__/services/platform/platform-template.service.test.ts
+@@ -152,9 +152,14 @@ describe("platform/platform-template.service（C2-0）", () => {
+     expect(calls[0].params[8]).toBe(1);
+     expect(calls[0].params[calls[0].params.length - 1]).toBe("platform_admin");
+     expect(calls[1].sql).toContain("INSERT INTO t_platform_template_version");
++    expect(calls[1].sql).toContain("(template_id, version, config_json, change_note, created_by)");
++    expect(calls[1].sql).toContain("VALUES (?, 1, ?, ?, ?)");
+     expect(calls[1].params[0]).toBe(7);
+-    expect(calls[1].params[1]).toBe(1);
+-    expect(calls[1].params[3]).toBe("新建模板首版本");
++    expect(JSON.parse(String(calls[1].params[1]))).toEqual({
++      copyConfigs: [{ label: "编号规则", public: true }],
++    });
++    expect(calls[1].params[2]).toBe("新建模板首版本");
++    expect(calls[1].params[3]).toBe("platform_admin");
+   });
+ 
+   it("新建：编码重复 409，且不进入事务", async () => {

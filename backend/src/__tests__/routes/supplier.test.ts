@@ -121,11 +121,11 @@ describe("routes/supplier 集成测试", () => {
       );
     });
 
-    it("name 缺失时 zod 校验失败返回500", async () => {
+    it("name 缺失时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/suppliers")
         .send({ settlementType: "CASH" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.create).not.toHaveBeenCalled();
     });
 
@@ -133,7 +133,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/suppliers")
         .send({ name: "" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.create).not.toHaveBeenCalled();
     });
 
@@ -141,7 +141,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/suppliers")
         .send({ name: "测试", settlementDay: 32 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.create).not.toHaveBeenCalled();
     });
 
@@ -149,15 +149,15 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/suppliers")
         .send({ name: "测试", taxRate: 2 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.create).not.toHaveBeenCalled();
     });
 
-    it("settlementType 非法时 zod 校验失败返回500", async () => {
+    it("settlementType 非法时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/suppliers")
         .send({ name: "测试", settlementType: "INVALID" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.create).not.toHaveBeenCalled();
     });
 
@@ -198,15 +198,15 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .put("/api/admin/suppliers/1")
         .send({ name: "" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.update).not.toHaveBeenCalled();
     });
 
-    it("settlementType 非法时 zod 校验失败返回500", async () => {
+    it("settlementType 非法时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .put("/api/admin/suppliers/1")
         .send({ settlementType: "BAD" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.update).not.toHaveBeenCalled();
     });
 
@@ -214,7 +214,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .put("/api/admin/suppliers/1")
         .send({ settlementDay: 0 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.update).not.toHaveBeenCalled();
     });
 
@@ -222,7 +222,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .put("/api/admin/suppliers/1")
         .send({ status: 2 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.update).not.toHaveBeenCalled();
     });
 
@@ -272,11 +272,11 @@ describe("routes/supplier 集成测试", () => {
       expect(res.body.code).toBe("404");
     });
 
-    it("name 缺失时 zod 校验失败返回500", async () => {
+    it("name 缺失时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/suppliers/1/contacts")
         .send({ mobile: "13800000000" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.addContact).not.toHaveBeenCalled();
     });
 
@@ -284,7 +284,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/suppliers/1/contacts")
         .send({ name: "测试", email: "invalid-email" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.addContact).not.toHaveBeenCalled();
     });
 
@@ -292,7 +292,7 @@ describe("routes/supplier 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/suppliers/1/contacts")
         .send({ name: "" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(supplierService.addContact).not.toHaveBeenCalled();
     });
 

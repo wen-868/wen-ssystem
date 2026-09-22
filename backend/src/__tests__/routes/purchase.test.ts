@@ -136,7 +136,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/purchase-orders")
         .send({ supplierName: "测试", storeId: 1, items: [] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.createOrder).not.toHaveBeenCalled();
     });
 
@@ -144,7 +144,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/purchase-orders")
         .send({ ...validBody, items: [] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.createOrder).not.toHaveBeenCalled();
     });
 
@@ -152,7 +152,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/purchase-orders")
         .send({ ...validBody, items: [{ skuName: "测试", unitPrice: 100 }] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.createOrder).not.toHaveBeenCalled();
     });
 
@@ -272,7 +272,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .put("/api/admin/purchase-orders/PO001")
         .send({ supplierId: -1 });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.updateOrder).not.toHaveBeenCalled();
     });
 
@@ -280,7 +280,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .put("/api/admin/purchase-orders/PO001")
         .send({ items: [{ skuId: 1, skuName: "测试", unitPrice: 100, taxRate: 2 }] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.updateOrder).not.toHaveBeenCalled();
     });
 
@@ -349,7 +349,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/purchase-orders/PO001/in-stock")
         .send({ items: [] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.inStock).not.toHaveBeenCalled();
     });
 
@@ -357,7 +357,7 @@ describe("routes/purchase 集成测试", () => {
       const res = await request(app)
         .post("/api/admin/purchase-orders/PO001/in-stock")
         .send({ items: [{ boxQty: 1 }] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(purchaseService.inStock).not.toHaveBeenCalled();
     });
 

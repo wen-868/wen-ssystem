@@ -180,19 +180,19 @@ describe("routes/sale-return 集成测试", () => {
       expect(res.status).toBe(200);
     });
 
-    it("storeId 缺失时 zod 校验失败返回500", async () => {
+    it("storeId 缺失时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/sale-returns/")
         .send({ items: [{ skuId: 1, skuName: "A", unitPrice: 10 }] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(mocks.saleReturnService.createReturn).not.toHaveBeenCalled();
     });
 
-    it("items 为空数组时 zod 校验失败返回500", async () => {
+    it("items 为空数组时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/sale-returns/")
         .send({ storeId: 1, items: [] });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(mocks.saleReturnService.createReturn).not.toHaveBeenCalled();
     });
 
@@ -260,19 +260,19 @@ describe("routes/sale-return 集成测试", () => {
       expect(res.status).toBe(200);
     });
 
-    it("refundMethod 缺失时 zod 校验失败返回500", async () => {
+    it("refundMethod 缺失时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/sale-returns/RT001/refund")
         .send({});
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(mocks.saleReturnService.refund).not.toHaveBeenCalled();
     });
 
-    it("refundMethod 枚举值非法时 zod 校验失败返回500", async () => {
+    it("refundMethod 枚举值非法时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/admin/sale-returns/RT001/refund")
         .send({ refundMethod: "INVALID" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(mocks.saleReturnService.refund).not.toHaveBeenCalled();
     });
 

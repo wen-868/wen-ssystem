@@ -88,11 +88,11 @@ describe("routes/platform-review 集成测试", () => {
       expect(reviewService.replyReview).toHaveBeenCalledWith("test-tenant", 1, "回复内容");
     });
 
-    it("replyContent 缺失时 zod 校验失败返回500", async () => {
+    it("replyContent 缺失时 zod 校验失败返回400", async () => {
       const res = await request(app)
         .post("/api/platform-review/1/reply")
         .send({});
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(reviewService.replyReview).not.toHaveBeenCalled();
     });
 
@@ -100,7 +100,7 @@ describe("routes/platform-review 集成测试", () => {
       const res = await request(app)
         .post("/api/platform-review/1/reply")
         .send({ replyContent: "" });
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
       expect(reviewService.replyReview).not.toHaveBeenCalled();
     });
 

@@ -1,5 +1,6 @@
 import express from "express";
 import { Router } from "express";
+import { ZodError } from "zod";
 
 export interface TestAppOptions {
   prefix?: string;
@@ -33,6 +34,13 @@ export function createTestApp(options: TestAppOptions) {
   // 历史夹具曾用 `message`，与生产字段名不一致 —— 会导致「后端发 msg、测试断言 message」
   // 的契约错配长期测不出来（前端 F1 的 message/msg 取错字段正是此类问题）。
   app.use((err: any, _req: any, res: any, _next: any) => {
+    // 与生产 middleware/error-handler.ts:18 对应：zod 校验失败统一按 400 返回
+    // （生产先判 ZodError、再判 statusCode，故本分支须置于 statusCode 分支之前）
+    if (err instanceof ZodError) {
+      const msg = err.errors[0]?.message || "参数校验失败";
+      res.status(400).json({ success: false, msg, code: "400", traceId: "test-trace" });
+      return;
+    }
     const statusCode = err?.statusCode || 500;
     const message = err?.message || "服务器内部错误";
     res.status(statusCode).json({ success: false, msg: message, code: String(statusCode), traceId: "test-trace" });
