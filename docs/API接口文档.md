@@ -176,6 +176,13 @@
 | P37 | `GET /api/platform/subscription-applies` | 订阅申请列表（R98-01，PENDING 优先） | ?page&pageSize&status=PENDING\|APPROVED\|REJECTED | {list:[{id,planId,planName,company,contact,mobile,remark,status,auditRemark,auditedAt,createdAt}],total,page,pageSize} | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
 | P38 | `GET /api/platform/subscription-applies/:id` | 订阅申请详情（R98-01） | — | 同 P37 单条记录 | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/views/subscription/SubscriptionApplies.vue |
 | P39 | `PUT /api/platform/subscription-applies/:id/audit` | 订阅申请审核（R98-01，需 x-csrf-token） | action:"APPROVED"\|"REJECTED"✅, auditRemark?:string | 更新后记录（status/auditRemark/auditedAt） | platform-subscription-applies.routes.ts + services/platform-miniapp.service.ts | saas-admin/src/api/subscription-apply.ts |
+| P40 | `GET /api/platform/tenants/stats` | 租户各状态计数（R101-C1-2 新增；注册于 `/:id` 之前） | — | {total,counts:{normal,owed,frozen,cancelled,expired},byStatus:[],unmapped:[]} | platform-tenant.routes.ts + services/platform/tenant-status-stats.service.ts | saas-admin/src/api/tenant.ts (getTenantStatusStatsApi) → views/tenant/TenantList.vue |
+| P41 | `GET /api/platform/tenants/export` | 租户导出 CSV（R101-C1-2 新增；注册于 `/:id` 之前） | ?keyword | text/csv；表头 `ID,租户编码,租户名称,联系人,联系电话,联系邮箱,状态,到期时间,创建时间` | platform-tenant.routes.ts + services/platform/tenant-export.service.ts | saas-admin/src/api/tenant.ts (exportTenantsApi) → views/tenant/TenantList.vue |
+| P42 | `GET /api/platform/tenants/:id/overview` | 单租户概况聚合（R101-C1-2 新增） | 路径 `:id` | 概况聚合（含套餐上限 / 存储水位；复用 `getTenantQuota()`） | platform-tenant.routes.ts + services/platform/tenant-overview.service.ts | saas-admin/src/api/tenant.ts (getTenantOverviewApi) → views/tenant/TenantDetail.vue |
+| P43 | `POST /api/platform/tenants/:id/proxy-login` | 平台代登录（R101-C1-2 新增，需 x-csrf-token） | reason:string✅, username?:string | 短时登录令牌；**写留痕** `t_platform_audit_log(action=PROXY_LOGIN)` | platform-tenant.routes.ts + services/platform/tenant-ops.service.ts + services/admin/platform-audit-log.service.ts | saas-admin/src/api/tenant.ts (proxyLoginTenantApi) → views/tenant/TenantDetail.vue |
+| P44 | `POST /api/platform/tenants/:id/quota-expand` | 临时扩容（R101-C1-2 新增，需 x-csrf-token） | 扩容幅度 + 有效期 + reason | 落 `t_tenant_config`；**写留痕** `t_platform_audit_log(action=QUOTA_EXPAND)` | 同 P43（tenant-ops.service.ts） | saas-admin/src/api/tenant.ts (expandTenantQuotaApi) → views/tenant/TenantDetail.vue |
+| P45 | `GET /api/platform/plans/upgrade-flow-report` | 套餐升降级流向报表（R101-C1-2 新增；注册于 `/:planId` 之前） | ?range=month\|3m\|12m（非法值 400） | {range,rangeStart,dataSource,summary:{events,tenants},records:[]} | platform-plans.routes.ts + services/platform/plan-upgrade-flow.service.ts | saas-admin/src/views/Packages.vue |
+| P46 | `POST /api/platform/plans/:planId/copy` | 复制套餐（R101-C1-2 新增，需 x-csrf-token） | {planCode?,planName?,status?} | 新套餐记录（复制 features / moduleAccess / 策略包，读回自证） | platform-plans.routes.ts + services/platform/plan-copy.service.ts | saas-admin/src/api.ts (copyPlan) → views/Packages.vue |
 
 ### 三、STORE 端点（18 个，/api/store/*）
 
@@ -2483,6 +2490,42 @@
 - **认证**：需要认证
 - **请求体**：`{ enable: boolean }`
 
+#### GET /api/platform/tenants/stats
+- **描述**：租户各状态计数（R101-C1-2 新增）
+- **认证**：需要认证（`requirePlatformAuth`）
+- **Query参数**：无
+- **响应**：`{ total, counts: { normal, owed, frozen, cancelled, expired }, byStatus: [], unmapped: [] }`
+- **后端**：`platform-tenant.routes.ts` + `services/platform/tenant-status-stats.service.ts`
+- **注册顺序约束**：必须注册在 `GET /:id` **之前**，否则会被当作 `id="stats"` 吞掉
+
+#### GET /api/platform/tenants/export
+- **描述**：租户导出 CSV（R101-C1-2 新增；复用 `listTenants()`，不重写 SQL）
+- **认证**：需要认证
+- **Query参数**：`keyword?`
+- **响应**：`text/csv`，表头 `ID,租户编码,租户名称,联系人,联系电话,联系邮箱,状态,到期时间,创建时间`
+- **注册顺序约束**：同 P40，必须在 `GET /:id` **之前**
+
+#### GET /api/platform/tenants/:id/overview
+- **描述**：单租户概况聚合（R101-C1-2 新增）
+- **认证**：需要认证
+- **路径参数**：`id`（租户 id）
+- **响应**：概况聚合对象（套餐上限 / 存储水位等，复用 `getTenantQuota()`）
+- **错误**：租户不存在 → `404 {"code":"404","msg":"租户不存在"}`
+
+#### POST /api/platform/tenants/:id/proxy-login
+- **描述**：平台代登录（R101-C1-2 新增）
+- **认证**：需要认证 + **`x-csrf-token`**（缺失 → `403 {"msg":"CSRF token 无效或缺失"}`）
+- **请求体**：`{ reason: string✅, username?: string }`
+- **响应**：短时登录令牌
+- **审计留痕（硬）**：写 `t_platform_audit_log`，`action=PROXY_LOGIN`、`module=tenant`、含 `targetId` 与 `ip`
+
+#### POST /api/platform/tenants/:id/quota-expand
+- **描述**：临时扩容（R101-C1-2 新增）
+- **认证**：需要认证 + **`x-csrf-token`**
+- **请求体**：扩容幅度 + 有效期 + `reason`
+- **落库**：`t_tenant_config`（临时额度）
+- **审计留痕（硬）**：写 `t_platform_audit_log`，`action=QUOTA_EXPAND`
+
 ### 套餐与订阅
 
 #### GET /api/platform/plans
@@ -2490,6 +2533,21 @@
 - **认证**：需要认证
 - **Query参数**：status
 - **后端**：`platform-plans.routes.ts`
+
+#### GET /api/platform/plans/upgrade-flow-report
+- **描述**：套餐升降级流向报表（R101-C1-2 新增）
+- **认证**：需要认证
+- **Query参数**：`range` ∈ `month` / `3m` / `12m`（非法值 → `400 {"code":"400","msg":"range 非法（可选：month / 3m / 12m）"}`）
+- **响应**：`{ range, rangeStart, dataSource, summary: { events, tenants }, records: [] }`
+- **数据源（真实，非占位）**：`t_subscription_operation_log` 中 `operation_type IN ('UPGRADE','DOWNGRADE')`；写入方为 `services/admin/subscription.service.ts` 的 `changePlan()`；经 `t_subscription.id → tenant_id` 去重得到真实租户数；无记录时返回 `records: []`（前端保持空态，不造数）
+- **注册顺序约束**：必须在 `GET /:planId` **之前**
+
+#### POST /api/platform/plans/:planId/copy
+- **描述**：复制套餐（R101-C1-2 新增）
+- **认证**：需要认证 + **`x-csrf-token`**
+- **请求体**：`{ planCode?, planName?, status? }`
+- **响应**：新套餐记录（复制 `features` / `moduleAccess` / 策略包；编码唯一性校验 + 自动派生；读回自证）
+- **后端**：`platform-plans.routes.ts` + `services/platform/plan-copy.service.ts`
 
 #### POST /api/platform/plans
 - **描述**：创建套餐
