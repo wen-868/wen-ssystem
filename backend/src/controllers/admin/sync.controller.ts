@@ -15,6 +15,10 @@ function validateSince(since: unknown): string {
   if (!ISO_8601_REGEX.test(value)) {
     throw new AppError("since 参数必须是 ISO 8601 格式（如 2026-07-19T00:00:00Z）", 400);
   }
+  // 格式合法但语义非法（如 2026-13-45T99:99:99Z：月份/日期/时分秒越界）→ 同样按 400 拦截
+  if (Number.isNaN(Date.parse(value))) {
+    throw new AppError("since 参数不是有效的时间（如 2026-07-19T00:00:00Z）", 400);
+  }
   return value;
 }
 

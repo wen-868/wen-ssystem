@@ -157,7 +157,9 @@ describe("delta-sync.service - getProductDelta", () => {
         expect(res.changes[0].data?.retailPrice).toBe(129);
         expect(res.changes[0].data?.availableQty).toBe(100);
         expect(res.changes[0].data?.updatedAt).toBe("2026-07-19T10:00:00Z");
-        expect(res.until).toBe("2026-07-19T10:00:00Z");
+        // until 一律归一化为带毫秒的 ISO 8601（客户端会把它原样作为下一页 since 回传）
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
+        expect(res.until).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
         expect(res.hasMore).toBe(false);
     });
 
@@ -189,15 +191,89 @@ describe("delta-sync.service - getProductDelta", () => {
         expect(res.changes[0].skuId).toBe(1);
     });
 
-    it("返回数据量等于 pageSize 时 hasMore=true", async () => {
-        // 构造 100 条数据（pageSize=100）
-        const rows = Array.from({ length: 100 }, (_, i) =>
-            buildProductRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+    it("探针实测 hasMore —— 第 pageSize+1 条更晚时本页正好 pageSize 条且 hasMore=true", async () => {
+        // 探针多取 1 行（pageSize=100 ⇒ 101 行）；第 101 行更晚 ⇒ 本页 100 条、后面还有
+        const rows = Array.from({ length: 101 }, (_, i) =>
+            buildProductRow({
+                skuId: i + 1,
+                updatedAt: i === 100 ? "2026-07-19T11:00:00Z" : "2026-07-19T10:00:00Z",
+            })
         );
         mocks.queryWithTenant.mockResolvedValue(rows);
         const res = await getProductDelta("2026-07-19T00:00:00Z", TENANT_A, 1, 100);
         expect(res.changes).toHaveLength(100);
         expect(res.hasMore).toBe(true);
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(1);
+    });
+
+    it("整组不拆页 —— 第 pageSize+1 条与第 pageSize 条同刻时补齐整组", async () => {
+        // 探针 101 条全部同刻（超出 pageSize）⇒ 触发整组补齐查询 + hasMore 探针
+        const probeRows = Array.from({ length: 101 }, (_, i) =>
+            buildProductRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        const fullGroupRows = Array.from({ length: 120 }, (_, i) =>
+            buildProductRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        mocks.queryWithTenant
+            .mockResolvedValueOnce(probeRows)
+            .mockResolvedValueOnce(fullGroupRows)
+            .mockResolvedValueOnce([{ hasMoreRow: 1 }]);
+        const res = await getProductDelta("", TENANT_A, 1, 100);
+        // 同 updated_at 的 120 条整组返回（页大小可超过 pageSize），不得切断
+        expect(res.changes).toHaveLength(120);
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
+        expect(res.hasMore).toBe(true);
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(3);
+    });
+
+    it("整组不拆页 —— 末组补齐后没有更晚记录时 hasMore=false", async () => {
+        const probeRows = Array.from({ length: 101 }, (_, i) =>
+            buildProductRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        const fullGroupRows = Array.from({ length: 120 }, (_, i) =>
+            buildProductRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        mocks.queryWithTenant
+            .mockResolvedValueOnce(probeRows)
+            .mockResolvedValueOnce(fullGroupRows)
+            .mockResolvedValueOnce([]);
+        const res = await getProductDelta("", TENANT_A, 1, 100);
+        expect(res.changes).toHaveLength(120);
+        expect(res.hasMore).toBe(false);
+    });
+
+    it("游标模式 —— page 不参与取数（page=1 与 page=2 的 SQL 与参数完全一致）", async () => {
+        mocks.queryWithTenant.mockResolvedValue([]);
+        await getProductDelta("2026-07-19T00:00:00Z", TENANT_A, 1, 100);
+        await getProductDelta("2026-07-19T00:00:00Z", TENANT_A, 2, 100);
+        const firstCall = mocks.queryWithTenant.mock.calls[0];
+        const secondCall = mocks.queryWithTenant.mock.calls[1];
+        expect(secondCall[0]).toBe(firstCall[0]);
+        expect(secondCall[1]).toEqual(firstCall[1]);
+        expect(String(firstCall[0])).not.toMatch(/OFFSET/i);
+    });
+
+    it("until 恒为 ISO 8601 —— Date 对象 / ISO 串 / MySQL DATETIME 文本三种形态", async () => {
+        const rows = [
+            buildProductRow({ skuId: 1, updatedAt: "2026-07-19T10:00:00Z" }),
+            buildProductRow({ skuId: 2, updatedAt: "2026-07-19 10:00:01" }),
+            buildProductRow({ skuId: 3, updatedAt: new Date("2026-07-19T10:00:02.500Z") }),
+        ];
+        mocks.queryWithTenant.mockResolvedValue(rows);
+        const res = await getProductDelta("", TENANT_A, 1, 100);
+        expect(res.until).toBe("2026-07-19T10:00:02.500Z");
+        expect(res.until).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+        expect(Number.isNaN(Date.parse(res.until))).toBe(false);
+    });
+
+    it("边界 —— since 为未来时间时返回空集且 until 回显 since", async () => {
+        mocks.queryWithTenant.mockResolvedValue([]);
+        const res = await getProductDelta("2099-01-01T00:00:00Z", TENANT_A, 1, 100);
+        expect(res.changes).toEqual([]);
+        expect(res.hasMore).toBe(false);
+        expect(res.since).toBe("2099-01-01T00:00:00Z");
+        expect(res.until).toBe("2099-01-01T00:00:00Z");
     });
 
     it("返回数据量小于 pageSize 时 hasMore=false", async () => {
@@ -217,10 +293,16 @@ describe("delta-sync.service - getProductDelta", () => {
         expect(callArgs[2]).toBe(TENANT_B);
         // 验证参数中第一个 ? 是 tenantId
         expect(callArgs[1][0]).toBe(TENANT_B);
-        // 验证分页参数（limit 和 offset）
-        // safePage=2, safePageSize=50, offset=(2-1)*50=50
-        expect(callArgs[1]).toContain(50); // limit
-        expect(callArgs[1]).toContain(50); // offset
+        // 游标模式：tenantId + 4 个 since（四表窗口）+ 探针 limit（pageSize+1），没有 offset
+        expect(callArgs[1]).toEqual([
+            TENANT_B,
+            "2026-07-19T00:00:00Z",
+            "2026-07-19T00:00:00Z",
+            "2026-07-19T00:00:00Z",
+            "2026-07-19T00:00:00Z",
+            51,
+        ]);
+        expect(String(callArgs[0])).not.toMatch(/OFFSET/i);
     });
 
     it("since 为空字符串时使用默认 1970-01-01", async () => {
@@ -231,20 +313,19 @@ describe("delta-sync.service - getProductDelta", () => {
         expect(mocks.queryWithTenant.mock.calls[0][1][1]).toBe("1970-01-01T00:00:00Z");
     });
 
-    it("page 小于 1 时按 1 处理", async () => {
+    it("page 小于 1 时不影响取数窗口（游标模式 page 只做校验）", async () => {
         mocks.queryWithTenant.mockResolvedValue([]);
-        await getProductDelta("", TENANT_A, 0, 100);
-        const params = mocks.queryWithTenant.mock.calls[0][1];
-        // offset = (1-1)*100 = 0
-        expect(params[params.length - 1]).toBe(0);
-        expect(params[params.length - 2]).toBe(100);
+        await getProductDelta("2026-07-19T00:00:00Z", TENANT_A, 0, 100);
+        await getProductDelta("2026-07-19T00:00:00Z", TENANT_A, 1, 100);
+        expect(mocks.queryWithTenant.mock.calls[1][1]).toEqual(mocks.queryWithTenant.mock.calls[0][1]);
     });
 
     it("pageSize 超过 500 时按 500 截断", async () => {
         mocks.queryWithTenant.mockResolvedValue([]);
         await getProductDelta("", TENANT_A, 1, 1000);
         const params = mocks.queryWithTenant.mock.calls[0][1];
-        expect(params[params.length - 2]).toBe(500);
+        // 探针 = pageSize + 1 = 501
+        expect(params[params.length - 1]).toBe(501);
     });
 
     it("null/undefined 字段被正确兜底", async () => {
@@ -287,16 +368,39 @@ describe("delta-sync.service - getInventoryDelta", () => {
         expect(res.changes[0].data?.skuId).toBe(1);
         expect(res.changes[0].data?.availableQty).toBe(100);
         expect(res.changes[0].data?.stockType).toBe("OFFLINE");
-        expect(res.until).toBe("2026-07-19T10:00:00Z");
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
     });
 
-    it("分页满页时 hasMore=true", async () => {
-        const rows = Array.from({ length: 100 }, (_, i) =>
-            buildInventoryRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+    it("探针实测 hasMore —— 第 pageSize+1 条更晚时 hasMore=true", async () => {
+        const rows = Array.from({ length: 101 }, (_, i) =>
+            buildInventoryRow({
+                skuId: i + 1,
+                updatedAt: i === 100 ? "2026-07-19T11:00:00Z" : "2026-07-19T10:00:00Z",
+            })
         );
         mocks.queryWithTenant.mockResolvedValue(rows);
         const res = await getInventoryDelta("", TENANT_A, 1, 100);
+        expect(res.changes).toHaveLength(100);
         expect(res.hasMore).toBe(true);
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(1);
+    });
+
+    it("整组不拆页 —— 同 updated_at 组跨页边界时整组补齐", async () => {
+        const probeRows = Array.from({ length: 101 }, (_, i) =>
+            buildInventoryRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        const fullGroupRows = Array.from({ length: 130 }, (_, i) =>
+            buildInventoryRow({ skuId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+        );
+        mocks.queryWithTenant
+            .mockResolvedValueOnce(probeRows)
+            .mockResolvedValueOnce(fullGroupRows)
+            .mockResolvedValueOnce([]);
+        const res = await getInventoryDelta("", TENANT_A, 1, 100);
+        expect(res.changes).toHaveLength(130);
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
+        expect(res.hasMore).toBe(false);
+        expect(mocks.queryWithTenant).toHaveBeenCalledTimes(3);
     });
 
     it("租户隔离 — tenantId 透传", async () => {
@@ -345,13 +449,29 @@ describe("delta-sync.service - getMemberDelta", () => {
         expect(res.changes[0].data?.status).toBe(0);
     });
 
-    it("分页满页时 hasMore=true", async () => {
-        const rows = Array.from({ length: 100 }, (_, i) =>
-            buildMemberRow({ memberId: i + 1, updatedAt: "2026-07-19T10:00:00Z" })
+    it("探针实测 hasMore —— 第 pageSize+1 条更晚时 hasMore=true", async () => {
+        const rows = Array.from({ length: 101 }, (_, i) =>
+            buildMemberRow({
+                memberId: i + 1,
+                updatedAt: i === 100 ? "2026-07-19T11:00:00Z" : "2026-07-19T10:00:00Z",
+            })
         );
         mocks.queryWithTenant.mockResolvedValue(rows);
         const res = await getMemberDelta("", TENANT_A, 1, 100);
+        expect(res.changes).toHaveLength(100);
         expect(res.hasMore).toBe(true);
+        expect(res.until).toBe("2026-07-19T10:00:00.000Z");
+    });
+
+    it("游标模式 —— page 不参与取数（page=1 与 page=5 的 SQL 与参数完全一致）", async () => {
+        mocks.queryWithTenant.mockResolvedValue([]);
+        await getMemberDelta("2026-07-19T00:00:00Z", TENANT_A, 1, 100);
+        await getMemberDelta("2026-07-19T00:00:00Z", TENANT_A, 5, 100);
+        const firstCall = mocks.queryWithTenant.mock.calls[0];
+        const secondCall = mocks.queryWithTenant.mock.calls[1];
+        expect(secondCall[0]).toBe(firstCall[0]);
+        expect(secondCall[1]).toEqual(firstCall[1]);
+        expect(String(firstCall[0])).not.toMatch(/OFFSET/i);
     });
 
     it("租户隔离 — tenantId 透传", async () => {

@@ -3204,3 +3204,46 @@
 - `{{items}}` 由前端渲染器自动生成表格行（**不要手工插入**）；
 - 变量字典按单据类型在打印配置页"插入变量"面板展示；
 - 业务字段输出前统一 HTML 转义，防注入。
+
+## 增量同步（离线优先，前缀 `/api/sync`，R101-B1 修订）
+
+> 客户端的契约来源：`app-mobile/src/api/sync.ts`（`SyncDeltaResponse<T>`）与 `app-mobile/src/utils/sync-manager.ts`。
+> **2026-09-23（R101-B1）修订分页口径**：原实现用 `page` + `OFFSET` 翻页，在"翻页期间有新写入"时会**丢数据**；
+> 现改为 **`since` 唯一游标**。
+
+### GET /api/sync/products/delta
+### GET /api/sync/inventory/delta
+### GET /api/sync/members/delta
+
+- **描述**：按 `since` 游标拉取增量变更（只读，不写任何表）
+- **认证**：需要认证
+- **Query参数**：
+
+| 参数 | 必填 | 说明 |
+|---|---|---|
+| `since` | 否 | 增量游标（ISO 8601）。**缺失 ⇒ 从最早开始**；格式非法或 `Date.parse` 为 NaN（如 `2026-13-45T99:99:99Z`）⇒ **400** + 中文 message，且**不查库**；未来时间 ⇒ 空 `changes`。 |
+| `page` | 否 | **仅为兼容参数，自 R101-B1 起不参与取数**（保留以免老客户端 400）。 |
+| `pageSize` | 否 | 每页条数（默认 100，上限 500）。 |
+
+- **响应**（严格对齐 `SyncDeltaResponse`）：
+
+```json
+{ "since": "<原样回显请求的 since>", "until": "<本页最大 updated_at，ISO 8601 UTC>",
+  "hasMore": true, "changes": [ { "action": "UPSERT|STATUS_CHANGE", "skuId": 1, "spuId": 2, "data": {} } ] }
+```
+
+- **翻页正确性约束（R101-B1，硬）**：
+  1. 取数排序固定 `updated_at ASC, id ASC`；
+  2. **同一个 `updated_at` 的记录整组不拆页**（避免"同刻记录被页边界切开"后丢失）；
+  3. `hasMore` 由**探针查询实测**，不靠"本页是否满页"推断；
+  4. 无记录时 `until = 请求的 since`；
+  5. 客户端把每页的 `until` 写回本地 watermark 继续翻页（`sync-manager.ts` 的做法即口径）。
+- **`action` 取值**：`UPSERT`（新增/修改）、`STATUS_CHANGE`（状态位变更）。
+  ⚠️ **`DELETE` 分支当前不可达**：三张源表均无软删除字段（`deleted_at`），实现中已注明为预留兼容位 —— 前端不得假定会收到 `DELETE`。
+- **租户隔离**：一律走 `queryWithTenant` / `queryOneWithTenant`；跨租户数据不得出现在任何一页。
+
+### POST /api/sync/offline-orders
+
+- **描述**：离线单批量提交（幂等）
+- **认证**：需要认证
+- **状态**：**已有实现**（引入提交 `e07796c4a`）；其**幂等是否真的成立**（同一幂等键提交两次是否只落一单）属 **B-2** 的核验项，尚未取反测证据。

@@ -261,6 +261,31 @@ describe("routes/sync 集成测试", () => {
       expect(deltaSyncSvc.getProductDelta).not.toHaveBeenCalled();
     });
 
+    it("since 格式合法但语义非法时返回 400", async () => {
+      const res = await request(app).get("/api/sync/products/delta?since=2026-13-45T99:99:99Z");
+      expect(res.status).toBe(400);
+      expect(deltaSyncSvc.getProductDelta).not.toHaveBeenCalled();
+    });
+
+    it("上一页返回的 until 原样作为下一页 since 时不返回 400", async () => {
+      (deltaSyncSvc.getProductDelta as any).mockResolvedValue({
+        since: "2026-07-19T10:00:00.000Z",
+        until: "2026-07-19T10:00:00.000Z",
+        hasMore: false,
+        changes: [],
+      });
+      const res = await request(app).get(
+        "/api/sync/products/delta?since=2026-07-19T10:00:00.000Z"
+      );
+      expect(res.status).toBe(200);
+      expect(deltaSyncSvc.getProductDelta).toHaveBeenCalledWith(
+        "2026-07-19T10:00:00.000Z",
+        "test-tenant",
+        1,
+        100
+      );
+    });
+
     it("service 抛错时返回500", async () => {
       (deltaSyncSvc.getProductDelta as any).mockRejectedValue(new Error("db error"));
       const res = await request(app).get("/api/sync/products/delta");
@@ -317,6 +342,14 @@ describe("routes/sync 集成测试", () => {
       expect(deltaSyncSvc.getInventoryDelta).not.toHaveBeenCalled();
     });
 
+    it("since 格式合法但语义非法时返回 400", async () => {
+      const res = await request(app).get(
+        "/api/sync/inventory/delta?since=2026-13-45T99:99:99Z"
+      );
+      expect(res.status).toBe(400);
+      expect(deltaSyncSvc.getInventoryDelta).not.toHaveBeenCalled();
+    });
+
     it("service 抛错时返回500", async () => {
       (deltaSyncSvc.getInventoryDelta as any).mockRejectedValue(new Error("db error"));
       const res = await request(app).get("/api/sync/inventory/delta");
@@ -369,6 +402,14 @@ describe("routes/sync 集成测试", () => {
 
     it("since 非法格式时返回 400", async () => {
       const res = await request(app).get("/api/sync/members/delta?since=not-a-date");
+      expect(res.status).toBe(400);
+      expect(deltaSyncSvc.getMemberDelta).not.toHaveBeenCalled();
+    });
+
+    it("since 格式合法但语义非法时返回 400", async () => {
+      const res = await request(app).get(
+        "/api/sync/members/delta?since=2026-13-45T99:99:99Z"
+      );
       expect(res.status).toBe(400);
       expect(deltaSyncSvc.getMemberDelta).not.toHaveBeenCalled();
     });
