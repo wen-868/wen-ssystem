@@ -276,6 +276,103 @@ function buildProductDeltaData(row: ProductDeltaRow): ProductDeltaData {
     };
 }
 
+// ==================== 游标分页与时间归一化（S3-80） ====================
+
+/** 探针多取 1 行：用于实测"是否还有下一页"（替代 rows.length === pageSize 的近似判断） */
+const CURSOR_PROBE_EXTRA = 1;
+
+/**
+ * 兼容参数 `page` 的校验（正整数，缺省 1）
+ *
+ * 游标模式下 `since` 是唯一游标，`page` 不参与取数；本函数只保留调用契约与校验语义，
+ * 归一化结果不进任何 SQL / 窗口计算。
+ */
+function normalizePage(page: number): void {
+    void Math.max(1, Number(page) || 1);
+}
+
+/**
+ * 归一化为 ISO 8601 UTC 字符串（YYYY-MM-DDTHH:mm:ss.sssZ）
+ *
+ * 底层驱动/表达式可能返回 JS `Date` 对象、ISO 字符串、MySQL DATETIME 文本（`YYYY-MM-DD HH:mm:ss`）
+ * 或时间戳数字，一律归一化后再对外返回——客户端会把上一页的 `until` 原样作为下一页的 `since` 回传，
+ * 非 ISO 8601 形态会被 `since` 校验拒绝（第 2 页必 400，翻页断链）。
+ *
+ * MySQL DATETIME 文本无时区标记：连接池 `timezone: "Z"`（config/database.ts）已约定按 UTC 处理，
+ * 这里保持一致，避免同一条记录被读成两个不同时刻。
+ */
+function toIsoUtc(value: unknown): string | null {
+    if (value === null || value === undefined) return null;
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value.toISOString();
+    }
+    if (typeof value === "number") {
+        const fromNumber = new Date(value);
+        return Number.isNaN(fromNumber.getTime()) ? null : fromNumber.toISOString();
+    }
+    const text = String(value).trim();
+    if (!text) return null;
+    const mysqlDatetime = text.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(\.\d+)?$/);
+    if (mysqlDatetime) {
+        const fraction = (mysqlDatetime[3] ?? ".").padEnd(4, "0").slice(0, 4);
+        const fromMysql = new Date(`${mysqlDatetime[1]}T${mysqlDatetime[2]}${fraction}Z`);
+        return Number.isNaN(fromMysql.getTime()) ? null : fromMysql.toISOString();
+    }
+    const parsed = new Date(text);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
+/** 游标分页所需的三个查询（每个 delta 接口按自己的表结构提供实现） */
+interface DeltaCursorQueries<T> {
+    /** 探针查询：按 (updated_at, id) 升序取 limit 条 */
+    probe: (since: string, limit: number) => Promise<T[]>;
+    /** 整页查询：取 updated_at <= boundary 的全部记录（同一 updated_at 整组不拆页） */
+    fillTo: (since: string, boundary: string) => Promise<T[]>;
+    /** 探针查询：updated_at > boundary 是否还有记录（hasMore 的真值） */
+    hasAfter: (since: string, boundary: string) => Promise<boolean>;
+    /** 读取该行的变更时间（updated_at，或商品联合查询的 GREATEST(...)） */
+    changedAtOf: (row: T) => unknown;
+}
+
+/**
+ * 游标分页取数：`since` 是唯一游标，`page` 不参与取数
+ *
+ * 历史缺陷（S3-80）：服务端 `LIMIT ? OFFSET ?` 叠加客户端"同一循环里 `page++` 且 `since = until`"
+ * ⇒ 第 2 页起整页被跳过（永久丢数据）。改为游标后，仅凭 `hasMore` / `until` 即可连续翻页。
+ *
+ * 分页规则：
+ *  1. 窗口 = `changed_at > since`，排序 `changed_at ASC, id ASC`；
+ *  2. 探针多取 1 行实测 `hasMore`，不再用 `rows.length === pageSize` 近似；
+ *  3. 第 pageSize 条与第 pageSize+1 条同刻 ⇒ 同刻组被切断 ⇒ 整组补齐（本页行数可大于 pageSize）；
+ *  4. `until` = 本页最大 `changed_at`（本页无记录时 = 生效的 `since`），归一化为 ISO 8601。
+ */
+async function fetchDeltaCursorPage<T>(
+    since: string,
+    pageSize: number,
+    queries: DeltaCursorQueries<T>
+): Promise<{ rows: T[]; until: string; hasMore: boolean }> {
+    const probeRows = await queries.probe(since, pageSize + CURSOR_PROBE_EXTRA);
+    if (probeRows.length === 0) {
+        return { rows: [], until: since, hasMore: false };
+    }
+    if (probeRows.length <= pageSize) {
+        const until = toIsoUtc(queries.changedAtOf(probeRows[probeRows.length - 1])) ?? since;
+        return { rows: probeRows, until, hasMore: false };
+    }
+
+    const boundary = toIsoUtc(queries.changedAtOf(probeRows[pageSize - 1]));
+    // 同一 updated_at 的记录必须整组同页：第 pageSize+1 条与第 pageSize 条同刻 ⇒ 补齐整组
+    if (boundary !== null && toIsoUtc(queries.changedAtOf(probeRows[pageSize])) === boundary) {
+        const rows = await queries.fillTo(since, boundary);
+        const hasMore = await queries.hasAfter(since, boundary);
+        return { rows, until: boundary, hasMore };
+    }
+
+    // 第 pageSize+1 条更晚 ⇒ 本页正好 pageSize 条，且必还有更新的记录（探针实测）
+    // boundary 为 null 属理论不可达（updated_at NOT NULL）；万一发生则保守不推进游标
+    return { rows: probeRows.slice(0, pageSize), until: boundary ?? since, hasMore: true };
+}
+
 // ==================== 1. 商品增量同步 ====================
 
 /**
@@ -291,7 +388,7 @@ function buildProductDeltaData(row: ProductDeltaRow): ProductDeltaData {
  *
  * @param since ISO 8601 时间戳（空字符串视为 1970-01-01）
  * @param tenantId 租户ID
- * @param page 页码（从 1 开始）
+ * @param page 页码（从 1 开始）—— 兼容参数：仅校验，不参与取数（游标模式）
  * @param pageSize 每页大小
  */
 export async function getProductDelta(
@@ -301,14 +398,19 @@ export async function getProductDelta(
     pageSize: number = 100
 ): Promise<SyncDeltaResponse<ProductDeltaData>> {
     const safeSince = since || "1970-01-01T00:00:00Z";
-    const safePage = Math.max(1, Number(page) || 1);
     const safePageSize = Math.max(1, Math.min(500, Number(pageSize) || 100));
-    const offset = (safePage - 1) * safePageSize;
+    normalizePage(page);
 
+    // 变更时间 = 四表 updated_at 的最大值；窗口/边界条件与 SELECT 别名共用同一表达式，避免口径漂移
+    const changedAt = `GREATEST(
+         s.updated_at,
+         IFNULL(p.updated_at, s.updated_at),
+         IFNULL(pp.updated_at, s.updated_at),
+         IFNULL(ib.updated_at, s.updated_at)
+       )`;
     // SQL 中已显式带 tenant_id 条件，queryWithTenant 不会重复注入
     // NULL AS deletedAt — 当前表结构无 deleted_at 字段，预留兼容位
-    const rows = await queryWithTenant<ProductDeltaRow>(
-        `SELECT
+    const deltaSelect = `SELECT
        s.id AS skuId, s.spu_id AS spuId, s.sku_code AS skuCode, s.barcode, s.sku_name AS skuName,
        s.volume, s.packaging, s.base_unit AS baseUnit, s.box_unit AS boxUnit, s.box_ratio AS boxRatio,
        s.temperature, s.trace_enabled AS traceEnabled, s.status AS skuStatus,
@@ -320,13 +422,8 @@ export async function getProductDelta(
        pp.miniapp_price AS miniappPrice, pp.store_price AS storePrice, pp.updated_at AS priceUpdatedAt,
        ib.available_qty AS availableQty, ib.updated_at AS invUpdatedAt,
        NULL AS deletedAt,
-       GREATEST(
-         s.updated_at,
-         IFNULL(p.updated_at, s.updated_at),
-         IFNULL(pp.updated_at, s.updated_at),
-         IFNULL(ib.updated_at, s.updated_at)
-       ) AS updatedAt
-     FROM t_product_sku s
+       ${changedAt} AS updatedAt`;
+    const deltaFrom = `FROM t_product_sku s
      INNER JOIN t_product_spu p ON p.id = s.spu_id AND p.tenant_id = s.tenant_id
      LEFT JOIN t_product_category c ON c.id = p.category_id AND c.tenant_id = p.tenant_id
      LEFT JOIN t_brand b ON b.id = p.brand_id AND b.tenant_id = p.tenant_id
@@ -338,11 +435,35 @@ export async function getProductDelta(
          p.updated_at > ? OR
          pp.updated_at > ? OR
          ib.updated_at > ?
-       )
-     ORDER BY updatedAt ASC
-     LIMIT ? OFFSET ?`,
-        [tenantId, safeSince, safeSince, safeSince, safeSince, safePageSize, offset],
-        tenantId
+       )`;
+
+    // 游标取数：page 不参与；ORDER BY 补 id 次级键；同 updated_at 整组不拆页；hasMore 由探针实测
+    const { rows, until, hasMore } = await fetchDeltaCursorPage<ProductDeltaRow>(
+        safeSince,
+        safePageSize,
+        {
+            probe: (cursorSince, limit) =>
+                queryWithTenant<ProductDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} ORDER BY updatedAt ASC, s.id ASC LIMIT ?`,
+                    [tenantId, cursorSince, cursorSince, cursorSince, cursorSince, limit],
+                    tenantId
+                ),
+            fillTo: (cursorSince, boundary) =>
+                queryWithTenant<ProductDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} AND ${changedAt} <= ? ORDER BY updatedAt ASC, s.id ASC`,
+                    [tenantId, cursorSince, cursorSince, cursorSince, cursorSince, boundary],
+                    tenantId
+                ),
+            hasAfter: async (cursorSince, boundary) => {
+                const probeRows = await queryWithTenant<{ hasMoreRow: number }>(
+                    `SELECT 1 AS hasMoreRow ${deltaFrom} AND ${changedAt} > ? LIMIT 1`,
+                    [tenantId, cursorSince, cursorSince, cursorSince, cursorSince, boundary],
+                    tenantId
+                );
+                return probeRows.length > 0;
+            },
+            changedAtOf: (row) => row.updatedAt,
+        }
     );
 
     const changes: SyncDeltaResponse<ProductDeltaData>["changes"] = rows.map((row) => {
@@ -359,11 +480,6 @@ export async function getProductDelta(
         };
     });
 
-    // until = 本次返回数据的最新时间戳；无数据时回退为 since
-    const until = changes.length > 0 ? String(rows[rows.length - 1].updatedAt ?? safeSince) : safeSince;
-    // hasMore = 本次返回的数据量等于 pageSize（满页时大概率还有更多）
-    const hasMore = rows.length === safePageSize;
-
     return { since: safeSince, until, hasMore, changes };
 }
 
@@ -376,7 +492,7 @@ export async function getProductDelta(
  *
  * @param since ISO 8601 时间戳
  * @param tenantId 租户ID
- * @param page 页码
+ * @param page 页码 —— 兼容参数：仅校验，不参与取数（游标模式）
  * @param pageSize 每页大小
  */
 export async function getInventoryDelta(
@@ -386,23 +502,45 @@ export async function getInventoryDelta(
     pageSize: number = 100
 ): Promise<SyncDeltaResponse<InventoryDeltaData>> {
     const safeSince = since || "1970-01-01T00:00:00Z";
-    const safePage = Math.max(1, Number(page) || 1);
     const safePageSize = Math.max(1, Math.min(500, Number(pageSize) || 100));
-    const offset = (safePage - 1) * safePageSize;
+    normalizePage(page);
 
-    const rows = await queryWithTenant<InventoryDeltaRow>(
-        `SELECT
+    const deltaSelect = `SELECT
        ib.store_id AS storeId, ib.sku_id AS skuId, ib.stock_type AS stockType,
        ib.physical_qty AS physicalQty, ib.locked_qty AS lockedQty, ib.available_qty AS availableQty,
        ib.updated_at AS updatedAt,
-       s.sku_name AS skuName
-     FROM t_inventory_balance ib
+       s.sku_name AS skuName`;
+    const deltaFrom = `FROM t_inventory_balance ib
      LEFT JOIN t_product_sku s ON s.id = ib.sku_id AND s.tenant_id = ib.tenant_id
-     WHERE ib.tenant_id = ? AND ib.updated_at > ?
-     ORDER BY ib.updated_at ASC
-     LIMIT ? OFFSET ?`,
-        [tenantId, safeSince, safePageSize, offset],
-        tenantId
+     WHERE ib.tenant_id = ? AND ib.updated_at > ?`;
+
+    // 游标取数：page 不参与；ORDER BY 补 id 次级键；同 updated_at 整组不拆页；hasMore 由探针实测
+    const { rows, until, hasMore } = await fetchDeltaCursorPage<InventoryDeltaRow>(
+        safeSince,
+        safePageSize,
+        {
+            probe: (cursorSince, limit) =>
+                queryWithTenant<InventoryDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} ORDER BY ib.updated_at ASC, ib.id ASC LIMIT ?`,
+                    [tenantId, cursorSince, limit],
+                    tenantId
+                ),
+            fillTo: (cursorSince, boundary) =>
+                queryWithTenant<InventoryDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} AND ib.updated_at <= ? ORDER BY ib.updated_at ASC, ib.id ASC`,
+                    [tenantId, cursorSince, boundary],
+                    tenantId
+                ),
+            hasAfter: async (cursorSince, boundary) => {
+                const probeRows = await queryWithTenant<{ hasMoreRow: number }>(
+                    `SELECT 1 AS hasMoreRow ${deltaFrom} AND ib.updated_at > ? LIMIT 1`,
+                    [tenantId, cursorSince, boundary],
+                    tenantId
+                );
+                return probeRows.length > 0;
+            },
+            changedAtOf: (row) => row.updatedAt,
+        }
     );
 
     const changes: SyncDeltaResponse<InventoryDeltaData>["changes"] = rows.map((row) => ({
@@ -421,9 +559,6 @@ export async function getInventoryDelta(
         },
     }));
 
-    const until = changes.length > 0 ? String(rows[rows.length - 1].updatedAt ?? safeSince) : safeSince;
-    const hasMore = rows.length === safePageSize;
-
     return { since: safeSince, until, hasMore, changes };
 }
 
@@ -436,7 +571,7 @@ export async function getInventoryDelta(
  *
  * @param since ISO 8601 时间戳
  * @param tenantId 租户ID
- * @param page 页码
+ * @param page 页码 —— 兼容参数：仅校验，不参与取数（游标模式）
  * @param pageSize 每页大小
  */
 export async function getMemberDelta(
@@ -446,21 +581,43 @@ export async function getMemberDelta(
     pageSize: number = 100
 ): Promise<SyncDeltaResponse<MemberDeltaData>> {
     const safeSince = since || "1970-01-01T00:00:00Z";
-    const safePage = Math.max(1, Number(page) || 1);
     const safePageSize = Math.max(1, Math.min(500, Number(pageSize) || 100));
-    const offset = (safePage - 1) * safePageSize;
+    normalizePage(page);
 
-    const rows = await queryWithTenant<MemberDeltaRow>(
-        `SELECT
+    const deltaSelect = `SELECT
        id AS memberId, name, mobile, customer_type AS customerType,
        settlement_type AS settlementType, points, level_code AS levelCode,
-       status, updated_at AS updatedAt
-     FROM t_member
-     WHERE tenant_id = ? AND updated_at > ?
-     ORDER BY updated_at ASC
-     LIMIT ? OFFSET ?`,
-        [tenantId, safeSince, safePageSize, offset],
-        tenantId
+       status, updated_at AS updatedAt`;
+    const deltaFrom = `FROM t_member
+     WHERE tenant_id = ? AND updated_at > ?`;
+
+    // 游标取数：page 不参与；ORDER BY 补 id 次级键；同 updated_at 整组不拆页；hasMore 由探针实测
+    const { rows, until, hasMore } = await fetchDeltaCursorPage<MemberDeltaRow>(
+        safeSince,
+        safePageSize,
+        {
+            probe: (cursorSince, limit) =>
+                queryWithTenant<MemberDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} ORDER BY updated_at ASC, id ASC LIMIT ?`,
+                    [tenantId, cursorSince, limit],
+                    tenantId
+                ),
+            fillTo: (cursorSince, boundary) =>
+                queryWithTenant<MemberDeltaRow>(
+                    `${deltaSelect} ${deltaFrom} AND updated_at <= ? ORDER BY updated_at ASC, id ASC`,
+                    [tenantId, cursorSince, boundary],
+                    tenantId
+                ),
+            hasAfter: async (cursorSince, boundary) => {
+                const probeRows = await queryWithTenant<{ hasMoreRow: number }>(
+                    `SELECT 1 AS hasMoreRow ${deltaFrom} AND updated_at > ? LIMIT 1`,
+                    [tenantId, cursorSince, boundary],
+                    tenantId
+                );
+                return probeRows.length > 0;
+            },
+            changedAtOf: (row) => row.updatedAt,
+        }
     );
 
     const changes: SyncDeltaResponse<MemberDeltaData>["changes"] = rows.map((row) => {
@@ -482,9 +639,6 @@ export async function getMemberDelta(
             },
         };
     });
-
-    const until = changes.length > 0 ? String(rows[rows.length - 1].updatedAt ?? safeSince) : safeSince;
-    const hasMore = rows.length === safePageSize;
 
     return { since: safeSince, until, hasMore, changes };
 }
