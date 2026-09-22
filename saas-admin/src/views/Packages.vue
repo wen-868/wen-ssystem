@@ -31,7 +31,7 @@
             :key="r"
             class="btn-t"
             :class="{ on: flowRange === r }"
-            @click="flowRange = r"
+            @click="switchFlowRange(r)"
           >{{ r }}</span>
         </span>
       </div>
@@ -47,8 +47,17 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-if="!flowRows.length">
-              <td colspan="5" class="muted">暂无流向数据 · 待接入 GET /platform/plans/upgrade-flow-report</td>
+            <tr v-if="flowLoading">
+              <td colspan="5" class="muted">加载中…</td>
+            </tr>
+            <tr v-else-if="flowError">
+              <td colspan="5" class="muted">
+                <span class="err-t">流向报表加载失败</span>
+                <span class="retry" @click="fetchFlow">重试</span>
+              </td>
+            </tr>
+            <tr v-else-if="!flowRows.length">
+              <td colspan="5" class="muted">暂无流向数据</td>
             </tr>
             <tr v-for="(f, i) in flowRows" :key="i">
               <td><span class="tag" :class="f.dir === 'UP' ? 'tag-g' : 'tag-o'">{{ f.dir === 'UP' ? '升级' : '降级' }}</span></td>
@@ -59,7 +68,9 @@
             </tr>
           </tbody>
         </table>
-        <p class="small mt8">口径：按订阅关系变更事件统计，升级含免费→付费；降级含付费→免费与高档→低档。数据来自真实接口，无数据时保持空态。</p>
+        <p class="small mt8">
+          口径：按订阅关系变更事件统计，升级含免费→付费；降级含付费→免费与高档→低档。数据来自真实接口 GET /platform/plans/upgrade-flow-report，无数据时保持空态，不编造任何流向数字。
+        </p>
       </div>
     </div>
 
@@ -112,7 +123,7 @@
           </thead>
           <tbody>
             <tr v-if="!compareRows.length">
-              <td colspan="7" class="muted">暂无套餐数据 · 待接入 GET /platform/plans（不展示任何模拟业务数字）</td>
+              <td colspan="7" class="muted">{{ listError ? '套餐列表加载失败' : '暂无套餐数据' }}</td>
             </tr>
             <tr v-for="r in compareRows" :key="r.name">
               <td><b>{{ r.name }}</b></td>
@@ -135,9 +146,15 @@
       </div>
     </div>
 
-    <!-- 空态（接口无数据，禁模拟数据：不回落任何演示数据） -->
+    <!-- 空态 / 错误态（接口无数据，禁模拟数据：不回落任何演示数据） -->
     <div v-if="!plans.length" class="empty mt12">
-      暂无套餐数据，点击「+ 新建套餐」创建平台第一个套餐
+      <template v-if="listError">
+        <span class="err-t">套餐列表加载失败</span>
+        <span class="retry" @click="fetchList">重试</span>
+      </template>
+      <template v-else>
+        暂无套餐数据，点击「+ 新建套餐」创建平台第一个套餐
+      </template>
     </div>
   </div>
 </template>
@@ -146,13 +163,14 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { getPlans, updatePlan } from "../api";
+import { getPlans, updatePlan, deletePlan, getPlanUpgradeFlowReport } from "../api";
 import { TOTAL_FEATURE_COUNT } from "../constants/plan-features";
 
 const router = useRouter();
 
 /* ── 数据状态：仅取真实接口，无数据一律空态（禁模拟数据） ── */
 const loading = ref(false);
+const listError = ref(false);
 const apiPlans = ref<any[]>([]);
 
 interface PlanAction {
@@ -206,7 +224,7 @@ const headDesc = computed(() => {
     const draft = apiPlans.value.filter((p) => p.status === "DRAFT").length;
     return `共 ${apiPlans.value.length} 个套餐 · 上架中 ${on} · 停售 ${apiPlans.value.length - on - draft} · 草稿 ${draft} · 已订阅租户 --`;
   }
-  return "套餐数据待接入 GET /platform/plans（当前无真实数据）";
+  return listError.value ? "套餐列表加载失败，请重试" : "暂无套餐数据";
 });
 
 /* ── 对照表（仅展示真实接口套餐，无数据走空态，不编造业务数字） ── */
@@ -235,18 +253,61 @@ function buildRowsFromApi(): CompareRow[] {
 
 /* ── 升降级流向报表（设计稿 sec-plan 升级/降级流向；真实接口，无数据走空态） ── */
 const flowOpen = ref(false);
+const flowLoading = ref(false);
+const flowError = ref(false);
 const flowRanges = ["本月", "近 3 月", "近 12 月"];
 const flowRange = ref("本月");
 const flowRows = ref<{ dir: string; fromName: string; toName: string; tenantCount: number; time: string }[]>([]);
-// TODO: 待接入 GET /platform/plans/upgrade-flow-report?range=，当前无接口故恒为空态（禁止编造流向数据）
+
+/**
+ * ✅ 已联调：GET /api/platform/plans/upgrade-flow-report（C1-2 B1 落地）
+ * ⚠️ range 是后端强校验枚举 month / 3m / 12m（传中文会 400），页签文案必须映射。
+ * 后端 records[] 字段：{ direction, dir:'UP'|'DOWN', fromPlanName, toPlanName, eventCount, tenantCount, lastAt }
+ */
+const RANGE_MAP: Record<string, "month" | "3m" | "12m"> = {
+  本月: "month",
+  "近 3 月": "3m",
+  "近 12 月": "12m",
+};
+
+async function fetchFlow() {
+  flowLoading.value = true;
+  flowError.value = false;
+  try {
+    const res: any = await getPlanUpgradeFlowReport(RANGE_MAP[flowRange.value] ?? "month");
+    const records = res?.data?.data?.records || res?.data?.records || [];
+    flowRows.value = records.map((r: any) => ({
+      dir: r.dir === "UP" ? "UP" : "DOWN",
+      fromName: r.fromPlanName ?? "—",
+      toName: r.toPlanName ?? "—",
+      tenantCount: Number(r.tenantCount ?? 0),
+      time: r.lastAt ?? "—",
+    }));
+  } catch {
+    flowRows.value = [];
+    flowError.value = true;
+  } finally {
+    flowLoading.value = false;
+  }
+}
+
 function openFlowReport() {
   flowOpen.value = !flowOpen.value;
+  if (flowOpen.value) fetchFlow();
+}
+
+function switchFlowRange(r: string) {
+  flowRange.value = r;
+  fetchFlow();
 }
 
 /* ── 列表加载：保留 getPlans 调用 ── */
 async function fetchList() {
   loading.value = true;
+  listError.value = false;
   try {
+    // ✅ 已联调：GET /api/platform/subscriptions-management/plans
+    //    （platform-plans.routes.ts:12 的 GET /api/platform/plans/: 由同一 controller 提供）
     const res = await getPlans({});
     const data = res.data?.data || (res as any).data || res;
     const records = data.records || [];
@@ -256,6 +317,8 @@ async function fetchList() {
     }));
   } catch {
     /* 禁模拟数据：接口异常时保持空态，不回落任何演示数据 */
+    apiPlans.value = [];
+    listError.value = true;
   } finally {
     loading.value = false;
   }
@@ -273,8 +336,11 @@ function onPlanAction(key: string, p: PlanCard) {
       if (p.id) {
         router.push(key === "edit" ? `/packages/${p.id}/edit` : `/packages/create?copyFrom=${p.id}`);
       } else {
-        // TODO: 复制套餐待接入（建议 POST /platform/plans/:id/copy）
-        ElMessage.info("暂无套餐数据：待接口接入后可编辑/复制");
+        // 复制：既有流程本就可用 —— 跳新建页并带 copyFrom=源套餐ID，
+        // PackageForm.vue:466-468 会读取源套餐回填为初值，用户可改编码/名称后再落库。
+        // （C1-2 B2 另提供了 POST /platform/plans/:planId/copy 一键复制，
+        //   但改用它会丢掉「命名新套餐」这一步，故本单不改道，是否改道由凌舟裁定。）
+        ElMessage.info("暂无套餐数据：无法编辑/复制");
       }
       break;
     case "offline":
@@ -326,8 +392,15 @@ async function handleDelete(p: PlanCard) {
   try {
     await ElMessageBox.confirm(`确定要删除套餐「${p.name}」吗？`, "确认删除", { type: "warning" });
   } catch { return; }
-  // TODO: 删除套餐待接入（建议 DELETE /platform/plans/:id）
-  ElMessage.info("删除套餐：待接入删除接口");
+  // ✅ 已联调：DELETE /api/platform/subscriptions-management/plans/:planId
+  //    后端 platform-plans.routes.ts:24 的 DELETE /:planId 早已存在，此前前端从未调用。
+  try {
+    await deletePlan(p.id as number);
+    ElMessage.success(`已删除套餐「${p.name}」`);
+    fetchList();
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || "删除失败");
+  }
 }
 
 onMounted(fetchList);
@@ -364,5 +437,16 @@ onMounted(fetchList);
 }
 .note-tag {
   margin-right: 5px;
+}
+
+/* 错误态 + 可重试（C1-1：与「空态」分开） */
+.err-t {
+  color: var(--color-danger);
+}
+.retry {
+  margin-left: 8px;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

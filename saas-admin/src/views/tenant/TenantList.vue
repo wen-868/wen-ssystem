@@ -18,10 +18,10 @@
       <div class="panel-filter">
         <div class="tabs">
           <span class="tab" :class="{ on: activeTab === 'all' }" @click="onTab('all')">全部 {{ total }}</span>
-          <span class="tab" :class="{ on: activeTab === 'normal' }" @click="onTab('normal')">正常 {{ statusCounts.normal }}</span>
-          <span class="tab" :class="{ on: activeTab === 'owed' }" @click="onTab('owed')">欠费 <span class="n">{{ statusCounts.owed }}</span></span>
-          <span class="tab" :class="{ on: activeTab === 'frozen' }" @click="onTab('frozen')">冻结 <span class="n">{{ statusCounts.frozen }}</span></span>
-          <span class="tab" :class="{ on: activeTab === 'cancelled' }" @click="onTab('cancelled')">已注销 {{ statusCounts.cancelled }}</span>
+          <span class="tab" :class="{ on: activeTab === 'normal' }" @click="onTab('normal')">正常 {{ countText(statusCounts.normal) }}</span>
+          <span class="tab" :class="{ on: activeTab === 'owed' }" @click="onTab('owed')">欠费 <span class="n">{{ countText(statusCounts.owed) }}</span></span>
+          <span class="tab" :class="{ on: activeTab === 'frozen' }" @click="onTab('frozen')">冻结 <span class="n">{{ countText(statusCounts.frozen) }}</span></span>
+          <span class="tab" :class="{ on: activeTab === 'cancelled' }" @click="onTab('cancelled')">已注销 {{ countText(statusCounts.cancelled) }}</span>
         </div>
         <div class="frow">
           <span class="sel" @click="cyclePlan">套餐版本：{{ filters.plan }} ▾</span>
@@ -77,7 +77,11 @@
       </div>
 
       <div v-if="loading" class="empty">加载中…</div>
-      <div v-else-if="!list.length" class="empty">暂无租户数据 · 待接入 GET /platform/tenants</div>
+      <div v-else-if="listError" class="empty">
+        <span class="err-t">租户列表加载失败</span>
+        <span class="retry" @click="fetchList">重试</span>
+      </div>
+      <div v-else-if="!list.length" class="empty">暂无租户数据</div>
 
       <div class="pagebar">
         <span>共 {{ total }} 条 · 每页 {{ pageSize }} 条</span>
@@ -100,7 +104,7 @@
       <div class="d-hd">
         <span class="pt">
           租户详情 · {{ currentTenantName }}
-          <span class="tag tag-g">正常</span>
+          <span class="tag" :class="statusTagClass(detail?.status)">{{ statusLabel(detail?.status) }}</span>
         </span>
         <span class="d-x" @click="closeDetail">✕</span>
       </div>
@@ -113,16 +117,32 @@
         <div class="panel mt12">
           <div class="p-hd">
             <span class="pt">基础信息</span>
-            <span class="btn-t" @click="onEdit">编辑</span>
+            <template v-if="editing">
+              <span class="btn-t" @click="cancelEdit">取消</span>
+              <span class="btn-t" @click="saveEdit">保存</span>
+            </template>
+            <span v-else class="btn-t" @click="onEdit">编辑</span>
           </div>
           <div class="p-bd base-grid">
-            <div><span class="small">联系人</span><div class="b">{{ detail?.contactName || '—' }}</div></div>
-            <div><span class="small">手机号</span><div class="b">{{ detail?.contactMobile || '—' }}</div></div>
+            <div>
+              <span class="small">联系人</span>
+              <input v-if="editing" class="ipt" v-model="editForm.contactName" placeholder="请输入联系人" />
+              <div v-else class="b">{{ detail?.contactName || '—' }}</div>
+            </div>
+            <div>
+              <span class="small">手机号</span>
+              <input v-if="editing" class="ipt" v-model="editForm.contactMobile" placeholder="请输入手机号" />
+              <div v-else class="b">{{ detail?.contactMobile || '—' }}</div>
+            </div>
             <div>
               <span class="small">套餐</span>
               <div><span class="muted">—</span> <span class="muted">/年</span></div>
             </div>
-            <div><span class="small">到期时间</span><div class="b">{{ detail?.expireAt || '—' }}</div></div>
+            <div>
+              <span class="small">到期时间</span>
+              <input v-if="editing" class="ipt" v-model="editForm.expireAt" placeholder="YYYY-MM-DD" />
+              <div v-else class="b">{{ detail?.expireAt || '—' }}</div>
+            </div>
             <div><span class="small">所属渠道</span><div class="muted">—</div></div>
             <div><span class="small">运营标签</span><div class="muted">—</div></div>
           </div>
@@ -134,7 +154,17 @@
             <span class="btn-t" @click="onExpandQuota">临时扩容</span>
           </div>
           <div class="p-bd">
-            <div class="empty small">配额数据待接入 · GET /platform/tenants/:id/quota</div>
+            <div v-if="quotaLoading" class="empty small">加载中…</div>
+            <div v-else-if="quotaError" class="empty small">
+              <span class="err-t">配额加载失败</span>
+              <span class="retry" @click="fetchQuota">重试</span>
+            </div>
+            <div v-else-if="!quotaRows.length" class="empty small">暂无配额数据</div>
+            <div v-else class="qrow" v-for="row in quotaRows" :key="row.key">
+              <span>{{ row.label }}</span>
+              <span class="bar" v-if="row.hasLimit" :class="{ o: row.over }"><i :style="{ width: row.pct + '%' }"></i></span>
+              <em>{{ row.text }}</em>
+            </div>
           </div>
         </div>
 
@@ -156,20 +186,66 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listTenantsApi, getTenantApi } from '../../api/tenant'
+import {
+  listTenantsApi,
+  getTenantApi,
+  getTenantQuotaApi,
+  updateTenantApi,
+  toggleTenantApi,
+  getTenantStatusStatsApi,
+  exportTenantsApi,
+} from '../../api/tenant'
+import { buildQuotaRows, type QuotaRow } from './quota'
+
+const router = useRouter()
 
 /* ───────────────────────────────────────────────────────────
-   列表数据（沿用现有 listTenantsApi，保留 loading / 空态 / 错误处理）
+   列表数据（沿用现有 listTenantsApi，保留 loading / 空态 / 错误态 + 可重试）
    ─────────────────────────────────────────────────────────── */
 const loading = ref(false)
+const listError = ref(false)
 const list = ref<any[]>([])
 const total = ref(0)
 const pageSize = ref(20)
 const page = ref(1)
 
-// TODO: 待接入 GET /platform/tenants/stats —— 返回各状态计数（正常/欠费/冻结/已注销）
-const statusCounts = reactive({ normal: 0, owed: 0, frozen: 0, cancelled: 0 })
+/**
+ * ✅ 已联调：GET /api/platform/tenants/stats（各状态租户计数，C1-2 A1 落地）
+ * ⚠️ 与 GET /platform/tenants/usage-stats **不是同一件事**（后者是使用量指标，无状态计数）——
+ *    这一点已反复核过，勿把两者混用。
+ * 后端枚举口径（tenant-status-stats.service.ts:39-41）：
+ *   正常 ← ACTIVE / '1' ；停用 ← DISABLED / '0' ；已到期 ← EXPIRED
+ *   欠费(owed) / 已注销(cancelled) 后端**无对应枚举** → 接口恒返回 0（非前端填 0）
+ * 接口未取到时一律 null → 页面显示「—」，**绝不填 0 冒充计数**。
+ */
+const statusCounts = reactive<Record<string, number | null>>({
+  normal: null, owed: null, frozen: null, cancelled: null,
+})
+const statsError = ref(false)
+function countText(n: number | null): string {
+  return n == null ? '—' : String(n)
+}
+
+async function fetchStatusStats() {
+  statsError.value = false
+  try {
+    const res: any = await getTenantStatusStatsApi()
+    const c = res?.data?.counts || {}
+    statusCounts.normal = c.normal ?? 0
+    statusCounts.owed = c.owed ?? 0
+    statusCounts.frozen = c.frozen ?? 0
+    statusCounts.cancelled = c.cancelled ?? 0
+  } catch {
+    // 拿不到就回退为「—」，不填 0
+    statusCounts.normal = null
+    statusCounts.owed = null
+    statusCounts.frozen = null
+    statusCounts.cancelled = null
+    statsError.value = true
+  }
+}
 
 type TabKey = 'all' | 'normal' | 'owed' | 'frozen' | 'cancelled'
 const activeTab = ref<TabKey>('all')
@@ -181,18 +257,25 @@ const filters = reactive({ plan: '全部', status: '全部', expire: '近30天�
 
 async function fetchList() {
   loading.value = true
+  listError.value = false
   try {
     const params: any = { page: page.value, pageSize: pageSize.value }
     if (filters.keyword.trim()) params.keyword = filters.keyword.trim()
+    // ⚠️ 已登记技术债（转 C1-2）：后端 listTenants 当前**只支持 keyword**
+    //   （backend/src/services/platform-tenant.service.ts:32-58，SQL 里未出现 status/plan/expire 条件）
+    //   status/plan 两个参数发出后会被后端直接忽略 —— 不报错，但也**不生效**。
+    //   此处保留发送，是为后端补齐后前端免改；**不得据此认为筛选已生效**。
     if (filters.status !== '全部') params.status = filters.status
     if (filters.plan !== '全部') params.plan = filters.plan
     const res: any = await listTenantsApi(params)
     list.value = res.data?.records || res.data?.list || []
     total.value = res.data?.total || 0
-    // TODO: 待接入状态统计接口，回填 statusCounts
+    await fetchStatusStats()
   } catch {
     list.value = []
     total.value = 0
+    listError.value = true
+    await fetchStatusStats()
   } finally {
     loading.value = false
   }
@@ -206,18 +289,24 @@ function onTab(tab: TabKey) {
   fetchList()
 }
 
+/* 下拉切换后自动回到第 1 页并重新查询（此前切了不查，属纯前端行为缺陷） */
 function cyclePlan() {
   const i = planOptions.indexOf(filters.plan)
   filters.plan = planOptions[(i + 1) % planOptions.length]
-  // TODO: 触发查询（下拉选择后自动筛选）
+  page.value = 1
+  fetchList()
 }
 function cycleStatus() {
   const i = statusOptions.indexOf(filters.status)
   filters.status = statusOptions[(i + 1) % statusOptions.length]
+  page.value = 1
+  fetchList()
 }
 function cycleExpire() {
   const i = expireOptions.indexOf(filters.expire)
   filters.expire = expireOptions[(i + 1) % expireOptions.length]
+  page.value = 1
+  fetchList()
 }
 
 const pageBtns = computed<(number | string)[]>(() => {
@@ -239,22 +328,34 @@ function goPage(p: number) {
 }
 
 /* ───────────────────────────────────────────────────────────
-   状态 → 标签（设计稿四态：正常/欠费/冻结/已注销；现有接口仅 ACTIVE/DISABLED）
-   TODO: 待接入设计稿四态枚举，建立 status → 标签映射
+   status → 标签映射：按**后端真实枚举**建立，不自造
+   取证（逐条可复跑）：
+   - backend/src/controllers/platform/tenant.controller.ts:61
+       togglePlatformTenantStatus：`if (!["ACTIVE","DISABLED"].includes(status)) → 400`
+       ⇒ 后端**强校验**的合法值只有 ACTIVE / DISABLED 两个
+   - backend/src/services/platform-tenant.service.ts:89  新建租户写入 status='ACTIVE'
+   - backend/src/services/platform/tenant-usage.service.ts:158  rank 过滤 `t.status = 'ACTIVE'`
+   ⇒ 设计稿四态中的「欠费」「已注销」在后端**无对应枚举**，已转 C1-2。
+   ⚠️ 命名口径待凌舟裁定：设计稿把禁用的租户叫「冻结」，后端语义是「禁用」，
+      二者不是同一业务动作，本处按后端语义显示「已停用」，避免把「禁用」谎报成「冻结」。
    ─────────────────────────────────────────────────────────── */
+const STATUS_MAP: Record<string, { label: string; cls: string }> = {
+  ACTIVE: { label: '正常', cls: 'tag-g' },
+  // 历史表定义为 TINYINT（1=正常 0=停用），存量数据可能是 '1'/'0'
+  '1': { label: '正常', cls: 'tag-g' },
+  DISABLED: { label: '已停用', cls: 'tag-r' },
+  '0': { label: '已停用', cls: 'tag-r' },
+  EXPIRED: { label: '已到期', cls: 'tag-o' },
+}
+const UNKNOWN_STATUS = { label: '未知状态', cls: 'tag-gy' }
+function statusMeta(s: string) {
+  return STATUS_MAP[(s || '').toUpperCase()] || UNKNOWN_STATUS
+}
 function statusTagClass(s: string): string {
-  const up = (s || '').toUpperCase()
-  if (up === 'DISABLED' || up === 'FROZEN' || up === '冻结') return 'tag-r'
-  if (up === 'OWED' || up === '欠费') return 'tag-o'
-  if (up === 'CANCELLED' || up === '已注销') return 'tag-gy'
-  return 'tag-g'
+  return statusMeta(s).cls
 }
 function statusLabel(s: string): string {
-  const up = (s || '').toUpperCase()
-  if (up === 'DISABLED' || up === 'FROZEN' || up === '冻结') return '已冻结'
-  if (up === 'OWED' || up === '欠费') return '欠费'
-  if (up === 'CANCELLED' || up === '已注销') return '已注销'
-  return '正常'
+  return statusMeta(s).label
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -263,39 +364,86 @@ function statusLabel(s: string): string {
 function rowActions(row: any) {
   const s = (row.status || '').toUpperCase()
   const base = [{ key: 'detail', label: '详情', cls: '' }]
-  if (s === 'FROZEN' || s === '冻结') {
-    return [...base, { key: 'unfreeze', label: '解冻', cls: 'warn' }, { key: 'proxy', label: '模拟登录', cls: 'gy' }]
+  // 仅按后端真实枚举 ACTIVE / DISABLED 分支；不再为后端不存在的 FROZEN/OWED/CANCELLED 造分支
+  if (s === 'DISABLED') {
+    return [
+      ...base,
+      { key: 'unfreeze', label: '启用', cls: 'warn' },
+      { key: 'overview', label: '概况', cls: '' },
+    ]
   }
-  if (s === 'OWED' || s === '欠费') {
-    return [...base, { key: 'urge', label: '催缴', cls: 'warn' }, { key: 'proxy', label: '模拟登录', cls: '' }]
+  if (s === 'ACTIVE') {
+    return [
+      ...base,
+      { key: 'freeze', label: '停用', cls: 'warn' },
+      { key: 'overview', label: '概况', cls: '' },
+      { key: 'renew', label: '续费', cls: '' },
+      { key: 'proxy', label: '代登录', cls: '' },
+      { key: 'export', label: '数据导出', cls: '' },
+      { key: 'reset', label: '重置数据', cls: 'dgr' },
+    ]
   }
-  if (s === 'CANCELLED' || s === '已注销') {
-    return [{ key: 'detail', label: '详情', cls: 'gy' }, { key: 'restore', label: '恢复', cls: '' }]
-  }
-  return [
-    ...base,
-    { key: 'renew', label: '续费', cls: '' },
-    { key: 'proxy', label: '模拟登录', cls: '' },
-    { key: 'overview', label: '概况', cls: '' },
-    { key: 'export', label: '数据导出', cls: '' },
-    { key: 'reset', label: '重置数据', cls: 'dgr' }
-  ]
+  return [...base, { key: 'overview', label: '概况', cls: '' }]
 }
-function onRowAction(key: string, row: any) {
+
+/* ⛔ C1-2 后端仍缺（不得谎报成功）：renew / :id/export / reset 三个写操作 */
+const BLOCKED_ACTIONS: Record<string, string> = {
+  renew: '续费（POST /platform/tenants/:id/renew）',
+  export: '数据导出（POST /platform/tenants/:id/export，仅列表级 /tenants/export 已落地）',
+  reset: '重置数据（POST /platform/tenants/:id/reset）',
+}
+
+async function onRowAction(key: string, row: any) {
   if (key === 'detail') return openDetail(row)
-  const map: Record<string, string> = {
-    renew: '续费', proxy: '代登录审批', overview: '租户概况', export: '数据导出',
-    reset: '重置数据', urge: '催缴', unfreeze: '解冻', restore: '恢复'
+  // 概况 / 代登录：跳真实详情页（代登录需在详情页填「登录事由」才能提交审批，行内无输入位）
+  if (key === 'overview' || key === 'proxy') return router.push(`/tenants/${row.id}`)
+  // 启用/停用：接已存在的 POST /platform/tenants/:id/toggle
+  if (key === 'freeze') return toggleTenantStatus(row, 'DISABLED')
+  if (key === 'unfreeze') return toggleTenantStatus(row, 'ACTIVE')
+  ElMessage.warning(`${BLOCKED_ACTIONS[key] || key}：后端接口未就绪，已转 C1-2`)
+}
+
+/** POST /platform/tenants/:id/toggle（platform-tenant.routes.ts:34，已存在） */
+async function toggleTenantStatus(row: any, next: 'ACTIVE' | 'DISABLED') {
+  const text = next === 'ACTIVE' ? '启用' : '停用'
+  try {
+    await toggleTenantApi(row.id, next)
+    ElMessage.success(`已${text}：${row.tenantName || row.id}`)
+    await fetchList()
+  } catch {
+    /* request 拦截器已统一弹中文错误，页面不重复提示 */
   }
-  ElMessage.info(`${map[key] || key}：待接入对应接口`)
 }
 
 /* ───────────────────────────────────────────────────────────
-   页头 / 筛选动作（均为演示态，待接入后端）
+   页头动作：能接的接真实接口，接不上的如实报「后端未就绪」，不再谎报
    ─────────────────────────────────────────────────────────── */
-function onExportList() { ElMessage.info('导出列表：待接入 GET /platform/tenants/export') }
-function onBatch() { ElMessage.info('批量操作：待接入批量接口') }
-function onCreate() { ElMessage.info('新建租户：待接入 POST /platform/tenants') }
+// ✅ 已联调：GET /api/platform/tenants/export（C1-2 A2 落地，返回 CSV）
+async function onExportList() {
+  try {
+    const res: any = await exportTenantsApi(filters.keyword.trim() || undefined)
+    const blob = res instanceof Blob ? res : new Blob([res], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tenants-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    ElMessage.success('租户列表已导出')
+  } catch {
+    /* request 拦截器已统一弹中文错误，页面不重复提示 */
+  }
+}
+// ⛔ C1-2 后端未实现：批量操作接口
+function onBatch() {
+  ElMessage.warning('批量操作：后端暂无批量接口，已转 C1-2')
+}
+// ✅ 已联调：跳真实新建页（路由 /tenants/create → TenantForm.vue:75 调 POST /platform/tenants）
+function onCreate() {
+  router.push('/tenants/create')
+}
 function onReset() {
   filters.plan = '全部'
   filters.status = '全部'
@@ -313,11 +461,22 @@ const detail = ref<any>(null)
 const detailLoading = ref(false)
 const currentTenantName = ref('—')
 
+/* 资源配额：GET /platform/tenants/:id/quota（platform-tenant.routes.ts:25，已存在） */
+const quota = ref<any>(null)
+const quotaLoading = ref(false)
+const quotaError = ref(false)
+const quotaRows = computed<QuotaRow[]>(() => buildQuotaRows(quota.value))
+
+/* 基础信息内联编辑：PUT /platform/tenants/:id（platform-tenant.routes.ts:31，已存在） */
+const editing = ref(false)
+const editForm = reactive({ contactName: '', contactMobile: '', expireAt: '' })
+
 async function openDetail(row: any) {
   currentTenantName.value = row.tenantName || '—'
   detailOpen.value = true
   detailLoading.value = true
   detail.value = null
+  editing.value = false
   try {
     const res: any = await getTenantApi(row.id)
     detail.value = res.data
@@ -326,15 +485,77 @@ async function openDetail(row: any) {
   } finally {
     detailLoading.value = false
   }
+  await fetchQuota(row.id)
 }
+
+async function fetchQuota(tenantId: number) {
+  quotaLoading.value = true
+  quotaError.value = false
+  quota.value = null
+  try {
+    const res: any = await getTenantQuotaApi(tenantId)
+    quota.value = res.data
+  } catch {
+    quota.value = null
+    quotaError.value = true
+  } finally {
+    quotaLoading.value = false
+  }
+}
+
 function closeDetail() {
   detailOpen.value = false
+  editing.value = false
 }
-function onEdit() { ElMessage.info('编辑：待接入 PUT /platform/tenants/:id') }
-function onExpandQuota() { ElMessage.info('临时扩容：待接入 POST /platform/tenants/:id/quota-expand') }
-function onRenew() { ElMessage.info('立即续费：待接入 POST /platform/tenants/:id/renew') }
-function onProxyLogin() { ElMessage.info('代登录（需审批）：待接入 POST /platform/tenants/:id/proxy-login') }
-function onFreeze() { ElMessage.info('冻结：待接入 POST /platform/tenants/:id/freeze') }
+
+function onEdit() {
+  editing.value = true
+  editForm.contactName = detail.value?.contactName || ''
+  editForm.contactMobile = detail.value?.contactMobile || ''
+  editForm.expireAt = detail.value?.expireAt || ''
+}
+function cancelEdit() {
+  editing.value = false
+}
+async function saveEdit() {
+  try {
+    await updateTenantApi(detail.value.id, {
+      contactName: editForm.contactName,
+      contactMobile: editForm.contactMobile,
+      expireAt: editForm.expireAt || null,
+    })
+    ElMessage.success('已保存租户基础信息')
+    editing.value = false
+    const res: any = await getTenantApi(detail.value.id)
+    detail.value = res.data
+    await fetchList()
+  } catch {
+    /* request 拦截器已统一弹中文错误，页面不重复提示 */
+  }
+}
+
+// ✅ 已联调（改道）：POST /api/platform/tenants/:id/quota-expand 需 field/amount/days 三个必填参数，
+//    抽屉内无输入位，故跳租户详情页（那里有扩容表单弹窗）发起，不在抽屉里假装提交。
+function onExpandQuota() {
+  const id = detail.value?.id
+  if (!id) return
+  closeDetail()
+  router.push(`/tenants/${id}`)
+}
+// ⛔ C1-2 后端未实现：POST /platform/tenants/:id/renew
+function onRenew() {
+  ElMessage.warning('立即续费：POST /platform/tenants/:id/renew 后端接口未就绪，已转 C1-2')
+}
+// ⛔ C1-2 后端未实现：POST /platform/tenants/:id/proxy-login
+function onProxyLogin() {
+  ElMessage.warning('代登录（需审批）：POST /platform/tenants/:id/proxy-login 后端接口未就绪，已转 C1-2')
+}
+// ✅ 已联调：抽屉「冻结」→ POST /platform/tenants/:id/toggle（后端真实语义为「停用」）
+async function onFreeze() {
+  if (!detail.value?.id) return
+  await toggleTenantStatus(detail.value, 'DISABLED')
+  closeDetail()
+}
 
 onMounted(fetchList)
 </script>
@@ -434,5 +655,16 @@ onMounted(fetchList)
 .d-ft > .btn {
   flex: 1;
   justify-content: center;
+}
+
+/* ───── 错误态 + 可重试（C1-1：与「空态」分开，不再用占位文案充当空态） ───── */
+.empty .err-t {
+  color: var(--color-danger);
+}
+.empty .retry {
+  margin-left: var(--space-2);
+  color: var(--color-primary);
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

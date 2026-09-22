@@ -173,6 +173,40 @@ export function updatePlan(id: number, data: any) {
 }
 
 /**
+ * C1-1：删除套餐。
+ * ⚠️ 前缀口径必须单独说明（踩坑点）：
+ *   - backend/src/routes/subscription.routes.ts（prefix `/api/platform/subscriptions-management`）
+ *     只注册了 GET/POST/PUT `/plans`、`/plans/:planId`、`/plans/:planId/policy`，
+ *     **没有 DELETE**（该文件第 11~19 行可核）。
+ *   - DELETE 只挂在 backend/src/routes/platform-plans.routes.ts:24 的 `DELETE /:planId`
+ *     （prefix `/api/platform/plans`）。
+ * ⇒ 故此处必须走 `/platform/plans/:id`，若照抄 getPlans 的 subscriptions-management 前缀会 404。
+ */
+export function deletePlan(id: number) {
+  return api.delete<any, { data: ApiResult<any> }>(`/platform/plans/${id}`);
+}
+
+/**
+ * C1-2 B1：GET /api/platform/plans/upgrade-flow-report —— 升降级流向报表
+ * ⚠️ range 枚举是后端强校验的 month / 3m / 12m（传「本月」会 400），前端页签文案需映射。
+ * 响应：{ range, rangeStart, dataSource, summary:{events,tenants},
+ *        records:[{direction,dir:'UP'|'DOWN',fromPlanName,toPlanName,eventCount,tenantCount,lastAt}] }
+ */
+export function getPlanUpgradeFlowReport(range: "month" | "3m" | "12m") {
+  return api.get<any, { data: ApiResult<any> }>("/platform/plans/upgrade-flow-report", { params: { range } });
+}
+
+/**
+ * C1-2 B2：POST /api/platform/plans/:planId/copy —— 复制套餐（含 features 与策略包）
+ * ⚠️ 当前套餐列表页**未改道**到本接口：既有「复制」走 /packages/create?copyFrom=<id>
+ *    （PackageForm.vue:466-468 读源套餐回填为初值），保留「命名新套餐」这一步。
+ *    是否改为一键复制由凌舟裁定；接口已就绪，前端改一行即可切。
+ */
+export function copyPlan(id: number, data?: { planCode?: string; planName?: string; status?: string }) {
+  return api.post<any, { data: ApiResult<any> }>(`/platform/plans/${id}/copy`, data ?? {});
+}
+
+/**
  * R101-S2-02 组1：套餐策略配置（升级/降级/续费/扩展额度/限时活动）
  * 这些项在 t_subscription_plan 无对应列，落 t_platform_config（config_key='plan_policy:<id>'）。
  * 未配置的子项不会出现在响应中，响应另含只读元字段 _unconfigured / _configured。
