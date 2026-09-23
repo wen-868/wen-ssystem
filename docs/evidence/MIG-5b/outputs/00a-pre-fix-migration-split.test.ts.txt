@@ -1,0 +1,249 @@
+/**
+ * MIG-5：外部迁移"丢块"根治（splitSqlStatements）守门单测 + 真实受影响文件的端到端断言
+ *
+ * 本文件包含三部分：
+ *   ① #13（S3-51）原意的 splitSqlStatements 断言（逐条保留其原意，未删减）；
+ *   ② MIG-5 反测（真实文件）：以真实受影响文件 `docs/migrations/006_phase4_schema.sql` 为输入，
+ *      断言"修复前被整块丢弃的真实语句，修复后会被挑出执行"；
+ *   ③ MIG-5 反测（闸门同批）：同一批语句里的 INSERT 在默认 block 下**仍被跳过**且**有日志**，
+ *      证明 MIG-4 写闸门未回归（MIG-4 自身用例见 migration-write-gate.test.ts，未改动）。
+ *
+ * harness 说明：本文件复刻 migration-write-gate.test.ts 的进程内 harness（mock fs / mysql2 / logger / env），
+ * 用真实迁移文件内容驱动真实的 runMigrations()，断言"哪些语句真的发给了数据库连接"。
+ * 本环境 vitest 起不来（esbuild spawn EPERM，见 docs/evidence/MIG-5/outputs/03-vitest-blocked.txt），
+ * 同源断言在 docs/evidence/MIG-5/tools/mig5-verify.mjs 里以同样口径复跑（含"回退 ⇒ 变红"反测）。
+ */
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { existsSync as realExistsSync, readFileSync as realReadFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const { mockQuery, mockEnd, mockCreateConnection } = vi.hoisted(() => {
+  const mockQuery = vi.fn();
+  const mockEnd = vi.fn().mockResolvedValue(undefined);
+  const mockCreateConnection = vi.fn().mockResolvedValue({
+    query: mockQuery,
+    end: mockEnd,
+  });
+  return { mockQuery, mockEnd, mockCreateConnection };
+});
+
+vi.mock("mysql2/promise", () => ({
+  default: {
+    createConnection: mockCreateConnection,
+  },
+}));
+
+vi.mock("../../shared/env", () => ({
+  env: {
+    USE_MOCK_DB: false,
+    DB_HOST: "localhost",
+    DB_PORT: 3306,
+    DB_USER: "root",
+    DB_PASSWORD: "test",
+    DB_NAME: "test_db",
+  },
+}));
+
+const { mockLoggerInfo, mockLoggerError, mockLoggerWarn, mockLoggerDebug } = vi.hoisted(() => ({
+  mockLoggerInfo: vi.fn(),
+  mockLoggerError: vi.fn(),
+  mockLoggerWarn: vi.fn(),
+  mockLoggerDebug: vi.fn(),
+}));
+
+vi.mock("../../shared/logger", () => ({
+  default: {
+    info: mockLoggerInfo,
+    error: mockLoggerError,
+    warn: mockLoggerWarn,
+    debug: mockLoggerDebug,
+  },
+}));
+
+const { mockReadFileSync, mockReaddirSync, mockExistsSync, mockHashSync } = vi.hoisted(() => ({
+  mockReadFileSync: vi.fn().mockReturnValue("SELECT 1;"),
+  mockReaddirSync: vi.fn().mockReturnValue([]),
+  mockExistsSync: vi.fn().mockReturnValue(true),
+  mockHashSync: vi.fn().mockReturnValue("$2b$10$mockedhashvalue"),
+}));
+
+vi.mock("fs", () => ({
+  readFileSync: mockReadFileSync,
+  readdirSync: mockReaddirSync,
+  existsSync: mockExistsSync,
+}));
+
+vi.mock("bcryptjs", () => ({
+  default: { hashSync: mockHashSync },
+  hashSync: mockHashSync,
+}));
+
+import { runMigrations, splitSqlStatements } from "../../shared/migration";
+
+// 复刻 migration.ts 第8步 / 5.5.8 步的预处理：先移除 USE / DELIMITER 行，再拆分。
+// 仅用于回归测试，需与源码保持一致（USE/DELIMITER 在本步被剔除，不属于 splitSqlStatements 职责）。
+function cleanAndSplit(sql: string): string[] {
+  const cleaned = sql
+    .split("\n")
+    .filter((line) => {
+      const t = line.trim().toUpperCase();
+      return !t.startsWith("USE ") && !t.startsWith("DELIMITER ");
+    })
+    .join("\n");
+  return splitSqlStatements(cleaned);
+}
+
+describe("splitSqlStatements (S3-51 修复守门)", () => {
+  it("前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）", () => {
+    const sql = `-- 编号: 031 订阅表\nCREATE TABLE IF NOT EXISTS t_subscription (\n  id INT PRIMARY KEY\n);`;
+    const result = splitSqlStatements(sql);
+    expect(result.some((s) => s.includes("CREATE TABLE") && s.includes("t_subscription"))).toBe(true);
+  });
+
+  it("纯注释块应返回空数组", () => {
+    const sql = `-- 仅注释\n-- 第二行注释`;
+    expect(splitSqlStatements(sql)).toEqual([]);
+  });
+
+  it("语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）", () => {
+    const sql = `CREATE TABLE t_y (id INT COMMENT 'a--b');`;
+    const result = splitSqlStatements(sql);
+    expect(result.some((s) => s.includes("COMMENT 'a--b'"))).toBe(true);
+  });
+
+  it("行内注释（语句末尾 --）应原样保留，不被当块丢弃", () => {
+    const sql = `-- 说明\nCREATE TABLE t_x (id INT);\nSELECT 1 -- 行内注释`;
+    const result = splitSqlStatements(sql);
+    expect(result.some((s) => s.includes("CREATE TABLE t_x"))).toBe(true);
+    expect(result.some((s) => s.includes("SELECT 1") && s.includes("-- 行内注释"))).toBe(true);
+  });
+
+  it("回归：USE / DELIMITER 行仍被剔除", () => {
+    const sql = `USE liquor_inventory;\nDELIMITER $$\nCREATE TABLE t_z (id INT);\nDELIMITER ;`;
+    const result = cleanAndSplit(sql);
+    expect(result.some((s) => s.toUpperCase().startsWith("USE "))).toBe(false);
+    expect(result.some((s) => s.toUpperCase().startsWith("DELIMITER "))).toBe(false);
+    expect(result.some((s) => s.includes("CREATE TABLE t_z"))).toBe(true);
+  });
+
+  it("回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）", () => {
+    const sql = `CREATE TABLE t_a (id INT);\nCREATE PROCEDURE p_x() BEGIN END;\nDROP TABLE IF EXISTS t_b;`;
+    const result = splitSqlStatements(sql);
+    expect(result.some((s) => s.includes("CREATE PROCEDURE"))).toBe(true);
+    expect(result.some((s) => s.includes("DROP TABLE"))).toBe(true);
+  });
+});
+
+// ========== MIG-5 反测：真实受影响文件 006_phase4_schema.sql ==========
+const REAL_MIGRATION_FILE = "006_phase4_schema.sql";
+
+/** 真实文件路径（vitest 的 cwd 可能是 backend/ 或仓库根，逐候选探测；找不到即显式失败） */
+function resolveRealMigrationPath(): string {
+  const candidates = [
+    resolve(process.cwd(), "docs/migrations", REAL_MIGRATION_FILE),
+    resolve(process.cwd(), "../docs/migrations", REAL_MIGRATION_FILE),
+    resolve(process.cwd(), "../../docs/migrations", REAL_MIGRATION_FILE),
+  ];
+  const found = candidates.find((p) => realExistsSync(p));
+  if (!found) throw new Error(`找不到真实迁移文件：${REAL_MIGRATION_FILE}（探测：${candidates.join(" | ")}）`);
+  return found;
+}
+
+const REAL_SQL = realReadFileSync(resolveRealMigrationPath(), "utf8");
+
+/** 只保留与 006 相关的下发语句（内置迁移步骤下发的其它语句不参与断言） */
+const REAL_MARKERS = [
+  "SET FOREIGN_KEY_CHECKS",
+  "t_price_level",
+  "t_sku_price",
+  "t_customer_price_binding",
+  "t_price_change_log",
+  "t_customer_credit",
+  "t_credit_operation_log",
+  "t_collection_record",
+  "t_trace_config",
+  "t_trace_code",
+  "t_trace_event_log",
+  "t_trace_scan_log",
+  "t_recall_record",
+  "price_level",
+];
+
+function realFileQueries(): string[] {
+  return mockQuery.mock.calls
+    .map((call: unknown[]) => call[0])
+    .filter((sql: unknown): sql is string => typeof sql === "string")
+    .filter((sql) => REAL_MARKERS.some((m) => sql.includes(m)));
+}
+
+/** 取写闸门跳过日志的行文本 */
+function gateSkipLogs(): string[] {
+  return mockLoggerWarn.mock.calls
+    .map((call: unknown[]) => call[0])
+    .filter((m: unknown): m is string => typeof m === "string" && m.includes("写闸门 block 跳过"));
+}
+
+describe("MIG-5 真实文件 006：丢块根治 + 写闸门同批生效", () => {
+  beforeEach(() => {
+    mockQuery.mockReset();
+    mockQuery.mockResolvedValue([{ affectedRows: 0 }]);
+    mockEnd.mockReset();
+    mockEnd.mockResolvedValue(undefined);
+    mockCreateConnection.mockReset();
+    mockCreateConnection.mockResolvedValue({ query: mockQuery, end: mockEnd });
+    mockLoggerInfo.mockClear();
+    mockLoggerWarn.mockClear();
+    mockLoggerError.mockClear();
+    // 只对 006 返回真实文件内容：runMigrations 内部还有若干步骤会 readFileSync 后整文件下发，
+    // 若无差别返回真实文件，它会在这两步里被重复执行，断言就不再是"外部迁移段"的结果
+    mockReadFileSync.mockImplementation((pathArg: unknown) =>
+      String(pathArg).endsWith(REAL_MIGRATION_FILE) ? REAL_SQL : "SELECT 1;"
+    );
+    mockReaddirSync.mockReturnValue([REAL_MIGRATION_FILE]);
+    mockExistsSync.mockReturnValue(true);
+    mockHashSync.mockReturnValue("$2b$10$mockedhashvalue");
+    // 默认挡：确保环境变量未设置
+    delete process.env.MIGRATION_WRITE_GATE;
+  });
+
+  afterEach(() => {
+    delete process.env.MIGRATION_WRITE_GATE;
+  });
+
+  it("修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）", async () => {
+    await runMigrations();
+    const queries = realFileQueries();
+
+    // 006 第 11 行：`-- 编号: 006 ...` 等注释 + 紧随其后的 SET FOREIGN_KEY_CHECKS = 0 同属一块，
+    // 修复前该块被整块丢弃（修复后应被挑出执行）
+    expect(queries.some((s) => s.trim() === "SET FOREIGN_KEY_CHECKS = 0")).toBe(true);
+    // 006 第 156 行：同族被丢弃的 SET FOREIGN_KEY_CHECKS = 1
+    expect(queries.some((s) => s.trim() === "SET FOREIGN_KEY_CHECKS = 1")).toBe(true);
+    // 006 第 161/181/214/235/247 行：`-- 追溯配置表` 等注释 + CREATE TABLE，修复前整块被丢弃
+    for (const table of ["t_trace_config", "t_trace_code", "t_trace_event_log", "t_trace_scan_log", "t_recall_record"]) {
+      expect(
+        queries.some((s) => s.includes(`CREATE TABLE IF NOT EXISTS ${table}`)),
+        `修复后应挑出建表语句：${table}`
+      ).toBe(true);
+    }
+  });
+
+  it("闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志", async () => {
+    await runMigrations();
+    const queries = realFileQueries();
+
+    // 006 第 82 行：INSERT IGNORE INTO price_level ... —— 修复后会被挑出，但默认 block 必须挡住
+    expect(queries.filter((s) => /^\s*INSERT/i.test(s))).toEqual([]);
+    const logs = gateSkipLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toContain(REAL_MIGRATION_FILE);
+    expect(logs[0]).toContain("INSERT 语句");
+    expect(logs[0]).toContain("目标 price_level");
+  });
+
+  it("生产保护未回归：同批 DROP TABLE 一条都不执行", async () => {
+    await runMigrations();
+    const queries = realFileQueries();
+    expect(queries.filter((s) => /^\s*DROP\s+TABLE/i.test(s))).toEqual([]);
+  });
+});

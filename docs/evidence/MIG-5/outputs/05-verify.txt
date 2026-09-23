@@ -1,0 +1,125 @@
+﻿== 命令：node docs/evidence/MIG-5/tools/mig5-verify.mjs
+== 口径：正常版（工作区真实源码）vs 三种回退版（丢块根治 / addTablePrefix 同族 / 写闸门）；真实输入 docs/migrations/006_phase4_schema.sql
+== 原始输出：
+
+================================================================================================
+MIG-5 断言复跑 + 反测
+================================================================================================
+被测源码：D:\Users\ZXQL\wt-agents\issue-88\backend\src\shared\migration.ts
+  SHA256(原始文件，CRLF)      = 0e93fcac378e019ec913ec0b590443e30c7a5bed9c81d4d067210b724b62e1cc
+  SHA256(归一化 LF 后)        = 6d299dfb1d2b4942f2e49c9e4efc666cc74733d2881c687669583e377310235a
+  SHA256(回退：丢块根治)      = 97fab43f44d9c0d97457575c063aea4b9b6aa57d41dabf7a6df8fa7bf5300af1
+  SHA256(回退：addTablePrefix 同族) = 96852d5f25371b861c0ffa975abb9b388a0bf458b4f356450bb1242845caf5b8
+  SHA256(回退：写闸门)        = f7ded82d5cb1b390f8c691e45cd98a0477f9f5c066c865c496262fe0bc8fd942
+真实输入文件：docs\migrations\006_phase4_schema.sql（11402 字符）
+
+回退版源码落盘（供人工核对，不污染工作区）：
+  docs\evidence\MIG-5\outputs\00b-reverted-split-migration.ts.txt
+  docs\evidence\MIG-5\outputs\00c-reverted-prefix-migration.ts.txt
+  docs\evidence\MIG-5\outputs\00d-reverted-gate-migration.ts.txt
+
+------------------------------------------------------------------------------------------------
+A/B 真实文件 006_phase4_schema.sql：丢块根治（正常版）
+------------------------------------------------------------------------------------------------
+  [绿] A1 注释块首后的真实语句被挑出执行：SET FOREIGN_KEY_CHECKS = 0（#006 第 11 行） —— 命中=true
+  [绿] A2 同文件第 156 行 SET FOREIGN_KEY_CHECKS = 1 同样被执行 —— 命中=true
+  [绿] A3 注释块首后的建表语句被挑出执行：CREATE TABLE IF NOT EXISTS t_trace_config（第 161 行） —— 命中=true
+  [绿] A4 同文件其余 4 张追溯表（t_trace_code 等）同样被挑出执行 —— 命中=true
+  [绿] A5 闸门仍生效：同批 INSERT IGNORE（第 82 行 price_level）一条都没执行 —— 实际执行 INSERT 条数=0
+  [绿] A6 闸门日志：该条 INSERT 有 1 行含 文件 + 类型 + 目标表 的跳过日志 —— 日志条数=1；首条="[migration] 006_phase4_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"
+  [绿] A7 生产保护未回归：DROP TABLE 一条都没执行，且逐条走了 DROP 保护分支（有日志） —— 执行 DROP=0；DROP 保护日志=7 条
+  执行语句总数（含内置迁移步骤下发）= 208；其中 006 相关 = 20
+  006 相关结构语句抽样（前缀后的实际下发文本）：
+    · CREATE TABLE IF NOT EXISTS t_price_level (
+    · CREATE TABLE IF NOT EXISTS t_sku_price (
+    · CREATE TABLE IF NOT EXISTS t_trace_config (
+    · CREATE TABLE IF NOT EXISTS t_recall_record (
+
+------------------------------------------------------------------------------------------------
+反测 A/B：同一输入喂给【丢块修复回退版】——A1~A4 必须变红
+------------------------------------------------------------------------------------------------
+  [绿] R1 回退版：SET FOREIGN_KEY_CHECKS = 0 不再被执行（A1 变红） —— 命中=false
+  [绿] R2 回退版：CREATE TABLE IF NOT EXISTS t_trace_config 不再被执行（A3 变红） —— 命中=false
+  [绿] R3 回退版：被丢弃的块含 INSERT，故闸门日志也为 0（A6 变红） —— 闸门日志=0
+  回退版执行语句总数 = 202（正常版 208；差值=6）
+  修复后被挑出、修复前被整块丢掉的 006 语句（6 条）：
+    + SET FOREIGN_KEY_CHECKS = 0
+    + CREATE TABLE IF NOT EXISTS t_trace_config ( id INT AUTO_INCREMENT PRIMARY KEY, config_no VARCHAR
+    + CREATE TABLE IF NOT EXISTS t_trace_code ( id INT AUTO_INCREMENT PRIMARY KEY, trace_code VARCHAR(
+    + CREATE TABLE IF NOT EXISTS t_trace_event_log ( id INT AUTO_INCREMENT PRIMARY KEY, trace_code VAR
+    + CREATE TABLE IF NOT EXISTS t_trace_scan_log ( id INT AUTO_INCREMENT PRIMARY KEY, trace_code VARC
+    + CREATE TABLE IF NOT EXISTS t_recall_record ( id INT AUTO_INCREMENT PRIMARY KEY, recall_no VARCHA
+  修复前执行、修复后不再执行的 006 语句（0 条，应为 0）：
+  被丢弃块内的 DROP TABLE 是否进入生产保护分支：正常版 7 条日志 vs 回退版 0 条日志（回退版被 split 过滤器静默丢弃，D 保护分支根本看不到它们）
+
+------------------------------------------------------------------------------------------------
+反测 B：把写闸门回退（resolveWriteGate 恒 allow）——A5/A6 必须变红
+------------------------------------------------------------------------------------------------
+  [绿] R4 闸门回退版：同批 INSERT IGNORE 被放行执行（A5 变红） —— 执行 INSERT 条数=1；首条="INSERT IGNORE INTO t_price_level (level_code, level_name, discount_rate, min_ord"
+  [绿] R5 闸门回退版：无写闸门跳过日志（A6 变红） —— 日志条数=0
+
+------------------------------------------------------------------------------------------------
+B2 合成批次（默认 block）：结构语句执行、写语句与 CALL 全部跳过并有日志
+------------------------------------------------------------------------------------------------
+  [绿] B1 首行注释下的 CREATE TABLE / ALTER TABLE 被执行（丢块根治生效） —— 执行=2 条
+  [绿] B2 INSERT / INSERT IGNORE / UPDATE / DELETE / REPLACE / CALL 一条都没执行 —— 执行=["CREATE TABLE IF NOT EXISTS t_mig5_demo (","ALTER TABLE t_mig5_demo ADD COLUMN name "]
+  [绿] B3 6 条写语句/CALL 各有一条跳过日志 —— 日志条数=6
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 INSERT 语句（目标 t_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 INSERT 语句（目标 t_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 UPDATE 语句（目标 t_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 DELETE 语句（目标 t_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 REPLACE 语句（目标 t_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+    · [migration] 001_mig5_gate_fixture.sql: 写闸门 block 跳过 CALL 语句（目标 sync_mig5_demo）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+
+------------------------------------------------------------------------------------------------
+C addTablePrefix：MIG-2 反引号存留断言（H01~H20，断言表沿用 docs/evidence/MIG-2/tools/mig2-verify.mjs）
+------------------------------------------------------------------------------------------------
+  [绿] H01 CREATE TABLE IF NOT EXISTS 反引号表名
+  [绿] H02 CREATE TABLE 反引号表名
+  [绿] H03 CREATE TABLE 裸表名（回归）
+  [绿] H04 ALTER TABLE 反引号表名
+  [绿] H05 INSERT INTO 反引号表名
+  [绿] H06 语句首 UPDATE 反引号表名
+  [绿] H07 DELETE FROM 反引号表名
+  [绿] H08 FROM 子句反引号表名
+  [绿] H09 JOIN 反引号表名
+  [绿] H10 INSERT IGNORE INTO 反引号表名（MIG-5 起由 INSERT_INTO 模式覆盖）
+  [绿] H11 RENAME TABLE 反引号表名
+  [绿] H12 DROP TABLE IF EXISTS 反引号表名
+  [绿] H13 反引号形态已带 t_ 前缀不重复加
+  [绿] H14 反引号 + t_ 前缀的 INSERT/FROM 不重复加
+  [绿] H15 裸表名已带 t_ 前缀不重复加（回归）
+  [绿] H16 反引号包裹的 mysql 系统库不加前缀
+  [绿] H17 关键字 IF / NOT / EXISTS 不得被当成表名
+  [绿] H18 字面量中已是 t_ 前缀的名字不被改写（回归）
+  [绿] H19 存量行为冻结：字面量 'FROM y' 的改写修复前后逐字节一致
+  [绿] H20 非反引号输入零差异：已有 t_ 前缀的 UPDATE 原样返回
+  [绿] C0 MIG-2 反引号存留断言全部为绿（20/20） —— 绿=20
+
+------------------------------------------------------------------------------------------------
+C2 MIG-5 新增断言：REFERENCES / INTO（正常版）
+------------------------------------------------------------------------------------------------
+  [绿] N01 REFERENCES 裸名：REFERENCES tenant(id) → t_tenant —— 实际 "FOREIGN KEY (tenant_id) REFERENCES t_tenant(id) ON DELETE CASCADE"
+  [绿] N02 REFERENCES 反引号：REFERENCES `retail_order` (`id`) → `t_retail_order` —— 实际 "FOREIGN KEY (order_id) REFERENCES `t_retail_order` (`id`) ON DELETE CASCADE"
+  [绿] N03 REFERENCES 已带 t_ 前缀不重复加（冻结位） —— 实际 "FOREIGN KEY (a) REFERENCES t_tenant(id)"
+  [绿] N04 INSERT IGNORE INTO 裸名（不再依赖过宽 INTO）→ t_price_level（冻结位） —— 实际 "INSERT IGNORE INTO t_price_level (level_code) VALUES ('RETAIL')"
+  [绿] N05 REPLACE INTO 裸名 → t_price_level（补偿被收窄的通用 INTO；冻结位） —— 实际 "REPLACE INTO t_price_level (level_code) VALUES ('RETAIL')"
+  [绿] N06 SELECT ... INTO 过程变量不得被加前缀（092 实际案例 col_count） —— 实际 "SELECT COUNT(*) INTO col_count FROM information_schema.COLUMNS WHERE TABLE_NAME = 'x'"
+  [绿] N07 SELECT ... INTO 过程变量不得被加前缀（092 实际案例 idx_count） —— 实际 "SELECT COUNT(*) INTO idx_count FROM information_schema.STATISTICS WHERE TABLE_NAME = 'x'"
+  [绿] N08 SET ... INTO 变量赋值不得被加前缀 —— 实际 "SET @v = 1; SET @w = 2;"
+
+------------------------------------------------------------------------------------------------
+反测 C：把 addTablePrefix 同族收口回退——N01~N07 必须变红、H01~H20 必须保持全绿
+------------------------------------------------------------------------------------------------
+  [绿] R-N01 回退版：REFERENCES 裸名：REFERENCES tenant(id) → t_tenant —— contains 期望含 "REFERENCES t_tenant("
+  [绿] R-N02 回退版：REFERENCES 反引号：REFERENCES `retail_order` (`id`) → `t_retail_order` —— contains 期望含 "REFERENCES `t_retail_order`"
+  [绿] R-N06 回退版：SELECT ... INTO 过程变量不得被加前缀（092 实际案例 col_count） —— exact 期望 "SELECT COUNT(*) INTO col_count FROM information_schema.COLUMNS WHERE TABLE_NAME = 'x'"，实际 "SELECT COUNT(*) INTO t_col_count FROM information
+  [绿] R-N07 回退版：SELECT ... INTO 过程变量不得被加前缀（092 实际案例 idx_count） —— exact 期望 "SELECT COUNT(*) INTO idx_count FROM information_schema.STATISTICS WHERE TABLE_NAME = 'x'"，实际 "SELECT COUNT(*) INTO t_idx_count FROM informat
+  [绿] R-C0 回退版：MIG-2 反引号断言仍全绿（冻结位不受本单同族回退影响，20/20） —— 绿=20
+  [绿] R-C1 回退版：MIG-5 新增断言中 4 条变红（反测位 N01/N02/N06/N07） —— 变红=4
+
+================================================================================================
+结论：全部断言符合预期（正常版全绿；各反测位在对应回退版全红）
+================================================================================================
+
+EXIT=0

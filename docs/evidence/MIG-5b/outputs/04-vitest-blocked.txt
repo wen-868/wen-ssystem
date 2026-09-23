@@ -1,0 +1,32 @@
+﻿== 命令：cd backend; node ../node_modules/vitest/vitest.mjs run src/__tests__/shared/migration-split.test.ts（本沙箱预期失败：esbuild spawn EPERM）
+node : failed to load config from D:\Users\ZXQL\wt-agents\issue-88\backend\vitest.config.ts
+At D:\Users\ZXQL\wt-agents\issue-88\docs\evidence\MIG-5b\tools\mig5b-checks.ps1:41 char:5
++     node ../node_modules/vitest/vitest.mjs run src/__tests__/shared/m ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (failed to load ...itest.config.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1978:29)
+    at build (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1876:26)
+    at bundleConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:4
+9448:24)
+    at async bundleAndLoadConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-
+Dm0c1Wj2.js:49432:19)
+    at async loadConfigFromFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1
+Wj2.js:49396:44)
+    at async resolveConfig (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.j
+s:48891:24)
+    at async _createServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.j
+s:38478:66)
+    at async createViteServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vitest/dist/chunks/cli-api.BK8pd4
+xc.js:8835:17) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+EXIT=1

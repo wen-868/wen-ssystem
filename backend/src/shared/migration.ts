@@ -92,13 +92,22 @@ export function addTablePrefix(sql: string): string {
   const patterns = [
     /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(ALTER\s+TABLE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
-    /(INSERT\s+INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    // MIG-5：补 IGNORE，使 `INSERT IGNORE INTO x` 不再依赖下面那条过宽的通用 INTO
+    /(INSERT\s+(?:IGNORE\s+)?INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
     /((?:^|\n)\s*UPDATE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gim,
     /(DELETE\s+FROM\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(FROM\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(JOIN\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
-    /(INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    // MIG-5（原 #17/S3-55B）：原为过宽的通用 `/(INTO\s+)(...)/`——`SELECT COUNT(*) INTO col_count`
+    // 这类"赋值给过程变量"的 INTO 会被误当表名加前缀成 t_col_count（092 实际案例，MySQL 报
+    // Undeclared variable）。收窄为仅匹配 REPLACE INTO：真实表名的 INTO 场景由上方 INSERT_INTO
+    // 与这里的 REPLACE_INTO 互补覆盖，SELECT/SET ... INTO 变量赋值不再被改写。
+    /(REPLACE\s+INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    // MIG-5（原 #14/S3-52）：外键引用。原漏此模式 ⇒ 全新/灾备库
+    // `FOREIGN KEY (x) REFERENCES tenant(id)` 里的 tenant 未加 t_ 前缀，MySQL 报
+    // Failed to open the referenced table 'tenant'（CI 全新 MySQL 8 下 27 条外键迁移失败）。
+    /(REFERENCES\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(RENAME\s+TABLE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
   ];
@@ -113,6 +122,31 @@ export function addTablePrefix(sql: string): string {
     });
   }
   return result;
+}
+
+/**
+ * MIG-5 + 踩坑[63]：把整段 SQL 拆成可逐条执行的语句数组（按 `;` 切块）。
+ *
+ * 为什么：外部迁移段此前在按 `;` 切块后用
+ *   .filter(s => s.length > 0 && !s.startsWith("--"))
+ * 过滤，会把"以注释开头的整块语句"连同其后的真实语句一起丢弃——
+ * 例如 006_phase4_schema.sql 里 `USE` 行被预处理剔除后，`-- 编号: 006 ...` 等注释与
+ * 紧随其后的 `SET FOREIGN_KEY_CHECKS = 0` 落在同一块 ⇒ 该块被当注释整块丢弃；
+ * 同文件 `-- 追溯配置表` 后的 `CREATE TABLE IF NOT EXISTS t_trace_config` 亦然
+ * （量级见 docs/evidence/MIG-1/**：128 文件 / 457 条）。
+ *
+ * 修复：先剥离 chunk 开头的整行注释（只剥开头，语句中间/末尾的 `--` 一律不动，
+ * 保守起见不做行内 `--` 解析），再按 length>0 判断；剥离后为空的纯注释块仍然丢弃。
+ * 调用方需先移除 USE / DELIMITER 行（见各调用点的 cleaned 步骤）。
+ */
+export function splitSqlStatements(sql: string): string[] {
+  return sql
+    .split(";")
+    .map((s) => s.trim())
+    // 先剥离 chunk 开头的整行注释，再判断是否为空，避免把真实语句一起丢
+    // （尾随的注释行可能无换行结尾，故用 (\n|$) 同时吃掉收尾注释行）
+    .map((s) => s.replace(/^(\s*--[^\n]*(\n|$))+/, "").trim())
+    .filter((s) => s.length > 0);
 }
 
 export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
@@ -878,10 +912,10 @@ export async function runMigrations(): Promise<void> {
         })
         .join("\n");
       // 拆分语句块并逐条执行（addTablePrefix 对已带 t_ 前缀的表名跳过，安全）
-      const aiStatements = aiCleaned
-        .split(";")
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0 && !s.startsWith("--"));
+      // MIG-5 + 踩坑[63]：改用 splitSqlStatements，剥离 chunk 开头的整行注释后再判空，
+      // 避免"以注释开头的整块语句"把其后的真实语句一起丢弃（121_ai_base_tables.sql 首行即注释，
+      // 首张表 t_platform_ai_config 此前会被静默跳过）
+      const aiStatements = splitSqlStatements(aiCleaned);
       for (const stmt of aiStatements) {
         if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
           continue;
@@ -1025,10 +1059,9 @@ export async function runMigrations(): Promise<void> {
           .join("\n");
 
         // 拆分语句块 — 先按分号分，再处理 $$ 块
-        const statements = cleaned
-          .split(";")
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0 && !s.startsWith("--"));
+        // MIG-5 + 踩坑[63]：改用 splitSqlStatements，剥离 chunk 开头的整行注释后再判空，
+        // 避免"以注释开头的整块语句"把其后的真实语句一起丢弃（见 splitSqlStatements 注释）
+        const statements = splitSqlStatements(cleaned);
 
         for (const stmt of statements) {
           // 跳过存储过程定义（$$ 块内的内容）

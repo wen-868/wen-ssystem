@@ -1,0 +1,10 @@
+﻿== 基线口径：git show HEAD:backend/src/shared/migration.ts（= main 2321a7721，未含本单改动）
+== 命令：cd backend; git show HEAD:backend/src/shared/migration.ts | node <repo-shared>/node_modules/eslint/bin/eslint.js --stdin --stdin-filename src/shared/migration.ts
+== 原始输出：
+
+D:\Users\ZXQL\wt-agents\issue-88\backend\src\shared\migration.ts
+  238:8  warning  Async function 'runMigrations' has a complexity of 46. Maximum allowed is 15  complexity
+
+✖ 1 problem (0 errors, 1 warning)
+
+EXIT=0

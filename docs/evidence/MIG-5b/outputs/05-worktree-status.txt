@@ -1,0 +1,19 @@
+== 命令：git rev-parse --abbrev-ref HEAD / git rev-parse HEAD / git status --porcelain
+== 分支：agent/issue-88
+== HEAD：2321a7721205b34fde02d501a8adc143fb66f166
+== git status --porcelain（MIG-5 的 migration.ts 改动 + 本单改动；后半为未跟踪文件）
+ M backend/src/shared/migration.ts
+ D "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247.md"
+ M docs/tasks/inbox/ACTIVE.md
+?? backend/src/__tests__/shared/migration-prefix-family.test.ts
+?? backend/src/__tests__/shared/migration-split.test.ts
+?? docs/evidence/MIG-5/
+?? docs/evidence/MIG-5b/
+?? "docs/tasks/cards/R101-MIG-5-\351\230\277\345\235\232\345\233\236\344\274\240.md"
+?? "docs/tasks/cards/R101-MIG-5b-\346\264\276\345\215\225.md"
+?? "docs/tasks/inbox/archive/ACTIVE-B1-\345\211\215\346\217\220\346\240\270\351\252\214-20260922.md"
+?? "docs/tasks/inbox/archive/ACTIVE-\345\233\236\346\211\247-S3-65-\345\275\261\345\223\215\351\235\242-20260921.md"
+== 关键文件 SHA256
+0e93fcac378e019ec913ec0b590443e30c7a5bed9c81d4d067210b724b62e1cc  backend\src\shared\migration.ts
+0fa376ae6439bd087218916150aec7e219bb763359a06957673816c7196e13e9  backend\src\__tests__\shared\migration-split.test.ts
+ba45c1d114cf6bfe8ca6529b486772b8a2d700acd699294842e9e7c0785b55f5  docs\evidence\MIG-5b\outputs\00a-pre-fix-migration-split.test.ts.txt
