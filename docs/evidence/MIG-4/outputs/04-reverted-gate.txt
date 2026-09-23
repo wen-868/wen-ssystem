@@ -1,0 +1,9 @@
+export function resolveWriteGate(raw: string | null | undefined = process.env.MIGRATION_WRITE_GATE): MigrationWriteGate {
+  return String(raw ?? "").trim().toLowerCase() === "allow" ? "allow" : "block";
+}
+
+→ 反测替换为：
+
+export function resolveWriteGate(): MigrationWriteGate {
+  return "allow";
+}

@@ -1,0 +1,160 @@
+{
+  "generatedAt": "2026-09-23T20:56:48.129Z",
+  "assertions": [
+    {
+      "id": "X1",
+      "title": "harness 假迁移语句表与 vitest 用例逐条一致（同源）",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "11 条且顺序一致",
+      "revertedPass": true,
+      "revertedDetail": "11 条且顺序一致"
+    },
+    {
+      "id": "P1",
+      "title": "DATA_WRITE_KEYWORDS = INSERT/UPDATE/DELETE/REPLACE/CALL",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "5 条且顺序一致",
+      "revertedPass": true,
+      "revertedDetail": "5 条且顺序一致"
+    },
+    {
+      "id": "P2",
+      "title": "firstKeyword 剥离前导空白/注释后取首关键字",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "8 条全符",
+      "revertedPass": true,
+      "revertedDetail": "8 条全符"
+    },
+    {
+      "id": "P3",
+      "title": "isDataWriteStatement 判真集合（含注释前缀与 INSERT ... SELECT）",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "7 条全判真",
+      "revertedPass": true,
+      "revertedDetail": "7 条全判真"
+    },
+    {
+      "id": "P4",
+      "title": "结构/非写语句不得被误判（CREATE / ALTER / CREATE INDEX / SELECT / 纯注释）",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "6 条全判假",
+      "revertedPass": true,
+      "revertedDetail": "6 条全判假"
+    },
+    {
+      "id": "P5",
+      "title": "statementTarget 取表名/过程名（日志目标列）",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "8 条全符",
+      "revertedPass": true,
+      "revertedDetail": "8 条全符"
+    },
+    {
+      "id": "P6",
+      "title": "resolveWriteGate：默认（未设置 env）必须是 block，只有显式 allow 才放行",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "缺省/未设置/非法值/allow 全部符合",
+      "revertedPass": false,
+      "revertedDetail": "不符 7 条：[\"<未设置 env>\",\"allow\",\"block\"]"
+    },
+    {
+      "id": "B1",
+      "title": "默认挡：只有 4 条结构语句被执行（顺序一致）",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "4 条且顺序一致",
+      "revertedPass": false,
+      "revertedDetail": "实际 11 条 / 期望 4 条；实际首条=\"CREATE TABLE IF NOT EXISTS `t_gate_demo` (id INT)\""
+    },
+    {
+      "id": "B2",
+      "title": "默认挡：7 条写语句/CALL 一条都没下发",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "7 条写语句/CALL 均未下发",
+      "revertedPass": false,
+      "revertedDetail": "仍被下发：VALUES (1)、VALUES (2)、SELECT id FROM、SET id = 5、WHERE id = 3、VALUES (4)、sync_gate_demo"
+    },
+    {
+      "id": "B3",
+      "title": "默认挡：每条被跳过的语句都有 文件+语句类型+目标表 日志",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "跳过日志 7 条，文件/类型/目标齐全",
+      "revertedPass": false,
+      "revertedDetail": "日志 0 条（期望 7），缺：INSERT(t_gate_demo)、INSERT(t_gate_demo)、INSERT(t_gate_demo)、UPDATE(t_gate_demo)、DELETE(t_gate_demo)、REPLACE(t_gate_demo)、CALL(sync_gate_demo)"
+    },
+    {
+      "id": "B4",
+      "title": "默认挡：跳过日志给出放行方式 MIGRATION_WRITE_GATE=allow",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "7 条日志均含放行方式",
+      "revertedPass": false,
+      "revertedDetail": "0 条日志未全部含放行方式"
+    },
+    {
+      "id": "B5",
+      "title": "默认挡：info 日志声明「外部迁移写闸门=block（默认）」",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "已声明 block",
+      "revertedPass": false,
+      "revertedDetail": "缺 block 声明"
+    },
+    {
+      "id": "B6",
+      "title": "非法取值 MIGRATION_WRITE_GATE=yes 按 fail-safe 视同挡",
+      "redUnderRevert": true,
+      "normalPass": true,
+      "normalDetail": "执行列表：4 条且顺序一致；日志：跳过日志 7 条，文件/类型/目标齐全",
+      "revertedPass": false,
+      "revertedDetail": "执行列表：实际 11 条 / 期望 4 条；实际首条=\"CREATE TABLE IF NOT EXISTS `t_gate_demo` (id INT)\"；日志：日志 0 条（期望 7），缺：INSERT(t_gate_demo)、INSERT(t_gate_demo)、INSERT(t_gate_demo)、UPDATE(t_gate_demo)、DELETE(t_gate_demo)、REPLACE(t_gate_demo)、CALL(sync_gate_demo)"
+    },
+    {
+      "id": "A1",
+      "title": "显式放行（allow）：11 条语句全部执行（顺序一致）",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "11 条且顺序一致",
+      "revertedPass": true,
+      "revertedDetail": "11 条且顺序一致"
+    },
+    {
+      "id": "A2",
+      "title": "显式放行（allow）：没有写闸门跳过日志",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "0 条跳过日志（期望 0）",
+      "revertedPass": true,
+      "revertedDetail": "0 条跳过日志（期望 0）"
+    },
+    {
+      "id": "A3",
+      "title": "显式放行（allow）：info 日志声明「=allow（显式配置）」",
+      "redUnderRevert": false,
+      "normalPass": true,
+      "normalDetail": "已声明 allow",
+      "revertedPass": true,
+      "revertedDetail": "已声明 allow"
+    }
+  ],
+  "summary": {
+    "assertions": 16,
+    "redSlots": 7,
+    "normalPassed": 16,
+    "revertedRed": 7,
+    "revertedGreen": 9,
+    "revertedViolation": 0,
+    "sourceSha256": "0b093877d4154b5d8fa0a8c20b434d626302aa69f3d1fada72631553bcce0805",
+    "revertedSha256": "84d15d7e6076e6f21272aa20bb19e334aa655f9d05928024bd3e23b9c607da3d",
+    "ok": true
+  }
+}

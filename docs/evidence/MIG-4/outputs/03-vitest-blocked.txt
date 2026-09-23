@@ -1,0 +1,38 @@
+
+== 本环境 vitest 不可运行的原始输出（环境限制证据，不是被测代码缺陷）
+== 命令：cd <仓库根>; npm --workspace backend test（=  backend/vitest run ）
+== 现象：vite 加载 vitest.config.ts 时 esbuild 起子进程被沙箱拒绝（spawn EPERM，errno -4048）
+== 根因：本沙箱不允许 node 创建任何子进程（实测 node -e "execSync('cmd /c echo hi')" = EPERM spawnSync）
+== 处置：后端全量用例（预期 574 文件 / 6347 例）由凌舟在本机复跑；本单以同源断言的 harness 复跑（见 04-gate-verify.txt）
+
+> zhixiang-backend@0.1.0 test
+> vitest run
+
+failed to load config from D:\Users\ZXQL\wt-agents\issue-85\backend\vitest.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1978:29)
+    at build (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1876:26)
+    at bundleConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49448:24)
+    at async bundleAndLoadConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49432:19)
+    at async loadConfigFromFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49396:44)
+    at async resolveConfig (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:48891:24)
+    at async _createServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:38478:66)
+    at async createViteServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vitest/dist/chunks/cli-api.BK8pd4xc.js:8835:17) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+
+
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path D:\Users\ZXQL\wt-agents\issue-85\backend
+npm error workspace zhixiang-backend@0.1.0
+npm error location D:\Users\ZXQL\wt-agents\issue-85\backend
+npm error command failed
+npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vitest run

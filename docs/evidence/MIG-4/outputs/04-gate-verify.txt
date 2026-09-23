@@ -1,0 +1,71 @@
+[MIG-4/gate-verify] 外部迁移写闸门（默认挡）：断言复跑 + 反测
+  仓库根：D:\Users\ZXQL\wt-agents\issue-85
+  被测源码：D:\Users\ZXQL\wt-agents\issue-85\backend\src\shared\migration.ts
+    源码 SHA256：0b093877d4154b5d8fa0a8c20b434d626302aa69f3d1fada72631553bcce0805
+    闸门定义行号：DATA_WRITE_KEYWORDS@152 / resolveWriteGate@159 / stripLeadingComments@167 / firstKeyword@190 / isDataWriteStatement@199 / statementTarget@206
+  同源用例文件：D:\Users\ZXQL\wt-agents\issue-85\backend\src\__tests__\shared\migration-write-gate.test.ts
+  反测版（把 resolveWriteGate 改回「永远 allow」）：
+    替换块 "export function resolveWriteGate(raw: string | null | undefined = process.env.MIGRATION_WRITE_GATE): MigrationWriteGate {\r ⏎   return String(raw ?? \"\").trim().toLowerCase() === \"allow\" ? \"allow\" : \"block\";\r ⏎ }"
+    替换为 "export function resolveWriteGate(): MigrationWriteGate { ⏎   return \"allow\"; ⏎ }"
+    反测版 SHA256：84d15d7e6076e6f21272aa20bb19e334aa655f9d05928024bd3e23b9c607da3d
+  临时模块目录：C:\Users\XIONG\AppData\Local\Temp\mig4-gate-RKxnr8
+
+== 逐条断言（正常版 / 反测版） ==
+  [X1] 正常版 绿 / 反测版 绿  harness 假迁移语句表与 vitest 用例逐条一致（同源）
+        正常版：11 条且顺序一致
+        反测版：11 条且顺序一致
+  [P1] 正常版 绿 / 反测版 绿  DATA_WRITE_KEYWORDS = INSERT/UPDATE/DELETE/REPLACE/CALL
+        正常版：5 条且顺序一致
+        反测版：5 条且顺序一致
+  [P2] 正常版 绿 / 反测版 绿  firstKeyword 剥离前导空白/注释后取首关键字
+        正常版：8 条全符
+        反测版：8 条全符
+  [P3] 正常版 绿 / 反测版 绿  isDataWriteStatement 判真集合（含注释前缀与 INSERT ... SELECT）
+        正常版：7 条全判真
+        反测版：7 条全判真
+  [P4] 正常版 绿 / 反测版 绿  结构/非写语句不得被误判（CREATE / ALTER / CREATE INDEX / SELECT / 纯注释）
+        正常版：6 条全判假
+        反测版：6 条全判假
+  [P5] 正常版 绿 / 反测版 绿  statementTarget 取表名/过程名（日志目标列）
+        正常版：8 条全符
+        反测版：8 条全符
+  [P6] 正常版 绿 / 反测版 红  resolveWriteGate：默认（未设置 env）必须是 block，只有显式 allow 才放行（反测位）
+        正常版：缺省/未设置/非法值/allow 全部符合
+        反测版：不符 7 条：["<未设置 env>","allow","block"]
+  [B1] 正常版 绿 / 反测版 红  默认挡：只有 4 条结构语句被执行（顺序一致）（反测位）
+        正常版：4 条且顺序一致
+        反测版：实际 11 条 / 期望 4 条；实际首条="CREATE TABLE IF NOT EXISTS `t_gate_demo` (id INT)"
+  [B2] 正常版 绿 / 反测版 红  默认挡：7 条写语句/CALL 一条都没下发（反测位）
+        正常版：7 条写语句/CALL 均未下发
+        反测版：仍被下发：VALUES (1)、VALUES (2)、SELECT id FROM、SET id = 5、WHERE id = 3、VALUES (4)、sync_gate_demo
+  [B3] 正常版 绿 / 反测版 红  默认挡：每条被跳过的语句都有 文件+语句类型+目标表 日志（反测位）
+        正常版：跳过日志 7 条，文件/类型/目标齐全
+        反测版：日志 0 条（期望 7），缺：INSERT(t_gate_demo)、INSERT(t_gate_demo)、INSERT(t_gate_demo)、UPDATE(t_gate_demo)、DELETE(t_gate_demo)、REPLACE(t_gate_demo)、CALL(sync_gate_demo)
+  [B4] 正常版 绿 / 反测版 红  默认挡：跳过日志给出放行方式 MIGRATION_WRITE_GATE=allow（反测位）
+        正常版：7 条日志均含放行方式
+        反测版：0 条日志未全部含放行方式
+  [B5] 正常版 绿 / 反测版 红  默认挡：info 日志声明「外部迁移写闸门=block（默认）」（反测位）
+        正常版：已声明 block
+        反测版：缺 block 声明
+  [B6] 正常版 绿 / 反测版 红  非法取值 MIGRATION_WRITE_GATE=yes 按 fail-safe 视同挡（反测位）
+        正常版：执行列表：4 条且顺序一致；日志：跳过日志 7 条，文件/类型/目标齐全
+        反测版：执行列表：实际 11 条 / 期望 4 条；实际首条="CREATE TABLE IF NOT EXISTS `t_gate_demo` (id INT)"；日志：日志 0 条（期望 7），缺：INSERT(t_gate_demo)、INSERT(t_gate_demo)、INSERT(t_gate_demo)、UPDATE(t_gate_demo)、DELETE(t_gate_demo)、REPLACE(t_gate_demo)、CALL(sync_gate_demo)
+  [A1] 正常版 绿 / 反测版 绿  显式放行（allow）：11 条语句全部执行（顺序一致）
+        正常版：11 条且顺序一致
+        反测版：11 条且顺序一致
+  [A2] 正常版 绿 / 反测版 绿  显式放行（allow）：没有写闸门跳过日志
+        正常版：0 条跳过日志（期望 0）
+        反测版：0 条跳过日志（期望 0）
+  [A3] 正常版 绿 / 反测版 绿  显式放行（allow）：info 日志声明「=allow（显式配置）」
+        正常版：已声明 allow
+        反测版：已声明 allow
+
+== 汇总 ==
+  断言总数 16：反测位 7 条 / 非反测位 9 条
+  正常版（工作区真实源码）全绿：16/16
+  反测位在反测版（闸门改回不挡）变红：7/7（要求全部为红）
+  非反测位在反测版保持绿：9/9（要求全部为绿）
+  反测结果违反预期条数：0（要求 0）
+
+RESULT: ALL PASS
+EXIT=0

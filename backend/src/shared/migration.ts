@@ -135,6 +135,106 @@ export async function safeExec(conn: mysql.Connection, sql: string, label: strin
   }
 }
 
+// ============================================================
+// 迁移写闸门（MIG-4：迁移放量前置，默认"挡"）
+// ============================================================
+// 背景：外部迁移段的"丢块缺陷"修复（PR #13）后，历史上被整块丢弃的数据写语句会在下一次部署
+// 首次真正执行；而 runMigrations() 由 server.ts 每次启动调用、全仓没有执行账本表
+// ⇒ 任何无保护的数据写语句都会随每次重启复利叠加（含把管理员口令重置为默认值的语句）。
+// 因此外部迁移段引入 fail-safe 写闸门：默认只放行结构/非写语句（CREATE / ALTER / CREATE INDEX / SELECT 等），
+// 数据写语句（INSERT / UPDATE / DELETE / REPLACE）与 CALL 一律跳过并逐条留日志；
+// 只有显式设置 MIGRATION_WRITE_GATE=allow 才放行。
+
+/** 写闸门取值：block=挡（默认）/ allow=放行 */
+export type MigrationWriteGate = "block" | "allow";
+
+/** 数据写语句首关键字（含过程调用 CALL） */
+export const DATA_WRITE_KEYWORDS = ["INSERT", "UPDATE", "DELETE", "REPLACE", "CALL"] as const;
+
+/**
+ * 解析写闸门取值（fail-safe）。
+ * 只有显式配置为 allow（忽略大小写与首尾空白）才放行；
+ * 未设置 / 空串 / 其它任何取值（含拼写错误）一律回落 block。
+ */
+export function resolveWriteGate(raw: string | null | undefined = process.env.MIGRATION_WRITE_GATE): MigrationWriteGate {
+  return String(raw ?? "").trim().toLowerCase() === "allow" ? "allow" : "block";
+}
+
+/**
+ * 剥离语句前导空白与注释（横线横线行注释、井号行注释、斜杠星号块注释），返回"代码起点"文本。
+ * 前导注释全部剥掉后无剩余内容时返回空串（整块只有注释）。
+ */
+export function stripLeadingComments(statement: string): string {
+  let rest = statement;
+  for (;;) {
+    const before = rest;
+    rest = rest.replace(/^\s+/, "");
+    if (rest.startsWith("--") || rest.startsWith("#")) {
+      const lineEnd = rest.indexOf("\n");
+      if (lineEnd < 0) return "";
+      rest = rest.slice(lineEnd + 1);
+    } else if (rest.startsWith("/*")) {
+      const blockEnd = rest.indexOf("*/");
+      if (blockEnd < 0) return "";
+      rest = rest.slice(blockEnd + 2);
+    }
+    if (rest === before) break;
+  }
+  return rest;
+}
+
+/**
+ * 语句首个关键字（大写）；无法判定时返回空串。
+ * 只取"剥离前导注释后的首个词"，因此 `INSERT ... SELECT` 判为 INSERT（不会被误判成 SELECT）。
+ */
+export function firstKeyword(statement: string): string {
+  const matched = /^([A-Za-z_][A-Za-z0-9_]*)/.exec(stripLeadingComments(statement));
+  return matched ? matched[1].toUpperCase() : "";
+}
+
+/**
+ * 是否"数据写语句"（INSERT / UPDATE / DELETE / REPLACE）或 CALL。
+ * 判定依据是剥离前导空白与注释后的首关键字（不做 startsWith 粗匹配）。
+ */
+export function isDataWriteStatement(statement: string): boolean {
+  return (DATA_WRITE_KEYWORDS as readonly string[]).includes(firstKeyword(statement));
+}
+
+/**
+ * 语句的目标对象（写语句的表名 / CALL 的过程名），仅用于写闸门日志；无法判定时返回空串。
+ */
+export function statementTarget(statement: string): string {
+  const name = "(?:`([A-Za-z0-9_$]+)`|([A-Za-z0-9_$]+))";
+  const patterns: Record<string, RegExp> = {
+    INSERT: new RegExp("^INSERT\\s+(?:IGNORE\\s+)?INTO\\s+" + name, "i"),
+    REPLACE: new RegExp("^REPLACE\\s+(?:INTO\\s+)?" + name, "i"),
+    UPDATE: new RegExp("^UPDATE\\s+(?:LOW_PRIORITY\\s+)?(?:IGNORE\\s+)?" + name, "i"),
+    DELETE: new RegExp("^DELETE\\s+FROM\\s+" + name, "i"),
+    CALL: new RegExp("^CALL\\s+" + name, "i"),
+  };
+  const pattern = patterns[firstKeyword(statement)];
+  if (!pattern) return "";
+  const matched = pattern.exec(stripLeadingComments(statement));
+  return matched ? matched[1] ?? matched[2] ?? "" : "";
+}
+
+/**
+ * 写闸门（block）判定 + 跳过日志：命中"数据写语句 / CALL"时返回 true（调用方据此跳过执行）。
+ * 单独成函数的原因：`runMigrations` 已在该仓库 eslint `complexity` 告警线上（HEAD 44 / 上限 15），
+ * 把闸门分支收进这里，可让本次改动不额外抬高 `runMigrations` 的复杂度数值。
+ */
+function blockedByWriteGate(statement: string, file: string, gate: MigrationWriteGate): boolean {
+  if (gate !== "block" || !isDataWriteStatement(statement)) return false;
+  const stmtType = firstKeyword(statement);
+  const target = statementTarget(statement);
+  logger.warn(
+    `[migration] ${file}: 写闸门 block 跳过 ${stmtType} 语句` +
+      (target ? `（目标 ${target}）` : "") +
+      "；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow"
+  );
+  return true;
+}
+
 export async function runMigrations(): Promise<void> {
   if (env.USE_MOCK_DB) return;
 
@@ -903,6 +1003,14 @@ export async function runMigrations(): Promise<void> {
         .filter((f) => f.endsWith(".sql") && f !== "add_tenant_id.sql")
         .sort();
 
+      // MIG-4 写闸门：只读一次环境变量（fail-safe 默认 block），并在日志里声明本次运行生效的取值
+      const writeGate = resolveWriteGate();
+      logger.info(
+        writeGate === "block"
+          ? "[migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow"
+          : "[migration] 外部迁移写闸门=allow（显式配置）：数据写语句与 CALL 全部放行"
+      );
+
       for (const file of files) {
         const sql = readFileSync(join(migrationsDir, file), "utf-8");
         logger.info(`[migration] 执行外部迁移: ${file}`);
@@ -935,6 +1043,10 @@ export async function runMigrations(): Promise<void> {
             logger.warn(`[migration] ${file}: 跳过 DROP TABLE 语句（保护生产数据）`);
             continue;
           }
+          // MIG-4 写闸门：默认挡。只跳过"数据写语句（INSERT/UPDATE/DELETE/REPLACE）与 CALL"，
+          // 结构语句（CREATE TABLE / ALTER TABLE / CREATE INDEX）与 SELECT 等非写语句照常执行；
+          // 每条被跳过的语句打一行含"文件 + 语句类型 + 目标表"的日志，便于事后核对。
+          if (blockedByWriteGate(stmt, file, writeGate)) continue;
           // 自动给所有表名加 t_ 前缀
           const prefixedStmt = addTablePrefix(stmt);
           await safeExec(conn, prefixedStmt, `${file}`);
