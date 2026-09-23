@@ -1,0 +1,73 @@
+[C2-4/02] 反测：证明检测器会红（临时副本，仓库文件零改动）
+         仓库根：D:\Users\ZXQL\wt-agents\issue-65
+         检测方式：进程内调用 c2-4-lib.mjs（本沙箱 child_process spawn 被拒 EPERM，不能起子进程）
+
+== 第 1 次原始输出（副本原样，期望 ALL PASS / exit=0） ==
+[C2-4/02] 副本原样 exit=0（期望 0）
+
+== M1 前端路径改错：platform-template.ts 的 print/:id/public → publish ==
+   改前：/platform/templates/print/${id}/public
+   改后：/platform/templates/print/${id}/publish
+   原始输出（判定行）：
+     [C] ✗ 不一致 1 条（前端有调用、后端无对应路由）：
+           FAIL POST /api/platform/templates/print/${id}/publish  ← saas-admin/src/api/platform-template.ts:158 setPrintTemplatePublicApi()
+     [D-专项] templates 注册早于 /:id ? 是（不会被吞）
+           ✗ 前端调用无后端路由：POST /api/platform/templates/print/${id}/publish（saas-admin/src/api/platform-template.ts:158）
+     RESULT: FAILURES
+     EXIT=1
+   exit=1
+   ✓ M1 变红且点名目标对象（"/api/platform/templates/print/${id}/publish" + "前端调用无后端路由"）
+   还原后 exit=0（期望 0）
+
+== M2 前端路径改错：announcement.ts 的 /platform/announcements → /platform/announcement（少个 s） ==
+   改前：request.get('/platform/announcements', { params })
+   改后：request.get('/platform/announcement', { params })
+   原始输出（判定行）：
+     [C] ✗ 不一致 1 条（前端有调用、后端无对应路由）：
+           FAIL GET /api/platform/announcement  ← saas-admin/src/api/announcement.ts:69 listAnnouncementsApi()
+     [D-专项] templates 注册早于 /:id ? 是（不会被吞）
+           ✗ 前端调用无后端路由：GET /api/platform/announcement（saas-admin/src/api/announcement.ts:69）
+     RESULT: FAILURES
+     EXIT=1
+   exit=1
+   ✓ M2 变红且点名目标对象（"/api/platform/announcement" + "前端调用无后端路由"）
+   还原后 exit=0（期望 0）
+
+== M3 后端注册顺序颠倒：GET/PUT /templates 移到 GET /:id 之后（通配吞并） ==
+   改前：adminPlatformAnnouncementRouter.get("/templates", asyncHandler(templateController.listAnnouncementTemplates)); ⏎ adminPlatformAnnouncementRouter.put("/templates
+   改后：adminPlatformAnnouncementRouter.get("/:id", asyncHandler(controller.getAnnouncementById)); ⏎ adminPlatformAnnouncementRouter.get("/templates", asyncHandler(temp
+   原始输出（判定行）：
+           ✗ GET /api/platform/announcements/templates（backend/src/routes/admin-platform-announcement.routes.ts:13）会被 /api/platform/announcements/:id（backend/src/routes/admin-platform-announcement.routes.ts:12）吞掉
+     [D-专项] templates 注册早于 /:id ? 否（会被吞）
+           ✗ 通配吞并：GET /api/platform/announcements/templates
+           ✗ /announcements/templates 注册晚于 /:id，会被通配吞掉
+     RESULT: FAILURES
+     EXIT=1
+   exit=1
+   ✓ M3 变红且点名目标对象（"通配吞并" + "templates 注册早于 /:id ? 否"）
+   还原后 exit=0（期望 0）
+
+== M4 删除后端 GET /templates 注册行（改由 /:id 通配处理） ==
+   改前：adminPlatformAnnouncementRouter.get("/templates", asyncHandler(templateController.listAnnouncementTemplates)); ⏎ adminPlatformAnnouncementRouter.put("/templates
+   改后：adminPlatformAnnouncementRouter.put("/templates", asyncHandler(templateController.saveAnnouncementTemplates)); ⏎ adminPlatformAnnouncementRouter.get("/:id", asy
+   原始输出（判定行）：
+     [C2-4/01b] 是否由「/templates」专门 handler 命中（而非被 /:id 通配吞掉）: 否
+     RESULT: FAILURES
+   exit=1
+   ✓ M4 变红且点名目标对象（"是否由「/templates」专门 handler 命中（而非被 /:id 通配吞掉）: 否"）
+   还原后 exit=0（期望 0）
+
+== M5 检出边界（预期不红）：前端方法改错 GET→POST，同路径后端确实存在 POST ==
+   改前：request.get('/platform/announcements', { params })
+   改后：request.post('/platform/announcements', { params })
+   原始输出（判定行）：
+     [D-专项] templates 注册早于 /:id ? 是（不会被吞）
+     RESULT: ALL PASS
+     EXIT=0
+   exit=0
+   · 检出边界记录：本次改坏**未被检出** ⇒ 集合差集法的已知盲区（见回传卡「未完成与阻塞/风险」）（不计入失败）
+   还原后 exit=0（期望 0）
+
+[C2-4/02] 反测结论：全部反测通过（检测器确实会红，且红在目标对象上）
+RESULT: ALL PASS
+EXIT=0

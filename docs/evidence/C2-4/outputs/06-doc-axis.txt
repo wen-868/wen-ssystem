@@ -1,0 +1,59 @@
+[C2-4/06] 第二轴核对：API 契约文档 × 后端实现 × 前端方法
+         仓库根：D:\Users\ZXQL\wt-agents\issue-65
+         契约口径源：docs/API接口文档.md（§模板中心）
+
+[轴①] 契约文档 §模板中心 声明端点 12 条 ⇒ 逐条核对后端注册
+      GET /api/platform/templates/init                           后端=backend/src/routes/platform-templates.routes.ts:19
+      POST /api/platform/templates/init                          后端=backend/src/routes/platform-templates.routes.ts:21
+      PUT /api/platform/templates/init/:param                    后端=backend/src/routes/platform-templates.routes.ts:25
+      GET /api/platform/templates/init/:param/versions           后端=backend/src/routes/platform-templates.routes.ts:23
+      GET /api/platform/templates/print                          后端=backend/src/routes/platform-templates.routes.ts:29
+      POST /api/platform/templates/print/upload                  后端=backend/src/routes/platform-templates.routes.ts:31
+      POST /api/platform/templates/print/:param/public           后端=backend/src/routes/platform-templates.routes.ts:33
+      GET /api/platform/templates/import-export                  后端=backend/src/routes/platform-templates.routes.ts:37
+      POST /api/platform/templates/import-export                 后端=backend/src/routes/platform-templates.routes.ts:39
+      GET /api/platform/templates/import-export/:param/download  后端=backend/src/routes/platform-templates.routes.ts:41
+      GET /api/platform/announcements/templates                  后端=backend/src/routes/admin-platform-announcement.routes.ts:12
+      PUT /api/platform/announcements/templates                  后端=backend/src/routes/admin-platform-announcement.routes.ts:13
+
+[轴②] 前端 18 条调用的 METHOD × 契约文档 METHOD
+      GET    /api/platform/templates/init                     契约=GET/POST  一致
+      POST   /api/platform/templates/init                     契约=GET/POST  一致
+      PUT    /api/platform/templates/init/${id}               契约=PUT  一致
+      GET    /api/platform/templates/init/${id}/versions      契约=GET  一致
+      GET    /api/platform/templates/print                    契约=GET  一致
+      POST   /api/platform/templates/print/upload             契约=POST  一致
+      POST   /api/platform/templates/print/${id}/public       契约=POST  一致
+      GET    /api/platform/templates/import-export            契约=GET/POST  一致
+      POST   /api/platform/templates/import-export            契约=GET/POST  一致
+      GET    /api/platform/templates/import-export/${id}/download 契约=GET  一致
+      GET    /api/platform/announcements                      契约=（本次新增清单外，属既有端点）  一致
+      GET    /api/platform/announcements/${id}                契约=（本次新增清单外，属既有端点）  一致
+      POST   /api/platform/announcements                      契约=（本次新增清单外，属既有端点）  一致
+      PUT    /api/platform/announcements/${id}                契约=（本次新增清单外，属既有端点）  一致
+      DELETE /api/platform/announcements/${id}                契约=（本次新增清单外，属既有端点）  一致
+      POST   /api/platform/announcements/${id}/publish        契约=（本次新增清单外，属既有端点）  一致
+      GET    /api/platform/announcements/templates            契约=GET/PUT  一致
+      PUT    /api/platform/announcements/templates            契约=GET/PUT  一致
+
+[轴③] 清账卡 §三「建议端点清单」vs 契约文档（仅告知：清账是建议，裁定 §2.2 已扩为 12 端点）
+      清账卡解析 12 行；契约文档 12 条
+      # 1 GET /api/platform/templates/init                     契约文档=有  标注不做/转S3=false
+      # 2 POST /api/platform/templates/init                    契约文档=有  标注不做/转S3=false
+      # 3 PUT /api/platform/templates/init/:param              契约文档=有  标注不做/转S3=false
+      # 4 GET /api/platform/templates/init/:param/versions     契约文档=有  标注不做/转S3=false
+      # 5 GET /api/platform/templates/print                    契约文档=有  标注不做/转S3=false
+      # 6 POST /api/platform/templates/print/upload            契约文档=有  标注不做/转S3=false
+      # 7 POST /api/platform/templates/print/:param/public     契约文档=有  标注不做/转S3=false
+      # 8 GET /api/platform/templates/import-export            契约文档=有  标注不做/转S3=false
+      # 9 GET /api/platform/templates/import-export/:param/download 契约文档=有  标注不做/转S3=false
+      #10 POST /api/platform/tenants-management                契约文档=无  标注不做/转S3=false
+      #11 GET /api/platform/announcements/templates            契约文档=有  标注不做/转S3=false
+      #12 POST /api/platform/announcements/preview             契约文档=无  标注不做/转S3=true
+      仅契约文档有、清账清单没有的端点（2 条，属裁定 §2.2 的扩围）：
+        + POST /api/platform/templates/import-export
+        + PUT /api/platform/announcements/templates
+
+[C] 结论：轴①② 差异 0 项
+RESULT: ALL PASS
+EXIT=0

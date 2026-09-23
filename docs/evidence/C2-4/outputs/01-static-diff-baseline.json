@@ -1,0 +1,829 @@
+{
+  "label": "baseline",
+  "root": "D:\\Users\\ZXQL\\wt-agents\\issue-65",
+  "baseUrl": "/api",
+  "routeFiles": [
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "prefix": "/api/platform/templates",
+      "auth": "requirePlatformAuth",
+      "routers": [
+        "platformTemplatesRouter"
+      ],
+      "endpoints": [
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "GET",
+          "path": "/init",
+          "fullPath": "/api/platform/templates/init",
+          "line": 19,
+          "lineText": "platformTemplatesRouter.get(\"/init\", asyncHandler(controller.listInitTemplates));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "POST",
+          "path": "/init",
+          "fullPath": "/api/platform/templates/init",
+          "line": 21,
+          "lineText": "platformTemplatesRouter.post(\"/init\", asyncHandler(controller.createInitTemplate));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "GET",
+          "path": "/init/:id/versions",
+          "fullPath": "/api/platform/templates/init/:id/versions",
+          "line": 23,
+          "lineText": "platformTemplatesRouter.get(\"/init/:id/versions\", asyncHandler(controller.listInitTemplateVersions));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "PUT",
+          "path": "/init/:id",
+          "fullPath": "/api/platform/templates/init/:id",
+          "line": 25,
+          "lineText": "platformTemplatesRouter.put(\"/init/:id\", asyncHandler(controller.updateInitTemplate));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "GET",
+          "path": "/print",
+          "fullPath": "/api/platform/templates/print",
+          "line": 29,
+          "lineText": "platformTemplatesRouter.get(\"/print\", asyncHandler(controller.listPrintTemplates));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "POST",
+          "path": "/print/upload",
+          "fullPath": "/api/platform/templates/print/upload",
+          "line": 31,
+          "lineText": "platformTemplatesRouter.post(\"/print/upload\", asyncHandler(controller.uploadPrintTemplate));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "POST",
+          "path": "/print/:id/public",
+          "fullPath": "/api/platform/templates/print/:id/public",
+          "line": 33,
+          "lineText": "platformTemplatesRouter.post(\"/print/:id/public\", asyncHandler(controller.setPrintTemplatePublic));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "GET",
+          "path": "/import-export",
+          "fullPath": "/api/platform/templates/import-export",
+          "line": 37,
+          "lineText": "platformTemplatesRouter.get(\"/import-export\", asyncHandler(controller.listIoTemplates));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "POST",
+          "path": "/import-export",
+          "fullPath": "/api/platform/templates/import-export",
+          "line": 39,
+          "lineText": "platformTemplatesRouter.post(\"/import-export\", asyncHandler(controller.createIoTemplate));"
+        },
+        {
+          "file": "backend/src/routes/platform-templates.routes.ts",
+          "router": "platformTemplatesRouter",
+          "method": "GET",
+          "path": "/import-export/:id/download",
+          "fullPath": "/api/platform/templates/import-export/:id/download",
+          "line": 41,
+          "lineText": "platformTemplatesRouter.get("
+        }
+      ],
+      "verbOccurrences": 10,
+      "parseComplete": true
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "prefix": "/api/platform/announcements",
+      "auth": "requirePlatformAuth",
+      "routers": [
+        "adminPlatformAnnouncementRouter"
+      ],
+      "endpoints": [
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "GET",
+          "path": "/",
+          "fullPath": "/api/platform/announcements",
+          "line": 9,
+          "lineText": "adminPlatformAnnouncementRouter.get(\"/\", asyncHandler(controller.listAnnouncements));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "GET",
+          "path": "/templates",
+          "fullPath": "/api/platform/announcements/templates",
+          "line": 12,
+          "lineText": "adminPlatformAnnouncementRouter.get(\"/templates\", asyncHandler(templateController.listAnnouncementTemplates));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "PUT",
+          "path": "/templates",
+          "fullPath": "/api/platform/announcements/templates",
+          "line": 13,
+          "lineText": "adminPlatformAnnouncementRouter.put(\"/templates\", asyncHandler(templateController.saveAnnouncementTemplates));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "GET",
+          "path": "/:id",
+          "fullPath": "/api/platform/announcements/:id",
+          "line": 14,
+          "lineText": "adminPlatformAnnouncementRouter.get(\"/:id\", asyncHandler(controller.getAnnouncementById));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "POST",
+          "path": "/",
+          "fullPath": "/api/platform/announcements",
+          "line": 15,
+          "lineText": "adminPlatformAnnouncementRouter.post(\"/\", asyncHandler(controller.createAnnouncement));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "PUT",
+          "path": "/:id",
+          "fullPath": "/api/platform/announcements/:id",
+          "line": 16,
+          "lineText": "adminPlatformAnnouncementRouter.put(\"/:id\", asyncHandler(controller.updateAnnouncement));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "DELETE",
+          "path": "/:id",
+          "fullPath": "/api/platform/announcements/:id",
+          "line": 17,
+          "lineText": "adminPlatformAnnouncementRouter.delete(\"/:id\", asyncHandler(controller.deleteAnnouncement));"
+        },
+        {
+          "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+          "router": "adminPlatformAnnouncementRouter",
+          "method": "POST",
+          "path": "/:id/publish",
+          "fullPath": "/api/platform/announcements/:id/publish",
+          "line": 18,
+          "lineText": "adminPlatformAnnouncementRouter.post(\"/:id/publish\", asyncHandler(controller.togglePublish));"
+        }
+      ],
+      "verbOccurrences": 8,
+      "parseComplete": true
+    }
+  ],
+  "backendEndpoints": [
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "GET",
+      "path": "/init",
+      "fullPath": "/api/platform/templates/init",
+      "line": 19,
+      "lineText": "platformTemplatesRouter.get(\"/init\", asyncHandler(controller.listInitTemplates));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "POST",
+      "path": "/init",
+      "fullPath": "/api/platform/templates/init",
+      "line": 21,
+      "lineText": "platformTemplatesRouter.post(\"/init\", asyncHandler(controller.createInitTemplate));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "GET",
+      "path": "/init/:id/versions",
+      "fullPath": "/api/platform/templates/init/:id/versions",
+      "line": 23,
+      "lineText": "platformTemplatesRouter.get(\"/init/:id/versions\", asyncHandler(controller.listInitTemplateVersions));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "PUT",
+      "path": "/init/:id",
+      "fullPath": "/api/platform/templates/init/:id",
+      "line": 25,
+      "lineText": "platformTemplatesRouter.put(\"/init/:id\", asyncHandler(controller.updateInitTemplate));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "GET",
+      "path": "/print",
+      "fullPath": "/api/platform/templates/print",
+      "line": 29,
+      "lineText": "platformTemplatesRouter.get(\"/print\", asyncHandler(controller.listPrintTemplates));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "POST",
+      "path": "/print/upload",
+      "fullPath": "/api/platform/templates/print/upload",
+      "line": 31,
+      "lineText": "platformTemplatesRouter.post(\"/print/upload\", asyncHandler(controller.uploadPrintTemplate));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "POST",
+      "path": "/print/:id/public",
+      "fullPath": "/api/platform/templates/print/:id/public",
+      "line": 33,
+      "lineText": "platformTemplatesRouter.post(\"/print/:id/public\", asyncHandler(controller.setPrintTemplatePublic));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "GET",
+      "path": "/import-export",
+      "fullPath": "/api/platform/templates/import-export",
+      "line": 37,
+      "lineText": "platformTemplatesRouter.get(\"/import-export\", asyncHandler(controller.listIoTemplates));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "POST",
+      "path": "/import-export",
+      "fullPath": "/api/platform/templates/import-export",
+      "line": 39,
+      "lineText": "platformTemplatesRouter.post(\"/import-export\", asyncHandler(controller.createIoTemplate));"
+    },
+    {
+      "file": "backend/src/routes/platform-templates.routes.ts",
+      "router": "platformTemplatesRouter",
+      "method": "GET",
+      "path": "/import-export/:id/download",
+      "fullPath": "/api/platform/templates/import-export/:id/download",
+      "line": 41,
+      "lineText": "platformTemplatesRouter.get("
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "GET",
+      "path": "/",
+      "fullPath": "/api/platform/announcements",
+      "line": 9,
+      "lineText": "adminPlatformAnnouncementRouter.get(\"/\", asyncHandler(controller.listAnnouncements));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "GET",
+      "path": "/templates",
+      "fullPath": "/api/platform/announcements/templates",
+      "line": 12,
+      "lineText": "adminPlatformAnnouncementRouter.get(\"/templates\", asyncHandler(templateController.listAnnouncementTemplates));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "PUT",
+      "path": "/templates",
+      "fullPath": "/api/platform/announcements/templates",
+      "line": 13,
+      "lineText": "adminPlatformAnnouncementRouter.put(\"/templates\", asyncHandler(templateController.saveAnnouncementTemplates));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "GET",
+      "path": "/:id",
+      "fullPath": "/api/platform/announcements/:id",
+      "line": 14,
+      "lineText": "adminPlatformAnnouncementRouter.get(\"/:id\", asyncHandler(controller.getAnnouncementById));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/platform/announcements",
+      "line": 15,
+      "lineText": "adminPlatformAnnouncementRouter.post(\"/\", asyncHandler(controller.createAnnouncement));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "PUT",
+      "path": "/:id",
+      "fullPath": "/api/platform/announcements/:id",
+      "line": 16,
+      "lineText": "adminPlatformAnnouncementRouter.put(\"/:id\", asyncHandler(controller.updateAnnouncement));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "DELETE",
+      "path": "/:id",
+      "fullPath": "/api/platform/announcements/:id",
+      "line": 17,
+      "lineText": "adminPlatformAnnouncementRouter.delete(\"/:id\", asyncHandler(controller.deleteAnnouncement));"
+    },
+    {
+      "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+      "router": "adminPlatformAnnouncementRouter",
+      "method": "POST",
+      "path": "/:id/publish",
+      "fullPath": "/api/platform/announcements/:id/publish",
+      "line": 18,
+      "lineText": "adminPlatformAnnouncementRouter.post(\"/:id/publish\", asyncHandler(controller.togglePublish));"
+    }
+  ],
+  "apiModules": [
+    {
+      "file": "saas-admin/src/api/platform-template.ts",
+      "functions": [
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "listInitTemplatesApi",
+          "line": 128,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/templates/init"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "createInitTemplateApi",
+          "line": 133,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/templates/init"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "updateInitTemplateApi",
+          "line": 138,
+          "calls": [
+            {
+              "method": "PUT",
+              "pathLiteral": "/platform/templates/init/${id}"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "listInitTemplateVersionsApi",
+          "line": 143,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/templates/init/${id}/versions"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "listPrintTemplatesApi",
+          "line": 148,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/templates/print"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "uploadPrintTemplateApi",
+          "line": 153,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/templates/print/upload"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "setPrintTemplatePublicApi",
+          "line": 158,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/templates/print/${id}/public"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "listIoTemplatesApi",
+          "line": 163,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/templates/import-export"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "createIoTemplateApi",
+          "line": 170,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/templates/import-export"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/platform-template.ts",
+          "name": "downloadIoTemplateApi",
+          "line": 179,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/templates/import-export/${id}/download"
+            }
+          ]
+        }
+      ],
+      "verbOccurrences": 10,
+      "parseComplete": true
+    },
+    {
+      "file": "saas-admin/src/api/announcement.ts",
+      "functions": [
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "listAnnouncementsApi",
+          "line": 69,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/announcements"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "getAnnouncementApi",
+          "line": 74,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/announcements/${id}"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "createAnnouncementApi",
+          "line": 79,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/announcements"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "updateAnnouncementApi",
+          "line": 84,
+          "calls": [
+            {
+              "method": "PUT",
+              "pathLiteral": "/platform/announcements/${id}"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "deleteAnnouncementApi",
+          "line": 89,
+          "calls": [
+            {
+              "method": "DELETE",
+              "pathLiteral": "/platform/announcements/${id}"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "togglePublishAnnouncementApi",
+          "line": 97,
+          "calls": [
+            {
+              "method": "POST",
+              "pathLiteral": "/platform/announcements/${id}/publish"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "listAnnouncementTemplatesApi",
+          "line": 102,
+          "calls": [
+            {
+              "method": "GET",
+              "pathLiteral": "/platform/announcements/templates"
+            }
+          ]
+        },
+        {
+          "file": "saas-admin/src/api/announcement.ts",
+          "name": "saveAnnouncementTemplatesApi",
+          "line": 107,
+          "calls": [
+            {
+              "method": "PUT",
+              "pathLiteral": "/platform/announcements/templates"
+            }
+          ]
+        }
+      ],
+      "verbOccurrences": 8,
+      "parseComplete": true
+    }
+  ],
+  "frontendCalls": [
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "listInitTemplatesApi",
+      "line": 128,
+      "method": "GET",
+      "pathLiteral": "/platform/templates/init",
+      "fullPath": "/api/platform/templates/init"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "createInitTemplateApi",
+      "line": 133,
+      "method": "POST",
+      "pathLiteral": "/platform/templates/init",
+      "fullPath": "/api/platform/templates/init"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "updateInitTemplateApi",
+      "line": 138,
+      "method": "PUT",
+      "pathLiteral": "/platform/templates/init/${id}",
+      "fullPath": "/api/platform/templates/init/${id}"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "listInitTemplateVersionsApi",
+      "line": 143,
+      "method": "GET",
+      "pathLiteral": "/platform/templates/init/${id}/versions",
+      "fullPath": "/api/platform/templates/init/${id}/versions"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "listPrintTemplatesApi",
+      "line": 148,
+      "method": "GET",
+      "pathLiteral": "/platform/templates/print",
+      "fullPath": "/api/platform/templates/print"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "uploadPrintTemplateApi",
+      "line": 153,
+      "method": "POST",
+      "pathLiteral": "/platform/templates/print/upload",
+      "fullPath": "/api/platform/templates/print/upload"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "setPrintTemplatePublicApi",
+      "line": 158,
+      "method": "POST",
+      "pathLiteral": "/platform/templates/print/${id}/public",
+      "fullPath": "/api/platform/templates/print/${id}/public"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "listIoTemplatesApi",
+      "line": 163,
+      "method": "GET",
+      "pathLiteral": "/platform/templates/import-export",
+      "fullPath": "/api/platform/templates/import-export"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "createIoTemplateApi",
+      "line": 170,
+      "method": "POST",
+      "pathLiteral": "/platform/templates/import-export",
+      "fullPath": "/api/platform/templates/import-export"
+    },
+    {
+      "module": "saas-admin/src/api/platform-template.ts",
+      "fn": "downloadIoTemplateApi",
+      "line": 179,
+      "method": "GET",
+      "pathLiteral": "/platform/templates/import-export/${id}/download",
+      "fullPath": "/api/platform/templates/import-export/${id}/download"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "listAnnouncementsApi",
+      "line": 69,
+      "method": "GET",
+      "pathLiteral": "/platform/announcements",
+      "fullPath": "/api/platform/announcements"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "getAnnouncementApi",
+      "line": 74,
+      "method": "GET",
+      "pathLiteral": "/platform/announcements/${id}",
+      "fullPath": "/api/platform/announcements/${id}"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "createAnnouncementApi",
+      "line": 79,
+      "method": "POST",
+      "pathLiteral": "/platform/announcements",
+      "fullPath": "/api/platform/announcements"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "updateAnnouncementApi",
+      "line": 84,
+      "method": "PUT",
+      "pathLiteral": "/platform/announcements/${id}",
+      "fullPath": "/api/platform/announcements/${id}"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "deleteAnnouncementApi",
+      "line": 89,
+      "method": "DELETE",
+      "pathLiteral": "/platform/announcements/${id}",
+      "fullPath": "/api/platform/announcements/${id}"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "togglePublishAnnouncementApi",
+      "line": 97,
+      "method": "POST",
+      "pathLiteral": "/platform/announcements/${id}/publish",
+      "fullPath": "/api/platform/announcements/${id}/publish"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "listAnnouncementTemplatesApi",
+      "line": 102,
+      "method": "GET",
+      "pathLiteral": "/platform/announcements/templates",
+      "fullPath": "/api/platform/announcements/templates"
+    },
+    {
+      "module": "saas-admin/src/api/announcement.ts",
+      "fn": "saveAnnouncementTemplatesApi",
+      "line": 107,
+      "method": "PUT",
+      "pathLiteral": "/platform/announcements/templates",
+      "fullPath": "/api/platform/announcements/templates"
+    }
+  ],
+  "unmatched": [],
+  "unusedBackend": [],
+  "sameFileHazards": [],
+  "templatesRoute": {
+    "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+    "router": "adminPlatformAnnouncementRouter",
+    "method": "GET",
+    "path": "/templates",
+    "fullPath": "/api/platform/announcements/templates",
+    "line": 12,
+    "lineText": "adminPlatformAnnouncementRouter.get(\"/templates\", asyncHandler(templateController.listAnnouncementTemplates));"
+  },
+  "idRoute": {
+    "file": "backend/src/routes/admin-platform-announcement.routes.ts",
+    "router": "adminPlatformAnnouncementRouter",
+    "method": "GET",
+    "path": "/:id",
+    "fullPath": "/api/platform/announcements/:id",
+    "line": 14,
+    "lineText": "adminPlatformAnnouncementRouter.get(\"/:id\", asyncHandler(controller.getAnnouncementById));"
+  },
+  "viewReport": [
+    {
+      "view": "saas-admin/src/views/platform/TemplateCenter.vue",
+      "importedCount": 15,
+      "usage": {
+        "listInitTemplatesApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "createInitTemplateApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "updateInitTemplateApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "listInitTemplateVersionsApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "listPrintTemplatesApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "uploadPrintTemplateApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "setPrintTemplatePublicApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "listIoTemplatesApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "createIoTemplateApi": {
+          "imported": false,
+          "callSites": 0
+        },
+        "downloadIoTemplateApi": {
+          "imported": true,
+          "callSites": 1
+        }
+      },
+      "deadWrappers": [
+        "createIoTemplateApi"
+      ]
+    },
+    {
+      "view": "saas-admin/src/views/Announcements.vue",
+      "importedCount": 15,
+      "usage": {
+        "listAnnouncementsApi": {
+          "imported": true,
+          "callSites": 3
+        },
+        "getAnnouncementApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "createAnnouncementApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "updateAnnouncementApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "deleteAnnouncementApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "togglePublishAnnouncementApi": {
+          "imported": true,
+          "callSites": 1
+        },
+        "listAnnouncementTemplatesApi": {
+          "imported": true,
+          "callSites": 2
+        },
+        "saveAnnouncementTemplatesApi": {
+          "imported": true,
+          "callSites": 1
+        }
+      },
+      "deadWrappers": []
+    }
+  ],
+  "failures": []
+}

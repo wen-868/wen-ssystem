@@ -1,0 +1,835 @@
+{
+  "scannedFiles": 172,
+  "affected": [
+    {
+      "file": "002_phase1_seed.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "005_phase3_sys_config.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "lost": 5,
+      "create": 5,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "lost": 6,
+      "create": 6,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "lost": 8,
+      "create": 6,
+      "alter": 0,
+      "other": 2
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "lost": 3,
+      "create": 0,
+      "alter": 3,
+      "other": 0
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 2,
+      "other": 0
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "lost": 4,
+      "create": 0,
+      "alter": 4,
+      "other": 0
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 2,
+      "other": 0
+    },
+    {
+      "file": "015_phase8_customer_visit.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "lost": 9,
+      "create": 6,
+      "alter": 0,
+      "other": 3
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "lost": 9,
+      "create": 9,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "lost": 10,
+      "create": 10,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "lost": 5,
+      "create": 0,
+      "alter": 5,
+      "other": 0
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "lost": 9,
+      "create": 6,
+      "alter": 0,
+      "other": 3
+    },
+    {
+      "file": "029_add_tenant.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "030_add_subscription_plan.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "031_add_subscription.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "032_add_tenant_module_access.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "033_add_subscription_operation_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "034_add_tenant_admin.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "035_add_coupon_template.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "036_add_user_coupon.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "037_add_promotion_activity.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "038_add_full_reduction_rule.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "039_add_seckill_product.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "040_add_group_buy_activity.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "041_add_group_buy_record.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "042_add_group_buy_participant.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "043_add_promotion_stack_rule.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "044_add_marketing_operation_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "045_add_delivery_config.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "046_add_delivery_record.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "047_add_retail_operation_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "048_add_customer_visit.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "049_add_order_sync_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "050_add_platform_reconciliation.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "051_add_platform_review.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "053_add_retail_cart.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "054_add_retail_consumer_address.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "055_add_points_mall_item.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "056_add_points_mall_order.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "057_add_marketing_asset.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "058_add_sys_department.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "059_add_user_session.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "060_add_custom_report_template.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "061_add_custom_report_schedule.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "062_add_report_permission_matrix.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "063_add_verification_code.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "064_add_push_config.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "065_add_push_template.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "066_add_push_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "067_add_unit_group.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "lost": 3,
+      "create": 3,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "lost": 4,
+      "create": 0,
+      "alter": 3,
+      "other": 1
+    },
+    {
+      "file": "070_品牌表.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "071_客户积分.sql",
+      "lost": 5,
+      "create": 5,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "072_客户价格.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "lost": 7,
+      "create": 7,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "lost": 10,
+      "create": 10,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "075_reset_admin_password_bcrypt.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "076_营销P1.sql",
+      "lost": 8,
+      "create": 8,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "077_营销标签.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "078_性能索引.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "lost": 25,
+      "create": 3,
+      "alter": 0,
+      "other": 22
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "082_商品标签.sql",
+      "lost": 8,
+      "create": 3,
+      "alter": 0,
+      "other": 5
+    },
+    {
+      "file": "083_采购合同.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "084_采购计划.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "085_报价推送.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "086_收款支付.sql",
+      "lost": 6,
+      "create": 6,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "lost": 5,
+      "create": 5,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "090_库存预警配置.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "091_储值卡.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "092_租户ID.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 0,
+      "other": 2
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "095_单位表.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "096_用户设置.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 2,
+      "other": 0
+    },
+    {
+      "file": "103_member_register.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "104_platform_announcement.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "106_data_permission.sql",
+      "lost": 3,
+      "create": 2,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "107_sys_position.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "lost": 7,
+      "create": 6,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "110_p2_product_review.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "lost": 3,
+      "create": 3,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "lost": 2,
+      "create": 2,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "lost": 8,
+      "create": 8,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "lost": 6,
+      "create": 3,
+      "alter": 3,
+      "other": 0
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "lost": 3,
+      "create": 3,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "lost": 3,
+      "create": 3,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "118_library_brand.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "lost": 3,
+      "create": 0,
+      "alter": 0,
+      "other": 3
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "120b_商品SPU扩展字段.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "lost": 20,
+      "create": 0,
+      "alter": 20,
+      "other": 0
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "lost": 3,
+      "create": 2,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "120e_transfer_stock_log.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "lost": 5,
+      "create": 5,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "lost": 26,
+      "create": 26,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "126_bills.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "lost": 1,
+      "create": 0,
+      "alter": 1,
+      "other": 0
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 0,
+      "other": 2
+    },
+    {
+      "file": "127_order_routing_exception.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 0,
+      "other": 2
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "136_sms_template.sql",
+      "lost": 2,
+      "create": 1,
+      "alter": 0,
+      "other": 1
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "lost": 2,
+      "create": 0,
+      "alter": 0,
+      "other": 2
+    },
+    {
+      "file": "20260720_print_record.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    },
+    {
+      "file": "20260720_push_token.sql",
+      "lost": 1,
+      "create": 1,
+      "alter": 0,
+      "other": 0
+    }
+  ],
+  "lostCreate": 239,
+  "lostAlter": 50,
+  "lostOther": 58,
+  "failures": []
+}

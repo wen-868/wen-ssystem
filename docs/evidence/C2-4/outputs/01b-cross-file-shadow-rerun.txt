@@ -1,0 +1,15 @@
+[C2-4/01b] 全仓同路径竞争模拟  root=D:\Users\ZXQL\wt-agents\issue-65
+[C2-4/01b] 目标：GET /api/platform/announcements/templates
+[C2-4/01b] 注册顺序规则：files.sort() 文件名升序（backend/src/shared/auto-routes.ts:88-90）
+
+[C2-4/01b] 扫描路由文件 176 个（排序后依次挂载）
+
+[C2-4/01b] 能匹配目标的行（按 express 命中顺序）共 2 条：
+      #0  GET /api/platform/announcements/templates          ← backend/src/routes/admin-platform-announcement.routes.ts:12（prefix=/api/platform/announcements）
+      #1  GET /api/platform/announcements/:id                ← backend/src/routes/admin-platform-announcement.routes.ts:14（prefix=/api/platform/announcements）
+
+[C2-4/01b] 实际命中的 handler = backend/src/routes/admin-platform-announcement.routes.ts:12 → GET /api/platform/announcements/templates
+[C2-4/01b] 是否由「/templates」专门 handler 命中（而非被 /:id 通配吞掉）: 是
+[C2-4/01b] 存在同方法通配候选 1 条：backend/src/routes/admin-platform-announcement.routes.ts:14
+[C2-4/01b] 它们位于命中之后 ⇒ 不会抢先处理（注册顺序已证明）
+RESULT: ALL PASS

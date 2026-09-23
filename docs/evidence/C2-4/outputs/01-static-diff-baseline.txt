@@ -1,0 +1,114 @@
+[C2-4/01] 静态端点差集核验  label=baseline
+[C2-4/01] 仓库根：D:\Users\ZXQL\wt-agents\issue-65
+
+[A] 前端请求层 baseURL = /api（来自 saas-admin/src/utils/request.ts）
+
+[A] backend/src/routes/platform-templates.routes.ts
+    routeConfig.prefix = /api/platform/templates   auth = requirePlatformAuth
+    routers = platformTemplatesRouter
+    解析端点 = 10，源码 <verb>( 出现 = 10，parseComplete=true
+        19: GET    /api/platform/templates/init
+        21: POST   /api/platform/templates/init
+        23: GET    /api/platform/templates/init/:id/versions
+        25: PUT    /api/platform/templates/init/:id
+        29: GET    /api/platform/templates/print
+        31: POST   /api/platform/templates/print/upload
+        33: POST   /api/platform/templates/print/:id/public
+        37: GET    /api/platform/templates/import-export
+        39: POST   /api/platform/templates/import-export
+        41: GET    /api/platform/templates/import-export/:id/download
+
+[A] backend/src/routes/admin-platform-announcement.routes.ts
+    routeConfig.prefix = /api/platform/announcements   auth = requirePlatformAuth
+    routers = adminPlatformAnnouncementRouter
+    解析端点 = 8，源码 <verb>( 出现 = 8，parseComplete=true
+         9: GET    /api/platform/announcements
+        12: GET    /api/platform/announcements/templates
+        13: PUT    /api/platform/announcements/templates
+        14: GET    /api/platform/announcements/:id
+        15: POST   /api/platform/announcements
+        16: PUT    /api/platform/announcements/:id
+        17: DELETE /api/platform/announcements/:id
+        18: POST   /api/platform/announcements/:id/publish
+
+[A] 后端端点合计 = 18
+
+[B] saas-admin/src/api/platform-template.ts：封装函数 10 个，request 调用 10 处，parseComplete=true
+       128: listInitTemplatesApi() -> GET /api/platform/templates/init
+       133: createInitTemplateApi() -> POST /api/platform/templates/init
+       138: updateInitTemplateApi() -> PUT /api/platform/templates/init/${id}
+       143: listInitTemplateVersionsApi() -> GET /api/platform/templates/init/${id}/versions
+       148: listPrintTemplatesApi() -> GET /api/platform/templates/print
+       153: uploadPrintTemplateApi() -> POST /api/platform/templates/print/upload
+       158: setPrintTemplatePublicApi() -> POST /api/platform/templates/print/${id}/public
+       163: listIoTemplatesApi() -> GET /api/platform/templates/import-export
+       170: createIoTemplateApi() -> POST /api/platform/templates/import-export
+       179: downloadIoTemplateApi() -> GET /api/platform/templates/import-export/${id}/download
+
+[B] saas-admin/src/api/announcement.ts：封装函数 8 个，request 调用 8 处，parseComplete=true
+        69: listAnnouncementsApi() -> GET /api/platform/announcements
+        74: getAnnouncementApi() -> GET /api/platform/announcements/${id}
+        79: createAnnouncementApi() -> POST /api/platform/announcements
+        84: updateAnnouncementApi() -> PUT /api/platform/announcements/${id}
+        89: deleteAnnouncementApi() -> DELETE /api/platform/announcements/${id}
+        97: togglePublishAnnouncementApi() -> POST /api/platform/announcements/${id}/publish
+       102: listAnnouncementTemplatesApi() -> GET /api/platform/announcements/templates
+       107: saveAnnouncementTemplatesApi() -> PUT /api/platform/announcements/templates
+
+[B] 前端接线合计 = 18 条（platform-template.ts:10 + announcement.ts:8）
+
+[C] 逐条对账：命中后端真实路由 18 / 18
+      OK   GET    /api/platform/templates/init                     ← backend/src/routes/platform-templates.routes.ts:19（platform-template.ts:128 listInitTemplatesApi）
+      OK   POST   /api/platform/templates/init                     ← backend/src/routes/platform-templates.routes.ts:21（platform-template.ts:133 createInitTemplateApi）
+      OK   PUT    /api/platform/templates/init/${id}               ← backend/src/routes/platform-templates.routes.ts:25（platform-template.ts:138 updateInitTemplateApi）
+      OK   GET    /api/platform/templates/init/${id}/versions      ← backend/src/routes/platform-templates.routes.ts:23（platform-template.ts:143 listInitTemplateVersionsApi）
+      OK   GET    /api/platform/templates/print                    ← backend/src/routes/platform-templates.routes.ts:29（platform-template.ts:148 listPrintTemplatesApi）
+      OK   POST   /api/platform/templates/print/upload             ← backend/src/routes/platform-templates.routes.ts:31（platform-template.ts:153 uploadPrintTemplateApi）
+      OK   POST   /api/platform/templates/print/${id}/public       ← backend/src/routes/platform-templates.routes.ts:33（platform-template.ts:158 setPrintTemplatePublicApi）
+      OK   GET    /api/platform/templates/import-export            ← backend/src/routes/platform-templates.routes.ts:37（platform-template.ts:163 listIoTemplatesApi）
+      OK   POST   /api/platform/templates/import-export            ← backend/src/routes/platform-templates.routes.ts:39（platform-template.ts:170 createIoTemplateApi）
+      OK   GET    /api/platform/templates/import-export/${id}/download ← backend/src/routes/platform-templates.routes.ts:41（platform-template.ts:179 downloadIoTemplateApi）
+      OK   GET    /api/platform/announcements                      ← backend/src/routes/admin-platform-announcement.routes.ts:9（announcement.ts:69 listAnnouncementsApi）
+      OK   GET    /api/platform/announcements/${id}                ← backend/src/routes/admin-platform-announcement.routes.ts:14（announcement.ts:74 getAnnouncementApi）
+      OK   POST   /api/platform/announcements                      ← backend/src/routes/admin-platform-announcement.routes.ts:15（announcement.ts:79 createAnnouncementApi）
+      OK   PUT    /api/platform/announcements/${id}                ← backend/src/routes/admin-platform-announcement.routes.ts:16（announcement.ts:84 updateAnnouncementApi）
+      OK   DELETE /api/platform/announcements/${id}                ← backend/src/routes/admin-platform-announcement.routes.ts:17（announcement.ts:89 deleteAnnouncementApi）
+      OK   POST   /api/platform/announcements/${id}/publish        ← backend/src/routes/admin-platform-announcement.routes.ts:18（announcement.ts:97 togglePublishAnnouncementApi）
+      OK   GET    /api/platform/announcements/templates            ← backend/src/routes/admin-platform-announcement.routes.ts:12（announcement.ts:102 listAnnouncementTemplatesApi）
+      OK   PUT    /api/platform/announcements/templates            ← backend/src/routes/admin-platform-announcement.routes.ts:13（announcement.ts:107 saveAnnouncementTemplatesApi）
+
+[C] 反向：后端已注册但两个前端模块未调用 = 0
+
+[D] 同文件「先通配后字面量」吞并风险 = 0
+
+[D-专项] GET /api/platform/announcements/templates 注册行 = backend/src/routes/admin-platform-announcement.routes.ts:12
+[D-专项] GET /api/platform/announcements/:id 注册行 = backend/src/routes/admin-platform-announcement.routes.ts:14
+[D-专项] templates 注册早于 /:id ? 是（不会被吞）
+
+[E] 视图 ↔ 封装函数 绑定（导入 + 调用点）
+      saas-admin/src/views/platform/TemplateCenter.vue
+        listInitTemplatesApi             imported=true  callSites=1   已接线
+        createInitTemplateApi            imported=true  callSites=1   已接线
+        updateInitTemplateApi            imported=true  callSites=1   已接线
+        listInitTemplateVersionsApi      imported=true  callSites=1   已接线
+        listPrintTemplatesApi            imported=true  callSites=1   已接线
+        uploadPrintTemplateApi           imported=true  callSites=1   已接线
+        setPrintTemplatePublicApi        imported=true  callSites=1   已接线
+        listIoTemplatesApi               imported=true  callSites=1   已接线
+        createIoTemplateApi              imported=false callSites=0   未导入
+        downloadIoTemplateApi            imported=true  callSites=1   已接线
+        ⚠ 视图未使用的封装：createIoTemplateApi（属"封装已定义但界面无入口"，需澄清是否计入"接线"）
+      saas-admin/src/views/Announcements.vue
+        listAnnouncementsApi             imported=true  callSites=3   已接线
+        getAnnouncementApi               imported=true  callSites=1   已接线
+        createAnnouncementApi            imported=true  callSites=1   已接线
+        updateAnnouncementApi            imported=true  callSites=1   已接线
+        deleteAnnouncementApi            imported=true  callSites=1   已接线
+        togglePublishAnnouncementApi     imported=true  callSites=1   已接线
+        listAnnouncementTemplatesApi     imported=true  callSites=2   已接线
+        saveAnnouncementTemplatesApi     imported=true  callSites=1   已接线
+
+[F] 结论：不一致 0 项
+RESULT: ALL PASS
+EXIT=0
+[C2-4/01] JSON 已落盘：D:\Users\ZXQL\wt-agents\issue-65\docs\evidence\C2-4\outputs\01-static-diff-baseline.json

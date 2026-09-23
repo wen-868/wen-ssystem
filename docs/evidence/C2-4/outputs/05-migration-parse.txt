@@ -1,0 +1,53 @@
+[C2-4/05] docs/migrations 语句切分复演（对齐 backend/src/shared/migration.ts:894-931）
+         仓库根：D:\Users\ZXQL\wt-agents\issue-65
+
+== 反测（先证明检查器会红） ==
+  反测输入：注释块在前 + 1 条 CREATE TABLE（历史缺陷形状）
+  复演结果：执行 0 条 / 丢弃 1 条，其中含 CREATE TABLE 的丢弃 1 条
+  ✓ 反测通过：该形状会被本检查器判为「建表语句丢失」
+  对照输入：语句在前 + 注释在后 ⇒ 执行 1 条 / 丢弃 1 条（丢弃块中的真实语句 0 条，期望 1/1/0）
+
+== 171_platform_templates.sql 判定 ==
+  首行非空内容：CREATE TABLE IF NOT EXISTS t_platform_template (
+  复演：被执行 4 条，被丢弃 1 条
+    丢弃[注释开头整块被丢弃] -- 编号: 171, 描述: 平台模板中心 4 张新表（初始化模板 / 初始化模板版本 / 公共打印模板 / 导入导出模板）, 创建人: 阿坚, 日期: 20
+  被执行语句：CREATE TABLE 4 条 / ALTER TABLE 0 条
+  解析出的表名：t_platform_template, t_platform_template_version, t_platform_print_template, t_platform_io_template
+  addTablePrefix 复演（应保持 t_ 前缀不变）：CREATE TABLE IF NOT EXISTS t_platform_template | CREATE TABLE IF NOT EXISTS t_platform_template_version | CREATE TABLE IF NOT EXISTS t_platform_print_template | CREATE TABLE IF NOT EXISTS t_platform_io_template
+  丢弃块中是否含真实语句：0 条（注释块里出现 "CREATE TABLE" 字样不算语句）
+  判定：幂等关键字齐全=true；4 张预期表名齐全=true；零 ALTER=true；无建表语句被丢弃=true
+
+== 全量扫描：docs/migrations/*.sql 中「以注释开头被丢弃」的语句 ==
+  扫描 SQL 文件 172 个；存在「注释开头被丢弃且含建表/改表/写数据」的文件 118 个
+  受影响语句合计：CREATE TABLE 239 条 / ALTER TABLE 50 条 / INSERT 等 58 条
+    - 002_phase1_seed.sql：丢弃 1 条（CREATE 0 / ALTER 0 / 其他 1）
+    - 004_phase3_schema.sql：丢弃 1 条（CREATE 0 / ALTER 0 / 其他 1）
+    - 005_phase3_sys_config.sql：丢弃 1 条（CREATE 0 / ALTER 0 / 其他 1）
+    - 006_phase4_schema.sql：丢弃 5 条（CREATE 5 / ALTER 0 / 其他 0）
+    - 008_phase6_schema.sql：丢弃 6 条（CREATE 6 / ALTER 0 / 其他 0）
+    - 009_phase7_approval_schema.sql：丢弃 8 条（CREATE 6 / ALTER 0 / 其他 2）
+    - 010_phase7_credit_tenant.sql：丢弃 3 条（CREATE 0 / ALTER 3 / 其他 0）
+    - 011_phase7_member_fields.sql：丢弃 2 条（CREATE 0 / ALTER 2 / 其他 0）
+    - 012_phase7_price_tenant.sql：丢弃 4 条（CREATE 0 / ALTER 4 / 其他 0）
+    - 014_phase7_sku_fields.sql：丢弃 2 条（CREATE 0 / ALTER 2 / 其他 0）
+    - 015_phase8_customer_visit.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 016_phase9_tenant_subscription.sql：丢弃 9 条（CREATE 6 / ALTER 0 / 其他 3）
+    - 017_phase10_instant_retail.sql：丢弃 9 条（CREATE 9 / ALTER 0 / 其他 0）
+    - 018_phase10_marketing.sql：丢弃 10 条（CREATE 10 / ALTER 0 / 其他 0）
+    - 019_migrate_v2.sql：丢弃 5 条（CREATE 0 / ALTER 5 / 其他 0）
+    - 020_migrate_v3_payment_miniapp.sql：丢弃 9 条（CREATE 6 / ALTER 0 / 其他 3）
+    - 029_add_tenant.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 030_add_subscription_plan.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 031_add_subscription.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 032_add_tenant_module_access.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 033_add_subscription_operation_log.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 034_add_tenant_admin.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 035_add_coupon_template.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 036_add_user_coupon.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    - 037_add_promotion_activity.sql：丢弃 1 条（CREATE 1 / ALTER 0 / 其他 0）
+    … 其余 93 个文件见 05-migration-parse.json
+  说明：本项属**独立发现**，非 C2-4 四条的组成部分；171 本身不在此列（语句在前）。
+
+[C2-4/05] 结论：171 会被 runner 执行（4 张表的仓库侧必要条件成立）
+RESULT: ALL PASS
+EXIT=0

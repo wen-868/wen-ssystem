@@ -1,0 +1,538 @@
+[C2-4/03] 运行期探针：真实 express + 真实 HTTP
+         仓库根：D:\Users\ZXQL\wt-agents\issue-65
+         环境：NODE_ENV=test USE_MOCK_DB=true 监听=http://127.0.0.1:11245
+         令牌：自签 HS256（iss=zhixiang-platform aud=zhixiang-platform-client type=platform_admin id=9001）
+
+== A. 前置封条（证明打的是 mock 后端，不是生产/真库） ==
+[2026-09-23 21:43:05.552 +0800] [32mINFO[39m (2080): [36m[效期扫描器] 已启动，每60秒检查一次（凌晨2点执行全量扫描）[39m
+[2026-09-23 21:43:06.076 +0800] [32mINFO[39m (2080): [36m[OrderTimeoutScanner] 订单超时扫描器已启动，每60秒扫描一次[39m
+[2026-09-23 21:43:07.313 +0800] [32mINFO[39m (2080): [36m[门店管控] 定时检查器已启动，每60秒检查一次[39m
+[2026-09-23 21:43:08.009 +0800] [33mWARN[39m (2080): [36m[auto-routes] 检测到 9 个重复前缀：/api/admin (19次), /api/admin/marketing (7次), /api/miniapp (2次), /api/store (10次), /api/admin/reports (2次), /api/admin/instant-retail (2次), /api/admin/inventory (3次), /api/monitor (2次), /api/platform (3次)。请确认端点无重复注册。[39m
+[2026-09-23 21:43:08.012 +0800] [32mINFO[39m (2080): [36m[auto-routes] 已自动注册 188 个路由[39m
+[mock-request] GET /api/platform/health
+   ✓ A1-health-mock-seal          GET /api/platform/health 返回 mode=mock-db  [status=200 mode=mock-db]
+
+== B. 无令牌 ⇒ 401（18 条端点全覆盖） ==
+[mock-request] GET /api/platform/templates/init
+[mock-request] POST /api/platform/templates/init
+[mock-request] GET /api/platform/templates/init/1/versions
+[mock-request] PUT /api/platform/templates/init/1
+[mock-request] GET /api/platform/templates/print
+[mock-request] POST /api/platform/templates/print/upload
+[mock-request] POST /api/platform/templates/print/1/public
+[mock-request] GET /api/platform/templates/import-export
+[mock-request] POST /api/platform/templates/import-export
+[mock-request] GET /api/platform/templates/import-export/1/download
+[mock-request] GET /api/platform/announcements
+[mock-request] GET /api/platform/announcements/templates
+[mock-request] PUT /api/platform/announcements/templates
+[mock-request] GET /api/platform/announcements/1
+[mock-request] POST /api/platform/announcements
+[mock-request] PUT /api/platform/announcements/1
+[mock-request] DELETE /api/platform/announcements/1
+[mock-request] POST /api/platform/announcements/1/publish
+   ✓ B-401-all                    18 条端点无令牌全部 401（实测 18/18）  [401=18/18]
+
+== C. 带令牌 5 个读端点 ⇒ 200 且空态 ==
+[mock-request] GET /api/platform/templates/init
+      /api/platform/templates/init                   status=200 data={"records":[],"total":0}
+[mock-request] GET /api/platform/templates/print
+      /api/platform/templates/print                  status=200 data={"records":[],"total":0,"billType":null}
+[mock-request] GET /api/platform/templates/import-export
+      /api/platform/templates/import-export          status=200 data={"records":[],"total":0,"direction":null}
+[mock-request] GET /api/platform/announcements
+      /api/platform/announcements                    status=200 data={"total":0,"page":1,"pageSize":20,"records":[]}
+[mock-request] GET /api/platform/announcements/templates
+      /api/platform/announcements/templates          status=200 data={"records":[],"total":0}
+   ✓ C-read-5-empty               5 个读端点均 200（mock 下为空态）  [init=200 print=200 import-export=200 announcements=200 templates=200]
+
+== D. 非法参数 ⇒ 400（读 2 条 + 写 2 条 + id 非法 1 条） ==
+[mock-request] GET /api/platform/templates/print?billType=NOT_A_TYPE
+      GET    /api/platform/templates/print?billType=NOT_A_TYPE status=400（期望 400 / billType 非枚举） msg=
+[2026-09-23 21:43:08.293 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "received": "NOT_A_TYPE",
+    "code": "invalid_enum_value",
+    "options": [
+      "SALE_RECEIPT",
+      "SALE_BILL",
+      "SALE_RETURN",
+      "PURCHASE_ORDER",
+      "REPORT",
+      "LABEL",
+      "SHIFT",
+      "DAILY_SETTLE"
+    ],
+    "path": [],
+    "message": "Invalid enum value. Expected 'SALE_RECEIPT' | 'SALE_BILL' | 'SALE_RETURN' | 'PURCHASE_ORDER' | 'REPORT' | 'LABEL' | 'SHIFT' | 'DAILY_SETTLE', received 'NOT_A_TYPE'"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"received\": \"NOT_A_TYPE\",\n    \"code\": \"invalid_enum_value\",\n    \"options\": [\n      \"SALE_RECEIPT\",\n      \"SALE_BILL\",\n      \"SALE_RETURN\",\n      \"PURCHASE_ORDER\",\n      \"REPORT\",\n      \"LABEL\",\n      \"SHIFT\",\n      \"DAILY_SETTLE\"\n    ],\n    \"path\": [],\n    \"message\": \"Invalid enum value. Expected 'SALE_RECEIPT' | 'SALE_BILL' | 'SALE_RETURN' | 'PURCHASE_ORDER' | 'REPORT' | 'LABEL' | 'SHIFT' | 'DAILY_SETTLE', received 'NOT_A_TYPE'\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "received": "NOT_A_TYPE",
+              "code": "invalid_enum_value",
+              "options": [
+                "SALE_RECEIPT",
+                "SALE_BILL",
+                "SALE_RETURN",
+                "PURCHASE_ORDER",
+                "REPORT",
+                "LABEL",
+                "SHIFT",
+                "DAILY_SETTLE"
+              ],
+              "path": [],
+              "message": "Invalid enum value. Expected 'SALE_RECEIPT' | 'SALE_BILL' | 'SALE_RETURN' | 'PURCHASE_ORDER' | 'REPORT' | 'LABEL' | 'SHIFT' | 'DAILY_SETTLE', received 'NOT_A_TYPE'"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodEnum.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at optionalFilter (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:23:26)
+              at listPrintTemplates (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:68:22)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Invalid enum value. Expected 'SALE_RECEIPT' | 'SALE_BILL' | 'SALE_RETURN' | 'PURCHASE_ORDER' | 'REPORT' | 'LABEL' | 'SHIFT' | 'DAILY_SETTLE', received 'NOT_A_TYPE'",
+          "stack":
+              
+          "received": "NOT_A_TYPE",
+          "code": "invalid_enum_value",
+          "options": [
+            "SALE_RECEIPT",
+            "SALE_BILL",
+            "SALE_RETURN",
+            "PURCHASE_ORDER",
+            "REPORT",
+            "LABEL",
+            "SHIFT",
+            "DAILY_SETTLE"
+          ],
+          "path": []
+        }
+      ],
+      "issues": [
+        {
+          "received": "NOT_A_TYPE",
+          "code": "invalid_enum_value",
+          "options": [
+            "SALE_RECEIPT",
+            "SALE_BILL",
+            "SALE_RETURN",
+            "PURCHASE_ORDER",
+            "REPORT",
+            "LABEL",
+            "SHIFT",
+            "DAILY_SETTLE"
+          ],
+          "path": [],
+          "message": "Invalid enum value. Expected 'SALE_RECEIPT' | 'SALE_BILL' | 'SALE_RETURN' | 'PURCHASE_ORDER' | 'REPORT' | 'LABEL' | 'SHIFT' | 'DAILY_SETTLE', received 'NOT_A_TYPE'"
+        }
+      ],
+      "name": "ZodError"
+    }
+[mock-request] GET /api/platform/templates/import-export?direction=SIDEWAYS
+      GET    /api/platform/templates/import-export?direction=SIDEWAYS status=400（期望 400 / direction 非枚举） msg=
+[2026-09-23 21:43:08.305 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "received": "SIDEWAYS",
+    "code": "invalid_enum_value",
+    "options": [
+      "IMPORT",
+      "EXPORT"
+    ],
+    "path": [],
+    "message": "Invalid enum value. Expected 'IMPORT' | 'EXPORT', received 'SIDEWAYS'"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"received\": \"SIDEWAYS\",\n    \"code\": \"invalid_enum_value\",\n    \"options\": [\n      \"IMPORT\",\n      \"EXPORT\"\n    ],\n    \"path\": [],\n    \"message\": \"Invalid enum value. Expected 'IMPORT' | 'EXPORT', received 'SIDEWAYS'\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "received": "SIDEWAYS",
+              "code": "invalid_enum_value",
+              "options": [
+                "IMPORT",
+                "EXPORT"
+              ],
+              "path": [],
+              "message": "Invalid enum value. Expected 'IMPORT' | 'EXPORT', received 'SIDEWAYS'"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodEnum.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at optionalFilter (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:23:26)
+              at listIoTemplates (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:92:23)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Invalid enum value. Expected 'IMPORT' | 'EXPORT', received 'SIDEWAYS'",
+          "stack":
+              
+          "received": "SIDEWAYS",
+          "code": "invalid_enum_value",
+          "options": [
+            "IMPORT",
+            "EXPORT"
+          ],
+          "path": []
+        }
+      ],
+      "issues": [
+        {
+          "received": "SIDEWAYS",
+          "code": "invalid_enum_value",
+          "options": [
+            "IMPORT",
+            "EXPORT"
+          ],
+          "path": [],
+          "message": "Invalid enum value. Expected 'IMPORT' | 'EXPORT', received 'SIDEWAYS'"
+        }
+      ],
+      "name": "ZodError"
+    }
+[mock-request] GET /api/platform/templates/init/abc/versions
+[2026-09-23 21:43:08.309 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "nan",
+    "path": [],
+    "message": "Expected number, received nan"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"number\",\n    \"received\": \"nan\",\n    \"path\": [],\n    \"message\": \"Expected number, received nan\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "number",
+              "received": "nan",
+              "path": [],
+              "message": "Expected number, received nan"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodNumber.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at listInitTemplateVersions (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:63:25)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+              at param (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:365:14)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Expected number, received nan",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "number",
+          "received": "nan",
+          "path": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "number",
+          "received": "nan",
+          "path": [],
+          "message": "Expected number, received nan"
+        }
+      ],
+      "name": "ZodError"
+    }
+      GET    /api/platform/templates/init/abc/versions        status=400（期望 400 / id 非正整数） msg=
+[mock-request] POST /api/platform/templates/init
+      POST   /api/platform/templates/init                     status=400（期望 400 / 缺必填 code/name） msg=
+[2026-09-23 21:43:08.322 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "code"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "name"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"code\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"name\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "code"
+              ],
+              "message": "Required"
+            },
+            {
+              "code": "invalid_type",
+              "expected": "string",
+              "received": "undefined",
+              "path": [
+                "name"
+              ],
+              "message": "Required"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at createInitTemplate (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/platform-template.controller.ts:50:35)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "code"
+          ]
+        },
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "code"
+          ],
+          "message": "Required"
+        },
+        {
+          "code": "invalid_type",
+          "expected": "string",
+          "received": "undefined",
+          "path": [
+            "name"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+[mock-request] PUT /api/platform/announcements/templates
+[2026-09-23 21:43:08.330 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "records"
+    ],
+    "message": "Required"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"records\"\n    ],\n    \"message\": \"Required\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "array",
+              "received": "undefined",
+              "path": [
+                "records"
+              ],
+              "message": "Required"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodObject.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at saveAnnouncementTemplates (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/platform/announcement-template.controller.ts:36:63)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+              at router.process_params (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:346:12)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Required",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "records"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "array",
+          "received": "undefined",
+          "path": [
+            "records"
+          ],
+          "message": "Required"
+        }
+      ],
+      "name": "ZodError"
+    }
+      PUT    /api/platform/announcements/templates            status=400（期望 400 / 缺必填 records） msg=
+   ✓ D-400                        非法参数 400（实测 5/5）  [400=5/5]
+
+== E. 写端点 CSRF 防护 ==
+[mock-request] POST /api/platform/templates/init
+   ✓ E-403-post-no-csrf           POST 模板（无 CSRF 头）⇒ 403  [status=403 msg=]
+[mock-request] PUT /api/platform/announcements/templates
+   ✓ E-403-put-wrong-csrf         PUT 公告模板（错 CSRF）⇒ 403  [status=403 msg=]
+[mock-request] DELETE /api/platform/announcements/1
+   ✓ E-403-delete-no-csrf         DELETE 公告（无 CSRF 头）⇒ 403  [status=403]
+[mock-request] POST /api/platform/templates/init
+   ✓ E-csrf-pass                  带正确 CSRF 不被 403 拦（CSRF 不是靠「一律拒」实现的）  [status=201 body={"code":"0","msg":"成功","data":{"id":1790170988355,"code":"c2-4-probe","name":"C2-4 探针","ve（mock 写库不落真数据，仅作「CSRF 放行」证据）]
+
+== F. GET /announcements/templates 未被 /:id 通配吞掉（运行期判别） ==
+[mock-request] GET /api/platform/announcements/templates
+[mock-request] GET /api/platform/announcements/abc
+[2026-09-23 21:43:08.370 +0800] [31mERROR[39m (2080): [36m[
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "nan",
+    "path": [],
+    "message": "Expected number, received nan"
+  }
+][39m
+    err: {
+      "type": "ZodError",
+      "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"number\",\n    \"received\": \"nan\",\n    \"path\": [],\n    \"message\": \"Expected number, received nan\"\n  }\n]",
+      "stack":
+          ZodError: [
+            {
+              "code": "invalid_type",
+              "expected": "number",
+              "received": "nan",
+              "path": [],
+              "message": "Expected number, received nan"
+            }
+          ]
+              at get error (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:39:31)
+              at ZodNumber.parse (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/zod/v3/types.js:114:22)
+              at getAnnouncementById (file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/controllers/admin/platform-announcement.controller.ts:16:51)
+              at file:///D:/Users/ZXQL/wt-agents/issue-65/backend/src/middleware/async-handler.ts:3:25
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at next (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:149:13)
+              at Route.dispatch (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\route.js:119:3)
+              at Layer.handle [as handle_request] (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\layer.js:95:5)
+              at D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:284:15
+              at param (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\express\lib\router\index.js:365:14)
+      "aggregateErrors": [
+        {
+          "type": "Object",
+          "message": "Expected number, received nan",
+          "stack":
+              
+          "code": "invalid_type",
+          "expected": "number",
+          "received": "nan",
+          "path": []
+        }
+      ],
+      "issues": [
+        {
+          "code": "invalid_type",
+          "expected": "number",
+          "received": "nan",
+          "path": [],
+          "message": "Expected number, received nan"
+        }
+      ],
+      "name": "ZodError"
+    }
+      GET /announcements/templates   status=200 body={"code":"0","msg":"成功","data":{"records":[],"total":0},"traceId":"9abcc5b9-24f9-4b43-b788-d3652af5741e"}
+      GET /announcements/abc         status=400 body={"code":"400","msg":"参数校验失败","traceId":"a748005c-e8e9-42f5-8691-1563127cfe69","errors":[{"field":"root","messa
+   ✓ F1-templates-200             templates 命中专门 handler ⇒ 200（若被 /:id 吞，id='templates' 会 zod 400）  [status=200]
+   ✓ F2-id-fingerprint            同一路径下「非数字段」落到 /:id 会 400（即「被吞」的指纹）  [status=400]
+
+== G. 运行期路由表内省（express 内部 stack，真挂载顺序） ==
+      GET              /api/platform/announcements
+      GET              /api/platform/announcements/templates
+      PUT              /api/platform/announcements/templates
+      GET              /api/platform/announcements/:id
+      POST             /api/platform/announcements
+      PUT              /api/platform/announcements/:id
+      DELETE           /api/platform/announcements/:id
+      POST             /api/platform/announcements/:id/publish
+      GET              /api/platform/templates/init
+      POST             /api/platform/templates/init
+      GET              /api/platform/templates/init/:id/versions
+      PUT              /api/platform/templates/init/:id
+      GET              /api/platform/templates/print
+      POST             /api/platform/templates/print/upload
+      POST             /api/platform/templates/print/:id/public
+      GET              /api/platform/templates/import-export
+      POST             /api/platform/templates/import-export
+      GET              /api/platform/templates/import-export/:id/download
+   ✓ G1-static-vs-runtime         01 静态解析出的 18 条端点全部出现在运行期路由表  [18/18]
+   ✓ G2-order                     运行期注册顺序：GET /templates 早于 GET /:id  [templates#1 /:id#3]
+
+[C2-4/03] 断言合计 12 项，失败 0 项
+RESULT: ALL PASS
+EXIT=0
+EXIT=0

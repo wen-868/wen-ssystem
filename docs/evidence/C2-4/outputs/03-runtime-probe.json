@@ -1,0 +1,221 @@
+{
+  "mode": "normal",
+  "base": "http://127.0.0.1:34533",
+  "env": {
+    "NODE_ENV": "test",
+    "USE_MOCK_DB": true
+  },
+  "readReadings": [
+    {
+      "path": "/api/platform/templates/init",
+      "status": 200,
+      "dataPreview": "{\"records\":[],\"total\":0}"
+    },
+    {
+      "path": "/api/platform/templates/print",
+      "status": 200,
+      "dataPreview": "{\"records\":[],\"total\":0,\"billType\":null}"
+    },
+    {
+      "path": "/api/platform/templates/import-export",
+      "status": 200,
+      "dataPreview": "{\"records\":[],\"total\":0,\"direction\":null}"
+    },
+    {
+      "path": "/api/platform/announcements",
+      "status": 200,
+      "dataPreview": "{\"total\":0,\"page\":1,\"pageSize\":20,\"records\":[]}"
+    },
+    {
+      "path": "/api/platform/announcements/templates",
+      "status": 200,
+      "dataPreview": "{\"records\":[],\"total\":0}"
+    }
+  ],
+  "runtimeRoutes": [
+    {
+      "path": "/api/platform/announcements",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/templates",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/templates",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/:id",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/:id",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/:id",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "path": "/api/platform/announcements/:id/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/init",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/init",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/init/:id/versions",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/init/:id",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/print",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/print/upload",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/print/:id/public",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/import-export",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/import-export",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/platform/templates/import-export/:id/download",
+      "methods": [
+        "GET"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "id": "A1-health-mock-seal",
+      "desc": "GET /api/platform/health 返回 mode=mock-db",
+      "ok": true,
+      "detail": "status=200 mode=mock-db"
+    },
+    {
+      "id": "B-401-all",
+      "desc": "18 条端点无令牌全部 401（实测 18/18）",
+      "ok": true,
+      "detail": "401=18/18"
+    },
+    {
+      "id": "C-read-5-empty",
+      "desc": "5 个读端点均 200（mock 下为空态）",
+      "ok": true,
+      "detail": "init=200 print=200 import-export=200 announcements=200 templates=200"
+    },
+    {
+      "id": "D-400",
+      "desc": "非法参数 400（实测 5/5）",
+      "ok": true,
+      "detail": "400=5/5"
+    },
+    {
+      "id": "E-403-post-no-csrf",
+      "desc": "POST 模板（无 CSRF 头）⇒ 403",
+      "ok": true,
+      "detail": "status=403 msg="
+    },
+    {
+      "id": "E-403-put-wrong-csrf",
+      "desc": "PUT 公告模板（错 CSRF）⇒ 403",
+      "ok": true,
+      "detail": "status=403 msg="
+    },
+    {
+      "id": "E-403-delete-no-csrf",
+      "desc": "DELETE 公告（无 CSRF 头）⇒ 403",
+      "ok": true,
+      "detail": "status=403"
+    },
+    {
+      "id": "E-csrf-pass",
+      "desc": "带正确 CSRF 不被 403 拦（CSRF 不是靠「一律拒」实现的）",
+      "ok": true,
+      "detail": "status=201 body={\"code\":\"0\",\"msg\":\"成功\",\"data\":{\"id\":1790171327622,\"code\":\"c2-4-probe\",\"name\":\"C2-4 探针\",\"ve（mock 写库不落真数据，仅作「CSRF 放行」证据）"
+    },
+    {
+      "id": "F1-templates-200",
+      "desc": "templates 命中专门 handler ⇒ 200（若被 /:id 吞，id='templates' 会 zod 400）",
+      "ok": true,
+      "detail": "status=200"
+    },
+    {
+      "id": "F2-id-fingerprint",
+      "desc": "同一路径下「非数字段」落到 /:id 会 400（即「被吞」的指纹）",
+      "ok": true,
+      "detail": "status=400"
+    },
+    {
+      "id": "G1-static-vs-runtime",
+      "desc": "01 静态解析出的 18 条端点全部出现在运行期路由表",
+      "ok": true,
+      "detail": "18/18"
+    },
+    {
+      "id": "G2-order",
+      "desc": "运行期注册顺序：GET /templates 早于 GET /:id",
+      "ok": true,
+      "detail": "templates#1 /:id#3"
+    }
+  ],
+  "failures": [],
+  "exitCode": 0
+}

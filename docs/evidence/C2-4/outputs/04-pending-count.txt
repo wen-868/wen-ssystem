@@ -1,0 +1,60 @@
+[C2-4/04] 待接入计数独立复跑（git 读历史提交内容）
+          仓库根：D:\Users\ZXQL\wt-agents\issue-65
+          当前 HEAD：6a485d39d
+
+口径 A = 匹配行数（pattern: TODO|FIXME|待接入）
+口径 B = 字面量出现次数（pattern: 待接入）
+
+== C2-F 之前 4217ee30e^（git rev-parse 4217ee30e^ = 8e82a2a2f） ==
+  saas-admin（全端）         口径A(行)=198   口径B(次)=177
+  Announcements.vue      口径A(行)=10    口径B(次)=10
+  TemplateCenter.vue     口径A(行)=20    口径B(次)=18
+  两个目标文件合计               口径A(行)=30    口径B(次)=28
+
+== C2-F 提交 4217ee30e（git rev-parse 4217ee30e = 4217ee30e） ==
+  saas-admin（全端）         口径A(行)=168   口径B(次)=149
+  Announcements.vue      口径A(行)=0     口径B(次)=0
+  TemplateCenter.vue     口径A(行)=0     口径B(次)=0
+  两个目标文件合计               口径A(行)=0     口径B(次)=0
+
+== 当前 HEAD（git rev-parse HEAD = 6a485d39d） ==
+  saas-admin（全端）         口径A(行)=168   口径B(次)=149
+  Announcements.vue      口径A(行)=0     口径B(次)=0
+  TemplateCenter.vue     口径A(行)=0     口径B(次)=0
+  两个目标文件合计               口径A(行)=0     口径B(次)=0
+
+== 差集（C2-F 之前 ⇒ 当前） ==
+  saas-admin（全端）         口径A：198 → 168（Δ30）
+  Announcements.vue      口径A：10 → 0（Δ10）
+  TemplateCenter.vue     口径A：20 → 0（Δ20）
+  两个目标文件合计               口径A：30 → 0（Δ30）
+
+== 当前 HEAD 上仍含 pattern(TODO|FIXME|待接入) 的文件（行数） ==
+  HEAD:saas-admin/src/layouts/PlatformLayout.vue:1
+  HEAD:saas-admin/src/views/ai-config/AiBillingConfig.vue:2
+  HEAD:saas-admin/src/views/ai-config/AiUsageStats.vue:5
+  HEAD:saas-admin/src/views/ai-config/PlatformAiConfig.vue:3
+  HEAD:saas-admin/src/views/AppVersions.vue:9
+  HEAD:saas-admin/src/views/Dashboard.vue:4
+  HEAD:saas-admin/src/views/library/LibraryBrands.vue:8
+  HEAD:saas-admin/src/views/library/LibraryReviews.vue:2
+  HEAD:saas-admin/src/views/library/LibrarySpus.vue:18
+  HEAD:saas-admin/src/views/login/PlatformLogin.vue:2
+  HEAD:saas-admin/src/views/marketing/AgentManagement.vue:8
+  HEAD:saas-admin/src/views/marketing/ChannelPromotion.vue:8
+  HEAD:saas-admin/src/views/monitor/MonitorView.vue:13
+  HEAD:saas-admin/src/views/open/ApiKeyList.vue:14
+  HEAD:saas-admin/src/views/open/WebhookList.vue:12
+  HEAD:saas-admin/src/views/ops/TicketSystem.vue:7
+  HEAD:saas-admin/src/views/PackageForm.vue:1
+  HEAD:saas-admin/src/views/platform/AdminPermissions.vue:14
+  HEAD:saas-admin/src/views/Reconciliation.vue:33
+  HEAD:saas-admin/src/views/Settings.vue:3
+  HEAD:saas-admin/src/views/TenantUsage.vue:1
+  合计行数 = 168
+
+== 复跑命令（可逐条重放） ==
+  git grep -c -E 'TODO|FIXME|待接入' 4217ee30e^ -- saas-admin
+  git grep -c -E 'TODO|FIXME|待接入' HEAD -- saas-admin
+  git grep -c -E 'TODO|FIXME|待接入' HEAD -- saas-admin/src/views/Announcements.vue saas-admin/src/views/platform/TemplateCenter.vue
+  git grep -o -E '待接入' HEAD -- saas-admin | Measure-Object
