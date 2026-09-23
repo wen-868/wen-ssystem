@@ -1,0 +1,10 @@
+ M backend/src/__tests__/shared/migration.test.ts
+ M backend/src/shared/migration.ts
+ M "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247.md"
+ D docs/tasks/inbox/ACTIVE.md
+?? docs/evidence/MIG-2/
+?? "docs/tasks/cards/R101-MIG-2-\351\230\277\345\235\232\345\233\236\344\274\240.md"
+?? "docs/tasks/cards/R101-\346\264\276\345\215\225-20260923-MIG-2.md"
+?? "docs/tasks/inbox/archive/ACTIVE-B1-\345\211\215\346\217\220\346\240\270\351\252\214-20260922.md"
+?? docs/tasks/inbox/archive/ACTIVE-MIG-2-20260924.md
+?? "docs/tasks/inbox/archive/ACTIVE-\345\233\236\346\211\247-S3-65-\345\275\261\345\223\215\351\235\242-20260921.md"

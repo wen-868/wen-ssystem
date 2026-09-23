@@ -1,0 +1,273 @@
+{
+  "generatedAt": "2026-09-23T16:46:21.995Z",
+  "newFile": "backend/src/shared/migration.ts",
+  "oldFile": "docs/evidence/MIG-2/outputs/00-old-migration.ts.txt (= git show HEAD:backend/src/shared/migration.ts)",
+  "sha256": {
+    "newBlock": "1253df1aa1c87775d973c33759f2b07db1f137649d1d1ce127196f85eb71adef",
+    "oldBlock": "6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc",
+    "revertedBlock": "6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc"
+  },
+  "lineRange": {
+    "newBlock": [
+      90,
+      116
+    ],
+    "oldBlock": [
+      81,
+      105
+    ]
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "title": "CREATE TABLE IF NOT EXISTS 反引号表名（缺陷复现位）",
+      "sql": "CREATE TABLE IF NOT EXISTS `open_webhook` (id INT);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);\"",
+      "outputNew": "CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);",
+      "outputOld": "CREATE TABLE t_IF NOT EXISTS `open_webhook` (id INT);"
+    },
+    {
+      "id": "H02",
+      "title": "CREATE TABLE 反引号表名（无 IF NOT EXISTS）",
+      "sql": "CREATE TABLE `open_webhook` (id INT);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"CREATE TABLE `t_open_webhook` (id INT);\"",
+      "outputNew": "CREATE TABLE `t_open_webhook` (id INT);",
+      "outputOld": "CREATE TABLE `open_webhook` (id INT);"
+    },
+    {
+      "id": "H03",
+      "title": "CREATE TABLE IF NOT EXISTS 裸表名（回归位）",
+      "sql": "CREATE TABLE IF NOT EXISTS sys_user (id INT);",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "CREATE TABLE IF NOT EXISTS t_sys_user (id INT);",
+      "outputOld": "CREATE TABLE IF NOT EXISTS t_sys_user (id INT);"
+    },
+    {
+      "id": "H04",
+      "title": "ALTER TABLE 反引号表名",
+      "sql": "ALTER TABLE `sys_user` ADD COLUMN name VARCHAR(50);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"ALTER TABLE `t_sys_user` ADD COLUMN name VARCHAR(50);\"",
+      "outputNew": "ALTER TABLE `t_sys_user` ADD COLUMN name VARCHAR(50);",
+      "outputOld": "ALTER TABLE `sys_user` ADD COLUMN name VARCHAR(50);"
+    },
+    {
+      "id": "H05",
+      "title": "INSERT INTO 反引号表名",
+      "sql": "INSERT INTO `open_webhook` (id) VALUES (1);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"INSERT INTO `t_open_webhook` (id) VALUES (1);\"",
+      "outputNew": "INSERT INTO `t_open_webhook` (id) VALUES (1);",
+      "outputOld": "INSERT INTO `open_webhook` (id) VALUES (1);"
+    },
+    {
+      "id": "H06",
+      "title": "语句首 UPDATE 反引号表名",
+      "sql": "UPDATE `open_webhook` SET status = 1;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"UPDATE `t_open_webhook` SET status = 1;\"",
+      "outputNew": "UPDATE `t_open_webhook` SET status = 1;",
+      "outputOld": "UPDATE `open_webhook` SET status = 1;"
+    },
+    {
+      "id": "H07",
+      "title": "DELETE FROM 反引号表名",
+      "sql": "DELETE FROM `open_webhook` WHERE id = 1;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"DELETE FROM `t_open_webhook` WHERE id = 1;\"",
+      "outputNew": "DELETE FROM `t_open_webhook` WHERE id = 1;",
+      "outputOld": "DELETE FROM `open_webhook` WHERE id = 1;"
+    },
+    {
+      "id": "H08",
+      "title": "FROM 子句反引号表名",
+      "sql": "SELECT * FROM `open_webhook` WHERE id = 1;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"SELECT * FROM `t_open_webhook` WHERE id = 1;\"",
+      "outputNew": "SELECT * FROM `t_open_webhook` WHERE id = 1;",
+      "outputOld": "SELECT * FROM `open_webhook` WHERE id = 1;"
+    },
+    {
+      "id": "H09",
+      "title": "JOIN 反引号表名",
+      "sql": "SELECT * FROM sys_user JOIN `sys_role` ON sys_user.role_id = sys_role.id;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "contains 期望含 \"JOIN `t_sys_role`\"",
+      "outputNew": "SELECT * FROM t_sys_user JOIN `t_sys_role` ON sys_user.role_id = sys_role.id;",
+      "outputOld": "SELECT * FROM t_sys_user JOIN `sys_role` ON sys_user.role_id = sys_role.id;"
+    },
+    {
+      "id": "H10",
+      "title": "INSERT IGNORE INTO 反引号表名（走 INTO 模式）",
+      "sql": "INSERT IGNORE INTO `open_webhook` (id) VALUES (1);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"INSERT IGNORE INTO `t_open_webhook` (id) VALUES (1);\"",
+      "outputNew": "INSERT IGNORE INTO `t_open_webhook` (id) VALUES (1);",
+      "outputOld": "INSERT IGNORE INTO `open_webhook` (id) VALUES (1);"
+    },
+    {
+      "id": "H11",
+      "title": "RENAME TABLE 反引号表名",
+      "sql": "RENAME TABLE `open_webhook` TO open_webhook_old;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "contains 期望含 \"RENAME TABLE `t_open_webhook`\"",
+      "outputNew": "RENAME TABLE `t_open_webhook` TO open_webhook_old;",
+      "outputOld": "RENAME TABLE `open_webhook` TO open_webhook_old;"
+    },
+    {
+      "id": "H12",
+      "title": "DROP TABLE IF EXISTS 反引号表名",
+      "sql": "DROP TABLE IF EXISTS `open_webhook`;",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "exact 期望 \"DROP TABLE IF EXISTS `t_open_webhook`;\"",
+      "outputNew": "DROP TABLE IF EXISTS `t_open_webhook`;",
+      "outputOld": "DROP TABLE t_IF EXISTS `open_webhook`;"
+    },
+    {
+      "id": "H13",
+      "title": "反引号形态已带 t_ 前缀不重复加",
+      "sql": "CREATE TABLE `t_open_webhook` (id INT);",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "CREATE TABLE `t_open_webhook` (id INT);",
+      "outputOld": "CREATE TABLE `t_open_webhook` (id INT);"
+    },
+    {
+      "id": "H14",
+      "title": "反引号 + t_ 前缀的 INSERT/FROM 不重复加",
+      "sql": "INSERT INTO `t_open_webhook` (id) SELECT id FROM `t_open_webhook`;",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "INSERT INTO `t_open_webhook` (id) SELECT id FROM `t_open_webhook`;",
+      "outputOld": "INSERT INTO `t_open_webhook` (id) SELECT id FROM `t_open_webhook`;"
+    },
+    {
+      "id": "H15",
+      "title": "裸表名已带 t_ 前缀不重复加（回归位）",
+      "sql": "SELECT * FROM t_x;",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "SELECT * FROM t_x;",
+      "outputOld": "SELECT * FROM t_x;"
+    },
+    {
+      "id": "H16",
+      "title": "反引号包裹的 mysql 系统库不加前缀",
+      "sql": "SELECT * FROM `mysql`.`user`;",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "SELECT * FROM `mysql`.`user`;",
+      "outputOld": "SELECT * FROM `mysql`.`user`;"
+    },
+    {
+      "id": "H17",
+      "title": "关键字 IF / NOT / EXISTS 不得被当成表名",
+      "sql": "CREATE TABLE IF NOT EXISTS `open_webhook` (id INT);",
+      "oldMustFail": true,
+      "newPass": true,
+      "oldPass": false,
+      "newDetail": "",
+      "oldDetail": "notContains 期望不含 \"t_IF\"",
+      "outputNew": "CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);",
+      "outputOld": "CREATE TABLE t_IF NOT EXISTS `open_webhook` (id INT);"
+    },
+    {
+      "id": "H18",
+      "title": "字面量中已是 t_ 前缀的名字不被改写（回归位）",
+      "sql": "SELECT id FROM t_orders WHERE remark = 'JOIN t_x';",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "SELECT id FROM t_orders WHERE remark = 'JOIN t_x';",
+      "outputOld": "SELECT id FROM t_orders WHERE remark = 'JOIN t_x';"
+    },
+    {
+      "id": "H19",
+      "title": "存量行为冻结：字面量 'FROM y' 的改写修复前后逐字节一致",
+      "sql": "INSERT INTO t_x (name) VALUES ('FROM y');",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "INSERT INTO t_x (name) VALUES ('FROM t_y');",
+      "outputOld": "INSERT INTO t_x (name) VALUES ('FROM t_y');"
+    },
+    {
+      "id": "H20",
+      "title": "非反引号输入零差异：已有 t_ 前缀的 UPDATE 原样返回",
+      "sql": "UPDATE t_x SET a = 1 WHERE id = 1;",
+      "oldMustFail": false,
+      "newPass": true,
+      "oldPass": true,
+      "newDetail": "",
+      "oldDetail": "",
+      "outputNew": "UPDATE t_x SET a = 1 WHERE id = 1;",
+      "outputOld": "UPDATE t_x SET a = 1 WHERE id = 1;"
+    }
+  ],
+  "ok": true,
+  "summary": {
+    "cases": 20,
+    "redSlots": 12,
+    "frozenSlots": 8,
+    "newPassed": 20,
+    "oldRed": 12,
+    "oldGreen": 8,
+    "frozenViolation": 0,
+    "revertMismatch": 0
+  }
+}
