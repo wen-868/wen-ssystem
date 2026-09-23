@@ -1,0 +1,815 @@
+[MIG-4/coverage] 写闸门覆盖面（真实判定函数扫 docs/migrations）
+  迁移目录：D:\Users\ZXQL\wt-agents\issue-85\docs\migrations
+  SQL 文件数（排除 add_tenant_id.sql，与 runner 口径一致）：176
+  判定函数来源：backend/src/shared/migration.ts（SHA256 0b093877d4154b5d8fa0a8c20b434d626302aa69f3d1fada72631553bcce0805）
+
+== 候选集合（丢块缺陷修复后 runner 会尝试执行的语句） ==
+  候选语句总数：1074
+  其中被 runner 显式跳过（存储过程 / DROP TABLE，未纳入候选）：22
+  纯注释块（无真实语句，未纳入候选）：0
+  默认挡会**跳过**：298 条（INSERT 117 / UPDATE 8 / CALL 173）
+  默认挡会**放行**：776 条（CREATE 332 / ALTER 323 / SET 35 / SELECT 35 / PREPARE 12 / EXECUTE 12 / DEALLOCATE 12 / END 3 / (无名) 3 / IF 2 / MIGRATION 1 / T_SYS_USER 1 …）
+  涉及被挡语句的文件：43 个
+
+== 一、被挡语句逐条（file:line / 类型 / 目标表 / 摘要） ==
+  1. 001_phase1_schema.sql:531  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, data_scope, status) VALUES ('SUPER_ADMIN', '超级管理员', 'ALL', 1), ('OPERATION_ADMIN', '运营管理员', 'ALL', 1), ('STORE_MANAGER', '门店店长', 'STOR
+  2. 001_phase1_schema.sql:538  INSERT  目标=t_store
+       INSERT INTO t_store (store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES ('STORE0001', '默认门店', '请在后台维护门店地址', NULL, NULL, '管理员', '1
+  3. 002_phase1_seed.sql:21  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id) SELECT 1, id FROM t_sys_role WHERE role_code = 'SUPER_ADMIN' ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
+  4. 002_phase1_seed.sql:25  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id) SELECT 2, id FROM t_sys_role WHERE role_code = 'STORE_MANAGER' ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
+  5. 002_phase1_seed.sql:29  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id) SELECT 3, id FROM t_sys_role WHERE role_code = 'STORE_OPERATOR' ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
+  6. 002_phase1_seed.sql:33  INSERT  目标=t_member
+       INSERT INTO t_member (id, name, mobile, customer_type, staff_id, status) VALUES (1, '零售客户', '13900000001', 'RETAIL', 1, 1), (2, '批发客户', '13900000002', 'WHOLESALE', 1, 1) ON DUPLICA
+  7. 002_phase1_seed.sql:44  INSERT  目标=t_product_category
+       INSERT INTO t_product_category (id, parent_id, name, sort_no, status) VALUES (1, NULL, '白酒', 1, 1), (2, NULL, '啤酒', 2, 1), (3, NULL, '红酒', 3, 1) ON DUPLICATE KEY UPDATE name = VALU
+  8. 002_phase1_seed.sql:51  INSERT  目标=t_product_spu
+       INSERT INTO t_product_spu (id, spu_code, name, category_id, main_image, sale_channels, status) VALUES (1, 'SPU-DEMO-001', '示例白酒 53度 500ml', 1, NULL, JSON_ARRAY('MINIAPP', 'STORE'),
+  9. 002_phase1_seed.sql:56  INSERT  目标=t_product_sku
+       INSERT INTO t_product_sku (id, spu_id, sku_code, barcode, sku_name, box_ratio, temperature, trace_enabled, warning_threshold, status) VALUES (1, 1, 'SKU-DEMO-001', '690000000001', 
+  10. 002_phase1_seed.sql:61  INSERT  目标=t_product_price
+       INSERT INTO t_product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price) VALUES (1, 80.00, 129.00, 99.00, 119.00, 129.00) ON DUPLICATE KEY UPDATE
+  11. 002_phase1_seed.sql:71  INSERT  目标=t_inventory_balance
+       INSERT INTO t_inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty) VALUES (1, 1, 'ONLINE', 120, 0, 120), (1, 1, 'OFFLINE', 240, 0, 240) ON DUPL
+  12. 002_phase1_seed.sql:8  INSERT  目标=t_sys_user
+       INSERT INTO t_sys_user (id, username, password_hash, real_name, mobile, store_id, status) VALUES (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系
+  13. 004_phase3_schema.sql:64  INSERT  目标=t_alert_rule
+       INSERT INTO t_alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES ('STOCK_LOW', '安全库存预警', 'STOCK_LOW', 1, 0, 'B
+  14. 005_phase3_sys_config.sql:27  INSERT  目标=t_sys_config
+       INSERT INTO t_sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES ('enterprise_name', '智享酒水', 'enterprise', 0, '企业名称'), ('enterprise_logo', '', 'e
+  15. 006_phase4_schema.sql:82  INSERT  目标=price_level
+       INSERT IGNORE INTO price_level (level_code, level_name, discount_rate, min_order_amount, description, sort_order) VALUES ('RETAIL', '零售价', 1.0000, 0, '面向终端消费者的标准零售价格', 1), ('WHOLES
+  16. 007_phase5_schema.sql:52  INSERT  目标=expiry_alert_config
+       INSERT IGNORE INTO expiry_alert_config (alert_level, level_name, days_before_expiry, action, color, enabled, description) VALUES (1, '一级预警', 30, 'REMIND', '#10B981', 1, '距过期30天，提醒关
+  17. 008_phase6_schema.sql:117  INSERT  目标=sys_role
+       INSERT IGNORE INTO sys_role (role_name, role_code, description, status, permissions, data_scope) VALUES ('运营管理员', 'OPERATION_ADMIN', '运营管理权限', 'ACTIVE', '["product:read","product:w
+  18. 008_phase6_schema.sql:120  INSERT  目标=sys_role
+       INSERT IGNORE INTO sys_role (role_name, role_code, description, status, permissions, data_scope) VALUES ('门店管理员', 'STORE_ADMIN', '门店管理权限', 'ACTIVE', '["product:read","order:read","
+  19. 008_phase6_schema.sql:123  INSERT  目标=sys_role
+       INSERT IGNORE INTO sys_role (role_name, role_code, description, status, permissions, data_scope) VALUES ('销售员', 'SALESMAN', '销售相关权限', 'ACTIVE', '["product:read","order:read","order
+  20. 008_phase6_schema.sql:114  INSERT  目标=sys_role
+       INSERT IGNORE INTO sys_role (role_name, role_code, description, status, permissions, data_scope) VALUES ('超级管理员', 'SUPER_ADMIN', '拥有系统所有权限', 'ACTIVE', '["*"]', 'ALL')
+  21. 009_phase7_approval_schema.sql:123  INSERT  目标=t_approval_rule
+       INSERT INTO t_approval_rule (rule_name, business_type, trigger_condition, approval_chain, sla_hours, escalation_level) VALUES ('采购订单审批-5000元以上', 'PURCHASE_ORDER', '{"amount_thresho
+  22. 009_phase7_approval_schema.sql:130  INSERT  目标=t_approval_approver
+       INSERT INTO t_approval_approver (approver_type, approver_value, approver_name) VALUES ('ROLE', 'PURCHASE_MANAGER', '采购经理'), ('ROLE', 'FINANCE_MANAGER', '财务经理'), ('ROLE', 'STORE_MAN
+  23. 016_phase9_tenant_subscription.sql:170  INSERT  目标=t_subscription_plan
+       INSERT INTO t_subscription_plan (plan_code, plan_name, plan_type, price, original_price, duration_days, max_users, max_stores, max_customers, max_products, max_storage_mb, features
+  24. 016_phase9_tenant_subscription.sql:205  INSERT  目标=t_tenant
+       INSERT INTO t_tenant (tenant_code, company_name, contact_person, contact_mobile, status, expire_at) VALUES ('DEFAULT', '系统默认租户', '系统管理员', '13800000000', 'ACTIVE', '2099-12-31 23:59
+  25. 016_phase9_tenant_subscription.sql:213  INSERT  目标=t_tenant_module_access
+       INSERT INTO t_tenant_module_access (tenant_id, module_code, module_name, enabled, granted_by) VALUES (1, 'dashboard', '工作台', 1, 'MANUAL'), (1, 'sales', '销售管理', 1, 'MANUAL'), (1, 'p
+  26. 020_migrate_v3_payment_miniapp.sql:28  INSERT  目标=t_payment_config
+       INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES ('DEFAULT', 'wechat', 'enabled', '0', 0, '是否启用', 1), ('DE
+  27. 020_migrate_v3_payment_miniapp.sql:38  INSERT  目标=t_payment_config
+       INSERT INTO t_payment_config (tenant_id, provider, config_key, config_value, is_encrypted, description, sort_order) VALUES ('DEFAULT', 'alipay', 'enabled', '0', 0, '是否启用', 1), ('DE
+  28. 020_migrate_v3_payment_miniapp.sql:134  INSERT  目标=t_miniapp_template
+       INSERT INTO t_miniapp_template (tenant_id, name, description, style_config, page_config, sort_order, status) VALUES ('DEFAULT', '经典蓝白', '蓝白配色，简洁大方，适合大多数酒水商家', '{"primaryColor":"#16
+  29. 069_商品SPU增加品牌ID.sql:10  UPDATE  目标=t_product_spu
+       UPDATE t_product_spu p JOIN t_brand b ON b.name = p.brand AND b.tenant_id = p.tenant_id SET p.brand_id = b.id WHERE p.brand IS NOT NULL AND p.brand != ''
+  30. 075_reset_admin_password_bcrypt.sql:8  UPDATE  目标=t_sys_user
+       UPDATE t_sys_user SET password_hash = 'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq', login_fail_count = 0, locked_until = NULL, updated_at = NOW() WHERE usernam
+  31. 079_权限矩阵.sql:85  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES (1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]',
+  32. 079_权限矩阵.sql:100  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (1, NULL, 'dashboard', '仪表盘', 'CATALOG', '/dashboard', 'dashboard', 1
+  33. 079_权限矩阵.sql:114  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (1, 1, 'dashboard:workbench', '工作台', 'MENU', '/dashboard/workbench', 
+  34. 079_权限矩阵.sql:118  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (10, 10, 'goods:list', '商品列表', 'MENU', '/goods/list', NULL, 1, 'defau
+  35. 079_权限矩阵.sql:128  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (20, 20, 'sale:bill', '销售开单', 'MENU', '/sale/bill', NULL, 1, 'default
+  36. 079_权限矩阵.sql:136  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (30, 30, 'purchase:order', '采购订单', 'MENU', '/purchase/order', NULL, 1
+  37. 079_权限矩阵.sql:144  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (40, 40, 'customer:list', '客户列表', 'MENU', '/customer/list', NULL, 1, 
+  38. 079_权限矩阵.sql:152  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (50, 50, 'finance:receipt', '收款管理', 'MENU', '/finance/receipt', NULL,
+  39. 079_权限矩阵.sql:160  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (60, 60, 'marketing:coupon', '优惠券', 'MENU', '/marketing/coupon', NULL
+  40. 079_权限矩阵.sql:168  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (70, 70, 'store:list', '门店列表', 'MENU', '/store/list', NULL, 1, 'defau
+  41. 079_权限矩阵.sql:175  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (80, 80, 'trace:config', '追溯配置', 'MENU', '/trace/config', NULL, 1, 'd
+  42. 079_权限矩阵.sql:182  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (90, 90, 'report:sales', '销售报表', 'MENU', '/report/sales', NULL, 1, 'd
+  43. 079_权限矩阵.sql:190  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, path, icon, sort_no, tenant_id) VALUES (100, 100, 'system:user', '用户管理', 'MENU', '/system/user', NULL, 1, 'd
+  44. 079_权限矩阵.sql:200  INSERT  目标=t_sys_menu
+       INSERT INTO t_sys_menu (id, parent_id, menu_code, menu_name, menu_type, sort_no, tenant_id) VALUES (200, 10, 'goods:create', '新增商品', 'BUTTON', 1, 'default'), (201, 10, 'goods:edit'
+  45. 079_权限矩阵.sql:228  INSERT  目标=t_sys_data_permission
+       INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES (2, 'sale_bill', 'store_id', 'OWN', 'current_use
+  46. 079_权限矩阵.sql:235  INSERT  目标=t_sys_data_permission
+       INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES (3, 'sale_bill', 'operator_id', 'OWN', 'current_
+  47. 079_权限矩阵.sql:241  INSERT  目标=t_sys_data_permission
+       INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES (5, 'inventory_balance', 'store_id', 'OWN', 'cur
+  48. 079_权限矩阵.sql:247  INSERT  目标=t_sys_data_permission
+       INSERT INTO t_sys_data_permission (role_id, table_name, field_name, condition_type, condition_value, description, tenant_id) VALUES (7, 'member', 'store_id', 'OWN', 'current_user.s
+  49. 079_权限矩阵.sql:256  INSERT  目标=t_sys_field_permission
+       INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES (3, 'product_price', 'wholesale_price', 'HIDDEN', '销售员不可见批发价', 
+  50. 079_权限矩阵.sql:267  INSERT  目标=t_sys_field_permission
+       INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES (8, '*', '*', 'READONLY', '只读用户不可编辑任何数据', 'default')
+  51. 079_权限矩阵.sql:271  INSERT  目标=t_sys_field_permission
+       INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES (3, 'sale_bill', 'internal_remark', 'HIDDEN', '销售员不可见内部备注', 'de
+  52. 079_权限矩阵.sql:275  INSERT  目标=t_sys_field_permission
+       INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, description, tenant_id) VALUES (2, 'report', 'other_store_sales', 'HIDDEN', '门店店长不可见其他门店销售数据',
+  53. 081_platform_admin_seed_and_fix.sql:45  INSERT  目标=t_platform_admin
+       INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role, status) VALUES ( 'admin', 'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq', '
+  54. 082_商品标签.sql:39  INSERT  目标=t_product_tag_group
+       INSERT INTO t_product_tag_group (name, code, sort_no, is_multiple) VALUES ('香型', 'aroma_type', 1, 0), ('产区', 'region', 2, 1), ('适用场景', 'scene', 3, 1), ('年份', 'vintage', 4, 0)
+  55. 082_商品标签.sql:46  INSERT  目标=t_product_tag
+       INSERT INTO t_product_tag (group_id, name, sort_no) VALUES (1, '酱香型', 1), (1, '浓香型', 2), (1, '清香型', 3), (1, '米香型', 4), (1, '兼香型', 5), (1, '凤香型', 6)
+  56. 082_商品标签.sql:51  INSERT  目标=t_product_tag
+       INSERT INTO t_product_tag (group_id, name, sort_no) VALUES (2, '茅台镇', 1), (2, '宜宾', 2), (2, '泸州', 3), (2, '汾阳', 4), (2, '宿迁', 5), (2, '亳州', 6)
+  57. 082_商品标签.sql:56  INSERT  目标=t_product_tag
+       INSERT INTO t_product_tag (group_id, name, sort_no) VALUES (3, '自饮', 1), (3, '宴请', 2), (3, '送礼', 3), (3, '收藏', 4), (3, '商务', 5)
+  58. 082_商品标签.sql:61  INSERT  目标=t_product_tag
+       INSERT INTO t_product_tag (group_id, name, sort_no) VALUES (4, '2025', 1), (4, '2024', 2), (4, '2023', 3), (4, '2020', 4), (4, '老年份', 5)
+  59. 092_租户ID.sql:78  INSERT  目标=t_tenant
+       INSERT INTO t_tenant (id, name, contact_name, contact_phone, plan, status) VALUES ('default', '默认租户', '系统管理员', '13800138000', 'basic', 1) ON DUPLICATE KEY UPDATE updated_at = NOW()
+  60. 092_租户ID.sql:88  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_user', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  61. 092_租户ID.sql:89  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_role', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  62. 092_租户ID.sql:90  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_permission', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  63. 092_租户ID.sql:91  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_user_role', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  64. 092_租户ID.sql:92  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_role_permission', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  65. 092_租户ID.sql:99  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_spu', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  66. 092_租户ID.sql:100  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_sku', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  67. 092_租户ID.sql:101  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_price', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  68. 092_租户ID.sql:102  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sku_price', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  69. 092_租户ID.sql:106  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_supplier_contact', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  70. 092_租户ID.sql:110  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_customer_price_binding', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  71. 092_租户ID.sql:111  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_customer_credit', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  72. 092_租户ID.sql:115  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_inventory_batch', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  73. 092_租户ID.sql:116  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_inventory_ledger', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  74. 092_租户ID.sql:120  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_price_change_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  75. 092_租户ID.sql:124  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_alert_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  76. 092_租户ID.sql:125  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_expiry_alert_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  77. 092_租户ID.sql:126  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  78. 092_租户ID.sql:130  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_trace_code', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  79. 092_租户ID.sql:131  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_trace_event_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  80. 092_租户ID.sql:132  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_trace_scan_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  81. 092_租户ID.sql:133  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_recall_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  82. 092_租户ID.sql:137  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_store_status_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  83. 092_租户ID.sql:141  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  84. 092_租户ID.sql:142  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_return', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  85. 092_租户ID.sql:143  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_return_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  86. 092_租户ID.sql:144  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_payment', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  87. 092_租户ID.sql:148  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_order_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  88. 092_租户ID.sql:149  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  89. 092_租户ID.sql:150  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_in_stock_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  90. 092_租户ID.sql:151  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_return', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  91. 092_租户ID.sql:152  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_return_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  92. 092_租户ID.sql:153  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_payment', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  93. 092_租户ID.sql:157  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_supplier_statement_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  94. 092_租户ID.sql:158  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_customer_statement', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  95. 092_租户ID.sql:159  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_customer_payment', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  96. 092_租户ID.sql:160  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_receivable_account', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  97. 092_租户ID.sql:164  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_refund_order', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  98. 092_租户ID.sql:165  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_hold_order', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  99. 092_租户ID.sql:169  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  100. 092_租户ID.sql:173  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_collection_view_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  101. 092_租户ID.sql:174  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_collection_record', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  102. 092_租户ID.sql:184  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_price_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  103. 092_租户ID.sql:188  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_instance', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  104. 092_租户ID.sql:189  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_task', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  105. 092_租户ID.sql:190  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  106. 092_租户ID.sql:191  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_approver', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  107. 092_租户ID.sql:192  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_notification', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  108. 092_租户ID.sql:202  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_user', 'idx_sys_user_tenant', '(tenant_id)')
+  109. 092_租户ID.sql:203  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_role', 'idx_sys_role_tenant', '(tenant_id)')
+  110. 092_租户ID.sql:204  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_permission', 'idx_sys_permission_tenant', '(tenant_id)')
+  111. 092_租户ID.sql:205  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_user_role', 'idx_sys_user_role_tenant', '(tenant_id)')
+  112. 092_租户ID.sql:206  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_role_permission', 'idx_sys_role_permission_tenant', '(tenant_id)')
+  113. 092_租户ID.sql:207  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_store', 'idx_store_tenant', '(tenant_id)')
+  114. 092_租户ID.sql:208  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_product_category', 'idx_product_category_tenant', '(tenant_id)')
+  115. 092_租户ID.sql:209  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_product_spu', 'idx_product_spu_tenant', '(tenant_id)')
+  116. 092_租户ID.sql:210  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_product_sku', 'idx_product_sku_tenant', '(tenant_id)')
+  117. 092_租户ID.sql:211  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_product_price', 'idx_product_price_tenant', '(tenant_id)')
+  118. 092_租户ID.sql:212  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sku_price', 'idx_sku_price_tenant', '(tenant_id)')
+  119. 092_租户ID.sql:213  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_supplier', 'idx_supplier_tenant', '(tenant_id)')
+  120. 092_租户ID.sql:214  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_supplier_contact', 'idx_supplier_contact_tenant', '(tenant_id)')
+  121. 092_租户ID.sql:215  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_member', 'idx_member_tenant', '(tenant_id)')
+  122. 092_租户ID.sql:216  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_customer_price_binding', 'idx_customer_price_binding_tenant', '(tenant_id)')
+  123. 092_租户ID.sql:217  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_customer_credit', 'idx_customer_credit_tenant', '(tenant_id)')
+  124. 092_租户ID.sql:218  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_inventory_balance', 'idx_inventory_balance_tenant', '(tenant_id)')
+  125. 092_租户ID.sql:219  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_inventory_batch', 'idx_inventory_batch_tenant', '(tenant_id)')
+  126. 092_租户ID.sql:220  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_inventory_ledger', 'idx_inventory_ledger_tenant', '(tenant_id)')
+  127. 092_租户ID.sql:221  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_price_level', 'idx_price_level_tenant', '(tenant_id)')
+  128. 092_租户ID.sql:222  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_price_change_log', 'idx_price_change_log_tenant', '(tenant_id)')
+  129. 092_租户ID.sql:223  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_alert_rule', 'idx_alert_rule_tenant', '(tenant_id)')
+  130. 092_租户ID.sql:224  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_alert_record', 'idx_alert_record_tenant', '(tenant_id)')
+  131. 092_租户ID.sql:225  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_expiry_alert_config', 'idx_expiry_alert_config_tenant', '(tenant_id)')
+  132. 092_租户ID.sql:226  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_expiry_alert_record', 'idx_expiry_alert_record_tenant', '(tenant_id)')
+  133. 092_租户ID.sql:227  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_trace_config', 'idx_trace_config_tenant', '(tenant_id)')
+  134. 092_租户ID.sql:228  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_trace_code', 'idx_trace_code_tenant', '(tenant_id)')
+  135. 092_租户ID.sql:229  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_trace_event_log', 'idx_trace_event_log_tenant', '(tenant_id)')
+  136. 092_租户ID.sql:230  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_trace_scan_log', 'idx_trace_scan_log_tenant', '(tenant_id)')
+  137. 092_租户ID.sql:231  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_recall_record', 'idx_recall_record_tenant', '(tenant_id)')
+  138. 092_租户ID.sql:232  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_store_control_config', 'idx_store_control_config_tenant', '(tenant_id)')
+  139. 092_租户ID.sql:233  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_store_status_log', 'idx_store_status_log_tenant', '(tenant_id)')
+  140. 092_租户ID.sql:234  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sale_bill', 'idx_sale_bill_tenant', '(tenant_id)')
+  141. 092_租户ID.sql:235  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sale_bill_item', 'idx_sale_bill_item_tenant', '(tenant_id)')
+  142. 092_租户ID.sql:236  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sale_return', 'idx_sale_return_tenant', '(tenant_id)')
+  143. 092_租户ID.sql:237  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sale_return_item', 'idx_sale_return_item_tenant', '(tenant_id)')
+  144. 092_租户ID.sql:238  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_sale_payment', 'idx_sale_payment_tenant', '(tenant_id)')
+  145. 092_租户ID.sql:239  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_order', 'idx_purchase_order_tenant', '(tenant_id)')
+  146. 092_租户ID.sql:240  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_order_item', 'idx_purchase_order_item_tenant', '(tenant_id)')
+  147. 092_租户ID.sql:241  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_in_stock', 'idx_purchase_in_stock_tenant', '(tenant_id)')
+  148. 092_租户ID.sql:242  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_in_stock_item', 'idx_purchase_in_stock_item_tenant', '(tenant_id)')
+  149. 092_租户ID.sql:243  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_return', 'idx_purchase_return_tenant', '(tenant_id)')
+  150. 092_租户ID.sql:244  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_return_item', 'idx_purchase_return_item_tenant', '(tenant_id)')
+  151. 092_租户ID.sql:245  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_purchase_payment', 'idx_purchase_payment_tenant', '(tenant_id)')
+  152. 092_租户ID.sql:246  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_supplier_statement', 'idx_supplier_statement_tenant', '(tenant_id)')
+  153. 092_租户ID.sql:247  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_supplier_statement_item', 'idx_supplier_statement_item_tenant', '(tenant_id)')
+  154. 092_租户ID.sql:248  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_customer_statement', 'idx_customer_statement_tenant', '(tenant_id)')
+  155. 092_租户ID.sql:249  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_customer_payment', 'idx_customer_payment_tenant', '(tenant_id)')
+  156. 092_租户ID.sql:250  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_receivable_account', 'idx_receivable_account_tenant', '(tenant_id)')
+  157. 092_租户ID.sql:251  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_payment_order', 'idx_payment_order_tenant', '(tenant_id)')
+  158. 092_租户ID.sql:252  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_refund_order', 'idx_refund_order_tenant', '(tenant_id)')
+  159. 092_租户ID.sql:253  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_hold_order', 'idx_hold_order_tenant', '(tenant_id)')
+  160. 092_租户ID.sql:254  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_miniapp_order', 'idx_miniapp_order_tenant', '(tenant_id)')
+  161. 092_租户ID.sql:255  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_miniapp_order_item', 'idx_miniapp_order_item_tenant', '(tenant_id)')
+  162. 092_租户ID.sql:256  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_collection_link', 'idx_collection_link_tenant', '(tenant_id)')
+  163. 092_租户ID.sql:257  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_collection_view_log', 'idx_collection_view_log_tenant', '(tenant_id)')
+  164. 092_租户ID.sql:258  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_collection_record', 'idx_collection_record_tenant', '(tenant_id)')
+  165. 092_租户ID.sql:259  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_credit_operation_log', 'idx_credit_operation_log_tenant', '(tenant_id)')
+  166. 092_租户ID.sql:260  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_notification', 'idx_notification_tenant', '(tenant_id)')
+  167. 092_租户ID.sql:261  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_operation_log', 'idx_operation_log_tenant', '(tenant_id)')
+  168. 092_租户ID.sql:262  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_product_price_log', 'idx_product_price_log_tenant', '(tenant_id)')
+  169. 092_租户ID.sql:263  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_rule', 'idx_approval_rule_tenant', '(tenant_id)')
+  170. 092_租户ID.sql:264  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_instance', 'idx_approval_instance_tenant', '(tenant_id)')
+  171. 092_租户ID.sql:265  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_task', 'idx_approval_task_tenant', '(tenant_id)')
+  172. 092_租户ID.sql:266  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_log', 'idx_approval_log_tenant', '(tenant_id)')
+  173. 092_租户ID.sql:267  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_approver', 'idx_approval_approver_tenant', '(tenant_id)')
+  174. 092_租户ID.sql:268  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_approval_notification', 'idx_approval_notification_tenant', '(tenant_id)')
+  175. 092_租户ID.sql:269  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_daily_settlement', 'idx_daily_settlement_tenant', '(tenant_id)')
+  176. 092_租户ID.sql:87  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  177. 092_租户ID.sql:95  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_store', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  178. 092_租户ID.sql:98  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_category', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  179. 092_租户ID.sql:105  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_supplier', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  180. 092_租户ID.sql:109  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_member', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  181. 092_租户ID.sql:114  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_inventory_balance', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  182. 092_租户ID.sql:119  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_price_level', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  183. 092_租户ID.sql:123  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_alert_rule', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  184. 092_租户ID.sql:129  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_trace_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  185. 092_租户ID.sql:136  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_store_control_config', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  186. 092_租户ID.sql:140  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  187. 092_租户ID.sql:147  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_purchase_order', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  188. 092_租户ID.sql:156  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_supplier_statement', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  189. 092_租户ID.sql:163  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_payment_order', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  190. 092_租户ID.sql:168  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  191. 092_租户ID.sql:172  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_collection_link', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  192. 092_租户ID.sql:177  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_credit_operation_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  193. 092_租户ID.sql:180  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_notification', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  194. 092_租户ID.sql:183  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_operation_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  195. 092_租户ID.sql:187  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_approval_rule', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  196. 092_租户ID.sql:195  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_daily_settlement', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  197. 092_租户ID.sql:201  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('sys_config', 'idx_sys_config_tenant', '(tenant_id)')
+  198. 092_租户ID.sql:274  UPDATE  目标=t_sys_user
+       UPDATE t_sys_user SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''
+  199. 092_租户ID.sql:279  UPDATE  目标=t_store
+       UPDATE t_store SET tenant_id = 'default' WHERE tenant_id IS NULL OR tenant_id = ''
+  200. 099_seed_data.sql:23  INSERT  目标=sys_user
+       INSERT IGNORE INTO sys_user (id, username, password_hash, real_name, mobile, store_id, status) VALUES (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '
+  201. 099_seed_data.sql:33  INSERT  目标=sys_role
+       INSERT IGNORE INTO sys_role (id, role_code, role_name, description, data_scope, permissions, status) VALUES (1, 'SUPER_ADMIN', '超级管理员', '拥有系统所有权限', 'ALL', '["*"]', 'ACTIVE'), (2, '
+  202. 099_seed_data.sql:43  INSERT  目标=sys_user_role
+       INSERT IGNORE INTO sys_user_role (user_id, role_id) VALUES (1, 1), -- admin -> 超级管理员 (2, 3), -- store_manager -> 门店管理员 (3, 4), -- operator01 -> 业务员 (4, 4)
+  203. 099_seed_data.sql:53  INSERT  目标=store
+       INSERT IGNORE INTO store (id, store_code, name, address, lng, lat, contact, phone, delivery_radius, business_status, status) VALUES (1, 'STORE0001', '智享酒业旗舰店', '北京市朝阳区建国路88号智享大厦1楼'
+  204. 099_seed_data.sql:61  INSERT  目标=product_category
+       INSERT IGNORE INTO product_category (id, parent_id, name, sort_no, status) VALUES (1, NULL, '白酒', 1, 1), (2, NULL, '啤酒', 2, 1), (3, NULL, '葡萄酒', 3, 1), (4, NULL, '洋酒', 4, 1), (5, N
+  205. 099_seed_data.sql:72  INSERT  目标=product_spu
+       INSERT IGNORE INTO product_spu (id, spu_code, name, category_id, main_image, sale_channels, status) VALUES (1, 'SPU-BJ-001', '茅台飞天 53度 500ml', 1, NULL, '["MINIAPP","STORE"]', 'ON_S
+  206. 099_seed_data.sql:93  INSERT  目标=product_sku
+       INSERT IGNORE INTO product_sku (id, spu_id, sku_code, barcode, sku_name, base_unit, box_unit, box_ratio, temperature, trace_enabled, warning_threshold, status) VALUES (1, 1, 'SKU-B
+  207. 099_seed_data.sql:114  INSERT  目标=product_price
+       INSERT IGNORE INTO product_price (sku_id, cost_price, retail_price, wholesale_price, miniapp_price, store_price) VALUES (1, 1480.00, 1899.00, 1680.00, 1799.00, 1899.00), -- 茅台 (2, 
+  208. 099_seed_data.sql:135  INSERT  目标=price_level
+       INSERT IGNORE INTO price_level (id, level_code, level_name, discount_rate, min_order_amount, description, sort_order, status) VALUES (1, 'RETAIL', '零售价', 1.0000, 0, '面向终端消费者的标准零售价格
+  209. 099_seed_data.sql:149  INSERT  目标=alert_rule
+       INSERT IGNORE INTO alert_rule (rule_code, rule_name, rule_type, enabled, threshold_value, threshold_unit, extra_config, description) VALUES ('STOCK_LOW', '安全库存预警', 'STOCK_LOW', 1, 
+  210. 099_seed_data.sql:162  INSERT  目标=expiry_alert_config
+       INSERT IGNORE INTO expiry_alert_config (alert_level, level_name, days_before_expiry, action, color, enabled, description) VALUES (1, '一级预警', 30, 'REMIND', '#10B981', 1, '距过期30天，提醒关
+  211. 099_seed_data.sql:171  INSERT  目标=sys_config
+       INSERT IGNORE INTO sys_config (config_key, config_value, config_group, is_encrypted, description) VALUES ('enterprise_name', '智享酒业有限公司', 'enterprise', 0, '企业名称'), ('enterprise_logo
+  212. 099_seed_data.sql:203  INSERT  目标=member
+       INSERT IGNORE INTO member (id, mobile, name, customer_type, settlement_type, staff_id, points, level_code, status) VALUES (1, '13900000001', '王先生（散客）', 'RETAIL', 'CASH', NULL, 0, N
+  213. 099_seed_data.sql:212  INSERT  目标=supplier
+       INSERT IGNORE INTO supplier (id, supplier_code, name, short_name, category, province, city, district, address, credit_level, settlement_type, tax_rate, bank_name, bank_account, ban
+  214. 099_seed_data.sql:220  INSERT  目标=supplier_contact
+       INSERT IGNORE INTO supplier_contact (supplier_id, name, mobile, phone, email, wechat, is_primary, position) VALUES (1, '赵经理', '13800001001', '0851-22330001', 'zhao@moutai.com', 'zh
+  215. 099_seed_data.sql:230  INSERT  目标=inventory_balance
+       INSERT IGNORE INTO inventory_balance (store_id, sku_id, stock_type, physical_qty, locked_qty, available_qty) VALUES (1, 1, 'ONLINE', 20, 0, 20), (1, 2, 'ONLINE', 30, 0, 30), (1, 3,
+  216. 099_seed_data.sql:280  INSERT  目标=sku_price
+       INSERT IGNORE INTO sku_price (sku_id, price_level_id, min_qty, price, cost_price, suggested_retail_price, status) VALUES (1, 2, 1, 1680.00, 1480.00, 1899.00, 1), (1, 3, 6, 1650.00,
+  217. 101_tobacco_category_online_sale.sql:6  INSERT  目标=t_product_category
+       INSERT IGNORE INTO t_product_category (id, tenant_id, parent_id, name, sort_no, status, allow_online_sale, code) VALUES (100, 'system', NULL, '烟草', 6, 1, 0, 'TOBACCO'), (101, 'syst
+  218. 105_product_marketing_tag.sql:20  INSERT  目标=t_product_marketing_tag
+       INSERT INTO t_product_marketing_tag (tag_code, tag_name, color, sort_no, status, tenant_id) VALUES ('NEW', '新品', '#67C23A', 1, 1, ''), ('HOT', '爆款', '#F56C6C', 2, 1, ''), ('RECOMME
+  219. 106_data_permission.sql:35  INSERT  目标=t_data_permission
+       INSERT INTO t_data_permission (tenant_id, permission_name, permission_code, permission_type, description, status, sort_no) VALUES ('', '全部数据', 'DATA_ALL', 'ALL', '可以查看所有数据', 1, 1),
+  220. 108_miniapp_member_wholesale.sql:159  INSERT  目标=t_member_level
+       INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id) SELECT 'VIP2', '银卡会员', 1000, 500, 9
+  221. 108_miniapp_member_wholesale.sql:164  INSERT  目标=t_member_level
+       INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id) SELECT 'VIP3', '金卡会员', 5000, 2000, 
+  222. 108_miniapp_member_wholesale.sql:169  INSERT  目标=t_member_level
+       INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id) SELECT 'VIP4', '铂金会员', 20000, 8000,
+  223. 108_miniapp_member_wholesale.sql:174  INSERT  目标=t_member_level
+       INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id) SELECT 'VIP5', '钻石会员', 50000, 20000
+  224. 108_miniapp_member_wholesale.sql:154  INSERT  目标=t_member_level
+       INSERT INTO t_member_level (level_code, level_name, min_points, min_growth, discount_rate, point_ratio, description, sort_no, status, tenant_id) SELECT 'VIP1', '普通会员', 0, 0, 100.00
+  225. 118_library_brand.sql:34  INSERT  目标=t_library_brand
+       INSERT INTO `t_library_brand` (`id`, `name`, `origin_country`, `sort_no`, `description`) VALUES (1, '茅台集团', '中国', 1, '贵州茅台酒股份有限公司，酱香型白酒代表'), (2, '五粮液', '中国', 2, '四川省宜宾五粮液集团有限公司，浓香型
+  226. 119_library_seed_data.sql:60  INSERT  目标=t_library_brand
+       INSERT INTO `t_library_brand` (`id`, `name`, `origin_country`, `sort_no`, `description`) VALUES (11, '汉酱', '中国', 11, '贵州茅台酒股份有限公司旗下酱香系列品牌'), (12, '赖茅', '中国', 12, '贵州茅台酒股份有限公司旗下酱香系列
+  227. 119_library_seed_data.sql:93  INSERT  目标=t_library_spu
+       INSERT INTO `t_library_spu` (`spu_code`, `name`, `brand_id`, `specs`, `unit`, `properties`, `description`, `suggested_retail_price`, `status`, `source`) VALUES ('SPU20260728001', '
+  228. 119_library_seed_data.sql:720  INSERT  目标=t_library_sku
+       INSERT INTO `t_library_sku` (`spu_id`, `sku_code`, `barcode`, `sku_name`, `volume`, `packaging`, `base_unit`, `box_unit`, `box_ratio`, `status`) VALUES ((SELECT id FROM t_library_s
+  229. 120a_合规凭证字段.sql:14  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill_item', 'barcode', "VARCHAR(128) DEFAULT NULL COMMENT '条形码快照'")
+  230. 120a_合规凭证字段.sql:15  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill_item', 'spec', "VARCHAR(128) DEFAULT NULL COMMENT '规格描述快照（如：500ml/瓶）'")
+  231. 120a_合规凭证字段.sql:17  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill', 'store_name', "VARCHAR(128) DEFAULT NULL COMMENT '门店名称快照'")
+  232. 120a_合规凭证字段.sql:18  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill', 'store_address', "VARCHAR(255) DEFAULT NULL COMMENT '门店地址快照'")
+  233. 120a_合规凭证字段.sql:19  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill', 'store_contact', "VARCHAR(64) DEFAULT NULL COMMENT '门店联系方式快照'")
+  234. 120a_合规凭证字段.sql:21  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('collection_link', 'display_config', "JSON DEFAULT NULL COMMENT '显示字段配置'")
+  235. 120a_合规凭证字段.sql:22  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('collection_link', 'document_title', "VARCHAR(128) DEFAULT '销售单' COMMENT '单据标题'")
+  236. 120a_合规凭证字段.sql:13  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_bill_item', 'unit', "VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照（瓶/箱）'")
+  237. 120d_fix_server_3bugs.sql:37  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (id, role_code, role_name, description, data_scope, permissions, status, tenant_id) VALUES (1, 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]',
+  238. 120d_fix_server_3bugs.sql:53  INSERT  目标=t_sys_user_role
+       INSERT IGNORE INTO t_sys_user_role (user_id, role_id, tenant_id) VALUES (1, 1, 'default')
+  239. 120d_fix_server_3bugs.sql:122  INSERT  目标=t_subscription_plan
+       INSERT IGNORE INTO `t_subscription_plan` (`id`, `plan_code`, `plan_name`, `plan_type`, `price`, `duration_days`, `max_users`, `max_stores`, `status`, `sort_order`) VALUES (1, 'BASI
+  240. 120d_fix_server_3bugs.sql:129  INSERT  目标=t_subscription
+       INSERT IGNORE INTO `t_subscription` (`subscription_no`, `tenant_id`, `plan_id`, `plan_name`, `plan_type`, `start_date`, `end_date`, `duration_days`, `price`, `payment_status`, `sta
+  241. 121_ai_base_tables.sql:139  INSERT  目标=t_platform_ai_config
+       INSERT IGNORE INTO t_platform_ai_config (default_provider, default_model, default_api_key, default_endpoint, default_temperature, default_max_tokens, default_system_prompt) SELECT 
+  242. 123_member_contact.sql:13  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_member', 'contact', "VARCHAR(64) DEFAULT NULL COMMENT '联系人' AFTER name")
+  243. 125_instant_retail_admin_fix.sql:19  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'platform_order_no', "VARCHAR(64) DEFAULT NULL COMMENT '平台订单号' AFTER order_no")
+  244. 125_instant_retail_admin_fix.sql:20  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'response', "TEXT DEFAULT NULL COMMENT '同步响应内容' AFTER response_data")
+  245. 125_instant_retail_admin_fix.sql:21  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'updated_at', "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间' AFTER created_at")
+  246. 125_instant_retail_admin_fix.sql:22  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_tenant', '(tenant_id)')
+  247. 125_instant_retail_admin_fix.sql:23  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_miniapp_order_sync_log', 'idx_sync_log_platform_order_no', '(platform_order_no)')
+  248. 125_instant_retail_admin_fix.sql:29  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_retail_cart', 'idx_retail_cart_tenant', '(tenant_id)')
+  249. 125_instant_retail_admin_fix.sql:35  CALL  目标=add_index_if_not_exists
+       CALL add_index_if_not_exists('t_delivery_record', 'idx_delivery_record_rider_id', '(rider_id)')
+  250. 125_instant_retail_admin_fix.sql:18  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_miniapp_order_sync_log', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  251. 125_instant_retail_admin_fix.sql:28  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_retail_cart', 'tenant_id', "VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id")
+  252. 125_instant_retail_admin_fix.sql:34  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_delivery_record', 'rider_id', "BIGINT DEFAULT NULL COMMENT '骑手ID' AFTER rider_phone")
+  253. 127_fix_demo_accounts.sql:25  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id) SELECT u.id, r.id FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'STORE_OPERATOR' WHERE u.username = 'store_operator' ON DUPLIC
+  254. 127_fix_demo_accounts.sql:7  INSERT  目标=t_sys_user
+       INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at) VALUES ('default', 'store_manager', 'v2$$2b$12$onxTslZGnbLq
+  255. 127_fix_demo_accounts.sql:20  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id) SELECT u.id, r.id FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN' WHERE u.username = 'store_manager' ON DUPLICATE 
+  256. 128_fix_roles_binding.sql:3  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'SUPER_ADMIN', '超级管理员', '拥有系统全部权限，可管理所有租户和门店', 'ALL', '["*"]', 'ACTIVE
+  257. 128_fix_roles_binding.sql:7  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'OPERATION_ADMIN', '运营管理员', '平台运营管理（001 角色，代码 ADMIN_ROLES 引用）', 'ALL',
+  258. 128_fix_roles_binding.sql:11  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'STORE_MANAGER', '门店店长', '管理本门店的销售、库存、客户、员工', 'STORE', '["store:*","sa
+  259. 128_fix_roles_binding.sql:15  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'STORE_OPERATOR', '门店操作员', '门店日常开单与库存查询', 'STORE', '["sale:create","sa
+  260. 128_fix_roles_binding.sql:19  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'SALES_STAFF', '销售员', '负责线下销售开单、客户管理、客户拜访', 'SELF', '["sale:create","s
+  261. 128_fix_roles_binding.sql:23  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'PURCHASE_STAFF', '采购员', '负责采购订单、供应商管理、采购入库', 'SELF', '["purchase:*","
+  262. 128_fix_roles_binding.sql:27  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'WAREHOUSE_STAFF', '仓管员', '负责库存管理、出入库、盘点、调拨', 'STORE', '["inventory:*"
+  263. 128_fix_roles_binding.sql:31  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'FINANCE_STAFF', '财务', '负责收款、付款、对账、财务报表', 'ALL', '["finance:*","report
+  264. 128_fix_roles_binding.sql:35  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'CUSTOMER_SERVICE', '客服', '负责客户服务、售后处理、小程序订单', 'STORE', '["customer:vi
+  265. 128_fix_roles_binding.sql:39  INSERT  目标=t_sys_role
+       INSERT INTO t_sys_role (role_code, role_name, description, data_scope, permissions, status, tenant_id) SELECT 'READONLY', '只读观察员', '仅查看权限，不可编辑任何数据', 'ALL', '["*:view"]', 'ACTIVE', 
+  266. 128_fix_roles_binding.sql:43  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) SELECT u.id, r.id, 'default' FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN' AND r.tenant_id = 'default
+  267. 128_fix_roles_binding.sql:49  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) SELECT u.id, r.id, 'default' FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'SUPER_ADMIN' AND r.tenant_id = 'default
+  268. 128_fix_roles_binding.sql:55  INSERT  目标=t_sys_user_role
+       INSERT INTO t_sys_user_role (user_id, role_id, tenant_id) SELECT u.id, r.id, 'default' FROM t_sys_user u JOIN t_sys_role r ON r.role_code = 'STORE_OPERATOR' AND r.tenant_id = 'defa
+  269. 129_sale_bill_item_compliance.sql:3  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'sku_spec', "VARCHAR(128) DEFAULT NULL COMMENT '规格快照' AFTER sku_name")
+  270. 129_sale_bill_item_compliance.sql:4  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'unit', "VARCHAR(16) NOT NULL DEFAULT '瓶' COMMENT '单位快照' AFTER sku_spec")
+  271. 129_sale_bill_item_compliance.sql:5  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'barcode', "VARCHAR(128) DEFAULT NULL COMMENT '条码快照' AFTER unit")
+  272. 129_sale_bill_item_compliance.sql:6  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'item_remark', "VARCHAR(255) DEFAULT NULL COMMENT '行备注' AFTER subtotal_amount")
+  273. 129_sale_bill_item_compliance.sql:7  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'item_discount', "DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '行折扣率%' AFTER item_remark")
+  274. 129_sale_bill_item_compliance.sql:8  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill_item', 'trace_codes', "JSON DEFAULT NULL COMMENT '追溯码列表' AFTER item_discount")
+  275. 130_miniapp_template_r96.sql:34  INSERT  目标=t_miniapp_template
+       INSERT INTO t_miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order) SELECT 'DEFAULT', '高端酒红金 · 臻品', '酒红主色
+  276. 130_miniapp_template_r96.sql:49  INSERT  目标=t_miniapp_template
+       INSERT INTO t_miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order) SELECT 'DEFAULT', '清新活力 · 青翠', '青翠主色配
+  277. 130_miniapp_template_r96.sql:12  UPDATE  目标=t_miniapp_template
+       UPDATE t_miniapp_template SET status = 'inactive', updated_at = NOW() WHERE tenant_id = 'DEFAULT' AND name IN ('经典蓝白', '暖橙商务', '深色臻品') AND status = 'active'
+  278. 130_miniapp_template_r96.sql:19  INSERT  目标=t_miniapp_template
+       INSERT INTO t_miniapp_template (tenant_id, name, description, thumbnail, preview_urls, style_config, page_config, version, status, sort_order) SELECT 'DEFAULT', '商务经典 · 深海蓝', '深海蓝主
+  279. 132_product_box_barcode.sql:3  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_product_sku', 'box_barcode', "VARCHAR(128) DEFAULT NULL COMMENT '组合单位条码（箱码，一品多码）' AFTER barcode")
+  280. 133_product_sku_unit.sql:23  INSERT  目标=t_product_sku_unit
+       INSERT IGNORE INTO t_product_sku_unit (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id) SELECT s.id, s.bas
+  281. 133_product_sku_unit.sql:29  INSERT  目标=t_product_sku_unit
+       INSERT IGNORE INTO t_product_sku_unit (sku_id, unit_name, ratio, barcode, retail_price, wholesale_price, store_price, miniapp_price, is_base, sort_no, tenant_id) SELECT s.id, s.box
+  282. 134_sale_bill_role_fields.sql:3  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'operator_name', "VARCHAR(64) DEFAULT NULL COMMENT '制单人快照' AFTER operator_id")
+  283. 134_sale_bill_role_fields.sql:4  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'auditor_id', "BIGINT UNSIGNED DEFAULT NULL COMMENT '审核人ID' AFTER operator_name")
+  284. 134_sale_bill_role_fields.sql:5  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'auditor_name', "VARCHAR(64) DEFAULT NULL COMMENT '审核人快照' AFTER auditor_id")
+  285. 134_sale_bill_role_fields.sql:6  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'salesman_id', "BIGINT UNSIGNED DEFAULT NULL COMMENT '业务员ID' AFTER auditor_name")
+  286. 134_sale_bill_role_fields.sql:7  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('t_sale_bill', 'salesman_name', "VARCHAR(64) DEFAULT NULL COMMENT '业务员快照' AFTER salesman_id")
+  287. 136_sms_template.sql:18  INSERT  目标=t_sms_template
+       INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status) VALUES ('default', '注册验证码', 'SMS_REGISTER_CODE', '您的注册验证码为${code}，5分钟内有效，请勿泄露。', 'REGISTER', 'ENABLED')
+  288. 137_sys_user_dept_position.sql:3  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_user', 'position_id', "BIGINT DEFAULT NULL COMMENT '所属岗位ID' AFTER department_id")
+  289. 137_sys_user_dept_position.sql:2  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sys_user', 'department_id', "BIGINT DEFAULT NULL COMMENT '所属部门ID' AFTER store_id")
+  290. 137_tenant_register_sms_template.sql:4  INSERT  目标=t_sms_template
+       INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status) VALUES ('default', '租户注册验证码', 'SMS_TENANT_REGISTER_CODE', '您的注册验证码为${code}，5分钟内有效，请勿泄露。', 'TENANT_REGIS
+  291. 137_tenant_register_sms_template.sql:9  INSERT  目标=t_sms_template
+       INSERT INTO t_sms_template (tenant_id, name, code, content, purpose, status) VALUES ('default', '租户注册审核结果', 'SMS_TENANT_REGISTER_RESULT', '尊敬的${companyName}，您的注册申请已${status}，请使用注册账
+  292. 138_approval_business_link.sql:3  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('sale_return', 'approval_instance_no', "VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER return_status")
+  293. 138_approval_business_link.sql:2  CALL  目标=add_column_if_not_exists
+       CALL add_column_if_not_exists('purchase_order', 'approval_instance_no', "VARCHAR(64) DEFAULT NULL COMMENT '关联审批实例号' AFTER order_status")
+  294. 141_app_version.sql:17  INSERT  目标=t_app_version
+       INSERT IGNORE INTO t_app_version (platform, version_code, version_name, min_version_code, is_force, update_url, package_url, update_note, enabled) VALUES ('admin_web', 1, '0.1.0', 
+  295. 155_hot_search.sql:13  INSERT  目标=t_hot_search
+       INSERT INTO t_hot_search (keyword, sort_order, status, tenant_id) SELECT '茅台', 1, 1, 'default' WHERE NOT EXISTS (SELECT 1 FROM t_hot_search WHERE tenant_id = 'default')
+  296. 170_platform_announcement_status_enum.sql:8  UPDATE  目标=t_platform_announcement
+       UPDATE t_platform_announcement SET status = 'DRAFT' WHERE status = '0'
+  297. 170_platform_announcement_status_enum.sql:9  UPDATE  目标=t_platform_announcement
+       UPDATE t_platform_announcement SET status = 'PUBLISHED' WHERE status = '1'
+  298. 172_sale_bill_item_tenant_backfill.sql:1  UPDATE  目标=t_sale_bill_item
+       UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no) WHERE tenant_id = 'default' AND EXISTS (SELECT 1 FROM t_s
+
+== 二、口令相关写语句专项核对（5 条，全部必须被挡） ==
+  1. 002_phase1_seed.sql:8  INSERT  目标=t_sys_user  ⇒ 被挡（isDataWriteStatement=true）
+       INSERT INTO t_sys_user (id, username, password_hash, real_name, mobile, store_id, status) VALUES (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '系
+  2. 075_reset_admin_password_bcrypt.sql:8  UPDATE  目标=t_sys_user  ⇒ 被挡（isDataWriteStatement=true）
+       UPDATE t_sys_user SET password_hash = 'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq', login_fail_count = 0, locked_until = NULL, updated_at = NOW() WHERE usernam
+  3. 081_platform_admin_seed_and_fix.sql:45  INSERT  目标=t_platform_admin  ⇒ 被挡（isDataWriteStatement=true）
+       INSERT INTO t_platform_admin (username, password_hash, real_name, email, phone, role, status) VALUES ( 'admin', 'v2$$2b$12$biWP7DS78S7ZGnRr7j44lOUVoRHQsWSkMWws3Y6yoZTtA3j/zWECq', '
+  4. 099_seed_data.sql:23  INSERT  目标=sys_user  ⇒ 被挡（isDataWriteStatement=true）
+       INSERT IGNORE INTO sys_user (id, username, password_hash, real_name, mobile, store_id, status) VALUES (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '
+  5. 127_fix_demo_accounts.sql:7  INSERT  目标=t_sys_user  ⇒ 被挡（isDataWriteStatement=true）
+       INSERT INTO t_sys_user (tenant_id, username, password_hash, real_name, mobile, store_id, status, created_at, updated_at) VALUES ('default', 'store_manager', 'v2$$2b$12$onxTslZGnbLq
+
+== 三、CALL 语句专项核对（173 条，全部必须被挡） ==
+  1. 092_租户ID.sql:88  目标过程=add_column_if_not_exists  ⇒ 被挡
+  2. 092_租户ID.sql:89  目标过程=add_column_if_not_exists  ⇒ 被挡
+  3. 092_租户ID.sql:90  目标过程=add_column_if_not_exists  ⇒ 被挡
+  4. 092_租户ID.sql:91  目标过程=add_column_if_not_exists  ⇒ 被挡
+  5. 092_租户ID.sql:92  目标过程=add_column_if_not_exists  ⇒ 被挡
+  6. 092_租户ID.sql:99  目标过程=add_column_if_not_exists  ⇒ 被挡
+  7. 092_租户ID.sql:100  目标过程=add_column_if_not_exists  ⇒ 被挡
+  8. 092_租户ID.sql:101  目标过程=add_column_if_not_exists  ⇒ 被挡
+  9. 092_租户ID.sql:102  目标过程=add_column_if_not_exists  ⇒ 被挡
+  10. 092_租户ID.sql:106  目标过程=add_column_if_not_exists  ⇒ 被挡
+  11. 092_租户ID.sql:110  目标过程=add_column_if_not_exists  ⇒ 被挡
+  12. 092_租户ID.sql:111  目标过程=add_column_if_not_exists  ⇒ 被挡
+  13. 092_租户ID.sql:115  目标过程=add_column_if_not_exists  ⇒ 被挡
+  14. 092_租户ID.sql:116  目标过程=add_column_if_not_exists  ⇒ 被挡
+  15. 092_租户ID.sql:120  目标过程=add_column_if_not_exists  ⇒ 被挡
+  16. 092_租户ID.sql:124  目标过程=add_column_if_not_exists  ⇒ 被挡
+  17. 092_租户ID.sql:125  目标过程=add_column_if_not_exists  ⇒ 被挡
+  18. 092_租户ID.sql:126  目标过程=add_column_if_not_exists  ⇒ 被挡
+  19. 092_租户ID.sql:130  目标过程=add_column_if_not_exists  ⇒ 被挡
+  20. 092_租户ID.sql:131  目标过程=add_column_if_not_exists  ⇒ 被挡
+  21. 092_租户ID.sql:132  目标过程=add_column_if_not_exists  ⇒ 被挡
+  22. 092_租户ID.sql:133  目标过程=add_column_if_not_exists  ⇒ 被挡
+  23. 092_租户ID.sql:137  目标过程=add_column_if_not_exists  ⇒ 被挡
+  24. 092_租户ID.sql:141  目标过程=add_column_if_not_exists  ⇒ 被挡
+  25. 092_租户ID.sql:142  目标过程=add_column_if_not_exists  ⇒ 被挡
+  26. 092_租户ID.sql:143  目标过程=add_column_if_not_exists  ⇒ 被挡
+  27. 092_租户ID.sql:144  目标过程=add_column_if_not_exists  ⇒ 被挡
+  28. 092_租户ID.sql:148  目标过程=add_column_if_not_exists  ⇒ 被挡
+  29. 092_租户ID.sql:149  目标过程=add_column_if_not_exists  ⇒ 被挡
+  30. 092_租户ID.sql:150  目标过程=add_column_if_not_exists  ⇒ 被挡
+  31. 092_租户ID.sql:151  目标过程=add_column_if_not_exists  ⇒ 被挡
+  32. 092_租户ID.sql:152  目标过程=add_column_if_not_exists  ⇒ 被挡
+  33. 092_租户ID.sql:153  目标过程=add_column_if_not_exists  ⇒ 被挡
+  34. 092_租户ID.sql:157  目标过程=add_column_if_not_exists  ⇒ 被挡
+  35. 092_租户ID.sql:158  目标过程=add_column_if_not_exists  ⇒ 被挡
+  36. 092_租户ID.sql:159  目标过程=add_column_if_not_exists  ⇒ 被挡
+  37. 092_租户ID.sql:160  目标过程=add_column_if_not_exists  ⇒ 被挡
+  38. 092_租户ID.sql:164  目标过程=add_column_if_not_exists  ⇒ 被挡
+  39. 092_租户ID.sql:165  目标过程=add_column_if_not_exists  ⇒ 被挡
+  40. 092_租户ID.sql:169  目标过程=add_column_if_not_exists  ⇒ 被挡
+  41. 092_租户ID.sql:173  目标过程=add_column_if_not_exists  ⇒ 被挡
+  42. 092_租户ID.sql:174  目标过程=add_column_if_not_exists  ⇒ 被挡
+  43. 092_租户ID.sql:184  目标过程=add_column_if_not_exists  ⇒ 被挡
+  44. 092_租户ID.sql:188  目标过程=add_column_if_not_exists  ⇒ 被挡
+  45. 092_租户ID.sql:189  目标过程=add_column_if_not_exists  ⇒ 被挡
+  46. 092_租户ID.sql:190  目标过程=add_column_if_not_exists  ⇒ 被挡
+  47. 092_租户ID.sql:191  目标过程=add_column_if_not_exists  ⇒ 被挡
+  48. 092_租户ID.sql:192  目标过程=add_column_if_not_exists  ⇒ 被挡
+  49. 092_租户ID.sql:202  目标过程=add_index_if_not_exists  ⇒ 被挡
+  50. 092_租户ID.sql:203  目标过程=add_index_if_not_exists  ⇒ 被挡
+  51. 092_租户ID.sql:204  目标过程=add_index_if_not_exists  ⇒ 被挡
+  52. 092_租户ID.sql:205  目标过程=add_index_if_not_exists  ⇒ 被挡
+  53. 092_租户ID.sql:206  目标过程=add_index_if_not_exists  ⇒ 被挡
+  54. 092_租户ID.sql:207  目标过程=add_index_if_not_exists  ⇒ 被挡
+  55. 092_租户ID.sql:208  目标过程=add_index_if_not_exists  ⇒ 被挡
+  56. 092_租户ID.sql:209  目标过程=add_index_if_not_exists  ⇒ 被挡
+  57. 092_租户ID.sql:210  目标过程=add_index_if_not_exists  ⇒ 被挡
+  58. 092_租户ID.sql:211  目标过程=add_index_if_not_exists  ⇒ 被挡
+  59. 092_租户ID.sql:212  目标过程=add_index_if_not_exists  ⇒ 被挡
+  60. 092_租户ID.sql:213  目标过程=add_index_if_not_exists  ⇒ 被挡
+  61. 092_租户ID.sql:214  目标过程=add_index_if_not_exists  ⇒ 被挡
+  62. 092_租户ID.sql:215  目标过程=add_index_if_not_exists  ⇒ 被挡
+  63. 092_租户ID.sql:216  目标过程=add_index_if_not_exists  ⇒ 被挡
+  64. 092_租户ID.sql:217  目标过程=add_index_if_not_exists  ⇒ 被挡
+  65. 092_租户ID.sql:218  目标过程=add_index_if_not_exists  ⇒ 被挡
+  66. 092_租户ID.sql:219  目标过程=add_index_if_not_exists  ⇒ 被挡
+  67. 092_租户ID.sql:220  目标过程=add_index_if_not_exists  ⇒ 被挡
+  68. 092_租户ID.sql:221  目标过程=add_index_if_not_exists  ⇒ 被挡
+  69. 092_租户ID.sql:222  目标过程=add_index_if_not_exists  ⇒ 被挡
+  70. 092_租户ID.sql:223  目标过程=add_index_if_not_exists  ⇒ 被挡
+  71. 092_租户ID.sql:224  目标过程=add_index_if_not_exists  ⇒ 被挡
+  72. 092_租户ID.sql:225  目标过程=add_index_if_not_exists  ⇒ 被挡
+  73. 092_租户ID.sql:226  目标过程=add_index_if_not_exists  ⇒ 被挡
+  74. 092_租户ID.sql:227  目标过程=add_index_if_not_exists  ⇒ 被挡
+  75. 092_租户ID.sql:228  目标过程=add_index_if_not_exists  ⇒ 被挡
+  76. 092_租户ID.sql:229  目标过程=add_index_if_not_exists  ⇒ 被挡
+  77. 092_租户ID.sql:230  目标过程=add_index_if_not_exists  ⇒ 被挡
+  78. 092_租户ID.sql:231  目标过程=add_index_if_not_exists  ⇒ 被挡
+  79. 092_租户ID.sql:232  目标过程=add_index_if_not_exists  ⇒ 被挡
+  80. 092_租户ID.sql:233  目标过程=add_index_if_not_exists  ⇒ 被挡
+  81. 092_租户ID.sql:234  目标过程=add_index_if_not_exists  ⇒ 被挡
+  82. 092_租户ID.sql:235  目标过程=add_index_if_not_exists  ⇒ 被挡
+  83. 092_租户ID.sql:236  目标过程=add_index_if_not_exists  ⇒ 被挡
+  84. 092_租户ID.sql:237  目标过程=add_index_if_not_exists  ⇒ 被挡
+  85. 092_租户ID.sql:238  目标过程=add_index_if_not_exists  ⇒ 被挡
+  86. 092_租户ID.sql:239  目标过程=add_index_if_not_exists  ⇒ 被挡
+  87. 092_租户ID.sql:240  目标过程=add_index_if_not_exists  ⇒ 被挡
+  88. 092_租户ID.sql:241  目标过程=add_index_if_not_exists  ⇒ 被挡
+  89. 092_租户ID.sql:242  目标过程=add_index_if_not_exists  ⇒ 被挡
+  90. 092_租户ID.sql:243  目标过程=add_index_if_not_exists  ⇒ 被挡
+  91. 092_租户ID.sql:244  目标过程=add_index_if_not_exists  ⇒ 被挡
+  92. 092_租户ID.sql:245  目标过程=add_index_if_not_exists  ⇒ 被挡
+  93. 092_租户ID.sql:246  目标过程=add_index_if_not_exists  ⇒ 被挡
+  94. 092_租户ID.sql:247  目标过程=add_index_if_not_exists  ⇒ 被挡
+  95. 092_租户ID.sql:248  目标过程=add_index_if_not_exists  ⇒ 被挡
+  96. 092_租户ID.sql:249  目标过程=add_index_if_not_exists  ⇒ 被挡
+  97. 092_租户ID.sql:250  目标过程=add_index_if_not_exists  ⇒ 被挡
+  98. 092_租户ID.sql:251  目标过程=add_index_if_not_exists  ⇒ 被挡
+  99. 092_租户ID.sql:252  目标过程=add_index_if_not_exists  ⇒ 被挡
+  100. 092_租户ID.sql:253  目标过程=add_index_if_not_exists  ⇒ 被挡
+  101. 092_租户ID.sql:254  目标过程=add_index_if_not_exists  ⇒ 被挡
+  102. 092_租户ID.sql:255  目标过程=add_index_if_not_exists  ⇒ 被挡
+  103. 092_租户ID.sql:256  目标过程=add_index_if_not_exists  ⇒ 被挡
+  104. 092_租户ID.sql:257  目标过程=add_index_if_not_exists  ⇒ 被挡
+  105. 092_租户ID.sql:258  目标过程=add_index_if_not_exists  ⇒ 被挡
+  106. 092_租户ID.sql:259  目标过程=add_index_if_not_exists  ⇒ 被挡
+  107. 092_租户ID.sql:260  目标过程=add_index_if_not_exists  ⇒ 被挡
+  108. 092_租户ID.sql:261  目标过程=add_index_if_not_exists  ⇒ 被挡
+  109. 092_租户ID.sql:262  目标过程=add_index_if_not_exists  ⇒ 被挡
+  110. 092_租户ID.sql:263  目标过程=add_index_if_not_exists  ⇒ 被挡
+  111. 092_租户ID.sql:264  目标过程=add_index_if_not_exists  ⇒ 被挡
+  112. 092_租户ID.sql:265  目标过程=add_index_if_not_exists  ⇒ 被挡
+  113. 092_租户ID.sql:266  目标过程=add_index_if_not_exists  ⇒ 被挡
+  114. 092_租户ID.sql:267  目标过程=add_index_if_not_exists  ⇒ 被挡
+  115. 092_租户ID.sql:268  目标过程=add_index_if_not_exists  ⇒ 被挡
+  116. 092_租户ID.sql:269  目标过程=add_index_if_not_exists  ⇒ 被挡
+  117. 092_租户ID.sql:87  目标过程=add_column_if_not_exists  ⇒ 被挡
+  118. 092_租户ID.sql:95  目标过程=add_column_if_not_exists  ⇒ 被挡
+  119. 092_租户ID.sql:98  目标过程=add_column_if_not_exists  ⇒ 被挡
+  120. 092_租户ID.sql:105  目标过程=add_column_if_not_exists  ⇒ 被挡
+  121. 092_租户ID.sql:109  目标过程=add_column_if_not_exists  ⇒ 被挡
+  122. 092_租户ID.sql:114  目标过程=add_column_if_not_exists  ⇒ 被挡
+  123. 092_租户ID.sql:119  目标过程=add_column_if_not_exists  ⇒ 被挡
+  124. 092_租户ID.sql:123  目标过程=add_column_if_not_exists  ⇒ 被挡
+  125. 092_租户ID.sql:129  目标过程=add_column_if_not_exists  ⇒ 被挡
+  126. 092_租户ID.sql:136  目标过程=add_column_if_not_exists  ⇒ 被挡
+  127. 092_租户ID.sql:140  目标过程=add_column_if_not_exists  ⇒ 被挡
+  128. 092_租户ID.sql:147  目标过程=add_column_if_not_exists  ⇒ 被挡
+  129. 092_租户ID.sql:156  目标过程=add_column_if_not_exists  ⇒ 被挡
+  130. 092_租户ID.sql:163  目标过程=add_column_if_not_exists  ⇒ 被挡
+  131. 092_租户ID.sql:168  目标过程=add_column_if_not_exists  ⇒ 被挡
+  132. 092_租户ID.sql:172  目标过程=add_column_if_not_exists  ⇒ 被挡
+  133. 092_租户ID.sql:177  目标过程=add_column_if_not_exists  ⇒ 被挡
+  134. 092_租户ID.sql:180  目标过程=add_column_if_not_exists  ⇒ 被挡
+  135. 092_租户ID.sql:183  目标过程=add_column_if_not_exists  ⇒ 被挡
+  136. 092_租户ID.sql:187  目标过程=add_column_if_not_exists  ⇒ 被挡
+  137. 092_租户ID.sql:195  目标过程=add_column_if_not_exists  ⇒ 被挡
+  138. 092_租户ID.sql:201  目标过程=add_index_if_not_exists  ⇒ 被挡
+  139. 120a_合规凭证字段.sql:14  目标过程=add_column_if_not_exists  ⇒ 被挡
+  140. 120a_合规凭证字段.sql:15  目标过程=add_column_if_not_exists  ⇒ 被挡
+  141. 120a_合规凭证字段.sql:17  目标过程=add_column_if_not_exists  ⇒ 被挡
+  142. 120a_合规凭证字段.sql:18  目标过程=add_column_if_not_exists  ⇒ 被挡
+  143. 120a_合规凭证字段.sql:19  目标过程=add_column_if_not_exists  ⇒ 被挡
+  144. 120a_合规凭证字段.sql:21  目标过程=add_column_if_not_exists  ⇒ 被挡
+  145. 120a_合规凭证字段.sql:22  目标过程=add_column_if_not_exists  ⇒ 被挡
+  146. 120a_合规凭证字段.sql:13  目标过程=add_column_if_not_exists  ⇒ 被挡
+  147. 123_member_contact.sql:13  目标过程=add_column_if_not_exists  ⇒ 被挡
+  148. 125_instant_retail_admin_fix.sql:19  目标过程=add_column_if_not_exists  ⇒ 被挡
+  149. 125_instant_retail_admin_fix.sql:20  目标过程=add_column_if_not_exists  ⇒ 被挡
+  150. 125_instant_retail_admin_fix.sql:21  目标过程=add_column_if_not_exists  ⇒ 被挡
+  151. 125_instant_retail_admin_fix.sql:22  目标过程=add_index_if_not_exists  ⇒ 被挡
+  152. 125_instant_retail_admin_fix.sql:23  目标过程=add_index_if_not_exists  ⇒ 被挡
+  153. 125_instant_retail_admin_fix.sql:29  目标过程=add_index_if_not_exists  ⇒ 被挡
+  154. 125_instant_retail_admin_fix.sql:35  目标过程=add_index_if_not_exists  ⇒ 被挡
+  155. 125_instant_retail_admin_fix.sql:18  目标过程=add_column_if_not_exists  ⇒ 被挡
+  156. 125_instant_retail_admin_fix.sql:28  目标过程=add_column_if_not_exists  ⇒ 被挡
+  157. 125_instant_retail_admin_fix.sql:34  目标过程=add_column_if_not_exists  ⇒ 被挡
+  158. 129_sale_bill_item_compliance.sql:3  目标过程=add_column_if_not_exists  ⇒ 被挡
+  159. 129_sale_bill_item_compliance.sql:4  目标过程=add_column_if_not_exists  ⇒ 被挡
+  160. 129_sale_bill_item_compliance.sql:5  目标过程=add_column_if_not_exists  ⇒ 被挡
+  161. 129_sale_bill_item_compliance.sql:6  目标过程=add_column_if_not_exists  ⇒ 被挡
+  162. 129_sale_bill_item_compliance.sql:7  目标过程=add_column_if_not_exists  ⇒ 被挡
+  163. 129_sale_bill_item_compliance.sql:8  目标过程=add_column_if_not_exists  ⇒ 被挡
+  164. 132_product_box_barcode.sql:3  目标过程=add_column_if_not_exists  ⇒ 被挡
+  165. 134_sale_bill_role_fields.sql:3  目标过程=add_column_if_not_exists  ⇒ 被挡
+  166. 134_sale_bill_role_fields.sql:4  目标过程=add_column_if_not_exists  ⇒ 被挡
+  167. 134_sale_bill_role_fields.sql:5  目标过程=add_column_if_not_exists  ⇒ 被挡
+  168. 134_sale_bill_role_fields.sql:6  目标过程=add_column_if_not_exists  ⇒ 被挡
+  169. 134_sale_bill_role_fields.sql:7  目标过程=add_column_if_not_exists  ⇒ 被挡
+  170. 137_sys_user_dept_position.sql:3  目标过程=add_column_if_not_exists  ⇒ 被挡
+  171. 137_sys_user_dept_position.sql:2  目标过程=add_column_if_not_exists  ⇒ 被挡
+  172. 138_approval_business_link.sql:3  目标过程=add_column_if_not_exists  ⇒ 被挡
+  173. 138_approval_business_link.sql:2  目标过程=add_column_if_not_exists  ⇒ 被挡
+
+== 五、与 MIG-3 副本演练结果交叉核对 ==
+  演练数据：D:\Users\ZXQL\wt-agents\issue-85\docs\evidence\MIG-1-drill\04-apply-compare.json
+  演练语句总数：457（结果分布 {"ok":290,"skipped-by-runner":22,"error":145}）
+  其中写语句/CALL：83 条，落在闸门被挡集合的：83 / 83（要求全部）
+  其中 outcome=ok（＝放量后**真的会改数据**）的写语句：66 条，未被闸门挡住的：0 条（要求 0）
+  口径差异说明：演练 ok=66 是「在副本上真正执行成功」的写语句；本扫描 125 条写语句是「修复后 runner 会尝试执行」的集合，
+  后者是前者的超集（多出的是演练中报错/被 runner 跳过的语句），两者不冲突。
+
+== 四、内置自检 ==
+  ✓ 被挡清单里每条都能被判真（可复算） —— 0 条判假
+  ✓ 结构/非写语句抽样全部判假 —— 0 条误判
+  ✓ 口令相关写语句全部落在被挡集合 —— 5 条
+  ✓ CALL 全部落在被挡集合 —— 173 条
+  ✓ 演练判定 ok 的写语句 100% 落在被挡集合（要求 0 条漏挡） —— 0 条漏挡
+
+RESULT: ALL PASS
+EXIT=0

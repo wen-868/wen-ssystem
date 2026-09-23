@@ -1,0 +1,7 @@
+== 命令：cd backend; node node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+== 说明：本命令覆盖 backend/src/**（含本单改动的 backend/src/shared/migration.ts）
+== 原始输出（空输出即 0 错误）：
+
+(空输出)
+
+EXIT=0

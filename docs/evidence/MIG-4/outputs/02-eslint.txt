@@ -1,0 +1,6 @@
+
+D:\Users\ZXQL\wt-agents\issue-85\backend\src\shared\migration.ts
+  238:8  warning  Async function 'runMigrations' has a complexity of 46. Maximum allowed is 15  complexity
+
+✖ 1 problem (0 errors, 1 warning)
+
