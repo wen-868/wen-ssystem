@@ -1,0 +1,2027 @@
+{
+  "generatedAt": "2026-09-23T00:23:44.683Z",
+  "totals": {
+    "tablesWithTenantDefault": 79,
+    "insertPathsTotal": 675,
+    "affectedWritePaths": 93,
+    "affectedTables": 41,
+    "affectedProductionWritePaths": 8,
+    "affectedTestWritePaths": 85
+  },
+  "tablesWithTenantDefault": [
+    "t_alert_record",
+    "t_approval_instance",
+    "t_approval_log",
+    "t_approval_notification",
+    "t_approval_rule",
+    "t_approval_task",
+    "t_brand",
+    "t_collection_link",
+    "t_collection_record",
+    "t_collection_view_log",
+    "t_credit_operation_log",
+    "t_customer_credit",
+    "t_customer_payment",
+    "t_customer_price_binding",
+    "t_customer_quote",
+    "t_customer_quote_item",
+    "t_customer_quote_push_log",
+    "t_customer_statement",
+    "t_customer_type",
+    "t_customer_visit",
+    "t_daily_settlement",
+    "t_error_logs",
+    "t_expiry_alert_config",
+    "t_expiry_alert_record",
+    "t_hold_order",
+    "t_inventory_balance",
+    "t_inventory_batch",
+    "t_inventory_ledger",
+    "t_member",
+    "t_miniapp_order",
+    "t_miniapp_order_item",
+    "t_notification",
+    "t_operation_log",
+    "t_payment_order",
+    "t_platform_subscription_apply",
+    "t_price_change_log",
+    "t_price_level",
+    "t_print_template",
+    "t_product_category",
+    "t_product_price",
+    "t_product_price_log",
+    "t_product_sku",
+    "t_product_sku_unit",
+    "t_product_spu",
+    "t_purchase_in_stock",
+    "t_purchase_in_stock_item",
+    "t_purchase_order",
+    "t_purchase_order_item",
+    "t_purchase_payment",
+    "t_purchase_return",
+    "t_purchase_return_item",
+    "t_recall_record",
+    "t_receivable_account",
+    "t_refund_order",
+    "t_retail_announcement",
+    "t_sale_bill",
+    "t_sale_bill_item",
+    "t_sale_return",
+    "t_sale_return_item",
+    "t_seckill_order",
+    "t_sku_price",
+    "t_sms_template",
+    "t_store",
+    "t_store_control_config",
+    "t_store_status_log",
+    "t_supplier",
+    "t_supplier_contact",
+    "t_supplier_statement",
+    "t_supplier_statement_item",
+    "t_sys_data_permission",
+    "t_sys_field_permission",
+    "t_sys_role",
+    "t_sys_user",
+    "t_sys_user_role",
+    "t_system_feedback",
+    "t_trace_code",
+    "t_trace_config",
+    "t_trace_event_log",
+    "t_trace_scan_log"
+  ],
+  "affectedTables": [
+    "t_approval_rule",
+    "t_brand",
+    "t_collection_link",
+    "t_collection_view_log",
+    "t_customer_payment",
+    "t_customer_statement",
+    "t_daily_settlement",
+    "t_error_logs",
+    "t_expiry_alert_record",
+    "t_hold_order",
+    "t_inventory_balance",
+    "t_member",
+    "t_miniapp_order",
+    "t_miniapp_order_item",
+    "t_notification",
+    "t_operation_log",
+    "t_payment_order",
+    "t_platform_subscription_apply",
+    "t_price_level",
+    "t_product_price",
+    "t_product_price_log",
+    "t_product_sku",
+    "t_product_spu",
+    "t_purchase_in_stock",
+    "t_purchase_in_stock_item",
+    "t_purchase_order",
+    "t_purchase_order_item",
+    "t_purchase_return",
+    "t_purchase_return_item",
+    "t_receivable_account",
+    "t_refund_order",
+    "t_retail_announcement",
+    "t_sale_bill_item",
+    "t_sale_return_item",
+    "t_store",
+    "t_store_control_config",
+    "t_supplier_statement",
+    "t_supplier_statement_item",
+    "t_sys_user",
+    "t_sys_user_role",
+    "t_system_feedback"
+  ],
+  "affected": [
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/services/admin/employee.service.ts",
+      "line": 137,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 307,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 324,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 102,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 119,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_retail_announcement",
+      "file": "backend/src/services/instant-retail/retail-announcement.service.ts",
+      "line": 73,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/052_add_retail_announcement.sql:8 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/services/platform-miniapp.service.ts",
+      "line": 172,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/131_platform_subscription_apply.sql:27 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_sys_user_role",
+      "file": "backend/src/shared/seed-data.ts",
+      "line": 107,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:196 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 158,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 79,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 112,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_collection_link",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 157,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:172 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_collection_view_log",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 179,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:173 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:164 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:164 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_receivable_account",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 291,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:160 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 279,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 313,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 398,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:165 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/__tests__/mocks/mock-db-platform-miniapp.ts",
+      "line": 112,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/131_platform_subscription_apply.sql:27 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:99 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:495 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:99 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:495 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_order",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 871,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:147 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:612 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_purchase_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 909,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:148 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1023,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1055,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:150 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_return",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1100,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:151 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1135,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:152 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sale_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1212,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:143 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1261,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1308,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1365,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_approval_rule",
+      "file": "backend/src/__tests__/services/admin/approval-flow.service.test.ts",
+      "line": 35,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:187 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/services/admin/batch-price.service.test.ts",
+      "line": 146,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_brand",
+      "file": "backend/src/__tests__/services/admin/brand.service.test.ts",
+      "line": 36,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:459 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 107,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 121,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 147,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 174,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 177,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 178,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 181,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:114 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 182,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:114 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/services/admin/error-log.service.test.ts",
+      "line": 46,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_system_feedback",
+      "file": "backend/src/__tests__/services/admin/feedback.service.test.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:681 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 444,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 460,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 476,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_notification",
+      "file": "backend/src/__tests__/services/admin/notification.service.test.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:180 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 284,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 314,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 349,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 196,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 209,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 222,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store_control_config",
+      "file": "backend/src/__tests__/services/admin/store-control.service.test.ts",
+      "line": 43,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:136 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:420 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 38,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:156 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 51,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:156 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_supplier_statement_item",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 53,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:157 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/services/miniapp/checkout.service.test.ts",
+      "line": 99,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_order",
+      "file": "backend/src/__tests__/services/purchase.service.test.ts",
+      "line": 84,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:147 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:612 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/services/share.service.test.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/services/store/other.service.test.ts",
+      "line": 35,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:165 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_daily_settlement",
+      "file": "backend/src/__tests__/services/store/shift.service.test.ts",
+      "line": 60,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:195 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sale_bill_item",
+      "file": "backend/src/__tests__/services/sync/delta-sync.service.test.ts",
+      "line": 575,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:141 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 161,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_price_level",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 162,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:119 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/warehouse.service.test.ts",
+      "line": 41,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 114,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 116,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    }
+  ],
+  "productionAffected": [
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/services/admin/employee.service.ts",
+      "line": 137,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 307,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 324,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 102,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 119,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_retail_announcement",
+      "file": "backend/src/services/instant-retail/retail-announcement.service.ts",
+      "line": 73,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/052_add_retail_announcement.sql:8 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/services/platform-miniapp.service.ts",
+      "line": 172,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/131_platform_subscription_apply.sql:27 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_sys_user_role",
+      "file": "backend/src/shared/seed-data.ts",
+      "line": 107,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:196 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    }
+  ],
+  "testAffected": [
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 158,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 79,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 112,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_collection_link",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 157,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:172 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_collection_view_log",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 179,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:173 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:164 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:164 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_receivable_account",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 291,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:160 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 279,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 313,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:169 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 398,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:165 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/__tests__/mocks/mock-db-platform-miniapp.ts",
+      "line": 112,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/131_platform_subscription_apply.sql:27 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:99 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:495 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:99 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:495 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_order",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 871,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:147 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:612 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_purchase_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 909,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:148 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1023,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1055,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:150 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_return",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1100,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:151 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1135,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:152 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sale_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1212,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:143 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1261,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:159 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1308,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:158 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1365,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_approval_rule",
+      "file": "backend/src/__tests__/services/admin/approval-flow.service.test.ts",
+      "line": 35,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:187 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/services/admin/batch-price.service.test.ts",
+      "line": 146,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:184 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_brand",
+      "file": "backend/src/__tests__/services/admin/brand.service.test.ts",
+      "line": 36,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:459 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 107,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 121,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 147,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:109 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 173,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 174,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:100 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:531 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 177,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 178,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:101 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:558 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 181,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:114 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 182,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:114 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/services/admin/error-log.service.test.ts",
+      "line": 46,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:704 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_system_feedback",
+      "file": "backend/src/__tests__/services/admin/feedback.service.test.ts",
+      "line": 47,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:681 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 444,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 460,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 476,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:126 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_notification",
+      "file": "backend/src/__tests__/services/admin/notification.service.test.ts",
+      "line": 65,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:180 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 284,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 314,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 349,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:183 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 196,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 209,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 222,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:149 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store_control_config",
+      "file": "backend/src/__tests__/services/admin/store-control.service.test.ts",
+      "line": 43,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:136 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:420 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 38,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:156 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 51,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:156 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_supplier_statement_item",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 53,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:157 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/services/miniapp/checkout.service.test.ts",
+      "line": 99,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:168 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_purchase_order",
+      "file": "backend/src/__tests__/services/purchase.service.test.ts",
+      "line": 84,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:147 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:612 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/services/share.service.test.ts",
+      "line": 191,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:163 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/services/store/other.service.test.ts",
+      "line": 35,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:165 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_daily_settlement",
+      "file": "backend/src/__tests__/services/store/shift.service.test.ts",
+      "line": 60,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:195 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sale_bill_item",
+      "file": "backend/src/__tests__/services/sync/delta-sync.service.test.ts",
+      "line": 575,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:141 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 161,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_price_level",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 162,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:119 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/warehouse.service.test.ts",
+      "line": 41,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "docs/migrations/092_租户ID.sql:95 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ]
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 114,
+      "kind": "columns",
+      "hasTenantId": false,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 116,
+      "kind": "unknown",
+      "hasTenantId": null,
+      "ddlEvidence": [
+        "backend/src/shared/migration.ts:162 → VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ]
+    }
+  ]
+}

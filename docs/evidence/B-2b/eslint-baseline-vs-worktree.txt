@@ -1,0 +1,21 @@
+HEAD    src/services/store/sale-bill.service.ts  =>  ✖ 6 problems (0 errors, 6 warnings)
+HEAD    src/services/sync/delta-sync.service.ts  =>  ✖ 2 problems (0 errors, 2 warnings)
+HEAD    src/services/admin/menu-permission.service.ts  =>  ✖ 3 problems (0 errors, 3 warnings)
+HEAD    src/services/admin/purchase-in-stock.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+HEAD    src/services/admin/purchase-order.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+HEAD    src/services/admin/purchase-return.service.ts  =>  0 problems
+HEAD    src/services/purchase.service.ts  =>  0 problems
+HEAD    src/services/sale-return.service.ts  =>  0 problems
+HEAD    src/services/supplier.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+HEAD    src/shared/fulfillment.ts  =>  0 problems
+
+WORKTREE src/services/store/sale-bill.service.ts  =>  ✖ 6 problems (0 errors, 6 warnings)
+WORKTREE src/services/sync/delta-sync.service.ts  =>  ✖ 2 problems (0 errors, 2 warnings)
+WORKTREE src/services/admin/menu-permission.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+WORKTREE src/services/admin/purchase-in-stock.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+WORKTREE src/services/admin/purchase-order.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+WORKTREE src/services/admin/purchase-return.service.ts  =>  0 problems
+WORKTREE src/services/purchase.service.ts  =>  0 problems
+WORKTREE src/services/sale-return.service.ts  =>  0 problems
+WORKTREE src/services/supplier.service.ts  =>  ✖ 1 problem (0 errors, 1 warning)
+WORKTREE src/shared/fulfillment.ts  =>  0 problems

@@ -1,0 +1,42 @@
+UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no) WHERE tenant_id = 'default' AND EXISTS (SELECT 1 FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no AND b.tenant_id <> 'default');
+
+SELECT COUNT(*) AS mismatch_remaining FROM t_sale_bill_item i JOIN t_sale_bill b ON b.bill_no = i.bill_no WHERE i.tenant_id = 'default' AND b.tenant_id <> 'default';
+
+-- ============================================================
+-- 编号: 172  描述: 回填 t_sale_bill_item.tenant_id（明细归属父单据租户）
+--
+-- 背景（缺陷本体，2026-09-23 凌舟裁定 R101-B2 §二.裁定1）:
+--   docs/migrations/092_租户ID.sql:141 给 t_sale_bill_item.tenant_id 的列定义是
+--   VARCHAR(36) NOT NULL DEFAULT 'default'，因此写入方一旦在 INSERT 列清单里漏掉
+--   tenant_id，落库既不报错也不为空，而是静默写成 'default'。
+--   生产实测（只读查询）: t_sale_bill_item 共 521 行，521 行全部 tenant_id='default'；
+--   其中"明细 default 但父单据 tenant_id<>'default'"的单数为 1（真实租户那张单）。
+--   受影响读路径: 按租户过滤读明细的接口（如 backend/src/services/share.service.ts:133/188）
+--   读不到本租户自己的明细。
+--
+-- 本迁移做什么:
+--   仅回填"子表 tenant_id='default' 且父报表 tenant_id<>'default'"的行，
+--   回填值取父记录（t_sale_bill）的 tenant_id，父键关联 t_sale_bill_item.bill_no -> t_sale_bill.bill_no。
+--
+-- 范围裁定（凌舟 B-2b 卡 §交付物3）:
+--   本迁移只回填 t_sale_bill_item（唯一有生产实测依据的子表）。
+--   其它同族子表（采购单/入库单/退货单/小程序订单等）不写进本迁移，
+--   候选清单与各自父键关联 SQL 见 docs/evidence/B-2b/影响面清单.md，待凌舟裁定。
+--
+-- 幂等性:
+--   回填后这些行的 tenant_id 已等于父记录租户（<>'default'），
+--   WHERE tenant_id='default' 不再命中 => 第二次执行影响 0 行（可重复执行）。
+--   本仓无迁移账本表、外部迁移每次启动都重跑，因此"自身幂等"是硬要求。
+--   本语句不使用 UPDATE ... JOIN（改用相关子查询 + EXISTS），
+--   便于用 SQLite 语义级探针复跑同一条 SQL（见 docs/evidence/B-2b/probe/02-backfill-probe.mts）。
+--
+-- 零 ALTER: 本迁移只做 UPDATE，不新增/修改任何列、不加索引、不改唯一键。
+--
+-- 写在「语句之后」的原因（踩坑日志[63]）:
+--   backend/src/shared/migration.ts 第 8 步外部迁移管线按分号切块后
+--   `filter(s => !s.startsWith("--"))` 会**整块丢弃**"以注释开头"的语句块。
+--   因此本文件把语句放在最前、注释放在最后：语句各自成块被保留，
+--   末尾注释块被丢弃（无害）。
+--
+-- 创建人: 阿坚（后端 · 本地子代理代执行）  日期: 2026-09-23  依据: GitHub Issue #62 / 派单 B-2b
+-- ============================================================

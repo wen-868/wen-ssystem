@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-09-23T00:38:29.633Z",
+  "migrationFile": "docs/migrations/172_sale_bill_item_tenant_backfill.sql",
+  "executedStatements": [
+    "UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no) WHERE tenant_id = 'default' AND EXISTS (SELECT 1 FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no AND b.tenant_id <> 'default')",
+    "SELECT COUNT(*) AS mismatch_remaining FROM t_sale_bill_item i JOIN t_sale_bill b ON b.bill_no = i.bill_no WHERE i.tenant_id = 'default' AND b.tenant_id <> 'default'"
+  ],
+  "fixtureBefore": [
+    {
+      "id": 1,
+      "bill_no": "PB-REAL-1",
+      "tenant_id": "default"
+    },
+    {
+      "id": 2,
+      "bill_no": "PB-REAL-1",
+      "tenant_id": "tenant-real-1"
+    },
+    {
+      "id": 3,
+      "bill_no": "PB-REAL-2",
+      "tenant_id": "default"
+    },
+    {
+      "id": 4,
+      "bill_no": "PB-DEF-1",
+      "tenant_id": "default"
+    },
+    {
+      "id": 5,
+      "bill_no": "PB-ORPHAN-DEF",
+      "tenant_id": "default"
+    },
+    {
+      "id": 6,
+      "bill_no": "PB-ORPHAN-REAL",
+      "tenant_id": "tenant-real-3"
+    }
+  ],
+  "fixtureAfter": [
+    {
+      "id": 1,
+      "bill_no": "PB-REAL-1",
+      "tenant_id": "tenant-real-1"
+    },
+    {
+      "id": 2,
+      "bill_no": "PB-REAL-1",
+      "tenant_id": "tenant-real-1"
+    },
+    {
+      "id": 3,
+      "bill_no": "PB-REAL-2",
+      "tenant_id": "tenant-real-2"
+    },
+    {
+      "id": 4,
+      "bill_no": "PB-DEF-1",
+      "tenant_id": "default"
+    },
+    {
+      "id": 5,
+      "bill_no": "PB-ORPHAN-DEF",
+      "tenant_id": "default"
+    },
+    {
+      "id": 6,
+      "bill_no": "PB-ORPHAN-REAL",
+      "tenant_id": "tenant-real-3"
+    }
+  ],
+  "changed": [
+    {
+      "id": 1,
+      "billNo": "PB-REAL-1",
+      "from": "default",
+      "to": "tenant-real-1"
+    },
+    {
+      "id": 3,
+      "billNo": "PB-REAL-2",
+      "from": "default",
+      "to": "tenant-real-2"
+    }
+  ],
+  "secondRunChanges": 0,
+  "boundary": "SQLite 语义级复现（列默认值/UNIQUE/单语句语义同构）；锁粒度与隔离级别同 InnoDB 不同",
+  "totals": {
+    "checks": 11,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "B0-1",
+      "desc": "语句 1 是回填 UPDATE",
+      "pass": true,
+      "detail": "UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id "
+    },
+    {
+      "id": "B0-2",
+      "desc": "保留语句中无 ALTER / CREATE / DROP",
+      "pass": true,
+      "detail": "语句数=2"
+    },
+    {
+      "id": "B1-1",
+      "desc": "只有 2 行被改（应动的行）",
+      "pass": true,
+      "detail": "改动行=[{\"id\":1,\"billNo\":\"PB-REAL-1\",\"from\":\"default\",\"to\":\"tenant-real-1\"},{\"id\":3,\"billNo\":\"PB-REAL-2\",\"from\":\"default\",\"to\":\"tenant-real-2\"}]"
+    },
+    {
+      "id": "B1-2",
+      "desc": "父真实租户 + 明细 default 的行已回填为父租户",
+      "pass": true,
+      "detail": "PB-REAL-1#101=tenant-real-1, PB-REAL-2#103=tenant-real-2"
+    },
+    {
+      "id": "B1-3",
+      "desc": "不该动：父记录也是 default 的行（反例）",
+      "pass": true,
+      "detail": "PB-DEF-1#104 tenant_id=default（期望 default）"
+    },
+    {
+      "id": "B1-3",
+      "desc": "不该动：已有正确租户的行",
+      "pass": true,
+      "detail": "PB-REAL-1#102 tenant_id=tenant-real-1（期望 tenant-real-1）"
+    },
+    {
+      "id": "B1-3",
+      "desc": "不该动：无父记录且 default 的行",
+      "pass": true,
+      "detail": "PB-ORPHAN-DEF#105 tenant_id=default（期望 default）"
+    },
+    {
+      "id": "B1-3",
+      "desc": "不该动：无父记录且真实租户的行",
+      "pass": true,
+      "detail": "PB-ORPHAN-REAL#106 tenant_id=tenant-real-3（期望 tenant-real-3）"
+    },
+    {
+      "id": "B2-1",
+      "desc": "跑后核对：明细 default 而父非 default 的残差 = 0",
+      "pass": true,
+      "detail": "mismatch_remaining=0"
+    },
+    {
+      "id": "B3-1",
+      "desc": "第二次执行影响 0 行",
+      "pass": true,
+      "detail": "changes=0"
+    },
+    {
+      "id": "B3-2",
+      "desc": "第二次执行后逐行结果与第一次完全一致",
+      "pass": true,
+      "detail": "变化行=0"
+    }
+  ],
+  "raw": [
+    "==== ① 被测迁移语句（与 runner 实际执行的一致） ====",
+    "迁移文件: docs/migrations/172_sale_bill_item_tenant_backfill.sql",
+    "runner 切块后保留语句数 = 2",
+    "语句 1: UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no) WHERE tenant_id = 'default' AND EXISTS (SELECT 1 FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no AND b.tenant_id <> 'default')",
+    "语句 2: SELECT COUNT(*) AS mismatch_remaining FROM t_sale_bill_item i JOIN t_sale_bill b ON b.bill_no = i.bill_no WHERE i.tenant_id = 'default' AND b.tenant_id <> 'default'",
+    "[PASS] B0-1 语句 1 是回填 UPDATE :: UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id ",
+    "[PASS] B0-2 保留语句中无 ALTER / CREATE / DROP :: 语句数=2",
+    "",
+    "==== ② 跑前逐行快照 ====",
+    "  id=1 bill_no=PB-REAL-1 tenant_id=default",
+    "  id=2 bill_no=PB-REAL-1 tenant_id=tenant-real-1",
+    "  id=3 bill_no=PB-REAL-2 tenant_id=default",
+    "  id=4 bill_no=PB-DEF-1 tenant_id=default",
+    "  id=5 bill_no=PB-ORPHAN-DEF tenant_id=default",
+    "  id=6 bill_no=PB-ORPHAN-REAL tenant_id=tenant-real-3",
+    "",
+    "==== ② 执行回填后逐行快照（含前后对比） ====",
+    "  id=1 bill_no=PB-REAL-1 default -> tenant-real-1 (已改)",
+    "  id=2 bill_no=PB-REAL-1 tenant-real-1 -> tenant-real-1 (未变)",
+    "  id=3 bill_no=PB-REAL-2 default -> tenant-real-2 (已改)",
+    "  id=4 bill_no=PB-DEF-1 default -> default (未变)",
+    "  id=5 bill_no=PB-ORPHAN-DEF default -> default (未变)",
+    "  id=6 bill_no=PB-ORPHAN-REAL tenant-real-3 -> tenant-real-3 (未变)",
+    "SQLite 报告受影响行数 = 2",
+    "[PASS] B1-1 只有 2 行被改（应动的行） :: 改动行=[{\"id\":1,\"billNo\":\"PB-REAL-1\",\"from\":\"default\",\"to\":\"tenant-real-1\"},{\"id\":3,\"billNo\":\"PB-REAL-2\",\"from\":\"default\",\"to\":\"tenant-real-2\"}]",
+    "[PASS] B1-2 父真实租户 + 明细 default 的行已回填为父租户 :: PB-REAL-1#101=tenant-real-1, PB-REAL-2#103=tenant-real-2",
+    "[PASS] B1-3 不该动：父记录也是 default 的行（反例） :: PB-DEF-1#104 tenant_id=default（期望 default）",
+    "[PASS] B1-3 不该动：已有正确租户的行 :: PB-REAL-1#102 tenant_id=tenant-real-1（期望 tenant-real-1）",
+    "[PASS] B1-3 不该动：无父记录且 default 的行 :: PB-ORPHAN-DEF#105 tenant_id=default（期望 default）",
+    "[PASS] B1-3 不该动：无父记录且真实租户的行 :: PB-ORPHAN-REAL#106 tenant_id=tenant-real-3（期望 tenant-real-3）",
+    "",
+    "跑后核对 SELECT（迁移文件语句 2）: [{\"mismatch_remaining\":0}]",
+    "[PASS] B2-1 跑后核对：明细 default 而父非 default 的残差 = 0 :: mismatch_remaining=0",
+    "",
+    "==== ③ 第二次执行同一回填 SQL（幂等） ====",
+    "第二次受影响行数 = 0；与第一次结果逐行对比：变化行数 = 0",
+    "[PASS] B3-1 第二次执行影响 0 行 :: changes=0",
+    "[PASS] B3-2 第二次执行后逐行结果与第一次完全一致 :: 变化行=0",
+    "",
+    "==== 汇总：11/11 通过 ===="
+  ]
+}

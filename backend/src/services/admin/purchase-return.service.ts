@@ -193,10 +193,11 @@ export async function create(body: {
     for (const item of itemsWithAmount) {
       await conn.query(
         `INSERT INTO t_purchase_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
-          unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [returnNo, item.sku_id, item.sku_name, item.box_qty || 0, item.bottle_qty || 0, item.total_bottle_qty,
-          item.unit_price, item.tax_rate || 0, item.subtotal_amount, item.tax_amount, item.total_amount, item.reason || null]
+          item.unit_price, item.tax_rate || 0, item.subtotal_amount, item.tax_amount, item.total_amount, item.reason || null,
+          tenantId]
       );
     }
     await conn.query(
@@ -338,10 +339,10 @@ export async function purchaseReturn(params: {
       const total = subtotal + tax;
       await conn.execute(
         `INSERT INTO t_purchase_return_item (return_no, sku_id, sku_name, box_qty, bottle_qty,
-          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, reason, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [returnNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null]
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.reason ?? null, tenantId]
       );
 
       // 扣减库存

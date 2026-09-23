@@ -3,12 +3,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   queryWithTenant: vi.fn(),
   queryOneWithTenant: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 vi.mock("../../../shared/db", () => ({
   queryWithTenant: mocks.queryWithTenant,
   queryOneWithTenant: mocks.queryOneWithTenant,
-  transaction: vi.fn(),
+  transaction: mocks.transaction,
   pool: {},
 }));
 
@@ -33,7 +34,7 @@ vi.mock("../../../services/admin/notification-sender.service", () => ({
   sendNotification: vi.fn().mockResolvedValue(1),
 }));
 
-import { listSaleBills, getSaleBillDetail } from "../../../services/store/sale-bill.service";
+import { listSaleBills, getSaleBillDetail, createSaleBill } from "../../../services/store/sale-bill.service";
 
 describe("store/sale-bill.service", () => {
   beforeEach(() => {
@@ -59,5 +60,33 @@ describe("store/sale-bill.service", () => {
   it("getSaleBillDetail：单不存在返回 null", async () => {
     mocks.queryOneWithTenant.mockResolvedValueOnce(null);
     expect(await getSaleBillDetail("NOPE", "t1")).toBeNull();
+  });
+
+  it("createSaleBill：明细 INSERT 显式带 tenant_id（B-2b 修复点 1）", async () => {
+    mocks.queryOneWithTenant
+      .mockResolvedValueOnce({ id: 5, name: "张三", mobile: "13800000001", customer_type: "RETAIL" })
+      .mockResolvedValueOnce({
+        sku_name: "示例白酒", volume: "500ml", packaging: "瓶装",
+        base_unit: "瓶", barcode: "6900000000001",
+        retail_price: 100, wholesale_price: 80, store_price: 90,
+      });
+    const mockConn = { execute: vi.fn().mockResolvedValue([{}]) };
+    mocks.transaction.mockImplementation(async (cb: any) => cb(mockConn));
+
+    await createSaleBill({
+      storeId: 1,
+      customerId: 5,
+      discountAmount: 0,
+      roundingAmount: 0,
+      saleType: "CASH",
+      items: [{ skuId: 1, boxQty: 1, bottleQty: 6, totalBottleQty: 6 }],
+      userId: 1,
+      tenantId: "t1",
+    });
+
+    const itemInsert = mockConn.execute.mock.calls.find((call: any[]) => String(call[0]).includes("t_sale_bill_item"));
+    expect(itemInsert).toBeDefined();
+    expect(String(itemInsert![0])).toMatch(/tenant_id/);
+    expect(itemInsert![1][itemInsert![1].length - 1]).toBe("t1");
   });
 });

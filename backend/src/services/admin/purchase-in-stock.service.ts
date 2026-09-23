@@ -261,11 +261,12 @@ export async function create(body: {
     for (const item of itemsWithAmount) {
       await conn.query(
         `INSERT INTO t_purchase_in_stock_item (stock_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
-          unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, batch_no, production_date, expiry_date, remark)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, batch_no, production_date, expiry_date, remark, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [stockNo, item.sku_id, item.sku_name, item.box_qty || 0, item.bottle_qty || 0, item.total_bottle_qty,
           item.unit_price, item.tax_rate || 0, item.subtotal_amount, item.tax_amount, item.total_amount,
-          item.batch_no || null, item.production_date || null, item.expiry_date || null, item.remark || null]
+          item.batch_no || null, item.production_date || null, item.expiry_date || null, item.remark || null,
+          tenantId]
       );
     }
     await conn.query(
@@ -433,11 +434,12 @@ export async function purchaseInStock(id: number, params: {
       await conn.execute(
         `INSERT INTO t_purchase_in_stock_item (stock_no, sku_id, sku_name, box_qty, bottle_qty,
           total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount,
-          batch_no, production_date, expiry_date, remark)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          batch_no, production_date, expiry_date, remark, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [stockNo, item.skuId, item.skuName, item.boxQty, item.bottleQty, item.totalBottleQty,
           item.unitPrice, item.taxRate, subtotal, tax, total,
-          item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null]
+          item.batchNo ?? null, item.productionDate ?? null, item.expiryDate ?? null, item.remark ?? null,
+          tenantId]
       );
 
       // 更新采购订单明细的已入库数量

@@ -442,8 +442,8 @@ class SupplierService {
 
       if (dto.contactPerson) {
         await conn.execute(
-          "INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, is_primary, position) VALUES (?, ?, ?, ?, 1, '联系人')",
-          [supplierId, dto.contactPerson, dto.contactMobile || null, dto.contactPhone || null]
+          "INSERT INTO t_supplier_contact (supplier_id, name, mobile, phone, is_primary, position, tenant_id) VALUES (?, ?, ?, ?, 1, '联系人', ?)",
+          [supplierId, dto.contactPerson, dto.contactMobile || null, dto.contactPhone || null, ctx.tenantId]
         );
       }
 

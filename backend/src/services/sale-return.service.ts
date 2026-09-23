@@ -245,8 +245,8 @@ class SaleReturnService {
           conn,
           `INSERT INTO t_sale_return_item (
             return_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
-            unit_price, subtotal_amount, reason
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            unit_price, subtotal_amount, reason, tenant_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             returnNo,
             item.skuId,
@@ -256,7 +256,8 @@ class SaleReturnService {
             item.totalBottleQty,
             item.unitPrice,
             item.subtotal,
-            item.reason || null
+            item.reason || null,
+            ctx.tenantId,
           ]
         );
       }

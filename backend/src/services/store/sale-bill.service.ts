@@ -312,12 +312,13 @@ export async function createSaleBill(params: {
       await conn.execute(
         `INSERT INTO t_sale_bill_item (bill_no, sku_id, sku_name, sku_spec, unit, barcode,
                 box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount,
-                item_remark, item_discount, trace_codes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                item_remark, item_discount, trace_codes, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [billNo, item.skuId, item.skuName, item.skuSpec ?? null, item.unit ?? "瓶", item.barcode ?? null,
          item.boxQty, item.bottleQty, item.totalBottleQty, item.unitPrice, item.priceType, item.subtotalAmount,
          item.itemRemark ?? null, item.itemDiscount ?? 0,
-         item.traceCodes && item.traceCodes.length > 0 ? JSON.stringify(item.traceCodes) : null]
+         item.traceCodes && item.traceCodes.length > 0 ? JSON.stringify(item.traceCodes) : null,
+         tenantId]
       );
     }
 

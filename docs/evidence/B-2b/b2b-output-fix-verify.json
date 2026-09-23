@@ -1,0 +1,147 @@
+{
+  "generatedAt": "2026-09-23T00:38:29.382Z",
+  "engine": "SQLite (node:sqlite) 替身替换 backend/src/shared/db",
+  "boundary": "MySQL(InnoDB) 换成 SQLite：列默认值/UNIQUE/事务语义同构；锁粒度、隔离级别、DECIMAL 精度不同",
+  "totals": {
+    "checks": 15,
+    "failed": 0
+  },
+  "checks": [
+    {
+      "id": "S1-1",
+      "desc": "反测有效：修复前的明细 INSERT 静默落 tenant_id=default",
+      "pass": true,
+      "detail": "tenant_id=default"
+    },
+    {
+      "id": "S2-1",
+      "desc": "主干道主表带本租户",
+      "pass": true,
+      "detail": "header tenant_id=ten-real-A-0001"
+    },
+    {
+      "id": "S2-2",
+      "desc": "主干道明细带本租户（修复点 1）",
+      "pass": true,
+      "detail": "明细 tenant_id=[\"ten-real-A-0001\"]"
+    },
+    {
+      "id": "S2-3",
+      "desc": "主干道明细不再落 default",
+      "pass": true,
+      "detail": "明细行数=1"
+    },
+    {
+      "id": "S3-1",
+      "desc": "离线同步主表带本租户",
+      "pass": true,
+      "detail": "header tenant_id=ten-real-A-0001"
+    },
+    {
+      "id": "S3-2",
+      "desc": "离线同步明细带本租户（修复点 2）",
+      "pass": true,
+      "detail": "明细 tenant_id=[\"ten-real-A-0001\"]"
+    },
+    {
+      "id": "S3-3",
+      "desc": "离线同步明细 INSERT 列清单已含 tenant_id",
+      "pass": true,
+      "detail": "列清单=[[\"bill_no\",\"sku_id\",\"sku_name\",\"box_qty\",\"bottle_qty\",\"total_bottle_qty\",\"unit_price\",\"price_type\",\"subtotal_amount\",\"tenant_id\"]]"
+    },
+    {
+      "id": "S4-1",
+      "desc": "第 2 次提交 success=true",
+      "pass": true,
+      "detail": "success=true"
+    },
+    {
+      "id": "S4-2",
+      "desc": "第 2 次提交无 errorMsg",
+      "pass": true,
+      "detail": "errorMsg=undefined"
+    },
+    {
+      "id": "S4-3",
+      "desc": "两次返回的 billNo 一致（等于既有单号）",
+      "pass": true,
+      "detail": "第1次=B2B-OFFLINE-001, 第2次=B2B-OFFLINE-001"
+    },
+    {
+      "id": "S4-4",
+      "desc": "第 2 次提交 successCount=1 / failureCount=0",
+      "pass": true,
+      "detail": "successCount=1, failureCount=0"
+    },
+    {
+      "id": "S4-5",
+      "desc": "重复提交未新增行（主表 1 行 / 明细 1 行）",
+      "pass": true,
+      "detail": "主表=1, 明细=1"
+    },
+    {
+      "id": "S5-1",
+      "desc": "不同幂等键各自落单",
+      "pass": true,
+      "detail": "A=1, B=1"
+    },
+    {
+      "id": "S5-2",
+      "desc": "两次请求均 successCount=1",
+      "pass": true,
+      "detail": "1/1"
+    },
+    {
+      "id": "S6-1",
+      "desc": "按租户过滤读明细：本租户可见、他租户不可见",
+      "pass": true,
+      "detail": "他租户=0, 本租户=1"
+    }
+  ],
+  "raw": [
+    "==== S0 被测对象身份 ====",
+    "../../../../backend/src/services/store/sale-bill.service.ts 字节=29427 行数=628 sha256=05eb7ffc2af1f1ae0e04e66bb2e89c54c9f2419336886ed2c227b9beb644d950",
+    "../../../../backend/src/services/sync/delta-sync.service.ts 字节=31887 行数=785 sha256=f5e67344677c24b77f278119a31af6649748590299e6ddcb1bcfadfd119deb65",
+    "sale-bill 明细 INSERT 列清单含 tenant_id = true",
+    "delta-sync 明细 INSERT 列清单含 tenant_id = true",
+    "",
+    "==== S1 反测：用修复前的明细 INSERT 落库（应当写出 default） ====",
+    "修复前 INSERT 落库结果: {\"id\":1,\"bill_no\":\"B2B-LEGACY-001\",\"tenant_id\":\"default\",\"sku_id\":1}",
+    "[PASS] S1-1 反测有效：修复前的明细 INSERT 静默落 tenant_id=default :: tenant_id=default",
+    "",
+    "==== S2 主干道 createSaleBill（sale-bill.service.ts） ====",
+    "createSaleBill 返回 billNo = XS2026092313572",
+    "主表: {\"id\":2,\"bill_no\":\"XS2026092313572\",\"tenant_id\":\"ten-real-A-0001\"}",
+    "明细: [{\"id\":2,\"bill_no\":\"XS2026092313572\",\"tenant_id\":\"ten-real-A-0001\",\"sku_id\":1}]",
+    "[PASS] S2-1 主干道主表带本租户 :: header tenant_id=ten-real-A-0001",
+    "[PASS] S2-2 主干道明细带本租户（修复点 1） :: 明细 tenant_id=[\"ten-real-A-0001\"]",
+    "[PASS] S2-3 主干道明细不再落 default :: 明细行数=1",
+    "",
+    "==== S3 离线同步 submitOfflineOrders（delta-sync.service.ts） ====",
+    "第 1 次提交返回：{\"totalCount\":1,\"successCount\":1,\"failureCount\":0,\"results\":[{\"draftNo\":\"B2B-OFFLINE-001\",\"success\":true,\"billNo\":\"B2B-OFFLINE-001\"}]}",
+    "主表: {\"id\":3,\"bill_no\":\"B2B-OFFLINE-001\",\"tenant_id\":\"ten-real-A-0001\"}  明细: [{\"id\":3,\"bill_no\":\"B2B-OFFLINE-001\",\"tenant_id\":\"ten-real-A-0001\",\"sku_id\":1}]",
+    "[PASS] S3-1 离线同步主表带本租户 :: header tenant_id=ten-real-A-0001",
+    "[PASS] S3-2 离线同步明细带本租户（修复点 2） :: 明细 tenant_id=[\"ten-real-A-0001\"]",
+    "本次提交的明细 INSERT 列清单: [[\"bill_no\",\"sku_id\",\"sku_name\",\"box_qty\",\"bottle_qty\",\"total_bottle_qty\",\"unit_price\",\"price_type\",\"subtotal_amount\",\"tenant_id\"]]",
+    "[PASS] S3-3 离线同步明细 INSERT 列清单已含 tenant_id :: 列清单=[[\"bill_no\",\"sku_id\",\"sku_name\",\"box_qty\",\"bottle_qty\",\"total_bottle_qty\",\"unit_price\",\"price_type\",\"subtotal_amount\",\"tenant_id\"]]",
+    "",
+    "==== S4 同一幂等键重复提交（第 2 次必须 success=true 且 billNo 一致） ====",
+    "第 2 次提交返回：{\"totalCount\":1,\"successCount\":1,\"failureCount\":0,\"results\":[{\"draftNo\":\"B2B-OFFLINE-001\",\"success\":true,\"billNo\":\"B2B-OFFLINE-001\"}]}",
+    "库内主表行数=1，明细行数=1",
+    "[PASS] S4-1 第 2 次提交 success=true :: success=true",
+    "[PASS] S4-2 第 2 次提交无 errorMsg :: errorMsg=undefined",
+    "[PASS] S4-3 两次返回的 billNo 一致（等于既有单号） :: 第1次=B2B-OFFLINE-001, 第2次=B2B-OFFLINE-001",
+    "[PASS] S4-4 第 2 次提交 successCount=1 / failureCount=0 :: successCount=1, failureCount=0",
+    "[PASS] S4-5 重复提交未新增行（主表 1 行 / 明细 1 行） :: 主表=1, 明细=1",
+    "",
+    "==== S5 反测：不同幂等键各落一单（证明不是所有请求都被吞掉） ====",
+    "[PASS] S5-1 不同幂等键各自落单 :: A=1, B=1",
+    "[PASS] S5-2 两次请求均 successCount=1 :: 1/1",
+    "",
+    "==== S6 反测：跨租户读隔离 ====",
+    "他租户可见行数=0，本租户可见行数=1",
+    "[PASS] S6-1 按租户过滤读明细：本租户可见、他租户不可见 :: 他租户=0, 本租户=1",
+    "",
+    "==== 汇总：15/15 通过 ===="
+  ]
+}
