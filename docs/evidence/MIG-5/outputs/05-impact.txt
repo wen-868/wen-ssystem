@@ -1,0 +1,56 @@
+== 命令：node docs/evidence/MIG-5/tools/mig5-impact.mjs
+== 口径：对全部 docs/migrations/*.sql 逐语句比较【回退版 addTablePrefix】与【工作区 addTablePrefix】的改写差异
+== 原始输出：
+
+================================================================================================
+MIG-5 影响面：addTablePrefix 同族收口（REFERENCES 补充 + INTO 收窄）对全部迁移文件的改写差异
+================================================================================================
+迁移文件数（.sql，排除 add_tenant_id.sql）= 176
+切块后语句总数（runner 同口径）= 1137
+新旧改写完全一致 = 1110
+仅新版本加前缀（首次获得覆盖）= 25
+仅旧版本加前缀（收窄 INTO 后的"覆盖减少"，必须逐条解释）= 2
+
+------------------------------------------------------------------------------------------------
+① 仅新版本加前缀（REFERENCES 等）—— 逐条 25 条
+------------------------------------------------------------------------------------------------
+  · 008_phase6_schema.sql:52 | CREATE TABLE IF NOT EXISTS t_supplier_statement_item ( id BIGINT AUTO_INCREMENT PRIMARY KEY, statement_id BIGI
+  · 008_phase6_schema.sql:81 | CREATE TABLE IF NOT EXISTS t_sys_user_role ( id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id BIGINT NOT NULL, ro
+  · 016_phase9_tenant_subscription.sql:69 | CREATE TABLE IF NOT EXISTS t_subscription ( id INT AUTO_INCREMENT PRIMARY KEY, subscription_no VARCHAR(32) NOT
+  · 016_phase9_tenant_subscription.sql:107 | CREATE TABLE IF NOT EXISTS t_tenant_module_access ( id INT AUTO_INCREMENT PRIMARY KEY, tenant_id INT NOT NULL 
+  · 016_phase9_tenant_subscription.sql:128 | CREATE TABLE IF NOT EXISTS t_subscription_operation_log ( id INT AUTO_INCREMENT PRIMARY KEY, subscription_id I
+  · 016_phase9_tenant_subscription.sql:150 | CREATE TABLE IF NOT EXISTS t_tenant_admin ( id INT AUTO_INCREMENT PRIMARY KEY, tenant_id INT NOT NULL COMMENT 
+  · 017_phase10_instant_retail.sql:139 | CREATE TABLE IF NOT EXISTS t_retail_order_item ( id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL COMM
+  · 017_phase10_instant_retail.sql:174 | CREATE TABLE IF NOT EXISTS t_delivery_record ( id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL COMMEN
+  · 018_phase10_marketing.sql:104 | CREATE TABLE IF NOT EXISTS t_full_reduction_rule ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL
+  · 018_phase10_marketing.sql:118 | CREATE TABLE IF NOT EXISTS t_seckill_product ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL COM
+  · 018_phase10_marketing.sql:136 | CREATE TABLE IF NOT EXISTS t_group_buy_activity ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL 
+  · 018_phase10_marketing.sql:175 | CREATE TABLE IF NOT EXISTS t_group_buy_participant ( id INT AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL 
+  · 031_add_subscription.sql:2 | CREATE TABLE IF NOT EXISTS t_subscription ( id INT AUTO_INCREMENT PRIMARY KEY, subscription_no VARCHAR(32) NOT
+  · 032_add_tenant_module_access.sql:2 | CREATE TABLE IF NOT EXISTS t_tenant_module_access ( id INT AUTO_INCREMENT PRIMARY KEY, tenant_id INT NOT NULL 
+  · 033_add_subscription_operation_log.sql:2 | CREATE TABLE IF NOT EXISTS t_subscription_operation_log ( id INT AUTO_INCREMENT PRIMARY KEY, subscription_id I
+  · 034_add_tenant_admin.sql:2 | CREATE TABLE IF NOT EXISTS t_tenant_admin ( id INT AUTO_INCREMENT PRIMARY KEY, tenant_id INT NOT NULL COMMENT 
+  · 038_add_full_reduction_rule.sql:2 | CREATE TABLE IF NOT EXISTS t_full_reduction_rule ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL
+  · 039_add_seckill_product.sql:2 | CREATE TABLE IF NOT EXISTS t_seckill_product ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL COM
+  · 040_add_group_buy_activity.sql:2 | CREATE TABLE IF NOT EXISTS t_group_buy_activity ( id INT AUTO_INCREMENT PRIMARY KEY, activity_id INT NOT NULL 
+  · 042_add_group_buy_participant.sql:2 | CREATE TABLE IF NOT EXISTS t_group_buy_participant ( id INT AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL 
+  · 067_add_unit_group.sql:14 | CREATE TABLE IF NOT EXISTS t_unit_group_item ( id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, group_id BIGINT 
+  · 069_商品SPU增加品牌ID.sql:6 | ALTER TABLE t_product_spu ADD CONSTRAINT fk_product_spu_brand FOREIGN KEY (brand_id) REFERENCES brand(id) ON D
+  · 074_即时零售表.sql:167 | CREATE TABLE IF NOT EXISTS `t_retail_order_item` ( `id` BIGINT AUTO_INCREMENT PRIMARY KEY, `order_id` BIGINT N
+  · 082_商品标签.sql:17 | CREATE TABLE IF NOT EXISTS t_product_tag ( id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, group_id BIGINT UNSI
+  · 082_商品标签.sql:28 | CREATE TABLE IF NOT EXISTS t_product_tag_relation ( id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, spu_id BIGI
+
+------------------------------------------------------------------------------------------------
+② 仅旧版本加前缀（覆盖减少）—— 逐条 2 条
+------------------------------------------------------------------------------------------------
+  · 092_租户ID.sql:21 | 语句：SELECT COUNT(*) INTO col_count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME 
+      旧：SELECT COUNT(*) INTO t_col_count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAM
+      新：SELECT COUNT(*) INTO col_count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME 
+  · 092_租户ID.sql:47 | 语句：SELECT COUNT(*) INTO idx_count FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NA
+      旧：SELECT COUNT(*) INTO t_idx_count FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_
+      新：SELECT COUNT(*) INTO idx_count FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NA
+
+结论：清单已产出（差异归类见上，是否接受由凌舟裁定）
+================================================================================================
+
+EXIT=0

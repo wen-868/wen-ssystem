@@ -1,0 +1,8 @@
+﻿== 命令：git status --porcelain（本单改动落工作区，未 commit/push）
+== 原始输出：
+
+ M backend/src/shared/migration.ts
+?? backend/src/__tests__/shared/migration-prefix-family.test.ts
+?? backend/src/__tests__/shared/migration-split.test.ts
+?? docs/evidence/MIG-5/
+?? "docs/tasks/cards/R101-MIG-5-\351\230\277\345\235\232\345\233\236\344\274\240.md"

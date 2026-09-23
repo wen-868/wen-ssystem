@@ -1,0 +1,124 @@
+
+==============================================================================
+MIG-5b 复跑（沙箱内最小 vitest 运行时；被测源码与测试文件都取自工作区真实文本）
+==============================================================================
+工作区     : D:\Users\ZXQL\wt-agents\issue-88
+分支/HEAD  : refs/heads/agent/issue-88 @ (HEAD 哈希见 outputs/05-worktree-status.txt)
+vitest 归一化真源 : D:\Users\ZXQL\wt-agents\issue-88\node_modules\vitest\dist\chunks\startVitestModuleRunner.DB-7oCpn.js
+migration.ts sha256 : 0e93fcac378e019ec913ec0b590443e30c7a5bed9c81d4d067210b724b62e1cc
+测试文件(修复后) sha256 : 0fa376ae6439bd087218916150aec7e219bb763359a06957673816c7196e13e9
+测试文件(修复前) sha256 : ba45c1d114cf6bfe8ca6529b486772b8a2d700acd699294842e9e7c0785b55f5  ← outputs/00a-pre-fix-migration-split.test.ts.txt
+
+==============================================================================
+[0] 口径自证：vi.mock("fs") 与 import ... from "node:fs" 是否撞同一个 mock key
+==============================================================================
+normalizeModuleId("node:fs") = "fs"
+normalizeModuleId("fs")      = "fs"
+⇒ 同一个 key ⇒ node:fs 会被 vi.mock("fs") 命中（根因证实）
+
+==============================================================================
+[A] 旧口径复现：修复前的测试文件 + 工作区实现
+==============================================================================
+mock 注册表 keys（vitest 口径）: ["mysql2/promise","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/env.ts","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/logger.ts","fs","bcryptjs"]
+用例：9 条，红 2 条
+
+  ✓ splitSqlStatements (S3-51 修复守门) > 前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 纯注释块应返回空数组  (1ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 行内注释（语句末尾 --）应原样保留，不被当块丢弃  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：USE / DELIMITER 行仍被剔除  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）  (1ms)
+  ✗ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）  (9ms)
+      → AssertionError: expected false to be true // Object.is equality
+  ✗ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志  (5ms)
+      → AssertionError: expected [] to have a length of 1 but got +0
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 生产保护未回归：同批 DROP TABLE 一条都不执行  (3ms)
+
+  ✓ 与预期一致
+
+==============================================================================
+[B] 修复后：工作区测试文件 + 工作区实现
+==============================================================================
+mock 注册表 keys（vitest 口径）: ["mysql2/promise","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/env.ts","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/logger.ts","fs","bcryptjs"]
+用例：9 条，红 0 条
+
+  ✓ splitSqlStatements (S3-51 修复守门) > 前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）  (1ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 纯注释块应返回空数组  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 行内注释（语句末尾 --）应原样保留，不被当块丢弃  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：USE / DELIMITER 行仍被剔除  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）  (0ms)
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）  (9ms)
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志  (5ms)
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 生产保护未回归：同批 DROP TABLE 一条都不执行  (4ms)
+
+  ✓ 与预期一致
+
+==============================================================================
+[C] 反测 1：splitSqlStatements 回退成旧的 filter(s => !s.startsWith("--"))
+==============================================================================
+mock 注册表 keys（vitest 口径）: ["mysql2/promise","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/env.ts","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/logger.ts","fs","bcryptjs"]
+用例：9 条，红 4 条
+
+  ✗ splitSqlStatements (S3-51 修复守门) > 前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）  (0ms)
+      → AssertionError: expected false to be true // Object.is equality
+  ✓ splitSqlStatements (S3-51 修复守门) > 纯注释块应返回空数组  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）  (0ms)
+  ✗ splitSqlStatements (S3-51 修复守门) > 行内注释（语句末尾 --）应原样保留，不被当块丢弃  (1ms)
+      → AssertionError: expected false to be true // Object.is equality
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：USE / DELIMITER 行仍被剔除  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）  (0ms)
+  ✗ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）  (6ms)
+      → AssertionError: expected false to be true // Object.is equality
+  ✗ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志  (8ms)
+      → AssertionError: expected [] to have a length of 1 but got +0
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 生产保护未回归：同批 DROP TABLE 一条都不执行  (5ms)
+
+  ✓ 与预期一致
+
+==============================================================================
+[D] 反测 2：写闸门恒 allow（resolveWriteGate 回退）
+==============================================================================
+mock 注册表 keys（vitest 口径）: ["mysql2/promise","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/env.ts","D:/Users/ZXQL/wt-agents/issue-88/backend/src/shared/logger.ts","fs","bcryptjs"]
+用例：9 条，红 1 条
+
+  ✓ splitSqlStatements (S3-51 修复守门) > 前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 纯注释块应返回空数组  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 行内注释（语句末尾 --）应原样保留，不被当块丢弃  (0ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：USE / DELIMITER 行仍被剔除  (1ms)
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）  (0ms)
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）  (5ms)
+  ✗ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志  (4ms)
+      → AssertionError: expected [ Array(1) ] to deeply equal []
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 生产保护未回归：同批 DROP TABLE 一条都不执行  (4ms)
+
+  ✓ 与预期一致
+
+==============================================================================
+[B’] 读数（B 场景同一运行时的原始读数：006 相关下发语句 / 闸门日志 / 保护分支）
+==============================================================================
+下发语句总数                : 232
+006 相关（含真实内容）       : 38
+SET FOREIGN_KEY_CHECKS = 0 : true
+SET FOREIGN_KEY_CHECKS = 1 : true
+CREATE TABLE IF NOT EXISTS t_trace_config : true
+CREATE TABLE IF NOT EXISTS t_trace_code : true
+CREATE TABLE IF NOT EXISTS t_trace_event_log : true
+CREATE TABLE IF NOT EXISTS t_trace_scan_log : true
+CREATE TABLE IF NOT EXISTS t_recall_record : true
+INSERT 下发条数             : 0
+DROP TABLE 下发条数         : 0
+写闸门 block 跳过日志条数    : 1
+  ↳ [migration] 006_phase4_schema.sql: 写闸门 block 跳过 INSERT 语句（目标 price_level）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow
+DROP 生产保护日志条数        : 7
+
+==============================================================================
+结论
+==============================================================================
+✓ [A] 旧口径复现：修复前的测试文件 + 工作区实现
+✓ [B] 修复后：工作区测试文件 + 工作区实现
+✓ [C] 反测 1：splitSqlStatements 回退成旧的 filter(s => !s.startsWith("--"))
+✓ [D] 反测 2：写闸门恒 allow（resolveWriteGate 回退）
+
+EXIT=0

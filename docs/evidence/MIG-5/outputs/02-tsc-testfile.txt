@@ -1,0 +1,7 @@
+﻿== 背景：backend/tsconfig.json 的 exclude 为 src/__tests__/**/*.ts，故上一条 tsc 不覆盖测试文件
+== 命令：cd backend; node node_modules/typescript/bin/tsc --noEmit --target ES2020 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --types vitest/globals,node src/__tests__/shared/migration-split.test.ts src/__tests__/shared/migration-prefix-family.test.ts
+== 原始输出（空输出即 0 错误）：
+
+
+
+EXIT=0
