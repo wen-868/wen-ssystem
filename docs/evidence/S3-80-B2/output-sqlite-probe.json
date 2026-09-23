@@ -1,0 +1,681 @@
+{
+  "generatedAt": "2026-09-22T23:50:46.497Z",
+  "engine": "sqlite (node:sqlite DatabaseSync) —— MySQL 的等价替身，差异见 README.md",
+  "serviceSha256": "e6e25efd865dd06267f2151829ed23edae1df49e614d6af517c800d2a5cc6e79",
+  "checks": [
+    {
+      "id": "S1-1",
+      "desc": "同幂等键第 1 次落单成功",
+      "pass": true,
+      "detail": "successCount=1"
+    },
+    {
+      "id": "S1-2",
+      "desc": "同幂等键第 2 次被拒（未新增行）",
+      "pass": true,
+      "detail": "successCount=0, errorMsg=单号 B2-IDEM-001 已存在，禁止重复提交"
+    },
+    {
+      "id": "S1-3",
+      "desc": "库内该单号只有 1 行主表",
+      "pass": true,
+      "detail": "行数=1"
+    },
+    {
+      "id": "S1-4",
+      "desc": "库内该单号明细未翻倍（1 条明细）",
+      "pass": true,
+      "detail": "明细行数=1"
+    },
+    {
+      "id": "S2-1",
+      "desc": "不同幂等键各自落单",
+      "pass": true,
+      "detail": "K2A=1, K2B=1"
+    },
+    {
+      "id": "S2-2",
+      "desc": "两次请求均返回 success",
+      "pass": true,
+      "detail": "successCount=1/1"
+    },
+    {
+      "id": "S3-1",
+      "desc": "批内重复键：1 成功 1 失败",
+      "pass": true,
+      "detail": "success=1, failure=1"
+    },
+    {
+      "id": "S3-2",
+      "desc": "批内重复键仍只落 1 行",
+      "pass": true,
+      "detail": "行数=1"
+    },
+    {
+      "id": "S4-1",
+      "desc": "并发同键仍只落 1 行",
+      "pass": true,
+      "detail": "行数=1"
+    },
+    {
+      "id": "S4-2",
+      "desc": "并发同键至少一方失败（另一方成功）",
+      "pass": true,
+      "detail": "successCount 合计=1"
+    },
+    {
+      "id": "S5-1",
+      "desc": "租户 B 未写入 A 的单（无跨租户写入）",
+      "pass": true,
+      "detail": "总行数=1"
+    },
+    {
+      "id": "S5-2",
+      "desc": "库内该单号仍属租户 A",
+      "pass": true,
+      "detail": "tenant_id=b2-tenant-a"
+    },
+    {
+      "id": "S6-1",
+      "desc": "主表 tenant_id 正确（A/B 各归其位）",
+      "pass": true,
+      "detail": "A=b2-tenant-a, B=b2-tenant-b"
+    },
+    {
+      "id": "S6-2",
+      "desc": "明细行 tenant_id 与所属租户一致（A 的明细不应落在其它租户名下）",
+      "pass": false,
+      "detail": "明细A.tenant_id=default, 明细B.tenant_id=default"
+    },
+    {
+      "id": "S8-1",
+      "desc": "租户 A 能取到自己的客户快照",
+      "pass": true,
+      "detail": "customer_name=甲租户客户"
+    },
+    {
+      "id": "S8-2",
+      "desc": "租户 A 取不到租户 B 的客户（跨租户读取被隔离，回落为客户端兜底值）",
+      "pass": true,
+      "detail": "customer_name=客户端兜底名, customer_mobile=null"
+    },
+    {
+      "id": "S9-1",
+      "desc": "写操作只涉及 t_sale_bill / t_sale_bill_item",
+      "pass": true,
+      "detail": "[\"insert t_sale_bill\",\"insert t_sale_bill_item\"]"
+    },
+    {
+      "id": "S9-2",
+      "desc": "该端点无 UPDATE / DELETE 语句",
+      "pass": true,
+      "detail": "非 insert 写语句数=0"
+    },
+    {
+      "id": "S9-3",
+      "desc": "未写库存/台账等其它业务域",
+      "pass": true,
+      "detail": "[\"t_sale_bill\",\"t_sale_bill_item\"]"
+    },
+    {
+      "id": "S9-4",
+      "desc": "租户条件注入未被触发（SQL 自带 tenant_id）",
+      "pass": true,
+      "detail": "注入次数=0"
+    }
+  ],
+  "writeTargets": [
+    "insert t_sale_bill",
+    "insert t_sale_bill_item"
+  ],
+  "readTargets": [
+    "t_sale_bill",
+    "t_member"
+  ],
+  "sql": [
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "select",
+      "table": "t_member",
+      "columns": [],
+      "sql": "SELECT id, name, mobile, customer_type FROM t_member WHERE id = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    },
+    {
+      "op": "select",
+      "table": "t_sale_bill",
+      "columns": [],
+      "sql": "SELECT bill_no AS billNo FROM t_sale_bill WHERE bill_no = ? AND tenant_id = ?"
+    },
+    {
+      "op": "select",
+      "table": "t_member",
+      "columns": [],
+      "sql": "SELECT id, name, mobile, customer_type FROM t_member WHERE id = ? AND tenant_id = ?"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill",
+      "columns": [
+        "bill_no",
+        "store_id",
+        "customer_id",
+        "customer_name",
+        "customer_mobile",
+        "customer_type",
+        "business_status",
+        "collection_status",
+        "goods_amount",
+        "discount_amount",
+        "rounding_amount",
+        "receivable_amount",
+        "received_amount",
+        "unreceived_amount",
+        "operator_id",
+        "remark",
+        "tenant_id"
+      ],
+      "sql": "INSERT INTO t_sale_bill ( bill_no, store_id, customer_id, customer_name, customer_mobile, customer_type, business_status, collection_status, goods_amount, discount_amount, rounding_amount, receivable_amount, received_amount, unreceived_amount, operator_id, remark, tenant_id ) VALUES (?, ?, ?, ?, ?, ?, 'CREATED', 'UNPAID', ?, 0, 0, ?, 0, ?, ?, ?, ?)"
+    },
+    {
+      "op": "insert",
+      "table": "t_sale_bill_item",
+      "columns": [
+        "bill_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "sql": "INSERT INTO t_sale_bill_item ( bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty, unit_price, price_type, subtotal_amount ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    }
+  ]
+}

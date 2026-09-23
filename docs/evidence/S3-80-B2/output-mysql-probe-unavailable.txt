@@ -1,0 +1,8 @@
+==== P0 环境与前置 ====
+DB_HOST=127.0.0.1 DB_NAME=liquor_inventory USE_MOCK_DB=false
+
+!! 探针中止：connect ECONNREFUSED 127.0.0.1:3306
+   常见原因：本机/容器无可用 MySQL（ECONNREFUSED 127.0.0.1:3306）→ 请在有 .env 指向真库的机器上重跑。
+
+==== 汇总 ====
+断言合计 0 条，通过 0 条，失败 0 条
