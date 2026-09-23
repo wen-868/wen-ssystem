@@ -1,0 +1,40 @@
+[MIG-2/run-all] 一键复跑（2026-09-24，阿坚）
+
+== 1) tsc ==
+命令：cd backend; node node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+输出：(空)
+EXIT=0
+
+== 2) eslint ==
+命令：cd backend; node ../node_modules/eslint/bin/eslint.js src/shared/migration.ts src/__tests__/shared/migration.test.ts
+输出：D:\Users\ZXQL\wt-agents\issue-74\backend\src\shared\migration.ts /   138:8  warning  Async function 'runMigrations' has a complexity of 44. Maximum allowed is 15  complexity /  / ✖ 1 problem (0 errors, 1 warning)
+EXIT=0
+
+== 3) 函数级验证 + 反测 ==
+命令：node docs/evidence/MIG-2/tools/mig2-verify.mjs
+    函数块行号 90-116  SHA256 1253df1aa1c87775d973c33759f2b07db1f137649d1d1ce127196f85eb71adef
+    函数块行号 81-105  SHA256 6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc
+    函数块 SHA256 6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc（与「旧」一致=true）
+  用例总数 20：反测位 12 条 / 冻结（零新增差异）位 8 条
+  新版本（工作区）全绿：20/20
+  旧版本（修复前）反测位变红：12/12（要求全部为红）
+  旧版本（修复前）冻结位保持绿：8/8（要求全部为绿＝零新增差异）
+  回退版与旧版逐用例输出不一致条数：0（要求 0）
+RESULT: ALL PASS
+EXIT=0
+
+== 4) 影响面 ==
+命令：node docs/evidence/MIG-2/tools/mig2-impact.mjs
+  SQL 文件数（排除 add_tenant_id.sql，与 runner 口径一致）：175
+  文件内分号切分语句总数（含注释开头块、含被 runner 跳过的）：1227
+  runner 流水后非空语句块：678
+  其中 runner 显式跳过：存储过程 4 / DROP TABLE 37
+  实际进入 addTablePrefix 的语句：637
+  交叉校验：非空块 − 显式跳过 = 637，应等于进入 addTablePrefix 的语句数（637）⇒ 一致
+  差异语句总数：5（涉及文件 4 个）
+  按语句类型：CREATE 5
+== 关键分节：会改数据的语句（INSERT / UPDATE / DELETE） ==
+== 关键分节：会改结构的语句（ALTER TABLE） ==
+  点名核对（生产缺失的 3 张表）：t_open_api_call_daily ✔在列 / t_open_webhook ✔在列 / t_open_webhook_delivery ✔在列
+RESULT: ALL PASS
+EXIT=0

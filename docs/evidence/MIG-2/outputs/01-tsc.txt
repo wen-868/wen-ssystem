@@ -1,0 +1,4 @@
+== 命令：cd backend; node node_modules/typescript/bin/tsc -p tsconfig.json --noEmit
+== 原始输出（无输出即 0 错误）：
+
+EXIT=0

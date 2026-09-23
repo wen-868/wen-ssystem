@@ -1,0 +1,257 @@
+{
+  "generatedAt": "2026-09-23T16:46:25.303Z",
+  "migrationsDir": "D:\\Users\\ZXQL\\wt-agents\\issue-74\\docs\\migrations",
+  "pipeline": "复用 docs/evidence/MIG-1/tools/mig1-extract.mjs:simulateRunner（口径 B）",
+  "sha256": {
+    "newBlock": "1253df1aa1c87775d973c33759f2b07db1f137649d1d1ce127196f85eb71adef",
+    "oldBlock": "6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc"
+  },
+  "scope": {
+    "files": 175,
+    "statementsBySemicolon": 1227,
+    "nonEmptyBlocks": 678,
+    "runnerSkipped": {
+      "procedure": 4,
+      "drop_table": 37
+    },
+    "statementsPrefixed": 637,
+    "backtickKeywordStatements": 11,
+    "backtickPrefixedStatements": 11,
+    "crossCheck": true,
+    "commentLeadingDroppedBlocks": 457
+  },
+  "diffCount": 5,
+  "filesWithDiff": [
+    "120d_fix_server_3bugs.sql",
+    "165_transfer_execution_columns.sql",
+    "174_open_platform_webhook.sql",
+    "175_open_platform_api_call_daily.sql"
+  ],
+  "byType": {
+    "CREATE": 5
+  },
+  "byLevel": {
+    "L1": 5
+  },
+  "byClass": {
+    "A": 5
+  },
+  "dataWrites": [],
+  "structureChanges": [],
+  "creates": [
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 88,
+      "blockStartLine": 88,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_subscription",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_subscription"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_subscription` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_subscription` (\r"
+    },
+    {
+      "file": "165_transfer_execution_columns.sql",
+      "line": 3,
+      "blockStartLine": 3,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_transfer_stock_log",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_transfer_stock_log"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_transfer_stock_log` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_transfer_stock_log` (\r"
+    },
+    {
+      "file": "174_open_platform_webhook.sql",
+      "line": 1,
+      "blockStartLine": 1,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_webhook",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_webhook"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_webhook` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_webhook` (\r"
+    },
+    {
+      "file": "174_open_platform_webhook.sql",
+      "line": 20,
+      "blockStartLine": 20,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_webhook_delivery",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_webhook_delivery"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_webhook_delivery` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_webhook_delivery` (\r"
+    },
+    {
+      "file": "175_open_platform_api_call_daily.sql",
+      "line": 1,
+      "blockStartLine": 1,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_api_call_daily",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_api_call_daily"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_api_call_daily` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_api_call_daily` (\r"
+    }
+  ],
+  "targetTables": [
+    "t_open_api_call_daily",
+    "t_open_webhook",
+    "t_open_webhook_delivery",
+    "t_subscription",
+    "t_transfer_stock_log"
+  ],
+  "expectedTablesNamed": [
+    "t_open_api_call_daily",
+    "t_open_webhook",
+    "t_open_webhook_delivery"
+  ],
+  "diffs": [
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 88,
+      "blockStartLine": 88,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_subscription",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_subscription"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_subscription` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_subscription` (\r"
+    },
+    {
+      "file": "165_transfer_execution_columns.sql",
+      "line": 3,
+      "blockStartLine": 3,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_transfer_stock_log",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_transfer_stock_log"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_transfer_stock_log` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_transfer_stock_log` (\r"
+    },
+    {
+      "file": "174_open_platform_webhook.sql",
+      "line": 1,
+      "blockStartLine": 1,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_webhook",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_webhook"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_webhook` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_webhook` (\r"
+    },
+    {
+      "file": "174_open_platform_webhook.sql",
+      "line": 20,
+      "blockStartLine": 20,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_webhook_delivery",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_webhook_delivery"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_webhook_delivery` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_webhook_delivery` (\r"
+    },
+    {
+      "file": "175_open_platform_api_call_daily.sql",
+      "line": 1,
+      "blockStartLine": 1,
+      "type": "CREATE",
+      "risk": "L1",
+      "riskWhy": "幂等可重复（CREATE TABLE IF NOT EXISTS）",
+      "class": "A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）",
+      "needConfirm": "否",
+      "oldTable": "t_IF",
+      "newTable": "t_open_api_call_daily",
+      "oldTables": [
+        "t_IF"
+      ],
+      "newTables": [
+        "t_open_api_call_daily"
+      ],
+      "oldLine": "CREATE TABLE t_IF NOT EXISTS `t_open_api_call_daily` (\r",
+      "newLine": "CREATE TABLE IF NOT EXISTS `t_open_api_call_daily` (\r"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+[MIG-2/verify] addTablePrefix 函数级行为验证（真实源码抽取 + typescript.transpileModule 转译）
+  新（工作区）：D:\Users\ZXQL\wt-agents\issue-74\backend\src\shared\migration.ts
+    函数块行号 90-116  SHA256 1253df1aa1c87775d973c33759f2b07db1f137649d1d1ce127196f85eb71adef
+  旧（修复前）：D:\Users\ZXQL\wt-agents\issue-74\docs\evidence\MIG-2\outputs\00-old-migration.ts.txt
+    函数块行号 81-105  SHA256 6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc
+  回退版（工作区文本 + 旧函数块，落盘 outputs/00b-reverted-migration.ts.txt）
+    函数块 SHA256 6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc（与「旧」一致=true）
+
+== 逐用例 ==
+  [id] 期望类型            新   旧   标题
+  [H01] exact               绿   红   CREATE TABLE IF NOT EXISTS 反引号表名（缺陷复现位）（反测位）
+        修复前输出："CREATE TABLE t_IF NOT EXISTS `open_webhook` (id INT);"
+        修复后输出："CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);"
+  [H02] exact               绿   红   CREATE TABLE 反引号表名（无 IF NOT EXISTS）（反测位）
+        修复前输出："CREATE TABLE `open_webhook` (id INT);"
+        修复后输出："CREATE TABLE `t_open_webhook` (id INT);"
+  [H03] exact               绿   绿   CREATE TABLE IF NOT EXISTS 裸表名（回归位）
+  [H04] exact               绿   红   ALTER TABLE 反引号表名（反测位）
+        修复前输出："ALTER TABLE `sys_user` ADD COLUMN name VARCHAR(50);"
+        修复后输出："ALTER TABLE `t_sys_user` ADD COLUMN name VARCHAR(50);"
+  [H05] exact               绿   红   INSERT INTO 反引号表名（反测位）
+        修复前输出："INSERT INTO `open_webhook` (id) VALUES (1);"
+        修复后输出："INSERT INTO `t_open_webhook` (id) VALUES (1);"
+  [H06] exact               绿   红   语句首 UPDATE 反引号表名（反测位）
+        修复前输出："UPDATE `open_webhook` SET status = 1;"
+        修复后输出："UPDATE `t_open_webhook` SET status = 1;"
+  [H07] exact               绿   红   DELETE FROM 反引号表名（反测位）
+        修复前输出："DELETE FROM `open_webhook` WHERE id = 1;"
+        修复后输出："DELETE FROM `t_open_webhook` WHERE id = 1;"
+  [H08] exact               绿   红   FROM 子句反引号表名（反测位）
+        修复前输出："SELECT * FROM `open_webhook` WHERE id = 1;"
+        修复后输出："SELECT * FROM `t_open_webhook` WHERE id = 1;"
+  [H09] contains            绿   红   JOIN 反引号表名（反测位）
+        修复前输出："SELECT * FROM t_sys_user JOIN `sys_role` ON sys_user.role_id = sys_role.id;"
+        修复后输出："SELECT * FROM t_sys_user JOIN `t_sys_role` ON sys_user.role_id = sys_role.id;"
+  [H10] exact               绿   红   INSERT IGNORE INTO 反引号表名（走 INTO 模式）（反测位）
+        修复前输出："INSERT IGNORE INTO `open_webhook` (id) VALUES (1);"
+        修复后输出："INSERT IGNORE INTO `t_open_webhook` (id) VALUES (1);"
+  [H11] contains            绿   红   RENAME TABLE 反引号表名（反测位）
+        修复前输出："RENAME TABLE `open_webhook` TO open_webhook_old;"
+        修复后输出："RENAME TABLE `t_open_webhook` TO open_webhook_old;"
+  [H12] exact               绿   红   DROP TABLE IF EXISTS 反引号表名（反测位）
+        修复前输出："DROP TABLE t_IF EXISTS `open_webhook`;"
+        修复后输出："DROP TABLE IF EXISTS `t_open_webhook`;"
+  [H13] exact               绿   绿   反引号形态已带 t_ 前缀不重复加
+  [H14] notContains         绿   绿   反引号 + t_ 前缀的 INSERT/FROM 不重复加
+  [H15] exact               绿   绿   裸表名已带 t_ 前缀不重复加（回归位）
+  [H16] exact               绿   绿   反引号包裹的 mysql 系统库不加前缀
+  [H17] notContains         绿   红   关键字 IF / NOT / EXISTS 不得被当成表名（反测位）
+        修复前输出："CREATE TABLE t_IF NOT EXISTS `open_webhook` (id INT);"
+        修复后输出："CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);"
+  [H18] exact               绿   绿   字面量中已是 t_ 前缀的名字不被改写（回归位）
+  [H19] exact               绿   绿   存量行为冻结：字面量 'FROM y' 的改写修复前后逐字节一致
+  [H20] exact               绿   绿   非反引号输入零差异：已有 t_ 前缀的 UPDATE 原样返回
+
+== 汇总 ==
+  用例总数 20：反测位 12 条 / 冻结（零新增差异）位 8 条
+  新版本（工作区）全绿：20/20
+  旧版本（修复前）反测位变红：12/12（要求全部为红）
+  旧版本（修复前）冻结位保持绿：8/8（要求全部为绿＝零新增差异）
+  回退版与旧版逐用例输出不一致条数：0（要求 0）
+
+RESULT: ALL PASS
+EXIT=0

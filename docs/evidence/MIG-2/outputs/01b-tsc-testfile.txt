@@ -1,0 +1,5 @@
+== 背景：backend/tsconfig.json 的 exclude 为 src/__tests__/**/*.ts，故验收标准 1 的 tsc 不覆盖测试文件；此处补一次测试文件单独类型检查
+== 命令：cd backend; node node_modules/typescript/bin/tsc --noEmit --target ES2020 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --types vitest/globals,node src/__tests__/shared/migration.test.ts
+== 原始输出（无输出即 0 错误）：
+
+EXIT=0

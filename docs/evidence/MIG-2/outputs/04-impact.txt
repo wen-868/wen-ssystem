@@ -1,0 +1,62 @@
+[MIG-2/impact] addTablePrefix 修复（反引号表名）行为变更影响面
+  扫描目录：D:\Users\ZXQL\wt-agents\issue-74\docs\migrations
+  新函数块 SHA256 1253df1aa1c87775d973c33759f2b07db1f137649d1d1ce127196f85eb71adef
+  旧函数块 SHA256 6405c71c967d2687d3ddbf631472ba4c35da03215103d13ae08083c7f4ed67fc
+
+== 扫描范围自证 ==
+  SQL 文件数（排除 add_tenant_id.sql，与 runner 口径一致）：175
+  文件内分号切分语句总数（含注释开头块、含被 runner 跳过的）：1227
+  runner 流水后非空语句块：678
+  其中 runner 显式跳过：存储过程 4 / DROP TABLE 37
+  实际进入 addTablePrefix 的语句：637
+  其中「关键字后紧跟反引号表名」的语句（本次修复的作用面）：11 条；其中反引号内已是 t_ 前缀/系统库（修复前后都不动）：11 条（注意：这批语句**本应被『已加 t_ 前缀则跳过』规则放行**，旧版本仍因关键字误抓把它们改坏）
+  交叉校验：非空块 − 显式跳过 = 637，应等于进入 addTablePrefix 的语句数（637）⇒ 一致
+  另：被「注释开头整块丢弃」缺陷吞掉的含真实内容块 457 个，分布在 128 个文件（MIG-1 已单独立单，不在本单）
+
+== 新旧 addTablePrefix 结果差异 ==
+  差异语句总数：5（涉及文件 4 个）
+  按语句类型：CREATE 5
+  按风险等级：L1 5
+  按差异成因：A 5
+
+== 关键分节：会改数据的语句（INSERT / UPDATE / DELETE） ==
+  0 条——修复不改变任何数据写入语句的目标表名
+
+== 关键分节：会改结构的语句（ALTER TABLE） ==
+  0 条——修复不改变任何 ALTER TABLE 的目标表名
+
+== 建表语句（CREATE）：修复后首次可执行的表 ==
+  120d_fix_server_3bugs.sql:88 [L1] 旧=CREATE TABLE t_IF NOT EXISTS `t_subscription` ( | 新=CREATE TABLE IF NOT EXISTS `t_subscription` (
+     成因：A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）
+  165_transfer_execution_columns.sql:3 [L1] 旧=CREATE TABLE t_IF NOT EXISTS `t_transfer_stock_log` ( | 新=CREATE TABLE IF NOT EXISTS `t_transfer_stock_log` (
+     成因：A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）
+  174_open_platform_webhook.sql:1 [L1] 旧=CREATE TABLE t_IF NOT EXISTS `t_open_webhook` ( | 新=CREATE TABLE IF NOT EXISTS `t_open_webhook` (
+     成因：A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）
+  174_open_platform_webhook.sql:20 [L1] 旧=CREATE TABLE t_IF NOT EXISTS `t_open_webhook_delivery` ( | 新=CREATE TABLE IF NOT EXISTS `t_open_webhook_delivery` (
+     成因：A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）
+  175_open_platform_api_call_daily.sql:1 [L1] 旧=CREATE TABLE t_IF NOT EXISTS `t_open_api_call_daily` ( | 新=CREATE TABLE IF NOT EXISTS `t_open_api_call_daily` (
+     成因：A 旧版本改坏成语法错误（ER_PARSE_ERROR，被 safeExec 跳过 ⇒ 语句从未生效）
+
+== 目标表清单（去重） ==
+  t_open_api_call_daily, t_open_webhook, t_open_webhook_delivery, t_subscription, t_transfer_stock_log
+  点名核对（生产缺失的 3 张表）：t_open_api_call_daily ✔在列 / t_open_webhook ✔在列 / t_open_webhook_delivery ✔在列
+
+== 逐条差异明细 ==
+  120d_fix_server_3bugs.sql:88 | CREATE | L1 | 需人工确认:否 | 旧表=t_IF → 新表=t_subscription
+      旧：CREATE TABLE t_IF NOT EXISTS `t_subscription` (
+      新：CREATE TABLE IF NOT EXISTS `t_subscription` (
+  165_transfer_execution_columns.sql:3 | CREATE | L1 | 需人工确认:否 | 旧表=t_IF → 新表=t_transfer_stock_log
+      旧：CREATE TABLE t_IF NOT EXISTS `t_transfer_stock_log` (
+      新：CREATE TABLE IF NOT EXISTS `t_transfer_stock_log` (
+  174_open_platform_webhook.sql:1 | CREATE | L1 | 需人工确认:否 | 旧表=t_IF → 新表=t_open_webhook
+      旧：CREATE TABLE t_IF NOT EXISTS `t_open_webhook` (
+      新：CREATE TABLE IF NOT EXISTS `t_open_webhook` (
+  174_open_platform_webhook.sql:20 | CREATE | L1 | 需人工确认:否 | 旧表=t_IF → 新表=t_open_webhook_delivery
+      旧：CREATE TABLE t_IF NOT EXISTS `t_open_webhook_delivery` (
+      新：CREATE TABLE IF NOT EXISTS `t_open_webhook_delivery` (
+  175_open_platform_api_call_daily.sql:1 | CREATE | L1 | 需人工确认:否 | 旧表=t_IF → 新表=t_open_api_call_daily
+      旧：CREATE TABLE t_IF NOT EXISTS `t_open_api_call_daily` (
+      新：CREATE TABLE IF NOT EXISTS `t_open_api_call_daily` (
+
+RESULT: ALL PASS
+EXIT=0

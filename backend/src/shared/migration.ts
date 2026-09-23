@@ -77,28 +77,39 @@ export const SKIP_PATTERNS = [
   "procedure",
 ];
 
-/** 给 SQL 语句中的表名加 t_ 前缀 */
+/**
+ * 给 SQL 语句中的表名加 t_ 前缀
+ *
+ * 表名支持两种形态：裸名（`x`）与反引号包裹（`` `x` ``）。
+ * MIG-2 修复：此前只认裸名，遇到 `` CREATE TABLE IF NOT EXISTS `x` `` 时可选组
+ * `IF NOT EXISTS` 回溯为空、名字组抓到关键字 `IF`，把语句改成 `CREATE TABLE t_IF NOT EXISTS ...`
+ * 造成 ER_PARSE_ERROR（174/175 三张新表因此从未建成）。
+ * 反引号形态加前缀后仍保持反引号（`` `x` `` → `` `t_x` ``）；不配对的反引号不匹配、原样保留，
+ * 避免新引入改写。对不带反引号的输入，输出与修复前逐字节相同。
+ */
 export function addTablePrefix(sql: string): string {
   let result = sql;
   const patterns = [
-    /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
-    /(ALTER\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
-    /(INSERT\s+INTO\s+)([a-z_][a-z0-9_]*)/gi,
+    /(CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(ALTER\s+TABLE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(INSERT\s+INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
     // 仅匹配语句开头的 UPDATE（防止误伤 ON UPDATE CURRENT_TIMESTAMP / ON DUPLICATE KEY UPDATE col）
-    /((?:^|\n)\s*UPDATE\s+)([a-z_][a-z0-9_]*)/gim,
-    /(DELETE\s+FROM\s+)([a-z_][a-z0-9_]*)/gi,
-    /(FROM\s+)([a-z_][a-z0-9_]*)/gi,
-    /(JOIN\s+)([a-z_][a-z0-9_]*)/gi,
-    /(INTO\s+)([a-z_][a-z0-9_]*)/gi,
-    /(RENAME\s+TABLE\s+)([a-z_][a-z0-9_]*)/gi,
-    /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)([a-z_][a-z0-9_]*)/gi,
+    /((?:^|\n)\s*UPDATE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gim,
+    /(DELETE\s+FROM\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(FROM\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(JOIN\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(INTO\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(RENAME\s+TABLE\s+)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
+    /(DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?)(`[a-z_][a-z0-9_]*`|[a-z_][a-z0-9_]*)/gi,
   ];
   for (const pattern of patterns) {
-    result = result.replace(pattern, (match, prefix, tableName) => {
+    result = result.replace(pattern, (match, prefix, rawName: string) => {
+      const quoted = rawName.startsWith("`");
+      const tableName = quoted ? rawName.slice(1, -1) : rawName;
       if (tableName.startsWith("t_") || tableName.startsWith("information_schema") || tableName.startsWith("mysql")) {
         return match;
       }
-      return prefix + "t_" + tableName;
+      return quoted ? prefix + "`t_" + tableName + "`" : prefix + "t_" + tableName;
     });
   }
   return result;

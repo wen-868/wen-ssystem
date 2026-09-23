@@ -146,6 +146,112 @@ describe("addTablePrefix", () => {
     expect(result).toContain("FROM information_schema.COLUMNS");
     expect(result).not.toContain("t_information_schema");
   });
+
+  // ===== MIG-2 新增：反引号表名支持 + 关键字不误伤 =====
+  // 缺陷（派工卡 §二）：`CREATE TABLE IF NOT EXISTS `x`` 会被改成 `CREATE TABLE t_IF NOT EXISTS `x``，
+  // 造成 ER_PARSE_ERROR，174/175 的三张新表从未建成。
+  it("MIG-2: CREATE TABLE IF NOT EXISTS 反引号表名应加前缀并保持引号形态", () => {
+    const result = addTablePrefix("CREATE TABLE IF NOT EXISTS `open_webhook` (id INT);");
+    expect(result).toContain("CREATE TABLE IF NOT EXISTS `t_open_webhook`");
+    expect(result).not.toContain("t_IF");
+  });
+
+  it("MIG-2: CREATE TABLE 反引号表名（无 IF NOT EXISTS）应加前缀", () => {
+    const result = addTablePrefix("CREATE TABLE `open_webhook` (id INT);");
+    expect(result).toContain("CREATE TABLE `t_open_webhook`");
+  });
+
+  it("MIG-2: CREATE TABLE IF NOT EXISTS 裸表名行为不变（回归）", () => {
+    const result = addTablePrefix("CREATE TABLE IF NOT EXISTS sys_user (id INT);");
+    expect(result).toContain("CREATE TABLE IF NOT EXISTS t_sys_user");
+    expect(result).not.toContain("t_IF");
+  });
+
+  it("MIG-2: ALTER TABLE 反引号表名应加前缀", () => {
+    const result = addTablePrefix("ALTER TABLE `sys_user` ADD COLUMN name VARCHAR(50);");
+    expect(result).toContain("ALTER TABLE `t_sys_user`");
+  });
+
+  it("MIG-2: INSERT INTO 反引号表名应加前缀", () => {
+    const result = addTablePrefix("INSERT INTO `open_webhook` (id) VALUES (1);");
+    expect(result).toContain("INSERT INTO `t_open_webhook`");
+  });
+
+  it("MIG-2: 语句首 UPDATE 反引号表名应加前缀", () => {
+    const result = addTablePrefix("UPDATE `open_webhook` SET status = 1;");
+    expect(result).toContain("UPDATE `t_open_webhook`");
+  });
+
+  it("MIG-2: DELETE FROM 反引号表名应加前缀", () => {
+    const result = addTablePrefix("DELETE FROM `open_webhook` WHERE id = 1;");
+    expect(result).toContain("DELETE FROM `t_open_webhook`");
+  });
+
+  it("MIG-2: FROM 子句反引号表名应加前缀", () => {
+    const result = addTablePrefix("SELECT * FROM `open_webhook` WHERE id = 1;");
+    expect(result).toContain("FROM `t_open_webhook`");
+  });
+
+  it("MIG-2: JOIN 反引号表名应加前缀", () => {
+    const result = addTablePrefix("SELECT * FROM sys_user JOIN `sys_role` ON sys_user.role_id = sys_role.id;");
+    expect(result).toContain("JOIN `t_sys_role`");
+  });
+
+  it("MIG-2: INSERT IGNORE INTO 反引号表名应加前缀（INTO 模式）", () => {
+    const result = addTablePrefix("INSERT IGNORE INTO `open_webhook` (id) VALUES (1);");
+    expect(result).toContain("INTO `t_open_webhook`");
+  });
+
+  it("MIG-2: RENAME TABLE 反引号表名应加前缀", () => {
+    const result = addTablePrefix("RENAME TABLE `open_webhook` TO open_webhook_old;");
+    expect(result).toContain("RENAME TABLE `t_open_webhook`");
+  });
+
+  it("MIG-2: DROP TABLE IF EXISTS 反引号表名应加前缀", () => {
+    const result = addTablePrefix("DROP TABLE IF EXISTS `open_webhook`;");
+    expect(result).toContain("DROP TABLE IF EXISTS `t_open_webhook`");
+    expect(result).not.toContain("t_IF");
+  });
+
+  it("MIG-2: 反引号形态已是 t_ 前缀的表不重复加前缀", () => {
+    expect(addTablePrefix("CREATE TABLE `t_open_webhook` (id INT);")).toContain("CREATE TABLE `t_open_webhook`");
+    expect(addTablePrefix("CREATE TABLE `t_open_webhook` (id INT);")).not.toContain("t_t_open_webhook");
+    expect(addTablePrefix("INSERT INTO `t_open_webhook` (id) VALUES (1);")).not.toContain("t_t_open_webhook");
+    expect(addTablePrefix("SELECT * FROM `t_open_webhook`;")).not.toContain("t_t_open_webhook");
+  });
+
+  it("MIG-2: 裸表名已带 t_ 前缀不重复加前缀（回归）", () => {
+    expect(addTablePrefix("SELECT * FROM t_x;")).toBe("SELECT * FROM t_x;");
+  });
+
+  it("MIG-2: 反引号包裹的 mysql / information_schema 系统库不加前缀", () => {
+    const result = addTablePrefix("SELECT * FROM `mysql`.`user`;");
+    expect(result).toBe("SELECT * FROM `mysql`.`user`;");
+  });
+
+  it("MIG-2: 关键字 IF / NOT / EXISTS 不得被当成表名改写", () => {
+    const result = addTablePrefix("CREATE TABLE IF NOT EXISTS `open_webhook` (id INT);");
+    expect(result).not.toContain("t_IF");
+    expect(result).not.toContain("t_NOT");
+    expect(result).not.toContain("t_EXISTS");
+    expect(result).toBe("CREATE TABLE IF NOT EXISTS `t_open_webhook` (id INT);");
+  });
+
+  it("MIG-2: 非反引号输入与修复前（HEAD）逐字节一致（零新增改写）", () => {
+    // 期望值＝修复前 HEAD 版本 addTablePrefix 的实测输出：
+    //   git show HEAD:backend/src/shared/migration.ts → 抽取函数 → 用例输入实测
+    const cases: Array<[string, string]> = [
+      ["CREATE TABLE IF NOT EXISTS sys_user (id INT);", "CREATE TABLE IF NOT EXISTS t_sys_user (id INT);"],
+      ["ALTER TABLE sys_user ADD COLUMN name VARCHAR(50);", "ALTER TABLE t_sys_user ADD COLUMN name VARCHAR(50);"],
+      // 字面量中已是 t_ 前缀的名字：修复前后都不改写
+      ["SELECT id FROM t_orders WHERE remark = 'JOIN t_x';", "SELECT id FROM t_orders WHERE remark = 'JOIN t_x';"],
+      // 存量行为冻结：字面量 `'FROM y'` 的改写修复前就存在，本单不扩大也不顺手修（改动范围红线），此处锁死"零新增差异"
+      ["INSERT INTO t_x (name) VALUES ('FROM y');", "INSERT INTO t_x (name) VALUES ('FROM t_y');"],
+    ];
+    for (const [input, expected] of cases) {
+      expect(addTablePrefix(input)).toBe(expected);
+    }
+  });
 });
 
 // ========== safeExec 全分支覆盖 ==========
