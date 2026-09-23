@@ -1,0 +1,4536 @@
+{
+  "target": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "liquor_inventory_drill"
+  },
+  "dump": "/root/drill-snapshot-20260924-014135.sql",
+  "before": {
+    "tablesExisting": [
+      "t_aftersale",
+      "t_ai_audit_log",
+      "t_ai_knowledge_chunks",
+      "t_ai_usage_daily",
+      "t_alert_rule",
+      "t_approval_approver",
+      "t_approval_instance",
+      "t_approval_log",
+      "t_approval_notification",
+      "t_approval_rule",
+      "t_approval_task",
+      "t_audit_log",
+      "t_bank_account",
+      "t_bill",
+      "t_brand",
+      "t_cart_item",
+      "t_cash_flow",
+      "t_collection_record",
+      "t_coupon_template",
+      "t_credit_operation_log",
+      "t_custom_report_schedule",
+      "t_custom_report_template",
+      "t_customer_care_log",
+      "t_customer_care_rule",
+      "t_customer_credit",
+      "t_customer_level",
+      "t_customer_payment",
+      "t_customer_points",
+      "t_customer_price",
+      "t_customer_price_binding",
+      "t_customer_profile",
+      "t_customer_quote_item",
+      "t_customer_quote_push_log",
+      "t_customer_segment",
+      "t_customer_segment_member",
+      "t_customer_statement",
+      "t_customer_tag",
+      "t_customer_tag_relation",
+      "t_customer_visit",
+      "t_daily_settlement",
+      "t_data_permission",
+      "t_delivery_config",
+      "t_delivery_record",
+      "t_expense",
+      "t_expiry_alert_config",
+      "t_expiry_alert_record",
+      "t_flash_sale",
+      "t_flash_sale_record",
+      "t_full_reduction",
+      "t_full_reduction_rule",
+      "t_group_buy",
+      "t_group_buy_activity",
+      "t_group_buy_member",
+      "t_group_buy_participant",
+      "t_group_buy_record",
+      "t_group_buy_team",
+      "t_growth_record",
+      "t_inventory_balance",
+      "t_inventory_batch",
+      "t_inventory_loss_gain",
+      "t_invoice",
+      "t_level_config",
+      "t_library_brand",
+      "t_library_sku",
+      "t_library_spu",
+      "t_marketing_asset",
+      "t_marketing_operation_log",
+      "t_member",
+      "t_member_level",
+      "t_member_sms_code",
+      "t_miniapp_config",
+      "t_miniapp_order",
+      "t_miniapp_order_item",
+      "t_miniapp_order_sync_log",
+      "t_miniapp_publish_log",
+      "t_miniapp_template",
+      "t_notification",
+      "t_order_coupon",
+      "t_order_routing_rule",
+      "t_payable",
+      "t_payment",
+      "t_payment_config",
+      "t_payment_method",
+      "t_payment_writeoff",
+      "t_platform_admin",
+      "t_platform_ai_config",
+      "t_platform_announcement",
+      "t_platform_audit_log",
+      "t_platform_reconciliation",
+      "t_platform_review",
+      "t_platform_settlement",
+      "t_points_mall_item",
+      "t_points_mall_order",
+      "t_points_record",
+      "t_points_rule",
+      "t_price_change_log",
+      "t_price_level",
+      "t_print_record",
+      "t_product_category",
+      "t_product_marketing_tag",
+      "t_product_price",
+      "t_product_sku",
+      "t_product_spu",
+      "t_product_tag",
+      "t_product_tag_group",
+      "t_product_tag_relation",
+      "t_promo_stack_rule",
+      "t_promotion_activity",
+      "t_promotion_stack_rule",
+      "t_purchase_contract",
+      "t_purchase_in_stock",
+      "t_purchase_order",
+      "t_purchase_order_archive",
+      "t_purchase_order_item_archive",
+      "t_purchase_payment",
+      "t_purchase_plan",
+      "t_purchase_plan_item",
+      "t_push_config",
+      "t_push_log",
+      "t_push_template",
+      "t_push_token",
+      "t_recall_record",
+      "t_receipt",
+      "t_receipt_writeoff",
+      "t_receivable",
+      "t_report_permission_matrix",
+      "t_retail_announcement",
+      "t_retail_banner",
+      "t_retail_cart",
+      "t_retail_category",
+      "t_retail_consumer_address",
+      "t_retail_operation_log",
+      "t_retail_order",
+      "t_retail_order_item",
+      "t_retail_product",
+      "t_retail_shop_config",
+      "t_role_data_permission",
+      "t_sale_bill",
+      "t_sale_bill_archive",
+      "t_sale_bill_item",
+      "t_sale_bill_item_archive",
+      "t_sale_payment",
+      "t_sale_return",
+      "t_sales_commission_record",
+      "t_sales_commission_rule",
+      "t_seckill_product",
+      "t_sku_price",
+      "t_stock_check",
+      "t_stock_check_item",
+      "t_stock_warning",
+      "t_stock_warning_config",
+      "t_store",
+      "t_store_control_config",
+      "t_store_status_log",
+      "t_store_value_card",
+      "t_store_value_transaction",
+      "t_subscription",
+      "t_subscription_operation_log",
+      "t_subscription_plan",
+      "t_supplier",
+      "t_supplier_contact",
+      "t_supplier_statement",
+      "t_supplier_statement_item",
+      "t_sync_cache",
+      "t_sys_config",
+      "t_sys_data_permission",
+      "t_sys_department",
+      "t_sys_field_permission",
+      "t_sys_menu",
+      "t_sys_position",
+      "t_sys_role",
+      "t_sys_role_menu",
+      "t_sys_user",
+      "t_sys_user_login",
+      "t_sys_user_role",
+      "t_tenant",
+      "t_tenant_admin",
+      "t_tenant_ai_billing",
+      "t_tenant_ai_config",
+      "t_tenant_module_access",
+      "t_todos",
+      "t_trace_code",
+      "t_trace_config",
+      "t_trace_event_log",
+      "t_trace_scan_log",
+      "t_transfer_order",
+      "t_transfer_order_item",
+      "t_unit",
+      "t_unit_group",
+      "t_user_binding",
+      "t_user_coupon",
+      "t_user_points",
+      "t_user_session",
+      "t_verification_code",
+      "t_wholesale_cart",
+      "t_wholesale_order",
+      "t_wholesale_order_item",
+      "t_wx_user"
+    ],
+    "columns": 2724
+  },
+  "after": {
+    "tablesExisting": [
+      "t_aftersale",
+      "t_ai_audit_log",
+      "t_ai_knowledge_chunks",
+      "t_ai_usage_daily",
+      "t_alert_rule",
+      "t_approval_approver",
+      "t_approval_instance",
+      "t_approval_log",
+      "t_approval_notification",
+      "t_approval_rule",
+      "t_approval_task",
+      "t_audit_log",
+      "t_bank_account",
+      "t_bill",
+      "t_brand",
+      "t_cart_item",
+      "t_cash_flow",
+      "t_collection_record",
+      "t_coupon_template",
+      "t_credit_operation_log",
+      "t_custom_report_schedule",
+      "t_custom_report_template",
+      "t_customer_care_log",
+      "t_customer_care_rule",
+      "t_customer_credit",
+      "t_customer_level",
+      "t_customer_payment",
+      "t_customer_points",
+      "t_customer_price",
+      "t_customer_price_binding",
+      "t_customer_profile",
+      "t_customer_quote_item",
+      "t_customer_quote_push_log",
+      "t_customer_segment",
+      "t_customer_segment_member",
+      "t_customer_statement",
+      "t_customer_tag",
+      "t_customer_tag_relation",
+      "t_customer_visit",
+      "t_daily_settlement",
+      "t_data_permission",
+      "t_delivery_config",
+      "t_delivery_record",
+      "t_expense",
+      "t_expiry_alert_config",
+      "t_expiry_alert_record",
+      "t_flash_sale",
+      "t_flash_sale_record",
+      "t_full_reduction",
+      "t_full_reduction_rule",
+      "t_group_buy",
+      "t_group_buy_activity",
+      "t_group_buy_member",
+      "t_group_buy_participant",
+      "t_group_buy_record",
+      "t_group_buy_team",
+      "t_growth_record",
+      "t_inventory_balance",
+      "t_inventory_batch",
+      "t_inventory_loss_gain",
+      "t_invoice",
+      "t_level_config",
+      "t_library_brand",
+      "t_library_sku",
+      "t_library_spu",
+      "t_marketing_asset",
+      "t_marketing_operation_log",
+      "t_member",
+      "t_member_level",
+      "t_member_sms_code",
+      "t_miniapp_config",
+      "t_miniapp_order",
+      "t_miniapp_order_item",
+      "t_miniapp_order_sync_log",
+      "t_miniapp_publish_log",
+      "t_miniapp_template",
+      "t_notification",
+      "t_order_coupon",
+      "t_order_routing_rule",
+      "t_payable",
+      "t_payment",
+      "t_payment_config",
+      "t_payment_method",
+      "t_payment_writeoff",
+      "t_platform_admin",
+      "t_platform_ai_config",
+      "t_platform_announcement",
+      "t_platform_audit_log",
+      "t_platform_reconciliation",
+      "t_platform_review",
+      "t_platform_settlement",
+      "t_platform_subscription_apply",
+      "t_points_mall_item",
+      "t_points_mall_order",
+      "t_points_record",
+      "t_points_rule",
+      "t_price_change_log",
+      "t_price_level",
+      "t_print_record",
+      "t_product_category",
+      "t_product_marketing_tag",
+      "t_product_price",
+      "t_product_sku",
+      "t_product_spu",
+      "t_product_tag",
+      "t_product_tag_group",
+      "t_product_tag_relation",
+      "t_promo_stack_rule",
+      "t_promotion_activity",
+      "t_promotion_stack_rule",
+      "t_purchase_contract",
+      "t_purchase_in_stock",
+      "t_purchase_order",
+      "t_purchase_order_archive",
+      "t_purchase_order_item_archive",
+      "t_purchase_payment",
+      "t_purchase_plan",
+      "t_purchase_plan_item",
+      "t_push_config",
+      "t_push_log",
+      "t_push_template",
+      "t_push_token",
+      "t_recall_record",
+      "t_receipt",
+      "t_receipt_writeoff",
+      "t_receivable",
+      "t_report_permission_matrix",
+      "t_retail_announcement",
+      "t_retail_banner",
+      "t_retail_cart",
+      "t_retail_category",
+      "t_retail_consumer_address",
+      "t_retail_operation_log",
+      "t_retail_order",
+      "t_retail_order_item",
+      "t_retail_product",
+      "t_retail_shop_config",
+      "t_role_data_permission",
+      "t_sale_bill",
+      "t_sale_bill_archive",
+      "t_sale_bill_item",
+      "t_sale_bill_item_archive",
+      "t_sale_payment",
+      "t_sale_return",
+      "t_sales_commission_record",
+      "t_sales_commission_rule",
+      "t_seckill_product",
+      "t_sku_price",
+      "t_sms_template",
+      "t_stock_check",
+      "t_stock_check_item",
+      "t_stock_warning",
+      "t_stock_warning_config",
+      "t_store",
+      "t_store_control_config",
+      "t_store_status_log",
+      "t_store_value_card",
+      "t_store_value_transaction",
+      "t_subscription",
+      "t_subscription_operation_log",
+      "t_subscription_plan",
+      "t_supplier",
+      "t_supplier_contact",
+      "t_supplier_statement",
+      "t_supplier_statement_item",
+      "t_sync_cache",
+      "t_sys_config",
+      "t_sys_data_permission",
+      "t_sys_department",
+      "t_sys_field_permission",
+      "t_sys_menu",
+      "t_sys_position",
+      "t_sys_role",
+      "t_sys_role_menu",
+      "t_sys_user",
+      "t_sys_user_login",
+      "t_sys_user_role",
+      "t_tenant",
+      "t_tenant_admin",
+      "t_tenant_ai_billing",
+      "t_tenant_ai_config",
+      "t_tenant_module_access",
+      "t_todos",
+      "t_trace_code",
+      "t_trace_config",
+      "t_trace_event_log",
+      "t_trace_scan_log",
+      "t_transfer_order",
+      "t_transfer_order_item",
+      "t_unit",
+      "t_unit_group",
+      "t_user_binding",
+      "t_user_coupon",
+      "t_user_points",
+      "t_user_session",
+      "t_verification_code",
+      "t_wholesale_cart",
+      "t_wholesale_order",
+      "t_wholesale_order_item",
+      "t_wx_user"
+    ],
+    "columns": 2748
+  },
+  "byOutcome": {
+    "ok": 290,
+    "skipped-by-runner": 22,
+    "error": 145
+  },
+  "results": [
+    {
+      "file": "001_phase1_schema.sql",
+      "line": 7,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "002_phase1_seed.sql",
+      "line": 8,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 9,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 14,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_supplier",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 64,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_purchase_order",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 244,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_customer_statement",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 305,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_sale_return",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "003_phase2_schema.sql",
+      "line": 353,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_sale_payment",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "line": 9,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "line": 14,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_alert_rule",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "004_phase3_schema.sql",
+      "line": 64,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_alert_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "005_phase3_sys_config.sql",
+      "line": 9,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_sys_config",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "005_phase3_sys_config.sql",
+      "line": 27,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 10,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 16,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_price_level",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 31,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_sku_price",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 51,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_customer_price_binding",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 68,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_price_change_log",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 82,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_price_level",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 95,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_customer_credit",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 118,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_credit_operation_log",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 135,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_collection_record",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 161,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_trace_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 181,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_trace_code",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 214,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_trace_event_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 235,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_trace_scan_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "006_phase4_schema.sql",
+      "line": 247,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_recall_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 11,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 16,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_inventory_batch",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 38,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_expiry_alert_config",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 52,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_expiry_alert_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 59,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_expiry_alert_record",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 85,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_store_control_config",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 100,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_store_status_log",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "007_phase5_schema.sql",
+      "line": 118,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_payment",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 30,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_supplier_statement",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 52,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_supplier_statement_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 66,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 81,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_user_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 94,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_notification",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "008_phase6_schema.sql",
+      "line": 114,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_rule",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_rule' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 25,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_instance",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_instance' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 49,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_task",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_task' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 70,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_log",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_log' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 88,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_approver",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_approver' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 102,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_approval_notification",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_approval_notification' already exists"
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 123,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_approval_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "009_phase7_approval_schema.sql",
+      "line": 130,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_approval_approver",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "line": 10,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_customer_credit",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "line": 18,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_credit_operation_log",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "010_phase7_credit_tenant.sql",
+      "line": 25,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_collection_record",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "line": 7,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_member",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'address'"
+    },
+    {
+      "file": "011_phase7_member_fields.sql",
+      "line": 13,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_member",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "line": 10,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_price_level",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "line": 18,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sku_price",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "line": 25,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_customer_price_binding",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "012_phase7_price_tenant.sql",
+      "line": 32,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_price_change_log",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "line": 7,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_sku",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'alcohol_degree'"
+    },
+    {
+      "file": "014_phase7_sku_fields.sql",
+      "line": 13,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_sku",
+      "outcome": "error",
+      "detail": "code=ER_KEY_COLUMN_DOES_NOT_EXITS Key column 'origin' doesn't exist in table"
+    },
+    {
+      "file": "015_phase8_customer_visit.sql",
+      "line": 6,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_visit",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 42,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription_plan",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 69,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 107,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_module_access",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 128,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 150,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_admin",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 170,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_subscription_plan",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 205,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_tenant",
+      "outcome": "error",
+      "detail": "code=ER_TRUNCATED_WRONG_VALUE_FOR_FIELD Incorrect integer value: 'ACTIVE' for column 'status' at row 1"
+    },
+    {
+      "file": "016_phase9_tenant_subscription.sql",
+      "line": 213,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_tenant_module_access",
+      "outcome": "error",
+      "detail": "code=ER_NO_REFERENCED_ROW_2 Cannot add or update a child row: a foreign key constraint fails (`liquor_inventory_drill`.`t_tenant_module_access`, CONSTRAINT `t_tenant_module_access_ibfk_1` FOREIGN KEY (`tenant_id`) REFERENCES `te"
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_shop_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 35,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_category",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 53,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_banner",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 73,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_product",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 100,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_order",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 139,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_order_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 155,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_delivery_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 174,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_delivery_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "017_phase10_instant_retail.sql",
+      "line": 199,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_coupon_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 42,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_user_coupon",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 75,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_promotion_activity",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 104,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_full_reduction_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 118,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_seckill_product",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 136,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_activity",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 151,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 175,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_participant",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 188,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_promotion_stack_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "018_phase10_marketing.sql",
+      "line": 204,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_marketing_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 7,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 11,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sys_role",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'description'"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 14,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sys_role",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'permissions'"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 17,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sys_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 20,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_member",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'settlement_type'"
+    },
+    {
+      "file": "019_migrate_v2.sql",
+      "line": 23,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_supplier",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'settlement_type'"
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 13,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_payment_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 28,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_payment_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 38,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_payment_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 49,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_bank_account",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 72,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_miniapp_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 117,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_miniapp_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 134,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_miniapp_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 161,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_miniapp_publish_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "020_migrate_v3_payment_miniapp.sql",
+      "line": 180,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_price_change_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "029_add_tenant.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "030_add_subscription_plan.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription_plan",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "031_add_subscription.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "032_add_tenant_module_access.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_module_access",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "033_add_subscription_operation_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_subscription_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "034_add_tenant_admin.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_admin",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "035_add_coupon_template.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_coupon_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "036_add_user_coupon.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_user_coupon",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "037_add_promotion_activity.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_promotion_activity",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "038_add_full_reduction_rule.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_full_reduction_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "039_add_seckill_product.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_seckill_product",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "040_add_group_buy_activity.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_activity",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "041_add_group_buy_record.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "042_add_group_buy_participant.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_participant",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "043_add_promotion_stack_rule.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_promotion_stack_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "044_add_marketing_operation_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_marketing_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "045_add_delivery_config.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_delivery_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "046_add_delivery_record.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_delivery_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "047_add_retail_operation_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_operation_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "048_add_customer_visit.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_visit",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "049_add_order_sync_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_miniapp_order_sync_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "050_add_platform_reconciliation.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_reconciliation",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "051_add_platform_review.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_review",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "line": 6,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_announcement",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "052_add_retail_announcement.sql",
+      "line": 25,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_retail_announcement",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "053_add_retail_cart.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_cart",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "054_add_retail_consumer_address.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_retail_consumer_address",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "055_add_points_mall_item.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_points_mall_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "056_add_points_mall_order.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_points_mall_order",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "057_add_marketing_asset.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_marketing_asset",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "058_add_sys_department.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_department",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "059_add_user_session.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_user_session",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "060_add_custom_report_template.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_custom_report_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "061_add_custom_report_schedule.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_custom_report_schedule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "062_add_report_permission_matrix.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_report_permission_matrix",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "063_add_verification_code.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_verification_code",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "064_add_push_config.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_push_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "065_add_push_template.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_push_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "066_add_push_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_push_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "067_add_unit_group.sql",
+      "line": 4,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_unit_group",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_bank_account",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "line": 18,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_expense",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "068_银行费用发票.sql",
+      "line": 42,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_invoice",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "line": 6,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'brand_id'"
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "line": 10,
+      "type": "UPDATE",
+      "risk": "L3",
+      "table": "t_product_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "line": 16,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "069_商品SPU增加品牌ID.sql",
+      "line": 20,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "070_品牌表.sql",
+      "line": 4,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_brand",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "071_客户积分.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_points",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "071_客户积分.sql",
+      "line": 16,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_points_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "071_客户积分.sql",
+      "line": 34,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_points_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "071_客户积分.sql",
+      "line": 49,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_level",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "071_客户积分.sql",
+      "line": 63,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_level_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "072_客户价格.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_price",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 15,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_tag_relation",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 28,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_profile",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 49,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_care_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 65,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_care_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 82,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_segment",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "073_客户标签画像.sql",
+      "line": 95,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_customer_segment_member",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_config` (\n  `id` BIGINT AUTO_INCREMENT PRI"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 29,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_order` (\n  `id` BIGINT AUTO_INCREMENT PRIM"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 46,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_product_map` (\n  `id` BIGINT AUTO_INCREMEN"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 65,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_shop_config` (\n  `id` BIGINT AUTO_INCREMENT "
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 89,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_category` (\n  `id` BIGINT AUTO_INCREMENT PRI"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 106,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_product` (\n  `id` BIGINT AUTO_INCREMENT PRIM"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 131,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_order` (\n  `id` BIGINT AUTO_INCREMENT PRIMAR"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 167,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_order_item` (\n  `id` BIGINT AUTO_INCREMENT P"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 186,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_banner` (\n  `id` BIGINT AUTO_INCREMENT PRIMA"
+    },
+    {
+      "file": "074_即时零售表.sql",
+      "line": 206,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_review` (\n  `id` BIGINT AUTO_INCREMENT PRIMA"
+    },
+    {
+      "file": "075_reset_admin_password_bcrypt.sql",
+      "line": 8,
+      "type": "UPDATE",
+      "risk": "L3",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_limited_discount` (\n  `id` BIGINT AUTO_INCREMENT PR"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 36,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_limited_discount_product` (\n  `id` BIGINT AUTO_INCR"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 52,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_gift_rule` (\n  `id` BIGINT AUTO_INCREMENT PRIMARY K"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 79,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_gift_rule_level` (\n  `id` BIGINT AUTO_INCREMENT PRI"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 93,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_points_product` (\n  `id` BIGINT AUTO_INCREMENT PRIM"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 114,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_points_exchange_record` (\n  `id` BIGINT AUTO_INCREM"
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 133,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_marketing_material` (\n  `id` BIGINT AUTO_INCREMENT "
+    },
+    {
+      "file": "076_营销P1.sql",
+      "line": 163,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_material_category` (\n  `id` BIGINT AUTO_INCREMENT P"
+    },
+    {
+      "file": "077_营销标签.sql",
+      "line": 5,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'marketing_tags'"
+    },
+    {
+      "file": "078_性能索引.sql",
+      "line": 6,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_product_spu_brand'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 18,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_sys_menu' already exists"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 42,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_sys_data_permission",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_sys_data_permission' already exists"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 60,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_sys_field_permission",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_sys_field_permission' already exists"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 85,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_role",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry 'SUPER_ADMIN-default' for key 't_sys_role.uk_role_code_tenant'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 100,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '1' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 114,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '1' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 118,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '10' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 128,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '20' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 136,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '30' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 144,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '40' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 152,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '50' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 160,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '60' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 168,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '70' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 175,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '80' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 182,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '90' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 190,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry '100' for key 't_sys_menu.PRIMARY'"
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 200,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_menu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 228,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 235,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 241,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 247,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 256,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_field_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 267,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_field_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 271,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_field_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "079_权限矩阵.sql",
+      "line": 275,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_field_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_admin",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "080_平台管理员.sql",
+      "line": 24,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_audit_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "line": 12,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_admin",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "line": 28,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "line": 36,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "line": 45,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_platform_admin",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "081_platform_admin_seed_and_fix.sql",
+      "line": 62,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 5,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_product_tag_group",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 17,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_product_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 28,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_product_tag_relation",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 39,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_tag_group",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 46,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 51,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 56,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "082_商品标签.sql",
+      "line": 61,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "083_采购合同.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_contract",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "084_采购计划.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_plan",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "084_采购计划.sql",
+      "line": 19,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_plan_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "085_报价推送.sql",
+      "line": 7,
+      "type": "DROP",
+      "risk": "L4",
+      "table": "t_customer_quote_item",
+      "outcome": "skipped-by-runner",
+      "detail": "drop_table"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "line": 40,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_customer_quote_item",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_customer_quote_item' already exists"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "line": 57,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": "t_customer_quote_push_log",
+      "outcome": "error",
+      "detail": "code=ER_TABLE_EXISTS_ERROR Table 't_customer_quote_push_log' already exists"
+    },
+    {
+      "file": "085_报价推送.sql",
+      "line": 73,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "085_报价推送.sql",
+      "line": 88,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_receipt",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 25,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_receipt_writeoff",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 38,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_payment",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 61,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_payment_writeoff",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 74,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_receivable",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "086_收款支付.sql",
+      "line": 95,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_payable",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_sales_daily` (\n  `id` BIGINT AUTO_INCREMENT "
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "line": 30,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_collection_stats` (\n  `id` BIGINT AUTO_INCRE"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "line": 50,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_product_sales` (\n  `id` BIGINT AUTO_INCREMEN"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "line": 70,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_customer_stats` (\n  `id` BIGINT AUTO_INCREME"
+    },
+    {
+      "file": "087_报表汇总表.sql",
+      "line": 90,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_inventory_daily` (\n  `id` BIGINT AUTO_INCREM"
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sales_commission_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "088_销售佣金.sql",
+      "line": 19,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sales_commission_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_stock_check",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "089_库存盘点表.sql",
+      "line": 24,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_stock_check_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "090_库存预警配置.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_stock_warning_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "091_储值卡.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_store_value_card",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "091_储值卡.sql",
+      "line": 21,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_store_value_transaction",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 11,
+      "type": "DROP",
+      "risk": "L4",
+      "table": null,
+      "outcome": "skipped-by-runner",
+      "detail": "procedure"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 87,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 95,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 98,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 105,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 109,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 114,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 119,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 123,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 129,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 136,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 140,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 147,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 156,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 163,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 168,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 172,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 177,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 180,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 183,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 187,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 195,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 201,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_index_if_not_exists does not exist"
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 274,
+      "type": "UPDATE",
+      "risk": "L3",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 279,
+      "type": "UPDATE",
+      "risk": "L3",
+      "table": "t_store",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "092_租户ID.sql",
+      "line": 282,
+      "type": "DROP",
+      "risk": "L4",
+      "table": null,
+      "outcome": "skipped-by-runner",
+      "detail": "procedure"
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "line": 3,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_inventory_balance",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'"
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "line": 8,
+      "type": "CREATE",
+      "risk": "L2",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "093_库存增加租户ID.sql",
+      "line": 13,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_inventory_loss_gain",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_transfer_order",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "094_调拨订单表.sql",
+      "line": 21,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_transfer_order_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "095_单位表.sql",
+      "line": 4,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_unit",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "096_用户设置.sql",
+      "line": 8,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sys_user",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'default_homepage'"
+    },
+    {
+      "file": "096_用户设置.sql",
+      "line": 12,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 14,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 23,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 33,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 43,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 53,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_store",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 61,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_category",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 72,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 93,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_sku",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 114,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_price",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 135,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_price_level",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 149,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_alert_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 162,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_expiry_alert_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 171,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 203,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_member",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 212,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_supplier",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 220,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_supplier_contact",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 230,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_inventory_balance",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "099_seed_data.sql",
+      "line": 280,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sku_price",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "101_tobacco_category_online_sale.sql",
+      "line": 6,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_category",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "103_member_register.sql",
+      "line": 6,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_member_sms_code",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "104_platform_announcement.sql",
+      "line": 4,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_announcement",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "line": 5,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_product_marketing_tag",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "105_product_marketing_tag.sql",
+      "line": 20,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_product_marketing_tag",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry 'NEW-' for key 't_product_marketing_tag.uk_code_tenant'"
+    },
+    {
+      "file": "106_data_permission.sql",
+      "line": 5,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "106_data_permission.sql",
+      "line": 21,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_role_data_permission",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "106_data_permission.sql",
+      "line": 35,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_data_permission",
+      "outcome": "error",
+      "detail": "code=ER_DUP_ENTRY Duplicate entry 'DATA_ALL-' for key 't_data_permission.uk_code_tenant'"
+    },
+    {
+      "file": "107_sys_position.sql",
+      "line": 3,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_position",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 4,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_member_level",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 27,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_points_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 46,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_growth_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 69,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_wholesale_cart",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 84,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_wholesale_order",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 125,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_wholesale_order_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "108_miniapp_member_wholesale.sql",
+      "line": 154,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_member_level",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "line": 7,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_custom_report` (\n  `id` BIGINT UNSIGNED AUTO_INCREM"
+    },
+    {
+      "file": "109_p2_custom_report.sql",
+      "line": 26,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_custom_report_log` (\n  `id` BIGINT UNSIGNED AUTO_IN"
+    },
+    {
+      "file": "110_p2_product_review.sql",
+      "line": 7,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_product_review` (\n  `id` BIGINT UNSIGNED AUTO_INCRE"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "line": 7,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_bargain_activity` (\n  `id` BIGINT UNSIGNED AUTO_INC"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "line": 34,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_bargain_record` (\n  `id` BIGINT UNSIGNED AUTO_INCRE"
+    },
+    {
+      "file": "111_p2_bargain.sql",
+      "line": 55,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_bargain_help` (\n  `id` BIGINT UNSIGNED AUTO_INCREME"
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "line": 9,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_order_timeout_config` (\n  `id` INT NOT NULL AUTO_IN"
+    },
+    {
+      "file": "112_order_timeout.sql",
+      "line": 25,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_order_timeout_log` (\n  `id` INT NOT NULL AUTO_INCRE"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_product_bundle` (\n  `id` INT NOT NULL AUTO_INCREMEN"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 33,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_product_bundle_item` (\n  `id` INT NOT NULL AUTO_INC"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 52,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_combo_product` (\n  `id` INT NOT NULL AUTO_INCREMENT"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 75,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_combo_product_option` (\n  `id` INT NOT NULL AUTO_IN"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 96,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_loss_order` (\n  `id` INT NOT NULL AUTO_IN"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 124,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_loss_order_item` (\n  `id` INT NOT NULL AU"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 147,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_profit_order` (\n  `id` INT NOT NULL AUTO_"
+    },
+    {
+      "file": "113_p2_bundle_combo_profit_loss.sql",
+      "line": 175,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_profit_order_item` (\n  `id` INT NOT NULL "
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 10,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_transfer_order",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'status'"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 30,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_transfer_order_item",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'transfer_order_id'"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 37,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_share_setting` (\n  `id` INT NOT NULL AUTO"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 52,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_inventory_share_product` (\n  `id` INT NOT NULL AUTO"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 74,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_report_permission_matrix",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'can_view'"
+    },
+    {
+      "file": "114_p2_transfer_share_report_permission.sql",
+      "line": 85,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_report_permission_audit_log` (\n  `id` BIGINT NOT NU"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "line": 10,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_quick_entries` (\n  `id` INT NOT NULL AUTO_INCREMENT"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "line": 30,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_tenant_config` (\n  `id` INT NOT NULL AUTO_INCREMENT"
+    },
+    {
+      "file": "115_missing_tables.sql",
+      "line": 48,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_upload_file` (\n  `id` INT NOT NULL AUTO_INCREMENT,\n"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "line": 18,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_library_spu` (\n  `id` BIGINT UNSIGNED NOT NULL AUTO"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "line": 52,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_library_sku` (\n  `id` BIGINT UNSIGNED NOT NULL AUTO"
+    },
+    {
+      "file": "117_library_spu_sku.sql",
+      "line": 78,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_library_api_key` (\n  `id` BIGINT UNSIGNED NOT NULL "
+    },
+    {
+      "file": "118_library_brand.sql",
+      "line": 15,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_library_brand` (\n  `id` BIGINT UNSIGNED NOT NULL AU"
+    },
+    {
+      "file": "118_library_brand.sql",
+      "line": 34,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_library_brand",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "line": 60,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_library_brand",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "line": 93,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_library_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "119_library_seed_data.sql",
+      "line": 720,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_library_sku",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 12,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_stock_warning",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 38,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 53,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 68,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 87,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 94,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120_stock_warning.sql",
+      "line": 101,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120a_合规凭证字段.sql",
+      "line": 13,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "120b_商品SPU扩展字段.sql",
+      "line": 6,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_FIELDNAME Duplicate column name 'brand'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 6,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_product_spu_status_category'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 11,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'ft_product_spu_name'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 14,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_price",
+      "outcome": "error",
+      "detail": "code=ER_KEY_COLUMN_DOES_NOT_EXITS Key column 'price_level_id' doesn't exist in table"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 18,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_sku",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 23,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sale_bill",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_sale_bill_status'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 30,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sale_bill_item",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_sale_bill_item_bill_no'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 34,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_miniapp_order",
+      "outcome": "error",
+      "detail": "code=ER_KEY_COLUMN_DOES_NOT_EXITS Key column 'status' doesn't exist in table"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 40,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_miniapp_order_item",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_miniapp_order_item_order_no'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 45,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_member",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_member_customer_type'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 51,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_member",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 54,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_customer_payment",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_customer_payment_customer'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 60,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_inventory",
+      "outcome": "error",
+      "detail": "code=ER_NO_SUCH_TABLE Table 'liquor_inventory_drill.t_inventory' doesn't exist"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 66,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_inventory_batch",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 72,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_purchase_order",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_purchase_order_status'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 77,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_purchase_in_stock",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 82,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_sale_bill",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 86,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_receivable",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 92,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_coupon_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 97,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_user_coupon",
+      "outcome": "error",
+      "detail": "code=ER_DUP_KEYNAME Duplicate key name 'idx_user_coupon_customer'"
+    },
+    {
+      "file": "120c_performance_indexes.sql",
+      "line": 103,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_product_spu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 19,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 28,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 37,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 53,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 63,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_subscription_plan` (\n  `id` INT AUTO_INCREMENT PRIM"
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 122,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_subscription_plan",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 129,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_subscription",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 137,
+      "type": "SET/动态DDL",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "120d_fix_server_3bugs.sql",
+      "line": 145,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_error_logs` (\n  `id` BIGINT AUTO_INCREMENT PRIMARY "
+    },
+    {
+      "file": "120e_transfer_stock_log.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_IF",
+      "outcome": "error",
+      "detail": "code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_transfer_stock_log` (\n  `id` BIGINT UNSIGNED NOT NU"
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 15,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_ai_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 34,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_ai_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 58,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_ai_audit_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 86,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_ai_usage_daily",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 115,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_tenant_ai_billing",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 139,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_platform_ai_config",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 156,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 163,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "121_ai_base_tables.sql",
+      "line": 167,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "line": 20,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_ai_knowledge_chunks",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "line": 39,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "122_ai_rag.sql",
+      "line": 45,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "123_member_contact.sql",
+      "line": 13,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "123_member_contact.sql",
+      "line": 19,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 6,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_aftersale",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 48,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_audit_log",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 68,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_cart_item",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 89,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_cash_flow",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 108,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_daily_settlement",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 132,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_order_coupon",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 146,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_settlement",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 169,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_full_reduction",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 190,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_flash_sale",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 215,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_flash_sale_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 236,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 268,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_member",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 283,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_group_buy_team",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 309,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_promo_stack_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 325,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_payment_method",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 339,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_todos",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 356,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sync_cache",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 371,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_user_points",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 385,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_wx_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 405,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_user_binding",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 423,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_user_login",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 438,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sys_role_menu",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 450,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sale_bill_archive",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 487,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sale_bill_item_archive",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 507,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_order_archive",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "124_drift_tables_fill.sql",
+      "line": 536,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_purchase_order_item_archive",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "line": 18,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "line": 28,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "line": 34,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "125_instant_retail_admin_fix.sql",
+      "line": 40,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "126_bills.sql",
+      "line": 3,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_bill",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "line": 13,
+      "type": "ALTER",
+      "risk": "L2",
+      "table": "t_delivery_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "126_retail_tenant_collation_fix.sql",
+      "line": 24,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "line": 7,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "line": 20,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sys_user_role",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "127_fix_demo_accounts.sql",
+      "line": 31,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "127_order_routing_exception.sql",
+      "line": 3,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_order_routing_rule",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "line": 12,
+      "type": "UPDATE",
+      "risk": "L3",
+      "table": "t_miniapp_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "line": 19,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_miniapp_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "130_miniapp_template_r96.sql",
+      "line": 65,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "line": 14,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_platform_subscription_apply",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "131_platform_subscription_apply.sql",
+      "line": 38,
+      "type": "其它(SELECT)",
+      "risk": "L1",
+      "table": null,
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "136_sms_template.sql",
+      "line": 2,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_sms_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "136_sms_template.sql",
+      "line": 18,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sms_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "137_sys_user_dept_position.sql",
+      "line": 2,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "line": 4,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sms_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "137_tenant_register_sms_template.sql",
+      "line": 9,
+      "type": "INSERT",
+      "risk": "L3",
+      "table": "t_sms_template",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "138_approval_business_link.sql",
+      "line": 2,
+      "type": "其它(CALL)",
+      "risk": "L2",
+      "table": null,
+      "outcome": "error",
+      "detail": "code=ER_SP_DOES_NOT_EXIST PROCEDURE liquor_inventory_drill.add_column_if_not_exists does not exist"
+    },
+    {
+      "file": "20260720_print_record.sql",
+      "line": 5,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_print_record",
+      "outcome": "ok",
+      "detail": ""
+    },
+    {
+      "file": "20260720_push_token.sql",
+      "line": 5,
+      "type": "CREATE",
+      "risk": "L1",
+      "table": "t_push_token",
+      "outcome": "ok",
+      "detail": ""
+    }
+  ]
+}

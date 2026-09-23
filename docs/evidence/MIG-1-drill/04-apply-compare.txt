@@ -1,0 +1,74 @@
+[MIG-1/rehearsal] 模式 apply —— 真库副本演练
+  目标：mysql://zhixiang_app@127.0.0.1:3306/liquor_inventory_drill
+  结构快照： /root/drill-snapshot-20260924-014135.sql
+  ① 建库完成：liquor_inventory_drill
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Undeclared variable: col_count
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Unknown prepared statement handler (stmt) given to EXECUTE
+    [快照语句报错] Unknown prepared statement handler (stmt) given to DEALLOCATE PREPARE
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Unknown prepared statement handler (stmt) given to EXECUTE
+    [快照语句报错] Unknown prepared statement handler (stmt) given to DEALLOCATE PREPARE
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Undeclared variable: idx_count
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Unknown prepared statement handler (stmt) given to EXECUTE
+    [快照语句报错] Unknown prepared statement handler (stmt) given to DEALLOCATE PREPARE
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right synta
+    [快照语句报错] Variable 'character_set_client' can't be set to the value of 'NULL'
+  ② 结构快照灌入完成：执行 3576 / 3605 条
+  ③ 演练前基线：涉及表 202 张，已存在 198 张
+  ④ 开始逐条执行（修复后的 runner 逻辑）…
+  ⑤ 预期 vs 实际：预期执行 457 条 ⇒ {"ok":290,"skipped-by-runner":22,"error":145}
+NaN 张；新增涉及列 24 个
+     [报错] 009_phase7_approval_schema.sql:8 CREATE t_approval_rule ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_rule' already exists
+     [报错] 009_phase7_approval_schema.sql:25 CREATE t_approval_instance ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_instance' already exists
+     [报错] 009_phase7_approval_schema.sql:49 CREATE t_approval_task ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_task' already exists
+     [报错] 009_phase7_approval_schema.sql:70 CREATE t_approval_log ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_log' already exists
+     [报错] 009_phase7_approval_schema.sql:88 CREATE t_approval_approver ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_approver' already exists
+     [报错] 009_phase7_approval_schema.sql:102 CREATE t_approval_notification ⇒ code=ER_TABLE_EXISTS_ERROR Table 't_approval_notification' already exists
+     [报错] 010_phase7_credit_tenant.sql:10 ALTER t_customer_credit ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 010_phase7_credit_tenant.sql:18 ALTER t_credit_operation_log ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 010_phase7_credit_tenant.sql:25 ALTER t_collection_record ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 011_phase7_member_fields.sql:7 ALTER t_member ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'address'
+     [报错] 012_phase7_price_tenant.sql:10 ALTER t_price_level ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 012_phase7_price_tenant.sql:18 ALTER t_sku_price ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 012_phase7_price_tenant.sql:25 ALTER t_customer_price_binding ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 012_phase7_price_tenant.sql:32 ALTER t_price_change_log ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 014_phase7_sku_fields.sql:7 ALTER t_product_sku ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'alcohol_degree'
+     [报错] 014_phase7_sku_fields.sql:13 ALTER t_product_sku ⇒ code=ER_KEY_COLUMN_DOES_NOT_EXITS Key column 'origin' doesn't exist in table
+     [报错] 016_phase9_tenant_subscription.sql:205 INSERT t_tenant ⇒ code=ER_TRUNCATED_WRONG_VALUE_FOR_FIELD Incorrect integer value: 'ACTIVE' for column 'status' at row 1
+     [报错] 016_phase9_tenant_subscription.sql:213 INSERT t_tenant_module_access ⇒ code=ER_NO_REFERENCED_ROW_2 Cannot add or update a child row: a foreign key constraint fails (`liquor_inventory_drill`.`t_tenant_module_access`, CONSTRAINT `t_tenant_module_access_ibfk_1` FOREIGN KEY (`tenant_id`) REFERENCES `te
+     [报错] 019_migrate_v2.sql:11 ALTER t_sys_role ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'description'
+     [报错] 019_migrate_v2.sql:14 ALTER t_sys_role ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'permissions'
+     [报错] 019_migrate_v2.sql:20 ALTER t_member ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'settlement_type'
+     [报错] 019_migrate_v2.sql:23 ALTER t_supplier ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'settlement_type'
+     [报错] 052_add_retail_announcement.sql:25 ALTER t_retail_announcement ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'tenant_id'
+     [报错] 069_商品SPU增加品牌ID.sql:6 ALTER t_product_spu ⇒ code=ER_DUP_FIELDNAME Duplicate column name 'brand_id'
+     [报错] 074_即时零售表.sql:8 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_config` (
+  `id` BIGINT AUTO_INCREMENT PRI
+     [报错] 074_即时零售表.sql:29 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_order` (
+  `id` BIGINT AUTO_INCREMENT PRIM
+     [报错] 074_即时零售表.sql:46 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_platform_product_map` (
+  `id` BIGINT AUTO_INCREMEN
+     [报错] 074_即时零售表.sql:65 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_shop_config` (
+  `id` BIGINT AUTO_INCREMENT 
+     [报错] 074_即时零售表.sql:89 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_category` (
+  `id` BIGINT AUTO_INCREMENT PRI
+     [报错] 074_即时零售表.sql:106 CREATE t_IF ⇒ code=ER_PARSE_ERROR You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'NOT EXISTS `t_retail_product` (
+  `id` BIGINT AUTO_INCREMENT PRIM
