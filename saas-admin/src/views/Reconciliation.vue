@@ -86,7 +86,7 @@
           </table>
         </div>
         <div v-if="loadingBill" class="empty">加载中…</div>
-        <div v-else-if="!billList.length" class="empty">暂无账单流水 · 待接入 GET /platform/reconciliation</div>
+        <div v-else-if="!billList.length" class="empty">暂无账单流水</div>
 
         <div class="pagebar">
           <span>共 {{ total }} 笔流水 · 增值扣费逐笔可查可导出</span>
@@ -109,7 +109,7 @@
           <span class="pt">欠费管理视图</span>
           <div>
             <span class="btn btn-d" @click="handleBatchUrge">批量催缴（勾选 {{ selectedArrears.length }} 户）</span>
-            <span class="btn" @click="handleExportArrears">导出欠费清单</span>
+            <span class="btn dis" :title="UNSUPPORTED.EXPORT_ARREARS" @click="handleExportArrears">导出欠费清单</span>
           </div>
         </div>
         <div class="p-bd" style="padding-top: var(--space-2)">
@@ -156,19 +156,35 @@
                   <td>{{ row.nextAction || '--' }}</td>
                   <td>
                     <span v-if="row.stage !== '已冻结'" class="btn-t warn" @click="handleUrge(row)">立即催缴</span>
-                    <span v-if="row.stage === '功能降级'" class="btn-t" @click="handleRetain(row)">续费挽留</span>
-                    <span v-if="row.stage === '已冻结'" class="btn-t dgr" @click="handleCancel(row)">发起注销</span>
-                    <span v-if="row.stage === '保留期'" class="btn-t gy" @click="handleRecover(row)">恢复缴费</span>
+                    <span
+                      v-if="row.stage === '功能降级'"
+                      class="btn-t dis"
+                      :title="UNSUPPORTED.RETAIN"
+                      @click="notSupported('续费挽留', UNSUPPORTED.RETAIN)"
+                    >续费挽留</span>
+                    <span
+                      v-if="row.stage === '已冻结'"
+                      class="btn-t dis"
+                      :title="UNSUPPORTED.CANCEL"
+                      @click="notSupported('发起注销', UNSUPPORTED.CANCEL)"
+                    >发起注销</span>
+                    <span
+                      v-if="row.stage === '保留期'"
+                      class="btn-t dis"
+                      :title="UNSUPPORTED.RECOVER"
+                      @click="notSupported('恢复缴费', UNSUPPORTED.RECOVER)"
+                    >恢复缴费</span>
                     <span class="btn-t" @click="openDetail(row)">详情</span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="!arrearsList.length" class="empty">暂无欠费租户 · 待接入 GET /platform/billing/arrears</div>
+          <div v-if="!arrearsList.length" class="empty">暂无欠费租户</div>
 
           <p class="small mt8">
-            批量催缴：站内 + 短信双通道，文案使用「欠费催缴」模板（变量：租户名/到期日/欠费额）；旗舰租户自动生成客服跟进任务。
+            批量催缴：<b>仅站内通知</b>（写入租户站内消息，不调用短信 / 邮件 / 微信），文案使用「欠费催缴」模板
+            （变量：租户名 / 到期日 / 欠费额）。共 {{ arrearsTotal }} 户 · 单次最多 {{ TENANT_IDS_MAX }} 户（后端 tenantIds 必填）。
           </p>
 
           <!-- 欠费处理策略（全局） -->
@@ -282,13 +298,14 @@
               <tbody>
                 <tr v-for="row in reconList" :key="row.id">
                   <td>{{ row.date || '--' }}</td>
-                  <td class="num">{{ row.receivable == null ? '--' : fmtMoney(row.receivable) }}</td>
-                  <td class="num">{{ row.actual == null ? '--' : fmtMoney(row.actual) }}</td>
-                  <td class="num" :style="{ color: row.diff && row.diff < 0 ? 'var(--color-warning)' : 'inherit' }">
-                    {{ row.diff == null ? '--' : fmtMoney(row.diff) }}
+                  <td class="num">{{ row.platformAmount == null ? '--' : fmtMoney(row.platformAmount) }}</td>
+                  <td class="num">{{ row.systemAmount == null ? '--' : fmtMoney(row.systemAmount) }}</td>
+                  <td class="num" :style="{ color: row.diffAmount && row.diffAmount < 0 ? 'var(--color-warning)' : 'inherit' }">
+                    {{ row.diffAmount == null ? '--' : fmtMoney(row.diffAmount) }}
+                    <span v-if="row.diffCount != null" class="small"> · {{ row.diffCount }} 单</span>
                   </td>
-                  <td>{{ row.source || '--' }}</td>
-                  <td><span class="tag" :class="reconStatusTag(row.status)">{{ row.statusText || '--' }}</span></td>
+                  <td>{{ row.platform || '--' }}</td>
+                  <td><span class="tag" :class="reconStatusTag(row.status)">{{ reconStatusText(row.status) }}</span></td>
                   <td>
                     <template v-if="hasDiff(row)">
                       <span class="btn-t" @click="handleReconDiff(row)">差异明细</span>
@@ -302,7 +319,9 @@
               </tbody>
             </table>
           </div>
-          <div v-if="!reconList.length" class="empty">暂无对账记录 · 待接入 GET /platform/billing/reconciliation-daily</div>
+          <div v-if="!reconList.length" class="empty">
+            暂无对账记录{{ dailyReconTotal ? `（共 ${dailyReconTotal} 条，当前页为空）` : '' }}
+          </div>
         </div>
       </div>
 
@@ -383,7 +402,7 @@
                     <span v-if="row.item" class="tag" :class="addonItemTag(row.item)">{{ row.item }}</span>
                     <span v-else>--</span>
                   </td>
-                  <td>{{ row.unitPrice || '--' }}</td>
+                  <td>{{ row.unitPrice == null ? '--' : fmtUnitPrice(row.unitPrice) }}</td>
                   <td class="num">{{ row.usage == null ? '--' : row.usage }}</td>
                   <td class="num"><b>{{ row.amount == null ? '--' : fmtMoney(row.amount) }}</b></td>
                   <td>{{ row.method || '--' }}</td>
@@ -393,7 +412,7 @@
               </tbody>
             </table>
           </div>
-          <div v-if="!addonList.length" class="empty">暂无增值扣费流水 · 待接入 GET /platform/billing/addon-charges</div>
+          <div v-if="!addonList.length" class="empty">暂无增值扣费流水</div>
 
           <p class="small mt8">
             对账关系：合并出账时 ZZ 流水金额之和 = 关联 ZD 账单金额；存储超额用量取自「运维 · 存储监控」日切快照，API 超额触发记录见「运维 · 各租户 API 调用量统计」。
@@ -417,10 +436,163 @@
         </div>
       </div>
       <div v-else class="zx-scope">
-        <div class="empty">暂无账单详情 · 待接入 GET /platform/reconciliation/:id</div>
+        <div class="empty">暂无账单详情</div>
       </div>
       <template #footer>
         <span class="btn" @click="detailVisible = false">关闭</span>
+      </template>
+    </el-dialog>
+
+    <!-- 导出对账单（R10/R11：POST /platform/billing/statement/export，CSV 文件流） -->
+    <el-dialog v-model="expVisible" title="导出对账单（CSV）" :width="MODAL_W" :close-on-click-modal="false">
+      <div class="zx-scope">
+        <div class="g2">
+          <span class="fld">
+            <span>开始日期</span>
+            <el-date-picker v-model="expForm.dateStart" type="date" value-format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />
+          </span>
+          <span class="fld">
+            <span>结束日期</span>
+            <el-date-picker v-model="expForm.dateEnd" type="date" value-format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />
+          </span>
+        </div>
+        <p class="small mt8">
+          后端返回 CSV 文件流（UTF-8 BOM）；金额列为「元 / 2 位小数」，佣金金额无载体时导出为空白单元格。
+        </p>
+      </div>
+      <template #footer>
+        <span class="btn" @click="expVisible = false">取消</span>
+        <span class="btn btn-p" @click="submitExportStatement">{{ expSaving ? '导出中…' : '导出' }}</span>
+      </template>
+    </el-dialog>
+
+    <!-- 手动生成账单（R12/R13：POST /platform/billing/generate，tenantIds 必填 1~200） -->
+    <el-dialog v-model="genVisible" title="手动生成账单" :width="MODAL_W" :close-on-click-modal="false">
+      <div class="zx-scope">
+        <div class="g2">
+          <span class="fld">
+            <span>账期开始</span>
+            <el-date-picker v-model="genForm.periodStart" type="date" value-format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />
+          </span>
+          <span class="fld">
+            <span>账期结束</span>
+            <el-date-picker v-model="genForm.periodEnd" type="date" value-format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />
+          </span>
+        </div>
+        <div class="fld mt10" style="display: block">
+          <span>
+            租户（必选，{{ genForm.tenantIds.length }} / {{ TENANT_IDS_MAX }} 户）
+            <span class="small">后端 `tenantIds` 必填，缺失 / 空数组 / 超 200 一律 400</span>
+          </span>
+          <el-select
+            v-model="genForm.tenantIds"
+            multiple
+            filterable
+            :filter-method="onTenantFilter"
+            placeholder="输入租户名称 / 编码搜索并勾选"
+            style="width: 100%; margin-top: var(--space-2)"
+          >
+            <el-option
+              v-for="t in tenantOptions"
+              :key="t.id"
+              :label="`${t.companyName || t.id}（${t.tenantCode || t.id}）`"
+              :value="String(t.id)"
+            />
+          </el-select>
+        </div>
+        <p v-if="genResult" class="small mt10">
+          {{ genResultText }}
+          <br />
+          金额口径：{{ genResult.note }}
+        </p>
+      </div>
+      <template #footer>
+        <span class="btn" @click="genVisible = false">取消</span>
+        <span class="btn btn-p" @click="submitGenBill">{{ genSaving ? '生成中…' : '生成账单' }}</span>
+      </template>
+    </el-dialog>
+
+    <!-- 开票申请（R14/R15：POST /platform/billing/invoice，成功码 201，状态恒 PENDING） -->
+    <el-dialog v-model="invVisible" title="开票申请" :width="MODAL_W" :close-on-click-modal="false">
+      <div class="zx-scope">
+        <div class="g2">
+          <span class="fld"><span>租户 ID（必填）</span><input v-model="invForm.tenantId" class="ipt" placeholder="如 1001" /></span>
+          <span class="fld"><span>结算单 ID</span><input v-model="invForm.settlementId" class="ipt" placeholder="可留空" /></span>
+          <span class="fld"><span>结算单号</span><input v-model="invForm.settlementNo" class="ipt" placeholder="可留空" /></span>
+          <span class="fld"><span>开票金额（元）</span><input v-model="invForm.amount" class="ipt" placeholder="可留空（取结算单金额）" /></span>
+          <span class="fld"><span>税率（0~1）</span><input v-model="invForm.taxRate" class="ipt" placeholder="如 0.06" /></span>
+        </div>
+        <p class="small mt8">
+          本端点为平台开给租户的销项票（invoiceType=OUT）；提交后状态为 <b>PENDING（待开具）</b>，后端不伪造已开具。
+        </p>
+        <p v-if="invResult" class="small mt10">
+          已提交：发票号 {{ invResult.invoiceNo }} · 状态 {{ invResult.status }} · 金额 {{ fmtMoney(invResult.amount) }}
+          · 税额 {{ fmtMoney(invResult.taxAmount) }}
+        </p>
+      </div>
+      <template #footer>
+        <span class="btn" @click="invVisible = false">关闭</span>
+        <span class="btn btn-p" @click="submitInvoice">{{ invSaving ? '提交中…' : '提交开票申请' }}</span>
+      </template>
+    </el-dialog>
+
+    <!-- 差异明细（R30/R31：GET /platform/billing/reconciliation-daily/:date/diff） -->
+    <el-dialog v-model="diffVisible" title="差异明细" :width="MODAL_W" :close-on-click-modal="false">
+      <div v-if="diffData" class="zx-scope">
+        <div class="g3">
+          <span class="fld"><span>对账日期</span><span class="ipt">{{ diffData.date || '--' }}</span></span>
+          <span class="fld"><span>差异单数</span><span class="ipt">{{ diffData.diffCount ?? '--' }}</span></span>
+          <span class="fld"><span>差异金额</span><span class="ipt">{{ fmtMoney(diffData.diffAmount) }}</span></span>
+        </div>
+        <p class="small mt10">
+          逐笔明细行数：{{ diffData.records?.length ?? 0 }}（后端 records 恒为空数组）
+        </p>
+        <div class="tipbar mt10">
+          <span class="ic">i</span>
+          <span>{{ diffData.note }}</span>
+        </div>
+      </div>
+      <div v-else class="zx-scope"><div class="empty">差异明细加载中或不可用</div></div>
+      <template #footer>
+        <span class="btn" @click="diffVisible = false">关闭</span>
+      </template>
+    </el-dialog>
+
+    <!-- 催缴结果（R16/R17 批量、R20/R21 单租户：POST /platform/billing/arrears/urge，仅站内） -->
+    <el-dialog v-model="urgeVisible" title="催缴结果（仅站内通知）" :width="MODAL_W" :close-on-click-modal="false">
+      <div v-if="urgeData" class="zx-scope">
+        <p class="small">
+          请求 {{ urgeData.requested }} 户 · 去重后 {{ urgeData.uniqueTenants }} 户 · 实际通知
+          <b>{{ urgeData.notifiedTenants }}</b> 户 · 站内通知 {{ urgeData.totalNotifications }} 条 ·
+          通道 <b>{{ urgeData.channel }}</b>
+        </p>
+        <p class="small mt8">{{ urgeData.channelNote }}</p>
+        <div class="tblwrap mt10">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>租户</th>
+                <th>结果</th>
+                <th class="num">欠费账单</th>
+                <th class="num">欠费金额</th>
+                <th class="num">通知人数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in urgeData.records" :key="r.tenantId">
+                <td><b>{{ r.tenantName || r.tenantId }}</b></td>
+                <td>{{ urgeStatusText(r.status) }}<span v-if="r.note" class="small"> {{ r.note }}</span></td>
+                <td class="num">{{ r.billCount }}</td>
+                <td class="num">{{ r.amount == null ? '--' : fmtMoney(r.amount) }}</td>
+                <td class="num">{{ r.notifiedUsers }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div v-else class="zx-scope"><div class="empty">无催缴结果</div></div>
+      <template #footer>
+        <span class="btn" @click="urgeVisible = false">关闭</span>
       </template>
     </el-dialog>
   </div>
@@ -439,7 +611,22 @@ import {
   updateArrearsPolicy,
   getAddonPrice,
   updateAddonPrice,
+  getTenants,
 } from '../api'
+// C4-F 新增封装（只新增导出，不改 api.ts 既有函数）
+import {
+  TENANT_IDS_MAX,
+  listArrears,
+  urgeArrears,
+  listDailyReconciliations,
+  exportDailyStatementCsv,
+  getDailyDiff,
+  generateBilling,
+  exportStatementCsv,
+  createInvoice,
+  listAddonCharges,
+} from '../api/billing'
+import { saveBlobResponse, readExportRows } from '../utils/download-blob'
 
 const MODAL_W = 'var(--modal-width)'
 
@@ -481,10 +668,14 @@ function gotoPage(p: number) {
   fetchBillList()
 }
 
-// ====== Tab2 欠费管理（无接口：空态 + TODO） ======
+// ====== Tab2 欠费管理（GET /platform/billing/arrears，包B） ======
 const arrearsList = ref<any[]>([])
 const selectedArrears = ref<number[]>([])
 const arrearsCount = ref(0)
+const arrearsLoading = ref(false)
+const arrearsTotal = ref(0)
+/** 后端 stagePolicy：策略未配置时 stage / nextAction 一律 null（不得前端猜阶段） */
+const arrearsStagePolicy = ref<any>(null)
 
 /* ── 欠费处理策略（全局配置）
  * 设计稿 v1.6 第 809 行：欠费处理按「4 段边界」建模 —— 宽限截止 / 降级截止 / 冻结截止 / 保留截止（D+N 递增）。
@@ -700,10 +891,11 @@ function toggleAllArrears() {
   else selectedArrears.value = arrearsList.value.map((r) => r.id)
 }
 
-// ====== Tab3 对账中心（无接口：空态 + TODO） ======
+// ====== Tab3 对账中心（GET /platform/billing/reconciliation-daily，包A） ======
 const reconList = ref<any[]>([])
+const dailyReconTotal = ref(0)
 
-// ====== Tab4 增值扣费（无接口：空态 + TODO） ======
+// ====== Tab4 增值扣费（GET /platform/billing/addon-charges，包B） ======
 const addonList = ref<any[]>([])
 
 // ====== 详情弹窗 ======
@@ -716,6 +908,47 @@ function fmtMoney(v: number | string | null | undefined): string {
   const n = Number(v)
   if (Number.isNaN(n)) return String(v)
   return '¥' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+/** 增值扣费单价：后端 unitPriceScale=4（元 / 4 位小数）；null（未配置）显示 --，不显示 0 */
+function fmtUnitPrice(v: number | null | undefined): string {
+  if (v === null || v === undefined) return '--'
+  const n = Number(v)
+  if (Number.isNaN(n)) return String(v)
+  return '¥' + n.toFixed(4)
+}
+/** 日对账状态（后端 t_platform_reconciliation.status：PENDING/MATCHED/DIFF/ADJUSTED） */
+const RECON_STATUS_TEXT: Record<string, string> = {
+  MATCHED: '已平账',
+  PENDING: '待核查',
+  DIFF: '有差异',
+  ADJUSTED: '已调整',
+}
+function reconStatusText(status: string): string {
+  if (!status) return '--'
+  return RECON_STATUS_TEXT[status] || status
+}
+/** 催缴逐租户结果（后端 UrgeItemStatus） */
+const URGE_STATUS_TEXT: Record<string, string> = {
+  NOTIFIED: '已通知（站内）',
+  NO_ARREARS: '无欠费，未发送',
+  NO_ACTIVE_ADMIN_USER: '无可用管理员账号，未发送',
+  TENANT_NOT_FOUND: '租户不存在',
+}
+function urgeStatusText(status: string): string {
+  return URGE_STATUS_TEXT[status] || status || '--'
+}
+/**
+ * 本批「不做」的行内动作：后端无该端点（不得前端导当前页/造状态冒充）。
+ * 具名原因逐条写清，按钮置灰仍可点开查看原因。
+ */
+const UNSUPPORTED = {
+  EXPORT_ARREARS: '后端未提供 POST /api/platform/billing/arrears/export（已登记 C4-1c）',
+  RETAIN: '后端未提供 POST /api/platform/billing/arrears/:id/retain（已登记 C4-1c）',
+  CANCEL: '后端未提供 POST /api/platform/billing/arrears/:id/cancel（注销状态机无载体，S3-96 家族）',
+  RECOVER: '后端未提供 POST /api/platform/billing/arrears/:id/recover（已登记 C4-1c）',
+} as const
+function notSupported(label: string, reason: string) {
+  ElMessage.warning(`${label}暂不可用：${reason}`)
 }
 function billTypeTag(t: string): string {
   if (/AI|超额/.test(t)) return 'tag-p'
@@ -743,7 +976,9 @@ function addonItemTag(item: string): string {
   return 'tag-o'
 }
 function reconStatusTag(status: string): string {
-  if (status === 'DONE' || status === 'SETTLED') return 'tag-g'
+  if (status === 'MATCHED') return 'tag-g'
+  if (status === 'DIFF') return 'tag-r'
+  if (status === 'ADJUSTED') return 'tag-b'
   return 'tag-o'
 }
 
@@ -790,71 +1025,308 @@ async function openDetail(row: any) {
   }
 }
 
-// ====== 操作（无接口写 TODO） ======
+/** Tab2：GET /platform/billing/arrears（包B 契约；stage/nextAction 未配置时为 null，不前端猜阶段） */
+async function fetchArrears() {
+  arrearsLoading.value = true
+  try {
+    const res: any = await listArrears({ page: 1, pageSize: 100 })
+    const d = res?.data?.data || res?.data || {}
+    arrearsList.value = d.records || []
+    arrearsTotal.value = d.total || 0
+    arrearsStagePolicy.value = d.stagePolicy || null
+    if (d.scanLimitReached) {
+      ElMessage.warning(
+        `欠费清单已扫描上限 ${d.scanLimit} 行，结果可能不完整（后端 scanLimitReached=true）`
+      )
+    }
+  } catch {
+    arrearsList.value = []
+    arrearsTotal.value = 0
+  } finally {
+    arrearsLoading.value = false
+  }
+}
+
+/** Tab3：GET /platform/billing/reconciliation-daily（包A 在网） */
+async function fetchDailyRecons() {
+  try {
+    const res: any = await listDailyReconciliations({ page: 1, pageSize: 50 })
+    const d = res?.data?.data || res?.data || {}
+    reconList.value = d.records || []
+    dailyReconTotal.value = d.total || 0
+  } catch {
+    reconList.value = []
+    dailyReconTotal.value = 0
+  }
+}
+
+/** Tab4：GET /platform/billing/addon-charges（包B 契约；unitPrice/amount 未配置时 null，不显示 0） */
+async function fetchAddonCharges() {
+  try {
+    const res: any = await listAddonCharges({ page: 1, pageSize: 100 })
+    const d = res?.data?.data || res?.data || {}
+    addonList.value = d.records || []
+  } catch {
+    addonList.value = []
+  }
+}
+
+// ====== 操作：全部接真实端点（包A 在网 / 包B 按钉版契约） ======
+
+/* ── 导出对账单：POST /platform/billing/statement/export（CSV 文件流） ── */
+const expVisible = ref(false)
+const expSaving = ref(false)
+const expForm = reactive({ dateStart: '', dateEnd: '' })
+
+function monthStart(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+}
+function today(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
 function handleExportStatement() {
-  // TODO: 待接入 POST /platform/billing/statement/export（导出对账单）
-  ElMessage.info('导出对账单：待接入 POST /platform/billing/statement/export')
+  expForm.dateStart = expForm.dateStart || monthStart()
+  expForm.dateEnd = expForm.dateEnd || today()
+  expVisible.value = true
+}
+async function submitExportStatement() {
+  if (!expForm.dateStart || !expForm.dateEnd) {
+    ElMessage.warning('请选择导出账期（开始 / 结束日期）')
+    return
+  }
+  if (expForm.dateStart > expForm.dateEnd) {
+    ElMessage.warning('开始日期不得晚于结束日期')
+    return
+  }
+  expSaving.value = true
+  try {
+    const res: any = await exportStatementCsv({ dateStart: expForm.dateStart, dateEnd: expForm.dateEnd })
+    const rows = readExportRows(res)
+    const filename = saveBlobResponse(res, `reconciliation-statement-${expForm.dateStart}_${expForm.dateEnd}.csv`)
+    expVisible.value = false
+    ElMessage.success(`对账单已导出：${filename}${rows == null ? '' : `（${rows} 行）`}`)
+  } catch {
+    /* 错误提示由请求层统一处理（404/500/断网均为中文文案），页面不重复提示 */
+  } finally {
+    expSaving.value = false
+  }
+}
+
+/* ── 手动生成账单：POST /platform/billing/generate（tenantIds 必填，1~200，元素为字符串） ── */
+const genVisible = ref(false)
+const genSaving = ref(false)
+const genForm = reactive({ periodStart: '', periodEnd: '', tenantIds: [] as string[] })
+const genResult = ref<any>(null)
+const genResultText = computed(() => {
+  const d = genResult.value
+  if (!d) return ''
+  return `账期 ${d.periodStart} ~ ${d.periodEnd}：新建 ${d.created} 张 / 复用（幂等命中）${d.reused} 张`
+})
+const tenantOptions = ref<any[]>([])
+const tenantKeyword = ref('')
+
+async function loadTenantOptions(keyword?: string) {
+  try {
+    const res: any = await getTenants({ page: 1, pageSize: 100, keyword: keyword || undefined })
+    const d = res?.data?.data || res?.data || {}
+    tenantOptions.value = d.records || []
+  } catch {
+    tenantOptions.value = []
+  }
+}
+function onTenantFilter(keyword: string) {
+  tenantKeyword.value = keyword
+  loadTenantOptions(keyword)
 }
 function handleGenBill() {
-  // TODO: 待接入 POST /platform/billing/generate（手动生成账单）
-  ElMessage.info('手动生成账单：待接入 POST /platform/billing/generate')
+  genResult.value = null
+  genForm.periodStart = genForm.periodStart || monthStart()
+  genForm.periodEnd = genForm.periodEnd || today()
+  genVisible.value = true
+  loadTenantOptions(tenantKeyword.value)
 }
-function handleInvoice(_row: any) {
-  // TODO: 待接入 POST /platform/billing/invoice（开票）
-  ElMessage.info('开票：待接入 POST /platform/billing/invoice')
+async function submitGenBill() {
+  // 前端先行拦截（后端同口径 400，两处都要拦，避免把 400 当"已生成"）
+  if (!genForm.tenantIds.length) {
+    ElMessage.warning('请显式选择至少 1 个租户：后端 tenantIds 必填，不再默认按全租户生成')
+    return
+  }
+  if (genForm.tenantIds.length > TENANT_IDS_MAX) {
+    ElMessage.warning(`单次最多 ${TENANT_IDS_MAX} 个租户，当前已选 ${genForm.tenantIds.length} 个`)
+    return
+  }
+  if (!genForm.periodStart || !genForm.periodEnd || genForm.periodStart > genForm.periodEnd) {
+    ElMessage.warning('请填写合法账期（开始日期不得晚于结束日期）')
+    return
+  }
+  genSaving.value = true
+  try {
+    const res: any = await generateBilling({
+      periodStart: genForm.periodStart,
+      periodEnd: genForm.periodEnd,
+      tenantIds: genForm.tenantIds.map((id) => String(id)),
+    })
+    genResult.value = res?.data?.data || null
+    if (genResult.value) {
+      ElMessage.success(genResultText.value)
+      await fetchBillList()
+    }
+  } catch {
+    /* 错误提示由请求层统一处理（400 的中文原因由后端给出） */
+  } finally {
+    genSaving.value = false
+  }
 }
-function handleBatchUrge() {
-  if (!selectedArrears.value.length) {
+
+/* ── 开票：POST /platform/billing/invoice（成功码 201，状态恒 PENDING） ── */
+const invVisible = ref(false)
+const invSaving = ref(false)
+const invResult = ref<any>(null)
+const invForm = reactive({
+  tenantId: '',
+  settlementId: '',
+  settlementNo: '',
+  amount: '',
+  taxRate: '',
+})
+function handleInvoice(row: any) {
+  invResult.value = null
+  invForm.tenantId = String(row?.tenantId ?? '')
+  invForm.settlementId = row?.id == null ? '' : String(row.id)
+  invForm.settlementNo = row?.reconciliationNo || ''
+  invForm.amount = row?.orderAmount == null ? '' : String(row.orderAmount)
+  invForm.taxRate = ''
+  invVisible.value = true
+}
+async function submitInvoice() {
+  if (!invForm.tenantId.trim()) {
+    ElMessage.warning('租户 ID 必填（后端 tenantId 必填）')
+    return
+  }
+  const payload: Record<string, unknown> = { tenantId: invForm.tenantId.trim() }
+  if (invForm.settlementId.trim()) payload.settlementId = Number(invForm.settlementId)
+  if (invForm.settlementNo.trim()) payload.settlementNo = invForm.settlementNo.trim()
+  if (invForm.amount.trim()) {
+    const amount = Number(invForm.amount)
+    if (!(amount > 0)) {
+      ElMessage.warning('开票金额必须大于 0')
+      return
+    }
+    payload.amount = amount
+  }
+  if (invForm.taxRate.trim()) {
+    const rate = Number(invForm.taxRate)
+    if (Number.isNaN(rate) || rate < 0 || rate > 1) {
+      ElMessage.warning('税率需在 0~1 之间')
+      return
+    }
+    payload.taxRate = rate
+  }
+  invSaving.value = true
+  try {
+    const res: any = await createInvoice(payload as any)
+    invResult.value = res?.data?.data || null
+    if (invResult.value) {
+      ElMessage.success(`开票申请已提交：${invResult.value.invoiceNo}（状态 ${invResult.value.status}）`)
+    }
+  } catch {
+    /* 错误提示由请求层统一处理 */
+  } finally {
+    invSaving.value = false
+  }
+}
+
+/* ── 催缴：POST /platform/billing/arrears/urge（仅站内；逐租户如实结果） ── */
+const urgeVisible = ref(false)
+const urgeData = ref<any>(null)
+
+async function doUrge(tenantIds: string[]) {
+  if (!tenantIds.length) {
     ElMessage.warning('请先勾选欠费租户')
     return
   }
-  // TODO: 待接入 POST /platform/billing/arrears/urge（批量催缴，站内+短信双通道）
-  ElMessage.info('批量催缴：待接入 POST /platform/billing/arrears/urge')
+  if (tenantIds.length > TENANT_IDS_MAX) {
+    ElMessage.warning(`单次最多 ${TENANT_IDS_MAX} 个租户，当前 ${tenantIds.length} 个`)
+    return
+  }
+  try {
+    const res: any = await urgeArrears(tenantIds)
+    urgeData.value = res?.data?.data || null
+    urgeVisible.value = true
+    if (urgeData.value) {
+      ElMessage.success(
+        `已发起站内催缴：${urgeData.value.notifiedTenants} 户已通知 / ${urgeData.value.totalNotifications} 条站内通知`
+      )
+    }
+  } catch {
+    /* 错误提示由请求层统一处理（401/400/500 中文文案） */
+  }
+}
+function handleBatchUrge() {
+  doUrge(selectedArrears.value.map((id) => String(id)))
+}
+function handleUrge(row: any) {
+  // 单租户催缴 = tenantIds 单元素（后端无 /:id/urge 端点，复用批量端点等价能力）
+  const tenantId = row?.tenantId
+  if (tenantId == null || tenantId === '') {
+    ElMessage.warning('该行缺少租户 ID，无法催缴')
+    return
+  }
+  doUrge([String(tenantId)])
 }
 function handleExportArrears() {
-  // TODO: 待接入 POST /platform/billing/arrears/export（导出欠费清单）
-  ElMessage.info('导出欠费清单：待接入 POST /platform/billing/arrears/export')
+  notSupported('导出欠费清单', UNSUPPORTED.EXPORT_ARREARS)
 }
-function handleUrge(_row: any) {
-  // TODO: 待接入 POST /platform/billing/arrears/:id/urge（立即催缴）
-  ElMessage.info('立即催缴：待接入 POST /platform/billing/arrears/:id/urge')
-}
-function handleRetain(_row: any) {
-  // TODO: 待接入 POST /platform/billing/arrears/:id/retain（续费挽留）
-  ElMessage.info('续费挽留：待接入 POST /platform/billing/arrears/:id/retain')
-}
-function handleCancel(_row: any) {
-  // TODO: 待接入 POST /platform/billing/arrears/:id/cancel（发起注销）
-  ElMessage.warning('发起注销：待接入 POST /platform/billing/arrears/:id/cancel')
-}
-function handleRecover(_row: any) {
-  // TODO: 待接入 POST /platform/billing/arrears/:id/recover（恢复缴费）
-  ElMessage.info('恢复缴费：待接入 POST /platform/billing/arrears/:id/recover')
-}
-function handleReconStatement(_row: any) {
-  // TODO: 待接入 GET /platform/billing/reconciliation-daily/:date/statement（对账单）
-  ElMessage.info('对账单：待接入 GET /platform/billing/reconciliation-daily/:date/statement')
-}
-/** 有差异（diff ≠ 0）或状态待核查的行 → 差异明细 + 重新对账（设计稿 v1.6 第 849 行） */
+
+/* ── 对账中心行操作（包A 在网端点） ── */
+/** 有差异（diffAmount ≠ 0）/ 状态待核查的行 → 差异明细 + 重新对账（设计稿 v1.6 第 849 行） */
 function hasDiff(row: any) {
-  if (row?.status === 'PENDING') return true
-  return row?.diff != null && Number(row.diff) !== 0
+  if (row?.status === 'PENDING' || row?.status === 'DIFF') return true
+  return row?.diffAmount != null && Number(row.diffAmount) !== 0
 }
-function handleReconDiff(row: any) {
-  // TODO: 待接入 GET /platform/billing/reconciliation-daily/:date/diff
-  ElMessage.info(`差异明细：待接入 GET /platform/billing/reconciliation-daily/${row?.date || ''}/diff`)
+const diffVisible = ref(false)
+const diffData = ref<any>(null)
+async function handleReconDiff(row: any) {
+  diffVisible.value = true
+  diffData.value = null
+  try {
+    const res: any = await getDailyDiff(row.date)
+    diffData.value = res?.data?.data || null
+  } catch {
+    diffData.value = null
+  }
 }
-// 重新对账：沿用现有结算接口（待接入专用 /platform/billing/reconcile）
+async function handleReconStatement(row: any) {
+  if (!row?.date) {
+    ElMessage.warning('该行缺少对账日期，无法导出对账单')
+    return
+  }
+  try {
+    const res: any = await exportDailyStatementCsv(row.date)
+    const rows = readExportRows(res)
+    const filename = saveBlobResponse(res, `reconciliation-statement-${row.date}.csv`)
+    ElMessage.success(`对账单已导出：${filename}${rows == null ? '' : `（${rows} 行）`}`)
+  } catch {
+    /* 错误提示由请求层统一处理 */
+  }
+}
+// 重新对账：已在网的结算接口 PUT /platform/reconciliation/:id/settle（无专用 reconcile 端点）
 async function handleReReconcile(row: any) {
   try {
     await settleReconciliation(row.id)
-    ElMessage.success('已提交重新对账（沿用结算接口，待接入专用 reconcile 端点）')
+    ElMessage.success('已提交重新对账（PUT /platform/reconciliation/:id/settle）')
+    await fetchDailyRecons()
   } catch { /* 错误提示由请求层统一处理，此处只做内容态 */ }
 }
 
 onMounted(() => {
   fetchStats()
   fetchBillList()
+  fetchArrears()
+  fetchDailyRecons()
+  fetchAddonCharges()
   // R101-S2-02 组2：账单类配置读取（未配置时保持空态，不回落任何默认业务值）
   loadArrearsPolicy()
   loadAddonPrice()
