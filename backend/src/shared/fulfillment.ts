@@ -106,7 +106,7 @@ export async function completeOrderDelivery(
   makeBizNo: (prefix: string) => string
 ): Promise<{ orderNo: string; status: string; receivableNo: string | null }> {
   const [orders]: any[] = await conn.query(
-    `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile
+    `SELECT order_no, store_id, member_id, customer_type, settlement_type, payable_amount, receiver_name, receiver_mobile, tenant_id
      FROM t_miniapp_order
      WHERE order_no = ? AND order_status IN ('WAIT_DELIVERY', 'DELIVERING')
      FOR UPDATE`,
@@ -135,8 +135,8 @@ export async function completeOrderDelivery(
     await conn.execute(
       `INSERT INTO t_inventory_ledger (ledger_no, store_id, sku_id, stock_type, biz_type, biz_no,
                                      change_qty, before_qty, after_qty, before_locked_qty, after_locked_qty,
-                                     operator_id, idempotency_key, remark)
-       VALUES (?, ?, ?, 'ONLINE', 'ORDER_COMPLETE', ?, ?, 0, 0, 0, 0, ?, ?, ?)`,
+                                     operator_id, idempotency_key, remark, tenant_id)
+       VALUES (?, ?, ?, 'ONLINE', 'ORDER_COMPLETE', ?, ?, 0, 0, 0, 0, ?, ?, ?, ?)`,
       [
         makeBizNo("IL"),
         order.store_id,
@@ -145,7 +145,8 @@ export async function completeOrderDelivery(
         -deductQty,
         operatorId,
         `ORDER_COMPLETE:${orderNo}:${item.skuId}`,
-        "配送完成扣减库存"
+        "配送完成扣减库存",
+        order.tenant_id
       ]
     );
   }
@@ -162,8 +163,8 @@ export async function completeOrderDelivery(
     receivableNo = makeBizNo("YS");
     await conn.execute(
       `INSERT INTO t_receivable_account (receivable_no, source_type, source_no, store_id, customer_id, customer_name,
-                                       customer_mobile, receivable_amount, received_amount, unreceived_amount, status)
-       VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID')`,
+                                       customer_mobile, receivable_amount, received_amount, unreceived_amount, status, tenant_id)
+       VALUES (?, 'MINIAPP_ORDER', ?, ?, ?, ?, ?, ?, 0, ?, 'UNPAID', ?)`,
       [
         receivableNo,
         orderNo,
@@ -172,7 +173,8 @@ export async function completeOrderDelivery(
         order.receiver_name,
         order.receiver_mobile,
         order.payable_amount,
-        order.payable_amount
+        order.payable_amount,
+        order.tenant_id
       ]
     );
   }

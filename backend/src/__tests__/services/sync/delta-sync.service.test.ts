@@ -6,7 +6,7 @@
  *  - getProductDelta：空/UPSERT/STATUS_CHANGE/DELETE/分页/租户隔离
  *  - getInventoryDelta：空/有变更/租户隔离
  *  - getMemberDelta：空/有变更/STATUS_CHANGE/租户隔离
- *  - submitOfflineOrders：全部成功/部分失败/重复 draftNo/事务回滚/参数校验
+ *  - submitOfflineOrders：全部成功/部分失败/重复 draftNo（幂等成功）/事务回滚/参数校验
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -517,11 +517,14 @@ describe("delta-sync.service - submitOfflineOrders", () => {
     });
 
     it("部分失败 — 错误隔离，其他订单仍提交成功", async () => {
-        // 第一条订单查重时返回已存在（触发 AppError 409），第二条正常
-        mocks.queryOneWithTenant
-            .mockResolvedValueOnce({ billNo: "DRAFT-001" })  // 第一条已存在
-            .mockResolvedValueOnce(null);                      // 第二条不重复
-        mockTransactionResolve();
+        // 第一条订单事务抛错（模拟库存不足等业务异常），第二条正常
+        mocks.queryOneWithTenant.mockResolvedValue(null);
+        mocks.transaction
+            .mockRejectedValueOnce(new AppError("库存不足", 400))
+            .mockImplementationOnce(async (cb: any) => cb({
+                query: vi.fn().mockResolvedValue([[], undefined]),
+                execute: vi.fn().mockResolvedValue([{}]),
+            }));
 
         const orders = [
             { draftNo: "DRAFT-001", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
@@ -532,22 +535,46 @@ describe("delta-sync.service - submitOfflineOrders", () => {
         expect(res.successCount).toBe(1);
         expect(res.failureCount).toBe(1);
         expect(res.results[0].success).toBe(false);
-        expect(res.results[0].errorMsg).toContain("DRAFT-001");
-        expect(res.results[0].errorMsg).toContain("已存在");
+        expect(res.results[0].errorMsg).toContain("库存不足");
         expect(res.results[1].success).toBe(true);
         expect(res.results[1].billNo).toBe("DRAFT-002");
     });
 
-    it("重复 draftNo — 返回失败 errorMsg", async () => {
-        mocks.queryOneWithTenant.mockResolvedValue({ billNo: "DRAFT-DUP" });
+    it("重复 draftNo — 幂等成功：success=true 且返回既有 billNo（B-2b 裁定 3）", async () => {
+        // 库里已有该幂等键对应的销售单（含"已写库但响应丢失"的重试场景）
+        mocks.queryOneWithTenant.mockResolvedValue({ billNo: "XS20260923001" });
         const orders = [
             { draftNo: "DRAFT-DUP", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
         ];
         const res = await submitOfflineOrders(orders, TENANT_A, 1);
-        expect(res.results[0].success).toBe(false);
-        expect(res.results[0].errorMsg).toContain("DRAFT-DUP");
-        expect(res.results[0].errorMsg).toContain("禁止重复提交");
+        expect(res.totalCount).toBe(1);
+        expect(res.successCount).toBe(1);
+        expect(res.failureCount).toBe(0);
+        expect(res.results[0].success).toBe(true);
+        expect(res.results[0].billNo).toBe("XS20260923001");
+        expect(res.results[0].errorMsg).toBeUndefined();
+        // 幂等命中不进入事务，不重复写库
         expect(mocks.transaction).not.toHaveBeenCalled();
+    });
+
+    it("明细 INSERT 显式带 tenant_id（B-2b 修复点 2）", async () => {
+        mocks.queryOneWithTenant.mockResolvedValue(null);
+        const mockConn = {
+            query: vi.fn().mockResolvedValue([[], undefined]),
+            execute: vi.fn().mockResolvedValue([{}]),
+        };
+        mocks.transaction.mockImplementation(async (cb: any) => cb(mockConn));
+
+        const orders = [
+            { draftNo: "DRAFT-TENANT", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
+        ];
+        const res = await submitOfflineOrders(orders, TENANT_A, 1);
+        expect(res.results[0].success).toBe(true);
+        // execute 调用顺序：第 1 次主表 INSERT，第 2 次明细 INSERT
+        const [itemSql, itemParams] = mockConn.execute.mock.calls[1] as [string, unknown[]];
+        expect(String(itemSql)).toMatch(/INSERT INTO t_sale_bill_item/);
+        expect(String(itemSql)).toMatch(/tenant_id/);
+        expect(itemParams[itemParams.length - 1]).toBe(TENANT_A);
     });
 
     it("事务回滚 — 单条订单部分失败不影响其他订单", async () => {
@@ -659,7 +686,8 @@ describe("delta-sync.service - submitOfflineOrders", () => {
     });
 
     it("AppError 错误对象被正确捕获并提取 message", async () => {
-        mocks.queryOneWithTenant.mockResolvedValue({ billNo: "DRAFT-APP" });
+        mocks.queryOneWithTenant.mockResolvedValue(null);
+        mocks.transaction.mockRejectedValueOnce(new AppError("单号 DRAFT-APP 参数非法", 400));
         const orders = [
             { draftNo: "DRAFT-APP", items: [buildOrderItem()], totalAmount: 774, createdAt: "2026-07-19T10:00:00Z" },
         ];

@@ -104,10 +104,10 @@ export async function seedData(conn: mysql.Connection): Promise<void> {
         const userId = (insertResult as { insertId?: number }).insertId;
         if (userId) {
             await conn.query(
-                `INSERT INTO t_sys_user_role (user_id, role_id)
-                 SELECT ?, id FROM t_sys_role WHERE role_code = ?
+                `INSERT INTO t_sys_user_role (user_id, role_id, tenant_id)
+                 SELECT ?, id, ? FROM t_sys_role WHERE role_code = ?
                  ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)`,
-                [userId, demoRoleCodes[acc.username]]
+                [userId, TENANT_ID, demoRoleCodes[acc.username]]
             );
             logger.info(`[seed] 演示账号 ${acc.username} 创建成功（密码 admin123）`);
         }

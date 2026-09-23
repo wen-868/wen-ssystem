@@ -231,11 +231,11 @@ export async function createPurchaseOrder(params: {
       const total = subtotal + tax;
       await conn.execute(
         `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
-          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderNo, item.skuId, item.skuName, item.barcode ?? null,
           item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null, tenantId]
       );
     }
 
@@ -310,11 +310,11 @@ export async function updatePurchaseOrder(id: number, params: {
         const total = subtotal + tax;
         await conn.execute(
           `INSERT INTO t_purchase_order_item (order_no, sku_id, sku_name, barcode, box_qty, bottle_qty,
-            total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            total_bottle_qty, unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark, tenant_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [existing.orderNo, item.skuId, item.skuName, item.barcode ?? null,
           item.boxQty, item.bottleQty, item.totalBottleQty,
-          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null]
+          item.unitPrice, item.taxRate, subtotal, tax, total, item.remark ?? null, tenantId]
         );
       }
     }

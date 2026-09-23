@@ -650,7 +650,7 @@ export async function getMemberDelta(
  *
  *  - 逐条处理，单条失败不影响其他订单（错误隔离）
  *  - 单条订单使用事务保证原子性（sale_bill + sale_bill_item 同时成功或同时回滚）
- *  - 通过 draftNo 唯一性实现幂等：重复 draftNo 直接返回失败 errorMsg
+ *  - 通过 draftNo 唯一性实现幂等：重复 draftNo 返回 success=true + 既有 billNo（幂等成功）
  *  - 使用服务端 makeBizNo("XS") 生成 billNo，不依赖客户端时间
  *
  * @param orders 离线订单列表
@@ -684,7 +684,11 @@ export async function submitOfflineOrders(
                 tenantId
             );
             if (existing) {
-                throw new AppError(`单号 ${order.draftNo} 已存在，禁止重复提交`, 409);
+                // 幂等成功：同一 draftNo 已落库（含"已写库但响应丢失"的重试场景），
+                // 返回既有单号并记为成功，避免客户端把它标成 SYNC_FAILED 后无限重试。
+                results.push({ draftNo: order.draftNo, success: true, billNo: String(existing.billNo) });
+                successCount++;
+                continue;
             }
 
             // 事务保证 sale_bill + sale_bill_item 原子性
@@ -740,8 +744,8 @@ export async function submitOfflineOrders(
                     await conn.execute(
                         `INSERT INTO t_sale_bill_item (
                bill_no, sku_id, sku_name, box_qty, bottle_qty, total_bottle_qty,
-               unit_price, price_type, subtotal_amount
-             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+               unit_price, price_type, subtotal_amount, tenant_id
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                         [
                             order.draftNo,
                             Number(item.skuId),
@@ -752,6 +756,7 @@ export async function submitOfflineOrders(
                             Number(item.unitPrice ?? 0),
                             String(item.priceType ?? "RETAIL"),
                             Number(item.subtotalAmount ?? 0),
+                            tenantId,
                         ]
                     );
                 }

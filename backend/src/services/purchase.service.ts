@@ -371,8 +371,8 @@ class PurchaseService {
           conn,
           `INSERT INTO t_purchase_order_item (
             order_no, sku_id, sku_name, barcode, box_qty, bottle_qty, total_bottle_qty,
-            unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            unit_price, tax_rate, subtotal_amount, tax_amount, total_amount, remark, tenant_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             orderNo,
             item.skuId,
@@ -387,6 +387,7 @@ class PurchaseService {
             item.taxAmount,
             item.totalAmount,
             item.remark || null,
+            ctx.tenantId,
           ]
         );
       }

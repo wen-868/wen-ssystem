@@ -1,0 +1,1735 @@
+{
+  "generatedAt": "2026-09-23T00:36:56.465Z",
+  "tablesWithTenantId": 253,
+  "insertStatements": 669,
+  "candidateCount": 88,
+  "excludedNoDefault": [
+    "t_sale_bill_item_archive backend/src/services/admin/archive.service.ts:110 [conn.execute] 无列清单",
+    "t_purchase_order_item_archive backend/src/services/admin/archive.service.ts:122 [conn.execute] 无列清单",
+    "t_cart_item backend/src/services/admin/cart.service.ts:298 [queryWithTenant]",
+    "t_platform_order backend/src/services/admin/instant-retail.service.ts:284 [conn.execute]",
+    "t_flash_sale backend/src/services/admin/marketing-flash-sale.service.ts:99 [queryWithTenant]",
+    "t_group_buy backend/src/services/admin/marketing-group-buy.service.ts:65 [queryWithTenant]",
+    "t_promo_stack_rule backend/src/services/admin/marketing-stack-rule.service.ts:27 [queryWithTenant]",
+    "t_sys_role_menu backend/src/services/admin/menu-permission.service.ts:214 [execute]",
+    "t_order_timeout_config backend/src/services/admin/order-timeout.service.ts:48 [queryWithTenant]",
+    "t_print_record backend/src/services/admin/print.service.ts:137 [queryWithTenant]",
+    "t_print_record backend/src/services/admin/print.service.ts:304 [queryWithTenant]",
+    "t_push_token backend/src/services/admin/push.service.ts:372 [queryWithTenant]",
+    "t_tenant backend/src/services/admin/tenant.service.ts:180 [conn.execute]",
+    "t_platform_order backend/src/services/instant-retail/platform-integration.service.ts:79 [conn.execute]",
+    "t_cart_item backend/src/services/miniapp/cart.service.ts:92 [queryWithTenant]",
+    "t_tenant backend/src/services/platform-tenant.service.ts:88 [query]",
+    "t_tenant backend/src/services/saas/tenant.service.ts:169 [query]",
+    "t_tenant backend/src/services/tenant-register.service.ts:194 [(未知)]",
+    "t_tenant backend/src/shared/migration.ts:257 [(未知)]",
+    "t_bank_account backend/src/__tests__/mocks/mock-db-system.ts:313 [s.includes] 无列清单",
+    "t_platform_config backend/src/__tests__/mocks/mock-db-system.ts:369 [s.includes] 无列清单",
+    "t_platform_config backend/src/__tests__/mocks/mock-db-system.ts:369 [s.includes] 无列清单",
+    "t_platform_order backend/src/__tests__/mocks/mock-db-system.ts:420 [s.includes] 无列清单",
+    "t_platform_order backend/src/__tests__/mocks/mock-db-system.ts:420 [s.includes] 无列清单",
+    "t_sale_bill_archive backend/src/__tests__/services/admin/archive.service.test.ts:65 [toContain] 无列清单",
+    "t_purchase_order_archive backend/src/__tests__/services/admin/archive.service.test.ts:79 [toContain] 无列清单",
+    "t_sales_commission_rule backend/src/__tests__/services/admin/commission.service.test.ts:31 [expect.stringContaining] 无列清单",
+    "t_customer_care_rule backend/src/__tests__/services/admin/customer-care.service.test.ts:31 [expect.stringContaining] 无列清单",
+    "t_customer_price backend/src/__tests__/services/admin/customer-price.service.test.ts:33 [expect.stringContaining] 无列清单",
+    "t_customer_segment backend/src/__tests__/services/admin/customer-segment.service.test.ts:25 [expect.stringContaining] 无列清单",
+    "t_customer_tag backend/src/__tests__/services/admin/customer-tag.service.test.ts:31 [expect.stringContaining] 无列清单",
+    "t_flash_sale backend/src/__tests__/services/admin/marketing-flash-sale.service.test.ts:59 [toContain] 无列清单",
+    "t_full_reduction backend/src/__tests__/services/admin/marketing-full-reduction.service.test.ts:61 [toContain] 无列清单",
+    "t_limited_discount backend/src/__tests__/services/admin/marketing-limited-discount.service.test.ts:43 [toContain] 无列清单",
+    "t_coupon_template backend/src/__tests__/services/admin/marketing-new-coupon.service.test.ts:108 [toContain] 无列清单",
+    "t_marketing_operation_log backend/src/__tests__/services/admin/marketing-new-coupon.service.test.ts:109 [toContain] 无列清单",
+    "t_points_product backend/src/__tests__/services/admin/marketing-points-mall.service.test.ts:39 [toContain] 无列清单",
+    "t_points_rule backend/src/__tests__/services/admin/marketing-points.service.test.ts:73 [toContain] 无列清单",
+    "t_points_record backend/src/__tests__/services/admin/marketing-points.service.test.ts:167 [includes] 无列清单",
+    "t_promo_stack_rule backend/src/__tests__/services/admin/marketing-stack-rule.service.test.ts:48 [toContain] 无列清单",
+    "t_order_timeout_log backend/src/__tests__/services/admin/order-timeout.service.test.ts:168 [toContain] 无列清单",
+    "t_customer_points backend/src/__tests__/services/admin/points.service.test.ts:73 [toContain] 无列清单",
+    "t_customer_level backend/src/__tests__/services/admin/points.service.test.ts:175 [toContain] 无列清单",
+    "t_print_record backend/src/__tests__/services/admin/print.service.test.ts:84 [toContain] 无列清单",
+    "t_print_record backend/src/__tests__/services/admin/print.service.test.ts:413 [toContain] 无列清单",
+    "t_push_token backend/src/__tests__/services/admin/push.service.test.ts:199 [toContain] 无列清单",
+    "t_stock_check backend/src/__tests__/services/admin/stock-check.service.test.ts:37 [expect.stringContaining] 无列清单",
+    "t_hardware_config backend/src/__tests__/services/hardware/hardware.test.ts:78 [expect.stringContaining] 无列清单",
+    "t_retail_product backend/src/__tests__/services/instant-retail/retail-ops-ext.service.test.ts:127 [expect.stringContaining] 无列清单",
+    "t_retail_shop_config backend/src/__tests__/services/instant-retail/retail-shop.service.test.ts:102 [expect.stringContaining] 无列清单",
+    "t_retail_category backend/src/__tests__/services/instant-retail/retail-shop.service.test.ts:161 [expect.stringContaining] 无列清单",
+    "t_retail_banner backend/src/__tests__/services/instant-retail/retail-shop.service.test.ts:207 [expect.stringContaining] 无列清单",
+    "t_bargain_help backend/src/__tests__/services/marketing/community-marketing-bargain.test.ts:270 [includes] 无列清单",
+    "t_store_value_transaction backend/src/__tests__/services/miniapp/stored-card.service.test.ts:85 [expect.stringContaining] 无列清单",
+    "t_platform_config backend/src/__tests__/services/platform/ai-billing-config.service.test.ts:82 [toContain] 无列清单",
+    "t_platform_config backend/src/__tests__/services/platform/billing-config.service.test.ts:60 [toContain] 无列清单",
+    "t_platform_config backend/src/__tests__/services/platform/plan-policy.service.test.ts:65 [toContain] 无列清单",
+    "t_tenant_config backend/src/__tests__/services/platform/tenant-c1-2.service.test.ts:207 [toContain] 无列清单",
+    "t_sync_cache backend/src/__tests__/services/sync/price-sync.service.test.ts:44 [includes] 无列清单",
+    "t_sync_cache backend/src/__tests__/services/sync/product-sync.service.test.ts:30 [includes] 无列清单",
+    "t_tenant backend/src/__tests__/services/tenant-register.service.test.ts:149 [sql.includes] 无列清单",
+    "t_payment_method backend/src/__tests__/services/tenant-register.service.test.ts:163 [s.includes] 无列清单",
+    "t_transfer_order backend/src/__tests__/services/transfer-order.service.test.ts:96 [includes]",
+    "t_tenant backend/src/__tests__/shared/migration.test.ts:429 [includes] 无列清单"
+  ],
+  "candidates": [
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/services/admin/employee.service.ts",
+      "line": 137,
+      "cols": [
+        "username",
+        "real_name",
+        "mobile",
+        "store_id",
+        "department_id",
+        "position_id",
+        "status",
+        "password_hash"
+      ],
+      "executor": "queryWithTenant",
+      "ddl": [
+        "docs/init_database.sql:51 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:153 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:153 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": true,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 307,
+      "cols": [
+        "order_no",
+        "store_id",
+        "customer_type",
+        "fulfillment_type",
+        "order_status",
+        "pay_status",
+        "payable_amount",
+        "receiver_name",
+        "receiver_mobile",
+        "receiver_address",
+        "remark",
+        "created_at"
+      ],
+      "executor": "conn.execute",
+      "ddl": [
+        "docs/init_database.sql:644 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:168 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:168 → add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/admin/instant-retail.service.ts",
+      "line": 324,
+      "cols": [
+        "order_no",
+        "sku_id",
+        "sku_name",
+        "qty",
+        "reserved_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "executor": "conn.execute",
+      "ddl": [
+        "docs/init_database.sql:682 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:169 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:169 → add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_report_permission_matrix",
+      "file": "backend/src/services/admin/report-permission.service.ts",
+      "line": 27,
+      "cols": [
+        "role_id",
+        "report_code",
+        "store_scope"
+      ],
+      "executor": "conn.query",
+      "ddl": [
+        "docs/migrations/168_stock_check_report_perm_columns.sql:6 (ALTER TABLE ADD COLUMN)"
+      ],
+      "tenantDef": [
+        "docs/migrations/168_stock_check_report_perm_columns.sql:6 → ALTER TABLE t_report_permission_matrix ADD COLUMN `tenant_id` VARCHAR(64) DEFAULT 'default' COMMENT '租户ID'"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 102,
+      "cols": [
+        "order_no",
+        "store_id",
+        "customer_type",
+        "fulfillment_type",
+        "order_status",
+        "pay_status",
+        "payable_amount",
+        "receiver_name",
+        "receiver_mobile",
+        "receiver_address",
+        "remark",
+        "created_at"
+      ],
+      "executor": "conn.execute",
+      "ddl": [
+        "docs/init_database.sql:644 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:168 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:168 → add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/services/instant-retail/platform-integration.service.ts",
+      "line": 119,
+      "cols": [
+        "order_no",
+        "sku_id",
+        "sku_name",
+        "qty",
+        "reserved_qty",
+        "unit_price",
+        "price_type",
+        "subtotal_amount"
+      ],
+      "executor": "conn.execute",
+      "ddl": [
+        "docs/init_database.sql:682 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:169 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:169 → add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_retail_announcement",
+      "file": "backend/src/services/instant-retail/retail-announcement.service.ts",
+      "line": 73,
+      "cols": [
+        "store_id",
+        "title",
+        "content",
+        "is_top",
+        "start_time",
+        "end_time",
+        "status"
+      ],
+      "executor": "queryWithTenant",
+      "ddl": [
+        "docs/migrations/052_add_retail_announcement.sql:6 (CREATE TABLE)",
+        "docs/migrations/052_add_retail_announcement.sql:25 (ALTER TABLE ADD COLUMN)"
+      ],
+      "tenantDef": [
+        "docs/migrations/052_add_retail_announcement.sql:6 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',",
+        "docs/migrations/052_add_retail_announcement.sql:25 → ALTER TABLE t_retail_announcement ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": true,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/services/platform-miniapp.service.ts",
+      "line": 172,
+      "cols": [
+        "openid",
+        "plan_id",
+        "plan_name",
+        "company",
+        "contact",
+        "mobile",
+        "remark",
+        "status"
+      ],
+      "executor": "query",
+      "ddl": [
+        "docs/migrations/131_platform_subscription_apply.sql:14 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/131_platform_subscription_apply.sql:14 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": false,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 158,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:368 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:109 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:109 → add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "cols": [
+        "\""
+      ],
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1087 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:158 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:158 → add_column_if_not_exists('t_customer_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 184,
+      "cols": [
+        "\""
+      ],
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1087 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:158 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:158 → add_column_if_not_exists('t_customer_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "cols": [
+        "\""
+      ],
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1119 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:159 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:159 → add_column_if_not_exists('t_customer_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-customer.ts",
+      "line": 210,
+      "cols": [
+        "\""
+      ],
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1119 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:159 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:159 → add_column_if_not_exists('t_customer_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_customer_payment",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 79,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1119 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:159 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:159 → add_column_if_not_exists('t_customer_payment', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_customer_statement",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 112,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1087 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:158 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:158 → add_column_if_not_exists('t_customer_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_collection_link",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 157,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1177 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:172 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:172 → add_column_if_not_exists('t_collection_link', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER "
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_collection_view_log",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 179,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1372 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:173 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:173 → add_column_if_not_exists('t_collection_view_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AF"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 186,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 207,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 228,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1269 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:164 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:164 → add_column_if_not_exists('t_refund_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\""
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_refund_order",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 268,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1269 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:164 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:164 → add_column_if_not_exists('t_refund_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\""
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_receivable_account",
+      "file": "backend/src/__tests__/mocks/mock-db-finance.ts",
+      "line": 291,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1213 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:160 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:160 → add_column_if_not_exists('t_receivable_account', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 279,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:644 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:168 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:168 → add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_miniapp_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 313,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:682 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:169 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:169 → add_column_if_not_exists('t_miniapp_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/mocks/mock-db-order.ts",
+      "line": 398,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1295 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:165 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:165 → add_column_if_not_exists('t_hold_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_platform_subscription_apply",
+      "file": "backend/src/__tests__/mocks/mock-db-platform-miniapp.ts",
+      "line": 112,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/migrations/131_platform_subscription_apply.sql:14 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/131_platform_subscription_apply.sql:14 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1388 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:184 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:184 → add_column_if_not_exists('t_product_price_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 155,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1388 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:184 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:184 → add_column_if_not_exists('t_product_price_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:396 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:99 (CALL add_column)",
+        "backend/src/shared/migration.ts:493 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:99 → add_column_if_not_exists('t_product_spu', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:493 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_spu",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 173,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:396 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:99 (CALL add_column)",
+        "backend/src/shared/migration.ts:493 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:99 → add_column_if_not_exists('t_product_spu', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:493 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:427 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:100 (CALL add_column)",
+        "backend/src/shared/migration.ts:529 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:100 → add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:529 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 191,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:427 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:100 (CALL add_column)",
+        "backend/src/shared/migration.ts:529 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:100 → add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:529 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:457 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:101 (CALL add_column)",
+        "backend/src/shared/migration.ts:556 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:101 → add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:556 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/mocks/mock-db-product.ts",
+      "line": 211,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:457 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:101 (CALL add_column)",
+        "backend/src/shared/migration.ts:556 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:101 → add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:556 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:117 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:95 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:95 → add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/mocks/mock-db-store.ts",
+      "line": 47,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:117 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:95 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:95 → add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_purchase_order_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 909,
+      "cols": [
+        "order_no",
+        "sku_id",
+        "sku_name",
+        "barcode",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "//unit_price",
+        "tax_rate",
+        "subtotal_amount",
+        "tax_amount",
+        "total_amount",
+        "remark"
+      ],
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:862 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:148 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:148 → add_column_if_not_exists('t_purchase_order_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AF"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_purchase_in_stock_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1055,
+      "cols": [
+        "stock_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "//unit_price",
+        "tax_rate",
+        "subtotal_amount",
+        "tax_amount",
+        "total_amount",
+        "batch_no",
+        "production_date",
+        "expiry_date",
+        "remark"
+      ],
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:920 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:150 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:150 → add_column_if_not_exists('t_purchase_in_stock_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID'"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_purchase_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1135,
+      "cols": [
+        "return_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "//unit_price",
+        "tax_rate",
+        "subtotal_amount",
+        "tax_amount",
+        "total_amount",
+        "reason"
+      ],
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:981 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:152 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:152 → add_column_if_not_exists('t_purchase_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' A"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_sale_return_item",
+      "file": "backend/src/__tests__/mocks/mock-db-supplier.ts",
+      "line": 1212,
+      "cols": [
+        "return_no",
+        "sku_id",
+        "sku_name",
+        "box_qty",
+        "bottle_qty",
+        "total_bottle_qty",
+        "//unit_price",
+        "subtotal_amount",
+        "reason"
+      ],
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:805 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:143 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:143 → add_column_if_not_exists('t_sale_return_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/migrations/120d_fix_server_3bugs.sql:145 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:694 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:694 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 65,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/migrations/120d_fix_server_3bugs.sql:145 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:694 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:694 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1348 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:183 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:183 → add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/mocks/mock-db-system.ts",
+      "line": 176,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:1348 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:183 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:183 → add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_approval_rule",
+      "file": "backend/src/__tests__/services/admin/approval-flow.service.test.ts",
+      "line": 35,
+      "cols": null,
+      "executor": "expect.stringContaining",
+      "ddl": [
+        "docs/migrations/092_租户ID.sql:187 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:187 → add_column_if_not_exists('t_approval_rule', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price_log",
+      "file": "backend/src/__tests__/services/admin/batch-price.service.test.ts",
+      "line": 146,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:1388 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:184 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:184 → add_column_if_not_exists('t_product_price_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_brand",
+      "file": "backend/src/__tests__/services/admin/brand.service.test.ts",
+      "line": 36,
+      "cols": null,
+      "executor": "expect.stringContaining",
+      "ddl": [
+        "docs/migrations/070_品牌表.sql:4 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:452 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/070_品牌表.sql:4 → tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',",
+        "backend/src/shared/migration.ts:452 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 107,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:368 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:109 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:109 → add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 121,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:368 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:109 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:109 → add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_member",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 147,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:368 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:109 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:109 → add_column_if_not_exists('t_member', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 173,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:427 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:100 (CALL add_column)",
+        "backend/src/shared/migration.ts:529 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:100 → add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:529 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_sku",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 174,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:427 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:100 (CALL add_column)",
+        "backend/src/shared/migration.ts:529 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:100 → add_column_if_not_exists('t_product_sku', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")",
+        "backend/src/shared/migration.ts:529 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 177,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:457 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:101 (CALL add_column)",
+        "backend/src/shared/migration.ts:556 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:101 → add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:556 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_product_price",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 178,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:457 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:101 (CALL add_column)",
+        "backend/src/shared/migration.ts:556 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:101 → add_column_if_not_exists('t_product_price', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id",
+        "backend/src/shared/migration.ts:556 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 181,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:552 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:114 (CALL add_column)",
+        "docs/migrations/093_库存增加租户ID.sql:3 (ALTER TABLE ADD COLUMN)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:114 → add_column_if_not_exists('t_inventory_balance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_inventory_balance",
+      "file": "backend/src/__tests__/services/admin/data-transfer.service.test.ts",
+      "line": 182,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:552 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:114 (CALL add_column)",
+        "docs/migrations/093_库存增加租户ID.sql:3 (ALTER TABLE ADD COLUMN)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:114 → add_column_if_not_exists('t_inventory_balance', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_error_logs",
+      "file": "backend/src/__tests__/services/admin/error-log.service.test.ts",
+      "line": 46,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/migrations/120d_fix_server_3bugs.sql:145 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:694 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:694 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_system_feedback",
+      "file": "backend/src/__tests__/services/admin/feedback.service.test.ts",
+      "line": 47,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "backend/src/shared/migration.ts:669 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:669 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 444,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:1537 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:126 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:126 → add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AF"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 460,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:1537 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:126 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:126 → add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AF"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_expiry_alert_record",
+      "file": "backend/src/__tests__/services/admin/inventory-batch.test.ts",
+      "line": 476,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:1537 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:126 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:126 → add_column_if_not_exists('t_expiry_alert_record', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AF"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_notification",
+      "file": "backend/src/__tests__/services/admin/notification.service.test.ts",
+      "line": 65,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:1319 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:180 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:180 → add_column_if_not_exists('t_notification', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\""
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 284,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1348 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:183 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:183 → add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 314,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1348 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:183 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:183 → add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_operation_log",
+      "file": "backend/src/__tests__/services/admin/order.test.ts",
+      "line": 349,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1348 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:183 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:183 → add_column_if_not_exists('t_operation_log', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 196,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:890 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:149 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:149 → add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 209,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:890 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:149 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:149 → add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_purchase_in_stock",
+      "file": "backend/src/__tests__/services/admin/purchase-in-stock.test.ts",
+      "line": 222,
+      "cols": null,
+      "executor": "sql.includes",
+      "ddl": [
+        "docs/init_database.sql:890 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:149 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:149 → add_column_if_not_exists('t_purchase_in_stock', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTE"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_store_control_config",
+      "file": "backend/src/__tests__/services/admin/store-control.service.test.ts",
+      "line": 43,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:288 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:136 (CALL add_column)",
+        "backend/src/shared/migration.ts:412 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:136 → add_column_if_not_exists('t_store_control_config', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' A",
+        "backend/src/shared/migration.ts:412 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 38,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1040 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:156 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:156 → add_column_if_not_exists('t_supplier_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_supplier_statement",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 51,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1040 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:156 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:156 → add_column_if_not_exists('t_supplier_statement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFT"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_supplier_statement_item",
+      "file": "backend/src/__tests__/services/admin/supplier-statement.service.test.ts",
+      "line": 53,
+      "cols": null,
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:1068 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:157 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:157 → add_column_if_not_exists('t_supplier_statement_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_unit_group_item",
+      "file": "backend/src/__tests__/services/admin/unit-group.service.test.ts",
+      "line": 105,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/migrations/067_add_unit_group.sql:14 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/067_add_unit_group.sql:14 → tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_miniapp_order",
+      "file": "backend/src/__tests__/services/miniapp/checkout.service.test.ts",
+      "line": 99,
+      "cols": [
+        "\""
+      ],
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:644 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:168 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:168 → add_column_if_not_exists('t_miniapp_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_purchase_order",
+      "file": "backend/src/__tests__/services/purchase.service.test.ts",
+      "line": 84,
+      "cols": [
+        "\""
+      ],
+      "executor": "includes",
+      "ddl": [
+        "docs/init_database.sql:828 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:147 (CALL add_column)",
+        "backend/src/shared/migration.ts:610 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:147 → add_column_if_not_exists('t_purchase_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER i",
+        "backend/src/shared/migration.ts:610 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_payment_order",
+      "file": "backend/src/__tests__/services/share.service.test.ts",
+      "line": 191,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:1242 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:163 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:163 → add_column_if_not_exists('t_payment_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_hold_order",
+      "file": "backend/src/__tests__/services/store/other.service.test.ts",
+      "line": 35,
+      "cols": null,
+      "executor": "expect.stringContaining",
+      "ddl": [
+        "docs/init_database.sql:1295 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:165 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:165 → add_column_if_not_exists('t_hold_order', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_daily_settlement",
+      "file": "backend/src/__tests__/services/store/shift.service.test.ts",
+      "line": 60,
+      "cols": null,
+      "executor": "expect.stringContaining",
+      "ddl": [
+        "docs/migrations/092_租户ID.sql:195 (CALL add_column)",
+        "docs/migrations/124_drift_tables_fill.sql:108 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:195 → add_column_if_not_exists('t_daily_settlement', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_sale_bill_item",
+      "file": "backend/src/__tests__/services/sync/delta-sync.service.test.ts",
+      "line": 575,
+      "cols": null,
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:748 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:141 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:141 → add_column_if_not_exists('t_sale_bill_item', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER i"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 161,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:117 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:95 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:95 → add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_price_level",
+      "file": "backend/src/__tests__/services/tenant-register.service.test.ts",
+      "line": 162,
+      "cols": null,
+      "executor": "s.includes",
+      "ddl": [
+        "docs/init_database.sql:200 (CREATE TABLE)",
+        "docs/migrations/012_phase7_price_tenant.sql:11 (ALTER TABLE ADD COLUMN)",
+        "docs/migrations/092_租户ID.sql:119 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/012_phase7_price_tenant.sql:11 → ALTER TABLE t_price_level ADD COLUMN tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER status",
+        "docs/migrations/092_租户ID.sql:119 → add_column_if_not_exists('t_price_level', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_store",
+      "file": "backend/src/__tests__/services/warehouse.service.test.ts",
+      "line": 41,
+      "cols": null,
+      "executor": "expect.stringContaining",
+      "ddl": [
+        "docs/init_database.sql:117 (CREATE TABLE)",
+        "docs/migrations/092_租户ID.sql:95 (CALL add_column)"
+      ],
+      "tenantDef": [
+        "docs/migrations/092_租户ID.sql:95 → add_column_if_not_exists('t_store', 'tenant_id', \"VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID' AFTER id\")"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 114,
+      "cols": [
+        "name"
+      ],
+      "executor": "(未知)",
+      "ddl": [
+        "docs/init_database.sql:51 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:153 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:153 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": true
+    },
+    {
+      "table": "t_sys_user",
+      "file": "backend/src/__tests__/shared/migration.test.ts",
+      "line": 116,
+      "cols": null,
+      "executor": "toContain",
+      "ddl": [
+        "docs/init_database.sql:51 (CREATE TABLE)",
+        "backend/src/shared/migration.ts:153 (CREATE TABLE)"
+      ],
+      "tenantDef": [
+        "backend/src/shared/migration.ts:153 → tenant_id VARCHAR(36) NOT NULL DEFAULT 'default' COMMENT '租户ID',"
+      ],
+      "autoInjected": false,
+      "test": true,
+      "hasColumnList": false
+    }
+  ]
+}

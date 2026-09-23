@@ -1,0 +1,15 @@
+文件: docs/migrations/172_sale_bill_item_tenant_backfill.sql
+切块数 = 3；保留(会执行) = 2；丢弃 = 1；空块 = 0
+
+--- KEPT 1 ---
+UPDATE t_sale_bill_item SET tenant_id = (SELECT b.tenant_id FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no) WHERE tenant_id = 'default' AND EXISTS (SELECT 1 FROM t_sale_bill b WHERE b.bill_no = t_sale_bill_item.bill_no AND b.tenant_id <> 'default')
+--- KEPT 2 ---
+SELECT COUNT(*) AS mismatch_remaining FROM t_sale_bill_item i JOIN t_sale_bill b ON b.bill_no = i.bill_no WHERE i.tenant_id = 'default' AND b.tenant_id <> 'default'
+
+--- DROPPED 1（以 '--' 开头，管线丢弃；前 60 字）---
+-- =========================================================
+
+保留语句中 ALTER 命中 = false（要求 false，零 ALTER）
+保留语句中 CREATE 命中 = false（要求 false，零建表）
+保留语句中 DROP 命中 = false（要求 false）
+语句在注释之前 = true

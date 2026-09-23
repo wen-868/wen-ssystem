@@ -230,9 +230,9 @@ export async function setRoleDataPermissions(
     );
     for (const dp of dataPermissions) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        `INSERT INTO t_sys_data_permission (role_id, table_name, field_name, filter_type, filter_value)
-         VALUES (?, ?, ?, ?, ?)`,
-        [roleId, dp.tableName, dp.fieldName, dp.filterType, dp.filterValue]
+        `INSERT INTO t_sys_data_permission (role_id, table_name, field_name, filter_type, filter_value, tenant_id)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [roleId, dp.tableName, dp.fieldName, dp.filterType, dp.filterValue, tenantId]
       );
     }
   });
@@ -250,9 +250,9 @@ export async function setRoleFieldPermissions(
     );
     for (const fp of fieldPermissions) {
       await (conn as { execute: (sql: string, params?: unknown[]) => Promise<unknown> }).execute(
-        `INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type)
-         VALUES (?, ?, ?, ?)`,
-        [roleId, fp.tableName, fp.fieldName, fp.permissionType]
+        `INSERT INTO t_sys_field_permission (role_id, table_name, field_name, permission_type, tenant_id)
+         VALUES (?, ?, ?, ?, ?)`,
+        [roleId, fp.tableName, fp.fieldName, fp.permissionType, tenantId]
       );
     }
   });
