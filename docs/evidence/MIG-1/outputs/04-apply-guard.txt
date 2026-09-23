@@ -1,0 +1,7 @@
+[MIG-1/rehearsal] 模式 apply —— 真库副本演练
+  目标：mysql://root@127.0.0.1:3306/liquor_inventory_rehearsal
+  结构快照： （未提供 --dump，按空库演练；结论不能当结构快照证据）
+  ✗ 拒绝执行：apply 模式会在目标库建库/建表/写数据，必须显式加 --allow-write。
+    （克隆副本库后重跑：node docs/evidence/MIG-1/tools/mig1-rehearsal.mjs --mode apply --host <副本> --user <u> --password <p> --database <副本库> --dump <快照.sql> --allow-write）
+RESULT: BLOCKED-BY-GUARD（未连接任何库，未执行任何写操作）
+EXIT=3

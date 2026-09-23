@@ -1,0 +1,7 @@
+[MIG-1/probe3] 按固定规则抽 3 条，生成副本库验证命令
+  ① L1 幂等建表 ⇒ 006_phase4_schema.sql:161 CREATE / L1 / t_trace_config
+  ② L2 改结构 ⇒ 010_phase7_credit_tenant.sql:10 ALTER / L2 / t_customer_credit
+  ③ L3 改数据 ⇒ 002_phase1_seed.sql:8 INSERT / L3 / t_sys_user
+已落盘：docs/evidence/MIG-1/反测-3条.md
+RESULT: ALL PASS
+EXIT=0

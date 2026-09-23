@@ -1,0 +1,12 @@
+[MIG-1/rehearsal] 模式 sqlite-dryrun —— 无真库自证：用真实 SQL 引擎（node:sqlite 内存库）承载并核对挑选结果
+  声明：本模式**只验证『挑了哪些语句』**（挑选结果能落库、能被独立 SQL 引擎聚合核对），**不验证 MySQL 语义**。
+  落库：计划 1082 条（其中新增执行 457 条）
+  按类型（SQL 聚合）：CREATE 241 / INSERT 78 / ALTER 50 / 其它(CALL) 29 / DROP 22 / SET/动态DDL 17 / 其它(SELECT) 15 / UPDATE 5
+  按风险（SQL 聚合）：L1 260 / L2 92 / L3 83 / L4 22
+  与 expected.json 对照：清单 457 条 / SQL 聚合 457 条；按类型一致=true
+  判定：一致 ✅
+
+  采样（前 3 条）在 sqlite 上直接执行的报错，说明**语义只能到 MySQL 副本库验证**：
+    001_phase1_schema.sql:7 CREATE ⇒ near "DATABASE": syntax error
+    002_phase1_seed.sql:8 INSERT ⇒ near "DUPLICATE": syntax error
+    003_phase2_schema.sql:9 SET/动态DDL ⇒ near "SET": syntax error

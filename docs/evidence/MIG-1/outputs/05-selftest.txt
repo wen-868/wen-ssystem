@@ -1,0 +1,9 @@
+[MIG-1/rehearsal] 模式 selftest —— 反测（证明挑选与断言会红）
+  ✓ F1 注释在前的 CREATE TABLE 必须被判为『修复后新增执行』 ⇒ 新增 1 条
+  ✓ F2 语句在前的正确写法必须落在『本来就会执行』一侧（不进新增集合） ⇒ 新增 0 / 对照 1
+  ✓ F3 DROP TABLE 必须被判为『修复后仍由 runner 跳过』，且风险 L4 ⇒ skip=drop_table risk=L4
+  ✓ F4 纯注释块不得进入清单 ⇒ 新增 0 条
+  ✓ S1 断言引擎自证：把『应当新增 1 条』故意写成『新增 0 条』时必须判红 ⇒ 错误预期命中判红:true
+  ✓ F5 与 expected.json 逐条一致（文件数/条数/键） ⇒ expected 128 文件 / 457 条；plan 128 文件 / 457 条
+
+RESULT: ALL PASS

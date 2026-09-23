@@ -1,0 +1,33 @@
+[MIG-1/extract] 复演 backend/src/shared/migration.ts:894-931 的外部迁移切分规则
+               仓库根：D:\Users\ZXQL\wt-agents\issue-69
+               迁移目录：D:\Users\ZXQL\wt-agents\issue-69\docs\migrations
+
+== 反测（先证明提取器会红） ==
+  ✓ ① 注释在前 + CREATE TABLE（历史缺陷形状） ⇒ 执行 0 / 丢真语句 1 / 其中建表 1（期望 0/1/1）
+  ✓ ② 注释在前 + INSERT（数据写入形状） ⇒ 执行 0 / 丢真语句 1 / 其中建表 0（期望 0/1/0）
+  ✓ ③ 语句在前 + 注释在后（正确写法，不应被判丢） ⇒ 执行 1 / 丢真语句 0 / 其中建表 0（期望 1/0/0）
+  ✓ ④ 纯注释块（丢了无害，不应计入清单） ⇒ 执行 1 / 丢真语句 0 / 其中建表 0（期望 1/0/0）
+  ✓ ⑤ CREATE PROCEDURE 块（块本身被丢且 runner 显式跳过；但块尾 'END' 会被当成独立语句执行 ⇒ DELIMITER 感知属 PR #18 范围） ⇒ 执行 1 / 丢真语句 1 / 其中建表 0（期望 1/1/0）
+
+反测全部通过：注释在前的块会被判为「丢语句」，语句在前的正确写法不会被误判，纯注释块不计入。
+
+== 口径 A（复现 C2-4：只把 `--` 行当注释） ==
+  扫描 SQL 文件 172 个；受影响文件 118 个；CREATE TABLE 239 / ALTER TABLE 50 / 其它 58
+
+== 口径 B（本单正式逐条口径：`--` / `#` / `/* */` 均视为注释） ==
+  受影响文件 128 个；逐条合计 457 条
+  按类型：CREATE 241 / INSERT 78 / SET/动态DDL 17 / DROP 22 / ALTER 50 / UPDATE 5 / 其它(SELECT) 15 / 其它(CALL) 29
+  按风险：L2 92 / L3 83 / L1 260 / L4 22（需人工确认 197 条）
+  runner 显式跳过（修复后仍不执行）：drop_table 20 / procedure 2
+
+== 口径差异（A 漏、B 计入） ==
+  口径 B 多出的文件 10 个：001_phase1_schema.sql, 003_phase2_schema.sql, 007_phase5_schema.sql, 099_seed_data.sql, 101_tobacco_category_online_sale.sql, 120a_合规凭证字段.sql, 123_member_contact.sql, 125_instant_retail_admin_fix.sql, 137_sys_user_dept_position.sql, 138_approval_business_link.sql
+  口径 A 多出的文件 0 个：无
+  非建表 CREATE 2 条 / CALL 29 条 / 未被 DROP TABLE 保护拦住的 DROP 0 条
+
+已生成：
+  D:\Users\ZXQL\wt-agents\issue-69\docs\evidence\MIG-1\expected.json
+  D:\Users\ZXQL\wt-agents\issue-69\docs\evidence\MIG-1\预期清单.md
+  D:\Users\ZXQL\wt-agents\issue-69\docs\evidence\MIG-1\风险汇总.md
+RESULT: ALL PASS
+EXIT=0

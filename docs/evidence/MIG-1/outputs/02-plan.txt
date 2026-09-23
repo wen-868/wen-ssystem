@@ -1,0 +1,11 @@
+[MIG-1/rehearsal] 模式 plan —— 不需要真库，只算『修复后会被执行』的语句
+  迁移目录：D:\Users\ZXQL\wt-agents\issue-69\docs\migrations
+  扫描文件：172；修复后执行语句合计 1082 条，其中『修复前被吞掉、修复后新增执行』457 条
+
+  与 expected.json 对照：双方 457 / 457 条
+    清单有而计划没有（漏）：0
+    计划有而清单没有（多）：0
+    判定：一致 ✅
+
+
+校验：plan.json = D:\Users\ZXQL\wt-agents\issue-69\docs\evidence\MIG-1\outputs\02-plan.json

@@ -1,0 +1,17 @@
+[MIG-1/crosscheck] PowerShell 独立复算（.NET 正则）
+  仓库根：D:\Users\ZXQL\wt-agents\issue-69
+  迁移目录：D:\Users\ZXQL\wt-agents\issue-69\docs\migrations
+
+== 反测（先证明本实现会红） ==
+
+== 全量复算（口径 A：与 C2-4 相同） ==
+  扫描 SQL 文件 172 个；受影响文件 118 个
+  受影响语句合计：CREATE TABLE 239 条 / ALTER TABLE 50 条 / INSERT 等 58 条
+
+== 与派单/ C2-4 口径核对 ==
+  期望：文件 118 / CREATE 239 / ALTER 50 / 其它 58
+  实得：文件 118 / CREATE 239 / ALTER 50 / 其它 58
+  判定：一致 ✅
+
+RESULT: ALL PASS
+EXIT=0

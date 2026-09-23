@@ -1,0 +1,6 @@
+[MIG-1/rehearsal] 模式 apply —— 真库副本演练
+  目标：mysql://root@127.0.0.1:3307/liquor_inventory_rehearsal
+  结构快照： （未提供 --dump，按空库演练；结论不能当结构快照证据）
+  ✗ 连接失败：connect ECONNREFUSED 127.0.0.1:3307
+RESULT: ENV-GAP（无法连接目标库，未执行任何写操作）
+EXIT=3
