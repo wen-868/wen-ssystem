@@ -86,6 +86,26 @@ const amountMeta = {
   amountScale: billingService.AMOUNT_SCALE,
 };
 
+/**
+ * 契约收紧（R101-C4-1b §一裁定 #2 + §二.段一.3）：
+ * `tenantIds` 由「可选 ⇒ 未传即按全租户生成」改为**必填**（≥1、上限 200），
+ * 目的是避免"一次请求写多行、含 0.00 占位单"。
+ * 「缺失 / 非数组 / 空数组」与「超过上限」必须给出**不同**错误信息（验收标准 3③）。
+ */
+const TENANT_IDS_REQUIRED_MESSAGE =
+  "tenantIds 必填：至少 1 个租户ID（不传 / 非数组 / 空数组一律拒绝，平台不再默认按全租户生成）";
+const TENANT_IDS_LIMIT_MESSAGE = "tenantIds 超过上限：单次最多 200 个租户";
+
+const tenantIdsSchema = z
+  .array(z.string().min(1, "tenantIds 元素不能为空字符串"), {
+    invalid_type_error: TENANT_IDS_REQUIRED_MESSAGE,
+  })
+  .max(200, TENANT_IDS_LIMIT_MESSAGE);
+
+function badRequest(message: string): Error {
+  return Object.assign(new Error(message), { statusCode: 400 });
+}
+
 // ------------------------------------------------------------------
 // A-1 GET /api/platform/billing/reconciliation-daily
 // ------------------------------------------------------------------
@@ -162,11 +182,22 @@ export const getDailyDiffCtrl = asyncHandler(async (req, res) => {
 // A-4 POST /api/platform/billing/generate
 // ------------------------------------------------------------------
 export const generateBillingCtrl = asyncHandler(async (req, res) => {
+  const rawTenantIds = (req.body as Record<string, unknown> | undefined)?.tenantIds;
+  if (rawTenantIds === undefined || rawTenantIds === null) {
+    throw badRequest(TENANT_IDS_REQUIRED_MESSAGE);
+  }
+  if (!Array.isArray(rawTenantIds)) {
+    throw badRequest(`${TENANT_IDS_REQUIRED_MESSAGE}（收到非数组）`);
+  }
+  if (rawTenantIds.length === 0) {
+    throw badRequest(`${TENANT_IDS_REQUIRED_MESSAGE}（收到空数组）`);
+  }
+
   const body = z
     .object({
       periodStart: dateSchema,
       periodEnd: dateSchema,
-      tenantIds: z.array(z.string().min(1)).optional(),
+      tenantIds: tenantIdsSchema,
     })
     .refine((value) => value.periodStart <= value.periodEnd, {
       message: "periodStart 不得晚于 periodEnd",

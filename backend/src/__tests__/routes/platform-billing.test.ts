@@ -383,24 +383,18 @@ describe("C4-1 包A #A-4 POST /generate（幂等生成结算单）", () => {
     });
   });
 
-  it("tenantIds 未传 ⇒ 按 t_tenant 全租户生成（平台级）", async () => {
-    dbMocks.query.mockImplementation(async (sql: string) => {
-      if (String(sql).includes("FROM t_tenant")) return [{ id: "t1" }, { id: "t2" }];
-      if (String(sql).includes("INSERT INTO t_platform_settlement")) {
-        return { insertId: 31, affectedRows: 1 };
-      }
-      return [];
-    });
-    dbMocks.queryOne.mockResolvedValue(null);
-
+  // ★ 本条随 C4-1b §一裁定 #2 的契约收紧而改写（红线1 允许的唯一例外用例）：
+  //   旧口径「tenantIds 未传 ⇒ 按 t_tenant 全租户生成」已废；新口径为必填（≥1）。
+  //   「缺失 / 空数组」与「超过上限」的专项断言见新文件 platform-billing-arrears.test.ts。
+  it("tenantIds 未传 ⇒ 400（契约收紧：不再按全租户生成，且不查库）", async () => {
     const res = await request(app)
       .post(`${PREFIX}/generate`)
       .send({ periodStart: "2026-09-01", periodEnd: "2026-09-30" });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.created).toBe(2);
-    expect(res.body.data.records.map((r: any) => r.tenantId)).toEqual(["t1", "t2"]);
-    expect(dbMocks.query.mock.calls.some((call) => sqlOf(call).includes("FROM t_tenant"))).toBe(true);
+    expect(res.status).toBe(400);
+    expect(String(res.body.msg)).toContain("tenantIds 必填");
+    expect(dbMocks.query).not.toHaveBeenCalled();
+    expect(dbMocks.queryOne).not.toHaveBeenCalled();
   });
 
   it("缺 periodStart ⇒ 400（不查库）", async () => {
