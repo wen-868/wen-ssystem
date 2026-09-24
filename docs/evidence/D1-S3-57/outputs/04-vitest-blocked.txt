@@ -1,0 +1,20 @@
+== 命令：cd backend; npx vitest run（派单卡门禁：全量；本沙箱预期失败：esbuild spawn EPERM，见 docs/evidence/MIG-5b/outputs/04-vitest-blocked.txt）
+failed to load config from D:\Users\ZXQL\wt-agents\issue-96\backend\vitest.config.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:441:11)
+    at Object.spawn (node:child_process:796:9)
+    at ensureServiceIsRunning (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1978:29)
+    at build (D:\Users\ZXQL\ZXQL-MS\wen-ssystem\node_modules\esbuild\lib\main.js:1876:26)
+    at bundleConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49448:24)
+    at async bundleAndLoadConfigFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49432:19)
+    at async loadConfigFromFile (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49396:44)
+    at async resolveConfig (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:48891:24)
+    at async _createServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:38478:66)
+    at async createViteServer (file:///D:/Users/ZXQL/ZXQL-MS/wen-ssystem/node_modules/vitest/dist/chunks/cli-api.BK8pd4xc.js:8835:17) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}
+EXIT=1

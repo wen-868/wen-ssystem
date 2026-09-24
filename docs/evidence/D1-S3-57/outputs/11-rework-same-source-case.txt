@@ -1,0 +1,119 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Connection } from "mysql2/promise";
+
+const { mockQuery, mockEnd, mockCreateConnection } = vi.hoisted(() => {
+  const mockQuery = vi.fn();
+  const mockEnd = vi.fn().mockResolvedValue(undefined);
+  const mockCreateConnection = vi.fn().mockResolvedValue({
+    query: mockQuery,
+    end: mockEnd,
+  });
+  return { mockQuery, mockEnd, mockCreateConnection };
+});
+
+vi.mock("mysql2/promise", () => ({
+  default: {
+    createConnection: mockCreateConnection,
+  },
+}));
+
+vi.mock("../../shared/env", () => ({
+  env: {
+    USE_MOCK_DB: false,
+    DB_HOST: "localhost",
+    DB_PORT: 3306,
+    DB_USER: "root",
+    DB_PASSWORD: "test",
+    DB_NAME: "test_db",
+  },
+}));
+
+const { mockLoggerInfo, mockLoggerError, mockLoggerWarn, mockLoggerDebug } = vi.hoisted(() => ({
+  mockLoggerInfo: vi.fn(),
+  mockLoggerError: vi.fn(),
+  mockLoggerWarn: vi.fn(),
+  mockLoggerDebug: vi.fn(),
+}));
+
+vi.mock("../../shared/logger", () => ({
+  default: {
+    info: mockLoggerInfo,
+    error: mockLoggerError,
+    warn: mockLoggerWarn,
+    debug: mockLoggerDebug,
+  },
+}));
+
+const { mockReadFileSync, mockReaddirSync, mockExistsSync, mockHashSync } = vi.hoisted(() => ({
+  mockReadFileSync: vi.fn().mockReturnValue("SELECT 1;"),
+  mockReaddirSync: vi.fn().mockReturnValue(["001_test.sql"]),
+  mockExistsSync: vi.fn().mockReturnValue(true),
+  mockHashSync: vi.fn().mockReturnValue("$2b$10$mockedhashvalue"),
+}));
+
+vi.mock("fs", () => ({
+  readFileSync: mockReadFileSync,
+  readdirSync: mockReaddirSync,
+  existsSync: mockExistsSync,
+}));
+
+vi.mock("bcryptjs", () => ({
+  default: { hashSync: mockHashSync },
+  hashSync: mockHashSync,
+}));
+
+import { runMigrations, safeExec, SKIP_ERRORS, TENANT_TABLES, addTablePrefix } from "../../shared/migration";
+import { env } from "../../shared/env";
+
+function makeMockConn(queryFn: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue([])): Connection {
+  return { query: queryFn } as unknown as Connection;
+}
+
+// 本文件由 docs/evidence/D1-S3-57/tools/d1-verify.mjs 从 backend/src/__tests__/shared/migration.test.ts
+// 逐字抽取生成（① 顶部 mock 骨架 ② runMigrations 的 beforeEach ③ 两条过程用例），仅供证据复跑，不参与仓库测试发现。
+describe("S3-57 返工第 1 轮：与 migration.test.ts 逐字同源的用例", () => {
+beforeEach(() => {
+    mockQuery.mockReset();
+    mockQuery.mockResolvedValue([{ affectedRows: 0 }]);
+    mockEnd.mockReset();
+    mockEnd.mockResolvedValue(undefined);
+    mockCreateConnection.mockReset();
+    mockCreateConnection.mockResolvedValue({
+      query: mockQuery,
+      end: mockEnd,
+    });
+    // 重置 fs mock 到默认值
+    mockReadFileSync.mockReturnValue("SELECT 1;");
+    mockReaddirSync.mockReturnValue(["001_test.sql"]);
+    mockExistsSync.mockReturnValue(true);
+    mockHashSync.mockReturnValue("$2b$10$mockedhashvalue");
+  });
+
+it("存储过程语句应作为完整语句下发（S3-57 前为被跳过）", async () => {
+    mockReadFileSync.mockReturnValue("CREATE PROCEDURE test() BEGIN SELECT 1; END;");
+
+    await runMigrations();
+
+    const procCalls = mockQuery.mock.calls.filter(
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE PROCEDURE")
+    );
+    expect(procCalls.length).toBeGreaterThan(0);
+    for (const call of procCalls) {
+      expect(call[0]).toContain("BEGIN SELECT 1; END");
+    }
+  });
+
+  it("DROP PROCEDURE 语句应作为完整语句下发（S3-57 前为被跳过）", async () => {
+    mockReadFileSync.mockReturnValue("DROP PROCEDURE IF EXISTS test;");
+
+    await runMigrations();
+
+    const dropCalls = mockQuery.mock.calls.filter(
+      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("DROP PROCEDURE")
+    );
+    expect(dropCalls.length).toBeGreaterThan(0);
+    for (const call of dropCalls) {
+      expect(call[0]).toContain("DROP PROCEDURE IF EXISTS test");
+    }
+  });
+});

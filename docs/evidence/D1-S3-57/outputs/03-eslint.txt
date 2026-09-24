@@ -1,0 +1,7 @@
+== 命令：cd backend; npx eslint src/shared/migration.ts src/__tests__/shared/migration-delimiter.test.ts src/__tests__/shared/migration.test.ts
+
+D:\Users\ZXQL\wt-agents\issue-96\backend\src\shared\migration.ts
+  429:8  warning  Async function 'runMigrations' has a complexity of 42. Maximum allowed is 15  complexity
+
+✖ 1 problem (0 errors, 1 warning)
+EXIT=0

@@ -1,0 +1,2 @@
+命令：cd backend; npx tsc --noEmit（工作区原文，返工第 1 轮）
+EXIT=0

@@ -1,0 +1,19 @@
+== 分支 / HEAD / 工作区状态 / 关键文件 SHA256
+agent/issue-96
+38b2ad9b2 docs(派单 20260925): D1(S3-57 runner DELIMITER,阿坚)/D2(S3-67 border-normal 矩阵,墨)/D3(S3-50 门禁收口,苏然) 三单并行派出；并裁定 backlog 不另开批次（S3-01~S3-28 逐条映射到 C1-C6，唯一无归属=S3-08 跨仓）
+ M backend/src/__tests__/shared/migration.test.ts
+ M backend/src/shared/migration.ts
+ M "docs/tasks/R101-\346\200\273\350\277\233\345\272\246\344\270\216\346\216\250\350\277\233\350\256\241\345\210\222.md"
+ M "docs/tasks/cards/R101-\346\264\276\345\215\225-20260925-D1-S3-57.md"
+ M docs/tasks/current-tasks.md
+ M "docs/tasks/inbox/ACTIVE-\345\233\236\346\211\247.md"
+?? backend/src/__tests__/shared/migration-delimiter.test.ts
+?? docs/evidence/D1-S3-57/
+?? "docs/tasks/cards/R101-S3-57-\351\230\277\345\235\232\345\233\236\344\274\240.md"
+?? "docs/tasks/inbox/archive/ACTIVE-\345\233\236\346\211\247-S3-65-\345\275\261\345\223\215\351\235\242-20260921.md"
+?? "docs/tasks/inbox/archive/ACTIVE-\346\264\276\345\215\225-S3-57-D1-20260925.md"
+9C0002E4240FA086CCF8646B7B835CAE31FE113D46D19A9B44B2BD7D8398964D  backend/src/shared/migration.ts
+FE2B6675A03576D3B1847AF01CA2A5BDF232D9A13D9631C32426EE3FAD4E3675  backend/src/__tests__/shared/migration-delimiter.test.ts
+56C2439333CA7E307A17BFD0574D0CB75EAF16DCDA3F7102A5BB4BA538BE690D  backend/src/__tests__/shared/migration.test.ts
+8	3	backend/src/__tests__/shared/migration.test.ts
+174	21	backend/src/shared/migration.ts

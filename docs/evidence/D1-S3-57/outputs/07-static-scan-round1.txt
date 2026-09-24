@@ -1,0 +1,74 @@
+== (1) 全仓测试文件内含 PROCEDURE 的断言/文本 ==
+命令：rg -n "PROCEDURE" --glob "*.test.ts" --glob "*.spec.ts" -g "!node_modules" .
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:6: *      ⇒ `DELIMITER $$ … CREATE PROCEDURE … BEGIN … ; … END$$` 的**过程体被拆成残片**，
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:9: *   ② 调用点 `if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) continue;`
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:10: *      ⇒ `092_租户ID.sql:282-283` 两条 `DROP PROCEDURE IF EXISTS` **从未执行**，辅助过程残留生产库。
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:15: *      两个 `CREATE PROCEDURE` 块各作为**一条**完整语句下发；末尾两条 `DROP PROCEDURE` 被下发；
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:125:  expect(REAL_092).toContain("CREATE PROCEDURE add_column_if_not_exists");
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:126:  expect(REAL_092).toContain("CREATE PROCEDURE add_index_if_not_exists");
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:157:      "CREATE PROCEDURE p_demo()",
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:166:    expect(result[0]).toContain("CREATE PROCEDURE p_demo()");
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:175:      "CREATE PROCEDURE p_demo() BEGIN SELECT 1; END$$",
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:199:  it("默认分隔符下，CREATE PROCEDURE … BEGIN … ; … END; 整块为一条语句", () => {
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:201:      "CREATE PROCEDURE p_demo()",
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:220:    const sql = "CREATE TABLE t_demo (id INT);\nSELECT 1;\nDROP PROCEDURE IF EXISTS p_demo;";
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:223:    expect(result[2].trim()).toBe("DROP PROCEDURE IF EXISTS p_demo");
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:280:    const procedures = statements.filter((s) => s.includes("CREATE PROCEDURE"));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:290:  it("两个 CREATE PROCEDURE 块各作为一条完整语句下发（不被 ; 拆散）", async () => {
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:296:    const createProc = queries.filter((s) => s.includes("CREATE PROCEDURE"));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:297:    expect(createProc, `CREATE PROCEDURE 下发条数应为 2，实际 ${createProc.length}`).toHaveLength(2);
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:299:    const addColumn = createProc.find((s) => s.includes("CREATE PROCEDURE add_column_if_not_exists"));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:300:    const addIndex = createProc.find((s) => s.includes("CREATE PROCEDURE add_index_if_not_exists"));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:301:    expect(addColumn, "未下发 add_column_if_not_exists 的完整 CREATE PROCEDURE").toBeDefined();
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:302:    expect(addIndex, "未下发 add_index_if_not_exists 的完整 CREATE PROCEDURE").toBeDefined();
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:321:  it("文件末尾两条 DROP PROCEDURE 被下发（不再被 :1068 的 continue 跳过）", async () => {
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:327:    const drops = queries.filter((s) => /^DROP PROCEDURE IF EXISTS/i.test(s.trim()));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:328:    expect(drops, `DROP PROCEDURE 下发条数应为 4，实际 ${drops.length}`).toHaveLength(4);
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:332:      expect(matched, `${name} 的 DROP PROCEDURE 应为 2 条（开头 + 末尾），实际 ${matched.length}`).toHaveLength(2);
+.\backend\src\__tests__\shared\migration.test.ts:449:  // ⇒ 过程从未建成、DROP PROCEDURE 从未生效）。口径改为：过程定义体作为**一条完整语句**下发。
+.\backend\src\__tests__\shared\migration.test.ts:451:    mockReadFileSync.mockReturnValue("CREATE PROCEDURE test() BEGIN SELECT 1; END;");
+.\backend\src\__tests__\shared\migration.test.ts:456:      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE PROCEDURE")
+.\backend\src\__tests__\shared\migration.test.ts:591:  // S3-57：本用例原断言的"DROP PROCEDURE 被跳过"与上一条同源，都是被修复的缺陷行为
+.\backend\src\__tests__\shared\migration.test.ts:592:  // （`092_租户ID.sql:282-283` 两条 DROP PROCEDURE 因 `continue` 从未下发 ⇒ 生产库残留辅助存储过程）。
+.\backend\src\__tests__\shared\migration.test.ts:593:  // 口径改为：DROP PROCEDURE 作为**一条完整语句**必须下发。
+.\backend\src\__tests__\shared\migration.test.ts:594:  it("DROP PROCEDURE 语句应作为完整语句下发（S3-57 前为被跳过）", async () => {
+.\backend\src\__tests__\shared\migration.test.ts:595:    mockReadFileSync.mockReturnValue("DROP PROCEDURE IF EXISTS test;");
+.\backend\src\__tests__\shared\migration.test.ts:600:      (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("DROP PROCEDURE")
+.\backend\src\__tests__\shared\migration.test.ts:604:      expect(call[0]).toContain("DROP PROCEDURE IF EXISTS test");
+.\backend\src\__tests__\shared\migration-split.test.ts:154:  it("回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）", () => {
+.\backend\src\__tests__\shared\migration-split.test.ts:155:    const sql = `CREATE TABLE t_a (id INT);\nCREATE PROCEDURE p_x() BEGIN END;\nDROP TABLE IF EXISTS t_b;`;
+.\backend\src\__tests__\shared\migration-split.test.ts:157:    expect(result.some((s) => s.includes("CREATE PROCEDURE"))).toBe(true);
+3
+38
+
+== (2) 迁移三测试文件内 toBeUndefined / not.toHaveBeenCalled（旧口径断言扫描）==
+backend/src/__tests__/shared/migration.test.ts:411:    expect(mockCreateConnection).not.toHaveBeenCalled();
+
+== (3) 全仓（不含证据包）残留「跳过存储过程 / 过程类语句」措辞 ==
+.\backend\src\__tests__\shared\migration.test.ts:448:  // S3-57：本用例原断言的"跳过存储过程语句"正是被修复的缺陷行为（过程体被 ; 拆散后整块丢弃
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:334:    // 旧行为日志（"跳过存储过程语句"）不得再出现
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:337:      .filter((m: unknown): m is string => typeof m === "string" && m.includes("跳过存储过程语句"));
+.\backend\src\__tests__\shared\migration-delimiter.test.ts:338:    expect(legacySkipLogs, `仍有"跳过存储过程语句"日志：${JSON.stringify(legacySkipLogs.slice(0, 3))}`).toEqual([]);
+.\docs\踩坑日志.md:737:- 根因：`backend/src/shared/migration.ts` 第 8 步的外部迁移管线是「`readFileSync` → 去掉 `USE`/`DELIMITER` 行 → **按 `;` 切块** → `trim()` → **`filter(s => !s.startsWith("--"))` 丢弃以 `--` 开头的块** → 跳过存储过程 / `DROP TABLE` → `addTablePrefix` → `safeExec`」。切块后只要某块的**首个非空白字符是 `-`**，这一块（**连同里面的 SQL 本体**）整块被丢。实测复刻该逻辑跑全部迁移：**91 个文件完全被丢弃**（含 `104_platform_announcement.sql` 的建表、`092_租户ID.sql` 里两条 `UPDATE`）、76 个文件部分丢弃。真正把表建成的是 `docs/init_database.sql` 的 `CREATE TABLE` 与 migration.ts 内 Step 0~7 的**内联** `safeExec`（不经该过滤）。另一个隐藏前提：**本仓没有迁移账本表**（无 `t_migration` / `schema_migrations`），幂等 100% 依赖每条 SQL 自身的 `WHERE 旧值`，且迁移**每次启动都重跑**。
+.\docs\tasks\R101-总进度与推进计划.md:36:| 3 | **S3-57** runner 感知 `DELIMITER`/`BEGIN…END` | **阿坚** | S3-62 完成后 | 含过程体的迁移反测先红后绿；并入 S3-50 反测表；空库跑 092 后 `information_schema.ROUTINES` 无残留 ｜🟡 **凌舟验收受理：有条件通过（2026-09-25）**——代码与证据已由凌舟独立复跑受理；**待本机全量 `npx vitest run` 绿 + 3b 真库两遍取证 + 合并**（详见卡 `docs/tasks/cards/R101-S3-57-凌舟验收结论.md`）。原记（阿坚本地已完成、待凌舟提交 + 本机门禁 + 验收）：改 `backend/src/shared/migration.ts`（+174/-21：`DELIMITER <符号>` 状态机 + `BEGIN…END` 块边界；两处预处理保留 DELIMITER 行；删两处"跳过存储过程语句"）+ 新增 `backend/src/__tests__/shared/migration-delimiter.test.ts`（12 条；**先红 9 → 后绿 0**）+ 改写 `migration.test.ts` 1 条旧口径用例（原断言的是缺陷行为）；证据包 `docs/evidence/D1-S3-57/`（反测①回退切分红 8 条、反测②恢复 skip 红 2 条；092 真内容 + 假连接读数：`CREATE PROCEDURE` **2 条整块** / `DROP PROCEDURE` **4 条**（含 282-283） / `CALL` 下发 **0** 条（138 条被写闸门挡） / 过程体残片 **0**）；`npx tsc --noEmit` 0 错、eslint 0 error；**3b 真库空库脚本已交付、待凌舟本机执行**；**`npx vitest run` 在本沙箱因 esbuild `spawn EPERM` 跑不起来（同 MIG-5b 记录）⇒ 全量门禁待凌舟本机跑** |
+.\docs\tasks\inbox\ACTIVE.md:27:2. **凌舟本轮派单前核实（可复跑）**：`rg -n "DROP PROCEDURE" backend/src/__tests__/shared/migration.test.ts` → 命中 `:591`（用例名）、`:592`（输入）、`:596-599`（`expect(dropCall).toBeUndefined()`）⇒ 该用例仍按**旧行为**（过程类语句一律跳过）断言，与本单要废除的行为同源。
+.\docs\tasks\inbox\ACTIVE.md:35:2. **全仓静态扫描清单**（防再次漏改同族断言）：用 `rg` 扫全仓测试文件，列出所有仍编码"过程类语句被跳过 / 不下发"旧行为的断言；命令 + 命中数字 + 逐条归属（属本单范围内 → 一并改；超出文件域 → **不改**，写进回传"申请处置"）。已知需排除项：`:349` 的 `消息包含 'procedure' 应跳过` 属 `safeExec` 错误码跳过语义，**保持不动**。
+.\docs\tasks\inbox\ACTIVE-回执.md:9:S3-57 已在本工作区完成：runner 支持 `DELIMITER <符号>` 语义 + 默认分隔符下的 `BEGIN…END` 块边界，两个调用点保留 DELIMITER 行、删除"跳过存储过程语句"的 `continue`。真实 `092_租户ID.sql` 内容驱动 `runMigrations()`（假连接）读数：`CREATE PROCEDURE` **2 条整块**、`DROP PROCEDURE` **4 条**（含文件末尾 282-283）、`CALL` 下发 **0 条**（138 条被写闸门挡下）、过程体残片 **0 条**。**先红（9/12 红）→ 后绿（12/12 绿）**，两条反测均会红。
+.\docs\tasks\cards\R101-MIG-4-阿坚回传.md:45:  3. 每条语句在"跳过存储过程 / 跳过 DROP TABLE"之后、`addTablePrefix` 之前过闸门（`:1043-1049`）：命中则 `continue`，并打一行 `[migration] <文件>: 写闸门 block 跳过 <类型> 语句（目标 <表名/过程名>）；如确需放行请显式设置 MIGRATION_WRITE_GATE=allow`。
+.\docs\tasks\cards\R101-S3-57-凌舟验收结论（越权产出-无效）.md:18:| 2 | `node docs/evidence/D1-S3-57/tools/d1-verify.mjs` | **EXIT=0**；关键读数：092 下发 **226** 条／`CREATE PROCEDURE` **2** 条（各 554 字符·19 行·末行 `END`）／`DROP PROCEDURE` **4** 条（含 `:282-283`）／`CALL` 下发 **0** 条（138 条被写闸门挡）／过程体残片 **0**／旧日志"跳过存储过程语句" **0**；先红 **9** → 后绿 **0**；反测①（退回 `;` 切分）红 **8**、反测②（把 skip 的 `continue` 加回）红 **2** | ✅ |
+.\docs\tasks\cards\R101-S3-57-凌舟验收结论（越权产出-无效）.md:33:- **认可**改写 `migration.test.ts` 中 1 条旧用例（原"应跳过存储过程语句"）：它断言的正是本单要修的缺陷行为，属**口径变更而非放宽**（新断言更严：要求下发语句含完整 `BEGIN SELECT 1; END`，且不得为空集）。
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:15:| 1 | runner 支持 `DELIMITER` 语义 + `BEGIN…END` 块边界；两个调用点保留 DELIMITER 行；删除两处"跳过存储过程语句"的 `continue` | `backend/src/shared/migration.ts` | `9C0002E4240FA086CCF8646B7B835CAE31FE113D46D19A9B44B2BD7D8398964D`（`git diff --numstat` = **+174 / -21**） |
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:36:| 反测②：保留新切分、把"跳过存储过程语句"的 `continue` 加回 | 见上 §[F] | `通过 10 ／ 失败 2`，恰为 092 两条用例（`CREATE PROCEDURE` 0 条、`DROP PROCEDURE` 0 条） |
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:37:| **3a** 092 真内容 + 假连接（stub `mysql2`）读数 | `node docs/evidence/D1-S3-57/tools/d1-verify.mjs`（§[G]） | `实际下发语句总数 226`；`CREATE PROCEDURE 下发条数 2`（各 554 字符 / 19 行 / 末行 `END`）；`DROP PROCEDURE 下发条数 4`（`add_column_if_not_exists`、`add_index_if_not_exists` 各 2 条 = 开头 + 文件末尾）；`CALL 下发条数 0` 且 `CALL 被闸门跳过日志条数 138`；`过程体残片被当独立语句下发 0`；`旧行为日志"跳过存储过程语句" 0`；`下发语句里含 DELIMITER 关键字 0` |
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:45:**关键代码位置（便于复核）**：`backend/src/shared/migration.ts:151`（`splitSqlStatements` 新实现）、`:209`（`unsplittableTokenEnd`）、`:220`（`matchDelimiterDirective`）、`:269`（`routineStatementHead`）、`:284`（`routineBodyClosed`，排除 `END IF/WHILE/CASE/LOOP/REPEAT`）、`:1066`（5.5.8 只删 USE 行的预处理）、`:1211`（第 8 步只删 USE 行的预处理）、`:1224`（第 8 步循环，原"跳过存储过程语句"的 `continue` 已删）。
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:55:| 期望 | 修复后 12/12 通过；把实现退回旧 `;` 切分 ⇒ 8 条红；只把"跳过存储过程语句"的 `continue` 加回 ⇒ 2 条红（⑥⑦）；修复前实现 ⇒ 9 条红 |
+.\docs\tasks\cards\R101-S3-57-阿坚回传.md:78:1. **我改动了 1 条既有用例**（`migration.test.ts`「应跳过存储过程语句」→「存储过程语句应作为完整语句下发」）：该用例断言的正是本单要修的缺陷行为，不改则修复后必红。改动**未放宽**断言（仍要求完整过程体 `BEGIN SELECT 1; END` 出现）。⇒ 主动报备，请凌舟核对是否认可该口径改写。
+.\docs\tasks\cards\R101-派单-20260925-D1-S3-57.md:91:**判据**：该用例断言的正是本单要**废除**的旧行为（过程类语句一律 `continue` 跳过）。你已经改写了同族的另一条用例（「应跳过存储过程语句」→「应作为完整语句下发」），但**漏了这一条**。
+扫描完成
+
+== 计数（本单执行方独立复跑）==
+PROCEDURE 命中文件数 = 3
+PROCEDURE 命中行数   = 38
+迁移三测试文件内 toBeUndefined 命中数 = 0
+（其中 DROP PROCEDURE 用例旧断言 toBeUndefined 于本轮已归零；剩余 not.toHaveBeenCalled 见 (2) 段）
+扫描时间：2026-09-25（返工第 1 轮）

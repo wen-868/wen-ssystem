@@ -1,0 +1,296 @@
+
+==============================================================================
+S3-57 复跑（沙箱内最小 vitest 运行时；被测源码与测试文件都取自工作区真实文本）
+==============================================================================
+工作区              : D:\Users\ZXQL\wt-agents\issue-96
+migration.ts(修复后) sha256 : 9c0002e4240fa086ccf8646b7b835cae31fe113d46d19a9b44b2bd7d8398964d
+migration.ts(修复前) sha256 : 6d299dfb1d2b4942f2e49c9e4efc666cc74733d2881c687669583e377310235a  ← outputs/00a-prefix-migration.ts.txt
+新增测试文件          : D:\Users\ZXQL\wt-agents\issue-96\backend\src\__tests__\shared\migration-delimiter.test.ts
+新增测试文件 sha256   : fe2b6675a03576d3b1847af01ca2a5bdf232d9a13d9631c32426ee3fad4e3675
+
+==============================================================================
+[A] 先红：修复前实现 + 本轮新增测试文件
+==============================================================================
+用例数 12 ／ 通过 3 ／ 失败 9
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER $$ 之间的过程体作为一条完整语句（体内的 ; 不切分）  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 1 but got 3
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER 切回 ; 之后的语句按 ; 正常切分，且指令行本身不下发  ← AssertionError/Error: AssertionError: expected [ …(4) ] to have a length of 3 but got 4
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > 自定义分隔符可以是 // 等多字符符号  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 2 but got 3
+  ✗ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 默认分隔符下，CREATE PROCEDURE … BEGIN … ; … END; 整块为一条语句  ← AssertionError/Error: AssertionError: expected [ …(7) ] to have a length of 2 but got 7
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 非例程语句不受影响：CREATE TABLE 里的 ; 仍按语句边界切分
+  ✗ splitSqlStatements：既有口径不回归 > 字符串字面量里的 ; 不再被当语句边界  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 2 but got 3
+  ✗ splitSqlStatements：既有口径不回归 > 行注释 / 块注释里的 ; 不再被当语句边界  ← AssertionError/Error: AssertionError: expected [ '分号\nSELECT 1', '/* 块注释', …(1) ] to have a length of 2 but got 3
+  ✓ splitSqlStatements：既有口径不回归 > 注释开头的块仍保留其后的真实语句（MIG-5 / 踩坑[63] 不回归）
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 真实 092 文本：按调用点口径清理（只去 USE 行）后，两个过程体各为一条完整语句  ← AssertionError/Error: AssertionError: expected 'DELIMITER $$\r\nCREATE PROCEDURE add_…' to contain 'DEALLOCATE PREPARE stmt;'
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 两个 CREATE PROCEDURE 块各作为一条完整语句下发（不被 ; 拆散）  ← AssertionError/Error: AssertionError: CREATE PROCEDURE 下发条数应为 2，实际 0: expected [] to have a length of 2 but got +0
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 文件末尾两条 DROP PROCEDURE 被下发（不再被 :1068 的 continue 跳过）  ← AssertionError/Error: AssertionError: DROP PROCEDURE 下发条数应为 4，实际 0: expected [] to have a length of 4 but got +0
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 红线未放宽：默认 block 写闸门下 092 的 CALL 一条都不下发
+预期失败数 >0 ⇒ 符合
+
+==============================================================================
+[B] 后绿：修复后实现 + 本轮新增测试文件
+==============================================================================
+用例数 12 ／ 通过 12 ／ 失败 0
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER $$ 之间的过程体作为一条完整语句（体内的 ; 不切分）
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER 切回 ; 之后的语句按 ; 正常切分，且指令行本身不下发
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > 自定义分隔符可以是 // 等多字符符号
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 默认分隔符下，CREATE PROCEDURE … BEGIN … ; … END; 整块为一条语句
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 非例程语句不受影响：CREATE TABLE 里的 ; 仍按语句边界切分
+  ✓ splitSqlStatements：既有口径不回归 > 字符串字面量里的 ; 不再被当语句边界
+  ✓ splitSqlStatements：既有口径不回归 > 行注释 / 块注释里的 ; 不再被当语句边界
+  ✓ splitSqlStatements：既有口径不回归 > 注释开头的块仍保留其后的真实语句（MIG-5 / 踩坑[63] 不回归）
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 真实 092 文本：按调用点口径清理（只去 USE 行）后，两个过程体各为一条完整语句
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 两个 CREATE PROCEDURE 块各作为一条完整语句下发（不被 ; 拆散）
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 文件末尾两条 DROP PROCEDURE 被下发（不再被 :1068 的 continue 跳过）
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 红线未放宽：默认 block 写闸门下 092 的 CALL 一条都不下发
+预期失败数 0 ⇒ 符合
+
+==============================================================================
+[C0] 基线：修复前实现 + 既有 migration.test.ts
+==============================================================================
+用例数 73 ／ 通过 30 ／ 失败 43
+  ✓ migration - 常量 > SKIP_ERRORS 应包含已知错误码
+  ✓ migration - 常量 > TENANT_TABLES 应包含多张表
+  ✓ addTablePrefix > CREATE TABLE 应加 t_ 前缀
+  ✓ addTablePrefix > CREATE TABLE IF NOT EXISTS 应加 t_ 前缀
+  ✓ addTablePrefix > 已经是 t_ 前缀的表不应重复添加
+  ✓ addTablePrefix > ALTER TABLE 应加 t_ 前缀
+  ✓ addTablePrefix > INSERT INTO 应加 t_ 前缀
+  ✓ addTablePrefix > UPDATE 应加 t_ 前缀
+  ✓ addTablePrefix > DELETE FROM 应加 t_ 前缀
+  ✓ addTablePrefix > FROM 子句应加 t_ 前缀
+  ✓ addTablePrefix > JOIN 应加 t_ 前缀
+  ✓ addTablePrefix > information_schema 和 mysql 系统表不应加前缀
+  ✓ addTablePrefix > MIG-2: CREATE TABLE IF NOT EXISTS 反引号表名应加前缀并保持引号形态
+  ✓ addTablePrefix > MIG-2: CREATE TABLE 反引号表名（无 IF NOT EXISTS）应加前缀
+  ✓ addTablePrefix > MIG-2: CREATE TABLE IF NOT EXISTS 裸表名行为不变（回归）
+  ✓ addTablePrefix > MIG-2: ALTER TABLE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: INSERT INTO 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: 语句首 UPDATE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: DELETE FROM 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: FROM 子句反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: JOIN 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: INSERT IGNORE INTO 反引号表名应加前缀（INTO 模式）
+  ✓ addTablePrefix > MIG-2: RENAME TABLE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: DROP TABLE IF EXISTS 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: 反引号形态已是 t_ 前缀的表不重复加前缀
+  ✓ addTablePrefix > MIG-2: 裸表名已带 t_ 前缀不重复加前缀（回归）
+  ✓ addTablePrefix > MIG-2: 反引号包裹的 mysql / information_schema 系统库不加前缀
+  ✓ addTablePrefix > MIG-2: 关键字 IF / NOT / EXISTS 不得被当成表名改写
+  ✓ addTablePrefix > MIG-2: 非反引号输入与修复前（HEAD）逐字节一致（零新增改写）
+  ✗ safeExec > 查询成功时返回 true  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > SKIP_ERRORS 中的错误码应跳过并返回 false  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'duplicate column' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'duplicate key' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'already exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 "doesn't exist" 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'innodb' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'storage engine' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 "can't create/write" 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'permission denied' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'incorrect integer' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'unknown column' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'sql syntax' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'if not exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'procedure' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息同时包含 'table' 和 'already exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 未知错误应记录 error 日志并返回 false  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 错误对象无 code/message 时应安全处理  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > code 为空字符串但消息匹配时应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ runMigrations > USE_MOCK_DB=false 时应执行迁移流程  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > USE_MOCK_DB=true 时应直接返回（line 85）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 连接失败时应记录错误但不抛出  ← AssertionError/Error: TypeError: mockCreateConnection.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 应创建 t_tenant 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应为所有租户表添加 tenant_id 列  ← AssertionError/Error: AssertionError: expected 0 to be greater than 10
+  ✗ runMigrations > 应执行外部迁移文件  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 存储过程语句应作为完整语句下发（S3-57 前为被跳过）  ← AssertionError/Error: AssertionError: expected 0 to be greater than 0
+  ✗ runMigrations > 应创建 t_stock_warning 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应创建 t_error_logs 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应创建 t_system_feedback 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 迁移目录不存在时应跳过外部迁移  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 查询出错时应跳过并继续  ← AssertionError/Error: TypeError: mockQuery.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 连接 finally 应关闭连接  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 查询返回 SHA256 用户应触发密码修复  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表无数据且 name 列存在时应插入默认租户（line 156）  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表有数据且 name 列存在时应更新默认租户名称（line 161）  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表无 name 列时应跳过租户数据操作  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 外部 SQL 文件无内容时应安全处理  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✓ runMigrations > 外部 SQL 文件包含 DROP PROCEDURE 应跳过
+  ✗ runMigrations > 外部 SQL 文件包含注释行应过滤  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 迁移过程出错时应记录错误但不抛出（line 381）  ← AssertionError/Error: TypeError: mockReaddirSync.mockImplementationOnce is not a function
+  ✗ runMigrations > conn.end 抛错时应安全处理（finally 块）  ← AssertionError/Error: TypeError: mockEnd.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 租户数据操作失败时应捕获异常并记录错误（line 169）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 存在 SHA256 密码用户时应修复为 bcrypt 哈希（lines 209-214）  ← AssertionError/Error: AssertionError: expected false to be true // Object.is equality
+  ✗ runMigrations > SHA256 密码修复过程中出错时应捕获异常（line 216）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+预期失败数 >0 ⇒ 符合
+
+==============================================================================
+[C] 对照：修复后实现 + 既有 migration.test.ts
+==============================================================================
+用例数 73 ／ 通过 30 ／ 失败 43
+  ✓ migration - 常量 > SKIP_ERRORS 应包含已知错误码
+  ✓ migration - 常量 > TENANT_TABLES 应包含多张表
+  ✓ addTablePrefix > CREATE TABLE 应加 t_ 前缀
+  ✓ addTablePrefix > CREATE TABLE IF NOT EXISTS 应加 t_ 前缀
+  ✓ addTablePrefix > 已经是 t_ 前缀的表不应重复添加
+  ✓ addTablePrefix > ALTER TABLE 应加 t_ 前缀
+  ✓ addTablePrefix > INSERT INTO 应加 t_ 前缀
+  ✓ addTablePrefix > UPDATE 应加 t_ 前缀
+  ✓ addTablePrefix > DELETE FROM 应加 t_ 前缀
+  ✓ addTablePrefix > FROM 子句应加 t_ 前缀
+  ✓ addTablePrefix > JOIN 应加 t_ 前缀
+  ✓ addTablePrefix > information_schema 和 mysql 系统表不应加前缀
+  ✓ addTablePrefix > MIG-2: CREATE TABLE IF NOT EXISTS 反引号表名应加前缀并保持引号形态
+  ✓ addTablePrefix > MIG-2: CREATE TABLE 反引号表名（无 IF NOT EXISTS）应加前缀
+  ✓ addTablePrefix > MIG-2: CREATE TABLE IF NOT EXISTS 裸表名行为不变（回归）
+  ✓ addTablePrefix > MIG-2: ALTER TABLE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: INSERT INTO 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: 语句首 UPDATE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: DELETE FROM 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: FROM 子句反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: JOIN 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: INSERT IGNORE INTO 反引号表名应加前缀（INTO 模式）
+  ✓ addTablePrefix > MIG-2: RENAME TABLE 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: DROP TABLE IF EXISTS 反引号表名应加前缀
+  ✓ addTablePrefix > MIG-2: 反引号形态已是 t_ 前缀的表不重复加前缀
+  ✓ addTablePrefix > MIG-2: 裸表名已带 t_ 前缀不重复加前缀（回归）
+  ✓ addTablePrefix > MIG-2: 反引号包裹的 mysql / information_schema 系统库不加前缀
+  ✓ addTablePrefix > MIG-2: 关键字 IF / NOT / EXISTS 不得被当成表名改写
+  ✓ addTablePrefix > MIG-2: 非反引号输入与修复前（HEAD）逐字节一致（零新增改写）
+  ✗ safeExec > 查询成功时返回 true  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > SKIP_ERRORS 中的错误码应跳过并返回 false  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'duplicate column' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'duplicate key' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'already exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 "doesn't exist" 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'innodb' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'storage engine' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 "can't create/write" 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'permission denied' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'incorrect integer' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'unknown column' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'sql syntax' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'if not exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息包含 'procedure' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 消息同时包含 'table' 和 'already exists' 应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 未知错误应记录 error 日志并返回 false  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > 错误对象无 code/message 时应安全处理  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ safeExec > code 为空字符串但消息匹配时应跳过  ← AssertionError/Error: TypeError: vitest_1.vi.clearAllMocks is not a function
+  ✗ runMigrations > USE_MOCK_DB=false 时应执行迁移流程  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > USE_MOCK_DB=true 时应直接返回（line 85）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 连接失败时应记录错误但不抛出  ← AssertionError/Error: TypeError: mockCreateConnection.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 应创建 t_tenant 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应为所有租户表添加 tenant_id 列  ← AssertionError/Error: AssertionError: expected 0 to be greater than 10
+  ✗ runMigrations > 应执行外部迁移文件  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 存储过程语句应作为完整语句下发（S3-57 前为被跳过）  ← AssertionError/Error: AssertionError: expected 0 to be greater than 0
+  ✗ runMigrations > 应创建 t_stock_warning 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应创建 t_error_logs 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 应创建 t_system_feedback 表  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 迁移目录不存在时应跳过外部迁移  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 查询出错时应跳过并继续  ← AssertionError/Error: TypeError: mockQuery.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 连接 finally 应关闭连接  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 查询返回 SHA256 用户应触发密码修复  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表无数据且 name 列存在时应插入默认租户（line 156）  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表有数据且 name 列存在时应更新默认租户名称（line 161）  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > t_tenant 表无 name 列时应跳过租户数据操作  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 外部 SQL 文件无内容时应安全处理  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✓ runMigrations > 外部 SQL 文件包含 DROP PROCEDURE 应跳过
+  ✗ runMigrations > 外部 SQL 文件包含注释行应过滤  ← AssertionError/Error: AssertionError: expected undefined to be defined
+  ✗ runMigrations > 迁移过程出错时应记录错误但不抛出（line 381）  ← AssertionError/Error: TypeError: mockReaddirSync.mockImplementationOnce is not a function
+  ✗ runMigrations > conn.end 抛错时应安全处理（finally 块）  ← AssertionError/Error: TypeError: mockEnd.mockRejectedValueOnce is not a function
+  ✗ runMigrations > 租户数据操作失败时应捕获异常并记录错误（line 169）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ runMigrations > 存在 SHA256 密码用户时应修复为 bcrypt 哈希（lines 209-214）  ← AssertionError/Error: AssertionError: expected false to be true // Object.is equality
+  ✗ runMigrations > SHA256 密码修复过程中出错时应捕获异常（line 216）  ← AssertionError/Error: TypeError: [Function fn] is not a spy or a call to a spy!
+预期失败数 >0 ⇒ 符合
+
+[C 对照] 修复前失败 43 条 / 修复后失败 43 条；新增失败 0 条（无新增失败）
+
+==============================================================================
+[D] 不回归：修复后实现 + 既有 migration-split.test.ts（MIG-5/MIG-5b 守门）
+==============================================================================
+用例数 9 ／ 通过 9 ／ 失败 0
+  ✓ splitSqlStatements (S3-51 修复守门) > 前导注释 + CREATE TABLE 应保留建表语句（修复前会丢失首条建表）
+  ✓ splitSqlStatements (S3-51 修复守门) > 纯注释块应返回空数组
+  ✓ splitSqlStatements (S3-51 修复守门) > 语句中间的 -- 不应被截断（COMMENT 'a--b' 原样保留）
+  ✓ splitSqlStatements (S3-51 修复守门) > 行内注释（语句末尾 --）应原样保留，不被当块丢弃
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：USE / DELIMITER 行仍被剔除
+  ✓ splitSqlStatements (S3-51 修复守门) > 回归：CREATE PROCEDURE / DROP TABLE 语句仍进入拆分结果（循环内再跳过，此处只验证拆分）
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 修复后：注释块首之后的真实语句被挑出执行（SET FOREIGN_KEY_CHECKS 与 5 张追溯表）
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 闸门仍生效：同批 INSERT IGNORE 在默认 block 下被跳过，且有一条含 文件+类型+目标表 的日志
+  ✓ MIG-5 真实文件 006：丢块根治 + 写闸门同批生效 > 生产保护未回归：同批 DROP TABLE 一条都不执行
+预期失败数 0 ⇒ 符合
+
+==============================================================================
+[E] 反测 1：splitSqlStatements 退回旧 `;` 切分（其余不动）
+==============================================================================
+用例数 12 ／ 通过 4 ／ 失败 8
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER $$ 之间的过程体作为一条完整语句（体内的 ; 不切分）  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 1 but got 3
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER 切回 ; 之后的语句按 ; 正常切分，且指令行本身不下发  ← AssertionError/Error: AssertionError: expected [ …(4) ] to have a length of 3 but got 4
+  ✗ splitSqlStatements：DELIMITER 语义（S3-57①） > 自定义分隔符可以是 // 等多字符符号  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 2 but got 3
+  ✗ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 默认分隔符下，CREATE PROCEDURE … BEGIN … ; … END; 整块为一条语句  ← AssertionError/Error: AssertionError: expected [ …(7) ] to have a length of 2 but got 7
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 非例程语句不受影响：CREATE TABLE 里的 ; 仍按语句边界切分
+  ✗ splitSqlStatements：既有口径不回归 > 字符串字面量里的 ; 不再被当语句边界  ← AssertionError/Error: AssertionError: expected [ …(3) ] to have a length of 2 but got 3
+  ✗ splitSqlStatements：既有口径不回归 > 行注释 / 块注释里的 ; 不再被当语句边界  ← AssertionError/Error: AssertionError: expected [ '分号\nSELECT 1', '/* 块注释', …(1) ] to have a length of 2 but got 3
+  ✓ splitSqlStatements：既有口径不回归 > 注释开头的块仍保留其后的真实语句（MIG-5 / 踩坑[63] 不回归）
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 真实 092 文本：按调用点口径清理（只去 USE 行）后，两个过程体各为一条完整语句  ← AssertionError/Error: AssertionError: expected 'DELIMITER $$\r\nCREATE PROCEDURE add_…' to contain 'DEALLOCATE PREPARE stmt;'
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 两个 CREATE PROCEDURE 块各作为一条完整语句下发（不被 ; 拆散）  ← AssertionError/Error: AssertionError: expected 'DELIMITER $$\r\nCREATE PROCEDURE add_…' to contain 'DECLARE col_count INT DEFAULT 0;'
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 文件末尾两条 DROP PROCEDURE 被下发（不再被 :1068 的 continue 跳过）
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 红线未放宽：默认 block 写闸门下 092 的 CALL 一条都不下发
+预期失败数 >0 ⇒ 符合
+
+==============================================================================
+[F] 反测 2：新切分保留，但把「跳过存储过程语句」的 continue 加回去
+==============================================================================
+用例数 12 ／ 通过 10 ／ 失败 2
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER $$ 之间的过程体作为一条完整语句（体内的 ; 不切分）
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > DELIMITER 切回 ; 之后的语句按 ; 正常切分，且指令行本身不下发
+  ✓ splitSqlStatements：DELIMITER 语义（S3-57①） > 自定义分隔符可以是 // 等多字符符号
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 默认分隔符下，CREATE PROCEDURE … BEGIN … ; … END; 整块为一条语句
+  ✓ splitSqlStatements：BEGIN…END 块边界（S3-57②） > 非例程语句不受影响：CREATE TABLE 里的 ; 仍按语句边界切分
+  ✓ splitSqlStatements：既有口径不回归 > 字符串字面量里的 ; 不再被当语句边界
+  ✓ splitSqlStatements：既有口径不回归 > 行注释 / 块注释里的 ; 不再被当语句边界
+  ✓ splitSqlStatements：既有口径不回归 > 注释开头的块仍保留其后的真实语句（MIG-5 / 踩坑[63] 不回归）
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 真实 092 文本：按调用点口径清理（只去 USE 行）后，两个过程体各为一条完整语句
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 两个 CREATE PROCEDURE 块各作为一条完整语句下发（不被 ; 拆散）  ← AssertionError/Error: AssertionError: CREATE PROCEDURE 下发条数应为 2，实际 0: expected [] to have a length of 2 but got +0
+  ✗ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 文件末尾两条 DROP PROCEDURE 被下发（不再被 :1068 的 continue 跳过）  ← AssertionError/Error: AssertionError: DROP PROCEDURE 下发条数应为 4，实际 0: expected [] to have a length of 4 but got +0
+  ✓ 092_租户ID.sql 反测：过程体完整成块 + DROP 不再被跳过 > 红线未放宽：默认 block 写闸门下 092 的 CALL 一条都不下发
+预期失败数 >0 ⇒ 符合
+
+==============================================================================
+[G] 读数：真实 092_租户ID.sql 驱动 runMigrations（假连接捕获实际下发语句）
+==============================================================================
+===== S3-57 读数：真实 092 驱动 runMigrations（假连接，写闸门默认 block）=====
+092 文件字符数                      : 19743
+文件内 CALL 行数                    : 138
+实际下发语句总数                    : 226
+CREATE PROCEDURE 下发条数           : 2
+  [1] {"字符数":554,"行数":19,"首行":"CREATE PROCEDURE add_column_if_not_exists(","末行":"END"}
+  [2] {"字符数":554,"行数":19,"首行":"CREATE PROCEDURE add_index_if_not_exists(","末行":"END"}
+DROP PROCEDURE 下发条数             : 4
+  [1] DROP PROCEDURE IF EXISTS add_column_if_not_exists
+  [2] DROP PROCEDURE IF EXISTS add_index_if_not_exists
+  [3] DROP PROCEDURE IF EXISTS add_column_if_not_exists
+  [4] DROP PROCEDURE IF EXISTS add_index_if_not_exists
+CALL 下发条数（默认 block 应为 0）  : 0
+CALL 被闸门跳过日志条数             : 138
+过程体残片被当独立语句下发（应为 0）: 0
+旧行为日志"跳过存储过程语句"条数    : 0
+下发语句里含 DELIMITER 关键字的条数 : 0
+===== 读数：单条过程定义夹具（migration.test.ts 既有用例改写后的口径）=====
+含 CREATE PROCEDURE 的下发条数      : 2
+  [1] "CREATE PROCEDURE test() BEGIN SELECT 1; END"
+  [2] "CREATE PROCEDURE test() BEGIN SELECT 1; END"
+每条都含完整过程体 "BEGIN SELECT 1; END" : true
+
+==============================================================================
+汇总
+==============================================================================
+  OK  [A] 失败 9 条
+  OK  [B] 失败 0 条
+  OK  [C0] 失败 43 条
+  OK  [C] 失败 43 条
+  OK  [D] 失败 0 条
+  OK  [E] 失败 8 条
+  OK  [F] 失败 2 条
+  OK  [G] 失败 0 条
+
+所有场景符合预期。
