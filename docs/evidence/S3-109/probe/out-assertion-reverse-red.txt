@@ -1,0 +1,10 @@
+ ✓ 文件头必须以 SQL 语句开始（自动迁移按分号拆分，注释污染首条语句会被丢弃）
+ ✓ t_points_record 补齐小程序会员积分列（108 设计）
+ ✓ t_points_record 补齐旧营销积分列（admin-marketing-points / app-mobile 依赖）
+ ✓ t_points_record 补齐 user/member 索引
+ ✗ t_points_rule 补齐营销积分规则列
+    expect 断言失败：期望包含 "ADD COLUMN redeem_ratio DECIMAL(10,2) DEFAULT 100"
+ ✓ 每条 SQL 语句以分号结尾（迁移按分号拆分执行）
+
+ Test Files  1 failed (1)
+      Tests  5 passed, 1 failed (6)

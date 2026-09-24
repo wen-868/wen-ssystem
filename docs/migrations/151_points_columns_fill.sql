@@ -9,7 +9,7 @@ ALTER TABLE t_points_record ADD INDEX idx_points_record_user (user_id);
 ALTER TABLE t_points_record ADD INDEX idx_points_record_member (member_id);
 
 ALTER TABLE t_points_rule ADD COLUMN earn_ratio DECIMAL(6,4) DEFAULT 0 COMMENT '消费积分比例(营销积分设计)' AFTER earn_rate;
-ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(6,4) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio;
+ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(10,2) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio;
 ALTER TABLE t_points_rule ADD COLUMN min_redeem_amount DECIMAL(10,2) DEFAULT 0 COMMENT '最低兑换金额(营销积分设计)' AFTER redeem_ratio;
 ALTER TABLE t_points_rule ADD COLUMN max_redeem_ratio DECIMAL(6,4) DEFAULT 0.5 COMMENT '最高抵扣比例(营销积分设计)' AFTER min_redeem_amount;
 ALTER TABLE t_points_rule ADD COLUMN expire_days INT NOT NULL DEFAULT 365 COMMENT '积分有效天数(营销积分设计)' AFTER max_redeem_ratio;
@@ -19,3 +19,7 @@ ALTER TABLE t_points_rule ADD COLUMN expire_days INT NOT NULL DEFAULT 365 COMMEN
 -- 背景: 服务端存在三套 t_points_record 列引用(071 customer_id/points/balance_after/source_no; 108 member_id/change_points/balance_points/source_id; 旧营销积分 user_id/amount/balance/source_id), 迁移 CREATE IF NOT EXISTS 只会按首次定义建表, 其余服务的 SQL 在真实库必然报未知列 500。本迁移幂等补齐缺失列与索引, 三套引用全部可用。
 -- 注意: 文件头不写注释(自动迁移按分号拆分,注释污染首条语句被丢弃),说明放文件末尾。
 -- 幂等: migration.ts safeExec 对 ER_DUP_FIELDNAME/ER_DUP_KEYNAME 做模式匹配跳过,可重复执行。
+-- S3-109(2026-09-25): redeem_ratio 不能用 DECIMAL(6,4)——该类型上限是 99.9999, 装不下默认值 100, 这条 ALTER 必然失败(ER_INVALID_DEFAULT/1067 "Invalid default value for 'redeem_ratio'"),
+--   并连带使其后 3 条以 AFTER redeem_ratio / AFTER min_redeem_amount / AFTER max_redeem_ratio 定位的列全部因 ER_BAD_FIELD_ERROR 被跳过, 结果 redeem_ratio / min_redeem_amount / max_redeem_ratio / expire_days 四列一列都建不出来,
+--   生产上 "积分规则保存" INSERT(marketing-points.service.ts) 引用这 4 列必然 ER_BAD_FIELD_ERROR 500。现改为 DECIMAL(10,2)(与本表 min_redeem_amount 同口径),
+--   默认值 100 保持不变——语义见 marketing-points.service.ts 的 redeemAmount = floor(points / redeem_ratio), 即 "100 积分抵 1 元"。

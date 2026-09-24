@@ -1,0 +1,9 @@
+### ① 修前快照 docs/evidence/S3-109/probe/151-before.sql
+11:ALTER TABLE t_points_rule ADD COLUMN earn_ratio DECIMAL(6,4) DEFAULT 0 COMMENT '消费积分比例(营销积分设计)' AFTER earn_rate;
+12:ALTER TABLE t_points_rule ADD COLUMN redeem_ratio DECIMAL(6,4) DEFAULT 100 COMMENT '积分兑换比例(1积分可抵金额,营销积分设计)' AFTER earn_ratio;
+14:ALTER TABLE t_points_rule ADD COLUMN max_redeem_ratio DECIMAL(6,4) DEFAULT 0.5 COMMENT '最高抵扣比例(营销积分设计)' AFTER min_redeem_amount;
+
+### ② 修后 docs/migrations/151_points_columns_fill.sql
+11:ALTER TABLE t_points_rule ADD COLUMN earn_ratio DECIMAL(6,4) DEFAULT 0 COMMENT '消费积分比例(营销积分设计)' AFTER earn_rate;
+14:ALTER TABLE t_points_rule ADD COLUMN max_redeem_ratio DECIMAL(6,4) DEFAULT 0.5 COMMENT '最高抵扣比例(营销积分设计)' AFTER min_redeem_amount;
+22:-- S3-109(2026-09-25): redeem_ratio 不能用 DECIMAL(6,4)——该类型上限是 99.9999, 装不下默认值 100, 这条 ALTER 必然失败(ER_INVALID_DEFAULT/1067 "Invalid default value for 'redeem_ratio'"),
