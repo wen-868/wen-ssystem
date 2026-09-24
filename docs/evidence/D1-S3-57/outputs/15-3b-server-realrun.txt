@@ -1,0 +1,10 @@
+# D1/S3-57 交付物 3b：真库空库验收（凌舟 2026-09-25 在服务器侧执行）
+# 环境：v20.20.2 / 
+# 库：专属库 d1_s3_57_verify（脚本自建/自删，与 liquor_inventory 隔离）
+# 命令：node docs/evidence/D1-S3-57/tools/d1b-empty-db-092-verify.mjs --mode=092
+
+[1] 空库已建：d1_s3_57_verify
+[2] 只跑 092_租户ID.sql 完成：拆出 149 条语句（CREATE PROCEDURE 2 条 / DROP PROCEDURE 4 条），成功下发 9 条
+[3] information_schema.ROUTINES 残留 0 行（期望 0 行）
+    明细：（无）
+PASS：无残留辅助存储过程
