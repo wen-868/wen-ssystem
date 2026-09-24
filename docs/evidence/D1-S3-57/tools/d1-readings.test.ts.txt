@@ -1,0 +1,167 @@
+/**
+ * S3-57 读数脚本（**非门禁用例**，仅打印读数；不写断言）
+ *
+ * 被 `d1-verify.mjs` 以"虚拟测试路径"（`backend/src/__tests__/shared/d1-readings.test.ts`）
+ * 交给 MIG-5b 最小运行时执行——这样 `vi.mock` 才能按真实 vitest 语义提升到 import 之前。
+ *
+ * 目的：以真实 `docs/migrations/092_租户ID.sql` 内容驱动真实 `runMigrations()`，
+ * 用假连接（stub mysql2）捕获**实际下发的语句序列**，打印过程体/ DROP / CALL 的读数。
+ */
+import { describe, it, vi } from "vitest";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+
+const realFs = createRequire(resolve(process.cwd(), "__vitest-real-fs__.js"))(
+  "node:fs"
+) as typeof import("node:fs");
+
+const { mockQuery, mockEnd, mockCreateConnection } = vi.hoisted(() => {
+  const mockQuery = vi.fn();
+  const mockEnd = vi.fn().mockResolvedValue(undefined);
+  const mockCreateConnection = vi.fn().mockResolvedValue({ query: mockQuery, end: mockEnd });
+  return { mockQuery, mockEnd, mockCreateConnection };
+});
+
+vi.mock("mysql2/promise", () => ({ default: { createConnection: mockCreateConnection } }));
+vi.mock("../../shared/env", () => ({
+  env: {
+    USE_MOCK_DB: false,
+    DB_HOST: "localhost",
+    DB_PORT: 3306,
+    DB_USER: "root",
+    DB_PASSWORD: "test",
+    DB_NAME: "test_db",
+  },
+}));
+
+const { mockLoggerInfo, mockLoggerError, mockLoggerWarn, mockLoggerDebug } = vi.hoisted(() => ({
+  mockLoggerInfo: vi.fn(),
+  mockLoggerError: vi.fn(),
+  mockLoggerWarn: vi.fn(),
+  mockLoggerDebug: vi.fn(),
+}));
+vi.mock("../../shared/logger", () => ({
+  default: {
+    info: mockLoggerInfo,
+    error: mockLoggerError,
+    warn: mockLoggerWarn,
+    debug: mockLoggerDebug,
+  },
+}));
+
+const { mockReadFileSync, mockReaddirSync, mockExistsSync, mockHashSync } = vi.hoisted(() => ({
+  mockReadFileSync: vi.fn().mockReturnValue("SELECT 1;"),
+  mockReaddirSync: vi.fn().mockReturnValue([]),
+  mockExistsSync: vi.fn().mockReturnValue(true),
+  mockHashSync: vi.fn().mockReturnValue("$2b$10$mockedhashvalue"),
+}));
+vi.mock("fs", () => ({
+  readFileSync: mockReadFileSync,
+  readdirSync: mockReaddirSync,
+  existsSync: mockExistsSync,
+}));
+vi.mock("bcryptjs", () => ({ default: { hashSync: mockHashSync }, hashSync: mockHashSync }));
+
+import { runMigrations } from "../../shared/migration";
+
+const FILE = "092_租户ID.sql";
+
+describe("S3-57 读数（非门禁）", () => {
+  it("092 实际下发语句序列读数", async () => {
+    const candidates = [
+      resolve(process.cwd(), "docs/migrations", FILE),
+      resolve(process.cwd(), "../docs/migrations", FILE),
+      resolve(process.cwd(), "../../docs/migrations", FILE),
+    ];
+    const found = candidates.find((p) => realFs.existsSync(p));
+    if (!found) throw new Error(`找不到真实迁移文件 ${FILE}`);
+    const real092 = realFs.readFileSync(found, "utf8");
+
+    mockQuery.mockReset();
+    mockQuery.mockResolvedValue([{ affectedRows: 0 }]);
+    mockEnd.mockReset();
+    mockEnd.mockResolvedValue(undefined);
+    mockCreateConnection.mockReset();
+    mockCreateConnection.mockResolvedValue({ query: mockQuery, end: mockEnd });
+    mockLoggerInfo.mockClear();
+    mockLoggerWarn.mockClear();
+    mockLoggerError.mockClear();
+    mockReadFileSync.mockImplementation((pathArg: unknown) =>
+      String(pathArg).endsWith(FILE) ? real092 : "SELECT 1;"
+    );
+    mockReaddirSync.mockReturnValue([FILE]);
+    mockExistsSync.mockReturnValue(true);
+
+    await runMigrations();
+
+    const queries = mockQuery.mock.calls
+      .map((call: unknown[]) => call[0])
+      .filter((sql: unknown): sql is string => typeof sql === "string");
+    const createProcedures = queries.filter((s) => s.includes("CREATE PROCEDURE"));
+    const drops = queries.filter((s) => /^DROP PROCEDURE IF EXISTS/i.test(s.trim()));
+    const calls = queries.filter((s) => /^\s*CALL\b/i.test(s));
+    const fragments = new Set([
+      "END IF",
+      "END",
+      "BEGIN",
+      "EXECUTE stmt",
+      "DEALLOCATE PREPARE stmt",
+      "PREPARE stmt FROM @sql",
+    ]);
+    const leaked = queries.map((s) => s.trim()).filter((s) => fragments.has(s));
+    const callSkips = mockLoggerWarn.mock.calls
+      .map((call: unknown[]) => call[0])
+      .filter((m: unknown): m is string => typeof m === "string" && m.includes("CALL 语句"));
+
+    const summarize = (stmt: string) => {
+      const lines = stmt.split("\n");
+      return {
+        字符数: stmt.length,
+        行数: lines.length,
+        首行: lines[0].trim(),
+        末行: lines[lines.length - 1].trim(),
+      };
+    };
+
+    console.log("===== S3-57 读数：真实 092 驱动 runMigrations（假连接，写闸门默认 block）=====");
+    console.log(`092 文件字符数                      : ${real092.length}`);
+    console.log(`文件内 CALL 行数                    : ${(real092.match(/^\s*CALL\s/gim) ?? []).length}`);
+    console.log(`实际下发语句总数                    : ${queries.length}`);
+    console.log(`CREATE PROCEDURE 下发条数           : ${createProcedures.length}`);
+    createProcedures.forEach((s, i) => console.log(`  [${i + 1}] ${JSON.stringify(summarize(s))}`));
+    console.log(`DROP PROCEDURE 下发条数             : ${drops.length}`);
+    drops.forEach((s, i) => console.log(`  [${i + 1}] ${s.trim()}`));
+    console.log(`CALL 下发条数（默认 block 应为 0）  : ${calls.length}`);
+    console.log(`CALL 被闸门跳过日志条数             : ${callSkips.length}`);
+    console.log(`过程体残片被当独立语句下发（应为 0）: ${leaked.length}${leaked.length ? " → " + JSON.stringify(leaked) : ""}`);
+    console.log(`旧行为日志"跳过存储过程语句"条数    : ${mockLoggerInfo.mock.calls.filter((c: unknown[]) => String(c[0]).includes("跳过存储过程语句")).length}`);
+    console.log(`下发语句里含 DELIMITER 关键字的条数 : ${queries.filter((s) => s.toUpperCase().includes("DELIMITER")).length}`);
+  });
+
+  it("读数：mockReadFileSync 全量返回一条过程定义（复现 migration.test.ts 既有用例的夹具）", async () => {
+    const stmt = "CREATE PROCEDURE test() BEGIN SELECT 1; END;";
+    mockQuery.mockReset();
+    mockQuery.mockResolvedValue([{ affectedRows: 0 }]);
+    mockEnd.mockReset();
+    mockEnd.mockResolvedValue(undefined);
+    mockCreateConnection.mockReset();
+    mockCreateConnection.mockResolvedValue({ query: mockQuery, end: mockEnd });
+    mockLoggerInfo.mockClear();
+    mockLoggerWarn.mockClear();
+    mockLoggerError.mockClear();
+    mockReadFileSync.mockReturnValue(stmt);
+    mockReaddirSync.mockReturnValue(["001_test.sql"]);
+    mockExistsSync.mockReturnValue(true);
+
+    await runMigrations();
+
+    const dispatched = mockQuery.mock.calls
+      .map((call: unknown[]) => call[0])
+      .filter((sql: unknown): sql is string => typeof sql === "string")
+      .filter((sql) => sql.includes("CREATE PROCEDURE"));
+    console.log("===== 读数：单条过程定义夹具（migration.test.ts 既有用例改写后的口径）=====");
+    console.log(`含 CREATE PROCEDURE 的下发条数      : ${dispatched.length}`);
+    dispatched.forEach((s, i) => console.log(`  [${i + 1}] ${JSON.stringify(s)}`));
+    console.log(`每条都含完整过程体 "BEGIN SELECT 1; END" : ${dispatched.every((s) => s.includes("BEGIN SELECT 1; END"))}`);
+  });
+});

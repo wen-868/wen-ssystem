@@ -445,15 +445,20 @@ describe("runMigrations", () => {
     expect(externalCall).toBeDefined();
   });
 
-  it("应跳过存储过程语句", async () => {
+  // S3-57：本用例原断言的"跳过存储过程语句"正是被修复的缺陷行为（过程体被 ; 拆散后整块丢弃
+  // ⇒ 过程从未建成、DROP PROCEDURE 从未生效）。口径改为：过程定义体作为**一条完整语句**下发。
+  it("存储过程语句应作为完整语句下发（S3-57 前为被跳过）", async () => {
     mockReadFileSync.mockReturnValue("CREATE PROCEDURE test() BEGIN SELECT 1; END;");
 
     await runMigrations();
 
-    const procCall = mockQuery.mock.calls.find(
+    const procCalls = mockQuery.mock.calls.filter(
       (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("CREATE PROCEDURE")
     );
-    expect(procCall).toBeUndefined();
+    expect(procCalls.length).toBeGreaterThan(0);
+    for (const call of procCalls) {
+      expect(call[0]).toContain("BEGIN SELECT 1; END");
+    }
   });
 
   it("应创建 t_stock_warning 表", async () => {
@@ -583,15 +588,21 @@ describe("runMigrations", () => {
     expect(mockCreateConnection).toHaveBeenCalled();
   });
 
-  it("外部 SQL 文件包含 DROP PROCEDURE 应跳过", async () => {
+  // S3-57：本用例原断言的"DROP PROCEDURE 被跳过"与上一条同源，都是被修复的缺陷行为
+  // （`092_租户ID.sql:282-283` 两条 DROP PROCEDURE 因 `continue` 从未下发 ⇒ 生产库残留辅助存储过程）。
+  // 口径改为：DROP PROCEDURE 作为**一条完整语句**必须下发。
+  it("DROP PROCEDURE 语句应作为完整语句下发（S3-57 前为被跳过）", async () => {
     mockReadFileSync.mockReturnValue("DROP PROCEDURE IF EXISTS test;");
 
     await runMigrations();
 
-    const dropCall = mockQuery.mock.calls.find(
+    const dropCalls = mockQuery.mock.calls.filter(
       (call: unknown[]) => typeof call[0] === "string" && (call[0] as string).includes("DROP PROCEDURE")
     );
-    expect(dropCall).toBeUndefined();
+    expect(dropCalls.length).toBeGreaterThan(0);
+    for (const call of dropCalls) {
+      expect(call[0]).toContain("DROP PROCEDURE IF EXISTS test");
+    }
   });
 
   it("外部 SQL 文件包含注释行应过滤", async () => {

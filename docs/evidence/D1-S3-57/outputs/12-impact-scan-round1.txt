@@ -1,0 +1,56 @@
+命令：node docs/evidence/D1-S3-57/tools/d1-impact.mjs（返工第 1 轮独立复跑）
+=== S3-57 影响面扫描（只读）===
+迁移文件总数                         : 176
+含 DELIMITER 指令行的文件数          : 1
+DELIMITER 指令行总数                 : 4
+含 CREATE PROCEDURE 的文件数         : 1
+CREATE PROCEDURE 条数                : 2
+DROP PROCEDURE 条数                  : 4
+CALL 条数                            : 173
+CREATE FUNCTION / TRIGGER / EVENT 数 : 0 / 0 / 0
+
+切分口径变更后"下发语句数组发生变化"的迁移文件数 : 4
+  - 092_租户ID.sql：修复前 161 条 → 修复后 149 条（新增 3 条 / 消失 16 条）
+      · 消失：CREATE PROCEDURE add_column_if_not_exists( IN tbl_name VARCHAR(128), IN col_name VARCHAR(128), IN col_def VARCHAR(512) ) BEGIN DECLARE col_c
+      · 消失：SELECT COUNT(*) INTO col_count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = tbl_name AND COLUMN_NAME = c
+      · 消失：IF col_count = 0 THEN SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` ADD COLUMN `', col_name, '` ', col_def)
+      · 消失：PREPARE stmt FROM @sql
+      · 消失：EXECUTE stmt
+      · 消失：DEALLOCATE PREPARE stmt
+      · 消失：END IF
+      · 消失：END$$ -- ============================================================ -- 辅助存储过程：条件添加索引 -- ==================================================
+      · 消失：CREATE PROCEDURE add_index_if_not_exists( IN tbl_name VARCHAR(128), IN idx_name VARCHAR(128), IN idx_def VARCHAR(512) ) BEGIN DECLARE idx_co
+      · 消失：SELECT COUNT(*) INTO idx_count FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = tbl_name AND INDEX_NAME =
+      · 消失：IF idx_count = 0 THEN SET @sql = CONCAT('ALTER TABLE `', tbl_name, '` ADD INDEX `', idx_name, '` ', idx_def)
+      · 消失：PREPARE stmt FROM @sql
+      · 消失：EXECUTE stmt
+      · 消失：DEALLOCATE PREPARE stmt
+      · 消失：END IF
+      · 消失：END$$ -- ============================================================ -- 第1步：新建 tenant 表 -- ================================================
+      · 新增：CREATE PROCEDURE add_column_if_not_exists( IN tbl_name VARCHAR(128), IN col_name VARCHAR(128), IN col_def VARCHAR(512) ) BEGIN DECLARE col_c
+      · 新增：CREATE PROCEDURE add_index_if_not_exists( IN tbl_name VARCHAR(128), IN idx_name VARCHAR(128), IN idx_def VARCHAR(512) ) BEGIN DECLARE idx_co
+      · 新增：CREATE TABLE IF NOT EXISTS t_tenant ( id VARCHAR(36) PRIMARY KEY COMMENT '租户ID（UUID）', name VARCHAR(100) NOT NULL COMMENT '租户名称（公司名）', conta
+  - 151_points_columns_fill.sql：修复前 16 条 → 修复后 14 条（新增 0 条 / 消失 2 条）
+      · 消失：108 member_id/change_points/balance_points/source_id
+      · 消失：旧营销积分 user_id/amount/balance/source_id), 迁移 CREATE IF NOT EXISTS 只会按首次定义建表, 其余服务的 SQL 在真实库必然报未知列 500。本迁移幂等补齐缺失列与索引, 三套引用全部可用。 -- 注意: 文件头不写注释
+  - 152_business_columns_fill.sql：修复前 81 条 → 修复后 74 条（新增 0 条 / 消失 7 条）
+      · 消失：migration.ts safeExec 对 ER_DUP_FIELDNAME 做模式匹配跳过, 可重复执行)。 -- 核心: t_operation_log 12 个核心业务服务写入(user_id/user_name/target_id/target_type/detail
+      · 消失：t_sys_user 员工/总台建管理员
+      · 消失：t_store 仓库管理
+      · 消失：t_miniapp_order 运费
+      · 消失：t_transfer_order 调拨单
+      · 消失：t_tenant 总台建租户
+      · 消失：其余为对账/盘点/平台配置等。 -- 注意: 文件头不写注释(自动迁移按分号拆分,注释污染首条语句被丢弃),说明放文件末尾。
+  - 164_relax_legacy_not_null.sql：修复前 10 条 → 修复后 9 条（新增 0 条 / 消失 1 条）
+      · 消失：t_transfer_order_item 保留 094 的 transfer_no NOT NULL, -- 与新明细写法(不带单号)冲突。全部改为可空, 各代服务的 INSERT 均可落库。若列不存在(safeExec ER_BAD_FIELD_ERROR)自动跳过。 -- 
+
+过程类文件清单：092_租户ID.sql（CREATE PROCEDURE 2 条）
+含 CALL 的文件清单：092_租户ID.sql（CALL 138 条）；120a_合规凭证字段.sql（CALL 8 条）；123_member_contact.sql（CALL 1 条）；125_instant_retail_admin_fix.sql（CALL 10 条）；129_sale_bill_item_compliance.sql（CALL 6 条）；132_product_box_barcode.sql（CALL 1 条）；134_sale_bill_role_fields.sql（CALL 5 条）；137_sys_user_dept_position.sql（CALL 2 条）；138_approval_business_link.sql（CALL 2 条）
+
+切分口径变更后"消失语句"的分类（证明没有真实语句被丢掉）：
+  纯注释/空白残块            : 0 条
+  注释正文被 ; 切出的垃圾片段  : 10 条（修复前当独立语句下发、被 MySQL 判语法错误后静默跳过）
+  旧 DELIMITER 残片（含 $$）   : 2 条（DELIMITER 行被整行删掉后 $$ 粘在语句尾部）
+  是修复后某条完整语句的子串  : 14 条（过程体残片/多语句粘连被还原）
+  待人工复核                  : 0 条
+EXIT=0

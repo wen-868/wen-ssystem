@@ -125,7 +125,7 @@ export function addTablePrefix(sql: string): string {
 }
 
 /**
- * MIG-5 + 踩坑[63]：把整段 SQL 拆成可逐条执行的语句数组（按 `;` 切块）。
+ * MIG-5 + 踩坑[63] + S3-57：把整段 SQL 拆成可逐条执行的语句数组。
  *
  * 为什么：外部迁移段此前在按 `;` 切块后用
  *   .filter(s => s.length > 0 && !s.startsWith("--"))
@@ -137,16 +137,173 @@ export function addTablePrefix(sql: string): string {
  *
  * 修复：先剥离 chunk 开头的整行注释（只剥开头，语句中间/末尾的 `--` 一律不动，
  * 保守起见不做行内 `--` 解析），再按 length>0 判断；剥离后为空的纯注释块仍然丢弃。
- * 调用方需先移除 USE / DELIMITER 行（见各调用点的 cleaned 步骤）。
+ *
+ * S3-57（过程体不再被 `;` 拆散）——本函数在原有"按 `;` 切块"之上补齐两条边界规则：
+ *   ① `DELIMITER <符号>` 指令（行首）切换分隔符：`DELIMITER $$` 之后的边界是 `$$`，
+ *      `DELIMITER ;` 切回默认；指令行本身不进语句流。**调用方因此必须保留 DELIMITER 行**
+ *      （只移除 USE 行，见各调用点的 cleaned 步骤）——此前调用方把 DELIMITER 行整行删掉，
+ *      过程体内的 `;` 就暴露成了边界，过程体被拆成残片、过程从未建成（MIG-1 演练 29 条
+ *      ER_SP_DOES_NOT_EXIST 即此类）。
+ *   ② 默认分隔符 `;` 下的 BEGIN…END 块边界：`CREATE PROCEDURE/FUNCTION/TRIGGER/EVENT`
+ *      定义体内（未读到块尾 `END`）的 `;` 不作为语句边界，整块作为**一条**语句下发。
+ * 另外，字符串/标识符字面量与注释（横线横线行注释、井号行注释、块注释）里的分隔符一律不切分。
  */
 export function splitSqlStatements(sql: string): string[] {
-  return sql
-    .split(";")
-    .map((s) => s.trim())
-    // 先剥离 chunk 开头的整行注释，再判断是否为空，避免把真实语句一起丢
-    // （尾随的注释行可能无换行结尾，故用 (\n|$) 同时吃掉收尾注释行）
-    .map((s) => s.replace(/^(\s*--[^\n]*(\n|$))+/, "").trim())
-    .filter((s) => s.length > 0);
+  const statements: string[] = [];
+  let delimiter = ";";
+  let buffer = "";
+  let index = 0;
+
+  /** 收尾当前语句：先剥离块开头的整行注释，再判断是否为空，避免把真实语句一起丢 */
+  const flush = () => {
+    // 尾随的注释行可能无换行结尾，故用 (\n|$) 同时吃掉收尾注释行
+    const cleaned = buffer.replace(/^(\s*--[^\n]*(\n|$))+/, "").trim();
+    if (cleaned.length > 0) statements.push(cleaned);
+    buffer = "";
+  };
+
+  while (index < sql.length) {
+    // ① 行首 `DELIMITER <符号>` 指令：切换分隔符，指令本身不进语句流。
+    //    只在语句边界（缓冲区里除空白/注释外没有未收尾的代码）上生效，
+    //    避免把正文里出现的同名文本误当指令。
+    const directive = matchDelimiterDirective(sql, index);
+    if (directive && stripLeadingComments(buffer).length === 0) {
+      delimiter = directive.delimiter;
+      index += directive.length;
+      continue;
+    }
+
+    // ② 字符串/标识符字面量与注释整体搬运：其中的分隔符不是语句边界
+    const tokenEnd = unsplittableTokenEnd(sql, index);
+    if (tokenEnd > index) {
+      buffer += sql.slice(index, tokenEnd);
+      index = tokenEnd;
+      continue;
+    }
+
+    // ③ 命中当前分隔符 ⇒ 一条完整语句
+    if (sql.startsWith(delimiter, index)) {
+      // S3-57②：默认分隔符下，例程定义体（BEGIN…END）内的 `;` 只是体内语句的分号，
+      // 不是本条语句的边界；只有读到块尾 `END`（允许 `END <label>`）才收尾。
+      const insideRoutineBody =
+        delimiter === ";" && routineStatementHead(buffer) && !routineBodyClosed(buffer);
+      if (!insideRoutineBody) {
+        flush();
+        index += delimiter.length;
+        continue;
+      }
+    }
+
+    buffer += sql[index];
+    index += 1;
+  }
+
+  flush();
+  return statements;
+}
+
+/**
+ * 位置 index 处若是"不可切分的 token"（字符串/标识符字面量、行注释、块注释），返回其结束位置；
+ * 否则返回 -1（调用方按分隔符 / 普通字符处理）。
+ */
+function unsplittableTokenEnd(sql: string, index: number): number {
+  const char = sql[index];
+  if (char === "'" || char === '"' || char === "`") return findQuotedEnd(sql, index, char);
+  if ((char === "-" && sql[index + 1] === "-") || char === "#") return lineCommentEnd(sql, index);
+  if (char === "/" && sql[index + 1] === "*") return blockCommentEnd(sql, index);
+  return -1;
+}
+
+/**
+ * S3-57①：识别行首的 `DELIMITER <符号>` 指令，返回其长度与设定的分隔符；非行首 / 不匹配返回 null。
+ */
+function matchDelimiterDirective(sql: string, index: number): { delimiter: string; length: number } | null {
+  if (index > 0 && sql[index - 1] !== "\n") return null;
+  const matched = /^[ \t]*DELIMITER[ \t]+(\S+)[ \t]*\r?\n?/i.exec(sql.slice(index));
+  if (!matched) return null;
+  return { delimiter: matched[1], length: matched[0].length };
+}
+
+/**
+ * 从引号位置找到字面量结束位置（含结束引号）；支持 `\` 转义与 `''` 双写转义。
+ * 未闭合时返回文本末尾（保守：不切分，交给 MySQL 报语法错误）。
+ */
+function findQuotedEnd(sql: string, quoteIndex: number, quote: string): number {
+  let index = quoteIndex + 1;
+  while (index < sql.length) {
+    const char = sql[index];
+    if (char === "\\") {
+      index += 2;
+      continue;
+    }
+    if (char === quote) {
+      if (sql[index + 1] === quote) {
+        index += 2;
+        continue;
+      }
+      return index + 1;
+    }
+    index += 1;
+  }
+  return sql.length;
+}
+
+/** 行注释（`--` / `#`）结束位置；无换行结尾时返回文本末尾 */
+function lineCommentEnd(sql: string, index: number): number {
+  const lineEnd = sql.indexOf("\n", index);
+  return lineEnd < 0 ? sql.length : lineEnd + 1;
+}
+
+/** 块注释（斜杠星号 到 星号斜杠）结束位置；未闭合时返回文本末尾 */
+function blockCommentEnd(sql: string, index: number): number {
+  const close = sql.indexOf("*/", index + 2);
+  return close < 0 ? sql.length : close + 2;
+}
+
+/**
+ * S3-57②：当前缓冲区是否是"例程定义"（CREATE PROCEDURE / FUNCTION / TRIGGER / EVENT …）。
+ *
+ * 判据：剥离前导注释后以 CREATE 开头，且在第一个 `(`（触发器无括号，则取前缀窗口）之前出现例程关键字。
+ * 这样 `CREATE TABLE t_x (…)`（含名为 procedure_log 的列等）不会被误判成例程。
+ */
+function routineStatementHead(buffer: string): boolean {
+  const code = stripLeadingComments(buffer);
+  if (!/^CREATE\b/i.test(code)) return false;
+  const window = code.slice(0, 256);
+  const parenIndex = window.indexOf("(");
+  const head = parenIndex >= 0 ? window.slice(0, parenIndex) : window;
+  return /\b(PROCEDURE|FUNCTION|TRIGGER|EVENT)\b/i.test(head);
+}
+
+/**
+ * S3-57②：例程定义体是否已读到块尾 `END`（允许 `END <label>`），可忽略结尾的空白与注释。
+ *
+ * 注意排除体内块的收尾词：`END IF` / `END WHILE` / `END CASE` / `END LOOP` / `END REPEAT`
+ * 都是 BEGIN…END 体**内部**语句的结束符，读到它们时整块尚未收尾（否则过程体会被拦腰截断）。
+ */
+function routineBodyClosed(buffer: string): boolean {
+  return /\bEND(\s+(?!(?:IF|WHILE|CASE|LOOP|REPEAT)\b)[A-Za-z_][A-Za-z0-9_]*)?$/i.test(
+    stripTrailingComments(buffer)
+  );
+}
+
+/** 去掉文本尾部的空白与注释（行注释 / 块注释），便于判断"最后一个有效 token" */
+function stripTrailingComments(text: string): string {
+  let rest = text;
+  for (;;) {
+    const before = rest;
+    rest = rest.replace(/\s+$/, "");
+    if (rest.endsWith("*/")) {
+      const blockStart = rest.lastIndexOf("/*");
+      if (blockStart >= 0) rest = rest.slice(0, blockStart);
+    } else {
+      const lineStart = rest.lastIndexOf("\n") + 1;
+      const lastLine = rest.slice(lineStart).trim();
+      if (lastLine.startsWith("--") || lastLine.startsWith("#")) rest = rest.slice(0, lineStart);
+    }
+    if (rest === before) break;
+  }
+  return rest;
 }
 
 export async function safeExec(conn: mysql.Connection, sql: string, label: string): Promise<boolean> {
@@ -903,12 +1060,14 @@ export async function runMigrations(): Promise<void> {
     try {
       const aiSqlPath = findSqlFile("121_ai_base_tables.sql");
       const aiSqlRaw = readFileSync(aiSqlPath, "utf8");
-      // 预处理：移除 USE 语句、DELIMITER 行（与第8步外部迁移保持一致）
+      // 预处理：只移除 USE 语句（与第8步外部迁移保持一致）
+      // S3-57：DELIMITER 行**必须保留**——它是切换语句分隔符的指令，由 splitSqlStatements 解析；
+      // 此前整行删掉 ⇒ `DELIMITER $$` 过程体会被按 `;` 拆散
       const aiCleaned = aiSqlRaw
         .split("\n")
         .filter((line: string) => {
           const t = line.trim().toUpperCase();
-          return !t.startsWith("USE ") && !t.startsWith("DELIMITER ");
+          return !t.startsWith("USE ");
         })
         .join("\n");
       // 拆分语句块并逐条执行（addTablePrefix 对已带 t_ 前缀的表名跳过，安全）
@@ -917,9 +1076,6 @@ export async function runMigrations(): Promise<void> {
       // 首张表 t_platform_ai_config 此前会被静默跳过）
       const aiStatements = splitSqlStatements(aiCleaned);
       for (const stmt of aiStatements) {
-        if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
-          continue;
-        }
         await safeExec(conn, addTablePrefix(stmt), "5.5.8 AI底座建表");
       }
       logger.info("[migration] 5.5.8 AI底座5张表兜底建表完成");
@@ -1049,12 +1205,14 @@ export async function runMigrations(): Promise<void> {
         const sql = readFileSync(join(migrationsDir, file), "utf-8");
         logger.info(`[migration] 执行外部迁移: ${file}`);
 
-        // 预处理：移除 USE 语句、DELIMITER 行
+        // 预处理：只移除 USE 语句
+        // S3-57：DELIMITER 行**必须保留**——它是切换语句分隔符的指令，由 splitSqlStatements 解析；
+        // 此前整行删掉 ⇒ `DELIMITER $$` 过程体会被按 `;` 拆散（过程残片当独立语句执行、过程从未建成）
         const cleaned = sql
           .split("\n")
           .filter((line) => {
             const t = line.trim().toUpperCase();
-            return !t.startsWith("USE ") && !t.startsWith("DELIMITER ");
+            return !t.startsWith("USE ");
           })
           .join("\n");
 
@@ -1064,11 +1222,6 @@ export async function runMigrations(): Promise<void> {
         const statements = splitSqlStatements(cleaned);
 
         for (const stmt of statements) {
-          // 跳过存储过程定义（$$ 块内的内容）
-          if (stmt.includes("CREATE PROCEDURE") || stmt.includes("DROP PROCEDURE")) {
-            logger.info(`[migration] ${file}: 跳过存储过程语句`);
-            continue;
-          }
           // 紧急保护（R95-03）：外部迁移含 DROP TABLE IF EXISTS（001/003 等），
           // 在已上线库上执行会删除重建核心表导致数据丢失（已在生产触发一次）。
           // 后续只允许补建缺失表，禁止任何 DROP。
