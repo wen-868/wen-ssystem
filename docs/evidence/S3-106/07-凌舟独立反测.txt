@@ -1,0 +1,26 @@
+
+ RUN  v4.1.10 D:/Users/ZXQL/wt-agents/issue-112/backend
+
+ ❯ src/__tests__/shared/migration-drop-guard.test.ts (5 tests | 1 failed) 46ms
+     × (b) 过程体内部含 DROP TABLE 字样时不再被跳过（整条过程定义照常下发） 16ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/shared/migration-drop-guard.test.ts > S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (b) 过程体内部含 DROP TABLE 字样时不再被跳过（整条过程定义照常下发）
+AssertionError: 过程定义必须整条下发：修复前（文本包含判定）它会被静默跳过，过程永远建不成: expected undefined to be defined
+ ❯ src/__tests__/shared/migration-drop-guard.test.ts:260:7
+    258|       routine,
+    259|       "过程定义必须整条下发：修复前（文本包含判定）它会被静默跳过，过程永远建不成"
+    260|     ).toBeDefined();
+       |       ^
+    261|     // 过程体原样保留（含动态 SQL 字符串里的 DROP TABLE 字样），没有被静默丢弃
+    262|     expect(routine).toContain("CREATE PROCEDURE");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  05:44:53
+   Duration  1.82s (transform 554ms, setup 93ms, import 530ms, tests 46ms, environment 0ms)
+

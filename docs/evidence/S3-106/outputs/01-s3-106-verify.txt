@@ -1,0 +1,295 @@
+
+==============================================================================
+[0] 环境与指纹
+==============================================================================
+工作区            : D:\Users\ZXQL\wt-agents\issue-112
+分支/HEAD         : refs/heads/agent/issue-112 @ (ref 未展开，见 outputs/worktree-status)
+migration.ts      : D:\Users\ZXQL\wt-agents\issue-112\backend\src\shared\migration.ts
+  sha256          : 19b9e73c9d6b52e8356d36f13a7b8e5d4b778dea2d0636c2e72ff0fe4730265f
+新增守门测试文件   : D:\Users\ZXQL\wt-agents\issue-112\backend\src\__tests__\shared\migration-drop-guard.test.ts
+  sha256          : 9c3f2ec6dcce28690145e6b45751b8d64b7e55515c315e8fc3abc1f688b4154a
+回退①（调用点→文本包含式）已定位替换：if (isDropTableStatement(stmt)) { → if (/DROP\s+TABLE/i.test(stmt)) {
+回退②（调用点+函数体）已定位替换：isDropTableStatement 收窄函数体 → 文本包含式
+
+==============================================================================
+[A] 修复后：工作区实现 + 新增守门文件
+==============================================================================
+用例：5 条，红 0 条
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 语句本身以 DROP TABLE 开头判真（含前导空白/注释、IF EXISTS、DELIMITER $$ 块）  (2ms)
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 过程体内含 DROP TABLE 字样判假（整条例程语句的首关键字是 CREATE）  (1ms)
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 非 DROP TABLE 的其它 DROP / 仅注释 / 空文本判假  (0ms)
+  ✓ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (a) 真 DROP TABLE 仍被跳过：两条 DROP 都不下发，各有一条保护日志  (22ms)
+  ✓ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (b) 过程体内部含 DROP TABLE 字样时不再被跳过（整条过程定义照常下发）  (10ms)
+
+==============================================================================
+[B] 反测①：第 8 步保护改回文本包含式（原实现逐字写法）
+==============================================================================
+用例：5 条，红 1 条
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 语句本身以 DROP TABLE 开头判真（含前导空白/注释、IF EXISTS、DELIMITER $$ 块）  (1ms)
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 过程体内含 DROP TABLE 字样判假（整条例程语句的首关键字是 CREATE）  (0ms)
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 非 DROP TABLE 的其它 DROP / 仅注释 / 空文本判假  (0ms)
+  ✓ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (a) 真 DROP TABLE 仍被跳过：两条 DROP 都不下发，各有一条保护日志  (14ms)
+  ✗ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (b) 过程体内部含 DROP TABLE 字样时不再被跳过（整条过程定义照常下发）  (8ms)
+      → AssertionError: 过程定义必须整条下发：修复前（文本包含判定）它会被静默跳过，过程永远建不成: expected undefined to be defined
+
+==============================================================================
+[B2] 反测②：判定函数本体也回退成文本包含式（调用点+函数体）
+==============================================================================
+用例：5 条，红 3 条
+  ✓ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 语句本身以 DROP TABLE 开头判真（含前导空白/注释、IF EXISTS、DELIMITER $$ 块）  (1ms)
+  ✗ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 过程体内含 DROP TABLE 字样判假（整条例程语句的首关键字是 CREATE）  (0ms)
+      → AssertionError: CREATE PROCEDURE `sync_drop_guard`()
+  ✗ S3-106 DROP TABLE 保护 · 判定函数（纯函数） > 非 DROP TABLE 的其它 DROP / 仅注释 / 空文本判假  (1ms)
+      → AssertionError: -- 注释里提到 DROP TABLE IF EXISTS t_x: expected true to be false // Object.is equality
+  ✓ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (a) 真 DROP TABLE 仍被跳过：两条 DROP 都不下发，各有一条保护日志  (11ms)
+  ✗ S3-106 DROP TABLE 保护 · runMigrations 外部迁移段 > (b) 过程体内部含 DROP TABLE 字样时不再被跳过（整条过程定义照常下发）  (6ms)
+      → AssertionError: 过程定义必须整条下发：修复前（文本包含判定）它会被静默跳过，过程永远建不成: expected undefined to be defined
+
+==============================================================================
+[C] 回归：既有守门文件（真实实现，未改动；口径＝未放宽/删除任何既有断言）
+==============================================================================
+
+migration-split.test.ts：9 条，红 0 条（预期红 0 条）
+
+migration-write-gate.test.ts：11 条，红 2 条（预期红 2 条）
+  ✗ MIG-4 写闸门 · runMigrations 外部迁移段 > 默认挡：info 日志声明本次运行生效的闸门取值 → TypeError: [Function fn] is not a spy or a call to a spy!
+  ✗ MIG-4 写闸门 · runMigrations 外部迁移段 > 显式放行（MIGRATION_WRITE_GATE=allow）：同一组语句全部执行，且不再有跳过日志 → TypeError: [Function fn] is not a spy or a call to a spy!
+
+migration-delimiter.test.ts：12 条，红 0 条（预期红 0 条）
+
+==============================================================================
+[C2] 补证：写闸门 info 日志声明取值（同一运行时读数，替代 harness 不支持的 spy 匹配器）
+==============================================================================
+  MIGRATION_WRITE_GATE=(未设置) ⇒ [migration] 外部迁移写闸门=block（默认）：数据写语句 INSERT/UPDATE/DELETE/REPLACE 与 CALL 一律跳过，放行需显式设置 MIGRATION_WRITE_GATE=allow
+     语义自证：true
+  MIGRATION_WRITE_GATE=allow ⇒ [migration] 外部迁移写闸门=allow（显式配置）：数据写语句与 CALL 全部放行
+     语义自证：true
+
+==============================================================================
+[E] 读数：用**真实迁移文件**驱动 runMigrations（006＝DROP TABLE 组，092＝过程体组）
+==============================================================================
+
+  006_phase4_schema.sql：
+      下发语句总数                : 232
+      DROP TABLE 下发条数          : 0（新口径下应为 0）
+      DROP TABLE 保护日志条数      : 7
+        ↳ 例：[migration] 006_phase4_schema.sql: 跳过 DROP TABLE 语句（保护生产数据）
+      过程定义下发条数            : 0（无）
+      DROP PROCEDURE 下发条数      : 0（不是 DROP TABLE，本就不该被拦）
+
+  092_租户ID.sql：
+      下发语句总数                : 226
+      DROP TABLE 下发条数          : 0（新口径下应为 0）
+      DROP TABLE 保护日志条数      : 0
+      过程定义下发条数            : 2（add_column_if_not_exists / add_index_if_not_exists）
+      DROP PROCEDURE 下发条数      : 4（不是 DROP TABLE，本就不该被拦）
+
+==============================================================================
+[D] 影响面：docs/migrations 里 DROP TABLE 的全部命中与改造后判定
+==============================================================================
+扫描文件数（*.sql，与 runner 同口径排除 add_tenant_id.sql）：177
+
+一、行级命中（rg -n "DROP\s+TABLE" docs/migrations 等价）：共 61 条，逐条列出：
+  001_phase1_schema.sql:16  [SQL 语句文本]  DROP TABLE IF EXISTS t_operation_log;
+  001_phase1_schema.sql:17  [SQL 语句文本]  DROP TABLE IF EXISTS t_hold_order;
+  001_phase1_schema.sql:18  [SQL 语句文本]  DROP TABLE IF EXISTS t_refund_order;
+  001_phase1_schema.sql:19  [SQL 语句文本]  DROP TABLE IF EXISTS t_receivable_account;
+  001_phase1_schema.sql:20  [SQL 语句文本]  DROP TABLE IF EXISTS t_payment_order;
+  001_phase1_schema.sql:21  [SQL 语句文本]  DROP TABLE IF EXISTS t_collection_view_log;
+  001_phase1_schema.sql:22  [SQL 语句文本]  DROP TABLE IF EXISTS t_collection_link;
+  001_phase1_schema.sql:23  [SQL 语句文本]  DROP TABLE IF EXISTS t_sale_bill_item;
+  001_phase1_schema.sql:24  [SQL 语句文本]  DROP TABLE IF EXISTS t_sale_bill;
+  001_phase1_schema.sql:25  [SQL 语句文本]  DROP TABLE IF EXISTS t_miniapp_order_item;
+  001_phase1_schema.sql:26  [SQL 语句文本]  DROP TABLE IF EXISTS t_miniapp_order;
+  001_phase1_schema.sql:27  [SQL 语句文本]  DROP TABLE IF EXISTS t_inventory_ledger;
+  001_phase1_schema.sql:28  [SQL 语句文本]  DROP TABLE IF EXISTS t_inventory_balance;
+  001_phase1_schema.sql:29  [SQL 语句文本]  DROP TABLE IF EXISTS t_product_price_log;
+  001_phase1_schema.sql:30  [SQL 语句文本]  DROP TABLE IF EXISTS t_product_price;
+  001_phase1_schema.sql:31  [SQL 语句文本]  DROP TABLE IF EXISTS t_product_sku;
+  001_phase1_schema.sql:32  [SQL 语句文本]  DROP TABLE IF EXISTS t_product_spu;
+  001_phase1_schema.sql:33  [SQL 语句文本]  DROP TABLE IF EXISTS t_product_category;
+  001_phase1_schema.sql:34  [SQL 语句文本]  DROP TABLE IF EXISTS t_member;
+  001_phase1_schema.sql:35  [SQL 语句文本]  DROP TABLE IF EXISTS t_store;
+  001_phase1_schema.sql:36  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_role_permission;
+  001_phase1_schema.sql:37  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_user_role;
+  001_phase1_schema.sql:38  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_permission;
+  001_phase1_schema.sql:39  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_role;
+  001_phase1_schema.sql:40  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_user;
+  003_phase2_schema.sql:14  [SQL 语句文本]  DROP TABLE IF EXISTS t_supplier;
+  003_phase2_schema.sql:15  [SQL 语句文本]  DROP TABLE IF EXISTS t_supplier_contact;
+  003_phase2_schema.sql:64  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_order;
+  003_phase2_schema.sql:65  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_order_item;
+  003_phase2_schema.sql:66  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_in_stock;
+  003_phase2_schema.sql:67  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_in_stock_item;
+  003_phase2_schema.sql:68  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_return;
+  003_phase2_schema.sql:69  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_return_item;
+  003_phase2_schema.sql:70  [SQL 语句文本]  DROP TABLE IF EXISTS t_purchase_payment;
+  003_phase2_schema.sql:244  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_statement;
+  003_phase2_schema.sql:245  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_payment;
+  003_phase2_schema.sql:305  [SQL 语句文本]  DROP TABLE IF EXISTS t_sale_return;
+  003_phase2_schema.sql:306  [SQL 语句文本]  DROP TABLE IF EXISTS t_sale_return_item;
+  003_phase2_schema.sql:353  [SQL 语句文本]  DROP TABLE IF EXISTS t_sale_payment;
+  004_phase3_schema.sql:14  [SQL 语句文本]  DROP TABLE IF EXISTS t_alert_rule;
+  004_phase3_schema.sql:15  [SQL 语句文本]  DROP TABLE IF EXISTS t_alert_record;
+  005_phase3_sys_config.sql:10  [SQL 语句文本]  DROP TABLE IF EXISTS t_sys_config;
+  006_phase4_schema.sql:16  [SQL 语句文本]  DROP TABLE IF EXISTS t_price_level;
+  006_phase4_schema.sql:31  [SQL 语句文本]  DROP TABLE IF EXISTS t_sku_price;
+  006_phase4_schema.sql:51  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_price_binding;
+  006_phase4_schema.sql:68  [SQL 语句文本]  DROP TABLE IF EXISTS t_price_change_log;
+  006_phase4_schema.sql:95  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_credit;
+  006_phase4_schema.sql:118  [SQL 语句文本]  DROP TABLE IF EXISTS t_credit_operation_log;
+  006_phase4_schema.sql:135  [SQL 语句文本]  DROP TABLE IF EXISTS t_collection_record;
+  007_phase5_schema.sql:16  [SQL 语句文本]  DROP TABLE IF EXISTS t_inventory_batch;
+  007_phase5_schema.sql:38  [SQL 语句文本]  DROP TABLE IF EXISTS t_expiry_alert_config;
+  007_phase5_schema.sql:59  [SQL 语句文本]  DROP TABLE IF EXISTS t_expiry_alert_record;
+  007_phase5_schema.sql:85  [SQL 语句文本]  DROP TABLE IF EXISTS t_store_control_config;
+  007_phase5_schema.sql:100  [SQL 语句文本]  DROP TABLE IF EXISTS t_store_status_log;
+  079_权限矩阵.sql:11  [整行注释]  -- DROP TABLE IF EXISTS t_sys_field_permission;
+  079_权限矩阵.sql:12  [整行注释]  -- DROP TABLE IF EXISTS t_sys_data_permission;
+  079_权限矩阵.sql:13  [整行注释]  -- DROP TABLE IF EXISTS t_sys_menu;
+  080_平台管理员.sql:7  [整行注释]  -- 使用了 DROP TABLE IF EXISTS，已修正为幂等语法
+  085_报价推送.sql:8  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_quote_item;
+  085_报价推送.sql:9  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_quote_push_log;
+  085_报价推送.sql:10  [SQL 语句文本]  DROP TABLE IF EXISTS t_customer_quote;
+
+二、语句级判定（用真实 splitSqlStatements + isDropTableStatement 跑真实文件）：共 57 条 含 DROP TABLE 字样的语句
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_operation_log…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_hold_order…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_refund_order…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_receivable_account…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_payment_order…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_collection_view_log…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_collection_link…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sale_bill_item…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sale_bill…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_miniapp_order_item…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_miniapp_order…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_inventory_ledger…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_inventory_balance…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_product_price_log…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_product_price…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_product_sku…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_product_spu…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_product_category…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_member…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_store…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_role_permission…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_user_role…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_permission…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_role…
+  001_phase1_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_user…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_supplier…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_supplier_contact…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_order…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_order_item…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_in_stock…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_in_stock_item…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_return…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_return_item…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_purchase_payment…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_statement…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_payment…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sale_return…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sale_return_item…
+  003_phase2_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sale_payment…
+  004_phase3_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_alert_rule…
+  004_phase3_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_alert_record…
+  005_phase3_sys_config.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sys_config…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_price_level…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_sku_price…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_price_binding…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_price_change_log…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_credit…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_credit_operation_log…
+  006_phase4_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_collection_record…
+  007_phase5_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_inventory_batch…
+  007_phase5_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_expiry_alert_config…
+  007_phase5_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_expiry_alert_record…
+  007_phase5_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_store_control_config…
+  007_phase5_schema.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_store_status_log…
+  085_报价推送.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_quote_item…
+  085_报价推送.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_quote_push_log…
+  085_报价推送.sql  首关键字=DROP  新口径=仍被拦（本条语句以 DROP TABLE 开头）  旧口径=整条静默跳过
+      DROP TABLE IF EXISTS t_customer_quote…
+
+三、差值（旧口径会静默跳过、新口径放行的语句数）：0
+四、结论：真 DROP TABLE 语句被拦 57 条；因"文本包含"被误伤的语句 0 条（改造后照常执行）。
+
+==============================================================================
+结论
+==============================================================================
+✓ [A] 用例 5（预期 5）/ 红 0（预期 0）
+✓ [A] 应保持绿：(a) 真 DROP TABLE 仍被跳过
+✓ [A] 应保持绿：(b) 过程体内部含 DROP TABLE 字样时不再被跳过
+✓ [B] 用例 5（预期 5）/ 红 1（预期 1）
+✓ [B] 预期变红用例命中：(b) 过程体内部含 DROP TABLE 字样时不再被跳过
+✓ [B] 应保持绿：(a) 真 DROP TABLE 仍被跳过
+✓ [B2] 用例 5（预期 5）/ 红 3（预期 3）
+✓ [B2] 预期变红用例命中：(b) 过程体内部含 DROP TABLE 字样时不再被跳过
+✓ [B2] 应保持绿：(a) 真 DROP TABLE 仍被跳过
+✓ [C] migration-split.test.ts 用例 9 / 红 0（预期红 0）
+✓ [C] migration-write-gate.test.ts 用例 11 / 红 2（预期红 2）
+✓ [C] migration-write-gate.test.ts 的 2 条红均为 harness 缺 spy 匹配器（非回归）
+✓ [C] migration-delimiter.test.ts 用例 12 / 红 0（预期红 0）
+✓ [C2] 写闸门 info 日志声明取值：block（默认）与 allow（显式配置）两条语义自证成立
+✓ [D] 语句级"仍被拦"条数（57）＝行级非注释命中条数（57）
+✓ [E] 006：DROP TABLE 下发 0 条（预期 0）、保护日志 7 条（预期 >0）
+✓ [E] 092：过程定义下发 2 条（预期 ≥2）、DROP TABLE 保护日志 0 条（预期 0）
+
+EXIT=0
