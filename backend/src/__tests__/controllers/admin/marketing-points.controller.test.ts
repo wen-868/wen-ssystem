@@ -78,6 +78,19 @@ describe("marketing-points.controller", () => {
     expect(ok).toHaveBeenCalled();
   });
 
+  // S3-110 ④：t_points_rule.rule_name / earn_type 为 NOT NULL 无默认值，
+  // 控制器 zod 必须收下这两个可选字段并透传（否则服务层只能写死默认值）
+  it("updatePointsRule - ruleName / earnType 透传服务层（S3-110 ④）", async () => {
+    (pointsService.updatePointsRule as any).mockResolvedValue({ earnRatio: 1 });
+    const req = mockReq({ body: { ruleName: "消费得积分", earnType: "PURCHASE" } });
+    const res = mockRes();
+    await updatePointsRule(req as any, res as any, vi.fn());
+    expect(pointsService.updatePointsRule).toHaveBeenCalledWith(
+      { ruleName: "消费得积分", earnType: "PURCHASE" },
+      "t1"
+    );
+  });
+
   it("listPointsRecords - 应返回积分记录列表", async () => {
     (pointsService.listPointsRecords as any).mockResolvedValue({ total: 0, records: [] });
     const req = mockReq({ query: { page: 1, pageSize: 20 } });

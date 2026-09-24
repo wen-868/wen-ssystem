@@ -1,0 +1,13 @@
+
+ ❯ src/__tests__/shared/migration-c6-columns.test.ts (11 tests | 3 failed) 19ms
+     × 切块后共 8 条可执行语句：6 条逐列 ALTER + 2 条跑后核对 SELECT 8ms
+     × S3-110 ③：每条 ALTER 只加一列（禁止退回「同表多列合并」的全有全无写法） 1ms
+     × 6 条 ALTER 均显式 ALGORITHM=INSTANT（仅加列、不动行格式） 2ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/__tests__/shared/migration-c6-columns.test.ts > 178_library_brand_auth_app_version_status.sql 形状约束 > 切块后共 8 条可执行语句：6 条逐列 ALTER + 2 条跑后核对 SELECT
+ FAIL  src/__tests__/shared/migration-c6-columns.test.ts > 178_library_brand_auth_app_version_status.sql 形状约束 > S3-110 ③：每条 ALTER 只加一列（禁止退回「同表多列合并」的全有全无写法）
+ FAIL  src/__tests__/shared/migration-c6-columns.test.ts > 178_library_brand_auth_app_version_status.sql 形状约束 > 6 条 ALTER 均显式 ALGORITHM=INSTANT（仅加列、不动行格式）
+ Test Files  1 failed (1)
+      Tests  3 failed | 8 passed (11)
+   Duration  919ms (transform 396ms, setup 67ms, import 485ms, tests 19ms, environment 0ms)
+

@@ -10,6 +10,10 @@ export const getPointsRule = asyncHandler(async (req, res) => {
 
 export const updatePointsRule = asyncHandler(async (req, res) => {
   const body = z.object({
+    // S3-110 ④：t_points_rule.rule_name / earn_type 为 NOT NULL 无默认值，
+    // 服务层建规则时会写这两列，故控制器同步开放为可选入参（长度对齐列宽 VARCHAR(100)/VARCHAR(20)）
+    ruleName: z.string().min(1).max(100).optional(),
+    earnType: z.string().min(1).max(20).optional(),
     earnRatio: z.number().min(0).optional(),
     redeemRatio: z.number().min(0).optional(),
     minRedeemAmount: z.number().min(0).optional(),

@@ -1,0 +1,9 @@
+
+ ❯ src/__tests__/routes/platform-s3-110.test.ts (9 tests | 2 failed) 116ms
+     × APPROVED → OFFLINE 返回 200 并落 UPDATE 26ms
+     × OFFLINE → APPROVED 返回 200（重新上架） 8ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed (1)
+      Tests  2 failed | 7 passed (9)
+   Duration  3.10s (transform 988ms, setup 71ms, import 2.58s, tests 116ms, environment 0ms)
+

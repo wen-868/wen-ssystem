@@ -1,0 +1,54 @@
+迁移文件：D:\Users\ZXQL\wt-agents\issue-118\docs\migrations\178_library_brand_auth_app_version_status.sql
+生产管线切块结果：ALTER 6 条 + SELECT 2 条（合计 8）
+
+## A 全空库首跑（六列均不存在）
+  #1 applied ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE
+  #2 applied ALTER TABLE t_library_brand ADD COLUMN auth_expired_at DATETIME DEFAUL
+  #3 applied ALTER TABLE t_library_brand ADD COLUMN auth_status VARCHAR(16) DEFAULT
+  #4 applied ALTER TABLE t_app_version ADD COLUMN status VARCHAR(16) NOT NULL DEFAU
+  #5 applied ALTER TABLE t_app_version ADD COLUMN gray_ratio TINYINT NOT NULL DEFAU
+  #6 applied ALTER TABLE t_app_version ADD COLUMN archived_at DATETIME DEFAULT NULL
+  #7 string  SELECT COUNT(*) AS c6_new_column_count FROM information_schema.COLUMNS
+  #8 string  SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAU
+[PASS] A1 首跑 6 条 ALTER 全部生效 :: applied=6
+[PASS] A2 六列全部落地 :: brand=true,true,true app_version=true,true,true
+
+## B 无变化重跑（六列均已存在）
+  #1 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE
+  #2 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_library_brand ADD COLUMN auth_expired_at DATETIME DEFAUL
+  #3 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_library_brand ADD COLUMN auth_status VARCHAR(16) DEFAULT
+  #4 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_app_version ADD COLUMN status VARCHAR(16) NOT NULL DEFAU
+  #5 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_app_version ADD COLUMN gray_ratio TINYINT NOT NULL DEFAU
+  #6 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_app_version ADD COLUMN archived_at DATETIME DEFAULT NULL
+[PASS] B1 第二次 6 条 ALTER 全部 1060 :: dup=6
+[PASS] B2 6 条错误码全部命中 safeExec 跳过规则（ER_DUP_FIELDNAME）
+[PASS] B3 零条被误当生效
+[PASS] B4 不产生任何新失败（无不可跳过的错误）
+
+## C 中间态（auth_letter_url 已存在，其余 5 列缺失）
+  #1 dup     code=ER_DUP_FIELDNAME ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE
+  #2 applied code=- ALTER TABLE t_library_brand ADD COLUMN auth_expired_at DATETIME DEFAUL
+  #3 applied code=- ALTER TABLE t_library_brand ADD COLUMN auth_status VARCHAR(16) DEFAULT
+[PASS] C1 逐列写法：已存在的列被跳过，其余列照建（自愈）
+[PASS] C2 缺失列未丢
+  旧合并写法（3 列一条）：outcome=dup code=ER_DUP_FIELDNAME
+[PASS] C3 反证：旧合并写法在中间态下**丢列**（全有全无缺陷复现）
+
+## D 控制组（证明本脚本能区分「跳过」与「失败」）
+[PASS] D1 ER_BAD_NULL_ERROR 未被当作跳过（safeExec 返回 false 但错误码不在跳过集合）
+
+结论：全部通过
+node:fs:2422
+    return binding.writeFileUtf8(
+                   ^
+
+Error: EBUSY: resource busy or locked, open 'D:\Users\ZXQL\wt-agents\issue-118\docs\evidence\S3-110\outputs\migration-178-idempotency.log'
+    at writeFileSync (node:fs:2422:20)
+    at file:///D:/Users/ZXQL/wt-agents/issue-118/docs/evidence/S3-110/probe/migration-178-idempotency.mjs:229:1 {
+  errno: -4082,
+  code: 'EBUSY',
+  syscall: 'open',
+  path: 'D:\\Users\\ZXQL\\wt-agents\\issue-118\\docs\\evidence\\S3-110\\outputs\\migration-178-idempotency.log'
+}
+
+Node.js v24.18.0

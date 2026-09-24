@@ -1,0 +1,8 @@
+
+ ❯ src/__tests__/routes/platform-s3-110.test.ts (9 tests | 1 failed) 104ms
+     × 反测：PENDING → OFFLINE 仍 400（只放开 APPROVED ↔ OFFLINE，不放宽审核路径） 13ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Duration  3.09s (transform 932ms, setup 74ms, import 2.56s, tests 104ms, environment 0ms)
+

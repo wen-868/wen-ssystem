@@ -1,12 +1,24 @@
 ALTER TABLE t_library_brand
   ADD COLUMN auth_letter_url VARCHAR(512) DEFAULT NULL COMMENT '品牌授权书文件 URL（NULL=未上传）',
+  ALGORITHM=INSTANT;
+
+ALTER TABLE t_library_brand
   ADD COLUMN auth_expired_at DATETIME DEFAULT NULL COMMENT '授权有效期截止（NULL=未设置，不造默认值）',
+  ALGORITHM=INSTANT;
+
+ALTER TABLE t_library_brand
   ADD COLUMN auth_status VARCHAR(16) DEFAULT NULL COMMENT '授权状态 AUTHORIZED/EXPIRED/NONE（NULL=未设置）',
   ALGORITHM=INSTANT;
 
 ALTER TABLE t_app_version
   ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'PUBLISHED' COMMENT '发布状态 DRAFT/PUBLISHED/PAUSED/ARCHIVED（历史行按已发布）',
+  ALGORITHM=INSTANT;
+
+ALTER TABLE t_app_version
   ADD COLUMN gray_ratio TINYINT NOT NULL DEFAULT 0 COMMENT '灰度放量比例 0-100（0=未放量）',
+  ALGORITHM=INSTANT;
+
+ALTER TABLE t_app_version
   ADD COLUMN archived_at DATETIME DEFAULT NULL COMMENT '归档时间（NULL=未归档）',
   ALGORITHM=INSTANT;
 
@@ -24,18 +36,24 @@ SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN
 
 -- ============================================
 -- 迁移编号：178
--- 描述：C6-1A INSTANT 加列一组两条 ALTER
+-- 描述：C6-1A INSTANT 加列六列（**每列一条 ALTER**，共 6 条）
 --        ① t_library_brand 追加 auth_letter_url / auth_expired_at / auth_status（品牌授权书与授权状态）
 --        ② t_app_version   追加 status / gray_ratio / archived_at（发布状态、灰度比例、归档时间）
 -- 创建人：阿坚（后端）
--- 日期：2026-09-25
+-- 日期：2026-09-25（初版 C6-1A）／2026-09-25 逐列拆分（S3-110 ③）
 -- 依据：docs/tasks/cards/R101-C6-0-阿坚清账.md 四.1（② 类 11 条之 #27 品牌授权书、#34 草稿、#36 放量/归档）
 --       + 同卡 四.4 INSTANT 加列清单 C1 三列 / C2 三列（同表合并为一条 ALTER 的登记建议）
 --       + docs/tasks/cards/R101-C6-凌舟裁定（C6-0清账后）.md 三 R5③（t_app_version 加 status 列，本批可做）
 --       + docs/tasks/cards/R101-派单-20260925-C6-1A.md 交付物① ②（加列须幂等可重复执行）
--- 幂等：重复执行时 MySQL 返回 ER_DUP_FIELDNAME（1060），safeExec 按跳过规则静默忽略，
---       故本文件在每次启动的外部迁移段重跑均无害（本仓无迁移账本表，每次启动都会重跑）
--- 语句位置：可执行语句（两条 ALTER + 两条跑后核对 SELECT）顶格放在注释块之前
+--       + docs/tasks/cards/R101-派单-20260925-S3-110.md 交付物③（逐列拆分，消除"全有全无"）
+-- 拆分原因（S3-110 ③ 实测语义）：原版把同表 3 列合并为一条 ALTER，而 MySQL 是**语句级**原子回滚——
+--       只要 3 列中有任意 1 列已存在，本语句返 ER_DUP_FIELDNAME（1060），safeExec 按跳过规则忽略整条，
+--       同一批里**尚未落地的其余 2 列就此永远补不上**（生产 178 首次执行前六列全不存在，故初版未暴露）。
+-- 幂等（精确表述，不再宣称"每次都无害"）：逐列拆分后重跑时，**已存在的列只跳过它自己那一条**
+--       （1060 → safeExec 跳过），同批其余列仍然照建 ⇒ "部分列已存在的中间态"可由重跑自愈。
+--       仍然存在的边界：跳过是**整条语句级**的，故任何写数据的语句都不能与本文件混排——
+--       本文件只含 ADD COLUMN 与跑后核对 SELECT，零 DML，故不存在"被跳过 = 数据没写"的隐性风险。
+-- 语句位置：可执行语句（6 条 ALTER + 2 条跑后核对 SELECT）顶格放在注释块之前
 --       —— 规避踩坑日志 [63]／MIG-1「以注释开头的整块语句被 runner 丢弃」
 --       注意：注释文字内不得出现 ASCII 分号，否则注释块会被切成两半
 -- 表名写法：不加反引号（MIG-2：addTablePrefix 对反引号表名的早期缺陷），两表均已带 t_ 前缀

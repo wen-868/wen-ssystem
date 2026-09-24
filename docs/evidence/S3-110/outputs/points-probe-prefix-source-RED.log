@@ -1,0 +1,40 @@
+## 1 真 DDL（docs/migrations/071_客户积分.sql 的 t_points_rule）
+  rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',
+[PASS] 1.rule_name 是 NOT NULL 且无 DEFAULT :: rule_name VARCHAR(100) NOT NULL COMMENT '规则名称',
+  earn_type VARCHAR(20) NOT NULL COMMENT '获取方式: PURCHASE/SIGN_IN/BIRTHDAY/REFERRAL',
+[PASS] 1.earn_type 是 NOT NULL 且无 DEFAULT :: earn_type VARCHAR(20) NOT NULL COMMENT '获取方式: PURCHASE/SIGN_IN/BIRTHDAY/REFERRAL',
+
+## 2 隔离库（node:sqlite 内存库，t_points_rule 列结构按 071 真 DDL + 151 补列复刻）
+
+## 3 修复前（漏 rule_name / earn_type，7 列写法）
+  SQL：INSERT INTO t_points_rule (earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id) VALUES (?, ?, ?, ?, ?, ?, ?)
+  结果：mysql-1364-equivalent :: NOT NULL constraint failed: t_points_rule.rule_name
+[PASS] 3.1 修复前写法在隔离库必然失败（NOT NULL 无默认值列缺失 ⇒ MySQL 严格模式 1364 的等价行为）
+[FAIL] 3.2 生产源码已不含「漏列」写法（修复真正落在代码里，不是探针自证）
+
+## 4 修复后（INSERT 语句从 marketing-points.service.ts 现抽）
+  列（7）：earn_ratio, redeem_ratio, min_redeem_amount, max_redeem_ratio, expire_days, enabled, tenant_id
+  占位符（7）：?, ?, ?, ?, ?, ?, ?
+[PASS] 4.1 列数与占位符数一致且全为 ?
+[FAIL] 4.2 列清单含 rule_name / earn_type（NOT NULL 无默认值列不再漏）
+[PASS] 4.3 默认值可由请求体覆盖（ruleName / earnType 缺省兜底）
+[FAIL] 4.4 修复后写法执行成功（不再 1364） :: {"kind":"other-error","msg":"column index out of range"}
+  库内行：[]
+[FAIL] 4.5 落库行含 rule_name='积分兑换规则' / earn_type='CONSUMPTION'
+
+## 5 请求体覆盖（ruleName='消费得积分' / earnType='PURCHASE'）
+file:///D:/Users/ZXQL/wt-agents/issue-118/docs/evidence/S3-110/probe/points-insert-1364.mjs:140
+db.prepare(sql).run(...overrideParams);
+                ^
+
+Error: column index out of range
+    at file:///D:/Users/ZXQL/wt-agents/issue-118/docs/evidence/S3-110/probe/points-insert-1364.mjs:140:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:643:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 25,
+  errstr: 'column index out of range'
+}
+
+Node.js v24.18.0

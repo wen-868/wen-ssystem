@@ -1,0 +1,14 @@
+
+ ❯ src/__tests__/routes/platform-s3-110.test.ts (9 tests | 7 failed) 91ms
+     × 反测：无令牌访问必须 401（端点是平台令牌保护的） 34ms
+     × APPROVED → OFFLINE 返回 200 并落 UPDATE 16ms
+     × OFFLINE → APPROVED 返回 200（重新上架） 6ms
+     × PENDING → APPROVED 仍返回 200（审核路径保持不变） 6ms
+     × 反测：PENDING → OFFLINE 仍 400（只放开 APPROVED ↔ OFFLINE，不放宽审核路径） 5ms
+     × 边界：APPROVED → REJECTED 仍 400（不得把已发布商品改判为驳回） 5ms
+     × 边界：非法状态值仍 400 且不进入服务层查询 5ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed (1)
+      Tests  7 failed | 2 passed (9)
+   Duration  2.91s (transform 903ms, setup 69ms, import 2.42s, tests 91ms, environment 0ms)
+

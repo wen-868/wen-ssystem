@@ -4,13 +4,17 @@ import { resolve } from "node:path";
 import { addTablePrefix, splitSqlStatements } from "../../shared/migration";
 
 /**
- * R101-C6-1A 回归保护：178 迁移文件（INSTANT 追加 6 列）的形状约束。
+ * R101-C6-1A + S3-110 回归保护：178 迁移文件（INSTANT 追加 6 列）的形状约束。
  *
  * 依据：
  * - 派单卡《R101-派单-20260925-C6-1A》交付物② + 红线②：新增 INSTANT 加列迁移必须幂等、
  *   可重复执行，且不得改既有迁移文件；
  * - 清账卡《R101-C6-0-阿坚清账》四.4：C1（t_library_brand 三列）与 C2（t_app_version 三列）
- *   同表合并为一条 ALTER，显式 ALGORITHM=INSTANT；
+ *   初版按该建议"同表合并为一条 ALTER"，显式 ALGORITHM=INSTANT；
+ * - 派单卡《R101-派单-20260925-S3-110》交付物③（+ 凌舟裁定 三 S3-110）：MySQL 是**语句级**原子，
+ *   合并写法一旦有任一列已存在即整条 1060 被 safeExec 跳过、其余列补不上 ⇒ 改为**每列一条 ALTER**。
+ *   本文件的形状断言随之由"2 条 ALTER（各 3 列）"改为"6 条 ALTER（各 1 列）"，并新增
+ *   "任何一条 ALTER 不得含 2 个及以上 ADD COLUMN"的约束断言（防止退回全有全无写法）。
  * - 踩坑日志 [63]／MIG-1：以 `--` 开头的整块语句会被 runner 丢弃 ⇒ 语句顶格、注释块在末尾；
  * - MIG-2：`addTablePrefix` 对反引号表名有早期缺陷 ⇒ 不使用反引号。
  *
@@ -30,6 +34,16 @@ const statements = splitSqlStatements(cleaned);
 const migrated = statements.map((statement) => addTablePrefix(statement));
 const joined = migrated.join("\n");
 
+/** 取"给指定表加指定列"的那条 ALTER（逐列拆分后一列一条，故唯一） */
+function alterFor(table: string, column: string) {
+  return migrated.find(
+    (statement) =>
+      statement.includes(`ALTER TABLE ${table}`) && statement.includes(`ADD COLUMN ${column}`)
+  );
+}
+
+const alterStatements = migrated.filter((statement) => /^ALTER TABLE/.test(statement));
+
 describe("178_library_brand_auth_app_version_status.sql 形状约束", () => {
   it("文件头是可执行语句（不是注释块），首条为 t_library_brand 的 ALTER TABLE", () => {
     const firstLine = sql.split(/\r?\n/).find((line) => line.trim().length > 0) ?? "";
@@ -37,36 +51,50 @@ describe("178_library_brand_auth_app_version_status.sql 形状约束", () => {
     expect(migrated[0]).toContain("ALTER TABLE t_library_brand");
   });
 
-  it("切块后只剩 4 条可执行语句：2 条 ALTER + 2 条跑后核对 SELECT", () => {
-    expect(statements).toHaveLength(4);
-    expect(migrated[0]).toMatch(/^ALTER TABLE/);
-    expect(migrated[1]).toMatch(/^ALTER TABLE t_app_version/);
-    expect(migrated[2]).toContain("FROM information_schema.COLUMNS");
-    expect(migrated[3]).toContain("COLUMN_COMMENT");
+  it("切块后共 8 条可执行语句：6 条逐列 ALTER + 2 条跑后核对 SELECT", () => {
+    expect(statements).toHaveLength(8);
+    expect(alterStatements).toHaveLength(6);
+    expect(migrated[6]).toContain("FROM information_schema.COLUMNS");
+    expect(migrated[7]).toContain("COLUMN_COMMENT");
   });
 
-  it("两条 ALTER 均显式 ALGORITHM=INSTANT（仅加列、不动行格式）", () => {
-    expect(migrated[0]).toMatch(/ALGORITHM\s*=\s*INSTANT/);
-    expect(migrated[1]).toMatch(/ALGORITHM\s*=\s*INSTANT/);
-    expect((joined.match(/ALGORITHM\s*=\s*INSTANT/gi) ?? []).length).toBe(2);
+  it("S3-110 ③：每条 ALTER 只加一列（禁止退回「同表多列合并」的全有全无写法）", () => {
+    for (const statement of alterStatements) {
+      expect(statement.match(/ADD COLUMN/gi) ?? []).toHaveLength(1);
+    }
+    // 6 列 ⇒ 6 条语句，且两表各 3 条
+    expect(joined.match(/ADD COLUMN/gi) ?? []).toHaveLength(6);
+    expect(alterStatements.filter((s) => s.includes("ALTER TABLE t_library_brand"))).toHaveLength(3);
+    expect(alterStatements.filter((s) => s.includes("ALTER TABLE t_app_version"))).toHaveLength(3);
+  });
+
+  it("6 条 ALTER 均显式 ALGORITHM=INSTANT（仅加列、不动行格式）", () => {
+    for (const statement of alterStatements) {
+      expect(statement).toMatch(/ALGORITHM\s*=\s*INSTANT/);
+    }
+    expect((joined.match(/ALGORITHM\s*=\s*INSTANT/gi) ?? []).length).toBe(6);
   });
 
   it("C1：t_library_brand 追加 auth_letter_url / auth_expired_at / auth_status 三列（类型与清账卡一致）", () => {
-    const alter = migrated[0];
-    expect(alter).toContain("ADD COLUMN auth_letter_url VARCHAR(512)");
-    expect(alter).toContain("ADD COLUMN auth_expired_at DATETIME");
-    expect(alter).toContain("ADD COLUMN auth_status VARCHAR(16)");
-    expect((alter.match(/ADD COLUMN/gi) ?? []).length).toBe(3);
+    const letterUrl = alterFor("t_library_brand", "auth_letter_url");
+    const expiredAt = alterFor("t_library_brand", "auth_expired_at");
+    const authStatus = alterFor("t_library_brand", "auth_status");
+    expect(letterUrl).toContain("ADD COLUMN auth_letter_url VARCHAR(512)");
+    expect(expiredAt).toContain("ADD COLUMN auth_expired_at DATETIME");
+    expect(authStatus).toContain("ADD COLUMN auth_status VARCHAR(16)");
     // 未上传/未设置必须可区分于空串与 0
-    expect(alter).toContain("DEFAULT NULL");
+    for (const statement of [letterUrl, expiredAt, authStatus]) {
+      expect(statement).toContain("DEFAULT NULL");
+    }
   });
 
   it("C2：t_app_version 追加 status / gray_ratio / archived_at 三列（status 默认 PUBLISHED，历史行语义显式化）", () => {
-    const alter = migrated[1];
-    expect(alter).toContain("ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'PUBLISHED'");
-    expect(alter).toContain("ADD COLUMN gray_ratio TINYINT NOT NULL DEFAULT 0");
-    expect(alter).toContain("ADD COLUMN archived_at DATETIME");
-    expect((alter.match(/ADD COLUMN/gi) ?? []).length).toBe(3);
+    const status = alterFor("t_app_version", "status");
+    const grayRatio = alterFor("t_app_version", "gray_ratio");
+    const archivedAt = alterFor("t_app_version", "archived_at");
+    expect(status).toContain("ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'PUBLISHED'");
+    expect(grayRatio).toContain("ADD COLUMN gray_ratio TINYINT NOT NULL DEFAULT 0");
+    expect(archivedAt).toContain("ADD COLUMN archived_at DATETIME");
   });
 
   it("只做追加：零改列、零删列、零新建表、零 DROP、零 DML（写闸门 block 下也能执行）", () => {

@@ -1,0 +1,111 @@
+{
+  "plan": [
+    "ALTER TABLE t_library_brand\r\n  ADD COLUMN auth_letter_url VARCHAR(512) DEFAULT NULL COMMENT '品牌授权书文件 URL（NULL=未上传）',\r\n  ADD COLUMN auth_expired_at DATETIME DEFAULT NULL COMMENT '授权有效期截止（NULL=未设置，不造默认值）',\r\n  ADD COLUMN auth_status VARCHAR(16) DEFAULT NULL COMMENT '授权状态 AUTHORIZED/EXPIRED/NONE（NULL=未设置）',\r\n  ALGORITHM=INSTANT",
+    "ALTER TABLE t_app_version\r\n  ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'PUBLISHED' COMMENT '发布状态 DRAFT/PUBLISHED/PAUSED/ARCHIVED（历史行按已发布）',\r\n  ADD COLUMN gray_ratio TINYINT NOT NULL DEFAULT 0 COMMENT '灰度放量比例 0-100（0=未放量）',\r\n  ADD COLUMN archived_at DATETIME DEFAULT NULL COMMENT '归档时间（NULL=未归档）',\r\n  ALGORITHM=INSTANT",
+    "SELECT COUNT(*) AS c6_new_column_count FROM information_schema.COLUMNS\r\n WHERE TABLE_SCHEMA = DATABASE()\r\n   AND ((TABLE_NAME = 't_library_brand' AND COLUMN_NAME IN ('auth_letter_url', 'auth_expired_at', 'auth_status'))\r\n     OR (TABLE_NAME = 't_app_version' AND COLUMN_NAME IN ('status', 'gray_ratio', 'archived_at')))",
+    "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, COLUMN_COMMENT\r\n FROM information_schema.COLUMNS\r\n WHERE TABLE_SCHEMA = DATABASE()\r\n   AND ((TABLE_NAME = 't_library_brand' AND COLUMN_NAME IN ('auth_letter_url', 'auth_expired_at', 'auth_status'))\r\n     OR (TABLE_NAME = 't_app_version' AND COLUMN_NAME IN ('status', 'gray_ratio', 'archived_at')))\r\n ORDER BY TABLE_NAME, COLUMN_NAME"
+  ],
+  "A": [
+    {
+      "index": 1,
+      "sql": "ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE",
+      "safeExecReturned": true,
+      "outcome": "applied",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 2,
+      "sql": "ALTER TABLE t_app_version ADD COLUMN status VARCHAR(16) NOT NULL DEFAU",
+      "safeExecReturned": true,
+      "outcome": "applied",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 3,
+      "sql": "SELECT COUNT(*) AS c6_new_column_count FROM information_schema.COLUMNS",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 4,
+      "sql": "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAU",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    }
+  ],
+  "B": [
+    {
+      "index": 1,
+      "sql": "ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE",
+      "safeExecReturned": false,
+      "outcome": "dup",
+      "errorCode": "ER_DUP_FIELDNAME",
+      "skippable": true
+    },
+    {
+      "index": 2,
+      "sql": "ALTER TABLE t_app_version ADD COLUMN status VARCHAR(16) NOT NULL DEFAU",
+      "safeExecReturned": false,
+      "outcome": "dup",
+      "errorCode": "ER_DUP_FIELDNAME",
+      "skippable": true
+    },
+    {
+      "index": 3,
+      "sql": "SELECT COUNT(*) AS c6_new_column_count FROM information_schema.COLUMNS",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 4,
+      "sql": "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAU",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    }
+  ],
+  "C": [
+    {
+      "index": 1,
+      "sql": "ALTER TABLE t_library_brand ADD COLUMN auth_letter_url VARCHAR(512) DE",
+      "safeExecReturned": false,
+      "outcome": "dup",
+      "errorCode": "ER_DUP_FIELDNAME",
+      "skippable": true
+    },
+    {
+      "index": 2,
+      "sql": "ALTER TABLE t_app_version ADD COLUMN status VARCHAR(16) NOT NULL DEFAU",
+      "safeExecReturned": true,
+      "outcome": "applied",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 3,
+      "sql": "SELECT COUNT(*) AS c6_new_column_count FROM information_schema.COLUMNS",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    },
+    {
+      "index": 4,
+      "sql": "SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAU",
+      "safeExecReturned": true,
+      "outcome": "string",
+      "errorCode": null,
+      "skippable": null
+    }
+  ],
+  "failed": 4
+}
